@@ -68,33 +68,6 @@ find_owner :: fn(out: MutableMap<string, i64>, target: i64) -> string {
 
 // ---- inferred width -------------------------------------------------------
 
-/// The narrowest integer holding every one of `values` : unsigned when none is
-/// negative. An enum's inferred width, and the one its written values cross C at.
-///
-/// @param values  the values to hold ; none is held by the narrowest of all.
-export narrowest_width :: fn(values: i64[]) -> MachineInteger {
-    [smallest, largest] :: value_bounds(values)
-    return narrowest_machine_integer(interval(smallest, largest))
-}
-
-// `[smallest, largest]` of `values` ; `[0, 0]` when there are none.
-value_bounds :: fn(values: i64[]) -> [i64, i64] {
-    if values.len() == 0 {
-        return [0, 0]
-    }
-    smallest := values[0]
-    largest := values[0]
-    for value in values {
-        if value < smallest {
-            smallest = value
-        }
-        if value > largest {
-            largest = value
-        }
-    }
-    return [smallest, largest]
-}
-
 // ---- variant data -----------------------------------------------------------
 
 /// Type-check each variant's `{ .f = v }` block against the data struct the

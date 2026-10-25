@@ -1,12 +1,16 @@
-// vader/core/types/types — the Type IR.
+// vader/core/types/types: the Type IR.
 //
 // Every Vader value gets exactly one Type. The discriminated union has 20
 // variants ; constructors are plain factories, with no hash-consing: `equals_type`
-// (`union.vader`) walks structurally instead of relying on reference identity.
+// walks structurally instead of relying on reference identity. This file holds the
+// variants and their constructors, display, equality, canonical keys, the walks
+// over a type, what a distinct is backed by and which values carry their tag.
 //
-// The rest of the module answers questions from types alone: equality and
-// canonical unions (`union.vader`), assignability and free literals
-// (`assignable.vader`), the value ABI (`value_abi.vader`).
+// The rest of the module answers questions from types alone: integer types and the
+// values a type holds (`integers.vader`), the names the compiler gives a meaning to
+// (`names.vader`), canonical unions (`union.vader`), assignability and free
+// literals (`assignable.vader`), substitution and unification (`substitution.vader`,
+// `unify.vader`), the value ABI (`value_abi.vader`).
 
 module "vader/core/types"
 
@@ -66,9 +70,6 @@ export DistinctType :: struct {
     backing: Type
 }
 
-/// The name of the abstract integer a range type is written over (`Int in 0..=23`).
-export INT_BASE_NAME :: "Int"
-
 /// A range of integers, `Int in lo..=hi` : a refinement of the integer, held in
 /// the narrowest integer type that holds it (`range_representation`). Told apart
 /// by its bounds alone, which are closed and within `i64` once declared ; a range
@@ -78,242 +79,6 @@ export RangeType :: struct {
     /// The alias it was declared as (`Hour`), for display ; "" for a range written
     /// in place or computed by an expression.
     name: string = ""
-}
-
-/// The machine integer a value of `r` is held in : the narrowest holding it.
-///
-/// @param r  a range.
-export storage_integer :: fn(r: RangeType) -> MachineInteger =
-    narrowest_machine_integer(r.bounds)
-
-/// The integer type a value of `r` is held in (`storage_integer`), as the range of
-/// its values.
-///
-/// @param r  a range.
-export range_representation :: fn(r: RangeType) -> RangeType = narrowest_integer(r.bounds)
-
-/// The name a backend reads `t` by : the integer it is held in for an integer
-/// type (`integer_representation`) or an enum (its `repr`), its display for any
-/// other.
-///
-/// @param t  any type.
-export representation_name :: fn(t: Type) -> string {
-    if t is EnumType {
-        return t.repr.name
-    }
-    integer :: integer_representation(t) ?? return display_type(t)
-    return integer.name
-}
-
-/// The machine integer a value of `t` is held in (`storage_integer`) ; null for a
-/// type that is no integer.
-///
-/// @param t  any type.
-export integer_representation :: fn(t: Type) -> MachineInteger | null {
-    if t is RangeType {
-        return storage_integer(t)
-    }
-    return null
-}
-
-/// The values of the machine integer a value of `t` is held in, through any
-/// distinct : what a value of a range may hold where nothing proves it within the
-/// range ; null for a type that is no integer.
-///
-/// @param t  any type.
-export held_values :: fn(t: Type) -> Interval | null {
-    held :: held_integer(t) ?? return null
-    return held.values
-}
-
-/// The values of the integer type `t`, the bounds of its range.
-///
-/// @return  null for any other type, a distinct over an integer included.
-export integer_values :: fn(t: Type) -> Interval | null {
-    if t is RangeType {
-        return t.bounds
-    }
-    return null
-}
-
-/// The values of `t` a `match` covers arm by arm : an integer's, the Unicode
-/// scalar values of `char`, those of a distinct over one.
-///
-/// @param t  the scrutinee's type.
-/// @return   null for any other type, and for one reaching past `i64` (`u64`,
-///           `i64`), whose patterns are read within `i64`.
-export integer_set :: fn(t: Type) -> Interval[] | null {
-    if t !is PrimitiveType | RangeType | DistinctType {
-        return null
-    }
-    backing :: strip_distinct(t)
-    if backing is PrimitiveType && backing.name == "char" {
-        return CHAR_VALUES
-    }
-    values :: integer_values(backing) ?? return null
-    if values.lo_open || values.hi_open {
-        return null
-    }
-    return [values]
-}
-
-/// The values of `char`, the Unicode scalar values : every code point but the
-/// surrogates, in two runs.
-export CHAR_VALUES: Interval[]: [
-    Interval { .lo = 0, .hi = 0xD7FF },
-    Interval { .lo = 0xE000, .hi = 0x10FFFF },
-]
-
-/// The machine integer a value of `t` is held in, through any distinct ; null for a
-/// type that is no integer.
-///
-/// @param t  any type.
-export held_integer :: fn(t: Type) -> MachineInteger | null {
-    if t is DistinctType {
-        return held_integer(t.backing)
-    }
-    return integer_representation(t)
-}
-
-/// Whether a value of `t` is held in an integer (`held_integer`), found without
-/// choosing which : `t` is a range, through any distinct.
-///
-/// @param t  any type.
-export is_stored_as_integer :: fn(t: Type) -> bool {
-    if t is DistinctType {
-        return is_stored_as_integer(t.backing)
-    }
-    return t is RangeType
-}
-
-/// The narrowest of `u8`, `u16`, `u32`, `u64` holding every value of `values` when
-/// none is negative, of `i8`, `i16`, `i32`, `i64` otherwise : what a range is held
-/// in, and an enum's inferred width.
-///
-/// @param values  the integers to hold ; past 64 bits, the widest of its kind.
-export narrowest_integer :: fn(values: Interval) -> RangeType =
-    machine_integer_type(narrowest_machine_integer(values))
-
-/// The name of the primitive `t` is : a primitive's own (`string`, `char`), the
-/// machine integer a range of its bounds is (`machine_integer_name`) ; "" for any
-/// other type, a range of other bounds included, and for none.
-///
-/// @param t  any type, or none.
-export primitive_name :: fn(t: Type | null) -> string {
-    if t is PrimitiveType {
-        return t.name
-    }
-    if t is RangeType {
-        return machine_integer_name(t.bounds)
-    }
-    return ""
-}
-
-/// Whether `r` has the bounds of a machine integer (`machine_integer_name`).
-///
-/// @param r  a range.
-export is_machine_range :: fn(r: RangeType) -> bool = machine_integer_name(r.bounds) != ""
-
-/// Whether `t` is one of the eight machine integers, a range of exactly its bounds.
-///
-/// @param t  any type.
-export is_machine_integer :: fn(t: Type) -> bool = t is RangeType && is_machine_range(t)
-
-/// `t` when it is a range of no machine integer's bounds (`Hour`, `1..=24`) : one
-/// whose arithmetic is exact, computed over the integers ; null for any other type.
-///
-/// @param t  any type, or none.
-export refinement_of :: fn(t: Type | null) -> RangeType | null {
-    if t is RangeType && !is_machine_range(t) {
-        return t
-    }
-    return null
-}
-
-/// Whether `t` is a range of no machine integer's bounds (`refinement_of`).
-///
-/// @param t  any type, or none.
-export is_refinement :: fn(t: Type | null) -> bool = refinement_of(t) != null
-
-/// The machine integer `m` as the typecheck holds it : the range of its values,
-/// named after it.
-///
-/// @param m  a machine integer.
-export machine_integer_type :: fn(m: MachineInteger) -> RangeType =
-    RangeType { .bounds = m.values, .name = m.name }
-
-/// The least value of an integer type holding `values`, or its greatest, as an
-/// `i64` carries it : a greatest value past `i64` is its bit pattern, `-1` for
-/// `u64.max`.
-///
-/// @param values    the type's values (a machine integer's, a range's bounds).
-/// @param greatest  the greatest rather than the least.
-export integer_bound :: fn(values: Interval, greatest: bool) -> i64 {
-    if !greatest {
-        return values.lo
-    }
-    if values.hi_open {
-        return i64(upper_past_i64(values))
-    }
-    return values.hi
-}
-
-// `r` as written : its declared name, else the machine integer of its bounds,
-// else its bounds. `qualified` writes the bounds of any other range whatever its
-// name, `Int in 0..=23`, so two ranges of one name differ.
-write_range :: fn(sb: StringBuilder, r: RangeType, qualified: bool) -> void {
-    machine :: machine_integer_name(r.bounds)
-    if machine != "" && (qualified || r.name == "") {
-        sb.append(machine)
-        return
-    }
-    if qualified {
-        sb.append("${INT_BASE_NAME} in ${display_bounds(r.bounds)}")
-        return
-    }
-    if r.name != "" {
-        sb.append(r.name)
-        return
-    }
-    sb.append(display_bounds(r.bounds))
-}
-
-/// `r` as a message names it : `` `Hour` (0..=23) `` when it has a name,
-/// `` `0..=23` `` otherwise, `` `i32` `` for a machine integer.
-///
-/// @param r  a range.
-export display_range :: fn(r: RangeType) -> string {
-    machine :: machine_integer_name(r.bounds)
-    if machine != "" && (r.name == "" || r.name == machine) {
-        return "`${machine}`"
-    }
-    if r.name == "" {
-        return "`${display_bounds(r.bounds)}`"
-    }
-    return "`${r.name}` (${display_bounds(r.bounds)})"
-}
-
-/// `bounds` as a range is written, `lo..=hi`, an end with no bound left out
-/// (`0..`).
-///
-/// @param bounds  the interval to render.
-export display_bounds :: fn(bounds: Interval) -> string {
-    lo :: open_or(bounds.lo_open, bounds.lo)
-    if !bounds.hi_open {
-        return "${lo}..=${bounds.hi}"
-    }
-    if bounds.hi_past == 0 {
-        return "${lo}.."
-    }
-    return "${lo}..=${upper_past_i64(bounds)}"
-}
-
-// The text of a bound, "" when the end is open.
-open_or :: fn(open: bool, value: i64) -> string {
-    if open {
-        return ""
-    }
-    return "${value}"
 }
 
 export TraitType :: struct {
@@ -411,335 +176,6 @@ export Type ::
     | DistinctType
     | RangeType
     | InferVar
-
-// ---- name registries ------------------------------------------------------
-
-/// Target-ABI metadata for one primitive other than the integers, which
-/// `vader/support/integer::MACHINE_INTEGERS` describes: the single source of truth every
-/// pass consults instead of re-listing names. Row order is load-bearing:
-/// `front/resolver/builtins` mints builtin symbol IDs in this order (embedded in
-/// snapshots), so new primitives append at the end. Consumer-owned mappings
-/// (bytecode `ValType`, c-emit C spellings) map a row onto their own enum rather
-/// than living here, so `vader/core/types` stays a near-leaf. `size` is bytes (align ==
-/// size on the 64-bit target).
-export PrimitiveMeta :: struct {
-    name:     string
-    size:     i64
-    is_float: bool = false
-    /// The value is a handle the runtime follows, not storage the slot owns.
-    /// `string` is an interned atom the collector tracks ; `CPointer` addresses
-    /// memory the Vader side does not own. A pass deciding whether a value can
-    /// be copied into registers, embedded in a flat layout, or taken the address
-    /// of has to ask this — the size alone says `CPointer` is eight bytes like a
-    /// `u64`, and that is the wrong answer.
-    is_reference: bool = false
-}
-
-export PRIMITIVE_META: PrimitiveMeta[]: [
-    PrimitiveMeta {
-        .name = "f32",
-        .size = 4,
-        .is_float = true,
-    },
-    PrimitiveMeta {
-        .name = "f64",
-        .size = 8,
-        .is_float = true,
-    },
-    PrimitiveMeta { .name = "bool", .size = 1 },
-    PrimitiveMeta { .name = "char", .size = 4 },
-    PrimitiveMeta {
-        .name = "string",
-        .size = 4,
-        .is_reference = true,
-    },
-    PrimitiveMeta { .name = "void", .size = 0 },
-    PrimitiveMeta { .name = "null", .size = 0 },
-    PrimitiveMeta {
-        .name = "CPointer",
-        .size = 8,
-        .is_reference = true,
-    },
-]
-
-/// The `PrimitiveMeta` row for `name`, or null when `name` is not a primitive.
-export primitive_meta :: fn(name: string) -> PrimitiveMeta | null {
-    for m in PRIMITIVE_META {
-        if m.name == name { return m }
-    }
-    return null
-}
-
-/// Whether `name` spells a scalar type the compiler knows by name : a primitive
-/// (`bool`, `string`, `f64`, …) or one of the eight machine integers.
-export is_scalar_type_name :: fn(name: string) -> bool =
-    primitive_meta(name) != null || is_int_name(name)
-
-/// Whether `name` is a primitive the runtime reaches through a handle.
-///
-/// False for anything that is not a primitive at all — the question only has a
-/// meaning for a row of the table.
-export is_reference_name :: fn(name: string) -> bool {
-    m :: primitive_meta(name)
-    return m != null && m.is_reference
-}
-
-/// Whether `name` spells a machine integer (`machine_integer_named`).
-export is_int_name :: fn(name: string) -> bool = machine_integer_named(name) != null
-
-/// Whether a range whose lower bound has type `t` counts in place: an integer, or
-/// a free integer or `char` literal. A `for` over such a range written in place
-/// walks a counter instead of stepping a `Range`.
-///
-/// @param t  the lower bound's type.
-export is_counting_type :: fn(t: Type) -> bool = match t {
-    is FreeIntType | FreeCharType | RangeType -> true
-    is PrimitiveType | FreeFloatType | StructType | EnumType | DistinctType -> false
-    is ArrayType | TupleType | UnionType | FnType | TraitType | TypeParamType -> false
-    is InferVar | SelfType | AnyType -> false
-    is NeverType | UnresolvedType | TypeMetaType -> false
-}
-
-/// Whether `name` spells a signed machine integer.
-export is_signed_int_name :: fn(name: string) -> bool {
-    m :: machine_integer_named(name) ?? return false
-    return m.is_signed
-}
-
-/// Whether `name` spells an unsigned machine integer.
-export is_unsigned_int_name :: fn(name: string) -> bool {
-    m :: machine_integer_named(name) ?? return false
-    return !m.is_signed
-}
-
-export is_float_name :: fn(name: string) -> bool {
-    m :: primitive_meta(name)
-    return m != null && m.is_float
-}
-
-/// Whether `name` spells a machine integer or a float.
-export is_numeric_name :: fn(name: string) -> bool = is_int_name(name) || is_float_name(name)
-
-/// Size in bytes of a primitive or a machine integer (0 for `void` / `null` /
-/// anything else).
-export primitive_size :: fn(name: string) -> i64 {
-    integer :: machine_integer_named(name)
-    if integer != null {
-        return integer.bits / 8
-    }
-    m :: primitive_meta(name) ?? return 0
-    return m.size
-}
-
-/// Alignment in bytes — equal to size on the 64-bit target.
-export primitive_align :: fn(name: string) -> i64 = primitive_size(name)
-
-/// Width in bytes of the SLOT that carries a `t` — a struct field, a local, a
-/// parameter. Not the size of the object a reference points at.
-///
-/// This is what `@size_of` reports, and the operational truth is
-/// `midir/select::val_type_of_type` composed with `emit/c::c_type_for_val_bare`:
-/// those two decide the C declaration, and any disagreement with this function
-/// is a bug here. It lives in `vader/core/types` because `vader/front/comptime` folds
-/// `@size_of` and cannot reach `vader/midir/select` without inverting an import
-/// edge; the colocated tests below pin one case per class against the emitted C.
-///
-/// A concrete reference is EIGHT bytes, not sixteen: a struct, array,
-/// tuple or fn value rides as a bare `void*` and recovers its tag from the
-/// object header. Only an ERASED slot — a trait object, a union, `any` — still
-/// carries a `vader_box_t`, whose tag it needs because no single object header
-/// answers for every variant it may hold.
-///
-/// @return  0 for the comptime-only and unsized kinds — they name no storage.
-export slot_byte_size :: fn(t: Type) -> i64 = match t {
-    is PrimitiveType -> primitive_size(t.name)
-    // An enum rides its `repr` : `enum(u8)` is one byte.
-    is EnumType     -> t.repr.bits / 8
-    is DistinctType -> slot_byte_size(t.backing)
-    is RangeType    -> storage_integer(t).bits / 8
-    is StructType | ArrayType | TupleType | FnType   -> REF_SLOT_BYTES
-    is TraitType | UnionType | AnyType               -> BOX_SLOT_BYTES
-    is TypeMetaType | TypeParamType | InferVar | SelfType | UnresolvedType
-     | FreeIntType | FreeFloatType | FreeCharType | NeverType -> 0
-}
-
-/// Alignment in bytes of that slot.
-///
-/// Every scalar aligns to its own width on the 64-bit target ; a `vader_box_t`
-/// is 16 bytes wide but its widest member is a word, so it aligns to 8.
-export slot_byte_align :: fn(t: Type) -> i64 {
-    size :: slot_byte_size(t)
-    if size > WORD_BYTES {
-        return WORD_BYTES
-    }
-    return size
-}
-
-/// A concrete heap reference: a `void*`.
-export REF_SLOT_BYTES: i64: 8
-
-/// An erased slot — `vader_box_t`, a tag plus a word of payload.
-export BOX_SLOT_BYTES: i64: 16
-
-/// Pointer width on the 64-bit target.
-export WORD_BYTES: i64: 8
-
-/// Names of stdlib core traits used for compiler-driven dispatch. Kept as
-/// plain string constants so cross-module symbol lookup goes through
-/// resolved imports rather than a privileged registry.
-export TRAIT_DISPLAY    :: @type_name(Display)
-export TRAIT_ERROR      :: @type_name(Error)
-export TRAIT_EQUALS     :: @type_name(Equals)
-export TRAIT_COMPARABLE :: @type_name(Comparable)
-export TRAIT_ADD        :: @type_name(Add)
-export TRAIT_SUB        :: @type_name(Sub)
-export TRAIT_MUL        :: @type_name(Mul)
-export TRAIT_DIV        :: @type_name(Div)
-export TRAIT_REM        :: @type_name(Rem)
-export TRAIT_HASH       :: @type_name(Hash)
-export TRAIT_CLONE      :: @type_name(Clone)
-export TRAIT_STEP       :: @type_name(Step)
-export TRAIT_INTO       :: @type_name(Into)
-export TRAIT_ITERATOR   :: @type_name(Iterator)
-export TRAIT_ASYNC      :: @type_name(Async)
-export TRAIT_CONTAINS   :: @type_name(Contains)
-export TRAIT_INDEX      :: @type_name(Index)
-export TRAIT_INDEX_SET  :: @type_name(IndexSet)
-
-/// `impl_base_key` of a nominal declaration — the symbol ids are unique across
-/// every kind, so the id alone names it.
-///
-/// @param sym  the declaration's symbol — not an import binding.
-export declaration_key :: fn(sym: Symbol) -> string = "#${sym.id}"
-
-/// Mangle a module display path into a name-fragment usable in a mangled
-/// symbol: `/` and `.` both become `_`, every other byte passes through.
-/// Centralised here so the lowerer's name-mangling sites, the trait keys and the
-/// CLI's entry-point name share one scheme and can't drift — a mismatch would
-/// desync the VM's `export main <index>` directive from the emitted fn name.
-///
-/// @param module_id  the module display path (e.g. `"std/string"`).
-/// @return           the mangled fragment (e.g. `"std_string"`).
-export mangle_module_id :: fn(module_id: string) -> string {
-    out: u8[]: [] * module_id.byte_len()
-    for i in 0..<module_id.byte_len() {
-        b :: module_id.byte_at(i)
-        if b == '/' || b == '.' {
-            out.push('_')
-        } else {
-            out.push(b)
-        }
-    }
-    return out.bytes_to_string()
-}
-
-/// A trait's identity across modules, named the way the bytecode names a struct
-/// or a fn : its declaring module's mangled name, then its own —
-/// `"std_core$Display"`, `"a$Animal"`. Two traits with the same name in
-/// different modules get different keys. It keys the trait side of the impl
-/// tables, and the trait half of a vtable key (`"std_core$Display.to_string"`).
-///
-/// @param trait_sym  the trait's declaration symbol — not an import binding.
-export trait_key_of :: fn(trait_sym: Symbol) -> string =
-    "${mangle_module_id(trait_sym.module_name)}\$${trait_sym.name}"
-
-/// The `trait_key` of a `std/core` trait, from its `TRAIT_*` name.
-///
-/// @param name  a `TRAIT_*` constant.
-export core_trait_key :: fn(name: string) -> string = "std_core\$${name}"
-
-/// Whether `t` is the `std/core` trait `name`, told by its declaration rather
-/// than its spelling: a user trait named `Iterator` is not the core one.
-///
-/// @param t     a trait type.
-/// @param name  a `TRAIT_*` constant.
-export is_core_trait :: fn(t: TraitType, name: string) -> bool =
-    trait_key_of(t.symbol) == core_trait_key(name)
-
-/// Whether `t` is the `std/core` struct `name`, told by its declaration rather
-/// than its spelling: a struct of the program named `Range` is not the core one.
-///
-/// @param t     a struct type.
-/// @param name  a `STRUCT_*` constant.
-export is_core_struct :: fn(t: StructType, name: string) -> bool =
-    t.symbol.module_name == "std/core" && t.symbol.name == name
-
-/// Whether `t` is `std/ffi`'s `CLibrary`, the struct a binding names the C library
-/// it calls with, told by its declaration rather than its spelling.
-///
-/// @param t  the candidate type.
-export is_c_library :: fn(t: Type) -> bool {
-    if t !is StructType {
-        return false
-    }
-    return t.symbol.module_name == "std/ffi" && t.symbol.name == "CLibrary"
-}
-
-/// The argument of `t` when it is the one-argument `std/core` trait `name`:
-/// `E` for `Iterator<E>`, `T` for `Async<T>`.
-///
-/// @param t     the type to read.
-/// @param name  a `TRAIT_*` constant.
-/// @return      null for any other type.
-export core_trait_arg :: fn(t: Type, name: string) -> Type | null {
-    if t is TraitType && is_core_trait(t, name) && t.args.len() > 0 {
-        return t.args[0]
-    }
-    return null
-}
-
-/// Whether `t` implements `trait_key` with no impl : every enum implements
-/// `Equals`, comparing by variant, and `Hash`, so it keys a `MutableMap`. A boxed
-/// enum carries its integer, whose `Equals` and `Hash` a vtable reaches. No impl is
-/// registered, so the run-time `is Trait` test does not see these.
-///
-/// @param t          the implementing type.
-/// @param trait_key  the trait asked for.
-export has_builtin_impl :: fn(t: Type, trait_key: string) -> bool =
-    t is EnumType &&
-        (trait_key == core_trait_key(TRAIT_EQUALS) || trait_key == core_trait_key(TRAIT_HASH))
-
-/// The trait name inside a `trait_key` — what a message shows the user.
-///
-/// @param key  a `trait_key`.
-export trait_key_name :: fn(key: string) -> string {
-    start := key.byte_len()
-    for start > 0 && key.byte_at(start - 1) != '$' {
-        start -= 1
-    }
-    return key.byte_slice(start, key.byte_len())
-}
-
-/// Names of stdlib core structs the compiler refers to by symbol.
-export STRUCT_RANGE          :: @type_name(Range)
-
-/// `std/core::Continuation` and its variants — what an `Iterator.next` pairs its
-/// element with. The lowerer builds the comparison, so the spellings live beside
-/// the type.
-export ENUM_CONTINUATION     :: @type_name(Continuation)
-export CONTINUATION_STOP     :: "Stop"
-export CONTINUATION_CONTINUE :: "Continue"
-export STRUCT_SUSPENDED      :: @type_name(Suspended)
-export STRUCT_FIELD          :: @type_name(Field)
-
-/// Method names the compiler dispatches by, paired with the `TRAIT_*` above
-/// (`Add::add`, `Comparable::compare`, `Iterator::next`, …). Same rationale as
-/// the trait names: one source so a rename touches one line.
-export METHOD_ADD       :: "add"
-export METHOD_SUB       :: "sub"
-export METHOD_MUL       :: "mul"
-export METHOD_DIV       :: "div"
-export METHOD_REM       :: "rem"
-export METHOD_EQUALS    :: "equals"
-export METHOD_COMPARE   :: "compare"
-export METHOD_CONTAINS  :: "contains"
-export METHOD_INTO      :: "into"
-export METHOD_NEXT      :: "next"
-export METHOD_RESUME    :: "resume"
-export METHOD_CANCEL    :: "cancel"
-export METHOD_TO_STRING :: "to_string"
-export METHOD_AT        :: "at"
-export METHOD_SET_AT    :: "set_at"
 
 // ---- constructors ---------------------------------------------------------
 
@@ -980,6 +416,27 @@ export impl_base_key :: fn(t: Type) -> string {
     }
 }
 
+/// The nominal symbol an impl written for `t` is keyed by ; null for
+/// shapes that can't carry an impl (Primitive, Array, Fn, TypeParam,
+/// Union, …). A distinct (newtype) is nominal — it carries its OWN impls
+/// (`MyId implements Hash`), not the backing's — so it resolves to its own
+/// symbol.
+export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
+    // @partial: only the three nominal variants carry an impl target symbol;
+    // every structural / primitive variant (Array, Fn, Union, …) carries none.
+    @partial match t {
+        is StructType -> { return t.symbol }
+        is EnumType -> { return t.symbol }
+        is DistinctType -> { return t.symbol }
+        _ -> { return null }
+    }
+}
+
+/// Whether `t` is a tuple, a fn or a union : a target keyed by its shape, having no
+/// declaration of its own.
+///
+/// @param t  a type.
+export is_structural :: fn(t: Type) -> bool = t is TupleType || t is FnType || t is UnionType
 
 write_type :: fn(sb: StringBuilder, t: Type, qualified: bool) -> void {
     match t {
@@ -1334,6 +791,16 @@ export scalar_backing :: fn(t: Type) -> PrimitiveType | RangeType | null {
     return null
 }
 
+/// The data `src` carries when it is an enum whose header declares `target` as
+/// its variant data (`Info(variant)`) ; null otherwise.
+export enum_data_of :: fn(src: Type, target: Type) -> StructType | null {
+    if src is EnumType {
+        data :: src.data ?? return null
+        if is_assignable(data, target) { return data }
+    }
+    return null
+}
+
 /// The type a mixed instance keeps for the type argument `t` ; null when `t`
 /// erases to `Any`, i.e. when the instance shares its body with every other
 /// instance erasing there. Every site that depends on the split asks this one
@@ -1418,8 +885,6 @@ export strip_distinct_each :: fn(args: Type[]) -> Type[] {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "toolchain/ast"
-
 
 @test
 test_default_if_free :: fn() -> void {
@@ -1503,30 +968,6 @@ test_display_type_param :: fn() -> void {
 }
 
 @test
-test_integer_singletons_agree_with_the_machine_table :: fn() -> void {
-    singletons :: [TY_I32, TY_I64]
-    for t in singletons {
-        m :: machine_integer_named(t.name) ?? return assert(false, "${t.name} is in the table")
-        assert(same_interval(m.values, t.bounds), "${t.name} has its machine bounds")
-    }
-}
-
-@test
-test_held_values_reads_the_storage :: fn() -> void {
-    u8_iv :: held_values(mk_primitive("u8")) ?? ANY_INTEGER
-    assert(same_interval(u8_iv, interval(0, 255)), "u8")
-    i8_iv :: held_values(mk_primitive("i8")) ?? ANY_INTEGER
-    assert(same_interval(i8_iv, interval(-128, 127)), "i8")
-    i64_iv :: held_values(TY_I64) ?? ANY_INTEGER
-    assert(same_interval(i64_iv, interval(I64_MIN, I64_MAX)), "i64")
-    u64_iv :: held_values(mk_primitive("u64")) ?? ANY_INTEGER
-    assert(u64_iv.hi_open && !u64_iv.lo_open && u64_iv.lo == 0, "u64 ends")
-    hour_iv :: held_values(RangeType { .bounds = interval(0, 23) }) ?? ANY_INTEGER
-    assert(same_interval(hour_iv, interval(0, 255)), "a range is held in its u8")
-    assert(held_values(TY_CHAR) == null, "char is no integer")
-}
-
-@test
 test_mk_primitive_builds_an_integer_as_its_range :: fn() -> void {
     byte :: mk_primitive("u8")
     assert(byte is RangeType && same_interval(byte.bounds, interval(0, 255)), "u8 is a range")
@@ -1540,88 +981,6 @@ test_range_of_machine_bounds_reads_as_that_integer :: fn() -> void {
     assert_eq(display_type(byte), "Byte")
     assert_eq(canonical_key(byte), canonical_key(mk_primitive("u8")))
     assert_eq(impl_base_key(byte), "u8")
-}
-
-@test
-test_is_scalar_type_name :: fn() -> void {
-    assert(is_scalar_type_name("i32"), "i32 is a scalar type")
-    assert(is_scalar_type_name("string"), "string is a scalar type")
-    assert(!is_scalar_type_name("MyStruct"), "a user type is no scalar type")
-}
-
-@test
-test_primitive_meta_partition :: fn() -> void {
-    assert(is_int_name("u64") && is_unsigned_int_name("u64"), "u64 is unsigned int")
-    assert(is_signed_int_name("i64") && !is_unsigned_int_name("i64"), "i64 is signed int")
-    assert(is_float_name("f32") && !is_int_name("f32"), "f32 is float not int")
-    assert(!is_numeric_name("char") && !is_numeric_name("string"), "char/string not numeric")
-    // An atom id, not the retired `{ptr, len}` fat pointer.
-    assert_eq(primitive_size("string"), 4)
-    assert_eq(primitive_size("i32"), 4)
-}
-
-@test
-test_slot_size_of_a_string_is_an_atom_id :: fn() -> void {
-    // `typedef vader_atom_t vader_string_t` — a u32, not a `{ptr, len}` fat
-    // pointer.
-    assert_eq(slot_byte_size(TY_STRING), 4)
-}
-
-@test
-test_slot_size_of_a_byte_enum_is_one :: fn() -> void {
-    // `enum(u8)` emits a `uint8_t` field.
-    assert_eq(slot_byte_size(slot_size_test_enum("u8")), 1)
-}
-
-@test
-test_slot_size_of_an_i32_enum_is_four :: fn() -> void {
-    assert_eq(slot_byte_size(slot_size_test_enum("i32")), 4)
-}
-
-@test
-test_slot_size_of_a_concrete_ref_is_a_word :: fn() -> void {
-    // A concrete-reference field emits `void*`, not a `vader_box_t`.
-    assert_eq(slot_byte_size(mk_array(TY_I32)), REF_SLOT_BYTES)
-}
-
-@test
-test_slot_size_of_an_erased_slot_is_a_box :: fn() -> void {
-    // A union has no single object header to recover a tag from, so it keeps
-    // the boxed slot.
-    either :: mk_union([TY_I32, TY_STRING])
-    assert_eq(slot_byte_size(either), BOX_SLOT_BYTES)
-}
-
-@test
-test_slot_size_of_an_abstract_kind_is_zero :: fn() -> void {
-    assert_eq(slot_byte_size(TY_NEVER), 0)
-}
-
-@test
-test_slot_align_caps_at_a_word :: fn() -> void {
-    either :: mk_union([TY_I32, TY_STRING])
-    assert_eq(slot_byte_align(either), WORD_BYTES)
-}
-
-@test
-test_slot_align_of_a_narrow_scalar_is_its_width :: fn() -> void {
-    assert_eq(slot_byte_align(mk_primitive("i16")), 2)
-}
-
-slot_size_test_enum :: fn(repr: string) -> Type = EnumType {
-    .symbol = slot_size_test_sym(),
-    .repr = machine_integer_named(repr) ?? panic("`${repr}` is no machine integer"),
-    .indices = MutableMap<string, i64> {},
-}
-
-slot_size_test_sym :: fn() -> Symbol = Symbol {
-    .id = 9002,
-    .kind = .TypeAlias,
-    .name = "Color",
-    .module = "test",
-    .module_name = "test",
-    .visibility = .Private,
-    .defined_at = null,
 }
 
 @test

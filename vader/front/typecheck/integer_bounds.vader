@@ -23,7 +23,6 @@
 module "vader/front/typecheck"
 
 import "std/collections"
-import "std/sort"
 import "vader/support/diagnostics"
 import "vader/support/integer"
 import "vader/core/types"
@@ -76,54 +75,6 @@ integer_bound_type :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: D
 ///
 /// @param t  any type.
 is_valued_enum :: fn(t: Type) -> bool = t is EnumType && t.data == null
-
-/// The values of the enum `e`, in runs of consecutive values, the least first :
-/// `enum { A = 1, B = 2, C = 5 }` is `1..=2` and `5..=5` ; none for an enum of no
-/// variant.
-///
-/// @param e  an enum without variant data (`is_valued_enum`).
-export enum_value_runs :: fn(e: EnumType) -> Interval[] {
-    runs: Interval[]: []
-    values :: sort(e.indices.values(), (a, b) -> a < b)
-    if values.len() == 0 {
-        return runs
-    }
-    lo := values[0]
-    hi := values[0]
-    for v in values {
-        // `v - 1`, not `hi + 1` : `hi` may be the greatest `i64`.
-        if v > hi && v - 1 > hi {
-            runs.push(interval(lo, hi))
-            lo = v
-        }
-        hi = v
-    }
-    runs.push(interval(lo, hi))
-    return runs
-}
-
-/// The least and the greatest value of the type `t` : an integer type's bounds, the
-/// hull of an enum's values, of the Unicode scalar values for `char`.
-///
-/// @param t  any type.
-/// @return   null for a type with no integer values, an enum of no variant included.
-export type_bounds :: fn(t: Type) -> Interval | null {
-    if is_char(t) {
-        return hull(CHAR_VALUES)
-    }
-    if t is EnumType && t.data == null {
-        return hull(enum_value_runs(t))
-    }
-    return integer_values(t)
-}
-
-// From the least to the greatest value of `runs`, sorted ; null for none.
-hull :: fn(runs: Interval[]) -> Interval | null {
-    if runs.len() == 0 {
-        return null
-    }
-    return interval(runs[0].lo, runs[runs.len() - 1].hi)
-}
 
 // The detail of T3110 on `t`, the type `what` takes : an enum with variant data
 // stores a rank, not a value ; an enum of no variant has none.

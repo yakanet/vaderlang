@@ -1,0 +1,132 @@
+// vader/core/types/layout: how many bytes the slot holding a value of a type takes.
+//
+// A struct field, a local and a parameter each hold their value in a slot: a
+// scalar at its own width, a concrete reference as a pointer, an erased value
+// boxed with its tag (`slot_byte_size`, `slot_byte_align`). `@size_of` reports it,
+// and the value ABI (`value_abi.vader`) sums these widths to decide what crosses a
+// call in registers.
+
+module "vader/core/types"
+
+import "std/abort"
+import "std/collections"
+import "vader/core/symbol"
+import "vader/support/integer"
+
+/// Width in bytes of the SLOT that carries a `t` — a struct field, a local, a
+/// parameter. Not the size of the object a reference points at.
+///
+/// This is what `@size_of` reports, and the operational truth is
+/// `midir/select::val_type_of_type` composed with `emit/c::c_type_for_val_bare`:
+/// those two decide the C declaration, and any disagreement with this function
+/// is a bug here. It lives in `vader/core/types` because `vader/front/comptime` folds
+/// `@size_of` and cannot reach `vader/midir/select` without inverting an import
+/// edge; the colocated tests below pin one case per class against the emitted C.
+///
+/// A concrete reference is EIGHT bytes, not sixteen: a struct, array,
+/// tuple or fn value rides as a bare `void*` and recovers its tag from the
+/// object header. Only an ERASED slot — a trait object, a union, `any` — still
+/// carries a `vader_box_t`, whose tag it needs because no single object header
+/// answers for every variant it may hold.
+///
+/// @return  0 for the comptime-only and unsized kinds — they name no storage.
+export slot_byte_size :: fn(t: Type) -> i64 = match t {
+    is PrimitiveType -> primitive_size(t.name)
+    // An enum rides its `repr` : `enum(u8)` is one byte.
+    is EnumType     -> t.repr.bits / 8
+    is DistinctType -> slot_byte_size(t.backing)
+    is RangeType    -> storage_integer(t).bits / 8
+    is StructType | ArrayType | TupleType | FnType   -> REF_SLOT_BYTES
+    is TraitType | UnionType | AnyType               -> BOX_SLOT_BYTES
+    is TypeMetaType | TypeParamType | InferVar | SelfType | UnresolvedType
+     | FreeIntType | FreeFloatType | FreeCharType | NeverType -> 0
+}
+
+/// Alignment in bytes of that slot.
+///
+/// Every scalar aligns to its own width on the 64-bit target ; a `vader_box_t`
+/// is 16 bytes wide but its widest member is a word, so it aligns to 8.
+export slot_byte_align :: fn(t: Type) -> i64 {
+    size :: slot_byte_size(t)
+    if size > WORD_BYTES {
+        return WORD_BYTES
+    }
+    return size
+}
+
+/// A concrete heap reference: a `void*`.
+export REF_SLOT_BYTES: i64: 8
+
+/// An erased slot — `vader_box_t`, a tag plus a word of payload.
+export BOX_SLOT_BYTES: i64: 16
+
+/// Pointer width on the 64-bit target.
+export WORD_BYTES: i64: 8
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_slot_size_of_a_string_is_an_atom_id :: fn() -> void {
+    // `typedef vader_atom_t vader_string_t` — a u32, not a `{ptr, len}` fat
+    // pointer.
+    assert_eq(slot_byte_size(TY_STRING), 4)
+}
+
+@test
+test_slot_size_of_a_byte_enum_is_one :: fn() -> void {
+    // `enum(u8)` emits a `uint8_t` field.
+    assert_eq(slot_byte_size(slot_size_test_enum("u8")), 1)
+}
+
+@test
+test_slot_size_of_an_i32_enum_is_four :: fn() -> void {
+    assert_eq(slot_byte_size(slot_size_test_enum("i32")), 4)
+}
+
+@test
+test_slot_size_of_a_concrete_ref_is_a_word :: fn() -> void {
+    // A concrete-reference field emits `void*`, not a `vader_box_t`.
+    assert_eq(slot_byte_size(mk_array(TY_I32)), REF_SLOT_BYTES)
+}
+
+@test
+test_slot_size_of_an_erased_slot_is_a_box :: fn() -> void {
+    // A union has no single object header to recover a tag from, so it keeps
+    // the boxed slot.
+    either :: mk_union([TY_I32, TY_STRING])
+    assert_eq(slot_byte_size(either), BOX_SLOT_BYTES)
+}
+
+@test
+test_slot_size_of_an_abstract_kind_is_zero :: fn() -> void {
+    assert_eq(slot_byte_size(TY_NEVER), 0)
+}
+
+@test
+test_slot_align_caps_at_a_word :: fn() -> void {
+    either :: mk_union([TY_I32, TY_STRING])
+    assert_eq(slot_byte_align(either), WORD_BYTES)
+}
+
+@test
+test_slot_align_of_a_narrow_scalar_is_its_width :: fn() -> void {
+    assert_eq(slot_byte_align(mk_primitive("i16")), 2)
+}
+
+slot_size_test_enum :: fn(repr: string) -> Type = EnumType {
+    .symbol = slot_size_test_sym(),
+    .repr = machine_integer_named(repr) ?? panic("`${repr}` is no machine integer"),
+    .indices = MutableMap<string, i64> {},
+}
+
+slot_size_test_sym :: fn() -> Symbol = Symbol {
+    .id = 9002,
+    .kind = .TypeAlias,
+    .name = "Color",
+    .module = "test",
+    .module_name = "test",
+    .visibility = .Private,
+    .defined_at = null,
+}

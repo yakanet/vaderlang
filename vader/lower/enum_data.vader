@@ -26,6 +26,7 @@ import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/lower/ir"
 import "vader/support/diagnostics"
+import "vader/support/integer"
 
 /// The slot holding `value`'s variant data : `<Enum>$data[i64(value)]`.
 ///

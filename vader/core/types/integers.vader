@@ -1,0 +1,329 @@
+// vader/core/types/integers: integer types, and the integer values a type holds.
+//
+// A range (`Int in 0..=23`, `RangeType`) refines the integer: it is held in the
+// narrowest machine integer that holds it, and a machine integer is the range of
+// its own bounds. The values a type holds (`integer_values`, `integer_set`) are
+// what the bounds checks, the narrowing and the layouts read.
+
+module "vader/core/types"
+
+import "std/collections"
+import "std/sort"
+import "std/string_builder"
+import "vader/support/integer"
+
+// ---- ranges ---------------------------------------------------------------
+
+/// The machine integer a value of `r` is held in : the narrowest holding it.
+///
+/// @param r  a range.
+export storage_integer :: fn(r: RangeType) -> MachineInteger =
+    narrowest_machine_integer(r.bounds)
+
+/// The integer type a value of `r` is held in (`storage_integer`), as the range of
+/// its values.
+///
+/// @param r  a range.
+export range_representation :: fn(r: RangeType) -> RangeType = narrowest_integer(r.bounds)
+
+/// The narrowest of `u8`, `u16`, `u32`, `u64` holding every value of `values` when
+/// none is negative, of `i8`, `i16`, `i32`, `i64` otherwise : what a range is held
+/// in.
+///
+/// @param values  the integers to hold ; past 64 bits, the widest of its kind.
+export narrowest_integer :: fn(values: Interval) -> RangeType =
+    machine_integer_type(narrowest_machine_integer(values))
+
+/// The machine integer `m` as the typecheck holds it : the range of its values,
+/// named after it.
+///
+/// @param m  a machine integer.
+export machine_integer_type :: fn(m: MachineInteger) -> RangeType =
+    RangeType { .bounds = m.values, .name = m.name }
+
+/// Whether `r` has the bounds of a machine integer (`machine_integer_name`).
+///
+/// @param r  a range.
+export is_machine_range :: fn(r: RangeType) -> bool = machine_integer_name(r.bounds) != ""
+
+/// Whether `t` is one of the eight machine integers, a range of exactly its bounds.
+///
+/// @param t  any type.
+export is_machine_integer :: fn(t: Type) -> bool = t is RangeType && is_machine_range(t)
+
+/// `t` when it is a range of no machine integer's bounds (`Hour`, `1..=24`) : one
+/// whose arithmetic is exact, computed over the integers ; null for any other type.
+///
+/// @param t  any type, or none.
+export refinement_of :: fn(t: Type | null) -> RangeType | null {
+    if t is RangeType && !is_machine_range(t) {
+        return t
+    }
+    return null
+}
+
+/// Whether `t` is a range of no machine integer's bounds (`refinement_of`).
+///
+/// @param t  any type, or none.
+export is_refinement :: fn(t: Type | null) -> bool = refinement_of(t) != null
+
+/// The name a backend reads `t` by : the integer it is held in for an integer
+/// type (`integer_representation`) or an enum (its `repr`), its display for any
+/// other.
+///
+/// @param t  any type.
+export representation_name :: fn(t: Type) -> string {
+    if t is EnumType {
+        return t.repr.name
+    }
+    integer :: integer_representation(t) ?? return display_type(t)
+    return integer.name
+}
+
+/// The machine integer a value of `t` is held in (`storage_integer`) ; null for a
+/// type that is no integer.
+///
+/// @param t  any type.
+export integer_representation :: fn(t: Type) -> MachineInteger | null {
+    if t is RangeType {
+        return storage_integer(t)
+    }
+    return null
+}
+
+/// The machine integer a value of `t` is held in, through any distinct ; null for a
+/// type that is no integer.
+///
+/// @param t  any type.
+export held_integer :: fn(t: Type) -> MachineInteger | null {
+    if t is DistinctType {
+        return held_integer(t.backing)
+    }
+    return integer_representation(t)
+}
+
+/// Whether a value of `t` is held in an integer (`held_integer`), found without
+/// choosing which : `t` is a range, through any distinct.
+///
+/// @param t  any type.
+export is_stored_as_integer :: fn(t: Type) -> bool {
+    if t is DistinctType {
+        return is_stored_as_integer(t.backing)
+    }
+    return t is RangeType
+}
+
+/// Whether a range whose lower bound has type `t` counts in place: an integer, or
+/// a free integer or `char` literal. A `for` over such a range written in place
+/// walks a counter instead of stepping a `Range`.
+///
+/// @param t  the lower bound's type.
+export is_counting_type :: fn(t: Type) -> bool = match t {
+    is FreeIntType | FreeCharType | RangeType -> true
+    is PrimitiveType | FreeFloatType | StructType | EnumType | DistinctType -> false
+    is ArrayType | TupleType | UnionType | FnType | TraitType | TypeParamType -> false
+    is InferVar | SelfType | AnyType -> false
+    is NeverType | UnresolvedType | TypeMetaType -> false
+}
+
+// ---- values ---------------------------------------------------------------
+
+/// The values of the machine integer a value of `t` is held in, through any
+/// distinct : what a value of a range may hold where nothing proves it within the
+/// range ; null for a type that is no integer.
+///
+/// @param t  any type.
+export held_values :: fn(t: Type) -> Interval | null {
+    held :: held_integer(t) ?? return null
+    return held.values
+}
+
+/// The values of the integer type `t`, the bounds of its range.
+///
+/// @return  null for any other type, a distinct over an integer included.
+export integer_values :: fn(t: Type) -> Interval | null {
+    if t is RangeType {
+        return t.bounds
+    }
+    return null
+}
+
+/// The values of `t` a `match` covers arm by arm : an integer's, the Unicode
+/// scalar values of `char`, those of a distinct over one.
+///
+/// @param t  the scrutinee's type.
+/// @return   null for any other type, and for one reaching past `i64` (`u64`,
+///           `i64`), whose patterns are read within `i64`.
+export integer_set :: fn(t: Type) -> Interval[] | null {
+    if t !is PrimitiveType | RangeType | DistinctType {
+        return null
+    }
+    backing :: strip_distinct(t)
+    if backing is PrimitiveType && backing.name == "char" {
+        return CHAR_VALUES
+    }
+    values :: integer_values(backing) ?? return null
+    if values.lo_open || values.hi_open {
+        return null
+    }
+    return [values]
+}
+
+/// The values of `char`, the Unicode scalar values : every code point but the
+/// surrogates, in two runs.
+export CHAR_VALUES: Interval[]: [
+    Interval { .lo = 0, .hi = 0xD7FF },
+    Interval { .lo = 0xE000, .hi = 0x10FFFF },
+]
+
+/// The least value of an integer type holding `values`, or its greatest, as an
+/// `i64` carries it : a greatest value past `i64` is its bit pattern, `-1` for
+/// `u64.max`.
+///
+/// @param values    the type's values (a machine integer's, a range's bounds).
+/// @param greatest  the greatest rather than the least.
+export integer_bound :: fn(values: Interval, greatest: bool) -> i64 {
+    if !greatest {
+        return values.lo
+    }
+    if values.hi_open {
+        return i64(upper_past_i64(values))
+    }
+    return values.hi
+}
+
+/// The values of the enum `e`, in runs of consecutive values, the least first :
+/// `enum { A = 1, B = 2, C = 5 }` is `1..=2` and `5..=5` ; none for an enum of no
+/// variant.
+///
+/// @param e  an enum without variant data.
+export enum_value_runs :: fn(e: EnumType) -> Interval[] {
+    runs: Interval[]: []
+    values :: sort(e.indices.values(), (a, b) -> a < b)
+    if values.len() == 0 {
+        return runs
+    }
+    lo := values[0]
+    hi := values[0]
+    for v in values {
+        // `v - 1`, not `hi + 1` : `hi` may be the greatest `i64`.
+        if v > hi && v - 1 > hi {
+            runs.push(interval(lo, hi))
+            lo = v
+        }
+        hi = v
+    }
+    runs.push(interval(lo, hi))
+    return runs
+}
+
+/// The least and the greatest value of the type `t` : an integer type's bounds, the
+/// hull of an enum's values, of the Unicode scalar values for `char`.
+///
+/// @param t  any type.
+/// @return   null for a type with no integer values, an enum of no variant included.
+export type_bounds :: fn(t: Type) -> Interval | null {
+    if is_char(t) {
+        return interval_hull(CHAR_VALUES)
+    }
+    if t is EnumType && t.data == null {
+        return interval_hull(enum_value_runs(t))
+    }
+    return integer_values(t)
+}
+
+// From the least to the greatest value of `runs`, sorted ; null for none.
+interval_hull :: fn(runs: Interval[]) -> Interval | null {
+    if runs.len() == 0 {
+        return null
+    }
+    return interval(runs[0].lo, runs[runs.len() - 1].hi)
+}
+
+// ---- display --------------------------------------------------------------
+
+/// `r` as a message names it : `` `Hour` (0..=23) `` when it has a name,
+/// `` `0..=23` `` otherwise, `` `i32` `` for a machine integer.
+///
+/// @param r  a range.
+export display_range :: fn(r: RangeType) -> string {
+    machine :: machine_integer_name(r.bounds)
+    if machine != "" && (r.name == "" || r.name == machine) {
+        return "`${machine}`"
+    }
+    if r.name == "" {
+        return "`${display_bounds(r.bounds)}`"
+    }
+    return "`${r.name}` (${display_bounds(r.bounds)})"
+}
+
+/// `bounds` as a range is written, `lo..=hi`, an end with no bound left out
+/// (`0..`).
+///
+/// @param bounds  the interval to render.
+export display_bounds :: fn(bounds: Interval) -> string {
+    lo :: open_or(bounds.lo_open, bounds.lo)
+    if !bounds.hi_open {
+        return "${lo}..=${bounds.hi}"
+    }
+    if bounds.hi_past == 0 {
+        return "${lo}.."
+    }
+    return "${lo}..=${upper_past_i64(bounds)}"
+}
+
+// `r` as written : its declared name, else the machine integer of its bounds,
+// else its bounds. `qualified` writes the bounds of any other range whatever its
+// name, `Int in 0..=23`, so two ranges of one name differ.
+write_range :: fn(sb: StringBuilder, r: RangeType, qualified: bool) -> void {
+    machine :: machine_integer_name(r.bounds)
+    if machine != "" && (qualified || r.name == "") {
+        sb.append(machine)
+        return
+    }
+    if qualified {
+        sb.append("${INT_BASE_NAME} in ${display_bounds(r.bounds)}")
+        return
+    }
+    if r.name != "" {
+        sb.append(r.name)
+        return
+    }
+    sb.append(display_bounds(r.bounds))
+}
+
+// The text of a bound, "" when the end is open.
+open_or :: fn(open: bool, value: i64) -> string {
+    if open {
+        return ""
+    }
+    return "${value}"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_integer_singletons_agree_with_the_machine_table :: fn() -> void {
+    singletons :: [TY_I32, TY_I64]
+    for t in singletons {
+        m :: machine_integer_named(t.name) ?? return assert(false, "${t.name} is in the table")
+        assert(same_interval(m.values, t.bounds), "${t.name} has its machine bounds")
+    }
+}
+
+@test
+test_held_values_reads_the_storage :: fn() -> void {
+    u8_iv :: held_values(mk_primitive("u8")) ?? ANY_INTEGER
+    assert(same_interval(u8_iv, interval(0, 255)), "u8")
+    i8_iv :: held_values(mk_primitive("i8")) ?? ANY_INTEGER
+    assert(same_interval(i8_iv, interval(-128, 127)), "i8")
+    i64_iv :: held_values(TY_I64) ?? ANY_INTEGER
+    assert(same_interval(i64_iv, interval(I64_MIN, I64_MAX)), "i64")
+    u64_iv :: held_values(mk_primitive("u64")) ?? ANY_INTEGER
+    assert(u64_iv.hi_open && !u64_iv.lo_open && u64_iv.lo == 0, "u64 ends")
+    hour_iv :: held_values(RangeType { .bounds = interval(0, 23) }) ?? ANY_INTEGER
+    assert(same_interval(hour_iv, interval(0, 255)), "a range is held in its u8")
+    assert(held_values(TY_CHAR) == null, "char is no integer")
+}

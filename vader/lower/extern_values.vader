@@ -17,6 +17,7 @@ import "vader/core/types"
 import "vader/front/comptime"
 import "vader/front/typecheck"
 import "vader/lower/ir"
+import "vader/support/integer"
 
 /// Whether `fn_decl` is an `@extern` that has to lower through
 /// `lower_extern_through_values`: one of its parameters is an enum with

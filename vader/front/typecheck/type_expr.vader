@@ -226,7 +226,6 @@ redirect_import :: fn(sym: Symbol, resolved: ResolvedModule) -> Symbol {
     }
 }
 
-
 lower_call_in_type_position :: fn(
     e: AST.CallExpr, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
@@ -431,19 +430,6 @@ type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
     }
 }
 
-
-/// Map a builtin type name to a Type, or null when the name isn't a builtin
-/// (caller falls back to symbol-driven resolution). Covers `type`, `Self` and
-/// every primitive but the eight integers, which `std/core` declares.
-export primitive_from_name :: fn(name: string) -> Type | null {
-    if name == "type" { return TY_TYPE }
-    if name == "Self" { return TY_SELF }
-    if primitive_meta(name) == null {
-        return null
-    }
-    return mk_primitive(name)
-}
-
 /// Whether `fd` takes a receiver — its first parameter is `self`. A trait or impl
 /// member without one is STATIC : called on a type (`T.zero()`), never on a value.
 ///
@@ -564,28 +550,6 @@ lower_first_param_type :: fn(src: string) -> string {
 }
 
 @test
-test_primitive_from_name_recognises_primitives :: fn() -> void {
-    match p :: primitive_from_name("string") {
-        is PrimitiveType -> { assert_eq(p.name, "string") }
-        _                -> { assert(false, "string should be primitive") }
-    }
-    assert(primitive_from_name("usize") == null, "`usize` is no primitive")
-    assert(primitive_from_name("int") == null, "`int` is no primitive")
-}
-
-@test
-test_primitive_from_name_leaves_the_integers_to_std_core :: fn() -> void {
-    assert(primitive_from_name("i32") == null, "`std/core` declares `i32`")
-}
-
-@test
-test_primitive_from_name_returns_null_for_user_types :: fn() -> void {
-    if primitive_from_name("MyStruct") !is null {
-        assert(false, "user types should not be primitives")
-    }
-}
-
-@test
 test_array_type_expr_lowers_to_array :: fn() -> void {
     assert_eq(lower_first_param_type("f :: fn(x: f64[]) -> void {}"), "f64[]")
 }
@@ -600,7 +564,6 @@ test_union_lowers_to_union_type :: fn() -> void {
 test_fn_type_expr_lowers_to_fn :: fn() -> void {
     assert_eq(lower_first_param_type("f :: fn(cb: fn(f64) -> bool) -> void {}"), "fn(f64) -> bool")
 }
-
 
 @test
 test_value_position_expr_emits_T3002 :: fn() -> void {

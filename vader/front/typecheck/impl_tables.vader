@@ -29,12 +29,6 @@ dispatch_key :: fn(t: Type) -> string {
 // The key of a receiver no impl is written for : no type prints as it.
 NO_DISPATCH_KEY :: "<type parameter>"
 
-/// Whether `t` is a tuple, a fn or a union : a target keyed by its shape, having no
-/// declaration of its own.
-///
-/// @param t  a type.
-export is_structural :: fn(t: Type) -> bool = t is TupleType || t is FnType || t is UnionType
-
 /// The impl tables' key for a type itself, arguments included (`Wrapper<i32>`).
 impl_type_key :: fn(t: Type) -> string = canonical_key(t)
 

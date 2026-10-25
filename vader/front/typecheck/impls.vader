@@ -420,22 +420,6 @@ export serving_impl :: fn(self: ImplRegistry, entry: ImplEntry, receiver: Type) 
 /// @param decl  an impl the registry was built from.
 export entry_of :: fn(self: ImplRegistry, decl: ImplDecl) -> ImplEntry | null = self.by_decl[decl.span.hash()]
 
-/// Resolve the for-type's nominal symbol from a typecheck `Type` ; null
-/// for shapes that can't carry an impl (Primitive, Array, Fn, TypeParam,
-/// Union, …). A distinct (newtype) is nominal — it carries its OWN impls
-/// (`MyId implements Hash`), not the backing's — so it resolves to its own
-/// symbol.
-export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
-    // @partial: only the three nominal variants carry an impl target symbol;
-    // every structural / primitive variant (Array, Fn, Union, …) carries none.
-    @partial match t {
-        is StructType -> { return t.symbol }
-        is EnumType -> { return t.symbol }
-        is DistinctType -> { return t.symbol }
-        _ -> { return null }
-    }
-}
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

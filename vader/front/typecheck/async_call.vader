@@ -10,7 +10,6 @@
 module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
-import "vader/core/symbol"
 import "vader/core/types"
 
 /// The `Async<T>` result type when `c`'s callee is an async coroutine or declares
@@ -35,24 +34,3 @@ async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_ret:
     }
     return null
 }
-
-/// The erased `Async<T>` an `async fn` declaring `result` hands its callers : the
-/// `T` of a declared `Async<T>`, or the whole `result`, wrapped once. The call
-/// site and the lowered declaration both take their type from here.
-///
-/// @param async_sym  the core `Async` trait.
-/// @param result     the fn's declared return, substituted for the instance.
-export erased_async_type :: fn(async_sym: Symbol, result: Type) -> Type =
-    mk_trait(async_sym, [async_result_arg(async_inner_type(result))])
-
-/// The raw value type a coroutine body produces : the `T` of a declared
-/// `Async<T>` return (target form), or the declared return itself (transitional
-/// `-> T`). NOT normalized — `void` stays `void` (the body is void-bodied) ; the
-/// void→null step happens only where the erased `Async<...>` type is built.
-export async_inner_type :: fn(t: Type) -> Type = core_trait_arg(t, TRAIT_ASYNC) ?? t
-
-/// The `Async` type argument for an `async fn`'s declared result : `void`
-/// normalizes to `null` (see `async_call_result_type`), everything else passes
-/// through. Shared with `lower_decl` so the call-site type and the lowered decl
-/// type agree.
-export async_result_arg :: fn(result: Type) -> Type = if is_void(result) { TY_NULL } else { result }
