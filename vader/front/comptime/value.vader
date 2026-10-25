@@ -66,12 +66,13 @@ export ArrayValue :: struct {
     element_type_name: string
 }
 
-/// A `T { .a = ..., .b = ... }` literal. Fields stored insertion-ordered
-/// so the dump matches the source ordering ; UFCS access at intrinsic
-/// evaluation time goes through `fields[name]`.
+/// A `T { .a = ..., .b = ... }` literal, or a tuple with its elements as `_0`,
+/// `_1`, ... UFCS access at intrinsic evaluation time goes through `fields[name]`.
 export StructValue :: struct {
-    type_name: string
-    fields:    MutableMap<string, ComptimeValue>
+    /// The struct or tuple type the value is an instance of ; a constant
+    /// declared at a union bakes the variant it holds.
+    type:   Type
+    fields: MutableMap<string, ComptimeValue>
 }
 
 /// `@comptime t :: i32` — the value of `t` is the Type IR itself. The
@@ -200,7 +201,7 @@ render_array :: fn(array: ArrayValue) -> string {
 // populated from a different code path.
 render_struct :: fn(struct_value: StructValue) -> string {
     sb :: StringBuilder {}
-    sb.append(struct_value.type_name)
+    sb.append(display_type(struct_value.type))
     sb.append(" { ")
     names :: sort(struct_value.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
     for i in 0..<names.len() {
@@ -221,6 +222,7 @@ import "std/sort"
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "vader/core/symbol"
 
 @test test_display_int :: fn() -> void {
     assert_eq(display_value(int_val(42)), "42_i32")
@@ -264,8 +266,18 @@ test_display_int_past_i64_unsigned :: fn() -> void {
     fields :: MutableMap<string, ComptimeValue> {}
     fields["x"] = int_val(1)
     fields["y"] = int_val(2)
-    struct_value :: StructValue { .type_name = "Point", .fields = fields }
+    struct_value :: StructValue { .type = mk_struct(point_symbol(), []), .fields = fields }
     // `render_struct` sorts field names before rendering, so the output
     // is alphabetical regardless of insertion / bucket order.
     assert_eq(display_value(struct_value), "Point { .x = 1_i32, .y = 2_i32 }")
+}
+
+point_symbol :: fn() -> Symbol = Symbol {
+    .id = 9101,
+    .kind = .Struct,
+    .name = "Point",
+    .module = "test",
+    .module_name = "test",
+    .visibility = .Private,
+    .defined_at = null,
 }

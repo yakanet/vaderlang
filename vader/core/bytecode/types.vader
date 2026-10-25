@@ -518,6 +518,22 @@ export struct_symbol_type_index :: fn(types: BcType[], symbol_id: i32) -> i32 {
     return -1
 }
 
+/// The `BcStruct` at `type_index`, or `null` when the slot holds anything else or
+/// lies outside the table.
+///
+/// @param types       the module type table.
+/// @param type_index  the slot ; `-1` is absent.
+export struct_at :: fn(types: BcType[], type_index: i32) -> BcStruct | null {
+    if type_index < 0 || i64(type_index) >= types.len() {
+        return null
+    }
+    t :: types[type_index]
+    if t is BcStruct {
+        return t
+    }
+    return null
+}
+
 /// The struct whose layout a field access on the union `union_index` reads : its
 /// first variant, which the typecheck makes agree with every other up to the field.
 ///

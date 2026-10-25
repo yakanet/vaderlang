@@ -1,0 +1,10 @@
+# stdout
+card card true 200 4000000000
+either text
+square 5000000000
+labels 2 label 1 true
+box(012)
+slot 7 seven
+pair 6 six
+# exit
+0

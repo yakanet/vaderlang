@@ -259,13 +259,14 @@ fold_const_value :: fn(
     // An ARRAY const is never inlined at the use site (which would `array.new` +
     // refill on every read). Returning null leaves a bare const reference that
     // `inline_consts` routes to the data pool — one shared entry, a cheap
-    // `data.const` view at each read. Struct consts keep the inline path. Safe vs the pool
-    // eligibility check : a const that isn't poolable falls back to `const_inline`
-    // (array.new), never to `unreachable`.
+    // `data.const` view at each read ; a struct or tuple const is read the same way
+    // (`is_scalar_comptime`). Safe vs the pool eligibility check : a const that
+    // isn't poolable falls back to `const_inline` (array.new), never to
+    // `unreachable`.
     if baked is ArrayValue {
         if type is ArrayType { return null }
     }
-    if is_scalar_comptime(baked) { return comptime_value_to_lowered(baked, type, span) }
+    if is_scalar_comptime(baked) { return comptime_value_to_lowered(ctx, baked, type, span) }
     return null
 }
 

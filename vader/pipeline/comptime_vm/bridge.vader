@@ -10,30 +10,47 @@
 // `Type` of the decl, NOT from the `Value` tag — `IntValue.type_name` is
 // load-bearing for downstream typing and the comptime dump.
 //
-// Scope (V1): scalars + arrays are bridged fully — enough for computed tables
-// like `std/crypto`'s `MD5_K`. Struct / tuple / fn / type / heap-object results
-// surface C4001 ; widen this when a real comptime use case for them appears.
+// Scalars, arrays, structs and tuples are bridged. A struct takes its fields'
+// types from the declaration the staged module's type table names for it
+// (`BakeScope`). A fn, type or heap-object result surfaces C4001.
 
 module "vader/pipeline/comptime_vm"
 
-import "vader/support/diagnostics"
+import "std/collections"
+import "toolchain/span"
+import "vader/core/bytecode"
 import "vader/core/types"
+import "vader/front/typecheck"
+import "vader/support/diagnostics"
 Ct :: import "vader/front/comptime"
 Vm :: import "vader/vm"
-import "toolchain/span"
+
+/// What the bridge reads besides a value: the staged module's type table, which
+/// says which struct a VM struct is, and the program declaring the constant, which
+/// gives that struct's fields their types.
+BakeScope :: struct {
+    layouts: BcType[]
+    program: TypedProgram
+}
 
 /// Convert a VM `Value` into a `ComptimeValue`, naming scalars from the
 /// typechecker-resolved `ty` rather than the runtime tag.
 ///
+/// @param ctx    the type table and the program the value is read against.
 /// @param value  the VM runtime value produced by `exec_fn_value`.
 /// @param ty     the typechecker-resolved type of the comptime decl — drives
 ///               every scalar's `type_name` and the array element name.
 /// @param span   the comptime decl's span, attached to any failure diagnostic.
 /// @return       the bridged `ComptimeValue` on success.
 /// @error        C4001 when the value carries a representation not yet
-///               bridgeable at comptime (struct / tuple / fn / type / error /
-///               heap object).
-export value_to_comptime :: fn(value: Vm.Value, ty: Type, span: Span) -> Ct.ComptimeValue | Diagnostic = match value {
+///               bridgeable at comptime (fn / type / error / heap object), or a
+///               struct `ty` does not name.
+value_to_comptime :: fn(
+    ctx: BakeScope,
+    value: Vm.Value,
+    ty: Type,
+    span: Span,
+) -> Ct.ComptimeValue | Diagnostic = match value {
     is Vm.I32Val    -> int_scalar(i64(value), prim_name(ty, "i32"))
     is Vm.I64Val    -> int_scalar(i64(value), prim_name(ty, "i64"))
     is Vm.F64Val    -> Ct.float_val_typed(f64(value), prim_name(ty, "f64"))
@@ -41,8 +58,8 @@ export value_to_comptime :: fn(value: Vm.Value, ty: Type, span: Span) -> Ct.Comp
     is Vm.CharVal   -> Ct.CharValue { .value = u32(value) }
     is Vm.StringVal -> Ct.string_val(string(value))
     is Vm.NullVal   -> Ct.VAL_NULL
-    is Vm.ArrayVal  -> array_to_comptime(value, ty, span)
-    is Vm.StructVal -> unsupported(span, "struct")
+    is Vm.ArrayVal  -> array_to_comptime(ctx, value, ty, span)
+    is Vm.StructVal -> struct_to_comptime(ctx, value, ty, span)
     is Vm.FnVal     -> unsupported(span, "function reference")
     is Vm.TypeVal   -> unsupported(span, "type value")
     is Vm.ErrorVal  -> unsupported(span, "error value")
@@ -70,15 +87,81 @@ prim_name :: fn(ty: Type, fallback: string) -> string {
 
 // Recurse a VM array into an `ArrayValue`, naming each element from the
 // resolved element type. Honours the array's view bounds (`offset` / `length`).
-array_to_comptime :: fn(array: Vm.ArrayVal, ty: Type, span: Span) -> Ct.ComptimeValue | Diagnostic {
+array_to_comptime :: fn(
+    ctx: BakeScope,
+    array: Vm.ArrayVal,
+    ty: Type,
+    span: Span,
+) -> Ct.ComptimeValue | Diagnostic {
     elem_ty :: array_element_type(ty)
     elements: Ct.ComptimeValue[]: []
     for i in 0..<array.length {
-        bridged :: value_to_comptime(Vm.element_at(array, array.offset + i), elem_ty, span)
+        bridged :: value_to_comptime(ctx, Vm.element_at(array, array.offset + i), elem_ty, span)
         if bridged is Diagnostic { return bridged }
         elements.push(bridged)
     }
     return Ct.ArrayValue { .elements = elements, .element_type_name = display_type(elem_ty) }
+}
+
+// A VM struct as a `StructValue` of the struct or tuple `ty` names for it: `ty`
+// itself, or the one variant of a union the value is an instance of. Each field is
+// bridged at the type its declaration gives it.
+struct_to_comptime :: fn(
+    ctx: BakeScope,
+    value: Vm.StructVal,
+    ty: Type,
+    span: Span,
+) -> Ct.ComptimeValue | Diagnostic {
+    layout :: struct_at(ctx.layouts, value.type_id) ?? return unsupported(span, "struct")
+    arity :: value.fields.len()
+    instance :: instance_type(ty, layout, arity) ?? return unsupported(span, "struct")
+    fields :: MutableMap<string, Ct.ComptimeValue> {}
+    for i in 0..<arity {
+        [name, field_ty] :: field_at(instance, layout, i, ctx.program)
+        bridged :: value_to_comptime(ctx, value.fields[i], field_ty, span)
+        if bridged is Diagnostic {
+            return bridged
+        }
+        fields[name] = bridged
+    }
+    return Ct.StructValue { .type = instance, .fields = fields }
+}
+
+// The name and type of field `i` of `instance`, laid out as `layout`: a tuple's
+// elements are `_0`, `_1`, ... at their own types ; a struct's fields take the
+// types its declaration gives them.
+field_at :: fn(instance: Type, layout: BcStruct, i: i64, typed: TypedProgram) -> [string, Type] {
+    tuple :: tuple_backing(instance)
+    if tuple != null {
+        return ["_${i}", tuple.elements[i]]
+    }
+    name :: layout.fields[i].name
+    return [name, declared_struct_field_type(instance, name, typed) ?? TY_UNRESOLVED]
+}
+
+// The type among `ty`, or among its variants when it is a union, that a value laid
+// out as `layout` with `arity` fields is an instance of: the struct `layout`
+// declares, or, for a layout no declaration owns, a tuple of that many elements.
+// Null when none is, or several are.
+instance_type :: fn(ty: Type, layout: BcStruct, arity: i64) -> Type | null {
+    found: Type | null = null
+    for candidate in union_variants(ty) ?? [ty] {
+        if lays_out_as(candidate, layout, arity) {
+            if found != null {
+                return null
+            }
+            found = candidate
+        }
+    }
+    return found
+}
+
+lays_out_as :: fn(t: Type, layout: BcStruct, arity: i64) -> bool {
+    if t is StructType {
+        return t.symbol.id == layout.symbol_id
+    }
+    tuple :: tuple_backing(t) ?? return false
+    return layout.symbol_id < 0 && tuple.elements.len() == arity
 }
 
 // Element type of an array type ; falls back to `ty` itself for a non-array
@@ -94,12 +177,70 @@ unsupported :: fn(span: Span, what: string) -> Diagnostic =
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "vader/core/symbol"
 
 // Bridge then render — narrows the result union for the happy-path asserts.
-display_bridged :: fn(value: Vm.Value, ty: Type, span: Span) -> string {
-    bridged :: value_to_comptime(value, ty, span)
-    if bridged is Diagnostic { return "<diag>" }
+display_bridged :: fn(value: Vm.Value, ty: Type, span: Span) -> string =
+    display_bridged_in(test_scope([]), value, ty, span)
+
+display_bridged_in :: fn(ctx: BakeScope, value: Vm.Value, ty: Type, span: Span) -> string {
+    bridged :: value_to_comptime(ctx, value, ty, span)
+    if bridged is Diagnostic {
+        return "<diag>"
+    }
     return Ct.display_value(bridged)
+}
+
+// A scope whose type table holds `layouts`, with no program behind it: a struct's
+// fields then keep the width the VM tags them with.
+test_scope :: fn(layouts: BcType[]) -> BakeScope = BakeScope {
+    .layouts = layouts,
+    .program = empty_typed_program(),
+}
+
+test_point_symbol :: fn() -> Symbol =
+    SymbolFactory {}.make(.Struct, "Point", "test", "test", .Private, null)
+
+test_layout :: fn(symbol_id: i32, names: string[]) -> BcType {
+    fields: BcField[]: []
+    for name in names {
+        fields.push(BcField { .name = name, .type_index = 0 })
+    }
+    return BcStruct {
+        .name = "test",
+        .fields = fields,
+        .c_name = "",
+        .symbol_id = symbol_id,
+    }
+}
+
+@test
+test_bridge_tuple :: fn() -> void {
+    fields: Vm.Value[]: [Vm.I32Val(7), Vm.StringVal("seven")]
+    value :: Vm.StructVal { .type_id = 0, .fields = fields }
+    scope :: test_scope([test_layout(-1, ["_0", "_1"])])
+    ty :: mk_tuple([TY_I32, TY_STRING])
+    shown :: display_bridged_in(scope, value, ty, empty_span())
+    assert_eq(shown, "[i32, string] { ._0 = 7_i32, ._1 = \"seven\" }")
+}
+
+@test
+test_bridge_struct_takes_its_union_variant :: fn() -> void {
+    fields: Vm.Value[]: [Vm.I32Val(1), Vm.I32Val(2)]
+    value :: Vm.StructVal { .type_id = 0, .fields = fields }
+    point :: test_point_symbol()
+    scope :: test_scope([test_layout(point.id, ["x", "y"])])
+    ty :: mk_union([mk_struct(point, []), TY_NULL])
+    shown :: display_bridged_in(scope, value, ty, empty_span())
+    assert_eq(shown, "Point { .x = 1_i32, .y = 2_i32 }")
+}
+
+@test
+test_bridge_struct_the_type_does_not_name :: fn() -> void {
+    fields: Vm.Value[]: [Vm.I32Val(1), Vm.I32Val(2)]
+    value :: Vm.StructVal { .type_id = 0, .fields = fields }
+    scope :: test_scope([test_layout(test_point_symbol().id, ["x", "y"])])
+    assert_eq(display_bridged_in(scope, value, TY_I32, empty_span()), "<diag>")
 }
 
 @test test_bridge_scalars :: fn() -> void {
@@ -136,6 +277,6 @@ display_bridged :: fn(value: Vm.Value, ty: Type, span: Span) -> string {
     bytes: u8[]: []
     slots: Vm.Value[]: []
     obj :: Vm.ObjVal { .handle = 0, .type_id = 0, .bytes = bytes, .slots = slots }
-    result :: value_to_comptime(obj, TY_I32, s)
+    result :: value_to_comptime(test_scope([]), obj, TY_I32, s)
     assert(result is Diagnostic, "obj value must be unsupported at comptime")
 }

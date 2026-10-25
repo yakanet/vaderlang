@@ -1,10 +1,11 @@
 // vader/front/comptime/eval_aggregate: struct literals, enum variants, `match`, and the
 // project's other constants, for an evaluation that reaches the project.
 //
-// The passes that bake constants evaluate without the project: the lowerer
-// inlines a baked value at every use, and a struct table copied at each read
-// would change what a constant means. The evaluation of a constant an `@extern`
-// names reaches it, since nothing lowers that value.
+// The passes that bake constants evaluate without the project, so a struct literal
+// there is left to the lowering, which builds it from its source ; a `@comptime`
+// value whose function builds one runs on the comptime VM instead. The evaluation
+// of a constant an `@extern` names reaches the project, since nothing lowers that
+// value.
 
 module "vader/front/comptime"
 
@@ -66,7 +67,7 @@ evaluate_struct_lit :: fn(expr: AST.StructLitExpr, context: ComptimeContext) -> 
         value :: result.value ?? return result
         fields[field.name] = value
     }
-    return ok(StructValue { .type_name = display_type(t), .fields = fields })
+    return ok(StructValue { .type = t, .fields = fields })
 }
 
 // `.Variant`, against the enum the typecheck gave it.

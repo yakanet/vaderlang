@@ -3387,7 +3387,7 @@ build_lookup_table :: fn() -> u32[] {
 TABLE :: build_lookup_table()
 ```
 
-`build_lookup_table()` runs during compilation, loops, local mutation and calls included. `TABLE` is a constant computed once. An array of primitive elements is stored in the binary's read-only data and read in place, never rebuilt at run time; any other value is inlined at each use.
+`build_lookup_table()` runs during compilation, loops, local mutation and calls included. `TABLE` is a constant computed once. The value may be a scalar, a string, an array, a struct or a tuple, nested at will; a function value or a map is `C4001`. An array, or a struct declared at its own type, that the compiler can lay out as data is stored in the binary's read-only data and read in place, never rebuilt at run time; any other value is inlined at each use.
 
 **Inline form.** `@comptime` also works as an expression prefix on a const's right-hand side, so the builder can be written at the const instead of as a separate fn:
 

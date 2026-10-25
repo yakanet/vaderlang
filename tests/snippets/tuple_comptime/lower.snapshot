@@ -17,22 +17,22 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(45))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "dim ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, ([10, 20] :[i32, i32])._0)
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.DIM._0)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "x")
-          __off_1 = std.core.write_int(__buf_0, __off_1, ([10, 20] :[i32, i32])._1)
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.DIM._1)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>(concat_6("origin (", std.core.f64.to_string(([0.0, 0.0, "origin"] :[f64, f64, string])._0), ", ", std.core.f64.to_string(([0.0, 0.0, "origin"] :[f64, f64, string])._1), ") = ", ([0.0, 0.0, "origin"] :[f64, f64, string])._2))
+      std.io.println<string>(concat_6("origin (", std.core.f64.to_string(snippet.ORIGIN._0), ", ", std.core.f64.to_string(snippet.ORIGIN._1), ") = ", snippet.ORIGIN._2))
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(51))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "span ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, ([i64(5000000000), 3] :[i64, i32])._0)
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.SPAN._0)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " over ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, ([i64(5000000000), 3] :[i64, i32])._1)
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.SPAN._1)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      __tup_4: Reach = Reach { ._0 = i64(5000000000), ._1 = 4 }
+      __tup_4: Reach = snippet.REACH
       far: i64 = __tup_4._0
       steps: i32 = __tup_4._1
       std.io.println<string>({
@@ -44,7 +44,7 @@
           __off_6 = std.core.write_int(__buf_5, __off_6, steps)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
-      return ([10, 20] :[i32, i32])._0
+      return snippet.DIM._0
   }
   concat_6 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string) -> string {
       c0: i64 = std.core.byte_len(p0)

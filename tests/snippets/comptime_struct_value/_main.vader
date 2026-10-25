@@ -1,0 +1,130 @@
+// A `@comptime` value whose function holds a loop runs on the comptime VM, and a
+// struct or a tuple it builds is baked like any other value: each field at the
+// type its declaration gives it, nested structs, arrays and union fields
+// included. A constant declared at a union holds the variant it was built as, and
+// a generic one reaches the impls of its struct as a trait value.
+module "snippet"
+
+import "std/io"
+
+Color :: enum { Red, Green, Blue }
+
+Label :: struct {
+    text: string
+    hue: Color
+}
+
+Card :: struct {
+    label: Label
+    weights: u8[]
+    either: i32 | string
+    big: u64 = 4000000000
+}
+
+Box :: struct<T> {
+    item: T
+}
+
+Box<T> implements<T: Display> Display {
+    to_string :: fn(self) -> string = "box(${self.item})"
+}
+
+Hour :: Int in 0..=23
+
+Slot :: struct {
+    hour: Hour | null
+    note: string
+}
+
+build_card :: fn() -> Card {
+    weights: u8[]: []
+    for i in 0..<3 {
+        weights.push(u8(i * 100))
+    }
+    return Card {
+        .label = Label { .text = "card", .hue = .Blue },
+        .weights = weights,
+        .either = "text",
+    }
+}
+
+first_wide_square :: fn() -> Box<i64> | null {
+    for i in 1..<10 {
+        if i * i > 20 {
+            return Box<i64> { .item = i64(i) * 1000000000 }
+        }
+    }
+    return null
+}
+
+build_labels :: fn() -> Label[] {
+    out: Label[]: []
+    for i in 0..<2 {
+        out.push(Label { .text = "label ${i}", .hue = .Green })
+    }
+    return out
+}
+
+build_word_box :: fn() -> Box<string> {
+    word := ""
+    for i in 0..<3 {
+        word = "${word}${i}"
+    }
+    return Box<string> { .item = word }
+}
+
+build_slot :: fn() -> Slot {
+    hour: Hour | null = null
+    for i in 0..<10 {
+        if i == 7 {
+            hour = 7
+        }
+    }
+    return Slot { .hour = hour, .note = "seven" }
+}
+
+build_pair :: fn() -> [i32, string] {
+    sum := 0
+    for i in 0..<4 {
+        sum += i
+    }
+    return [sum, "six"]
+}
+
+@comptime
+CARD :: build_card()
+
+@comptime
+SQUARE :: first_wide_square()
+
+@comptime
+LABELS :: build_labels()
+
+@comptime
+WORD_BOX :: build_word_box()
+
+@comptime
+SLOT :: build_slot()
+
+@comptime
+PAIR :: build_pair()
+
+show :: fn(d: Display) -> string = d.to_string()
+
+main :: fn() -> i32 {
+    println("card ${CARD.label.text} ${CARD.label.hue == .Blue} ${CARD.weights[2]} ${CARD.big}")
+    if CARD.either is string {
+        println("either ${CARD.either}")
+    }
+    if SQUARE != null {
+        println("square ${SQUARE.item}")
+    }
+    println("labels ${LABELS.len()} ${LABELS[1].text} ${LABELS[0].hue == .Green}")
+    println(show(WORD_BOX))
+    if SLOT.hour != null {
+        println("slot ${SLOT.hour} ${SLOT.note}")
+    }
+    [sum, word] :: PAIR
+    println("pair ${sum} ${word}")
+    return 0
+}

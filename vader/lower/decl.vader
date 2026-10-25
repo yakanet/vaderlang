@@ -385,7 +385,7 @@ lower_const_value :: fn(
     if baked == null {
         return lower_for_slot(fn_ctx, const_decl.value, type_val, const_decl.span)
     }
-    return comptime_value_to_lowered(baked, default_if_free(type_val), const_decl.span)
+    return comptime_value_to_lowered(fn_ctx, baked, default_if_free(type_val), const_decl.span)
 }
 
 lookup_comptime_value :: fn(

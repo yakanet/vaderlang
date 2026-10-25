@@ -28,8 +28,7 @@ ComptimeContext :: struct {
     /// The whole project, for an evaluation that reads constants of any module
     /// and the aggregate forms (struct literals, enum variants, `match`); null
     /// keeps it to the module's own `bindings` and to scalars. The passes that
-    /// bake constants for the lowerer leave it null: the lowerer inlines a baked
-    /// value at every use, and a struct table would be copied at each read.
+    /// bake constants for the lowerer leave it null (`eval_aggregate.vader`).
     project:  ProjectConstants | null = null
 }
 

@@ -1,0 +1,170 @@
+# Typecheck
+
+## tests/snippets/comptime_struct_value
+  StructDecl     Box                  :: Box<T>
+  FnDecl         build_card           :: fn() -> Card
+  FnDecl         build_labels         :: fn() -> Label[]
+  FnDecl         build_pair           :: fn() -> [i32, string]
+  FnDecl         build_slot           :: fn() -> Slot
+  FnDecl         build_word_box       :: fn() -> Box<string>
+  ConstDecl      CARD                 :: Card
+  StructDecl     Card                 :: Card
+  EnumDecl       Color                :: Color
+  FnDecl         first_wide_square    :: fn() -> Box<i64> | null
+  ConstDecl      Hour                 :: type
+  StructDecl     Label                :: Label
+  ConstDecl      LABELS               :: Label[]
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      PAIR                 :: [i32, string]
+  FnDecl         show                 :: fn(Display) -> string
+  ConstDecl      SLOT                 :: Slot
+  StructDecl     Slot                 :: Slot
+  ConstDecl      SQUARE               :: Box<i64> | null
+  ConstDecl      WORD_BOX             :: Box<string>
+  expr 101:11   CallExpr       :: Label[]
+  expr 101:11   IdentExpr      :: fn() -> Label[]
+  expr 104:13   CallExpr       :: Box<string>
+  expr 104:13   IdentExpr      :: fn() -> Box<string>
+  expr 107:9    CallExpr       :: Slot
+  expr 107:9    IdentExpr      :: fn() -> Slot
+  expr 110:9    CallExpr       :: [i32, string]
+  expr 110:9    IdentExpr      :: fn() -> [i32, string]
+  expr 112:36   CallExpr       :: string
+  expr 112:36   FieldExpr      :: fn() -> string
+  expr 112:36   IdentExpr      :: Display
+  expr 115:13   StringLitExpr  :: string
+  expr 115:21   FieldExpr      :: Label
+  expr 115:21   FieldExpr      :: string
+  expr 115:21   IdentExpr      :: Card
+  expr 115:40   BinaryExpr     :: bool
+  expr 115:40   FieldExpr      :: Color
+  expr 115:40   FieldExpr      :: Label
+  expr 115:40   IdentExpr      :: Card
+  expr 115:5    CallExpr       :: void
+  expr 115:5    IdentExpr      :: fn(T) -> void
+  expr 115:58   DotVariantExpr :: Color
+  expr 115:67   FieldExpr      :: u8[]
+  expr 115:67   IdentExpr      :: Card
+  expr 115:67   IndexExpr      :: u8
+  expr 115:86   FieldExpr      :: u64
+  expr 115:86   IdentExpr      :: Card
+  expr 116:23   IdentExpr      :: string
+  expr 116:5    IfExpr         :: void
+  expr 116:8    BinaryExpr     :: bool
+  expr 116:8    FieldExpr      :: i32 | string
+  expr 116:8    IdentExpr      :: Card
+  expr 117:17   StringLitExpr  :: string
+  expr 117:27   FieldExpr      :: string
+  expr 117:27   IdentExpr      :: Card
+  expr 117:9    CallExpr       :: void
+  expr 117:9    IdentExpr      :: fn(T) -> void
+  expr 119:5    IfExpr         :: void
+  expr 119:8    BinaryExpr     :: bool
+  expr 119:8    IdentExpr      :: Box<i64> | null
+  expr 120:17   StringLitExpr  :: string
+  expr 120:27   FieldExpr      :: i64
+  expr 120:27   IdentExpr      :: Box<i64>
+  expr 120:9    CallExpr       :: void
+  expr 120:9    IdentExpr      :: fn(T) -> void
+  expr 122:13   StringLitExpr  :: string
+  expr 122:23   CallExpr       :: i64
+  expr 122:23   FieldExpr      :: fn() -> i64
+  expr 122:23   IdentExpr      :: Label[]
+  expr 122:39   FieldExpr      :: string
+  expr 122:39   IdentExpr      :: Label[]
+  expr 122:39   IndexExpr      :: Label
+  expr 122:5    CallExpr       :: void
+  expr 122:5    IdentExpr      :: fn(T) -> void
+  expr 122:57   BinaryExpr     :: bool
+  expr 122:57   FieldExpr      :: Color
+  expr 122:57   IdentExpr      :: Label[]
+  expr 122:57   IndexExpr      :: Label
+  expr 122:74   DotVariantExpr :: Color
+  expr 123:13   CallExpr       :: string
+  expr 123:13   IdentExpr      :: fn(Display) -> string
+  expr 123:18   IdentExpr      :: Box<string>
+  expr 123:5    CallExpr       :: void
+  expr 123:5    IdentExpr      :: fn(T) -> void
+  expr 124:5    IfExpr         :: void
+  expr 124:8    BinaryExpr     :: bool
+  expr 124:8    FieldExpr      :: Hour | null
+  expr 124:8    IdentExpr      :: Slot
+  expr 125:17   StringLitExpr  :: string
+  expr 125:25   FieldExpr      :: Hour
+  expr 125:25   IdentExpr      :: Slot
+  expr 125:38   FieldExpr      :: string
+  expr 125:38   IdentExpr      :: Slot
+  expr 125:9    CallExpr       :: void
+  expr 125:9    IdentExpr      :: fn(T) -> void
+  expr 127:20   IdentExpr      :: [i32, string]
+  expr 128:13   StringLitExpr  :: string
+  expr 128:21   IdentExpr      :: i32
+  expr 128:28   IdentExpr      :: string
+  expr 128:5    CallExpr       :: void
+  expr 128:5    IdentExpr      :: fn(T) -> void
+  expr 29:39    StringLitExpr  :: string
+  expr 29:46    FieldExpr      :: T
+  expr 29:46    IdentExpr      :: Box<T>
+  expr 40:20    SeqLitExpr     :: u8[]
+  expr 41:14    RangeExpr      :: Range<i32>
+  expr 42:22    CallExpr       :: u8
+  expr 42:22    IdentExpr      :: type
+  expr 42:25    BinaryExpr     :: i32
+  expr 42:25    IdentExpr      :: i32
+  expr 42:9     CallExpr       :: void
+  expr 42:9     FieldExpr      :: fn(u8) -> void
+  expr 42:9     IdentExpr      :: u8[]
+  expr 44:12    StructLitExpr  :: Card
+  expr 45:18    StructLitExpr  :: Label
+  expr 45:34    StringLitExpr  :: string
+  expr 45:49    DotVariantExpr :: Color
+  expr 46:20    IdentExpr      :: u8[]
+  expr 47:19    StringLitExpr  :: string
+  expr 52:14    RangeExpr      :: Range<i32>
+  expr 53:12    BinaryExpr     :: bool
+  expr 53:12    BinaryExpr     :: i32
+  expr 53:12    IdentExpr      :: i32
+  expr 53:16    IdentExpr      :: i32
+  expr 53:9     IfExpr         :: void
+  expr 54:20    StructLitExpr  :: Box<i64>
+  expr 54:39    BinaryExpr     :: i64
+  expr 54:39    CallExpr       :: i64
+  expr 54:39    IdentExpr      :: type
+  expr 54:43    IdentExpr      :: i32
+  expr 61:19    SeqLitExpr     :: Label[]
+  expr 62:14    RangeExpr      :: Range<i32>
+  expr 63:18    StructLitExpr  :: Label
+  expr 63:34    StringLitExpr  :: string
+  expr 63:43    IdentExpr      :: i32
+  expr 63:55    DotVariantExpr :: Color
+  expr 63:9     CallExpr       :: void
+  expr 63:9     FieldExpr      :: fn(Label) -> void
+  expr 63:9     IdentExpr      :: Label[]
+  expr 65:12    IdentExpr      :: Label[]
+  expr 69:13    StringLitExpr  :: string
+  expr 70:14    RangeExpr      :: Range<i32>
+  expr 71:16    StringLitExpr  :: string
+  expr 71:19    IdentExpr      :: string
+  expr 71:26    IdentExpr      :: i32
+  expr 71:9     IdentExpr      :: string
+  expr 73:12    StructLitExpr  :: Box<string>
+  expr 73:34    IdentExpr      :: string
+  expr 78:14    RangeExpr      :: Range<i32>
+  expr 79:12    BinaryExpr     :: bool
+  expr 79:12    IdentExpr      :: i32
+  expr 79:9     IfExpr         :: void
+  expr 80:13    IdentExpr      :: Hour | null
+  expr 83:12    StructLitExpr  :: Slot
+  expr 83:27    IdentExpr      :: Hour | null
+  expr 83:41    StringLitExpr  :: string
+  expr 88:14    RangeExpr      :: Range<i32>
+  expr 89:16    IdentExpr      :: i32
+  expr 89:9     BinaryExpr     :: i32
+  expr 89:9     IdentExpr      :: i32
+  expr 91:12    SeqLitExpr     :: [i32, string]
+  expr 91:13    IdentExpr      :: i32
+  expr 91:18    StringLitExpr  :: string
+  expr 95:9     CallExpr       :: Card
+  expr 95:9     IdentExpr      :: fn() -> Card
+  expr 98:11    CallExpr       :: Box<i64> | null
+  expr 98:11    IdentExpr      :: fn() -> Box<i64> | null

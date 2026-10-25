@@ -31,7 +31,7 @@ evaluate_seq_lit :: fn(expr: AST.SeqLitExpr, context: ComptimeContext) -> EvalRe
         for i in 0..<elements.len() {
             fields["_${i}"] = elements[i]
         }
-        return ok(StructValue { .type_name = display_type(inferred), .fields = fields })
+        return ok(StructValue { .type = inferred, .fields = fields })
     }
     element_type_name: string = ""
     if inferred is ArrayType { element_type_name = display_type(inferred.element) }

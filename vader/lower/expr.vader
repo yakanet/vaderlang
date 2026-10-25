@@ -14,7 +14,6 @@
 module "vader/lower"
 
 import "std/collections"
-import "std/sort"
 import "std/string"
 import "vader/lower/ir"
 
@@ -112,19 +111,11 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // Comptime fold : `<LoweredStructLit>.field` resolves to
             // the field's value when the struct lit was synthesised
             // at lower time (typically via @comptime for substitution
-            // of `f` to a `Field { name, type }` literal).
-            //
-            // Skip the fold when the target is a *comptime const* baked
-            // to a compound struct/array : compound-const struct-lit
-            // substitution is deferred to the `inline_consts` pass, so the
-            // fold guard never sees it and `DIM.0` keeps a real
-            // `LoweredFieldAccess` over the re-materialised tuple lit
-            // (`._0 :i32`). Only `@comptime`-substituted loop-var lits fold.
+            // of `f` to a `Field { name, type }` literal). A baked
+            // constant is read through its symbol, never as a literal.
             if lowered_target is LoweredStructLit {
-                if !field_target_is_comptime_const(ctx, expr.target) {
-                    for f in lowered_target.fields {
-                        if f.name == field_name { return f.value }
-                    }
+                for f in lowered_target.fields {
+                    if f.name == field_name { return f.value }
                 }
             }
             return LoweredFieldAccess {
@@ -353,21 +344,6 @@ try_lower_namespace_fn_value :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) ->
 // (single source of truth — same module, same shape). Callers below
 // reach for `lower_cell_init` directly.
 
-// True when `target` is a bare ident resolving to a `@comptime` const
-// whose baked value is a compound struct / array. Such references keep
-// a real field access at the use site (the tuple lit rides as the
-// access target) rather than folding to the projected element.
-field_target_is_comptime_const :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
-    if target is IdentExpr {
-        symbol :: resolve_ident(ctx, target.span)
-        if symbol is Symbol {
-            baked :: lookup_const_baked_value(ctx, symbol)
-            return baked is StructValue || baked is ArrayValue
-        }
-    }
-    return false
-}
-
 lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue | null {
     // The const symbol may live in this module or in an imported one.
     // `comptime_value_by_symbol_id` was flattened at lower-project entry
@@ -430,7 +406,15 @@ is_numeric_conversion_of_literal :: fn(c: CallExpr) -> bool {
 
 /// Materialise a `ComptimeValue` as a `LoweredExpr` literal. Compound
 /// values (arrays, structs) recurse field-by-field.
-comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: Span) -> LoweredExpr {
+///
+/// @param ctx  the function the literal is lowered in ; a struct is laid out from
+///             the declaration its program sees.
+comptime_value_to_lowered :: fn(
+    ctx: FnLowerCtx,
+    v: ComptimeValue,
+    type_hint: Type,
+    span: Span,
+) -> LoweredExpr {
     match v {
         is IntValue    -> { return LoweredIntLit { .span = span, .type = scalar_type(v.type_name, TY_FREE_INT, type_hint), .value = v.value } }
         is FloatValue  -> { return LoweredFloatLit { .span = span, .type = scalar_type(v.type_name, TY_FREE_FLOAT, type_hint), .value = v.value } }
@@ -442,48 +426,51 @@ comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: Span) -
         is ArrayValue  -> {
             element_type :: array_element_type(type_hint)
             elements: LoweredExpr[]: []
-            for e in v.elements { elements.push(comptime_value_to_lowered(e, element_type, span)) }
+            for e in v.elements {
+                elements.push(comptime_value_to_lowered(ctx, e, element_type, span))
+            }
             return LoweredArrayLit { .span = span, .type = type_hint, .elements = elements }
         }
-        is StructValue -> {
-            tuple :: tuple_backing(type_hint)
-            if tuple != null {
-                return baked_tuple(v, tuple, type_hint, span)
-            }
-            // A tuple under no tuple type (a union holding one, an unknown slot).
-            // `sv.fields.keys()` iterates in MutableMap hash-bucket order, so the
-            // names are sorted : `_0`, `_1`, `_2` come out in position order.
-            sorted_names :: sort(v.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
-            fields: LoweredStructLitField[]: []
-            for name in sorted_names {
-                val :: v.fields[name]
-                if val !is null {
-                    fields.push(LoweredStructLitField {
-                        .name = name,
-                        .value = comptime_value_to_lowered(val, TY_UNRESOLVED, span),
-                    })
-                }
-            }
-            return LoweredStructLit { .span = span, .type = type_hint, .fields = fields }
-        }
+        is StructValue -> { return baked_struct(ctx, v, span) }
         is TypeValue -> { return LoweredUnreachable { .span = span, .type = type_hint, .reason = "comptime type-value lowering deferred" } }
         is EnumValue -> { return LoweredIntLit { .span = span, .type = v.enum_type, .value = v.value } }
     }
 }
 
-// A baked tuple of type `type`, backed by `tuple`, its elements in position order,
-// each at the type of its slot.
-baked_tuple :: fn(v: StructValue, tuple: TupleType, type: Type, span: Span) -> LoweredExpr {
+// A baked struct or tuple, at its own type: a constant declared at a union holds
+// the variant, as the literal it was evaluated from does. A struct is built as a
+// literal written in the source is (`lower_struct_lit`), each field at the type
+// its declaration gives it.
+baked_struct :: fn(ctx: FnLowerCtx, v: StructValue, span: Span) -> LoweredExpr {
+    tuple :: tuple_backing(v.type)
+    if tuple != null {
+        return baked_tuple(ctx, v, tuple, span)
+    }
+    fields: LoweredStructLitField[]: []
+    for [name, value] in v.fields {
+        field_type :: declared_struct_field_type(v.type, name, ctx.typed) ?? TY_UNRESOLVED
+        fields.push(LoweredStructLitField {
+            .name = name,
+            .value = comptime_value_to_lowered(ctx, value, laid_out_unions(field_type), span),
+        })
+    }
+    note_construction(ctx, v.type)
+    return build_core_struct_lit(ctx, erase_generic_struct_tag(ctx, v.type), fields, span)
+}
+
+// A baked tuple of type `v.type`, backed by `tuple`, its elements in position
+// order, each at the type of its slot.
+baked_tuple :: fn(ctx: FnLowerCtx, v: StructValue, tuple: TupleType, span: Span) -> LoweredExpr {
     fields: LoweredStructLitField[]: []
     for i in 0..<tuple.elements.len() {
         name :: "_${i}"
         value :: v.fields[name] ?? continue
         fields.push(LoweredStructLitField {
             .name = name,
-            .value = comptime_value_to_lowered(value, tuple.elements[i], span),
+            .value = comptime_value_to_lowered(ctx, value, tuple.elements[i], span),
         })
     }
-    return LoweredStructLit { .span = span, .type = type, .fields = fields }
+    return LoweredStructLit { .span = span, .type = v.type, .fields = fields }
 }
 
 // The type a baked number takes: its own width where no slot names one, the
@@ -524,13 +511,8 @@ is_scalar_comptime :: fn(v: ComptimeValue) -> bool {
         is CharValue   -> { return true }
         is StringValue -> { return true }
         is NullValue   -> { return true }
-        // Small tuple / struct values inline at use sites, kept as
-        // `LoweredStructLit` / `LoweredArrayLit` at every reference.
-        // There's no size gate yet (a data-pool / fn-wrap split would
-        // kick in at ≥ 4 elements) ; small tuple consts are the dominant
-        // pattern that hits this path so blind inlining keeps the snapshot
-        // shape stable. Revisit when data-pool / fn-wrap lands.
-        is StructValue -> { return true }
+        // Read through its constant, as `fold_const_value` explains.
+        is StructValue -> { return false }
         is ArrayValue  -> { return true }
         is VoidValue   -> { return false }
         is TypeValue   -> { return false }

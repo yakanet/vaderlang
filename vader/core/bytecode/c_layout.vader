@@ -101,16 +101,11 @@ export nested_mirror :: fn(f: BcField, types: BcType[]) -> BcStruct | null = mir
 /// @param types       the module type table.
 /// @param type_index  the slot; `-1` is absent.
 export mirror_at :: fn(types: BcType[], type_index: i32) -> BcStruct | null {
-    if type_index < 0 || i64(type_index) >= types.len() {
+    t :: struct_at(types, type_index) ?? return null
+    if t.c_name == "" {
         return null
     }
-    t :: types[type_index]
-    if t is BcStruct {
-        if t.c_name != "" {
-            return t
-        }
-    }
-    return null
+    return t
 }
 
 /// How deep a mirror may nest.

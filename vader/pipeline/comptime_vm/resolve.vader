@@ -17,7 +17,7 @@
 //   3. injects it into the owning module's `comptime_decls`.
 //
 // The real `lower_project`, run afterwards by `lower_to_entry`, then sees the
-// baked value and inlines the literal table at every use site.
+// baked value and lowers the constant from it.
 
 module "vader/pipeline/comptime_vm"
 
@@ -185,7 +185,15 @@ bake_decl :: fn(
         return false
     }
     if outcome is Vm.ValueOk {
-        bridged :: value_to_comptime(outcome.value, vr.decl_type, vr.span)
+        program :: evaluated.typed.modules[vr.module_id]
+        if program == null {
+            diags.push(
+                comptime_error(.CannotEvaluate, vr.span, "the module declaring it is not typed"),
+            )
+            return false
+        }
+        ctx :: BakeScope { .layouts = state.bc.types, .program = program }
+        bridged :: value_to_comptime(ctx, outcome.value, vr.decl_type, vr.span)
         if bridged is Diagnostic {
             diags.push(bridged)
             return false
@@ -287,7 +295,7 @@ baked_value :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl) -> Ct.C
 
 // Inject the bridged value into the owning module's `comptime_decls`, keyed by
 // the const's symbol id — exactly where the tree-walk would have put it. The
-// pass-2 lower's `lookup_const_baked_value` then inlines the literal.
+// pass-2 lower's `lookup_const_baked_value` then reads it.
 inject :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl, value: Ct.ComptimeValue) -> void {
     program :: evaluated.modules[vr.module_id]
     if program is Ct.EvaluatedProgram {

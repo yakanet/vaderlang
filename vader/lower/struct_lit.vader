@@ -45,6 +45,25 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     fields_mark :: ctx.pending_awaits.len()
     fields :: build_struct_lit_fields(ctx, type, provided, lit, spread_sym)
     hoist_prelude_before(ctx, spread_stmts, fields_mark)
+    note_construction(ctx, type)
+    // Reconcile the box's runtime type-index with the trait-impl vtable's receiver
+    // key. `materialize_impl_for_instance` registers a generic impl's vtable row
+    // under the REF-ERASED self (`Ready<Boom>` → `Ready<Any>`, via
+    // `keep_concrete_or_erase`) so every ref-arg instance shares one row ; a
+    // NON-generic construction site would otherwise mint the CONCRETE tag
+    // (`Ready<Boom>`) — identical layout, divergent tag → `vtable miss`. Inside a
+    // generic fn body the carried subst already erases the lit's type to
+    // `Ready<Any>` ; this generalises that same erasure to the non-generic site.
+    // Primitive args stay concrete (`Ready<i32>` unchanged) so their devirtualised
+    // dispatch is preserved.
+    box_type :: erase_generic_struct_tag(ctx, type)
+    struct_lit :: LoweredStructLit { .span = lit.span, .type = box_type, .fields = fields }
+    return with_prelude(spread_stmts, struct_lit, lit.span)
+}
+
+// Record that `type` is constructed: its generic instance for the impl fixpoint,
+// its symbol for the vtable members of a stdlib struct.
+note_construction :: fn(ctx: FnLowerCtx, type: Type) -> void {
     // Erased generic struct instance (`FilterIterator<Any>`, constructed inside
     // an erased generic fn body where T→Any) : the comptime instance harvest
     // only observes the CONCRETE call-site instance (`FilterIterator<i32>`), so
@@ -72,19 +91,6 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
         // that merely virtually dispatches its trait.
         ctx.project.constructed_struct_symbols.add(st_backing.symbol.id)
     }
-    // Reconcile the box's runtime type-index with the trait-impl vtable's receiver
-    // key. `materialize_impl_for_instance` registers a generic impl's vtable row
-    // under the REF-ERASED self (`Ready<Boom>` → `Ready<Any>`, via
-    // `keep_concrete_or_erase`) so every ref-arg instance shares one row ; a
-    // NON-generic construction site would otherwise mint the CONCRETE tag
-    // (`Ready<Boom>`) — identical layout, divergent tag → `vtable miss`. Inside a
-    // generic fn body the carried subst already erases the lit's type to
-    // `Ready<Any>` ; this generalises that same erasure to the non-generic site.
-    // Primitive args stay concrete (`Ready<i32>` unchanged) so their devirtualised
-    // dispatch is preserved.
-    box_type :: erase_generic_struct_tag(ctx, type)
-    struct_lit :: LoweredStructLit { .span = lit.span, .type = box_type, .fields = fields }
-    return with_prelude(spread_stmts, struct_lit, lit.span)
 }
 
 // Erase a generic struct instance's runtime TAG exactly as
