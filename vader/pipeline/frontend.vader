@@ -37,10 +37,7 @@ export EvaluatedPipeline :: struct {
     comptime_diags:  Diagnostic[]
 }
 
-export prepare_evaluated_project :: fn(file: Path, project_root: string | null) -> EvaluatedPipeline =
-    prepare_evaluated_project_with(file, [], project_root)
-
-// Like `prepare_evaluated_project`, with extra `--include-paths` search roots
+// Load, typecheck and evaluate `file`. The `--include-paths` search roots are
 // threaded to the loader, beside the project the entry belongs to, null for a
 // file compiled on its own (`search_roots`). `view` is what the load selects on:
 // a build target, or null for this machine.

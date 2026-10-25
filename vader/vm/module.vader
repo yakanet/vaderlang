@@ -63,7 +63,7 @@ export VmState :: struct {
 /// the hot loop never re-decodes either. A direct call to a small straight-line
 /// leaf is replaced by the leaf's body first (`inline_leaf.vader`).
 ///
-/// @param bc_mod  the parsed module (from `parse_virt_bc` or the builder).
+/// @param bc_mod  the module, as the compiler emitted it or `parse_virt_bc` read it.
 /// @return        a `VmState` ready to pass to `exec`.
 /// @error         a `VerifyError` when the bytecode is malformed (`verify.vader`),
 ///                when an arm could meet an operand tag it does not accept
@@ -154,42 +154,27 @@ global_zero :: fn(val: bc.ValType) -> Value = match val {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/core/bytecode/builder"
 import "vader/emit/virt"
 import "vader/front/virt"
 
-// Round-trip a builder-constructed module through `write_virt` → `parse_virt_bc`
-// and assert the parsed copy execs to the same value : the writer/reader pair is
-// a behavioural identity. Doubles as the coverage for `FunctionBuilder.push` (the
-// op-emission entry point) and the `ModuleBuilder` assembler — the sole consumers
-// of `vader/core/bytecode/builder`.
+// Round-trip a module read from `.virt` text through `write_virt` →
+// `parse_virt_bc` and assert the copy execs to the same value : the
+// writer/reader pair is a behavioural identity.
 @test
 test_virt_roundtrip :: fn() -> void {
-    builder :: new_module_builder()
-    builder.add_type(bc.BcScalar { .val = .I32 })
+    // compute(a, b) -> i32 = (a + b) * 2 ; main() -> i32 = compute(40, 1) → 82
+    source :: "module demo\ntype 0 scalar i32\nexport main 1\n\n"
+        + "fn 0 compute (i32,i32) -> i32\n"
+        + "  local.get 0\n  local.get 1\n  i32.add\n  i32.const 2\n  i32.mul\n  return\nend\n\n"
+        + "fn 1 main () -> i32\n"
+        + "  i32.const 40\n  i32.const 1\n  call 0\n  return\nend\n"
+    original :: parse_virt_bc(source)
+    if original is VirtParseError {
+        assert(false, "the listing should parse: line ${original.line_number}: ${original.reason}")
+        return
+    }
+    assert(exec_value(original) == 82, "the parsed module should exec to 82")
 
-    // compute(a, b) -> i32 = (a + b) * 2
-    compute :: new_function_builder("compute", [.I32, .I32], 0)
-    compute.push(bc.LocalGet { .slot = 0 })
-    compute.push(bc.LocalGet { .slot = 1 })
-    compute.push(bc.I32Add {})
-    compute.push(bc.I32Const { .value = 2 })
-    compute.push(bc.I32Mul {})
-    compute.push(bc.Return {})
-    compute_index :: builder.add_function(compute)
-
-    // main() -> i32 = compute(40, 1)   // → 82
-    entry :: new_function_builder("main", [], 0)
-    entry.push(bc.I32Const { .value = 40 })
-    entry.push(bc.I32Const { .value = 1 })
-    entry.push(bc.Call { .function_index = compute_index })
-    entry.push(bc.Return {})
-    builder.set_main(builder.add_function(entry))
-
-    original :: builder.finish()
-    assert(exec_value(original) == 82, "freshly built module should exec to 82")
-
-    // write_virt → parse_virt_bc must preserve behaviour.
     round_tripped :: parse_virt_bc(write_virt(original))
     if round_tripped is VirtParseError {
         assert(false, "own dump should parse back: line "

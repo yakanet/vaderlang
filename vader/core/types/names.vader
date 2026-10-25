@@ -146,9 +146,6 @@ export primitive_size :: fn(name: string) -> i64 {
     return m.size
 }
 
-/// Alignment in bytes — equal to size on the 64-bit target.
-export primitive_align :: fn(name: string) -> i64 = primitive_size(name)
-
 // ---- core traits and keys -------------------------------------------------
 
 /// Names of stdlib core traits used for compiler-driven dispatch. Kept as

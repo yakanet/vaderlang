@@ -1,6 +1,6 @@
 // vader/pipeline/backend: lower → bytecode, as a callable unit.
 //
-// `lower_to_entry` runs the front end and lowers; `prepare_cfg_bytecode` carries
+// `lower_to_entry` runs the front end and lowers; `prepare_cfg_bytecode_with` carries
 // that through prune, the CFG passes (`vader/midir/pipeline`) and the bytecode
 // emitter; `flush_build_diags` prints what they reported and says whether the
 // result may be emitted. With them, the small helpers the chain reaches for
@@ -252,7 +252,7 @@ export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = fal
     }
 }
 
-/// Result of `prepare_cfg_bytecode` — the canonical bytecode module plus
+/// Result of `prepare_cfg_bytecode_with`: the canonical bytecode module plus
 /// the bits the caller still needs for diagnostics + entry resolution.
 export CfgBytecode :: struct {
     /// Entry-fn mangle (`…$main`), resolved inside `lower_to_entry`.
@@ -264,16 +264,6 @@ export CfgBytecode :: struct {
     in_scope_files: string[]
     module:      BytecodeModule
 }
-
-/// Lower `file` to a `BytecodeModule` via the CFG midir → bytecode path
-/// (the canonical bytecode shared by the bytecode stage and the C stage).
-/// It is the only bytecode path left — the tree-walking emitter it replaced
-/// elided the 3-address `local.set` / `local.get` temps this one materialises,
-/// and diverged from it on ~150 snippets. Both `dump --stage` consumers route
-/// through here. Const-fold is deliberately NOT run, since arith collapse would
-/// over-shrink vs the parity snapshot.
-export prepare_cfg_bytecode :: fn(file: Path, want_debug: bool, project_root: string | null) -> CfgBytecode =
-    prepare_cfg_bytecode_with(file, want_debug, [], project_root)
 
 /// Front end + lower + prune → CFG → bytecode, in one call.
 ///

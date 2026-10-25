@@ -15,14 +15,7 @@ module "vader/front/virt"
 import "std/numbers"
 import "std/string"
 import "vader/core/bytecode"
-import "vader/core/bytecode/builder"
 import "vader/core/types"
-
-// `ScopeEntry` and `PendingBranch` live in `vader/core/bytecode/builder`, beside
-// the scope stack / branch wiring that consume them (`branch_scopes.vader`):
-// one source of truth for both. The parser threads them through
-// `ParserState` below while reading `.virt` text ; the builder wires the same
-// shapes at programmatic build time.
 
 /// Per-function parser state bundle. Carries the six structures
 /// `wire_control_flow` threads together, so it takes one parameter instead of
@@ -30,11 +23,6 @@ import "vader/core/types"
 /// are heap-allocated, so `state.scopes.push(...)` is visible across calls
 /// without explicit by-ref passing). The 1-element `scope_sp` / `pending_sp`
 /// arrays are the canonical "boxed scalar" pattern used elsewhere in the file.
-///
-/// The bundle stops at this module's edge: the shared helpers in
-/// `branch_scopes.vader` take the arrays directly, since `FunctionBuilder`
-/// holds the same six fields under its own names and has no `ParserState` to
-/// hand over.
 ///
 /// `ops` and `table` are reset at every `fn ...` header in `parse_virt_bc` ;
 /// `scopes` and `pending` are reused across functions (only their
@@ -201,14 +189,14 @@ read_fn_mangled_name :: fn(cleaned: string) -> string {
 /// @param pc       the pc that was just emitted (= `state.ops.len() - 1`).
 wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i32) -> void {
     if head == "block" {
-        push_scope(state.scopes, state.scope_sp, ScopeEntry { .label = first_token_after(cleaned, "block "), .is_loop = false, .opener_pc = pc })
+        push_scope(state, ScopeEntry { .label = first_token_after(cleaned, "block "), .is_loop = false, .opener_pc = pc })
     } else if head == "loop" {
         // Loop target is the start of its body (opener_pc + 1) — known
         // immediately, so we fill `table[pc]` up front.
-        push_scope(state.scopes, state.scope_sp, ScopeEntry { .label = first_token_after(cleaned, "loop "), .is_loop = true, .opener_pc = pc })
+        push_scope(state, ScopeEntry { .label = first_token_after(cleaned, "loop "), .is_loop = true, .opener_pc = pc })
         state.table[pc] = pc + 1
     } else if head == "if" {
-        push_scope(state.scopes, state.scope_sp, ScopeEntry { .label = first_token_after(cleaned, "if "), .is_loop = false, .opener_pc = pc })
+        push_scope(state, ScopeEntry { .label = first_token_after(cleaned, "if "), .is_loop = false, .opener_pc = pc })
     } else if head == "else" {
         sp :: state.scope_sp[0]
         if sp > 0 {
@@ -229,15 +217,12 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i
             if !top.is_loop && state.table[top.opener_pc] < 0 {
                 state.table[top.opener_pc] = pc + 1
             }
-            drain_pending(state.table, state.pending, state.pending_sp,
-                          top.label, top.is_loop, top.opener_pc, pc)
+            drain_pending(state, top, pc)
         }
     } else if head == "br" || head == "br_if" {
         // `first_token_after` slices past the prefix then trims, so the head
         // token is the prefix — the two forms differ only in their opcode.
-        defer_or_resolve_branch(state.scopes, state.scope_sp, state.table,
-                                state.pending, state.pending_sp,
-                                first_token_after(cleaned, head), pc)
+        defer_or_resolve_branch(state, first_token_after(cleaned, head), pc)
     }
 }
 

@@ -24,7 +24,6 @@ import "std/ffi"
 import "std/numbers"
 import "std/string"
 import "vader/core/bytecode"
-import "vader/core/bytecode/builder"
 
 /// A `.virt` line the reader could not interpret. The parse stops there.
 ///

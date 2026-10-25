@@ -56,22 +56,6 @@ export verify_module :: fn(module: bc.BytecodeModule) -> i64[] | VerifyError {
     return depths
 }
 
-/// Every defect of `module`, one per failing function — the report form of
-/// `verify_module`, for tooling that lists them all.
-///
-/// @param module  the module to verify.
-/// @return        the first defect of each failing function, in body order.
-export verify_all :: fn(module: bc.BytecodeModule) -> VerifyError[] {
-    out: VerifyError[]: []
-    for f in module.functions {
-        found :: verify_function(module, f)
-        if found is VerifyError {
-            out.push(found)
-        }
-    }
-    return out
-}
-
 // What one op does to the operand stack, and where control goes next.
 StackEffect :: struct {
     pops:   i64
