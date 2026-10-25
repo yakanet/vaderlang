@@ -203,7 +203,7 @@ run_resolver_stage :: fn(
 resolve_loaded_project :: fn(project: LoadedProject, scope: string[]) -> ResolvedProject {
     core_seed :: build_core_seed(project)
     mod_index :: module_index_by_name(project)
-    materialize_all_sams_pre_resolve(project, mod_index, core_seed)
+    materialize_impl_members(project, mod_index, core_seed)
     modules: ResolvedModule[]: []
     resolved_by_id :: MutableMap<string, ResolvedModule> {}
     for [id, lm] in project.modules {

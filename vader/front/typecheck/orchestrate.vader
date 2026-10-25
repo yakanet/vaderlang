@@ -20,19 +20,6 @@ import "vader/front/resolver"
 import "vader/support/diagnostics"
 import "vader/support/target"
 
-// Concatenate every file of a (possibly multi-file) module into one
-// synthetic Program so the resolver body-walks ALL files, not just
-// files[0].
-// `Span.hash()` is file-aware, so idents from sibling files at the same
-// (line, column) no longer collide in the merged per-module map.
-merge_module_program :: fn(files: SourceFile[]) -> AST.Program {
-    first :: files[0].program
-    if files.len() == 1 {
-        return first
-    }
-    return AST.Program { ...first, .decls = concat_file_decls(files) }
-}
-
 /// Multi-module typecheck. Types the entry module fully, then
 /// types each directly-imported module *just enough* to harvest
 /// its top-level decl types (for cross-module ident lookup). Wires
@@ -51,10 +38,10 @@ export check_project_with_bodies :: fn(
     // deferring to typecheck.
     core_seed :: build_core_seed(project)
     mod_index :: module_index_by_name(project)
-    // First, materialise single-abstract-method sugar (`Type implements Trait ->
-    // expr`) project-wide so the resolver walks bodies with `self` / `other` / …
-    // properly bound. It reports into `project.diags`.
-    materialize_all_sams_pre_resolve(project, mod_index, core_seed)
+    // First, fill every impl with the members its trait implies, so the resolver
+    // walks their bodies with `self` / `other` / … properly bound. It reports into
+    // `project.diags`.
+    materialize_impl_members(project, mod_index, core_seed)
     result :: check_project_modules(project, diags, dump_types, core_seed, mod_index)
     propagate_type_param_observation(result.all_modules, diags)
     return result
@@ -126,7 +113,7 @@ check_project_modules :: fn(
     // before any fn signature consults them.
     unsettled :: MutableMap<string, AST.Decl[]> {}
     unsettled[project.entry] = register_aliases(
-        entry_typed, merge_module_program(entry_loaded.module.files).decls,
+        entry_typed, concat_file_decls(entry_loaded.module.files),
     )
     for [id, other] in project.modules {
         if id == project.entry {
@@ -134,7 +121,7 @@ check_project_modules :: fn(
         }
         other_typed :: per_module[id]
         if other_typed !is null {
-            decls :: merge_module_program(other.module.files).decls
+            decls :: concat_file_decls(other.module.files)
             unsettled[id] = register_aliases(other_typed, decls)
         }
     }
@@ -192,7 +179,7 @@ check_project_modules :: fn(
     // signatures in non-first files get declared too (was the source of
     // `?` types on multi-file modules).
     declare_module(
-        merge_module_program(entry_loaded.module.files).decls,
+        concat_file_decls(entry_loaded.module.files),
         entry_rm,
         entry_typed,
         diags,
@@ -208,7 +195,7 @@ check_project_modules :: fn(
         }
         other_typed :: per_module[id] ?? continue
         declare_module(
-            merge_module_program(other.module.files).decls,
+            concat_file_decls(other.module.files),
             other_typed.resolved,
             other_typed,
             diags,
@@ -281,20 +268,20 @@ check_project_modules :: fn(
     // return types (forward-reference safe) ; second pass re-types
     // bodies with all returns settled. Diags are captured only on
     // the second pass — the first one is a throwaway sink.
-    if has_expr_bodied_fn(merge_module_program(entry_loaded.module.files).decls) {
+    if has_expr_bodied_fn(concat_file_decls(entry_loaded.module.files)) {
         walk_bodies(
-            merge_module_program(entry_loaded.module.files).decls,
+            concat_file_decls(entry_loaded.module.files),
             entry_typed,
             diag_sink(),
             .ReturnsOnly,
         )
         reset_expr_tables(entry_typed)
     }
-    walk_bodies(merge_module_program(entry_loaded.module.files).decls, entry_typed, diags, .Full)
+    walk_bodies(concat_file_decls(entry_loaded.module.files), entry_typed, diags, .Full)
     // W0007 dead-code lint : private top-level decls never reached from the
     // module's public surface. Entry-module-only, so it lints the
     // module being compiled. Name-based reachability: see `vader/front/dead_code`.
-    check_dead_code(merge_module_program(entry_loaded.module.files).decls,
+    check_dead_code(concat_file_decls(entry_loaded.module.files),
         entry_loaded.module.module_name, diags, entry_loaded.discarded_bodies)
     // Body-check every imported module too, so the lowerer sees the
     // expression types of imported fn bodies. The whole-program lowerer
@@ -322,7 +309,7 @@ check_project_modules :: fn(
         // stale-ahead ordering is what `pick_overload` first-matched into `?` →
         // `any` → wide-int compares truncated to `i32.lt`, the `abs` bug.)
         populate_imported_fn_overloads(other_typed, other.collected.files, typed_by_name)
-        other_decls :: merge_module_program(other.module.files).decls
+        other_decls :: concat_file_decls(other.module.files)
         if has_expr_bodied_fn(other_decls) {
             walk_bodies(other_decls, other_typed, diag_sink(), .ReturnsOnly)
             reset_expr_tables(other_typed)
@@ -342,7 +329,7 @@ check_project_modules :: fn(
     for d in entry_typed.resolved.diags {
         diags.push(d)
     }
-    impls :: build_impl_registry(merge_module_program(entry_loaded.module.files).decls, entry_typed.resolved)
+    impls :: build_impl_registry(concat_file_decls(entry_loaded.module.files), entry_typed.resolved)
     // Every directly-imported non-stdlib module gets its own `## <path>`
     // section in the dump.
     others: TypedProgram[]: collect_direct_imports(entry_loaded, project, per_module)
@@ -530,7 +517,7 @@ check_module_impl_coherence :: fn(
 ) -> void {
     tp :: per_module[id] ?? return
     loaded :: project.modules[id] ?? return
-    for decl in merge_module_program(loaded.module.files).decls {
+    for decl in concat_file_decls(loaded.module.files) {
         if decl is AST.ImplDecl {
             // A trait is told apart by its declaration, not by the name an
             // import gave it ; one that does not resolve is reported elsewhere.
@@ -674,7 +661,7 @@ check_module_fn_redefinitions :: fn(
     // only for names with ≥2 decls. Signatures come from the AST, the
     // authoritative source of declared params, not from `decl_types`.
     by_name :: MutableMap<string, AST.FnDecl[]> {}
-    for decl in merge_module_program(loaded.module.files).decls {
+    for decl in concat_file_decls(loaded.module.files) {
         if decl !is AST.FnDecl {
             continue
         }
@@ -800,7 +787,7 @@ register_project_impls :: fn(
     impls: RecordedImpl[][]: []
     for [id, owner] in per_module {
         loaded :: project.modules[id] ?? continue
-        found :: recorded_impls(merge_module_program(loaded.module.files).decls, owner)
+        found :: recorded_impls(concat_file_decls(loaded.module.files), owner)
         record_impl_memberships(owner, found)
         owners.push(owner)
         impls.push(found)
@@ -1276,195 +1263,6 @@ record_struct_trait_args :: fn(
     lists.push(args)
 }
 
-
-// Walk every loaded module's `ImplDecl`s and call
-// `materialize_sam_members` against the matching trait — works
-// cross-module so `Foo implements Display -> "..."` picks up
-// Display from `std/core`. Emits R2016 when the short impl form
-// (`Type implements Trait -> expr`) targets a trait with != 1
-// required method.
-export materialize_all_sams_pre_resolve :: fn(
-    project: LoadedProject,
-    name_index: MutableMap<string, LoadedModule>,
-    core_seed: MutableMap<string, Symbol>,
-) -> void {
-    for [_, loaded] in project.modules {
-        for file in loaded.module.files {
-            materialize_file_sams(project, loaded, file, name_index, core_seed)
-        }
-    }
-}
-
-// The SAM impls of one file : its trait names resolve in that file's scope, with
-// the imports the file wrote.
-materialize_file_sams :: fn(
-    project: LoadedProject,
-    loaded: LoadedModule,
-    file: SourceFile,
-    name_index: MutableMap<string, LoadedModule>,
-    core_seed: MutableMap<string, Symbol>,
-) -> void {
-    decls :: file.program.decls
-    if !has_impl_decl(decls) {
-        return
-    }
-    imports :: file_imports(loaded.collected, file.program.file)
-    no_builtins :: MutableMap<string, Symbol> {}
-    scope :: file_root_scope(no_builtins, loaded.collected, imports, name_index, core_seed)
-    for decl in decls {
-        if decl !is AST.ImplDecl {
-            continue
-        }
-        found :: find_impl_trait_decl(decl.trait_name, loaded, scope, name_index, project)
-        if found.trait_decl is null {
-            if found.other_kind != "" {
-                project.diags.push(
-                    resolver_error(
-                        .TraitNameNotATrait,
-                        decl.trait_name_span,
-                        "`${decl.trait_name}` is a ${found.other_kind}",
-                    ),
-                )
-            } else {
-                project.diags.push(
-                    resolver_error(
-                        .UnresolvedTypeName,
-                        decl.trait_name_span,
-                        "`${decl.trait_name}`",
-                    ),
-                )
-            }
-            continue
-        }
-        trait_decl :: found.trait_decl
-        check_short_impl_arity(decl, trait_decl, project.diags)
-        // `@intrinsic <T> implements <Trait>` arrives with an empty
-        // `members` list — synthesise body-less FnDecls from the
-        // trait's methods so the rest of the pipeline (declare /
-        // ufcs / walk_fn_body) sees them.
-        materialize_intrinsic_members(decl, trait_decl, loaded.node_id_factory)
-        // Always materialise the SAM rename — `check_short_impl_arity`
-        // already marked invalid synthetics as `materialized=true` so
-        // body-walk + body-typecheck skip them, but the rename still
-        // lets the T3036 "missing method" loop credit the SAM-named
-        // slot. Without the rename, both required methods would be
-        // flagged missing instead of just the unprovided one.
-        materialize_sam_members(decl, trait_decl, loaded.node_id_factory)
-        // Default-bodied trait methods get cloned into the impl
-        // (body + signature substituted). Bodies carry the
-        // materialised-span marker + IDs minted from the project's
-        // factory so cloned nodes contribute distinct expr_types
-        // entries in the typecheck dump (rendered as
-        // `undefined:undefined`).
-        materialize_default_members(decl, trait_decl, loaded.node_id_factory)
-    }
-}
-
-/// R2016 : `Type implements Trait -> expr` desugars one body into the
-/// trait's lone required method. When the trait has 0 or 2+ required
-/// methods, the sugar is ill-defined — emit once per synthetic member.
-check_short_impl_arity :: fn(
-    impl_: AST.ImplDecl,
-    trait_: AST.TraitDecl,
-    diags: Diagnostic[],
-) -> bool {
-    required :: required_methods(trait_.members).len()
-    if required == 1 {
-        return true
-    }
-    fired := false
-    for i in 0..<impl_.members.len() {
-        m :: impl_.members[i]
-        if m.sam_synthetic {
-            diags.push(
-                resolver_error(
-                    .ShortImplFormSingleMethod,
-                    m.span,
-                    "trait `${impl_.trait_name}` has ${required} required methods",
-                ),
-            )
-            // Mark the synthetic body as already-typechecked so the
-            // walker skips it — otherwise T3020 / R2006 on `self` cascade
-            // out of a body the user can't fix without restructuring the
-            // impl. Same `materialized` flag default-method clones use.
-            impl_.members[i].materialized = true
-            fired = true
-        }
-    }
-    return !fired
-}
-
-// True when `decls` declares at least one impl.
-has_impl_decl :: fn(decls: AST.Decl[]) -> bool {
-    for d in decls {
-        if d is AST.ImplDecl {
-            return true
-        }
-    }
-    return false
-}
-
-// The declaration of the trait an impl in `loaded` names. Runs before the
-// resolver, so it walks the scope the resolver will build : the module's own
-// names and imports, then `seed` (the prelude and the wildcard imports).
-find_impl_trait_decl :: fn(
-    name: string,
-    loaded: LoadedModule,
-    scope: MutableMap<string, Symbol>,
-    name_index: MutableMap<string, LoadedModule>,
-    project: LoadedProject,
-) -> NamedDeclLookup {
-    unresolved :: NamedDeclLookup { .trait_decl = null, .other_kind = "" }
-    sym :: name_in_file_scope(name, loaded, scope, name_index) ?? return unresolved
-    if sym.kind != .Trait {
-        // @partial: only a type declaration is reported by its kind ; any other
-        // binding reads as an unresolved type name.
-        other_kind :: @partial match sym.kind {
-            .Struct    -> "struct"
-            .Enum      -> "enum"
-            .TypeAlias -> "alias"
-            _          -> ""
-        }
-        return NamedDeclLookup { .trait_decl = null, .other_kind = other_kind }
-    }
-    owner :: project.modules[sym.module] ?? return unresolved
-    for decl in merge_module_program(owner.module.files).decls {
-        if decl is AST.TraitDecl {
-            if decl.name == sym.name {
-                return NamedDeclLookup { .trait_decl = decl, .other_kind = "" }
-            }
-        }
-    }
-    return unresolved
-}
-
-// The symbol `name` binds to in a file's `scope` (`file_root_scope`), an import
-// followed to the declaration it names. Null when the name binds to nothing.
-name_in_file_scope :: fn(
-    name: string,
-    loaded: LoadedModule,
-    scope: MutableMap<string, Symbol>,
-    name_index: MutableMap<string, LoadedModule>,
-) -> Symbol | null {
-    own :: scope[name] ?? return null
-    if own.kind != .ImportBinding {
-        return own
-    }
-    info :: loaded.collected.imports[own.id] ?? return null
-    imported :: info.imported_name ?? return null
-    target :: name_index[info.path] ?? return null
-    return target.collected.symbols[imported]
-}
-
-// What an impl's trait name binds to : the trait, or — so the impl reports R2009
-// rather than R2007 — the kind of the other type it names.
-NamedDeclLookup :: struct {
-    trait_decl: AST.TraitDecl | null
-    /// `"struct"` / `"enum"` / `"alias"` when the name binds to that kind of
-    /// declaration ; empty otherwise. Only meaningful when `trait_decl` is null.
-    other_kind: string
-}
-
 // An expression-bodied fn with no explicit return annotation — the only fn
 // shape whose return type is settled by body inference (`patch_fn_return_type`,
 // stmt.vader). Names the condition shared by `has_expr_bodied_fn` (which fns
@@ -1877,10 +1675,10 @@ settle_external_expr_bodied_returns :: fn(
                 continue
             }
             other_typed :: per_module[id] ?? continue
-            // Merge each module's files once per iteration — `merge_module_program`
-            // rebuilds + copies the decl list for multi-file modules, so reuse it
-            // across the gate + the walk (mirrors the import loop's `other_decls`).
-            decls :: merge_module_program(loaded.module.files).decls
+            // Concatenate each module's files once per iteration: `concat_file_decls`
+            // copies the decl list of a multi-file module, so reuse it across the
+            // gate and the walk (mirrors the import loop's `other_decls`).
+            decls :: concat_file_decls(loaded.module.files)
             if pass == 1 && !has_expr_bodied_fn(decls) {
                 continue
             }

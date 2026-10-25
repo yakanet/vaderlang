@@ -441,8 +441,8 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
     // The symbol the trait name binds to — a local trait, or an import — so later
     // passes follow the binding instead of looking the name up again. A name the
     // scope doesn't bind stays unrecorded: R2007 / R2009 on it come from the
-    // short-impl pass that runs before this walk
-    // (`vader/front/typecheck/orchestrate.vader::materialize_all_sams_pre_resolve`).
+    // impl-member pass that runs before this walk (`materialize_impl_members`,
+    // `impl_members.vader`).
     trait_sym :: self.scope.lookup(d.trait_name)
     if trait_sym != null {
         self.idents[d.trait_name_span.hash()] = trait_sym

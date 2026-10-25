@@ -191,7 +191,7 @@ chosen_member :: fn(
 //
 // Read off the PROJECT's own decls rather than `CheckResult.impls`: that
 // registry is built from the entry module's declarations alone
-// (`orchestrate.vader`, `build_impl_registry(merge_module_program(entry…))`), so
+// (`orchestrate.vader`, `build_impl_registry(concat_file_decls(entry…))`), so
 // the blanket impl in `std/core` is absent from it for every user file. The
 // completion handler documents the same gap on the same table.
 //

@@ -1,0 +1,209 @@
+// vader/front/resolver/impl_members: every impl filled from its trait, before the
+// resolver walks a body.
+//
+// An impl names its trait, and the trait may come from any module, `std/core`
+// included. This pass finds it in the scope the resolver will build for the impl's
+// file, then fills the impl with what the trait implies (`materialize.vader`): the
+// stubs of an `@intrinsic` impl, the method a short impl stands for, the default
+// methods it does not override. The resolver then walks those bodies with `self`
+// and the trait's parameters bound like any written member's.
+
+module "vader/front/resolver"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "vader/core/symbol"
+import "vader/support/diagnostics"
+
+/// Fill every impl of `project` with the members its trait implies, before the
+/// resolver walks a body: the stubs of an `@intrinsic` impl, the method a short
+/// impl (`Type implements Trait -> expr`) stands for, and a clone of each default
+/// method the impl does not override. Works across modules, so
+/// `Foo implements Display -> "..."` finds `Display` in `std/core`.
+///
+/// @param project     the loaded project ; its impls are filled in place.
+/// @param name_index  the loaded modules by name (`module_index_by_name`).
+/// @param core_seed   the prelude's names (`build_core_seed`).
+/// @error             R2009 when an impl's trait name binds to a struct, an enum or
+///                    an alias, R2007 when it binds to nothing else that is a
+///                    trait, R2016 when a short impl targets a trait with other
+///                    than one required method ; all pushed onto `project.diags`.
+export materialize_impl_members :: fn(
+    project: LoadedProject,
+    name_index: MutableMap<string, LoadedModule>,
+    core_seed: MutableMap<string, Symbol>,
+) -> void {
+    for [_, loaded] in project.modules {
+        for file in loaded.module.files {
+            materialize_file_impl_members(project, loaded, file, name_index, core_seed)
+        }
+    }
+}
+
+// The impls of one file : their trait names resolve in that file's scope, with the
+// imports the file wrote.
+materialize_file_impl_members :: fn(
+    project: LoadedProject,
+    loaded: LoadedModule,
+    file: SourceFile,
+    name_index: MutableMap<string, LoadedModule>,
+    core_seed: MutableMap<string, Symbol>,
+) -> void {
+    decls :: file.program.decls
+    if !has_impl_decl(decls) {
+        return
+    }
+    imports :: file_imports(loaded.collected, file.program.file)
+    no_builtins :: MutableMap<string, Symbol> {}
+    scope :: file_root_scope(no_builtins, loaded.collected, imports, name_index, core_seed)
+    for decl in decls {
+        if decl !is AST.ImplDecl {
+            continue
+        }
+        found :: find_impl_trait_decl(decl.trait_name, loaded, scope, name_index, project)
+        if found.trait_decl is null {
+            if found.other_kind != "" {
+                project.diags.push(
+                    resolver_error(
+                        .TraitNameNotATrait,
+                        decl.trait_name_span,
+                        "`${decl.trait_name}` is ${found.other_kind}",
+                    ),
+                )
+            } else {
+                project.diags.push(
+                    resolver_error(
+                        .UnresolvedTypeName,
+                        decl.trait_name_span,
+                        "`${decl.trait_name}`",
+                    ),
+                )
+            }
+            continue
+        }
+        trait_decl :: found.trait_decl
+        check_short_impl_arity(decl, trait_decl, project.diags)
+        // `@intrinsic <T> implements <Trait>` arrives with an empty
+        // `members` list: synthesise body-less FnDecls from the
+        // trait's methods so the rest of the pipeline (declare /
+        // ufcs / walk_fn_body) sees them.
+        materialize_intrinsic_members(decl, trait_decl, loaded.node_id_factory)
+        // Always materialise the SAM rename: `check_short_impl_arity`
+        // already marked invalid synthetics as `materialized=true` so
+        // body-walk + body-typecheck skip them, but the rename still
+        // lets the T3036 "missing method" loop credit the SAM-named
+        // slot. Without the rename, both required methods would be
+        // flagged missing instead of just the unprovided one.
+        materialize_sam_members(decl, trait_decl, loaded.node_id_factory)
+        // Default-bodied trait methods get cloned into the impl
+        // (body + signature substituted). Bodies carry the
+        // materialised-span marker + IDs minted from the project's
+        // factory so cloned nodes contribute distinct expr_types
+        // entries in the typecheck dump (rendered as
+        // `undefined:undefined`).
+        materialize_default_members(decl, trait_decl, loaded.node_id_factory)
+    }
+}
+
+/// R2016 : `Type implements Trait -> expr` desugars one body into the
+/// trait's lone required method. When the trait has 0 or 2+ required
+/// methods, the sugar is ill-defined: emit once per synthetic member.
+check_short_impl_arity :: fn(
+    impl_: AST.ImplDecl,
+    trait_: AST.TraitDecl,
+    diags: Diagnostic[],
+) -> void {
+    required :: required_methods(trait_.members).len()
+    if required == 1 {
+        return
+    }
+    for i in 0..<impl_.members.len() {
+        m :: impl_.members[i]
+        if m.sam_synthetic {
+            diags.push(
+                resolver_error(
+                    .ShortImplFormSingleMethod,
+                    m.span,
+                    "trait `${impl_.trait_name}` has ${required} required methods",
+                ),
+            )
+            // Mark the synthetic body as already-typechecked so the
+            // walker skips it: otherwise T3020 / R2006 on `self` cascade
+            // out of a body the user can't fix without restructuring the
+            // impl. Same `materialized` flag default-method clones use.
+            impl_.members[i].materialized = true
+        }
+    }
+}
+
+// True when `decls` declares at least one impl.
+has_impl_decl :: fn(decls: AST.Decl[]) -> bool {
+    for d in decls {
+        if d is AST.ImplDecl {
+            return true
+        }
+    }
+    return false
+}
+
+// The declaration of the trait an impl in `loaded` names. Runs before the
+// resolver, so it walks the scope the resolver will build : `scope`
+// (`file_root_scope`, without builtins), the module's own names and imports, then
+// the prelude and the wildcard imports.
+find_impl_trait_decl :: fn(
+    name: string,
+    loaded: LoadedModule,
+    scope: MutableMap<string, Symbol>,
+    name_index: MutableMap<string, LoadedModule>,
+    project: LoadedProject,
+) -> TraitLookup {
+    unresolved :: TraitLookup { .trait_decl = null, .other_kind = "" }
+    sym :: name_in_file_scope(name, loaded, scope, name_index) ?? return unresolved
+    if sym.kind != .Trait {
+        // @partial: only a type declaration is reported by its kind ; any other
+        // binding reads as an unresolved type name.
+        other_kind :: @partial match sym.kind {
+            .Struct    -> "a struct"
+            .Enum      -> "an enum"
+            .TypeAlias -> "an alias"
+            _          -> ""
+        }
+        return TraitLookup { .trait_decl = null, .other_kind = other_kind }
+    }
+    owner :: project.modules[sym.module] ?? return unresolved
+    for decl in concat_file_decls(owner.module.files) {
+        if decl is AST.TraitDecl {
+            if decl.name == sym.name {
+                return TraitLookup { .trait_decl = decl, .other_kind = "" }
+            }
+        }
+    }
+    return unresolved
+}
+
+// The symbol `name` binds to in a file's `scope` (`file_root_scope`), an import
+// followed to the declaration it names. Null when the name binds to nothing.
+name_in_file_scope :: fn(
+    name: string,
+    loaded: LoadedModule,
+    scope: MutableMap<string, Symbol>,
+    name_index: MutableMap<string, LoadedModule>,
+) -> Symbol | null {
+    own :: scope[name] ?? return null
+    if own.kind != .ImportBinding {
+        return own
+    }
+    info :: loaded.collected.imports[own.id] ?? return null
+    imported :: info.imported_name ?? return null
+    target :: name_index[info.path] ?? return null
+    return target.collected.symbols[imported]
+}
+
+// What an impl's trait name binds to : the trait, or the kind of the other type it
+// names, so that the impl reports R2009 rather than R2007.
+TraitLookup :: struct {
+    trait_decl: AST.TraitDecl | null
+    /// `"a struct"` / `"an enum"` / `"an alias"` when the name binds to that kind
+    /// of declaration ; empty otherwise. Only meaningful when `trait_decl` is null.
+    other_kind: string
+}
