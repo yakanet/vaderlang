@@ -152,29 +152,31 @@ through a vtable keeps every impl member that can fill that slot.
 
 ## Mid-IR (CFG)
 
-Each lowered function becomes a reducible CFG of basic blocks ending in `branch`,
-`cond_branch`, `return` or `unreachable`. Expressions become three-address
-instructions over named local slots. Strings go into a project-wide pool that the
-emitter reuses.
-
-The CFG supports the analyses that need def-use chains:
-
-- **escape analysis**: a struct or array allocation that cannot outlive its function
-  is placed on the stack. An allocation made in a loop and still live when the next
-  iteration starts counts as escaping.
-- **range analysis**: tracks integer intervals and array lengths. A release native
-  build drops the index checks it proves useless.
+Each lowered function becomes a reducible CFG of basic blocks over typed locals.
+[`MID_IR.md`](MID_IR.md) describes the Mid-IR as a language.
 
 `vader/midir/` holds the CFG, its construction from the lowered AST, its verifier
-and the call graph. The passes over it are sub-modules that import it: `optimise/`
-(move folding and local compaction, escape analysis, repeated array loads),
-`value_return/` (a small composite, or an `S | null`, handed back in registers
-rather than on the heap) and `ranges/` (the range analysis). Below it, `select/`
-maps a type to the value type the bytecode holds it as, and an operation to its op.
+and the call graph. The passes over it are sub-modules that import it. They run in
+this order, and `vader build --verify` checks the CFG after each:
+
+1. `value_return/`: a function returning a small tuple, or an `S | null` built at
+   every `return`, hands back the elements as separate values; a read of a field of
+   a freshly built tuple becomes a copy of the value it was built from;
+2. `optimise/`: moves are folded and the locals nothing reads are dropped;
+3. `optimise/`, escape analysis: in a native build, a struct that cannot outlive its
+   function is placed on the stack. An allocation made in a loop and still live when
+   the next iteration starts counts as escaping;
+4. `optimise/`: a repeated read of the same array element within a block becomes a
+   copy;
+5. `ranges/`, range analysis: it tracks integer intervals and array lengths, and in a
+   release native build marks the index checks it proves useless, which the C
+   emitter drops.
+
+Below it, `select/` maps a type to the value type the bytecode holds it as, and an
+operation to its op.
 
 The bytecode emitter reads the CFG and recovers structured nesting, placing each
 block once by dominator tree ([ADR 0027](adr/0027-the-structurer-places-each-block-once-by-dominator-tree.md)).
-The design is in [`MID_IR_DESIGN.md`](MID_IR_DESIGN.md).
 
 ## Intrinsics
 

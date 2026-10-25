@@ -247,7 +247,58 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
   - **the silence.** An FFI resolution failure during comptime folding must be a diagnostic. Exit 0 with an empty dump is the worst possible answer, and it is what made this take a guest reproduction to find. Sibling of M5007.
   - **the semantics.** Either refuse a `@comptime` whose evaluation reaches a `@target` body when host ≠ target, or select the HOST's body for the folding (which changes what gets baked, and needs deciding rather than assuming).
 
+### Mid-IR and VM
+
+- [ ] **A capturing lambda that returns a tuple is miscompiled** (found 2026-10-25).
+      `scalarise_value_returns` keeps the signature of a function used as a value, but
+      `note_if_taken_as_value` (`vader/midir/value_return/fn_values.vader`) counts `fn_ref`
+      and `fn_addr` and misses `make_closure`: its `@partial` match lists the instructions
+      that name a function without calling it, and `make_closure` is one. A capturing
+      lambda returning `[i32, i32]` is rewritten in place to hand back two values while its
+      `call_indirect` still expects one object: `vader run` stops on "struct.get field 1 out
+      of range" and `vader build` panics in `bc_single_result`. Repro:
+      `apply :: fn(f: fn(i32) -> [i32, i32], x: i32) -> [i32, i32] = f(x)`, then in `main`
+      `k := 3`, `k = k + 1`, `g :: fn(x: i32) -> [i32, i32] { return [x + k, x * k] }`,
+      `apply(g, 5)`. Fix: count `make_closure`, and make the match exhaustive.
+
+- [ ] **`%` on `f64` emits the integer remainder** (found 2026-10-25). The CFG carries
+      `binop mod ... :f64`, but `mod_op` (`vader/midir/select/op_select.vader`) ends on a
+      catch-all `return I32Mod {}` with no float case. `vader run` refuses the program
+      ("`i32.rem` may meet f64") and a native build prints `1.0` for `7.5 % 2.0`. SPEC does
+      not say whether `%` applies to floats: settle that first, then add a float remainder
+      op or reject `%` on floats in the typecheck.
+
+- [ ] **A push to a slice of the whole array does not detach it on the VM** (found
+      2026-10-25). `a :: [1, 2, 3]; s :: a[0..<3]; s.push(9); s[0] = 5` leaves `a[0]` at 5
+      under `vader run` and at 1 natively. SPEC §4 *Arrays* says a push detaches the view,
+      so native is right. The VM's `is_array_view` (`vader/vm/value.vader`) infers a view
+      from its window, so a view of the whole array looks like the array itself; recording
+      at `array.slice` that the value is a view would fix it.
+
+- [ ] **An unread array read or checked operation loses its run-time check** (found
+      2026-10-25). `unused :: xs[10]` on a 3-element array runs to the end, on the VM and
+      natively: `compact_locals` (`vader/midir/optimise/cfg_dce.vader`) drops a pure
+      instruction whose result nothing reads, and `instruction_has_side_effect`
+      (`vader/midir/analyses.vader`) counts neither `array_get` nor a checked `binop` as an
+      effect. SPEC §2 *Run-time checks* says an index out of bounds stops the program. To
+      decide: allow removing a check whose result is dead (and say so in SPEC), or make the
+      instructions that can stop the program effects for this pass.
+
+- [ ] **Escape analysis marks arrays the backends never place on the stack** (found
+      2026-10-25). A struct that cannot outlive its function already goes on the stack in
+      a native build. `annotate_escape` sets `stack` on `array_new` too, but the bytecode
+      `ArrayNew` op has no such flag (`vader/emit/bytecode/emit.vader`), so every array
+      stays on the heap, while the `$VADER_OPT_REPORT` count adds them to `stack_promoted`.
+      Either carry the flag to the C emitter or stop marking arrays (the comment on
+      `InstrStructNew.stack` in `vader/midir/cfg.vader` is stale too).
+
 ### Bytecode emit and dumps
+
+- [ ] **The CFG dump prints operators as numbers** (found 2026-10-25). `binop` and
+      `unop` print `i32(ins.op)` (`vader/midir/dump.vader`) although `binary_op_name`
+      exists (`vader/lower/ir/lowered_ast.vader`; no unary counterpart yet). Printing the
+      names makes the number column of `docs/MID_IR.md` and its "`16` is `gt`" glosses
+      obsolete: update them in the same change.
 
 - [ ] **The checked arithmetic ops should take the plain names** (noted 2026-10-14). What
       source `+`, `-`, `*` and unary `-` lower to is `<type>.checked_add`, `checked_sub`,
@@ -268,11 +319,15 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
 
 - [ ] **`dump --stage=cfg` elides stdlib by default — revisit** (2026-06-05).
       The oracle migration made the native CLI the snapshot source for cfg ;
-      `run_cfg_stage` (`vader/tools/cli/main.vader`) now bakes in a stdlib-excluding
+      `run_cfg_stage` (`vader/tools/cli/cmd_dump.vader`) now bakes in a stdlib-excluding
       `include_module` + `include_strings=false` so cfg snapshots stay focused
       (else stdlib CFG bloats them ~10×). PROVISIONAL : decide whether stdlib
       elision should be a `--stdlib` opt-in flag on `dump` rather than the baked
       default, so the CLI can still show the full CFG when wanted.
+      Found 2026-10-25: `vader help dump` says "Mid-IR CFG (post DCE + escape
+      annotation)", but the stage dumps what `build_cfg_project` makes of the unpruned
+      lowered program, before any pass (`--stage=ranges` does run them). Decide which CFG
+      the stage shows, and make the help say so.
 
 ### Self-host perf
 
@@ -393,7 +448,6 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 
 ### 3.5 Performance
 - [ ] Direct-ASM backend for one native target (validate the design).
-- [ ] Escape analysis enabled (lower allocations on stack when proven safe).
 - [ ] **Bytecode cache on disk** — to discuss / dimension. Today every `vader run` / `vader fmt` / `vader-lsp` re-parses + typechecks + lowers the full stdlib (~30 modules) before the VM executes a single instruction (~2-3 s for the formatter). Proposal : serialise per-module `LoweredModule` to a `.vbc` sidecar keyed by `(source_hash, compiler_version)`. Open questions : (a) serialisation format (binary vs MessagePack vs IR text), (b) cache invalidation across transitive deps (changing `std/core` busts every consumer), (c) interaction with `--target=native` C-emit, (d) interaction with comptime values (memoise too?). Stay VM-only for now — AOT is deliberately out of scope.
 - [~] **Lazy-materialise stack values in C-emit** (companion to DCE). Today's wins target primitives ; `local.get`/`local.tee` of ref/any still snapshot eagerly into a refTmp for GC-precision. Future : (1) detect call-arg pairs with no allocation, (2) skip explicit zero-init for primitives, (3) pre-declare blockres slots on first use. Each ~½ day.
 - [ ] **Value-type structs (`CodeInfo`-style)** — open discussion. Today every struct is heap-allocated + boxed. For small immutable structs never trait-boxed (e.g. `CodeInfo { id: string, message: string }`), a register-by-value pass would be free. Trade-offs : (a) syntactic distinction (`value struct` keyword? `@value` decorator? auto-detect?) ; (b) interaction with `is Trait` (value-types can't downcast — compile error?) ; (c) match patterns binding by reference ; (d) multi-register return ABI ; (e) escape analysis as a downgrade path. Decision needed before implementation.
