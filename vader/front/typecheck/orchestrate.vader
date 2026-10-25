@@ -1562,7 +1562,7 @@ register_alias_decl :: fn(decl: AST.Decl, typed: TypedProgram) -> bool {
         aliased :: type_from_expr(decl.aliased, typed.resolved, diag_sink())
         typed.resolved.alias_types[sym.id] = aliased
         typed.resolved.alias_params[sym.id] = quantifier_of(decl.type_params, typed.resolved)
-        return !contains_unresolved(aliased)
+        return !type_contains_unresolved(aliased)
     }
     if decl is AST.ConstDecl {
         return decl.ty != null || register_alias_const(decl, typed)

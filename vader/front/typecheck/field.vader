@@ -1580,51 +1580,6 @@ field_position :: fn(decl: AST.StructDecl, name: string) -> i32 {
     return -1
 }
 
-// Replace every `SelfType` in `t` with `self_ty`. Used to specialise
-// trait-method signatures at the receiver's type (`fn(Self) -> Self` → `fn(T) -> T`
-// when called on a `T`).
-substitute_self :: fn(t: Type, self_ty: Type) -> Type {
-    // @partial: only SelfType and the composite variants can contain a `Self`
-    // leaf; every scalar / primitive variant has no `Self` to replace.
-    @partial match t {
-        is SelfType -> { return self_ty }
-        is ArrayType -> { return mk_array(substitute_self(t.element, self_ty)) }
-        is StructType -> {
-            args: Type[]: []
-            for a in t.args {
-                args.push(substitute_self(a, self_ty))
-            }
-            return mk_struct(t.symbol, args)
-        }
-        is FnType -> {
-            ps: Type[]: []
-            for p in t.params {
-                ps.push(substitute_self(p, self_ty))
-            }
-            return FnType {
-                ...t,
-                .params = ps,
-                .return_type = substitute_self(t.return_type, self_ty),
-            }
-        }
-        is UnionType -> {
-            vs: Type[]: []
-            for v in t.variants {
-                vs.push(substitute_self(v, self_ty))
-            }
-            return union_of(vs)
-        }
-        is TupleType -> {
-            els: Type[]: []
-            for el in t.elements {
-                els.push(substitute_self(el, self_ty))
-            }
-            return mk_tuple(els)
-        }
-        _ -> { return t }
-    }
-}
-
 /// For a struct receiver, find a trait it implements whose method by
 /// the given name has a default (non-empty) body, and return the
 /// curried signature with `Self → struct_ty` and the trait's type

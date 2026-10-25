@@ -210,7 +210,7 @@ check_fn_body :: fn(
         // inferred type contains an Unresolved leaf (the recursive
         // call) so substituting would just amplify the unresolved-
         // ness. Surface T3034 instead.
-        if contains_unresolved(got) {
+        if type_contains_unresolved(got) {
             diags.push(
                 typecheck_error(.RecursiveExprBodiedFn, fn_decl.name_span, "`${fn_decl.name}`"),
             )
@@ -269,47 +269,6 @@ patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) 
     if cur is FnType {
         typed.decl_types[sym.id] = FnType { ...cur, .return_type = ret }
     }
-}
-
-// @partial: a union, an array, a fn, a tuple or a struct's arguments are searched ;
-// every other variant, a trait's arguments and a distinct's backing included,
-// answers false.
-contains_unresolved :: fn(t: Type) -> bool = @partial match t {
-    is UnresolvedType -> { return true }
-    is UnionType      -> {
-        for v in t.variants {
-            if contains_unresolved(v) {
-                return true
-            }
-        }
-        return false
-    }
-    is ArrayType -> { return contains_unresolved(t.element) }
-    is FnType    -> {
-        for p in t.params {
-            if contains_unresolved(p) {
-                return true
-            }
-        }
-        return contains_unresolved(t.return_type)
-    }
-    is TupleType  -> {
-        for el in t.elements {
-            if contains_unresolved(el) {
-                return true
-            }
-        }
-        return false
-    }
-    is StructType -> {
-        for a in t.args {
-            if contains_unresolved(a) {
-                return true
-            }
-        }
-        return false
-    }
-    _                  -> { return false }
 }
 
 // Push T3020 when `got` doesn't flow into `expected`. Shared between

@@ -493,3 +493,9 @@ test_zonk_follows_a_chain_of_solutions :: fn() -> void {
     solutions[1] = TY_I32
     assert_eq(display_type(zonk(mk_array(a), solutions)), "i32[][]")
 }
+
+@test
+test_unresolved_inside_trait_arguments_is_seen :: fn() -> void {
+    iterator :: mk_trait(fresh_symbol(9, "Iterator", .Trait), [TY_UNRESOLVED])
+    assert(type_contains_unresolved(iterator), "`Iterator<?>` says nothing")
+}

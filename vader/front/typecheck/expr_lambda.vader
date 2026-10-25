@@ -117,7 +117,7 @@ infer_lambda :: fn(
 }
 
 is_concrete_promise :: fn(t: Type) -> bool =
-    !is_void(t) && !contains_unresolved(t) && !type_contains_type_param(t)
+    !is_void(t) && !type_contains_unresolved(t) && !type_contains_type_param(t)
 
 infer_param :: fn(
     p: AST.FnParam, idx: i64, expected_fn: FnType | null,

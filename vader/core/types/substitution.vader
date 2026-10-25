@@ -10,7 +10,6 @@
 module "vader/core/types"
 
 import "std/collections"
-import "std/iter"
 
 // ---- by a substitution ----------------------------------------------------
 
@@ -60,58 +59,24 @@ export is_empty_substitution :: fn(subst: Substitution) -> bool {
 }
 
 /// Replace `TypeParam` and `Self` occurrences in `t` per `subst`.
-/// Walks the Type tree structurally ; returns the original `t` unchanged
-/// when no replacement applies (no allocation).
+/// Walks the Type tree structurally, rebuilding every composite on the way ; an
+/// empty substitution hands `t` back as it is.
 /// @param t      the type to rewrite.
 /// @param subst  the substitution to apply.
-/// @return       the rewritten type (may be `t` itself when nothing changed).
+/// @return       the rewritten type (`t` itself under an empty substitution).
 export substitute :: fn(t: Type, subst: Substitution) -> Type {
-    if is_empty_substitution(subst) { return t }
-    // @partial: only TypeParam / Self and the composite variants can be rewritten;
-    // every scalar / primitive variant has no inner binding → returned unchanged.
-    @partial match t {
-        is TypeParamType -> {
-            replacement :: subst.type_params[t.symbol.id] ?? return t
-            return replacement
-        }
-        is SelfType -> {
-            if subst.self_type == null { return t }
-            return subst.self_type
-        }
-        is StructType -> {
-            new_args :: substitute_each(t.args, subst)
-            return StructType { .symbol = t.symbol, .args = new_args }
-        }
-        is TraitType -> {
-            new_args :: substitute_each(t.args, subst)
-            return TraitType { ...t, .args = new_args }
-        }
-        is ArrayType -> {
-            return mk_array(substitute(t.element, subst))
-        }
-        is TupleType -> {
-            return mk_tuple(substitute_each(t.elements, subst))
-        }
-        is FnType -> {
-            return mk_fn(substitute_each(t.params, subst), substitute(t.return_type, subst))
-        }
-        is UnionType -> {
-            // Re-normalise through `union_of` (dedup + sort) after
-            // substituting.
-            // `T | null` erased to `Any | null` must re-sort by the
-            // substituted display ("Any" < "null"), not keep the
-            // pre-substitution order ("null" < "T").
-            return union_of(substitute_each(t.variants, subst))
-        }
-        _ -> { return t }
+    if is_empty_substitution(subst) {
+        return t
     }
+    return substitute_in(t, subst.type_params, subst.self_type)
 }
 
-substitute_each :: fn(types: Type[], subst: Substitution) -> Type[] {
-    out: Type[]: []
-    for t in types { out.push(substitute(t, subst)) }
-    return out
-}
+/// `t` with every `Self` replaced by `self_ty`: a trait member's signature read at
+/// the receiver's type (`fn(Self) -> Self` is `fn(T) -> T` on a `T`).
+///
+/// @param t          the type to rewrite.
+/// @param self_type  the receiver's type.
+export substitute_self :: fn(t: Type, self_type: Type) -> Type = substitute_in(t, null, self_type)
 
 // ---- by a map of bindings -------------------------------------------------
 
@@ -120,35 +85,17 @@ substitute_each :: fn(types: Type[], subst: Substitution) -> Type[] {
 /// `substitute`, which takes a `Substitution`: both take a `Type` first, so UFCS
 /// could not tell them apart in an overload set.
 ///
-/// @param t      the type to rewrite.
+/// @param t      the type to substitute_in.
 /// @param subst  the bindings, by type parameter symbol id.
-export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
-    // @partial: only TypeParam and the composite variants can carry a binding to
-    // substitute; every scalar / primitive variant is returned unchanged.
-    @partial match t {
-        is TypeParamType -> {
-            repl :: subst[t.symbol.id] ?? return t
-            return repl
-        }
-        is ArrayType -> { return mk_array(substitute_map(t.element, subst)) }
-        is TupleType -> { return mk_tuple(substitute_each_map(t.elements, subst)) }
-        is StructType -> { return mk_struct(t.symbol, substitute_each_map(t.args, subst)) }
-        is TraitType -> { return TraitType { ...t, .args = substitute_each_map(t.args, subst) } }
-        is FnType -> { return substitute_fn_map(t, subst) }
-        is UnionType -> { return union_of(substitute_each_map(t.variants, subst)) }
-        _ -> { return t }
-    }
-}
+export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type =
+    substitute_in(t, subst, null)
 
 /// Each of `types` through `substitute_map`.
 ///
-/// @param types  the types to rewrite.
+/// @param types  the types to substitute_in.
 /// @param subst  the bindings, by type parameter symbol id.
-export substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) -> Type[] {
-    out: Type[]: []
-    for t in types { out.push(substitute_map(t, subst)) }
-    return out
-}
+export substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) -> Type[] =
+    substitute_each_in(types, subst, null)
 
 /// `f` with every bound type parameter replaced: `substitute_map` on a fn type,
 /// typed as one (the instance's signature). The parameters `subst` binds leave its
@@ -157,26 +104,89 @@ export substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) ->
 /// @param f      a generic signature.
 /// @param subst  the bindings, by type parameter symbol id.
 export substitute_fn_map :: fn(f: FnType, subst: MutableMap<i32, Type>) -> FnType =
-    mk_fn(
-        substitute_each_map(f.params, subst),
-        substitute_map(f.return_type, subst),
-        unbound_quantifier(f.type_params, subst),
-    )
+    substitute_fn_in(f, subst, null)
 
-// The parameters of `quantifier` that `subst` leaves unbound.
+// ---- the walk -------------------------------------------------------------
+
+// `t` with each type parameter `bindings` binds, and `Self`, replaced. A union is
+// rebuilt canonical (`union_of`): `T | null` with `T` erased to `Any` must sort by
+// what it now displays.
+// @partial: only a type parameter, `Self` and the composite variants carry what a
+// substitution replaces; every other variant comes back as it is, a distinct
+// included, whose backing holds no parameter.
+substitute_in :: fn(
+    t: Type,
+    bindings: MutableMap<i32, Type> | null,
+    self_type: Type | null,
+) -> Type = @partial match t {
+    is TypeParamType -> binding_of(t, bindings)
+    is SelfType      -> self_type ?? t
+    is ArrayType     -> mk_array(substitute_in(t.element, bindings, self_type))
+    is TupleType     -> mk_tuple(substitute_each_in(t.elements, bindings, self_type))
+    is StructType    -> mk_struct(t.symbol, substitute_each_in(t.args, bindings, self_type))
+    is TraitType     -> TraitType { ...t, .args = substitute_each_in(t.args, bindings, self_type) }
+    is FnType        -> substitute_fn_in(t, bindings, self_type)
+    is UnionType     -> union_of(substitute_each_in(t.variants, bindings, self_type))
+    _                -> t
+}
+
+substitute_each_in :: fn(
+    types: Type[],
+    bindings: MutableMap<i32, Type> | null,
+    self_type: Type | null,
+) -> Type[] {
+    out: Type[]: []
+    for t in types {
+        out.push(substitute_in(t, bindings, self_type))
+    }
+    return out
+}
+
+// The parameters `bindings` binds leave the signature's quantifier.
+substitute_fn_in :: fn(
+    f: FnType,
+    bindings: MutableMap<i32, Type> | null,
+    self_type: Type | null,
+) -> FnType = FnType {
+    ...f,
+    .params = substitute_each_in(f.params, bindings, self_type),
+    .return_type = substitute_in(f.return_type, bindings, self_type),
+    .type_params = unbound_quantifier(f.type_params, bindings),
+}
+
+// What `bindings` binds `tp` to, or `tp` itself.
+binding_of :: fn(tp: TypeParamType, bindings: MutableMap<i32, Type> | null) -> Type {
+    if bindings == null {
+        return tp
+    }
+    return bindings[tp.symbol.id] ?? tp
+}
+
+// The parameters of `quantifier` that `bindings` leaves unbound: `quantifier`
+// itself, not a copy, when it binds none of them.
 unbound_quantifier :: fn(
-    quantifier: TypeParamType[], subst: MutableMap<i32, Type>,
+    quantifier: TypeParamType[],
+    bindings: MutableMap<i32, Type> | null,
 ) -> TypeParamType[] {
-    if quantifier.len() == 0 || !quantifier.any_match((tp) -> subst[tp.symbol.id] != null) {
+    if bindings == null || !binds_any(quantifier, bindings) {
         return quantifier
     }
     out: TypeParamType[]: []
     for tp in quantifier {
-        if subst[tp.symbol.id] == null {
+        if tp.symbol.id !in bindings {
             out.push(tp)
         }
     }
     return out
+}
+
+binds_any :: fn(quantifier: TypeParamType[], bindings: MutableMap<i32, Type>) -> bool {
+    for tp in quantifier {
+        if tp.symbol.id in bindings {
+            return true
+        }
+    }
+    return false
 }
 
 // ---- erasure --------------------------------------------------------------
@@ -249,10 +259,13 @@ export any_contains_type_param :: fn(ts: Type[]) -> bool {
 import "std/testing"
 import "vader/core/symbol"
 
-fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
+fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol =
+    fresh_symbol(symbol_id, name, .TypeParam)
+
+fresh_symbol :: fn(symbol_id: i32, name: string, kind: SymbolKind) -> Symbol {
     return Symbol {
         .id         = symbol_id,
-        .kind       = .TypeParam,
+        .kind       = kind,
         .name       = name,
         .module     = "test",
         .module_name = "test",
@@ -282,4 +295,26 @@ fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
     subst.type_params[3] = TY_STRING
     rewritten :: substitute(mk_array(mk_type_param(sym)), subst)
     assert_eq(display_type(rewritten), "string[]")
+}
+
+@test
+test_substitute_self_reaches_trait_arguments :: fn() -> void {
+    iterator :: mk_trait(fresh_symbol(9, "Iterator", .Trait), [TY_SELF])
+    assert_eq(display_type(substitute_self(iterator, TY_I32)), "Iterator<i32>")
+}
+
+@test
+test_substitute_keeps_the_quantifier_it_leaves_unbound :: fn() -> void {
+    t :: TypeParamType { .symbol = fresh_type_param(1, "T") }
+    u :: TypeParamType { .symbol = fresh_type_param(2, "U") }
+    subst :: new_substitution()
+    subst.type_params[1] = TY_I64
+    instance :: substitute(mk_fn([t], u, [t, u]), subst)
+    if instance !is FnType {
+        assert(false, "a fn type stays a fn type")
+        return
+    }
+    assert_eq(display_type(instance.params[0]), "i64")
+    assert_eq(instance.type_params.len(), 1)
+    assert_eq(instance.type_params[0].symbol.name, "U")
 }
