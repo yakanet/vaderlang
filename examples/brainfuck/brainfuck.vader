@@ -51,9 +51,9 @@ DEFAULT_PATH :: "examples/brainfuck/hello.bf"
 // set count as comments and get filtered away by `tokenize_bf`.
 is_bf_char :: fn(c: char) -> bool {
     return c == '>' || c == '<' ||
-           c == '+' || c == '-' ||
-           c == '.' || c == ',' ||
-           c == '[' || c == ']'
+        c == '+' || c == '-' ||
+        c == '.' || c == ',' ||
+        c == '[' || c == ']'
 }
 
 // Decode codepoints from `source` and keep the eight BF characters.
@@ -67,7 +67,7 @@ tokenize_bf :: fn(source: string) -> char[] = source.chars().filter(is_bf_char).
 // `-1` then overwritten on the matching `]`.
 match_brackets :: fn(tokens: char[]) -> i32[] {
     partner: i32[]: []
-    open_stack: i64[]: []      // grow-only ; `sp` is the logical top
+    open_stack: i64[]: [] // grow-only ; `sp` is the logical top
     sp: i64 = 0
     for j in 0..<tokens.len() {
         partner.push(-1)
@@ -85,7 +85,7 @@ match_brackets :: fn(tokens: char[]) -> i32[] {
             sp -= 1
             open_idx :: open_stack[sp]
             partner[open_idx] = i32(j)
-            partner[j]        = i32(open_idx)
+            partner[j] = i32(open_idx)
         }
     }
     if sp != 0 {
@@ -168,7 +168,7 @@ emit_bf_char :: fn(sb: StringBuilder, c: char, idx: i64, partner: i32[]) -> void
         }
         // Any other char : not a BF instruction (tokenize_bf already filters
         // these out, so reaching this arm signals a contract violation).
-        _ -> assert(false, "char '${c}' not handled by emit_bf_char")
+        _   -> assert(false, "char '${c}' not handled by emit_bf_char")
     }
 }
 

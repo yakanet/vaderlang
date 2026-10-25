@@ -52,9 +52,13 @@ export Printer :: struct {
     // whether its single-line form fits within `MAX_LINE`.
     column: i64 = 0
     // Rendering in "flat" mode : delimited constructs (struct-lit, call, seq)
-    // force their single-line form and never explode — used by `flat_width`
+    // force their single-line form and never explode, used by `flat_printer`
     // to MEASURE a construct before deciding its real layout.
     flat: bool = false
+    // Set by `newline` : the printer broke a line itself (a block lambda's body,
+    // a binary operator the source breaks), as opposed to the line breaks a
+    // multi-line string literal carries verbatim.
+    broke_line: bool = false
     // Keep the line breaks the source writes around a binary operator, after a
     // fn's `=` and before an `else`. Off for a standalone rendering
     // (`format_expr`), whose output measures a width or lands at an indentation
@@ -98,14 +102,15 @@ write :: fn(self: Printer, s: string) -> void {
     self.buf.append(s)
     n :: s.text_width()
     if n > 0 { self.has_written = true }
-    // Emitted strings never carry a real newline (string literals escape `\n`,
-    // comments are written line-by-line), so a plain add tracks the column.
-    self.column = self.column + n
+    // Only a multi-line string literal, written verbatim, carries a real newline
+    // (comments are written line by line).
+    self.column = end_column(self.column, s)
 }
 
 newline :: fn(self: Printer) -> void {
     self.buf.append(NL)
     self.has_written = true
+    self.broke_line = true
     self.column = 0
 }
 
@@ -118,6 +123,16 @@ indent :: fn(self: Printer) -> void {
 // count them, not one per byte. Every width and alignment in the printer goes
 // through it, so a line holding `"été"` lines up with its neighbours.
 text_width :: fn(s: string) -> i64 = s.len()
+
+// The column after writing `text` from column `start` : a text that spans lines
+// ends on its last line, counted from column 0.
+end_column :: fn(start: i64, text: string) -> i64 {
+    newline :: last_index_of(text, '\n', 0)
+    if newline < 0 {
+        return start + text.text_width()
+    }
+    return text.byte_slice(newline + 1, text.byte_len()).text_width()
+}
 
 // Newline followed by current-depth indent. The most common emit shape across
 // blocks / decl lists / match arms.
@@ -1603,7 +1618,24 @@ fits_inline :: fn(self: Printer, x: p.Expr, empty: bool, trailing_comma: bool) -
     self.trailing = 0
     return self.flat
         || empty
-        || (!trailing_comma && self.column + flat_width(self.source, x) + trailing <= i64(MAX_LINE))
+        || (!trailing_comma && self.fits(flat_printer(self.source, x), trailing))
+}
+
+// Whether the flat rendering `flat` fits within `MAX_LINE` from the current
+// column, `after` more columns following it. A line the printer broke itself
+// moves with the layout, so such a rendering is measured as one line of all its
+// text. A multi-line string literal keeps its lines verbatim instead: only the
+// line it opens on, from the current column, and the line it closes on, from
+// column 0, depend on the layout, so `sb.append("""` keeps its `"""` and the
+// `)` after the closing one.
+fits :: fn(self: Printer, flat: Printer, after: i64) -> bool {
+    text :: flat.finish()
+    if flat.broke_line {
+        return self.column + text.text_width() + after <= i64(MAX_LINE)
+    }
+    first :: text.byte_slice(0, first_line_len(text))
+    return self.column + first.text_width() <= i64(MAX_LINE)
+        && end_column(self.column, text) + after <= i64(MAX_LINE)
 }
 
 // ============================================================================
@@ -2202,7 +2234,8 @@ inline_block_fits :: fn(self: Printer, b: p.BlockExpr) -> bool {
         if tr == null {
             return true
         }
-        return self.column + 4 + flat_width(self.source, tr) <= i64(MAX_LINE)
+        width :: flat_printer(self.source, tr).finish().text_width()
+        return self.column + 4 + width <= i64(MAX_LINE)
     }
     if b.stmts.len() == 1 && tr == null {
         return self.column + 4 + flat_stmt_width(self.source, b.stmts[0]) <= i64(MAX_LINE)
@@ -2417,14 +2450,15 @@ emit_struct_lit_item :: fn(self: Printer, it: p.StructLitField | p.StructLitSpre
     }
 }
 
-// Single-line (flat) rendered width of an expression — for the fit-in-`MAX_LINE`
-// decision on delimited constructs. Renders in `flat` mode so nested constructs
-// stay single-line too.
-flat_width :: fn(source: string, e: p.Expr) -> i64 {
+// A printer holding the single-line (flat) rendering of an expression, for the
+// fit-in-`MAX_LINE` decision on delimited constructs. Renders in `flat` mode so
+// nested constructs stay single-line too, but a block lambda's body and a
+// multi-line string literal still break lines (`Printer.broke_line`).
+flat_printer :: fn(source: string, e: p.Expr) -> Printer {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
     sub.emit_expr(e)
-    return sub.finish().text_width()
+    return sub
 }
 
 // Same, for a statement — the inline-block fit decision in `emit_block_expr`.

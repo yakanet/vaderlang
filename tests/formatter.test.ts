@@ -487,7 +487,9 @@ for (const { name, source } of TRAILING_COMMENTS) {
 // the groups above, `source` is NOT canonical : `expected` is what fmt makes
 // of it, and must itself be a fixed point.
 // ---------------------------------------------------------------------------
-const COALESCE_FIT: { name: string; source: string; expected?: string }[] = [
+type FitCase = { name: string; source: string; expected?: string };
+
+const COALESCE_FIT: FitCase[] = [
   {
     // 110 columns as one line : the arguments go one per line.
     name: "too_wide_explodes_the_call",
@@ -540,13 +542,151 @@ g :: fn(first_parameter: i32, second_parameter: i32, third_parameter: i32) -> Fo
   },
 ];
 
-for (const { name, source, expected } of COALESCE_FIT) {
-  test(`fmt line fit across ?? : ${name}`, async () => {
-    const want = expected ?? source;
-    expect(await fmtString(source, `.tmp-fmt-coalesce-${name}`)).toBe(want);
-    expect(await fmtString(want, ".tmp-fmt-roundtrip")).toBe(want);
-  }, { timeout: MEDIUM_BUILD });
+// `expected` (or `source` when it is canonical) is what fmt makes of `source`,
+// and a fixed point of fmt.
+function fitTests(label: string, tmp: string, cases: FitCase[]): void {
+  for (const { name, source, expected } of cases) {
+    test(`${label} : ${name}`, async () => {
+      const want = expected ?? source;
+      expect(await fmtString(source, `.tmp-fmt-${tmp}-${name}`)).toBe(want);
+      expect(await fmtString(want, ".tmp-fmt-roundtrip")).toBe(want);
+    }, { timeout: MEDIUM_BUILD });
+  }
 }
+
+fitTests("fmt line fit across ??", "coalesce", COALESCE_FIT);
+
+// ---------------------------------------------------------------------------
+// Line fit around a text block. A multi-line string literal is written
+// verbatim, so only the line it opens on and the line it closes on count
+// toward the fit : `parts.push("""` keeps its `"""` and the `)` that follows
+// the closing one. As above, `expected` is what fmt makes of `source`.
+// ---------------------------------------------------------------------------
+const TEXT_BLOCK_FIT: FitCase[] = [
+  {
+    // Already canonical : the calls hug their text blocks.
+    name: "hugged_call_stays",
+    source: `module "reg/text_block_hug"
+
+emit :: fn(parts: string[], n: i32) -> void {
+    parts.push("""
+        block \${n}
+          local.get 0
+          local.get 1
+          array.get 1
+          i32.const 0
+          i32.eq
+          br_if 0
+        end
+        """)
+    match n {
+        0 -> parts.push("""
+                zero
+            """)
+        _ -> parts.push("one")
+    }
+}
+`,
+  },
+  {
+    // Without a trailing comma, an exploded call collapses onto its text block.
+    name: "exploded_call_collapses",
+    source: `module "reg/text_block_collapse"
+
+emit :: fn(parts: string[]) -> void {
+    parts.push(
+        """
+        local.get 0
+        local.get 1
+        array.get 1
+        i32.const 0
+        i32.eq
+        """
+    )
+}
+`,
+    expected: `module "reg/text_block_collapse"
+
+emit :: fn(parts: string[]) -> void {
+    parts.push("""
+        local.get 0
+        local.get 1
+        array.get 1
+        i32.const 0
+        i32.eq
+        """)
+}
+`,
+  },
+  {
+    // What follows the closing delimiter counts : past 100 columns, the call
+    // explodes.
+    name: "closing_line_too_long",
+    source: `module "reg/text_block_closing_line"
+
+pair :: fn(a: string, b: string) -> string = a + b
+
+a_long_argument_whose_name_pushes_the_closing_line_of_the_call_past_the_one_hundred_columns :: "b"
+
+f :: fn() -> string {
+    return pair("""
+        a
+        """, a_long_argument_whose_name_pushes_the_closing_line_of_the_call_past_the_one_hundred_columns)
+}
+`,
+    expected: `module "reg/text_block_closing_line"
+
+pair :: fn(a: string, b: string) -> string = a + b
+
+a_long_argument_whose_name_pushes_the_closing_line_of_the_call_past_the_one_hundred_columns :: "b"
+
+f :: fn() -> string {
+    return pair(
+        """
+        a
+        """,
+        a_long_argument_whose_name_pushes_the_closing_line_of_the_call_past_the_one_hundred_columns,
+    )
+}
+`,
+  },
+  {
+    // A block lambda's lines move with the layout, unlike a text block's : the
+    // whole lambda counts, and past 100 columns the call explodes.
+    name: "block_lambda_counts_whole",
+    source: `module "reg/block_lambda_argument"
+
+apply :: fn(n: i32, f: fn(i32) -> i32) -> i32 = f(n)
+
+g :: fn() -> i32 {
+    return apply(1, fn(x: i32) -> i32 {
+        first :: x + 1
+        second :: first * 2
+        third :: second - 3
+        return third * first
+    })
+}
+`,
+    expected: `module "reg/block_lambda_argument"
+
+apply :: fn(n: i32, f: fn(i32) -> i32) -> i32 = f(n)
+
+g :: fn() -> i32 {
+    return apply(
+        1,
+        fn(x: i32) -> i32 {
+            first :: x + 1
+            second :: first * 2
+            third :: second - 3
+            return third * first
+        },
+    )
+}
+`,
+  },
+];
+
+fitTests("fmt line fit around a text block", "text-block", TEXT_BLOCK_FIT);
 
 for (const name of SNIPPETS) {
   test(`fmt idempotency : ${name}`, async () => {
