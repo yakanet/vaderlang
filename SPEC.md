@@ -2947,6 +2947,7 @@ log().push("x")            // every later `log()` sees "x"
 ```
 
 - The instance is ordinary heap state, not a frozen value: writes to it persist. One built from a module constant is a copy of it.
+- A module constant cannot call a singleton (`T3119`): the constant would change with the instance. A lambda the constant holds may call one, since it runs only when called.
 - A singleton takes no parameters, has no type parameters, and cannot use `await` or `yield` (`T3103`).
 - A call that reaches the singleton again while its body is still running stops the program.
 - A singleton cannot run at compile time: only the running program builds it (`C4018`).

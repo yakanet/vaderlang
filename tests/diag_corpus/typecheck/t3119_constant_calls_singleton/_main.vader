@@ -1,0 +1,13 @@
+// T3119: a module constant calling a singleton is never folded, so each read calls
+// it again and the constant would change with the instance. A lambda the constant
+// holds calls it only when it runs, and is accepted.
+module "snippet"
+
+@singleton
+names :: fn() -> string[] = []
+
+export TABLE :: names()
+
+export COUNT :: names().len() + 1
+
+export READ_LATER :: () -> names().len()

@@ -1,0 +1,2 @@
+[11:17] error[T3119] a module constant cannot call a singleton: `COUNT` calls `names`
+[9:17] error[T3119] a module constant cannot call a singleton: `TABLE` calls `names`

@@ -308,6 +308,7 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
         return
     }
     got :: check_expr(cd.value, annot, typed, diags)
+    check_no_singleton_call(cd, typed, diags)
     if annot == null {
         typed.decl_types[sym.id] = default_if_free(got)
         return
@@ -315,4 +316,23 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
     // Held to its written type as a typed local is, through an `Into` the
     // lowering then runs.
     emit_mismatch_if(got, annot, cd.span, cd.value, .TypeMismatch, typed, diags)
+}
+
+// T3119 : a constant whose value calls a singleton is never folded, so each read
+// calls it again and the constant would change with the instance. A lambda the
+// constant holds calls the singleton only when it runs, so its body is left out.
+check_no_singleton_call :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    AST.inspect(cd.value, (n) -> {
+        if n is AST.LambdaExpr {
+            return .Skip
+        }
+        if n is AST.CallExpr {
+            decl :: recorded_decl(typed, n)
+            if decl != null && AST.decorators_have(decl.decorators, "singleton") {
+                detail :: "`${cd.name}` calls `${decl.name}`"
+                diags.push(typecheck_error(.ConstantCallsSingleton, n.span, detail))
+            }
+        }
+        return .Descend
+    })
 }
