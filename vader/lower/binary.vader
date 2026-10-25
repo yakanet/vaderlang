@@ -38,25 +38,54 @@ maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr {
     return cond
 }
 
+// The type a run-time `is` test of a value of `scrutinee` checks : `check` itself,
+// unless it is a trait, which the run-time lookup finds through a struct's impls
+// alone. The other types the value may hold are resolved here, by the predicate
+// the narrowing reads (`trait_test_admits`) : `x is Equals` on an `i32 | Point`
+// checks `i32 | Equals`, the trait test left to the struct. A struct, and a type
+// still open at run time (a trait value, `any`, a type parameter), keep the trait
+// test ; an instance of a generic struct could not be told apart by its tag. An
+// admitted array gets its members for the trait's vtable, which the branch where
+// the test holds dispatches through (`surface_array_into_trait`).
+trait_test_type :: fn(ctx: FnLowerCtx, scrutinee: Type, check: Type) -> Type {
+    if check !is TraitType {
+        return check
+    }
+    admitted: Type[]: []
+    needs_trait_lookup := false
+    for variant in union_variants(scrutinee) ?? [scrutinee] {
+        if variant is StructType | TraitType | AnyType | TypeParamType {
+            needs_trait_lookup = true
+        } else if trait_test_admits(variant, check, ctx.typed) {
+            admitted.push(variant)
+            surface_array_into_trait(ctx, variant, check)
+        }
+    }
+    if needs_trait_lookup || admitted.len() == 0 {
+        admitted.push(check)
+    }
+    return union_of(admitted)
+}
+
 lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr {
     // `expr is T` lowers to a runtime tag check ; the RHS is a type
     // expression, not a value.
     if binary.op == .Is {
         observe_no_call(ctx, binary, .Operator, "type check")
-        check_type :: ctx.types.expr_type(binary.right)
+        // The check must see the operand's FULL (declared union) box so it
+        // can compare the runtime tag. When the typed-AST narrowed this use
+        // to a variant (`l : LocalId | null` recorded as `LocalId` at the
+        // `is null` site), `lower_ident` wraps it in a narrowing `LoweredCast`
+        // — the C-emit then `ref.cast`-unboxes to the variant and CONSTANT-
+        // FOLDS the tag check (`is null` → `false`). Peel that cast so the
+        // check runs on the union value (the operand stays at the union
+        // type here).
+        value :: strip_narrowing_cast(lower_expr(ctx, binary.left))
         return LoweredTypeCheck {
             .span = binary.span,
             .type = TY_BOOL,
-            // The check must see the operand's FULL (declared union) box so it
-            // can compare the runtime tag. When the typed-AST narrowed this use
-            // to a variant (`l : LocalId | null` recorded as `LocalId` at the
-            // `is null` site), `lower_ident` wraps it in a narrowing `LoweredCast`
-            // — the C-emit then `ref.cast`-unboxes to the variant and CONSTANT-
-            // FOLDS the tag check (`is null` → `false`). Peel that cast so the
-            // check runs on the union value (the operand stays at the union
-            // type here).
-            .value = strip_narrowing_cast(lower_expr(ctx, binary.left)),
-            .check_type = check_type,
+            .value = value,
+            .check_type = trait_test_type(ctx, value.type, ctx.types.expr_type(binary.right)),
         }
     }
     if binary.op == .In || binary.op == .NotIn {

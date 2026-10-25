@@ -658,22 +658,19 @@ resolve_trait_args_for :: fn(t: Type, raw: Type[], typed: TypedProgram) -> Type[
     return raw
 }
 
-/// `subtract_type` extended for a trait `removed` : a runtime trait test
-/// matches every union variant whose nominal carrier implements the trait
-/// (mirroring `emit/c/walker.vader::trait_check_expr` and the VM's
-/// `ref_type_matches`), so those variants leave the remainder too —
-/// With `x: IOError | string`, `match x { is string …, is Error … }` is exhaustive.
-/// A non-trait `removed` delegates to plain `subtract_type`.
+/// `subtract_type` extended for a trait `removed` : a run-time trait test matches
+/// every union variant it admits (`trait_test_admits`), so those variants leave
+/// the remainder too. With `x: IOError | string`, `match x { is string ..., is
+/// Error ... }` is exhaustive. A non-trait `removed` delegates to plain
+/// `subtract_type`.
 subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedProgram) -> Type {
     if removed !is TraitType {
         return subtract_type(from, removed)
     }
-    // A trait is never a union, so it covers a variant only by being it.
-    trait_key :: trait_key_of(removed.symbol)
     if from is UnionType {
         kept: Type[]: []
         for v in from.variants {
-            if !equals_type(removed, v) && !base_implements_trait(v, trait_key, typed) {
+            if !trait_test_admits(v, removed, typed) {
                 kept.push(v)
             }
         }
@@ -685,8 +682,29 @@ subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedProgram) -
         }
         return mk_union(kept)
     }
-    if equals_type(removed, from) || base_implements_trait(from, trait_key, typed) {
+    if trait_test_admits(from, removed, typed) {
         return TY_NEVER
     }
     return from
+}
+
+/// Whether a run-time test `is <trait>` admits a value of `variant`, the tested
+/// value's type or one of its variants : the trait itself, or a type implementing
+/// it. A struct is tested by its base's impls, as the run-time lookup does ; any
+/// other type is resolved when the test is lowered (`trait_test_type`), its bounds
+/// and an enum's built-in `Equals` and `Hash` counted. The narrowing a test leaves
+/// (`subtract_type_with_impls`) and the test that runs both read it, so they agree.
+///
+/// @param variant  the type, or the variant, the value may have.
+/// @param tested   the trait tested.
+/// @param typed    the module checking the test ; its tables carry every impl it sees.
+export trait_test_admits :: fn(variant: Type, tested: TraitType, typed: TypedProgram) -> bool {
+    if equals_type(tested, variant) {
+        return true
+    }
+    trait_key :: trait_key_of(tested.symbol)
+    if variant is StructType {
+        return base_implements_trait(variant, trait_key, typed)
+    }
+    return struct_implements_trait(variant, trait_key, typed)
 }

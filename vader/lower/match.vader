@@ -196,7 +196,7 @@ pattern_predicate :: fn(
             type_test :: LoweredTypeCheck {
                 .span = span, .type = TY_BOOL,
                 .value = target,
-                .check_type = check_type,
+                .check_type = trait_test_type(ctx, target_type, check_type),
             }
             // `is P { x: 10 }` — the field tests run on the narrowed target, on
             // the right of a short-circuit `&&` : a field is only read once the

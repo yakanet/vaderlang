@@ -1,0 +1,86 @@
+// `is Trait` on a union admits every variant that implements the trait, the
+// primitives and an enum's built-in `Equals` included, as the narrowing it leaves
+// says: after `if v is Equals { return }` on an `i32 | Point`, only a `Point`
+// goes on. An array is admitted where its impl's bounds hold, and dispatches in
+// the branch where the test holds. A variant still open at run time (a trait
+// value) keeps the trait test.
+module "snippet"
+
+import "std/io"
+
+Color :: enum { Red, Green }
+
+Point :: struct {
+    x: i32
+}
+
+Meters :: struct {
+    value: i32
+}
+
+Meters implements Equals -> self.value == other.value
+
+Tagged :: struct {
+    tag: string
+}
+
+Tagged implements Hash -> 7
+
+Tagged implements Equals -> self.tag == other.tag
+
+kind :: fn(x: Color | i32 | string | Meters | bool | Point) -> string = match x {
+    is Equals -> "equals"
+    is Point  -> "point"
+}
+
+describe :: fn(v: i32 | Point) -> string {
+    if v is Equals {
+        return "equals"
+    }
+    return "point ${v.x}"
+}
+
+colour_or_point :: fn(v: Color | Point) -> string {
+    if v is Equals {
+        return "colour"
+    }
+    return "point ${v.x}"
+}
+
+hashable :: fn(v: string | Point | Tagged) -> string = match v {
+    is Hash  -> "hash"
+    is Point -> "point ${v.x}"
+}
+
+shown :: fn(v: i32[] | Point) -> string {
+    if v is Display {
+        return v.to_string()
+    }
+    return "point"
+}
+
+shown_points :: fn(v: Point[] | string) -> string {
+    if v is Display {
+        return "display"
+    }
+    return "points"
+}
+
+open :: fn(v: Display | Point) -> string {
+    if v is Equals {
+        return "equals"
+    }
+    return "other"
+}
+
+main :: fn() -> i32 {
+    println("${kind(.Red)} ${kind(1)} ${kind("s")}")
+    println("${kind(Meters { .value = 1 })} ${kind(true)} ${kind(Point { .x = 0 })}")
+    println("${describe(4)} ${describe(Point { .x = 9 })}")
+    println("${colour_or_point(.Green)} ${colour_or_point(Point { .x = 3 })}")
+    println("${hashable("s")} ${hashable(Point { .x = 1 })} ${hashable(Tagged { .tag = "t" })}")
+    println("${shown([1, 2])} ${shown(Point { .x = 1 })}")
+    println("${shown_points([Point { .x = 1 }])} ${shown_points("s")}")
+    println(open(Point { .x = 2 }))
+    return 0
+}

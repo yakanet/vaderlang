@@ -258,7 +258,8 @@ export core_trait_arg :: fn(t: Type, name: string) -> Type | null {
 /// Whether `t` implements `trait_key` with no impl : every enum implements
 /// `Equals`, comparing by variant, and `Hash`, so it keys a `MutableMap`. A boxed
 /// enum carries its integer, whose `Equals` and `Hash` a vtable reaches. No impl is
-/// registered, so the run-time `is Trait` test does not see these.
+/// registered, so the run-time trait lookup does not see these : an `is Trait`
+/// test of an enum is resolved before it runs.
 ///
 /// @param t          the implementing type.
 /// @param trait_key  the trait asked for.

@@ -295,6 +295,8 @@ A `-` written directly against a number literal, where an operand is expected, b
 
 With a union on the right, `is` tests membership: `x is A | B`, or `x is AB` for an alias `AB :: A | B`, holds when the value is an `A` or a `B`, and narrows `x` to that union. Given `U :: A | B | C`, a `U` holding a `B` satisfies `v is AB` and can then be passed where an `AB` is expected.
 
+With a trait on the right, `x is Equals` holds when the value's type implements the trait. That covers the primitives' impls and an enum's built-in `Equals` and `Hash`, and a generic impl counts only where its bounds hold. The branch where the test fails no longer holds those types: after `if v is Equals { return }` on `v: i32 | Point`, `v` is a `Point` (when `Point` has no `Equals`). A value held as a trait or as `any` is tested by its struct's impls alone.
+
 A test that can never hold is an error: `v is D` with `v: A | B`.
 
 An `is` test binds no name. It narrows the name or field chain it tests, in place. To test a value without a name, bind it first:
