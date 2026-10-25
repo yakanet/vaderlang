@@ -1,0 +1,1 @@
+[22:24] error[T3118] a distinct over a heap object cannot be a value of a trait it implements: `Celsius` would dispatch as `Temp`

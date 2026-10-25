@@ -559,6 +559,12 @@ is represented exactly as its backing type, to which the lowering strips it.
   - **tuple** (`Name :: [A, B]`) — positional access `p.0` / `p.1`, `[a, b]`
     literal construction, and `[a, b] :: p` destructure forward to the backing
     tuple.
+- **A distinct over a heap object is not a value of a trait it implements.** A
+  distinct over a struct, an array, a tuple or a fn carries, boxed, the tag of its
+  backing's object, so a trait value would dispatch through the backing: to its
+  impl, or to none. Passing a `Color` (`Color :: Rgb`, `Color implements Display`)
+  where a `Display` is expected is `T3118`, also as an array element or into a
+  union slot. Its own impls are reached by a direct call (`c.to_string()`).
 - **Arithmetic operators : concrete-first, then aliased-fallback.** A distinct's
   OWN arithmetic impl wins (`Instant implements Add<Duration>` drives `i + d`).
   With no own impl, `+` / `-` / `*` / `/` / `%` fall back to the backing type's —

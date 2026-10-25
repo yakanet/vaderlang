@@ -108,21 +108,55 @@ several_impls_error :: fn(
 /// @param typed     reads the impls a trait value dispatches through.
 mismatch_diagnostic :: fn(
     got: Type, expected: Type, span: Span, fallback: TypecheckCode, typed: TypedProgram,
-) -> Diagnostic {
-    // A trait value of a trait `got` implements several times : nothing it dispatches
-    // through can tell the impls apart (`try_trait_widen` refuses it).
-    if expected is TraitType {
-        trait_key :: trait_key_of(expected.symbol)
-        if implements_more_than_once(got, trait_key, typed) {
-            what :: "a `${display_type(expected)}` value, which dispatches by the trait alone,"
-            return several_impls_error(got, trait_key, what, span)
+) -> Diagnostic = trait_value_error(got, expected, span, typed) ?? typecheck_error(
+    fallback,
+    span,
+    "expected ${display_type(expected)}, got ${display_type(got)}",
+)
+
+/// The diagnostic for a value of type `got` that cannot enter a trait value
+/// `expected` names, as an element of an array or a variant of a union too : T3097
+/// or T3118, which `try_trait_widen` refuses. Null for any other mismatch.
+///
+/// @param got       the value's type.
+/// @param expected  the slot's type.
+/// @param span      where to anchor the diagnostic.
+trait_value_error :: fn(
+    got: Type, expected: Type, span: Span, typed: TypedProgram,
+) -> Diagnostic | null {
+    if got is ArrayType && expected is ArrayType {
+        return trait_value_error(got.element, expected.element, span, typed)
+    }
+    for held in union_variants(got) ?? [got] {
+        for slot in union_variants(expected) ?? [expected] {
+            if slot is TraitType {
+                refusal :: held_as_trait_error(held, slot, span, typed)
+                if refusal != null {
+                    return refusal
+                }
+            }
         }
     }
-    return typecheck_error(
-        fallback,
-        span,
-        "expected ${display_type(expected)}, got ${display_type(got)}",
-    )
+    return null
+}
+
+// T3097 when `held` implements `slot` several times : nothing a trait value
+// dispatches through can tell the impls apart. T3118 when `held` is a distinct
+// that would dispatch as its backing.
+held_as_trait_error :: fn(
+    held: Type, slot: TraitType, span: Span, typed: TypedProgram,
+) -> Diagnostic | null {
+    trait_key :: trait_key_of(slot.symbol)
+    if implements_more_than_once(held, trait_key, typed) {
+        what :: "a `${display_type(slot)}` value, which dispatches by the trait alone,"
+        return several_impls_error(held, trait_key, what, span)
+    }
+    if dispatches_as_backing(held, trait_key, typed) {
+        backing :: display_type(strip_distinct(held))
+        detail :: "`${display_type(held)}` would dispatch as `${backing}`"
+        return typecheck_error(.DistinctTraitValueLosesImpl, span, detail)
+    }
+    return null
 }
 
 // ---- array slot layout ----------------------------------------------------

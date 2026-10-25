@@ -1,0 +1,22 @@
+// T3118: a distinct over a heap object (a struct, an array, a tuple, a fn) boxes
+// with the tag its backing's object holds. A trait value of a trait the distinct
+// implements itself would therefore dispatch through the backing, so it is refused.
+module "snippet"
+
+Temp :: struct {
+    deg: i32
+}
+
+Temp implements Display {
+    to_string :: fn(self) -> string = "temp"
+}
+
+Celsius :: Temp
+
+Celsius implements Display {
+    to_string :: fn(self) -> string = "celsius"
+}
+
+export render :: fn(d: Display) -> string = d.to_string()
+
+export shown :: render(Celsius(Temp { .deg = 3 }))
