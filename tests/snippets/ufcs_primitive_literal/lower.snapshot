@@ -1,7 +1,7 @@
 # Lower
 
 ## ufcs_primitive_literal
-  ufcs_primitive_literal.main :: fn() -> i32 {  // ufcs_primitive_literal$main
+  ufcs_primitive_literal.main :: fn() -> i32 {  // ufcs__primitive__literal$main
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
           __off_1: i64 = 0

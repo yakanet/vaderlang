@@ -21,7 +21,7 @@ impl 1 std_core$Into
 impl 7 std_core$ByteAccess
 export main 2
 
-fn 0 snippet$Celsius$std_core_Into$into (ref) -> ref
+fn 0 snippet$Celsius$std_core$Into$into (ref) -> ref
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 i64
@@ -51,7 +51,7 @@ fn 0 snippet$Celsius$std_core_Into$into (ref) -> ref
   return
 end
 
-fn 1 snippet$string$std_core_Into$into (string) -> ref
+fn 1 snippet$string$std_core$Into$into (string) -> ref
   string.const 1   ; "<"
   local.get 0   ; arg 0
   string.const 2   ; ">"
@@ -63,12 +63,12 @@ end
 fn 2 snippet$main () -> i32
   i32.const 21
   struct.new 1   ; snippet$Celsius
-  call 0   ; snippet$Celsius$std_core_Into$into
+  call 0   ; snippet$Celsius$std_core$Into$into
   struct.get 2 0   ; snippet$Label.text
   ref.cast 3   ; string
   call 10   ; std_io$println__string
   string.const 3   ; "from a file"
-  call 1   ; snippet$string$std_core_Into$into
+  call 1   ; snippet$string$std_core$Into$into
   struct.get 2 0   ; snippet$Label.text
   ref.cast 3   ; string
   call 10   ; std_io$println__string

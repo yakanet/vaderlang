@@ -949,7 +949,7 @@ type_index_for_name :: fn(types: BcType[], name: string) -> i32 {
     for i in 0..<types.len() {
         s :: types[i]
         if s is BcStruct {
-            if struct_c_name(s.name) == struct_c_name(name) { return i32(i) }
+            if s.name == name { return i32(i) }
         }
     }
     return 0

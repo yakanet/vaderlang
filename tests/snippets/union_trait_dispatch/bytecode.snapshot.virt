@@ -264,7 +264,7 @@ fn 5 snippet$shout (any) -> string
   return
 end
 
-fn 6 snippet$Log$std_core_IndexSet$set_at (ref,string,i32) -> void
+fn 6 snippet$Log$std_core$IndexSet$set_at (ref,string,i32) -> void
   local $field_3 ref
   local __p_0 string
   local $call_6 i64
@@ -327,11 +327,11 @@ fn 7 snippet$put (any) -> void
   return
 end
 
-fn 8 snippet$Tally$std_core_Index$at (ref,string) -> i32
+fn 8 snippet$Tally$std_core$Index$at (ref,string) -> i32
   local __coalesce_0 any
   local.field 0 13 0   ; arg 0 snippet$Tally.counts
   local.get 1   ; arg 1
-  call 97   ; std_collections$MutableMap$std_core_Index$at__string__i32
+  call 97   ; std_collections$MutableMap$std_core$Index$at__string__i32
   local.tee 2   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -342,7 +342,7 @@ fn 8 snippet$Tally$std_core_Index$at (ref,string) -> i32
   return
 end
 
-fn 9 snippet$Tally$std_core_IndexSet$set_at (ref,string,i32) -> void
+fn 9 snippet$Tally$std_core$IndexSet$set_at (ref,string,i32) -> void
   local $field_3 ref
   local $mul_checked_5 i32
   local.field 0 13 0   ; arg 0 snippet$Tally.counts
@@ -354,18 +354,18 @@ fn 9 snippet$Tally$std_core_IndexSet$set_at (ref,string,i32) -> void
   local.get 3   ; $field_3
   local.get 1   ; arg 1
   local.get 4   ; $mul_checked_5
-  call 98   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
+  call 98   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
   return
 end
 
-fn 10 snippet$Cell$std_core_Index$at (ref,string) -> i32
+fn 10 snippet$Cell$std_core$Index$at (ref,string) -> i32
   local.field 0 14 0   ; arg 0 snippet$Cell.cells
   i32.const 0
   load_slot_i32
   return
 end
 
-fn 11 snippet$Cell$std_core_IndexSet$set_at (ref,string,i32) -> void
+fn 11 snippet$Cell$std_core$IndexSet$set_at (ref,string,i32) -> void
   local.field 0 14 0   ; arg 0 snippet$Cell.cells
   i32.const 0
   local.get 2   ; arg 2
@@ -395,7 +395,7 @@ fn 12 snippet$bump (any) -> i32
   return
 end
 
-fn 13 snippet$Odd$std_core_Contains$contains (ref,i64) -> bool
+fn 13 snippet$Odd$std_core$Contains$contains (ref,i64) -> bool
   local.get 1   ; arg 1
   i64.const 2
   i64.rem
@@ -429,7 +429,7 @@ fn 16 snippet$holds_value (any,i64) -> bool
   return
 end
 
-fn 17 snippet$Money$std_core_Add$add (ref,i32) -> ref
+fn 17 snippet$Money$std_core$Add$add (ref,i32) -> ref
   local.field 0 22 0   ; arg 0 snippet$Money.c
   ref.cast 6   ; i32
   local.get 1   ; arg 1
@@ -438,7 +438,7 @@ fn 17 snippet$Money$std_core_Add$add (ref,i32) -> ref
   return
 end
 
-fn 18 snippet$Money$std_core_Display$to_string (ref) -> string
+fn 18 snippet$Money$std_core$Display$to_string (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 i64
@@ -485,7 +485,7 @@ fn 20 snippet$plus_one (any) -> string
   type_check 22   ; snippet$Money
   if $L0 void
     local.get 1   ; sum
-    call 18   ; snippet$Money$std_core_Display$to_string
+    call 18   ; snippet$Money$std_core$Display$to_string
     return
   end $L0
   return.lit string.const 7   ; "?"
@@ -735,7 +735,7 @@ fn 21 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 22 snippet$[]$Shape$area__f64 (ref) -> f64
+fn 22 snippet$$array$Shape$area__f64 (ref) -> f64
   return.lit f64.const 0.5 4602678819172646912
 end
 
@@ -1179,7 +1179,7 @@ fn 33 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 34 std_core$[]$Contains$contains__i64 (ref,i64) -> bool
+fn 34 std_core$$array$Contains$contains__i64 (ref,i64) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -4497,14 +4497,14 @@ fn 87 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 88 std_collections$MutableMap$std_core_Index$at__i32__bool (ref,i32) -> any
+fn 88 std_collections$MutableMap$std_core$Index$at__i32__bool (ref,i32) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 121   ; std_collections$get__i32__bool
   return
 end
 
-fn 89 std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool (ref,i32,bool) -> void
+fn 89 std_collections$MutableMap$std_core$IndexSet$set_at__i32__bool (ref,i32,bool) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -4513,21 +4513,21 @@ fn 89 std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool (ref,i32,bo
   return
 end
 
-fn 90 std_collections$MutableMap$std_core_Contains$contains__i32__bool (ref,i32) -> bool
+fn 90 std_collections$MutableMap$std_core$Contains$contains__i32__bool (ref,i32) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 126   ; std_collections$contains_key__i32__bool
   return
 end
 
-fn 91 std_collections$MutableMap$std_core_Index$at__i32__i32 (ref,i32) -> any
+fn 91 std_collections$MutableMap$std_core$Index$at__i32__i32 (ref,i32) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 122   ; std_collections$get__i32__i32
   return
 end
 
-fn 92 std_collections$MutableMap$std_core_IndexSet$set_at__i32__i32 (ref,i32,i32) -> void
+fn 92 std_collections$MutableMap$std_core$IndexSet$set_at__i32__i32 (ref,i32,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -4536,21 +4536,21 @@ fn 92 std_collections$MutableMap$std_core_IndexSet$set_at__i32__i32 (ref,i32,i32
   return
 end
 
-fn 93 std_collections$MutableMap$std_core_Contains$contains__i32__i32 (ref,i32) -> bool
+fn 93 std_collections$MutableMap$std_core$Contains$contains__i32__i32 (ref,i32) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 127   ; std_collections$contains_key__i32__i32
   return
 end
 
-fn 94 std_collections$MutableMap$std_core_Index$at__string__string__ (ref,string) -> any
+fn 94 std_collections$MutableMap$std_core$Index$at__string__string__ (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 125   ; std_collections$get__string__string__
   return
 end
 
-fn 95 std_collections$MutableMap$std_core_IndexSet$set_at__string__string__ (ref,string,ref) -> void
+fn 95 std_collections$MutableMap$std_core$IndexSet$set_at__string__string__ (ref,string,ref) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -4559,21 +4559,21 @@ fn 95 std_collections$MutableMap$std_core_IndexSet$set_at__string__string__ (ref
   return
 end
 
-fn 96 std_collections$MutableMap$std_core_Contains$contains__string__string__ (ref,string) -> bool
+fn 96 std_collections$MutableMap$std_core$Contains$contains__string__string__ (ref,string) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 130   ; std_collections$contains_key__string__string__
   return
 end
 
-fn 97 std_collections$MutableMap$std_core_Index$at__string__i32 (ref,string) -> any
+fn 97 std_collections$MutableMap$std_core$Index$at__string__i32 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 123   ; std_collections$get__string__i32
   return
 end
 
-fn 98 std_collections$MutableMap$std_core_IndexSet$set_at__string__i32 (ref,string,i32) -> void
+fn 98 std_collections$MutableMap$std_core$IndexSet$set_at__string__i32 (ref,string,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -4582,21 +4582,21 @@ fn 98 std_collections$MutableMap$std_core_IndexSet$set_at__string__i32 (ref,stri
   return
 end
 
-fn 99 std_collections$MutableMap$std_core_Contains$contains__string__i32 (ref,string) -> bool
+fn 99 std_collections$MutableMap$std_core$Contains$contains__string__i32 (ref,string) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 128   ; std_collections$contains_key__string__i32
   return
 end
 
-fn 100 std_collections$MutableMap$std_core_Index$at__string__i64 (ref,string) -> any
+fn 100 std_collections$MutableMap$std_core$Index$at__string__i64 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 124   ; std_collections$get__string__i64
   return
 end
 
-fn 101 std_collections$MutableMap$std_core_IndexSet$set_at__string__i64 (ref,string,i64) -> void
+fn 101 std_collections$MutableMap$std_core$IndexSet$set_at__string__i64 (ref,string,i64) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -4605,17 +4605,17 @@ fn 101 std_collections$MutableMap$std_core_IndexSet$set_at__string__i64 (ref,str
   return
 end
 
-fn 102 std_collections$MutableMap$std_core_Contains$contains__string__i64 (ref,string) -> bool
+fn 102 std_collections$MutableMap$std_core$Contains$contains__string__i64 (ref,string) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 129   ; std_collections$contains_key__string__i64
   return
 end
 
-fn 103 std_collections$MutableSet$std_core_Contains$contains__i32 (ref,i32) -> bool
+fn 103 std_collections$MutableSet$std_core$Contains$contains__i32 (ref,i32) -> bool
   local.field 0 50 0   ; arg 0 std_collections$MutableSet__i32.inner
   local.get 1   ; arg 1
-  call 90   ; std_collections$MutableMap$std_core_Contains$contains__i32__bool
+  call 90   ; std_collections$MutableMap$std_core$Contains$contains__i32__bool
   return
 end
 

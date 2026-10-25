@@ -24,11 +24,11 @@
   }
 
 ## snippet/feet
-  snippet.feet.Length.into :: fn(self: Length) -> Length {  // snippet_feet$Length$std_core_Into$into
+  snippet.feet.Length.into :: fn(self: Length) -> Length {  // snippet_feet$Length$std_core$Into$into
       Length { .metres = self.feet + 40 }
   }
   snippet.feet.Length :: struct { feet: i32 }  // snippet_feet$Length
-  vtable std.core.Into.into for Length  snippet.feet.Length.into  // snippet_feet$Length$std_core_Into$into
+  vtable std.core.Into.into for Length  snippet.feet.Length.into  // snippet_feet$Length$std_core$Into$into
 
 ## snippet/metres
   snippet.metres.Length :: struct { metres: i32 }  // snippet_metres$Length

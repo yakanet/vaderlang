@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.Point :: struct { x: i32, y: i32 }  // snippet$Point
-  snippet.Point.to_string :: fn(self: Point) -> string {  // snippet$Point$std_core_Display$to_string
+  snippet.Point.to_string :: fn(self: Point) -> string {  // snippet$Point$std_core$Display$to_string
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(44))
           __off_1: i64 = 0
@@ -24,7 +24,7 @@
       return 0
   }
   snippet.Box :: struct { value: T }  // snippet$Box
-  snippet.Box.to_string :: fn(self: Box) -> string {  // snippet$Box$std_core_Display$to_string
+  snippet.Box.to_string :: fn(self: Box) -> string {  // snippet$Box$std_core$Display$to_string
       concat_2("Box ", @vcall(std.core.Display.to_string, self.value))
   }
   snippet.show<Box> :: fn(value: Any) -> string {  // snippet$show__snippet_Box
@@ -89,8 +89,8 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Display.to_string for Box  snippet.Box.to_string  // snippet$Box$std_core_Display$to_string
-  vtable std.core.Display.to_string for Point  snippet.Point.to_string  // snippet$Point$std_core_Display$to_string
+  vtable std.core.Display.to_string for Box  snippet.Box.to_string  // snippet$Box$std_core$Display$to_string
+  vtable std.core.Display.to_string for Point  snippet.Point.to_string  // snippet$Point$std_core$Display$to_string
 
 ## lowered in dependencies
   std/core
@@ -102,7 +102,7 @@
     fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.Point[].to_string  // std_core$[]$Display$to_string__snippet_Point
+    fn std.core.Point[].to_string  // std_core$$array$Display$to_string__snippet_Point
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
     fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
@@ -111,7 +111,7 @@
     fn std.core.b2u  // std_core$b2u
     fn std.core.b2u32  // std_core$b2u32
     fn std.core.bool.to_string  // std_core$bool$Display$to_string
-    fn std.core.bool[].to_string  // std_core$[]$Display$to_string__bool
+    fn std.core.bool[].to_string  // std_core$$array$Display$to_string__bool
     fn std.core.char.to_string  // std_core$char$Display$to_string
     fn std.core.d2d  // std_core$d2d
     fn std.core.decimal_width  // std_core$decimal_width
@@ -120,7 +120,7 @@
     fn std.core.f32.to_string  // std_core$f32$Display$to_string
     fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
     fn std.core.f64.to_string  // std_core$f64$Display$to_string
-    fn std.core.f64[].to_string  // std_core$[]$Display$to_string__f64
+    fn std.core.f64[].to_string  // std_core$$array$Display$to_string__f64
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.format_f32  // std_core$format_f32
     fn std.core.format_f64  // std_core$format_f64
@@ -130,8 +130,8 @@
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.i32.to_string  // std_core$i32$Display$to_string
-    fn std.core.i32[].to_string  // std_core$[]$Display$to_string__i32
-    fn std.core.i32[][].to_string  // std_core$[]$Display$to_string__i32__
+    fn std.core.i32[].to_string  // std_core$$array$Display$to_string__i32
+    fn std.core.i32[][].to_string  // std_core$$array$Display$to_string__i32__
     fn std.core.i64.compare  // std_core$i64$Comparable$compare
     fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.i64.to_string  // std_core$i64$Display$to_string
@@ -148,14 +148,14 @@
     fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
     fn std.core.multiple_of_power_of_5_32  // std_core$multiple_of_power_of_5_32
     fn std.core.null.to_string  // std_core$null$Display$to_string
-    fn std.core.null[].to_string  // std_core$[]$Display$to_string__null
+    fn std.core.null[].to_string  // std_core$$array$Display$to_string__null
     fn std.core.pow5_factor  // std_core$pow5_factor
     fn std.core.pow5_factor_32  // std_core$pow5_factor_32
     fn std.core.pow5bits  // std_core$pow5bits
     fn std.core.render  // std_core$render
     fn std.core.shiftright128  // std_core$shiftright128
     fn std.core.string.to_string  // std_core$string$Display$to_string
-    fn std.core.string[].to_string  // std_core$[]$Display$to_string__string
+    fn std.core.string[].to_string  // std_core$$array$Display$to_string__string
     fn std.core.three_way  // std_core$three_way
     fn std.core.u16.to_string  // std_core$u16$Display$to_string
     fn std.core.u32.to_string  // std_core$u32$Display$to_string

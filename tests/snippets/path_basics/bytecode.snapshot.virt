@@ -10,7 +10,7 @@ type 7 scalar i64
 type 8 struct std_core$Buffer {  }
 type 9 scalar u32
 type 10 array 6
-type 11 struct std_string_builder$StringBuilder { parts:12 }
+type 11 struct std_string__builder$StringBuilder { parts:12 }
 type 12 array 1
 string 0 "="
 string 1 "src/parser/expr.ts"
@@ -1514,13 +1514,13 @@ fn 26 std_path$normalize (string) -> string
     end $L3
   end $L2
   array.new 12 0   ; string[]
-  struct.new 11   ; std_string_builder$StringBuilder
+  struct.new 11   ; std_string__builder$StringBuilder
   local.set 17   ; sb
   local.get 2   ; abs
   if $L15 void
     local.get 17   ; sb
     string.const 47   ; "/"
-    call 33   ; std_string_builder$append
+    call 33   ; std_string__builder$append
   end $L15
   i64.const 0
   local.set 5   ; n
@@ -1535,7 +1535,7 @@ fn 26 std_path$normalize (string) -> string
       if $L18 void
         local.get 17   ; sb
         string.const 47   ; "/"
-        call 33   ; std_string_builder$append
+        call 33   ; std_string__builder$append
       end $L18
       local.get 3   ; segments
       local.get 5   ; n
@@ -1544,7 +1544,7 @@ fn 26 std_path$normalize (string) -> string
       local.set 1   ; s
       local.get 17   ; sb
       local.get 1   ; s
-      call 33   ; std_string_builder$append
+      call 33   ; std_string__builder$append
       local.get 5   ; n
       i64.const 1
       i64.add
@@ -1553,7 +1553,7 @@ fn 26 std_path$normalize (string) -> string
     end $L17
   end $L16
   local.get 17   ; sb
-  call 34   ; std_string_builder$StringBuilder$std_core_Display$to_string
+  call 34   ; std_string__builder$StringBuilder$std_core$Display$to_string
   local.tee 1   ; s
   call 30   ; std_string$is_empty
   if $L19 void
@@ -1739,14 +1739,14 @@ fn 32 std_string$matches_at (string,i64,string) -> bool
   return.lit bool.const true
 end
 
-fn 33 std_string_builder$append (ref,string) -> void
-  local.field 0 11 0   ; arg 0 std_string_builder$StringBuilder.parts
+fn 33 std_string__builder$append (ref,string) -> void
+  local.field 0 11 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.get 1   ; arg 1
   array.push 1   ; string
   return
 end
 
-fn 34 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
+fn 34 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> string
   local n i64
   local __for_arr_0 ref
   local __for_len_1 i64
@@ -1755,7 +1755,7 @@ fn 34 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   local __for_arr_3 ref
   local p string
   local $call_40 i64
-  local.field 0 11 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 11 0   ; arg 0 std_string__builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -1767,7 +1767,7 @@ fn 34 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 11 0   ; arg 0 std_string_builder$StringBuilder.parts
+    local.field 0 11 0   ; arg 0 std_string__builder$StringBuilder.parts
     i32.const 0
     array.get 12   ; string[]
     ref.cast 1   ; string
@@ -1775,7 +1775,7 @@ fn 34 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 11 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 11 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1808,7 +1808,7 @@ fn 34 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 11 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 11 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2

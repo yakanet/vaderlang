@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_snippet_Box_t vader_struct_snippet_Box_t;
+typedef struct vader_struct_snippet$Box_t vader_struct_snippet$Box_t;
 
-struct vader_struct_snippet_Box_t {
+struct vader_struct_snippet$Box_t {
     vader_obj_header_t header;
     int32_t f_v;
 };
@@ -15,36 +15,36 @@ struct vader_struct_snippet_Box_t {
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static int32_t snippet_handle(void* l0);
-static int32_t snippet_main(void);
+static int32_t snippet$handle(void* l0);
+static int32_t snippet$main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 const vader_type_info_t vader_type_info_table[3] = {
     [1] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Box_t), .slot_size = 8,
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Box_t), .slot_size = 8,
     },
     [2] = { .slot_size = 4 },
 };
 const size_t vader_type_info_count = 3;
 
-static int32_t snippet_handle(void* l0) {
+static int32_t snippet$handle(void* l0) {
     int32_t t0;
-    t0 = ((vader_struct_snippet_Box_t*) l0)->f_v;
+    t0 = ((vader_struct_snippet$Box_t*) l0)->f_v;
     return t0;
 }
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     void* t0 = NULL;
     int32_t t1;
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_struct_snippet_Box_t* _a0_obj = (vader_struct_snippet_Box_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Box_t));
+    vader_struct_snippet$Box_t* _a0_obj = (vader_struct_snippet$Box_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box_t));
     vader_obj_header_init(_a0_obj, 1u);
     _a0_obj->f_v = INT32_C(7);
     t0 = (void*) _a0_obj;
-    t1 = snippet_handle(t0);
+    t1 = snippet$handle(t0);
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -54,5 +54,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

@@ -17,7 +17,7 @@ type 14 scalar u8
 type 15 scalar i64
 type 16 struct std_core$Buffer {  }
 type 17 array 14
-type 18 struct $Cell_string { value:1 }
+type 18 struct $Cell_string_704be0d8 { value:1 }
 type 19 ref std_core$Async
 string 0 "bcdefghijklm"
 string 1 "-"
@@ -150,28 +150,28 @@ fn 7 snippet$captured_local (string) -> string
   local $call_7 string
   local $call_12 string
   local.get 0   ; arg 0
-  struct.new 18   ; $Cell_string
+  struct.new 18   ; $Cell_string_704be0d8
   local.tee 1   ; s
   struct.new 7   ; __lambda_env_snippet_2
   local.set 2   ; peek
-  local.field 1 18 0   ; s $Cell_string.value
+  local.field 1 18 0   ; s $Cell_string_704be0d8.value
   string.const 9   ; "m"
   call 13   ; concat_2
   local.set 3   ; $call_7
   local.get 1   ; s
   local.get 3   ; $call_7
-  struct.set 18 0   ; $Cell_string.value
+  struct.set 18 0   ; $Cell_string_704be0d8.value
   local.get 2   ; peek
   call 10   ; __lambda_snippet_1
   local.set 3   ; $call_7
-  local.field 1 18 0   ; s $Cell_string.value
+  local.field 1 18 0   ; s $Cell_string_704be0d8.value
   string.const 10   ; "n"
   call 13   ; concat_2
   local.set 4   ; $call_12
   local.get 1   ; s
   local.get 4   ; $call_12
-  struct.set 18 0   ; $Cell_string.value
-  local.field 1 18 0   ; s $Cell_string.value
+  struct.set 18 0   ; $Cell_string_704be0d8.value
+  local.field 1 18 0   ; s $Cell_string_704be0d8.value
   string.const 11   ; "/"
   local.get 3   ; $call_7
   call 14   ; concat_3
@@ -338,7 +338,7 @@ end
 
 fn 10 __lambda_snippet_1 (ref) -> string
   local.field 0 7 0   ; arg 0 __lambda_env_snippet_2.cap_0
-  struct.get 18 0   ; $Cell_string.value
+  struct.get 18 0   ; $Cell_string_704be0d8.value
   return
 end
 
@@ -460,7 +460,7 @@ fn 11 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
   end $L0
 end
 
-fn 12 snippet$Ready$std_core_Async$resume__string (ref) -> any
+fn 12 snippet$Ready$std_core$Async$resume__string (ref) -> any
   local.field 0 10 0   ; arg 0 snippet$Ready__string.v
   ref.cast 1   ; string
   retag 1   ; string

@@ -3,14 +3,14 @@
 ## snippet
   snippet.Point :: struct { x: i32 }  // snippet$Point
   snippet.Meters :: struct { value: i32 }  // snippet$Meters
-  snippet.Meters.equals :: fn(self: Meters, other: Meters) -> bool {  // snippet$Meters$std_core_Equals$equals
+  snippet.Meters.equals :: fn(self: Meters, other: Meters) -> bool {  // snippet$Meters$std_core$Equals$equals
       self.value == other.value
   }
   snippet.Tagged :: struct { tag: string }  // snippet$Tagged
-  snippet.Tagged.hash :: fn(self: Tagged) -> u64 {  // snippet$Tagged$std_core_Hash$hash
+  snippet.Tagged.hash :: fn(self: Tagged) -> u64 {  // snippet$Tagged$std_core$Hash$hash
       u64(7)
   }
-  snippet.Tagged.equals :: fn(self: Tagged, other: Tagged) -> bool {  // snippet$Tagged$std_core_Equals$equals
+  snippet.Tagged.equals :: fn(self: Tagged, other: Tagged) -> bool {  // snippet$Tagged$std_core$Equals$equals
       self.tag == other.tag
   }
   snippet.kind :: fn(x: bool | Color | i32 | Meters | Point | string) -> string {  // snippet$kind
@@ -146,15 +146,15 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  snippet$Meters$std_core_Equals$equals$guard :: fn(self: Meters, other: Any) -> bool {
+  snippet$Meters$std_core$Equals$equals$guard :: fn(self: Meters, other: Any) -> bool {
       (other is Meters) && snippet.Meters.equals(self, Meters(other))
   }
-  snippet$Tagged$std_core_Equals$equals$guard :: fn(self: Tagged, other: Any) -> bool {
+  snippet$Tagged$std_core$Equals$equals$guard :: fn(self: Tagged, other: Any) -> bool {
       (other is Tagged) && snippet.Tagged.equals(self, Tagged(other))
   }
-  vtable std.core.Equals.equals for Meters  snippet$Meters$std_core_Equals$equals$guard
-  vtable std.core.Equals.equals for Tagged  snippet$Tagged$std_core_Equals$equals$guard
-  vtable std.core.Hash.hash for Tagged  snippet.Tagged.hash  // snippet$Tagged$std_core_Hash$hash
+  vtable std.core.Equals.equals for Meters  snippet$Meters$std_core$Equals$equals$guard
+  vtable std.core.Equals.equals for Tagged  snippet$Tagged$std_core$Equals$equals$guard
+  vtable std.core.Hash.hash for Tagged  snippet.Tagged.hash  // snippet$Tagged$std_core$Hash$hash
 
 ## lowered in dependencies
   std/core
@@ -191,7 +191,7 @@
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.i32.to_string  // std_core$i32$Display$to_string
-    fn std.core.i32[].to_string  // std_core$[]$Display$to_string__i32
+    fn std.core.i32[].to_string  // std_core$$array$Display$to_string__i32
     fn std.core.i64.compare  // std_core$i64$Comparable$compare
     fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.i64.to_string  // std_core$i64$Display$to_string

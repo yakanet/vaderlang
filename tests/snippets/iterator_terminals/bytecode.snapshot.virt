@@ -20,7 +20,7 @@ impl 1 std_core$Iterator
 impl 7 std_core$ByteAccess
 export main 1
 
-fn 0 snippet$Countdown$std_core_Iterator$next$v (ref) -> (i32,u8)
+fn 0 snippet$Countdown$std_core$Iterator$next$v (ref) -> (i32,u8)
   local v i32
   local $sub_checked_11 i32
   local.field 0 1 0   ; arg 0 snippet$Countdown.remaining
@@ -151,7 +151,7 @@ fn 1 snippet$main () -> i32
   local.set 0   ; total
   loop $L8 void
     local.get 5   ; __fuse_iter_5
-    call 0   ; snippet$Countdown$std_core_Iterator$next$v
+    call 0   ; snippet$Countdown$std_core$Iterator$next$v
     local.set 6   ; $call_elem_56
     drop
     local.get 6   ; $call_elem_56

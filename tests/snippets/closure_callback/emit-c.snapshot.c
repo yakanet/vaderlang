@@ -15,8 +15,8 @@ struct vader_struct___lambda_env_snippet_1_t {
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static int32_t snippet_apply(void* l0, int32_t l1);
-static int32_t snippet_main(void);
+static int32_t snippet$apply(void* l0, int32_t l1);
+static int32_t snippet$main(void);
 static int32_t __lambda_snippet_0(void* l0, int32_t l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
@@ -41,7 +41,7 @@ const vader_type_info_t vader_type_info_table[4] = {
 };
 const size_t vader_type_info_count = 4;
 
-static int32_t snippet_apply(void* l0, int32_t l1) {
+static int32_t snippet$apply(void* l0, int32_t l1) {
     vader_box_t t0 = vader_box_null();
     int32_t t1;
     vader_box_t* gc_roots[1] = { &t0 };
@@ -54,7 +54,7 @@ static int32_t snippet_apply(void* l0, int32_t l1) {
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     void* t0 = NULL;
     int32_t t1;
     void** gc_raw_roots[1] = { &t0 };
@@ -69,7 +69,7 @@ static int32_t snippet_main(void) {
     _a1_closure->code = (void*) &vader_fn_lift___lambda_snippet_0;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;
-    t1 = snippet_apply(t0, INT32_C(23));
+    t1 = snippet$apply(t0, INT32_C(23));
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -87,5 +87,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

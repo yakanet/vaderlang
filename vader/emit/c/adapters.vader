@@ -24,6 +24,7 @@ import "std/sort"
 import "std/string"
 import "vader/core/bytecode"
 import "vader/emit/c/ast"
+import "vader/support/text"
 
 /// The C units of a program's adapters, compiled together into one library.
 export AdapterUnits :: struct {
@@ -64,7 +65,7 @@ adapter_unit_name :: fn(library: string) -> string {
     if library == "" {
         return "adapters"
     }
-    return "adapters_${sanitise(library)}"
+    return "adapters_${sanitise_ident(library)}"
 }
 
 // The unit of the adapters of `imports`, all of `library`. `types` is the

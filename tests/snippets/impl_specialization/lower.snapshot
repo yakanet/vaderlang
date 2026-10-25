@@ -75,7 +75,7 @@
   snippet.Wrapper<Any>.tag :: fn(self: Wrapper<Any>) -> string {  // snippet$Wrapper$Tag$tag__Any
       "tag"
   }
-  snippet.MonType[].poke :: fn(self: MonType[]) -> string {  // snippet$[]$Poke$poke__snippet_MonType
+  snippet.MonType[].poke :: fn(self: MonType[]) -> string {  // snippet$$array$Poke$poke__snippet_MonType
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
           __off_1: i64 = 0
@@ -84,7 +84,7 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
-  snippet.Other[].poke :: fn(self: Other[]) -> string {  // snippet$[]$Poke$poke__snippet_Other$1
+  snippet.Other[].poke :: fn(self: Other[]) -> string {  // snippet$$array$Poke$poke__snippet_Other$1
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
           __off_1: i64 = 0
@@ -198,8 +198,8 @@
       std.core.Buffer.intern_string(buf, c1)
   }
   vtable snippet.Fancy.fancy for Wrapper<MonType>  snippet.Wrapper<MonType>.fancy  // snippet$Wrapper$Fancy$fancy__snippet_MonType
-  vtable snippet.Poke.poke for MonType[]  snippet.MonType[].poke  // snippet$[]$Poke$poke__snippet_MonType
-  vtable snippet.Poke.poke for Other[]  snippet.Other[].poke  // snippet$[]$Poke$poke__snippet_Other$1
+  vtable snippet.Poke.poke for MonType[]  snippet.MonType[].poke  // snippet$$array$Poke$poke__snippet_MonType
+  vtable snippet.Poke.poke for Other[]  snippet.Other[].poke  // snippet$$array$Poke$poke__snippet_Other$1
   vtable snippet.Poke.poke for Wrapper<Any>  snippet.Wrapper<Any>.poke  // snippet$Wrapper$Poke$poke__Any
   vtable snippet.Poke.poke for Wrapper<MonType>  snippet.Wrapper<MonType>.poke  // snippet$Wrapper$Poke$poke__snippet_MonType$1
   vtable snippet.Poke.poke for Wrapper<i32>  snippet.Wrapper<i32>.poke  // snippet$Wrapper$Poke$poke__i32$2

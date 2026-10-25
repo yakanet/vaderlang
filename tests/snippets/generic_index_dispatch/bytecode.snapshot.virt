@@ -22,14 +22,14 @@ impl 1 std_core$IndexSet
 impl 8 std_core$ByteAccess
 export main 2
 
-fn 0 snippet$Cell$std_core_Index$at (ref,i64) -> i32
+fn 0 snippet$Cell$std_core$Index$at (ref,i64) -> i32
   local.field 0 1 0   ; arg 0 snippet$Cell.slots
   local.get 1   ; arg 1
   load_slot_i32
   return
 end
 
-fn 1 snippet$Cell$std_core_IndexSet$set_at (ref,i64,i32) -> void
+fn 1 snippet$Cell$std_core$IndexSet$set_at (ref,i64,i32) -> void
   local.field 0 1 0   ; arg 0 snippet$Cell.slots
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -60,7 +60,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; cell
   i64.const 1
-  call 0   ; snippet$Cell$std_core_Index$at
+  call 0   ; snippet$Cell$std_core$Index$at
   i32.to_i64
   local.set 3   ; $cast_15
   local.get 1   ; __buf_0
@@ -75,7 +75,7 @@ fn 2 snippet$main () -> i32
   local.get 0   ; cell
   i64.const 1
   i32.const 99
-  call 1   ; snippet$Cell$std_core_IndexSet$set_at
+  call 1   ; snippet$Cell$std_core$IndexSet$set_at
   i64.const 39
   buffer.new
   local.set 1   ; __buf_0
@@ -88,7 +88,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; cell
   i64.const 1
-  call 0   ; snippet$Cell$std_core_Index$at
+  call 0   ; snippet$Cell$std_core$Index$at
   i32.to_i64
   local.set 3   ; $cast_15
   local.get 1   ; __buf_0
@@ -158,7 +158,7 @@ end
 fn 3 snippet$read_nth__snippet_Cell (ref,i64) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 0   ; snippet$Cell$std_core_Index$at
+  call 0   ; snippet$Cell$std_core$Index$at
   return
 end
 
@@ -166,7 +166,7 @@ fn 4 snippet$write_nth__snippet_Cell (ref,i64,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 1   ; snippet$Cell$std_core_IndexSet$set_at
+  call 1   ; snippet$Cell$std_core$IndexSet$set_at
   return
 end
 

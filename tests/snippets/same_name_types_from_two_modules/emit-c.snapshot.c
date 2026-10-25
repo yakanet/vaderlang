@@ -4,34 +4,34 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_snippet_shapes_a_Point_t vader_struct_snippet_shapes_a_Point_t;
-typedef struct vader_struct_snippet_shapes_b_Point_t vader_struct_snippet_shapes_b_Point_t;
-typedef struct vader_struct_snippet_Box__Any_t vader_struct_snippet_Box__Any_t;
-typedef struct vader_struct_snippet_Box__snippet_shapes_a_Point_t vader_struct_snippet_Box__snippet_shapes_a_Point_t;
-typedef struct vader_struct_snippet_Box__snippet_shapes_b_Point_t vader_struct_snippet_Box__snippet_shapes_b_Point_t;
-typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
+typedef struct vader_struct_snippet_shapes__a$Point_t vader_struct_snippet_shapes__a$Point_t;
+typedef struct vader_struct_snippet_shapes__b$Point_t vader_struct_snippet_shapes__b$Point_t;
+typedef struct vader_struct_snippet$Box__Any_t vader_struct_snippet$Box__Any_t;
+typedef struct vader_struct_snippet$Box__snippet_shapes__a_Point_t vader_struct_snippet$Box__snippet_shapes__a_Point_t;
+typedef struct vader_struct_snippet$Box__snippet_shapes__b_Point_t vader_struct_snippet$Box__snippet_shapes__b_Point_t;
+typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 
-struct vader_struct_snippet_shapes_a_Point_t {
+struct vader_struct_snippet_shapes__a$Point_t {
     vader_obj_header_t header;
     int32_t f_x;
 };
-struct vader_struct_snippet_shapes_b_Point_t {
+struct vader_struct_snippet_shapes__b$Point_t {
     vader_obj_header_t header;
     vader_string_t f_name;
 };
-struct vader_struct_snippet_Box__Any_t {
+struct vader_struct_snippet$Box__Any_t {
     vader_obj_header_t header;
     vader_box_t f_v;
 };
-struct vader_struct_snippet_Box__snippet_shapes_a_Point_t {
+struct vader_struct_snippet$Box__snippet_shapes__a_Point_t {
     vader_obj_header_t header;
     vader_box_t f_v;
 };
-struct vader_struct_snippet_Box__snippet_shapes_b_Point_t {
+struct vader_struct_snippet$Box__snippet_shapes__b_Point_t {
     vader_obj_header_t header;
     vader_box_t f_v;
 };
-struct vader_struct_std_core_Buffer_t {
+struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
 };
 
@@ -57,23 +57,23 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 7u
 
-static vader_string_t snippet_snippet_shapes_a_Point_Describe_describe(void* l0);
-static vader_string_t snippet_snippet_shapes_b_Point_Describe_describe(void* l0);
-static vader_string_t snippet_show(vader_box_t l0);
-static int32_t snippet_main(void);
-static void* snippet_wrap__snippet_shapes_a_Point(vader_box_t l0);
-static bool snippet_holds__snippet_shapes_a_Point(void* l0, vader_box_t l1);
-static bool snippet_holds__snippet_shapes_b_Point(void* l0, vader_box_t l1);
+static vader_string_t snippet$snippet_shapes__a$Point$Describe$describe(void* l0);
+static vader_string_t snippet$snippet_shapes__b$Point$Describe$describe(void* l0);
+static vader_string_t snippet$show(vader_box_t l0);
+static int32_t snippet$main(void);
+static void* snippet$wrap__snippet_shapes__a_Point(vader_box_t l0);
+static bool snippet$holds__snippet_shapes__a_Point(void* l0, vader_box_t l1);
+static bool snippet$holds__snippet_shapes__b_Point(void* l0, vader_box_t l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core_finish_buffer(void* l0, int64_t l1);
-static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2);
-static int64_t std_core_write_bool(void* l0, int64_t l1, bool l2);
-static void std_io_write(uint8_t l0, vader_string_t l1);
-static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2);
-static void std_io_println__string(vader_string_t l0);
-static void* snippet_shapes_a_make(void);
-static void* snippet_shapes_b_make(void);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static void std_io$write(uint8_t l0, vader_string_t l1);
+static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static void std_io$println__string(vader_string_t l0);
+static void* snippet_shapes__a$make(void);
+static void* snippet_shapes__b$make(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -81,43 +81,43 @@ static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf)
 
 const vader_type_info_t vader_type_info_table[17] = {
     [1] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_shapes_a_Point_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_shapes__a$Point_t),
         .slot_size = 8,
     },
     [2] = { .slot_size = 4 },
     [3] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_shapes_b_Point_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_shapes__b$Point_t),
         .slot_size = 8,
-        .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_shapes_b_Point_t, f_name) },
+        .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_shapes__b$Point_t, f_name) },
         .string_count = 1,
     },
     [4] = { .slot_size = 16 },
     [5] = { .slot_size = 4 },
     [6] = { .slot_size = 16 },
     [7] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Box__Any_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Box__Any_t),
         .slot_size = 8,
-        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Box__Any_t, f_v) },
+        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Box__Any_t, f_v) },
         .ptr_count = 1,
     },
     [8] = { .slot_size = 16 },
     [9] = { .slot_size = 1 },
     [10] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_snippet_Box__snippet_shapes_a_Point_t), .slot_size = 8,
-        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Box__snippet_shapes_a_Point_t, f_v) },
+        .size = sizeof(vader_struct_snippet$Box__snippet_shapes__a_Point_t), .slot_size = 8,
+        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Box__snippet_shapes__a_Point_t, f_v) },
         .ptr_count = 1,
     },
     [11] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_snippet_Box__snippet_shapes_b_Point_t), .slot_size = 8,
-        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Box__snippet_shapes_b_Point_t, f_v) },
+        .size = sizeof(vader_struct_snippet$Box__snippet_shapes__b_Point_t), .slot_size = 8,
+        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Box__snippet_shapes__b_Point_t, f_v) },
         .ptr_count = 1,
     },
     [12] = { .slot_size = 1 },
     [13] = { .slot_size = 8 },
     [14] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
     [15] = {
@@ -130,23 +130,23 @@ const size_t vader_type_info_count = 17;
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
 
-static int64_t vader_host_std_core_byte_len(vader_string_t a0) {
+static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
 
-static void* vader_host_std_core_bytes(vader_string_t a0) {
+static void* vader_host_std_core$bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 15u, 12u);
 }
 
-static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a2) {
+static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     return write(a0, s1.ptr, a2);
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_snippet_Describe__describe(vader_box_t recv);
+static vader_string_t vader_vt_snippet$Describe$describe(vader_box_t recv);
 
-static vader_string_t snippet_snippet_shapes_a_Point_Describe_describe(void* l0) {
+static vader_string_t snippet$snippet_shapes__a$Point$Describe$describe(void* l0) {
     void* l1 = NULL;
     int64_t l2, l3;
     int32_t t0;
@@ -159,15 +159,15 @@ static vader_string_t snippet_snippet_shapes_a_Point_Describe_describe(void* l0)
     vader_gc_top = &gc_frame;
     l1 = (void*) vader_buffer_new((size_t) INT64_C(31));
     l2 = INT64_C(0);
-    l2 = std_core_write_string_at(l1, l2, 1u);
-    t0 = ((vader_struct_snippet_shapes_a_Point_t*) l0)->f_x;
+    l2 = std_core$write_string_at(l1, l2, 1u);
+    t0 = ((vader_struct_snippet_shapes__a$Point_t*) l0)->f_x;
     l3 = ((int64_t) (int32_t) t0);
-    l2 = std_core_write_int(l1, l2, l3);
-    t1 = std_core_finish_buffer(l1, l2);
+    l2 = std_core$write_int(l1, l2, l3);
+    t1 = std_core$finish_buffer(l1, l2);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t snippet_snippet_shapes_b_Point_Describe_describe(void* l0) {
+static vader_string_t snippet$snippet_shapes__b$Point$Describe$describe(void* l0) {
     vader_string_t l1 = 0;
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
@@ -176,12 +176,12 @@ static vader_string_t snippet_snippet_shapes_b_Point_Describe_describe(void* l0)
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = ((vader_struct_snippet_shapes_b_Point_t*) l0)->f_name;
+    l1 = ((vader_struct_snippet_shapes__b$Point_t*) l0)->f_name;
     t0 = concat_2(2u, l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t snippet_show(vader_box_t l0) {
+static vader_string_t snippet$show(vader_box_t l0) {
     vader_string_t t0 = 0;
     vader_box_t* gc_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
@@ -189,11 +189,11 @@ static vader_string_t snippet_show(vader_box_t l0) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_snippet_Describe__describe(l0);
+    t0 = vader_vt_snippet$Describe$describe(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     void* l0 = NULL;
     void* l3 = NULL;
     void* l5 = NULL;
@@ -205,90 +205,90 @@ static int32_t snippet_main(void) {
     int32_t t1;
     vader_string_t t2 = 0;
     void** gc_raw_roots[5] = { &l0, &l3, &l5, &t0, &t3 };
-    vader_struct_snippet_Box__Any_t _a0_storage = {0};
-    vader_struct_snippet_Box__Any_t _a2_storage = {0};
+    vader_struct_snippet$Box__Any_t _a0_storage = {0};
+    vader_struct_snippet$Box__Any_t _a2_storage = {0};
     void* gc_stack_objs[2] = { (void*) &_a0_storage, (void*) &_a2_storage };
     vader_string_t* gc_atom_roots[2] = { &l1, &t2 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 2u, gc_stack_objs, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = snippet_shapes_a_make();
-    vader_struct_snippet_Box__Any_t* _a1_obj = &_a0_storage;
+    t0 = snippet_shapes__a$make();
+    vader_struct_snippet$Box__Any_t* _a1_obj = &_a0_storage;
     vader_obj_header_init(_a1_obj, 7u);
     _a1_obj->f_v = vader_ref_box(t0);
     l0 = (void*) _a1_obj;
-    t0 = snippet_shapes_b_make();
-    vader_struct_snippet_Box__Any_t* _a3_obj = &_a2_storage;
+    t0 = snippet_shapes__b$make();
+    vader_struct_snippet$Box__Any_t* _a3_obj = &_a2_storage;
     vader_obj_header_init(_a3_obj, 7u);
     _a3_obj->f_v = vader_ref_box(t0);
     t0 = (void*) _a3_obj;
-    l1 = ((vader_struct_snippet_shapes_b_Point_t*) ((vader_struct_snippet_Box__snippet_shapes_b_Point_t*) t0)->f_v.payload.obj)->f_name;
-    l2 = vader_host_std_core_byte_len(l1);
+    l1 = ((vader_struct_snippet_shapes__b$Point_t*) ((vader_struct_snippet$Box__snippet_shapes__b_Point_t*) t0)->f_v.payload.obj)->f_name;
+    l2 = vader_host_std_core$byte_len(l1);
     l3 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l2));
     l2 = INT64_C(0);
-    t1 = ((vader_struct_snippet_shapes_a_Point_t*) ((vader_struct_snippet_Box__snippet_shapes_a_Point_t*) l0)->f_v.payload.obj)->f_x;
+    t1 = ((vader_struct_snippet_shapes__a$Point_t*) ((vader_struct_snippet$Box__snippet_shapes__a_Point_t*) l0)->f_v.payload.obj)->f_x;
     l4 = ((int64_t) (int32_t) t1);
-    l2 = std_core_write_int(l3, l2, l4);
-    l2 = std_core_write_string_at(l3, l2, 3u);
-    l2 = std_core_write_string_at(l3, l2, l1);
-    t2 = std_core_finish_buffer(l3, l2);
-    std_io_println__string(t2);
-    t0 = snippet_shapes_a_make();
-    l0 = snippet_wrap__snippet_shapes_a_Point(vader_ref_box(t0));
-    t0 = snippet_shapes_b_make();
-    t3 = snippet_wrap__snippet_shapes_a_Point(vader_ref_box(t0));
-    l1 = ((vader_struct_snippet_shapes_b_Point_t*) ((vader_struct_snippet_Box__snippet_shapes_b_Point_t*) t3)->f_v.payload.obj)->f_name;
-    l2 = vader_host_std_core_byte_len(l1);
+    l2 = std_core$write_int(l3, l2, l4);
+    l2 = std_core$write_string_at(l3, l2, 3u);
+    l2 = std_core$write_string_at(l3, l2, l1);
+    t2 = std_core$finish_buffer(l3, l2);
+    std_io$println__string(t2);
+    t0 = snippet_shapes__a$make();
+    l0 = snippet$wrap__snippet_shapes__a_Point(vader_ref_box(t0));
+    t0 = snippet_shapes__b$make();
+    t3 = snippet$wrap__snippet_shapes__a_Point(vader_ref_box(t0));
+    l1 = ((vader_struct_snippet_shapes__b$Point_t*) ((vader_struct_snippet$Box__snippet_shapes__b_Point_t*) t3)->f_v.payload.obj)->f_name;
+    l2 = vader_host_std_core$byte_len(l1);
     l3 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l2));
     l2 = INT64_C(0);
-    t1 = ((vader_struct_snippet_shapes_a_Point_t*) ((vader_struct_snippet_Box__snippet_shapes_a_Point_t*) l0)->f_v.payload.obj)->f_x;
+    t1 = ((vader_struct_snippet_shapes__a$Point_t*) ((vader_struct_snippet$Box__snippet_shapes__a_Point_t*) l0)->f_v.payload.obj)->f_x;
     l4 = ((int64_t) (int32_t) t1);
-    l2 = std_core_write_int(l3, l2, l4);
-    l2 = std_core_write_string_at(l3, l2, 3u);
-    l2 = std_core_write_string_at(l3, l2, l1);
-    t2 = std_core_finish_buffer(l3, l2);
-    std_io_println__string(t2);
+    l2 = std_core$write_int(l3, l2, l4);
+    l2 = std_core$write_string_at(l3, l2, 3u);
+    l2 = std_core$write_string_at(l3, l2, l1);
+    t2 = std_core$finish_buffer(l3, l2);
+    std_io$println__string(t2);
     l0 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l2 = INT64_C(0);
-    l3 = snippet_shapes_a_make();
-    l5 = snippet_shapes_b_make();
-    l6 = snippet_holds__snippet_shapes_a_Point(l3, vader_ref_box(l5));
-    l2 = std_core_write_bool(l0, l2, l6);
-    l2 = std_core_write_string_at(l0, l2, 3u);
-    l3 = snippet_shapes_b_make();
-    l5 = snippet_shapes_b_make();
-    l6 = snippet_holds__snippet_shapes_b_Point(l3, vader_ref_box(l5));
-    l2 = std_core_write_bool(l0, l2, l6);
-    t2 = std_core_finish_buffer(l0, l2);
-    std_io_println__string(t2);
-    t0 = snippet_shapes_a_make();
-    t2 = snippet_show(vader_ref_box(t0));
-    std_io_println__string(t2);
-    t0 = snippet_shapes_b_make();
-    t2 = snippet_show(vader_ref_box(t0));
-    std_io_println__string(t2);
+    l3 = snippet_shapes__a$make();
+    l5 = snippet_shapes__b$make();
+    l6 = snippet$holds__snippet_shapes__a_Point(l3, vader_ref_box(l5));
+    l2 = std_core$write_bool(l0, l2, l6);
+    l2 = std_core$write_string_at(l0, l2, 3u);
+    l3 = snippet_shapes__b$make();
+    l5 = snippet_shapes__b$make();
+    l6 = snippet$holds__snippet_shapes__b_Point(l3, vader_ref_box(l5));
+    l2 = std_core$write_bool(l0, l2, l6);
+    t2 = std_core$finish_buffer(l0, l2);
+    std_io$println__string(t2);
+    t0 = snippet_shapes__a$make();
+    t2 = snippet$show(vader_ref_box(t0));
+    std_io$println__string(t2);
+    t0 = snippet_shapes__b$make();
+    t2 = snippet$show(vader_ref_box(t0));
+    std_io$println__string(t2);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static void* snippet_wrap__snippet_shapes_a_Point(vader_box_t l0) {
+static void* snippet$wrap__snippet_shapes__a_Point(vader_box_t l0) {
     void* t0 = NULL;
     vader_box_t* gc_roots[1] = { &l0 };
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_struct_snippet_Box__Any_t* _a0_obj = (vader_struct_snippet_Box__Any_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Box__Any_t));
+    vader_struct_snippet$Box__Any_t* _a0_obj = (vader_struct_snippet$Box__Any_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box__Any_t));
     vader_obj_header_init(_a0_obj, 7u);
     _a0_obj->f_v = l0;
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static bool snippet_holds__snippet_shapes_a_Point(void* l0, vader_box_t l1) {
+static bool snippet$holds__snippet_shapes__a_Point(void* l0, vader_box_t l1) {
     return l1.tag == 1u;
 }
 
-static bool snippet_holds__snippet_shapes_b_Point(void* l0, vader_box_t l1) {
+static bool snippet$holds__snippet_shapes__b_Point(void* l0, vader_box_t l1) {
     return l1.tag == 3u;
 }
 
@@ -302,8 +302,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = vader_host_std_core_byte_len(l0);
-    l3 = vader_host_std_core_byte_len(l1);
+    l2 = vader_host_std_core$byte_len(l0);
+    l3 = vader_host_std_core$byte_len(l1);
     l3 = (l2 + l3);
     l4 = (void*) vader_buffer_new((size_t) l3);
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -312,7 +312,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1) {
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
@@ -324,16 +324,16 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2) {
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2) {
     int64_t l3;
     int64_t t0;
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-    l3 = vader_host_std_core_byte_len(l2);
+    l3 = vader_host_std_core$byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
 }
 
-static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2) {
     bool l3;
     int64_t l4, l5;
     uint8_t l6, l7;
@@ -380,17 +380,17 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
     return t0;
 }
 
-static int64_t std_core_write_bool(void* l0, int64_t l1, bool l2) {
+static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2) {
     int64_t t0;
     if (!(l2)) {
-        t0 = std_core_write_string_at(l0, l1, 5u);
+        t0 = std_core$write_string_at(l0, l1, 5u);
         return t0;
     }
-    t0 = std_core_write_string_at(l0, l1, 4u);
+    t0 = std_core$write_string_at(l0, l1, 4u);
     return t0;
 }
 
-static void std_io_write(uint8_t l0, vader_string_t l1) {
+static void std_io$write(uint8_t l0, vader_string_t l1) {
     void* l2 = NULL;
     void* l6 = NULL;
     int64_t l3, l4, l5, l7, l9;
@@ -401,7 +401,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = vader_host_std_core_bytes(l1);
+    l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
         l4 = ((vader_array_t*) l2)->length;
@@ -410,7 +410,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
             l7 = ((vader_array_t*) l6)->length;
-            l8 = std_io_write_bytes(l0, l6, l7);
+            l8 = std_io$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }
             }
@@ -423,47 +423,47 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2) {
+static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2) {
     int64_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l0 == INT32_C(0)) {
-        t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
+        t0 = vader_host_system_posix$sys_write(INT32_C(1), l1, l2);
         { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
+    t0 = vader_host_system_posix$sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void std_io_println__string(vader_string_t l0) {
+static void std_io$println__string(vader_string_t l0) {
     vader_string_t l1 = 0;
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l1 = concat_2(l0, 6u);
-    std_io_write((uint8_t) 0, l1);
+    std_io$write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static void* snippet_shapes_a_make(void) {
+static void* snippet_shapes__a$make(void) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_struct_snippet_shapes_a_Point_t* _a0_obj = (vader_struct_snippet_shapes_a_Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet_shapes_a_Point_t));
+    vader_struct_snippet_shapes__a$Point_t* _a0_obj = (vader_struct_snippet_shapes__a$Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet_shapes__a$Point_t));
     vader_obj_header_init(_a0_obj, 1u);
     _a0_obj->f_x = INT32_C(1);
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet_shapes_b_make(void) {
+static void* snippet_shapes__b$make(void) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_struct_snippet_shapes_b_Point_t* _a0_obj = (vader_struct_snippet_shapes_b_Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet_shapes_b_Point_t));
+    vader_struct_snippet_shapes__b$Point_t* _a0_obj = (vader_struct_snippet_shapes__b$Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet_shapes__b$Point_t));
     vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_name = 7u;
     t0 = (void*) _a0_obj;
@@ -471,10 +471,10 @@ static void* snippet_shapes_b_make(void) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_snippet_Describe__describe(vader_box_t recv) {
+static vader_string_t vader_vt_snippet$Describe$describe(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet_snippet_shapes_a_Point_Describe_describe(recv.payload.obj);
-        case 3u: return snippet_snippet_shapes_b_Point_Describe_describe(recv.payload.obj);
+        case 1u: return snippet$snippet_shapes__a$Point$Describe$describe(recv.payload.obj);
+        case 3u: return snippet$snippet_shapes__b$Point$Describe$describe(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet$Describe.describe");
     }
     vader_unreachable("vtable miss in snippet$Describe.describe");
@@ -486,5 +486,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

@@ -91,7 +91,7 @@ fn 2 snippet$main () -> i32
   local $field_19 i32
   local it any
   data.const 0 8   ; pool[0] snippet$Mon[]
-  call 4   ; snippet$[]$std_core_Into$into__snippet_Mon
+  call 4   ; snippet$$array$std_core$Into$into__snippet_Mon
   call 1   ; snippet$show
   call 18   ; std_io$println__string
   i64.const 20
@@ -191,12 +191,12 @@ fn 2 snippet$main () -> i32
   call 10   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   data.const 0 8   ; pool[0] snippet$Mon[]
-  call 4   ; snippet$[]$std_core_Into$into__snippet_Mon
+  call 4   ; snippet$$array$std_core$Into$into__snippet_Mon
   struct.get 3 0   ; snippet$Label.s
   ref.cast 4   ; string
   call 18   ; std_io$println__string
   data.const 0 8   ; pool[0] snippet$Mon[]
-  call 13   ; std_core$[]$Into$into__snippet_Mon
+  call 13   ; std_core$$array$Into$into__snippet_Mon
   local.set 7   ; it
   i64.const 20
   buffer.new
@@ -217,7 +217,7 @@ fn 2 snippet$main () -> i32
   call 10   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   data.const 0 8   ; pool[0] snippet$Mon[]
-  call 4   ; snippet$[]$std_core_Into$into__snippet_Mon
+  call 4   ; snippet$$array$std_core$Into$into__snippet_Mon
   struct.get 3 0   ; snippet$Label.s
   ref.cast 4   ; string
   call 18   ; std_io$println__string
@@ -393,7 +393,7 @@ fn 3 snippet$__genstate_labels$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 4 snippet$[]$std_core_Into$into__snippet_Mon (ref) -> ref
+fn 4 snippet$$array$std_core$Into$into__snippet_Mon (ref) -> ref
   local __buf_0 ref
   local __off_1 i64
   local $len_8 i64
@@ -779,7 +779,7 @@ fn 12 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 13 std_core$[]$Into$into__snippet_Mon (ref) -> any
+fn 13 std_core$$array$Into$into__snippet_Mon (ref) -> any
   local.get 0   ; arg 0
   call 14   ; std_core$array_iter__snippet_Mon
   return

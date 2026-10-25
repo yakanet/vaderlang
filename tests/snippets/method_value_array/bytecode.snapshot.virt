@@ -104,7 +104,7 @@ vtable std_core$Iterator.next 40 26
 vtable std_core$Iterator.next 44 27
 export main 1
 
-fn 0 snippet$Countdown$std_core_Iterator$next (ref) -> ref
+fn 0 snippet$Countdown$std_core$Iterator$next (ref) -> ref
   local v i32
   local $sub_checked_11 i32
   local.field 0 1 0   ; arg 0 snippet$Countdown.n
@@ -259,7 +259,7 @@ end
 
 fn 4 __method_snippet_4 (ref) -> i32
   local.field 0 9 0   ; arg 0 __method_env_snippet_5.receiver
-  call 14   ; std_core$[]$Into$into__i32
+  call 14   ; std_core$$array$Into$into__i32
   call 21   ; std_iter$sum__i32
   return
 end
@@ -627,7 +627,7 @@ fn 13 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 14 std_core$[]$Into$into__i32 (ref) -> any
+fn 14 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 16   ; std_core$array_iter__i32
   return

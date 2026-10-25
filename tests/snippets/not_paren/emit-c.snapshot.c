@@ -8,10 +8,10 @@
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static bool snippet_f(bool l0, bool l1);
-static bool snippet_g(int32_t l0);
-static bool snippet_h(bool l0, bool l1);
-static int32_t snippet_main(void);
+static bool snippet$f(bool l0, bool l1);
+static bool snippet$g(int32_t l0);
+static bool snippet$h(bool l0, bool l1);
+static int32_t snippet$main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -21,44 +21,44 @@ const vader_type_info_t vader_type_info_table[3] = {
 };
 const size_t vader_type_info_count = 3;
 
-static bool snippet_f(bool l0, bool l1) {
+static bool snippet$f(bool l0, bool l1) {
     if (l0) {
         return !(true);
     }
     return !(l1);
 }
 
-static bool snippet_g(int32_t l0) {
+static bool snippet$g(int32_t l0) {
     if (l0 == INT32_C(0)) {
         return !(true);
     }
     return !(l0 == INT32_C(1));
 }
 
-static bool snippet_h(bool l0, bool l1) {
+static bool snippet$h(bool l0, bool l1) {
     if (l0) {
         return !(l1);
     }
     return !(false);
 }
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     int32_t l0, l1, l2;
     bool t0;
     int32_t t1, t2;
-    t0 = snippet_f(false, false);
+    t0 = snippet$f(false, false);
     if (t0) {
         l0 = INT32_C(1);
     } else {
         l0 = INT32_C(0);
     }
-    t0 = snippet_g(INT32_C(5));
+    t0 = snippet$g(INT32_C(5));
     if (t0) {
         l1 = INT32_C(2);
     } else {
         l1 = INT32_C(0);
     }
-    t0 = snippet_h(true, false);
+    t0 = snippet$h(true, false);
     if (t0) {
         l2 = INT32_C(4);
         t1 = vader_chk_add(i32, l0, l1);
@@ -77,5 +77,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

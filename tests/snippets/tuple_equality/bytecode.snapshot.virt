@@ -38,7 +38,7 @@ impl 1 std_core$Equals
 impl 11 std_core$ByteAccess
 export main 4
 
-fn 0 snippet$Tagged$std_core_Equals$equals (ref,ref) -> bool
+fn 0 snippet$Tagged$std_core$Equals$equals (ref,ref) -> bool
   local $field_2 i32
   local $field_3 i32
   local.field 0 1 0   ; arg 0 snippet$Tagged.n
@@ -459,7 +459,7 @@ fn 4 snippet$main () -> i32
     local.set 2   ; __buf_0
     local.get 1   ; b
     local.get 2   ; __buf_0
-    call 0   ; snippet$Tagged$std_core_Equals$equals
+    call 0   ; snippet$Tagged$std_core$Equals$equals
     local.set 6   ; and_res
   else
     bool.const false
@@ -506,7 +506,7 @@ fn 4 snippet$main () -> i32
     local.set 2   ; __buf_0
     local.get 1   ; b
     local.get 2   ; __buf_0
-    call 0   ; snippet$Tagged$std_core_Equals$equals
+    call 0   ; snippet$Tagged$std_core$Equals$equals
     local.set 6   ; and_res
   else
     bool.const false

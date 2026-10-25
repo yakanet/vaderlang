@@ -4,14 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_snippet_Box_t vader_struct_snippet_Box_t;
-typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
+typedef struct vader_struct_snippet$Box_t vader_struct_snippet$Box_t;
+typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 
-struct vader_struct_snippet_Box_t {
+struct vader_struct_snippet$Box_t {
     vader_obj_header_t header;
     int32_t f_v;
 };
-struct vader_struct_std_core_Buffer_t {
+struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
 };
 
@@ -28,16 +28,16 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 5u
 
-static vader_string_t snippet_greet(vader_string_t l0, vader_string_t l1);
-static int32_t snippet_combine(int32_t l0, int32_t l1, int32_t l2);
-static int32_t snippet_pick_1(int32_t l0, int32_t l1);
-static int32_t snippet_scale(void* l0, int32_t l1, int32_t l2);
-static int32_t snippet_main(void);
+static vader_string_t snippet$greet(vader_string_t l0, vader_string_t l1);
+static int32_t snippet$combine(int32_t l0, int32_t l1, int32_t l2);
+static int32_t snippet$pick_1(int32_t l0, int32_t l1);
+static int32_t snippet$scale(void* l0, int32_t l1, int32_t l2);
+static int32_t snippet$main(void);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
-static int64_t std_core_len(vader_string_t l0);
-static int64_t std_core_ascii_prefix(vader_string_t l0);
-static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1);
-static bool std_core_is_utf8_continuation(uint8_t l0);
+static int64_t std_core$len(vader_string_t l0);
+static int64_t std_core$ascii_prefix(vader_string_t l0);
+static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1);
+static bool std_core$is_utf8_continuation(uint8_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -45,38 +45,38 @@ const vader_type_info_t vader_type_info_table[9] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 4 },
     [3] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Box_t), .slot_size = 8,
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Box_t), .slot_size = 8,
     },
     [4] = { .slot_size = 1 },
     [5] = { .slot_size = 1 },
     [6] = { .slot_size = 8 },
     [7] = { .slot_size = 4 },
     [8] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
 };
 const size_t vader_type_info_count = 9;
 
-static int64_t vader_host_std_core_byte_len(vader_string_t a0) {
+static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
 
-static uint8_t vader_host_std_core_byte_at(vader_string_t a0, int64_t a1) {
+static uint8_t vader_host_std_core$byte_at(vader_string_t a0, int64_t a1) {
     return vader_string_byte_at(a0, a1);
 }
 
-static bool vader_host_std_core_is_ascii(vader_string_t a0) {
+static bool vader_host_std_core$is_ascii(vader_string_t a0) {
     return vader_string_is_ascii(a0);
 }
 
-static vader_string_t snippet_greet(vader_string_t l0, vader_string_t l1) {
+static vader_string_t snippet$greet(vader_string_t l0, vader_string_t l1) {
     vader_string_t t0;
     t0 = concat_3(l1, 1u, l0);
     return t0;
 }
 
-static int32_t snippet_combine(int32_t l0, int32_t l1, int32_t l2) {
+static int32_t snippet$combine(int32_t l0, int32_t l1, int32_t l2) {
     int32_t l3, l4;
     int32_t t0, t1;
     l3 = vader_chk_mul(i32, l0, INT32_C(100));
@@ -86,22 +86,22 @@ static int32_t snippet_combine(int32_t l0, int32_t l1, int32_t l2) {
     return t1;
 }
 
-static int32_t snippet_pick_1(int32_t l0, int32_t l1) {
+static int32_t snippet$pick_1(int32_t l0, int32_t l1) {
     int32_t t0, t1;
     t0 = vader_chk_mul(i32, l0, INT32_C(10));
     t1 = vader_chk_add(i32, t0, l1);
     return t1;
 }
 
-static int32_t snippet_scale(void* l0, int32_t l1, int32_t l2) {
+static int32_t snippet$scale(void* l0, int32_t l1, int32_t l2) {
     int32_t t0, t1;
-    t0 = ((vader_struct_snippet_Box_t*) l0)->f_v;
+    t0 = ((vader_struct_snippet$Box_t*) l0)->f_v;
     t1 = vader_chk_mul(i32, t0, l1);
     t0 = vader_chk_add(i32, t1, l2);
     return t0;
 }
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     vader_string_t l0 = 0;
     vader_string_t l1 = 0;
     int32_t l2, l3, l4;
@@ -115,17 +115,17 @@ static int32_t snippet_main(void) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l0 = snippet_greet(2u, 3u);
-    l1 = snippet_greet(4u, 5u);
-    l2 = snippet_combine(INT32_C(1), INT32_C(2), INT32_C(3));
-    l3 = snippet_pick_1(INT32_C(5), INT32_C(4));
-    vader_struct_snippet_Box_t* _a0_obj = (vader_struct_snippet_Box_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Box_t));
+    l0 = snippet$greet(2u, 3u);
+    l1 = snippet$greet(4u, 5u);
+    l2 = snippet$combine(INT32_C(1), INT32_C(2), INT32_C(3));
+    l3 = snippet$pick_1(INT32_C(5), INT32_C(4));
+    vader_struct_snippet$Box_t* _a0_obj = (vader_struct_snippet$Box_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box_t));
     vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_v = INT32_C(6);
     t0 = (void*) _a0_obj;
-    l4 = snippet_scale(t0, INT32_C(2), INT32_C(1));
-    l5 = std_core_len(l0);
-    l6 = std_core_len(l1);
+    l4 = snippet$scale(t0, INT32_C(2), INT32_C(1));
+    l5 = std_core$len(l0);
+    l6 = std_core$len(l1);
     t1 = vader_chk_add(i64, l5, l6);
     t2 = vader_chk_add(i32, ((int32_t) (int64_t) t1), l2);
     t3 = vader_chk_add(i32, t2, l3);
@@ -143,10 +143,10 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l3 = vader_host_std_core_byte_len(l0);
-    l4 = vader_host_std_core_byte_len(l1);
+    l3 = vader_host_std_core$byte_len(l0);
+    l4 = vader_host_std_core$byte_len(l1);
     l4 = (l3 + l4);
-    l5 = vader_host_std_core_byte_len(l2);
+    l5 = vader_host_std_core$byte_len(l2);
     l5 = (l4 + l5);
     l6 = (void*) vader_buffer_new((size_t) l5);
     vader_buffer_write_string((vader_buffer_t*) l6, (size_t) INT64_C(0), l0);
@@ -156,25 +156,25 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int64_t std_core_len(vader_string_t l0) {
+static int64_t std_core$len(vader_string_t l0) {
     int64_t l1, l2, l3, l5, l6;
     uint8_t l4;
     bool t0;
     uint32_t t1;
     int64_t t2;
-    l1 = vader_host_std_core_byte_len(l0);
-    t0 = vader_host_std_core_is_ascii(l0);
+    l1 = vader_host_std_core$byte_len(l0);
+    t0 = vader_host_std_core$is_ascii(l0);
     if (t0) {
         return l1;
     }
-    l2 = std_core_ascii_prefix(l0);
+    l2 = std_core$ascii_prefix(l0);
     l3 = l2;
     while ((l2 < l1)) {
-        l4 = vader_host_std_core_byte_at(l0, l2);
+        l4 = vader_host_std_core$byte_at(l0, l2);
         if ((l4 < INT32_C(128))) {
             l2 = vader_chk_add(i64, l2, INT64_C(1));
         } else {
-            std_core_decode_tail(l0, l4, l2, &t1, &t2);
+            std_core$decode_tail(l0, l4, l2, &t1, &t2);
             l6 = t2;
             l5 = l6;
             l2 = vader_chk_add(i64, l2, l5);
@@ -184,12 +184,12 @@ static int64_t std_core_len(vader_string_t l0) {
     return l3;
 }
 
-static int64_t std_core_ascii_prefix(vader_string_t l0) {
+static int64_t std_core$ascii_prefix(vader_string_t l0) {
     int64_t l1, l2, l4, l5;
     uint8_t l3, l6;
     int64_t t0;
     int32_t t1;
-    l1 = vader_host_std_core_byte_len(l0);
+    l1 = vader_host_std_core$byte_len(l0);
     l2 = INT64_C(0);
     for (;;) {
         t0 = vader_chk_add(i64, l2, INT64_C(64));
@@ -198,7 +198,7 @@ static int64_t std_core_ascii_prefix(vader_string_t l0) {
             l4 = l2;
             l5 = vader_chk_add(i64, l2, INT64_C(64));
             while ((l4 < l5)) {
-                l6 = vader_host_std_core_byte_at(l0, l4);
+                l6 = vader_host_std_core$byte_at(l0, l4);
                 t1 = (l3 | l6);
                 l3 = (uint8_t) (int32_t) t1;
                 l4 = (l4 + INT64_C(1));
@@ -214,7 +214,7 @@ static int64_t std_core_ascii_prefix(vader_string_t l0) {
     return l2;
 }
 
-static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1) {
+static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1) {
     bool l3, l9;
     int64_t l4, l5;
     uint8_t l6, l10, l11;
@@ -230,14 +230,14 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
     if (l3) {
         *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
     }
-    l4 = vader_host_std_core_byte_len(l0);
+    l4 = vader_host_std_core$byte_len(l0);
     t0 = vader_chk_add(i64, l2, INT64_C(1));
     if ((t0 >= l4)) {
         *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
     }
     l5 = vader_chk_add(i64, l2, INT64_C(1));
-    l6 = vader_host_std_core_byte_at(l0, l5);
-    t1 = std_core_is_utf8_continuation(l6);
+    l6 = vader_host_std_core$byte_at(l0, l5);
+    t1 = std_core$is_utf8_continuation(l6);
     if (!(t1)) {
         *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
     }
@@ -292,8 +292,8 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
         *__o1 = INT64_C(2); *__o0 = (uint32_t) 65533; return;
     }
     l5 = vader_chk_add(i64, l2, INT64_C(2));
-    l10 = vader_host_std_core_byte_at(l0, l5);
-    t1 = std_core_is_utf8_continuation(l10);
+    l10 = vader_host_std_core$byte_at(l0, l5);
+    t1 = std_core$is_utf8_continuation(l10);
     if (!(t1)) {
         *__o1 = INT64_C(2); *__o0 = (uint32_t) 65533; return;
     }
@@ -313,8 +313,8 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
         *__o1 = INT64_C(3); *__o0 = (uint32_t) 65533; return;
     }
     l4 = vader_chk_add(i64, l2, INT64_C(3));
-    l11 = vader_host_std_core_byte_at(l0, l4);
-    t1 = std_core_is_utf8_continuation(l11);
+    l11 = vader_host_std_core$byte_at(l0, l4);
+    t1 = std_core$is_utf8_continuation(l11);
     if (!(t1)) {
         *__o1 = INT64_C(3); *__o0 = (uint32_t) 65533; return;
     }
@@ -333,7 +333,7 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
     *__o1 = INT64_C(4); *__o0 = (uint32_t) (int32_t) (l7 | l8); return;
 }
 
-static bool std_core_is_utf8_continuation(uint8_t l0) {
+static bool std_core$is_utf8_continuation(uint8_t l0) {
     return (l0 & INT32_C(192)) == INT32_C(128);
 }
 
@@ -343,5 +343,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

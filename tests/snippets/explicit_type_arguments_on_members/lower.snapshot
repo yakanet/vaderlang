@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  snippet.i64.into :: fn(self: i64) -> Box<i64> {  // snippet$i64$std_core_Into$into
+  snippet.i64.into :: fn(self: i64) -> Box<i64> {  // snippet$i64$std_core$Into$into
       Box<i64> { .v = self }
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -46,7 +46,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Into.into for i64  snippet.i64.into  // snippet$i64$std_core_Into$into
+  vtable std.core.Into.into for i64  snippet.i64.into  // snippet$i64$std_core$Into$into
 
 ## lowered in dependencies
   std/core

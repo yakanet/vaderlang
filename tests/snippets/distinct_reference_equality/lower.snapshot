@@ -2,10 +2,10 @@
 
 ## snippet
   snippet.Rgb :: struct { r: i32 }  // snippet$Rgb
-  snippet.Rgb.equals :: fn(self: Rgb, other: Rgb) -> bool {  // snippet$Rgb$std_core_Equals$equals
+  snippet.Rgb.equals :: fn(self: Rgb, other: Rgb) -> bool {  // snippet$Rgb$std_core$Equals$equals
       self.r == other.r
   }
-  snippet.Row.equals :: fn(self: Row, other: Row) -> bool {  // snippet$Row$std_core_Equals$equals
+  snippet.Row.equals :: fn(self: Row, other: Row) -> bool {  // snippet$Row$std_core$Equals$equals
       std.core.content_equals<i32>(i32[](self), i32[](other))
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -57,11 +57,11 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  snippet$Rgb$std_core_Equals$equals$guard :: fn(self: Rgb, other: Any) -> bool {
+  snippet$Rgb$std_core$Equals$equals$guard :: fn(self: Rgb, other: Any) -> bool {
       (other is Rgb) && snippet.Rgb.equals(self, Rgb(other))
   }
-  vtable std.core.Equals.equals for Rgb  snippet$Rgb$std_core_Equals$equals$guard
-  vtable std.core.Equals.equals for Row  snippet.Row.equals  // snippet$Row$std_core_Equals$equals
+  vtable std.core.Equals.equals for Rgb  snippet$Rgb$std_core$Equals$equals$guard
+  vtable std.core.Equals.equals for Row  snippet.Row.equals  // snippet$Row$std_core$Equals$equals
 
 ## lowered in dependencies
   std/core
@@ -78,7 +78,7 @@
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.i32.to_string  // std_core$i32$Display$to_string
-    fn std.core.i32[].to_string  // std_core$[]$Display$to_string__i32
+    fn std.core.i32[].to_string  // std_core$$array$Display$to_string__i32
     fn std.core.i64.compare  // std_core$i64$Comparable$compare
     fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.three_way  // std_core$three_way

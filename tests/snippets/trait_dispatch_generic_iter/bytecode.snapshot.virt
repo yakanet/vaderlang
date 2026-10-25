@@ -134,7 +134,7 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 snippet$Repeat$std_core_Iterator$next__i32 (ref) -> ref
+fn 2 snippet$Repeat$std_core$Iterator$next__i32 (ref) -> ref
   local v i32
   local $sub_checked_11 i32
   local.field 0 3 1   ; arg 0 snippet$Repeat__i32.remaining
@@ -166,7 +166,7 @@ fn 2 snippet$Repeat$std_core_Iterator$next__i32 (ref) -> ref
   return
 end
 
-fn 3 snippet$Once$std_core_Iterator$next__i32 (ref) -> ref
+fn 3 snippet$Once$std_core$Iterator$next__i32 (ref) -> ref
   local.field 0 6 1   ; arg 0 snippet$Once__i32.yielded
   ref.cast 8   ; bool
   if $L0 void

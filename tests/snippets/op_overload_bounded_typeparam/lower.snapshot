@@ -2,10 +2,10 @@
 
 ## snippet
   snippet.V :: struct { x: i32 }  // snippet$V
-  snippet.V.add :: fn(self: V, other: V) -> V {  // snippet$V$std_core_Add$add
+  snippet.V.add :: fn(self: V, other: V) -> V {  // snippet$V$std_core$Add$add
       V { .x = self.x + other.x }
   }
-  snippet.V.compare :: fn(self: V, other: V) -> i32 {  // snippet$V$std_core_Comparable$compare
+  snippet.V.compare :: fn(self: V, other: V) -> i32 {  // snippet$V$std_core$Comparable$compare
       self.x - other.x
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -146,8 +146,8 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Add.add for V  snippet.V.add  // snippet$V$std_core_Add$add
-  vtable std.core.Comparable.compare for V  snippet.V.compare  // snippet$V$std_core_Comparable$compare
+  vtable std.core.Add.add for V  snippet.V.add  // snippet$V$std_core$Add$add
+  vtable std.core.Comparable.compare for V  snippet.V.compare  // snippet$V$std_core$Comparable$compare
 
 ## lowered in dependencies
   std/core
@@ -171,7 +171,7 @@
     fn std.core.format_f64  // std_core$format_f64
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.step  // std_core$i32$Step$step
-    fn std.core.i32[].contains  // std_core$[]$Contains$contains__i32
+    fn std.core.i32[].contains  // std_core$$array$Contains$contains__i32
     fn std.core.i64.compare  // std_core$i64$Comparable$compare
     fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.insert_point  // std_core$insert_point

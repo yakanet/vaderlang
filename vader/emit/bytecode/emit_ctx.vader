@@ -244,7 +244,8 @@ export intern_string :: fn(s: string, ctx: EmitterCtx) -> i32 {
 /// @return           the type-table index of the `$Cell<T>` struct.
 export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
     slot_index :: intern_type(slot_type, ctx)
-    key :: "\$Cell<${type_intern_key(slot_type)}>"
+    slot_key :: type_intern_key(slot_type)
+    key :: "\$Cell<${slot_key}>"
     new_index :: i32(ctx.types.len())
     existing :: ctx.type_key.get_or_put(key, new_index)
     if existing != new_index {
@@ -253,13 +254,11 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
     field :: BcField { .name = "value", .type_index = slot_index }
     fields: BcField[]: []
     fields.push(field)
-    // Name keys on the inner type's intern key, not the (volatile) post-
-    // DCE slot — so a closure capturing the same T always materialises
-    // with the same `$Cell_<T>` name across re-emits. The slot id approach
-    // froze whatever slot the cell happened to land in before DCE
-    // remapped it.
+    // Name keys on the inner type's intern key (`cell_shape_name`), not on the
+    // slot, which DCE remaps : a closure capturing the same T materialises
+    // with the same `$Cell_<T>` name across re-emits.
     ctx.types.push(BcStruct {
-        .name      = "\$Cell_${type_intern_key(slot_type)}",
+        .name      = "\$Cell_${cell_shape_name(slot_key)}",
         .fields    = fields,
         .c_name    = "",
         .symbol_id = -1,

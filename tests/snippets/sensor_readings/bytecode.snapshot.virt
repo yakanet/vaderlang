@@ -116,7 +116,7 @@ fn 3 snippet$last_seen (ref) -> any
   return.lit null.const
 end
 
-fn 4 snippet$Tally$std_core_Add$add (ref,i64) -> ref
+fn 4 snippet$Tally$std_core$Add$add (ref,i64) -> ref
   local.field 0 7 0   ; arg 0 snippet$Tally.sum
   ref.cast 6   ; i64
   local.get 1   ; arg 1
@@ -395,7 +395,7 @@ fn 6 snippet$main (ref) -> i32
   local.set 5   ; $cast_16
   local.get 3   ; __buf_0
   local.get 5   ; $cast_16
-  call 4   ; snippet$Tally$std_core_Add$add
+  call 4   ; snippet$Tally$std_core$Add$add
   struct.get 7 0   ; snippet$Tally.sum
   ref.cast 6   ; i64
   local.set 5   ; $cast_16

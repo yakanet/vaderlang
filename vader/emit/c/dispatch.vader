@@ -29,10 +29,10 @@ import "vader/emit/c/ast"
 
 // ---- per-key dispatcher metadata ------------------------------------------
 
-/// C identifier for the dispatcher function of a `${trait}.${method}` key —
-/// `vader_vt_<Trait>__<method>`. The `.` becomes `__` before sanitation so
-/// the two halves stay readable.
-vtable_helper_name :: fn(key: string) -> string = "vader_vt_${sanitise(key.split(".").join("__"))}"
+/// C identifier for the dispatcher function of a `${trait}.${method}` key :
+/// `vader_vt_<trait key>$<method>`, the `.` becoming the `$` that separates
+/// every part of a mangled name.
+vtable_helper_name :: fn(key: string) -> string = "vader_vt_${sanitise(key.split(".").join("\$"))}"
 
 /// The vtable row whose key is `key`, or `null` when absent.
 find_vtable_row :: fn(ctx: EmitCtx, key: string) -> VtableRow | null {

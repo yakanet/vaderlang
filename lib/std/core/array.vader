@@ -45,7 +45,7 @@ export ArrayOps :: trait<T> {
 /// time — build with `push_all` when that matters.
 // Tests for `+` do NOT live in this file, unlike everything else here: using the
 // impl from inside `std/core` itself leaves its callee unmaterialised, and the emitter
-// panics (`unresolved callee 'std_core$[]$Add$add__i32'`). Any other module resolves it
+// panics (`unresolved callee 'std_core$$array$Add$add__i32'`). Any other module resolves it
 // fine, so the coverage lives in `tests/snippets/array_add_concat/`.
 T[] implements<T> Add<T[]> {
     add :: fn(self, other: T[]) -> T[] {

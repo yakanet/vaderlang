@@ -18,7 +18,7 @@ impl 1 std_core$Into
 impl 7 std_core$ByteAccess
 export main 1
 
-fn 0 snippet$Meter$std_core_Into$into (ref) -> ref
+fn 0 snippet$Meter$std_core$Into$into (ref) -> ref
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 i64
@@ -66,13 +66,13 @@ end
 
 fn 2 snippet$label_t__snippet_Meter (ref) -> ref
   local.get 0   ; arg 0
-  call 0   ; snippet$Meter$std_core_Into$into
+  call 0   ; snippet$Meter$std_core$Into$into
   return
 end
 
 fn 3 snippet$label_u__snippet_Meter (ref) -> ref
   local.get 0   ; arg 0
-  call 0   ; snippet$Meter$std_core_Into$into
+  call 0   ; snippet$Meter$std_core$Into$into
   return
 end
 

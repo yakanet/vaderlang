@@ -23,7 +23,7 @@ impl 1 std_core$Div
 impl 8 std_core$ByteAccess
 export main 2
 
-fn 0 snippet$Histogram$std_core_Mul$mul (ref,u32) -> ref
+fn 0 snippet$Histogram$std_core$Mul$mul (ref,u32) -> ref
   local $arr_2 ref
   local $len_3 i64
   local __for_hi_0 i64
@@ -68,7 +68,7 @@ fn 0 snippet$Histogram$std_core_Mul$mul (ref,u32) -> ref
   return
 end
 
-fn 1 snippet$Histogram$std_core_Div$div (ref,u32) -> ref
+fn 1 snippet$Histogram$std_core$Div$div (ref,u32) -> ref
   local $arr_2 ref
   local $len_3 i64
   local __for_hi_0 i64
@@ -142,7 +142,7 @@ fn 2 snippet$main () -> i32
   array.push 2   ; u32
   local.get 0   ; h
   i32.const 2
-  call 0   ; snippet$Histogram$std_core_Mul$mul
+  call 0   ; snippet$Histogram$std_core$Mul$mul
   local.set 1   ; scaled
   i64.const 83
   buffer.new
@@ -214,7 +214,7 @@ fn 2 snippet$main () -> i32
   call 10   ; std_io$println__string
   local.get 0   ; h
   i32.const 3
-  call 1   ; snippet$Histogram$std_core_Div$div
+  call 1   ; snippet$Histogram$std_core$Div$div
   local.set 1   ; scaled
   local.field 1 3 0   ; scaled __Tuple_Array_u32_u32_6fc96a7e._0
   local.set 2   ; __buf_0

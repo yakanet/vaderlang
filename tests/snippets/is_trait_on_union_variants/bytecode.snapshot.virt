@@ -802,7 +802,7 @@ fn 17 std_core$write_unsigned (ref,i64,u64) -> i64
   return
 end
 
-fn 18 std_core$[]$Display$to_string__i32 (ref) -> string
+fn 18 std_core$$array$Display$to_string__i32 (ref) -> string
   local $arr_1 ref
   local $len_2 i64
   local __for_arr_0 ref

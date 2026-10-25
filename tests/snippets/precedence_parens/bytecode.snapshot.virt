@@ -28,7 +28,7 @@ fn 0 snippet$main () -> i32
   i32.const 3
   array.new 3 3   ; i32[]
   local.get 0   ; a
-  call 1   ; std_core$[]$Contains$contains__i32
+  call 1   ; std_core$$array$Contains$contains__i32
   bool.const true
   bool.eq
   if $L1 void
@@ -59,7 +59,7 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
+fn 1 std_core$$array$Contains$contains__i32 (ref,i32) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64

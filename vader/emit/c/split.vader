@@ -89,7 +89,7 @@ export emit_c_units :: fn(m: BytecodeModule, opts: CEmitOptions) -> CUnits {
 /// collide with a module stem, as `GLUE_UNIT`.
 ///
 /// @param library  the library's name.
-export library_unit_name :: fn(library: string) -> string = "_ffi_${sanitise(library)}"
+export library_unit_name :: fn(library: string) -> string = "_ffi_${sanitise_ident(library)}"
 
 // Append to `names` and `units` the unit of each `CLibrary` of `ctx`'s program.
 push_library_units :: fn(ctx: EmitCtx, names: string[], units: string[]) -> void {
@@ -441,10 +441,9 @@ unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
     return out
 }
 
-// The module part of a mangled name: everything before the first `$`.
-// `mangle` emits `<module_stem>$<decl>`, and omits the prefix entirely when the
-// module stem is empty or equal to the decl name — those land together under
-// `""`, which is one more module rather than a special case.
+// The module part of a mangled name: everything before the first `$`. A name
+// with no `$` (a lifted `__lambda_...` or `__defer_...`) lands under `""`, which
+// is one more module rather than a special case.
 module_stem_of :: fn(name: string) -> string {
     at :: name.index_of('$', 0)
     if at < 0 {

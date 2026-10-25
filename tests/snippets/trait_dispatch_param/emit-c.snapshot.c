@@ -8,9 +8,9 @@
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static int32_t snippet_main(void);
-static uint64_t snippet_hash_twice__i32(int32_t l0);
-static uint64_t std_core_i32_Hash_hash(int32_t l0);
+static int32_t snippet$main(void);
+static uint64_t snippet$hash_twice__i32(int32_t l0);
+static uint64_t std_core$i32$Hash$hash(int32_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -20,22 +20,22 @@ const vader_type_info_t vader_type_info_table[3] = {
 };
 const size_t vader_type_info_count = 3;
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     uint64_t t0;
-    t0 = snippet_hash_twice__i32(INT32_C(7));
+    t0 = snippet$hash_twice__i32(INT32_C(7));
     return ((int32_t) (uint64_t) t0);
 }
 
-static uint64_t snippet_hash_twice__i32(int32_t l0) {
+static uint64_t snippet$hash_twice__i32(int32_t l0) {
     uint64_t l1, l2;
     int64_t t0;
-    l1 = std_core_i32_Hash_hash(l0);
-    l2 = std_core_i32_Hash_hash(l0);
+    l1 = std_core$i32$Hash$hash(l0);
+    l2 = std_core$i32$Hash$hash(l0);
     t0 = vader_chk_add(u64, l1, l2);
     return (uint64_t) (int64_t) t0;
 }
 
-static uint64_t std_core_i32_Hash_hash(int32_t l0) {
+static uint64_t std_core$i32$Hash$hash(int32_t l0) {
     return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
 }
 
@@ -45,5 +45,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

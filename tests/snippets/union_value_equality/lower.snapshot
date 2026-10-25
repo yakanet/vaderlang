@@ -2,14 +2,14 @@
 
 ## snippet
   snippet.Point :: struct { x: i32 }  // snippet$Point
-  snippet.Point.equals :: fn(self: Point, other: Point) -> bool {  // snippet$Point$std_core_Equals$equals
+  snippet.Point.equals :: fn(self: Point, other: Point) -> bool {  // snippet$Point$std_core$Equals$equals
       self.x == other.x
   }
   snippet.Label :: struct { text: string }  // snippet$Label
-  snippet.Label.equals :: fn(self: Label, other: Label) -> bool {  // snippet$Label$std_core_Equals$equals
+  snippet.Label.equals :: fn(self: Label, other: Label) -> bool {  // snippet$Label$std_core$Equals$equals
       self.text == other.text
   }
-  snippet.Pair.equals :: fn(self: Pair, other: Pair) -> bool {  // snippet$Pair$std_core_Equals$equals
+  snippet.Pair.equals :: fn(self: Pair, other: Pair) -> bool {  // snippet$Pair$std_core$Equals$equals
       self._0 == other._0
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -139,7 +139,7 @@
       return 0
   }
   snippet.Box<Point> :: struct { value: Any }  // snippet$Box__snippet_Point
-  snippet.Box<Any>.equals :: fn(self: Box<Any>, other: Box<Any>) -> bool {  // snippet$Box$std_core_Equals$equals__Any
+  snippet.Box<Any>.equals :: fn(self: Box<Any>, other: Box<Any>) -> bool {  // snippet$Box$std_core$Equals$equals__Any
       @vcall(std.core.Equals.equals, self.value, other.value)
   }
   snippet.same_opt<Point> :: fn(a: Any | null, b: Any) -> bool {  // snippet$same_opt__snippet_Point
@@ -157,16 +157,16 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  snippet$Point$std_core_Equals$equals$guard :: fn(self: Point, other: Any) -> bool {
+  snippet$Point$std_core$Equals$equals$guard :: fn(self: Point, other: Any) -> bool {
       (other is Point) && snippet.Point.equals(self, Point(other))
   }
-  snippet$Label$std_core_Equals$equals$guard :: fn(self: Label, other: Any) -> bool {
+  snippet$Label$std_core$Equals$equals$guard :: fn(self: Label, other: Any) -> bool {
       (other is Label) && snippet.Label.equals(self, Label(other))
   }
-  vtable std.core.Equals.equals for Box<Any>  snippet.Box<Any>.equals  // snippet$Box$std_core_Equals$equals__Any
-  vtable std.core.Equals.equals for Label  snippet$Label$std_core_Equals$equals$guard
-  vtable std.core.Equals.equals for Pair  snippet.Pair.equals  // snippet$Pair$std_core_Equals$equals
-  vtable std.core.Equals.equals for Point  snippet$Point$std_core_Equals$equals$guard
+  vtable std.core.Equals.equals for Box<Any>  snippet.Box<Any>.equals  // snippet$Box$std_core$Equals$equals__Any
+  vtable std.core.Equals.equals for Label  snippet$Label$std_core$Equals$equals$guard
+  vtable std.core.Equals.equals for Pair  snippet.Pair.equals  // snippet$Pair$std_core$Equals$equals
+  vtable std.core.Equals.equals for Point  snippet$Point$std_core$Equals$equals$guard
 
 ## lowered in dependencies
   std/core

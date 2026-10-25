@@ -3333,10 +3333,10 @@ extern int32_t add_i32(int32_t, int32_t);
 
 // Shim — bridges the Vader-side ABI to the foreign signature. One per `@extern`,
 // named after the declaration's mangled name.
-static int32_t vader_host_snippet_add_i32(int32_t a0, int32_t a1) {
+static int32_t vader_host_snippet$add_i32(int32_t a0, int32_t a1) {
     return add_i32(a0, a1);
 }
-static size_t vader_host_snippet_c_strlen(vader_string_t a0) {
+static size_t vader_host_snippet$c_strlen(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
     size_t r = strlen(c0);
     vader_cstr_free_for(a0, c0);

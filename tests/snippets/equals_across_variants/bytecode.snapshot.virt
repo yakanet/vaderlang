@@ -84,7 +84,7 @@ vtable std_core$Equals.equals 2 34
 vtable std_core$Equals.equals 20 35
 export main 4
 
-fn 0 snippet$Point$std_core_Equals$equals (ref,ref) -> bool
+fn 0 snippet$Point$std_core$Equals$equals (ref,ref) -> bool
   local $field_2 i32
   local $field_3 i32
   local.field 0 1 0   ; arg 0 snippet$Point.x
@@ -99,14 +99,14 @@ fn 0 snippet$Point$std_core_Equals$equals (ref,ref) -> bool
   return
 end
 
-fn 1 snippet$Point$std_core_Hash$hash (ref) -> u64
+fn 1 snippet$Point$std_core$Hash$hash (ref) -> u64
   local.field 0 1 0   ; arg 0 snippet$Point.x
   ref.cast 5   ; i32
   i32.to_i64
   return
 end
 
-fn 2 snippet$Label$std_core_Equals$equals (ref,ref) -> bool
+fn 2 snippet$Label$std_core$Equals$equals (ref,ref) -> bool
   local $field_2 i32
   local $field_3 i32
   local.field 0 4 0   ; arg 0 snippet$Label.n
@@ -121,7 +121,7 @@ fn 2 snippet$Label$std_core_Equals$equals (ref,ref) -> bool
   return
 end
 
-fn 3 snippet$Label$std_core_Hash$hash (ref) -> u64
+fn 3 snippet$Label$std_core$Hash$hash (ref) -> u64
   local.field 0 4 0   ; arg 0 snippet$Label.n
   ref.cast 5   ; i32
   i32.to_i64
@@ -159,13 +159,13 @@ fn 4 snippet$main () -> i32
   local.get 0   ; $arr_0
   local.get 1   ; $arr_1
   string.const 0   ; "point"
-  call 37   ; std_collections$MutableMap$std_core_IndexSet$set_at__Any__string
+  call 37   ; std_collections$MutableMap$std_core$IndexSet$set_at__Any__string
   i32.const 1
   struct.new 4   ; snippet$Label
   local.set 1   ; $arr_1
   local.get 0   ; $arr_0
   local.get 1   ; $arr_1
-  call 36   ; std_collections$MutableMap$std_core_Index$at__Any__string
+  call 36   ; std_collections$MutableMap$std_core$Index$at__Any__string
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -181,7 +181,7 @@ fn 4 snippet$main () -> i32
   local.set 1   ; $arr_1
   local.get 0   ; $arr_0
   local.get 1   ; $arr_1
-  call 36   ; std_collections$MutableMap$std_core_Index$at__Any__string
+  call 36   ; std_collections$MutableMap$std_core$Index$at__Any__string
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L1 void
@@ -211,7 +211,7 @@ fn 4 snippet$main () -> i32
   local.set 6   ; __off_3
   local.get 0   ; $arr_0
   local.get 3   ; __coalesce_0
-  call 13   ; std_core$[]$Contains$contains__snippet_Label___snippet_Point
+  call 13   ; std_core$$array$Contains$contains__snippet_Label___snippet_Point
   local.set 7   ; $call_42
   local.get 1   ; $arr_1
   local.get 6   ; __off_3
@@ -238,7 +238,7 @@ fn 4 snippet$main () -> i32
   local.set 6   ; __off_3
   local.get 0   ; $arr_0
   local.get 3   ; __coalesce_0
-  call 14   ; std_core$[]$Contains$contains__f64___string
+  call 14   ; std_core$$array$Contains$contains__f64___string
   local.set 7   ; $call_42
   local.get 1   ; $arr_1
   local.get 6   ; __off_3
@@ -361,7 +361,7 @@ fn 6 concat_2 (string,string) -> string
   return
 end
 
-fn 7 snippet$Point$std_core_Equals$equals$guard (ref,any) -> bool
+fn 7 snippet$Point$std_core$Equals$equals$guard (ref,any) -> bool
   local $cast_4 ref
   local.get 1   ; arg 1
   type_check 1   ; snippet$Point
@@ -371,13 +371,13 @@ fn 7 snippet$Point$std_core_Equals$equals$guard (ref,any) -> bool
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
-    call 0   ; snippet$Point$std_core_Equals$equals
+    call 0   ; snippet$Point$std_core$Equals$equals
     return
   end $L0
   return.lit bool.const false
 end
 
-fn 8 snippet$Label$std_core_Equals$equals$guard (ref,any) -> bool
+fn 8 snippet$Label$std_core$Equals$equals$guard (ref,any) -> bool
   local $cast_4 ref
   local.get 1   ; arg 1
   type_check 4   ; snippet$Label
@@ -387,7 +387,7 @@ fn 8 snippet$Label$std_core_Equals$equals$guard (ref,any) -> bool
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
-    call 2   ; snippet$Label$std_core_Equals$equals
+    call 2   ; snippet$Label$std_core$Equals$equals
     return
   end $L0
   return.lit bool.const false
@@ -438,7 +438,7 @@ fn 12 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 13 std_core$[]$Contains$contains__snippet_Label___snippet_Point (ref,any) -> bool
+fn 13 std_core$$array$Contains$contains__snippet_Label___snippet_Point (ref,any) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -475,7 +475,7 @@ fn 13 std_core$[]$Contains$contains__snippet_Label___snippet_Point (ref,any) -> 
           local.set 7   ; $cast_13
           local.get 6   ; $cast_12
           local.get 7   ; $cast_13
-          call 2   ; snippet$Label$std_core_Equals$equals
+          call 2   ; snippet$Label$std_core$Equals$equals
           if $L4 void
             return.lit bool.const true
           end $L4
@@ -495,7 +495,7 @@ fn 13 std_core$[]$Contains$contains__snippet_Label___snippet_Point (ref,any) -> 
           local.set 9   ; $cast_18
           local.get 8   ; $cast_17
           local.get 9   ; $cast_18
-          call 0   ; snippet$Point$std_core_Equals$equals
+          call 0   ; snippet$Point$std_core$Equals$equals
           if $L7 void
             return.lit bool.const true
           end $L7
@@ -511,7 +511,7 @@ fn 13 std_core$[]$Contains$contains__snippet_Label___snippet_Point (ref,any) -> 
   return.lit bool.const false
 end
 
-fn 14 std_core$[]$Contains$contains__f64___string (ref,any) -> bool
+fn 14 std_core$$array$Contains$contains__f64___string (ref,any) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -839,14 +839,14 @@ fn 35 std_core$char$Equals$equals$guard (char,any) -> bool
   return.lit bool.const false
 end
 
-fn 36 std_collections$MutableMap$std_core_Index$at__Any__string (ref,any) -> any
+fn 36 std_collections$MutableMap$std_core$Index$at__Any__string (ref,any) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 43   ; std_collections$get__Any__string
   return
 end
 
-fn 37 std_collections$MutableMap$std_core_IndexSet$set_at__Any__string (ref,any,string) -> void
+fn 37 std_collections$MutableMap$std_core$IndexSet$set_at__Any__string (ref,any,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

@@ -211,7 +211,7 @@ fn 0 snippet$main () -> i32
           local.set 13   ; w
           local.get 0   ; $arr_0
           local.get 13   ; w
-          call 8   ; std_collections$MutableSet$std_core_Contains$contains__string
+          call 8   ; std_collections$MutableSet$std_core$Contains$contains__string
           if $L8 void
             local.get 13   ; w
             i64.const 1
@@ -224,7 +224,7 @@ fn 0 snippet$main () -> i32
             local.set 3   ; i
             local.get 1   ; $arr_1
             local.get 13   ; w
-            call 6   ; std_collections$MutableMap$std_core_Index$at__string__i32
+            call 6   ; std_collections$MutableMap$std_core$Index$at__string__i32
             local.tee 15   ; __coalesce_7
             type_check 0   ; null
             if $L9 void
@@ -242,7 +242,7 @@ fn 0 snippet$main () -> i32
             local.get 1   ; $arr_1
             local.get 13   ; w
             local.get 17   ; $add_checked_87
-            call 7   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
+            call 7   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
           end $L8
           local.get 12   ; __for_i_6
           i64.const 1
@@ -492,14 +492,14 @@ fn 5 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 6 std_collections$MutableMap$std_core_Index$at__string__i32 (ref,string) -> any
+fn 6 std_collections$MutableMap$std_core$Index$at__string__i32 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 18   ; std_collections$get__string__i32
   return
 end
 
-fn 7 std_collections$MutableMap$std_core_IndexSet$set_at__string__i32 (ref,string,i32) -> void
+fn 7 std_collections$MutableMap$std_core$IndexSet$set_at__string__i32 (ref,string,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -508,14 +508,14 @@ fn 7 std_collections$MutableMap$std_core_IndexSet$set_at__string__i32 (ref,strin
   return
 end
 
-fn 8 std_collections$MutableSet$std_core_Contains$contains__string (ref,string) -> bool
+fn 8 std_collections$MutableSet$std_core$Contains$contains__string (ref,string) -> bool
   local.field 0 13 0   ; arg 0 std_collections$MutableSet__string.inner
   local.get 1   ; arg 1
-  call 9   ; std_collections$MutableMap$std_core_Contains$contains__string__bool
+  call 9   ; std_collections$MutableMap$std_core$Contains$contains__string__bool
   return
 end
 
-fn 9 std_collections$MutableMap$std_core_Contains$contains__string__bool (ref,string) -> bool
+fn 9 std_collections$MutableMap$std_core$Contains$contains__string__bool (ref,string) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 19   ; std_collections$contains_key__string__bool

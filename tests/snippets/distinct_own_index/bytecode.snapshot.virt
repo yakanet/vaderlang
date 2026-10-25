@@ -26,7 +26,7 @@ impl 5 std_core$Index
 impl 8 std_core$ByteAccess
 export main 4
 
-fn 0 snippet$Offset$std_core_Index$at (ref,i64) -> i32
+fn 0 snippet$Offset$std_core$Index$at (ref,i64) -> i32
   local $mul_checked_5 i32
   local $cast_6 i32
   local.get 0   ; arg 0
@@ -44,7 +44,7 @@ fn 0 snippet$Offset$std_core_Index$at (ref,i64) -> i32
   return
 end
 
-fn 1 snippet$Offset$std_core_IndexSet$set_at (ref,i64,i32) -> void
+fn 1 snippet$Offset$std_core$IndexSet$set_at (ref,i64,i32) -> void
   local __buf_0 ref
   local __off_1 i64
   local $cast_13 i64
@@ -83,7 +83,7 @@ fn 1 snippet$Offset$std_core_IndexSet$set_at (ref,i64,i32) -> void
   return
 end
 
-fn 2 snippet$Cells$std_core_Index$at (ref,i64) -> i32
+fn 2 snippet$Cells$std_core$Index$at (ref,i64) -> i32
   local.get 1   ; arg 1
   i64.to_i32
   i32.const 10
@@ -91,7 +91,7 @@ fn 2 snippet$Cells$std_core_Index$at (ref,i64) -> i32
   return
 end
 
-fn 3 snippet$Log$std_core_Index$at (ref,i64) -> i32
+fn 3 snippet$Log$std_core$Index$at (ref,i64) -> i32
   return.lit i32.const -1
 end
 
@@ -121,7 +121,7 @@ fn 4 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; o
   i64.const 1
-  call 0   ; snippet$Offset$std_core_Index$at
+  call 0   ; snippet$Offset$std_core$Index$at
   i32.to_i64
   local.set 3   ; $cast_15
   local.get 1   ; __buf_0
@@ -136,7 +136,7 @@ fn 4 snippet$main () -> i32
   local.get 0   ; o
   i64.const 0
   i32.const 9
-  call 1   ; snippet$Offset$std_core_IndexSet$set_at
+  call 1   ; snippet$Offset$std_core$IndexSet$set_at
   i32.const 1
   struct.new 5   ; snippet$Grid
   local.set 0   ; o
@@ -152,7 +152,7 @@ fn 4 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; o
   i64.const 2
-  call 2   ; snippet$Cells$std_core_Index$at
+  call 2   ; snippet$Cells$std_core$Index$at
   i32.to_i64
   local.set 3   ; $cast_15
   local.get 1   ; __buf_0
@@ -174,7 +174,7 @@ fn 4 snippet$main () -> i32
   array.set 1   ; i32[]
   local.get 0   ; o
   i64.const 1
-  call 3   ; snippet$Log$std_core_Index$at
+  call 3   ; snippet$Log$std_core$Index$at
   i32.const 100
   i32.checked_add
   local.set 4   ; $add_checked_48
@@ -198,7 +198,7 @@ fn 4 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; o
   i64.const 0
-  call 3   ; snippet$Log$std_core_Index$at
+  call 3   ; snippet$Log$std_core$Index$at
   i32.to_i64
   local.set 3   ; $cast_15
   local.get 1   ; __buf_0

@@ -420,7 +420,7 @@ fn 5 snippet$stage_consumer () -> void
   i32.const -1
   i32.const 3
   array.new 19 4   ; i32[]
-  call 30   ; std_core$[]$Into$into__i32
+  call 30   ; std_core$$array$Into$into__i32
   call 4   ; snippet$until_negative
   local.set 10   ; __iter_5
   loop $L3 void
@@ -2919,7 +2919,7 @@ fn 29 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 30 std_core$[]$Into$into__i32 (ref) -> any
+fn 30 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 31   ; std_core$array_iter__i32
   return

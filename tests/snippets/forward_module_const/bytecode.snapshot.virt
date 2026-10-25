@@ -34,13 +34,13 @@ export main 5
 fn 0 snippet$kind (string) -> string
   data.const 0 7   ; pool[0] string[]
   local.get 0   ; arg 0
-  call 12   ; std_core$[]$Contains$contains__string
+  call 12   ; std_core$$array$Contains$contains__string
   if $L0 void
     return.lit string.const 0   ; "number"
   end $L0
   data.const 1 7   ; pool[1] string[]
   local.get 0   ; arg 0
-  call 12   ; std_core$[]$Contains$contains__string
+  call 12   ; std_core$$array$Contains$contains__string
   if $L1 void
   else
     return.lit string.const 2   ; "other"
@@ -476,7 +476,7 @@ fn 11 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 12 std_core$[]$Contains$contains__string (ref,string) -> bool
+fn 12 std_core$$array$Contains$contains__string (ref,string) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64

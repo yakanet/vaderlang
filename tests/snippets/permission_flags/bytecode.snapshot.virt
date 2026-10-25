@@ -155,7 +155,7 @@ fn 0 snippet$main () -> i32
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   i32.const 20
-  call 6   ; std_core$[]$Contains$contains__u8
+  call 6   ; std_core$$array$Contains$contains__u8
   local.set 5   ; $gt_38
   local.get 6   ; __buf_12
   local.get 3   ; __off_1
@@ -173,7 +173,7 @@ fn 0 snippet$main () -> i32
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   i32.const 99
-  call 6   ; std_core$[]$Contains$contains__u8
+  call 6   ; std_core$$array$Contains$contains__u8
   local.set 5   ; $gt_38
   local.get 6   ; __buf_12
   local.get 3   ; __off_1
@@ -335,7 +335,7 @@ fn 5 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 6 std_core$[]$Contains$contains__u8 (ref,u8) -> bool
+fn 6 std_core$$array$Contains$contains__u8 (ref,u8) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64

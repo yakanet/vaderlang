@@ -27,7 +27,7 @@ type 24 array 21
 type 25 ref std_core$Async
 type 26 struct std_async$Sleep { ms:22,deadline:22,armed:4 }
 type 27 union 0,13
-type 28 struct $Cell_i32 { value:2 }
+type 28 struct $Cell_i32_2af2b319 { value:2 }
 string 0 "work "
 string 1 "note "
 string 2 "call"
@@ -93,12 +93,12 @@ fn 3 snippet$returns_a_local () -> i32
   local n any
   local __result_1 i32
   i32.const 1
-  struct.new 28   ; $Cell_i32
+  struct.new 28   ; $Cell_i32_2af2b319
   local.tee 0   ; n
   struct.new 7   ; __defer_env_snippet_3
   make_closure 10 20   ; __defer_snippet_2 fn
   defer.push
-  local.field 0 28 0   ; n $Cell_i32.value
+  local.field 0 28 0   ; n $Cell_i32_2af2b319.value
   local.set 1   ; __result_1
   defer.pop_exec 1
   local.get 1   ; __result_1
@@ -187,7 +187,7 @@ end
 fn 10 __defer_snippet_2 (ref) -> void
   local.field 0 7 0   ; arg 0 __defer_env_snippet_3.cap_0
   i32.const 2
-  struct.set 28 0   ; $Cell_i32.value
+  struct.set 28 0   ; $Cell_i32_2af2b319.value
   return
 end
 
@@ -804,7 +804,7 @@ fn 22 std_async$run_async_main (any) -> i32
   return
 end
 
-fn 23 std_async$Sleep$std_core_Async$resume (ref) -> any
+fn 23 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 26 2   ; arg 0 std_async$Sleep.armed

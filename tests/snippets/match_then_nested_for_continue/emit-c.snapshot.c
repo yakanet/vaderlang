@@ -4,14 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_snippet_Pair_t vader_struct_snippet_Pair_t;
-typedef struct vader_struct_snippet_Wrap_t vader_struct_snippet_Wrap_t;
+typedef struct vader_struct_snippet$Pair_t vader_struct_snippet$Pair_t;
+typedef struct vader_struct_snippet$Wrap_t vader_struct_snippet$Wrap_t;
 
-struct vader_struct_snippet_Pair_t {
+struct vader_struct_snippet$Pair_t {
     vader_obj_header_t header;
     int32_t f_a;
 };
-struct vader_struct_snippet_Wrap_t {
+struct vader_struct_snippet$Wrap_t {
     vader_obj_header_t header;
     int32_t f_b;
 };
@@ -20,8 +20,8 @@ struct vader_struct_snippet_Wrap_t {
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static int32_t snippet_run(vader_box_t l0, bool l1, bool l2);
-static int32_t snippet_main(void);
+static int32_t snippet$run(vader_box_t l0, bool l1, bool l2);
+static int32_t snippet$main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -30,10 +30,10 @@ static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf)
 const vader_type_info_t vader_type_info_table[7] = {
     [1] = { .slot_size = 16 },
     [2] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Pair_t), .slot_size = 8,
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Pair_t), .slot_size = 8,
     },
     [3] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Wrap_t), .slot_size = 8,
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Wrap_t), .slot_size = 8,
     },
     [4] = { .slot_size = 1 },
     [5] = { .slot_size = 4 },
@@ -44,7 +44,7 @@ const vader_type_info_t vader_type_info_table[7] = {
 };
 const size_t vader_type_info_count = 7;
 
-static int32_t snippet_run(vader_box_t l0, bool l1, bool l2) {
+static int32_t snippet$run(vader_box_t l0, bool l1, bool l2) {
     void* l3 = NULL;
     int32_t l4;
     int64_t l5, l6;
@@ -62,13 +62,13 @@ static int32_t snippet_run(vader_box_t l0, bool l1, bool l2) {
     l4 = INT32_C(0);
     if (l0.tag == 2u) {
         t0 = l0.payload.obj;
-        l4 = ((vader_struct_snippet_Pair_t*) t0)->f_a;
+        l4 = ((vader_struct_snippet$Pair_t*) t0)->f_a;
     } else {
         if (!(l0.tag == 3u)) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
         t0 = l0.payload.obj;
-        l4 = ((vader_struct_snippet_Wrap_t*) t0)->f_b;
+        l4 = ((vader_struct_snippet$Wrap_t*) t0)->f_b;
     }
     if (l1) {
         if (l2) {
@@ -92,17 +92,17 @@ static int32_t snippet_run(vader_box_t l0, bool l1, bool l2) {
     { int32_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     void* t0 = NULL;
     int32_t t1;
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_struct_snippet_Pair_t* _a0_obj = (vader_struct_snippet_Pair_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Pair_t));
+    vader_struct_snippet$Pair_t* _a0_obj = (vader_struct_snippet$Pair_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Pair_t));
     vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_a = INT32_C(5);
     t0 = (void*) _a0_obj;
-    t1 = snippet_run(vader_ref_box(t0), true, true);
+    t1 = snippet$run(vader_ref_box(t0), true, true);
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -112,5 +112,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

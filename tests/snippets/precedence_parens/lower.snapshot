@@ -19,7 +19,7 @@
     fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.step  // std_core$i32$Step$step
-    fn std.core.i32[].contains  // std_core$[]$Contains$contains__i32
+    fn std.core.i32[].contains  // std_core$$array$Contains$contains__i32
     fn std.core.i64.compare  // std_core$i64$Comparable$compare
     fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.three_way  // std_core$three_way

@@ -79,7 +79,7 @@
       } :string)
       return 0
   }
-  snippet.Color.to_string :: fn(self: Color) -> string {  // snippet$Color$std_core_Display$to_string
+  snippet.Color.to_string :: fn(self: Color) -> string {  // snippet$Color$std_core$Display$to_string
       {
           if self == Color(7) {
               "Red"
@@ -90,7 +90,7 @@
           } :string
       } :string
   }
-  snippet.Direction.to_string :: fn(self: Direction) -> string {  // snippet$Direction$std_core_Display$to_string
+  snippet.Direction.to_string :: fn(self: Direction) -> string {  // snippet$Direction$std_core$Display$to_string
       {
           if self == Direction(0) {
               "North"
@@ -102,11 +102,11 @@
       } :string
   }
   snippet.Box<Color> :: struct { value: Color }  // snippet$Box__snippet_Color
-  snippet.Box<Color>.to_string :: fn(self: Box<Color>) -> string {  // snippet$Box$std_core_Display$to_string__snippet_Color
+  snippet.Box<Color>.to_string :: fn(self: Box<Color>) -> string {  // snippet$Box$std_core$Display$to_string__snippet_Color
       concat_2("Box ", snippet.Color.to_string(self.value))
   }
   snippet.Box<Direction> :: struct { value: Direction }  // snippet$Box__snippet_Direction
-  snippet.Box<Direction>.to_string :: fn(self: Box<Direction>) -> string {  // snippet$Box$std_core_Display$to_string__snippet_Direction
+  snippet.Box<Direction>.to_string :: fn(self: Box<Direction>) -> string {  // snippet$Box$std_core$Display$to_string__snippet_Direction
       concat_2("Box ", snippet.Direction.to_string(self.value))
   }
   snippet.as_int<Color> :: fn(v: Color) -> i64 {  // snippet$as_int__snippet_Color
@@ -137,39 +137,39 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Display.to_string for Box<Color>  snippet.Box<Color>.to_string  // snippet$Box$std_core_Display$to_string__snippet_Color
-  vtable std.core.Display.to_string for Box<Direction>  snippet.Box<Direction>.to_string  // snippet$Box$std_core_Display$to_string__snippet_Direction
-  vtable std.core.Display.to_string for Color  snippet.Color.to_string  // snippet$Color$std_core_Display$to_string
-  vtable std.core.Display.to_string for Direction  snippet.Direction.to_string  // snippet$Direction$std_core_Display$to_string
+  vtable std.core.Display.to_string for Box<Color>  snippet.Box<Color>.to_string  // snippet$Box$std_core$Display$to_string__snippet_Color
+  vtable std.core.Display.to_string for Box<Direction>  snippet.Box<Direction>.to_string  // snippet$Box$std_core$Display$to_string__snippet_Direction
+  vtable std.core.Display.to_string for Color  snippet.Color.to_string  // snippet$Color$std_core$Display$to_string
+  vtable std.core.Display.to_string for Direction  snippet.Direction.to_string  // snippet$Direction$std_core$Display$to_string
 
 ## lowered in dependencies
   std/collections
-    fn std.collections.MutableMap<HttpStatus, string>.at  // std_collections$MutableMap$std_core_Index$at__snippet_HttpStatus__string
-    fn std.collections.MutableMap<HttpStatus, string>.contains  // std_collections$MutableMap$std_core_Contains$contains__snippet_HttpStatus__string
-    fn std.collections.MutableMap<HttpStatus, string>.into  // std_collections$MutableMap$std_core_Into$into__snippet_HttpStatus__string
-    fn std.collections.MutableMap<HttpStatus, string>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__snippet_HttpStatus__string
-    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core_Index$at__i32__bool
-    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__bool
-    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core_Into$into__i32__bool
-    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
-    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core_Index$at__i32__i32
-    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__i32
-    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core_Into$into__i32__i32
-    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__i32
-    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core_Index$at__string__i32
-    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i32
-    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core_Into$into__string__i32
-    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
-    fn std.collections.MutableMap<string, i64>.at  // std_collections$MutableMap$std_core_Index$at__string__i64
-    fn std.collections.MutableMap<string, i64>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i64
-    fn std.collections.MutableMap<string, i64>.into  // std_collections$MutableMap$std_core_Into$into__string__i64
-    fn std.collections.MutableMap<string, i64>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i64
-    fn std.collections.MutableMap<string, string[]>.at  // std_collections$MutableMap$std_core_Index$at__string__string__
-    fn std.collections.MutableMap<string, string[]>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__string__
-    fn std.collections.MutableMap<string, string[]>.into  // std_collections$MutableMap$std_core_Into$into__string__string__
-    fn std.collections.MutableMap<string, string[]>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__string__
-    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core_Contains$contains__i32
-    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core_Into$into__i32
+    fn std.collections.MutableMap<HttpStatus, string>.at  // std_collections$MutableMap$std_core$Index$at__snippet_HttpStatus__string
+    fn std.collections.MutableMap<HttpStatus, string>.contains  // std_collections$MutableMap$std_core$Contains$contains__snippet_HttpStatus__string
+    fn std.collections.MutableMap<HttpStatus, string>.into  // std_collections$MutableMap$std_core$Into$into__snippet_HttpStatus__string
+    fn std.collections.MutableMap<HttpStatus, string>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__snippet_HttpStatus__string
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core$Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core$Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core$Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core$Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core$Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core$Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
+    fn std.collections.MutableMap<string, i64>.at  // std_collections$MutableMap$std_core$Index$at__string__i64
+    fn std.collections.MutableMap<string, i64>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i64
+    fn std.collections.MutableMap<string, i64>.into  // std_collections$MutableMap$std_core$Into$into__string__i64
+    fn std.collections.MutableMap<string, i64>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i64
+    fn std.collections.MutableMap<string, string[]>.at  // std_collections$MutableMap$std_core$Index$at__string__string__
+    fn std.collections.MutableMap<string, string[]>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__string__
+    fn std.collections.MutableMap<string, string[]>.into  // std_collections$MutableMap$std_core$Into$into__string__string__
+    fn std.collections.MutableMap<string, string[]>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__string__
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core$Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core$Into$into__i32
     fn std.collections.contains_key<HttpStatus, string>  // std_collections$contains_key__snippet_HttpStatus__string
     fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
     fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32

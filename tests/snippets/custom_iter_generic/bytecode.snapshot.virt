@@ -32,7 +32,7 @@ fn 0 snippet$main () -> i32
   local.set 0   ; sum
   loop $L0 void
     local.get 1   ; __iter_0
-    call 1   ; snippet$Repeat$std_core_Iterator$next__i32$v
+    call 1   ; snippet$Repeat$std_core$Iterator$next__i32$v
     local.set 6   ; $call_elem_25
     local.set 5   ; $call_elem_24
     local.get 6   ; $call_elem_25
@@ -69,7 +69,7 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 snippet$Repeat$std_core_Iterator$next__i32$v (ref) -> (i32,u8)
+fn 1 snippet$Repeat$std_core$Iterator$next__i32$v (ref) -> (i32,u8)
   local v i32
   local $sub_checked_11 i32
   local.field 0 2 1   ; arg 0 snippet$Repeat__i32.remaining

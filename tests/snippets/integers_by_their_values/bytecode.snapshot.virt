@@ -12,7 +12,7 @@ type 9 scalar u64
 type 10 array 1
 type 11 scalar void
 type 12 array 3
-type 13 struct $Cell_i64 { value:5 }
+type 13 struct $Cell_i64_2ae1af19 { value:5 }
 type 14 array 2
 string 0 "hour"
 string 1 "byte"
@@ -148,11 +148,11 @@ fn 7 snippet$rebound (i64) -> i64
   local __in_x_1 i64
   local and_res bool
   local.get 0   ; arg 0
-  struct.new 13   ; $Cell_i64
+  struct.new 13   ; $Cell_i64_2ae1af19
   local.tee 1   ; x
   struct.new 6   ; __lambda_env_snippet_1
   local.set 2   ; read
-  local.field 1 13 0   ; x $Cell_i64.value
+  local.field 1 13 0   ; x $Cell_i64_2ae1af19.value
   local.tee 3   ; __in_x_1
   i64.const 0
   i64.ge
@@ -169,7 +169,7 @@ fn 7 snippet$rebound (i64) -> i64
   if $L1 void
     local.get 1   ; x
     i64.const 300
-    struct.set 13 0   ; $Cell_i64.value
+    struct.set 13 0   ; $Cell_i64_2ae1af19.value
     local.get 2   ; read
     call 10   ; __lambda_snippet_0
     return
@@ -586,7 +586,7 @@ end
 
 fn 10 __lambda_snippet_0 (ref) -> i64
   local.field 0 6 0   ; arg 0 __lambda_env_snippet_1.cap_0
-  struct.get 13 0   ; $Cell_i64.value
+  struct.get 13 0   ; $Cell_i64_2ae1af19.value
   return
 end
 

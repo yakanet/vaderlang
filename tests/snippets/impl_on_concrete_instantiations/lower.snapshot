@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.Label :: struct { text: string }  // snippet$Label
-  snippet.Label.to_string :: fn(self: Label) -> string {  // snippet$Label$std_core_Display$to_string
+  snippet.Label.to_string :: fn(self: Label) -> string {  // snippet$Label$std_core$Display$to_string
       concat_3("<", self.text, ">")
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -17,7 +17,7 @@
       return 0
   }
   snippet.Box<i32> :: struct { value: i32 }  // snippet$Box__i32
-  snippet.Box<i32>.to_string :: fn(self: Box<i32>) -> string {  // snippet$Box$std_core_Display$to_string__i32
+  snippet.Box<i32>.to_string :: fn(self: Box<i32>) -> string {  // snippet$Box$std_core$Display$to_string__i32
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(24))
           __off_1: i64 = 0
@@ -27,17 +27,17 @@
       } :string
   }
   snippet.Box<string> :: struct { value: string }  // snippet$Box__string
-  snippet.Box<string>.to_string :: fn(self: Box<string>) -> string {  // snippet$Box$std_core_Display$to_string__string$1
+  snippet.Box<string>.to_string :: fn(self: Box<string>) -> string {  // snippet$Box$std_core$Display$to_string__string$1
       concat_2("str ", self.value)
   }
   snippet.Wrap<Label> :: struct { inner: Any }  // snippet$Wrap__snippet_Label
-  snippet.Wrap<Any>.to_string :: fn(self: Wrap<Any>) -> string {  // snippet$Wrap$std_core_Display$to_string__Any
+  snippet.Wrap<Any>.to_string :: fn(self: Wrap<Any>) -> string {  // snippet$Wrap$std_core$Display$to_string__Any
       concat_2("wrap ", @vcall(std.core.Display.to_string, self.inner))
   }
   snippet.Wrap<Wrap<Label>> :: struct { inner: Any }  // snippet$Wrap__snippet_Wrap_snippet_Label_
   snippet.Box<Any> :: struct { value: Any }  // snippet$Box__Any
   snippet.Wrap<Any> :: struct { inner: Any }  // snippet$Wrap__Any
-  snippet$Wrap__snippet_Wrap_Any :: struct { inner: Any }
+  snippet$Wrap__snippet$Wrap_Any :: struct { inner: Any }
   snippet$Wrap__snippet_Wrap_Any_ :: struct { inner: Any }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
       c0: i64 = std.core.byte_len(p0)
@@ -57,10 +57,10 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Display.to_string for Box<i32>  snippet.Box<i32>.to_string  // snippet$Box$std_core_Display$to_string__i32
-  vtable std.core.Display.to_string for Box<string>  snippet.Box<string>.to_string  // snippet$Box$std_core_Display$to_string__string$1
-  vtable std.core.Display.to_string for Label  snippet.Label.to_string  // snippet$Label$std_core_Display$to_string
-  vtable std.core.Display.to_string for Wrap<Any>  snippet.Wrap<Any>.to_string  // snippet$Wrap$std_core_Display$to_string__Any
+  vtable std.core.Display.to_string for Box<i32>  snippet.Box<i32>.to_string  // snippet$Box$std_core$Display$to_string__i32
+  vtable std.core.Display.to_string for Box<string>  snippet.Box<string>.to_string  // snippet$Box$std_core$Display$to_string__string$1
+  vtable std.core.Display.to_string for Label  snippet.Label.to_string  // snippet$Label$std_core$Display$to_string
+  vtable std.core.Display.to_string for Wrap<Any>  snippet.Wrap<Any>.to_string  // snippet$Wrap$std_core$Display$to_string__Any
 
 ## lowered in dependencies
   std/core

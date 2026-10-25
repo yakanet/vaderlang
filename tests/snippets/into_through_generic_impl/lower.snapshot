@@ -22,7 +22,7 @@
   }
   snippet.Holder<i32> :: struct { item: i32 }  // snippet$Holder__i32
   snippet.Wrapper<i32> :: struct { v: i32 }  // snippet$Wrapper__i32
-  snippet.Wrapper<i32>.into :: fn(self: Wrapper<i32>) -> Label {  // snippet$Wrapper$std_core_Into$into__i32
+  snippet.Wrapper<i32>.into :: fn(self: Wrapper<i32>) -> Label {  // snippet$Wrapper$std_core$Into$into__i32
       Label {
           .s = {
               __buf_0: Buffer = std.core.new_byte_buffer(i64(22))
@@ -34,7 +34,7 @@
       }
   }
   snippet.Wrapper<i64> :: struct { v: i64 }  // snippet$Wrapper__i64
-  snippet.Wrapper<i64>.into :: fn(self: Wrapper<i64>) -> Label {  // snippet$Wrapper$std_core_Into$into__i64
+  snippet.Wrapper<i64>.into :: fn(self: Wrapper<i64>) -> Label {  // snippet$Wrapper$std_core$Into$into__i64
       Label {
           .s = {
               __buf_0: Buffer = std.core.new_byte_buffer(i64(22))
@@ -46,11 +46,11 @@
       }
   }
   snippet.Wrapper<string> :: struct { v: string }  // snippet$Wrapper__string
-  snippet.Wrapper<string>.into :: fn(self: Wrapper<string>) -> Label {  // snippet$Wrapper$std_core_Into$into__string
+  snippet.Wrapper<string>.into :: fn(self: Wrapper<string>) -> Label {  // snippet$Wrapper$std_core$Into$into__string
       Label { .s = concat_2("w:", self.v) }
   }
   snippet.Wrapper<Mon> :: struct { v: Mon }  // snippet$Wrapper__snippet_Mon
-  snippet.Wrapper<Mon>.into :: fn(self: Wrapper<Mon>) -> Label {  // snippet$Wrapper$std_core_Into$into__snippet_Mon$1
+  snippet.Wrapper<Mon>.into :: fn(self: Wrapper<Mon>) -> Label {  // snippet$Wrapper$std_core$Into$into__snippet_Mon$1
       Label {
           .s = {
               __buf_0: Buffer = std.core.new_byte_buffer(i64(24))
@@ -62,7 +62,7 @@
       }
   }
   snippet.Plain<i32> :: struct { v: i32 }  // snippet$Plain__i32
-  snippet.Plain<i32>.into :: fn(self: Plain<i32>) -> Holder<i32> {  // snippet$Plain$std_core_Into$into__i32
+  snippet.Plain<i32>.into :: fn(self: Plain<i32>) -> Holder<i32> {  // snippet$Plain$std_core$Into$into__i32
       Holder<i32> { .item = self.v }
   }
   snippet.Holder<Any> :: struct { item: Any }  // snippet$Holder__Any
@@ -76,11 +76,11 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Into.into for Plain<i32>  snippet.Plain<i32>.into  // snippet$Plain$std_core_Into$into__i32
-  vtable std.core.Into.into for Wrapper<Mon>  snippet.Wrapper<Mon>.into  // snippet$Wrapper$std_core_Into$into__snippet_Mon$1
-  vtable std.core.Into.into for Wrapper<i32>  snippet.Wrapper<i32>.into  // snippet$Wrapper$std_core_Into$into__i32
-  vtable std.core.Into.into for Wrapper<i64>  snippet.Wrapper<i64>.into  // snippet$Wrapper$std_core_Into$into__i64
-  vtable std.core.Into.into for Wrapper<string>  snippet.Wrapper<string>.into  // snippet$Wrapper$std_core_Into$into__string
+  vtable std.core.Into.into for Plain<i32>  snippet.Plain<i32>.into  // snippet$Plain$std_core$Into$into__i32
+  vtable std.core.Into.into for Wrapper<Mon>  snippet.Wrapper<Mon>.into  // snippet$Wrapper$std_core$Into$into__snippet_Mon$1
+  vtable std.core.Into.into for Wrapper<i32>  snippet.Wrapper<i32>.into  // snippet$Wrapper$std_core$Into$into__i32
+  vtable std.core.Into.into for Wrapper<i64>  snippet.Wrapper<i64>.into  // snippet$Wrapper$std_core$Into$into__i64
+  vtable std.core.Into.into for Wrapper<string>  snippet.Wrapper<string>.into  // snippet$Wrapper$std_core$Into$into__string
 
 ## lowered in dependencies
   std/core

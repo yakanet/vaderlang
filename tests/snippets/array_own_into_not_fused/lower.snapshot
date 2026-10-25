@@ -72,10 +72,10 @@
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
           __off_1: i64 = 0
-          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.drain(snippet$[]$std_core_Into$into__snippet_Mon(snippet.LIST)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.drain(snippet$$array$std_core$Into$into__snippet_Mon(snippet.LIST)))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>(snippet.join_labels(snippet$[]$std_core_Into$into__snippet_Mon$1(snippet.LIST)))
+      std.io.println<string>(snippet.join_labels(snippet$$array$std_core$Into$into__snippet_Mon$1(snippet.LIST)))
       ps: Pt[] = [Pt { .x = 1 }, Pt { .x = 2 }] :Pt[]
       sum: i32 = 0
       {
@@ -210,13 +210,13 @@
   __lambda_snippet_0 :: fn(p: Pt) -> i32 {
       p.x
   }
-  snippet$[]$std_core_Into$into__snippet_Mon :: fn(self: Mon[]) -> Iterator<Mon> {
+  snippet$$array$std_core$Into$into__snippet_Mon :: fn(self: Mon[]) -> Iterator<Mon> {
       snippet.scaled(self)
   }
-  snippet$[]$std_core_Into$into__snippet_Mon$1 :: fn(self: Mon[]) -> Iterator<Label> {
+  snippet$$array$std_core$Into$into__snippet_Mon$1 :: fn(self: Mon[]) -> Iterator<Label> {
       snippet.labels(self)
   }
-  snippet.Pt[].into :: fn(self: Pt[]) -> Iterator<Pt> {  // snippet$[]$std_core_Into$into__snippet_Pt$2
+  snippet.Pt[].into :: fn(self: Pt[]) -> Iterator<Pt> {  // snippet$$array$std_core$Into$into__snippet_Pt$2
       snippet.shifted(self)
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
@@ -237,37 +237,37 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Into.into for Mon[]  snippet$[]$std_core_Into$into__snippet_Mon
-  vtable std.core.Into.into for Mon[]  snippet$[]$std_core_Into$into__snippet_Mon$1
-  vtable std.core.Into.into for Pt[]  snippet.Pt[].into  // snippet$[]$std_core_Into$into__snippet_Pt$2
+  vtable std.core.Into.into for Mon[]  snippet$$array$std_core$Into$into__snippet_Mon
+  vtable std.core.Into.into for Mon[]  snippet$$array$std_core$Into$into__snippet_Mon$1
+  vtable std.core.Into.into for Pt[]  snippet.Pt[].into  // snippet$$array$std_core$Into$into__snippet_Pt$2
   vtable std.core.Iterator.next for __genstate_labels  snippet$__genstate_labels$Iterator$next
   vtable std.core.Iterator.next for __genstate_scaled  snippet$__genstate_scaled$Iterator$next
   vtable std.core.Iterator.next for __genstate_shifted  snippet$__genstate_shifted$Iterator$next
 
 ## lowered in dependencies
   std/collections
-    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core_Index$at__i32__bool
-    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__bool
-    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core_Into$into__i32__bool
-    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
-    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core_Index$at__i32__i32
-    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__i32
-    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core_Into$into__i32__i32
-    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__i32
-    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core_Index$at__string__i32
-    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i32
-    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core_Into$into__string__i32
-    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
-    fn std.collections.MutableMap<string, i64>.at  // std_collections$MutableMap$std_core_Index$at__string__i64
-    fn std.collections.MutableMap<string, i64>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i64
-    fn std.collections.MutableMap<string, i64>.into  // std_collections$MutableMap$std_core_Into$into__string__i64
-    fn std.collections.MutableMap<string, i64>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i64
-    fn std.collections.MutableMap<string, string[]>.at  // std_collections$MutableMap$std_core_Index$at__string__string__
-    fn std.collections.MutableMap<string, string[]>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__string__
-    fn std.collections.MutableMap<string, string[]>.into  // std_collections$MutableMap$std_core_Into$into__string__string__
-    fn std.collections.MutableMap<string, string[]>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__string__
-    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core_Contains$contains__i32
-    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core_Into$into__i32
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core$Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core$Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core$Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core$Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core$Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core$Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
+    fn std.collections.MutableMap<string, i64>.at  // std_collections$MutableMap$std_core$Index$at__string__i64
+    fn std.collections.MutableMap<string, i64>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i64
+    fn std.collections.MutableMap<string, i64>.into  // std_collections$MutableMap$std_core$Into$into__string__i64
+    fn std.collections.MutableMap<string, i64>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i64
+    fn std.collections.MutableMap<string, string[]>.at  // std_collections$MutableMap$std_core$Index$at__string__string__
+    fn std.collections.MutableMap<string, string[]>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__string__
+    fn std.collections.MutableMap<string, string[]>.into  // std_collections$MutableMap$std_core$Into$into__string__string__
+    fn std.collections.MutableMap<string, string[]>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__string__
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core$Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core$Into$into__i32
     fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
     fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
     fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32

@@ -271,7 +271,7 @@
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
   std/string
-    fn std.string.StringChars.next  // std_string$StringChars$std_core_Iterator$next
+    fn std.string.StringChars.next  // std_string$StringChars$std_core$Iterator$next
     fn std.string.chars  // std_string$chars
     fn std.string.codepoint_byte_len  // std_string$codepoint_byte_len
     struct std.string.StringChars  // std_string$StringChars

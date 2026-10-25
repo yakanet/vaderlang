@@ -69,7 +69,7 @@ fn 4 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; xs
-  call 18   ; std_core$[]$Into$into__i32
+  call 18   ; std_core$$array$Into$into__i32
   local.set 3   ; $call_11
   fn.ref 5 14   ; __lambda_snippet_0 fn
   local.set 4   ; $fn_ref_12
@@ -99,7 +99,7 @@ fn 4 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; xs
-  call 18   ; std_core$[]$Into$into__i32
+  call 18   ; std_core$$array$Into$into__i32
   local.set 3   ; $call_11
   fn.ref 7 14   ; __lambda_snippet_2 fn
   local.set 4   ; $fn_ref_12
@@ -129,7 +129,7 @@ fn 4 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; xs
-  call 18   ; std_core$[]$Into$into__i32
+  call 18   ; std_core$$array$Into$into__i32
   local.set 3   ; $call_11
   fn.ref 9 14   ; __lambda_snippet_4 fn
   local.set 4   ; $fn_ref_12
@@ -158,7 +158,7 @@ fn 4 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; xs
-  call 18   ; std_core$[]$Into$into__i32
+  call 18   ; std_core$$array$Into$into__i32
   local.set 3   ; $call_11
   fn.ref 11 14   ; __lambda_snippet_6 fn
   local.set 4   ; $fn_ref_12
@@ -183,7 +183,7 @@ fn 4 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; xs
-  call 18   ; std_core$[]$Into$into__i32
+  call 18   ; std_core$$array$Into$into__i32
   local.set 3   ; $call_11
   fn.ref 12 14   ; __lambda_snippet_7 fn
   local.set 0   ; xs
@@ -442,7 +442,7 @@ fn 17 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 18 std_core$[]$Into$into__i32 (ref) -> any
+fn 18 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 19   ; std_core$array_iter__i32
   return

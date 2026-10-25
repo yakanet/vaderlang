@@ -342,7 +342,7 @@ LowerProjectCtx :: struct {
 
     /// Array impl-member call sites (`x in arr` → `T[] implements Contains`,
     /// `[T]`-to-`Iterator` coercion → `T[] implements Into`) : maps the call-site
-    /// mangle (`std_core$[]$Contains$contains__i32`, `std_core$[]$Into$into__i32`)
+    /// mangle (`std_core$$array$Contains$contains__i32`, `std_core$$array$Into$into__i32`)
     /// to the array's element type and the member the call chose.
     /// `surface_array_impl_members` reads this to materialise one CONCRETE
     /// member body per element type, with `T → element` substituted (so e.g.

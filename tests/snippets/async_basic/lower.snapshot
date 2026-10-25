@@ -98,10 +98,10 @@
       __self_3.state = -1
   }
   snippet.Ready<i32> :: struct { v: i32 }  // snippet$Ready__i32
-  snippet.Ready<i32>.resume :: fn(self: Ready<i32>) -> i32 | Suspended {  // snippet$Ready$std_core_Async$resume__i32
+  snippet.Ready<i32>.resume :: fn(self: Ready<i32>) -> i32 | Suspended {  // snippet$Ready$std_core$Async$resume__i32
       return self.v
   }
-  snippet.Ready<i32>.cancel :: fn(self: Ready<i32>) -> void {  // snippet$Ready$std_core_Async$cancel__i32
+  snippet.Ready<i32>.cancel :: fn(self: Ready<i32>) -> void {  // snippet$Ready$std_core$Async$cancel__i32
   }
   snippet.Ready<Any> :: struct { v: Any }  // snippet$Ready__Any
   concat_2 :: fn(p0: string, p1: string) -> string {
@@ -112,10 +112,10 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Async.cancel for Ready<i32>  snippet.Ready<i32>.cancel  // snippet$Ready$std_core_Async$cancel__i32
+  vtable std.core.Async.cancel for Ready<i32>  snippet.Ready<i32>.cancel  // snippet$Ready$std_core$Async$cancel__i32
   vtable std.core.Async.cancel for __asyncstate_snippet_0  snippet$__asyncstate_snippet_0$Async$cancel
   vtable std.core.Async.cancel for __asyncstate_snippet_1  snippet$__asyncstate_snippet_1$Async$cancel
-  vtable std.core.Async.resume for Ready<i32>  snippet.Ready<i32>.resume  // snippet$Ready$std_core_Async$resume__i32
+  vtable std.core.Async.resume for Ready<i32>  snippet.Ready<i32>.resume  // snippet$Ready$std_core$Async$resume__i32
   vtable std.core.Async.resume for __asyncstate_snippet_0  snippet$__asyncstate_snippet_0$Async$resume
   vtable std.core.Async.resume for __asyncstate_snippet_1  snippet$__asyncstate_snippet_1$Async$resume
 

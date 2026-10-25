@@ -144,7 +144,7 @@ fn 1 snippet$main () -> i32
   i32.const 20
   i32.const 30
   array.new 12 3   ; i32[]
-  call 10   ; std_core$[]$Into$into__i32
+  call 10   ; std_core$$array$Into$into__i32
   call 16   ; std_iter$indexed__i32
   local.set 1   ; $call_7
   fn.ref 0 53   ; snippet$not_twenty fn
@@ -656,7 +656,7 @@ fn 9 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 10 std_core$[]$Into$into__i32 (ref) -> any
+fn 10 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 11   ; std_core$array_iter__i32
   return

@@ -77,9 +77,9 @@
 
 ## lowered in dependencies
   semver
-    fn semver.Version.compare  // semver$Version$std_core_Comparable$compare
-    fn semver.Version.to_string  // semver$Version$std_core_Display$to_string
-    fn semver.VersionRange.contains  // semver$VersionRange$std_core_Contains$contains
+    fn semver.Version.compare  // semver$Version$std_core$Comparable$compare
+    fn semver.Version.to_string  // semver$Version$std_core$Display$to_string
+    fn semver.VersionRange.contains  // semver$VersionRange$std_core$Contains$contains
     fn semver.bounded  // semver$bounded
     fn semver.bump_major  // semver$bump_major
     fn semver.bump_minor  // semver$bump_minor
@@ -161,7 +161,7 @@
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
   std/string
-    fn std.string.ParseError.message  // std_string$ParseError$std_core_Error$message
+    fn std.string.ParseError.message  // std_string$ParseError$std_core$Error$message
     fn std.string.is_empty  // std_string$is_empty
     fn std.string.is_white_byte  // std_string$is_white_byte
     fn std.string.matches_at  // std_string$matches_at
@@ -172,9 +172,9 @@
     fn std.string.trim_prefix  // std_string$trim_prefix
     struct std.string.ParseError  // std_string$ParseError
   std/string_builder
-    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$std_core_Display$to_string
-    fn std.string_builder.append  // std_string_builder$append
-    struct std.string_builder.StringBuilder  // std_string_builder$StringBuilder
+    fn std.string_builder.StringBuilder.to_string  // std_string__builder$StringBuilder$std_core$Display$to_string
+    fn std.string_builder.append  // std_string__builder$append
+    struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

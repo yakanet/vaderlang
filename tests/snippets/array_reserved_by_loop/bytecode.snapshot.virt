@@ -1355,7 +1355,7 @@ fn 20 std_async$run_async_main (any) -> i32
   return
 end
 
-fn 21 std_async$Sleep$std_core_Async$resume (ref) -> any
+fn 21 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 22 2   ; arg 0 std_async$Sleep.armed

@@ -109,7 +109,7 @@
       return Box<i32> { .value = v }
   }
   snippet.Box<Any> :: struct { value: Any }  // snippet$Box__Any
-  snippet$Box__snippet_Box_Any :: struct { value: Any }
+  snippet$Box__snippet$Box_Any :: struct { value: Any }
   snippet.Pair<Any, Any> :: struct { first: Any, second: Any }  // snippet$Pair__Any__Any
   snippet$Box__snippet_Box_Any_ :: struct { value: Any }
   concat_2 :: fn(p0: string, p1: string) -> string {

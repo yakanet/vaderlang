@@ -8,9 +8,9 @@
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static int32_t snippet_classify(uint32_t l0);
-static int32_t snippet_bucket(int32_t l0);
-static int32_t snippet_main(void);
+static int32_t snippet$classify(uint32_t l0);
+static int32_t snippet$bucket(int32_t l0);
+static int32_t snippet$main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -20,7 +20,7 @@ const vader_type_info_t vader_type_info_table[3] = {
 };
 const size_t vader_type_info_count = 3;
 
-static int32_t snippet_classify(uint32_t l0) {
+static int32_t snippet$classify(uint32_t l0) {
     int32_t l1;
     bool l2;
     if ((l0 >= 48u)) {
@@ -54,7 +54,7 @@ static int32_t snippet_classify(uint32_t l0) {
     return l1;
 }
 
-static int32_t snippet_bucket(int32_t l0) {
+static int32_t snippet$bucket(int32_t l0) {
     int32_t l1;
     bool l2;
     if ((l0 >= INT32_C(0))) {
@@ -79,27 +79,27 @@ static int32_t snippet_bucket(int32_t l0) {
     return l1;
 }
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     int32_t l0, l1, l2;
     int32_t t0;
-    l0 = snippet_classify(53u);
-    t0 = snippet_classify(113u);
+    l0 = snippet$classify(53u);
+    t0 = snippet$classify(113u);
     l1 = vader_chk_mul(i32, t0, INT32_C(10));
     l0 = vader_chk_add(i32, l0, l1);
-    t0 = snippet_classify(81u);
+    t0 = snippet$classify(81u);
     l1 = vader_chk_mul(i32, t0, INT32_C(100));
     l0 = vader_chk_add(i32, l0, l1);
-    t0 = snippet_classify(43u);
+    t0 = snippet$classify(43u);
     l1 = vader_chk_mul(i32, t0, INT32_C(1000));
     l0 = vader_chk_add(i32, l0, l1);
-    l1 = snippet_bucket(INT32_C(9));
-    t0 = snippet_bucket(INT32_C(10));
+    l1 = snippet$bucket(INT32_C(9));
+    t0 = snippet$bucket(INT32_C(10));
     l2 = vader_chk_mul(i32, t0, INT32_C(10));
     l1 = vader_chk_add(i32, l1, l2);
-    t0 = snippet_bucket(INT32_C(99));
+    t0 = snippet$bucket(INT32_C(99));
     l2 = vader_chk_mul(i32, t0, INT32_C(100));
     l1 = vader_chk_add(i32, l1, l2);
-    t0 = snippet_bucket(INT32_C(100));
+    t0 = snippet$bucket(INT32_C(100));
     l2 = vader_chk_mul(i32, t0, INT32_C(1000));
     l1 = vader_chk_add(i32, l1, l2);
     t0 = vader_chk_add(i32, l0, l1);
@@ -112,5 +112,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

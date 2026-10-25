@@ -7,7 +7,7 @@ type 4 struct snippet$Box__string { value:2 }
 type 5 struct snippet$Box__snippet_Box_i32_ { value:7 }
 type 6 struct snippet$Box__snippet_Box_string_ { value:4 }
 type 7 ref _
-type 8 struct snippet$Box__snippet_Box_Any { value:7 }
+type 8 struct snippet$Box__snippet$Box_Any { value:7 }
 type 9 scalar u8
 type 10 scalar i64
 type 11 struct std_core$Buffer {  }
@@ -86,7 +86,7 @@ end
 fn 5 snippet$outer__i32 (i32) -> ref
   local.get 0   ; arg 0
   call 3   ; snippet$middle__i32
-  struct.new 8   ; snippet$Box__snippet_Box_Any
+  struct.new 8   ; snippet$Box__snippet$Box_Any
   return
 end
 

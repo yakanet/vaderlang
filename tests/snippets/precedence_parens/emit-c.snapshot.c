@@ -8,8 +8,8 @@
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static int32_t snippet_main(void);
-static bool std_core____Contains_contains__i32(void* l0, int32_t l1);
+static int32_t snippet$main(void);
+static bool std_core$$array$Contains$contains__i32(void* l0, int32_t l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -25,7 +25,7 @@ const vader_type_info_t vader_type_info_table[4] = {
 };
 const size_t vader_type_info_count = 4;
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     int32_t l0, l1, l2;
     void* t0 = NULL;
     bool t1;
@@ -44,7 +44,7 @@ static int32_t snippet_main(void) {
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(2);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(1);
     t0 = (void*) _a0_arr;
-    t1 = std_core____Contains_contains__i32(t0, l0);
+    t1 = std_core$$array$Contains$contains__i32(t0, l0);
     if (t1 == true) {
         l0 = INT32_C(2);
     } else {
@@ -62,7 +62,7 @@ static int32_t snippet_main(void) {
     { int32_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static bool std_core____Contains_contains__i32(void* l0, int32_t l1) {
+static bool std_core$$array$Contains$contains__i32(void* l0, int32_t l1) {
     void* l2;
     int64_t l3, l4;
     int32_t t0;
@@ -88,5 +88,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

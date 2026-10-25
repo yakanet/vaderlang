@@ -145,20 +145,6 @@ lambda_return_type :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Type {
     return TY_UNRESOLVED
 }
 
-/// A module path as a C-safe identifier fragment (`vader/lower` -> `vader_lower`).
-module_key :: fn(path: string) -> string {
-    out := ""
-    for i in 0..<path.byte_len() {
-        b :: path.byte_at(i)
-        if (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9') {
-            out = out + "${char(b)}"
-        } else {
-            out = out + "_"
-        }
-    }
-    return out
-}
-
 /// Bump and return the next synthetic Symbol id from the project's
 /// monotonically-decreasing pool. Shared with `lower_defer` so both
 /// lifts pull from a single counter (otherwise `__lambda_N` /
@@ -217,7 +203,7 @@ fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx, is_env: bool, fn_prefix: 
     // The counter is keyed on the SAME sanitised string the name uses. Keyed on
     // the raw one, two modules that sanitise alike both start at 0 and mint
     // identical names.
-    key :: module_key(ctx.typed.resolved.display_path)
+    key :: mangle_module_id(ctx.typed.resolved.display_path)
     seq :: ctx.project.lambda_seq[key] ?? 0
     ctx.project.lambda_seq[key] = seq + 1
     return Symbol { .id = id, .kind = kind, .name = "${prefix}${key}_${seq}", .module = ctx.typed.resolved.path, .module_name = ctx.typed.resolved.display_path, .visibility = .Private, .defined_at = null }

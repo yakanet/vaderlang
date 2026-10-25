@@ -220,9 +220,9 @@
   std/string
     fn std.string.join  // std_string$join
   std/string_builder
-    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$std_core_Display$to_string
-    fn std.string_builder.append  // std_string_builder$append
-    struct std.string_builder.StringBuilder  // std_string_builder$StringBuilder
+    fn std.string_builder.StringBuilder.to_string  // std_string__builder$StringBuilder$std_core$Display$to_string
+    fn std.string_builder.append  // std_string__builder$append
+    struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

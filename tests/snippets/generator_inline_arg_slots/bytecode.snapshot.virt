@@ -130,7 +130,7 @@ fn 0 snippet$main () -> i32
   i32.const 2
   i32.const 3
   array.new 13 3   ; i32[]
-  call 11   ; std_core$[]$Into$into__i32
+  call 11   ; std_core$$array$Into$into__i32
   local.set 0   ; __iter_0
   loop $L0 void
     local.get 0   ; __iter_0
@@ -199,7 +199,7 @@ fn 0 snippet$main () -> i32
   string.const 1   ; "a"
   string.const 2   ; "b"
   array.new 14 2   ; string[]
-  call 12   ; std_core$[]$Into$into__string
+  call 12   ; std_core$$array$Into$into__string
   local.set 0   ; __iter_0
   local.get 1   ; __step_1
   array.len
@@ -975,13 +975,13 @@ fn 10 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 11 std_core$[]$Into$into__i32 (ref) -> any
+fn 11 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 13   ; std_core$array_iter__i32
   return
 end
 
-fn 12 std_core$[]$Into$into__string (ref) -> any
+fn 12 std_core$$array$Into$into__string (ref) -> any
   local.get 0   ; arg 0
   call 15   ; std_core$array_iter__string
   return

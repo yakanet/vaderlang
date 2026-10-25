@@ -1,16 +1,16 @@
 module _main
 type 0 scalar null
-type 1 struct snippet_shapes_a$Point { x:5 }
+type 1 struct snippet_shapes__a$Point { x:5 }
 type 2 scalar string
-type 3 struct snippet_shapes_b$Point { name:2 }
+type 3 struct snippet_shapes__b$Point { name:2 }
 type 4 ref snippet$Describe
 type 5 scalar i32
 type 6 ref _
 type 7 struct snippet$Box__Any { v:6 }
 type 8 union 1,3
 type 9 scalar bool
-type 10 struct snippet$Box__snippet_shapes_a_Point { v:6 }
-type 11 struct snippet$Box__snippet_shapes_b_Point { v:6 }
+type 10 struct snippet$Box__snippet_shapes__a_Point { v:6 }
+type 11 struct snippet$Box__snippet_shapes__b_Point { v:6 }
 type 12 scalar u8
 type 13 scalar i64
 type 14 struct std_core$Buffer {  }
@@ -33,7 +33,7 @@ vtable snippet$Describe.describe 1 0
 vtable snippet$Describe.describe 3 1
 export main 3
 
-fn 0 snippet$snippet_shapes_a_Point$Describe$describe (ref) -> string
+fn 0 snippet$snippet_shapes__a$Point$Describe$describe (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $cast_9 i64
@@ -47,7 +47,7 @@ fn 0 snippet$snippet_shapes_a_Point$Describe$describe (ref) -> string
   string.const 0   ; "a point at "
   call 9   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 1 0   ; arg 0 snippet_shapes_a$Point.x
+  local.field 0 1 0   ; arg 0 snippet_shapes__a$Point.x
   ref.cast 5   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
@@ -62,9 +62,9 @@ fn 0 snippet$snippet_shapes_a_Point$Describe$describe (ref) -> string
   return
 end
 
-fn 1 snippet$snippet_shapes_b_Point$Describe$describe (ref) -> string
+fn 1 snippet$snippet_shapes__b$Point$Describe$describe (ref) -> string
   local $field_2 string
-  local.field 0 3 0   ; arg 0 snippet_shapes_b$Point.name
+  local.field 0 3 0   ; arg 0 snippet_shapes__b$Point.name
   ref.cast 2   ; string
   local.set 1   ; $field_2
   string.const 1   ; "a point named "
@@ -87,13 +87,13 @@ fn 3 snippet$main () -> i32
   local $cast_18 i64
   local $call_54 ref
   local $call_55 bool
-  call 15   ; snippet_shapes_a$make
+  call 15   ; snippet_shapes__a$make
   struct.new_stack 7   ; snippet$Box__Any
   local.set 0   ; a
-  call 16   ; snippet_shapes_b$make
+  call 16   ; snippet_shapes__b$make
   struct.new_stack 7   ; snippet$Box__Any
-  struct.get 11 0   ; snippet$Box__snippet_shapes_b_Point.v
-  struct.get 3 0   ; snippet_shapes_b$Point.name
+  struct.get 11 0   ; snippet$Box__snippet_shapes__b_Point.v
+  struct.get 3 0   ; snippet_shapes__b$Point.name
   ref.cast 2   ; string
   local.tee 1   ; __p_0
   call.import 0   ; std_core$byte_len
@@ -105,8 +105,8 @@ fn 3 snippet$main () -> i32
   local.set 3   ; __buf_1
   i64.const 0
   local.set 2   ; $call_10
-  local.field 0 10 0   ; a snippet$Box__snippet_shapes_a_Point.v
-  struct.get 1 0   ; snippet_shapes_a$Point.x
+  local.field 0 10 0   ; a snippet$Box__snippet_shapes__a_Point.v
+  struct.get 1 0   ; snippet_shapes__a$Point.x
   ref.cast 5   ; i32
   i32.to_i64
   local.set 4   ; $cast_18
@@ -129,13 +129,13 @@ fn 3 snippet$main () -> i32
   local.get 2   ; $call_10
   call 8   ; std_core$finish_buffer
   call 14   ; std_io$println__string
-  call 15   ; snippet_shapes_a$make
-  call 4   ; snippet$wrap__snippet_shapes_a_Point
+  call 15   ; snippet_shapes__a$make
+  call 4   ; snippet$wrap__snippet_shapes__a_Point
   local.set 0   ; a
-  call 16   ; snippet_shapes_b$make
-  call 4   ; snippet$wrap__snippet_shapes_a_Point
-  struct.get 11 0   ; snippet$Box__snippet_shapes_b_Point.v
-  struct.get 3 0   ; snippet_shapes_b$Point.name
+  call 16   ; snippet_shapes__b$make
+  call 4   ; snippet$wrap__snippet_shapes__a_Point
+  struct.get 11 0   ; snippet$Box__snippet_shapes__b_Point.v
+  struct.get 3 0   ; snippet_shapes__b$Point.name
   ref.cast 2   ; string
   local.tee 1   ; __p_0
   call.import 0   ; std_core$byte_len
@@ -147,8 +147,8 @@ fn 3 snippet$main () -> i32
   local.set 3   ; __buf_1
   i64.const 0
   local.set 2   ; $call_10
-  local.field 0 10 0   ; a snippet$Box__snippet_shapes_a_Point.v
-  struct.get 1 0   ; snippet_shapes_a$Point.x
+  local.field 0 10 0   ; a snippet$Box__snippet_shapes__a_Point.v
+  struct.get 1 0   ; snippet_shapes__a$Point.x
   ref.cast 5   ; i32
   i32.to_i64
   local.set 4   ; $cast_18
@@ -176,13 +176,13 @@ fn 3 snippet$main () -> i32
   local.set 0   ; a
   i64.const 0
   local.set 2   ; $call_10
-  call 15   ; snippet_shapes_a$make
+  call 15   ; snippet_shapes__a$make
   local.set 3   ; __buf_1
-  call 16   ; snippet_shapes_b$make
+  call 16   ; snippet_shapes__b$make
   local.set 5   ; $call_54
   local.get 3   ; __buf_1
   local.get 5   ; $call_54
-  call 5   ; snippet$holds__snippet_shapes_a_Point
+  call 5   ; snippet$holds__snippet_shapes__a_Point
   local.set 6   ; $call_55
   local.get 0   ; a
   local.get 2   ; $call_10
@@ -194,13 +194,13 @@ fn 3 snippet$main () -> i32
   string.const 2   ; " "
   call 9   ; std_core$write_string_at
   local.set 2   ; $call_10
-  call 16   ; snippet_shapes_b$make
+  call 16   ; snippet_shapes__b$make
   local.set 3   ; __buf_1
-  call 16   ; snippet_shapes_b$make
+  call 16   ; snippet_shapes__b$make
   local.set 5   ; $call_54
   local.get 3   ; __buf_1
   local.get 5   ; $call_54
-  call 6   ; snippet$holds__snippet_shapes_b_Point
+  call 6   ; snippet$holds__snippet_shapes__b_Point
   local.set 6   ; $call_55
   local.get 0   ; a
   local.get 2   ; $call_10
@@ -211,30 +211,30 @@ fn 3 snippet$main () -> i32
   local.get 2   ; $call_10
   call 8   ; std_core$finish_buffer
   call 14   ; std_io$println__string
-  call 15   ; snippet_shapes_a$make
+  call 15   ; snippet_shapes__a$make
   call 2   ; snippet$show
   call 14   ; std_io$println__string
-  call 16   ; snippet_shapes_b$make
+  call 16   ; snippet_shapes__b$make
   call 2   ; snippet$show
   call 14   ; std_io$println__string
   return.lit i32.const 0
 end
 
-fn 4 snippet$wrap__snippet_shapes_a_Point (any) -> ref
+fn 4 snippet$wrap__snippet_shapes__a_Point (any) -> ref
   local.get 0   ; arg 0
   struct.new 7   ; snippet$Box__Any
   return
 end
 
-fn 5 snippet$holds__snippet_shapes_a_Point (ref,any) -> bool
+fn 5 snippet$holds__snippet_shapes__a_Point (ref,any) -> bool
   local.get 1   ; arg 1
-  type_check 1   ; snippet_shapes_a$Point
+  type_check 1   ; snippet_shapes__a$Point
   return
 end
 
-fn 6 snippet$holds__snippet_shapes_b_Point (ref,any) -> bool
+fn 6 snippet$holds__snippet_shapes__b_Point (ref,any) -> bool
   local.get 1   ; arg 1
-  type_check 3   ; snippet_shapes_b$Point
+  type_check 3   ; snippet_shapes__b$Point
   return
 end
 
@@ -508,14 +508,14 @@ fn 14 std_io$println__string (string) -> void
   return
 end
 
-fn 15 snippet_shapes_a$make () -> ref
+fn 15 snippet_shapes__a$make () -> ref
   i32.const 1
-  struct.new 1   ; snippet_shapes_a$Point
+  struct.new 1   ; snippet_shapes__a$Point
   return
 end
 
-fn 16 snippet_shapes_b$make () -> ref
+fn 16 snippet_shapes__b$make () -> ref
   string.const 6   ; "b"
-  struct.new 3   ; snippet_shapes_b$Point
+  struct.new 3   ; snippet_shapes__b$Point
   return
 end

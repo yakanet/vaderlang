@@ -2,26 +2,26 @@
 
 ## snippet
   snippet.Vec :: struct { x: i32, y: i32 }  // snippet$Vec
-  snippet.Vec.add :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core_Add$add
+  snippet.Vec.add :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core$Add$add
       Vec { .x = self.x + other.x, .y = self.y + other.y }
   }
-  snippet.Vec.sub :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core_Sub$sub
+  snippet.Vec.sub :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core$Sub$sub
       Vec { .x = self.x - other.x, .y = self.y - other.y }
   }
-  snippet.Vec.mul :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core_Mul$mul
+  snippet.Vec.mul :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core$Mul$mul
       Vec { .x = self.x * other.x, .y = self.y * other.y }
   }
-  snippet.Vec.div :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core_Div$div
+  snippet.Vec.div :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core$Div$div
       Vec { .x = self.x / other.x, .y = self.y / other.y }
   }
-  snippet.Vec.rem :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core_Rem$rem
+  snippet.Vec.rem :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core$Rem$rem
       Vec { .x = self.x % other.x, .y = self.y % other.y }
   }
   snippet.Money :: struct { amount: i32 }  // snippet$Money
-  snippet.Money.equals :: fn(self: Money, other: Money) -> bool {  // snippet$Money$std_core_Equals$equals
+  snippet.Money.equals :: fn(self: Money, other: Money) -> bool {  // snippet$Money$std_core$Equals$equals
       self.amount == other.amount
   }
-  snippet.Money.compare :: fn(self: Money, other: Money) -> i32 {  // snippet$Money$std_core_Comparable$compare
+  snippet.Money.compare :: fn(self: Money, other: Money) -> i32 {  // snippet$Money$std_core$Comparable$compare
       std.core.i32.compare(self.amount, other.amount)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -126,16 +126,16 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  snippet$Money$std_core_Equals$equals$guard :: fn(self: Money, other: Any) -> bool {
+  snippet$Money$std_core$Equals$equals$guard :: fn(self: Money, other: Any) -> bool {
       (other is Money) && snippet.Money.equals(self, Money(other))
   }
-  vtable std.core.Add.add for Vec  snippet.Vec.add  // snippet$Vec$std_core_Add$add
-  vtable std.core.Comparable.compare for Money  snippet.Money.compare  // snippet$Money$std_core_Comparable$compare
-  vtable std.core.Div.div for Vec  snippet.Vec.div  // snippet$Vec$std_core_Div$div
-  vtable std.core.Equals.equals for Money  snippet$Money$std_core_Equals$equals$guard
-  vtable std.core.Mul.mul for Vec  snippet.Vec.mul  // snippet$Vec$std_core_Mul$mul
-  vtable std.core.Rem.rem for Vec  snippet.Vec.rem  // snippet$Vec$std_core_Rem$rem
-  vtable std.core.Sub.sub for Vec  snippet.Vec.sub  // snippet$Vec$std_core_Sub$sub
+  vtable std.core.Add.add for Vec  snippet.Vec.add  // snippet$Vec$std_core$Add$add
+  vtable std.core.Comparable.compare for Money  snippet.Money.compare  // snippet$Money$std_core$Comparable$compare
+  vtable std.core.Div.div for Vec  snippet.Vec.div  // snippet$Vec$std_core$Div$div
+  vtable std.core.Equals.equals for Money  snippet$Money$std_core$Equals$equals$guard
+  vtable std.core.Mul.mul for Vec  snippet.Vec.mul  // snippet$Vec$std_core$Mul$mul
+  vtable std.core.Rem.rem for Vec  snippet.Vec.rem  // snippet$Vec$std_core$Rem$rem
+  vtable std.core.Sub.sub for Vec  snippet.Vec.sub  // snippet$Vec$std_core$Sub$sub
 
 ## lowered in dependencies
   std/core

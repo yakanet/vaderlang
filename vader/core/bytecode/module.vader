@@ -212,32 +212,11 @@ export library_name :: fn(imp: BcImport) -> string {
 
 /// The symbol of the adapter through which the interpreter calls `imp` when no
 /// trampoline can (`vader/vm/adapters.vader`). Spelled from the mangled name, so
-/// that it holds while the program's other imports come and go: `_` doubles,
-/// and any other byte outside `[A-Za-z0-9]` becomes `_` and two hex digits, so
-/// two mangles never meet in one symbol.
+/// that it holds while the program's other imports come and go; a mangled name
+/// is a C identifier already, and no two meet in one.
 ///
 /// @param imp  the import.
-export adapter_symbol :: fn(imp: BcImport) -> string {
-    symbol := "vader_adapt_"
-    name :: imp.mangled_name
-    for i in 0..<name.byte_len() {
-        b :: name.byte_at(i)
-        if is_symbol_byte(b) {
-            symbol = symbol + name.byte_slice(i, i + 1)
-        } else if b == '_' {
-            symbol = symbol + "__"
-        } else {
-            symbol = symbol + "_" + HEX_DIGITS.byte_slice(i64(b >> 4), i64(b >> 4) + 1)
-                + HEX_DIGITS.byte_slice(i64(b & 15), i64(b & 15) + 1)
-        }
-    }
-    return symbol
-}
-
-HEX_DIGITS :: "0123456789abcdef"
-
-// Whether `b` stands for itself in a C symbol.
-is_symbol_byte :: fn(b: u8) -> bool = (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9')
+export adapter_symbol :: fn(imp: BcImport) -> string = "vader_adapt_${imp.mangled_name}"
 
 /// The C type parameter `j` of `imp` declares through `@c_type`, null without one.
 ///

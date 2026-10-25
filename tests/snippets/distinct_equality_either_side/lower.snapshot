@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  snippet.Path.equals :: fn(self: Path, other: Path) -> bool {  // snippet$Path$std_core_Equals$equals
+  snippet.Path.equals :: fn(self: Path, other: Path) -> bool {  // snippet$Path$std_core$Equals$equals
       std.core.byte_len(string(self)) == std.core.byte_len(string(other))
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -49,7 +49,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Equals.equals for Path  snippet.Path.equals  // snippet$Path$std_core_Equals$equals
+  vtable std.core.Equals.equals for Path  snippet.Path.equals  // snippet$Path$std_core$Equals$equals
 
 ## lowered in dependencies
   std/core

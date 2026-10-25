@@ -65,7 +65,7 @@ vtable std_core$Add.add 9 54
 vtable std_core$Add.add 11 22
 export main 4
 
-fn 0 snippet$Money$std_core_Add$add (ref,ref) -> ref
+fn 0 snippet$Money$std_core$Add$add (ref,ref) -> ref
   local $field_2 i64
   local $field_3 i64
   local.field 0 1 0   ; arg 0 snippet$Money.cents
@@ -81,7 +81,7 @@ fn 0 snippet$Money$std_core_Add$add (ref,ref) -> ref
   return
 end
 
-fn 1 snippet$Points$std_core_Add$add (ref,ref) -> ref
+fn 1 snippet$Points$std_core$Add$add (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local.field 0 2 0   ; arg 0 snippet$Points.n
@@ -97,7 +97,7 @@ fn 1 snippet$Points$std_core_Add$add (ref,ref) -> ref
   return
 end
 
-fn 2 snippet$Grams$std_core_Add$add (ref,ref) -> ref
+fn 2 snippet$Grams$std_core$Add$add (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local.field 0 3 0   ; arg 0 snippet$Grams.g
@@ -362,7 +362,7 @@ fn 4 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 5 snippet$[]$Count$count__snippet_Money (ref,ref) -> i64
+fn 5 snippet$$array$Count$count__snippet_Money (ref,ref) -> i64
   local $len_2 i64
   local $len_3 i64
   local.get 0   ; arg 0
@@ -408,21 +408,21 @@ end
 fn 10 snippet$twice__snippet_Grams (ref) -> ref
   local.get 0   ; arg 0
   local.get 0   ; arg 0
-  call 2   ; snippet$Grams$std_core_Add$add
+  call 2   ; snippet$Grams$std_core$Add$add
   return
 end
 
 fn 11 snippet$twice__snippet_Money (ref) -> ref
   local.get 0   ; arg 0
   local.get 0   ; arg 0
-  call 0   ; snippet$Money$std_core_Add$add
+  call 0   ; snippet$Money$std_core$Add$add
   return
 end
 
 fn 12 snippet$twice__snippet_Points (ref) -> ref
   local.get 0   ; arg 0
   local.get 0   ; arg 0
-  call 1   ; snippet$Points$std_core_Add$add
+  call 1   ; snippet$Points$std_core$Add$add
   return
 end
 
@@ -442,7 +442,7 @@ end
 fn 15 snippet$both__snippet_Money__ (ref) -> i64
   local.get 0   ; arg 0
   local.get 0   ; arg 0
-  call 5   ; snippet$[]$Count$count__snippet_Money
+  call 5   ; snippet$$array$Count$count__snippet_Money
   return
 end
 

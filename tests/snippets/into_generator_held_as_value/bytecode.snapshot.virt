@@ -46,7 +46,7 @@ vtable std_core$Iterator.next 14 10
 vtable std_core$Iterator.next 22 23
 export main 3
 
-fn 0 snippet$Deck$std_core_Into$into (ref) -> any
+fn 0 snippet$Deck$std_core$Into$into (ref) -> any
   local.get 0   ; arg 0
   i32.const 0
   i32.const 0
@@ -123,11 +123,11 @@ end
 fn 3 snippet$main () -> i32
   i32.const 4
   struct.new 1   ; snippet$Deck
-  call 0   ; snippet$Deck$std_core_Into$into
+  call 0   ; snippet$Deck$std_core$Into$into
   call 1   ; snippet$total
   call 20   ; std_io$println__i32
   string.const 0   ; "héllo"
-  call 22   ; std_string$string$std_core_Into$into
+  call 22   ; std_string$string$std_core$Into$into
   call 2   ; snippet$codepoint_sum
   call 21   ; std_io$println__u32
   return.lit i32.const 0
@@ -1228,7 +1228,7 @@ fn 21 std_io$println__u32 (u32) -> void
   return
 end
 
-fn 22 std_string$string$std_core_Into$into (string) -> any
+fn 22 std_string$string$std_core$Into$into (string) -> any
   local $k_3 ref
   null.const
   local.set 1   ; $k_3

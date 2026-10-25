@@ -61,7 +61,7 @@
   snippet.Bag<string>.conv :: fn(self: Bag<string>, x: i32) -> string {  // snippet$Bag$Conv$conv__string__i32
       "string i32"
   }
-  snippet.i32[].conv :: fn(self: i32[], x: bool) -> string {  // snippet$[]$Conv$conv__i32__bool
+  snippet.i32[].conv :: fn(self: i32[], x: bool) -> string {  // snippet$$array$Conv$conv__i32__bool
       {
           __p_0: string = "i32"
           __p_1: string = "bool"
@@ -75,7 +75,7 @@
           std.core.finish_buffer(__buf_2, __off_3)
       } :string
   }
-  snippet.string[].conv :: fn(self: string[], x: f64) -> string {  // snippet$[]$Conv$conv__string__f64
+  snippet.string[].conv :: fn(self: string[], x: f64) -> string {  // snippet$$array$Conv$conv__string__f64
       {
           __p_0: string = "string"
           __p_1: string = "f64"

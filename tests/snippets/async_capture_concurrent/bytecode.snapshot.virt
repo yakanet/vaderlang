@@ -29,7 +29,7 @@ type 26 ref std_core$Async
 type 27 struct std_collections$MutableMap__i64__i32 { ekeys:28,evals:13,index:13,mask:14,grow_at:14,size:14,tombs:14 }
 type 28 array 14
 type 29 union 1,0
-type 30 struct $Cell_i32 { value:1 }
+type 30 struct $Cell_i32_2af2b319 { value:1 }
 string 0 "\n"
 string 1 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len result_type=14 param_types=9 param_c_out= param_by_address= (string) -> i64
@@ -114,7 +114,7 @@ fn 2 __lambda_snippet_0 (ref) -> void
   local.field 0 3 0   ; arg 0 __lambda_env_snippet_1.cap_0
   local.set 1   ; $field_1
   local.field 0 3 0   ; arg 0 __lambda_env_snippet_1.cap_0
-  struct.get 30 0   ; $Cell_i32.value
+  struct.get 30 0   ; $Cell_i32_2af2b319.value
   local.set 2   ; $cell_get_3
   local.field 0 3 1   ; arg 0 __lambda_env_snippet_1.cap_1
   ref.cast 1   ; i32
@@ -125,7 +125,7 @@ fn 2 __lambda_snippet_0 (ref) -> void
   local.set 2   ; $cell_get_3
   local.get 1   ; $field_1
   local.get 2   ; $cell_get_3
-  struct.set 30 0   ; $Cell_i32.value
+  struct.set 30 0   ; $Cell_i32_2af2b319.value
   return
 end
 
@@ -160,7 +160,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
       i32.const -1
       struct.set 5 7   ; __asyncstate_snippet_2.state
       local.field 0 5 2   ; arg 0 __asyncstate_snippet_2.s2
-      struct.get 30 0   ; $Cell_i32.value
+      struct.get 30 0   ; $Cell_i32_2af2b319.value
       retag 1   ; i32
       return
     end $L2
@@ -287,7 +287,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                     return
                   end $L12
                   i32.const 0
-                  struct.new 30   ; $Cell_i32
+                  struct.new 30   ; $Cell_i32_2af2b319
                   local.set 7   ; $cell_62
                   local.get 0   ; arg 0
                   local.get 7   ; $cell_62
@@ -828,7 +828,7 @@ fn 13 std_io$println__string (string) -> void
   return
 end
 
-fn 14 std_async$JoinAll$std_core_Async$resume__i32 (ref) -> any
+fn 14 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
   local n i64
   local now i64
   local next i64
@@ -886,7 +886,7 @@ fn 14 std_async$JoinAll$std_core_Async$resume__i32 (ref) -> any
           local.get 8   ; $field_22
           local.get 4   ; i
           local.get 9   ; $cast_23
-          call 25   ; std_collections$MutableMap$std_core_IndexSet$set_at__i64__i32
+          call 25   ; std_collections$MutableMap$std_core$IndexSet$set_at__i64__i32
           local.field 0 20 2   ; arg 0 std_async$JoinAll__i32.wake_at
           local.get 4   ; i
           i64.const 9223372036854775807
@@ -928,7 +928,7 @@ fn 14 std_async$JoinAll$std_core_Async$resume__i32 (ref) -> any
     if $L6 void
       local.field 0 20 1   ; arg 0 std_async$JoinAll__i32.results
       local.get 2   ; now
-      call 24   ; std_collections$MutableMap$std_core_Index$at__i64__i32
+      call 24   ; std_collections$MutableMap$std_core$Index$at__i64__i32
       local.tee 5   ; r
       type_check 0   ; null
       if $L7 void
@@ -951,7 +951,7 @@ fn 14 std_async$JoinAll$std_core_Async$resume__i32 (ref) -> any
   return
 end
 
-fn 15 std_async$JoinAll$std_core_Async$cancel__i32 (ref) -> void
+fn 15 std_async$JoinAll$std_core$Async$cancel__i32 (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -1006,7 +1006,7 @@ fn 18 std_async$earlier (i64,i64) -> i64
   return
 end
 
-fn 19 std_async$Sleep$std_core_Async$resume (ref) -> any
+fn 19 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 23 2   ; arg 0 std_async$Sleep.armed
@@ -1050,7 +1050,7 @@ fn 19 std_async$Sleep$std_core_Async$resume (ref) -> any
   return.lit null.const
 end
 
-fn 20 std_async$Sleep$std_core_Async$cancel (ref) -> void
+fn 20 std_async$Sleep$std_core$Async$cancel (ref) -> void
   return
 end
 
@@ -1122,14 +1122,14 @@ fn 23 std_async$new_join_all__i32 (ref) -> ref
   return
 end
 
-fn 24 std_collections$MutableMap$std_core_Index$at__i64__i32 (ref,i64) -> any
+fn 24 std_collections$MutableMap$std_core$Index$at__i64__i32 (ref,i64) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 31   ; std_collections$get__i64__i32
   return
 end
 
-fn 25 std_collections$MutableMap$std_core_IndexSet$set_at__i64__i32 (ref,i64,i32) -> void
+fn 25 std_collections$MutableMap$std_core$IndexSet$set_at__i64__i32 (ref,i64,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

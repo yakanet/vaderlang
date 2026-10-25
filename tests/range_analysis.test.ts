@@ -92,7 +92,7 @@ test("VADER_OPT_REPORT totals the verdicts and lists each certain fault", async 
 
 /** The index-check macros in the C definition of `elision$<name>`, in order. */
 function checksIn(c: string, name: string): string[] {
-  const start = c.search(new RegExp(`^static \\S.* elision_${name}\\(.*\\) \\{$`, "m"));
+  const start = c.search(new RegExp(`^static \\S.* elision\\$${name}\\(.*\\) \\{$`, "m"));
   expect(start).toBeGreaterThanOrEqual(0);
   const body = c.slice(start, c.indexOf("\n}\n", start));
   return body.match(/VADER_ARRAY_CHECK_[A-Z]+/g) ?? [];

@@ -433,7 +433,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   end $L0
 end
 
-fn 5 snippet$Ready$std_core_Async$resume__Any (ref) -> any
+fn 5 snippet$Ready$std_core$Async$resume__Any (ref) -> any
   local.field 0 8 0   ; arg 0 snippet$Ready__Any.v
   return
 end

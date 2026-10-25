@@ -66,7 +66,7 @@ impl 22 std_core$Into
 vtable snippet$Shower.show 6 5
 export main 7
 
-fn 0 snippet$Celsius$std_core_Into$into (ref) -> ref
+fn 0 snippet$Celsius$std_core$Into$into (ref) -> ref
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 i64
@@ -96,7 +96,7 @@ fn 0 snippet$Celsius$std_core_Into$into (ref) -> ref
   return
 end
 
-fn 1 snippet$Celsius$std_core_Into$into$1 (ref) -> string
+fn 1 snippet$Celsius$std_core$Into$into$1 (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $cast_9 i64
@@ -138,7 +138,7 @@ fn 2 snippet$fallback (any) -> ref
   if $L0 void
     i32.const 4
     struct.new 1   ; snippet$Celsius
-    call 0   ; snippet$Celsius$std_core_Into$into
+    call 0   ; snippet$Celsius$std_core$Into$into
     return
   end $L0
   local.get 1   ; __coalesce_0
@@ -148,7 +148,7 @@ end
 
 fn 3 snippet$returned (ref) -> ref
   local.get 0   ; arg 0
-  call 0   ; snippet$Celsius$std_core_Into$into
+  call 0   ; snippet$Celsius$std_core$Into$into
   return
 end
 
@@ -167,7 +167,7 @@ end
 
 fn 6 snippet$through_trait (any,ref) -> string
   local.get 1   ; arg 1
-  call 0   ; snippet$Celsius$std_core_Into$into
+  call 0   ; snippet$Celsius$std_core$Into$into
   local.get 0   ; arg 0
   virtual.call 2 snippet$Shower.show
   return
@@ -188,7 +188,7 @@ fn 7 snippet$main () -> i32
   local.set 0   ; l
   i32.const 3
   struct.new 1   ; snippet$Celsius
-  call 0   ; snippet$Celsius$std_core_Into$into
+  call 0   ; snippet$Celsius$std_core$Into$into
   local.set 0   ; l
   local.field 0 2 0   ; l snippet$Label.text
   ref.cast 3   ; string
@@ -204,7 +204,7 @@ fn 7 snippet$main () -> i32
   local.set 2   ; h
   i32.const 6
   struct.new 1   ; snippet$Celsius
-  call 0   ; snippet$Celsius$std_core_Into$into
+  call 0   ; snippet$Celsius$std_core$Into$into
   local.set 3   ; $call_16
   local.get 2   ; h
   local.get 3   ; $call_16
@@ -235,15 +235,15 @@ fn 7 snippet$main () -> i32
   local.set 2   ; h
   i32.const 8
   struct.new 1   ; snippet$Celsius
-  call 0   ; snippet$Celsius$std_core_Into$into
+  call 0   ; snippet$Celsius$std_core$Into$into
   local.set 3   ; $call_16
   local.get 2   ; h
   string.const 7   ; "k"
   local.get 3   ; $call_16
-  call 17   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__Any
+  call 17   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__Any
   local.get 2   ; h
   string.const 7   ; "k"
-  call 16   ; std_collections$MutableMap$std_core_Index$at__string__Any
+  call 16   ; std_collections$MutableMap$std_core$Index$at__string__Any
   local.tee 5   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -267,7 +267,7 @@ fn 7 snippet$main () -> i32
   local.set 6   ; n
   i32.const 13
   struct.new 1   ; snippet$Celsius
-  call 0   ; snippet$Celsius$std_core_Into$into
+  call 0   ; snippet$Celsius$std_core$Into$into
   local.set 0   ; l
   i32.const 1
   local.set 6   ; n
@@ -314,7 +314,7 @@ fn 7 snippet$main () -> i32
   local.set 0   ; l
   i32.const 14
   struct.new 1   ; snippet$Celsius
-  call 0   ; snippet$Celsius$std_core_Into$into
+  call 0   ; snippet$Celsius$std_core$Into$into
   local.set 2   ; h
   local.get 0   ; l
   local.get 2   ; h
@@ -342,7 +342,7 @@ fn 7 snippet$main () -> i32
   call 26   ; std_io$println__string
   i32.const 5
   struct.new 1   ; snippet$Celsius
-  call 0   ; snippet$Celsius$std_core_Into$into
+  call 0   ; snippet$Celsius$std_core$Into$into
   local.set 0   ; l
   local.field 0 2 0   ; l snippet$Label.text
   ref.cast 3   ; string
@@ -354,7 +354,7 @@ fn 7 snippet$main () -> i32
   call 26   ; std_io$println__string
   i32.const 9
   struct.new 1   ; snippet$Celsius
-  call 1   ; snippet$Celsius$std_core_Into$into$1
+  call 1   ; snippet$Celsius$std_core$Into$into$1
   call 27   ; std_string$trim
   local.set 1   ; $field_7
   string.const 15   ; "namespace ["
@@ -364,7 +364,7 @@ fn 7 snippet$main () -> i32
   call 26   ; std_io$println__string
   i32.const 10
   struct.new 1   ; snippet$Celsius
-  call 0   ; snippet$Celsius$std_core_Into$into
+  call 0   ; snippet$Celsius$std_core$Into$into
   local.set 0   ; l
   i32.const 1
   local.get 0   ; l
@@ -437,14 +437,14 @@ end
 
 fn 8 __lambda_snippet_0 (ref) -> ref
   local.get 0   ; arg 0
-  call 0   ; snippet$Celsius$std_core_Into$into
+  call 0   ; snippet$Celsius$std_core$Into$into
   return
 end
 
 fn 9 snippet$through_bound__snippet_Box (ref,ref) -> string
   local $call_2 ref
   local.get 1   ; arg 1
-  call 0   ; snippet$Celsius$std_core_Into$into
+  call 0   ; snippet$Celsius$std_core$Into$into
   local.set 2   ; $call_2
   local.get 0   ; arg 0
   local.get 2   ; $call_2
@@ -664,14 +664,14 @@ fn 15 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 16 std_collections$MutableMap$std_core_Index$at__string__Any (ref,string) -> any
+fn 16 std_collections$MutableMap$std_core$Index$at__string__Any (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 23   ; std_collections$get__string__Any
   return
 end
 
-fn 17 std_collections$MutableMap$std_core_IndexSet$set_at__string__Any (ref,string,any) -> void
+fn 17 std_collections$MutableMap$std_core$IndexSet$set_at__string__Any (ref,string,any) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

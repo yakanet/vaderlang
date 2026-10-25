@@ -1,8 +1,8 @@
 module _main
 type 0 scalar null
-type 1 struct default_type_param$N { v:2 }
+type 1 struct default__type__param$N { v:2 }
 type 2 scalar i32
-type 3 struct default_type_param$Tick { c:2 }
+type 3 struct default__type__param$Tick { c:2 }
 type 4 scalar string
 type 5 scalar u8
 type 6 scalar i64
@@ -13,18 +13,18 @@ string 0 "\n"
 import 0 byte_len std_core$byte_len result_type=6 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=8 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=6 param_types=2,8,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 1 default_type_param$Adder
-impl 3 default_type_param$Counter
+impl 1 default__type__param$Adder
+impl 3 default__type__param$Counter
 impl 7 std_core$ByteAccess
 export main 4
 
-fn 0 default_type_param$N$Adder$add_to (ref,ref) -> i32
+fn 0 default__type__param$N$Adder$add_to (ref,ref) -> i32
   local $field_2 i32
   local $field_3 i32
-  local.field 0 1 0   ; arg 0 default_type_param$N.v
+  local.field 0 1 0   ; arg 0 default__type__param$N.v
   ref.cast 2   ; i32
   local.set 2   ; $field_2
-  local.field 1 1 0   ; arg 1 default_type_param$N.v
+  local.field 1 1 0   ; arg 1 default__type__param$N.v
   ref.cast 2   ; i32
   local.set 3   ; $field_3
   local.get 2   ; $field_2
@@ -33,16 +33,16 @@ fn 0 default_type_param$N$Adder$add_to (ref,ref) -> i32
   return
 end
 
-fn 1 default_type_param$N$Adder$twice (ref,ref) -> i32
+fn 1 default__type__param$N$Adder$twice (ref,ref) -> i32
   local $call_2 i32
   local $call_3 i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 0   ; default_type_param$N$Adder$add_to
+  call 0   ; default__type__param$N$Adder$add_to
   local.set 2   ; $call_2
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 0   ; default_type_param$N$Adder$add_to
+  call 0   ; default__type__param$N$Adder$add_to
   local.set 3   ; $call_3
   local.get 2   ; $call_2
   local.get 3   ; $call_3
@@ -50,20 +50,20 @@ fn 1 default_type_param$N$Adder$twice (ref,ref) -> i32
   return
 end
 
-fn 2 default_type_param$Tick$Counter$current (ref) -> i32
-  local.field 0 3 0   ; arg 0 default_type_param$Tick.c
+fn 2 default__type__param$Tick$Counter$current (ref) -> i32
+  local.field 0 3 0   ; arg 0 default__type__param$Tick.c
   ref.cast 2   ; i32
   return
 end
 
-fn 3 default_type_param$Tick$Counter$bumped (ref) -> i32
+fn 3 default__type__param$Tick$Counter$bumped (ref) -> i32
   local $call_1 i32
   local $call_2 i32
   local.get 0   ; arg 0
-  call 2   ; default_type_param$Tick$Counter$current
+  call 2   ; default__type__param$Tick$Counter$current
   local.set 1   ; $call_1
   local.get 0   ; arg 0
-  call 2   ; default_type_param$Tick$Counter$current
+  call 2   ; default__type__param$Tick$Counter$current
   local.set 2   ; $call_2
   local.get 1   ; $call_1
   local.get 2   ; $call_2
@@ -71,17 +71,17 @@ fn 3 default_type_param$Tick$Counter$bumped (ref) -> i32
   return
 end
 
-fn 4 default_type_param$main () -> i32
+fn 4 default__type__param$main () -> i32
   local a ref
   local b ref
   local __buf_0 ref
   local __off_1 i64
   local $cast_12 i64
   i32.const 10
-  struct.new 1   ; default_type_param$N
+  struct.new 1   ; default__type__param$N
   local.set 0   ; a
   i32.const 5
-  struct.new 1   ; default_type_param$N
+  struct.new 1   ; default__type__param$N
   local.set 1   ; b
   i64.const 20
   buffer.new
@@ -90,7 +90,7 @@ fn 4 default_type_param$main () -> i32
   local.set 3   ; __off_1
   local.get 0   ; a
   local.get 1   ; b
-  call 1   ; default_type_param$N$Adder$twice
+  call 1   ; default__type__param$N$Adder$twice
   i32.to_i64
   local.set 4   ; $cast_12
   local.get 2   ; __buf_0
@@ -103,7 +103,7 @@ fn 4 default_type_param$main () -> i32
   call 6   ; std_core$finish_buffer
   call 10   ; std_io$println__string
   i32.const 7
-  struct.new 3   ; default_type_param$Tick
+  struct.new 3   ; default__type__param$Tick
   local.set 0   ; a
   i64.const 20
   buffer.new
@@ -111,7 +111,7 @@ fn 4 default_type_param$main () -> i32
   i64.const 0
   local.set 3   ; __off_1
   local.get 0   ; a
-  call 3   ; default_type_param$Tick$Counter$bumped
+  call 3   ; default__type__param$Tick$Counter$bumped
   i32.to_i64
   local.set 4   ; $cast_12
   local.get 1   ; b

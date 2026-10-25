@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.Point :: struct { x: i32 }  // snippet$Point
-  snippet.Point.equals :: fn(self: Point, other: Point) -> bool {  // snippet$Point$std_core_Equals$equals
+  snippet.Point.equals :: fn(self: Point, other: Point) -> bool {  // snippet$Point$std_core$Equals$equals
       self.x == other.x
   }
   snippet.Label :: struct { text: string }  // snippet$Label
@@ -65,10 +65,10 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  snippet$Point$std_core_Equals$equals$guard :: fn(self: Point, other: Any) -> bool {
+  snippet$Point$std_core$Equals$equals$guard :: fn(self: Point, other: Any) -> bool {
       (other is Point) && snippet.Point.equals(self, Point(other))
   }
-  vtable std.core.Equals.equals for Point  snippet$Point$std_core_Equals$equals$guard
+  vtable std.core.Equals.equals for Point  snippet$Point$std_core$Equals$equals$guard
 
 ## lowered in dependencies
   std/core

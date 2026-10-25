@@ -1167,7 +1167,7 @@ fn 9 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
   end $L0
 end
 
-fn 10 snippet$Ready$std_core_Async$resume__i32 (ref) -> any
+fn 10 snippet$Ready$std_core$Async$resume__i32 (ref) -> any
   local.field 0 9 0   ; arg 0 snippet$Ready__i32.v
   ref.cast 2   ; i32
   retag 2   ; i32

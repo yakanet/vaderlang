@@ -28,15 +28,15 @@
   snippet.units.warmer :: fn(c: Celsius) -> Celsius {  // snippet_units$warmer
       snippet.units.Celsius.add(c, Celsius(1.0))
   }
-  snippet.units.Meters.into :: fn(self: Meters) -> i32 {  // snippet_units$Meters$std_core_Into$into
+  snippet.units.Meters.into :: fn(self: Meters) -> i32 {  // snippet_units$Meters$std_core$Into$into
       self.v
   }
-  snippet.units.Celsius.add :: fn(self: Celsius, other: Celsius) -> Celsius {  // snippet_units$Celsius$std_core_Add$add
+  snippet.units.Celsius.add :: fn(self: Celsius, other: Celsius) -> Celsius {  // snippet_units$Celsius$std_core$Add$add
       Celsius(f64(self) + f64(other))
   }
   snippet.units.Meters :: struct { v: i32 }  // snippet_units$Meters
-  vtable std.core.Add.add for Celsius  snippet.units.Celsius.add  // snippet_units$Celsius$std_core_Add$add
-  vtable std.core.Into.into for Meters  snippet.units.Meters.into  // snippet_units$Meters$std_core_Into$into
+  vtable std.core.Add.add for Celsius  snippet.units.Celsius.add  // snippet_units$Celsius$std_core$Add$add
+  vtable std.core.Into.into for Meters  snippet.units.Meters.into  // snippet_units$Meters$std_core$Into$into
 
 ## lowered in dependencies
   std/core

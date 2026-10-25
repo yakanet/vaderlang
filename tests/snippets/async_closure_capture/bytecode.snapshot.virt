@@ -20,7 +20,7 @@ type 17 array 14
 type 18 ref std_core$Async
 type 19 struct std_async$Sleep { ms:15,deadline:15,armed:13 }
 type 20 union 0,7
-type 21 struct $Cell_i32 { value:1 }
+type 21 struct $Cell_i32_2af2b319 { value:1 }
 string 0 "\n"
 string 1 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len result_type=15 param_types=9 param_c_out= param_by_address= (string) -> i64
@@ -81,7 +81,7 @@ fn 2 __lambda_snippet_0 (ref,i32) -> void
   local.field 0 3 0   ; arg 0 __lambda_env_snippet_1.cap_0
   local.set 2   ; $field_2
   local.field 0 3 0   ; arg 0 __lambda_env_snippet_1.cap_0
-  struct.get 21 0   ; $Cell_i32.value
+  struct.get 21 0   ; $Cell_i32_2af2b319.value
   local.set 3   ; $cell_get_4
   local.field 0 3 1   ; arg 0 __lambda_env_snippet_1.cap_1
   ref.cast 1   ; i32
@@ -94,7 +94,7 @@ fn 2 __lambda_snippet_0 (ref,i32) -> void
   local.set 3   ; $cell_get_4
   local.get 2   ; $field_2
   local.get 3   ; $cell_get_4
-  struct.set 21 0   ; $Cell_i32.value
+  struct.set 21 0   ; $Cell_i32_2af2b319.value
   return
 end
 
@@ -132,7 +132,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
       i32.const -1
       struct.set 5 6   ; __asyncstate_snippet_2.state
       local.field 0 5 1   ; arg 0 __asyncstate_snippet_2.s1
-      struct.get 21 0   ; $Cell_i32.value
+      struct.get 21 0   ; $Cell_i32_2af2b319.value
       retag 1   ; i32
       return
     end $L2
@@ -255,7 +255,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                   return
                 end $L11
                 i32.const 0
-                struct.new 21   ; $Cell_i32
+                struct.new 21   ; $Cell_i32_2af2b319
                 local.set 9   ; $cell_63
                 local.get 0   ; arg 0
                 local.get 9   ; $cell_63
@@ -657,7 +657,7 @@ fn 12 std_async$run_async_main (any) -> i32
   return
 end
 
-fn 13 std_async$Sleep$std_core_Async$resume (ref) -> any
+fn 13 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 19 2   ; arg 0 std_async$Sleep.armed

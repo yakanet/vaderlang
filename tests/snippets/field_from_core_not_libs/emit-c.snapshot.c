@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_std_core_Field_t vader_struct_std_core_Field_t;
+typedef struct vader_struct_std_core$Field_t vader_struct_std_core$Field_t;
 
-struct vader_struct_std_core_Field_t {
+struct vader_struct_std_core$Field_t {
     vader_obj_header_t header;
     vader_string_t f_name;
     vader_box_t f_type;
@@ -16,8 +16,8 @@ struct vader_struct_std_core_Field_t {
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static int32_t snippet_count_fields(void* l0);
-static int32_t snippet_main(void);
+static int32_t snippet$count_fields(void* l0);
+static int32_t snippet$main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -29,11 +29,11 @@ const vader_type_info_t vader_type_info_table[6] = {
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [2] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Field_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Field_t),
         .slot_size = 8,
-        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core_Field_t, f_type) },
+        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core$Field_t, f_type) },
         .ptr_count = 1,
-        .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core_Field_t, f_name) },
+        .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core$Field_t, f_name) },
         .string_count = 1,
     },
     [3] = { .slot_size = 4 },
@@ -42,13 +42,13 @@ const vader_type_info_t vader_type_info_table[6] = {
 };
 const size_t vader_type_info_count = 6;
 
-static int32_t snippet_count_fields(void* l0) {
+static int32_t snippet$count_fields(void* l0) {
     int64_t t0;
     t0 = ((vader_array_t*) l0)->length;
     return ((int32_t) (int64_t) t0);
 }
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     void* t0 = NULL;
     int32_t t1;
     void** gc_raw_roots[1] = { &t0 };
@@ -56,7 +56,7 @@ static int32_t snippet_main(void) {
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(1u, 0u, 13u, 2u);
     t0 = (void*) _a0_arr;
-    t1 = snippet_count_fields(t0);
+    t1 = snippet$count_fields(t0);
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -66,5 +66,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

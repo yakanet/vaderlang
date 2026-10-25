@@ -30,7 +30,7 @@ type 27 struct std_collections$MutableMap__string___u8__bool { ekeys:30,evals:29
 type 28 array 7
 type 29 array 15
 type 30 array 1
-type 31 struct "$Cell_Union<string|u8>" { value:1 }
+type 31 struct $Cell_Union_string_u8__d0f53381 { value:1 }
 type 32 array 6
 string 0 "u8 "
 string 1 "text"
@@ -356,11 +356,11 @@ fn 6 snippet$main (ref) -> i32
   call 44   ; std_io$println__string
   string.const 7   ; "x"
   retag 2   ; string
-  struct.new 31   ; $Cell_Union<string|u8>
+  struct.new 31   ; $Cell_Union_string_u8__d0f53381
   local.tee 2   ; local
   struct.new 10   ; __lambda_env_snippet_1
   call 7   ; __lambda_snippet_0
-  local.field 2 31 0   ; local $Cell_Union<string|u8>.value
+  local.field 2 31 0   ; local $Cell_Union_string_u8__d0f53381.value
   call 0   ; snippet$show_byte
   call 44   ; std_io$println__string
   i32.const 1
@@ -420,7 +420,7 @@ fn 7 __lambda_snippet_0 (ref) -> void
   local.field 0 10 0   ; arg 0 __lambda_env_snippet_1.cap_0
   i32.const 15
   retag 3   ; u8
-  struct.set 31 0   ; $Cell_Union<string|u8>.value
+  struct.set 31 0   ; $Cell_Union_string_u8__d0f53381.value
   return
 end
 

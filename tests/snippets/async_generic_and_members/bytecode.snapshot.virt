@@ -974,7 +974,7 @@ fn 17 std_async$sleep (i64) -> any
   return
 end
 
-fn 18 std_async$Sleep$std_core_Async$resume (ref) -> any
+fn 18 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 23 2   ; arg 0 std_async$Sleep.armed

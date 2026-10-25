@@ -26,7 +26,7 @@ type 23 union 13,24
 type 24 struct semver$PartialVersion { major:1,minor:1,patch:1,prerelease:2,build:2 }
 type 25 union 0,3
 type 26 array 19
-type 27 struct std_string_builder$StringBuilder { parts:17 }
+type 27 struct std_string__builder$StringBuilder { parts:17 }
 type 28 array 1
 string 0 "1.2.3-rc.1"
 string 1 "1.0.0"
@@ -112,7 +112,7 @@ fn 0 snippet$main () -> i32
   if $L0 void
     local.get 1   ; ver
     ref.cast 3   ; semver$Version
-    call 37   ; semver$Version$std_core_Display$to_string
+    call 37   ; semver$Version$std_core$Display$to_string
     call 57   ; std_io$println__string
     string.const 1   ; "1.0.0"
     call 1   ; snippet$parse_one
@@ -120,7 +120,7 @@ fn 0 snippet$main () -> i32
     local.get 1   ; ver
     ref.cast 3   ; semver$Version
     local.get 2   ; base
-    call 38   ; semver$Version$std_core_Comparable$compare
+    call 38   ; semver$Version$std_core$Comparable$compare
     i32.const 0
     i32.gt
     if $L1 void
@@ -140,7 +140,7 @@ fn 0 snippet$main () -> i32
       local.get 4   ; rg
       ref.cast 15   ; semver$VersionRange
       local.get 2   ; base
-      call 39   ; semver$VersionRange$std_core_Contains$contains
+      call 39   ; semver$VersionRange$std_core$Contains$contains
       if $L3 void
         string.const 5   ; "1.5.0 in ^1.0.0"
         call 57   ; std_io$println__string
@@ -155,7 +155,7 @@ fn 0 snippet$main () -> i32
     end $L4
     local.get 4   ; rg
     ref.cast 13   ; std_string$ParseError
-    call 54   ; std_string$ParseError$std_core_Error$message
+    call 54   ; std_string$ParseError$std_core$Error$message
     local.set 5   ; $call_29
     string.const 6   ; "range err: "
     local.get 5   ; $call_29
@@ -171,7 +171,7 @@ fn 0 snippet$main () -> i32
   end $L5
   local.get 1   ; ver
   ref.cast 13   ; std_string$ParseError
-  call 54   ; std_string$ParseError$std_core_Error$message
+  call 54   ; std_string$ParseError$std_core$Error$message
   local.set 5   ; $call_29
   string.const 7   ; "err: "
   local.get 5   ; $call_29
@@ -937,7 +937,7 @@ fn 9 semver$parse (string) -> any
           end $L18
           local.get 14   ; v
           ref.cast 13   ; std_string$ParseError
-          call 54   ; std_string$ParseError$std_core_Error$message
+          call 54   ; std_string$ParseError$std_core$Error$message
           local.set 15   ; $call_81
           string.const 11   ; "version core: "
           local.get 15   ; $call_81
@@ -1058,7 +1058,7 @@ fn 9 semver$parse (string) -> any
   end $L29
   local.get 14   ; v
   ref.cast 13   ; std_string$ParseError
-  call 54   ; std_string$ParseError$std_core_Error$message
+  call 54   ; std_string$ParseError$std_core$Error$message
   local.set 8   ; core
   string.const 11   ; "version core: "
   local.get 8   ; core
@@ -1126,7 +1126,7 @@ fn 10 semver$parse_range (string) -> any
       end $L4
       local.get 6   ; cl
       ref.cast 13   ; std_string$ParseError
-      call 54   ; std_string$ParseError$std_core_Error$message
+      call 54   ; std_string$ParseError$std_core$Error$message
       struct.new 13   ; std_string$ParseError
       return
     end $L2
@@ -1558,7 +1558,7 @@ fn 16 semver$parse_clause (string) -> any
             end $L9
             local.get 10   ; parsed
             ref.cast 13   ; std_string$ParseError
-            call 54   ; std_string$ParseError$std_core_Error$message
+            call 54   ; std_string$ParseError$std_core$Error$message
             struct.new 13   ; std_string$ParseError
             return
           end $L5
@@ -1650,7 +1650,7 @@ fn 16 semver$parse_clause (string) -> any
             end $L16
             local.get 18   ; hi_part
             ref.cast 13   ; std_string$ParseError
-            call 54   ; std_string$ParseError$std_core_Error$message
+            call 54   ; std_string$ParseError$std_core$Error$message
             local.set 25   ; $call_88
             string.const 22   ; "hyphen upper: "
             local.get 25   ; $call_88
@@ -1666,7 +1666,7 @@ fn 16 semver$parse_clause (string) -> any
           end $L17
           local.get 16   ; lo_part
           ref.cast 13   ; std_string$ParseError
-          call 54   ; std_string$ParseError$std_core_Error$message
+          call 54   ; std_string$ParseError$std_core$Error$message
           local.set 26   ; $call_95
           string.const 23   ; "hyphen lower: "
           local.get 26   ; $call_95
@@ -1725,7 +1725,7 @@ fn 16 semver$parse_clause (string) -> any
       end $L21
       local.get 28   ; parsed
       ref.cast 13   ; std_string$ParseError
-      call 54   ; std_string$ParseError$std_core_Error$message
+      call 54   ; std_string$ParseError$std_core$Error$message
       struct.new 13   ; std_string$ParseError
       return
     end $L2
@@ -2417,7 +2417,7 @@ fn 22 semver$parse_token (string) -> any
     end $L9
     local.get 5   ; p
     ref.cast 13   ; std_string$ParseError
-    call 54   ; std_string$ParseError$std_core_Error$message
+    call 54   ; std_string$ParseError$std_core$Error$message
     local.set 6   ; $call_55
     string.const 33   ; "caret: "
     local.get 6   ; $call_55
@@ -2449,7 +2449,7 @@ fn 22 semver$parse_token (string) -> any
     end $L12
     local.get 5   ; p
     ref.cast 13   ; std_string$ParseError
-    call 54   ; std_string$ParseError$std_core_Error$message
+    call 54   ; std_string$ParseError$std_core$Error$message
     local.set 1   ; $call_16
     string.const 34   ; "tilde: "
     local.get 1   ; $call_16
@@ -2546,7 +2546,7 @@ fn 22 semver$parse_token (string) -> any
   end $L17
   local.get 5   ; p
   ref.cast 13   ; std_string$ParseError
-  call 54   ; std_string$ParseError$std_core_Error$message
+  call 54   ; std_string$ParseError$std_core$Error$message
   local.set 1   ; $call_16
   string.const 35   ; "bare: "
   local.get 1   ; $call_16
@@ -2780,7 +2780,7 @@ fn 23 semver$parse_partial (string) -> any
         end $L19
         local.get 15   ; v
         ref.cast 13   ; std_string$ParseError
-        call 54   ; std_string$ParseError$std_core_Error$message
+        call 54   ; std_string$ParseError$std_core$Error$message
         local.set 8   ; core
         string.const 39   ; "major: "
         local.get 8   ; core
@@ -2827,7 +2827,7 @@ fn 23 semver$parse_partial (string) -> any
         end $L23
         local.get 15   ; v
         ref.cast 13   ; std_string$ParseError
-        call 54   ; std_string$ParseError$std_core_Error$message
+        call 54   ; std_string$ParseError$std_core$Error$message
         local.set 8   ; core
         string.const 40   ; "minor: "
         local.get 8   ; core
@@ -2874,7 +2874,7 @@ fn 23 semver$parse_partial (string) -> any
         end $L27
         local.get 15   ; v
         ref.cast 13   ; std_string$ParseError
-        call 54   ; std_string$ParseError$std_core_Error$message
+        call 54   ; std_string$ParseError$std_core$Error$message
         local.set 8   ; core
         string.const 41   ; "patch: "
         local.get 8   ; core
@@ -3129,7 +3129,7 @@ fn 27 semver$parse_comparator_token (u8,string) -> any
   end $L2
   local.get 3   ; v
   ref.cast 13   ; std_string$ParseError
-  call 54   ; std_string$ParseError$std_core_Error$message
+  call 54   ; std_string$ParseError$std_core$Error$message
   local.set 5   ; $call_16
   string.const 46   ; "comparator: "
   local.get 5   ; $call_16
@@ -3411,14 +3411,14 @@ fn 36 semver$bump_patch (i32) -> any
   return
 end
 
-fn 37 semver$Version$std_core_Display$to_string (ref) -> string
+fn 37 semver$Version$std_core$Display$to_string (ref) -> string
   local sb ref
   local __buf_0 ref
   local __off_1 i64
   local $cast_10 i64
   local $call_22 string
   array.new 17 0   ; string[]
-  struct.new 27   ; std_string_builder$StringBuilder
+  struct.new 27   ; std_string__builder$StringBuilder
   local.set 1   ; sb
   i64.const 62
   buffer.new
@@ -3468,7 +3468,7 @@ fn 37 semver$Version$std_core_Display$to_string (ref) -> string
   local.set 5   ; $call_22
   local.get 1   ; sb
   local.get 5   ; $call_22
-  call 64   ; std_string_builder$append
+  call 64   ; std_string__builder$append
   local.field 0 3 3   ; arg 0 semver$Version.prerelease
   ref.cast 2   ; string
   call 46   ; std_string$is_empty
@@ -3476,44 +3476,44 @@ fn 37 semver$Version$std_core_Display$to_string (ref) -> string
   else
     local.get 1   ; sb
     string.const 21   ; "-"
-    call 64   ; std_string_builder$append
+    call 64   ; std_string__builder$append
     local.field 0 3 3   ; arg 0 semver$Version.prerelease
     ref.cast 2   ; string
     local.set 5   ; $call_22
     local.get 1   ; sb
     local.get 5   ; $call_22
-    call 64   ; std_string_builder$append
+    call 64   ; std_string__builder$append
   end $L0
   local.field 0 3 4   ; arg 0 semver$Version.build
   ref.cast 2   ; string
   call 46   ; std_string$is_empty
   if $L1 void
     local.get 1   ; sb
-    call 63   ; std_string_builder$StringBuilder$std_core_Display$to_string
+    call 63   ; std_string__builder$StringBuilder$std_core$Display$to_string
     return
   end $L1
   local.get 1   ; sb
   string.const 48   ; "+"
-  call 64   ; std_string_builder$append
+  call 64   ; std_string__builder$append
   local.field 0 3 4   ; arg 0 semver$Version.build
   ref.cast 2   ; string
   local.set 5   ; $call_22
   local.get 1   ; sb
   local.get 5   ; $call_22
-  call 64   ; std_string_builder$append
+  call 64   ; std_string__builder$append
   local.get 1   ; sb
-  call 63   ; std_string_builder$StringBuilder$std_core_Display$to_string
+  call 63   ; std_string__builder$StringBuilder$std_core$Display$to_string
   return
 end
 
-fn 38 semver$Version$std_core_Comparable$compare (ref,ref) -> i32
+fn 38 semver$Version$std_core$Comparable$compare (ref,ref) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 40   ; semver$compare_versions
   return
 end
 
-fn 39 semver$VersionRange$std_core_Contains$contains (ref,ref) -> bool
+fn 39 semver$VersionRange$std_core$Contains$contains (ref,ref) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -4590,7 +4590,7 @@ fn 53 std_string$matches_at (string,i64,string) -> bool
   return.lit bool.const true
 end
 
-fn 54 std_string$ParseError$std_core_Error$message (ref) -> string
+fn 54 std_string$ParseError$std_core$Error$message (ref) -> string
   local.field 0 13 0   ; arg 0 std_string$ParseError.msg
   ref.cast 2   ; string
   return
@@ -4788,7 +4788,7 @@ fn 62 std_char$is_alpha (char) -> bool
   return
 end
 
-fn 63 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
+fn 63 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> string
   local n i64
   local __for_arr_0 ref
   local __for_len_1 i64
@@ -4797,7 +4797,7 @@ fn 63 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   local __for_arr_3 ref
   local p string
   local $call_40 i64
-  local.field 0 27 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 27 0   ; arg 0 std_string__builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -4809,7 +4809,7 @@ fn 63 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 27 0   ; arg 0 std_string_builder$StringBuilder.parts
+    local.field 0 27 0   ; arg 0 std_string__builder$StringBuilder.parts
     i32.const 0
     array.get 17   ; string[]
     ref.cast 2   ; string
@@ -4817,7 +4817,7 @@ fn 63 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 27 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 27 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -4850,7 +4850,7 @@ fn 63 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 27 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 27 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2
@@ -4890,8 +4890,8 @@ fn 63 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   return
 end
 
-fn 64 std_string_builder$append (ref,string) -> void
-  local.field 0 27 0   ; arg 0 std_string_builder$StringBuilder.parts
+fn 64 std_string__builder$append (ref,string) -> void
+  local.field 0 27 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.get 1   ; arg 1
   array.push 2   ; string
   return

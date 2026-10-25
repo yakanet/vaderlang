@@ -97,7 +97,7 @@ vtable std_core$Display.to_string 25 32
 vtable std_core$Display.to_string 7 33
 export main 1
 
-fn 0 snippet$Point$std_core_Display$to_string (ref) -> string
+fn 0 snippet$Point$std_core$Display$to_string (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $cast_9 i64
@@ -158,19 +158,19 @@ fn 1 snippet$main () -> i32
   i32.const 2
   i32.const 3
   array.new 15 3   ; i32[]
-  call 13   ; std_core$[]$Display$to_string__i32
+  call 13   ; std_core$$array$Display$to_string__i32
   local.set 1   ; $call_6
   string.const 4   ; "a"
   string.const 5   ; "b"
   array.new 8 2   ; string[]
-  call 14   ; std_core$[]$Display$to_string__string
+  call 14   ; std_core$$array$Display$to_string__string
   local.set 2   ; $call_11
   bool.const true
   array.new 16 1   ; bool[]
-  call 15   ; std_core$[]$Display$to_string__bool
+  call 15   ; std_core$$array$Display$to_string__bool
   local.set 3   ; $call_15
   local.get 0   ; empty
-  call 13   ; std_core$[]$Display$to_string__i32
+  call 13   ; std_core$$array$Display$to_string__i32
   local.set 4   ; $call_17
   local.get 1   ; $call_6
   string.const 3   ; " "
@@ -185,7 +185,7 @@ fn 1 snippet$main () -> i32
   i32.const 2
   struct.new 1   ; snippet$Point
   array.new 17 1   ; snippet$Point[]
-  call 16   ; std_core$[]$Display$to_string__snippet_Point
+  call 16   ; std_core$$array$Display$to_string__snippet_Point
   local.set 1   ; $call_6
   i32.const 1
   array.new 15 1   ; i32[]
@@ -197,7 +197,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; empty
   local.get 5   ; $arr_29
   array.new 18 2   ; i32[][]
-  call 17   ; std_core$[]$Display$to_string__i32__
+  call 17   ; std_core$$array$Display$to_string__i32__
   local.set 2   ; $call_11
   local.get 1   ; $call_6
   string.const 3   ; " "
@@ -222,7 +222,7 @@ fn 1 snippet$main () -> i32
   i32.const 5
   array.new 15 2   ; i32[]
   struct.new 4   ; snippet$Box
-  call 2   ; snippet$Box$std_core_Display$to_string
+  call 2   ; snippet$Box$std_core$Display$to_string
   local.set 1   ; $call_6
   i32.const 6
   array.new 15 1   ; i32[]
@@ -239,7 +239,7 @@ fn 1 snippet$main () -> i32
   local.set 1   ; $call_6
   null.const
   array.new 19 1   ; null[]
-  call 18   ; std_core$[]$Display$to_string__null
+  call 18   ; std_core$$array$Display$to_string__null
   local.set 2   ; $call_11
   local.get 1   ; $call_6
   string.const 3   ; " "
@@ -249,7 +249,7 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 snippet$Box$std_core_Display$to_string (ref) -> string
+fn 2 snippet$Box$std_core$Display$to_string (ref) -> string
   local $vcall_3 string
   local.field 0 4 0   ; arg 0 snippet$Box.value
   virtual.call 1 std_core$Display.to_string
@@ -278,7 +278,7 @@ fn 4 snippet$listed__f64 (ref) -> string
   local __buf_1 ref
   local $len_10 i64
   local.get 0   ; arg 0
-  call 19   ; std_core$[]$Display$to_string__f64
+  call 19   ; std_core$$array$Display$to_string__f64
   local.tee 1   ; __p_0
   call.import 0   ; std_core$byte_len
   local.set 2   ; $call_4
@@ -319,7 +319,7 @@ fn 5 snippet$listed__string (ref) -> string
   local __buf_1 ref
   local $len_10 i64
   local.get 0   ; arg 0
-  call 14   ; std_core$[]$Display$to_string__string
+  call 14   ; std_core$$array$Display$to_string__string
   local.tee 1   ; __p_0
   call.import 0   ; std_core$byte_len
   local.set 2   ; $call_4
@@ -729,7 +729,7 @@ fn 12 std_core$write_unsigned (ref,i64,u64) -> i64
   return
 end
 
-fn 13 std_core$[]$Display$to_string__i32 (ref) -> string
+fn 13 std_core$$array$Display$to_string__i32 (ref) -> string
   local $arr_1 ref
   local $len_2 i64
   local __for_arr_0 ref
@@ -854,7 +854,7 @@ fn 13 std_core$[]$Display$to_string__i32 (ref) -> string
   return
 end
 
-fn 14 std_core$[]$Display$to_string__string (ref) -> string
+fn 14 std_core$$array$Display$to_string__string (ref) -> string
   local $arr_1 ref
   local $len_2 i64
   local __for_arr_0 ref
@@ -980,7 +980,7 @@ fn 14 std_core$[]$Display$to_string__string (ref) -> string
   return
 end
 
-fn 15 std_core$[]$Display$to_string__bool (ref) -> string
+fn 15 std_core$$array$Display$to_string__bool (ref) -> string
   local $arr_1 ref
   local $len_2 i64
   local __for_arr_0 ref
@@ -1106,7 +1106,7 @@ fn 15 std_core$[]$Display$to_string__bool (ref) -> string
   return
 end
 
-fn 16 std_core$[]$Display$to_string__snippet_Point (ref) -> string
+fn 16 std_core$$array$Display$to_string__snippet_Point (ref) -> string
   local $arr_1 ref
   local $len_2 i64
   local __for_arr_0 ref
@@ -1139,7 +1139,7 @@ fn 16 std_core$[]$Display$to_string__snippet_Point (ref) -> string
       local.get 3   ; __for_arr_0
       local.get 5   ; __for_i_2
       array.get 17   ; snippet$Point[]
-      call 0   ; snippet$Point$std_core_Display$to_string
+      call 0   ; snippet$Point$std_core$Display$to_string
       local.tee 6   ; part
       call.import 0   ; std_core$byte_len
       local.set 7   ; $call_17
@@ -1231,7 +1231,7 @@ fn 16 std_core$[]$Display$to_string__snippet_Point (ref) -> string
   return
 end
 
-fn 17 std_core$[]$Display$to_string__i32__ (ref) -> string
+fn 17 std_core$$array$Display$to_string__i32__ (ref) -> string
   local $arr_1 ref
   local $len_2 i64
   local __for_arr_0 ref
@@ -1264,7 +1264,7 @@ fn 17 std_core$[]$Display$to_string__i32__ (ref) -> string
       local.get 3   ; __for_arr_0
       local.get 5   ; __for_i_2
       array.get 18   ; i32[][]
-      call 13   ; std_core$[]$Display$to_string__i32
+      call 13   ; std_core$$array$Display$to_string__i32
       local.tee 6   ; part
       call.import 0   ; std_core$byte_len
       local.set 7   ; $call_17
@@ -1356,7 +1356,7 @@ fn 17 std_core$[]$Display$to_string__i32__ (ref) -> string
   return
 end
 
-fn 18 std_core$[]$Display$to_string__null (ref) -> string
+fn 18 std_core$$array$Display$to_string__null (ref) -> string
   local $arr_1 ref
   local $len_2 i64
   local __for_arr_0 ref
@@ -1482,7 +1482,7 @@ fn 18 std_core$[]$Display$to_string__null (ref) -> string
   return
 end
 
-fn 19 std_core$[]$Display$to_string__f64 (ref) -> string
+fn 19 std_core$$array$Display$to_string__f64 (ref) -> string
   local $arr_1 ref
   local $len_2 i64
   local __for_arr_0 ref

@@ -20,11 +20,11 @@
       (('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z'))
   }
   snippet.Bag :: struct { items: i64[] }  // snippet$Bag
-  snippet.Bag.contains :: fn(self: Bag, value: i64) -> bool {  // snippet$Bag$std_core_Contains$contains
+  snippet.Bag.contains :: fn(self: Bag, value: i64) -> bool {  // snippet$Bag$std_core$Contains$contains
       std.core.i64[].contains(self.items, value)
   }
   snippet.DigitSet :: struct { bits: i32 }  // snippet$DigitSet
-  snippet.DigitSet.contains :: fn(self: DigitSet, value: i32) -> bool {  // snippet$DigitSet$std_core_Contains$contains
+  snippet.DigitSet.contains :: fn(self: DigitSet, value: i32) -> bool {  // snippet$DigitSet$std_core$Contains$contains
       if (value < 0) || (value > 9) {
           return false
       }
@@ -208,8 +208,8 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Contains.contains for Bag  snippet.Bag.contains  // snippet$Bag$std_core_Contains$contains
-  vtable std.core.Contains.contains for DigitSet  snippet.DigitSet.contains  // snippet$DigitSet$std_core_Contains$contains
+  vtable std.core.Contains.contains for Bag  snippet.Bag.contains  // snippet$Bag$std_core$Contains$contains
+  vtable std.core.Contains.contains for DigitSet  snippet.DigitSet.contains  // snippet$DigitSet$std_core$Contains$contains
 
 ## lowered in dependencies
   std/core
@@ -229,15 +229,15 @@
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.step  // std_core$i32$Step$step
-    fn std.core.i32[].contains  // std_core$[]$Contains$contains__i32
+    fn std.core.i32[].contains  // std_core$$array$Contains$contains__i32
     fn std.core.i64.compare  // std_core$i64$Comparable$compare
     fn std.core.i64.step  // std_core$i64$Step$step
-    fn std.core.i64[].contains  // std_core$[]$Contains$contains__i64
+    fn std.core.i64[].contains  // std_core$$array$Contains$contains__i64
     fn std.core.next_scalar  // std_core$next_scalar
     fn std.core.three_way  // std_core$three_way
     fn std.core.u8.compare  // std_core$u8$Comparable$compare
     fn std.core.u8.step  // std_core$u8$Step$step
-    fn std.core.u8[].contains  // std_core$[]$Contains$contains__u8
+    fn std.core.u8[].contains  // std_core$$array$Contains$contains__u8
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at

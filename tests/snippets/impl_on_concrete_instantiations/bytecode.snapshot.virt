@@ -9,7 +9,7 @@ type 6 struct snippet$Wrap__Any { inner:8 }
 type 7 struct snippet$Wrap__snippet_Label { inner:8 }
 type 8 ref _
 type 9 struct snippet$Wrap__snippet_Wrap_snippet_Label_ { inner:8 }
-type 10 struct snippet$Wrap__snippet_Wrap_Any { inner:8 }
+type 10 struct snippet$Wrap__snippet$Wrap_Any { inner:8 }
 type 11 scalar bool
 type 12 scalar u8
 type 13 scalar i64
@@ -82,7 +82,7 @@ vtable std_core$Display.to_string 21 23
 vtable std_core$Display.to_string 22 24
 export main 1
 
-fn 0 snippet$Label$std_core_Display$to_string (ref) -> string
+fn 0 snippet$Label$std_core$Display$to_string (ref) -> string
   local $field_2 string
   local.field 0 1 0   ; arg 0 snippet$Label.text
   ref.cast 2   ; string
@@ -106,16 +106,16 @@ fn 1 snippet$main () -> i32
   struct.new 5   ; snippet$Box__string
   local.set 1   ; b
   local.get 0   ; a
-  call 2   ; snippet$Box$std_core_Display$to_string__i32
+  call 2   ; snippet$Box$std_core$Display$to_string__i32
   call 58   ; std_io$println__string
   local.get 1   ; b
-  call 3   ; snippet$Box$std_core_Display$to_string__string$1
+  call 3   ; snippet$Box$std_core$Display$to_string__string$1
   call 58   ; std_io$println__string
   local.get 0   ; a
-  call 2   ; snippet$Box$std_core_Display$to_string__i32
+  call 2   ; snippet$Box$std_core$Display$to_string__i32
   local.set 2   ; $call_8
   local.get 1   ; b
-  call 3   ; snippet$Box$std_core_Display$to_string__string$1
+  call 3   ; snippet$Box$std_core$Display$to_string__string$1
   local.set 3   ; $call_10
   local.get 2   ; $call_8
   string.const 3   ; " "
@@ -126,13 +126,13 @@ fn 1 snippet$main () -> i32
   struct.new 1   ; snippet$Label
   struct.new 6   ; snippet$Wrap__Any
   local.tee 0   ; a
-  struct.new 10   ; snippet$Wrap__snippet_Wrap_Any
+  struct.new 10   ; snippet$Wrap__snippet$Wrap_Any
   local.set 1   ; b
   local.get 0   ; a
-  call 4   ; snippet$Wrap$std_core_Display$to_string__Any
+  call 4   ; snippet$Wrap$std_core$Display$to_string__Any
   local.set 2   ; $call_8
   local.get 1   ; b
-  call 4   ; snippet$Wrap$std_core_Display$to_string__Any
+  call 4   ; snippet$Wrap$std_core$Display$to_string__Any
   local.set 3   ; $call_10
   local.get 2   ; $call_8
   string.const 3   ; " "
@@ -142,7 +142,7 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 snippet$Box$std_core_Display$to_string__i32 (ref) -> string
+fn 2 snippet$Box$std_core$Display$to_string__i32 (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $cast_9 i64
@@ -171,7 +171,7 @@ fn 2 snippet$Box$std_core_Display$to_string__i32 (ref) -> string
   return
 end
 
-fn 3 snippet$Box$std_core_Display$to_string__string$1 (ref) -> string
+fn 3 snippet$Box$std_core$Display$to_string__string$1 (ref) -> string
   local $field_2 string
   local.field 0 5 0   ; arg 0 snippet$Box__string.value
   ref.cast 2   ; string
@@ -182,7 +182,7 @@ fn 3 snippet$Box$std_core_Display$to_string__string$1 (ref) -> string
   return
 end
 
-fn 4 snippet$Wrap$std_core_Display$to_string__Any (ref) -> string
+fn 4 snippet$Wrap$std_core$Display$to_string__Any (ref) -> string
   local $vcall_3 string
   local.field 0 6 0   ; arg 0 snippet$Wrap__Any.inner
   virtual.call 1 std_core$Display.to_string

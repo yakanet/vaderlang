@@ -14,7 +14,7 @@ type 11 scalar u8
 type 12 scalar i64
 type 13 struct std_core$Buffer {  }
 type 14 array 11
-type 15 struct $Cell_i32 { value:1 }
+type 15 struct $Cell_i32_2af2b319 { value:1 }
 string 0 "copied capture:   "
 string 1 "shared capture:   "
 string 2 "capture in field: "
@@ -38,7 +38,7 @@ fn 1 snippet$shared_capture () -> i32
   local inc ref
   local get ref
   i32.const 0
-  struct.new 15   ; $Cell_i32
+  struct.new 15   ; $Cell_i32_2af2b319
   local.tee 0   ; n
   struct.new 3   ; __lambda_env_snippet_3
   local.set 1   ; inc
@@ -160,19 +160,19 @@ fn 5 __lambda_snippet_2 (ref) -> void
   local.field 0 3 0   ; arg 0 __lambda_env_snippet_3.cap_0
   local.set 1   ; $field_1
   local.field 0 3 0   ; arg 0 __lambda_env_snippet_3.cap_0
-  struct.get 15 0   ; $Cell_i32.value
+  struct.get 15 0   ; $Cell_i32_2af2b319.value
   i32.const 1
   i32.checked_add
   local.set 2   ; $add_checked_5
   local.get 1   ; $field_1
   local.get 2   ; $add_checked_5
-  struct.set 15 0   ; $Cell_i32.value
+  struct.set 15 0   ; $Cell_i32_2af2b319.value
   return
 end
 
 fn 6 __lambda_snippet_4 (ref) -> i32
   local.field 0 5 0   ; arg 0 __lambda_env_snippet_5.cap_0
-  struct.get 15 0   ; $Cell_i32.value
+  struct.get 15 0   ; $Cell_i32_2af2b319.value
   return
 end
 

@@ -101,18 +101,18 @@ fn 0 snippet$main () -> i32
   local.get 0   ; __buf_0
   i32.const 1
   i64.const 405
-  call 9   ; std_collections$MutableMap$std_core_IndexSet$set_at__snippet_alpha_Status__i64
+  call 9   ; std_collections$MutableMap$std_core$IndexSet$set_at__snippet_alpha_Status__i64
   local.get 3   ; $arr_15
   i32.const 1
   i64.const 1001
-  call 11   ; std_collections$MutableMap$std_core_IndexSet$set_at__snippet_beta_Status__i64
+  call 11   ; std_collections$MutableMap$std_core$IndexSet$set_at__snippet_beta_Status__i64
   i32.const 0
   call 2   ; snippet$as_int__snippet_beta_Status
   local.set 1   ; __off_1
   local.get 3   ; $arr_15
   i32.const 0
   local.get 1   ; __off_1
-  call 11   ; std_collections$MutableMap$std_core_IndexSet$set_at__snippet_beta_Status__i64
+  call 11   ; std_collections$MutableMap$std_core$IndexSet$set_at__snippet_beta_Status__i64
   i64.const 62
   buffer.new
   local.set 4   ; $arr_16
@@ -120,7 +120,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   i32.const 1
-  call 8   ; std_collections$MutableMap$std_core_Index$at__snippet_alpha_Status__i64
+  call 8   ; std_collections$MutableMap$std_core$Index$at__snippet_alpha_Status__i64
   local.tee 6   ; __coalesce_2
   type_check 0   ; null
   if $L0 void
@@ -143,7 +143,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   local.get 3   ; $arr_15
   i32.const 1
-  call 10   ; std_collections$MutableMap$std_core_Index$at__snippet_beta_Status__i64
+  call 10   ; std_collections$MutableMap$std_core$Index$at__snippet_beta_Status__i64
   local.tee 6   ; __coalesce_2
   type_check 0   ; null
   if $L1 void
@@ -166,7 +166,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   local.get 3   ; $arr_15
   i32.const 0
-  call 10   ; std_collections$MutableMap$std_core_Index$at__snippet_beta_Status__i64
+  call 10   ; std_collections$MutableMap$std_core$Index$at__snippet_beta_Status__i64
   local.tee 6   ; __coalesce_2
   type_check 0   ; null
   if $L2 void
@@ -376,14 +376,14 @@ fn 7 std_core$u8$Hash$hash (u8) -> u64
   return
 end
 
-fn 8 std_collections$MutableMap$std_core_Index$at__snippet_alpha_Status__i64 (ref,u8) -> any
+fn 8 std_collections$MutableMap$std_core$Index$at__snippet_alpha_Status__i64 (ref,u8) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 20   ; std_collections$get__snippet_alpha_Status__i64
   return
 end
 
-fn 9 std_collections$MutableMap$std_core_IndexSet$set_at__snippet_alpha_Status__i64 (ref,u8,i64) -> void
+fn 9 std_collections$MutableMap$std_core$IndexSet$set_at__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -392,14 +392,14 @@ fn 9 std_collections$MutableMap$std_core_IndexSet$set_at__snippet_alpha_Status__
   return
 end
 
-fn 10 std_collections$MutableMap$std_core_Index$at__snippet_beta_Status__i64 (ref,u8) -> any
+fn 10 std_collections$MutableMap$std_core$Index$at__snippet_beta_Status__i64 (ref,u8) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 21   ; std_collections$get__snippet_beta_Status__i64
   return
 end
 
-fn 11 std_collections$MutableMap$std_core_IndexSet$set_at__snippet_beta_Status__i64 (ref,u8,i64) -> void
+fn 11 std_collections$MutableMap$std_core$IndexSet$set_at__snippet_beta_Status__i64 (ref,u8,i64) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

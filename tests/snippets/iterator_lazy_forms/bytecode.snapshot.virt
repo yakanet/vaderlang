@@ -366,7 +366,7 @@ fn 12 snippet$defaults () -> void
   i32.const 4
   i32.const 5
   array.new 6 5   ; i32[]
-  call 27   ; std_core$[]$Into$into__i32
+  call 27   ; std_core$$array$Into$into__i32
   local.set 0   ; $call_6
   fn.ref 0 37   ; snippet$odd fn
   local.set 1   ; $fn_ref_7
@@ -399,7 +399,7 @@ fn 12 snippet$defaults () -> void
   i32.const 2
   i32.const 4
   array.new 6 2   ; i32[]
-  call 27   ; std_core$[]$Into$into__i32
+  call 27   ; std_core$$array$Into$into__i32
   local.set 0   ; $call_6
   fn.ref 0 37   ; snippet$odd fn
   local.set 1   ; $fn_ref_7
@@ -435,7 +435,7 @@ fn 12 snippet$defaults () -> void
   i32.const 4
   i32.const 5
   array.new 6 5   ; i32[]
-  call 27   ; std_core$[]$Into$into__i32
+  call 27   ; std_core$$array$Into$into__i32
   local.set 0   ; $call_6
   fn.ref 0 37   ; snippet$odd fn
   local.set 1   ; $fn_ref_7
@@ -681,7 +681,7 @@ fn 12 snippet$defaults () -> void
   i32.const 4
   i32.const 5
   array.new 6 5   ; i32[]
-  call 27   ; std_core$[]$Into$into__i32
+  call 27   ; std_core$$array$Into$into__i32
   local.set 0   ; $call_6
   fn.ref 0 37   ; snippet$odd fn
   local.set 1   ; $fn_ref_7
@@ -766,7 +766,7 @@ fn 13 snippet$composite_sources () -> void
   i32.const 20
   i32.const 30
   array.new 6 3   ; i32[]
-  call 27   ; std_core$[]$Into$into__i32
+  call 27   ; std_core$$array$Into$into__i32
   call 40   ; std_iter$indexed__i32
   local.set 0   ; $call_5
   fn.ref 3 69   ; snippet$big fn
@@ -2107,7 +2107,7 @@ fn 26 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 27 std_core$[]$Into$into__i32 (ref) -> any
+fn 27 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 28   ; std_core$array_iter__i32
   return

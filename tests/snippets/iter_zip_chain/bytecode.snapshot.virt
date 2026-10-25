@@ -431,7 +431,7 @@ fn 0 snippet$main () -> i32
   i32.const 2
   i32.const 3
   array.new 2 3   ; i32[]
-  call 10   ; std_core$[]$Into$into__i32
+  call 10   ; std_core$$array$Into$into__i32
   local.set 13   ; $call_168
   fn.ref 1 16   ; __lambda_snippet_0 fn
   local.set 0   ; nums
@@ -848,7 +848,7 @@ fn 9 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 10 std_core$[]$Into$into__i32 (ref) -> any
+fn 10 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 11   ; std_core$array_iter__i32
   return

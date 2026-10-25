@@ -563,7 +563,7 @@ fn 10 std_io$println__string (string) -> void
   return
 end
 
-fn 11 std_async$Race$std_core_Async$resume__string (ref) -> any
+fn 11 std_async$Race$std_core$Async$resume__string (ref) -> any
   local n i64
   local now i64
   local next i64
@@ -661,7 +661,7 @@ fn 11 std_async$Race$std_core_Async$resume__string (ref) -> any
   return
 end
 
-fn 12 std_async$Race$std_core_Async$cancel__string (ref) -> void
+fn 12 std_async$Race$std_core$Async$cancel__string (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -716,7 +716,7 @@ fn 15 std_async$earlier (i64,i64) -> i64
   return
 end
 
-fn 16 std_async$Sleep$std_core_Async$resume (ref) -> any
+fn 16 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 22 2   ; arg 0 std_async$Sleep.armed
@@ -760,7 +760,7 @@ fn 16 std_async$Sleep$std_core_Async$resume (ref) -> any
   return.lit null.const
 end
 
-fn 17 std_async$Sleep$std_core_Async$cancel (ref) -> void
+fn 17 std_async$Sleep$std_core$Async$cancel (ref) -> void
   return
 end
 

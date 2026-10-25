@@ -415,7 +415,7 @@ fn 1 snippet$main () -> i32
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 2   ; u
-  call 9   ; std_core$[]$Contains$contains__f64___string
+  call 9   ; std_core$$array$Contains$contains__f64___string
   local.set 7   ; and_res
   local.get 13   ; __buf_2
   local.get 6   ; __off_1
@@ -430,7 +430,7 @@ fn 1 snippet$main () -> i32
   local.get 4   ; n
   array.new 11 1   ; union[]
   local.get 4   ; n
-  call 9   ; std_core$[]$Contains$contains__f64___string
+  call 9   ; std_core$$array$Contains$contains__f64___string
   local.set 7   ; and_res
   local.get 13   ; __buf_2
   local.get 6   ; __off_1
@@ -823,7 +823,7 @@ fn 8 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 9 std_core$[]$Contains$contains__f64___string (ref,any) -> bool
+fn 9 std_core$$array$Contains$contains__f64___string (ref,any) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64

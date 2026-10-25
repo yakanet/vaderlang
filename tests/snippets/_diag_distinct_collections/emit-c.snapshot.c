@@ -8,9 +8,9 @@
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static int32_t snippet_sum_ids(void* l0);
-static int32_t snippet_unwrap_or(vader_box_t l0, int32_t l1);
-static int32_t snippet_main(void);
+static int32_t snippet$sum_ids(void* l0);
+static int32_t snippet$unwrap_or(vader_box_t l0, int32_t l1);
+static int32_t snippet$main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -27,7 +27,7 @@ const vader_type_info_t vader_type_info_table[5] = {
 };
 const size_t vader_type_info_count = 5;
 
-static int32_t snippet_sum_ids(void* l0) {
+static int32_t snippet$sum_ids(void* l0) {
     int32_t l1, l5;
     void* l2;
     int64_t l3, l4;
@@ -48,7 +48,7 @@ static int32_t snippet_sum_ids(void* l0) {
     return l1;
 }
 
-static int32_t snippet_unwrap_or(vader_box_t l0, int32_t l1) {
+static int32_t snippet$unwrap_or(vader_box_t l0, int32_t l1) {
     int64_t t0;
     if (!(l0.tag == 0u)) {
         t0 = ((int64_t) l0.payload.i);
@@ -57,7 +57,7 @@ static int32_t snippet_unwrap_or(vader_box_t l0, int32_t l1) {
     return l1;
 }
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     void* l0 = NULL;
     int32_t l1;
     int32_t t0, t1;
@@ -68,8 +68,8 @@ static int32_t snippet_main(void) {
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int64_t) INT64_C(20);
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int64_t) INT64_C(10);
     l0 = (void*) _a0_arr;
-    l1 = snippet_unwrap_or(vader_box_i64(2u, INT64_C(12)), INT32_C(-1));
-    t0 = snippet_sum_ids(l0);
+    l1 = snippet$unwrap_or(vader_box_i64(2u, INT64_C(12)), INT32_C(-1));
+    t0 = snippet$sum_ids(l0);
     t1 = vader_chk_add(i32, t0, l1);
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -80,5 +80,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

@@ -56,7 +56,7 @@ vtable std_core$Async.cancel 17 12
 vtable std_core$Async.cancel 21 16
 export main 3
 
-fn 0 snippet$Probe$std_core_Async$resume (ref) -> any
+fn 0 snippet$Probe$std_core$Async$resume (ref) -> any
   local $add_checked_3 i32
   local $call_4 i64
   local $field_5 i64
@@ -88,7 +88,7 @@ fn 0 snippet$Probe$std_core_Async$resume (ref) -> any
   return
 end
 
-fn 1 snippet$Probe$std_core_Async$cancel (ref) -> void
+fn 1 snippet$Probe$std_core$Async$cancel (ref) -> void
   return
 end
 
@@ -502,7 +502,7 @@ fn 10 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 11 std_async$JoinAll$std_core_Async$resume__i32 (ref) -> any
+fn 11 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
   local n i64
   local now i64
   local next i64
@@ -560,7 +560,7 @@ fn 11 std_async$JoinAll$std_core_Async$resume__i32 (ref) -> any
           local.get 8   ; $field_22
           local.get 4   ; i
           local.get 9   ; $cast_23
-          call 24   ; std_collections$MutableMap$std_core_IndexSet$set_at__i64__i32
+          call 24   ; std_collections$MutableMap$std_core$IndexSet$set_at__i64__i32
           local.field 0 17 2   ; arg 0 std_async$JoinAll__i32.wake_at
           local.get 4   ; i
           i64.const 9223372036854775807
@@ -602,7 +602,7 @@ fn 11 std_async$JoinAll$std_core_Async$resume__i32 (ref) -> any
     if $L6 void
       local.field 0 17 1   ; arg 0 std_async$JoinAll__i32.results
       local.get 2   ; now
-      call 23   ; std_collections$MutableMap$std_core_Index$at__i64__i32
+      call 23   ; std_collections$MutableMap$std_core$Index$at__i64__i32
       local.tee 5   ; r
       type_check 0   ; null
       if $L7 void
@@ -625,7 +625,7 @@ fn 11 std_async$JoinAll$std_core_Async$resume__i32 (ref) -> any
   return
 end
 
-fn 12 std_async$JoinAll$std_core_Async$cancel__i32 (ref) -> void
+fn 12 std_async$JoinAll$std_core$Async$cancel__i32 (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -674,7 +674,7 @@ fn 14 std_async$earlier (i64,i64) -> i64
   return
 end
 
-fn 15 std_async$Sleep$std_core_Async$resume (ref) -> any
+fn 15 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 21 2   ; arg 0 std_async$Sleep.armed
@@ -718,7 +718,7 @@ fn 15 std_async$Sleep$std_core_Async$resume (ref) -> any
   return.lit null.const
 end
 
-fn 16 std_async$Sleep$std_core_Async$cancel (ref) -> void
+fn 16 std_async$Sleep$std_core$Async$cancel (ref) -> void
   return
 end
 
@@ -877,14 +877,14 @@ fn 22 std_io$println__string (string) -> void
   return
 end
 
-fn 23 std_collections$MutableMap$std_core_Index$at__i64__i32 (ref,i64) -> any
+fn 23 std_collections$MutableMap$std_core$Index$at__i64__i32 (ref,i64) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 30   ; std_collections$get__i64__i32
   return
 end
 
-fn 24 std_collections$MutableMap$std_core_IndexSet$set_at__i64__i32 (ref,i64,i32) -> void
+fn 24 std_collections$MutableMap$std_core$IndexSet$set_at__i64__i32 (ref,i64,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

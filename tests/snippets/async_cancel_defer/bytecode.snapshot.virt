@@ -40,13 +40,13 @@ vtable std_core$Async.cancel 8 7
 vtable std_core$Async.cancel 10 10
 export main 4
 
-fn 0 snippet$Never$std_core_Async$resume (ref) -> any
+fn 0 snippet$Never$std_core$Async$resume (ref) -> any
   i64.const 0
   struct.new 4   ; std_core$Suspended
   return
 end
 
-fn 1 snippet$Never$std_core_Async$cancel (ref) -> void
+fn 1 snippet$Never$std_core$Async$cancel (ref) -> void
   string.const 0   ; "never cancelled"
   call 14   ; std_io$println__string
   return

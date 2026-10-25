@@ -276,11 +276,11 @@ fn 2 snippet$main () -> i32
   local.tee 1   ; __buf_0
   i32.const 0
   i32.const 1
-  call 28   ; std_collections$MutableMap$std_core_IndexSet$set_at__snippet_Color__i32
+  call 28   ; std_collections$MutableMap$std_core$IndexSet$set_at__snippet_Color__i32
   local.get 1   ; __buf_0
   i32.const 2
   i32.const 3
-  call 28   ; std_collections$MutableMap$std_core_IndexSet$set_at__snippet_Color__i32
+  call 28   ; std_collections$MutableMap$std_core$IndexSet$set_at__snippet_Color__i32
   i64.const 62
   buffer.new
   local.set 4   ; $arr_54
@@ -288,7 +288,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   i32.const 0
-  call 27   ; std_collections$MutableMap$std_core_Index$at__snippet_Color__i32
+  call 27   ; std_collections$MutableMap$std_core$Index$at__snippet_Color__i32
   local.tee 6   ; __coalesce_6
   type_check 0   ; null
   if $L0 void
@@ -314,7 +314,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   i32.const 1
-  call 27   ; std_collections$MutableMap$std_core_Index$at__snippet_Color__i32
+  call 27   ; std_collections$MutableMap$std_core$Index$at__snippet_Color__i32
   local.tee 6   ; __coalesce_6
   type_check 0   ; null
   if $L1 void
@@ -340,7 +340,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   i32.const 2
-  call 27   ; std_collections$MutableMap$std_core_Index$at__snippet_Color__i32
+  call 27   ; std_collections$MutableMap$std_core$Index$at__snippet_Color__i32
   local.tee 6   ; __coalesce_6
   type_check 0   ; null
   if $L2 void
@@ -380,18 +380,18 @@ fn 2 snippet$main () -> i32
   local.tee 4   ; $arr_54
   i32.const 1
   string.const 1   ; "gone"
-  call 31   ; std_collections$MutableMap$std_core_IndexSet$set_at__snippet_HttpStatus__string
+  call 31   ; std_collections$MutableMap$std_core$IndexSet$set_at__snippet_HttpStatus__string
   local.get 4   ; $arr_54
   i32.const 0
   string.const 2   ; "here"
-  call 31   ; std_collections$MutableMap$std_core_IndexSet$set_at__snippet_HttpStatus__string
+  call 31   ; std_collections$MutableMap$std_core$IndexSet$set_at__snippet_HttpStatus__string
   local.get 4   ; $arr_54
   i32.const 1
   string.const 3   ; "missing"
-  call 31   ; std_collections$MutableMap$std_core_IndexSet$set_at__snippet_HttpStatus__string
+  call 31   ; std_collections$MutableMap$std_core$IndexSet$set_at__snippet_HttpStatus__string
   local.get 4   ; $arr_54
   i32.const 1
-  call 30   ; std_collections$MutableMap$std_core_Index$at__snippet_HttpStatus__string
+  call 30   ; std_collections$MutableMap$std_core$Index$at__snippet_HttpStatus__string
   local.tee 6   ; __coalesce_6
   type_check 0   ; null
   if $L3 void
@@ -404,7 +404,7 @@ fn 2 snippet$main () -> i32
   end $L3
   local.get 4   ; $arr_54
   i32.const 0
-  call 30   ; std_collections$MutableMap$std_core_Index$at__snippet_HttpStatus__string
+  call 30   ; std_collections$MutableMap$std_core$Index$at__snippet_HttpStatus__string
   local.tee 6   ; __coalesce_6
   type_check 0   ; null
   if $L4 void
@@ -527,7 +527,7 @@ fn 2 snippet$main () -> i32
       local.get 4   ; $arr_54
       local.get 12   ; each
       i32.const 7
-      call 28   ; std_collections$MutableMap$std_core_IndexSet$set_at__snippet_Color__i32
+      call 28   ; std_collections$MutableMap$std_core$IndexSet$set_at__snippet_Color__i32
       local.get 12   ; each
       i32.const 2
       i32.eq
@@ -573,7 +573,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 4   ; $arr_54
   i32.const 2
-  call 27   ; std_collections$MutableMap$std_core_Index$at__snippet_Color__i32
+  call 27   ; std_collections$MutableMap$std_core$Index$at__snippet_Color__i32
   local.tee 6   ; __coalesce_6
   type_check 0   ; null
   if $L8 void
@@ -620,7 +620,7 @@ fn 2 snippet$main () -> i32
     local.set 0   ; c
     local.get 1   ; __buf_0
     local.get 0   ; c
-    call 27   ; std_collections$MutableMap$std_core_Index$at__snippet_Color__i32
+    call 27   ; std_collections$MutableMap$std_core$Index$at__snippet_Color__i32
     local.tee 6   ; __coalesce_6
     type_check 0   ; null
     if $L11 void
@@ -1145,14 +1145,14 @@ fn 26 std_core$char$Equals$equals$guard (char,any) -> bool
   return.lit bool.const false
 end
 
-fn 27 std_collections$MutableMap$std_core_Index$at__snippet_Color__i32 (ref,u8) -> any
+fn 27 std_collections$MutableMap$std_core$Index$at__snippet_Color__i32 (ref,u8) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 47   ; std_collections$get__snippet_Color__i32
   return
 end
 
-fn 28 std_collections$MutableMap$std_core_IndexSet$set_at__snippet_Color__i32 (ref,u8,i32) -> void
+fn 28 std_collections$MutableMap$std_core$IndexSet$set_at__snippet_Color__i32 (ref,u8,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -1161,21 +1161,21 @@ fn 28 std_collections$MutableMap$std_core_IndexSet$set_at__snippet_Color__i32 (r
   return
 end
 
-fn 29 std_collections$MutableMap$std_core_Contains$contains__snippet_Color__i32 (ref,u8) -> bool
+fn 29 std_collections$MutableMap$std_core$Contains$contains__snippet_Color__i32 (ref,u8) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 51   ; std_collections$contains_key__snippet_Color__i32
   return
 end
 
-fn 30 std_collections$MutableMap$std_core_Index$at__snippet_HttpStatus__string (ref,u8) -> any
+fn 30 std_collections$MutableMap$std_core$Index$at__snippet_HttpStatus__string (ref,u8) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 48   ; std_collections$get__snippet_HttpStatus__string
   return
 end
 
-fn 31 std_collections$MutableMap$std_core_IndexSet$set_at__snippet_HttpStatus__string (ref,u8,string) -> void
+fn 31 std_collections$MutableMap$std_core$IndexSet$set_at__snippet_HttpStatus__string (ref,u8,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -1184,52 +1184,52 @@ fn 31 std_collections$MutableMap$std_core_IndexSet$set_at__snippet_HttpStatus__s
   return
 end
 
-fn 32 std_collections$MutableMap$std_core_Contains$contains__snippet_HttpStatus__string (ref,u8) -> bool
+fn 32 std_collections$MutableMap$std_core$Contains$contains__snippet_HttpStatus__string (ref,u8) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 52   ; std_collections$contains_key__snippet_HttpStatus__string
   return
 end
 
-fn 33 std_collections$MutableMap$std_core_Contains$contains__i32__bool (ref,i32) -> bool
+fn 33 std_collections$MutableMap$std_core$Contains$contains__i32__bool (ref,i32) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 49   ; std_collections$contains_key__i32__bool
   return
 end
 
-fn 34 std_collections$MutableMap$std_core_Contains$contains__i32__i32 (ref,i32) -> bool
+fn 34 std_collections$MutableMap$std_core$Contains$contains__i32__i32 (ref,i32) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 50   ; std_collections$contains_key__i32__i32
   return
 end
 
-fn 35 std_collections$MutableMap$std_core_Contains$contains__string__string__ (ref,string) -> bool
+fn 35 std_collections$MutableMap$std_core$Contains$contains__string__string__ (ref,string) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 55   ; std_collections$contains_key__string__string__
   return
 end
 
-fn 36 std_collections$MutableMap$std_core_Contains$contains__string__i32 (ref,string) -> bool
+fn 36 std_collections$MutableMap$std_core$Contains$contains__string__i32 (ref,string) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 53   ; std_collections$contains_key__string__i32
   return
 end
 
-fn 37 std_collections$MutableMap$std_core_Contains$contains__string__i64 (ref,string) -> bool
+fn 37 std_collections$MutableMap$std_core$Contains$contains__string__i64 (ref,string) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 54   ; std_collections$contains_key__string__i64
   return
 end
 
-fn 38 std_collections$MutableSet$std_core_Contains$contains__i32 (ref,i32) -> bool
+fn 38 std_collections$MutableSet$std_core$Contains$contains__i32 (ref,i32) -> bool
   local.field 0 34 0   ; arg 0 std_collections$MutableSet__i32.inner
   local.get 1   ; arg 1
-  call 33   ; std_collections$MutableMap$std_core_Contains$contains__i32__bool
+  call 33   ; std_collections$MutableMap$std_core$Contains$contains__i32__bool
   return
 end
 

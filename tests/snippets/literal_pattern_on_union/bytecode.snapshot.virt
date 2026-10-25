@@ -18,7 +18,7 @@ type 15 struct std_core$Buffer {  }
 type 16 scalar u32
 type 17 array 14
 type 18 scalar void
-type 19 struct std_string_builder$StringBuilder { parts:20 }
+type 19 struct std_string__builder$StringBuilder { parts:20 }
 type 20 array 1
 string 0 "five"
 string 1 "a"
@@ -54,7 +54,7 @@ impl 15 std_core$ByteAccess
 impl 19 std_core$Display
 export main 8
 
-fn 0 snippet$Path$std_core_Equals$equals (string,string) -> bool
+fn 0 snippet$Path$std_core$Equals$equals (string,string) -> bool
   local $call_3 string
   local $call_5 string
   local.get 0   ; arg 0
@@ -213,7 +213,7 @@ end
 fn 6 snippet$named (string) -> string
   local.get 0   ; arg 0
   string.const 12   ; "readme"
-  call 0   ; snippet$Path$std_core_Equals$equals
+  call 0   ; snippet$Path$std_core$Equals$equals
   if $L0 void
     return.lit string.const 12   ; "readme"
   end $L0
@@ -1284,7 +1284,7 @@ fn 22 std_string$to_lower (string) -> string
   local $cast_57 char
   local $call_elem_60 i64
   array.new 20 0   ; string[]
-  struct.new 19   ; std_string_builder$StringBuilder
+  struct.new 19   ; std_string__builder$StringBuilder
   local.set 1   ; sb
   local.get 0   ; arg 0
   local.set 2   ; self
@@ -1339,7 +1339,7 @@ fn 22 std_string$to_lower (string) -> string
         local.set 8   ; $cast_28
         local.get 1   ; sb
         local.get 8   ; $cast_28
-        call 24   ; std_string_builder$append_char
+        call 24   ; std_string__builder$append_char
         br $L0
       end $L2
       local.get 2   ; self
@@ -1405,12 +1405,12 @@ fn 22 std_string$to_lower (string) -> string
       local.set 14   ; $cast_57
       local.get 1   ; sb
       local.get 14   ; $cast_57
-      call 24   ; std_string_builder$append_char
+      call 24   ; std_string__builder$append_char
       br $L0
     end $L1
   end $L0
   local.get 1   ; sb
-  call 25   ; std_string_builder$StringBuilder$std_core_Display$to_string
+  call 25   ; std_string__builder$StringBuilder$std_core$Display$to_string
   return
 end
 
@@ -1503,10 +1503,10 @@ fn 23 std_string$to_lower_cp (u32) -> u32
   return
 end
 
-fn 24 std_string_builder$append_char (ref,char) -> void
+fn 24 std_string__builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 19 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 19 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 17   ; std_core$utf8_encode
@@ -1518,7 +1518,7 @@ fn 24 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 25 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
+fn 25 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> string
   local n i64
   local __for_arr_0 ref
   local __for_len_1 i64
@@ -1527,7 +1527,7 @@ fn 25 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   local __for_arr_3 ref
   local p string
   local $call_40 i64
-  local.field 0 19 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 19 0   ; arg 0 std_string__builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -1539,7 +1539,7 @@ fn 25 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 19 0   ; arg 0 std_string_builder$StringBuilder.parts
+    local.field 0 19 0   ; arg 0 std_string__builder$StringBuilder.parts
     i32.const 0
     array.get 20   ; string[]
     ref.cast 1   ; string
@@ -1547,7 +1547,7 @@ fn 25 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 19 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 19 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1580,7 +1580,7 @@ fn 25 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 19 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 19 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2

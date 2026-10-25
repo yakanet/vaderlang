@@ -580,7 +580,7 @@ fn 14 snippet$main () -> i32
   local.get 3   ; $arr_14
   local.set 2   ; pts
   local.get 0   ; a
-  call 37   ; std_core$[]$Into$into__i32
+  call 37   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
   fn.ref 0 42   ; snippet$square fn
   local.set 3   ; $arr_14
@@ -655,7 +655,7 @@ fn 14 snippet$main () -> i32
   call 34   ; std_core$finish_buffer
   call 51   ; std_io$println__string
   local.get 0   ; a
-  call 37   ; std_core$[]$Into$into__i32
+  call 37   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
   fn.ref 2 36   ; snippet$odd fn
   local.set 3   ; $arr_14
@@ -734,7 +734,7 @@ fn 14 snippet$main () -> i32
   call 34   ; std_core$finish_buffer
   call 51   ; std_io$println__string
   local.get 0   ; a
-  call 37   ; std_core$[]$Into$into__i32
+  call 37   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
   fn.ref 0 42   ; snippet$square fn
   local.set 3   ; $arr_14
@@ -805,7 +805,7 @@ fn 14 snippet$main () -> i32
   call 34   ; std_core$finish_buffer
   call 51   ; std_io$println__string
   local.get 0   ; a
-  call 37   ; std_core$[]$Into$into__i32
+  call 37   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
   fn.ref 0 42   ; snippet$square fn
   local.set 3   ; $arr_14
@@ -884,7 +884,7 @@ fn 14 snippet$main () -> i32
   call 34   ; std_core$finish_buffer
   call 51   ; std_io$println__string
   local.get 0   ; a
-  call 37   ; std_core$[]$Into$into__i32
+  call 37   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
   fn.ref 0 42   ; snippet$square fn
   local.set 3   ; $arr_14
@@ -963,7 +963,7 @@ fn 14 snippet$main () -> i32
   call 34   ; std_core$finish_buffer
   call 51   ; std_io$println__string
   local.get 2   ; pts
-  call 38   ; std_core$[]$Into$into__snippet_Point
+  call 38   ; std_core$$array$Into$into__snippet_Point
   local.set 7   ; $call_29
   fn.ref 16 73   ; __lambda_snippet_1 fn
   local.set 3   ; $arr_14
@@ -1081,7 +1081,7 @@ fn 14 snippet$main () -> i32
   call 34   ; std_core$finish_buffer
   call 51   ; std_io$println__string
   local.get 2   ; pts
-  call 38   ; std_core$[]$Into$into__snippet_Point
+  call 38   ; std_core$$array$Into$into__snippet_Point
   local.set 7   ; $call_29
   fn.ref 20 73   ; __lambda_snippet_5 fn
   local.set 3   ; $arr_14
@@ -1161,7 +1161,7 @@ fn 14 snippet$main () -> i32
   string.const 0   ; "stop"
   string.const 12   ; "c"
   array.new 22 4   ; string[]
-  call 39   ; std_core$[]$Into$into__string
+  call 39   ; std_core$$array$Into$into__string
   local.set 7   ; $call_29
   fn.ref 22 44   ; __lambda_snippet_7 fn
   local.set 2   ; pts
@@ -1248,7 +1248,7 @@ fn 14 snippet$main () -> i32
     call 51   ; std_io$println__string
   end $L32
   local.get 0   ; a
-  call 37   ; std_core$[]$Into$into__i32
+  call 37   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
   fn.ref 3 77   ; snippet$tens fn
   local.set 2   ; pts
@@ -1383,7 +1383,7 @@ fn 14 snippet$main () -> i32
   call 34   ; std_core$finish_buffer
   call 51   ; std_io$println__string
   local.get 0   ; a
-  call 37   ; std_core$[]$Into$into__i32
+  call 37   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
   fn.ref 5 77   ; snippet$fifties fn
   local.set 2   ; pts
@@ -1518,7 +1518,7 @@ fn 14 snippet$main () -> i32
   call 34   ; std_core$finish_buffer
   call 51   ; std_io$println__string
   local.get 0   ; a
-  call 37   ; std_core$[]$Into$into__i32
+  call 37   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
   fn.ref 3 77   ; snippet$tens fn
   local.set 2   ; pts
@@ -1666,7 +1666,7 @@ fn 14 snippet$main () -> i32
   call 34   ; std_core$finish_buffer
   call 51   ; std_io$println__string
   local.get 0   ; a
-  call 37   ; std_core$[]$Into$into__i32
+  call 37   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
   fn.ref 0 42   ; snippet$square fn
   local.set 2   ; pts
@@ -1790,7 +1790,7 @@ fn 14 snippet$main () -> i32
   call 35   ; std_core$write_string_at
   local.set 4   ; $len_15
   local.get 0   ; a
-  call 37   ; std_core$[]$Into$into__i32
+  call 37   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
   fn.ref 25 40   ; __lambda_snippet_10 fn
   local.set 3   ; $arr_14
@@ -2451,19 +2451,19 @@ fn 36 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 37 std_core$[]$Into$into__i32 (ref) -> any
+fn 37 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 42   ; std_core$array_iter__i32
   return
 end
 
-fn 38 std_core$[]$Into$into__snippet_Point (ref) -> any
+fn 38 std_core$$array$Into$into__snippet_Point (ref) -> any
   local.get 0   ; arg 0
   call 44   ; std_core$array_iter__snippet_Point
   return
 end
 
-fn 39 std_core$[]$Into$into__string (ref) -> any
+fn 39 std_core$$array$Into$into__string (ref) -> any
   local.get 0   ; arg 0
   call 46   ; std_core$array_iter__string
   return

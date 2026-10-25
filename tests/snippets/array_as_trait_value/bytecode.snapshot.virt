@@ -246,7 +246,7 @@ fn 4 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 5 snippet$[]$Poke$poke__snippet_Tile (ref) -> string
+fn 5 snippet$$array$Poke$poke__snippet_Tile (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $len_8 i64
@@ -274,7 +274,7 @@ fn 5 snippet$[]$Poke$poke__snippet_Tile (ref) -> string
   return
 end
 
-fn 6 snippet$[]$Poke$poke__string$1 (ref) -> string
+fn 6 snippet$$array$Poke$poke__string$1 (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $len_8 i64
@@ -302,7 +302,7 @@ fn 6 snippet$[]$Poke$poke__string$1 (ref) -> string
   return
 end
 
-fn 7 snippet$[]$Poke$poke__i32$1 (ref) -> string
+fn 7 snippet$$array$Poke$poke__i32$1 (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $len_8 i64
@@ -330,7 +330,7 @@ fn 7 snippet$[]$Poke$poke__i32$1 (ref) -> string
   return
 end
 
-fn 8 snippet$[]$Poke$poke__bool$1 (ref) -> string
+fn 8 snippet$$array$Poke$poke__bool$1 (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $len_8 i64
@@ -358,7 +358,7 @@ fn 8 snippet$[]$Poke$poke__bool$1 (ref) -> string
   return
 end
 
-fn 9 snippet$[]$Poke$poke__f64$1 (ref) -> string
+fn 9 snippet$$array$Poke$poke__f64$1 (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $len_8 i64
@@ -386,7 +386,7 @@ fn 9 snippet$[]$Poke$poke__f64$1 (ref) -> string
   return
 end
 
-fn 10 snippet$[]$Poke$poke__char$1 (ref) -> string
+fn 10 snippet$$array$Poke$poke__char$1 (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $len_8 i64
@@ -659,7 +659,7 @@ fn 15 std_core$write_unsigned (ref,i64,u64) -> i64
   return
 end
 
-fn 16 std_core$[]$Display$to_string__string (ref) -> string
+fn 16 std_core$$array$Display$to_string__string (ref) -> string
   local $arr_1 ref
   local $len_2 i64
   local __for_arr_0 ref

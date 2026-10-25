@@ -9,6 +9,7 @@ module "vader/core/types"
 
 import "vader/core/symbol"
 import "vader/support/integer"
+import "vader/support/text"
 
 // ---- primitives -----------------------------------------------------------
 
@@ -177,21 +178,27 @@ export TRAIT_INDEX_SET  :: @type_name(IndexSet)
 export declaration_key :: fn(sym: Symbol) -> string = "#${sym.id}"
 
 /// Mangle a module display path into a name-fragment usable in a mangled
-/// symbol: `/` and `.` both become `_`, every other byte passes through.
+/// symbol: a `_` of the path doubles and `/` becomes `_`, so `a/b` and `a_b`
+/// mangle apart (`a_b`, `a__b`). Any other byte outside `[A-Za-z0-9]` becomes
+/// `_` too, which only a path outside the module grammar can carry.
 /// Centralised here so the lowerer's name-mangling sites, the trait keys and the
-/// CLI's entry-point name share one scheme and can't drift — a mismatch would
+/// CLI's entry-point name share one scheme and can't drift: a mismatch would
 /// desync the VM's `export main <index>` directive from the emitted fn name.
 ///
-/// @param module_id  the module display path (e.g. `"std/string"`).
-/// @return           the mangled fragment (e.g. `"std_string"`).
+/// @param module_id  the module display path (e.g. `"std/string_builder"`).
+/// @return           the mangled fragment (e.g. `"std_string__builder"`), an
+///                   identifier that never holds a `$`.
 export mangle_module_id :: fn(module_id: string) -> string {
     out: u8[]: [] * module_id.byte_len()
     for i in 0..<module_id.byte_len() {
         b :: module_id.byte_at(i)
-        if b == '/' || b == '.' {
+        if b == '_' {
             out.push('_')
-        } else {
+            out.push('_')
+        } else if is_ident_byte(b) {
             out.push(b)
+        } else {
+            out.push('_')
         }
     }
     return out.bytes_to_string()
@@ -204,8 +211,7 @@ export mangle_module_id :: fn(module_id: string) -> string {
 /// tables, and the trait half of a vtable key (`"std_core$Display.to_string"`).
 ///
 /// @param trait_sym  the trait's declaration symbol — not an import binding.
-export trait_key_of :: fn(trait_sym: Symbol) -> string =
-    "${mangle_module_id(trait_sym.module_name)}\$${trait_sym.name}"
+export trait_key_of :: fn(trait_sym: Symbol) -> string = qualified_symbol_name(trait_sym)
 
 /// The `trait_key` of a `std/core` trait, from its `TRAIT_*` name.
 ///
@@ -352,6 +358,17 @@ test_primitive_from_name_returns_null_for_user_types :: fn() -> void {
     if primitive_from_name("MyStruct") !is null {
         assert(false, "user types should not be primitives")
     }
+}
+
+@test
+test_mangle_module_id_doubles_underscores :: fn() -> void {
+    assert_eq(mangle_module_id("std/core"), "std_core")
+    assert_eq(mangle_module_id("std/string_builder"), "std_string__builder")
+}
+
+@test
+test_mangle_module_id_keeps_slash_and_underscore_apart :: fn() -> void {
+    assert(mangle_module_id("a/b") != mangle_module_id("a_b"), "`a/b` and `a_b` mangle apart")
 }
 
 @test

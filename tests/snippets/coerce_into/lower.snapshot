@@ -2,10 +2,10 @@
 
 ## snippet
   snippet.UserId :: struct { value: i32 }  // snippet$UserId
-  snippet$UserId$std_core_Into$into :: fn(self: UserId) -> i32 {
+  snippet$UserId$std_core$Into$into :: fn(self: UserId) -> i32 {
       self.value
   }
-  snippet$UserId$std_core_Into$into$1 :: fn(self: UserId) -> string {
+  snippet$UserId$std_core$Into$into$1 :: fn(self: UserId) -> string {
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
           __off_1: i64 = 0
@@ -18,7 +18,7 @@
       x + 1
   }
   snippet.get_id :: fn(u: UserId) -> i32 {  // snippet$get_id
-      return snippet$UserId$std_core_Into$into(u)
+      return snippet$UserId$std_core$Into$into(u)
   }
   snippet.Pair :: struct { tag: string, n: i32 }  // snippet$Pair
   snippet$double :: fn(n: i32) -> i32 {
@@ -39,10 +39,10 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(37))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "implicit call:   ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.take_i32(snippet$UserId$std_core_Into$into(u)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.take_i32(snippet$UserId$std_core$Into$into(u)))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      n: i32 = snippet$UserId$std_core_Into$into(u)
+      n: i32 = snippet$UserId$std_core$Into$into(u)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(37))
           __off_3: i64 = 0
@@ -57,7 +57,7 @@
           __off_5 = std.core.write_int(__buf_4, __off_5, snippet.get_id(u))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      p: Pair = Pair { .tag = snippet$UserId$std_core_Into$into$1(u), .n = snippet$UserId$std_core_Into$into(u) }
+      p: Pair = Pair { .tag = snippet$UserId$std_core$Into$into$1(u), .n = snippet$UserId$std_core$Into$into(u) }
       std.io.println<string>({
           __p_6: string = p.tag
           __buf_7: Buffer = std.core.new_byte_buffer(i64(44) +% std.core.byte_len(__p_6))
@@ -69,7 +69,7 @@
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       v: UserId = UserId { .value = 7 }
-      explicit_n: i32 = i32(snippet$UserId$std_core_Into$into(v))
+      explicit_n: i32 = i32(snippet$UserId$std_core$Into$into(v))
       std.io.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(37))
           __off_10: i64 = 0
@@ -77,9 +77,9 @@
           __off_10 = std.core.write_int(__buf_9, __off_10, explicit_n)
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
-      explicit_s: string = snippet$UserId$std_core_Into$into$1(v)
+      explicit_s: string = snippet$UserId$std_core$Into$into$1(v)
       std.io.println<string>(concat_2("explicit string: ", explicit_s))
-      a: i32 = snippet$double(snippet$UserId$std_core_Into$into(u))
+      a: i32 = snippet$double(snippet$UserId$std_core$Into$into(u))
       std.io.println<string>({
           __buf_11: Buffer = std.core.new_byte_buffer(i64(37))
           __off_12: i64 = 0
@@ -105,8 +105,8 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Into.into for UserId  snippet$UserId$std_core_Into$into
-  vtable std.core.Into.into for UserId  snippet$UserId$std_core_Into$into$1
+  vtable std.core.Into.into for UserId  snippet$UserId$std_core$Into$into
+  vtable std.core.Into.into for UserId  snippet$UserId$std_core$Into$into$1
 
 ## lowered in dependencies
   std/core

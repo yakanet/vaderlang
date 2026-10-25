@@ -17,7 +17,7 @@ import 2 extern write system_posix$sys_write header=<unistd.h> result_type=1 par
 impl 6 std_core$ByteAccess
 export main 4
 
-fn 0 snippet$Money$std_core_Add$add (i64,i64) -> i64
+fn 0 snippet$Money$std_core$Add$add (i64,i64) -> i64
   local $cast_2 i64
   local $cast_3 i64
   local.get 0   ; arg 0
@@ -30,7 +30,7 @@ fn 0 snippet$Money$std_core_Add$add (i64,i64) -> i64
   return
 end
 
-fn 1 snippet$Money$std_core_Comparable$compare (i64,i64) -> i32
+fn 1 snippet$Money$std_core$Comparable$compare (i64,i64) -> i32
   local $cast_2 i64
   local $cast_3 i64
   local.get 0   ; arg 0
@@ -57,7 +57,7 @@ fn 1 snippet$Money$std_core_Comparable$compare (i64,i64) -> i32
   return.lit i32.const 1
 end
 
-fn 2 snippet$Instant$std_core_Sub$sub (i64,i64) -> i64
+fn 2 snippet$Instant$std_core$Sub$sub (i64,i64) -> i64
   local $cast_2 i64
   local $cast_3 i64
   local.get 0   ; arg 0
@@ -70,7 +70,7 @@ fn 2 snippet$Instant$std_core_Sub$sub (i64,i64) -> i64
   return
 end
 
-fn 3 snippet$Instant$std_core_Add$add (i64,i64) -> i64
+fn 3 snippet$Instant$std_core$Add$add (i64,i64) -> i64
   local $cast_2 i64
   local $cast_3 i64
   local.get 0   ; arg 0
@@ -101,7 +101,7 @@ fn 4 snippet$main () -> i32
   local.set 3   ; __off_1
   local.get 0   ; a
   local.get 1   ; b
-  call 0   ; snippet$Money$std_core_Add$add
+  call 0   ; snippet$Money$std_core$Add$add
   local.set 4   ; $cast_12
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
@@ -119,7 +119,7 @@ fn 4 snippet$main () -> i32
   local.set 3   ; __off_1
   local.get 0   ; a
   local.get 1   ; b
-  call 1   ; snippet$Money$std_core_Comparable$compare
+  call 1   ; snippet$Money$std_core$Comparable$compare
   i32.const 0
   i32.gt
   local.set 5   ; $gt_22
@@ -136,7 +136,7 @@ fn 4 snippet$main () -> i32
   local.set 0   ; a
   i64.const 1250
   local.get 0   ; a
-  call 2   ; snippet$Instant$std_core_Sub$sub
+  call 2   ; snippet$Instant$std_core$Sub$sub
   local.set 1   ; b
   i64.const 20
   buffer.new
@@ -156,7 +156,7 @@ fn 4 snippet$main () -> i32
   call 12   ; std_io$println__string
   local.get 0   ; a
   local.get 1   ; b
-  call 3   ; snippet$Instant$std_core_Add$add
+  call 3   ; snippet$Instant$std_core$Add$add
   local.set 0   ; a
   i64.const 20
   buffer.new

@@ -130,7 +130,7 @@
       } :string)
       return 0
   }
-  snippet.HttpStatus.to_string :: fn(self: HttpStatus) -> string {  // snippet$HttpStatus$std_core_Display$to_string
+  snippet.HttpStatus.to_string :: fn(self: HttpStatus) -> string {  // snippet$HttpStatus$std_core$Display$to_string
       {
           if self == HttpStatus(0) {
               "Ok"
@@ -151,7 +151,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Display.to_string for HttpStatus  snippet.HttpStatus.to_string  // snippet$HttpStatus$std_core_Display$to_string
+  vtable std.core.Display.to_string for HttpStatus  snippet.HttpStatus.to_string  // snippet$HttpStatus$std_core$Display$to_string
 
 ## lowered in dependencies
   std/core

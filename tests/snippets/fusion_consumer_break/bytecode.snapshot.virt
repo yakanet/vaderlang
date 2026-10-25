@@ -56,7 +56,7 @@ type 53 array 38
 type 54 ref std_core$Iterator
 type 55 ref __genstate_flat_map
 type 56 ref __genstate_chain
-type 57 struct $Cell_i32 { value:1 }
+type 57 struct $Cell_i32_2af2b319 { value:1 }
 type 58 ref __genstate_take
 type 59 ref __genstate_pairs
 type 60 ref __genstate_loop_then_tail
@@ -260,7 +260,7 @@ fn 3 snippet$flat_map_find () -> void
   i32.const 1
   i32.const 2
   array.new 2 2   ; i32[]
-  call 32   ; std_core$[]$Into$into__i32
+  call 32   ; std_core$$array$Into$into__i32
   local.set 1   ; __coalesce_0
   fn.ref 0 23   ; snippet$spread fn
   local.set 2   ; __fuse_arr_1
@@ -413,12 +413,12 @@ fn 4 snippet$chain_find () -> void
   i32.const 1
   i32.const 2
   array.new 2 2   ; i32[]
-  call 32   ; std_core$[]$Into$into__i32
+  call 32   ; std_core$$array$Into$into__i32
   local.set 1   ; __coalesce_0
   i32.const 3
   i32.const 4
   array.new 2 2   ; i32[]
-  call 32   ; std_core$[]$Into$into__i32
+  call 32   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_47
   local.get 1   ; __coalesce_0
   local.get 7   ; $call_47
@@ -550,7 +550,7 @@ fn 5 snippet$flat_map_break () -> void
   i32.const 1
   i32.const 2
   array.new 2 2   ; i32[]
-  call 32   ; std_core$[]$Into$into__i32
+  call 32   ; std_core$$array$Into$into__i32
   local.set 8   ; $call_38
   fn.ref 0 23   ; snippet$spread fn
   local.set 1   ; __fuse_arr_0
@@ -635,7 +635,7 @@ fn 6 snippet$flat_map_take_calls () -> void
   local fused i32
   local __iter_4 any
   i32.const 0
-  struct.new 57   ; $Cell_i32
+  struct.new 57   ; $Cell_i32_2af2b319
   local.tee 0   ; calls
   struct.new 6   ; __lambda_env_snippet_1
   make_closure 18 23   ; __lambda_snippet_0 fn
@@ -704,16 +704,16 @@ fn 6 snippet$flat_map_take_calls () -> void
       end $L2
     end $L1
   end $L0
-  local.field 0 57 0   ; calls $Cell_i32.value
+  local.field 0 57 0   ; calls $Cell_i32_2af2b319.value
   local.set 10   ; fused
   local.get 0   ; calls
   i32.const 0
-  struct.set 57 0   ; $Cell_i32.value
+  struct.set 57 0   ; $Cell_i32_2af2b319.value
   i32.const 1
   i32.const 2
   i32.const 3
   array.new 2 3   ; i32[]
-  call 32   ; std_core$[]$Into$into__i32
+  call 32   ; std_core$$array$Into$into__i32
   local.get 1   ; counted
   call 40   ; std_iter$flat_map__i32__i32
   i64.const 1
@@ -753,7 +753,7 @@ fn 6 snippet$flat_map_take_calls () -> void
   string.const 1   ; " | "
   call 30   ; std_core$write_string_at
   local.set 4   ; n
-  local.field 0 57 0   ; calls $Cell_i32.value
+  local.field 0 57 0   ; calls $Cell_i32_2af2b319.value
   i32.to_i64
   local.set 5   ; i
   local.get 1   ; counted
@@ -1258,12 +1258,12 @@ fn 13 snippet$chain_break () -> void
   i32.const 1
   i32.const 2
   array.new 2 2   ; i32[]
-  call 32   ; std_core$[]$Into$into__i32
+  call 32   ; std_core$$array$Into$into__i32
   local.set 6   ; $call_41
   i32.const 3
   i32.const 4
   array.new 2 2   ; i32[]
-  call 32   ; std_core$[]$Into$into__i32
+  call 32   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_45
   local.get 6   ; $call_41
   local.get 7   ; $call_45
@@ -1468,12 +1468,12 @@ fn 14 snippet$chain_break_by_name () -> void
   i32.const 1
   i32.const 2
   array.new 2 2   ; i32[]
-  call 32   ; std_core$[]$Into$into__i32
+  call 32   ; std_core$$array$Into$into__i32
   local.set 10   ; $call_67
   i32.const 3
   i32.const 4
   array.new 2 2   ; i32[]
-  call 32   ; std_core$[]$Into$into__i32
+  call 32   ; std_core$$array$Into$into__i32
   local.set 11   ; $call_71
   local.get 10   ; $call_67
   local.get 11   ; $call_71
@@ -1732,7 +1732,7 @@ fn 15 snippet$nested_break_outer () -> void
   i32.const 2
   i32.const 3
   array.new 2 3   ; i32[]
-  call 32   ; std_core$[]$Into$into__i32
+  call 32   ; std_core$$array$Into$into__i32
   local.set 19   ; $call_77
   fn.ref 0 23   ; snippet$spread fn
   local.set 1   ; __fuse_arr_5
@@ -1757,7 +1757,7 @@ fn 15 snippet$nested_break_outer () -> void
         i32.const 8
         i32.const 9
         array.new 2 3   ; i32[]
-        call 32   ; std_core$[]$Into$into__i32
+        call 32   ; std_core$$array$Into$into__i32
         i64.const 2
         call 43   ; std_iter$take__i32
         local.set 20   ; __iter_10
@@ -2053,13 +2053,13 @@ fn 18 __lambda_snippet_0 (ref,i32) -> ref
   local.field 0 6 0   ; arg 0 __lambda_env_snippet_1.cap_0
   local.set 2   ; $field_2
   local.field 0 6 0   ; arg 0 __lambda_env_snippet_1.cap_0
-  struct.get 57 0   ; $Cell_i32.value
+  struct.get 57 0   ; $Cell_i32_2af2b319.value
   i32.const 1
   i32.checked_add
   local.set 3   ; $add_checked_6
   local.get 2   ; $field_2
   local.get 3   ; $add_checked_6
-  struct.set 57 0   ; $Cell_i32.value
+  struct.set 57 0   ; $Cell_i32_2af2b319.value
   local.get 1   ; arg 1
   call 0   ; snippet$spread
   return
@@ -3010,7 +3010,7 @@ fn 31 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 32 std_core$[]$Into$into__i32 (ref) -> any
+fn 32 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 33   ; std_core$array_iter__i32
   return

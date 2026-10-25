@@ -10,6 +10,7 @@ import "vader/lower/ir"
 
 import "toolchain/ast"
 import "vader/support/diagnostics"
+import "vader/support/text"
 import "vader/front/typecheck"
 import "vader/core/symbol"
 import "vader/core/types"
@@ -437,8 +438,21 @@ impl_target_segment :: fn(impl_module: string, target: Type) -> string {
     if is_structural(target) && !has_type_param(target) {
         return sanitise_ident(qualified_display_type(target))
     }
-    sym :: type_to_target_symbol(target) ?? return type_surface_name(target)
+    sym :: type_to_target_symbol(target) ?? return shape_segment(target)
     return impl_symbol_segment(impl_module, sym)
+}
+
+// The target segment of a type with no declaration. An array, or a tuple, fn or
+// union over a type parameter, takes a `$` token that no declared name can
+// spell, an identifier never holding a `$`; a primitive or a range its surface
+// name.
+// @partial: only the shapes with no surface name take a token.
+shape_segment :: fn(target: Type) -> string = @partial match target {
+    is ArrayType -> "\$array"
+    is TupleType -> "\$tuple"
+    is FnType    -> "\$fn"
+    is UnionType -> "\$union"
+    _            -> type_surface_name(target)
 }
 
 // The segment of a type or a trait in an impl member's name : its bare name when

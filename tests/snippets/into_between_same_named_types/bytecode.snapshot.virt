@@ -37,7 +37,7 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; f
-  call 8   ; snippet_feet$Length$std_core_Into$into
+  call 8   ; snippet_feet$Length$std_core$Into$into
   call 0   ; snippet$take
   i32.to_i64
   local.set 3   ; $cast_10
@@ -291,7 +291,7 @@ fn 7 std_io$println__string (string) -> void
   return
 end
 
-fn 8 snippet_feet$Length$std_core_Into$into (ref) -> ref
+fn 8 snippet_feet$Length$std_core$Into$into (ref) -> ref
   local.field 0 9 0   ; arg 0 snippet_feet$Length.feet
   ref.cast 2   ; i32
   i32.const 40

@@ -809,7 +809,7 @@ fn 18 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
     i32.eq
     if $L3 void
       call 0   ; snippet$runs
-      call 26   ; std_core$[]$Display$to_string__string
+      call 26   ; std_core$$array$Display$to_string__string
       local.set 1   ; $call_16
       string.const 5   ; "runs: "
       local.get 1   ; $call_16
@@ -1452,7 +1452,7 @@ fn 25 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 26 std_core$[]$Display$to_string__string (ref) -> string
+fn 26 std_core$$array$Display$to_string__string (ref) -> string
   local $arr_1 ref
   local $len_2 i64
   local __for_arr_0 ref
@@ -1583,7 +1583,7 @@ fn 27 std_core$string$Display$to_string (string) -> string
   return
 end
 
-fn 28 std_async$Shared$std_core_Async$resume__string (ref) -> any
+fn 28 std_async$Shared$std_core$Async$resume__string (ref) -> any
   local $vcall_7 any
   local.field 0 24 1   ; arg 0 std_async$Shared__string.result
   type_check 9   ; std_core$Suspended
@@ -1616,11 +1616,11 @@ fn 28 std_async$Shared$std_core_Async$resume__string (ref) -> any
   end $L0
 end
 
-fn 29 std_async$Shared$std_core_Async$cancel__string (ref) -> void
+fn 29 std_async$Shared$std_core$Async$cancel__string (ref) -> void
   return
 end
 
-fn 30 std_async$Shared$std_core_Async$resume__i32 (ref) -> any
+fn 30 std_async$Shared$std_core$Async$resume__i32 (ref) -> any
   local $vcall_7 any
   local.field 0 25 1   ; arg 0 std_async$Shared__i32.result
   type_check 9   ; std_core$Suspended
@@ -1653,11 +1653,11 @@ fn 30 std_async$Shared$std_core_Async$resume__i32 (ref) -> any
   end $L0
 end
 
-fn 31 std_async$Shared$std_core_Async$cancel__i32 (ref) -> void
+fn 31 std_async$Shared$std_core$Async$cancel__i32 (ref) -> void
   return
 end
 
-fn 32 std_async$Shared$std_core_Async$resume__null (ref) -> any
+fn 32 std_async$Shared$std_core$Async$resume__null (ref) -> any
   local $vcall_7 any
   local.field 0 26 1   ; arg 0 std_async$Shared__null.result
   type_check 9   ; std_core$Suspended
@@ -1690,11 +1690,11 @@ fn 32 std_async$Shared$std_core_Async$resume__null (ref) -> any
   end $L0
 end
 
-fn 33 std_async$Shared$std_core_Async$cancel__null (ref) -> void
+fn 33 std_async$Shared$std_core$Async$cancel__null (ref) -> void
   return
 end
 
-fn 34 std_async$Race$std_core_Async$resume__i32 (ref) -> any
+fn 34 std_async$Race$std_core$Async$resume__i32 (ref) -> any
   local n i64
   local now i64
   local next i64
@@ -1792,7 +1792,7 @@ fn 34 std_async$Race$std_core_Async$resume__i32 (ref) -> any
   return
 end
 
-fn 35 std_async$Race$std_core_Async$cancel__i32 (ref) -> void
+fn 35 std_async$Race$std_core$Async$cancel__i32 (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -1821,7 +1821,7 @@ fn 35 std_async$Race$std_core_Async$cancel__i32 (ref) -> void
   return
 end
 
-fn 36 std_async$JoinAll$std_core_Async$resume__string (ref) -> any
+fn 36 std_async$JoinAll$std_core$Async$resume__string (ref) -> any
   local n i64
   local now i64
   local next i64
@@ -1879,7 +1879,7 @@ fn 36 std_async$JoinAll$std_core_Async$resume__string (ref) -> any
           local.get 8   ; $field_22
           local.get 4   ; i
           local.get 9   ; $cast_23
-          call 54   ; std_collections$MutableMap$std_core_IndexSet$set_at__i64__string
+          call 54   ; std_collections$MutableMap$std_core$IndexSet$set_at__i64__string
           local.field 0 28 2   ; arg 0 std_async$JoinAll__string.wake_at
           local.get 4   ; i
           i64.const 9223372036854775807
@@ -1921,7 +1921,7 @@ fn 36 std_async$JoinAll$std_core_Async$resume__string (ref) -> any
     if $L6 void
       local.field 0 28 1   ; arg 0 std_async$JoinAll__string.results
       local.get 2   ; now
-      call 53   ; std_collections$MutableMap$std_core_Index$at__i64__string
+      call 53   ; std_collections$MutableMap$std_core$Index$at__i64__string
       local.tee 5   ; r
       type_check 0   ; null
       if $L7 void
@@ -1944,7 +1944,7 @@ fn 36 std_async$JoinAll$std_core_Async$resume__string (ref) -> any
   return
 end
 
-fn 37 std_async$JoinAll$std_core_Async$cancel__string (ref) -> void
+fn 37 std_async$JoinAll$std_core$Async$cancel__string (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -1999,7 +1999,7 @@ fn 40 std_async$earlier (i64,i64) -> i64
   return
 end
 
-fn 41 std_async$Sleep$std_core_Async$resume (ref) -> any
+fn 41 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 30 2   ; arg 0 std_async$Sleep.armed
@@ -2043,7 +2043,7 @@ fn 41 std_async$Sleep$std_core_Async$resume (ref) -> any
   return.lit null.const
 end
 
-fn 42 std_async$Sleep$std_core_Async$cancel (ref) -> void
+fn 42 std_async$Sleep$std_core$Async$cancel (ref) -> void
   return
 end
 
@@ -2258,14 +2258,14 @@ fn 52 std_io$println__string (string) -> void
   return
 end
 
-fn 53 std_collections$MutableMap$std_core_Index$at__i64__string (ref,i64) -> any
+fn 53 std_collections$MutableMap$std_core$Index$at__i64__string (ref,i64) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 60   ; std_collections$get__i64__string
   return
 end
 
-fn 54 std_collections$MutableMap$std_core_IndexSet$set_at__i64__string (ref,i64,string) -> void
+fn 54 std_collections$MutableMap$std_core$IndexSet$set_at__i64__string (ref,i64,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

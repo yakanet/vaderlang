@@ -88,7 +88,7 @@ fn 3 snippet$main () -> i32
   string.const 1   ; "coll"
   call 1   ; snippet$pool
   local.get 1   ; __in_x_0
-  call 9   ; std_core$[]$Contains$contains__i32
+  call 9   ; std_core$$array$Contains$contains__i32
   if $L0 void
     string.const 2   ; "in: yes"
     local.set 0   ; if_res
@@ -105,7 +105,7 @@ fn 3 snippet$main () -> i32
   string.const 1   ; "coll"
   call 1   ; snippet$pool
   local.get 1   ; __in_x_0
-  call 9   ; std_core$[]$Contains$contains__i32
+  call 9   ; std_core$$array$Contains$contains__i32
   bool.not
   if $L1 void
     string.const 4   ; "not in: yes"
@@ -141,7 +141,7 @@ fn 3 snippet$main () -> i32
   local.set 1   ; __in_x_0
   local.get 2   ; $arr_21
   local.get 1   ; __in_x_0
-  call 11   ; std_collections$MutableSet$std_core_Contains$contains__i32
+  call 11   ; std_collections$MutableSet$std_core$Contains$contains__i32
   if $L2 void
     string.const 6   ; "set: yes"
     local.set 0   ; if_res
@@ -377,7 +377,7 @@ fn 8 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 9 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
+fn 9 std_core$$array$Contains$contains__i32 (ref,i32) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -410,17 +410,17 @@ fn 9 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
   return.lit bool.const false
 end
 
-fn 10 std_collections$MutableMap$std_core_Contains$contains__i32__bool (ref,i32) -> bool
+fn 10 std_collections$MutableMap$std_core$Contains$contains__i32__bool (ref,i32) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 17   ; std_collections$contains_key__i32__bool
   return
 end
 
-fn 11 std_collections$MutableSet$std_core_Contains$contains__i32 (ref,i32) -> bool
+fn 11 std_collections$MutableSet$std_core$Contains$contains__i32 (ref,i32) -> bool
   local.field 0 13 0   ; arg 0 std_collections$MutableSet__i32.inner
   local.get 1   ; arg 1
-  call 10   ; std_collections$MutableMap$std_core_Contains$contains__i32__bool
+  call 10   ; std_collections$MutableMap$std_core$Contains$contains__i32__bool
   return
 end
 

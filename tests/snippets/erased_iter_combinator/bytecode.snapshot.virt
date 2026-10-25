@@ -192,13 +192,13 @@ fn 4 snippet$main () -> i32
   i32.const 3
   i32.const 4
   array.new 4 4   ; i32[]
-  call 13   ; std_core$[]$Into$into__i32
+  call 13   ; std_core$$array$Into$into__i32
   call 2   ; snippet$sum_tripled_hi
   local.set 0   ; s
   i32.const 5
   i32.const 6
   array.new 4 2   ; i32[]
-  call 13   ; std_core$[]$Into$into__i32
+  call 13   ; std_core$$array$Into$into__i32
   call 3   ; snippet$drain
   local.set 1   ; d
   i64.const 99
@@ -626,7 +626,7 @@ fn 12 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 13 std_core$[]$Into$into__i32 (ref) -> any
+fn 13 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 14   ; std_core$array_iter__i32
   return

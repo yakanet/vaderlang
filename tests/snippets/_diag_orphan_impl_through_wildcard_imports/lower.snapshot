@@ -1,16 +1,16 @@
 # Lower
 
 ## snippet
-  snippet.Foo.baz :: fn(self: Foo) -> i32 {  // snippet$snippet_lib_a_Foo$snippet_lib_b_Bar$baz
+  snippet.Foo.baz :: fn(self: Foo) -> i32 {  // snippet$snippet_lib__a$Foo$snippet_lib__b$Bar$baz
       return self.value
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       return 0
   }
-  vtable snippet_lib_b$Bar.baz for Foo  snippet.Foo.baz  // snippet$snippet_lib_a_Foo$snippet_lib_b_Bar$baz
+  vtable snippet_lib__b$Bar.baz for Foo  snippet.Foo.baz  // snippet$snippet_lib__a$Foo$snippet_lib__b$Bar$baz
 
 ## snippet/lib_a
-  snippet.lib_a.Foo :: struct { value: i32 }  // snippet_lib_a$Foo
+  snippet.lib_a.Foo :: struct { value: i32 }  // snippet_lib__a$Foo
 
 ## snippet/lib_b
 

@@ -31,7 +31,7 @@ fn 0 snippet$main () -> i32
   struct.get 8 0   ; snippet_util$Config.level
   local.set 0   ; $field_1
   string.const 0   ; "hi"
-  call 11   ; snippet_base$string$std_core_Into$into
+  call 11   ; snippet_base$string$std_core$Into$into
   local.set 1   ; $call_3
   local.get 0   ; $field_1
   local.get 1   ; $call_3
@@ -448,7 +448,7 @@ fn 10 snippet_util$describe (ref) -> string
   return
 end
 
-fn 11 snippet_base$string$std_core_Into$into (string) -> ref
+fn 11 snippet_base$string$std_core$Into$into (string) -> ref
   string.const 7   ; "<"
   local.get 0   ; arg 0
   string.const 8   ; ">"

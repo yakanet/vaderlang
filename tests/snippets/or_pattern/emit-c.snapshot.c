@@ -13,10 +13,10 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 1u
 
-static bool snippet_can_go(uint8_t l0);
-static int32_t snippet_points(int32_t l0);
-static int32_t snippet_kind(vader_box_t l0);
-static int32_t snippet_main(void);
+static bool snippet$can_go(uint8_t l0);
+static int32_t snippet$points(int32_t l0);
+static int32_t snippet$kind(vader_box_t l0);
+static int32_t snippet$main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -30,7 +30,7 @@ const vader_type_info_t vader_type_info_table[7] = {
 };
 const size_t vader_type_info_count = 7;
 
-static bool snippet_can_go(uint8_t l0) {
+static bool snippet$can_go(uint8_t l0) {
     bool l1;
     if (l0 == INT32_C(2)) {
         return true;
@@ -51,7 +51,7 @@ static bool snippet_can_go(uint8_t l0) {
     return false;
 }
 
-static int32_t snippet_points(int32_t l0) {
+static int32_t snippet$points(int32_t l0) {
     int32_t l1;
     bool l2;
     if (l0 == INT32_C(1)) {
@@ -81,7 +81,7 @@ static int32_t snippet_points(int32_t l0) {
     return l1;
 }
 
-static int32_t snippet_kind(vader_box_t l0) {
+static int32_t snippet$kind(vader_box_t l0) {
     if ((l0.tag == 2u || l0.tag == 3u)) {
         return INT32_C(1);
     }
@@ -91,30 +91,30 @@ static int32_t snippet_kind(vader_box_t l0) {
     return INT32_C(2);
 }
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     int32_t l0, l1;
     bool t0;
     int32_t t1;
-    t0 = snippet_can_go((uint8_t) 2);
+    t0 = snippet$can_go((uint8_t) 2);
     if (t0) {
         l0 = INT32_C(100);
     } else {
         l0 = INT32_C(0);
     }
-    t0 = snippet_can_go((uint8_t) 0);
+    t0 = snippet$can_go((uint8_t) 0);
     if (t0) {
         l1 = INT32_C(0);
     } else {
         l1 = INT32_C(10);
     }
     l0 = vader_chk_add(i32, l0, l1);
-    l1 = snippet_points(INT32_C(6));
+    l1 = snippet$points(INT32_C(6));
     l0 = vader_chk_add(i32, l0, l1);
-    l1 = snippet_points(INT32_C(3));
+    l1 = snippet$points(INT32_C(3));
     l0 = vader_chk_add(i32, l0, l1);
-    l1 = snippet_kind(vader_box_bool(2u, true));
+    l1 = snippet$kind(vader_box_bool(2u, true));
     l0 = vader_chk_add(i32, l0, l1);
-    l1 = snippet_kind(vader_box_string(5u, 1u));
+    l1 = snippet$kind(vader_box_string(5u, 1u));
     t1 = vader_chk_add(i32, l0, l1);
     return t1;
 }
@@ -125,5 +125,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

@@ -206,14 +206,8 @@ test_adapter_reason_for_a_double_from_words :: fn() -> void {
 }
 
 @test
-test_adapter_symbol_escapes_the_mangle :: fn() -> void {
-    assert_eq(bc.adapter_symbol(extern_of([], [])), "vader_adapt_m_24f")
-}
-
-@test
-test_adapter_symbol_doubles_an_underscore :: fn() -> void {
-    imp :: bc.BcImport { ...extern_of([], []), .mangled_name = r"a_b$c" }
-    assert_eq(bc.adapter_symbol(imp), "vader_adapt_a__b_24c")
+test_adapter_symbol_prefixes_the_mangle :: fn() -> void {
+    assert_eq(bc.adapter_symbol(extern_of([], [])), r"vader_adapt_m$f")
 }
 
 @test

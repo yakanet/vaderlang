@@ -59,7 +59,7 @@ vtable std_core$Equals.equals 10 25
 vtable std_core$Equals.equals 4 2
 export main 3
 
-fn 0 snippet$Point$std_core_Equals$equals (ref,ref) -> bool
+fn 0 snippet$Point$std_core$Equals$equals (ref,ref) -> bool
   local $field_2 i32
   local $field_3 i32
   local.field 0 1 0   ; arg 0 snippet$Point.x
@@ -74,7 +74,7 @@ fn 0 snippet$Point$std_core_Equals$equals (ref,ref) -> bool
   return
 end
 
-fn 1 snippet$Label$std_core_Equals$equals (ref,ref) -> bool
+fn 1 snippet$Label$std_core$Equals$equals (ref,ref) -> bool
   local $field_2 string
   local $field_3 string
   local.field 0 3 0   ; arg 0 snippet$Label.text
@@ -89,7 +89,7 @@ fn 1 snippet$Label$std_core_Equals$equals (ref,ref) -> bool
   return
 end
 
-fn 2 snippet$Pair$std_core_Equals$equals (ref,ref) -> bool
+fn 2 snippet$Pair$std_core$Equals$equals (ref,ref) -> bool
   local $field_2 i32
   local $field_3 i32
   local.field 0 4 0   ; arg 0 __Tuple_i32_i32_3103e027._0
@@ -165,7 +165,7 @@ fn 3 snippet$main () -> i32
     local.set 11   ; $cast_26
     local.get 10   ; $cast_25
     local.get 11   ; $cast_26
-    call 1   ; snippet$Label$std_core_Equals$equals
+    call 1   ; snippet$Label$std_core$Equals$equals
     local.set 9   ; and_res
   else
     bool.const false
@@ -196,7 +196,7 @@ fn 3 snippet$main () -> i32
       local.set 11   ; $cast_26
       local.get 10   ; $cast_25
       local.get 11   ; $cast_26
-      call 0   ; snippet$Point$std_core_Equals$equals
+      call 0   ; snippet$Point$std_core$Equals$equals
       local.set 12   ; and_res
     else
       bool.const false
@@ -235,7 +235,7 @@ fn 3 snippet$main () -> i32
     local.set 11   ; $cast_26
     local.get 10   ; $cast_25
     local.get 11   ; $cast_26
-    call 1   ; snippet$Label$std_core_Equals$equals
+    call 1   ; snippet$Label$std_core$Equals$equals
     local.set 9   ; and_res
   else
     bool.const false
@@ -266,7 +266,7 @@ fn 3 snippet$main () -> i32
       local.set 11   ; $cast_26
       local.get 10   ; $cast_25
       local.get 11   ; $cast_26
-      call 0   ; snippet$Point$std_core_Equals$equals
+      call 0   ; snippet$Point$std_core$Equals$equals
       local.set 12   ; and_res
     else
       bool.const false
@@ -305,7 +305,7 @@ fn 3 snippet$main () -> i32
     local.set 11   ; $cast_26
     local.get 10   ; $cast_25
     local.get 11   ; $cast_26
-    call 1   ; snippet$Label$std_core_Equals$equals
+    call 1   ; snippet$Label$std_core$Equals$equals
     local.set 9   ; and_res
   else
     bool.const false
@@ -336,7 +336,7 @@ fn 3 snippet$main () -> i32
       local.set 11   ; $cast_26
       local.get 10   ; $cast_25
       local.get 11   ; $cast_26
-      call 0   ; snippet$Point$std_core_Equals$equals
+      call 0   ; snippet$Point$std_core$Equals$equals
       local.set 12   ; and_res
     else
       bool.const false
@@ -375,7 +375,7 @@ fn 3 snippet$main () -> i32
     local.set 11   ; $cast_26
     local.get 10   ; $cast_25
     local.get 11   ; $cast_26
-    call 1   ; snippet$Label$std_core_Equals$equals
+    call 1   ; snippet$Label$std_core$Equals$equals
     local.set 9   ; and_res
   else
     bool.const false
@@ -406,7 +406,7 @@ fn 3 snippet$main () -> i32
       local.set 11   ; $cast_26
       local.get 10   ; $cast_25
       local.get 11   ; $cast_26
-      call 0   ; snippet$Point$std_core_Equals$equals
+      call 0   ; snippet$Point$std_core$Equals$equals
       local.set 12   ; and_res
     else
       bool.const false
@@ -438,7 +438,7 @@ fn 3 snippet$main () -> i32
     local.get 3   ; s1
     ref.cast 1   ; snippet$Point
     local.get 1   ; q
-    call 0   ; snippet$Point$std_core_Equals$equals
+    call 0   ; snippet$Point$std_core$Equals$equals
     local.set 9   ; and_res
   else
     bool.const false
@@ -462,7 +462,7 @@ fn 3 snippet$main () -> i32
     local.set 10   ; $cast_25
     local.get 1   ; q
     local.get 10   ; $cast_25
-    call 0   ; snippet$Point$std_core_Equals$equals
+    call 0   ; snippet$Point$std_core$Equals$equals
     local.set 9   ; and_res
   else
     bool.const false
@@ -484,7 +484,7 @@ fn 3 snippet$main () -> i32
     local.get 6   ; s4
     ref.cast 1   ; snippet$Point
     local.get 1   ; q
-    call 0   ; snippet$Point$std_core_Equals$equals
+    call 0   ; snippet$Point$std_core$Equals$equals
     local.set 9   ; and_res
   else
     bool.const false
@@ -557,7 +557,7 @@ fn 3 snippet$main () -> i32
     local.get 5   ; s3
     ref.cast 1   ; snippet$Point
     local.get 1   ; q
-    call 0   ; snippet$Point$std_core_Equals$equals
+    call 0   ; snippet$Point$std_core$Equals$equals
     local.set 9   ; and_res
   else
     bool.const false
@@ -608,7 +608,7 @@ fn 3 snippet$main () -> i32
       local.set 11   ; $cast_26
       local.get 10   ; $cast_25
       local.get 11   ; $cast_26
-      call 0   ; snippet$Point$std_core_Equals$equals
+      call 0   ; snippet$Point$std_core$Equals$equals
       local.set 12   ; and_res
     else
       bool.const false
@@ -662,7 +662,7 @@ fn 3 snippet$main () -> i32
       local.set 11   ; $cast_26
       local.get 10   ; $cast_25
       local.get 11   ; $cast_26
-      call 0   ; snippet$Point$std_core_Equals$equals
+      call 0   ; snippet$Point$std_core$Equals$equals
       local.set 12   ; and_res
     else
       bool.const false
@@ -803,7 +803,7 @@ fn 3 snippet$main () -> i32
       local.set 11   ; $cast_26
       local.get 10   ; $cast_25
       local.get 11   ; $cast_26
-      call 1   ; snippet$Label$std_core_Equals$equals
+      call 1   ; snippet$Label$std_core$Equals$equals
       local.set 12   ; and_res
     else
       bool.const false
@@ -834,7 +834,7 @@ fn 3 snippet$main () -> i32
         local.set 11   ; $cast_26
         local.get 10   ; $cast_25
         local.get 11   ; $cast_26
-        call 0   ; snippet$Point$std_core_Equals$equals
+        call 0   ; snippet$Point$std_core$Equals$equals
         local.set 14   ; and_res
       else
         bool.const false
@@ -1036,7 +1036,7 @@ fn 3 snippet$main () -> i32
     local.get 3   ; s1
     ref.cast 11   ; snippet$Box__snippet_Point
     local.get 1   ; q
-    call 4   ; snippet$Box$std_core_Equals$equals__Any
+    call 4   ; snippet$Box$std_core$Equals$equals__Any
     local.set 9   ; and_res
   else
     bool.const false
@@ -1062,7 +1062,7 @@ fn 3 snippet$main () -> i32
     local.get 3   ; s1
     ref.cast 11   ; snippet$Box__snippet_Point
     local.get 1   ; q
-    call 4   ; snippet$Box$std_core_Equals$equals__Any
+    call 4   ; snippet$Box$std_core$Equals$equals__Any
     local.set 9   ; and_res
   else
     bool.const false
@@ -1092,7 +1092,7 @@ fn 3 snippet$main () -> i32
   local.set 8   ; __off_1
   local.get 0   ; p
   local.get 1   ; q
-  call 2   ; snippet$Pair$std_core_Equals$equals
+  call 2   ; snippet$Pair$std_core$Equals$equals
   local.set 9   ; and_res
   local.get 2   ; r
   local.get 8   ; __off_1
@@ -1106,7 +1106,7 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 snippet$Box$std_core_Equals$equals__Any (ref,ref) -> bool
+fn 4 snippet$Box$std_core$Equals$equals__Any (ref,ref) -> bool
   local $field_2 any
   local.field 0 6 0   ; arg 0 snippet$Box__Any.value
   local.set 2   ; $field_2
@@ -1185,7 +1185,7 @@ fn 7 concat_2 (string,string) -> string
   return
 end
 
-fn 8 snippet$Point$std_core_Equals$equals$guard (ref,any) -> bool
+fn 8 snippet$Point$std_core$Equals$equals$guard (ref,any) -> bool
   local $cast_4 ref
   local.get 1   ; arg 1
   type_check 1   ; snippet$Point
@@ -1195,13 +1195,13 @@ fn 8 snippet$Point$std_core_Equals$equals$guard (ref,any) -> bool
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
-    call 0   ; snippet$Point$std_core_Equals$equals
+    call 0   ; snippet$Point$std_core$Equals$equals
     return
   end $L0
   return.lit bool.const false
 end
 
-fn 9 snippet$Label$std_core_Equals$equals$guard (ref,any) -> bool
+fn 9 snippet$Label$std_core$Equals$equals$guard (ref,any) -> bool
   local $cast_4 ref
   local.get 1   ; arg 1
   type_check 3   ; snippet$Label
@@ -1211,7 +1211,7 @@ fn 9 snippet$Label$std_core_Equals$equals$guard (ref,any) -> bool
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
-    call 1   ; snippet$Label$std_core_Equals$equals
+    call 1   ; snippet$Label$std_core$Equals$equals
     return
   end $L0
   return.lit bool.const false

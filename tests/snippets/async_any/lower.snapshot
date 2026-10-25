@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.Boom :: struct {}  // snippet$Boom
-  snippet.Boom.message :: fn(self: Boom) -> string {  // snippet$Boom$std_core_Error$message
+  snippet.Boom.message :: fn(self: Boom) -> string {  // snippet$Boom$std_core$Error$message
       "boom"
   }
   snippet.fail_fast :: fn() -> Async<Boom | string> {  // snippet$fail_fast
@@ -170,14 +170,14 @@
   vtable std.core.Async.resume for __asyncstate_snippet_0  snippet$__asyncstate_snippet_0$Async$resume
   vtable std.core.Async.resume for __asyncstate_snippet_3  snippet$__asyncstate_snippet_3$Async$resume
   vtable std.core.Async.resume for __asyncstate_snippet_4  snippet$__asyncstate_snippet_4$Async$resume
-  vtable std.core.Error.message for Boom  snippet.Boom.message  // snippet$Boom$std_core_Error$message
+  vtable std.core.Error.message for Boom  snippet.Boom.message  // snippet$Boom$std_core$Error$message
 
 ## lowered in dependencies
   std/async
-    fn std.async.JoinAny<string, Any>.cancel  // std_async$JoinAny$std_core_Async$cancel__string__Any
-    fn std.async.JoinAny<string, Any>.resume  // std_async$JoinAny$std_core_Async$resume__string__Any
-    fn std.async.Sleep.cancel  // std_async$Sleep$std_core_Async$cancel
-    fn std.async.Sleep.resume  // std_async$Sleep$std_core_Async$resume
+    fn std.async.JoinAny<string, Any>.cancel  // std_async$JoinAny$std_core$Async$cancel__string__Any
+    fn std.async.JoinAny<string, Any>.resume  // std_async$JoinAny$std_core$Async$resume__string__Any
+    fn std.async.Sleep.cancel  // std_async$Sleep$std_core$Async$cancel
+    fn std.async.Sleep.resume  // std_async$Sleep$std_core$Async$resume
     fn std.async.block_on<i32>  // std_async$block_on__i32
     fn std.async.earlier  // std_async$earlier
     fn std.async.join_any<string, Boom>  // std_async$join_any__string__Any
@@ -186,28 +186,28 @@
     struct std.async.JoinAny<string, Any>  // std_async$JoinAny__string__Any
     struct std.async.Sleep  // std_async$Sleep
   std/collections
-    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core_Index$at__i32__bool
-    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__bool
-    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core_Into$into__i32__bool
-    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
-    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core_Index$at__i32__i32
-    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__i32
-    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core_Into$into__i32__i32
-    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__i32
-    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core_Index$at__string__i32
-    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i32
-    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core_Into$into__string__i32
-    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
-    fn std.collections.MutableMap<string, i64>.at  // std_collections$MutableMap$std_core_Index$at__string__i64
-    fn std.collections.MutableMap<string, i64>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i64
-    fn std.collections.MutableMap<string, i64>.into  // std_collections$MutableMap$std_core_Into$into__string__i64
-    fn std.collections.MutableMap<string, i64>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i64
-    fn std.collections.MutableMap<string, string[]>.at  // std_collections$MutableMap$std_core_Index$at__string__string__
-    fn std.collections.MutableMap<string, string[]>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__string__
-    fn std.collections.MutableMap<string, string[]>.into  // std_collections$MutableMap$std_core_Into$into__string__string__
-    fn std.collections.MutableMap<string, string[]>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__string__
-    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core_Contains$contains__i32
-    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core_Into$into__i32
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core$Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core$Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core$Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core$Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core$Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core$Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
+    fn std.collections.MutableMap<string, i64>.at  // std_collections$MutableMap$std_core$Index$at__string__i64
+    fn std.collections.MutableMap<string, i64>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i64
+    fn std.collections.MutableMap<string, i64>.into  // std_collections$MutableMap$std_core$Into$into__string__i64
+    fn std.collections.MutableMap<string, i64>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i64
+    fn std.collections.MutableMap<string, string[]>.at  // std_collections$MutableMap$std_core$Index$at__string__string__
+    fn std.collections.MutableMap<string, string[]>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__string__
+    fn std.collections.MutableMap<string, string[]>.into  // std_collections$MutableMap$std_core$Into$into__string__string__
+    fn std.collections.MutableMap<string, string[]>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__string__
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core$Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core$Into$into__i32
     fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
     fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
     fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32

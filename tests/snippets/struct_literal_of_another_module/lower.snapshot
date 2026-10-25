@@ -39,11 +39,11 @@
   }
 
 ## snippet/base
-  snippet.base.string.into :: fn(self: string) -> Label {  // snippet_base$string$std_core_Into$into
+  snippet.base.string.into :: fn(self: string) -> Label {  // snippet_base$string$std_core$Into$into
       Label { .text = concat_3("<", self, ">") }
   }
   snippet.base.Label :: struct { text: string }  // snippet_base$Label
-  vtable std.core.Into.into for string  snippet.base.string.into  // snippet_base$string$std_core_Into$into
+  vtable std.core.Into.into for string  snippet.base.string.into  // snippet_base$string$std_core$Into$into
 
 ## snippet/util
   snippet.util.make :: fn() -> Config {  // snippet_util$make

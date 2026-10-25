@@ -64,12 +64,12 @@ fn 0 snippet$main () -> i32
   i32.const 2
   array.new 7 2   ; i32[]
   bool.const true
-  call 6   ; snippet$[]$Conv$conv__i32__bool
+  call 6   ; snippet$$array$Conv$conv__i32__bool
   call 17   ; std_io$println__string
   string.const 1   ; "a"
   array.new 8 1   ; string[]
   f64.const 1.5 4609434218613702656
-  call 7   ; snippet$[]$Conv$conv__string__f64
+  call 7   ; snippet$$array$Conv$conv__string__f64
   call 17   ; std_io$println__string
   return.lit i32.const 0
 end
@@ -238,7 +238,7 @@ fn 5 snippet$Bag$Conv$conv__string__i32 (ref,i32) -> string
   return.lit string.const 6   ; "string i32"
 end
 
-fn 6 snippet$[]$Conv$conv__i32__bool (ref,bool) -> string
+fn 6 snippet$$array$Conv$conv__i32__bool (ref,bool) -> string
   local __p_0 string
   local __p_1 string
   local $call_7 i64
@@ -299,7 +299,7 @@ fn 6 snippet$[]$Conv$conv__i32__bool (ref,bool) -> string
   return
 end
 
-fn 7 snippet$[]$Conv$conv__string__f64 (ref,f64) -> string
+fn 7 snippet$$array$Conv$conv__string__f64 (ref,f64) -> string
   local __p_0 string
   local __p_1 string
   local $call_7 i64

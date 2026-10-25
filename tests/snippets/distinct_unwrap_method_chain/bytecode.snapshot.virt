@@ -11,7 +11,7 @@ type 8 array 6
 type 9 struct std_core$Buffer {  }
 type 10 scalar void
 type 11 fn (5) -> 3
-type 12 struct std_string_builder$StringBuilder { parts:13 }
+type 12 struct std_string__builder$StringBuilder { parts:13 }
 type 13 array 1
 string 0 "A"
 string 1 "inline="
@@ -931,7 +931,7 @@ fn 20 std_string$replace_chars_where (string,ref,string) -> string
   local or_res bool
   local $call_elem_40 i64
   array.new 13 0   ; string[]
-  struct.new 12   ; std_string_builder$StringBuilder
+  struct.new 12   ; std_string__builder$StringBuilder
   local.set 3   ; sb
   local.get 0   ; arg 0
   local.set 4   ; self
@@ -965,11 +965,11 @@ fn 20 std_string$replace_chars_where (string,ref,string) -> string
         if $L3 void
           local.get 3   ; sb
           local.get 2   ; arg 2
-          call 22   ; std_string_builder$append
+          call 22   ; std_string__builder$append
         else
           local.get 3   ; sb
           local.get 8   ; c
-          call 23   ; std_string_builder$append_char
+          call 23   ; std_string__builder$append_char
         end $L3
         br $L0
       end $L2
@@ -1015,17 +1015,17 @@ fn 20 std_string$replace_chars_where (string,ref,string) -> string
       if $L7 void
         local.get 3   ; sb
         local.get 2   ; arg 2
-        call 22   ; std_string_builder$append
+        call 22   ; std_string__builder$append
       else
         local.get 3   ; sb
         local.get 11   ; c
-        call 23   ; std_string_builder$append_char
+        call 23   ; std_string__builder$append_char
       end $L7
       br $L0
     end $L1
   end $L0
   local.get 3   ; sb
-  call 24   ; std_string_builder$StringBuilder$std_core_Display$to_string
+  call 24   ; std_string__builder$StringBuilder$std_core$Display$to_string
   return
 end
 
@@ -1063,17 +1063,17 @@ fn 21 std_string$is_white_byte (u8) -> bool
   return
 end
 
-fn 22 std_string_builder$append (ref,string) -> void
-  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
+fn 22 std_string__builder$append (ref,string) -> void
+  local.field 0 12 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.get 1   ; arg 1
   array.push 1   ; string
   return
 end
 
-fn 23 std_string_builder$append_char (ref,char) -> void
+fn 23 std_string__builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 12 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 11   ; std_core$utf8_encode
@@ -1085,7 +1085,7 @@ fn 23 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 24 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
+fn 24 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> string
   local n i64
   local __for_arr_0 ref
   local __for_len_1 i64
@@ -1094,7 +1094,7 @@ fn 24 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   local __for_arr_3 ref
   local p string
   local $call_40 i64
-  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 12 0   ; arg 0 std_string__builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -1106,7 +1106,7 @@ fn 24 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
+    local.field 0 12 0   ; arg 0 std_string__builder$StringBuilder.parts
     i32.const 0
     array.get 13   ; string[]
     ref.cast 1   ; string
@@ -1114,7 +1114,7 @@ fn 24 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 12 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1147,7 +1147,7 @@ fn 24 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 12 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2

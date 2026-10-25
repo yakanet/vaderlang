@@ -58,7 +58,7 @@ fn 2 snippet$main () -> i32
   i32.const 20
   i32.const 30
   array.new 13 3   ; i32[]
-  call 10   ; std_core$[]$Into$into__i32
+  call 10   ; std_core$$array$Into$into__i32
   call 3   ; snippet$count__i32
   local.set 1   ; b
   struct.new 1   ; snippet$Hello
@@ -312,7 +312,7 @@ fn 9 std_core$Range$Iterator$next__i64 (ref) -> ref
   return
 end
 
-fn 10 std_core$[]$Into$into__i32 (ref) -> any
+fn 10 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 11   ; std_core$array_iter__i32
   return

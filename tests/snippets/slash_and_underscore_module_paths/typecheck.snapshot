@@ -1,0 +1,52 @@
+# Typecheck
+
+## tests/snippets/slash_and_underscore_module_paths
+  StructDecl     Badge                :: Badge
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         via_kit              :: fn(tags_Tag) -> string
+  FnDecl         via_slash            :: fn(Tag) -> string
+  FnDecl         via_underscore       :: fn(Tag) -> string
+  expr 17:33    StringLitExpr  :: string
+  expr 17:36    FieldExpr      :: string
+  expr 17:36    IdentExpr      :: Badge
+  expr 21:33    StringLitExpr  :: string
+  expr 21:36    FieldExpr      :: string
+  expr 21:36    IdentExpr      :: Badge
+  expr 25:33    StringLitExpr  :: string
+  expr 25:36    FieldExpr      :: string
+  expr 25:36    IdentExpr      :: Badge
+  expr 28:42    CallExpr       :: string
+  expr 28:42    FieldExpr      :: fn() -> string
+  expr 28:42    IdentExpr      :: Tag
+  expr 30:52    CallExpr       :: string
+  expr 30:52    FieldExpr      :: fn() -> string
+  expr 30:52    IdentExpr      :: Tag
+  expr 32:40    CallExpr       :: string
+  expr 32:40    FieldExpr      :: fn() -> string
+  expr 32:40    IdentExpr      :: tags_Tag
+  expr 35:14    StructLitExpr  :: Badge
+  expr 35:30    StringLitExpr  :: string
+  expr 36:13    CallExpr       :: string
+  expr 36:13    IdentExpr      :: fn(Tag) -> string
+  expr 36:23    IdentExpr      :: Badge
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 37:13    CallExpr       :: string
+  expr 37:13    IdentExpr      :: fn(Tag) -> string
+  expr 37:28    IdentExpr      :: Badge
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 38:13    CallExpr       :: string
+  expr 38:13    IdentExpr      :: fn(tags_Tag) -> string
+  expr 38:21    IdentExpr      :: Badge
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/slash_and_underscore_module_paths/kit
+  TraitDecl      tags_Tag             :: tags_Tag
+
+## tests/snippets/slash_and_underscore_module_paths/kit/tags
+  TraitDecl      Tag                  :: Tag
+
+## tests/snippets/slash_and_underscore_module_paths/kit_tags
+  TraitDecl      Tag                  :: Tag

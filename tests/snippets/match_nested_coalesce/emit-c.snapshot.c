@@ -8,16 +8,16 @@
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static int32_t snippet_classify(int32_t l0);
-static int32_t snippet_sign(int32_t l0);
-static int32_t snippet_main(void);
+static int32_t snippet$classify(int32_t l0);
+static int32_t snippet$sign(int32_t l0);
+static int32_t snippet$main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 const vader_type_info_t vader_type_info_table[2] = { [1] = { .slot_size = 4 } };
 const size_t vader_type_info_count = 2;
 
-static int32_t snippet_classify(int32_t l0) {
+static int32_t snippet$classify(int32_t l0) {
     int32_t l1;
     bool l2;
     int32_t t0;
@@ -92,7 +92,7 @@ static int32_t snippet_classify(int32_t l0) {
     return l1;
 }
 
-static int32_t snippet_sign(int32_t l0) {
+static int32_t snippet$sign(int32_t l0) {
     int32_t l1, l2;
     bool l3;
     l1 = l0;
@@ -118,36 +118,36 @@ static int32_t snippet_sign(int32_t l0) {
     return l2;
 }
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     int32_t l0, l1, l2;
     int32_t t0;
-    t0 = snippet_classify(INT32_C(4));
+    t0 = snippet$classify(INT32_C(4));
     l0 = vader_chk_mul(i32, t0, INT32_C(2));
-    t0 = snippet_classify(INT32_C(7));
+    t0 = snippet$classify(INT32_C(7));
     l1 = vader_chk_mul(i32, t0, INT32_C(3));
     l0 = vader_chk_add(i32, l0, l1);
-    t0 = snippet_classify(INT32_C(11));
+    t0 = snippet$classify(INT32_C(11));
     l1 = vader_chk_mul(i32, t0, INT32_C(5));
     l0 = vader_chk_add(i32, l0, l1);
-    t0 = snippet_classify(INT32_C(12));
+    t0 = snippet$classify(INT32_C(12));
     l1 = vader_chk_mul(i32, t0, INT32_C(7));
     l0 = vader_chk_add(i32, l0, l1);
-    t0 = snippet_classify(INT32_C(17));
+    t0 = snippet$classify(INT32_C(17));
     l1 = vader_chk_mul(i32, t0, INT32_C(11));
     l0 = vader_chk_add(i32, l0, l1);
-    t0 = snippet_classify(INT32_C(19));
+    t0 = snippet$classify(INT32_C(19));
     l1 = vader_chk_mul(i32, t0, INT32_C(13));
     l0 = vader_chk_add(i32, l0, l1);
-    t0 = snippet_classify(INT32_C(25));
+    t0 = snippet$classify(INT32_C(25));
     l1 = vader_chk_mul(i32, t0, INT32_C(17));
     l0 = vader_chk_add(i32, l0, l1);
-    t0 = snippet_classify(INT32_C(99));
+    t0 = snippet$classify(INT32_C(99));
     l1 = vader_chk_mul(i32, t0, INT32_C(19));
     l0 = vader_chk_add(i32, l0, l1);
-    l1 = snippet_sign(INT32_C(8));
-    l2 = snippet_sign(INT32_C(-8));
+    l1 = snippet$sign(INT32_C(8));
+    l2 = snippet$sign(INT32_C(-8));
     l1 = vader_chk_add(i32, l1, l2);
-    l2 = snippet_sign(INT32_C(0));
+    l2 = snippet$sign(INT32_C(0));
     l1 = vader_chk_add(i32, l1, l2);
     l0 = vader_chk_add(i32, l0, l1);
     return l0;
@@ -159,5 +159,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

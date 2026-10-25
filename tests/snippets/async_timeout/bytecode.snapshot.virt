@@ -735,7 +735,7 @@ fn 13 std_io$println__string (string) -> void
   return
 end
 
-fn 14 std_async$Timeout$std_core_Async$resume__string (ref) -> any
+fn 14 std_async$Timeout$std_core$Async$resume__string (ref) -> any
   local rc any
   local rt any
   local $field_11 i64
@@ -789,7 +789,7 @@ fn 14 std_async$Timeout$std_core_Async$resume__string (ref) -> any
   return
 end
 
-fn 15 std_async$Timeout$std_core_Async$cancel__string (ref) -> void
+fn 15 std_async$Timeout$std_core$Async$cancel__string (ref) -> void
   local.field 0 21 0   ; arg 0 std_async$Timeout__string.child
   virtual.call 1 std_core$Async.cancel
   local.field 0 21 1   ; arg 0 std_async$Timeout__string.timer
@@ -811,7 +811,7 @@ fn 17 std_async$run_async_main (any) -> i32
   return
 end
 
-fn 18 std_async$Sleep$std_core_Async$resume (ref) -> any
+fn 18 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 25 2   ; arg 0 std_async$Sleep.armed
@@ -855,11 +855,11 @@ fn 18 std_async$Sleep$std_core_Async$resume (ref) -> any
   return.lit null.const
 end
 
-fn 19 std_async$Sleep$std_core_Async$cancel (ref) -> void
+fn 19 std_async$Sleep$std_core$Async$cancel (ref) -> void
   return
 end
 
-fn 20 std_async$TimeoutError$std_core_Error$message (ref) -> string
+fn 20 std_async$TimeoutError$std_core$Error$message (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $field_8 i64

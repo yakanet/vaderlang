@@ -1,0 +1,8 @@
+// The module whose path holds a `/` where `snippet/kit_tags` holds a `_`.
+module "snippet/kit/tags"
+
+/// A tag, as `snippet/kit/tags` declares it.
+export Tag :: trait {
+    /// The tag's text.
+    tag :: fn(self) -> string
+}

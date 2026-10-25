@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.Cell :: struct { keys: string[], vals: i32[] }  // snippet$Cell
-  snippet.Cell.at :: fn(self: Cell, key: string) -> i32 {  // snippet$Cell$std_core_Index$at
+  snippet.Cell.at :: fn(self: Cell, key: string) -> i32 {  // snippet$Cell$std_core$Index$at
       i: i32 = 0
       {
           __for_arr_0: string[] = self.keys
@@ -20,7 +20,7 @@
       }
       return 0
   }
-  snippet.Cell.set_at :: fn(self: Cell, key: string, v: i32) -> void {  // snippet$Cell$std_core_IndexSet$set_at
+  snippet.Cell.set_at :: fn(self: Cell, key: string, v: i32) -> void {  // snippet$Cell$std_core$IndexSet$set_at
       i: i32 = 0
       {
           __for_arr_0: string[] = self.keys
@@ -66,8 +66,8 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Index.at for Cell  snippet.Cell.at  // snippet$Cell$std_core_Index$at
-  vtable std.core.IndexSet.set_at for Cell  snippet.Cell.set_at  // snippet$Cell$std_core_IndexSet$set_at
+  vtable std.core.Index.at for Cell  snippet.Cell.at  // snippet$Cell$std_core$Index$at
+  vtable std.core.IndexSet.set_at for Cell  snippet.Cell.set_at  // snippet$Cell$std_core$IndexSet$set_at
 
 ## lowered in dependencies
   std/core

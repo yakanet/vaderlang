@@ -3,10 +3,10 @@
 ## snippet
   snippet.ParseErr :: struct { msg: string }  // snippet$ParseErr
   snippet.NetErr :: struct { reason: string }  // snippet$NetErr
-  snippet.ParseErr.message :: fn(self: ParseErr) -> string {  // snippet$ParseErr$std_core_Error$message
+  snippet.ParseErr.message :: fn(self: ParseErr) -> string {  // snippet$ParseErr$std_core$Error$message
       concat_2("parse: ", self.msg)
   }
-  snippet.NetErr.message :: fn(self: NetErr) -> string {  // snippet$NetErr$std_core_Error$message
+  snippet.NetErr.message :: fn(self: NetErr) -> string {  // snippet$NetErr$std_core$Error$message
       concat_2("net: ", self.reason)
   }
   snippet.report :: fn(e: Error) -> string {  // snippet$report
@@ -25,8 +25,8 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Error.message for NetErr  snippet.NetErr.message  // snippet$NetErr$std_core_Error$message
-  vtable std.core.Error.message for ParseErr  snippet.ParseErr.message  // snippet$ParseErr$std_core_Error$message
+  vtable std.core.Error.message for NetErr  snippet.NetErr.message  // snippet$NetErr$std_core$Error$message
+  vtable std.core.Error.message for ParseErr  snippet.ParseErr.message  // snippet$ParseErr$std_core$Error$message
 
 ## lowered in dependencies
   std/core

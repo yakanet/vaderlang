@@ -13,6 +13,7 @@
 
 module "vader/emit/c"
 
+import "std/abort"
 import "std/numbers"
 import "vader/core/bytecode"
 import "vader/emit/c/ast"
@@ -22,31 +23,29 @@ import "vader/support/text"
 // C identifier sanitation
 // =========================================================================
 
-/// Replace every non-`[A-Za-z0-9_]` byte in `raw` with `_`. Then, if the
-/// result collides with a C11 (or common-extension) keyword, suffix it
-/// with `_v` so the emitted C is always valid.
+/// The C identifier of a mangled name : the name itself, made of `[A-Za-z0-9_$]`.
+/// `$` is an identifier byte to the C compilers the driver runs (clang, gcc,
+/// mingw), and no Vader identifier holds one, so a name keeps the `$` that
+/// separates its parts and two mangled names never meet in one C identifier. A
+/// C keyword takes a `$` suffix, which ends no mangled name.
 ///
-/// @param raw  the mangled name from the bytecode (`std_core_i32_Add_add` etc.).
-/// @return     a safe C identifier.
+/// @param raw  the mangled name from the bytecode (`std_core$i32$Add$add` etc.).
+/// @return     its C identifier.
 export sanitise :: fn(raw: string) -> string {
-    // Build the sanitised bytes then intern ONCE. The byte-by-byte
-    // `StringBuilder.append_char` this replaced UTF-8-encoded + interned a fresh
-    // 1-char string per byte — the hottest `append_char` caller in c-emit.
-    n :: raw.byte_len()
-    buf: u8[]: []
-    for i in 0..<n {
+    for i in 0..<raw.byte_len() {
         b :: raw.byte_at(i)
-        buf.push(if is_ident_byte(b) { b } else { '_' })
+        if !is_ident_byte(b) && b != '$' {
+            todo("c_emit: the mangled name `${raw}` holds a byte outside `[A-Za-z0-9_$]`")
+        }
     }
-    out :: buf.bytes_to_string()
-    if is_c_reserved(out) {
-        return "${out}_v"
+    if is_c_reserved(raw) {
+        return "${raw}\$"
     }
-    return out
+    return raw
 }
 
 /// C11 reserved words plus the common `_`-prefixed extensions (`_Atomic`,
-/// `_Static_assert`, …). A flat const so the collision test is a single `in`.
+/// `_Static_assert`, ...). A flat const so the collision test is a single `in`.
 C_RESERVED_WORDS: string[]: [
     "auto", "break", "case", "char", "const", "continue", "default", "do",
     "double", "else", "enum", "extern", "float", "for", "goto", "if", "inline",
@@ -57,7 +56,7 @@ C_RESERVED_WORDS: string[]: [
 ]
 
 /// True when `name` collides with a C reserved word ; `sanitise` appends
-/// `_v` to any mangled name that does.
+/// `$` to any mangled name that does.
 is_c_reserved :: fn(name: string) -> bool = name in C_RESERVED_WORDS
 
 // =========================================================================
@@ -391,8 +390,23 @@ export struct_c_name :: fn(name: string) -> string {
     return "vader_struct_${sanitise(name)}_t"
 }
 
-/// C member name of a struct field, `f_<sanitised>` : what a struct definition
-/// declares and every access names, an `offsetof` included.
+/// C member name of a struct field, `f_<name>` : what a struct definition
+/// declares and every access names, an `offsetof` included. A field name is an
+/// identifier, and the prefix keeps it off the C keywords.
 ///
 /// @param name  the source-level field name.
-export field_c_name :: fn(name: string) = "f_${sanitise(name)}"
+export field_c_name :: fn(name: string) = "f_${name}"
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_sanitise_keeps_the_dollar_separator :: fn() -> void {
+    assert_eq(sanitise(r"std_core$Display$to_string"), r"std_core$Display$to_string")
+}
+
+@test
+test_sanitise_suffixes_a_c_keyword :: fn() -> void {
+    assert_eq(sanitise("double"), r"double$")
+}

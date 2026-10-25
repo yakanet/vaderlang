@@ -1,0 +1,40 @@
+// Three traits named alike across modules whose paths differ by `/` against `_`:
+// the `Tag` of `snippet/kit/tags`, the `Tag` of `snippet/kit_tags`, and the
+// `tags_Tag` of `snippet/kit`. `Badge` implements all three, and each call
+// reaches its own impl, on the VM and natively.
+module "snippet"
+
+import "snippet/kit"
+import "snippet/kit/tags" { Tag as SlashTag }
+import "snippet/kit_tags" { Tag as UnderscoreTag }
+import "std/io"
+
+Badge :: struct {
+    name: string
+}
+
+Badge implements SlashTag {
+    tag :: fn(self) -> string = "${self.name} from kit/tags"
+}
+
+Badge implements UnderscoreTag {
+    tag :: fn(self) -> string = "${self.name} from kit_tags"
+}
+
+Badge implements tags_Tag {
+    tag :: fn(self) -> string = "${self.name} from kit"
+}
+
+via_slash :: fn(t: SlashTag) -> string = t.tag()
+
+via_underscore :: fn(t: UnderscoreTag) -> string = t.tag()
+
+via_kit :: fn(t: tags_Tag) -> string = t.tag()
+
+main :: fn() -> i32 {
+    badge :: Badge { .name = "badge" }
+    println(via_slash(badge))
+    println(via_underscore(badge))
+    println(via_kit(badge))
+    return 0
+}

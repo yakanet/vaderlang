@@ -2,10 +2,10 @@
 
 ## snippet
   snippet.Tag :: struct { id: i32 }  // snippet$Tag
-  snippet.Tag.hash :: fn(self: Tag) -> u64 {  // snippet$Tag$std_core_Hash$hash
+  snippet.Tag.hash :: fn(self: Tag) -> u64 {  // snippet$Tag$std_core$Hash$hash
       u64(self.id)
   }
-  snippet.Tag.equals :: fn(self: Tag, other: Tag) -> bool {  // snippet$Tag$std_core_Equals$equals
+  snippet.Tag.equals :: fn(self: Tag, other: Tag) -> bool {  // snippet$Tag$std_core$Equals$equals
       self.id == other.id
   }
   snippet.Tag.fingerprint :: fn(self: Tag) -> u64 {  // snippet$Tag$Hashable$fingerprint
@@ -32,12 +32,12 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  snippet$Tag$std_core_Equals$equals$guard :: fn(self: Tag, other: Any) -> bool {
+  snippet$Tag$std_core$Equals$equals$guard :: fn(self: Tag, other: Any) -> bool {
       (other is Tag) && snippet.Tag.equals(self, Tag(other))
   }
   vtable snippet.Hashable.fingerprint for Tag  snippet.Tag.fingerprint  // snippet$Tag$Hashable$fingerprint
-  vtable std.core.Equals.equals for Tag  snippet$Tag$std_core_Equals$equals$guard
-  vtable std.core.Hash.hash for Tag  snippet.Tag.hash  // snippet$Tag$std_core_Hash$hash
+  vtable std.core.Equals.equals for Tag  snippet$Tag$std_core$Equals$equals$guard
+  vtable std.core.Hash.hash for Tag  snippet.Tag.hash  // snippet$Tag$std_core$Hash$hash
 
 ## lowered in dependencies
   std/core

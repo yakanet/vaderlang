@@ -56,7 +56,7 @@ vtable std_core$Equals.equals 21 26
 vtable std_core$Equals.equals 4 27
 export main 1
 
-fn 0 snippet$Point$std_core_Equals$equals (ref,ref) -> bool
+fn 0 snippet$Point$std_core$Equals$equals (ref,ref) -> bool
   local $field_2 i32
   local $field_3 i32
   local.field 0 1 0   ; arg 0 snippet$Point.x
@@ -391,7 +391,7 @@ fn 2 concat_2 (string,string) -> string
   return
 end
 
-fn 3 snippet$Point$std_core_Equals$equals$guard (ref,any) -> bool
+fn 3 snippet$Point$std_core$Equals$equals$guard (ref,any) -> bool
   local $cast_4 ref
   local.get 1   ; arg 1
   type_check 1   ; snippet$Point
@@ -401,7 +401,7 @@ fn 3 snippet$Point$std_core_Equals$equals$guard (ref,any) -> bool
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
-    call 0   ; snippet$Point$std_core_Equals$equals
+    call 0   ; snippet$Point$std_core$Equals$equals
     return
   end $L0
   return.lit bool.const false
@@ -446,7 +446,7 @@ fn 6 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 7 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
+fn 7 std_core$$array$Contains$contains__i32 (ref,i32) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -501,7 +501,7 @@ fn 8 std_core$is_disjoint__i32 (ref,ref) -> bool
       local.set 5   ; item
       local.get 1   ; arg 1
       local.get 5   ; item
-      call 7   ; std_core$[]$Contains$contains__i32
+      call 7   ; std_core$$array$Contains$contains__i32
       if $L2 void
         return.lit bool.const false
       end $L2
@@ -799,7 +799,7 @@ fn 14 std_core$contains_all__i32 (ref,ref) -> bool
       local.set 5   ; item
       local.get 0   ; arg 0
       local.get 5   ; item
-      call 7   ; std_core$[]$Contains$contains__i32
+      call 7   ; std_core$$array$Contains$contains__i32
       if $L2 void
       else
         return.lit bool.const false

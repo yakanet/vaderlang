@@ -46,7 +46,7 @@
   snippet.bool | string.shout :: fn(self: bool | string) -> string {  // snippet$bool___string$Shout$shout
       "string or bool"
   }
-  snippet$_snippet_mod_a_Point__i32_$Shout$shout :: fn(self: [Point, i32]) -> string {
+  snippet$_snippet_mod__a_Point__i32_$Shout$shout :: fn(self: [Point, i32]) -> string {
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(43))
           __off_1: i64 = 0
@@ -57,7 +57,7 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
-  snippet$_snippet_mod_b_Point__i32_$Shout$shout :: fn(self: [Point, i32]) -> string {
+  snippet$_snippet_mod__b_Point__i32_$Shout$shout :: fn(self: [Point, i32]) -> string {
       {
           __p_0: string = self._0.label
           __buf_1: Buffer = std.core.new_byte_buffer(i64(23) +% std.core.byte_len(__p_0))
@@ -79,8 +79,8 @@
       std.io.println<string>(snippet.[i32, i32].shout(ints))
       std.io.println<string>(snippet.[string, i32].shout(strings))
       std.io.println<string>(snippet.[BlockId, i32].shout(blocks))
-      std.io.println<string>(snippet$_snippet_mod_a_Point__i32_$Shout$shout(a))
-      std.io.println<string>(snippet$_snippet_mod_b_Point__i32_$Shout$shout(b))
+      std.io.println<string>(snippet$_snippet_mod__a_Point__i32_$Shout$shout(a))
+      std.io.println<string>(snippet$_snippet_mod__b_Point__i32_$Shout$shout(b))
       int_fn: fn(i32) -> i32 = __lambda_snippet_0
       string_fn: fn(string) -> i32 = __lambda_snippet_1
       std.io.println<string>(snippet.fn(i32) -> i32.shout(int_fn))
@@ -106,8 +106,8 @@
       std.core.Buffer.intern_string(buf, c1)
   }
   vtable snippet.Shout.shout for [BlockId, i32]  snippet.[BlockId, i32].shout  // snippet$_snippet_BlockId__i32_$Shout$shout
-  vtable snippet.Shout.shout for [Point, i32]  snippet$_snippet_mod_a_Point__i32_$Shout$shout
-  vtable snippet.Shout.shout for [Point, i32]  snippet$_snippet_mod_b_Point__i32_$Shout$shout
+  vtable snippet.Shout.shout for [Point, i32]  snippet$_snippet_mod__a_Point__i32_$Shout$shout
+  vtable snippet.Shout.shout for [Point, i32]  snippet$_snippet_mod__b_Point__i32_$Shout$shout
   vtable snippet.Shout.shout for [i32, i32]  snippet.[i32, i32].shout  // snippet$_i32__i32_$Shout$shout
   vtable snippet.Shout.shout for [string, i32]  snippet.[string, i32].shout  // snippet$_string__i32_$Shout$shout
   vtable snippet.Shout.shout for bool | i32  snippet.bool | i32.shout  // snippet$bool___i32$Shout$shout
@@ -116,10 +116,10 @@
   vtable snippet.Shout.shout for fn(string) -> i32  snippet.fn(string) -> i32.shout  // snippet$fn_string_____i32$Shout$shout
 
 ## snippet/mod_a
-  snippet.mod_a.Point :: struct { x: i32 }  // snippet_mod_a$Point
+  snippet.mod_a.Point :: struct { x: i32 }  // snippet_mod__a$Point
 
 ## snippet/mod_b
-  snippet.mod_b.Point :: struct { label: string }  // snippet_mod_b$Point
+  snippet.mod_b.Point :: struct { label: string }  // snippet_mod__b$Point
 
 ## lowered in dependencies
   std/core

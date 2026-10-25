@@ -1,0 +1,9 @@
+// A trait whose name, joined to its module by `_`, spells the `Tag` of
+// `snippet/kit/tags` joined the same way.
+module "snippet/kit"
+
+/// A tag, as `snippet/kit` declares it.
+export tags_Tag :: trait {
+    /// The tag's text.
+    tag :: fn(self) -> string
+}

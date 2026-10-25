@@ -107,7 +107,7 @@
     fn std.core.i32.to_string  // std_core$i32$Display$to_string
     fn std.core.i64.compare  // std_core$i64$Comparable$compare
     fn std.core.i64.step  // std_core$i64$Step$step
-    fn std.core.string[].contains  // std_core$[]$Contains$contains__string
+    fn std.core.string[].contains  // std_core$$array$Contains$contains__string
     fn std.core.three_way  // std_core$three_way
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int

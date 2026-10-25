@@ -504,7 +504,7 @@ fn 7 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 8 std_async$Shared$std_core_Async$resume__i32 (ref) -> any
+fn 8 std_async$Shared$std_core$Async$resume__i32 (ref) -> any
   local $vcall_7 any
   local.field 0 15 1   ; arg 0 std_async$Shared__i32.result
   type_check 5   ; std_core$Suspended
@@ -551,7 +551,7 @@ fn 10 std_async$run_async_main (any) -> i32
   return
 end
 
-fn 11 std_async$Sleep$std_core_Async$resume (ref) -> any
+fn 11 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 17 2   ; arg 0 std_async$Sleep.armed

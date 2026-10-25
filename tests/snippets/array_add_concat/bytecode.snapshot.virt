@@ -74,7 +74,7 @@ fn 2 snippet$main () -> i32
   local.set 1   ; b
   local.get 0   ; a
   local.get 1   ; b
-  call 7   ; std_core$[]$Add$add__i32
+  call 7   ; std_core$$array$Add$add__i32
   local.set 2   ; joined
   i64.const 77
   buffer.new
@@ -177,7 +177,7 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; a
   local.get 2   ; joined
-  call 7   ; std_core$[]$Add$add__i32
+  call 7   ; std_core$$array$Add$add__i32
   array.len
   local.set 5   ; $len_16
   local.get 3   ; __buf_0
@@ -192,7 +192,7 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 2   ; joined
   local.get 0   ; a
-  call 7   ; std_core$[]$Add$add__i32
+  call 7   ; std_core$$array$Add$add__i32
   array.len
   local.set 5   ; $len_16
   local.get 3   ; __buf_0
@@ -207,7 +207,7 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 2   ; joined
   local.get 2   ; joined
-  call 7   ; std_core$[]$Add$add__i32
+  call 7   ; std_core$$array$Add$add__i32
   array.len
   local.set 5   ; $len_16
   local.get 3   ; __buf_0
@@ -234,9 +234,9 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; a
   local.get 1   ; b
-  call 7   ; std_core$[]$Add$add__i32
+  call 7   ; std_core$$array$Add$add__i32
   local.get 2   ; joined
-  call 7   ; std_core$[]$Add$add__i32
+  call 7   ; std_core$$array$Add$add__i32
   array.len
   local.set 5   ; $len_16
   local.get 3   ; __buf_0
@@ -254,7 +254,7 @@ fn 2 snippet$main () -> i32
   local.set 1   ; b
   local.get 0   ; a
   local.get 1   ; b
-  call 8   ; std_core$[]$Add$add__snippet_Item
+  call 8   ; std_core$$array$Add$add__snippet_Item
   local.tee 0   ; a
   i32.const 0
   array.get 1   ; snippet$Item[]
@@ -521,7 +521,7 @@ fn 6 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 7 std_core$[]$Add$add__i32 (ref,ref) -> ref
+fn 7 std_core$$array$Add$add__i32 (ref,ref) -> ref
   local $arr_2 ref
   local $len_3 i64
   local $len_4 i64
@@ -550,7 +550,7 @@ fn 7 std_core$[]$Add$add__i32 (ref,ref) -> ref
   return
 end
 
-fn 8 std_core$[]$Add$add__snippet_Item (ref,ref) -> ref
+fn 8 std_core$$array$Add$add__snippet_Item (ref,ref) -> ref
   local $arr_2 ref
   local $len_3 i64
   local $len_4 i64

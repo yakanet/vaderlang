@@ -20,6 +20,26 @@ import "std/string_builder"
 export is_ident_byte :: fn(b: u8) = (b >= 'A' && b <= 'Z') || (b >= 'a' && b <= 'z')
     || (b >= '0' && b <= '9') || b == '_'
 
+/// Replace every byte outside `[A-Za-z0-9_]` with `_`: a type's display or a
+/// library's name as an identifier fragment. Distinct from
+/// `vader/emit/c/body.sanitise`, which keeps the `$` of a mangled name.
+///
+/// @param raw  the text to flatten (a type display, a library name).
+/// @return     the sanitised form, safe to splice into a mangled name.
+export sanitise_ident :: fn(raw: string) -> string {
+    sb :: StringBuilder {}
+    n :: raw.byte_len()
+    for i in 0..<n {
+        b :: raw.byte_at(i)
+        if is_ident_byte(b) {
+            sb.append_char(char(u32(b)))
+        } else {
+            sb.append_char('_')
+        }
+    }
+    return "${sb}"
+}
+
 /// JSON-style simple escape : wrap `s` in double quotes and escape `"`, `\`,
 /// `\n`, `\t`, `\r`. Walks by codepoint so multi-byte UTF-8 passes through
 /// unchanged (byte-walking would synthesise U+FFFD on continuation bytes).
@@ -133,6 +153,16 @@ export module_in_scope :: fn(display_path: string, scope: string[]) -> bool {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test
+test_sanitise_ident_passes_through_clean :: fn() -> void {
+    assert_eq(sanitise_ident("foo_bar"), "foo_bar")
+}
+
+@test
+test_sanitise_ident_replaces_slashes_and_dots :: fn() -> void {
+    assert_eq(sanitise_ident("tests/snippets/arith.vader"), "tests_snippets_arith_vader")
+}
 
 @test
 test_code_span_plain :: fn() -> void {

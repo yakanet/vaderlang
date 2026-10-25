@@ -8,33 +8,33 @@
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static int32_t snippet_main(void);
-static int32_t snippet_double__i32(int32_t l0);
-static int32_t snippet_triple__i32(int32_t l0);
+static int32_t snippet$main(void);
+static int32_t snippet$double__i32(int32_t l0);
+static int32_t snippet$triple__i32(int32_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 const vader_type_info_t vader_type_info_table[2] = { [1] = { .slot_size = 4 } };
 const size_t vader_type_info_count = 2;
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     int32_t l0, l1, l2;
     int32_t t0, t1;
-    l0 = snippet_double__i32(INT32_C(7));
-    l1 = snippet_triple__i32(INT32_C(8));
-    l2 = snippet_double__i32(INT32_C(2));
+    l0 = snippet$double__i32(INT32_C(7));
+    l1 = snippet$triple__i32(INT32_C(8));
+    l2 = snippet$double__i32(INT32_C(2));
     t0 = vader_chk_add(i32, l0, l1);
     t1 = vader_chk_add(i32, t0, l2);
     return t1;
 }
 
-static int32_t snippet_double__i32(int32_t l0) {
+static int32_t snippet$double__i32(int32_t l0) {
     int32_t t0;
     t0 = vader_chk_add(i32, l0, l0);
     return t0;
 }
 
-static int32_t snippet_triple__i32(int32_t l0) {
+static int32_t snippet$triple__i32(int32_t l0) {
     int32_t t0, t1;
     t0 = vader_chk_add(i32, l0, l0);
     t1 = vader_chk_add(i32, t0, l0);
@@ -47,5 +47,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

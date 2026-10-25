@@ -178,18 +178,18 @@ fn 2 snippet$main () -> i32
   array.new 12 2   ; snippet$Other[]
   local.set 9   ; os
   local.get 8   ; ms
-  call 10   ; snippet$[]$Poke$poke__snippet_MonType
+  call 10   ; snippet$$array$Poke$poke__snippet_MonType
   local.set 3   ; $call_8
   local.get 9   ; os
-  call 11   ; snippet$[]$Poke$poke__snippet_Other$1
+  call 11   ; snippet$$array$Poke$poke__snippet_Other$1
   local.set 4   ; $call_11
   local.get 0   ; m
   call 19   ; snippet$pair__snippet_MonType
-  call 10   ; snippet$[]$Poke$poke__snippet_MonType
+  call 10   ; snippet$$array$Poke$poke__snippet_MonType
   local.set 5   ; $call_15
   local.get 1   ; o
   call 20   ; snippet$pair__snippet_Other
-  call 11   ; snippet$[]$Poke$poke__snippet_Other$1
+  call 11   ; snippet$$array$Poke$poke__snippet_Other$1
   local.set 6   ; $call_19
   local.get 3   ; $call_8
   string.const 2   ; " "
@@ -341,7 +341,7 @@ fn 9 snippet$Wrapper$Poke$poke__Any (ref) -> string
   return.lit string.const 6   ; "generic"
 end
 
-fn 10 snippet$[]$Poke$poke__snippet_MonType (ref) -> string
+fn 10 snippet$$array$Poke$poke__snippet_MonType (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $len_8 i64
@@ -369,7 +369,7 @@ fn 10 snippet$[]$Poke$poke__snippet_MonType (ref) -> string
   return
 end
 
-fn 11 snippet$[]$Poke$poke__snippet_Other$1 (ref) -> string
+fn 11 snippet$$array$Poke$poke__snippet_Other$1 (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $len_8 i64
@@ -458,13 +458,13 @@ end
 
 fn 21 snippet$bounded__snippet_MonType__ (ref) -> string
   local.get 0   ; arg 0
-  call 10   ; snippet$[]$Poke$poke__snippet_MonType
+  call 10   ; snippet$$array$Poke$poke__snippet_MonType
   return
 end
 
 fn 22 snippet$bounded__snippet_Other__ (ref) -> string
   local.get 0   ; arg 0
-  call 11   ; snippet$[]$Poke$poke__snippet_Other$1
+  call 11   ; snippet$$array$Poke$poke__snippet_Other$1
   return
 end
 

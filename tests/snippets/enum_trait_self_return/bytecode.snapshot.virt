@@ -102,7 +102,7 @@ fn 1 snippet$Direction$Turnable$turn_right (u8) -> u8
   return
 end
 
-fn 2 snippet$Direction$std_core_Display$to_string (u8) -> string
+fn 2 snippet$Direction$std_core$Display$to_string (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0
@@ -146,7 +146,7 @@ fn 3 snippet$main () -> i32
   local $call_3 string
   i32.const 0
   local.tee 0   ; d
-  call 2   ; snippet$Direction$std_core_Display$to_string
+  call 2   ; snippet$Direction$std_core$Display$to_string
   local.set 1   ; $call_3
   string.const 4   ; "to_string: "
   local.get 1   ; $call_3
@@ -154,7 +154,7 @@ fn 3 snippet$main () -> i32
   call 10   ; std_io$println__string
   local.get 0   ; d
   call 0   ; snippet$Direction$Turnable$turn_left
-  call 2   ; snippet$Direction$std_core_Display$to_string
+  call 2   ; snippet$Direction$std_core$Display$to_string
   local.set 1   ; $call_3
   string.const 5   ; "turn_left: "
   local.get 1   ; $call_3
@@ -162,7 +162,7 @@ fn 3 snippet$main () -> i32
   call 10   ; std_io$println__string
   local.get 0   ; d
   call 1   ; snippet$Direction$Turnable$turn_right
-  call 2   ; snippet$Direction$std_core_Display$to_string
+  call 2   ; snippet$Direction$std_core$Display$to_string
   local.set 1   ; $call_3
   string.const 6   ; "turn_right: "
   local.get 1   ; $call_3
@@ -307,7 +307,7 @@ end
 fn 9 std_io$println__snippet_Direction (u8) -> void
   local $call_4 string
   local.get 0   ; arg 0
-  call 2   ; snippet$Direction$std_core_Display$to_string
+  call 2   ; snippet$Direction$std_core$Display$to_string
   string.const 10   ; "\n"
   call 4   ; concat_2
   local.set 1   ; $call_4

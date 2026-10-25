@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.Point :: struct { x: i32 }  // snippet$Point
-  snippet$Point$snippet_tr_a_Describe$describe :: fn(self: Point) -> string {
+  snippet$Point$snippet_tr__a$Describe$describe :: fn(self: Point) -> string {
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(22))
           __off_1: i64 = 0
@@ -12,7 +12,7 @@
       } :string
   }
   snippet.show_a :: fn(d: Describe) -> string {  // snippet$show_a
-      @vcall(snippet_tr_a$Describe.describe, d)
+      @vcall(snippet_tr__a$Describe.describe, d)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       p: Point = Point { .x = 1 }
@@ -20,7 +20,7 @@
       std.io.println<string>(snippet.show_b(p))
       return 0
   }
-  snippet$Point$snippet_tr_b_Describe$describe :: fn(self: Point) -> string {
+  snippet$Point$snippet_tr__b$Describe$describe :: fn(self: Point) -> string {
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(22))
           __off_1: i64 = 0
@@ -30,7 +30,7 @@
       } :string
   }
   snippet.show_b :: fn(d: Describe) -> string {  // snippet$show_b
-      @vcall(snippet_tr_b$Describe.describe, d)
+      @vcall(snippet_tr__b$Describe.describe, d)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
@@ -40,8 +40,8 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable snippet_tr_a$Describe.describe for Point  snippet$Point$snippet_tr_a_Describe$describe
-  vtable snippet_tr_b$Describe.describe for Point  snippet$Point$snippet_tr_b_Describe$describe
+  vtable snippet_tr__a$Describe.describe for Point  snippet$Point$snippet_tr__a$Describe$describe
+  vtable snippet_tr__b$Describe.describe for Point  snippet$Point$snippet_tr__b$Describe$describe
 
 ## snippet/tr_a
 

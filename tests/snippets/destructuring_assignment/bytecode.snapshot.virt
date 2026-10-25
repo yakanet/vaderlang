@@ -17,7 +17,7 @@ type 14 union 2,0
 type 15 array 3
 type 16 struct std_collections$MutableMap__string__i32 { ekeys:15,evals:17,index:17,mask:11,grow_at:11,size:11,tombs:11 }
 type 17 array 2
-type 18 struct $Cell_i32 { value:2 }
+type 18 struct $Cell_i32_2af2b319 { value:2 }
 string 0 "seven"
 string 1 "literal: a="
 string 2 " b="
@@ -345,7 +345,7 @@ fn 1 snippet$main () -> i32
   local.tee 2   ; __buf_3
   string.const 12   ; "k"
   i32.const 1
-  call 8   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
+  call 8   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
   i32.const 0
   local.set 5   ; __destr_el_6
   i32.const 40
@@ -353,7 +353,7 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_3
   string.const 12   ; "k"
   i32.const 30
-  call 8   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
+  call 8   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
   i64.const 54
   buffer.new
   local.set 8   ; arr
@@ -366,7 +366,7 @@ fn 1 snippet$main () -> i32
   local.set 3   ; __off_4
   local.get 2   ; __buf_3
   string.const 12   ; "k"
-  call 7   ; std_collections$MutableMap$std_core_Index$at__string__i32
+  call 7   ; std_collections$MutableMap$std_core$Index$at__string__i32
   local.tee 12   ; __coalesce_30
   type_check 0   ; null
   if $L0 void
@@ -403,10 +403,10 @@ fn 1 snippet$main () -> i32
   call 4   ; std_core$finish_buffer
   call 17   ; std_io$println__string
   i32.const 1
-  struct.new 18   ; $Cell_i32
+  struct.new 18   ; $Cell_i32_2af2b319
   local.set 12   ; __coalesce_30
   i32.const 2
-  struct.new 18   ; $Cell_i32
+  struct.new 18   ; $Cell_i32_2af2b319
   local.set 13   ; c2
   local.get 12   ; __coalesce_30
   local.get 13   ; c2
@@ -414,10 +414,10 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __buf_3
   local.get 12   ; __coalesce_30
   i32.const 50
-  struct.set 18 0   ; $Cell_i32.value
+  struct.set 18 0   ; $Cell_i32_2af2b319.value
   local.get 13   ; c2
   i32.const 60
-  struct.set 18 0   ; $Cell_i32.value
+  struct.set 18 0   ; $Cell_i32_2af2b319.value
   local.get 2   ; __buf_3
   call 2   ; __lambda_snippet_0
   call 0   ; snippet$pair
@@ -700,7 +700,7 @@ fn 2 __lambda_snippet_0 (ref) -> void
   call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 4 0   ; arg 0 __lambda_env_snippet_1.cap_0
-  struct.get 18 0   ; $Cell_i32.value
+  struct.get 18 0   ; $Cell_i32_2af2b319.value
   i32.to_i64
   local.set 3   ; $cast_10
   local.get 1   ; __buf_0
@@ -714,7 +714,7 @@ fn 2 __lambda_snippet_0 (ref) -> void
   call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 4 1   ; arg 0 __lambda_env_snippet_1.cap_1
-  struct.get 18 0   ; $Cell_i32.value
+  struct.get 18 0   ; $Cell_i32_2af2b319.value
   i32.to_i64
   local.set 3   ; $cast_10
   local.get 1   ; __buf_0
@@ -894,14 +894,14 @@ fn 6 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 7 std_collections$MutableMap$std_core_Index$at__string__i32 (ref,string) -> any
+fn 7 std_collections$MutableMap$std_core$Index$at__string__i32 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 14   ; std_collections$get__string__i32
   return
 end
 
-fn 8 std_collections$MutableMap$std_core_IndexSet$set_at__string__i32 (ref,string,i32) -> void
+fn 8 std_collections$MutableMap$std_core$IndexSet$set_at__string__i32 (ref,string,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

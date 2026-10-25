@@ -43,7 +43,7 @@ impl 14 std_core$ByteAccess
 impl 10 std_core$Contains
 export main 2
 
-fn 0 snippet$V$std_core_Add$add (ref,ref) -> ref
+fn 0 snippet$V$std_core$Add$add (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local.field 0 1 0   ; arg 0 snippet$V.x
@@ -59,7 +59,7 @@ fn 0 snippet$V$std_core_Add$add (ref,ref) -> ref
   return
 end
 
-fn 1 snippet$V$std_core_Comparable$compare (ref,ref) -> i32
+fn 1 snippet$V$std_core$Comparable$compare (ref,ref) -> i32
   local $field_2 i32
   local $field_3 i32
   local.field 0 1 0   ; arg 0 snippet$V.x
@@ -276,7 +276,7 @@ fn 5 snippet$total__snippet_V (ref) -> ref
       local.set 5   ; x
       local.get 1   ; s
       local.get 5   ; x
-      call 0   ; snippet$V$std_core_Add$add
+      call 0   ; snippet$V$std_core$Add$add
       local.set 1   ; s
       local.get 4   ; __for_i_2
       i64.const 1
@@ -405,7 +405,7 @@ fn 8 snippet$largest__snippet_V (ref) -> ref
       array.get 7   ; snippet$V[]
       local.tee 5   ; x
       local.get 1   ; best
-      call 1   ; snippet$V$std_core_Comparable$compare
+      call 1   ; snippet$V$std_core$Comparable$compare
       i32.const 0
       i32.gt
       if $L2 void
@@ -467,7 +467,7 @@ end
 fn 10 snippet$holds__i32__ (ref,i32) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 18   ; std_core$[]$Contains$contains__i32
+  call 18   ; std_core$$array$Contains$contains__i32
   return
 end
 
@@ -741,7 +741,7 @@ fn 17 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 18 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
+fn 18 std_core$$array$Contains$contains__i32 (ref,i32) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64

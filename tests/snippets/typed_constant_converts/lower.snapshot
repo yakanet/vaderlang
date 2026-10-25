@@ -7,7 +7,7 @@
     const ROOM: Label  inline
   snippet.Label :: struct { text: string }  // snippet$Label
   snippet.Celsius :: struct { degrees: i32 }  // snippet$Celsius
-  snippet.Celsius.into :: fn(self: Celsius) -> Label {  // snippet$Celsius$std_core_Into$into
+  snippet.Celsius.into :: fn(self: Celsius) -> Label {  // snippet$Celsius$std_core$Into$into
       Label {
           .text = {
               __buf_0: Buffer = std.core.new_byte_buffer(i64(22))
@@ -18,7 +18,7 @@
           } :string,
       }
   }
-  snippet.string.into :: fn(self: string) -> Label {  // snippet$string$std_core_Into$into
+  snippet.string.into :: fn(self: string) -> Label {  // snippet$string$std_core$Into$into
       Label { .text = concat_3("<", self, ">") }
   }
   snippet.ROOM: Label: snippet.Celsius.into(Celsius { .degrees = 21 })  // snippet$ROOM
@@ -54,8 +54,8 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Into.into for Celsius  snippet.Celsius.into  // snippet$Celsius$std_core_Into$into
-  vtable std.core.Into.into for string  snippet.string.into  // snippet$string$std_core_Into$into
+  vtable std.core.Into.into for Celsius  snippet.Celsius.into  // snippet$Celsius$std_core$Into$into
+  vtable std.core.Into.into for string  snippet.string.into  // snippet$string$std_core$Into$into
 
 ## lowered in dependencies
   std/target/baked
@@ -83,7 +83,7 @@
     struct std.core.Range<i32>  // std_core$Range__i32
     struct std.core.Range<i64>  // std_core$Range__i64
   std/io
-    fn std.io.IOError.message  // std_io$IOError$std_core_Error$message
+    fn std.io.IOError.message  // std_io$IOError$std_core$Error$message
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.last_io_error  // std_io$last_io_error
     fn std.io.println<string>  // std_io$println__string

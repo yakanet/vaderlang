@@ -4,14 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
-typedef struct vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t;
-typedef struct vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t;
+typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
+typedef struct vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t;
+typedef struct vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t;
 
-struct vader_struct_std_core_Buffer_t {
+struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
 };
-struct vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t {
+struct vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -21,7 +21,7 @@ struct vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t {
     int64_t f_size;
     int64_t f_tombs;
 };
-struct vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t {
+struct vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -42,31 +42,31 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 2u
 
-static int32_t snippet_main(void);
-static int64_t snippet_as_int__snippet_alpha_Status(uint8_t l0);
-static int64_t snippet_as_int__snippet_beta_Status(uint8_t l0);
+static int32_t snippet$main(void);
+static int64_t snippet$as_int__snippet_alpha_Status(uint8_t l0);
+static int64_t snippet$as_int__snippet_beta_Status(uint8_t l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core_finish_buffer(void* l0, int64_t l1);
-static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2);
-static uint64_t std_core_u8_Hash_hash(uint8_t l0);
-static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_alpha_Status__i64(void* l0, uint8_t l1);
-static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_alpha_Status__i64(void* l0, uint8_t l1, int64_t l2);
-static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_beta_Status__i64(void* l0, uint8_t l1);
-static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_beta_Status__i64(void* l0, uint8_t l1, int64_t l2);
-static int64_t std_collections_first_slot(uint64_t l0, int64_t l1);
-static int64_t std_collections_next_slot(int64_t l0, uint64_t l1, int64_t l2);
-static void std_collections_rehash__snippet_alpha_Status__i64(void* l0, int64_t l1);
-static void std_collections_rehash__snippet_beta_Status__i64(void* l0, int64_t l1);
-static void std_collections_grow_index__snippet_alpha_Status__i64(void* l0);
-static void std_collections_grow_index__snippet_beta_Status__i64(void* l0);
-static bool std_collections_put__snippet_alpha_Status__i64(void* l0, uint8_t l1, int64_t l2);
-static bool std_collections_put__snippet_beta_Status__i64(void* l0, uint8_t l1, int64_t l2);
-static vader_box_t std_collections_get__snippet_alpha_Status__i64(void* l0, uint8_t l1);
-static vader_box_t std_collections_get__snippet_beta_Status__i64(void* l0, uint8_t l1);
-static void std_io_write(uint8_t l0, vader_string_t l1);
-static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2);
-static void std_io_println__string(vader_string_t l0);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static uint64_t std_core$u8$Hash$hash(uint8_t l0);
+static vader_box_t std_collections$MutableMap$std_core$Index$at__snippet_alpha_Status__i64(void* l0, uint8_t l1);
+static void std_collections$MutableMap$std_core$IndexSet$set_at__snippet_alpha_Status__i64(void* l0, uint8_t l1, int64_t l2);
+static vader_box_t std_collections$MutableMap$std_core$Index$at__snippet_beta_Status__i64(void* l0, uint8_t l1);
+static void std_collections$MutableMap$std_core$IndexSet$set_at__snippet_beta_Status__i64(void* l0, uint8_t l1, int64_t l2);
+static int64_t std_collections$first_slot(uint64_t l0, int64_t l1);
+static int64_t std_collections$next_slot(int64_t l0, uint64_t l1, int64_t l2);
+static void std_collections$rehash__snippet_alpha_Status__i64(void* l0, int64_t l1);
+static void std_collections$rehash__snippet_beta_Status__i64(void* l0, int64_t l1);
+static void std_collections$grow_index__snippet_alpha_Status__i64(void* l0);
+static void std_collections$grow_index__snippet_beta_Status__i64(void* l0);
+static bool std_collections$put__snippet_alpha_Status__i64(void* l0, uint8_t l1, int64_t l2);
+static bool std_collections$put__snippet_beta_Status__i64(void* l0, uint8_t l1, int64_t l2);
+static vader_box_t std_collections$get__snippet_alpha_Status__i64(void* l0, uint8_t l1);
+static vader_box_t std_collections$get__snippet_beta_Status__i64(void* l0, uint8_t l1);
+static void std_io$write(uint8_t l0, vader_string_t l1);
+static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static void std_io$println__string(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -80,7 +80,7 @@ const vader_type_info_t vader_type_info_table[15] = {
     [5] = { .slot_size = 8 },
     [6] = { .slot_size = 1 },
     [7] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
     [8] = {
@@ -89,17 +89,17 @@ const vader_type_info_t vader_type_info_table[15] = {
     },
     [10] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t),
+        .size = sizeof(vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t),
         .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t, f_index) },
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t, f_ekeys), offsetof(vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t, f_evals), offsetof(vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t, f_index) },
         .ref_count = 3,
     },
     [11] = { .slot_size = 16 },
     [12] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t),
+        .size = sizeof(vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t),
         .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t, f_index) },
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t, f_ekeys), offsetof(vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t, f_evals), offsetof(vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t, f_index) },
         .ref_count = 3,
     },
     [13] = {
@@ -116,20 +116,20 @@ const size_t vader_type_info_count = 15;
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
 
-static int64_t vader_host_std_core_byte_len(vader_string_t a0) {
+static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
 
-static void* vader_host_std_core_bytes(vader_string_t a0) {
+static void* vader_host_std_core$bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 8u, 2u);
 }
 
-static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a2) {
+static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     return write(a0, s1.ptr, a2);
 }
 
-static int32_t snippet_main(void) {
+static int32_t snippet$main(void) {
     void* l0 = NULL;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -146,20 +146,20 @@ static int32_t snippet_main(void) {
     vader_gc_top = &gc_frame;
     l0 = (void*) vader_buffer_new((size_t) INT64_C(41));
     l1 = INT64_C(0);
-    l2 = snippet_as_int__snippet_alpha_Status((uint8_t) 0);
-    l1 = std_core_write_int(l0, l1, l2);
-    l1 = std_core_write_string_at(l0, l1, 1u);
-    l2 = snippet_as_int__snippet_beta_Status((uint8_t) 0);
-    l1 = std_core_write_int(l0, l1, l2);
-    t0 = std_core_finish_buffer(l0, l1);
-    std_io_println__string(t0);
+    l2 = snippet$as_int__snippet_alpha_Status((uint8_t) 0);
+    l1 = std_core$write_int(l0, l1, l2);
+    l1 = std_core$write_string_at(l0, l1, 1u);
+    l2 = snippet$as_int__snippet_beta_Status((uint8_t) 0);
+    l1 = std_core$write_int(l0, l1, l2);
+    t0 = std_core$finish_buffer(l0, l1);
+    std_io$println__string(t0);
     vader_array_t* _a0_arr = vader_array_new(8u, 0u, 1u, 2u);
     l0 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_new(13u, 0u, 8u, 3u);
     l3 = (void*) _a1_arr;
     vader_array_t* _a2_arr = vader_array_new(14u, 0u, 7u, 1u);
     l4 = (void*) _a2_arr;
-    vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t* _a3_obj = (vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t));
+    vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t* _a3_obj = (vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t));
     vader_obj_header_init(_a3_obj, 10u);
     _a3_obj->f_ekeys = l0;
     _a3_obj->f_evals = l3;
@@ -175,7 +175,7 @@ static int32_t snippet_main(void) {
     l4 = (void*) _a5_arr;
     vader_array_t* _a6_arr = vader_array_new(14u, 0u, 7u, 1u);
     l5 = (void*) _a6_arr;
-    vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t* _a7_obj = (vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t));
+    vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t* _a7_obj = (vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t));
     vader_obj_header_init(_a7_obj, 12u);
     _a7_obj->f_ekeys = l3;
     _a7_obj->f_evals = l4;
@@ -185,45 +185,45 @@ static int32_t snippet_main(void) {
     _a7_obj->f_size = INT64_C(0);
     _a7_obj->f_tombs = INT64_C(0);
     l3 = (void*) _a7_obj;
-    std_collections_MutableMap_std_core_IndexSet_set_at__snippet_alpha_Status__i64(l0, (uint8_t) 1, INT64_C(405));
-    std_collections_MutableMap_std_core_IndexSet_set_at__snippet_beta_Status__i64(l3, (uint8_t) 1, INT64_C(1001));
-    l1 = snippet_as_int__snippet_beta_Status((uint8_t) 0);
-    std_collections_MutableMap_std_core_IndexSet_set_at__snippet_beta_Status__i64(l3, (uint8_t) 0, l1);
+    std_collections$MutableMap$std_core$IndexSet$set_at__snippet_alpha_Status__i64(l0, (uint8_t) 1, INT64_C(405));
+    std_collections$MutableMap$std_core$IndexSet$set_at__snippet_beta_Status__i64(l3, (uint8_t) 1, INT64_C(1001));
+    l1 = snippet$as_int__snippet_beta_Status((uint8_t) 0);
+    std_collections$MutableMap$std_core$IndexSet$set_at__snippet_beta_Status__i64(l3, (uint8_t) 0, l1);
     l4 = (void*) vader_buffer_new((size_t) INT64_C(62));
     l1 = INT64_C(0);
-    l6 = std_collections_MutableMap_std_core_Index_at__snippet_alpha_Status__i64(l0, (uint8_t) 1);
+    l6 = std_collections$MutableMap$std_core$Index$at__snippet_alpha_Status__i64(l0, (uint8_t) 1);
     if (l6.tag == 0u) {
         l2 = INT64_C(-1);
     } else {
         l2 = ((int64_t) l6.payload.i);
     }
-    l1 = std_core_write_int(l4, l1, l2);
-    l1 = std_core_write_string_at(l4, l1, 1u);
-    l6 = std_collections_MutableMap_std_core_Index_at__snippet_beta_Status__i64(l3, (uint8_t) 1);
+    l1 = std_core$write_int(l4, l1, l2);
+    l1 = std_core$write_string_at(l4, l1, 1u);
+    l6 = std_collections$MutableMap$std_core$Index$at__snippet_beta_Status__i64(l3, (uint8_t) 1);
     if (l6.tag == 0u) {
         l2 = INT64_C(-1);
     } else {
         l2 = ((int64_t) l6.payload.i);
     }
-    l1 = std_core_write_int(l4, l1, l2);
-    l1 = std_core_write_string_at(l4, l1, 1u);
-    l6 = std_collections_MutableMap_std_core_Index_at__snippet_beta_Status__i64(l3, (uint8_t) 0);
+    l1 = std_core$write_int(l4, l1, l2);
+    l1 = std_core$write_string_at(l4, l1, 1u);
+    l6 = std_collections$MutableMap$std_core$Index$at__snippet_beta_Status__i64(l3, (uint8_t) 0);
     if (l6.tag == 0u) {
         l2 = INT64_C(-1);
     } else {
         l2 = ((int64_t) l6.payload.i);
     }
-    l1 = std_core_write_int(l4, l1, l2);
-    t0 = std_core_finish_buffer(l4, l1);
-    std_io_println__string(t0);
+    l1 = std_core$write_int(l4, l1, l2);
+    t0 = std_core$finish_buffer(l4, l1);
+    std_io$println__string(t0);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static int64_t snippet_as_int__snippet_alpha_Status(uint8_t l0) {
+static int64_t snippet$as_int__snippet_alpha_Status(uint8_t l0) {
     return (((int64_t) (uint8_t) l0) + INT64_C(404));
 }
 
-static int64_t snippet_as_int__snippet_beta_Status(uint8_t l0) {
+static int64_t snippet$as_int__snippet_beta_Status(uint8_t l0) {
     return (((int64_t) (uint8_t) l0) + INT64_C(1000));
 }
 
@@ -237,8 +237,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = vader_host_std_core_byte_len(l0);
-    l3 = vader_host_std_core_byte_len(l1);
+    l2 = vader_host_std_core$byte_len(l0);
+    l3 = vader_host_std_core$byte_len(l1);
     l3 = (l2 + l3);
     l4 = (void*) vader_buffer_new((size_t) l3);
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -247,7 +247,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1) {
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
@@ -259,16 +259,16 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2) {
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2) {
     int64_t l3;
     int64_t t0;
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-    l3 = vader_host_std_core_byte_len(l2);
+    l3 = vader_host_std_core$byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
 }
 
-static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2) {
     bool l3;
     int64_t l4, l5;
     uint8_t l6, l7;
@@ -315,44 +315,44 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
     return t0;
 }
 
-static uint64_t std_core_u8_Hash_hash(uint8_t l0) {
+static uint64_t std_core$u8$Hash$hash(uint8_t l0) {
     return (uint64_t) (int64_t) ((int64_t) (uint8_t) l0);
 }
 
-static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_alpha_Status__i64(void* l0, uint8_t l1) {
+static vader_box_t std_collections$MutableMap$std_core$Index$at__snippet_alpha_Status__i64(void* l0, uint8_t l1) {
     vader_box_t t0;
-    t0 = std_collections_get__snippet_alpha_Status__i64(l0, l1);
+    t0 = std_collections$get__snippet_alpha_Status__i64(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_alpha_Status__i64(void* l0, uint8_t l1, int64_t l2) {
-    std_collections_put__snippet_alpha_Status__i64(l0, l1, l2);
+static void std_collections$MutableMap$std_core$IndexSet$set_at__snippet_alpha_Status__i64(void* l0, uint8_t l1, int64_t l2) {
+    std_collections$put__snippet_alpha_Status__i64(l0, l1, l2);
     return;
 }
 
-static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_beta_Status__i64(void* l0, uint8_t l1) {
+static vader_box_t std_collections$MutableMap$std_core$Index$at__snippet_beta_Status__i64(void* l0, uint8_t l1) {
     vader_box_t t0;
-    t0 = std_collections_get__snippet_beta_Status__i64(l0, l1);
+    t0 = std_collections$get__snippet_beta_Status__i64(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_beta_Status__i64(void* l0, uint8_t l1, int64_t l2) {
-    std_collections_put__snippet_beta_Status__i64(l0, l1, l2);
+static void std_collections$MutableMap$std_core$IndexSet$set_at__snippet_beta_Status__i64(void* l0, uint8_t l1, int64_t l2) {
+    std_collections$put__snippet_beta_Status__i64(l0, l1, l2);
     return;
 }
 
-static int64_t std_collections_first_slot(uint64_t l0, int64_t l1) {
+static int64_t std_collections$first_slot(uint64_t l0, int64_t l1) {
     return (((int64_t) (uint64_t) l0) & l1);
 }
 
-static int64_t std_collections_next_slot(int64_t l0, uint64_t l1, int64_t l2) {
+static int64_t std_collections$next_slot(int64_t l0, uint64_t l1, int64_t l2) {
     int64_t l3, l4;
     l3 = (l0 * INT64_C(5));
     l4 = ((int64_t) (uint64_t) l1);
     return (((l3 + l4) + INT64_C(1)) & l2);
 }
 
-static void std_collections_rehash__snippet_alpha_Status__i64(void* l0, int64_t l1) {
+static void std_collections$rehash__snippet_alpha_Status__i64(void* l0, int64_t l1) {
     void* l2 = NULL;
     int64_t l3, l4, l5, l7;
     uint64_t l6;
@@ -405,14 +405,14 @@ static void std_collections_rehash__snippet_alpha_Status__i64(void* l0, int64_t 
     }
     l3 = vader_chk_sub(i64, l1, INT64_C(1));
     l4 = INT64_C(0);
-    l5 = ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_size;
+    l5 = ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_size;
     while ((l4 < l5)) {
-        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_ekeys);
+        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_ekeys);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
         t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l4, 2u);
-        l6 = std_core_u8_Hash_hash(((uint8_t) t0.payload.i));
-        l7 = std_collections_first_slot(l6, l3);
+        l6 = std_core$u8$Hash$hash(((uint8_t) t0.payload.i));
+        l7 = std_collections$first_slot(l6, l3);
         for (;;) {
             vader_array_t* _a3_slotarr = ((vader_array_t*) l2);
             VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
@@ -420,7 +420,7 @@ static void std_collections_rehash__snippet_alpha_Status__i64(void* l0, int64_t 
             t1 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l7];
             if (t1 != INT32_C(0)) {
                 l6 = (l6 >> INT64_C(5));
-                l7 = std_collections_next_slot(l7, l6, l3);
+                l7 = std_collections$next_slot(l7, l6, l3);
                 continue;
             }
             break;
@@ -433,17 +433,17 @@ static void std_collections_rehash__snippet_alpha_Status__i64(void* l0, int64_t 
         ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l7] = (int32_t) l8;
         l4 = (l4 + INT64_C(1));
     }
-    ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index = l2;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0);
-    ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_mask = l3;
+    ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index = l2;
+    VADER_WRITE_BARRIER((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0);
+    ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_mask = l3;
     t2 = vader_div_i64(l1, INT64_C(4));
     l3 = vader_chk_mul(i64, t2, INT64_C(3));
-    ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_grow_at = l3;
-    ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_tombs = INT64_C(0);
+    ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_grow_at = l3;
+    ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_tombs = INT64_C(0);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static void std_collections_rehash__snippet_beta_Status__i64(void* l0, int64_t l1) {
+static void std_collections$rehash__snippet_beta_Status__i64(void* l0, int64_t l1) {
     void* l2 = NULL;
     int64_t l3, l4, l5, l7;
     uint64_t l6;
@@ -496,14 +496,14 @@ static void std_collections_rehash__snippet_beta_Status__i64(void* l0, int64_t l
     }
     l3 = vader_chk_sub(i64, l1, INT64_C(1));
     l4 = INT64_C(0);
-    l5 = ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_size;
+    l5 = ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_size;
     while ((l4 < l5)) {
-        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_ekeys);
+        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_ekeys);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
         t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l4, 2u);
-        l6 = std_core_u8_Hash_hash(((uint8_t) t0.payload.i));
-        l7 = std_collections_first_slot(l6, l3);
+        l6 = std_core$u8$Hash$hash(((uint8_t) t0.payload.i));
+        l7 = std_collections$first_slot(l6, l3);
         for (;;) {
             vader_array_t* _a3_slotarr = ((vader_array_t*) l2);
             VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
@@ -511,7 +511,7 @@ static void std_collections_rehash__snippet_beta_Status__i64(void* l0, int64_t l
             t1 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l7];
             if (t1 != INT32_C(0)) {
                 l6 = (l6 >> INT64_C(5));
-                l7 = std_collections_next_slot(l7, l6, l3);
+                l7 = std_collections$next_slot(l7, l6, l3);
                 continue;
             }
             break;
@@ -524,17 +524,17 @@ static void std_collections_rehash__snippet_beta_Status__i64(void* l0, int64_t l
         ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l7] = (int32_t) l8;
         l4 = (l4 + INT64_C(1));
     }
-    ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_index = l2;
-    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0);
-    ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_mask = l3;
+    ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_index = l2;
+    VADER_WRITE_BARRIER((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0);
+    ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_mask = l3;
     t2 = vader_div_i64(l1, INT64_C(4));
     l3 = vader_chk_mul(i64, t2, INT64_C(3));
-    ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_grow_at = l3;
-    ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_tombs = INT64_C(0);
+    ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_grow_at = l3;
+    ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_tombs = INT64_C(0);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static void std_collections_grow_index__snippet_alpha_Status__i64(void* l0) {
+static void std_collections$grow_index__snippet_alpha_Status__i64(void* l0) {
     int64_t l1, l2, l3;
     int64_t t0;
     void** gc_raw_roots[1] = { &l0 };
@@ -542,7 +542,7 @@ static void std_collections_grow_index__snippet_alpha_Status__i64(void* l0) {
     vader_gc_top = &gc_frame;
     l1 = INT64_C(16);
     for (;;) {
-        t0 = ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_size;
+        t0 = ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_size;
         l2 = vader_chk_mul(i64, t0, INT64_C(4));
         l3 = vader_chk_mul(i64, l1, INT64_C(3));
         if ((l2 > l3)) {
@@ -551,11 +551,11 @@ static void std_collections_grow_index__snippet_alpha_Status__i64(void* l0) {
         }
         break;
     }
-    std_collections_rehash__snippet_alpha_Status__i64(l0, l1);
+    std_collections$rehash__snippet_alpha_Status__i64(l0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static void std_collections_grow_index__snippet_beta_Status__i64(void* l0) {
+static void std_collections$grow_index__snippet_beta_Status__i64(void* l0) {
     int64_t l1, l2, l3;
     int64_t t0;
     void** gc_raw_roots[1] = { &l0 };
@@ -563,7 +563,7 @@ static void std_collections_grow_index__snippet_beta_Status__i64(void* l0) {
     vader_gc_top = &gc_frame;
     l1 = INT64_C(16);
     for (;;) {
-        t0 = ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_size;
+        t0 = ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_size;
         l2 = vader_chk_mul(i64, t0, INT64_C(4));
         l3 = vader_chk_mul(i64, l1, INT64_C(3));
         if ((l2 > l3)) {
@@ -572,11 +572,11 @@ static void std_collections_grow_index__snippet_beta_Status__i64(void* l0) {
         }
         break;
     }
-    std_collections_rehash__snippet_beta_Status__i64(l0, l1);
+    std_collections$rehash__snippet_beta_Status__i64(l0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static bool std_collections_put__snippet_alpha_Status__i64(void* l0, uint8_t l1, int64_t l2) {
+static bool std_collections$put__snippet_alpha_Status__i64(void* l0, uint8_t l1, int64_t l2) {
     int64_t l3, l4, l6, l8, l9;
     uint64_t l5;
     int32_t l7;
@@ -589,13 +589,13 @@ static bool std_collections_put__snippet_alpha_Status__i64(void* l0, uint8_t l1,
     vader_gc_top = &gc_frame;
     l3 = INT64_C(-1);
     l4 = INT64_C(-1);
-    t0 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index)->length;
+    t0 = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core_u8_Hash_hash(l1);
-        l6 = ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_mask;
-        l6 = std_collections_first_slot(l5, l6);
+        l5 = std_core$u8$Hash$hash(l1);
+        l6 = ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_mask;
+        l6 = std_collections$first_slot(l5, l6);
         for (;;) {
-            vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index);
+            vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index);
             VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l6)
             l7 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l6];
@@ -606,12 +606,12 @@ static bool std_collections_put__snippet_alpha_Status__i64(void* l0, uint8_t l1,
                     }
                 } else {
                     l8 = vader_chk_sub(i64, ((int64_t) (int32_t) l7), INT64_C(1));
-                    vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_ekeys);
+                    vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_ekeys);
                     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
                     t1 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l8, 2u);
                     if (((int32_t) t1.payload.i) == l1) {
-                        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_evals);
+                        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_evals);
                         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l8)
                         ((int64_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l8] = (int64_t) l2;
@@ -619,43 +619,43 @@ static bool std_collections_put__snippet_alpha_Status__i64(void* l0, uint8_t l1,
                     }
                 }
                 l5 = (l5 >> INT64_C(5));
-                l9 = ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_mask;
-                l6 = std_collections_next_slot(l6, l5, l9);
+                l9 = ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_mask;
+                l6 = std_collections$next_slot(l6, l5, l9);
                 continue;
             }
             break;
         }
         l4 = l6;
     }
-    l6 = ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_size;
-    l8 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_ekeys)->length;
+    l6 = ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_size;
+    l8 = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_ekeys)->length;
     if ((l6 < l8)) {
-        vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_ekeys);
+        vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_ekeys);
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l6)
         ((uint8_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l6] = (uint8_t) (int32_t) (uint8_t) l1;
-        vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_evals);
+        vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_evals);
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l6)
         ((int64_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l6] = (int64_t) l2;
     } else {
-        vader_array_push_u8((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_ekeys, (int32_t) (uint8_t) l1);
-        vader_array_push_i64((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_evals, l2);
+        vader_array_push_u8((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_ekeys, (int32_t) (uint8_t) l1);
+        vader_array_push_i64((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_evals, l2);
     }
     l8 = vader_chk_add(i64, l6, INT64_C(1));
-    ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_size = l8;
-    l8 = ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_tombs;
+    ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_size = l8;
+    l8 = ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_tombs;
     l8 = vader_chk_add(i64, l6, l8);
-    l9 = ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_grow_at;
+    l9 = ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_grow_at;
     if ((l8 >= l9)) {
-        std_collections_grow_index__snippet_alpha_Status__i64(l0);
+        std_collections$grow_index__snippet_alpha_Status__i64(l0);
         { vader_gc_top = gc_frame.prev; return true; }
     }
     if ((l3 >= INT64_C(0))) {
-        t0 = ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_tombs;
+        t0 = ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_tombs;
         l8 = vader_chk_sub(i64, t0, INT64_C(1));
-        ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_tombs = l8;
-        l10 = ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index;
+        ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_tombs = l8;
+        l10 = ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index;
         t0 = vader_chk_add(i64, l6, INT64_C(1));
         l7 = ((int32_t) (int64_t) t0);
         vader_array_t* _a5_slotarr = ((vader_array_t*) l10);
@@ -663,7 +663,7 @@ static bool std_collections_put__snippet_alpha_Status__i64(void* l0, uint8_t l1,
         VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l3)
         ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l3] = (int32_t) l7;
     } else {
-        l10 = ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index;
+        l10 = ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index;
         t0 = vader_chk_add(i64, l6, INT64_C(1));
         l7 = ((int32_t) (int64_t) t0);
         vader_array_t* _a6_slotarr = ((vader_array_t*) l10);
@@ -674,7 +674,7 @@ static bool std_collections_put__snippet_alpha_Status__i64(void* l0, uint8_t l1,
     { vader_gc_top = gc_frame.prev; return true; }
 }
 
-static bool std_collections_put__snippet_beta_Status__i64(void* l0, uint8_t l1, int64_t l2) {
+static bool std_collections$put__snippet_beta_Status__i64(void* l0, uint8_t l1, int64_t l2) {
     int64_t l3, l4, l6, l8, l9;
     uint64_t l5;
     int32_t l7;
@@ -687,13 +687,13 @@ static bool std_collections_put__snippet_beta_Status__i64(void* l0, uint8_t l1, 
     vader_gc_top = &gc_frame;
     l3 = INT64_C(-1);
     l4 = INT64_C(-1);
-    t0 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_index)->length;
+    t0 = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core_u8_Hash_hash(l1);
-        l6 = ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_mask;
-        l6 = std_collections_first_slot(l5, l6);
+        l5 = std_core$u8$Hash$hash(l1);
+        l6 = ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_mask;
+        l6 = std_collections$first_slot(l5, l6);
         for (;;) {
-            vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_index);
+            vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_index);
             VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l6)
             l7 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l6];
@@ -704,12 +704,12 @@ static bool std_collections_put__snippet_beta_Status__i64(void* l0, uint8_t l1, 
                     }
                 } else {
                     l8 = vader_chk_sub(i64, ((int64_t) (int32_t) l7), INT64_C(1));
-                    vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_ekeys);
+                    vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_ekeys);
                     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
                     t1 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l8, 2u);
                     if (((int32_t) t1.payload.i) == l1) {
-                        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_evals);
+                        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_evals);
                         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l8)
                         ((int64_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l8] = (int64_t) l2;
@@ -717,43 +717,43 @@ static bool std_collections_put__snippet_beta_Status__i64(void* l0, uint8_t l1, 
                     }
                 }
                 l5 = (l5 >> INT64_C(5));
-                l9 = ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_mask;
-                l6 = std_collections_next_slot(l6, l5, l9);
+                l9 = ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_mask;
+                l6 = std_collections$next_slot(l6, l5, l9);
                 continue;
             }
             break;
         }
         l4 = l6;
     }
-    l6 = ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_size;
-    l8 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_ekeys)->length;
+    l6 = ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_size;
+    l8 = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_ekeys)->length;
     if ((l6 < l8)) {
-        vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_ekeys);
+        vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_ekeys);
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l6)
         ((uint8_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l6] = (uint8_t) (int32_t) (uint8_t) l1;
-        vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_evals);
+        vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_evals);
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l6)
         ((int64_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l6] = (int64_t) l2;
     } else {
-        vader_array_push_u8((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_ekeys, (int32_t) (uint8_t) l1);
-        vader_array_push_i64((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_evals, l2);
+        vader_array_push_u8((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_ekeys, (int32_t) (uint8_t) l1);
+        vader_array_push_i64((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_evals, l2);
     }
     l8 = vader_chk_add(i64, l6, INT64_C(1));
-    ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_size = l8;
-    l8 = ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_tombs;
+    ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_size = l8;
+    l8 = ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_tombs;
     l8 = vader_chk_add(i64, l6, l8);
-    l9 = ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_grow_at;
+    l9 = ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_grow_at;
     if ((l8 >= l9)) {
-        std_collections_grow_index__snippet_beta_Status__i64(l0);
+        std_collections$grow_index__snippet_beta_Status__i64(l0);
         { vader_gc_top = gc_frame.prev; return true; }
     }
     if ((l3 >= INT64_C(0))) {
-        t0 = ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_tombs;
+        t0 = ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_tombs;
         l8 = vader_chk_sub(i64, t0, INT64_C(1));
-        ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_tombs = l8;
-        l10 = ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_index;
+        ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_tombs = l8;
+        l10 = ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_index;
         t0 = vader_chk_add(i64, l6, INT64_C(1));
         l7 = ((int32_t) (int64_t) t0);
         vader_array_t* _a5_slotarr = ((vader_array_t*) l10);
@@ -761,7 +761,7 @@ static bool std_collections_put__snippet_beta_Status__i64(void* l0, uint8_t l1, 
         VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l3)
         ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l3] = (int32_t) l7;
     } else {
-        l10 = ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_index;
+        l10 = ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_index;
         t0 = vader_chk_add(i64, l6, INT64_C(1));
         l7 = ((int32_t) (int64_t) t0);
         vader_array_t* _a6_slotarr = ((vader_array_t*) l10);
@@ -772,33 +772,33 @@ static bool std_collections_put__snippet_beta_Status__i64(void* l0, uint8_t l1, 
     { vader_gc_top = gc_frame.prev; return true; }
 }
 
-static vader_box_t std_collections_get__snippet_alpha_Status__i64(void* l0, uint8_t l1) {
+static vader_box_t std_collections$get__snippet_alpha_Status__i64(void* l0, uint8_t l1) {
     uint64_t l2;
     int64_t l3, l5, l6;
     int32_t l4;
     int64_t t0;
     vader_box_t t1;
-    t0 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index)->length;
+    t0 = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index)->length;
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core_u8_Hash_hash(l1);
-    l3 = ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_mask;
-    l3 = std_collections_first_slot(l2, l3);
+    l2 = std_core$u8$Hash$hash(l1);
+    l3 = ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_mask;
+    l3 = std_collections$first_slot(l2, l3);
     for (;;) {
-        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index);
+        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_index);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
         l4 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l3];
         if (!(l4 == INT32_C(0))) {
             if (l4 != INT32_C(-1)) {
                 l5 = vader_chk_sub(i64, ((int64_t) (int32_t) l4), INT64_C(1));
-                vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_ekeys);
+                vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_ekeys);
                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
                 t1 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l5, 2u);
                 if (((int32_t) t1.payload.i) == l1) {
-                    vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_evals);
+                    vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_evals);
                     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l5)
                     t0 = ((int64_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l5];
@@ -806,8 +806,8 @@ static vader_box_t std_collections_get__snippet_alpha_Status__i64(void* l0, uint
                 }
             }
             l2 = (l2 >> INT64_C(5));
-            l6 = ((vader_struct_std_collections_MutableMap__snippet_alpha_Status__i64_t*) l0)->f_mask;
-            l3 = std_collections_next_slot(l3, l2, l6);
+            l6 = ((vader_struct_std_collections$MutableMap__snippet_alpha_Status__i64_t*) l0)->f_mask;
+            l3 = std_collections$next_slot(l3, l2, l6);
             continue;
         }
         break;
@@ -815,33 +815,33 @@ static vader_box_t std_collections_get__snippet_alpha_Status__i64(void* l0, uint
     return vader_box_obj(0u, NULL);
 }
 
-static vader_box_t std_collections_get__snippet_beta_Status__i64(void* l0, uint8_t l1) {
+static vader_box_t std_collections$get__snippet_beta_Status__i64(void* l0, uint8_t l1) {
     uint64_t l2;
     int64_t l3, l5, l6;
     int32_t l4;
     int64_t t0;
     vader_box_t t1;
-    t0 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_index)->length;
+    t0 = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_index)->length;
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core_u8_Hash_hash(l1);
-    l3 = ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_mask;
-    l3 = std_collections_first_slot(l2, l3);
+    l2 = std_core$u8$Hash$hash(l1);
+    l3 = ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_mask;
+    l3 = std_collections$first_slot(l2, l3);
     for (;;) {
-        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_index);
+        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_index);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
         l4 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l3];
         if (!(l4 == INT32_C(0))) {
             if (l4 != INT32_C(-1)) {
                 l5 = vader_chk_sub(i64, ((int64_t) (int32_t) l4), INT64_C(1));
-                vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_ekeys);
+                vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_ekeys);
                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
                 t1 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l5, 2u);
                 if (((int32_t) t1.payload.i) == l1) {
-                    vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_evals);
+                    vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_evals);
                     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l5)
                     t0 = ((int64_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l5];
@@ -849,8 +849,8 @@ static vader_box_t std_collections_get__snippet_beta_Status__i64(void* l0, uint8
                 }
             }
             l2 = (l2 >> INT64_C(5));
-            l6 = ((vader_struct_std_collections_MutableMap__snippet_beta_Status__i64_t*) l0)->f_mask;
-            l3 = std_collections_next_slot(l3, l2, l6);
+            l6 = ((vader_struct_std_collections$MutableMap__snippet_beta_Status__i64_t*) l0)->f_mask;
+            l3 = std_collections$next_slot(l3, l2, l6);
             continue;
         }
         break;
@@ -858,7 +858,7 @@ static vader_box_t std_collections_get__snippet_beta_Status__i64(void* l0, uint8
     return vader_box_obj(0u, NULL);
 }
 
-static void std_io_write(uint8_t l0, vader_string_t l1) {
+static void std_io$write(uint8_t l0, vader_string_t l1) {
     void* l2 = NULL;
     void* l6 = NULL;
     int64_t l3, l4, l5, l7, l9;
@@ -869,7 +869,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = vader_host_std_core_bytes(l1);
+    l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
         l4 = ((vader_array_t*) l2)->length;
@@ -878,7 +878,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
             l7 = ((vader_array_t*) l6)->length;
-            l8 = std_io_write_bytes(l0, l6, l7);
+            l8 = std_io$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }
             }
@@ -891,26 +891,26 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2) {
+static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2) {
     int64_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l0 == INT32_C(0)) {
-        t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
+        t0 = vader_host_system_posix$sys_write(INT32_C(1), l1, l2);
         { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
+    t0 = vader_host_system_posix$sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void std_io_println__string(vader_string_t l0) {
+static void std_io$println__string(vader_string_t l0) {
     vader_string_t l1 = 0;
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l1 = concat_2(l0, 2u);
-    std_io_write((uint8_t) 0, l1);
+    std_io$write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -920,5 +920,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) snippet_main();
+    return (int) snippet$main();
 }

@@ -36,7 +36,7 @@
       return Box<Box<string>> { .value = snippet.middle<string>(x) }
   }
   snippet.Box<Any> :: struct { value: Any }  // snippet$Box__Any
-  snippet$Box__snippet_Box_Any :: struct { value: Any }
+  snippet$Box__snippet$Box_Any :: struct { value: Any }
   snippet$Box__snippet_Box_Any_ :: struct { value: Any }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)

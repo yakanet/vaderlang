@@ -1,21 +1,21 @@
 # Lower
 
 ## default_type_param
-  default_type_param.N :: struct { v: i32 }  // default_type_param$N
-  default_type_param.N.add_to :: fn(self: N, other: N) -> i32 {  // default_type_param$N$Adder$add_to
+  default_type_param.N :: struct { v: i32 }  // default__type__param$N
+  default_type_param.N.add_to :: fn(self: N, other: N) -> i32 {  // default__type__param$N$Adder$add_to
       self.v + other.v
   }
-  default_type_param.N.twice :: fn(self: N, other: N) -> i32 {  // default_type_param$N$Adder$twice
+  default_type_param.N.twice :: fn(self: N, other: N) -> i32 {  // default__type__param$N$Adder$twice
       default_type_param.N.add_to(self, other) + default_type_param.N.add_to(self, other)
   }
-  default_type_param.Tick :: struct { c: i32 }  // default_type_param$Tick
-  default_type_param.Tick.current :: fn(self: Tick) -> i32 {  // default_type_param$Tick$Counter$current
+  default_type_param.Tick :: struct { c: i32 }  // default__type__param$Tick
+  default_type_param.Tick.current :: fn(self: Tick) -> i32 {  // default__type__param$Tick$Counter$current
       self.c
   }
-  default_type_param.Tick.bumped :: fn(self: Tick) -> i32 {  // default_type_param$Tick$Counter$bumped
+  default_type_param.Tick.bumped :: fn(self: Tick) -> i32 {  // default__type__param$Tick$Counter$bumped
       default_type_param.Tick.current(self) + default_type_param.Tick.current(self)
   }
-  default_type_param.main :: fn() -> i32 {  // default_type_param$main
+  default_type_param.main :: fn() -> i32 {  // default__type__param$main
       a: N = N { .v = 10 }
       b: N = N { .v = 5 }
       std.io.println<string>({
@@ -41,10 +41,10 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable default_type_param.Adder.add_to for N  default_type_param.N.add_to  // default_type_param$N$Adder$add_to
-  vtable default_type_param.Adder.twice for N  default_type_param.N.twice  // default_type_param$N$Adder$twice
-  vtable default_type_param.Counter.bumped for Tick  default_type_param.Tick.bumped  // default_type_param$Tick$Counter$bumped
-  vtable default_type_param.Counter.current for Tick  default_type_param.Tick.current  // default_type_param$Tick$Counter$current
+  vtable default_type_param.Adder.add_to for N  default_type_param.N.add_to  // default__type__param$N$Adder$add_to
+  vtable default_type_param.Adder.twice for N  default_type_param.N.twice  // default__type__param$N$Adder$twice
+  vtable default_type_param.Counter.bumped for Tick  default_type_param.Tick.bumped  // default__type__param$Tick$Counter$bumped
+  vtable default_type_param.Counter.current for Tick  default_type_param.Tick.current  // default__type__param$Tick$Counter$current
 
 ## lowered in dependencies
   std/core

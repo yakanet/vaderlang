@@ -1047,7 +1047,7 @@ fn 17 std_io$describe_io_error_kind (u8) -> string
   return
 end
 
-fn 18 std_io$IOError$std_core_Error$message (ref) -> string
+fn 18 std_io$IOError$std_core$Error$message (ref) -> string
   local.field 0 10 0   ; arg 0 std_io$IOError.msg
   ref.cast 2   ; string
   return

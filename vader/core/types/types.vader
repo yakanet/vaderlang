@@ -374,11 +374,12 @@ export qualified_display_type :: fn(t: Type) -> string {
 }
 
 /// `sym`'s name prefixed by its declaring module, as an instance name carries it:
-/// `pa_Point`, `std_collections_MutableMap`.
+/// `pa$Point`, `std_collections$MutableMap`. Neither half holds a `$`, so the
+/// type `C` of `a/b` (`a_b$C`) and the type `b_C` of `a` (`a$b_C`) name apart.
 ///
 /// @param sym  a nominal type's declaration symbol.
 export qualified_symbol_name :: fn(sym: Symbol) -> string =
-    "${mangle_module_id(sym.module_name)}_${sym.name}"
+    "${mangle_module_id(sym.module_name)}\$${sym.name}"
 
 // `qualified` names each nominal type by its module (`qualified_display_type`).
 nominal_name :: fn(sym: Symbol, qualified: bool) -> string {

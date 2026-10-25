@@ -65,7 +65,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; $arr_0
   i32.const 1
   local.get 1   ; $arr_1
-  call 9   ; std_collections$MutableMap$std_core_IndexSet$set_at__i32__Any
+  call 9   ; std_collections$MutableMap$std_core$IndexSet$set_at__i32__Any
   local.get 0   ; $arr_0
   i32.const 1
   call 16   ; snippet_lib$pick
@@ -355,14 +355,14 @@ fn 7 std_io$println__string (string) -> void
   return
 end
 
-fn 8 std_collections$MutableMap$std_core_Index$at__i32__Any (ref,i32) -> any
+fn 8 std_collections$MutableMap$std_core$Index$at__i32__Any (ref,i32) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 15   ; std_collections$get__i32__Any
   return
 end
 
-fn 9 std_collections$MutableMap$std_core_IndexSet$set_at__i32__Any (ref,i32,any) -> void
+fn 9 std_collections$MutableMap$std_core$IndexSet$set_at__i32__Any (ref,i32,any) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -802,7 +802,7 @@ fn 16 snippet_lib$pick (ref,i32) -> (i32,i32)
   local $idx_11 i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 8   ; std_collections$MutableMap$std_core_Index$at__i32__Any
+  call 8   ; std_collections$MutableMap$std_core$Index$at__i32__Any
   local.tee 2   ; v
   type_check 0   ; null
   if $L0 void

@@ -177,14 +177,14 @@ fn 0 snippet$main () -> i32
   local.tee 0   ; $arr_0
   string.const 0   ; "x"
   i32.const 200
-  call 71   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__u8
+  call 71   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__u8
   local.get 0   ; $arr_0
   string.const 1   ; "y"
   i32.const 7
-  call 71   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__u8
+  call 71   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__u8
   local.get 0   ; $arr_0
   string.const 0   ; "x"
-  call 70   ; std_collections$MutableMap$std_core_Index$at__string__u8
+  call 70   ; std_collections$MutableMap$std_core$Index$at__string__u8
   local.tee 3   ; vx
   type_check 0   ; null
   if $L0 void
@@ -193,7 +193,7 @@ fn 0 snippet$main () -> i32
   else
     local.get 0   ; $arr_0
     string.const 1   ; "y"
-    call 70   ; std_collections$MutableMap$std_core_Index$at__string__u8
+    call 70   ; std_collections$MutableMap$std_core$Index$at__string__u8
     virtual.call 1 std_core$Display.to_string
     local.tee 4   ; __p_0
     call.import 0   ; std_core$byte_len
@@ -251,18 +251,18 @@ fn 0 snippet$main () -> i32
   local.tee 1   ; $arr_1
   string.const 5   ; "t"
   bool.const true
-  call 57   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__bool
+  call 57   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__bool
   local.get 1   ; $arr_1
   string.const 6   ; "f"
   bool.const false
-  call 57   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__bool
+  call 57   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__bool
   local.get 1   ; $arr_1
   string.const 5   ; "t"
-  call 56   ; std_collections$MutableMap$std_core_Index$at__string__bool
+  call 56   ; std_collections$MutableMap$std_core$Index$at__string__bool
   local.set 3   ; vx
   local.get 1   ; $arr_1
   string.const 6   ; "f"
-  call 56   ; std_collections$MutableMap$std_core_Index$at__string__bool
+  call 56   ; std_collections$MutableMap$std_core$Index$at__string__bool
   local.set 8   ; vf
   local.get 3   ; vx
   type_check 0   ; null
@@ -332,14 +332,14 @@ fn 0 snippet$main () -> i32
   local.tee 1   ; $arr_1
   string.const 10   ; "first"
   char.const 65
-  call 59   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__char
+  call 59   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__char
   local.get 1   ; $arr_1
   string.const 11   ; "accent"
   char.const 233
-  call 59   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__char
+  call 59   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__char
   local.get 1   ; $arr_1
   string.const 10   ; "first"
-  call 58   ; std_collections$MutableMap$std_core_Index$at__string__char
+  call 58   ; std_collections$MutableMap$std_core$Index$at__string__char
   local.tee 3   ; vx
   type_check 0   ; null
   if $L3 void
@@ -352,7 +352,7 @@ fn 0 snippet$main () -> i32
     local.set 4   ; __p_0
     local.get 1   ; $arr_1
     string.const 11   ; "accent"
-    call 58   ; std_collections$MutableMap$std_core_Index$at__string__char
+    call 58   ; std_collections$MutableMap$std_core$Index$at__string__char
     virtual.call 1 std_core$Display.to_string
     local.set 10   ; $vcall_100
     string.const 13   ; "char first="
@@ -382,10 +382,10 @@ fn 0 snippet$main () -> i32
   local.get 1   ; $arr_1
   string.const 15   ; "pi"
   local.get 11   ; $k_112
-  call 61   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__f32
+  call 61   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__f32
   local.get 1   ; $arr_1
   string.const 15   ; "pi"
-  call 60   ; std_collections$MutableMap$std_core_Index$at__string__f32
+  call 60   ; std_collections$MutableMap$std_core$Index$at__string__f32
   local.tee 3   ; vx
   type_check 0   ; null
   if $L4 void
@@ -418,10 +418,10 @@ fn 0 snippet$main () -> i32
   local.tee 1   ; $arr_1
   string.const 18   ; "e"
   f64.const 2.25 4612248968380809216
-  call 63   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__f64
+  call 63   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__f64
   local.get 1   ; $arr_1
   string.const 18   ; "e"
-  call 62   ; std_collections$MutableMap$std_core_Index$at__string__f64
+  call 62   ; std_collections$MutableMap$std_core$Index$at__string__f64
   local.tee 3   ; vx
   type_check 0   ; null
   if $L5 void
@@ -454,10 +454,10 @@ fn 0 snippet$main () -> i32
   local.tee 1   ; $arr_1
   string.const 21   ; "neg"
   i32.const -1000
-  call 65   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i16
+  call 65   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__i16
   local.get 1   ; $arr_1
   string.const 21   ; "neg"
-  call 64   ; std_collections$MutableMap$std_core_Index$at__string__i16
+  call 64   ; std_collections$MutableMap$std_core$Index$at__string__i16
   local.tee 3   ; vx
   type_check 0   ; null
   if $L6 void
@@ -505,10 +505,10 @@ fn 0 snippet$main () -> i32
   local.tee 1   ; $arr_1
   string.const 24   ; "big"
   i32.const 50000
-  call 69   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__u16
+  call 69   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__u16
   local.get 1   ; $arr_1
   string.const 24   ; "big"
-  call 68   ; std_collections$MutableMap$std_core_Index$at__string__u16
+  call 68   ; std_collections$MutableMap$std_core$Index$at__string__u16
   local.tee 3   ; vx
   type_check 0   ; null
   if $L7 void
@@ -556,10 +556,10 @@ fn 0 snippet$main () -> i32
   local.tee 1   ; $arr_1
   string.const 27   ; "huge"
   i64.const 9000000000
-  call 67   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i64
+  call 67   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__i64
   local.get 1   ; $arr_1
   string.const 27   ; "huge"
-  call 66   ; std_collections$MutableMap$std_core_Index$at__string__i64
+  call 66   ; std_collections$MutableMap$std_core$Index$at__string__i64
   local.tee 3   ; vx
   type_check 0   ; null
   if $L8 void
@@ -591,7 +591,7 @@ fn 0 snippet$main () -> i32
   end $L8
   local.get 0   ; $arr_0
   string.const 30   ; "absent"
-  call 70   ; std_collections$MutableMap$std_core_Index$at__string__u8
+  call 70   ; std_collections$MutableMap$std_core$Index$at__string__u8
   local.tee 3   ; vx
   type_check 0   ; null
   if $L9 void
@@ -3785,14 +3785,14 @@ fn 55 std_io$println__string (string) -> void
   return
 end
 
-fn 56 std_collections$MutableMap$std_core_Index$at__string__bool (ref,string) -> any
+fn 56 std_collections$MutableMap$std_core$Index$at__string__bool (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 98   ; std_collections$get__string__bool
   return
 end
 
-fn 57 std_collections$MutableMap$std_core_IndexSet$set_at__string__bool (ref,string,bool) -> void
+fn 57 std_collections$MutableMap$std_core$IndexSet$set_at__string__bool (ref,string,bool) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -3801,14 +3801,14 @@ fn 57 std_collections$MutableMap$std_core_IndexSet$set_at__string__bool (ref,str
   return
 end
 
-fn 58 std_collections$MutableMap$std_core_Index$at__string__char (ref,string) -> any
+fn 58 std_collections$MutableMap$std_core$Index$at__string__char (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 99   ; std_collections$get__string__char
   return
 end
 
-fn 59 std_collections$MutableMap$std_core_IndexSet$set_at__string__char (ref,string,char) -> void
+fn 59 std_collections$MutableMap$std_core$IndexSet$set_at__string__char (ref,string,char) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -3817,14 +3817,14 @@ fn 59 std_collections$MutableMap$std_core_IndexSet$set_at__string__char (ref,str
   return
 end
 
-fn 60 std_collections$MutableMap$std_core_Index$at__string__f32 (ref,string) -> any
+fn 60 std_collections$MutableMap$std_core$Index$at__string__f32 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 100   ; std_collections$get__string__f32
   return
 end
 
-fn 61 std_collections$MutableMap$std_core_IndexSet$set_at__string__f32 (ref,string,f32) -> void
+fn 61 std_collections$MutableMap$std_core$IndexSet$set_at__string__f32 (ref,string,f32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -3833,14 +3833,14 @@ fn 61 std_collections$MutableMap$std_core_IndexSet$set_at__string__f32 (ref,stri
   return
 end
 
-fn 62 std_collections$MutableMap$std_core_Index$at__string__f64 (ref,string) -> any
+fn 62 std_collections$MutableMap$std_core$Index$at__string__f64 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 101   ; std_collections$get__string__f64
   return
 end
 
-fn 63 std_collections$MutableMap$std_core_IndexSet$set_at__string__f64 (ref,string,f64) -> void
+fn 63 std_collections$MutableMap$std_core$IndexSet$set_at__string__f64 (ref,string,f64) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -3849,14 +3849,14 @@ fn 63 std_collections$MutableMap$std_core_IndexSet$set_at__string__f64 (ref,stri
   return
 end
 
-fn 64 std_collections$MutableMap$std_core_Index$at__string__i16 (ref,string) -> any
+fn 64 std_collections$MutableMap$std_core$Index$at__string__i16 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 102   ; std_collections$get__string__i16
   return
 end
 
-fn 65 std_collections$MutableMap$std_core_IndexSet$set_at__string__i16 (ref,string,i16) -> void
+fn 65 std_collections$MutableMap$std_core$IndexSet$set_at__string__i16 (ref,string,i16) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -3865,14 +3865,14 @@ fn 65 std_collections$MutableMap$std_core_IndexSet$set_at__string__i16 (ref,stri
   return
 end
 
-fn 66 std_collections$MutableMap$std_core_Index$at__string__i64 (ref,string) -> any
+fn 66 std_collections$MutableMap$std_core$Index$at__string__i64 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 103   ; std_collections$get__string__i64
   return
 end
 
-fn 67 std_collections$MutableMap$std_core_IndexSet$set_at__string__i64 (ref,string,i64) -> void
+fn 67 std_collections$MutableMap$std_core$IndexSet$set_at__string__i64 (ref,string,i64) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -3881,14 +3881,14 @@ fn 67 std_collections$MutableMap$std_core_IndexSet$set_at__string__i64 (ref,stri
   return
 end
 
-fn 68 std_collections$MutableMap$std_core_Index$at__string__u16 (ref,string) -> any
+fn 68 std_collections$MutableMap$std_core$Index$at__string__u16 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 104   ; std_collections$get__string__u16
   return
 end
 
-fn 69 std_collections$MutableMap$std_core_IndexSet$set_at__string__u16 (ref,string,u16) -> void
+fn 69 std_collections$MutableMap$std_core$IndexSet$set_at__string__u16 (ref,string,u16) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -3897,14 +3897,14 @@ fn 69 std_collections$MutableMap$std_core_IndexSet$set_at__string__u16 (ref,stri
   return
 end
 
-fn 70 std_collections$MutableMap$std_core_Index$at__string__u8 (ref,string) -> any
+fn 70 std_collections$MutableMap$std_core$Index$at__string__u8 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 105   ; std_collections$get__string__u8
   return
 end
 
-fn 71 std_collections$MutableMap$std_core_IndexSet$set_at__string__u8 (ref,string,u8) -> void
+fn 71 std_collections$MutableMap$std_core$IndexSet$set_at__string__u8 (ref,string,u8) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
