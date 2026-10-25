@@ -1,0 +1,134 @@
+# Typecheck
+
+## tests/snippets/async_fused_chain_order
+  FnDecl         later                :: fn(string, i32) -> Async<i32>
+  FnDecl         list                 :: fn(string) -> i32[]
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         note                 :: fn(string, i32) -> i32
+  StructDecl     Ready                :: Ready<T>
+  FnDecl         run                  :: fn() -> Async<i32>
+  FnDecl         span_of              :: fn(i32, i32) -> Iterator<i32>
+  expr 15:43    FieldExpr      :: T
+  expr 15:43    IdentExpr      :: Ready<T>
+  expr 19:13    StringLitExpr  :: string
+  expr 19:18    IdentExpr      :: string
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 20:12    IdentExpr      :: i32
+  expr 24:13    StringLitExpr  :: string
+  expr 24:18    IdentExpr      :: string
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 25:12    StructLitExpr  :: Ready<i32>
+  expr 25:30    IdentExpr      :: i32
+  expr 29:13    StringLitExpr  :: string
+  expr 29:18    IdentExpr      :: string
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 30:12    SeqLitExpr     :: i32[]
+  expr 34:14    IdentExpr      :: i32
+  expr 34:14    RangeExpr      :: Range<i32>
+  expr 34:21    IdentExpr      :: i32
+  expr 35:15    IdentExpr      :: i32
+  expr 40:13    StringLitExpr  :: string
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 41:15    CallExpr       :: __genstate_map<i32>
+  expr 41:15    CallExpr       :: i32
+  expr 41:15    CallExpr       :: i32
+  expr 41:15    FieldExpr      :: fn() -> i32
+  expr 41:15    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
+  expr 41:15    IdentExpr      :: fn(string, i32) -> i32
+  expr 41:15    RangeExpr      :: Range<i32>
+  expr 41:20    StringLitExpr  :: string
+  expr 41:31    AwaitExpr      :: i32
+  expr 41:37    CallExpr       :: Async<i32>
+  expr 41:37    IdentExpr      :: fn(string, i32) -> Async<i32>
+  expr 41:43    StringLitExpr  :: string
+  expr 41:57    LambdaExpr     :: fn(i32) -> i32
+  expr 41:69    BinaryExpr     :: i32
+  expr 41:69    IdentExpr      :: i32
+  expr 42:13    StringLitExpr  :: string
+  expr 42:16    IdentExpr      :: i32
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void
+  expr 43:13    StringLitExpr  :: string
+  expr 43:5     CallExpr       :: void
+  expr 43:5     IdentExpr      :: fn(T) -> void
+  expr 44:14    CallExpr       :: __genstate_take<i32>
+  expr 44:14    CallExpr       :: i32
+  expr 44:14    CallExpr       :: i32[]
+  expr 44:14    FieldExpr      :: fn() -> i32
+  expr 44:14    FieldExpr      :: fn(i64) -> Iterator<i32>
+  expr 44:14    IdentExpr      :: fn(string) -> i32[]
+  expr 44:19    StringLitExpr  :: string
+  expr 44:34    AwaitExpr      :: i32
+  expr 44:40    CallExpr       :: Async<i32>
+  expr 44:40    IdentExpr      :: fn(string, i32) -> Async<i32>
+  expr 44:46    StringLitExpr  :: string
+  expr 45:13    StringLitExpr  :: string
+  expr 45:16    IdentExpr      :: i32
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(T) -> void
+  expr 46:13    StringLitExpr  :: string
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(T) -> void
+  expr 47:15    CallExpr       :: i32
+  expr 47:15    CallExpr       :: i32[]
+  expr 47:15    FieldExpr      :: fn(i32, fn(i32, i32) -> i32) -> i32
+  expr 47:15    IdentExpr      :: fn(string) -> i32[]
+  expr 47:20    StringLitExpr  :: string
+  expr 47:34    AwaitExpr      :: i32
+  expr 47:40    CallExpr       :: Async<i32>
+  expr 47:40    IdentExpr      :: fn(string, i32) -> Async<i32>
+  expr 47:46    StringLitExpr  :: string
+  expr 47:59    LambdaExpr     :: fn(i32, i32) -> i32
+  expr 47:81    BinaryExpr     :: i32
+  expr 47:81    IdentExpr      :: i32
+  expr 47:87    IdentExpr      :: i32
+  expr 48:13    StringLitExpr  :: string
+  expr 48:16    IdentExpr      :: i32
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 49:13    StringLitExpr  :: string
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(T) -> void
+  expr 50:16    CallExpr       :: __genstate_map<i32>
+  expr 50:16    CallExpr       :: __genstate_span_of<i32>
+  expr 50:16    CallExpr       :: i32
+  expr 50:16    FieldExpr      :: fn() -> i32
+  expr 50:16    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
+  expr 50:16    IdentExpr      :: fn(i32, i32) -> Iterator<i32>
+  expr 50:24    CallExpr       :: i32
+  expr 50:24    IdentExpr      :: fn(string, i32) -> i32
+  expr 50:29    StringLitExpr  :: string
+  expr 50:41    AwaitExpr      :: i32
+  expr 50:47    CallExpr       :: Async<i32>
+  expr 50:47    IdentExpr      :: fn(string, i32) -> Async<i32>
+  expr 50:53    StringLitExpr  :: string
+  expr 50:67    LambdaExpr     :: fn(i32) -> i32
+  expr 50:79    BinaryExpr     :: i32
+  expr 50:79    IdentExpr      :: i32
+  expr 51:13    StringLitExpr  :: string
+  expr 51:16    IdentExpr      :: i32
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void
+  expr 52:13    StringLitExpr  :: string
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
+  expr 53:10    CallExpr       :: i32
+  expr 53:10    IdentExpr      :: fn(string, i32) -> i32
+  expr 53:10    RangeExpr      :: Range<i32>
+  expr 53:15    StringLitExpr  :: string
+  expr 53:27    AwaitExpr      :: i32
+  expr 53:33    CallExpr       :: Async<i32>
+  expr 53:33    IdentExpr      :: fn(string, i32) -> Async<i32>
+  expr 53:39    StringLitExpr  :: string
+  expr 54:13    StringLitExpr  :: string
+  expr 54:16    FieldExpr      :: i32
+  expr 54:16    IdentExpr      :: Range<i32>
+  expr 54:5     CallExpr       :: void
+  expr 54:5     IdentExpr      :: fn(T) -> void
+  expr 59:12    AwaitExpr      :: i32
+  expr 59:18    CallExpr       :: Async<i32>
+  expr 59:18    IdentExpr      :: fn() -> Async<i32>

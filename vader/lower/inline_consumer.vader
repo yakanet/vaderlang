@@ -337,7 +337,7 @@ bind_consumer_arguments :: fn(
         }
         slot :: substitute(call.signature.params[k], call.subst)
         arg :: target.args[k]
-        value :: prepare_into(ctx, arg, lower_expr(ctx, arg), slot, arg.span)
+        value :: prepare_into(ctx, arg, lower_after_prelude(ctx, arg, out), slot, arg.span)
         out.push(bind_instance_param(ctx, call.instance, target.owner, target.decl.params[k], value, slot))
     }
     return bound

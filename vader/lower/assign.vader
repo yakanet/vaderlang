@@ -91,9 +91,7 @@ bind_place_receiver :: fn(ctx: FnLowerCtx, receiver: Expr, out: LoweredStmt[]) -
 // `rhs` runs between the read and the write, so the operand stays in place only
 // when nothing can rebind it.
 bind_place_operand :: fn(ctx: FnLowerCtx, operand: Expr, out: LoweredStmt[]) -> void {
-    mark :: ctx.pending_awaits.len()
-    value :: lower_expr(ctx, operand)
-    hoist_prelude_before(ctx, out, mark)
+    value :: lower_after_prelude(ctx, operand, out)
     bound :: bind_unless_invariant(ctx, value, "place_operand", value.span, out)
     ctx.bound_operands[operand.id] = bound
 }

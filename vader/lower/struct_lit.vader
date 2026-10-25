@@ -30,9 +30,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
         match item {
             is StructLitField -> { provided[item.name] = item.value }
             is StructLitSpread -> {
-                mark :: ctx.pending_awaits.len()
-                value :: lower_expr(ctx, item.expr)
-                hoist_prelude_before(ctx, spread_stmts, mark)
+                value :: lower_after_prelude(ctx, item.expr, spread_stmts)
                 sym :: fresh_synthetic_symbol(ctx, "spread")
                 spread_sym = sym
                 spread_stmts.push(LoweredLet {

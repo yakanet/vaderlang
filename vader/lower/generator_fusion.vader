@@ -708,7 +708,7 @@ bind_gen_source_operands :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredSt
     gs :: chain.gen_source ?? return chain
     for k in 0..<gs.decl.params.len() {
         slot :: substitute(gs.signature.params[k], gs.subst)
-        arg :: lower_expr(ctx, gs.args[k])
+        arg :: lower_after_prelude(ctx, gs.args[k], out)
         value :: prepare_into(ctx, gs.args[k], arg, slot, arg.span)
         out.push(bind_instance_param(ctx, gs.instance, gs.owner, gs.decl.params[k], value, slot))
     }

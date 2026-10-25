@@ -1,0 +1,23 @@
+# stdout
+range fusion
+  lo
+  hi (awaited)
+6
+array fusion
+  source
+  count (awaited)
+3
+consumer argument
+  items
+  init (awaited)
+16
+generator source
+  from
+  to (awaited)
+60
+plain range
+  low
+  high (awaited)
+1
+# exit
+0

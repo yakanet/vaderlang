@@ -374,8 +374,9 @@ chain_element_type :: fn(chain: IterChain) -> Type = match chain.kind {
 // round — the outermost layer wraps its source's loop, so an operand lowered
 // where its loop is emitted would run per element, or ahead of its source.
 
-// Evaluate every operand of `chain` once into `out` : a source's operands before
-// the layer built on it, a layer's source before its argument. Returns the chain
+// Evaluate every operand of `chain` once, into `out`, or into the sink when a
+// later operand awaits (`lower_after_prelude`) : a source's operands before the
+// layer built on it, a layer's source before its argument. Returns the chain
 // with the values its loops read in `bound_*` — `emit_fused_chain` reads those.
 bind_chain_operands :: fn(
     ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[],
@@ -392,8 +393,10 @@ bind_chain_operands :: fn(
 bind_range_operands :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[]) -> IterChain {
     lower :: chain.range_lower ?? return chain
     upper :: chain.range_upper ?? return chain
-    lo :: bind_unless_invariant(ctx, lower_expr(ctx, lower), "fuse_lo", chain.span, out)
-    hi :: bind_unless_invariant(ctx, lower_expr(ctx, upper), "fuse_hi", chain.span, out)
+    lo_value :: lower_after_prelude(ctx, lower, out)
+    lo :: bind_unless_invariant(ctx, lo_value, "fuse_lo", chain.span, out)
+    hi_value :: lower_after_prelude(ctx, upper, out)
+    hi :: bind_unless_invariant(ctx, hi_value, "fuse_hi", chain.span, out)
     return IterChain { ...chain, .bound_lower = lo, .bound_upper = hi }
 }
 
@@ -401,7 +404,7 @@ bind_range_operands :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[])
 // its length and every element from.
 bind_array_operand :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[]) -> IterChain {
     src :: chain.array_expr ?? return chain
-    arr :: lower_expr(ctx, src)
+    arr :: lower_after_prelude(ctx, src, out)
     bound :: bind_to_local(ctx, arr, arr.type, "fuse_arr", chain.span, out)
     return IterChain { ...chain, .bound_source = bound }
 }
@@ -409,7 +412,7 @@ bind_array_operand :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[]) 
 // The iterator is the loop's cursor, so it always gets a local of its own.
 bind_opaque_iter_operand :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[]) -> IterChain {
     src :: chain.iter_expr ?? return chain
-    iter :: lower_expr(ctx, src)
+    iter :: lower_after_prelude(ctx, src, out)
     bound :: bind_to_local(ctx, iter, iter.type, "fuse_iter", chain.span, out)
     return IterChain { ...chain, .bound_source = bound }
 }
@@ -430,7 +433,8 @@ bind_layer_operands :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[])
     arg_sym :: layer.arg_sym
     arg_slot :: layer.arg_slot
     if arg_expr != null && arg_sym != null && arg_slot != null {
-        arg :: prepare_into(ctx, arg_expr, lower_expr(ctx, arg_expr), arg_slot, chain.span)
+        lowered :: lower_after_prelude(ctx, arg_expr, out)
+        arg :: prepare_into(ctx, arg_expr, lowered, arg_slot, chain.span)
         out.push(cell_aware_let(ctx, arg_sym, arg_sym.name, arg, arg_slot, chain.span))
     }
     return IterChain {

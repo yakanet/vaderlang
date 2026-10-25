@@ -189,6 +189,21 @@ bound_by_sink :: fn(ctx: FnLowerCtx, value: LoweredExpr) -> bool {
     return false
 }
 
+/// `expr`, lowered after the statements already in `prelude` : when it hoists an
+/// `await` to the sink, they move ahead of it there (`hoist_prelude_before`), so
+/// they still run first.
+///
+/// @param ctx      the fn-body context.
+/// @param expr     the operand, in source order after what `prelude` evaluates.
+/// @param prelude  the statements run before it ; emptied when they move.
+/// @return         `expr`, lowered.
+lower_after_prelude :: fn(ctx: FnLowerCtx, expr: Expr, prelude: LoweredStmt[]) -> LoweredExpr {
+    mark :: ctx.pending_awaits.len()
+    value :: lower_expr(ctx, expr)
+    hoist_prelude_before(ctx, prelude, mark)
+    return value
+}
+
 // When what was lowered since sink length `mark` hoisted an `await`, the
 // statements a value runs ahead of it (its prelude) move into the sink ahead of
 // that `await`, so they still run first. `prelude` is left empty.

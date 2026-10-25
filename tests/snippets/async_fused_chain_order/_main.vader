@@ -1,0 +1,60 @@
+// A fused chain evaluates its operands once, left to right, before its first
+// element, even when a later one awaits: a range's `lo` before its awaited `hi`,
+// an array before the awaited count `take` reads, a consumer's source before its
+// awaited argument, a generator's first argument before its awaited second. The
+// plain range is the reference.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+Ready :: struct<T> { v: T }
+
+Ready<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended = self.v
+}
+
+note :: fn(tag: string, v: i32) -> i32 {
+    println("  ${tag}")
+    return v
+}
+
+later :: fn(tag: string, v: i32) -> Async<i32> {
+    println("  ${tag} (awaited)")
+    return Ready<i32> { .v = v }
+}
+
+list :: fn(tag: string) -> i32[] {
+    println("  ${tag}")
+    return [1, 2, 3]
+}
+
+span_of :: fn(from: i32, to: i32) -> Iterator<i32> {
+    for i in from..<to {
+        yield i
+    }
+}
+
+run :: fn() -> Async<i32> {
+    println("range fusion")
+    total :: (note("lo", 0)..<await later("hi", 3)).map((i: i32) -> i * 2).sum()
+    println("${total}")
+    println("array fusion")
+    taken :: list("source").take(await later("count", 2)).sum()
+    println("${taken}")
+    println("consumer argument")
+    folded :: list("items").fold(await later("init", 10), (acc: i32, x: i32) -> acc + x)
+    println("${folded}")
+    println("generator source")
+    counted :: span_of(note("from", 1), await later("to", 4)).map((i: i32) -> i * 10).sum()
+    println("${counted}")
+    println("plain range")
+    r :: note("low", 1)..<await later("high", 3)
+    println("${r.start}")
+    return 0
+}
+
+main :: fn() -> i32 {
+    return await run()
+}
