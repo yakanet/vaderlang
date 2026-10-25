@@ -154,7 +154,7 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
                 } else {
                     index.exports[key] = sym.module_name
                 }
-                if is_type_symbol(typed, sym) {
+                if names_a_type(sym, typed.resolved) {
                     index.types.add(key)
                 }
             }
@@ -227,13 +227,6 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
         .types    = index.types,
     }
 }
-
-// Whether `sym` declares a type. A distinct type or an alias written
-// `Name :: i32` is a const to the resolver ; the typecheck records it among the
-// alias types.
-is_type_symbol :: fn(typed: TypedProgram, sym: Symbol) -> bool =
-    sym.kind == .Struct || sym.kind == .Enum || sym.kind == .Trait || sym.kind == .TypeAlias
-    || (sym.kind == .Const && sym.id in typed.resolved.alias_types)
 
 // Whether a symbol of kind `k` lives in one body : a local, a parameter, a
 // pattern binding, a type parameter.
