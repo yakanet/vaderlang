@@ -36,6 +36,15 @@ guest() {
     vagrant_ ssh -c "$1; if (\$null -ne \$LASTEXITCODE) { exit \$LASTEXITCODE }"
 }
 
+existing_paths() {
+    local path
+    while IFS= read -r -d '' path; do
+        if [ -e "$REPO/$path" ] || [ -L "$REPO/$path" ]; then
+            printf '%s\0' "$path"
+        fi
+    done
+}
+
 cmd_sync() {
     local wipe=""
     if [ "${1:-}" = "--clean" ]; then
@@ -54,6 +63,7 @@ cmd_sync() {
     # changes nothing. Never pass both flags: together they emit an empty
     # archive.
     git -C "$REPO" ls-files -z --cached --others --exclude-standard \
+        | existing_paths \
         | tar --no-mac-metadata -czf "$tarball" -C "$REPO" --null -T -
 
     vagrant_ upload "$tarball" "$GUEST_TARBALL" >/dev/null
