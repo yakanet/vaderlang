@@ -129,6 +129,26 @@ TABLE_UNTYPED :: @comptime build_table()
 `,
   },
   {
+    // A decorated \`@comptime\` const whose value the parser hands to a helper (a
+    // call with arguments, a struct literal) keeps its decorator where it was.
+    name: "comptime_decorator_with_helper",
+    source: `module "reg/comptime_decorator_with_helper"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+scaled :: fn(n: i32) -> i32 = n * 2
+
+@comptime
+ORIGIN :: Point { .x = 0, .y = 0 }
+
+@comptime
+TWICE: i64: scaled(21)
+`,
+  },
+  {
     // F5 : struct-pattern literal field. `field: <expr>` was re-emitted with `=`
     // and no longer reparsed.
     name: "struct_pattern_literal",

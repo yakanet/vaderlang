@@ -99,7 +99,10 @@ populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
     for id in nodes.order {
         record :: nodes.by_id[id] ?? continue
         deps_seen :: MutableMap<i64, bool> {}
-        collect_expr_deps(record.decl.value, typed, nodes, deps_seen, record)
+        // A const the parser gave a `__comptime_` helper calls it ; what it reads
+        // is the value it was written with, which the helper holds.
+        written :: record.decl.comptime_body ?? record.decl.value
+        collect_expr_deps(written, typed, nodes, deps_seen, record)
         nodes.by_id[id] = record
     }
 }

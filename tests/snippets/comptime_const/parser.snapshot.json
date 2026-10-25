@@ -124,6 +124,37 @@
         ]
       },
       {
+        "kind": "FnDecl",
+        "name": "__comptime_NINE",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "square"
+            },
+            "args": [
+              {
+                "name": null,
+                "value": {
+                  "kind": "IntLitExpr",
+                  "value": "3n"
+                },
+                "spread": false
+              }
+            ]
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
         "kind": "ConstDecl",
         "name": "NINE",
         "visibility": "public",
@@ -132,18 +163,9 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "square"
+            "name": "__comptime_NINE"
           },
-          "args": [
-            {
-              "name": null,
-              "value": {
-                "kind": "IntLitExpr",
-                "value": "3n"
-              },
-              "spread": false
-            }
-          ]
+          "args": []
         },
         "decorators": [
           {

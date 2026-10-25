@@ -1076,10 +1076,11 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     // plus this const rewritten to call it. Re-emit the surface sugar from the
     // preserved operand instead of the desugared `__comptime_NAME()` call.
     cb :: d.comptime_body
-    if cb != null {
+    if cb != null && is_inline_comptime(d) {
         self.emit_comptime_const(d, cb)
         return
     }
+    value :: written_value(d)
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     // Typed const-decls use the Odin-style `NAME: T: value` form (two single
@@ -1111,22 +1112,30 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     //       | C
     // Typed constants skip this path (the `: T :` segment makes the prefix
     // shape too irregular for the simple align rule to read cleanly).
-    if d.ty is null && is_bitor_chain(d.value) {
+    if d.ty is null && is_bitor_chain(value) {
         prefix_width :: i64(self.depth) * 4 + name_width + 4 // " :: "
-        rendered :: format_expr(self.source, d.value)
+        rendered :: format_expr(self.source, value)
         if prefix_width + rendered.text_width() > i64(MAX_LINE) {
-            self.emit_union_multiline(d.value, name_width)
+            self.emit_union_multiline(value, name_width)
             return
         }
         // A union that fits takes one line, whatever line breaks the source has.
         keep :: self.keep_line_breaks
         self.keep_line_breaks = false
-        self.emit_expr(d.value)
+        self.emit_expr(value)
         self.keep_line_breaks = keep
         return
     }
-    self.emit_expr(d.value)
+    self.emit_expr(value)
 }
+
+// The value `d` was written with : the operand of its `@comptime` when the parser
+// gave it a helper to call, its value otherwise.
+written_value :: fn(d: p.ConstDecl) -> p.Expr = d.comptime_body ?? d.value
+
+// Whether `d` was written `NAME :: @comptime <expr>`, its `@comptime` after `::`.
+is_inline_comptime :: fn(d: p.ConstDecl) -> bool =
+    d.comptime_body != null && !d.comptime_as_decorator
 
 // Re-emit the `NAME :: @comptime <expr>` (untyped) or `NAME: T: @comptime
 // <expr>` (typed) const sugar from a desugared `ConstDecl`. `body` is the raw

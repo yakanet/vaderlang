@@ -558,13 +558,15 @@ export ConstDecl :: struct {
     ty:         TypeExpr | null
     value:      Expr
     decorators: Decorator[]
-    /// Original `@comptime` operand for the `NAME :: @comptime <expr>` sugar,
-    /// kept so the formatter re-emits the surface form rather than the
-    /// desugared `__comptime_NAME()` call. Non-null marks this const as a
-    /// desugared comptime const ; null for every other const. Holds the raw
-    /// block/expression the sugar wrapped (pre-`return`-lift), so the exact
-    /// source spelling round-trips. See `desugar_comptime_const`.
+    /// The value a `@comptime` const was written with, when the parser gave it a
+    /// `__comptime_NAME` helper to call (`through_comptime_helper`) : the
+    /// formatter re-emits it rather than the call. Non-null marks such a const ;
+    /// null for every other const. Holds the raw block/expression (pre-`return`-
+    /// lift), so the exact source spelling round-trips.
     comptime_body: Expr | null = null
+    /// True when `@comptime` decorated the const (`@comptime` above `NAME :: v`)
+    /// rather than following `::` ; read with `comptime_body`.
+    comptime_as_decorator: bool = false
 }
 
 /// An `@assert` at the top level — a build-time invariant.

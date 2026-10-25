@@ -242,11 +242,10 @@ const_head :: fn(h: Printer, d: p.ConstDecl) -> string {
         h.emit_type_expr(d.ty)
         h.write(": ")
     }
-    body :: d.comptime_body
-    value :: if body != null { body } else { d.value }
-    if body != null {
+    if is_inline_comptime(d) {
         h.write("@comptime ")
     }
+    value :: written_value(d)
     h.emit_expr(value)
     if is_bitor_chain(value) {
         return h.finish()

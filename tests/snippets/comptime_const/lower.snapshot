@@ -10,6 +10,9 @@
   }
   snippet.ANSWER: i32: 42  // snippet$ANSWER
   snippet.GREETING: string: "hello, world"  // snippet$GREETING
+  snippet.__comptime_NINE :: fn() -> i32 {  // snippet$__comptime_NINE
+      snippet.square(3)
+  }
   snippet.NINE: i32: 9  // snippet$NINE
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<string>("greeting: hello, world")

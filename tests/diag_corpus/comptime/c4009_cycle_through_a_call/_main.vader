@@ -1,0 +1,12 @@
+// C4009: two `@comptime` constants that read each other through a call with
+// arguments form a cycle, though a helper computes each one: the dependencies are
+// read from the value each was written with.
+module "snippet"
+
+twice :: fn(n: i32) -> i32 = n * 2
+
+@comptime
+export A: i32: twice(B)
+
+@comptime
+export B: i32: twice(A)

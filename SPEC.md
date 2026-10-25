@@ -3406,6 +3406,8 @@ SQUARES: u32[]: @comptime { … }
 
 `NAME :: @comptime <expr>` desugars to a synthetic nullary fn holding `<expr>` plus a `@comptime`-decorated `NAME` that calls it ; a trailing `return` inside a block behaves as the block's value.
 
+**Decorator form.** `@comptime` written above `NAME :: <expr>` computes the same value as `NAME :: @comptime <expr>`. An `<expr>` that calls a function with arguments or builds a struct goes through the same synthetic fn; an expression over literals and constants is folded directly, and a cycle between such constants is `C4009`.
+
 ### Sandbox
 
 A `@comptime` value can:

@@ -1,0 +1,42 @@
+// `@comptime` written above a constant evaluates what the `NAME :: @comptime
+// <expr>` form does: a value that calls a function with arguments or builds a
+// struct runs on the comptime VM, through the same helper. An expression over
+// literals and constants is folded directly.
+module "snippet"
+
+import "std/io"
+
+Point :: struct {
+    x: i32
+    y: i32
+    label: string
+}
+
+square_root_floor :: fn(n: i32) -> i32 {
+    root := 0
+    for i in 0..<n {
+        if i * i <= n {
+            root = i
+        }
+    }
+    return root
+}
+
+@comptime
+ORIGIN :: Point { .x = 0, .y = 0, .label = "origin" }
+
+@comptime
+ROOT :: square_root_floor(50)
+
+@comptime
+WIDE_ROOT: i64: square_root_floor(99)
+
+@comptime
+ANSWER :: (40 + 2) * 1
+
+main :: fn() -> i32 {
+    println("${ORIGIN.label} ${ORIGIN.x} ${ORIGIN.y}")
+    println("roots ${ROOT} ${WIDE_ROOT}")
+    println("answer ${ANSWER}")
+    return 0
+}

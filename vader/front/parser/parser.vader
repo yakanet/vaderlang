@@ -1637,6 +1637,12 @@ parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
         return p.desugar_comptime_const(decorators, visibility, name_tok, null)
     }
     value :: p.parse_expr(0)
+    marker :: comptime_helper_marker(decorators, value)
+    if marker != null {
+        return p.through_comptime_helper(
+            decorators, visibility, name_tok, null, value, marker, true,
+        )
+    }
     return ConstDecl {
         .span       = p.span_of(name_tok, p.peek_at(-1)),
         .name       = name_tok.text,
@@ -1661,19 +1667,41 @@ desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Vis
     // anything else goes through the expression parser. `wrap_as_block` is a
     // no-op on a block and wraps a bare expr as its trailing.
     raw :: if p.check(.LBrace) { p.parse_block() } else { p.parse_expr(0) }
+    marker :: p.span_of(at_tok, comptime_tok)
+    return p.through_comptime_helper(decorators, visibility, name_tok, ty, raw, marker, false)
+}
+
+// The const `NAME` whose `@comptime` value `raw` a synthetic helper
+// `__comptime_NAME :: fn() { <raw> }` computes : the helper is queued in
+// `pending_decls` and the const calls it, so the comptime VM, which runs a
+// function without arguments, can evaluate any value. `marker` is the span of the
+// `@comptime` that asked for it ; `as_decorator` says whether it decorated the
+// const (`ConstDecl.comptime_as_decorator`), else the const takes a `@comptime`
+// decorator here.
+through_comptime_helper :: fn(
+    p: Parser,
+    decorators: Decorator[],
+    visibility: Visibility,
+    name_tok: Token,
+    ty: TypeExpr | null,
+    raw: Expr,
+    marker: Span,
+    as_decorator: bool,
+) -> ConstDecl {
     body :: lift_trailing_return(wrap_as_block(raw))
     end_tok :: p.peek_at(-1)
     synth_name :: "__comptime_${name_tok.text}"
+    span :: Span { .start = marker.start, .end = end_tok.span.end }
     // Expression-bodied so an absent `ty` is INFERRED from the (possibly lifted)
     // trailing expression — Vader infers a fn's return type from a block's
     // trailing, not from `return` statements. A present `ty` is the declared
     // return type (and lets the typed-const form `.rodata`-bake).
     synth_fn :: FnDecl {
-        .span                 = p.span_of(at_tok, end_tok),
+        .span                 = span,
         .name                 = synth_name,
         // `@comptime`, not the const's name: a name span identifies one
         // declaration (`symbol_declared_at`), and the const owns that one.
-        .name_span            = p.span_of(at_tok, comptime_tok),
+        .name_span            = marker,
         .visibility           = .Private,
         .type_params          = [],
         .params               = [],
@@ -1687,26 +1715,51 @@ desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Vis
     }
     p.pending_decls.push(synth_fn)
     call :: CallExpr {
-        .span   = p.span_of(at_tok, end_tok),
+        .span   = span,
         .callee = ident_expr(name_tok.span, synth_name),
         .args   = [],
     }
     decos: Decorator[]: []
-    for d in decorators { decos.push(d) }
-    decos.push(Decorator { .span = name_tok.span, .name = "comptime", .args = [] })
-    return ConstDecl {
-        .span          = p.span_of(name_tok, end_tok),
-        .name          = name_tok.text,
-        .name_span     = name_tok.span,
-        .visibility    = visibility,
-        .ty            = ty,
-        .value         = call,
-        .decorators    = decos,
-        // Keep the raw `@comptime` operand (block/expr, pre-`return`-lift) so
-        // the formatter re-emits the surface sugar instead of the desugared
-        // `__comptime_NAME()` call.
-        .comptime_body = raw,
+    decos.push_all(decorators)
+    if !as_decorator {
+        decos.push(Decorator { .span = name_tok.span, .name = "comptime", .args = [] })
     }
+    return ConstDecl {
+        .span                  = p.span_of(name_tok, end_tok),
+        .name                  = name_tok.text,
+        .name_span             = name_tok.span,
+        .visibility            = visibility,
+        .ty                    = ty,
+        .value                 = call,
+        .decorators            = decos,
+        // Keep the raw `@comptime` operand (block/expr, pre-`return`-lift) so
+        // the formatter re-emits the source spelling instead of the desugared
+        // `__comptime_NAME()` call.
+        .comptime_body         = raw,
+        .comptime_as_decorator = as_decorator,
+    }
+}
+
+// The span of the `@comptime` decorating a const whose `value` needs a helper
+// (`through_comptime_helper`): one that calls a function with arguments or builds
+// a struct, which the evaluator leaves to the comptime VM. Null for any other
+// const ; a call without arguments is run as it stands, and an expression over
+// literals and constants is folded directly, its dependency cycles reported.
+comptime_helper_marker :: fn(decorators: Decorator[], value: Expr) -> Span | null {
+    if value is CallExpr && value.args.len() == 0 {
+        return null
+    }
+    comptime :: find_decorator(decorators, "comptime") ?? return null
+    if inspect(value, stop_at_vm_shape) {
+        return comptime.span
+    }
+    return null
+}
+
+stop_at_vm_shape :: fn(n: Node) -> Walk {
+    if n is StructLitExpr                { return .Stop }
+    if n is CallExpr && n.args.len() > 0 { return .Stop }
+    return .Descend
 }
 
 // When a `@comptime { … }` block ends in `return <e>` and has no trailing
@@ -1745,6 +1798,10 @@ parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Vis
         return p.desugar_comptime_const(decorators, visibility, name_tok, ty)
     }
     value :: p.parse_expr(0)
+    marker :: comptime_helper_marker(decorators, value)
+    if marker != null {
+        return p.through_comptime_helper(decorators, visibility, name_tok, ty, value, marker, true)
+    }
     return ConstDecl {
         .span       = p.span_of(name_tok, p.peek_at(-1)),
         .name       = name_tok.text,
