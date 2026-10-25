@@ -8,6 +8,7 @@ import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/comptime"
+import "vader/front/typecheck"
 import "toolchain/span"
 import "vader/lower/ir"
 
@@ -340,26 +341,16 @@ try_fold_fields :: fn(
     }
 }
 
-/// Fold `@satisfies(T, Trait)` to a literal bool. True iff a user impl
-/// `T implements Trait` exists in the registry, or `T` has it built in
-/// (`has_builtin_impl`).
+/// Fold `@satisfies(T, Trait)` to a literal bool.
 try_fold_satisfies :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
-    if intrinsic.args.len() != 2 { return null }
-    target_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
-    trait_or_null  :: resolve_intrinsic_type_arg(ctx, intrinsic.args[1])
-    value: bool = false
-    if !(target_or_null is null) && !(trait_or_null is null) {
-        match tt :: arg_ty_or_unresolved(trait_or_null) {
-            is TraitType -> {
-                target :: arg_ty_or_unresolved(target_or_null)
-                value = (has_impl_for(ctx.project, target, tt.symbol)
-                    || has_builtin_impl(target, trait_key_of(tt.symbol)))
-            }
-            _            -> {}
-        }
+    if intrinsic.args.len() != 2 {
+        return null
     }
+    target :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
+    wanted :: resolve_intrinsic_type_arg(ctx, intrinsic.args[1])
+    value :: target != null && wanted != null && satisfies_trait(target, wanted, ctx.typed)
     return LoweredBoolLit { .span = intrinsic.span, .type = type, .value = value }
 }
 

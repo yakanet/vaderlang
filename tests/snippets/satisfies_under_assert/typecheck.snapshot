@@ -1,13 +1,41 @@
 # Typecheck
 
 ## tests/snippets/satisfies_under_assert
+  StructDecl     Box                  :: Box<T>
   FnDecl         main                 :: fn() -> i32
-  expr 13:9     IntrinsicCallExpr :: bool
-  expr 14:9     IntrinsicCallExpr :: bool
-  expr 15:9     IntrinsicCallExpr :: bool
-  expr 16:9     IntrinsicCallExpr :: bool
-  expr 17:9     IntrinsicCallExpr :: bool
-  expr 20:13    StringLitExpr  :: string
-  expr 20:32    IntrinsicCallExpr :: bool
-  expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(T) -> void
+  StructDecl     Money                :: Money
+  StructDecl     Point                :: Point
+  expr 17:42    StringLitExpr  :: string
+  expr 24:46    StructLitExpr  :: Money
+  expr 24:63    BinaryExpr     :: i64
+  expr 24:63    FieldExpr      :: i64
+  expr 24:63    IdentExpr      :: Money
+  expr 24:76    FieldExpr      :: i64
+  expr 24:76    IdentExpr      :: Money
+  expr 27:9     IntrinsicCallExpr :: bool
+  expr 28:9     IntrinsicCallExpr :: bool
+  expr 29:9     IntrinsicCallExpr :: bool
+  expr 30:9     IntrinsicCallExpr :: bool
+  expr 31:9     IntrinsicCallExpr :: bool
+  expr 32:9     IntrinsicCallExpr :: bool
+  expr 33:10    IntrinsicCallExpr :: bool
+  expr 33:9     UnaryExpr      :: bool
+  expr 34:9     IntrinsicCallExpr :: bool
+  expr 35:10    IntrinsicCallExpr :: bool
+  expr 35:9     UnaryExpr      :: bool
+  expr 38:13    StringLitExpr  :: string
+  expr 38:32    IntrinsicCallExpr :: bool
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    StringLitExpr  :: string
+  expr 39:26    IntrinsicCallExpr :: bool
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 40:13    StringLitExpr  :: string
+  expr 40:28    IntrinsicCallExpr :: bool
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 41:13    StringLitExpr  :: string
+  expr 41:38    IntrinsicCallExpr :: bool
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(T) -> void

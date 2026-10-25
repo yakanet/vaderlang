@@ -118,15 +118,6 @@ iterator_step_type :: fn(element: Type, cont: Type) -> Type =
 union_of_result_suspended :: fn(result: Type, suspended: Type) -> Type =
     union_of([result, suspended])
 
-/// True when an impl of `trait_sym` is written for `for_type`'s declaration — a
-/// primitive by its name, every array as `[]`.
-///
-/// @param ctx        the project context.
-/// @param for_type   the receiver type.
-/// @param trait_sym  the trait's declaration symbol.
-has_impl_for :: fn(ctx: LowerProjectCtx, for_type: Type, trait_sym: Symbol) -> bool =
-    ctx.impls.impls_for(for_type, trait_key_of(trait_sym)).len() > 0
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

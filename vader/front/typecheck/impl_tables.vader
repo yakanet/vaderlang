@@ -299,8 +299,7 @@ base_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> 
 /// has an impl of it (`base_implements_trait`), and a generic impl counts only
 /// for the arguments its bounds admit — `Box<T> implements<T: Display>
 /// Display` makes `Box<i32>` implement `Display`, not `Box<Point>` when `Point`
-/// has none (`ImplTables.impl_bounds`). Shared by trait widening, the T3006 /
-/// T3018 checks and UFCS dispatch.
+/// has none (`ImplTables.impl_bounds`).
 export struct_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool {
     if has_builtin_impl(t, trait_key) {
         return true
@@ -310,6 +309,16 @@ export struct_implements_trait :: fn(t: Type, trait_key: string, typed: TypedPro
     }
     return blocking_bound(t, trait_key, typed) == null
 }
+
+/// True iff `target` implements the trait `wanted` names, at its written arguments;
+/// `false` when `wanted` is no trait. `@satisfies` asks it from the comptime
+/// evaluator and from the lowering fold, so an `@assert` and a run agree.
+///
+/// @param target  the type asked about.
+/// @param wanted  the intrinsic's second argument.
+/// @param typed   the module asking ; its tables carry every impl it sees.
+export satisfies_trait :: fn(target: Type, wanted: Type, typed: TypedProgram) -> bool =
+    wanted is TraitType && implements_trait_instance(target, wanted, typed)
 
 /// True iff `t` implements `wanted` at `wanted`'s own arguments, not merely some
 /// instance of it : `Cell<i64>` implements `Source<i64>`, which is no

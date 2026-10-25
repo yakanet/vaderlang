@@ -51,21 +51,15 @@ intrinsic_integer_bound :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeCont
     return ok(int_val_typed(bound, representation_name(arg_type)))
 }
 
-// `@satisfies(T, Trait)`: whether `T` implements `Trait`, by
-// `struct_implements_trait` (an impl built in, or a written one whose bounds admit
-// `T`). `false` when the second argument is not a trait.
+// `@satisfies(T, Trait)`.
 intrinsic_satisfies :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 2 {
         return arg_count_error(expr, "satisfies", 2)
     }
     target :: resolve_type_arg(expr.args[0], context)
         ?? return arg_error(expr, "satisfies: first argument is not a type")
-    wanted :: resolve_type_arg(expr.args[1], context)
-    if wanted !is TraitType {
-        return ok(VAL_FALSE)
-    }
-    implemented :: struct_implements_trait(target, trait_key_of(wanted.symbol), context.typed)
-    return ok(bool_value(implemented))
+    wanted :: resolve_type_arg(expr.args[1], context) ?? return ok(VAL_FALSE)
+    return ok(bool_value(satisfies_trait(target, wanted, context.typed)))
 }
 
 // `@field_count(T)` — fields on a Struct, elements on a Tuple, 0 otherwise.

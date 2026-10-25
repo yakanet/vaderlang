@@ -15,6 +15,208 @@
         "decorators": []
       },
       {
+        "kind": "StructDecl",
+        "name": "Point",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [
+          {
+            "name": "x",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "StructDecl",
+        "name": "Box",
+        "visibility": "private",
+        "typeParams": [
+          {
+            "name": "T",
+            "bound": null,
+            "isComptimeValue": false
+          }
+        ],
+        "fields": [
+          {
+            "name": "value",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "T"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "ImplDecl",
+        "typeParams": [
+          {
+            "name": "T",
+            "bound": {
+              "kind": "IdentExpr",
+              "name": "Display"
+            },
+            "isComptimeValue": false
+          }
+        ],
+        "forType": {
+          "kind": "GenericInstExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "Box"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "T"
+            }
+          ]
+        },
+        "traitName": "Display",
+        "traitArgs": [],
+        "members": [
+          {
+            "kind": "FnDecl",
+            "name": "",
+            "visibility": "public",
+            "typeParams": [],
+            "params": [],
+            "returnType": null,
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "box"
+                  }
+                ]
+              }
+            },
+            "decorators": [],
+            "samSynthetic": true
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "StructDecl",
+        "name": "Money",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [
+          {
+            "name": "cents",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i64"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "ImplDecl",
+        "typeParams": [],
+        "forType": {
+          "kind": "IdentExpr",
+          "name": "Money"
+        },
+        "traitName": "Add",
+        "traitArgs": [
+          {
+            "kind": "IdentExpr",
+            "name": "Money"
+          },
+          {
+            "kind": "IdentExpr",
+            "name": "Money"
+          }
+        ],
+        "members": [
+          {
+            "kind": "FnDecl",
+            "name": "add",
+            "visibility": "private",
+            "typeParams": [],
+            "params": [
+              {
+                "name": "self",
+                "type": null,
+                "defaultValue": null,
+                "variadic": false
+              },
+              {
+                "name": "other",
+                "type": {
+                  "kind": "IdentExpr",
+                  "name": "Money"
+                },
+                "defaultValue": null,
+                "variadic": false
+              }
+            ],
+            "returnType": {
+              "kind": "IdentExpr",
+              "name": "Money"
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "StructLitExpr",
+                "typeName": {
+                  "kind": "IdentExpr",
+                  "name": "Money"
+                },
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "cents",
+                    "value": {
+                      "kind": "BinaryExpr",
+                      "op": "add",
+                      "left": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "self"
+                        },
+                        "field": "cents"
+                      },
+                      "right": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "other"
+                        },
+                        "field": "cents"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "decorators": [],
+            "isExpressionBodied": true
+          }
+        ],
+        "decorators": []
+      },
+      {
         "kind": "AssertDecl",
         "condition": {
           "kind": "IntrinsicCallExpr",
@@ -110,6 +312,134 @@
         "decorators": []
       },
       {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "IntrinsicCallExpr",
+          "name": "satisfies",
+          "args": [
+            {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Box"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Display"
+            }
+          ]
+        },
+        "message": "Box<i32> implements Display",
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "UnaryExpr",
+          "op": "not",
+          "operand": {
+            "kind": "IntrinsicCallExpr",
+            "name": "satisfies",
+            "args": [
+              {
+                "kind": "GenericInstExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "Box"
+                },
+                "typeArgs": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "Point"
+                  }
+                ]
+              },
+              {
+                "kind": "IdentExpr",
+                "name": "Display"
+              }
+            ]
+          }
+        },
+        "message": "Box<Point> does not: Point has no Display",
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "IntrinsicCallExpr",
+          "name": "satisfies",
+          "args": [
+            {
+              "kind": "IdentExpr",
+              "name": "Money"
+            },
+            {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Add"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "Money"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "Money"
+                }
+              ]
+            }
+          ]
+        },
+        "message": "Money implements Add<Money, Money>",
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "UnaryExpr",
+          "op": "not",
+          "operand": {
+            "kind": "IntrinsicCallExpr",
+            "name": "satisfies",
+            "args": [
+              {
+                "kind": "IdentExpr",
+                "name": "Money"
+              },
+              {
+                "kind": "GenericInstExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "Add"
+                },
+                "typeArgs": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  },
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "message": "Money does not implement Add<i32, i32>",
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "main",
         "visibility": "private",
@@ -153,6 +483,163 @@
                               {
                                 "kind": "IdentExpr",
                                 "name": "Hash"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "Box<i32>: "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IntrinsicCallExpr",
+                            "name": "satisfies",
+                            "args": [
+                              {
+                                "kind": "GenericInstExpr",
+                                "callee": {
+                                  "kind": "IdentExpr",
+                                  "name": "Box"
+                                },
+                                "typeArgs": [
+                                  {
+                                    "kind": "IdentExpr",
+                                    "name": "i32"
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "IdentExpr",
+                                "name": "Display"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "Box<Point>: "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IntrinsicCallExpr",
+                            "name": "satisfies",
+                            "args": [
+                              {
+                                "kind": "GenericInstExpr",
+                                "callee": {
+                                  "kind": "IdentExpr",
+                                  "name": "Box"
+                                },
+                                "typeArgs": [
+                                  {
+                                    "kind": "IdentExpr",
+                                    "name": "Point"
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "IdentExpr",
+                                "name": "Display"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "Money, Add<i32, i32>: "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IntrinsicCallExpr",
+                            "name": "satisfies",
+                            "args": [
+                              {
+                                "kind": "IdentExpr",
+                                "name": "Money"
+                              },
+                              {
+                                "kind": "GenericInstExpr",
+                                "callee": {
+                                  "kind": "IdentExpr",
+                                  "name": "Add"
+                                },
+                                "typeArgs": [
+                                  {
+                                    "kind": "IdentExpr",
+                                    "name": "i32"
+                                  },
+                                  {
+                                    "kind": "IdentExpr",
+                                    "name": "i32"
+                                  }
+                                ]
                               }
                             ]
                           }

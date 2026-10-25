@@ -1,22 +1,43 @@
-// `@assert` over `@satisfies`. The comptime pass evaluates `@satisfies` with the
-// predicate the bound checks use, so each assertion below is judged before
-// lowering and `comptime.snapshot.md` reads `holds` for all five. A false one
-// fails the build (C4015, `tests/diag_corpus/comptime/c4015_assert_satisfies_false`).
-//
-// The same intrinsic in `main` folds at lowering and prints `true`, which the
-// `vm.snapshot` pins.
+// `@assert` over `@satisfies`, judged by the comptime pass before lowering; `main`
+// folds the same calls and prints the same answers. A false assertion fails the
+// build (C4015, `tests/diag_corpus/comptime/c4015_assert_satisfies_false`).
 
 module "snippet"
 
 import "std/io"
+
+Point :: struct {
+    x: i32
+}
+
+Box :: struct<T> {
+    value: T
+}
+
+Box<T> implements<T: Display> Display -> "box"
+
+Money :: struct {
+    cents: i64
+}
+
+Money implements Add<Money, Money> {
+    add :: fn(self, other: Money) -> Money = Money { .cents = self.cents + other.cents }
+}
 
 @assert(@satisfies(string, Add),  "string implements Add (concat)")
 @assert(@satisfies(string, Hash), "string implements Hash")
 @assert(@satisfies(i32, Hash),    "i32 implements Hash")
 @assert(@satisfies(u32, Hash),    "u32 implements Hash")
 @assert(@satisfies(u64, Hash),    "u64 implements Hash")
+@assert(@satisfies(Box<i32>, Display),    "Box<i32> implements Display")
+@assert(!@satisfies(Box<Point>, Display), "Box<Point> does not: Point has no Display")
+@assert(@satisfies(Money, Add<Money, Money>), "Money implements Add<Money, Money>")
+@assert(!@satisfies(Money, Add<i32, i32>),    "Money does not implement Add<i32, i32>")
 
 main :: fn() -> i32 {
     println("folded in main: ${@satisfies(u64, Hash)}")
+    println("Box<i32>: ${@satisfies(Box<i32>, Display)}")
+    println("Box<Point>: ${@satisfies(Box<Point>, Display)}")
+    println("Money, Add<i32, i32>: ${@satisfies(Money, Add<i32, i32>)}")
     return 0
 }

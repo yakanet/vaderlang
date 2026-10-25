@@ -2,8 +2,12 @@
 
 ## tests/snippets/satisfies_under_assert
 
-- `@assert 13:1`, holds
-- `@assert 14:1`, holds
-- `@assert 15:1`, holds
-- `@assert 16:1`, holds
-- `@assert 17:1`, holds
+- `@assert 27:1`, holds
+- `@assert 28:1`, holds
+- `@assert 29:1`, holds
+- `@assert 30:1`, holds
+- `@assert 31:1`, holds
+- `@assert 32:1`, holds
+- `@assert 33:1`, holds
+- `@assert 34:1`, holds
+- `@assert 35:1`, holds

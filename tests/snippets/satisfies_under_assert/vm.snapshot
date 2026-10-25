@@ -1,4 +1,7 @@
 # stdout
 folded in main: true
+Box<i32>: true
+Box<Point>: false
+Money, Add<i32, i32>: false
 # exit
 0
