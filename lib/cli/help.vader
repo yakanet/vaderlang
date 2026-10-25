@@ -37,7 +37,7 @@ INDENT :: "  "
 /// @return          the full help text, newline-terminated.
 export render_help :: fn(program: string, version: string, tagline: string, commands: CommandSpec[], common: FlagSpec[]) -> string {
     out :: StringBuilder {}
-    out.append("${program} ${version} — ${tagline}\n\n")
+    out.append("${program} ${version}: ${tagline}\n\n")
     out.append("USAGE:\n")
     out.append("${INDENT}${program} <action> [options] [args]\n\n")
 
@@ -72,7 +72,7 @@ export render_help :: fn(program: string, version: string, tagline: string, comm
 /// @return         the action's help text, newline-terminated.
 export render_command_help :: fn(program: string, cmd: CommandSpec, common: FlagSpec[]) -> string {
     out :: StringBuilder {}
-    out.append("${program} ${action_label(cmd)} — ${cmd.summary}\n")
+    out.append("${program} ${action_label(cmd)}: ${cmd.summary}\n")
 
     if cmd.flags.len() > 0 {
         out.append("\nOPTIONS:\n")
@@ -213,7 +213,7 @@ sample_commands :: fn() -> CommandSpec[] = [
 
 @test test_command_help_lists_flags_and_default :: fn() -> void {
     text :: render_command_help("vader", sample_commands()[0], [])
-    assert("vader build <file> — Compile a Vader source file" in text, "title line")
+    assert("vader build <file>: Compile a Vader source file" in text, "title line")
     assert("-o, --out=<path>" in text, "aliased Str flag")
     assert("(default: cc)" in text, "default_text is surfaced")
     assert("OPTIONS:" in text, "options block present")
@@ -224,12 +224,12 @@ sample_commands :: fn() -> CommandSpec[] = [
     // should print an empty heading.
     text :: render_command_help("vader", sample_commands()[1], [])
     assert(!("OPTIONS:" in text), "no OPTIONS heading for a flagless action")
-    assert("vader lsp — Run the Language Server" in text, "no stray space before the dash")
+    assert("vader lsp: Run the Language Server" in text, "no stray space before the dash")
 }
 
 @test test_help_lists_every_action :: fn() -> void {
     text :: render_help("vader", "1.2.3", "the Vader compiler", sample_commands(), [])
-    assert("vader 1.2.3 — the Vader compiler" in text, "title")
+    assert("vader 1.2.3: the Vader compiler" in text, "title")
     assert("build <file>" in text, "action with a usage tail")
     assert("lsp" in text, "action without one")
     assert("ACTIONS:" in text, "action block")

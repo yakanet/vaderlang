@@ -1,1 +1,1 @@
-[13:16] error[T3036] impl block missing required trait method: `TwoFn` requires method `second` — not provided in this impl block
+[13:16] error[T3036] impl block missing required trait method: `TwoFn` requires method `second`, which this impl block does not provide

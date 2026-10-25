@@ -872,7 +872,7 @@ check_destructure_target :: fn(
     } else {
         diags.push(typecheck_error(
             .InvalidAssignTarget, target.span,
-            "a destructuring assignment writes to names, fields and indices — not to this"))
+            "a destructuring assignment writes to names, fields and indices, not to this"))
         return
     }
     // Judged against the declaration, as `x = v` is, and retiring the narrowings

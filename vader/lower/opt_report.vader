@@ -80,7 +80,7 @@ render_opt_report :: fn(ctx: LowerProjectCtx) -> string {
     }
     out.append("\n  sites:\n")
     for m in ctx.opt_misses {
-        out.append("    [${source_position(m.span)}] ${m.pass} — ${m.note}\n")
+        out.append("    [${source_position(m.span)}] ${m.pass}: ${m.note}\n")
     }
     return out.to_string()
 }

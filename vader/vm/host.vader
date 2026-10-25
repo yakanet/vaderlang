@@ -312,7 +312,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, g
     .AbortPanic -> {
         message :: read_string(stack[arg_base], at_pc, "panic")
         if message is Trap { return message }
-        return Trap { .message = "panic — ${string(message)}" }
+        return Trap { .message = "panic: ${string(message)}" }
     }
     // Non-intrinsics. Kept as an arm rather than a wildcard so a new
     // `IntrinsicId` variant still trips T3013 here.
@@ -1170,7 +1170,7 @@ IMPURE_COMPTIME_MARKER :: "is impure and cannot run at comptime"
 // Build the Trap for a host reached during `@comptime` evaluation that answers
 // for the machine the COMPILER is running on.
 impure_comptime_trap :: fn(mangled: string) -> HostCallResult =
-    Trap { .message = "host `${mangled}` ${IMPURE_COMPTIME_MARKER} — it answers for the machine the compiler runs on, so baking it would make the same source emit differently per builder" }
+    Trap { .message = "host `${mangled}` ${IMPURE_COMPTIME_MARKER}, since it answers for the machine the compiler runs on and baking it would make the same source emit differently per builder" }
 
 /// Report whether a Trap message came from the comptime impurity gate.
 /// Used by `pipeline/comptime_vm/resolve.vader` to pick C4016 over C4002.

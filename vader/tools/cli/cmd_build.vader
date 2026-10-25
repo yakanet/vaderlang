@@ -74,11 +74,11 @@ cmd_build :: fn(args: string[]) -> i32 {
     // silence, and the build handed back one ordinary host binary.
     seed_flag :: parsed.string_flag("seed-targets", "")
     if seed_flag != "" && emit != "c" {
-        eprintln("vader build: `--seed-targets` emits C for several targets — it needs `--emit=c`")
+        eprintln("vader build: `--seed-targets` emits C for several targets, so it needs `--emit=c`")
         return 2
     }
     if seed_flag != "" && target_flag != "" {
-        eprintln("vader build: `--seed-targets` carries its own target list — drop `--target=${target_flag}`")
+        eprintln("vader build: `--seed-targets` carries its own target list, so drop `--target=${target_flag}`")
         return 2
     }
     no_split :: parsed.bool_flag("no-split")
@@ -154,7 +154,7 @@ build_input :: fn(
             // that stops applying the moment you name a file is a rule nobody
             // can trust. `--no-hooks` says "I know" and quiets this.
             if !no_hooks && find_build_driver(current_working_directory()) != null {
-                eprintln("vader build: `${DRIVER_FILENAME}` not applied — a named file bypasses it (use `vader build` alone, or --no-hooks to silence)")
+                eprintln("vader build: `${DRIVER_FILENAME}` not applied, since a named file bypasses it (use `vader build` alone, or --no-hooks to silence)")
             }
             return build_file(input.file, request)
         }
@@ -233,7 +233,7 @@ seed_target_list :: fn(seed_flag: string, no_split: bool) -> Target[] | null {
         return []
     }
     if no_split {
-        eprintln("vader build: `--seed-targets` always emits split C — drop `--no-split`")
+        eprintln("vader build: `--seed-targets` always emits split C, so drop `--no-split`")
         return null
     }
     return parse_target_list(seed_flag)

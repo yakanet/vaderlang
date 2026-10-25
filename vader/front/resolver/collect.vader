@@ -384,7 +384,7 @@ diagnose_import_path :: fn(
         && from_module_name != DRIVER_CONTRACT_MODULE
         && importer_origin(index, from_module_name) == .Toolchain {
         diags.push(resolver_error(.CompilerImportFromLibrary, span,
-            "`${from_module_name}` is shipped under the library root, so it cannot import `${raw_path}` — only `${DRIVER_CONTRACT_MODULE}` may"))
+            "`${from_module_name}` is shipped under the library root, so it cannot import `${raw_path}`, only `${DRIVER_CONTRACT_MODULE}` may"))
         return null
     }
     // Empty index = mono-file caller (no module graph) ; skip the
@@ -403,7 +403,7 @@ diagnose_import_path :: fn(
                 diags.push(resolver_error(.ModuleNotFound, span, "`${raw_path}`"))
             } else {
                 diags.push(resolver_error(.ModuleNotFound, span,
-                    "`${raw_path}` — its folder declares `module \"${wrong}\"` (a module's folder must match its declared name)"))
+                    "`${raw_path}`, whose folder declares `module \"${wrong}\"` (a module's folder must match its declared name)"))
             }
             return null
         }

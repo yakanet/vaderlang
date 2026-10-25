@@ -427,7 +427,7 @@ unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
         for i in 0..<stem.byte_len() {
             b :: stem.byte_at(i)
             if !is_ident_byte(b) {
-                todo("split: unit name for `${fns[buckets[k][0]].name}` is not an identifier — the mangled name is corrupt")
+                todo("split: unit name for `${fns[buckets[k][0]].name}` is not an identifier, so the mangled name is corrupt")
             }
         }
         out.push(if stem == "" { "_root" } else { stem })

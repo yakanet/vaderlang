@@ -397,7 +397,7 @@ export report_heap_allocations :: fn(stats: EscapeStats) -> void {
     out.append("  heap: ${stats.heap_sites.len()} of ${stats.total_allocs} (stack-promoted: ${stats.stack_promoted})\n\n  sites:\n")
     for site in stats.heap_sites {
         at :: source_position(site.span)
-        out.append("    [${at}] ${site.kind} ${site.type_name} escapes its fn — heap, plus a shadow-stack root\n")
+        out.append("    [${at}] ${site.kind} ${site.type_name} escapes its fn (heap, plus a shadow-stack root)\n")
     }
     eprintln(out.to_string())
 }

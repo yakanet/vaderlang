@@ -583,7 +583,7 @@ reject_overlapping_impl :: fn(
         if may_coincide(for_ty, other.for_ty) && may_coincide_each(args, other.args) {
             diags.push(resolver_error(.ConflictingImpl, decl.span,
                 "this impl and the one at ${source_position(other.span)} may both cover an " +
-                    "instance of `${display_type(for_ty)}` — two generic " +
+                    "instance of `${display_type(for_ty)}`, and two generic " +
                     "impls of one trait cannot overlap"))
             return true
         }
@@ -630,7 +630,7 @@ conflict_detail :: fn(decl: AST.ImplDecl, for_ty: Type) -> string {
         return ("`@displayable` generates the `Display` of `${display_type(for_ty)}`, "
             + "which already implements it")
     }
-    return ("`${display_type(for_ty)}` already implements `${decl.trait_name}` — "
+    return ("`${display_type(for_ty)}` already implements `${decl.trait_name}`, and "
         + "only one impl per (type, trait) is allowed")
 }
 
@@ -2295,7 +2295,7 @@ declare_and_check_impl :: fn(
             typecheck_error(
                 .ArrayImplPartlyGeneric,
                 id.for_type.span,
-                "`${display_type(for_ty)}` — write the impl on `T[]` or on a concrete array",
+                "`${display_type(for_ty)}` (write the impl on `T[]` or on a concrete array)",
             ),
         )
         return
@@ -2320,7 +2320,7 @@ declare_and_check_impl :: fn(
                         .IntoIdentityForbidden,
                         id.span,
                         "`${display_type(for_ty)} implements Into<${display_type(target_ty)}>`"
-                            + " — source and target must differ",
+                            + ", but source and target must differ",
                     ),
                 )
             }
@@ -2438,7 +2438,7 @@ check_impl_members :: fn(
                         .ImplMissingRequiredMethod,
                         id.trait_name_span,
                         "`${id.trait_name}` requires method `${required.name}`"
-                            + " — not provided in this impl block",
+                            + ", which this impl block does not provide",
                     ),
                 )
             }

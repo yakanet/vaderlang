@@ -1,3 +1,3 @@
-[14:21] warning[W0013] `[v] * n` repeats one reference — every slot shares this freshly allocated element: build the elements in a loop when each slot needs its own
-[15:15] warning[W0013] `[v] * n` repeats one reference — every slot shares this freshly allocated element: build the elements in a loop when each slot needs its own
-[16:14] warning[W0013] `[v] * n` repeats one reference — every slot shares this freshly allocated element: build the elements in a loop when each slot needs its own
+[14:21] warning[W0013] `[v] * n` repeats one reference, so every slot shares this freshly allocated element: build the elements in a loop when each slot needs its own
+[15:15] warning[W0013] `[v] * n` repeats one reference, so every slot shares this freshly allocated element: build the elements in a loop when each slot needs its own
+[16:14] warning[W0013] `[v] * n` repeats one reference, so every slot shares this freshly allocated element: build the elements in a loop when each slot needs its own

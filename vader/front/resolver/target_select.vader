@@ -198,7 +198,7 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
                     // it is `@target` that cannot tell them apart.
                     overloaded :: prev.params.len() != d.params.len()
                     why :: if overloaded {
-                        " — `@target` groups are keyed by name alone, so a name cannot carry two overloads"
+                        " (`@target` groups are keyed by name alone, so a name cannot carry two overloads)"
                     } else {
                         ""
                     }
@@ -326,7 +326,7 @@ check_signature :: fn(decl: AST.FnDecl, body: AST.FnDecl, diags: Diagnostic[]) -
                     .TargetBodySignatureDiffers,
                     body.params[i].span,
                     "parameter ${i + 1} of `${body.name}` is `${want}` at ${span_origin(decl.name_span)}, "
-                        + "`${got}` here — the body binds by POSITION, so a reordered name silently "
+                        + "`${got}` here, and the body binds by POSITION, so a reordered name silently "
                         + "computes something else",
                 ),
             )

@@ -329,7 +329,7 @@ checked_bound :: fn(self: ResolveState, tp: AST.TypeParam, bound: AST.Expr) -> A
     } else {
         "a bound names traits, joined by `&`"
     }
-    self.diags.push(resolver_error(.UnionInBound, union.span, "`${tp.name}` — ${hint}"))
+    self.diags.push(resolver_error(.UnionInBound, union.span, "`${tp.name}` (${hint})"))
     // A union has two members at least : one left means `null` was the other.
     if others.len() == 1 && bound is AST.BinaryExpr && bound.op == .BitOr {
         return others[0]
@@ -418,7 +418,7 @@ walk_trait_decl :: fn(self: ResolveState, d: AST.TraitDecl) -> void {
     self.walk_opt_expr(d.requires)
     union :: union_in_bound(d.requires)
     if union != null {
-        detail :: "`${d.name}` — a trait requires traits, joined by `&`"
+        detail :: "`${d.name}` (a trait requires traits, joined by `&`)"
         self.diags.push(resolver_error(.UnionInBound, union.span, detail))
     }
     for m in d.members { self.walk_fn_decl(m) }

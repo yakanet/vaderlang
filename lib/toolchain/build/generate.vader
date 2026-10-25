@@ -120,7 +120,7 @@ generated_name_problem :: fn(name: string) -> string {
         return "the module name is empty"
     }
     if !Parse.is_valid_module_name(name) {
-        return "`${name}` is not a module path — lowercase `[a-z][a-z0-9_]*` segments joined by `/`"
+        return "`${name}` is not a module path (lowercase `[a-z][a-z0-9_]*` segments joined by `/`)"
     }
     return ""
 }
@@ -394,7 +394,7 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
     sweep_generated(generated_root_of(ctx))
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
     fresh :: ctx.flush_generated()
-    assert(fresh.len() == 1, "one module should have been written — ${flush_diagnosis(ctx, fresh)}")
+    assert(fresh.len() == 1, "one module should have been written: ${flush_diagnosis(ctx, fresh)}")
     assert_eq(fresh[0], "gen/probe")
     files :: ctx.generated_files_of()
     assert_eq(files.len(), 1)
@@ -410,7 +410,7 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
     sweep_generated(generated_root_of(ctx))
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
     first :: ctx.flush_generated()
-    assert(first.len() == 1, "the first flush should write — ${flush_diagnosis(ctx, first)}")
+    assert(first.len() == 1, "the first flush should write: ${flush_diagnosis(ctx, first)}")
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
     again :: ctx.flush_generated()
     assert_eq(again.len(), 0)
@@ -436,7 +436,7 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
     flushed :: ctx.flush_generated()
     removed :: sweep_generated(root)
     assert(removed == 1,
-        "the sweep should remove the one generated file — removed=${removed} ${flush_diagnosis(ctx, flushed)}")
+        "the sweep should remove the one generated file: removed=${removed} ${flush_diagnosis(ctx, flushed)}")
     assert(exists(mine), "a file without the banner is not ours to delete")
     remove_file(mine)
 }

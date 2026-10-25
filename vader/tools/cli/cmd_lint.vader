@@ -62,7 +62,7 @@ cmd_lint :: fn(args: string[]) -> i32 {
     // report nothing. Rooting a project's own API needs an entry policy (`vader
     // lint` D-roots) that v1 does not yet ship.
     if !report.has_main {
-        eprintln("vader lint: `${file}` exposes no `main` — unused-export under-reports a rootless library (its exports need an entry policy to lint)")
+        eprintln("vader lint: `${file}` exposes no `main`, so unused-export under-reports a rootless library (its exports need an entry policy to lint)")
         return 0
     }
     if report.findings.len() == 0 {

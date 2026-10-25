@@ -1,2 +1,2 @@
-[13:17] error[T3069] cannot infer type argument — nothing at this call site binds the type parameter: `id` is generic : used as a value, it needs a function-typed slot (`h: fn(i32) -> i32: id`) or its type arguments (`id<i32>`)
-[15:18] error[T3069] cannot infer type argument — nothing at this call site binds the type parameter: `id` is generic : used as a value, it needs a function-typed slot (`h: fn(i32) -> i32: id`) or its type arguments (`id<i32>`)
+[13:17] error[T3069] cannot infer type argument, since nothing at this call site binds the type parameter: `id` is generic : used as a value, it needs a function-typed slot (`h: fn(i32) -> i32: id`) or its type arguments (`id<i32>`)
+[15:18] error[T3069] cannot infer type argument, since nothing at this call site binds the type parameter: `id` is generic : used as a value, it needs a function-typed slot (`h: fn(i32) -> i32: id`) or its type arguments (`id<i32>`)

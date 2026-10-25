@@ -878,5 +878,5 @@ import "std/testing"
 
 @test
 test_processor_count_platform_call_succeeds :: fn() -> void {
-    assert(platform_processor_count() >= 1, "the platform reports its processors — a wrong selector reads -1")
+    assert(platform_processor_count() >= 1, "the platform reports its processors (a wrong selector reads -1)")
 }

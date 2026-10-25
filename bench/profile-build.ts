@@ -192,7 +192,7 @@ function main(): void {
   if (prof) {
     console.log(prof);
   } else {
-    console.log("[VADER_PROFILE] no per-pass block — is this binary built with the profiler?");
+    console.log("[VADER_PROFILE] no per-pass block: is this binary built with the profiler?");
     if (emit.code !== 0) {
       console.log(`  (self-compile exited ${emit.code}; stderr tail:)`);
       console.log(emit.stderr.split("\n").slice(-12).join("\n"));
@@ -208,7 +208,7 @@ function main(): void {
       join(tmp, "selfcompile2.c"),
     );
     const gcBlock = extractGcBlock(gc.stderr);
-    console.log(gcBlock ?? "  (no GC profile block — VADER_GC_PROFILE unsupported in this build?)");
+    console.log(gcBlock ?? "  (no GC profile block: VADER_GC_PROFILE unsupported in this build?)");
   }
 
   rmSync(tmp, { recursive: true, force: true });

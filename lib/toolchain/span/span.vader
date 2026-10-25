@@ -166,5 +166,5 @@ import "std/testing"
     short :: Position { .file = "a.vader", .offset = 3, .line = 1, .column = 4 }
     long  :: Position { .file = "a.vader", .offset = 9, .line = 1, .column = 10 }
     assert(Span { .start = start, .end = short } != Span { .start = start, .end = long },
-        "same start, different end — distinct spans")
+        "same start, different end: distinct spans")
 }

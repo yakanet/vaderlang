@@ -190,16 +190,16 @@ export function formatRun(stdout: string, stderr: string, exit: number): string 
 }
 
 // The line a run stopped by a trap or a panic ends on, as native prints it.
-const STOP_LINE = /^vader: (?:trap|panic) — /m;
+const STOP_LINE = /^vader: (?:trap|panic): /m;
 
 // The exit such a run records : SIGABRT's, on POSIX.
 const STOPPED_EXIT = 134;
 
-// `stderr` with the VM's stop line in native's wording: `vader vm: panic — m` is
-// `vader: panic — m`, any other `vader vm: m[ at pc=N]` a trap, `vader: trap — m`.
+// `stderr` with the VM's stop line in native's wording: `vader vm: panic: m` is
+// `vader: panic: m`, any other `vader vm: m[ at pc=N]` a trap, `vader: trap: m`.
 function asNativeStop(stderr: string): string {
   return stderr.replace(/^vader vm: (.*?)(?: at pc=\d+)?$/gm, (_line, message: string) =>
-    message.startsWith("panic — ") ? `vader: ${message}` : `vader: trap — ${message}`);
+    message.startsWith("panic: ") ? `vader: ${message}` : `vader: trap: ${message}`);
 }
 
 export function listSnippets(snippetsDir: string): Scenario[] {

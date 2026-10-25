@@ -142,7 +142,7 @@ export assert_host_import_wired :: fn(mangled: string, is_extern: bool) -> void 
     if is_extern { return }
     if intrinsic_op_for_mangled(mangled) != null { return }
     if intrinsic_id_for(mangled) != .NotIntrinsic { return }
-    panic("bytecode emit: bodyless `@intrinsic` host `${mangled}` is not wired into intrinsic_manifest — add it to `intrinsic_id_for` (+ its `vm/host.vader::dispatch_import` and `emit/c/host.vader::import_shim` arms), or give it a dedicated op in `intrinsic_op_for_mangled`")
+    panic("bytecode emit: bodyless `@intrinsic` host `${mangled}` is not wired into intrinsic_manifest. Add it to `intrinsic_id_for` (+ its `vm/host.vader::dispatch_import` and `emit/c/host.vader::import_shim` arms), or give it a dedicated op in `intrinsic_op_for_mangled`")
 }
 
 /// Map an InstrIntrinsic's canonical name onto its dedicated Op, or null when

@@ -323,7 +323,7 @@ refuse_shared_instance :: fn(fn_name: string, t: Type) -> void {
     for arg in t.args {
         if kept_type_argument(arg) == null {
             panic("bytecode emit: `${fn_name}` tests `is ${display_type(t)}`, "
-                + "an instance whose body is shared — its values cannot be told apart "
+                + "an instance whose body is shared, so its values cannot be told apart "
                 + "from the other instances erasing `${display_type(arg)}`")
         }
     }
@@ -1140,7 +1140,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
             push_emit(ctx, FnAddr { .function_index = fn_idx_opt }, ins.span)
         } else {
             // Same materialisation-gap class as the InstrFnRef arm above.
-            panic("emit/bytecode/emit: unresolved fn-addr '${ins.fn_symbol.name}' (id=${ins.fn_symbol.id}) — callback target was never materialised")
+            panic("emit/bytecode/emit: unresolved fn-addr '${ins.fn_symbol.name}' (id=${ins.fn_symbol.id}). The callback target was never materialised")
         }
         emit_result(ctx, pos, ins.dst, ins.span)
         return
@@ -1169,7 +1169,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         emit_first_get(ctx, pos, ins.target, ins.span)
         field_slot :: find_struct_field_index(ctx.project, type_index, ins.field)
         if field_slot == null {
-            panic("emit/bytecode/emit: no field `${ins.field}` on `${display_type(target_type)}` (local ${ins.target} `${target_local.name}`) in '${ctx.fn_.mangled}' — a method reference on a primitive isn't a first-class value ; call it directly or wrap it in a lambda")
+            panic("emit/bytecode/emit: no field `${ins.field}` on `${display_type(target_type)}` (local ${ins.target} `${target_local.name}`) in '${ctx.fn_.mangled}'. A method reference on a primitive isn't a first-class value ; call it directly or wrap it in a lambda")
         }
         // No such struct field at emit time — the upstream pass produced a
         // field access that isn't a real load. The classic source is a
@@ -1205,7 +1205,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         type_index :: intern_type(target_type, ctx.project)
         field_slot :: find_struct_field_index(ctx.project, type_index, ins.field)
         if field_slot == null {
-            panic("emit/bytecode/emit: no field `${ins.field}` on `${display_type(target_type)}` in '${ctx.fn_.mangled}' — field-set target isn't a real struct member ; upstream lowering bug")
+            panic("emit/bytecode/emit: no field `${ins.field}` on `${display_type(target_type)}` in '${ctx.fn_.mangled}'. The field-set target isn't a real struct member ; upstream lowering bug")
         }
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.value, ins.span)
@@ -1456,7 +1456,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         emit_operands_into(ctx, pos, ins.args, [], ins.span)
         op_opt :: intrinsic_op_for_name(ins.name)
         if op_opt == null {
-            panic("emit/bytecode/emit: unhandled intrinsic `${ins.name}` in '${ctx.fn_.mangled}' — no dedicated Op ; add a case to intrinsic_op_for_name")
+            panic("emit/bytecode/emit: unhandled intrinsic `${ins.name}` in '${ctx.fn_.mangled}'. No dedicated Op ; add a case to intrinsic_op_for_name")
         }
         // Unknown intrinsic at emit time — the args were already pushed and
         // a bare `Return` would truncate the function in silence. Fail loud,

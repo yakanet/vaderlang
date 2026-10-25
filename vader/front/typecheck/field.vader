@@ -874,7 +874,7 @@ try_enum_variant_dispatch :: fn(
             return data_field
         }
         hint :: if target_ty.indices[e.field] != null {
-            " — a variant is named on the enum type"
+            " (a variant is named on the enum type)"
         } else {
             ""
         }
@@ -1105,7 +1105,7 @@ resolve_struct_field :: fn(
                 typecheck_error(
                     .NotIndexable,
                     e.span,
-                    "no `${e.field}` overload accepts a receiver of type `${display_type(target_ty)}` — narrow the union with `if`/`match` first (a value combinator handles a single unhappy variant, `T | null` or `T | Error`, not both)",
+                    "no `${e.field}` overload accepts a receiver of type `${display_type(target_ty)}`, so narrow the union with `if`/`match` first (a value combinator handles a single unhappy variant, `T | null` or `T | Error`, not both)",
                 ),
             )
             return TY_UNRESOLVED

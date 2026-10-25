@@ -1,1 +1,1 @@
-[10:1] error[T3090] an impl on an array has a partly generic element: `T[][]` — write the impl on `T[]` or on a concrete array
+[10:1] error[T3090] an impl on an array has a partly generic element: `T[][]` (write the impl on `T[]` or on a concrete array)

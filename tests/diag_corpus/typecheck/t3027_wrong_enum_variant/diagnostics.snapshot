@@ -1,2 +1,2 @@
-[11:13] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Red`
+[11:13] warning[W0016] the enum name adds nothing here, since the slot already pins it and the bare variant reads the same: write `.Red`
 [16:24] error[T3027] unknown enum variant: `Banana` is not a variant of Color

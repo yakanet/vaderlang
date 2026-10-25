@@ -46,7 +46,7 @@ export BAKED_FOLDER :: "<baked>/std/target/baked"
 /// @return   the module source, ending in a newline.
 export baked_module_source :: fn(t: Target) -> string {
     lines: string[]: [
-        "// Generated per build by `vader/support/target/baked` — never on disk, never edited.",
+        "// Generated per build by `vader/support/target/baked`: never on disk, never edited.",
         "// The compilation target, baked. See `std/target::current_os` for the OTHER",
         "// question: the platform this program is RUNNING on.",
         "",

@@ -158,7 +158,7 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: MutableMap<stri
     result :: exec_entry(state, prog.entry_index, no_args, null, false, controller)
     exit_code := 0
     if result is Trap {
-        emit_output(seq_cell, "stderr", "vader: trap — ${result.message}\n")
+        emit_output(seq_cell, "stderr", "${stop_line(result.message)}\n")
         // Pause on the crash so VSCode shows "Paused on exception" with the trap
         // message, letting the user read it before the session ends. `exec_entry`
         // has already unwound, so there's no live stack to show (an empty
@@ -415,6 +415,15 @@ evaluate_result :: fn(value: string) -> JsonValue {
     body["result"]             = JsonString { .value = value }
     body["variablesReference"] = JsonNumber { .value = f64(0) }
     return JsonObject { .entries = body }
+}
+
+// The line a stopped run ends on, worded as the native runtime words it: a VM
+// panic's message already starts with `panic: `, any other trap takes `trap: `.
+stop_line :: fn(message: string) -> string {
+    if message.starts_with("panic: ") {
+        return "vader: ${message}"
+    }
+    return "vader: trap: ${message}"
 }
 
 // Display name for a stack frame : the tail after the last `$` of the mangled

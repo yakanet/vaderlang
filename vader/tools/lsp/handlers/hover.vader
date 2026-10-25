@@ -372,7 +372,7 @@ format_param_payload :: fn(payload: string) -> string {
     name :: payload.byte_slice(0, i)
     desc :: payload.byte_slice(i, n).trim()
     if desc.byte_len() == 0 { return "`" + name + "`" }
-    return "`" + name + "` — " + desc
+    return "`" + name + "`: " + desc
 }
 
 // ---- typed-hover lookup --------------------------------------------------
@@ -427,7 +427,7 @@ import "std/testing"
 @test
 test_vaderdoc_sections :: fn() -> void {
     doc :: "Render the thing.\n\n@param source  the text.\n@param path    where it\n               came from.\n@return        the output."
-    assert_eq(format_vaderdoc(doc), "Render the thing.\n\n**Params**\n- `source` — the text.\n- `path` — where it came from.\n\n**Returns** the output.")
+    assert_eq(format_vaderdoc(doc), "Render the thing.\n\n**Params**\n- `source`: the text.\n- `path`: where it came from.\n\n**Returns** the output.")
 }
 
 @test

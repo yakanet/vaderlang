@@ -1,2 +1,2 @@
-[6:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `[i32, string] | null` — enumerate its variants or mark the match `@partial`
+[6:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: `[i32, string] | null`
 [8:9] error[P1022] a match arm cannot destructure a tuple: test the type with `is [T, U]` and destructure in the arm: `[a, b] :: …`

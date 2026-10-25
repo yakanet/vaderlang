@@ -4,6 +4,6 @@ charging 500
 refund 500
 release hold
 # stderr
-vader: panic — card declined
+vader: panic: card declined
 # exit
 134

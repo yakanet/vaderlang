@@ -201,7 +201,7 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
         looks_like_flag :: next.starts_with("-") && next != "-"
         negative_number :: spec.kind == .Int && parse_int(next) !is ParseError
         if looks_like_flag && !negative_number {
-            errors.push("${a}: missing value — \"${next}\" reads as a flag; use ${a}=${next} if it is the value")
+            errors.push("${a}: missing value, \"${next}\" reads as a flag; use ${a}=${next} if it is the value")
             i += 1
             continue
         }

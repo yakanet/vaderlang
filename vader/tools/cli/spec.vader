@@ -219,8 +219,8 @@ DUMP_STAGES: ValueSpec[]: [
 ]
 
 GRAPH_FORMATS: ValueSpec[]: [
-    ValueSpec { .name = "mermaid", .help = "Mermaid `graph TB` — renders with no tool installed" },
-    ValueSpec { .name = "dot",     .help = "Graphviz DOT — pipe to `dot -Tpng`" },
+    ValueSpec { .name = "mermaid", .help = "Mermaid `graph TB`, renders with no tool installed" },
+    ValueSpec { .name = "dot",     .help = "Graphviz DOT, pipe to `dot -Tpng`" },
 ]
 
 GRAPH_SCOPES: ValueSpec[]: [
@@ -289,7 +289,7 @@ DUMP_FLAGS: FlagSpec[]: [
     FlagSpec {
         .name = "annotate",
         .kind = .Bool,
-        .help = "bytecode only: resolve table indices inline as comments — a disassembly view, NOT re-parsable",
+        .help = "bytecode only: resolve table indices inline as comments (a disassembly view, NOT re-parsable)",
     },
     FlagSpec {
         .name = "line-directives",
@@ -326,7 +326,7 @@ NEW_BUILD_SETUPS: ValueSpec[]: [
         .name = "driver",
         .help = "a `build.vader`, and the project drives its own build",
     },
-    ValueSpec { .name = "none", .help = "no build file at all — a single program" },
+    ValueSpec { .name = "none", .help = "no build file at all, a single program" },
 ]
 
 NEW_FLAGS: FlagSpec[]: [

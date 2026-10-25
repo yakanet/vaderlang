@@ -429,7 +429,7 @@ lex_number :: fn(l: Lexer) -> void {
         for !l.at_end() && l.peek().is_ident_continue() { l.advance(1) }
         suff :: l.src.byte_slice(suff_start, l.pos)
         l.push_error(.MalformedNumericLiteral, l.error_span(start),
-            "typed numeric suffix `${suff}` is no longer supported — the literal coerces from context")
+            "typed numeric suffix `${suff}` is no longer supported (the literal coerces from context)")
     }
     span :: Span { .start = start, .end = l.position_here() }
     kind: TokenKind = .IntLit

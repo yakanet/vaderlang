@@ -7,7 +7,7 @@
 [18:29] error[T3066] integer literal does not fit the target integer type: `9000000000` does not fit in `i32`, the type it defaults to
 [21:5] error[T3066] integer literal does not fit the target integer type: `-1` is not in `u8`
 [22:9] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
-[23:5] warning[W0014] match arm can never be taken — an earlier arm already covers it: every value of `u8` is already matched above
+[23:5] warning[W0014] match arm can never be taken, since an earlier arm already covers it: every value of `u8` is already matched above
 [26:42] error[T3066] integer literal does not fit the target integer type: `-1` is not in `u8`
 [30:18] error[T3066] integer literal does not fit the target integer type: `9000000000` is not in `i32`
 [39:22] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`

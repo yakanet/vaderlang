@@ -348,7 +348,7 @@ test("lsp: hover renders a declaration as quick documentation", async () => {
   expect(value(1)).toStartWith(
     "lsptest\n\n```\n@allow_unused\narea :: fn(\n    p: Point,\n    scale: i32,\n    offset: i32,\n    label: string,\n) -> i32\n```",
   );
-  expect(value(1)).toContain("**Params**\n- `p` — the point.\n- `scale` — how much to grow it.\n\n**Returns** the product.");
+  expect(value(1)).toContain("**Params**\n- `p`: the point.\n- `scale`: how much to grow it.\n\n**Returns** the product.");
   expect(value(2)).toStartWith("decorator\n\n```\n@allow_unused\n```");
   expect(value(2)).toContain("W0007");
   expect(value(3)).toStartWith("intrinsic\n\n```\n@size_of(T: type) -> i64\n```");

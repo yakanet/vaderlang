@@ -1,1 +1,1 @@
-[5:32] error[T3051] `@extern` declaration must not have a body: `@extern` fn `strlen` cannot have a body — drop the `= ...` / `{ ... }`
+[5:32] error[T3051] `@extern` declaration must not have a body: `@extern` fn `strlen` cannot have a body, so drop the `= ...` / `{ ... }`

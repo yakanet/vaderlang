@@ -178,7 +178,7 @@ choose_build :: fn(parsed: ParsedArgs) -> BuildSetup | PromptError {
 // different order and different words — drift that was already visible in the
 // same diff, and would have grown with a fourth shape.
 build_setup_labels :: fn() -> string[] =
-    NEW_BUILD_SETUPS.map((v) -> "${v.name} — ${v.help}").collect()
+    NEW_BUILD_SETUPS.map((v) -> "${v.name}: ${v.help}").collect()
 
 // The flag's value, and the prompt's answer — both arrive as a name from
 // `NEW_BUILD_SETUPS`, so one function decodes both. `std/cli` has already
@@ -242,7 +242,7 @@ resolve_target :: fn(raw: string) -> NewProject | ScaffoldError {
     if raw == IN_PLACE {
         if exists(join_path(IN_PLACE, MANIFEST_FILENAME)) {
             return ScaffoldError {
-                .msg = "already a project — this directory holds a `${MANIFEST_FILENAME}`",
+                .msg = "already a project: this directory holds a `${MANIFEST_FILENAME}`",
             }
         }
         return NewProject {
@@ -259,7 +259,7 @@ resolve_target :: fn(raw: string) -> NewProject | ScaffoldError {
         }
         if entries.len() > 0 {
             hint :: "name a new directory, or run `vader new` inside it to fill it in place"
-            return ScaffoldError { .msg = "`${raw}` exists and is not empty — ${hint}" }
+            return ScaffoldError { .msg = "`${raw}` exists and is not empty: ${hint}" }
         }
     }
     return NewProject { .dir = raw, .name = directory_name(raw), .in_place = false }
@@ -372,10 +372,10 @@ init_git :: fn(dir: string) -> string | null {
     res :: spawn(["git", "init", dir])
     if res is ProcessError {
         hint :: "the project is written, initialise it yourself"
-        return "vader new: `git init` could not run (${res.msg}) — ${hint}"
+        return "vader new: `git init` could not run (${res.msg}): ${hint}"
     }
     if res.exit != 0 {
-        return "vader new: `git init` exited ${res.exit} — ${res.stderr.trim()}"
+        return "vader new: `git init` exited ${res.exit}: ${res.stderr.trim()}"
     }
     return null
 }
@@ -398,7 +398,7 @@ report :: fn(project: NewProject, setup: BuildSetup, git_initialised: bool) -> s
         out.append("  ${DRIVER_FILENAME}     drives the build; run it with a bare `vader build`\n")
     }
     out.append("  ${SOURCE_DIR}/${ENTRY_FILENAME}  module \"${SOURCE_DIR}\", holding `main`\n")
-    out.append("  .gitignore      build/ — every artefact lands there\n")
+    out.append("  .gitignore      build/ (every artefact lands there)\n")
     if git_initialised {
         out.append("  .git            a git repository was initialised here\n")
     }

@@ -1,1 +1,1 @@
-[11:20] error[T3050] invalid `@extern` declaration: field `name` of `@c_struct` `Holder` has no C representation: `string` — a mirrored field must be a numeric scalar, `bool`, `char`, `CPointer`, an enum, or another `@c_struct`
+[11:20] error[T3050] invalid `@extern` declaration: field `name` of `@c_struct` `Holder` has no C representation (`string`), and a mirrored field must be a numeric scalar, `bool`, `char`, `CPointer`, an enum, or another `@c_struct`

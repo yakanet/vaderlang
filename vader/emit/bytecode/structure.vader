@@ -65,7 +65,7 @@ structure_function :: fn(ctx: FnEmitCfg) -> void {
     emit_subtree(ctx, shape, ctx.fn_.entry, BlockId(-1))
     if ctx.pending.len() > 0 {
         panic(
-            "emit/bytecode/structure: '${ctx.fn_.mangled}' — a `br` to bb${ctx.pending[0].target_blk} has no enclosing scope",
+            "emit/bytecode/structure: in '${ctx.fn_.mangled}', a `br` to bb${ctx.pending[0].target_blk} has no enclosing scope",
         )
     }
 }
@@ -91,7 +91,7 @@ shape_of :: fn(fn_: CFGFunction, preds: BlockId[][], idom: i32[]) -> StructureSh
                 forward_preds[i32(b)] += 1
             } else if !closes_loop(loops, p, b) {
                 panic(
-                    "emit/bytecode/structure: '${fn_.mangled}' — bb${p} → bb${b} enters a loop past its header; the CFG is irreducible",
+                    "emit/bytecode/structure: in '${fn_.mangled}', bb${p} → bb${b} enters a loop past its header; the CFG is irreducible",
                 )
             }
         }

@@ -168,13 +168,13 @@ check_cc :: fn(cc: string) -> Check {
             tried :: CC_CANDIDATES.join(", ")
             return check_fail(
                 "cc",
-                "not found — a native build cannot link",
+                "not found: a native build cannot link",
                 "looked for `${cc}`, and for ${tried}",
             )
         }
         return check_fail(
             "cc",
-            "`${cc}` not found — pass `--cc=${fallback}`",
+            "`${cc}` not found: pass `--cc=${fallback}`",
             "`${fallback}` is on PATH; `${cc}` is what this build would invoke",
         )
     }
@@ -217,20 +217,20 @@ check_toolchain_home :: fn(home: string, resolved: string | null) -> Check {
     if home == "" {
         return check_ok(
             "toolchain-home",
-            "unset — the toolchain is found beside the binary, then under the working directory",
+            "unset: the toolchain is found beside the binary, then under the working directory",
             "set ${TOOLCHAIN_HOME_VAR} to point this binary at another toolchain",
         )
     }
     if resolved == null {
         return check_warn(
             "toolchain-home",
-            "set, but does not hold a toolchain — IGNORED, the ordinary probe applies",
+            "set, but does not hold a toolchain: IGNORED, the ordinary probe applies",
             "${TOOLCHAIN_HOME_VAR}=${home} holds no ${LIBRARY_ROOT_DIR}/${LIBRARY_ROOT_MARKER}",
         )
     }
     return check_ok(
         "toolchain-home",
-        "set and in use — it outranks every other probe",
+        "set and in use: it outranks every other probe",
         "${TOOLCHAIN_HOME_VAR}=${home}",
     )
 }
@@ -247,19 +247,19 @@ check_library_root :: fn(exe_dir: string, from_home: string | null) -> Check {
     }
     bundled :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
     if bundled != null {
-        return check_ok("library-root", "found beside the binary — a bundle", bundled)
+        return check_ok("library-root", "found beside the binary: a bundle", bundled)
     }
     if exists(join_path(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)) {
         return check_ok(
             "library-root",
-            "found under the working directory — a bare binary",
-            "./${LIBRARY_ROOT_DIR} — every `std/…` import resolves only while the "
+            "found under the working directory: a bare binary",
+            "./${LIBRARY_ROOT_DIR}: every `std/…` import resolves only while the "
                 + "working directory holds it",
         )
     }
     return check_fail(
         "library-root",
-        "not found — no `std/…` import will resolve",
+        "not found: no `std/…` import will resolve",
         "looked for the marker `${LIBRARY_ROOT_MARKER}` under "
             + "${join_path(exe_dir, LIBRARY_ROOT_DIR)} and ./${LIBRARY_ROOT_DIR}",
     )
@@ -278,13 +278,13 @@ check_compiler_sources :: fn(cwd: string, exe_dir: string) -> Check {
         via :: if root == compiler_source_home() { " through ${TOOLCHAIN_HOME_VAR}" } else { "" }
         return check_ok(
             "compiler-sources",
-            "found${via} — a `${DRIVER_FILENAME}` project can be driven",
+            "found${via}: a `${DRIVER_FILENAME}` project can be driven",
             root,
         )
     }
     return check_warn(
         "compiler-sources",
-        "missing — a plain build works, a driven one does not",
+        "missing: a plain build works, a driven one does not",
         "looked for `${COMPILER_SOURCE_MARKER}` under ${exe_dir} and "
             + "${join_path(exe_dir, BUNDLED_SOURCE_DIR)}",
     )
@@ -345,7 +345,7 @@ check_manifest :: fn(root: string | null) -> Check {
         parts.push("${p} (${origin_label(origin_of_root(dir))})")
     }
     rendered :: parts.join(", ")
-    detail :: "${path} — includePaths: ${rendered}"
+    detail :: "${path} (includePaths: ${rendered})"
     if missing > 0 {
         return check_warn("manifest", "an `includePaths` entry does not exist", detail)
     }
@@ -366,14 +366,14 @@ check_generated_tree :: fn(manifest_root: string | null) -> Check {
     // is what resolution will consult, and it returns "" when there is no tree.
     root :: generated_root_for(manifest_root)
     if root == "" {
-        return check_ok("generated-tree", "none — nothing has been generated here", "")
+        return check_ok("generated-tree", "none: nothing has been generated here", "")
     }
     probe :: join_path(root, ".vader-doctor-probe")
     written :: write_file_string(probe, "")
     if written is IOError {
         return check_fail(
             "generated-tree",
-            "not writable — a driven build cannot emit",
+            "not writable: a driven build cannot emit",
             "${probe}: ${written.message()}",
         )
     }
@@ -491,7 +491,7 @@ verdict_line :: fn(checks: Check[]) -> string {
     if failures > 0 {
         failed :: count(failures, "failure")
         warned :: count(warnings, "warning")
-        return "${failed}, ${warned} — the toolchain is not ready"
+        return "${failed}, ${warned}: the toolchain is not ready"
     }
     if warnings > 0 {
         return "no failures, ${count(warnings, "warning")}"

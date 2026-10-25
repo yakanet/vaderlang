@@ -388,7 +388,7 @@ signature_problem :: fn(f: AST.FnDecl) -> Diagnostic | null {
     }
     if !returns_i32(f) {
         return hook_error(.InvalidBuildEntrySignature, f.name_span,
-            "`${DRIVER_ENTRY}` must return `i32` — the build's exit status")
+            "`${DRIVER_ENTRY}` must return `i32`, the build's exit status")
     }
     return null
 }

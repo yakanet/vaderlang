@@ -63,10 +63,10 @@ toolchain_home_line :: fn() -> string {
     home :: get_env(TOOLCHAIN_HOME_VAR) ?? ""
     if home == "" {
         where :: "resolved beside the binary, then under the working directory"
-        return "vader-lsp: ${TOOLCHAIN_HOME_VAR} unset — toolchain ${where}"
+        return "vader-lsp: ${TOOLCHAIN_HOME_VAR} unset, toolchain ${where}"
     }
     if home_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER) == null {
-        why :: "holds no ${LIBRARY_ROOT_MARKER} — IGNORED, the ordinary probe applies"
+        why :: "holds no ${LIBRARY_ROOT_MARKER}: IGNORED, the ordinary probe applies"
         return "vader-lsp: ${TOOLCHAIN_HOME_VAR}=${home} ${why}"
     }
     return "vader-lsp: ${TOOLCHAIN_HOME_VAR}=${home} outranks every other toolchain probe"

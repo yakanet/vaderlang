@@ -1271,7 +1271,7 @@ callee_result_arity :: fn(ctx: EmitCtx, op: Bc.Op) -> i64 {
 assert_stack_empty :: fn(s: FnState, where: string) -> void {
     if s.stack.len() != 0 {
         panic(
-            "c_emit: operand stack not empty at ${where} in `${s.function.name}` (depth ${s.stack.len()}) — a value escaped a scope boundary ; coalesce.vader's live-range invariant is violated",
+            "c_emit: operand stack not empty at ${where} in `${s.function.name}` (depth ${s.stack.len()}). A value escaped a scope boundary ; coalesce.vader's live-range invariant is violated",
         )
     }
 }

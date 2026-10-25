@@ -1,4 +1,4 @@
-[19:9] error[T3082] not an assignment target: a destructuring assignment writes to names, fields and indices — not to this
+[19:9] error[T3082] not an assignment target: a destructuring assignment writes to names, fields and indices, not to this
 [22:5] error[T3082] not an assignment target: an assignment writes to a name, a field or an element, not to this
 [23:5] error[T3082] not an assignment target: an assignment writes to a name, a field or an element, not to this
 [24:5] error[T3082] not an assignment target: an assignment writes to a name, a field or an element, not to this

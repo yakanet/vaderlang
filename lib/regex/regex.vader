@@ -1103,7 +1103,7 @@ import "std/testing"
         is Pattern -> {
             assert(p.matches("aaa"),  "a{3} matches aaa")
             assert(!p.matches("aa"),  "a{3} rejects aa")
-            assert(!p.matches("aaaa"), "a{3} anchored — rejects aaaa")
+            assert(!p.matches("aaaa"), "a{3} anchored: rejects aaaa")
         }
         is RegexError -> assert(false, "compile a{3} failed")
     }

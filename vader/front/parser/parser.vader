@@ -2514,7 +2514,7 @@ parse_destructure_assign :: fn(p: Parser) -> DestructureAssignStmt {
     if p.peek().kind.compound_op().matched {
         op :: p.advance()
         p.error(.CompoundAssignToPattern, p.span_of(start, op),
-            "a destructuring target takes a plain `=` — write out the element the compound applies to")
+            "a destructuring target takes a plain `=`, so write out the element the compound applies to")
     } else {
         p.expect(.Assign, "`=` after destructuring assignment target")
     }

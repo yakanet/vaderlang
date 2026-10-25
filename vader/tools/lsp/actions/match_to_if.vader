@@ -270,7 +270,7 @@ f :: fn(ns: i32 | null) -> i32 {
     out :: mti_apply(m, ctx)
     assert("ns !is null" in out, "renders the negated `!is null` condition")
     assert("return ns" in out, "keeps the non-empty arm's body")
-    assert(!("else" in out), "no else branch — the empty arm is dropped")
+    assert(!("else" in out), "no else branch: the empty arm is dropped")
 }
 
 @test
@@ -294,7 +294,7 @@ g :: fn(v: i32 | string) -> void {
     assert(mti_applicable(m, ctx), "empty `_` arm converts")
     out :: mti_apply(m, ctx)
     assert("if v is i32" in out, "renders the positive condition")
-    assert(!("else" in out), "no else branch — the empty arm is dropped")
+    assert(!("else" in out), "no else branch: the empty arm is dropped")
 }
 
 @test

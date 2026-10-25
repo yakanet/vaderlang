@@ -6,6 +6,6 @@ lambda inner cleanup
 about to boom
 panic defer in lambda saw captured-x
 # stderr
-vader: trap — i32.div by zero
+vader: trap: i32.div by zero
 # exit
 134

@@ -615,7 +615,7 @@ validate_mirror_fields :: fn(
             } else {
                 diags.push(typecheck_error(
                     .InvalidExternDecl, span,
-                    "field `${f.name}` of `@c_struct` `${sd.name}` is a plain struct — a struct member needs its own `@c_struct` naming the C type it mirrors",
+                    "field `${f.name}` of `@c_struct` `${sd.name}` is a plain struct, and a struct member needs its own `@c_struct` naming the C type it mirrors",
                 ))
             }
             continue
@@ -634,7 +634,7 @@ validate_mirror_fields :: fn(
         if !is_unmarshalled_scalar(fty, false) {
             diags.push(typecheck_error(
                 .InvalidExternDecl, span,
-                "field `${f.name}` of `@c_struct` `${sd.name}` has no C representation: `${display_type(fty)}` — a mirrored field must be a numeric scalar, `bool`, `char`, `CPointer`, an enum, or another `@c_struct`",
+                "field `${f.name}` of `@c_struct` `${sd.name}` has no C representation (`${display_type(fty)}`), and a mirrored field must be a numeric scalar, `bool`, `char`, `CPointer`, an enum, or another `@c_struct`",
             ))
         }
     }
@@ -701,7 +701,7 @@ validate_extern :: fn(
             typecheck_error(
                 .ExternMustNotHaveBody,
                 decl.body.span,
-                "`@extern` fn `${decl.name}` cannot have a body — drop the `= ...` / `{ ... }`",
+                "`@extern` fn `${decl.name}` cannot have a body, so drop the `= ...` / `{ ... }`",
             ),
         )
     }
@@ -767,7 +767,7 @@ validate_extern :: fn(
                 typecheck_error(
                     .InvalidParameterDecorator,
                     decl.params[i].span,
-                    "`@c_out` needs an array or a `@c_struct` for C to write into, got `${display_type(pt)}` — to read a scalar back, lend a one-element array",
+                    "`@c_out` needs an array or a `@c_struct` for C to write into, got `${display_type(pt)}` (to read a scalar back, lend a one-element array)",
                 ),
             )
             continue
@@ -784,7 +784,7 @@ validate_extern :: fn(
                 typecheck_error(
                     .InvalidParameterDecorator,
                     decl.params[i].span,
-                    "`@c_pointer` needs a scalar or a `@c_struct` to take the address of, got `${display_type(pt)}` — a `string` and an array already cross as pointers, so drop the decorator",
+                    "`@c_pointer` needs a scalar or a `@c_struct` to take the address of, got `${display_type(pt)}` (a `string` and an array already cross as pointers, so drop the decorator)",
                 ),
             )
             continue

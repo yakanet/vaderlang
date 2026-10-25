@@ -339,7 +339,7 @@ infer_match :: fn(
                 warning(
                     .WildcardOnClosedUnion,
                     e.span,
-                    "wildcard arm on closed union `${display_type(scrut_ty)}` — enumerate its variants or mark the match `@partial`",
+                    "`${display_type(scrut_ty)}`",
                 ),
             )
         }

@@ -69,7 +69,7 @@ check_orphan_rule :: fn(
     trait_is_local :: trait_sym.module == module_id
     if !for_is_primitive && !for_is_local && !trait_is_local {
         diags.push(resolver_error(.OrphanImplForbidden, decl.span,
-            "${decl.trait_name} for ${for_type_display_name(decl.for_type)} — neither type nor trait is owned by this module"))
+            "${decl.trait_name} for ${for_type_display_name(decl.for_type)} (neither type nor trait is owned by this module)"))
     }
 }
 

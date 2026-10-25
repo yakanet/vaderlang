@@ -1,4 +1,4 @@
 # stderr
-vader: trap — i32.div by zero
+vader: trap: i32.div by zero
 # exit
 134

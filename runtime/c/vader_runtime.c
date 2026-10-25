@@ -1476,7 +1476,7 @@ void vader_gc_init(void) {
         && (vader_type_info_table[0].ptr_count != 0
             || vader_type_info_table[0].ref_count != 0)) {
         vader_trap("vader_gc_init: type_info_table[0] must be a scan no-op "
-                   "(reserved null slot) — stack-object rooting relies on it");
+                   "(reserved null slot): stack-object rooting relies on it");
     }
 
     g_gc_stress       = vader_gc_env_bool("VADER_GC_STRESS");
@@ -1646,7 +1646,7 @@ static void vader_young_grow_to(size_t new_half) {
     if (new_block == NULL) {
         fprintf(stderr,
             "vader_young_grow: malloc failed growing young arena to %zu MB × 2 "
-            "(cap VADER_GC_YOUNG_MAX = %zu MB) — out of RAM\n",
+            "(cap VADER_GC_YOUNG_MAX = %zu MB), out of RAM\n",
             new_half / (1024u * 1024u),
             g_young_max_bytes / (1024u * 1024u));
         vader_trap("vader_young_grow: out of memory (RAM ceiling)");
@@ -1856,7 +1856,7 @@ void* vader_gc_alloc(size_t bytes) {
                  * post-sweep promotion failed to carve at the reservation cap. */
                 if (VADER_UNLIKELY(g_old_alloc_failed_at_cap)) {
                     fprintf(stderr,
-                        "vader_gc_alloc: out of memory — old reservation full at cap %zu MB "
+                        "vader_gc_alloc: out of memory, old reservation full at cap %zu MB "
                         "(VADER_GC_OLD_MAX); survivors cannot promote\n",
                         g_old_capacity / (1024u * 1024u));
                     if (g_gc_profile) vader_gc_profile_dump();
@@ -1909,7 +1909,7 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
     }
     const vader_type_info_t* info = &vader_type_info_table[type_index];
     if (info->kind == VADER_TYPE_KIND_NONE) {
-        vader_trap("vader_gc: heap object whose type has no info entry — the "
+        vader_trap("vader_gc: heap object whose type has no info entry, the "
                    "emitter stamped a header the collector cannot size");
     }
     return info->size;
@@ -2681,7 +2681,7 @@ void vader_prof_begin(int32_t phase_id) {
     if (phase_id < 0 || phase_id >= VADER_PROF_MAX_PHASES) return;
     if (!g_prof_atexit_armed) { atexit(vader_prof_dump); g_prof_atexit_armed = 1; }
     if (g_prof_current >= 0) {
-        fprintf(stderr, "[VADER_PROFILE] nested prof bracket (phase %d inside %d) — "
+        fprintf(stderr, "[VADER_PROFILE] nested prof bracket (phase %d inside %d), "
                         "timings will misattribute\n", phase_id, g_prof_current);
     }
     g_prof_current = phase_id;
@@ -2704,7 +2704,7 @@ void vader_prof_end(int32_t phase_id) {
      * would charge its phase the whole span since some unrelated `begin`, and
      * that number reads like a measurement. */
     if (phase_id != g_prof_current) {
-        fprintf(stderr, "[VADER_PROFILE] unmatched prof end (phase %d, open is %d) — "
+        fprintf(stderr, "[VADER_PROFILE] unmatched prof end (phase %d, open is %d), "
                         "sample dropped\n", phase_id, g_prof_current);
         return;
     }
@@ -3955,13 +3955,13 @@ static void vader_run_pending_defers(void) {
 }
 
 void vader_trap(const char* msg) {
-    fprintf(stderr, "vader: trap — %s\n", msg);
+    fprintf(stderr, "vader: trap: %s\n", msg);
     if (!g_unwinding) { g_unwinding = 1; vader_run_pending_defers(); }
     abort();
 }
 
 void vader_panic(vader_string_t msg) {
-    fprintf(stderr, "vader: panic — %.*s\n", (int) vader_atom_len(msg), vader_atom_data(msg));
+    fprintf(stderr, "vader: panic: %.*s\n", (int) vader_atom_len(msg), vader_atom_data(msg));
     if (!g_unwinding) { g_unwinding = 1; vader_run_pending_defers(); }
     abort();
 }

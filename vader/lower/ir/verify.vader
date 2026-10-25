@@ -54,11 +54,11 @@ verify_no_coroutine_markers :: fn(
             for_each_lowered_stmt_node(d, (s: LoweredStmt) -> {
                 if s is LoweredYield {
                     diags.push(internal_error(.StrayCoroutineMarker, s.span,
-                        "after `${after}`: a `yield` marker survives in `${owner}` — the generator transform did not consume it"))
+                        "after `${after}`: a `yield` marker survives in `${owner}`, unconsumed by the generator transform"))
                 }
                 if s is LoweredAwait {
                     diags.push(internal_error(.StrayCoroutineMarker, s.span,
-                        "after `${after}`: an `await` marker survives in `${owner}` — the coroutine transform did not consume it"))
+                        "after `${after}`: an `await` marker survives in `${owner}`, unconsumed by the coroutine transform"))
                 }
             })
         }

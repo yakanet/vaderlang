@@ -1,2 +1,2 @@
-[17:14] error[T3069] cannot infer type argument — nothing at this call site binds the type parameter: `T` — annotate the result slot, or pass the type argument explicitly
-[20:13] error[T3069] cannot infer type argument — nothing at this call site binds the type parameter: `B` — annotate the result slot, or pass the type argument explicitly
+[17:14] error[T3069] cannot infer type argument, since nothing at this call site binds the type parameter: `T` (annotate the result slot, or pass the type argument explicitly)
+[20:13] error[T3069] cannot infer type argument, since nothing at this call site binds the type parameter: `B` (annotate the result slot, or pass the type argument explicitly)

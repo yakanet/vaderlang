@@ -29,7 +29,7 @@ lower_range_expr :: fn(ctx: FnLowerCtx, expr: RangeExpr, result_type: Type) -> L
         is null -> {
             return LoweredUnreachable {
                 .span = expr.span, .type = result_type,
-                .reason = "`std/core::Range` not reachable — cannot lower range expression",
+                .reason = "`std/core::Range` not reachable: cannot lower range expression",
             }
         }
         is Symbol -> {

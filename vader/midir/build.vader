@@ -297,7 +297,7 @@ bc_value_bits :: fn(el: LoweredExpr, name: string) -> u64 {
     // Unreachable : the producer's `is_bakeable_value` only admits int/char/bool/
     // float leaves here (string/struct/array are handled before this tail). A hit
     // means the gate and this converter drifted out of sync.
-    panic("midir: lowered_to_bc_value reached a non-primitive leaf — is_bakeable/converter drift")
+    panic("midir: lowered_to_bc_value reached a non-primitive leaf (is_bakeable/converter drift)")
 }
 
 
@@ -613,7 +613,7 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
             // machine BEFORE midir ; reaching one here means that pass missed it.
             // Panic loudly rather than silently drop it (which miscompiled the
             // async / generator path — midir-1).
-            panic("midir: coroutine marker (LoweredYield/LoweredAwait) reached build_stmt — the coroutine transform missed it")
+            panic("midir: coroutine marker (LoweredYield/LoweredAwait) reached build_stmt, so the coroutine transform missed it")
         }
     }
 }
@@ -905,7 +905,7 @@ build_module_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
     if inline_value !is null { return build_expr(fn_ctx, inline_value) }
     fn_ctx.project.diags.push(lower_error(
         .UnresolvedIdent, e.span,
-        "`${e.symbol.name}` resolved to a symbol with no local in this function — a binding was lost between the resolver and here"))
+        "`${e.symbol.name}` resolved to a symbol with no local in this function, so a binding was lost between the resolver and here"))
     return build_unreachable_type(fn_ctx, e.type, e.span, "unresolved ident ${e.symbol.name}")
 }
 
@@ -997,10 +997,10 @@ build_extern_args :: fn(
             continue
         }
         if a !is LoweredIdent {
-            panic("midir/build: argument ${i + 1} of `${callee}` is a callback that names no function — typecheck should have refused it (T3080)")
+            panic("midir/build: argument ${i + 1} of `${callee}` is a callback that names no function. Typecheck should have refused it (T3080)")
         }
         if a.symbol.kind != .Fn {
-            panic("midir/build: argument ${i + 1} of `${callee}` names `${a.symbol.name}`, which is not a function — typecheck should have refused it (T3080)")
+            panic("midir/build: argument ${i + 1} of `${callee}` names `${a.symbol.name}`, which is not a function. Typecheck should have refused it (T3080)")
         }
         // `TY_CPOINTER`, not the fn type. The slot holds a `.text` address, and
         // a fn-typed slot is a `ValType.Ref` — which `c_emit` puts in the frame's

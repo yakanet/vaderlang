@@ -1,1 +1,1 @@
-[8:27] error[T3079] decorator not allowed on this parameter: `@c_pointer` needs a scalar or a `@c_struct` to take the address of, got `string` — a `string` and an array already cross as pointers, so drop the decorator
+[8:27] error[T3079] decorator not allowed on this parameter: `@c_pointer` needs a scalar or a `@c_struct` to take the address of, got `string` (a `string` and an array already cross as pointers, so drop the decorator)

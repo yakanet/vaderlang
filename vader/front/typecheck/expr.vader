@@ -212,9 +212,9 @@ settle_ambiguous_literal :: fn(
         return got
     }
     names :: candidates.map((c) -> "`${display_type(c)}`").collect()
-    example :: "`${display_type(candidates[0])}(…)`"
+    example :: "`${display_type(candidates[0])}(...)`"
     diags.push(typecheck_error(.AmbiguousLiteralInUnion, expr.span,
-        "could be ${names.join(", ")} — convert it explicitly, e.g. ${example}"))
+        "could be ${names.join(", ")} (convert it explicitly, e.g. ${example})"))
     return candidates[0]
 }
 

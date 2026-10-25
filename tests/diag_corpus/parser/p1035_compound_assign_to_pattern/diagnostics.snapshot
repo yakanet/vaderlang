@@ -1,1 +1,1 @@
-[9:5] error[P1035] compound assignment needs a single target: a destructuring target takes a plain `=` — write out the element the compound applies to
+[9:5] error[P1035] compound assignment needs a single target: a destructuring target takes a plain `=`, so write out the element the compound applies to

@@ -197,7 +197,7 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
         return existing
     }
     if ctx.types_frozen {
-        panic("emit/bytecode/emit_ctx: intern_type would mint `${key}` after prune_unused_types — the table is final by then, so the slot would survive as an orphan `ref` and panic at the first field access. Look the type up and skip the entry instead, as `build_impl_table_from_vtable` does.")
+        panic("emit/bytecode/emit_ctx: intern_type would mint `${key}` after prune_unused_types. The table is final by then, so the slot would survive as an orphan `ref` and panic at the first field access. Look the type up and skip the entry instead, as `build_impl_table_from_vtable` does.")
     }
     // Reserve placeholder so recursive / self types don't loop. The index is
     // registered above; a `BcRef` placeholder (empty `trait_name`) fills its

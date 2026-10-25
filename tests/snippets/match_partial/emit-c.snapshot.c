@@ -117,7 +117,7 @@ static vader_string_t snippet$label(uint8_t l0) {
         return 3u;
     }
     if (!(l0 == INT32_C(1))) {
-        vader_unreachable("@unreachable match \xe2\x80\x94 a variant the arms assert cannot occur was reached");
+        vader_unreachable("@unreachable match: a variant the arms assert cannot occur was reached");
     }
     return 4u;
 }

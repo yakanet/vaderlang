@@ -5,6 +5,6 @@ long shifts 7
 first month 1
 bytes 230
 # stderr
-vader: trap — reached unreachable: 
+vader: trap: reached unreachable: 
 # exit
 134

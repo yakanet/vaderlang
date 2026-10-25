@@ -963,7 +963,7 @@ VADER_NOINLINE void vader_array_push_ref_slow(vader_array_t* a, void* obj);
 #define VADER_ARRAY_PUSH_KIND_CHECK(ctype)                                         \
     if (a->buf != NULL && vader_array_element_size(a->buf->element_kind) != sizeof(ctype)) { \
         vader_trap("array push: element width mismatch (buffer is boxed/erased, "  \
-                   "call site is packed) — the element type was lost upstream");   \
+                   "call site is packed): the element type was lost upstream");   \
     }
 #else
 #define VADER_ARRAY_PUSH_KIND_CHECK(ctype) /* release: no check */

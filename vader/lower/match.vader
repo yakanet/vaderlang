@@ -72,7 +72,7 @@ lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> Lowere
     // fall-through trap carries an intent-revealing reason ; a plain match is
     // exhaustive-by-T3013, so reaching its fallback is a compiler bug.
     fallback_reason :: if expr.unreachable {
-        "@unreachable match — a variant the arms assert cannot occur was reached"
+        "@unreachable match: a variant the arms assert cannot occur was reached"
     } else {
         "non-exhaustive match (T3013 should have caught this)"
     }

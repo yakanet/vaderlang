@@ -5,8 +5,8 @@
 // crash — turning the suite green on broken code. This is exactly how a
 // `for_in_iter_trait` regression hid for ~3.5 weeks: when POW5_128 switched on
 // whole-project comptime staging (1cfc58ca), the snippet started aborting at
-// midir/emit, and its lower/bytecode snapshots were updated to "vader: panic —
-// …" / "(exit 134)". The suite stayed green because the snapshots MATCHED the
+// midir/emit, and its lower/bytecode snapshots were updated to "vader: panic:
+// ..." / "(exit 134)". The suite stayed green because the snapshots MATCHED the
 // crash. Fixed in 5ca5b4ec; this guard stops the class from recurring.
 //
 // Scope: only COMPILE-stage snapshots. `vm.snapshot` (run output) is excluded —
@@ -28,7 +28,7 @@ import { listSnippets } from "./snapshot.ts";
 // failed", which also covers a compile error; these three are unambiguous
 // crashes.
 const CRASH_MARKERS: readonly RegExp[] = [
-  /panic —/,             // "vader: panic — <ICE message>"
+  /vader: panic: /,      // "vader: panic: <ICE message>"
   /reached unreachable/, // an `@unreachable` arm was hit
   /exit 13[49]\)/,       // "(exit 134)" SIGABRT / "(exit 139)" SIGSEGV
 ];
