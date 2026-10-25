@@ -50,7 +50,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         eprintln("vader test: no .vader files found under ${target}")
         return 2
     }
-    reps :: pick_module_representatives(files)
+    reps :: test_entries(target, files)
     // A folder to walk is not an entry: the project is the one `vader test` runs
     // in, as for `vader build` with no argument. Spelled `""`, the working
     // directory, so that module ids stay relative to it.
@@ -72,8 +72,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         // emit-level prune keeps them via EmitOptions.keep_mangles below.
         pruned :: prune_unreachable_fns(le.lowered, true)
         all_tests :: find_tests(pruned)
-        // Stdlib modules surface under nearly every rep (imported transitively) ;
-        // run each unique @test once across the whole invocation.
+        // Run each unique @test once across the whole invocation.
         fresh: DiscoveredTest[]: []
         for t in all_tests {
             if !(t.mangled in ran) { fresh.push(t) }
@@ -220,11 +219,22 @@ walk_test_dir :: fn(dir: Path, out: Path[]) -> void {
     }
 }
 
-/// Pick a minimal set of entry paths that transitively cover every file.
-/// Single-file dir → the file. Folder module (no sibling-name imports) → the
-/// dir (the resolver loads every sibling as one module). Per-file modules
-/// (siblings import each other) → only the files no sibling imports, the
-/// entries whose transitive imports drag the rest in.
+/// The entries `vader test` compiles for `target`. A file named on the command
+/// line runs as given: the loader takes its whole folder module as the entry, so
+/// the tests of its sibling files run with it, whatever the file itself holds.
+///
+/// @param target  the path the command was given.
+/// @param files   the `.vader` files under it (`discover_vader_files`).
+test_entries :: fn(target: Path, files: Path[]) -> Path[] {
+    if target.extension() == "vader" {
+        return files
+    }
+    return pick_module_representatives(files)
+}
+
+/// One entry per module that holds a test. Only the entry module of a compile is
+/// lowered with its bodies, so a module's tests run only when it is the entry:
+/// none runs through a module that imports it.
 pick_module_representatives :: fn(files: Path[]) -> Path[] {
     by_dir :: MutableMap<string, Path[]> {}
     for f in files {
@@ -236,66 +246,74 @@ pick_module_representatives :: fn(files: Path[]) -> Path[] {
     }
     out: Path[]: []
     for [d, group] in by_dir {
-        if group.len() <= 1 {
-            out.push(group[0])
-        } else {
-            facts :: group.map(file_facts).collect()
-            if is_folder_module(facts) {
-                out.push(d.to_path())
-            } else {
-                imported :: sibling_imported_modules(facts)
-                for i in 0..<group.len() {
-                    if !(facts[i].declared in imported) {
-                        out.push(group[i])
-                    }
-                }
-            }
+        for rep in group_representatives(d, group, group.map(file_facts).collect()) {
+            out.push(rep)
         }
     }
     return out
 }
 
-/// What test discovery needs from one file: the module it declares, and the
-/// module paths it imports.
+/// The entries for the files of one directory: the directory itself when they
+/// form one folder module that holds a test, else each file that holds one.
+///
+/// @param dir    the directory.
+/// @param group  its `.vader` files.
+/// @param facts  what each of them declares and holds, in the same order.
+group_representatives :: fn(dir: string, group: Path[], facts: FileFacts[]) -> Path[] {
+    if group.len() > 1 && is_folder_module(facts) {
+        if facts.any_match((f) -> f.has_tests) {
+            return [dir.to_path()]
+        }
+        return []
+    }
+    out: Path[]: []
+    for i in 0..<group.len() {
+        if facts[i].has_tests {
+            out.push(group[i])
+        }
+    }
+    return out
+}
+
+/// What test discovery needs from one file: the module it declares, and whether it
+/// holds a test.
 ///
 /// Read ONCE per file. The previous shape re-read every file for each question it
 /// asked, and this function's whole history is about discovery being slow.
 FileFacts :: struct {
-    declared: string
-    imports:  string[]
+    declared:  string
+    /// Whether a line of the file opens with `@test`.
+    has_tests: bool = false
 }
 
 // `declared` is "" for a file that declares no module (R2020 territory) or cannot
 // be read — the callers treat that as "not a folder module", the conservative
-// answer.
+// answer. A file that cannot be read counts as holding a test, so that its
+// compile reports why rather than the file being skipped in silence.
 file_facts :: fn(f: Path) -> FileFacts {
     src :: read_file_string(f.as_string())
     if src is IOError {
-        return FileFacts { .declared = "", .imports = [] }
+        return FileFacts { .declared = "", .has_tests = true }
     }
     header :: parse_module_header(src, f.as_string())
     declared :: if header is ModuleHeader { header.name } else { "" }
-    imports: string[]: []
+    return FileFacts { .declared = declared, .has_tests = holds_a_test(src) }
+}
+
+// Whether a line of `src` opens with `@test`.
+holds_a_test :: fn(src: string) -> bool {
     for line in src.split("\n") {
-        path :: import_path(line)
-        if path != "" && !(path in imports) {
-            imports.push(path)
+        if line.trim().starts_with("@test") {
+            return true
         }
     }
-    return FileFacts { .declared = declared, .imports = imports }
+    return false
 }
 
 /// True when every file declares the SAME module — the language's own definition
 /// of a folder module (a folder holds at most one module; mixed names are R2022).
-///
-/// ⚠️ This used to ask a PROXY question — "does a sibling import one of these
-/// basenames?" — and got it wrong for any import whose LAST SEGMENT matched a
-/// neighbour's filename. `import "vader/tools/dap"` beside a `dap.vader` read as a
-/// sibling import, so the directory stopped being a folder module and every file
-/// in it became its own test representative. Measured: `vader test vader/tools/cli`
-/// went from 17 s to 114 s — six compilations of the whole compiler instead of
-/// one, against a 120 s harness budget. The `cmd_*` prefix on the command files
-/// sidestepped it; this is the actual fix.
+/// A folder module is compiled once, as its directory: taking each of its files
+/// for a module of its own would compile the whole folder once per file.
 is_folder_module :: fn(facts: FileFacts[]) -> bool {
     if facts.len() == 0 {
         return false
@@ -312,111 +330,65 @@ is_folder_module :: fn(facts: FileFacts[]) -> bool {
     return true
 }
 
-/// Module paths declared in the group that ANOTHER file of the group imports.
-///
-/// Compared as full module paths, which is what makes it exact. A non-empty
-/// result means these files are separate modules and the importers are the entry
-/// points, so the imported ones need no representative of their own.
-sibling_imported_modules :: fn(facts: FileFacts[]) -> string[] {
-    declared: string[]: []
-    for f in facts {
-        if f.declared != "" {
-            declared.push(f.declared)
-        }
-    }
-    out: string[]: []
-    for f in facts {
-        for path in f.imports {
-            // A file importing its OWN module is not a sibling import.
-            if path == f.declared {
-                continue
-            }
-            if path in declared && !(path in out) {
-                out.push(path)
-            }
-        }
-    }
-    return out
-}
-
-/// The module path of an `import "PATH" …` line, or `""` when the line is not an
-/// import. The FULL path — comparing last segments is what the bug above was.
-import_path :: fn(line: string) -> string {
-    t :: line.trim()
-    if !t.starts_with("import ") {
-        return ""
-    }
-    q1 :: t.index_of('"', 0)
-    if q1 < 0 {
-        return ""
-    }
-    q2 :: t.index_of('"', q1 + 1)
-    if q2 < 0 {
-        return ""
-    }
-    return t.byte_slice(q1 + 1, q2)
-}
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
 
 @test test_same_declared_module_is_a_folder_module :: fn() -> void {
     facts :: [
-        FileFacts { .declared = "probe", .imports = ["std/string", "std/testing"] },
-        FileFacts { .declared = "probe", .imports = [] },
+        FileFacts { .declared = "probe" },
+        FileFacts { .declared = "probe" },
     ]
     assert(is_folder_module(facts), "files declaring one module are one folder module")
 }
 
-@test test_a_colliding_import_is_not_a_sibling_import :: fn() -> void {
-    // The bug this replaced: `import "std/string"` beside a `string.vader` read
-    // as a sibling import because only the LAST SEGMENT was compared. The folder
-    // stopped being one module and every file became its own test
-    // representative — `vader test vader/tools/cli` went 17 s → 114 s.
-    facts :: [
-        FileFacts { .declared = "probe", .imports = ["std/string"] },
-        FileFacts { .declared = "probe", .imports = [] },
-    ]
-    assert_eq(sibling_imported_modules(facts).len(), 0)
-}
-
 @test test_per_file_modules_are_not_a_folder_module :: fn() -> void {
     facts :: [
-        FileFacts { .declared = "probe/entry", .imports = ["probe/lib"] },
-        FileFacts { .declared = "probe/lib", .imports = [] },
+        FileFacts { .declared = "probe/entry" },
+        FileFacts { .declared = "probe/lib" },
     ]
     assert(!is_folder_module(facts), "different declared modules are not one module")
-}
-
-@test test_sibling_import_is_matched_on_the_full_path :: fn() -> void {
-    facts :: [
-        FileFacts { .declared = "probe/entry", .imports = ["probe/lib"] },
-        FileFacts { .declared = "probe/lib", .imports = [] },
-    ]
-    imported :: sibling_imported_modules(facts)
-    assert_eq(imported.len(), 1)
-    assert_eq(imported[0], "probe/lib")
-}
-
-@test test_importing_your_own_module_is_not_a_sibling_import :: fn() -> void {
-    facts :: [FileFacts { .declared = "probe", .imports = ["probe"] }]
-    assert_eq(sibling_imported_modules(facts).len(), 0)
 }
 
 @test test_a_file_without_a_module_decl_is_not_a_folder_module :: fn() -> void {
     // Conservative: an unreadable or header-less file means "treat each file
     // separately" rather than silently collapsing the group.
     facts :: [
-        FileFacts { .declared = "", .imports = [] },
-        FileFacts { .declared = "probe", .imports = [] },
+        FileFacts { .declared = "" },
+        FileFacts { .declared = "probe" },
     ]
     assert(!is_folder_module(facts), "a missing module decl blocks the collapse")
 }
 
-@test test_import_path_keeps_the_whole_path :: fn() -> void {
-    assert_eq(import_path("import \"vader/tools/dap\""), "vader/tools/dap")
-    assert_eq(import_path("  import \"std/io\"  "), "std/io")
-    assert_eq(import_path("// import \"std/io\""), "")
-    assert_eq(import_path("x :: 1"), "")
+@test test_a_module_without_tests_gets_no_representative :: fn() -> void {
+    group :: ["probe/a.vader".to_path(), "probe/b.vader".to_path()]
+    facts :: [FileFacts { .declared = "probe" }, FileFacts { .declared = "probe" }]
+    assert_eq(group_representatives("probe", group, facts).len(), 0)
+}
+
+@test test_a_folder_module_with_a_test_is_its_folder :: fn() -> void {
+    group :: ["probe/a.vader".to_path(), "probe/b.vader".to_path()]
+    facts :: [
+        FileFacts { .declared = "probe" },
+        FileFacts { .declared = "probe", .has_tests = true },
+    ]
+    reps :: group_representatives("probe", group, facts)
+    assert_eq(reps.len(), 1)
+    assert_eq(reps[0].as_string(), "probe")
+}
+
+@test test_an_imported_per_file_module_keeps_its_own_entry :: fn() -> void {
+    // Its tests run only as an entry: lowering the importer reaches none of them.
+    group :: ["probe/entry.vader".to_path(), "probe/lib.vader".to_path()]
+    facts :: [
+        FileFacts { .declared = "probe/entry", .has_tests = true },
+        FileFacts { .declared = "probe/lib", .has_tests = true },
+    ]
+    assert_eq(group_representatives("probe", group, facts).len(), 2)
+}
+
+@test test_holds_a_test_reads_line_starts :: fn() -> void {
+    assert(holds_a_test("x :: 1\n@test\nt :: fn() -> void {}"), "a decorator line")
+    assert(holds_a_test("    @test t :: fn() -> void {}"), "an indented one")
+    assert(!holds_a_test("// runs no `@test`\nx :: 1"), "a mention in a comment")
 }
