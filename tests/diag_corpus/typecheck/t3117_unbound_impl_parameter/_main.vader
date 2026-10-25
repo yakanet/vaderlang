@@ -1,0 +1,12 @@
+// T3117: every parameter `implements<...>` declares appears in the type the impl
+// is for. A use of the impl binds its parameters from that type, so `U`, named
+// only in the trait arguments, would be bound by nothing.
+module "snippet"
+
+Tagged :: trait<E, L> {
+    first_of :: fn(self) -> E
+}
+
+T[] implements<T, U> Tagged<T, U> {
+    first_of :: fn(self) -> T = self[0]
+}

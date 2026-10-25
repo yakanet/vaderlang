@@ -805,14 +805,15 @@ RecordedImpl :: struct {
 }
 
 // The impls of `decls` the tables record: neither one whose trait does not
-// resolve, nor one on an array type its module refuses (T3090).
+// resolve, nor one its module refuses for its shape (T3090, T3117).
 recorded_impls :: fn(decls: AST.Decl[], owner: TypedProgram) -> RecordedImpl[] {
     out: RecordedImpl[]: []
     for decl in decls {
         if decl is AST.ImplDecl {
             for_ty :: type_from_expr(decl.for_type, owner.resolved, diag_sink())
             trait_sym :: impl_trait_symbol(decl, owner.resolved) ?? continue
-            if !is_refused_array_impl(for_ty) {
+            partly_generic :: is_refused_array_impl(for_ty)
+            if !partly_generic && unbound_impl_params(decl, for_ty, owner.resolved).is_empty() {
                 out.push(RecordedImpl {
                     .decl = decl,
                     .for_ty = for_ty,
@@ -2244,6 +2245,28 @@ impl_param_ids :: fn(decl: AST.ImplDecl, typed: TypedProgram) -> MutableSet<i32>
 is_refused_array_impl :: fn(t: Type) =
     t is ArrayType && t.element !is TypeParamType && type_contains_type_param(t)
 
+// The parameters of `implements<...>` that `for_ty` does not mention (T3117). A
+// use of the impl binds its parameters from the type it is used at, so nothing
+// would bind those. None when `for_ty` did not resolve: that is reported already.
+unbound_impl_params :: fn(
+    decl: AST.ImplDecl,
+    for_ty: Type,
+    resolved: ResolvedModule,
+) -> AST.TypeParam[] {
+    unbound: AST.TypeParam[]: []
+    if type_contains_unresolved(for_ty) {
+        return unbound
+    }
+    mentioned :: type_params_in(for_ty)
+    for tp in decl.type_params {
+        sym :: resolved.idents[tp.span.hash()] ?? continue
+        if !mentioned.any_match((m) -> m.id == sym.id) {
+            unbound.push(tp)
+        }
+    }
+    return unbound
+}
+
 // Declare the members of an impl block of this module and check it: the member
 // parameter types, the impl diagnostics. Runs in `walk_bodies`' pre-pass so a
 // forward reference from an earlier fn body resolves. The impl tables are not
@@ -2264,6 +2287,15 @@ declare_and_check_impl :: fn(
             ),
         )
         return
+    }
+    for tp in unbound_impl_params(id, for_ty, typed.resolved) {
+        diags.push(
+            typecheck_error(
+                .UnboundImplParameter,
+                tp.span,
+                "`${tp.name}` is not in `${display_type(for_ty)}`",
+            ),
+        )
     }
     trait_sym :: impl_trait_symbol(id, typed.resolved) ?? return
     trait_key :: trait_key_of(trait_sym)

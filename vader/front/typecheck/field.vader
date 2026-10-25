@@ -1414,47 +1414,6 @@ qualified_trait_name :: fn(key: string, typed: TypedProgram) -> string | null {
     return "${owner.display_path}.${trait_key_name(key)}"
 }
 
-// Bind a blanket array impl's type param to the concrete element. A blanket
-// array impl (`T[] implements<T> ArrayOps<T>`) carries exactly one type param =
-// the element, so every `TypeParamType` leaf in the resolved member IS that
-// element. Struct receivers bind by parameter symbol (`substitute_type_params`,
-// keyed on `decl.type_params` × `target.args`) ; an array carries no `.args`, so
-// bind every param leaf to `element` instead.
-substitute_array_element :: fn(t: Type, element: Type) -> Type {
-    // @partial: only TypeParam + the composite variants carry a param to rewrite;
-    // scalars have no inner type → return as-is.
-    @partial match t {
-        is TypeParamType -> { return element }
-        is ArrayType -> { return mk_array(substitute_array_element(t.element, element)) }
-        is TupleType -> {
-            els: Type[]: []
-            for el in t.elements { els.push(substitute_array_element(el, element)) }
-            return mk_tuple(els)
-        }
-        is StructType -> {
-            sargs: Type[]: []
-            for a in t.args { sargs.push(substitute_array_element(a, element)) }
-            return mk_struct(t.symbol, sargs)
-        }
-        is TraitType -> {
-            rargs: Type[]: []
-            for a in t.args { rargs.push(substitute_array_element(a, element)) }
-            return TraitType { ...t, .args = rargs }
-        }
-        is UnionType -> {
-            vs: Type[]: []
-            for v in t.variants { vs.push(substitute_array_element(v, element)) }
-            return union_of(vs)
-        }
-        is FnType -> {
-            ps: Type[]: []
-            for p in t.params { ps.push(substitute_array_element(p, element)) }
-            return mk_fn(ps, substitute_array_element(t.return_type, element))
-        }
-        _ -> { return t }
-    }
-}
-
 /// Declared type of the field `name` every variant of `u` places at one offset.
 ///
 /// @param u      a union.

@@ -142,6 +142,7 @@ export TypecheckCode :: enum(CodeInfo) {
     PostconditionDoesNotHold        { .id = "T3114", .message = "a function returns where its `@ensures` does not hold" },
     BitwiseOperationOnRange         { .id = "T3115", .message = "a bitwise operation needs an integer of a fixed width" },
     ModuleAliasIsNoValue            { .id = "T3116", .message = "a namespace alias names a module, not a value" },
+    UnboundImplParameter            { .id = "T3117", .message = "an impl parameter does not appear in the type the impl is for" },
 }
 
 // Parser-pass codes.

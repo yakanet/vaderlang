@@ -640,12 +640,20 @@ resolve_trait_args_for :: fn(t: Type, raw: Type[], typed: TypedProgram) -> Type[
         return out
     }
     if t is ArrayType {
-        // `T[] implements<T: Equals> Contains<T>` gives `i32[]` the argument `i32`.
-        out: Type[]: []
+        // `T[] implements<T: Equals> Contains<T>` gives `i32[]` the argument `i32`. The
+        // tables record a generic impl on arrays only on `T[]` (T3090) and with no
+        // other parameter (T3117), so every parameter its arguments name is the
+        // element.
+        bindings :: MutableMap<i32, Type> {}
         for a in raw {
-            out.push(substitute_array_element(a, t.element))
+            for param in type_params_in(a) {
+                bindings[param.id] = t.element
+            }
         }
-        return out
+        if bindings.is_empty() {
+            return raw
+        }
+        return substitute_each_map(raw, bindings)
     }
     return raw
 }
