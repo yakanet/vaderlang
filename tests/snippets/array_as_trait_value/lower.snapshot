@@ -1,0 +1,218 @@
+# Lower
+
+## snippet
+  snippet.Tile :: struct { id: i32 }  // snippet$Tile
+  snippet.Word :: struct { text: string }  // snippet$Word
+  snippet.Word.poke :: fn(self: Word) -> string {  // snippet$Word$Poke$poke
+      concat_2("word ", self.text)
+  }
+  snippet.Holder :: struct { item: Poke }  // snippet$Holder
+  snippet.show :: fn(p: Poke) -> string {  // snippet$show
+      @vcall(snippet.Poke.poke, p)
+  }
+  snippet.render :: fn(d: Display | null) -> string {  // snippet$render
+      if d is null {
+          return "none"
+      }
+      return @vcall(std.core.Display.to_string, Display(d))
+  }
+  snippet.as_poke :: fn(xs: string[]) -> Poke {  // snippet$as_poke
+      xs
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.io.println<string>(snippet.show([Tile { .id = 1 }] :Tile[]))
+      std.io.println<string>(snippet.show([1, 2, 3] :i32[]))
+      p: Poke = Word { .text = "w" }
+      std.io.println<string>(@vcall(snippet.Poke.poke, p))
+      p = ["a", "b"] :string[]
+      std.io.println<string>(@vcall(snippet.Poke.poke, p))
+      h: Holder = Holder { .item = [true] :bool[] }
+      std.io.println<string>(@vcall(snippet.Poke.poke, h.item))
+      std.io.println<string>(@vcall(snippet.Poke.poke, snippet.as_poke(["x"] :string[])))
+      std.io.println<string>(snippet.render(["u", "v"] :string[]))
+      pokes: Poke[] = [[1.5] :f64[], [2.5, 3.5] :f64[]] :Poke[]
+      {
+          __for_arr_0: Poke[] = pokes
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
+          for __for_i_2 < __for_len_1 {
+              each: Poke = __for_arr_0[__for_i_2]
+              std.io.println<string>(@vcall(snippet.Poke.poke, each))
+          } @step {
+              __for_i_2 = __for_i_2 +% i64(1)
+          }
+      }
+      pair: [Poke, i32] = [['c', 'd', 'e'] :char[], 7] :[Poke, i32]
+      std.io.println<string>({
+          __p_3: string = @vcall(snippet.Poke.poke, pair._0)
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_3))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, pair._1)
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      return 0
+  }
+  snippet.Tile[].poke :: fn(self: Tile[]) -> string {  // snippet$[]$Poke$poke__snippet_Tile
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "tiles ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, @array.len(self))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.string[].poke :: fn(self: string[]) -> string {  // snippet$[]$Poke$poke__string$1
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "array ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, @array.len(self))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.i32[].poke :: fn(self: i32[]) -> string {  // snippet$[]$Poke$poke__i32$1
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "array ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, @array.len(self))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.bool[].poke :: fn(self: bool[]) -> string {  // snippet$[]$Poke$poke__bool$1
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "array ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, @array.len(self))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.f64[].poke :: fn(self: f64[]) -> string {  // snippet$[]$Poke$poke__f64$1
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "array ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, @array.len(self))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.char[].poke :: fn(self: char[]) -> string {  // snippet$[]$Poke$poke__char$1
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "array ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, @array.len(self))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable snippet.Poke.poke for Tile[]  snippet.Tile[].poke  // snippet$[]$Poke$poke__snippet_Tile
+  vtable snippet.Poke.poke for Word  snippet.Word.poke  // snippet$Word$Poke$poke
+  vtable snippet.Poke.poke for bool[]  snippet.bool[].poke  // snippet$[]$Poke$poke__bool$1
+  vtable snippet.Poke.poke for char[]  snippet.char[].poke  // snippet$[]$Poke$poke__char$1
+  vtable snippet.Poke.poke for f64[]  snippet.f64[].poke  // snippet$[]$Poke$poke__f64$1
+  vtable snippet.Poke.poke for i32[]  snippet.i32[].poke  // snippet$[]$Poke$poke__i32$1
+  vtable snippet.Poke.poke for string[]  snippet.string[].poke  // snippet$[]$Poke$poke__string$1
+
+## lowered in dependencies
+  std/core
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
+    const FLOAT_POW5_INV_SPLIT: u64[]  data pool #2
+    const FLOAT_POW5_SPLIT: u64[]  data pool #3
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.b2u32  // std_core$b2u32
+    fn std.core.bool.to_string  // std_core$bool$Display$to_string
+    fn std.core.char.to_string  // std_core$char$Display$to_string
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.f2d  // std_core$f2d
+    fn std.core.f32.to_bits  // std_core$f32$Float32Bits$to_bits
+    fn std.core.f32.to_string  // std_core$f32$Display$to_string
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f32  // std_core$format_f32
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.format_signed  // std_core$format_signed
+    fn std.core.format_unsigned  // std_core$format_unsigned
+    fn std.core.i16.to_string  // std_core$i16$Display$to_string
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.i64.to_string  // std_core$i64$Display$to_string
+    fn std.core.i8.to_string  // std_core$i8$Display$to_string
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_pow5_div_pow2  // std_core$mul_pow5_div_pow2
+    fn std.core.mul_pow5_inv_div_pow2  // std_core$mul_pow5_inv_div_pow2
+    fn std.core.mul_shift_32  // std_core$mul_shift_32
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_2_32  // std_core$multiple_of_power_of_2_32
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.multiple_of_power_of_5_32  // std_core$multiple_of_power_of_5_32
+    fn std.core.null.to_string  // std_core$null$Display$to_string
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5_factor_32  // std_core$pow5_factor_32
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.string.to_string  // std_core$string$Display$to_string
+    fn std.core.string[].to_string  // std_core$[]$Display$to_string__string
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.u16.to_string  // std_core$u16$Display$to_string
+    fn std.core.u32.to_string  // std_core$u32$Display$to_string
+    fn std.core.u64.to_string  // std_core$u64$Display$to_string
+    fn std.core.u8.to_string  // std_core$u8$Display$to_string
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.utf8_encode  // std_core$utf8_encode
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Dec64  // std_core$Dec64
+    struct std.core.FloatDec32  // std_core$FloatDec32
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

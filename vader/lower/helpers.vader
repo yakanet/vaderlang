@@ -32,6 +32,7 @@ prepare_into :: fn(
 ) -> LoweredExpr {
     prepared :: recorded_conversion(ctx, node, .Into, expr, slot, span)
     observe_replacement(ctx, node, .Into, expr, prepared)
+    surface_array_into_trait(ctx, prepared.type, slot)
     return prepared
 }
 

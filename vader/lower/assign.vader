@@ -116,6 +116,7 @@ lower_assign_one :: fn(
     via_cell :: try_lower_cell_set_assign(ctx, target, value, span)
     if via_cell != null { return via_cell }
     place :: lower_assign_target(ctx, target)
+    surface_array_into_trait(ctx, value.type, place.type)
     return LoweredAssign {
         .span = span,
         .target = place,
@@ -135,6 +136,7 @@ try_lower_cell_set_assign :: fn(
             // The cell holds the binding as declared, whatever a narrowing says of it
             // where the write stands.
             declared :: declared_type_of_symbol(ctx, symbol) ?? value_type
+            surface_array_into_trait(ctx, value.type, declared)
             return LoweredCellSet {
                 .span = span,
                 .target = env_cell(ctx, symbol, target_ident.span, value_type),

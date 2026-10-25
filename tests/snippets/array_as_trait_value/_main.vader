@@ -1,0 +1,66 @@
+// An array that reaches a slot typed with a trait it implements is a value of
+// that trait, though nothing calls the trait's members on the array directly.
+// Covered slots: an argument, a typed local and its reassignment, a field, a
+// return value, a `Display | null`, an element of a `Poke[]` and of a tuple.
+module "snippet"
+
+import "std/io"
+
+Poke :: trait {
+    poke :: fn(self) -> string
+}
+
+Tile :: struct {
+    id: i32
+}
+
+Tile[] implements Poke {
+    poke :: fn(self) -> string = "tiles ${self.len()}"
+}
+
+T[] implements<T> Poke {
+    poke :: fn(self) -> string = "array ${self.len()}"
+}
+
+Word :: struct {
+    text: string
+}
+
+Word implements Poke {
+    poke :: fn(self) -> string = "word ${self.text}"
+}
+
+Holder :: struct {
+    item: Poke
+}
+
+show :: fn(p: Poke) -> string = p.poke()
+
+render :: fn(d: Display | null) -> string {
+    if d == null {
+        return "none"
+    }
+    return d.to_string()
+}
+
+as_poke :: fn(xs: string[]) -> Poke = xs
+
+main :: fn() -> i32 {
+    println(show([Tile { .id = 1 }]))
+    println(show([1, 2, 3]))
+    p: Poke = Word { .text = "w" }
+    println(p.poke())
+    p = ["a", "b"]
+    println(p.poke())
+    h :: Holder { .item = [true] }
+    println(h.item.poke())
+    println(as_poke(["x"]).poke())
+    println(render(["u", "v"]))
+    pokes: Poke[]: [[1.5], [2.5, 3.5]]
+    for each in pokes {
+        println(each.poke())
+    }
+    pair: [Poke, i32]: [['c', 'd', 'e'], 7]
+    println("${pair.0.poke()} ${pair.1}")
+    return 0
+}

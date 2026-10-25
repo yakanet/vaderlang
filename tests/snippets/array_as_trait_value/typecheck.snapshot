@@ -1,0 +1,103 @@
+# Typecheck
+
+## tests/snippets/array_as_trait_value
+  FnDecl         as_poke              :: fn(string[]) -> Poke
+  StructDecl     Holder               :: Holder
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Poke                 :: Poke
+  FnDecl         render               :: fn(Display | null) -> string
+  FnDecl         show                 :: fn(Poke) -> string
+  StructDecl     Tile                 :: Tile
+  StructDecl     Word                 :: Word
+  expr 18:34    StringLitExpr  :: string
+  expr 18:43    CallExpr       :: i64
+  expr 18:43    FieldExpr      :: fn() -> i64
+  expr 18:43    IdentExpr      :: Tile[]
+  expr 22:34    StringLitExpr  :: string
+  expr 22:43    CallExpr       :: i64
+  expr 22:43    FieldExpr      :: fn() -> i64
+  expr 22:43    IdentExpr      :: T[]
+  expr 30:34    StringLitExpr  :: string
+  expr 30:42    FieldExpr      :: string
+  expr 30:42    IdentExpr      :: Word
+  expr 37:33    CallExpr       :: string
+  expr 37:33    FieldExpr      :: fn() -> string
+  expr 37:33    IdentExpr      :: Poke
+  expr 40:5     IfExpr         :: void
+  expr 40:8     BinaryExpr     :: bool
+  expr 40:8     IdentExpr      :: Display | null
+  expr 41:16    StringLitExpr  :: string
+  expr 43:12    CallExpr       :: string
+  expr 43:12    FieldExpr      :: fn() -> string
+  expr 43:12    IdentExpr      :: Display
+  expr 46:39    IdentExpr      :: string[]
+  expr 49:13    CallExpr       :: string
+  expr 49:13    IdentExpr      :: fn(Poke) -> string
+  expr 49:18    SeqLitExpr     :: Tile[]
+  expr 49:19    StructLitExpr  :: Tile
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(T) -> void
+  expr 50:13    CallExpr       :: string
+  expr 50:13    IdentExpr      :: fn(Poke) -> string
+  expr 50:18    SeqLitExpr     :: i32[]
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 51:15    StructLitExpr  :: Word
+  expr 51:30    StringLitExpr  :: string
+  expr 52:13    CallExpr       :: string
+  expr 52:13    FieldExpr      :: fn() -> string
+  expr 52:13    IdentExpr      :: Poke
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
+  expr 53:10    StringLitExpr  :: string
+  expr 53:15    StringLitExpr  :: string
+  expr 53:5     IdentExpr      :: Poke
+  expr 53:9     SeqLitExpr     :: string[]
+  expr 54:13    CallExpr       :: string
+  expr 54:13    FieldExpr      :: fn() -> string
+  expr 54:13    IdentExpr      :: Poke
+  expr 54:5     CallExpr       :: void
+  expr 54:5     IdentExpr      :: fn(T) -> void
+  expr 55:10    StructLitExpr  :: Holder
+  expr 55:27    SeqLitExpr     :: bool[]
+  expr 56:13    CallExpr       :: string
+  expr 56:13    FieldExpr      :: Poke
+  expr 56:13    FieldExpr      :: fn() -> string
+  expr 56:13    IdentExpr      :: Holder
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(T) -> void
+  expr 57:13    CallExpr       :: Poke
+  expr 57:13    CallExpr       :: string
+  expr 57:13    FieldExpr      :: fn() -> string
+  expr 57:13    IdentExpr      :: fn(string[]) -> Poke
+  expr 57:21    SeqLitExpr     :: string[]
+  expr 57:22    StringLitExpr  :: string
+  expr 57:5     CallExpr       :: void
+  expr 57:5     IdentExpr      :: fn(T) -> void
+  expr 58:13    CallExpr       :: string
+  expr 58:13    IdentExpr      :: fn(Display | null) -> string
+  expr 58:20    SeqLitExpr     :: string[]
+  expr 58:21    StringLitExpr  :: string
+  expr 58:26    StringLitExpr  :: string
+  expr 58:5     CallExpr       :: void
+  expr 58:5     IdentExpr      :: fn(T) -> void
+  expr 59:20    SeqLitExpr     :: Poke[]
+  expr 59:21    SeqLitExpr     :: f64[]
+  expr 59:28    SeqLitExpr     :: f64[]
+  expr 60:17    IdentExpr      :: Poke[]
+  expr 61:17    CallExpr       :: string
+  expr 61:17    FieldExpr      :: fn() -> string
+  expr 61:17    IdentExpr      :: Poke
+  expr 61:9     CallExpr       :: void
+  expr 61:9     IdentExpr      :: fn(T) -> void
+  expr 63:24    SeqLitExpr     :: [Poke, i32]
+  expr 63:25    SeqLitExpr     :: char[]
+  expr 64:13    StringLitExpr  :: string
+  expr 64:16    CallExpr       :: string
+  expr 64:16    FieldExpr      :: Poke
+  expr 64:16    FieldExpr      :: fn() -> string
+  expr 64:16    IdentExpr      :: [Poke, i32]
+  expr 64:33    FieldExpr      :: i32
+  expr 64:33    IdentExpr      :: [Poke, i32]
+  expr 64:5     CallExpr       :: void
+  expr 64:5     IdentExpr      :: fn(T) -> void

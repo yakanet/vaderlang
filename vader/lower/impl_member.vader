@@ -296,12 +296,13 @@ impl_member_arg_types :: fn(
     return []
 }
 
-/// Materialise the member `method` of `trait_key` for every array variant of
-/// `receiver`, a union a virtual call dispatches on : an array impl's member is
-/// built only for the elements a call names (`array_member_uses`), and a union's
-/// array reaches it through the vtable alone.
+/// Materialise the member `method` of `trait_key` for `receiver` when it is an
+/// array, or for every array variant of a union : an array impl's member is built
+/// only for the elements a call names (`array_member_uses`), and an array a call
+/// does not name reaches it through the vtable alone.
 ///
-/// @param receiver   the virtual call's receiver type ; anything but a union is left.
+/// @param receiver   a virtual call's receiver type, or a value reaching a trait
+///                   slot ; anything without an array is left.
 /// @param trait_key  the trait the call dispatches through.
 /// @param method     the member it calls.
 surface_array_variants :: fn(
@@ -310,12 +311,31 @@ surface_array_variants :: fn(
     trait_key: string,
     method: string,
 ) -> void {
-    if receiver !is UnionType {
-        return
-    }
-    for v in receiver.variants {
+    for v in union_variants(receiver) ?? [receiver] {
         if v is ArrayType {
             resolve_impl_member(ctx, v, trait_key, method)
+        }
+    }
+}
+
+// An array that reaches a trait slot is dispatched through that trait's vtable,
+// which carries a row for the array only once each member is materialised for the
+// array's element type, as a direct call does (`resolve_impl_member`) :
+// `render(xs)` with `render :: fn(d: Display)` calls nothing on `xs` itself.
+surface_array_into_trait :: fn(ctx: FnLowerCtx, value: Type, slot: Type) -> void {
+    if slot !is TraitType && slot !is UnionType {
+        return
+    }
+    if value !is ArrayType && value !is UnionType {
+        return
+    }
+    for wanted in union_variants(slot) ?? [slot] {
+        if wanted is TraitType {
+            trait_decl :: ctx.typed.trait_decls[wanted.symbol.id] ?? continue
+            trait_key :: trait_key_of(wanted.symbol)
+            for m in trait_decl.members {
+                surface_array_variants(ctx, value, trait_key, m.name)
+            }
         }
     }
 }
