@@ -166,6 +166,40 @@
       },
       {
         "kind": "FnDecl",
+        "name": "root_of_fifty",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "square_root_floor"
+            },
+            "args": [
+              {
+                "name": null,
+                "value": {
+                  "kind": "IntLitExpr",
+                  "value": "50n"
+                },
+                "spread": false
+              }
+            ]
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "FnDecl",
         "name": "__comptime_ORIGIN",
         "visibility": "private",
         "typeParams": [],
@@ -345,29 +379,234 @@
         ]
       },
       {
+        "kind": "FnDecl",
+        "name": "__comptime_ANSWER",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "BinaryExpr",
+            "op": "mul",
+            "left": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IntLitExpr",
+                "value": "40n"
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "2n"
+              }
+            },
+            "right": {
+              "kind": "IntLitExpr",
+              "value": "1n"
+            }
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
         "kind": "ConstDecl",
         "name": "ANSWER",
         "visibility": "private",
         "type": null,
         "value": {
-          "kind": "BinaryExpr",
-          "op": "mul",
-          "left": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_ANSWER"
+          },
+          "args": []
+        },
+        "decorators": [
+          {
+            "name": "comptime",
+            "args": []
+          }
+        ]
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_NEXT_ROOT",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
             "kind": "BinaryExpr",
             "op": "add",
             "left": {
-              "kind": "IntLitExpr",
-              "value": "40n"
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "root_of_fifty"
+              },
+              "args": []
             },
             "right": {
               "kind": "IntLitExpr",
-              "value": "2n"
+              "value": "1n"
             }
-          },
-          "right": {
-            "kind": "IntLitExpr",
-            "value": "1n"
           }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "NEXT_ROOT",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_NEXT_ROOT"
+          },
+          "args": []
+        },
+        "decorators": [
+          {
+            "name": "comptime",
+            "args": []
+          }
+        ]
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_ROOT_TEXT",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "StringLitExpr",
+            "parts": [
+              {
+                "kind": "text",
+                "value": "root "
+              },
+              {
+                "kind": "interp",
+                "expr": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "root_of_fifty"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "ROOT_TEXT",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_ROOT_TEXT"
+          },
+          "args": []
+        },
+        "decorators": [
+          {
+            "name": "comptime",
+            "args": []
+          }
+        ]
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_ROOT_SIZE",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "IfExpr",
+            "cond": {
+              "kind": "BinaryExpr",
+              "op": "gt",
+              "left": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "root_of_fifty"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "5n"
+              }
+            },
+            "then": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "big"
+                  }
+                ]
+              }
+            },
+            "else": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "small"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "ROOT_SIZE",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_ROOT_SIZE"
+          },
+          "args": []
         },
         "decorators": [
           {
@@ -517,6 +756,56 @@
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "ANSWER"
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IdentExpr",
+                            "name": "NEXT_ROOT"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IdentExpr",
+                            "name": "ROOT_TEXT"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IdentExpr",
+                            "name": "ROOT_SIZE"
                           }
                         }
                       ]

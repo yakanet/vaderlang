@@ -1,0 +1,62 @@
+// A `@comptime` value may read one the comptime VM computes, whatever the order
+// of the declarations and whichever module declares it: `SUM` reads `ROOT`, whose
+// function holds a loop, `TWICE`, declared first, reads `SUM`, and `FROM_LIB`
+// reads two constants of `snippet/lib`. Two constants named `LIMIT`, one per
+// module, keep their own values, and `TALLY` calls a function imported under
+// another name. A pair nothing reads at run time is never computed, and is no
+// error.
+module "snippet"
+
+import "snippet/lib" { cube_total as tally }
+import "std/io"
+
+root_of_fifty :: fn() -> i32 {
+    r := 0
+    for i in 0..<50 {
+        if i * i <= 50 {
+            r = i
+        }
+    }
+    return r
+}
+
+count_to_ten :: fn() -> i32 {
+    n := 0
+    for _ in 0..<10 {
+        n += 1
+    }
+    return n
+}
+
+@comptime
+TWICE :: SUM * 2
+
+@comptime
+ROOT :: root_of_fifty()
+
+@comptime
+SUM :: ROOT + 1
+
+@comptime
+FROM_LIB :: CUBES + BASE
+
+@comptime
+LIMIT :: root_of_fifty() * 10
+
+@comptime
+TALLY :: tally()
+
+// Kept unused on purpose: neither value is needed.
+@allow_unused
+@comptime
+SPARE_ROOT :: count_to_ten()
+
+@allow_unused
+@comptime
+SPARE :: SPARE_ROOT + 1
+
+main :: fn() -> i32 {
+    println("${ROOT} ${SUM} ${TWICE} ${FROM_LIB}")
+    println("${LIMIT} ${lib_limit()} ${TALLY}")
+    return 0
+}

@@ -58,29 +58,51 @@
         "decorators": []
       },
       {
+        "kind": "FnDecl",
+        "name": "__comptime_ANSWER",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "BinaryExpr",
+            "op": "mul",
+            "left": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IntLitExpr",
+                "value": "40n"
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "2n"
+              }
+            },
+            "right": {
+              "kind": "IntLitExpr",
+              "value": "1n"
+            }
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
         "kind": "ConstDecl",
         "name": "ANSWER",
         "visibility": "public",
         "type": null,
         "value": {
-          "kind": "BinaryExpr",
-          "op": "mul",
-          "left": {
-            "kind": "BinaryExpr",
-            "op": "add",
-            "left": {
-              "kind": "IntLitExpr",
-              "value": "40n"
-            },
-            "right": {
-              "kind": "IntLitExpr",
-              "value": "2n"
-            }
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_ANSWER"
           },
-          "right": {
-            "kind": "IntLitExpr",
-            "value": "1n"
-          }
+          "args": []
         },
         "decorators": [
           {
@@ -90,31 +112,53 @@
         ]
       },
       {
+        "kind": "FnDecl",
+        "name": "__comptime_GREETING",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "BinaryExpr",
+            "op": "add",
+            "left": {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "hello, "
+                }
+              ]
+            },
+            "right": {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "world"
+                }
+              ]
+            }
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
         "kind": "ConstDecl",
         "name": "GREETING",
         "visibility": "public",
         "type": null,
         "value": {
-          "kind": "BinaryExpr",
-          "op": "add",
-          "left": {
-            "kind": "StringLitExpr",
-            "parts": [
-              {
-                "kind": "text",
-                "value": "hello, "
-              }
-            ]
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_GREETING"
           },
-          "right": {
-            "kind": "StringLitExpr",
-            "parts": [
-              {
-                "kind": "text",
-                "value": "world"
-              }
-            ]
-          }
+          "args": []
         },
         "decorators": [
           {

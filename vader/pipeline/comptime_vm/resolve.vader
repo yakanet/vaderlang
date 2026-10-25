@@ -108,7 +108,7 @@ evaluate_layer :: fn(
     lowered: Ct.VmRequiredDecl[]: []
     callees: string[]: []
     for vr in pending {
-        callee :: callee_mangle(module, vr.callee_name) ?? continue
+        callee :: staged_callee(cfg, module, vr.callee_decl_id) ?? continue
         lowered.push(vr)
         callees.push(callee)
     }
@@ -247,14 +247,14 @@ stage_to_cfg :: fn(
     return build_optimised_cfg(pruned, passes, diags)
 }
 
-// The lowered fn whose mangled name ends in `$<callee_name>`, null when absent
-// (the fn wasn't lowered → its const is unused). MVP: a bare suffix match ;
-// unambiguous for the nullary in-module helpers this path targets.
-callee_mangle :: fn(module: BytecodeModule, callee_name: string) -> string | null {
-    suffix :: "\$${callee_name}"
-    for f in module.functions {
-        if f.name.ends_with(suffix) {
-            return f.name
+// The mangle of the function declared by the node `decl_id`, null when the staged
+// `module` does not hold it (nothing reads its const).
+staged_callee :: fn(cfg: CFGProject, module: BytecodeModule, decl_id: i64) -> string | null {
+    for [_, m] in cfg.modules {
+        for f in m.functions {
+            if f.origin.decl.id == decl_id && module.functions.any_match((g) -> g.name == f.mangled) {
+                return f.mangled
+            }
         }
     }
     return null

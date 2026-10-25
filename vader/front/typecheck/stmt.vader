@@ -212,7 +212,7 @@ check_fn_body :: fn(
         // ness. Surface T3034 instead.
         if type_contains_unresolved(got) {
             diags.push(
-                typecheck_error(.RecursiveExprBodiedFn, fn_decl.name_span, "`${fn_decl.name}`"),
+                typecheck_error(.RecursiveExprBodiedFn, fn_decl.name_span, recursion_detail(fn_decl)),
             )
         } else {
             defaulted :: default_free_members(got)
@@ -252,6 +252,15 @@ check_fn_body :: fn(
         }
     }
     typed.current_fn_ctx = prev
+}
+
+// What T3034 names : the fn, or for the helper the parser synthesised from a
+// `@comptime` constant, which nobody wrote, the constant its span points at.
+recursion_detail :: fn(fn_decl: AST.FnDecl) -> string {
+    if fn_decl.comptime_synthetic {
+        return "the `@comptime` value reads itself; give the constant a type"
+    }
+    return "`${fn_decl.name}`"
 }
 
 patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) -> void {

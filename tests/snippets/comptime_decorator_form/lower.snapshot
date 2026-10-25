@@ -3,8 +3,11 @@
 ## snippet
   storage
     const ANSWER: i32  inline
+    const NEXT_ROOT: i32  inline
     const ORIGIN: Point  data pool #0, element 0
     const ROOT: i32  inline
+    const ROOT_SIZE: string  inline
+    const ROOT_TEXT: string  inline
     const WIDE_ROOT: i64  inline
   snippet.Point :: struct { x: i32, y: i32, label: string }  // snippet$Point
   snippet.square_root_floor :: fn(n: i32) -> i32 {  // snippet$square_root_floor
@@ -21,6 +24,9 @@
       }
       return root
   }
+  snippet.root_of_fifty :: fn() -> i32 {  // snippet$root_of_fifty
+      snippet.square_root_floor(50)
+  }
   snippet.__comptime_ORIGIN :: fn() -> Point {  // snippet$__comptime_ORIGIN
       Point {
           .x = 0,
@@ -36,7 +42,28 @@
       snippet.square_root_floor(99)
   }
   snippet.WIDE_ROOT: i64: 9  // snippet$WIDE_ROOT
+  snippet.__comptime_ANSWER :: fn() -> i32 {  // snippet$__comptime_ANSWER
+      (40 + 2) * 1
+  }
   snippet.ANSWER: i32: 42  // snippet$ANSWER
+  snippet.__comptime_NEXT_ROOT :: fn() -> i32 {  // snippet$__comptime_NEXT_ROOT
+      snippet.root_of_fifty() + 1
+  }
+  snippet.NEXT_ROOT: i32: 8  // snippet$NEXT_ROOT
+  snippet.__comptime_ROOT_TEXT :: fn() -> string {  // snippet$__comptime_ROOT_TEXT
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "root ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.root_of_fifty())
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.ROOT_TEXT: string: "root 7"  // snippet$ROOT_TEXT
+  snippet.__comptime_ROOT_SIZE :: fn() -> string {  // snippet$__comptime_ROOT_SIZE
+      if snippet.root_of_fifty() > 5 { "big" } else { "small" } :string
+  }
+  snippet.ROOT_SIZE: string: "big"  // snippet$ROOT_SIZE
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<string>({
           __p_0: string = snippet.ORIGIN.label
@@ -64,6 +91,18 @@
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "answer ")
           __off_6 = std.core.write_int(__buf_5, __off_6, 42)
           std.core.finish_buffer(__buf_5, __off_6)
+      } :string)
+      std.io.println<string>({
+          __p_7: string = "root 7"
+          __p_8: string = "big"
+          __buf_9: Buffer = std.core.new_byte_buffer(i64(22) +% (std.core.byte_len(__p_7) +% std.core.byte_len(__p_8)))
+          __off_10: i64 = 0
+          __off_10 = std.core.write_int(__buf_9, __off_10, 8)
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_7)
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_8)
+          std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       return 0
   }

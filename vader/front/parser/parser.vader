@@ -1741,25 +1741,61 @@ through_comptime_helper :: fn(
 }
 
 // The span of the `@comptime` decorating a const whose `value` needs a helper
-// (`through_comptime_helper`): one that calls a function with arguments or builds
-// a struct, which the evaluator leaves to the comptime VM. Null for any other
-// const ; a call without arguments is run as it stands, and an expression over
-// literals and constants is folded directly, its dependency cycles reported.
+// (`through_comptime_helper`), so that the comptime VM can run it when the
+// evaluator cannot fold it. Null for any other const ; a call without arguments
+// is run as it stands, and a value shaped like a type stays as written : under
+// `@comptime` it may declare a type alias, which only the resolver tells apart
+// from a constant.
 comptime_helper_marker :: fn(decorators: Decorator[], value: Expr) -> Span | null {
-    if value is CallExpr && value.args.len() == 0 {
+    if is_bare_nullary_call(value) {
         return null
     }
     comptime :: find_decorator(decorators, "comptime") ?? return null
-    if inspect(value, stop_at_vm_shape) {
-        return comptime.span
+    if has_type_shape(value) {
+        return null
     }
-    return null
+    return comptime.span
 }
 
-stop_at_vm_shape :: fn(n: Node) -> Walk {
-    if n is StructLitExpr                { return .Stop }
-    if n is CallExpr && n.args.len() > 0 { return .Stop }
-    return .Descend
+// `f()`, the call the comptime VM runs as it stands (`build_vm_required` in
+// `vader/front/comptime/check.vader`).
+is_bare_nullary_call :: fn(e: Expr) -> bool =
+    e is CallExpr && e.args.len() == 0 && e.callee is IdentExpr
+
+// Whether `e` may be a type expression : the shapes of `is_type_expr`
+// (`vader/front/typecheck/type_expr.vader`), any name or `Ns.member` counted, as
+// the parser cannot tell a type from a constant.
+// @partial: every other expression computes a value.
+has_type_shape :: fn(e: Expr) -> bool = @partial match e {
+    is IdentExpr | FnTypeExpr | ArrayTypeExpr -> true
+    is FieldExpr -> e.target is IdentExpr
+    is GenericInstExpr -> has_type_shape(e.callee)
+    is BinaryExpr -> is_type_operator(e)
+    is SeqLitExpr -> is_tuple_type(e.elements)
+    _ -> false
+}
+
+// A range type `Int in 0..=23`, or a union `A | B`, `null` among its operands.
+is_type_operator :: fn(e: BinaryExpr) -> bool {
+    if e.op == .In {
+        return has_type_shape(e.left)
+    }
+    return e.op == .BitOr && is_type_union_operand(e.left) && is_type_union_operand(e.right)
+}
+
+is_type_union_operand :: fn(e: Expr) -> bool = e is NullLitExpr || has_type_shape(e)
+
+// A tuple type `[A, B]` : two elements or more, each a type.
+is_tuple_type :: fn(elements: Expr[]) -> bool {
+    if elements.len() < 2 {
+        return false
+    }
+    for element in elements {
+        if !has_type_shape(element) {
+            return false
+        }
+    }
+    return true
 }
 
 // When a `@comptime { … }` block ends in `return <e>` and has no trailing

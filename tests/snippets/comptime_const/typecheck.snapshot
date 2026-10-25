@@ -1,6 +1,8 @@
 # Typecheck
 
 ## tests/snippets/comptime_const
+  FnDecl         __comptime_ANSWER    :: fn() -> i32
+  FnDecl         __comptime_GREETING  :: fn() -> string
   FnDecl         __comptime_NINE      :: fn() -> i32
   ConstDecl      ANSWER               :: i32
   ConstDecl      GREETING             :: string
@@ -10,11 +12,15 @@
   expr 10:12    BinaryExpr     :: i32
   expr 10:12    IdentExpr      :: i32
   expr 10:16    IdentExpr      :: i32
-  expr 14:19    BinaryExpr     :: {integer}
-  expr 14:19    BinaryExpr     :: {integer}
+  expr 13:1     CallExpr       :: i32
+  expr 14:19    BinaryExpr     :: i32
+  expr 14:19    BinaryExpr     :: i32
+  expr 14:8     IdentExpr      :: fn() -> i32
+  expr 16:1     CallExpr       :: string
   expr 17:20    BinaryExpr     :: string
   expr 17:20    StringLitExpr  :: string
   expr 17:32    StringLitExpr  :: string
+  expr 17:8     IdentExpr      :: fn() -> string
   expr 19:1     CallExpr       :: i32
   expr 20:16    CallExpr       :: i32
   expr 20:16    IdentExpr      :: fn(i32) -> i32

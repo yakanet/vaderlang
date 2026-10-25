@@ -7,33 +7,55 @@
     },
     "decls": [
       {
+        "kind": "FnDecl",
+        "name": "__comptime_GREETING",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "StringLitExpr",
+            "parts": [
+              {
+                "kind": "text",
+                "value": "Hello, "
+              },
+              {
+                "kind": "interp",
+                "expr": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "name"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "kind": "text",
+                "value": "!"
+              }
+            ]
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
         "kind": "ConstDecl",
         "name": "GREETING",
         "visibility": "public",
         "type": null,
         "value": {
-          "kind": "StringLitExpr",
-          "parts": [
-            {
-              "kind": "text",
-              "value": "Hello, "
-            },
-            {
-              "kind": "interp",
-              "expr": {
-                "kind": "CallExpr",
-                "callee": {
-                  "kind": "IdentExpr",
-                  "name": "name"
-                },
-                "args": []
-              }
-            },
-            {
-              "kind": "text",
-              "value": "!"
-            }
-          ]
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_GREETING"
+          },
+          "args": []
         },
         "decorators": [
           {

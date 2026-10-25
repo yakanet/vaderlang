@@ -5,8 +5,17 @@
     const A: i32  inline
     const B: i32  inline
     const C: i32  inline
+  snippet.__comptime_A :: fn() -> i32 {  // snippet$__comptime_A
+      10
+  }
   snippet.A: i32: 10  // snippet$A
+  snippet.__comptime_B :: fn() -> i32 {  // snippet$__comptime_B
+      10 * 2
+  }
   snippet.B: i32: 20  // snippet$B
+  snippet.__comptime_C :: fn() -> i32 {  // snippet$__comptime_C
+      10 + 20
+  }
   snippet.C: i32: 30  // snippet$C
   snippet.main :: fn() -> i32 {  // snippet$main
       return 30

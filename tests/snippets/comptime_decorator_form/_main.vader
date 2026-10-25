@@ -1,7 +1,8 @@
 // `@comptime` written above a constant evaluates what the `NAME :: @comptime
-// <expr>` form does: a value that calls a function with arguments or builds a
-// struct runs on the comptime VM, through the same helper. An expression over
-// literals and constants is folded directly.
+// <expr>` form does, through the same helper: a value the evaluator cannot fold
+// (a struct, a call with arguments, an expression over a call that loops) runs on
+// the comptime VM, and an expression over literals and constants is folded
+// directly.
 module "snippet"
 
 import "std/io"
@@ -22,6 +23,8 @@ square_root_floor :: fn(n: i32) -> i32 {
     return root
 }
 
+root_of_fifty :: fn() -> i32 = square_root_floor(50)
+
 @comptime
 ORIGIN :: Point { .x = 0, .y = 0, .label = "origin" }
 
@@ -34,9 +37,19 @@ WIDE_ROOT: i64: square_root_floor(99)
 @comptime
 ANSWER :: (40 + 2) * 1
 
+@comptime
+NEXT_ROOT :: root_of_fifty() + 1
+
+@comptime
+ROOT_TEXT :: "root ${root_of_fifty()}"
+
+@comptime
+ROOT_SIZE :: if root_of_fifty() > 5 { "big" } else { "small" }
+
 main :: fn() -> i32 {
     println("${ORIGIN.label} ${ORIGIN.x} ${ORIGIN.y}")
     println("roots ${ROOT} ${WIDE_ROOT}")
     println("answer ${ANSWER}")
+    println("${NEXT_ROOT} ${ROOT_TEXT} ${ROOT_SIZE}")
     return 0
 }

@@ -12,9 +12,11 @@ type 9 array 3
 string 0 " "
 string 1 "roots "
 string 2 "answer "
-string 3 "\n"
-string 4 "origin"
-data 0 structs 3 3 1 i32 00000000 i32 00000000 strref 4
+string 3 "root 7"
+string 4 "big"
+string 5 "\n"
+string 6 "origin"
+data 0 structs 3 3 1 i32 00000000 i32 00000000 strref 6
 import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=1,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
@@ -26,6 +28,7 @@ fn 0 snippet$main () -> i32
   local $call_6 i64
   local __buf_1 ref
   local $cast_19 i64
+  local __p_8 string
   data.const 0 9   ; pool[0] snippet$Point[]
   i64.const 0
   array.get 9   ; snippet$Point[]
@@ -127,6 +130,56 @@ fn 0 snippet$main () -> i32
   local.get 1   ; $call_6
   i64.const 42
   call 4   ; std_core$write_int
+  local.set 1   ; $call_6
+  local.get 2   ; __buf_1
+  local.get 1   ; $call_6
+  call 2   ; std_core$finish_buffer
+  call 7   ; std_io$println__string
+  string.const 3   ; "root 7"
+  local.set 0   ; __p_0
+  string.const 4   ; "big"
+  local.set 4   ; __p_8
+  local.get 0   ; __p_0
+  call.import 0   ; std_core$byte_len
+  local.set 1   ; $call_6
+  local.get 4   ; __p_8
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $cast_19
+  local.get 1   ; $call_6
+  local.get 3   ; $cast_19
+  i64.add
+  local.set 1   ; $call_6
+  i64.const 22
+  local.get 1   ; $call_6
+  i64.add
+  buffer.new
+  local.set 2   ; __buf_1
+  i64.const 0
+  local.set 1   ; $call_6
+  local.get 2   ; __buf_1
+  local.get 1   ; $call_6
+  i64.const 8
+  call 4   ; std_core$write_int
+  local.set 1   ; $call_6
+  local.get 2   ; __buf_1
+  local.get 1   ; $call_6
+  string.const 0   ; " "
+  call 3   ; std_core$write_string_at
+  local.set 1   ; $call_6
+  local.get 2   ; __buf_1
+  local.get 1   ; $call_6
+  local.get 0   ; __p_0
+  call 3   ; std_core$write_string_at
+  local.set 1   ; $call_6
+  local.get 2   ; __buf_1
+  local.get 1   ; $call_6
+  string.const 0   ; " "
+  call 3   ; std_core$write_string_at
+  local.set 1   ; $call_6
+  local.get 2   ; __buf_1
+  local.get 1   ; $call_6
+  local.get 4   ; __p_8
+  call 3   ; std_core$write_string_at
   local.set 1   ; $call_6
   local.get 2   ; __buf_1
   local.get 1   ; $call_6
@@ -379,7 +432,7 @@ end
 fn 7 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 3   ; "\n"
+  string.const 5   ; "\n"
   call 1   ; concat_2
   local.set 1   ; $call_3
   i32.const 0

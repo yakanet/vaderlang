@@ -1,6 +1,9 @@
 # Typecheck
 
 ## tests/snippets/cross_decl
+  FnDecl         __comptime_A         :: fn() -> i32
+  FnDecl         __comptime_B         :: fn() -> i32
+  FnDecl         __comptime_C         :: fn() -> i32
   ConstDecl      A                    :: i32
   ConstDecl      B                    :: i32
   ConstDecl      C                    :: i32
@@ -8,6 +11,12 @@
   expr 10:13    BinaryExpr     :: i32
   expr 10:13    IdentExpr      :: i32
   expr 10:17    IdentExpr      :: i32
+  expr 10:8     IdentExpr      :: fn() -> i32
   expr 13:12    IdentExpr      :: i32
+  expr 3:1      CallExpr       :: i32
+  expr 4:8      IdentExpr      :: fn() -> i32
+  expr 6:1      CallExpr       :: i32
   expr 7:13     BinaryExpr     :: i32
   expr 7:13     IdentExpr      :: i32
+  expr 7:8      IdentExpr      :: fn() -> i32
+  expr 9:1      CallExpr       :: i32

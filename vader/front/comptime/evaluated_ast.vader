@@ -22,15 +22,17 @@ import "toolchain/span"
 /// stages the decl's callee to bytecode, executes it, bridges the result and
 /// injects it into the owning module's `comptime_decls`.
 ///
-/// Scope (V1): the decl RHS must be a nullary call `f()` — `callee_name` is `f`.
+/// Scope (V1): the decl RHS must be a nullary call `f()`.
 export VmRequiredDecl :: struct {
     /// Symbol id of the comptime const — where the bridged value is injected.
     symbol_id:   i32
     /// Canonical module path owning the const (keys `EvaluatedProject.modules`
     /// / `TypedProject.modules`). Used to mangle the callee + locate the program.
     module_id:   string
-    /// Name of the nullary callee fn to execute (e.g. `build_md5_k`).
-    callee_name: string
+    /// Node id of the declaration of the nullary callee fn to execute, as the
+    /// typecheck recorded the call: the staged function whose origin it is runs,
+    /// whichever module declares it (`pipeline/comptime_vm/resolve.vader`).
+    callee_decl_id: i64
     /// Typechecker-resolved type of the const — drives the `Value`→`ComptimeValue`
     /// bridge (scalar widths, array element name).
     decl_type:   Type

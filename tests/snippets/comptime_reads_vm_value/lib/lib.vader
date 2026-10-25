@@ -1,0 +1,28 @@
+// The constants `../_main.vader` reads from another module: one the comptime VM
+// computes, one folded directly. `LIMIT` shares its name with a constant of
+// `../_main.vader`, and each is computed by its own function.
+
+module "snippet/lib"
+
+cubes_below_hundred :: fn() -> i32 {
+    count := 0
+    for i in 0..<100 {
+        if i * i * i < 100 {
+            count += 1
+        }
+    }
+    return count
+}
+
+@comptime
+export CUBES :: cubes_below_hundred()
+
+@comptime
+export BASE :: 6
+
+@comptime
+LIMIT :: cubes_below_hundred() * 2
+
+export lib_limit :: fn() -> i32 = LIMIT
+
+export cube_total :: fn() -> i32 = cubes_below_hundred()

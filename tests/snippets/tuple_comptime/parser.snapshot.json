@@ -15,6 +15,45 @@
         "decorators": []
       },
       {
+        "kind": "FnDecl",
+        "name": "__comptime_DIM",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "SeqLitExpr",
+          "elements": [
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "SeqLitExpr",
+            "elements": [
+              {
+                "kind": "IntLitExpr",
+                "value": "10n"
+              },
+              {
+                "kind": "IntLitExpr",
+                "value": "20n"
+              }
+            ]
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
         "kind": "ConstDecl",
         "name": "DIM",
         "visibility": "private",
@@ -32,17 +71,12 @@
           ]
         },
         "value": {
-          "kind": "SeqLitExpr",
-          "elements": [
-            {
-              "kind": "IntLitExpr",
-              "value": "10n"
-            },
-            {
-              "kind": "IntLitExpr",
-              "value": "20n"
-            }
-          ]
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_DIM"
+          },
+          "args": []
         },
         "decorators": [
           {
@@ -50,6 +84,58 @@
             "args": []
           }
         ]
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_ORIGIN",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "SeqLitExpr",
+          "elements": [
+            {
+              "kind": "IdentExpr",
+              "name": "f64"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "f64"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "string"
+            }
+          ]
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "SeqLitExpr",
+            "elements": [
+              {
+                "kind": "FloatLitExpr",
+                "value": 0
+              },
+              {
+                "kind": "FloatLitExpr",
+                "value": 0
+              },
+              {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "origin"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "ConstDecl",
@@ -73,26 +159,12 @@
           ]
         },
         "value": {
-          "kind": "SeqLitExpr",
-          "elements": [
-            {
-              "kind": "FloatLitExpr",
-              "value": 0
-            },
-            {
-              "kind": "FloatLitExpr",
-              "value": 0
-            },
-            {
-              "kind": "StringLitExpr",
-              "parts": [
-                {
-                  "kind": "text",
-                  "value": "origin"
-                }
-              ]
-            }
-          ]
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_ORIGIN"
+          },
+          "args": []
         },
         "decorators": [
           {

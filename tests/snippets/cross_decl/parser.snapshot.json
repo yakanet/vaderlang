@@ -7,13 +7,35 @@
     },
     "decls": [
       {
+        "kind": "FnDecl",
+        "name": "__comptime_A",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "IntLitExpr",
+            "value": "10n"
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
         "kind": "ConstDecl",
         "name": "A",
         "visibility": "public",
         "type": null,
         "value": {
-          "kind": "IntLitExpr",
-          "value": "10n"
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_A"
+          },
+          "args": []
         },
         "decorators": [
           {
@@ -21,6 +43,32 @@
             "args": []
           }
         ]
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_B",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "BinaryExpr",
+            "op": "mul",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "A"
+            },
+            "right": {
+              "kind": "IntLitExpr",
+              "value": "2n"
+            }
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "ConstDecl",
@@ -28,16 +76,12 @@
         "visibility": "public",
         "type": null,
         "value": {
-          "kind": "BinaryExpr",
-          "op": "mul",
-          "left": {
+          "kind": "CallExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "A"
+            "name": "__comptime_B"
           },
-          "right": {
-            "kind": "IntLitExpr",
-            "value": "2n"
-          }
+          "args": []
         },
         "decorators": [
           {
@@ -47,21 +91,43 @@
         ]
       },
       {
+        "kind": "FnDecl",
+        "name": "__comptime_C",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "BinaryExpr",
+            "op": "add",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "A"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "B"
+            }
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
         "kind": "ConstDecl",
         "name": "C",
         "visibility": "public",
         "type": null,
         "value": {
-          "kind": "BinaryExpr",
-          "op": "add",
-          "left": {
+          "kind": "CallExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "A"
+            "name": "__comptime_C"
           },
-          "right": {
-            "kind": "IdentExpr",
-            "name": "B"
-          }
+          "args": []
         },
         "decorators": [
           {

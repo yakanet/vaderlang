@@ -1,6 +1,8 @@
 # Typecheck
 
 ## tests/snippets/tuple_comptime
+  FnDecl         __comptime_DIM       :: fn() -> [i32, i32]
+  FnDecl         __comptime_ORIGIN    :: fn() -> [f64, f64, string]
   ConstDecl      DIM                  :: [i32, i32]
   ConstDecl      FAR                  :: i64
   FnDecl         main                 :: fn() -> i32
@@ -8,7 +10,11 @@
   ConstDecl      REACH                :: Reach
   ConstDecl      Reach                :: type
   ConstDecl      SPAN                 :: [i64, i32]
+  expr 14:1     CallExpr       :: [i32, i32]
+  expr 15:1     IdentExpr      :: fn() -> [i32, i32]
   expr 15:20    SeqLitExpr     :: [i32, i32]
+  expr 17:1     CallExpr       :: [f64, f64, string]
+  expr 18:1     IdentExpr      :: fn() -> [f64, f64, string]
   expr 18:31    SeqLitExpr     :: [f64, f64, string]
   expr 18:42    StringLitExpr  :: string
   expr 22:19    SeqLitExpr     :: [i64, i32]

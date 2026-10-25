@@ -18,23 +18,32 @@ struct vader_struct_std_core_Buffer_t {
 };
 
 /* Compile-time atom table. */
-static const char vader_atom_blob[] = " " "\0" "roots " "\0" "answer " "\0" "\n" "\0" "origin" "\0";
+static const char vader_atom_blob[] =
+    " " "\0"
+    "roots " "\0"
+    "answer " "\0"
+    "root 7" "\0"
+    "big" "\0"
+    "\n" "\0"
+    "origin" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
     { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[2] },
     { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[9] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 5u
+#define VADER_COMPTIME_ATOM_COUNT 7u
 
 /* Comptime data pool — read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_snippet_Point_t vader_data_0_e0 = {
-    { 3u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(0), (int32_t) UINT64_C(0), 5u,
+    { 3u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(0), (int32_t) UINT64_C(0), 7u,
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_0_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 3u, 0u, { 0u, 0u, 0u },
@@ -101,15 +110,16 @@ static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a
 
 static int32_t snippet_main(void) {
     vader_string_t l0 = 0;
+    vader_string_t l4 = 0;
     int64_t l1, l3;
     void* l2 = NULL;
     void* t0 = NULL;
     int32_t t1;
     vader_string_t t2 = 0;
     void** gc_raw_roots[2] = { &l2, &t0 };
-    vader_string_t* gc_atom_roots[2] = { &l0, &t2 };
+    vader_string_t* gc_atom_roots[3] = { &l0, &l4, &t2 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     t0 = (void*) &vader_data_0;
@@ -151,6 +161,20 @@ static int32_t snippet_main(void) {
     l1 = INT64_C(0);
     l1 = std_core_write_string_at(l2, l1, 3u);
     l1 = std_core_write_int(l2, l1, INT64_C(42));
+    t2 = std_core_finish_buffer(l2, l1);
+    std_io_println__string(t2);
+    l0 = 4u;
+    l4 = 5u;
+    l1 = vader_host_std_core_byte_len(l0);
+    l3 = vader_host_std_core_byte_len(l4);
+    l1 = (l1 + l3);
+    l2 = (void*) vader_buffer_new((size_t) (INT64_C(22) + l1));
+    l1 = INT64_C(0);
+    l1 = std_core_write_int(l2, l1, INT64_C(8));
+    l1 = std_core_write_string_at(l2, l1, 1u);
+    l1 = std_core_write_string_at(l2, l1, l0);
+    l1 = std_core_write_string_at(l2, l1, 1u);
+    l1 = std_core_write_string_at(l2, l1, l4);
     t2 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t2);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
@@ -295,7 +319,7 @@ static void std_io_println__string(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l1 = concat_2(l0, 4u);
+    l1 = concat_2(l0, 6u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }

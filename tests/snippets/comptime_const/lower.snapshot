@@ -8,7 +8,13 @@
   snippet.square :: fn(x: i32) -> i32 {  // snippet$square
       return x * x
   }
+  snippet.__comptime_ANSWER :: fn() -> i32 {  // snippet$__comptime_ANSWER
+      (40 + 2) * 1
+  }
   snippet.ANSWER: i32: 42  // snippet$ANSWER
+  snippet.__comptime_GREETING :: fn() -> string {  // snippet$__comptime_GREETING
+      "hello, world"
+  }
   snippet.GREETING: string: "hello, world"  // snippet$GREETING
   snippet.__comptime_NINE :: fn() -> i32 {  // snippet$__comptime_NINE
       snippet.square(3)

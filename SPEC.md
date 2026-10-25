@@ -3408,7 +3408,7 @@ SQUARES: u32[]: @comptime { … }
 
 `NAME :: @comptime <expr>` desugars to a synthetic nullary fn holding `<expr>` plus a `@comptime`-decorated `NAME` that calls it ; a trailing `return` inside a block behaves as the block's value.
 
-**Decorator form.** `@comptime` written above `NAME :: <expr>` computes the same value as `NAME :: @comptime <expr>`. An `<expr>` that calls a function with arguments or builds a struct goes through the same synthetic fn; an expression over literals and constants is folded directly, and a cycle between such constants is `C4009`.
+**Decorator form.** `@comptime` written above `NAME :: <expr>` computes the same value as `NAME :: @comptime <expr>`, through the same synthetic fn, with two exceptions. A call without arguments runs as it stands. An `<expr>` shaped like a type (a name, `Mod.T`, `Box<T>`, `T[]`, `A | B`, `[A, B]`, a function type, `Int in 0..=23`) stays as written, since it may declare a type alias. As a value it is folded directly, so one that reads a constant the comptime VM computes is `C4001`; the inline form computes it. An expression over literals and constants is folded without running the VM, and a cycle between constants is `C4009`.
 
 ### Sandbox
 

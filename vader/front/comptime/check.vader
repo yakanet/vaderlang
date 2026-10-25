@@ -176,13 +176,14 @@ build_vm_required :: fn(decl: AST.ConstDecl, symbol: Symbol, typed: TypedProgram
         if callee_id is AST.IdentExpr {
             if call.args.len() == 0 {
                 decl_type :: typed.decl_types[symbol.id]
-                if decl_type != null {
+                callee :: sites_of(typed.call_sites, .Call)[call.id]
+                if decl_type != null && callee is DirectFn {
                     return VmRequiredDecl {
-                        .symbol_id   = symbol.id,
-                        .module_id   = module_id,
-                        .callee_name = callee_id.name,
-                        .decl_type   = decl_type,
-                        .span        = decl.span,
+                        .symbol_id      = symbol.id,
+                        .module_id      = module_id,
+                        .callee_decl_id = callee.decl.id,
+                        .decl_type      = decl_type,
+                        .span           = decl.span,
                     }
                 }
             }
