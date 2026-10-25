@@ -2,7 +2,7 @@
 # Fixed-point check : build the 3-stage toolchain, then confirm stage1 and
 # stage2 (vader) emit identical C for main.vader, that the build reproduces, and
 # that the tree's bootstrap entry writes that same C.
-# Formalises TODO §2.7 / docs/BOOTSTRAP.md Phase 4. It is also the seed's
+# Described in docs/BOOTSTRAP.md. It is also the seed's
 # viability gate: `bootstrap/seed.sh check` (the pre-push hook) and the CI
 # `fixed-point` job both run it. Honours $CC.
 set -euo pipefail
@@ -107,7 +107,7 @@ if ! cmp -s build/work/repro/vader build/vader; then
 fi
 
 # (c) the tree's bootstrap entry, which nothing else compiles between reseeds, must
-# write the C (a) re-emitted (docs/BOOTSTRAP.md, Phase 4). Same basename as (a):
+# write the C (a) re-emitted. Same basename as (a):
 # every unit includes its header by it.
 rm -rf build/work/tree-bootstrap
 mkdir -p build/work/tree-bootstrap/bin build/work/tree-bootstrap/emit

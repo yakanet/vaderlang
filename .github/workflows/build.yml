@@ -92,7 +92,7 @@ jobs:
   # It is also the seed's viability gate — the same `verify.sh` the pre-push hook
   # runs through `bootstrap/seed.sh check`. A seed that cannot build the tree fails
   # the test jobs too; what only this job sees is a fixed-point or
-  # reproducibility break. docs/BOOTSTRAP.md Phase 4.
+  # reproducibility break. See docs/BOOTSTRAP.md.
   fixed-point:
     name: Fixed-point verification
     runs-on: ubuntu-latest

@@ -111,15 +111,13 @@ typedef bool     vader_bool_t;
 /* Atom type — forward-declared here so `vader_string_t` (defined below
  * as an alias) doesn't depend on the full atom-API section further down.
  * The struct + function declarations for the table follow after the
- * box / array sections. See `docs/ATOM_INTERNING.md`. */
+ * box / array sections. */
 typedef vader_u32_t vader_atom_t;
 
 /* ----------------------------------------------------------------- string */
 
-/* `vader_string_t` *is* an atom id — `==` is `u32 ==`, hash is identity,
- * `data` and `len` go through `vader_atom_data` / `vader_atom_len`. The
- * legacy {ptr, len} fat-ptr layout is gone ; the runtime mark-sweep
- * arena that backed it has been removed alongside.
+/* `vader_string_t` *is* an atom id: `==` is `u32 ==`, the hash is cached on
+ * the atom, and `data` and `len` go through `vader_atom_data` / `vader_atom_len`.
  *
  * The bytes behind a string atom live in the global `vader_atom_table_t`
  * (see further down). Comptime literals are PERM-flagged and never
@@ -151,7 +149,7 @@ void           vader_cstr_free_for(vader_string_t s, const char* p);
 
 /* ------------------------------------------------------------------ atom */
 
-/* Atom-based string interning — see `docs/ATOM_INTERNING.md`. The
+/* Atom-based string interning — see `docs/RUNTIME.md`. The
  * `vader_atom_t` typedef is declared at the top of this file because
  * `vader_string_t` is its alias ; the struct + API live here. */
 
@@ -251,11 +249,9 @@ void vader_atom_init(void);
 void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table, vader_u32_t count);
 void vader_atom_shutdown(void);
 
-/* Profiling — emitted to stderr when `VADER_ATOM_PROFILE=1` is set in
- * the environment at program start. Reports atom count, byte total
- * (owner buffers), bucket load factor, and the top-N most-referenced
- * atoms. Called automatically at exit via `atexit` when the env var is
- * set ; can also be called manually from tests. */
+/* Profiling: one line on stderr with the atom count, the capacity, the bucket
+ * load, the owner bytes and the free slots. `vader_atom_shutdown` calls it when
+ * `VADER_ATOM_PROFILE=1` was set at program start; tests can call it directly. */
 void vader_atom_profile_dump(void);
 
 /* GC hook — invoked by the major collection cycle. Marks atoms reachable from
@@ -269,7 +265,7 @@ void vader_atom_gc_collect(void);
 /* ----------------------------------------------------------------- box */
 
 /* Tag values shared with `BcType` indices from the bytecode module. The C
- * emitter drops a `VADER_BOX_TAG_*` macro per type at the top of the file. */
+ * emitter writes a tag as its index; only `VADER_BOX_TAG_NULL` has a name. */
 typedef struct {
     uint32_t tag;
     uint32_t _pad;
@@ -330,8 +326,8 @@ static inline vader_box_t vader_box_null(void) {
 }
 
 /* Identity equality between two boxes — tag plus the raw 8-byte payload slot
- * (which aliases every union member, so it covers refs, primitives, and
- * string fat-ptrs that occupy the first word). Emitted by the C codegen for
+ * (which aliases every union member, so it covers refs, primitives and atom
+ * ids). Emitted by the C codegen for
  * `ref.eq` / `ref.ne` because direct `==` on a `vader_box_t` struct is not
  * legal C. */
 static inline bool vader_box_eq(vader_box_t a, vader_box_t b) {
@@ -615,8 +611,7 @@ static inline vader_box_t* vader_array_box_slots(vader_array_buf_t* buf) {
  * i`) ; the c-emit site resolves the buffer anew (a collection may have moved
  * it) and checks the bounds (`emit_slot_array_local`) before this call. The
  * named inline (no linkage symbol, inlines at -O3) replaces the open-coded
- * borrowed branch at every u8 read site, as docs/TARGET_ABI.md asks of a
- * memory op. */
+ * borrowed branch at every u8 read site. */
 static inline vader_box_t vader_array_read_u8(vader_array_t* a, size_t slot, uint32_t elem_tag) {
     vader_box_t out;
     out._pad = 0;
@@ -848,8 +843,8 @@ static inline vader_string_t vader_buffer_intern_string(vader_buffer_t* b, size_
 
 /* Copy string `s`'s bytes into `dst` at byte offset `off` (the
  * `buffer_write_string` opcode). A single `memcpy` from the interned atom's
- * contiguous bytes — the lean replacement for `vader_string_concat_all`, used
- * by `StringBuilder.to_string` to assemble its parts. No write barrier (the
+ * contiguous bytes, which `concat_N` and `StringBuilder.to_string` use to
+ * assemble their parts. No write barrier (the
  * region holds no references). `s` is an interned atom, so reading its bytes
  * never allocates ; `dst` is re-derived from its rooted box at the op. */
 static inline void vader_buffer_write_string(vader_buffer_t* dst, size_t off, vader_string_t s) {
@@ -1131,8 +1126,9 @@ void vader_gc_collect(void);
  * reaches `VADER_TENURE_AGE`. */
 void vader_minor_collect(void);
 
-/* Major: drain young (via a minor) then mark-sweep old. Triggered when
- * promotion would overflow old, and when the user explicitly calls collect. */
+/* Major: drain young (via a minor) then mark-sweep old. Triggered when a minor
+ * leaves no room for an allocation, when the old bytes pass the headroom trigger
+ * (`vader_old_maybe_major`), and when the program calls `runtime.collect()`. */
 void vader_major_collect(void);
 
 /* Allocate `bytes` from the young from-space. May trigger a minor collection
@@ -1142,8 +1138,8 @@ void vader_major_collect(void);
  *
  * Used by the C emit for typed allocations (structs, fn objects). For arrays,
  * see `vader_array_new` which lays out the struct + initial buf in a single
- * call and writes the headers. Strings stay off the GC arena entirely
- * (see `vader_string_alloc` in the implementation). */
+ * call and writes the headers. Strings stay off the GC arena entirely: their
+ * bytes live in the atom table. */
 void* vader_gc_alloc(size_t bytes);
 
 /* Card-table write barrier — called by the C-emit after every store of a
@@ -1434,25 +1430,6 @@ int32_t        vader_current_os(void);
  * same reason, as `vader_current_os` above. */
 int32_t        vader_current_arch(void);
 
-/* ----------------------------------------------------------------- I/O */
-
-/* ----------------------------------------------------------------- target
- *
- * `vader_current_os` reports the OS the process is RUNNING on, as the ordinal of
- * `std/target::Os` — Windows 0, Linux 1, Darwin 2, Wasi 3, Browser 4. The
- * coupling is the same shape as `Stream`'s (Stdout 0, Stderr 1) and is stated on
- * both sides; reorder the Vader enum and this must move with it.
- *
- * This is NOT the compilation target. `VADER_OS` answers that, is baked at build
- * time, and is what `@target` selects on. This one is resolved at runtime, which
- * is why a program that manipulates its own environment — resolving a path,
- * choosing a separator — must use it: a seed emitted on one platform and
- * compiled on another would otherwise carry the wrong answer.
- */
-int32_t        vader_current_os(void);
-/* Ordinal of `std/target::Arch` — X86_64 0, Arm64 1, Wasm32 2. Same coupling,
- * same reason, as `vader_current_os` above. */
-int32_t        vader_current_arch(void);
 
 
 /* ----------------------------------------------------------------- string */

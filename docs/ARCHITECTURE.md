@@ -39,7 +39,9 @@ flowchart TD
 | C emitter | `vader/emit/c/` | one C file per module (`--split`) or one for the program |
 
 The stack-based bytecode is the canonical IR: the VM runs it, the C emitter
-translates it, and it maps one to one to WebAssembly.
+translates it, and it maps one to one to WebAssembly. How a running program holds
+its values and its memory, natively and on the VM, is described in
+[`RUNTIME.md`](RUNTIME.md).
 
 Every stage can be dumped with `vader dump --stage=<name>`. The resolver is shared
 with the LSP (`vader/tools/lsp/`) and the formatter (`vader/tools/fmt/`).
@@ -133,10 +135,11 @@ and calls through a fn-value local made direct.
   segments render through `Display.to_string`, called directly when the impl is
   known.
 - **`defer`**: each body becomes a closure over the locals it captures (a captured
-  local moves to a heap cell). The statement pushes it on the frame's defer stack
-  (`defer.push`), and each block exit runs the closures registered since the block
-  was entered, last in first out (`defer.pop_exec N`). In an async coroutine the
-  stack lives in the coroutine frame and survives a suspension.
+  local that an assignment rebinds moves to a heap cell). The statement pushes it
+  on the defer stack (`defer.push`), and each block exit runs the closures
+  registered since the block was entered, last in first out (`defer.pop_exec N`).
+  In an async coroutine the stack lives in the coroutine frame and survives a
+  suspension.
 - **Trait calls**: a call on a receiver of concrete type calls that type's impl
   member directly. A call on a trait-typed value, or on the receiver of an erased
   instance, goes through a vtable (`virtual.call`) filled with the impl members that

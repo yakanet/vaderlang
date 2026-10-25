@@ -7,8 +7,7 @@
 # The seed is a bootstrap tool: it only has to be able to build the current tree,
 # not to be what the current tree would emit. `build.sh` ships stage2 — the tree
 # compiled by the tree — so the seed's age never reaches the shipped binary, and a
-# reseed is due only when the seed stops working. See docs/BOOTSTRAP.md § "Seed
-# lifecycle management".
+# reseed is due only when the seed stops working. See docs/BOOTSTRAP.md.
 #
 # `check` OWNS the viability question; .githooks/pre-push defers to it. `verify.sh`
 # is what answers it — the same gate the CI `fixed-point` job runs — so a seed that
@@ -158,7 +157,7 @@ cmd_check() {
 # Regenerate bootstrap/seed/ from vader/bootstrap/bootstrap.vader, using an
 # existing `vader` binary (./build/vader, else on PATH). The seed is the plain C
 # of the build-only entrypoint — stored uncompressed so git can delta successive
-# reseeds; see docs/BOOTSTRAP.md § "Seed lifecycle management".
+# reseeds; see docs/adr/0110-the-seed-is-committed-uncompressed.md.
 cmd_regenerate() {
     [ "$#" -eq 0 ] || { echo "seed.sh regenerate: takes no arguments" >&2; exit 2; }
 

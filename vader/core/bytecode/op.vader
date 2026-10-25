@@ -462,14 +462,12 @@ export TypeCheck :: struct { type_id: i32 }
 /// (`@type_of(x)`, `let m : type = i32`, etc.).
 export TypeConst :: struct { type_id: i32 }
 
-/// Pop a closure (fn ref + env) and append it to the current frame's
-/// defer-stack. Drained later by `DeferPopExec` on normal exits or by
-/// the panic-unwind walker around `exec` when an op traps: one defer
-/// stack serves both paths.
+/// Pop a closure (fn ref + env) and append it to the program's defer stack.
+/// Drained later by `DeferPopExec` on normal exits, or by the unwinding a trap
+/// runs: one defer stack serves both paths.
 export DeferPush :: struct {}
 
-/// Pop and execute the last `count` entries on the current frame's
-/// defer-stack (LIFO). Emitted by the lowerer at every normal exit
+/// Pop and execute the last `count` entries of the defer stack (LIFO). Emitted by the lowerer at every normal exit
 /// (return / break / continue / block fall-through) — the `count`
 /// matches the number of defers introduced in the scopes the exit
 /// transcends.
@@ -692,8 +690,8 @@ export ReturnLit :: struct { value: ConstOp }
 // hoisted across a safepoint: a collection can move the object). Appended after
 // `ReturnLit` and never reshaped (the union tags are positional). The lowerer
 // emits the `Buffer` ops mapped in `midir/select/intrinsics.vader`; the multi-byte
-// loads and stores have no trigger (see below). See docs/TARGET_ABI.md §5 for
-// the frozen contract.
+// loads and stores have no trigger (see below). docs/RUNTIME.md describes what a
+// backend provides.
 
 /// GC-allocate a zero-filled byte region of `size` bytes (popped) and push the
 /// handle. The CONSTRUCTOR of the Target ABI memory family — `Load*` / `Store*` /
@@ -778,12 +776,12 @@ export StoreSlotI64 :: struct { bounds_safe: bool = false }
 export StoreSlotF64 :: struct { bounds_safe: bool = false }
 
 /// Bulk byte copy obj→obj. Pops `dst, dst_off, src, src_off, n` ; copies `n`
-/// bytes. Lowers to `memcpy`. Both ends are GC handles, offsets are integers.
+/// bytes. Lowers to `memmove`. Both ends are GC handles, offsets are integers.
 export MemoryCopy :: struct {}
 
 /// Intern a `Buffer`'s leading `len` bytes as a `string`. Pops `obj, len: i64`
-/// ; pushes the interned `string`. Lowers to `vader_string_new((const char*)
-/// obj->bytes, len)` — a single copy into the atom table, no read-back. Same
+/// ; pushes the interned `string`. Lowers to `vader_buffer_intern_string`, a
+/// single copy into the atom table, no read-back. Same
 /// verbatim-bytes semantics as `bytes_to_string` over a `u8[]` (neither
 /// validates UTF-8) ; backs `StringBuilder.to_string`.
 export BufferToString :: struct {}

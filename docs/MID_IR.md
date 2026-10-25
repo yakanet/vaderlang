@@ -292,7 +292,7 @@ defer.push %c
 defer.pop_exec <n>
 ```
 
-`defer.push` registers the function value `%c` on the frame's defer stack.
+`defer.push` registers the function value `%c` on the defer stack.
 `defer.pop_exec` removes the last `n` registered and runs them, most recent first.
 
 ## Terminators

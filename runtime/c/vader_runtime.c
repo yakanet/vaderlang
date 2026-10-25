@@ -272,10 +272,10 @@ static size_t        g_young_ratio = 2;
 static size_t        g_young_cap = 0;
 
 /* Stress mode — set via `VADER_GC_STRESS=1`. When enabled, every
- * `vader_gc_alloc` triggers a minor collect (and the string sweep that
- * runs at minor end). Forces every safepoint to exercise the full
- * shadow-stack walk + conservative C-stack scan + string mark, which
- * turns intermittent rooting bugs into deterministic failures. Off by
+ * `vader_gc_alloc` triggers a minor collect. Forces every safepoint to
+ * exercise the full shadow-stack walk, which turns intermittent rooting bugs
+ * into deterministic failures. Atoms are collected only by a major:
+ * `VADER_GC_STRESS_MAJOR` exercises them. Off by
  * default: the 100×–10000× slowdown is reserved for debugging sessions.
  * Captured once on init; the env var has no effect mid-run. */
 static int g_gc_stress = 0;
@@ -679,7 +679,7 @@ static void vader_gc_mark_cstack_conservative(void) {
 }
 
 /* ============================================================
- * Atom-based string interning — see `docs/ATOM_INTERNING.md`.
+ * Atom-based string interning — see `docs/RUNTIME.md`.
  *
  * The intern hash (`vader_atom_hash64`), slice-share (`vader_atom_slice`) and
  * the major-cycle integration (`vader_atom_gc_collect`) all ship; the legacy
@@ -847,10 +847,7 @@ static void vader_atom_install_empty(void) {
 
 void vader_atom_shutdown(void) {
     if (!g_atoms_initialized) return;
-    /* Dump the profile *before* tearing down — atexit LIFO ordering
-     * runs shutdown ahead of the profile-dump handler registered in
-     * `_init_with_comptime`, so the deferred dump would see a zeroed
-     * table. Calling it inline here lets us read the live state. */
+    /* Dump the profile before tearing down: the table is still live here. */
     if (g_atom_profile) vader_atom_profile_dump();
     for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
         vader_atom_entry_t* e = &vader_atom_entries[i];
@@ -1635,8 +1632,7 @@ static void* vader_gc_alloc_young_unchecked(size_t aligned) {
  * a fresh, larger block and run a minor, which copies into it every live young
  * object that does not promote (forwarding fixes the pointers). Then free the
  * old block and carve both halves out of the new one. Young carries no card
- * table or write-barrier bounds, so this is simpler than `vader_old_grow_to`.
- * NULL malloc is the real RAM ceiling. */
+ * table or write-barrier bounds. NULL malloc is the real RAM ceiling. */
 static void vader_young_grow_to(size_t new_half) {
     char* new_block = (char*) malloc(new_half * 2u);
     if (new_block == NULL) {
@@ -1669,8 +1665,7 @@ static void vader_young_grow_to(size_t new_half) {
 static void vader_young_grow_for(size_t aligned) {
     size_t occupancy = (size_t)(g_young.from.cur - g_young.from.base);
     size_t want = occupancy + aligned;
-    /* max(2 × current, want), clamped to the cap — same geometric/at-least-fit
-     * shape as the old-arena grow in `vader_major_collect`. */
+    /* max(2 × current, want), clamped to the cap. */
     size_t new_half = g_young.half_bytes * 2u;
     if (new_half < want) new_half = want;
     if (new_half > g_young_max_bytes) new_half = g_young_max_bytes;

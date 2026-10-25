@@ -268,12 +268,24 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
       not say whether `%` applies to floats: settle that first, then add a float remainder
       op or reject `%` on floats in the typecheck.
 
-- [ ] **A push to a slice of the whole array does not detach it on the VM** (found
-      2026-10-25). `a :: [1, 2, 3]; s :: a[0..<3]; s.push(9); s[0] = 5` leaves `a[0]` at 5
-      under `vader run` and at 1 natively. SPEC §4 *Arrays* says a push detaches the view,
-      so native is right. The VM's `is_array_view` (`vader/vm/value.vader`) infers a view
-      from its window, so a view of the whole array looks like the array itself; recording
-      at `array.slice` that the value is a view would fix it.
+- [ ] **The VM takes a slice of the whole array for the array itself** (found
+      2026-10-25). `is_array_view` (`vader/vm/value.vader`) and the `ArrayRemoveLast` /
+      `ArrayClear` arms (`vader/vm/exec.vader`) infer a view from its window, so a view of
+      the whole array looks like its parent. A push does not detach it:
+      `a :: [1, 2, 3]; s :: a[0..<3]; s.push(9); s[0] = 5` leaves `a[0]` at 5 under
+      `vader run` and at 1 natively (SPEC §4 *Arrays*: a push detaches the view). And
+      `s.clear()` clears the parent's shared elements, so printing `a` afterwards stops on
+      "array index out of bounds". Recording at `array.slice` that the value is a view
+      fixes all three ops.
+
+- [ ] **Natively, `clear` or `remove_last` on a slice that ends at the end of its buffer
+      lets a push write into the parent** (found 2026-10-25).
+      `a :: [1, 2, 3]; s :: a[0..<3]; s.clear(); s.push(9)` leaves `a` at `[9, 2, 3]`,
+      against SPEC §4 *Arrays* ("the parent is never mutated through the slice");
+      `remove_last` then `push` does the same on the last slot. `vader_array_clear` and
+      `vader_array_remove_last` (`runtime/c/vader_runtime.c`) shrink the shared buffer's
+      `length` as if the slice owned it, so the next push passes the in-place test. They
+      should shrink only the header's `length` for a view.
 
 - [ ] **An unread array read or checked operation loses its run-time check** (found
       2026-10-25). `unused :: xs[10]` on a 3-element array runs to the end, on the VM and
@@ -293,6 +305,21 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
       `InstrStructNew.stack` in `vader/midir/cfg.vader` is stale too).
 
 ### Bytecode emit and dumps
+
+- [ ] **Stale comments in the bytecode types and elsewhere** (found 2026-10-25, while
+      writing `docs/RUNTIME.md`). Each says something the code no longer does:
+      - `vader/core/bytecode/types.vader`: a box of 24 bytes (it is 16), and a union tag
+        that is "the variant's position" (it is the index of the value's own type).
+      - `vader/core/bytecode/module.vader`: literals hoisted to static `vader_string_t`s
+        (they are atom ids written at each use).
+      - `vader/core/bytecode/intrinsic_manifest.vader`: section comments for hosts that
+        were removed; `vader/emit/c/host.vader`: `index_of` and math overloads.
+      - `vader/front/resolver/module.vader`: a test calls `vader.json`'s `includePaths`
+        the bridge that lets a seed-built binary resolve a renamed tree, but stage0
+        passes no project root and reads no manifest.
+      - `vader/bootstrap/bootstrap.vader`: a change to stage0's contract "forces a reseed
+        in the same commit", while `seed.sh regenerate` refuses to run until that
+        change is committed.
 
 - [ ] **The CFG dump prints operators as numbers** (found 2026-10-25). `binop` and
       `unop` print `i32(ins.op)` (`vader/midir/dump.vader`) although `binary_op_name`
@@ -460,7 +487,7 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 
   Two parallel work-streams to reclaim memory :
 
-  **(I) String interning via `Atom` type — ~13 MB.** Full plan in [`docs/ATOM_INTERNING.md`](./docs/ATOM_INTERNING.md). Introduces `Atom = u32` + project-wide `AtomTable` ; replaces high-cardinality `string` fields (`Position.file`, `Token.text`, `IdentExpr.name`, `FieldExpr.name`, decl names, `Symbol.name`) with a 4 B atom index. O(1) equality + hash on names as a side benefit. 5 phases (plumbing → FileId → Token/Ident/Field → decl + Symbol → cleanup), 5-7 days total. Phase-by-phase mergeable.
+  **(I) String interning — ✅ shipped 2026-05-25**: every `string` became a 4 B atom id ([ADR 0109](./docs/adr/0109-a-string-is-an-atom.md)).
 
   **(II) `MutableMap` entry footprint — ~5 MB.** Three orthogonal pistes :
   - **(a) Flat `Type[]` for dense int-keyed maps** — `decl_types : MutableMap(i32, Type)` is keyed by `Symbol.id`, minted sequentially → quasi-dense. Replace with `Type[]` indexed by id : ~17k symbols × 8 B ref slot = ~136 KB vs 17k entries × 72 B = ~1.2 MB. Saves ~1 MB and turns the lookup into O(1) array-get (no hash). Most-consulted side-table per resolve, so latency win on top of memory. Applies similarly to `struct_decls`, `trait_decls` (also `Symbol.id`-keyed). Touches `vader/front/typecheck/typed_ast.vader` + every reader. ~½ day.
@@ -638,10 +665,10 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 - [ ] **FFI: a first third-party binding (SQLite)**, and with it whether an `@extern`'s library name becomes a contract on both backends (native passes `-l`, the link fails without it) or stays information for the VM.
 - [ ] **ADR 0013 does not list `vader_environ` / `vader_ptr_at`** among what the FFI boundary cannot express (`runtime/c/vader_runtime.c`).
 - [ ] **The VM's call depth stops `ackermann`** (noted 2026-10-04, still true 2026-10-10). `MAX_FRAME_DEPTH :: 1024` (`vader/vm/exec.vader:32`) traps `bench/ackermann` under `vader run` with "call stack overflow (depth > 1024)" while native runs it, so a legitimate deeper recursion cannot run under `vader run`, `vader test` or comptime.
-- [ ] **The VM's `ArrayVal` storage as a union** (noted 2026-10-04). Since the VM reads string bytes in place (ADR 0029), `ArrayVal` holds `elements` plus `raw: u8[] | null` (`vader/vm/value.vader:665`); a reader that forgets `raw` reads an empty `elements` instead of failing to compile. A `backing: Value[] | u8[]` union would force every reader (~43 `.elements` reads in 6 files) to handle both.
+- [ ] **The VM's `ArrayVal` storage as a union** (noted 2026-10-04). Since the VM reads string bytes in place (ADR 0029), `ArrayVal` holds `elements` plus `raw: string | null` (`vader/vm/value.vader`; ADR 0029 still says `u8[] | null`); a reader that forgets `raw` reads an empty `elements` instead of failing to compile. A `backing: Value[] | u8[]` union would force every reader (~43 `.elements` reads in 6 files) to handle both.
 
 ### 3.8 Language ergonomics
-- [~] **`defer` unwinds on panic** (gap surfaced 2026-05-19) — **VM DONE, C target pending.** Defers lower to per-frame `DeferPush` / `DeferPopExec` ops; on a trap the **VM now walks frames bottom-up and drains each frame's pending defers before propagating** (`vader/vm/exec.vader:1008`). Remaining: the **C target** still raises without unwinding (`runtime/c/vader.h` setjmp/longjmp work pending), so native panics skip defers — files left open, locks held. Same fix unlocks a future `recover` / `rescue` primitive. Cross-ref §3.1 Concurrency (panic propagation across spawned tasks).
+- [~] **`defer` unwinds on panic** (gap surfaced 2026-05-19) — **VM DONE, C target pending.** Defers lower to per-frame `DeferPush` / `DeferPopExec` ops; on a trap the **VM now walks frames bottom-up and drains each frame's pending defers before propagating** (`vader/vm/exec.vader:1008`). Remaining (re-checked 2026-10-25): natively, `vader_trap` and `vader_panic` now drain the defer stack before `abort()`, but `vader_unreachable` (`runtime/c/vader_runtime.c`) still aborts without it, where the VM unwinds on every trap. The compiler emits `unreachable` for failures a program can meet (a singleton called while it initialises, an async `main` left suspended, a trait call no dispatcher case covers), so those skip the defers natively; draining in `vader_unreachable` too would close it. Same fix unlocks a future `recover` / `rescue` primitive. Cross-ref §3.1 Concurrency (panic propagation across spawned tasks).
 - [ ] Static-size arrays `[T; N]`.
 - [x] **Which integers may index** (idea, 2026-10-14 ; settled 2026-10-19 by direction (3) : an index is any integer and a length an `i64`, ADR 0093 and 0094 ; `xs[-1]` counting from the end is planned). Since ADR 0061 `s[i]` takes the `usize` key of its impl, so `s[idx]` with an `i32` is T3001, while an array still takes any integer. Three directions: (1) `i32 implements Into<usize>`, which would convert at every `usize` slot, not only at an index, and must trap on a negative; (2) negative indices count from the end (`xs[-1]`), which needs a signed key, puts a branch in every access whose index is not known non-negative, and turns an off-by-one into a silent read of the last element; (3) drop `usize` from the surface and index by a signed integer, a charter-level change (bounded integers would let an `i32` known `>= 0` reach a `usize` slot). Decide together with the charter's bounded-number steps.
 - [ ] **Too many ways for a `match` to leave a variant out** (idea, 2026-10-19, to revisit together). Three forms overlap. A plain `match` must be exhaustive (T3013); a `_` arm lifts that, and on a closed union in value position earns W0005. `@partial` lifts both T3013 and W0005. `@unreachable` lifts T3013 and promises the uncovered variants never come. Read against the code, they reduce to fewer ideas than they suggest:

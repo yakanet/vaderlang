@@ -741,7 +741,7 @@ wrap_next :: fn<T: Int>(x: T) -> T =
 
 ### Strings
 
-- Internals: an **interned atom id** — `vader_string_t` is a `u32`, 4 bytes, copied on assignment. `==` is an integer compare, and the hash is a 64-bit hash of the bytes, cached on the atom; the bytes live once in a global atom table (`docs/ATOM_INTERNING.md`).
+- Internals: an **interned atom id** — `vader_string_t` is a `u32`, 4 bytes, copied on assignment. `==` is an integer compare, and the hash is a 64-bit hash of the bytes, cached on the atom; the bytes live once in a global atom table (`docs/RUNTIME.md`).
 - Immutable. Concatenation allocates.
 - `len()` returns the number of Unicode codepoints (an allocation-free walk, decoding malformed bytes as described below, which an ASCII string skips: see `is_ascii`). For the **byte** length, `s.byte_len()` (O(1), no view). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `byte_len()` for byte arithmetic.
 - `chars()` (`std/string`) returns an iterator of `char` (`StringChars implements Iterator<char>`), for a codepoint iterator held as a value. The codepoint loop itself is `for c in s` (below), which walks the string in place.
