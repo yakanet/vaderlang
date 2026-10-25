@@ -386,6 +386,14 @@ static int vader_in_young_from(const void* p) {
     return (const char*)p >= g_young.from.base && (const char*)p < g_young.from.end;
 }
 
+/* Membership in either half of the young generation : `to` is where a minor
+ * forwards a referent it does not promote, and a major leaves young referents
+ * in `from`. An immortal (`.rodata`) or off-heap pointer is in neither. */
+static int vader_in_young(const void* p) {
+    return ((const char*)p >= g_young.to.base && (const char*)p < g_young.to.end)
+        || vader_in_young_from(p);
+}
+
 /* Membership in the non-moving old gen: a pointer is an old object iff it falls
  * in the carved span [g_old_block, g_old_bump). Pointers in [g_old_bump,
  * g_old_block_end) address uncommitted reservation tail — never a live object —
@@ -2067,10 +2075,11 @@ static void vader_gc_box_tag_corrupt(const vader_box_t* boxp) {
 /* Scan a `vader_box_t` slot — if the tag identifies a heap-allocated kind and
  * the payload holds a pointer, forward it and update the slot in place.
  *
- * If `boxp` lives in an old-gen object and the forwarded ref ends up in
- * young, mark the card dirty: future minors must rescan this slot, and
- * neither the original `array_push` write barrier (fired on user mutation,
- * not on this Cheney write) nor scan_old_dirty_cards covers it. */
+ * If `boxp` lives in an old-gen object (`VADER_WRITE_BARRIER` tests it) and the
+ * forwarded ref ends up in young, mark the card dirty: future minors must
+ * rescan this slot, and neither the original `array_push` write barrier (fired
+ * on user mutation, not on this Cheney write) nor scan_old_dirty_cards covers
+ * it. */
 static void vader_gc_scan_box(vader_box_t* boxp) {
     if (boxp == NULL) return;
     if (boxp->tag == VADER_TYPE_INDEX_BUFFER) {
@@ -2082,9 +2091,7 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
          * barrier as the ordinary ref path. A buffer holds no inner refs, so
          * there is nothing further to scan. */
         boxp->payload.obj = vader_gc_forward(boxp->payload.obj, VADER_TYPE_INDEX_BUFFER);
-        if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
-            && boxp->payload.obj != NULL
-            && !vader_in_old(boxp->payload.obj)) {
+        if (vader_in_young(boxp->payload.obj)) {
             VADER_WRITE_BARRIER(boxp);
         }
         return;
@@ -2096,9 +2103,7 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
     const vader_type_info_t* info = &vader_type_info_table[boxp->tag];
     if (info->kind == VADER_TYPE_KIND_NONE) return;
     boxp->payload.obj = vader_gc_forward(boxp->payload.obj, boxp->tag);
-    if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
-        && boxp->payload.obj != NULL
-        && !vader_in_old(boxp->payload.obj)) {
+    if (vader_in_young(boxp->payload.obj)) {
         VADER_WRITE_BARRIER(boxp);
     }
 }
@@ -2108,19 +2113,15 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
  * Same write-barrier rule as `vader_gc_scan_box`. */
 static void vader_gc_scan_raw(void** slot) {
     if (slot == NULL || *slot == NULL) return;
-    /* Membership BEFORE the header read. `vader_gc_forward` guards this way and
-     * this function did not: its fast path read `hdr->forward` on whatever the
-     * slot held. A slot holding a non-heap address then had those eight bytes
-     * read as a forwarding pointer and written back — for a `.text` address
-     * (`fn.addr`) that is machine code, never NULL, so the callback pointer was
-     * replaced by an instruction encoding and the next call jumped to it. An
+    /* Membership BEFORE the header read, as `vader_gc_forward` tests it: a slot
+     * may hold a non-heap address (a `.text` one in `fn.addr`), whose bytes are
+     * no header and must not be written back as a forwarding pointer. An
      * immortal or an off-heap pointer is not ours to move. */
     if (!vader_in_young_from(*slot) && !vader_in_old(*slot)) return;
     vader_obj_header_t* hdr = (vader_obj_header_t*) *slot;
     if (hdr->forward != NULL) { *slot = hdr->forward; }
     else { *slot = vader_gc_forward(*slot, hdr->type_index); }
-    if ((uintptr_t)slot >= vader_old_base && (uintptr_t)slot < vader_old_end
-        && *slot != NULL && !vader_in_old(*slot)) {
+    if (vader_in_young(*slot)) {
         VADER_WRITE_BARRIER(slot);
     }
 }
