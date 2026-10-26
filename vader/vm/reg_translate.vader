@@ -386,7 +386,7 @@ boxed :: fn(t: Translation, pc: i64, op: bc.Op, pops: i64, pushes: i64) -> void 
     flush(t, pc)
     base :: pop_to(t, pops)
     t.code.boxed.push(op)
-    emit(t, pc, .Boxed, i32(t.code.boxed.len() - 1), base, i32(pops | (pushes << 8)))
+    emit(t, pc, .Boxed, i32(t.code.boxed.len() - 1), base, boxed_counts(pops, pushes))
     for i in 0..<pushes {
         push_register(t, base + i32(i))
     }

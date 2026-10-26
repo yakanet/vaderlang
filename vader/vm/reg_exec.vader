@@ -995,8 +995,9 @@ run_boxed :: fn(
 ) -> Trap | null {
     w :: f.words[pc]
     at :: base + i64(operand_b(w))
-    pops :: i64(operand_c(w) & 255)
-    pushes :: i64(operand_c(w) >> 8)
+    counts :: operand_c(w)
+    pops :: boxed_pops(counts)
+    pushes :: boxed_pushes(counts)
     frame :: m.scratch
     // An `array.new` or `struct.new` pops one value per element or field.
     reserve_stack(frame, pops)

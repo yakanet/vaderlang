@@ -170,7 +170,7 @@ RegOp :: enum(i32) {
     Length
     Append
     // Run boxed[a] on its operands from r[b] (`apply_boxed`) ; `c` packs the
-    // values it pops, then eight bits up the values it pushes.
+    // cells it pops and pushes (`boxed_counts`).
     Boxed
     // Call host import `a` with its arguments from r[b] ; its result lands in r[b].
     CallImport
@@ -258,6 +258,17 @@ operand_b :: fn(w: i64) = i32((w << OPERAND_BC_BITS) >> (64 - OPERAND_BC_BITS))
 
 operand_c :: fn(w: i64) = i32(w >> (OPERAND_A_BITS + OPERAND_BC_BITS))
 
+// The `c` operand of a `Boxed` op: the cells it pushes in the low
+// `BOXED_PUSH_BITS`, the cells it pops above them. An `array.new` pops one cell
+// per element, so the pops take the rest of the operand's width.
+BOXED_PUSH_BITS: i64: 2
+
+boxed_counts :: fn(pops: i64, pushes: i64) = i32((pops << BOXED_PUSH_BITS) | pushes)
+
+boxed_pops :: fn(c: i32) = i64(c) >> BOXED_PUSH_BITS
+
+boxed_pushes :: fn(c: i32) = i64(c) & ((1 << BOXED_PUSH_BITS) - 1)
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -270,6 +281,14 @@ test_pack_operands_round_trip :: fn() -> void {
         assert_eq(operand_b(w), b)
         assert_eq(operand_c(w), c)
     }
+}
+
+@test
+test_boxed_counts_keep_a_long_array_new :: fn() -> void {
+    c :: boxed_counts(4096, 1)
+    w :: pack_operands(0, 0, c) ?? 0
+    assert_eq(boxed_pops(operand_c(w)), 4096)
+    assert_eq(boxed_pushes(operand_c(w)), 1)
 }
 
 @test

@@ -1,0 +1,24 @@
+// A `@comptime` table that the program writes into is copied at its binding, the
+// copy built from all its elements in one op: 300 of them here, more than an
+// 8-bit count holds.
+
+module "snippet"
+
+import "std/io"
+
+squares :: fn() -> i32[] {
+    out: i32[]: []
+    for i in 0..<300 {
+        out.push(i * i)
+    }
+    return out
+}
+
+TABLE: i32[]: @comptime squares()
+
+main :: fn() -> i32 {
+    table :: TABLE
+    table[0] = -1
+    println("${table.len()} ${table[0]} ${table[299]} ${TABLE[0]}")
+    return 0
+}
