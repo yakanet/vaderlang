@@ -1,0 +1,3 @@
+[18:32] error[T3001] type mismatch: `@field_index` reads the fields of a struct, got `[i32, i32]`
+[23:26] error[T3001] type mismatch: `@fields` reads the fields of a struct, got `i32`
+[24:25] error[T3001] type mismatch: `@fields` reads the fields of a struct, got `Colour`

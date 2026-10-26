@@ -1,0 +1,26 @@
+// T3001: `@fields(T)` and `@field_index(T, "name")` read the fields of a struct,
+// so a `T` known to be something else is refused at the type: a primitive, an
+// enum, a tuple, in a body or in a `@comptime` constant, once each. A type
+// parameter is left to lowering, which sees the instance.
+
+module "snippet"
+
+Colour :: enum {
+    Red,
+    Green,
+}
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+PAIR :: @comptime @field_index([i32, i32], "x")
+
+field_total :: fn<T>() -> i64 = @fields(T).len()
+
+main :: fn() -> i32 {
+    primitive :: @fields(i32)
+    variants :: @fields(Colour)
+    return i32(primitive.len() + variants.len() + field_total<Point>() + PAIR)
+}

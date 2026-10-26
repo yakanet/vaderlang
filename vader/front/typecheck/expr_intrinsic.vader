@@ -52,6 +52,9 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
             "`@${e.name}` expected ${spec.args.len()}, got ${e.args.len()}"))
         return type_for_result(spec.result, typed)
     }
+    if e.name == "fields" || e.name == "field_index" {
+        check_struct_argument(e, typed, diags)
+    }
     if e.name == "field_index" {
         check_field_index(e, typed, diags)
     }
@@ -109,6 +112,28 @@ infer_field_intrinsic :: fn(
     }
     return try_union_common_field_dispatch(recv_ty, access, typed, diags)
         ?? resolve_struct_field(recv_ty, access, typed, diags)
+}
+
+// `@fields(T)` and `@field_index(T, ...)` read the fields of a struct: a `T` known
+// to be something else is a type mismatch, at the type.
+check_struct_argument :: fn(
+    e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    owner :: typed.type_expr_types[e.args[0].span.hash()] ?? return
+    if is_known_non_struct(owner) {
+        diags.push(typecheck_error(.TypeMismatch, e.args[0].span,
+            "`@${e.name}` reads the fields of a struct, got `${display_type(owner)}`"))
+    }
+}
+
+// Whether `t` is settled as something other than a struct. A type parameter,
+// `Self`, or a type not yet known may still be one.
+is_known_non_struct :: fn(t: Type) -> bool = match t {
+    is StructType -> false
+    is TypeParamType | SelfType | InferVar | UnresolvedType | AnyType -> false
+    is PrimitiveType | RangeType | DistinctType | EnumType | UnionType -> true
+    is ArrayType | TupleType | FnType | TraitType | TypeMetaType | NeverType -> true
+    is FreeIntType | FreeCharType | FreeFloatType -> true
 }
 
 // `@field_index(T, "name")` on a struct names one of its fields. A name only

@@ -112,7 +112,7 @@ intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
         }
         return arg_error(expr, "field_index: struct declaration for `${display_type(arg_type)}` not found")
     }
-    return arg_error(expr, "field_index: `${display_type(arg_type)}` is not a struct")
+    return REPORTED_BY_TYPECHECK
 }
 
 intrinsic_size_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
@@ -200,8 +200,9 @@ export type_kind_label :: fn(t: Type) -> string = match t {
 }
 
 // What a call the typecheck has already refused evaluates to: no value and no
-// diagnostic, so that its T3003 (an argument count other than the spec's) or its
-// T3009 (a field the struct does not have) is not reported twice.
+// diagnostic, so that its T3003 (an argument count other than the spec's), its
+// T3001 (a type that is not a struct) or its T3009 (a field the struct does not
+// have) is not reported twice.
 REPORTED_BY_TYPECHECK :: EvalResult { .value = null, .diag = null }
 
 arg_error :: fn(expr: AST.IntrinsicCallExpr, detail: string) -> EvalResult {
