@@ -1,0 +1,9 @@
+// A struct field is `name: Type`: a field with no colon is P1002.
+
+module "snippet"
+
+Point :: struct {
+    x i32
+}
+
+main :: fn() -> i32 = Point { .x = 1 }.x

@@ -1,0 +1,10 @@
+// A `match` arm starts with a pattern: one that starts with `)` is P1007.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    x :: 3
+    return match x {
+        ) -> 1
+    }
+}

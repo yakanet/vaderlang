@@ -1,0 +1,9 @@
+// There is no `const` qualifier: a type says nothing about what may be
+// written. One written before a type is P1027.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    x: const i32: 1
+    return x
+}

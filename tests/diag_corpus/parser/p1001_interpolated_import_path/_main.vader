@@ -1,0 +1,7 @@
+// An import path is written out: an interpolation in it is P1001.
+
+module "snippet"
+
+import "std/io${suffix}"
+
+main :: fn() -> i32 = 0

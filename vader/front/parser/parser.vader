@@ -1914,7 +1914,7 @@ reject_removed_const :: fn(p: Parser) -> void {
     if tok != null {
         p.error(
             .RemovedConstQualifier, tok.span,
-            "`const` was removed: a type says nothing about what may be written",
+            "a type says nothing about what may be written",
         )
     }
 }

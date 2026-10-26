@@ -1,0 +1,8 @@
+// `[]` names no type: an array type carries its element, `i32[]`. P1005.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    xs: []: []
+    return 0
+}

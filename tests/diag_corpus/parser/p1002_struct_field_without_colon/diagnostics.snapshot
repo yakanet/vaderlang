@@ -1,0 +1,1 @@
+[6:7] error[P1002] expected token: expected `:` after field name (got `i32`)
