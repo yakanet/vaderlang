@@ -21,7 +21,9 @@
 
 module "vader/vm"
 
+import "std/abort"
 import "std/collections"
+import "std/math"
 import "std/string_builder"
 bc :: import "vader/core/bytecode"
 
@@ -42,14 +44,18 @@ TAGS_I32_OPERAND: u8: TAGS_I32 | TAGS_I64 | TAGS_CHAR
 /// What an integer arm reading an `i64` accepts (`is_i64_tag`).
 TAGS_I64_OPERAND: u8: TAGS_I64 | TAGS_I32
 
+// How many cells below the top of the operand stack each pc keeps the tags of:
+// every reader asks about one of an op's top two operands (`stack_tags`).
+KEPT_CELLS: i64: 2
+
 /// Inferred tags of one function.
 FunctionTags :: struct {
-    /// The deepest the operand stack gets: the sets each pc takes in `stack`.
+    /// The deepest the operand stack gets.
     deepest: i64
     /// Operand-stack depth before each pc, `-1` where no path reaches it.
     depth:   i64[]
-    /// For each pc, `deepest` sets: the stack cells from the bottom. A slot's tags
-    /// are not kept: every read of a slot lands on the stack.
+    /// For each pc, `KEPT_CELLS` sets: the top cell first, `0` below the bottom.
+    /// A slot's tags are not kept: every read of a slot lands on the stack.
     stack:   u8[]
 }
 
@@ -60,8 +66,10 @@ FunctionTags :: struct {
 /// @param pc     the op ; it must be reachable.
 /// @param back   distance from the top, at least 1.
 stack_tags :: fn(facts: FunctionTags, pc: i64, back: i64) -> u8 {
-    at :: facts.depth[pc] - back
-    return facts.stack[pc * facts.deepest + at]
+    if back > KEPT_CELLS {
+        panic("vader/vm/tags: the tags of cell ${back} below the top are not kept")
+    }
+    return facts.stack[pc * KEPT_CELLS + back - 1]
 }
 
 /// True when every tag of `have` is in `allowed`.
@@ -189,7 +197,7 @@ infer_function_tags :: fn(ctx: TagContext, f: bc.BcFunction, deepest: i64) -> Fu
     facts :: FunctionTags {
         .deepest = deepest,
         .depth   = [-1] * n,
-        .stack   = [0] * (n * deepest),
+        .stack   = [0] * (n * KEPT_CELLS),
     }
     if n == 0 {
         return facts
@@ -306,8 +314,8 @@ walk_block :: fn(
     for pc < n {
         if record != null {
             record.depth[pc] = d
-            for i in 0..<d {
-                record.stack[pc * record.deepest + i] = state[slots + i]
+            for back in 1..=min(d, KEPT_CELLS) {
+                record.stack[pc * KEPT_CELLS + back - 1] = state[slots + d - back]
             }
         }
         op :: f.body[pc]
@@ -504,7 +512,6 @@ integer_operand_tags :: fn(kind: bc.ValType) -> u8 {
 /// @return        `null` when every tested operand is proven.
 /// @error         a `VerifyError` at the first arm whose operand is not.
 check_module_tags :: fn(module: bc.BytecodeModule, facts: FunctionTags[]) -> VerifyError | null {
-    operands: i64: 2
     for fi in 0..<module.functions.len() {
         f :: module.functions[fi]
         ft :: facts[fi]
@@ -513,7 +520,7 @@ check_module_tags :: fn(module: bc.BytecodeModule, facts: FunctionTags[]) -> Ver
                 continue
             }
             op :: f.body[pc]
-            for back in 1..=operands {
+            for back in 1..=KEPT_CELLS {
                 want :: accepted_tags(op, back) ?? continue
                 have :: stack_tags(ft, pc, back)
                 if !tags_within(have, want) {

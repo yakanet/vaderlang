@@ -13,6 +13,7 @@
 module "vader/vm"
 
 import "std/abort"
+import "std/collections"
 bc :: import "vader/core/bytecode"
 
 // Where a pending stack value is.
@@ -43,6 +44,8 @@ Translation :: struct {
     source_pc: i32[]
     /// `VmState.import_ids`.
     import_ids: bc.IntrinsicId[]
+    /// Where each scalar constant sits in `code.consts`.
+    constants: MutableMap<Scalar, i64>
 }
 
 /// Translate every function of `module`.
@@ -83,7 +86,8 @@ translate_function :: fn(
     slots :: f.signature.params.len() + f.locals.len()
     consts: i64[]: []
     const_tags: StackTag[]: []
-    collect_constants(f, consts, const_tags)
+    constants :: MutableMap<Scalar, i64> {}
+    collect_constants(f, consts, const_tags, constants)
     stack_base :: slots + consts.len()
     t :: Translation {
         .code = RegFunction {
@@ -113,6 +117,7 @@ translate_function :: fn(
         .source_pc = f.source_pc,
         .jumps    = [],
         .import_ids = import_ids,
+        .constants = constants,
     }
     leader :: bc.mark_jump_targets(f.jump_table, n)
     start: i64[]: [0] * (n + 1)
@@ -698,10 +703,7 @@ drop_last_op :: fn(t: Translation) -> void {
 // Push a scalar constant ; `collect_constants` gave it a register.
 push_constant :: fn(t: Translation, c: bc.ConstOp) -> void {
     scalar :: scalar_of(c) ?? panic("reg_translate: a string has no constant register")
-    k :: constant_index(t.code.consts, t.code.const_tags, scalar)
-    if k < 0 {
-        panic("reg_translate: constant missing from the prepass")
-    }
+    k :: t.constants[scalar] ?? panic("reg_translate: constant missing from the prepass")
     t.stack.push(Pending { .kind = .Constant, .register = i32(t.code.slots + k) })
 }
 
@@ -710,6 +712,12 @@ Scalar :: struct {
     bits: i64
     tag:  StackTag
 }
+
+// A map's first probe reads the low bits, and an `f64` varies in the high ones:
+// they are folded down. Equal bits under two tags share a probe chain; `Equals`
+// tells them apart.
+Scalar implements Hash -> u64(self.bits) ^ (u64(self.bits) >> 32)
+Scalar implements Equals -> self.bits == other.bits && self.tag == other.tag
 
 // The register contents of `c`, or `null` for a string.
 scalar_of :: fn(c: bc.ConstOp) -> Scalar | null = match c {
@@ -722,30 +730,26 @@ scalar_of :: fn(c: bc.ConstOp) -> Scalar | null = match c {
     is bc.StringConst -> null
 }
 
-// Where `scalar` sits in `consts` / `tags`, or `-1`.
-constant_index :: fn(consts: i64[], tags: StackTag[], scalar: Scalar) -> i64 {
-    for k in 0..<consts.len() {
-        if consts[k] == scalar.bits && tags[k] == scalar.tag {
-            return k
-        }
-    }
-    return -1
-}
-
-// Every distinct scalar constant `f` uses, into `consts` / `tags`.
-collect_constants :: fn(f: bc.BcFunction, consts: i64[], tags: StackTag[]) -> void {
+// Every distinct scalar constant `f` uses, into `consts` / `tags`, and where
+// each sits there into `indices`.
+collect_constants :: fn(
+    f: bc.BcFunction, consts: i64[], tags: StackTag[], indices: MutableMap<Scalar, i64>,
+) -> void {
     for op in f.body {
         if op is bc.ReturnLit {
-            add_constant(op.value, consts, tags)
+            add_constant(op.value, consts, tags, indices)
         } else if op is bc.I32Const | bc.I64Const | bc.F64Const | bc.BoolConst | bc.CharConst | bc.NullConst {
-            add_constant(op, consts, tags)
+            add_constant(op, consts, tags, indices)
         }
     }
 }
 
-add_constant :: fn(c: bc.ConstOp, consts: i64[], tags: StackTag[]) -> void {
-    scalar :: scalar_of(c)
-    if scalar != null && constant_index(consts, tags, scalar) < 0 {
+add_constant :: fn(
+    c: bc.ConstOp, consts: i64[], tags: StackTag[], indices: MutableMap<Scalar, i64>,
+) -> void {
+    scalar :: scalar_of(c) ?? return
+    fresh :: consts.len()
+    if indices.get_or_put(scalar, fresh) == fresh {
         consts.push(scalar.bits)
         tags.push(scalar.tag)
     }
