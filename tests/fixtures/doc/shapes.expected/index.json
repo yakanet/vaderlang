@@ -13,6 +13,7 @@
       "path": "shapes/text",
       "summary": "a second module of the `vader doc` fixture.",
       "files": [
+        "shapes/text/pin.vader",
         "shapes/text/text.vader"
       ]
     }
@@ -121,6 +122,22 @@
       "kind": "fn",
       "signature": "export twice :: fn(n: i32) -> i32",
       "summary": "`n`, twice: its return type is left to inference."
+    },
+    {
+      "id": "shapes/text/pin",
+      "module": "shapes/text",
+      "name": "pin",
+      "kind": "fn",
+      "signature": "export pin :: fn(tag: Tag, at: Geo.Point) -> Tag",
+      "summary": "`tag`, pinned at a point of the plane."
+    },
+    {
+      "id": "shapes/text/tags_of",
+      "module": "shapes/text",
+      "name": "tags_of",
+      "kind": "fn",
+      "signature": "export tags_of :: fn<T: Named>(items: T[]) -> Tag[]",
+      "summary": "The tags of `items`, a tag per item."
     },
     {
       "id": "shapes/text/Named",

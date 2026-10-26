@@ -36,6 +36,23 @@ export StringBuilder :: struct {
     parts: string[] = []
 }
 
+/// Byte length of what the builder holds: the `byte_len` of its `to_string`,
+/// without assembling it. It walks the parts, which keeps `append` a bare push:
+/// asking after every append makes a loop quadratic.
+///
+/// @param self  builder receiver.
+/// @example
+///   # sb :: StringBuilder {}
+///   sb.append("été")
+///   sb.byte_len()   // 5
+export byte_len :: fn(self: StringBuilder) -> i64 {
+    total: i64 = 0
+    for p in self.parts {
+        total += p.byte_len()
+    }
+    return total
+}
+
 /// Append a string: an O(1) reference push, no byte copy.
 /// @param self  builder receiver.
 /// @param s     UTF-8 string to append.
@@ -64,7 +81,7 @@ export append_char :: fn(self: StringBuilder, c: char) -> void {
 ///   sb.append_repeated('-', 40)          // divider line
 export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
     s :: utf8_encode(c).bytes_to_string()
-    for _ in 0..<count {
+    for 0..<count {
         self.parts.push(s)
     }
 }
@@ -83,10 +100,7 @@ StringBuilder implements Display {
         n :: self.parts.len()
         if n == 0 { return "" }
         if n == 1 { return self.parts[0] }
-        total: i64 = 0
-        for p in self.parts {
-            total = total + p.byte_len()
-        }
+        total :: self.byte_len()
         buf :: new_byte_buffer(total)
         off: i64 = 0
         for p in self.parts {
@@ -132,4 +146,14 @@ import "std/testing"
     sb :: StringBuilder {}
     sb.append_repeated('-', 3)
     assert_eq(sb.to_string(), "---")
+}
+
+@test test_byte_len_counts_bytes :: fn() -> void {
+    sb :: StringBuilder {}
+    assert_eq(sb.byte_len(), 0)
+    sb.append("été")
+    sb.append_char('€')
+    sb.append_repeated('-', 2)
+    assert_eq(sb.byte_len(), 10)
+    assert_eq(sb.byte_len(), sb.to_string().byte_len())
 }

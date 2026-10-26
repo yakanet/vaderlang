@@ -70,6 +70,9 @@ export Printer :: struct {
     // fit test (`fits_inline`), which clears it before the construct's own
     // children are emitted.
     trailing: i64 = 0
+    // The names written so far, noted when a caller wants them (a head,
+    // `head_printer`) ; null otherwise.
+    names: WrittenName[] | null = null
 }
 
 /// How `emit_block_expr` lays out a block body (see `Printer.block_mode`).
@@ -996,7 +999,7 @@ emit_impl_head :: fn(self: Printer, d: p.ImplDecl) -> void {
 
 // `Trait<A, B>`: the trait an impl implements, with its arguments.
 emit_trait_ref :: fn(self: Printer, d: p.ImplDecl) -> void {
-    self.write(d.trait_name)
+    self.write_name(d.trait_name, d.trait_name_span)
     if d.trait_args.len() > 0 {
         self.emit_comma_list(d.trait_args, "<", ">", false, true, emit_type_expr_item)
     }
@@ -1756,7 +1759,29 @@ emit_string_lit :: fn(self: Printer, x: p.StringLitExpr) -> void {
 emit_ident :: fn(self: Printer, x: p.IdentExpr) -> void {
     if x.implicit_dot { self.write(".") }
     if x.is_type_param_intro { self.write("$") }
-    self.write(x.name)
+    self.write_name(x.name, x.span)
+}
+
+// Write the name `text`, noted under the span `at` when the printer notes names.
+// The position is measured only then: `byte_len` walks the buffer.
+write_name :: fn(self: Printer, text: string, at: Span) -> void {
+    if self.names == null {
+        self.write(text)
+        return
+    }
+    start :: self.buf.byte_len()
+    self.write(text)
+    self.note_name(start, at)
+}
+
+// Note that the text written since the byte `start` is the name `node` wrote.
+note_name :: fn(self: Printer, start: i64, node: Span | p.FieldExpr) -> void {
+    names :: self.names ?? return
+    names.push(WrittenName {
+        .start = start,
+        .end = self.buf.byte_len(),
+        .node = node,
+    })
 }
 
 emit_call :: fn(self: Printer, x: p.CallExpr) -> void {
@@ -1781,6 +1806,17 @@ emit_call_arg :: fn(self: Printer, a: p.CallArg) -> void {
 }
 
 emit_field :: fn(self: Printer, x: p.FieldExpr) -> void {
+    if self.names == null {
+        self.write_member_access(x)
+        return
+    }
+    start :: self.buf.byte_len()
+    self.write_member_access(x)
+    self.note_name(start, x)
+}
+
+// `target.field`.
+write_member_access :: fn(self: Printer, x: p.FieldExpr) -> void {
     self.emit_postfix_target(x.target)
     self.write(".")
     self.write(x.field)
@@ -2547,10 +2583,8 @@ emit_cast :: fn(self: Printer, x: p.CastExpr) -> void {
 }
 
 emit_generic_inst :: fn(self: Printer, x: p.GenericInstExpr) -> void {
-    // Verbatim from source to preserve `[T, U]` vs `(T, U)` choice: both
-    // shapes collapse to the same AST node and the surrounding context drives
-    // the surface form.
-    self.write(self.source_slice(x.span))
+    self.emit_postfix_target(x.callee)
+    self.emit_comma_list(x.type_args, "<", ">", false, true, emit_type_expr_item)
 }
 
 emit_intrinsic_call :: fn(self: Printer, x: p.IntrinsicCallExpr) -> void {

@@ -1,0 +1,178 @@
+// vader/tools/doc/links: a signature as segments, each name a reader can follow
+// tied to the declaration it names.
+//
+// A head comes from `vader/tools/fmt` with the names it wrote, a type typing gave
+// from `display_type_names` with its nominal names. A name links when it resolves
+// to a public declaration of a module: an identifier through the resolver's
+// `idents`, an import followed to what it imports, a member reached through a
+// namespace alias (`Ns.Name`) through the module the alias names. A local, a
+// parameter, a type parameter or a builtin stays text.
+
+module "vader/tools/doc"
+
+import "std/iter"
+import "std/sort"
+import "std/string"
+import "toolchain/ast"
+import "toolchain/span"
+import "vader/core/symbol"
+Ty :: import "vader/core/types"
+import "vader/front/resolver"
+Tc :: import "vader/front/typecheck"
+import "vader/tools/fmt"
+
+/// A piece of a signature: text, and the declaration it names when it is a name
+/// a reader can follow.
+export DocSegment :: struct {
+    text: string
+    /// The module of the declaration the text names, "" for plain text.
+    module: string = ""
+    /// The name of that declaration in its module, "" for plain text.
+    name: string = ""
+}
+
+// The text of `segments`, without their links: what a list shows.
+segments_text :: fn(segments: DocSegment[]) -> string =
+    segments.map((s: DocSegment) -> s.text).collect().join("")
+
+// `head` as segments, each name it wrote that resolves to a documented
+// declaration a link.
+head_segments :: fn(ctx: FileContext, head: NamedText) -> DocSegment[] {
+    links: Ty.NamedRange[]: []
+    for n in head.names {
+        found :: written_symbol(ctx, n.node) ?? continue
+        links.push(Ty.NamedRange {
+            .start = n.start,
+            .end = n.end,
+            .symbol = found,
+        })
+    }
+    return segments_of(head.text, links)
+}
+
+// The type `t` as segments, each nominal type's name a link.
+type_segments :: fn(t: Ty.Type) -> DocSegment[] {
+    shown :: Ty.display_type_names(t)
+    return segments_of(shown.text, shown.names)
+}
+
+// `text` cut at each range of `links` that names a documented declaration. A
+// range starting inside the one kept before it is dropped: a member access
+// `Ns.Name` comes before the name it starts with.
+segments_of :: fn(text: string, links: Ty.NamedRange[]) -> DocSegment[] {
+    out: DocSegment[]: []
+    at: i64 = 0
+    for link in sort(links, starts_first) {
+        if link.start < at || !is_documented(link.symbol) {
+            continue
+        }
+        out.push_text(text.byte_slice(at, link.start))
+        out.push(
+            DocSegment {
+                .text = text.byte_slice(link.start, link.end),
+                .module = link.symbol.module_name,
+                .name = link.symbol.name,
+            },
+        )
+        at = link.end
+    }
+    out.push_text(text.byte_slice(at, text.byte_len()))
+    return out
+}
+
+// Whether `a` goes before `b`: it starts first, or at the same byte and ends
+// later.
+starts_first :: fn(a: Ty.NamedRange, b: Ty.NamedRange) -> bool =
+    a.start < b.start || a.start == b.start && a.end > b.end
+
+// Add the segments `more` to `out`, a plain text joining the plain text before it.
+append_segments :: fn(out: DocSegment[], more: DocSegment[]) -> void {
+    for s in more {
+        if s.module == "" {
+            out.push_text(s.text)
+        } else {
+            out.push(s)
+        }
+    }
+}
+
+// Add the plain `text` to `out`: to the end of its last segment when that one is
+// plain text too.
+push_text :: fn(out: DocSegment[], text: string) -> void {
+    if text == "" {
+        return
+    }
+    if out.len() > 0 && out[out.len() - 1].module == "" {
+        last :: out[out.len() - 1]
+        last.text = last.text + text
+        return
+    }
+    out.push(DocSegment { .text = text })
+}
+
+// The declaration the name `node` wrote stands for, an import followed to what it
+// imports; null when it resolves to none.
+written_symbol :: fn(ctx: FileContext, node: Span | FieldExpr) -> Symbol | null {
+    typed :: ctx.typed ?? return null
+    if node is FieldExpr {
+        return Tc.namespace_member_symbol(node, ctx.project, typed)
+    }
+    named :: typed.resolved.idents[node.hash()] ?? return null
+    return Tc.declared_symbol(named, typed)
+}
+
+// Whether the documentation of its module lists `sym`: a public fn, type, trait
+// or constant.
+is_documented :: fn(sym: Symbol) -> bool = sym.visibility == .Public && is_listed_kind(sym.kind)
+
+is_listed_kind :: fn(kind: SymbolKind) -> bool = match kind {
+    .Fn | .Struct | .Enum | .Trait | .TypeAlias | .Const -> true
+    .Impl | .ImportBinding | .Param | .TypeParam | .Local | .Binding -> false
+    .BuiltinType | .BuiltinFn | .Synthetic -> false
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A public struct `name` of the module `module`.
+struct_symbol :: fn(name: string, module: string) -> Symbol {
+    factory :: SymbolFactory {}
+    return factory.make(.Struct, name, module, module, .Public, null)
+}
+
+// The range from `start` to `end` that names `symbol`.
+named_range :: fn(start: i64, end: i64, symbol: Symbol) -> Ty.NamedRange = Ty.NamedRange {
+    .start = start,
+    .end = end,
+    .symbol = symbol,
+}
+
+@test
+test_segments_of_cuts_the_text_at_each_link :: fn() -> void {
+    point :: struct_symbol("Point", "geo")
+    links :: [named_range(15, 20, point), named_range(5, 10, point)]
+    segments :: segments_of("f(a: Point, b: Point) -> f64", links)
+    assert_eq(segments.len(), 5)
+    assert_eq(segments_text(segments), "f(a: Point, b: Point) -> f64")
+    assert_eq(segments[1].text, "Point")
+    assert_eq(segments[1].module, "geo")
+    assert_eq(segments[4].text, ") -> f64")
+}
+
+@test
+test_segments_of_keeps_the_wider_of_two_links_at_one_place :: fn() -> void {
+    kind :: struct_symbol("Kind", "ns")
+    segments :: segments_of("Ns.Kind[]", [named_range(0, 2, kind), named_range(0, 7, kind)])
+    assert_eq(segments.len(), 2)
+    assert_eq(segments[0].text, "Ns.Kind")
+}
+
+@test
+test_append_segments_joins_plain_text :: fn() -> void {
+    out: DocSegment[]: []
+    out.push_text("export ")
+    out.append_segments([DocSegment { .text = "f :: fn()" }])
+    assert_eq(out.len(), 1)
+    assert_eq(out[0].text, "export f :: fn()")
+}

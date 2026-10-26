@@ -139,7 +139,7 @@ decl_display :: fn(source: string, d: DeclEntry) -> string {
     match node :: d.node {
         is null             -> { return d.signature }
         is AST.StructField  -> { return format_field_display(source, node) }
-        is AST.EnumVariant  -> { return format_variant_head(source, node) }
+        is AST.EnumVariant  -> { return format_variant_head(source, node).text }
         is AST.Decl         -> { return format_decl_display(source, node, DISPLAY_WIDTH) }
     }
 }

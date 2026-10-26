@@ -628,9 +628,9 @@ top_entry :: fn(
 
 // The one-line head of `node`, as `vader/tools/fmt` renders it.
 node_head :: fn(source: string, node: DeclNode) -> string = match node {
-    is StructField -> format_field_head(source, node)
-    is EnumVariant -> format_variant_head(source, node)
-    is Decl        -> format_decl_head(source, node)
+    is StructField -> format_field_head(source, node).text
+    is EnumVariant -> format_variant_head(source, node).text
+    is Decl        -> format_decl_head(source, node).text
 }
 
 // The vaderdoc written above `node`, null when it has none.

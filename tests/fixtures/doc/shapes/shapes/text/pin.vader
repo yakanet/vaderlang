@@ -1,0 +1,11 @@
+// shapes/text/pin: the second file of `shapes/text`, which links to another module.
+
+module "shapes/text"
+
+Geo :: import "shapes/geometry"
+
+/// `tag`, pinned at a point of the plane.
+export pin :: fn(tag: Tag, at: Geo.Point) -> Tag = tag
+
+/// The tags of `items`, a tag per item.
+export tags_of :: fn<T: Named>(items: T[]) -> Tag[] = []

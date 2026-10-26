@@ -4,14 +4,102 @@
   "summary": "a second module of the `vader doc` fixture.",
   "header": "shapes/text: a second module of the `vader doc` fixture.",
   "files": [
+    "shapes/text/pin.vader",
     "shapes/text/text.vader"
   ],
   "decls": [
     {
+      "id": "shapes/text/pin",
+      "name": "pin",
+      "kind": "fn",
+      "signature": [
+        {
+          "text": "export pin :: fn(tag: "
+        },
+        {
+          "text": "Tag",
+          "module": "shapes/text",
+          "name": "Tag"
+        },
+        {
+          "text": ", at: "
+        },
+        {
+          "text": "Geo.Point",
+          "module": "shapes/geometry",
+          "name": "Point"
+        },
+        {
+          "text": ") -> "
+        },
+        {
+          "text": "Tag",
+          "module": "shapes/text",
+          "name": "Tag"
+        }
+      ],
+      "inferred": null,
+      "file": "shapes/text/pin.vader",
+      "line": 8,
+      "doc": {
+        "summary": "`tag`, pinned at a point of the plane.",
+        "prose": "`tag`, pinned at a point of the plane.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      },
+      "targets": [],
+      "members": []
+    },
+    {
+      "id": "shapes/text/tags_of",
+      "name": "tags_of",
+      "kind": "fn",
+      "signature": [
+        {
+          "text": "export tags_of :: fn<T: "
+        },
+        {
+          "text": "Named",
+          "module": "shapes/text",
+          "name": "Named"
+        },
+        {
+          "text": ">(items: T[]) -> "
+        },
+        {
+          "text": "Tag",
+          "module": "shapes/text",
+          "name": "Tag"
+        },
+        {
+          "text": "[]"
+        }
+      ],
+      "inferred": null,
+      "file": "shapes/text/pin.vader",
+      "line": 11,
+      "doc": {
+        "summary": "The tags of `items`, a tag per item.",
+        "prose": "The tags of `items`, a tag per item.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      },
+      "targets": [],
+      "members": []
+    },
+    {
       "id": "shapes/text/Named",
       "name": "Named",
       "kind": "trait",
-      "signature": "export Named :: trait",
+      "signature": [
+        {
+          "text": "export Named :: trait"
+        }
+      ],
       "inferred": null,
       "file": "shapes/text/text.vader",
       "line": 6,
@@ -29,7 +117,11 @@
           "id": "shapes/text/Named.name",
           "name": "name",
           "kind": "method",
-          "signature": "name :: fn(self) -> string",
+          "signature": [
+            {
+              "text": "name :: fn(self) -> string"
+            }
+          ],
           "inferred": null,
           "line": 8,
           "doc": {
@@ -47,7 +139,11 @@
       "id": "shapes/text/Label",
       "name": "Label",
       "kind": "type",
-      "signature": "export Label :: string",
+      "signature": [
+        {
+          "text": "export Label :: string"
+        }
+      ],
       "inferred": null,
       "file": "shapes/text/text.vader",
       "line": 12,
@@ -66,7 +162,11 @@
       "id": "shapes/text/Tag",
       "name": "Tag",
       "kind": "struct",
-      "signature": "export Tag :: struct",
+      "signature": [
+        {
+          "text": "export Tag :: struct"
+        }
+      ],
       "inferred": null,
       "file": "shapes/text/text.vader",
       "line": 15,
@@ -84,7 +184,11 @@
           "id": "shapes/text/Tag.text",
           "name": "text",
           "kind": "field",
-          "signature": "text: string",
+          "signature": [
+            {
+              "text": "text: string"
+            }
+          ],
           "inferred": null,
           "line": 16,
           "doc": null
@@ -95,7 +199,21 @@
       "id": "shapes/text/Tag: Named",
       "name": "Tag: Named",
       "kind": "impl",
-      "signature": "Tag implements Named",
+      "signature": [
+        {
+          "text": "Tag",
+          "module": "shapes/text",
+          "name": "Tag"
+        },
+        {
+          "text": " implements "
+        },
+        {
+          "text": "Named",
+          "module": "shapes/text",
+          "name": "Named"
+        }
+      ],
       "inferred": null,
       "file": "shapes/text/text.vader",
       "line": 20,
@@ -115,9 +233,17 @@
           "id": "shapes/text/Tag: Named.name",
           "name": "name",
           "kind": "method",
-          "signature": "name :: fn(self) -> string",
+          "signature": [
+            {
+              "text": "name :: fn(self) -> string"
+            }
+          ],
           "inferred": {
-            "return": "string"
+            "return": [
+              {
+                "text": "string"
+              }
+            ]
           },
           "line": 22,
           "doc": {

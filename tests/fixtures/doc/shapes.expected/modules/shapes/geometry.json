@@ -12,7 +12,11 @@
       "id": "shapes/geometry/square_area",
       "name": "square_area",
       "kind": "fn",
-      "signature": "export square_area :: fn(side: f64) -> f64",
+      "signature": [
+        {
+          "text": "export square_area :: fn(side: f64) -> f64"
+        }
+      ],
       "inferred": null,
       "file": "shapes/geometry/area.vader",
       "line": 9,
@@ -38,7 +42,11 @@
       "id": "shapes/geometry/separator",
       "name": "separator",
       "kind": "fn",
-      "signature": "export separator :: fn() -> string",
+      "signature": [
+        {
+          "text": "export separator :: fn() -> string"
+        }
+      ],
       "inferred": null,
       "file": "shapes/geometry/area.vader",
       "line": 13,
@@ -61,7 +69,11 @@
       "id": "shapes/geometry/Point",
       "name": "Point",
       "kind": "struct",
-      "signature": "export Point :: struct",
+      "signature": [
+        {
+          "text": "export Point :: struct"
+        }
+      ],
       "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 10,
@@ -79,7 +91,11 @@
           "id": "shapes/geometry/Point.x",
           "name": "x",
           "kind": "field",
-          "signature": "x: f64",
+          "signature": [
+            {
+              "text": "x: f64"
+            }
+          ],
           "inferred": null,
           "line": 12,
           "doc": {
@@ -95,7 +111,11 @@
           "id": "shapes/geometry/Point.y",
           "name": "y",
           "kind": "field",
-          "signature": "y: f64",
+          "signature": [
+            {
+              "text": "y: f64"
+            }
+          ],
           "inferred": null,
           "line": 13,
           "doc": null
@@ -106,7 +126,27 @@
       "id": "shapes/geometry/distance",
       "name": "distance",
       "kind": "fn",
-      "signature": "export distance :: fn(a: Point, b: Point) -> f64",
+      "signature": [
+        {
+          "text": "export distance :: fn(a: "
+        },
+        {
+          "text": "Point",
+          "module": "shapes/geometry",
+          "name": "Point"
+        },
+        {
+          "text": ", b: "
+        },
+        {
+          "text": "Point",
+          "module": "shapes/geometry",
+          "name": "Point"
+        },
+        {
+          "text": ") -> f64"
+        }
+      ],
       "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 28,
@@ -136,7 +176,24 @@
       "id": "shapes/geometry/scaled~0",
       "name": "scaled",
       "kind": "fn",
-      "signature": "export scaled :: fn(p: Point, k: f64) -> Point",
+      "signature": [
+        {
+          "text": "export scaled :: fn(p: "
+        },
+        {
+          "text": "Point",
+          "module": "shapes/geometry",
+          "name": "Point"
+        },
+        {
+          "text": ", k: f64) -> "
+        },
+        {
+          "text": "Point",
+          "module": "shapes/geometry",
+          "name": "Point"
+        }
+      ],
       "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 31,
@@ -155,7 +212,32 @@
       "id": "shapes/geometry/scaled~1",
       "name": "scaled",
       "kind": "fn",
-      "signature": "export scaled :: fn(p: Point, k: i32) -> Point",
+      "signature": [
+        {
+          "text": "export scaled :: fn(p: "
+        },
+        {
+          "text": "Point",
+          "module": "shapes/geometry",
+          "name": "Point"
+        },
+        {
+          "text": ", k: "
+        },
+        {
+          "text": "i32",
+          "module": "std/core",
+          "name": "i32"
+        },
+        {
+          "text": ") -> "
+        },
+        {
+          "text": "Point",
+          "module": "shapes/geometry",
+          "name": "Point"
+        }
+      ],
       "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 34,
@@ -174,7 +256,11 @@
       "id": "shapes/geometry/Quadrant",
       "name": "Quadrant",
       "kind": "enum",
-      "signature": "export Quadrant :: enum",
+      "signature": [
+        {
+          "text": "export Quadrant :: enum"
+        }
+      ],
       "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 36,
@@ -185,7 +271,11 @@
           "id": "shapes/geometry/Quadrant.First",
           "name": "First",
           "kind": "variant",
-          "signature": "First",
+          "signature": [
+            {
+              "text": "First"
+            }
+          ],
           "inferred": null,
           "line": 38,
           "doc": {
@@ -201,7 +291,11 @@
           "id": "shapes/geometry/Quadrant.Second",
           "name": "Second",
           "kind": "variant",
-          "signature": "Second",
+          "signature": [
+            {
+              "text": "Second"
+            }
+          ],
           "inferred": null,
           "line": 39,
           "doc": null
@@ -212,9 +306,27 @@
       "id": "shapes/geometry/ORIGIN",
       "name": "ORIGIN",
       "kind": "const",
-      "signature": "export ORIGIN :: Point { .x = 0.0, .y = 0.0 }",
+      "signature": [
+        {
+          "text": "export ORIGIN :: "
+        },
+        {
+          "text": "Point",
+          "module": "shapes/geometry",
+          "name": "Point"
+        },
+        {
+          "text": " { .x = 0.0, .y = 0.0 }"
+        }
+      ],
       "inferred": {
-        "type": "Point"
+        "type": [
+          {
+            "text": "Point",
+            "module": "shapes/geometry",
+            "name": "Point"
+          }
+        ]
       },
       "file": "shapes/geometry/geometry.vader",
       "line": 43,
@@ -233,9 +345,25 @@
       "id": "shapes/geometry/twice",
       "name": "twice",
       "kind": "fn",
-      "signature": "export twice :: fn(n: i32) -> i32",
+      "signature": [
+        {
+          "text": "export twice :: fn(n: "
+        },
+        {
+          "text": "i32",
+          "module": "std/core",
+          "name": "i32"
+        },
+        {
+          "text": ") -> i32"
+        }
+      ],
       "inferred": {
-        "return": "i32"
+        "return": [
+          {
+            "text": "i32"
+          }
+        ]
       },
       "file": "shapes/geometry/geometry.vader",
       "line": 46,

@@ -96,7 +96,8 @@ index_json :: fn(modules: DocModule[]) -> JsonValue {
         item["files"] = json_texts(m.files)
         module_items.push(JsonObject { .entries = item })
         for d in m.decls {
-            entries.push(index_entry(m.path, d.id, d.name, d.kind, d.signature, d.doc))
+            signature :: segments_text(d.signature)
+            entries.push(index_entry(m.path, d.id, d.name, d.kind, signature, d.doc))
             for member in d.members {
                 entries.push(
                     index_entry(
@@ -104,7 +105,7 @@ index_json :: fn(modules: DocModule[]) -> JsonValue {
                         member.id,
                         member.name,
                         member.kind,
-                        member.signature,
+                        segments_text(member.signature),
                         member.doc,
                     ),
                 )
@@ -155,7 +156,7 @@ decl_json :: fn(d: DocDecl) -> JsonValue {
     decl["id"] = json_text(d.id)
     decl["name"] = json_text(d.name)
     decl["kind"] = json_text(d.kind)
-    decl["signature"] = json_text(d.signature)
+    decl["signature"] = segments_json(d.signature)
     decl["inferred"] = inferred_json(d.kind, d.inferred)
     decl["file"] = json_text(d.file)
     decl["line"] = JsonNumber { .value = f64(d.line) }
@@ -175,7 +176,7 @@ member_json :: fn(m: DocMember) -> JsonValue {
     member["id"] = json_text(m.id)
     member["name"] = json_text(m.name)
     member["kind"] = json_text(m.kind)
-    member["signature"] = json_text(m.signature)
+    member["signature"] = segments_json(m.signature)
     member["inferred"] = inferred_json(m.kind, m.inferred)
     member["line"] = JsonNumber { .value = f64(m.line) }
     member["doc"] = doc_json(m.doc)
@@ -184,12 +185,28 @@ member_json :: fn(m: DocMember) -> JsonValue {
 
 // What typing gave that the source leaves unwritten: `{ "type": T }` for a
 // constant, `{ "return": T }` for a fn or a method, `null` for nothing.
-inferred_json :: fn(kind: string, inferred: string) -> JsonValue {
-    if inferred == "" {
+inferred_json :: fn(kind: string, inferred: DocSegment[]) -> JsonValue {
+    if inferred.len() == 0 {
         return JsonNull {}
     }
     out :: MutableMap<string, JsonValue> {}
-    out[inferred_key(kind)] = json_text(inferred)
+    out[inferred_key(kind)] = segments_json(inferred)
+    return JsonObject { .entries = out }
+}
+
+// A signature or a type: its segments in order, each `{ "text" }`, with the
+// `module` and the `name` of the declaration a name links to.
+segments_json :: fn(segments: DocSegment[]) -> JsonValue = JsonArray {
+    .items = segments.map(segment_json).collect(),
+}
+
+segment_json :: fn(segment: DocSegment) -> JsonValue {
+    out :: MutableMap<string, JsonValue> {}
+    out["text"] = json_text(segment.text)
+    if segment.module != "" {
+        out["module"] = json_text(segment.module)
+        out["name"] = json_text(segment.name)
+    }
     return JsonObject { .entries = out }
 }
 

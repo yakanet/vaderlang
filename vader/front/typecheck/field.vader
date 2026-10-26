@@ -1878,6 +1878,24 @@ export namespace_base_mod_id :: fn(base: AST.Expr, typed: TypedProgram) -> strin
     return targets.namespace_targets[sym.id]
 }
 
+/// The declaration a member access names through a namespace alias: `Point` in
+/// `Geo.Point`.
+///
+/// @param e        the member access.
+/// @param project  the load that holds the alias's module.
+/// @param typed    the module `e` is written in.
+/// @return         null when `e.target` is no namespace alias, or its module
+///                 declares no `e.field`.
+export namespace_member_symbol :: fn(
+    e: AST.FieldExpr,
+    project: LoadedProject,
+    typed: TypedProgram,
+) -> Symbol | null {
+    module_id :: namespace_base_mod_id(e.target, typed) ?? return null
+    loaded :: project.modules[module_id] ?? return null
+    return loaded.collected.symbols[e.field]
+}
+
 // T3008's detail for a member `field` of a type parameter : it has only what its
 // bounds declare, its own or those its struct puts on it (`type_param_bound_traits`).
 type_param_member_detail :: fn(tp: TypeParamType, field: string, typed: TypedProgram) -> string {

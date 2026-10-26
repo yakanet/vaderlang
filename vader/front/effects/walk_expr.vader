@@ -148,16 +148,9 @@ field_value :: fn(ctx: WalkCtx, e: AST.FieldExpr) -> i64 | null {
         ctx.call(taken, [ctx.value(e.target)], e.span, [e.target])
         return null
     }
-    member :: ctx.namespace_member(e) ?? return ctx.step_slot(ctx.value(e.target), field_step(e))
+    member :: namespace_member_symbol(e, ctx.index.project, ctx.typed)
+        ?? return ctx.step_slot(ctx.value(e.target), field_step(e))
     return ctx.frozen_use(e, member)
-}
-
-// The symbol the member `e` of a namespace alias names ; null when `e.target` is no
-// namespace alias.
-namespace_member :: fn(ctx: WalkCtx, e: AST.FieldExpr) -> Symbol | null {
-    module :: namespace_base_mod_id(e.target, ctx.typed) ?? return null
-    loaded :: ctx.index.project.modules[module] ?? return null
-    return loaded.collected.symbols[e.field]
 }
 
 // `target[index]`: what the target's `Index` returns, the elements of a slice, or

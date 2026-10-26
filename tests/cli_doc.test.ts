@@ -1,6 +1,6 @@
 // tests/cli_doc: `vader doc`, the data of the API documentation.
 //
-// `shapes` is a project with two modules under `shapes/`, one of them over two
+// `shapes` is a project with two modules under `shapes/`, each over two
 // files, beside a `main` the path leaves out. What the command writes under
 // `build/doc/` is pinned file by file by `shapes.expected/`, which mirrors it.
 // `left_out` holds a `json` module, which the toolchain's own `json` shadows.
@@ -79,6 +79,7 @@ test("doc reads the project --project names as if it ran there", async () => {
     "main.vader",
     "shapes/geometry/area.vader",
     "shapes/geometry/geometry.vader",
+    "shapes/text/pin.vader",
     "shapes/text/text.vader",
   ]);
 }, MEDIUM_BUILD);

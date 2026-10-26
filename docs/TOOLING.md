@@ -91,7 +91,7 @@ The modules are read and type-checked as the project's build reads them, from it
 
 The data is JSON, at `version` 1, a draft that may still change:
 
-- `index.json` lists the `modules` (`path`, `summary`, `files`) and, in `entries`, every export, impl and member with what a list shows of it: `id`, `module`, `name`, `kind`, `signature` and `summary`, the first sentence of its vaderdoc.
+- `index.json` lists the `modules` (`path`, `summary`, `files`) and, in `entries`, every export, impl and member with what a list shows of it: `id`, `module`, `name`, `kind`, the text of its `signature` and `summary`, the first sentence of its vaderdoc.
 - `modules/<path>.json` holds one module whole: its `summary`, the `header` of its main file, its `files` and its `decls`. Each declaration adds `file`, `line`, `doc` (null without a vaderdoc), `targets` and `members`:
 
 ```json
@@ -99,7 +99,11 @@ The data is JSON, at `version` 1, a draft that may still change:
   "id": "shapes/text/Tag: Named",
   "name": "Tag: Named",
   "kind": "impl",
-  "signature": "Tag implements Named",
+  "signature": [
+    { "text": "Tag", "module": "shapes/text", "name": "Tag" },
+    { "text": " implements " },
+    { "text": "Named", "module": "shapes/text", "name": "Named" }
+  ],
   "inferred": null,
   "file": "shapes/text/text.vader",
   "line": 20,
@@ -119,8 +123,8 @@ The data is JSON, at `version` 1, a draft that may still change:
       "id": "shapes/text/Tag: Named.name",
       "name": "name",
       "kind": "method",
-      "signature": "name :: fn(self) -> string",
-      "inferred": { "return": "string" },
+      "signature": [{ "text": "name :: fn(self) -> string" }],
+      "inferred": { "return": [{ "text": "string" }] },
       "line": 22,
       "doc": {
         "summary": "The text of the tag, its return type left to inference.",
@@ -137,7 +141,8 @@ The data is JSON, at `version` 1, a draft that may still change:
 
 - `id` is `<module>/<name>`, `<module>/<name>~<n>` for the n-th declaration of an overloaded name, `<module>/<type>: <trait>` for an impl, and `<declaration>.<name>` for a member.
 - `kind` is `fn`, `struct`, `enum`, `trait`, `type` (an alias, or a constant whose value is a type), `const` or `impl`; a member's is `field`, `variant` or `method`. A field restricted to its module (`@internal`) is left out.
-- `inferred` holds what typing gave that the source leaves out: `{ "return": T }` for a function or a method without `->`, whose `signature` then ends with ` -> T`, `{ "type": T }` for a constant without a written type, `null` otherwise.
+- `signature` is the head as segments, whose texts, put end to end, give the head: each is `{ "text" }`, with the `module` and the `name` of the declaration it names when it is a name a reader can follow, a public function, type, trait or constant. A name reached through a namespace alias is one segment, `Geo.Point`.
+- `inferred` holds what typing gave that the source leaves out, as segments too: `{ "return": T }` for a function or a method without `->`, whose `signature` then ends with ` -> T`, `{ "type": T }` for a constant without a written type, `null` otherwise. Only a struct, a trait, an enum or a distinct type links there: typing keeps no declaration for an alias, so an integer range such as `i32` shows its name without a link.
 - `targets` lists the platforms an `@target` group exists on, and is empty for a function that exists on every platform: one whose bare declaration has a body.
 - `prose` is CommonMark, and `example` is shown as a reader sees it, its hidden `# ` lines left out.
 

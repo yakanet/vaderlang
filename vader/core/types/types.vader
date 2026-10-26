@@ -344,9 +344,37 @@ export display_type :: fn(t: Type) -> string {
         is InferVar       -> { return t.origin.name }
         _                 -> {}  // fall through for composite types
     }
-    sb :: StringBuilder {}
-    sb.write_type(t, false)
-    return sb.to_string()
+    w :: TypeWriter { .sb = StringBuilder {} }
+    w.write_type(t)
+    return w.sb.to_string()
+}
+
+/// A name in a rendering, and the declaration it names.
+export NamedRange :: struct {
+    /// Byte offset of the name's first byte in the rendering.
+    start: i64
+    /// Byte offset just past the name's last byte.
+    end: i64
+    symbol: Symbol
+}
+
+/// A type's rendering, with the nominal names in it.
+export TypeDisplay :: struct {
+    text:  string
+    /// In the order they are written.
+    names: NamedRange[]
+}
+
+/// `t` rendered as `display_type` renders it, with where each nominal type's
+/// name (struct, trait, enum, distinct) lands in the text and the declaration it
+/// names: what a link to that declaration needs.
+///
+/// @param t  the type to render.
+export display_type_names :: fn(t: Type) -> TypeDisplay {
+    names: NamedRange[]: []
+    w :: TypeWriter { .sb = StringBuilder {}, .names = names }
+    w.write_type(t)
+    return TypeDisplay { .text = w.sb.to_string(), .names = names }
 }
 
 /// `t` rendered as `display_type` renders it, with every nominal type (struct,
@@ -368,9 +396,9 @@ export qualified_display_type :: fn(t: Type) -> string {
         }
         _ -> {}
     }
-    sb :: StringBuilder {}
-    sb.write_type(t, true)
-    return sb.to_string()
+    w :: TypeWriter { .sb = StringBuilder {}, .qualified = true }
+    w.write_type(t)
+    return w.sb.to_string()
 }
 
 /// `sym`'s name prefixed by its declaring module, as an instance name carries it:
@@ -439,67 +467,97 @@ export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
 /// @param t  a type.
 export is_structural :: fn(t: Type) -> bool = t is TupleType || t is FnType || t is UnionType
 
-write_type :: fn(sb: StringBuilder, t: Type, qualified: bool) -> void {
+// A type's rendering under way: where it writes, how it names a nominal type,
+// and the names it notes when a caller wants them (`display_type_names`).
+TypeWriter :: struct {
+    sb: StringBuilder
+    /// Each nominal type named by its declaring module as well
+    /// (`qualified_display_type`).
+    qualified: bool = false
+    /// The nominal names written so far, null when nobody asked.
+    names: NamedRange[] | null = null
+}
+
+write_type :: fn(w: TypeWriter, t: Type) -> void {
     match t {
-        is PrimitiveType  -> { sb.append(t.name) }
-        is StructType     -> {
-            sb.write_named(nominal_name(t.symbol, qualified), t.args, qualified)
-        }
-        is EnumType       -> { sb.append(nominal_name(t.symbol, qualified)) }
-        is DistinctType   -> { sb.append(nominal_name(t.symbol, qualified)) }
-        is RangeType      -> { sb.write_range(t, qualified) }
-        is TraitType      -> {
-            sb.write_named(nominal_name(t.symbol, qualified), t.args, qualified)
-        }
-        is TypeParamType  -> { sb.append(t.symbol.name) }
-        is TypeMetaType   -> { sb.append("type") }
-        is SelfType       -> { sb.append("Self") }
-        is UnresolvedType -> { sb.append("?") }
-        is NeverType      -> { sb.append("never") }
-        is FreeIntType    -> { sb.append("{integer}") }
-        is FreeFloatType  -> { sb.append("{float}") }
-        is FreeCharType   -> { sb.append("{char}") }
-        is ArrayType      -> {
+        is PrimitiveType           -> { w.sb.append(t.name) }
+        is StructType | TraitType  -> { w.write_named(t.symbol, t.args) }
+        is EnumType | DistinctType -> { w.write_nominal(t.symbol) }
+        is RangeType               -> { w.sb.write_range(t, w.qualified) }
+        is TypeParamType           -> { w.sb.append(t.symbol.name) }
+        is TypeMetaType            -> { w.sb.append("type") }
+        is SelfType                -> { w.sb.append("Self") }
+        is UnresolvedType          -> { w.sb.append("?") }
+        is NeverType               -> { w.sb.append("never") }
+        is FreeIntType             -> { w.sb.append("{integer}") }
+        is FreeFloatType           -> { w.sb.append("{float}") }
+        is FreeCharType            -> { w.sb.append("{char}") }
+        is ArrayType               -> {
             // `(A | B)[]` is unambiguous ; bare `A | B[]` would read as
             // `A | (B[])` since `[]` binds tighter than `|`. Same for
             // bare fn types like `fn() -> A`.
             needs_parens :: t.element is UnionType || t.element is FnType
-            if needs_parens { sb.append_char('(') }
-            sb.write_type(t.element, qualified)
-            if needs_parens { sb.append_char(')') }
-            sb.append("[]")
+            if needs_parens {
+                w.sb.append_char('(')
+            }
+            w.write_type(t.element)
+            if needs_parens {
+                w.sb.append_char(')')
+            }
+            w.sb.append("[]")
         }
-        is TupleType -> {
-            sb.append_char('[')
-            sb.write_type_list(t.elements, ", ", qualified)
-            sb.append_char(']')
+        is TupleType               -> {
+            w.sb.append_char('[')
+            w.write_type_list(t.elements, ", ")
+            w.sb.append_char(']')
         }
-        is FnType -> {
-            sb.append("fn(")
-            sb.write_type_list(t.params, ", ", qualified)
-            sb.append(") -> ")
-            sb.write_type(t.return_type, qualified)
+        is FnType                  -> {
+            w.sb.append("fn(")
+            w.write_type_list(t.params, ", ")
+            w.sb.append(") -> ")
+            w.write_type(t.return_type)
         }
-        is UnionType -> { sb.write_type_list(t.variants, " | ", qualified) }
-        is AnyType   -> { sb.append("Any") }
-        is InferVar  -> { sb.append(t.origin.name) }
+        is UnionType               -> { w.write_type_list(t.variants, " | ") }
+        is AnyType                 -> { w.sb.append("Any") }
+        is InferVar                -> { w.sb.append(t.origin.name) }
     }
 }
 
-write_named :: fn(sb: StringBuilder, name: string, args: Type[], qualified: bool) -> void {
-    sb.append(name)
-    if args.len() == 0 { return }
-    sb.append_char('<')
-    sb.write_type_list(args, ", ", qualified)
-    sb.append_char('>')
+write_named :: fn(w: TypeWriter, sym: Symbol, args: Type[]) -> void {
+    w.write_nominal(sym)
+    if args.len() == 0 {
+        return
+    }
+    w.sb.append_char('<')
+    w.write_type_list(args, ", ")
+    w.sb.append_char('>')
 }
 
-write_type_list :: fn(sb: StringBuilder, items: Type[], sep: string, qualified: bool) -> void {
+// The name of the nominal type `sym` declares, noted when names are. The position
+// is measured only then: `byte_len` walks the builder.
+write_nominal :: fn(w: TypeWriter, sym: Symbol) -> void {
+    names :: w.names
+    if names == null {
+        w.sb.append(nominal_name(sym, w.qualified))
+        return
+    }
+    start :: w.sb.byte_len()
+    w.sb.append(nominal_name(sym, w.qualified))
+    names.push(NamedRange {
+        .start = start,
+        .end = w.sb.byte_len(),
+        .symbol = sym,
+    })
+}
+
+write_type_list :: fn(w: TypeWriter, items: Type[], sep: string) -> void {
     first := true
     for it in items {
-        if !first { sb.append(sep) }
+        if !first {
+            w.sb.append(sep)
+        }
         first = false
-        sb.write_type(it, qualified)
+        w.write_type(it)
     }
 }
 
@@ -948,6 +1006,21 @@ test_display_struct_without_args :: fn() -> void {
     sym :: factory.make(.Struct, "Point", "test", "test", .Public, null)
     s :: mk_struct(sym, [])
     assert_eq(display_type(s), "Point")
+}
+
+@test
+test_display_type_names_locates_each_nominal_name :: fn() -> void {
+    factory :: SymbolFactory {}
+    map :: factory.make(.Struct, "MutableMap", "test", "test", .Public, null)
+    point :: factory.make(.Struct, "Point", "test", "test", .Public, null)
+    a0: Type: TY_STRING
+    a1: Type: mk_struct(point, [])
+    shown :: display_type_names(mk_array(mk_struct(map, [a0, a1])))
+    assert_eq(shown.text, "MutableMap<string, Point>[]")
+    assert_eq(shown.names.len(), 2)
+    assert_eq(shown.text.byte_slice(shown.names[0].start, shown.names[0].end), "MutableMap")
+    assert_eq(shown.text.byte_slice(shown.names[1].start, shown.names[1].end), "Point")
+    assert_eq(shown.names[1].symbol.id, point.id)
 }
 
 @test

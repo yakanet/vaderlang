@@ -6,14 +6,36 @@
 // on `|` lines) reads on one line, and a string, a char or a comment inside it is
 // never taken for its end. `format_decl_head` leaves out the decorators, `export`
 // and the body ; `format_decl_display` adds the decorators, `export` and the
-// members' heads a hover shows.
+// members' heads a hover shows. A head comes with the names it writes, which a
+// caller resolves to link them (`vader doc`).
 
 module "vader/tools/fmt"
 
+import "std/iter"
 import "std/string"
 p :: import "toolchain/ast"
 import "toolchain/span"
 import "vader/front/parser"
+
+/// A name a head wrote: where it lies in the text, and the node it comes from,
+/// by which a caller resolves it.
+export WrittenName :: struct {
+    /// Byte offset of the name's first byte in the text.
+    start: i64
+    /// Byte offset just past the name's last byte.
+    end: i64
+    /// The span of an identifier, the key the resolver binds it under; or a
+    /// member access (`Ns.Name`), whose range covers both sides of its dot.
+    node: Span | p.FieldExpr
+}
+
+/// A rendering, with the names it wrote.
+export NamedText :: struct {
+    text:  string
+    /// In the order they were written: a member access after the name it
+    /// starts with.
+    names: WrittenName[]
+}
 
 /// Longest const, field or variant head shown before it is cut with ` …` : a
 /// table written over many lines is a value, not a signature. A union alias is
@@ -29,7 +51,7 @@ HEAD_VALUE_MAX: i64: 120
 /// @param d       the declaration ; an import, an impl or an `assert` has no head
 ///                and renders as "".
 /// @return        the head, without decorators, `export` or body.
-export format_decl_head :: fn(source: string, d: p.Decl) -> string {
+export format_decl_head :: fn(source: string, d: p.Decl) -> NamedText {
     h :: head_printer(source)
     match d {
         is p.FnDecl -> {
@@ -64,7 +86,7 @@ export format_decl_head :: fn(source: string, d: p.Decl) -> string {
         }
         is p.ImportDecl | p.ImplDecl | p.AssertDecl -> {}
     }
-    return h.finish()
+    return h.finish_named()
 }
 
 /// Render a struct field's head on one line : `name: T`, `name: T = default`.
@@ -72,13 +94,13 @@ export format_decl_head :: fn(source: string, d: p.Decl) -> string {
 /// @param source  the document the field's spans index into.
 /// @param f       the field.
 /// @return        the head, cut past `HEAD_VALUE_MAX` bytes.
-export format_field_head :: fn(source: string, f: p.StructField) -> string {
+export format_field_head :: fn(source: string, f: p.StructField) -> NamedText {
     h :: head_printer(source)
     h.write(f.name)
     h.write(": ")
     h.emit_type_expr(f.ty)
     h.emit_expr_with_prefix(" = ", f.default)
-    return cut_head(h.finish(), HEAD_VALUE_MAX)
+    return cut_head(h.finish_named(), HEAD_VALUE_MAX)
 }
 
 /// Render an enum variant's head on one line : `Name`, `Name = 3`,
@@ -87,7 +109,7 @@ export format_field_head :: fn(source: string, f: p.StructField) -> string {
 /// @param source  the document the variant's spans index into.
 /// @param v       the variant.
 /// @return        the head, cut past `HEAD_VALUE_MAX` bytes.
-export format_variant_head :: fn(source: string, v: p.EnumVariant) -> string {
+export format_variant_head :: fn(source: string, v: p.EnumVariant) -> NamedText {
     h :: head_printer(source)
     h.write(v.name)
     data :: v.data
@@ -100,7 +122,7 @@ export format_variant_head :: fn(source: string, v: p.EnumVariant) -> string {
         h.write(" = ")
         h.write(h.source_slice(value_span))
     }
-    return cut_head(h.finish(), HEAD_VALUE_MAX)
+    return cut_head(h.finish_named(), HEAD_VALUE_MAX)
 }
 
 /// Render an impl's head on one line: `Box<T> implements<T> Display`, without
@@ -108,10 +130,10 @@ export format_variant_head :: fn(source: string, v: p.EnumVariant) -> string {
 ///
 /// @param source  the document the impl's spans index into.
 /// @param d       the impl.
-export format_impl_head :: fn(source: string, d: p.ImplDecl) -> string {
+export format_impl_head :: fn(source: string, d: p.ImplDecl) -> NamedText {
     h :: head_printer(source)
     h.emit_impl_head(d)
-    return h.finish()
+    return h.finish_named()
 }
 
 /// Render the trait an impl implements, with its arguments: `Add<Meters>`.
@@ -155,7 +177,7 @@ DISPLAY_MEMBERS_MAX: i64: 16
 ///   decls :: parse_source(source, "m.vader").program.decls
 ///   println(format_decl_display(source, decls[0], 60))
 export format_decl_display :: fn(source: string, d: p.Decl, width: i64) -> string {
-    head :: format_decl_head(source, d)
+    head :: format_decl_head(source, d).text
     if head == "" {
         return ""
     }
@@ -186,7 +208,7 @@ export format_decl_display :: fn(source: string, d: p.Decl, width: i64) -> strin
 /// @param source  the document the field's spans index into.
 /// @param f       the field.
 export format_field_display :: fn(source: string, f: p.StructField) -> string {
-    head :: format_field_head(source, f)
+    head :: format_field_head(source, f).text
     if f.visibility == .Private {
         return "@internal " + head
     }
@@ -242,12 +264,12 @@ member_heads :: fn(source: string, d: p.Decl) -> string[] {
         }
         is p.EnumDecl -> {
             for v in d.variants {
-                out.push(format_variant_head(source, v) + ",")
+                out.push(format_variant_head(source, v).text + ",")
             }
         }
         is p.TraitDecl -> {
             for m in d.members {
-                out.push(format_decl_head(source, m))
+                out.push(format_decl_head(source, m).text)
             }
         }
         is p.FnDecl | p.TypeAliasDecl | p.ConstDecl | p.ImportDecl | p.ImplDecl | p.AssertDecl -> {}
@@ -255,16 +277,24 @@ member_heads :: fn(source: string, d: p.Decl) -> string[] {
     return out
 }
 
-// A comment-free printer that keeps every construct on one line.
+// A comment-free printer that keeps every construct on one line and notes the
+// names it writes.
 head_printer :: fn(source: string) -> Printer {
     h :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     h.flat = true
+    h.names = []
     return h
+}
+
+// What `h` wrote, with the names it noted.
+finish_named :: fn(h: Printer) -> NamedText = NamedText {
+    .text = h.finish(),
+    .names = h.names ?? [],
 }
 
 // `NAME :: value`, `NAME: T: value`, or their `@comptime` form: the operand the
 // parser kept, not the helper call it desugared the const into.
-const_head :: fn(h: Printer, d: p.ConstDecl) -> string {
+const_head :: fn(h: Printer, d: p.ConstDecl) -> NamedText {
     h.write(d.name)
     if d.ty is null {
         h.write(" :: ")
@@ -279,18 +309,20 @@ const_head :: fn(h: Printer, d: p.ConstDecl) -> string {
     value :: written_value(d)
     h.emit_expr(value)
     if is_bitor_chain(value) {
-        return h.finish()
+        return h.finish_named()
     }
-    return cut_head(h.finish(), HEAD_VALUE_MAX)
+    return cut_head(h.finish_named(), HEAD_VALUE_MAX)
 }
 
-// `text` kept to its first line and to `limit` bytes, a cut marked ` …`. A block
-// value (a lambda body) still breaks lines in flat mode, hence the first line.
-// The cut backs off to a UTF-8 lead byte, so it never splits a character.
-cut_head :: fn(text: string, limit: i64) -> string {
+// `head` kept to its first line and to `limit` bytes, a cut marked ` …`, with the
+// names that end before the cut. A block value (a lambda body) still breaks lines
+// in flat mode, hence the first line. The cut backs off to a UTF-8 lead byte, so
+// it never splits a character.
+cut_head :: fn(head: NamedText, limit: i64) -> NamedText {
+    text :: head.text
     end := first_line_len(text)
     if end == text.byte_len() && end <= limit {
-        return text
+        return head
     }
     if end > limit {
         end = limit
@@ -298,7 +330,10 @@ cut_head :: fn(text: string, limit: i64) -> string {
             end -= 1
         }
     }
-    return text.byte_slice(0, end).trim() + " …"
+    return NamedText {
+        .text = text.byte_slice(0, end).trim() + " …",
+        .names = head.names.filter((n: WrittenName) -> n.end <= end).collect(),
+    }
 }
 
 // Byte length of `text`'s first line: all of it when it holds no newline.
@@ -316,11 +351,36 @@ first_line_len :: fn(text: string) -> i64 {
 import "std/string_builder"
 import "std/testing"
 
-// The head of the only declaration in `decl`.
-head_of :: fn(decl: string) -> string {
+// The head of the last declaration in `decl`, with its names.
+named_head_of :: fn(decl: string) -> NamedText {
     source :: "module \"t\"\n${decl}\n"
     decls :: parse_source(source, "t.vader").program.decls
     return format_decl_head(source, decls[decls.len() - 1])
+}
+
+// The head of the last declaration in `decl`.
+head_of :: fn(decl: string) -> string = named_head_of(decl).text
+
+// The text of each name the head of the last declaration in `decl` notes, in
+// order, joined by `,`.
+names_of :: fn(decl: string) -> string {
+    head :: named_head_of(decl)
+    texts :: head.names.map((n: WrittenName) -> head.text.byte_slice(n.start, n.end))
+    return texts.collect().join(",")
+}
+
+// A constant whose value is a table of `count` times `item`, on one line.
+long_table :: fn(item: string, count: i64) -> string {
+    table :: StringBuilder {}
+    table.append("TABLE :: [")
+    for i in 0..<count {
+        if i > 0 {
+            table.append(", ")
+        }
+        table.append(item)
+    }
+    table.append("]")
+    return table.to_string()
 }
 
 @test
@@ -353,14 +413,21 @@ test_head_enum_and_struct_stop_before_the_body :: fn() -> void {
 }
 
 @test
+test_head_notes_the_names_it_writes :: fn() -> void {
+    decl :: "area :: fn(s: Box<Shape>, k: Ns.Kind) -> i32 = 0"
+    assert_eq(names_of(decl), "Box,Shape,Ns,Ns.Kind,i32")
+}
+
+@test
+test_head_cut_keeps_the_names_before_the_cut :: fn() -> void {
+    // `TABLE :: [` then `ONE, ` again and again: the names whole before the cut.
+    kept :: (HEAD_VALUE_MAX - "TABLE :: [".byte_len()) / "ONE, ".byte_len()
+    assert_eq(names_of(long_table("ONE", 41)).split(",").len(), kept)
+}
+
+@test
 test_head_long_value_is_cut :: fn() -> void {
-    table :: StringBuilder {}
-    table.append("TABLE :: [")
-    for _ in 0..<40 {
-        table.append("1000, ")
-    }
-    table.append("1000]")
-    head :: head_of(table.to_string())
+    head :: head_of(long_table("1000", 41))
     assert(head.ends_with(" …"), "a long table value is cut")
     assert(head.byte_len() <= HEAD_VALUE_MAX + 4, "the cut keeps the limit")
 }
