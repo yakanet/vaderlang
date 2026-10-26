@@ -44,7 +44,7 @@ export render_help :: fn(program: string, version: string, tagline: string, comm
     out.append("ACTIONS:\n")
     labels: string[]: []
     for c in commands {
-        labels.push(action_label(c))
+        labels.push(with_usage(c.name, c.usage))
     }
     width :: column_of(labels)
     for i in 0..<commands.len() {
@@ -72,15 +72,35 @@ export render_help :: fn(program: string, version: string, tagline: string, comm
 /// @return         the action's help text, newline-terminated.
 export render_command_help :: fn(program: string, cmd: CommandSpec, common: FlagSpec[]) -> string {
     out :: StringBuilder {}
-    out.append("${program} ${action_label(cmd)}: ${cmd.summary}\n")
-
-    if cmd.flags.len() > 0 {
-        out.append("\nOPTIONS:\n")
-        out.append(render_flag_block(cmd.flags, 1))
-    }
+    out.append(render_program_help("${program} ${cmd.name}", cmd.usage, cmd.summary, cmd.flags))
     if common.len() > 0 {
         out.append("\nCOMMON OPTIONS:\n")
         out.append(render_flag_block(common, 1))
+    }
+    return out.to_string()
+}
+
+/// Render the help of a program that takes no action: its usage line, then
+/// every flag it accepts.
+///
+/// @param program  what the usage line opens with: the binary's name, or the
+///                 binary's and an action's (`"vader build"`).
+/// @param usage    what follows on the usage line, e.g. `"[options] <file>"` ;
+///                 empty when nothing does.
+/// @param summary  one-line description of the program.
+/// @param flags    every flag the program accepts.
+/// @return         the help text, newline-terminated.
+export render_program_help :: fn(
+    program: string,
+    usage: string,
+    summary: string,
+    flags: FlagSpec[],
+) -> string {
+    out :: StringBuilder {}
+    out.append("${with_usage(program, usage)}: ${summary}\n")
+    if flags.len() > 0 {
+        out.append("\nOPTIONS:\n")
+        out.append(render_flag_block(flags, 1))
     }
     return out.to_string()
 }
@@ -96,10 +116,14 @@ flag_label :: fn(spec: FlagSpec) -> string {
     return "${lead}--${spec.name}=${value_placeholder(spec)}"
 }
 
-// An action's label: its name, plus its usage tail when it has one. Shared by
-// the action list and the per-action title so the two can't disagree.
-action_label :: fn(cmd: CommandSpec) -> string =
-    if cmd.usage == "" { cmd.name } else { "${cmd.name} ${cmd.usage}" }
+// `name` followed by its usage tail, when it has one: an action's label, in
+// the action list and in its own title alike, so the two can't disagree.
+with_usage :: fn(name: string, usage: string) -> string {
+    if usage == "" {
+        return name
+    }
+    return "${name} ${usage}"
+}
 
 // Render one indented, column-aligned block of flags, including each flag's
 // enumerated values as an inner block. `depth` is in `INDENT` units. Labels are
@@ -225,6 +249,12 @@ sample_commands :: fn() -> CommandSpec[] = [
     text :: render_command_help("vader", sample_commands()[1], [])
     assert(!("OPTIONS:" in text), "no OPTIONS heading for a flagless action")
     assert("vader lsp: Run the Language Server" in text, "no stray space before the dash")
+}
+
+@test test_program_help_lists_its_flags_under_its_usage :: fn() -> void {
+    text :: render_program_help("bf", "[options] <file>", "Run a Brainfuck program", sample_flags())
+    assert(text.starts_with("bf [options] <file>: Run a Brainfuck program\n"), "title line")
+    assert("-r, --release" in text, "the flags follow")
 }
 
 @test test_help_lists_every_action :: fn() -> void {
