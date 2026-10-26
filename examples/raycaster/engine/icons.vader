@@ -1,0 +1,106 @@
+// examples/raycaster/engine/icons: the HUD's icons, cut from the sprites.
+//
+// The HUD shows a picture beside each count: a medikit by the health, a clip by
+// the bullets, a zombie by the zombies still standing. Each is the sprite's
+// opaque part, centred in a square frame the program with a window turns into a
+// texture and scales to the HUD.
+
+module "engine"
+
+import "std/math"
+
+/// What the HUD shows beside a count.
+export Icon :: enum {
+    /// Beside the player's health: a medikit.
+    Health,
+    /// Beside the bullets left: a clip.
+    Ammo,
+    /// Beside the zombies still standing: one of them.
+    Zombies,
+}
+
+/// The picture of `icon`: its sprite's opaque part, one pixel per texel, centred
+/// in a square frame as wide as its longer side, transparent around it.
+export icon_frame :: fn(icon: Icon) -> Frame {
+    canvas :: SPRITE_TEXTURES[i64(icon_sprite(icon))]
+    box :: opaque_bounds(canvas)
+    side :: max(box.width, box.height)
+    left :: box.left - (side - box.width) / 2
+    top :: box.top - (side - box.height) / 2
+    frame :: new_frame(side, side)
+    for y in 0..<side {
+        for x in 0..<side {
+            if box.holds(left + x, top + y) {
+                texel :: (top + y) * TEXTURE_SIZE + left + x
+                frame.pixels[i64(y * side + x)] = canvas[i64(texel)]
+            }
+        }
+    }
+    return frame
+}
+
+// The sprite each icon is cut from.
+icon_sprite :: fn(icon: Icon) -> i32 = match icon {
+    .Health  -> ThingKind.Medikit.sprite
+    .Ammo    -> ThingKind.Clip.sprite
+    .Zombies -> ZOMBIE_WALK
+}
+
+// The smallest rectangle of a sprite's canvas holding every opaque texel.
+Bounds :: struct {
+    left: i32
+    top: i32
+    width: i32
+    height: i32
+}
+
+// Whether the texel `(x, y)` lies inside `box`.
+holds :: fn(box: Bounds, x: i32, y: i32) -> bool =
+    x >= box.left && x < box.left + box.width && y >= box.top && y < box.top + box.height
+
+// The opaque part of `canvas`, a sprite `TEXTURE_SIZE` texels square; the whole
+// canvas when nothing in it is opaque.
+opaque_bounds :: fn(canvas: u32[]) -> Bounds {
+    left := TEXTURE_SIZE
+    top := TEXTURE_SIZE
+    right := -1
+    bottom := -1
+    for y in 0..<TEXTURE_SIZE {
+        for x in 0..<TEXTURE_SIZE {
+            if is_opaque(canvas[i64(y * TEXTURE_SIZE + x)]) {
+                left = min(left, x)
+                right = max(right, x)
+                top = min(top, y)
+                bottom = max(bottom, y)
+            }
+        }
+    }
+    if right < 0 {
+        return Bounds {
+            .left = 0,
+            .top = 0,
+            .width = TEXTURE_SIZE,
+            .height = TEXTURE_SIZE,
+        }
+    }
+    return Bounds {
+        .left = left,
+        .top = top,
+        .width = right - left + 1,
+        .height = bottom - top + 1,
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_icons_fill_their_frame :: fn() -> void {
+    frame :: icon_frame(.Health)
+    side :: frame.width
+    assert_eq(frame.height, side)
+    // The medikit is wider than tall: it spans the frame's whole width.
+    assert(is_opaque(frame.pixels[i64(side / 2 * side)]), "the left edge, halfway down, is opaque")
+    assert(!is_opaque(frame.pixels[0]), "the top-left corner is not")
+}

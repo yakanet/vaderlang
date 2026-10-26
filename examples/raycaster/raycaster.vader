@@ -9,13 +9,14 @@
 //
 //   vader build --run --release examples/raycaster
 //
-// Keys go by position: W A S D (Z Q S D on an AZERTY keyboard), Up and Down to
-// move, the mouse, Left and Right to turn, the left button or Ctrl to fire, E or
-// Space for the door ahead, M for the map, F11 to fill the screen or leave it, P
-// to save the window as `raycaster.png` in the working directory, Enter to start
-// again once fallen or once every zombie is down, Escape to pause. The game opens
-// on its title: Enter plays, Escape leaves; from the pause, Escape plays on and X
-// leaves.
+// Moving goes by the keys' places: W A S D on a QWERTY keyboard, Z Q S D on an
+// AZERTY one, or Up and Down; the mouse, Left and Right turn; the left button or
+// Ctrl fires. A command letter goes by what its key types, whatever the layout: E
+// (or Space) for the door ahead, M for the map, F (or F11) to fill the screen or
+// leave it, P to save the window as `raycaster.png` in the working directory.
+// Enter starts again once fallen or once every zombie is down, Escape pauses. The
+// game opens on its title: Enter plays, Escape leaves; from the pause, Escape
+// plays on and Q leaves.
 // `frames/` is the same engine without a window.
 
 module "main"
@@ -49,7 +50,13 @@ MOUSE_TURN :: 0.0025
 /// diagonally is no faster: the square root of one half.
 DIAGONAL :: 0.70710678
 
-HELP :: "WASD: move   mouse: turn   click: fire   E: door   M: map   F11: full screen   P: screenshot   Esc: pause"
+HELP :: "WASD / ZQSD: move   mouse: turn   click: fire   E: door   M: map   F: full screen   P: screenshot   Esc: pause"
+
+/// The side of the HUD's icons, in HUD pixels.
+ICON_SIZE: i32: 40
+
+/// How far down the HUD the line of counts sits, in HUD pixels.
+STATUS_TOP: i32: 646
 
 /// What darkens the view under the title and the pause, so that their text reads.
 SHADE :: Color {
@@ -91,7 +98,7 @@ main :: fn() -> i32 {
         return 1
     }
     defer close_window()
-    // Escape pauses: only the window's close button and X leave.
+    // Escape pauses: only the window's close button and Q leave.
     set_exit_key(.Null)
     init_audio_device()
     defer close_audio_device()
@@ -99,6 +106,8 @@ main :: fn() -> i32 {
     set_target_fps(60)
     sounds :: load_sounds()
     defer unload_sounds(sounds)
+    icons :: load_icons()
+    defer unload_icons(icons)
     lights :: light_map(HANGAR)
     frame :: new_frame(VIEW_WIDTH, VIEW_HEIGHT)
     screen :: load_blank_texture(VIEW_WIDTH, VIEW_HEIGHT)
@@ -117,7 +126,8 @@ main :: fn() -> i32 {
         level :: game.level
         player :: game.player
         noises: Noise[]: []
-        next :: next_phase(phase)
+        typed :: typed_this_frame()
+        next :: next_phase(phase, typed)
         if next == .Leaving {
             break
         }
@@ -130,12 +140,12 @@ main :: fn() -> i32 {
                 game = new_game()
                 continue
             }
-            play(level, player, seconds, noises)
+            play(level, player, seconds, typed, noises)
         }
-        if is_key_pressed(.M) {
+        if 'm' in typed {
             show_map = !show_map
         }
-        if is_key_pressed(.F11) {
+        if 'f' in typed || is_key_pressed(.F11) {
             toggle_borderless_windowed()
         }
         for noise in noises {
@@ -151,18 +161,48 @@ main :: fn() -> i32 {
         begin_drawing()
         clear_background(BLACK)
         draw_texture_pro(screen, source, view, Vector2 { .x = 0.0, .y = 0.0 }, 0.0, WHITE)
-        draw_hud(view, phase, level, player)
+        draw_hud(view, icons, phase, level, player)
         end_drawing()
-        if is_key_pressed(.P) {
+        if 'p' in typed {
             take_screenshot("raycaster.png")
         }
     }
     return 0
 }
 
-// The phase after this frame's keys: from the title, Enter plays and Escape
-// leaves; Escape pauses the game, and from the pause plays on, or X leaves.
-next_phase :: fn(phase: Phase) -> Phase {
+// The characters typed this frame, letters in lower case. They count only on a
+// frame where a key went down: a key held down types its character again and
+// again, which would toggle the full screen or a door on every repeat.
+typed_this_frame :: fn() -> char[] {
+    pressed := false
+    for get_key_pressed() != 0 {
+        pressed = true
+    }
+    typed: char[]: []
+    for {
+        code :: get_char_pressed()
+        if code == 0 {
+            break
+        }
+        if pressed {
+            typed.push(lower_case(code))
+        }
+    }
+    return typed
+}
+
+// The character `code` stands for, an upper-case ASCII letter as its lower case.
+lower_case :: fn(code: i32) -> char {
+    if code >= 'A' && code <= 'Z' {
+        return char(u32(code + 32))
+    }
+    return char(u32(code))
+}
+
+// The phase after this frame's keys and `typed` characters: from the title,
+// Enter plays and Escape leaves; Escape pauses the game, and from the pause plays
+// on, or Q leaves.
+next_phase :: fn(phase: Phase, typed: char[]) -> Phase {
     match phase {
         .Title -> {
             if is_key_pressed(.Enter)  { return .Playing }
@@ -175,7 +215,7 @@ next_phase :: fn(phase: Phase) -> Phase {
         }
         .Paused -> {
             if is_key_pressed(.Escape) { return .Playing }
-            if is_key_pressed(.X)      { return .Leaving }
+            if 'q' in typed            { return .Leaving }
         }
         .Leaving -> {}
     }
@@ -192,18 +232,18 @@ use_cursor_for :: fn(phase: Phase) -> void {
     enable_cursor()
 }
 
-// Run the game on by `seconds`: the player's keys, then the doors, the zombies
-// and the player's own clocks.
+// Run the game on by `seconds`: the player's keys and the `typed` characters,
+// then the doors, the zombies and the player's own clocks.
 //
 // @param noises  what the player hears, appended to.
-play :: fn(level: Level, player: Player, seconds: f64, noises: Noise[]) -> void {
+play :: fn(level: Level, player: Player, seconds: f64, typed: char[], noises: Noise[]) -> void {
     if player.health > 0 {
         steer(player, level, seconds)
         player.collect(level, noises)
         if is_mouse_button_down(.Left) || is_key_down(.LeftControl) {
             player.fire(level, noises)
         }
-        if is_key_pressed(.E) || is_key_pressed(.Space) {
+        if 'e' in typed || is_key_pressed(.Space) {
             door :: player.door_ahead(level)
             if door != null {
                 door.toggle(noises)
@@ -249,9 +289,9 @@ fitted_view :: fn() -> Rectangle {
     }
 }
 
-// What `phase` shows over `view`: the title, or the health and the bullets left,
-// the keys, the pause, and what became of the player.
-draw_hud :: fn(view: Rectangle, phase: Phase, level: Level, player: Player) -> void {
+// What `phase` shows over `view`: the title, or the health, the bullets and the
+// zombies left, the keys, the pause, and what became of the player.
+draw_hud :: fn(view: Rectangle, icons: Icons, phase: Phase, level: Level, player: Player) -> void {
     if phase != .Playing {
         draw_rectangle_rec(view, SHADE)
     }
@@ -261,16 +301,12 @@ draw_hud :: fn(view: Rectangle, phase: Phase, level: Level, player: Player) -> v
         view.draw_centred("Enter: play   Esc: quit", 370, 30)
         return
     }
-    draw_text(
-        "HEALTH ${player.health}   AMMO ${player.ammo}",
-        view.across(16),
-        view.down(656),
-        view.scaled(30),
-        RAYWHITE,
-    )
+    view.draw_count(icons.health, 16, "${player.health}")
+    view.draw_count(icons.ammo, 176, "${player.ammo}")
+    view.draw_count(icons.zombies, 336, "${level.standing()} / ${level.enemies.len()}")
     if phase == .Paused {
         view.draw_centred("PAUSED", 260, 80)
-        view.draw_centred("Esc: play on   X: quit", 370, 30)
+        view.draw_centred("Esc: play on   Q: quit", 370, 30)
         return
     }
     draw_text(HELP, view.across(16), view.down(694), view.scaled(20), RAYWHITE)
@@ -284,6 +320,31 @@ draw_hud :: fn(view: Rectangle, phase: Phase, level: Level, player: Player) -> v
 
 // Whether the game has ended: the player fell, or no zombie still stands.
 is_over :: fn(level: Level, player: Player) -> bool = player.health <= 0 || level.cleared()
+
+// Draw `icon` with `text` beside it on the line of counts, `x` HUD pixels from
+// `view`'s left edge.
+draw_count :: fn(view: Rectangle, icon: Texture2D, x: i32, text: string) -> void {
+    place :: Rectangle {
+        .x = f32(view.across(x)),
+        .y = f32(view.down(STATUS_TOP)),
+        .width = f32(view.scaled(ICON_SIZE)),
+        .height = f32(view.scaled(ICON_SIZE)),
+    }
+    whole :: Rectangle {
+        .x = 0.0,
+        .y = 0.0,
+        .width = f32(icon.width),
+        .height = f32(icon.height),
+    }
+    draw_texture_pro(icon, whole, place, Vector2 { .x = 0.0, .y = 0.0 }, 0.0, WHITE)
+    draw_text(
+        text,
+        view.across(x + ICON_SIZE + 8),
+        view.down(STATUS_TOP + 6),
+        view.scaled(30),
+        RAYWHITE,
+    )
+}
 
 // Draw `text` centred across `view`, its top `y` HUD pixels down.
 draw_centred :: fn(view: Rectangle, text: string, y: i32, size: i32) -> void {
@@ -300,6 +361,36 @@ across :: fn(view: Rectangle, x: i32) -> i32 = i32(view.x) + view.scaled(x)
 
 // The window row `y` HUD pixels below `view`'s top edge.
 down :: fn(view: Rectangle, y: i32) -> i32 = i32(view.y) + view.scaled(y)
+
+// ---- icons ----------------------------------------------------------------
+
+// The HUD's icons, as textures.
+Icons :: struct {
+    health: Texture2D
+    ammo: Texture2D
+    zombies: Texture2D
+}
+
+// Every icon, made into a texture: the window must be open.
+load_icons :: fn() -> Icons = Icons {
+    .health = load_icon(.Health),
+    .ammo = load_icon(.Ammo),
+    .zombies = load_icon(.Zombies),
+}
+
+// The texture of `icon`, one pixel per texel of its sprite.
+load_icon :: fn(icon: Icon) -> Texture2D {
+    picture :: icon_frame(icon)
+    texture :: load_blank_texture(picture.width, picture.height)
+    update_texture(texture, picture.pixels)
+    return texture
+}
+
+unload_icons :: fn(icons: Icons) -> void {
+    unload_texture(icons.health)
+    unload_texture(icons.ammo)
+    unload_texture(icons.zombies)
+}
 
 // ---- sounds ---------------------------------------------------------------
 

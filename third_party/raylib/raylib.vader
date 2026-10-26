@@ -132,12 +132,8 @@ export KeyboardKey :: enum(i32) {
     Space       = 32,
     A           = 65,
     D           = 68,
-    E           = 69,
-    M           = 77,
-    P           = 80,
     S           = 83,
     W           = 87,
-    X           = 88,
     Escape      = 256,
     Enter       = 257,
     Right       = 262,
@@ -380,6 +376,19 @@ export is_key_down :: fn(key: KeyboardKey) -> bool
 /// is held.
 @extern(RAYLIB, "IsKeyPressed")
 export is_key_pressed :: fn(key: KeyboardKey) -> bool
+
+/// The next character typed since the last frame, as a Unicode code point, `0`
+/// once every one is read: what the keys type in the keyboard's layout, where
+/// `is_key_down` names a key by its place on a US keyboard. A key held down types
+/// its character again and again, as the system repeats it.
+@extern(RAYLIB, "GetCharPressed")
+export get_char_pressed :: fn() -> i32
+
+/// The next key that went down since the last frame, by its place on a US
+/// keyboard (a `KeyboardKey` value), `0` once every one is read. A key held down
+/// is not counted again.
+@extern(RAYLIB, "GetKeyPressed")
+export get_key_pressed :: fn() -> i32
 
 /// How far the mouse moved since the last frame, in pixels.
 @extern(RAYLIB, "GetMouseDelta")

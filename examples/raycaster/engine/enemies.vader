@@ -163,6 +163,9 @@ is_alive :: fn(enemy: Enemy) -> bool =
 /// Whether every zombie of `level` is down.
 export cleared :: fn(level: Level) -> bool = !level.enemies.any_match(enemy -> enemy.is_alive())
 
+/// How many zombies of `level` still stand.
+export standing :: fn(level: Level) -> i64 = level.enemies.filter(enemy -> enemy.is_alive()).count()
+
 // `enemy` takes a bullet: it flinches, or falls when it has no health left.
 take_bullet :: fn(enemy: Enemy, noises: Noise[]) -> void {
     enemy.health -= 1
