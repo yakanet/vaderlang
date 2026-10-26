@@ -89,6 +89,8 @@ An empty modifier list is dropped: `import "p" {}` becomes `import "p"`.
 
 The modules are read and type-checked as the project's build reads them, from its entry, without evaluating anything at compile time: the project is the working directory, or the folder `--project` names, which `path` defaults to, and its entry the only one of its `vader.json`, or the one `--entry` names. A project its `build.vader` describes is not supported yet. Without a project, only the toolchain's search roots are read, and the data goes to the working directory. A module these roots do not reach, or that another folder of the same name shadows, is named and left out, and a file that does not parse loses only what the parser could not recover.
 
+Nothing is rewritten while the data is what the command would write: `build/doc/stamp` holds a key over the files the load read and their folders, the roots it searched, the entry, the path documented, the project's `vader.json` and the compiler. A file no load reaches changes nothing. A run that reports an error or a module left out writes no stamp, so the next one reports it again; deleting `build/doc/` forces a new run.
+
 The data is JSON, at `version` 1, a draft that may still change:
 
 - `index.json` lists the `modules` (`path`, `summary`, `files`) and, in `entries`, every export, impl and member with what a list shows of it: `id`, `module`, `name`, `kind`, the text of its `signature` and `summary`, the first sentence of its vaderdoc.

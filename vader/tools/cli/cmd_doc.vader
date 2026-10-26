@@ -2,7 +2,8 @@
 //
 // Loads and type-checks every module under a path with its vaderdoc, from the
 // entry of the project as `vader lint` takes it, and writes what
-// `vader/tools/doc` makes of them to the project's `build/doc/`.
+// `vader/tools/doc` makes of them to the project's `build/doc/`, unless its
+// stamp says the data there is what it would write.
 //
 // Same module as `main.vader`: imports are file-scoped, declarations are not.
 
@@ -21,11 +22,14 @@ Doc :: import "vader/tools/doc"
 /// `path`, the project folder by default, to the project's `build/doc/`.
 ///
 /// A file that does not parse loses what the parser could not recover, and
-/// the rest is written all the same.
+/// the rest is written all the same. Nothing is rewritten when the data is
+/// still what the command would write; a run that reports an error or a module
+/// left out writes no stamp, so that the next one reports it again.
 ///
 /// @param args  the action's arguments; the first positional is the path.
-/// @return      0 once the data is written, 1 when it cannot be or holds no
-///              module, 2 when the path holds none or no entry is chosen.
+/// @return      0 once the data is written or found up to date, 1 when it
+///              cannot be written or holds no module, 2 when the path holds
+///              none or no entry is chosen.
 cmd_doc :: fn(args: string[]) -> i32 {
     parsed :: parse_action("doc", args)
     if parsed is i32 {
@@ -46,7 +50,18 @@ cmd_doc :: fn(args: string[]) -> i32 {
         eprintln("vader doc: ${scope}")
         return 2
     }
-    checked :: Doc.check_scope(scope, project.file.as_string(), project.project_root)
+    out_dir :: Path(join_path(home, DOC_DATA_DIR)).normalize().as_string()
+    inputs :: Doc.doc_inputs(
+        scope,
+        project.file.as_string(),
+        project.project_root,
+        compiler_digest(),
+    )
+    if Doc.doc_is_fresh(out_dir, inputs) {
+        println("vader doc: `${out_dir}` is up to date")
+        return 0
+    }
+    checked :: Doc.check_scope(inputs.scope, inputs.entry, inputs.project_root)
     // Errors only: a warning says nothing about what the data shows.
     errors :: checked.diags.filter((d: Diagnostic) -> d.severity == .Error).collect()
     if errors.len() > 0 {
@@ -64,11 +79,13 @@ cmd_doc :: fn(args: string[]) -> i32 {
         eprintln("vader doc: no module to document${without_project_hint(project)}")
         return 1
     }
-    out_dir :: Path(join_path(home, DOC_DATA_DIR)).normalize().as_string()
     written :: Doc.write_doc_data(out_dir, documented.modules)
     if written is IOError {
         eprintln("vader doc: cannot write `${out_dir}`: ${written.message()}")
         return 1
+    }
+    if errors.len() == 0 && documented.left_out.len() == 0 {
+        Doc.write_stamp(out_dir, inputs, checked)
     }
     println("vader doc: ${documented.modules.len()} modules written to `${out_dir}`")
     return 0

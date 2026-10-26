@@ -19,13 +19,15 @@ import "vader/front/resolver"
 DOC_FORMAT_VERSION: f64: 1.0
 
 /// Write the data of `modules` under `dir`: `index.json`, and one
-/// `modules/<path>.json` per module. The module files the previous `index.json`
-/// listed go first, so that a module no longer documented leaves none behind.
+/// `modules/<path>.json` per module. The stamp goes first, since the data stops
+/// being what it says, then the module files the previous `index.json` listed,
+/// so that a module no longer documented leaves none behind.
 ///
 /// @param dir      the folder to write in, created when missing.
 /// @param modules  the documented modules.
 /// @error          `IOError` when a folder or a file cannot be written.
 export write_doc_data :: fn(dir: string, modules: DocModule[]) -> null | IOError {
+    remove_file(join_path(dir, STAMP_FILE))
     remove_previous_modules(dir)
     for m in modules {
         path :: module_file(dir, m.path)
@@ -42,8 +44,11 @@ export write_doc_data :: fn(dir: string, modules: DocModule[]) -> null | IOError
     if made is IOError {
         return made
     }
-    return write_json(join_path(dir, "index.json"), index_json(modules))
+    return write_json(join_path(dir, INDEX_FILE), index_json(modules))
 }
+
+// The index's file name in the data folder.
+INDEX_FILE :: "index.json"
 
 // Where the data of the module `path` goes under `dir`.
 module_file :: fn(dir: string, path: string) -> string = join_path(dir, "modules/${path}.json")
@@ -57,7 +62,7 @@ write_json :: fn(path: string, value: JsonValue) -> null | IOError =
 // A missing or unreadable index lists none.
 remove_previous_modules :: fn(dir: string) -> void {
     modules_dir :: Path(join_path(dir, "modules")).normalize()
-    text :: read_file_string(join_path(dir, "index.json"))
+    text :: read_file_string(join_path(dir, INDEX_FILE))
     if text is IOError {
         return
     }

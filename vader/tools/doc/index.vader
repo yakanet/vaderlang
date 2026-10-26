@@ -401,13 +401,11 @@ shown_type :: fn(t: Ty.Type) -> DocSegment[] {
 }
 
 // Whether `a` and `b` name the same folder, however each is spelled.
-same_folder :: fn(a: string, b: string) -> bool =
-    absolute_path(a).to_path().normalize() == absolute_path(b).to_path().normalize()
+same_folder :: fn(a: string, b: string) -> bool = normalized_path(a) == normalized_path(b)
 
 // `path` relative to the absolute folder `base` when it lies under it, absolute
 // otherwise.
-display_path :: fn(path: string, base: string) -> string =
-    relative_to(absolute_path(path).to_path().normalize().as_string(), base)
+display_path :: fn(path: string, base: string) -> string = relative_to(normalized_path(path), base)
 
 // `doc` split by its tags, null without one.
 sections_of :: fn(doc: DocComment | null) -> DocSections | null {

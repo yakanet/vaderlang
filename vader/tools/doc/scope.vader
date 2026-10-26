@@ -64,11 +64,9 @@ export check_scope :: fn(
     entry: string,
     project_root: string | null,
 ) -> DocCheck {
-    overlay :: MutableMap<string, string> {}
-    overlay[SYNTHETIC_ENTRY] = "module \"vader_doc_entry\"\n"
     project :: load_project_with_overlay(
         entry,
-        overlay,
+        doc_overlay(),
         [],
         project_root,
         extra_seeds = scope.map((m: DiscoveredModule) -> m.name).collect(),
@@ -79,6 +77,14 @@ export check_scope :: fn(
     result :: Tc.check_project_with_bodies(project, diags, false)
     diags.push_all(collect_body_diags(result))
     return DocCheck { .project = project, .typed = result.all_modules, .diags = diags }
+}
+
+// What the load reads before the disk: the synthetic entry, whose module imports
+// nothing.
+doc_overlay :: fn() -> MutableMap<string, string> {
+    overlay :: MutableMap<string, string> {}
+    overlay[SYNTHETIC_ENTRY] = "module \"vader_doc_entry\"\n"
+    return overlay
 }
 
 // Record the module of `folder`, when its files declare one. A problem with

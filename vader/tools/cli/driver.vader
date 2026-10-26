@@ -204,12 +204,7 @@ driver_input_key :: fn(driver_path: string) -> string {
         is string  -> src.hash()
         is IOError -> 0
     }
-    exe :: read_file_bytes(current_executable_location(), READ_LIMIT_DEFAULT)
-    compiler_hash :: match exe {
-        is u8[]    -> sha256(exe)
-        is IOError -> ""
-    }
-    return "${driver_hash}-${compiler_hash}"
+    return "${driver_hash}-${compiler_digest() ?? ""}"
 }
 
 /// True when the cached driver binary can be reused for `key`.
@@ -230,6 +225,16 @@ driver_is_fresh :: fn(binary: string, stamp: string, key: string) -> bool {
     }
     return recorded.trim() == key
 }
+
+// ---- the compiler's digest ------------------------------------------------
+
+/// A SHA-256 of the running compiler's executable, null when it cannot be read:
+/// the compiler decides what everything it builds or writes holds.
+compiler_digest :: fn() -> string | null =
+    match exe :: read_file_bytes(current_executable_location(), READ_LIMIT_DEFAULT) {
+        is u8[]    -> sha256(exe)
+        is IOError -> null
+    }
 
 // ---- generated entry ------------------------------------------------------
 

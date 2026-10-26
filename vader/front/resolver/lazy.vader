@@ -252,6 +252,23 @@ export preresolve_imports :: fn(
 // in it, and each file is read from `overlay` before the disk: a document open
 // in an editor belongs to its module before it is ever saved, under the header
 // its buffer declares.
+/// The source files among `names`, the entries of the folder `dir`, as the loader
+/// takes them for a module: the `.vader` files, sorted, as paths under `dir`. The
+/// loader then skips a file whose content is empty.
+///
+/// @param dir    the folder.
+/// @param names  its entries, as `read_dir` gives them.
+export source_files_in :: fn(dir: string, names: string[]) -> string[] {
+    files: string[]: []
+    for name in sort(names, compare_ascending) {
+        path :: join_path(dir, name)
+        if name.ends_with(".vader") && !is_dir(path) {
+            files.push(path)
+        }
+    }
+    return files
+}
+
 scan_folder :: fn(dir: string, overlay: MutableMap<string, string>, diags: Diagnostic[]) -> FolderBucket | null {
     entries_opt :: read_dir(dir)
     raw: string[]: match entries_opt {
@@ -265,12 +282,7 @@ scan_folder :: fn(dir: string, overlay: MutableMap<string, string>, diags: Diagn
         }
     }
     if raw.len() == 0 { return null }
-    sorted :: sort(raw, (a: string, b: string) -> compare_ascending(a, b))
-    files_here: string[]: []
-    for name in sorted {
-        full :: join_path(dir, name)
-        if name.ends_with(".vader") && !is_dir(full) { files_here.push(full) }
-    }
+    files_here :: source_files_in(dir, raw)
     if files_here.len() == 0 { return null }
     bucket :: FolderBucket { .name = "", .first_decl_span = empty_span(), .files = [] }
     for path in files_here {

@@ -1,0 +1,221 @@
+// vader/tools/doc/stamp: whether `build/doc/` holds what `vader doc` would write.
+//
+// The data depends on the files the load read, on the roots it searched, on the
+// entry, the scope and the project's `vader.json`, and on the compiler. The
+// stamp, written last beside the data, holds a key over all of them and the
+// folders of the files the load read, so that checking it reads those folders
+// alone: a file no load reached changes nothing. The key describes what the load
+// saw, so that a file changed, added or removed while it ran shows at the next
+// check. Not covered: a folder that comes, inside an unchanged root, to shadow a
+// loaded module or to join one from the generated tree.
+
+module "vader/tools/doc"
+
+import "crypto"
+import "std/collections"
+import "std/io"
+import "std/path"
+import "std/sort"
+import "std/string"
+import "vader/front/resolver"
+import "vader/support/diagnostics"
+
+/// What the data depends on beside the files the load reads, taken before the
+/// load.
+export DocInputs :: struct {
+    /// The modules documented (`doc_scope`).
+    scope: DiscoveredModule[]
+    /// The file the load starts from.
+    entry: string
+    /// The project folder, null for none.
+    project_root: string | null
+    /// The lines of the key beside the files: the compiler, the entry, the
+    /// project and its `vader.json`, the roots searched, the scope. Empty when
+    /// the compiler cannot be read: no stamp is then written or matched.
+    header: string[]
+}
+
+/// Take what the data of `scope` depends on, beside the files the load reads.
+///
+/// @param scope         the modules documented (`doc_scope`).
+/// @param entry         the file the load starts from.
+/// @param project_root  the project folder, null for none.
+/// @param compiler      a digest of the running compiler, null when it cannot be
+///                      read.
+export doc_inputs :: fn(
+    scope: DiscoveredModule[],
+    entry: string,
+    project_root: string | null,
+    compiler: string | null,
+) -> DocInputs {
+    inputs :: DocInputs {
+        .scope = scope,
+        .entry = entry,
+        .project_root = project_root,
+        .header = [],
+    }
+    digest :: compiler ?? return inputs
+    root :: project_root ?? ""
+    inputs.header.push("compiler ${digest}")
+    inputs.header.push("entry ${normalized_path(entry)}")
+    inputs.header.push("project ${normalized_root(root)}")
+    inputs.header.push("manifest ${manifest_hash(root)}")
+    ignored: Diagnostic[]: []
+    for searched in search_roots(entry, [], project_root, doc_overlay(), ignored).paths {
+        inputs.header.push(
+            "root ${normalized_path(searched.dir)} ${searched.prefix} ${searched.merge}",
+        )
+    }
+    for m in scope {
+        inputs.header.push("scope ${m.name} ${normalized_path(m.folder)}")
+    }
+    return inputs
+}
+
+/// Whether the data under `dir` is what a run on `inputs` would write: its index
+/// is there, and its stamp's key is the key of what the folders it names hold
+/// now.
+///
+/// @param dir     the folder the data goes to.
+/// @param inputs  what the data depends on beside the files the load reads.
+export doc_is_fresh :: fn(dir: string, inputs: DocInputs) -> bool {
+    if inputs.header.len() == 0 || !exists(join_path(dir, INDEX_FILE)) {
+        return false
+    }
+    stamp :: read_stamp(dir) ?? return false
+    return stamp.key == input_key(inputs, disk_lines(stamp.folders))
+}
+
+/// Write the stamp of the data `checked` gave under `dir`, last: its key over
+/// what the load saw, and the folders of the files it read. A stamp that cannot
+/// be written costs a run more, nothing else.
+///
+/// @param dir      the folder the data goes to.
+/// @param inputs   what the data depends on beside the files the load read.
+/// @param checked  the load the data comes from.
+export write_stamp :: fn(dir: string, inputs: DocInputs, checked: DocCheck) -> void {
+    if inputs.header.len() == 0 {
+        return
+    }
+    seen :: loaded_lines(checked)
+    lines: string[]: [input_key(inputs, seen.lines)]
+    lines.push_all(seen.folders)
+    write_file_string(join_path(dir, STAMP_FILE), lines.join("\n") + "\n")
+}
+
+// The stamp's file name in the data folder.
+STAMP_FILE :: "stamp"
+
+// What a stamp records: its first line, then one folder per line.
+Stamp :: struct {
+    key: string
+    /// The folders of the files the load read, sorted.
+    folders: string[]
+}
+
+// The stamp under `dir`, null when there is none.
+read_stamp :: fn(dir: string) -> Stamp | null {
+    text :: read_file_string(join_path(dir, STAMP_FILE))
+    if text is IOError {
+        return null
+    }
+    lines :: text.trim().split("\n")
+    folders: string[]: []
+    for i in 1..<lines.len() {
+        folders.push(lines[i])
+    }
+    return Stamp { .key = lines[0], .folders = folders }
+}
+
+// The folders of the files a load read, and the lines of the key that describe
+// what they hold.
+FolderLines :: struct {
+    folders: string[]
+    lines: string[]
+}
+
+// What `checked` read: each folder on disk holding a file it read, then each of
+// those files with the hash of the content the load read. A module the load made
+// up (the entry without a project, the baked target constants) has no folder on
+// disk, and is left out.
+loaded_lines :: fn(checked: DocCheck) -> FolderLines {
+    by_folder :: MutableMap<string, SourceFile[]> {}
+    for [_, loaded] in checked.project.modules {
+        for file in loaded.module.files {
+            folder :: normalized_path(dir_of(file.path))
+            if is_dir(folder) {
+                by_folder.get_or_put_with(folder, () -> []).push(file)
+            }
+        }
+    }
+    folders :: sort(by_folder.keys(), compare_ascending)
+    lines: string[]: []
+    for folder in folders {
+        lines.push("folder ${folder}")
+        files :: by_folder[folder] ?? []
+        for file in sort(files, by_path) {
+            lines.push(file_line(file.path, file.content))
+        }
+    }
+    return FolderLines { .folders = folders, .lines = lines }
+}
+
+// What `folders` hold now, in the lines `loaded_lines` writes: their source
+// files as the loader takes them, an empty or unreadable one left out as it
+// leaves it out. A folder gone holds nothing.
+disk_lines :: fn(folders: string[]) -> string[] {
+    lines: string[]: []
+    for folder in folders {
+        lines.push("folder ${folder}")
+        names :: read_dir(folder)
+        if names is IOError {
+            continue
+        }
+        for path in source_files_in(folder, names) {
+            content :: read_file_string(path)
+            if content is IOError || content == "" {
+                continue
+            }
+            lines.push(file_line(path, content))
+        }
+    }
+    return lines
+}
+
+// Whether `a` goes before `b`, the files of one folder in the order its listing
+// gives them.
+by_path :: fn(a: SourceFile, b: SourceFile) -> bool = compare_ascending(a.path, b.path)
+
+// The line of the key for the file `path` holding `content`.
+file_line :: fn(path: string, content: string) -> string =
+    "file ${path.to_path().filename()} ${content.hash()}"
+
+// The key of the data a run on `inputs` writes, the folders of the files it read
+// holding what `lines` say.
+input_key :: fn(inputs: DocInputs, lines: string[]) -> string =
+    sha256(inputs.header.join("\n") + "\n" + lines.join("\n"))
+
+// The hash of the `vader.json` of the project `root`, "" without one.
+manifest_hash :: fn(root: string) -> string {
+    if root == "" {
+        return ""
+    }
+    text :: read_file_string(join_path(root, MANIFEST_FILENAME))
+    if text is IOError {
+        return ""
+    }
+    return "${text.hash()}"
+}
+
+// The project folder `root` as `normalized_path` spells it, "" for none.
+normalized_root :: fn(root: string) -> string {
+    if root == "" {
+        return ""
+    }
+    return normalized_path(root)
+}
+
+// `path` absolute and normalized: one spelling for a file, whatever the loader
+// or the command line wrote.
+normalized_path :: fn(path: string) -> string =
+    absolute_path(path).to_path().normalize().as_string()
