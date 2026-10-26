@@ -1,0 +1,4 @@
+[13:16] error[T3001] type mismatch: expected `string`, got `{integer}`
+[16:16] error[T3001] type mismatch: expected `bool`, got `{integer}`
+[19:8] error[T3001] type mismatch: expected `string`, got `{float}`
+[22:18] error[T3001] type mismatch: expected `char`, got `{integer}`

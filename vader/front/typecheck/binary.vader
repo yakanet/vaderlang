@@ -750,6 +750,8 @@ fits_through_backing :: fn(e: AST.BinaryExpr, left: Type, want: Type) -> bool =
 ///   - two distinct types neither of which is the other's backing : T3001.
 ///   - two numerics : the shared numeric gate (`numeric_result`, T3017) ; free
 ///     literals fold, so `x == 0` still type-checks.
+///   - a free number literal beside a scalar no number fits (`name == 3`) : T3001,
+///     at the literal.
 ///   - two scalars : one representation (T3001).
 ///   - two tuples : one type (T3001), compared element by element.
 ///   - a struct operand : the other must fit its `Equals`'s `other: Self` (T3017).
@@ -832,12 +834,22 @@ check_equality :: fn(
     // written types, not the backings.
     left_scalar  :: scalar_backing(left)
     right_scalar :: scalar_backing(right)
+    // A free number literal only ever takes a numeric type: beside a scalar of
+    // another kind (`string`, `bool`, `char`, `CPointer`, a distinct over one), as
+    // in `name == 3`, the two sides cannot hold the same value.
+    if is_number_beside_non_numeric(right, left_scalar) {
+        diags.push(typecheck_error(.TypeMismatch, e.right.span, expected_got(left, right)))
+        return TY_BOOL
+    }
+    if is_number_beside_non_numeric(left, right_scalar) {
+        diags.push(typecheck_error(.TypeMismatch, e.left.span, expected_got(right, left)))
+        return TY_BOOL
+    }
     if left_scalar != null && right_scalar != null {
         if is_numeric(left_scalar) && is_numeric(right_scalar) {
             numeric_type(e, left_scalar, right_scalar, typed, diags)
         } else if !equals_type(left_scalar, right_scalar) {
-            diags.push(typecheck_error(.TypeMismatch, e.span,
-                "expected `${display_type(left)}`, got `${display_type(right)}`"))
+            diags.push(typecheck_error(.TypeMismatch, e.span, expected_got(left, right)))
         }
         return TY_BOOL
     }
@@ -846,8 +858,7 @@ check_equality :: fn(
     // tuple compares through its backing.
     if tuple_backing(left) != null && tuple_backing(right) != null {
         if !equals_type(left, right) {
-            diags.push(typecheck_error(.TypeMismatch, e.span,
-                "expected `${display_type(left)}`, got `${display_type(right)}`"))
+            diags.push(typecheck_error(.TypeMismatch, e.span, expected_got(left, right)))
         }
         return TY_BOOL
     }
@@ -1474,6 +1485,12 @@ is_float :: fn(t: Type) -> bool {
 }
 
 is_numeric :: fn(t: Type) -> bool = is_integer(t) || is_float(t)
+
+// Whether `literal` is a number literal not yet given a type (`3`, `2.5`) and
+// `other`, the other operand's scalar backing, a scalar no number fits. A char
+// literal is not one: it takes `char` as readily as an integer type.
+is_number_beside_non_numeric :: fn(literal: Type, other: PrimitiveType | RangeType | null) -> bool =
+    literal is FreeIntType | FreeFloatType && other != null && !is_numeric(other)
 
 is_integer :: fn(t: Type) -> bool {
     if t is UnresolvedType                   { return true }

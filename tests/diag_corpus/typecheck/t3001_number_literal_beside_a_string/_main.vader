@@ -1,0 +1,29 @@
+// A free number literal only ever takes a numeric type: compared with a string,
+// a bool or a char, the two sides cannot hold the same value. T3001 at the
+// literal, where the program would otherwise stop on the VM. A char literal
+// beside a `char` and a number beside a number still compare.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    name :: "x"
+    flag :: true
+    letter :: 'a'
+    small: u8: 3
+    if name == 3 {
+        return 1
+    }
+    if flag != 1 {
+        return 2
+    }
+    if 2.5 == name {
+        return 3
+    }
+    if letter == 97 {
+        return 4
+    }
+    if letter == 'a' && small == 3 {
+        return 0
+    }
+    return 5
+}
