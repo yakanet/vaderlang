@@ -1,11 +1,11 @@
 // vader/tools/lsp/protocol/tokens: semantic-token vocabulary.
 //
-// The token-type / token-modifier enums, the wire `RawToken`, and the
-// `TOKEN_TYPES` / `TOKEN_MODIFIERS` legend arrays sent to the client on
-// `initialize`. Shared by the lexer-based scanner (`handlers/semantic_tokens`),
-// the AST-driven walker (`handlers/ast_tokens`), and the `initialize` capability
-// builder (`lifecycle`). Living in `protocol` keeps the legend next to the
-// types it indexes.
+// The token-type / token-modifier enums, the `RawToken` every producer fills
+// before delta-encoding, and the `TOKEN_TYPES` / `TOKEN_MODIFIERS` legend arrays
+// sent to the client on `initialize`. Shared by the lexer-based scanner
+// (`handlers/semantic_tokens`), the AST-driven walker (`handlers/ast_tokens`),
+// and the `initialize` capability builder (`lifecycle`). Living in `protocol`
+// keeps the legend next to the types it indexes.
 
 module "vader/tools/lsp/protocol"
 
@@ -34,15 +34,16 @@ export TokenType :: enum(u8) {
 
 /// One raw token before delta-encoding. `line` is 0-based. `start_offset` /
 /// `end_offset` are the token's absolute UTF-8 byte offsets: every producer
-/// fills them, and a single `reencode_columns` pass derives `col` + `length` in
-/// the negotiated position encoding (see `handlers/semantic_tokens`). Producers
-/// leave `col` / `length` at 0 ; they are meaningless until that pass runs.
+/// fills them, and a single `reencode_columns` pass derives `column` + `length`
+/// in the negotiated position encoding (see `handlers/semantic_tokens`). Producers
+/// leave `column` / `length` at 0 ; they are meaningless until that pass runs.
 export RawToken :: struct {
     line:         i32
-    col:          i32
-    length:       i32
-    tok_type:     i32
-    modifiers:    i32
+    column:       i32 = 0
+    length:       i32 = 0
+    token_type:   TokenType
+    /// `TokenModifier` bits (`modifier_bit`).
+    modifiers:    i32 = 0
     start_offset: i64
     end_offset:   i64
 }

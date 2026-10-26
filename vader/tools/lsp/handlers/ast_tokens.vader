@@ -47,30 +47,16 @@ collect_ast_idents :: fn(li: LineIndex, uri: string, out: RawToken[]) -> void {
     program :: parsed.program
     // Soft keyword : `module "..."` on the first non-trivial line is
     // not a `Kw*` token at the lexer level (it stays an Ident). Surface
-    // the keyword colour here using the parsed AST.ModuleDecl's nameSpan
-    // start to anchor the 6-char "module" span.
+    // the keyword colour here, anchored at the start of the parsed
+    // `AST.ModuleDecl`.
     match md :: program.module {
         is null           -> {}
-        is AST.ModuleDecl -> { push_module_keyword_span(md, out) }
+        is AST.ModuleDecl -> { push_name_token(out, md.span.start, 0, "module", .Keyword) }
     }
     for d in program.decls {
         walk_decl(d, out)
     }
     refine_via_resolver(program, uri, out, li)
-}
-
-push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken[]) -> void {
-    // The `module` keyword occupies the first 6 chars of the decl ;
-    // md.span.start lines up with the `m` of `module`.
-    out.push(RawToken {
-        .line         = md.span.start.line - 1,
-        .col          = 0,
-        .length       = 0,
-        .tok_type     = i32(TokenType.Keyword),
-        .modifiers    = 0,
-        .start_offset = md.span.start.offset,
-        .end_offset   = md.span.start.offset + 6,
-    })
 }
 
 /// Walk every ident through the body-resolver and override matching Phase-1
@@ -99,16 +85,16 @@ refine_via_resolver :: fn(
         // `idents` is keyed by `Span.hash()` = (file, line, codepoint column), so
         // the probe is a zero-width span at the token's start in the resolved
         // file. A RawToken carries only byte offsets until `reencode_columns`.
-        col :: span_column(li, rt.line, rt.start_offset)
-        probe_pos :: Position { .file = uri, .offset = 0, .line = rt.line + 1, .column = col }
+        column :: span_column(li, rt.line, rt.start_offset)
+        probe_pos :: Position { .file = uri, .offset = 0, .line = rt.line + 1, .column = column }
         probe :: Span { .start = probe_pos, .end = probe_pos }
         hit :: resolved.idents[probe.hash()]
         match hit {
             is Symbol -> {
                 // Only the token type + modifiers are refined ; offsets stay
-                // canonical and col/length are still derived later by
+                // canonical and column/length are still derived later by
                 // `reencode_columns`.
-                out[i].tok_type = i32(token_type_of_symbol(hit.kind))
+                out[i].token_type = token_type_of_symbol(hit.kind)
                 out[i].modifiers = modifiers_of_symbol(hit)
             }
             is null -> {}
@@ -143,10 +129,7 @@ push_span :: fn(out: RawToken[], sp: Span, kind: TokenType) -> void {
     if sp.end.offset <= sp.start.offset { return }
     out.push(RawToken {
         .line         = sp.start.line - 1,
-        .col          = 0,
-        .length       = 0,
-        .tok_type     = i32(kind),
-        .modifiers    = 0,
+        .token_type   = kind,
         .start_offset = sp.start.offset,
         .end_offset   = sp.end.offset,
     })
@@ -167,15 +150,12 @@ push_span :: fn(out: RawToken[], sp: Span, kind: TokenType) -> void {
 /// unlike the span-based `span_token_length`.
 push_name_token :: fn(out: RawToken[], start: Position, prefix: i32, name: string, kind: TokenType) -> void {
     // `prefix` (`@`) and `name` are ASCII, so the byte width equals the char
-    // width ; `reencode_columns` derives col + length from the offsets.
+    // width ; `reencode_columns` derives column + length from the offsets.
     end_off :: start.offset + i64(prefix) + name.byte_len()
     if end_off <= start.offset { return }
     out.push(RawToken {
         .line         = start.line - 1,
-        .col          = 0,
-        .length       = 0,
-        .tok_type     = i32(kind),
-        .modifiers    = 0,
+        .token_type   = kind,
         .start_offset = start.offset,
         .end_offset   = end_off,
     })
