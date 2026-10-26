@@ -11,7 +11,6 @@
 module "vader/tools/lsp/analysis"
 
 import "std/collections"
-import "std/io"
 import "std/string"
 import "vader/support/diagnostics"
 import "vader/front/resolver"
@@ -246,11 +245,3 @@ export module_named :: fn(state: ServerState, name: string, paths: IncludePath[]
     return resolve_lazy(name, paths, index, doc_overlay(state), discard)
 }
 
-// `path` made absolute against the working directory, the base a relative root
-// is read from.
-absolute_path :: fn(path: string) -> string {
-    if path.starts_with("/") || (path.byte_len() > 1 && path.byte_at(1) == ':') {
-        return path
-    }
-    return join_path(current_working_directory(), path)
-}

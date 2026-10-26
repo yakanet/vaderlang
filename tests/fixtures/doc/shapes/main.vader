@@ -1,0 +1,7 @@
+// main: the program of the `vader doc` fixture, which `vader doc shapes` leaves out.
+
+module "main"
+
+import "shapes/geometry"
+
+main :: fn() -> i32 = 0

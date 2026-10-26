@@ -132,7 +132,7 @@ export ModuleOrigin :: enum(u8) {
     Toolchain,
 }
 
-/// A resolved module : `id` is its canonical absolute root path,
+/// A resolved module : `id` is its folder, as the root that found it spells it,
 /// `display_path` is what users see in the dump, `module_name` is
 /// the declared `module "..."` identifier used as the key for
 /// `import "..."` lookups, `files` is every file participating in
@@ -241,6 +241,18 @@ export join_path :: fn(base: string, seg: string) -> string {
 /// Directory portion of `path` (everything before the last `/`).
 /// Returns "" when no separator is present. Uses `std/path::parent`.
 export dir_of :: fn(path: string) -> string { return path.to_path().parent().as_string() }
+
+/// `path` made absolute against the working directory, the base a relative path
+/// is read from.
+///
+/// @param path  a `/`-separated path; one that starts with `/` or a drive letter
+///              is kept as it is.
+export absolute_path :: fn(path: string) -> string {
+    if path.starts_with("/") || (path.byte_len() > 1 && path.byte_at(1) == ':') {
+        return path
+    }
+    return join_path(current_working_directory(), path)
+}
 
 /// Resolve a resource directory `<base>/subdir` next to the executable, falling
 /// back to the bare cwd-relative `subdir`. The sidecar candidate wins only when

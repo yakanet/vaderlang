@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "path": "shapes/geometry",
+  "files": [
+    "shapes/geometry/area.vader",
+    "shapes/geometry/geometry.vader"
+  ],
+  "decls": [
+    {
+      "id": "shapes/geometry/square_area",
+      "name": "square_area",
+      "kind": "fn",
+      "signature": "export square_area :: fn(side: f64) -> f64",
+      "file": "shapes/geometry/area.vader",
+      "line": 9,
+      "doc": {
+        "summary": "The area of the square of side `side`.",
+        "prose": "The area of the square of side `side`.",
+        "params": [
+          {
+            "name": "side",
+            "text": "the length of a side."
+          }
+        ],
+        "returns": [],
+        "errors": [
+          "none: a negative side gives a positive area."
+        ],
+        "example": ""
+      }
+    },
+    {
+      "id": "shapes/geometry/Point",
+      "name": "Point",
+      "kind": "struct",
+      "signature": "export Point :: struct",
+      "file": "shapes/geometry/geometry.vader",
+      "line": 8,
+      "doc": {
+        "summary": "A point of the plane.",
+        "prose": "A point of the plane.\n\nBoth coordinates are in the same unit.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      }
+    },
+    {
+      "id": "shapes/geometry/distance",
+      "name": "distance",
+      "kind": "fn",
+      "signature": "export distance :: fn(a: Point, b: Point) -> f64",
+      "file": "shapes/geometry/geometry.vader",
+      "line": 22,
+      "doc": {
+        "summary": "The distance between `a` and `b`.",
+        "prose": "The distance between `a` and `b`. Always positive or zero.",
+        "params": [
+          {
+            "name": "a",
+            "text": "the first point."
+          },
+          {
+            "name": "b",
+            "text": "the second point, possibly `a` itself."
+          }
+        ],
+        "returns": [
+          "the distance, in the unit of the points."
+        ],
+        "errors": [],
+        "example": "distance(o, Point { .x = 3.0, .y = 4.0 })   // 5.0"
+      }
+    },
+    {
+      "id": "shapes/geometry/Quadrant",
+      "name": "Quadrant",
+      "kind": "enum",
+      "signature": "export Quadrant :: enum",
+      "file": "shapes/geometry/geometry.vader",
+      "line": 24,
+      "doc": null
+    },
+    {
+      "id": "shapes/geometry/ORIGIN",
+      "name": "ORIGIN",
+      "kind": "const",
+      "signature": "export ORIGIN :: Point { .x = 0.0, .y = 0.0 }",
+      "file": "shapes/geometry/geometry.vader",
+      "line": 30,
+      "doc": {
+        "summary": "The origin of the plane.",
+        "prose": "The origin of the plane.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      }
+    }
+  ]
+}

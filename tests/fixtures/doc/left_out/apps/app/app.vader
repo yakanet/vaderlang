@@ -1,0 +1,6 @@
+// apps/app: the module of the fixture `vader doc` reaches.
+
+module "apps/app"
+
+/// One.
+export one :: fn() -> i32 = 1

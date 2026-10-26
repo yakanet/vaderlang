@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "path": "shapes/text",
+  "files": [
+    "shapes/text/text.vader"
+  ],
+  "decls": [
+    {
+      "id": "shapes/text/Named",
+      "name": "Named",
+      "kind": "trait",
+      "signature": "export Named :: trait",
+      "file": "shapes/text/text.vader",
+      "line": 6,
+      "doc": {
+        "summary": "What can name itself.",
+        "prose": "What can name itself.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      }
+    },
+    {
+      "id": "shapes/text/Label",
+      "name": "Label",
+      "kind": "const",
+      "signature": "export Label :: string",
+      "file": "shapes/text/text.vader",
+      "line": 11,
+      "doc": {
+        "summary": "A label: some text.",
+        "prose": "A label: some text.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      }
+    }
+  ]
+}

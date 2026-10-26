@@ -83,6 +83,38 @@ An empty modifier list is dropped: `import "p" {}` becomes `import "p"`.
 
 `vader graph <path>` prints the module import graph in Mermaid (`--format=mermaid`, the default) or Graphviz (`--format=dot`). It draws the project's own modules, plus the library and toolchain ones under `--scope=all`.
 
+### `vader doc`
+
+`vader doc [path]` writes the data of an API reference for the modules under `path`, a folder or the file of a module: each export with its head and its vaderdoc, split by its tags. The data goes to the `build/doc/` of the project.
+
+The modules are read as the project's build reads them, from its entry: the project is the working directory, or the folder `--project` names, which `path` defaults to, and its entry the only one of its `vader.json`, or the one `--entry` names. A project its `build.vader` describes is not supported yet. Without a project, only the toolchain's search roots are read, and the data goes to the working directory. A module these roots do not reach, or that another folder of the same name shadows, is named and left out, and a file that does not parse loses only what the parser could not recover.
+
+The data is JSON, at `version` 1, a draft that may still change:
+
+- `index.json` lists the `modules` (`path`, `files`) and every export in `entries`, with what a list shows of it: `id`, `module`, `name`, `kind`, `signature` and `summary`, the first sentence of its vaderdoc.
+- `modules/<path>.json` holds one module whole. Each of its `decls` adds `file`, `line` and `doc`, null without a vaderdoc:
+
+```json
+{
+  "id": "shapes/geometry/distance",
+  "name": "distance",
+  "kind": "fn",
+  "signature": "export distance :: fn(a: Point, b: Point) -> f64",
+  "file": "shapes/geometry/geometry.vader",
+  "line": 22,
+  "doc": {
+    "summary": "The distance between `a` and `b`.",
+    "prose": "The distance between `a` and `b`. Always positive or zero.",
+    "params": [{ "name": "a", "text": "the first point." }, { "name": "b", "text": "the second point." }],
+    "returns": ["the distance, in the unit of the points."],
+    "errors": [],
+    "example": "distance(o, Point { .x = 3.0, .y = 4.0 })   // 5.0"
+  }
+}
+```
+
+`kind` is `fn`, `struct`, `enum`, `trait`, `type` or `const`; an alias without type parameters (`Label :: string`) is still a `const`. `prose` is CommonMark, and `example` is shown as a reader sees it, its hidden `# ` lines left out.
+
 ### `vader dump`
 
 `vader dump --stage=<stage> <path>` prints one stage of the pipeline ([`ARCHITECTURE.md`](ARCHITECTURE.md)). The stages, in order, are `lexer`, `ast`, `resolved-ast`, `typed-ast`, `callees`, `effects`, `evaluated-ast`, `lowered-ast`, `dced-ast`, `targets`, `cfg`, `ranges`, `bytecode`, `c` and `wasm` *(planned)*. `ast` prints JSON and `evaluated-ast` Markdown; `vader dump --help` says what each prints.

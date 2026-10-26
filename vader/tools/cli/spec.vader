@@ -110,6 +110,21 @@ CHECK_FLAGS: FlagSpec[]: [
     },
 ]
 
+// `doc` reads a project as its build does: from its folder and its entry.
+DOC_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "entry",
+        .help = "The entry to read the project from, by name, when it declares several",
+        .value_name = "name",
+    },
+    FlagSpec {
+        .name = "project",
+        .help = "The project folder: where the path is read from and the data written",
+        .value_name = "folder",
+        .default_text = "the working directory",
+    },
+]
+
 BUILD_FLAGS: FlagSpec[]: [
     ENTRY_FLAG,
     FlagSpec {
@@ -434,6 +449,13 @@ export COMMANDS: CommandSpec[]: [
         .summary = "Print the project's module import graph",
         .usage = "<path>",
         .flags = GRAPH_FLAGS,
+        .tail = .None,
+    },
+    CommandSpec {
+        .name = "doc",
+        .summary = "Write the API documentation data of the modules under a path",
+        .usage = "[path]",
+        .flags = DOC_FLAGS,
         .tail = .None,
     },
     CommandSpec {

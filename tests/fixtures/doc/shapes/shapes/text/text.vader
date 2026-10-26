@@ -1,0 +1,11 @@
+// shapes/text: a second module of the `vader doc` fixture.
+
+module "shapes/text"
+
+/// What can name itself.
+export Named :: trait {
+    name :: fn(self) -> string
+}
+
+/// A label: some text.
+export Label :: string

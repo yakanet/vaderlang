@@ -1,8 +1,8 @@
 // vader/front/resolver/walk: every module folder under a set of roots.
 //
 // The loader finds a module from an import, one at a time. A tool that needs
-// every module of a root (the language server's workspace search) walks the
-// folders instead, naming each one as an import would, and parses nothing.
+// every module of a root (the language server's workspace search, `vader doc`)
+// walks the folders instead, and parses nothing.
 
 module "vader/front/resolver"
 
@@ -31,19 +31,43 @@ export walk_module_folders :: fn(roots: IncludePath[], visit: fn(string, string[
         }
     }
     for root in distinct {
-        walk_folder(root, root.dir, "", 0, root_dirs, visit)
+        walk_folder(
+            root.dir,
+            "",
+            0,
+            root_dirs,
+            fn(_: string, rel: string, files: string[]) {
+                module :: module_for(root.prefix, rel)
+                if module.byte_len() > 0 {
+                    visit(module, files)
+                }
+            },
+        )
     }
 }
 
-// Visit the folder `dir`, `rel` under `root` ("" at the root), after its
-// sub-folders.
+/// Visit each folder under `dir`, `dir` included, that holds `.vader` files,
+/// skipping what `walk_module_folders` skips. Parses nothing.
+///
+/// @param dir    the folder to walk.
+/// @param visit  called with each folder.
+export walk_source_folders :: fn(dir: string, visit: fn(string) -> void) -> void =
+    walk_folder(
+        dir,
+        "",
+        0,
+        MutableSet<string> {},
+        (folder: string, _: string, _: string[]) -> visit(folder),
+    )
+
+// Visit the folder `dir`, `rel` under the root of the walk ("" at the root),
+// after its sub-folders, when it holds `.vader` files.
 walk_folder :: fn(
-    root: IncludePath,
     dir: string,
     rel: string,
     depth: i64,
     root_dirs: MutableSet<string>,
-    visit: fn(string, string[]) -> void,
+    visit: fn(string, string, string[]) -> void,
 ) -> void {
     entries :: read_dir(dir)
     if entries is IOError {
@@ -60,12 +84,11 @@ walk_folder :: fn(
             continue
         }
         if is_dir(path) {
-            walk_folder(root, path, join_path(rel, entry), depth + 1, root_dirs, visit)
+            walk_folder(path, join_path(rel, entry), depth + 1, root_dirs, visit)
         }
     }
-    module :: module_for(root.prefix, rel)
-    if module.byte_len() > 0 && files.len() > 0 {
-        visit(module, files)
+    if files.len() > 0 {
+        visit(dir, rel, files)
     }
 }
 

@@ -1,0 +1,171 @@
+// vader/tools/doc/write: the data `vader doc` writes, as JSON.
+//
+// `index.json` lists every module and every export, enough to search them;
+// `modules/<path>.json` holds one module whole. The format is described in
+// `docs/TOOLING.md` (*`vader doc`*), and its `version` is what a reader checks.
+
+module "vader/tools/doc"
+
+import "json"
+import "std/collections"
+import "std/io"
+import "std/iter"
+import "std/path"
+import "std/string"
+import "toolchain/ast"
+import "vader/front/resolver"
+
+/// The version of the data format, written in each file.
+DOC_FORMAT_VERSION: f64: 1.0
+
+/// Write the data of `modules` under `dir`: `index.json`, and one
+/// `modules/<path>.json` per module. The module files the previous `index.json`
+/// listed go first, so that a module no longer documented leaves none behind.
+///
+/// @param dir      the folder to write in, created when missing.
+/// @param modules  the documented modules.
+/// @error          `IOError` when a folder or a file cannot be written.
+export write_doc_data :: fn(dir: string, modules: DocModule[]) -> null | IOError {
+    remove_previous_modules(dir)
+    for m in modules {
+        path :: module_file(dir, m.path)
+        made :: create_dir(dir_of(path))
+        if made is IOError {
+            return made
+        }
+        written :: write_json(path, module_json(m))
+        if written is IOError {
+            return written
+        }
+    }
+    made :: create_dir(dir)
+    if made is IOError {
+        return made
+    }
+    return write_json(join_path(dir, "index.json"), index_json(modules))
+}
+
+// Where the data of the module `path` goes under `dir`.
+module_file :: fn(dir: string, path: string) -> string = join_path(dir, "modules/${path}.json")
+
+// `value` indented in the file `path`, a newline at its end.
+write_json :: fn(path: string, value: JsonValue) -> null | IOError =
+    write_file_string(path, stringify_pretty(value, 2) + "\n")
+
+// Remove the module files the `index.json` under `dir` lists, those under
+// `modules/` only: a path read back from a file is not trusted to stay there.
+// A missing or unreadable index lists none.
+remove_previous_modules :: fn(dir: string) -> void {
+    modules_dir :: Path(join_path(dir, "modules")).normalize()
+    text :: read_file_string(join_path(dir, "index.json"))
+    if text is IOError {
+        return
+    }
+    index :: parse(text)
+    if index !is JsonObject {
+        return
+    }
+    modules :: index.entries["modules"] ?? return
+    if modules !is JsonArray {
+        return
+    }
+    for m in modules.items {
+        if m !is JsonObject {
+            continue
+        }
+        path :: m.entries["path"] ?? continue
+        if path !is JsonString {
+            continue
+        }
+        file :: module_file(dir, path.value)
+        if Path(file).normalize().starts_with(modules_dir) {
+            remove_file(file)
+        }
+    }
+}
+
+// `index.json`: the modules, and every export with what a list shows of it.
+index_json :: fn(modules: DocModule[]) -> JsonValue {
+    module_items: JsonValue[]: []
+    entries: JsonValue[]: []
+    for m in modules {
+        item :: MutableMap<string, JsonValue> {}
+        item["path"] = json_text(m.path)
+        item["files"] = json_texts(m.files)
+        module_items.push(JsonObject { .entries = item })
+        for d in m.decls {
+            entry :: MutableMap<string, JsonValue> {}
+            entry["id"] = json_text(d.id)
+            entry["module"] = json_text(m.path)
+            entry["name"] = json_text(d.name)
+            entry["kind"] = json_text(d.kind)
+            entry["signature"] = json_text(d.signature)
+            entry["summary"] = json_text(summary_of(d.doc))
+            entries.push(JsonObject { .entries = entry })
+        }
+    }
+    root :: MutableMap<string, JsonValue> {}
+    root["version"] = JsonNumber { .value = DOC_FORMAT_VERSION }
+    root["modules"] = JsonArray { .items = module_items }
+    root["entries"] = JsonArray { .items = entries }
+    return JsonObject { .entries = root }
+}
+
+// `modules/<path>.json`: one module whole.
+module_json :: fn(m: DocModule) -> JsonValue {
+    decls: JsonValue[]: []
+    for d in m.decls {
+        decl :: MutableMap<string, JsonValue> {}
+        decl["id"] = json_text(d.id)
+        decl["name"] = json_text(d.name)
+        decl["kind"] = json_text(d.kind)
+        decl["signature"] = json_text(d.signature)
+        decl["file"] = json_text(d.file)
+        decl["line"] = JsonNumber { .value = f64(d.line) }
+        decl["doc"] = doc_json(d.doc)
+        decls.push(JsonObject { .entries = decl })
+    }
+    root :: MutableMap<string, JsonValue> {}
+    root["version"] = JsonNumber { .value = DOC_FORMAT_VERSION }
+    root["path"] = json_text(m.path)
+    root["files"] = json_texts(m.files)
+    root["decls"] = JsonArray { .items = decls }
+    return JsonObject { .entries = root }
+}
+
+// A vaderdoc, `null` without one: its summary and its example as shown come
+// from its sections.
+doc_json :: fn(doc: DocSections | null) -> JsonValue {
+    if doc == null {
+        return JsonNull {}
+    }
+    params: JsonValue[]: []
+    for p in doc.params {
+        param :: MutableMap<string, JsonValue> {}
+        param["name"] = json_text(p.name)
+        param["text"] = json_text(p.text)
+        params.push(JsonObject { .entries = param })
+    }
+    out :: MutableMap<string, JsonValue> {}
+    out["summary"] = json_text(first_sentence(doc.prose))
+    out["prose"] = json_text(doc.prose)
+    out["params"] = JsonArray { .items = params }
+    out["returns"] = json_texts(doc.returns)
+    out["errors"] = json_texts(doc.errors)
+    out["example"] = json_text(shown_example(doc))
+    return JsonObject { .entries = out }
+}
+
+// The summary of a vaderdoc, "" without one.
+summary_of :: fn(doc: DocSections | null) -> string {
+    if doc == null {
+        return ""
+    }
+    return first_sentence(doc.prose)
+}
+
+json_text :: fn(value: string) -> JsonValue = JsonString { .value = value }
+
+json_texts :: fn(values: string[]) -> JsonValue = JsonArray {
+    .items = values.map(json_text).collect(),
+}

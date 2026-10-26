@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "modules": [
+    {
+      "path": "shapes/geometry",
+      "files": [
+        "shapes/geometry/area.vader",
+        "shapes/geometry/geometry.vader"
+      ]
+    },
+    {
+      "path": "shapes/text",
+      "files": [
+        "shapes/text/text.vader"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "shapes/geometry/square_area",
+      "module": "shapes/geometry",
+      "name": "square_area",
+      "kind": "fn",
+      "signature": "export square_area :: fn(side: f64) -> f64",
+      "summary": "The area of the square of side `side`."
+    },
+    {
+      "id": "shapes/geometry/Point",
+      "module": "shapes/geometry",
+      "name": "Point",
+      "kind": "struct",
+      "signature": "export Point :: struct",
+      "summary": "A point of the plane."
+    },
+    {
+      "id": "shapes/geometry/distance",
+      "module": "shapes/geometry",
+      "name": "distance",
+      "kind": "fn",
+      "signature": "export distance :: fn(a: Point, b: Point) -> f64",
+      "summary": "The distance between `a` and `b`."
+    },
+    {
+      "id": "shapes/geometry/Quadrant",
+      "module": "shapes/geometry",
+      "name": "Quadrant",
+      "kind": "enum",
+      "signature": "export Quadrant :: enum",
+      "summary": ""
+    },
+    {
+      "id": "shapes/geometry/ORIGIN",
+      "module": "shapes/geometry",
+      "name": "ORIGIN",
+      "kind": "const",
+      "signature": "export ORIGIN :: Point { .x = 0.0, .y = 0.0 }",
+      "summary": "The origin of the plane."
+    },
+    {
+      "id": "shapes/text/Named",
+      "module": "shapes/text",
+      "name": "Named",
+      "kind": "trait",
+      "signature": "export Named :: trait",
+      "summary": "What can name itself."
+    },
+    {
+      "id": "shapes/text/Label",
+      "module": "shapes/text",
+      "name": "Label",
+      "kind": "const",
+      "signature": "export Label :: string",
+      "summary": "A label: some text."
+    }
+  ]
+}

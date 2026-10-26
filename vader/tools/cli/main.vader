@@ -33,28 +33,36 @@ main :: fn(argv: string[]) -> i32 {
 
     // `--help` / `-h` / `--version` / `-v` are spellings of the `help` and
     // `version` actions, kept because they are what people type.
-    if action == "help" || action == "--help" || action == "-h" {
-        return cmd_help(action_args)
+    return match action {
+        "help" | "--help" | "-h"       -> cmd_help(action_args)
+        "version" | "--version" | "-v" -> print_version()
+        "new"                          -> cmd_new(action_args)
+        "run"                          -> cmd_run(action_args)
+        "build"                        -> cmd_build(action_args)
+        "fmt"                          -> cmd_fmt(action_args)
+        "test"                         -> cmd_test(action_args)
+        "dump"                         -> cmd_dump(action_args)
+        "lsp"                          -> cmd_lsp(action_args)
+        "dap"                          -> cmd_dap(action_args)
+        "check"                        -> cmd_check(action_args)
+        "lint"                         -> cmd_lint(action_args)
+        "graph"                        -> cmd_graph(action_args)
+        "doc"                          -> cmd_doc(action_args)
+        "doctor"                       -> cmd_doctor(action_args)
+        "info"                         -> cmd_info(action_args)
+        "eject"                        -> cmd_eject(action_args)
+        _                              -> unknown_action(action)
     }
-    if action == "version" || action == "--version" || action == "-v" {
-        println(CLI_VERSION)
-        return 0
-    }
-    if action == "new"    { return cmd_new(action_args) }
-    if action == "run"    { return cmd_run(action_args) }
-    if action == "build"  { return cmd_build(action_args) }
-    if action == "fmt"    { return cmd_fmt(action_args) }
-    if action == "test"   { return cmd_test(action_args) }
-    if action == "dump"   { return cmd_dump(action_args) }
-    if action == "lsp"    { return cmd_lsp(action_args) }
-    if action == "dap"    { return cmd_dap(action_args) }
-    if action == "check"  { return cmd_check(action_args) }
-    if action == "lint"   { return cmd_lint(action_args) }
-    if action == "graph"  { return cmd_graph(action_args) }
-    if action == "doctor" { return cmd_doctor(action_args) }
-    if action == "info"   { return cmd_info(action_args) }
-    if action == "eject"  { return cmd_eject(action_args) }
+}
 
+// `vader version`: the version, on standard output.
+print_version :: fn() -> i32 {
+    println(CLI_VERSION)
+    return 0
+}
+
+// An action no command answers to.
+unknown_action :: fn(action: string) -> i32 {
     eprintln("vader: unknown action \"${action}\"")
     eprintln("run \"vader help\" for usage")
     return 1

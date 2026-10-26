@@ -1,0 +1,129 @@
+// vader/tools/cli/doc: the `vader doc` command.
+//
+// Loads every module under a path with its vaderdoc, from the entry of the
+// project as `vader lint` takes it, and writes what `vader/tools/doc` makes of
+// them to the project's `build/doc/`.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/tools/cli"
+
+import "cli"
+import "std/io"
+import "std/path"
+import "vader/front/resolver"
+import "vader/pipeline"
+import "vader/support/diagnostics"
+Doc :: import "vader/tools/doc"
+
+/// `vader doc [path]`: write the documentation data of every module under
+/// `path`, the project folder by default, to the project's `build/doc/`.
+///
+/// A file that does not parse loses what the parser could not recover, and
+/// the rest is written all the same.
+///
+/// @param args  the action's arguments; the first positional is the path.
+/// @return      0 once the data is written, 1 when it cannot be or holds no
+///              module, 2 when the path holds none or no entry is chosen.
+cmd_doc :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("doc", args)
+    if parsed is i32 {
+        return parsed
+    }
+    if reject_extra_positionals("doc", parsed) {
+        return 1
+    }
+    project :: doc_project(parsed)
+    if project is i32 {
+        return project
+    }
+    // The project folder, the working directory without a project: where the
+    // path is read from by default, and the data written.
+    home :: project.project_root ?? "."
+    scope :: Doc.doc_scope(doc_path(parsed, home))
+    if scope is string {
+        eprintln("vader doc: ${scope}")
+        return 2
+    }
+    loaded :: Doc.load_scope(scope, project.file.as_string(), project.project_root)
+    if any_error_diag(loaded.diags) {
+        eprintln(loaded.diags.dump_diagnostics_with_file())
+    }
+    documented :: Doc.index_modules(
+        loaded,
+        scope,
+        Path(absolute_path(home)).normalize().as_string(),
+    )
+    for line in documented.left_out {
+        eprintln("vader doc: ${line}, left out")
+    }
+    if documented.modules.len() == 0 {
+        eprintln("vader doc: no module to document${without_project_hint(project)}")
+        return 1
+    }
+    out_dir :: Path(join_path(home, DOC_DATA_DIR)).normalize().as_string()
+    written :: Doc.write_doc_data(out_dir, documented.modules)
+    if written is IOError {
+        eprintln("vader doc: cannot write `${out_dir}`: ${written.message()}")
+        return 1
+    }
+    println("vader doc: ${documented.modules.len()} modules written to `${out_dir}`")
+    return 0
+}
+
+// The project of `vader doc` and the entry its load starts from: the folder
+// `--project` names, else the working directory, and its entry as `vader lint`
+// takes it, `--entry` choosing among several. Without a project, the synthetic
+// entry of `vader/tools/doc`. The exit code after saying why there is no entry.
+doc_project :: fn(parsed: ParsedArgs) -> EntryInProject | i32 {
+    selected :: parsed.string_flag("entry", "")
+    if parsed.flags["project"] == null && project_at("") == null && find_build_driver("") == null {
+        if selected != "" {
+            eprintln(
+                "vader doc: `--entry` chooses among a project's entries, and the working "
+                    + "directory holds no project",
+            )
+            return 2
+        }
+        return EntryInProject { .file = Path(Doc.SYNTHETIC_ENTRY), .project_root = null }
+    }
+    dir :: parsed.string_flag("project", ".")
+    match input :: resolve_input("doc", Path(dir), selected) {
+        is i32             -> {
+            return input
+        }
+        is FileInput       -> {
+            eprintln(not_a_folder("doc", dir))
+            return 1
+        }
+        is DrivenProject   -> {
+            eprintln(
+                "vader doc: `${dir}` is described by its `${DRIVER_FILENAME}`, "
+                    + "which `vader doc` does not run yet",
+            )
+            return 1
+        }
+        is ManifestProject -> {
+            entry :: sole_entry("doc", input.dir, input.entries) ?? return 2
+            return EntryInProject { .file = entry.file, .project_root = input.dir }
+        }
+    }
+}
+
+// The path `vader doc` documents: its argument, the folder `home` without one.
+doc_path :: fn(parsed: ParsedArgs, home: string) -> string {
+    given :: action_file(parsed).as_string()
+    if given == "" {
+        return home
+    }
+    return given
+}
+
+// Why nothing could be documented, when the cause is the missing project.
+without_project_hint :: fn(project: EntryInProject) -> string {
+    if project.project_root != null {
+        return ""
+    }
+    return ": the working directory holds no project, and only the toolchain's modules are "
+        + "read without one; run it in a project folder, or name one with `--project`"
+}

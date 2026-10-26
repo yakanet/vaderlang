@@ -1,0 +1,9 @@
+// shapes/geometry/area: the second file of the fixture's main module.
+
+module "shapes/geometry"
+
+/// The area of the square of side `side`.
+///
+/// @param side  the length of a side.
+/// @error       none: a negative side gives a positive area.
+export square_area :: fn(side: f64) -> f64 = side * side

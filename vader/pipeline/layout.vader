@@ -22,6 +22,9 @@ export DRIVER_ARTEFACT_DIR :: "build/driver"
 // (`ffi_adapters.vader`), relative to its root.
 FFI_ADAPTER_DIR :: "build/ffi"
 
+/// Where `vader doc` writes its data, under the project folder.
+export DOC_DATA_DIR :: "build/doc"
+
 /// Stamp recording what the cached driver binary was built from, beside it in
 /// `DRIVER_ARTEFACT_DIR`: rewritten each time the driver is compiled.
 export DRIVER_STAMP_FILENAME :: "driver.stamp"

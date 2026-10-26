@@ -1,0 +1,72 @@
+// vader/tools/doc/scope: the modules a path holds, and their load.
+//
+// `vader doc <path>` documents every module folder under a folder, or the
+// module of a file. Each folder is read as the loader reads an entry's
+// (`seed_entry`): named by the `module` line its files declare. The load starts
+// from the entry of the project, so that it searches the roots its build
+// searches, and seeds the modules to document, keeping their vaderdoc.
+
+module "vader/tools/doc"
+
+import "std/collections"
+import "std/io"
+import "std/iter"
+import "std/sort"
+import "vader/front/resolver"
+import "vader/support/diagnostics"
+
+/// Find the module folders under `path`.
+///
+/// @param path  a folder, or a `.vader` file: the module of its folder.
+/// @return      the modules sorted by name, or why `path` holds none.
+export doc_scope :: fn(path: string) -> DiscoveredModule[] | string {
+    if !exists(path) {
+        return "`${path}` does not exist"
+    }
+    found: DiscoveredModule[]: []
+    if is_dir(path) {
+        walk_source_folders(path, (folder: string) -> record_module(folder, found))
+    } else {
+        record_module(dir_of(path), found)
+    }
+    if found.len() == 0 {
+        return "no module under `${path}`"
+    }
+    return sort(found, (a: DiscoveredModule, b: DiscoveredModule) -> a.name < b.name)
+}
+
+/// The entry of a load without a project: a file no folder holds, whose module
+/// imports nothing, so that the load searches the toolchain's roots alone.
+export SYNTHETIC_ENTRY :: ".vader-doc/entry.vader"
+
+/// Load the modules of `scope` with their vaderdoc.
+///
+/// @param scope         the modules to document, from `doc_scope`.
+/// @param entry         the file the project's build starts from,
+///                      `SYNTHETIC_ENTRY` without a project.
+/// @param project_root  the project folder, null for none.
+/// @return              the load of `entry`, the modules of `scope` seeded.
+export load_scope :: fn(
+    scope: DiscoveredModule[],
+    entry: string,
+    project_root: string | null,
+) -> LoadedProject {
+    overlay :: MutableMap<string, string> {}
+    overlay[SYNTHETIC_ENTRY] = "module \"vader_doc_entry\"\n"
+    return load_project_with_overlay(
+        entry,
+        overlay,
+        [],
+        project_root,
+        extra_seeds = scope.map((m: DiscoveredModule) -> m.name).collect(),
+        keep_docs = true,
+    )
+}
+
+// Record the module of `folder`, when its files declare one. A problem with
+// their headers is left to the load, which reports it.
+record_module :: fn(folder: string, found: DiscoveredModule[]) -> void {
+    ignored: Diagnostic[]: []
+    module :: seed_entry(folder, MutableMap<string, string> {}, ignored) ?? return
+    found.push(module)
+}

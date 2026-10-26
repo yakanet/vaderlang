@@ -1,0 +1,33 @@
+// shapes/geometry: the `vader doc` fixture's main module, over two files.
+
+module "shapes/geometry"
+
+/// A point of the plane.
+///
+/// Both coordinates are in the same unit.
+export Point :: struct {
+    x: f64
+    y: f64
+}
+
+/// The distance between `a` and `b`. Always positive or zero.
+///
+/// @param a  the first point.
+/// @param b  the second point,
+///           possibly `a` itself.
+/// @return   the distance, in the unit of the points.
+/// @example
+///   # o :: Point { .x = 0.0, .y = 0.0 }
+///   distance(o, Point { .x = 3.0, .y = 4.0 })   // 5.0
+export distance :: fn(a: Point, b: Point) -> f64 = 0.0
+
+export Quadrant :: enum {
+    First,
+    Second,
+}
+
+/// The origin of the plane.
+export ORIGIN :: Point { .x = 0.0, .y = 0.0 }
+
+// Private: left out of the data.
+scale :: fn(p: Point, k: f64) -> Point = Point { .x = p.x * k, .y = p.y * k }

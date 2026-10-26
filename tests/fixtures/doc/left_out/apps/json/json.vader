@@ -1,0 +1,6 @@
+// json: declares the name of the toolchain's `json`, whose module comes first.
+
+module "json"
+
+/// Never documented: the toolchain's `json` shadows it.
+export shadowed :: fn() -> i32 = 0

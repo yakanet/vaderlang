@@ -1,0 +1,189 @@
+// vader/tools/doc/index: what `vader doc` says about each module.
+//
+// It reads the declarations the loader parsed with their vaderdoc
+// (`load_project_with_overlay(..., keep_docs = true)`), never the files again:
+// one parse, the build's own. An export becomes an entry with its head as the
+// hover shows it (`vader/tools/fmt`) and its vaderdoc split by its tags
+// (`doc_sections` in `toolchain/ast`).
+
+module "vader/tools/doc"
+
+import "std/collections"
+import "std/iter"
+import "std/path"
+import "std/string"
+import "toolchain/ast"
+import "vader/front/resolver"
+import "vader/support/diagnostics"
+import "vader/tools/fmt"
+
+/// What `vader doc` documented of a scope, and what it had to leave out.
+export Documented :: struct {
+    /// The modules of the scope the load reached, in its order.
+    modules: DocModule[]
+    /// One line per module of the scope it did not reach, saying why.
+    left_out: string[]
+}
+
+/// One documented module.
+export DocModule :: struct {
+    /// Its name, as its files declare it.
+    path: string
+    /// Its files, in the order the loader read them, relative to the folder
+    /// `index_modules` was given when they lie under it.
+    files: string[]
+    /// Its exports, file by file, in source order.
+    decls: DocDecl[]
+}
+
+/// One export.
+export DocDecl :: struct {
+    /// `<module>/<name>`: where the export is found, by a link or a search.
+    id: string
+    name: string
+    /// `fn`, `struct`, `enum`, `trait`, `type` or `const`.
+    kind: string
+    /// Its head as the hover shows it, `export` included.
+    signature: string
+    /// The file that declares it, written as in `DocModule.files`.
+    file: string
+    /// The line of its name, from 1.
+    line: i32
+    /// Its vaderdoc split by its tags, null without one.
+    doc: DocSections | null
+}
+
+/// Document the modules of `scope`, as `project` loaded them.
+///
+/// A module of the scope is left out when the load did not reach its folder:
+/// no search root of the project holds it, or another folder declaring the same
+/// module comes first.
+///
+/// @param project  the load of the scope, which kept the docs (`load_scope`).
+/// @param scope    the modules to document (`doc_scope`).
+/// @param base     the absolute folder file paths are written relative to, when
+///                 they lie under it, however the loader spelled them.
+export index_modules :: fn(project: LoadedProject, scope: DiscoveredModule[], base: string) -> Documented {
+    loaded :: module_index_by_name(project)
+    modules: DocModule[]: []
+    left_out: string[]: []
+    for wanted in scope {
+        folder :: display_path(wanted.folder, base)
+        found :: loaded[wanted.name]
+        if found == null {
+            left_out.push("`${wanted.name}` (`${folder}`) is under no search root")
+        } else if !same_folder(found.module.id, wanted.folder) {
+            left_out.push(
+                "`${wanted.name}` (`${folder}`) is shadowed by the module of `${display_path(found.module.id, base)}`",
+            )
+        } else {
+            modules.push(index_module(found.module, base))
+        }
+    }
+    return Documented { .modules = modules, .left_out = left_out }
+}
+
+// The documentation of `module`, its files relative to `base`.
+index_module :: fn(module: Module, base: string) -> DocModule {
+    files: string[]: []
+    decls: DocDecl[]: []
+    for file in module.files {
+        path :: display_path(file.path, base)
+        files.push(path)
+        for d in file.program.decls {
+            decl :: doc_decl(module.module_name, file, path, d) ?? continue
+            decls.push(decl)
+        }
+    }
+    return DocModule {
+        .path = module.module_name,
+        .files = files,
+        .decls = decls,
+    }
+}
+
+// The entry of `d`, declared in `file` of `module`, written `path`; null when
+// `d` is no export.
+doc_decl :: fn(module: string, file: SourceFile, path: string, d: Decl) -> DocDecl | null {
+    if !decl_is_public(d) {
+        return null
+    }
+    name_span :: decl_name_span(d) ?? return null
+    name :: file.content.byte_slice(name_span.start.offset, name_span.end.offset)
+    return DocDecl {
+        .id = "${module}/${name}",
+        .name = name,
+        .kind = kind_of(d),
+        .signature = "export " + format_decl_head(file.content, d),
+        .file = path,
+        .line = name_span.start.line,
+        .doc = sections_of(decl_doc(d)),
+    }
+}
+
+// Whether `a` and `b` name the same folder, however each is spelled.
+same_folder :: fn(a: string, b: string) -> bool =
+    absolute_path(a).to_path().normalize() == absolute_path(b).to_path().normalize()
+
+// `path` relative to the absolute folder `base` when it lies under it, absolute
+// otherwise.
+display_path :: fn(path: string, base: string) -> string =
+    relative_to(absolute_path(path).to_path().normalize().as_string(), base)
+
+// The kind an export is listed under.
+kind_of :: fn(d: Decl) -> string = match d {
+    is FnDecl                             -> "fn"
+    is StructDecl                         -> "struct"
+    is EnumDecl                           -> "enum"
+    is TraitDecl                          -> "trait"
+    is TypeAliasDecl                      -> "type"
+    is ConstDecl                          -> "const"
+    is ImplDecl | AssertDecl | ImportDecl -> ""
+}
+
+// `doc` split by its tags, null without one.
+sections_of :: fn(doc: DocComment | null) -> DocSections | null {
+    text :: doc_text(doc)
+    if text.trim().byte_len() == 0 {
+        return null
+    }
+    return doc_sections(text)
+}
+
+/// The first sentence of `prose`: its first paragraph, lines joined, up to the
+/// first period a blank or the end follows. What a list of entries shows.
+///
+/// @param prose  the prose of a vaderdoc (`DocSections.prose`).
+export first_sentence :: fn(prose: string) -> string {
+    paragraph :: prose.split("\n\n")[0].split("\n").map((line: string) -> line.trim()).collect().join(
+        " ",
+    )
+    n :: paragraph.byte_len()
+    for i in 0..<n {
+        if paragraph.byte_at(i) == '.' && (i + 1 == n || paragraph.byte_at(i + 1) == ' ') {
+            return paragraph.byte_slice(0, i + 1)
+        }
+    }
+    return paragraph
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_display_path_under_and_outside_its_base :: fn() -> void {
+    assert_eq(display_path("/repo/lib/std/io/io.vader", "/repo"), "lib/std/io/io.vader")
+    assert_eq(display_path("/repo/./lib/../lib/x.vader", "/repo"), "lib/x.vader")
+    assert_eq(display_path("/other/x.vader", "/repo"), "/other/x.vader")
+}
+
+@test
+test_first_sentence_stops_at_a_period_and_a_blank :: fn() -> void {
+    assert_eq(first_sentence("Read `a.b`, then stop. More."), "Read `a.b`, then stop.")
+}
+
+@test
+test_first_sentence_joins_the_lines_of_its_paragraph :: fn() -> void {
+    assert_eq(first_sentence("One sentence\nwrapped\n\nNext paragraph."), "One sentence wrapped")
+}
