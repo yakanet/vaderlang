@@ -44,7 +44,7 @@ sprite is transparent.
 | `clipa0.ppm` | clip, ten bullets (`A`) |
 | `stima0.ppm` | stimpack, ten health (`S`) |
 | `media0.ppm` | medikit, twenty-five health (`H`) |
-| `possa1.ppm` to `possd1.ppm` | the zombie (`Z`) walking |
+| `possa1.ppm` to `possd8.ppm` | the zombie (`Z`) walking: four steps, each seen from eight sides (`1` facing the eye, then round it to its left) |
 | `posse1.ppm`, `possf1.ppm` | the zombie aiming, then firing |
 | `possg1.ppm` | the zombie hit |
 | `possh0.ppm` to `possl0.ppm` | the zombie falling, the last one its body |

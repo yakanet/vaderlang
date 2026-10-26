@@ -216,7 +216,7 @@ parse_level :: fn(rows: string[]) -> Level | LevelError {
                 })
             }
             if c == 'Z' {
-                enemies.push(Enemy { .x = f64(x) + 0.5, .y = f64(y) + 0.5 })
+                enemies.push(new_zombie(x, y))
             }
             if c == '@' {
                 starts.push([x, y])

@@ -155,7 +155,7 @@ texel_footprint :: fn(frame: Frame, distance: f64) -> f64 =
 export render :: fn(frame: Frame, level: Level, player: Player, lights: LightMap) -> void {
     draw_floor_and_ceiling(frame, player, lights)
     draw_walls(frame, level, player, lights)
-    draw_billboards(frame, player, lights, billboards(level))
+    draw_billboards(frame, player, lights, billboards(level, player))
     draw_weapon(frame, player, lights)
     if player.hurt > 0.0 {
         frame.redden(player.hurt)
@@ -273,9 +273,9 @@ Billboard :: struct {
     glows: bool
 }
 
-// The things and the zombies of `level`, as pictures to draw. A zombie firing
-// is lit by its own flash.
-billboards :: fn(level: Level) -> Billboard[] {
+// The things and the zombies of `level`, as pictures to draw for `player` to
+// see. A zombie firing is lit by its own flash.
+billboards :: fn(level: Level, player: Player) -> Billboard[] {
     out: Billboard[]: [] * (level.things.len() + level.enemies.len())
     for thing in level.things {
         if thing.taken {
@@ -292,7 +292,7 @@ billboards :: fn(level: Level) -> Billboard[] {
         out.push(Billboard {
             .x = enemy.x,
             .y = enemy.y,
-            .sprite = enemy_sprite(enemy),
+            .sprite = enemy_sprite(enemy, player.x, player.y),
             .glows = enemy.state == .Firing,
         })
     }

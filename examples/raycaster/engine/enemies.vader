@@ -32,14 +32,40 @@ export EnemyState :: enum {
     Dead,
 }
 
-/// A zombie: where it stands, and how long it has been doing what it does.
+/// A zombie: where it stands and faces, and how long it has been doing what it
+/// does.
 export Enemy :: struct {
     x: f64
     y: f64
+    /// The direction it faces, a unit vector: towards the player once it chases
+    /// them.
+    facing_x: f64 = 1.0
+    facing_y: f64 = 0.0
     health: i32 = ZOMBIE_HEALTH
     state: EnemyState = .Idle
     /// Seconds since it entered `state`.
     time: f64 = 0.0
+}
+
+// The four ways a zombie may face at rest, a quarter turn apart: east, south,
+// west, north.
+QUARTERS: [f64, f64][]: [
+    [1.0, 0.0],
+    [0.0, 1.0],
+    [-1.0, 0.0],
+    [0.0, -1.0],
+]
+
+// A zombie waiting on the cell `(x, y)`, facing the way its cell picks, so that
+// neighbours seldom face alike.
+new_zombie :: fn(x: i32, y: i32) -> Enemy {
+    facing :: QUARTERS[i64((x + y) % 4)]
+    return Enemy {
+        .x = f64(x) + 0.5,
+        .y = f64(y) + 0.5,
+        .facing_x = facing.0,
+        .facing_y = facing.1,
+    }
 }
 
 // The bullets a zombie takes before it falls.
@@ -121,6 +147,8 @@ chase :: fn(enemy: Enemy, level: Level, player: Player, seconds: f64) -> void {
         enemy.enter(.Aiming)
         return
     }
+    enemy.facing_x = (player.x - enemy.x) / distance
+    enemy.facing_y = (player.y - enemy.y) / distance
     if distance < CLOSEST {
         return
     }
@@ -202,29 +230,69 @@ clear_of_enemies :: fn(level: Level, x: f64, y: f64, radius: f64, mover: Enemy |
 // ---- pictures -------------------------------------------------------------
 
 // The zombie's pictures in `SPRITE_TEXTURES`, after the things': four steps of
-// its walk, aiming, firing, flinching, and five of its fall, the last one the
-// body on the floor.
+// its walk, each seen from its `ROTATIONS` sides, then aiming, firing,
+// flinching, and five of its fall, the last one the body on the floor. It aims,
+// fires and flinches facing the player, and falls the same from every side.
 ZOMBIE_WALK: i32: 8
 WALK_FRAMES: i32: 4
-ZOMBIE_AIM: i32: 12
-ZOMBIE_FIRE: i32: 13
-ZOMBIE_HURT: i32: 14
-ZOMBIE_FALL: i32: 15
+ROTATIONS: i32: 8
+ZOMBIE_AIM: i32: ZOMBIE_WALK + WALK_FRAMES * ROTATIONS
+ZOMBIE_FIRE: i32: ZOMBIE_AIM + 1
+ZOMBIE_HURT: i32: ZOMBIE_AIM + 2
+ZOMBIE_FALL: i32: ZOMBIE_AIM + 3
 DYING_FRAMES: i32: 5
+
+// The eight directions a zombie is seen from, an eighth of a turn apart, as
+// (along, across) its facing: `across` counts towards its left.
+EIGHTHS: [f64, f64][]: [
+    [1.0, 0.0],
+    [0.70710678, 0.70710678],
+    [0.0, 1.0],
+    [-0.70710678, 0.70710678],
+    [-1.0, 0.0],
+    [-0.70710678, -0.70710678],
+    [0.0, -1.0],
+    [0.70710678, -0.70710678],
+]
 
 // How long each step of the walk and of the fall shows, in seconds.
 WALK_FRAME_TIME :: 0.18
 DYING_FRAME_TIME :: 0.12
 
-// The picture `enemy` shows now, in `SPRITE_TEXTURES`.
-enemy_sprite :: fn(enemy: Enemy) -> i32 = match enemy.state {
-    .Idle    -> ZOMBIE_WALK
-    .Chasing -> ZOMBIE_WALK + i32(enemy.time / WALK_FRAME_TIME) % WALK_FRAMES
+// The picture `enemy` shows now to an eye at `(x, y)`, in `SPRITE_TEXTURES`.
+enemy_sprite :: fn(enemy: Enemy, x: f64, y: f64) -> i32 = match enemy.state {
+    .Idle    -> enemy.walk_sprite(0, x, y)
+    .Chasing -> enemy.walk_sprite(i32(enemy.time / WALK_FRAME_TIME) % WALK_FRAMES, x, y)
     .Aiming  -> ZOMBIE_AIM
     .Firing  -> ZOMBIE_FIRE
     .Hurt    -> ZOMBIE_HURT
     .Dying   -> ZOMBIE_FALL + min(i32(enemy.time / DYING_FRAME_TIME), DYING_FRAMES - 1)
     .Dead    -> ZOMBIE_FALL + DYING_FRAMES - 1
+}
+
+// The picture of step `step` of `enemy`'s walk, seen by an eye at `(x, y)`.
+walk_sprite :: fn(enemy: Enemy, step: i32, x: f64, y: f64) -> i32 =
+    ZOMBIE_WALK + step * ROTATIONS + enemy.rotation_towards(x, y)
+
+// Which of a pose's `ROTATIONS` pictures `enemy` shows to an eye at `(x, y)`: `0`
+// when it faces the eye, counting on as the eye goes round it to its left. It is
+// the eighth of a turn nearest to the eye's direction.
+rotation_towards :: fn(enemy: Enemy, x: f64, y: f64) -> i32 {
+    to_x :: x - enemy.x
+    to_y :: y - enemy.y
+    along :: to_x * enemy.facing_x + to_y * enemy.facing_y
+    across :: enemy.facing_y * to_x - enemy.facing_x * to_y
+    nearest := 0
+    best := along
+    for eighth in 1..<ROTATIONS {
+        direction :: EIGHTHS[i64(eighth)]
+        closeness :: along * direction.0 + across * direction.1
+        if closeness > best {
+            nearest = eighth
+            best = closeness
+        }
+    }
+    return nearest
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -281,11 +349,28 @@ test_enemies_pictures_end_with_the_fall :: fn() -> void {
 }
 
 @test
+test_enemies_show_their_front_or_back :: fn() -> void {
+    zombie :: Enemy { .x = 1.5, .y = 1.5 }
+    assert_eq(zombie.rotation_towards(4.5, 1.5), 0)
+    assert_eq(zombie.rotation_towards(-1.5, 1.5), 4)
+}
+
+@test
+test_enemies_turn_their_side_to_an_eye_beside_them :: fn() -> void {
+    // Facing east, the eye to the south is on the zombie's right: picture 6,
+    // Freedoom's rotation 7; the eye to the north is on its left: picture 2,
+    // rotation 3.
+    zombie :: Enemy { .x = 1.5, .y = 1.5 }
+    assert_eq(zombie.rotation_towards(1.5, 4.5), 6)
+    assert_eq(zombie.rotation_towards(1.5, -1.5), 2)
+}
+
+@test
 test_enemies_fall_into_a_body :: fn() -> void {
     zombie :: Enemy { .x = 1.5, .y = 1.5 }
     zombie.enter(.Dying)
     zombie.time = 0.25
-    assert_eq(enemy_sprite(zombie), ZOMBIE_FALL + 2)
+    assert_eq(enemy_sprite(zombie, 0.5, 1.5), ZOMBIE_FALL + 2)
     zombie.enter(.Dead)
-    assert_eq(enemy_sprite(zombie), ZOMBIE_FALL + DYING_FRAMES - 1)
+    assert_eq(enemy_sprite(zombie, 0.5, 1.5), ZOMBIE_FALL + DYING_FRAMES - 1)
 }

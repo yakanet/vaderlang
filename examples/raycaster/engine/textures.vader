@@ -289,28 +289,33 @@ FLOOR_TEXTURE: u32[]: @comptime load_mipmapped("../assets/textures/MetalPlates00
 CEILING_TEXTURE: u32[]: @comptime load_mipmapped("../assets/textures/Concrete031.ppm")
 // The sprites: the things', indexed by `ThingInfo.sprite`, then the zombie's
 // (`ZOMBIE_WALK` and after, in `enemies.vader`).
-SPRITE_TEXTURES: u32[][]: @comptime [
-    load_sprite("../assets/sprites/bar1a0.ppm", 2.0),
-    load_sprite("../assets/sprites/col1a0.ppm", 2.0),
-    load_sprite("../assets/sprites/colua0.ppm", 2.0),
-    load_sprite("../assets/sprites/tlmpa0.ppm", 1.0),
-    load_sprite("../assets/sprites/tgrna0.ppm", 1.0),
-    load_sprite("../assets/sprites/clipa0.ppm", 2.0),
-    load_sprite("../assets/sprites/stima0.ppm", 2.0),
-    load_sprite("../assets/sprites/media0.ppm", 2.0),
-    load_sprite("../assets/sprites/possa1.ppm", ZOMBIE_SCALE),
-    load_sprite("../assets/sprites/possb1.ppm", ZOMBIE_SCALE),
-    load_sprite("../assets/sprites/possc1.ppm", ZOMBIE_SCALE),
-    load_sprite("../assets/sprites/possd1.ppm", ZOMBIE_SCALE),
-    load_sprite("../assets/sprites/posse1.ppm", ZOMBIE_SCALE),
-    load_sprite("../assets/sprites/possf1.ppm", ZOMBIE_SCALE),
-    load_sprite("../assets/sprites/possg1.ppm", ZOMBIE_SCALE),
-    load_sprite("../assets/sprites/possh0.ppm", ZOMBIE_SCALE),
-    load_sprite("../assets/sprites/possi0.ppm", ZOMBIE_SCALE),
-    load_sprite("../assets/sprites/possj0.ppm", ZOMBIE_SCALE),
-    load_sprite("../assets/sprites/possk0.ppm", ZOMBIE_SCALE),
-    load_sprite("../assets/sprites/possl0.ppm", ZOMBIE_SCALE),
-]
+SPRITE_TEXTURES: u32[][]: @comptime sprite_textures()
+
+// The sprites in the order `SPRITE_TEXTURES` keeps them: the things, each step
+// of the zombie's walk seen from its `ROTATIONS` sides (Freedoom's rotations 1
+// to 8, the first facing the eye), then its aim, its shot and its flinch, seen
+// from the front, and its fall, the same from every side.
+sprite_textures :: fn() -> u32[][] {
+    sprites: u32[][]: [
+        load_sprite("../assets/sprites/bar1a0.ppm", 2.0),
+        load_sprite("../assets/sprites/col1a0.ppm", 2.0),
+        load_sprite("../assets/sprites/colua0.ppm", 2.0),
+        load_sprite("../assets/sprites/tlmpa0.ppm", 1.0),
+        load_sprite("../assets/sprites/tgrna0.ppm", 1.0),
+        load_sprite("../assets/sprites/clipa0.ppm", 2.0),
+        load_sprite("../assets/sprites/stima0.ppm", 2.0),
+        load_sprite("../assets/sprites/media0.ppm", 2.0),
+    ]
+    for step in ["a", "b", "c", "d"] {
+        for rotation in 1..=ROTATIONS {
+            sprites.push(load_sprite("../assets/sprites/poss${step}${rotation}.ppm", ZOMBIE_SCALE))
+        }
+    }
+    for picture in ["e1", "f1", "g1", "h0", "i0", "j0", "k0", "l0"] {
+        sprites.push(load_sprite("../assets/sprites/poss${picture}.ppm", ZOMBIE_SCALE))
+    }
+    return sprites
+}
 
 // The zombie's pictures against a canvas one cell tall: three quarters of a
 // cell, a little taller than the eye.
