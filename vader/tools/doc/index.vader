@@ -1,11 +1,12 @@
 // vader/tools/doc/index: what `vader doc` says about each module.
 //
 // It reads the declarations the loader parsed with their vaderdoc
-// (`load_project_with_overlay(..., keep_docs = true)`), never the files again:
-// one parse, the build's own. An export or an impl becomes an entry with its
-// head as the hover shows it (`vader/tools/fmt`), its vaderdoc split by its tags
-// (`doc_sections` in `toolchain/ast`) and its members: the fields of a struct,
-// the variants of an enum, the methods of a trait or an impl.
+// (`check_scope`), never the files again: one parse, the build's own. An export
+// or an impl becomes an entry with its head as the hover shows it
+// (`vader/tools/fmt`), its vaderdoc split by its tags (`doc_sections` in
+// `toolchain/ast`) and its members: the fields of a struct, the variants of an
+// enum, the methods of a trait or an impl. What the source leaves unwritten (a
+// return, a constant's type) comes from the typecheck of the same load.
 
 module "vader/tools/doc"
 
@@ -18,6 +19,8 @@ import "toolchain/ast"
 import "vader/front/resolver"
 import "vader/support/diagnostics"
 import "vader/tools/fmt"
+Tc :: import "vader/front/typecheck"
+Ty :: import "vader/core/types"
 
 /// What `vader doc` documented of a scope, and what it had to leave out.
 export Documented :: struct {
@@ -53,8 +56,12 @@ export DocDecl :: struct {
     name: string
     /// `fn`, `struct`, `enum`, `trait`, `type`, `const` or `impl`.
     kind: string
-    /// Its head as the hover shows it, `export` included.
+    /// Its head as the hover shows it, `export` included, ending with the return
+    /// typing gave a fn whose source writes none.
     signature: string
+    /// What typing gave that the source leaves unwritten: the return of a fn,
+    /// the type of a constant; "" otherwise.
+    inferred: string = ""
     /// The file that declares it, written as in `DocModule.files`.
     file: string
     /// The line of its name, from 1; of its first line for an impl.
@@ -78,8 +85,11 @@ export DocMember :: struct {
     name: string
     /// `field`, `variant` or `method`.
     kind: string
-    /// Its head as the hover shows it.
+    /// Its head as the hover shows it, ending with the return typing gave a
+    /// method whose source writes none.
     signature: string
+    /// The return typing gave a method whose source writes none; "" otherwise.
+    inferred: string = ""
     /// The line of its name, from 1.
     line: i32
     doc: DocSections | null
@@ -91,12 +101,12 @@ export DocMember :: struct {
 /// no search root of the project holds it, or another folder declaring the same
 /// module comes first.
 ///
-/// @param project  the load of the scope, which kept the docs (`load_scope`).
+/// @param checked  the load and the typecheck of the scope (`check_scope`).
 /// @param scope    the modules to document (`doc_scope`).
 /// @param base     the absolute folder file paths are written relative to, when
 ///                 they lie under it, however the loader spelled them.
-export index_modules :: fn(project: LoadedProject, scope: DiscoveredModule[], base: string) -> Documented {
-    loaded :: module_index_by_name(project)
+export index_modules :: fn(checked: DocCheck, scope: DiscoveredModule[], base: string) -> Documented {
+    loaded :: module_index_by_name(checked.project)
     modules: DocModule[]: []
     left_out: string[]: []
     for wanted in scope {
@@ -109,22 +119,39 @@ export index_modules :: fn(project: LoadedProject, scope: DiscoveredModule[], ba
                 "`${wanted.name}` (`${folder}`) is shadowed by the module of `${display_path(found.module.id, base)}`",
             )
         } else {
-            modules.push(index_module(found, base))
+            modules.push(index_module(found, checked.typed[found.module.id], base))
         }
     }
     return Documented { .modules = modules, .left_out = left_out }
 }
 
-// The documentation of the module `loaded`, its files relative to `base`.
-index_module :: fn(loaded: LoadedModule, base: string) -> DocModule {
+// What documenting one file of a module needs.
+FileContext :: struct {
+    file: SourceFile
+    /// The file as the data writes it (`display_path`).
+    path: string
+    /// The typed module, null when typing reached none.
+    typed: Tc.TypedProgram | null
+    /// The `@target` declarations of the module, as written.
+    target_decls: FnDecl[]
+}
+
+// The documentation of the module `loaded`, typed as `typed`, its files relative
+// to `base`.
+index_module :: fn(loaded: LoadedModule, typed: Tc.TypedProgram | null, base: string) -> DocModule {
     module :: loaded.module
     files: string[]: []
     decls: DocDecl[]: []
     for file in module.files {
-        path :: display_path(file.path, base)
-        files.push(path)
+        ctx :: FileContext {
+            .file = file,
+            .path = display_path(file.path, base),
+            .typed = typed,
+            .target_decls = loaded.target_decls,
+        }
+        files.push(ctx.path)
         for d in file.program.decls {
-            decl :: doc_decl(file, path, d, loaded.target_decls) ?? continue
+            decl :: doc_decl(ctx, d) ?? continue
             decls.push(decl)
         }
     }
@@ -139,42 +166,44 @@ index_module :: fn(loaded: LoadedModule, base: string) -> DocModule {
     }
 }
 
-// The entry of `d`, declared in `file`, written `path`; null when `d` is neither
-// an export nor an impl.
-doc_decl :: fn(file: SourceFile, path: string, d: Decl, target_decls: FnDecl[]) -> DocDecl | null {
+// The entry of `d`; null when `d` is neither an export nor an impl.
+doc_decl :: fn(ctx: FileContext, d: Decl) -> DocDecl | null {
     if d is ImplDecl {
-        return impl_decl(file, path, d)
+        return impl_decl(ctx, d)
     }
     if !decl_is_public(d) {
         return null
     }
     name_span :: decl_name_span(d) ?? return null
+    inferred_return :: unwritten_return(ctx, d)
+    head :: format_decl_head(ctx.file.content, d)
     return DocDecl {
-        .name = file.content.byte_slice(name_span.start.offset, name_span.end.offset),
+        .name = ctx.file.content.byte_slice(name_span.start.offset, name_span.end.offset),
         .kind = kind_of(d),
-        .signature = "export " + format_decl_head(file.content, d),
-        .file = path,
+        .signature = "export " + head + return_suffix(inferred_return),
+        .inferred = inferred_return + unwritten_type(ctx, d),
+        .file = ctx.path,
         .line = name_span.start.line,
         .doc = sections_of(decl_doc(d)),
-        .targets = targets_of(d, target_decls),
-        .members = members_of(file.content, d),
+        .targets = targets_of(d, ctx.target_decls),
+        .members = members_of(ctx, d),
     }
 }
 
 // The entry of the impl `d`, named after the type it is for and its trait.
-impl_decl :: fn(file: SourceFile, path: string, d: ImplDecl) -> DocDecl {
-    for_type :: format_type_expr(file.content, d.for_type)
-    trait_name :: format_impl_trait(file.content, d)
+impl_decl :: fn(ctx: FileContext, d: ImplDecl) -> DocDecl {
+    for_type :: format_type_expr(ctx.file.content, d.for_type)
+    trait_name :: format_impl_trait(ctx.file.content, d)
     return DocDecl {
         .name = "${for_type}: ${trait_name}",
         .kind = "impl",
-        .signature = format_impl_head(file.content, d),
-        .file = path,
+        .signature = format_impl_head(ctx.file.content, d),
+        .file = ctx.path,
         .line = d.span.start.line,
         .doc = sections_of(d.doc),
         .trait_name = trait_name,
         .for_type = for_type,
-        .members = methods_of(file.content, d.members),
+        .members = methods_of(ctx, d.members),
     }
 }
 
@@ -265,12 +294,12 @@ has_body :: fn(fd: FnDecl) -> bool {
 // The members of `d`: the fields of a struct, the variants of an enum, the
 // methods of a trait. A field restricted to its module (`@internal`) is left
 // out.
-members_of :: fn(source: string, d: Decl) -> DocMember[] = match d {
+members_of :: fn(ctx: FileContext, d: Decl) -> DocMember[] = match d {
     is StructDecl -> d.fields.filter((f: StructField) -> f.visibility != .Private).map(
         (f: StructField) -> DocMember {
             .name = f.name,
             .kind = "field",
-            .signature = format_field_head(source, f),
+            .signature = format_field_head(ctx.file.content, f),
             .line = f.span.start.line,
             .doc = sections_of(f.doc),
         },
@@ -279,26 +308,75 @@ members_of :: fn(source: string, d: Decl) -> DocMember[] = match d {
         (v: EnumVariant) -> DocMember {
             .name = v.name,
             .kind = "variant",
-            .signature = format_variant_head(source, v),
+            .signature = format_variant_head(ctx.file.content, v),
             .line = v.span.start.line,
             .doc = sections_of(v.doc),
         },
     ).collect()
-    is TraitDecl -> methods_of(source, d.members)
+    is TraitDecl -> methods_of(ctx, d.members)
     is FnDecl | TypeAliasDecl | ConstDecl | ImplDecl | AssertDecl | ImportDecl -> []
 }
 
-// The methods of a trait or an impl, as members.
-methods_of :: fn(source: string, methods: FnDecl[]) -> DocMember[] =
-    methods.map(
-        (fd: FnDecl) -> DocMember {
-            .name = fd.name,
-            .kind = "method",
-            .signature = format_decl_head(source, fd),
-            .line = fd.name_span.start.line,
-            .doc = sections_of(fd.doc),
-        },
-    ).collect()
+// The methods of a trait or an impl, as members: those its source writes, not
+// those the typecheck added to an impl (a trait's default body, a host stub).
+methods_of :: fn(ctx: FileContext, methods: FnDecl[]) -> DocMember[] =
+    methods.filter((fd: FnDecl) -> !fd.materialized).map((fd: FnDecl) -> method_member(ctx, fd)).collect()
+
+method_member :: fn(ctx: FileContext, fd: FnDecl) -> DocMember {
+    inferred_return :: unwritten_return(ctx, fd)
+    return DocMember {
+        .name = fd.name,
+        .kind = "method",
+        .signature = format_decl_head(ctx.file.content, fd) + return_suffix(inferred_return),
+        .inferred = inferred_return,
+        .line = fd.name_span.start.line,
+        .doc = sections_of(fd.doc),
+    }
+}
+
+// ` -> T` after the head of a fn whose return `T` typing gave, "" without one.
+return_suffix :: fn(inferred_return: string) -> string {
+    if inferred_return == "" {
+        return ""
+    }
+    return " -> " + inferred_return
+}
+
+// The return typing gave the fn `d` when its source writes none: inferred from an
+// expression body, or taken from the trait an impl method implements. "" when the
+// source writes it, and for a return a reader would not write (`void`, `never`)
+// or typing could not settle.
+unwritten_return :: fn(ctx: FileContext, d: Decl) -> string {
+    if d !is FnDecl || d.return_type != null || d.comptime_synthetic {
+        return ""
+    }
+    typed :: ctx.typed ?? return ""
+    t :: Tc.declared_type_at(typed, d.name_span)
+    if t is Ty.FnType {
+        return shown_type(t.return_type)
+    }
+    return ""
+}
+
+// The type typing gave the constant `d` when its source writes none and its value
+// is no type, "" otherwise.
+unwritten_type :: fn(ctx: FileContext, d: Decl) -> string {
+    if d !is ConstDecl || d.ty != null || is_type_value(d.value) {
+        return ""
+    }
+    typed :: ctx.typed ?? return ""
+    t :: Tc.declared_type_at(typed, d.name_span) ?? return ""
+    return shown_type(t)
+}
+
+// `t` as a reader sees it; "" for what a reader would not write (`void`,
+// `never`) and for what typing could not settle.
+shown_type :: fn(t: Ty.Type) -> string {
+    if t is Ty.UnresolvedType || t is Ty.NeverType || Ty.is_void(t) {
+        return ""
+    }
+    return Ty.display_type(t)
+}
 
 // Whether `a` and `b` name the same folder, however each is spelled.
 same_folder :: fn(a: string, b: string) -> bool =

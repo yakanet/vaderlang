@@ -156,6 +156,7 @@ decl_json :: fn(d: DocDecl) -> JsonValue {
     decl["name"] = json_text(d.name)
     decl["kind"] = json_text(d.kind)
     decl["signature"] = json_text(d.signature)
+    decl["inferred"] = inferred_json(d.kind, d.inferred)
     decl["file"] = json_text(d.file)
     decl["line"] = JsonNumber { .value = f64(d.line) }
     decl["doc"] = doc_json(d.doc)
@@ -175,9 +176,28 @@ member_json :: fn(m: DocMember) -> JsonValue {
     member["name"] = json_text(m.name)
     member["kind"] = json_text(m.kind)
     member["signature"] = json_text(m.signature)
+    member["inferred"] = inferred_json(m.kind, m.inferred)
     member["line"] = JsonNumber { .value = f64(m.line) }
     member["doc"] = doc_json(m.doc)
     return JsonObject { .entries = member }
+}
+
+// What typing gave that the source leaves unwritten: `{ "type": T }` for a
+// constant, `{ "return": T }` for a fn or a method, `null` for nothing.
+inferred_json :: fn(kind: string, inferred: string) -> JsonValue {
+    if inferred == "" {
+        return JsonNull {}
+    }
+    out :: MutableMap<string, JsonValue> {}
+    out[inferred_key(kind)] = json_text(inferred)
+    return JsonObject { .entries = out }
+}
+
+inferred_key :: fn(kind: string) -> string {
+    if kind == "const" {
+        return "type"
+    }
+    return "return"
 }
 
 // A vaderdoc, `null` without one: its summary and its example as shown come

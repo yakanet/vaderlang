@@ -1,10 +1,11 @@
-// vader/tools/doc/scope: the modules a path holds, and their load.
+// vader/tools/doc/scope: the modules a path holds, their load and their typecheck.
 //
 // `vader doc <path>` documents every module folder under a folder, or the
 // module of a file. Each folder is read as the loader reads an entry's
 // (`seed_entry`): named by the `module` line its files declare. The load starts
 // from the entry of the project, so that it searches the roots its build
-// searches, and seeds the modules to document, keeping their vaderdoc.
+// searches, seeds the modules to document, keeps their vaderdoc, and is
+// type-checked as a build is.
 
 module "vader/tools/doc"
 
@@ -13,7 +14,9 @@ import "std/io"
 import "std/iter"
 import "std/sort"
 import "vader/front/resolver"
+import "vader/pipeline"
 import "vader/support/diagnostics"
+Tc :: import "vader/front/typecheck"
 
 /// Find the module folders under `path`.
 ///
@@ -39,21 +42,31 @@ export doc_scope :: fn(path: string) -> DiscoveredModule[] | string {
 /// imports nothing, so that the load searches the toolchain's roots alone.
 export SYNTHETIC_ENTRY :: ".vader-doc/entry.vader"
 
-/// Load the modules of `scope` with their vaderdoc.
+/// A load of the modules to document, and its typecheck.
+export DocCheck :: struct {
+    project: LoadedProject
+    /// The typed modules, by module id.
+    typed: MutableMap<string, Tc.TypedProgram>
+    /// The load's diagnostics, then the typecheck's, every module's included.
+    diags: Diagnostic[]
+}
+
+/// Load the modules of `scope` with their vaderdoc, and type-check them as a
+/// build does, short of evaluating anything at compile time.
 ///
 /// @param scope         the modules to document, from `doc_scope`.
 /// @param entry         the file the project's build starts from,
 ///                      `SYNTHETIC_ENTRY` without a project.
 /// @param project_root  the project folder, null for none.
 /// @return              the load of `entry`, the modules of `scope` seeded.
-export load_scope :: fn(
+export check_scope :: fn(
     scope: DiscoveredModule[],
     entry: string,
     project_root: string | null,
-) -> LoadedProject {
+) -> DocCheck {
     overlay :: MutableMap<string, string> {}
     overlay[SYNTHETIC_ENTRY] = "module \"vader_doc_entry\"\n"
-    return load_project_with_overlay(
+    project :: load_project_with_overlay(
         entry,
         overlay,
         [],
@@ -61,6 +74,11 @@ export load_scope :: fn(
         extra_seeds = scope.map((m: DiscoveredModule) -> m.name).collect(),
         keep_docs = true,
     )
+    diags: Diagnostic[]: []
+    diags.push_all(project.diags)
+    result :: Tc.check_project_with_bodies(project, diags, false)
+    diags.push_all(collect_body_diags(result))
+    return DocCheck { .project = project, .typed = result.all_modules, .diags = diags }
 }
 
 // Record the module of `folder`, when its files declare one. A problem with

@@ -13,6 +13,7 @@
       "name": "square_area",
       "kind": "fn",
       "signature": "export square_area :: fn(side: f64) -> f64",
+      "inferred": null,
       "file": "shapes/geometry/area.vader",
       "line": 9,
       "doc": {
@@ -38,6 +39,7 @@
       "name": "separator",
       "kind": "fn",
       "signature": "export separator :: fn() -> string",
+      "inferred": null,
       "file": "shapes/geometry/area.vader",
       "line": 13,
       "doc": {
@@ -60,6 +62,7 @@
       "name": "Point",
       "kind": "struct",
       "signature": "export Point :: struct",
+      "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 10,
       "doc": {
@@ -77,6 +80,7 @@
           "name": "x",
           "kind": "field",
           "signature": "x: f64",
+          "inferred": null,
           "line": 12,
           "doc": {
             "summary": "The abscissa.",
@@ -92,6 +96,7 @@
           "name": "y",
           "kind": "field",
           "signature": "y: f64",
+          "inferred": null,
           "line": 13,
           "doc": null
         }
@@ -102,6 +107,7 @@
       "name": "distance",
       "kind": "fn",
       "signature": "export distance :: fn(a: Point, b: Point) -> f64",
+      "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 28,
       "doc": {
@@ -131,6 +137,7 @@
       "name": "scaled",
       "kind": "fn",
       "signature": "export scaled :: fn(p: Point, k: f64) -> Point",
+      "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 31,
       "doc": {
@@ -149,6 +156,7 @@
       "name": "scaled",
       "kind": "fn",
       "signature": "export scaled :: fn(p: Point, k: i32) -> Point",
+      "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 34,
       "doc": {
@@ -167,6 +175,7 @@
       "name": "Quadrant",
       "kind": "enum",
       "signature": "export Quadrant :: enum",
+      "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 36,
       "doc": null,
@@ -177,6 +186,7 @@
           "name": "First",
           "kind": "variant",
           "signature": "First",
+          "inferred": null,
           "line": 38,
           "doc": {
             "summary": "Both coordinates positive.",
@@ -192,6 +202,7 @@
           "name": "Second",
           "kind": "variant",
           "signature": "Second",
+          "inferred": null,
           "line": 39,
           "doc": null
         }
@@ -202,11 +213,35 @@
       "name": "ORIGIN",
       "kind": "const",
       "signature": "export ORIGIN :: Point { .x = 0.0, .y = 0.0 }",
+      "inferred": {
+        "type": "Point"
+      },
       "file": "shapes/geometry/geometry.vader",
       "line": 43,
       "doc": {
         "summary": "The origin of the plane.",
         "prose": "The origin of the plane.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      },
+      "targets": [],
+      "members": []
+    },
+    {
+      "id": "shapes/geometry/twice",
+      "name": "twice",
+      "kind": "fn",
+      "signature": "export twice :: fn(n: i32) -> i32",
+      "inferred": {
+        "return": "i32"
+      },
+      "file": "shapes/geometry/geometry.vader",
+      "line": 46,
+      "doc": {
+        "summary": "`n`, twice: its return type is left to inference.",
+        "prose": "`n`, twice: its return type is left to inference.",
         "params": [],
         "returns": [],
         "errors": [],

@@ -18,6 +18,6 @@ export Tag :: struct {
 
 /// A tag is named by its text.
 Tag implements Named {
-    /// The text of the tag.
-    name :: fn(self) -> string = self.text
+    /// The text of the tag, its return type left to inference.
+    name :: fn(self) = self.text
 }

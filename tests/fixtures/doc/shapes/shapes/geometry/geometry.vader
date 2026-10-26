@@ -31,7 +31,7 @@ export distance :: fn(a: Point, b: Point) -> f64 = 0.0
 export scaled :: fn(p: Point, k: f64) -> Point = Point { .x = p.x * k, .y = p.y * k }
 
 /// `p`, `k` times as far from the origin, `k` whole.
-export scaled :: fn(p: Point, k: i32) -> Point = scaled(p, f64(k))
+export scaled :: fn(p: Point, k: i32) -> Point = Point { .x = p.x * f64(k), .y = p.y * f64(k) }
 
 export Quadrant :: enum {
     /// Both coordinates positive.
@@ -41,6 +41,9 @@ export Quadrant :: enum {
 
 /// The origin of the plane.
 export ORIGIN :: Point { .x = 0.0, .y = 0.0 }
+
+/// `n`, twice: its return type is left to inference.
+export twice :: fn(n: i32) = n * 2
 
 // Private: left out of the data.
 mirror :: fn(p: Point) -> Point = Point { .x = -p.x, .y = -p.y }

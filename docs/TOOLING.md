@@ -87,7 +87,7 @@ An empty modifier list is dropped: `import "p" {}` becomes `import "p"`.
 
 `vader doc [path]` writes the data of an API reference for the modules under `path`, a folder or the file of a module: each export with its head and its vaderdoc, split by its tags. The data goes to the `build/doc/` of the project.
 
-The modules are read as the project's build reads them, from its entry: the project is the working directory, or the folder `--project` names, which `path` defaults to, and its entry the only one of its `vader.json`, or the one `--entry` names. A project its `build.vader` describes is not supported yet. Without a project, only the toolchain's search roots are read, and the data goes to the working directory. A module these roots do not reach, or that another folder of the same name shadows, is named and left out, and a file that does not parse loses only what the parser could not recover.
+The modules are read and type-checked as the project's build reads them, from its entry, without evaluating anything at compile time: the project is the working directory, or the folder `--project` names, which `path` defaults to, and its entry the only one of its `vader.json`, or the one `--entry` names. A project its `build.vader` describes is not supported yet. Without a project, only the toolchain's search roots are read, and the data goes to the working directory. A module these roots do not reach, or that another folder of the same name shadows, is named and left out, and a file that does not parse loses only what the parser could not recover.
 
 The data is JSON, at `version` 1, a draft that may still change:
 
@@ -100,6 +100,7 @@ The data is JSON, at `version` 1, a draft that may still change:
   "name": "Tag: Named",
   "kind": "impl",
   "signature": "Tag implements Named",
+  "inferred": null,
   "file": "shapes/text/text.vader",
   "line": 20,
   "doc": {
@@ -119,10 +120,11 @@ The data is JSON, at `version` 1, a draft that may still change:
       "name": "name",
       "kind": "method",
       "signature": "name :: fn(self) -> string",
+      "inferred": { "return": "string" },
       "line": 22,
       "doc": {
-        "summary": "The text of the tag.",
-        "prose": "The text of the tag.",
+        "summary": "The text of the tag, its return type left to inference.",
+        "prose": "The text of the tag, its return type left to inference.",
         "params": [],
         "returns": [],
         "errors": [],
@@ -135,6 +137,7 @@ The data is JSON, at `version` 1, a draft that may still change:
 
 - `id` is `<module>/<name>`, `<module>/<name>~<n>` for the n-th declaration of an overloaded name, `<module>/<type>: <trait>` for an impl, and `<declaration>.<name>` for a member.
 - `kind` is `fn`, `struct`, `enum`, `trait`, `type` (an alias, or a constant whose value is a type), `const` or `impl`; a member's is `field`, `variant` or `method`. A field restricted to its module (`@internal`) is left out.
+- `inferred` holds what typing gave that the source leaves out: `{ "return": T }` for a function or a method without `->`, whose `signature` then ends with ` -> T`, `{ "type": T }` for a constant without a written type, `null` otherwise.
 - `targets` lists the platforms an `@target` group exists on, and is empty for a function that exists on every platform: one whose bare declaration has a body.
 - `prose` is CommonMark, and `example` is shown as a reader sees it, its hidden `# ` lines left out.
 

@@ -114,6 +114,19 @@ test("doc refuses a project its build.vader describes, for now", async () => {
   expect(r.stderr).toContain("which `vader doc` does not run yet");
 }, MEDIUM_BUILD);
 
+// A documented module is type-checked as a build checks it: its errors are
+// shown, and its data is written all the same.
+test("doc shows a type error of a module it documents, and writes its data", async () => {
+  const dir = stage("shapes");
+  const file = join(dir, "shapes", "text", "text.vader");
+  writeFileSync(file, readFileSync(file, "utf8") + "\nexport broken :: fn() -> i32 = \"not a number\"\n");
+  const r = await spawnCapture(["doc", "shapes"], { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: MEDIUM_BUILD });
+  expect(r.exit).toBe(0);
+  expect(r.stderr).toContain("error[T3020]");
+  const text = JSON.parse(readFileSync(join(dir, "build", "doc", "modules", "shapes", "text.json"), "utf8"));
+  expect(text.decls.map((d: { name: string }) => d.name)).toContain("broken");
+}, MEDIUM_BUILD);
+
 // Without a project, only the toolchain's roots are read: the folder's own
 // modules are out of reach, and the command says why.
 test("doc says that a folder without a project documents nothing", async () => {

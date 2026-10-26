@@ -1,8 +1,8 @@
 // vader/tools/cli/doc: the `vader doc` command.
 //
-// Loads every module under a path with its vaderdoc, from the entry of the
-// project as `vader lint` takes it, and writes what `vader/tools/doc` makes of
-// them to the project's `build/doc/`.
+// Loads and type-checks every module under a path with its vaderdoc, from the
+// entry of the project as `vader lint` takes it, and writes what
+// `vader/tools/doc` makes of them to the project's `build/doc/`.
 //
 // Same module as `main.vader`: imports are file-scoped, declarations are not.
 
@@ -10,6 +10,7 @@ module "vader/tools/cli"
 
 import "cli"
 import "std/io"
+import "std/iter"
 import "std/path"
 import "vader/front/resolver"
 import "vader/pipeline"
@@ -45,12 +46,14 @@ cmd_doc :: fn(args: string[]) -> i32 {
         eprintln("vader doc: ${scope}")
         return 2
     }
-    loaded :: Doc.load_scope(scope, project.file.as_string(), project.project_root)
-    if any_error_diag(loaded.diags) {
-        eprintln(loaded.diags.dump_diagnostics_with_file())
+    checked :: Doc.check_scope(scope, project.file.as_string(), project.project_root)
+    // Errors only: a warning says nothing about what the data shows.
+    errors :: checked.diags.filter((d: Diagnostic) -> d.severity == .Error).collect()
+    if errors.len() > 0 {
+        eprintln(errors.dump_diagnostics_with_file())
     }
     documented :: Doc.index_modules(
-        loaded,
+        checked,
         scope,
         Path(absolute_path(home)).normalize().as_string(),
     )

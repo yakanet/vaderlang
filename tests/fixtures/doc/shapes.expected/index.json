@@ -115,6 +115,14 @@
       "summary": "The origin of the plane."
     },
     {
+      "id": "shapes/geometry/twice",
+      "module": "shapes/geometry",
+      "name": "twice",
+      "kind": "fn",
+      "signature": "export twice :: fn(n: i32) -> i32",
+      "summary": "`n`, twice: its return type is left to inference."
+    },
+    {
       "id": "shapes/text/Named",
       "module": "shapes/text",
       "name": "Named",
@@ -168,7 +176,7 @@
       "name": "name",
       "kind": "method",
       "signature": "name :: fn(self) -> string",
-      "summary": "The text of the tag."
+      "summary": "The text of the tag, its return type left to inference."
     }
   ]
 }
