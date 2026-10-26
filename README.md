@@ -199,7 +199,7 @@ Accepted by every action, after the action name. All three are **reserved**: par
 | `evaluated-ast` | `@comptime` values and how they were evaluated, `@assert` verdicts (Markdown)                | See what the comptime engine baked.                                       |
 | `lowered-ast`   | desugared program as Vader (match → if/else, interp → builder calls, defer → thunk stack), where each constant and global slot lives, vtable rows, what the dependencies hold | Confirm the desugarings and what was materialised.                        |
 | `dced-ast`      | lowered tree after stdlib reachability prune                                         | See which stdlib decls survive the prune.                                 |
-| `cfg`           | midir CFG per fn (post DCE + escape annotation)                                     | Inspect basic blocks, terminators, three-address instructions, escape sets, stack slots. |
+| `cfg`           | midir CFG per fn, as lowered: before the prune and every midir pass                  | Inspect basic blocks, terminators, three-address instructions.            |
 | `ranges`        | per fn, a verdict on each array access and checked operation                         | See which bounds and overflow checks the range analysis proves.           |
 | `bytecode`      | `.virt` text of the compiled module                                                  | Inspect the final stack-machine ops + type/string/import tables.          |
 

@@ -4233,7 +4233,7 @@ to the program like any other argument.
 | `lowered-ast` | Desugared program printed as Vader under qualified names, with where each constant and global slot lives, the vtable rows, and what the lowering materialised in the dependencies |
 | `dced-ast` | Lowered tree post-stdlib reachability prune |
 | `targets` | The target constants and which body each `@target` group selected |
-| `cfg` | Mid-IR CFG (post-DCE + escape-annotated) |
+| `cfg` | Mid-IR CFG as lowered, before the reachability prune and every midir pass |
 | `ranges` | Range analysis over the CFG the bytecode emitter receives: a verdict per array access and checked operation |
 | `bytecode` | Stack-machine ops + type/string/import tables |
 | `c` | Generated C source |

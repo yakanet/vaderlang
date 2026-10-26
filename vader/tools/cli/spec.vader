@@ -208,7 +208,7 @@ DUMP_STAGES: ValueSpec[]: [
     },
     ValueSpec { .name = "dced-ast", .help = "Lowered tree post reachability prune" },
     ValueSpec { .name = "targets", .help = "Which body each `@target` group selected" },
-    ValueSpec { .name = "cfg", .help = "Mid-IR CFG (post DCE + escape annotation)" },
+    ValueSpec { .name = "cfg", .help = "Mid-IR CFG before the reachability prune and any pass" },
     ValueSpec {
         .name = "ranges",
         .help = "Range analysis: a verdict per array access and checked operation",

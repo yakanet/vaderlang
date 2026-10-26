@@ -320,14 +320,13 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
 - [ ] **`dump --stage=cfg` elides stdlib by default: revisit** (2026-06-05).
       The oracle migration made the native CLI the snapshot source for cfg ;
       `run_cfg_stage` (`vader/tools/cli/cmd_dump.vader`) now bakes in a stdlib-excluding
-      `include_module` + `include_strings=false` so cfg snapshots stay focused
+      `.scope = dump_scope(...)` + `include_strings=false` so cfg snapshots stay focused
       (else stdlib CFG bloats them ~10×). PROVISIONAL : decide whether stdlib
       elision should be a `--stdlib` opt-in flag on `dump` rather than the baked
       default, so the CLI can still show the full CFG when wanted.
-      Found 2026-10-25: `vader help dump` says "Mid-IR CFG (post DCE + escape
-      annotation)", but the stage dumps what `build_cfg_project` makes of the unpruned
-      lowered program, before any pass (`--stage=ranges` does run them). Decide which CFG
-      the stage shows, and make the help say so.
+      The stage dumps what `build_cfg_project` makes of the unpruned lowered program,
+      before any pass (`--stage=ranges` does run them): decide whether it should show
+      the CFG the emitter receives instead.
 
 ### Self-host perf
 
