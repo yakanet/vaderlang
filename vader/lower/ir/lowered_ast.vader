@@ -518,6 +518,15 @@ export LoweredUnaryOp :: enum(u8) {
     BitNot,
 }
 
+/// The operator a lowered unary node applies, as a name.
+///
+/// @param op  the operator.
+export unary_op_name :: fn(op: LoweredUnaryOp) -> string = match op {
+    .Neg    -> "neg"
+    .Not    -> "not"
+    .BitNot -> "bitnot"
+}
+
 export LoweredUnary :: struct {
     span:    Span
     type:    Type

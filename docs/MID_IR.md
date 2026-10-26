@@ -54,7 +54,7 @@ fn main$max(%0: i32, %1: i32) -> i32
     %2 if_res: i32
     %3 $gt_3: bool
   bb0:
-    %3 = binop 16 %0 %1 :bool
+    %3 = binop gt %0 %1 :bool
     cond_branch %3 ? bb1 : bb3
   ...
 ```
@@ -69,7 +69,6 @@ This is the start of `max`, shown in full in *`if` as a value*.
 - `:T` after an instruction gives the type of its result.
 - A `call` prints its callee's symbol name: the source name for most functions
   (`call twice`), a mangled name for a generic instance (`std_io$println__string`).
-- `binop` and `unop` print their operator as a number (*Arithmetic*).
 - The dump omits spans. It cannot be read back.
 
 ## Instructions
@@ -120,26 +119,25 @@ Makes the type `T` a value.
 %d = unop <op> %a :T
 ```
 
-Applies an operator. `T` is the type the operation is computed in. The operators, with
-the number the dump prints:
+Applies an operator. `T` is the type the operation is computed in. The operators:
 
-| # | Operator | Meaning |
-|---|---|---|
-| 0, 1, 2 | `add`, `sub`, `mul` | integer arithmetic that wraps on overflow; float arithmetic |
-| 3 | `div` | division, rounded toward zero on integers; an integer division by zero stops the program |
-| 4 | `mod` | integer remainder, with the sign of the left operand; a `mod` by zero stops the program |
-| 5, 6 | `shl`, `shr` | shifts; `shr` copies the sign bit of a signed integer, and fills with zeros otherwise |
-| 7, 8, 9 | `bitand`, `bitor`, `bitxor` | bitwise operations |
-| 10, 11 | `and`, `or` | never produced: `&&` and `||` become branches |
-| 12, 13 | `eq`, `neq` | equality: a scalar or a string by value, an object by reference |
-| 14 to 17 | `lt`, `lte`, `gt`, `gte` | comparisons, signed or unsigned depending on the type |
-| 18, 19, 20 | `add_checked`, `sub_checked`, `mul_checked` | integer arithmetic that stops the program on overflow, except in a release native build, where it wraps; float arithmetic |
+| Operator | Meaning |
+|---|---|
+| `add`, `sub`, `mul` | integer arithmetic that wraps on overflow; float arithmetic |
+| `div` | division, rounded toward zero on integers; an integer division by zero stops the program |
+| `mod` | integer remainder, with the sign of the left operand; a `mod` by zero stops the program |
+| `shl`, `shr` | shifts; `shr` copies the sign bit of a signed integer, and fills with zeros otherwise |
+| `bitand`, `bitor`, `bitxor` | bitwise operations |
+| `and`, `or` | never produced: `&&` and `||` become branches |
+| `eq`, `neq` | equality: a scalar or a string by value, an object by reference |
+| `lt`, `lte`, `gt`, `gte` | comparisons, signed or unsigned depending on the type |
+| `add_checked`, `sub_checked`, `mul_checked` | integer arithmetic that stops the program on overflow, except in a release native build, where it wraps; float arithmetic |
 
-| # | Operator | Meaning |
-|---|---|---|
-| 0 | `neg` | negation; on an integer, checked like `sub_checked` |
-| 1 | `not` | logical negation |
-| 2 | `bitnot` | bitwise complement |
+| Operator | Meaning |
+|---|---|
+| `neg` | negation; on an integer, checked like `sub_checked` |
+| `not` | logical negation |
+| `bitnot` | bitwise complement |
 
 A Vader `==` that needs an `Equals` implementation, on a struct for instance, arrives
 as a `call` to it, or as a `vcall` when the type is known only at run time. The exact
@@ -358,7 +356,7 @@ fn main$max(%0: i32, %1: i32) -> i32
     %2 if_res: i32
     %3 $gt_3: bool
   bb0:
-    %3 = binop 16 %0 %1 :bool
+    %3 = binop gt %0 %1 :bool
     cond_branch %3 ? bb1 : bb3
   bb1:
     %2 = move %0
@@ -370,8 +368,7 @@ fn main$max(%0: i32, %1: i32) -> i32
     branch -> bb2
 ```
 
-The two arms write the result to the same local, `if_res`, and meet at `bb2`. `16` is
-`gt`.
+The two arms write the result to the same local, `if_res`, and meet at `bb2`.
 
 ### Loops
 
@@ -409,16 +406,16 @@ fn main$sum(%0: i32[]) -> i32
     %6 = move %5
     branch -> bb1
   bb1:
-    %7 = binop 14 %4 %6 :bool
+    %7 = binop lt %4 %6 :bool
     cond_branch %7 ? bb3 : bb2
   bb2:
     return %2
   bb3:
     %8 = array_get %0[%4] :i32
-    %9 = binop 18 %2 %8 :i32
+    %9 = binop add_checked %2 %8 :i32
     %2 = move %9
     %10 = const int(1) :i64
-    %11 = binop 0 %4 %10 :i64
+    %11 = binop add %4 %10 :i64
     %4 = move %11
     branch -> bb1
 ```
@@ -431,10 +428,11 @@ flowchart TD
     bb3 -->|back edge| bb1
 ```
 
-- `bb1` is the loop header: it compares `i` with the bound (`14` is `lt`). The bound
-  is read once, before the loop.
-- `bb3` is the body. `total += xs[i]` is a checked addition (`18`). The step `i + 1`,
-  added by the lowerer, wraps (`0`). The body ends with a branch back to the header.
+- `bb1` is the loop header: it compares `i` with the bound. The bound is read once,
+  before the loop.
+- `bb3` is the body. `total += xs[i]` is a checked addition (`add_checked`). The
+  step `i + 1`, added by the lowerer, wraps (`add`). The body ends with a branch
+  back to the header.
 - `bb2` is the exit.
 
 `break` jumps to the exit, and `continue` runs the step and jumps to the header. In
@@ -465,32 +463,32 @@ the blocks after the header are (excerpt):
     %9 = array_get %3[%7] :i32
     %10 = move %9
     %11 = const int(0) :i32
-    %12 = binop 12 %10 %11 :bool
+    %12 = binop eq %10 %11 :bool
     cond_branch %12 ? bb4 : bb5
   bb4:
     branch -> bb2
   bb5:
     %13 = const int(0) :i32
-    %14 = binop 14 %10 %13 :bool
+    %14 = binop lt %10 %13 :bool
     cond_branch %14 ? bb6 : bb7
   bb6:
     %15 = const int(1) :i64
-    %16 = binop 0 %7 %15 :i64
+    %16 = binop add %7 %15 :i64
     %7 = move %16
     branch -> bb1
   bb7:
     %17 = const int(1) :i32
-    %18 = binop 18 %2 %17 :i32
+    %18 = binop add_checked %2 %17 :i32
     %2 = move %18
     %19 = const int(1) :i64
-    %20 = binop 0 %7 %19 :i64
+    %20 = binop add %7 %19 :i64
     %7 = move %20
     branch -> bb1
 ```
 
 The loop runs on a hidden index, `%7` (`__for_i_2`); `%10` is `x` and `%2` is `n`.
-`12` is `eq`. `bb4` is the `break`. `bb6` is the `continue`: it carries its own copy
-of the step `%7 + 1`. `bb7` is the normal end of the body.
+`bb4` is the `break`. `bb6` is the `continue`: it carries its own copy of the step
+`%7 + 1`. `bb7` is the normal end of the body.
 
 ### `&&` and `||` in a condition
 
@@ -514,7 +512,7 @@ fn main$digit(%0: i32) -> i32
     %5 $k_5: i32
   bb0:
     %1 = const int(0) :i32
-    %2 = binop 14 %0 %1 :bool
+    %2 = binop lt %0 %1 :bool
     cond_branch %2 ? bb1 : bb3
   bb1:
     %5 = const int(0) :i32
@@ -523,7 +521,7 @@ fn main$digit(%0: i32) -> i32
     return %0
   bb3:
     %3 = const int(9) :i32
-    %4 = binop 16 %0 %3 :bool
+    %4 = binop gt %0 %3 :bool
     cond_branch %4 ? bb1 : bb2
 ```
 
@@ -556,10 +554,10 @@ fn main$area(%0: Circle | Square) -> f64
     %3 = const float(3.0) :f64
     %4 = cast %0 :Circle
     %5 = field_get %4.radius :f64
-    %6 = binop 20 %3 %5 :f64
+    %6 = binop mul_checked %3 %5 :f64
     %7 = cast %0 :Circle
     %8 = field_get %7.radius :f64
-    %9 = binop 20 %6 %8 :f64
+    %9 = binop mul_checked %6 %8 :f64
     %1 = move %9
     branch -> bb2
   bb2:
@@ -572,7 +570,7 @@ fn main$area(%0: Circle | Square) -> f64
     %12 = field_get %11.side :f64
     %13 = cast %0 :Square
     %14 = field_get %13.side :f64
-    %15 = binop 20 %12 %14 :f64
+    %15 = binop mul_checked %12 %14 :f64
     %1 = move %15
     branch -> bb5
   bb5:
@@ -583,7 +581,7 @@ fn main$area(%0: Circle | Square) -> f64
 
 - Each arm is a `type_check` followed by a `cond_branch`, in the order of the arms.
 - In an arm, each read of `s` is a `cast` to the variant, then a `field_get`.
-- `20` is `mul_checked`, which on `f64` is a plain multiplication.
+- `mul_checked` on `f64` is a plain multiplication.
 - The `match` is exhaustive, so the path that matches no arm ends in `unreachable`.
 - `bb5` is the empty join of the second test's arms. It only forwards to `bb2`.
 
@@ -611,7 +609,7 @@ fn main$sum_point(%0: i32, %1: i32) -> i32
     %3 = move %2
     %4 = field_get %3.x :i32
     %5 = field_get %3.y :i32
-    %6 = binop 18 %4 %5 :i32
+    %6 = binop add_checked %4 %5 :i32
     return %6
 ```
 
@@ -690,7 +688,7 @@ fn __lambda_main_0(%0: __lambda_env_main_1, %1: i32) -> i32
     %3 $add_checked_3: i32
   bb0:
     %2 = field_get %0.cap_0 :i32
-    %3 = binop 18 %1 %2 :i32
+    %3 = binop add_checked %1 %2 :i32
     return %3
 ```
 
@@ -739,7 +737,7 @@ fn __lambda_main_0(%0: __lambda_env_main_1) -> void
     %2 = field_get %0.cap_0 :?
     %3 = cell_get %2 :i32
     %4 = const int(1) :i32
-    %5 = binop 18 %3 %4 :i32
+    %5 = binop add_checked %3 %4 :i32
     cell_set %1 = %5 :i32
     return
 ```

@@ -11,6 +11,7 @@ module "vader/midir"
 import "std/string_builder"
 import "vader/core/symbol"
 import "vader/core/types"
+import "vader/lower/ir"
 import "vader/support/text"
 
 /// Optional filter / shape controls for `dump_cfg_project`.
@@ -75,8 +76,8 @@ dump_block :: fn(b: BasicBlock, sb: StringBuilder) -> void {
 dump_instr :: fn(ins: Instruction) -> string {
     match ins {
         is InstrConst        -> { return "%${ins.dst} = const ${dump_const(ins.value)} :${display_type(ins.type)}" }
-        is InstrBinOp        -> { return "%${ins.dst} = binop ${i32(ins.op)} %${ins.lhs} %${ins.rhs} :${display_type(ins.type)}" }
-        is InstrUnOp         -> { return "%${ins.dst} = unop ${i32(ins.op)} %${ins.operand} :${display_type(ins.type)}" }
+        is InstrBinOp        -> { return "%${ins.dst} = binop ${binary_op_name(ins.op)} %${ins.lhs} %${ins.rhs} :${display_type(ins.type)}" }
+        is InstrUnOp         -> { return "%${ins.dst} = unop ${unary_op_name(ins.op)} %${ins.operand} :${display_type(ins.type)}" }
         is InstrCall         -> { return "${dump_dsts(ins.dsts)}call ${ins.callee.name}(${dump_args(ins.args)}) :${display_type(ins.type)}" }
         is InstrCallIndirect -> { return "${dump_dst(ins.dst)}call_indirect %${ins.callee}(${dump_args(ins.args)}) :${display_type(ins.type)}" }
         is InstrFnRef        -> { return "%${ins.dst} = fn_ref ${ins.fn_symbol.name} :${display_type(ins.type)}" }
@@ -167,4 +168,34 @@ dump_args :: fn(a: LocalId[]) -> string {
         sb.append("%${x}")
     }
     return sb.to_string()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/span"
+
+@test
+test_dump_binary_operator_by_name :: fn() -> void {
+    ins :: InstrBinOp {
+        .span = empty_span(),
+        .dst = LocalId(3),
+        .op = .Gt,
+        .lhs = LocalId(0),
+        .rhs = LocalId(1),
+        .type = TY_BOOL,
+    }
+    assert_eq(dump_instr(ins), "%3 = binop gt %0 %1 :bool")
+}
+
+@test
+test_dump_unary_operator_by_name :: fn() -> void {
+    ins :: InstrUnOp {
+        .span = empty_span(),
+        .dst = LocalId(2),
+        .op = .BitNot,
+        .operand = LocalId(1),
+        .type = TY_I32,
+    }
+    assert_eq(dump_instr(ins), "%2 = unop bitnot %1 :i32")
 }
