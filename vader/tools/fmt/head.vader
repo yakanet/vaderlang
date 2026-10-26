@@ -103,6 +103,37 @@ export format_variant_head :: fn(source: string, v: p.EnumVariant) -> string {
     return cut_head(h.finish(), HEAD_VALUE_MAX)
 }
 
+/// Render an impl's head on one line: `Box<T> implements<T> Display`, without
+/// its decorators or its members.
+///
+/// @param source  the document the impl's spans index into.
+/// @param d       the impl.
+export format_impl_head :: fn(source: string, d: p.ImplDecl) -> string {
+    h :: head_printer(source)
+    h.emit_impl_head(d)
+    return h.finish()
+}
+
+/// Render the trait an impl implements, with its arguments: `Add<Meters>`.
+///
+/// @param source  the document the impl's spans index into.
+/// @param d       the impl.
+export format_impl_trait :: fn(source: string, d: p.ImplDecl) -> string {
+    h :: head_printer(source)
+    h.emit_trait_ref(d)
+    return h.finish()
+}
+
+/// Render a type expression on one line: `Box<T>`, `i32 | null`.
+///
+/// @param source  the document the type's spans index into.
+/// @param t       the type expression.
+export format_type_expr :: fn(source: string, t: p.TypeExpr) -> string {
+    h :: head_printer(source)
+    h.emit_type_expr(t)
+    return h.finish()
+}
+
 // ---- display --------------------------------------------------------------
 
 /// Most members a display lists under a struct, an enum or a trait before it

@@ -1,4 +1,6 @@
 // shapes/geometry: the `vader doc` fixture's main module, over two files.
+//
+// The plane, its points and its quadrants.
 
 module "shapes/geometry"
 
@@ -6,8 +8,12 @@ module "shapes/geometry"
 ///
 /// Both coordinates are in the same unit.
 export Point :: struct {
+    /// The abscissa.
     x: f64
     y: f64
+    /// Kept by the module: no member of the data.
+    @internal
+    cache: f64 = 0.0
 }
 
 /// The distance between `a` and `b`. Always positive or zero.
@@ -21,7 +27,14 @@ export Point :: struct {
 ///   distance(o, Point { .x = 3.0, .y = 4.0 })   // 5.0
 export distance :: fn(a: Point, b: Point) -> f64 = 0.0
 
+/// `p`, `k` times as far from the origin.
+export scaled :: fn(p: Point, k: f64) -> Point = Point { .x = p.x * k, .y = p.y * k }
+
+/// `p`, `k` times as far from the origin, `k` whole.
+export scaled :: fn(p: Point, k: i32) -> Point = scaled(p, f64(k))
+
 export Quadrant :: enum {
+    /// Both coordinates positive.
     First,
     Second,
 }
@@ -30,4 +43,4 @@ export Quadrant :: enum {
 export ORIGIN :: Point { .x = 0.0, .y = 0.0 }
 
 // Private: left out of the data.
-scale :: fn(p: Point, k: f64) -> Point = Point { .x = p.x * k, .y = p.y * k }
+mirror :: fn(p: Point) -> Point = Point { .x = -p.x, .y = -p.y }

@@ -1,0 +1,78 @@
+// vader/tools/doc/header: what a module says of itself, in the `//` lines that
+// open its main file.
+//
+// A file opens with `// path: summary.`, then paragraphs about the module, then
+// its `module` line. The parser keeps no `//` comment, so the header is read
+// from the file's text again (`scan_comments` in `vader/tools/fmt`).
+
+module "vader/tools/doc"
+
+import "std/path"
+import "std/string"
+import "vader/front/resolver"
+import "vader/tools/fmt"
+
+// The header of the main file of `module`: its only file, or the one named after
+// the last segment of its name. "" when it has several files and none of them is
+// named so: each one's header speaks for that file, not for the module.
+module_header :: fn(module: Module) -> string {
+    if module.files.len() == 1 {
+        return file_header(module.files[0])
+    }
+    leaf :: module.module_name.to_path().filename()
+    for file in module.files {
+        if file.path.to_path().name() == leaf {
+            return file_header(file)
+        }
+    }
+    return ""
+}
+
+// The `//` lines above the `module` line of `file`, markers stripped; a blank
+// comment line or a gap between two comments is an empty line.
+file_header :: fn(file: SourceFile) -> string {
+    lines: string[]: []
+    previous_line: i32 = 0
+    for c in scan_comments(file.content.byte_slice(0, header_end(file))).comments {
+        if c.kind != .Line || c.text.starts_with("#!") {
+            continue
+        }
+        if previous_line > 0 && c.line > previous_line + 1 {
+            lines.push("")
+        }
+        previous_line = c.end_line
+        lines.push(c.text.trim_prefix("//").trim_prefix(" "))
+    }
+    return lines.join("\n").trim()
+}
+
+// Where the header of `file` ends: at its `module` line, at its end without one.
+header_end :: fn(file: SourceFile) -> i64 {
+    module_decl :: file.program.module ?? return file.content.byte_len()
+    return module_decl.span.start.offset
+}
+
+// The first paragraph of `header`, lines joined, without the `path:` it opens
+// with.
+header_summary :: fn(header: string) -> string {
+    text :: first_paragraph(header)
+    colon :: text.index_of(':', 0)
+    if colon < 0 || " " in text.byte_slice(0, colon) {
+        return text
+    }
+    return text.byte_slice(colon + 1, text.byte_len()).trim()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_header_summary_drops_the_path :: fn() -> void {
+    assert_eq(header_summary("std/io: reading\nand writing.\n\nMore."), "reading and writing.")
+}
+
+@test
+test_header_summary_keeps_a_sentence_with_a_colon :: fn() -> void {
+    assert_eq(header_summary("The rule here: one pass."), "The rule here: one pass.")
+}

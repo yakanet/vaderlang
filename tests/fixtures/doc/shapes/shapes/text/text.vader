@@ -4,8 +4,20 @@ module "shapes/text"
 
 /// What can name itself.
 export Named :: trait {
+    /// The name, as a reader sees it.
     name :: fn(self) -> string
 }
 
 /// A label: some text.
 export Label :: string
+
+/// A tag on a shape.
+export Tag :: struct {
+    text: string
+}
+
+/// A tag is named by its text.
+Tag implements Named {
+    /// The text of the tag.
+    name :: fn(self) -> string = self.text
+}

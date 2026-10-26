@@ -84,24 +84,31 @@ remove_previous_modules :: fn(dir: string) -> void {
     }
 }
 
-// `index.json`: the modules, and every export with what a list shows of it.
+// `index.json`: the modules, and every export, impl and member with what a list
+// shows of it.
 index_json :: fn(modules: DocModule[]) -> JsonValue {
     module_items: JsonValue[]: []
     entries: JsonValue[]: []
     for m in modules {
         item :: MutableMap<string, JsonValue> {}
         item["path"] = json_text(m.path)
+        item["summary"] = json_text(m.summary)
         item["files"] = json_texts(m.files)
         module_items.push(JsonObject { .entries = item })
         for d in m.decls {
-            entry :: MutableMap<string, JsonValue> {}
-            entry["id"] = json_text(d.id)
-            entry["module"] = json_text(m.path)
-            entry["name"] = json_text(d.name)
-            entry["kind"] = json_text(d.kind)
-            entry["signature"] = json_text(d.signature)
-            entry["summary"] = json_text(summary_of(d.doc))
-            entries.push(JsonObject { .entries = entry })
+            entries.push(index_entry(m.path, d.id, d.name, d.kind, d.signature, d.doc))
+            for member in d.members {
+                entries.push(
+                    index_entry(
+                        m.path,
+                        member.id,
+                        member.name,
+                        member.kind,
+                        member.signature,
+                        member.doc,
+                    ),
+                )
+            }
         }
     }
     root :: MutableMap<string, JsonValue> {}
@@ -111,26 +118,66 @@ index_json :: fn(modules: DocModule[]) -> JsonValue {
     return JsonObject { .entries = root }
 }
 
+// One entry of `index.json`.
+index_entry :: fn(
+    module: string,
+    id: string,
+    name: string,
+    kind: string,
+    signature: string,
+    doc: DocSections | null,
+) -> JsonValue {
+    entry :: MutableMap<string, JsonValue> {}
+    entry["id"] = json_text(id)
+    entry["module"] = json_text(module)
+    entry["name"] = json_text(name)
+    entry["kind"] = json_text(kind)
+    entry["signature"] = json_text(signature)
+    entry["summary"] = json_text(summary_of(doc))
+    return JsonObject { .entries = entry }
+}
+
 // `modules/<path>.json`: one module whole.
 module_json :: fn(m: DocModule) -> JsonValue {
-    decls: JsonValue[]: []
-    for d in m.decls {
-        decl :: MutableMap<string, JsonValue> {}
-        decl["id"] = json_text(d.id)
-        decl["name"] = json_text(d.name)
-        decl["kind"] = json_text(d.kind)
-        decl["signature"] = json_text(d.signature)
-        decl["file"] = json_text(d.file)
-        decl["line"] = JsonNumber { .value = f64(d.line) }
-        decl["doc"] = doc_json(d.doc)
-        decls.push(JsonObject { .entries = decl })
-    }
     root :: MutableMap<string, JsonValue> {}
     root["version"] = JsonNumber { .value = DOC_FORMAT_VERSION }
     root["path"] = json_text(m.path)
+    root["summary"] = json_text(m.summary)
+    root["header"] = json_text(m.header)
     root["files"] = json_texts(m.files)
-    root["decls"] = JsonArray { .items = decls }
+    root["decls"] = JsonArray { .items = m.decls.map(decl_json).collect() }
     return JsonObject { .entries = root }
+}
+
+// An export or an impl, its members included; `trait` and `for` for an impl.
+decl_json :: fn(d: DocDecl) -> JsonValue {
+    decl :: MutableMap<string, JsonValue> {}
+    decl["id"] = json_text(d.id)
+    decl["name"] = json_text(d.name)
+    decl["kind"] = json_text(d.kind)
+    decl["signature"] = json_text(d.signature)
+    decl["file"] = json_text(d.file)
+    decl["line"] = JsonNumber { .value = f64(d.line) }
+    decl["doc"] = doc_json(d.doc)
+    if d.kind == "impl" {
+        decl["trait"] = json_text(d.trait_name)
+        decl["for"] = json_text(d.for_type)
+    }
+    decl["targets"] = json_texts(d.targets)
+    decl["members"] = JsonArray { .items = d.members.map(member_json).collect() }
+    return JsonObject { .entries = decl }
+}
+
+// A field, a variant or a method.
+member_json :: fn(m: DocMember) -> JsonValue {
+    member :: MutableMap<string, JsonValue> {}
+    member["id"] = json_text(m.id)
+    member["name"] = json_text(m.name)
+    member["kind"] = json_text(m.kind)
+    member["signature"] = json_text(m.signature)
+    member["line"] = JsonNumber { .value = f64(m.line) }
+    member["doc"] = doc_json(m.doc)
+    return JsonObject { .entries = member }
 }
 
 // A vaderdoc, `null` without one: its summary and its example as shown come

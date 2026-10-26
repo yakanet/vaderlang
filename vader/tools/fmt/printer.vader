@@ -983,34 +983,28 @@ compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> i64[] {
     return out
 }
 
-emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
-    self.emit_decorators(d.decorators, d.for_type.span.start.line)
+// `Foo<T> implements<T: Bound> Trait<A>`: an impl's head. The angle list of its
+// type parameters follows the keyword that opens their scope, here `implements`,
+// as it follows `fn` in `fn<T>`.
+emit_impl_head :: fn(self: Printer, d: p.ImplDecl) -> void {
     self.emit_type_expr(d.for_type)
     self.write(" implements")
-    // Bounded-generic typeParam list: `Foo<T> implements<T: Bound> Trait`.
-    // The angle list always follows the keyword that opens its scope
-    // (here `implements`), mirroring `fn<T>` / `struct<T>` / `trait<T>`.
-    if d.type_params.len() > 0 {
-        self.write("<")
-        for i in 0..<d.type_params.len() {
-            if i > 0 { self.write(", ") }
-            tp :: d.type_params[i]
-            self.write(tp.name)
-            self.emit_type_expr_with_prefix(": ", tp.bound)
-            self.emit_type_expr_with_prefix(" = ", tp.default)
-        }
-        self.write(">")
-    }
+    self.emit_type_params(d.type_params)
     self.write(" ")
+    self.emit_trait_ref(d)
+}
+
+// `Trait<A, B>`: the trait an impl implements, with its arguments.
+emit_trait_ref :: fn(self: Printer, d: p.ImplDecl) -> void {
     self.write(d.trait_name)
     if d.trait_args.len() > 0 {
-        self.write("<")
-        for i in 0..<d.trait_args.len() {
-            if i > 0 { self.write(", ") }
-            self.emit_type_expr(d.trait_args[i])
-        }
-        self.write(">")
+        self.emit_comma_list(d.trait_args, "<", ">", false, true, emit_type_expr_item)
     }
+}
+
+emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
+    self.emit_decorators(d.decorators, d.for_type.span.start.line)
+    self.emit_impl_head(d)
     if d.members.len() == 0 {
         // `@intrinsic Type implements Trait` (no body) is a valid form
         // for host-provided impls. Skip the empty `{}` so we round-trip

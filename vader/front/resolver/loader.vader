@@ -85,6 +85,9 @@ export LoadedModule :: struct {
     /// code, and reporting it as such is a false positive on exactly the code
     /// this mechanism exists to enable.
     discarded_bodies: FnDecl[] = []
+    /// Every `@target` declaration of the module as written, before selection
+    /// merged each group into one: the targets of a group live there alone.
+    target_decls: FnDecl[] = []
 }
 
 /// Build the module graph rooted at `entry_path`. Returns the loaded
@@ -518,6 +521,7 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
     collected :: collect_files(sources, m.folder, m.name, ctx.factory, ctx.index, ctx.bases, ctx.diags)
     ctx.modules[m.folder] = LoadedModule {
         .discarded_bodies = dropped_bodies,
+        .target_decls = target_declarations(parsed),
         .module = Module {
             .id           = m.folder,
             // Display path is the module's declared name (`module "..."`),

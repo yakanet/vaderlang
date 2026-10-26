@@ -1,6 +1,8 @@
 {
   "version": 1,
   "path": "shapes/text",
+  "summary": "a second module of the `vader doc` fixture.",
+  "header": "shapes/text: a second module of the `vader doc` fixture.",
   "files": [
     "shapes/text/text.vader"
   ],
@@ -19,15 +21,33 @@
         "returns": [],
         "errors": [],
         "example": ""
-      }
+      },
+      "targets": [],
+      "members": [
+        {
+          "id": "shapes/text/Named.name",
+          "name": "name",
+          "kind": "method",
+          "signature": "name :: fn(self) -> string",
+          "line": 8,
+          "doc": {
+            "summary": "The name, as a reader sees it.",
+            "prose": "The name, as a reader sees it.",
+            "params": [],
+            "returns": [],
+            "errors": [],
+            "example": ""
+          }
+        }
+      ]
     },
     {
       "id": "shapes/text/Label",
       "name": "Label",
-      "kind": "const",
+      "kind": "type",
       "signature": "export Label :: string",
       "file": "shapes/text/text.vader",
-      "line": 11,
+      "line": 12,
       "doc": {
         "summary": "A label: some text.",
         "prose": "A label: some text.",
@@ -35,7 +55,72 @@
         "returns": [],
         "errors": [],
         "example": ""
-      }
+      },
+      "targets": [],
+      "members": []
+    },
+    {
+      "id": "shapes/text/Tag",
+      "name": "Tag",
+      "kind": "struct",
+      "signature": "export Tag :: struct",
+      "file": "shapes/text/text.vader",
+      "line": 15,
+      "doc": {
+        "summary": "A tag on a shape.",
+        "prose": "A tag on a shape.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      },
+      "targets": [],
+      "members": [
+        {
+          "id": "shapes/text/Tag.text",
+          "name": "text",
+          "kind": "field",
+          "signature": "text: string",
+          "line": 16,
+          "doc": null
+        }
+      ]
+    },
+    {
+      "id": "shapes/text/Tag: Named",
+      "name": "Tag: Named",
+      "kind": "impl",
+      "signature": "Tag implements Named",
+      "file": "shapes/text/text.vader",
+      "line": 20,
+      "doc": {
+        "summary": "A tag is named by its text.",
+        "prose": "A tag is named by its text.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      },
+      "trait": "Named",
+      "for": "Tag",
+      "targets": [],
+      "members": [
+        {
+          "id": "shapes/text/Tag: Named.name",
+          "name": "name",
+          "kind": "method",
+          "signature": "name :: fn(self) -> string",
+          "line": 22,
+          "doc": {
+            "summary": "The text of the tag.",
+            "prose": "The text of the tag.",
+            "params": [],
+            "returns": [],
+            "errors": [],
+            "example": ""
+          }
+        }
+      ]
     }
   ]
 }

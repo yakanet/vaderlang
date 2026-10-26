@@ -36,7 +36,6 @@ import "vader/tools/lsp/protocol"
 import "toolchain/span"
 
 Rs :: import "vader/front/resolver"
-Ty :: import "vader/core/types"
 import "vader/core/symbol"
 import "std/collections"
 
@@ -657,66 +656,6 @@ const_kind :: fn(d: ConstDecl) -> DeclKind {
         return .TypeAlias
     }
     return .Const
-}
-
-// Whether `e`, the value of a module constant, reads as a type (`Celsius :: f64`,
-// `Mixed :: i32 | string`, `Coord :: [i32, i32]`). The shapes are those of
-// `is_type_expr` in `vader/front/typecheck/type_expr.vader` ; with no resolution at
-// hand, a name counts when it is a scalar type or spelled as a type is (`Rgb`),
-// not as a constant is (`MAX_LINE`).
-// @partial: every other expression computes a value.
-is_type_value :: fn(e: Expr) -> bool = @partial match e {
-    is IdentExpr                                    -> is_type_name(e.name)
-    is FieldExpr                                    -> is_member_type(e)
-    is GenericInstExpr | FnTypeExpr | ArrayTypeExpr -> true
-    is BinaryExpr                                   -> is_type_join(e)
-    is SeqLitExpr                                   -> is_tuple_type(e.elements)
-    _                                               -> false
-}
-
-// Whether `e` reads `Ns.Type` : a type a namespace exports.
-is_member_type :: fn(e: FieldExpr) -> bool = e.target is IdentExpr && is_type_name(e.field)
-
-// Whether `e` is a range type (`Int in 0..=23`) or a union of types.
-is_type_join :: fn(e: BinaryExpr) -> bool {
-    if e.op == .In {
-        return is_type_value(e.left)
-    }
-    return e.op == .BitOr && is_type_operand(e.left) && is_type_operand(e.right)
-}
-
-// Whether `e` may sit on either side of `|` in a type : `null` too.
-is_type_operand :: fn(e: Expr) -> bool = e is NullLitExpr || is_type_value(e)
-
-// Whether `elements` spell a tuple type : two types or more.
-is_tuple_type :: fn(elements: Expr[]) -> bool {
-    if elements.len() < 2 {
-        return false
-    }
-    for el in elements {
-        if !is_type_value(el) {
-            return false
-        }
-    }
-    return true
-}
-
-// Whether `name` names a type : a scalar the compiler knows (`f64`, `u8`), or a
-// name with an uppercase first letter and a lowercase one further on.
-is_type_name :: fn(name: string) -> bool {
-    if Ty.is_scalar_type_name(name) {
-        return true
-    }
-    if name.byte_len() == 0 || !is_upper_byte(name.byte_at(0)) {
-        return false
-    }
-    for i in 1..<name.byte_len() {
-        b :: name.byte_at(i)
-        if b >= 'a' && b <= 'z' {
-            return true
-        }
-    }
-    return false
 }
 
 binding_entry :: fn(

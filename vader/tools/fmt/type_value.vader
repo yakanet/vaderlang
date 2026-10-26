@@ -1,0 +1,73 @@
+// vader/tools/fmt/type_value: whether a constant names a type, read from its value.
+//
+// `Celsius :: f64` and `MAX :: 64` are both constant declarations to the parser,
+// which keeps a type alias apart only when it takes type parameters. A reader
+// that shows a declaration (the language server's outline, `vader doc`) tells
+// them apart by how the value reads, with no resolution at hand.
+
+module "vader/tools/fmt"
+
+p :: import "toolchain/ast"
+Ty :: import "vader/core/types"
+
+// @partial: every other expression computes a value.
+/// Whether `e`, the value of a module constant, reads as a type (`Celsius :: f64`,
+/// `Mixed :: i32 | string`, `Coord :: [i32, i32]`). The shapes are those of
+/// `is_type_expr` in `vader/front/typecheck/type_expr.vader`; with no resolution
+/// at hand, a name counts when it is a scalar type or spelled as a type is
+/// (`Rgb`), not as a constant is (`MAX_LINE`).
+///
+/// @param e  the value of a module constant.
+export is_type_value :: fn(e: p.Expr) -> bool = @partial match e {
+    is p.IdentExpr -> is_type_name(e.name)
+    is p.FieldExpr -> is_member_type(e)
+    is p.GenericInstExpr | p.FnTypeExpr | p.ArrayTypeExpr -> true
+    is p.BinaryExpr -> is_type_join(e)
+    is p.SeqLitExpr -> is_tuple_type(e.elements)
+    _ -> false
+}
+
+// Whether `e` reads `Ns.Type` : a type a namespace exports.
+is_member_type :: fn(e: p.FieldExpr) -> bool = e.target is p.IdentExpr && is_type_name(e.field)
+
+// Whether `e` is a range type (`Int in 0..=23`) or a union of types.
+is_type_join :: fn(e: p.BinaryExpr) -> bool {
+    if e.op == .In {
+        return is_type_value(e.left)
+    }
+    return e.op == .BitOr && is_type_operand(e.left) && is_type_operand(e.right)
+}
+
+// Whether `e` may sit on either side of `|` in a type : `null` too.
+is_type_operand :: fn(e: p.Expr) -> bool = e is p.NullLitExpr || is_type_value(e)
+
+// Whether `elements` spell a tuple type : two types or more.
+is_tuple_type :: fn(elements: p.Expr[]) -> bool {
+    if elements.len() < 2 {
+        return false
+    }
+    for el in elements {
+        if !is_type_value(el) {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether `name` names a type : a scalar the compiler knows (`f64`, `u8`), or a
+// name with an uppercase first letter and a lowercase one further on.
+is_type_name :: fn(name: string) -> bool {
+    if Ty.is_scalar_type_name(name) {
+        return true
+    }
+    if name.byte_len() == 0 || name.byte_at(0) !in 'A'..='Z' {
+        return false
+    }
+    for i in 1..<name.byte_len() {
+        b :: name.byte_at(i)
+        if b in 'a'..='z' {
+            return true
+        }
+    }
+    return false
+}

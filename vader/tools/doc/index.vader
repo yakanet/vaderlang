@@ -2,15 +2,17 @@
 //
 // It reads the declarations the loader parsed with their vaderdoc
 // (`load_project_with_overlay(..., keep_docs = true)`), never the files again:
-// one parse, the build's own. An export becomes an entry with its head as the
-// hover shows it (`vader/tools/fmt`) and its vaderdoc split by its tags
-// (`doc_sections` in `toolchain/ast`).
+// one parse, the build's own. An export or an impl becomes an entry with its
+// head as the hover shows it (`vader/tools/fmt`), its vaderdoc split by its tags
+// (`doc_sections` in `toolchain/ast`) and its members: the fields of a struct,
+// the variants of an enum, the methods of a trait or an impl.
 
 module "vader/tools/doc"
 
 import "std/collections"
 import "std/iter"
 import "std/path"
+import "std/sort"
 import "std/string"
 import "toolchain/ast"
 import "vader/front/resolver"
@@ -29,27 +31,57 @@ export Documented :: struct {
 export DocModule :: struct {
     /// Its name, as its files declare it.
     path: string
+    /// The first paragraph of its header, without the `path:` it opens with:
+    /// what a list of modules shows.
+    summary: string
+    /// The header of its main file: the `//` lines above its `module` line.
+    header: string
     /// Its files, in the order the loader read them, relative to the folder
     /// `index_modules` was given when they lie under it.
     files: string[]
-    /// Its exports, file by file, in source order.
+    /// Its exports and its impls, file by file, in source order.
     decls: DocDecl[]
 }
 
-/// One export.
+/// One export, or one impl.
 export DocDecl :: struct {
-    /// `<module>/<name>`: where the export is found, by a link or a search.
-    id: string
+    /// `<module>/<name>`, `<module>/<name>~<n>` for the n-th of an overloaded
+    /// name, `<module>/<type>: <trait>` for an impl: where it is found, by a
+    /// link or a search.
+    id: string = ""
+    /// Its name; `<type>: <trait>` for an impl.
     name: string
-    /// `fn`, `struct`, `enum`, `trait`, `type` or `const`.
+    /// `fn`, `struct`, `enum`, `trait`, `type`, `const` or `impl`.
     kind: string
     /// Its head as the hover shows it, `export` included.
     signature: string
     /// The file that declares it, written as in `DocModule.files`.
     file: string
-    /// The line of its name, from 1.
+    /// The line of its name, from 1; of its first line for an impl.
     line: i32
     /// Its vaderdoc split by its tags, null without one.
+    doc: DocSections | null
+    /// The platforms an `@target` group exists on; empty for a declaration that
+    /// exists on every platform.
+    targets: string[] = []
+    /// The trait an impl implements, with its arguments; "" for an export.
+    trait_name: string = ""
+    /// The type an impl is for; "" for an export.
+    for_type: string = ""
+    members: DocMember[] = []
+}
+
+/// A field of a struct, a variant of an enum, or a method of a trait or an impl.
+export DocMember :: struct {
+    /// `<id of its declaration>.<name>`.
+    id: string = ""
+    name: string
+    /// `field`, `variant` or `method`.
+    kind: string
+    /// Its head as the hover shows it.
+    signature: string
+    /// The line of its name, from 1.
+    line: i32
     doc: DocSections | null
 }
 
@@ -77,49 +109,196 @@ export index_modules :: fn(project: LoadedProject, scope: DiscoveredModule[], ba
                 "`${wanted.name}` (`${folder}`) is shadowed by the module of `${display_path(found.module.id, base)}`",
             )
         } else {
-            modules.push(index_module(found.module, base))
+            modules.push(index_module(found, base))
         }
     }
     return Documented { .modules = modules, .left_out = left_out }
 }
 
-// The documentation of `module`, its files relative to `base`.
-index_module :: fn(module: Module, base: string) -> DocModule {
+// The documentation of the module `loaded`, its files relative to `base`.
+index_module :: fn(loaded: LoadedModule, base: string) -> DocModule {
+    module :: loaded.module
     files: string[]: []
     decls: DocDecl[]: []
     for file in module.files {
         path :: display_path(file.path, base)
         files.push(path)
         for d in file.program.decls {
-            decl :: doc_decl(module.module_name, file, path, d) ?? continue
+            decl :: doc_decl(file, path, d, loaded.target_decls) ?? continue
             decls.push(decl)
         }
     }
+    assign_ids(module.module_name, decls)
+    header :: module_header(module)
     return DocModule {
         .path = module.module_name,
+        .summary = header_summary(header),
+        .header = header,
         .files = files,
         .decls = decls,
     }
 }
 
-// The entry of `d`, declared in `file` of `module`, written `path`; null when
-// `d` is no export.
-doc_decl :: fn(module: string, file: SourceFile, path: string, d: Decl) -> DocDecl | null {
+// The entry of `d`, declared in `file`, written `path`; null when `d` is neither
+// an export nor an impl.
+doc_decl :: fn(file: SourceFile, path: string, d: Decl, target_decls: FnDecl[]) -> DocDecl | null {
+    if d is ImplDecl {
+        return impl_decl(file, path, d)
+    }
     if !decl_is_public(d) {
         return null
     }
     name_span :: decl_name_span(d) ?? return null
-    name :: file.content.byte_slice(name_span.start.offset, name_span.end.offset)
     return DocDecl {
-        .id = "${module}/${name}",
-        .name = name,
+        .name = file.content.byte_slice(name_span.start.offset, name_span.end.offset),
         .kind = kind_of(d),
         .signature = "export " + format_decl_head(file.content, d),
         .file = path,
         .line = name_span.start.line,
         .doc = sections_of(decl_doc(d)),
+        .targets = targets_of(d, target_decls),
+        .members = members_of(file.content, d),
     }
 }
+
+// The entry of the impl `d`, named after the type it is for and its trait.
+impl_decl :: fn(file: SourceFile, path: string, d: ImplDecl) -> DocDecl {
+    for_type :: format_type_expr(file.content, d.for_type)
+    trait_name :: format_impl_trait(file.content, d)
+    return DocDecl {
+        .name = "${for_type}: ${trait_name}",
+        .kind = "impl",
+        .signature = format_impl_head(file.content, d),
+        .file = path,
+        .line = d.span.start.line,
+        .doc = sections_of(d.doc),
+        .trait_name = trait_name,
+        .for_type = for_type,
+        .members = methods_of(file.content, d.members),
+    }
+}
+
+// Give each entry of `module` its id, and each member its own: an overloaded
+// name numbers its declarations in source order.
+assign_ids :: fn(module: string, decls: DocDecl[]) -> void {
+    counts :: MutableMap<string, i64> {}
+    for d in decls {
+        counts[d.name] = (counts[d.name] ?? 0) + 1
+    }
+    seen :: MutableMap<string, i64> {}
+    for d in decls {
+        n :: seen[d.name] ?? 0
+        seen[d.name] = n + 1
+        d.id = "${module}/${d.name}${overload_suffix(counts[d.name] ?? 0, n)}"
+        for m in d.members {
+            m.id = "${d.id}.${m.name}"
+        }
+    }
+}
+
+// `~n` for the n-th declaration of a name `count` declarations share, "" for a
+// name only one declares.
+overload_suffix :: fn(count: i64, n: i64) -> string {
+    if count < 2 {
+        return ""
+    }
+    return "~${n}"
+}
+
+// The kind an export is listed under: a constant whose value reads as a type is
+// a `type`.
+kind_of :: fn(d: Decl) -> string = match d {
+    is FnDecl                             -> "fn"
+    is StructDecl                         -> "struct"
+    is EnumDecl                           -> "enum"
+    is TraitDecl                          -> "trait"
+    is TypeAliasDecl                      -> "type"
+    is ConstDecl                          -> const_kind(d)
+    is ImplDecl | AssertDecl | ImportDecl -> ""
+}
+
+const_kind :: fn(d: ConstDecl) -> string {
+    if is_type_value(d.value) {
+        return "type"
+    }
+    return "const"
+}
+
+// The platforms the `@target` group `d` heads exists on, sorted, from the
+// module's `@target` declarations as written. Empty when the bare declaration has
+// a body, its own or one the host provides: the function exists everywhere, and
+// its other bodies are how, not where. Empty too when `d` heads no group.
+targets_of :: fn(d: Decl, target_decls: FnDecl[]) -> string[] {
+    if d !is FnDecl || target_selectors(d.decorators) == null {
+        return []
+    }
+    oses: string[]: []
+    for body in target_decls {
+        if body.name != d.name {
+            continue
+        }
+        selectors :: target_selectors(body.decorators) ?? continue
+        if selectors.is_bare && has_body(body) {
+            return []
+        }
+        for os in selectors.os {
+            oses.push("${os}")
+        }
+    }
+    return sort(oses, (a: string, b: string) -> a < b)
+}
+
+// Whether `fd` has a body: written, or provided by the host (`@extern`,
+// `@intrinsic`).
+has_body :: fn(fd: FnDecl) -> bool {
+    if fd.body != null {
+        return true
+    }
+    for dec in fd.decorators {
+        if provides_body(dec.name) {
+            return true
+        }
+    }
+    return false
+}
+
+// The members of `d`: the fields of a struct, the variants of an enum, the
+// methods of a trait. A field restricted to its module (`@internal`) is left
+// out.
+members_of :: fn(source: string, d: Decl) -> DocMember[] = match d {
+    is StructDecl -> d.fields.filter((f: StructField) -> f.visibility != .Private).map(
+        (f: StructField) -> DocMember {
+            .name = f.name,
+            .kind = "field",
+            .signature = format_field_head(source, f),
+            .line = f.span.start.line,
+            .doc = sections_of(f.doc),
+        },
+    ).collect()
+    is EnumDecl -> d.variants.map(
+        (v: EnumVariant) -> DocMember {
+            .name = v.name,
+            .kind = "variant",
+            .signature = format_variant_head(source, v),
+            .line = v.span.start.line,
+            .doc = sections_of(v.doc),
+        },
+    ).collect()
+    is TraitDecl -> methods_of(source, d.members)
+    is FnDecl | TypeAliasDecl | ConstDecl | ImplDecl | AssertDecl | ImportDecl -> []
+}
+
+// The methods of a trait or an impl, as members.
+methods_of :: fn(source: string, methods: FnDecl[]) -> DocMember[] =
+    methods.map(
+        (fd: FnDecl) -> DocMember {
+            .name = fd.name,
+            .kind = "method",
+            .signature = format_decl_head(source, fd),
+            .line = fd.name_span.start.line,
+            .doc = sections_of(fd.doc),
+        },
+    ).collect()
 
 // Whether `a` and `b` name the same folder, however each is spelled.
 same_folder :: fn(a: string, b: string) -> bool =
@@ -129,17 +308,6 @@ same_folder :: fn(a: string, b: string) -> bool =
 // otherwise.
 display_path :: fn(path: string, base: string) -> string =
     relative_to(absolute_path(path).to_path().normalize().as_string(), base)
-
-// The kind an export is listed under.
-kind_of :: fn(d: Decl) -> string = match d {
-    is FnDecl                             -> "fn"
-    is StructDecl                         -> "struct"
-    is EnumDecl                           -> "enum"
-    is TraitDecl                          -> "trait"
-    is TypeAliasDecl                      -> "type"
-    is ConstDecl                          -> "const"
-    is ImplDecl | AssertDecl | ImportDecl -> ""
-}
 
 // `doc` split by its tags, null without one.
 sections_of :: fn(doc: DocComment | null) -> DocSections | null {
@@ -155,9 +323,7 @@ sections_of :: fn(doc: DocComment | null) -> DocSections | null {
 ///
 /// @param prose  the prose of a vaderdoc (`DocSections.prose`).
 export first_sentence :: fn(prose: string) -> string {
-    paragraph :: prose.split("\n\n")[0].split("\n").map((line: string) -> line.trim()).collect().join(
-        " ",
-    )
+    paragraph :: first_paragraph(prose)
     n :: paragraph.byte_len()
     for i in 0..<n {
         if paragraph.byte_at(i) == '.' && (i + 1 == n || paragraph.byte_at(i + 1) == ' ') {
@@ -165,6 +331,12 @@ export first_sentence :: fn(prose: string) -> string {
         }
     }
     return paragraph
+}
+
+// The first paragraph of `text`, its lines trimmed and joined by a space.
+first_paragraph :: fn(text: string) -> string {
+    lines :: text.split("\n\n")[0].split("\n")
+    return lines.map((line: string) -> line.trim()).collect().join(" ")
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -176,6 +348,12 @@ test_display_path_under_and_outside_its_base :: fn() -> void {
     assert_eq(display_path("/repo/lib/std/io/io.vader", "/repo"), "lib/std/io/io.vader")
     assert_eq(display_path("/repo/./lib/../lib/x.vader", "/repo"), "lib/x.vader")
     assert_eq(display_path("/other/x.vader", "/repo"), "/other/x.vader")
+}
+
+@test
+test_overload_suffix_numbers_only_a_shared_name :: fn() -> void {
+    assert_eq(overload_suffix(1, 0), "")
+    assert_eq(overload_suffix(2, 1), "~1")
 }
 
 @test

@@ -1,6 +1,8 @@
 {
   "version": 1,
   "path": "shapes/geometry",
+  "summary": "the `vader doc` fixture's main module, over two files.",
+  "header": "shapes/geometry: the `vader doc` fixture's main module, over two files.\n\nThe plane, its points and its quadrants.",
   "files": [
     "shapes/geometry/area.vader",
     "shapes/geometry/geometry.vader"
@@ -27,7 +29,31 @@
           "none: a negative side gives a positive area."
         ],
         "example": ""
-      }
+      },
+      "targets": [],
+      "members": []
+    },
+    {
+      "id": "shapes/geometry/separator",
+      "name": "separator",
+      "kind": "fn",
+      "signature": "export separator :: fn() -> string",
+      "file": "shapes/geometry/area.vader",
+      "line": 13,
+      "doc": {
+        "summary": "The separator of a path, on the machine the program runs on.",
+        "prose": "The separator of a path, on the machine the program runs on.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      },
+      "targets": [
+        "darwin",
+        "linux",
+        "windows"
+      ],
+      "members": []
     },
     {
       "id": "shapes/geometry/Point",
@@ -35,7 +61,7 @@
       "kind": "struct",
       "signature": "export Point :: struct",
       "file": "shapes/geometry/geometry.vader",
-      "line": 8,
+      "line": 10,
       "doc": {
         "summary": "A point of the plane.",
         "prose": "A point of the plane.\n\nBoth coordinates are in the same unit.",
@@ -43,7 +69,33 @@
         "returns": [],
         "errors": [],
         "example": ""
-      }
+      },
+      "targets": [],
+      "members": [
+        {
+          "id": "shapes/geometry/Point.x",
+          "name": "x",
+          "kind": "field",
+          "signature": "x: f64",
+          "line": 12,
+          "doc": {
+            "summary": "The abscissa.",
+            "prose": "The abscissa.",
+            "params": [],
+            "returns": [],
+            "errors": [],
+            "example": ""
+          }
+        },
+        {
+          "id": "shapes/geometry/Point.y",
+          "name": "y",
+          "kind": "field",
+          "signature": "y: f64",
+          "line": 13,
+          "doc": null
+        }
+      ]
     },
     {
       "id": "shapes/geometry/distance",
@@ -51,7 +103,7 @@
       "kind": "fn",
       "signature": "export distance :: fn(a: Point, b: Point) -> f64",
       "file": "shapes/geometry/geometry.vader",
-      "line": 22,
+      "line": 28,
       "doc": {
         "summary": "The distance between `a` and `b`.",
         "prose": "The distance between `a` and `b`. Always positive or zero.",
@@ -70,7 +122,45 @@
         ],
         "errors": [],
         "example": "distance(o, Point { .x = 3.0, .y = 4.0 })   // 5.0"
-      }
+      },
+      "targets": [],
+      "members": []
+    },
+    {
+      "id": "shapes/geometry/scaled~0",
+      "name": "scaled",
+      "kind": "fn",
+      "signature": "export scaled :: fn(p: Point, k: f64) -> Point",
+      "file": "shapes/geometry/geometry.vader",
+      "line": 31,
+      "doc": {
+        "summary": "`p`, `k` times as far from the origin.",
+        "prose": "`p`, `k` times as far from the origin.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      },
+      "targets": [],
+      "members": []
+    },
+    {
+      "id": "shapes/geometry/scaled~1",
+      "name": "scaled",
+      "kind": "fn",
+      "signature": "export scaled :: fn(p: Point, k: i32) -> Point",
+      "file": "shapes/geometry/geometry.vader",
+      "line": 34,
+      "doc": {
+        "summary": "`p`, `k` times as far from the origin, `k` whole.",
+        "prose": "`p`, `k` times as far from the origin, `k` whole.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      },
+      "targets": [],
+      "members": []
     },
     {
       "id": "shapes/geometry/Quadrant",
@@ -78,8 +168,34 @@
       "kind": "enum",
       "signature": "export Quadrant :: enum",
       "file": "shapes/geometry/geometry.vader",
-      "line": 24,
-      "doc": null
+      "line": 36,
+      "doc": null,
+      "targets": [],
+      "members": [
+        {
+          "id": "shapes/geometry/Quadrant.First",
+          "name": "First",
+          "kind": "variant",
+          "signature": "First",
+          "line": 38,
+          "doc": {
+            "summary": "Both coordinates positive.",
+            "prose": "Both coordinates positive.",
+            "params": [],
+            "returns": [],
+            "errors": [],
+            "example": ""
+          }
+        },
+        {
+          "id": "shapes/geometry/Quadrant.Second",
+          "name": "Second",
+          "kind": "variant",
+          "signature": "Second",
+          "line": 39,
+          "doc": null
+        }
+      ]
     },
     {
       "id": "shapes/geometry/ORIGIN",
@@ -87,7 +203,7 @@
       "kind": "const",
       "signature": "export ORIGIN :: Point { .x = 0.0, .y = 0.0 }",
       "file": "shapes/geometry/geometry.vader",
-      "line": 30,
+      "line": 43,
       "doc": {
         "summary": "The origin of the plane.",
         "prose": "The origin of the plane.",
@@ -95,7 +211,9 @@
         "returns": [],
         "errors": [],
         "example": ""
-      }
+      },
+      "targets": [],
+      "members": []
     }
   ]
 }

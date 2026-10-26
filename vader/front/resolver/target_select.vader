@@ -91,6 +91,23 @@ export discarded_bodies :: fn(files: SourceFile[], target: Target | null) -> AST
     return out
 }
 
+/// Every `@target` declaration of `files`, as written: the bare one of each
+/// group and its bodies, with the selectors a merged declaration no longer
+/// carries (`graft_body`).
+///
+/// @param files  the module's parsed files, before selection.
+export target_declarations :: fn(files: SourceFile[]) -> AST.FnDecl[] {
+    out: AST.FnDecl[]: []
+    for f in files {
+        for d in f.program.decls {
+            if d is AST.FnDecl && target_selectors(d.decorators) != null {
+                out.push(d)
+            }
+        }
+    }
+    return out
+}
+
 /// Filter every file's declarations down to the ones this target selects.
 ///
 /// Returns the files unchanged when `target` is null: no `--target=` was given,
@@ -425,9 +442,11 @@ resolve_decl :: fn(
     return d
 }
 
-// A decorator saying who provides a body, which a body carries rather than its
-// declaration.
-provides_body :: fn(name: string) -> bool = name == "extern" || name == "intrinsic"
+/// Whether the decorator `name` says who provides a body, which a body carries
+/// rather than its declaration: a body the host gives, written with none.
+///
+/// @param name  a decorator's name, without its `@`.
+export provides_body :: fn(name: string) -> bool = name == "extern" || name == "intrinsic"
 
 // Build the merged node: the declaration's envelope, the winner's body.
 //
@@ -466,14 +485,16 @@ graft_body :: fn(decl: AST.FnDecl, body: AST.FnDecl) -> AST.FnDecl {
 /// reads as a second bare declaration and is reported as `R2039` plus `T3053`,
 /// neither of which names the typo. `is_bare` answers the form; `os` answers the
 /// content.
-TargetSelectors :: struct {
+export TargetSelectors :: struct {
     os:      Os[]
     /// `true` for `@target` written with no argument list: THE declaration.
     is_bare: bool
 }
 
-// The `@target` a declaration carries, or null when it has none.
-target_selectors :: fn(decorators: AST.Decorator[]) -> TargetSelectors | null {
+/// The `@target` a declaration carries, or null when it has none.
+///
+/// @param decorators  the declaration's decorators.
+export target_selectors :: fn(decorators: AST.Decorator[]) -> TargetSelectors | null {
     for d in decorators {
         if d.name != "target" {
             continue

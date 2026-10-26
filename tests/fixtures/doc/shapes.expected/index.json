@@ -3,6 +3,7 @@
   "modules": [
     {
       "path": "shapes/geometry",
+      "summary": "the `vader doc` fixture's main module, over two files.",
       "files": [
         "shapes/geometry/area.vader",
         "shapes/geometry/geometry.vader"
@@ -10,6 +11,7 @@
     },
     {
       "path": "shapes/text",
+      "summary": "a second module of the `vader doc` fixture.",
       "files": [
         "shapes/text/text.vader"
       ]
@@ -25,12 +27,36 @@
       "summary": "The area of the square of side `side`."
     },
     {
+      "id": "shapes/geometry/separator",
+      "module": "shapes/geometry",
+      "name": "separator",
+      "kind": "fn",
+      "signature": "export separator :: fn() -> string",
+      "summary": "The separator of a path, on the machine the program runs on."
+    },
+    {
       "id": "shapes/geometry/Point",
       "module": "shapes/geometry",
       "name": "Point",
       "kind": "struct",
       "signature": "export Point :: struct",
       "summary": "A point of the plane."
+    },
+    {
+      "id": "shapes/geometry/Point.x",
+      "module": "shapes/geometry",
+      "name": "x",
+      "kind": "field",
+      "signature": "x: f64",
+      "summary": "The abscissa."
+    },
+    {
+      "id": "shapes/geometry/Point.y",
+      "module": "shapes/geometry",
+      "name": "y",
+      "kind": "field",
+      "signature": "y: f64",
+      "summary": ""
     },
     {
       "id": "shapes/geometry/distance",
@@ -41,11 +67,43 @@
       "summary": "The distance between `a` and `b`."
     },
     {
+      "id": "shapes/geometry/scaled~0",
+      "module": "shapes/geometry",
+      "name": "scaled",
+      "kind": "fn",
+      "signature": "export scaled :: fn(p: Point, k: f64) -> Point",
+      "summary": "`p`, `k` times as far from the origin."
+    },
+    {
+      "id": "shapes/geometry/scaled~1",
+      "module": "shapes/geometry",
+      "name": "scaled",
+      "kind": "fn",
+      "signature": "export scaled :: fn(p: Point, k: i32) -> Point",
+      "summary": "`p`, `k` times as far from the origin, `k` whole."
+    },
+    {
       "id": "shapes/geometry/Quadrant",
       "module": "shapes/geometry",
       "name": "Quadrant",
       "kind": "enum",
       "signature": "export Quadrant :: enum",
+      "summary": ""
+    },
+    {
+      "id": "shapes/geometry/Quadrant.First",
+      "module": "shapes/geometry",
+      "name": "First",
+      "kind": "variant",
+      "signature": "First",
+      "summary": "Both coordinates positive."
+    },
+    {
+      "id": "shapes/geometry/Quadrant.Second",
+      "module": "shapes/geometry",
+      "name": "Second",
+      "kind": "variant",
+      "signature": "Second",
       "summary": ""
     },
     {
@@ -65,12 +123,52 @@
       "summary": "What can name itself."
     },
     {
+      "id": "shapes/text/Named.name",
+      "module": "shapes/text",
+      "name": "name",
+      "kind": "method",
+      "signature": "name :: fn(self) -> string",
+      "summary": "The name, as a reader sees it."
+    },
+    {
       "id": "shapes/text/Label",
       "module": "shapes/text",
       "name": "Label",
-      "kind": "const",
+      "kind": "type",
       "signature": "export Label :: string",
       "summary": "A label: some text."
+    },
+    {
+      "id": "shapes/text/Tag",
+      "module": "shapes/text",
+      "name": "Tag",
+      "kind": "struct",
+      "signature": "export Tag :: struct",
+      "summary": "A tag on a shape."
+    },
+    {
+      "id": "shapes/text/Tag.text",
+      "module": "shapes/text",
+      "name": "text",
+      "kind": "field",
+      "signature": "text: string",
+      "summary": ""
+    },
+    {
+      "id": "shapes/text/Tag: Named",
+      "module": "shapes/text",
+      "name": "Tag: Named",
+      "kind": "impl",
+      "signature": "Tag implements Named",
+      "summary": "A tag is named by its text."
+    },
+    {
+      "id": "shapes/text/Tag: Named.name",
+      "module": "shapes/text",
+      "name": "name",
+      "kind": "method",
+      "signature": "name :: fn(self) -> string",
+      "summary": "The text of the tag."
     }
   ]
 }

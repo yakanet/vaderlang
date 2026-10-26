@@ -7,3 +7,13 @@ module "shapes/geometry"
 /// @param side  the length of a side.
 /// @error       none: a negative side gives a positive area.
 export square_area :: fn(side: f64) -> f64 = side * side
+
+/// The separator of a path, on the machine the program runs on.
+@target
+export separator :: fn() -> string
+
+@target(.Linux, .Darwin)
+separator :: fn() -> string = "/"
+
+@target(.Windows)
+separator :: fn() -> string = "\\"

@@ -91,29 +91,52 @@ The modules are read as the project's build reads them, from its entry: the proj
 
 The data is JSON, at `version` 1, a draft that may still change:
 
-- `index.json` lists the `modules` (`path`, `files`) and every export in `entries`, with what a list shows of it: `id`, `module`, `name`, `kind`, `signature` and `summary`, the first sentence of its vaderdoc.
-- `modules/<path>.json` holds one module whole. Each of its `decls` adds `file`, `line` and `doc`, null without a vaderdoc:
+- `index.json` lists the `modules` (`path`, `summary`, `files`) and, in `entries`, every export, impl and member with what a list shows of it: `id`, `module`, `name`, `kind`, `signature` and `summary`, the first sentence of its vaderdoc.
+- `modules/<path>.json` holds one module whole: its `summary`, the `header` of its main file, its `files` and its `decls`. Each declaration adds `file`, `line`, `doc` (null without a vaderdoc), `targets` and `members`:
 
 ```json
 {
-  "id": "shapes/geometry/distance",
-  "name": "distance",
-  "kind": "fn",
-  "signature": "export distance :: fn(a: Point, b: Point) -> f64",
-  "file": "shapes/geometry/geometry.vader",
-  "line": 22,
+  "id": "shapes/text/Tag: Named",
+  "name": "Tag: Named",
+  "kind": "impl",
+  "signature": "Tag implements Named",
+  "file": "shapes/text/text.vader",
+  "line": 20,
   "doc": {
-    "summary": "The distance between `a` and `b`.",
-    "prose": "The distance between `a` and `b`. Always positive or zero.",
-    "params": [{ "name": "a", "text": "the first point." }, { "name": "b", "text": "the second point." }],
-    "returns": ["the distance, in the unit of the points."],
+    "summary": "A tag is named by its text.",
+    "prose": "A tag is named by its text.",
+    "params": [],
+    "returns": [],
     "errors": [],
-    "example": "distance(o, Point { .x = 3.0, .y = 4.0 })   // 5.0"
-  }
+    "example": ""
+  },
+  "trait": "Named",
+  "for": "Tag",
+  "targets": [],
+  "members": [
+    {
+      "id": "shapes/text/Tag: Named.name",
+      "name": "name",
+      "kind": "method",
+      "signature": "name :: fn(self) -> string",
+      "line": 22,
+      "doc": {
+        "summary": "The text of the tag.",
+        "prose": "The text of the tag.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": ""
+      }
+    }
+  ]
 }
 ```
 
-`kind` is `fn`, `struct`, `enum`, `trait`, `type` or `const`; an alias without type parameters (`Label :: string`) is still a `const`. `prose` is CommonMark, and `example` is shown as a reader sees it, its hidden `# ` lines left out.
+- `id` is `<module>/<name>`, `<module>/<name>~<n>` for the n-th declaration of an overloaded name, `<module>/<type>: <trait>` for an impl, and `<declaration>.<name>` for a member.
+- `kind` is `fn`, `struct`, `enum`, `trait`, `type` (an alias, or a constant whose value is a type), `const` or `impl`; a member's is `field`, `variant` or `method`. A field restricted to its module (`@internal`) is left out.
+- `targets` lists the platforms an `@target` group exists on, and is empty for a function that exists on every platform: one whose bare declaration has a body.
+- `prose` is CommonMark, and `example` is shown as a reader sees it, its hidden `# ` lines left out.
 
 ### `vader dump`
 
