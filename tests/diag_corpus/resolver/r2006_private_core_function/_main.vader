@@ -1,0 +1,12 @@
+// `render` is private to `std/core`: a program naming it gets R2006, as for a
+// name nothing declares.
+
+module "snippet"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    m: u64: 15
+    println(render(m, 0, false))
+    return 0
+}

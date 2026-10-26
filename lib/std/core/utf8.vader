@@ -74,12 +74,20 @@ export codepoint_at_byte :: fn(s: string, i: i64) -> [char, i64] {
     return [char(code), width]
 }
 
-// The non-ASCII half of `codepoint_at_byte`: the codepoint the byte `b` at byte
-// `i` of `s` leads, and its width. It runs once per non-ASCII codepoint of every
-// walk, so it calls nothing the VM would not inline and reads each byte once. The
-// codepoint is a `u32`, a Unicode scalar value by the bytes it was read from : a
-// caller wanting the `char` converts it, a walk counting widths checks nothing.
-decode_tail :: fn(s: string, b: u8, i: i64) -> [u32, i64] {
+/// Decode the non-ASCII codepoint that `b`, the byte at offset `i` of `s`, leads:
+/// `codepoint_at_byte` past its ASCII test, for a walk that has read the byte.
+///
+/// @param s  the source string.
+/// @param b  `s.byte_at(i)`, at least `0x80`.
+/// @param i  the byte offset of `b`.
+/// @return   `[codepoint, byte_width]`, malformed bytes decoded as
+///           `codepoint_at_byte` does. The codepoint is a `u32`, a Unicode scalar
+///           value by the bytes it was read from: a caller wanting the `char`
+///           converts it.
+export decode_tail :: fn(s: string, b: u8, i: i64) -> [u32, i64] {
+    // It runs once per non-ASCII codepoint of every walk, so it calls nothing the
+    // VM would not inline and reads each byte once.
+
     // A continuation byte, an overlong lead (`C0`, `C1`) and a lead past U+10FFFF
     // (`F5..FF`) lead nothing.
     if b < 0xC2 || b > 0xF4 {

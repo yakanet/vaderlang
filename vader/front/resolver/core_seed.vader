@@ -18,7 +18,7 @@ import "vader/core/symbol"
 import "vader/front/parser"
 import "vader/support/target"
 
-/// Build the std/core symbol seed once per project. Returns an empty map
+/// Build the seed of std/core's exports once per project. Returns an empty map
 /// when std/core isn't part of the load (single-file snippets without
 /// stdlib). The seed is merged into the root scope on a "don't shadow
 /// user symbols" basis, see `file_root_scope`.
@@ -42,8 +42,11 @@ export build_core_seed :: fn(project: LoadedProject) -> MutableMap<string, Symbo
     }
     core_id :: find_core_module_id(project) ?? return out
     core_loaded :: project.modules[core_id] ?? return out
+    // The prelude is an implicit wildcard import of `std/core`: what one exposes.
     for [name, sym] in core_loaded.collected.symbols {
-        out[name] = sym
+        if wildcard_exposes(sym, null) {
+            out[name] = sym
+        }
     }
     return out
 }
