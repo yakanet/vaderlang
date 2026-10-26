@@ -136,11 +136,20 @@ take_damage :: fn(player: Player, damage: i32, noises: Noise[]) -> void {
     noises.push(.PlayerDies)
 }
 
-/// The door in front of the player, within reach, or `null` when none is.
-export door_ahead :: fn(player: Player, level: Level) -> Door | null {
+/// Use what is in front of `player`, within reach: open or shut a door, or throw
+/// the exit switch, which ends the level.
+///
+/// @param noises  what the player hears, appended to.
+export use_ahead :: fn(player: Player, level: Level, noises: Noise[]) -> void {
     cell_x :: i32(floor(player.x + player.direction_x * REACH))
     cell_y :: i32(floor(player.y + player.direction_y * REACH))
-    return level.door_at(cell_x, cell_y)
+    door :: level.door_at(cell_x, cell_y)
+    if door != null {
+        door.toggle(noises)
+    } else if level.cell_at(cell_x, cell_y) == .Exit {
+        level.cells[level.index_of(cell_x, cell_y)] = .ExitOn
+        noises.push(.Exit)
+    }
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -225,10 +234,23 @@ test_player_heals_up_to_full_health :: fn() -> void {
 }
 
 @test
-test_player_door_ahead_finds_the_door :: fn() -> void {
+test_player_throws_the_exit_switch :: fn() -> void {
+    level :: parsed(["#####", "#@.X#", "#####"])
+    player :: new_player(level)
+    player.x = 2.5
+    noises: Noise[]: []
+    player.use_ahead(level, noises)
+    assert(level.exited() && level.cell_at(3, 1) == .ExitOn, "the switch is thrown")
+    assert_eq(noises.len(), 1)
+}
+
+@test
+test_player_works_the_door_ahead :: fn() -> void {
     level :: tiny()
     player :: new_player(level)
     player.x = 2.5
     player.turn(pi / 2.0)
-    assert(player.door_ahead(level) != null, "the door is south of the player")
+    noises: Noise[]: []
+    player.use_ahead(level, noises)
+    assert(level.doors[0].opening, "the door south of the player opens")
 }

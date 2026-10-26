@@ -442,6 +442,7 @@ minimap_colour :: fn(cell: Cell) -> u32 = match cell {
     .Empty -> TRANSPARENT
     .Door  -> rgb(200, 110, 50)
     .Stone | .Brick | .Rust | .Steel | .Green | .Red | .Concrete | .Corrugated -> rgb(150, 150, 160)
+    .Exit | .ExitOn -> rgb(80, 220, 120)
 }
 
 // The colour of a thing on the map: what can be picked up stands out in green.

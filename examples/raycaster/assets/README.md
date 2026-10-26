@@ -17,7 +17,7 @@ released under **CC0 1.0** (public domain dedication), scaled down from their
 | `Bricks106A.ppm` | stone (`#`) |
 | `Bricks105.ppm` | brick (`b`) |
 | `MetalPlates013.ppm` | rusty plates (`r`) |
-| `Metal021.ppm` | steel (`s`) |
+| `Metal021.ppm` | steel (`s`), and the plate of the exit switch (`X`) |
 | `PaintedMetal006.ppm` | green metal (`g`) |
 | `PaintedMetal004.ppm` | red metal (`x`) |
 | `Concrete034.ppm` | concrete (`c`) |
@@ -55,6 +55,17 @@ sprite is transparent.
 | `bludc0.ppm`, `bludb0.ppm`, `bluda0.ppm` | a zombie bleeding where a bullet struck |
 | `puffa0.ppm` to `puffd0.ppm` | a bullet striking a wall: the spark, then the smoke |
 
+## Patches: Freedoom, BSD licence
+
+`patches/` holds pictures the engine draws over a wall texture, from Freedoom,
+under the same licence, copied beside them as `patches/COPYING.adoc`. The file
+names are Freedoom's patch names; magenta marks where they are transparent.
+
+| file | used for |
+|---|---|
+| `exit1.ppm` | the EXIT sign above the exit switch (`X`) |
+| `sw2s0.ppm`, `sw2s1.ppm` | the exit switch's panel, off then thrown |
+
 ## Sounds: Freedoom, BSD licence
 
 `sounds/` holds Freedoom's sounds, 8-bit mono WAV files, under the same licence,
@@ -70,10 +81,13 @@ copied beside them as `sounds/COPYING.adoc`.
 | `dspldeth.wav` | the player falls |
 | `dsdoropn.wav`, `dsdorcls.wav` | a door opens, shuts |
 | `dsitemup.wav` | the player picks something up |
+| `dsswtchx.wav` | the player throws the exit switch |
 
 ## Levels
 
 `levels/` holds the levels as text, one character per cell. What each character
 stands for is `LEGEND` in `engine/level.vader`. A level is read and checked when
 the program is compiled: one that does not parse stops the build, naming the
-file, the row and the column.
+file, the row and the column, and so does one without exactly one exit switch,
+which ends it. They are played in the order `LEVELS` lists them in that file:
+`hangar.txt`, then `depot.txt`.

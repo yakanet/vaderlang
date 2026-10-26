@@ -95,7 +95,7 @@ RAMP :: " .:-=+*#%@"
 
 main :: fn(argv: string[]) -> i32 {
     out_dir :: argument_at(argv, 1)
-    level :: HANGAR
+    level :: LEVELS[0]
     lights :: light_map(level)
     frame :: new_frame(WIDTH, HEIGHT)
     for index in 0..<SHOTS.len() {
@@ -131,7 +131,7 @@ main :: fn(argv: string[]) -> i32 {
 // and thumbnail; then the player's health and ammunition, each zombie's state,
 // and every noise in the order it was made.
 fight :: fn(lights: LightMap, frame: Frame) -> void {
-    level :: HANGAR
+    level :: LEVELS[0]
     player :: new_player(level)
     player.x = 12.5
     player.y = 2.5

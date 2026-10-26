@@ -13,7 +13,7 @@ g....U....grrrrrrDrrrrrccccccDcccc
 g.S.......gr........A..c.........c
 g.T.Z...T.gz.B.........c..BBZ....c
 g.........gr.....Z.....c......A..c
-bbbbbDbbbbbz.....L.....D.........c
+bbbbbDbbbbbz.....L.....D.........X
 b.......A.br..H........c....L....c
 b.....Z.B.bz...Z.....B.c......Z..c
 b..L......br.U......B..c.H.....B.c

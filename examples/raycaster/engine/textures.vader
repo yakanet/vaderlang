@@ -256,22 +256,60 @@ MUZZLE_COLUMN: i32: 61
 compose_shot :: fn(gun: u32[], path: string) -> u32[] {
     flash :: load_picture(path)
     shot :: gun.clone()
-    left :: MUZZLE_COLUMN - flash.width / 2
-    for y in 0..<flash.height {
-        for x in 0..<flash.width {
-            pixel :: flash.pixels[i64(y * flash.width + x)]
+    shot.stamp(flash, MUZZLE_COLUMN - flash.width / 2, FLASH_TOP, flash.width, flash.height)
+    return shot
+}
+
+// Where the exit switch's pictures sit on its plate, in texels: the EXIT sign
+// above, the switch's panel below, level with the eye.
+SIGN_TOP: i32: 34
+PANEL_TOP: i32: 64
+
+// The exit switch: the EXIT sign and the switch's panel in the PPM file at
+// `panel_path` (Freedoom's patches), drawn on a bare steel plate.
+compose_exit :: fn(panel_path: string) -> u32[] {
+    exit :: load_texture("../assets/textures/Metal021.ppm")
+    exit.stamp_centred(load_picture("../assets/patches/exit1.ppm"), SIGN_TOP)
+    exit.stamp_centred(load_picture(panel_path), PANEL_TOP)
+    return exit
+}
+
+// Draw `picture` on the exit switch's plate `exit`, centred across it, its top
+// at row `top`, twice as wide as it is. The plate stretches over the whole
+// height of a wall (`Cell.Exit`), so the picture is drawn shorter by as much, to
+// keep its pixels square.
+stamp_centred :: fn(exit: u32[], picture: Picture, top: i32) -> void {
+    width :: picture.width * 2
+    height :: i32(round(f64(picture.height * 2) / WALL_HEIGHT))
+    exit.stamp(picture, (TEXTURE_SIZE - width) / 2, top, width, height)
+}
+
+// Draw `picture` on `texture`, a canvas `TEXTURE_SIZE` texels wide, stretched to
+// `width` by `height` texels, its top left corner at `(left, top)`; its
+// transparent texels leave the texture showing.
+stamp :: fn(
+    texture: u32[],
+    picture: Picture,
+    left: i32,
+    top: i32,
+    width: i32,
+    height: i32,
+) -> void {
+    for y in 0..<height {
+        row_start :: y * picture.height / height * picture.width
+        for x in 0..<width {
+            pixel :: picture.pixels[i64(row_start + x * picture.width / width)]
             if is_opaque(pixel) {
-                shot[i64((FLASH_TOP + y) * TEXTURE_SIZE + left + x)] = pixel
+                texture[i64((top + y) * TEXTURE_SIZE + left + x)] = pixel
             }
         }
     }
-    return shot
 }
 
 // ---- the textures, read by the build --------------------------------------
 
 // The walls, indexed by `CellInfo.texture`, mipmapped: the door first, then one
-// per kind of wall cell.
+// per kind of wall cell, the exit switch last, off then on.
 WALL_TEXTURES: u32[][]: @comptime [
     with_mipmaps(compose_door(load_texture("../assets/textures/MetalPlates014.ppm"))),
     load_mipmapped("../assets/textures/Bricks106A.ppm"),
@@ -282,6 +320,8 @@ WALL_TEXTURES: u32[][]: @comptime [
     load_mipmapped("../assets/textures/PaintedMetal004.ppm"),
     load_mipmapped("../assets/textures/Concrete034.ppm"),
     load_mipmapped("../assets/textures/CorrugatedSteel005.ppm"),
+    with_mipmaps(compose_exit("../assets/patches/sw2s0.ppm")),
+    with_mipmaps(compose_exit("../assets/patches/sw2s1.ppm")),
 ]
 // Steel floor plates, mipmapped.
 FLOOR_TEXTURE: u32[]: @comptime load_mipmapped("../assets/textures/MetalPlates006.ppm")

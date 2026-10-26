@@ -62,10 +62,10 @@ cast_ray :: fn(level: Level, x: f64, y: f64, ray_x: f64, ray_y: f64) -> Hit {
         }
         if crossed_x {
             distance :: next_x - delta_x
-            return face_hit(cell, distance, y + distance * ray_y, ray_x > 0.0, true)
+            return face_hit(cell, distance, y + distance * ray_y, ray_x, true)
         }
         distance :: next_y - delta_y
-        return face_hit(cell, distance, x + distance * ray_x, ray_y < 0.0, false)
+        return face_hit(cell, distance, x + distance * ray_x, ray_y, false)
     }
 }
 
@@ -96,26 +96,28 @@ direction_of :: fn(component: f64) -> i32 {
 }
 
 // The hit on a wall face of `cell`, `distance` away, struck at `along` (a
-// coordinate along the face). `mirrored` faces read their texture right to left,
-// so that no face shows it backwards.
+// coordinate along the face) by a ray moving `towards` across it.
 face_hit :: fn(
     cell: Cell,
     distance: f64,
     along: f64,
-    mirrored: bool,
+    towards: f64,
     faces_east_west: bool,
 ) -> Hit =
     Hit {
         .distance = distance,
         .cell = cell,
-        .across = texture_column(along - floor(along), mirrored),
+        .across = texture_column(along - floor(along), towards, faces_east_west),
         .faces_east_west = faces_east_west,
     }
 
-// The column a face shows at `fraction` across it, read right to left when
-// `mirrored`.
-texture_column :: fn(fraction: f64, mirrored: bool) -> f64 {
-    if mirrored {
+// The column a face shows `fraction` along it, struck by a ray moving `towards`
+// across it, so that no face shows its texture backwards. The view's right is
+// the ray turned a quarter towards the south of east: a face facing east or west
+// runs along y and reads right to left seen westwards, one facing north or south
+// runs along x and reads right to left seen southwards.
+texture_column :: fn(fraction: f64, towards: f64, faces_east_west: bool) -> f64 {
+    if faces_east_west == (towards < 0.0) {
         return 1.0 - fraction
     }
     return fraction
@@ -132,7 +134,8 @@ strike_door :: fn(door: Door, x: f64, y: f64, ray_x: f64, ray_y: f64) -> Hit | n
 
 // The hit on a door panel `ahead` away across the axis the ray `towards` moves
 // on, the ray starting `sideways` from the cell's edge along the panel. The panel
-// slides along its own length, so its texture slides with it.
+// slides along its own length, so its texture slides with it, read the right way
+// from either side as a wall's is.
 strike_panel :: fn(
     door: Door,
     ahead: f64,
@@ -152,7 +155,7 @@ strike_panel :: fn(
     return Hit {
         .distance = distance,
         .cell = .Door,
-        .across = along - door.open,
+        .across = texture_column(along - door.open, towards, faces_east_west),
         .faces_east_west = faces_east_west,
     }
 }
@@ -192,4 +195,46 @@ test_ray_distance_is_along_the_view :: fn() -> void {
     hit :: cast_ray(tiny(), 1.5, 3.5, 1.0, 0.5)
     assert_eq(hit.distance, 1.0)
     assert(!hit.faces_east_west, "a wall met going south faces north")
+}
+
+// Whether `player`, at the start of the level of `rows` and turned by `angle`,
+// sees the wall or the door ahead show its texture's columns in order from left
+// to right.
+reads_left_to_right :: fn(rows: string[], angle: f64) -> bool {
+    level :: parsed(rows)
+    player :: new_player(level)
+    player.turn(angle)
+    // Two rays either side of the centre of the view, cast as `draw_walls` does.
+    return player.ray_at(level, -0.3).across < player.ray_at(level, 0.3).across
+}
+
+// What `player`'s ray `camera` across the view strikes, from -1 at its left edge
+// to 1 at its right.
+ray_at :: fn(player: Player, level: Level, camera: f64) -> Hit = cast_ray(
+    level,
+    player.x,
+    player.y,
+    player.direction_x + player.plane_x * camera,
+    player.direction_y + player.plane_y * camera,
+)
+
+@test
+test_ray_walls_read_left_to_right :: fn() -> void {
+    room :: ["#####", "#...#", "#.@.#", "#...#", "#####"]
+    assert(reads_left_to_right(room, 0.0), "a wall seen eastwards")
+    assert(reads_left_to_right(room, pi), "a wall seen westwards")
+    assert(reads_left_to_right(room, pi / 2.0), "a wall seen southwards")
+    assert(reads_left_to_right(room, -pi / 2.0), "a wall seen northwards")
+}
+
+@test
+test_ray_doors_read_left_to_right :: fn() -> void {
+    west_of :: ["#####", "#.#.#", "#@D.#", "#.#.#", "#####"]
+    east_of :: ["#####", "#.#.#", "#.D@#", "#.#.#", "#####"]
+    north_of :: ["#####", "#.@.#", "##D##", "#...#", "#####"]
+    south_of :: ["#####", "#...#", "##D##", "#.@.#", "#####"]
+    assert(reads_left_to_right(west_of, 0.0), "a door seen eastwards")
+    assert(reads_left_to_right(east_of, pi), "a door seen westwards")
+    assert(reads_left_to_right(north_of, pi / 2.0), "a door seen southwards")
+    assert(reads_left_to_right(south_of, -pi / 2.0), "a door seen northwards")
 }

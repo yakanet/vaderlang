@@ -30,4 +30,6 @@ export Noise :: enum {
     DoorCloses,
     /// The player picking something up.
     PickUp,
+    /// The player throwing the exit switch.
+    Exit,
 }

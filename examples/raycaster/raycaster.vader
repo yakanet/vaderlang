@@ -1,22 +1,23 @@
-// examples/raycaster: a first-person walk through a hangar full of zombies, in
-// a window.
+// examples/raycaster: a first-person walk through a hangar full of zombies, then
+// a depot, in a window.
 //
 // The engine (`engine/`) draws each frame in Vader, pixel by pixel, into a
 // buffer; raylib only opens the window, reads the keyboard and the mouse, plays
 // the sounds, and shows the buffer, scaled up, as one texture. The level, the
 // textures, the sprites and the sounds are files under `assets/`, read when the
-// program is compiled.
+// program is compiled. A level ends at its exit switch: thrown, the next level
+// begins, the player keeping their health and bullets.
 //
 //   vader build --run --release examples/raycaster
 //
 // Moving goes by the keys' places: W A S D on a QWERTY keyboard, Z Q S D on an
 // AZERTY one, or Up and Down; the mouse, Left and Right turn; the left button or
 // Ctrl fires. A command letter goes by what its key types, whatever the layout: E
-// (or Space) for the door ahead, M for the map, F (or F11) to fill the screen or
-// leave it, P to save the window as `raycaster.png` in the working directory.
-// Enter starts again once fallen or once every zombie is down, Escape pauses. The
-// game opens on its title: Enter plays, Escape leaves; from the pause, Escape
-// plays on and Q leaves.
+// (or Space) for the door or the switch ahead, M for the map, F (or F11) to fill
+// the screen or leave it, P to save the window as `raycaster.png` in the working
+// directory. Enter starts again once fallen, and goes on to the next level once
+// one is done; Escape pauses. The game opens on its title: Enter plays, Escape
+// leaves; from the pause, Escape plays on and Q leaves.
 // `frames/` is the same engine without a window.
 
 module "main"
@@ -50,7 +51,7 @@ MOUSE_TURN :: 0.0025
 /// diagonally is no faster: the square root of one half.
 DIAGONAL :: 0.70710678
 
-HELP :: "WASD / ZQSD: move   mouse: turn   click: fire   E: door   M: map   F: full screen   P: screenshot   Esc: pause"
+HELP :: "WASD / ZQSD: move   mouse: turn   click: fire   E: use   M: map   F: full screen   P: screenshot   Esc: pause"
 
 /// The side of the HUD's icons, in HUD pixels.
 ICON_SIZE: i32: 40
@@ -78,16 +79,71 @@ Phase :: enum {
     Leaving,
 }
 
-/// One game: the level as it stands, and the player in it.
+/// One game: the level as it stands, the player in it, and which of `LEVELS` it is.
 Game :: struct {
     level: Level
+    /// How `level` is lit: its `light_map`.
+    lights: LightMap
     player: Player
+    index: i64
 }
 
-/// A game from the start: the hangar as the build read it, the player at its start.
-new_game :: fn() -> Game {
-    level :: HANGAR
-    return Game { .level = level, .player = new_player(level) }
+/// How a game stands.
+Progress :: enum {
+    /// The player is in a level whose exit switch is not thrown yet.
+    Playing,
+    /// The player fell.
+    Fallen,
+    /// The player threw the exit switch of a level before the last.
+    LevelDone,
+    /// The player threw the exit switch of the last level.
+    Won,
+}
+
+// The game at the start of `LEVELS[index]`, as the build read it.
+game_at :: fn(index: i64) -> Game {
+    level :: LEVELS[index]
+    return Game {
+        .level = level,
+        .lights = light_map(level),
+        .player = new_player(level),
+        .index = index,
+    }
+}
+
+/// A game from the start of the first level.
+new_game :: fn() -> Game = game_at(0)
+
+// The game in the level after `game`'s, the player keeping their health and
+// their bullets.
+next_level :: fn(game: Game) -> Game {
+    next :: game_at(game.index + 1)
+    next.player.health = game.player.health
+    next.player.ammo = game.player.ammo
+    return next
+}
+
+// How `game` stands.
+progress :: fn(game: Game) -> Progress {
+    if game.player.health <= 0 {
+        return .Fallen
+    }
+    if !game.level.exited() {
+        return .Playing
+    }
+    if game.index == LEVELS.len() - 1 {
+        return .Won
+    }
+    return .LevelDone
+}
+
+// The game Enter starts once `game` is over: the next level after a level done,
+// the first level again otherwise.
+after :: fn(game: Game) -> Game {
+    if game.progress() == .LevelDone {
+        return game.next_level()
+    }
+    return new_game()
 }
 
 main :: fn() -> i32 {
@@ -108,7 +164,7 @@ main :: fn() -> i32 {
     defer unload_sounds(sounds)
     icons :: load_icons()
     defer unload_icons(icons)
-    lights :: light_map(HANGAR)
+    game := new_game()
     frame :: new_frame(VIEW_WIDTH, VIEW_HEIGHT)
     screen :: load_blank_texture(VIEW_WIDTH, VIEW_HEIGHT)
     defer unload_texture(screen)
@@ -118,7 +174,6 @@ main :: fn() -> i32 {
         .width = f32(VIEW_WIDTH),
         .height = f32(VIEW_HEIGHT),
     }
-    game := new_game()
     show_map := true
     phase := Phase.Title
     for !window_should_close() {
@@ -136,11 +191,14 @@ main :: fn() -> i32 {
         }
         phase = next
         if phase == .Playing {
-            if is_over(level, player) && is_key_pressed(.Enter) {
-                game = new_game()
+            if game.progress() != .Playing && is_key_pressed(.Enter) {
+                game = game.after()
                 continue
             }
-            play(level, player, seconds, typed, noises)
+            // A fallen player's level plays on around them; a level done stops.
+            if !level.exited() {
+                play(level, player, seconds, typed, noises)
+            }
         }
         if 'm' in typed {
             show_map = !show_map
@@ -151,7 +209,7 @@ main :: fn() -> i32 {
         for noise in noises {
             play_sound(sound_of(sounds, noise))
         }
-        render(frame, level, player, lights)
+        render(frame, level, player, game.lights)
         if show_map {
             draw_minimap(frame, level, player, 4)
         }
@@ -161,7 +219,7 @@ main :: fn() -> i32 {
         begin_drawing()
         clear_background(BLACK)
         draw_texture_pro(screen, source, view, Vector2 { .x = 0.0, .y = 0.0 }, 0.0, WHITE)
-        draw_hud(view, icons, phase, level, player)
+        draw_hud(view, icons, phase, game)
         end_drawing()
         if 'p' in typed {
             take_screenshot("raycaster.png")
@@ -208,7 +266,7 @@ next_phase :: fn(phase: Phase, typed: char[]) -> Phase {
             if is_key_pressed(.Enter)  { return .Playing }
             if is_key_pressed(.Escape) { return .Leaving }
         }
-        .Playing -> {
+        .Playing   -> {
             if is_key_pressed(.Escape) {
                 return .Paused
             }
@@ -244,10 +302,7 @@ play :: fn(level: Level, player: Player, seconds: f64, typed: char[], noises: No
             player.fire(level, noises)
         }
         if 'e' in typed || is_key_pressed(.Space) {
-            door :: player.door_ahead(level)
-            if door != null {
-                door.toggle(noises)
-            }
+            player.use_ahead(level, noises)
         }
     }
     level.update_doors(player, seconds)
@@ -292,7 +347,9 @@ fitted_view :: fn() -> Rectangle {
 
 // What `phase` shows over `view`: the title, or the health, the bullets and the
 // zombies left, the keys, the pause, and what became of the player.
-draw_hud :: fn(view: Rectangle, icons: Icons, phase: Phase, level: Level, player: Player) -> void {
+draw_hud :: fn(view: Rectangle, icons: Icons, phase: Phase, game: Game) -> void {
+    level :: game.level
+    player :: game.player
     if phase != .Playing {
         draw_rectangle_rec(view, SHADE)
     }
@@ -311,16 +368,25 @@ draw_hud :: fn(view: Rectangle, icons: Icons, phase: Phase, level: Level, player
         return
     }
     draw_text(HELP, view.across(16), view.down(694), view.scaled(20), RAYWHITE)
-    if player.health <= 0 {
-        view.draw_centred("YOU FELL. Enter: start again", 340, 40)
-    } else if level.cleared() {
-        view.draw_centred("YOU WIN", 300, 80)
-        view.draw_centred("The hangar is clear. Enter: play again", 390, 30)
+    match game.progress() {
+        .Fallen    -> view.draw_centred("YOU FELL. Enter: start again", 340, 40)
+        .Won       -> {
+            view.draw_centred("YOU WIN", 300, 80)
+            view.draw_centred("Every level is done. Enter: play again", 390, 30)
+        }
+        .LevelDone -> {
+            view.draw_centred("LEVEL COMPLETE", 300, 80)
+            total :: level.enemies.len()
+            down :: total - level.standing()
+            view.draw_centred("Zombies down: ${down} / ${total}   Enter: next level", 390, 30)
+        }
+        .Playing   -> {
+            if level.cleared() {
+                view.draw_centred("Every zombie is down: find the exit", 60, 30)
+            }
+        }
     }
 }
-
-// Whether the game has ended: the player fell, or no zombie still stands.
-is_over :: fn(level: Level, player: Player) -> bool = player.health <= 0 || level.cleared()
 
 // Draw `icon` with `text` beside it on the line of counts, `x` HUD pixels from
 // `view`'s left edge.
@@ -409,6 +475,7 @@ Sounds :: struct {
     door_opens: Sound
     door_closes: Sound
     pick_up: Sound
+    exit: Sound
 }
 
 // The sound files, from Freedoom, read by the build.
@@ -421,6 +488,7 @@ PLAYER_DEATH_WAV: u8[]: @comptime read_sound("assets/sounds/dspldeth.wav")
 DOOR_OPENS_WAV: u8[]: @comptime read_sound("assets/sounds/dsdoropn.wav")
 DOOR_CLOSES_WAV: u8[]: @comptime read_sound("assets/sounds/dsdorcls.wav")
 PICK_UP_WAV: u8[]: @comptime read_sound("assets/sounds/dsitemup.wav")
+EXIT_WAV: u8[]: @comptime read_sound("assets/sounds/dsswtchx.wav")
 
 // The bytes of the sound file at `path`, relative to this source file: one that
 // is missing stops the build.
@@ -444,6 +512,7 @@ load_sounds :: fn() -> Sounds = Sounds {
     .door_opens = decode_sound(DOOR_OPENS_WAV),
     .door_closes = decode_sound(DOOR_CLOSES_WAV),
     .pick_up = decode_sound(PICK_UP_WAV),
+    .exit = decode_sound(EXIT_WAV),
 }
 
 // The sound in the WAV file `data`. The files are the build's, so one that does
@@ -462,6 +531,7 @@ unload_sounds :: fn(sounds: Sounds) -> void {
     unload_sound(sounds.door_opens)
     unload_sound(sounds.door_closes)
     unload_sound(sounds.pick_up)
+    unload_sound(sounds.exit)
 }
 
 // The sound that plays for `noise`.
@@ -476,4 +546,5 @@ sound_of :: fn(sounds: Sounds, noise: Noise) -> Sound = match noise {
     .DoorOpens  -> sounds.door_opens
     .DoorCloses -> sounds.door_closes
     .PickUp     -> sounds.pick_up
+    .Exit       -> sounds.exit
 }

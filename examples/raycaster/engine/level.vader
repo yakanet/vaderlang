@@ -12,6 +12,7 @@ module "engine"
 
 import "std/abort"
 import "std/io"
+import "std/iter"
 import "std/math"
 import "std/string"
 
@@ -23,7 +24,7 @@ export CellInfo :: struct {
     /// how far it is open decides.
     solid: bool = true
     /// How many cells of height the texture spans: a wall shows it once per cell,
-    /// a door stretches it over its whole height.
+    /// a door or the exit switch stretches it over its whole height.
     texture_height: f64 = 1.0
 }
 
@@ -39,6 +40,10 @@ export Cell :: enum(CellInfo) {
     Red        { .texture = 6 },
     Concrete   { .texture = 7 },
     Corrugated { .texture = 8 },
+    /// The exit switch, a wall: thrown, it ends the level.
+    Exit { .texture = 9, .texture_height = WALL_HEIGHT },
+    /// The exit switch once thrown.
+    ExitOn { .texture = 10, .texture_height = WALL_HEIGHT },
 }
 
 /// Which way a door's panel lies across its cell. A panel sits halfway through
@@ -122,6 +127,9 @@ export Level :: struct {
     start_y: f64
 }
 
+/// Whether the player has thrown the exit switch of `level`: the level is done.
+export exited :: fn(level: Level) -> bool = level.cells.any_match(cell -> cell == .ExitOn)
+
 // Why a level's text was refused, and where.
 LevelError :: struct {
     message: string
@@ -135,7 +143,7 @@ LevelError implements Display -> "level ${self.row + 1}:${self.column + 1}: ${se
 export LEGEND :: """
     #  stone        b  brick        r  rusty plates   s  steel
     g  green metal  x  red metal    c  concrete       z  corrugated steel
-    D  door         .  floor        @  player start, facing east
+    D  door         X  exit switch  .  floor        @  player start, facing east
     B  barrel       C  column       U  light column   L  lamp   T  torch
     A  clip         S  stimpack     H  medikit
     Z  zombie
@@ -147,14 +155,18 @@ THING_RADIUS :: 0.25
 // How far a door must be open for a body to pass it.
 DOOR_PASSABLE :: 0.9
 
-/// The level the examples walk through, read and checked when the program is
-/// compiled.
-export HANGAR: Level: @comptime load_level("../assets/levels/hangar.txt")
+/// The levels, in the order they are played, read and checked when the program
+/// is compiled. The first, the hangar, is the one `frames` walks through.
+export LEVELS: Level[]: @comptime [
+    load_level("../assets/levels/hangar.txt"),
+    load_level("../assets/levels/depot.txt"),
+]
 
 // ---- reading --------------------------------------------------------------
 
 // Read the level in the text file at `path`, relative to this source file. A
-// file that is missing or does not parse stops the build, naming the file and why.
+// file that is missing, that does not parse, or whose level has no exit switch or
+// several, stops the build, naming the file and why.
 load_level :: fn(path: string) -> Level {
     text :: read_file_string(path)
     if text is IOError {
@@ -170,6 +182,10 @@ load_level :: fn(path: string) -> Level {
     level :: parse_level(rows)
     if level is LevelError {
         panic("`${path}`: ${level}")
+    }
+    switches :: level.cells.filter(cell -> cell == .Exit).count()
+    if switches != 1 {
+        panic("`${path}`: expected one exit switch, got ${switches}")
     }
     return level
 }
@@ -262,6 +278,7 @@ cell_of :: fn(c: char) -> Cell | null = match c {
     'c'                                           -> .Concrete
     'z'                                           -> .Corrugated
     'D'                                           -> .Door
+    'X'                                           -> .Exit
     '.' | '@' | 'B' | 'C' | 'U' | 'L' | 'T' | 'Z' -> .Empty
     'A' | 'S' | 'H'                               -> .Empty
     _                                             -> null
@@ -465,5 +482,5 @@ test_level_parse_places_a_zombie_on_empty_floor :: fn() -> void {
 
 @test
 test_level_hangar_is_read_by_the_build :: fn() -> void {
-    assert(HANGAR.doors.len() == 6, "the hangar has six doors")
+    assert(LEVELS[0].doors.len() == 6, "the hangar has six doors")
 }
