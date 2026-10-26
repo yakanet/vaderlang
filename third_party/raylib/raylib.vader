@@ -135,9 +135,9 @@ export KeyboardKey :: enum(i32) {
     E           = 69,
     M           = 77,
     P           = 80,
-    Q           = 81,
     S           = 83,
     W           = 87,
+    X           = 88,
     Escape      = 256,
     Enter       = 257,
     Right       = 262,
@@ -267,6 +267,11 @@ export end_drawing :: fn() -> void
 /// Fill the whole frame with one colour.
 @extern(RAYLIB, "ClearBackground")
 export clear_background :: fn(color: Color) -> void
+
+/// Fill `rectangle` with `color`: a colour with an alpha below 255 lets what is
+/// under it show through.
+@extern(RAYLIB, "DrawRectangleRec")
+export draw_rectangle_rec :: fn(rectangle: Rectangle, color: Color) -> void
 
 /// Draw `text` in raylib's default font, its top-left corner at `x`, `y`.
 @extern(RAYLIB, "DrawText")

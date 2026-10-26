@@ -13,7 +13,9 @@
 // move, the mouse, Left and Right to turn, the left button or Ctrl to fire, E or
 // Space for the door ahead, M for the map, F11 to fill the screen or leave it, P
 // to save the window as `raycaster.png` in the working directory, Enter to start
-// again once fallen or once every zombie is down, Escape to leave.
+// again once fallen or once every zombie is down, Escape to pause. The game opens
+// on its title: Enter plays, Escape leaves; from the pause, Escape plays on and X
+// leaves.
 // `frames/` is the same engine without a window.
 
 module "main"
@@ -47,7 +49,27 @@ MOUSE_TURN :: 0.0025
 /// diagonally is no faster: the square root of one half.
 DIAGONAL :: 0.70710678
 
-HELP :: "WASD: move   mouse: turn   click: fire   E: door   M: map   F11: full screen   P: screenshot   Esc: quit"
+HELP :: "WASD: move   mouse: turn   click: fire   E: door   M: map   F11: full screen   P: screenshot   Esc: pause"
+
+/// What darkens the view under the title and the pause, so that their text reads.
+SHADE :: Color {
+    .r = 0,
+    .g = 0,
+    .b = 0,
+    .a = 160,
+}
+
+/// Which screen the loop shows: what it draws over the view, and which keys it reads.
+Phase :: enum {
+    /// The title, over the level as it starts.
+    Title,
+    /// The game running.
+    Playing,
+    /// The game stopped, drawn as it stood.
+    Paused,
+    /// The player asked to leave.
+    Leaving,
+}
 
 /// One game: the level as it stands, and the player in it.
 Game :: struct {
@@ -69,11 +91,12 @@ main :: fn() -> i32 {
         return 1
     }
     defer close_window()
+    // Escape pauses: only the window's close button and X leave.
+    set_exit_key(.Null)
     init_audio_device()
     defer close_audio_device()
     set_master_volume(VOLUME)
     set_target_fps(60)
-    disable_cursor()
     sounds :: load_sounds()
     defer unload_sounds(sounds)
     lights :: light_map(HANGAR)
@@ -88,26 +111,26 @@ main :: fn() -> i32 {
     }
     game := new_game()
     show_map := true
+    phase := Phase.Title
     for !window_should_close() {
         seconds :: f64(get_frame_time())
         level :: game.level
         player :: game.player
         noises: Noise[]: []
-        if player.health > 0 {
-            steer(player, level, seconds)
-            if is_mouse_button_down(.Left) || is_key_down(.LeftControl) {
-                player.fire(level, noises)
-            }
-            if is_key_pressed(.E) || is_key_pressed(.Space) {
-                door :: player.door_ahead(level)
-                if door != null {
-                    door.toggle(noises)
-                }
-            }
+        next :: next_phase(phase)
+        if next == .Leaving {
+            break
         }
-        if is_over(level, player) && is_key_pressed(.Enter) {
-            game = new_game()
-            continue
+        if next != phase {
+            use_cursor_for(next)
+        }
+        phase = next
+        if phase == .Playing {
+            if is_over(level, player) && is_key_pressed(.Enter) {
+                game = new_game()
+                continue
+            }
+            play(level, player, seconds, noises)
         }
         if is_key_pressed(.M) {
             show_map = !show_map
@@ -115,9 +138,6 @@ main :: fn() -> i32 {
         if is_key_pressed(.F11) {
             toggle_borderless_windowed()
         }
-        level.update_doors(player, seconds)
-        level.update_enemies(player, seconds, noises)
-        player.update_player(seconds)
         for noise in noises {
             play_sound(sound_of(sounds, noise))
         }
@@ -131,13 +151,67 @@ main :: fn() -> i32 {
         begin_drawing()
         clear_background(BLACK)
         draw_texture_pro(screen, source, view, Vector2 { .x = 0.0, .y = 0.0 }, 0.0, WHITE)
-        draw_hud(view, level, player)
+        draw_hud(view, phase, level, player)
         end_drawing()
         if is_key_pressed(.P) {
             take_screenshot("raycaster.png")
         }
     }
     return 0
+}
+
+// The phase after this frame's keys: from the title, Enter plays and Escape
+// leaves; Escape pauses the game, and from the pause plays on, or X leaves.
+next_phase :: fn(phase: Phase) -> Phase {
+    match phase {
+        .Title -> {
+            if is_key_pressed(.Enter)  { return .Playing }
+            if is_key_pressed(.Escape) { return .Leaving }
+        }
+        .Playing -> {
+            if is_key_pressed(.Escape) {
+                return .Paused
+            }
+        }
+        .Paused -> {
+            if is_key_pressed(.Escape) { return .Playing }
+            if is_key_pressed(.X)      { return .Leaving }
+        }
+        .Leaving -> {}
+    }
+    return phase
+}
+
+// Hide the cursor while the game runs, so that the mouse turns the view; show it
+// on the other screens.
+use_cursor_for :: fn(phase: Phase) -> void {
+    if phase == .Playing {
+        disable_cursor()
+        return
+    }
+    enable_cursor()
+}
+
+// Run the game on by `seconds`: the player's keys, then the doors, the zombies
+// and the player's own clocks.
+//
+// @param noises  what the player hears, appended to.
+play :: fn(level: Level, player: Player, seconds: f64, noises: Noise[]) -> void {
+    if player.health > 0 {
+        steer(player, level, seconds)
+        if is_mouse_button_down(.Left) || is_key_down(.LeftControl) {
+            player.fire(level, noises)
+        }
+        if is_key_pressed(.E) || is_key_pressed(.Space) {
+            door :: player.door_ahead(level)
+            if door != null {
+                door.toggle(noises)
+            }
+        }
+    }
+    level.update_doors(player, seconds)
+    level.update_enemies(player, seconds, noises)
+    player.update_player(seconds)
 }
 
 // Move and turn the player from the keys held and the mouse, for a frame of
@@ -174,10 +248,18 @@ fitted_view :: fn() -> Rectangle {
     }
 }
 
-// The health and the bullets left, the keys, and what became of the player,
-// over `view`.
-draw_hud :: fn(view: Rectangle, level: Level, player: Player) -> void {
+// What `phase` shows over `view`: the title, or the health and the bullets left,
+// the keys, the pause, and what became of the player.
+draw_hud :: fn(view: Rectangle, phase: Phase, level: Level, player: Player) -> void {
+    if phase != .Playing {
+        draw_rectangle_rec(view, SHADE)
+    }
     draw_text("${get_fps()} FPS", view.across(1180), view.down(10), view.scaled(20), RAYWHITE)
+    if phase == .Title {
+        view.draw_centred("VADER RAYCASTER", 260, 80)
+        view.draw_centred("Enter: play   Esc: quit", 370, 30)
+        return
+    }
     draw_text(
         "HEALTH ${player.health}   AMMO ${player.ammo}",
         view.across(16),
@@ -185,6 +267,11 @@ draw_hud :: fn(view: Rectangle, level: Level, player: Player) -> void {
         view.scaled(30),
         RAYWHITE,
     )
+    if phase == .Paused {
+        view.draw_centred("PAUSED", 260, 80)
+        view.draw_centred("Esc: play on   X: quit", 370, 30)
+        return
+    }
     draw_text(HELP, view.across(16), view.down(694), view.scaled(20), RAYWHITE)
     if player.health <= 0 {
         view.draw_centred("YOU FELL. Enter: start again", 340, 40)
