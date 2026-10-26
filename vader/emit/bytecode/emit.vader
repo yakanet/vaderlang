@@ -1168,16 +1168,13 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         skipped_receiver_get :: ctx.hints.skip_first_get.contains(pos)
         emit_first_get(ctx, pos, ins.target, ins.span)
         field_slot :: find_struct_field_index(ctx.project, type_index, ins.field)
+        // No such struct field at emit time: an upstream pass produced a field
+        // access that is not a real load. Fail loud, like the FnRef panic above
+        // and the MakeClosure one below: emitting nothing here would truncate
+        // the function in silence.
         if field_slot == null {
-            panic("emit/bytecode/emit: no field `${ins.field}` on `${display_type(target_type)}` (local ${ins.target} `${target_local.name}`) in '${ctx.fn_.mangled}'. A method reference on a primitive isn't a first-class value ; call it directly or wrap it in a lambda")
+            panic("emit/bytecode/emit: no field `${ins.field}` on `${display_type(target_type)}` (local ${ins.target} `${target_local.name}`) in '${ctx.fn_.mangled}'")
         }
-        // No such struct field at emit time: the upstream pass produced a
-        // field access that isn't a real load. The classic source is a
-        // primitive method reference taken as a first-class value (`s.hash`
-        // with no backing free fn) ; the old code emitted a silent
-        // `Drop ; Return` here, which truncated the whole function and
-        // mis-compiled in silence. Fail loud, like the FnRef / MakeClosure
-        // materialisation-gap panics above.
 
         field_index :: i32(field_slot)
         // Fuse `local.get N ; struct.get T F` → `local.field N T F`
@@ -1612,8 +1609,7 @@ import_call_target :: fn(p: EmitterCtx, index: i32) -> DirectCallTarget {
 /// the type isn't a struct or the field isn't found: the field-get /
 /// field-set callers panic on `null`, since a missing field at emit time
 /// means an upstream pass produced a field access that isn't a real
-/// struct member (e.g. a primitive method reference taken as a
-/// first-class value).
+/// struct member.
 ///
 /// @return the field's slot index, or `null` when no such struct field exists.
 find_struct_field_index :: fn(ctx: EmitterCtx, type_index: i32, field_name: string) -> i64 | null {
