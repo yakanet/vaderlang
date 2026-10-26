@@ -30,9 +30,8 @@ export is_evaluated :: fn(kind: IntrinsicArgKind) -> bool = match kind {
 export IntrinsicSpec :: struct {
     name:      string
     args:      IntrinsicArgKind[]
-    // Result kind is informative: the typechecker / lower passes have
-    // their own per-name dispatch and don't consult this. Stored here for
-    // completeness.
+    /// The type a call gives, as the typecheck reads it (`type_for_result`):
+    /// `"self"` and `"field"` are typed per call, from the arguments.
     result:    string
     /// How a call is written, typed as SPEC §14 writes it : `@size_of(T: type) -> i64`.
     signature: string
@@ -165,7 +164,7 @@ export INTRINSICS: IntrinsicSpec[]: [
     IntrinsicSpec {
         .name      = "field",
         .args      = [.Value, .Value],
-        .result    = "i64",
+        .result    = "field",
         .signature = "@field(x, name: string) -> <field type>",
         .doc       = "The field `name` of `x`. `name` is a static string literal, or `f.name` inside `@comptime for f in @fields(T)`, where it folds to a direct field access.",
     },

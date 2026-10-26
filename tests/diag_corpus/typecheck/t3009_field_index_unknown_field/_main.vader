@@ -1,0 +1,15 @@
+// T3009: `@field_index(T, "name")` on a struct must name one of its fields, as
+// `p.name` would. The diagnostic sits on the name.
+
+module "snippet"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+main :: fn() -> i32 {
+    known :: @field_index(Point, "y")
+    unknown :: @field_index(Point, "z")
+    return i32(known)
+}

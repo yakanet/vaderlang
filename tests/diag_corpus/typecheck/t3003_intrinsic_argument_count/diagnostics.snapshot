@@ -1,0 +1,3 @@
+[13:13] error[T3003] wrong number of arguments: `@size_of` expected 1, got 2
+[14:13] error[T3003] wrong number of arguments: `@field_count` expected 1, got 0
+[15:13] error[T3003] wrong number of arguments: `@field_index` expected 2, got 1

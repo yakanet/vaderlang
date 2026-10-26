@@ -5,7 +5,8 @@
 // `vader/front/parser/intrinsics::intrinsic_spec(name).result`. The result
 // string is one of "i64", "bool", "string", "type", "field_array",
 // "type_array" (`type_for_result`) : a primitive, `type`, `type[]`, or
-// `std/core`'s `Field[]`.
+// `std/core`'s `Field[]`. `@field` and `@min` / `@max` take theirs from their
+// arguments, and are unresolved when those are wrong.
 
 module "vader/front/typecheck"
 
@@ -43,6 +44,16 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
                 typed.type_expr_types[e.args[i].span.hash()] = resolved
             }
         }
+    }
+    // Every intrinsic takes as many arguments as its spec lists: past here, each
+    // one sits where its kind says.
+    if e.args.len() != spec.args.len() {
+        diags.push(typecheck_error(.WrongArgCount, e.span,
+            "`@${e.name}` expected ${spec.args.len()}, got ${e.args.len()}"))
+        return type_for_result(spec.result, typed)
+    }
+    if e.name == "field_index" {
+        check_field_index(e, typed, diags)
     }
     if e.name == "field" {
         return infer_field_intrinsic(e, typed, diags)
@@ -84,42 +95,42 @@ check_type_value :: fn(arg: AST.Expr, got: Type, diags: Diagnostic[]) -> void {
 infer_field_intrinsic :: fn(
     e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    if e.args.len() < 2 {
-        return TY_UNRESOLVED
-    }
     recv_ty :: typed.expr_types[e.args[0].id] ?? return TY_UNRESOLVED
     if recv_ty !is UnionType && struct_backing(recv_ty) == null {
         return TY_UNRESOLVED
     }
-    name_arg :: e.args[1]
-    if name_arg !is AST.StringLitExpr {
-        return TY_UNRESOLVED
-    }
-    field_name :: static_string_value(name_arg)
-    if field_name == "" {
-        return TY_UNRESOLVED
-    }
+    field_name :: AST.string_literal_text(e.args[1]) ?? return TY_UNRESOLVED
     access :: AST.FieldExpr {
         .span = e.span,
         .target = e.args[0],
         .field = field_name,
-        .field_span = name_arg.span,
+        .field_span = e.args[1].span,
         .is_numeric = false,
     }
     return try_union_common_field_dispatch(recv_ty, access, typed, diags)
         ?? resolve_struct_field(recv_ty, access, typed, diags)
 }
 
-static_string_value :: fn(e: AST.StringLitExpr) -> string {
-    out := ""
-    for p in e.parts {
-        match p {
-            is AST.StringLitText -> { out = "${out}${p.value}" }
-            _ -> { return "" }
-        }
+// `@field_index(T, "name")` on a struct names one of its fields. A name only
+// `@comptime for` unrolls, or a type parameter, is left to lowering, which knows
+// both. The comptime evaluator counts on this check: it reports nothing for such
+// a name (`REPORTED_BY_TYPECHECK`).
+check_field_index :: fn(
+    e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    owner :: typed.type_expr_types[e.args[0].span.hash()] ?? return
+    name :: AST.string_literal_text(e.args[1]) ?? return
+    if owner !is StructType {
+        return
     }
-    return out
+    decl :: typed.struct_decls[owner.symbol.id] ?? return
+    if field_position(decl, name) >= 0 {
+        return
+    }
+    diags.push(typecheck_error(.FieldDoesNotExist, e.args[1].span,
+        "`${name}` on `${display_type(owner)}`"))
 }
+
 
 
 

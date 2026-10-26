@@ -1,0 +1,17 @@
+// T3003: an intrinsic takes as many arguments as its signature names, whether
+// too many (`@size_of(i32, i64)`) or too few (`@field_index(Point)`): the
+// backends read each argument where the signature places it.
+
+module "snippet"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+main :: fn() -> i32 {
+    both :: @size_of(i32, i64)
+    none :: @field_count()
+    half :: @field_index(Point)
+    return 0
+}

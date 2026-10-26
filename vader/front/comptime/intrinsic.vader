@@ -37,7 +37,7 @@ evaluate_intrinsic_call :: fn(
 // held in the integer `T` is ; of an enum, its variant of that value ; of `char`,
 // U+0000 or U+10FFFF.
 intrinsic_integer_bound :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
-    if expr.args.len() != 1 { return arg_count_error(expr, expr.name, 1) }
+    if expr.args.len() != 1 { return REPORTED_BY_TYPECHECK }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "${expr.name}: argument is not a type") }
     values :: type_bounds(arg_type)
@@ -54,7 +54,7 @@ intrinsic_integer_bound :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeCont
 // `@satisfies(T, Trait)`.
 intrinsic_satisfies :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 2 {
-        return arg_count_error(expr, "satisfies", 2)
+        return REPORTED_BY_TYPECHECK
     }
     target :: resolve_type_arg(expr.args[0], context)
         ?? return arg_error(expr, "satisfies: first argument is not a type")
@@ -64,7 +64,7 @@ intrinsic_satisfies :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
 
 // `@field_count(T)`: fields on a Struct, elements on a Tuple, 0 otherwise.
 intrinsic_field_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
-    if expr.args.len() != 1 { return arg_count_error(expr, "field_count", 1) }
+    if expr.args.len() != 1 { return REPORTED_BY_TYPECHECK }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "field_count: argument is not a type") }
     return ok(int_val_typed(type_field_count(arg_type, context), "i64"))
@@ -82,7 +82,7 @@ type_field_count :: fn(t: Type, context: ComptimeContext) -> i64 {
 
 // `@variant_count(T)`: variants on a Union or Enum, 0 otherwise.
 intrinsic_variant_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
-    if expr.args.len() != 1 { return arg_count_error(expr, "variant_count", 1) }
+    if expr.args.len() != 1 { return REPORTED_BY_TYPECHECK }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "variant_count: argument is not a type") }
     return ok(int_val_typed(type_variant_count(arg_type), "i64"))
@@ -97,7 +97,7 @@ type_variant_count :: fn(t: Type) -> i64 {
 // `@field_index(T, "name")`: 0-based position of `name` in struct `T`'s field
 // list. `T` must be a struct and `name` a static string literal naming a field.
 intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
-    if expr.args.len() != 2 { return arg_count_error(expr, "field_index", 2) }
+    if expr.args.len() != 2 { return REPORTED_BY_TYPECHECK }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "field_index: first argument is not a type") }
     name :: AST.string_literal_text(expr.args[1])
@@ -108,7 +108,7 @@ intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
             for i in 0..<decl.fields.len() {
                 if decl.fields[i].name == name { return ok(int_val_typed(i, "i64")) }
             }
-            return arg_error(expr, "field_index: `${display_type(arg_type)}` has no field named `${name}`")
+            return REPORTED_BY_TYPECHECK
         }
         return arg_error(expr, "field_index: struct declaration for `${display_type(arg_type)}` not found")
     }
@@ -117,7 +117,7 @@ intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
 
 intrinsic_size_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 1 {
-        return arg_count_error(expr, "size_of", 1)
+        return REPORTED_BY_TYPECHECK
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "size_of: argument is not a type") }
@@ -126,7 +126,7 @@ intrinsic_size_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -
 
 intrinsic_align_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 1 {
-        return arg_count_error(expr, "align_of", 1)
+        return REPORTED_BY_TYPECHECK
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "align_of: argument is not a type") }
@@ -135,7 +135,7 @@ intrinsic_align_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) 
 
 intrinsic_type_name :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 1 {
-        return arg_count_error(expr, "type_name", 1)
+        return REPORTED_BY_TYPECHECK
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "type_name: argument is not a type") }
@@ -144,7 +144,7 @@ intrinsic_type_name :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
 
 intrinsic_type_kind :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 1 {
-        return arg_count_error(expr, "type_kind", 1)
+        return REPORTED_BY_TYPECHECK
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "type_kind: argument is not a type") }
@@ -199,10 +199,10 @@ export type_kind_label :: fn(t: Type) -> string = match t {
     is AnyType        -> "any"
 }
 
-arg_count_error :: fn(expr: AST.IntrinsicCallExpr, name: string, expected: i64) -> EvalResult {
-    return fail(comptime_error(.FeatureNotSupported, expr.span,
-        "@${name} expects ${expected} argument(s), got ${expr.args.len()}"))
-}
+// What a call the typecheck has already refused evaluates to: no value and no
+// diagnostic, so that its T3003 (an argument count other than the spec's) or its
+// T3009 (a field the struct does not have) is not reported twice.
+REPORTED_BY_TYPECHECK :: EvalResult { .value = null, .diag = null }
 
 arg_error :: fn(expr: AST.IntrinsicCallExpr, detail: string) -> EvalResult {
     return fail(comptime_error(.FeatureNotSupported, expr.span, detail))
