@@ -278,6 +278,9 @@ Billboard :: struct {
 billboards :: fn(level: Level) -> Billboard[] {
     out: Billboard[]: [] * (level.things.len() + level.enemies.len())
     for thing in level.things {
+        if thing.taken {
+            continue
+        }
         out.push(Billboard {
             .x = thing.x,
             .y = thing.y,
@@ -396,9 +399,12 @@ export draw_minimap :: fn(frame: Frame, level: Level, player: Player, cell_size:
         }
     }
     for thing in level.things {
+        if thing.taken {
+            continue
+        }
         thing_x :: MAP_MARGIN + i32(thing.x * f64(cell_size)) - 1
         thing_y :: MAP_MARGIN + i32(thing.y * f64(cell_size)) - 1
-        frame.fill(thing_x, thing_y, 2, 2, rgb(220, 180, 60))
+        frame.fill(thing_x, thing_y, 2, 2, minimap_thing_colour(thing.kind))
     }
     player_x :: MAP_MARGIN + i32(player.x * f64(cell_size))
     player_y :: MAP_MARGIN + i32(player.y * f64(cell_size))
@@ -416,6 +422,14 @@ minimap_colour :: fn(cell: Cell) -> u32 = match cell {
     .Empty -> TRANSPARENT
     .Door  -> rgb(200, 110, 50)
     .Stone | .Brick | .Rust | .Steel | .Green | .Red | .Concrete | .Corrugated -> rgb(150, 150, 160)
+}
+
+// The colour of a thing on the map: what can be picked up stands out in green.
+minimap_thing_colour :: fn(kind: ThingKind) -> u32 {
+    if kind.is_pickup() {
+        return rgb(80, 220, 120)
+    }
+    return rgb(220, 180, 60)
 }
 
 // Fill a rectangle of `frame` with `colour`, clipped to the frame.

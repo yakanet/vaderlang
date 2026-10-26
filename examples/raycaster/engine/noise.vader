@@ -28,4 +28,6 @@ export Noise :: enum {
     DoorOpens,
     /// A door starting to slide shut.
     DoorCloses,
+    /// The player picking something up.
+    PickUp,
 }

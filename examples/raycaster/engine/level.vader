@@ -61,10 +61,14 @@ export Door :: struct {
     opening: bool = false
 }
 
-/// What a kind of thing looks like, and the light it sheds.
+/// What a kind of thing looks like, the light it sheds, and what it gives.
 export ThingInfo :: struct {
     /// The thing's picture in `SPRITE_TEXTURES`.
     sprite: i32
+    /// The bullets and the health the player gets for walking over it. A thing
+    /// that gives either is picked up, and stands in nobody's way.
+    ammo: i32 = 0
+    health: i32 = 0
     /// The light it sheds on the cells around it, per channel, as a share of
     /// `FULL_LIGHT` added at its own cell's centre: `0.0` for none.
     glow_red: f64 = 0.0
@@ -79,16 +83,24 @@ export ThingKind :: enum(ThingInfo) {
     LightColumn { .sprite = 2, .glow_red = 1.3, .glow_green = 1.1, .glow_blue = 0.4 },
     Lamp        { .sprite = 3, .glow_red = 1.4, .glow_green = 1.35, .glow_blue = 1.2 },
     Torch       { .sprite = 4, .glow_red = 0.25, .glow_green = 0.9, .glow_blue = 0.3 },
+    Clip        { .sprite = 5, .ammo = 10 },
+    Stimpack    { .sprite = 6, .health = 10 },
+    Medikit     { .sprite = 7, .health = 25 },
 }
 
 // Whether a thing of `kind` sheds a light of its own.
 glows :: fn(kind: ThingKind) -> bool = kind.glow_red + kind.glow_green + kind.glow_blue > 0.0
+
+// Whether a thing of `kind` is picked up rather than walked around.
+is_pickup :: fn(kind: ThingKind) -> bool = kind.ammo > 0 || kind.health > 0
 
 /// A sprite standing at the centre of its cell.
 export Thing :: struct {
     x: f64
     y: f64
     kind: ThingKind
+    /// Whether the player has picked it up: it is gone from the level.
+    taken: bool = false
 }
 
 /// A parsed level: the grid, its doors, its things, its zombies and where the
@@ -123,6 +135,7 @@ export LEGEND :: """
     g  green metal  x  red metal    c  concrete       z  corrugated steel
     D  door         .  floor        @  player start, facing east
     B  barrel       C  column       U  light column   L  lamp   T  torch
+    A  clip         S  stimpack     H  medikit
     Z  zombie
     """
 
@@ -248,6 +261,7 @@ cell_of :: fn(c: char) -> Cell | null = match c {
     'z'                                           -> .Corrugated
     'D'                                           -> .Door
     '.' | '@' | 'B' | 'C' | 'U' | 'L' | 'T' | 'Z' -> .Empty
+    'A' | 'S' | 'H'                               -> .Empty
     _                                             -> null
 }
 
@@ -258,6 +272,9 @@ thing_of :: fn(c: char) -> ThingKind | null = match c {
     'U' -> .LightColumn
     'L' -> .Lamp
     'T' -> .Torch
+    'A' -> .Clip
+    'S' -> .Stimpack
+    'H' -> .Medikit
     _   -> null
 }
 
@@ -336,7 +353,7 @@ door_at :: fn(level: Level, x: i32, y: i32) -> Door | null {
 }
 
 // Whether a body reaching `radius` cells around `(x, y)` fits there: on floor,
-// in a door open enough to pass, and clear of every thing.
+// in a door open enough to pass, and clear of every thing but the pickups.
 is_free :: fn(level: Level, x: f64, y: f64, radius: f64) -> bool {
     corners_free :: corner_free(level, x - radius, y - radius)
         && corner_free(level, x + radius, y - radius)
@@ -347,6 +364,9 @@ is_free :: fn(level: Level, x: f64, y: f64, radius: f64) -> bool {
     }
     reach :: radius + THING_RADIUS
     for thing in level.things {
+        if thing.kind.is_pickup() {
+            continue
+        }
         if squared_distance(thing.x, thing.y, x, y) < reach * reach {
             return false
         }
@@ -430,6 +450,7 @@ test_level_is_free_blocks_walls_doors_and_things :: fn() -> void {
     assert(level.is_free(1.5, 1.5, 0.2), "the start is free")
     assert(!level.is_free(2.5, 2.5, 0.2), "a closed door blocks")
     assert(!level.is_free(3.4, 1.5, 0.2), "a barrel blocks")
+    assert(parsed(["####", "#@H#", "####"]).is_free(2.5, 1.5, 0.2), "a pickup does not block")
     assert(!level.is_free(0.5, 1.5, 0.2), "a wall blocks")
 }
 

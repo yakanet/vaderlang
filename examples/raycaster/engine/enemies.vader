@@ -176,8 +176,8 @@ take_bullet :: fn(enemy: Enemy, noises: Noise[]) -> void {
 }
 
 // Whether a body reaching `radius` cells around `(x, y)` fits there: clear of
-// walls, closed doors and things, and of every zombie still standing but
-// `mover`, the one moving if it is a zombie.
+// walls, closed doors and things other than pickups, and of every zombie still
+// standing but `mover`, the one moving if it is a zombie.
 has_room :: fn(level: Level, x: f64, y: f64, radius: f64, mover: Enemy | null) -> bool =
     level.is_free(x, y, radius) && level.clear_of_enemies(x, y, radius, mover)
 
@@ -201,12 +201,12 @@ clear_of_enemies :: fn(level: Level, x: f64, y: f64, radius: f64, mover: Enemy |
 // The zombie's pictures in `SPRITE_TEXTURES`, after the things': four steps of
 // its walk, aiming, firing, flinching, and five of its fall, the last one the
 // body on the floor.
-ZOMBIE_WALK: i32: 5
+ZOMBIE_WALK: i32: 8
 WALK_FRAMES: i32: 4
-ZOMBIE_AIM: i32: 9
-ZOMBIE_FIRE: i32: 10
-ZOMBIE_HURT: i32: 11
-ZOMBIE_FALL: i32: 12
+ZOMBIE_AIM: i32: 12
+ZOMBIE_FIRE: i32: 13
+ZOMBIE_HURT: i32: 14
+ZOMBIE_FALL: i32: 15
 DYING_FRAMES: i32: 5
 
 // How long each step of the walk and of the fall shows, in seconds.

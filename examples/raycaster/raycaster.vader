@@ -199,6 +199,7 @@ use_cursor_for :: fn(phase: Phase) -> void {
 play :: fn(level: Level, player: Player, seconds: f64, noises: Noise[]) -> void {
     if player.health > 0 {
         steer(player, level, seconds)
+        player.collect(level, noises)
         if is_mouse_button_down(.Left) || is_key_down(.LeftControl) {
             player.fire(level, noises)
         }
@@ -315,6 +316,7 @@ Sounds :: struct {
     player_dies: Sound
     door_opens: Sound
     door_closes: Sound
+    pick_up: Sound
 }
 
 // The sound files, from Freedoom, read by the build.
@@ -326,6 +328,7 @@ PLAYER_PAIN_WAV: u8[]: @comptime read_sound("assets/sounds/dsplpain.wav")
 PLAYER_DEATH_WAV: u8[]: @comptime read_sound("assets/sounds/dspldeth.wav")
 DOOR_OPENS_WAV: u8[]: @comptime read_sound("assets/sounds/dsdoropn.wav")
 DOOR_CLOSES_WAV: u8[]: @comptime read_sound("assets/sounds/dsdorcls.wav")
+PICK_UP_WAV: u8[]: @comptime read_sound("assets/sounds/dsitemup.wav")
 
 // The bytes of the sound file at `path`, relative to this source file: one that
 // is missing stops the build.
@@ -348,6 +351,7 @@ load_sounds :: fn() -> Sounds = Sounds {
     .player_dies = decode_sound(PLAYER_DEATH_WAV),
     .door_opens = decode_sound(DOOR_OPENS_WAV),
     .door_closes = decode_sound(DOOR_CLOSES_WAV),
+    .pick_up = decode_sound(PICK_UP_WAV),
 }
 
 // The sound in the WAV file `data`. The files are the build's, so one that does
@@ -365,6 +369,7 @@ unload_sounds :: fn(sounds: Sounds) -> void {
     unload_sound(sounds.player_dies)
     unload_sound(sounds.door_opens)
     unload_sound(sounds.door_closes)
+    unload_sound(sounds.pick_up)
 }
 
 // The sound that plays for `noise`.
@@ -378,4 +383,5 @@ sound_of :: fn(sounds: Sounds, noise: Noise) -> Sound = match noise {
     .PlayerDies -> sounds.player_dies
     .DoorOpens  -> sounds.door_opens
     .DoorCloses -> sounds.door_closes
+    .PickUp     -> sounds.pick_up
 }

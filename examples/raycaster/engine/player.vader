@@ -21,8 +21,15 @@ BODY_RADIUS :: 0.22
 // How far ahead the player reaches for a door, in cells.
 REACH :: 1.2
 
-// The health the player starts with.
+// The health the player starts with, and the most a pickup heals them up to.
 FULL_HEALTH: i32: 100
+
+// The most bullets the player carries.
+MAX_AMMO: i32: 200
+
+// How near the player must come to a pickup to take it, in cells: near enough
+// for their bodies to touch.
+PICKUP_REACH :: BODY_RADIUS + THING_RADIUS
 
 // How fast the red of a hit fades from the view, in shares per second.
 HURT_FADE :: 2.5
@@ -89,6 +96,31 @@ export update_player :: fn(player: Player, seconds: f64) -> void {
     player.since_shot += seconds
     player.hurt = max(player.hurt - seconds * HURT_FADE, 0.0)
 }
+
+/// Pick up what lies within reach of `player` and does them good: a clip below
+/// `MAX_AMMO` bullets, a stimpack or a medikit below `FULL_HEALTH`.
+///
+/// @param noises  what the player hears, appended to.
+export collect :: fn(player: Player, level: Level, noises: Noise[]) -> void {
+    if player.health <= 0 {
+        return
+    }
+    for thing in level.things {
+        if thing.taken || !player.needs(thing.kind) {
+            continue
+        }
+        if squared_distance(thing.x, thing.y, player.x, player.y) < PICKUP_REACH * PICKUP_REACH {
+            player.ammo = min(player.ammo + thing.kind.ammo, MAX_AMMO)
+            player.health = min(player.health + thing.kind.health, FULL_HEALTH)
+            thing.taken = true
+            noises.push(.PickUp)
+        }
+    }
+}
+
+// Whether a pickup of `kind` would give `player` anything.
+needs :: fn(player: Player, kind: ThingKind) -> bool =
+    (kind.ammo > 0 && player.ammo < MAX_AMMO) || (kind.health > 0 && player.health < FULL_HEALTH)
 
 // Take `damage` from the player's health; with none left, they fall.
 take_damage :: fn(player: Player, damage: i32, noises: Noise[]) -> void {
@@ -164,6 +196,32 @@ test_player_falls_at_no_health :: fn() -> void {
     player.take_damage(5, noises)
     assert_eq(player.health, 0)
     assert(noises[0] == .PlayerHurt && noises[1] == .PlayerDies, "hurt, then dead")
+}
+
+@test
+test_player_picks_up_what_they_need :: fn() -> void {
+    level :: parsed(["#####", "#@AH#", "#####"])
+    player :: new_player(level)
+    noises: Noise[]: []
+    player.x = 2.5
+    player.collect(level, noises)
+    assert_eq(player.ammo, START_AMMO + 10)
+    player.x = 3.5
+    player.collect(level, noises)
+    assert(!level.things[1].taken, "a medikit is left at full health")
+    assert_eq(noises.len(), 1)
+}
+
+@test
+test_player_heals_up_to_full_health :: fn() -> void {
+    level :: parsed(["####", "#@H#", "####"])
+    player :: new_player(level)
+    player.health = 90
+    noises: Noise[]: []
+    player.x = 2.5
+    player.collect(level, noises)
+    assert_eq(player.health, FULL_HEALTH)
+    assert(level.things[0].taken && noises[0] == .PickUp, "the medikit is taken")
 }
 
 @test

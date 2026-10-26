@@ -41,6 +41,9 @@ sprite is transparent.
 | `colua0.ppm` | light column (`U`) |
 | `tlmpa0.ppm` | lamp (`L`) |
 | `tgrna0.ppm` | torch (`T`) |
+| `clipa0.ppm` | clip, ten bullets (`A`) |
+| `stima0.ppm` | stimpack, ten health (`S`) |
+| `media0.ppm` | medikit, twenty-five health (`H`) |
 | `possa1.ppm` to `possd1.ppm` | the zombie (`Z`) walking |
 | `posse1.ppm`, `possf1.ppm` | the zombie aiming, then firing |
 | `possg1.ppm` | the zombie hit |
@@ -63,6 +66,7 @@ copied beside them as `sounds/COPYING.adoc`.
 | `dsplpain.wav` | the player is hit |
 | `dspldeth.wav` | the player falls |
 | `dsdoropn.wav`, `dsdorcls.wav` | a door opens, shuts |
+| `dsitemup.wav` | the player picks something up |
 
 ## Levels
 
