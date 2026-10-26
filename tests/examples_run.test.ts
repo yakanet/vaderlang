@@ -2,9 +2,9 @@
 //
 // `verify.test.ts` builds the examples with `--verify`, which proves their IR is
 // well formed and nothing about what they do: an example can build and then
-// print the wrong thing, or stop on a trap. Each one runs here with no argument,
-// from the repo root (`brainfuck` reads `examples/brainfuck/hello.bf` relative to
-// it), and its output is pinned in `tests/fixtures/examples/<name>.run.snapshot`.
+// print the wrong thing, or stop on a trap. Each one runs here from the repo
+// root, with the arguments `RUN_ARGS` gives it (none for most), and its output is
+// pinned in `tests/fixtures/examples/<name>.run.snapshot`.
 // Refresh with UPDATE_SNAPSHOTS=1.
 
 import { expect, test } from "bun:test";
@@ -25,6 +25,11 @@ const RUN_FLAGS: Record<string, string[] | null> = {
   raylib_sprite: null,
   raycaster: ["--entry=frames"],
 };
+// What an example runs on, past its path: `brainfuck` needs a program to run,
+// named relative to the repo root.
+const RUN_ARGS: Record<string, string[]> = {
+  brainfuck: ["examples/brainfuck/hello.bf"],
+};
 const examples = exampleNames().filter((name) => RUN_FLAGS[name] !== null);
 
 test("examples: at least one discovered", () => {
@@ -35,7 +40,8 @@ for (const name of examples) {
   // LONG_BUILD: `brainfuck` imports `vader/vm`, so it loads about 40 modules
   // where the others load 12 (see `verify.test.ts`).
   test.concurrent(`example runs: ${name}`, async () => {
-    const r = await runCli(["run", ...(RUN_FLAGS[name] ?? []), exampleInput(name)], undefined, LONG_BUILD);
+    const args = ["run", ...(RUN_FLAGS[name] ?? []), exampleInput(name), ...(RUN_ARGS[name] ?? [])];
+    const r = await runCli(args, undefined, LONG_BUILD);
     const actual = formatRun(r.stdout, r.stderr, r.exit);
     const snap = snapshotEquals(SNAPSHOTS, `${name}.run.snapshot`, actual);
     if (!snap.ok) {

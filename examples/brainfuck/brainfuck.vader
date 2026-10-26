@@ -22,8 +22,7 @@
 // stores 0.
 //
 // Usage :
-//   vader run examples/brainfuck                    # runs examples/brainfuck/hello.bf
-//   vader run examples/brainfuck path/to.bf         # arbitrary BF source
+//   vader run examples/brainfuck path/to.bf         # runs a BF program
 //   vader run examples/brainfuck --dump path/to.bf  # prints the `.virt`, runs nothing
 //   vader run examples/brainfuck --help             # lists the options
 //   vader build --out=bf examples/brainfuck         # then ./bf path/to.bf
@@ -45,8 +44,6 @@ import "std/string_builder"
 import "std/testing"
 import "vader/front/virt"
 import "vader/vm"
-
-DEFAULT_PATH :: "examples/brainfuck/hello.bf"
 
 // ---- BF lexer ------------------------------------------------------------
 
@@ -283,19 +280,15 @@ FLAGS :: [
     },
 ]
 
-// The program to run: the first positional, or the default one.
-program_path :: fn(args: Cli.ParsedArgs) -> string {
-    if args.positionals.len() > 0 {
-        return args.positionals[0]
-    }
-    return DEFAULT_PATH
-}
+// What `--help` prints, and what a command line naming no program gets.
+help_text :: fn() -> string =
+    Cli.render_program_help("brainfuck", "[options] <program.bf>", SUMMARY, FLAGS)
 
 main :: fn(argv: string[]) -> i32 {
     args :: Cli.parse(argv[1..<argv.len()], FLAGS)
     // `--help` outranks a mistyped flag next to it.
     if Cli.bool_flag(args, "help") {
-        print(Cli.render_program_help("brainfuck", "[options] [program.bf]", SUMMARY, FLAGS))
+        print(help_text())
         return 0
     }
     if args.errors.len() > 0 {
@@ -304,7 +297,11 @@ main :: fn(argv: string[]) -> i32 {
         }
         return 1
     }
-    path :: program_path(args)
+    if args.positionals.len() == 0 {
+        eprint(help_text())
+        return 1
+    }
+    path :: args.positionals[0]
     src :: read_file_string(path)
     if src is Error {
         eprintln("brainfuck: cannot read ${path}")
