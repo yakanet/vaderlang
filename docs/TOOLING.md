@@ -31,7 +31,7 @@ Each action has a section below, except `test` (*Tests*), `dap` (*Debugging*) an
 - a project folder, which runs its entry;
 - a `.virt` file, text bytecode, run as it is.
 
-First, the default C compiler (*`vader build`*) compiles the adapters its `@extern` calls need (SPEC §13 *VM behaviour*) into a shared library, kept under `build/ffi/<fingerprint>/` of the project folder, or else the entry's, until one of its inputs changes. `vader test` and the debugger do the same.
+First, the default C compiler (*`vader build`*) compiles the adapters its `@extern` calls need (SPEC §13 *VM behaviour*) into a shared library, kept under `build/ffi/<fingerprint>/` of the project folder, or else the entry's, until one of its inputs changes. When they do not build, the program stops before it starts, naming an `@extern` that needs one. `vader test` and the debugger do the same.
 
 ### `vader build`
 
@@ -47,7 +47,7 @@ First, the default C compiler (*`vader build`*) compiles the adapters its `@exte
 Other common options:
 
 - `--out=<path>` (`-o`): the output path; `-` writes the C to standard output.
-- `--release` (`-r`): optimises; otherwise a build carries debug information.
+- `--release` (`-r`): optimises, and an integer overflow wraps instead of stopping the program (SPEC §4 *Integer overflow*); otherwise a build carries debug information.
 - `--cc=<path>`: the C compiler, `$CC` by default, else `cc` (`gcc` on Windows).
 - `--ldflags=<flags>`: linker flags, split on spaces.
 - `--no-split`: one C translation unit instead of one per module.
