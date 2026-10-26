@@ -1,4 +1,4 @@
-# 0012 — A materialised clone's span is deterministic, keyed to its impl
+# 0012: A materialised clone's span is deterministic, keyed to its impl
 
 ## Status
 
@@ -27,7 +27,7 @@ three tables:
 
 2. **Member return types.** Anchoring every synthesised member at the shared
    `impl_.trait_name_span` collapsed a multi-method trait's return types onto the
-   last method's — `Buffer implements ByteAccess` had `load_u8 -> u8` degrade to
+   last method's: `Buffer implements ByteAccess` had `load_u8 -> u8` degrade to
    `memory_copy`'s `void`.
 
 3. **Param ↔ body agreement.** The resolver mints a param's Symbol at the param
@@ -46,8 +46,8 @@ three tables:
 
 Uniqueness alone does not fix this, and that is the non-obvious part. Deriving the
 span from the per-clone node id is unique and still wrong: `std/core`'s default
-bodies are materialised **twice** — once for the typecheck phase, once for the
-lower phase, on distinct `ImplDecl` copies — and node ids differ between the two
+bodies are materialised **twice** (once for the typecheck phase, once for the
+lower phase, on distinct `ImplDecl` copies) and node ids differ between the two
 generations. An id-derived span would record `idents` under one key at resolve
 time and read a different key at lower time.
 
@@ -93,8 +93,8 @@ by the walk silently keeps its trait span and reintroduces failure 1 for whichev
 trait has more than one impl.
 
 `materialize_intrinsic_members` needs the same allocator even though a
-single-method intrinsic trait was never affected — its lone member was already
-unique — so that a second method added to such a trait does not resurrect
+single-method intrinsic trait was never affected (its lone member was already
+unique) so that a second method added to such a trait does not resurrect
 failure 2.
 
 The spans are rendered `undefined:undefined` in the typecheck dump, which is what

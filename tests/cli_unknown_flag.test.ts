@@ -2,7 +2,7 @@
 //
 // One rule: an action's options come before its first positional argument, and
 // everything after that belongs to whatever the action hands it to. That is what
-// lets the CLI be strict — before it, the boundary depended on flag
+// lets the CLI be strict: before it, the boundary depended on flag
 // *recognition*, so `vader run` could never reject an unknown token (it might
 // have been meant for the program) and `vader build --releaze` fell through to a
 // default debug build, exit 0, typo swallowed.
@@ -70,7 +70,7 @@ test("a single-dash token is rejected too, not taken for a filename", async () =
 test("an option written after the file says so", async () => {
   await withScratch(async (file) => {
     // The boundary leaves it in the tail rather than reading it, and `build`
-    // takes one positional — so the message names the likely cause instead of
+    // takes one positional, so the message names the likely cause instead of
     // reporting a mysterious extra argument.
     const late = await runCli(["build", file, "--release", "--emit=c", "--out=-"], undefined, MEDIUM_BUILD);
     expect(late.exit).not.toBe(0);
@@ -123,7 +123,7 @@ test("run forwards everything past the path, flags included", async () => {
 
 test("--help on an action prints that action's options", async () => {
   // What anyone types. `vader help build` works too, but this is the reflex, and
-  // it exits 0 — asking for help is a success, not a usage error.
+  // it exits 0: asking for help is a success, not a usage error.
   const viaFlag = await runCli(["build", "--help"], undefined, MEDIUM_BUILD);
   expect(viaFlag.exit).toBe(0);
   expect(viaFlag.stdout).toContain("vader build [path]");

@@ -4,7 +4,7 @@
 // Drives the pure-Vader shortest-double formatter in dtoa.vader (Ryu, Adams
 // 2018) and the f32 formatter in f2s.vader. Each 128-bit f64 entry is a [lo, hi]
 // PAIR stored adjacently, so row `i` is `[2 * i]` + `[2 * i + 1]` and
-// value = table[2*i] + (table[2*i+1] << 64) — the reference's
+// value = table[2*i] + (table[2*i+1] << 64): the reference's
 // `DOUBLE_POW5_SPLIT[i][0]` / `[1]`. The f32 tables are single-u64 columns
 // derived from the same rows' `hi` word.
 //
@@ -21,7 +21,7 @@
 // Built with the `BigInt` kernel + `pow5bits`, shared within `module "std/core"`
 // : `BigInt` in bigint.vader, `POW5_BIG_K` in parse_float_tables.vader,
 // `pow5bits` in dtoa.vader. The reciprocals avoid general big-int division via
-// the floor identity `floor(floor(2^K / 5^q) / 5) = floor(2^K / 5^(q+1))` — the
+// the floor identity `floor(floor(2^K / 5^q) / 5) = floor(2^K / 5^(q+1))`: the
 // same repeated /5 that parse_float_tables uses. A fixed `POW5_BIG_K = 1100`
 // dividend exceeds every `k(q)` (max 916 at q = 341), so `floor(2^k / 5^q)` is
 // recovered as `floor(2^K / 5^q) >> (K - k)` (exact : floor(floor(x)/2^s) =
@@ -96,8 +96,8 @@ DOUBLE_POW5_SPLIT: u64[]: @comptime { return build_pow5_split(326) }
 DOUBLE_POW5_INV_SPLIT: u64[]: @comptime { return build_pow5_inv(342) }
 
 // ---- f32 (Ryu f2s) : single-u64 tables, the high word of the f64 rows -----
-// FLOAT_POW5_SPLIT     : 47 rows  (5^i,  used when e2 < 0)  — f64 hi (>> 64)
-// FLOAT_POW5_INV_SPLIT : 55 rows  (1/5^q, used when e2 >= 0) — f64 hi >> 2 (>> 66)
+// FLOAT_POW5_SPLIT     : 47 rows  (5^i,  used when e2 < 0) , f64 hi (>> 64)
+// FLOAT_POW5_INV_SPLIT : 55 rows  (1/5^q, used when e2 >= 0), f64 hi >> 2 (>> 66)
 //
 // Sized to the f32 range rather than read out of the f64 tables above, so an
 // index past that range still trips a bounds check.

@@ -37,8 +37,8 @@ drain_generic_fn_instances :: fn(
     // *new* instances (`outer<T>` calling `inner<T>`), appending to
     // `fn_instances_order` mid-loop ; the persistent `generic_fn_cursor` (seeded
     // into the local `i`, written back at the end) re-reads `len()` each step so
-    // it visits every transitive instance — INCLUDING those a later harvest
-    // round registers, since the joint fixpoint re-enters this fn — without
+    // it visits every transitive instance (INCLUDING those a later harvest
+    // round registers, since the joint fixpoint re-enters this fn) without
     // re-processing earlier ones. `generic_processed` dedups duplicate
     // `(symbol, args)` discoveries. Re-indexing by position is safe across
     // reallocs.
@@ -68,8 +68,8 @@ drain_generic_fn_instances :: fn(
         }
         // Materialise each queued erased generic-struct instance's impl members
         // (`MutableMap<Any, bool>.Contains.contains__Any__bool`). Its instance
-        // never reaches `evaluated.instances`, so the regular worklist skips it
-        // — but a deduped erased free-fn body still calls into it. Reuses the
+        // never reaches `evaluated.instances`, so the regular worklist skips it,
+        // but a deduped erased free-fn body still calls into it. Reuses the
         // concrete-instance materialiser ; deduped against the worklist via
         // `materialized_impl_keys`.
         for ri < project_ctx.pending_generic_impl_recv.len() {
@@ -103,7 +103,7 @@ pending_instances :: fn(project_ctx: LowerProjectCtx, i: i64, ri: i64, mi: i64) 
 /// (the `symbol.id` prefix groups a fn's overloads, args sort alphabetically
 /// within a group), erasure-dedups, and pushes to modules. Runs ONCE after the
 /// joint fixpoint converges so emission order is a single deterministic sort
-/// over the whole set — `inner` (lower symbol id) emits before `outer`
+/// over the whole set: `inner` (lower symbol id) emits before `outer`
 /// regardless of discovery order.
 flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredProject) -> void {
     // Erasure-dedupe : every instance of a NON-trait-dispatching free
@@ -115,7 +115,7 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredP
     // free generic fns.
     //
     // A trait-dispatching free generic fn (`dispatches`, built
-    // CONCRETE per instance) does NOT erase — `get__string` and `get__i32`
+    // CONCRETE per instance) does NOT erase: `get__string` and `get__i32`
     // are distinct bodies dispatching `key.hash()` / `key.equals()` on the
     // concrete key, and their call sites target the per-key mangle.
     // Collapsing them to the first-sorted `__i32__` instance routes every
@@ -123,7 +123,7 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredP
     // hits `i32.to_i64` and traps. They are already deduped by full `key`
     // in the build loop above (`generic_processed[key]`) and carry a NULL
     // `origin.symbol` (set in `build_fn_instance_decl`), so the body-emit
-    // pass indexes them by mangle — exactly like materialised impl members.
+    // pass indexes them by mangle: exactly like materialised impl members.
     sorted_pending :: sort(project_ctx.generic_collected, pending_fn_instance_less)
     emitted_fns :: MutableMap<i32, bool> {}
     for p in sorted_pending {
@@ -188,7 +188,7 @@ lower_generator_body :: fn(
     return lower_generator_fn(gen_ctx, fn_decl, params, lowered, return_type)
 }
 
-// Lower an `async` fn / impl member to its state-machine body — the async
+// Lower an `async` fn / impl member to its state-machine body: the async
 // analogue of `lower_generator_body`. Lowers the body in async mode (`await`s →
 // `LoweredAwait` markers via the ANF sink) then synthesizes `__asyncstate` +
 // `Async::resume` (`lower_async_fn`). `result_type` is the fn's declared return
@@ -207,7 +207,7 @@ lower_async_body :: fn(
 
 // Build (but don't push) the monomorphized `LoweredFnDecl` for `inst`.
 // Lowering the body here can register transitive fn instances into
-// `project_ctx.fn_instances_order` — the caller's fixpoint loop picks
+// `project_ctx.fn_instances_order`: the caller's fixpoint loop picks
 // those up. Returns null when the owner module / source decl is
 // missing.
 build_fn_instance_decl :: fn(
@@ -215,22 +215,22 @@ build_fn_instance_decl :: fn(
     diags: Diagnostic[],
 ) -> PendingFnInstance | null {
     // Bracket the synth_decls this instance's body lowering spawns (lambdas /
-    // defers) so the push loop can drain exactly this window — see
+    // defers) so the push loop can drain exactly this window, see
     // `drain_synth_window`. The early-return (null) paths below don't lower a
     // body, so they append nothing.
     synth_start :: project_ctx.synth_decls.len()
     owner_module_id :: inst.owner_module
     owner_typed :: typed.modules[owner_module_id] ?? return null
     fn_decl :: owner_typed.fn_decls[inst.fn_symbol.id] ?? return null
-    // Monomorphization flavor — see `fn_instance_flavor`, a 3-way classifier shared
+    // Monomorphization flavor, see `fn_instance_flavor`, a 3-way classifier shared
     // with the call site so the registered instance mangle reconciles with this body:
-    //   Mono   — a body needing its instance's real types (`fn_needs_concrete_instances`)
+    //   Mono: a body needing its instance's real types (`fn_needs_concrete_instances`)
     //            OR a bare type-param array return (the result's element kind
     //            must be concrete). Full-concrete subst.
-    //   Mixed  — ≥1 arg `kept_type_argument` keeps: keep those concrete
+    //   Mixed, ≥1 arg `kept_type_argument` keeps: keep those concrete
     //            (devirt + primops/atom-eq inline), erase
     //            the rest to `Any` via `build_mixed_subst`. Mangle-indexed.
-    //   Erased — all-reference: uniform pointer like Java, symbol-id indexed + deduped.
+    //   Erased, all-reference: uniform pointer like Java, symbol-id indexed + deduped.
     // Mono+Mixed are both mangle-indexed (entry_symbol=null). Mixed covers the
     // all-primitive case too (an all-primitive mixed subst equals the concrete one).
     flavor :: fn_instance_flavor(project_ctx.impls, fn_decl, owner_typed, inst.type_args)
@@ -261,7 +261,7 @@ build_fn_instance_decl :: fn(
     // `function_index_by_symbol_id` slot, so all instances but the last
     // ship with an EMPTY body. Mirrors `materialize_impl_for_instance`,
     // which sets `.symbol = null` on impl members for the same reason.
-    // Erased (non-dispatching) instances keep the symbol — they collapse to
+    // Erased (non-dispatching) instances keep the symbol: they collapse to
     // one decl per symbol id via the erasure-dedupe below.
     entry_symbol: Symbol | null: if force_concrete { null } else { inst.fn_symbol }
     entry :: MonoEntry {
@@ -290,12 +290,12 @@ build_fn_instance_decl :: fn(
 }
 
 // True when `fn_decl` returns a bare `T[]` whose element is one of its own
-// type-params — the array-constructor shape (`collect`/`map`/`clone`/`chain`/
+// type-params: the array-constructor shape (`collect`/`map`/`clone`/`chain`/
 // `filter`/`flat_map`/`keys`/`values`/`sort`). Such a fn is built concrete per
 // instance (the `Mono` flavor) so a `T = i32` instance builds an I32-kind array
 // instead of the erased BOXED kind. Deliberately narrow: a non-bare element
 // (`[T, U][]`, `Pair<T, U>[]`) is BOXED-kind regardless, so leaving it erased is
-// sound — its reads route through the legacy runtime-dispatched op.
+// sound: its reads route through the legacy runtime-dispatched op.
 returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
     rt :: fn_decl.return_type ?? return false
     if rt is ArrayTypeExpr {
@@ -311,19 +311,19 @@ returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
 
 // Monomorphization flavor of a generic free-fn instance. Drives BOTH
 // the materialised body's substitution AND the instance-mangle suffix, so the two
-// MUST be computed from one classifier — `fn_instance_flavor` — at both the call
+// MUST be computed from one classifier (`fn_instance_flavor`) at both the call
 // site and the materialiser, or the registered mangle and the body drift apart.
-//   Mono   — full-concrete subst + `mono_suffix`. A body needing its instance's real
+//   Mono: full-concrete subst + `mono_suffix`. A body needing its instance's real
 //            types (`fn_needs_concrete_instances` : a trait dispatch, whose vtable
 //            needs the concrete struct, or a free fn looked up from a type-param
 //            receiver or argument), a `Display` dispatched on a distinct
 //            or a range (shared, it would reach its representation's), or a bare
 //            type-param array return (the result array's element kind must be
 //            concrete).
-//   Mixed  — `build_mixed_subst` + `mixed_any_suffix`. ≥1 arg `kept_type_argument`
+//   Mixed: `build_mixed_subst` + `mixed_any_suffix`. ≥1 arg `kept_type_argument`
 //            keeps: keep those concrete (devirt + primops/atom-eq inline), erase the
 //            rest to `Any`. Mangle-indexed (entry_symbol=null), invariant under ref-erasure.
-//   Erased — `build_erased_subst`, symbol-id indexed (flush keeps one body per fn).
+//   Erased: `build_erased_subst`, symbol-id indexed (flush keeps one body per fn).
 //            All-reference args: nothing to monomorphize, uniform pointer like Java.
 InstanceFlavor :: enum { Mono, Mixed, Erased }
 
@@ -348,7 +348,7 @@ fn_instance_flavor :: fn(
 
 // Call-site view of `fn_instance_flavor`: resolve the callee's owning-module typed
 // program + fn decl from `fn_sym`, then classify. Returns `Erased` on any lookup
-// miss — safe, because an Erased instance resolves by symbol-id and never matches
+// miss: safe, because an Erased instance resolves by symbol-id and never matches
 // on its mangle, so its suffix is irrelevant. The suffix the call site derives from
 // this MUST equal the flavor the materialiser computes for the same instance.
 call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) -> InstanceFlavor {
@@ -392,7 +392,7 @@ call_site_instance_suffix :: fn(ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: 
 
 // Materialise the non-generic free fns harvested at call sites
 // (`register_nongeneric_imported_fn`) from lazily-lowered (non-entry) modules.
-// Each is lowered once via the normal `lower_fn_decl` path — with-body fns land
+// Each is lowered once via the normal `lower_fn_decl` path: with-body fns land
 // as real fns, `@extern` ones as `body = null` decls the bytecode emitter routes
 // to the import table. Without this, calls to `append` / `byte_len` /
 // `write_string_at` and other non-generic fns of non-entry modules are dropped
@@ -411,7 +411,7 @@ materialize_nongeneric_imported_fns :: fn(
         module_typed :: typed.modules[fn_sym.module] ?? continue
         fn_decl :: module_typed.fn_decls[fn_sym.id] ?? continue
         // Bodyless externs are surfaced up front in `lower_project`'s stdlib
-        // branch — skip to avoid a duplicate import entry for the same symbol.
+        // branch: skip to avoid a duplicate import entry for the same symbol.
         if fn_decl.body == null {
             continue
         }
@@ -430,7 +430,7 @@ materialize_nongeneric_imported_fns :: fn(
 // Materialise the stdlib module-level consts harvested at reference sites
 // (`register_nongeneric_imported_const`). Each is lowered once via the normal
 // `lower_const_decl` path and pushed into its owning (stdlib) module so the
-// end-of-project `inline_consts` pass routes its read sites — scalars inline,
+// end-of-project `inline_consts` pass routes its read sites: scalars inline,
 // bulky arrays become a `__const_*` accessor fn. Without this, a referenced
 // stdlib const (`std/math::pi`) never reaches `project.modules` and
 // `build_ident` emits `unreachable`, truncating the caller. Sibling of
@@ -453,7 +453,7 @@ materialize_nongeneric_imported_consts :: fn(
             push_to_module(project, const_sym.module, lowered)
         }
         // A const RHS that lifts a lambda (rare, but possible)
-        // appends synth fns into the same stdlib module — drain
+        // appends synth fns into the same stdlib module: drain
         // them right after, mirroring the fn-harvest path.
         drain_synth_since(project, const_sym.module, project_ctx, synth_start)
     }

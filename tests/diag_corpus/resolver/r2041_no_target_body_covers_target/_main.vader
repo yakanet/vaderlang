@@ -1,7 +1,7 @@
 // A bare declaration with no general body, whose group covers other platforms
 // but not the one being built. Left alone it reaches the type checker as an
-// ordinary bodyless fn and comes out as T3062, whose advice — "must be
-// `@intrinsic` or `@extern`" — is exactly the wrong thing to do here, and which
+// ordinary bodyless fn and comes out as T3062, whose advice ("must be
+// `@intrinsic` or `@extern`") is exactly the wrong thing to do here, and which
 // names neither the target nor the group.
 //
 // `.Wasi` is deliberate: no CI target selects it, so this fixture reports the

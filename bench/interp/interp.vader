@@ -1,10 +1,10 @@
-/// Interpolation hot loop — formats three integers into a string via `${}`
+/// Interpolation hot loop: formats three integers into a string via `${}`
 /// 200 000 times. On `feat/target-abi` `${}` lowers to a StringBuilder over a
 /// byte `Buffer` plus the pure-Vader integer formatters, rather than `main`'s
-/// Builder ops + the `vader_builder_append_display_*` host family — so this
+/// Builder ops + the `vader_builder_append_display_*` host family, so this
 /// measures the off-runtime interpolation path end to end.
 ///
-/// Checksums via `s.len()` — the codepoint count (`chars().count()`). The
+/// Checksums via `s.len()`: the codepoint count (`chars().count()`). The
 /// payload carries a leading `🚀` (a supplementary-plane codepoint), so this
 /// differs from the UTF-8 byte length (`bytes().len()` = 4 for `🚀`) ; the peers
 /// count codepoints too so the checksum stays cross-language identical.

@@ -3,8 +3,8 @@
 // Converts between a raw byte stream in the binary P6 format and a structured
 // `Ppm` value. P6 is an ASCII header (`P6 width height maxval`) followed by the
 // raw RGB raster: 3 samples per pixel, row-major, top-to-bottom. A sample is 1
-// byte when `maxval < 256` (8-bit) and 2 bytes — most-significant byte first
-// (big-endian) — when `maxval >= 256` (16-bit). `pixels` always holds the raster
+// byte when `maxval < 256` (8-bit) and 2 bytes, most-significant byte first
+// (big-endian), when `maxval >= 256` (16-bit). `pixels` always holds the raster
 // exactly as it appears on disk, so encode/decode round-trip byte-for-byte and
 // the 16-bit byte order is preserved without reinterpretation.
 //
@@ -181,7 +181,7 @@ export encode :: fn(img: Ppm) -> u8[] | PpmError {
 // ---- display ---------------------------------------------------------------
 
 Ppm implements Display {
-    // Concise summary — dimensions, maxval, raster size, bit depth. Never dumps
+    // Concise summary: dimensions, maxval, raster size, bit depth. Never dumps
     // the raster.
     to_string :: fn(self) -> string {
         depth :: if bytes_per_sample(self.maxval) == 1 { "8-bit" } else { "16-bit" }

@@ -1,6 +1,6 @@
 // TypeScript peer of bench/map_iter.vader. JS `Map` keyed by i32 ;
 // repeated iteration via `for...of map`. Bun's V8 inlines the iterator
-// protocol well — closest match to Vader's fused for-in dispatch path.
+// protocol well: closest match to Vader's fused for-in dispatch path.
 
 const INNER_KEYS = 1_000;
 const OUTER_LOOPS = 1_000;

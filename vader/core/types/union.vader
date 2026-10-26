@@ -15,7 +15,7 @@ import "vader/support/integer"
 // ---- canonical union ------------------------------------------------------
 
 /// Build a union from `variants`. Flattens nested unions, drops `Never`
-/// (absorbed — a value of that type doesn't exist), dedups, sorts by
+/// (absorbed: a value of that type doesn't exist), dedups, sorts by
 /// `display_type` output, then, for two that print alike, by their
 /// module-qualified name, then by `canonical_key`. Empty / all-Never input
 /// collapses to `Never`.
@@ -121,7 +121,7 @@ sort_by_display_key :: fn(types: Type[]) -> Type[] {
     // The no-swap branch may ALIAS `types`, which `mk_union` keeps. Sound
     // because `union_of` builds `dedup` fresh and never writes to it again ; a
     // second caller would have to honour that. Both paths hand `mk_union` an
-    // array grown by `push`, so it carries up to twice its used slots — a few
+    // array grown by `push`, so it carries up to twice its used slots: a few
     // bytes here, more as arity grows.
     if types.len() == 2 {
         if comes_before(types[1], display_type(types[1]), types[0], display_type(types[0])) {
@@ -344,7 +344,7 @@ same_variant :: fn(a: Type, b: Type) -> bool =
         || (is_free_numeric(a) && is_assignable(a, b))
         || (is_free_numeric(b) && is_assignable(b, a))
 
-/// The variant of `t` that is the same as `variant` (`same_variant`) — `t` itself
+/// The variant of `t` that is the same as `variant` (`same_variant`): `t` itself
 /// when it is no union and matches. Null when none is.
 ///
 /// @param t        an operand's type.
@@ -361,7 +361,7 @@ export counterpart :: fn(t: Type, variant: Type) -> Type | null {
 /// Subtract a single variant from a type. Returns the remaining type
 /// (or `Never` if nothing remains). For non-union sources subtracting
 /// the same shape yields `Never` ; subtracting a different shape is a
-/// no-op. Used by flow narrowing — `if x is T` widens to "not T" on
+/// no-op. Used by flow narrowing: `if x is T` widens to "not T" on
 /// the false side / in code after a divergent guard.
 export subtract_type :: fn(from: Type, removed: Type) -> Type {
     if from is UnionType {
@@ -377,10 +377,10 @@ export subtract_type :: fn(from: Type, removed: Type) -> Type {
     return from
 }
 
-// True when `removed` covers `t` — either `removed` IS `t`, or `removed`
+// True when `removed` covers `t`: either `removed` IS `t`, or `removed`
 // is a union that lists `t` among its variants. Without the union case,
 // subtracting a union (e.g. the `!(x is T)` divergent-guard's inner
-// complement) removes nothing — the double-complement `subtract(NU,
+// complement) removes nothing: the double-complement `subtract(NU,
 // (N-1)U)` then yields the full union instead of the single `T`, so the
 // negated guard fails to narrow and downstream field-gets degrade.
 removed_covers :: fn(removed: Type, t: Type) -> bool {

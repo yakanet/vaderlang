@@ -1,4 +1,4 @@
-/// Array read-modify-write hot loop — indexes a 1024-element `i32[]` with
+/// Array read-modify-write hot loop: indexes a 1024-element `i32[]` with
 /// `a[i] = a[i] + 1` and re-reads `a[i]`, 100 000 passes over the array. The
 /// get and the set lower to a typed load and store over the array buffer, and
 /// nothing allocates in the loop, so it measures the element access, not the GC.

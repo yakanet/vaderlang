@@ -1,4 +1,4 @@
-# 0065 — An ASCII string is indexed by its bytes
+# 0065: An ASCII string is indexed by its bytes
 
 ## Status
 

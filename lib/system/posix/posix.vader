@@ -19,7 +19,7 @@ export STDERR :: 2
 @extern("write")
 export sys_write :: fn(fd: i32, buf: u8[], count: i64) -> i64
 
-/// `CLOCK_REALTIME` — the wall clock.
+/// `CLOCK_REALTIME`: the wall clock.
 export CLOCK_REALTIME :: 0
 
 /// `CLOCK_MONOTONIC`. The value is not portable: 6 on Darwin, 1 elsewhere.
@@ -28,7 +28,7 @@ export CLOCK_MONOTONIC: i32: if VADER_OS == .Darwin { 6 } else { 1 }
 /// `opendir(3)`. NULL when `path` is not a directory, does not exist, or
 /// cannot be searched.
 ///
-/// It answers "is this a directory" only for a directory the caller can READ —
+/// It answers "is this a directory" only for a directory the caller can READ:
 /// `sys_path_kind` is what `std/io::is_dir` asks, and says why.
 ///
 /// @param path  the directory to open.
@@ -48,7 +48,7 @@ export sys_closedir :: fn(dir: CPointer) -> i32
 ///
 /// The low numbers are fixed by history and identical on Darwin and Linux; the
 /// ones that are not say so on their own line. A raw `errno` is a PLATFORM
-/// value — compare against these, never against a literal.
+/// value: compare against these, never against a literal.
 export EPERM: i32: 1
 export ENOENT: i32: 2
 export EINTR: i32: 4
@@ -61,15 +61,15 @@ export EISDIR: i32: 21
 export EINVAL: i32: 22
 export ENOSPC: i32: 28
 export EPIPE: i32: 32
-/// Diverges: 35 on Darwin, 11 on Linux — where `EDEADLK` sits on the other.
+/// Diverges: 35 on Darwin, 11 on Linux, where `EDEADLK` sits on the other.
 export EAGAIN: i32: if VADER_OS == .Darwin { 35 } else { 11 }
 /// Diverges: 66 on Darwin, 39 on Linux.
 export ENOTEMPTY: i32: if VADER_OS == .Darwin { 66 } else { 39 }
 
 /// The calling thread's `errno`, as the LAST foreign call left it.
 ///
-/// `errno` is a macro, not a symbol — `*__error()` on Darwin,
-/// `*__errno_location()` on glibc — so no `@extern` can name it directly and the
+/// `errno` is a macro, not a symbol: `*__error()` on Darwin,
+/// `*__errno_location()` on glibc, so no `@extern` can name it directly and the
 /// runtime reads it for us.
 ///
 /// ⚠️ Read it IMMEDIATELY after the call that failed. Any foreign call in
@@ -81,7 +81,7 @@ export sys_last_errno :: fn() -> i32
 
 /// What KIND of thing `path` is, via `stat(2)`.
 ///
-/// `struct stat` is NOT mirrorable — not "ambiguous between arches", genuinely
+/// `struct stat` is NOT mirrorable, not "ambiguous between arches", genuinely
 /// inexpressible. A mirror is pinned field by field to `__builtin_offsetof`, so
 /// it is only valid as a contiguous LEADING prefix ; `st_mode` leads on neither
 /// arch (offset 24 on linux-x86_64, 16 on linux-arm64), and the two arches also
@@ -94,7 +94,7 @@ export sys_last_errno :: fn() -> i32
 /// answers "not a directory".
 ///
 /// An `enum` would name the answer set better, but `@extern` cannot carry one
-/// (T3050) — and a Vader wrapper here would give this module a BODY, which the
+/// (T3050), and a Vader wrapper here would give this module a BODY, which the
 /// seed refuses: `system/posix` would then emit a unit on POSIX targets and none
 /// on Windows, and `--seed-targets` requires one module set for every target.
 /// Hence four constants and a declaration-only module.
@@ -117,7 +117,7 @@ export sys_path_mtime :: fn(path: string) -> i64
 export PATH_MISSING: i32: 0
 export PATH_REGULAR: i32: 1
 export PATH_DIRECTORY: i32: 2
-/// Device, FIFO, socket — anything with no size to speak of.
+/// Device, FIFO, socket: anything with no size to speak of.
 export PATH_OTHER: i32: 3
 
 /// `readdir(3)`. The next entry, or null at the end of the directory.
@@ -135,7 +135,7 @@ export sys_readdir :: fn(dir: CPointer) -> CPointer | null
 ///
 /// The one step a Vader FFI call cannot take for itself: reading a NAMED member
 /// of a C struct. `d_name` sits at a different offset on every system, and only
-/// `cc` can resolve it — from the real header, at the accessor in the runtime.
+/// `cc` can resolve it: from the real header, at the accessor in the runtime.
 ///
 /// It has to be a CALL, not a read of the struct: the interpreter has no C
 /// layout, but it resolves an `@extern` by name out of the running process the
@@ -161,7 +161,7 @@ export dirent_name :: fn(ent: CPointer) -> string
 @extern("ferror")
 export sys_ferror :: fn(stream: CPointer) -> i32
 
-/// `read(2)`. Returns the byte count, `0` at end of file, `-1` on error — and
+/// `read(2)`. Returns the byte count, `0` at end of file, `-1` on error, and
 /// a SHORT read is not an error: a pipe hands over what has arrived so far, so
 /// a caller wanting `n` bytes loops until it has them.
 ///
@@ -173,7 +173,7 @@ export sys_ferror :: fn(stream: CPointer) -> i32
 @extern("read")
 export sys_read :: fn(fd: i32, @c_out buf: u8[], count: i64) -> i64
 
-/// `struct pollfd` — one descriptor and what to watch it for.
+/// `struct pollfd`: one descriptor and what to watch it for.
 ///
 /// Field names are the C ones because a mirror copies BY NAME.
 @c_struct("struct pollfd")
@@ -191,15 +191,15 @@ export Pollfd :: struct {
 
 /// Bytes to reserve for a `posix_spawn_file_actions_t`.
 ///
-/// An OPAQUE buffer — Vader never looks inside, the `spawn_file_actions_*` calls
+/// An OPAQUE buffer: Vader never looks inside, the `spawn_file_actions_*` calls
 /// fill it. Nothing checks this number, so it is taken HIGH: MEASURED at 8 on
-/// Darwin (the type is a bare `void*`) and 80 on glibc — the same on x86_64,
+/// Darwin (the type is a bare `void*`) and 80 on glibc: the same on x86_64,
 /// aarch64 and musl.
 ///
 /// ⚠️ Do NOT narrow this to what one system reports.
 export SPAWN_ACTIONS_BYTES: i64: 128
 
-/// `WNOHANG` — return immediately rather than waiting. 1 on both systems.
+/// `WNOHANG`: return immediately rather than waiting. 1 on both systems.
 export WNOHANG: i32: 1
 
 /// `SIGKILL`. 9 on both systems.
@@ -234,7 +234,7 @@ export sys_spawn_actions_init :: fn(@c_out actions: u8[]) -> i32
 @extern("posix_spawn_file_actions_destroy")
 export sys_spawn_actions_destroy :: fn(@c_out actions: u8[]) -> i32
 
-/// `posix_spawn_file_actions_addclose(3)` — close `fd` in the child.
+/// `posix_spawn_file_actions_addclose(3)`: close `fd` in the child.
 ///
 /// @param actions  the actions buffer.
 /// @param fd       the descriptor to close after the fork.
@@ -242,7 +242,7 @@ export sys_spawn_actions_destroy :: fn(@c_out actions: u8[]) -> i32
 @extern("posix_spawn_file_actions_addclose")
 export sys_spawn_actions_addclose :: fn(@c_out actions: u8[], fd: i32) -> i32
 
-/// `posix_spawn_file_actions_adddup2(3)` — `dup2(fd, newfd)` in the child.
+/// `posix_spawn_file_actions_adddup2(3)`: `dup2(fd, newfd)` in the child.
 ///
 /// @param actions  the actions buffer.
 /// @param fd       the source descriptor.
@@ -251,12 +251,12 @@ export sys_spawn_actions_addclose :: fn(@c_out actions: u8[], fd: i32) -> i32
 @extern("posix_spawn_file_actions_adddup2")
 export sys_spawn_actions_adddup2 :: fn(@c_out actions: u8[], fd: i32, newfd: i32) -> i32
 
-/// `posix_spawnp(3)` — launch `file`, resolved through `PATH`.
+/// `posix_spawnp(3)`: launch `file`, resolved through `PATH`.
 ///
 /// @param pid      a one-element array receiving the child's pid.
 /// @param file     the program name.
 /// @param actions  the file actions, or an empty buffer for none.
-/// @param attrp    null — no spawn attributes are used.
+/// @param attrp    null: no spawn attributes are used.
 /// @param argv     a NULL-terminated vector of `char*`, as `i64` words.
 /// @param envp     `sys_environ()`.
 /// @return         0 on success, an errno value otherwise.
@@ -284,7 +284,7 @@ export sys_waitpid :: fn(pid: i32, @c_out status: i32[], options: i32) -> i32
 @extern("kill")
 export sys_kill :: fn(pid: i32, sig: i32) -> i32
 
-/// `strdup(3)` — a heap copy of `s`, owned by the caller.
+/// `strdup(3)`: a heap copy of `s`, owned by the caller.
 ///
 /// Used to build the `char**` a spawn wants: a `i64[]` of these lends as one.
 ///
@@ -304,14 +304,14 @@ export sys_free :: fn(p: CPointer) -> void
 /// The process environment, for `sys_posix_spawnp`.
 ///
 /// `environ` is a VARIABLE and the FFI calls functions, so the runtime names it.
-/// Passing null instead gives the child an EMPTY environment — no `PATH`, which
+/// Passing null instead gives the child an EMPTY environment: no `PATH`, which
 /// every spawned tool needs.
 ///
 /// @return  the parent's `char**` environment.
 @extern("vader_environ")
 export sys_environ :: fn() -> CPointer
 
-/// `POLLIN` — data is available to read. 1 on both systems.
+/// `POLLIN`: data is available to read. 1 on both systems.
 export POLLIN: i16: 1
 
 /// `poll(2)` on a SINGLE descriptor.
@@ -321,7 +321,7 @@ export POLLIN: i16: 1
 ///
 /// @param fds         the descriptor to watch; `revents` is filled in.
 /// @param nfds        always 1 here. `nfds_t` is 4 bytes on Darwin and 8 on
-///                    Linux, and neither is spellable per target — passing the
+///                    Linux, and neither is spellable per target: passing the
 ///                    wider one is ABI-correct on both, since an `unsigned int`
 ///                    argument travels in the low half of its register and 1
 ///                    fits either way. It would not be, for a count that used
@@ -335,29 +335,29 @@ export sys_poll_one :: fn(@c_pointer @c_out fds: Pollfd, nfds: u64, timeout_ms: 
 /// Bytes to reserve for a `struct termios`. The LARGER of the measured sizes,
 /// deliberately, and not a per-system value.
 ///
-/// MEASURED: 72 on Darwin, 60 on Linux — x86_64 and arm64 alike, the type being
+/// MEASURED: 72 on Darwin, 60 on Linux, x86_64 and arm64 alike, the type being
 /// built from fixed-width members. A SIZE, not an offset, which is why no
 /// architecture axis is needed where a `struct stat` mirror would have wanted one.
 ///
-/// ⚠️ Do NOT narrow this to the per-system figure. The risk is asymmetric —
+/// ⚠️ Do NOT narrow this to the per-system figure. The risk is asymmetric:
 /// over-reserving wastes 12 bytes on Linux, under-reserving is an out-of-bounds
 /// write by `tcgetattr`, which nothing here checks. One constant, taken high, is
 /// the shape that cannot be got wrong.
 export TERMIOS_BYTES: i64: 72
 
-/// `TCSAFLUSH` — apply after draining output, DISCARDING pending input. That
+/// `TCSAFLUSH`: apply after draining output, DISCARDING pending input. That
 /// last part is why raw mode uses it: keystrokes meant for the shell must not
 /// land in the prompt. 2 on both systems.
 export TCSAFLUSH: i32: 2
 
 /// `tcgetattr(3)`. Reads the terminal state into an OPAQUE buffer.
 ///
-/// The buffer is never interpreted on the Vader side — it travels from here to
+/// The buffer is never interpreted on the Vader side: it travels from here to
 /// `sys_tcsetattr` and back, so nothing needs the layout of `struct termios`,
 /// whose shape differs between systems (`c_line` is Linux-only) and whose `c_cc`
 /// is an array. `buf` must hold at least `TERMIOS_BYTES`.
 ///
-/// @param fd   the descriptor — 0 for stdin.
+/// @param fd   the descriptor: 0 for stdin.
 /// @param buf  receives the state.
 /// @return     0 on success, -1 otherwise.
 @c_header("<termios.h>")
@@ -367,7 +367,7 @@ export sys_tcgetattr :: fn(fd: i32, @c_out buf: u8[]) -> i32
 /// `tcsetattr(3)`. Applies a state read by `sys_tcgetattr`.
 ///
 /// @param fd      the descriptor.
-/// @param action  when to apply it — `TCSAFLUSH` here.
+/// @param action  when to apply it: `TCSAFLUSH` here.
 /// @param buf     the state to install.
 /// @return        0 on success, -1 otherwise.
 @c_header("<termios.h>")
@@ -377,14 +377,14 @@ export sys_tcsetattr :: fn(fd: i32, action: i32, buf: u8[]) -> i32
 /// `cfmakeraw(3)`. Turns a state into the raw one, in place.
 ///
 /// The whole reason Vader never has to name a `termios` member: the flag surgery
-/// happens in C. It is MORE aggressive than a hand-rolled raw mode — it also
+/// happens in C. It is MORE aggressive than a hand-rolled raw mode: it also
 /// clears `OPOST`, so `\n` no longer returns the carriage and a caller must write
 /// `\r\n` itself.
 @c_header("<termios.h>")
 @extern("cfmakeraw")
 export sys_cfmakeraw :: fn(@c_out buf: u8[]) -> void
 
-/// `struct winsize` — the terminal size `TIOCGWINSZ` fills in.
+/// `struct winsize`: the terminal size `TIOCGWINSZ` fills in.
 ///
 /// Field names are the C ones because a mirror copies BY NAME; the snake_case
 /// rule does not reach across the boundary.
@@ -396,7 +396,7 @@ export Winsize :: struct {
     ws_ypixel: u16
 }
 
-/// `TIOCGWINSZ`. A macro, and its value is not portable — it encodes the
+/// `TIOCGWINSZ`. A macro, and its value is not portable: it encodes the
 /// direction and the payload size, which differ between the two ioctl schemes.
 export TIOCGWINSZ: u64: if VADER_OS == .Darwin { 0x4008_7468 } else { 0x5413 }
 
@@ -405,11 +405,11 @@ export TIOCGWINSZ: u64: if VADER_OS == .Darwin { 0x4008_7468 } else { 0x5413 }
 /// `ioctl` is variadic; `@c_header` brings the real prototype, so the shim's
 /// three-argument call is ordinary C rather than a redeclaration.
 ///
-/// @param fd       the descriptor to ask about — 1 for stdout.
+/// @param fd       the descriptor to ask about: 1 for stdout.
 /// @param request  always `TIOCGWINSZ` here.
 /// @param ws       receives the size.
 @c_header("<sys/ioctl.h>")
-// `int ioctl(int, unsigned long, ...)` — the third argument is VARIADIC, and
+// `int ioctl(int, unsigned long, ...)`: the third argument is VARIADIC, and
 // two are fixed. Unmarked, the interpreter casts to a non-variadic prototype;
 // on darwin-arm64 variadic arguments travel on the STACK, so the callee reads
 // an uninitialised word and the kernel writes eight bytes through it while
@@ -418,12 +418,12 @@ export TIOCGWINSZ: u64: if VADER_OS == .Darwin { 0x4008_7468 } else { 0x5413 }
 @extern("ioctl")
 export sys_ioctl_winsize :: fn(fd: i32, request: u64, @c_pointer @c_out ws: Winsize) -> i32
 
-/// `_SC_NPROCESSORS_ONLN` — the processors currently online. The value is not
+/// `_SC_NPROCESSORS_ONLN`: the processors currently online. The value is not
 /// portable: 58 on Darwin, 84 on Linux.
 export SC_NPROCESSORS_ONLN: i32: if VADER_OS == .Darwin { 58 } else { 84 }
 
 /// `sysconf(3)`. The value of the configuration variable `name`, or -1 with
-/// `errno` set — an unknown `name` is `EINVAL`.
+/// `errno` set: an unknown `name` is `EINVAL`.
 ///
 /// @param name  one of the `SC_*` selectors.
 @c_header("<unistd.h>")
@@ -432,13 +432,13 @@ export sys_sysconf :: fn(name: i32) -> i64
 
 /// `isatty(3)`. Whether `fd` refers to a terminal.
 ///
-/// @param fd  the descriptor — 1 for stdout, 2 for stderr.
+/// @param fd  the descriptor: 1 for stdout, 2 for stderr.
 /// @return    1 when it is a terminal, 0 otherwise.
 @c_header("<unistd.h>")
 @extern("isatty")
 export sys_isatty :: fn(fd: i32) -> i32
 
-/// `readlink(2)`. Bytes placed in `buf` — NOT NUL-terminated — or -1.
+/// `readlink(2)`. Bytes placed in `buf` (NOT NUL-terminated) or -1.
 ///
 /// Linux reads the running binary's path from `/proc/self/exe`.
 @c_header("<unistd.h>")
@@ -454,7 +454,7 @@ export sys_realpath :: fn(path: string, @c_out resolved: u8[]) -> CPointer | nul
 /// `fopen(3)`. A stream handle, or null when the file cannot be opened.
 ///
 /// `stdio` rather than `open(2)`: the mode is a STRING, so nothing here has to
-/// know the numeric value of `O_CREAT` — which is 512 on Darwin and 64 on Linux.
+/// know the numeric value of `O_CREAT`, which is 512 on Darwin and 64 on Linux.
 /// Reading proceeds until end of file, so `SEEK_END` is not needed either.
 ///
 /// @param path  the file to open.
@@ -468,7 +468,7 @@ export sys_fopen :: fn(path: string, mode: string) -> CPointer | null
 @extern("fclose")
 export sys_fclose :: fn(stream: CPointer) -> i32
 
-/// `fread(3)`. The number of ITEMS read — short at end of file.
+/// `fread(3)`. The number of ITEMS read: short at end of file.
 ///
 /// @param buf     receives the bytes.
 /// @param size    item size in bytes; 1 to read bytes.
@@ -484,7 +484,7 @@ export sys_fread :: fn(@c_out buf: u8[], size: i64, count: i64, stream: CPointer
 export sys_fwrite :: fn(buf: u8[], size: i64, count: i64, stream: CPointer) -> i64
 
 /// `getcwd(3)`. Fills `buf` with the working directory, NUL-terminated, and
-/// returns it — or null when `buf` is too small or the directory is unreadable.
+/// returns it, or null when `buf` is too small or the directory is unreadable.
 /// The length is not reported: read up to the NUL.
 ///
 /// @param buf   receives the path.
@@ -500,7 +500,7 @@ export sys_getcwd :: fn(@c_out buf: u8[], size: i64) -> CPointer | null
 @extern("chdir")
 export sys_chdir :: fn(path: string) -> i32
 
-/// `mkdir(2)`. 0 on success, -1 with `errno` set — `EEXIST` included, which is
+/// `mkdir(2)`. 0 on success, -1 with `errno` set: `EEXIST` included, which is
 /// why the caller re-tests the path rather than reading `errno`.
 ///
 /// @param path  directory to create.
@@ -508,7 +508,7 @@ export sys_chdir :: fn(path: string) -> i32
 @c_header("<sys/stat.h>")
 @extern("mkdir")
 // `mode_t` is 2 bytes on Darwin and 4 on Linux, and neither is spellable per
-// target — same shape as `nfds_t` on `sys_poll_one`. Passing the wider one is
+// target: same shape as `nfds_t` on `sys_poll_one`. Passing the wider one is
 // ABI-correct here because a permission mask uses the low bits and an argument
 // travels in the low half of its register.
 export sys_mkdir :: fn(path: string, mode: u32) -> i32
@@ -532,8 +532,8 @@ export sys_access :: fn(path: string, mode: i32) -> i32
 @extern("unlink")
 export sys_unlink :: fn(path: string) -> i32
 
-/// `clock_gettime(2)`. Fills `ts` — two cells standing in for `struct timespec`,
-/// both members being 64-bit here — with seconds then nanoseconds. -1 on failure.
+/// `clock_gettime(2)`. Fills `ts`: two cells standing in for `struct timespec`,
+/// both members being 64-bit here: with seconds then nanoseconds. -1 on failure.
 @c_header("<time.h>")
 @extern("clock_gettime")
 export sys_clock_gettime :: fn(clock_id: i32, @c_out ts: i64[]) -> i32

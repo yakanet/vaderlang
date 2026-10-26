@@ -7,8 +7,8 @@
 // reloaded only by a call or a return.
 //
 // Operand tags are not tested: `prepare` proved every one an arm relies on
-// (`tags.vader`). What depends on a value stays checked here — a zero divisor,
-// the call depth, the comptime step budget — and a trap message quotes the
+// (`tags.vader`). What depends on a value stays checked here (a zero divisor,
+// the call depth, the comptime step budget) and a trap message quotes the
 // original pc.
 //
 // A trap runs every pending `defer` before it surfaces, the last pushed first, as
@@ -691,7 +691,7 @@ reg_call :: fn(
                         return overflow_trap(callee.name)
                     }
                     // `enter_frame` spelled out: a call grows nothing once the run
-                    // is warm, and the helpers — which may — do not inline.
+                    // is warm, and the helpers (which may) do not inline.
                     if bits.len() < at + callee.registers {
                         reserve_registers(m, at + callee.registers)
                     }
@@ -892,7 +892,7 @@ narrow_register :: fn(m: RegMachine, at: i64, width: i32) -> void {
     m.tags[at] = .I32
 }
 
-// Why the fn value above `arity` arguments from `at` cannot be called — the
+// Why the fn value above `arity` arguments from `at` cannot be called: the
 // `call.indirect` arm turned it down, on the same tests: not a fn, an index out
 // of range, or an arity its callee does not declare.
 indirect_call_trap :: fn(code: RegModule, m: RegMachine, at: i64, arity: i64, origin: i32) -> Trap {
@@ -1062,7 +1062,7 @@ enter_frame :: fn(m: RegMachine, f: RegFunction, base: i64) -> void {
 }
 
 // `defer.pop_exec`: pop the last `count` deferred closures and run them, the last
-// pushed first, from register `at` — above the frame running them, at `depth`.
+// pushed first, from register `at`: above the frame running them, at `depth`.
 run_defers :: fn(
     state: VmState, code: RegModule, m: RegMachine, f: RegFunction, pc: i64, at: i64, depth: i64,
     is_comptime: bool,
@@ -1135,7 +1135,7 @@ run_thunk :: fn(
 }
 
 // A trap ended the run: run every pending `defer`, the last pushed first. One that
-// traps in turn ends the unwind — its own trap is dropped for the first.
+// traps in turn ends the unwind: its own trap is dropped for the first.
 unwind :: fn(state: VmState, code: RegModule, m: RegMachine, is_comptime: bool) -> void {
     for m.defer_count > 0 {
         m.defer_count -= 1
@@ -1150,7 +1150,7 @@ unwind :: fn(state: VmState, code: RegModule, m: RegMachine, is_comptime: bool) 
 }
 
 // The `Line` op at `pc`: stop when its source line carries a breakpoint or ends
-// the step in progress — at the line's first op only.
+// the step in progress: at the line's first op only.
 stop_at_line :: fn(state: VmState, m: RegMachine, session: DebugSession, f: RegFunction, pc: i64, depth: i64) -> void {
     position :: state.bc.functions[f.index].debug[f.origin[pc]] ?? return
     if position.line == session.last_line {

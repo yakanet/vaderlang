@@ -27,7 +27,7 @@ export collections :: fn() -> i32
 export bytes_used :: fn() -> i32
 
 /// Cumulative bytes copied across all collections. A coarse measure of
-/// total GC work — divide by `collections()` for the average per-cycle
+/// total GC work: divide by `collections()` for the average per-cycle
 /// payload.
 /// @return  total bytes copied since process start.
 @intrinsic
@@ -41,7 +41,7 @@ export bytes_copied :: fn() -> i32
 @intrinsic
 export sched_now :: fn() -> i64
 
-/// Register a wake at `deadline` (absolute scheduler ms) on the timer heap — the
+/// Register a wake at `deadline` (absolute scheduler ms) on the timer heap: the
 /// scheduler will resume the parked program no earlier than then.
 /// @param deadline  absolute scheduler time (ms) at which to wake.
 @intrinsic
@@ -49,9 +49,9 @@ export sched_arm :: fn(deadline: i64) -> void
 
 /// Park until the nearest armed deadline : wait for it (real time, unless
 /// `VADER_ASYNC_VIRTUAL_CLOCK` is set), advance the clock to it, and drop every
-/// timer then due — the caller re-drives all of its tasks after a park, so one
+/// timer then due: the caller re-drives all of its tasks after a park, so one
 /// wake serves them all.
-/// @return  0 = advanced to the next deadline ; 1 = deadlock — nothing armed,
+/// @return  0 = advanced to the next deadline ; 1 = deadlock: nothing armed,
 ///          every task suspended with nothing left to wake it.
 @intrinsic
 export sched_park :: fn() -> i32

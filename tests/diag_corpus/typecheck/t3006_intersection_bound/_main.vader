@@ -1,4 +1,4 @@
-// T3006: every trait of an `A & B` bound is checked — `Meters` has the `Add` of
+// T3006: every trait of an `A & B` bound is checked, `Meters` has the `Add` of
 // `sum`'s `T: Add & Zero`, not its `Zero`.
 module "snippet"
 

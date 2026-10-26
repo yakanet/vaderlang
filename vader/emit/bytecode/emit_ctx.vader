@@ -24,7 +24,7 @@ export EmitOptions :: struct {
     /// Populate the per-op `debug: (DebugPos | null)[]` table with source
     /// positions. The C emitter writes a `#line` wherever one is set, so this
     /// is `!release` on the C-build path, `--line-directives` on
-    /// `dump --stage=c`, and `false` everywhere else — the VM never reads
+    /// `dump --stage=c`, and `false` everywhere else: the VM never reads
     /// `debug`, so populating it on the run / comptime / self-compile-release
     /// path would allocate one `DebugPos` box per op for nothing.
     want_debug: bool
@@ -57,13 +57,13 @@ export EmitterCtx :: struct {
     /// `"null"` at index 0 by `new_emitter_ctx`.
     type_key: MutableMap<string, i32>
     /// `type_intern_hash(t)` → the same index, reached without building the key
-    /// string — which is the point: the key is rebuilt half a million times per
+    /// string, which is the point: the key is rebuilt half a million times per
     /// self-build to index ~1 600 slots, and every level of its recursion
     /// allocates and interns. A hit is VERIFIED against `type_hash_src` by
     /// `same_intern_class`, so a 64-bit collision falls back to the string path
     /// instead of silently merging two slots.
     type_hash: MutableMap<u64, i32>
-    /// The type each SLOT was minted for — the verifier's subject. An array
+    /// The type each SLOT was minted for: the verifier's subject. An array
     /// indexed by slot, not a second map: the verify already knows the index, so
     /// probing a second hash table for it doubles the lookup it is guarding.
     type_by_slot: Type[]
@@ -85,7 +85,7 @@ export EmitterCtx :: struct {
     /// Mangled fn name → index into `functions`. Generic-instance call
     /// sites resolve by mangle : multiple instances of one generic share
     /// the generic's `symbol.id`, so `function_index_by_symbol_id` can't
-    /// distinguish them — the per-instance mangle can.
+    /// distinguish them: the per-instance mangle can.
     function_index_by_mangle: MutableMap<string, i32>
 
     /// Host-side import table (`@extern` user decls + stdlib
@@ -101,7 +101,7 @@ export EmitterCtx :: struct {
     /// to a `CallImport`. Mirror of `function_index_by_mangle` for imports.
     import_index_by_mangle: MutableMap<string, i32>
 
-    /// `@export` decls — exposed to the host linker. C-emit's `main`
+    /// `@export` decls: exposed to the host linker. C-emit's `main`
     /// shim consults this to pick the program entry point.
     exports: BcExport[]
 
@@ -114,18 +114,18 @@ export EmitterCtx :: struct {
 
     /// Set once `prune_unused_types` has run. Past that point the table is
     /// FINAL: a slot minted afterwards is invisible to the prune, so it survives
-    /// as an orphan `ref` — dead, pinned, and permanent — and any field access
+    /// as an orphan `ref` (dead, pinned, and permanent) and any field access
     /// reaching it panics with `emit/bytecode/emit: no field ... on ...`. That is not
     /// hypothetical: `build_vtables_from_entries` did exactly this until
     /// `aba0fcff4`, and its sibling had carried the rule as a comment for months.
     /// A comment is not a guard, hence this flag: `intern_type` refuses to CREATE
-    /// while it is set. Lookups stay legal — the builders that run after the
+    /// while it is set. Lookups stay legal: the builders that run after the
     /// prune are supposed to look types up, just never to mint them.
     types_frozen: bool = false
 
     /// Per-function arg/result type pins, keyed by fn index. Each Call's
     /// arg + dst static types are pinned here under the emitting function,
-    /// so `prune_unused_types` roots them only for SURVIVING functions —
+    /// so `prune_unused_types` roots them only for SURVIVING functions,
     /// when a function is pruned, its pins drop with it (the roots live on
     /// the op). A global list would keep dead types (and the impl rows /
     /// monomorphised `Range` types they anchor) alive in every program.
@@ -172,11 +172,11 @@ export new_emitter_ctx :: fn() -> EmitterCtx {
 /// short interned string the typechecker already passes around), so
 /// the common `i32` / `string` / `bool` cases skip the
 /// `display_type` allocation entirely. Composite types fall back to
-/// the `display_type` key — conservative but stable across the
+/// the `display_type` key: conservative but stable across the
 /// pipeline.
 ///
 /// @param t    the type to intern.
-/// @param ctx  the emit context — its `types` + `type_key` get mutated.
+/// @param ctx  the emit context: its `types` + `type_key` get mutated.
 /// @return     the type table index.
 export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
     h :: type_intern_hash(t)
@@ -281,7 +281,7 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
 /// `ref` (the failure mode that hid the missing `Tuple` case).
 ///
 /// @param t    the type to translate.
-/// @param ctx  the emit context — nested types intern through it.
+/// @param ctx  the emit context: nested types intern through it.
 /// @return     the `BcType` for the type table.
 bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx) -> BcType {
     match t {
@@ -328,7 +328,7 @@ bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx) -> BcType {
                 .symbol_id = -1,
             }
         }
-        // No first-class bytecode shape — opaque `ref`. Listed explicitly
+        // No first-class bytecode shape: opaque `ref`. Listed explicitly
         // (not a `_` catch-all) so a new `Type` variant trips T3013.
         is TypeParamType  -> { return OPAQUE_REF }
         is InferVar       -> { leaked_infer_var(t) }

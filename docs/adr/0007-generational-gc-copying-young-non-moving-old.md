@@ -1,4 +1,4 @@
-# 0007 — Generational GC: copying young, non-moving mark-sweep old
+# 0007, Generational GC: copying young, non-moving mark-sweep old
 
 ## Status
 
@@ -27,7 +27,7 @@ Two generations with different collectors, because they face different problems.
 
 **Young is a copying (Cheney) semi-space pair.** Allocation is a bump; a minor
 copies survivors to to-space, or promotes them to the old gen once `age` reaches
-`VADER_TENURE_AGE` (2 minors). Churn is where a copying collector is strongest —
+`VADER_TENURE_AGE` (2 minors). Churn is where a copying collector is strongest:
 it pays per survivor, not per allocation.
 
 **Old is a NON-MOVING mark-sweep slab.** One lazily-committed reservation carved
@@ -38,8 +38,8 @@ live set that, in a self-compile, barely dies.
 
 **Cross-generation refs use a card table**, one card per 512 bytes of old,
 written by the `VADER_WRITE_BARRIER` macro the C emitter issues, and read as
-additional roots by a minor. The alternative — scanning the whole old space on
-every minor — is quadratic in the old live set, which is exactly the shape a
+additional roots by a minor. The alternative (scanning the whole old space on
+every minor) is quadratic in the old live set, which is exactly the shape a
 self-compile has.
 
 **Sizing is RAM-proportional, not absolute.** The old reservation cap is a
@@ -50,7 +50,7 @@ absolute `Xms`/`Xmx` sizes proved too fiddly per machine. Young is deliberately
 NOT RAM-scaled: its 192 MB ceiling is a per-minor cost cliff, not a memory limit.
 
 A major fires when the old footprint exceeds `live_after_last_major × 1.5`, and
-never below a 64 MB floor — so small programs never pay one.
+never below a 64 MB floor, so small programs never pay one.
 
 ## Consequences
 

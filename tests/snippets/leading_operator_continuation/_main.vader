@@ -1,6 +1,6 @@
 // A line opening with an infix-only operator continues the previous expression :
 // `+`, `*`, `??`, `==`, `<`, `&&`, … have no prefix form, so the newline before
-// them is absorbed — in a block-valued `if` too, where nothing else would hold
+// them is absorbed: in a block-valued `if` too, where nothing else would hold
 // the expression open. A comment line may sit in between.
 
 module "snippet"

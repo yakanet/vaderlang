@@ -33,7 +33,7 @@ export parse_source :: fn(source: string, file: string) -> ParsedSource {
     // Carry lexer diagnostics through so the snapshot shows both phases.
     for e in l.errors { p.errors.push(e) }
     program :: parse_program(p)
-    // Mint stable IDs for every node — downstream side-tables key on
+    // Mint stable IDs for every node: downstream side-tables key on
     // `node.id` rather than on stringified spans (which collide when
     // materialise clones default-method bodies). See `assign_ids.vader`.
     id_factory :: new_node_id_factory()
@@ -55,7 +55,7 @@ export parse_source :: fn(source: string, file: string) -> ParsedSource {
 /// soft-keyword `module` followed by a double-quoted string.
 ///
 /// Returns null when no decl is found (the caller treats that as
-/// R2020 territory). The returned span carries only the file path —
+/// R2020 territory). The returned span carries only the file path:
 /// a precise span would require char-by-char position tracking
 /// across the scanner, which isn't worth the cost for diagnostics
 /// the resolver re-resolves at its own pass anyway.
@@ -67,7 +67,7 @@ export ModuleHeader :: struct {
 export parse_module_header :: fn(source: string, file: string) -> ModuleHeader | null {
     n :: source.byte_len()
     i: i64 = 0
-    // UTF-8 BOM (EF BB BF) — skip it exactly like the main lexer's `tokenize`
+    // UTF-8 BOM (EF BB BF): skip it exactly like the main lexer's `tokenize`
     // does. Without this the byte-scan reads `0xEF` as the first non-trivial
     // byte, fails to match `module`, and the caller reports a misleading
     // R2020 (missing module decl) on a file that has one.
@@ -133,7 +133,7 @@ export parse_module_header :: fn(source: string, file: string) -> ModuleHeader |
     return ModuleHeader { .name = name, .name_span = empty_file_span(file) }
 }
 
-// Scan budget — most module decls land in the first 1 KB ; bail past
+// Scan budget: most module decls land in the first 1 KB ; bail past
 // 4 KB to stay O(1) memory regardless of file size when the prologue
 // looks malformed.
 header_budget :: fn(n: i64) -> i64 {
@@ -222,7 +222,7 @@ export Parser :: struct {
     // Latched once `MAX_EXPR_DEPTH` is exceeded : the single P1029 has been
     // reported and every subsequent diagnostic is suppressed (see `error`) so
     // the unwinding `expect` calls don't cascade one error per nesting level.
-    // Never cleared — past this depth the token stream is unrecoverable.
+    // Never cleared: past this depth the token stream is unrecoverable.
     depth_exceeded: bool = false
 }
 
@@ -305,7 +305,7 @@ check_closing_angle :: fn(p: Parser) -> bool {
 /// Consume one closing `>`. Handles three cases :
 ///   - real `Gt`               : advance past it.
 ///   - second half of a `Shr`  : return the pending synthetic gt.
-///   - fresh `Shr`             : split — advance past the `Shr` and stash
+///   - fresh `Shr`             : split, advance past the `Shr` and stash
 ///                               the synthetic second half for the next
 ///                               caller. `pos` advances on the FIRST half
 ///                               so `peek_at(-1)` gives the right span anchor.
@@ -315,7 +315,7 @@ check_closing_angle :: fn(p: Parser) -> bool {
 /// Span invariant : a split `>>` yields TWO single-`>` tokens whose spans are
 /// disjoint halves of the source `>>` (first `>` = `[start, start+1)`, second
 /// `>` = `[start+1, end)`). Callers anchor a generic's end span on
-/// `peek_at(-1)` — the array slot at `pos-1` — so on each split the consumed
+/// `peek_at(-1)` (the array slot at `pos-1`) so on each split the consumed
 /// half is written into that slot. Without this, a nested `Iter<i32>` inside
 /// `Into<Iter<i32>>` would inherit the whole-`>>` span and `fmt`'s verbatim
 /// source-slice would emit the extra `>` (audit F3).
@@ -395,7 +395,7 @@ skip_newlines :: fn(p: Parser) -> void {
     for p.check(.Newline) { p.pos = p.pos + 1 }
 }
 
-// Tokens that mark the boundary of a top-level item — used for recovery.
+// Tokens that mark the boundary of a top-level item: used for recovery.
 at_top_level_start :: fn(p: Parser) -> bool {
     t :: p.peek()
     if t.kind == .KwImport || t.kind == .KwExport { return true }
@@ -425,10 +425,10 @@ error :: fn(p: Parser, code: ParserCode, span: Span, detail: string) -> void {
 }
 
 // Report the one P1029 for a nesting-depth breach and latch `depth_exceeded`
-// so the unwinding diagnostics stay muted. Idempotent — only the first breach
+// so the unwinding diagnostics stay muted. Idempotent: only the first breach
 // reports. Also drops the rest of the line : the unparsed tail (thousands more
-// `(` / `!` tokens) would otherwise spawn a fresh statement — and downstream
-// type errors — for every `MAX_EXPR_DEPTH`-token chunk. `what` names the
+// `(` / `!` tokens) would otherwise spawn a fresh statement (and downstream
+// type errors) for every `MAX_EXPR_DEPTH`-token chunk. `what` names the
 // grammar ("expression" / "type") for the detail line.
 report_nesting_too_deep :: fn(p: Parser, what: string) -> void {
     if p.depth_exceeded { return }
@@ -522,7 +522,7 @@ parse_optional_module_decl :: fn(p: Parser) -> ModuleDecl | null {
 ///
 /// Backs `P1028` on a `module` declaration, and exported so a build driver's
 /// `emit_module` can refuse a name BEFORE writing a file the parser would then
-/// reject — a diagnostic on machine-written code is a diagnostic the user cannot
+/// reject: a diagnostic on machine-written code is a diagnostic the user cannot
 /// act on. Hand-rolled rather than `std/regex` to keep the parser's dependency
 /// surface minimal; the predicates take `char` to match the lexer's
 /// `is_ident_start` / `is_ident_continue` idiom.
@@ -714,7 +714,7 @@ check_c_struct_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
 }
 
 // `@c_pointer` and `@c_out` belong on a PARAMETER and `@c_struct` on a struct.
-// Written on a declaration they reach neither check and do nothing — the same
+// Written on a declaration they reach neither check and do nothing: the same
 // silent no-op `reject_free_fn_decorators` exists to prevent.
 reject_c_decorators :: fn(p: Parser, decorators: Decorator[], what: string) -> void {
     for d in decorators {
@@ -776,7 +776,7 @@ parse_decorator :: fn(p: Parser) -> Decorator {
 /// Statement-position `import "..."`. A brace block `{ a, b }` is a destructure
 /// import ; a bare path is a wildcard import (every function of the module
 /// becomes callable, prefix + UFCS). The `import "..." as name` form is
-/// rejected — write `name :: import "..."`.
+/// rejected: write `name :: import "..."`.
 parse_import_decl :: fn(p: Parser, decorators: Decorator[]) -> ImportDecl {
     start :: p.advance()  // `import`
     path_info :: p.expect_string_literal("import path")
@@ -789,7 +789,7 @@ parse_import_decl :: fn(p: Parser, decorators: Decorator[]) -> ImportDecl {
         if p.check(.Ident) { p.advance() }
     }
 
-    // `import "p" { x as y, z as _ }` — WILDCARD of p plus per-name modifiers
+    // `import "p" { x as y, z as _ }`: WILDCARD of p plus per-name modifiers
     // (`x as y` renames, `z as _` excludes). A bare `import "p"` is the plain
     // wildcard, exposing every export.
     if p.match_kind(.LBrace) != null {
@@ -801,7 +801,7 @@ parse_import_decl :: fn(p: Parser, decorators: Decorator[]) -> ImportDecl {
             .decorators = decorators,
         }
     }
-    // bare `import "..."` — wildcard : every public export of the module callable.
+    // bare `import "..."`, wildcard : every public export of the module callable.
     return ImportDecl {
         .span       = p.span_of(start, p.peek_at(-1)),
         .path       = path_info.text,
@@ -881,7 +881,7 @@ expect_string_literal :: fn(p: Parser, what: string) -> StringLitInfo {
         if t.kind == .StringPart {
             // Lexer stores the decoded text in `value` for StringPart tokens.
             // Bind to a local so match-narrowing applies, and use a wildcard
-            // arm — the runtime can't reliably dispatch a primitive-only
+            // arm: the runtime can't reliably dispatch a primitive-only
             // union via individual `is X` arms.
             v :: t.value
             match v {
@@ -981,13 +981,13 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     }
     trait_tok :: p.expect(.Ident, "trait name")
 
-    // Trait-args — `Iterator<T>`.
+    // Trait-args: `Iterator<T>`.
     trait_args: TypeExpr[] = []
     if p.match_kind(.Lt) != null {
         trait_args = p.parse_type_list_until_angle()
     }
 
-    // `@intrinsic Type implements Trait` (no body) — resolver synthesises
+    // `@intrinsic Type implements Trait` (no body): resolver synthesises
     // body-less members from the trait's methods.
     is_intrinsic := false
     for deco in decorators {
@@ -1183,7 +1183,7 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
     p.reject_displayable_decorator(decorators)
     visibility: Visibility = .Private
     if p.match_kind(.KwExport) != null { visibility = .Public }
-    // Unified syntax: `name :: fn(...)` — same shape as top-level fns.
+    // Unified syntax: `name :: fn(...)`, same shape as top-level fns.
     is_member :: p.check(.Ident) && p.peek_at(1).kind == .DeclConst && p.peek_at(2).kind == .KwFn
     if !is_member {
         t :: p.peek()
@@ -1262,7 +1262,7 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
 
             start_tok :: p.peek()
             // Decorators come before the name, as everywhere else. Which ones
-            // are ACCEPTED is a typecheck question, not a parse one — the
+            // are ACCEPTED is a typecheck question, not a parse one: the
             // parser's job is to carry them to a pass that knows the context
             // (only an `@extern` declaration admits `@c_pointer`).
             param_decorators :: p.parse_decorators()
@@ -1327,7 +1327,7 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
     for !p.check(.RBrace) && !p.check(.Eof) {
         // Fields are PUBLIC by default ; an `@internal` decorator restricts a
         // field to its declaring module (typecheck enforces, T3054). Any other
-        // decorator is rejected here — `@internal` is the only field decorator.
+        // decorator is rejected here: `@internal` is the only field decorator.
         field_decos :: p.parse_decorators()
         field_visibility: Visibility = .Public
         for d in field_decos {
@@ -1374,7 +1374,7 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
 parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
     // `<T>` canonical type-params first. The `($T, $N: i32)` paren form
     // is reserved for comptime-value heads (the angle list has no
-    // type-ascription slot today) — kept until comptime-value params get
+    // type-ascription slot today): kept until comptime-value params get
     // their own unified surface.
     if p.check(.Lt) { return p.parse_angle_type_params() }
     if p.match_kind(.LParen) == null { return [] }
@@ -1403,7 +1403,7 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
                 }
                 p.error(.TypeParamMustBePrefixedWithDollar, p.span_of(start, p.peek_at(-1)), hint)
             } else {
-                // `: type` bound is redundant — drop it after diagnosing.
+                // `: type` bound is redundant: drop it after diagnosing.
                 bnd :: bound
                 match bnd {
                     is null      -> {}
@@ -1432,7 +1432,7 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
 // Angle type-param list `<T, U: Bound, ...>`. Each entry is `name` or
 // `name: bound` ; the bound parses as a type expression so trait bounds
 // (`<T: Hash & Eq>`) work via the same parser. Always returns
-// non-comptime-value entries — comptime-value params keep the paren
+// non-comptime-value entries: comptime-value params keep the paren
 // form `(N: i32)`.
 parse_angle_type_params :: fn(p: Parser) -> TypeParam[] {
     if !p.check(.Lt) { return [] }
@@ -1453,7 +1453,7 @@ parse_angle_type_params :: fn(p: Parser) -> TypeParam[] {
             p.skip_newlines()
             bound = p.parse_type()
         }
-        // Optional default type — `<T = Default>`. Honored when an impl supplies
+        // Optional default type: `<T = Default>`. Honored when an impl supplies
         // fewer trait-args than the trait declares : the trailing params fill from
         // their defaults (see `build_subst` in vader/front/resolver/materialize.vader).
         default_ty: TypeExpr | null = null
@@ -1476,7 +1476,7 @@ parse_angle_type_params :: fn(p: Parser) -> TypeParam[] {
 
 // Combine angle-declared type-params with inline introductions
 // collected from the value-arg types (legacy dollar-prefixed form).
-// The angle list takes precedence — a name already declared explicitly
+// The angle list takes precedence: a name already declared explicitly
 // is not re-added from the inline list.
 merge_type_params :: fn(angle: TypeParam[], inlined: TypeParam[]) -> TypeParam[] {
     if angle.len() == 0 { return inlined }
@@ -1614,7 +1614,7 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
     }
 }
 
-// `name :: value` — untyped top-level const. The typed shape uses the
+// `name :: value`: untyped top-level const. The typed shape uses the
 // Odin-style `name : Type : value` form parsed by `parse_typed_const_decl`.
 parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> ConstDecl {
     p.reject_free_fn_decorators(decorators, "a constant", VADER_OS_HINT)
@@ -1693,7 +1693,7 @@ through_comptime_helper :: fn(
     synth_name :: "__comptime_${name_tok.text}"
     span :: Span { .start = marker.start, .end = end_tok.span.end }
     // Expression-bodied so an absent `ty` is INFERRED from the (possibly lifted)
-    // trailing expression — Vader infers a fn's return type from a block's
+    // trailing expression: Vader infers a fn's return type from a block's
     // trailing, not from `return` statements. A present `ty` is the declared
     // return type (and lets the typed-const form `.rodata`-bake).
     synth_fn :: FnDecl {
@@ -1819,7 +1819,7 @@ lift_trailing_return :: fn(block: BlockExpr) -> BlockExpr {
     return block
 }
 
-// `name : Type : value` — typed top-level const, mirrors the local
+// `name : Type : value`: typed top-level const, mirrors the local
 // `name : Type : value` immutable-let form for surface uniformity.
 parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility) -> ConstDecl {
     p.reject_free_fn_decorators(decorators, "a constant", VADER_OS_HINT)
@@ -1827,7 +1827,7 @@ parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Vis
     p.advance()  // first `:`
     ty :: p.parse_type()
     p.expect(.Colon, "`:` between type annotation and value")
-    // `NAME: T: @comptime <expr>` — same desugar as the untyped form, but the
+    // `NAME: T: @comptime <expr>`: same desugar as the untyped form, but the
     // declared `T` becomes the synthetic fn's return type (so e.g.
     // `K: u32[]: @comptime { … }` evaluates AND `.rodata`-bakes).
     if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" {
@@ -1853,7 +1853,7 @@ parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Vis
 // Type expressions
 // ============================================================================
 
-// Build a plain `IdentExpr` with both flag fields off — most call sites
+// Build a plain `IdentExpr` with both flag fields off: most call sites
 // don't need the implicit-dot or type-param-intro variants.
 ident_expr :: fn(span: Span, name: string) -> IdentExpr {
     return IdentExpr {
@@ -1870,7 +1870,7 @@ parse_type :: fn(p: Parser) -> TypeExpr {
     // pathologically nested type syntax (`((((…))))` in type position) could
     // overflow the native stack the same way a nested value expression can.
     // The postfix `T[][]…` chain is a loop, not recursion, so it doesn't trip
-    // this — a downstream AST walker is what a 10 000-deep `T[]` overruns.
+    // this: a downstream AST walker is what a 10 000-deep `T[]` overruns.
     p.expr_depth = p.expr_depth + 1
     if p.expr_depth > MAX_EXPR_DEPTH {
         p.expr_depth = p.expr_depth - 1
@@ -1887,7 +1887,7 @@ parse_type :: fn(p: Parser) -> TypeExpr {
     p.match_kind(.Pipe)
     p.reject_removed_const()
     head := p.parse_type_intersection()
-    // `T | U | V` — left-associative `bitor` chain.
+    // `T | U | V`: left-associative `bitor` chain.
     if p.check(.Pipe) {
         head_span :: head.span
         for p.match_kind(.Pipe) != null {
@@ -1920,7 +1920,7 @@ reject_removed_const :: fn(p: Parser) -> void {
 }
 
 // An `as <name>` written where nothing binds. It is consumed so the rest still
-// parses, and diagnosed only when a name follows — a missing one is already
+// parses, and diagnosed only when a name follows: a missing one is already
 // `expect`'s error. `hint` turns the written name into the detail.
 reject_as_binder :: fn(p: Parser, code: ParserCode, hint: fn(string) -> string) -> void {
     as_tok :: p.match_kind(.KwAs) ?? return
@@ -1955,7 +1955,7 @@ place_text :: fn(e: Expr) -> string | null {
     return null
 }
 
-// `T & U & V` — left-associative `bitand` chain, tighter than `|` and
+// `T & U & V`: left-associative `bitand` chain, tighter than `|` and
 // looser than the postfix operators. Same node shape as value-side trait
 // composition (e.g. `[T: Hash & Eq]`).
 parse_type_intersection :: fn(p: Parser) -> TypeExpr {
@@ -2008,7 +2008,7 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     if t.kind == .KwFn {
         return p.parse_fn_type()
     }
-    // Parenthesised type — used for grouping when postfix precedence would
+    // Parenthesised type: used for grouping when postfix precedence would
     // otherwise bind too tightly. e.g. `(T | U)[]` to mean "array of union".
     if t.kind == .LParen {
         p.advance()
@@ -2021,7 +2021,7 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     if t.kind == .LBracket {
         // Bracketed type form. Two readings :
         //   `[T1, T2, ...]`  → tuple type (≥ 2 elements), encoded as `SeqLitExpr`
-        //   `[T]` / `[T,]`   → 1-tuple — forbidden (P1021), recovered as
+        //   `[T]` / `[T,]`   → 1-tuple: forbidden (P1021), recovered as
         //                      ArrayTypeExpr so the user-likely-meant-array
         //                      flow keeps working downstream.
         start :: p.advance()
@@ -2064,7 +2064,7 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     if t.kind == .Ident {
         name :: p.advance()
         head: Expr = ident_expr(name.span, name.text)
-        // Qualified namespace : `module.Type` — applies when the leading
+        // Qualified namespace : `module.Type`, applies when the leading
         // ident is an `import "X" as alias` (or destructured-namespace)
         // binding. The resolver follows the chain to the exported type in
         // the target module. Built as a `FieldExpr` so the existing
@@ -2236,8 +2236,8 @@ parse_block :: fn(p: Parser) -> BlockExpr {
     lb :: p.expect(.LBrace, "`{` to open block")
     // Depth guard, sharing `parse_expr`/`parse_type`'s budget. Block nesting
     // recurses parse_block ↔ parse_stmt, so a pathologically deep `for {…}` /
-    // `defer {…}` chain overflows the native stack (SIGSEGV) with no diagnostic
-    // — `MAX_EXPR_DEPTH` only guarded the expression / type grammars (parser-3).
+    // `defer {…}` chain overflows the native stack (SIGSEGV) with no diagnostic:
+    // `MAX_EXPR_DEPTH` only guarded the expression / type grammars (parser-3).
     p.expr_depth = p.expr_depth + 1
     if p.expr_depth > MAX_EXPR_DEPTH {
         p.expr_depth = p.expr_depth - 1
@@ -2338,7 +2338,7 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
         return p.parse_any_let()
     }
     // A `=` (or a compound operator) after a bracket group is a destructuring
-    // assignment — its elements are targets, not expressions, so it cannot go
+    // assignment: its elements are targets, not expressions, so it cannot go
     // through the expression-statement path below.
     if p.check(.LBracket) {
         after :: p.kind_after_bracket_group()
@@ -2357,7 +2357,7 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
             .value  = value,
         }
     }
-    // Compound assignment — `lhs += rhs` desugars to `lhs = lhs <op> rhs`.
+    // Compound assignment: `lhs += rhs` desugars to `lhs = lhs <op> rhs`.
     compound :: p.peek().kind.compound_op()
     if compound.matched {
         p.advance()
@@ -2508,7 +2508,7 @@ parse_destructure_assign :: fn(p: Parser) -> DestructureAssignStmt {
             p.error(.RestNotLast, rest.span, "")
         }
     }
-    // `[a, b] += v` would desugar to array CONCATENATION — four elements, of
+    // `[a, b] += v` would desugar to array CONCATENATION: four elements, of
     // which the write keeps two. Refused, then read as a plain `=` so the rest
     // of the statement is still checked.
     if p.peek().kind.compound_op().matched {
@@ -2702,7 +2702,7 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt {
     cond :: p.parse_expr(0)
     p.no_struct_lit_at = saved_restriction
     body :: p.parse_block()
-    // `for <range>` iterates the range with no user variable — a `DiscardVar`
+    // `for <range>` iterates the range with no user variable: a `DiscardVar`
     // (without this `for 0..<n` would type-error as a while condition). Modelled
     // structurally so `vader fmt` re-prints `for <range>` without span heuristics.
     if cond is RangeExpr {
@@ -2771,7 +2771,7 @@ parse_continue :: fn(p: Parser) -> ContinueStmt {
 
 // Right operand of `??`. A divergent statement when the keyword leads
 // (`return` / `break` / `continue`), otherwise a value expression parsed at
-// the `??` right binding power (7 — below the operator's own 6, so `??` is
+// the `??` right binding power (7: below the operator's own 6, so `??` is
 // left-associative and non-chaining).
 parse_coalesce_fallback :: fn(p: Parser) -> CoalesceFallback {
     // A `match … { _ -> }` over `TokenKind` (a closed enum) trips W0005 ; the
@@ -2805,7 +2805,7 @@ parse_defer :: fn(p: Parser) -> DeferStmt {
 }
 
 // ============================================================================
-// Expressions — Pratt + prefix + postfix
+// Expressions: Pratt + prefix + postfix
 // ============================================================================
 
 // Precedence levels :
@@ -3062,7 +3062,7 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             continue
         }
 
-        // `!in` — two-token compound at comparison level.
+        // `!in`: two-token compound at comparison level.
         if t.kind == .Bang && p.peek_at(1).kind == .KwIn && 20 >= min_bp {
             // An operator chained onto a non-associative one of its level is
             // reported, then read with its operand and dropped: the expression
@@ -3098,7 +3098,7 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             }
             bang_tok :: p.advance()
             p.advance()  // KwIs
-            // `!is` takes a TYPE on the right — route through `parse_type` (see
+            // `!is` takes a TYPE on the right: route through `parse_type` (see
             // the `is` arm below) so `!(x is Foo<T>)` and friends parse.
             right :: p.parse_type()
             if chained {
@@ -3120,7 +3120,7 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             continue
         }
 
-        // `??` — null-coalescing. Very low precedence (below `||`). The RHS
+        // `??`: null-coalescing. Very low precedence (below `||`). The RHS
         // may be a value expression OR a divergent statement (`return` /
         // `break` / `continue`), which the generic infix path can't produce,
         // so handle it here.
@@ -3279,8 +3279,8 @@ parse_prefix :: fn(p: Parser) -> Expr {
         return ident_expr(t.span, "self")
     }
     // Two expression-position `@` forms :
-    //   `@partial match x { ... }`  — opt-out of exhaustiveness for a match
-    //   `@<intrinsic>(args)`        — compiler reflection / introspection call
+    //   `@partial match x { ... }`: opt-out of exhaustiveness for a match
+    //   `@<intrinsic>(args)`: compiler reflection / introspection call
     //                                 (`@size_of`, `@type_name`, …).
     //                                 The set of recognised names lives in
     //                                 `vader/front/parser/intrinsics.vader`.
@@ -3302,7 +3302,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
                 p.error(.UnknownDecoratorPlacement,
                     p.span_of(at_tok, name_tok),
                     "`@${name_tok.text}` is not allowed in expression position")
-                // Fall through to recover with the same shape — consume a
+                // Fall through to recover with the same shape: consume a
                 // trailing `(...)` if present so we don't cascade errors.
                 if p.check(.LParen) {
                     p.advance()  // (
@@ -3310,8 +3310,8 @@ parse_prefix :: fn(p: Parser) -> Expr {
                     if p.check(.RParen) { p.advance() }
                 }
                 // Placeholder is a NullLitExpr so downstream stages don't try
-                // to resolve a synthetic ident named after the bad decorator
-                // — which would cascade an R2006 the user can't act on.
+                // to resolve a synthetic ident named after the bad decorator,
+                // which would cascade an R2006 the user can't act on.
                 return NullLitExpr { .span = p.span_of(at_tok, name_tok) }
             }
             is IntrinsicSpec -> {
@@ -3367,7 +3367,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
 parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
     if t.kind == .Dot {
         p.advance()
-        // Numeric tuple-index access `t.0`, `t.1`, ... — the lowerer rewrites
+        // Numeric tuple-index access `t.0`, `t.1`, ...: the lowerer rewrites
         // these to synthetic field names `_0`, `_1`, ...
         if p.check(.IntLit) {
             num_tok :: p.advance()
@@ -3421,7 +3421,7 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
             .trailing_comma = args.trailing_comma,
         }
     }
-    // .LBracket — two readings :
+    // .LBracket: two readings :
     //   `T[]`  (empty brackets) → ArrayTypeExpr ; type-only construct,
     //                             typechecker rejects it in value position.
     //   `T[i]` (with index)     → IndexExpr (ordinary value-level indexing).
@@ -3949,7 +3949,7 @@ parse_match_arm :: fn(p: Parser) -> MatchArm {
     start :: p.peek()
     first :: p.parse_pattern()
     // Or-pattern : `.A | .B`, `1 | 2`. Pipe-separated alternatives collected into
-    // an `OrPattern`. (`is A | B` never reaches here as an or-pattern — the type
+    // an `OrPattern`. (`is A | B` never reaches here as an or-pattern: the type
     // parser already folded `A | B` into a single union `IsPattern`.)
     pattern: Pattern = first
     if p.check(.Pipe) {
@@ -4033,7 +4033,7 @@ parse_pattern :: fn(p: Parser) -> Pattern {
     if t.kind == .KwIs {
         p.advance()
         ty: TypeExpr: if p.check(.Dot) {
-            // `is .Foo` — implicit-dot variant, resolved against the
+            // `is .Foo`: implicit-dot variant, resolved against the
             // match scrutinee at typecheck. Plain `parse_type` would
             // reject the leading dot, so we synthesise a flagged
             // `IdentExpr` directly.
@@ -4081,11 +4081,11 @@ parse_pattern :: fn(p: Parser) -> Pattern {
     if is_literal_start(t) {
         // `'a' -> …` / `42 -> …` / `true -> …` / `null -> …` / `-1 -> …`.
         // `parse_prefix` (NOT `parse_expr`) parses exactly one literal / unary
-        // and stops at any infix — crucially at `|`, so a literal or-pattern
+        // and stops at any infix: crucially at `|`, so a literal or-pattern
         // `1 | 6 -> …` parses as two `LiteralPattern`s the arm loop folds into an
         // `OrPattern`, rather than the bitor expression `(1 | 6)`.
         value :: p.parse_prefix()
-        // `'a'..='z'` / `0..<10` — a range pattern. `parse_prefix` stops at the
+        // `'a'..='z'` / `0..<10`: a range pattern. `parse_prefix` stops at the
         // infix range operator, so peek for it here and fold the two literal
         // bounds into a `RangePattern` ; otherwise it is a bare literal.
         if p.check(.RangeIncl) || p.check(.RangeExcl) {
@@ -4171,14 +4171,14 @@ is_literal_start :: fn(t: Token) -> bool {
 
 import "std/testing"
 
-// Parse+lex diagnostic count for a source — a syntax-only regression probe
+// Parse+lex diagnostic count for a source: a syntax-only regression probe
 // (no resolver / typecheck), so unresolved names in the fixture don't count.
 parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader").errors.len())
 
 @test test_deep_block_nesting_is_guarded :: fn() -> void {
     // parser-3 : pathologically deep block nesting must trip the P1029 depth
     // guard (a clean diagnostic) instead of overflowing the native stack
-    // (SIGSEGV). Built here rather than as a fixture — the source is 300+ lines.
+    // (SIGSEGV). Built here rather than as a fixture: the source is 300+ lines.
     opens := ""
     closes := ""
     for _ in 0..<300 {

@@ -1,5 +1,5 @@
 // Java peer of bench/map_iter.vader. HashMap<Integer, Integer> iterated via
-// entrySet() — the canonical entry iteration shape.
+// entrySet(): the canonical entry iteration shape.
 
 static final int INNER_KEYS = 1_000;
 static final int OUTER_LOOPS = 1_000;

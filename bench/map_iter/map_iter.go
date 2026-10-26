@@ -1,5 +1,5 @@
 // Go peer of bench/map_iter.vader. `map[int32]int32` iterated with the
-// built-in `for k, v := range m` loop — Go's most idiomatic shape and
+// built-in `for k, v := range m` loop: Go's most idiomatic shape and
 // the closest analogue to Vader's `for entry in m`.
 
 package main

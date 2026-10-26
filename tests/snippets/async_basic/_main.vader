@@ -1,5 +1,5 @@
 // A basic async coroutine. Async-ness is inferred from `await` and expressed by
-// the `Async<T>` return type — no `@async` decorator. `main` awaits directly;
+// the `Async<T>` return type: no `@async` decorator. `main` awaits directly;
 // the compiler drives it via the inline run-driver (implicit @async main).
 module "snippet"
 

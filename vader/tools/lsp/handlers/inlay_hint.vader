@@ -2,7 +2,7 @@
 //
 // For each `let x := expr` (or `name :: expr`) without an explicit type
 // annotation, emit a hint carrying the inferred type rendered *between*
-// the two characters of the binding operator — `name :i64: value` for
+// the two characters of the binding operator: `name :i64: value` for
 // `::`, `name :i64= value` for `:=`. Mirrors the Rust-analyzer / TS-server
 // UX so the editor shows what inference resolved to without forcing the
 // user to hand-annotate.
@@ -33,7 +33,7 @@ AST :: import "toolchain/ast"
 import "toolchain/span"
 
 /// Build the inlay-hint array for the document carried in `params`.
-/// Returns a `JsonArray` (possibly empty) — the LSP spec mandates an
+/// Returns a `JsonArray` (possibly empty): the LSP spec mandates an
 /// array response, never a null.
 export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
@@ -262,14 +262,14 @@ HintAnchor :: struct {
 ///
 /// The scan tracks LINES only ; the character comes from `li_character`, the one
 /// place that knows the negotiated encoding. Counting columns here by hand would
-/// count BYTES — one multi-byte codepoint between the name and the operator (say
+/// count BYTES: one multi-byte codepoint between the name and the operator (say
 /// `x /* café */ :: 1`) and the hint drifts, which is precisely the class of bug
 /// `protocol/line_index` exists to prevent.
 ///
 /// @param li          the document index, in the negotiated position encoding.
 /// @param content     the full file text ; the spans index into it via `offset`.
-/// @param name_span   the bound name — its `end` (exclusive) starts the scan.
-/// @param value_span  the value — its `start` bounds the scan.
+/// @param name_span   the bound name: its `end` (exclusive) starts the scan.
+/// @param value_span  the value: its `start` bounds the scan.
 /// @return            the 0-based anchor ; falls back to the value's own position
 ///                    less the canonical 3 columns (clamped to 0) when no operator
 ///                    is found in range, so a surprising span degrades the
@@ -293,7 +293,7 @@ operator_hint_anchor :: fn(
                 }
                 continue
             }
-            // `::` or `:=` — the hint inserts before the operator's SECOND char.
+            // `::` or `:=`: the hint inserts before the operator's SECOND char.
             if byte == ':' && off + 1 < limit {
                 next :: content.byte_at(off + 1)
                 if next == ':' || next == '=' {
@@ -315,7 +315,7 @@ operator_hint_anchor :: fn(
 }
 
 /// Push a type hint nested *inside* the binding operator, so the line reads
-/// `name :u8: value` (`::`) or `name :u8= value` (`:=`) — the type sits between
+/// `name :u8: value` (`::`) or `name :u8= value` (`:=`): the type sits between
 /// the operator's two characters. See `operator_hint_anchor` for the placement.
 emit_operator_hint :: fn(
     ctx: HintCtx, name_span: Span, value_span: Span, label: string, out: JsonValue[],
@@ -345,7 +345,7 @@ emit_let_hint :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]) -> void {
 /// type comes from `declared_type_at`: that's the final defaulted
 /// form (`FreeInt`→`i32`, `FreeFloat`→`f64`), whereas `expr_types`
 /// keeps the un-defaulted free type. Type-alias constants (`Type ::
-/// i32 | string`) get `TY_TYPE` ; we skip those — they're already
+/// i32 | string`) get `TY_TYPE` ; we skip those: they're already
 /// self-describing.
 emit_const_hint :: fn(cd: AST.ConstDecl, ctx: HintCtx, out: JsonValue[]) -> void {
     ty :: declared_type_at(ctx.typed, cd.name_span) ?? return
@@ -538,7 +538,7 @@ name_ending_at :: fn(offset: i64, line: i32, column: i32) -> Span =
     Span { .start = test_pos(0, 1, 1), .end = test_pos(offset, line, column) }
 
 // The anchor for `content`, indexed in utf-16 as a default LSP client would
-// negotiate — so the tests exercise the same conversion path as the handler.
+// negotiate, so the tests exercise the same conversion path as the handler.
 anchor_of :: fn(content: string, name_span: Span, value_span: Span) -> HintAnchor =
     operator_hint_anchor(new_line_index(content, .Utf16), content, name_span, value_span)
 
@@ -549,7 +549,7 @@ value_starting_at :: fn(offset: i64, line: i32, column: i32) -> Span =
 // anchoring on the FIRST operator char's 1-based column lands between the two.
 @test
 test_anchor_canonical_spacing :: fn() -> void {
-    // `x :: 1` — the shape the old arithmetic was tuned for.
+    // `x :: 1`: the shape the old arithmetic was tuned for.
     a :: anchor_of("x :: 1", name_ending_at(1, 1, 2), value_starting_at(5, 1, 6))
     assert_eq(a.line, 0)
     assert_eq(a.character, 3)
@@ -557,7 +557,7 @@ test_anchor_canonical_spacing :: fn() -> void {
 
 @test
 test_anchor_survives_extra_space :: fn() -> void {
-    // `x ::  1` — two spaces before the value. `value.column - 3` gave 4, which
+    // `x ::  1`: two spaces before the value. `value.column - 3` gave 4, which
     // pushed the hint PAST the operator.
     a :: anchor_of("x ::  1", name_ending_at(1, 1, 2), value_starting_at(6, 1, 7))
     assert_eq(a.character, 3)
@@ -565,7 +565,7 @@ test_anchor_survives_extra_space :: fn() -> void {
 
 @test
 test_anchor_survives_no_space :: fn() -> void {
-    // `x::1` — no spaces at all. `value.column - 3` gave 1, i.e. BEFORE the
+    // `x::1`: no spaces at all. `value.column - 3` gave 1, i.e. BEFORE the
     // operator, splitting `x` from `::`.
     a :: anchor_of("x::1", name_ending_at(1, 1, 2), value_starting_at(3, 1, 4))
     assert_eq(a.character, 2)
@@ -580,7 +580,7 @@ test_anchor_accepts_mutable_operator :: fn() -> void {
 
 @test
 test_anchor_follows_vertical_alignment :: fn() -> void {
-    // `abc  :: 1` — padded name→operator gap, which is why the anchor can't be
+    // `abc  :: 1`: padded name→operator gap, which is why the anchor can't be
     // derived from the NAME either.
     a :: anchor_of("abc  :: 1", name_ending_at(3, 1, 4), value_starting_at(8, 1, 9))
     assert_eq(a.character, 6)
@@ -597,7 +597,7 @@ test_anchor_stays_on_the_operator_line :: fn() -> void {
 
 @test
 test_anchor_falls_back_without_an_operator :: fn() -> void {
-    // No `::` / `:=` in range — degrade to the historical placement rather than
+    // No `::` / `:=` in range: degrade to the historical placement rather than
     // dropping the hint.
     a :: anchor_of("x = 1", name_ending_at(1, 1, 2), value_starting_at(4, 1, 5))
     assert_eq(a.line, 0)

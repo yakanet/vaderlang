@@ -1,11 +1,11 @@
 // vader/tools/lsp/handlers/folding_range: `textDocument/foldingRange` handler.
 //
-// Lets the editor collapse multi-line top-level declarations — fn bodies,
+// Lets the editor collapse multi-line top-level declarations: fn bodies,
 // struct / enum / trait blocks. Derived from the per-document index's
 // `DeclEntry.full_span` (indexer.vader) : every file-wide decl whose span
 // covers more than one line is one collapsible region. One-line decls and
 // intra-file bindings are skipped. Nested blocks (if / for / match bodies) and
-// import groups are a follow-up — this v1 covers the high-value decl bodies.
+// import groups are a follow-up: this v1 covers the high-value decl bodies.
 
 module "vader/tools/lsp/handlers"
 
@@ -29,7 +29,7 @@ export handle_folding_range :: fn(state: ServerState, params: JsonValue) -> Json
     }
 }
 
-/// File-wide declarations whose body spans more than one line — the regions an
+/// File-wide declarations whose body spans more than one line: the regions an
 /// editor can collapse. One-line decls (`MAX :: 10`) and scoped intra-file
 /// bindings are skipped.
 foldable_decls :: fn(idx: DocIndex) -> DeclEntry[] {
@@ -48,7 +48,7 @@ folding_range_json :: fn(entries: DeclEntry[]) -> JsonValue {
 }
 
 // LSP FoldingRange : 0-based first + last line of the collapsible region. We
-// omit `kind` — the default (no kind) renders as a generic region, right for
+// omit `kind`: the default (no kind) renders as a generic region, right for
 // declaration bodies (`comment` / `imports` / `region` kinds are for the
 // follow-up that folds those).
 fold_json :: fn(e: DeclEntry) -> JsonValue {
@@ -90,6 +90,6 @@ B :: 2
 greet :: fn() -> i32 = 0
 """
     idx :: build_index("t.vader", src, .Utf16)
-    // All three are one-liners — nothing to fold.
+    // All three are one-liners: nothing to fold.
     assert_eq(foldable_decls(idx).len(), 0)
 }

@@ -45,7 +45,7 @@ New-Item -ItemType Directory -Force build | Out-Null
 
 # The seed is a SET: the units every target shares, plus the ones that differ for
 # this host. A unit lands in the second group only when the targets actually
-# emitted different bytes for it, so today there are none — the list is globbed
+# emitted different bytes for it, so today there are none: the list is globbed
 # rather than hardcoded, and starts working the day one appears.
 $hostArch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x86_64' }
 $hostTarget = "windows-$hostArch"

@@ -25,7 +25,7 @@ main :: fn() -> i32 {
     rest :: nums[7..<nums.len()]
     s4 :: sum(rest)
 
-    // slice: clamped, bounded — sanity check shapes without inflating exit code
+    // slice: clamped, bounded, sanity check shapes without inflating exit code
     // beyond u8 range. nums[3..<7]=[4,5,6,7]; nums[100..200]=[]; nums[8..999]=[9,10].
     println("slice mid len=${nums[3..<7].len()}")
     println("slice over len=${nums[100..<200].len()}")

@@ -2,18 +2,18 @@
 // coalescing), on the statement tree (`ast.vader`).
 //
 // The body walker (`vader/emit/c/walker.vader`) mints a fresh `tN` for every
-// materialised operand and never recycles it, so a function's frame — and its
-// GC-root set — grows with the TOTAL number of materialisations, not the number
+// materialised operand and never recycles it, so a function's frame (and its
+// GC-root set) grows with the TOTAL number of materialisations, not the number
 // live at once. The bytecode is a stack machine, so a temp is dead the moment
 // its value is consumed ; most `tN` have short, disjoint live ranges.
 //
 // `coalesce_temporaries` does two things :
-//   0. COPY ELISION — an adjacent `tN = EXPR;` / `lM = tN;` pair whose `tN` is
+//   0. COPY ELISION: an adjacent `tN = EXPR;` / `lM = tN;` pair whose `tN` is
 //      used nowhere else collapses to `lM = EXPR;`. The temp disappears
 //      entirely (no slot, no GC root, no box copy) ; a copy between two
 //      GC-rooted boxes is one the C compiler cannot elide, since both addresses
 //      escape into `gc_roots[]`.
-//   1. SLOT COALESCING — the surviving temps are packed by live range.
+//   1. SLOT COALESCING: the surviving temps are packed by live range.
 //
 // A temp's live range is `[first, last]` over statement positions, numbered in
 // print order (an `if` holds one position, its condition's). A temp is written
@@ -24,24 +24,24 @@
 // GC-safety : two temps share a slot only when their ranges are STRICTLY
 // disjoint (`A.last < B.first`), so the slot only ever holds the currently-live
 // value and its single `gc_roots[]` entry always points at a live object (or an
-// already-dead one still reachable from the frame — harmless, never a dangling
+// already-dead one still reachable from the frame: harmless, never a dangling
 // pointer). Position order is an EXACT live range only because no operand temp
 // ever crosses a scope boundary : midir materialises every control-flow result
-// into a named LOCAL (`if_res` / `and_res` / `or_res`, and loops are void —
+// into a named LOCAL (`if_res` / `and_res` / `or_res`, and loops are void:
 // `vader/midir/build.vader`), so the operand stack is empty at every block /
 // loop / if / br boundary and each `tN` is confined to one straight-line region
-// where statement order IS execution order. This is why — unlike the sibling
-// local-slot pass — no loop-range extension is needed. If a future change ever
+// where statement order IS execution order. This is why (unlike the sibling
+// local-slot pass): no loop-range extension is needed. If a future change ever
 // left an operand live across a scope, that invariant would break ; the
 // walker's scope handlers are the place to guard it.
 //
 // Locals (`lN`) are left untouched : they are named, potentially reassigned, and
-// can stay live across arbitrary control flow — they are coalesced upstream,
+// can stay live across arbitrary control flow: they are coalesced upstream,
 // loop-aware, by the bytecode pass instead.
 //
 // Sibling `vader/emit/bytecode/slot_coalesce.vader` runs the same greedy
-// interval-partition on the *other* IR — bytecode local slots (`lN`) over op
-// PC-ranges — which this pass cannot reach : operand temps exist only in the
+// interval-partition on the *other* IR: bytecode local slots (`lN`) over op
+// PC-ranges, which this pass cannot reach : operand temps exist only in the
 // c_emit walk, not in the bytecode.
 
 module "vader/emit/c/ast"
@@ -304,7 +304,7 @@ fuse_temp_local_copies :: fn(block: CBlock, usage: TemporaryUsage) -> void {
 }
 
 // `lM = EXPR;` when `definition` is `tN = EXPR;`, `copy` is `lM = tN;` and the
-// two are `tN`'s only uses — `tN` is then marked unused ; null otherwise.
+// two are `tN`'s only uses: `tN` is then marked unused ; null otherwise.
 fused_copy :: fn(definition: CStatement, copy: CStatement, usage: TemporaryUsage) -> CAssign | null {
     if definition !is CAssign || copy !is CAssign {
         return null

@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # Refuse to publish a commit whose committed C seed no longer bootstraps it.
 #
-# The seed does not have to be fresh — `build.sh` ships stage2, so its age never
-# reaches the shipped binary — it has to WORK. The invariant this hook keeps:
+# The seed does not have to be fresh: `build.sh` ships stage2, so its age never
+# reaches the shipped binary: it has to WORK. The invariant this hook keeps:
 #
 #     every PUSHED commit can be built from its own seed, and passes verify.sh.
 #
 # The question belongs to `bootstrap/seed.sh check`, which runs `verify.sh` on an
 # export of HEAD (~1 min) and skips it when nothing the verdict depends on changed
-# since the last viable run — so a docs-only push costs no compile at all.
+# since the last viable run, so a docs-only push costs no compile at all.
 #
 # To publish anyway:  git push --no-verify
 #
-# Installed via `git config core.hooksPath .githooks` — see bootstrap/README.md.
+# Installed via `git config core.hooksPath .githooks`, see bootstrap/README.md.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
@@ -23,7 +23,7 @@ log() { printf '%b[pre-push]%b %s\n' "$1" "$reset" "$2" >&2; }
 
 # git feeds us one `<local ref> <local sha> <remote ref> <remote sha>` line per
 # ref. A tag of an older commit, or a branch deletion, says nothing about the seed
-# at HEAD — don't vet those. Defaults to vetting, so an empty stdin (or a shape we
+# at HEAD: don't vet those. Defaults to vetting, so an empty stdin (or a shape we
 # don't recognise) errs towards checking rather than towards silence.
 head_sha="$(git rev-parse HEAD)"
 vet=1
@@ -50,12 +50,12 @@ case "$verdict" in
   2)
     # Could not conclude. Warn, but let the push through: the CI `fixed-point`
     # job runs the same gate on every push.
-    log "$yellow" "letting the push through — 'unknown' is not 'broken'."
+    log "$yellow" "letting the push through: 'unknown' is not 'broken'."
     exit 0
     ;;
 esac
 
-log "$bold" "HEAD does not pass verify.sh from its own seed — the log above says which step broke."
+log "$bold" "HEAD does not pass verify.sh from its own seed: the log above says which step broke."
 log "$bold" ""
 log "$bold" "  When it is the seed (stage0 cannot build the tree, or its older codegen breaks"
 log "$bold" "  the fixed point), reseed, commit the bump, then push:"

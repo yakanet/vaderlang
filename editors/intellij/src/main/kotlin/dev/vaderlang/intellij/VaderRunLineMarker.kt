@@ -20,7 +20,7 @@ import com.intellij.psi.PsiElement
 // run configuration (VaderRunConfigurationProducer builds it).
 //
 // WAS a `RunLineMarkerContributor` keyed on `element.text == "main"`, and never
-// fired — measured, over three rounds. A `.vader` file has no PSI Language
+// fired: measured, over three rounds. A `.vader` file has no PSI Language
 // (`plugin.xml`), and its tree does NOT give one leaf per identifier, so no
 // element ever has the text `main`. Registering for `TEXT` as well as
 // `textmate` did not change that, which is what isolated the cause: the sibling
@@ -29,7 +29,7 @@ import com.intellij.psi.PsiElement
 //
 // So this uses the same recipe. The contributor form cannot: it yields one
 // `Info` per element with no say over the line, which under a coarse tree puts
-// every icon in the wrong place — the reason it is a provider now.
+// every icon in the wrong place: the reason it is a provider now.
 internal class VaderRunLineMarkerProvider : LineMarkerProviderDescriptor() {
     override fun getName(): String = "Vader main"
 
@@ -52,7 +52,7 @@ internal class VaderRunLineMarkerProvider : LineMarkerProviderDescriptor() {
             val m = MAIN_DECL.find(text) ?: continue
             val g = m.groups[1] ?: continue
             val start = g.range.first
-            // The anchor must CONTAIN the range — see the `@target` marker for
+            // The anchor must CONTAIN the range, see the `@target` marker for
             // why anchoring on an arbitrary element throws under a fine tree.
             val host = file.findElementAt(start) ?: continue
             val end = minOf(start + g.value.length, host.textRange.endOffset)
@@ -89,7 +89,7 @@ private class RunMarkerInfo(element: PsiElement, range: TextRange) : LineMarkerI
         }
 }
 
-// Builds a "Vader" run configuration from a .vader file's context — so the
+// Builds a "Vader" run configuration from a .vader file's context, so the
 // gutter ▶ (and Run on a .vader editor tab) target that file.
 internal class VaderRunConfigurationProducer : LazyRunConfigurationProducer<VaderRunConfiguration>() {
     override fun getConfigurationFactory(): ConfigurationFactory =

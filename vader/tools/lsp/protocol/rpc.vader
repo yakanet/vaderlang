@@ -7,7 +7,7 @@
 //                | { jsonrpc, id, error: { code, message, data? } }
 //
 // Accessor helpers return `JsonNull{}` for absent fields rather than
-// `JsonValue | null` — sidesteps the matching-on-alias-union friction
+// `JsonValue | null`: sidesteps the matching-on-alias-union friction
 // that Vader's pattern checker hits when a `| null` is added to an
 // already-aliased union.
 
@@ -66,7 +66,7 @@ export encode_response :: fn(id: JsonValue, result: JsonValue) -> string {
     return stringify(JsonObject { .entries = obj })
 }
 
-/// Encode a successful response whose `result` is already JSON text — for a
+/// Encode a successful response whose `result` is already JSON text: for a
 /// result too large to build as a `JsonValue` tree first.
 ///
 /// @param id      the request's id, echoed verbatim.
@@ -88,14 +88,14 @@ export encode_error :: fn(id: JsonValue, code: i32, message: string) -> string {
     return stringify(JsonObject { .entries = obj })
 }
 
-/// Shortcut for `MethodNotFound` — code -32601 per the JSON-RPC spec.
+/// Shortcut for `MethodNotFound`: code -32601 per the JSON-RPC spec.
 export encode_method_not_found :: fn(id: JsonValue, method: string) -> string {
     return encode_error(id, -32601, "Method not found: ${method}")
 }
 
 /// Encode a server-pushed notification : `{ jsonrpc, method, params }`,
 /// no `id`. Used for `window/logMessage`, `textDocument/publishDiagnostics`,
-/// etc. — anything the server emits unprompted.
+/// etc.: anything the server emits unprompted.
 export encode_notification :: fn(method: string, params: JsonValue) -> string {
     obj :: MutableMap<string, JsonValue> {}
     obj["jsonrpc"] = JsonString { .value = "2.0" }
@@ -105,7 +105,7 @@ export encode_notification :: fn(method: string, params: JsonValue) -> string {
 }
 
 /// Encode a server-INITIATED request : `{ jsonrpc, id, method, params }`. Unlike
-/// a notification it carries an `id`, so the client sends back a response — the
+/// a notification it carries an `id`, so the client sends back a response: the
 /// server ignores it (a response frame has no `method`, so `dispatch` drops it).
 /// Used for `workspace/*/refresh` pushes after a rebuild.
 export encode_request :: fn(id: i64, method: string, params: JsonValue) -> string {

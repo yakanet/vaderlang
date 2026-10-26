@@ -7,7 +7,7 @@
 //      blanket array / Display→string impls
 //
 // The primitive-type impls (Display, Equals, Hash, Comparable, Step,
-// arithmetic, string) live in the sibling `primitives.vader` — same
+// arithmetic, string) live in the sibling `primitives.vader`: same
 // `module "std/core"`, split out so neither file outgrows ~500 LoC.
 //
 // The base `Error` trait marking the error side of a union lives in §1 ; the
@@ -45,7 +45,7 @@ export Comparable :: trait {
     compare :: fn(self, other: Self) -> i32
 }
 
-/// Hash codes for `MutableMap` / `MutableSet` keys — equal values (`Equals`), equal hashes.
+/// Hash codes for `MutableMap` / `MutableSet` keys: equal values (`Equals`), equal hashes.
 /// A map's first probe reads the LOW bits; a key varying only in high ones should mix them down.
 export Hash :: trait {
     hash :: fn(self) -> u64
@@ -54,7 +54,7 @@ export Hash :: trait {
 /// Advance one position along a discrete sequence. Sole obligation : `step()`
 /// returns the *next* value after `self`. Used by `Range[T : Step & Comparable]
 /// implements Iterator<T>` so a single generic impl covers every integer
-/// width plus `char` — concrete `+ 1` / codepoint-bump logic lives in each
+/// width plus `char`: concrete `+ 1` / codepoint-bump logic lives in each
 /// primitive's `Step` impl instead of being repeated per `Range<T>` impl.
 export Step :: trait {
     step :: fn(self) -> Self
@@ -73,7 +73,7 @@ export Clone :: trait {
 ///     inserts `value.into()` at the boundary. Sites : call args with a
 ///     typed parameter, `return` values, `let x: T = ...`, and struct-
 ///     literal fields.
-///   - **Explicit** : `Target(value)` — the same `Type(value)` syntax
+///   - **Explicit** : `Target(value)`, the same `Type(value)` syntax
 ///     that performs primitive numeric casts (`u32(x)`, `i64(x)`). When
 ///     `Target` is a user type, the compiler routes the call through
 ///     the matching `Into` impl instead of emitting a primitive cast.
@@ -88,7 +88,7 @@ export Into :: trait<Target> {
 
 /// `+` dispatch. Numeric primitives use the built-in bytecode op directly ;
 /// user types implement `Add` to opt into the operator form. `Rhs` is the
-/// right-operand type and `Out` the result — both default to `Self`, so the
+/// right-operand type and `Out` the result: both default to `Self`, so the
 /// common homogeneous case is just `implements Add`; heterogeneous operators
 /// (e.g. `Instant implements Add<Duration, Instant>`) spell the params.
 export Add :: trait<Rhs = Self, Out = Self> { add :: fn(self, other: Rhs) -> Out }
@@ -101,7 +101,7 @@ export Div :: trait<Rhs = Self, Out = Self> { div :: fn(self, other: Rhs) -> Out
 /// `%` dispatch. See `Add`.
 export Rem :: trait<Rhs = Self, Out = Self> { rem :: fn(self, other: Rhs) -> Out }
 
-/// The additive identity of a type — what a sum of no elements is. A static
+/// The additive identity of a type: what a sum of no elements is. A static
 /// member : called on the type, `T.zero()` in a body bounded by `T: Zero`.
 export Zero :: trait {
     /// The value `z` for which `z + x == x`.
@@ -113,7 +113,7 @@ export Zero :: trait {
 /// @param self  the value to test.
 export is_zero :: fn<T: Zero & Equals>(self: T) -> bool = self == T.zero()
 
-/// The multiplicative identity of a type — what a product of no elements is. A
+/// The multiplicative identity of a type: what a product of no elements is. A
 /// static member, like `Zero.zero`.
 export One :: trait {
     /// The value `u` for which `u * x == x`.
@@ -132,7 +132,7 @@ export FloatBits :: trait {
     to_bits :: fn(self) -> u64
 }
 
-/// Inverse of `FloatBits` — reconstruct an `f64` from a raw IEEE 754 bit pattern.
+/// Inverse of `FloatBits`: reconstruct an `f64` from a raw IEEE 754 bit pattern.
 export BitsFloat :: trait {
     /// Reinterpret `self`'s bits as an `f64` (NOT `f64(self)`, which widens the
     /// integer value).
@@ -147,19 +147,19 @@ export Float32Bits :: trait {
     to_bits :: fn(self) -> u32
 }
 
-/// Inverse of `Float32Bits` — reconstruct an `f32` from a raw IEEE 754 `u32`
+/// Inverse of `Float32Bits`: reconstruct an `f32` from a raw IEEE 754 `u32`
 /// bit pattern (NOT `f32(self)`, which widens the integer value).
 export Bits32Float :: trait {
     /// Reinterpret `self`'s bits as an `f32`.
     from_bits :: fn(self) -> f32
 }
 
-/// Indexed read — `a[i]` dispatches through this when `a` isn't a built-in
+/// Indexed read: `a[i]` dispatches through this when `a` isn't a built-in
 /// array. `I` is the index type, `T` the element type.
 export Index :: trait<I, T> {
     at :: fn(self, i: I) -> T
 }
-/// Indexed write — `a[i] = v`. Symmetric with `Index`.
+/// Indexed write: `a[i] = v`. Symmetric with `Index`.
 export IndexSet :: trait<I, T> {
     set_at :: fn(self, i: I, v: T)
 }
@@ -172,7 +172,7 @@ export Contains :: trait<T> {
     contains :: fn(self, value: T) -> bool
 }
 
-/// How one iterator step ended — see `Iterator.next`.
+/// How one iterator step ended, see `Iterator.next`.
 export Continuation :: enum(u8) {
     /// The step produced a value.
     Continue,
@@ -181,14 +181,14 @@ export Continuation :: enum(u8) {
 }
 
 /// Pull-based iterator. The lowerer dispatches `for x in iter` through
-/// the impl table — users never call `next` directly. What consumes one —
-/// `count`, `last`, `collect`, `find`... — is a free function over
+/// the impl table: users never call `next` directly. What consumes one
+/// (`count`, `last`, `collect`, `find`...) is a free function over
 /// `Iterator<T>` in `std/iter`, a `for` over its argument.
 ///
 /// `next()` hands back the element and whether the iteration goes on. A PAIR
 /// rather than a wrapper around a nullable: the pair crosses the call in
 /// registers instead of through the heap, and it makes `T = U | null`
-/// unremarkable — `Continuation` says whether there is an element, so a `null`
+/// unremarkable: `Continuation` says whether there is an element, so a `null`
 /// ELEMENT is just an element.
 ///
 /// The element beside `Continuation.Stop` is INDETERMINATE. An implementation
@@ -202,7 +202,7 @@ export Iterator :: trait<T> {
 /// implementing `Error` participates in such error unions ; a caller narrows
 /// on it (`if r is Error`) and returns it to propagate.
 ///
-/// @return  short human-readable message — used by `Display`-style
+/// @return  short human-readable message: used by `Display`-style
 ///          renderers, never parsed.
 export Error :: trait {
     message :: fn(self) -> string
@@ -214,18 +214,18 @@ export Error :: trait {
 
 /// Sentinel returned by `Async.resume` when the coroutine suspended (it awaited
 /// something not yet ready) rather than completing. `T | Suspended` stays
-/// unambiguous because `Suspended` is a distinct nominal type — where
+/// unambiguous because `Suspended` is a distinct nominal type, where
 /// `Iterator.next` carries the same information BESIDE the element instead, in
 /// its `Continuation`.
 export Suspended :: struct {
     /// The scheduler time (`sched_now`, in ms) before which resuming again cannot
-    /// make progress — a driver holding several awaitables re-drives this one only
+    /// make progress: a driver holding several awaitables re-drives this one only
     /// once the clock reaches it. `0`, the default, means unknown: re-drive it on
     /// every wake. A coroutine reports the value of the child it is parked on.
     wake_at: i64 = 0
 }
 
-/// The awaitable produced by calling an `async fn` — `await e` unwraps
+/// The awaitable produced by calling an `async fn`: `await e` unwraps
 /// `Async<T>` to `T`. Each `async fn`'s synthesised state struct implements
 /// it (wired in lowering). Carries no error semantics of its own ; a fallible
 /// async fn returns `Async<T | SomeError>`.
@@ -240,7 +240,7 @@ export Async :: trait<T> {
     /// Tear the awaitable down without completing it : run any pending `defer`s
     /// (LIFO), recursively cancel the child it is parked on, and retire it.
     /// Called only on a not-yet-completed awaitable (a loser of `race` / `join_any` /
-    /// `timeout`, or a subtree whose parent was cancelled) — internal to the
+    /// `timeout`, or a subtree whose parent was cancelled): internal to the
     /// runtime, never invoked by user code in v1.
     ///
     /// The default is a no-op : a hand-written awaitable holding no resources
@@ -274,7 +274,7 @@ export Range :: struct<T> {
 
 // Single bounded generic impl pair covering every integer width plus `char`.
 // `T : Comparable & Step` lets the bodies dispatch `<` / `<=` / `>` / `>=`
-// to T's `Comparable` impl and the advance step to T's `Step` impl —
+// to T's `Comparable` impl and the advance step to T's `Step` impl:
 // concrete `+ 1` / codepoint-bump logic lives in those per-primitive impls
 // in this same file (search for `implements Step` and `implements
 // Comparable`). The mono pass materialises one specialisation per concrete
@@ -311,7 +311,7 @@ Range<T> implements<T: Comparable & Step> Iterator<T> {
 ///
 /// A generator rather than a hand-written impl, and that is forced rather than
 /// chosen: `next` must pair its element with a `Continuation`, and on `Stop`
-/// there is no `T` to pair — an empty array holds none, and `T` promises nothing
+/// there is no `T` to pair: an empty array holds none, and `T` promises nothing
 /// that would build one. A generator's `next` is synthesised by the lowerer,
 /// which pairs the type's zero; a ref slot takes NULL whatever `T` says, and
 /// that is expressible there and not here.
@@ -321,7 +321,7 @@ export array_iter :: fn<T>(arr: T[]) -> Iterator<T> {
     }
 }
 
-// Blanket Into impls live here so the orphan rule passes — Into is owned
+// Blanket Into impls live here so the orphan rule passes: Into is owned
 // by std/core, the source shapes (`T[]`, bounded `T`) aren't.
 
 T[] implements<T> Into<Iterator<T>> {
@@ -330,7 +330,7 @@ T[] implements<T> Into<Iterator<T>> {
     }
 }
 
-/// Membership for arrays — `v in arr` / `v !in arr` dispatch here. Linear scan
+/// Membership for arrays: `v in arr` / `v !in arr` dispatch here. Linear scan
 /// via `Equals`. As an
 /// impl member, the monomorphised `==` devirtualises to the element's primitive
 /// comparison on every backend. Blanket impl (orphan rule : `Contains` is
@@ -344,10 +344,10 @@ T[] implements<T: Equals> Contains<T> {
     }
 }
 
-/// `[lhs] * n` — array repeat / preallocation, the `*` operator on arrays.
+/// `[lhs] * n`: array repeat / preallocation, the `*` operator on arrays.
 /// `[v] * n` repeats the elements `n` times (`[7, 9] * 2` → `[7, 9, 7, 9]`) ; the
-/// empty-LHS form `[] * n` is the preallocation primitive (length 0, capacity `n`
-/// — the `with_capacity` replacement). `*` on an array dispatches here through the
+/// empty-LHS form `[] * n` is the preallocation primitive (length 0, capacity `n`:
+/// the `with_capacity` replacement). `*` on an array dispatches here through the
 /// normal trait lookup : a concrete array matches this blanket via the `"[]"`
 /// impl-key (`impl_base_key`), and the lowerer devirtualises BOTH forms to the
 /// `array.repeat` intrinsic, which preserves the preallocation form and shallow
@@ -364,7 +364,7 @@ T[] implements<T> Mul<i64> {
 }
 
 /// An array's text: `[`, then each element's own `Display` separated by `, `,
-/// then `]` — `[1, 2]`, `[a, b]`, `[[1], [2, 3]]`. Each element is rendered once,
+/// then `]`: `[1, 2]`, `[a, b]`, `[[1], [2, 3]]`. Each element is rendered once,
 /// then written into one buffer sized to fit them all.
 T[] implements<T: Display> Display {
     to_string :: fn(self) -> string {

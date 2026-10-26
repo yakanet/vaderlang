@@ -3,7 +3,7 @@
 // Faithful port of Ulf Adams' Ryu f2s (the 32-bit sibling of d2s in
 // `dtoa.vader`). Turns an `f32` into the shortest decimal string that
 // round-trips back to the exact same bits. Replaces the host
-// `append_display_f32` shim for `f32.to_string()` — see `primitives.vader::f32
+// `append_display_f32` shim for `f32.to_string()`, see `primitives.vader::f32
 // implements Display`.
 //
 // Shares the heavy machinery with d2s (same `module "std/core"`): the

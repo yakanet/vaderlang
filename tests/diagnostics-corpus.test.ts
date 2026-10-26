@@ -2,8 +2,8 @@
 //
 // Negative fixtures under tests/diag_corpus/<bucket>/<name>/ each provoke a
 // specific compiler diagnostic. This suite dumps the native Vader compiler at
-// the `lowered-ast` stage — which accumulates every front-end diagnostic
-// (lexer → parser → resolver → typecheck → comptime) — and snapshots every
+// the `lowered-ast` stage, which accumulates every front-end diagnostic
+// (lexer → parser → resolver → typecheck → comptime), and snapshots every
 // emitted `[span] severity[CODE] message` line per fixture. The self-hosted
 // compiler is the oracle; the former TS↔Vader set-parity was dropped with the TS
 // reference.

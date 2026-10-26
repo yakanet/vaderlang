@@ -13,18 +13,18 @@
 // (multiply / divide by 5, bit length, shifts, 64 / 128-bit window extraction).
 //
 // A signed integer or general arithmetic (add / sub / mul / divmod / pow) would
-// build on this kernel — e.g. `SignedBigInt :: struct { negative, mag: BigInt }`
-// — but is deliberately out of scope until a caller needs it.
+// build on this kernel (e.g. `SignedBigInt :: struct { negative, mag: BigInt }`)
+// but is deliberately out of scope until a caller needs it.
 
 module "std/core"
 
 /// A fixed-width natural (unsigned) big integer : little-endian base-2^32
-/// limbs. Zero is any run of zero limbs — `[]` usually, `[0]` after a `/` that
+/// limbs. Zero is any run of zero limbs: `[]` usually, `[0]` after a `/` that
 /// leaves nothing in the top limb.
 ///
 /// `BigInt :: u32[]` is a distinct newtype (array-backed) : the structural array
 /// ops (index, `len`/`push`, for-in, `[...]` literals) forward to the backing
-/// array, while the scalar arithmetic is overloaded on the nominal type —
+/// array, while the scalar arithmetic is overloaded on the nominal type:
 /// `bigint * u32` (`Mul<u32>`) and `bigint / u32` → `[quotient, remainder]`
 /// (`Div<u32, [BigInt, u32]>`). `mul_add_small` (×+add) has no operator form and
 /// stays a method.
@@ -54,16 +54,16 @@ export mul_add_small :: fn(self: BigInt, mul: u32, add: u32) -> BigInt {
     return out
 }
 
-/// Multiply by a small (u32) scalar — the `*` operator (`bigint * u32`).
+/// Multiply by a small (u32) scalar: the `*` operator (`bigint * u32`).
 BigInt implements Mul<u32, BigInt> -> self.mul_add_small(other, 0)
 
 /// Zero is the empty limb sequence.
 BigInt implements Zero -> []
 
-/// Floor-divide by a small (u32) scalar → `[quotient, remainder]` — the `/`
+/// Floor-divide by a small (u32) scalar → `[quotient, remainder]`: the `/`
 /// operator (`bigint / u32`).
 ///
-/// Schoolbook long division from the most-significant limb — O(n) exact, NOT the
+/// Schoolbook long division from the most-significant limb: O(n) exact, NOT the
 /// general O(n^2) BigInt / BigInt division. Chaining `/ 5` realizes the floor
 /// identity that builds the reciprocal powers `5^-j` ; the remainder feeds
 /// sticky-bit rounding in the slow-path float parser.
@@ -175,7 +175,7 @@ export bits64 :: fn(self: BigInt, off: i32) -> u64 {
 /// Top 128 bits (floor), normalized so bit 127 is set.
 ///
 /// @param self  a NON-zero operand.
-/// @return      `[hi, lo]` — the leading 128 bits, left-shifted so the most
+/// @return      `[hi, lo]`: the leading 128 bits, left-shifted so the most
 ///              significant bit lands in bit 127 of `hi`.
 export top128 :: fn(self: BigInt) -> [u64, u64] {
     b :: self.bit_len()
@@ -200,7 +200,7 @@ export two_pow :: fn(k: i32) -> BigInt {
 
 /// Left-shift a raw 128-bit value `(hi:lo)` by `s` in [0, 127].
 ///
-/// Operates on a two-word value rather than a BigInt — a shared helper for
+/// Operates on a two-word value rather than a BigInt: a shared helper for
 /// `top128` and the dtoa split rows.
 ///
 /// @return  the shifted `[hi, lo]` ; bits above 128 are dropped.

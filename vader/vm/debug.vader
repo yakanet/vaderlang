@@ -8,15 +8,15 @@
 // nothing.
 //
 // The record is deliberately data + callbacks (no `vader/tools/dap` import) so the
-// VM never depends on the DAP layer — the closures that mutate DAP state live
-// in `vader/tools/dap` and are stored here by value — that one-way edge is what keeps
+// VM never depends on the DAP layer (the closures that mutate DAP state live
+// in `vader/tools/dap` and are stored here by value): that one-way edge is what keeps
 // the two layers acyclic.
 
 module "vader/vm"
 
 import "std/collections"
 
-/// How execution should resume after a pause — the value the DAP layer returns
+/// How execution should resume after a pause: the value the DAP layer returns
 /// from `on_pause`, which the VM applies against the frame depth to decide the
 /// next stop. `Continue` only stops at breakpoints ; the `Step*` variants also
 /// stop at the next source line (`Into` = any depth, `Over` = same-or-shallower
@@ -28,7 +28,7 @@ export StepMode :: enum(u8) {
     StepOut,
 }
 
-/// One variable of a paused frame — a local, a param, or (recursively) a field
+/// One variable of a paused frame: a local, a param, or (recursively) a field
 /// / element of an aggregate. Rendered to a display string by the VM
 /// (`display_value`) so the DAP layer needn't touch runtime `Value`s ;
 /// `children` holds the projected fields (struct) / elements (array) for the
@@ -41,7 +41,7 @@ export PauseVar :: struct {
 }
 
 /// One frame of the paused call stack, projected to plain data by the VM
-/// before it hands control to the (DAP-side) `on_pause` callback — so the VM
+/// before it hands control to the (DAP-side) `on_pause` callback, so the VM
 /// never exposes its internal `Frame` / value-stack representation across the
 /// module boundary. Top frame (innermost call) first.
 export PauseFrame :: struct {
@@ -53,7 +53,7 @@ export PauseFrame :: struct {
     line:          i32
     /// Params then declared locals, in slot order, rendered for the Variables
     /// view (each possibly expandable via `PauseVar.children`). Accurate only
-    /// when the target is compiled `optimize = false` (no slot coalescing) —
+    /// when the target is compiled `optimize = false` (no slot coalescing),
     /// which the DAP compile does.
     locals:        PauseVar[]
 }
@@ -62,7 +62,7 @@ export PauseFrame :: struct {
 /// `variables` request without reaching into VM internals. Built by
 /// `pause_context` (`reg_exec.vader`) at the stop.
 export PauseCtx :: struct {
-    /// DAP `stopped` reason — `"breakpoint"` or `"step"`.
+    /// DAP `stopped` reason: `"breakpoint"` or `"step"`.
     reason: string
     /// Paused call stack, innermost frame first.
     frames: PauseFrame[]
@@ -74,7 +74,7 @@ export PauseCtx :: struct {
 /// `breakpoints` maps an absolute source file to its set of 1-based breakpoint
 /// lines. `output_sink` routes program writes to DAP `output` events (stdio
 /// transport can't let program output hit fd 1). `on_pause` is invoked when the
-/// VM stops (breakpoint or step) — it runs the (blocking) DAP request loop until
+/// VM stops (breakpoint or step): it runs the (blocking) DAP request loop until
 /// the client resumes, then returns the `StepMode` governing the next stop.
 export DebugController :: struct {
     /// Program write hook. `stream` is `0` = stdout, `1` = stderr (the VM's
@@ -88,7 +88,7 @@ export DebugController :: struct {
     on_pause: fn(PauseCtx) -> StepMode
 }
 
-/// True when `line` in `file` carries a breakpoint. Pure — the "fire once per
+/// True when `line` in `file` carries a breakpoint. Pure: the "fire once per
 /// line" gate is the engine's (`DebugSession.last_line`), so this only asks "is
 /// this line breakpointed".
 ///
@@ -105,7 +105,7 @@ export line_has_breakpoint :: fn(controller: DebugController, file: string, line
 /// the Variables view) rather than a compiler-synthesised temporary. Filters
 /// midir temps (`$…` : `$k_0`, `$call_14`, `$cast_8`) and lowering synthetics
 /// (`__…` : `__buf_0`, `__for_i_4`) plus the `if_res` match/if result slot.
-/// Uses byte comparison — a `"$"` string literal would open interpolation.
+/// Uses byte comparison: a `"$"` string literal would open interpolation.
 ///
 /// @param name  the `BcLocal.name`.
 /// @return      `true` iff `name` is a real source identifier.

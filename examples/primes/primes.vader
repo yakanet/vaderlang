@@ -1,4 +1,4 @@
-// Sieve of Eratosthenes — print all primes ≤ N.
+// Sieve of Eratosthenes: print all primes ≤ N.
 //
 // Allocates a `bool` array of length N+1 where `composite[i]` flips to true
 // once any multiple of `i` lands on it. The remaining `false` slots are the

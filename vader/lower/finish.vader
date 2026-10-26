@@ -6,7 +6,7 @@ module "vader/lower"
 import "vader/core/symbol"
 import "vader/lower/ir"
 
-// One `LoweredVtableEntry` per surviving impl member — the slot its `MonoEntry`
+// One `LoweredVtableEntry` per surviving impl member: the slot its `MonoEntry`
 // records (`(trait_key, method)`) for the receiver type of its `self`.
 collect_vtable_entries :: fn(project: LoweredProject) -> LoweredVtableEntry[] {
     out: LoweredVtableEntry[]: []
@@ -31,7 +31,7 @@ push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDe
 // per-module synth drain (`synth_start..synth_end`) : the materialisation
 // passes (generic fn instances, harvested non-generic stdlib fns, impl
 // members) lower fn bodies AFTER the per-module walk, so any lambda lifted
-// inside such a body would otherwise be orphaned — never reserved into the
+// inside such a body would otherwise be orphaned, never reserved into the
 // fn table, surfacing as an unresolved make-closure callee at emit (the
 // `__lambda_*` was in `synth_decls` but no module ever drained it).
 // Callers pass an explicit `end` so a separated build/push site (generic
@@ -60,7 +60,7 @@ drain_entry_decls :: fn(project_ctx: LowerProjectCtx, project: LoweredProject) -
     }
 }
 
-// `drain_synth_window` over the open window `[start, now)` — the common case
+// `drain_synth_window` over the open window `[start, now)`: the common case
 // for a site that captured `start` immediately before lowering one body and
 // drains right after, when no other body lowered in between. The generic
 // fn-instance push loop needs the explicit-`end` form instead, because its

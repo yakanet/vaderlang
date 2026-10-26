@@ -105,7 +105,7 @@ verdict_word :: fn(verdict: AssertVerdict) -> string = match verdict {
 
 // Recover a `@comptime` decl's source name from its Symbol id by
 // walking `resolved.symbols`. Called once per evaluated decl during
-// dump emission — cold path, linear scan is fine.
+// dump emission: cold path, linear scan is fine.
 lookup_comptime_decl_name :: fn(typed: TypedProgram, symbol_id: i32) -> string {
     for symbol in typed.resolved.symbols {
         if symbol.id == symbol_id { return symbol.name }

@@ -1,7 +1,7 @@
 // tests/verify: `--verify`, the cross-pass IR self-check.
 //
 // `I7xxx` reports a malformed IR, which is a compiler bug and not something a
-// program can provoke — so the family takes the same no-fixture exception
+// program can provoke, so the family takes the same no-fixture exception
 // `H6xxx` takes and is pinned here rather than under `tests/diag_corpus/`.
 //
 // `build` is the only action carrying `--verify`, and that is deliberate:
@@ -48,7 +48,7 @@ test("verify finds nothing in the examples", async () => {
       // ~2 s locally against ~85 ms, and on a 4-core runner with the suite at
       // 4× parallel it reached the 30 s spawn kill and came back as exit 137.
       const r = await buildVerify(entry, LONG_BUILD, join(dir, "out.virt"));
-      // A verifier finding is error-severity, so it also fails the build —
+      // A verifier finding is error-severity, so it also fails the build:
       // asserting the exit code catches a check that fires without us having
       // to match on the text.
       expect({ entry, exit: r.exit }).toEqual({ entry, exit: 0 });
@@ -91,7 +91,7 @@ test("verify changes nothing about the emitted bytecode", async () => {
   // than one of them on a loaded 4-core runner.
 }, LONG_BUILD);
 
-// The compiler compiling itself is the broadest IR corpus in the tree — every
+// The compiler compiling itself is the broadest IR corpus in the tree: every
 // lowering, every generic flavour. A check that starts reporting sound IR
 // fails here rather than in someone's build.
 test.skipIf(!RUN_SELF_HOST)("self-host: verify finds nothing", async () => {

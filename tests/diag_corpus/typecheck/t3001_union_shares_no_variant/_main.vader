@@ -1,5 +1,5 @@
 // T3001: a union compares by variant, so two sides that can never hold the same
-// variant are never equal — a `Point | null` against a `string` is a mistake.
+// variant are never equal: a `Point | null` against a `string` is a mistake.
 module "snippet"
 
 Point :: struct {

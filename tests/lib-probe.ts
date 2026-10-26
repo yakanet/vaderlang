@@ -4,7 +4,7 @@
 // library root, because both are decided by PROVENANCE rather than by a module's
 // name: R2034 (a shipped library must not import the compiler) and W0012's lint
 // scope (the toolchain's own exports are out of a project's scope). And a fixture
-// using `std/` would pass against the old name-prefix code too, pinning nothing —
+// using `std/` would pass against the old name-prefix code too, pinning nothing,
 // so the probe has to be a namespace that is NOT `std/`.
 //
 // ⚠️ It stages a root in `/tmp` and runs the CLI with `cwd` there, rather than
@@ -12,13 +12,13 @@
 // broke the suite in a way worth remembering: `cli-bin.ts::newestSourceMtime()`
 // walks `vader/` and `lib/` to decide whether `build/vader` is stale, and a file
 // created under `lib/` is indistinguishable from an edited source. So the probe
-// declared the binary stale for every other test FILE — and under `--parallel`
+// declared the binary stale for every other test FILE, and under `--parallel`
 // that is 14 workers, one of which was loading `snapshot.test.ts`. The run went
 // from 3402 tests to 909, with one unnamed failure and no hint of the cause.
 //
 // Staging in /tmp works because the cwd-relative `lib` is one of the roots the
 // loader assembles, and it holds the library marker there, so it is tagged
-// `.Toolchain` exactly as a bundled root would be — the same policy path is
+// `.Toolchain` exactly as a bundled root would be: the same policy path is
 // exercised, while the checkout is left untouched and the tests stay
 // parallel-safe.
 
@@ -39,12 +39,12 @@ export async function withStagedLibraryRoot<T>(
   const dir = mkdtempSync(join(tmpdir(), "vlibroot-"));
   try {
     mkdirSync(join(dir, "lib"), { recursive: true });
-    // The root is SYNTHETIC — real namespaces beside fabricated ones — so
+    // The root is SYNTHETIC (real namespaces beside fabricated ones) so
     // `$VADER_HOME` cannot supply it the way it does for a staged project: it
     // would hand over the checkout's `lib/` and lose the fabrications. The real
     // halves are therefore COPIED, not symlinked, which Windows refuses to a plain
     // user. `std/` is there because every probe needs `std/io` to write a runnable
-    // entry, and `system/` comes with it — `std/io` imports it for the write
+    // entry, and `system/` comes with it: `std/io` imports it for the write
     // syscall, and a root missing it fails to resolve before any probe runs.
     // Together they are 400 KB, well under what a probe's own compile costs.
     cpSync(join(REPO, "lib", "std"), join(dir, "lib", "std"), { recursive: true });

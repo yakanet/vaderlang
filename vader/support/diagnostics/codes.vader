@@ -3,8 +3,8 @@
 // and the IR verifiers.
 //
 // Each phase owns its own enum so the type checker enforces "the lexer can only
-// emit LexerCode values". Every variant carries its `CodeInfo` — the canonical
-// `LXXXX`/`PXXXX`/... wire ID and the human message — as variant data, so a
+// emit LexerCode values". Every variant carries its `CodeInfo` (the canonical
+// `LXXXX`/`PXXXX`/... wire ID and the human message) as variant data, so a
 // call site names the variant (`.UnexpectedCharacter`) and `CodeInfo(code)`
 // recovers both strings when the diagnostic is built.
 //
@@ -21,11 +21,11 @@
 
 module "vader/support/diagnostics"
 
-/// The wire identity of a diagnostic code — the data every code enum carries.
+/// The wire identity of a diagnostic code: the data every code enum carries.
 export CodeInfo :: struct {
     /// Stable wire ID, `T3001` style ; what a test or a tool matches on.
     id: string
-    /// Canonical wording of the error class — no per-site values (see `detail`).
+    /// Canonical wording of the error class: no per-site values (see `detail`).
     message: string
 }
 
@@ -266,7 +266,7 @@ export WarningCode :: enum(CodeInfo) {
     WriteToUnreadCopy           { .id = "W0019", .message = "a write into a copy nothing reads" },
 }
 
-/// `H6xxx` — the build driver (`build.vader`) and the hooks it registers.
+/// `H6xxx`: the build driver (`build.vader`) and the hooks it registers.
 ///
 /// A driver reports through `HookReport`: it describes its own problem and the
 /// registry owns the id, so a project's lint rules never allocate diagnostic
@@ -287,7 +287,7 @@ export HookCode :: enum(CodeInfo) {
 
 /// IR self-check codes, emitted by the cross-pass verifiers
 /// (`vader/lower/verify`, `vader/midir/verify`) rather than by a compiling
-/// phase. Each reports a malformed IR — a compiler bug, never something a
+/// phase. Each reports a malformed IR: a compiler bug, never something a
 /// program can provoke.
 ///
 /// The family takes the same no-fixture exception `H6xxx` takes: the

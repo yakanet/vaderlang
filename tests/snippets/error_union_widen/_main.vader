@@ -1,7 +1,7 @@
 // Two soundness follow-ups exercised end-to-end:
 //   (1) union -> union widening : `A | string` flows into `Error | string`
 //       (A widens to Error via its impl ; string == string). No runtime
-//       coercion — pure subtyping through the trait-impl index.
+//       coercion: pure subtyping through the trait-impl index.
 //   (2) `if x is Error` else-narrowing : after the divergent guard the
 //       scrutinee is exactly `string` (A, B drop as Error-implementers,
 //       matching `match`'s subtract-with-impls precision).

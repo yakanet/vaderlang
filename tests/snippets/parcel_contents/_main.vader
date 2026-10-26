@@ -1,6 +1,6 @@
 // Regression: returning a member read out of a non-escaping container must
 // drag the member allocation to the heap (midir escape analysis models
-// FieldGet / ArrayGet as aliases of the container) — a stack-promoted
+// FieldGet / ArrayGet as aliases of the container): a stack-promoted
 // member would be a dangling pointer once the fn returns.
 // Expected: 42 and 77 survive the scratch allocation in main.
 

@@ -1,7 +1,7 @@
 // Regression: a slot re-read must not forward a value local reassigned
-// between the store and the read (midir `array_load_forward` — the tracked
+// between the store and the read (midir `array_load_forward`: the tracked
 // `value` local is mutable pre-SSA and must invalidate on redefinition).
-// Expected: the shelf keeps the quantity that was stored, 10 — not 15.
+// Expected: the shelf keeps the quantity that was stored, 10, not 15.
 
 module "snippet"
 

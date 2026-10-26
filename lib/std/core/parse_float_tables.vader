@@ -3,14 +3,14 @@
 //
 // One 128-bit power of five per decimal exponent q in [-342, 308] (651
 // entries), stored interleaved [hi, lo] and indexed by `2 * (q + 342)`. Each
-// entry is 5^q normalized so bit 127 is set — bit-for-bit fast_float's
+// entry is 5^q normalized so bit 127 is set: bit-for-bit fast_float's
 // `power_of_five_128` (Lemire 2021). `test_pow5_128_reference` guards the baked
 // values against sampled reference rows.
 //
 // Built with the `BigInt` kernel (little-endian u32 limbs) in `bigint.vader`
 // (same `module "std/core"`). The floor identity
 // `floor(floor(2^K / 5^j) / 5) = floor(2^K / 5^(j+1))` builds the negative
-// (reciprocal) powers by repeated /5 — an exact single-limb division, no
+// (reciprocal) powers by repeated /5: an exact single-limb division, no
 // general big-int division and no error accumulation. Positive powers are
 // repeated *5. Only *5, /5, bit-length and top-128 extraction are needed.
 

@@ -1,5 +1,5 @@
 // T3018: an interpolated value renders through its `Display`. A type without
-// one is refused at compile time — past this point the program would compile
+// one is refused at compile time: past this point the program would compile
 // and fail at run time, on a dispatch finding no impl. An enum gets a `Display`
 // only on request : `@displayable`, or an impl of its own.
 module "snippet"

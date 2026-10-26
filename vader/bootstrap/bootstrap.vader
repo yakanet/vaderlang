@@ -1,10 +1,10 @@
 // vader/bootstrap/bootstrap: build-only compiler entrypoint (the seed source).
 //
 // A minimal compiler whose only job is `<input.vader> -> one C TU per module`.
-// It is the source the committed C seed (`bootstrap/seed/`) is generated from —
+// It is the source the committed C seed (`bootstrap/seed/`) is generated from,
 // see docs/BOOTSTRAP.md. `cc`-ing that seed yields **stage0**, whose single
 // invocation (`bootstrap/build.sh`) is
-// `stage0 vader/tools/cli/main.vader build/work/stage1/stage1` —
+// `stage0 vader/tools/cli/main.vader build/work/stage1/stage1`:
 // stage0 therefore has to carry a complete compilation pipeline, even though it
 // only ever compiles that one input.
 //
@@ -13,12 +13,12 @@
 // imports `vader/tools/` (the CLI, formatter, language server and debugger), so
 // growing them never re-bumps the seed. Only a pipeline change does.
 //
-// It pulls `vader/vm` in, transitively — `vader/pipeline/comptime_vm` embeds the
+// It pulls `vader/vm` in, transitively: `vader/pipeline/comptime_vm` embeds the
 // VM to bake loop-bearing `@comptime` decls, and `std/core` (the implicit
 // prelude, hence always loaded) has nine of them in `dtoa_tables.vader` /
 // `parse_float_tables.vader`. That is load-bearing, not an oversight, but it is
 // not free : the whole VM ships in every seed. Dropping it would mean freezing
-// those tables as literals — a deliberate reversal of the dtoa work, not a
+// those tables as literals: a deliberate reversal of the dtoa work, not a
 // cleanup.
 //
 // It drives `vader/pipeline` the way `vader build --release --emit=c` does, so it
@@ -34,18 +34,18 @@ import "vader/pipeline"
 /// Build-only entrypoint : compile `<input.vader>` to a multi-unit C program.
 ///
 /// `argv[0]` is the binary path ; `argv[1]` is the input `.vader` source and
-/// `argv[2]` the output PREFIX — one TU per Vader module is written beside it,
+/// `argv[2]` the output PREFIX: one TU per Vader module is written beside it,
 /// so `build/work/stage1/stage1` yields `stage1.split.h`, `stage1.split.g.c` and
 /// one `stage1-<module>.c` per module, which the caller compiles in parallel.
 /// Diagnostics go to stderr ; an error-severity diagnostic aborts with exit 1
-/// (nothing written). This is stage0's entire CLI surface — `bootstrap/build.sh`
+/// (nothing written). This is stage0's entire CLI surface: `bootstrap/build.sh`
 /// and `build.ps1` invoke it positionally.
 ///
 /// The argv shape and the file layout (`write_split_c`) are a FROZEN contract:
 /// the build scripts evolve with the tree but drive the stage0 of an older,
 /// committed seed. Changing either forces a reseed in the same commit.
 ///
-/// The prefix's DIRECTORY must exist — the caller creates it. Nothing here
+/// The prefix's DIRECTORY must exist: the caller creates it. Nothing here
 /// mkdir's, so a typo fails as a write error rather than scattering a tree.
 ///
 /// @param argv  process argv ; `argv[1]` = input, `argv[2]` = output prefix.

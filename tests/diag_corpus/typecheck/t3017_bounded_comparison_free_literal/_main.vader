@@ -1,4 +1,4 @@
-// A comparison on a type parameter bounded by `Comparable` takes another `T` —
+// A comparison on a type parameter bounded by `Comparable` takes another `T`:
 // T3017 on a free literal, which fits no type parameter.
 module "snippet"
 

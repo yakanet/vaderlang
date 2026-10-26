@@ -4,9 +4,9 @@
 //   * Literal bytes, `.`, escapes (`\n` / `\t` / `\r` / `\\` / `\.` …).
 //   * Char classes : `[abc]`, `[^abc]`, `[a-z]` plus the `\d` / `\D` /
 //     `\w` / `\W` / `\s` / `\S` shorthands (ASCII-only).
-//   * Quantifiers : `*`, `+`, `?`, `{n}`, `{n,}`, `{n,m}` — all greedy.
+//   * Quantifiers : `*`, `+`, `?`, `{n}`, `{n,}`, `{n,m}`, all greedy.
 //   * Alternation `a|b`.
-//   * Groups `(…)` — every group captures, addressable by index 1..N.
+//   * Groups `(…)`: every group captures, addressable by index 1..N.
 //   * Anchors `^`, `$` (whole-input, not multiline).
 //
 // Hors-scope (post-MVP) : non-greedy `*?`, named groups `(?<x>…)`,
@@ -17,12 +17,12 @@
 // `Inst` ops ; matching runs a BFS over a `Thread` set, and `add_thread`
 // deduplicates by pc within each step (the `seen` generation array), so a
 // step holds at most one thread per instruction. That per-pc dedup is what
-// makes the worst case O(n × m) (input length × program length) — no
-// catastrophic backtracking — and what bounds the epsilon-closure recursion
+// makes the worst case O(n × m) (input length × program length), no
+// catastrophic backtracking, and what bounds the epsilon-closure recursion
 // on cyclic programs like `(a*)*`. Captures use the `Save N` op writing the
 // current input offset into the thread's `groups` array.
 //
-// Pure Vader, zero host imports — WASM-ready as-is.
+// Pure Vader, zero host imports: WASM-ready as-is.
 
 module "regex"
 
@@ -32,7 +32,7 @@ import "std/string_builder"
 // Public surface
 // =========================================================================
 
-/// Compiled regex. Treat as opaque — the field layout may change.
+/// Compiled regex. Treat as opaque: the field layout may change.
 export Pattern :: struct {
     @internal
     insts:       Inst[]
@@ -82,7 +82,7 @@ export InstClass :: struct {
 }
 
 /// An inclusive `[lo, hi]` codepoint range inside an `InstClass`. Part of the
-/// public compiled-instruction surface — `InstClass.ranges` exposes these, so a
+/// public compiled-instruction surface: `InstClass.ranges` exposes these, so a
 /// consumer introspecting a compiled `Inst` can read them.
 export CharRange :: struct {
     lo: char
@@ -97,7 +97,7 @@ export InstJump :: struct {
     target: i64
 }
 
-/// Non-deterministic split — spawn one thread at `a`, another at `b`.
+/// Non-deterministic split: spawn one thread at `a`, another at `b`.
 export InstSplit :: struct {
     a: i64
     b: i64
@@ -110,9 +110,9 @@ export InstSave :: struct {
     slot: i64
 }
 
-/// `^` — match only at input position 0.
+/// `^`: match only at input position 0.
 export InstAnchorStart :: struct {}
-/// `$` — match only at input length.
+/// `$`: match only at input length.
 export InstAnchorEnd :: struct {}
 
 // =========================================================================
@@ -229,15 +229,15 @@ parse_alternation :: fn(p: Parser) -> RegexError | null {
     return null
 }
 
-// Re-emit `src[lo..<hi]` — a self-contained fragment whose first
-// instruction originally sat at absolute index `old_start` — at the end
+// Re-emit `src[lo..<hi]` (a self-contained fragment whose first
+// instruction originally sat at absolute index `old_start`) at the end
 // of `dst`, shifting every `Split` / `Jump` target by the displacement.
 // Targets are absolute instruction indices, and the quantifier wrappers
 // and the alternation both MOVE compiled fragments (a split gets
 // inserted before them, or copies land further down) : re-emitting a
 // composite fragment un-rebased (`(a|b)*`, `(a*)*`, `(a|b){2,3}`)
 // self-loops or jumps into the wrong instruction.
-// Whole-fragment form — the common case for the quantifier wrappers.
+// Whole-fragment form: the common case for the quantifier wrappers.
 push_atom_rebased :: fn(dst: Inst[], atom: Inst[], old_start: i64) = push_fragment_rebased(dst, atom, 0, atom.len(), old_start)
 
 push_fragment_rebased :: fn(dst: Inst[], src: Inst[], lo: i64, hi: i64, old_start: i64) -> void {
@@ -286,7 +286,7 @@ parse_atom_with_quantifier :: fn(p: Parser) -> RegexError | null {
     return null
 }
 
-// Star (greedy) — wrap the atom in :
+// Star (greedy): wrap the atom in :
 //   L1: Split L2, L3
 //   L2: <atom>
 //       Jump L1
@@ -303,7 +303,7 @@ apply_star :: fn(p: Parser, atom_start: i64) -> void {
     p.insts[split_pos] = InstSplit { .a = body_start, .b = after }
 }
 
-// Plus (greedy) — execute the atom once, then star-loop :
+// Plus (greedy): execute the atom once, then star-loop :
 //   L1: <atom>
 //       Split L1, L2
 //   L2:
@@ -337,7 +337,7 @@ REPEAT_MAX: i64: 1000
 
 /// Ceiling on the compiled program size. Nested counted repeats multiply
 /// (`((a{1000}){1000}){1000}` passes the per-count check three times but
-/// would materialise ~1e9 instructions) — checked after each counted
+/// would materialise ~1e9 instructions): checked after each counted
 /// expansion.
 PROGRAM_MAX: i64: 100_000
 
@@ -409,7 +409,7 @@ apply_counted :: fn(p: Parser, atom_start: i64) -> RegexError | null {
             after :: p.insts.len()
             p.insts[sp] = InstSplit { .a = body_start, .b = after }
         }
-        // {n} : exactly n — nothing more to emit.
+        // {n} : exactly n, nothing more to emit.
     }
     if p.insts.len() > PROGRAM_MAX {
         return RegexError { .msg = "compiled pattern exceeds ${PROGRAM_MAX} instructions", .position = save_cursor }
@@ -615,7 +615,7 @@ next_codepoint :: fn(s: string, offset: i64) = offset + s.codepoint_at_byte(offs
 // `iter.take` trap under monomorphization for `Inst[]` ; the built-in
 // `arr[lo..<hi]` (ArraySlice op) and `dst.push_all(src)` (ArrayPushAll op) are
 // intrinsics that see the concrete element type post-mono, so they don't.
-// `push_all` itself is now a built-in array method — no local helper needed.
+// `push_all` itself is now a built-in array method: no local helper needed.
 extract_range :: fn(arr: Inst[], start: i64, end: i64) -> Inst[] {
     view :: arr[start..<end]
     out: Inst[]: [] * view.len()
@@ -740,7 +740,7 @@ run_at :: fn(p: Pattern, input: string, start: i64) -> Match | null {
 
 /// One Thompson-VM run from `start`. `full` selects full-match semantics :
 /// an `InstMatch` only counts when the whole input is consumed, and a
-/// shorter match does NOT cut lower-priority threads — `a|ab` must still
+/// shorter match does NOT cut lower-priority threads: `a|ab` must still
 /// try `ab` after `a` matched a prefix (leftmost-first would otherwise
 /// make `matches` depend on alternative order). Answers the group slots of the
 /// match, or `null`.
@@ -793,7 +793,7 @@ run_vm :: fn(p: Pattern, input: string, start: i64, full: bool) -> i64[] | null 
                 }
                 is InstMatch -> {
                     // Full-match mode ignores a prefix match : it neither
-                    // records nor cuts lower-priority threads — an
+                    // records nor cuts lower-priority threads: an
                     // alternative ordered later may still consume the
                     // whole input.
                     if !full || pos == n {
@@ -818,7 +818,7 @@ run_vm :: fn(p: Pattern, input: string, start: i64, full: bool) -> i64[] | null 
         current = next
         next = []
         gen = gen + 1
-        // No live thread can ever spawn another — without this exit a
+        // No live thread can ever spawn another: without this exit a
         // failed run walks the rest of the input doing nothing, and
         // `find` (one run per start) turns O(n^2)-with-empty-loops.
         if current.len() == 0 { break }
@@ -847,7 +847,7 @@ class_matches :: fn(inst: InstClass, c: char) -> bool {
 // one thread per instruction and the recursion to one visit per pc.
 //
 // `groups` is shared copy-on-write : only `InstSave` writes to it, so
-// only `InstSave` copies — every other epsilon edge passes the array
+// only `InstSave` copies: every other epsilon edge passes the array
 // through, and leaf threads may alias one another's `groups` (read-only
 // once constructed).
 // One entry of `add_thread`'s explicit DFS stack : the pc to visit and the
@@ -867,8 +867,8 @@ add_thread :: fn(
     seen: i64[],
     gen: i64,
 ) -> void {
-    // Iterative epsilon-closure (was recursive). A long ACYCLIC epsilon chain —
-    // e.g. the N chained `InstSplit` a `a?`×N pattern compiles to — recursed one
+    // Iterative epsilon-closure (was recursive). A long ACYCLIC epsilon chain
+    // (e.g. the N chained `InstSplit` a `a?`×N pattern compiles to) recursed one
     // frame per link and blew the stack (VM trap at 1024 frames) even though
     // `seen[]` bounds the total visit count. An explicit LIFO stack removes the
     // depth limit. Children are pushed in REVERSE of the recursive visit order so
@@ -887,7 +887,7 @@ add_thread :: fn(
             is InstJump -> { stack.push(WorkItem { .pc = inst.target, .groups = groups }) }
             is InstSplit -> {
                 // Recursion visited `a` before `b` (a = higher priority) ; on a
-                // LIFO stack push `b` first so `a` pops — and fully drains — first.
+                // LIFO stack push `b` first so `a` pops (and fully drains) first.
                 stack.push(WorkItem { .pc = inst.b, .groups = groups })
                 stack.push(WorkItem { .pc = inst.a, .groups = groups })
             }
@@ -1187,7 +1187,7 @@ import "std/testing"
 }
 
 @test test_fullmatch_alternative_order :: fn() -> void {
-    // Regression: `matches` used find semantics — the leftmost-first match
+    // Regression: `matches` used find semantics, the leftmost-first match
     // `a` cut the `ab` alternative and made the result depend on
     // alternative order. Full-match mode only accepts whole-input matches.
     first_short :: compile("a|ab")
@@ -1204,7 +1204,7 @@ import "std/testing"
 
 @test test_pathological_patterns_terminate :: fn() -> void {
     // Regression: without per-pc thread dedup in `add_thread`, `(a+)+c`
-    // was exponential (ReDoS) — this input took >20s at N=22. With the
+    // was exponential (ReDoS): this input took >20s at N=22. With the
     // dedup the whole run is O(n × m).
     redos :: compile("(a+)+c")
     match redos {
@@ -1231,7 +1231,7 @@ import "std/testing"
     // Regression for CR-i : a long acyclic epsilon chain (`a?`×N) overflowed
     // add_thread's recursion (VM trapped at 1024 frames). The iterative closure
     // handles it, and the push/remove_last worklist stays bounded (owner
-    // buf->length shrink in the runtime — no capacity-doubling detach).
+    // buf->length shrink in the runtime: no capacity-doubling detach).
     sb :: StringBuilder {}
     for _ in 0..<1500 { sb.append("a?") }
     match p :: compile(sb.to_string()) {

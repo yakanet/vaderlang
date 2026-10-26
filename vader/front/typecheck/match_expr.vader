@@ -65,7 +65,7 @@ infer_match :: fn(
     raw_scrut :: check_expr(e.scrutinee, null, typed, diags)
     scrut_ty :: lift_enum_placeholder(raw_scrut, typed)
     // `match x :: e { … }` : the binding IS the narrowing slot, so an EXPRESSION
-    // scrutinee narrows exactly like a named one — which is the whole point of the
+    // scrutinee narrows exactly like a named one, which is the whole point of the
     // form. The resolver minted the binding at the `x` token and registered it in
     // `idents`, so the symbol is reachable from the MatchExpr alone. The
     // field-narrow key is empty for a binding : it is a slot, not a chain.
@@ -90,11 +90,11 @@ infer_match :: fn(
     uncovered := whole
     // Unions, enums and integer types, whose arms can consume the scrutinee. Any
     // other scrutinee REQUIRES a wildcard (T3013 says so in as many words), and an
-    // `is P` over it subtracts the whole of `P` here — so on those W0014 would
+    // `is P` over it subtracts the whole of `P` here, so on those W0014 would
     // flag the arm T3013 just demanded.
     closed_scrutinee :: scrut_ty is UnionType || scrut_ty is EnumType || whole != null
     for arm in e.arms {
-        // W0014 — nothing is left for this arm to match: a wildcard, or arms
+        // W0014, nothing is left for this arm to match: a wildcard, or arms
         // that together consumed the scrutinee, came before it. T3013 asks the
         // opposite question (is a variant MISSING) and T3040 compares against
         // the scrutinee's static type, so neither sees a variant covered twice.
@@ -151,13 +151,13 @@ infer_match :: fn(
             }
         }
         // Subtract the matched type from `remaining` for subsequent
-        // arms — `is T`, wildcard/binding, and tuple shapes consume
+        // arms: `is T`, wildcard/binding, and tuple shapes consume
         // their corresponding union variants.
         // A guarded arm (`is T if cond ->`, `_ if cond ->`) matches only
         // when its guard holds at runtime, so it contributes NOTHING to
         // coverage : no variant subtraction, no covered-variant record, no
         // wildcard. Counting it would silence T3013 on a match that can
-        // still fall through. (The overlap check on `is T` stays — a guard
+        // still fall through. (The overlap check on `is T` stays: a guard
         // cannot make a type-impossible test reachable.) A literal field in the
         // pattern (`is P { x: 10 }`) is a guard written inline, and counts the same.
         guarded :: arm.guard != null || is_constrained(arm.pattern)
@@ -182,7 +182,7 @@ infer_match :: fn(
                     //
                     // Gated on the test being possible at all. `is null` against
                     // `Cat | Dog` also subtracts nothing, but nothing covered it
-                    // earlier either — it can never match, which is T3040's
+                    // earlier either: it can never match, which is T3040's
                     // question, not this one. Reporting it here would say "an
                     // earlier arm covers it" of a variant no arm can hold.
                     narrowed :: subtract_type_with_impls(remaining, matched, typed)
@@ -254,7 +254,7 @@ infer_match :: fn(
                         check_is_test_target(tested, sub.span, typed, diags)
                     }
                 }
-                // Each alternative consumes its own variant — enum variants add
+                // Each alternative consumes its own variant: enum variants add
                 // to the covered set, `is T` alternatives subtract their type.
                 // Literal alternatives take values of an integer scrutinee below.
                 if !guarded {
@@ -282,7 +282,7 @@ infer_match :: fn(
             }
         }
     }
-    // T3013 — non-exhaustive match. `@partial` / `@unreachable` opt out
+    // T3013: non-exhaustive match. `@partial` / `@unreachable` opt out
     // (the latter asserts the uncovered variants trap rather than degrade).
     if !has_wildcard && !e.partial && !e.unreachable && e.arms.len() > 0 {
         if scrut_ty is UnionType {
@@ -305,7 +305,7 @@ infer_match :: fn(
                 )
             }
         } else if scrut_ty is UnresolvedType {
-            // skip — upstream error already surfaced.
+            // skip: upstream error already surfaced.
         } else if uncovered != null {
             if !is_never(remaining) && uncovered.len() > 0 {
                 detail :: uncovered_detail(uncovered[0], scrut_ty)
@@ -321,18 +321,18 @@ infer_match :: fn(
             )
         }
     }
-    // W0005 — a wildcard arm on a closed union silences the T3013 check above,
+    // W0005: a wildcard arm on a closed union silences the T3013 check above,
     // so a newly added variant degrades silently into `_` instead of erroring
     // (a silent mis-compile). Any match that CONTRIBUTES A VALUE
     // must enumerate every variant or opt out with `@partial`. This includes the
     // `return`-per-arm form (every arm diverges → result_ty is `never`), which is
     // the dominant compiler style and the one that hid the `impl_base_key` /
-    // `bc_type_of` footguns — so `never` is NOT exempt. Only a genuine void
+    // `bc_type_of` footguns, so `never` is NOT exempt. Only a genuine void
     // statement match (`_ -> {}`, side-effects only) and open scrutinees
     // (i32 / string / …) stay out of scope.
     result_ty :: join_branch_types(bodies, arm_types, typed, diags)
     // `has_wildcard` is only set by a wildcard arm, so it already
-    // implies ≥ 1 arm — no explicit arm-count guard needed.
+    // implies ≥ 1 arm: no explicit arm-count guard needed.
     if has_wildcard && !e.partial && !e.unreachable && !is_void(result_ty) {
         if scrut_ty is UnionType || scrut_ty is EnumType {
             diags.push(
@@ -637,7 +637,7 @@ bind_pattern_types :: fn(
             // Recorded for the lowerer, by node id : the clones of a default
             // method keep the trait's spans, each with fresh ids.
             typed.expr_types[p.ty.id] = narrowed
-            // Nested pattern (e.g. `is T { x, y }`) — recurse
+            // Nested pattern (e.g. `is T { x, y }`): recurse
             // with the narrowed type so inner StructPattern bindings
             // pick up T's field types.
             if p.inner !is null {
@@ -694,7 +694,7 @@ bind_struct_pattern :: fn(
     }
 }
 
-// A literal pattern — or a literal constraining a struct field — matches when
+// A literal pattern (or a literal constraining a struct field) matches when
 // `compared == literal` holds, so it is checked as the right operand of that `==`
 // is (`infer_binary`): typed alone, a free literal then repinned to the variant it
 // fills, and `==`'s own rule applied (`check_equality`). It meets `rest`, what the
@@ -848,7 +848,7 @@ is_integer_or_char :: fn(t: Type) -> bool = t is RangeType || is_char(t)
 
 scratch_diags :: fn() -> Diagnostic[] { return [] }
 
-// Whether an `is T { … }` pattern tests a field against a literal — it then
+// Whether an `is T { … }` pattern tests a field against a literal: it then
 // matches only some values of `T`.
 is_constrained :: fn(p: AST.Pattern) -> bool {
     if p !is AST.IsPattern {

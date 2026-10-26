@@ -2,7 +2,7 @@
 // with no file argument, finding and running a project's own `build.vader`.
 //
 // A driven project is a whole-project shape, not a pipeline-stage snapshot, so
-// it belongs beside `fixtures/lint/` rather than in `snippets/` — hence a corpus
+// it belongs beside `fixtures/lint/` rather than in `snippets/`, hence a corpus
 // of its own under `tests/fixtures/hook/`. Each fixture is a real project
 // directory the CLI is run *inside*, since the driver is discovered relative to
 // the invocation directory.
@@ -11,7 +11,7 @@
 // BESIDE it, not in this file.
 //
 //   <fixture>/build.vader          the driver under test
-//   <fixture>/src/*.vader          the project — and its `@test` fns
+//   <fixture>/src/*.vader          the project, and its `@test` fns
 //   <fixture>/build.snapshot       the driven build's output + exit status
 //   <fixture>/generated.snapshot   the text the driver GENERATED, where it does
 //
@@ -19,7 +19,7 @@
 // string-matching a binary's stdout from TypeScript: once `build/generated/`
 // exists it becomes a MERGE ROOT for the resolver
 // (`vader/front/resolver/module.vader::GENERATED_ROOT_DIR`), so a hand-written test
-// calls generated functions like any other — in both shapes, an imported
+// calls generated functions like any other: in both shapes, an imported
 // generated module and one that joined the entry module. Run `vader test src`
 // WITHOUT building first and the same test fails `R2006`, which is what makes the
 // ordering a proof rather than a convention.
@@ -32,7 +32,7 @@
 // two of them is a barrier that serialises the whole file again. With the driver
 // builds overlapping instead of queueing, the file goes from 57 s to 18 s
 // locally. Two consequences, both load bearing: every run goes through `gated()`
-// below, and every budget is `HEAVY_BUILD` — a test's wall clock now includes its
+// below, and every budget is `HEAVY_BUILD`: a test's wall clock now includes its
 // wait for a slot.
 
 import { test, expect, afterAll } from "bun:test";
@@ -60,7 +60,7 @@ const JSON_DERIVE = `${FIXTURES}/json_derive`;
 // invocation directory, the third because a driver imports `toolchain/build`.
 //
 // `$VADER_HOME` is what says where they are, which is exactly what the variable
-// exists for — pointing a binary at a toolchain that is not the one beside it. It
+// exists for: pointing a binary at a toolchain that is not the one beside it. It
 // replaces the three symlinks this file used to plant in every staged fixture:
 // Windows grants `symlinkSync` to no plain user, so those returned `EPERM` and
 // took 23 tests down on a real machine while passing in CI, whose runner holds the
@@ -68,19 +68,19 @@ const JSON_DERIVE = `${FIXTURES}/json_derive`;
 const REPO = resolve(".");
 
 // The toolchain a staged project builds against. `hermeticEnv` clears
-// `$VADER_HOME` for the rest of the suite — an exported one would silently run
-// the corpus against a different `lib/` — and applies `extra` last, so this wins
+// `$VADER_HOME` for the rest of the suite: an exported one would silently run
+// the corpus against a different `lib/`, and applies `extra` last, so this wins
 // where it is passed and nowhere else.
 const TOOLCHAIN_ENV = { VADER_HOME: REPO };
 
 // What a `dist/` bundle ships beside the compiler. Read in two directions: the
 // bundle staging builds these, and the bundle test asserts their ABSENCE beside
-// the PROJECT — that build has to reach the bundle's copies or nothing.
+// the PROJECT: that build has to reach the bundle's copies or nothing.
 const TOOLCHAIN_LINKS = ["lib", "runtime", "vader"] as const;
 
 // The staged copy starts CLEAN. Nothing under `build/` is committed, but a dev who
 // ran `vader build` inside a fixture leaves a driver binary and its C there, and
-// copying that in would have the build reuse a stale driver — and would give the
+// copying that in would have the build reuse a stale driver, and would give the
 // sweep something to sweep in every fixture instead of only where one is planted
 // deliberately.
 function copyFixture(fixture: string, dir: string): void {
@@ -112,10 +112,10 @@ afterAll(() => {
 // So oversubscription costs ~15 % CPU and buys back near-linear wall time: the
 // cap is about MEMORY, not scheduling. One driver build peaks at 815 MB RSS
 // (`VADER_PROFILE=1`, `pascal_case_lint`) and fans out to `DRIVER_CC_UNITS` = 8
-// parallel `cc` — so four in flight is already ~3 GB and ~40 processes, which is
+// parallel `cc`, so four in flight is already ~3 GB and ~40 processes, which is
 // as far as a 16 GB CI runner should be pushed. Bun applies no cap of its own.
 //
-// `VADER_TEST_GATE` overrides it — that is how the table above was taken, and
+// `VADER_TEST_GATE` overrides it: that is how the table above was taken, and
 // how to retake it on another machine.
 //
 // FIFO, and `while` rather than `if` on the check: a waiter woken by the
@@ -144,8 +144,8 @@ async function gated<T>(work: () => Promise<T>): Promise<T> {
   }
 }
 
-// Every binary this file drives goes through `cli-bin.ts::spawnCapture` — one
-// pipe drain, one kill timer — with the budget a driver build needs rather than
+// Every binary this file drives goes through `cli-bin.ts::spawnCapture` (one
+// pipe drain, one kill timer) with the budget a driver build needs rather than
 // the 90 s default.
 //
 // `run` is for anything that COMPILES, and takes a gate slot. `runBinary` is for
@@ -173,7 +173,7 @@ interface Built extends CliResult {
 // by name instead of paying a second whole-compiler compile.
 //
 // ⚠️ Everything awaiting a shared build only READS the staged tree. A test that
-// WRITES there stages privately (the stale-sweep one does) — otherwise the
+// WRITES there stages privately (the stale-sweep one does): otherwise the
 // failure surfaces in a neighbour that did nothing wrong.
 const builds = new Map<string, Promise<Built>>();
 
@@ -193,7 +193,7 @@ function drivenBuild(name: string): Promise<Built> {
 
 // Neither the staged directory nor a generated filename can appear in a committed
 // expectation: the first is a fresh `mkdtemp` per run, the second carries a
-// content hash. `realpathSync` too — macOS reports `/private/var/…` for the
+// content hash. `realpathSync` too: macOS reports `/private/var/…` for the
 // `/var/…` that `mkdtemp` handed back, and the CLI prints the resolved form.
 function normalise(text: string, dir: string): string {
   // One spelling before any matching. Windows prints `\`, and `mkdtemp` hands
@@ -230,13 +230,13 @@ function normalise(text: string, dir: string): string {
 // Where a driven debug build writes a project's binaries.
 const BINARIES = `build/debug-${HOST_TARGET}`;
 
-// Where a driven build writes its generated modules, relative to the project —
+// Where a driven build writes its generated modules, relative to the project:
 // `vader/front/resolver/module.vader::GENERATED_ROOT_DIR`, which the resolver reads.
 const GENERATED = "build/generated";
 
 // A generated tree as one text blob: sorted `--- <relpath>` headers plus each
 // file's contents. Names carry a content hash, so a changed generator shows up
-// twice over — in the name and in the body.
+// twice over: in the name and in the body.
 function readGeneratedTree(root: string): string {
   const base = join(root, GENERATED);
   if (!existsSync(base)) {
@@ -252,7 +252,7 @@ function readGeneratedTree(root: string): string {
 
 // What the driver GENERATED, pinned as text beside the fixture rather than as
 // files inside it: nothing that comes out of a build belongs in git, and
-// `build/generated/` is build output. The snapshot keeps what mattered anyway —
+// `build/generated/` is build output. The snapshot keeps what mattered anyway:
 // the generator's own text, reviewable in a diff instead of only its stdout.
 //
 // The cost, stated because it will bite the next reader: an editor flags the
@@ -262,7 +262,7 @@ function readGeneratedTree(root: string): string {
 //
 // Only for a build that SUCCEEDED: a failed build's tree is whatever its last
 // round happened to write (`generation_never_settles`), which is noise. And only
-// where there is something to say — an empty expectation in the fixtures that
+// where there is something to say: an empty expectation in the fixtures that
 // generate nothing would be eight files saying nothing.
 function expectGeneratedTree(fixture: string, dir: string): void {
   const actual = readGeneratedTree(dir);
@@ -274,7 +274,7 @@ function expectGeneratedTree(fixture: string, dir: string): void {
   if (!snap.ok) {
     throw new Error(
       `Generated text differs from ${snap.snapPath}\n` +
-      `Run with UPDATE_SNAPSHOTS=1 to refresh — and READ the diff: this is the ` +
+      `Run with UPDATE_SNAPSHOTS=1 to refresh, and READ the diff: this is the ` +
       `generator's own output.\n\n` +
       snapshotDiff(snap.snapPath, snap.expected, actual),
     );
@@ -314,7 +314,7 @@ for (const name of fixtures) {
     }
     // Universal to every driven build, so it belongs here rather than in one
     // hand-written test: artefacts go under `build/`, and the generated entry
-    // shim is UNLINKED rather than blanked — a leftover `.vader` declaring
+    // shim is UNLINKED rather than blanked: a leftover `.vader` declaring
     // nothing would break the next run.
     expect(existsSync(`${b.dir}/vader_build_entry.vader`)).toBe(false);
     expect(existsSync(`${b.dir}/vader_build_driver`)).toBe(false);
@@ -325,7 +325,7 @@ for (const name of fixtures) {
       const t = await run(["test", "src"], { cwd: b.dir, env: TOOLCHAIN_ENV });
       if (t.exit !== 0) {
         throw new Error(
-          `${name}: \`vader test src\` failed after the driven build — the ` +
+          `${name}: \`vader test src\` failed after the driven build: the ` +
           `fixture's own @test fns are what assert the generated code.\n` +
           `${t.stdout}${t.stderr}`,
         );
@@ -341,14 +341,14 @@ for (const name of fixtures) {
 // expectation, and the project's own tests run afterwards. These are the
 // properties that do not fit that shape.
 
-// A `dist/` bundle is a LAYOUT, not a project — binary at the root, then ONE
+// A `dist/` bundle is a LAYOUT, not a project: binary at the root, then ONE
 // module root `lib/` (holding `std/` and the compiler's `vader/`) plus
 // `runtime/c/` beside it. It is the one staging `$VADER_HOME` cannot stand in
 // for: the on-disk shape IS what this exercises, and a variable pointing at the
 // checkout would test the checkout.
 //
 // Assembled by COPY. 4.9 MB and 0.4 s, against a symlink Windows grants no plain
-// user — and this test matters most on the platform where an install is a bundle.
+// user, and this test matters most on the platform where an install is a bundle.
 //
 // The binary is COPIED, not symlinked: `current_executable_location()` resolves
 // through a symlink (realpath), which would report the repo's `build/` as the
@@ -376,7 +376,7 @@ function stageBundle(): string {
   }
   // Mirror the dist trim rather than taking `vader/` whole: the point of this
   // staging is to exercise what a real install HAS. Bringing everything would make
-  // the test pass on a bundle that cannot build — the only failure this staging
+  // the test pass on a bundle that cannot build: the only failure this staging
   // exists to catch. See bootstrap/dist-exclude.txt for the list and the rule.
   const excluded = new Set(
     readFileSync(`${REPO}/bootstrap/dist-exclude.txt`, "utf8")
@@ -395,7 +395,7 @@ test.concurrent("a bundle drives a build with nothing beside the project", async
   // REASON: a bundle is not a staged project, and three separate lookups have to
   // land: the driver's own `import "toolchain/build"` (bundle `lib/toolchain/`), the
   // project's `std/*` (bundle `lib/std/`), and `vader_runtime.c` at the link step
-  // (bundle `runtime/c/`). The project directory has NO symlinks — the driver
+  // (bundle `runtime/c/`). The project directory has NO symlinks: the driver
   // runs as `<project>/build/driver/driver`, so every probe relative to ITSELF
   // looks inside the project and finds nothing.
   const bundle = stageBundle();
@@ -405,7 +405,7 @@ test.concurrent("a bundle drives a build with nothing beside the project", async
   copyFixture(JSON_DERIVE, dir);
   // The canary: NO toolchain beside this project, so everything the build needs
   // has to come from the bundle. Stated as absences rather than as a directory
-  // listing — the fixture also holds its committed expectation, and a listing
+  // listing: the fixture also holds its committed expectation, and a listing
   // would then depend on whether the corpus test had written it yet.
   for (const beside of TOOLCHAIN_LINKS) {
     expect(existsSync(`${dir}/${beside}`)).toBe(false);
@@ -422,7 +422,7 @@ test.concurrent("a bundle drives a build with nothing beside the project", async
 
 test.concurrent("a shipped library cannot import the compiler (R2034)", async () => {
   // REASON: the layering invariant, and it needs a file UNDER the library root to
-  // state it — which no diag_corpus fixture can be (that harness dumps a single
+  // state it, which no diag_corpus fixture can be (that harness dumps a single
   // file wherever it sits) and no snippet either. Same reason the H6xxx family
   // lives in this file: a uniform harness cannot reach the shape.
   //
@@ -432,7 +432,7 @@ test.concurrent("a shipped library cannot import the compiler (R2034)", async ()
   // because a driver LINKS the compiler by design.
   //
   // The probe is a library root staged in /tmp, not a directory written into the
-  // checkout — see tests/lib-probe.ts for why that distinction broke the suite
+  // checkout, see tests/lib-probe.ts for why that distinction broke the suite
   // once. Which also means this test is parallel-safe.
   await withStagedLibraryRoot({
     r2034probe: {
@@ -447,7 +447,7 @@ test.concurrent("a shipped library cannot import the compiler (R2034)", async ()
     );
     // `cwd: dir` is what makes `<dir>/lib` the library root, and so what puts the
     // probe under it. R2034 is checked before the module-not-found lookup, so it
-    // fires whether or not `vader/front/lexer` resolves from here — the rule is about
+    // fires whether or not `vader/front/lexer` resolves from here: the rule is about
     // the attempt.
     const ran = await run(["run", "app.vader"], { cwd: dir });
     expect(ran.stderr).toContain("R2034");
@@ -457,18 +457,18 @@ test.concurrent("a shipped library cannot import the compiler (R2034)", async ()
 
 test.concurrent("R2034 is deliberately silent on a library module compiled as the ENTRY", async () => {
   // The DECIDED companion to the test above, here so the decision is executable and
-  // not merely documented on `ModuleOrigin.Build` — otherwise a future reader reads
+  // not merely documented on `ModuleOrigin.Build`: otherwise a future reader reads
   // the asymmetry as a hole and "fixes" it.
   //
   // Being a library is not a property of a directory; it is a property of how a
   // build reaches it. R2034 protects a consumer from a library that SHIPS a
   // dependency on the compiler and is then imported. A file the caller named on the
-  // command line is their own code, whatever it sits under — so `paths[0]`, the
+  // command line is their own code, whatever it sits under, so `paths[0]`, the
   // entry's own root, is `.Build` and the module never picks up another root's
   // origin.
   //
   // Non-vacuous by construction: R2034 is checked BEFORE the module-not-found
-  // lookup, so the R2001 asserted below proves the import was seen and processed —
+  // lookup, so the R2001 asserted below proves the import was seen and processed:
   // if the diagnostic were going to fire, it would have fired here too.
   await withStagedLibraryRoot({
     entryprobe: {
@@ -484,14 +484,14 @@ test.concurrent("R2034 is deliberately silent on a library module compiled as th
 
 test.concurrent("a bundled namespace outranks a project module of the same name", async () => {
   // REASON: `lib/` hosts every namespace the toolchain ships, and those are
-  // ORDINARY directory names — `std` today, `json` / `cli` / `images` once the
+  // ORDINARY directory names: `std` today, `json` / `cli` / `images` once the
   // library split lands. Include-paths are first-match-wins, so with the project
   // searched first a project declaring `module "cli"` silently wins over the
   // shipped one. Bad alone, worse in a driven build: the compiler's sources are
   // compiled in the SAME unit as the project, so `vader/tools/cli` would be built
   // against the user's module. Reproduced before the fix, pinned here.
   //
-  // A bundle is the shape where it bites — that is where a library root is
+  // A bundle is the shape where it bites: that is where a library root is
   // authoritative. Only the BUNDLED root is promoted ahead of the project; the
   // cwd-relative fallback stays last, so a project keeping its own code under
   // `lib/` is unaffected. Hence a staged bundle rather than a staged project.
@@ -506,7 +506,7 @@ test.concurrent("a bundled namespace outranks a project module of the same name"
 
   const dir = mkdtempSync(`${tmpdir()}/vader-reserved-`);
   staged.push(dir);
-  // The project is what makes its root a search root at all — a file on its own
+  // The project is what makes its root a search root at all: a file on its own
   // searches only its folder, and the clash cannot arise.
   writeFileSync(`${dir}/vader.json`, '{ "name": "reserved-clash", "entries": { "app": "app.vader" } }\n');
   mkdirSync(`${dir}/reserved`, { recursive: true });
@@ -528,10 +528,10 @@ test.concurrent("a bundled namespace outranks a project module of the same name"
 test.concurrent("a driven build sweeps the previous build's generated modules", async () => {
   // REASON: the only TWO-BUILD property in the corpus. Generated names are
   // content hashes, so a module whose text CHANGED leaves its old file in the
-  // same folder — where it still compiles, declaring the same symbol twice
+  // same folder, where it still compiles, declaring the same symbol twice
   // (T3053, fatal). A clean project can never exhibit that state: a fresh build
   // leaves exactly one file and the sweep has nothing to sweep. So the leftover
-  // has to be PLANTED, which is setup no corpus entry can express — and it writes
+  // has to be PLANTED, which is setup no corpus entry can express, and it writes
   // into the staged tree, hence a private stage.
   const dir = stage(GENERATE);
   staged.push(dir);
@@ -555,13 +555,13 @@ test.concurrent("a driven build sweeps the previous build's generated modules", 
 
 test.concurrent("the driver produces a working binary", async () => {
   // REASON: it RUNS what the build produced. A committed expectation covers the
-  // build's output, and the corpus loop covers the project root staying clean —
+  // build's output, and the corpus loop covers the project root staying clean:
   // neither can say the binary works.
   const { dir } = await drivenBuild("pascal_case_lint");
   expect(existsSync(exePath(`${dir}/build/driver/driver`))).toBe(true);
 
   // The whole point of decision 13: a driver is a build system, not an observer.
-  // It compiles the project and the result runs — even though the driver went on
+  // It compiles the project and the result runs: even though the driver went on
   // to report a rule violation.
   const ran = await runBinary(exePath(`${dir}/${BINARIES}/hello`), dir);
   expect(ran.stdout).toContain("hello");
@@ -571,7 +571,7 @@ test.concurrent("the driver produces a working binary", async () => {
 test.concurrent("the front end runs ONCE for a driver that observes and builds", async () => {
   // REASON: asserts on a PROFILE of the driver's own process, not on the build.
   // Observing used to re-run the front end, which is ~45% of a build. Profiled on
-  // the DRIVER's process on purpose — a `vader build` profile also contains the
+  // the DRIVER's process on purpose: a `vader build` profile also contains the
   // compiler's pass over the driver itself, which would make the count
   // meaningless.
   const { dir } = await drivenBuild("pascal_case_lint");
@@ -757,7 +757,7 @@ test.concurrent("the language server reads the search roots a driver declares", 
 }, HEAVY_BUILD);
 
 test.concurrent("a named file bypasses the driver, and says so", async () => {
-  // REASON: not a driven build — the CLI is given a file, which is the path
+  // REASON: not a driven build, the CLI is given a file, which is the path
   // `bootstrap/build.sh` takes to compile the compiler, so it has to win. But
   // silently dropping a project's rules would make them untrustworthy.
   const dir = stage(LINT);
@@ -771,7 +771,7 @@ test.concurrent("a named file bypasses the driver, and says so", async () => {
 }, HEAVY_BUILD);
 
 test.concurrent("--no-hooks silences that, and skips the driver entirely", async () => {
-  // REASON: same — a flag's effect on the non-driven path.
+  // REASON: same, a flag's effect on the non-driven path.
   const dir = stage(LINT);
   staged.push(dir);
   const quiet =

@@ -5,7 +5,7 @@
 // decoder for the `.virt` data-pool hex blobs (`front/virt/virt_reader_bc.vader`).
 // Deliberately NOT stdlib : once the memory opcodes land, native-endian typed
 // access IS the opcode (a single per-target typed load), so a pure-Vader
-// shift-loop codec is exactly what they replace — it lives here only because
+// shift-loop codec is exactly what they replace: it lives here only because
 // the VM can't dogfood the opcode it implements, and because the `.virt` text
 // format needs a host decoder. Explicit-endianness serialization is a future
 // `std/encoding` concern, built over `Buffer`, orthogonal to this file.
@@ -13,7 +13,7 @@
 module "vader/core/bytecode"
 
 /// Read the low `width` bytes (little-endian) at `offset` as a zero-extended
-/// u64. `width` ∈ {1..8}. NOT bounds-checked — the caller validates
+/// u64. `width` ∈ {1..8}. NOT bounds-checked: the caller validates
 /// `offset + width <= bytes.len()` (the memory-op arms surface a clean VM
 /// `Trap` ; the data-pool decoder pre-sizes from the blob length).
 ///
@@ -24,7 +24,7 @@ module "vader/core/bytecode"
 export read_le :: fn(bytes: u8[], offset: i64, width: i64) -> u64 {
     // Assemble most-significant byte first, so the shift amount is the
     // constant 8 (a free literal coercing to u64) rather than a variable
-    // `i * 8` — no per-byte cast of the loop index.
+    // `i * 8`: no per-byte cast of the loop index.
     acc: u64 = 0
     for j in 0..<width {
         acc = (acc << 8) | u64(bytes[offset + width - 1 - j])
@@ -33,7 +33,7 @@ export read_le :: fn(bytes: u8[], offset: i64, width: i64) -> u64 {
 }
 
 /// Write the low `width` bytes of `value` (little-endian) into `bytes` at
-/// `offset`, mutating in place. `width` ∈ {1..8}. NOT bounds-checked — the
+/// `offset`, mutating in place. `width` ∈ {1..8}. NOT bounds-checked: the
 /// caller validates `offset + width <= bytes.len()`.
 ///
 /// @param bytes   the destination byte array (mutated in place).

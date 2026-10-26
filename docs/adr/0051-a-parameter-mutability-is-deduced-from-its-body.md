@@ -1,4 +1,4 @@
-# 0051 — A parameter's `!` is deduced from its function's body
+# 0051: A parameter's `!` is deduced from its function's body
 
 ## Status
 
@@ -122,7 +122,7 @@ Still open:
 - **Returns and fields are later phases.** For now their `!` stays written. Locals
   are ADR 0052.
 - **The lever walk mirrors the read-only rule.** `levers_of` follows the access
-  paths `walk_levels` judges — a field, an element, a conversion — but as a second
+  paths `walk_levels` judges (a field, an element, a conversion) but as a second
   walk. A gap between the two turns a needed written `!` into W0018. One walk that
   reports the lever it reached would close that class.
 - **A lambda's parameter without a type does not take the `!` of its slot.** In

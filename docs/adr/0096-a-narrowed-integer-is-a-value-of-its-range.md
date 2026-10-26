@@ -1,4 +1,4 @@
-# 0096 — A narrowed integer is a value of its range
+# 0096: A narrowed integer is a value of its range
 
 ## Status
 

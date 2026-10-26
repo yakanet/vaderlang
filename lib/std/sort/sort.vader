@@ -3,7 +3,7 @@
 // Stable, O(n log n). Returns a freshly-allocated sorted copy ; the input
 // array is never mutated. Internally a top-down merge sort with an
 // insertion-sort cutoff for sub-ranges of length ≤ 16 (avoids the merge
-// overhead — same cutoff Java's TimSort uses by default).
+// overhead: same cutoff Java's TimSort uses by default).
 
 module "std/sort"
 
@@ -34,7 +34,7 @@ export sort :: fn<T>(arr: T[], compare: fn(T, T) -> bool) -> T[] {
 INSERTION_CUTOFF: i64: 16
 
 // Recursive top-down merge sort over `arr[lo..hi)`. Below INSERTION_CUTOFF
-// we hand off to insertion_sort_range — the constant factor of merge sort
+// we hand off to insertion_sort_range: the constant factor of merge sort
 // loses on tiny sub-arrays.
 merge_sort_range :: fn<T>(arr: T[], buf: T[], lo: i64, hi: i64, compare: fn(T, T) -> bool) -> void {
     n :: hi - lo
@@ -63,7 +63,7 @@ merge_sort_range :: fn<T>(arr: T[], buf: T[], lo: i64, hi: i64, compare: fn(T, T
         } else if compare(buf[b], buf[a]) {
             // strict ordering : equal elements keep their original order, so
             // we only take from the right half when it strictly precedes the
-            // left half — this is what makes the sort stable.
+            // left half: this is what makes the sort stable.
             arr[k] = buf[b]
             b = b + 1
         } else {

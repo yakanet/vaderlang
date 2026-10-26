@@ -1,4 +1,4 @@
-# 0095 — The integers are declared in std/core
+# 0095: The integers are declared in std/core
 
 ## Status
 

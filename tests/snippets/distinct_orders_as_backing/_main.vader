@@ -1,5 +1,5 @@
-// A distinct with no `Comparable` of its own orders as its backing does — a
-// `string` by its bytes, a struct through the struct's impl — and never by the
+// A distinct with no `Comparable` of its own orders as its backing does (a
+// `string` by its bytes, a struct through the struct's impl) and never by the
 // handle it holds.
 
 module "snippet"

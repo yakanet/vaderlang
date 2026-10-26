@@ -1,5 +1,5 @@
 // Implicit async `main` that suspends: `main` awaits `sleep`, so it is inferred
-// async and — because the program imports `std/async` (for `sleep`) — the
+// async and, because the program imports `std/async` (for `sleep`), the
 // compiler routes it through the park-based `run_async_main` driver. No
 // explicit driver call, no decorator. The scheduler advances the virtual clock
 // across the two sleeps.

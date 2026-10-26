@@ -1,4 +1,4 @@
-# 0038 — A read and a write share one index route
+# 0038: A read and a write share one index route
 
 ## Status
 
@@ -26,8 +26,8 @@ a read and for a write. They did not agree.
 and both lowerings call it. It answers one of three routes for `Index` (a read) or
 `IndexSet` (a write):
 
-- `Impl` — through the type's own impl of the trait;
-- `Array` — into an array, or into the array backing a distinct with no impl of
+- `Impl`: through the type's own impl of the trait;
+- `Array`: into an array, or into the array backing a distinct with no impl of
   its own;
 - `None`.
 

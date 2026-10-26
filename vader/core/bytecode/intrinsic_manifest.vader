@@ -11,7 +11,7 @@
 //      to the real mangler by the colocated tests.
 //
 //   2. Host-intrinsic identity. `intrinsic_id_for` classifies a host import's
-//      mangled name into an `IntrinsicId` — THE single classification both
+//      mangled name into an `IntrinsicId`: THE single classification both
 //      backends (`vm/host::dispatch_import`, `emit/c/host::import_shim`) dispatch
 //      on, so the two can't drift and a new host trips T3013 at both sites.
 //
@@ -38,7 +38,7 @@ DISPLAY_SUFFIX :: r"$Display$to_string"
 
 /// The mangle of a `std/core` primitive `@intrinsic` impl member:
 /// `("i32", "Equals", "equals")` → `"std_core$i32$Equals$equals"`. THE grammar
-/// authority for building a primitive host mangle — never inline the `$`
+/// authority for building a primitive host mangle, never inline the `$`
 /// separator or the `std_core$` prefix at a call site.
 ///
 /// @param kind    the receiver primitive kind (`"i32"`, `"string"`, …).
@@ -74,7 +74,7 @@ export is_unsigned_display :: fn(mangled: string) -> bool {
 }
 
 /// The `<kind>` slice of a `std_core$<kind><suffix>` mangle, or null when the
-/// prefix / suffix don't match. Lengths come from the constant strings — no
+/// prefix / suffix don't match. Lengths come from the constant strings: no
 /// hand-counted byte offsets, no per-call string build (both `CORE_PREFIX` and
 /// `suffix` are module-level literals). Only the returned kind slice allocates.
 ///
@@ -91,7 +91,7 @@ export strip_core_member :: fn(mangled: string, suffix: string) -> string | null
 /// by `intrinsic_id_for`. THE single classification the two backends
 /// (`vm/host::dispatch_import`, `emit/c/host::import_shim`) dispatch on, so the
 /// host-mangle grammar lives in one place and the two can't drift. The union of
-/// what either backend serves — a backend that doesn't serve a variant handles
+/// what either backend serves: a backend that doesn't serve a variant handles
 /// it in a grouped fallthrough arm, but the exhaustive `match` forces that to be
 /// a conscious decision (a new variant here trips T3013 at both sites).
 export IntrinsicId :: enum(u8) {
@@ -104,16 +104,16 @@ export IntrinsicId :: enum(u8) {
     PrimIntEquals, PrimDisplayToString,
     // std/runtime
     RuntimeCollect, RuntimeCollections, RuntimeBytesUsed, RuntimeBytesCopied,
-    // std/runtime — cooperative async scheduler (std/async backend)
+    // std/runtime: cooperative async scheduler (std/async backend)
     SchedNow, SchedArm, SchedPark,
-    // std/process — non-blocking subprocess (backs spawn_async ; spawn = block_on)
+    // std/process: non-blocking subprocess (backs spawn_async ; spawn = block_on)
     // std/tty + std/env + std/abort
     AbortPanic,
-    // std/target — the OS the process is RUNNING on, not the one it was built
+    // std/target: the OS the process is RUNNING on, not the one it was built
     // for. `VADER_OS` answers the latter and is a baked constant, not a host.
     TargetCurrentOs, TargetCurrentArch,
-    // std/tty raw mode — what `cli/prompt` reads keys through
-    // vader/vm — dynamic foreign calls, the VM's answer to `@extern`. NOT in
+    // std/tty raw mode: what `cli/prompt` reads keys through
+    // vader/vm: dynamic foreign calls, the VM's answer to `@extern`. NOT in
     // `std/`: they amount to running arbitrary native code.
     FfiOpen, FfiOpenPath, FfiSymbol, FfiCall, FfiCallFrame,
 }
@@ -161,7 +161,7 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     return .NotIntrinsic
 }
 
-/// Whether a call to host `id` can trigger a collection — the question
+/// Whether a call to host `id` can trigger a collection: the question
 /// `c_emit`'s `compute_may_alloc` asks of every op to decide which fns need a
 /// GC frame. `false` is a promise that the native implementation never reaches
 /// `vader_gc_alloc`: a fn whose only safepoint would be this call skips its
@@ -185,7 +185,7 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .Bytes | .BytesToString | .PrimDisplayToString -> true
     // Served by the VM only; natively these are Vader, never a host call.
     .StringEquals | .PrimIntEquals -> true
-    // Unclassified — conservatively a safepoint.
+    // Unclassified: conservatively a safepoint.
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> true
     .SchedNow | .SchedArm | .SchedPark | .AbortPanic -> true
     .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame | .NotIntrinsic -> true
@@ -219,7 +219,7 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
 import "std/testing"
 
 @test test_core_module_matches_mangler :: fn() -> void {
-    // Pins the manifest's grammar against the real producer — if the module
+    // Pins the manifest's grammar against the real producer: if the module
     // mangling scheme changes, this test breaks instead of the backends silently.
     assert_eq(CORE_MODULE, mangle_module_id("std/core"))
 }
@@ -266,7 +266,7 @@ import "std/testing"
     assert(intrinsic_id_for(r"std_io$write") == .NotIntrinsic, "io write is no longer a host")
     // Same shape: `std/math` became `@extern`, so re-adding a Math variant would
     // silently route it back through `dispatch_import` while the declaration says
-    // otherwise — an import neither backend serves.
+    // otherwise: an import neither backend serves.
     assert(intrinsic_id_for(r"std_math$sqrt") == .NotIntrinsic, "math sqrt is no longer a host")
     assert(intrinsic_id_for(r"std_core$i32$Equals$equals") == .PrimIntEquals, "int equals")
     assert(intrinsic_id_for(r"std_core$u8$Display$to_string") == .PrimDisplayToString, "display")

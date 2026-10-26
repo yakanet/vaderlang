@@ -1,4 +1,4 @@
-# 0055 — A property over the call graph is one fixed point
+# 0055: A property over the call graph is one fixed point
 
 ## Status
 

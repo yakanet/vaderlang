@@ -1,5 +1,5 @@
 // DAP end-to-end test : spawn the native `vader dap`, drive the Debug Adapter
-// Protocol handshake over stdin/stdout, verify the Phase-1 proof-of-life flow —
+// Protocol handshake over stdin/stdout, verify the Phase-1 proof-of-life flow:
 // initialize → launch → configurationDone runs the program, its output surfaces
 // as `output` events (NOT on the raw stdout channel, which would corrupt the
 // protocol), and the session ends with `exited` + `terminated`.
@@ -7,7 +7,7 @@
 // The adapter is the compiled native binary (`build/vader dap`) driving the
 // bytecode VM. The DAP message order is deterministic (the server processes
 // frames sequentially and each command's effect doesn't depend on the previous
-// response's contents), so every request is batch-written up front — the server
+// response's contents), so every request is batch-written up front: the server
 // reads them in order off the pipe, exactly like the LSP e2e test.
 
 import { test, expect } from "bun:test";
@@ -35,10 +35,10 @@ async function driveDap(program: string): Promise<Json[]> {
     { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
     { seq: 2, type: "request", command: "launch", arguments: { program } },
     // VSCode sends setBreakpoints between `initialized` and configurationDone,
-    // and gates configurationDone (the run trigger) on a well-formed response —
+    // and gates configurationDone (the run trigger) on a well-formed response:
     // it MUST echo one breakpoint object per requested line. Line 1 is a
     // comment (no op), so this exercises the response shape without stopping the
-    // run-to-completion flow — the dedicated test below covers an actual stop.
+    // run-to-completion flow: the dedicated test below covers an actual stop.
     { seq: 3, type: "request", command: "setBreakpoints",
       arguments: { source: { path: program }, breakpoints: [{ line: 1 }], lines: [1] } },
     { seq: 4, type: "request", command: "configurationDone" },
@@ -47,8 +47,8 @@ async function driveDap(program: string): Promise<Json[]> {
   ]);
 }
 
-test("dap: proof of life — initialize, launch, run, capture output, terminate", async () => {
-  // io_println prints "hello\n" then "42\n" — imports std/io, resolved relative
+test("dap: proof of life, initialize, launch, run, capture output, terminate", async () => {
+  // io_println prints "hello\n" then "42\n": imports std/io, resolved relative
   // to the repo cwd (same as `vader run`).
   const program = join(process.cwd(), "tests/snippets/io_println/_main.vader");
   const frames = await driveDap(program);
@@ -67,7 +67,7 @@ test("dap: proof of life — initialize, launch, run, capture output, terminate"
   expect(respFor("configurationDone")?.success).toBe(true);
   expect(respFor("disconnect")?.success).toBe(true);
 
-  // setBreakpoints MUST return a `breakpoints` array (one per requested line) —
+  // setBreakpoints MUST return a `breakpoints` array (one per requested line):
   // VSCode stalls (never sends configurationDone, so the program never runs) on
   // a malformed response.
   const bpResp = respFor("setBreakpoints");
@@ -82,7 +82,7 @@ test("dap: proof of life — initialize, launch, run, capture output, terminate"
   expect(eventNames).toContain("exited");
   expect(eventNames).toContain("terminated");
 
-  // Program output rides on `output` events (category stdout) — NOT the raw
+  // Program output rides on `output` events (category stdout), NOT the raw
   // stdout channel, which is reserved for the DAP protocol.
   const stdout = events
     .filter((e) => e.event === "output" && e.body?.category === "stdout")
@@ -98,7 +98,7 @@ test("dap: proof of life — initialize, launch, run, capture output, terminate"
 
 test("dap: breakpoint stops the program and continue resumes it", async () => {
   // io_println: line 13 `main :: fn() -> i32 {`, line 14 `println("hello")`.
-  // Breakpoint on line 14 (the first body statement — a signature line carries
+  // Breakpoint on line 14 (the first body statement: a signature line carries
   // no op) must fire `stopped`, `stackTrace` must place the top frame at line 14,
   // and `continue` must run it to completion. The pause loop reads the queued
   // stackTrace/continue frames off the same pipe, so one batched request list
@@ -129,7 +129,7 @@ test("dap: breakpoint stops the program and continue resumes it", async () => {
   expect(top?.line).toBe(14);
   expect(top?.name).toBe("main");
 
-  // continue ran it to completion — output surfaced + terminated.
+  // continue ran it to completion: output surfaced + terminated.
   expect(frames.some((f) => f.event === "terminated")).toBe(true);
   const stdout = frames
     .filter((f) => f.event === "output" && f.body?.category === "stdout")
@@ -141,7 +141,7 @@ test("dap: step over advances the line, and Variables shows source locals with v
   // array_slice: line 13 `arr: i32[] = [10, 20, 30, 40, 50]` (breakpoint),
   // line 16 the next statement. Stopping BEFORE line 13 runs, `arr` is 0 ;
   // after a step over it holds the array. The Variables view must show source
-  // locals (arr, s1, …) — NOT the compiler's `$…` / `__…` temporaries.
+  // locals (arr, s1, …), NOT the compiler's `$…` / `__…` temporaries.
   const program = join(process.cwd(), "tests/snippets/array_slice/_main.vader");
   const requests = [
     { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
@@ -149,16 +149,16 @@ test("dap: step over advances the line, and Variables shows source locals with v
     { seq: 3, type: "request", command: "setBreakpoints",
       arguments: { source: { path: program }, breakpoints: [{ line: 13 }] } },
     { seq: 4, type: "request", command: "configurationDone" },
-    // Stop #1 (breakpoint, line 13) — inspect, then step over.
+    // Stop #1 (breakpoint, line 13): inspect, then step over.
     { seq: 5, type: "request", command: "stackTrace", arguments: { threadId: 1 } },
     { seq: 6, type: "request", command: "scopes", arguments: { frameId: 0 } },
     { seq: 7, type: "request", command: "variables", arguments: { variablesReference: 1 } },
     { seq: 8, type: "request", command: "next", arguments: { threadId: 1 } },
-    // Stop #2 (step, past line 13) — `arr` is now materialised.
+    // Stop #2 (step, past line 13): `arr` is now materialised.
     { seq: 9, type: "request", command: "stackTrace", arguments: { threadId: 1 } },
     { seq: 10, type: "request", command: "variables", arguments: { variablesReference: 1 } },
     // Expand `arr` (an array → expandable). With one frame, the scope ref is 1
-    // and `arr` (the first expandable local) is minted ref 2 — deterministic for
+    // and `arr` (the first expandable local) is minted ref 2: deterministic for
     // this fixed program.
     { seq: 11, type: "request", command: "variables", arguments: { variablesReference: 2 } },
     // Hover / Watch : a known local resolves, an unknown one fails cleanly.
@@ -190,7 +190,7 @@ test("dap: step over advances the line, and Variables shows source locals with v
   expect(allNames.some((n: string) => n.startsWith("$") || n.startsWith("__"))).toBe(false);
   const arrAfterStep = (varsResponses[1]?.body?.variables ?? []).find((v: any) => v.name === "arr");
   expect(arrAfterStep?.value).toContain("10");
-  // Scope filter : at line 16 only `arr` is live — the later locals (s1…s5, n)
+  // Scope filter : at line 16 only `arr` is live, the later locals (s1…s5, n)
   // and the loops' `v` aren't in scope yet, so they don't clutter the view.
   const line16Names = (varsResponses[1]?.body?.variables ?? []).map((v: any) => v.name);
   expect(line16Names).not.toContain("s5");
@@ -211,7 +211,7 @@ test("dap: step over advances the line, and Variables shows source locals with v
 }, { timeout: MEDIUM_BUILD });
 
 test("dap: a runtime trap stops on the exception with its message", async () => {
-  // defer_on_panic's main runs, then divides by zero — a runtime trap. Under
+  // defer_on_panic's main runs, then divides by zero: a runtime trap. Under
   // the debugger it must surface a `stopped {reason:"exception"}` carrying the
   // trap message (so VSCode shows "Paused on exception"), then exit 1 on resume.
   const program = join(process.cwd(), "tests/snippets/defer_on_panic/_main.vader");
@@ -235,7 +235,7 @@ test("dap: a runtime trap stops on the exception with its message", async () => 
 
 test("dap: the Variables view names function parameters from source", async () => {
   // A breakpoint inside `add(x, y)` must show the params by their source names
-  // (x, y) — not `arg0`/`arg1` — and hide `sum`, not yet assigned on its line.
+  // (x, y), not `arg0`/`arg1`, and hide `sum`, not yet assigned on its line.
   // Written to a fresh dir so it's a standalone single-`main` module.
   const dir = mkdtempSync(join(tmpdir(), "vdap-"));
   const program = join(dir, "_main.vader");

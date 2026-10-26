@@ -1,5 +1,5 @@
-// A jump written inside an expression of a generator or async fn — the fallback
-// of a `??`, a branch of an `if` expression — does what it does in a plain fn:
+// A jump written inside an expression of a generator or async fn (the fallback
+// of a `??`, a branch of an `if` expression) does what it does in a plain fn:
 // `continue` skips the rest of the body and runs the step, `break` leaves the
 // loop, `return` ends the stream or the async fn. A loop that lives inside the
 // expression keeps its own jumps, and a `continue <var>` from it reaches the

@@ -24,7 +24,7 @@ import "vader/core/symbol"
 import "vader/core/types"
 import "std/abort"
 
-/// Project-level interning context — accumulates strings into a single
+/// Project-level interning context: accumulates strings into a single
 /// pool shared by every fn's CFG.
 ProjectCtx :: struct {
     strings:      string[]
@@ -33,7 +33,7 @@ ProjectCtx :: struct {
     /// `LoweredProject` so `build_ident` can lower a const reference to a
     /// `call` on its synthetic `__const_<name>` fn.
     const_fn_wrap: MutableMap<i32, ConstFnWrap>
-    /// Const symbol id → lowered value (inline bucket) — `build_ident`
+    /// Const symbol id → lowered value (inline bucket): `build_ident`
     /// re-builds it at each read site.
     const_inline:  MutableMap<i32, LoweredExpr>
     /// Const symbol id → the accessor that builds a const of the data pool again
@@ -50,8 +50,8 @@ ProjectCtx :: struct {
     extern_callbacks: MutableMap<i32, MutableSet<i64>>
     /// Where `build_ident` reports an ident with no local. LOUD on purpose: the
     /// symbol resolved, so a miss here is the COMPILER losing a binding, and the
-    /// recovery value is a `TermUnreachable` that replaces the whole entry block
-    /// — the surrounding code vanishes with nothing to read. `lower_ident` was
+    /// recovery value is a `TermUnreachable` that replaces the whole entry block:
+    /// the surrounding code vanishes with nothing to read. `lower_ident` was
     /// made loud for that exact reason after two bisections ; this is its twin.
     diags: Diagnostic[]
     /// The global slots of the program (`LoweredProject.globals`).
@@ -139,7 +139,7 @@ LoopFrame :: struct {
     label:     string | null
     header_id: BlockId      // continue target
     exit_id:   BlockId      // break target
-    /// Runs before every jump to the header — see `build_back_edge`.
+    /// Runs before every jump to the header, see `build_back_edge`.
     step:      LoweredStmt[]
     /// A `LoweredLabelledBlock`: only a `break` naming it reaches it, so a bare
     /// jump looks past it and `header_id` is unused.
@@ -167,7 +167,7 @@ FnCtx :: struct {
 // Project-level orchestration
 // ============================================================================
 
-/// Top-level entry — walk the lowered project, emit one `CFGModule` per
+/// Top-level entry: walk the lowered project, emit one `CFGModule` per
 /// lowered module.
 ///
 /// @param lp     the lowered project from the lowerer pass.
@@ -219,7 +219,7 @@ import "vader/core/bytecode"
 
 // Convert each lower-side `DataPoolEntry` into its bytecode `BcDataEntry`
 // variant, at the lower→CFG boundary.
-// Primitive arrays reinterpret their `i64` bits as `u64` (`u64(i64)` — the
+// Primitive arrays reinterpret their `i64` bits as `u64` (`u64(i64)`: the
 // runtime reads each element at its natural width, low bits) ; string arrays
 // carry their values through to `midir::emit`, which interns them ; aggregate
 // arrays recurse over the carried literal into a `BcAggregateData`.
@@ -250,7 +250,7 @@ convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
 }
 
 // Recursively lower one constant literal into a baked `BcDataValue`. Mirrors
-// `lower/inline_consts::is_bakeable_value` — the producer only routes shapes this
+// `lower/inline_consts::is_bakeable_value`: the producer only routes shapes this
 // handles, so an unexpected node is an internal error (a primitive leaf falls
 // through to the `BcValPrim` tail). Struct identity is carried by `symbol_id`
 // (resolved to a type-index at each backend) ; arrays/leaves by element kind name.
@@ -283,7 +283,7 @@ array_element_name :: fn(t: Type) -> string {
     return ""
 }
 
-// Raw `u64` bit pattern of a primitive leaf — int/char/bool verbatim, floats
+// Raw `u64` bit pattern of a primitive leaf: int/char/bool verbatim, floats
 // reinterpreted via `to_bits` at the element's natural width. Mirrors
 // `inline_consts::data_item_bits`.
 bc_value_bits :: fn(el: LoweredExpr, name: string) -> u64 {
@@ -521,7 +521,7 @@ build_block_value :: fn(fn_ctx: FnCtx, b: LoweredBlock, slot: Type) -> LocalId |
 }
 
 // Exhaustive over `LoweredStmt` (a closed compiler union) so a new variant trips
-// T3013 here rather than being silently dropped — the coroutine markers below
+// T3013 here rather than being silently dropped: the coroutine markers below
 // were exactly such a silent drop (midir-1).
 build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
     match s {
@@ -529,7 +529,7 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
             v :: s.value
             if is_dest_passing_shape(v) {
                 // Destination-passing : declare the slot first and build the
-                // value-`if` / `match` / `&&` `||` straight into it — no
+                // value-`if` / `match` / `&&` `||` straight into it: no
                 // intermediate result temp, no copy. Only these join-slot shapes
                 // take this path, so a plain `let` keeps its build-then-bind slot
                 // order (declaring first would renumber every let's slots).
@@ -612,7 +612,7 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
             // (`lower/coroutine.vader`) rewrites them into the resumable state
             // machine BEFORE midir ; reaching one here means that pass missed it.
             // Panic loudly rather than silently drop it (which miscompiled the
-            // async / generator path — midir-1).
+            // async / generator path: midir-1).
             panic("midir: coroutine marker (LoweredYield/LoweredAwait) reached build_stmt, so the coroutine transform missed it")
         }
     }
@@ -767,7 +767,7 @@ build_back_edge :: fn(fn_ctx: FnCtx, frame: LoopFrame, span: Span) -> void {
 }
 
 // The loop a `break` / `continue` targets. The typechecker refuses a jump with no
-// loop to reach (T3015, T3067), so one that finds none here is a lowering bug —
+// loop to reach (T3015, T3067), so one that finds none here is a lowering bug:
 // dropping it would compile the jump as falling through. A bare jump looks past a
 // labelled block: only a `break` naming it reaches it.
 resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame {
@@ -780,7 +780,7 @@ resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame {
         }
         panic("midir/build: `${fn_ctx.mangled}` has a `break` / `continue` outside any loop")
     }
-    // Extract the non-null label once — the c-emit's `string | null`
+    // Extract the non-null label once: the c-emit's `string | null`
     // comparison currently mis-boxes when crossing a field vs a param
     // boundary ; comparing two `string` locals is unambiguous.
     needle :: label
@@ -968,7 +968,7 @@ end_after_no_return :: fn(fn_ctx: FnCtx, e: LoweredCall, dst: LocalId | null) ->
 
 /// Arguments of an `@extern` call, where a fn-typed parameter is a CALLBACK.
 ///
-/// A foreign callee receives the function's ADDRESS, not a Vader fn value — see
+/// A foreign callee receives the function's ADDRESS, not a Vader fn value, see
 /// `core/bytecode/op::FnAddr`. Only a direct reference to a named fn can supply one.
 ///
 /// This is the AUTHORITY, and it refuses rather than degrading: falling back to
@@ -1003,7 +1003,7 @@ build_extern_args :: fn(
             panic("midir/build: argument ${i + 1} of `${callee}` names `${a.symbol.name}`, which is not a function. Typecheck should have refused it (T3080)")
         }
         // `TY_CPOINTER`, not the fn type. The slot holds a `.text` address, and
-        // a fn-typed slot is a `ValType.Ref` — which `c_emit` puts in the frame's
+        // a fn-typed slot is a `ValType.Ref`, which `c_emit` puts in the frame's
         // `raw[]`, where `vader_gc_scan_raw` dereferences it as an object header
         // with no heap-membership check. `emit_fn_addr` makes the same choice for
         // the temp; a slot is the other half of it.
@@ -1178,7 +1178,7 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary, dest: LocalId | null)
     is_and :: e.op == .And
     // Destination-passing : `&&` / `||` is a phi-slot builder like `build_if`
     // (its result is written from both branches, read after the join), so when a
-    // `dest` is supplied write straight into it — no `and_res` / `or_res` temp,
+    // `dest` is supplied write straight into it: no `and_res` / `or_res` temp,
     // no copy at the `let x = a && b` / `if c { a && b }` use site.
     result :: if dest !is null {
         dest
@@ -1241,12 +1241,12 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary, dest: LocalId | null)
     return result
 }
 
-// True for the shapes that build their result through a cross-block join —
+// True for the shapes that build their result through a cross-block join:
 // `if` / `match` (if-chains, `if_res`), blocks that end in one, and short-circuit
 // `&&` / `||` (`and_res` / `or_res`). These are the phi-slot builders whose
 // result slot `build_expr_into` can supply, so a `let x = <shape>` writes
 // straight into the binding rather than a temp + copy. Single source of truth
-// for the shape set — `build_expr_into`'s dispatch below mirrors it.
+// for the shape set: `build_expr_into`'s dispatch below mirrors it.
 is_dest_passing_shape :: fn(e: LoweredExpr) -> bool {
     if e is LoweredIf | LoweredBlock {
         return true
@@ -1319,8 +1319,8 @@ build_if_arm :: fn(fn_ctx: FnCtx, block: LoweredBlock, result: LocalId | null) -
     }
 }
 
-// An `if` branches on each operand of an `&&`, `||` or `!` condition in turn —
-// `a && b` tests `a`, then `b`, with no `and_res` slot to fill and test again —
+// An `if` branches on each operand of an `&&`, `||` or `!` condition in turn
+// (`a && b` tests `a`, then `b`, with no `and_res` slot to fill and test again)
 // unless two tests would share a target the C emitter can only reach by a
 // `goto`: a then-arm that does not leave at once, behind an `||`, or an else-arm
 // behind an `&&`. With no `else`, a false condition goes straight to the join.
@@ -1367,7 +1367,7 @@ CondReach :: struct {
 // Branch to `on_true` when `cond` holds and to `on_false` otherwise, swapping the
 // targets under a `!`. With `split`, each operand of an `&&` or `||` is tested in
 // turn; without, it is evaluated as a value and tested once. An operand that
-// diverges leaves a target unreachable — `a || <diverges>` still reaches
+// diverges leaves a target unreachable: `a || <diverges>` still reaches
 // `on_true` through `a`.
 branch_on_cond :: fn(
     fn_ctx: FnCtx,

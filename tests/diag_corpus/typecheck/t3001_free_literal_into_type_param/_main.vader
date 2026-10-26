@@ -1,4 +1,4 @@
-// A free literal into a slot typed by a type parameter — T3001. `Add` does
+// A free literal into a slot typed by a type parameter: T3001. `Add` does
 // not say `T` is numeric : `0` is no value of a `T = string` instance.
 module "snippet"
 

@@ -1,4 +1,4 @@
-# 0029 — The VM reads a string's bytes in place
+# 0029: The VM reads a string's bytes in place
 
 ## Status
 
@@ -20,8 +20,8 @@ and so can any user code.
 `.len()` and `[i]` into `byte_len` / `byte_at`, but a view passed on to another
 function escapes it.
 
-Measured beforehand: the diffuse cost was nil — `bytes_to_value` drew no sample in
-the profiles of `vader test lib/std` or `vader test vader` — so only the
+Measured beforehand: the diffuse cost was nil (`bytes_to_value` drew no sample in
+the profiles of `vader test lib/std` or `vader test vader`) so only the
 "view per iteration" pattern mattered.
 
 Options weighed:
@@ -47,7 +47,7 @@ view `s.bytes()` returns. `offset` and `length` index into it as into `elements`
   from the bytes.
 - A view lent to an `@extern` crosses as its bytes and nothing is copied back: C
   may not write into the interned bytes natively either. Printing takes this
-  path — `println` writes `msg.bytes()` through `sys_write`.
+  path: `println` writes `msg.bytes()` through `sys_write`.
 
 ## Consequences
 

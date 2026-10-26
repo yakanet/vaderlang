@@ -3,7 +3,7 @@ module "snippet"
 import "std/io"
 
 // SAM (single-abstract-method) sugar exercised on primitives. These use
-// the snippet's own traits, not prelude ones — re-impl'ing `Display` /
+// the snippet's own traits, not prelude ones: re-impl'ing `Display` /
 // `Hash` on a primitive is a coherence error (R2030).
 Describe :: trait {
     describe :: fn(self) -> string

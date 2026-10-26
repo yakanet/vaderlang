@@ -1,5 +1,5 @@
 // A driver that only observes: it leaves the stream at `BeforeEmit`, so nothing
-// is written. That phase is the last point where declining is clean — after it,
+// is written. That phase is the last point where declining is clean: after it,
 // a `break` would leave a partial binary.
 
 module "build"

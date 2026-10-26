@@ -5,7 +5,7 @@
 // the referenced module. `imported_name = null` means the binding
 // names the module itself (the `name :: import "p"` namespace form) ;
 // non-null means a destructured name (`import "p" { foo }` or
-// `{ foo as bar }` — `imported_name` is always the *exported* name).
+// `{ foo as bar }`: `imported_name` is always the *exported* name).
 
 module "vader/front/resolver"
 
@@ -14,7 +14,7 @@ import "std/collections"
 export ImportInfo :: struct {
     path:          string
     imported_name: string | null
-    /// Local binding name this import introduces — the alias for a renamed
+    /// Local binding name this import introduces: the alias for a renamed
     /// `import "p" { foo as bar }` (`bar`), else the imported name. Lets a
     /// signature-collision check key by the LOCAL name (see
     /// `orchestrate.vader::imported_fn_sigs`).

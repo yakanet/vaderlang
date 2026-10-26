@@ -5,8 +5,8 @@
 // `match` over it is exhaustive and adding an event forces every existing
 // driver to acknowledge it rather than silently ignore it.
 //
-// Phase names track Vader's own pipeline stages — the ones `vader dump
-// --stage=…` prints — rather than another toolchain's vocabulary.
+// Phase names track Vader's own pipeline stages (the ones `vader dump
+// --stage=…` prints) rather than another toolchain's vocabulary.
 
 module "toolchain/build"
 
@@ -19,17 +19,17 @@ export Message :: TypecheckedMessage | PhaseMessage | CompleteMessage
 
 /// Top-level declarations of one module, after typecheck.
 ///
-/// The declarations are the compiler's own nodes, not copies — reading a field
+/// The declarations are the compiler's own nodes, not copies: reading a field
 /// costs nothing, and a span taken from one anchors a diagnostic directly in the
 /// user's source. This is why a driver runs natively rather than through the
 /// comptime VM; see the plan referenced in `context.vader`.
 ///
 /// Each declaration is delivered exactly ONCE per entry. A module the
 /// driver generated into is therefore delivered a second time carrying only the
-/// generated declarations, never the ones already seen — so a rule applied here
+/// generated declarations, never the ones already seen, so a rule applied here
 /// fires once however many generation rounds that entry takes.
 export TypecheckedMessage :: struct {
-    /// The module's declared name — `"std/io"`, `"vader/front/lexer"`. This is what a
+    /// The module's declared name: `"std/io"`, `"vader/front/lexer"`. This is what a
     /// driver filters on; the loader's own key is an absolute filesystem path,
     /// which no rule can usefully match against.
     module_name:  string
@@ -55,7 +55,7 @@ export CompleteMessage :: struct {
 ///
 /// Every variant has an emission site: draining `messages()` walks the whole
 /// build, so there is no reserved half of this enum. `BeforeEmit` is the one to
-/// know about — it is the last point at which leaving the loop produces nothing,
+/// know about: it is the last point at which leaving the loop produces nothing,
 /// which is how a driver that only wants to observe declines to build.
 export Phase :: enum(u8) {
     /// Every module parsed, collected, resolved and typechecked.
@@ -65,7 +65,7 @@ export Phase :: enum(u8) {
     /// Last point before output. `break` here writes nothing; `break` after
     /// leaves a partial binary.
     BeforeEmit,
-    /// The lowered tree exists — desugared, before CFG and bytecode.
+    /// The lowered tree exists: desugared, before CFG and bytecode.
     Lowered,
     /// The output file has been written.
     OutputWritten,

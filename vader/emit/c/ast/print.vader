@@ -43,7 +43,7 @@ export print_block :: fn(printer: CPrinter, block: CBlock, depth: i32) -> void =
 )
 
 /// Print `section` : its comment then its items, a blank line away from the
-/// section before — nothing at all when it has no item. A function stands
+/// section before: nothing at all when it has no item. A function stands
 /// apart from its neighbours.
 ///
 /// @param printer  receives the text.
@@ -71,7 +71,7 @@ export print_section :: fn(printer: CPrinter, section: CSection) -> void {
     printer.out.append(text.to_string())
 }
 
-/// Print `item` as a section of its own — one function of a stream, typically.
+/// Print `item` as a section of its own: one function of a stream, typically.
 ///
 /// @param printer  receives the text.
 /// @param item     the declaration, definition or directive to print.
@@ -148,7 +148,7 @@ write_signature :: fn(out: StringBuilder, signature: CSignature) -> void {
     out.append(")")
 }
 
-// `parameters` separated by `, ` — `void` when there is none.
+// `parameters` separated by `, `: `void` when there is none.
 write_parameters :: fn(out: StringBuilder, parameters: CParameter[]) -> void {
     if parameters.len() == 0 {
         out.append("void")
@@ -264,7 +264,7 @@ write_if :: fn(out: StringBuilder, node: CIf, depth: i32) -> void {
 }
 
 // `node`'s `else` arm, then the closing brace carrying `label`. An arm holding
-// a single `if` — `#line` directives aside — continues the chain as
+// a single `if` (`#line` directives aside) continues the chain as
 // `} else if`, the two closing braces merging into one ; so they may not both
 // carry a label. A directive leading an arm is written above the `} else` line,
 // next to the condition it describes ; one trailing it, below the shared
@@ -414,7 +414,7 @@ CAST_PRECEDENCE :: 11
 
 // `child`, an operand needing at least `minimum` precedence : a `CBinary` that
 // binds looser is parenthesised. A right operand needs one more than its
-// operator — every binary operator here is left-associative.
+// operator: every binary operator here is left-associative.
 write_operand :: fn(out: StringBuilder, child: CExpression, minimum: i32) -> void {
     if child is CBinary && COperatorInfo(child.operator).precedence < minimum {
         out.append("(")
@@ -438,7 +438,7 @@ write_integer_literal :: fn(out: StringBuilder, literal: CIntegerLiteral) -> voi
 
 // ---- statements -----------------------------------------------------------
 
-// A return on one line : bare, or braced around the frame restore — every value
+// A return on one line : bare, or braced around the frame restore, every value
 // is read before `vader_gc_top` moves, through the `__vret` snapshot when the
 // value may read a frame-pinned local.
 write_return :: fn(out: StringBuilder, node: CReturn, depth: i32) -> void {
@@ -491,7 +491,7 @@ write_goto :: fn(out: StringBuilder, node: CGoto) -> void = write_jump(
     "goto ${node.label};",
 )
 
-// `jump`, or `if (condition) jump` — a jump guarded by its condition.
+// `jump`, or `if (condition) jump`: a jump guarded by its condition.
 write_jump :: fn(out: StringBuilder, condition: CExpression | null, jump: string) -> void {
     if condition != null {
         out.append("if (")
@@ -638,7 +638,7 @@ write_initializer :: fn(
 
 // `value` from `column`, on the current line when the line then fits in
 // `LINE_WIDTH` columns with its `;` or `,`. Otherwise an initializer list opens
-// a block one level deeper than `depth` : a table — every element a list —
+// a block one level deeper than `depth` : a table (every element a list)
 // takes one element per line, any other list fills its lines.
 write_initializer_line :: fn(
     out: StringBuilder,

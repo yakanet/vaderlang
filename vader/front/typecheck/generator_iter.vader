@@ -7,8 +7,8 @@
 // boundaries. This makes a combinator chain `arr.map(f).filter(p)` resolve
 // field/UFCS on a CONCRETE nominal receiver, instead of the erased trait
 // receiver that mis-resolves to a virtual dispatch.
-// Each generator DECLARATION has its own state struct — two overloads of a name
-// are two generators — recorded in `generator_states`, which the lowerer
+// Each generator DECLARATION has its own state struct (two overloads of a name
+// are two generators) recorded in `generator_states`, which the lowerer
 // (`lower/generator.vader`) reads to build that same struct.
 
 module "vader/front/typecheck"
@@ -20,12 +20,12 @@ import "vader/core/types"
 import "std/collections"
 import "std/string"
 
-// The `<fn>$State` naming convention — one source of truth shared by the symbol
+// The `<fn>$State` naming convention: one source of truth shared by the symbol
 // mint (`gen_state_symbol`) and the lower-side recognition
 // (`is_gen_state_struct`).
 GEN_STATE_PREFIX :: "__genstate_"
 
-// Reserved synthetic-id range for generator state structs — a large negative
+// Reserved synthetic-id range for generator state structs: a large negative
 // offset distinct from the lowerer's small-magnitude `next_synthetic_id` pool
 // (which starts at -1 and decrements). Self-compile is nowhere near 1M synthetic
 // ids, so the two pools cannot meet ; the offset is a stopgap for resolver-minting
@@ -126,7 +126,7 @@ register_generator_iter_impls :: fn(
 }
 
 /// The concrete result type for a call whose callee is a `generator`, or null.
-/// `mk_struct(<fn>$State, [element])` — a nominal type that `implements
+/// `mk_struct(<fn>$State, [element])`: a nominal type that `implements
 /// Iterator<element>`. The concrete element (from the call's substituted return
 /// `Iterator<i32>`) is carried as the sole type arg so a terminal returning the
 /// element (`collect -> element[]`, `find -> element | null`) on a chain of these

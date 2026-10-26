@@ -1,4 +1,4 @@
-// `§` is not in the Vader source alphabet — lexer flags L0001.
+// `§` is not in the Vader source alphabet: lexer flags L0001.
 module "snippet"
 
 main :: fn() -> i32 {

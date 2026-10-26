@@ -80,7 +80,7 @@ async function startClient(attempt = 0): Promise<void> {
   const command = interpolate(rawPath);
   const args = config.get<string[]>("lsp.args", ["lsp"]).map(interpolate);
 
-  // Both `run` and `debug` configurations point at the same binary —
+  // Both `run` and `debug` configurations point at the same binary:
   // the LSP server doesn't have a "debug mode" yet (no `--inspect` /
   // attached debugger), and a separate code path here would just lead
   // to drift.
@@ -113,7 +113,7 @@ async function startClient(attempt = 0): Promise<void> {
       return;
     }
 
-    // One retry only — if the user supplies a still-broken path we'd loop
+    // One retry only: if the user supplies a still-broken path we'd loop
     // forever otherwise, and they can always re-trigger by reloading.
     if (attempt > 0) {
       vscode.window.showErrorMessage(
@@ -139,7 +139,7 @@ async function startClient(attempt = 0): Promise<void> {
 }
 
 // Registers the debug adapter for the `vader` debug type. VS Code spawns the
-// descriptor's executable and speaks DAP over its stdio — the adapter is the
+// descriptor's executable and speaks DAP over its stdio: the adapter is the
 // Vader CLI's `dap` subcommand (implemented in `vader/tools/dap/`), reusing the same
 // binary path as the LSP client (`vader.lsp.path`).
 function registerDebugAdapter(context: vscode.ExtensionContext): void {

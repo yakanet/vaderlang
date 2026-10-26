@@ -1,4 +1,4 @@
-// Interpolating a union that holds an enum — T3086.
+// Interpolating a union that holds an enum: T3086.
 //
 // A boxed enum carries its integer's runtime type, not its own : `"${v}"` would
 // render through the integer's `Display` and print the variant's rank where the

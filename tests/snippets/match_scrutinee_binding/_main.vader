@@ -1,4 +1,4 @@
-// `match x :: e { … }` — name the scrutinee once, for every arm.
+// `match x :: e { … }`: name the scrutinee once, for every arm.
 //
 // The binding exists so an EXPRESSION scrutinee can be referred to without being
 // re-evaluated; a scrutinee that is already a name needs none, since each arm

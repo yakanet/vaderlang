@@ -1,4 +1,4 @@
-// A driver whose emitted text changes on every round — reported as H6006.
+// A driver whose emitted text changes on every round: reported as H6006.
 //
 // Generation is a fixed-point loop: each round re-runs the front end over what
 // the previous round wrote, and stops when nothing new is emitted. A driver that

@@ -35,7 +35,7 @@ export runtime_or_probe :: fn(runtime_root: string) -> string {
 /// Directory holding the C runtime, for native linking.
 ///
 /// Beside the executable first (the `dist/` bundle layout), then the invocation
-/// directory — the same sidecar probe the stdlib resolution uses.
+/// directory: the same sidecar probe the stdlib resolution uses.
 export runtime_c_root :: fn() = resolve_sidecar("runtime/c", "vader.h")
 /// The flags every C compile of emitted code takes, by build mode.
 ///
@@ -56,9 +56,9 @@ export cc_opt_flags :: fn(release: bool) -> string[] = if release {
 /// Which C toolchain `cc` is, since the two that matter spell link-time
 /// optimisation differently.
 export CcFlavour :: enum(u8) {
-    /// clang / LLVM — ThinLTO.
+    /// clang / LLVM: ThinLTO.
     Clang
-    /// GCC, including a MinGW toolchain — `-flto=auto`.
+    /// GCC, including a MinGW toolchain: `-flto=auto`.
     Gcc
     /// Anything else, or a probe that failed. No LTO: an unrecognised compiler
     /// gets the plain split, which is correct everywhere, just not as fast.
@@ -68,9 +68,9 @@ export CcFlavour :: enum(u8) {
 /// LLVM's ceiling, in IR instructions, on a callee ThinLTO will import across
 /// units. Its default is 100, which leaves out the container operations a split
 /// build most wants inlined. Past this value the bench readings stop improving
-/// monotonically — tuning it further would be fitting noise.
+/// monotonically: tuning it further would be fitting noise.
 ///
-/// LLVM's knob, in LLVM's units, per callee — not a program-size threshold. It
+/// LLVM's knob, in LLVM's units, per callee, not a program-size threshold. It
 /// behaves the same for a 20-function program and for the compiler.
 THIN_LTO_IMPORT_LIMIT :: "300"
 
@@ -79,13 +79,13 @@ THIN_LTO_IMPORT_LIMIT :: "300"
 /// Splitting into one TU per module is what makes the compiles parallel, and it
 /// is also what stops `cc` inlining across the cut. LTO gives that back without
 /// giving up the parallelism: the per-unit compiles stay parallel, and the
-/// cross-unit work happens after — clang imports from summaries at the thin
+/// cross-unit work happens after: clang imports from summaries at the thin
 /// link, GCC partitions and runs LTRANS across cores.
 ///
 /// RELEASE ONLY, and that is not incidental: a debug build wants `-O0 -g` and a
 /// fast turnaround, and the link stage of LTO optimises whatever it is given
 /// regardless of how the objects were compiled. Wiring it unconditionally made a
-/// debug `--split` build link at `-O3`, silently costing steppability — the very
+/// debug `--split` build link at `-O3`, silently costing steppability: the very
 /// drift the note below exists to prevent, on a flag family it did not yet cover.
 ///
 /// @param flavour  the toolchain family.
@@ -119,14 +119,14 @@ export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool, jobs: i
     return []
 }
 
-// Compiler + `-std=c11` + optimisation flags — the single source of truth for
+// Compiler + `-std=c11` + optimisation flags: the single source of truth for
 // codegen policy across the mono (`cc_argv`) and split (`cc_compile_argv`)
 // builds, so they can't silently drift. `-falign-functions=64` keeps a hot
 // loop's alignment stable against unrelated code growth: without it, adding a
 // few lines to one runtime fn can shift a hot loop onto a bad 64-byte offset and
 // slow it while its code stays byte-identical.
 
-// Append whitespace-split user `--ldflags` tokens to `argv` — no shell quoting
+// Append whitespace-split user `--ldflags` tokens to `argv`: no shell quoting
 // (a path with spaces is a user bug).
 /// Append whitespace-split `--ldflags` tokens to a command line.
 ///
@@ -137,13 +137,13 @@ export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool, jobs: i
 /// @param ldflags  the raw flag string.
 /// Append the math library, and on Linux the flag that keeps it linked.
 ///
-/// `--as-needed` — the default there — drops a `-l` nothing references, and
+/// `--as-needed` (the default there) drops a `-l` nothing references, and
 /// nothing DOES reference libm: the compiler reaches `sqrt` and friends only from
 /// `@comptime`, through the interpreter, which resolves them in the running
 /// process. A library the linker dropped is not in it. Elsewhere `-lm` is inert,
 /// macOS and MinGW carrying the math symbols in their C runtime.
 ///
-/// Shared by BOTH link paths — the mono `cc_argv` here and the split
+/// Shared by BOTH link paths: the mono `cc_argv` here and the split
 /// `cc_link_argv` in `split_build.vader`. Only the split one produces a `--release`
 /// build, so a flag added to just one of them leaves the shipped binary
 /// without it.
@@ -153,15 +153,15 @@ export push_math_library :: fn(argv: string[]) -> void {
     if VADER_OS == .Linux {
         argv.push("-Wl,--no-as-needed")
         // And EXPORT the executable's own symbols, or the interpreter cannot
-        // reach them. An `@extern` naming a `runtime/c/` accessor —
-        // `vader_path_kind`, `vader_last_errno`, `vader_dirent_name` — is
+        // reach them. An `@extern` naming a `runtime/c/` accessor
+        // (`vader_path_kind`, `vader_last_errno`, `vader_dirent_name`) is
         // resolved at the call by `dlsym` on the running process, and on ELF a
         // symbol only enters `.dynsym` when the link asks for it.
         //
         // Nothing else in the tree needed this, which is why it went unnoticed:
         // Mach-O exports every global by default and mingw has `dllexport` in
         // `VADER_HOST_EXPORT`, so macOS and Windows both answered. Linux said
-        // `symbol not found` at run time — an FFI error, for a link problem.
+        // `symbol not found` at run time: an FFI error, for a link problem.
         argv.push("-rdynamic")
     }
     argv.push("-lm")
@@ -391,10 +391,10 @@ export write_out :: fn(path: Path, content: string) -> i32 {
 
 /// The C compiler to invoke when `--cc` names none: `$CC`, else the host's own.
 ///
-/// `$CC` names ONE program — it is spawned as is, never split into a command
+/// `$CC` names ONE program: it is spawned as is, never split into a command
 /// line. Without it, `cc` is the POSIX-guaranteed name; Windows has none. Keyed
 /// on the host and not on the build target: it names a program to spawn HERE, so
-/// a cross build has to name its own — `--cc=x86_64-w64-mingw32-gcc` on the
+/// a cross build has to name its own: `--cc=x86_64-w64-mingw32-gcc` on the
 /// command line, `ctx.cc` from a driver.
 export default_cc :: fn() -> string {
     from_env :: get_env("CC")
@@ -418,7 +418,7 @@ export cc_or_default :: fn(cc: string) -> string {
 /// Write `c` to `c/` beside `out` and link it into a native binary.
 ///
 /// The single link path: every caller that produces a native binary goes
-/// through here, so the flags cannot drift between them — release opts, the
+/// through here, so the flags cannot drift between them: release opts, the
 /// runtime include, `ldflags`, `-lm`. The generated `.c` is KEPT on failure and
 /// named in the message, so the user can inspect what was actually produced.
 ///
@@ -473,7 +473,7 @@ export link_native :: fn(
 
 /// A linked executable as the LINKER named it, or null when none appeared.
 ///
-/// `cc -o app` writes `app` on Unix and **`app.exe`** on Windows — gcc appends
+/// `cc -o app` writes `app` on Unix and **`app.exe`** on Windows: gcc appends
 /// the suffix when `-o` carries no extension, verified with mingw-w64. The stdlib
 /// exposes no platform query, so rather than guess the suffix this asks the
 /// filesystem which name turned up.
@@ -501,7 +501,7 @@ export linked_binary :: fn(base: string) -> string | null {
 /// own walk and must not re-run the pipeline to get the C.
 ///
 /// @param cfg  bytecode plus the entry mangle it was built with.
-/// @return     the C source. Callers gate on `any_error_diag` first — this
+/// @return     the C source. Callers gate on `any_error_diag` first: this
 ///             does not check, and emitting from a rejected program yields
 ///             something that links but is wrong.
 export c_source_of :: fn(cfg: CfgBytecode) -> string =

@@ -29,7 +29,7 @@ infer_binary :: fn(
 ) -> Type {
     // `[lhs] * n` array-repeat : when an array result is expected, thread the
     // expectation into the LHS so an empty `[]` (or a `[lit]` whose element is a
-    // free literal) recovers its element type from the slot — extends `[]`'s
+    // free literal) recovers its element type from the slot: extends `[]`'s
     // existing context-typing across the `*`. See `check_arith`'s Mul/array case.
     left_ctx :: if e.op == .Mul && expected is ArrayType { expected } else { null }
     record_site(typed, e, .Operator, operator_default(e.op))
@@ -76,7 +76,7 @@ infer_binary :: fn(
         }
     }
     // Only when BOTH operands are still free does the outer `expected` decide the
-    // width — `x: u32 = 1 << 31` pins both `1` and `31` to u32.
+    // width: `x: u32 = 1 << 31` pins both `1` and `31` to u32.
     oc :: op_expected_ctx(e.op, expected)
     if oc != null && is_free_numeric(left) && is_free_numeric(right) {
         left = check_expr(e.left, oc, typed, diags)
@@ -174,16 +174,16 @@ check_arith :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    // `[<fresh>] * n` copies ONE reference into every slot — warn when the
+    // `[<fresh>] * n` copies ONE reference into every slot: warn when the
     // repeated element was allocated on the spot (W0013, below).
     if e.op == .Mul && left is ArrayType {
         warn_shared_repeat_element(e, typed, diags)
     }
-    // A distinct (newtype) operand is nominal — never take the built-in string /
+    // A distinct (newtype) operand is nominal, never take the built-in string /
     // numeric path (that would silently compute on the backing integer, e.g.
     // `instant + 5`). An ARRAY operand likewise : `[lhs] * n` (array repeat /
     // preallocation) dispatches through the declared `T[] implements<T> Mul<i64>`
-    // (std/core) via the trait-impl lookup below — a concrete array matches the
+    // (std/core) via the trait-impl lookup below: a concrete array matches the
     // blanket through the `"[]"` base key (`impl_base_key`), and the lowerer
     // devirtualises to the `array.repeat` intrinsic (`lower_binary`). Skip the
     // numeric path for all three so they reach the lookup ; a missing/mismatched
@@ -200,7 +200,7 @@ check_arith :: fn(
             return numeric_result(e, left, right, typed, diags)
         }
     }
-    // Operator overloading via traits — `a + b` on user structs
+    // Operator overloading via traits: `a + b` on user structs
     // dispatches through the matching Add/Sub/Mul/Div/Rem impl. We
     // look up the impl method on the left operand's type and return
     // its result type.
@@ -247,17 +247,17 @@ check_arith :: fn(
     return numeric_result(e, left, right, typed, diags)
 }
 
-// ---- array repeat — shared-element warning --------------------------------
+// ---- array repeat: shared-element warning --------------------------------
 
 /// Warn when `[<fresh>] * n` repeats a freshly allocated mutable object (W0013).
 ///
 /// `array.repeat` copies the source buffer, so all `n` slots end up holding THE
 /// SAME reference (SPEC "Repeat / preallocate"). When the element was allocated
-/// right there — an array / struct literal, a constructor call — nobody else
+/// right there (an array / struct literal, a constructor call) nobody else
 /// holds that object, so the sharing can't be what the author meant :
 /// `out :: [[]] * n` followed by `out[0].push(x)` mutates every slot at once.
 /// That exact shape silently corrupted `predecessors_of` into a self-compile
-/// SIGSEGV. `[obj] * n` over an existing binding stays silent — SPEC documents
+/// SIGSEGV. `[obj] * n` over an existing binding stays silent: SPEC documents
 /// it as deliberate shallow sharing. One W0013 per offending element.
 ///
 /// @param e      the `*` expression ; only its array-literal LHS is inspected.
@@ -286,7 +286,7 @@ warn_shared_repeat_element :: fn(
     }
 }
 
-/// True when the expression allocates its value on the spot — an array / struct
+/// True when the expression allocates its value on the spot: an array / struct
 /// literal, or a call (`MutableMap()`, `new_builder()`). Those are the shapes an
 /// author reads as "n of these", so repeating one reference surprises.
 is_fresh_allocation :: fn(e: AST.Expr) = e is AST.SeqLitExpr | AST.StructLitExpr | AST.CallExpr
@@ -301,7 +301,7 @@ carries_mutable_state :: fn(t: Type, typed: TypedProgram) -> bool {
     }
     if t is StructType {
         decl :: typed.struct_decls[t.symbol.id]
-        // An undeclared struct (never walked) is assumed stateful — the common case.
+        // An undeclared struct (never walked) is assumed stateful: the common case.
         if decl == null {
             return true
         }
@@ -410,7 +410,7 @@ pick_operator_member :: fn(
 }
 
 /// `check_operator_rhs` for a type parameter whose bound names the operator's
-/// trait — `a + b` with `T: Add`, `a < b` with `T: Comparable` — typed as the
+/// trait (`a + b` with `T: Add`, `a < b` with `T: Comparable`) typed as the
 /// bound method `a.add(b)` would be. The enclosing fn keeps concrete instances,
 /// as for a bounded method call, so the lowerer finds the impl after
 /// substitution. A value of the trait itself and a union every variant of which
@@ -505,7 +505,7 @@ push_operand_mismatch :: fn(
 /// distinct operand with no own impl for THIS operator class behaves as its
 /// backing type. Strips ONE distinct layer off EACH operand (else the recursed
 /// backing check rejects a still-distinct other operand) and re-runs the op-class
-/// `recheck`. Returns `null` when neither operand is distinct — the caller then
+/// `recheck`. Returns `null` when neither operand is distinct: the caller then
 /// emits its normal "not defined" / "trait missing" diagnostic. Shared by
 /// check_arith / check_compare / check_integral / check_in. A distinct that DOES
 /// define the operator returned before reaching the fallback, so `instant + 5` /
@@ -522,7 +522,7 @@ distinct_op_fallback :: fn(
         return null
     }
     // Every operator class shares this fallback, so every one refuses to mix
-    // two unrelated distincts here — `Meters + Seconds` as much as `<`.
+    // two unrelated distincts here: `Meters + Seconds` as much as `<`.
     if unrelated_distincts(left, right) {
         push_unrelated_distincts(e, left, right, diags)
         return TY_UNRESOLVED
@@ -579,10 +579,10 @@ check_compare :: fn(
     ) != null {
         return TY_BOOL
     }
-    // `Comparable::compare` on a struct, or on `string` — the lowerer rewrites
+    // `Comparable::compare` on a struct, or on `string`: the lowerer rewrites
     // `a < b` into `a.compare(b) < 0`. The shared helper confirms the impl exists
     // AND validates the right operand against its `other: Self` param (without it
-    // a wrong-typed RHS — `Money < 5`, `Foo < Bar` — panics at lowering).
+    // a wrong-typed RHS, `Money < 5`, `Foo < Bar`, panics at lowering).
     if check_operator_rhs(
         left,
         right,
@@ -604,12 +604,12 @@ check_compare :: fn(
     return TY_BOOL
 }
 
-/// T3043 — operand `t` must implement `trait_name` for this operator, but no
+/// T3043: operand `t` must implement `trait_name` for this operator, but no
 /// such impl exists. More precise than the generic T3017 : it names the missing
-/// trait. When a generic impl would give it one but for an unmet bound —
-/// `Box<T> implements<T: Equals> Equals` on a `Box<Raw>` — the detail names the
+/// trait. When a generic impl would give it one but for an unmet bound
+/// (`Box<T> implements<T: Equals> Equals` on a `Box<Raw>`): the detail names the
 /// type argument that lacks it ; an array has no `==` at all, and the detail
-/// points at the methods that compare one. `UnresolvedType` opts out — a
+/// points at the methods that compare one. `UnresolvedType` opts out: a
 /// cascade from an earlier error, not a real missing impl.
 push_trait_missing :: fn(
     e: AST.BinaryExpr, t: Type, trait_name: string, typed: TypedProgram, diags: Diagnostic[],
@@ -634,15 +634,15 @@ push_trait_missing :: fn(
 }
 
 /// `x in coll` dispatches through `coll`'s `Contains` impl (the RIGHT operand).
-/// Built-in collections — arrays (`[T]`), `string`, `Range` — register a
+/// Built-in collections, arrays (`[T]`), `string`, `Range`, register a
 /// `Contains` impl in `impl_methods`, as do `MutableMap` / `MutableSet` and any
 /// user `implements Contains`. A type with only a free `contains` fn (no
-/// `Contains` impl) — or none at all — has no `in` ; reject it with T3043 here
+/// `Contains` impl), or none at all, has no `in` ; reject it with T3043 here
 /// rather than letting the lowerer stub the call into an `unreachable` trap
 /// (a runtime crash instead of a compile error).
 check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     // Arrays support `in` via the blanket `T[] implements<T: Equals> Contains<T>`,
-    // matched through the `"[]"` base key (`impl_base_key`) — no array special-case
+    // matched through the `"[]"` base key (`impl_base_key`): no array special-case
     // needed (it used to be required because the element-specific `[string]` key
     // never matched the generic blanket).
     candidates :: trait_members(typed, right, core_trait_key(TRAIT_CONTAINS), METHOD_CONTAINS)
@@ -742,8 +742,8 @@ fits_through_backing :: fn(e: AST.BinaryExpr, left: Type, want: Type) -> bool =
 /// dereference of the wrong operand :
 ///   - `x == null` / `null == x` : always valid ; runs the T3040 overlap check.
 ///   - a type-parameter operand : the other must be the same parameter (T3017).
-///   - every part of each operand — itself, the variants of its union, the
-///     elements of its tuple — must compare (`part_without_equality`, T3043).
+///   - every part of each operand: itself, the variants of its union, the
+///     elements of its tuple: must compare (`part_without_equality`, T3043).
 ///   - a union operand : the other side must share a variant (T3001), and a
 ///     variant with no tag of its own may sit only beside `null` (T3087) ; it
 ///     compares by variant (`lower/value_eq.vader`).
@@ -763,7 +763,7 @@ check_equality :: fn(
     diags: Diagnostic[],
 ) -> Type {
     // `==` / `!=` against `null` gets the same unreachable check as `is null`
-    // (SPEC.md §"Flow-narrowing on `T | null`" ; T3040) — an operand that can
+    // (SPEC.md §"Flow-narrowing on `T | null`" ; T3040): an operand that can
     // never be null makes the comparison statically false. Scoped to the null
     // operand so a free-literal compare like `x == 0` (FreeInt vs i32, which
     // don't structurally overlap) is not flagged.
@@ -778,7 +778,7 @@ check_equality :: fn(
         return TY_BOOL
     }
     // A type parameter is opaque in its body : only a value of the same parameter
-    // compares with it (`T | null` included) — never a literal, which no instance
+    // compares with it (`T | null` included), never a literal, which no instance
     // but a numeric one holds.
     label :: if e.op == .Eq { "operator ==" } else { "operator !=" }
     comparable :: is_assignable(left, right) || is_assignable(right, left)
@@ -892,7 +892,7 @@ null_equality_callee :: fn(other: Type) -> Callee {
     return BUILTIN_CALLEE
 }
 
-/// `a === b` / `a !== b` : the same object, never an equal value — SPEC §Identity.
+/// `a === b` / `a !== b` : the same object, never an equal value, SPEC §Identity.
 /// T3017 on an operand with no identity, or on two that never hold one object.
 check_identity :: fn(
     e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[],
@@ -986,7 +986,7 @@ union_has_identity :: fn(u: UnionType) -> bool {
 // The part of `t` with no `==` : `t` itself, a variant of its union, an element of
 // its tuple. A scalar and an enum compare built in ; a struct, an array and a type
 // parameter through `Equals` ; a distinct through its own impl or its backing. A
-// trait value and a fn never do — a trait value may hold a type without `Equals`.
+// trait value and a fn never do: a trait value may hold a type without `Equals`.
 // Null when every part compares, an unknown one included.
 part_without_equality :: fn(t: Type, typed: TypedProgram) -> Type | null = match t {
     is UnionType -> first_without_equality(t.variants, typed)
@@ -1056,7 +1056,7 @@ first_without_equality :: fn(types: Type[], typed: TypedProgram) -> Type | null 
 // An `is` test reads the tested value's runtime tag. An instance of a generic
 // struct with a type argument that erases (`Box<Foo>`, `Pair<i32, Foo>`) is
 // served by one body shared with every other such instance, and a value that
-// body builds carries the shared tag whatever it was built for — so no tag
+// body builds carries the shared tag whatever it was built for, so no tag
 // compare can tell `Box<Foo>` from `Box<Bar>`. A type parameter as a struct's
 // argument is refused too : the instances that bind it to a reference share a body
 // the same way. T3087. A type parameter tested itself (`x is U`, `is U[]`) reads
@@ -1122,7 +1122,7 @@ observe_type_params :: fn(typed: TypedProgram) -> void {
     }
 }
 
-// A type argument the monomorphiser may erase — every one `kept_type_argument`
+// A type argument the monomorphiser may erase: every one `kept_type_argument`
 // does not keep. An unresolved type already carries its own diagnostic.
 is_shared_type_argument :: fn(t: Type) -> bool =
     t !is UnresolvedType && kept_type_argument(t) == null
@@ -1152,7 +1152,7 @@ check_is_overlap :: fn(
 
 // Traits can be satisfied by any struct with a matching impl,
 // so structural overlap isn't enough to call the test
-// unreachable — defer that to the impl-driven dispatch.
+// unreachable: defer that to the impl-driven dispatch.
 
 check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
     if !is_bool(left) && left !is UnresolvedType {
@@ -1184,7 +1184,7 @@ check_integral :: fn(
     diags: Diagnostic[],
 ) -> Type {
     // `T | U` (`|`) on two types, `null` among them, is the Layer 5b implicit
-    // union — return the metatype so callers can lift the binary
+    // union: return the metatype so callers can lift the binary
     // expr into an in-place type alias.
     if e.op == .BitOr && is_type_expr(e, typed.resolved) {
         return TY_TYPE
@@ -1262,7 +1262,7 @@ right_operand_context :: fn(e: AST.BinaryExpr, left: Type, typed: TypedProgram) 
 
 // When left is a concrete numeric and the op propagates context, return
 // `left` so free literals on the right adopt the same primitive type.
-// Otherwise null — caller infers right fresh.
+// Otherwise null: caller infers right fresh.
 numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
     propagates :: match classify(op) {
         .Arith    -> true
@@ -1357,7 +1357,7 @@ repin_operand :: fn(
 }
 
 // Compute the result type of a numeric binary op. Both operands must
-// be numeric AND in the same family (int / float) — Free* folds to a
+// be numeric AND in the same family (int / float): Free* folds to a
 // concrete operand of its own family only. An integer widens into the integer
 // type beside it that holds it ; a float never widens.
 numeric_result :: fn(
@@ -1602,7 +1602,7 @@ test_logical_requires_bool :: fn() -> void {
 
 @test
 test_in_requires_contains :: fn() -> void {
-    // `a in b` where `b : i32` has no `Contains` impl — a clean T3043, not a
+    // `a in b` where `b : i32` has no `Contains` impl: a clean T3043, not a
     // stub that lowers to an `unreachable` trap (a runtime crash).
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a in b }")
     diags: Diagnostic[]: []
@@ -1767,7 +1767,7 @@ test_repeat_of_value_element_is_silent :: fn() -> void {
 
 @test
 test_repeat_of_existing_binding_is_silent :: fn() -> void {
-    // The element is a binding, not a fresh allocation — sharing is deliberate.
+    // The element is a binding, not a fresh allocation: sharing is deliberate.
     diags :: check_source_bodies("f :: fn(row: i32[]) -> i32[][] { return [row] * 3 }").diags
     assert(!has_code(diags, "W0013"), "sharing an existing binding is deliberate")
 }

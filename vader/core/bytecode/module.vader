@@ -30,7 +30,7 @@ import "std/string"
 /// mangled name. `locals` are *additional* locals declared after the
 /// params ; slot index of `locals[i]` is `signature.params.len() + i`.
 /// `debug[i]` corresponds to `body[i]`, with `null` meaning "no source
-/// span for this op" — handy for synthesised ops (struct.new_stack,
+/// span for this op": handy for synthesised ops (struct.new_stack,
 /// trampoline shims). `jump_table[i]` is the resolved target pc for
 /// branching ops (`Branch` / `BranchIf` / `If` / `Else`) and `-1` for
 /// every other op ; both downstream consumers (VM exec, c-emit) read this
@@ -54,7 +54,7 @@ export BcFunction :: struct {
 /// reads `param_types` to shape an `@extern` shim's parameters (array,
 /// mirrored `@c_struct`, nullable pointer) and `result_types` to box a
 /// scalar result a trampoline or vtable dispatcher hands back. Both pairs of
-/// arrays are parallel — `param_types[i]` is the `BcType` index of
+/// arrays are parallel: `param_types[i]` is the `BcType` index of
 /// `params[i]`, and `result_types[i]` of `results[i]`.
 export BcSignature :: struct {
     params: ValType[]
@@ -62,7 +62,7 @@ export BcSignature :: struct {
     /// receives it.
     ///
     /// A VOID return carries ONE entry holding `ValType.Void`, not the empty
-    /// array — the shape this signature has always had, kept so the void type
+    /// array: the shape this signature has always had, kept so the void type
     /// stays rooted in the bytecode DCE and every emitted type index stays put.
     /// `bc_result_arity` is the ONLY reader that knows this: ask it, never
     /// `results.len()`, when the question is how many values cross.
@@ -70,12 +70,12 @@ export BcSignature :: struct {
     /// More than one is what lets a small composite cross in registers rather
     /// than as a heap object. It is also the shape WASM takes natively
     /// (`(func (result i32 i32))`), which is why the C backend is the one that
-    /// degrades — to out-params — and not the IR.
+    /// degrades (to out-params) and not the IR.
     results: ValType[]
     param_types: i32[]               // parallel to params, length identical
     /// `BcType` indices, parallel to `results`.
     result_types: i32[]
-    /// Source parameter names, parallel to `params` — populated by the CFG
+    /// Source parameter names, parallel to `params`: populated by the CFG
     /// emitter for the debugger's Variables view. Empty (not per-index) on
     /// paths that don't carry names (imports, synth wrappers, `.virt` reload) ;
     /// consumers fall back to `arg<i>`.
@@ -110,7 +110,7 @@ export param_is_by_address :: fn(sig: BcSignature, j: i64) -> bool =
     j < sig.param_by_address.len() && sig.param_by_address[j]
 
 /// The single `ValType` a signature leaves on the stack, `Void` when it leaves
-/// none — and a PANIC when it leaves several.
+/// none, and a PANIC when it leaves several.
 ///
 /// The panic is the point. A caller of this function has not been taught about
 /// multi-value; returning `Void` or `results[0]` there would mis-compile in
@@ -148,7 +148,7 @@ export bc_single_result_type :: fn(sig: BcSignature) -> i32 {
 export bc_result_arity :: fn(sig: BcSignature) -> i64 =
     if sig.results.len() == 1 && sig.results[0] == .Void { 0 } else { sig.results.len() }
 
-/// One declared local — name + stack-erased `ValType`. The C-emit
+/// One declared local: name + stack-erased `ValType`. The C-emit
 /// re-derives the underlying `BcType` from the fn's signature when it
 /// needs the richer info.
 export BcLocal :: struct {
@@ -166,9 +166,9 @@ export DebugPos :: struct {
 
 /// One external symbol expected from the host. Two flavours, switched
 /// on `is_extern` :
-///   - `@extern` decls (`is_extern = true`) — foreign symbol resolved
+///   - `@extern` decls (`is_extern = true`): foreign symbol resolved
 ///     by the host linker (libc, user-supplied .o).
-///   - `@intrinsic` stdlib ops (`is_extern = false`) — c-emit's shim
+///   - `@intrinsic` stdlib ops (`is_extern = false`): c-emit's shim
 ///     switch routes these to runtime helpers (`vader_*`) rather than
 ///     emitting an extern declaration.
 export BcImport :: struct {
@@ -263,7 +263,7 @@ export ImplEntry :: struct {
 /// (receiver type-index → fn-index) mapping the `virtual.call` op
 /// indexes in O(1). Built by the bytecode emitter from every
 /// `T implements Trait { … }` decl. The .virt text format itself
-/// doesn't carry vtable directives — they're rebuilt by the VM's
+/// doesn't carry vtable directives: they're rebuilt by the VM's
 /// `build_vtables` from mangled fn names.
 export VtableEntry :: struct {
     receiver_type_index: i32
@@ -278,25 +278,25 @@ export VtableRow :: struct {
 
 /// Top-level holder. Read-only after construction.
 ///
-/// - `types`    — the type table. Indices referenced by `struct.*`,
+/// - `types`: the type table. Indices referenced by `struct.*`,
 ///                `array.*`, `type_check`, `ref.cast`, and `BcSignature`.
-/// - `strings`  — interned string-literal pool. `string.const N` reads
+/// - `strings`: interned string-literal pool. `string.const N` reads
 ///                this directly ; the C-emit hoists each entry to a
 ///                static `vader_string_t`.
-/// - `data_pool`— pre-materialised primitive arrays. `data.const N` op
+/// - `data_pool`: pre-materialised primitive arrays. `data.const N` op
 ///                references entries here ; the C-emit lowers each into
 ///                a `.rodata` block.
 /// - `globals`  : the global slots `global.get` / `global.set` name, each with
 ///                its type ; a slot holds its type's zero value until written.
-/// - `functions`— every Vader-side fn body, in emission order. `Call`
+/// - `functions`: every Vader-side fn body, in emission order. `Call`
 ///                ops reference these by index.
-/// - `imports`  — external symbols. `call.import` references these by
+/// - `imports`: external symbols. `call.import` references these by
 ///                index ; the C-emit emits a per-import shim that the
 ///                in-module call points to.
-/// - `exports`  — symbols exposed to the host. The C-emit uses these to
+/// - `exports`: symbols exposed to the host. The C-emit uses these to
 ///                pick `main`'s linkage.
-/// - `impl_table`— rows of `T implements Trait`.
-/// - `vtables`  — per-(trait, method) virtual-dispatch table.
+/// - `impl_table`: rows of `T implements Trait`.
+/// - `vtables`: per-(trait, method) virtual-dispatch table.
 export BytecodeModule :: struct {
     name: string
     types: BcType[]
@@ -318,7 +318,7 @@ export BcGlobal :: struct {
     type_id: i32
 }
 
-/// Each pool entry's array type_id, taken from the `data.const` ops that name it —
+/// Each pool entry's array type_id, taken from the `data.const` ops that name it:
 /// the entry itself does not carry one. Every read of one entry comes from one
 /// const, so its sites agree ; an entry no op names reads `0`.
 ///

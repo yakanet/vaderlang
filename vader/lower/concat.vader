@@ -2,11 +2,11 @@
 //
 // String `+` (and all-string `${}`) lowers to a call to a shared
 // `concat_N(p0..p<n-1>: string) -> string`, one fn per arity actually used. Each
-// is a single right-sized byte buffer written part-by-part and interned once —
+// is a single right-sized byte buffer written part-by-part and interned once:
 // no `StringBuilder` struct, no `parts` array, no per-`+` intermediate intern.
 // The fn is synthesised on first use of its arity, cached on
-// `LowerProjectCtx.concat_fn_syms`, and collected into `LowerProjectCtx.entry_decls`
-// — a project-global, drain-once sink (NOT the per-site `synth_decls`, whose
+// `LowerProjectCtx.concat_fn_syms`, and collected into `LowerProjectCtx.entry_decls`:
+// a project-global, drain-once sink (NOT the per-site `synth_decls`, whose
 // erasure-dedupe drop semantics would strand a `concat_N` first synthesised
 // inside a deduped generic instance). `drain_entry_decls` empties it into the
 // entry module after the lowering fixpoint converges. This replaces the
@@ -17,8 +17,8 @@
 // The synthesised body reproduces the old hand-written `concat2/3/4` shape
 // exactly : prefix-sum cumulative byte offsets (each `byte_len` evaluated ONCE),
 // then a DIRECT `write_string` intrinsic per part (resolved as the `Buffer` impl
-// member via `find_impl_member_for`, like `concat2`'s `buf.write_string(off, s)`)
-// — NOT the offset-returning `write_string_at` free wrapper, which adds a call
+// member via `find_impl_member_for`, like `concat2`'s `buf.write_string(off, s)`),
+// NOT the offset-returning `write_string_at` free wrapper, which adds a call
 // layer + recomputes `byte_len`. `new_byte_buffer` and `byte_len` are force-loaded
 // std/core `@intrinsic` free fns, each an op. Mirrors `lower_string_lit::lower_interp_buffer`,
 // minus the int/bool `write_*` (those keep `write_string_at`'s off-threading).
@@ -40,7 +40,7 @@ import "vader/lower/ir"
 ///             concat-decl sink + the force-loaded std/core symbols).
 /// @param n    the arity (number of string leaves) ; always ≥ 2.
 /// @return     the concat fn symbol, or `null` when the std/core buffer API
-///             can't be resolved (impossible — it is force-loaded ; the caller
+///             can't be resolved (impossible: it is force-loaded ; the caller
 ///             then diverges via `unreachable_buffer`).
 get_or_create_concat :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     cached :: ctx.project.concat_fn_syms[n]
@@ -51,7 +51,7 @@ get_or_create_concat :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
 }
 
 // Synthesise the `concat_N` LoweredFnDecl, collect it on `entry_decls`, and
-// return its fn symbol (null on a std/core resolution miss — force-loaded, so
+// return its fn symbol (null on a std/core resolution miss: force-loaded, so
 // never in practice). The body is the `concat2/3/4` shape generalised to N :
 //
 //   concat_N(p0..p<n-1>: string) -> string {
@@ -76,19 +76,19 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     // `write_string_at` call layer + its redundant `byte_len`.
     blen_sym :: resolve_writer_fn(ctx, "byte_len") ?? return null
     alloc_sym :: resolve_writer_fn(ctx, "new_byte_buffer") ?? return null
-    // `finish_buffer` is resolved for its SIGNATURE only — its first parameter is
+    // `finish_buffer` is resolved for its SIGNATURE only: its first parameter is
     // where the `Buffer` type comes from. The call goes to the impl member below.
     finish_sym :: resolve_writer_fn(ctx, "finish_buffer") ?? return null
     buffer_type :: writer_buffer(ctx, finish_sym) ?? return null
     // The two other `Buffer` operations are the impl members, not the
     // expression-bodied free wrappers around them (`finish_buffer`). Each wrapper is
     // a one-line forward, but a Vader fn is a GC shadow-stack frame: it builds a
-    // `vader_gc_frame_t`, publishes it on the `vader_gc_top` global, and pops it —
+    // `vader_gc_frame_t`, publishes it on the `vader_gc_top` global, and pops it,
     // and `cc` cannot elide that, because the collector reads that global. So a
     // 13-byte concat used to push four nested frames to do one buffer's work.
     intern_member :: find_impl_member_for(ctx, buffer_type, "intern_string") ?? return null
     wstr_member :: find_impl_member_for(ctx, buffer_type, "write_string") ?? return null
-    // Harvest the free fns for materialisation — else the synthesised call has an
+    // Harvest the free fns for materialisation: else the synthesised call has an
     // unresolved (non-materialised) callee. The impl members are surfaced by
     // `find_impl_member_for` (it records the mangle in `referenced_impl_mangles`).
     register_nongeneric_imported_fn(ctx, blen_sym)
@@ -134,7 +134,7 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
         .span = span, .name = buf_sym.name, .symbol = buf_sym, .type = buffer_type,
         .value = mk_lowered_call(alloc_sym, [total], buffer_type, span),
     })
-    // `buf.write_string(offset_i, p_i)` — direct intrinsic, offset 0 for p0 else c_{i-1}.
+    // `buf.write_string(offset_i, p_i)`: direct intrinsic, offset 0 for p0 else c_{i-1}.
     for i in 0..<n {
         offset :: if i == 0 {
             LoweredIntLit { .span = span, .type = TY_I64, .value = 0 }
@@ -167,8 +167,8 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
 
 // Mint a synthetic symbol for a project-global fn (a `concat_N`, a field-default
 // thunk) or its params / locals. Uses the project-global negative id pool
-// (`next_synthetic_id`) directly — NOT the per-fn-body `uniq` counter
-// `fresh_synthetic_symbol` would bump — so synthesising a shared fn doesn't perturb
+// (`next_synthetic_id`) directly, NOT the per-fn-body `uniq` counter
+// `fresh_synthetic_symbol` would bump, so synthesising a shared fn doesn't perturb
 // the naming of the caller's own synthetic slots. The owning module is the entry
 // (where `drain_entry_decls` places these decls), so the symbol's home is stable
 // rather than an artifact of which body first triggered synthesis. `kind = Fn` for

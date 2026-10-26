@@ -2,8 +2,8 @@
 //
 // Under the flavor-based erasure model, a primitive type-argument makes the
 // field land RAW in the struct layout (`Box__i64.v : i64`, not a boxed
-// `Any`). This exercises the full primitive set as raw fields — direct read
-// AND read across a generic-fn boundary (`unwrap`, a Mixed instance) — so a
+// `Any`). This exercises the full primitive set as raw fields, direct read
+// AND read across a generic-fn boundary (`unwrap`, a Mixed instance), so a
 // box-vs-raw miscompile of any width / sign / float / char / bool surfaces.
 
 module "snippet"

@@ -1,7 +1,7 @@
 // vader/midir/select/intrinsics: mangled name → dedicated bytecode op.
 //
 // Stdlib `@intrinsic` impl members, and a few free fns, map to a dedicated
-// bytecode op rather than a host-provided import — e.g. `a + b` on `i32` and
+// bytecode op rather than a host-provided import, e.g. `a + b` on `i32` and
 // `a.add(b)` both emit the same `i32.add` op ; the `Buffer` byte ops
 // (`load_u8` / `store_u8` / `memory_copy` / `intern_string` /
 // `write_string`) map to the Target-ABI memory opcodes.
@@ -23,7 +23,7 @@ import "vader/core/types"
 ///
 /// @param mangled  the fn's mangled name (from `MonoEntry.mangled`).
 /// @return         the matching bytecode op, or `null` when no
-///                 intrinsic applies — caller emits a regular `Call`.
+///                 intrinsic applies: caller emits a regular `Call`.
 export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
     // Numeric arithmetic (Add / Sub / Mul / Div) for every primitive width,
     // routed through op_select's `arith_op` / `div_op` so a method call
@@ -35,8 +35,8 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
         return arith
     }
     // Equality. `@intrinsic <T> implements Equals` synthesises a bodyless `equals`
-    // member. Every primitive goes through op_select's `cmp_eq` — the same
-    // authority the operator uses — so `.equals()` can't drift from `==` (see
+    // member. Every primitive goes through op_select's `cmp_eq` (the same
+    // authority the operator uses) so `.equals()` can't drift from `==` (see
     // `primitive_cmp_op`).
     cmp :: primitive_cmp_op(mangled)
     if cmp != null {
@@ -46,9 +46,9 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
     if mangled == r"std_core$string$Comparable$compare" {
         return StringCompare {}
     }
-    // Target ABI memory opcodes — the abstract `Buffer`'s `@intrinsic` methods
+    // Target ABI memory opcodes: the abstract `Buffer`'s `@intrinsic` methods
     // (`lib/std/core/buffer.vader`), and its allocation `new_byte_buffer`.
-    // `buffer.new` takes no operand — the allocated object is always a `Buffer`,
+    // `buffer.new` takes no operand: the allocated object is always a `Buffer`,
     // so its type is the BUFFER sentinel by definition.
     if mangled == r"std_core$new_byte_buffer" {
         return BufferNew {}
@@ -69,7 +69,7 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
         return BufferWriteString {}
     }
     // Float ↔ raw-bits reinterpret (`lib/std/core` FloatBits / BitsFloat).
-    // NOT the numeric `f64(x)` / `u64(b)` casts — these return the exact IEEE
+    // NOT the numeric `f64(x)` / `u64(b)` casts: these return the exact IEEE
     // bit pattern. Lower to a `union` cast in C (no runtime symbol).
     if mangled == r"std_core$f64$FloatBits$to_bits" {
         return F64ToBits {}
@@ -87,7 +87,7 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
 }
 
 // Add / Sub / Mul / Div for any numeric primitive, resolved through op_select's
-// `checked_arith_op` / `div_op` — the SAME authority the operator path uses, so the
+// `checked_arith_op` / `div_op`: the SAME authority the operator path uses, so the
 // method mangle can never drift from `a + b`'s op. Covers every width (the
 // narrow ints i8/i16/u8/u16/u32 and f32, which the explicit arms
 // above never listed) ; `div_op` keeps u32/u64 division unsigned.
@@ -111,7 +111,7 @@ primitive_arith_op :: fn(mangled: string) -> Op | null {
     return null
 }
 
-// The Equals op for every primitive, via op_select's `cmp_eq` — same authority as
+// The Equals op for every primitive, via op_select's `cmp_eq`: same authority as
 // the operator, so `.equals()` can't drift from `==`. An integer of any width
 // lands on its class's op (a `u8` on `I32Eq`) : a vtable wrapper built from this
 // answer is what an erased instance reaches when it compares a union member
@@ -130,7 +130,7 @@ primitive_cmp_op :: fn(mangled: string) -> Op | null {
 /// A non-`@extern` import whose mangle is served by NEITHER a dedicated
 /// bytecode op (`intrinsic_op_for_mangled`) NOR a recognised `IntrinsicId`
 /// (`intrinsic_id_for`) would lower to an unbound `call.import` and trap at
-/// runtime — exactly the cos/tan gap the intrinsic audit surfaced. This closes
+/// runtime: exactly the cos/tan gap the intrinsic audit surfaced. This closes
 /// the host-wiring chain at compile time : bodyless ⟹ `@intrinsic` (T3062) ⟹
 /// recognised here ⟹ served by the VM + c_emit dispatch (T3013 on both matchs).
 /// `@extern` imports resolve at link time and are exempt.
@@ -165,12 +165,12 @@ export intrinsic_op_for_name :: fn(name: string) -> Op | null {
 import "std/testing"
 
 @test test_arms_pinned_to_manifest_grammar :: fn() -> void {
-    // Every arm's key must equal what `primitive_member_mangle` builds — a
+    // Every arm's key must equal what `primitive_member_mangle` builds: a
     // drift in the `$` grammar or segment order breaks this test instead of
     // silently de-opting the op back to a plain Call at emit time. Keeps the
     // fast literal cascade above, but pins every arm to the one authority.
     cases :: [
-        // arithmetic — every numeric width (routed through op_select)
+        // arithmetic: every numeric width (routed through op_select)
         ["i8", "Add", "add"], ["i16", "Sub", "sub"], ["i32", "Mul", "mul"],
         ["i64", "Div", "div"],
         ["u8", "Div", "div"], ["u16", "Mul", "mul"], ["u32", "Div", "div"],
@@ -178,13 +178,13 @@ import "std/testing"
         ["f32", "Add", "add"], ["f32", "Div", "div"],
         ["f64", "Add", "add"], ["f64", "Sub", "sub"], ["f64", "Mul", "mul"],
         ["f64", "Div", "div"],
-        // equality (op-backed) — equals for every primitive
+        // equality (op-backed): equals for every primitive
         ["i32", "Equals", "equals"], ["i64", "Equals", "equals"],
         ["u8", "Equals", "equals"], ["u64", "Equals", "equals"],
         ["f32", "Equals", "equals"], ["f64", "Equals", "equals"],
         ["bool", "Equals", "equals"], ["char", "Equals", "equals"],
         ["string", "Equals", "equals"],
-        // ordering (op-backed) — `string` only
+        // ordering (op-backed): `string` only
         ["string", "Comparable", "compare"],
         ["Buffer", "ByteAccess", "load_u8"], ["Buffer", "ByteAccess", "store_u8"],
         ["Buffer", "ByteAccess", "memory_copy"], ["Buffer", "ByteAccess", "intern_string"],

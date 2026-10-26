@@ -26,7 +26,7 @@ main :: fn() -> i32 {
     unsigned_wide: u64: 42
     println("widths: ${a8} ${b16} ${c32} ${d64} ${e8} ${f16} ${g32} ${h64} ${signed_wide} ${unsigned_wide}")
 
-    // (2) arithmetic with a literal — the literal adopts the operand width
+    // (2) arithmetic with a literal: the literal adopts the operand width
     signed_wide_next :: signed_wide + 1
     unsigned_wide_next :: unsigned_wide + 1
     d64_2 :: d64 + 1
@@ -50,7 +50,7 @@ main :: fn() -> i32 {
         println("signed_neg ok")
     }
 
-    // (6) index-range bounds — the `0` and `n - 1` adopt `i64` from the
+    // (6) index-range bounds: the `0` and `n - 1` adopt `i64` from the
     // built-in `arr[start..<end]` slice's index context (no cast needed).
     arr: i32[]: [10, 20, 30, 40, 50]
     n: i64: arr.len()

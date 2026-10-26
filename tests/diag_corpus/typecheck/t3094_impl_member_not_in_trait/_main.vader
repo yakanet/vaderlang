@@ -1,4 +1,4 @@
-// An impl member its trait does not declare — T3094. `a != b` is already
+// An impl member its trait does not declare: T3094. `a != b` is already
 // `!a.equals(b)` : drop `not_equals`.
 module "snippet"
 

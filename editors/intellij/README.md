@@ -1,18 +1,18 @@
 # Vader for JetBrains IDEs
 
-IntelliJ Platform plugin providing syntax highlighting **plus full LSP integration** for the [Vader](../../README.md) programming language. Works on every JetBrains IDE that supports [LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij) — IntelliJ IDEA Community and Ultimate, PyCharm, WebStorm, RustRover, GoLand, CLion, …
+IntelliJ Platform plugin providing syntax highlighting **plus full LSP integration** for the [Vader](../../README.md) programming language. Works on every JetBrains IDE that supports [LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij): IntelliJ IDEA Community and Ultimate, PyCharm, WebStorm, RustRover, GoLand, CLion, …
 
 ## Features
 
 - Syntax highlighting for `.vader` files via the bundled `org.jetbrains.plugins.textmate` plugin
-- Syntax highlighting and folding for `.virt` files — the text bytecode `vader dump --stage=bytecode` writes — plus, from the language server, hover documentation on ops, inlay hints naming each table index, and go-to-definition from an operand to what it names
-- Grammar shared with the [VS Code extension](../vscode/) through [`editors/common/`](../common/) — single source of truth, no duplication
+- Syntax highlighting and folding for `.virt` files (the text bytecode `vader dump --stage=bytecode` writes) plus, from the language server, hover documentation on ops, inlay hints naming each table index, and go-to-definition from an operand to what it names
+- Grammar shared with the [VS Code extension](../vscode/) through [`editors/common/`](../common/): single source of truth, no duplication
 - Validation and completion of `vader.json`, against the schema shared with the VS Code extension ([`editors/common/vader.schema.json`](../common/vader.schema.json))
-- **LSP-driven semantic features** : goto-definition (with the Ctrl/Cmd-hover preview link), hover with VaderDoc, semantic tokens, diagnostics — delivered by the Vader Language Server (`vader lsp`) and wired through LSP4IJ
+- **LSP-driven semantic features** : goto-definition (with the Ctrl/Cmd-hover preview link), hover with VaderDoc, semantic tokens, diagnostics, delivered by the Vader Language Server (`vader lsp`) and wired through LSP4IJ
 
 ## Prerequisites
 
-This plugin depends on **[LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij)** (Red Hat, EPL-2.0). LSP4IJ is the generic LSP client we layer on top of — it handles the JSON-RPC plumbing, server lifecycle, PSI integration, and the Ctrl/Cmd-hover link preview that the IntelliJ Platform's native LSP API doesn't render.
+This plugin depends on **[LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij)** (Red Hat, EPL-2.0). LSP4IJ is the generic LSP client we layer on top of: it handles the JSON-RPC plumbing, server lifecycle, PSI integration, and the Ctrl/Cmd-hover link preview that the IntelliJ Platform's native LSP API doesn't render.
 
 Install LSP4IJ from the JetBrains Marketplace first :
 
@@ -44,7 +44,7 @@ To run the JetBrains Plugin Verifier against several IDE versions (same checks a
 4. Click the gear icon ⚙️ at the top → *Install Plugin from Disk…*
 5. Pick the `.zip` from `build/distributions/`.
 6. Restart the IDE when prompted.
-7. Open any `.vader` file — highlighting + LSP features kick in.
+7. Open any `.vader` file: highlighting + LSP features kick in.
 
 ## Configure
 

@@ -1,4 +1,4 @@
-// Fixture for `vader lint` — every export is reached from `main`, so
+// Fixture for `vader lint`: every export is reached from `main`, so
 // unused-export must stay silent (exit 0, no W0012).
 
 module "snippet"

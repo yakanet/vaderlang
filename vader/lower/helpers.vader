@@ -274,7 +274,7 @@ block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
 or_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr = chain_all(span, parts, .Or)
 
 /// Combine a list of boolean expressions with short-circuit AND, left to
-/// right — a later part is only evaluated once every earlier one held. Empty
+/// right: a later part is only evaluated once every earlier one held. Empty
 /// input degrades to `true` ; a single element returns itself.
 /// @param span   span attached to every synthesised binary node.
 /// @param parts  individual boolean expressions.
@@ -350,8 +350,8 @@ cell_aware_let :: fn(
 }
 
 // Where a closure's env keeps each capture, in capture order: `cap_<N>`, holding
-// its value at its declared type in the fn making the closure — the type of its own
-// slot — or, for a capture that lives in a cell, that cell. Computed once per
+// its value at its declared type in the fn making the closure (the type of its own
+// slot) or, for a capture that lives in a cell, that cell. Computed once per
 // closure, so the env literal that writes a field and the lifted body that reads it
 // agree.
 env_slots :: fn(ctx: FnLowerCtx, captures: Capture[]) -> EnvSlot[] {
@@ -410,12 +410,12 @@ slots_by_symbol :: fn(captures: Capture[], slots: EnvSlot[]) -> MutableMap<i32, 
 
 // The cell an env literal stores for the rebound capture `symbol`, as the fn being
 // lowered right now reaches it: `env.cap_N` when that fn is itself a lifted body
-// that captured it, a plain ident otherwise — to the instance's clone inside an
+// that captured it, a plain ident otherwise: to the instance's clone inside an
 // inlined generator, since the capture lists name the resolver's symbols. `type`
 // is the binding's type, used only for the plain ident.
 //
 // Every lift sharing a rebound capture holds a ref to the SAME cell, so the env
-// carries the ref, not the value — which is why this stops one step short of
+// carries the ref, not the value, which is why this stops one step short of
 // `try_route_through_env`, whose job is reading the value back out.
 //
 // A lift nested inside another must not read a bare ident for a symbol the
@@ -458,8 +458,8 @@ prepend_stmts_to_block :: fn(prefix: LoweredStmt[], block: LoweredBlock) -> Lowe
 
 // ---- operands --------------------------------------------------------------
 //
-// An operand evaluated once but read later — by a loop at every step, or twice
-// in one expression — is bound to a fresh local first, unless the later read
+// An operand evaluated once but read later: by a loop at every step, or twice
+// in one expression: is bound to a fresh local first, unless the later read
 // provably yields the same value. What may run in between decides which rule
 // answers that : `is_invariant_operand` when a loop body may, `is_stable_operand`
 // when only other operands may. `is_effect_free_read` answers the question an
@@ -495,8 +495,8 @@ bind_unless_stable :: fn(
     bind_to_local(ctx, value, value.type, name, span, out)
 }
 
-// Whether `value` reads the same however much code runs before the read — a loop
-// body included : a literal, or a name nothing rebinds — a fn, a const, a local or
+// Whether `value` reads the same however much code runs before the read (a loop
+// body included): a literal, or a name nothing rebinds, meaning a fn, a const, a local or
 // parameter no assignment rebinds (`rebind_free` ; a `for` variable only within
 // one iteration of its own loop, the one place it is read).
 // @partial: every other expression may do work or read a different value.
@@ -506,14 +506,14 @@ is_invariant_operand :: fn(ctx: FnLowerCtx, value: LoweredExpr) -> bool = @parti
     _ -> is_literal(value)
 }
 
-// Whether `value` reads the same when only other operands run before the read —
+// Whether `value` reads the same when only other operands run before the read:
 // calls, but no statement of the enclosing fn : a literal, or a local read
 // directly. A call cannot rebind a local it does not capture, and a captured one
 // it can rebind lives in a cell, read through it, not as an ident.
 is_stable_operand :: fn(value: LoweredExpr) -> bool = value is LoweredIdent || is_literal(value)
 
-// Whether evaluating `value` does nothing but read — a stable operand, or a field,
-// a cell or an array length reached from one — so skipping it, or moving it,
+// Whether evaluating `value` does nothing but read (a stable operand, or a field,
+// a cell or an array length reached from one) so skipping it, or moving it,
 // loses no effect.
 // @partial: every other expression may do work.
 is_effect_free_read :: fn(value: LoweredExpr) -> bool = @partial match value {
@@ -524,7 +524,7 @@ is_effect_free_read :: fn(value: LoweredExpr) -> bool = @partial match value {
     _                     -> is_stable_operand(value)
 }
 
-// Whether `first` and `second`, evaluated in either order, give the same values —
+// Whether `first` and `second`, evaluated in either order, give the same values:
 // the second stable, or both reads that run nothing.
 reads_independently :: fn(first: LoweredExpr, second: LoweredExpr) -> bool =
     is_stable_operand(second) || is_effect_free_read(first) && is_effect_free_read(second)

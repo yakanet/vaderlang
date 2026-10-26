@@ -32,7 +32,7 @@ export check_project_with_bodies :: fn(
     diags: Diagnostic[],
     dump_types: bool,
 ) -> CheckResult {
-    // Build the core_symbols seed once — every per-module resolve gets the same map so
+    // Build the core_symbols seed once: every per-module resolve gets the same map so
     // the body-walker can fire R2006 unconditionally on unresolved idents instead of
     // deferring to typecheck.
     core_seed :: build_core_seed(project)
@@ -134,7 +134,7 @@ check_project_modules :: fn(
     }
     settle_project_aliases(per_module, unsettled)
     // Make every module's enums resolvable cross-module before any fn
-    // signature is lowered — so a `d: parser.Visibility` param resolves to
+    // signature is lowered, so a `d: parser.Visibility` param resolves to
     // the `EnumType` (→ `repr` ordinal at bytecode emit) instead of the
     // struct placeholder.
     register_enum_types(per_module, project, alias_types)
@@ -147,7 +147,7 @@ check_project_modules :: fn(
         typed.import_targets = wire_targets
         typed.resolved.imports_to = imports_to
     }
-    // R2018 orphan-rule pre-resolve check (project-level — needs the
+    // R2018 orphan-rule pre-resolve check (project-level: needs the
     // wire_imports redirect table to resolve ImportBinding to the
     // concrete owner). Diagnostics fold into each module's resolved
     // diags bucket so the CLI / typecheck dumpers surface them in
@@ -182,7 +182,7 @@ check_project_modules :: fn(
     // Phase B : declare every decl (fn signatures, struct types, etc.)
     // across ALL files of the module. decl_types is Symbol.id-keyed and
     // the span-keyed tables (param_types / type_expr_types) are now
-    // file-aware, so merging sibling files no longer collides — fn
+    // file-aware, so merging sibling files no longer collides: fn
     // signatures in non-first files get declared too (was the source of
     // `?` types on multi-file modules).
     declare_module(
@@ -208,7 +208,7 @@ check_project_modules :: fn(
             diags,
         )
     }
-    // Cross-module struct visibility — see `broadcast_struct_decls`.
+    // Cross-module struct visibility, see `broadcast_struct_decls`.
     broadcast_struct_decls(per_module)
     share_type_param_symbols(per_module)
     share_guards(per_module)
@@ -216,11 +216,11 @@ check_project_modules :: fn(
     // typecheck-side tables that depend on per-module decl types.
     // Settle expression-bodied fn returns in every non-entry module
     // BEFORE copying their FnTypes into the entry's external_types /
-    // imported_fn_overloads — otherwise a `fn(a, b) = if … { a } …`
+    // imported_fn_overloads: otherwise a `fn(a, b) = if … { a } …`
     // export lands as `fn(_, _) -> ?` in the bucket.
     populate_core_symbols(entry_typed, project, per_module)
     // Cross-publish trait_decls (Iterator, Display, …) to every
-    // per_module typed program BEFORE settle walks their bodies — so a
+    // per_module typed program BEFORE settle walks their bodies, so a
     // trait's default method called in another module's body is found
     // via `try_default_trait_method`.
     cross_publish_trait_decls(per_module)
@@ -237,7 +237,7 @@ check_project_modules :: fn(
         }
     }
     // Populate `imported_fn_overloads` for every NON-ENTRY module BEFORE
-    // `settle_external_expr_bodied_returns` walks their bodies — otherwise
+    // `settle_external_expr_bodied_returns` walks their bodies: otherwise
     // UFCS dispatch inside an external expr-bodied fn (e.g. `s.chars()
     // .count()` inside std/string::len) doesn't see cross-module overloads.
     // The entry's overload table is populated AFTER settle so it picks up
@@ -257,10 +257,10 @@ check_project_modules :: fn(
     populate_imported_fn_overloads(entry_typed, entry_loaded.collected.files, typed_by_name)
     pull_field_external_types(entry_typed, per_module)
     // Coherence : at most one impl per (concrete type, trait, trait-args) across
-    // the whole program — the prelude's `i32 implements Display` etc. are in
+    // the whole program: the prelude's `i32 implements Display` etc. are in
     // scope everywhere, so a user re-impl is a conflict (R2030), not a silent
     // shadow. Mirrors Rust's E0119. (Blanket / generic-receiver overlap is
-    // deferred — only fully-concrete receivers are checked.)
+    // deferred: only fully-concrete receivers are checked.)
     check_impl_coherence(project, per_module, diags)
     // No two functions in a module may share name + signature (a redefinition).
     check_fn_redefinitions(project, per_module, diags)
@@ -274,7 +274,7 @@ check_project_modules :: fn(
     // Two-pass body walk : first pass infers expression-bodied fn
     // return types (forward-reference safe) ; second pass re-types
     // bodies with all returns settled. Diags are captured only on
-    // the second pass — the first one is a throwaway sink.
+    // the second pass: the first one is a throwaway sink.
     if has_expr_bodied_fn(concat_file_decls(entry_loaded.module.files)) {
         walk_bodies(
             concat_file_decls(entry_loaded.module.files),
@@ -288,7 +288,7 @@ check_project_modules :: fn(
     // Body-check every imported module too, so the lowerer sees the
     // expression types of imported fn bodies. The whole-program lowerer
     // (vader/lower) lowers EVERY module's bodies to emit their bytecode ;
-    // without per-module body types, imported bodies degrade — e.g. `m[k]`
+    // without per-module body types, imported bodies degrade, e.g. `m[k]`
     // Index resolution misses (target_type unresolved) and the emitter
     // drops the call. Each import needs its OWN external types wired first
     // (the entry-only setup above doesn't reach them), so we replay the
@@ -307,7 +307,7 @@ check_project_modules :: fn(
         // re-populate now that `settle` patched the settled returns into
         // decl_types. `push_overload` is replace-on-signature (idempotent), so it
         // OVERWRITES the stale `fn(i64) -> ?` entry in place rather than leaving it
-        // ahead of the settled `fn(i64) -> i64` — no `clear` needed. (That
+        // ahead of the settled `fn(i64) -> i64`: no `clear` needed. (That
         // stale-ahead ordering is what `pick_overload` first-matched into `?` →
         // `any` → wide-int compares truncated to `i32.lt`, the `abs` bug.)
         populate_imported_fn_overloads(other_typed, other.collected.files, typed_by_name)
@@ -350,7 +350,7 @@ collect_direct_imports :: fn(
     // The loader already resolved every import. A module imported as
     // `import "path"` declares `module "path"` (module-system invariant), so
     // map each loaded module's declared name to its id and look the import up
-    // there — using the loader's own result instead of re-resolving through the
+    // there: using the loader's own result instead of re-resolving through the
     // now-deleted parallel resolver (#11).
     // Toolchain-shipped modules are filtered HERE rather than at the lookup: every
     // value of this map is a key of `project.modules`, so a later `?? null` read
@@ -383,7 +383,7 @@ empty_impls :: fn() -> ImplRegistry { return ImplRegistry {} }
 empty_fallback :: fn(project: LoadedProject) -> TypedProgram {
     loaded :: project.modules[project.entry]
     if loaded == null {
-        // Defensive — load_project guarantees entry is loaded.
+        // Defensive: load_project guarantees entry is loaded.
         return new_typed_program(synth_resolved())
     }
     rm :: resolve_module(loaded.module.files[0].program, project.entry, project.factory)
@@ -469,9 +469,9 @@ publish_namespace_defaults :: fn(
 
 // Coherence key for an `impl` : `(receiver type, trait, trait-args)`. Keyed on
 // `canonical_key`, so distinct types never collide (it carries struct/enum
-// symbol ids and generic args — `Foo<i32>` and `Foo<string>` stay separate) and
+// symbol ids and generic args: `Foo<i32>` and `Foo<string>` stay separate) and
 // equivalent types always match. Returns null for a blanket / generic receiver
-// (`T implements …`, `T[] implements …`) — their overlap rules are subtler than
+// (`T implements …`, `T[] implements …`): their overlap rules are subtler than
 // concrete-vs-concrete, so they're left unchecked for now.
 coherence_key :: fn(for_ty: Type, trait_key: string, args: Type[]) -> string | null {
     if type_contains_type_param(for_ty) {
@@ -484,7 +484,7 @@ coherence_key :: fn(for_ty: Type, trait_key: string, args: Type[]) -> string | n
 // trait-args). Walks every loaded module's `ImplDecl`s (including the `std/core`
 // prelude, whose impls are in scope everywhere) into one key→span map and fires
 // R2030 on the second impl of a key. Catches a user redefining a prelude impl
-// (`i32 implements Display`) — previously a silent, order-dependent shadow that
+// (`i32 implements Display`): previously a silent, order-dependent shadow that
 // could recurse / mis-resolve. Mirror of Rust's E0119 (concrete-receiver subset).
 check_impl_coherence :: fn(
     project: LoadedProject,
@@ -496,7 +496,7 @@ check_impl_coherence :: fn(
     // Register every NON-entry module's impls (the `std/core` prelude + stdlib +
     // deps) first, then the entry module LAST. A user impl that duplicates a
     // prelude/stdlib one is then the *second* seen, so R2030 lands on the user's
-    // (entry-module) span — entry diags are surfaced, imported-module diags are
+    // (entry-module) span: entry diags are surfaced, imported-module diags are
     // filtered by the CLI, so an error on a stdlib span would be invisible.
     for [id, _] in project.modules {
         if id == project.entry {
@@ -555,9 +555,9 @@ ImplShape :: struct {
 // R2030 for two generic impls of one trait on one base type that some instance could
 // both match : dispatch could not tell which one it takes. The bounds are not
 // compared : nothing proves that no type implements both. An impl on a concrete
-// instance (`Wrapper<MonType>`) is not one of them — it wins over the generic impl
-// for that instance. A blanket over a bare `T` stays out too — a type's own impl
-// wins over it — and so does an array receiver over anything but a bare `T`, which
+// instance (`Wrapper<MonType>`) is not one of them: it wins over the generic impl
+// for that instance. A blanket over a bare `T` stays out too (a type's own impl
+// wins over it) and so does an array receiver over anything but a bare `T`, which
 // T3090 refuses. True when reported ; the impl is recorded otherwise.
 reject_overlapping_impl :: fn(
     decl: AST.ImplDecl,
@@ -635,7 +635,7 @@ conflict_detail :: fn(decl: AST.ImplDecl, for_ty: Type) -> string {
 }
 
 // No two functions in a module may share a name AND signature (resolved param
-// types) — that's a redefinition, not an overload. `main` is the special case
+// types): that's a redefinition, not an overload. `main` is the special case
 // (one possible signature). Sibling files merge into one module, so this also
 // catches a `main` per file (the `vader run dir/file.vader` footgun, where the
 // directory loads as one module and the first-declared `main` silently wins).
@@ -657,7 +657,7 @@ check_module_fn_redefinitions :: fn(
 ) -> void {
     tp :: per_module[id] ?? return
     loaded :: project.modules[id] ?? return
-    // Group fn decls by name (cheap — no type resolution) ; resolve signatures
+    // Group fn decls by name (cheap: no type resolution) ; resolve signatures
     // only for names with ≥2 decls. Signatures come from the AST, the
     // authoritative source of declared params, not from `decl_types`.
     by_name :: MutableMap<string, AST.FnDecl[]> {}
@@ -667,7 +667,7 @@ check_module_fn_redefinitions :: fn(
         }
         by_name.get_or_put_with(decl.name, () -> []).push(decl)
     }
-    // The module's EXPLICITLY-imported free fns — a module fn with the SAME name
+    // The module's EXPLICITLY-imported free fns: a module fn with the SAME name
     // AND signature as one of them would otherwise silently shadow it
     // (resolver-modules-3, CASE C).
     imported :: imported_fn_sigs(loaded, tp, per_module)
@@ -724,14 +724,14 @@ ImportedFnSig :: struct {
 }
 
 // The explicitly-imported free fns of `loaded`, one per import. Reads each
-// binding's target FnType from the owning module's `decl_types` — import-scoped,
+// binding's target FnType from the owning module's `decl_types`: import-scoped,
 // NOT the broad `imported_fn_overloads` branch-b scan (which surfaces every
 // co-loaded module's fns and would false-positive on ones this module never
 // imported). Iterates `collected.imports` (keyed by Symbol id), which holds the
 // bindings of every file of the module, and keeps `info.local` (the alias for a
 // renamed `foo as bar`), NOT the source name : a wrapper like
 // `is_int :: fn(..) = ty_is_int(..)` over `import { is_int as ty_is_int }` must
-// NOT be flagged — its local binding is `ty_is_int`, which no module fn shares.
+// NOT be flagged: its local binding is `ty_is_int`, which no module fn shares.
 imported_fn_sigs :: fn(
     loaded: LoadedModule,
     tp: TypedProgram,
@@ -746,7 +746,7 @@ imported_fn_sigs :: fn(
         if info.imported_name is null {
             continue
         }
-        // namespace import — not a free-fn binding
+        // namespace import, not a free-fn binding
         st :: targets.symbol_targets[sym_id] ?? continue
         owner :: per_module[st.module_id] ?? continue
         ty :: owner.decl_types[st.symbol.id]
@@ -1209,7 +1209,7 @@ record_type_param_bounds :: fn(
     }
 }
 
-/// The `trait_key`s of the traits `bound` names — one, or an `A & B` chain.
+/// The `trait_key`s of the traits `bound` names: one, or an `A & B` chain.
 ///
 /// @param bound     a type parameter's bound.
 /// @param resolved  the module that declares the type parameter.
@@ -1264,7 +1264,7 @@ record_struct_trait_args :: fn(
     lists.push(args)
 }
 
-// An expression-bodied fn with no explicit return annotation — the only fn
+// An expression-bodied fn with no explicit return annotation: the only fn
 // shape whose return type is settled by body inference (`patch_fn_return_type`,
 // stmt.vader). Names the condition shared by `has_expr_bodied_fn` (which fns
 // force a forward-reference re-walk) and the return-only `walk_fn_body` guard
@@ -1319,8 +1319,8 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
 }
 
 // Register every type alias of one module (explicit `T :: type ...` or implicit
-// `T :: <type-expr>`) into `resolved.alias_types` — across the project, BEFORE
-// `declare_module`, so a signature naming an alias resolves it — and return the
+// `T :: <type-expr>`) into `resolved.alias_types` (across the project, BEFORE
+// `declare_module`, so a signature naming an alias resolves it) and return the
 // decls that could not settle: an alias const whose RHS is not yet a type, a type
 // alias naming a type not yet registered. The module's own order is settled here
 // (`Value :: I32Val | StringVal` above the distincts it names) ; what another
@@ -1583,7 +1583,7 @@ pull_field_external_types :: fn(
 /// both memoizes and breaks Struct ↔ Struct cycles.
 ///
 /// Spells out the variant arms instead of routing through
-/// `for_each_type` so the recursion stays a plain call graph — a
+/// `for_each_type` so the recursion stays a plain call graph: a
 /// closure capturing the two-field context tripped the self-host
 /// codegen at the time of writing.
 pull_referenced_external_types :: fn(
@@ -1636,7 +1636,7 @@ register_external :: fn(
     owner :: per_module[sym.module] ?? return
     declared :: owner.decl_types[sym.id] ?? return
     entry.external_types[sym.id] = declared
-    // Chained references — `Foo { bar: Bar }` where `Bar { baz: Baz }`.
+    // Chained references: `Foo { bar: Bar }` where `Bar { baz: Baz }`.
     pull_referenced_external_types(declared, entry, per_module)
 }
 
@@ -1690,14 +1690,14 @@ settle_external_expr_bodied_returns :: fn(
 
 // Build one overload table per FILE of the module, from that file's own
 // wildcard imports. Imports are file-scoped (SPEC §"Modules"), so two files of
-// one module see different names — including the same path imported bare in one
+// one module see different names, including the same path imported bare in one
 // and under a modifier list in the other, which is real in-tree usage
 // (`vader/tools/lsp/main_entry.vader` vs `vader/tools/lsp/main.vader` on `std/cli`).
 //
 // Only the forms that put names in UNQUALIFIED scope feed a table: bare
 // `import "p"`, `import "p" { … }` minus what its modifiers drop, the names a
 // modifier list REBINDS, and the always-in-scope `std/core` prelude. A namespace
-// alias (`P :: import "p"`) contributes nothing — it binds one name and
+// alias (`P :: import "p"`) contributes nothing: it binds one name and
 // qualifies the rest, so `x.f()` must fail exactly where `f(x)` is R2006, the
 // divergence SPEC §UFCS rules out ("resolves … exactly as `foo(x)` would").
 populate_imported_fn_overloads :: fn(
@@ -1714,7 +1714,7 @@ populate_imported_fn_overloads :: fn(
         table.clear()
         // Dedup: a path can appear more than once in one file (re-imported in a
         // `// ---- tests ----` block), and `push_module_exported_fns` would
-        // rescan it — idempotent but wasted.
+        // rescan it: idempotent but wasted.
         seen :: MutableMap<string, bool> {}
         for path in fw.paths {
             if seen[path] != null {
@@ -1724,7 +1724,7 @@ populate_imported_fn_overloads :: fn(
             other :: typed_by_name[path]
             if other != null {
                 // A modifier drops its source name from that path's wildcard, so
-                // the UFCS table must drop it too — else `{ x as _ }` leaves
+                // the UFCS table must drop it too: else `{ x as _ }` leaves
                 // `recv.x()` callable while `x(recv)` is R2006.
                 push_module_exported_fns(other, entry_typed, table, fw.excludes[path] ?? [])
             }
@@ -1739,7 +1739,7 @@ populate_imported_fn_overloads :: fn(
         }
     }
     // Renamed imports (`import "p" { foo as bar }`) bind ONE name, in the file
-    // that wrote them — under the local name only, since the same modifier
+    // that wrote them: under the local name only, since the same modifier
     // excluded the source name from that path's wildcard just above.
     push_renamed_imports(entry_typed)
 }
@@ -1762,7 +1762,7 @@ file_overload_table :: fn(
     },
 )
 
-// `import "p" { foo as bar }` — dispatch `bar` via UFCS on its declared first
+// `import "p" { foo as bar }`: dispatch `bar` via UFCS on its declared first
 // param, in the file that bound it. `symbol_targets` is module-wide, so the
 // owning file comes from the local symbol's own span.
 push_renamed_imports :: fn(entry_typed: TypedProgram) -> void {
@@ -1793,7 +1793,7 @@ push_renamed_imports :: fn(entry_typed: TypedProgram) -> void {
 //
 // `excluded` holds the source names the importing file's modifier list drops
 // from this path's wildcard. They stay out of `table` but are still typed into
-// `into.external_types` — that table is keyed by symbol id and answers "what
+// `into.external_types`: that table is keyed by symbol id and answers "what
 // type is this?", not "is this name in scope here?", and a rename reads its
 // target's type from it.
 push_module_exported_fns :: fn(
@@ -1807,7 +1807,7 @@ push_module_exported_fns :: fn(
     }
     for [name, bucket] in from.resolved.fn_overloads {
         for sym in bucket {
-            // Only EXPORTED fns are reachable cross-module — a private fn is not
+            // Only EXPORTED fns are reachable cross-module: a private fn is not
             // importable, so it must not enter another module's UFCS/prefix pool
             // (mirrors `seed_wildcard_exports`'s Public filter + the destructure
             // R2008 check). Without this, a module's private helpers leaked as
@@ -1827,7 +1827,7 @@ push_module_exported_fns :: fn(
                         .symbol = sym,
                         .decl = fd,
                     })
-                    // And the defaults' own name resolutions travel with it —
+                    // And the defaults' own name resolutions travel with it:
                     // they are lowered in the CALLER's context. See
                     // `import_defaults.vader`.
                     if fd is AST.FnDecl {
@@ -1903,7 +1903,7 @@ populate_core_symbols :: fn(
     // its type must not depend on core being present.
     //
     // `build_core_seed` puts the symbol in scope so the NAME resolves; without
-    // this the TYPE never arrives, and an untyped const reads as `?` — which
+    // this the TYPE never arrives, and an untyped const reads as `?`, which
     // panics the emitter on a method receiver and lowers a `match` silently to
     // `unreachable`. Seeding a symbol and bridging its type are two halves of
     // the same act; shipping one without the other is what made `VADER_OS`
@@ -1922,7 +1922,7 @@ populate_core_symbols :: fn(
     }
 }
 
-// The type half of the baked-module seed — see `populate_core_symbols_into`,
+// The type half of the baked-module seed, see `populate_core_symbols_into`,
 // which does the same job for `std/core`.
 populate_baked_symbols :: fn(
     entry_typed: TypedProgram,
@@ -1975,7 +1975,7 @@ build_namespace_exports :: fn(
     loaded :: project.modules[mod_id] ?? return out
     typed :: per_module[mod_id] ?? return out
     for [name, sym] in loaded.collected.symbols {
-        // Exported members only — reached through a `P :: import "m"` alias.
+        // Exported members only: reached through a `P :: import "m"` alias.
         // Mirrors the destructured-import check that fires R2008 (`wire.vader`);
         // a private member's absence here routes `P.private` to the private-set
         // check in `field.vader::try_namespace_field`.
@@ -2002,7 +2002,7 @@ build_namespace_exports :: fn(
 //
 // First-overload-only: `collected.symbols` is keyed by name with first-decl-wins
 // (collect.vader), and `pick_overload` bails for non-IdentExpr callees, so a
-// namespace-qualified call never overload-resolves — only the first overload's
+// namespace-qualified call never overload-resolves: only the first overload's
 // params are reachable here. To support overloaded namespace calls this map
 // would need to become bucket-valued and selection move into
 // `namespace_member_params`, mirroring `overload_params_matching`.
@@ -2015,7 +2015,7 @@ build_namespace_export_decls :: fn(
     loaded :: project.modules[mod_id] ?? return out
     typed :: per_module[mod_id] ?? return out
     for [name, sym] in loaded.collected.symbols {
-        // Exported members only — see `build_namespace_exports`.
+        // Exported members only, see `build_namespace_exports`.
         if sym.visibility == .Private {
             continue
         }
@@ -2116,7 +2116,7 @@ build_namespace_type_members :: fn(
     loaded :: project.modules[mod_id] ?? return out
     target_typed :: per_module[mod_id]
     for [name, sym] in loaded.collected.symbols {
-        // Exported types only — see `build_namespace_exports`. A private type
+        // Exported types only, see `build_namespace_exports`. A private type
         // is not reachable as `P.PrivateType`.
         if sym.visibility == .Private {
             continue
@@ -2153,13 +2153,13 @@ lookup_external_type :: fn(
 
 /// How `walk_bodies` treats fn bodies that don't need return inference.
 WalkMode :: enum(u8) {
-    /// Type-check every body — populate `expr_types`, materialise stdlib fns.
+    /// Type-check every body: populate `expr_types`, materialise stdlib fns.
     Full,
     /// Settle returns only : walk ONLY `needs_return_inference` fns to patch
     /// their return into `decl_types` ; skip every other body (its return is
     /// already final). Used by `settle_external_expr_bodied_returns` + the
     /// forward-reference throwaway re-walks. Valid ONLY where a following
-    /// `Full` walk resets/overwrites `expr_types` — see the `walk_fn_body`
+    /// `Full` walk resets/overwrites `expr_types`, see the `walk_fn_body`
     /// contract.
     ReturnsOnly,
 }
@@ -2213,7 +2213,7 @@ walk_bodies :: fn(
                 typed.enclosing_impl_params = MutableSet<i32> {}
             }
             is AST.EnumDecl      -> { check_variant_data(decl, typed, diags) }
-            // Body-less decl kinds — nothing to walk. Listed explicitly (not
+            // Body-less decl kinds: nothing to walk. Listed explicitly (not
             // `_`) so a new Decl variant trips T3013 and forces a decision.
             is AST.TraitDecl     -> {}
             is AST.TypeAliasDecl -> {}
@@ -2377,13 +2377,13 @@ walk_fn_body :: fn(
     mode: WalkMode,
 ) -> void {
     // SAM short-impl synthetics carry no real body to type ; skip them.
-    // Default-method clones are also `materialized` but DO need typing —
+    // Default-method clones are also `materialized` but DO need typing:
     // the resolver bound their `self`, and their body's expr_types feed
     // the lowerer (otherwise every node lands on `:?`).
     if fd.materialized && fd.sam_synthetic                 { return }
     // Return-only mode (the `settle_external_expr_bodied_returns` passes + the
     // import-loop / entry throwaway re-walks). Their sole job is to settle
-    // expression-bodied fn returns into `decl_types` — and only
+    // expression-bodied fn returns into `decl_types`, and only
     // `needs_return_inference` fns ever call `patch_fn_return_type`
     // (stmt.vader). Every other fn's return is already final from
     // `declare_module`, so walking its body re-does full inference for
@@ -2392,7 +2392,7 @@ walk_fn_body :: fn(
     // CONTRACT: use `.ReturnsOnly` ONLY from a walk whose `expr_types` is
     // reset or fully overwritten by a following `.Full` walk. The always-full
     // walk that follows (settle pass 0 / the real import walk) re-types every
-    // body, populates `expr_types`, and materialises stdlib fns — so skipping
+    // body, populates `expr_types`, and materialises stdlib fns, so skipping
     // bodies here is byte-identical. A non-reset return-only walk would
     // silently leave every skipped body at `:?` (lowerer → degraded bytecode,
     // no error).
@@ -2403,7 +2403,7 @@ walk_fn_body :: fn(
 
 // T3036 : report every trait member the impl doesn't provide, unless the trait
 // declares a default body for it. T3094 : report every impl member the trait does
-// not declare — an impl block adds no method of its own to the type. The SAM short
+// not declare: an impl block adds no method of its own to the type. The SAM short
 // form names none of its own ; R2016 reports a trait it cannot fill.
 check_impl_members :: fn(
     id: AST.ImplDecl,
@@ -2446,7 +2446,7 @@ check_impl_members :: fn(
     }
 }
 
-// T3095 — `member` must have its trait method's signature, as `trait_type` gives it
+// T3095: `member` must have its trait method's signature, as `trait_type` gives it
 // (its arguments, then the defaults) with `Self` read as `for_ty` : the same number of
 // parameters, each of the same type, and the same return type. The vtable slot and
 // the direct call both assume this shape. A generic trait method is held to its arity
@@ -2519,7 +2519,7 @@ impl_has_method :: fn(id: AST.ImplDecl, name: string) -> bool {
 }
 
 /// UFCS-bound method type : `fn(self, ...rest) -> R` becomes `fn(...rest) -> R`,
-/// since the receiver binds `self` at the call site. Always returns a type — a
+/// since the receiver binds `self` at the call site. Always returns a type: a
 /// member with no params, or whose first param isn't `self`, just keeps them all.
 ///
 /// @param impl_         the impl block, whose type parameters the signature
@@ -2561,11 +2561,11 @@ impl_member_quantifier :: fn(
 /// Pre-walk an impl method's signature so `self` resolves to the impl block's
 /// for-type and the rest of the params take their annotated types. Results land
 /// in `param_types` (per-param, span-keyed) and `impl_method_decl_types` (the
-/// whole `FnType`, keyed by the member's `name_span` — impl members are not in
+/// whole `FnType`, keyed by the member's `name_span`: impl members are not in
 /// `resolved.symbols`), so `infer_ident` / `check_fn_body` see concrete types.
 ///
 /// @param fd            the impl member.
-/// @param for_ty        the impl block's for-type — what `self` resolves to.
+/// @param for_ty        the impl block's for-type: what `self` resolves to.
 /// @param trait_method  the matching trait signature, when the impl is for a
 ///                      trait ; supplies the return type the member elides.
 declare_impl_method_for_trait :: fn(
@@ -2583,7 +2583,7 @@ declare_impl_method_for_trait :: fn(
     }
     ret :: declare_impl_return(fd, for_ty, trait_method, typed, diags)
     // Impl methods aren't in `resolved.symbols` (they're members of
-    // an ImplDecl, not top-level names) — use the dedicated span-keyed
+    // an ImplDecl, not top-level names): use the dedicated span-keyed
     // table.
     typed.impl_method_decl_types[fd.name_span.hash()] = mk_fn(params, ret)
 }
@@ -2622,8 +2622,8 @@ param_type :: fn(
         return TY_UNRESOLVED
     }
     // Substitute `Self` → `for_ty` so an explicit `Self`-typed param (e.g.
-    // `Comparable.compare(self, other: Self)`) records the concrete carrier
-    // — otherwise the impl method's type keeps `other: Self`, and a default-
+    // `Comparable.compare(self, other: Self)`) records the concrete carrier:
+    // otherwise the impl method's type keeps `other: Self`, and a default-
     // method clone calling it with its own `other` (already substituted to
     // `for_ty`) mismatches `expected Self, got <for_ty>`.
     return type_with_self(p.ty, for_ty, typed.resolved, diags)

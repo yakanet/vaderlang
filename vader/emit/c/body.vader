@@ -8,7 +8,7 @@
 //
 // The one thing worth knowing before picking a helper : every heap shape
 // collapses to `vader_box_t` on the C side and to `Ref` on the stack side, so
-// `c_type_for` / `val_type_of_bc_type` are lossy by design — reach for
+// `c_type_for` / `val_type_of_bc_type` are lossy by design: reach for
 // `struct_c_name` when you need the concrete `vader_struct_<name>_t`.
 
 module "vader/emit/c"
@@ -66,7 +66,7 @@ is_c_reserved :: fn(name: string) -> bool = name in C_RESERVED_WORDS
 // C string literal escaping
 // =========================================================================
 
-/// Quote-wrap `s` with C string-literal escapes — `\\`, `\"`, `\n`,
+/// Quote-wrap `s` with C string-literal escapes: `\\`, `\"`, `\n`,
 /// `\r`, `\t` for the printable specials, `\x<hh>` for everything
 /// outside printable ASCII. Lower-case hex digits.
 ///
@@ -82,7 +82,7 @@ is_c_reserved :: fn(name: string) -> bool = name in C_RESERVED_WORDS
 export c_string_lit :: fn(s: string) -> string {
     // Build the escaped bytes then intern ONCE. The per-byte
     // `StringBuilder.append_char` this replaced UTF-8-encoded + interned a fresh
-    // 1-char string per char — the 2nd-hottest `append_char` caller in c-emit.
+    // 1-char string per char: the 2nd-hottest `append_char` caller in c-emit.
     n :: s.byte_len()
     buf: u8[]: []
     buf.push('"')
@@ -104,7 +104,7 @@ export c_string_lit :: fn(s: string) -> string {
             buf.push('\\')
             buf.push('t')
         } else if b < 0x20 || b >= 0x7F {
-            // `\x<hh>` escape — two-digit lowercase hex.
+            // `\x<hh>` escape: two-digit lowercase hex.
             buf.push('\\')
             buf.push('x')
             buf.push(u8(hex_digit(u64(b) >> 4)))
@@ -161,7 +161,7 @@ export c_type_for_val_bare :: fn(v: ValType) -> string = match v {
     .Any -> "vader_box_t"
 }
 
-/// C expression unboxing `value` (a `vader_box_t`) to `target`'s storage —
+/// C expression unboxing `value` (a `vader_box_t`) to `target`'s storage:
 /// the per-class payload accessor (`.payload.i` for every integer / char,
 /// `.payload.f` for floats, `.payload.b` / `.payload.s` for bool / string).
 /// `null` / `any` pass through (already a box) ; `ref` takes the box's
@@ -202,7 +202,7 @@ payload_cast :: fn(type: string, box: CExpression, field: string) -> CExpression
     CParenthesized { .inner = cast(type, payload(box, field)) }
 
 /// C expression boxing `value` (a `val`-typed value) into a `vader_box_t`
-/// tagged `type_index` — the inverse of `unbox_expr`. Each width routes to
+/// tagged `type_index`: the inverse of `unbox_expr`. Each width routes to
 /// the matching `vader_box_<class>` runtime constructor (unsigned widths
 /// re-cast through the signed payload slot). `null` / `any` pass through
 /// (already boxed) ; a raw `ref` boxes via `vader_ref_box`, its tag read from
@@ -229,7 +229,7 @@ box_expr :: fn(value: CExpression, val: ValType, type_index: i32) -> CExpression
     .Ref                  -> ref_box(value)
 }
 
-/// `vader_ref_box(value)` — a raw concrete ref widened into a box, its tag
+/// `vader_ref_box(value)`: a raw concrete ref widened into a box, its tag
 /// recovered from the object header.
 ref_box :: fn(value: CExpression) -> CExpression = call("vader_ref_box", [value])
 
@@ -253,7 +253,7 @@ export class_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
             if t.val == val { return i32(i) }
         }
     }
-    // f32/f64 share the F64 box representation — an f32 value flows with class
+    // f32/f64 share the F64 box representation: an f32 value flows with class
     // F64 (there is no distinct F32 payload). If the exact class has no scalar
     // in the table (e.g. an `i32 | f32` union carries only the f32 row), fall back
     // to the OTHER float scalar so the box gets a real float tag rather than
@@ -270,7 +270,7 @@ export class_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
     return 0
 }
 
-/// Box `name` to a `vader_box_t` without an explicit target type-index — the
+/// Box `name` to a `vader_box_t` without an explicit target type-index: the
 /// tag is its stack class's own BcType index (`class_tag_of`). Used by
 /// `coerce_expr` when widening a primitive into a `ref` / `any` slot (fn-arg
 /// boxing, dispatcher result wrapping).
@@ -305,7 +305,7 @@ coerce_expr :: fn(types: BcType[], value: CExpression, from: ValType, to: ValTyp
         if from == .Any || from == .Null { return payload(value, "obj") }
         return value
     }
-    // Widen a raw concrete ref into a boxed slot — tag from the object header.
+    // Widen a raw concrete ref into a boxed slot: tag from the object header.
     if from == .Ref {
         if is_ref_val(to) { return ref_box(value) }
         return value
@@ -317,7 +317,7 @@ coerce_expr :: fn(types: BcType[], value: CExpression, from: ValType, to: ValTyp
     return scalar_cast(value, from, to)
 }
 
-/// `(to) (from) value` — convert through `from` first, as `emit_convert` does.
+/// `(to) (from) value`: convert through `from` first, as `emit_convert` does.
 /// A literal of `from`'s own class takes one cast : `(uint64_t) 0`, not
 /// `(uint64_t) (int64_t) INT64_C(0)` ; C converts the constant the same way,
 /// negative values included. A literal re-read as another class (an `i32`
@@ -334,8 +334,8 @@ scalar_cast :: fn(value: CExpression, from: ValType, to: ValType) -> CExpression
 }
 
 /// Coerce a binary / unary OPERAND to the op's class `to`. Only a boxed
-/// operand (an erased `any` / `ref` flowing into a primitive op) is converted
-/// — it is unboxed via `coerce_expr`. A primitively-typed operand is left
+/// operand (an erased `any` / `ref` flowing into a primitive op) is converted:
+/// it is unboxed via `coerce_expr`. A primitively-typed operand is left
 /// verbatim : the op's typed C operator drives any width / signedness
 /// conversion implicitly (and re-casting it would add noise without changing
 /// behaviour). Used by `push_binop` / `push_cmp` / `push_unop` / `push_eager`.
@@ -354,7 +354,7 @@ coerce_operand :: fn(types: BcType[], value: CExpression, from: ValType, to: Val
 // owns the concrete-heap (`.Ref` → `void*`) vs erased (`.Any` → `vader_box_t`)
 // partition and stays exhaustive over `BcType`, so deriving here keeps a single
 // source of truth (and can't drift from the GC's field bucketing, which reads
-// the same predicate — see `classify_struct_fields`).
+// the same predicate, see `classify_struct_fields`).
 export c_type_for :: fn(t: BcType) -> string = c_type_for_val_bare(val_type_of_bc_type(t))
 
 /// Stack-machine value class for a `BcType`.

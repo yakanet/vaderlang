@@ -1,4 +1,4 @@
-// R2030: every enum implements `Equals`, comparing by variant, with no impl —
+// R2030: every enum implements `Equals`, comparing by variant, with no impl,
 // so one written for an enum is a second impl for the same (type, trait).
 module "snippet"
 

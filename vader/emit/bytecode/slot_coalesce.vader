@@ -4,7 +4,7 @@
 // Runs AFTER propagate + peephole + drop_dead_stores so the per-slot
 // (set, get) gates that pass needs still fire on the original slot
 // identities. Two slots whose linear live ranges don't overlap AND
-// share a ValType collapse into the same physical slot — same-ValType
+// share a ValType collapse into the same physical slot: same-ValType
 // only, since the VM's slot-type invariants depend on the tag.
 //
 // Loops : a slot last-used at op N inside a loop body can still feed a
@@ -17,7 +17,7 @@ import "vader/core/bytecode"
 
 /// Rewrite `ArrayPush.cache_slot` through a slot renumbering, leaving every
 /// other op alone. The hint is a SLOT NUMBER, so every pass that renumbers slots
-/// has to carry it — `drop_dead_stores` and `slot_coalesce` are the two. A pass
+/// has to carry it: `drop_dead_stores` and `slot_coalesce` are the two. A pass
 /// that forgets leaves a stale number behind; the emitter checks the hint
 /// against the array it actually pops and declines to lift on a mismatch, so the
 /// cost of forgetting is a missed optimisation, not a miscompile.
@@ -32,7 +32,7 @@ export remap_push_cache_slot :: fn(op: Op, remap: i32[]) -> Op {
 }
 
 /// Per-slot live range over the body's linear PC order. `first = -1`
-/// means the slot was never referenced (defensive sentinel — every
+/// means the slot was never referenced (defensive sentinel: every
 /// surviving slot after drop_dead_stores should have a range).
 SlotRange :: struct {
     first: i32
@@ -50,7 +50,7 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
     body :: function.body
     body_len :: body.len()
 
-    // Pass 1 — per-slot first/last touch.
+    // Pass 1: per-slot first/last touch.
     ranges: SlotRange[]: []
     has_range: bool[]: []
     for s in 0..<total_slots {
@@ -70,7 +70,7 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
         }
     }
 
-    // Pass 1b — extend ranges through loop bodies. Iterate to fixpoint
+    // Pass 1b: extend ranges through loop bodies. Iterate to fixpoint
     // so nested / sibling loops settle.
     loops :: find_loop_ranges(body)
     if loops.len() > 0 {
@@ -80,14 +80,14 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
         }
     }
 
-    // Params live the whole call frame — pin so they never accept a
+    // Params live the whole call frame: pin so they never accept a
     // coalesced peer.
     for p in 0..<param_count {
         ranges[p] = SlotRange { .first = 0, .last = i32(body_len) }
         has_range[p] = true
     }
 
-    // Pass 2 — assign each non-param slot to a compatible physical
+    // Pass 2: assign each non-param slot to a compatible physical
     // slot. Same-ValType only ; first non-overlapping wins.
     new_locals: BcLocal[]: []
     remap: i32[]: []
@@ -150,7 +150,7 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
     }
     if identity { return function }
 
-    // Pass 3 — rewrite body slot refs.
+    // Pass 3: rewrite body slot refs.
     new_body: Op[]: []
     for j in 0..<body_len {
         op :: body[j]
@@ -164,7 +164,7 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
             }
         } else {
             // `slot_of` reports no slot for an `array.push`, but its cache hint
-            // names one — see the note in `drop_dead_stores`.
+            // names one, see the note in `drop_dead_stores`.
             new_body.push(remap_push_cache_slot(op, remap))
         }
     }
@@ -245,7 +245,7 @@ push_scope :: fn(kinds: string[], starts: i32[], sp: i64, kind: string, start_pc
 ///   local.get N ; local.set N  →  ε              (get pushes, set pops self)
 ///
 /// Without this the C backend emits `lN = lN;` (a `-Wself-assign`) and the VM
-/// runs a pointless get + self-store. Runs LAST, after `coalesce_slots` — the
+/// runs a pointless get + self-store. Runs LAST, after `coalesce_slots`: the
 /// pairs only exist post-coalesce. A pair is folded only when the SECOND op is
 /// not a branch target : a jump landing on a `tee` / `set` reaches it with a
 /// foreign stack top where the store is real, not a self-copy (same guard as
@@ -275,7 +275,7 @@ export strip_self_copies :: fn(function: BcFunction) -> BcPeepholeOut {
 
     // Identity fast-path : self-copies exist only where `coalesce_slots` merged a
     // move's endpoints, so most functions have none. Scan first ; with nothing to
-    // fold, return the original body / tables by reference — no rebuild, no remap.
+    // fold, return the original body / tables by reference: no rebuild, no remap.
     any_fold := false
     scan: i64 = 0
     for scan < n {
@@ -297,7 +297,7 @@ export strip_self_copies :: fn(function: BcFunction) -> BcPeepholeOut {
                 old_to_new[i] = i32(out.len())
                 out.push(op)
             } else {
-                // `local.set` : drop both — `get N` pushes, `set N` pops-stores self.
+                // `local.set` : drop both, `get N` pushes, `set N` pops-stores self.
                 old_to_new[i] = -1
             }
             old_to_new[i + 1] = -1

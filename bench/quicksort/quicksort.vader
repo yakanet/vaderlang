@@ -1,4 +1,4 @@
-/// In-place quicksort — array element get/set, three-way swaps, comparisons,
+/// In-place quicksort: array element get/set, three-way swaps, comparisons,
 /// and bounded recursion, all in the hot path. Hand-written (not the stdlib
 /// `sort`) and bit-identical across every language port, so this compares
 /// codegen for the same algorithm rather than library quality. Good coverage
@@ -6,9 +6,9 @@
 /// open-coded typed `a[i]` load / store.
 ///
 /// The input is the permutation `a[i] = (i * STRIDE) % N` (STRIDE coprime to
-/// N), so the sorted result is exactly [0, N) and the checksum — an
+/// N), so the sorted result is exactly [0, N) and the checksum (an
 /// order-sensitive 31-bit rolling hash, kept below 2^53 so no peer needs
-/// BigInt — validates that the sort actually ordered the data. A median-of-
+/// BigInt) validates that the sort actually ordered the data. A median-of-
 /// three pivot keeps the structured input off quicksort's O(n²) worst case ;
 /// recursing the smaller half bounds the stack to O(log N).
 ///

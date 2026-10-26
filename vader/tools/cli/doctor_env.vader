@@ -9,7 +9,7 @@
 // keeps the leading digits, drops the rest, and silently falls back to the
 // built-in default when nothing parses or the value is zero. So
 // `VADER_GC_OLD_MAX=512M` means 512 BYTES, not 512 MB, and nothing anywhere says
-// so — which is precisely the class of failure `doctor` exists for.
+// so, which is precisely the class of failure `doctor` exists for.
 //
 // Same module as `cmd_doctor.vader`: imports are file-scoped, declarations are not.
 
@@ -29,7 +29,7 @@ GC_BYTE_VARS: string[]: [
 // One environment toggle the runtime reads, and what being on does.
 //
 // A table rather than a check apiece: the rule for reading them is identical
-// (`vader_gc_env_bool` — on for any non-empty value not starting with `0`), and
+// (`vader_gc_env_bool`: on for any non-empty value not starting with `0`), and
 // only the consequence differs. The first pass had two of these in a loop and a
 // third written out longhand beside it, which is how the list came to be missing
 // five of them.
@@ -78,7 +78,7 @@ ENV_TOGGLES: EnvToggle[]: [
 ]
 
 // Every environment override in force, one check each. Unset variables produce
-// nothing — a report listing what is NOT set would bury what is.
+// nothing: a report listing what is NOT set would bury what is.
 check_environment :: fn() -> Check[] {
     out: Check[]: []
     for name in GC_BYTE_VARS {
@@ -125,7 +125,7 @@ check_environment :: fn() -> Check[] {
 }
 
 // `vader_gc_env_bool`: on for any non-empty value whose first byte is not `0`.
-// So `=0` is off, and `=false` is ON — which is worth reporting rather than
+// So `=0` is off, and `=false` is ON, which is worth reporting rather than
 // guessing at, and is why the detail echoes the value verbatim.
 is_toggle_on :: fn(raw: string) = raw != "" && !raw.starts_with("0")
 
@@ -172,7 +172,7 @@ gc_percent_check :: fn(raw: string) -> Check {
 }
 
 // `VADER_GC_YOUNG_RATIO` is read with `strtoul` and NOT range-checked, so a typo
-// reads as 0 — which turns adaptive young sizing off rather than being ignored.
+// reads as 0, which turns adaptive young sizing off rather than being ignored.
 gc_ratio_check :: fn(raw: string) -> Check {
     key :: env_check_name("VADER_GC_YOUNG_RATIO")
     n :: read_leading_number(raw)
@@ -199,7 +199,7 @@ LeadingNumber :: struct {
     /// How many leading digits were consumed. 0 means the value is not a number
     /// at all, and the runtime keeps its default.
     digits: i64
-    /// True when the digits ARE the whole string — false is the `512M` case,
+    /// True when the digits ARE the whole string: false is the `512M` case,
     /// where a suffix is silently dropped.
     whole:  bool
 }
@@ -254,7 +254,7 @@ import "std/testing"
 }
 
 @test test_gc_ratio_typo_reads_as_zero :: fn() -> void {
-    // `strtoul` returns 0 for a non-number, and 0 does not mean "default" here —
+    // `strtoul` returns 0 for a non-number, and 0 does not mean "default" here:
     // it turns the heuristic off.
     c :: gc_ratio_check("two")
     assert(c.status == .Warn, "a typo is worth reporting")

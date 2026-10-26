@@ -12,7 +12,7 @@
 // via the paired `pop_*` on exit.
 //
 // Reassignment invalidation : the push/pop stack alone is unsound once the
-// narrowed binding is written to — `x = <other variant>` must retire not
+// narrowed binding is written to: `x = <other variant>` must retire not
 // just the active entry but every still-stacked `prev` an enclosing `pop_*`
 // would later restore. Each slot therefore carries a *kill generation* : a
 // `NarrowSlot` records the generation at push time, an incompatible
@@ -38,7 +38,7 @@ AST :: import "toolchain/ast"
 /// One narrowing-table entry : the narrowed type plus the slot's kill
 /// generation captured at push time. `narrow_for_binding` /
 /// `narrow_for_field` ignore entries whose generation is older than the
-/// slot's current one — that is how a reassignment retires both the
+/// slot's current one: that is how a reassignment retires both the
 /// active narrowing and every stacked `prev` awaiting restore.
 export NarrowSlot :: struct {
     ty: Type
@@ -69,7 +69,7 @@ export NarrowState :: struct {
     /// `i32[] | null`.
     fields: MutableMap<string, NarrowSlot> = MutableMap<string, NarrowSlot> {}
 
-    /// Kill generation per binding slot — bumped by `invalidate_narrow_on_assign`
+    /// Kill generation per binding slot: bumped by `invalidate_narrow_on_assign`
     /// when a reassignment invalidates the binding's active narrowing. Entries
     /// pushed at an older generation are ignored by `narrow_for_binding`,
     /// including the stacked `prev` values a later `pop_narrow` would restore.
@@ -114,9 +114,9 @@ push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> NarrowSlo
 /// `narrow_for_binding` falls back to the binding's then-current static
 /// type. Removing (not overwriting with a captured `static_ty`) is what
 /// keeps narrowing scope-local : a stale type captured by an earlier
-/// walk — e.g. the premature imported-body walk in
+/// walk, e.g. the premature imported-body walk in
 /// `settle_external_expr_bodied_returns`, which runs before a module's
-/// imports are wired and so sees `?` for `m[k]`-bound locals — must not
+/// imports are wired and so sees `?` for `m[k]`-bound locals, must not
 /// outlive its scope and poison the authoritative re-walk.
 pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: NarrowSlot | null) -> void {
     if prev == null {
@@ -209,7 +209,7 @@ resolve_field_chain_static :: fn(
 
 /// Walk a FieldExpr down to its root `IdentExpr` and return the
 /// matching `chain_key`. Returns `""` when the root isn't a plain ident
-/// or it doesn't resolve to a Symbol — callers gate narrowing on the
+/// or it doesn't resolve to a Symbol: callers gate narrowing on the
 /// empty string sentinel.
 field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
     // Collect fields leaf-to-root, then reverse for chain_key.
@@ -278,12 +278,12 @@ narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type) -> Typ
 /// Retire flow narrowings made stale by `target = value`. Called from
 /// `check_assign` after the value expression is typed :
 ///
-///   - `x = v` — when `x` carries an active narrowing and `v`'s type no
+///   - `x = v`: when `x` carries an active narrowing and `v`'s type no
 ///     longer fits it, bump the binding's kill generation (retiring the
 ///     entry and every stacked `prev`). A compatible `v` (e.g. `x = 42`
 ///     inside an `x is i32` region) keeps the narrowing. Field chains
-///     rooted at `x` retire unconditionally — `x` now names another value.
-///   - `x.f = v` — same keep-if-compatible rule for the `x.f` chain slot ;
+///     rooted at `x` retire unconditionally: `x` now names another value.
+///   - `x.f = v`: same keep-if-compatible rule for the `x.f` chain slot ;
 ///     chains *deeper* than the written field (`x.f.g…`) retire
 ///     unconditionally, the slot now holds a fresh object.
 ///
@@ -302,7 +302,7 @@ invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed: Typed
         writes.push(DeferredWrite { .target = target, .value = value_ty })
     }
     // Fast path first : with no active narrowing there is nothing to
-    // retire, and this runs on every assignment in the program — skip
+    // retire, and this runs on every assignment in the program: skip
     // before any symbol lookup / key interpolation allocates.
     if target is AST.IdentExpr {
         if typed.narrow.bindings.is_empty() && typed.narrow.fields.is_empty() {
@@ -339,7 +339,7 @@ invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed: Typed
 
 // Bump the kill generation of every tracked field chain whose key starts
 // with `prefix` ("<sym_id>#" for a rebound root, "<chain_key>#" for a
-// rewritten intermediate field — the `#` matches `chain_key`'s segment
+// rewritten intermediate field: the `#` matches `chain_key`'s segment
 // separator). Only chains present in the table need a bump : a chain
 // absent here has no active region, hence no stacked `prev` a later pop
 // could restore.

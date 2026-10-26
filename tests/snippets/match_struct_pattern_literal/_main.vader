@@ -1,6 +1,6 @@
 // A literal field in a struct pattern constrains the arm.
 //
-// `is P { x: 10, name }` matches only a `P` whose `x` is 10 — the field test runs
+// `is P { x: 10, name }` matches only a `P` whose `x` is 10: the field test runs
 // after the type test, on the narrowed value, so on a union a field is only read
 // once the variant that carries it is confirmed.
 //

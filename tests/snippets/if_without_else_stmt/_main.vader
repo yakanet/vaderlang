@@ -4,7 +4,7 @@ import "std/io"
 
 // Regression: an `if cond { body }` without else used to lower to bytecode
 // `if <body's-result>` plus an `else; unreachable` synthesised by the
-// emitter — taking the false branch crashed at runtime. The body's trailing
+// emitter: taking the false branch crashed at runtime. The body's trailing
 // value is now discarded and the if has type `void`, so the false branch
 // becomes a plain fall-through. Repro extracted from the self-hosted
 // parser's `parse_enum_decl` (the `if parens.matched { ... }` block).

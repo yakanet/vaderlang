@@ -1,4 +1,4 @@
-# 0039 — A type parameter binds the rights its arguments all hold
+# 0039: A type parameter binds the rights its arguments all hold
 
 ## Status
 

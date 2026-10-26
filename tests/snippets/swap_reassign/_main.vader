@@ -5,7 +5,7 @@
 // be reordered. The move-forwarding pass used to rewrite the producer of a
 // single-use temp to write the Move's destination at the producer's
 // (earlier) position, clobbering a slot that an intervening assignment still
-// reads — turning `a = b ; b = a+b` into a doubling. `examples/fibonacci`
+// reads: turning `a = b ; b = a+b` into a doubling. `examples/fibonacci`
 // printed 2^49 instead of fib(50). Fixed in `vader/midir/optimise/cfg_dce.vader`
 // (`fold_moves_in_block` now also bails on an intervening READ of the
 // Move's destination).
@@ -23,7 +23,7 @@ main :: fn() -> i32 {
     b = t
     println("swap a=${a} b=${b}")            // expect a=7 b=3
 
-    // Fibonacci loop — `c :: a + b ; a = b ; b = c`.
+    // Fibonacci loop: `c :: a + b ; a = b ; b = c`.
     f0 := 0
     f1 := 1
     for i in 0..<10 {
@@ -43,7 +43,7 @@ main :: fn() -> i32 {
     z = keep
     println("rotate x=${x} y=${y} z=${z}")    // expect x=2 y=3 z=1
 
-    // 64-bit fibonacci — the original example used u64 ; guard the wide path.
+    // 64-bit fibonacci: the original example used u64 ; guard the wide path.
     g0: u64 = 0
     g1: u64 = 1
     for i in 0..<50 {

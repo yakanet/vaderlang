@@ -1,4 +1,4 @@
-// T3006: a bound's trait arguments count — `string[]` implements
+// T3006: a bound's trait arguments count, `string[]` implements
 // `Contains<string>`, not the `Contains<i32>` that `holds` asks for.
 module "snippet"
 

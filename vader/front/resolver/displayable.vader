@@ -19,7 +19,7 @@ AST :: import "toolchain/ast"
 DISPLAYABLE_FILE_PREFIX :: "<displayable>:"
 
 /// Return `program` with the `Display` impl of every enum it declares under
-/// `@displayable` appended — `program` itself when it declares none. Each
+/// `@displayable` appended: `program` itself when it declares none. Each
 /// variant renders as its own name.
 ///
 /// @param program  one parsed file, before node ids are assigned.
@@ -37,8 +37,8 @@ export with_displayable_impls :: fn(program: AST.Program) -> AST.Program {
     return AST.Program { ...program, .decls = program.decls + generated }
 }
 
-// The impl reports at the decorator — a conflict with a written impl, an
-// "implementations" lookup — since its own spans name no real file. It carries
+// The impl reports at the decorator: a conflict with a written impl, an
+// "implementations" lookup, since its own spans name no real file. It carries
 // the decorator too, which is how a conflict says where the impl came from.
 displayable_impl :: fn(e: AST.EnumDecl, decorator: AST.Decorator, file: string) -> AST.Decl {
     sb :: StringBuilder {}

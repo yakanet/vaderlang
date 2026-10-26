@@ -8,7 +8,7 @@ module "snippet"
 
 import "std/io"
 
-// Parks forever — keeps its parent suspended on it, so cancelling the parent
+// Parks forever: keeps its parent suspended on it, so cancelling the parent
 // exercises the recursive `awaited.cancel()`.
 Never :: struct {}
 Never implements Async<i32> {

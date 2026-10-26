@@ -10,7 +10,7 @@
 //
 // Out of scope : side effects, `if` / `match` in the body. The body must be a
 // single `return <expr>` statement or a trailing-expr block ; anything else
-// falls back to C4001. Recursion IS bounded — the caller's depth is carried into
+// falls back to C4001. Recursion IS bounded: the caller's depth is carried into
 // the callee context so the guard also covers cyclic comptime calls.
 
 module "vader/front/comptime"
@@ -120,7 +120,7 @@ evaluate_with_arguments :: fn(
     return evaluate_fn_body(fn_decl, call_context, span)
 }
 
-// True for the 10 integer primitive type names — the ones that appear as a
+// True for the 10 integer primitive type names: the ones that appear as a
 // cast callee (`i64(16)`) over an integer comptime value.
 is_primitive_int_name :: fn(name: string) -> bool = is_int_name(name)
 
@@ -139,7 +139,7 @@ evaluate_fn_body :: fn(
         }
         return vm_required(call_span, "CallExpr (block has statements before trailing)")
     }
-    // Block with statements only — accept a single `return <expr>`.
+    // Block with statements only: accept a single `return <expr>`.
     if body.stmts.len() == 1 {
         s :: body.stmts[0]
         if s is AST.ReturnStmt {

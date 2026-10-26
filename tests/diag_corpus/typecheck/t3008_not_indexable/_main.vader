@@ -1,4 +1,4 @@
-// Indexing an i32 — T3008.
+// Indexing an i32: T3008.
 module "snippet"
 
 main :: fn() -> i32 {

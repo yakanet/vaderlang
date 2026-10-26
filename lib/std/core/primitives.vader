@@ -3,7 +3,7 @@
 // Split out of core.vader so neither file outgrows the ~500-LoC budget. Carries
 // the Display / Equals / Hash / Comparable / Step / arithmetic impls for the
 // scalar types and `string`, plus the pure-Vader number formatters.
-// Part of `module "std/core"` (same folder) — joins the auto-imported prelude
+// Part of `module "std/core"` (same folder): joins the auto-imported prelude
 // and shares core.vader's trait declarations without an explicit import.
 
 module "std/core"
@@ -20,12 +20,12 @@ module "std/core"
 // flowing into a `string` slot (e.g. `print(value)`, `let s: string =
 // value`) routes through the blanket `T implements[T: Display] Into<string>`
 // declared above. `${x}` string interpolation routes every scalar primitive
-// through its `to_string` impl (below) — including `f32`/`f64`, which format
+// through its `to_string` impl (below), including `f32`/`f64`, which format
 // via the Ryu `format_f32`/`format_f64` shortest-float formatters.
 
 // Pure-Vader Display for the scalar primitives (the integers, bool, char,
 // string, f32 and f64). std/core cannot import std/string_builder / std/string
-// (import cycle — that's why std/numbers lives outside core), so every formatter
+// (import cycle: that's why std/numbers lives outside core), so every formatter
 // here sizes its result first, fills one `Buffer` and interns it once ; f32/f64
 // delegate to the Ryu formatters in dtoa.vader / f2s.vader, which render the
 // same way.
@@ -33,12 +33,12 @@ module "std/core"
 // Render a signed value working entirely in NON-POSITIVE space, because
 // `abs(i64 min)` overflows i64 (|i64 min| = i64 max + 1). So rather than negate
 // n into positive space and extract digits there, only POSITIVE inputs are
-// shifted negative (`if n > 0 { n = -n }` — always safe) ; i64 min, already
+// shifted negative (`if n > 0 { n = -n }`: always safe) ; i64 min, already
 // negative, is never negated. With n <= 0, `n % 10` (I64Mod, C-truncating) is a
 // non-positive remainder, so the actual digit is `-(n % 10)`, in 0..9.
 //
 // A first pass counts the digits so the second can fill a single right-sized
-// `Buffer` from the least-significant end and intern it — one allocation, no
+// `Buffer` from the least-significant end and intern it: one allocation, no
 // growable array and no reversal pass.
 format_signed :: fn(n: i64) -> string {
     if n == 0 { return "0" }
@@ -86,7 +86,7 @@ format_unsigned :: fn(n: u64) -> string {
 // ---- write-into-buffer formatters (the off-string interpolation / concat path)
 //
 // Each writes its value's bytes straight into a caller-owned `Buffer` at byte
-// offset `off` and returns the offset past the last byte — NO allocation, NO
+// offset `off` and returns the offset past the last byte: NO allocation, NO
 // intern. The `${}` / `+` lowering threads one Buffer + `off` through these, so a
 // `${int}` no longer mints a throwaway interned string (the `format_*` path) just
 // to copy its bytes into the result. Same count-then-fill digit shape as
@@ -101,7 +101,7 @@ export finish_buffer :: fn(self: Buffer, len: i64) -> string = self.intern_strin
 /// the interned atom. String-only: a `u8[]` uses `.len()` directly.
 @intrinsic export byte_len :: fn(s: string) -> i64
 
-/// The byte at index `i` of `s` — an `@intrinsic` header-free read straight off
+/// The byte at index `i` of `s`: an `@intrinsic` header-free read straight off
 /// the interned atom, no read-only `u8[]` view materialised: how code reads a
 /// string's bytes, the peer of `byte_len` for the `[i]` case.
 ///
@@ -183,7 +183,7 @@ export write_bool :: fn(self: Buffer, off: i64, b: bool) -> i64 {
     return self.write_string_at(off, "false")
 }
 
-/// Materialise a `string` from verbatim UTF-8 bytes — the canonical bytes→string
+/// Materialise a `string` from verbatim UTF-8 bytes: the canonical bytes→string
 /// primitive (inverse of `bytes`). Host intrinsic backed by `vader_string_as_string`
 /// (the runtime symbol kept its name) ; O(1) on a borrowed `bytes()` slice, O(n) on
 /// a packed array, no UTF-8 validation.
@@ -191,7 +191,7 @@ export write_bool :: fn(self: Buffer, off: i64, b: bool) -> i64 {
 /// @return    the string those bytes encode.
 @intrinsic export bytes_to_string :: fn(bs: u8[]) -> string
 
-/// Borrow the UTF-8 bytes of a string as a read-only `u8[]` view — the canonical
+/// Borrow the UTF-8 bytes of a string as a read-only `u8[]` view: the canonical
 /// string→bytes primitive, inverse of `bytes_to_string`. Host intrinsic backed
 /// by `vader_string_bytes_view` (no new runtime symbol) ; a zero-copy borrowed
 /// view of the interned bytes on native, read in place on the VM until a write
@@ -261,7 +261,7 @@ u64   implements Hash -> u64(self)
 char  implements Hash -> u64(self)
 
 // `string` reads the hash cached on its interned atom (computed once at
-// intern) — O(1), no per-call byte walk, no `bytes()` view allocation. Backed by
+// intern): O(1), no per-call byte walk, no `bytes()` view allocation. Backed by
 // `vader_string_hash` (vader.h); the host shims map the mangle. Content-based, so
 // map iteration order stays GC-stable.
 @intrinsic string implements Hash
@@ -270,10 +270,10 @@ char  implements Hash -> u64(self)
 //
 // Three-way `compare` for every integer width plus `char`, factored through the
 // shared `three_way` helper so the if-chain lives in ONE place. Floats are
-// excluded — IEEE-754's NaN breaks total ordering, so an `Ord`-style trait is the
+// excluded: IEEE-754's NaN breaks total ordering, so an `Ord`-style trait is the
 // right shape for f32/f64 and is deferred. Each `-> three_way(...)` is
 // single-expression, so the post-lowering inliner folds it back at every `compare`
-// site — DRY with no call overhead.
+// site: DRY with no call overhead.
 
 // Collapse the two primitive comparisons into a three-way result : -1 / 0 / +1.
 three_way :: fn(less: bool, greater: bool) -> i32 = if less { -1 } else if greater { 1 } else { 0 }
@@ -320,7 +320,7 @@ next_scalar :: fn(c: char) -> char {
 // ---- Numeric arithmetic ---------------------------------------------------
 //
 // Add/Sub/Mul/Div for every primitive numeric type. Makes `[T: Add]` and
-// friends usable on every numeric primitive — `5 + 7` and `(5).add(7)`
+// friends usable on every numeric primitive: `5 + 7` and `(5).add(7)`
 // share one path.
 
 @intrinsic i8 implements Add
@@ -403,10 +403,10 @@ f64 implements One -> 1.0
 //
 // `Add` is wired here in std/core (auto-imported) so `.add()` and the `Add`
 // bound work without `import "std/string"`. Its body interpolates the two
-// operands — which desugars to the Buffer-backed StringBuilder chain,
+// operands, which desugars to the Buffer-backed StringBuilder chain,
 // so no dedicated `StringConcat` op is needed. The `+` operator never reaches
-// this body : it is special-cased in the typechecker (`front/typecheck/binary.vader`
-// — `string + string -> string`) and lowered to the same StringBuilder chain
+// this body : it is special-cased in the typechecker (`front/typecheck/binary.vader`,
+// `string + string -> string`) and lowered to the same StringBuilder chain
 // directly (`lower/binary.vader`). `s[i]` and `s[lo..<hi]` are in
 // `utf8.vader`; strings are immutable, so there is no `IndexSet`. Number
 // formatting (`to_hex`, `to_bin`) lives in `std/numbers` so it can use

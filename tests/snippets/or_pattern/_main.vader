@@ -17,7 +17,7 @@ points :: fn(roll: i32) -> i32 = match roll {
 
 Shape :: i32 | string | bool
 
-// type or-pattern : `is A | B` (a union the `is` already accepts — no parens).
+// type or-pattern : `is A | B` (a union the `is` already accepts, no parens).
 kind :: fn(s: Shape) -> i32 = match s {
     is i32 | bool -> 1
     is string     -> 2

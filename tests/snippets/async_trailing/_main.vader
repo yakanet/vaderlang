@@ -1,5 +1,5 @@
-// Two ANF edge cases: an `await` as the trailing (implicit-return) expression —
-// must fold into the completion return — and two awaits in one expression,
+// Two ANF edge cases: an `await` as the trailing (implicit-return) expression
+// (must fold into the completion return) and two awaits in one expression,
 // hoisted left-to-right.
 module "snippet"
 
@@ -13,7 +13,7 @@ Ready<T> implements Async<T> {
 a :: fn() -> Async<i32> = Ready<i32> { .v = 3 }
 b :: fn() -> Async<i32> = Ready<i32> { .v = 4 }
 
-// `await a()` is the trailing expression — no `return` keyword.
+// `await a()` is the trailing expression: no `return` keyword.
 trailing :: fn() -> Async<i32> {
     await a()
 }

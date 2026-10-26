@@ -2,10 +2,10 @@
 // parameter as a call would pass it: prepared for the parameter's declared slot,
 // under the instance's substitution.
 //   - a source generator (a `yield` after its loop) whose `Iterator<i32>`
-//     parameter receives a raw array — wrapped as an iterator ;
+//     parameter receives a raw array: wrapped as an iterator ;
 //   - a combinator whose DATA parameter is an `Iterator<U>` fed a raw array, read
-//     through `next()` — wrapped the same way ;
-//   - a combinator whose DATA parameter is `i64 | null` fed an `i64` — stored in
+//     through `next()`: wrapped the same way ;
+//   - a combinator whose DATA parameter is `i64 | null` fed an `i64`: stored in
 //     the union slot the body narrows ;
 //   - a combinator declaring its type parameters `<U, T>`, out of the order its
 //     parameters bind them.

@@ -1,4 +1,4 @@
-# 0034 — A module const holds no level declared mutable
+# 0034: A module const holds no level declared mutable
 
 ## Status
 
@@ -48,7 +48,7 @@ Two remedies were measured on 2026-10-07, at `4f2dd6265`.
 ## Decision
 
 A module const whose type reaches, below its own level, a level that grants
-mutation is **T3096**, and so is an enum whose variant data does — that data is a
+mutation is **T3096**, and so is an enum whose variant data does: that data is a
 constant table every read shares.
 
 - **What counts as such a level:** a level marked `!`, or a trait value (it has no

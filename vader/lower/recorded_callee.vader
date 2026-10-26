@@ -290,7 +290,7 @@ leaves_unbound :: fn(declared: Symbol[], bindings: MutableMap<i32, Type>) -> boo
 
 // Bind each type parameter of the callee's signature `callee_type` that `bindings`
 // leaves unbound, by unifying its parameters with the types the call's arguments
-// take at this instance — a UFCS receiver first.
+// take at this instance: a UFCS receiver first.
 bind_at_instance :: fn(
     ctx: FnLowerCtx,
     call: CallExpr,

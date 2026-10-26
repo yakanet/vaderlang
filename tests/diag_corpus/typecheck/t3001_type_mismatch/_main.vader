@@ -1,4 +1,4 @@
-// Assigning a string to an i32 — T3001.
+// Assigning a string to an i32: T3001.
 module "snippet"
 
 main :: fn() -> i32 {

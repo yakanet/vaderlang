@@ -36,9 +36,9 @@ main :: fn() -> i32 {
     a :: N { .v = 10 }
     b :: N { .v = 5 }
     println("${a.twice(b)}")
-    // 30 — Rhs = Self = N
+    // 30: Rhs = Self = N
     t :: Tick { .c = 7 }
     println("${t.bumped()}")
-    // 14 — Step = i32 default
+    // 14: Step = i32 default
     return 0
 }

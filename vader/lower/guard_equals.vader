@@ -1,8 +1,8 @@
 // vader/lower/guard_equals: the `Equals` methods a vtable dispatches to.
 //
 // A virtual call picks its impl from the RECEIVER's tag alone, and hands the other
-// operand over unchecked. An erased `T: Equals` body — a `MutableMap<K, _>`,
-// `x in xs`, `assert_eq` — instantiated on a union reaches a `Point` receiver with a
+// operand over unchecked. An erased `T: Equals` body (a `MutableMap<K, _>`,
+// `x in xs`, `assert_eq`) instantiated on a union reaches a `Point` receiver with a
 // `Label` operand, and `Point.equals` would read the `Label` as a `Point`. So every
 // `Equals` vtable slot routes through a guard that answers for an operand of another
 // type before the impl ever sees it:
@@ -28,7 +28,7 @@ import "vader/core/types"
 import "vader/lower/ir"
 
 /// Route every `Equals` vtable slot whose receiver carries its own tag through a
-/// guard fn — see the file header. Runs before `collect_vtable_entries`, which then
+/// guard fn, see the file header. Runs before `collect_vtable_entries`, which then
 /// registers the guards in the slots their impls leave.
 ///
 /// @param project      the lowered project ; its modules gain the guard fns.

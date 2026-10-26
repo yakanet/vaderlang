@@ -1,4 +1,4 @@
-# 0083 — A narrowing changes no width
+# 0083: A narrowing changes no width
 
 ## Status
 

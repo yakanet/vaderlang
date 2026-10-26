@@ -4,7 +4,7 @@
 // the params-object readers every position-bearing request shares. The byte ↔
 // (line, character) conversion itself lives in `line_index.vader` : a `LineIndex`
 // counts `character` offsets in the encoding negotiated at `initialize`
-// (`general.positionEncodings`, LSP 3.17+ — see `lifecycle.vader`). `Span`→range
+// (`general.positionEncodings`, LSP 3.17+, see `lifecycle.vader`). `Span`→range
 // encoding therefore takes the span's own `LineIndex` so cross-file results
 // (goto-def / references) count in the right file's text.
 //
@@ -52,12 +52,12 @@ export span_contains :: fn(s: Span, line: i32, col: i32) -> bool {
 }
 
 /// True when `inner` sits entirely within `outer` by byte offset. Distinct from
-/// `span_contains` (a `(line, col)` point test) — this is span-in-span, used to
+/// `span_contains` (a `(line, col)` point test): this is span-in-span, used to
 /// enforce the LSP `selectionRange ⊆ range` contract in `documentSymbol`.
 export span_encloses :: fn(outer: Span, inner: Span) -> bool =
     inner.start.offset >= outer.start.offset && inner.end.offset <= outer.end.offset
 
-/// Coarse character extent of a span — `(lines << 16) | columns`. Used as a
+/// Coarse character extent of a span: `(lines << 16) | columns`. Used as a
 /// tie-breaker so the *smallest* node containing the cursor wins.
 export span_size :: fn(s: Span) -> u64 {
     line_extent :: u64(s.end.line - s.start.line)
@@ -81,7 +81,7 @@ export line_start_offset :: fn(source: string, pos: i64) -> i64 {
 
 // ---- JSON encoders --------------------------------------------------------
 
-/// `{ line, character }` — a single LSP `Position`.
+/// `{ line, character }`: a single LSP `Position`.
 export position_json :: fn(line: i32, character: i32) -> JsonValue {
     obj :: MutableMap<string, JsonValue> {}
     obj["line"]      = JsonNumber { .value = f64(line) }
@@ -89,7 +89,7 @@ export position_json :: fn(line: i32, character: i32) -> JsonValue {
     return JsonObject { .entries = obj }
 }
 
-/// `{ start, end }` — an LSP `Range` from a `SpanRange`.
+/// `{ start, end }`: an LSP `Range` from a `SpanRange`.
 export range_json :: fn(r: SpanRange) -> JsonValue {
     obj :: MutableMap<string, JsonValue> {}
     obj["start"] = position_json(r.start_line, r.start_character)
@@ -97,7 +97,7 @@ export range_json :: fn(r: SpanRange) -> JsonValue {
     return JsonObject { .entries = obj }
 }
 
-/// `{ uri, range }` — an LSP `Location`.
+/// `{ uri, range }`: an LSP `Location`.
 export location_json :: fn(uri: string, range: SpanRange) -> JsonValue {
     obj :: MutableMap<string, JsonValue> {}
     obj["uri"]   = JsonString { .value = uri }
@@ -165,7 +165,7 @@ export position_character :: fn(params: JsonValue) -> i32 {
     return get_number(pos, "character")
 }
 
-/// `params.position.<key>` as an `i32` — generic reader for callers that
+/// `params.position.<key>` as an `i32`: generic reader for callers that
 /// pull `line` / `character` by name.
 export cursor_field :: fn(params: JsonValue, key: string) -> i32 {
     pos :: get_field(params, "position")

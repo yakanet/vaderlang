@@ -55,7 +55,7 @@ export is_assignable :: fn(from: Type, to: Type) -> bool {
 
 /// The widening every variant falls through to when its own dispatch found
 /// nothing : `to is Union`, walked element-wise. A `to` that is a TRAIT is not
-/// handled — see `is_assignable`'s note on why that answer lives elsewhere.
+/// handled, see `is_assignable`'s note on why that answer lives elsewhere.
 check_common :: fn(from: Type, to: Type) -> bool {
     match to {
         is UnionType -> {
@@ -238,7 +238,7 @@ fn_param_compatible :: fn(a: Type, b: Type) -> bool {
 ///
 /// Invariance (bidirectional `fn_param_compatible`) is the sound default until a
 /// declaration-site variance model exists : covariance is unsound for a *mutable*
-/// generic container — `MutableMap<i32, i32>` → `MutableMap<i32, i32 | string>`
+/// generic container: `MutableMap<i32, i32>` → `MutableMap<i32, i32 | string>`
 /// would let a write through the widened alias corrupt the shared `i32` backing,
 /// the exact reference-aliasing hole `is_assignable_array` closes for an array
 /// element. Unresolved args stay wildcards (true both ways in
@@ -310,7 +310,7 @@ export default_free_members :: fn(t: Type) -> Type {
 
 /// Bidirectional narrowing : when a Free* literal flows into a slot that
 /// wants a concrete numeric of the matching family, fold the literal to
-/// the concrete primitive — into a union, to the member it settles on
+/// the concrete primitive: into a union, to the member it settles on
 /// (`union_literal_member`). Used by every check_expr-style call site.
 ///
 /// @param got       the type the expression has.
@@ -328,7 +328,7 @@ export narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
 
 /// The member of `u` a free literal of kind `got` settles on : its family's
 /// default (`i32`, `f64`, `char`) when the union has it, else its only member of
-/// that family — `5` into `u8 | string` is a `u8`. `null` when `got` is not a
+/// that family: `5` into `u8 | string` is a `u8`. `null` when `got` is not a
 /// free literal, or the union has none, or several with no default among them
 /// (T3089 at the literal).
 ///
@@ -418,7 +418,7 @@ test_assignable_into_union :: fn() -> void {
 
 @test
 test_array_element_invariant :: fn() -> void {
-    // Covariance of an array is unsound (reference aliasing) — reject both
+    // Covariance of an array is unsound (reference aliasing): reject both
     // directions ; only an exact element type flows.
     i32_arr:    Type: mk_array(TY_I32)
     union_arr:  Type: mk_array(mk_union([TY_I32, TY_STRING]))

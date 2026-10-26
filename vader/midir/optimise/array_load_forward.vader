@@ -1,10 +1,10 @@
 // vader/midir/optimise/array_load_forward: redundant array-load elimination (intra-block).
 //
 // Within a basic block, a second read `a[i]` of a slot whose value is already
-// known — from a prior read, or the `a[i] = v` store that just wrote it — is
+// known (from a prior read, or the `a[i] = v` store that just wrote it) is
 // rewritten to an `InstrMove` from that value. This drops the per-`ArrayGet`
 // bounds check and load the C backend re-emits otherwise
-// (`emit/c/walker.vader::emit_slot_array_local`) — the dominant cost in tight
+// (`emit/c/walker.vader::emit_slot_array_local`): the dominant cost in tight
 // `a[i] = a[i] + 1` loops.
 //
 // Conservative, intra-block only :
@@ -18,7 +18,7 @@
 //     deferred blocks / push / field-set, via `instruction_has_side_effect`)
 //     may write an aliased array, so it clears.
 //   - redefining the array, index, or value local of a tracked slot
-//     invalidates it (locals are mutable pre-SSA — the value local can be
+//     invalidates it (locals are mutable pre-SSA: the value local can be
 //     reassigned between the store and a later load).
 
 module "vader/midir/optimise"
@@ -35,8 +35,8 @@ SlotVal :: struct {
 }
 
 /// Forward redundant array loads across every block of every function. The
-/// transform is value-preserving — a `Move` from the known value replaces a
-/// re-read of the same slot — so it needs no diagnostics.
+/// transform is value-preserving: a `Move` from the known value replaces a
+/// re-read of the same slot, so it needs no diagnostics.
 ///
 /// @param p  the CFG project (post escape-annotation).
 /// @return   a fresh project with redundant `ArrayGet`s rewritten to `Move`.
@@ -63,7 +63,7 @@ forward_block :: fn(instrs: Instruction[]) -> Instruction[] {
     out: Instruction[]: [] * instrs.len()
     for ins in instrs {
         // A redefinition of any tracked slot's array, index, or value local
-        // invalidates that slot — the name now points elsewhere, or the value
+        // invalidates that slot: the name now points elsewhere, or the value
         // no longer matches what the slot holds. Skip the filter (and its
         // allocation) on the common path where nothing is tracked.
         d :: dst_of(ins)

@@ -1,6 +1,6 @@
 // Go peer of bench/arr_map.vader. Uses a range-over-func iterator (Go 1.23+
-// `iter.Seq`) — the language's lazy map abstraction, one element at a time
-// through the yield closure — mirroring Vader's fused `a.map(square)`.
+// `iter.Seq`): the language's lazy map abstraction, one element at a time
+// through the yield closure: mirroring Vader's fused `a.map(square)`.
 
 package main
 

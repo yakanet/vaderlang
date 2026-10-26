@@ -1,7 +1,7 @@
 module "snippet"
 
 // Two distinct types over one backing do not combine : `Meters` and `Seconds`
-// share `i64`, and mixing them is what a distinct type is for — under `==`,
+// share `i64`, and mixing them is what a distinct type is for: under `==`,
 // ordering, arithmetic and bitwise operators alike. Each still combines with
 // itself and with `i64`.
 Meters :: i64

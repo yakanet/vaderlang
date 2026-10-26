@@ -34,7 +34,7 @@ TransportError implements Error {
 export read_frame :: fn() -> string | TransportError {
     content_length: i64 = -1
     // Read header lines until the blank `\r\n`. Each line ends with
-    // `\r\n` so we read 1 byte at a time looking for the terminator —
+    // `\r\n` so we read 1 byte at a time looking for the terminator:
     // header lines are short (typically < 100 bytes) so the per-byte
     // overhead is negligible compared to the body payload.
     line_buf := StringBuilder {}
@@ -67,7 +67,7 @@ export read_frame :: fn() -> string | TransportError {
                                     }
                                 }
                                 // Other headers (`Content-Type`, etc.) are
-                                // silently ignored — LSP allows them but
+                                // silently ignored: LSP allows them but
                                 // doesn't require them.
                                 line_buf = StringBuilder {}
                             }
@@ -94,7 +94,7 @@ export read_frame :: fn() -> string | TransportError {
 /// (`0` = non-blocking probe). The event loop uses it twice : `poll_pending(0)`
 /// to drain a burst of queued frames, and `poll_pending(DEBOUNCE_MS)` to wait
 /// out a quiescent edit window before the debounced typecheck. Requires
-/// A `true` only guarantees the first byte is ready —
+/// A `true` only guarantees the first byte is ready:
 /// `read_frame` may still block briefly to finish a partially-arrived frame,
 /// which is fine (the remainder is already in flight).
 /// @param timeout_ms  max wait in milliseconds ; `0` polls without blocking.

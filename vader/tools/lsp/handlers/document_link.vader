@@ -8,7 +8,7 @@
 //
 // The link range covers the path text *between* the quotes. It is recovered by
 // re-parsing the document and scanning each `import` decl's source span for the
-// opening quote — `ImportDecl` carries the path text + statement span but not a
+// opening quote: `ImportDecl` carries the path text + statement span but not a
 // dedicated path-string span.
 
 module "vader/tools/lsp/handlers"
@@ -71,7 +71,7 @@ import_link :: fn(
 // after the decl start, and the interior runs `path.byte_len()` bytes past it.
 // Module paths are ASCII, so the byte distance from the decl start equals the
 // column distance (no multi-byte codepoints before the path). Returns null when
-// no quote is found before the line ends (malformed import — parser recovery).
+// no quote is found before the line ends (malformed import: parser recovery).
 path_string_range :: fn(imp: ImportDecl, source: string, li: LineIndex) -> SpanRange | null {
     n :: source.byte_len()
     start_off :: imp.span.start.offset
@@ -132,7 +132,7 @@ test_path_range_covers_quoted_path :: fn() -> void {
 
 @test
 test_path_range_handles_namespace_import :: fn() -> void {
-    // `Name :: import "path"` — the path quote is still the first `"` on the
+    // `Name :: import "path"`: the path quote is still the first `"` on the
     // line, so the range anchors past `Lo :: import "`.
     src :: "module \"t\"\nLo :: import \"vader/lower\"\n"
     parsed :: parse_source(src, "t.vader")

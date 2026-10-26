@@ -1,4 +1,4 @@
-/// StringBuilder throughput — appends a fixed fragment N times then
+/// StringBuilder throughput: appends a fixed fragment N times then
 /// finalises to a flat string. Pure-builder workload : measures growth
 /// pattern + final flush without confounding it with per-iter dynamic
 /// allocations (no interpolation in the hot loop).

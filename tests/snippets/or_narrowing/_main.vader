@@ -2,7 +2,7 @@
 //
 // The true branch sees the UNION of the operands' narrowings, but only when every
 // operand tests the same binding. The false branch sees each tested binding minus
-// what its operands matched — every operand was false to get there.
+// what its operands matched: every operand was false to get there.
 
 module "snippet"
 

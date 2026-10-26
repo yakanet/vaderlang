@@ -6,7 +6,7 @@ main :: fn() -> i32 {
     a := 0
     b := ""
     // A tuple's arity is known, so a pattern of a different length is refused.
-    // An ARRAY source is not checked — its length is dynamic (SPEC §Array sources).
+    // An ARRAY source is not checked: its length is dynamic (SPEC §Array sources).
     [a, b] = triple()
     return 0
 }

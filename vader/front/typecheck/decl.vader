@@ -32,7 +32,7 @@ import "vader/core/types"
 import "toolchain/span"
 
 /// Walk every top-level decl in `program.decls` and mint its `Type` into
-/// `typed.decl_types`. The pass is single-shot — re-running it is
+/// `typed.decl_types`. The pass is single-shot: re-running it is
 /// idempotent if `decl_types` is cleared first.
 declare_module :: fn(
     program_decls: AST.Decl[],
@@ -232,13 +232,13 @@ declare_fn :: fn(
     // A bodyless top-level free fn becomes a host import (`lower/decl.vader`
     // returns a null body → `call.import`). Host-ness must be *declared* :
     // `@intrinsic` for a stdlib host binding, `@extern` for a foreign C symbol.
-    // Without either, the import is unbound and traps at runtime — so require
+    // Without either, the import is unbound and traps at runtime, so require
     // the annotation here. Impl members (`impl_is_intrinsic`) and trait-method
     // signatures go through other declarers and never reach `declare_fn`.
     //
     // A `@target` declaration is exempt: bodyless here means the group had no
     // body for the target being built, which the resolver already reported as
-    // R2041 — naming the target and what the group DOES cover. Emitting this too
+    // R2041: naming the target and what the group DOES cover. Emitting this too
     // would answer the same question a second time with the opposite advice
     // ("make it `@intrinsic`"), which is the wrong fix for a coverage hole.
     if decl.body == null && !has_intrinsic_decorator(decl.decorators) && !has_extern_decorator(
@@ -315,7 +315,7 @@ has_target_decorator :: fn(decorators: AST.Decorator[]) -> bool {
 // Fire T3052 when a private user type leaks through the public interface of
 // `owner_name`. `role` completes the sentence : "returns", "takes a parameter
 // of type", "exposes a field of type". Mirrors Rust's E0446
-// (`private_interfaces`) — a caller in another module can neither name such a
+// (`private_interfaces`): a caller in another module can neither name such a
 // type nor construct a value of it, so the export is unusable across the
 // boundary. No-op when the interface names only exported types.
 report_private_leak :: fn(
@@ -335,7 +335,7 @@ report_private_leak :: fn(
     )
 }
 
-// Check both halves of an exported fn's signature — its return type and every
+// Check both halves of an exported fn's signature: its return type and every
 // parameter type. Params cover `@extern` / `@intrinsic` host bindings too : a
 // public foreign ABI over a private type is the same leak. `params[i]`
 // corresponds to `decl.params[i]` (built in the same order by `declare_fn`).
@@ -482,7 +482,7 @@ param_has_c_pointer :: fn(pm: AST.FnParam) -> bool = AST.decorators_have(pm.deco
 /// `@c_pointer`, `@c_out` and `@c_type` are the only ones a parameter may carry,
 /// and only on an `@extern` declaration. `@c_pointer` says the foreign callee
 /// receives the parameter's ADDRESS rather than its value ; `@c_out` says C writes
-/// through the parameter — without it, C only reads ; `@c_type` names the C type
+/// through the parameter: without it, C only reads ; `@c_type` names the C type
 /// the callee declares for it. None means anything for a fn Vader compiles a body
 /// for.
 ///
@@ -577,7 +577,7 @@ is_c_integer :: fn(t: Type) -> bool = t is UnresolvedType || is_machine_integer(
 /// The shim copies a mirror one field at a time into a real C struct, so every
 /// field needs a C representation of its own: an unmarshalled scalar, an enum
 /// (which crosses as its repr), or another mirror. Nothing else has one, and
-/// nothing downstream notices — a `string` field hands C the atom ID and an
+/// nothing downstream notices: a `string` field hands C the atom ID and an
 /// array field the Vader array header, both through a cast `cc` accepts. The
 /// value is wrong at run time and no build ever says so, which is why this is
 /// a typecheck gate rather than something left to the C compiler.
@@ -588,7 +588,7 @@ is_c_integer :: fn(t: Type) -> bool = t is UnresolvedType || is_machine_integer(
 ///
 /// @param t      the mirror type reached from the parameter; a non-struct is a
 ///               no-op, so callers need not narrow first.
-/// @param span   the parameter — where the struct crosses.
+/// @param span   the parameter, where the struct crosses.
 /// @param typed  the module, for `struct_decls` and `struct_field_types`.
 /// @param seen   struct symbol ids already walked, so a cycle terminates.
 /// @param diags  accumulator for T3050.
@@ -775,9 +775,9 @@ validate_extern :: fn(
         // `@c_pointer` spills the argument to a stack temporary and hands over
         // its address. That only means something for a value C can receive a
         // pointer TO: a scalar, or a mirror (handled above). On anything else
-        // the shim takes the address of the Vader representation — a `string`
+        // the shim takes the address of the Vader representation, a `string`
         // parameter would pass a `const char**` aimed at an atom ID, an array
-        // one a pointer to the array header — and the `(void*)` cast the shim
+        // one a pointer to the array header, and the `(void*)` cast the shim
         // emits hides the mismatch from `cc`.
         if param_has_c_pointer(decl.params[i]) && !is_unmarshalled_scalar(pt, false) {
             diags.push(
@@ -916,7 +916,7 @@ extern_decorator_args :: fn(decs: AST.Decorator[]) -> AST.Expr[] {
 /// C-ABI type whitelist. Primitives and `string`; a distinct type over one; two
 /// union shapes (a nullable foreign pointer anywhere, `string | null` as a
 /// result); a primitive-element array as an argument; and a FUNCTION TYPE as an
-/// argument — a callback. `void` is allowed in return position only, `null`
+/// argument: a callback. `void` is allowed in return position only, `null`
 /// nowhere. Each arm below states its own reason.
 is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
     // @partial: primitives (`string` included, itself a PrimitiveType) and
@@ -933,7 +933,7 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
         is DistinctType  -> {
             // A newtype is zero-cost and stripped at lowering, so its ABI is
             // its backing's. `Handle :: CPointer` is the recommended idiom for
-            // a foreign handle — it must cross.
+            // a foreign handle: it must cross.
             return is_extern_abi_type(t.backing, is_return)
         }
         is UnionType          -> {
@@ -946,7 +946,7 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
         is ArrayType     -> {
             // A borrowed array crosses as ONE bare pointer; a length, when the
             // callee wants one, is a parameter of its own. That shape only
-            // exists on the way IN — C cannot fabricate a `vader_array_t`, so
+            // exists on the way IN: C cannot fabricate a `vader_array_t`, so
             // an array return stays rejected.
             if is_return {
                 return false
@@ -956,7 +956,7 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
         is FnType        -> {
             // A CALLBACK, in parameter position only. What crosses is the
             // function's ADDRESS (`core/bytecode/op::FnAddr`), so every part of its
-            // signature has to cross too — C will call it with those very types.
+            // signature has to cross too: C will call it with those very types.
             //
             // A return is rejected: a C function handing back code Vader would
             // call has no representation here.
@@ -964,8 +964,8 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
                 return false
             }
             // A callback's own signature is NARROWER than an extern's. An
-            // `@extern` parameter gets a shim that marshals — `string` becomes a
-            // `const char*`, an array becomes its data pointer — but C calls a
+            // `@extern` parameter gets a shim that marshals (`string` becomes a
+            // `const char*`, an array becomes its data pointer) but C calls a
             // callback DIRECTLY, with no shim anywhere. So only the types that
             // need no marshalling may appear in one; a `string` parameter would
             // hand the Vader body a `const char*` where it expects an atom id.
@@ -987,7 +987,7 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
 ///
 /// The subset a CALLBACK signature may use: C calls it directly, so every type
 /// in it has to have the same representation on both sides. `string` and arrays
-/// are excluded — an `@extern` parameter gets them through a shim that converts,
+/// are excluded: an `@extern` parameter gets them through a shim that converts,
 /// and a callback has no shim.
 ///
 /// @param t          the candidate type.
@@ -1011,7 +1011,7 @@ is_unmarshalled_scalar :: fn(t: Type, is_return: bool) -> bool {
     return true
 }
 
-/// True when `t` is `string | null` — the shape a C function returning a
+/// True when `t` is `string | null`: the shape a C function returning a
 /// `char*` needs to say "absent" rather than "empty".
 ///
 /// @param t  the candidate type.
@@ -1035,7 +1035,7 @@ is_nullable_string :: fn(t: Type) -> bool {
     return has_null && has_str
 }
 
-/// True when `t` is exactly `CPointer | null` — the ABI shape of a nullable
+/// True when `t` is exactly `CPointer | null`: the ABI shape of a nullable
 /// foreign pointer, and the only union that crosses the C boundary.
 ///
 /// The union keeps its ordinary in-Vader representation (a boxed `Any`); the
@@ -1054,7 +1054,7 @@ is_nullable_pointer :: fn(t: Type) -> bool {
         has_ptr := false
         for v in t.variants {
             // `Handle | null` with `Handle :: CPointer` is the same ABI shape as
-            // `CPointer | null` — see through the newtype.
+            // `CPointer | null`, see through the newtype.
             bare :: strip_distinct(v)
             if bare is PrimitiveType {
                 if bare.name == "null" {
@@ -1070,7 +1070,7 @@ is_nullable_pointer :: fn(t: Type) -> bool {
     return false
 }
 
-/// True when `t` may be the element of an `@extern` array parameter — a
+/// True when `t` may be the element of an `@extern` array parameter: a
 /// numeric / `bool` / `char` primitive, i.e. one whose array storage is dense
 /// and whose slots the GC never scans.
 ///
@@ -1092,7 +1092,7 @@ is_extern_abi_element :: fn(t: Type) -> bool {
 }
 
 // `main` must return i32 and either take no params or a single
-// `[string]` arg — emitters wire the entry point assuming both.
+// `[string]` arg: emitters wire the entry point assuming both.
 check_main_signature :: fn(
     decl: AST.FnDecl,
     params: Type[],
@@ -1217,7 +1217,7 @@ declare_const :: fn(
 ///
 /// @param sym       the declared name's symbol.
 /// @param alias_ty  the RHS, resolved.
-/// @param decl      the declaration — its RHS as written, and its decorators.
+/// @param decl      the declaration: its RHS as written, and its decorators.
 /// @return          the distinct type, or `alias_ty` itself for a transparent alias.
 alias_for :: fn(sym: Symbol, alias_ty: Type, decl: AST.ConstDecl) -> Type {
     if distinct_backing(alias_ty, decl.decorators) {
@@ -1247,8 +1247,8 @@ named_range :: fn(sym: Symbol, range: RangeType, decl: AST.ConstDecl) -> Type {
 /// than a transparent alias : iff the RHS is a real primitive (not void/null)
 /// AND the decl is not `@comptime`. `@comptime Name :: <type>` is the existing
 /// compile-time TYPE ALIAS (resolves through `constTypeAliases`, e.g. used by
-/// `@size_of`) — it stays transparent, never a newtype. Shared by the three
-/// `alias_types` writers — `declare_const` (here), `register_alias_const`
+/// `@size_of`): it stays transparent, never a newtype. Shared by the three
+/// `alias_types` writers: `declare_const` (here), `register_alias_const`
 /// (orchestrate.vader) and `check_const_value` (const_walk.vader).
 distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
     if AST.decorators_have(decorators, "comptime") {
@@ -1350,7 +1350,7 @@ classify_enum_header :: fn(decl: AST.EnumDecl, resolved: ResolvedModule, diags: 
     return EnumHeader { .width = enum_width(width, decl.header[1], diags), .data = data }
 }
 
-// The integer a width names — directly, or through a distinct over one.
+// The integer a width names: directly, or through a distinct over one.
 enum_width :: fn(ty: Type, written: AST.TypeExpr, diags: Diagnostic[]) -> MachineInteger {
     found :: machine_integer_named(primitive_name(strip_distinct(ty)))
     if found != null {

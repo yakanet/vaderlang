@@ -30,7 +30,7 @@ ComptimeOrder :: struct {
 /// same module ; emits C4009 with the cycle path when DFS revisits a
 /// grey node.
 /// @param program_decls  top-level decls of the module.
-/// @param typed          owning typed program — used to resolve idents.
+/// @param typed          owning typed program: used to resolve idents.
 /// @return               `ComptimeOrder` with sorted entries + any
 ///                       cycle diagnostics.
 sort_comptime_decls :: fn(
@@ -109,7 +109,7 @@ populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
 
 // DFS topological sort with three-colour marking. Grey hit → cycle.
 // The path is tracked by a fixed-capacity `path` array + a `depth`
-// cursor — recursion-safe "push / pop" without an `Array.truncate` helper
+// cursor: recursion-safe "push / pop" without an `Array.truncate` helper
 // (stdlib lacks one). `path[0..depth]` is the active DFS stack at any
 // point ; positions beyond `depth` are stale but never read.
 topo_sort :: fn(nodes: Nodes) -> ComptimeOrder {
@@ -123,7 +123,7 @@ topo_sort :: fn(nodes: Nodes) -> ComptimeOrder {
     return ComptimeOrder { .order = order, .cycle_diags = diags }
 }
 
-// `depth` is the logical top of `path` — index where the current
+// `depth` is the logical top of `path`: index where the current
 // frame's id lives once written. `path` is grown on first use and
 // reused across siblings. Colour : 0 white, 1 grey, 2 black.
 visit :: fn(
@@ -160,7 +160,7 @@ emit_cycle :: fn(
     cyclic: MutableMap<i64, bool>, diags: Diagnostic[],
 ) -> void {
     // `path[0..depth]` is the current DFS path. Find `id`'s first
-    // occurrence in that prefix — every node from there onward is part
+    // occurrence in that prefix: every node from there onward is part
     // of the cycle, plus `id` itself closing the loop.
     start: i64 = depth
     for i in 0..<depth {
@@ -267,7 +267,7 @@ collect_expr_deps :: fn(
         is AST.NullCoalesceExpr -> {
             collect_expr_deps(e.left, typed, nodes, seen, record)
             // A `return` / `break` / `continue` fallback carries no expression to
-            // descend into — `coalesce_fallback_expr` yields null for those.
+            // descend into: `coalesce_fallback_expr` yields null for those.
             fallback :: AST.coalesce_fallback_expr(e.fallback)
             if fallback != null {
                 collect_expr_deps(fallback, typed, nodes, seen, record)
@@ -316,7 +316,7 @@ collect_stmt_deps :: fn(
             match while_for :: s.form {
                 is AST.WhileFor -> { collect_expr_deps(while_for.cond, typed, nodes, seen, record) }
                 is AST.InFor -> { collect_expr_deps(while_for.iter, typed, nodes, seen, record) }
-                // `for { ... }` — no header expression, only the body below.
+                // `for { ... }`: no header expression, only the body below.
                 is AST.InfiniteFor -> {}
             }
             collect_block_deps(s.body, typed, nodes, seen, record)

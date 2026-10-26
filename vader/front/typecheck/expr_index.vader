@@ -49,8 +49,8 @@ infer_index :: fn(e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) ->
         return picked.return_type
     }
     route :: index_route(target, index_trait, typed)
-    // Arrays — and array-backed distinct newtypes (`BigInt :: u32[]`) with no `Index`
-    // of their own — index by element.
+    // Arrays, and array-backed distinct newtypes (`BigInt :: u32[]`) with no `Index`
+    // of their own: index by element.
     if route == .Array && arr_view != null {
         record_site(typed, e, .IndexRead, BUILTIN_CALLEE)
         if !is_integer_index(index) {
@@ -95,8 +95,8 @@ reject_index_key :: fn(
 }
 
 /// The `trait_key` arguments (`Index<I, T>`, `IndexSet<I, V>`) of a receiver that
-/// dispatches `x[i]` through the trait at run time — a type parameter bounded by it,
-/// a value of the trait itself, a union every variant of which implements it —
+/// dispatches `x[i]` through the trait at run time (a type parameter bounded by it,
+/// a value of the trait itself, a union every variant of which implements it)
 /// exactly like the method form (`c.at(i)`, `c.set_at(i, v)`). The trait's member
 /// is filed as the site, so the lowering emits a virtual call on the receiver. Null
 /// for any other receiver.
@@ -162,7 +162,7 @@ trait_dispatch_args :: fn(target: Type, trait_key: string, typed: TypedProgram) 
 
 /// Where `x[i]` goes for one of `Index` / `IndexSet`.
 export IndexRoute :: enum {
-    /// Through the type's own impl of the trait — a struct, a distinct, `string`.
+    /// Through the type's own impl of the trait: a struct, a distinct, `string`.
     Impl
     /// Into an array, or the array backing a distinct with no impl of its own.
     Array
@@ -329,8 +329,8 @@ unpicked_index_error :: fn(
 index_set_value_expected :: fn(target: Type, typed: TypedProgram) -> Type | null =
     index_param(target, typed.impl_tables.index_set_value_types, typed)
 
-/// What `receiver[k] = v` stores — an array's element, else the `IndexSet` value
-/// of a receiver dispatching through the trait or of its own impl — or null when
+/// What `receiver[k] = v` stores (an array's element, else the `IndexSet` value
+/// of a receiver dispatching through the trait or of its own impl) or null when
 /// no write goes through.
 index_write_type :: fn(receiver: Type, typed: TypedProgram) -> Type | null {
     arr :: stored_array(receiver, typed)
@@ -354,8 +354,8 @@ stored_array :: fn(t: Type, typed: TypedProgram) -> ArrayType | null {
     return array_backing(t)
 }
 
-// The `Index` / `IndexSet` parameter `table` records for `target` — the read
-// target, K or V — with a struct's concrete arguments substituted into the
+// The `Index` / `IndexSet` parameter `table` records for `target` (the read
+// target, K or V) with a struct's concrete arguments substituted into the
 // template. A distinct takes no arguments, so its entry is the type. Null when
 // `target` is neither, or records no impl ; the template unchanged when the
 // struct decl is unavailable.

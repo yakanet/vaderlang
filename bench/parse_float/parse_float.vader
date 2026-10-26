@@ -6,12 +6,12 @@
 ///
 /// The inputs are built ONCE and parsed PASS_COUNT times over, so the row
 /// measures parsing rather than the integer formatting that assembles them.
-/// Their shapes vary on purpose — digit count, fraction length, exponent — since
+/// Their shapes vary on purpose (digit count, fraction length, exponent) since
 /// a decimal parser's cost is not flat across them.
 ///
 /// The checksum sums the two halves of each result's BIT PATTERN, not the values
-/// themselves. That is what correct rounding means here — a parser off by one
-/// unit in the last place changes a bit — and it sidesteps rendering entirely,
+/// themselves. That is what correct rounding means here (a parser off by one
+/// unit in the last place changes a bit) and it sidesteps rendering entirely,
 /// which matters because the four ports disagree on how to print a large float
 /// (Java writes `E27` where JS writes `e+27`). Both sums stay under 2^53, so
 /// they are exact in an f64 mantissa.

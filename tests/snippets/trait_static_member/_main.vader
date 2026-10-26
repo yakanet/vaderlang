@@ -1,4 +1,4 @@
-// A static trait member — no `self` — is called on a type : a concrete one
+// A static trait member (no `self`) is called on a type : a concrete one
 // (`Sq.unit(3)`, `i64.zero()`), or a type parameter its bound names (`S.unit(n)`,
 // `T.zero()` inside `sum`, `T.one()` inside `product`). It has no vtable slot, so
 // a trait mixing it with `self` members still dispatches those on a value. Two

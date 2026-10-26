@@ -1,6 +1,6 @@
 // A pair built BEFORE a two-armed `if` and read AFTER the join. The join block
 // has two predecessors, so the forwarding only reaches it by intersecting what
-// both arms agree on — the shape that pins `struct_field_forward`'s join.
+// both arms agree on: the shape that pins `struct_field_forward`'s join.
 //
 // What it pins in the emitted code: no rebuild, no field reads, and no GC frame
 // at all for `read_after_join`.

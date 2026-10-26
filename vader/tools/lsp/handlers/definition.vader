@@ -43,7 +43,7 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
         is null     -> { return JsonNull {} }
         is DocIndex -> {
             // A `break` / `continue` jumps to the loop it targets (bare →
-            // innermost, `break <var>` / `<label>` → the named enclosing loop) —
+            // innermost, `break <var>` / `<label>` → the named enclosing loop):
             // the reader-clarity tool that replaced the retired W0004 nudge.
             loop_target :: loop_jump_at(idx, line, character)
             if loop_target != null {
@@ -71,7 +71,7 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
                     origin :: idx.span_at(line, character)
                     // By name: imports, siblings, wildcards, and finally any
                     // member of that name. The typed lookup above already
-                    // declined — the receiver has no declaring symbol (an array,
+                    // declined: the receiver has no declaring symbol (an array,
                     // a string), so its methods live on a built-in trait with no
                     // type to key on.
                     ext :: resolve(state, idx, nm, after_dot) ?? return JsonNull {}
@@ -86,12 +86,12 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
 //
 // Three shapes reach here, and all carry their answer in the typed program:
 //
-//   - `recv.name(…)` resolved to a free fn by UFCS — the fn typecheck chose.
-//   - `recv.name` — the receiver's type names the declaring struct or trait.
-//   - `.Variant`  — the dot-variant's OWN type names the enum, inferred from
+//   - `recv.name(…)` resolved to a free fn by UFCS: the fn typecheck chose.
+//   - `recv.name`: the receiver's type names the declaring struct or trait.
+//   - `.Variant`: the dot-variant's OWN type names the enum, inferred from
 //     whatever slot it sits in.
 //
-// Returns null when none answers — the caller then falls back to the name-based
+// Returns null when none answers: the caller then falls back to the name-based
 // search.
 member_by_type :: fn(
     state: ServerState, uri: string, index: DocIndex, line: i32, character: i32,
@@ -102,7 +102,7 @@ member_by_type :: fn(
     }
     // The DOT TEST COMES FIRST, before anything expensive. `typed_project_for`
     // loads and typechecks the project, and the cache holds ONE entry keyed on
-    // the entry path — so with two files open every goto-def is a cold one.
+    // the entry path, so with two files open every goto-def is a cold one.
     // Testing after it made an ordinary identifier, which cannot be a member,
     // pay that: 0.03 s to 0.6 s, on the most interactive path there is.
     if !cursor_follows_a_dot(index, line, character) {
@@ -110,7 +110,7 @@ member_by_type :: fn(
     }
     nm_span :: index.span_at(line, character) ?? return null
     // A namespace alias FIRST, and cheaply: `AST.MatchExpr` has no receiver
-    // whose type could be read — the alias names a module, not a value — so the
+    // whose type could be read (the alias names a module, not a value) so the
     // typed path below can never answer it. Resolving the member as an EXPORT of
     // that module is the only route, and it is the spelling T3078 makes
     // mandatory once an alias is taken.
@@ -127,7 +127,7 @@ member_by_type :: fn(
     // DURING an edit burst this project is deliberately stale: `handle_did_change`
     // rebuilds the document index but keeps the typed cache, so the debounce can
     // typecheck once instead of per keystroke. The AST here is then the PREVIOUS
-    // text, and no receiver ends where the new one says the dot is — so this
+    // text, and no receiver ends where the new one says the dot is, so this
     // answers null until the burst settles. That is the right outcome: a stale
     // AST would otherwise jump to a position the text no longer has.
     cached :: typed_project_for(state, file_path)
@@ -145,8 +145,8 @@ member_by_type :: fn(
     ty :: member_owner_type(sf, cached.result.typed, nm_span, l, at_cursor) ?? return null
     sym :: type_symbol(ty)
     if sym == null {
-        // A BUILT-IN receiver has no declaring symbol, so `type_symbol` — which
-        // answers for the nominal types only — declines. Arrays still have an
+        // A BUILT-IN receiver has no declaring symbol, so `type_symbol` (which
+        // answers for the nominal types only) declines. Arrays still have an
         // owner: the traits an intrinsic `T[] implements …` block names.
         if ty is ArrayType {
             return array_member(state, cached, name)
@@ -157,8 +157,8 @@ member_by_type :: fn(
     return member_in_declaring_module(state, da.start.file, sym.name, name)
 }
 
-// The fn typecheck chose for the member access `e` — a free fn, or the member of
-// the impl its arguments picked among several (`v.mul(2.0)`) — as an entry of the
+// The fn typecheck chose for the member access `e`, a free fn, or the member of
+// the impl its arguments picked among several (`v.mul(2.0)`), as an entry of the
 // file that declares it ; null when it chose none, or when that declaration has
 // no source file to index (a generated impl).
 chosen_member :: fn(
@@ -187,7 +187,7 @@ chosen_member :: fn(
 }
 
 // `name` as a member of one of the traits an intrinsic `T[] implements …` block
-// names — `ArrayOps` for `len` / `push` / …, plus `Contains`, `Into`, `Mul`.
+// names: `ArrayOps` for `len` / `push` / …, plus `Contains`, `Into`, `Mul`.
 //
 // Read off the PROJECT's own decls rather than `CheckResult.impls`: that
 // registry is built from the entry module's declarations alone
@@ -200,7 +200,7 @@ chosen_member :: fn(
 //
 // Without this the lookup fell through to the name-based one, which is blind to
 // the receiver's type. `len` is declared four times across the stdlib, so
-// `xs.len()` answered with whichever the FOLDER ENUMERATION served first — and
+// `xs.len()` answered with whichever the FOLDER ENUMERATION served first, and
 // nothing sorts it: measured `array.vader` on APFS and on a container's
 // overlayfs, `primitives.vader` on the CI runner's ext4. Right on a Mac by luck,
 // wrong on CI, for four red runs.
@@ -233,12 +233,12 @@ member_owner_type :: fn(
     if recv != null {
         return typed.expr_types[recv.id]
     }
-    // No receiver ends at the dot — a leading-dot variant, whose type comes
+    // No receiver ends at the dot: a leading-dot variant, whose type comes
     // from its context rather than from anything to its left.
     e :: at_cursor ?? return null
     // A match ARM's pattern is not an expression, so the smallest expression
     // containing the cursor is the whole `match`. Its type is the match's
-    // RESULT — `i32` for `.Struct -> 23` — which names no enum, and the lookup
+    // RESULT (`i32` for `.Struct -> 23`) which names no enum, and the lookup
     // then fell back to searching by name and picked another enum's `Struct`
     // from another file. The SCRUTINEE is what the pattern is matched against,
     // so it is the type that owns the variant.
@@ -261,7 +261,7 @@ cursor_follows_a_dot :: fn(index: DocIndex, line: i32, character: i32) -> bool {
 // Compares BYTES rather than slicing the source. `Span.offset` is a byte offset
 // while `s[a..<b]` on a Vader string slices by CODEPOINT, so building the name
 // by slicing reads the wrong region the moment the file holds a single non-ASCII
-// character — and this file's own comments are full of em dashes.
+// character, and this file's own comments are full of em dashes.
 alias_before :: fn(index: DocIndex, offset: i64) -> string | null {
     if offset < 2 {
         return null
@@ -297,15 +297,15 @@ is_word_byte :: fn(b: u8) -> bool = (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 
 // `a . b` would read like `a.b`, and the two halves of the guard then disagreed:
 // the caller takes the dot's column as `name.column - 1`, which under a space is
 // the space. No receiver ends there, so it fell into the leading-dot branch and
-// took the type of the whole `a . b` expression — answering with a member of the
+// took the type of the whole `a . b` expression: answering with a member of the
 // WRONG type. Declining loses `a . b` entirely, since the name-based path is
 // gated on this same test: better nothing than a member of another type, and the
 // tree contains no such spelling (the 175 lines a naive grep finds are all
 // `-> .Variant` match arms).
 //
 // ALONE, because `...` is the spread operator. Its last dot passes a naive test,
-// and `{ ...name }` then looked up the local `name` as a member of its own type
-// — leaving a perfectly indexed local for a field that merely shares its name.
+// and `{ ...name }` then looked up the local `name` as a member of its own type:
+// leaving a perfectly indexed local for a field that merely shares its name.
 follows_a_dot :: fn(source: string, offset: i64) -> bool {
     if offset == 0 {
         return false
@@ -351,7 +351,7 @@ def_response :: fn(
     name_span: Span, full_span: Span, origin_li: LineIndex,
 ) -> JsonValue {
     // The target spans (`name_span` / `full_span`) live in `uri`'s file, which
-    // may differ from the origin's — encode each with its own file's index.
+    // may differ from the origin's: encode each with its own file's index.
     target_li :: state.line_index_for_path(uri_to_path(uri))
     clicked :: if origin == null { null } else { origin.span_to_range_json(origin_li) }
     full :: full_span.span_to_range_json(target_li)

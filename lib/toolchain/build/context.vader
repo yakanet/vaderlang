@@ -14,12 +14,12 @@
 //         for msg in ctx.messages() { … }
 //     }
 //
-// This file is the CONTRACT — what a driver fills in, and what it reads back.
+// This file is the CONTRACT: what a driver fills in, and what it reads back.
 // Draining the stream is `drive.vader`; writing generated modules is
 // `generate.vader`; the driver a `vader.json` stands for is `manifest.vader`.
 // They share this module, so nothing crosses a boundary.
 //
-// `build` is a reserved name in `build.vader`, the way `main` is in a program —
+// `build` is a reserved name in `build.vader`, the way `main` is in a program:
 // no decorator is involved. The driver is compiled and run NATIVELY, not through
 // the comptime VM: it reads the compiler's own AST nodes, and the VM has its own
 // value representation (per-module type indices and atom ids), which no shared
@@ -47,7 +47,7 @@ export BuildContext :: struct {
     /// whose driver runs in the compiler's own process, as the compiler passed
     /// it. The front end searches it for modules and anchors the generated tree
     /// under it, as for any project (`project_of`).
-    /// NOT guaranteed absolute — the stdlib exposes no `cwd()`, so this is
+    /// NOT guaranteed absolute: the stdlib exposes no `cwd()`, so this is
     /// whatever the compiler passed, which may be relative to the invocation
     /// directory. Join onto it rather than assuming a prefix.
     project_root:   string
@@ -74,7 +74,7 @@ export BuildContext :: struct {
     cc:             string
     /// Raw linker flags, whitespace-split and appended verbatim.
     ldflags:        string
-    /// What draining `messages()` produces. `.Native` by default — a build
+    /// What draining `messages()` produces. `.Native` by default: a build
     /// system builds; a driver that only observes leaves the loop at
     /// `BeforeEmit` rather than setting this.
     target:         BuildTarget
@@ -82,7 +82,7 @@ export BuildContext :: struct {
     @internal
     c_sources:      string[] = []
     /// Modules the driver asked for in the CURRENT round, awaiting a flush.
-    /// Emptied by `flush_generated` once the round reaches `BeforeEmit` — the
+    /// Emptied by `flush_generated` once the round reaches `BeforeEmit`: the
     /// driver has had every chance to emit by then.
     @internal
     pending:        GeneratedModule[] = []
@@ -112,7 +112,7 @@ export BuildContext :: struct {
 /// Where generated modules land, relative to the project root.
 ///
 /// The resolver's own constant, restated here so a driver reading this contract
-/// does not have to reach into `vader/front/resolver` for it — and so there is exactly
+/// does not have to reach into `vader/front/resolver` for it, and so there is exactly
 /// one string. Gitignored by convention (`build/` already is): the generated tree
 /// is a build artefact, reproducible from the driver plus the sources it reads.
 export DEFAULT_GENERATED_ROOT :: GENERATED_ROOT_DIR
@@ -169,7 +169,7 @@ export BuildTarget :: enum(u8) {
     Native,
     /// Emit C only, collected by `emit_c`.
     C,
-    /// Produce nothing — for a driver that drains the stream purely to observe.
+    /// Produce nothing: for a driver that drains the stream purely to observe.
     None,
 }
 
@@ -253,7 +253,7 @@ export add_asset :: fn(ctx: BuildContext, asset: string) -> void {
 /// Report a problem from the driver, anchored in the user's source.
 ///
 /// Accumulates; `flush_reports` prints. The driver describes the problem and the
-/// registry owns the code (`H6004`) — a project's lint rules should never have
+/// registry owns the code (`H6004`): a project's lint rules should never have
 /// to allocate diagnostic ids, and every driver report stays greppable under one
 /// code.
 ///
@@ -262,7 +262,7 @@ export add_asset :: fn(ctx: BuildContext, asset: string) -> void {
 ///
 /// @param ctx      the context accumulating the report.
 /// @param span     smallest source range the user can act on.
-/// @param message  what is wrong, lowercase and without a trailing period —
+/// @param message  what is wrong, lowercase and without a trailing period:
 ///                 backtick identifiers, as the registry style requires.
 export report :: fn(ctx: BuildContext, span: Span, message: string) -> void {
     ctx.diagnostics.push(hook_error(.HookReport, span, message))

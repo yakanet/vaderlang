@@ -12,12 +12,12 @@
 // Only the `f(x) → x.f()` direction is offered. The reverse (`x.f() → f(x)`) is
 // NOT : an impl method can't be called free-form (`b.show()` is valid but
 // `show(b)` is `unresolved identifier`), so the reverse would produce broken
-// code unless `f` is known to be a free fn — a type-aware gate left as a
+// code unless `f` is known to be a free fn: a type-aware gate left as a
 // follow-up.
 //
 // Declines when the callee isn't a bare identifier (already a method / complex
 // callee), there's no positional first argument, or the receiver would be a
-// numeric literal (`5.f()` mis-lexes as a float — see the lexer int-dot TODO).
+// numeric literal (`5.f()` mis-lexes as a float, see the lexer int-dot TODO).
 
 module "vader/tools/lsp/actions"
 
@@ -79,7 +79,7 @@ ident_name :: fn(e: AST.Expr) -> string {
 
 import "std/testing"
 
-// Find the first source-backed `CallExpr` in a parsed program — test helper so
+// Find the first source-backed `CallExpr` in a parsed program: test helper so
 // the asserts run against real (source-backed) AST nodes. Shares the descent
 // with the other actions via `registry::t_find_expr`.
 tu_is_call :: fn(e: AST.Expr) -> bool = e is AST.CallExpr
@@ -120,7 +120,7 @@ test_ufcs_declines_no_args :: fn() -> void {
 
 @test
 test_ufcs_declines_method_call :: fn() -> void {
-    // Callee is already a field access (`x.f`) — not a bare identifier.
+    // Callee is already a field access (`x.f`), not a bare identifier.
     src :: "g :: fn() -> i32 {\n    return x.f(y)\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
     c :: tu_find_call(parsed.program.decls)

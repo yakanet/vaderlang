@@ -66,7 +66,7 @@ strip_comment :: fn(line: string) -> string {
     return line.trim()
 }
 
-/// First whitespace-separated token after `prefix` — the structured
+/// First whitespace-separated token after `prefix`: the structured
 /// ops embed their label here (`block $L0 void` → `$L0`). Zero-alloc :
 /// trims the prefix, finds the next space, slices.
 ///
@@ -81,7 +81,7 @@ first_token_after :: fn(cleaned: string, prefix: string) -> string {
 
 /// First whitespace-delimited token of `s`. Returns the full string when
 /// no whitespace is present (bare ops like `drop`, `return`, or any
-/// dotted op-name like `i32.add` / `array.len`). One allocation per call —
+/// dotted op-name like `i32.add` / `array.len`). One allocation per call:
 /// callers share via `head :: head_of(cleaned)` once per line instead of
 /// chaining `starts_with` byte-walks per dispatch arm.
 ///
@@ -107,7 +107,7 @@ after_first :: fn(s: string, c: char) -> string {
     return s.byte_slice(at + 1, s.byte_len())
 }
 
-/// Parse a comma-separated list of base-10 i32s — used by both
+/// Parse a comma-separated list of base-10 i32s: used by both
 /// `parse_union_type` (variant list) and `parse_fn_type` (param-type list).
 /// Malformed entries are skipped silently ; an empty input yields `[]`.
 ///
@@ -165,8 +165,8 @@ hex_to_bytes :: fn(s: string) -> u8[] {
 
 /// Index of the last ASCII space in `s`, or `-1` if absent.
 last_index_of_space :: fn(s: string) -> i32 = i32(s.last_index_of(' ', 0))
-/// Read the mangled name from a `fn N MANGLED (PARAMS) -> RET` header
-/// — the second whitespace-token after the `fn ` prefix. Same tokenizing
+/// Read the mangled name from a `fn N MANGLED (PARAMS) -> RET` header:
+/// the second whitespace-token after the `fn ` prefix. Same tokenizing
 /// shape as `parse_import_decl`'s `parts[2]` lookup, so both header
 /// parsers read uniformly.
 ///
@@ -183,7 +183,7 @@ read_fn_mangled_name :: fn(cleaned: string) -> string {
 /// Called once the op is appended, so `pc` is `ops.len() - 1`.
 ///
 /// @param state    per-function parser scratch state (mutated in place).
-/// @param cleaned  the .virt line (comment-stripped) — still needed by
+/// @param cleaned  the .virt line (comment-stripped): still needed by
 ///                 helpers that re-parse args like the branch label.
 /// @param head     the line's pre-computed head token (see `head_of`).
 /// @param pc       the pc that was just emitted (= `state.ops.len() - 1`).
@@ -191,7 +191,7 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i
     if head == "block" {
         push_scope(state, ScopeEntry { .label = first_token_after(cleaned, "block "), .is_loop = false, .opener_pc = pc })
     } else if head == "loop" {
-        // Loop target is the start of its body (opener_pc + 1) — known
+        // Loop target is the start of its body (opener_pc + 1): known
         // immediately, so we fill `table[pc]` up front.
         push_scope(state, ScopeEntry { .label = first_token_after(cleaned, "loop "), .is_loop = true, .opener_pc = pc })
         state.table[pc] = pc + 1
@@ -212,7 +212,7 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i
             top :: state.scopes[sp - 1]
             state.scope_sp[0] -= 1
             // Block/if/else fall-through target = past the end. Loops
-            // don't fall through via the opener — their `table[opener]`
+            // don't fall through via the opener: their `table[opener]`
             // already points at the body start.
             if !top.is_loop && state.table[top.opener_pc] < 0 {
                 state.table[top.opener_pc] = pc + 1
@@ -221,7 +221,7 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i
         }
     } else if head == "br" || head == "br_if" {
         // `first_token_after` slices past the prefix then trims, so the head
-        // token is the prefix — the two forms differ only in their opcode.
+        // token is the prefix: the two forms differ only in their opcode.
         defer_or_resolve_branch(state, first_token_after(cleaned, head), pc)
     }
 }
@@ -231,14 +231,14 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i
 /// The dotted width families (`i32.*` / `i64.*` / `u32.*` / `u64.*` / `f64.*`
 /// and every `<from>.to_<to>`) are decoded by the block up front ; the literal
 /// `head == "…"` chain below covers the rest. Between them the two arms must
-/// cover every op `emit/virt/dump.vader::write_op` can emit — a gap there reaches
+/// cover every op `emit/virt/dump.vader::write_op` can emit: a gap there reaches
 /// `parse_virt_bc` as a `VirtParseError` on a dump the compiler itself produced.
 ///
 /// @param cleaned  the .virt line (comment-stripped).
 /// @param head     the line's pre-computed head token (see `head_of`).
 /// @return         the parsed op, or `null` when the head is outside the opcode
-///                 set or the operands don't parse. Both are fatal to the caller
-///                 — `parse_virt_bc` turns either into a `VirtParseError` rather
+///                 set or the operands don't parse. Both are fatal to the caller:
+///                 `parse_virt_bc` turns either into a `VirtParseError` rather
 ///                 than step over the line and shift every following pc.
 parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
     dot :: head.index_of('.', 0)
@@ -248,7 +248,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
         // Width gates : we only slice the suffix for the int / f64 width
         // families. `array.X`, `bool.X`, `char.X`, `string.X`, `ref.X`,
         // `local.X`, `struct.X`, `data.X`, `fn.X`, `call.X`, `make_closure`
-        // skip past the dotted block entirely — saving one slice on every
+        // skip past the dotted block entirely: saving one slice on every
         // such line (the dominant share of `json_basics.virt`).
         is_int :: is_int_width(width)
         is_f64 :: width == "f64"
@@ -264,12 +264,12 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
             }
             if suffix == "const" && is_f64 { return parse_f64_const(cleaned) }
 
-            // `<from>.to_<to>` — every width, `char` included, becomes the one
+            // `<from>.to_<to>`: every width, `char` included, becomes the one
             // `Convert` op the bytecode emitter itself produces. Reading a dump
             // back must yield the SAME op the compiler emitted: char conversions
             // used to be relabelled into dedicated `IntToChar` / `CharToInt` ops
             // here, so a program run from a `.virt` executed a different
-            // implementation than the same program run from memory — and the two
+            // implementation than the same program run from memory, and the two
             // did not accept the same inputs. `f32` stays a valid from-type for
             // forward compatibility even though the emit doesn't produce it.
             if suffix.starts_with("to_") {
@@ -363,7 +363,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
     if head == "br_if"          { return BranchIf {} }
     if head == "br"             { return Branch {} }
     if head == "return"         { return Return {} }
-    // `reason` is not serialised to `.virt` — the round-trip VM traps with a
+    // `reason` is not serialised to `.virt`: the round-trip VM traps with a
     // generic message ; the in-memory run and the native build keep the reason.
     if head == "unreachable"    { return Unreachable { .reason = "" } }
     // Memory opcodes (Target ABI). `buffer.new` carries no operand ; the
@@ -398,7 +398,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
 /// Decode `<width>.<suffix>` into the matching integer op. `width` is
 /// already known to satisfy `is_int_width`. Wide widths (i64/u64) route
 /// to I64*; everything else collapses to I32* (the VM aliases narrow
-/// integer storage classes). `shr` splits on signedness — signed widths
+/// integer storage classes). `shr` splits on signedness: signed widths
 /// keep arithmetic shift, unsigned widths get the logical variant.
 ///
 /// @param width   the integer width prefix (`i32`, `u8`, ..., `u64`).
@@ -503,7 +503,7 @@ parse_int_const_text :: fn(rest: string, width: string) -> Op | null {
     // full bit pattern ; signed consumers still read it via `read_i64`.
     is_wide :: width == "i64" || width == "u64"
     // Negative literals : both emitters print `<width>.const -N` directly
-    // (signed widths only — unsigned widths never carry a sign), so a
+    // (signed widths only: unsigned widths never carry a sign), so a
     // leading `-` strips to the magnitude, which we parse unsigned and
     // negate. The fit-check then routes to I32Const / I64Const exactly
     // like the positive path ; `read_i64` sign-extends an I32Val(-N) back
@@ -518,8 +518,8 @@ parse_int_const_text :: fn(rest: string, width: string) -> Op | null {
         }
         return I64Const { .value = signed }
     }
-    // Non-negative path : parse as `u64` to catch the full unsigned range
-    // — i.e. literals up to `u64.MAX`. Values that don't fit signed-i64
+    // Non-negative path : parse as `u64` to catch the full unsigned range,
+    // i.e. literals up to `u64.MAX`. Values that don't fit signed-i64
     // still round-trip by reinterpreting the bit pattern when we drop into
     // `I64Const`, and the host display arms pick the right signedness from
     // the op sequence that surrounds the const.
@@ -565,7 +565,7 @@ parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
 }
 
 /// Parse a `<from>.to_<to>` line into the matching `Convert`. Only
-/// the target width affects runtime semantics — the executor re-tags
+/// the target width affects runtime semantics: the executor re-tags
 /// the top of the stack to the target's storage class.
 ///
 /// @param cleaned  the .virt line, already comment-stripped.
@@ -597,11 +597,11 @@ parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> Op | null {
 /// Parse `f64.const <decimal> <u64 bits>`, where the trailing `u64` is the
 /// exact IEEE-754 bit pattern and the leading decimal is its readable Ryu
 /// rendering (informational, for diffs). Reconstructing via `from_bits` makes
-/// subnormals / scientific / near-max values round-trip exactly — the decimal
+/// subnormals / scientific / near-max values round-trip exactly: the decimal
 /// parser alone cannot (it overflows past ~1e308 and can't reach subnormals).
 ///
-/// Non-finite values dump with NO bit column — a bare abstract word `inf` /
-/// `-inf` / `nan` (see `emit/virt::f64_const_operands`) — because ±inf are unique,
+/// Non-finite values dump with NO bit column, a bare abstract word `inf` /
+/// `-inf` / `nan` (see `emit/virt::f64_const_operands`), because ±inf are unique,
 /// every NaN is one value, and a NaN's raw bits aren't architecturally stable.
 /// Each word maps straight back to its canonical bit pattern here. Legacy
 /// single-token `f64.const N.M` finite lines fall back to the decimal parser.
@@ -610,7 +610,7 @@ parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> Op | null {
 /// @return      `F64Const { value }` on success, `null` on malformed input.
 parse_f64_const :: fn(line: string) -> Op | null {
     rest :: line.trim_prefix("f64.const ").trim()
-    // Abstract non-finite words carry no bit column — map each to its canonical
+    // Abstract non-finite words carry no bit column: map each to its canonical
     // IEEE-754 pattern (typed so the >i64 hex constants pin to `u64`).
     pos_inf: u64: 0x7FF0000000000000
     neg_inf: u64: 0xFFF0000000000000
@@ -643,7 +643,7 @@ parse_call :: fn(line: string) -> Op | null {
 }
 
 /// Parse `bool.const true` / `bool.const false`. The bytecode
-/// writer only emits the textual literal —
+/// writer only emits the textual literal:
 /// no numeric path to support.
 ///
 /// @param line  the .virt line (comment-stripped).
@@ -666,7 +666,7 @@ parse_call_indirect :: fn(line: string) -> Op | null {
     return CallIndirect { .type_id = parsed }
 }
 
-/// Parse `virtual.call PARAM_COUNT VTABLE_KEY` — the vtable key is the
+/// Parse `virtual.call PARAM_COUNT VTABLE_KEY`: the vtable key is the
 /// remainder of the line (it contains a `.`, never a space).
 ///
 /// @param line  the .virt line (comment-stripped).
@@ -683,7 +683,7 @@ parse_virtual_call :: fn(line: string) -> Op | null {
     return VirtualCall { .parameter_count = i32(parsed_pc), .vtable_key = key }
 }
 
-/// Parse `fn.ref FN_INDEX TYPE_ID` — the TYPE_ID operand is parsed
+/// Parse `fn.ref FN_INDEX TYPE_ID`: the TYPE_ID operand is parsed
 /// (and validated) but not stored on the op : it's a static-type hint,
 /// not needed at runtime since `call.indirect` carries its own type_id
 /// that drives the call's parameter count.
@@ -696,7 +696,7 @@ parse_fn_ref :: fn(line: string) -> Op | null {
     return FnRef { .function_index = fn_idx, .type_id = type_id }
 }
 
-/// Parse `fn.addr FN_INDEX` — the address of the function's own compiled code.
+/// Parse `fn.addr FN_INDEX`: the address of the function's own compiled code.
 ///
 /// Carries no type hint: unlike `fn.ref` there is no `FnVal` to type, and the
 /// signature the address is called through belongs to the foreign callee.
@@ -708,7 +708,7 @@ parse_fn_addr :: fn(line: string) -> Op | null {
     return FnAddr { .function_index = idx }
 }
 
-/// Parse `make_closure FN_INDEX ENV_TYPE_ID` — same shape as `fn.ref`,
+/// Parse `make_closure FN_INDEX ENV_TYPE_ID`: same shape as `fn.ref`,
 /// trailing ENV_TYPE_ID is the captured-env struct's type-table index.
 ///
 /// @param line  the .virt line (comment-stripped).
@@ -791,7 +791,7 @@ parse_union_field_set :: fn(line: string) -> Op | null {
     return UnionFieldSet { .type_id = tid, .field_index = fi }
 }
 
-/// Parse `local.field SLOT TYPE FIELD` — three whitespace-separated
+/// Parse `local.field SLOT TYPE FIELD`: three whitespace-separated
 /// non-negative integers after the `local.field ` prefix.
 ///
 /// @param line  full line, leading whitespace already stripped.
@@ -815,7 +815,7 @@ parse_local_field :: fn(line: string) -> Op | null {
     return LocalField { .slot = i32(slot), .type_id = i32(tid), .field_index = i32(fi) }
 }
 
-/// Parse `return.lit <inner-const-op>` — the inner literal is parsed
+/// Parse `return.lit <inner-const-op>`: the inner literal is parsed
 /// recursively through `parse_op_line`, then validated to be a const
 /// variant. Examples: `return.lit i32.const 42`, `return.lit bool.const true`,
 /// `return.lit string.const 0`, `return.lit null.const`.
@@ -844,7 +844,7 @@ parse_array_new :: fn(line: string) -> Op | null {
     return ArrayNew { .type_id = tid, .length = len }
 }
 
-// `array.push TYPE` or `array.push TYPE SLOT` — the second form carries the
+// `array.push TYPE` or `array.push TYPE SLOT`: the second form carries the
 // push-cache hint (`vader/lower/optimise/push_cache.vader`). The VM ignores the hint and runs the
 // ordinary push either way.
 parse_array_push :: fn(line: string) -> Op | null {
@@ -920,7 +920,7 @@ roundtrip_op_text :: fn(op: Op) -> string {
 @test test_memory_opcode_roundtrip :: fn() -> void {
     // The Target ABI memory opcodes. `buffer.new` carries no operand
     // immediate ; the rest are operand-free. Each must survive write_op →
-    // parse_op_line → write_op unchanged — proving parse ≠ null and that the
+    // parse_op_line → write_op unchanged: proving parse ≠ null and that the
     // op (and its immediate) is preserved, so a synthetic op stream keeps its
     // pc indices. Includes the width-typed array slot family.
     assert_eq(roundtrip_op_text(BufferNew {}),  "buffer.new")
@@ -949,7 +949,7 @@ roundtrip_op_text :: fn(op: Op) -> string {
 
 @test test_f64_const_non_finite_roundtrip :: fn() -> void {
     // Non-finite f64 consts dump as a bare abstract word (no bit column) and
-    // parse straight back — arch-stable by construction. A sign-set NaN (what
+    // parse straight back: arch-stable by construction. A sign-set NaN (what
     // x86-64 folds `0.0 / 0.0` to) must round-trip to `nan`, never its raw
     // arch-specific bits.
     pos_inf: u64: 0x7FF0000000000000

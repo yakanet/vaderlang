@@ -4,7 +4,7 @@
 // (`analysis::enclosing_exprs`, innermost first) and runs the code-action
 // registry (`vader/tools/lsp/actions`) against it, returning one LSP `CodeAction`
 // per applicable refactoring. Each action carries a `WorkspaceEdit` that
-// replaces its target node's span with the rewritten text — no `executeCommand`
+// replaces its target node's span with the rewritten text: no `executeCommand`
 // round-trip.
 //
 // Each registered action fires on the innermost node it applies to, so a single
@@ -20,7 +20,7 @@ import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/actions"
 
 /// Resolve code actions for the range in `params`. Returns a `CodeAction[]`
-/// (possibly empty) — never null, per the LSP array-typed response.
+/// (possibly empty), never null, per the LSP array-typed response.
 ///
 /// @param state   shared server state (carries the typed-project cache).
 /// @param params  request params : `{ textDocument: { uri }, range, context }`.

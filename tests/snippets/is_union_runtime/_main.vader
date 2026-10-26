@@ -1,4 +1,4 @@
-// `x is A | B` as a boolean test in expression / `if` position — the
+// `x is A | B` as a boolean test in expression / `if` position: the
 // or-pattern union form. The runtime ORs the per-variant tag checks
 // (`emit_type_check` on native, `union_matches` in the VM), so it reports real
 // membership rather than always-false. This is the form

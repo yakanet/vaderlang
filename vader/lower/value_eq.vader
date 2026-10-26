@@ -13,7 +13,7 @@
 //     { ta :: a ; tb :: b ; ta._0 == tb._0 && ta._1 == tb._1 }
 //     { ua :: a ; ub :: b ; ua is P && ub is P && ua.equals(ub) || ua is null && ub is null }
 //
-// `!=` negates the whole fold — one node, whatever the shape. A union whose
+// `!=` negates the whole fold: one node, whatever the shape. A union whose
 // variants all compare by their bits (integers, `bool`, `char`, `string`, enums)
 // is left to the box compare, which already answers by value for them.
 //
@@ -21,7 +21,7 @@
 // and never go back through `lower_expr`, so a nested tuple or union that fell
 // through would compare two boxes, and a struct would reach `ref.eq`.
 // `front/typecheck/binary.vader` refuses the parts with no `==` (`part_without_equality`),
-// proves two tuple operands EQUAL — which lets the left type drive both sides —
+// proves two tuple operands EQUAL (which lets the left type drive both sides)
 // and a union operand to share a variant with the other (`shares_variant`).
 
 module "vader/lower"
@@ -61,7 +61,7 @@ try_lower_value_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | n
 
 // `value == literal` for a literal pattern, by the rule `==` follows : the bare
 // compare when every value of `value`'s type compares by its bits, `value_eq`
-// otherwise — by variant on a union, through its own `Equals` on a distinct, IEEE
+// otherwise: by variant on a union, through its own `Equals` on a distinct, IEEE
 // on a float. `value` is the pre-bound scrutinee or a field of it. Unlike
 // `try_lower_value_eq`, nothing falls back to `lower_binary` here, so a non-union
 // operand goes through `value_eq` too.
@@ -89,7 +89,7 @@ own_equals_on_right :: fn(ctx: FnLowerCtx, left: Type, right: Type) -> bool {
 distinct_over_reference :: fn(t: Type) -> bool =
     t is DistinctType && strip_distinct(t) is StructType | ArrayType
 
-// Whether every value of `t` compares by its bits — the payload of its box — so that
+// Whether every value of `t` compares by its bits (the payload of its box) so that
 // a box compare is already `==` : an integer, `bool`, `char`, `string`, an enum. Not
 // a float (`nan`, `-0.0`), nor a struct, a tuple, a distinct or a type parameter.
 compares_by_bits :: fn(t: Type) -> bool {
@@ -102,8 +102,8 @@ compares_by_bits :: fn(t: Type) -> bool {
     return true
 }
 
-// `left == right`, by the rule their types need. Both sides are side-effect free —
-// a temporary, a stable operand, a field or a cast of one — so naming each once per
+// `left == right`, by the rule their types need. Both sides are side-effect free
+// (a temporary, a stable operand, a field or a cast of one) so naming each once per
 // part is free. Exhaustive over `Type`, like `part_without_equality`, so the two
 // cannot drift.
 value_eq :: fn(
@@ -117,7 +117,7 @@ value_eq :: fn(
     if right_ty is UnionType {
         return variant_disjunction(ctx, left, left_ty, right, right_ty, span)
     }
-    // A distinct on the right compares as one on the left — `Equals` is symmetric,
+    // A distinct on the right compares as one on the left: `Equals` is symmetric,
     // so the operands swap and the distinct is `self`. Both are already bound.
     if right_ty is DistinctType && left_ty !is DistinctType | UnionType {
         return value_eq(ctx, right, right_ty, left, left_ty, span)
@@ -180,8 +180,8 @@ field_of :: fn(target: LoweredExpr, ty: Type, field: string, span: Span) -> Lowe
     }
 
 // `left == right` folded over the variants the two sides share (`same_variant`):
-// each holds its own form of the variant — a side that is no union holds its one
-// type — and the two are equal by its rule. False when they share none.
+// each holds its own form of the variant: a side that is no union holds its one
+// type, and the two are equal by its rule. False when they share none.
 variant_disjunction :: fn(
     ctx: FnLowerCtx,
     left: LoweredExpr,
@@ -206,7 +206,7 @@ variant_disjunction :: fn(
     return or_all(span, terms)
 }
 
-// Push the test that `value`, of type `t`, holds `variant` now — none when `t` is no
+// Push the test that `value`, of type `t`, holds `variant` now: none when `t` is no
 // union, which always does. A variant with no tag of its own (`is_untagged`) sits
 // only beside `null` (T3087): it is whatever is not `null`.
 holds_test :: fn(

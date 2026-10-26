@@ -1,4 +1,4 @@
-// A `@c_struct` field with no C representation — T3050.
+// A `@c_struct` field with no C representation: T3050.
 //
 // The shim copies a mirror field by field into a real C struct. A `string`
 // field has nothing to copy: it would hand C the atom ID, through a cast `cc`

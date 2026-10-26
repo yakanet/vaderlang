@@ -29,12 +29,12 @@ lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> Lowere
     // Scrutinee-temp elision : when the scrutinee already lowers to a direct
     // local/param read AND no arm carries a guard, reuse that slot instead of
     // spilling to a synthetic `__scrut` temp. Pattern predicates are pure, so
-    // re-reading the slot once per predicate sees the same value — UNLESS an
+    // re-reading the slot once per predicate sees the same value, UNLESS an
     // earlier arm's guard runs between predicates and mutates the scrutinee
     // local (a guard can be a block expression with an assignment). The spill
     // snapshots the value once, matching "scrutinee evaluated once", so a
     // guarded match keeps it. A non-trivial scrutinee (`match f(x)`, a
-    // field/index access, a captured-cell / env read — none of which lower to
+    // field/index access, a captured-cell / env read: none of which lower to
     // `LoweredIdent`) also still spills, evaluated exactly once.
     elide_symbol :: if any_arm_guarded(expr.arms) {
         null
@@ -51,7 +51,7 @@ lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> Lowere
         })
         spilled
     }
-    // `match x :: e { … }` binds `x` to the ONE evaluation above — a binding of
+    // `match x :: e { … }` binds `x` to the ONE evaluation above: a binding of
     // its own, not the match's own slot, because a lambda in an arm may capture
     // it and a captured binding is heap-promoted to a `Cell` while the pattern
     // predicates need the bare value.
@@ -122,7 +122,7 @@ lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> Lowere
 
 // True when any arm carries an `if <guard>`. A guard is the only user code that
 // runs between two arms' predicates, so it's the only thing that can mutate the
-// scrutinee mid-match — the gate for scrutinee-temp elision.
+// scrutinee mid-match: the gate for scrutinee-temp elision.
 any_arm_guarded :: fn(arms: MatchArm[]) -> bool {
     for arm in arms {
         if arm.guard != null {
@@ -133,7 +133,7 @@ any_arm_guarded :: fn(arms: MatchArm[]) -> bool {
 }
 
 // The symbol behind a scrutinee that lowered to a direct local/param read, or
-// null for anything else — the read the elision can safely reuse in place.
+// null for anything else: the read the elision can safely reuse in place.
 scrut_ident_symbol :: fn(e: LoweredExpr) -> Symbol | null = if e is LoweredIdent { e.symbol } else { null }
 
 lower_arm :: fn(
@@ -160,7 +160,7 @@ arm_predicate :: fn(
     core :: pattern_predicate(ctx, arm.pattern, scrut_ident, scrut_type, span)
     arm_guard :: arm.guard ?? return core
     // The guard may read the pattern's bindings (`is P { x } if x > 0`),
-    // which `lower_arm` only introduces inside the arm body — evaluated
+    // which `lower_arm` only introduces inside the arm body: evaluated
     // AFTER the predicate. Materialise the bindings in a block wrapping
     // the guard so it reads defined slots. The block sits on the right of
     // a short-circuit `&&`, so its unbox/cast of the scrutinee only runs
@@ -198,7 +198,7 @@ pattern_predicate :: fn(
                 .value = target,
                 .check_type = trait_test_type(ctx, target_type, check_type),
             }
-            // `is P { x: 10 }` — the field tests run on the narrowed target, on
+            // `is P { x: 10 }`: the field tests run on the narrowed target, on
             // the right of a short-circuit `&&` : a field is only read once the
             // type test has confirmed the variant that carries it.
             inner :: pattern.inner
@@ -227,7 +227,7 @@ pattern_predicate :: fn(
         }
         is RangePattern -> {
             // `target >= lower && target <(=) upper`. `target` is the pre-bound
-            // scrutinee temp — reusing it twice is the same shape the tuple /
+            // scrutinee temp: reusing it twice is the same shape the tuple /
             // struct predicates already rely on. Over a union the bounds carry
             // the variant they order, tested first : `target is i32 &&
             // i32(target) >= lower && …`.
@@ -402,7 +402,7 @@ struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) 
 
 // Resolve a pattern binding's Symbol via the shared per-module
 // `defined_span -> Symbol` index (`lookup_local_symbol`); mint a fresh
-// synthetic only when the resolver wrote none — defensive against
+// synthetic only when the resolver wrote none: defensive against
 // cascading diagnostics.
 resolve_pattern_symbol :: fn(ctx: FnLowerCtx, name_span: Span, name: string) -> Symbol {
     found :: resolve_binding(ctx, name_span) ?? return fresh_synthetic_symbol(ctx, name)

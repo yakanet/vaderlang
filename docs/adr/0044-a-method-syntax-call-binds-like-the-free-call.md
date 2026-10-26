@@ -1,4 +1,4 @@
-# 0044 — A method-syntax call binds like the free call
+# 0044: A method-syntax call binds like the free call
 
 ## Status
 

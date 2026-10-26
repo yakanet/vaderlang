@@ -1,4 +1,4 @@
-// `if 42` — T3019 (condition must be bool).
+// `if 42`: T3019 (condition must be bool).
 module "snippet"
 
 main :: fn() -> i32 {

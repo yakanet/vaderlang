@@ -2,14 +2,14 @@
 // argument with one loop.
 //
 // A call whose callee iterates an `Iterator<T>` parameter with a single `for`
-// — std's `collect`, `find`, `fold`, a user function alike — is inlined at the
+// (std's `collect`, `find`, `fold`, a user function alike) is inlined at the
 // call site when the argument descends into a fusible chain: the loop over the
 // parameter becomes the chain's fused loop, the callee's loop body its consumer.
 // The callee's shape decides, never its name. The loop must run at most once,
 // as the lazy iterator it replaces can only be drained once: one reference to the
 // parameter, the subject of a `for` outside every other loop and every lambda.
 //
-// The body lowers in its own ctx, as an inlined generator does — its module, a
+// The body lowers in its own ctx, as an inlined generator does: its module, a
 // concrete substitution, a `InlineInstance` for its names. A `return v` assigns
 // the result and leaves the instance ; a final `return v` is the value of the
 // block the call becomes.
@@ -25,7 +25,7 @@ import "vader/core/types"
 import "std/abort"
 import "vader/lower/ir"
 
-/// How a callee consumes its iterator parameter — found once per callee.
+/// How a callee consumes its iterator parameter: found once per callee.
 ConsumerShape :: struct {
     /// The consumed parameter's index.
     param:       i64
@@ -81,14 +81,14 @@ ConsumerCall :: struct {
 
 // ---- the shape ----------------------------------------------------------------
 
-// Whether `call` calls a declaration already known to consume nothing — read off
+// Whether `call` calls a declaration already known to consume nothing: read off
 // the declaration the typecheck recorded, before its target is built.
 is_known_non_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> bool {
     decl :: recorded_decl(ctx.typed, call) ?? return false
     return decl.span.hash() in ctx.project.non_consumers
 }
 
-// The shape of `target`'s callee, or null when it consumes no parameter —
+// The shape of `target`'s callee, or null when it consumes no parameter:
 // keyed by its declaration, so a module's callee is examined once.
 consumer_shape :: fn(project: LowerProjectCtx, target: CallTarget, signature: FnType) -> ConsumerShape | null {
     key :: target.decl.span.hash()
@@ -168,7 +168,7 @@ reference_count :: fn(owner: TypedProgram, symbol: Symbol, at: Span) -> i64 {
 
 is_defer :: fn(s: AST.Stmt) -> bool = s is AST.DeferStmt
 
-// A `for … in <param>` over `symbol` — not an unrolled `@comptime for`, which
+// A `for … in <param>` over `symbol`, not an unrolled `@comptime for`, which
 // would run its body once per element of a constant.
 loops_over :: fn(s: AST.Stmt, owner: TypedProgram, symbol: Symbol) -> bool {
     if s is AST.ForStmt {
@@ -188,7 +188,7 @@ names_symbol :: fn(e: AST.Expr, owner: TypedProgram, symbol: Symbol) -> bool {
     return false
 }
 
-// Whether a statement of `block` satisfies `test` — through blocks, `if`s and
+// Whether a statement of `block` satisfies `test`: through blocks, `if`s and
 // `match`es in statement position, and through loop bodies when `into_loops`;
 // never through a lambda, whose statements are its own.
 block_holds :: fn(block: AST.BlockExpr, into_loops: bool, test: fn(AST.Stmt) -> bool) -> bool {
@@ -344,7 +344,7 @@ bind_consumer_arguments :: fn(
 }
 
 // `body` with a final `return v` turned into its trailing `v`, the value of the
-// block — so a body with no early `return` needs no result local.
+// block, so a body with no early `return` needs no result local.
 value_tail :: fn(body: AST.BlockExpr) -> AST.BlockExpr {
     n :: body.stmts.len()
     if n == 0 || body.trailing != null {

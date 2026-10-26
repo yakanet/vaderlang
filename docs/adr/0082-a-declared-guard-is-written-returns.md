@@ -1,4 +1,4 @@
-# 0082 — A declared guard is written `@returns`
+# 0082: A declared guard is written `@returns`
 
 ## Status
 

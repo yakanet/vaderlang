@@ -25,7 +25,7 @@ import "vader/tools/lsp/protocol"
 ///   - `semanticTokensProvider` with legend + `full = true`.
 ///   - `definitionProvider` + `hoverProvider`.
 ///
-/// @param state   the server state — mutated to absorb the client's caps.
+/// @param state   the server state: mutated to absorb the client's caps.
 /// @param params  the JSON params block from the request.
 /// @return        the JSON value to ship back as the `result` field.
 export handle_initialize :: fn(state: ServerState, params: JsonValue) -> JsonValue {
@@ -56,7 +56,7 @@ export handle_initialize :: fn(state: ServerState, params: JsonValue) -> JsonVal
 //
 // The variable outranks every other toolchain probe, so a value pointing at
 // ANOTHER real toolchain silently redirects every hover, go-to-def and
-// diagnostic in the editor. `vader doctor` reports that — but nobody runs
+// diagnostic in the editor. `vader doctor` reports that, but nobody runs
 // `doctor` from inside an editor, and the server has no other way to say it. So
 // it goes in the log, which is the one channel an editor session does surface.
 toolchain_home_line :: fn() -> string {
@@ -74,7 +74,7 @@ toolchain_home_line :: fn() -> string {
 
 // Pull `capabilities.textDocument.definition.linkSupport` out of the
 // client's `initialize` params. Defaults to `false` when any link in
-// the path is missing or non-boolean — the LSP spec treats absence as
+// the path is missing or non-boolean: the LSP spec treats absence as
 // "no LocationLink support", which is also the safer default.
 read_definition_link_support :: fn(params: JsonValue) -> bool {
     caps :: get_field(params, "capabilities")
@@ -83,7 +83,7 @@ read_definition_link_support :: fn(params: JsonValue) -> bool {
     return get_bool(def, "linkSupport")
 }
 
-// Pull `capabilities.workspace.inlayHint.refreshSupport`. `false` when absent —
+// Pull `capabilities.workspace.inlayHint.refreshSupport`. `false` when absent:
 // the server then skips the refresh push (a client that can't refresh would just
 // error on the unknown request).
 read_inlay_refresh_support :: fn(params: JsonValue) -> bool {
@@ -163,7 +163,7 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     caps["semanticTokensProvider"]  = JsonObject { .entries = semantic_provider }
     caps["definitionProvider"]      = JsonBool { .value = true }
     // implementationProvider : "where are this declaration's bodies". Declared
-    // because `@target` makes one name carry several — see
+    // because `@target` makes one name carry several, see
     // `handlers/implementation`, which answers it over the union view.
     caps["implementationProvider"]  = JsonBool { .value = true }
     caps["hoverProvider"]           = JsonBool { .value = true }

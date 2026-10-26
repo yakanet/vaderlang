@@ -4,11 +4,11 @@ on:
   # `gate` exists to MEASURE, not to configure. A driven build costs 21 s alone on
   # a Windows runner and 139-272 s inside the suite ; how many run at once is the
   # last untested cause (TODO.md, "CI review"). Empty on every push and PR, which
-  # leaves the default of 4 — see `tests/hook_driver.test.ts::gateSize`.
+  # leaves the default of 4, see `tests/hook_driver.test.ts::gateSize`.
   workflow_dispatch:
     inputs:
       gate:
-        description: 'VADER_TEST_GATE — concurrent driver builds in hook_driver (empty = 4)'
+        description: 'VADER_TEST_GATE, concurrent driver builds in hook_driver (empty = 4)'
         required: false
         default: ''
   push:
@@ -16,7 +16,7 @@ on:
     tags: ['v*']
   pull_request:
 
-# Cancel superseded runs on the same ref — except for tags, where the build
+# Cancel superseded runs on the same ref, except for tags, where the build
 # usually feeds a release and shouldn't be aborted by a follow-up push.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,7 +26,7 @@ jobs:
   # Type-check the only first-party TypeScript left in the repo root: the Bun
   # test runner and the benchmark programs (tests/ + bench/). The compiler
   # itself is Vader now (§2.8); this job guards the surviving harness. It is the
-  # one place that needs `bun install` — the test jobs run zero-dep.
+  # one place that needs `bun install`: the test jobs run zero-dep.
   typecheck:
     name: Typecheck harness
     runs-on: ubuntu-latest
@@ -89,7 +89,7 @@ jobs:
   # and stage2 emit identical C for main.vader (release AND debug), and that two
   # split builds are byte-identical. Bun-free. Runs on every push and PR (ADR 0006).
   #
-  # It is also the seed's viability gate — the same `verify.sh` the pre-push hook
+  # It is also the seed's viability gate: the same `verify.sh` the pre-push hook
   # runs through `bootstrap/seed.sh check`. A seed that cannot build the tree fails
   # the test jobs too; what only this job sees is a fixed-point or
   # reproducibility break. See docs/BOOTSTRAP.md.

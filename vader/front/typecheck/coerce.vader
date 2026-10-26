@@ -13,7 +13,7 @@ import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// Convert through the `into` toward `expected` (`into_converting`). Union targets
-/// never coerce — the typer can't pick a variant — so they fall through to the
+/// never coerce (the typer can't pick a variant) so they fall through to the
 /// standard T3001 mismatch.
 ///
 /// @param value  the coerced value. On a real `.into()` coercion (a matched
@@ -81,11 +81,11 @@ variant_fits :: fn(v: Type, expected: Type, typed: TypedProgram) -> bool {
 }
 
 /// True when `got` implements the trait `expected`, at `expected`'s arguments
-/// (or a variant of `expected` if it's a union). Handles struct receivers AND primitives
-/// — `i32 implements Doubler(i32)` is a valid impl whose receiver name
+/// (or a variant of `expected` if it's a union). Handles struct receivers AND primitives:
+/// `i32 implements Doubler(i32)` is a valid impl whose receiver name
 /// is "i32" in `struct_implemented_traits`. Free* gets defaulted first.
 try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
-    // Union SOURCE : `A | B` widens into `expected` iff *every* variant does —
+    // Union SOURCE : `A | B` widens into `expected` iff *every* variant does,
     // each via plain assignability or its own trait widen. This is subtyping
     // (no runtime coercion), mirroring `is_assignable_union` but through the
     // impl-index widening path `is_assignable` has no registry to reach.
@@ -172,7 +172,7 @@ import "std/testing"
 import "toolchain/span"
 import "vader/core/symbol"
 
-// A minimal `Iterator<elem>` trait type — `try_array_to_iter` only reads the
+// A minimal `Iterator<elem>` trait type: `try_array_to_iter` only reads the
 // symbol's name and module and the args, so the other Symbol fields are
 // placeholders.
 iter_trait_for_test :: fn(elem: Type) -> Type {
@@ -208,7 +208,7 @@ test_try_into_records_array_to_iter :: fn() -> void {
 }
 
 // A plain mismatch (no `Into` impl, no trait widen, not an array→iter) coerces
-// to nothing and must leave the into-coercion table untouched — otherwise the
+// to nothing and must leave the into-coercion table untouched: otherwise the
 // LSP would paint a spurious `.into()` hint on a value that never coerces.
 @test
 test_try_into_no_coercion_records_nothing :: fn() -> void {

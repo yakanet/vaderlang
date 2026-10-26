@@ -13,7 +13,7 @@ pair_of :: fn<A, B>(first: A) -> B[] {
 }
 
 main :: fn() -> i32 {
-    // T3069 — nothing binds T.
+    // T3069: nothing binds T.
     loose :: empty_of()
 
     // T3069 on B only ; A comes from the argument.

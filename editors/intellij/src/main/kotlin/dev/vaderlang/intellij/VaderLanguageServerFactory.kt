@@ -12,11 +12,11 @@ import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
 
 // Wires the Vader Language Server into LSP4IJ. LSP4IJ takes care of the
 // JSON-RPC plumbing, lifecycle, PSI integration (goto-def with the
-// Ctrl-hover underline preview, find-usages, …) — we only have to tell
+// Ctrl-hover underline preview, find-usages, …): we only have to tell
 // it how to spawn the server process.
 //
 // The binary path is read from `VaderSettings` (Settings → Tools →
-// Vader) and falls back to `vader` from `$PATH` when not set — same
+// Vader) and falls back to `vader` from `$PATH` when not set: same
 // default as the VSCode extension.
 internal class VaderLanguageServerFactory : LanguageServerFactory {
     override fun createConnectionProvider(project: Project): StreamConnectionProvider =
@@ -26,7 +26,7 @@ internal class VaderLanguageServerFactory : LanguageServerFactory {
         LSPClientFeatures()
             .setFormattingFeature(VaderFormattingFeature())
             // Without this, semantic tokens have no colour key in IntelliJ and
-            // land on the default foreground — see `VaderSemanticTokensFeature`.
+            // land on the default foreground, see `VaderSemanticTokensFeature`.
             .setSemanticTokensFeature(VaderSemanticTokensFeature())
             .setWorkspaceSymbolFeature(VaderWorkspaceSymbolFeature())
 }
@@ -41,8 +41,8 @@ private class VaderWorkspaceSymbolFeature : LSPWorkspaceSymbolFeature() {
 
 // `.vader` files are mapped to the server by filename glob (TextMate grammar,
 // no IntelliJ Language/PSI). LSP4IJ's default `LSPFormattingFeature` defers to
-// an existing native formatter — and IntelliJ's generic plain-text formatter
-// counts as one — so "Reformat Code" (⌘⌥L) was a silent no-op ("No lines were
+// an existing native formatter, and IntelliJ's generic plain-text formatter
+// counts as one, so "Reformat Code" (⌘⌥L) was a silent no-op ("No lines were
 // changed"). Overriding `isExistingFormatterOverrideable` to true makes LSP4IJ
 // route formatting to the Vader Language Server's `textDocument/formatting`.
 private class VaderFormattingFeature : LSPFormattingFeature() {

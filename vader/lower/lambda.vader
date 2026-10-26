@@ -9,7 +9,7 @@
 //      packs the env literal (with captured values) + the lifted fn.
 //
 // A lambda that captures nothing is lifted with no env and no env struct, and
-// its site is a plain reference to the lifted fn — the node a named fn used as
+// its site is a plain reference to the lifted fn: the node a named fn used as
 // a value lowers to, so a call through it is direct and a value of it is the
 // fn's static closure.
 //
@@ -96,7 +96,7 @@ lookup_captures :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Capture[] {
 }
 
 // `captures` less the variables of an unrolled `@comptime for`: in this copy of
-// the body they are literals, with no runtime slot to capture — the lifted body
+// the body they are literals, with no runtime slot to capture: the lifted body
 // reads them from the `comptime_bindings` it inherits.
 runtime_captures :: fn(ctx: FnLowerCtx, captures: Capture[]) -> Capture[] {
     if ctx.comptime_bindings.is_empty() {
@@ -111,7 +111,7 @@ runtime_captures :: fn(ctx: FnLowerCtx, captures: Capture[]) -> Capture[] {
     return runtime
 }
 
-// The lambda's own params, in order — the lifted fn's params after its env.
+// The lambda's own params, in order: the lifted fn's params after its env.
 lambda_params :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> LoweredParam[] {
     params: LoweredParam[]: []
     for ast_param in lambda.params {
@@ -151,7 +151,7 @@ lambda_return_type :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Type {
 /// `__defer_N` names would drift apart per fn).
 next_synthetic_id :: fn(ctx: FnLowerCtx) -> i32 = next_project_synthetic_id(ctx.project)
 
-/// Bump and return the next synthetic id straight off a `LowerProjectCtx` — the
+/// Bump and return the next synthetic id straight off a `LowerProjectCtx`: the
 /// `FnLowerCtx`-free form for post-lowering passes (e.g. `inline_consts`) that
 /// hold only the project ctx. `next_synthetic_id` routes through this so the
 /// whole pipeline shares ONE live, monotonic negative-id counter.
@@ -180,7 +180,7 @@ fresh_lifted_symbol :: fn(ctx: FnLowerCtx, is_env: bool) -> Symbol {
     return fresh_lifted_symbol_with_prefix(ctx, is_env, "__lambda_", "__lambda_env_")
 }
 
-/// Lift helper shared by the lambda and defer passes — both produce
+/// Lift helper shared by the lambda and defer passes: both produce
 /// the same Symbol shape, only the `__lambda_*` vs `__defer_*` name
 /// prefixes diverge. Synthetic IDs come from `next_synthetic_id`'s
 /// shared pool so the two passes' naming counters stay consistent.
@@ -195,7 +195,7 @@ fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx, is_env: bool, fn_prefix: 
     // The NAME is keyed per module, the ID stays project-global: the id must be
     // unique program-wide, the name only has to be stable. `next_synthetic_id`
     // is a project-wide rank, so a function reached by one target alone
-    // renumbered every lambda behind it — see `LowerProjectCtx.lambda_seq`.
+    // renumbered every lambda behind it, see `LowerProjectCtx.lambda_seq`.
     // `display_path` is the DECLARED module name, not the folder: `path` carries
     // the filesystem identity and is absolute whenever the entry was named
     // absolutely, which would put the build directory in the emitted C.

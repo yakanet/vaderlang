@@ -69,8 +69,8 @@ walk_decl_of :: fn(sym: Symbol, typed: TypedProgram) -> AST.ConstDecl | null {
 }
 
 // Type the const `cd` at a read of it, unless the walk already has : a read before
-// the const's turn — a const declared further down, a fn read before a const it
-// calls into — would otherwise see no type. The value is typed as at module level,
+// the const's turn: a const declared further down, a fn read before a const it
+// calls into: would otherwise see no type. The value is typed as at module level,
 // the reading fn's state set aside. A read inside the const's own value, directly
 // or through other consts, is a cycle : T3099.
 settle_decl_read :: fn(cd: AST.ConstDecl, span: Span, typed: TypedProgram) -> void {
@@ -97,8 +97,8 @@ settle_decl_read :: fn(cd: AST.ConstDecl, span: Span, typed: TypedProgram) -> vo
     resume_walk(typed, position)
 }
 
-/// Where a walk stands inside a fn body : what a value typed apart from it — a
-/// const read before its turn, a guard's body checked ahead of its own walk —
+/// Where a walk stands inside a fn body : what a value typed apart from it (a
+/// const read before its turn, a guard's body checked ahead of its own walk)
 /// must not see, and gets back once that value is typed. One list, so that a new
 /// piece of walk state is set aside everywhere or nowhere.
 WalkPosition :: struct {
@@ -292,7 +292,7 @@ value_reads :: fn(e: AST.Expr, typed: TypedProgram) -> ValueReads {
 check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
     sym :: symbol_declared_at(typed.resolved, cd.name_span) ?? return
     // Only a written type is the expected type. An unannotated const's entry is what
-    // an earlier walk inferred — a return-only walk types it before the expression-
+    // an earlier walk inferred: a return-only walk types it before the expression-
     // bodied fns it calls have their return, and would pin it to `?`.
     annot :: if cd.ty == null { null } else { typed.decl_types[sym.id] }
     if is_type_expr(cd.value, typed.resolved) {
@@ -300,7 +300,7 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
             typed.decl_types[sym.id] = TY_TYPE
         }
         alias_ty :: type_from_expr(cd.value, typed.resolved, diags)
-        // Same promotion as `register_alias_const`, via `alias_for` — this
+        // Same promotion as `register_alias_const`, via `alias_for`: this
         // body-typing pass ALSO writes `alias_types`, so without it the
         // transparent backing would clobber the DistinctType earlier passes
         // registered.

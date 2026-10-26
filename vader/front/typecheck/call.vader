@@ -1,7 +1,7 @@
 // vader/front/typecheck/call: CallExpr inference (`f(args)`).
 //
 // Call checking :
-//   1. Recursively check the callee — its type must be `Fn(params,
+//   1. Recursively check the callee: its type must be `Fn(params,
 //      return)`. Anything else surfaces T3007 ("not callable").
 //   2. Arg-count check : positional arity must match `params.len()`.
 //      T3003 ("wrong number of arguments") on mismatch.
@@ -31,7 +31,7 @@ import "vader/core/types"
 import "vader/core/symbol"
 import "toolchain/span"
 
-// True when the callee names a free fn with 2+ overloads — the only shape where
+// True when the callee names a free fn with 2+ overloads: the only shape where
 // an argument's enum prefix is load-bearing. Mirrors `pick_overload`'s own gate,
 // which is where the candidates come from.
 callee_has_overloads :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
@@ -58,7 +58,7 @@ pick_overload :: fn(
     }
     // A call through a LOCAL binding (param / local / pattern binding) invokes a
     // fn-VALUE that SHADOWS any same-named free-fn overloads. It must not be
-    // overload-resolved — and crucially its callee type must NOT be patched
+    // overload-resolved, and crucially its callee type must NOT be patched
     // with a global overload's signature : `compare(a, b)` over a
     // `compare: fn(T, T) -> bool` PARAM would otherwise pick up an imported
     // free `compare` overload and overwrite `expr_types[callee]` with that
@@ -213,7 +213,7 @@ ArgPick :: struct {
     rival: i64 | null = null
 }
 
-/// The member whose first parameter takes `arg` best, among `sigs` — each a member's
+/// The member whose first parameter takes `arg` best, among `sigs`: each a member's
 /// signature without its receiver, already specialised for the use site.
 ///
 /// @param sigs   the members' signatures ; one that is no `FnType` is skipped.
@@ -242,10 +242,10 @@ pick_by_first_arg :: fn(sigs: Type[], arg: Type, arity: i64, typed: TypedProgram
 }
 
 // How well a candidate whose first param accepts `arg0` fits, highest wins:
-// receiver specificity (a concrete union member beats a bare `T` wildcard — see
+// receiver specificity (a concrete union member beats a bare `T` wildcard, see
 // `overload_specificity`), then how tightly an integer param holds an integer
 // argument (`integer_closeness`), then an exact arity (`size(a = 1, b = 2)` against
-// `size(a = 1)`), then, for a free literal, the param that is its default type —
+// `size(a = 1)`), then, for a free literal, the param that is its default type:
 // the rule a literal follows into a union (`union_literal_member`), so `abs(-5)`
 // reaches the `i32` overload whatever the declaration order.
 overload_rank :: fn(arg0: Type, param0: Type, exact_arity: bool) -> i32 {
@@ -403,7 +403,7 @@ collect_overload_candidates :: fn(
             }
         }
     }
-    // Scoped to the call site's file — imports are file-scoped (SPEC §"Modules").
+    // Scoped to the call site's file: imports are file-scoped (SPEC §"Modules").
     for imported in imported_overloads_in(typed, file, name) {
         out.push(imported)
     }
@@ -415,11 +415,11 @@ collect_overload_candidates :: fn(
 // Reorder `c`'s args into positional parameter order, filling omitted params
 // from their `default_value`. The result replaces `c.args` in place (see
 // `infer_call`), so a reordered / defaulted call flows positionally through
-// every downstream pass — the lowerer needs no special handling.
+// every downstream pass: the lowerer needs no special handling.
 //
 // Returns null (leaving `c.args` untouched) when there is nothing to reorder, or
 // when the call can't be normalised : a variadic param (the slot model can't
-// express `...rest`), or an error —
+// express `...rest`), or an error:
 // T3003 too many / positional-after-named, T3004 unknown name, T3005 missing
 // required, T3025 a named arg duplicating a filled slot.
 normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnostic[]) -> AST.CallArg[] | null {
@@ -540,7 +540,7 @@ param_index_by_name :: fn(params: AST.FnParam[], name: string) -> i64 {
     return -1
 }
 
-// A purely-positional, full-arity call needs no reordering or default fill —
+// A purely-positional, full-arity call needs no reordering or default fill:
 // cheap check so the common call path skips the callee-decl lookup entirely.
 call_needs_arg_normalisation :: fn(c: AST.CallExpr, callee_ty: FnType) -> bool {
     if c.args.len() != callee_ty.params.len() {
@@ -563,12 +563,12 @@ call_needs_arg_normalisation :: fn(c: AST.CallExpr, callee_ty: FnType) -> bool {
 //   - UFCS free-fn method (`x.m(args)`) : the method's decl minus its `self`
 //     param, which lines up with the curried callee type.
 // Returns null when no decl is reachable (fn-values, imported overloads,
-// impl-block methods) — those stay positional.
+// impl-block methods): those stay positional.
 callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
     callee :: c.callee
     if callee is AST.IdentExpr {
         sym :: typed.resolved.idents[callee.span.hash()]
-        // Params of the resolved declaration — but matching ARITY is not enough to
+        // Params of the resolved declaration, but matching ARITY is not enough to
         // trust them. On an overloaded name the resolver binds the ident to the
         // PRIMARY (first-declared) sibling while `pick_overload` may have retained
         // another one of the same arity, and handing back the primary's params then
@@ -588,7 +588,7 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
                     }
                     arity_match = decl.params
                 } else {
-                    // No recorded signature to compare against — this decl is the
+                    // No recorded signature to compare against: this decl is the
                     // only candidate this path knows of, so keep the old behaviour.
                     return decl.params
                 }
@@ -605,7 +605,7 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
         // when the FieldExpr was typed) curries away `self`.
         // The pick itself, when the dispatch could keep it: its params minus the
         // receiver, which is what lines up with the curried callee type. Beats
-        // re-deriving the winner from the receiver type — the same answer, and
+        // re-deriving the winner from the receiver type: the same answer, and
         // one the imported half cannot give at all.
         chosen :: chosen_decl(typed, callee.id)
         if chosen is AST.FnDecl {
@@ -739,7 +739,7 @@ type_call :: fn(
     }
     // Reorder named args + fill defaults in place, so the positional checks
     // below and the lowerer both see a normalised call. Only calls that carry
-    // a name or whose arity differs need this — a purely-positional full-arity
+    // a name or whose arity differs need this: a purely-positional full-arity
     // call skips the decl lookup entirely (the common path). `callee_param_decls`
     // returns the declared params (arity-aligned with the picked callee type)
     // for direct / overloaded / UFCS calls ; fn-values + imported overloads
@@ -769,7 +769,7 @@ type_call :: fn(
     }
     reject_indirect_callbacks(c, callee_ty, typed, diags)
     // `@no_return` callees (`panic` / `todo` / `unreachable`) yield `never`.
-    // Resolved once here, applied at each return below — args are still
+    // Resolved once here, applied at each return below: args are still
     // type-checked first so a bad argument to `todo(...)` is still flagged.
     diverges :: named != null && AST.decorators_have(named.decorators, "no_return")
     n :: min(c.args.len(), callee_ty.params.len())
@@ -895,7 +895,7 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
 /// The `[]` LITERAL is widened alongside it (via `empty_array_inits`). It is
 /// what the lowerer reads to pick the buffer's element kind, so leaving it at
 /// `?[]` allocates a BOXED buffer while the widened local makes every read and
-/// write packed — a mismatch that corrupts silently once the buffer grows past
+/// write packed: a mismatch that corrupts silently once the buffer grows past
 /// its first allocation (`x := [] ; 9 × push(i)` read back `x[8] == 0`), or that
 /// a callee pushing into its `u8[]` parameter traps on.
 ///
@@ -980,9 +980,9 @@ is_checked_conversion :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
     return converts_by_name(c, callee_ty, typed)
 }
 
-/// `T(x)` where `T` is a type-name — the call-syntax cast (the parser emits a
+/// `T(x)` where `T` is a type-name: the call-syntax cast (the parser emits a
 /// `CallExpr` here, not a `CastExpr`). Type-checks the value and returns the
-/// target type — the read-only data itself for `Data(variant)` — emitting
+/// target type (the read-only data itself for `Data(variant)`) emitting
 /// T3010 for an illegal conversion via the shared `cast_allowed` gate (same as
 /// `expr_cast.vader::infer_cast`).
 ///
@@ -999,7 +999,7 @@ cast_call_target :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]
     }
     result: Type = target
     // Pass the cast target as expected for each arg so a Free* literal
-    // (or `-Free*` unary) narrows into the target's primitive shape —
+    // (or `-Free*` unary) narrows into the target's primitive shape:
     // `i64(-250)` types the `-250` as `i64`, not `{integer}`.
     expected :: cast_operand_expected(target)
     for arg in c.args {
@@ -1160,7 +1160,7 @@ bound_instance :: fn(trait_ty: TraitType, bindings: MutableMap<i32, Type>) -> Tr
     return trait_ty
 }
 
-// Whether `t` implements `wanted` at its arguments — `Contains<string>` is no
+// Whether `t` implements `wanted` at its arguments: `Contains<string>` is no
 // `Contains<i32>`. A trait without arguments is `satisfies_bound`'s alone (an
 // enum's `Equals` has no impl to compare) ; arguments the call left unbound, or a
 // type the check cannot see into, are undecided and so met.
@@ -1217,7 +1217,7 @@ reject_ufcs_receiver_at_instance :: fn(
     receiver_ty :: typed.expr_types[callee.target.id] ?? return
     want :: substitute_map(first, bindings)
     // A receiver widening into a trait parameter fits through its impl, which the
-    // method access checked — or converts into it, as an array into an `Iterator`.
+    // method access checked, or converts into it, as an array into an `Iterator`.
     if want is TraitType {
         return
     }
@@ -1268,13 +1268,13 @@ repin_free_ufcs_receiver_at_instance :: fn(
 
 /// The declaration a call's callee names: a bare or explicitly instantiated name
 /// (`f`, `f<…>`), through an import redirect, or a namespace-qualified `M.f`.
-/// Says nothing about overloads — `chosen_decl` holds the one typecheck picked.
+/// Says nothing about overloads: `chosen_decl` holds the one typecheck picked.
 ///
 /// @param callee  the call's callee expression.
 /// @param typed   the module the call sits in.
 /// @return        the `FnDecl`, or null when the callee is no named fn.
 export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
-    // A namespace-qualified name — `M.f`, the qualified form an aliased import
+    // A namespace-qualified name: `M.f`, the qualified form an aliased import
     // requires (T3078). It is a `FieldExpr`, not an ident, and
     // treating it as unresolvable had two costs: a valid callback argument was
     // refused T3080, and a call whose CALLEE wore that shape skipped the check
@@ -1294,14 +1294,14 @@ export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST
 }
 
 // True when the callee fn carries `@no_return` (`panic` / `todo` /
-// `unreachable`). Such a call diverges, so its expression type is `never` —
+// `unreachable`). Such a call diverges, so its expression type is `never`:
 // assignable into any slot and flow-terminating (see `is_divergent_stmt`).
 /// Reject a callback argument that is not a direct reference to a named fn.
 ///
 /// What crosses to C is the function's ADDRESS (`core/bytecode/op::FnAddr`), and only
 /// a named fn has one: a lambda or a closure is a `vader_fn_t` whose `code` takes
 /// a leading `env` and boxed arguments, so the foreign callee would jump into the
-/// wrong ABI. The TYPE is fine in both cases — this is a shape rule, which is why
+/// wrong ABI. The TYPE is fine in both cases: this is a shape rule, which is why
 /// it needs a diagnostic of its own rather than a mismatch.
 ///
 /// @param c          the call being checked.
@@ -1311,7 +1311,7 @@ export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST
 reject_indirect_callbacks :: fn(
     c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    // Nothing to look up unless a parameter is a fn type — this runs on every
+    // Nothing to look up unless a parameter is a fn type: this runs on every
     // call expression in the program, and almost none has one.
     has_callback := false
     for pt in callee_ty.params {
@@ -1331,7 +1331,7 @@ reject_indirect_callbacks :: fn(
         if callee_ty.params[i] !is FnType {
             continue
         }
-        // The SAME question `midir/build::build_extern_args` asks — does this
+        // The SAME question `midir/build::build_extern_args` asks: does this
         // argument resolve to a fn symbol. A syntactic ident test is not it: a
         // local bound to a fn is an ident and has no address of its own.
         if lookup_callee_fn_decl(c.args[i].value, typed) != null {
@@ -1354,7 +1354,7 @@ callee_name :: fn(callee: AST.Expr) -> string {
     }
 }
 
-// Walk the args once for their side-effects only — type them in a
+// Walk the args once for their side-effects only: type them in a
 // fresh-position context so inner literals get a sensible type even
 // when the callee itself didn't resolve to a Fn (already errored).
 check_args_no_expected :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]) -> void {

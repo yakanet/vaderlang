@@ -1,10 +1,10 @@
 // vader/front/resolver/resolve: orchestrator of the resolver passes.
 //
 // Two passes compose into one `ResolvedModule` :
-//   1. Top-level minting (`vader/front/resolver/collect.vader`) — one Symbol
+//   1. Top-level minting (`vader/front/resolver/collect.vader`): one Symbol
 //      per top-level decl, indexed by name in a `MutableMap` so the body
 //      walker can use it as the root scope seed.
-//   2. Body walking (`vader/front/resolver/body.vader`) — descends every fn
+//   2. Body walking (`vader/front/resolver/body.vader`): descends every fn
 //      body, lambda, match arm and pattern, stamping a span-keyed
 //      `IdentExpr → Symbol` map.
 //
@@ -40,7 +40,7 @@ export ResolvedModule :: struct {
     /// The module's declarations ; a file's import bindings are in
     /// `import_bindings`.
     symbols: Symbol[]
-    /// Every file's import bindings — namespace aliases and renames — in file
+    /// Every file's import bindings (namespace aliases and renames) in file
     /// order. Two files may each bind the same name ; a binding's span names its
     /// file.
     import_bindings: Symbol[] = []
@@ -57,7 +57,7 @@ export ResolvedModule :: struct {
     /// Locals a lambda rebinds while declared outside it (see `ResolvedFile`).
     closure_rebound: MutableSet<i32> = MutableSet<i32> {}
     /// `fn_overloads[name]` carries every Symbol minted for a given
-    /// fn name — only one of which lands in `symbols`. The typecheck
+    /// fn name: only one of which lands in `symbols`. The typecheck
     /// dump iterates this to surface every overload.
     fn_overloads: MutableMap<string, Symbol[]>
     /// Every declaration's symbol under the hash of its name span, each fn
@@ -102,8 +102,8 @@ export ResolvedModule :: struct {
     namespace_member_types: MutableMap<i32, MutableMap<string, Type>>
     /// `namespace_sym.id → private-member-name → true` for every
     /// `P :: import "..."` binding : the PRIVATE (non-`export`) members
-    /// of the target module. Lets a `P.private` access fire R2008 —
-    /// matching the destructured-import check in `wire.vader` — instead
+    /// of the target module. Lets a `P.private` access fire R2008
+    /// (matching the destructured-import check in `wire.vader`) instead
     /// of silently degrading to unresolved. Populated alongside
     /// `namespace_member_types`.
     namespace_private_members: MutableMap<i32, MutableMap<string, bool>>
@@ -114,7 +114,7 @@ export ResolvedProject :: struct {
 }
 
 /// Resolve a one-file module on its own : its declarations and the builtins,
-/// no prelude and no import followed — the entry unit tests use.
+/// no prelude and no import followed: the entry unit tests use.
 ///
 /// @param program      the file's program.
 /// @param module_path  the module's id, also its display path.
@@ -141,7 +141,7 @@ export resolve_module :: fn(program: Program, module_path: string, factory: Symb
 /// Resolve every file of a module, each in its own scope. The module's
 /// declarations are shared by all its files, but a file sees only the imports it
 /// wrote (SPEC §"Modules") : its own bindings, and the exports its own wildcard
-/// imports bring — R2031 is judged on those alone.
+/// imports bring: R2031 is judged on those alone.
 ///
 /// @param files         the module's source files.
 /// @param module_path   the module's id in the project.
@@ -257,7 +257,7 @@ export file_imports :: fn(collected: CollectedModule, file: string) -> FileImpor
 
 /// The unqualified names a file of the module sees at its top level, each layer
 /// over the one before : the builtins, the file's import bindings, the module's
-/// own declarations, then — only where nothing else answers — the core prelude
+/// own declarations, then (only where nothing else answers): the core prelude
 /// and the exports of the file's wildcard imports. A binding never takes the
 /// name of a declaration : a module fn keeps it, the import staying an overload
 /// reachable by UFCS, and any other clash is R2011 (`binding_clashes`).

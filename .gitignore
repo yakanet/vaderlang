@@ -30,7 +30,7 @@ coverage/
 !.vscode/extensions.json
 .idea/
 
-# Bench artifacts — native binaries + generated C/Go/class from `bench/run.ts`.
+# Bench artifacts: native binaries + generated C/Go/class from `bench/run.ts`.
 # Every workload lives in `bench/<name>/` with all its language sources
 # colocated (`<name>.vader`, `.ts`, `.go`, `.java`) ; the compiled outputs land
 # alongside as `bench/<name>/<name>` (Vader binary), `.c` (transient C),
@@ -76,7 +76,7 @@ bench/plb2_bedcov/plb2_bedcov
 ## POCs
 poc/
 
-# Snippet artefacts — left behind when a dev runs `vader build` directly on
+# Snippet artefacts: left behind when a dev runs `vader build` directly on
 # a `tests/snippets/<name>/_main.vader` to inspect the native output: the
 # `_main` binary, and its C, headers and objects in `c/`.
 # `tests/native.test.ts` uses `native.c` / `native[.exe]` for its own runs and

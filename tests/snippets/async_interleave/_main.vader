@@ -1,7 +1,7 @@
 // Visible cooperative interleaving: each task prints on entry, sleeps, prints
 // on exit. Joined by `join_all`, all three print "start" BEFORE any prints "end"
 // (they run concurrently), then they end in sleep-duration order (B=1, C=2,
-// A=3) — B ends first despite being listed second. The println order is the
+// A=3): B ends first despite being listed second. The println order is the
 // proof that the scheduler interleaves execution and advances by deadline.
 module "snippet"
 

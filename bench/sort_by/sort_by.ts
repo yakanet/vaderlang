@@ -1,5 +1,5 @@
 // TypeScript peer of bench/sort_by.vader. `Array.prototype.sort` has been
-// required to be stable since ES2019, which the checksum depends on — equal keys
+// required to be stable since ES2019, which the checksum depends on: equal keys
 // are common and their order is read back.
 
 const ITEM_COUNT = 20_000;

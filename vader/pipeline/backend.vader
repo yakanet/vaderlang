@@ -37,7 +37,7 @@ import "vader/support/text"
 export canonicalise :: fn(p: Path) -> Path = p.as_string().to_posix().to_path()
 // Canonical `/`-separated form of a path that may have arrived with OS-native
 // separators (Windows argv, env vars). `std/path::to_posix` deliberately works on
-// the raw string — the compiler's internals are all string-based — so this is the
+// the raw string (the compiler's internals are all string-based) so this is the
 // one place the CLI does the Path → string → Path round trip.
 /// The module filter to dump, defaulting to the entry's own module.
 ///
@@ -112,7 +112,7 @@ export in_scope_diag_files :: fn(loaded: LoadedProject, scope: string[]) -> stri
 
 /// Front-end diagnostics of a pipeline, flattened in canonical order.
 ///
-/// Loader, then resolver, then typecheck, then comptime — the order every
+/// Loader, then resolver, then typecheck, then comptime: the order every
 /// renderer prints them in, so the flattening lives once rather than at each
 /// call site.
 export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] {
@@ -144,7 +144,7 @@ export flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 ///
 /// @param pruned  lowered project, already pruned of unreachable fns.
 /// @param name    bytecode module name (see `module_name_from_file`).
-/// @param opts    emit options — `want_debug` gates the per-op debug table.
+/// @param opts    emit options: `want_debug` gates the per-op debug table.
 /// @param diags   accumulator for what the CFG build reports (an identifier it
 ///                cannot place, M5007) and, under `passes.verify`, the verifier
 ///                findings. Required: a caller that dropped it would run a
@@ -177,21 +177,21 @@ export bounds_verification_enabled :: fn() -> bool = env_flag_set(VERIFY_BOUNDS_
 /// released: the entry mangle, the diagnostics, and the file set for filtering.
 export LoweredEntry :: struct {
     lowered:     LoweredProject
-    /// Entry-fn mangle (`…$main`) for the `export main` directive — resolved
+    /// Entry-fn mangle (`…$main`) for the `export main` directive: resolved
     /// from the typed AST before the pipeline is released.
     entry:       string
     /// Loader + resolver + typecheck + comptime diags, pre-flattened in the
     /// canonical order (`gather_pipeline_diags`).
     pre_diags:   Diagnostic[]
     lower_diags: Diagnostic[]
-    /// Files of the modules in the entry's subtree — lets the bytecode / C dump
+    /// Files of the modules in the entry's subtree: lets the bytecode / C dump
     /// stages filter diagnostics to the code under inspection once the
     /// `LoadedProject` is released. `build` ignores it (it surfaces all modules).
     in_scope_files: string[]
 }
 
 /// Run load → typecheck → comptime → lower, resolve the entry-fn name and
-/// harvest the diagnostics, then return — letting the `EvaluatedPipeline` and
+/// harvest the diagnostics, then return: letting the `EvaluatedPipeline` and
 /// its per-module `MutableMap` side-tables leave scope before the caller's
 /// CFG → bytecode tail. This is the live-set lever for `vader run` and
 /// `dump --stage=bytecode|c` : the typecheck-era maps no longer coexist with
@@ -221,7 +221,7 @@ export lower_to_entry_with :: fn(
 
 /// Lower an ALREADY-EVALUATED pipeline.
 ///
-/// Split out so a caller holding a pipeline does not pay the front end twice —
+/// Split out so a caller holding a pipeline does not pay the front end twice,
 /// which is ~45% of a build. `lower_to_entry_with` is this, preceded by the
 /// front end.
 ///
@@ -233,9 +233,9 @@ export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = fal
     // Don't lower a program the front end rejected : feeding the bytecode
     // emitter an ill-typed shape (e.g. a UFCS method on an unimported
     // primitive) trips its `emit_bytecode_from_cfg` backstop panic before the
-    // caller's `flush_build_diags` gate runs — a plain user error would ICE.
+    // caller's `flush_build_diags` gate runs: a plain user error would ICE.
     lower_diags: Diagnostic[]: []
-    // profiling bracket — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
+    // profiling bracket: inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(.Lower)
     lowered :: if any_error_diag(pre_diags) {
         new_lowered_project()
@@ -296,7 +296,7 @@ export prepare_cfg_bytecode_with :: fn(
 /// re-run the front end to reach the bytecode.
 ///
 /// @param le          the lowered entry ; the prune pass rewrites it.
-/// @param file        entry path — names the bytecode module.
+/// @param file        entry path: names the bytecode module.
 /// @param want_debug  populate the per-op debug table (kept only when the C
 ///                    emit will keep `#line`).
 /// @param verify        run the IR verifiers between passes (`--verify`).
@@ -306,7 +306,7 @@ export prepare_cfg_bytecode_from :: fn(
     le: LoweredEntry, file: Path, want_debug: bool, verify: bool = false,
     prove_bounds: bool = false,
 ) -> CfgBytecode {
-    // profiling brackets — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
+    // profiling brackets: inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(.Prune)
     pruned :: prune_unreachable_fns(le.lowered, false)
     Prof.prof_end(.Prune)

@@ -4,7 +4,7 @@
 // renderer here rather than in each CLI's own source is what makes the spec
 // table the single description of the surface: a flag documented in `FlagSpec`
 // is a flag the help shows, and one the parser accepts, with no second copy to
-// keep in step. The alternative — a hand-written help string — drifts, and
+// keep in step. The alternative (a hand-written help string) drifts, and
 // measurably does: the compiler's own advertised `.vir` input, `fmt`'s flags and
 // three `--target` values had all stopped matching the code.
 //
@@ -25,7 +25,7 @@ INDENT :: "  "
 
 /// Render the overview: usage line, the action list, the common options.
 ///
-/// Deliberately does NOT list every action's own flags — that is what
+/// Deliberately does NOT list every action's own flags: that is what
 /// `render_command_help` is for. A single flat help is how the hand-written one
 /// reached sixty lines.
 ///
@@ -62,7 +62,7 @@ export render_help :: fn(program: string, version: string, tagline: string, comm
 
 /// Render one action in full: its usage line, then every flag it accepts.
 ///
-/// This is the view a hand-written help can't give — `vader build --help` had no
+/// This is the view a hand-written help can't give: `vader build --help` had no
 /// answer at all before, which is most of why the overview grew to carry every
 /// flag of every action.
 ///
@@ -85,7 +85,7 @@ export render_command_help :: fn(program: string, cmd: CommandSpec, common: Flag
     return out.to_string()
 }
 
-// A flag's left-hand label — its spellings and value placeholder. The alias is
+// A flag's left-hand label: its spellings and value placeholder. The alias is
 // padded to a fixed lead so aliased and unaliased flags line up their `--` in one
 // column, which is what makes a long list scannable.
 flag_label :: fn(spec: FlagSpec) -> string {
@@ -103,7 +103,7 @@ action_label :: fn(cmd: CommandSpec) -> string =
 
 // Render one indented, column-aligned block of flags, including each flag's
 // enumerated values as an inner block. `depth` is in `INDENT` units. Labels are
-// built once and reused for both the measurement and the output — computing them
+// built once and reused for both the measurement and the output: computing them
 // twice is how a label and its column silently disagree.
 render_flag_block :: fn(flags: FlagSpec[], depth: i64) -> string {
     labels: string[]: []
@@ -146,7 +146,7 @@ flag_description :: fn(spec: FlagSpec) -> string =
 // The column a block's descriptions start at: past its widest label, with two
 // spaces of gutter, and never tighter than MIN_DESCRIPTION_COLUMN so a block of
 // short labels doesn't crowd its text. One function for all three kinds of block
-// (actions, flags, enumerated values) — they only differed in how the label was
+// (actions, flags, enumerated values): they only differed in how the label was
 // built, which the caller now does.
 column_of :: fn(labels: string[]) -> i64 {
     widest: i64 = 0
@@ -260,7 +260,7 @@ sample_commands :: fn() -> CommandSpec[] = [
     }
     text :: render_command_help("vader", cmd, [])
     assert("-s, --stage=<stage>" in text, "the flag itself")
-    // The same array the parser validates against — so a stage can't be
+    // The same array the parser validates against, so a stage can't be
     // accepted while going undocumented.
     assert("lexer" in text, "value listed")
     assert("Token stream" in text, "value description listed")
@@ -269,7 +269,7 @@ sample_commands :: fn() -> CommandSpec[] = [
 
 @test test_padded_labels_share_one_width :: fn() -> void {
     // The property that makes a block scannable: every label in it, once
-    // padded, is the same length — so every description starts in one column.
+    // padded, is the same length, so every description starts in one column.
     // Computing the width instead of fixing it is what keeps that true when a
     // long flag name is added.
     labels: string[]: []

@@ -21,7 +21,7 @@ import "std/numbers"
 import "vader/support/diagnostics"
 import "toolchain/span"
 // Position/Span are re-imported transparently via token.vader (same module);
-// no need to import them again here — that would trigger R2011.
+// no need to import them again here: that would trigger R2011.
 
 // ---- driver state ---------------------------------------------------------
 
@@ -80,11 +80,11 @@ is_ident_start :: fn(c: char) = c.is_alpha() || c == '_'
 
 is_ident_continue :: fn(c: char) = c.is_alnum() || c == '_'
 
-// SPEC §3 newline-suppression set — operators / separators after which a
+// SPEC §3 newline-suppression set: operators / separators after which a
 // physical newline is NOT a statement terminator.
 // @partial: only the listed operators/separators suppress a following newline; every other token → false.
 suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
-    // `T ::\n    A | B | C` — `.DeclConst` / `.DeclVar` let the RHS of a `::` /
+    // `T ::\n    A | B | C`: `.DeclConst` / `.DeclVar` let the RHS of a `::` /
     // `:=` binding wrap onto the next line, mirroring the pipe / arrow
     // continuation so multi-line union declarations read cleanly.
     .Plus | .Minus | .Star | .Slash | .Percent | .PlusPercent | .MinusPercent | .StarPercent
@@ -97,7 +97,7 @@ suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
     _ -> false
 }
 
-// SPEC §3 newline rule 5 — the infix-only operators. None can open an expression
+// SPEC §3 newline rule 5: the infix-only operators. None can open an expression
 // (`parse_prefix` takes `-` / `!` / `~` / `.`), so a line opening with one
 // continues the previous line, a type union or a condition as much as a sum :
 //   T ::            cond := a == 1          name :: first_name(user)
@@ -331,7 +331,7 @@ lex_ident :: fn(l: Lexer) -> void {
 
 // Consume a digit run in the given base with `_` separators. Validates that
 // underscores don't appear consecutively or trail. `start_anchor` is for
-// diagnostic spans. Returns void — callers detecting "no digits after base
+// diagnostic spans. Returns void: callers detecting "no digits after base
 // prefix" should compare `l.pos` before and after the call.
 consume_digits :: fn(l: Lexer, base: i32, start_anchor: Position) -> void {
     last_was_underscore := false
@@ -364,8 +364,8 @@ consume_digits :: fn(l: Lexer, base: i32, start_anchor: Position) -> void {
         }
         break
     }
-    // A `_` consumed right before the run ends — `42_` at EOF, or `42_`
-    // followed by a non-digit (`42_.5`, `42_ `) — is a trailing separator,
+    // A `_` consumed right before the run ends, `42_` at EOF, or `42_`
+    // followed by a non-digit (`42_.5`, `42_ `), is a trailing separator,
     // which SPEC §3 rejects. The suffix-separator case (`42_i32`) returned
     // above without consuming the `_`, so it never reaches here.
     if last_was_underscore {
@@ -420,7 +420,7 @@ lex_number :: fn(l: Lexer) -> void {
     }
 
     text :: l.src.byte_slice(start.offset, l.pos)
-    // Typed numeric suffixes were removed — the literal coerces from context.
+    // Typed numeric suffixes were removed: the literal coerces from context.
     // A trailing identifier here is a leftover suffix ; reject it with a clear
     // message instead of letting it lex as a separate token and fail downstream.
     if (l.peek() == '_' && l.peek_at(1).is_ident_start()) || l.peek().is_ident_start() {
@@ -438,13 +438,13 @@ lex_number :: fn(l: Lexer) -> void {
     }
     t :: make_token(kind, text, span)
     // Digit shape was already validated by the scan above, so any parse
-    // failure here is "shouldn't happen" — swallow into 0 / 0.0 so the
+    // failure here is "shouldn't happen": swallow into 0 / 0.0 so the
     // Token carries a placeholder value instead of bubbling a Trap up
     // through every caller that just wants the textual span.
     digits :: strip_numeric_text(text, base)
     if digits.is_empty() {
         // A malformed base prefix (`0x` / `0b` / `0o` with no digits) already
-        // reported L0006 above. Don't ALSO run the value parse — on empty digits
+        // reported L0006 above. Don't ALSO run the value parse: on empty digits
         // it fails and would fire a bogus L0011 "does not fit in u64" on top of
         // the real error (lexer-3). Placeholder value ; the diagnostic stands.
         t.value = u64(0)
@@ -460,7 +460,7 @@ lex_number :: fn(l: Lexer) -> void {
             is u64 -> { t.value = parsed }
             is ParseError -> {
                 // The digit shape was already validated by the scan above, so the
-                // only remaining failure is an out-of-range magnitude — surface it
+                // only remaining failure is an out-of-range magnitude: surface it
                 // as L0011 instead of silently wrapping the value to 0.
                 l.push_error(.IntegerLiteralOverflow, l.error_span(start),
                     "`${text}` does not fit in u64")
@@ -488,7 +488,7 @@ lex_escape :: fn(l: Lexer, in_char: bool) -> u32 {
     }
     c :: l.peek()
     l.advance(1)
-    // Shared set — valid in both char and string literals.
+    // Shared set: valid in both char and string literals.
     if c == 'n'  { return 0x0A }
     if c == 't'  { return 0x09 }
     if c == 'r'  { return 0x0D }
@@ -517,7 +517,7 @@ lex_escape :: fn(l: Lexer, in_char: bool) -> u32 {
     return u32(c)
 }
 
-// Decode `\u{HEX}` — caller has already consumed `\u`. Up to 6 hex digits,
+// Decode `\u{HEX}`: caller has already consumed `\u`. Up to 6 hex digits,
 // codepoint must fit in U+10FFFF.
 lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
     if l.peek() != '{' {
@@ -632,7 +632,7 @@ pop_interp :: fn(l: Lexer) -> void {
     n :: l.interp_stack.len()
     if n == 0 { return }
     // `0` because FreeInt repinning doesn't cross the `slice as
-    // slice_array` import alias — the literal stays i32 and the VM traps
+    // slice_array` import alias: the literal stays i32 and the VM traps
     // on the i32-vs-i64 comparison inside iter.slice's body.
     l.interp_stack = l.interp_stack[0..<n - 1] // FIXME: use `pop`
 }
@@ -666,7 +666,7 @@ lex_string :: fn(l: Lexer, raw: bool) -> void {
     l.lex_string_body(triple, raw, block)
 }
 
-// Emit a StringPart token if the builder accumulated any content — no-op
+// Emit a StringPart token if the builder accumulated any content: no-op
 // otherwise so we don't generate empty parts between back-to-back interps.
 flush_string_part :: fn(
     l: Lexer, sb: StringBuilder, part_start: Position, has_part: bool, block: TextBlock | null,
@@ -693,7 +693,7 @@ write_char :: fn(sb: StringBuilder, c: char, block: TextBlock | null) -> void {
 
 // Drive the body of a string literal. Handles raw vs. interpolated input,
 // emits StringPart / InterpOpen / StringEnd as needed. When the body opens
-// an interpolation we push onto `interp_stack` and return — `lex_one` will
+// an interpolation we push onto `interp_stack` and return: `lex_one` will
 // resume the body when the matching `}` closes the interp.
 lex_string_body :: fn(l: Lexer, triple: bool, raw: bool, block: TextBlock | null) -> void {
     part_start := l.position_here()
@@ -760,7 +760,7 @@ lex_string_body :: fn(l: Lexer, triple: bool, raw: bool, block: TextBlock | null
             }
         }
 
-        // `${expr}` — interp open, push frame, return so `lex_one` takes over.
+        // `${expr}`: interp open, push frame, return so `lex_one` takes over.
         if !raw && c == '$' && l.peek_at(1) == '{' {
             flush_string_part(l, sb, part_start, has_part, block)
             op_start :: l.position_here()
@@ -775,7 +775,7 @@ lex_string_body :: fn(l: Lexer, triple: bool, raw: bool, block: TextBlock | null
             return
         }
 
-        // `$ident` — single-identifier interp, no `{}` brackets.
+        // `$ident`: single-identifier interp, no `{}` brackets.
         if !raw && c == '$' && l.peek_at(1).is_ident_start() {
             flush_string_part(l, sb, part_start, has_part, block)
             op_start :: l.position_here()
@@ -807,7 +807,7 @@ lex_string_body :: fn(l: Lexer, triple: bool, raw: bool, block: TextBlock | null
         l.advance(1)
     }
 
-    // Reached EOF without closing — emit the diagnostic at the current part.
+    // Reached EOF without closing: emit the diagnostic at the current part.
     l.push_error(.UnterminatedStringLiteral,
         Span { .start = part_start, .end = l.position_here() }, "")
     flush_string_part(l, sb, part_start, has_part, block)
@@ -961,7 +961,7 @@ lex_one :: fn(l: Lexer) -> void {
 
     // Closing `}` for the active `${...}` interpolation. Must run BEFORE
     // `try_lex_operator` would emit a regular `rbrace` token. Inner `{...}`
-    // expressions inside the interp are still emitted normally — the brace
+    // expressions inside the interp are still emitted normally: the brace
     // tracking on the frame disambiguates.
     top :: l.top_interp()
     match top {
@@ -988,7 +988,7 @@ lex_one :: fn(l: Lexer) -> void {
     }
     if c == '/' && l.peek_at(1) == '/' {
         // Line comment: skip to (but not past) the newline. Stop on a bare
-        // `\r` too — `handle_newline` (and the `\n || \r` test above) treats a
+        // `\r` too: `handle_newline` (and the `\n || \r` test above) treats a
         // lone CR as a line break, so a classic-Mac file must end the comment
         // there or the scan swallows the following line.
         for !l.at_end() && l.peek() != '\n' && l.peek() != '\r' {
@@ -1000,7 +1000,7 @@ lex_one :: fn(l: Lexer) -> void {
         l.lex_block_comment()
         return
     }
-    // Raw strings: `r"..."` — must be checked before `is_ident_start` since
+    // Raw strings: `r"..."`, must be checked before `is_ident_start` since
     // `r` is otherwise an identifier start.
     if c == 'r' && l.peek_at(1) == '"' {
         l.lex_string(true)
@@ -1026,11 +1026,11 @@ lex_one :: fn(l: Lexer) -> void {
         return
     }
 
-    // Backslash outside a string / char literal — Vader has no line
+    // Backslash outside a string / char literal: Vader has no line
     // continuation. Emit L0007 instead of the generic L0001.
     start :: l.position_here()
     // A `#!` shebang is only consumed on line 1 (see `tokenize`). Reaching one
-    // here means it's not on the first line — emit L0008 and skip the rest of
+    // here means it's not on the first line: emit L0008 and skip the rest of
     // the line, rather than a misleading per-`#` L0001 (UnexpectedCharacter).
     if c == '#' && l.peek_at(1) == '!' {
         for !l.at_end() && l.peek() != '\n' && l.peek() != '\r' {
@@ -1262,7 +1262,7 @@ line_of :: fn(l: Lexer, text: string) -> i32 {
 
 // ---- newline continuation (leading operators) ----------------------------
 
-// Count `.Newline` tokens in a lexed stream — a statement terminator survived
+// Count `.Newline` tokens in a lexed stream: a statement terminator survived
 // only where these helpers expect it to.
 count_newlines :: fn(l: Lexer) -> i64 {
     n: i64 = 0
@@ -1351,7 +1351,7 @@ count_newlines :: fn(l: Lexer) -> i64 {
 // ---- numeric & escape validation -----------------------------------------
 
 @test test_trailing_underscore_rejected :: fn() -> void {
-    // `42_` — a separator with no following digit — is malformed (SPEC §3).
+    // `42_` (a separator with no following digit) is malformed (SPEC §3).
     l :: tokenize("42_", "test.vader")
     assert(l.errors.len() >= 1, "trailing underscore should error")
 }
@@ -1376,25 +1376,25 @@ count_newlines :: fn(l: Lexer) -> i64 {
 }
 
 @test test_char_escape_double_quote_rejected :: fn() -> void {
-    // `\"` is a string-only escape — invalid inside a char literal (`'\"'`).
+    // `\"` is a string-only escape: invalid inside a char literal (`'\"'`).
     l :: tokenize("'\\\"'", "test.vader")
     assert(l.errors.len() >= 1, "double-quote escape is not valid in a char literal")
 }
 
 @test test_char_escape_single_quote_ok :: fn() -> void {
-    // `'\''` — an escaped single quote — is the canonical char escape.
+    // `'\''` (an escaped single quote) is the canonical char escape.
     l :: tokenize("'\\''", "test.vader")
     assert_eq(l.errors.len(), 0)
 }
 
 @test test_string_escape_single_quote_rejected :: fn() -> void {
-    // `\'` is a char-only escape — invalid inside a string literal (`"\'"`).
+    // `\'` is a char-only escape: invalid inside a string literal (`"\'"`).
     l :: tokenize("\"\\'\"", "test.vader")
     assert(l.errors.len() >= 1, "single-quote escape is not valid in a string literal")
 }
 
 @test test_string_escape_double_quote_ok :: fn() -> void {
-    // `"a\"b"` — an escaped double quote — is valid in a string literal.
+    // `"a\"b"` (an escaped double quote) is valid in a string literal.
     l :: tokenize("\"a\\\"b\"", "test.vader")
     assert_eq(l.errors.len(), 0)
 }

@@ -1,9 +1,9 @@
 // semver: Semantic Versioning 2.0.0 + npm-style range matching.
 //
 // Reference specs (locked in 2026-05-26) :
-//   - https://semver.org/spec/v2.0.0.html — version-string grammar +
+//   - https://semver.org/spec/v2.0.0.html: version-string grammar +
 //     precedence rules §1–§12. Ranges are NOT part of this spec.
-//   - https://github.com/npm/node-semver — de-facto reference for the
+//   - https://github.com/npm/node-semver: de-facto reference for the
 //     `^` / `~` / `||` / `-` / x-range syntax we adopt.
 //
 // Public surface :
@@ -12,10 +12,10 @@
 //   - `parse` / `parse_range` are the entry points ; both return an
 //     explicit `T | ParseError` union, carrying `ParseError`
 //     (from `std/string`) on malformed input.
-//   - `Version` plugs into `std/core::Display`, `Equals`, `Comparable` —
+//   - `Version` plugs into `std/core::Display`, `Equals`, `Comparable`:
 //     call sites use `a.compare(b)`, `a < b`, `a == b`,
 //     `${v}` (interp).
-//   - `VersionRange` plugs into `std/core::Contains<Version>` — call
+//   - `VersionRange` plugs into `std/core::Contains<Version>`: call
 //     sites use the infix `in` operator : `v in r` desugars to
 //     `r.contains(v)`.
 //
@@ -46,12 +46,12 @@ export Version :: struct {
     build:      string = ""
 }
 
-/// A parsed range expression — a disjunction of conjunctions of terms,
+/// A parsed range expression: a disjunction of conjunctions of terms,
 /// matching the npm `||` (OR) / whitespace (AND) grammar. Construct via
 /// `parse_range` only ; the internal `RangeClause` / `RangeTerm` types
 /// are not exported.
 export VersionRange :: struct {
-    // Internal parse result — `RangeClause` is deliberately not exported, so the
+    // Internal parse result: `RangeClause` is deliberately not exported, so the
     // field opts out of the public surface ; construct via `parse_range` and
     // query through the range methods rather than reading `clauses` directly.
     @internal
@@ -98,14 +98,14 @@ export parse :: fn(s: string) -> Version | ParseError {
     if s.is_empty() { return ParseError { .msg = "empty version string" } }
     n :: s.byte_len()
 
-    // Locate the build separator `+` first (last occurrence — build
+    // Locate the build separator `+` first (last occurrence: build
     // identifiers cannot themselves contain `+`).
     plus_pos: i64 = n
     for i in 0..<n {
         if s.byte_at(i) == '+' { plus_pos = i }
     }
 
-    // Locate the first `-` that lives in the pre-release slot — i.e.
+    // Locate the first `-` that lives in the pre-release slot, i.e.
     // the first `-` after the patch component, which lives after the
     // second `.`. Earlier `-` bytes are part of an alphanumeric
     // identifier (`alpha-1` etc.) and must NOT be treated as separators.
@@ -196,7 +196,7 @@ export parse :: fn(s: string) -> Version | ParseError {
 export parse_range :: fn(s: string) -> VersionRange | ParseError {
     trimmed :: s.trim()
     if trimmed.is_empty() {
-        // Empty range == `*` per node-semver — matches any non-pre-release.
+        // Empty range == `*` per node-semver: matches any non-pre-release.
         return wildcard_range()
     }
     out_clauses: RangeClause[]: []
@@ -223,7 +223,7 @@ is_all_digits :: fn(s: string) -> bool {
     return true
 }
 
-// True when `s` is composed solely of range-operator characters (`<>=~^`) — a
+// True when `s` is composed solely of range-operator characters (`<>=~^`): a
 // bare operator whose version sits in the next whitespace-separated token.
 is_bare_operator :: fn(s: string) -> bool {
     if s.is_empty() { return false }
@@ -413,7 +413,7 @@ split_or :: fn(s: string) -> string[] {
 }
 
 // Split `s` on whitespace runs ; empty pieces are dropped (multi-space
-// collapses to a single separator — distinct from `std/string::split`
+// collapses to a single separator: distinct from `std/string::split`
 // which preserves empty pieces).
 split_ws :: fn(s: string) -> string[] {
     out: string[]: []
@@ -546,13 +546,13 @@ zero_pre :: fn(major: i32, minor: i32, patch: i32) -> Version {
     }
 }
 
-// Largest i32 — a version component that already sits here can't be bumped for
+// Largest i32: a version component that already sits here can't be bumped for
 // an exclusive upper bound without wrapping negative.
 I32_MAX :: 0x7FFF_FFFF
 
 // Exclusive upper-bound version (bump one component by 1, zero the rest, carry
-// the `-0` pre-release marker), or `null` when the component is already i32.MAX
-// — then the range has NO upper bound (matches everything ≥ its lower bound)
+// the `-0` pre-release marker), or `null` when the component is already i32.MAX,
+// then the range has NO upper bound (matches everything ≥ its lower bound)
 // rather than wrapping to a negative version that nothing satisfies.
 bump_major :: fn(major: i32) -> Version | null = if major == I32_MAX { null } else { zero_pre(major + 1, 0, 0) }
 bump_minor :: fn(major: i32, minor: i32) -> Version | null = if minor == I32_MAX { null } else { zero_pre(major, minor + 1, 0) }
@@ -601,7 +601,7 @@ expand_tilde :: fn(p: PartialVersion) -> RangeTerm[] | ParseError {
 expand_xrange :: fn(p: PartialVersion) -> RangeTerm[] {
     lo :: partial_to_lower(p)
     if p.major < 0 {
-        // `*` — any release ≥ 0.0.0. No upper bound. Pre-release
+        // `*`: any release ≥ 0.0.0. No upper bound. Pre-release
         // filter then excludes pre-releases at match time.
         return [RangeTerm { .op = .Gte, .version = lo }]
     }
@@ -623,7 +623,7 @@ expand_hyphen :: fn(lo: PartialVersion, hi: PartialVersion) -> RangeTerm[] {
     if hi.patch < 0 {
         return bounded(lo_v, bump_minor(hi.major, hi.minor))
     }
-    // Complete upper bound — inclusive, no bump (so no overflow).
+    // Complete upper bound: inclusive, no bump (so no overflow).
     return [
         RangeTerm { .op = .Gte, .version = lo_v },
         RangeTerm {
@@ -638,7 +638,7 @@ expand_hyphen :: fn(lo: PartialVersion, hi: PartialVersion) -> RangeTerm[] {
 
 // Parse a primitive comparator with a leading operator (`>=`, `<=`,
 // `>`, `<`, `=`). The version following the op must be complete
-// (M.N.P) — partials with primitives aren't supported in MVP.
+// (M.N.P): partials with primitives aren't supported in MVP.
 parse_comparator_token :: fn(op: TermOp, rest: string) -> RangeTerm[] | ParseError {
     if rest.is_empty() {
         return ParseError { .msg = "primitive comparator missing version" }
@@ -842,7 +842,7 @@ Version implements Comparable {
 
 VersionRange implements Contains<Version> {
     /// Membership test : `v in range` desugars to `range.contains(v)`.
-    /// True iff any clause is fully satisfied — within a clause every
+    /// True iff any clause is fully satisfied: within a clause every
     /// term must hold AND the pre-release filter (node-semver default)
     /// must pass.
     contains :: fn(self, value: Version) -> bool {
@@ -899,7 +899,7 @@ import "std/testing"
     assert_eq(err.message(), "boom")
 }
 
-// ---- parse — OK ----
+// ---- parse: OK ----
 
 @test test_parse_simple :: fn() -> void {
     match v :: parse("1.2.3") {
@@ -978,7 +978,7 @@ import "std/testing"
     }
 }
 
-// ---- parse — KO ----
+// ---- parse: KO ----
 
 @test test_parse_empty :: fn() -> void {
     match parse("") {
@@ -1062,8 +1062,8 @@ import "std/testing"
 
 // Test-only sentinel: on `parse` failure return a Version that loudly
 // announces itself in any downstream assertion (`-1` triple +
-// "PARSE-FAILED" build tag). Lets the test corpus stay readable —
-// `parse_ok("1.2.3")` reads better than a per-test match — at the cost
+// "PARSE-FAILED" build tag). Lets the test corpus stay readable
+// (`parse_ok("1.2.3")` reads better than a per-test match) at the cost
 // of trading a `panic` for a delayed assertion failure.
 parse_ok :: fn(s: string) -> Version {
     match v :: parse(s) {
@@ -1098,7 +1098,7 @@ parse_ok :: fn(s: string) -> Version {
 }
 
 @test test_compare_larger_set_wins :: fn() -> void {
-    // §11 : `1.0.0-alpha < 1.0.0-alpha.1` — common prefix equal, the
+    // §11 : `1.0.0-alpha < 1.0.0-alpha.1`, common prefix equal, the
     // version with more pre-release identifiers ranks higher.
     a :: parse_ok("1.0.0-alpha")
     b :: parse_ok("1.0.0-alpha.1")
@@ -1149,7 +1149,7 @@ parse_ok :: fn(s: string) -> Version {
     assert(a >= a, ">= refl")
 }
 
-// ---- parse_range — OK ----
+// ---- parse_range: OK ----
 
 parse_range_ok :: fn(s: string) -> VersionRange {
     match r :: parse_range(s) {

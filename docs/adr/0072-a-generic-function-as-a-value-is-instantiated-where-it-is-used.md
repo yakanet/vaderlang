@@ -1,4 +1,4 @@
-# 0072 — A generic function as a value is instantiated where it is used
+# 0072: A generic function as a value is instantiated where it is used
 
 ## Status
 

@@ -1,6 +1,6 @@
 // Go peer of bench/arr_collect.vader. Uses range-over-func iterators (Go 1.23+
 // `iter.Seq`) for the lazy filter + map and `slices.Collect` to build the
-// result — the language's lazy pipeline drained into a slice, mirroring
+// result: the language's lazy pipeline drained into a slice, mirroring
 // Vader's fused `a.filter(is_odd).map(square).collect()`.
 
 package main

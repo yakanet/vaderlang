@@ -16,7 +16,7 @@ module "vader/front/parser"
 
 export NodeIdFactory :: struct { next: i64 }
 
-/// Build a fresh factory. IDs start at 1 — `0` is reserved for
+/// Build a fresh factory. IDs start at 1: `0` is reserved for
 /// `UNASSIGNED_NODE_ID` so `node.id == 0` reliably detects un-walked nodes.
 export new_node_id_factory :: fn() -> NodeIdFactory {
     return NodeIdFactory { .next = 1 }
@@ -30,7 +30,7 @@ export mint :: fn(self: NodeIdFactory) -> i64 {
 }
 
 /// Walk a freshly-parsed `Program`, minting an ID on every reachable
-/// AST node. Idempotent only if called once per program — re-running
+/// AST node. Idempotent only if called once per program: re-running
 /// would re-stamp IDs and break any side-table built against the prior
 /// IDs.
 export assign_program_ids :: fn(p: Program, f: NodeIdFactory) -> void {

@@ -1,4 +1,4 @@
-# 0079 — A declared guard is a checked contract
+# 0079: A declared guard is a checked contract
 
 ## Status
 

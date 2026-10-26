@@ -1,4 +1,4 @@
-# 0062 — The lowering no longer rewrites `bytes()` by name
+# 0062: The lowering no longer rewrites `bytes()` by name
 
 ## Status
 

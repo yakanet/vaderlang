@@ -1,4 +1,4 @@
-// Regression: match-arm guards run end-to-end — the guard may read the
+// Regression: match-arm guards run end-to-end, the guard may read the
 // pattern's bindings (lowered inside the predicate block, under the
 // short-circuit `&&`), a bare-ident guard must not swallow the arm's
 // `->` as a lambda, and a guarded arm falls through to later arms when

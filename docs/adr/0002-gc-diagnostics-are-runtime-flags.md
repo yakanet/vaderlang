@@ -1,4 +1,4 @@
-# 0002 — GC diagnostics are runtime flags, not compile-time ones
+# 0002: GC diagnostics are runtime flags, not compile-time ones
 
 ## Status
 
@@ -28,8 +28,8 @@ failing run is the check itself.
 
 They are off by default and must be safe to compile into a release binary.
 
-A flag that changes GC behaviour rather than only observing it —
-`VADER_GC_NO_CSTACK_SCAN` drops live objects by construction — says so where it
+A flag that changes GC behaviour rather than only observing it
+(`VADER_GC_NO_CSTACK_SCAN` drops live objects by construction) says so where it
 is defined, and is documented as a work-list generator, never a tuning knob.
 
 ## Consequences

@@ -1,6 +1,6 @@
 // A `@comptime for` is unrolled: no loop is left of it. Its `continue` leaves
 // the copy of the body it is in and goes on with the next one, its `break`
-// leaves every copy — never the runtime loop around the unrolled one — and the
+// leaves every copy (never the runtime loop around the unrolled one) and the
 // copy's defers run on the way out.
 
 module "snippet"

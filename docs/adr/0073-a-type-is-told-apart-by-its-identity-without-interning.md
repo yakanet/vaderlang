@@ -1,4 +1,4 @@
-# 0073 — A type is told apart by its identity, without interning
+# 0073: A type is told apart by its identity, without interning
 
 ## Status
 

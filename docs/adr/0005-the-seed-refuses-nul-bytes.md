@@ -1,4 +1,4 @@
-# 0005 — `seed.sh regenerate` refuses to write a seed containing NUL bytes
+# 0005: `seed.sh regenerate` refuses to write a seed containing NUL bytes
 
 ## Status
 

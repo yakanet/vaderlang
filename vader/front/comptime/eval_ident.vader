@@ -1,10 +1,10 @@
 // vader/front/comptime/eval_ident: IdentExpr lookup + type-value short-circuit.
 //
 // An `IdentExpr` at comptime resolves through three paths :
-//   1. The typed program's resolved-symbol table — if the symbol is a
+//   1. The typed program's resolved-symbol table: if the symbol is a
 //      previously-evaluated `@comptime const`, return its bound value.
 //   2. A nominal type (`i32` / `string` / a user struct / enum / trait
-//      name) — evaluate to `ComptimeValue.TypeVal(type)`. Lifts
+//      name): evaluate to `ComptimeValue.TypeVal(type)`. Lifts
 //      `comptime_type_alias` + `comptime_type_value` without the VM.
 //   3. Anything else (Param / Local / Fn / ImportBinding / …) →
 //      `C4001` ; needs VM execution.

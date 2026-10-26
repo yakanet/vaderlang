@@ -93,11 +93,11 @@ no_color_set :: fn() -> bool = (get_env("NO_COLOR") ?? "") != ""
 // ---- coloring -------------------------------------------------------------
 //
 // The helpers are receiver-less module functions. Callers reach them through
-// the module — idiomatically aliased as `TTY` — so the call site reads
+// the module (idiomatically aliased as `TTY`) so the call site reads
 // `TTY.red("error")`.
 
 // SGR escape `\e[<code>m` for `code` (e.g. "31"), or "" when `enabled` is false.
-// Pure given `enabled` — the gating decision is supplied by the caller, which
+// Pure given `enabled`: the gating decision is supplied by the caller, which
 // keeps this unit testable independently of the runtime terminal state.
 escape :: fn(enabled: bool, code: string) = if enabled { "\u{1B}[${code}m" } else { "" }
 
@@ -118,7 +118,7 @@ export sgr :: fn(code: string, s: string) = paint(code, s)
 /// Reset all SGR attributes (SGR 0) when coloring is enabled, else "". Useful
 /// when composing sequences by hand.
 export reset :: fn() = escape(should_colorize(), "0")
-/// Bold (SGR 1) — emphasis, e.g. diagnostic codes.
+/// Bold (SGR 1): emphasis, e.g. diagnostic codes.
 export bold :: fn(s: string) = paint("1", s)
 /// Dim / faint (SGR 2). Renders on modern terminals; a no-op on consoles that
 /// don't support it (never raw escapes).
@@ -127,18 +127,18 @@ export dim :: fn(s: string) = paint("2", s)
 export italic :: fn(s: string) = paint("3", s)
 /// Underline (SGR 4).
 export underline :: fn(s: string) = paint("4", s)
-/// Reverse video — swap foreground and background (SGR 7).
+/// Reverse video: swap foreground and background (SGR 7).
 export reverse :: fn(s: string) = paint("7", s)
 
 // ---- foreground colors (normal, SGR 30–37) --------------------------------
 
 /// Black foreground (SGR 30).
 export black :: fn(s: string) = paint("30", s)
-/// Red foreground (SGR 31) — errors / failures.
+/// Red foreground (SGR 31): errors / failures.
 export red :: fn(s: string) = paint("31", s)
-/// Green foreground (SGR 32) — successes.
+/// Green foreground (SGR 32): successes.
 export green :: fn(s: string) = paint("32", s)
-/// Yellow foreground (SGR 33) — warnings (the ANSI stand-in for orange).
+/// Yellow foreground (SGR 33): warnings (the ANSI stand-in for orange).
 export yellow :: fn(s: string) = paint("33", s)
 /// Blue foreground (SGR 34).
 export blue :: fn(s: string) = paint("34", s)

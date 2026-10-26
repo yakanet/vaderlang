@@ -1,7 +1,7 @@
 // vader/tools/lsp/handlers/implementation: `textDocument/implementation` handler.
 //
 // Where goto-`definition` jumps to a name's single binding, `implementation`
-// answers "and where are its BODIES" — a question that only exists because one
+// answers "and where are its BODIES": a question that only exists because one
 // name can have several. Two constructs have that shape, and they are the same
 // shape:
 //
@@ -15,7 +15,7 @@
 //
 // THE UNION VIEW, and this is the whole reason the handler exists. Selection
 // runs at LOAD time, so by the time any typed project exists, the bodies for
-// other platforms are gone — `implementation` on a Mac would list the Darwin
+// other platforms are gone: `implementation` on a Mac would list the Darwin
 // body and claim that is all there is. It reads `union_project_for` instead,
 // which loads with `AllTargets` and keeps every body. That view must never feed
 // diagnostics (see `analysis/state`), but listing locations is exactly what it
@@ -33,8 +33,8 @@ import "vader/front/resolver"
 
 /// Resolve `textDocument/implementation` for the position in `params`.
 ///
-/// Returns a `Location[]` — one per body of the `@target` group under the
-/// cursor — or `JsonNull` when the cursor is not on a name that has bodies. An
+/// Returns a `Location[]`: one per body of the `@target` group under the
+/// cursor, or `JsonNull` when the cursor is not on a name that has bodies. An
 /// empty array is never returned: "no implementations" and "not that kind of
 /// name" are the same answer to a client, and null is the cheaper one.
 ///
@@ -139,7 +139,7 @@ owning_trait :: fn(target: DeclTarget) -> DeclTarget | null {
 // Matched on the DECLARATION's name span, not on an expression: `implementation`
 // is asked from the declaration, and resolving a call site would answer a
 // different question (that is `definition`'s job). Any member of the group
-// answers — a user who invokes it from one body means the group.
+// answers: a user who invokes it from one body means the group.
 target_group_name_at :: fn(
     project: LoadedProject, file_path: string, line: i32, col: i32,
 ) -> string {
@@ -160,7 +160,7 @@ target_group_name_at :: fn(
 }
 
 // How many OS selectors a `@target` carries: 0 for the bare form (THE
-// declaration), more for a body. Returns 0 when there is no `@target` at all —
+// declaration), more for a body. Returns 0 when there is no `@target` at all:
 // callers pair it with `has_target_decorator`, which separates the two cases.
 target_selector_count :: fn(decorators: AST.Decorator[]) -> i64 {
     for d in decorators {

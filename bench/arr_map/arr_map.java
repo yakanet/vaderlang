@@ -1,5 +1,5 @@
-// Java peer of bench/arr_map.vader. Uses the Stream API — a fresh
-// Arrays.stream(a).mapToLong(f).sum() per pass — mirroring Vader's
+// Java peer of bench/arr_map.vader. Uses the Stream API, a fresh
+// Arrays.stream(a).mapToLong(f).sum() per pass, mirroring Vader's
 // `a.map(square)` iterator (lazy, one element at a time through the pipeline),
 // the same way bench/iter_chain.java mirrors the range→filter→map chain.
 

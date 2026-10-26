@@ -1,7 +1,7 @@
 // Positive regression for the `@internal` field decorator. A field marked
 // `@internal` is private to its declaring module: fields are public by default,
 // and `@internal` opts a single field out. Within the SAME module every access
-// stays legal — construction (the field's default applies), reads, and writes.
+// stays legal: construction (the field's default applies), reads, and writes.
 // Cross-module access is rejected with T3054 (see the diag corpus).
 module "snippet"
 
@@ -13,7 +13,7 @@ Counter :: struct {
     count: i32 = 0
 }
 
-// Same-module helpers — `@internal` does not restrict these.
+// Same-module helpers: `@internal` does not restrict these.
 bump :: fn(c: Counter) -> void { c.count = c.count + 1 }
 
 main :: fn() -> i32 {
@@ -21,6 +21,6 @@ main :: fn() -> i32 {
     bump(c)
     bump(c)
     bump(c)
-    println("${c.label}: ${c.count}")  // same-module read — OK
+    println("${c.label}: ${c.count}")  // same-module read, OK
     return 0
 }

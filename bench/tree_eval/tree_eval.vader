@@ -1,4 +1,4 @@
-/// Closed-union tag dispatch — `match` over four variants, run over a tree that
+/// Closed-union tag dispatch: `match` over four variants, run over a tree that
 /// is built once and then walked many times, so the allocation is amortised out
 /// and what remains is the dispatch. `binary_trees` conflates the two (its walk
 /// is one pass over what it just allocated, and its match has two cases) and
@@ -11,7 +11,7 @@
 /// offsets would land here and nowhere else.
 ///
 /// Every operation is additive, so the value stays bounded by
-/// `leaf count × MAX_LITERAL` — exact in an f64 mantissa, so the Bun-TS peer
+/// `leaf count × MAX_LITERAL`: exact in an f64 mantissa, so the Bun-TS peer
 /// needs no BigInt and the checksum stays cross-language comparable.
 ///
 /// Sized so the natively compiled binary runs in ~30-70 ms.

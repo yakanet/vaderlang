@@ -1,10 +1,10 @@
 // vader/vm/exec_bulk: the bulk array / string / buffer opcodes.
 //
 // Each runs one op of `apply_boxed` (`exec.vader`) on the operand stack of its
-// frame — bulky and cold: an O(N) body, or one that already allocates.
+// frame, bulky and cold: an O(N) body, or one that already allocates.
 //
 // Contract: return a `Trap` on a stack or range error, `null` on success, and
-// advance `frame.sp` / `frame.pc` before returning `null` — `apply_boxed` does
+// advance `frame.sp` / `frame.pc` before returning `null`: `apply_boxed` does
 // neither for these.
 
 module "vader/vm"
@@ -12,10 +12,10 @@ module "vader/vm"
 bc :: import "vader/core/bytecode"
 
 /// Clamp a signed operand to a non-negative index. A negative count or offset is
-/// not an error for these ops — it saturates to an empty range.
+/// not an error for these ops: it saturates to an empty range.
 clamp_nonneg :: fn(v: i32) -> i64 = if v < 0 { 0 } else { i64(v) }
 
-/// `array.copy` — overlap-safe window copy between two arrays.
+/// `array.copy`: overlap-safe window copy between two arrays.
 exec_array_copy :: fn(frame: Frame) -> Trap | null {
     len_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.copy len")
     if len_unwrap is Trap { return len_unwrap }
@@ -50,9 +50,9 @@ exec_array_copy :: fn(frame: Frame) -> Trap | null {
     return null
 }
 
-/// `array.slice` — a view over `[lo, hi)` of an array.
+/// `array.slice`: a view over `[lo, hi)` of an array.
 ///
-/// @param instr  the op itself — the view carries its own `type_id`.
+/// @param instr  the op itself: the view carries its own `type_id`.
 exec_array_slice :: fn(frame: Frame, instr: bc.ArraySlice) -> Trap | null {
     hi_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.slice hi")
     if hi_unwrap is Trap { return hi_unwrap }
@@ -80,7 +80,7 @@ exec_array_slice :: fn(frame: Frame, instr: bc.ArraySlice) -> Trap | null {
     return null
 }
 
-/// `array.push_all` — append every element of one array to another.
+/// `array.push_all`: append every element of one array to another.
 exec_array_push_all :: fn(frame: Frame) -> Trap | null {
     src_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.push_all source")
     if src_unwrap is Trap { return src_unwrap }
@@ -99,7 +99,7 @@ exec_array_push_all :: fn(frame: Frame) -> Trap | null {
     return null
 }
 
-/// `array.repeat` — an array of `n` copies of one element.
+/// `array.repeat`: an array of `n` copies of one element.
 exec_array_repeat :: fn(frame: Frame) -> Trap | null {
     count_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.repeat count")
     if count_unwrap is Trap { return count_unwrap }
@@ -126,7 +126,7 @@ exec_array_repeat :: fn(frame: Frame) -> Trap | null {
     return null
 }
 
-/// `string.compare` — the three-way byte order of two strings.
+/// `string.compare`: the three-way byte order of two strings.
 exec_string_compare :: fn(frame: Frame) -> Trap | null {
     left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.compare")
     if left  is Trap { return left  }
@@ -139,7 +139,7 @@ exec_string_compare :: fn(frame: Frame) -> Trap | null {
     return null
 }
 
-/// `buffer.write_string` — copy string bytes into a buffer at an offset.
+/// `buffer.write_string`: copy string bytes into a buffer at an offset.
 exec_buffer_write_string :: fn(frame: Frame) -> Trap | null {
     // Pop buffer + off + string ; memcpy the string's bytes into the
     // buffer at `off` (the parts-model `to_string` assembly step).

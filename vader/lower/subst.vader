@@ -95,9 +95,9 @@ any_leaves_of :: fn(t: Type) -> Type {
     }
     if t is UnionType {
         // Erase THEN build the union (`union_of` dedupes). Every variant that
-        // carries no args erases to `Any`, so a union of N such variants — a
+        // carries no args erases to `Any`, so a union of N such variants (a
         // type-param's trait bounds, say `Hash & Equals`, or a many-trait array
-        // bound — would otherwise become a union of N `Any`s, a distinct SHAPE per
+        // bound) would otherwise become a union of N `Any`s, a distinct SHAPE per
         // arity, each one materialised as its own struct decl under its own, very
         // long, mangle. `Any | Any` is `Any`.
         erased: Type[]: []
@@ -156,8 +156,8 @@ build_any_args_list :: fn(args: Type[]) -> Type[] {
 // MIXED counterpart of `build_any_args_list` : keep every arg `kept_argument`
 // keeps, collapse every other one to `Any` (via `keep_concrete_or_erase`). This is the
 // single per-arg erasure kernel shared by the vtable-receiver self
-// (`materialize_impl_for_instance`) and the box runtime tag (`erase_generic_struct_tag`)
-// — the two MUST agree arg-for-arg or a generic-struct box `vtable miss`es, so the
+// (`materialize_impl_for_instance`) and the box runtime tag (`erase_generic_struct_tag`):
+// the two MUST agree arg-for-arg or a generic-struct box `vtable miss`es, so the
 // formula lives here once, not copied at each site.
 build_mixed_args_list :: fn(impls: ImplRegistry, args: Type[]) -> Type[] {
     out: Type[]: []
@@ -179,7 +179,7 @@ join_any_displays :: fn(args: Type[]) -> string {
 
 // Merge `extra`'s type-param bindings over `base` (extra wins on a key clash).
 // Used to thread a generic struct instance's type-args into the subst when
-// lowering its field DEFAULTS in the owner module's view — `base` is the caller's
+// lowering its field DEFAULTS in the owner module's view: `base` is the caller's
 // subst, `extra` binds the struct's own type-params (`K` / `V`) to the concrete
 // instance args. Without this an `ekeys: K[] = []` default lowers as the owner's
 // erased `Any[]` (boxed) while the construction is monomorphised raw.
@@ -258,7 +258,7 @@ kept_suffix :: fn(kept: Type | null) -> string {
 }
 
 // True when AT LEAST ONE type arg is one `kept_argument` keeps (the mixed-flavor
-// gate, BROAD — incl `string`/`bool`/`char`, matching `mixed_any_suffix` /
+// gate, BROAD: incl `string`/`bool`/`char`, matching `mixed_any_suffix` /
 // `build_mixed_subst`). Such an instance is monomorphized MIXED : those args
 // kept concrete (devirt + primops/atom-eq inline), references erased to `Any`
 // (uniform pointer). `Any` is `AnyType`, not `PrimitiveType`, so an all-erased
@@ -283,14 +283,14 @@ args_suffix :: fn(args: Type[]) -> string {
 
 /// Erasure suffix for a GENERIC impl member. KEEPS the type args
 /// `kept_argument` keeps (so a primitive-keyed instance devirtualises its trait
-/// dispatch — `i32.eq` instead of a `virtual.call` thunk) and flattens every
+/// dispatch: `i32.eq` instead of a `virtual.call` thunk) and flattens every
 /// other arg to a bare `__Any`. The flatten avoids the inner-shape leak a structure-preserving
-/// `args_suffix(any_leaves_of(...))` would cause — e.g. `MutableMap<Any, Any[]>`
+/// `args_suffix(any_leaves_of(...))` would cause, e.g. `MutableMap<Any, Any[]>`
 /// → `at__Any__Any__` diverging from a sibling's `at__Any__Any`. All three
 /// suffix sites (`materialize_impl_for_instance`, `find_impl_member_for`,
 /// `lower_for_in`) MUST call this with the same `args` so each call name
 /// reconciles with the single materialised body (the dedupe keys on the suffix).
-/// @param impls  the project's impls — they say which arguments are kept.
+/// @param impls  the project's impls: they say which arguments are kept.
 /// @param args   the impl's concrete type arguments.
 /// @return       `"__<type>"` per arg `kept_argument` keeps, `"__Any"` per
 ///               other arg.

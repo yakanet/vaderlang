@@ -2,8 +2,8 @@
 // AST + the body-walking resolver.
 //
 // Lexer-based classification in `semantic_tokens.vader` covers keywords,
-// literals, comments, and operators ; this module fills in the last gap
-// — identifiers. Two phases :
+// literals, comments, and operators ; this module fills in the last gap:
+// identifiers. Two phases :
 //
 //   1. Positional walk : attribute a role by AST position (callee of
 //      CallExpr → Function, TypeExpr slot → Type, decl name → matching
@@ -12,7 +12,7 @@
 //      IdentExpr to its bound Symbol, then override Phase-1 tokens
 //      whose span matches a resolved ident with the symbol's actual
 //      kind. This is what distinguishes a parameter use site from a
-//      local use site — Phase 1 can't tell them apart.
+//      local use site: Phase 1 can't tell them apart.
 
 module "vader/tools/lsp/handlers"
 
@@ -30,7 +30,7 @@ import "toolchain/span"
 /// individual keywords. When an `IdentExpr` carries one of these names in
 /// expression position (`i32(x)` cast, `i32.MAX` field access, …) we
 /// paint it `Type` instead of the positional `Variable` default. Order
-/// doesn't matter — keep alphabetised for human scanning.
+/// doesn't matter: keep alphabetised for human scanning.
 // The canonical primitives paint as `Type`, minus `null` (a keyword, coloured
 // elsewhere) plus `type` (the metatype). Derives from `vader/core/types` so a new
 // primitive is picked up automatically.
@@ -77,11 +77,11 @@ push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken[]) -> void {
 /// tokens with the symbol-kind-derived TokenType + modifiers.
 ///
 /// The root scope is SEEDED with the file's own top-level decls and import
-/// bindings (`file_root_scope` over `collect_module_no_index` — the mono-file
+/// bindings (`file_root_scope` over `collect_module_no_index`: the mono-file
 /// collector, no module index or loader needed). Without the seed a top-level name never resolves from a body,
 /// so every reference to this file's consts / fns / types fell to the `Variable`
 /// catch-all: a module const then read as a reassignable local rather than a
-/// constant. Seeding also gets shadowing right for free — `Scope.lookup` walks
+/// constant. Seeding also gets shadowing right for free: `Scope.lookup` walks
 /// innermost-out, so a local shadowing a const name still resolves to the local.
 ///
 /// Sibling-file and imported names remain unresolved (they need the project's
@@ -153,17 +153,17 @@ push_span :: fn(out: RawToken[], sp: Span, kind: TokenType) -> void {
 }
 
 /// Push a token anchored at `start`, spanning `prefix` leading chars plus
-/// the `name` text — `prefix = 1` for the `@` of a decorator / intrinsic,
+/// the `name` text: `prefix = 1` for the `@` of a decorator / intrinsic,
 /// `0` for a bare declaration name.
 ///
 /// Used where the AST node's `span` reaches past the name : a struct-field
 /// or fn-param `span` runs through the type annotation (`x: i32`), a
 /// decorator `span` runs to the closing `)` of its args (`@extern("c")`).
 /// Tagging the full span would overlap the inner type / argument tokens,
-/// which LSP forbids and clients render inconsistently — so anchor on the
+/// which LSP forbids and clients render inconsistently, so anchor on the
 /// name alone. `name` is a declaration / decorator / intrinsic identifier,
 /// which the lexer admits as ASCII only (`is_alpha`), so its byte length
-/// already equals its codepoint length — no UTF-16 adjustment needed here,
+/// already equals its codepoint length: no UTF-16 adjustment needed here,
 /// unlike the span-based `span_token_length`.
 push_name_token :: fn(out: RawToken[], start: Position, prefix: i32, name: string, kind: TokenType) -> void {
     // `prefix` (`@`) and `name` are ASCII, so the byte width equals the char
@@ -183,7 +183,7 @@ push_name_token :: fn(out: RawToken[], start: Position, prefix: i32, name: strin
 
 // Optional-arm helpers. Vader's `match` over a union doesn't auto-cover all
 // variants of an inner union (e.g. `match x : Expr | null { is Expr -> … }`
-// doesn't fire — `is Expr` isn't a one-arm match on the underlying ~30
+// doesn't fire: `is Expr` isn't a one-arm match on the underlying ~30
 // variants). We funnel `TypeExpr | null` / `Expr | null` / `Pattern | null`
 // through these helpers so each call site stays a single line and the null
 // narrowing happens once.
@@ -250,7 +250,7 @@ walk_import_decl :: fn(d: AST.ImportDecl, out: RawToken[]) -> void {
             for n in dest.names {
                 // A modifier names an export of the module, dropped from the
                 // wildcard or rebound under its alias. Whether it is a fn or a
-                // type is not known here — default to Variable.
+                // type is not known here: default to Variable.
                 push_span(out, n.span, .Variable)
             }
         }
@@ -486,7 +486,7 @@ walk_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
 }
 
 walk_call :: fn(c: AST.CallExpr, out: RawToken[]) -> void {
-    // Upgrade the callee's bare-ident position to Function — unless the
+    // Upgrade the callee's bare-ident position to Function, unless the
     // ident names a primitive type, in which case the call is a cast
     // (`i32(x)`, `i64(n)`) and the callee is a type.
     match callee :: c.callee {
@@ -594,7 +594,7 @@ walk_type_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
             for a in e.args { walk_type_expr(a.value, out) }
         }
         is AST.FieldExpr -> {
-            // `pkg.Type` — walk receiver in value position (it's a module
+            // `pkg.Type`: walk receiver in value position (it's a module
             // namespace) and the field as Type.
             walk_expr(e.target, out)
             push_span(out, e.field_span, .Type)
@@ -608,8 +608,8 @@ walk_type_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
             walk_opt_type(e.return_type, out)
         }
         is AST.ArrayTypeExpr   -> { walk_type_expr(e.element, out) }
-        // Anything else — literal in a type position (`null`, `0..<N` etc.)
-        // — defer to the value walker so spans still get classified.
+        // Anything else, literal in a type position (`null`, `0..<N` etc.),
+        // defer to the value walker so spans still get classified.
         _ -> { walk_expr(e, out) }
     }
 }

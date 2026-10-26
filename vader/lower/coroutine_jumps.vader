@@ -2,9 +2,9 @@
 //
 // `coroutine.vader` dissolves a coroutine body into numbered states and
 // compiles a `break` / `continue` / `return` written as a statement into the
-// state transition it means. A jump can also sit inside an expression —
+// state transition it means. A jump can also sit inside an expression:
 // `v :: x ?? continue` lowers to a `let` whose value is a block holding the
-// `continue` — and such a statement runs whole inside one state, where the only
+// `continue`, and such a statement runs whole inside one state, where the only
 // loop left around the jump is the dispatch loop. Retargeting replaces the jump
 // with its transition followed by a re-entry of that dispatch loop.
 
@@ -31,7 +31,7 @@ gb_continue_to :: fn(gb: GenBuild, frame: LoopFrame) -> LoweredStmt[] {
 gb_break_to :: fn(gb: GenBuild, frame: LoopFrame) -> LoweredStmt[] = [gb_set_state(gb, frame.exit)]
 
 // A `return` completes the coroutine: a generator stops its stream, an async fn
-// hands back its value — the `null` done-marker for a bare `return`, so the
+// hands back its value: the `null` done-marker for a bare `return`, so the
 // resume result stays `T | Suspended`.
 gb_complete :: fn(gb: GenBuild, value: LoweredExpr | null) -> LoweredStmt[] {
     done :: gb_set_state(gb, i64(DONE_STATE))
@@ -46,7 +46,7 @@ gb_complete :: fn(gb: GenBuild, value: LoweredExpr | null) -> LoweredStmt[] {
 // Every statement and expression the block-split places in a state passes
 // through here; one without a jump comes back equal. A loop met on the way runs
 // within the state: it is pushed as a `local` frame for the time of its body, so
-// `gb_resolve_loop_frame` — the one resolution rule — tells a jump that stays
+// `gb_resolve_loop_frame` (the one resolution rule) tells a jump that stays
 // from one that leaves the state.
 
 gb_retarget_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> LoweredStmt = match s {

@@ -1,4 +1,4 @@
-# 0057 — A call in a generic body is resolved against its type parameters
+# 0057: A call in a generic body is resolved against its type parameters
 
 ## Status
 

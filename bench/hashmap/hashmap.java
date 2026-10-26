@@ -1,6 +1,6 @@
 // Java peer of bench/hashmap.vader. HashMap<Integer, Integer> driven through
 // the same insert / lookup / delete / probe rounds. Integer keys autobox ;
-// the map grows from empty — no port pre-sizes, so all four measure the grow
+// the map grows from empty: no port pre-sizes, so all four measure the grow
 // path the row advertises.
 
 static final int N = 100_000;

@@ -8,7 +8,7 @@
 # runtime; llvm-mingw is the guest's NATIVE toolchain, because GCC has no usable
 # aarch64-windows host build and bootstrap/build.ps1 already accepts `-CC clang`.
 # A mingw-w64 GCC is installed BESIDE it, x86_64 under Prism: CI builds with gcc,
-# and a guest that only had clang could not reproduce a gcc-only failure — which
+# and a guest that only had clang could not reproduce a gcc-only failure, which
 # is exactly what happened on 2026-08-30. Slow, but an oracle for the toolchain
 # CI actually uses. Reach it with `bootstrap/build.ps1 -CC C:\vader-tools\mingw64\bin\gcc.exe`.
 #
@@ -22,7 +22,7 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
 $LLVM_MINGW_VERSION = '20260826'
-# mingw-w64 GCC, x86_64. The guest is ARM64, so this one runs under Prism —
+# mingw-w64 GCC, x86_64. The guest is ARM64, so this one runs under Prism:
 # slower, and that is fine: it is here as an ORACLE, not as the fast path.
 # CI builds with gcc and the guest only had clang, which cost a full day on a
 # failure that reproduced on neither. `.zip` and not `.7z` so `Expand-Archive`

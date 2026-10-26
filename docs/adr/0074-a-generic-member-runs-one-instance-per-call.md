@@ -1,4 +1,4 @@
-# 0074 — A generic member runs one instance per call
+# 0074: A generic member runs one instance per call
 
 ## Status
 

@@ -6,11 +6,11 @@ Cell :: struct {
     value: i32
 }
 
-// No field to mutate — repeating one instance is harmless.
+// No field to mutate: repeating one instance is harmless.
 Marker :: struct {}
 
 main :: fn() -> i32 {
-    // W0013 — the freshly built element is shared by every slot.
+    // W0013: the freshly built element is shared by every slot.
     rows: i32[][]: [[]] * 3
     cells :: [Cell { .value = 0 }] * 2
     maps :: [MutableMap<string, i32> {}] * 2

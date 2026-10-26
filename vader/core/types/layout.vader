@@ -13,7 +13,7 @@ import "std/collections"
 import "vader/core/symbol"
 import "vader/support/integer"
 
-/// Width in bytes of the SLOT that carries a `t` — a struct field, a local, a
+/// Width in bytes of the SLOT that carries a `t`: a struct field, a local, a
 /// parameter. Not the size of the object a reference points at.
 ///
 /// This is what `@size_of` reports, and the operational truth is
@@ -25,11 +25,11 @@ import "vader/support/integer"
 ///
 /// A concrete reference is EIGHT bytes, not sixteen: a struct, array,
 /// tuple or fn value rides as a bare `void*` and recovers its tag from the
-/// object header. Only an ERASED slot — a trait object, a union, `any` — still
+/// object header. Only an ERASED slot (a trait object, a union, `any`) still
 /// carries a `vader_box_t`, whose tag it needs because no single object header
 /// answers for every variant it may hold.
 ///
-/// @return  0 for the comptime-only and unsized kinds — they name no storage.
+/// @return  0 for the comptime-only and unsized kinds: they name no storage.
 export slot_byte_size :: fn(t: Type) -> i64 = match t {
     is PrimitiveType -> primitive_size(t.name)
     // An enum rides its `repr` : `enum(u8)` is one byte.
@@ -57,7 +57,7 @@ export slot_byte_align :: fn(t: Type) -> i64 {
 /// A concrete heap reference: a `void*`.
 export REF_SLOT_BYTES: i64: 8
 
-/// An erased slot — `vader_box_t`, a tag plus a word of payload.
+/// An erased slot: `vader_box_t`, a tag plus a word of payload.
 export BOX_SLOT_BYTES: i64: 16
 
 /// Pointer width on the 64-bit target.
@@ -69,7 +69,7 @@ import "std/testing"
 
 @test
 test_slot_size_of_a_string_is_an_atom_id :: fn() -> void {
-    // `typedef vader_atom_t vader_string_t` — a u32, not a `{ptr, len}` fat
+    // `typedef vader_atom_t vader_string_t`: a u32, not a `{ptr, len}` fat
     // pointer.
     assert_eq(slot_byte_size(TY_STRING), 4)
 }

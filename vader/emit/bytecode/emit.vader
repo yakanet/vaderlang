@@ -47,7 +47,7 @@ reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx) -> void {
     if sym is Symbol {
         ctx.function_index_by_symbol_id[sym.id] = function_index
     }
-    // Always index by mangle too — impl members & other synth fns set
+    // Always index by mangle too: impl members & other synth fns set
     // `origin.symbol = null`, so without the mangle index the body-emit
     // pass can't find the reserved slot and the fn ships with an empty
     // body.
@@ -70,7 +70,7 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
         i += 1
         if imp.is_extern { continue }
         if referenced[imp.mangled_name] == null { continue }
-        // Already a real fn under this mangle — nothing to wrap.
+        // Already a real fn under this mangle: nothing to wrap.
         if ctx.function_index_by_mangle[imp.mangled_name] is i32 { continue }
         // Reuse the bytecode emitter's builder so the intrinsic-op-vs-
         // `call.import` choice lives in ONE place : `@intrinsic` impl members
@@ -115,7 +115,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
     }
     // Index by mangle too : intrinsic impl-member calls carry the member's
     // mangle with a synthetic `id = 0`, so the symbol-id path can't resolve
-    // them — the InstrCall emit falls back to this map → `CallImport`.
+    // them: the InstrCall emit falls back to this map → `CallImport`.
     ctx.import_index_by_mangle[ext.mangled] = import_index
 }
 
@@ -124,7 +124,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
     sym :: s.origin.symbol
     if sym is Symbol { sym_id = sym.id }
     // Key on the struct *type*'s intern key (`type_intern_key`), not the
-    // mangled name — `intern_type` for a `StructType` derives the same
+    // mangled name: `intern_type` for a `StructType` derives the same
     // key, so a referenced instance dedupes with this reserved
     // definition. Without this, a `ref` placeholder minted earlier under
     // the intern key stays orphaned and downstream `intern_type` calls
@@ -160,7 +160,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
         return
     }
     // Origin sans symbol (synth env structs, lifted closures) keys on
-    // the mangled name directly — no `Type` shape exists for them so
+    // the mangled name directly: no `Type` shape exists for them so
     // the display-type round-trip isn't applicable. Same reserve-before-
     // intern dance for symmetry with the symbol-bearing branch.
     new_index :: i32(ctx.types.len())
@@ -291,7 +291,7 @@ build_cfg_signature :: fn(
 // ============================================================================
 
 /// Thread a peephole pass's `BcPeepholeOut` back onto `f`, replacing only the
-/// rewritten `body` / `debug` / `jump_table` — a pass can't mutate `f` in place
+/// rewritten `body` / `debug` / `jump_table`: a pass can't mutate `f` in place
 /// (Vader structs are by-value). Collapses the identical field-by-field rebuild
 /// each `BcPeepholeOut`-returning pass in Pass 3 would otherwise repeat inline.
 with_peephole_out :: fn(f: BcFunction, out: BcPeepholeOut) -> BcFunction = BcFunction {
@@ -329,9 +329,9 @@ refuse_shared_instance :: fn(fn_name: string, t: Type) -> void {
     }
 }
 
-/// Top-level entry — translate a `CFGProject` into a `BytecodeModule`.
+/// Top-level entry: translate a `CFGProject` into a `BytecodeModule`.
 /// Wires every CFGFunction body through the structurer + per-instr
-/// emit. Does NOT run DCE/peephole — those are invoked by the caller
+/// emit. Does NOT run DCE/peephole: those are invoked by the caller
 /// if needed.
 ///
 /// @param cfg          the CFG project from `build_cfg_project`.
@@ -340,16 +340,16 @@ refuse_shared_instance :: fn(fn_name: string, t: Type) -> void {
 /// @return             a fresh `BytecodeModule`.
 export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: EmitOptions) -> BytecodeModule {
     ctx :: new_emitter_ctx()
-    // Pass 1 — reserve CFG fns / externs / structs.
+    // Pass 1: reserve CFG fns / externs / structs.
     for [_, m] in cfg.modules {
         for f in m.functions { reserve_cfg_function(f, ctx) }
         for ext in m.externs { reserve_cfg_extern(ext, ctx) }
         for s in m.struct_decls { reserve_cfg_struct(s, ctx) }
     }
-    // Pass 1.5 — synthesise wrapper fns for `@intrinsic` impl-member imports
+    // Pass 1.5: synthesise wrapper fns for `@intrinsic` impl-member imports
     // that a vtable entry references. A `virtual.call` dispatches through the
     // vtable to a real fn index, but an intrinsic impl member (e.g. `string
-    // implements Hash`) is only surfaced as an import — without a wrapper,
+    // implements Hash`) is only surfaced as an import: without a wrapper,
     // `resolve_fn_index` misses and the row is silently dropped, so the
     // VM traps "no impl for type N". The wrapper forwards to the host import
     // via `CallImport`.
@@ -358,7 +358,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     string_index_map: i32[]: []
     for s in cfg.strings { string_index_map.push(intern_string(s, ctx)) }
     // Intern each pooled read-only `string[]`'s values into the module string table
-    // so the comptime atom table (built from `module.strings`) covers them — the
+    // so the comptime atom table (built from `module.strings`) covers them: the
     // native backend resolves each value's atom there, and the `.virt` dump
     // references them by table index. Side-effect only ; the entry keeps values.
     for data_entry in cfg.data_pool {
@@ -371,7 +371,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     for slot in cfg.globals {
         ctx.globals.push(BcGlobal { .name = slot.name, .type_id = intern_type(slot.type, ctx) })
     }
-    // Pass 2 — emit fn bodies from the CFG.
+    // Pass 2: emit fn bodies from the CFG.
     for [_, m] in cfg.modules {
         for cfg_fn in m.functions {
             // Resolve the reserved fn-table slot. Prefer the symbol-id
@@ -393,7 +393,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         }
     }
     data_pool := cfg.data_pool
-    // Pass 3 — bytecode peephole + DCE, gated by `opts.optimize`.
+    // Pass 3: bytecode peephole + DCE, gated by `opts.optimize`.
     if opts.optimize {
         for i in 0..<ctx.functions.len() {
             // The `BcPeepholeOut`-returning passes can't mutate the function in
@@ -407,7 +407,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // `const ; set` the CFG interleaves between a value's producer and
             // its first read. That un-interleaving is what lets Rule 1's
             // `LocalSet N ; LocalGet N → LocalTee N` fold fire on pairs it would
-            // otherwise miss — notably the buffer / interpolation
+            // otherwise miss: notably the buffer / interpolation
             // `set buf ; get buf`, where the first write's constant offset sat
             // between the two. Running propagate before Rule 1 (rather than
             // after) is safe *because* propagate is fixpointed here : every
@@ -420,7 +420,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // produces chained moves (`%2 = move %1 = move %0 = const`) that
             // unwind one level per pass. Each firing only ever deletes ops
             // (`const` + `set` gone, `get` → `const`), so the body length
-            // strictly decreases until nothing more inlines — loop on that
+            // strictly decreases until nothing more inlines: loop on that
             // instead of a fixed unroll count.
             prev_len: i64 = ctx.functions[i].body.len() + 1
             for ctx.functions[i].body.len() < prev_len {
@@ -442,7 +442,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // dead tees / sets ; re-running the full peephole here would re-fold
             // set+get pairs that slot-renumbering made adjacent, over-folding.
             ctx.functions[i] = with_peephole_out(ctx.functions[i], run_bc_return_lit_fold(ctx.functions[i]))
-            // Final pass — same-ValType non-overlapping live ranges coalesce
+            // Final pass: same-ValType non-overlapping live ranges coalesce
             // onto shared physical slots. Runs LAST so the peephole / propagate
             // / DCE passes see the original slot identities ; their gates depend
             // on per-slot set/get counts which coalescing would corrupt.
@@ -452,11 +452,11 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // them so neither backend emits a self-copy (`lN = lN`).
             ctx.functions[i] = with_peephole_out(ctx.functions[i], strip_self_copies(ctx.functions[i]))
         }
-        // Pass 4 — whole-program prunes on the EmitterCtx.
+        // Pass 4: whole-program prunes on the EmitterCtx.
         // Order matters : functions → imports → data → globals → types so each pass's root
         // set reflects the previous pass's drops. (There is no separate
         // vtable-prune pass : vtable rows are reachability-filtered when
-        // built — see `build_vtables_from_entries` — and the `used_vt_keys`
+        // built, see `build_vtables_from_entries`, and the `used_vt_keys`
         // set below gates which vtable targets root the fn walk.)
         // Collect (trait, method) keys actually dispatched on so the
         // vtable-target rooting AND the impl-table type pinning below
@@ -513,11 +513,11 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     }
 }
 
-/// Resolve a fn symbol — a direct call's callee, a vtable entry's target — to
+/// Resolve a fn symbol (a direct call's callee, a vtable entry's target) to
 /// its function index, or `-1` when there is none (a vtable target that did not
 /// survive the prune). MANGLE-first : materialised impl-member entries and
 /// calls carry a synthetic `fn_symbol.id = 0`, so the symbol-id path would
-/// collide on slot 0 — the mangle is the reliable key (and
+/// collide on slot 0: the mangle is the reliable key (and
 /// `prune_unused_functions` remaps `function_index_by_mangle`). An instance of a
 /// generic fn shares its origin's symbol id, so a call to it, a value, an address
 /// or a closure made of it carries the instance mangle. A real-symbol name isn't a
@@ -538,7 +538,7 @@ resolve_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 | null {
 /// op also drop.
 build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> VtableRow[] {
     // Collect every `(trait, method)` key referenced by a surviving
-    // VirtualCall — only rows in this set survive.
+    // VirtualCall: only rows in this set survive.
     used_keys :: MutableMap<string, bool> {}
     for f in ctx.functions {
         for op in f.body {
@@ -549,7 +549,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
     out: VtableRow[]: []
     // An enum or a distinct boxes under its representation's tag, so its entry
     // shares that type's slot : listed last, it only fills a slot the
-    // representation leaves empty — a boxed `u8` keeps rendering as a `u8`, on
+    // representation leaves empty: a boxed `u8` keeps rendering as a `u8`, on
     // every backend.
     ordered: LoweredVtableEntry[]: []
     deferred: LoweredVtableEntry[]: []
@@ -570,7 +570,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
         if receiver_slot !is i32 { continue }
         // No receiver-shape guard here, unlike the impl table: a vtable dispatches
         // on any receiver shape : `i32 implements Display` pins a `BcScalar`
-        // slot — and requiring a struct drops those rows into a runtime
+        // slot, and requiring a struct drops those rows into a runtime
         // "vtable miss in std/core.Display.to_string".
         receiver_idx :: receiver_slot
         new_idx :: out.len()
@@ -600,7 +600,7 @@ has_receiver :: fn(row: VtableRow, type_index: i32) -> bool {
 
 // Builds the module's impl table : one BcImplEntry per (type_index,
 // trait_name) seen in the vtable entries, for a struct or an array receiver, the
-// shapes whose run-time tag names their own type. Sole builder — the CFG emit path
+// shapes whose run-time tag names their own type. Sole builder: the CFG emit path
 // is the only bytecode emit path there is.
 build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]>, ctx: EmitterCtx) -> BcImplEntry[] {
     out: BcImplEntry[]: []
@@ -624,7 +624,7 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Mu
         out.push(BcImplEntry { .type_index = type_index, .trait_name = entry.trait_name })
     }
     // Frontend-sourced membership : every interned struct tag gets a row for
-    // each trait its source symbol implements — independent of whether any
+    // each trait its source symbol implements: independent of whether any
     // impl method was materialised. Covers is-only structs AND generic
     // instances (all instances share `symbol_id`), which the vtable-sourced
     // rows above miss. This loop is struct-only ; enums and primitives carry no
@@ -661,7 +661,7 @@ ScopeFrame :: struct {
 // source-CFG target for matching br
 
 /// A `Branch` / `BranchIf` op whose target scope hasn't been opened
-/// yet — wait, in a forward jump *out of* a still-open block. Held
+/// yet: wait, in a forward jump *out of* a still-open block. Held
 /// in a side list, drained at the matching end.
 PendingBranch :: struct {
     branch_pc: i32
@@ -680,12 +680,12 @@ FnEmitCfg :: struct {
     pending: PendingBranch[]
     hints: ScheduleHints
     /// When false, the two push helpers store `null` in `slot.debug` instead
-    /// of building a `DebugPos` per op — see `EmitOptions.want_debug`. Only
+    /// of building a `DebugPos` per op, see `EmitOptions.want_debug`. Only
     /// the non-release c-emit consumes the table, so the VM / comptime /
     /// self-compile-release path leaves it off and skips the per-op alloc.
     want_debug: bool
 }
-/// Arg/result type pins for this function's calls — the SAME array that's
+/// Arg/result type pins for this function's calls: the SAME array that's
 /// stored under this fn's index in `project.pinned_types_by_fn`, cached
 /// here so the per-call emit appends to it without a per-op map lookup.
 
@@ -736,7 +736,7 @@ collect_baked_symbols :: fn(v: BcDataValue, out: MutableSet<i32>) -> void {
     }
 }
 
-/// Stack-pass-through hints — see `scheduler.vader`. Queried by
+/// Stack-pass-through hints, see `scheduler.vader`. Queried by
 /// emit_get / emit_set / TermReturn to elide the local.set + local.get
 /// pair when an instruction's single-use result flows directly to the
 /// next consumer.
@@ -750,8 +750,8 @@ emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, 
     ctx.pinned_types_by_fn[fn_idx] = pins_bucket
     // Map CFG locals to bytecode slots. Params take slots 0..N-1 ;
     // additional locals get fresh slots indexed AFTER the params.
-    // (slot.locals only contains the non-param locals — params live
-    // in signature.params — so the surviving slot indices need the
+    // (slot.locals only contains the non-param locals, params live
+    // in signature.params, so the surviving slot indices need the
     // n_params offset added when pushing.)
     local_to_slot: i32[]: []
     n_params :: cfg_fn.params.len()
@@ -785,7 +785,7 @@ emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, 
 }
 
 // ============================================================================
-// Scope wiring — indexes scopes by source-CFG BlockId target.
+// Scope wiring: indexes scopes by source-CFG BlockId target.
 // Maintains `slot.body` and `slot.jump_table` in parallel.
 // ============================================================================
 
@@ -797,7 +797,7 @@ cf_block :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
 cf_loop :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
     pc :: push_op_with_span(ctx, Loop {}, span)
     ctx.scopes.push(ScopeFrame { .kind = "loop", .target_blk = target_blk, .opener_pc = pc })
-    // Loop target = body start (opener_pc + 1) — known immediately.
+    // Loop target = body start (opener_pc + 1): known immediately.
     ctx.slot.jump_table[pc] = pc + 1
 }
 
@@ -834,7 +834,7 @@ cf_end :: fn(ctx: FnEmitCfg, span: Span) -> void {
     }
     ctx.scopes = new_scopes
     // Block/if/else fall-through target = past the end. Loops don't
-    // fall through via the opener — their `table[opener]` already
+    // fall through via the opener: their `table[opener]` already
     // points at the body start.
     if top.kind != "loop" {
         if ctx.slot.jump_table[top.opener_pc] < 0 {
@@ -911,7 +911,7 @@ drain_pending :: fn(ctx: FnEmitCfg, target_blk: BlockId, is_loop: bool, opener_p
 /// Build a per-op source position from a lowered node's span. Returns
 /// `null` for any compiler-minted span with no real source origin
 /// (`has_source_position` : `<synthetic>` / `<materialized>` / blank file /
-/// non-positive line) — defer thunks, closure env, generator state machines,
+/// non-positive line): defer thunks, closure env, generator state machines,
 /// materialised trait bodies. The c-emit then skips a bogus `#line` and the
 /// VM debug hook treats them as non-stop points (the enclosing real line
 /// stays in effect via the previous op's position).
@@ -977,13 +977,13 @@ emit_operands_into :: fn(
     }
 }
 
-// A bare compare against a union compares two boxes — `===`, or a `==` whose
-// variants all compare by their bits (`lower/value_eq.vader`) — so a scalar
+// A bare compare against a union compares two boxes, `===`, or a `==` whose
+// variants all compare by their bits (`lower/value_eq.vader`), so a scalar
 // on the other side is tagged as it would be entering that union.
 compares_boxes :: fn(op: LoweredBinaryOp, other: Type) -> bool =
     (op == .Eq || op == .Neq) && is_union_slot(other)
 
-// A slot of type `t` holds a union value — through a distinct over one too.
+// A slot of type `t` holds a union value: through a distinct over one too.
 is_union_slot :: fn(t: Type) -> bool =
     t is UnionType || (t is DistinctType && is_union_slot(t.backing))
 
@@ -1034,7 +1034,7 @@ last_op_exits :: fn(ctx: FnEmitCfg) -> bool {
 ///
 /// Its own fn type when it has one; a layout-equivalent stand-in otherwise. The
 /// header tag is read by the GC alone, and every `vader_fn_t` has the same shape,
-/// so any fn type describes it correctly — whereas an erased type describes it
+/// so any fn type describes it correctly, whereas an erased type describes it
 /// not at all. See the call site.
 ///
 /// @param t  the closure's static type.
@@ -1043,7 +1043,7 @@ closure_header_type :: fn(t: Type) -> Type =
     if t is FnType { t } else { mk_fn([], TY_VOID) }
 
 // ============================================================================
-// Per-instr emit — covers the full `Instruction` set
+// Per-instr emit: covers the full `Instruction` set
 // ============================================================================
 
 emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
@@ -1079,9 +1079,9 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // Intern each arg's static type + the result type so the type
         // table carries them. Vader's Call op doesn't carry these
         // indices, so we pin them under THIS function (via the cached
-        // per-fn bucket) — pinning per-function means they vanish when
+        // per-fn bucket): pinning per-function means they vanish when
         // the function is pruned ; a global list would keep dead arg
-        // types — and the impl rows / `Range` monomorphs they anchor —
+        // types (and the impl rows / `Range` monomorphs they anchor)
         // alive even after the call's function is DCE'd.
         pins :: ctx.pinned_types_bucket
         for a in ins.args {
@@ -1127,7 +1127,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         } else {
             panic("emit/bytecode/emit: unresolved fn-ref '${ins.fn_symbol.name}' (id=${ins.fn_symbol.id}) : a fn value never materialised")
         }
-        // Same materialisation-gap class as the InstrCall fallback above —
+        // Same materialisation-gap class as the InstrCall fallback above:
         // a fn used as a value (FnRef) whose target was never materialised.
         // Fail loud rather than silently returning an unresolved fn pointer.
 
@@ -1171,7 +1171,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         if field_slot == null {
             panic("emit/bytecode/emit: no field `${ins.field}` on `${display_type(target_type)}` (local ${ins.target} `${target_local.name}`) in '${ctx.fn_.mangled}'. A method reference on a primitive isn't a first-class value ; call it directly or wrap it in a lambda")
         }
-        // No such struct field at emit time — the upstream pass produced a
+        // No such struct field at emit time: the upstream pass produced a
         // field access that isn't a real load. The classic source is a
         // primitive method reference taken as a first-class value (`s.hash`
         // with no backing free fn) ; the old code emitted a silent
@@ -1278,7 +1278,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         emit_retag_into(ctx, ins.value, boxed_element(target_type), ins.span)
         // Symmetric with the get above: a concrete-primitive element stores
         // through the typed slot op (no box, no element-kind switch, no write
-        // barrier — primitives hold no refs).
+        // barrier: primitives hold no refs).
         store_op :: slot_store_op_for(array_element_val_type(target_type), ins.bounds_safe)
         if store_op is null {
             push_emit(ctx, ArraySet { .type_id = type_index, .bounds_safe = ins.bounds_safe }, ins.span)
@@ -1302,7 +1302,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         emit_get(ctx, ins.value, ins.span)
         emit_retag_into(ctx, ins.value, is_boxed_slot(value_type), ins.span)
         // Resolve the array's local to its bytecode slot only when the lift was
-        // proven safe — that slot IS the hint the backend needs, and it cannot be
+        // proven safe: that slot IS the hint the backend needs, and it cannot be
         // filled earlier: slots are assigned here, not in `lower`.
         cache_slot :: if ins.cached { ctx.local_to_slot[i64(ins.target)] } else { -1 }
         push_emit(ctx, ArrayPush { .type_id = intern_type(value_type, ctx.project), .cache_slot = cache_slot }, ins.span)
@@ -1425,12 +1425,12 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     if ins is InstrMakeClosure {
         emit_first_get(ctx, pos, ins.env, ins.span)
         // Operand is the CLOSURE's own type id (fn type), not the env
-        // struct's — but it lands in the object HEADER, where the only reader is
+        // struct's, but it lands in the object HEADER, where the only reader is
         // the GC, and what the GC needs is the LAYOUT: a `vader_fn_t` is a `code`
         // plus an `env`, identically for every closure.
         //
         // `mc.type` is the closure's STATIC type, and that collapses to an opaque
-        // `ref` whenever it is erased — a type param, `Self`, `Any`. An opaque ref
+        // `ref` whenever it is erased: a type param, `Self`, `Any`. An opaque ref
         // gets no `vader_type_info` entry (the table covers Struct / Fn / Array
         // only), so `vader_gc_obj_size` returns 0 and `vader_gc_forward` hands the
         // object back UNCOPIED: it stays in young from-space, which the minor then
@@ -1451,14 +1451,14 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrIntrinsic {
         // Resolve the intrinsic name to its dedicated Op. Vader has no
-        // generic Intrinsic Op — every name maps to one. Args push in
+        // generic Intrinsic Op: every name maps to one. Args push in
         // order ; the per-name Op handles its own stack discipline.
         emit_operands_into(ctx, pos, ins.args, [], ins.span)
         op_opt :: intrinsic_op_for_name(ins.name)
         if op_opt == null {
             panic("emit/bytecode/emit: unhandled intrinsic `${ins.name}` in '${ctx.fn_.mangled}'. No dedicated Op ; add a case to intrinsic_op_for_name")
         }
-        // Unknown intrinsic at emit time — the args were already pushed and
+        // Unknown intrinsic at emit time: the args were already pushed and
         // a bare `Return` would truncate the function in silence. Fail loud,
         // like the field-get / FnRef / MakeClosure gaps above.
 
@@ -1477,7 +1477,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     // Every handled Instruction `return`s above. Reaching here means a variant
-    // has no emitter — panic loudly rather than silently emit nothing, which
+    // has no emitter: panic loudly rather than silently emit nothing, which
     // would drop the op (midir-1). (A full `match` would give T3013 coverage,
     // but this ~400-line chain isn't worth the churn ; the panic gives the same
     // no-silent-drop guarantee.)
@@ -1485,8 +1485,8 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
 }
 
 // A value of a class narrower than the 32 bits it rides in is cut to its width
-// where it is made — `u8(300)` is 44, `i8(200)` is -56, a `u8` sum of 200 and
-// 100 is 44 — since every reader of the stack sees the bits as they are, and a
+// where it is made: `u8(300)` is 44, `i8(200)` is -56, a `u8` sum of 200 and
+// 100 is 44, since every reader of the stack sees the bits as they are, and a
 // store into a slot of the class, which cuts too, may be folded away.
 //
 // A signed width is cut as `((x & mask) ^ sign) - sign`, which no step can
@@ -1505,7 +1505,7 @@ emit_narrowing :: fn(ctx: FnEmitCfg, class: ValType, span: Span) -> void {
     }
 }
 
-// Whether every value of the class `from` is a value of `to` — false only when
+// Whether every value of the class `from` is a value of `to`: false only when
 // `to` is narrower than 32 bits and `from` reaches outside it.
 fits_in :: fn(from: ValType, to: ValType) -> bool = match to {
     .U8  -> from == .U8
@@ -1597,7 +1597,7 @@ resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
 }
 
 // A call to import `index` : `CallImport`, or the dedicated op of an `@intrinsic`
-// that has one, which the native build binds no host for — the choice
+// that has one, which the native build binds no host for: the choice
 // `build_intrinsic_wrapper_body` makes for a vtable target.
 import_call_target :: fn(p: EmitterCtx, index: i32) -> DirectCallTarget {
     imp :: p.imports[index]
@@ -1609,7 +1609,7 @@ import_call_target :: fn(p: EmitterCtx, index: i32) -> DirectCallTarget {
 }
 
 /// Look up a field index by name on a struct type. Returns `null` when
-/// the type isn't a struct or the field isn't found — the field-get /
+/// the type isn't a struct or the field isn't found: the field-get /
 /// field-set callers panic on `null`, since a missing field at emit time
 /// means an upstream pass produced a field access that isn't a real
 /// struct member (e.g. a primitive method reference taken as a
@@ -1667,7 +1667,7 @@ emit_get :: fn(ctx: FnEmitCfg, local_id: LocalId, span: Span) -> void {
 
 /// First stack-pushed operand of an instruction. When the scheduler
 /// flagged `pos` as `skip_first_get`, the previous instruction's result
-/// is already on the stack — no `local.get` needed. `pos` is
+/// is already on the stack: no `local.get` needed. `pos` is
 /// `pos_key(block, idx)`.
 emit_first_get :: fn(ctx: FnEmitCfg, pos: i64, local_id: LocalId, span: Span) -> void {
     if ctx.hints.skip_first_get.contains(pos) { return }
@@ -1676,7 +1676,7 @@ emit_first_get :: fn(ctx: FnEmitCfg, pos: i64, local_id: LocalId, span: Span) ->
 
 /// Final write for an instruction's result. When the scheduler flagged
 /// `pos` as `skip_set`, the value stays on the stack for the next
-/// instruction's first operand — no `local.set` needed.
+/// instruction's first operand: no `local.set` needed.
 emit_result :: fn(ctx: FnEmitCfg, pos: i64, dst: LocalId, span: Span) -> void {
     if ctx.hints.skip_set.contains(pos) { return }
     emit_set(ctx, dst, span)
@@ -1693,7 +1693,7 @@ emit_result_if_any :: fn(ctx: FnEmitCfg, pos: i64, dst: LocalId | null, span: Sp
 //
 // The callee pushed them in the order the caller receives them, so the LAST is
 // on top and they store back to front. Only the first store can take the
-// scheduler's skip hint — the ones under it have values above them on the stack.
+// scheduler's skip hint: the ones under it have values above them on the stack.
 emit_call_results :: fn(ctx: FnEmitCfg, pos: i64, dsts: LocalId[], span: Span) -> void {
     if dsts.len() <= 1 {
         emit_result_if_any(ctx, pos, if dsts.len() == 0 { null } else { dsts[0] }, span)
@@ -1711,7 +1711,7 @@ emit_call_results :: fn(ctx: FnEmitCfg, pos: i64, dsts: LocalId[], span: Span) -
 needs_ref_cast :: fn(t: Type) -> bool = t is RangeType || t is PrimitiveType && !is_void(t)
 
 // Type an `array.push` is emitted against : the array's own element, since the
-// buffer's kind was set from it at construction — an `i32` pushed into an
+// buffer's kind was set from it at construction: an `i32` pushed into an
 // `(i32 | string)[]` or a `Display[]` is boxed, not packed. The value's type only
 // when the target is not visibly an array.
 pushed_element_type :: fn(target: Type, value: Type) -> Type {

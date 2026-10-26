@@ -1,4 +1,4 @@
-# 0037 — A generic type's bounds hold at its literal and at its impl's members
+# 0037: A generic type's bounds hold at its literal and at its impl's members
 
 ## Status
 

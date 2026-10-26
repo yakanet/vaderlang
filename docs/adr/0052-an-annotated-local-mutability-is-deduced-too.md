@@ -1,4 +1,4 @@
-# 0052 — An annotated local's `!` is deduced too
+# 0052: An annotated local's `!` is deduced too
 
 ## Status
 
@@ -34,12 +34,12 @@ edges, closure, W0017 / W0018, `vader fix`, the inlay hint and the hover are sha
   before its annotation is typed, and its written `!` come off then. The same
   moment strips a local fn's parameters, which ADR 0051 left written.
 - **Lever:** a deduced slot is its own lever, whatever it was bound to.
-- **Edges into a local:** the value that fills a local — its initializer, or a value
-  assigned to it — is tied to it as an argument to its parameter. When the local is
+- **Edges into a local:** the value that fills a local (its initializer, or a value
+  assigned to it) is tied to it as an argument to its parameter. When the local is
   marked, the value's lever is too, in the same round.
 - **What a local stands for:** a local bound to a single name records the value it
   was bound to, whatever its rights (`local_bound_to`), so a lever walk follows it
-  back — a slice (`s :: xs[0..<n]`) as a view of `xs`, an element as an element.
+  back: a slice (`s :: xs[0..<n]`) as a view of `xs`, an element as an element.
 - **A fresh literal's own level** is no root's: `[f]` with `f` an element of `files`
   stands for `files`' levels below the literal's, never for its spine (`floor`).
 - **A destructuring** `[x, y] = [p, q]` ties each target to the element that fills it,
@@ -51,7 +51,7 @@ edges, closure, W0017 / W0018, `vader fix`, the inlay hint and the hover are sha
 
 A marker the compiler inserted is flagged `deduced` on the `MutableTypeExpr`, and
 `vader/tools/fmt`'s printer leaves it out; a written marker put back after the first round
-is not flagged. A tool that prints a typed body — the LSP's rewrite actions do —
+is not flagged. A tool that prints a typed body (the LSP's rewrite actions do)
 prints the source's markers only. Signature help shows the deduced ones: they are
 the contract a caller meets.
 
@@ -74,7 +74,7 @@ Measured on 2026-10-09 against `6244ec385`, on the self-check:
 A first version took three rounds. Three locals were filled by
 `out.push_all(xs)` and then returned as `T![]`: the return marks `out`'s element
 in round 1, and `push_all :: fn(self!, other: T[])` then binds `T` to that
-element, so `xs`'s elements must grant mutation too — which only round 2's
+element, so `xs`'s elements must grant mutation too, which only round 2's
 refusal found.
 
 On an array, a member's `T` is bound by the receiver alone: every `T` of its
@@ -97,8 +97,8 @@ Still open:
   would have to wait for it.
 - **The rounds re-check everything.** Re-checking only the functions a new mark
   reaches would make the extra rounds cheap.
-- A written `!` that only a later round would find needed — a value filling a
-  trait variant of a union — earns W0018. Removing it is safe: the deduction finds
+- A written `!` that only a later round would find needed (a value filling a
+  trait variant of a union) earns W0018. Removing it is safe: the deduction finds
   the need from the refusal.
 - **A mark on one variant of a union reads as the whole union's** in the checker:
   a parameter written `i32[]! | string[]` is held as `i32[]! | string[]!`, so a

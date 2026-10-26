@@ -19,8 +19,8 @@ import "vader/lower/ir"
 lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr {
     // `@field(target, "name")` folds to `target.name` when the name
     // arg is a static string literal. Comptime-for unrolling can
-    // substitute the name slot with a LoweredStringLit
-    // — we lower the args here so post-substitution literals get
+    // substitute the name slot with a LoweredStringLit:
+    // we lower the args here so post-substitution literals get
     // picked up. When the typer left the result type unresolved,
     // refine from the receiver's struct decl + field name pair.
     if intrinsic.name == "field" && intrinsic.args.len() == 2 {
@@ -71,7 +71,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
     }
 }
 
-/// Late fold for the type-introspection intrinsics — fires when the
+/// Late fold for the type-introspection intrinsics: fires when the
 /// arg lowered to a `LoweredTypeConst` (which can happen via
 /// `@comptime for` substitution that the early AST-level fold doesn't
 /// see). Returns null when the pattern doesn't match ; caller falls
@@ -193,7 +193,7 @@ fold_integer_bound :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Ty
     }
 }
 
-// `@field_count` / `@variant_count` / `@field_index` folds — count the parts of
+// `@field_count` / `@variant_count` / `@field_index` folds: count the parts of
 // a structured type (fields for Struct/Tuple, variants for Union/Enum) or the
 // 0-based position of a named field. Mirror of the comptime intrinsics so the
 // same value lands whether the call is folded at comptime or here.
@@ -229,7 +229,7 @@ try_fold_field_index :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: 
 }
 
 /// Fold `@type_of(x)` to a `LoweredTypeConst` carrying `x`'s static
-/// type. The arg is NOT evaluated (Zig-style `@TypeOf`) — only the
+/// type. The arg is NOT evaluated (Zig-style `@TypeOf`): only the
 /// typed AST's recorded expr-type is read.
 try_fold_type_of :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
@@ -241,10 +241,10 @@ try_fold_type_of :: fn(
     }
 }
 
-/// Fold `@type_args(T)` to an array literal of `LoweredTypeConst`s — one
+/// Fold `@type_args(T)` to an array literal of `LoweredTypeConst`s: one
 /// per generic argument of `T`. Returns an empty array for non-generic
 /// shapes.
-// The type arguments of a resolved intrinsic type argument — a struct's or a
+// The type arguments of a resolved intrinsic type argument: a struct's or a
 // trait's, else empty. Read-only : they are borrowed straight from the type.
 type_args_of :: fn(arg_or_null: Type | null) -> Type[] {
     if arg_or_null is null { return [] }
@@ -272,7 +272,7 @@ try_fold_type_args :: fn(
 }
 
 /// Fold `@fields(T)` to an array literal of `Field { name, type }`
-/// struct lits — one entry per field declared on `T`. Generic struct
+/// struct lits: one entry per field declared on `T`. Generic struct
 /// args flow into each field's type so `@fields(Pair<string, i64>)`
 /// reports `value` as `i64`, not the unsubstituted TypeParam.
 ///

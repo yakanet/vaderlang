@@ -10,7 +10,7 @@ dependencies {
     intellijPlatform {
         // Community is enough now : we no longer rely on the bundled
         // `com.intellij.platform.lsp` module (which only ships with
-        // commercial IDEs). LSP integration is delegated to LSP4IJ —
+        // commercial IDEs). LSP integration is delegated to LSP4IJ:
         // a third-party plugin (EPL-2.0, Red Hat) that works on every
         // IntelliJ-based IDE, Community included. The user installs
         // LSP4IJ once from the Marketplace and our plugin layers on

@@ -3,15 +3,15 @@
 //
 // WHY: `@extern` is EXEMPT from the emit-time wiring check that guarantees a
 // host import is servable (`vader/emit/bytecode/emit.vader`: "@extern imports are
-// link-resolved and exempt"). That exemption is right for USER FFI — the C
+// link-resolved and exempt"). That exemption is right for USER FFI: the C
 // linker resolves it. But an `@extern` the COMPILER ITSELF uses is invisible to
 // `vader/vm/host.vader`, so it traps as "unbound host import" the moment the
 // compiler runs on its own bytecode (the self-host path). The C linker
 // binds it natively, so only the VM run shows the gap: the profiler brackets, for
 // one, are emitted unconditionally.
 //
-// `lib/` is deliberately NOT covered. Its `@intrinsic` declarations — still the
-// bulk of `lib/std/` — are validated at build time by the manifest
+// `lib/` is deliberately NOT covered. Its `@intrinsic` declarations (still the
+// bulk of `lib/std/`) are validated at build time by the manifest
 // (`intrinsic_id_for`): an unwired one fails the build rather than reaching the
 // VM. Its `@extern` declarations (`lib/std/math`, `lib/std/env`, and all of
 // `lib/system/`) need no handler at all: the VM resolves a foreign symbol
@@ -22,7 +22,7 @@
 // the profiler brackets get.
 //
 // This is a guard, not a proof: it checks the C symbol is *mentioned*, quoted, in
-// host.vader. `@extern` is still a draft surface — a real design pass over it is
+// host.vader. `@extern` is still a draft surface: a real design pass over it is
 // tracked separately.
 
 import { expect, test } from "bun:test";

@@ -1,9 +1,9 @@
 // vader/support/target/baked: the target constants, as a module the compiler writes.
 //
 // `VADER_OS` and `VADER_ARCH` cannot be written by hand: their value is decided
-// per build. But they must behave like any other module-level constant — visible
+// per build. But they must behave like any other module-level constant, visible
 // to the comptime evaluator, foldable into a `SEP :: if VADER_OS == …`, nameable
-// in an `@target`-free program — and the cheapest way to get all of that is to
+// in an `@target`-free program, and the cheapest way to get all of that is to
 // GENERATE the module rather than to invent a channel for injected values.
 //
 // So the compiler emits ~six lines of ordinary Vader, hands them to the loader
@@ -11,7 +11,7 @@
 // parsed, collected and seeded exactly like `std/core`. No new mechanism: three
 // existing ones, composed.
 //
-// The enums themselves are NOT generated — they live in `std/target`, written by
+// The enums themselves are NOT generated: they live in `std/target`, written by
 // hand, documented and tested. Only the two values are baked, which keeps the
 // generated text small enough to be obviously correct.
 
@@ -25,8 +25,8 @@ import "std/target"
 /// builds.
 export BAKED_MODULE :: "std/target/baked"
 
-/// Virtual path the generated source is served from. It is never on disk — the
-/// loader reads it through the overlay — but it must look like a real path,
+/// Virtual path the generated source is served from. It is never on disk (the
+/// loader reads it through the overlay) but it must look like a real path,
 /// because diagnostics and spans name it and a reader has to be able to tell
 /// where it came from.
 export BAKED_PATH :: "<baked>/std/target/baked/baked.vader"
@@ -72,7 +72,7 @@ export baked_module_source :: fn(t: Target) -> string {
 
 // Variant spellings, which are NOT the `Display` names: `Os.Darwin`, not
 // `Os.darwin`. Keeping them separate from `std/target`'s Display impl is
-// deliberate — one is what a human reads, the other is what the parser must
+// deliberate: one is what a human reads, the other is what the parser must
 // accept, and conflating them would make a rename of either silently break the
 // other.
 os_variant :: fn(os: Os) -> string = match os {
@@ -108,7 +108,7 @@ import "std/testing"
 }
 
 @test test_variant_spelling_is_not_the_display_name :: fn() -> void {
-    // `Os.Windows`, not `Os.windows` — the parser needs the variant, a reader
+    // `Os.Windows`, not `Os.windows`: the parser needs the variant, a reader
     // gets the Display form. A rename of one must not silently follow the other.
     src :: baked_module_source(Target { .os = .Windows, .arch = .X86_64 })
     assert(".Windows" in src, "variant case is preserved")

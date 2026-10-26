@@ -97,7 +97,7 @@ export assemble_typed_project :: fn(checked: CheckedProject) -> TypedProject {
 /// and the *merged* diagnostic set (loader-time diagnostics first, then
 /// typecheck diagnostics). This is the single source of truth shared by the
 /// CLI typecheck stage and the LSP, so the editor never reports a diagnostic
-/// the compiler wouldn't — and vice-versa. The only thing layered on top is the
+/// the compiler wouldn't, and vice-versa. The only thing layered on top is the
 /// LSP's per-file presentation filter (drop other files' spans).
 export FileCheck :: struct {
     project: LoadedProject
@@ -105,7 +105,7 @@ export FileCheck :: struct {
     /// The effect summary of the project (`CheckedProject.effects`).
     effects: Fx.EffectSummary
     /// Loader diagnostics (parse / discovery / import-path / collect) followed
-    /// by typecheck diagnostics, in that order — the same merge the CLI's
+    /// by typecheck diagnostics, in that order: the same merge the CLI's
     /// `dump --stage=typed-ast` performs.
     diags: Diagnostic[]
 }

@@ -1,7 +1,7 @@
 // A small integer or an enum entering a union keeps its own type, so `is u8` /
 // `is Color` hold natively as on the VM. A constant, a conversion or a free
 // literal reaches the native backend as an `i32` : midir tags the union value
-// (`retag`) wherever it is stored — an argument (direct, through a namespace
+// (`retag`) wherever it is stored: an argument (direct, through a namespace
 // alias, virtual, a UFCS receiver), a return, a field, a local, an `if` / `match`
 // join, an array element, a push, a closure capture, a tuple element, a `yield`.
 // A set of such values compares them through its erased instance, which reaches

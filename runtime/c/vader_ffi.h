@@ -6,14 +6,14 @@
  * signature at compile time.
  *
  * Two halves. `vader_ffi_open` / `vader_ffi_symbol` find the function;
- * `vader_ffi_call_*` invoke it through a TRAMPOLINE — a call site written here,
+ * `vader_ffi_call_*` invoke it through a TRAMPOLINE: a call site written here,
  * ahead of time, one per SHAPE of signature rather than one per function.
  *
  * The shapes are coarse on purpose. Every ABI we target (System V AMD64,
  * AAPCS64, Win64) passes integers and pointers of any width in the same general
  * registers, in the same order, so a single `int64_t` slot carries an `int`, a
  * `size_t` or a `void*` alike. Floats travel in OTHER registers, so a call is
- * either all-word or all-double — the mixed shape has no slot layout a fixed
+ * either all-word or all-double: the mixed shape has no slot layout a fixed
  * trampoline can express, and neither do structs by value, whose classification
  * is per-field. The all-double shape covers one or two arguments; see the
  * dispatch in `vader_ffi_call_n`.
@@ -38,14 +38,14 @@
 #  include <dlfcn.h>
 #endif
 
-/* Largest arity a trampoline covers — the dispatch below writes one cast per
+/* Largest arity a trampoline covers: the dispatch below writes one cast per
  * arity from 0 to this, and traps past it. Nothing about the ABIs breaks here:
  * AAPCS64 passes eight integer arguments in registers and Win64 four, and a
  * stack-passed argument is fine anyway since `cc` lays it out from the written
  * prototype. The bound is on how many casts are worth spelling out. */
 #define VADER_FFI_MAX_ARGS 8
 
-/* Open a shared library by BARE name — `"sqlite3"`, not `"libsqlite3.so"` —
+/* Open a shared library by BARE name (`"sqlite3"`, not `"libsqlite3.so"`),
  * decorating it per platform. A NULL or empty name yields a handle onto the
  * running process, which is what a libc symbol needs.
  *
@@ -67,7 +67,7 @@ static void* vader_ffi_resolve(void* lib, const char* symbol);
 /* Call `fn` with `nargs` integer-or-pointer arguments, reading the result as an
  * integer. TRAPS when `nargs > VADER_FFI_MAX_ARGS` rather than calling with a
  * truncated argument list. A DOUBLE result, and any shape with double arguments,
- * goes through `vader_ffi_call_n` instead — see its float dispatch. */
+ * goes through `vader_ffi_call_n` instead, see its float dispatch. */
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
 
 /* ---- implementation ---------------------------------------------------- */
@@ -85,7 +85,7 @@ void* vader_ffi_open_path(const char* path) {
 }
 
 /* Handle onto the process's own C runtime. Memoised because `dispatch_extern`
- * asks for it on EVERY foreign call — a `println` on the VM would otherwise pay
+ * asks for it on EVERY foreign call: a `println` on the VM would otherwise pay
  * a `dlopen` each time, and each one bumps a refcount that is never dropped. */
 static void* vader_ffi_self = NULL;
 
@@ -97,7 +97,7 @@ void* vader_ffi_open(const char* name) {
     if (name == NULL || name[0] == '\0') {
         /* The C runtime, which is where a libc-shaped symbol lives. NOT the
          * process handle: an EXE's export table is empty, so `GetProcAddress`
-         * on it finds nothing — POSIX only gets away with `dlopen(NULL)`
+         * on it finds nothing: POSIX only gets away with `dlopen(NULL)`
          * because that exposes the whole global symbol scope. */
         HMODULE h = GetModuleHandleA("ucrtbase.dll");
         if (h == NULL) { h = GetModuleHandleA("msvcrt.dll"); }
@@ -138,7 +138,7 @@ void* vader_ffi_open(const char* name) {
  * Linear and small on purpose: a program reaches a handful of distinct foreign
  * symbols, and a scan of a few entries costs less than any hashing would. Names
  * are strdup'd because the caller's `const char*` is a marshalling temporary.
- * A full table simply stops memoising rather than evicting — correctness never
+ * A full table simply stops memoising rather than evicting: correctness never
  * depends on the cache. */
 #define VADER_FFI_MEMO_SIZE 64
 static struct { void* lib; char* name; void* addr; } vader_ffi_memo[VADER_FFI_MEMO_SIZE];
@@ -169,14 +169,14 @@ void* vader_ffi_symbol(void* lib, const char* symbol) {
     }
 }
 
-/* The uncached lookup — the memo above is the only caller. */
+/* The uncached lookup: the memo above is the only caller. */
 static void* vader_ffi_resolve(void* lib, const char* symbol) {
 #ifdef _WIN32
     {
         void* p = (void*) GetProcAddress((HMODULE) lib, symbol);
         if (p == NULL && symbol[0] != '_') {
             /* The CRT exports its POSIX-shaped entry points with a leading
-             * underscore — `write` is `_write`, `getpid` is `_getpid`. The
+             * underscore: `write` is `_write`, `getpid` is `_getpid`. The
              * unprefixed spelling that the LINKER accepts is a compile-time
              * alias, absent from the export table. */
             char buf[128];
@@ -186,9 +186,9 @@ static void* vader_ffi_resolve(void* lib, const char* symbol) {
             }
         }
         if (p == NULL) {
-            /* Then the EXE's own export table. POSIX gets this for free —
-             * `dlopen(NULL)` exposes the whole global scope, so a runtime symbol
-             * like `vader_dirent_name` resolves there — while on Windows the CRT
+            /* Then the EXE's own export table. POSIX gets this for free
+             * (`dlopen(NULL)` exposes the whole global scope, so a runtime symbol
+             * like `vader_dirent_name` resolves there) while on Windows the CRT
              * handle above knows nothing of the running program. Anything the
              * interpreter must reach in ITSELF is `VADER_HOST_EXPORT`ed, which
              * is what puts it in this table. */
@@ -213,7 +213,7 @@ static void* vader_ffi_resolve(void* lib, const char* symbol) {
 
 /* Argument / result classes for `vader_ffi_call_n`. Mirrored by
  * `vader/vm/host.vader`'s `FFI_VOID` / `FFI_WORD` / `FFI_F64` / `FFI_ADDR` /
- * `FFI_STR` / `FFI_STR_OPT` — the two must agree, values included. */
+ * `FFI_STR` / `FFI_STR_OPT`: the two must agree, values included. */
 #define VADER_FFI_VOID 0u
 #define VADER_FFI_WORD 1u
 #define VADER_FFI_F64  2u
@@ -246,16 +246,16 @@ static void* vader_ffi_resolve(void* lib, const char* symbol) {
 /* Variadic dispatch, one entry per FIXED-argument count.
  *
  * A variadic callee cannot be called through a non-variadic prototype. On
- * x86-64 the two happen to agree — variadic arguments travel in the same
- * registers — which is why this went unnoticed on Linux. On darwin-arm64 they
+ * x86-64 the two happen to agree: variadic arguments travel in the same
+ * registers, which is why this went unnoticed on Linux. On darwin-arm64 they
  * do NOT: variadic arguments go on the STACK, so a cast to
  * `(int64_t (*)(int64_t, int64_t, int64_t))` puts the third argument in `x2`
  * while the callee's `va_arg` reads an uninitialised stack word. `ioctl(fd,
  * TIOCGWINSZ, &ws)` had the kernel write eight bytes to that stale address and
  * report success; `open(path, flags, mode)` created files with mode 0.
  *
- * The fixed count cannot be derived from the argument count — only the callee's
- * real prototype knows it — so it is declared, by `@c_variadic(N)`.
+ * The fixed count cannot be derived from the argument count (only the callee's
+ * real prototype knows it) so it is declared, by `@c_variadic(N)`.
  *
  * One function per fixed count rather than one macro: the cast has to name the
  * fixed parameters, and C has no way to build a prototype from a count. */
@@ -352,7 +352,7 @@ static vader_string_t vader_ffi_string_result(unsigned char cls, const char* p, 
 /* One foreign call, described by DATA rather than by its shape.
  *
  * `desc` is one byte per slot: `desc[0]` classifies the RESULT, `desc[1+i]` the
- * i-th argument. `frame` holds the argument slots — eight bytes each, in order —
+ * i-th argument. `frame` holds the argument slots (eight bytes each, in order)
  * followed by whatever bytes a `VADER_FFI_ADDR` slot points into; the result is
  * written back over its first eight bytes.
  *
@@ -361,7 +361,7 @@ static vader_string_t vader_ffi_string_result(unsigned char cls, const char* p, 
  * rather than mis-marshalling a frame.
  *
  * The RESULT of a `VADER_FFI_STR` call is returned rather than written into the
- * frame: it is an atom id, and the VM has no way to build a `string` from one —
+ * frame: it is an atom id, and the VM has no way to build a `string` from one,
  * whereas a returned `vader_string_t` IS a Vader string. Every other shape
  * returns `VADER_ATOM_EMPTY`, which callers ignore. */
 vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* frame,
@@ -394,18 +394,18 @@ vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* fr
     }
 
     /* Shapes covered so far: all-word, and all-double with one or two arguments.
-     * A MIX needs one form per combination of classes — the point at which
+     * A MIX needs one form per combination of classes: the point at which
      * fabricating the call (libffi, or a thunk) starts to pay. */
     if (nreal == 0) {
         /* Reject BEFORE the call. Trapping after it has already run means the
-         * callee's side effects happened and only the result is refused — and a
+         * callee's side effects happened and only the result is refused, and a
          * zero-argument `double f(void)` lands here too (nargs 0 ⇒ nreal 0), so
          * that shape is unreachable rather than merely unsupported. */
         if (cls[0] == VADER_FFI_F64) {
             vader_trap("vader_ffi: floating result from an integer call shape");
         }
         /* `nfixed >= 0` means the callee is VARIADIC and that many of its
-         * parameters are fixed — declared, because only the real prototype knows
+         * parameters are fixed: declared, because only the real prototype knows
          * where the fixed ones end. The cast has to be variadic too: see
          * `vader_ffi_call_va`. */
         int64_t r = nfixed >= 0

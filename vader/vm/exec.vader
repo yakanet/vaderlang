@@ -3,14 +3,14 @@
 // `exec_entry` (and `exec` / `exec_fn` / `exec_fn_value` over it)
 // hands a `VmState` to the register engine (`reg_exec.vader`). The engine runs
 // the ops it has no register form for through `apply_boxed`, on a scratch
-// `Frame` holding their operands as a small operand stack — the SoA columns and
+// `Frame` holding their operands as a small operand stack: the SoA columns and
 // the `push_val` / `peek_val` helpers below.
 //
 // Also here: the debugger's view of a paused frame (`pause_frame`), the narrow
 // store truncation, and the trap builders both halves share.
 //
 // VM-level errors (malformed bytecode, a bad operand, a host-import miss) come
-// back as a `Trap` with a labelled message — the runtime's generic "array index
+// back as a `Trap` with a labelled message: the runtime's generic "array index
 // out of bounds" would otherwise mask compiler / parser bugs.
 //
 // Siblings: `value.vader` (Value projections, type matching, vtable lookup),
@@ -24,19 +24,19 @@ import "std/io"
 import "std/string"
 import "vader/core/types"
 
-// Maximum frame depth — guards against runaway recursion (the
+// Maximum frame depth: guards against runaway recursion (the
 // callee-frame allocation could otherwise grow unbounded). Picked
 // well above what hand-written snippets need ; large enough that
 // genuine recursive workloads pass, small enough to surface a Trap
 // before the host runs out of memory.
 MAX_FRAME_DEPTH :: 1024
 
-// Step ceiling for comptime VM runs (`exec_fn_value`, capture != null) — a
+// Step ceiling for comptime VM runs (`exec_fn_value`, capture != null): a
 // non-terminating `@comptime` loop must error, not hang the build. Generous
 // enough for real computed tables (MD5_K is ~640 ops) ; a true infinite loop
 // trips it in ~1s. A non-comptime run uses STEP_BUDGET_UNREACHABLE instead.
 COMPTIME_STEP_BUDGET: i64: 100_000_000
-/// Step budget for a run that is NOT `@comptime` — high enough that the guard
+/// Step budget for a run that is NOT `@comptime`: high enough that the guard
 /// never fires (a machine dispatching a billion ops a second needs ~146 years to
 /// reach it), so both paths share one guard shape.
 STEP_BUDGET_UNREACHABLE: i64: 1 << 62
@@ -72,14 +72,14 @@ StackTag :: enum(u8) { I32, I64, F64, Bool, Char, Null, Ref }
 NULL_VALUE :: NullVal {}
 
 /// True when `t` marks a value `read_i32` accepts (i32 / char / i64 carriers).
-/// Mirrors `read_i32`'s @partial match EXACTLY — a stricter test would reject
+/// Mirrors `read_i32`'s @partial match EXACTLY: a stricter test would reject
 /// bytecode the boxed path accepted.
 is_i32_tag :: fn(t: StackTag) = t == .I32 || t == .Char || t == .I64
 
 /// Integer→integer `convert`, straight on the stack columns. True when it applied.
 ///
-/// The boxed route allocates TWICE per execution — `peek_val` to read the operand,
-/// `push_val` to carry the result back — to move a word that never leaves its
+/// The boxed route allocates TWICE per execution (`peek_val` to read the operand,
+/// `push_val` to carry the result back) to move a word that never leaves its
 /// column. Answers exactly what `convert_value`'s `.I32` / `.I64` arms answer,
 /// unsigned-source normalisation included: a `u8` / `u16` / `u32` arrives tagged
 /// `I32` holding raw bits, so widening it must ZERO-extend rather than
@@ -93,7 +93,7 @@ convert_int_fast :: fn(frame: Frame, target: bc.ConvertTarget, from_name: string
     t :: frame.tag[idx]
     n: i64 = 0
     if t == .I32 {
-        // Only a widening to i64 can see above bit 31 — an `.I32` target truncates
+        // Only a widening to i64 can see above bit 31: an `.I32` target truncates
         // back to the same low word either way.
         if target == .I64 && is_unsigned_source(from_name) {
             n = i64(u32(frame.payload[idx]))
@@ -135,7 +135,7 @@ reserve_stack :: fn(frame: Frame, depth: i64) -> void {
 }
 
 
-/// Write `value` into the stack columns at `cursor` — sized by `reserve_stack`
+/// Write `value` into the stack columns at `cursor`: sized by `reserve_stack`
 /// (the caller bumps `sp`). Scalars land in payload + tag, heap values in the refs
 /// column.
 push_val :: fn(frame: Frame, cursor: i64, value: Value) -> void {
@@ -192,8 +192,8 @@ peek_owned :: fn(frame: Frame, idx: i64) -> Value = match frame.tag[idx] {
 ///
 /// @param frame  the executing frame.
 /// @param idx    slot index within the frame, as for `peek_val`.
-/// @param at_pc  informational — the pc quoted in the trap message.
-/// @param label  informational — names the operand in the trap message.
+/// @param at_pc  informational: the pc quoted in the trap message.
+/// @param label  informational: names the operand in the trap message.
 /// @return       the writable `ArrayVal`, or a `Trap` when the slot holds
 ///               anything else.
 peek_array_mut :: fn(frame: Frame, idx: i64, at_pc: i32, label: string) -> ArrayVal | Trap {
@@ -234,18 +234,18 @@ pause_frame :: fn(bc_mod: bc.BytecodeModule, fn_body: bc.BcFunction, slots: Valu
 }
 
 // Max nesting the Variables projection descends (also the cycle guard) and max
-// array elements projected per level — bounds the eager snapshot.
+// array elements projected per level: bounds the eager snapshot.
 DEBUG_MAX_DEPTH: i32: 5
 DEBUG_MAX_ELEMS: i64: 64
 
 // Render a frame's params + declared locals for the Variables view. Slots
 // `[0..params)` are params (no source names in `BcSignature` → `arg0`, `arg1`,
 // …) ; `locals[k]` lives at slot `params + k`. Accurate when the target is
-// compiled `optimize = false` (no slot coalescing) — the DAP compile's mode.
+// compiled `optimize = false` (no slot coalescing): the DAP compile's mode.
 project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule) -> PauseVar[] {
     param_count :: fn_body.signature.params.len()
     total_slots :: param_count + fn_body.locals.len()
-    // Per-slot [first, last] touch pc — a slot's live window. A local shows only
+    // Per-slot [first, last] touch pc: a slot's live window. A local shows only
     // when the current pc is inside it (`optimize = false` gives each source
     // local its own slot, so the window ≈ its lexical scope). This hides
     // not-yet-declared locals and the `v` of already-finished sibling loops.
@@ -260,7 +260,7 @@ project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod:
     }
 
     out: PauseVar[]: []
-    // Params live the whole frame — always shown, named from the signature
+    // Params live the whole frame: always shown, named from the signature
     // (`param_names`, empty on name-less paths → `arg<i>`).
     for p in 0..<param_count {
         if p < slots.len() {
@@ -331,7 +331,7 @@ project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32)
 }
 
 /// Bounds-check a `function_index` against `functions`, for an index that comes
-/// from a VALUE (a fn value, a vtable row, a deferred thunk) — an immediate one was
+/// from a VALUE (a fn value, a vtable row, a deferred thunk): an immediate one was
 /// checked by the load-time verifier. Surfaces a Trap rather than indexing into
 /// the array and letting the host runtime trap.
 ///
@@ -360,7 +360,7 @@ fn_index_trap :: fn(function_index: i32, at_pc: i32, op_label: string) = Trap {
 
 /// `==` / `!=` (`negate` true). The emitter routes `ref` / `any` / `null`
 /// equality through `i32.eq`, treating the boxed identity bits as a 32-bit
-/// word — but a `null` operand can't be read as an i32. Compare those by
+/// word, but a `null` operand can't be read as an i32. Compare those by
 /// null-identity (`null == null`, `null != anything-non-null`) ; everything
 /// else falls back to the numeric i32 path.
 apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | null {
@@ -373,7 +373,7 @@ apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | nul
         // Fast path : both operands already sit unboxed in the payload column.
         eq = i32(frame.payload[frame.sp - 2]) == i32(frame.payload[frame.sp - 1])
     } else {
-        // Anything else (a Ref, a bool, a mismatch) — go through the boxed path
+        // Anything else (a Ref, a bool, a mismatch): go through the boxed path
         // so the diagnostic stays identical to the pre-SoA VM.
         left  :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, op_label)
         right :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, op_label)
@@ -399,14 +399,14 @@ primitive_kind_at :: fn(types: bc.BcType[], type_id: i32) -> string {
 }
 
 /// Build the host import mangle for an `@intrinsic` primitive impl member from
-/// the receiver kind + a `"<trait_key>.method"` vtable key — e.g.
+/// the receiver kind + a `"<trait_key>.method"` vtable key, e.g.
 /// `("string", "std/core.Hash.hash")` → `"std_core$string$Hash$hash"`. The mangle
 /// grammar itself lives in `core/bytecode/intrinsic_manifest::primitive_member_mangle` ;
 /// this only splits the vtable key. Returns "" when the kind is empty or the
 /// key has no `.`.
 intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
     if kind == "" { return "" }
-    // `std/core.Display.to_string` : the method follows the LAST dot — a trait
+    // `std/core.Display.to_string` : the method follows the LAST dot, a trait
     // key carries its own.
     dot :: vtable_key.last_index_of('.', 0)
     if dot < 0 { return "" }
@@ -470,7 +470,7 @@ build_main_args :: fn(
 ///                   error otherwise.
 export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(state, state.main_index, host_argv, null, false, null)
 
-/// Run the fn named `mangled` as the entry — used by `vader test` to run each
+/// Run the fn named `mangled` as the entry: used by `vader test` to run each
 /// `@test` fn in isolation. A `Trap` (e.g. a failed `assert`) is the test
 /// failure ; `Ok` is a pass. The fn must take no arguments.
 ///
@@ -486,7 +486,7 @@ export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
     return Trap { .message = "exec_fn: no function named '${mangled}'" }
 }
 
-/// Run the no-arg fn named `mangled` and return its full `Value` — the
+/// Run the no-arg fn named `mangled` and return its full `Value`: the
 /// primitive the VM-backed comptime fallback needs (the callee typically
 /// returns an array / struct / wide int, which `exec_fn`'s i32 `VmResult`
 /// cannot carry). Threads a 1-cell capture box through `exec_entry`, into which
@@ -517,9 +517,9 @@ export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
 // bytecode's arith ops are width-aliased to the I32/I64 family (`op_select.vader`),
 // so a sub-32-bit result (`u8 200 + 100` → 300) keeps the wide value. Native
 // truncates for free via the C `uint8_t` field type ; this is the VM's
-// equivalent for a struct literal's fields (`build_struct`) — the register engine
+// equivalent for a struct literal's fields (`build_struct`): the register engine
 // truncates slots and returns itself (`Narrow`). Non-narrow ValTypes return `v`
-// unchanged — `i32` / `i64` (and the unsigned `u32` / `u64`, read back through the
+// unchanged: `i32` / `i64` (and the unsigned `u32` / `u64`, read back through the
 // unsigned view) already wrap at their width via native `i32` / `i64` overflow.
 narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value {
     // Only the sub-32-bit widths need masking ; i32/i64 (and the unsigned u32/u64
@@ -598,7 +598,7 @@ export exec_entry :: fn(
 /// popped from the stack. If `length == 0`, allocates an empty
 /// grow-only array ready for `array.push`.
 ///
-/// @param type_id  index into `Module.types` — informational, not
+/// @param type_id  index into `Module.types`: informational, not
 ///                 validated against `ArrayType` (the bytecode pipeline
 ///                 already guarantees consistency).
 /// @param length   initial element count to consume from the stack.
@@ -622,7 +622,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
     return null
 }
 
-/// Body of the `StructNew` arm — the .virt text format emits two
+/// Body of the `StructNew` arm: the .virt text format emits two
 /// variants (`struct.new` and `struct.new_stack`) but the VM treats
 /// them identically (the heap/stack split is a codegen concern).
 /// Pops `field_count` values from `frame.stack` (in field-declaration
@@ -657,11 +657,11 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
     return null
 }
 
-// ---- memory opcodes (Target ABI) — VM byte-heap helpers -----------------
+// ---- memory opcodes (Target ABI): VM byte-heap helpers -----------------
 //
 // The VM backs a REAL byte-addressed heap : `ObjVal.bytes` is the raw inline
 // payload (byte offsets), `ObjVal.slots` the boxed reference fields (slot
-// indices). Each accessor re-derives from the obj on the stack — no base cached
+// indices). Each accessor re-derives from the obj on the stack: no base cached
 // across an op, since every access hits `obj.bytes` / `obj.slots` fresh.
 
 /// Body of the `buffer.new` arm. Pops `size` (i64) and pushes a zero-filled
@@ -670,7 +670,7 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
 /// `handle_cell[0]` is the monotonic synthetic-handle source (diagnostics).
 ///
 /// @param frame        current top frame, mutated in place (size popped, obj
-///                     pushed in its place — net stack effect 0).
+///                     pushed in its place: net stack effect 0).
 /// @param handle_cell  1-cell carrier for the monotonic handle counter.
 /// @return             `null` on success, or a `Trap` on stack underflow /
 ///                     negative size.
@@ -719,7 +719,7 @@ check_byte_range :: fn(off: i32, width: i64, bytes_len: i64, label: string, pc: 
 }
 
 // The i32 in stack cell `at`, straight off the columns as `read_i32` reads it ;
-// the label — `op`, then `what` — is built only when the read traps.
+// the label (`op`, then `what`) is built only when the read traps.
 stack_i32 :: fn(frame: Frame, at: i64, op: string, what: string) -> i32 | Trap {
     if is_i32_tag(frame.tag[at]) {
         return i32(frame.payload[at])
@@ -739,7 +739,7 @@ stack_obj :: fn(frame: Frame, at: i64, op: string) -> ObjVal | Trap {
 
 /// Shared front-half of the typed/byte loads (`load_u8` / `load_i32` /
 /// `load_i64`). Validates `obj, off` on the stack and bounds, then returns the
-/// `width` little-endian bytes at `off` as a zero-extended u64 — the caller
+/// `width` little-endian bytes at `off` as a zero-extended u64: the caller
 /// wraps it in the right `Value` and advances the stack/pc.
 ///
 /// @param frame  current top frame ; not mutated here (the arm overwrites
@@ -788,7 +788,7 @@ store_bytes_op :: fn(frame: Frame, width: i64, value: u64, label: string) -> Tra
 /// copies `n` bytes src→dst (raw byte regions). Bounds-checks both ends and
 /// copies through a snapshot, so an overlapping self-copy stays well-defined
 /// in the oracle (native lowers to `memcpy` and the lowerer guarantees no
-/// overlap — the snapshot only hardens the VM reference impl).
+/// overlap: the snapshot only hardens the VM reference impl).
 ///
 /// @param frame  current top frame, mutated in place (5 operands dropped).
 /// @return       `null` on success, or a `Trap` on underflow / bad obj / OOB.
@@ -854,7 +854,7 @@ overflow_trap :: fn(name: string) = Trap {
 }
 
 // The import `dispatch_import` serves a host-provided impl on a primitive through
-// (`string implements Hash`) — it has no vtable row. Only the name, the arity and
+// (`string implements Hash`): it has no vtable row. Only the name, the arity and
 // a non-void result are read.
 primitive_impl_import :: fn(mangle: string, arity: i64) = bc.BcImport {
     .extern_name  = "",
@@ -884,7 +884,7 @@ export is_singleton_comptime_trap_message :: fn(message: string) -> bool =
     SINGLETON_COMPTIME_MARKER in message
 
 /// Run one op that reads and writes the operand stack of `frame` as boxed values,
-/// and advance `frame.pc` — the register engine's path for the ops it does not
+/// and advance `frame.pc`: the register engine's path for the ops it does not
 /// run itself, on a scratch frame holding the op's operands.
 ///
 /// @param state        the prepared module.
@@ -943,7 +943,7 @@ apply_boxed :: fn(
             } else {
                 own_bytes(array_unwrap)
                 last :: array_unwrap.elements[array_unwrap.offset + array_unwrap.length - 1]
-                // Shrink the SHARED backing when this array owns the tail —
+                // Shrink the SHARED backing when this array owns the tail:
                 // same rule as `array.clear` below, and as the native
                 // `vader_array_remove_last`. `data.const` hands out a fresh
                 // header over the pool entry's `elements`, so a length
@@ -965,7 +965,7 @@ apply_boxed :: fn(
             // native runtime shrinks `buf->length` in `vader_array_clear`.
             // `data.const` hands out a FRESH header over the pool entry's
             // `elements`, which is how a module-level array is reached, so
-            // rebinding the field here would leave that array untouched —
+            // rebinding the field here would leave that array untouched:
             // `push` mutates the shared backing and would still see three
             // elements after a `clear`. Emptying it in place keeps
             // `elements.len()` as the logical length, so nothing resurfaces
@@ -1229,7 +1229,7 @@ apply_boxed :: fn(
         }
         is bc.F64ToBits -> {
             // Bit-reinterpret the TOS f64 as its raw u64 bits (held in an
-            // I64Val — same 64 bits).
+            // I64Val: same 64 bits).
             fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f64_to_bits")
             if fv is Trap { return fv }
             frame.payload[frame.sp - 1] = i64(f64(fv).to_bits())

@@ -1,4 +1,4 @@
-// A bodyless free fn that is neither `@intrinsic` nor `@extern` — T3062.
+// A bodyless free fn that is neither `@intrinsic` nor `@extern`: T3062.
 // (A function with no body is otherwise an unbound host import.)
 module "snippet"
 

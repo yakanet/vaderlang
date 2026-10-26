@@ -1,4 +1,4 @@
-// Reassigning a mutable local with an incompatible type — T3063.
+// Reassigning a mutable local with an incompatible type: T3063.
 module "snippet"
 
 main :: fn() -> i32 {

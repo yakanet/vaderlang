@@ -8,12 +8,12 @@ new record that supersedes it and mark the old one, rather than editing history.
 
 A record holds the reasoning: what was tried, what was measured, which hypotheses
 fell, why one design won over another, and what the code used to do. A comment
-holds what the reader of the code below it needs — the constraints it must
+holds what the reader of the code below it needs: the constraints it must
 respect, and whatever makes it hard to read. Nothing else.
 
 The split is about lifetime. A record is read years later by someone asking "why
 is it like this?". A comment is read by someone in the middle of a file who needs
-to not break it, and is almost never revisited — which is why a conclusion written
+to not break it, and is almost never revisited, which is why a conclusion written
 there and later disproved becomes a lie nothing makes the reader doubt.
 
 Benchmark figures belong here for the same reason: they are true of one machine on

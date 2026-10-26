@@ -18,16 +18,16 @@ import com.redhat.devtools.lsp4ij.dap.descriptors.ServerReadyConfig
 
 // Wires the `vader dap` Debug Adapter into LSP4IJ, mirroring
 // `VaderLanguageServerFactory` (the LSP side). LSP4IJ owns the DAP client
-// plumbing, breakpoints, stepping UI, variables view — we only tell it how to
+// plumbing, breakpoints, stepping UI, variables view: we only tell it how to
 // spawn the adapter process, and hand it the `launch` request payload.
 //
 // UX note (differs from VSCode): LSP4IJ exposes DAP through its generic
 // "Debug Adapter Protocol" run/debug configuration. The user creates one,
-// picks "Vader" as the server, and points it at a `.vader` file — there's no
+// picks "Vader" as the server, and points it at a `.vader` file: there's no
 // automatic F5 gutter action like the VSCode extension.
 //
 // Compiles + packages against LSP4IJ 0.20.1 (compileKotlin + buildPlugin green
-// here). A live debug session hasn't been driven inside a running IDE — do a
+// here). A live debug session hasn't been driven inside a running IDE: do a
 // `./gradlew runIde` smoke test (set a breakpoint in a `.vader` file, run a
 // "Debug Adapter Protocol" config selecting "Vader Debug Adapter") to confirm
 // end to end.
@@ -37,7 +37,7 @@ internal class VaderDebugAdapterServerFactory : DebugAdapterDescriptorFactory() 
         environment: ExecutionEnvironment,
     ): DebugAdapterDescriptor = VaderDebugAdapterDescriptor(options, environment, serverDefinition)
 
-    // Which files can carry a DAP breakpoint for this server — the equivalent of
+    // Which files can carry a DAP breakpoint for this server: the equivalent of
     // the VSCode extension's `contributes.breakpoints: [{ language: "vader" }]`.
     // LSP4IJ's `DAPBreakpointTypeBase.canPutAt` calls this when placing a gutter
     // breakpoint. The inherited default delegates to the server definition's
@@ -55,7 +55,7 @@ private class VaderDebugAdapterDescriptor(
 ) : DebugAdapterDescriptor(options, environment, serverDefinition) {
 
     // Spawn `vader dap` over stdio. Binary path comes from the shared plugin
-    // settings (Settings → Tools → Vader), falling back to `vader` on $PATH —
+    // settings (Settings → Tools → Vader), falling back to `vader` on $PATH:
     // same source the LSP factory uses. The working directory is the debuggee
     // file's dir so the compiler's stdlib probe resolves `std/*` imports (the
     // native binary resolves stdlib relative to itself, but cwd is the safe
@@ -90,7 +90,7 @@ private class VaderDebugAdapterDescriptor(
     // `DAPDebugProcess.getTransportStreams` picks the socket transport only when
     // a port is resolved; the `ServerReadyConfig(int)` (connect-timeout only,
     // no port / address / trace pattern) leaves the port null, so LSP4IJ falls
-    // back to `DefaultTransportStreams(process stdin, stdout)` — i.e. stdio.
+    // back to `DefaultTransportStreams(process stdin, stdout)`, i.e. stdio.
     // `0` = don't wait, the process is ready to talk as soon as it's spawned.
     override fun getServerReadyConfig(debugMode: DebugMode): ServerReadyConfig =
         ServerReadyConfig(0)
@@ -105,5 +105,5 @@ private class VaderDebugAdapterDescriptor(
         isVaderFile(file)
 }
 
-// A `.vader` source file — the only thing the Vader debug adapter can debug.
+// A `.vader` source file: the only thing the Vader debug adapter can debug.
 private fun isVaderFile(file: VirtualFile): Boolean = file.name.endsWith(".vader")

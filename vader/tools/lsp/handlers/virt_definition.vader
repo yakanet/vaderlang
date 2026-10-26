@@ -3,7 +3,7 @@
 //
 // An operand that is a table index jumps to the line declaring the entry : `call
 // 79` to `fn 79 …`, `ref.cast 25` to `type 25 …`, `string.const 3` to `string 3
-// …`, `local.get 2` to its `local` line — or to the `fn` header for a parameter,
+// …`, `local.get 2` to its `local` line, or to the `fn` header for a parameter,
 // which the dump leaves unnamed. A label after `br` / `br_if` / `end` jumps to the
 // `block` / `loop` / `if` opening it. `operand_refs` says what each operand of an
 // op names ; the bytecode reader says on which line each entry sits.
@@ -110,7 +110,7 @@ op_at :: fn(ops: i64[], line: i64) -> i64 | null {
     return null
 }
 
-// The `block` / `loop` / `if` line of the scope op `k` closes or branches to —
+// The `block` / `loop` / `if` line of the scope op `k` closes or branches to,
 // as the reader resolves it : walking back, the innermost scope still open, the
 // first one named `label` for a branch, whichever is innermost for an `end`.
 opener_line :: fn(

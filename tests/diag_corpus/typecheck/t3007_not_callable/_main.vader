@@ -1,4 +1,4 @@
-// Calling an i32 — T3007 (expression is not callable).
+// Calling an i32: T3007 (expression is not callable).
 module "snippet"
 
 main :: fn() -> i32 {

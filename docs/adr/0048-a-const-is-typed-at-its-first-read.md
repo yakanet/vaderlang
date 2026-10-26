@@ -1,4 +1,4 @@
-# 0048 — A const is typed at its first read
+# 0048: A const is typed at its first read
 
 ## Status
 

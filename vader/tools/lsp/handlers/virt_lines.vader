@@ -1,6 +1,6 @@
 // vader/tools/lsp/handlers/virt_lines: the text of one `.virt` line.
 //
-// A line is its code — a head word then its operands, separated by blanks —
+// A line is its code (a head word then its operands, separated by blanks)
 // then an optional `;` comment. No operand of an op contains a `;` or a blank,
 // so the words of an op line split on blanks and stop at the first `;` ; only a
 // `string` directive quotes text that may hold either. Offsets are bytes into
@@ -65,8 +65,8 @@ word_at :: fn(words: Range<i64>[], cursor: i64) -> i64 | null {
     return null
 }
 
-// The byte just past the code of the line starting at `start` — after its last
-// word — or null when the line carries a `;` comment.
+// The byte just past the code of the line starting at `start` (after its last
+// word) or null when the line carries a `;` comment.
 code_end :: fn(text: string, start: i64) -> i64 | null {
     end := start
     for i in start..<text.byte_len() {
@@ -83,7 +83,7 @@ code_end :: fn(text: string, start: i64) -> i64 | null {
     return end
 }
 
-// The byte the line starting at `start` breaks at — the end of the text for the
+// The byte the line starting at `start` breaks at: the end of the text for the
 // last line.
 line_end :: fn(text: string, start: i64) -> i64 {
     i := start

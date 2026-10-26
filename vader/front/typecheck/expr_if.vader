@@ -15,12 +15,12 @@ import "vader/support/diagnostics"
 import "vader/core/types"
 AST :: import "toolchain/ast"
 
-/// The type of a value one of several branches gives — an `if`'s two, a `match`'s
+/// The type of a value one of several branches gives: an `if`'s two, a `match`'s
 /// arms: their union, each free-literal branch coerced to the first concrete
 /// sibling of its own family. `if c { x: i32 } else { 0 }` is `i32`, not
 /// `i32 | {integer}`, and a char literal takes the width of an integer sibling
 /// (`if c { byte } else { '(' }` is that byte's `u8`) or is the `char` of a char
-/// one — mirroring the binary-operator coercion (`binary.vader::numeric_result`).
+/// one: mirroring the binary-operator coercion (`binary.vader::numeric_result`).
 /// Without this, an unannotated `::` binding (`expected = null`) escapes as a
 /// union with no arithmetic defined on it (T3017). Ranges join into the one
 /// holding them all, and an integer type into another branch's holding it
@@ -122,7 +122,7 @@ infer_if :: fn(
 }
 
 // `if` whose then or else branch is `?` collapses the whole expression
-// to `?` — folding the Unresolved into a union (`? | i32`) would let
+// to `?`: folding the Unresolved into a union (`? | i32`) would let
 // downstream `default_if_free` paper over a missing type instead of
 // surfacing T3034 (recursive expression-bodied fn).
 collapse_if_unresolved :: fn(joined: Type, a: Type, b: Type) -> Type {
@@ -177,7 +177,7 @@ PushedNarrow :: struct {
 }
 
 // What a leaf leaves on the TRUE side, as a type the union can carry. Normally
-// its `then_ty` — but a trait test narrows to the TRAIT, and a trait is only ever
+// its `then_ty`, but a trait test narrows to the TRAIT, and a trait is only ever
 // understood in isolation : `is_overlap_checkable` waves a bare `TraitType` through,
 // while a union holding one is compared variant-by-variant against shapes and
 // every later `is` on it reports T3040. Its complement is already impl-aware, so
@@ -187,12 +187,12 @@ positive_of :: fn(n: IsNarrow) -> Type {
     return n.then_ty
 }
 
-// Two narrowings addressing the same slot — the same binding, and the same field
+// Two narrowings addressing the same slot: the same binding, and the same field
 // chain under it (`""` for a bare ident).
 same_slot :: fn(a: IsNarrow, b: IsNarrow) = a.sym_id == b.sym_id && a.field_key == b.field_key
 
 // The leaves of a `||` chain (nested `||` flattened), or null as soon as one
-// operand narrows nothing — a true disjunction then says nothing about any slot.
+// operand narrows nothing: a true disjunction then says nothing about any slot.
 // Detection only : the operands were type-checked by the caller.
 or_leaves :: fn(cond: AST.Expr, typed: TypedProgram, out: IsNarrow[]) -> bool {
     if cond is AST.BinaryExpr {
@@ -210,13 +210,13 @@ or_leaves :: fn(cond: AST.Expr, typed: TypedProgram, out: IsNarrow[]) -> bool {
 ///
 /// Composes through `!`, `&&` and `||` at any depth :
 /// - `!c` holds what `c` holds at the opposite truth ;
-/// - `a && b` true holds both sides ; false says nothing — which operand failed ;
+/// - `a && b` true holds both sides ; false says nothing, which operand failed ;
 /// - `a || b` false holds both sides ; true holds only when ONE slot accounts for
 ///   every operand (`x is A || x is B`), and then the union of their types.
 ///
 /// Both-sides cases push left then right, each leaf detected against what the
-/// previous push left, so two subtractions on one slot compose — `(base − A) − B`
-/// — instead of the second overwriting the first.
+/// previous push left, so two subtractions on one slot compose (`(base − A) − B`)
+/// instead of the second overwriting the first.
 ///
 /// @param cond   the condition, already type-checked by the caller.
 /// @param truth  which outcome the narrowed region sees : `true` for a then-block
@@ -300,7 +300,7 @@ push_one_narrow :: fn(
 }
 
 // Unwind in reverse (LIFO) so stacked pushes on the same slot restore cleanly.
-// Shared by the then and else sides — a pushed record carries everything needed.
+// Shared by the then and else sides: a pushed record carries everything needed.
 pop_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram) -> void {
     for k in 0..<pushed.len() {
         rec :: pushed[pushed.len() - 1 - k]
@@ -320,9 +320,9 @@ detect_is_narrow :: fn(
             return by_value
         }
     }
-    // `!(x is T)` flips the two arms — peel the Not, then swap. Carry
+    // `!(x is T)` flips the two arms: peel the Not, then swap. Carry
     // `field_key` so a field scrutinee (`!(b.opt is null)`) still narrows the
-    // FIELD in the then-block — without it the swap records a symbol narrowing
+    // FIELD in the then-block: without it the swap records a symbol narrowing
     // (field_key "") and `b.opt.<sub>` in the then-block keeps the union type
     // and degrades (the compiler's own `build_if` `e.else_block.span`).
     if cond is AST.UnaryExpr {
@@ -332,7 +332,7 @@ detect_is_narrow :: fn(
         }
     }
     if !(cond is AST.BinaryExpr) { return null }
-    // `x == null` / `x != null` / `null == x` / `null != x` — both
+    // `x == null` / `x != null` / `null == x` / `null != x`: both
     // orderings flip the same way.
     if cond.op == .Eq || cond.op == .Neq {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
@@ -343,7 +343,7 @@ detect_is_narrow :: fn(
             // `!(x is null)` must survive an inner `!(x is T)`. Falls back to
             // the declared type when no narrowing is active for this binding.
             base :: narrow_for_binding(typed, sym.id, type_of_symbol(sym, typed))
-            // Never narrow an unresolved binding — mirrors the field-chain
+            // Never narrow an unresolved binding: mirrors the field-chain
             // guard in `resolve_field_chain_static` (narrow.vader). A
             // premature imported-body walk (settle pass 0, before the
             // module's imports are wired) resolves `m[k]`-bound locals to
@@ -357,7 +357,7 @@ detect_is_narrow :: fn(
             }
             return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = non_null, .else_ty = null_ty }
         }
-        // `b.field == null` / `b.field != null` — field-level narrowing.
+        // `b.field == null` / `b.field != null`: field-level narrowing.
         field_side :: pick_field_vs_null(cond.left, cond.right)
         if !(field_side is null) {
             field_info :: resolve_field_chain_static(field_side, typed)
@@ -405,7 +405,7 @@ detect_is_narrow :: fn(
     // Scrutinee FIELD-CHAIN narrowing : `x.y is T` narrows the `x.y` slot,
     // mirroring the `x.y == null` field path above. Without this, `is null` /
     // `is T` on a field never narrows (only `== null` did), so a field read
-    // after a divergent `if x.y is null { return }` guard degrades — the
+    // after a divergent `if x.y is null { return }` guard degrades: the
     // `convert_function` `body :: d.body ; body.span` drop.
     if cond.left is AST.FieldExpr {
         field_info :: resolve_field_chain_static(cond.left, typed) ?? return null

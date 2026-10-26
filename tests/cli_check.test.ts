@@ -2,7 +2,7 @@
 // selection.
 //
 // A body whose `@target` does not match is never resolved or typed, so on any
-// one machine the code for every OTHER platform is unchecked — the same blind
+// one machine the code for every OTHER platform is unchecked: the same blind
 // spot the `#ifdef` walls in `runtime/c/` had, and the source of the two Windows
 // bugs that started the work on targets. `check` closes it without a toolchain:
 // these tests type-check Windows code from whatever machine runs them.
@@ -44,7 +44,7 @@ test("check rejects a malformed target and names the fragment", async () => {
 
 // `VADER_OS` is the "lightweight" half of the target model: a value, reachable
 // from a file that imports nothing, foldable at comptime. It needs a target, and
-// an explicit `--target=` is one — the DEFAULT is what waits on the reseed.
+// an explicit `--target=` is one: the DEFAULT is what waits on the reseed.
 test("VADER_OS resolves and folds under an explicit target", async () => {
   const probe = join(FIXTURES, "baked_constant", "main.vader");
   const win = await runCli(
@@ -55,7 +55,7 @@ test("VADER_OS resolves and folds under an explicit target", async () => {
   expect(mac.exit).toBe(0);
 });
 
-// With no `--target=`, the target is this machine — so the constant is baked all
+// With no `--target=`, the target is this machine, so the constant is baked all
 // the same. This assertion used to be its opposite ("VADER_OS is absent when no
 // target is given"), which failed the moment the default landed. That was its
 // purpose: a limitation worth asserting is a limitation that tells you when it

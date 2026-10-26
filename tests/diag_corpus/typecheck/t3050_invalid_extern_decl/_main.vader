@@ -1,4 +1,4 @@
-// `@extern` with a non-ABI param type (struct) — T3050.
+// `@extern` with a non-ABI param type (struct): T3050.
 module "snippet"
 
 User :: struct { name: string }

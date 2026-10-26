@@ -1,7 +1,7 @@
 // vader/lower/closure_analysis: free-variable walker for closures.
 //
 // For every
-// `AST.LambdaExpr` in the project, computes the ordered list of captures —
+// `AST.LambdaExpr` in the project, computes the ordered list of captures:
 // symbols defined in an enclosing scope that the lambda's body
 // references. The lowerer's lambda-lifting pass consumes this to :
 //   - Pack the captures into an env struct for `MakeClosure`.
@@ -68,7 +68,7 @@ analyze_module :: fn(project: LowerProjectCtx, loaded: LoadedModule, typed: Type
                         analyze_value(value, typed, symbol_index, analysis)
                     }
                 }
-                // A `TraitDecl` default body IS a body — `materialize.vader`
+                // A `TraitDecl` default body IS a body: `materialize.vader`
                 // has already cloned it into `impl_.members`, walked above.
                 is AST.ImportDecl | AST.EnumDecl | AST.TraitDecl
                  | AST.TypeAliasDecl | AST.AssertDecl -> {}
@@ -97,12 +97,12 @@ analyze_fn_body :: fn(
 
 // Walk a value written outside any fn, a const's or a struct field's default, for
 // capturing lambdas. A const initialised by a block that declares locals and
-// returns a lambda — `make_adder :: { base :: 10 (n) -> base + n }` — hosts a
+// returns a lambda (`make_adder :: { base :: 10 (n) -> base + n }`) hosts a
 // closure just like a fn body, and so does a field default that is a lambda
 // declaring locals of its own ; without this its `lambda_captures` entry is
 // missing, the env never carries the capture, and the lambda miscompiles.
 // Walked with an EMPTY owned scope (no params) at top level (out_captures =
-// null) — nested lambdas record their own captures.
+// null): nested lambdas record their own captures.
 analyze_value :: fn(
     value: AST.Expr, typed: TypedProgram,
     symbol_index: MutableMap<u64, Symbol>, analysis: ClosureAnalysis,
@@ -122,13 +122,13 @@ WalkCtx :: struct {
     // `typed.resolved`. Lookups go through `lookup_symbol_by_span`.
     symbol_index:    MutableMap<u64, Symbol>
     analysis:        ClosureAnalysis
-    // Sentinel for nodes that don't carry captures — re-used so we
+    // Sentinel for nodes that don't carry captures: re-used so we
     // don't allocate per-stmt.
     empty_captures:  Capture[]
 }
 
 // Build the owned-scope (param ids) for a function or lambda. Both
-// callers feed `FnParam[]` — `FnDecl.params` and `LambdaExpr.params`
+// callers feed `FnParam[]`: `FnDecl.params` and `LambdaExpr.params`
 // share the same element type, so this single helper covers both.
 collect_owned_scope_for_params :: fn(params: AST.FnParam[], symbol_index: MutableMap<u64, Symbol>) -> MutableSet<i32> {
     scope :: empty_scope()
@@ -154,7 +154,7 @@ lookup_symbol_by_span :: fn(symbol_index: MutableMap<u64, Symbol>, span: Span) -
 // ---------------------------------------------------------------- walkers
 //
 // The walker visits every AST node once. `out_captures` + `out_seen`
-// are non-null only inside a lambda body — top-level fn walks pass
+// are non-null only inside a lambda body: top-level fn walks pass
 // `null` for both. Nested lambdas' captures are recorded recursively
 // (post-order) and then folded into the enclosing lambda's set.
 
@@ -205,7 +205,7 @@ walk_stmt :: fn(
             // The defer body lifts to a synthetic fn with its own env struct
             // and no params of its own, so it has a distinct capture set from
             // the enclosing fn. Walk it under a FRESH (empty) scope plus FRESH
-            // `captures` / `seen` slots — every outer ident it references is
+            // `captures` / `seen` slots: every outer ident it references is
             // then a capture (mirrors `process_lambda`'s `own_scope`). Walking
             // it under the enclosing `scope` saw those idents as in-scope and
             // recorded nothing : the env came out empty and the lifted body
@@ -225,7 +225,7 @@ walk_stmt :: fn(
             // Bubble each captured symbol into the parent's lists so
             // the enclosing fn sees them (it needs to read the cell
             // value to materialise the env at defer-push time). Skip
-            // symbols the enclosing scope already owns — those aren't
+            // symbols the enclosing scope already owns: those aren't
             // captures of the parent (mirrors `process_lambda`).
             if out_captures != null {
                 if out_seen != null {
@@ -341,7 +341,7 @@ walk_expr :: fn(
                 // the shared scope, walk the arm, then drop exactly what this arm
                 // introduced. `added` only carries the ids `scope.add` reported as
                 // NEW, so an arm binding shadowing an outer local leaves the outer
-                // id in place. Locals declared in the arm BODY are not isolated —
+                // id in place. Locals declared in the arm BODY are not isolated:
                 // no more than for an `if` or a nested block above, and harmless:
                 // an ident only ever resolves to a binding lexically in scope.
                 added: i32[]: []
@@ -384,7 +384,7 @@ walk_expr :: fn(
         is AST.GenericInstExpr -> { walk_expr(expr.callee, scope, out_captures, out_seen, ctx) }
         is AST.IntrinsicCallExpr -> {
             // MVP : walk every arg. Type-shaped args could be skipped,
-            // but closure analysis is conservative — walking every arg
+            // but closure analysis is conservative: walking every arg
             // over-approximates but doesn't miss any real captures.
             for arg in expr.args { walk_expr(arg, scope, out_captures, out_seen, ctx) }
         }
@@ -471,7 +471,7 @@ add_local_to_scope :: fn(binding: AST.LetBinding, scope: MutableSet<i32>, symbol
         is AST.WildcardBinding -> {}
         is AST.RestBinding -> {
             // The resolver keys a rest binding's Symbol on `.span` (not
-            // `.name_span` like a simple binding — see resolver `bind_let_binding`).
+            // `.name_span` like a simple binding, see resolver `bind_let_binding`).
             symbol :: lookup_symbol_by_span(symbol_index, binding.span)
             match symbol {
                 is null -> {}

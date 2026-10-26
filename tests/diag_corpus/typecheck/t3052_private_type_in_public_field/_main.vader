@@ -1,4 +1,4 @@
-// An exported struct with a public field of a non-exported type — T3052.
+// An exported struct with a public field of a non-exported type: T3052.
 // A cross-module reader of `.secret` receives a `Secret` it cannot name ; an
 // `@internal` field would opt out of the public surface and silence this.
 module "snippet"

@@ -190,11 +190,11 @@ split_c_files :: fn(out: Path, unit_names: string[]) -> Path[] {
 }
 
 /// Where one split unit is written: `<out>-<unit>.c` when every target agreed on
-/// it, `<out-dir>/<target>/<stem>.<unit>.c` when they did not — the directory
+/// it, `<out-dir>/<target>/<stem>.<unit>.c` when they did not: the directory
 /// already says which target, so the name no longer repeats it.
 ///
 /// A per-target unit sits in that target's directory, beside the imports header
-/// that is already there — so a build compiles the flat shared set plus ONE
+/// that is already there, so a build compiles the flat shared set plus ONE
 /// directory, and an obsolete unit stays visible instead of blending into the
 /// flat listing.
 ///

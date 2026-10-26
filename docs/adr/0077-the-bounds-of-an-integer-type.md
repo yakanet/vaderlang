@@ -1,4 +1,4 @@
-# 0077 — The bounds of an integer type
+# 0077: The bounds of an integer type
 
 ## Status
 

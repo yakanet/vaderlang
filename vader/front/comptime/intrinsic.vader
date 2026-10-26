@@ -16,7 +16,7 @@ AST :: import "toolchain/ast"
 /// Dispatch a `@<name>(args)` call to the matching evaluator. Returns
 /// `vm_required` for unknown intrinsics so the caller skips the decl.
 /// @param expr     the intrinsic call node.
-/// @param context  the evaluator context — used for `type_from_expr`.
+/// @param context  the evaluator context: used for `type_from_expr`.
 /// @return         the evaluated value or a `C4xxx` diagnostic.
 evaluate_intrinsic_call :: fn(
     expr: AST.IntrinsicCallExpr, context: ComptimeContext,
@@ -33,7 +33,7 @@ evaluate_intrinsic_call :: fn(
     return vm_required(expr.span, "@${expr.name}")
 }
 
-// `@min(T)` / `@max(T)` — the least or the greatest value of the integer type `T`,
+// `@min(T)` / `@max(T)`: the least or the greatest value of the integer type `T`,
 // held in the integer `T` is ; of an enum, its variant of that value ; of `char`,
 // U+0000 or U+10FFFF.
 intrinsic_integer_bound :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
@@ -62,7 +62,7 @@ intrinsic_satisfies :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
     return ok(bool_value(satisfies_trait(target, wanted, context.typed)))
 }
 
-// `@field_count(T)` — fields on a Struct, elements on a Tuple, 0 otherwise.
+// `@field_count(T)`: fields on a Struct, elements on a Tuple, 0 otherwise.
 intrinsic_field_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 1 { return arg_count_error(expr, "field_count", 1) }
     arg_type :: resolve_type_arg(expr.args[0], context)
@@ -80,7 +80,7 @@ type_field_count :: fn(t: Type, context: ComptimeContext) -> i64 {
     return 0
 }
 
-// `@variant_count(T)` — variants on a Union or Enum, 0 otherwise.
+// `@variant_count(T)`: variants on a Union or Enum, 0 otherwise.
 intrinsic_variant_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 1 { return arg_count_error(expr, "variant_count", 1) }
     arg_type :: resolve_type_arg(expr.args[0], context)
@@ -94,7 +94,7 @@ type_variant_count :: fn(t: Type) -> i64 {
     return 0
 }
 
-// `@field_index(T, "name")` — 0-based position of `name` in struct `T`'s field
+// `@field_index(T, "name")`: 0-based position of `name` in struct `T`'s field
 // list. `T` must be a struct and `name` a static string literal naming a field.
 intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 2 { return arg_count_error(expr, "field_index", 2) }
@@ -154,7 +154,7 @@ intrinsic_type_kind :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
 // ---- helpers --------------------------------------------------------------
 
 // Resolve `expr` (a type-position expression like `i32` or `MutableMap<K, V>`)
-// to a `Type`. Returns null when resolution fails — the caller surfaces
+// to a `Type`. Returns null when resolution fails: the caller surfaces
 // C4011 with a friendly message.
 resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null {
     raw :: type_from_expr(expr, context.typed.resolved, diag_sink())
@@ -162,7 +162,7 @@ resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null 
     return raw
 }
 
-// `@size_of` / `@align_of` report the width of the SLOT that carries the type —
+// `@size_of` / `@align_of` report the width of the SLOT that carries the type:
 // what the C emitter declares for a field, a local or a parameter, not the size
 // of the object a reference points at. `vader/core/types::slot_byte_size` owns the
 // answer for every kind and names the two functions that make it operational.

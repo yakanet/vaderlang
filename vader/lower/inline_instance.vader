@@ -2,16 +2,16 @@
 //
 // The fusion splices a callee's body into its caller: a generator's into the
 // chain that consumes it, an iterator consumer's at its call. Lowered under the
-// callee's own symbols, two instances of one callee in one function body —
-// `xs.map(f).map(g)`, a generator consumed inside a loop over itself — would be
+// callee's own symbols, two instances of one callee in one function body
+// (`xs.map(f).map(g)`, a generator consumed inside a loop over itself) would be
 // one set of locals: midir keys a local by its symbol id, so the second instance
 // writes the first one's parameters and counters. So an instance clones every
 // binding the callee declares, and marks every label it writes.
 //
 // Every lowering site that turns a source name into a `Symbol` goes through
 // `resolve_ident` / `resolve_binding`, which apply the instance of the context
-// they lower in. A context with no instance — every ordinary fn body, a lifted
-// lambda even inside an instance — resolves to the original symbols, which is
+// they lower in. A context with no instance (every ordinary fn body, a lifted
+// lambda even inside an instance) resolves to the original symbols, which is
 // what the typecheck tables keyed by symbol id expect.
 
 module "vader/lower"
@@ -79,7 +79,7 @@ new_inline_instance :: fn(
     }
 }
 
-// Every binding `decl` introduces — parameters, locals, loop variables, pattern
+// Every binding `decl` introduces: parameters, locals, loop variables, pattern
 // leaves: each has a `defined_at` inside the declaration. `resolved.symbols`
 // holds only the module's top-level symbols; the index `lookup_local_symbol`
 // reads covers every binding. Gathered once per callee.
@@ -161,7 +161,7 @@ resolve_binding :: fn(ctx: FnLowerCtx, name_span: Span) -> Symbol | null {
 
 /// `label` as `ctx` writes it: marked with the instance's suffix when `ctx`
 /// lowers an inlined body, so its loops never answer a jump written outside that
-/// instance — the consumer's, or another instance's.
+/// instance: the consumer's, or another instance's.
 ///
 /// @param ctx    the fn-body context.
 /// @param label  a loop or jump label; null stays null.
@@ -183,7 +183,7 @@ origin_symbol_id :: fn(project: LowerProjectCtx, symbol: Symbol) -> i32 =
 
 // ---- lowering an instance -----------------------------------------------------
 
-// `value` bound to `instance`'s clone of the parameter `p` — the symbol the
+// `value` bound to `instance`'s clone of the parameter `p`: the symbol the
 // inlined body reads.
 bind_instance_param :: fn(
     ctx: FnLowerCtx, instance: InlineInstance, owner: TypedProgram, p: AST.FnParam, value: LoweredExpr,
@@ -221,14 +221,14 @@ lower_instance_body :: fn(ctx: FnLowerCtx, inner: FnLowerCtx, body: AST.BlockExp
 // ---- leaving an instance ----------------------------------------------------
 
 // The label of the block around an instance's whole inlined body: a `return` in
-// the callee leaves it — it ends a generator, it gives a consumer's result — and
+// the callee leaves it (it ends a generator, it gives a consumer's result) and
 // not the function the body is inlined into.
 // The leading `$` keeps it apart from every label `instance_label` derives from a
 // source one, `exit:` included.
 instance_exit_label :: fn(instance: InlineInstance) -> string = r"$exit" + instance.label_suffix
 
-/// A `break` out of everything `instance` emits — what a `return` of the
-/// callee means, and a terminal's early exit — recorded so the emitter puts
+/// A `break` out of everything `instance` emits (what a `return` of the
+/// callee means, and a terminal's early exit) recorded so the emitter puts
 /// the block it leaves around the instance.
 ///
 /// @param instance  the instance to leave.
@@ -239,7 +239,7 @@ leave_instance :: fn(instance: InlineInstance, span: Span) -> LoweredStmt {
 }
 
 /// `stmts`, everything `instance` emits, inside the block a jump out of the
-/// instance leaves — or as they are when none does.
+/// instance leaves, or as they are when none does.
 ///
 /// @param instance  the inlined instance.
 /// @param span      span of the block when one is built.

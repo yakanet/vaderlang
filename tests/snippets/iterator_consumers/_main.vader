@@ -1,5 +1,5 @@
 // A function consuming an `Iterator` parameter with one loop is inlined at a call
-// that hands it a fusible chain — std's `fold`, `sum`, `find`, `collect` and user
+// that hands it a fusible chain: std's `fold`, `sum`, `find`, `collect` and user
 // functions alike. Each line prints the inlined form, then the same chain bound
 // to a local first: a named chain stays lazy, the oracle the inlined form must
 // match.

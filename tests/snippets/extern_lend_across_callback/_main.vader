@@ -2,7 +2,7 @@
 //
 // A lent ARRAY gives C a pointer into Vader memory, so the buffer is tenured out
 // of the moving generation for the call. A MIRROR never gives C a Vader address
-// — the shim marshals into its own stack temporary — so what is secured is the
+// (the shim marshals into its own stack temporary) so what is secured is the
 // pointer the shim writes BACK through, rooted so the collector rewrites it.
 //
 // `collect()` in the callbacks makes this deterministic. Left to arena pressure

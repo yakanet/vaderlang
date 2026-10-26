@@ -1,5 +1,5 @@
 // `x[i]` and `x[i] = v` on a receiver that dispatches through `Index` / `IndexSet`
-// itself — a value of the trait, a type parameter bounded by it — read and write
+// itself (a value of the trait, a type parameter bounded by it) read and write
 // through `at` / `set_at`, as `x.at(i)` / `x.set_at(i, v)` do. A destructuring
 // place is a write like any other: it goes through `set_at` and takes its value
 // type, on a bounded `T` and on a struct with an `IndexSet` and no `Index`. A key

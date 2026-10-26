@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# The committed C seed's lifecycle — one script, because it is one artefact.
+# The committed C seed's lifecycle: one script, because it is one artefact.
 #
 #   bootstrap/seed.sh check [--quiet]   does the committed seed still bootstrap HEAD?
 #   bootstrap/seed.sh regenerate        write a new one
 #
 # The seed is a bootstrap tool: it only has to be able to build the current tree,
-# not to be what the current tree would emit. `build.sh` ships stage2 — the tree
-# compiled by the tree — so the seed's age never reaches the shipped binary, and a
+# not to be what the current tree would emit. `build.sh` ships stage2 (the tree
+# compiled by the tree) so the seed's age never reaches the shipped binary, and a
 # reseed is due only when the seed stops working. See docs/BOOTSTRAP.md.
 #
 # `check` OWNS the viability question; .githooks/pre-push defers to it. `verify.sh`
-# is what answers it — the same gate the CI `fixed-point` job runs — so a seed that
+# is what answers it (the same gate the CI `fixed-point` job runs) so a seed that
 # builds the tree but breaks the fixed point is not viable either.
 #
 # NEITHER answers whether the compiler is CORRECT. `verify.sh` compares stage1 to
 # stage2, and a compiler that mis-compiles itself stably passes that: both stages
 # are wrong the same way, which is what a fixed point preserves. The suite is the
-# check, and a reseed changes the stage0 that builds the binary under test — so it
+# check, and a reseed changes the stage0 that builds the binary under test, so it
 # has to run AFTER.
 #
 # CHECK CONTRACT:
@@ -36,7 +36,7 @@ cd "$(dirname "$0")/.."
 # ---- what the seed depends on ---------------------------------------------
 
 # Every source tree the emitted seed can depend on. Deliberately BROADER than
-# bootstrap.vader's real import closure — a hand-maintained closure list would rot
+# bootstrap.vader's real import closure: a hand-maintained closure list would rot
 # the day an import changes, and a seed written from a stale compiler, or a
 # viability verdict reused for a tree that moved, is the failure this must never
 # allow.
@@ -45,7 +45,7 @@ SEED_SOURCE_DIRS="vader/ lib/ runtime/c/"
 # Every target that has a backend. `wasi-wasm32` and `browser-wasm32` are out:
 # emitting for a platform nothing can compile does not make the seed more
 # portable, and it makes every `@target` group answer for a case that cannot be
-# written yet — a write syscall needs `fd_write` and an iovec array on WASI, and
+# written yet: a write syscall needs `fd_write` and an iovec array on WASI, and
 # has no meaning at all in a browser. They come back with the WASM emitter.
 # One arch per OS. What lands in a per-target directory is chosen by `@target`,
 # whose granularity is the OS and never the arch, so a second arch of the same OS
@@ -62,7 +62,7 @@ SEED_TARGETS="darwin-arm64,linux-x86_64,windows-x86_64"
 # that is absent: `git diff-index --quiet HEAD -- gone/` exits 0, and `find gone/
 # -name '*.vader'` prints nothing while writing to stderr. So moving or renaming a
 # source tree makes each test answer "nothing changed" with no source left to
-# check — the self-consistent lie, in its worst form.
+# check: the self-consistent lie, in its worst form.
 seed_missing_dirs() {
     local missing="" d
     for d in $SEED_SOURCE_DIRS; do
@@ -103,7 +103,7 @@ cmd_check() {
     key="$(viability_key)"
     if [ -z "$key" ]; then
         note "cannot read HEAD's trees ($SEED_SOURCE_DIRS $VIABILITY_EXTRA_PATHS)."
-        note "  not a git checkout, or the layout moved — update the lists in bootstrap/seed.sh."
+        note "  not a git checkout, or the layout moved: update the lists in bootstrap/seed.sh."
         note "  cannot conclude on seed viability."
         exit 2
     fi
@@ -123,7 +123,7 @@ cmd_check() {
     rm -rf "$root"
     mkdir -p "$root"
     if ! git archive HEAD | tar -x -C "$root"; then
-        note "exporting HEAD failed — cannot check seed viability."
+        note "exporting HEAD failed: cannot check seed viability."
         exit 2
     fi
 
@@ -142,7 +142,7 @@ cmd_check() {
         exit 0
         ;;
       2)
-        note "verify.sh could not conclude — the seed may be fine. Log: $log"
+        note "verify.sh could not conclude: the seed may be fine. Log: $log"
         [ "$quiet" = 1 ] || tail -20 "$log" >&2
         exit 2
         ;;
@@ -156,7 +156,7 @@ cmd_check() {
 
 # Regenerate bootstrap/seed/ from vader/bootstrap/bootstrap.vader, using an
 # existing `vader` binary (./build/vader, else on PATH). The seed is the plain C
-# of the build-only entrypoint — stored uncompressed so git can delta successive
+# of the build-only entrypoint: stored uncompressed so git can delta successive
 # reseeds; see docs/adr/0110-the-seed-is-committed-uncompressed.md.
 cmd_regenerate() {
     [ "$#" -eq 0 ] || { echo "seed.sh regenerate: takes no arguments" >&2; exit 2; }
@@ -164,7 +164,7 @@ cmd_regenerate() {
     local missing
     missing="$(seed_missing_dirs)"
     if [ -n "$missing" ]; then
-        echo "error: seed source tree(s) missing: $missing — refusing to write a seed." >&2
+        echo "error: seed source tree(s) missing: $missing, refusing to write a seed." >&2
         exit 1
     fi
 
@@ -177,16 +177,16 @@ cmd_regenerate() {
         fi
     fi
     if [ -z "$VADER" ] || [ ! -x "$VADER" ]; then
-        echo "error: no vader binary (./build/vader or on PATH) — refusing to write a seed." >&2
+        echo "error: no vader binary (./build/vader or on PATH), refusing to write a seed." >&2
         exit 1
     fi
 
     # Require a clean working tree across ALL of them so the recorded SHA is
     # meaningful: the emission reads the working tree, and VERSION records HEAD, so
     # an uncommitted edit anywhere in the seed's sources makes the two disagree.
-    # vader/ alone was not enough — the seed embeds the stdlib it was compiled with.
+    # vader/ alone was not enough: the seed embeds the stdlib it was compiled with.
     if ! git diff-index --quiet HEAD -- $SEED_SOURCE_DIRS; then
-        echo "error: $SEED_SOURCE_DIRS has uncommitted changes — commit first" >&2
+        echo "error: $SEED_SOURCE_DIRS has uncommitted changes, commit first" >&2
         exit 1
     fi
 
@@ -197,9 +197,9 @@ cmd_regenerate() {
     # compiler then, but the last one that built is far newer than the seed and
     # usually still compiles the tree.
     if [ -n "$(find $SEED_SOURCE_DIRS -name '*.vader' -newer "$VADER" -print -quit)" ]; then
-        echo "$VADER is older than the .vader sources — building the tree with it first."
+        echo "$VADER is older than the .vader sources: building the tree with it first."
         if ! "$VADER" build --release --emit=executable --out=build/vader.next vader/tools/cli/main.vader; then
-            echo "error: $VADER cannot build the tree — refusing to write a seed." >&2
+            echo "error: $VADER cannot build the tree, refusing to write a seed." >&2
             exit 1
         fi
         mv build/vader.next build/vader
@@ -224,7 +224,7 @@ cmd_regenerate() {
     # `@target` reaches the closure.
     if diff -r -q build/seed.new bootstrap/seed >/dev/null 2>&1; then
         rm -rf build/seed.new
-        echo "seed already byte-identical — nothing to commit (VERSION left alone)."
+        echo "seed already byte-identical: nothing to commit (VERSION left alone)."
         exit 0
     fi
 
@@ -236,13 +236,13 @@ cmd_regenerate() {
     # a single run.
     #
     # Emitted C is text and never legitimately contains a NUL, so this costs one
-    # grep and turns the worst outcome — committing a seed that cannot build, which
-    # breaks the cold bootstrap for everyone — into a refusal. It is a canary for a
+    # grep and turns the worst outcome: committing a seed that cannot build, which
+    # breaks the cold bootstrap for everyone: into a refusal. It is a canary for a
     # bug still open, not a fix: a corruption that lands on printable bytes walks
     # straight past it. When it fires, do NOT retry until it passes; re-run the
     # emission under `VADER_GC_CHECK_BOX=1`, which traps upstream of the damage.
     # `tr -d` then `cmp` and not `grep`: a NUL cannot survive command substitution,
-    # and `grep -P '\x00'` is GNU-only — this pair is POSIX and behaves the same on
+    # and `grep -P '\x00'` is GNU-only: this pair is POSIX and behaves the same on
     # the BSD tools macOS ships.
     local corrupt
     corrupt="$(find build/seed.new -type f \( -name '*.c' -o -name '*.h' \) -exec sh -c '
@@ -250,14 +250,14 @@ cmd_regenerate() {
             tr -d "\000" < "$f" | cmp -s - "$f" || printf "%s\n" "$f"
         done' sh {} +)"
     if [ -n "$corrupt" ]; then
-        echo "error: the fresh emission contains NUL bytes — refusing to write a corrupt seed." >&2
+        echo "error: the fresh emission contains NUL bytes, refusing to write a corrupt seed." >&2
         echo "$corrupt" | sed 's/^/  /' >&2
         echo "  Emitted C is text; a NUL means a string was collected while still live." >&2
-        echo "  Do NOT retry until it passes. Re-run under VADER_GC_CHECK_BOX=1 — it traps upstream." >&2
+        echo "  Do NOT retry until it passes. Re-run under VADER_GC_CHECK_BOX=1: it traps upstream." >&2
         exit 1
     fi
 
-    # Replace the directory wholesale — a per-file copy would leave behind a unit that
+    # Replace the directory wholesale: a per-file copy would leave behind a unit that
     # the new emission no longer produces, and a stale unit still compiles.
     rm -rf bootstrap/seed
     mv build/seed.new bootstrap/seed
@@ -274,7 +274,7 @@ META
     echo "seed regenerated ($(du -sh bootstrap/seed | cut -f1), ${shared} shared unit(s), ${per_target} per-target)."
     echo "review the diff vs the committed seed:"
     echo "  git diff --stat bootstrap/seed"
-    echo "RE-RUN THE SUITE before committing — this seed builds the stage0 that"
+    echo "RE-RUN THE SUITE before committing: this seed builds the stage0 that"
     echo "builds everything, so it changes the binary under test:"
     echo "  bun run build:cli && bun run test"
     echo "then commit the bump separately:"

@@ -1,6 +1,6 @@
 // An `is` test tells apart the instances of a generic whose type arguments are
 // primitives: `Spec<bool>` and `Spec<string>` are two layouts with two tags, and
-// a value of one never matches the other — including through a `match`.
+// a value of one never matches the other, including through a `match`.
 
 module "snippet"
 

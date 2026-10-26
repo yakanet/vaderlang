@@ -1,6 +1,6 @@
 // T3087: `==` on a union tests which variant each side holds. An instance of a
 // generic struct whose body other instances share has no tag of its own, so it
-// can only be told from `null` — beside another variant, the test is refused.
+// can only be told from `null`: beside another variant, the test is refused.
 module "snippet"
 
 Point :: struct {

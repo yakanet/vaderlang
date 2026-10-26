@@ -1,4 +1,4 @@
-# 0092 — A machine integer is a range
+# 0092: A machine integer is a range
 
 ## Status
 

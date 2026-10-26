@@ -1,4 +1,4 @@
-# 0033 — Rights hold through a distinct and a nominal argument
+# 0033: Rights hold through a distinct and a nominal argument
 
 ## Status
 
@@ -14,7 +14,7 @@ read item left open below.
 After 0032 the read-only bit still leaked at three nominal boundaries.
 
 - **A distinct type carried no bit.** `with_immutable` left it alone, so
-  `Color(ORIGIN)` — a conversion of a module const — was a mutable `Color`, and
+  `Color(ORIGIN)` (a conversion of a module const) was a mutable `Color`, and
   `c.r = 5` wrote into `.rodata`; `Ids(TABLE)` the same through an index. Its
   backing's children never took the read-only default either, so `Grid :: Cfg[]`
   held mutable `Cfg`s. And an index write into an array-backed distinct was not
@@ -88,7 +88,7 @@ Measured on 2026-10-07:
   or C snapshot moved.
 - **The reproductions** are refused, with T3001, T3042, T3063, T3070, T3072,
   T3077 or T3095 as each case calls for: the 22 above, and four that a second
-  review found in the first version of this change — a `-> Self!` the impl did
+  review found in the first version of this change: a `-> Self!` the impl did
   not keep, a UFCS receiver, and a distinct with its own `IndexSet` (rights and
   value type).
 - `fn(self) -> Self = self` in an impl, refused before (T3077: the written return
@@ -110,5 +110,5 @@ Still open:
   rights, where `f(h)` says T3001.
 - **A field declared `!` reached through a read-only root** stays writable
   (`w.items.push(3)` with `w: Holder`, `items: i32[]!`), through a distinct as
-  through the struct itself — the transitive read-only question, open at HEAD
+  through the struct itself: the transitive read-only question, open at HEAD
   too.

@@ -3,8 +3,8 @@
 // The surface `@target` presents is SPEC.md §17 *Target selection*; this file
 // implements the choice. Three invariants govern it.
 //
-// It runs between parsing and collection. Everything downstream — `add_fn`,
-// T3053, overload resolution, the comptime evaluator, the typechecker — sees a
+// It runs between parsing and collection. Everything downstream (`add_fn`,
+// T3053, overload resolution, the comptime evaluator, the typechecker) sees a
 // module with exactly one declaration per name and needs no knowledge of targets.
 // A body that loses never reaches them; it is not "skipped later".
 //
@@ -14,7 +14,7 @@
 // wherever a specialisation wins.
 //
 // Spans are NOT rewritten. The merged node keeps the declaration's own span as
-// its identity — what `rename` and `references` target — while the grafted body
+// its identity (what `rename` and `references` target) while the grafted body
 // keeps the spans it was parsed with, so a diagnostic inside it names the file it
 // was written in, and the resolver walks it against that file's imports
 // (`walk_body`).
@@ -31,7 +31,7 @@ AST :: import "toolchain/ast"
 
 // Whether THIS body's code is still present anywhere in the selected files. The
 // merged node keeps the winner's body verbatim, spans included, so the body's own
-// span is what identifies it — the declaration's name does not.
+// span is what identifies it: the declaration's name does not.
 body_survives :: fn(fd: AST.FnDecl, kept: SourceFile[]) -> bool {
     b :: fd.body ?? return false
     for f in kept {
@@ -53,7 +53,7 @@ body_survives :: fn(fd: AST.FnDecl, kept: SourceFile[]) -> bool {
 ///
 /// A private helper called ONLY from a `@target(.Windows)` body has no referencer
 /// left once that body is dropped, so W0007 reports it dead on every other
-/// platform — a false positive landing squarely on multi-platform code, which is
+/// platform: a false positive landing squarely on multi-platform code, which is
 /// where the lint should help most. Worse, the natural fix (`@allow_unused`
 /// everywhere) would blind the lint to code that really is dead.
 ///
@@ -79,7 +79,7 @@ export discarded_bodies :: fn(files: SourceFile[], target: Target | null) -> AST
                 }
                 // Compared by BODY span, not by name: after merging, the bare
                 // declaration carries the winner's body under its own name, so a
-                // name test reports every loser as surviving — which is exactly
+                // name test reports every loser as surviving, which is exactly
                 // the bug this function exists to prevent.
                 if body_survives(d, kept) {
                     continue
@@ -93,7 +93,7 @@ export discarded_bodies :: fn(files: SourceFile[], target: Target | null) -> AST
 
 /// Filter every file's declarations down to the ones this target selects.
 ///
-/// Returns the files unchanged when `target` is null — no `--target=` was given,
+/// Returns the files unchanged when `target` is null: no `--target=` was given,
 /// so nothing selects and the module keeps every declaration, which is the
 /// behaviour a tree containing no `@target` already has.
 ///
@@ -110,7 +110,7 @@ export select_target_bodies :: fn(
     // Group well-formedness is checked BEFORE any filtering, and therefore for
     // every target rather than only the one being built. That is what makes a
     // misspelled body an error on the machine that wrote it instead of a surprise
-    // on whichever platform compiles it next — the matcher sees all the
+    // on whichever platform compiles it next: the matcher sees all the
     // candidates, so it may as well judge them all.
     check_selectors(files, diags)
     check_groups(files, diags)
@@ -119,7 +119,7 @@ export select_target_bodies :: fn(
     }
     // First pass, across the WHOLE module: which names have a specialised body
     // that matches? A bare declaration is only displaced by a body that actually
-    // wins, so this cannot be decided file by file — the declaration and its
+    // wins, so this cannot be decided file by file: the declaration and its
     // specialisation are routinely written in different files.
     winners :: MutableMap<string, AST.FnDecl> {}
     bare :: MutableMap<string, bool> {}
@@ -159,7 +159,7 @@ export select_target_bodies :: fn(
                 kept.push(kept_decl)
             }
         }
-        // Spans are NOT rewritten — each declaration keeps the ones it was parsed
+        // Spans are NOT rewritten: each declaration keeps the ones it was parsed
         // with, so diagnostics name the file it was written in and its body
         // resolves against that file's imports.
         out.push(SourceFile { ...f, .program = AST.Program { ...f.program, .decls = kept } })
@@ -170,7 +170,7 @@ export select_target_bodies :: fn(
 // Every `@target(.X)` body must belong to a group: a bare `@target` declaration
 // of the same name must exist to carry the envelope. Without that rule,
 // `@target(.X)` would be a body in one file and a declaration in another, and
-// telling which would mean looking elsewhere in the module — the one non-local
+// telling which would mean looking elsewhere in the module: the one non-local
 // question the model otherwise avoids.
 //
 // A body may not carry `export` for the same reason: the declaration owns the
@@ -194,7 +194,7 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
                     // A group is keyed by NAME ALONE, so two overloads each
                     // wanting their own per-platform bodies land here. Saying
                     // only "already declared" sends the author looking for a
-                    // duplicate they did not write — the signatures differ, and
+                    // duplicate they did not write: the signatures differ, and
                     // it is `@target` that cannot tell them apart.
                     overloaded :: prev.params.len() != d.params.len()
                     why :: if overloaded {
@@ -263,7 +263,7 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
                     }
                 }
                 // Overlap. Two bodies covering one platform makes the winner
-                // depend on declaration ORDER — the arbitrary silence the rest of
+                // depend on declaration ORDER: the arbitrary silence the rest of
                 // this mechanism exists to avoid.
                 for os in sel.os {
                     key :: "${d.name}|${os.to_string()}"
@@ -287,14 +287,14 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
     }
 }
 
-// `graft_body` keeps the DECLARATION's params and return type — it carries the
-// contract — so the body's own signature is parsed and thrown away. A divergent
+// `graft_body` keeps the DECLARATION's params and return type (it carries the
+// contract) so the body's own signature is parsed and thrown away. A divergent
 // body is therefore silently wrong rather than rejected, and this check exists to
 // catch the two shapes where the silence is total:
 //
-//   - a different ARITY — the body cannot mention the params it dropped, so
+//   - a different ARITY: the body cannot mention the params it dropped, so
 //     nothing downstream notices;
-//   - the same names in a different ORDER — the body resolves against the
+//   - the same names in a different ORDER: the body resolves against the
 //     declaration's slots, so `fn(b, a) = a - b` computes `a - b` at the
 //     DECLARATION's positions and returns the negation of what was written.
 //
@@ -303,7 +303,7 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
 // them downstream (T3020 on the return, an ordinary mismatch inside) with a better
 // message than this pass could give. Comparing them needs a structural TypeExpr
 // comparator, and the tree's only one (`signature_help::render_type_expr`) falls
-// back to `"?"` — which makes two unrelated types compare EQUAL. A wrong
+// back to `"?"`, which makes two unrelated types compare EQUAL. A wrong
 // comparator here is worse than none.
 check_signature :: fn(decl: AST.FnDecl, body: AST.FnDecl, diags: Diagnostic[]) -> void {
     if decl.params.len() != body.params.len() {
@@ -336,8 +336,8 @@ check_signature :: fn(decl: AST.FnDecl, body: AST.FnDecl, diags: Diagnostic[]) -
 
 // A bare declaration with NO general body, whose group covers other platforms but
 // not this one. Left alone it reaches the type checker as an ordinary bodyless
-// fn and comes out as T3062, whose advice — "must be `@intrinsic` or `@extern`"
-// — is exactly the wrong thing to do here, and which names neither the target
+// fn and comes out as T3062, whose advice ("must be `@intrinsic` or `@extern`")
+// is exactly the wrong thing to do here, and which names neither the target
 // nor the group. Reported before selection hands anything on.
 report_uncovered :: fn(
     files: SourceFile[],
@@ -353,7 +353,7 @@ report_uncovered :: fn(
                 if !sel.is_bare {
                     continue
                 }
-                // A general body on the declaration IS the fallback — that is the
+                // A general body on the declaration IS the fallback: that is the
                 // whole point of the bare form carrying one.
                 if d.body != null {
                     continue
@@ -433,11 +433,11 @@ provides_body :: fn(name: string) -> bool = name == "extern" || name == "intrins
 //
 // `@extern` / `@intrinsic` ride along from the body, because they say WHO
 // provides it and that is a property of the body, not of the group. Every other
-// decorator comes from the declaration — a `@no_return` on one body only would
+// decorator comes from the declaration: a `@no_return` on one body only would
 // make the group's TYPE depend on the target, through a channel nothing checks.
 graft_body :: fn(decl: AST.FnDecl, body: AST.FnDecl) -> AST.FnDecl {
     // `@target` is KEPT on the merged node. It is what marks the declaration as
-    // the head of a group — `dump --stage=targets` reads it, and a reader opening
+    // the head of a group: `dump --stage=targets` reads it, and a reader opening
     // the file still sees that this function has other bodies elsewhere. Nothing
     // downstream acts on it: selection has already happened by the time anything
     // else looks.
@@ -471,13 +471,13 @@ graft_body :: fn(decl: AST.FnDecl, body: AST.FnDecl) -> AST.FnDecl {
 ///
 /// The two are NOT the same question, and one empty list cannot answer both.
 /// Fold `is_bare` into it and an empty `os` means "written bare" as much as
-/// "every selector failed to parse", so a single typo — `@target(.Drawin)` —
+/// "every selector failed to parse", so a single typo (`@target(.Drawin)`)
 /// reads as a second bare declaration and is reported as `R2039` plus `T3053`,
 /// neither of which names the typo. `is_bare` answers the form; `os` answers the
 /// content.
 TargetSelectors :: struct {
     os:      Os[]
-    /// `true` for `@target` written with no argument list — THE declaration.
+    /// `true` for `@target` written with no argument list: THE declaration.
     is_bare: bool
 }
 
@@ -560,7 +560,7 @@ import "std/testing"
 // not the count but that the answer is DIFFERENT per target: a report that says
 // nothing here is a report that hides half its coverage.
 @test test_nothing_is_discarded_without_a_target :: fn() -> void {
-    // No target, nothing selects, nothing is discarded — the case that must not
+    // No target, nothing selects, nothing is discarded: the case that must not
     // guess rather than the case that matters.
     assert_eq(discarded_bodies([], null).len(), 0)
 }

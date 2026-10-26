@@ -1,4 +1,4 @@
-/// Allocation + traversal stress — builds a balanced binary tree by
+/// Allocation + traversal stress: builds a balanced binary tree by
 /// recursive descent, then walks it once to count the nodes. Each `Node`
 /// allocates on the heap ; the count walk traverses every reference
 /// without allocating. Pushes the generational GC's young-to-old promotion

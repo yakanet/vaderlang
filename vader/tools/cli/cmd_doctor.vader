@@ -1,15 +1,15 @@
 // vader/tools/cli/cmd_doctor: the `vader doctor` command.
 //
 // Answers one question: can this toolchain build something here, and if not,
-// which piece is missing. Every check reports the PATH IT TOOK — which library
+// which piece is missing. Every check reports the PATH IT TOOK (which library
 // root fired, which `cc` a shell would run, which branch of the sidecar probe
-// answered — because the failures this exists to explain are all RESOLUTION
+// answered) because the failures this exists to explain are all RESOLUTION
 // failures, and a resolution failure that only says "not found" leaves the user
 // to guess where it looked.
 //
 // Two output modes: a human report by default, `--json` for CI and agents. The
 // JSON shape is `{ "ok": bool, "checks": [{ name, status, summary, detail }] }`
-// and `name` is the stable key — the summaries are prose and will drift.
+// and `name` is the stable key: the summaries are prose and will drift.
 //
 // Exit code: 1 when any check FAILS, 0 otherwise. A warning is worth knowing,
 // not a broken toolchain, so it never moves the exit code; a gate that wants
@@ -33,12 +33,12 @@ import "std/collections"
 // ---- the report -----------------------------------------------------------
 
 // How one check came out. `Warn` is "worth knowing", `Fail` is "this will not
-// build" — the split is what keeps the exit code meaningful.
+// build": the split is what keeps the exit code meaningful.
 CheckStatus :: enum(u8) { Ok, Warn, Fail }
 
 // One line of the report.
 Check :: struct {
-    /// Stable key — what a `--json` consumer matches on. The summary is prose
+    /// Stable key: what a `--json` consumer matches on. The summary is prose
     /// and will drift; this must not.
     name:    string
     status:  CheckStatus
@@ -63,11 +63,11 @@ check_fail :: fn(name: string, summary: string, detail: string) = Check {
 
 // ---- the command ----------------------------------------------------------
 
-/// `vader doctor` — report whether the toolchain and the current project are in
+/// `vader doctor`: report whether the toolchain and the current project are in
 /// a state that can build.
 ///
 /// Takes no positional argument: it inspects the environment, not a file. The
-/// checks run in the order they are reported, and every one of them is cheap —
+/// checks run in the order they are reported, and every one of them is cheap:
 /// filesystem probes plus a single `cc --version` spawn.
 ///
 /// @param args  the action's zone; `--json` and `--cc` are the only flags read.
@@ -94,7 +94,7 @@ cmd_doctor :: fn(args: string[]) -> i32 {
 // Every check, in report order.
 //
 // The two lookups every check would otherwise redo are done once here. That is
-// not for the syscalls — it is so the report cannot contradict itself: one
+// not for the syscalls, it is so the report cannot contradict itself: one
 // manifest lookup decides both what the manifest check reports and where the
 // generated tree is anchored, and one executable-location query is both what the
 // probes used and what the "looked under …" messages name. The project is the
@@ -103,7 +103,7 @@ collect_checks :: fn(cc: string) -> Check[] {
     cwd :: current_working_directory()
     manifest_root :: project_at(cwd)
     exe_dir :: current_executable_location().dir_of()
-    // `$VADER_HOME` as set, and what it resolves to — asked once, because THREE
+    // `$VADER_HOME` as set, and what it resolves to: asked once, because THREE
     // checks report on it and a report that contradicts itself about which probe
     // answered is worse than no report.
     home :: get_env(TOOLCHAIN_HOME_VAR) ?? ""
@@ -133,13 +133,13 @@ has_failure :: fn(checks: Check[]) -> bool {
 
 // ---- checks ---------------------------------------------------------------
 
-// Which binary is answering — the line a bug report needs, and the one that
+// Which binary is answering: the line a bug report needs, and the one that
 // catches "I rebuilt but ran the old one".
 //
 // It can degrade: `current_executable_location` falls back to `"."` when the OS
 // query fails, and that is worth saying out loud rather than printing as a path,
 // because every probe made BESIDE the binary then silently becomes a probe of the
-// working directory — which is the `library-root` and `compiler-sources` answers
+// working directory, which is the `library-root` and `compiler-sources` answers
 // two lines below.
 check_compiler :: fn() -> Check {
     location :: current_executable_location()
@@ -160,7 +160,7 @@ check_compiler :: fn() -> Check {
 check_cc :: fn(cc: string) -> Check {
     resolved :: resolve_program(cc)
     if resolved == null {
-        // Naming one that IS there turns a dead end into a next step — a user who
+        // Naming one that IS there turns a dead end into a next step: a user who
         // passed `--cc` at all is the one who needs it most, since the host
         // default (`pipeline::default_cc`) is what they overrode.
         fallback :: first_available(CC_CANDIDATES)
@@ -193,7 +193,7 @@ check_cc :: fn(cc: string) -> Check {
 ///
 /// Every name a build could reasonably want, whichever host it runs on, since a
 /// user reaching this list has already overridden the host default. MSVC's `cl` is
-/// deliberately absent — `build.ps1` states it is not supported, so naming it
+/// deliberately absent: `build.ps1` states it is not supported, so naming it
 /// would send someone down a path the toolchain does not take.
 CC_CANDIDATES: string[]: ["cc", "gcc", "clang"]
 
@@ -207,7 +207,7 @@ first_available :: fn(names: string[]) -> string {
     return ""
 }
 
-// `$VADER_HOME`, and what it actually did — unset, in use, or set-and-ignored.
+// `$VADER_HOME`, and what it actually did: unset, in use, or set-and-ignored.
 //
 // A value that does not hold the toolchain is IGNORED, which is the right default
 // for a stale setting left over from a moved install: a build that keeps working
@@ -235,11 +235,11 @@ check_toolchain_home :: fn(home: string, resolved: string | null) -> Check {
     )
 }
 
-// Which library root answered, and by which branch — the difference between a
+// Which library root answered, and by which branch: the difference between a
 // bundle (works from any directory) and a bare binary (works only from one that
 // happens to hold a `lib/`) is invisible until an import fails.
 check_library_root :: fn(exe_dir: string, from_home: string | null) -> Check {
-    // `sidecar_root` answers for `$VADER_HOME` too, and it wins there — so name
+    // `sidecar_root` answers for `$VADER_HOME` too, and it wins there, so name
     // the branch rather than reporting a home-provided root as "beside the
     // binary", which is the one thing this check exists to distinguish.
     if from_home != null {
@@ -274,7 +274,7 @@ check_compiler_sources :: fn(cwd: string, exe_dir: string) -> Check {
         // Same reason `library-root` names its branch: `$VADER_HOME` supplies
         // these too, and "found" without saying from where is what makes a
         // redirected toolchain invisible. Asked of the function that RESOLVES
-        // it, never inferred from the path — see `compiler_source_home`.
+        // it, never inferred from the path, see `compiler_source_home`.
         via :: if root == compiler_source_home() { " through ${TOOLCHAIN_HOME_VAR}" } else { "" }
         return check_ok(
             "compiler-sources",
@@ -304,7 +304,7 @@ check_runtime_headers :: fn() -> Check {
     )
 }
 
-// Header proving a candidate directory is the C runtime — the same marker
+// Header proving a candidate directory is the C runtime: the same marker
 // `pipeline::runtime_c_root` probes for.
 RUNTIME_HEADER :: "vader.h"
 
@@ -353,7 +353,7 @@ check_manifest :: fn(root: string | null) -> Check {
 }
 
 // How a root's origin reads in the report. The marker decides it, never the
-// spelling — which is the whole point of showing it.
+// spelling, which is the whole point of showing it.
 origin_label :: fn(origin: ModuleOrigin) =
     if origin == .Toolchain { "toolchain" } else { "project" }
 
@@ -391,7 +391,7 @@ check_generated_tree :: fn(manifest_root: string | null) -> Check {
 //
 // A name carrying a separator is already a path, not something to search for.
 // The PATH separator is `;` on Windows and `:` everywhere else, and the stdlib
-// exposes no platform query — so, like `pipeline::linked_binary`, this asks
+// exposes no platform query, so, like `pipeline::linked_binary`, this asks
 // rather than guesses: a `;` anywhere in PATH decides it, since Windows always
 // lists several entries and a POSIX directory name holding a `;` would have to
 // fight the shell to exist.
@@ -412,7 +412,7 @@ resolve_program :: fn(name: string) -> string | null {
             return bare
         }
         // The Windows spelling, probed second: a bare name is what was typed.
-        // NOT gated on `separator == ";"`, tempting as that is — under MSYS or
+        // NOT gated on `separator == ";"`, tempting as that is: under MSYS or
         // git-bash the PATH is `:`-separated while the binaries are still `.exe`,
         // so the gate would report a perfectly good `cc` as missing. The probe
         // only runs for a directory that did not hold the bare name anyway.
@@ -453,7 +453,7 @@ status_key :: fn(status: CheckStatus) = match status {
 // they read, so the longest one depends on what is set.
 NAME_COLUMN: i64: 18
 
-// Hangs the detail under the name column — `status_label` is four visible
+// Hangs the detail under the name column: `status_label` is four visible
 // columns plus its two-space gap, whatever the SGR bytes around it cost.
 DETAIL_INDENT :: "      "
 

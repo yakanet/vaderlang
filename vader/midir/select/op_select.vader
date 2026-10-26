@@ -21,7 +21,7 @@
 //
 // `and` / `or` : the lowerer explodes short-circuit binaries into
 // if/else, so `binary_op_for` returning `BoolAnd` / `BoolOr` is the
-// eager-eval safety net (no short-circuit guarantee here — diagnose
+// eager-eval safety net (no short-circuit guarantee here: diagnose
 // at the lower-side if a non-exploded And/Or reaches this fn).
 
 module "vader/midir/select"
@@ -31,10 +31,10 @@ import "vader/lower/ir"
 
 /// Pick the bytecode op for a `LoweredBinaryOp` over operands of class
 /// `lhs`. `eq` / `neq` over reference shapes (`ref` / `any` / `null`) lower
-/// to `RefEq` / `RefNe` — a full object-pointer identity compare (a concrete
+/// to `RefEq` / `RefNe`: a full object-pointer identity compare (a concrete
 /// `.Ref` is a raw `void*`, so an i32 compare would mix a raw pointer with a
 /// 32-bit-truncated box payload). (String `+` never reaches
-/// here — the lowerer rewrites it to a StringBuilder chain,
+/// here: the lowerer rewrites it to a StringBuilder chain,
 /// `lower/binary.vader`.)
 ///
 /// @param op   the source-level binary operator.
@@ -190,7 +190,7 @@ cmp_ne :: fn(lhs: ValType) -> Op {
     return I32Ne {}
 }
 
-// A reference-shaped operand class — compared by object identity via `RefEq` /
+// A reference-shaped operand class: compared by object identity via `RefEq` /
 // `RefNe`, never the numeric i32 path. `.Ref` is a raw pointer ; `.Any`
 // / `.Null` are boxes whose pointer lives in `.payload.obj`.
 is_ref_class :: fn(v: ValType) = v == .Ref || v == .Any || v == .Null
@@ -242,7 +242,7 @@ bitnot_op :: fn(operand: ValType) -> Op {
 
 // ---- array slot access ---------------------------------------------------
 
-/// Native storage class of an array element — the single dimension the slot
+/// Native storage class of an array element: the single dimension the slot
 /// load / store ops dispatch on. `Boxed` is a GC-traced `vader_box_t` slot ;
 /// the rest are the element's native byte width (matching
 /// `vader_array_element_size`, `vader.h`).
@@ -251,20 +251,20 @@ SlotWidth :: enum(u8) { U8, I32, I64, F64, Boxed }
 /// Classify an array element's value class into its slot storage width. This
 /// is the ONE place the element-kind → storage-width mapping lives ; both
 /// `slot_store_op_for` and `slot_load_op_for` read it. The width is the native
-/// byte width — NOT the arithmetic width-aliasing of `arith_op` (storage cares
-/// about the byte width, compute doesn't) — so the slot-index × stride
+/// byte width, NOT the arithmetic width-aliasing of `arith_op` (storage cares
+/// about the byte width, compute doesn't), so the slot-index × stride
 /// addressing stays consistent with the two-object array layout (a header plus
 /// a separate element buffer, `vader.h`).
 ///
 /// Returns `null` for element widths without a dedicated opcode yet: `i16`/`u16`
-/// (need a 2-byte slot op) and `f32` (needs a 4-byte float slot op — a 4-byte
+/// (need a 2-byte slot op) and `f32` (needs a 4-byte float slot op: a 4-byte
 /// integer store would mis-type the operand-stack value). The lowerer must not
 /// route those element kinds onto the Vader array path until the op lands ;
 /// every kind the compiler's own arrays use (`i32`/`i64`/`u64`/`string`/
 /// struct/`u8`) is covered.
 ///
 /// @param elem  the array's concrete element value class (from the materialised
-///              impl body's element type — primitives stay concrete per
+///              impl body's element type: primitives stay concrete per
 ///              `keep_concrete_or_erase`, so this is never `Any`-erased for a
 ///              primitive-element array).
 /// @return      the storage width, or `null` for a not-yet-supported element.
@@ -290,20 +290,20 @@ slot_width_for :: fn(elem: ValType) -> SlotWidth | null = match elem {
 }
 
 /// Pick the typed store op for an array element of stack class `elem`
-/// (Array-over-Buffer) — the native-width store, no write barrier needed since
+/// (Array-over-Buffer): the native-width store, no write barrier needed since
 /// no reference is written. `null` means "no typed store for this element": the
 /// caller falls back to the legacy runtime-dispatched `ArraySet`.
 ///
 /// Declines on three groups, and each has its reason:
-///   - `.Boxed` (ref / string / `Any`) — an erased `Any[]` struct field may hold a
+///   - `.Boxed` (ref / string / `Any`): an erased `Any[]` struct field may hold a
 ///     concrete-kind array at runtime, so only the kind-dispatched legacy op is
 ///     sound.
-///   - `.U8` — read-only `u8[]` byte views are borrowed (`buf == NULL`,
+///   - `.U8`: read-only `u8[]` byte views are borrowed (`buf == NULL`,
 ///     atom-backed), which a raw slot op can't address.
-///   - `i16` / `u16` / `f32` — no slot opcode for those widths yet
+///   - `i16` / `u16` / `f32`: no slot opcode for those widths yet
 ///     (`slot_width_for` already answers null).
 ///
-/// This IS the flip policy — there is no second predicate to keep in step.
+/// This IS the flip policy: there is no second predicate to keep in step.
 ///
 /// @param elem  the array's concrete element value class.
 /// @return      the typed store op, or `null` to fall back to `ArraySet`.
@@ -318,7 +318,7 @@ export slot_store_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null {
     }
 }
 
-/// Symmetric typed LOAD op — same classification and the same declines as
+/// Symmetric typed LOAD op: same classification and the same declines as
 /// `slot_store_op_for`, `null` falling back to the legacy `ArrayGet`.
 ///
 /// @param elem  the array's concrete element value class (the static read type).
@@ -439,7 +439,7 @@ import "std/testing"
     assert_eq("expected StoreSlotF64 for f64", "")
 }
 
-// `i16` / `u16` / `f32` slots have no dedicated opcode yet — the selector
+// `i16` / `u16` / `f32` slots have no dedicated opcode yet: the selector
 // returns null so the lowerer keeps those element kinds off the Vader path.
 @test test_slot_store_deferred_widths_are_null :: fn() -> void {
     if slot_store_op_for(.I16, false) != null { assert_eq("expected null for i16", "") }

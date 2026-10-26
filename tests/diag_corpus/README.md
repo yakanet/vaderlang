@@ -7,9 +7,9 @@ inside the per-stage snapshots already; this corpus exists for the error
 paths those never reach.
 
 Driven by `tests/diagnostics-corpus.test.ts`, which dumps the native
-compiler at the `lowered-ast` stage — the point where every front-end
+compiler at the `lowered-ast` stage: the point where every front-end
 diagnostic has accumulated (lexer → parser → resolver → typecheck →
-comptime) — and snapshots every emitted `[span] severity[CODE] message` line
+comptime), and snapshots every emitted `[span] severity[CODE] message` line
 per fixture, so a changed wording shows in the diff as a changed code does.
 **The self-hosted compiler is the oracle.** The former TS↔Vader
 set-parity was dropped when the TypeScript reference was removed.
@@ -26,7 +26,7 @@ matches `tests/snippets/`. Buckets are the emitting phase: `lexer`,
 `parser`, `resolver`, `typecheck`, `comptime`, `lower`, `warning`.
 
 A fixture may carry extra files next to `_main.vader` (`lib.vader`,
-`helper.vader`) when the diagnostic needs more than one module — import
+`helper.vader`) when the diagnostic needs more than one module: import
 cycles, duplicate import bindings, cross-module visibility.
 
 Directory names use the lowercased code (`t3001_type_mismatch`,
@@ -66,13 +66,13 @@ PY
 The gap is not all missing work. Three kinds of uncovered code live in
 there, and they need different answers:
 
-- **Reserved** — the variant exists, no pass emits it yet. Covered when
+- **Reserved**: the variant exists, no pass emits it yet. Covered when
   the check ships, not before.
-- **Shadowed** — an earlier phase always fires first on any input that
+- **Shadowed**: an earlier phase always fires first on any input that
   would reach it (a surface form tripping a parse error before the
   resolver sees it). Needs a fixture built around the shadowing, or an
   honest note that it is unreachable today.
-- **Genuinely untested** — reachable, emitted, nothing pins it. These are
+- **Genuinely untested**: reachable, emitted, nothing pins it. These are
   the ones worth closing.
 
 Sorting the list into those three buckets is a pass nobody has run end to

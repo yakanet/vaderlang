@@ -1,8 +1,8 @@
-/// `@field(x, "name")` — dynamic field access keyed by a comptime string.
+/// `@field(x, "name")`: dynamic field access keyed by a comptime string.
 /// Two paths : (1) bare string literal at the call site, (2) deferred
 /// resolution via `f.name` inside a `@comptime for f in @fields(T)`
 /// derive body. Combined with `@fields(T)` + `@comptime for` this closes
-/// the reflection loop — derive macros (`to_string`, `eq`,
+/// the reflection loop: derive macros (`to_string`, `eq`,
 /// `json_encode`, …) materialise as N copies of the body with each
 /// field substituted in.
 module "snippet"
@@ -22,9 +22,9 @@ derive_print :: fn(self: User) -> void {
 
 main :: fn() -> i32 {
     u :: User { .name = "alice", .age = 30 }
-    // Static call-site form — typecheck resolves the field type directly.
+    // Static call-site form: typecheck resolves the field type directly.
     println("static: ${@field(u, "name")} (${@field(u, "age")})")
-    // Comptime-for derive form — `f.name` folds to a literal at lower
+    // Comptime-for derive form: `f.name` folds to a literal at lower
     // time, the deferred typecheck path picks up from there.
     derive_print(u)
     return 0

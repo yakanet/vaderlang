@@ -2,7 +2,7 @@
 //
 // The compensation for compile-time target selection. A body whose `@target`
 // does not match is never resolved or typed, so on any one machine the code for
-// every OTHER platform is unchecked — the same blind spot the `#ifdef` walls in
+// every OTHER platform is unchecked: the same blind spot the `#ifdef` walls in
 // `runtime/c/` had, which is where the two Windows bugs of 2026-08 came from.
 //
 // This closes it, and cheaply: type-checking needs NO TOOLCHAIN, so
@@ -16,7 +16,7 @@
 // optimisation. `cargo check` draws the line in the same place.
 //
 // Why not `dump --stage=typed-ast`: that is an INSPECTION tool. It prints the
-// AST on stdout and exits 0 whatever the diagnostics say, deliberately — you
+// AST on stdout and exits 0 whatever the diagnostics say, deliberately: you
 // want to see the tree despite the errors. A gate wants the opposite: nothing on
 // stdout, diagnostics on stderr, non-zero on failure. Same pipeline, opposite
 // contract.
@@ -94,8 +94,8 @@ export cmd_check :: fn(args: string[]) -> i32 {
 // for a file on its own), print what they report, and say whether nothing among
 // it is an error.
 check_entry :: fn(file: Path, include_path_flags: string[], target: Target | null, project_root: string | null) -> bool {
-    // Lowering too, not just the front end. It needs no toolchain — it produces
-    // IR, not C — and without it the gate answered "the Windows code resolves
+    // Lowering too, not just the front end. It needs no toolchain (it produces
+    // IR, not C) and without it the gate answered "the Windows code resolves
     // and type-checks", which is not what `vader check` promises. An `await`
     // in a short-circuit operand (M5009) inside a `@target(.Windows)` body
     // passed `check` and failed the build. As for `build`, a program the front

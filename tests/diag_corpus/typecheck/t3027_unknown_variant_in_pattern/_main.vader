@@ -2,7 +2,7 @@
 //
 // This went undiagnosed: the arm type-checked, matched nothing, and counted
 // itself as covering a variant. So a typo became silent dead code, and removing
-// a variant left every arm still naming it invisible — which is how three
+// a variant left every arm still naming it invisible, which is how three
 // `IntrinsicId` variants were deleted while six `match` arms kept using them.
 module "snippet"
 

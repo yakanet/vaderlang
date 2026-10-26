@@ -3,17 +3,17 @@
 // The public contract a build-time metaprogram reads. It lives outside `vader/`
 // because of what depends on it: a library shipping a generator must be able to
 // walk declarations without depending on the compiler, and this module needs
-// nothing from the compiler either — only `toolchain/span`, for where each node
+// nothing from the compiler either: only `toolchain/span`, for where each node
 // came from. Everything that INTERPRETS these nodes (resolve, typecheck, lower)
 // stays in `vader/`.
 //
 // It is the tree AS WRITTEN, before resolution: an `IdentExpr("Id")` is the name
 // the author typed, not the type it denotes. A generator that needs to know
 // whether that name is a primitive, an alias, an imported struct or a distinct
-// newtype cannot answer it from here — see the note on resolved declarations in
+// newtype cannot answer it from here, see the note on resolved declarations in
 // the TODO's toolchain item.
 //
-// Layout note : declaration order is free — the resolver collects every
+// Layout note : declaration order is free, the resolver collects every
 // decl name in a first pass before walking types in the second, so a
 // union alias can sit before or after the variant structs it lists.
 // Type-bearing fields are renamed `ty` (since `type` was historically a
@@ -30,12 +30,12 @@ import "toolchain/span"
 /// Node ids are assigned in a later pass (`vader/front/parser::assign_program_ids`), which
 /// replaces this with a fresh unique value (≥ 1), so a freshly parsed tree carries
 /// the sentinel everywhere. A generator reading a typechecked tree sees real ids;
-/// one building nodes by hand leaves them at the default — it is every node's
+/// one building nodes by hand leaves them at the default: it is every node's
 /// `.id` default, so a construction may omit the field.
 export UNASSIGNED_NODE_ID :i64 : 0
 
 // ============================================================================
-// Type aliases (declared first — see header)
+// Type aliases (declared first, see header)
 // ============================================================================
 
 /// Anything that can appear at the top level of a file.
@@ -43,14 +43,14 @@ export Decl :: ImportDecl | FnDecl | StructDecl | EnumDecl | TraitDecl | ImplDec
 
 /// What an `import` binds: a namespace alias, a modifier list, or nothing.
 ///
-/// The three forms of SPEC §Modules — `X :: import "p"`, `import "p" { a as b }`,
+/// The three forms of SPEC §Modules: `X :: import "p"`, `import "p" { a as b }`,
 /// and the bare `import "p"` wildcard.
 export ImportBinding :: NamedNamespaceImport | DestructureImport | WildcardImport
 
 /// Which of the three `for` shapes a loop is: `for {}`, `for cond {}`, `for x in xs {}`.
 export ForForm :: InfiniteFor | WhileFor | InFor
 
-/// Any expression. Also serves as `TypeExpr` — see the note there.
+/// Any expression. Also serves as `TypeExpr`, see the note there.
 export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
 
 /// One piece of a string literal: literal text, or an interpolated expression.
@@ -74,7 +74,7 @@ export PatternFieldValue :: PatternBinding | PatternLiteral
 /// Right operand of `??` (null-coalescing). Either an ordinary value
 /// expression (must be assignable to the non-null result type) or a
 /// divergent statement (`return` / `break` / `continue`, typed `never`).
-/// The divergent forms are statements — not `Expr` variants — so they are
+/// The divergent forms are statements (not `Expr` variants) so they are
 /// carried here directly rather than through the `Expr` union.
 export CoalesceFallback :: Expr | ReturnStmt | BreakStmt | ContinueStmt
 
@@ -89,7 +89,7 @@ export coalesce_fallback_expr :: fn(f: CoalesceFallback) -> Expr | null = match 
     is Expr -> f
 }
 
-/// The places a destructuring assignment writes, in order — every target but `_`.
+/// The places a destructuring assignment writes, in order: every target but `_`.
 ///
 /// For the walkers that visit a statement's sub-expressions and have no use for
 /// each element's kind.
@@ -104,12 +104,12 @@ export assign_places :: fn(s: DestructureAssignStmt) -> Expr[] {
     return out
 }
 
-/// A type AS WRITTEN — the same node set as `Expr`, deliberately.
+/// A type AS WRITTEN: the same node set as `Expr`, deliberately.
 ///
 /// Vader's type grammar is a subset of its expression grammar (`i32`, `Foo<T>`,
 /// `A | B`, `fn(i32) -> bool`, `T[]`), so the parser reuses the expression nodes
 /// rather than duplicating them. What counts as a type expression is decided by
-/// POSITION — the slot demanding a type — never by node shape; the alias exists to
+/// POSITION (the slot demanding a type) never by node shape; the alias exists to
 /// say so at each slot (`StructField.ty: TypeExpr`).
 ///
 /// A reader must not assume an `IdentExpr` in type position denotes a type it can
@@ -133,13 +133,13 @@ export Visibility :: enum {
 
 /// One parsed source file.
 ///
-/// `module` is null for a file with no `module "..."` header — an error the resolver
+/// `module` is null for a file with no `module "..."` header: an error the resolver
 /// reports rather than the parser.
 export Program :: struct {
     file:    string
     span:    Span
     id:      i64 = UNASSIGNED_NODE_ID
-    /// The `module "..."` declaration. Null when absent — the parser
+    /// The `module "..."` declaration. Null when absent: the parser
     /// is tolerant ; the resolver's scan emits R2020 on absence.
     module:  ModuleDecl | null = null
     decls:   Decl[]
@@ -169,7 +169,7 @@ export TypeParam :: struct {
     name:               string
     bound:              TypeExpr | null
     /// Default type for this parameter, from `<T = Default>`. Honored when an
-    /// impl supplies fewer trait-args than the trait declares — the trailing
+    /// impl supplies fewer trait-args than the trait declares: the trailing
     /// params fill from their defaults at impl materialization
     /// (`front/resolver/materialize.vader::build_subst`). Defaults on struct / fn /
     /// alias params parse but are not yet filled at their use sites (those
@@ -333,7 +333,7 @@ export decl_is_public :: fn(decl: Decl) -> bool = match decl {
 
 // ---- Import ---------------------------------------------------------------
 
-/// An `import` statement, whatever its form — see `ImportBinding`.
+/// An `import` statement, whatever its form, see `ImportBinding`.
 export ImportDecl :: struct {
     span:       Span
     id:         i64 = UNASSIGNED_NODE_ID
@@ -342,14 +342,14 @@ export ImportDecl :: struct {
     decorators: Decorator[]
 }
 
-/// `name :: import "..."` — namespace binding ; members reached via `name.X`.
+/// `name :: import "..."`: namespace binding ; members reached via `name.X`.
 export NamedNamespaceImport :: struct {
     name: string
 }
-/// `import "p" { x as y, z as _ }` — a WILDCARD of p plus per-name modifiers:
+/// `import "p" { x as y, z as _ }`: a WILDCARD of p plus per-name modifiers:
 /// every listed source name is dropped from the wildcard ; `x as y` also rebinds
 /// it as `y`, `z as _` is a pure exclusion. A plain name (no `as`) is an error
-/// (R2033) — the wildcard already brings every export.
+/// (R2033): the wildcard already brings every export.
 export DestructureImport :: struct {
     names: ImportName[]
     /// True when the source wrote a trailing comma before `}`. Drives the
@@ -357,7 +357,7 @@ export DestructureImport :: struct {
     trailing_comma: bool = false
 }
 
-/// bare `import "..."` — wildcard : every function of the module becomes
+/// bare `import "..."`, wildcard : every function of the module becomes
 /// callable (prefix + UFCS) ; binds no name.
 export WildcardImport :: struct {}
 
@@ -382,8 +382,8 @@ export ImportName :: struct {
 /// `is_expression_bodied` distinguishes `f :: fn() = expr` from a braced body,
 /// which the formatter needs and a generator emitting source should preserve.
 ///
-/// Each is a plain `bool` defaulting to `false`, never `bool | null` — Vader has no
-/// optional fields — and the dumper emits one only when `true`.
+/// Each is a plain `bool` defaulting to `false`, never `bool | null` (Vader has no
+/// optional fields) and the dumper emits one only when `true`.
 export FnDecl :: struct {
     span:                  Span
     id:                  i64 = UNASSIGNED_NODE_ID
@@ -397,15 +397,15 @@ export FnDecl :: struct {
     decorators:            Decorator[]
     sam_synthetic:         bool
     is_expression_bodied:  bool
-    /// `true` when this FnDecl was synthesised by `materialize_default_members`
-    /// — i.e. cloned from a trait default body into an impl. The body's
+    /// `true` when this FnDecl was synthesised by `materialize_default_members`,
+    /// i.e. cloned from a trait default body into an impl. The body's
     /// spans point at the trait's source, so re-typechecking the clone
     /// emits duplicate diagnostics at unhelpful spans. Walkers skip such
     /// methods (the trait itself already type-checked the body once).
     materialized:          bool
     /// `true` when this FnDecl is the `__comptime_NAME` helper the parser
     /// synthesises for the `NAME :: @comptime <expr>` const sugar (see
-    /// `desugar_comptime_const`). The formatter skips it — the surface sugar
+    /// `desugar_comptime_const`). The formatter skips it: the surface sugar
     /// is re-emitted from the paired `ConstDecl.comptime_body` instead.
     /// Defaults `false` : only the desugar sets it, every other constructor
     /// leaves it off.
@@ -458,7 +458,7 @@ export StructDecl :: struct {
 
 /// One field of a struct.
 ///
-/// `visibility` is `@internal` — fields are public by default, so this is the opt-out.
+/// `visibility` is `@internal`: fields are public by default, so this is the opt-out.
 /// `default` backs `T {}` construction with the field omitted.
 export StructField :: struct {
     span:       Span
@@ -516,7 +516,7 @@ export TraitDecl :: struct {
     name_span:   Span
     visibility:  Visibility
     type_params: TypeParam[]
-    /// The supertrait bound, for either form — `Numeric :: trait<T> = Add & Sub`
+    /// The supertrait bound, for either form: `Numeric :: trait<T> = Add & Sub`
     /// (alias form, `members` empty) or `Hashable :: trait<T> : Hash & Eq { … }`
     /// (methods plus composition). A parsed type expression: typically a
     /// `BinaryExpr(.BitAnd)` chain over trait names, though a single trait
@@ -530,7 +530,7 @@ export TraitDecl :: struct {
 
 /// An `implements` block, or its one-method short form.
 ///
-/// `for_type` is the implementing type as written, `trait_name` the trait — which is
+/// `for_type` is the implementing type as written, `trait_name` the trait, which is
 /// a bare string rather than a node because a trait is always named, never computed.
 export ImplDecl :: struct {
     span:             Span
@@ -587,7 +587,7 @@ export ConstDecl :: struct {
     comptime_as_decorator: bool = false
 }
 
-/// An `@assert` at the top level — a build-time invariant.
+/// An `@assert` at the top level: a build-time invariant.
 ///
 /// `condition` is evaluated by the comptime VM and the build fails with C4015 when
 /// it is `false`. Nothing is emitted at runtime.
@@ -618,11 +618,11 @@ export LetStmt :: struct {
     value:   Expr
 }
 
-/// A local bound to one name — a leaf of the recursive binding tree, whose other
+/// A local bound to one name: a leaf of the recursive binding tree, whose other
 /// leaf is `WildcardBinding` (ignores the slot) and whose only branch is
 /// `TupleBinding` (matches a tuple-typed value element-wise).
 ///
-/// `name_span` covers the name alone — the precise target a rename needs, which the
+/// `name_span` covers the name alone: the precise target a rename needs, which the
 /// whole-binding `span` is too wide for.
 export SimpleBinding :: struct {
     span:      Span
@@ -644,7 +644,7 @@ export WildcardBinding :: struct {
     id: i64 = UNASSIGNED_NODE_ID
 }
 
-/// The `...rest` tail of a destructuring local — collects every slot its sibling
+/// The `...rest` tail of a destructuring local: collects every slot its sibling
 /// `SimpleBinding`s did not consume into a fresh array.
 ///
 /// Valid only as the LAST element of a `TupleBinding` whose source is array-typed.
@@ -657,7 +657,7 @@ export RestBinding :: struct {
 
 /// An assignment to several existing places at once, `[a, b] = pair`.
 ///
-/// Not an `AssignStmt` over a literal target: its elements are not expressions —
+/// Not an `AssignStmt` over a literal target: its elements are not expressions,
 /// `_` and `...rest` only mean something here.
 export DestructureAssignStmt :: struct {
     span:    Span
@@ -666,7 +666,7 @@ export DestructureAssignStmt :: struct {
     value:   Expr
 }
 
-/// A place written by a destructuring assignment — a name, a field or an index.
+/// A place written by a destructuring assignment: a name, a field or an index.
 ///
 /// Any expression parses here; the typechecker refuses what is not a place.
 export PlaceTarget :: struct {
@@ -681,7 +681,7 @@ export WildcardTarget :: struct {
     id:   i64 = UNASSIGNED_NODE_ID
 }
 
-/// The `...rest` tail of a destructuring assignment — writes a fresh array of
+/// The `...rest` tail of a destructuring assignment: writes a fresh array of
 /// every element its siblings did not consume into `place`.
 ///
 /// Valid only as the LAST target, over an array-typed source.
@@ -705,9 +705,9 @@ export AssignStmt :: struct {
 /// The operator of a compound assignment `lhs op= rhs`, or null for a plain one.
 ///
 /// `target` and `value.left` are one node, so they carry one span ; a
-/// hand-written `a = a + 1` reads an `a` of its own, at another position — in a
+/// hand-written `a = a + 1` reads an `a` of its own, at another position: in a
 /// cloned body too, where every node gets a column of its own. A pass that
-/// evaluates `lhs`'s operands once, or prints the `op=` back, keys on this — and a
+/// evaluates `lhs`'s operands once, or prints the `op=` back, keys on this, and a
 /// pass that clones an assignment keeps the two sides one node.
 /// @param s  the assignment.
 /// @return   the arithmetic operator the `op=` spells, or null.
@@ -744,7 +744,7 @@ export ReturnStmt :: struct {
     value: Expr | null
 }
 
-/// `yield expr` inside a `generator` fn body — emit one element and suspend.
+/// `yield expr` inside a `generator` fn body: emit one element and suspend.
 /// Always carries a value (unlike `return`, which may be bare); the empty /
 /// exhausted case is a bare `return` or falling off the end. `value` must
 /// coerce to the `T` of the generator's `-> Iterator<T>` return.
@@ -754,7 +754,7 @@ export YieldStmt :: struct {
     value: Expr
 }
 
-/// A loop in any of its three forms — see `ForForm`.
+/// A loop in any of its three forms, see `ForForm`.
 ///
 /// `label` is the loop-jump target of `break <label>` / `continue <label>`.
 export ForStmt :: struct {
@@ -763,12 +763,12 @@ export ForStmt :: struct {
     label: string | null
     form:  ForForm
     body:  BlockExpr
-    /// `@comptime for x in <arr> { … }` — unroll at lower time. False for
+    /// `@comptime for x in <arr> { … }`: unroll at lower time. False for
     /// every other form.
     is_comptime: bool = false
 }
 
-/// The `for { ... }` form — no condition, exited by `break` or `return`.
+/// The `for { ... }` form: no condition, exited by `break` or `return`.
 export InfiniteFor :: struct {}
 /// The `for cond { ... }` form.
 export WhileFor    :: struct { cond: Expr }
@@ -780,14 +780,14 @@ export InFor       :: struct {
 
 /// The loop variable of a `for … in …`. A union so the mutually exclusive
 /// shapes can't be miscombined and no sentinel / span-geometry heuristic is
-/// needed downstream — each pass matches on the variant. Kept structural on the
+/// needed downstream: each pass matches on the variant. Kept structural on the
 /// AST (not desugared at parse) so `vader fmt` round-trips every sugar.
 export LoopVar :: NamedVar | DestructureVar | DiscardVar
-/// `for x in …` — and the explicit discard `for _ in coll` (name == `"_"`).
+/// `for x in …`, and the explicit discard `for _ in coll` (name == `"_"`).
 export NamedVar       :: struct { name: string, span: Span }
-/// `for [k, v] in …` — the leaves bind against the iterable's element type.
+/// `for [k, v] in …`: the leaves bind against the iterable's element type.
 export DestructureVar :: struct { pattern: LetBinding }
-/// `for <range>` — no user variable is written (the iterable is the range
+/// `for <range>`: no user variable is written (the iterable is the range
 /// itself). Also the lower-synthesised varless `for <coll>` (while→for sugar).
 export DiscardVar     :: struct {}
 
@@ -834,8 +834,8 @@ export DeferBody :: DeferStmtBody | DeferBlockBody
 
 /// An integer literal.
 ///
-/// Stored as `u64` whatever the written base. The literal is FREE — it adopts the
-/// surrounding concrete numeric type — so its node carries no width.
+/// Stored as `u64` whatever the written base. The literal is FREE (it adopts the
+/// surrounding concrete numeric type) so its node carries no width.
 export IntLitExpr :: struct {
     span:   Span
     id:     i64 = UNASSIGNED_NODE_ID
@@ -956,7 +956,7 @@ export IdentExpr :: struct {
 /// A call, `callee(args)`.
 ///
 /// `callee` is an arbitrary expression, so this covers `f(x)`, `a.f(x)` (whose callee
-/// is a `FieldExpr`) and `P.f(x)` alike — UFCS is not distinguished here.
+/// is a `FieldExpr`) and `P.f(x)` alike: UFCS is not distinguished here.
 export CallExpr :: struct {
     span:   Span
     id:     i64 = UNASSIGNED_NODE_ID
@@ -965,7 +965,7 @@ export CallExpr :: struct {
     /// callee's type parameters, first ones first. Empty when the call infers them.
     type_args: TypeExpr[] = []
     args:   CallArg[]
-    /// Source wrote a trailing comma before `)` — formatter keeps it exploded.
+    /// Source wrote a trailing comma before `)`: formatter keeps it exploded.
     trailing_comma: bool = false
 }
 
@@ -977,7 +977,7 @@ export CallArg :: struct {
     id:     i64 = UNASSIGNED_NODE_ID
     name:   string | null
     value:  Expr
-    /// Reserved for argument-spread `f(...xs)` — not parsed yet, so always
+    /// Reserved for argument-spread `f(...xs)`, not parsed yet, so always
     /// `false` today. The consumers (printer / dump / ufcs) already honour it
     /// so the feature only needs `parse_call_args` to set it.
     spread: bool
@@ -1118,14 +1118,14 @@ export IfElseBlock :: struct { block:  BlockExpr }
 
 /// A `match` over a scrutinee.
 ///
-/// `partial` is `@partial` — the match is knowingly non-exhaustive; `unreachable` is
-/// `@unreachable` — the uncovered variants are impossible and trap if reached.
+/// `partial` is `@partial`: the match is knowingly non-exhaustive; `unreachable` is
+/// `@unreachable`: the uncovered variants are impossible and trap if reached.
 export MatchExpr :: struct {
     span:      Span
     id:        i64 = UNASSIGNED_NODE_ID
     scrutinee: Expr
     arms:      MatchArm[]
-    // `@partial match x { … }` opts out of exhaustiveness — no T3013
+    // `@partial match x { … }` opts out of exhaustiveness: no T3013
     // fires for missing variants. Default `false` keeps the regular
     // exhaustive-by-default behaviour ; the dump suppresses the field
     // when `false` so old snapshots stay byte-identical.
@@ -1133,11 +1133,11 @@ export MatchExpr :: struct {
     // `@unreachable match x { … }` likewise opts out of T3013, but asserts
     // the *uncovered* variants can never occur : they fall through to the
     // synthesised trap (`LoweredUnreachable`) instead of being handled. Use
-    // it for "handle A/B/C, the rest are impossible" — no wildcard, no fake
+    // it for "handle A/B/C, the rest are impossible": no wildcard, no fake
     // value. Mutually exclusive with `partial`. Defaulted so existing
     // `MatchExpr { … }` literals and old snapshots are unaffected.
     unreachable: bool = false
-    /// `match x :: e { … }` — the name the scrutinee is bound to, visible in every
+    /// `match x :: e { … }`: the name the scrutinee is bound to, visible in every
     /// arm and guard and narrowed by each arm. Its `name_span` is the declaration
     /// the resolver mints the symbol at.
     binding: SimpleBinding | null = null
@@ -1178,8 +1178,8 @@ export LambdaExpr :: struct {
 
 /// A struct literal, `Point { .x = 1 }`.
 ///
-/// `items` mixes fields and spreads in SOURCE order, which a generator must preserve
-/// — a later field overrides an earlier spread.
+/// `items` mixes fields and spreads in SOURCE order, which a generator must preserve:
+/// a later field overrides an earlier spread.
 export StructLitExpr :: struct {
     span:      Span
     id:        i64 = UNASSIGNED_NODE_ID
@@ -1233,7 +1233,7 @@ export RangeExpr :: struct {
 
 // ---- error / cast / generic / variant -----------------------------------
 
-/// `await e` — suspend the enclosing `async` fn until `e`'s async result is
+/// `await e`: suspend the enclosing `async` fn until `e`'s async result is
 /// ready, then produce it. A single-operand prefix wrapper; carries no error
 /// semantics of its own.
 export AwaitExpr :: struct {
@@ -1244,7 +1244,7 @@ export AwaitExpr :: struct {
 
 /// An explicit conversion, `T(value)`.
 ///
-/// Only a genuine width or representation change needs one — a free literal adopts
+/// Only a genuine width or representation change needs one: a free literal adopts
 /// its context, so a cast around one is a style defect.
 export CastExpr :: struct {
     span:   Span
@@ -1267,7 +1267,7 @@ export GenericInstExpr :: struct {
 ///
 /// `name` is the intrinsic ident WITHOUT the leading `@`. The recognised set lives
 /// in `vader/front/parser/intrinsics.vader`, and the parser mints this node only for a
-/// known name — an unknown `@name(...)` in expression position raises P1014.
+/// known name: an unknown `@name(...)` in expression position raises P1014.
 export IntrinsicCallExpr :: struct {
     span:      Span
     id:        i64 = UNASSIGNED_NODE_ID
@@ -1347,8 +1347,8 @@ export LiteralPattern :: struct {
 /// scrutinee falls in the range. `inclusive` = `..=` (upper bound included),
 /// else `..<` (excluded). The bounds are literal scalar exprs (char / int) of
 /// the scrutinee's type ; the lowerer emits
-/// `scrutinee >= lower && scrutinee <(=) upper`. Binds nothing, and — like a
-/// literal pattern over an open scalar domain — exhausts nothing.
+/// `scrutinee >= lower && scrutinee <(=) upper`. Binds nothing, and (like a
+/// literal pattern over an open scalar domain) exhausts nothing.
 export RangePattern :: struct {
     span:      Span
     id:        i64 = UNASSIGNED_NODE_ID
@@ -1359,7 +1359,7 @@ export RangePattern :: struct {
 
 /// Or-pattern : `.A | .B -> …`, `1 | 2 | 3 -> …`. Matches when ANY alternative
 /// matches. Parsed from pipe-separated patterns in a match arm. The `is A | B`
-/// form does NOT produce this — there the type parser folds `A | B` into a
+/// form does NOT produce this: there the type parser folds `A | B` into a
 /// single union `IsPattern` (equivalent narrowing + exhaustiveness). The
 /// alternatives are value-level (enum variants / literals) and bind nothing.
 export OrPattern :: struct {
@@ -1372,7 +1372,7 @@ export OrPattern :: struct {
 // Type expressions
 // ============================================================================
 
-/// A function type as written, `fn(i32) -> bool` — type-only, with no value-side
+/// A function type as written, `fn(i32) -> bool`: type-only, with no value-side
 /// counterpart.
 export FnTypeExpr :: struct {
     span:        Span
@@ -1381,7 +1381,7 @@ export FnTypeExpr :: struct {
     return_type: TypeExpr | null
 }
 
-/// An array type as written, `T[]` — type-only.
+/// An array type as written, `T[]`: type-only.
 ///
 /// The bracketed form `[T1, T2]` parses as a `SeqLitExpr` (tuple type) instead.
 export ArrayTypeExpr :: struct {

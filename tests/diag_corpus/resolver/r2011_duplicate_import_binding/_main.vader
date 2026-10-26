@@ -1,4 +1,4 @@
-// Two renames from different modules claim the same local name `p` — a genuine
+// Two renames from different modules claim the same local name `p`: a genuine
 // collision. R2011 rejects it: the SPEC forbids silent first-wins across import
 // lines in one file.
 module "snippet"

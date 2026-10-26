@@ -1,4 +1,4 @@
-# 0053 — Mutable by default; only constants are frozen
+# 0053: Mutable by default; only constants are frozen
 
 ## Status
 
@@ -53,7 +53,7 @@ is a copy of it.**
 - **Frozen values.** The value of a module constant (`NAME :: value`), deeply; and a
   string's bytes (`s.bytes()`), which alias the interned string.
 - **Module variables.** `NAME := value`, or `NAME: T = value` with a type: a
-  writable global rooted for the collector — the storage a marked module constant
+  writable global rooted for the collector: the storage a marked module constant
   (`NAME: T[]!: value`) has today.
 - **Two static errors, at the site of the fault:**
   - writing through a path rooted at a frozen value (`LIMITS[0] = 5`,

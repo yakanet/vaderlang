@@ -1,4 +1,4 @@
-/// Indexed read-modify-write hot loop bounded by `a.len()` — the counterpart to
+/// Indexed read-modify-write hot loop bounded by `a.len()`: the counterpart to
 /// `arr_rw` (which bounds on a separate `n`). Same computation and checksum as
 /// `arr_rw`.
 

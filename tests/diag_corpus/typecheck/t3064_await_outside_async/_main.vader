@@ -7,7 +7,7 @@ Ready implements Async<i32> {
 
 // Async-ness is inferred from `await`, so `await` in a plain fn is fine (it just
 // makes the fn async). The one case that stays illegal is `await` inside a
-// nested lambda — a lambda can't be async in v1 — which still trips T3064.
+// nested lambda (a lambda can't be async in v1) which still trips T3064.
 // `probe` itself does NOT await (the await is in the lambda), so it stays sync.
 export probe :: fn() -> i32 {
     step :: fn() -> i32 {

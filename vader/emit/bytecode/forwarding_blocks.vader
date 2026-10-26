@@ -10,14 +10,14 @@ module "vader/emit/bytecode"
 import "std/collections"
 import "vader/midir"
 
-/// `fn_` with every edge into a forwarding block — no instructions, a lone
-/// `branch` — sent straight on to where that block leads.
+/// `fn_` with every edge into a forwarding block (no instructions, a lone
+/// `branch`) sent straight on to where that block leads.
 ///
 /// The builder gives each arm of an `if` its block before it knows the arm is a
 /// lone `break` or `continue`. Left in place, a `break`'s block is a second exit
 /// beside the loop's own. One that several edges enter is a real merge and
-/// stays — the `break` after an inner loop whose `&&` condition gives it three
-/// exits: sent on, each of those edges would leave both loops by a `goto` —
+/// stays, the `break` after an inner loop whose `&&` condition gives it three
+/// exits: sent on, each of those edges would leave both loops by a `goto`,
 /// unless it leads where the innermost loop around all those edges goes on or
 /// leaves to, as the `continue` or `break` of `if a || b { break }` does. A cycle
 /// of forwarding blocks is an empty infinite loop, and keeps its edges.
@@ -68,7 +68,7 @@ skip_forwarding_blocks :: fn(fn_: CFGFunction) -> CFGFunction {
 }
 
 // True when `target` is where the innermost loop around every block of `sources`
-// goes on — its header, as a `continue` does — or what that loop's own test
+// goes on (its header, as a `continue` does) or what that loop's own test
 // leaves for, as a `break` does.
 goes_on_or_out :: fn(
     fn_: CFGFunction,

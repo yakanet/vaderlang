@@ -8,7 +8,7 @@
 // naming the function it was emitting rather than the pass that broke it.
 //
 // This module checks the same invariants at a pass boundary and reports
-// every violation in one run. Pure read over the CFG — no mutation, no IO —
+// every violation in one run. Pure read over the CFG (no mutation, no IO)
 // wired behind `--verify`, so a normal build does not pay for it.
 //
 // Symbol resolution (`I7002`) mirrors `emit/bytecode/emit.vader` exactly, and the two
@@ -16,7 +16,7 @@
 //   - `InstrCall` resolves through fn-mangle, fn-symbol, import-symbol, then
 //     import-mangle (`resolve_direct_call`).
 //   - `InstrFnRef` / `InstrFnAddr` / `InstrMakeClosure` resolve through
-//     fn-symbol ONLY — a fn taken as a
+//     fn-symbol ONLY: a fn taken as a
 //     value has no import path, so an extern-only match is still a break.
 // Widening either chain here turns a real break into a pass.
 
@@ -109,7 +109,7 @@ verify_cfg_function :: fn(
 ) -> void {
     where :: "after `${after}`, in `${fn_.mangled}`"
 
-    // I7008 — the entry is block 0 by convention (`cfg.vader:27`), and the
+    // I7008: the entry is block 0 by convention (`cfg.vader:27`), and the
     // structurer's dominator walk starts there unconditionally.
     if fn_.entry != 0 {
         diags.push(internal_error(.EntryBlockNotZero, fn_span(fn_),
@@ -320,13 +320,13 @@ stored_name :: fn(t: Type) -> string {
     return held.name
 }
 
-// I7010 — every `return` hands back what the signature will declare.
+// I7010: every `return` hands back what the signature will declare.
 //
 // The invariant the value ABI introduces, and the one worth checking here: the
 // arity has to survive from `scalarise_value_returns` to three backends, and a
 // `CFGFunction` rebuild that drops `scalarised_results` leaves the body handing
 // back two values under a signature that promises one. Nothing downstream
-// compares the two — the C emitter writes the signature from the field and the
+// compares the two: the C emitter writes the signature from the field and the
 // body from the terminator, and the mismatch surfaces as a stack-depth ICE in a
 // different function, or not at all.
 verify_return_arity :: fn(
@@ -357,7 +357,7 @@ verify_return_arity :: fn(
         }
         // A `void` fn whose last statement is a `@no_return` call returns that
         // call's result, typed `never`. Nothing is produced and no backend reads
-        // it — the terminator just names the divergent value.
+        // it: the terminator just names the divergent value.
         if returns_only_never(fn_, t.values) {
             continue
         }
@@ -368,7 +368,7 @@ verify_return_arity :: fn(
 
 // ---- structural checks ----------------------------------------------------
 
-// I7004 — every BlockId a terminator names must address a real block, and a
+// I7004: every BlockId a terminator names must address a real block, and a
 // block's `id` must equal its index : `predecessors_of` and the emitter both
 // index `blocks` by id, so a mismatch silently reads the wrong block.
 // Returns false when any id is broken, which disables the reachability walk.
@@ -392,12 +392,12 @@ verify_block_ids :: fn(fn_: CFGFunction, where: string, diags: Diagnostic[]) -> 
     return ok
 }
 
-// I7005 / I7006 — a LocalId indexes `locals`, and a local that is read must be
+// I7005 / I7006: a LocalId indexes `locals`, and a local that is read must be
 // written somewhere.
 //
 // The write check is deliberately weak : it asks for ONE write anywhere in the
 // fn, not for a write that dominates the read. Def-before-use needs the
-// dominator tree, and `compute_dominators` is only sound on a reducible CFG —
+// dominator tree, and `compute_dominators` is only sound on a reducible CFG:
 // itself one of the things a broken pass can violate. A cheap check that never
 // false-positives beats a precise one that fires on its own broken input.
 verify_locals :: fn(
@@ -454,7 +454,7 @@ verify_locals :: fn(
     }
 }
 
-// I7002 — the emitter's four unresolved-callee panics, as one check. Reachable blocks only:
+// I7002: the emitter's four unresolved-callee panics, as one check. Reachable blocks only:
 // `emit_cfg_function_body` walks from the entry, so a
 // reference in a dead block never resolves and never breaks the emit. The
 // file header explains why the call chain and the fn-as-value chain differ.
@@ -473,7 +473,7 @@ verify_fn_references :: fn(
                 }
                 // One arm for the three: they carry `span` / `dst` /
                 // `fn_symbol` at the same positions, so the shared fields read
-                // straight off the union — and the fn-as-value rule keeps one
+                // straight off the union, and the fn-as-value rule keeps one
                 // site rather than three copies to hold in step.
                 is InstrFnRef | InstrFnAddr | InstrMakeClosure -> {
                     if function_called(resolution.slots.callees, ins.fn_symbol) != null { continue }
@@ -515,7 +515,7 @@ fn_value_kind :: fn(ins: InstrFnRef | InstrFnAddr | InstrMakeClosure) = match in
     is InstrMakeClosure -> "closure over"
 }
 
-// Whether every value the terminator names is `never` — the result of a
+// Whether every value the terminator names is `never`: the result of a
 // divergent call, which produces nothing to hand back.
 returns_only_never :: fn(fn_: CFGFunction, values: LocalId[]) -> bool {
     for v in values {

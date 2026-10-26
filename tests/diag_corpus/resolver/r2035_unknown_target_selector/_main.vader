@@ -5,7 +5,7 @@
 //
 // Both bodies belong to a group, so this pins R2035 ALONE. Written without one,
 // the same file also trips R2036 for each orphan body and R2006 at every call
-// site — which is what it used to do, back when an all-unknown selector list was
+// site, which is what it used to do, back when an all-unknown selector list was
 // indistinguishable from the bare form.
 
 module "main"

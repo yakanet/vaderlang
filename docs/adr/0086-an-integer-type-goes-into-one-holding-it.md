@@ -1,4 +1,4 @@
-# 0086 — An integer type goes into one holding it
+# 0086: An integer type goes into one holding it
 
 ## Status
 

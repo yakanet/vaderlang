@@ -1,7 +1,7 @@
 // A literal pattern matches when `scrutinee == literal` holds, with the literal
 // typed against the scrutinee : `5` on an `i64 | string` is an `i64`, and a float
 // variant compares by IEEE, so `0.0` matches `-0.0`. The same holds for a literal
-// constraining a union field — a generic one included — for a distinct type with
+// constraining a union field (a generic one included) for a distinct type with
 // its own `Equals`, for a module const read where a union is expected, and for
 // `==` on such a const at comptime. A literal meets what the arms above leave of
 // the scrutinee : after `is Point`, `"a"` compares with `string | null` only, so

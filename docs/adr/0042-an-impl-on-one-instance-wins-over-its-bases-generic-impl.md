@@ -1,4 +1,4 @@
-# 0042 — An impl on one instance wins over its base's generic impl
+# 0042: An impl on one instance wins over its base's generic impl
 
 ## Status
 
@@ -29,7 +29,7 @@ the same way twice:
 are R2030.** Bounds do not separate them: a type implementing both can always be
 declared. This is Rust's rule.
 
-**An impl on one instance — `Wrapper<MonType>`, `MonType[]` — wins for that
+**An impl on one instance (`Wrapper<MonType>`, `MonType[]`) wins for that
 instance.** It is not a second generic impl. Every reader agrees:
 
 - the typechecker's side tables key an instance impl under its own type and a

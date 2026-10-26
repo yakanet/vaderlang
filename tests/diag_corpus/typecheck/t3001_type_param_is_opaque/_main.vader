@@ -1,4 +1,4 @@
-// A type parameter is opaque inside its generic body — T3001 both ways, T3020 on
+// A type parameter is opaque inside its generic body: T3001 both ways, T3020 on
 // the return. The body must hold for every instance : an `i64` is no value of a
 // `T = string` one, and a `T` may not be one.
 module "snippet"

@@ -2,7 +2,7 @@
 // several bodies, one chosen per compilation target).
 //
 // The fixtures ran skipped while the mechanism was being built, guarded by a test
-// that FAILED the day `dump --stage=targets` started working — which is how they
+// that FAILED the day `dump --stage=targets` started working, which is how they
 // came to be un-skipped rather than forgotten. The tree has already paid for
 // tests that silently did not run (152 gated formatter tests that REGISTERED and
 // PASSED while asserting nothing, TODO §"tests/ is a catch-all"), and a skip
@@ -10,11 +10,11 @@
 //
 // WHY A CORPUS OF ITS OWN, and not one of the five test corpora:
 //
-//   - not `diag_corpus/` — that harness provokes a diagnostic by dumping ONE
+//   - not `diag_corpus/`: that harness provokes a diagnostic by dumping ONE
 //     file (`vader dump --stage=lowered-ast <file>`). `@target` is multi-file by
 //     nature: a declaration in one file, a body in another. This is the exact
 //     argument that puts the `H6xxx` family in `fixtures/hook/`.
-//   - not `snippets/` — a snippet carries an `emit-c.snapshot.c` and a `vm.snapshot` per
+//   - not `snippets/`: a snippet carries an `emit-c.snapshot.c` and a `vm.snapshot` per
 //     pipeline stage, and those would become target-dependent. The plan pins the
 //     invariant "no snippet in the corpus reaches a module that selects"; putting
 //     these here would break it on the first fixture.
@@ -22,7 +22,7 @@
 // CORPUS-DRIVEN, in the shape of `hook_driver.test.ts`: what a fixture asserts
 // lives BESIDE it, not in this file.
 //
-//   <fixture>/*.vader                  the project — declaration and bodies
+//   <fixture>/*.vader                  the project: declaration and bodies
 //   <fixture>/<os>-<arch>.snapshot     what that target produces
 //   <fixture>/all.snapshot             same output on every target (diagnostics
 //                                      that do not depend on the selection)
@@ -33,14 +33,14 @@
 // dedicated dump stage rather than reading the emitted C:
 //
 //   # Diagnostics     what the compiler reported
-//   # Selected body   `<module>$<fn> <- <file>:<line>` — one line per group
+//   # Selected body   `<module>$<fn> <- <file>:<line>`: one line per group
 //   # Run             stdout, only where the target is executable HERE
 //
 // ORACLES. `# Selected body` comes from `vader dump --stage=targets --target=X`,
 // which needs no toolchain and therefore answers for EVERY target from ANY
-// machine — that is what makes this corpus runnable in CI as it stands. `# Run`
+// machine: that is what makes this corpus runnable in CI as it stands. `# Run`
 // cannot: it needs the real platform. Linux comes from a throwaway container
-// (`docker run --rm -v "$PWD:/w" -w /w debian:bookworm-slim` — bookworm and not
+// (`docker run --rm -v "$PWD:/w" -w /w debian:bookworm-slim`: bookworm and not
 // alpine, because the CI is glibc and an oracle that diverges from CI on the libc
 // is not an oracle), Windows from `tools/windows-vm` (`vwin build`, `vwin test`).
 // Neither is wired here yet; `# Run` is asserted only for the host target.
@@ -51,7 +51,7 @@ import { snapshotDiff } from "./diff.ts";
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
-// Registers a `beforeAll`, so it belongs at module scope — calling it inside a
+// Registers a `beforeAll`, so it belongs at module scope: calling it inside a
 // test is a hard error in Bun.
 ensureCliBuilt();
 
@@ -118,7 +118,7 @@ test("corpus is well-formed", () => {
         }
       }
     }
-    // `all.snapshot` is "same on every target" — mixing it with per-target ones
+    // `all.snapshot` is "same on every target": mixing it with per-target ones
     // would leave which wins undefined.
     if (fx.snapshots.has("all") && fx.snapshots.size > 1) {
       problems.push(`${fx.name}: has both all.snapshot and per-target snapshots`);
@@ -128,7 +128,7 @@ test("corpus is well-formed", () => {
   expect(problems).toEqual([]);
 });
 
-// The oracle answers for a platform it is not running on — that is the property
+// The oracle answers for a platform it is not running on: that is the property
 // the whole corpus depends on, so it is asserted directly rather than assumed by
 // every fixture below.
 test("the oracle answers for a foreign target", async () => {
@@ -148,7 +148,7 @@ for (const fx of FIXTURES) {
   for (const [target, snapshotPath] of fx.snapshots) {
     const label = target === "all" ? "every target" : target;
 
-    test(`${fx.name} — ${label}`, async () => {
+    test(`${fx.name}: ${label}`, async () => {
       const expected = readFileSync(snapshotPath, "utf8");
       // Options BEFORE the positional: the CLI has one boundary rule and a flag
       // after the file is rejected, not ignored.
@@ -161,8 +161,8 @@ for (const fx of FIXTURES) {
       expect(exit).toBe(0);
 
       // Diagnostics come from a SECOND run that actually type-checks. The
-      // `targets` stage stops at load — it answers "which body", not "is it
-      // well-typed" — so asking it for diagnostics would report `(none)` for a
+      // `targets` stage stops at load: it answers "which body", not "is it
+      // well-typed", so asking it for diagnostics would report `(none)` for a
       // body with a deliberate type error, which is precisely what
       // `discarded_body_not_typed` exists to catch.
       const checkArgs = ["build", "--emit=c", "--out=-"];

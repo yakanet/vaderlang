@@ -2,7 +2,7 @@
 //
 // The inverse of match→if : an `if / else if / … / else` chain whose every
 // condition discriminates the SAME identifier scrutinee collapses to a `match`.
-// Requires ≥ 2 conditions (so ≥ 3 arms — the inverse threshold of match→if's
+// Requires ≥ 2 conditions (so ≥ 3 arms: the inverse threshold of match→if's
 // ≤ 2, which keeps the two actions from offering a round-trip on the same node)
 // and a final `else` (the `_` arm) so the match is exhaustive.
 //
@@ -142,7 +142,7 @@ cond_to_pattern :: fn(c: AST.BinaryExpr) -> AST.Pattern {
 
 import "std/testing"
 
-// Find the first source-backed `IfExpr` in a parsed program — test helper so the
+// Find the first source-backed `IfExpr` in a parsed program: test helper so the
 // asserts run against real (source-backed) AST nodes. Shares the descent with
 // the other actions via `registry::t_find_expr`.
 tif_is_if :: fn(e: AST.Expr) -> bool = e is AST.IfExpr
@@ -153,7 +153,7 @@ tif_find_if :: fn(decls: AST.Decl[]) -> AST.IfExpr | null {
     return null
 }
 
-// A two-condition chain with an `else` — the shape if→match converts.
+// A two-condition chain with an `else`: the shape if→match converts.
 CONVERTIBLE_IF_CHAIN :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i32 {\n        v\n    } else if v == \"\" {\n        1\n    } else {\n        2\n    }\n}\n"
 
 @test
@@ -170,7 +170,7 @@ test_if_to_match_converts :: fn() -> void {
     out :: itm_apply(ifx, ctx)
     assert("match v {" in out, "renders a match on the scrutinee")
     assert("is i32" in out, "renders the is arm")
-    // `_ ` (wildcard arm head) — the `->` may be padded to align with the
+    // `_ ` (wildcard arm head): the `->` may be padded to align with the
     // longer arms, so match on the head rather than the exact `_ ->`.
     assert("_ " in out, "renders the wildcard arm from the else")
 }

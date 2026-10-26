@@ -67,7 +67,7 @@ Direction implements Turnable {
 
 Command :: enum { Advance, Left, Right }
 
-// Lawn upper-right corner — the lower-left corner is fixed at (0, 0).
+// Lawn upper-right corner: the lower-left corner is fixed at (0, 0).
 Lawn :: struct {
     width:  i32
     height: i32

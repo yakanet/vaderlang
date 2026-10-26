@@ -2,13 +2,13 @@
 // from each struct's field TYPES.
 //
 // Selection is the driver's, not the language's: every struct of the modules
-// listed in `DERIVED_MODULES` gets a serialiser. No decorator is involved — the
+// listed in `DERIVED_MODULES` gets a serialiser. No decorator is involved: the
 // compiler's decorator whitelist is closed (R2010), and opening it is a language
 // decision that this client is meant to inform rather than presuppose.
 //
 // The code is emitted INTO the struct's own module, which is what lets it name
 // the type. An imported module could not: it would have to import `app` back,
-// and `app` imports it — a cycle.
+// and `app` imports it: a cycle.
 
 module "build"
 
@@ -97,7 +97,7 @@ render_struct :: fn(
 }
 
 // The statements that put one field into `entries`, or "" when the field's type
-// has no JSON mapping — reported against the field, so the user sees which one.
+// has no JSON mapping: reported against the field, so the user sees which one.
 render_field :: fn(ctx: BuildContext, f: AST.StructField, siblings: string[]) -> string {
     access :: "v.${f.name}"
     scalar :: scalar_value(f.ty, access, siblings)
@@ -118,7 +118,7 @@ render_field :: fn(ctx: BuildContext, f: AST.StructField, siblings: string[]) ->
             return body.to_string()
         }
     }
-    ctx.report(f.span, "field `${f.name}` has no JSON mapping — skipped by the derived serialiser")
+    ctx.report(f.span, "field `${f.name}` has no JSON mapping: skipped by the derived serialiser")
     return ""
 }
 
@@ -137,7 +137,7 @@ scalar_value :: fn(ty: AST.TypeExpr, access: string, siblings: string[]) -> stri
             return "J.JsonBool { .value = ${access} }"
         }
         // A sibling struct: recurse through its own generated serialiser. Only a
-        // struct the driver actually saw — anything else would not compile, and a
+        // struct the driver actually saw: anything else would not compile, and a
         // report is better than emitting code that fails against the user.
         if ty.name in siblings {
             return "to_json_value(${access})"

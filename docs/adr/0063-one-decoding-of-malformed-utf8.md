@@ -1,4 +1,4 @@
-# 0063 — One decoding of malformed UTF-8
+# 0063: One decoding of malformed UTF-8
 
 ## Status
 

@@ -29,10 +29,10 @@ export type_intern_key :: fn(t: Type) -> string = match t {
     // `ref`.
     is StructType -> "Struct#${symbol_key(t.symbol)}<${argument_keys(t.args)}>"
     is TraitType  -> "Trait#${symbol_key(t.symbol)}<${argument_keys(t.args)}>"
-    // Enums lower to their `repr` primitive — share the bare primitive's slot.
+    // Enums lower to their `repr` primitive: share the bare primitive's slot.
     is EnumType      -> t.repr.name
     // Distinct (newtype) shares its backing primitive's slot, exactly like an
-    // enum shares its `repr` — no separate type-table entry, so it rides the
+    // enum shares its `repr`: no separate type-table entry, so it rides the
     // backing's zero-cost representation end to end.
     is DistinctType   -> type_intern_key(t.backing)
     // A range rides its representation the same way.
@@ -114,7 +114,7 @@ TUPLE_NAME_MAX: i64 : 40
 
 /// FNV-1a over the shape, as 16 hex digits. Only reached for a shape too long
 /// to spell; a collision would merge two distinct structs, so `intern_type`'s
-/// key map stays the authority on identity — this only names what it interned.
+/// key map stays the authority on identity: this only names what it interned.
 fnv1a_hex :: fn(s: string) -> string {
     h: u64 = 0xcbf29ce484222325
     for k in 0..<s.byte_len() {
@@ -153,7 +153,7 @@ c_safe_key :: fn(key: string) -> string {
 // The identity of a declaration that stays the same from one build to the next,
 // unlike a symbol id : its module and its name, else a synthetic `id` fallback.
 // The MODULE, not the file. A module resolves to exactly one folder, which the
-// compiler guarantees, so `module + name` identifies a declaration everywhere —
+// compiler guarantees, so `module + name` identifies a declaration everywhere:
 // a checkout, a `dist/` bundle where `lib/` sits beside the binary, a staged
 // temp directory. A source path would leak an absolute path into C struct names,
 // which must not differ between two build directories.
@@ -193,12 +193,12 @@ argument_key :: fn(t: Type) -> string {
 
 /// Stack-class of a `Type`. Primitive types map by name. The two reference
 /// shapes carry an HONEST distinction:
-///   - `.Ref` — a CONCRETE heap object of a statically-known shape (struct,
+///   - `.Ref`: a CONCRETE heap object of a statically-known shape (struct,
 ///     array, fn, tuple). Carried as a raw `void*` (tag recoverable
 ///     from the object header).
-///   - `.Any` — an ERASED / dynamic value (trait object, union, generic
+///   - `.Any`: an ERASED / dynamic value (trait object, union, generic
 ///     type-param, meta, self, `any`, unresolved). Carried as a tagged
-///     `vader_box_t` — it may hold a boxed primitive or a variable variant.
+///     `vader_box_t`: it may hold a boxed primitive or a variable variant.
 /// c_emit mirrors the split (`val_type_of_bc_type`): `.Ref` is a C `void*`,
 /// `.Any` a `vader_box_t`.
 ///
@@ -210,7 +210,7 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     // Enums ride the operand stack as their backing integer repr, not a boxed
     // ref.
     is EnumType -> val_type_of_primitive_name(t.repr.name)
-    // Distinct (newtype) rides its backing primitive's stack repr — zero-cost,
+    // Distinct (newtype) rides its backing primitive's stack repr: zero-cost,
     // exactly like an enum rides its `repr`. This is what makes `x :: i64`
     // a register scalar, not a boxed `Ref`.
     is DistinctType -> val_type_of_type(t.backing)
@@ -243,7 +243,7 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
 /// @return      the matching `ValType` ; `Any` for unrecognised names.
 export val_type_of_primitive_name :: fn(name: string) -> ValType {
     // The FFI pointer's SOURCE spelling is `CPointer` while its `.virt`
-    // spelling is `pointer` — two namespaces, mapped here rather than by
+    // spelling is `pointer`: two namespaces, mapped here rather than by
     // teaching `parse_val_type` a name the text format never writes.
     if name == "CPointer" {
         return .Pointer
@@ -293,7 +293,7 @@ import "std/testing"
 FNV_OFFSET_64: u64: 0xCBF2_9CE4_8422_2325
 FNV_PRIME_64:  u64: 0x100_0000_01B3
 
-// A single FNV-1a step over 64-bit WORDS barely avalanches — the multiply only
+// A single FNV-1a step over 64-bit WORDS barely avalanches: the multiply only
 // carries bits upward, so structurally similar inputs (sequential symbol ids,
 // neighbouring name hashes) collide. Finalise each step instead.
 mix64 :: fn(h: u64, v: u64) -> u64 {
@@ -303,13 +303,13 @@ mix64 :: fn(h: u64, v: u64) -> u64 {
     return x ^ (x >> 32)
 }
 
-/// `type_intern_key` as a 64-bit structural hash — same collapsing rules, no
+/// `type_intern_key` as a 64-bit structural hash: same collapsing rules, no
 /// string. The key exists to index a table of ~1 600 slots and is rebuilt half a
 /// million times per self-build; every level of the recursion allocates and
 /// interns, so the string IS the cost.
 export type_intern_hash :: fn(t: Type) -> u64 = match t {
     // The BARE cases carry no prefix in `type_intern_key`, so two of them with
-    // the same text collapse to one slot there and MUST collapse here too — no
+    // the same text collapse to one slot there and MUST collapse here too: no
     // per-variant tag, or the table forks where the string merged.
     is PrimitiveType  -> bare_hash(t.name)
     is EnumType       -> bare_hash(t.repr.name)
@@ -363,7 +363,7 @@ argument_hash :: fn(t: Type) -> u64 {
     return type_intern_hash(t)
 }
 
-/// Do `a` and `b` land on the same type-table slot — i.e. would
+/// Do `a` and `b` land on the same type-table slot, i.e. would
 /// `type_intern_key` produce the same string for both?
 ///
 /// Exists so a `type_intern_hash` hit can be VERIFIED without rebuilding the

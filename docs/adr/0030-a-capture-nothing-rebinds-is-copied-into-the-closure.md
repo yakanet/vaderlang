@@ -1,4 +1,4 @@
-# 0030 — A capture nothing rebinds is copied into the closure
+# 0030: A capture nothing rebinds is copied into the closure
 
 ## Status
 
@@ -29,7 +29,7 @@ Options weighed:
 
 ## Decision
 
-A. `cell_symbols` — the set that decides heap promotion — receives a capture
+A. `cell_symbols` (the set that decides heap promotion) receives a capture
 only when an assignment rebinds it (`note_cell_capture`). Any other capture is
 copied into the env when the closure is made:
 
@@ -59,5 +59,5 @@ Measured 2026-10-04 against `16d1c9682`, alternating:
 - Snapshots: 72 files over the lower, bytecode and emit-C stages, 532 lines
   fewer; no `vm.snapshot` moved.
 
-A capture that some assignment rebinds still lives in a cell — a counter a
+A capture that some assignment rebinds still lives in a cell: a counter a
 closure increments, an accumulator the enclosing fn keeps assigning.

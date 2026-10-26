@@ -4,8 +4,8 @@ Foo :: struct { a: i32 }
 Bar :: struct { b: i32 }
 Box :: struct<T> { value: T }
 
-// `Box<Foo>` and `Box<Bar>` share one body — a reference type argument is
-// erased — so their values cannot be told apart by an `is` test.
+// `Box<Foo>` and `Box<Bar>` share one body: a reference type argument is
+// erased, so their values cannot be told apart by an `is` test.
 is_foo :: fn(x: Box<Foo> | Box<Bar>) -> bool = x is Box<Foo>
 
 main :: fn() -> i32 {

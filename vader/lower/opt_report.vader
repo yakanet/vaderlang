@@ -11,7 +11,7 @@
 // its attempts and the general path takes over. That answers the question the
 // refusals cannot: how often does a real program miss this, and where.
 //
-// Inert unless `$VADER_OPT_REPORT` is set — the env is read once per lowering
+// Inert unless `$VADER_OPT_REPORT` is set: the env is read once per lowering
 // run and cached on `LowerProjectCtx`, so a disabled report costs one bool test
 // at each fall site.
 //
@@ -34,7 +34,7 @@ import "toolchain/span"
 
 /// One point where an optimisation pass handed over to the general path.
 OptMiss :: struct {
-    /// The pass that gave up, in the words a reader would use — "for-in fusion",
+    /// The pass that gave up, in the words a reader would use: "for-in fusion",
     /// not `try_lower_chain_fusion`.
     pass: string
     /// The source construct that missed it.
@@ -61,7 +61,7 @@ record_miss :: fn(ctx: LowerProjectCtx, pass: string, span: Span, note: string) 
 }
 
 /// Render the collected misses, grouped by pass and ordered by how often each
-/// fired — the frequent ones are the ones worth acting on.
+/// fired: the frequent ones are the ones worth acting on.
 ///
 /// Returns "" when the report is off or nothing missed, so the caller can print
 /// unconditionally.

@@ -1,6 +1,6 @@
 // TypeScript peer of bench/quicksort.vader. Same median-of-three Lomuto
 // quicksort over an Int32Array (mirrors i32[]). The rolling-hash checksum
-// stays below 2^53, so plain `number` is exact — no BigInt.
+// stays below 2^53, so plain `number` is exact: no BigInt.
 
 const N = 1_000_000;
 const STRIDE = 999983;

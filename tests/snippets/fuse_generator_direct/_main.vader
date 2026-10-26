@@ -19,7 +19,7 @@ evens :: fn(xs: i32[]) -> Iterator<i32> {
     for x in xs { if x % 2 == 0 { yield x } }
 }
 
-// flatten shape (nested loops, resume mid-inner-loop when boxed — here fully inlined).
+// flatten shape (nested loops, resume mid-inner-loop when boxed: here fully inlined).
 flatten :: fn(xss: i32[][]) -> Iterator<i32> {
     for row in xss {
         for x in row { yield x }

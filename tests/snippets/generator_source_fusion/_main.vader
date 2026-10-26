@@ -1,5 +1,5 @@
 // Any generator that is not a combinator heads a fused chain: its whole body is
-// inlined, each `yield` feeding the stage above — a user generator as much as
+// inlined, each `yield` feeding the stage above: a user generator as much as
 // `zip` or `window`. Each case prints the chain consumed where it is written,
 // then the same chain bound to a local first (the lazy form).
 

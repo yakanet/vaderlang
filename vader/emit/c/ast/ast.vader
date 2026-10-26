@@ -34,7 +34,7 @@ export CStatement :: CDirective
 export CAssign :: struct {
     target: CExpression
     value: CExpression
-    /// `target operator= value` — a compound assignment ; null for plain `=`.
+    /// `target operator= value`: a compound assignment ; null for plain `=`.
     operator: CBinaryOperator | null = null
 }
 
@@ -49,7 +49,7 @@ export CMacroStatement :: struct {
     call: CCall
 }
 
-/// `type d1, d2 = v, d3[n] = { … };` — one type, several declarators.
+/// `type d1, d2 = v, d3[n] = { … };`: one type, several declarators.
 export CDeclaration :: struct {
     type: string
     declarators: CDeclarator[]
@@ -85,7 +85,7 @@ export CDirective :: struct {
 
 /// A statement that leaves the function : out-param stores, then `return`.
 export CReturn :: struct {
-    /// Assignments run before leaving — a multi-value return's `*outN = v`.
+    /// Assignments run before leaving: a multi-value return's `*outN = v`.
     stores: CAssign[] = []
     /// The returned expression ; null for a void return.
     value: CExpression | null = null
@@ -121,7 +121,7 @@ export CGoto :: struct {
 }
 
 /// `switch (subject) { case value: … default: … }`. A clause is printed on its
-/// `case` line ; one neither last nor leaving the switch gets a `break;` —
+/// `case` line ; one neither last nor leaving the switch gets a `break;`:
 /// clauses never fall through.
 export CSwitch :: struct {
     subject: CExpression
@@ -138,7 +138,7 @@ export CCase :: struct {
 /// A statement a switch clause may hold : one that fits on the `case` line.
 export CCaseStatement :: CExpressionStatement | CReturn | CGoto
 
-/// A braced block — `{`, or `label: {` for a loop's continue target — closed
+/// A braced block (`{`, or `label: {` for a loop's continue target) closed
 /// by `}`.
 export CScope :: struct {
     /// The label before the opening brace ; `""` for none.
@@ -160,7 +160,7 @@ export CWhile :: struct {
     end_label: string = ""
 }
 
-/// `for (;;) { … }` — a loop left only by `break`, `return` or `goto`.
+/// `for (;;) { … }`: a loop left only by `break`, `return` or `goto`.
 export CFor :: struct {
     /// The label before `for` ; `""` for none.
     label: string = ""
@@ -258,7 +258,7 @@ export CStringLiterals :: struct {
     literals: string[]
 }
 
-/// `{ elements… }` — an aggregate initializer.
+/// `{ elements… }`: an aggregate initializer.
 export CInitializerList :: struct {
     elements: CExpression[]
 }
@@ -270,7 +270,7 @@ export CCast :: struct {
     value: CExpression
 }
 
-/// A C binary operator's spelling and how tightly C binds it — higher binds
+/// A C binary operator's spelling and how tightly C binds it: higher binds
 /// tighter.
 export COperatorInfo :: struct {
     spelling: string
@@ -300,7 +300,7 @@ export CBinaryOperator :: enum(COperatorInfo) {
     LogicalOr      { .spelling = "||", .precedence = 1 },
 }
 
-/// `(__typeof__(model)) value` — `value` converted to the type of another
+/// `(__typeof__(model)) value`: `value` converted to the type of another
 /// expression, for a member whose C type only the header knows. `model` is
 /// never evaluated, so it reads no local and no temporary.
 export CCastToTypeOf :: struct {
@@ -333,7 +333,7 @@ export CParenthesized :: struct {
     inner: CExpression
 }
 
-/// `base.member`, or `base->member` through a pointer — `member` may be a path
+/// `base.member`, or `base->member` through a pointer: `member` may be a path
 /// (`payload.i`).
 export CMember :: struct {
     base: CExpression
@@ -394,7 +394,7 @@ export declaration :: fn(type: string, name: string, value: CExpression | null =
     .declarators = [CDeclarator { .name = name, .value = value }],
 }
 
-/// `type name[n] = { elements… };` — `n` is the element count.
+/// `type name[n] = { elements… };`: `n` is the element count.
 ///
 /// @param type      the element type.
 /// @param name      the declared array.
@@ -543,7 +543,7 @@ export CTopLevel :: CInclude
            | CFunction
            | CStaticAssert
 
-/// `#include "path"`, or `#include <path>` for a `system` header — searched on
+/// `#include "path"`, or `#include <path>` for a `system` header: searched on
 /// the system include path only.
 export CInclude :: struct {
     path: string
@@ -597,7 +597,7 @@ export CPrototype :: struct {
     signature: CSignature
 }
 
-/// `storage inline result name(parameters)` — the head a prototype and its
+/// `storage inline result name(parameters)`: the head a prototype and its
 /// definition share.
 export CSignature :: struct {
     /// `.Declaration` is a prototype for a function defined in another unit.
@@ -623,7 +623,7 @@ export CFunctionPointerTypedef :: struct {
     parameters: CParameter[]
 }
 
-/// `_Static_assert(condition, message);` — a check `cc` spends at build time.
+/// `_Static_assert(condition, message);`: a check `cc` spends at build time.
 export CStaticAssert :: struct {
     condition: CExpression
     /// The message, a string literal.
@@ -632,7 +632,7 @@ export CStaticAssert :: struct {
 
 // ---- queries ------------------------------------------------------------
 
-/// Whether `block` ends on a `return`, `#line` directives aside — its end is
+/// Whether `block` ends on a `return`, `#line` directives aside: its end is
 /// then unreachable.
 ///
 /// @param block  the statements to inspect.

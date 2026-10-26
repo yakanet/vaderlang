@@ -9,7 +9,7 @@ import "std/string"
 import "std/char"
 import "std/string_builder"
 
-/// True for an ASCII hex digit — `0`..`9`, `a`..`f`, `A`..`F`.
+/// True for an ASCII hex digit: `0`..`9`, `a`..`f`, `A`..`F`.
 /// @param c  codepoint to classify.
 /// @return   `true` iff `c` is a valid hex digit.
 export is_hex_digit :: fn(c: char) =
@@ -37,7 +37,7 @@ export hex_digit_value :: fn(c: char) -> i32 = match c {
 }
 
 /// Parse `s` as an `i64` in the given base. `s` must be pure digits in
-/// that base — no `0x`/`0b`/`0o` prefix, no `_` separators, no leading
+/// that base: no `0x`/`0b`/`0o` prefix, no `_` separators, no leading
 /// sign. Empty input or any non-digit character yields an error.
 /// @param s     the digits-only input.
 /// @param base  one of 2 / 8 / 10 / 16.
@@ -60,9 +60,9 @@ export parse_int_in_base :: fn(s: string, base: i32) -> i64 | ParseError {
 }
 
 /// Parse an unsigned integer in the given base. Same input shape as
-/// `parse_int_in_base` (digits only — caller strips prefix / underscores).
+/// `parse_int_in_base` (digits only: caller strips prefix / underscores).
 /// Carries the full u64 range so literals up to `u64.MAX` round-trip
-/// without losing top bits. No sign accepted — the lexer wraps negative
+/// without losing top bits. No sign accepted: the lexer wraps negative
 /// literals in a `UnaryExpr.neg` over the unsigned magnitude.
 /// @param s     the digits-only input.
 /// @param base  one of 2 / 8 / 10 / 16.
@@ -101,7 +101,7 @@ export hex_digit :: fn(n: u64) -> char {
     return char('a' + u32(n) - 10)
 }
 
-/// Hexadecimal stringification of a `u64` — lowercase, no `0x` prefix, no
+/// Hexadecimal stringification of a `u64`: lowercase, no `0x` prefix, no
 /// leading zeros (special-cases `0` to `"0"`). Pair with
 /// `std/string.pad_start` for a fixed-width hex column.
 ///
@@ -129,7 +129,7 @@ export to_hex :: fn(self: u64) -> string {
     return sb.to_string()
 }
 
-/// Binary stringification of a `u64` — no `0b` prefix, no leading zeros.
+/// Binary stringification of a `u64`: no `0b` prefix, no leading zeros.
 /// Pair with `std/string.pad_start` for a fixed-width bit column.
 /// @param self  the integer to render.
 /// @return      e.g. `5_u64.to_bin()` → `"101"`.
@@ -159,7 +159,7 @@ export to_bin :: fn(self: u64) -> string {
 // 2^53 : every whole `f64` of smaller magnitude is an exact `i64`.
 EXACT_INTEGER_LIMIT: f64: 9007199254740992.0
 
-/// Format a float in the most compact decimal form — strips a trailing
+/// Format a float in the most compact decimal form: strips a trailing
 /// `.0` from integer-valued floats so `10.0` becomes `"10"`. Otherwise
 /// behaves like the default `Display` impl on `f64`. Matches
 /// `JSON.stringify` semantics ; useful for snapshot-style output and any
@@ -175,7 +175,7 @@ EXACT_INTEGER_LIMIT: f64: 9007199254740992.0
 /// @return      the compact decimal representation.
 export to_compact_str :: fn(self: f64) -> string {
     // A whole number below 2^53 is exactly an `i64`, whose text is the float's
-    // without the `.0` — and printing it as one skips the float formatter. The
+    // without the `.0`, and printing it as one skips the float formatter. The
     // range test runs first : it is false for NaN and ±inf, which `i64` cannot
     // hold. `-0.0` prints `0`, as `JSON.stringify` does.
     if self > -EXACT_INTEGER_LIMIT && self < EXACT_INTEGER_LIMIT && self == f64(i64(self)) {
@@ -189,7 +189,7 @@ export to_compact_str :: fn(self: f64) -> string {
 /// `parse_int_in_base` / `parse_uint_in_base` / `parse_float`.
 ///
 /// @param text    the original literal text (e.g. `"0xFF_FF"` / `"1_000"`).
-/// @param base    the literal's base — 10 leaves the leading bytes
+/// @param base    the literal's base: 10 leaves the leading bytes
 ///                untouched, anything else strips the two-byte `0x` /
 ///                `0b` / `0o` prefix.
 /// @return        the digit-only payload, suitable for the base-aware

@@ -1,4 +1,4 @@
-# 0061 — A string's codepoints are read in Vader
+# 0061: A string's codepoints are read in Vader
 
 ## Status
 

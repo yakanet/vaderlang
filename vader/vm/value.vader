@@ -26,7 +26,7 @@ export VmResult :: Ok | Trap
 export Ok   :: struct { value: i32 }
 export Trap :: struct { message: string }
 
-/// Outcome of a value-returning entry run (`exec_fn_value`) — used by the
+/// Outcome of a value-returning entry run (`exec_fn_value`): used by the
 /// VM-backed comptime fallback, which needs the callee's full return `Value`
 /// (an array / struct / wide int), not the i32 exit code `VmResult` carries.
 /// `Trap` is shared with `VmResult`.
@@ -39,7 +39,7 @@ export zero_value :: fn() -> Value { return I32Val(0) }
 /// Box a `string[]` as an `ArrayVal` of `StringVal`.
 ///
 /// `type_id` must be the module's `string[]` `ArrayType` index (see
-/// `find_string_array_type_id`) — `type_matches` does an exact `type_id`
+/// `find_string_array_type_id`): `type_matches` does an exact `type_id`
 /// equality check on arrays (`type_matches`), so a host-built array
 /// tagged 0 never narrows to `is string[]` in a union (e.g. the
 /// `string[] | Error` return of `read_dir` / `split`). Bound-checks still use
@@ -72,11 +72,11 @@ export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal = ArrayVal {
     .raw = s,
 }
 
-/// Locate the module's `string[]` `ArrayType` index — the type id a
+/// Locate the module's `string[]` `ArrayType` index: the type id a
 /// host-produced string array must carry so `is string[]` narrows.
 /// Returns 0 when no `string` primitive or no `string[]` array entry exists (the caller's
 /// `type_check` then fails loudly rather than masking the miss). Compute
-/// once per run — the scan is linear in the type-table size.
+/// once per run: the scan is linear in the type-table size.
 /// @param types  the running module's type table.
 /// @return       the `string[]` ArrayType index, or 0 when absent.
 export find_string_array_type_id :: fn(types: bc.BcType[]) -> i32 {
@@ -103,7 +103,7 @@ export find_string_array_type_id :: fn(types: bc.BcType[]) -> i32 {
 /// to the legacy tag-only `ErrorVal`.
 export find_io_error_type_id :: fn(types: bc.BcType[]) = bc.struct_type_index(types, bc.MANGLED_IO_ERROR)
 
-/// Locate the module's `u8[]` `ArrayType` index — the tag a host-produced
+/// Locate the module's `u8[]` `ArrayType` index: the tag a host-produced
 /// `bytes()` array must carry so `is u8[]` narrows. Sibling of
 /// `find_string_array_type_id`. Returns 0 when no `u8` scalar or no
 /// `u8[]` array entry exists. Compute once per run.
@@ -127,7 +127,7 @@ export find_u8_array_type_id :: fn(types: bc.BcType[]) -> i32 {
     return 0
 }
 
-/// Short human-readable name of the value's variant — used by every
+/// Short human-readable name of the value's variant: used by every
 /// `read_*` helper's mismatch Trap so messages don't fan out per pair
 /// of expected/actual tags. Exhaustive `match` so the compiler catches
 /// any future `Value` variant added without updating this fn.
@@ -153,7 +153,7 @@ export describe_value_tag :: fn(v: Value) = match v {
 }
 
 /// Unwrap an `F64Val` from a `Value`. Integer values are NOT auto-
-/// promoted — Vader bytecode uses explicit `.to_f64` conversions for that.
+/// promoted: Vader bytecode uses explicit `.to_f64` conversions for that.
 export read_f64 :: fn(v: Value, at_pc: i32, label: string) -> F64Val | Trap {
     if v is F64Val { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected f64, got ${describe_value_tag(v)}" }
@@ -165,7 +165,7 @@ is_unsigned_source :: fn(from_name: string) =
     from_name.byte_len() > 0 && from_name.byte_at(0) == 'u'
 
 /// Re-tag `v` to the storage class implied by `target`. Re-tagging a value
-/// already at the target storage is a no-op fast path — avoids the box
+/// already at the target storage is a no-op fast path: avoids the box
 /// reallocation when `mask32(u32 x)` (hot in SHA-256 / MD5) hits an
 /// already-I32Val.
 export convert_value :: fn(v: Value, target: ConvertTarget, from_name: string, at_pc: i32) -> Value | Trap {
@@ -230,7 +230,7 @@ read_numeric_as_f64 :: fn(v: Value, at_pc: i32) -> f64 | Trap {
 }
 
 /// Unwrap an `i32` from a `Value`. Accepts `CharVal` (codepoint) and
-/// `I64Val` (truncating to the bottom 32 bits) transparently — both no-op
+/// `I64Val` (truncating to the bottom 32 bits) transparently: both no-op
 /// `Convert` carriers and width-narrowing consumers (array.get index,
 /// `int.to_char`) need the i32 view of those tags.
 export read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
@@ -302,11 +302,11 @@ export read_obj :: fn(v: Value, at_pc: i32, label: string) -> ObjVal | Trap {
     return Trap { .message = "${label} at pc=${at_pc}: expected object, got ${describe_value_tag(v)}" }
 }
 
-/// Short diagnostic rendering of an `ObjVal` — never dumps the payload,
+/// Short diagnostic rendering of an `ObjVal`, never dumps the payload,
 /// just the shape. Used by the `Display` impl and trap messages.
 export describe_obj :: fn(o: ObjVal) -> string = "<obj#${o.handle} type=${o.type_id} bytes=${o.bytes.len()} slots=${o.slots.len()}>"
 
-/// True iff `a` is a view onto a buffer it doesn't own — `elements` is
+/// True iff `a` is a view onto a buffer it doesn't own: `elements` is
 /// shared with another `ArrayVal`. Used by `array.push` to decide
 /// whether to detach into a fresh buffer before extending.
 export is_array_view :: fn(a: ArrayVal) -> bool {
@@ -342,7 +342,7 @@ export read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
 
 
 /// Unwrap a `FnVal` from a `Value`, or the trap naming what was found
-/// instead — for a call through a fn value.
+/// instead: for a call through a fn value.
 export read_fn :: fn(v: Value, at_pc: i32, label: string) -> FnVal | Trap {
     if v is FnVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected fn, got ${describe_value_tag(v)}" }
@@ -356,7 +356,7 @@ export read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Tra
 }
 
 /// `ref.eq` / `ref.ne`: value equality for null and the scalars the VM boxes,
-/// identity for a heap value — what a pointer compare answers natively, and what
+/// identity for a heap value: what a pointer compare answers natively, and what
 /// `===` asks. A baked const is one shared object on both backends.
 export value_ref_eq :: fn(a: Value, b: Value) -> bool = match a {
     is NullVal   -> b is NullVal
@@ -422,7 +422,7 @@ export ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> b
 
 /// True iff `type_id` is registered as an implementer of `trait_name`.
 /// Consults `state.bc.impl_table` first (populated from `impl TYPE_ID TRAIT`
-/// directives in the .virt) — that source survives DCE because the
+/// directives in the .virt): that source survives DCE because the
 /// writer emits one entry per implTable pair regardless of whether the
 /// method bodies are reachable. Falls back to scanning `state.bc.vtables`
 /// for legacy modules whose .virt predates the directive.
@@ -505,38 +505,38 @@ lookup_vtable_row :: fn(vtables: bc.VtableRow[], row: i32, type_id: i32) -> i32 
 /// Match a value against a `BcScalar.val` value class. Direct classes
 /// (`i32` / `string` / `bool` / `null` / `char`) lookup reuses
 /// `describe_value_tag`. Width-suffixed integer classes (i8 / i64 / u32 / …)
-/// collapse onto `I32Val` — **latent miscompile risk** : a snippet
+/// collapse onto `I32Val`, **latent miscompile risk** : a snippet
 /// `if x is i64 { … }` against an `I32Val` matches and runs with i32
 /// semantics. Sprint 5d / per-width values will replace the alias collapse.
 export class_matches :: fn(v: Value, val: bc.ValType) -> bool {
     if bc.val_type_name(val) == describe_value_tag(v) { return true }
-    // Width-suffixed integer classes have no dedicated Value variant — they
+    // Width-suffixed integer classes have no dedicated Value variant: they
     // ride in `I32Val` (≤32-bit) or `I64Val` (64-bit: u64 ; i64
     // is already caught by the tag check above). Accept BOTH widths so e.g. a
     // `u64` computed via `i64.*` ops (stored `I64Val`) satisfies its `is u64`
-    // check — not just small literals that happen to land in `I32Val`. Without
+    // check, not just small literals that happen to land in `I32Val`. Without
     // the `I64Val` arm, `match parse_uint_in_base(...) { is u64 … }` fell
     // through its no-match `return` and the lexer silently dropped every
     // computed integer literal.
     if is_integer_alias(val) { return v is I32Val || v is I64Val }
-    // `f32` has no dedicated Value variant — every VM float rides in `F64Val`
+    // `f32` has no dedicated Value variant: every VM float rides in `F64Val`
     // (mirrors how width-suffixed ints ride in I32Val / I64Val above). Without
-    // this, an `f32` value checked `is f32` — e.g. the float member of an
-    // `i32 | f32` union — describes as "f64" and matches nothing, so the narrow
+    // this, an `f32` value checked `is f32`, e.g. the float member of an
+    // `i32 | f32` union: describes as "f64" and matches nothing, so the narrow
     // yields NEITHER. `f64` is already caught by the exact-name check above.
     if val == .F32 { return v is F64Val }
-    // `CPointer` has no dedicated Value variant either — a foreign pointer comes
+    // `CPointer` has no dedicated Value variant either: a foreign pointer comes
     // back from `extern_result` as an `I64Val` (a machine word is what it is).
     // Without this arm `is CPointer` matched NOTHING: a `match` over
     // `CPointer | null` took no branch at all and the interpreter left the
-    // function, exit 0, no trap — while the native build took the pointer arm.
+    // function, exit 0, no trap, while the native build took the pointer arm.
     // The native side tags its box with the `CPointer` type id, which is why
     // only the VM was affected.
     if val == .Pointer { return v is I64Val || v is I32Val }
     return false
 }
 
-/// Width-suffixed integer classes that have no dedicated `Value` variant —
+/// Width-suffixed integer classes that have no dedicated `Value` variant:
 /// they ride in `I32Val` or `I64Val` (see `class_matches`). `i32` has
 /// its own `I32Val` tag (caught by the direct check) so it's excluded here.
 export is_integer_alias :: fn(val: bc.ValType) -> bool = match val {
@@ -574,7 +574,7 @@ export union_matches :: fn(state: VmState, v: Value, variant_type_ids: i32[]) ->
 // The tagged runtime values carried on the VM's value stack.
 
 // The scalar variants precede `Value` : a compiler without the fixed point in
-// `register_aliases` — the committed bootstrap seed included — registers a union
+// `register_aliases` (the committed bootstrap seed included) registers a union
 // alias only after the distincts it names.
 
 /// 32-bit integer payload.
@@ -589,7 +589,7 @@ export I64Val :: i64
 /// flowing through `f64.const` and the `f64.*` arithmetic family.
 export F64Val :: f64
 
-/// String payload — the underlying buffer is borrowed from the
+/// String payload: the underlying buffer is borrowed from the
 /// module's `strings` pool, so the VM never has to allocate.
 export StringVal :: string
 
@@ -626,11 +626,11 @@ export StructVal :: struct {
     fields: Value[]
 }
 
-/// Heap-allocated array payload — grow-only via `array.push`, fixed-size
+/// Heap-allocated array payload: grow-only via `array.push`, fixed-size
 /// indexed access via `array.get` / `array.set`. `type_id` indexes into
 /// `Module.types` (an `ArrayType`) ; `elements` is the shared backing
 /// buffer (multiple views may point at the same array). `offset` and
-/// `length` carve out the logical slice — owning arrays have
+/// `length` carve out the logical slice: owning arrays have
 /// `offset == 0` and `length == elements.len()`. View model :
 /// `array.slice` returns a view (shared `elements`, adjusted bounds) ;
 /// `array.set` writes through to the parent (Go-style aliasing) ;
@@ -656,7 +656,7 @@ export element_at :: fn(a: ArrayVal, at: i64) -> Value {
     return a.elements[at]
 }
 
-/// Give `a` boxed elements of its own in place of the bytes it reads — before
+/// Give `a` boxed elements of its own in place of the bytes it reads: before
 /// anything writes or grows it. A no-op when it reads none.
 ///
 /// @param a  the array; mutated in place.
@@ -666,7 +666,7 @@ export own_bytes :: fn(a: ArrayVal) -> void {
     }
 }
 
-/// Function-reference payload — the runtime value pushed by `fn.ref`
+/// Function-reference payload: the runtime value pushed by `fn.ref`
 /// and `make_closure`, consumed by `call.indirect`. `function_index`
 /// keys into `Module.functions` (same index space as the direct `Call`
 /// op). `env` is `null` for plain fn-refs and a captured
@@ -679,11 +679,11 @@ export FnVal :: struct {
     env: Value | null
 }
 
-/// Singleton runtime `null`. Has no fields — `is NullVal` is the only
+/// Singleton runtime `null`. Has no fields: `is NullVal` is the only
 /// way to discriminate. Sprint 5a addition.
 export NullVal :: struct {}
 
-/// Error value — the Vader runtime sentinel for a failed fallible call.
+/// Error value: the Vader runtime sentinel for a failed fallible call.
 /// Carries a short diagnostic. Matches against any `is Error` pattern
 /// (where `Error` is the stdlib trait every concrete error implements).
 /// Host imports for `parse_int` / `parse_float` / `read_file` / `write_file`
@@ -691,7 +691,7 @@ export NullVal :: struct {}
 /// or `?` propagation pick it up.
 export ErrorVal :: struct { message: string }
 
-/// Runtime reification of a `type` value — pushed by `type.const N`,
+/// Runtime reification of a `type` value: pushed by `type.const N`,
 /// `type_id` keys `Module.types`.
 export TypeVal :: struct { type_id: i32 }
 
@@ -699,10 +699,10 @@ export TypeVal :: struct { type_id: i32 }
 /// REAL byte-addressed heap). Splits the two disjoint regions an
 /// object holds : `bytes` is the raw inline primitive payload, addressed by
 /// BYTE OFFSET (`load_i32` / `store_u8` / …) ; `slots` is the boxed reference
-/// payload, addressed by SLOT INDEX (`load_slot` / `store_slot` — the fields a
+/// payload, addressed by SLOT INDEX (`load_slot` / `store_slot`: the fields a
 /// tracing GC follows). A `Buffer` (the first consumer) is all `bytes`,
 /// no `slots` ; a primitive struct is all `bytes` ; an array of references is
-/// all `slots`. `handle` is a synthetic monotonic id for diagnostics only —
+/// all `slots`. `handle` is a synthetic monotonic id for diagnostics only:
 /// object identity is the `ObjVal` reference itself, NEVER a machine address.
 export ObjVal :: struct {
     handle:  i32
@@ -763,7 +763,7 @@ ObjVal implements Display {
     to_string :: fn(self) -> string = describe_obj(self)
 }
 
-/// Renders as `<type_id>{ field0, field1, … }` — type_id is the ordinal
+/// Renders as `<type_id>{ field0, field1, … }`: type_id is the ordinal
 /// from `Module.types` (the executor doesn't carry the type table here,
 /// so field names aren't available). Example : `5{ 1, 2 }` for a 2-field
 /// struct of type id 5 with fields `1` and `2`.
@@ -780,7 +780,7 @@ StructVal implements Display {
     }
 }
 
-/// Renders as `[elem0, elem1, …]` — empty arrays as `[]`. Example :
+/// Renders as `[elem0, elem1, …]`: empty arrays as `[]`. Example :
 /// `[1, 2, 3]`.
 ArrayVal implements Display {
     to_string :: fn(self) -> string {

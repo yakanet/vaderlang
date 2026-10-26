@@ -1,4 +1,4 @@
-// `NotATrait` is a struct, not a trait — `MyType implements NotATrait`
+// `NotATrait` is a struct, not a trait: `MyType implements NotATrait`
 // should trigger R2009 (`trait name does not refer to a trait`).
 
 module "snippet"

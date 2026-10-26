@@ -19,7 +19,7 @@ main :: fn() -> i32 {
     if r is string {
         println("defaulted: ${r.len()} bytes")
     }
-    // Explicit, then named — both through the same dispatch.
+    // Explicit, then named: both through the same dispatch.
     bound :: path.read_file_string(4)
     if bound is IOError {
         println("bound 4:   ${bound.msg}")

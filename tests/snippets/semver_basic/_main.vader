@@ -1,4 +1,4 @@
-// Smoke snippet for std/semver — exercises `parse`, `parse_range`,
+// Smoke snippet for std/semver: exercises `parse`, `parse_range`,
 // Display via `${v}` interpolation, `>` through `Comparable`, and
 // the infix `in` operator dispatched through `Contains<Version>`.
 

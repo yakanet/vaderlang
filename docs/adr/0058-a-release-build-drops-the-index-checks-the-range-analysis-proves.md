@@ -1,4 +1,4 @@
-# 0058 — A release build drops the index checks the range analysis proves
+# 0058: A release build drops the index checks the range analysis proves
 
 ## Status
 

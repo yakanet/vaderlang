@@ -1,4 +1,4 @@
-// Two OSes share one body — this is what the plan means by "enumeration, not
+// Two OSes share one body: this is what the plan means by "enumeration, not
 // families": no `.Posix` value, the list IS the family.
 
 module "main"

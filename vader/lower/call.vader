@@ -22,7 +22,7 @@ import "toolchain/span"
 //   ident collapses to a direct `foo(args)` call ; the surrounding
 //   namespace prefix is purely a source-level concept.
 // Mark every struct in `t` (and its union variants) as "a value of this type
-// exists" — the same signal a struct literal records at
+// exists": the same signal a struct literal records at
 // `struct_lit.vader::constructed_struct_symbols.add`. Used at `lower_call`
 // entry so a host / `@intrinsic` callee's return struct (`read_file_bytes ->
 // u8[] | IOError`) is treated as constructed, making it vtable-eligible for
@@ -107,8 +107,8 @@ lower_callee :: fn(ctx: FnLowerCtx, call: CallExpr) -> LoweredExpr {
 ///
 /// @param call  the call ; its callee is the `Type.member` field access.
 /// @param type  the call's result type.
-/// @return      the lowered call — a trap when typecheck refused the owner (T3006)
-///              — or null when the callee is no static member.
+/// @return      the lowered call, a trap when typecheck refused the owner (T3006),
+///              or null when the callee is no static member.
 try_lower_static_member_call :: fn(
     ctx: FnLowerCtx,
     call: CallExpr,
@@ -144,19 +144,19 @@ owner_at_call :: fn(callee: Callee | null, written: Type) -> Type {
 
 // Detect `<namespace_ident>.<member>(args)`. The target ident's
 // resolved symbol has kind `ImportBinding` (namespace import). Emit
-// a direct call to the imported member by name — the dump format
+// a direct call to the imported member by name: the dump format
 // shows just the bare callee name for namespace-prefixed calls.
 try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     callee :: call.callee
     if callee is FieldExpr {
         namespace_symbol :: as_namespace_binding(ctx, callee.target) ?? return null
-        // `nsM.T(x)` — the typer typed the callee as the metatype and resolved
+        // `nsM.T(x)`: the typer typed the callee as the metatype and resolved
         // the call as a cast (infer_call → TypeMetaType, call.vader). Lower it as
         // a cast to the result `type` (shared with the direct-ident cast path),
         // not a plain call to the type symbol. Casts carry exactly one arg.
         // NB the ident path (`try_lower_cast_call`) keys on symbol-kind +
         // `alias_types`, NOT this `TypeMetaType` signal: a cross-module distinct
-        // const ident does not surface as TypeMetaType there — don't unify them.
+        // const ident does not surface as TypeMetaType there: don't unify them.
         if call.args.len() == 1 {
             if ctx.types.expr_type(callee) is TypeMetaType {
                 return emit_value_cast(ctx, call, type)
@@ -166,7 +166,7 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
             ?? resolve_namespace_member(ctx, namespace_symbol, callee.field)
         // A GENERIC member (`io.println` → `println<T: Display>`) must harvest
         // its monomorphic instance + point the callee at the mangle, exactly
-        // as the direct-ident path does — otherwise the bare member symbol is
+        // as the direct-ident path does: otherwise the bare member symbol is
         // unresolved at emit. The member's generic signature lives in
         // its OWN module's `decl_types` (the namespace member-type table holds
         // only type-kind members, not fns), reached cross-module via
@@ -228,12 +228,12 @@ resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: 
 // Fold a const symbol to its lowered value : a comptime-baked scalar inlines
 // directly ; an imported const the entry-only bake missed recovers via
 // `try_fold_unbaked_const`. Returns null for a non-const symbol, or a const
-// whose value isn't a foldable scalar — the caller keeps a real reference.
+// whose value isn't a foldable scalar: the caller keeps a real reference.
 // Shared by `lower_ident` (every ident) and `try_lower_namespace_const`.
 fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr | null {
     folded :: fold_const_value(ctx, sym, type, span) ?? return null
     // The value carries its own variant's type ; a read typed as a union boxes it,
-    // as reading the const's slot would — `==` and `is` dispatch on that type.
+    // as reading the const's slot would: `==` and `is` dispatch on that type.
     if type is UnionType && !equals_type(folded.type, type) {
         return LoweredCast {
             .span = span,
@@ -258,7 +258,7 @@ fold_const_value :: fn(
     }
     // An ARRAY const is never inlined at the use site (which would `array.new` +
     // refill on every read). Returning null leaves a bare const reference that
-    // `inline_consts` routes to the data pool — one shared entry, a cheap
+    // `inline_consts` routes to the data pool: one shared entry, a cheap
     // `data.const` view at each read ; a struct or tuple const is read the same way
     // (`is_scalar_comptime`). Safe vs the pool eligibility check : a const that
     // isn't poolable falls back to `const_inline` (array.new), never to
@@ -273,13 +273,13 @@ fold_const_value :: fn(
 // `<alias>.CONST` → the const's lowered value. Resolves the member to its real
 // const symbol in the namespace's target module, then folds it via the shared
 // `fold_const_symbol`. Returns null when the target isn't a namespace binding
-// or the member isn't a const — the caller falls through to regular
+// or the member isn't a const: the caller falls through to regular
 // field-access lowering. Without this the `alias` ident is unresolved and the
 // enclosing expression (a struct literal `.id = AST.UNASSIGNED_NODE_ID`, …)
 // degrades to a drop. Mirror of `try_lower_namespace_call` (fn members) /
 // `try_lower_enum_field` (namespace enum variants).
 // A non-scalar (compound) const reached this way only folds for scalars, so it
-// is harvested + referenced by its const symbol on the fold-miss path — see the
+// is harvested + referenced by its const symbol on the fold-miss path, see the
 // body. This is the namespace-alias analogue of the bare-ident const seam in
 // `lower_ident`. Load-bearing under the uniform lazy lowering: any non-entry
 // module's compound const reached via `M.CONST` needs the same routing as a
@@ -293,7 +293,7 @@ try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> Lo
     // Compound const : the scalar fold missed. Harvest the const so
     // `inline_consts` materialises its decl, and reference it by its const
     // symbol (same shape as the bare-ident seam) so `build_ident` routes the
-    // read site — instead of degrading to a field access on the alias.
+    // read site: instead of degrading to a field access on the alias.
     register_nongeneric_imported_const(ctx, member)
     return LoweredIdent {
         .span = e.span,

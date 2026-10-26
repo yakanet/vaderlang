@@ -16,7 +16,7 @@ import "vader/support/integer"
 /// Evaluate a `BinaryExpr`. Recurses into both operands ; combines
 /// per `op`. Short-circuits on operand failure (the operand's error
 /// propagates up). `Is` / `In` / `NotIn` need the typechecker's
-/// narrowing tables — fall back to C4001.
+/// narrowing tables: fall back to C4001.
 /// @param expr     the binary expression node.
 /// @param context  the evaluator context.
 /// @return         the combined value or a diagnostic.
@@ -150,8 +150,8 @@ evaluate_unary_expr :: fn(expr: AST.UnaryExpr, context: ComptimeContext) -> Eval
 
 // Re-wrap an integer result to the node's resolved width so a comptime fold
 // matches the runtime's fixed-width arithmetic. Non-integer results (bool from
-// comparisons, string from concat) pass through, as do unknown / 64-bit widths
-// — a missing or `i64`/`u64` width is NEVER truncated.
+// comparisons, string from concat) pass through, as do unknown / 64-bit widths:
+// a missing or `i64`/`u64` width is NEVER truncated.
 normalize_int_result :: fn(r: EvalResult, rname: string) -> EvalResult {
     iv :: r.value
     if iv is IntValue {
@@ -221,7 +221,7 @@ resolved_int_name :: fn(context: ComptimeContext, expr_id: i64) -> string {
         return name
     }
     // A free int the typechecker never pinned to a concrete width (nested inside
-    // a comparison / shift, so no slot narrowed it) defaults to `i32` — SPEC
+    // a comparison / shift, so no slot narrowed it) defaults to `i32`: SPEC
     // "Default integer", exactly what the runtime does, so it wraps at 32 bits.
     if t is FreeIntType { return "i32" }
     return ""
@@ -275,7 +275,7 @@ arithmetic_int :: fn(
     return type_mismatch(expr, "operand kinds disagree for bit / mod / shift op")
 }
 
-// Short-circuit before the C-level division — `idiv` by 0 traps with
+// Short-circuit before the C-level division: `idiv` by 0 traps with
 // SIGFPE on x86_64, which is host-platform UB the evaluator can't
 // otherwise observe.
 int_div_check :: fn(
@@ -344,8 +344,8 @@ compare :: fn(
         }
         _ -> {}
     }
-    // Two structs, tuples or arrays compare through their impl — `Equals`,
-    // `Comparable` — or field by field : the lowered code answers that, on the VM.
+    // Two structs, tuples or arrays compare through their impl (`Equals`,
+    // `Comparable`) or field by field : the lowered code answers that, on the VM.
     if (left is ArrayValue || left is StructValue) && same_kind(left, right) {
         return vm_required(expr.span, "comparison of arrays or structs")
     }
@@ -353,7 +353,7 @@ compare :: fn(
 }
 
 // `bool` supports only equality at comptime : it implements no `Comparable`, so
-// `<` / `<=` / `>` / `>=` are unordered — refused loudly rather than baked as a
+// `<` / `<=` / `>` / `>=` are unordered: refused loudly rather than baked as a
 // `false` the typecheck would never have let through.
 bool_equality_only :: fn(expr: AST.BinaryExpr, eq: bool, op: CompareOp) -> EvalResult {
     if op == .Eq  { return ok(bool_value(eq)) }

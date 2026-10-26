@@ -1,21 +1,21 @@
 // vader/emit/c/dispatch: trait-method dispatchers for the generated C.
 //
 // One output feeds virtual dispatch in the generated C: a per-`(trait.method)`
-// dispatcher function (`vader_vt_<key>`) that the `virtual.call` op invokes — a
+// dispatcher function (`vader_vt_<key>`) that the `virtual.call` op invokes: a
 // `switch (recv.tag)` forwarding to the matching impl fn, boxing args and result
 // to the erased ABI so heterogeneous monomorphised impls can share one
 // dispatcher.
 //
 // There used to be a second: per-tag slot tables (`vt_<typeIdx>` +
 // `vader_vtable_table[]`) behind a generic `vader_virtual_dispatch(tag, slot)`
-// helper. Removed 2026-07-28 — the helper had no caller anywhere, so the tables
+// helper. Removed 2026-07-28: the helper had no caller anywhere, so the tables
 // were 33 × 64 pointers plus a 561-entry index, ~21 KB of dead data in every
 // binary. They kept nothing alive either: the 34 functions they addressed are all
 // called elsewhere. With them went the slot registry (the pinned `Hash.hash`=0 /
 // `Equals.equals`=1 / … numbering) that existed only to lay them out.
 //
 // The runtime half went with it a commit later, once a seed that no longer emits
-// the tables was committed — `vader.h` had to keep declaring `vader_vtable_t`
+// the tables was committed: `vader.h` had to keep declaring `vader_vtable_t`
 // while the old seed's C still referenced it. Any change of this shape (the emit
 // stops producing something the runtime declares) needs the same two steps.
 
@@ -67,7 +67,7 @@ vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
     return BcSignature {
         .params = first_sig.params,
         // The receiver's own result type, so the two arrays stay the same
-        // length — a vtable target is never scalarised (`vader/midir/value_return`
+        // length: a vtable target is never scalarised (`vader/midir/value_return`
         // drops every function a row names), so this is always one entry.
         .results = [.Any],
         .param_types = first_sig.param_types,
@@ -78,7 +78,7 @@ vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
 
 /// Parameters of a dispatcher : `vader_box_t recv` plus one `vader_box_t a<j>`
 /// per tail param. Tail params take the erased box type so impls with divergent
-/// concrete signatures share one dispatcher — each arm unboxes to its own
+/// concrete signatures share one dispatcher: each arm unboxes to its own
 /// signature.
 dispatcher_parameters :: fn(sig: BcSignature) -> CParameter[] = boxed_parameters(
     CParameter { .type = "vader_box_t", .name = "recv" },
@@ -189,7 +189,7 @@ dispatcher_signature :: fn(ctx: EmitCtx, key: string, sig: BcSignature) -> CSign
 /// The per-arm return expression : wrap the impl's result when the dispatcher
 /// returns the erased `any` and the impl does not.
 ///
-/// A `Ref` is NOT already a box — it is a bare `void*`, and returning one from a
+/// A `Ref` is NOT already a box: it is a bare `void*`, and returning one from a
 /// `vader_box_t` function does not compile. `Void` has nothing to wrap and `Any`
 /// is already the target shape; everything else does.
 dispatcher_result :: fn(types: BcType[], call_expr: CExpression, impl_result: ValType, sig_result: ValType) -> CExpression =

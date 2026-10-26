@@ -1,4 +1,4 @@
-# 0022 — A generic that stores its argument says so
+# 0022: A generic that stores its argument says so
 
 ## Status
 
@@ -13,7 +13,7 @@ a bound marked `!`.
 
 ## Context
 
-A struct module const was rebuilt at every read — one allocation per reference,
+A struct module const was rebuilt at every read: one allocation per reference,
 `NULL_VALUE` in the VM's frame reset included. Materialising it once means every
 read shares one value, and a shared value is only sound if nothing can write
 through any path to it.
@@ -35,7 +35,7 @@ Three independent holes, each verified against `HEAD` before any change:
 1. **The module-const freeze stopped at the top level.** `auto_const_module_array`
    froze the array (`P[]`) and left its elements `P!`. `a[0] = TABLE[0]`,
    `m["k"] = TABLE[0]`, `push_all(TABLE)` and `w: P!: TABLE[0]` all compiled, and so
-   did `p :: ORIGIN ; p.x = 5` for a struct const — 0017's "the type lies, only the
+   did `p :: ORIGIN ; p.x = 5` for a struct const: 0017's "the type lies, only the
    path knows".
 
 2. **A `!` parameter lost its marker through method syntax.** `ufcs_method_type`,
@@ -47,7 +47,7 @@ Three independent holes, each verified against `HEAD` before any change:
    element check because "inside the body the element is a `T`, which grants no
    mutation". True of what the callee *does* with it, not of where it *puts* it:
    `push(self!, value: T)` stores the value in an array that hands it back writable.
-   The same laundering worked from a read-only parameter — `fn(q: P) { held.push(q);
+   The same laundering worked from a read-only parameter, `fn(q: P) { held.push(q);
    held[0].x = 9 }`.
 
 Tree cost, measured on `vader/tools/cli/main.vader` + `vader/bootstrap/bootstrap.vader`:
@@ -66,14 +66,14 @@ snapshot moved; the suite passed unchanged.
 
 ## Decision
 
-- **A module const is frozen at every level** — `auto_freeze_module_const` applies the
+- **A module const is frozen at every level**: `auto_freeze_module_const` applies the
   same `apply_readonly_default` a written type gets. A local bound from it is a
   read-only view; a mutable copy is spelled `P { ...ORIGIN }`.
 - **A `!` on a type parameter is the storage contract.** `push :: fn(self!, value: T!)`
   means "I keep what you give me". The argument must be as mutable as `T` is bound to:
   a `P![]` receiver demands a mutable `P`, a `P[]` or an `i32[]` asks nothing
   (`type_may_grant_mutation` on the substituted parameter gates T3072). Inside the
-  generic body an unbound `T` asks nothing — the binding call is the one judged.
+  generic body an unbound `T` asks nothing: the binding call is the one judged.
 - **Method types keep their markers**, shifted past the dropped receiver
   (`mk_fn_drop_self`).
 

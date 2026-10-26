@@ -2,7 +2,7 @@
 // when the struct is constructed ONLY inside a generic fn's body. Such an
 // instance (`Box<i32>` from `viagen<i32>`) isn't seen by the comptime harvest
 // (which only saw the source-level `Box<T>`), so `lower_struct_lit` must queue
-// it for impl-member materialisation — else `Async.resume` misses its vtable
+// it for impl-member materialisation: else `Async.resume` misses its vtable
 // row at runtime. (Not async-specific ; async's `all` was the first to hit it.)
 module "snippet"
 

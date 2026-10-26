@@ -1,4 +1,4 @@
-// Java peer of bench/iter_chain.vader. Uses the Stream API — lazy by
+// Java peer of bench/iter_chain.vader. Uses the Stream API: lazy by
 // default, dispatches one element at a time through the pipeline,
 // mirroring Vader's `map` / `filter` chain.
 

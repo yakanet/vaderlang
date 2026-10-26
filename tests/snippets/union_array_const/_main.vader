@@ -1,6 +1,6 @@
 // A module const whose elements are a union is baked into `.rodata`, each element
-// boxed with the member it is — an `i32`, a `u8`, an `i64`, a float, a char, a
-// bool, a string, a struct — and so is a union field of a baked struct. Every
+// boxed with the member it is: an `i32`, a `u8`, an `i64`, a float, a char, a
+// bool, a string, a struct, and so is a union field of a baked struct. Every
 // element is read back as the member it was written as.
 
 module "snippet"

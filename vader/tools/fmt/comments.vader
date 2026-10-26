@@ -17,7 +17,7 @@ import "toolchain/span"
 /// doc-comment.
 export CommentKind :: enum(u8) {
     Line,     // `// …`, or the `#!` line opening the file
-    DocLine,  // `/// …` — VaderDoc form. Tagged at scan time so a future
+    DocLine,  // `/// …`: VaderDoc form. Tagged at scan time so a future
               //   `vader doc` extractor can pick them out without
               //   re-walking the source. The formatter still treats them
               //   like `Line` for round-trip equality (text is verbatim).
@@ -30,7 +30,7 @@ export Comment :: struct {
     offset:      i64
     // Byte offset (exclusive) past the comment's closing token.
     end_offset:  i64
-    // 1-based source line of `offset` — used to decide leading vs trailing.
+    // 1-based source line of `offset`: used to decide leading vs trailing.
     line:        i32
     // 1-based source line where the comment ends. For line comments
     // `end_line == line` ; for block comments it tracks the closing `*/`.
@@ -101,7 +101,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
     for i < n {
         b :: source.byte_at(i)
 
-        // Newline tracking. `\n` only — CR is normalised elsewhere.
+        // Newline tracking. `\n` only: CR is normalised elsewhere.
         if b == '\n' {
             line = line + 1
             i = i + 1
@@ -173,7 +173,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
             continue
         }
 
-        // String literals — skip the entire span so embedded `//` / `/*` don't
+        // String literals: skip the entire span so embedded `//` / `/*` don't
         // confuse the scanner. We don't handle interpolation specially since
         // we don't care what's *inside* the literal, only the closing quote.
         if b == '"' {

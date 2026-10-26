@@ -1,4 +1,4 @@
-# 0047 — A union dispatches through the trait its variants share
+# 0047: A union dispatches through the trait its variants share
 
 ## Status
 

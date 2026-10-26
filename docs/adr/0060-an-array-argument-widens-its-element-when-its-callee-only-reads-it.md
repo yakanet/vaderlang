@@ -1,4 +1,4 @@
-# 0060 — An array argument widens its element when its callee only reads it
+# 0060: An array argument widens its element when its callee only reads it
 
 ## Status
 

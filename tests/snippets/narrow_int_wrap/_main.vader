@@ -1,5 +1,5 @@
 // A value of an integer class narrower than 32 bits is cut to its width wherever
-// it is read — formatted, compared, pushed into a union, stored — on both
+// it is read (formatted, compared, pushed into a union, stored) on both
 // backends: a narrowing cast, and a wrapping result in the class
 // (`u8 200 +% 100` is 44). The values that must not fold come from `argv`.
 

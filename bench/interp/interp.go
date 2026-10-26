@@ -4,7 +4,7 @@
 // int-formatter path that Vader's `${}` and the Java port use. (fmt.Sprintf
 // would instead measure reflection + arg boxing, off the workload.) The payload
 // carries a leading `🚀` (a supplementary-plane codepoint), so the checksum
-// counts CODEPOINTS (utf8.RuneCountInString), matching Vader's s.len() — `len(s)`
+// counts CODEPOINTS (utf8.RuneCountInString), matching Vader's s.len(): `len(s)`
 // would be the byte length (🚀 = 4) and diverge.
 
 package main

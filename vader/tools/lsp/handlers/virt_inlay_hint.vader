@@ -2,8 +2,8 @@
 // document.
 //
 // A plain dump writes table indices (`call 79`, `local.get 1`, `ref.cast 25`).
-// Each op carrying one gets the name behind it as a hint after its last operand
-// — the label `vader dump --annotate` writes as a `;` comment, from the same
+// Each op carrying one gets the name behind it as a hint after its last operand:
+// the label `vader dump --annotate` writes as a `;` comment, from the same
 // `annotate_op`. A line that already carries a comment gets none, and a document
 // the bytecode reader refuses gets none at all.
 
@@ -16,8 +16,8 @@ import "vader/tools/lsp/protocol"
 
 VirtOut :: import "vader/emit/virt"
 
-/// The hints for the lines of `params.range` in a `.virt` document — one per op
-/// whose table indices resolve to a name — as the JSON text of the response's
+/// The hints for the lines of `params.range` in a `.virt` document (one per op
+/// whose table indices resolve to a name) as the JSON text of the response's
 /// `result`, always an array. Written straight to text : a client asking for a
 /// whole dump gets hundreds of thousands, whose `JsonValue` tree would cost far
 /// more than finding them.

@@ -1,4 +1,4 @@
-# 0040 — An argument meets its instance's signature, and a join keeps the least rights
+# 0040: An argument meets its instance's signature, and a join keeps the least rights
 
 ## Status
 

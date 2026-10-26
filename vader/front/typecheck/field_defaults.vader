@@ -35,7 +35,7 @@ FillingDefault :: struct {
 }
 
 // Settle the consts the defaults a literal (`span`) of `decl` fills in read : a
-// const being typed through the literal reads them — `D :: Q {}.n` with
+// const being typed through the literal reads them: `D :: Q {}.n` with
 // `Q :: struct { n: i32 = D }` is a cycle (T3099). Outside a const's value, nothing
 // needs them before their turn.
 settle_literal_defaults :: fn(
@@ -51,7 +51,7 @@ settle_literal_defaults :: fn(
     }
 }
 
-// T3100 — defaults of `decl` that fill one another in, through the literals they hold.
+// T3100: defaults of `decl` that fill one another in, through the literals they hold.
 // `fill` is shared by the module's structs, so a cycle is reported once, at the
 // default that closes it.
 reject_default_cycle :: fn(
@@ -66,7 +66,7 @@ reject_default_cycle :: fn(
     fill.filling.clear()
 }
 
-// "`A.b` fills in `B.a`, which fills in `A.b`" — the chain from `closing`.
+// "`A.b` fills in `B.a`, which fills in `A.b`": the chain from `closing`.
 cycle_detail :: fn(fill: DefaultFill, closing: FillingDefault) -> string {
     labels: string[]: []
     for d in fill.filling {
@@ -78,8 +78,8 @@ cycle_detail :: fn(fill: DefaultFill, closing: FillingDefault) -> string {
     return "${labels[0]} fills in ${labels[1..<labels.len()].join(", which fills in ")}"
 }
 
-// Fill in the defaults a literal of `decl` leaves out — every field not in
-// `provided` — then those of the struct literals these defaults hold, depth first and
+// Fill in the defaults a literal of `decl` leaves out (every field not in
+// `provided`) then those of the struct literals these defaults hold, depth first and
 // each default once, collecting the consts they name into `fill`. Returns the default
 // reached again while it is being filled in, `fill.filling` then ending with the
 // chain from it ; null when the filling ends.

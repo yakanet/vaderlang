@@ -5,7 +5,7 @@
 // `await e` has been hoisted to a transient `LoweredAwait` statement by the ANF
 // sink in `lower_expr` / `lower_block`) and produces, per async fn `f`:
 //
-//   1. a synthesized `__asyncstate_<n>` struct — every param + every spilled
+//   1. a synthesized `__asyncstate_<n>` struct: every param + every spilled
 //      local (v1: spill-all) + a single erased `awaited: Async<Any>` slot (the
 //      child currently being driven) + a `state: i32` resume discriminant;
 //   2. a synthesized `<module>$<State>$Async$resume` fn whose body is the
@@ -39,9 +39,9 @@ import "vader/lower/ir"
 
 // Build one `$Async$<method>` vtable member of the state struct : the mangle +
 // synthetic `Symbol` + `LoweredFnDecl` with `self: state_ty` as param[0] and
-// its `Async` vtable slot — what `collect_vtable_entries` reads. Shared by `resume` and `cancel`, which
+// its `Async` vtable slot: what `collect_vtable_entries` reads. Shared by `resume` and `cancel`, which
 // differ only in method name, return type, and body (both take the same
-// `self_sym` — each references it only inside its own body, so the shared symbol
+// `self_sym`: each references it only inside its own body, so the shared symbol
 // resolves to each fn's own param slot).
 mk_async_method_decl :: fn(
     fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol,
@@ -122,7 +122,7 @@ async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBl
 /// @param lowered_body  the body lowered in async mode (awaits → `LoweredAwait`).
 /// @param result_type   the declared result type `T` (the value `return`
 ///                      completes with ; the `T` in `T | Suspended`).
-/// @param is_main       true for the `async main` entry — inline the run-driver
+/// @param is_main       true for the `async main` entry: inline the run-driver
 ///                      and return `T` (the exit code) instead of the `Async<T>`
 ///                      frame ; every other async fn returns the frame.
 /// @return              the rewritten `f` body.
@@ -132,7 +132,7 @@ lower_async_fn :: fn(
 ) -> LoweredBlock {
     span :: fn_decl.span
 
-    // Frame struct symbol — async calls type as the erased `Async<T>`, so no
+    // Frame struct symbol: async calls type as the erased `Async<T>`, so no
     // consumer needs a deterministic name (unlike generators, which type the
     // call as the concrete state struct for chaining) ; a fresh lifted symbol
     // suffices. Both the synth `resume` fn's receiver and the body's
@@ -164,7 +164,7 @@ lower_async_fn :: fn(
     }
     // A trailing-expression body (implicit return, no `return` keyword) carries
     // its completion value in `body.trailing` ; the block-split only walks
-    // `stmts`, so fold the trailing into a terminating statement first — else the
+    // `stmts`, so fold the trailing into a terminating statement first: else the
     // value is dropped and the machine parks forever. (Generators never hit this:
     // they `yield`, so their trailing is void.)
     body :: async_fold_trailing(lowered_body, gb_result_is_void(gb))
@@ -190,7 +190,7 @@ lower_async_fn :: fn(
 
     // Rewrite `f`'s body: `return __asyncstate { <all fields>, .awaited = null,
     // .state = entry }`. Param fields carry the incoming args (a param in a cell is
-    // cell-wrapped here — `gb_param_construct_value`) ; local fields get a zero
+    // cell-wrapped here: `gb_param_construct_value`) ; local fields get a zero
     // value (assigned in `resume()` before first read, but `struct.new` needs
     // every field). Field order matches the struct decl.
     nparams :: params.len()
@@ -227,12 +227,12 @@ lower_async_fn :: fn(
 }
 
 // The run-driver for an async `main`. When `std/async` is loaded (the program
-// imports it — which it must to `sleep`), route the frame through its
+// imports it, which it must to `sleep`), route the frame through its
 // park-based `run_async_main` : construct the frame, upcast to `Async<T>`, and
 // `return run_async_main(frame)`. That driver blocks on the scheduler between
 // re-drives, so a `main` that suspends works. Without `std/async` (a `main` that
 // awaits only immediately-ready things), fall back to the inline single-resume
-// driver — no scheduler dependency, and a stray suspension traps loudly.
+// driver: no scheduler dependency, and a stray suspension traps loudly.
 async_main_driver :: fn(
     fn_ctx: FnLowerCtx, construct: LoweredExpr, async_sym: Symbol,
     suspended_ty: Type, resume_ty: Type, result_type: Type, span: Span,
@@ -253,7 +253,7 @@ async_main_driver :: fn(
     }
     r_sym :: fresh_synthetic_symbol(fn_ctx, "root")
     r_ref :: LoweredIdent { .span = span, .type = resume_ty, .symbol = r_sym }
-    // r :: (frame as Async<T>).resume()   (virtual — T | Suspended)
+    // r :: (frame as Async<T>).resume()   (virtual, T | Suspended)
     let_r :: LoweredLet {
         .span = span, .name = r_sym.name, .symbol = r_sym, .type = resume_ty,
         .value = LoweredVirtualCall {
@@ -277,7 +277,7 @@ async_main_driver :: fn(
         .then_block = mk_void_block([trap], span),
         .else_block = null,
     }
-    // return cast(r, T)   — r is the completed value once past the guard.
+    // return cast(r, T): r is the completed value once past the guard.
     ret :: LoweredReturn { .span = span, .value = LoweredCast { .span = span, .type = result_type, .value = r_ref } }
     return mk_void_block([let_r, LoweredExprStmt { .span = span, .expr = guard }, ret], span)
 }

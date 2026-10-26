@@ -3,8 +3,8 @@
 // DAP rides the SAME `Content-Length\r\n\r\n<json>` framing as LSP, so the
 // transport (`read_frame` / `write_frame` / `poll_pending`)
 // and the JSON field accessors are reused verbatim from `vader/tools/lsp/protocol`.
-// Only the message SHAPE differs — DAP uses `seq` / `type: request|response|
-// event` / `command` where LSP uses the JSON-RPC 2.0 envelope — so this module
+// Only the message SHAPE differs, DAP uses `seq` / `type: request|response|
+// event` / `command` where LSP uses the JSON-RPC 2.0 envelope, so this module
 // supplies the DAP-shaped encoders the LSP `rpc.vader` can't provide.
 //
 // (v1 imports `vader/tools/lsp/protocol` directly ; a future refactor may hoist the
@@ -53,5 +53,5 @@ export encode_event :: fn(seq: i32, event: string, body: JsonValue) -> string {
     return stringify(JsonObject { .entries = obj })
 }
 
-/// An empty JSON object — the `body` for commands / events that carry none.
+/// An empty JSON object: the `body` for commands / events that carry none.
 export empty_body :: fn() -> JsonValue = JsonObject { .entries = MutableMap<string, JsonValue> {} }

@@ -1,5 +1,5 @@
 // Java peer of bench/wordfreq.vader. The corpus is a byte[], and each token is
-// turned into a String with the offset/length constructor — the conversion a
+// turned into a String with the offset/length constructor: the conversion a
 // Java tokenizer writes, which copies the bytes before the map hashes them.
 
 import java.nio.charset.StandardCharsets;

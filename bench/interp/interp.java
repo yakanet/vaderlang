@@ -2,7 +2,7 @@
 // integers into a string via interpolation, 200 000 times), same checksum.
 // Java has no string interpolation ; idiomatic concatenation builds the same
 // string. The payload carries a leading `🚀` (a supplementary-plane codepoint),
-// so the checksum counts CODEPOINTS (codePointCount), matching Vader's s.len() —
+// so the checksum counts CODEPOINTS (codePointCount), matching Vader's s.len():
 // String.length() counts UTF-16 code units (🚀 = 2) and would diverge.
 
 void main() {

@@ -31,7 +31,7 @@ export Diagnostic :: struct {
 /// True when any diagnostic in `diags` is error-severity.
 ///
 /// The gate every stage uses before doing work a rejected program does not
-/// deserve — the lowerer refuses to lower, the comptime pass refuses to bake.
+/// deserve: the lowerer refuses to lower, the comptime pass refuses to bake.
 ///
 /// @param diags  the accumulated diagnostics of a phase, or several merged.
 /// @return       true as soon as one carries `.Error` ; warnings do not count.
@@ -51,10 +51,10 @@ export any_error_diag :: fn(diags: Diagnostic[]) -> bool {
 export new_diagnostic :: fn(severity: Severity, code: CodeInfo, primary: Span, detail: string) =
     Diagnostic { .severity = severity, .code = code, .detail = detail, .primary = primary }
 
-// One typed shortcut per phase — `<phase>_<severity>(.VariantName, span, detail)`.
+// One typed shortcut per phase: `<phase>_<severity>(.VariantName, span, detail)`.
 // Phases : `lexer_*`, `parser_*`, `typecheck_*`. Severities are added on demand
 // (callers exist today only for `error` ; `warning` / `info` / `hint` join
-// when the first call site needs them — no point shipping dead helpers).
+// when the first call site needs them: no point shipping dead helpers).
 
 export lexer_error :: fn(code: LexerCode, primary: Span, detail: string) =
     new_diagnostic(.Error, CodeInfo(code), primary, detail)

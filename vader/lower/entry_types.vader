@@ -1,7 +1,7 @@
 // vader/lower/entry_types: type-table accessor for a lowering pass.
 //
 // Hides the `(TypedProgram,
-// Substitution)` pair behind a single accessor — lower passes call
+// Substitution)` pair behind a single accessor: lower passes call
 // `expr_type(view, e)` rather than `substitute(typed.expr_types[e.id]
 // ?? TY_UNRESOLVED, subst)`. The boundary lets future changes (e.g.
 // materialising substituted bodies on `MonoEntry`) touch one file.
@@ -99,7 +99,7 @@ recorded_trait_args :: fn(concrete: Type, trait_key: string, typed: TypedProgram
 
 // Apply the entry's substitution to a `Type | null` lookup result,
 // falling back to `TY_UNRESOLVED` on misses. The lookup-and-substitute
-// pattern repeats across every per-table accessor — centralised here
+// pattern repeats across every per-table accessor: centralised here
 // so a future side-table rekey only touches one match site.
 apply_or_unresolved :: fn(self: EntryTypes, raw: Type | null) -> Type {
     if raw is null { return TY_UNRESOLVED }
@@ -116,7 +116,7 @@ expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
     return apply_or_unresolved(self, self.typed.expr_types[expr.id])
 }
 
-/// Per-expression type WITHOUT applying the entry substitution — the raw
+/// Per-expression type WITHOUT applying the entry substitution: the raw
 /// recorded type. Needed where a type parameter must stay visible despite the
 /// entry's subst binding it : whether a `for`'s iterable was a type parameter, which
 /// only its instance can refuse. The substituting `expr_type` stays the default
@@ -132,11 +132,11 @@ raw_expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
 
 /// Per-local-binding type. Same fallback convention as `expr_type`.
 ///
-/// Keyed on `name_span`, NOT `span` — `assign_binding_types`
+/// Keyed on `name_span`, NOT `span`: `assign_binding_types`
 /// (`vader/front/typecheck/stmt.vader`) writes a `SimpleBinding`'s type under
 /// `sb.name_span.hash()`, and the resolver mints the local Symbol on the same
 /// `name_span`. The two coincide for every parser-produced binding
-/// (`span == name_span == name_tok.span`), so this was invisible — until a
+/// (`span == name_span == name_tok.span`), so this was invisible: until a
 /// materialised default-method body clone (`substitute_body.vader::
 /// stamp_binding_spans`) stamps `span` and `name_span` with DISTINCT synthetic
 /// spans. Reading `span` then missed the `name_span`-keyed type and the local
@@ -149,8 +149,8 @@ local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
     return apply_or_unresolved(self, self.typed.local_types[binding.name_span.hash()])
 }
 
-/// The type recorded under `key`, concretised through the entry's substitution
-/// — or null when the slot holds nothing a lowering pass can use.
+/// The type recorded under `key`, concretised through the entry's substitution,
+/// or null when the slot holds nothing a lowering pass can use.
 ///
 /// For the SPAN-keyed slots a loop variable lands in (`loop_var_type_key`).
 /// Those are shared: a generic combinator's `for x in self` over an
@@ -161,7 +161,7 @@ local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
 ///
 /// Null means "ask your own fallback", and covers three cases: no entry, an
 /// entry the typer left unresolved, and a type param that outlived the
-/// substitution — the last one meaning this body is being lowered generically
+/// substitution: the last one meaning this body is being lowered generically
 /// rather than as an instance, so only the caller's iterator type (or fused
 /// chain element) is concrete.
 ///
@@ -274,7 +274,7 @@ type_param_t :: fn() = Symbol {
 @test test_concrete_local_type_refuses_an_unsubstituted_param :: fn() -> void {
     typed :: empty_typed_program()
     typed.local_types[LOOP_VAR_KEY] = mk_type_param(type_param_t())
-    // Empty substitution — the body is being lowered generically, not as an
+    // Empty substitution: the body is being lowered generically, not as an
     // instance. Carrying `T` out of here is what built a step type whose fields
     // no instance ever materialised.
     view :: make_entry_types(typed, new_substitution())

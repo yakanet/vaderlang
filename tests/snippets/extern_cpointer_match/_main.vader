@@ -2,14 +2,14 @@
 //
 // The interpreter had no path from the machine word a foreign pointer comes
 // back as to the `CPointer` class, so this match took NO arm: not the pointer
-// one, not the null one, and not a trap either — the interpreter left `main`
+// one, not the null one, and not a trap either: the interpreter left `main`
 // with exit 0 while the native build took the pointer arm and carried on. The
 // two lines after the match are what made the difference visible.
 //
 // `lib/std/io` escaped it only because it asks `if f == null`, which agrees on
 // both backends. Every positive `is CPointer` test was silently dead.
 //
-// `fopen` and `fclose` are libc, so this runs on BOTH backends — which is the
+// `fopen` and `fclose` are libc, so this runs on BOTH backends, which is the
 // whole point: the bug is a divergence, and only a snippet the interpreter also
 // executes can pin it.
 //

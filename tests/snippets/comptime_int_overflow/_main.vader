@@ -1,7 +1,7 @@
 // Comptime wrapping arithmetic wraps at the type's runtime width: a folded i32
 // `+%` overflows to the same negative value the runtime produces, a shift amount
 // is masked to the width, and a genuine i64 keeps full precision.
-// Each line prints the comptime-baked const beside the runtime computation —
+// Each line prints the comptime-baked const beside the runtime computation:
 // they must be identical.
 module "snippet"
 

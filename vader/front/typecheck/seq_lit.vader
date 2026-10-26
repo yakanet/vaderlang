@@ -151,7 +151,7 @@ infer_against_array :: fn(
     // (`is_assignable_array`) accepts the init without a widening, which only an
     // argument may take. Elements implementing a trait the slot names fit it too:
     // `[Circle { .r = 1 }]` into a `Shape[]`. The guard preserves the mismatch
-    // diagnostic when an element does NOT fit — `xs: i32[] = ["a"]` keeps
+    // diagnostic when an element does NOT fit: `xs: i32[] = ["a"]` keeps
     // `string[]` and is rejected downstream. A type-param-bearing hint is skipped
     // so generic inference still pins `T` from the actual elements (`call.vader`
     // doesn't thread such a hint here).

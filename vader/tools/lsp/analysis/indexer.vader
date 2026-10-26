@@ -6,19 +6,19 @@
 // + every nested block to harvest :
 //
 //   * Top-level decls (`Fn`, `Struct`, `Enum`, `Trait`, `TypeAlias`,
-//     `Const`) — `scope_span = null` → visible file-wide.
-//   * Fn parameters (`FnDecl.params`) — `scope_span = body.span`.
+//     `Const`): `scope_span = null` → visible file-wide.
+//   * Fn parameters (`FnDecl.params`): `scope_span = body.span`.
 //   * Local let-bindings (`LetStmt.binding`'s `SimpleBinding` /
-//     `RestBinding` leaves, recursing through `TupleBinding`) — scope
+//     `RestBinding` leaves, recursing through `TupleBinding`): scope
 //     starts at the LetStmt and runs to the end of the enclosing block.
-//   * For-in loop bindings (`ForStmt.form == InFor`) — scope = loop
+//   * For-in loop bindings (`ForStmt.form == InFor`): scope = loop
 //     body block.
 //   * Imports, as the compiler collects them (`collect_module_no_index`) :
 //     renames (`import "p" { x as y }`) in `imports[]` for cross-file goto-def,
 //     namespace aliases in `namespace_aliases`, the wildcard paths and the
 //     names their modifier lists drop in `wildcards`.
 //
-//   * `match` header bindings — `match y :: e`, scoped to the match and
+//   * `match` header bindings: `match y :: e`, scoped to the match and
 //     declared at their name token.
 //
 // Lambda captures and pattern destructuring inside match arms aren't indexed
@@ -49,14 +49,14 @@ export DeclKind :: enum(u8) {
     Trait,
     TypeAlias,
     Const,
-    /// A struct field. Indexed so `img.pixels` has something to jump to — the
+    /// A struct field. Indexed so `img.pixels` has something to jump to: the
     /// struct's own name was the only thing recorded, so a field access resolved
     /// to nothing at all.
     Field,
     /// An enum variant, for the same reason: `.GeneratorReturnMustBeIterator`
     /// is a reference to one, and only the enum's own name was indexed.
     EnumVariant,
-    // Intra-file bindings — visible only within `scope_span`.
+    // Intra-file bindings: visible only within `scope_span`.
     Param,
     Local,
     ForIn,
@@ -74,7 +74,7 @@ export DeclEntry :: struct {
     signature:  string
     doc:        string
     scope_span: Span | null
-    /// The type this member belongs to — the struct for a field, the trait or
+    /// The type this member belongs to: the struct for a field, the trait or
     /// the impl's for-type for a method. Empty for anything that is not a
     /// member.
     ///
@@ -83,7 +83,7 @@ export DeclEntry :: struct {
     /// (the editor hovers it), so the owner is the half that was missing.
     owner:      string = ""
     /// True when this top-level decl is `export`ed. Lets the cross-file resolver
-    /// restrict a WILDCARD lookup to a module's public surface — a bare
+    /// restrict a WILDCARD lookup to a module's public surface: a bare
     /// `import "p"` exposes only p's exports, so goto-def must not land on p's
     /// private decls. Always false for locals / params (never module-visible).
     exported:   bool
@@ -106,7 +106,7 @@ export DocIndex :: struct {
     source:  string
     tokens:  Token[]
     decls:   DeclEntry[]
-    /// The file's renames — `import "p" { x as y }` binds `local` `y` to `p`'s
+    /// The file's renames: `import "p" { x as y }` binds `local` `y` to `p`'s
     /// `imported_name` `x`.
     imports: Rs.ImportInfo[]
     /// Namespace alias → module path, from `Name :: import "p"`.
@@ -115,10 +115,10 @@ export DocIndex :: struct {
     /// and the alias names a module, not a value, so no receiver type can be read
     /// off it : this binding is goto-def's one way back to the module.
     namespace_aliases: MutableMap<string, string>
-    /// The file's wildcard imports — bare `import "p"`, and `import "p" { … }`,
-    /// a wildcard with modifiers — with the names each modifier list drops. A
-    /// wildcard binds no rename — every export of `p` enters scope
-    /// unqualified — so the cross-file resolver falls back to these paths to
+    /// The file's wildcard imports: bare `import "p"`, and `import "p" { … }`,
+    /// a wildcard with modifiers: with the names each modifier list drops. A
+    /// wildcard binds no rename: every export of `p` enters scope
+    /// unqualified, so the cross-file resolver falls back to these paths to
     /// locate an unqualified name (see `resolver::resolve`).
     wildcards: Rs.FileImports
     /// `break` / `continue` → the loop it targets, for goto-definition on a
@@ -266,7 +266,7 @@ lj_expr :: fn(e: Expr, stack: LjFrame[], out: LoopJump[]) -> void {
 }
 
 // The for-in iteration variable, or null for a variable-less loop (`while`-
-// style, infinite, `_`, or a `for [k, v]` destructure) — those are targeted by
+// style, infinite, `_`, or a `for [k, v]` destructure): those are targeted by
 // a label, not a single variable.
 lj_for_binding :: fn(f: ForStmt) -> string | null {
     i :: f.form
@@ -343,7 +343,7 @@ binding_declared_at :: fn(decls: DeclEntry[], name: string, offset: i64) -> Decl
 }
 
 /// Return the identifier name at the click position, or `""` if no
-/// Ident token covers it. Exposed for the cross-file resolver — it
+/// Ident token covers it. Exposed for the cross-file resolver: it
 /// needs the bare name after `find_at` returned `null` so it can
 /// match against the import table.
 export name_at :: fn(idx: DocIndex, line: i32, character: i32) -> string {
@@ -431,7 +431,7 @@ export find_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
 
 /// Like `find_toplevel`, but only an `export`ed decl matches. Used to resolve a
 /// name brought into scope by a bare `import "p"` wildcard, which exposes only
-/// `p`'s public surface — so goto-def / hover never lands on a private decl.
+/// `p`'s public surface, so goto-def / hover never lands on a private decl.
 export find_exported_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
     for d in idx.decls {
         if is_member_kind(d.kind) {
@@ -445,7 +445,7 @@ export find_exported_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | 
 }
 
 // The name of an `implements` block's target type, or "" when it is not a plain
-// named type (`Box<T>`, a tuple, a union) — there is then no single owner a
+// named type (`Box<T>`, a tuple, a union): there is then no single owner a
 // receiver's type could match.
 impl_owner_name :: fn(t: TypeExpr) -> string {
     if t is IdentExpr {
@@ -454,13 +454,13 @@ impl_owner_name :: fn(t: TypeExpr) -> string {
     return ""
 }
 
-/// True for a kind that is only reachable THROUGH something else — a struct
+/// True for a kind that is only reachable THROUGH something else: a struct
 /// field, an enum variant.
 ///
 /// They are recorded with no `scope_span`, like a top-level decl, because they
 /// are visible wherever their owner is rather than inside a lexical region. But
 /// they are NOT names in scope: writing `pixels` bare is `R2006`. Every lookup
-/// that answers "what does this NAME denote here" must therefore exclude them —
+/// that answers "what does this NAME denote here" must therefore exclude them:
 /// missing one made a call to `vm_required(…)` resolve to a struct field of that
 /// name declared earlier in the file.
 export is_member_kind :: fn(k: DeclKind) -> bool = k == .Field || k == .EnumVariant
@@ -469,7 +469,7 @@ export is_member_kind :: fn(k: DeclKind) -> bool = k == .Field || k == .EnumVari
 /// variable) rather than a declaration.
 export is_binding_kind :: fn(k: DeclKind) -> bool = k == .Param || k == .Local || k == .ForIn
 
-/// Find the member `name` DECLARED BY `owner` — the precise lookup.
+/// Find the member `name` DECLARED BY `owner`: the precise lookup.
 ///
 /// `find_member` answers "some declaration of this name", which is a coin flip
 /// for a field: `cond`, `span` and `name` recur across structs. This answers
@@ -492,7 +492,7 @@ export find_member_of :: fn(idx: DocIndex, owner: string, name: string) -> DeclE
     return null
 }
 
-/// Find a METHOD by name — a fn declared inside a `trait` or an `implements`
+/// Find a METHOD by name: a fn declared inside a `trait` or an `implements`
 /// block.
 ///
 /// Such a member is recorded by `top_entry` like any top-level fn (its
@@ -501,7 +501,7 @@ export find_member_of :: fn(idx: DocIndex, owner: string, name: string) -> DeclE
 /// it: its wildcard lookup restricts to EXPORTED top-level decls, and a member
 /// never is one.
 ///
-/// Struct FIELDS match too — `e.cond` is the same question as `e.len()`, and
+/// Struct FIELDS match too: `e.cond` is the same question as `e.len()`, and
 /// both are what sits after a dot. The kind filter is what keeps this from
 /// being a second `find_toplevel`: a name that denotes a struct, an enum or a
 /// const must not be offered as the target of `x.name`.
@@ -552,7 +552,7 @@ collect_decl :: fn(
             // Fields too, for the same reason trait members are indexed just
             // below: `img.pixels` is a reference to one, and without an entry
             // goto-def has nothing to land on. Recorded at top level (no
-            // `scope_span`) — a field is reachable through any value of the
+            // `scope_span`): a field is reachable through any value of the
             // struct, not only inside its declaration.
             // `f.span` twice: `StructField` records no separate name span, so
             // the jump lands on the field's line and the highlight covers the
@@ -569,7 +569,7 @@ collect_decl :: fn(
         }
         is TraitDecl -> {
             entries.push(top_entry(d.name, .Trait, d.name_span, d.span, d, d.visibility == .Public, source, cmap))
-            // Trait members are fn decls — index their names too so
+            // Trait members are fn decls: index their names too so
             // goto-def on a method-name reference can land somewhere.
             for m in d.members {
                 entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m, false, source, cmap, d.name, d.type_params.len() + m.type_params.len() > 0))
@@ -587,7 +587,7 @@ collect_decl :: fn(
             // own params + body bindings.
             for m in d.members {
                 // SAM-sugar members (`Type implements Trait -> expr`) are
-                // synthetic and nameless — the method name is resolved from the
+                // synthetic and nameless: the method name is resolved from the
                 // trait later, not in the AST. Don't surface them as outline
                 // symbols : an empty `name` is a falsy LSP `DocumentSymbol.name`
                 // and crashes the whole `documentSymbol` response client-side.
@@ -596,7 +596,7 @@ collect_decl :: fn(
                     // `owner` is the FOR-TYPE, not the trait: `b.show()` with
                     // `b: Beta` must reach Beta's impl, and the receiver's type
                     // is what names it. Only the plain `Type implements …` shape
-                    // yields a name — a generic instantiation has no single one,
+                    // yields a name: a generic instantiation has no single one,
                     // and an empty owner degrades to the name-based lookup
                     // rather than pointing somewhere wrong.
                     entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m, false, source, cmap, impl_owner_name(d.for_type), d.type_params.len() + m.type_params.len() > 0))
@@ -612,7 +612,7 @@ collect_decl :: fn(
 top_entry :: fn(
     name: string, kind: DeclKind, name_span: Span, full_span: Span, node: DeclNode,
     exported: bool, source: string, cmap: CommentMap,
-    // The declaring type, for a member. Empty for everything else — see
+    // The declaring type, for a member. Empty for everything else, see
     // `DeclEntry.owner`.
     owner: string = "",
     generic: bool = false,
@@ -852,7 +852,7 @@ collect_let_binding :: fn(
 // caller passed a `type_hint` (extracted from `LetStmt.ty` annotation
 // or a literal `1_u64` suffix), render `<name>: <type>` like a
 // fn-parameter signature. Otherwise fall back to slicing the source
-// line for `<name> := <expr>` — readable, just less precise.
+// line for `<name> := <expr>`: readable, just less precise.
 local_sig :: fn(
     name: string, type_hint: string,
     decl_start: i64, scope_end: i64, source: string,
@@ -987,7 +987,7 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
 
 // ---- signature helpers ---------------------------------------------------
 
-// Slice up to the end of the current line — used for local-binding
+// Slice up to the end of the current line: used for local-binding
 // signatures (`x :: expr` form). Caps at `upper` so we don't read past
 // the enclosing block.
 slice_to_eol :: fn(source: string, start: i64, upper: i64) -> string {
@@ -1002,7 +1002,7 @@ slice_to_eol :: fn(source: string, start: i64, upper: i64) -> string {
     return source.byte_slice(start, cursor).trim()
 }
 
-// Slice the source for a span — used to render `x: T` for params and
+// Slice the source for a span: used to render `x: T` for params and
 // `for x in ...` for for-in bindings. Falls back to the bare name on
 // degenerate spans.
 param_signature_slice :: fn(span: Span, fallback: string, source: string) -> string {

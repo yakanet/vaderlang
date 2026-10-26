@@ -67,8 +67,8 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
         return decl_hover(hit, generic_instance(state, uri, idx, hit, line, character))
     }
 
-    // Value-position hovers — a local, an argument, an intermediate
-    // sub-expression — surface their inferred type here.
+    // Value-position hovers: a local, an argument, an intermediate
+    // sub-expression: surface their inferred type here.
     typed_payload :: try_typed_hover(state, uri, idx, line, character)
     if typed_payload != null {
         return typed_payload
@@ -89,7 +89,7 @@ resolve_hit_at :: fn(state: ServerState, uri: string, idx: DocIndex, line: i32, 
     // the two disagreed on one token: Ctrl+click on `ctx.string_array_tag`
     // landed on the field while the tooltip described the FUNCTION of that
     // name. A tooltip that documents a different declaration than the jump is
-    // worse than no tooltip — it is confidently wrong.
+    // worse than no tooltip: it is confidently wrong.
     by_type :: member_by_type(state, uri, idx, line, character)
     if by_type != null {
         return by_type
@@ -417,7 +417,7 @@ type_hover :: fn(name: string, ty: Type) -> JsonValue {
 }
 
 // The cursor-position AST walkers (`find_expr_at`, `find_binding_rhs_type_at`)
-// live in `vader/tools/lsp/analysis/ast_walk` — shared with typeDefinition and the
+// live in `vader/tools/lsp/analysis/ast_walk`: shared with typeDefinition and the
 // completion / code-action layers.
 
 // ---- tests ----------------------------------------------------------------

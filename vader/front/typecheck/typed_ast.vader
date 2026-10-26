@@ -1,8 +1,8 @@
 // vader/front/typecheck/typed_ast: output shape of the typechecker.
 //
-// `TypedProgram` carries the side-tables each typecheck pass produces —
+// `TypedProgram` carries the side-tables each typecheck pass produces,
 // expression / local / decl / param types, struct & trait decls, narrowing
-// stacks, cross-module type caches, and so on — each populated by its
+// stacks, cross-module type caches, and so on, each populated by its
 // producing pass (`decl.vader`, `stmt.vader`, `field.vader`, `narrow.vader`,
 // the orchestrator, …). Most tables are span-keyed (`line:col`), the same
 // convention as `vader/front/resolver/body.vader::ResolvedFile.idents` ; the
@@ -35,7 +35,7 @@ export declared_type_at :: fn(typed: TypedProgram, name_span: Span) -> Type | nu
 }
 
 /// The suffix that tells apart the overloads of `name` in `module`: empty for
-/// the first one declared — and for a name declared once — `_<i>` for the i-th
+/// the first one declared (and for a name declared once) `_<i>` for the i-th
 /// after it. A fn's mangled name carries it, and so does the state struct of a
 /// `generator`, which is per declaration too.
 ///
@@ -57,7 +57,7 @@ export overload_suffix :: fn(module: ResolvedModule, name: string, name_span: Sp
     return ""
 }
 
-/// Every imported overload in scope in `file`, keyed by name — the file's own
+/// Every imported overload in scope in `file`, keyed by name: the file's own
 /// wildcard imports plus the `std/core` prelude. Null when the file imported
 /// nothing, which is a normal answer, not a missing table.
 ///
@@ -66,7 +66,7 @@ export overload_suffix :: fn(module: ResolvedModule, name: string, name_span: Sp
 /// agrees on what a key is.
 ///
 /// @param typed  the module's typechecked program.
-/// @param file   the source file the lookup is on behalf of — `Span.start.file`
+/// @param file   the source file the lookup is on behalf of: `Span.start.file`
 ///               of the node being resolved, never a hard-coded path.
 /// @return       that file's name → overloads table, or null.
 imported_overloads_table_in :: fn(
@@ -97,14 +97,14 @@ export BoundedImpl :: struct {
     bounds:    ArgBound[]
 }
 
-/// One fn a call to its name may resolve to — an overload declared here, or one
+/// One fn a call to its name may resolve to: an overload declared here, or one
 /// a file's wildcard imports put in unqualified scope.
 ///
 /// The DECLARATION is what carries parameter names and default values: without
 /// it a UFCS call to an imported fn could not fill a defaulted argument.
 export FnCandidate :: struct {
     ty: FnType
-    /// The fn itself, in the module that declares it — what a call picking this
+    /// The fn itself, in the module that declares it: what a call picking this
     /// candidate runs.
     symbol: Symbol
     /// Null when the providing module produced no `FnDecl` for the symbol.
@@ -124,7 +124,7 @@ export AsyncRuntime :: struct {
 }
 
 /// The declaration of the fn typecheck chose for the call whose callee is
-/// `callee_id` — see `TypedProgram.chosen_fns`. Null when it chose none, or when
+/// `callee_id`, see `TypedProgram.chosen_fns`. Null when it chose none, or when
 /// the chosen fn's module produced no declaration.
 ///
 /// @param typed      the module the call was checked in.
@@ -135,7 +135,7 @@ export chosen_decl :: fn(typed: TypedProgram, callee_id: i64) -> AST.FnDecl | nu
     return chosen.decl
 }
 
-/// The impl member a method call `x.m(…)` dispatched to — see
+/// The impl member a method call `x.m(…)` dispatched to, see
 /// `TypedProgram.chosen_impl_methods`. Null when the callee is no impl method.
 ///
 /// @param typed      the module the call was checked in.
@@ -160,7 +160,7 @@ imported_overloads_in :: fn(
     return table[name] ?? []
 }
 
-/// Find an import binding of the module by id — the key of the tables that map
+/// Find an import binding of the module by id: the key of the tables that map
 /// a binding to what it names (`import_targets`).
 ///
 /// @param sym_id  the binding's id, as an id-keyed table carries it.
@@ -175,7 +175,7 @@ import_binding_by_id :: fn(sym_id: i32, typed: TypedProgram) -> Symbol | null {
     return null
 }
 
-/// The traits a type parameter's bound names — `T: Add & Zero` gives `Add` and
+/// The traits a type parameter's bound names: `T: Add & Zero` gives `Add` and
 /// `Zero`, `C: Contains<i32>` gives `Contains<i32>`, argument included.
 export TypeParamBound :: struct {
     /// The type parameter, as written.
@@ -186,7 +186,7 @@ export TypeParamBound :: struct {
     integer: bool = false
 }
 
-/// A static trait member reached through the type that owns it — `T.zero()`,
+/// A static trait member reached through the type that owns it: `T.zero()`,
 /// `i64.zero()`.
 export StaticMember :: struct {
     /// The type the member is called on, as written : a type parameter is
@@ -209,7 +209,7 @@ export ImplMethod :: struct {
     /// (`Add<f64>`, `Add<Vec2>`).
     trait_key:    string = ""
     trait_args:   Type[] = []
-    /// That trait's declaration — `trait_key` is its `trait_key_of` — ; null for a
+    /// That trait's declaration: `trait_key` is its `trait_key_of`, ; null for a
     /// method no impl declares. A union receiver dispatches through it
     /// (`union_dispatch_traits`).
     trait_symbol: Symbol | null = null
@@ -235,17 +235,17 @@ export ImplTables :: struct {
 
     /// `"${impl_base_key}::${methodName}" → the `trait_key`s of every trait
     /// providing the same method on the same receiver. When the list
-    /// has 2+ entries, an unqualified `x.method()` is ambiguous —
+    /// has 2+ entries, an unqualified `x.method()` is ambiguous:
     /// `field.vader` emits T3032.
     impl_method_traits: MutableMap<string, string[]> = MutableMap<string, string[]> {}
 
-    /// `impl_base_key → trait_key`s for every `X implements Trait` impl — what
+    /// `impl_base_key → trait_key`s for every `X implements Trait` impl: what
     /// the run-time `is Trait` test sees. A generic impl
     /// counts here for every argument ; `impl_bounds` narrows it to the arguments
     /// its bounds admit (`struct_implements_trait`).
     struct_implemented_traits: MutableMap<string, string[]> = MutableMap<string, string[]> {}
 
-    /// `Symbol.id → trait_key`s — the twin of `struct_implemented_traits` for
+    /// `Symbol.id → trait_key`s: the twin of `struct_implemented_traits` for
     /// the types that have a declaration, populated in lockstep by
     /// `record_struct_trait`. Symbol ids are project-global-unique (one
     /// shared `SymbolFactory`). Threaded to the bytecode
@@ -268,7 +268,7 @@ export ImplTables :: struct {
     impl_bounds: MutableMap<string, BoundedImpl[]> = MutableMap<string, BoundedImpl[]> {}
 
     /// `impl_base_key` of every base an impl on one instance is written for
-    /// (`Wrapper` for `Wrapper<MonType> implements …`) — the receivers whose
+    /// (`Wrapper` for `Wrapper<MonType> implements …`): the receivers whose
     /// lookups ask their own type's key before their base's (`own_impl_key`).
     instance_impl_bases: MutableSet<string> = MutableSet<string> {}
 
@@ -308,7 +308,7 @@ export ImplTables :: struct {
 }
 
 /// Per-module typechecker output. Every span-keyed side-table uses the
-/// `i64` key produced by `scope.node.span.hash()` — packed
+/// `i64` key produced by `scope.node.span.hash()`: packed
 /// `(line << 32) | column`. Consumers walk the resolved AST and look
 /// up types by span.
 export TypedProgram :: struct {
@@ -325,7 +325,7 @@ export TypedProgram :: struct {
     /// Target type of every implicit `.into()` coercion, keyed by the
     /// coerced value expression's `Expr.id`. Written by `coerce.vader::
     /// try_into` on the two `.into()`-flavoured branches (a real `Into`
-    /// impl and the `T[] → Iterator<T>` blanket) — trait widening
+    /// impl and the `T[] → Iterator<T>` blanket): trait widening
     /// (`Cat → Animal`) is a subtype widen with no synthesised call, so
     /// it records nothing. Read by the LSP inlay-hint handler, which surfaces a
     /// ghost `.into()` at the value's end, and by the lowering where a value's
@@ -335,7 +335,7 @@ export TypedProgram :: struct {
 
     /// Type of every `:=` / `::` local binding, keyed by binding span
     /// (the span on `SimpleBinding` / `RestBinding`, not the LetStmt)
-    /// via `Span.hash()` — the file's string hash folded with the start
+    /// via `Span.hash()`: the file's string hash folded with the start
     /// line/column (`lib/toolchain/span/span.vader`).
     local_types: MutableMap<u64, Type>
 
@@ -344,7 +344,7 @@ export TypedProgram :: struct {
     /// says to write the type instead.
     unwritten_locals: MutableSet<u64> = MutableSet<u64> {}
 
-    /// `x := []` — the empty-array initialiser's expression id, keyed by the
+    /// `x := []`: the empty-array initialiser's expression id, keyed by the
     /// same binding span as `local_types`. Read by
     /// `call.vader::widen_empty_array_local`, which must widen the LITERAL
     /// alongside the local : the literal's own `expr_types` entry is what the
@@ -362,9 +362,9 @@ export TypedProgram :: struct {
     decl_types: MutableMap<i32, Type>
 
     /// Impl-method types, keyed by the method's `name_span` via
-    /// `Span.hash()`. Impl methods don't have a resolver `Symbol` —
-    /// they live as members of an `ImplDecl` block, not as
-    /// top-level names — so they can't share the `Symbol.id`
+    /// `Span.hash()`. Impl methods don't have a resolver `Symbol`
+    /// (they live as members of an `ImplDecl` block, not as
+    /// top-level names) so they can't share the `Symbol.id`
     /// keying used by `decl_types`. Per-file uniqueness is enough
     /// because an `impl` block lives in one file ; cross-file
     /// collisions don't apply.
@@ -374,7 +374,7 @@ export TypedProgram :: struct {
     /// via `Span.hash()`.
     param_types: MutableMap<u64, Type>
 
-    /// Type of every type-position expression — `let x: T = …` annotations,
+    /// Type of every type-position expression: `let x: T = …` annotations,
     /// fn signatures, struct field types, etc. Keyed by the expression's
     /// own span via `Span.hash()` so downstream passes can reuse what
     /// `type_from_expr` already computed.
@@ -400,7 +400,7 @@ export TypedProgram :: struct {
     /// else may write it: a module's own fns are its `resolved.fn_overloads`.
     fn_decls: MutableMap<i32, AST.FnDecl>
 
-    /// Owner module of each trait — used when resolving trait method
+    /// Owner module of each trait: used when resolving trait method
     /// signatures so cross-module `Iterator<T>.next` types `T` against
     /// std/core's resolved.idents, not the entry's. Keyed by the
     /// trait's Symbol id, populated and shared alongside `trait_decls`.
@@ -459,11 +459,11 @@ export TypedProgram :: struct {
     /// the orchestrator ; replaces the name-keyed core-symbol lookups for these.
     range_symbol: Symbol | null
     field_symbol: Symbol | null
-    /// `std/core`'s `Async` trait symbol — used to synthesise the `Async<T>`
+    /// `std/core`'s `Async` trait symbol: used to synthesise the `Async<T>`
     /// result type of an `async fn` call. Populated once from core by the
     /// orchestrator (mirror of `range_symbol`).
     async_symbol: Symbol | null
-    /// `std/core`'s `Equals` trait symbol — the trait every enum implements with
+    /// `std/core`'s `Equals` trait symbol: the trait every enum implements with
     /// no impl (`has_builtin_impl`). Populated once from core by the orchestrator.
     equals_symbol: Symbol | null
     /// The `std/async` functions the compiler calls : one record for the whole
@@ -490,8 +490,8 @@ export TypedProgram :: struct {
     /// neither may lend its names to the other.
     ///
     /// Read it through `imported_overloads_table_in` and friends, never by
-    /// indexing: each table is registered under TWO keys — the file's path and
-    /// the `<clone>:` form a materialised trait-default body carries — so the
+    /// indexing: each table is registered under TWO keys (the file's path and
+    /// the `<clone>:` form a materialised trait-default body carries) so the
     /// map holds two entries per file, both pointing at the same table. Counting
     /// its entries does not count the module's files.
     imported_fn_overloads: MutableMap<string, MutableMap<string, FnCandidate[]>>
@@ -500,13 +500,13 @@ export TypedProgram :: struct {
     /// UFCS-dispatched field access (i.e. the param that got
     /// curried away). `infer_call` unifies it against the receiver's
     /// type to harvest type-param bindings before substituting the
-    /// return type — the curried fn keeps the un-substituted
+    /// return type: the curried fn keeps the un-substituted
     /// signature for display.
     ufcs_receiver_types: MutableMap<i64, Type>
 
     /// Callee id → the fn typecheck chose for the call : the fn a UFCS `x.f(…)`
     /// dispatched to (keyed by the `FieldExpr`), the overload a direct call to
-    /// an overloaded name picked (keyed by the `IdentExpr` — the resolver binds
+    /// an overloaded name picked (keyed by the `IdentExpr`: the resolver binds
     /// that name to its first declaration).
     ///
     /// Both picks rank the candidates the call site's FILE can see. Re-deriving
@@ -543,7 +543,7 @@ export TypedProgram :: struct {
     /// them (T3006).
     struct_bounds: MutableMap<i32, ArgBound[]>
 
-    /// Id of the `FieldExpr` callee being typed — `T.zero` in `T.zero()`. Set by
+    /// Id of the `FieldExpr` callee being typed: `T.zero` in `T.zero()`. Set by
     /// the call right before it types its callee, so a member access can tell a
     /// call from a use as a value : a static member (T3093), and the callee a
     /// decision is noted on (`note_callee`). Each call puts back the id it found,
@@ -595,20 +595,20 @@ export TypedProgram :: struct {
 
     /// `AST.id → Span` reverse lookup for the typed-ast dump's `line:col`
     /// rendering (or `undefined:undefined` for materialised spans). Populated
-    /// alongside `expr_kinds` — and, like it, only when `dump_types` is set
+    /// alongside `expr_kinds`, and, like it, only when `dump_types` is set
     /// (see below) ; `expr_types` always populates, these two do not.
     node_spans: MutableMap<i64, Span>
 
     /// When true, `record_expr` (+ the stmt / binary dump sites) populate the
     /// dump-only side-tables `expr_kinds` / `node_spans`. Set only for a
     /// `dump --stage=typed-ast` (through `check_file`) ; false on build / run /
-    /// LSP / every other dump stage, where those tables are never read — so
+    /// LSP / every other dump stage, where those tables are never read, so
     /// skipping the writes saves two map inserts per expression on every body
     /// walk (the typecheck pass is the self-compile's biggest GC churner).
     dump_types: bool
 
     /// Every `generator`'s state struct and element, keyed by the hash of its
-    /// declaration's name span — one entry per declaration, so two overloads of a
+    /// declaration's name span: one entry per declaration, so two overloads of a
     /// name are two generators. Written into every module by
     /// `register_generator_iter_impls`; read through `generator_state_of`.
     generator_states: MutableMap<u64, GeneratorState>
@@ -620,7 +620,7 @@ export TypedProgram :: struct {
     /// binding's `Symbol.id` (resolver-minted Local), value is the
     /// resolved underlying `Type`. Populated by `check_let` when the
     /// RHS is a structural type expression and the binding is
-    /// immutable. Consumed at use sites — `@size_of(t)` and friends
+    /// immutable. Consumed at use sites: `@size_of(t)` and friends
     /// fold to a literal when the ident resolves to a key here.
     let_type_aliases: MutableMap<i32, Type>
 
@@ -682,7 +682,7 @@ export TypedProgram :: struct {
     /// expression checker, so lost inside `if`/`match` branch blocks), this
     /// survives arbitrary expression nesting. `check_loop_jump` scans it to
     /// resolve a `break <name>` / `continue <name>` to the loop whose iteration
-    /// variable (or label) is `<name>` — innermost-first. Its `.len()` is also
+    /// variable (or label) is `<name>`: innermost-first. Its `.len()` is also
     /// the loop-nesting depth, if ever needed.
     loop_stack: EnclosingLoop[] = []
     /// Non-zero while the arguments of an OVERLOADED call are being checked.
@@ -693,8 +693,8 @@ export TypedProgram :: struct {
 
     /// Resolution result for var-targeted loop jumps : `ForStmt.id` → the
     /// iteration-variable name a `break <var>` / `continue <var>` targeted it by.
-    /// The lowerer reads it to stamp `LoweredLoop.label` (only for targeted loops
-    /// — untargeted loops keep their pristine `ForStmt.label`). Written
+    /// The lowerer reads it to stamp `LoweredLoop.label` (only for targeted loops:
+    /// untargeted loops keep their pristine `ForStmt.label`). Written
     /// idempotently, so it survives the two-pass / multi-module walks.
     loop_target_labels: MutableMap<i64, string>
 
@@ -738,7 +738,7 @@ export ConstTyping :: struct {
 /// The consts of one `walk_bodies` walk and where each stands : each is typed once
 /// per walk, at its turn or at the first read before it, whichever comes first.
 export ConstWalk :: struct {
-    /// Each const's declaration, by its span hash — the key of `states` too ;
+    /// Each const's declaration, by its span hash: the key of `states` too ;
     /// `const_decls` reaches it from a symbol.
     decls: MutableMap<u64, AST.ConstDecl> = MutableMap<u64, AST.ConstDecl> {}
     /// Where each const stands ; absent until the walk starts typing it.
@@ -761,7 +761,7 @@ export EnclosingLoop :: struct {
     label:   string | null
 }
 
-/// Across the whole project — multi-module aggregation. Populated by
+/// Across the whole project: multi-module aggregation. Populated by
 /// the orchestrator (`check.vader`).
 export TypedProject :: struct {
     modules: MutableMap<string, TypedProgram>
@@ -850,7 +850,7 @@ export new_typed_project :: fn(fresh: FreshReads) -> TypedProject = TypedProject
     .fresh = fresh,
 }
 
-/// Test helper — empty TypedProgram bound to a synthetic resolved module.
+/// Test helper: empty TypedProgram bound to a synthetic resolved module.
 /// Avoids re-running the parser+resolver pipeline for tests that only
 /// need to exercise the side-table writes.
 export empty_typed_program :: fn() -> TypedProgram {

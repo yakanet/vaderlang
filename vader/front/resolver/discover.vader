@@ -12,13 +12,13 @@ import "vader/support/diagnostics"
 import "toolchain/span"
 
 /// A resolved module : its declared name, its folder, and its `.vader` file
-/// paths. Files are parsed lazily by the loader on visit — not stashed as
+/// paths. Files are parsed lazily by the loader on visit, not stashed as
 /// ASTs (the self-host GC arenas can't hold ~170 parsed programs at once).
 export DiscoveredModule :: struct {
     name:   string
     folder: string
     files:  string[]
-    /// Who provided it — the origin of the include-path root that declared it, see
+    /// Who provided it: the origin of the include-path root that declared it, see
     /// `ModuleOrigin`. Required, matching `Module.origin`: a default here would be
     /// the one kind of wrong answer that compiles.
     origin: ModuleOrigin

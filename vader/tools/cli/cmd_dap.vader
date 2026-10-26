@@ -21,7 +21,7 @@ import "vader/lower/dce"
 
 // `vader dap` : Debug Adapter Protocol server on stdio (VSCode F5). Drives the
 // bytecode VM. The compile step is injected as a callback so `vader/tools/dap` stays
-// free of a `vader/tools/cli` dependency (which would close an import cycle) — the
+// free of a `vader/tools/cli` dependency (which would close an import cycle): the
 // pipeline (lower → cfg → bytecode → prepare) lives here.
 cmd_dap :: fn(args: string[]) -> i32 {
     parsed :: parse_action("dap", args)
@@ -32,7 +32,7 @@ cmd_dap :: fn(args: string[]) -> i32 {
 }
 
 // Compile a launch-target `.vader` to a `DapProgram`.
-//   want_debug = true  : the DAP path is the debug path — the per-op `debug`
+//   want_debug = true  : the DAP path is the debug path, the per-op `debug`
 //                        table backs breakpoints, stepping, and the stack view.
 //   optimize   = false : the "-O0 of the debugger". Skips
 //                        slot coalescing + the single-expr inliner, so slots map

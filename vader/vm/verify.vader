@@ -5,14 +5,14 @@
 // the bottom of its frame's stack, that every immediate index (slot, fn, import,
 // pool, string, type) names something, that every jump lands inside the body, and
 // that every path out of a function leaves exactly its results. `prepare` rejects
-// a module that fails, so `exec` never meets malformed bytecode — and sizes each
+// a module that fails, so `exec` never meets malformed bytecode, and sizes each
 // frame's stack to the deepest point found, so no push checks capacity.
 //
 // Blocks carry no values: a scope marker (`block` / `loop` / `if` / `else` /
 // `end`) moves nothing, and a jump must land at the depth it left. The analysis is
 // the classic forward dataflow over pcs, one depth per pc, merged at jump targets.
 //
-// The shipped bodies are verified — the input `reg_translate.vader` turns into
+// The shipped bodies are verified: the input `reg_translate.vader` turns into
 // register code. Operand tags are checked by the sibling pass `tags.vader`. What
 // depends on a VALUE stays a run-time check: `call.indirect` / `virtual.call`
 // targets, array bounds.
@@ -23,7 +23,7 @@ VirtOut :: import "vader/emit/virt"
 bc :: import "vader/core/bytecode"
 import "std/string_builder"
 
-/// Why a module was refused at load time — the first defect found.
+/// Why a module was refused at load time: the first defect found.
 export VerifyError :: struct {
     /// Mangled name of the function holding the defect.
     function: string
@@ -42,7 +42,7 @@ export display_verify_error :: fn(e: VerifyError) -> string = "${e.message} at p
 ///
 /// @param module  the module `prepare` is about to wrap.
 /// @return        the deepest the operand stack gets in each function, index-aligned
-///                with `module.functions` — what a frame's stack is sized to.
+///                with `module.functions`: what a frame's stack is sized to.
 /// @error         a `VerifyError` naming the function, the pc and the first defect.
 export verify_module :: fn(module: bc.BytecodeModule) -> i64[] | VerifyError {
     depths: i64[]: [] * module.functions.len()

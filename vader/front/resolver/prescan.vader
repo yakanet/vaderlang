@@ -17,7 +17,7 @@ AST :: import "toolchain/ast"
 
 /// Walk every ImplDecl in `loaded.module.files` and push R2018 when
 /// neither the for-type nor the trait is owned by `module_id`.
-/// Symbols come from `collected.symbols` (for the trait name lookup —
+/// Symbols come from `collected.symbols` (for the trait name lookup:
 /// the body-walker doesn't visit `trait_name_span`) and from `idents`
 /// (for the for-type, which IS walked through `walk_expr`). Both
 /// resolve through `wire_imports`' redirect table to follow

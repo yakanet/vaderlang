@@ -1,6 +1,6 @@
 // T3054 : a struct field marked `@internal` is accessed from outside its
 // declaring module. `MutableSet.inner` (and the backing `MutableMap.size`) are
-// `@internal` to `std/collections` — the only cross-module surface is the
+// `@internal` to `std/collections`: the only cross-module surface is the
 // public API (`add` / `len` / `in`). Reaching into `.inner.size` from
 // `module "snippet"` must be rejected: one T3054 for `.inner` (MutableSet) and
 // one for `.size` (the MutableMap it yields).

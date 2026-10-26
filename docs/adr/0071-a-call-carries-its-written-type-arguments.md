@@ -1,4 +1,4 @@
-# 0071 — A call carries its written type arguments
+# 0071: A call carries its written type arguments
 
 ## Status
 

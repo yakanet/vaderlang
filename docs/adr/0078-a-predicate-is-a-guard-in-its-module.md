@@ -1,4 +1,4 @@
-# 0078 — A predicate is a guard in its module
+# 0078: A predicate is a guard in its module
 
 ## Status
 

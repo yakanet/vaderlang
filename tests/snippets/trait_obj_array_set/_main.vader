@@ -3,7 +3,7 @@
 // erased element (trait) tag. `emit_array_set` routes the value through the
 // same `coerce_expr(.. .Any)` a plain `.Any`-slot assignment uses, so a struct
 // impl boxes via its object header and a DISTINCT-PRIMITIVE impl via its own
-// type index — earlier the set stamped the trait tag → runtime vtable miss.
+// type index: earlier the set stamped the trait tag → runtime vtable miss.
 
 module "snippet"
 
@@ -11,7 +11,7 @@ import "std/io"
 
 Shape :: trait { area :: fn(self) -> i32 }
 
-// distinct-primitive impl (the tricky case — a box, not a header-bearing ref)
+// distinct-primitive impl (the tricky case: a box, not a header-bearing ref)
 Square :: i32
 Square implements Shape { area :: fn(self) -> i32 = i32(self) * i32(self) }
 

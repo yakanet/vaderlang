@@ -1,5 +1,5 @@
 // fusion_recursive_generator: a generator that consumes itself. The outer call
-// is inlined; the recursive call, met inside its own inlined body, is not — it
+// is inlined; the recursive call, met inside its own inlined body, is not: it
 // takes the lazy path, a state machine, where a local declared in an `if` after
 // a `yield` must still live in the state.
 //

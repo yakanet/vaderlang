@@ -18,7 +18,7 @@ emit_let_binding_leaves :: fn(
     target_type: Type, span: Span, out: LoweredStmt[],
 ) -> void {
     // A tuple- or array-backed distinct newtype (`Coord :: [i32, i32]`,
-    // `BigInt :: u32[]`) destructures through its backing composite — unwrap the
+    // `BigInt :: u32[]`) destructures through its backing composite: unwrap the
     // outer distinct so every tuple/array shape check below sees through it. The
     // read `target` keeps its distinct type (the emit boundary strips it).
     resolved :: destructure_backing(target_type)
@@ -35,7 +35,7 @@ emit_let_binding_leaves :: fn(
     // through an `Into<[...]>` impl on the value's type (a user struct that
     // ships `implements Into<[...]>`). When the impl's `into` body is a tuple
     // literal of plain `self.<field>` reads, bind each leaf DIRECTLY to
-    // `target.<field>` — no `into()` call, no per-iteration tuple allocation.
+    // `target.<field>`: no `into()` call, no per-iteration tuple allocation.
     // `build_leaf_access` reads these names instead of the `_<i>` tuple field.
     if !(resolved is TupleType) && !(resolved is ArrayType) {
         candidate :: into_tuple_fields(ctx, resolved, binding.elements.len())
@@ -48,7 +48,7 @@ emit_let_binding_leaves :: fn(
         // No inlinable `Into<[...]>` shape : either the typer already rejected
         // this (T3001), or the `Into` impl's `into` body isn't the zero-alloc
         // `[self.f0, …]` tuple literal we can inline. Don't silently emit
-        // `_<index>` field reads against a struct (a miscompile) — trap loudly.
+        // `_<index>` field reads against a struct (a miscompile): trap loudly.
         // A general allocating `into()` fallback could land here if a
         // computed-body `Into<[...]>` impl ever needs it.
         out.push(LoweredExprStmt {
@@ -69,7 +69,7 @@ emit_let_binding_leaves :: fn(
 // Resolve the field names a `[...]` destructure of `arity` leaves should read when
 // its target type coerces through `Into<[...]>`. Returns the per-element field
 // names when the `into` of that arity has a body that is a tuple literal of plain
-// `self.<field>` reads — the zero-alloc inline case — and null otherwise. Mirror of
+// `self.<field>` reads (the zero-alloc inline case) and null otherwise. Mirror of
 // the typer's `into_tuple_target`, which picks the first `Into` of that arity too.
 into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type, arity: i64) -> string[] | null {
     for entry in ctx.project.impls.impls_for(target_type, core_trait_key(TRAIT_INTO)) {
@@ -84,7 +84,7 @@ into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type, arity: i64) -> strin
 
 // Field names of an `into` member whose body is `[self.f0, self.f1, …]`.
 // Returns null unless the body is exactly a tuple/array literal of `self.<f>`
-// field reads (no stmts, no computed elements) — anything else routes through
+// field reads (no stmts, no computed elements): anything else routes through
 // the allocating `into()` fallback, not this zero-alloc inline.
 seq_self_field_names :: fn(m: FnDecl) -> string[] | null {
     body :: m.body ?? return null
@@ -155,7 +155,7 @@ emit_rest_loop :: fn(
     target: LoweredExpr, elem_type: Type, span: Span, out: LoweredStmt[],
 ) -> void {
     // The resolver indexes a rest binding's Symbol by `span` (not
-    // `name_span` like simple bindings — see resolver `bind_let_binding`).
+    // `name_span` like simple bindings, see resolver `bind_let_binding`).
     rest_sym :: resolve_binding(ctx, rest.span) ?? return
     array_type :: mk_array(elem_type)
     empty_arr :: LoweredArrayLit { .span = rest.span, .type = array_type, .elements = [] }
@@ -225,7 +225,7 @@ read_local_cell_aware :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span
     return LoweredIdent { .span = span, .type = type, .symbol = sym }
 }
 
-// A fixed array-destructure leaf (`a` in `[a, ...rest]`) — binds the
+// A fixed array-destructure leaf (`a` in `[a, ...rest]`): binds the
 // leaf to an already-built index access. SimpleBinding binds directly ;
 // nested tuples recurse.
 emit_let_leaf_array :: fn(
@@ -292,7 +292,7 @@ tuple_or_array_element_type :: fn(
     target_type: Type, index: i64, ctx: FnLowerCtx, binding: SimpleBinding,
 ) -> Type {
     // Prefer the typer's per-binding type (already substituted) when
-    // available — most accurate for the user's slot.
+    // available: most accurate for the user's slot.
     from_typed :: ctx.types.local_type(binding)
     match from_typed {
         is UnresolvedType -> {}
@@ -312,10 +312,10 @@ tuple_or_array_element_type :: fn(
 
 
 // Build the leaf-read for a destructure : `[index]` for arrays, else a field
-// access — `_<index>` for a tuple, or the named field from `field_names` when
+// access: `_<index>` for a tuple, or the named field from `field_names` when
 // the value coerces through `Into<[...]>` (reading the impl's `self.<field>`
 // names, not `._0` / `._1`).
-/// The composite a `[...]` pattern reads through — a tuple- or array-backed
+/// The composite a `[...]` pattern reads through: a tuple- or array-backed
 /// distinct newtype (`Coord :: [i32, i32]`, `BigInt :: u32[]`) answers its
 /// backing, everything else answers itself. The read expression keeps the
 /// distinct type ; the emit boundary strips it.

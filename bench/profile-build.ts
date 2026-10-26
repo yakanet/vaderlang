@@ -2,10 +2,10 @@
 // CPU, and memory while compiling ITSELF (`vader/tools/cli/main.vader`).
 //
 // Two complementary layers:
-//   1. In-compiler per-pass profiler (VADER_PROFILE=1) — load / typecheck /
+//   1. In-compiler per-pass profiler (VADER_PROFILE=1): load / typecheck /
 //      comptime / lower / cfg / escape / bytecode / c-emit wall + RSS-growth +
 //      GC churn, printed by the runtime (see vader/support/profile + runtime/c).
-//   2. This harness — wraps each build STAGE under `/usr/bin/time -l` to add
+//   2. This harness: wraps each build STAGE under `/usr/bin/time -l` to add
 //      whole-process wall / user+sys CPU / peak RSS, plus an optional
 //      per-type GC live-set dump (VADER_GC_PROFILE=1).
 //
@@ -48,7 +48,7 @@ function parseArgs(): Args {
 }
 
 // Arena sizing is RAM-proportional (runtime/c/vader_runtime.c::vader_gc_init),
-// matching bootstrap/build.sh — no manual pin, so the profile reflects the real
+// matching bootstrap/build.sh: no manual pin, so the profile reflects the real
 // shipped default. A VADER_GC_* value already in the environment still wins.
 const GC_ENV: Record<string, string> = {};
 if (process.env.VADER_GC_YOUNG_BYTES) GC_ENV.VADER_GC_YOUNG_BYTES = process.env.VADER_GC_YOUNG_BYTES;
@@ -105,10 +105,10 @@ function extractGcBlock(stderr: string): string | null {
 }
 
 function fmtSec(s: number | null): string {
-  return s === null ? "   —  " : `${s.toFixed(2)}s`;
+  return s === null ? "   -  " : `${s.toFixed(2)}s`;
 }
 function fmtMB(b: number | null): string {
-  return b === null ? "   —  " : `${(b / (1024 * 1024)).toFixed(0)} MB`;
+  return b === null ? "   -  " : `${(b / (1024 * 1024)).toFixed(0)} MB`;
 }
 
 // Run a command under `/usr/bin/time -l`, capturing its stderr (which holds
@@ -136,7 +136,7 @@ function runTimed(
 function reportStage(label: string, stats: TimeStats): void {
   const cpu = stats.userSec !== null && stats.sysSec !== null
     ? `${fmtSec(stats.userSec)} user + ${fmtSec(stats.sysSec)} sys`
-    : "   —  ";
+    : "   -  ";
   console.log(
     `  ${label.padEnd(22)} ${fmtSec(stats.realSec).padStart(7)} wall   ` +
     `${cpu.padEnd(28)} ${fmtMB(stats.maxRssBytes).padStart(7)} peak-RSS`,
@@ -147,7 +147,7 @@ function main(): void {
   const args = parseArgs();
   const vaderAbs = join(REPO, args.vader);
   if (!existsSync(vaderAbs)) {
-    console.error(`profile-build: ${args.vader} not found — run \`bun run build:cli\` first.`);
+    console.error(`profile-build: ${args.vader} not found, run \`bun run build:cli\` first.`);
     process.exit(1);
   }
 
@@ -162,7 +162,7 @@ function main(): void {
   // --- Stage 1: front-end → C, with the in-compiler per-pass profiler on. ----
   // `build --emit=c --out=-` routes through the fully-instrumented
   // emit_c_source (so the c-emit pass + the prof dump fire) and emits the
-  // real, linkable native C — the same path bootstrap/build.sh takes.
+  // real, linkable native C: the same path bootstrap/build.sh takes.
   const emit = runTimed(
     [args.vader, "build", "--emit=c", "--out=-", args.input],
     { ...GC_ENV, VADER_PROFILE: "1" },

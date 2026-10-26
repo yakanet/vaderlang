@@ -9,7 +9,7 @@ import "vader/front/typecheck"
 import "toolchain/span"
 
 /// Context threaded through the recursive evaluator.
-/// @field typed     owning typed program — gives the resolver lookup
+/// @field typed     owning typed program: gives the resolver lookup
 ///                  (`resolved.idents` / `resolved.symbols`) plus the
 ///                  decl type tables.
 /// @field bindings  `Symbol.id → ComptimeValue` for already-evaluated
@@ -45,7 +45,7 @@ ProjectConstants :: struct {
 ///   - `value=Some, diag=null`    : evaluated to a concrete value.
 ///   - `value=null, diag=Some`    : an error fired (cycle / unsupported
 ///                                  shape / type mismatch / sandbox).
-///   - `value=null, diag=null`    : intentional skip — caller drops
+///   - `value=null, diag=null`    : intentional skip, caller drops
 ///                                  the decl from `comptime_decls`.
 EvalResult :: struct {
     value: ComptimeValue | null

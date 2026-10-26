@@ -60,7 +60,7 @@ test("LSP surfaces W0012 (unused-export) on a dead exported fn, faded", async ()
   ].join("\n");
   const diags = await diagnosticsFor(source);
   const w0012 = diags.filter(d => d.code === "W0012");
-  // Exactly one W0012, and it names `orphan` — so `used` (reached from main)
+  // Exactly one W0012, and it names `orphan`, so `used` (reached from main)
   // is not flagged. (The message "`orphan` is never used" contains the word
   // "used", so assert on the count + the flagged name, not a substring.)
   expect(w0012.length).toBe(1);

@@ -1,5 +1,5 @@
 // T3006: a UFCS call binds the callee's type parameter through its receiver
-// alone — `m.same()` leaves no type parameter in the curried signature, and the
+// alone: `m.same()` leaves no type parameter in the curried signature, and the
 // bound is still checked.
 module "snippet"
 

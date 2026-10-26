@@ -1,7 +1,7 @@
 module "snippet"
 
 // Regression guard: `vader fmt` must keep the parens on `!(<binary>)`. Without
-// them the re-emitted source reparses as `(!a) op b` — a precedence change.
+// them the re-emitted source reparses as `(!a) op b`: a precedence change.
 f :: fn(a: bool, b: bool) -> bool = !(a || b)
 g :: fn(x: i32) -> bool = !(x == 0 || x == 1)
 h :: fn(a: bool, b: bool) -> bool = !(a && b)

@@ -1,4 +1,4 @@
-# 0043 — The index forms dispatch and check like the call they are
+# 0043: The index forms dispatch and check like the call they are
 
 ## Status
 

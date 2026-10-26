@@ -1,8 +1,8 @@
 /// Adjacent literal leaves of a `+` / `${}` chain fold at lower time.
 ///
 /// `lower_concat_chain` merges each run of adjacent `LoweredStringLit` leaves
-/// and drops the empty ones, so an all-literal chain collapses to ONE literal —
-/// no `concat_N` call, no buffer, no run-time intern — and a mixed chain loses
+/// and drops the empty ones, so an all-literal chain collapses to ONE literal
+/// (no `concat_N` call, no buffer, no run-time intern) and a mixed chain loses
 /// the arity its literal runs were costing. Read `lower.snapshot` for the shape:
 /// `all_literals` must carry no call at all, and `mixed` must reach `concat_3`
 /// (not `concat_5`).

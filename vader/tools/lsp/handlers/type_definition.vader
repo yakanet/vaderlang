@@ -9,8 +9,8 @@
 // Reuses the typed cache + the `find_expr_at` expr-finder that powers hover
 // (`handlers/hover`, same folder module) and the `location_json` encoder from
 // `vader/tools/lsp/protocol`. A `T | null` nullable unwraps to `T`. Types with no
-// single declaration to jump to — primitives, tuples/arrays, function types,
-// genuine multi-member unions — yield no result. (A named union alias collapses
+// single declaration to jump to: primitives, tuples/arrays, function types,
+// genuine multi-member unions: yield no result. (A named union alias collapses
 // to a structural `UnionType` in the type IR, so the alias itself has no symbol
 // to target; that's a known limitation, not handled here.)
 
@@ -45,14 +45,14 @@ export handle_type_definition :: fn(state: ServerState, params: JsonValue) -> Js
 // declaration site (primitives, structural composites, fn types). A distinct
 // (newtype) jumps to its `Name :: <primitive>` decl, not the backing. TypeParam
 // is included so jumping to a generic param's introduction site works too. A
-// `T | null`-style union unwraps to its single non-null member — the common
-// nullable case — so the cursor still jumps to `T`'s declaration.
+// `T | null`-style union unwraps to its single non-null member (the common
+// nullable case) so the cursor still jumps to `T`'s declaration.
 /// The declaring `Symbol` of a named type, or null for one with no single
 /// declaration (primitives, arrays, tuples, a genuine sum type).
 ///
 /// Shared with `definition.vader`, which uses it for the other half of the same
 /// question: typeDefinition asks "where is this VALUE's type declared", member
-/// goto-def asks "which type declares this member" — both start by naming the
+/// goto-def asks "which type declares this member": both start by naming the
 /// type's symbol.
 ///
 /// @param t  the type to name.
@@ -104,7 +104,7 @@ test_type_symbol_null_for_primitive :: fn() -> void {
 
 @test
 test_type_symbol_unwraps_nullable :: fn() -> void {
-    // `User | null` resolves to `User`'s symbol — the common nullable case.
+    // `User | null` resolves to `User`'s symbol: the common nullable case.
     sym :: Symbol {
         .id = 2, .kind = .Struct, .name = "User", .module = "t",
         .module_name = "t",

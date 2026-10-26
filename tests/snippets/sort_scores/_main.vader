@@ -3,7 +3,7 @@
 // `std/sort::sort<T>` lowers to the RECURSIVE generic free fn
 // `merge_sort_range<T>`. For an all-primitive arg (T = i32) the mixed-flavor gate
 // force-concretes it to a mangle-indexed instance (entry_symbol = null), so its
-// self-recursive call must route through the instance MANGLE — the bare generic
+// self-recursive call must route through the instance MANGLE: the bare generic
 // symbol owns no fn-table slot here. In a program that also sorts strings, the
 // erased `__string` sibling owns the symbol-id slot and absorbs the i32
 // self-call; a pure-i32 program has no such fallback, so an unrouted self-call

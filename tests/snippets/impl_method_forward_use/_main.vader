@@ -1,7 +1,7 @@
 // impl_method_forward_use: a trait method called before its impl block.
 //
 // Regression guard for B.6: `walk_bodies` registered impl-member metadata
-// lazily in its main pass, in file (merge) order — so a fn body that called a
+// lazily in its main pass, in file (merge) order, so a fn body that called a
 // trait method whose `impl` block was declared LATER in the file failed
 // typecheck with T3008 (`.m on non-struct`). It surfaced when `std/core` was a
 // `vader test` entry: `f2s.vader`'s `format_f32` calls `x.to_bits()` before
@@ -20,7 +20,7 @@ Bump :: trait {
     bump :: fn(self) -> i32
 }
 
-// Calls `.bump()` BEFORE the `impl` block below — must still resolve.
+// Calls `.bump()` BEFORE the `impl` block below: must still resolve.
 run :: fn(c: Counter) -> i32 = c.bump()
 
 Counter implements Bump {

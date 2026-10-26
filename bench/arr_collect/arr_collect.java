@@ -1,5 +1,5 @@
-// Java peer of bench/arr_collect.vader. Uses the Stream API — a fresh
-// Arrays.stream(a).filter(p).mapToLong(f).toArray() per pass — mirroring
+// Java peer of bench/arr_collect.vader. Uses the Stream API, a fresh
+// Arrays.stream(a).filter(p).mapToLong(f).toArray() per pass, mirroring
 // Vader's fused filter + map collected into one array.
 
 import java.util.Arrays;

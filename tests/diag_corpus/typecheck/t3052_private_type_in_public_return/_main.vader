@@ -1,4 +1,4 @@
-// An exported fn whose return type names a non-exported type — T3052.
+// An exported fn whose return type names a non-exported type: T3052.
 // A caller in another module receives a `Secret` it cannot name.
 module "snippet"
 

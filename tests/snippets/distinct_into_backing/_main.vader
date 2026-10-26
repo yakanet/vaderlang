@@ -4,7 +4,7 @@ import "std/io"
 
 // A newtype that converts to its own representation. The `into` body has no way
 // to reach the backing other than `string(self)`, so if that cast lifted to
-// `into` the impl would call itself forever — which is what it used to do.
+// `into` the impl would call itself forever, which is what it used to do.
 Tag :: string
 
 Tag implements Into<string> {

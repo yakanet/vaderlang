@@ -2,7 +2,7 @@
 //
 // The unified `vader` CLI (`vader/tools/cli/main.vader`) bundles run / build /
 // fmt / dump / lsp into one binary. For the LSP subcommand we ship a
-// SEPARATE binary (`vader-lsp`) that loads only the LSP modules — keeps
+// SEPARATE binary (`vader-lsp`) that loads only the LSP modules: keeps
 // startup latency tiny and dodges generic-mono conflicts the bigger CLI
 // surfaces. Editors spawn this binary directly.
 
@@ -16,7 +16,7 @@ import "std/io"
 CLI :: import "cli"
 
 main :: fn(argv: string[]) -> i32 {
-    // argv[0] is the binary path ; the rest is parsed against `LSP_FLAGS` — the
+    // argv[0] is the binary path ; the rest is parsed against `LSP_FLAGS`: the
     // same array the unified CLI's `lsp` action uses, so both entry points
     // accept exactly the same flags and reject the same typos.
     parsed :: CLI.parse(argv[1..<argv.len()], LSP_FLAGS)

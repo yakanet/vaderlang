@@ -1,5 +1,5 @@
-// A `@comptime` const that asks what machine the COMPILER is running on — here
-// `current_os` — is refused with C4016.
+// A `@comptime` const that asks what machine the COMPILER is running on (here
+// `current_os`) is refused with C4016.
 //
 // Not because it is impure. Reading the clock or the environment at build time
 // is allowed and is the program author's call; a build stamp is an ordinary
@@ -16,7 +16,7 @@ export INTERACTIVE_AT_BUILD :: read_tty()
 
 // `current_os` will never leave the intrinsics: it answers for the machine the
 // COMPILER runs on, and baking that would make a macOS emit differ from a Linux
-// one for the same source — which `seed.sh check` compares byte for byte.
+// one for the same source, which `seed.sh check` compares byte for byte.
 read_tty :: fn() -> string {
     if current_os() == Os.Darwin { return "mac" }
     return "other"

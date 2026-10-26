@@ -1,8 +1,8 @@
 // An impl on one instance of a generic base wins over the base's generic impl,
 // for that instance only, whichever is declared first: on a struct
 // (`Wrapper<MonType>`, `Wrapper<i32>`) as on an array (`MonType[]`, `i32[]`).
-// It holds through every way a call reaches the impl — a method call, a bounded
-// type parameter, a trait value — and when the instance is built inside a
+// It holds through every way a call reaches the impl (a method call, a bounded
+// type parameter, a trait value) and when the instance is built inside a
 // generic body (`wrap`, `pair`), where its argument is a type parameter. The
 // base's other traits still reach the instance through their generic impl, and
 // a trait only one instance implements (`Fancy`) is not the other instances'.

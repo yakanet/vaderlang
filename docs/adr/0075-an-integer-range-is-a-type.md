@@ -1,4 +1,4 @@
-# 0075 — An integer range is a type
+# 0075: An integer range is a type
 
 ## Status
 

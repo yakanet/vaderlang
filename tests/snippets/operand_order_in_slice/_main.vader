@@ -1,5 +1,5 @@
 // `x in coll` and `target[range]` evaluate their operands in the order they are
-// written — `x` before `coll`, the target before a range value — though the
+// written (`x` before `coll`, the target before a range value) though the
 // first lowers to `coll.contains(x)` and the second binds the range first.
 
 module "snippet"

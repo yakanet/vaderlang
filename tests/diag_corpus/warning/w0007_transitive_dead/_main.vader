@@ -1,7 +1,7 @@
 // W0007: reachability is measured from the public surface, NOT "is referenced
 // by something". `orphan_a` calls `orphan_b`, but nothing live reaches
 // `orphan_a`, so BOTH are dead. A plain call-graph "has a caller" check would
-// wrongly keep `orphan_b` alive — the root-reachability BFS flags both.
+// wrongly keep `orphan_b` alive: the root-reachability BFS flags both.
 
 module "snippet"
 

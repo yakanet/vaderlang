@@ -1,7 +1,7 @@
 /// Consecutive `s = s + …` appends fuse into one `concat_N`.
 ///
 /// `lower_block` calls `fuse_concat_tail` after each statement, so a run of k
-/// appends to the same local collapses left to right — and the merged operand
+/// appends to the same local collapses left to right, and the merged operand
 /// list then goes through the adjacent-literal fold, so three literal appends
 /// land on `concat_2(s, "…")`, not `concat_4`. Read `lower.snapshot`: `fused`
 /// must carry ONE assign, and each guard case must keep its separate ones.
@@ -39,7 +39,7 @@ observed_between :: fn(seed: string) -> string {
     return s
 }
 
-// Two different locals interleaved — neither pair is adjacent.
+// Two different locals interleaved: neither pair is adjacent.
 interleaved :: fn(a0: string, b0: string) -> string {
     a := a0
     b := b0
@@ -60,7 +60,7 @@ mixed_operands :: fn(seed: string, x: string) -> string {
 
 // Skipped under async: `drain_pending_from` splices hoisted awaits between the
 // statements a fuse would merge across, so the pass declines. The appends stay
-// separate — and stay correct.
+// separate, and stay correct.
 Ready :: struct<T> { v: T }
 Ready<T> implements Async<T> {
     resume :: fn(self) -> T | Suspended { return self.v }
@@ -77,7 +77,7 @@ appends_in_async :: fn(seed: string) -> Async<string> {
 }
 
 // A local a closure captures is rewritten to a CELL, so its writes arrive as
-// `LoweredCellSet`, never the `LoweredAssign` the pass matches — which is what
+// `LoweredCellSet`, never the `LoweredAssign` the pass matches, which is what
 // keeps a closure from observing an intermediate the fuse deleted. `dump.vader`
 // renders no cell-set, so `lower.snapshot` shows none of this: what pins the
 // case is the OUTPUT. A wrong fuse makes `peek()` see "kmn", printing

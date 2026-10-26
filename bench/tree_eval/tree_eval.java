@@ -1,5 +1,5 @@
 // Java peer of bench/tree_eval.vader. A sealed interface over four records, and
-// the dispatch is an exhaustive pattern switch — the JIT's own tag test.
+// the dispatch is an exhaustive pattern switch: the JIT's own tag test.
 
 static final int TREE_DEPTH = 17;
 static final int PASS_COUNT = 100;

@@ -1,4 +1,4 @@
-// Rule 110 — a one-dimensional cellular automaton famously proven to be
+// Rule 110: a one-dimensional cellular automaton famously proven to be
 // Turing-complete. Each cell's next state is a fixed function of its own
 // state and its two neighbours' states ; the lookup table for those eight
 // (left, mid, right) bit-patterns is the binary encoding of 110 (0b01101110).

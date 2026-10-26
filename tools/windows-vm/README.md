@@ -1,4 +1,4 @@
-# `tools/windows-vm` — a real Windows oracle, from the macOS terminal
+# `tools/windows-vm`: a real Windows oracle, from the macOS terminal
 
 A headless **Windows 11 ARM64** guest on Apple Silicon, accelerated by
 Hypervisor.framework and driven entirely over SSH. No hypervisor UI is ever
@@ -11,7 +11,7 @@ This VM is a genuine NT kernel with genuine Win32 semantics, roughly a minute
 away.
 
 **What it covers**: the 28 `_WIN32` branches of `runtime/c/vader_runtime.c`,
-drive roots, path separators, CRLF stdio, pipes, process spawn — every bug the
+drive roots, path separators, CRLF stdio, pipes, process spawn: every bug the
 Windows job has actually caught.
 
 **What it does not**: CI builds `x86_64-w64-mingw32` and this guest builds
@@ -57,7 +57,7 @@ vagrant ssh -c "Set-Location C:/vader; ls build" # one-off command
 vagrant halt | status | provision | destroy
 ```
 
-Vagrant owns the key and the connection — nothing is written outside
+Vagrant owns the key and the connection: nothing is written outside
 `.vagrant/`, no host ssh config, no key parked in `~/.ssh`. The guest is
 disposable and `vagrant destroy` takes its credentials with it.
 
@@ -74,7 +74,7 @@ bin/vwin test tests/lsp  # sync, then bun run test --only-failures
 
 **No shared folder.** `vboxsf`/HGFS change the very filesystem semantics this VM
 exists to test, and the box ships no Guest Additions anyway. `vwin sync` pushes
-the tree onto the guest's own NTFS at `C:\vader` — a tarball of everything
+the tree onto the guest's own NTFS at `C:\vader`: a tarball of everything
 `git ls-files` reports, so `node_modules/`, `build/` and `dist/` never cross the
 wire (4200 files, 7 MB compressed, a couple of seconds). Removed files are not pruned; use
 `vwin sync --clean` after a branch switch.
@@ -94,7 +94,7 @@ after took 79.7 s and 81.6 s. The fastest run before is still 35 % slower than
 the slowest run after, and the 2.3× spread collapses to 1.02×. Neither service
 touches filesystem semantics, so this costs no fidelity.
 
-**Defender is already excluded — by the box, not by us.** `Get-MpPreference`
+**Defender is already excluded: by the box, not by us.** `Get-MpPreference`
 reports `ExclusionPath = c:\`, so there is nothing to add. Note what that does
 *not* buy: with the whole drive excluded, `MsMpEng` still burned 165 s of CPU
 over 27 min of uptime, because an exclusion covers real-time file scanning and
@@ -110,16 +110,16 @@ VADER_WIN_CPUS=8 VADER_WIN_MEMORY=12288 vagrant up
 
 ## The box
 
-`gusztavvargadr/windows-11-25h2-professional`, `box_architecture = "arm64"` —
+`gusztavvargadr/windows-11-25h2-professional`, `box_architecture = "arm64"`:
 the Windows 11 image published for arm64 (VirtualBox and VMware Fusion only),
 Packer-built from Microsoft media and released monthly. `box_architecture` is
 mandatory: the registry serves amd64 by default, which VirtualBox would have to
 emulate.
 
-There is **no official Microsoft or HashiCorp Windows box** — Microsoft has
+There is **no official Microsoft or HashiCorp Windows box**: Microsoft has
 never published one and retired its ready-made dev VMs in October 2024. This
 family is the de-facto standard. It is built from evaluation media, so the
 licence has a clock; `vagrant destroy && vagrant up` resets it.
 
-Switching to VMware Fusion is a one-line change (`--provider vmware_desktop`) —
+Switching to VMware Fusion is a one-line change (`--provider vmware_desktop`):
 the same box publishes both arm64 variants.

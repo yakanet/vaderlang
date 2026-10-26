@@ -2,7 +2,7 @@
 //
 // The VM executes a `vader/core/bytecode::BytecodeModule` directly. `VmState`
 // pairs the module with the run-time state the executor needs in a ready-to-use
-// shape, built once here rather than per `exec_entry` — the data pool
+// shape, built once here rather than per `exec_entry`: the data pool
 // materialised, the entry index, per-function tables. Each field's doc says what
 // it caches and why.
 //
@@ -27,15 +27,15 @@ export VmState :: struct {
     globals:    Value[]
     /// Entry fn's index in `bc.functions`.
     main_index: i32
-    /// The `string[]` ArrayType index — stamped onto every host-produced string
+    /// The `string[]` ArrayType index: stamped onto every host-produced string
     /// array (argv, `read_dir`, `split`) so `is string[]` narrows. Resolving it
     /// costs a linear type-table scan, so it is done once here rather than on
     /// every `exec_entry` (the comptime pass calls into the VM once PER staged
     /// decl, so a per-entry scan is O(decls x types)).
     string_array_type_id: i32
-    /// The `u8[]` ArrayType index — stamped onto the array `bytes` materialises.
+    /// The `u8[]` ArrayType index: stamped onto the array `bytes` materialises.
     u8_array_type_id: i32
-    /// The `std/io$IOError` struct index — stamped onto host io error values.
+    /// The `std/io$IOError` struct index: stamped onto host io error values.
     io_error_type_id: i32
     /// `fn name -> index`, so `exec_fn` / `exec_fn_value` resolve an entry by
     /// one lookup instead of a linear string-compare scan. The comptime pass

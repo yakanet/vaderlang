@@ -1,4 +1,4 @@
-// `a + b` on arrays — concatenation, mirroring `string + string`.
+// `a + b` on arrays: concatenation, mirroring `string + string`.
 //
 // Not colocated in `stdlib/std/core/array.vader` where the impl lives: calling it
 // from inside `std/core` itself leaves the impl member unresolved at emit
@@ -33,7 +33,7 @@ main :: fn() -> i32 {
     c: i32[]: [4]
     println("chained=${(a + b + c).len()}")
 
-    // Structs carrying a nested array — the element shape that made a raw
+    // Structs carrying a nested array: the element shape that made a raw
     // memcpy in `push_all` segfault, and which `+` goes through.
     both :: LEFT + RIGHT
     println("structs=${both.len()} ${both[0].name}/${both[0].inner.len()} ${both[1].name}/${both[1].inner.len()}")

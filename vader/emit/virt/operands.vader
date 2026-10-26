@@ -2,7 +2,7 @@
 //
 // `write_op_refs` (dump.vader) prints an op as its name then its operands ; an
 // operand that is a table index is printed from an `OperandRef` saying what it
-// names — a function, a type, a struct field, a pool string, a host import, a
+// names: a function, a type, a struct field, a pool string, a host import, a
 // data-pool entry or a local slot. `operand_refs` collects those refs, so a tool
 // reading a `.virt` line can follow an operand to the entry it names ;
 // `annotate_op` renders them.
@@ -25,7 +25,7 @@ export OperandKind :: enum {
     Global,
 }
 
-/// One table-index operand : the table it indexes, and the index — a slot for
+/// One table-index operand : the table it indexes, and the index, a slot for
 /// `.Local`, a field position for `.Field`.
 export OperandRef :: struct {
     kind:  OperandKind
@@ -35,7 +35,7 @@ export OperandRef :: struct {
 }
 
 /// The operands `write_op` prints after `op`'s name, in order, each with what it
-/// points at — null for a word that names nothing (the inner op name of a
+/// points at: null for a word that names nothing (the inner op name of a
 /// `return.lit`).
 ///
 /// @param op  the op whose operands to describe.

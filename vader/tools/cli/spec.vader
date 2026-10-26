@@ -3,12 +3,12 @@
 // Every action, every flag, every accepted value of an enumerated flag, with the
 // text that documents it. `std/cli` parses from this table and `std/cli/help`
 // renders from it, so a flag described here is a flag the compiler accepts and
-// the help shows — there is no second copy to keep in step.
+// the help shows: there is no second copy to keep in step.
 //
 // It replaces four things that used to describe the surface separately: the
 // 60-line `HELP` string, the `STAGES_LIST` constant, `cmd_build`'s chain of
 // `target != …` comparisons, and `cmd_dump`'s twelve `stage == …` arms. They had
-// already drifted — `HELP` advertised a `.vir` input the CLI has never
+// already drifted: `HELP` advertised a `.vir` input the CLI has never
 // recognised, promised a REPL for a bare `vader run`, and listed `fmt`'s flags
 // that live in a parser of their own.
 //
@@ -31,7 +31,7 @@ export CLI_VERSION :: "0.1.0"
 
 /// Flags every action accepts.
 ///
-/// All three are parsed and stripped but wired into no pass yet — `GlobalOpts`
+/// All three are parsed and stripped but wired into no pass yet: `GlobalOpts`
 /// is built and never read. They say so rather than describing an effect they
 /// don't have: a help entry that overstates is worse than one admitting its own
 /// emptiness. They used to be "global options" consumed before the action was
@@ -136,7 +136,7 @@ BUILD_FLAGS: FlagSpec[]: [
         .default_text = "executable",
         .values = EMIT_VALUES,
     },
-    // No `.values`: the target is a `<os>-<arch>` PAIR, not an enumeration —
+    // No `.values`: the target is a `<os>-<arch>` PAIR, not an enumeration,
     // spelling out five OSes times three architectures would be a worse help
     // text than the form itself. `vader/support/target::parse_target` validates it and
     // names the offending fragment.
@@ -192,8 +192,8 @@ BUILD_FLAGS: FlagSpec[]: [
 ]
 
 // The IR stages. This array is the only list of them: `cmd_dump`
-// dispatches on the name, but what is *accepted* — and what an unknown stage
-// reports — comes from here.
+// dispatches on the name, but what is *accepted* (and what an unknown stage
+// reports) comes from here.
 DUMP_STAGES: ValueSpec[]: [
     ValueSpec { .name = "lexer", .help = "Token stream + diagnostics (text)" },
     ValueSpec { .name = "ast", .help = "Parser AST (JSON, spans elided)" },
@@ -231,7 +231,7 @@ GRAPH_SCOPES: ValueSpec[]: [
 GRAPH_FLAGS: FlagSpec[]: [
     ENTRY_FLAG,
     PROJECT_FLAG,
-    // Same spelling and meaning as `build`'s — a graph that cannot see the roots
+    // Same spelling and meaning as `build`'s: a graph that cannot see the roots
     // a build sees is not drawing the same project.
     FlagSpec {
         .name = "include-paths",
@@ -299,7 +299,7 @@ DUMP_FLAGS: FlagSpec[]: [
 ]
 
 // `fmt`'s two flags. They lived in `vader/tools/fmt/cli.vader`'s own hand-rolled
-// parser, which pushed any unrecognised token into the path list — so
+// parser, which pushed any unrecognised token into the path list, so
 // `vader fmt --nope dir/` reported `path not found: --nope` and exited 0.
 FMT_FLAGS: FlagSpec[]: [
     FlagSpec {
@@ -314,7 +314,7 @@ FMT_FLAGS: FlagSpec[]: [
     },
 ]
 
-// The three shapes a project's build can take, DEFAULT FIRST — this array is also
+// The three shapes a project's build can take, DEFAULT FIRST: this array is also
 // what the interactive prompt offers, in this order, so the option under the
 // cursor is the one a bare `vader new` would have taken anyway.
 NEW_BUILD_SETUPS: ValueSpec[]: [
@@ -520,7 +520,7 @@ export find_command :: fn(name: string) -> CommandSpec | null {
 /// The noun an action's positional argument goes by, read off its usage line.
 ///
 /// `"<file>"` gives `file`, `"[name]"` gives `name`, `"[path]"` gives `path`, and
-/// `""` — an action that takes no positional at all — gives `""`.
+/// `""` (an action that takes no positional at all) gives `""`.
 ///
 /// DERIVED rather than declared a second time: `usage` is already the one place
 /// saying what an action's argument is, and a `noun` field beside it would be a
@@ -537,7 +537,7 @@ export positional_noun :: fn(cmd: CommandSpec) -> string {
     return head.trim_prefix("<").trim_prefix("[").trim_suffix(">").trim_suffix("]")
 }
 
-/// An action's flags plus the common ones — what `std/cli::parse` is given.
+/// An action's flags plus the common ones: what `std/cli::parse` is given.
 ///
 /// Merged here rather than baked into each `COMMANDS` entry so the common set
 /// stays visible as one list, and so the help can render the two blocks apart.
@@ -566,7 +566,7 @@ import "std/testing"
     // `--x=<value>`, which tells the reader nothing.
     //
     // This test does double duty now that `kind` defaults to `Str`. A `Bool`
-    // declared by omission — `.kind = .Bool` forgotten — silently becomes a
+    // declared by omission (`.kind = .Bool` forgotten) silently becomes a
     // `Str`, and would then demand a value and swallow the next token. It also
     // wouldn't have a `value_name`, so it trips here.
     for c in COMMANDS {
@@ -593,7 +593,7 @@ import "std/testing"
 
 @test test_aliases_are_unique_per_action :: fn() -> void {
     // Two flags of one action sharing an alias would make the shorter spelling
-    // resolve to whichever came first in the array — a silent shadowing.
+    // resolve to whichever came first in the array: a silent shadowing.
     for c in COMMANDS {
         specs :: command_specs(c)
         n :: specs.len()

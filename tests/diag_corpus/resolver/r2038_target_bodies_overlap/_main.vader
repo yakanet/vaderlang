@@ -1,5 +1,5 @@
 // Two bodies covering one platform would make the winner depend on declaration
-// ORDER — the arbitrary silence this whole mechanism exists to avoid. The second
+// ORDER: the arbitrary silence this whole mechanism exists to avoid. The second
 // case lists the same OS twice inside ONE `@target`, which gets its own wording:
 // pointing the reader at "the other body" would send them looking for one that
 // does not exist.

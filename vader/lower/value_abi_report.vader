@@ -32,14 +32,14 @@ ValueAbiSite :: struct {
     position: string
     /// The candidate's rendered type, for a reader scanning the report.
     type_name: string
-    /// Payload size in bytes — the axis the 16-byte bound is about.
+    /// Payload size in bytes: the axis the 16-byte bound is about.
     bytes: i64
     /// The site is `T | null`: the crossing needs a tag register on top of the
     /// payload.
     nullable: bool
     /// A RETURN whose every `return` hands back a value the callee built.
     ///
-    /// The gate a struct return needs before it can be scalarised — see
+    /// The gate a struct return needs before it can be scalarised, see
     /// `returns_only_fresh_composites`. False on a parameter, which the question
     /// does not apply to.
     fresh: bool
@@ -47,8 +47,8 @@ ValueAbiSite :: struct {
 
 /// Payload size of `t` under the value-ABI rule, or -1 when it does not qualify.
 ///
-/// Qualifying means: a composite — tuple, distinct, struct, or one of those
-/// under a `| null` — whose every leaf is a NON-REFERENCE primitive, summed
+/// Qualifying means: a composite, tuple, distinct, struct, or one of those
+/// under a `| null`: whose every leaf is a NON-REFERENCE primitive, summed
 /// without padding, no wider than `VALUE_ABI_MAX_BYTES`. The sum ignores padding
 /// because the answer only has to be CONSERVATIVE: under-counting can reject
 /// something the ABI would have taken, never admit something it would refuse.
@@ -58,7 +58,7 @@ ValueAbiSite :: struct {
 ///
 /// @param t        the type at the crossing.
 /// @param structs  lowered struct decls keyed by `LoweredStructDecl.mangled`.
-/// @param typed    the typed project — `shape_mangle` needs it to spell the key
+/// @param typed    the typed project: `shape_mangle` needs it to spell the key
 ///                 a `StructType` maps to.
 value_abi_size :: fn(
     t: Type, structs: MutableMap<string, LoweredStructDecl>, typed: TypedProject,
@@ -67,13 +67,13 @@ value_abi_size :: fn(
 /// What a `T | null` promises, or `t` itself.
 ///
 /// A wider union keeps its variants and so fails the size walk at its own
-/// `_ -> -1` — there is no case to special-case.
+/// `_ -> -1`: there is no case to special-case.
 value_abi_payload :: fn(t: Type) -> Type = subtract_type(t, TY_NULL)
 
 // `t`'s payload size, or -1. `budget` is what is left of the 16 bytes: it bounds
 // the total AND the recursion, since a struct field that is itself a struct
 // costs at least one byte per level and an empty struct is rejected outright. A
-// separate depth cap would be a second constant free to disagree with this one —
+// separate depth cap would be a second constant free to disagree with this one:
 // `Node { next: Node }` terminates on the budget.
 value_abi_sized :: fn(
     t: Type, structs: MutableMap<string, LoweredStructDecl>, typed: TypedProject, budget: i64,
@@ -121,7 +121,7 @@ over :: fn(size: i64, budget: i64) -> i64 = if size > budget { -1 } else { size 
 /// back its elements is the same value by another route. A struct has reference
 /// semantics: returning one the callee received from elsewhere, and rebuilding
 /// it at the caller, would break an alias someone else still holds. Building it on the spot at
-/// every return is the proof that nobody does — and it makes the `@value`
+/// every return is the proof that nobody does, and it makes the `@value`
 /// question moot rather than answering it.
 ///
 /// `null` counts as built: it holds nothing to alias.
@@ -182,7 +182,7 @@ else_returns_fresh :: fn(b: LoweredBlock | null) -> bool {
 /// Returns "" when the report is off or nothing qualifies, so the caller can
 /// print unconditionally.
 ///
-/// @param ctx      carries the cached `$VADER_OPT_REPORT` flag — the env is read
+/// @param ctx      carries the cached `$VADER_OPT_REPORT` flag: the env is read
 ///                 once per lowering run, never per site.
 /// @param project  the finished lowered project ; the sweep needs every decl, so
 ///                 this runs after the last pass that can still add one.
@@ -209,7 +209,7 @@ render_value_abi_report :: fn(
     nullables: i64 = 0
     fresh_returns: i64 = 0
     for s in sites {
-        // A parameter can never be named `return` — it is a keyword.
+        // A parameter can never be named `return`: it is a keyword.
         if s.position == "return" {
             returns = returns + 1
             if s.fresh {
@@ -315,7 +315,7 @@ value_abi_test_sym :: fn() -> Symbol = Symbol {
 
 @test
 test_fresh_returns_accepts_a_built_struct :: fn() -> void {
-    // `return Pair { .a = c }` — the callee minted it, so no caller can be
+    // `return Pair { .a = c }`: the callee minted it, so no caller can be
     // holding it.
     body :: fresh_test_body([
         LoweredReturn {
@@ -341,7 +341,7 @@ test_fresh_returns_accepts_null :: fn() -> void {
 
 @test
 test_fresh_returns_refuses_a_forwarded_value :: fn() -> void {
-    // `return self.cached` hands back an object the caller may already hold —
+    // `return self.cached` hands back an object the caller may already hold:
     // rebuilding it at the call site would break that alias.
     body :: fresh_test_body([
         LoweredReturn {

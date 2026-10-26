@@ -37,7 +37,7 @@ Color implements Add<Color, Color> {
 
 // ---- tuple-backed newtype -------------------------------------------------
 
-// `Coord` is a distinct newtype over the tuple `[i32, i32]` — a screen pixel
+// `Coord` is a distinct newtype over the tuple `[i32, i32]`: a screen pixel
 // position. Positional access and destructure forward to the backing tuple.
 Coord :: [i32, i32]
 

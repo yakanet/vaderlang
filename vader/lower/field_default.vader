@@ -6,7 +6,7 @@
 // back to it would then be expanded without end : through a lambda, which is valid
 // since the lambda runs later, or through any form the typecheck's T3100 does not
 // follow. So the default being expanded is tracked, and a literal that reaches it
-// again calls a thunk instead — the default lowered once, per struct instance
+// again calls a thunk instead: the default lowered once, per struct instance
 // (`default_thunk_name`). Only such a cycle pays for a call.
 //
 // Thunks are project-global and drained once into the entry module, like

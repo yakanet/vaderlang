@@ -81,8 +81,8 @@ trait_value_member :: fn(
 // A trait member as a dispatch by the receiver's tag reaches it.
 TagMember :: struct {
     member: TypeMember
-    /// Why the member cannot be dispatched by the tag whatever the receiver — it
-    /// takes another `Self`, or returns one inside another type — as the start of a
+    /// Why the member cannot be dispatched by the tag whatever the receiver (it
+    /// takes another `Self`, or returns one inside another type) as the start of a
     /// detail ending in what may differ (`variant`, `implementor`) ; "" when it can.
     self_hazard: string = ""
 }

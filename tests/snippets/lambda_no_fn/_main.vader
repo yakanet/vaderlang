@@ -22,13 +22,13 @@ call_none :: fn(f: fn() -> i32) -> i32 {
 }
 
 main :: fn() -> i32 {
-    // Single param — no parens, expression body
+    // Single param: no parens, expression body
     println("inc(5) = ${call_it(x -> x + 1, 5)}")
 
-    // Single param — parens, expression body
+    // Single param: parens, expression body
     println("dbl(5) = ${call_it((x) -> x * 2, 5)}")
 
-    // Single param — typed (parens required for the `:`), expression body
+    // Single param: typed (parens required for the `:`), expression body
     println("sqr(5) = ${call_it((x: i32) -> x * x, 5)}")
 
     // Multi param (parens mandatory)
@@ -37,7 +37,7 @@ main :: fn() -> i32 {
     // No-arg (empty parens mandatory)
     println("forty_two() = ${call_none(() -> 42)}")
 
-    // Block body (multi-statement via block-expr) — inferred via call_it's
+    // Block body (multi-statement via block-expr): inferred via call_it's
     // signature.
     r :: call_it(x -> {
         tmp :: x * x

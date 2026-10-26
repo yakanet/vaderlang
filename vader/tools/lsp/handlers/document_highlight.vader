@@ -8,7 +8,7 @@
 // v1 is name-based, not scope-aware : it highlights every same-named identifier
 // in the file, which is what the common case (a local, a top-level fn) wants.
 // Read/write classification and scope-precise matching need the typed reference
-// index (a follow-up) — until then we emit kind-less Text highlights.
+// index (a follow-up): until then we emit kind-less Text highlights.
 //
 // Reuses `range_json` / `span_to_range_json` / `position_*` from
 // `vader/tools/lsp/protocol` and the per-document index from `vader/tools/lsp/analysis`.

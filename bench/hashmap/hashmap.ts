@@ -1,6 +1,6 @@
 // TypeScript peer of bench/hashmap.vader. JS `Map` keyed by i32, driven
 // through the same insert / lookup / delete / probe rounds. The key
-// generator stays under 2^53 so plain `number` is exact — no BigInt in the
+// generator stays under 2^53 so plain `number` is exact: no BigInt in the
 // hot path, matching the Vader i64 semantics without penalising the runtime.
 
 const N = 100_000;

@@ -6,7 +6,7 @@ module "vader/lower/ir"
 import "vader/core/types"
 import "vader/core/symbol"
 
-/// Visit every `Type` node referenced by `decl` — fields (struct),
+/// Visit every `Type` node referenced by `decl`: fields (struct),
 /// signature + body (fn), type + value (const). `visit` is passed as a
 /// direct fn argument (threaded through the recursion), never stored on a
 /// struct, so it stays on the working closure-call path.
@@ -156,7 +156,7 @@ for_each_lowered_expr :: fn(e: LoweredExpr, visit: fn(Type) -> void) -> void {
 /// functions from the program roots.
 ///
 /// The callbacks are passed as DIRECT fn args rather than bundled in a struct.
-/// Calling a fn stored in a struct FIELD has a history of misbehaving here — it
+/// Calling a fn stored in a struct FIELD has a history of misbehaving here: it
 /// is blamed on the native backend at this site, on the typechecker elsewhere,
 /// and the accounts disagree, so treat the shape as load-bearing and the reason
 /// as unestablished. Direct-arg fn params dispatch correctly.
@@ -277,7 +277,7 @@ ref_expr :: fn(e: LoweredExpr, visit_fn: fn(i32, string) -> void, visit_virtual:
             ref_expr(e.env, visit_fn, visit_virtual)
         }
         // A bare `LoweredIdent` whose symbol resolves to a `Fn` is a fn-value
-        // reference (e.g. `let f = add`) — visit the target so DCE keeps it alive.
+        // reference (e.g. `let f = add`): visit the target so DCE keeps it alive.
         // Without this, `add` (or any fn passed by value but not directly called)
         // gets pruned and the bytecode emit hits the defensive `Return` stub when it
         // tries to resolve the fn-index.

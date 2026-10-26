@@ -11,7 +11,7 @@ import "vader/front/parser"
 import "vader/front/resolver"
 import "std/collections"
 
-/// Output of `check_module` — the typed program plus the impl registry
+/// Output of `check_module`: the typed program plus the impl registry
 /// it built. Callers that want both can grab them from one place.
 export CheckResult :: struct {
     typed: TypedProgram

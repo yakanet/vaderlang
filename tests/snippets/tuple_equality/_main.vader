@@ -5,7 +5,7 @@
 // a question nobody asked.
 //
 // A tuple is only as comparable as its elements, and every element form has to be
-// handled where the comparison is generated — the lowerer emits them directly and
+// handled where the comparison is generated: the lowerer emits them directly and
 // they never go back through `lower_expr`. Hence the four shapes below.
 
 module "snippet"
@@ -25,7 +25,7 @@ tagged :: fn(n: i32) -> [i32, Tagged] = [n, Tagged { .n = n }]
 named :: fn(a: i32, b: i32) -> Pair = Pair([a, b])
 
 main :: fn() -> i32 {
-    // 1. primitives — the built-in `==` per element
+    // 1. primitives: the built-in `==` per element
     a :: pair(1, "x")
     b :: pair(1, "x")      // same contents, a DIFFERENT object
     println("equal contents, distinct objects: ${a == b}")
@@ -33,11 +33,11 @@ main :: fn() -> i32 {
     println("same object:                      ${a == a}")
     println("negation:                         ${a != pair(2, "x")}")
 
-    // 2. nested tuple — the recursion happens in the lowerer
+    // 2. nested tuple: the recursion happens in the lowerer
     println("nested equal:                     ${[1, [2, "y"]] == [1, [2, "y"]]}")
     println("nested different:                 ${[1, [2, "y"]] == [1, [3, "y"]]}")
 
-    // 3. struct element — routed through its own `Equals` impl, NOT a reference
+    // 3. struct element: routed through its own `Equals` impl, NOT a reference
     //    compare; the two `Tagged` below are distinct objects.
     println("struct element via Equals:        ${tagged(3) == tagged(3)}")
     println("struct element, differing:        ${tagged(3) == tagged(4)}")
@@ -47,7 +47,7 @@ main :: fn() -> i32 {
     println("distinct over a tuple:            ${named(2, 3) == named(2, 3)}")
     println("distinct, differing:              ${named(2, 3) == named(2, 4)}")
 
-    // 5. each operand is evaluated EXACTLY once — that is what the two
+    // 5. each operand is evaluated EXACTLY once: that is what the two
     //    temporaries buy, and nothing else here would notice if they went.
     //    Two calls for a 2-element tuple, not four.
     calls: i32[]: [0]

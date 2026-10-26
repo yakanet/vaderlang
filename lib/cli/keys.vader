@@ -4,7 +4,7 @@
 // in, keypresses out, and every case reachable from a unit test. The widgets are
 // the part that needs a terminal; this part never does.
 //
-// The input is a BURST, not a byte — `std/tty::read_keys` blocks for the first
+// The input is a BURST, not a byte: `std/tty::read_keys` blocks for the first
 // byte then returns everything already queued. That is what makes a lone
 // `Escape` decidable: an arrow's three bytes arrive together, so an `ESC` with
 // nothing after it in the same burst IS the Escape key, with no timeout and no
@@ -28,7 +28,7 @@ export Key :: enum(u8) {
     Tab,
     Escape,
     /// Ctrl-C. Raw mode turns OFF signal generation, so it arrives as a byte
-    /// (`0x03`) instead of killing the process — which is what lets a prompt
+    /// (`0x03`) instead of killing the process, which is what lets a prompt
     /// restore the terminal before giving up.
     Interrupt,
     /// A printable character; the text is in `KeyPress.text`.
@@ -61,7 +61,7 @@ DEL: u8: 0x7F
 ///
 /// @param burst  the bytes as read from the terminal.
 /// @param from   byte offset to decode at; must be < `burst.byte_len()`.
-/// @return       the press and the byte count it took — never 0, so a caller
+/// @return       the press and the byte count it took, never 0, so a caller
 ///               looping over a burst always advances.
 export decode_key :: fn(burst: string, from: i64) -> DecodedKey {
     b :: burst.byte_at(from)
@@ -103,7 +103,7 @@ one :: fn(key: Key) = DecodedKey {
     .consumed = 1,
 }
 
-// `ESC` and what follows it. A lone `ESC` — nothing else in the burst — is the
+// `ESC` and what follows it. A lone `ESC` (nothing else in the burst) is the
 // Escape key; `ESC [` and `ESC O` open a sequence. `ESC O` is the application
 // cursor mode some terminals switch to, and it carries the same four letters.
 decode_escape :: fn(burst: string, from: i64, remaining: i64) -> DecodedKey {
@@ -127,7 +127,7 @@ decode_escape :: fn(burst: string, from: i64, remaining: i64) -> DecodedKey {
             .consumed = 3,
         }
     }
-    // `ESC [ <n> ~` — Home and End on the terminals that spell them that way.
+    // `ESC [ <n> ~`: Home and End on the terminals that spell them that way.
     // Anything else in that family is consumed whole and reported as Unknown, so
     // a stray function key cannot leak its digits into a text field.
     if final >= '0' && final <= '9' {
@@ -169,7 +169,7 @@ decode_tilde :: fn(burst: string, from: i64, remaining: i64) -> DecodedKey {
         code = code * 10 + i32(b - '0')
         n += 1
     }
-    // 1 and 7 are Home, 4 and 8 are End — the spelling differs by terminal.
+    // 1 and 7 are Home, 4 and 8 are End: the spelling differs by terminal.
     if code == 1 || code == 7 {
         return DecodedKey { .press = KeyPress { .key = .Home, .text = "" }, .consumed = n }
     }

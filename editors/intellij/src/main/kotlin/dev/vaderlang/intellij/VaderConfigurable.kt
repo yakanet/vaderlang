@@ -36,7 +36,7 @@ internal class VaderConfigurable : Configurable {
         hint.foreground = UIUtil.getContextHelpForeground()
 
         // `FormBuilder.addLabeledComponent` renders the label as plain
-        // text — the `<html>` prefix is what flips it into Swing's
+        // text: the `<html>` prefix is what flips it into Swing's
         // HTML mode so the `<code>` styling matches the hint below.
         val built = FormBuilder.createFormBuilder()
             .addLabeledComponent(

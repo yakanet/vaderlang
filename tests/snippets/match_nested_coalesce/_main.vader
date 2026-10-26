@@ -21,7 +21,7 @@ classify :: fn(n: i32) -> i32 = match n {
 }
 
 // Guarded match : elision must NOT fire (a guard can mutate the scrutinee
-// between predicates), so this keeps the `__scrut` spill — but the arm chain
+// between predicates), so this keeps the `__scrut` spill, but the arm chain
 // still coalesces onto one slot.
 sign :: fn(n: i32) -> i32 = match n {
     is i32 if n > 0 -> 1

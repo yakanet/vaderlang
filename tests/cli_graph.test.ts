@@ -32,8 +32,8 @@ test("graph draws every module and every import edge", async () => {
 });
 
 // Modules are keyed by `module_name`, not by the loader's folder key. The two
-// diverge for a project loaded from an outer root — which this fixture is, since
-// the suite runs it from the repo root — so a regression here drops every edge.
+// diverge for a project loaded from an outer root (which this fixture is, since
+// the suite runs it from the repo root) so a regression here drops every edge.
 test("graph names modules by their module name, not their folder", async () => {
   const r = await runCli(["graph", CHAIN], undefined, MEDIUM_BUILD);
   const folderKey = relative(join(import.meta.dir, ".."), dirname(CHAIN)).split("\\").join("/");
@@ -49,7 +49,7 @@ test("graph emits DOT on request", async () => {
 });
 
 // `--scope=project` is the default and hides the library; `--scope=all` is what
-// makes `std/io` — which the fixture imports — visible.
+// makes `std/io` (which the fixture imports) visible.
 test("scope=all reaches the library, the default does not", async () => {
   const narrow = await runCli(["graph", CHAIN], undefined, MEDIUM_BUILD);
   expect(narrow.stdout).not.toContain("std/io");
@@ -59,7 +59,7 @@ test("scope=all reaches the library, the default does not", async () => {
 });
 
 // A driven project reaches the compiler's own modules through `--include-paths`,
-// so they arrive as `ModuleOrigin.Build` — the same provenance as the user's own
+// so they arrive as `ModuleOrigin.Build`: the same provenance as the user's own
 // code. Filtering on provenance alone drew all 18 of them as "the project"; the
 // module NAME is what separates them, exactly as `diagnose_import_path` does.
 // The graph is handed the same root a driven build passes: the checkout, which

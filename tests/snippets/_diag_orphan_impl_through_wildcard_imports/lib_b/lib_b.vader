@@ -1,4 +1,4 @@
-// Module B defines a trait `Bar` — owns the trait, not the type.
+// Module B defines a trait `Bar`: owns the trait, not the type.
 module "snippet/lib_b"
 
 export Bar :: trait {

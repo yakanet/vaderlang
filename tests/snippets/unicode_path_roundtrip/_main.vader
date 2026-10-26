@@ -5,8 +5,8 @@ import "std/io"
 // A path whose characters do not fit the system ANSI code page. On Windows the
 // `A` entry points would mangle or reject it, which is why `std/io` goes
 // through `CreateFileW` and the other `W` forms there; POSIX passes UTF-8
-// bytes straight down. The directory itself is NOT printed — it differs per
-// machine — only that the round trip survived.
+// bytes straight down. The directory itself is NOT printed (it differs per
+// machine): only that the round trip survived.
 main :: fn() -> i32 {
     path :: "${temp_dir()}/vader_héllo_zoé_日本.txt"
     written :: write_file_bytes(path, [104, 101, 108, 108, 111])

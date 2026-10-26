@@ -46,7 +46,7 @@ export lower_project :: fn(
 /// materialization. The eager modules' un-baked consts inline their RHS call at
 /// each use site (the standard staging trick), so the nullary callee thunks land
 /// in the harvest and are lowered. The result is a throwaway bytecode module used
-/// only to VM-execute those callees — see `pipeline/comptime_vm/resolve.vader`.
+/// only to VM-execute those callees, see `pipeline/comptime_vm/resolve.vader`.
 ///
 /// @param eager_modules  module ids to lower eagerly (with bodies) ; every other
 ///                       module surfaces bodyless signatures only. Must be
@@ -73,7 +73,7 @@ lower_project_impl :: fn(
     // const-baked lookups (`lookup_const_baked_value`) hit O(1) instead
     // of walking every loaded module's `comptime_decls` map per call.
     populate_comptime_value_index(project_ctx)
-    // Build the project-wide impl registry — aggregate every module's
+    // Build the project-wide impl registry: aggregate every module's
     // `T implements Trait { … }` decls so downstream phases can query
     // by `(for_type, trait_name)`. Unblocks Display dispatch for
     // string interp, try for non-primitive Error variants, and the
@@ -111,12 +111,12 @@ lower_project_impl :: fn(
         // members are materialised on demand by the harvest fixpoint below ;
         // the whole-program DCE (`prune_unreachable_fns`) culls the rest.
         //
-        // Only the ENTRY module is lowered eagerly (with bodies) — it is the
+        // Only the ENTRY module is lowered eagerly (with bodies): it is the
         // code under test / built, so its `main` / `@test` / exported surface
         // must survive whether or not it is reached. This is uniform across
         // stdlib and user modules : the same lazy path serves both. In staging
         // mode the eager set is the vm_required-owning modules rather than the
-        // single entry — every other module stays bodyless.
+        // single entry: every other module stays bodyless.
         if !is_eager_module(module_id, loaded, eager_modules) {
             imported_loaded :: loaded.modules[module_id]
             imported_typed_opt :: typed.modules[module_id]
@@ -167,7 +167,7 @@ lower_project_impl :: fn(
     // Generic-fn instances + non-generic stdlib free fns are MUTUALLY
     // recursive : a generic instance body calls stdlib fns (harvested into
     // `nongeneric_imported_order`), and a harvested stdlib body calls generic
-    // fns (registered into `fn_instances_order` — e.g. `std/json::write_object`
+    // fns (registered into `fn_instances_order`, e.g. `std/json::write_object`
     // → `MutableMap.len`). Drain all the queues in ONE joint fixpoint until
     // none grows : each pass resumes from its own persistent cursor, so
     // re-entry only processes newly-registered work (`drain_generic_fn_instances`
@@ -180,7 +180,7 @@ lower_project_impl :: fn(
     // emission order is a single deterministic sort.
     // All four queues are append-only (the three arrays) / add-only (the mangle
     // set), so their combined length strictly increases until the joint fixpoint
-    // settles — loop until the total stops growing.
+    // settles: loop until the total stops growing.
     prev_total: i64 = 0
     draining := true
     for draining {
@@ -201,21 +201,21 @@ lower_project_impl :: fn(
         if cur_total == prev_total { draining = false } else { prev_total = cur_total }
     }
     // INVARIANT : anything that can register a generic fn instance or harvest a
-    // non-generic stdlib fn MUST run inside the loop above — the flush is
+    // non-generic stdlib fn MUST run inside the loop above: the flush is
     // one-shot, so a post-flush registration is stranded (the bug this closes).
     // `materialize_representatives` / `close_over_field_shapes` below only push
-    // struct decls (no body lowering), so they register nothing — keep it that way.
+    // struct decls (no body lowering), so they register nothing: keep it that way.
     flush_generic_fn_instances(project_ctx, project)
     // Representative "any-args" structs come AFTER fn instances so the
     // emission order stays stable (`tests/snippets/generic_angle_decl` pins it).
     materialize_representatives(typed, project_ctx, project)
     // Transitively materialise generic-struct shapes referenced by the
     // fields of the structs emitted above (concrete + representative),
-    // e.g. `MutableSet<i32>`'s erased `inner: MutableMap<Any, bool>` —
+    // e.g. `MutableSet<i32>`'s erased `inner: MutableMap<Any, bool>`:
     // otherwise the bytecode interner mints an orphan `ref` for them.
     close_over_field_shapes(typed, project_ctx, project)
     // Place the project-global synthesised decls (`concat_N`, field-default
-    // thunks) into the entry module — ONCE, unconditionally. They can't ride the
+    // thunks) into the entry module: ONCE, unconditionally. They can't ride the
     // per-window `synth_decls` drain (a deduped generic instance's window is
     // skipped, which would strand one first synthesised inside it). Runs after
     // the fixpoint so every synthesised decl is collected.
@@ -229,12 +229,12 @@ lower_project_impl :: fn(
     guard_equals_slots(project, project_ctx)
     // Collect vtable entries from impl members. Without this,
     // `BcModule.impl_table` is always empty and `impl TYPE_ID TRAIT_NAME`
-    // directives never land in the .virt — the runtime falls back to
+    // directives never land in the .virt: the runtime falls back to
     // mangle-keyed dispatch.
     project.vtable_entries = collect_vtable_entries(project)
     project.globals = project_ctx.globals
     // Devirtualize calls through a fn-value local (`let f = named_fn ; … f(x) …`) to
-    // direct calls to the concrete fn — kills the erased-fn-value indirect+boxed
+    // direct calls to the concrete fn: kills the erased-fn-value indirect+boxed
     // dispatch (the `.map(f).filter(p)` iterator-fusion regression). The direct
     // calls it produces are what `push_cache_tag` needs to see a pure callback.
     devirtualize_fn_refs(project)
@@ -249,7 +249,7 @@ lower_project_impl :: fn(
     // Mark the pushes whose loop can keep the array's state in locals. See
     // `vader/lower/optimise/push_cache.vader`.
     push_cache_tag(project)
-    // `$VADER_OPT_REPORT` — what handed over to the general path
+    // `$VADER_OPT_REPORT`: what handed over to the general path
     // (`opt_report.vader`), then what a value ABI would reach
     // (`value_abi_report.vader`) ; `$VADER_VERIFY_CALLEES`, where the lowering chose
     // another callee than the typecheck's record (`verify_callees.vader`). Each
@@ -284,7 +284,7 @@ emit_report :: fn(report: string) -> void {
 // Per-module driver. Walks the decl list, dispatches by kind, and
 // builds the resulting `LoweredModule`. Lambda-lifted synth decls
 // accumulated on `project_ctx.synth_decls` during the walk get drained
-// into this module's `decls` list — they were spawned while lowering
+// into this module's `decls` list: they were spawned while lowering
 // this module's bodies, so they ship alongside the regular decls.
 lower_module :: fn(
     module_id: string, display_path: string, typed: TypedProgram, decls: Decl[],
@@ -333,7 +333,7 @@ lower_decl_list :: fn(
 // the matching phase-2 stub ; ImplDecl drains into per-member fn-decl
 // entries appended to `project_ctx.synth_decls` so the module driver
 // picks them up alongside the regular decls. Every other decl kind
-// (Enum, Trait, TypeAlias, Import, Assert) returns null — they don't
+// (Enum, Trait, TypeAlias, Import, Assert) returns null: they don't
 // produce runtime slots.
 lower_decl :: fn(
     decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],

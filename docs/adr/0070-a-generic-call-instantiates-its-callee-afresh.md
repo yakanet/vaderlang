@@ -1,4 +1,4 @@
-# 0070 — A generic call instantiates its callee afresh
+# 0070: A generic call instantiates its callee afresh
 
 ## Status
 

@@ -4,7 +4,7 @@ import "std/io"
 import "std/iter"
 
 // An array whose own instance converts to an iterator is iterated through that
-// `into` by an inlined consumer, and by a chain headed by `.into()` — never as the
+// `into` by an inlined consumer, and by a chain headed by `.into()`, never as the
 // raw array its elements would make.
 
 Mon :: struct {

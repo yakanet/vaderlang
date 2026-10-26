@@ -8,11 +8,11 @@ import "std/string_builder"
 import "std/math"
 
 /// True for the empty string. Equivalent to `s.byte_len() == 0` but
-/// reads cleanly at call sites — emptiness is the same in byte and
+/// reads cleanly at call sites: emptiness is the same in byte and
 /// codepoint views.
 export is_empty :: fn(s: string) -> bool = s.byte_len() == 0
 
-/// True iff `sub` appears anywhere in `s`. Byte-wise scan. Module-private —
+/// True iff `sub` appears anywhere in `s`. Byte-wise scan. Module-private:
 /// callers go through `sub in s` (Contains impl below) or UFCS
 /// `s.contains(sub)`. Named distinctly from the trait method (`contains`) to
 /// avoid shadowing it inside the impl body.
@@ -61,7 +61,7 @@ export ends_with :: fn(s: string, suffix: string) -> bool {
     return s.matches_at(s.byte_len() - suffix.byte_len(), suffix)
 }
 
-/// Iterator yielding Unicode codepoints — one per UTF-8 sequence,
+/// Iterator yielding Unicode codepoints: one per UTF-8 sequence,
 /// regardless of whether the codepoint is encoded in 1, 2, 3, or 4
 /// bytes. The cursor moves in bytes over the string itself.
 export StringChars :: struct {
@@ -104,7 +104,7 @@ StringChars implements Iterator<char> {
 /// @return   a `StringChars` iterator over its codepoints.
 export chars :: fn(s: string) -> StringChars = StringChars { .s = s }
 
-// `for c in s` desugars to `for c in s.into()` via this impl — codepoints
+// `for c in s` desugars to `for c in s.into()` via this impl: codepoints
 // are the default unit. A byte loop indexes the string: `s.byte_at(i)`. A
 // generator, so a `for` inlines this walk instead of stepping an iterator.
 string implements Into<Iterator<char>> {
@@ -139,7 +139,7 @@ string implements Contains<string> {
 }
 
 /// Comparator suitable for `sort(arr, compare_ascending)` : `a < b` as a
-/// function value — byte order, which is codepoint order in UTF-8.
+/// function value: byte order, which is codepoint order in UTF-8.
 /// @param a  left string.
 /// @param b  right string.
 /// @return   `true` iff `a` strictly precedes `b` ; equal strings → `false`.
@@ -159,7 +159,7 @@ export compare_ascending_ci :: fn(a: string, b: string) -> bool {
         if ca > cb { return false }
     }
     if la != lb { return la < lb }
-    // Equal folded — break ties by raw bytes so the order stays total.
+    // Equal folded: break ties by raw bytes so the order stays total.
     return a < b
 }
 
@@ -168,12 +168,12 @@ to_lower_byte :: fn(c: u8) -> u8 {
     return c
 }
 
-// ASCII whitespace byte (space, tab, LF, CR) — the byte-level counterpart of
+// ASCII whitespace byte (space, tab, LF, CR): the byte-level counterpart of
 // `is_white_char`, used by the trim family.
 is_white_byte :: fn(b: u8) = b == ' ' || b == '\t' || b == '\n' || b == '\r'
 
 /// Byte offset of the *last* occurrence of `c` in `s` at or after
-/// `min_index`. Walks codepoint-by-codepoint (UTF-8 safe — the byte
+/// `min_index`. Walks codepoint-by-codepoint (UTF-8 safe: the byte
 /// cursor advances by each codepoint's encoded width), tracking the
 /// latest match. Returns `-1` when not found ; the signed `i64`
 /// return type lets callers branch on `result < 0` instead of folding
@@ -197,7 +197,7 @@ export last_index_of :: fn(s: string, c: char, min_index: i64) -> i64 {
 }
 
 /// Byte offset of the *first* occurrence of `c` in `s`, starting at
-/// the codepoint that begins at byte `from` (inclusive). UTF-8 safe —
+/// the codepoint that begins at byte `from` (inclusive). UTF-8 safe,
 /// see `last_index_of` for the iteration model. `from` should align
 /// to a leading byte ; out-of-range values short-circuit to `-1`.
 ///
@@ -272,7 +272,7 @@ export join :: fn(parts: string[], sep: string) -> string {
 }
 
 /// Replace the first occurrence of `old` in `s` with `new` (literal substring,
-/// not a pattern — use `std/regex` for pattern replacement). Returns `s`
+/// not a pattern: use `std/regex` for pattern replacement). Returns `s`
 /// unchanged when `old` does not occur.
 /// @param s    source string.
 /// @param old  literal substring to find.
@@ -304,7 +304,7 @@ export repeat :: fn(s: string, n: i64) -> string {
     return sb.to_string()
 }
 
-/// True when codepoint `c` occurs in `s` — a `char`-presence predicate built on
+/// True when codepoint `c` occurs in `s`: a `char`-presence predicate built on
 /// `index_of`. For substring containment use `sub in s` (the `Contains` trait).
 /// @param s  string to search.
 /// @param c  codepoint to look for.
@@ -354,7 +354,7 @@ export right_trim :: fn(s: string) -> string {
 // Codepoint-level uppercase over ASCII + the Latin-1 Supplement letters
 // (`a..z`, `à..ö`, `ø..þ`, `ÿ`). `×`/`÷` (0xD7/0xF7) are excluded by the range
 // gaps ; `ß` has no single-codepoint uppercase and passes through. Scripts
-// beyond Latin-1 pass through unchanged — no full Unicode case tables.
+// beyond Latin-1 pass through unchanged: no full Unicode case tables.
 to_upper_cp :: fn(cp: u32) -> u32 = match cp {
     0x61..=0x7A -> cp - 0x20   // a-z
     0xE0..=0xF6 -> cp - 0x20   // à-ö
@@ -443,9 +443,9 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
     return i32(acc)
 }
 
-/// Parse `s` as an `f64` — sign, mantissa, optional exponent. Correctly rounded
+/// Parse `s` as an `f64`: sign, mantissa, optional exponent. Correctly rounded
 /// : delegates to `std/core::parse_f64` (Eisel-Lemire fast path + an exact
-/// big-int slow path), so the VM and native backends agree bit-for-bit — unlike
+/// big-int slow path), so the VM and native backends agree bit-for-bit: unlike
 /// the old `strtod` host, whose VM twin diverged on subnormals / long fractions.
 ///
 /// Returns the explicit union `f64 | ParseError` (concrete, like `parse_int`) :
@@ -498,7 +498,7 @@ export pad_end :: fn(s: string, width: i64, fill: char) -> string {
 }
 
 // Char classification (`is_white_char`/`is_digit`/`is_alpha`/`is_alnum`) moved
-// to `std/char` — `fn(char) -> bool` predicates belong with char classification,
+// to `std/char`: `fn(char) -> bool` predicates belong with char classification,
 // not the codepoint-string API. Callers `import "std/char"`.
 
 /// Strip `suffix` if `s` ends with it ; otherwise return `s` unchanged.
@@ -592,7 +592,7 @@ export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement:
 }
 
 /// Split `s` on runs of characters matching `pred`, dropping empty
-/// segments. Mirrors `replace_chars_where(s, pred, ...)` — same predicate
+/// segments. Mirrors `replace_chars_where(s, pred, ...)`: same predicate
 /// convention, same pair-with-`is_*` ergonomics. For whitespace
 /// splitting, pass `is_white_char` ; for word-boundary splitting
 /// (alphanumeric runs), pass `c => !c.is_alnum()`. Empty inputs return
@@ -751,7 +751,7 @@ import "std/testing"
         is i32        -> assert_eq(v, -2147483647)
         is ParseError -> assert(false, "negative should parse")
     }
-    // i32::MIN parses (value not compared — the literal would overflow i32).
+    // i32::MIN parses (value not compared: the literal would overflow i32).
     match parse_int("-2147483648") {
         is i32        -> {}
         is ParseError -> assert(false, "min i32 should parse")

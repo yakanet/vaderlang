@@ -4,9 +4,9 @@
 // Second", 2021 ; the Mushtak-Lemire "no fallback" variant is exact for <= 19
 // significant digits, which the scanner caps `w` at). Reuses the 128-bit
 // power-of-5 table (`parse_float_tables.vader`), `umul128` (`dtoa.vader`) and
-// `from_bits` (`core.vader`) — all `module "std/core"`, so no imports.
+// `from_bits` (`core.vader`): all `module "std/core"`, so no imports.
 //
-// Scope : decimal only — sign, mantissa, exponent (`[+-]? d* ('.' d*)? ([eE]
+// Scope : decimal only, sign, mantissa, exponent (`[+-]? d* ('.' d*)? ([eE]
 // [+-]? d+)?`). `inf` / `nan` / hex floats and the > 19-significant-digit slow
 // path are follow-ups (a truncated `w` still fast-paths, correct for all but
 // the rare halfway case). Returns `f64 | null` ; the public `std/string`
@@ -27,7 +27,7 @@ PF_MAX_RTE        :: 23        // max_exponent_round_to_even
 
 /// The scanned parts of a decimal float : significand `w` (first <= 19
 /// significant digits), power-of-ten exponent `q`, sign, and whether more than
-/// 19 significant digits were seen (needs the slow path — not yet built).
+/// 19 significant digits were seen (needs the slow path, not yet built).
 export DecimalParts :: struct {
     w:               u64
     q:               i32
@@ -135,7 +135,7 @@ pf_product :: fn(q: i32, w: u64) -> [u64, u64] {
 ///
 /// @param w0  the significand (<= 19 significant digits).
 /// @param q   the power-of-ten exponent.
-/// @return    `(power2 << 52) | mantissa` — OR the caller's sign bit onto it.
+/// @return    `(power2 << 52) | mantissa`, OR the caller's sign bit onto it.
 export eisel_lemire :: fn(w0: u64, q: i32) -> u64 {
     if w0 == 0 || q < PF_SMALLEST_POW5 { return u64(0) }
     if q > PF_LARGEST_POW5 { return u64(PF_INFINITE_POWER) << u64(PF_MANTISSA_BITS) }
@@ -182,7 +182,7 @@ export eisel_lemire :: fn(w0: u64, q: i32) -> u64 {
 export parse_f64 :: fn(s: string) -> f64 | null {
     parts :: scan_decimal(s) ?? return null
     // > 19 significant digits : the truncated `w` fast-paths correctly unless
-    // `w` and `w + 1` straddle a rounding boundary — then the dropped digits
+    // `w` and `w + 1` straddle a rounding boundary, then the dropped digits
     // decide, and only the exact slow path can round correctly.
     if parts.too_many_digits {
         lo :: eisel_lemire(parts.w, parts.q)
@@ -271,7 +271,7 @@ parse_f64_slow :: fn(s: string, negative: bool) -> f64 {
     }
 
     // Round to nearest-even. Classify normal vs subnormal from the leading bit
-    // BEFORE rounding, then round ONCE at the right precision — a normal
+    // BEFORE rounding, then round ONCE at the right precision: a normal
     // pre-round followed by a subnormal re-round double-rounds, off by 1 ulp at
     // the boundary (e.g. `2.2250738585072011e-308`).
     nb :: m.bit_len()

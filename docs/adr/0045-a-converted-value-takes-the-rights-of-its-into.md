@@ -1,4 +1,4 @@
-# 0045 — A converted value takes the rights of its `into`
+# 0045: A converted value takes the rights of its `into`
 
 ## Status
 

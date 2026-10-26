@@ -3,10 +3,10 @@
 // Algorithm : xoroshiro128++ (Blackman & Vigna, 2021). u64 output, 2^128
 // period, passes the BigCrush statistical battery. Fast on every modern
 // CPU and trivially portable to WASM (no SIMD intrinsics, no platform
-// primitives). Pure Vader — no host imports unless `new_from_clock` is
+// primitives). Pure Vader: no host imports unless `new_from_clock` is
 // used, in which case the seed comes from `std/time.monotonic()`.
 //
-// NOT suitable for cryptography — the output is reversible from any
+// NOT suitable for cryptography: the output is reversible from any
 // 256 consecutive u64s. For a cryptographic PRNG plug `std/crypto`
 // (post-MVP).
 
@@ -24,11 +24,11 @@ export Rng :: struct {
     s1: u64
 }
 
-// u64 ops explicitly mask to 64 bits — the TS VM stores u64 as BigInt
+// u64 ops explicitly mask to 64 bits: the TS VM stores u64 as BigInt
 // and won't wrap on overflow.
 mask64 :: fn(x: u64) -> u64 = x & 0xFFFF_FFFF_FFFF_FFFF
 
-// splitmix64 — used to expand a 64-bit seed into the 128-bit state.
+// splitmix64: used to expand a 64-bit seed into the 128-bit state.
 // Constants from the original SplitMix64 paper. Each call advances
 // the input by GOLDEN_GAMMA and applies an avalanche mix.
 splitmix64 :: fn(seed: u64) -> u64 {
@@ -51,7 +51,7 @@ export new_seeded :: fn(seed: u64) -> Rng {
     return Rng { .s0 = a, .s1 = b }
 }
 
-/// Seed from `std/time.monotonic()` — useful for tests that don't
+/// Seed from `std/time.monotonic()`: useful for tests that don't
 /// need determinism but want a different stream each process. Within
 /// a single process two close-together calls may produce overlapping
 /// streams (monotonic resolution is bounded) ; mix in a counter at
@@ -69,7 +69,7 @@ export next_u64 :: fn(self: Rng) -> u64 {
     return result
 }
 
-/// Draw the next u32 by taking the upper 32 bits of `next_u64` — the
+/// Draw the next u32 by taking the upper 32 bits of `next_u64`: the
 /// upper bits of xoroshiro128++ pass BigCrush, the lower bits are
 /// slightly weaker on certain tests.
 export next_u32 :: fn(self: Rng) -> u32 = u32(self.next_u64() >> 32)
@@ -78,7 +78,7 @@ export next_u32 :: fn(self: Rng) -> u32 = u32(self.next_u64() >> 32)
 export next_bool :: fn(self: Rng) -> bool = (self.next_u64() >> 63) == 1
 
 /// Uniform i32 in the half-open range `[lo, hi)`. A degenerate range
-/// (`hi <= lo`) is empty and returns `lo` — without this guard the
+/// (`hi <= lo`) is empty and returns `lo`: without this guard the
 /// modulus would divide by zero.
 ///
 /// Implementation uses rejection sampling on the top 32 bits to avoid
@@ -95,7 +95,7 @@ export range_i32 :: fn(self: Rng, lo: i32, hi: i32) -> i32 {
 }
 
 /// Uniform u32 in the half-open range `[lo, hi)`. A degenerate range
-/// (`hi <= lo`) is empty and returns `lo` — without this guard the
+/// (`hi <= lo`) is empty and returns `lo`: without this guard the
 /// modulus would divide by zero.
 export range_u32 :: fn(self: Rng, lo: u32, hi: u32) -> u32 {
     if hi <= lo { return lo }
@@ -108,7 +108,7 @@ export range_u32 :: fn(self: Rng, lo: u32, hi: u32) -> u32 {
     return lo + (x % span)
 }
 
-/// Uniform f64 in `[0.0, 1.0)`. Uses 52 bits of mantissa — one bit less
+/// Uniform f64 in `[0.0, 1.0)`. Uses 52 bits of mantissa: one bit less
 /// than the f64 maximum so the largest possible numerator (`2^52 - 1`)
 /// divided by `2^52` is the immediate predecessor of `1.0` rather than
 /// rounding up to exactly `1.0` (which `(2^53 - 1) / 2^53` does on
@@ -118,7 +118,7 @@ export unit_f64 :: fn(self: Rng) -> f64 {
 }
 
 /// In-place Fisher-Yates shuffle. Visits each element once in O(n) ;
-/// O(1) extra memory (one i32 swap helper). Returns nothing — the
+/// O(1) extra memory (one i32 swap helper). Returns nothing: the
 /// input array is permuted directly.
 export shuffle :: fn<T>(self: Rng, arr: T[]) -> void {
     n :: arr.len()
@@ -148,7 +148,7 @@ import "std/testing"
 
 @test test_new_seeded_zero_produces_nonzero :: fn() -> void {
     r :: new_seeded(0)
-    // Sum a small batch — must not be all zeros (would mean a degenerate state).
+    // Sum a small batch: must not be all zeros (would mean a degenerate state).
     acc: u64 = 0
     for k in 0..<8 {
         acc = acc | r.next_u64()

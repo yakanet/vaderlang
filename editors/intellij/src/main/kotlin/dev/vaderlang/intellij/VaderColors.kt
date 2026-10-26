@@ -9,8 +9,8 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 // Why not reuse an existing key: type names have no coloured key to borrow.
 // LSP4IJ maps the `type` semantic token to `LSP_TYPE` → `CLASS_NAME`, which dark
 // themes leave at the plain foreground (IntelliJ colours class *declarations* in
-// Java, not references). Yielding to the TextMate grammar instead — the trick that
-// fixed call sites — does not work here either: IntelliJ only maps a SUBSET of
+// Java, not references). Yielding to the TextMate grammar instead (the trick that
+// fixed call sites) does not work here either: IntelliJ only maps a SUBSET of
 // TextMate scopes onto its colour keys, and `support.type.primitive.vader` (the
 // grammar's scope for `i32` / `string` / `u64`) is not in it, so primitives stay
 // white whichever side paints them.
@@ -19,7 +19,7 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 // theme-independent option. It also puts the colour under the user's control:
 // the key shows up in Settings → Editor → Color Scheme once referenced.
 //
-// `fallbackKey` still matters — it is what a scheme with no explicit value for
+// `fallbackKey` still matters: it is what a scheme with no explicit value for
 // `VADER_TYPE` resolves to.
 internal object VaderColors {
     val TYPE: TextAttributesKey =

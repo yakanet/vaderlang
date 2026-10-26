@@ -1,4 +1,4 @@
-# 0081 — A generic over integers computes in `i64`
+# 0081: A generic over integers computes in `i64`
 
 ## Status
 

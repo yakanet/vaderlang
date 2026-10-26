@@ -150,7 +150,7 @@ build_input :: fn(
             // A named file bypasses the driver of the folder the build runs in,
             // and has to: `bootstrap/build.sh` compiles the compiler by name, and
             // could not depend on a driver to do it. But silently skipping a
-            // project's own rules is worse than the extra line — a house rule
+            // project's own rules is worse than the extra line: a house rule
             // that stops applying the moment you name a file is a rule nobody
             // can trust. `--no-hooks` says "I know" and quiets this.
             if !no_hooks && find_build_driver(current_working_directory()) != null {
@@ -339,7 +339,7 @@ virt_module :: fn(file: Path) -> BytecodeModule | null {
 ///
 /// The seed's shape. Atom ids are positions, so each target's own literal pool
 /// numbers them differently and every file ends up differing by renumbering
-/// alone — measured at 7026 renumbered lines against 2 of real content. Unioning
+/// alone: measured at 7026 renumbered lines against 2 of real content. Unioning
 /// the pools first makes the ids agree, so the emitted C differs only where the
 /// code does.
 ///
@@ -369,14 +369,14 @@ emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
     // every slot after it. Measured without this, from a single lambda in a
     // `@target` body: 11 282 renumbered lines against 238 of real content, and
     // shared units fell from 37 to 7.
-    // Keyed ONCE per module, then reused by the union and by every rebase —
+    // Keyed ONCE per module, then reused by the union and by every rebase:
     // `bc_type_key` recurses through composite types, so re-deriving it per pass
     // re-walks that graph for every target.
     type_keys :: mods.map((m) -> type_keys_of(m.module)).collect()
     type_universe :: union_of_type_tables(type_keys)
     // ONE header name for every target. It holds the struct typedefs, the
-    // prototypes and the atom count — all identical once the universe is shared
-    // — so per-target copies would differ in nothing but their own `#include`
+    // prototypes and the atom count (all identical once the universe is shared)
+    // so per-target copies would differ in nothing but their own `#include`
     // line, which is what a first attempt produced: 39 files "differing" on
     // line 1 alone.
     header_name :: split_header_name(out)
@@ -384,7 +384,7 @@ emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
     for i in 0..<targets.len() {
         // A literal a target holds but the universe does not means the pools were
         // unioned after something already emitted. Left unchecked it is a SILENT
-        // atom alias — the id lands on whatever sits at that slot — so it is
+        // atom alias (the id lands on whatever sits at that slot) so it is
         // named here instead.
         gaps :: atom_universe_gaps(mods[i].module.strings, universe)
         if gaps.len() > 0 {
@@ -410,12 +410,12 @@ emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
 //
 // A unit is shared when every target emitted the same bytes for it, and only
 // then; the rest go under `<out>.<os>-<arch>.split.<k>.c`. Which units differ is
-// data, not a rule — with one `@target` body in the closure it was exactly one
+// data, not a rule: with one `@target` body in the closure it was exactly one
 // out of 39, 28 KB against 11.3 MB.
 write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32 {
     first :: progs[0]
     // The shared header USUALLY matches across targets, because the `@extern`
-    // declarations and their shims — the part a target changes most — live in
+    // declarations and their shims (the part a target changes most) live in
     // their own header. It does not have to: the synthetic type names
     // (`__Tuple_N`, `__lambda_env_N`) are numbered AFTER target selection, so a
     // function reached by one target only shifts every id behind it and the
@@ -423,8 +423,8 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
     // Windows and dead-stripped elsewhere, moved the whole table by two.
     //
     // So it falls back the same way the imports header and the globals unit
-    // already do — one copy per target directory, found first on the include
-    // path — rather than refusing a build whose output is perfectly valid.
+    // already do: one copy per target directory, found first on the include
+    // path: rather than refusing a build whose output is perfectly valid.
     if progs.all_match((pr) -> pr.header == first.header) {
         if write_out(split_header_path(out), first.header) != 0 {
             return 1
@@ -471,7 +471,7 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
             // scripts compile one target directory, and the `.split.g.c` form
             // this used to write matched neither that nor the shared-globals
             // line. Masked today because every target's globals are identical,
-            // so this branch never runs — and it would have surfaced as a
+            // so this branch never runs, and it would have surfaced as a
             // missing symbol at link time, far from the cause.
             if ensure_target_dir(out, display_target(targets[i])) != 0 {
                 return 1
@@ -567,7 +567,7 @@ union_of_string_pools :: fn(mods: CfgBytecode[]) -> string[] {
     return sort(out, (a: string, b: string) -> compare_ascending(a, b))
 }
 
-/// Create the directory a per-target unit goes in. Idempotent — several units
+/// Create the directory a per-target unit goes in. Idempotent: several units
 /// share it, and the imports header may have made it already.
 ///
 /// @param out     the `--out` stem.

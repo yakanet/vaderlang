@@ -1,4 +1,4 @@
-// Calling `foo` with 2 args when it takes 1 — T3003.
+// Calling `foo` with 2 args when it takes 1: T3003.
 module "snippet"
 
 foo :: fn(x: i32) -> i32 { return x }

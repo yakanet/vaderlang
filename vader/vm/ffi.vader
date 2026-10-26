@@ -7,16 +7,16 @@
 //
 // Declared here rather than in `std/` on purpose. These hosts amount to
 // "run arbitrary native code", and putting them in the standard library would
-// hand that to every program — a surface decision of its own. The compiler is
+// hand that to every program: a surface decision of its own. The compiler is
 // the only caller today.
 //
 // Addresses ride `i64`, not `CPointer`. `0` is the null address. Nothing here
-// dereferences or offsets one — the value only travels from `ffi_symbol` to a
+// dereferences or offsets one: the value only travels from `ffi_symbol` to a
 // call, so the pointer type would buy nothing the integer does not already give.
 
 module "vader/vm"
 
-/// Open a shared library by BARE name (`"sqlite3"`, not `"libsqlite3.so"`) —
+/// Open a shared library by BARE name (`"sqlite3"`, not `"libsqlite3.so"`):
 /// the host decorates it per platform. An empty name yields the running
 /// process, which is where a libc symbol lives.
 ///
@@ -40,7 +40,7 @@ module "vader/vm"
 
 /// One foreign call, described by DATA rather than by its shape.
 ///
-/// `desc` is one byte per slot — `desc[0]` classifies the result, `desc[1+i]`
+/// `desc` is one byte per slot: `desc[0]` classifies the result, `desc[1+i]`
 /// each argument: word, double, or an offset into `frame`. `frame` holds the
 /// argument slots, eight bytes each, followed by whatever an offset slot points
 /// into; the result is written back over its first eight bytes.
@@ -53,11 +53,11 @@ module "vader/vm"
 /// @param frame   the argument slots plus their data; receives the result.
 /// @param nfixed  how many of the callee's parameters are FIXED when it is
 ///                variadic, `-1` when it is not. Only the real prototype knows,
-///                so `@c_variadic(N)` declares it — and a variadic callee called
+///                so `@c_variadic(N)` declares it, and a variadic callee called
 ///                through a non-variadic cast reads its variadic arguments from
 ///                the wrong place on darwin-arm64, silently.
 /// @return        the interned string for a `string`-returning callee, the empty
-///                string otherwise — an atom id cannot travel through the frame,
+///                string otherwise: an atom id cannot travel through the frame,
 ///                since nothing on the Vader side can turn one back into a
 ///                `string`.
 @intrinsic export ffi_call :: fn(fn_ptr: i64, desc: u8[], frame: u8[], nfixed: i64) -> string
@@ -81,7 +81,7 @@ module "vader/vm"
 import "std/testing"
 
 // `strlen` is the probe throughout: every platform's C runtime exports it, it
-// takes one pointer, and it writes NOTHING — so the tests leave the runner's own
+// takes one pointer, and it writes NOTHING, so the tests leave the runner's own
 // stdout alone. `write` and `getpid` would fail on Windows (the CRT spells the
 // latter `_getpid`) and the first would interleave bytes into the test output.
 
@@ -105,7 +105,7 @@ import "std/testing"
 }
 
 // The descriptor is one byte per slot: `desc[0]` the result, `desc[1+i]` each
-// argument — 1 word, 3 an offset into the frame. The slot area is `nargs * 8`
+// argument: 1 word, 3 an offset into the frame. The slot area is `nargs * 8`
 // bytes, so the data an offset points at starts there.
 
 @test test_ffi_lends_bytes_to_a_foreign_call :: fn() -> void {
@@ -139,7 +139,7 @@ import "std/testing"
     sym :: ffi_symbol(ffi_open(""), "memset")
     assert(sym != 0, "memset must resolve")
 
-    // `memset(buf, 65, 4)` — the lend has to travel BOTH ways. The frame is a
+    // `memset(buf, 65, 4)`: the lend has to travel BOTH ways. The frame is a
     // copy of the caller's bytes, so without the write-back this would read
     // back what it sent.
     desc: u8[]: [1, 3, 1, 1]

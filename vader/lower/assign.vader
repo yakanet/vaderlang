@@ -70,7 +70,7 @@ bind_place_operands :: fn(ctx: FnLowerCtx, target: Expr, out: LoweredStmt[]) -> 
     }
 }
 
-// A receiver that is itself a place — a name, a field, an array element — is read
+// A receiver that is itself a place (a name, a field, an array element) is read
 // again, so only its own operands are bound. Any other is bound whole, an element
 // an `Index` impl returns included : its read is a call.
 bind_place_receiver :: fn(ctx: FnLowerCtx, receiver: Expr, out: LoweredStmt[]) -> void {
@@ -98,8 +98,8 @@ bind_place_operand :: fn(ctx: FnLowerCtx, operand: Expr, out: LoweredStmt[]) -> 
 
 /// One write to one target, with the value ALREADY lowered.
 ///
-/// Every assignment funnels through here — the plain `a = v` and each element of
-/// a destructuring assignment alike — because the two special shapes below are
+/// Every assignment funnels through here: the plain `a = v` and each element of
+/// a destructuring assignment alike, because the two special shapes below are
 /// invisible in the target's syntax: an `m[k]` over an `IndexSet` impl is a
 /// `set_at` call, and a captured local is a write THROUGH a cell. A caller that
 /// built its own `LoweredAssign` would drop the map write on the floor and
@@ -146,7 +146,7 @@ try_lower_cell_set_assign :: fn(
     return null
 }
 
-// `[t0, _, ...rest] = value` — read every element into its own temp, THEN write.
+// `[t0, _, ...rest] = value`: read every element into its own temp, THEN write.
 //
 // The two phases are the whole point: writing as we read would make
 // `[a, b] = [b, a]` assign `a = b` and then read the NEW `a` back into `b`.
@@ -237,7 +237,7 @@ element_type_at :: fn(backing: Type, index: i64, fallback: Type) -> Type {
     return fallback
 }
 
-/// Lvalue lowerer — bypasses the match-narrowing `LoweredCast` wrap that
+/// Lvalue lowerer: bypasses the match-narrowing `LoweredCast` wrap that
 /// `lower_ident` applies on use-site reads. The bytecode emitter resolves
 /// assignment slots via the raw `LoweredIdent` ; a cast in target position
 /// breaks that pattern match.
@@ -325,7 +325,7 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
         }
         _            -> {}
     }
-    // Range-typed *value* index (`let r = 0..<n ; arr[r]`) — bind the
+    // Range-typed *value* index (`let r = 0..<n ; arr[r]`): bind the
     // range to a temp so the three field reads (`.start`, `.end`,
     // `.inclusive`) share one evaluation, then emit the slice.
     idx_type :: ctx.types.expr_type(expr.index)

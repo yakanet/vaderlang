@@ -5,7 +5,7 @@
 // call solving (see `vader/core/types/unify.vader`, the `TraitType` / `ArrayType`
 // case). When it wasn't, `chain(a, b)` / `a.map(f)` / `a.filter(p)` over `Rec[]`
 // left the element typed as the bare `T`, so a field read (`r.value`) failed with
-// T3008 — or, when a target type masked it, corrupted the erased-layout array
+// T3008, or, when a target type masked it, corrupted the erased-layout array
 // at runtime (SIGSEGV in the diagnostics renderer). All three
 // combinators are bound WITHOUT a type annotation here, the shape that regressed.
 
@@ -41,7 +41,7 @@ main :: fn() -> i32 {
 
     // Direct for-loop over a struct chain (NO `collect`). The fused loop var must
     // bind the concrete `Rec`, not the erased `Any` of the `.Erased` combinator
-    // instance — else `m.value` fails in mid-IR. Both inferred `chain(a, b)` and
+    // instance: else `m.value` fails in mid-IR. Both inferred `chain(a, b)` and
     // the explicit-type-arg form `chain<Rec>(a, b)` fuse (the latter's callee is a
     // `GenericInstExpr` the fusion descent now sees through).
     for m in chain(a, b) {

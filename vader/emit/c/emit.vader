@@ -37,8 +37,8 @@ import "vader/emit/c/ast"
 ///
 /// `entry_mangled` is the designated program-entry main's mangled name
 /// (`<entry-module-id>$main`, the same `dump_bytecode` stamps as
-/// `export main N`). A multi-module program — the compiler imports
-/// `vader/tools/lsp`, which has its OWN `main` — has several fns all flagged
+/// `export main N`). A multi-module program (the compiler imports
+/// `vader/tools/lsp`, which has its OWN `main`) has several fns all flagged
 /// `is_main`, and the entry one isn't necessarily first in the fn table, so
 /// the `main()` shim resolves it by name. Empty → fall back to the first
 /// `is_main` fn (single-main programs).
@@ -57,7 +57,7 @@ export CEmitOptions :: struct {
     /// behaviour every caller had.
     ///
     /// It exists for the seed. Atom ids are POSITIONS, so a literal present only
-    /// on one target shifts every id after it — measured across a darwin/windows
+    /// on one target shifts every id after it: measured across a darwin/windows
     /// pair: 7028 of 7030 differing lines were renumberings, and 2 were real.
     /// Emitting every target against one universe makes the ids agree, so the C
     /// then differs only where the code does.
@@ -74,7 +74,7 @@ export CEmitOptions :: struct {
 }
 
 /// Per-module emit context. Built once by `new_ctx`, then threaded
-/// through every section emitter. Read-only — every cache / index is
+/// through every section emitter. Read-only: every cache / index is
 /// computed up-front so per-op emit stays branch-free.
 export EmitCtx :: struct {
     module: BytecodeModule
@@ -106,7 +106,7 @@ export EmitCtx :: struct {
     /// Per import of `module.imports`, whether calling it can trigger a
     /// collection. Computed by `imports_may_collect`.
     import_may_collect: bool[]
-    /// External-linkage mode — drops `static` on every emitted def and adds
+    /// External-linkage mode: drops `static` on every emitted def and adds
     /// closure forward decls, so the output can be split across TUs. Mirrors
     /// `CEmitOptions.split`. Read by `wrapper_storage`.
     split: bool
@@ -162,7 +162,7 @@ struct_c_names_of :: fn(types: BcType[]) -> string[] {
     return names
 }
 
-/// Storage of a function the emitter defines outside `module.functions` — a
+/// Storage of a function the emitter defines outside `module.functions`: a
 /// trampoline, a dispatcher : private to its single unit, except in a split
 /// build, where another unit may call it. Every emitted name is a
 /// globally-unique mangle, so external linkage is collision-free.
@@ -191,7 +191,7 @@ module_function_storage :: fn(ctx: EmitCtx, index: i32) -> CStorage {
 }
 
 /// Runtime atom id for each string-literal pool index. The empty string
-/// maps to 0 (VADER_ATOM_EMPTY — reached via direct `== 0`, never the
+/// maps to 0 (VADER_ATOM_EMPTY: reached via direct `== 0`, never the
 /// intern hash) ; every other literal gets a contiguous id `1..M`.
 ///
 /// An empty literal MUST resolve to 0 so it compares equal to a
@@ -215,7 +215,7 @@ compute_atom_ids :: fn(strings: string[], universe: string[]) -> i32[] {
     }
     // Position in the UNIVERSE, so two targets that share it agree on every id.
     // A literal the universe does not carry is a build-order bug rather than a
-    // recoverable case — it would silently alias another atom — so it takes 0
+    // recoverable case (it would silently alias another atom) so it takes 0
     // (the empty atom) and `atom_universe_covers` is what a caller checks.
     index :: MutableMap<string, i32> {}
     for i in 0..<universe.len() {
@@ -269,7 +269,7 @@ export atom_universe_gaps :: fn(strings: string[], universe: string[]) -> string
     return out
 }
 
-/// Top-level entry — produces the C source for a `BytecodeModule`.
+/// Top-level entry: produces the C source for a `BytecodeModule`.
 /// Output ends with a trailing newline.
 ///
 /// @param m     the bytecode module to lower.
@@ -329,7 +329,7 @@ emit_type_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     // Struct typedefs + bodies (the split routes these to the shared header).
     emit_struct_typedefs(ctx, printer)
 
-    // Comptime atom table — every non-empty literal serialised as a PERM
+    // Comptime atom table: every non-empty literal serialised as a PERM
     // atom in `.rodata`. `string.const` resolves to a bare atom id
     // (`ctx.atom_ids[i]`) inlined at each use site, so no per-literal
     // `vader_str_<i>` global is emitted.
@@ -344,7 +344,7 @@ emit_type_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 /// A mirror is per SYSTEM by nature: two systems describe the same C type with
 /// different fields, and each mirror is materialised only where its `@target`
 /// body is kept. So a mirror belongs beside the shims that marshal it and the
-/// `_Static_assert`s that check it — all of which already live per target —
+/// `_Static_assert`s that check it (all of which already live per target)
 /// rather than in the header every target shares.
 ///
 /// @param types    the module type table.
@@ -392,7 +392,7 @@ emit_struct_typedefs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     printer.print_section(CSection { .items = definitions })
 }
 
-/// Compile-time atom table — every non-empty string literal serialised
+/// Compile-time atom table: every non-empty string literal serialised
 /// as a PERM atom in `.rodata`. The emitted `main` hands the table to
 /// `vader_atom_init_with_comptime` at startup ; the runtime memcpys it
 /// into the live atom table at indices `1..M` (index 0 is
@@ -420,7 +420,7 @@ emit_atom_comptime_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         return
     }
 
-    // `ctx.atom_table` is already in id order (id k at index k-1) — the
+    // `ctx.atom_table` is already in id order (id k at index k-1): the
     // module's own non-empty literals, or the shared universe when one was
     // given. Empty literals carry no atom; they alias VADER_ATOM_EMPTY (0).
     // The blob holds each literal's bytes + an inline NUL sentinel so
@@ -465,7 +465,7 @@ emit_atom_comptime_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     printer.print_section(CSection { .items = [atom_count_define(ctx)] })
 }
 
-/// `#define VADER_COMPTIME_ATOM_COUNT N` — the count `main` hands to
+/// `#define VADER_COMPTIME_ATOM_COUNT N`: the count `main` hands to
 /// `vader_atom_init_with_comptime`. It counts `ctx.atom_table`, the entries
 /// `emit_atom_comptime_table` bakes, so every unit that spells it agrees. With
 /// a shared universe the module's own literal pool is smaller than that table :
@@ -488,7 +488,7 @@ global_storage :: fn(split: bool) -> CStorage = if split { .External } else { .I
 /// @param type      its C type.
 /// @param name      its name.
 /// @param length    its declared length, `UNSIZED` for an array.
-/// @param constant  whether the definition is `const` — the two must agree.
+/// @param constant  whether the definition is `const`: the two must agree.
 external :: fn(
     type: string,
     name: string,
@@ -515,7 +515,7 @@ struct_definition :: fn(types: BcType[], names: string[], s: BcStruct, type_inde
     return CStructDefinition { .name = names[type_index], .fields = fields }
 }
 
-/// Data pool — module-level read-only `T[]` literals emitted as `.rodata` statics.
+/// Data pool: module-level read-only `T[]` literals emitted as `.rodata` statics.
 /// Skipped when `data_pool.len() == 0`. Primitive arrays bake a concrete-typed
 /// element buffer ; string arrays bake a `vader_box_t` slot buffer holding the
 /// elements' atom ids.
@@ -625,7 +625,7 @@ push_pool_array :: fn(
 ARRAY_BUFFER_HEADER :: "vader_obj_header_t header; size_t capacity; size_t length; " +
     "uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3];"
 
-/// `{ tag, 0u, 0u, 0u, NULL }` — the header of a static object.
+/// `{ tag, 0u, 0u, 0u, NULL }`: the header of a static object.
 ///
 /// @param tag  its type index.
 object_header :: fn(tag: CExpression) -> CExpression = initializer_list([
@@ -860,7 +860,7 @@ struct_field_init :: fn(
 }
 
 // One `vader_box_t` slot for a boxed-array element, tagged with the element's own
-// type as a box built at run time is — the member of a union it is, not the union:
+// type as a box built at run time is: the member of a union it is, not the union:
 // a string boxes its atom in `.s`, a number its value, a struct / nested array a
 // pointer to its static in `.obj`. `tag` is the nested array's.
 box_slot :: fn(
@@ -894,7 +894,7 @@ scalar_tag :: fn(types: BcType[], kind: ArrayKind) -> i32 {
     return 0
 }
 
-// `{ tag, 0u, { .i = value } }` — a box holding a number, its payload widened as
+// `{ tag, 0u, { .i = value } }`: a box holding a number, its payload widened as
 // `box_expr` widens it at run time (a 32-bit-or-narrower integer through `int32_t`).
 boxed_scalar :: fn(tag: i32, kind: ArrayKind, bits: u64) -> CExpression {
     value :: data_slot(kind, bits)
@@ -913,17 +913,17 @@ boxed_scalar :: fn(tag: i32, kind: ArrayKind, bits: u64) -> CExpression {
 integer_payload :: fn(casts: string[], value: CExpression) -> CExpression =
     designated(".i", CCast { .types = casts, .value = value })
 
-// `{ tag, 0u, { .obj = (void*) pointer } }` — a box holding a static object.
+// `{ tag, 0u, { .obj = (void*) pointer } }`: a box holding a static object.
 boxed_object :: fn(tag: i32, pointer: CExpression) -> CExpression = initializer_list([
     unsigned(i64(tag)), ZERO, initializer_list([designated(".obj", cast("void*", pointer))]),
 ])
 
-// `{ tag, 0u, { .s = atom } }` — a box holding a string.
+// `{ tag, 0u, { .s = atom } }`: a box holding a string.
 boxed_string :: fn(tag: i32, atom: i32) -> CExpression = initializer_list([
     unsigned(i64(tag)), ZERO, initializer_list([designated(".s", unsigned(i64(atom)))]),
 ])
 
-// Storage kind of an array's elements — the first element's prim kind (enum/prim
+// Storage kind of an array's elements: the first element's prim kind (enum/prim
 // arrays store at the repr width), or Boxed for struct / string / array elements.
 element_storage_kind :: fn(elements: BcDataValue[]) -> ArrayKind {
     if elements.len() == 0 { return .Boxed }
@@ -934,7 +934,7 @@ element_storage_kind :: fn(elements: BcDataValue[]) -> ArrayKind {
 
 // Type-table index of the `BcStruct` declared by `symbol_id`. Load-bearing here
 // (it picks the static's C struct type + header tag), and a baked struct is
-// always declared in the same module — so a miss is an upstream bug, not a
+// always declared in the same module, so a miss is an upstream bug, not a
 // degraded-to-primitive-0 silent corruption.
 type_id_for_struct_symbol :: fn(types: BcType[], symbol_id: i32) -> i32 {
     index :: struct_symbol_type_index(types, symbol_id)
@@ -977,7 +977,7 @@ emit_prim_data_entry :: fn(items: CTopLevel[], array: PoolArray, pd: BcPrimData)
 }
 
 // One string-array buffer + array header. A string is a `vader_string_t`
-// atom id, so the elements live in `vader_box_t` slots (element_kind Boxed) — each
+// atom id, so the elements live in `vader_box_t` slots (element_kind Boxed): each
 // box tagged with the string element type, payload `.s` = the interned atom id.
 emit_str_data_entry :: fn(
     items: CTopLevel[],
@@ -1020,7 +1020,7 @@ atom_for :: fn(atom_of: MutableMap<string, i32>, value: string) -> i32 {
 
 // One `.rodata` slot initialiser for a data-pool element. Integer / char / bool
 // kinds store the raw bit pattern verbatim (`(cty) UINT64_C(bits)`). Float kinds
-// must NOT numerically convert the bits — they reinterpret via `from_bits` and
+// must NOT numerically convert the bits: they reinterpret via `from_bits` and
 // re-render the value as a C float literal (`float_lit`), so `2.5` lands as the
 // double `2.5`, not the integer `0x4004…` cast to double.
 data_slot :: fn(kind: ArrayKind, bits: u64) -> CExpression {
@@ -1080,8 +1080,8 @@ signature_for :: fn(ctx: EmitCtx, index: i32) -> CSignature {
     parameters :: value_parameters(function.signature.params, "l")
     // A multi-value return has no C spelling, so it becomes out-params appended
     // after the declared ones and the function itself returns void. Measured as
-    // the fastest of the three shapes a composite can cross in — out-params,
-    // a flat struct by value, or the heap object this replaces — and the only
+    // the fastest of the three shapes a composite can cross in (out-params,
+    // a flat struct by value, or the heap object this replaces) and the only
     // one that needs no ABI threshold to be known.
     multiple :: bc_result_arity(function.signature) > 1
     if multiple {
@@ -1108,7 +1108,7 @@ signature_for :: fn(ctx: EmitCtx, index: i32) -> CSignature {
 /// Name of the `i`-th out-param in a scalarised multi-value signature.
 ///
 /// One place, because the callee's `return` writes through it and every call
-/// site takes its address — a mismatch between the two is a C compile error at
+/// site takes its address: a mismatch between the two is a C compile error at
 /// best and the wrong slot at worst.
 export out_param_name :: fn(i: i64) -> string = "__o${i}"
 
@@ -1178,11 +1178,11 @@ value_parameters :: fn(slots: ValType[], prefix: string) -> CParameter[] {
 }
 
 // `emit_fn_trampolines` (the per-fn `fn.ref` / `make_closure` wrappers)
-// lives in `walker.vader` (same module), next to `compute_may_alloc` — both
+// lives in `walker.vader` (same module), next to `compute_may_alloc`: both
 // are whole-module body scans over the fn table.
 
 /// Per-type GC info table + (at the end) the vtable section. Always
-/// emitted, even for an empty module — the runtime fallback expects strong
+/// emitted, even for an empty module: the runtime fallback expects strong
 /// symbols here.
 ///
 /// Each struct visits its fields exactly once : a single classifier walk
@@ -1196,7 +1196,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     count :: types.len()
 
     // Every array and every fn value has the same single reference, so they
-    // share one offset list each — emitted only when used, since an unused
+    // share one offset list each: emitted only when used, since an unused
     // `static const` draws a C warning.
     has_fn := false
     has_array := false
@@ -1213,7 +1213,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     }
     printer.print_section(CSection { .items = shared })
 
-    // Per-type info initialiser rows — struct / fn / array carry a full row ;
+    // Per-type info initialiser rows: struct / fn / array carry a full row ;
     // primitives / unions / refs only set `slot_size` and keep the zero-init
     // `VADER_TYPE_KIND_NONE` (so the GC scanner short-circuits without reading
     // the payload).
@@ -1241,7 +1241,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
                     "vader_array_ptr_offsets",
                 ),
             )
-            // Primitives / unions / refs — every other `BcType`. MUST stay a
+            // Primitives / unions / refs: every other `BcType`. MUST stay a
             // `_` arm, not `@partial` : those slots are reachable (e.g. an
             // enum/distinct interning under its backing primitive's key), and a
             // trapping fallback would abort. `null` is 0 wide and keeps no row.
@@ -1270,7 +1270,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     printer.print_section(CSection { .items = [table, table_count] })
 }
 
-// `static const uint16_t name[] = { offset };` — the offset list every type of
+// `static const uint16_t name[] = { offset };`: the offset list every type of
 // one kind shares.
 single_offset_list :: fn(name: string, offset: string) -> CTopLevel = CGlobal {
     .storage = .Internal,
@@ -1302,7 +1302,7 @@ single_reference_row :: fn(
     ],
 )
 
-// `[index] = { members… }` — one row of the type-info table.
+// `[index] = { members… }`: one row of the type-info table.
 info_row :: fn(index: i64, members: CExpression[]) -> CExpression = designated(
     "[${index}]",
     initializer_list(members),
@@ -1314,7 +1314,7 @@ info_row :: fn(index: i64, members: CExpression[]) -> CExpression = designated(
 StructOffsets :: struct {
     /// Box-bearing fields.
     ptr_offsets: string[]
-    /// Raw `vader_string_t` fields — the string GC marks them independently of
+    /// Raw `vader_string_t` fields: the string GC marks them independently of
     /// the box-aliased Cheney walk.
     str_offsets: string[]
     /// Fields holding a raw `void*` to a concrete object (`.Ref`).
@@ -1332,7 +1332,7 @@ empty_struct_offsets :: fn() -> StructOffsets {
 /// by the type-info emit's single-pass-per-struct flow.
 ///
 /// All three buckets are live: the bucket a field lands in decides which GC
-/// reader scans it, so it MUST match the field's emitted C type — see the
+/// reader scans it, so it MUST match the field's emitted C type, see the
 /// note in the body, and `val_type_of_bc_type`, the shared predicate that keeps
 /// the two from drifting.
 classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: i64) -> StructOffsets {
@@ -1343,7 +1343,7 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: i64) -> Stru
         ftype :: ctx.module.types[f.type_index]
         offset :: "offsetof(${cname}, ${field_c_name(f.name)})"
         // The offset bucket MUST match the field's C type so the GC scans it
-        // with the right reader — a raw `void*` (`.Ref`) via `ref_offsets` →
+        // with the right reader: a raw `void*` (`.Ref`) via `ref_offsets` →
         // `vader_gc_scan_raw`, a `vader_box_t` (`.Any`) via `ptr_offsets` →
         // `vader_gc_scan_box`. Derive the bucket from `val_type_of_bc_type` (the
         // same predicate `c_type_for` uses) so the two can't drift: misfiling a
@@ -1371,7 +1371,7 @@ struct_info_row :: fn(
     type_index: i64,
 ) -> CExpression {
     // Fields are named, so the row does not depend on `vader_type_info_t`'s
-    // field order — the committed seed is compiled against the header of the
+    // field order: the committed seed is compiled against the header of the
     // tree, and a positional row would shift under any new field. An empty
     // offset list is left out : it stays zero, which is `NULL` / 0.
     members: CExpression[]: [
@@ -1402,11 +1402,11 @@ push_offset_list :: fn(members: CExpression[], prefix: string, offsets: string[]
     members.push(designated(".${prefix}_count", number(offsets.len())))
 }
 
-// `emit_import_shims` lives in `host.vader` (same module) — the
+// `emit_import_shims` lives in `host.vader` (same module): the
 // `call.import` host-fn dispatch is a distinct responsibility.
 //
 // The vtable dispatchers (`emit_vtable_forward_decls` /
-// `emit_vtable_dispatchers`) live in `dispatch.vader` (same module) —
+// `emit_vtable_dispatchers`) live in `dispatch.vader` (same module):
 // trait-method dispatch is its own responsibility.
 
 /// `int main(...)` shim. No `is_main` fn → the `return 0;` stub. Otherwise
@@ -1510,7 +1510,7 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[] {
 }
 
 /// Index of the program-entry main, or `-1` when none. Prefers the fn whose
-/// name is `entry_mangled` (the designated entry — `dump_bytecode` stamps the
+/// name is `entry_mangled` (the designated entry: `dump_bytecode` stamps the
 /// same one as `export main N`) : a multi-module program has several `main`
 /// fns all flagged `is_main`, and the entry one isn't necessarily first in the
 /// fn table. Falls back to the first non-empty `is_main` fn when no entry name

@@ -1,4 +1,4 @@
-// `Foo` has no field `c` — T3009.
+// `Foo` has no field `c`: T3009.
 module "snippet"
 
 Foo :: struct { a: i32, b: i32 }

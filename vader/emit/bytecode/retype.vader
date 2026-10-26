@@ -1,7 +1,7 @@
 // vader/emit/bytecode/retype: rebase a module's type table onto a shared one.
 //
 // `BytecodeModule.types` is index-addressed, so two targets that compile the
-// same program can hold the same type at different slots — and one extra type
+// same program can hold the same type at different slots, and one extra type
 // on one target shifts every slot after it. Emitting several targets against
 // one C output then differs everywhere by renumbering alone: measured at 11 282
 // renumbered lines against 238 of real content, from a single lambda in a
@@ -41,7 +41,7 @@ export type_keys_of :: fn(m: BytecodeModule) -> string[] {
 /// of the order the modules were given.
 ///
 /// SLOT 0 IS PINNED. The runtime requires `type_info_table[0]` to be a scan
-/// no-op — stack-object rooting relies on it, and it traps at startup otherwise.
+/// no-op: stack-object rooting relies on it, and it traps at startup otherwise.
 /// A plain sort moves it, which is how this was found.
 ///
 /// @param per_module  each module's key list, from `type_keys_of`, at least one.
@@ -70,7 +70,7 @@ export union_of_type_tables :: fn(per_module: string[][]) -> string[] {
 ///
 /// Every index-bearing site is rewritten: the table's own cross-references, both
 /// signatures, the ops, the impl table and the vtables. A type the module does
-/// not use still takes its slot — the table is the universe, not a subset, which
+/// not use still takes its slot: the table is the universe, not a subset, which
 /// is what makes two targets agree on every index.
 ///
 /// @param m         the module to rebase.
@@ -95,7 +95,7 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
     }
 
     // The new table, in universe order. A slot this module has no type for is
-    // filled from its own key — a primitive or a ref reconstructs exactly, and
+    // filled from its own key: a primitive or a ref reconstructs exactly, and
     // anything else falls back to an opaque ref, which is only ever reached by
     // code this module does not contain.
     by_slot :: MutableMap<i32, BcType> {}
@@ -200,7 +200,7 @@ remap_type :: fn(t: BcType, remap: i32[]) -> BcType = match t {
     }
 }
 
-// A slot this module has no type for. It exists only so the indices line up —
+// A slot this module has no type for. It exists only so the indices line up:
 // nothing in THIS module reaches it, since a reference to it would be a
 // reference to a type the module does not contain. An opaque ref carries no
 // layout claim, which is the safe thing for a slot that must never be read.

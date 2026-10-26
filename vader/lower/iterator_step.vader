@@ -16,9 +16,9 @@ import "vader/lower/ir"
 
 /// How this project's `Iterator<T>.next` hands a step back.
 StepShape :: struct {
-    /// The type `next` returns — `[T, Continuation]`.
+    /// The type `next` returns: `[T, Continuation]`.
     type: Type
-    /// `T` — the element half of the pair.
+    /// `T`: the element half of the pair.
     element: Type
     /// The `Continuation` enum, for the `Continue` / `Stop` literals.
     cont: Type
@@ -45,7 +45,7 @@ resolve_step_shape :: fn(ctx: FnLowerCtx, element: Type) -> StepShape | null {
 /// twice across this and `step_value` is free.
 ///
 /// @param shape  the resolved step shape.
-/// @param step   an expression naming the step — normally a `LoweredIdent`.
+/// @param step   an expression naming the step: normally a `LoweredIdent`.
 /// @param span   the source span to attribute the test to.
 /// @param ctx    the fn-body context, for the variant lookup.
 /// @return       a `bool`-typed expression.
@@ -84,7 +84,7 @@ step_of_value :: fn(
 /// The step a generator returns when it is done.
 ///
 /// On the pair shape the element beside `Stop` is never read, and a generator
-/// has no `T` of its own to hand over — so it pairs the type's zero. That is
+/// has no `T` of its own to hand over, so it pairs the type's zero. That is
 /// expressible HERE and not in source: a ref slot takes NULL whatever `T`
 /// promises.
 ///

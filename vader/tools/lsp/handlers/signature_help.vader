@@ -51,7 +51,7 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
 }
 
 // The `find_enclosing_call` cursor walker lives in
-// `vader/tools/lsp/analysis/ast_walk` — shared with hover / typeDefinition.
+// `vader/tools/lsp/analysis/ast_walk`: shared with hover / typeDefinition.
 
 // ---- signature lookup ----------------------------------------------------
 
@@ -154,7 +154,7 @@ render_type_expr :: fn(e: AST.TypeExpr) -> string {
             return "${render_type_expr(e.left)} | ${render_type_expr(e.right)}"
         }
         is AST.NullLitExpr -> { return "null" }
-        // Fallback for unsupported shapes — caller sees the label,
+        // Fallback for unsupported shapes: caller sees the label,
         // doesn't fail.
         _ -> { return "?" }
     }
@@ -168,8 +168,8 @@ render_type_expr :: fn(e: AST.TypeExpr) -> string {
 active_param_index :: fn(call: AST.CallExpr, line: i32, col: i32) -> i32 {
     i: i32 = 0
     for a in call.args {
-        // Cursor before this arg's start: it sits in the gap that opens this slot
-        // — after the previous comma, or before the first argument.
+        // Cursor before this arg's start: it sits in the gap that opens this slot,
+        // after the previous comma, or before the first argument.
         if before(line, col, a.span.start.line, a.span.start.column) { break }
         if before_or_at(line, col, a.span.end.line, a.span.end.column) { return i }
         i += 1

@@ -1,4 +1,4 @@
-# 0023 — A header never points at a moved buffer
+# 0023: A header never points at a moved buffer
 
 ## Status
 
@@ -18,7 +18,7 @@ and the data buffer (`vader_array_buf_t`). Every emitted access opened with
 `VADER_ARRAY_RESOLVE_BUF`: "if `buf` carries a forward, follow it and store the
 result back". A header could meet a forwarded buffer in two ways:
 
-1. **Inside a collection.** A minor copies the buffer and leaves a forward — but
+1. **Inside a collection.** A minor copies the buffer and leaves a forward, but
    the same collection traces every reachable header and rewrites its `buf`.
    Nothing observes the forward once the collection returns.
 2. **Outside a collection.** `vader_gc_force_tenure`, reached from an FFI lend
@@ -26,7 +26,7 @@ result back". A header could meet a forwarded buffer in two ways:
    buffer to the non-moving old generation there and then. It rewrites the one
    header it was handed; any other header of that buffer keeps the old address.
 
-A second header of the same buffer exists only through `vader_array_slice` — the
+A second header of the same buffer exists only through `vader_array_slice`: the
 zero-copy view `arr[lo..<hi]`. Push detaches a view into a fresh buffer; nothing
 else copies a `buf` pointer.
 
@@ -39,7 +39,7 @@ access of every program, and it kept the loads of `a->buf` from being hoisted.
 Counting `vader_array_buf_forward` calls across the test suite, the bootstrap and
 the GC stress modes: zero. The case the check covered is real, though: a witness
 (slice, then lend the parent through a callback-escaped extern, then read the view
-before any collection) reads the abandoned copy without it — `9 1 7 2` instead of
+before any collection) reads the abandoned copy without it: `9 1 7 2` instead of
 `1002 1003 1004 1005`.
 
 Effect of an empty guard, same toolchain, medians, outputs byte-identical (the
@@ -60,7 +60,7 @@ waits for a major), and the self-compile gave back four points and 67 MB.
 
 - **Invariant: a header never points at a forwarded buffer** outside the runtime's
   own GC-coupled sites. The emitted `VADER_ARRAY_RESOLVE_BUF` expands to nothing in
-  a `--release` build (NDEBUG), and to a trap in a debug build — so the whole test
+  a `--release` build (NDEBUG), and to a trap in a debug build, so the whole test
   corpus checks it.
 - **A shared buffer is never moved by a lend.** `vader_array_slice` marks the
   buffer `VADER_ARRAY_BUF_FLAG_SHARED`; `vader_array_bytes` does not tenure a

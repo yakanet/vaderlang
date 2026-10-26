@@ -13,7 +13,7 @@ import "cli"
 import "vader/tools/fmt"
 
 // `fmt` used to parse its own args in `vader/tools/fmt/cli.vader`, where any
-// unrecognised token became a path — so `vader fmt --nope dir/` reported
+// unrecognised token became a path, so `vader fmt --nope dir/` reported
 // `path not found: --nope` and exited 0. It now goes through the shared parser
 // like every other action, and `run_fmt` takes the decoded options.
 cmd_fmt :: fn(args: string[]) -> i32 {

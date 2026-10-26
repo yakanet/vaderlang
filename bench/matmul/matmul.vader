@@ -1,4 +1,4 @@
-/// Nested array indexing — a row-major matrix multiply over `i64[][]`.
+/// Nested array indexing: a row-major matrix multiply over `i64[][]`.
 ///
 /// Every other array workload here is one-dimensional, and a second dimension is
 /// not more of the same: a row is its OWN `vader_array_t`, so `a[i][j]` walks two

@@ -1,4 +1,4 @@
-# 0020 — What a dispatch arm costs to move out
+# 0020: What a dispatch arm costs to move out
 
 ## Status
 
@@ -10,7 +10,7 @@ dispatch loop it measures is gone.
 
 `exec_entry` (`vader/vm/exec.vader`) is the bytecode VM's dispatch: one `match`
 over 145 opcodes, 1927 lines. Its own comments record that the size is load
-bearing — per-frame state (`cur_ops`, `cur_jump`, `cur_top`, the narrow mask) is
+bearing: per-frame state (`cur_ops`, `cur_jump`, `cur_top`, the narrow mask) is
 hoisted into its locals precisely so the per-op path never re-reads it, and an
 `INVARIANT` paragraph says no arm may replace `frames[top]` while `top` is
 unchanged. A third comment records that inlining one more helper once pushed the
@@ -21,23 +21,23 @@ So the file both asks to be split and documents why splitting is not free.
 
 ## What was tried
 
-The first criterion was **"the arm touches only `frame`"** — no `cur_ops`, no
+The first criterion was **"the arm touches only `frame`"**: no `cur_ops`, no
 frame stack, no narrow mask. Eight arms qualified and were moved to
 `vader/vm/exec_bulk.vader` behind a `fn(frame: Frame!) -> Trap | null` contract.
 
 That criterion is wrong. Measured across the dispatch afterwards, **~113 of the
-145 arms that stayed satisfy it too** — `I32Add`, `I32Eq`, `StructGet`,
+145 arms that stayed satisfy it too**: `I32Add`, `I32Eq`, `StructGet`,
 `ArrayPush` among them. It is a precondition, not a rule: it says which arms
 *may* move, never which *should*.
 
 ## What the move actually costs
 
 Not one call. `compute_may_alloc` is a fixpoint over the OP STREAM, not over
-signatures — what pulls a fn in is CONSTRUCTING a `Trap` (a heap `StructNew`
+signatures: what pulls a fn in is CONSTRUCTING a `Trap` (a heap `StructNew`
 plus the message interpolation's buffer), not declaring `-> Trap | null`.
 `emit_function_body` then gives it the full GC shadow-stack prologue: up to four
 root-address arrays, a 64-byte `vader_gc_frame_t`, a global store on entry and
-another on exit — ~15 stores on a probe. `frame` is address-taken as a raw GC
+another on exit: ~15 stores on a probe. `frame` is address-taken as a raw GC
 root, so it is forced to memory and cannot stay in a register.
 
 That is the operative cause for exactly the two arms that came back: their O(1)
@@ -54,7 +54,7 @@ Measured (2026-09-21, M-series Mac, `--split` + LTO), the two binaries run
 **alternately** within one pass and compared on medians. That matters: run
 back-to-back in blocks, the same pair read +2.2 % and once even came out ahead,
 because absolute times drift upward across a session as the machine heats. The
-ratio is stable under alternation where the raw numbers are not — n=12 and n=25
+ratio is stable under alternation where the raw numbers are not: n=12 and n=25
 both land on +3 %.
 
 | workload | before | after |
@@ -74,9 +74,9 @@ it.
 `array.clear` and `array.remove_last` were moved and put back. Both are O(1) and
 allocate only through their own Traps (plus one `ArrayNew` on `clear`'s
 non-owning branch), so the prologue is the same order as the entire body, and
-`remove_last` is `pop()` — it runs in loops, not at the edges.
+`remove_last` is `pop()`: it runs in loops, not at the edges.
 
-`array.slice` is O(1) too — it builds a view, copying nothing — and qualifies
+`array.slice` is O(1) too (it builds a view, copying nothing) and qualifies
 only through the second clause. "Bulky and cold" is a proxy for what the emitter
 actually computes, which is `may_alloc`.
 

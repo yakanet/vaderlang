@@ -3,7 +3,7 @@
 // The body-walker (`body.vader`) fires R2006 (unresolved identifier) at
 // resolve time. Auto-imported `std/core` names (`Range`, `Display`,
 // `Iterator`, `Hash`, …) aren't in any per-module scope unless seeded
-// up-front — without this helper, every reference to `Hash` in a generic
+// up-front: without this helper, every reference to `Hash` in a generic
 // bound would over-fire R2006.
 //
 // Callers (typecheck orchestrator + CLI resolver-stage) build the seed
@@ -21,18 +21,18 @@ import "vader/support/target"
 /// Build the std/core symbol seed once per project. Returns an empty map
 /// when std/core isn't part of the load (single-file snippets without
 /// stdlib). The seed is merged into the root scope on a "don't shadow
-/// user symbols" basis — see `file_root_scope`.
+/// user symbols" basis, see `file_root_scope`.
 export build_core_seed :: fn(project: LoadedProject) -> MutableMap<string, Symbol> {
     out :: MutableMap<string, Symbol> {}
     // The baked target constants ride in the same seed as `std/core`, and for the
     // same reason: `VADER_OS` has to be reachable from a file that imports
     // nothing, or the "lightweight" half of the target model is a lie. Since the
     // default target landed there is always something to bake, so this is absent
-    // only where `std/target` itself is unreachable — a stdlib-less snippet,
+    // only where `std/target` itself is unreachable: a stdlib-less snippet,
     // exactly as `std/core` is. Both leave the seed smaller rather than failing.
     //
     // This puts the NAME in scope. Its TYPE arrives separately, through
-    // `front/typecheck/orchestrate.vader::populate_baked_symbols` — seeding one
+    // `front/typecheck/orchestrate.vader::populate_baked_symbols`: seeding one
     // without the other is what let `VADER_OS` assign to a `string`.
     baked :: project.modules[BAKED_FOLDER]
     if baked is LoadedModule {
@@ -61,7 +61,7 @@ export find_core_module_id :: fn(project: LoadedProject) -> string | null {
 }
 
 /// The loaded `std/async` module's id, or null when the program never imports
-/// it. Used to resolve `run_async_main` for the implicit async-`main` driver —
+/// it. Used to resolve `run_async_main` for the implicit async-`main` driver:
 /// present exactly when the program pulls in `std/async` (which it must to
 /// `sleep`), so a `main` that suspends always finds it.
 export find_async_module_id :: fn(project: LoadedProject) -> string | null {
@@ -73,8 +73,8 @@ export find_async_module_id :: fn(project: LoadedProject) -> string | null {
     return null
 }
 
-/// Add to `root` the public exports of each module named in `wildcard_paths` —
-/// the bare `import "..."` form — so a bare reference to one resolves instead of
+/// Add to `root` the public exports of each module named in `wildcard_paths`
+/// (the bare `import "..."` form) so a bare reference to one resolves instead of
 /// firing R2006. Fill-empty : a name `root` already binds (a declaration, an
 /// import binding, the prelude) keeps its symbol.
 ///
@@ -83,7 +83,7 @@ export find_async_module_id :: fn(project: LoadedProject) -> string | null {
 ///                        (built once per project, so this stays O(1) per path).
 /// @param wildcard_paths  the file's wildcard imports (`FileImports.paths`).
 /// @param excludes        per-path names dropped by a `{ x as _, y as z }` modifier
-///                        list (`FileImports.excludes`) — skipped here.
+///                        list (`FileImports.excludes`): skipped here.
 export seed_wildcard_exports :: fn(
     root: MutableMap<string, Symbol>, name_index: MutableMap<string, LoadedModule>,
     wildcard_paths: string[], excludes: MutableMap<string, string[]>,
@@ -99,8 +99,8 @@ export seed_wildcard_exports :: fn(
     }
 }
 
-/// A wildcard `import "p"` exposes every nameable public export of `p` — fns
-/// AND types (struct / enum / trait / alias) AND consts — so `p`'s `Foo` type
+/// A wildcard `import "p"` exposes every nameable public export of `p`, fns
+/// AND types (struct / enum / trait / alias) AND consts, so `p`'s `Foo` type
 /// and `BAR` const land in scope unqualified, not just its functions. The other
 /// kinds (import bindings, params, locals, impls, builtins) are never a module's
 /// re-exportable surface.
@@ -123,7 +123,7 @@ export wildcard_exposes :: fn(sym: Symbol, dropped: string[] | null) -> bool {
     return !(sym.name in dropped)
 }
 
-/// Names that two or more of `wildcard_paths`'s modules both export — the
+/// Names that two or more of `wildcard_paths`'s modules both export: the
 /// genuine collisions a bare `import "p1"` + `import "p2"` would create. Returns
 /// `name -> [module names]` for each such name (≥ 2 providers). The `base` /
 /// core prelude is intentionally NOT considered: a core name always wins and is
@@ -147,7 +147,7 @@ export wildcard_ambiguities :: fn(
             if !wildcard_exposes(sym, ex) { continue }
             // A name the prelude also owns is never ambiguous: the seed is
             // prelude-first fill-empty, so an unqualified reference always binds
-            // the core symbol — the wildcard exports are dropped. Skip it so R2031
+            // the core symbol: the wildcard exports are dropped. Skip it so R2031
             // doesn't fire on a reference that unambiguously resolves to the core.
             if base[sym.name] != null { continue }
             lst :: providers.get_or_put_with(sym.name, () -> [])
@@ -168,7 +168,7 @@ export wildcard_ambiguities :: fn(
 }
 
 /// Index every loaded module by its declared name (`module "..."`) for O(1)
-/// import-path → module lookup. Built once per project — mirrors the
+/// import-path → module lookup. Built once per project: mirrors the
 /// `module_name -> id` map `wire_imports` hoists, so a per-module
 /// `seed_wildcard_exports` doesn't re-scan `project.modules` each call.
 export module_index_by_name :: fn(project: LoadedProject) -> MutableMap<string, LoadedModule> {

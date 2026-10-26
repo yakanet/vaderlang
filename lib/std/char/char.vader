@@ -2,12 +2,12 @@
 //
 // `fn(char) -> bool` classification predicates, split out of std/string so the
 // codepoint-string API (std/string) and char classification (here) have
-// distinct homes. Import-required — not part of the std/core prelude. Numeric-
+// distinct homes. Import-required, not part of the std/core prelude. Numeric-
 // base predicates (`is_hex_digit`, `is_digit_in_base`) stay in std/numbers.
 
 module "std/char"
 
-/// True for ASCII whitespace — space, tab, newline, carriage return.
+/// True for ASCII whitespace: space, tab, newline, carriage return.
 /// @param c  the codepoint to test.
 export is_white_char :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c == '\r'
 

@@ -39,7 +39,7 @@ Ct :: import "vader/front/comptime"
 Vm :: import "vader/vm"
 
 /// Bake every VM-required `@comptime` decl into its module's `comptime_decls`.
-/// No-op when `evaluated.vm_required` is empty (the common case — most projects
+/// No-op when `evaluated.vm_required` is empty (the common case: most projects
 /// have no loop-bearing comptime const). Mutates `evaluated` in place.
 ///
 /// The decls run in layers: a decl whose value reads another one still waiting
@@ -50,7 +50,7 @@ Vm :: import "vader/vm"
 /// @param typed      the typed project (staging lower input).
 /// @param evaluated  the complete evaluated project ; its
 ///                   `modules[...].comptime_decls` are mutated.
-/// @param diags      comptime diagnostics — a failed staging / VM run appends
+/// @param diags      comptime diagnostics: a failed staging / VM run appends
 ///                   C4002 (panic) here ; the decl is left un-baked.
 /// @error            C4002 when the staged callee traps in the VM ; C4001 when
 ///                   its result `Value` can't be bridged (cf. `bridge.vader`).
@@ -89,7 +89,7 @@ evaluate_layer :: fn(
     diags: Diagnostic[],
 ) -> Ct.VmRequiredDecl[] {
     // Pass-1 staging : lower + emit the project with the pending consts still
-    // un-baked. Diagnostics are throwaway — the real pass-2 lower reports any
+    // un-baked. Diagnostics are throwaway: the real pass-2 lower reports any
     // genuine errors.
     stage_diags: Diagnostic[]: []
     cfg :: stage_to_cfg(loaded, typed, evaluated, pending, stage_diags)
@@ -104,7 +104,7 @@ evaluate_layer :: fn(
         return []
     }
     // Not lowered ⇒ the const is unused (nothing inlined its RHS call), so its
-    // value is genuinely unneeded — skip it silently.
+    // value is genuinely unneeded: skip it silently.
     lowered: Ct.VmRequiredDecl[]: []
     callees: string[]: []
     for vr in pending {
@@ -294,7 +294,7 @@ baked_value :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl) -> Ct.C
 }
 
 // Inject the bridged value into the owning module's `comptime_decls`, keyed by
-// the const's symbol id — exactly where the tree-walk would have put it. The
+// the const's symbol id: exactly where the tree-walk would have put it. The
 // pass-2 lower's `lookup_const_baked_value` then reads it.
 inject :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl, value: Ct.ComptimeValue) -> void {
     program :: evaluated.modules[vr.module_id]

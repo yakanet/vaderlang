@@ -1,4 +1,4 @@
-# 0076 — A comparison narrows a range
+# 0076: A comparison narrows a range
 
 ## Status
 

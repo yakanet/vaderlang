@@ -22,7 +22,7 @@ evaluate_int_lit :: fn(literal: AST.IntLitExpr, context: ComptimeContext) -> Eva
         resolved_int_name(context, literal.id),
     )
 
-/// Evaluate a `FloatLitExpr` — always a free `f64` value (no suffix form).
+/// Evaluate a `FloatLitExpr`: always a free `f64` value (no suffix form).
 /// @param literal  the literal node.
 /// @return         the wrapped float value.
 evaluate_float_lit :: fn(literal: AST.FloatLitExpr) -> EvalResult = ok(float_val(literal.value))
@@ -74,7 +74,7 @@ evaluate_string_lit :: fn(
     return ok(string_val(sb.to_string()))
 }
 
-// Render a comptime value as the user-facing `Display` form would —
+// Render a comptime value as the user-facing `Display` form would:
 // strings stay quote-less, integers drop the `_i32` suffix, and a char
 // renders as its glyph (not the codepoint number). Used by
 // string-interpolation segments so `"x=${42}"` resolves to `"x=42"` and
@@ -84,7 +84,7 @@ interp_value :: fn(v: ComptimeValue) -> string = match v {
     is FloatValue  -> "${v.value}"
     is BoolValue   -> "${v.value}"
     is StringValue -> v.value
-    // `char`'s Display is `utf8_encode(self).bytes_to_string()` — cast the
+    // `char`'s Display is `utf8_encode(self).bytes_to_string()`: cast the
     // stored codepoint back to `char` to borrow it (glyph, not `65`).
     is CharValue   -> "${char(v.value)}"
     is NullValue   -> "null"

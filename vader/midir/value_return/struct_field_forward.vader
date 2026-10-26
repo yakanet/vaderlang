@@ -1,7 +1,7 @@
 // vader/midir/value_return/struct_field_forward: reads of a freshly built tuple, forwarded.
 //
 // The value ABI hands a small composite back in registers, and the caller
-// rebuilds it so every consumer keeps reading `pair._0` / `pair._1` as before —
+// rebuilds it so every consumer keeps reading `pair._0` / `pair._1` as before:
 // no consumer had to learn the split. This pass is what makes that rebuild free:
 // a read of a field whose source local is still known becomes a `Move` from that
 // local, the object loses its readers, and `eliminate_dead_cfg` drops the
@@ -10,15 +10,15 @@
 // What it knows is a map from an object local to the locals its fields were
 // built from. That record survives a `Move` (the builder emits
 // `call → move → field_get`, so the reads name an alias), and dies as soon as
-// the object local — or any of the field locals — is written again.
+// the object local (or any of the field locals) is written again.
 //
-// ACROSS BLOCKS: a block starts from what holds on EVERY way in — the
+// ACROSS BLOCKS: a block starts from what holds on EVERY way in, the
 // intersection of its predecessors' end states. One predecessor hands its state
 // over whole, which is the `for x in it` shape (the step is rebuilt and its `_1`
 // tested in one block, `_0` read in the single-entry block the test branches
 // to); several hand over what they agree on, which is the shape where a pair is
-// built before an `if` and read after the join, and where the whole rebuild —
-// and the function's GC frame with it — falls away.
+// built before an `if` and read after the join, and where the whole rebuild
+// (and the function's GC frame with it) falls away.
 //
 // Deliberately NOT cleared on a side-effecting instruction, unlike
 // `array_load_forward`: only a tuple's construction is recorded, and a tuple's
@@ -32,8 +32,8 @@ import "vader/core/types"
 import "vader/midir"
 
 /// Forward struct-field reads across every block of every function. The
-/// transform is value-preserving — a `Move` from the local the field was built
-/// from replaces a read of that field — so it needs no diagnostics.
+/// transform is value-preserving: a `Move` from the local the field was built
+/// from replaces a read of that field, so it needs no diagnostics.
 ///
 /// @param p  the CFG project, after `scalarise_value_returns` planted the
 ///           rebuilds this pass exists to undo.
@@ -51,14 +51,14 @@ export struct_field_forward_project :: fn(p: CFGProject) -> CFGProject {
 }
 
 // `exits` holds what each walked block knew when it ended, keyed by block id.
-// A block with no entry there has not been walked — which is how a back edge
+// A block with no entry there has not been walked, which is how a back edge
 // reports itself, and why the join treats it as contributing nothing.
 forward_struct_fields_in_fn :: fn(fn_: CFGFunction) -> CFGFunction {
     preds :: predecessors_of(fn_)
     order :: reverse_postorder(fn_)
     exits :: MutableMap<i32, MutableMap<i32, LocalId[]>> {}
     rewritten :: MutableMap<i32, Instruction[]> {}
-    // ONE pass, in reverse postorder — deliberately not iterated to a fixed
+    // ONE pass, in reverse postorder: deliberately not iterated to a fixed
     // point. Iterating converges (the per-block transfer's gen/kill does not
     // depend on the incoming state, and the join is an intersection, so the
     // system is monotone over a finite lattice), but it buys nothing here: a
@@ -68,7 +68,7 @@ forward_struct_fields_in_fn :: fn(fn_: CFGFunction) -> CFGFunction {
     //
     // A single pass is conservative by construction: a predecessor not yet
     // walked is a back edge, and it contributes nothing rather than something
-    // unproven. That is also what keeps a record from crossing an iteration —
+    // unproven. That is also what keeps a record from crossing an iteration:
     // a loop header always has two predecessors, one of them unwalked, so its
     // entry state is empty every time.
     for id in order {
@@ -92,7 +92,7 @@ forward_struct_fields_in_fn :: fn(fn_: CFGFunction) -> CFGFunction {
 
 // What holds on EVERY way into this block: the intersection of its walked
 // predecessors' end states. A record survives only if each of them built the
-// same object from the same fields — one disagreeing path makes the read unsafe.
+// same object from the same fields: one disagreeing path makes the read unsafe.
 // A predecessor not yet walked (a back edge, on the first round) contributes
 // nothing, which costs coverage on that round and is recovered by the next.
 join_of_predecessors :: fn(
@@ -136,7 +136,7 @@ forward_block_with :: fn(
     out: Instruction[]: []
     for ins in instrs {
         if built.len() > 0 {
-            // The name now points elsewhere — as an object, or as one of the
+            // The name now points elsewhere, as an object, or as one of the
             // fields an object was built from. Every written local, not just
             // `dst_of`: a scalarised call writes several.
             multi :: multi_dsts(ins)

@@ -239,7 +239,7 @@ test_fn_symbol :: fn(id: i32, name: string) -> Symbol = Symbol {
 }
 
 test_fn_decl :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl {
-    // MonoEntry shape mirrors `synth_mono_entry` (lambda.vader) — kept inline
+    // MonoEntry shape mirrors `synth_mono_entry` (lambda.vader): kept inline
     // because that helper needs a FnLowerCtx the fixture deliberately doesn't build.
     return LoweredFnDecl {
         .mangled = sym.name,
@@ -259,13 +259,13 @@ test_fn_decl :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl {
     }
 }
 
-// `return 0` — no allocation, no call : pure.
+// `return 0`, no allocation, no call : pure.
 purity_test_pure_return :: fn() -> LoweredStmt = LoweredReturn {
     .span = empty_span(),
     .value = LoweredIntLit { .span = empty_span(), .type = TY_VOID, .value = 0 },
 }
 
-// `return [0]` — an array literal allocates : impure.
+// `return [0]`, an array literal allocates : impure.
 purity_test_alloc_return :: fn() -> LoweredStmt = LoweredReturn {
     .span = empty_span(),
     .value = LoweredArrayLit {
@@ -277,7 +277,7 @@ purity_test_alloc_return :: fn() -> LoweredStmt = LoweredReturn {
 // A block of `stmts` that yields nothing.
 purity_test_body :: fn(stmts: LoweredStmt[]) -> LoweredBlock = mk_void_block(stmts, empty_span())
 
-// `return callee()` — a bare call to `callee`.
+// `return callee()`: a bare call to `callee`.
 purity_test_call_return :: fn(callee: Symbol) -> LoweredStmt = LoweredReturn {
     .span = empty_span(),
     .value = mk_lowered_call(callee, [], TY_VOID, empty_span()),

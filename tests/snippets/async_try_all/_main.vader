@@ -1,5 +1,5 @@
 // `try_join_all(xs)`: concurrent join of FALLIBLE awaitables. Like `join_all`,
-// every child runs (no cancellation in v1) — but the result is scanned in INPUT
+// every child runs (no cancellation in v1), but the result is scanned in INPUT
 // order for the first error. Here the "orders" service (index 1) is down, so
 // `try_join_all` surfaces that error even though the others succeeded. The second
 // join, where every fetch succeeds, comes back boxed as `(i32 | Outage)[]`, in input order.

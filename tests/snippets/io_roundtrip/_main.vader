@@ -5,7 +5,7 @@ import "std/io"
 main :: fn() -> i32 {
     path :: "${temp_dir()}/vader_io_roundtrip.txt"
 
-    // Ignore the null | Error result — the side effect (file written) is what we test.
+    // Ignore the null | Error result: the side effect (file written) is what we test.
     write_file_string(path, "hello from vader")
 
     println("exists: ${exists(path)}")

@@ -1,4 +1,4 @@
-// A backslash outside of a string / char literal — L0007.
+// A backslash outside of a string / char literal: L0007.
 module "snippet"
 
 main :: fn() -> i32 {

@@ -1,4 +1,4 @@
-# 0031 — The VM inlines calls to small straight-line leaves
+# 0031: The VM inlines calls to small straight-line leaves
 
 ## Status
 
@@ -14,7 +14,7 @@ than for its body. `arr_map` (`for x in a.map(square)`) ran 586 times slower on
 the VM than natively; written with `square`'s body inline it ran 33 % faster.
 
 The compiler had a lowering inliner until 2026-09-13; it was removed because it
-cost emission time and no native workload moved — `cc` inlines on its own. The VM
+cost emission time and no native workload moved: `cc` inlines on its own. The VM
 was not measured then.
 
 Options weighed:
@@ -28,7 +28,7 @@ Options weighed:
 
 A prototype of A, measured against the same binary with inlining off, settled
 the criteria: field reads added to the inlinable ops gained nothing measurable,
-and `vader test` and the comptime evaluation of a self-compile were neutral —
+and `vader test` and the comptime evaluation of a self-compile were neutral:
 both are dominated by compilation, not by calls.
 
 ## Decision
@@ -36,14 +36,14 @@ both are dominated by compilation, not by calls.
 A, in `vader/vm/inline_leaf.vader`, run by `prepare` and skipped by
 `prepare_debug`. A direct `call` is replaced by the callee's body when the callee:
 
-- is straight-line — no block, loop, branch — of at most 16 ops besides its
+- is straight-line (no block, loop, branch) of at most 16 ops besides its
   only `return`, which is its last op, and has at most one result;
 - holds only ops that can neither call nor trap: locals, constants, numeric
   conversions, integer and float arithmetic without integer division, comparisons
   and boolean ops;
 - writes each of its own locals before reading it.
 
-The arguments are stored into locals appended to the caller — one block per
+The arguments are stored into locals appended to the caller: one block per
 leaf, shared by every site of it, since an inlined body calls nothing and two of
 its sites never overlap. Those locals are reset once per call of the caller, not
 once per site, hence the last criterion: a local read first would see the value

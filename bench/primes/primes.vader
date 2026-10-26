@@ -1,14 +1,14 @@
-/// Count primes ≤ N by trial division — for each candidate n, walk divisors
+/// Count primes ≤ N by trial division: for each candidate n, walk divisors
 /// from 2 up to floor(sqrt(n)) and reject the moment one divides evenly.
 /// Sized so the natively compiled binary runs in ~100 ms ; VM in ~1-2 s.
 ///
 /// We use trial division (not a sieve) on purpose : Vader's `bool[]` stores
 /// every element as a 16-byte `vader_box_t`, so a 10 M-element sieve would
 /// allocate 160 MB and exceed the 4 MB young semi-space. Trial division is
-/// allocation-free and scales linearly with the CPU workload — the right
+/// allocation-free and scales linearly with the CPU workload: the right
 /// shape for a perf benchmark.
 ///
-/// `count` and `sum` are i64 — the sum of primes ≤ 200 K is ~1.7·10⁹ which
+/// `count` and `sum` are i64: the sum of primes ≤ 200 K is ~1.7·10⁹ which
 /// already overflows i32.
 
 module "main"

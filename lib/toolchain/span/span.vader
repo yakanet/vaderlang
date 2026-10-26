@@ -7,7 +7,7 @@
 //
 // It lives HERE rather than in `vader/support/diagnostics` because of what depends on it.
 // A library that ships a generator must not depend on the compiler, and the whole
-// of `toolchain/ast` needs exactly one thing from the diagnostics module — `Span`.
+// of `toolchain/ast` needs exactly one thing from the diagnostics module: `Span`.
 // Splitting that one thing out is what makes the AST extractable at all; the rest
 // of the diagnostic machinery (severities, codes, the phase enums, rendering)
 // stays behind, because a generator has no use for it.
@@ -62,7 +62,7 @@ span_key_mix :: fn(k: u64) -> u64 {
     return b ^ (b >> 33)
 }
 
-/// Structural equality over `(file, line, column)` of both ends — the
+/// Structural equality over `(file, line, column)` of both ends: the
 /// full key the typed-ast side-tables need to tell an envelope expr
 /// apart from a child that shares its start position.
 Span implements Equals {
@@ -75,7 +75,7 @@ Span implements Equals {
     }
 }
 
-/// `lineS:colS-lineE:colE` — human-readable form for diagnostics and
+/// `lineS:colS-lineE:colE`: human-readable form for diagnostics and
 /// for keying side-tables that need an envelope expr to stay disjoint
 /// from a child sharing its start position.
 Span implements Display -> "${self.start.line}:${self.start.column}-${self.end.line}:${self.end.column}"
@@ -101,7 +101,7 @@ export empty_span :: fn() -> Span {
     }
 }
 
-/// A `Span` at the head of `path` — for a problem that is about the FILE rather
+/// A `Span` at the head of `path`: for a problem that is about the FILE rather
 /// than about anything written in it.
 ///
 /// The alternative is `empty_span`, which renders as `<synthetic>` and names no
@@ -114,8 +114,8 @@ export file_head_span :: fn(path: string) -> Span {
     return Span { .start = at, .end = at }
 }
 
-/// True when `s` points at a real source location worth surfacing to a user
-/// — a concrete file with a 1-based line. False for every compiler-minted
+/// True when `s` points at a real source location worth surfacing to a user:
+/// a concrete file with a 1-based line. False for every compiler-minted
 /// marker : the `<synthetic>` sentinel (`empty_span`), the `<materialized>`
 /// marker (`materialized_span`, line 0), a blank file (`empty_span(file)`
 /// with no file), or any non-positive line. Callers gate per-op `#line` /

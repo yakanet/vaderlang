@@ -13,7 +13,7 @@
 //
 // **Whole-program DCE** happens earlier and elsewhere :
 // `prune_unreachable_fns` (`vader/lower/dce`), on the LoweredProject, before
-// the CFG build. What is left for here is what only exists AFTER the body emit —
+// the CFG build. What is left for here is what only exists AFTER the body emit:
 // the emitter's own import / fn / type tables, their dense renumbering, and
 // reachability facts no earlier pass can see (which `virtual.call` keys actually
 // survived, the `_vt` thunks emit synthesises). The two are not redundant.
@@ -25,7 +25,7 @@ import "std/iter"
 import "vader/core/bytecode"
 
 // ============================================================================
-// pruneUnusedImports — drop import entries no `call.import` op references
+// pruneUnusedImports: drop import entries no `call.import` op references
 // ============================================================================
 
 /// Walk every fn body for `call.import` references, build a remap
@@ -149,7 +149,7 @@ export prune_unused_globals :: fn(ctx: EmitterCtx) -> void {
 }
 
 // ============================================================================
-// pruneUnusedFunctions — drop fn defs nothing reachable from main/exports/
+// pruneUnusedFunctions: drop fn defs nothing reachable from main/exports/
 // vtables references
 // ============================================================================
 
@@ -175,7 +175,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     for vt in vtable_roots { if vt >= 0 && vt < i32(n) { reachable[vt] = true } }
 
     // Worklist over reachable fns ; pick up callees via call/fn.ref/
-    // make_closure. Iterate to fixpoint — a vtable-rooted fn may
+    // make_closure. Iterate to fixpoint: a vtable-rooted fn may
     // call other fns.
     work: i32[] = []
     for [k, _] in reachable { work.push(k) }
@@ -204,14 +204,14 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
 
     // No roots → comptime / library-only emit context : keep every body (the
     // unreachable-drop is suppressed). We still collapse duplicate mangles below
-    // — a `redefinition of …` is a correctness bug regardless of pruning — so a
+    // (a `redefinition of …` is a correctness bug regardless of pruning) so a
     // main-less library / object build with a doubly-materialised impl member
     // (e.g. force-loaded `string_builder` pulling `Range` in) still links.
     keep_all :: reachable.is_empty()
 
     // Collapse duplicate mangles. Two kept fns can share a (non-empty) mangle
-    // when an impl member is materialised twice — once empty (dead, kept only as
-    // a vtable root) and once bodied (call-reached) — e.g. std/core's u64
+    // when an impl member is materialised twice, once empty (dead, kept only as
+    // a vtable root) and once bodied (call-reached), e.g. std/core's u64
     // `Comparable` / `Step` members when both a snippet and the force-loaded
     // string_builder pull `Range` in. Emitting both would yield two C `static`
     // defs with the same name → `redefinition of …` at link. Map each mangle to
@@ -239,8 +239,8 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     if !has_dup_mangle && (keep_all || reachable.len() == n) { return }
 
     // Resolve each fn's canonical old index once : a folded duplicate maps to its
-    // canonical, everything else to itself (empty-mangle fns — lambdas / closures
-    // — are never deduped). Reused by the kept / remap passes below.
+    // canonical, everything else to itself (empty-mangle fns, lambdas / closures,
+    // are never deduped). Reused by the kept / remap passes below.
     canon: i32[]: []
     for ki in 0..<n {
         mangle :: ctx.functions[ki].name
@@ -306,7 +306,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     }
     ctx.exports = new_exports
 
-    // Rewrite function_index_by_symbol_id — drop entries whose fn
+    // Rewrite function_index_by_symbol_id: drop entries whose fn
     // was pruned ; remap survivors.
     new_sym_map :: MutableMap<i32, i32> {}
     for [sym_id, old_idx] in ctx.function_index_by_symbol_id {
@@ -349,7 +349,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
 }
 
 // ============================================================================
-// pruneUnusedTypes — drop BcType slots no live consumer references
+// pruneUnusedTypes: drop BcType slots no live consumer references
 // ============================================================================
 
 /// Reachability-based prune on the type table. Roots : every type
@@ -383,7 +383,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
     // Without these, prune drops type-table slots for
     // `needs_add__string`'s `string` arg etc.
     for p in ctx.pinned_types { roots.push(p) }
-    // Per-function arg/result pins — only for SURVIVING functions (pruned fns
+    // Per-function arg/result pins: only for SURVIVING functions (pruned fns
     // were dropped from `pinned_types_by_fn` by `prune_unused_functions`), so a
     // type a dead fn referenced is no longer rooted here.
     for [_, pins] in ctx.pinned_types_by_fn {
@@ -409,7 +409,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
     // Rewrite composite types' inner type indices.
     ctx.types = kept.map((t) -> remap_type(t, remap)).collect()
 
-    // Remap type_key entries — drop pruned slots, rewrite survivors.
+    // Remap type_key entries: drop pruned slots, rewrite survivors.
     new_type_key :: MutableMap<string, i32> {}
     for [key, old_idx] in ctx.type_key {
         r :: remap_idx(remap, old_idx)
@@ -440,7 +440,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
 remap_globals :: fn(globals: BcGlobal[], remap: i32[]) -> BcGlobal[] =
     globals.map((g) -> BcGlobal { ...g, .type_id = remap_idx(remap, g.type_id) }).collect()
 
-/// One index through a remap table. `-1` in stays `-1` — it is the "no type"
+/// One index through a remap table. `-1` in stays `-1`: it is the "no type"
 /// marker, not a slot. An index PAST the table is a corrupt module, and returns
 /// `-1` rather than the stale index, so it degrades to "no type" instead of
 /// silently pointing somewhere plausible.
@@ -457,7 +457,7 @@ export remap_idx :: fn(remap: i32[], idx: i32) -> i32 {
     return remap[idx]
 }
 
-/// `remap_idx` over a list — a signature's `result_types`, a struct's fields.
+/// `remap_idx` over a list: a signature's `result_types`, a struct's fields.
 export remap_type_indices :: fn(remap: i32[], indices: i32[]) -> i32[] =
     indices.map((i) -> remap_idx(remap, i)).collect()
 
@@ -487,7 +487,7 @@ export type_index_of :: fn(op: Op) -> i32 = match op {
     is TypelessOp    -> -1
 }
 
-// Every `Op` that carries no type-table index — what `type_index_of` and
+// Every `Op` that carries no type-table index: what `type_index_of` and
 // `remap_type_in_op` pass through. Spelled out so both match exhaustively : an
 // op added to `Op` must be placed here or given its own arm.
 TypelessOp :: Unreachable | I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst

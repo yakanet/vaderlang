@@ -1,4 +1,4 @@
-# 0054 — An integer overflow stops the run outside a release build
+# 0054: An integer overflow stops the run outside a release build
 
 ## Status
 

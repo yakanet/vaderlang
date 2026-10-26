@@ -130,7 +130,7 @@ type_for_result :: fn(name: string, typed: TypedProgram) -> Type {
     if name == "type"       { return TY_TYPE }
     if name == "type_array" { return mk_array(TY_TYPE) }
     if name == "field_array" {
-        // `@fields(T) -> Field[]` — `Field` lives in std/core
+        // `@fields(T) -> Field[]`: `Field` lives in std/core
         // (auto-imported). Fall back to Unresolved when std/core
         // hasn't been registered yet (compiling std/core itself).
         field_sym :: typed.field_symbol

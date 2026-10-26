@@ -1,7 +1,7 @@
 // vader/core/bytecode/c_layout: where a mirrored struct's fields sit in the C type.
 //
 // The native backend never needs this: its shim declares a real C struct and
-// lets `cc` lay it out. The VM cannot — it has no compiler at hand — so it
+// lets `cc` lay it out. The VM cannot (it has no compiler at hand) so it
 // builds the block itself, and needs to know where each field goes.
 //
 // The layout is COMPUTED from the declared field widths using the C rules
@@ -12,8 +12,8 @@
 //
 // A mirror may describe only a PREFIX of its C type, which is what makes
 // `struct stat` usable: its `timespec` members have no nameable path, but
-// `st_mode` sits before them. The offsets of a prefix are the real ones — the
-// padding a prefix cannot account for is all past its end — so the block is
+// `st_mode` sits before them. The offsets of a prefix are the real ones (the
+// padding a prefix cannot account for is all past its end) so the block is
 // sized by `MIRROR_BLOCK_FLOOR` rather than by the computation, and the emitted
 // C asserts the C type fits inside it.
 
@@ -23,7 +23,7 @@ module "vader/core/bytecode"
 
 /// Size the interpreter gives every mirrored-struct block, at minimum.
 ///
-/// A mirror is allowed to describe only a PREFIX of its C type — reaching
+/// A mirror is allowed to describe only a PREFIX of its C type: reaching
 /// `st_mode` in a `struct stat` needs four of its nineteen members, and the ones
 /// that follow cannot even be named. The computed size is then smaller than the
 /// real one, so the block is sized by this floor instead, and the emitted C
@@ -47,7 +47,7 @@ export CLayout :: struct {
 
 /// The `ValType` a mirrored field holds on the Vader side.
 ///
-/// The one place that resolves a `BcField` through the type table — the width,
+/// The one place that resolves a `BcField` through the type table: the width,
 /// the interpreter's read-back signedness and the emitter's signedness assert are
 /// all read off it, and they must not each answer from their own copy.
 ///
@@ -69,7 +69,7 @@ export c_field_val_type :: fn(f: BcField, types: BcType[]) -> ValType | null {
 /// The width a mirrored field occupies in the C struct.
 ///
 /// Read from the VADER field's own type, which is what the emitted
-/// `_Static_assert` pins against the C field — so a mirror whose C field has a
+/// `_Static_assert` pins against the C field, so a mirror whose C field has a
 /// different width fails the native build rather than laying out wrongly here.
 ///
 /// The SIGNEDNESS is not carried here. The interpreter takes it from the Vader
@@ -79,7 +79,7 @@ export c_field_val_type :: fn(f: BcField, types: BcType[]) -> ValType | null {
 /// @param f      the field.
 /// @param types  the module type table, to size the field's own type.
 /// @return       the width in bytes, or `null` when the field's type carries
-///               none — a mirror nothing can lay out.
+///               none: a mirror nothing can lay out.
 export c_field_width :: fn(f: BcField, types: BcType[]) -> i64 | null {
     return c_field_width_at(f, types, 0)
 }
@@ -88,7 +88,7 @@ export c_field_width :: fn(f: BcField, types: BcType[]) -> i64 | null {
 ///
 /// A field whose type is itself a `@c_struct` mirrors a C struct member. The C
 /// side has it INLINE; Vader holds a pointer to a separate object, which is why
-/// nothing here may ever `memcpy` — the shim copies member by member and the
+/// nothing here may ever `memcpy`: the shim copies member by member and the
 /// interpreter serialises field by field.
 ///
 /// @param f      the field.
@@ -111,7 +111,7 @@ export mirror_at :: fn(types: BcType[], type_index: i32) -> BcStruct | null {
 /// How deep a mirror may nest.
 ///
 /// A C struct cannot contain itself by value, so a well-formed mirror bottoms
-/// out. The cap is what keeps a MALFORMED one — a Vader struct naming itself —
+/// out. The cap is what keeps a MALFORMED one (a Vader struct naming itself)
 /// from recursing forever rather than reporting.
 export NEST_CAP :: 16
 
@@ -158,7 +158,7 @@ c_field_align_at :: fn(f: BcField, types: BcType[], depth: i32) -> i64 | null {
 /// rounded up to the STRICTEST alignment among them, which is what produces the
 /// trailing padding.
 ///
-/// A field whose width is UNDERIVABLE lands in `unknown_field` — see `CLayout`.
+/// A field whose width is UNDERIVABLE lands in `unknown_field`, see `CLayout`.
 ///
 /// @param fields  the mirror's fields, in declaration order.
 /// @param types   the module type table.

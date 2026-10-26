@@ -1,6 +1,6 @@
 // vader/front/resolver/substitute: type-level substitution walker.
 //
-// Walks a TypeExpr (== Expr — since Vader doesn't separate type-level
+// Walks a TypeExpr (== Expr, since Vader doesn't separate type-level
 // from value-level expression syntax) and replaces every `IdentExpr`
 // whose `name` is a key in the `Subst` map with a fresh clone of the
 // corresponding replacement.
@@ -9,7 +9,7 @@
 //   - `Self` → impl's `for_type`
 //   - trait type-param names → impl's `trait_args[i]`
 //
-// Returns fresh nodes — the input TypeExpr is untouched. Block-body
+// Returns fresh nodes: the input TypeExpr is untouched. Block-body
 // substitution lives in `substitute_body.vader`.
 
 module "vader/front/resolver"
@@ -48,7 +48,7 @@ lookup_subst :: fn(self: Subst, name: string) -> AST.TypeExpr | null {
 /// source, so a field added without a default breaks the build here instead of
 /// being copied unsubstituted.
 // @partial: only type-position Expr variants are reconstructed; all value-level
-// variants pass through unchanged (a type-position walker never reaches them — see
+// variants pass through unchanged (a type-position walker never reaches them, see
 // the trailing `_ -> expr` comment).
 export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeExpr {
     @partial match expr {
@@ -192,7 +192,7 @@ test_substitute_recurses_into_fn_type :: fn() -> void {
 test_substitute_recurses_into_generic_inst :: fn() -> void {
     // `Foo<T>` with T → i32 should yield `Foo(i32)`.
     // Two-step typing: Vader's typechecker infers `[make_ident("T")]` as
-    // `IdentExpr[]` and refuses to widen to `TypeExpr[]` — annotating
+    // `IdentExpr[]` and refuses to widen to `TypeExpr[]`: annotating
     // the element first ropes it into the wider type.
     t: AST.TypeExpr: make_ident("T")
     type_args: AST.TypeExpr[]: [t]

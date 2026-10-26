@@ -1,5 +1,5 @@
 // Shared presence check + spawn wrapper for the Vader CLI native binary.
-// The harness does NOT build the compiler — it asserts a prebuilt `build/vader`
+// The harness does NOT build the compiler: it asserts a prebuilt `build/vader`
 // exists and is up to date vs the .vader sources, failing loudly otherwise.
 // The binary is provided by `bun run build:cli`, which builds it from the
 // committed C seed (see bootstrap/README.md).
@@ -10,7 +10,7 @@ import { join, resolve } from "node:path";
 import { listVaderFiles } from "./vader-sources.ts";
 
 // The suffix a LINKER appends to an executable name. `cc -o hello` writes
-// `hello` on Unix and `hello.exe` on Windows — verified with mingw-w64: gcc
+// `hello` on Unix and `hello.exe` on Windows, verified with mingw-w64: gcc
 // appends it when `-o` carries no extension. Every path to a BUILT binary goes
 // through `exePath`, or the assertion passes on one OS and fails on the other.
 export const EXE_SUFFIX = process.platform === "win32" ? ".exe" : "";
@@ -56,11 +56,11 @@ export async function haveCc(): Promise<boolean> {
 export const MEDIUM_BUILD = 30_000;
 export const LONG_BUILD = 120_000;
 // For a test that compiles a driver. A driver compile pulls the whole `vader/`
-// closure at -O0 — the same order of work as the CI step that builds the CLI from
+// closure at -O0: the same order of work as the CI step that builds the CLI from
 // the seed. Measured: 7 s locally, and 139-272 s per driven build on a Windows
 // runner (job log, run #224), the spread being the wait for a slot in
 // `hook_driver`'s four-deep gate. 300 s left the slowest of those 30 s from the
-// cap, which is a flake waiting to happen — hence twice that. This is a KILL
+// cap, which is a flake waiting to happen, hence twice that. This is a KILL
 // CEILING, not a target: raising it costs nothing until something hangs.
 export const HEAVY_BUILD = 600_000;
 
@@ -87,7 +87,7 @@ function binaryMtime(): number {
 
 // Build instructions surfaced when the binary is missing or stale. The seed
 // path needs only a C compiler. The `src/`-based shortcut this used to name is
-// gone — that was the TypeScript compiler, deleted when the tree started
+// gone: that was the TypeScript compiler, deleted when the tree started
 // self-hosting from the seed, and `src/` now means something else entirely (the
 // compiler's own sources inside a dist bundle).
 const BUILD_HINT =
@@ -96,7 +96,7 @@ const BUILD_HINT =
   `  # equivalently, without Bun (see bootstrap/README.md):\n` +
   `  bash bootstrap/build.sh                         # → ${CLI_BIN}`;
 
-// Assert a prebuilt, up-to-date compiler binary is present — never build it.
+// Assert a prebuilt, up-to-date compiler binary is present, never build it.
 // Missing or stale-vs-sources is a hard failure with rebuild instructions, so
 // the suite never silently runs against a stale binary. The N test files that
 // load this share one check via the global beforeAll.
@@ -104,10 +104,10 @@ export function ensureCliBuilt(): void {
   beforeAll(() => {
     const bin = binaryMtime();
     if (bin === 0) {
-      throw new Error(`${CLI_BIN} not found — build the compiler first:\n${BUILD_HINT}`);
+      throw new Error(`${CLI_BIN} not found: build the compiler first:\n${BUILD_HINT}`);
     }
     if (bin < newestSourceMtime()) {
-      throw new Error(`${CLI_BIN} is stale (older than vader/ or lib/ sources) — rebuild it:\n${BUILD_HINT}`);
+      throw new Error(`${CLI_BIN} is stale (older than vader/ or lib/ sources): rebuild it:\n${BUILD_HINT}`);
     }
   });
 }
@@ -131,10 +131,10 @@ export interface CliResult {
 // a free pass.
 const DEFAULT_CLI_TIMEOUT_MS = 90_000;
 
-// Both pipes are drained concurrently — leaving stderr unread can deadlock
+// Both pipes are drained concurrently: leaving stderr unread can deadlock
 // the child once the 64 KB pipe buffer fills on a verbose trap.
 export interface SpawnOptions {
-  /** Binary to run. Defaults to the CLI — override for a `dist/` bundle's own
+  /** Binary to run. Defaults to the CLI: override for a `dist/` bundle's own
    *  `vader`, or for a binary the CLI just produced. */
   readonly bin?: string;
   /** Working directory. Load bearing for a driven build: `build.vader` is
@@ -150,7 +150,7 @@ export interface SpawnOptions {
 ///
 /// `VADER_HOME` is CLEARED. It outranks every other toolchain probe, so a
 /// developer who has it exported would silently run the whole corpus against a
-/// different `lib/` — and, being absolute, against different module ids, which is
+/// different `lib/`, and, being absolute, against different module ids, which is
 /// snapshot drift with no visible cause. `extra` is applied last, so a test that
 /// sets it deliberately still wins.
 ///
@@ -200,13 +200,13 @@ export async function runCli(
 // ---- formatter helpers ----------------------------------------------------
 //
 // Both formatter suites need these, and the second one to need them had copied
-// the first verbatim — 26 lines including an 11-line justification.
+// the first verbatim: 26 lines including an 11-line justification.
 
 /// Format `path` through `vader fmt --stdout` and return the output.
 ///
 /// Goes through the ASYNC `runCli` rather than `Bun.spawnSync`: under `bun test
 /// --parallel`, `spawnSync` intermittently returns exit 0 with ZERO bytes on BOTH
-/// pipes for a perfectly good file — measured on `lib/std/time/stopwatch.vader`
+/// pipes for a perfectly good file: measured on `lib/std/time/stopwatch.vader`
 /// (1690 bytes on disk, `stdoutLen=0`, `stderrLen=0`, `signal=undefined`), which
 /// reads as "the formatter emitted nothing" and failed one or two random tests in
 /// ~40 % of suite runs. The binary is not at fault: 392 concurrent spawns of the
@@ -225,7 +225,7 @@ export async function fmtStdout(path: string): Promise<string> {
 ///
 /// `tmpStem` must differ per CALLER, not just per process: the pid separates
 /// workers, but two suites in the same worker would collide on one name. Written
-/// with `writeFileSync`, never an un-awaited `Bun.write` — the Windows job caught
+/// with `writeFileSync`, never an un-awaited `Bun.write`: the Windows job caught
 /// that ordering when the cleanup became synchronous.
 export async function fmtString(source: string, tmpStem: string): Promise<string> {
   const tmp = join(process.cwd(), `${tmpStem}-${process.pid}.vader`);
@@ -233,7 +233,7 @@ export async function fmtString(source: string, tmpStem: string): Promise<string
   try {
     return await fmtStdout(tmp);
   } finally {
-    // `rmSync(force)`, not `Bun.file().delete()` — the latter returns a promise, so
+    // `rmSync(force)`, not `Bun.file().delete()`: the latter returns a promise, so
     // its rejection escapes the surrounding try/catch and fails the NEXT test.
     rmSync(tmp, { force: true });
   }

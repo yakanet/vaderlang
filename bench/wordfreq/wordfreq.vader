@@ -1,22 +1,22 @@
-/// String-keyed map stress — the one path `hashmap` (i32 keys) and `wordcount`
+/// String-keyed map stress: the one path `hashmap` (i32 keys) and `wordcount`
 /// (byte scan, never interns) both leave uncovered, and the one a compiler's
 /// own symbol table runs constantly.
 ///
 /// A token sliced out of a byte buffer is a FRESH string: Vader has to hash its
 /// content, probe the global atom table and either intern it or find the atom
 /// already there. Only then does the map hash it again and probe. This workload
-/// is that pair, 300 000 times, over a vocabulary of 4 096 words — so the atom
+/// is that pair, 300 000 times, over a vocabulary of 4 096 words, so the atom
 /// table dedupes 98.6 % of the slices and the row measures lookup throughput
 /// rather than table growth.
 ///
 /// Every word is exactly WORD_LENGTH bytes followed by one space, so a token
-/// sits at a computable offset and no scanning is involved — `wordcount` owns
+/// sits at a computable offset and no scanning is involved: `wordcount` owns
 /// that. The vocabulary is the base-26 rendering of
 /// `index * SCRAMBLE_MULTIPLIER mod 26^WORD_LENGTH`, which is injective (the
 /// multiplier is coprime to that modulus) so all 4 096 words are distinct, and
 /// spreads the bytes so the hash sees varied input.
 ///
-/// The corpus is held as a byte buffer here, in Go and in Java — that is the
+/// The corpus is held as a byte buffer here, in Go and in Java: that is the
 /// shape a tokenizer has, and all three pay an allocation per token to turn a
 /// byte range into a string. The Bun-TS peer holds a string and slices it,
 /// which is what a JS tokenizer does instead.
@@ -34,7 +34,7 @@ WORD_LENGTH     :: 6
 
 SCRAMBLE_MULTIPLIER: i64: 2654435761
 VOCABULARY_STRIDE: i64: 2731
-// 26^WORD_LENGTH — the space the scramble permutes.
+// 26^WORD_LENGTH: the space the scramble permutes.
 VOCABULARY_SPACE: i64: 308_915_776
 
 main :: fn() -> i32 {
@@ -73,7 +73,7 @@ append_word :: fn(out: u8[], index: i32) -> void {
 
 // Rendered ONCE. The corpus repeats each word 73 times and the checksum reads
 // every one back, so rendering on demand did the base-26 division 74 times per
-// distinct word — more than half the Bun-TS column, spent on setup rather than
+// distinct word: more than half the Bun-TS column, spent on setup rather than
 // on the map the row is named for.
 build_vocabulary :: fn() -> u8[][] {
     out: u8[][]: []

@@ -1,4 +1,4 @@
-# 0067 — The frozen values decide what may be written
+# 0067: The frozen values decide what may be written
 
 ## Status
 

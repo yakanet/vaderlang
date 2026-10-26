@@ -1,4 +1,4 @@
-# 0084 — A match covers an integer type by its values
+# 0084: A match covers an integer type by its values
 
 ## Status
 

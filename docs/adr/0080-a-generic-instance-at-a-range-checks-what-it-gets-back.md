@@ -1,4 +1,4 @@
-# 0080 — A generic instance at a range checks what it gets back
+# 0080: A generic instance at a range checks what it gets back
 
 ## Status
 

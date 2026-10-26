@@ -4,7 +4,7 @@
 // compiler (`./build/vader dump --stage=c`), build a native binary the same
 // way tests/native.test.ts does, then run it under macOS `leaks --atExit` and
 // collect a per-snippet leak summary. Unlike the historical flow, the C source
-// now comes from the Vader `c_emit` pass + runtime — NOT the TS pipeline — so
+// now comes from the Vader `c_emit` pass + runtime (NOT the TS pipeline) so
 // this audit exercises the self-compiled compiler's own output.
 // Run with: bun tests/leaks_check.ts
 
@@ -87,7 +87,7 @@ async function check(s: { name: string; dir: string; mainPath: string }): Promis
     return { name: s.name, status: "build_fail", detail: buildErr.slice(0, 200) };
   }
 
-  // `--quiet` is intentionally NOT passed — it suppresses the
+  // `--quiet` is intentionally NOT passed: it suppresses the
   // `Process N: X nodes malloced` summary line our parser depends on.
   const env = { ...process.env, MallocStackLogging: "1" };
   try {
@@ -118,7 +118,7 @@ async function check(s: { name: string; dir: string; mainPath: string }): Promis
     return baseRes;
   } finally {
     // The native binary, its source, and dsymutil's debug bundle are pure
-    // build artefacts of this audit run — remove them so they don't pile up
+    // build artefacts of this audit run: remove them so they don't pile up
     // in the working tree (the test suite generates and cleans the same
     // files separately for parity tests).
     rmSync(binFile, { force: true });
@@ -157,13 +157,13 @@ const LEAKS_AVAILABLE = await (async () => {
 // Linux / Windows: `leaks` only ships with macOS. Skip gracefully so the
 // `test:leak` script in package.json doesn't break cross-platform CI.
 if (process.platform !== "darwin") {
-  console.log("leaks_check: skipped (macOS only — `leaks(1)` not available on this platform)");
+  console.log("leaks_check: skipped (macOS only, `leaks(1)` not available on this platform)");
   process.exit(0);
 }
-if (!CC_AVAILABLE) { console.error("cc not available — aborting"); process.exit(1); }
-if (!LEAKS_AVAILABLE) { console.error("leaks not available — aborting (macOS only)"); process.exit(1); }
+if (!CC_AVAILABLE) { console.error("cc not available: aborting"); process.exit(1); }
+if (!LEAKS_AVAILABLE) { console.error("leaks not available: aborting (macOS only)"); process.exit(1); }
 if (!existsSync(VADER_BIN)) {
-  console.error(`vader binary not found at ${VADER_BIN} — run \`bun run build:cli\` first`);
+  console.error(`vader binary not found at ${VADER_BIN}: run \`bun run build:cli\` first`);
   process.exit(1);
 }
 
@@ -219,7 +219,7 @@ if (failed.length > 0) {
 
 // Baseline mode: by-design string-buffer leaks are part of the budget, so a
 // raw "any leak fails CI" rule fires forever. Compare against
-// `tests/leaks.snapshot.json` — exit non-zero only on regressions.
+// `tests/leaks.snapshot.json`: exit non-zero only on regressions.
 if (UPDATE_BASELINE) {
   const baseline: Baseline = {};
   for (const r of [...clean, ...leaks]) {
@@ -234,7 +234,7 @@ if (UPDATE_BASELINE) {
 
 const baseline = loadBaseline();
 if (baseline === null) {
-  console.log("\nno baseline at tests/leaks.snapshot.json — run with --update to write one");
+  console.log("\nno baseline at tests/leaks.snapshot.json: run with --update to write one");
   process.exit(leaks.length > 0 ? 2 : 0);
 }
 

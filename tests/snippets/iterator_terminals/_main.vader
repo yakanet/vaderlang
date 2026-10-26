@@ -1,5 +1,5 @@
-// `count`, `last`, `is_empty` over any iterator — a range, a user struct that
-// implements `Iterator` — as free functions of std/iter: an implementation
+// `count`, `last`, `is_empty` over any iterator (a range, a user struct that
+// implements `Iterator`) as free functions of std/iter: an implementation
 // provides `next` and nothing else.
 
 module "snippet"
@@ -21,20 +21,20 @@ Countdown implements Iterator<i32> {
 }
 
 main :: fn() -> i32 {
-    // Range — count drains the iterator.
+    // Range: count drains the iterator.
     println((0..<5).count())
 
-    // Range — last yields the inclusive end.
+    // Range: last yields the inclusive end.
     match v :: (10..=15).last() {
         is i32  -> println(v)
         is null -> println("none")
     }
 
-    // is_empty — the empty range ends immediately.
+    // is_empty: the empty range ends immediately.
     println((0..<0).is_empty())
     println((0..<5).is_empty())
 
-    // User struct — the same functions, over its `next`.
+    // User struct: the same functions, over its `next`.
     println(Countdown { .remaining = 3 }.count())
 
     return 0

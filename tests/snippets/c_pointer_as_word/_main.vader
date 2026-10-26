@@ -5,7 +5,7 @@ import "std/io"
 // Reading a foreign pointer as an integer. The point is the FAILURE
 // sentinels that are not NULL: a Win32 `HANDLE` reports failure as
 // `INVALID_HANDLE_VALUE` (-1) and `mmap` as `MAP_FAILED` (-1), neither of which
-// a `CPointer | null` can see — it only ever narrows on zero.
+// a `CPointer | null` can see: it only ever narrows on zero.
 //
 // `malloc` rather than one of those two because it is the one allocator every
 // target has, MinGW included; the conversion under test is the same.

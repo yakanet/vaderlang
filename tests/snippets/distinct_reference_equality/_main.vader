@@ -1,5 +1,5 @@
 // A distinct type over a struct or an array compares through its own `Equals`, a
-// struct's backing `Equals` otherwise — never by the reference it wraps. `Row`
+// struct's backing `Equals` otherwise, never by the reference it wraps. `Row`
 // opts its array into `==`, unwrapping it (`i32[](self)`) for `content_equals` ;
 // `Color` borrows `Rgb`'s.
 

@@ -26,7 +26,7 @@ import "vader/tools/lsp/analysis"
 export handle_formatting :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     src :: state.source_for(uri) ?? return JsonArray { .items = [] }
-    // `uri` is passed as the provenance path — only `ParseFailure` carries it,
+    // `uri` is passed as the provenance path: only `ParseFailure` carries it,
     // and we discard that branch, so its exact form doesn't matter here.
     result :: format_source(src, uri)
     match result {
@@ -38,7 +38,7 @@ export handle_formatting :: fn(state: ServerState, params: JsonValue) -> JsonVal
 }
 
 // A single `TextEdit` spanning the whole document : start at 0:0, end one line
-// past the last (character 0), which the client clamps to the document's end —
+// past the last (character 0), which the client clamps to the document's end:
 // the canonical "replace everything" range.
 full_doc_edit_json :: fn(src: string, formatted: string) -> JsonValue {
     start :: MutableMap<string, JsonValue> {}
@@ -56,7 +56,7 @@ full_doc_edit_json :: fn(src: string, formatted: string) -> JsonValue {
     return JsonObject { .entries = obj }
 }
 
-// Number of lines in `src` (newline count + 1) — the end-of-document line index
+// Number of lines in `src` (newline count + 1): the end-of-document line index
 // is one past the last line, so this value used as `end.line` covers the lot.
 count_lines :: fn(src: string) -> i32 {
     n: i32 = 1

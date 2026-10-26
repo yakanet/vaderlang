@@ -1,7 +1,7 @@
 // vader/lower/fusion_jumps: the jumps out of a loop body a fusion splices.
 //
 // A fused loop keeps no loop of its own: its body is spliced into its producer's
-// code — at each `yield` of an inlined generator, into the counter loop of a
+// code: at each `yield` of an inlined generator, into the counter loop of a
 // range or array bottom. A `break` or `continue` written for that loop lands on
 // whichever loop of the producer's code encloses the splice, and that is the
 // right one only for some producers. Everywhere else the jump is redirected
@@ -85,7 +85,7 @@ exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt[]) -> LoweredS
 }
 
 /// The jump a `break` (`is_break`) or `continue` of a spliced loop body lowers
-/// to, or null when it lands right as written — every jump not written for a
+/// to, or null when it lands right as written: every jump not written for a
 /// loop of the frame stack among them.
 ///
 /// @param ctx      the context lowering the jump.
@@ -130,7 +130,7 @@ exit_label :: fn(ctx: FnLowerCtx, frame: JumpFrame) -> string {
 
 // ---- where a spliced jump lands ---------------------------------------------
 
-// Whether a bare jump spliced into a chain's code lands right as written — a
+// Whether a bare jump spliced into a chain's code lands right as written: a
 // `break` when one loop runs around the splice and nothing after it, a
 // `continue` when nothing runs between the splice and that loop's step.
 SplicedLanding :: struct {
@@ -170,14 +170,14 @@ YieldPlacement :: enum {
     Last,
     /// Some `yield` is followed by more of the body; none sits in a nested loop.
     Inside,
-    /// Some `yield` sits in a loop nested in the body — or somewhere this walk
+    /// Some `yield` sits in a loop nested in the body, or somewhere this walk
     /// does not follow.
     Nested,
 }
 
 yield_placement :: fn(body: AST.BlockExpr) -> YieldPlacement = block_placement(body, true)
 
-// `tail` — the block ends the iteration once it is done.
+// `tail`: the block ends the iteration once it is done.
 block_placement :: fn(block: AST.BlockExpr, tail: bool) -> YieldPlacement {
     placement: YieldPlacement = .Last
     n :: block.stmts.len()

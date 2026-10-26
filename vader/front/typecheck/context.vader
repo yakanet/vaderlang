@@ -4,7 +4,7 @@
 // `Self` substitution inside method bodies.
 //
 // Per-module side-tables live on `TypedProgram` directly (see `typed_ast.vader`)
-// rather than being duplicated here — a single representation, no during/after
+// rather than being duplicated here: a single representation, no during/after
 // split. Project-level shared state likewise: the symbol factory and the resolved
 // `std/core` symbols are reached through the `TypedProgram` / `LowerProjectCtx`
 // each pass already carries.
@@ -13,7 +13,7 @@ module "vader/front/typecheck"
 
 import "vader/core/types"
 
-/// Per-fn-body state — pushed by `check_fn_body`, consumed by `ReturnStmt`
+/// Per-fn-body state: pushed by `check_fn_body`, consumed by `ReturnStmt`
 /// checking and `Self` substitution inside method bodies.
 export FnContext :: struct {
     /// Type the body must return. `void` for fns without a `-> T` clause.
@@ -21,7 +21,7 @@ export FnContext :: struct {
     /// `Self` substitution when type-checking a method inside an impl
     /// block. `null` outside trait/impl context.
     self_type: Type | null
-    /// Loop depth — `break` / `continue` legal only when > 0.
+    /// Loop depth: `break` / `continue` legal only when > 0.
     loop_depth: i32
     /// AST node id of the fn whose body is being checked. Lets deep
     /// expression checks (e.g. bounded trait-method dispatch in
@@ -36,7 +36,7 @@ export FnContext :: struct {
     /// lambdas, `defer` bodies and synthetic contexts, so a `yield` in one
     /// trips T3059.
     is_generator: bool = false
-    /// Element type `T` of the generator's `-> Iterator<T>` return —
+    /// Element type `T` of the generator's `-> Iterator<T>` return:
     /// `yield e` must coerce to it. Null when not a generator (or the
     /// return type wasn't a valid `Iterator<T>`).
     yield_type: Type | null = null
@@ -48,7 +48,7 @@ export FnContext :: struct {
     /// while its block is left, once what the block returns is decided. A lambda
     /// written in it has its own context and returns as anywhere.
     in_defer: bool = false
-    /// Union of every value `return`'s type seen in this body — accumulated by
+    /// Union of every value `return`'s type seen in this body: accumulated by
     /// `check_return`. A block-body lambda that ends in `return` types its block
     /// as `never` (it diverges) ; this recovers the lambda's real return type
     /// from its returns, so a type param sitting inside a `U | Error` return
@@ -73,7 +73,7 @@ new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnContext {
 }
 
 // Keep the generic instances of the fn whose body is being checked concrete rather
-// than erased (`T` → `Any`) — see `TypedProgram.fn_needs_concrete_instances`. Each
+// than erased (`T` → `Any`), see `TypedProgram.fn_needs_concrete_instances`. Each
 // call site says why its construct needs the instance's real types.
 keep_instances_concrete :: fn(typed: TypedProgram) -> void {
     fctx :: typed.current_fn_ctx ?? return

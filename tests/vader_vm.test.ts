@@ -130,7 +130,7 @@ for (const s of scenarios) {
   // Vader runtime and not a symbol linked into some other executable.
   //
   // The reason used to be that `@extern` traps on the VM outright, for want of a
-  // host registry. This branch gave it one — `dispatch_extern` — so a snippet
+  // host registry. This branch gave it one (`dispatch_extern`) so a snippet
   // whose externs are libc (`c_pointer_as_word`, `c_struct_prefix_mirror`) runs
   // on both backends. Only the ones that supply their own C are skipped, and
   // that is now the whole of the reason.
@@ -168,12 +168,12 @@ for (const s of scenarios) {
 // callee / local / field / type behind each operand). That view must stay
 // PARSEABLE : `parser.parse_virt`'s `strip_comment` drops the comments on
 // read, so an annotated dump must run to the exact same `vm.snapshot` as the
-// clean dump. This locks in two things against silent breakage — the Tier-A
+// clean dump. This locks in two things against silent breakage: the Tier-A
 // annotation format (`vader/emit/virt/dump.vader`) and the parser's
 // comment-skipping (`vader/vm/parser.vader::strip_comment`, incl. `;` inside
 // quoted strings). The guarantee is format-level, not per-snippet, so a small
 // curated set covering strings / structs / fields / calls / interpolation
-// suffices — no need to double the whole self-emit VM cost.
+// suffices: no need to double the whole self-emit VM cost.
 const ANNOTATED_ROUNDTRIP = ["hello", "struct_defaults", "fn_decl", "interpolation"];
 for (const name of ANNOTATED_ROUNDTRIP) {
   const s = scenarios.find((x) => x.name === name);

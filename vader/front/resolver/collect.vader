@@ -21,24 +21,24 @@ import "vader/core/symbol"
 import "toolchain/span"
 
 /// Output of one module's collect pass.
-/// `symbols` holds the module's declarations, keyed by name — every file of the
+/// `symbols` holds the module's declarations, keyed by name: every file of the
 /// module shares them ; a file's import bindings are its own (`files`).
 /// `fn_overloads` carries every fn
 /// declaration grouped by name (length > 1 only for actual overloads).
 /// `imports` records each ImportBinding's source `(path, imported_name)`
-/// keyed by Symbol.id — consumed by the wire pass to resolve each
+/// keyed by Symbol.id: consumed by the wire pass to resolve each
 /// binding to its concrete target.
 export CollectedModule :: struct {
     symbols:      MutableMap<string, Symbol>
     fn_overloads: MutableMap<string, Symbol[]>
     imports:      MutableMap<i32, ImportInfo>
-    /// Raw `import "path"` entries in source order — the loader uses
+    /// Raw `import "path"` entries in source order: the loader uses
     /// these to walk the module graph transitively.
     import_paths: string[]
     /// Import surface, ONE ENTRY PER FILE of the module. Imports are
     /// file-scoped (SPEC §"Modules": "names bound in one file of a multi-file
     /// module are not visible in sibling files"), so `merge_collected` appends
-    /// an entry rather than unioning them — a sibling file's imports must not
+    /// an entry rather than unioning them: a sibling file's imports must not
     /// bind this one.
     files: FileImports[]
 }
@@ -52,11 +52,11 @@ export FileImports :: struct {
     /// Paths this file wildcard-imports, in source order. Every public export
     /// of each becomes callable in THIS file (prefix + UFCS).
     paths:    string[] = []
-    /// Per-path exclusions from a `import "p" { x as _, y as z }` modifier list
-    /// — every listed source name (both `as _` and rename sources) is removed
+    /// Per-path exclusions from a `import "p" { x as _, y as z }` modifier list:
+    /// every listed source name (both `as _` and rename sources) is removed
     /// from that path's wildcard. Renames rebind via `imports`.
     excludes: MutableMap<string, string[]> = MutableMap<string, string[]> {}
-    /// The import bindings this file mints — namespace aliases and renames — by
+    /// The import bindings this file mints (namespace aliases and renames) by
     /// local name. Their only home : `CollectedModule.symbols` holds the
     /// declarations alone.
     bindings: MutableMap<string, Symbol> = MutableMap<string, Symbol> {}
@@ -77,7 +77,7 @@ export drops :: fn(self: FileImports, path: string, name: string) -> bool {
 /// layout independent of MutableMap bucket hashing.
 ///
 /// `module_name` is the *declared* module identifier (e.g. `"std/io"`),
-/// not the absolute folder path — used by `diagnose_import_path` to
+/// not the absolute folder path: used by `diagnose_import_path` to
 /// detect self-imports (R2024). `index` is the project-wide module
 /// table built by `discover_modules` ; an empty `MutableMap` (no
 /// loader) disables import-path resolution and is used by mono-file
@@ -87,7 +87,7 @@ export collect_module :: fn(
     factory: SymbolFactory,
     index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
 ) -> CollectedModule {
-    // One `FileImports` per collect_module call — this pass sees exactly one
+    // One `FileImports` per collect_module call: this pass sees exactly one
     // file, and `collect_files` appends each file's entry into the merged view.
     out :: CollectedModule {
         .symbols      = MutableMap<string, Symbol> {},
@@ -103,11 +103,11 @@ export collect_module :: fn(
     return out
 }
 
-// R2032 — a path wildcard-imported twice in the same file : bare `import "p"`
+// R2032, a path wildcard-imported twice in the same file : bare `import "p"`
 // plus `import "p" { … }`, or two `{ … }`. Both are wildcards of `p`, so the
 // second is redundant, and two modifier lists would each hide what the other
 // drops. Flag the second import so the author collapses to one. Namespace
-// bindings (`X :: import "p"`) don't conflict — they qualify, they don't inject
+// bindings (`X :: import "p"`) don't conflict: they qualify, they don't inject
 // names.
 check_import_form_conflict :: fn(decls: Decl[], diags: Diagnostic[]) -> void {
     wildcard_of :: MutableMap<string, Span> {}
@@ -165,8 +165,8 @@ collect_decl :: fn(
 
 /// Allow multiple `fn` decls under the same module name (overloading).
 /// The first declaration wins as the primary entry in `symbols` ; later
-/// ones append to the `fn_overloads` bucket. Same-signature overloads —
-/// including a local fn matching a same-named IMPORTED free fn — are caught
+/// ones append to the `fn_overloads` bucket. Same-signature overloads
+/// (including a local fn matching a same-named IMPORTED free fn) are caught
 /// at typecheck as T3053 (`check_module_fn_redefinitions`), by FULL signature.
 /// @error R2004 when the fn's name collides with a same-named TYPE or CONST
 ///        (a fn can't overload a non-fn declaration). Order-independent with
@@ -239,7 +239,7 @@ collect_import :: fn(
         diags.push(resolver_error(.EmptyImportPath, d.span, ""))
     } else {
         self.import_paths.push(d.path)
-        // Don't dispatch on the (string | null) result here — its sole
+        // Don't dispatch on the (string | null) result here: its sole
         // role is to fire the loader-side diagnostics ; the actual
         // binding still lands in `imports` for the wire pass.
         diagnose_import_path(d.path, d.span, module_name, index, paths, diags)
@@ -247,22 +247,22 @@ collect_import :: fn(
     b :: d.binding
     match b {
         is NamedNamespaceImport -> {
-            // `name :: import "p"` — namespace binding ; imported_name = null.
+            // `name :: import "p"`: namespace binding ; imported_name = null.
             self.bind_import(b.name, d.span, d.path, null, module_path, factory, diags)
         }
         is WildcardImport -> {
-            // bare `import "p"` — wildcard : record the path so the resolver
+            // bare `import "p"`, wildcard : record the path so the resolver
             // seeds every public fn of `p` into this FILE's scope. No name
             // binding (the path is also in `import_paths` above).
             self.files[0].paths.push(d.path)
         }
         is DestructureImport -> {
-            // `import "p" { … }` — WILDCARD of p PLUS per-name modifiers:
+            // `import "p" { … }`: WILDCARD of p PLUS per-name modifiers:
             //   `x as _` excludes x ; `x as y` excludes x under its own name and
-            //   binds it as y. A plain name (no `as`) is an error — the wildcard
+            //   binds it as y. A plain name (no `as`) is an error: the wildcard
             //   already brings every export.
             self.files[0].paths.push(d.path)
-            // `import "p" {}` — an empty modifier list is just the bare wildcard.
+            // `import "p" {}`: an empty modifier list is just the bare wildcard.
             if b.names.len() == 0 {
                 diags.push(warning(.EmptyImportModifierList, d.span, "`${d.path}`"))
             }
@@ -275,7 +275,7 @@ collect_import :: fn(
                     is string -> {
                         // Every modifier drops its source name from the wildcard.
                         excluded.push(n.name)
-                        // `as _` is a pure exclusion ; any other alias renames —
+                        // `as _` is a pure exclusion ; any other alias renames:
                         // bind `alias → p.<n.name>` via the usual ImportBinding path.
                         if alias != "_" {
                             self.bind_import(alias, n.span, d.path, n.name, module_path, factory, diags)
@@ -299,7 +299,7 @@ bind_import :: fn(
 ) -> void {
     existing :: self.files[0].bindings[local]
     if existing != null {
-        // Silent only for a TRUE re-import — identical source (same path AND
+        // Silent only for a TRUE re-import: identical source (same path AND
         // same imported name), e.g. the same name imported twice or a duplicated
         // wildcard path. A DIFFERENT source binding the same local name (two
         // modules' `foo`, or a rename shadowing a namespace alias) is a genuine
@@ -366,7 +366,7 @@ diagnose_import_path :: fn(
     // closure. Two exemptions: `toolchain/build` is the driver contract and a
     // driver links the compiler by design, and the compiler may import itself.
     //
-    // Note the asymmetry — PROVENANCE decides who is a library (a user module may
+    // Note the asymmetry: PROVENANCE decides who is a library (a user module may
     // legitimately be called `json`; only who provided it says whether it is ours)
     // while the module NAME decides who is the compiler (`vader/*` is exactly what
     // the compiler's modules are called). Two things force it.
@@ -375,7 +375,7 @@ diagnose_import_path :: fn(
     // as in a bundle, there being deliberately no `.Compiler` variant.
     //
     // And the rule is about the ATTEMPT, so R2034 must fire on an import of
-    // `vader/*` that does not resolve from where the library sits — which means
+    // `vader/*` that does not resolve from where the library sits, which means
     // this check STAYS ABOVE the module-not-found lookup below. Move it under and
     // R2034 silently becomes R2001; `hook_driver.test.ts` pins that with a probe
     // importing `vader/front/lexer` from a staged root where it cannot resolve.

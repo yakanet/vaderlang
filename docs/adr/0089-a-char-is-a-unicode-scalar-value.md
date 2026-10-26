@@ -1,4 +1,4 @@
-# 0089 — A char is a Unicode scalar value
+# 0089: A char is a Unicode scalar value
 
 ## Status
 

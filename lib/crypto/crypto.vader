@@ -2,12 +2,12 @@
 //
 // MVP scope : SHA-256 and MD5, for content fingerprinting and integrity
 // checking. SHA-256 is a real cryptographic hash and reproduces
-// `shasum -a 256` ; MD5 is kept for legacy interop only — it is
+// `shasum -a 256` ; MD5 is kept for legacy interop only: it is
 // collision-broken, so never rely on it where collision resistance matters.
 // **Neither is a password hash** : for credentials use a dedicated KDF
 // (bcrypt / scrypt / argon2 when those land).
 //
-// Pure Vader at runtime, zero runtime host imports — WASM-ready as-is. (The MD5
+// Pure Vader at runtime, zero runtime host imports: WASM-ready as-is. (The MD5
 // round constants are computed at compile time via `std/math`; that builder is
 // dead-code-eliminated from the runtime image after baking.) Operates on
 // the UTF-8 byte view (`bytes()`) of the input ; output is the
@@ -16,7 +16,7 @@
 //
 // Both algorithms run in O(n) over the input length and use only
 // fixed-size scratch ; safe for streaming-sized inputs once a
-// chunked API lands (`Sha256.update(bytes)` / `.finalize()` —
+// chunked API lands (`Sha256.update(bytes)` / `.finalize()`:
 // post-MVP).
 
 module "crypto"
@@ -30,7 +30,7 @@ import "std/numbers"
 // Shared helpers
 // =========================================================================
 
-// Masks every u32 op to 32 bits — the TS VM stores u32 as JS number
+// Masks every u32 op to 32 bits: the TS VM stores u32 as JS number
 // and won't wrap on overflow.
 MASK_U32: u32: 0xFFFF_FFFF
 
@@ -55,7 +55,7 @@ append_hex_u8 :: fn(sb: StringBuilder, x: u8) -> void {
 /// re-encoded the input upstream.
 export sha256 :: fn(input: string | u8[]) -> string = hex_of_bytes(sha256_bytes(input))
 
-/// SHA-256 digest as the raw 32-byte hash — the byte-level core that `sha256`
+/// SHA-256 digest as the raw 32-byte hash: the byte-level core that `sha256`
 /// hex-encodes and `hmac_sha256` chains. Use this when a downstream primitive
 /// (HMAC, a key-derivation step, a binary protocol field) needs the bytes
 /// rather than the hex rendering. Accepts a `string` (hashed as its UTF-8
@@ -131,7 +131,7 @@ append_u32_be :: fn(out: u8[], x: u32) -> void {
     out.push(u8(x & 0xFF))
 }
 
-/// Lowercase hex rendering of a byte sequence — two hex digits per byte.
+/// Lowercase hex rendering of a byte sequence: two hex digits per byte.
 /// The inverse-free companion to the raw-digest APIs (`sha256_bytes`,
 /// `hmac_sha256`).
 ///
@@ -186,7 +186,7 @@ export hmac_sha256 :: fn(key: string | u8[], msg: string | u8[]) -> u8[] {
     return sha256_bytes(outer_in)
 }
 
-// Coerce a `string | u8[]` hash/HMAC input to bytes — a string
+// Coerce a `string | u8[]` hash/HMAC input to bytes: a string
 // contributes its UTF-8 bytes; raw bytes pass through. Shared by sha256_bytes
 // and hmac_sha256 so both accept either form.
 to_bytes :: fn(x: string | u8[]) -> u8[] {
@@ -251,7 +251,7 @@ pad_sha256_bytes :: fn(ib: u8[]) -> u8[] {
 // =========================================================================
 
 /// MD5 hash of `input`, returned as a 32-char lowercase hex string.
-/// MD5 is cryptographically broken — do NOT use for digital signatures
+/// MD5 is cryptographically broken: do NOT use for digital signatures
 /// or password storage. Still ubiquitous for file integrity checks and
 /// content addressing where collision resistance against an *adversary*
 /// isn't required.

@@ -26,7 +26,7 @@ import "vader/front/comptime"
 import "toolchain/span"
 
 // A char literal pinned to an integer (free-char coercion) lowers like a byte
-// literal once was — a `LoweredIntLit` of that width carrying the codepoint — so
+// literal once was (a `LoweredIntLit` of that width carrying the codepoint) so
 // `bytes[i] == '/'` emits identically to the old `b'/'`. A char-typed literal
 // (no integer context) stays a `LoweredCharLit`. `ty` is already defaulted
 // (FreeChar → char).
@@ -65,12 +65,12 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             return kept_in_range(ctx, lowered, borrowed, expr.span)
         }
         is FieldExpr     -> {
-            // `Enum.Variant` — the target is the enum's type name in
+            // `Enum.Variant`: the target is the enum's type name in
             // value position. Lower to the variant's integer index
             // (matches `lower_dot_variant`'s context-resolved path).
             enum_variant :: try_lower_enum_field(ctx, expr, type)
             if enum_variant != null { return enum_variant }
-            // `alias.CONST` — a const reached through a namespace import
+            // `alias.CONST`: a const reached through a namespace import
             // (`AST.UNASSIGNED_NODE_ID`). The `alias` ident is an ImportBinding,
             // so the FieldExpr never resolves as a value field ; fold it like a
             // bare const reference instead, else the `alias` ident is unresolved
@@ -86,13 +86,13 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
                 reference :: recorded_fn_reference(ctx, expr, type)
                 if reference != null { return reference }
             }
-            // `nsM.foo` used as a fn-VALUE (not a call callee) — lower to the
+            // `nsM.foo` used as a fn-VALUE (not a call callee): lower to the
             // member fn symbol, mirroring the direct-ident fn-value path ; else
             // it degrades to a bogus field access on the import binding.
             ns_fn_value :: try_lower_namespace_fn_value(ctx, expr, type)
             if ns_fn_value != null { return ns_fn_value }
             // Tuple `t.0` → `_0` : tuple types are backed by an anonymous
-            // struct whose slots are named `_0`, `_1`, … — rewrite the
+            // struct whose slots are named `_0`, `_1`, …: rewrite the
             // numeric field so the dump shows `._0`.
             field_name :: if expr.is_numeric { "_${expr.field}" } else { expr.field }
             lowered_target :: lower_expr(ctx, expr.target)
@@ -185,7 +185,7 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             if reference != null { return reference }
             return stub(expr.span, type, "type-valued slot not lowered")
         }
-        // Type-position expressions in value position — earlier phases
+        // Type-position expressions in value position: earlier phases
         // emit T3035 ; the lowerer just emits a stub.
         is FnTypeExpr | ArrayTypeExpr -> {
             return stub(expr.span, type, "type-valued slot not lowered")
@@ -219,7 +219,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
         is null -> {
             // LOUD, but only when the resolver was happy. A miss here lowers to
             // `LoweredUnreachable`, which makes `midir` replace the whole entry
-            // block — so a mis-routed ident erased the surrounding code with
+            // block, so a mis-routed ident erased the surrounding code with
             // nothing at all to read, and two bugs cost a bisection each for
             // exactly that. A name the resolver already rejected (R2006) is a
             // recovery walk, not a lost resolution, and reporting it twice would
@@ -248,7 +248,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
                 reference :: recorded_fn_reference(ctx, ident, type)
                 if reference != null { return reference }
             }
-            // TypeMeta-typed ident in value position — reify the
+            // TypeMeta-typed ident in value position: reify the
             // underlying Type so the bytecode emit can lower it to
             // `type.const N`.
             if type is TypeMetaType {
@@ -260,7 +260,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
                 }
             }
             // When we're lowering inside a lifted lambda body, captured
-            // outer symbols don't have a local slot — read them off the
+            // outer symbols don't have a local slot: read them off the
             // env-struct param via `env.cap_N`.
             via_env :: try_route_through_env(ctx, symbol, ident.span, type)
             if via_env != null { return via_env }
@@ -275,7 +275,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // Scalar const inlining : when a `const` decl carries a
             // comptime-baked scalar (int / float / bool / char / string /
             // null), substitute its value at every use site. Compound
-            // values (arrays, structs) are deferred — they'd need
+            // values (arrays, structs) are deferred: they'd need
             // data-pool / fn-wrap routing for byte-parity. Also covers
             // param / import-binding symbols when the resolver chained the
             // ident to the original const symbol via aliasing.
@@ -301,7 +301,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             final_sym :: follow_import_binding(ctx, symbol)
             // A fn used as a VALUE (passed as a `fn(...)` arg, stored, etc.)
             // lowers to a `FnRef`. If it's a non-generic stdlib free fn,
-            // harvest it so `materialize_nongeneric_imported_fns` emits its body —
+            // harvest it so `materialize_nongeneric_imported_fns` emits its body:
             // otherwise the FnRef emit can't resolve the symbol and silently
             // drops it. Mirror of the direct-call harvest in `lower_call`.
             // Self-guards : no-op unless `final_sym` is a non-generic stdlib Fn.
@@ -329,7 +329,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
 reads_fresh_constant :: fn(ctx: FnLowerCtx, node: i64, symbol: Symbol) -> bool =
     symbol.kind == .Const && node in ctx.project.typed.fresh.uses
 
-/// `nsM.foo` used as a fn-VALUE (not a call callee) — lower to the member fn
+/// `nsM.foo` used as a fn-VALUE (not a call callee): lower to the member fn
 /// symbol (a `LoweredIdent`, which emit turns into a FnRef), mirroring the
 /// direct-ident fn-value path in `lower_ident`. Returns null for non-fn members
 /// (a const is handled by `try_lower_namespace_const` ; a type-as-value is exotic).
@@ -341,7 +341,7 @@ try_lower_namespace_fn_value :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) ->
 }
 
 // `CellInit` and the cell-init wrapper now live in `vader/lower/helpers.vader`
-// (single source of truth — same module, same shape). Callers below
+// (single source of truth: same module, same shape). Callers below
 // reach for `lower_cell_init` directly.
 
 lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue | null {
@@ -370,8 +370,8 @@ try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> L
     const_decl :: owner_typed.const_decls[resolved.id] ?? return null
     // Only fold a LITERAL-RHS const. A computed RHS (`B + 1`) may depend on
     // other unbaked consts, so folding it here would (a) bypass comptime
-    // cycle detection — a `@comptime A :: B + 1 ; B :: A + 1` must still
-    // surface C4009 — and (b) risk recursion through this same path. Those
+    // cycle detection: a `@comptime A :: B + 1 ; B :: A + 1` must still
+    // surface C4009, and (b) risk recursion through this same path. Those
     // consts keep their existing route ; the comptime evaluator owns their
     // value and diagnostics. A literal RHS has neither hazard and matches the
     // scalar-only shape of the baked-value fold above.
@@ -384,11 +384,11 @@ try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> L
 // True when `e` is a scalar literal (int / float / bool / null / char /
 // string). Gates `try_fold_unbaked_const` to RHS shapes that fold without
 // touching other consts. Shape predicate (`_ -> false`), mirroring
-// `tools/fmt/printer.vader::is_bitor_chain` — a non-literal Expr is correctly false.
+// `tools/fmt/printer.vader::is_bitor_chain`: a non-literal Expr is correctly false.
 // @partial: only the literal-shaped Expr forms are scalar literals; every other Expr is not.
 is_scalar_literal_expr :: fn(e: Expr) -> bool = @partial match e {
     is IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr -> true
-    // `i64(0)` / `i32(N)` — a primitive numeric conversion of a scalar
+    // `i64(0)` / `i32(N)`: a primitive numeric conversion of a scalar
     // literal parses as a CallExpr. It folds just as safely (the arg is a
     // literal, so no dependency on another unbaked const), so a const like
     // `UNASSIGNED_NODE_ID :: i64(0)` resolves at its use sites in imported
@@ -474,7 +474,7 @@ baked_tuple :: fn(ctx: FnLowerCtx, v: StructValue, tuple: TupleType, span: Span)
 }
 
 // The type a baked number takes: its own width where no slot names one, the
-// slot's otherwise, unless the slot is a union — then its own width when that is
+// slot's otherwise, unless the slot is a union, then its own width when that is
 // a member, else the member a literal of its family settles on there (the
 // evaluator keeps a free literal at its default width: `200` in a `u8 | string`
 // is baked an `i32`).
@@ -496,7 +496,7 @@ scalar_type :: fn(type_name: string, family: Type, hint: Type) -> Type {
 }
 
 // Element type of an array, a distinct one included, or `unresolved` when `t`
-// isn't one (an un-hinted comptime array literal hits this with a `?` hint — the
+// isn't one (an un-hinted comptime array literal hits this with a `?` hint: the
 // elements then resolve from their own values).
 array_element_type :: fn(t: Type) -> Type {
     array :: array_backing(t) ?? return TY_UNRESOLVED
@@ -534,7 +534,7 @@ resolve_type_meta_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
 }
 
 declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
-    // Most idents (Fn, Const, ImportBinding, …) can't be narrowed —
+    // Most idents (Fn, Const, ImportBinding, …) can't be narrowed:
     // bail before paying the `Span.hash()` + map probe on the hot path.
     match symbol.kind {
         .Param   -> {}
@@ -546,7 +546,7 @@ declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
     key :: defined_at.hash()
     // Apply the entry substitution so the narrowing comparison sees the
     // erased declared type (`Any | null`), matching the erased read-site
-    // type — otherwise an unerased `T | null` declared type spuriously
+    // type: otherwise an unerased `T | null` declared type spuriously
     // differs from the read type and injects a redundant cast in
     // generic-impl default-method bodies.
     raw :: if symbol.kind == .Param {
@@ -615,7 +615,7 @@ read_type_or_declared :: fn(type: Type, declared: Type) -> Type {
 //
 // `lower_cell_init` built the cell at the binding's DECLARED type, so that is the
 // type it has to be read at. Naming the cell after a NARROWED use instead reads a
-// union box's tag word as if it were the payload — a wrong scalar, or a wild
+// union box's tag word as if it were the payload: a wrong scalar, or a wild
 // pointer once the use is a field access. The narrowing is then a cast over the
 // value, exactly as an uncaptured slot does in `lower_ident`.
 cell_value :: fn(

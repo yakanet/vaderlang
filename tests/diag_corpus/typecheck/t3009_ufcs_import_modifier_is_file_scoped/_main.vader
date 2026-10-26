@@ -3,7 +3,7 @@
 //
 // This file wildcard-imports `snippet/provider` with no modifiers, so `bump` is
 // in scope here, in both call forms. Its sibling `other.vader` drops `bump` from
-// its own wildcard, and the T3009 in the snapshot is that sibling's `c.bump()` —
+// its own wildcard, and the T3009 in the snapshot is that sibling's `c.bump()`,
 // not this file's, which resolves.
 
 module "snippet"

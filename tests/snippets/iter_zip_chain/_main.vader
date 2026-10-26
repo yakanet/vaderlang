@@ -14,27 +14,27 @@ main :: fn() -> i32 {
     cloned :: nums.clone()
     println("clone[0]=${cloned[0]}")
 
-    // zip — parallel arrays paired into tuples, stops at shorter length.
+    // zip: parallel arrays paired into tuples, stops at shorter length.
     keys :: ["a", "b", "c", "d"]
     vals :: [1, 2, 3]
     for [k, v] in zip(keys, vals) {
         println("${k}=${v}")
     }
 
-    // chain — concatenate two streams, consumed directly (fuses to two loops).
+    // chain: concatenate two streams, consumed directly (fuses to two loops).
     head :: [1, 2, 3]
     tail :: [4, 5]
     for x in chain(head, tail) {
         println("j=${x}")
     }
 
-    // indexed — value + index pairs.
+    // indexed: value + index pairs.
     fruits :: ["apple", "banana", "cherry"]
     for [f, i] in fruits.indexed() {
         println("${i}: ${f}")
     }
 
-    // flat_map — each input expands to a sub-array.
+    // flat_map: each input expands to a sub-array.
     bursts :: flat_map([1, 2, 3], (x: i32) -> [x, x * 10])
     for n in bursts {
         println("b=${n}")

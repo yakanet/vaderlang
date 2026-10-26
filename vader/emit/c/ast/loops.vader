@@ -20,7 +20,7 @@ import "std/iter"
 /// its label runs it again. It becomes `while (c) { … }` when its body is a
 /// lone `if (c)` whose live branch ends by continuing, `for (;;) { … }`
 /// otherwise. A `goto` it can express is a `continue` or a `break` ; one it
-/// cannot — a continue of an OUTER loop, which C cannot name — keeps its label.
+/// cannot (a continue of an OUTER loop, which C cannot name) keeps its label.
 ///
 /// @param root  the body to rewrite in place.
 export structure_loops :: fn(root: CBlock) -> void {
@@ -99,7 +99,7 @@ push_tail_labels :: fn(block: CBlock, labels: string[]) -> void {
 }
 
 // In a loop's body, `goto <continue_label>` becomes `continue` and a `goto` to
-// one of `breaks` becomes `break` — outside any inner loop or `switch`, which
+// one of `breaks` becomes `break`: outside any inner loop or `switch`, which
 // would take the jump for themselves.
 substitute_jumps :: fn(block: CBlock, continue_label: string, breaks: string[]) -> void {
     for k in 0..<block.body.len() {
@@ -244,8 +244,8 @@ collect_clause_labels :: fn(body: CCaseStatement[], used: MutableSet<string>) ->
     }
 }
 
-// Drop the labels no `goto` names, then splice into `block` every bare scope —
-// no label, no declaration of its own — that only groups statements.
+// Drop the labels no `goto` names, then splice into `block` every bare scope
+// (no label, no declaration of its own) that only groups statements.
 tidy_block :: fn(block: CBlock, used: MutableSet<string>) -> void {
     kept: CStatement[]: []
     for statement in block.body {
@@ -359,7 +359,7 @@ declares :: fn(block: CBlock) -> bool {
 
 import "std/testing"
 
-// `loop_1: { body }` — a loop scope as the walker builds it.
+// `loop_1: { body }`: a loop scope as the walker builds it.
 loop_scope :: fn(body: CStatement[]) -> CStatement = CScope {
     .label = "loop_1",
     .body = CBlock { .body = body },

@@ -12,8 +12,8 @@ cd "$(dirname "$0")/.."
 
 # (a) fixed point : stage1 and stage2 must emit identical C for main.vader.
 #
-# Only ONE emission is needed. `build/work/stage2/` already IS stage1's — build.sh
-# just wrote it — so stage2's own is the only thing missing. Same flags on both
+# Only ONE emission is needed. `build/work/stage2/` already IS stage1's (build.sh
+# just wrote it) so stage2's own is the only thing missing. Same flags on both
 # sides (`--release`, split being the default), which is the mode actually shipped;
 # `--emit=c` and `--emit=executable` produce identical C, verified.
 #
@@ -25,7 +25,7 @@ cd "$(dirname "$0")/.."
 # output would miss. A native build writes its C under `c/` beside the binary,
 # and its objects under `obj/`: the C is what is compared.
 if [ ! -d build/work/stage2/c ]; then
-  echo "verify.sh: build/work/stage2/c is missing — build.sh did not produce step 3" >&2
+  echo "verify.sh: build/work/stage2/c is missing, build.sh did not produce step 3" >&2
   exit 2
 fi
 rm -rf build/work/verify
@@ -37,7 +37,7 @@ mkdir -p build/work/verify
 # to exist; this restores that much.
 emitted=$(ls build/work/verify/*.c 2>/dev/null | wc -l | tr -d ' ')
 if [ "$emitted" -lt 2 ]; then
-  echo "verify.sh: only $emitted unit(s) emitted — refusing to certify a fixed point" >&2
+  echo "verify.sh: only $emitted unit(s) emitted, refusing to certify a fixed point" >&2
   exit 2
 fi
 
@@ -53,7 +53,7 @@ if [ "$fp_rc" = 2 ]; then
   exit 2
 fi
 if [ "$fp_rc" != 0 ]; then
-  echo "FIXED-POINT FAILED — stage1 and stage2 disagree on main.vader's C" >&2
+  echo "FIXED-POINT FAILED: stage1 and stage2 disagree on main.vader's C" >&2
   echo "  stage1's codegen is the seed's; if the seed carries a bug the tree has fixed, reseed: bootstrap/seed.sh regenerate" >&2
   diff -r build/work/stage2/c build/work/verify | head -80 >&2
   exit 1
@@ -61,8 +61,8 @@ fi
 
 # (a2) the DEBUG emission, which the release comparison above no longer covers:
 # `--release` off means `prepare_cfg_bytecode_with` fills the per-op debug table
-# and c_emit keeps `#line`. A divergence confined to that surface — the span and
-# file provenance a DAP session reads — would otherwise pass unseen. A snippet is
+# and c_emit keeps `#line`. A divergence confined to that surface (the span and
+# file provenance a DAP session reads) would otherwise pass unseen. A snippet is
 # enough: what is under test is the emitter path, not the input's size.
 rm -rf build/work/verify-debug
 mkdir -p build/work/verify-debug/a build/work/verify-debug/b
@@ -81,7 +81,7 @@ if [ "$dbg_rc" = 2 ]; then
   exit 2
 fi
 if [ "$dbg_rc" != 0 ]; then
-  echo "FIXED-POINT FAILED (debug emission) — stage1 and stage2 disagree" >&2
+  echo "FIXED-POINT FAILED (debug emission): stage1 and stage2 disagree" >&2
   diff -r --exclude='*.o' build/work/verify-debug/a build/work/verify-debug/b | head -40 >&2
   exit 1
 fi
@@ -101,7 +101,7 @@ mkdir -p build/work/repro
 ./build/stage1 build --release --emit=executable \
   --out=build/work/repro/vader --cc="$CC_ABS" vader/tools/cli/main.vader >/dev/null
 if ! cmp -s build/work/repro/vader build/vader; then
-  echo "NOT REPRODUCIBLE — two split builds of the same input differ" >&2
+  echo "NOT REPRODUCIBLE: two split builds of the same input differ" >&2
   ls -l build/work/repro/vader build/vader >&2
   exit 1
 fi

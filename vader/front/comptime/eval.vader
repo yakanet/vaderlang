@@ -26,7 +26,7 @@ COMPTIME_MAX_EVAL_DEPTH: i64: 2000
 /// @param context  the comptime evaluator context.
 /// @return         the evaluation result.
 evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
-    // Depth guard — `context` is shared across operand recursion
+    // Depth guard: `context` is shared across operand recursion
     // (`evaluate_binary_expr` passes it straight through), so `depth` tracks the
     // live nesting level. Check the ceiling BEFORE incrementing, so the
     // rejecting path never touches `depth` ; the accepted path restores it by

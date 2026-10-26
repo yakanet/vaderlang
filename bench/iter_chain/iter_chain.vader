@@ -1,11 +1,11 @@
-/// Lazy iterator chain — sums the squares of even integers in [0, N) via
+/// Lazy iterator chain: sums the squares of even integers in [0, N) via
 /// `Range.filter(is_even).map(square_i64)`. The fluent form dispatches
 /// through `std/iter`'s `filter` / `map` free fns (lazy, first-param
 /// `Iterator<T>`) ; UFCS picks them because `Range` implements
 /// `Iterator(i32)`.
 ///
 /// The lowerer's iter-chain fusion path recognises the chain and folds
-/// the three layers into a single counter loop — no per-step allocation, no
+/// the three layers into a single counter loop: no per-step allocation, no
 /// `Iterator.next()` vtable hops.
 
 module "main"

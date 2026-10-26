@@ -99,7 +99,7 @@ wire_module :: fn(
 
 /// Follow an ImportBinding `sym` to its concrete export target,
 /// when known. For non-import symbols (or for module-namespace
-/// bindings / missing targets) returns `sym` unchanged — callers
+/// bindings / missing targets) returns `sym` unchanged: callers
 /// can detect the "still an import-binding" case via `sym.kind`.
 export resolve_import_redirect :: fn(sym: Symbol, table: ImportTargetTable) -> Symbol {
     if sym.kind != .ImportBinding { return sym }

@@ -5,7 +5,7 @@ VS Code extension for the [Vader](../../README.md) programming language. Provide
 ## Features
 
 - Syntax highlighting for `.vader` files
-- Syntax highlighting and folding for `.virt` files — the text bytecode `vader dump --stage=bytecode` and `vader build --emit=bytecode-text` write — plus, from the Language Server, hover documentation on ops, inlay hints naming each table index, and go-to-definition from an operand to what it names
+- Syntax highlighting and folding for `.virt` files (the text bytecode `vader dump --stage=bytecode` and `vader build --emit=bytecode-text` write) plus, from the Language Server, hover documentation on ops, inlay hints naming each table index, and go-to-definition from an operand to what it names
 - Semantic tokens via the Vader Language Server (richer highlighting for keywords, types, functions, parameters, decorators, and VaderDoc `@param` / `@return` / `@error` / `@example` tags)
 - Comment toggling (`//`, `/* */`, `///`) and `///` auto-continuation on Enter
 - Bracket matching and auto-closing pairs
@@ -15,13 +15,13 @@ VS Code extension for the [Vader](../../README.md) programming language. Provide
 
 The extension spawns the Vader CLI to host the Language Server. Install the `vader` binary from the [project's distribution](../../README.md#installation) and ensure it is on your `PATH` (or set `vader.lsp.path` to the absolute path).
 
-> VS Code launched from the macOS Dock / Windows Start Menu inherits a *GUI* `PATH` that often differs from your shell's. If you see `spawn vader ENOENT`, the binary isn't on that inherited `PATH` — set `vader.lsp.path` to an absolute path (or to `${workspaceFolder}/build/vader` when working inside the Vader repo).
+> VS Code launched from the macOS Dock / Windows Start Menu inherits a *GUI* `PATH` that often differs from your shell's. If you see `spawn vader ENOENT`, the binary isn't on that inherited `PATH`: set `vader.lsp.path` to an absolute path (or to `${workspaceFolder}/build/vader` when working inside the Vader repo).
 
 ## Settings
 
-- `vader.lsp.path` (default `"vader"`) — path to the Vader CLI binary. Supports `${workspaceFolder}` interpolation.
-- `vader.lsp.args` (default `["lsp"]`) — arguments passed to the binary to start the language server. Supports `${workspaceFolder}` interpolation.
-- `vader.lsp.trace.server` — `off` / `messages` / `verbose`. Controls the verbosity of the `Vader Language Server` output channel.
+- `vader.lsp.path` (default `"vader"`): path to the Vader CLI binary. Supports `${workspaceFolder}` interpolation.
+- `vader.lsp.args` (default `["lsp"]`): arguments passed to the binary to start the language server. Supports `${workspaceFolder}` interpolation.
+- `vader.lsp.trace.server`: `off` / `messages` / `verbose`. Controls the verbosity of the `Vader Language Server` output channel.
 
 ## Shared grammar
 

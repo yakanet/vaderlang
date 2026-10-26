@@ -6,7 +6,7 @@
 // the current narrowing, so a chain left `x` as `T | A | B` rather than `T`, and
 // `x.<T-field>` degraded to a drop. This is the compiler's own
 // `infer_call`, whose `callee_ty.params` access after its
-// `is TypeMetaType` / `is UnresolvedType` / `!(is FnType)` guards vanished —
+// `is TypeMetaType` / `is UnresolvedType` / `!(is FnType)` guards vanished,
 // which silently dropped every typed method call (Range's `Contains` impl
 // among them). Guards the Vader self-emit path.
 

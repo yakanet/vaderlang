@@ -1,6 +1,6 @@
 // T3043: a literal pattern is `scrutinee == literal`, against what the arms above
 // leave of the scrutinee. Placed before `is Point`, `"a"` meets the whole
-// `Point | string | null`, and `Point` has no `Equals` — narrow it out first.
+// `Point | string | null`, and `Point` has no `Equals`: narrow it out first.
 module "snippet"
 
 Point :: struct {

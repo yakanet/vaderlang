@@ -2,7 +2,7 @@
 //
 // LSP positions are `(line, character)` where `character` is counted in the
 // encoding negotiated at `initialize` (`general.positionEncodings`, LSP 3.17+).
-// Vader is byte-native — the lexer's `Span.offset` is a UTF-8 byte offset — so we
+// Vader is byte-native (the lexer's `Span.offset` is a UTF-8 byte offset) so we
 // prefer `utf-8` (character == byte, no scan), and fall back to `utf-16` (the
 // protocol default) or `utf-32` (codepoints) for clients that don't offer utf-8.
 //
@@ -24,7 +24,7 @@ import "std/math"
 /// The `character` counting unit negotiated at `initialize`. `Utf16` is the LSP
 /// default ; `Utf8` is preferred (Vader is byte-native) ; `Utf32` counts
 /// codepoints. An astral codepoint (U+10000+) is 4 UTF-8 bytes = 2 UTF-16 units
-/// = 1 UTF-32 unit — the only place the three diverge.
+/// = 1 UTF-32 unit: the only place the three diverge.
 export PositionEncoding :: enum(u8) {
     Utf8,
     Utf16,
@@ -87,7 +87,7 @@ units_for :: fn(encoding: PositionEncoding, w: i64) -> i32 {
 /// Count `character` units between byte offsets `from` and `to` under `encoding`.
 /// `from`/`to` should sit on codepoint boundaries (span offsets always do).
 count_units :: fn(source: string, from: i64, to: i64, encoding: PositionEncoding) -> i32 {
-    // utf-8 : the character IS the byte offset — no scan.
+    // utf-8 : the character IS the byte offset, no scan.
     if encoding == .Utf8 {
         return i32(to - from)
     }
@@ -192,7 +192,7 @@ import "std/testing"
 }
 
 @test test_line_starts_crlf_and_lone_cr :: fn() -> void {
-    // CRLF is one break ; lone CR is one break — matches the lexer.
+    // CRLF is one break ; lone CR is one break: matches the lexer.
     li :: new_line_index("a\r\nb\rc", .Utf8)   // "a" CRLF "b" CR "c"
     assert_eq(li.line_starts.len(), 3)
     assert_eq(li.line_starts[0], 0)

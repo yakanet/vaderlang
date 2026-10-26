@@ -1,13 +1,13 @@
-// Formatter checks over EVERY `lib/**/*.vader` — every namespace the toolchain
+// Formatter checks over EVERY `lib/**/*.vader`: every namespace the toolchain
 // ships, not `std/` alone (see `listLibraryFiles`). Three
 // contracts, weakest to strongest :
 //
-//   1. reparse-after-format — the formatted output parses with zero errors.
+//   1. reparse-after-format: the formatted output parses with zero errors.
 //      This is the round-trip-safety net : it is what catches a formatter that
 //      emits non-compilable text (audit F3/F4/F5 all slipped past the older
 //      idempotency-only probe, since a *stably* corrupt re-emit is idempotent).
-//   2. idempotency — `fmt(fmt(src)) === fmt(src)`.
-//   3. byte-for-byte no-op — `fmt(src) === src` for the curated set below.
+//   2. idempotency: `fmt(fmt(src)) === fmt(src)`.
+//   3. byte-for-byte no-op: `fmt(src) === src` for the curated set below.
 //
 // Each file costs two to three native `build/vader` spawns, ~20 ms each. This ran
 // behind the same `RUN_FMT_TESTS=1` gate as `formatter.test.ts` until the gate's
@@ -21,10 +21,10 @@ import { listVaderFiles } from "./vader-sources.ts";
 
 const LIBRARY_ROOT = join(process.cwd(), "lib");
 
-// Every `*.vader` anywhere under `lib/` — recursively, since modules are
+// Every `*.vader` anywhere under `lib/`: recursively, since modules are
 // per-folder (`std/core/`, `std/string/`, …), and starting at `lib/` and not
 // `lib/std/`, since the libraries that left `std/` (json, regex, semver, cli,
-// crypto, base64, random, images) are namespaces of their own — naming `std`
+// crypto, base64, random, images) are namespaces of their own: naming `std`
 // dropped 5 446 LoC from this corpus without a word.
 function listLibraryFiles(): string[] {
   return listVaderFiles(LIBRARY_ROOT).sort();
@@ -41,7 +41,7 @@ const NO_OP_FILES = new Set([
 // Files with a KNOWN, pre-existing idempotency wobble. The visible symptom is a
 // name-column alignment group narrowing on the second pass (`TOMB_SLOT  ::` →
 // `TOMB_SLOT ::`), but the CAUSE is upstream of the alignment pass: `fmt` relocates
-// a TRAILING line-comment onto its own line above the next declaration —
+// a TRAILING line-comment onto its own line above the next declaration:
 //
 //     EMPTY_SLOT :: i32(0)    // index slot holds no entry
 //   becomes
@@ -70,7 +70,7 @@ for (const path of listLibraryFiles()) {
   // `basename`, not `slice(lastIndexOf("/"))`: `listVaderFiles` joins with the
   // platform separator, so on Windows the hand-rolled form found no `/`, returned
   // the WHOLE absolute path, and every temp file became
-  // `.tmp-fmt-stdlib-reparse-D:\a\...\base64.vader` — an ENOENT on mkdir. It also
+  // `.tmp-fmt-stdlib-reparse-D:\a\...\base64.vader`: an ENOENT on mkdir. It also
   // defeated the `UNSTABLE_IDEMPOTENCY` / `NO_OP_FILES` lookups below, which key on
   // a bare filename. Pre-existing, and invisible while the suite sat behind a gate.
   const base = basename(path);
@@ -82,7 +82,7 @@ for (const path of listLibraryFiles()) {
     try {
       expect(await reparseErrors(tmp)).toBe("");
     } finally {
-      // `rmSync(force)`, not `Bun.file().delete()` — the latter returns a promise, so
+      // `rmSync(force)`, not `Bun.file().delete()`: the latter returns a promise, so
       // its rejection escapes this try/catch and fails the NEXT test instead.
       rmSync(tmp, { force: true });
     }

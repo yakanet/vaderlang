@@ -1,4 +1,4 @@
-# 0010 — The emitted C stays `-std=c11`
+# 0010: The emitted C stays `-std=c11`
 
 ## Status
 
@@ -28,12 +28,12 @@ or marking it unused, removes 2 352 of the 2 362 warnings while staying on C11.
 That is the high-yield hour.
 
 **The bump is strategic and buys nothing today.** Cost is around half a day since
-CI is already on a compiler that accepts it. The benefit is cosmetic —
-`[[noreturn]]`, `bool`, `nullptr`, `static_assert` — and the runtime uses no C11
+CI is already on a compiler that accepts it. The benefit is cosmetic
+(`[[noreturn]]`, `bool`, `nullptr`, `static_assert`) and the runtime uses no C11
 feature at all: an audit found no `_Generic`, `_Atomic`, `_Static_assert`,
 `_Alignas`, anonymous union, or `<stdatomic.h>`, and none appeared as the runtime
 grew through atom interning and the GC work. The code sits below the C11 floor
-already, so the label on the flag is close to free to change — and equally close
+already, so the label on the flag is close to free to change, and equally close
 to pointless.
 
 ## Consequences
@@ -44,4 +44,4 @@ The portability surface stays as wide as it can be: every toolchain in the targe
 matrix accepts C11, which is not yet true of C23 everywhere.
 
 Since the runtime uses nothing above C99 plus a few GCC attributes, a later bump
-stays cheap — the cost of deferring does not grow.
+stays cheap: the cost of deferring does not grow.

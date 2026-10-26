@@ -52,18 +52,18 @@ export EnumType :: struct {
     written_width: MachineInteger | null = null
 }
 
-/// Distinct (newtype) over a primitive — nominal at typecheck, but its
+/// Distinct (newtype) over a primitive: nominal at typecheck, but its
 /// backend representation IS the backing primitive (zero-cost, register
 /// scalar, no box). Declared as `Name :: <primitive>` ; constructed via
-/// `Name(v)` (wrap) and unwrapped via `Backing(d)` — both no-op at runtime.
+/// `Name(v)` (wrap) and unwrapped via `Backing(d)`: both no-op at runtime.
 /// Operators and methods are opaque : only impls on the distinct type
 /// apply, nothing is inherited from the backing (`Instant + Instant` is a
-/// type error unless an `Add` impl exists). Modeled on `EnumType` — it rides
-/// its backing's `ValType` — not on `StructType` (which is a boxed `Ref`).
+/// type error unless an `Add` impl exists). Modeled on `EnumType` (it rides
+/// its backing's `ValType`) not on `StructType` (which is a boxed `Ref`).
 export DistinctType :: struct {
     symbol:  Symbol
     /// The underlying type the value is represented as. A primitive
-    /// (`Meters :: i64`) or a composite — array (`BigInt :: u32[]`),
+    /// (`Meters :: i64`) or a composite: array (`BigInt :: u32[]`),
     /// struct, or tuple alias. Classifiers must recurse into it
     /// (`val_type_of_type`, `array_backing`, `struct_backing`, …)
     /// rather than assume a primitive.
@@ -135,26 +135,26 @@ export TypeMetaType :: struct {}
 export SelfType :: struct {}
 export UnresolvedType :: struct {}
 
-/// Erased "any" reference — synthesised by the erasure-dedupe pass
+/// Erased "any" reference: synthesised by the erasure-dedupe pass
 /// for fields of monomorphized generic structs so identical concrete
 /// monos (e.g. `Pair__string__i64` vs `Pair__i32__bool`) can share a
 /// single C-emit shape. Surface name `Any`. Maps to `ValType.Any` at
 /// the bytecode level (same wide-ref representation as Ref).
 export AnyType :: struct {}
-/// Untyped int literal — flexible until placed in a typed context.
+/// Untyped int literal: flexible until placed in a typed context.
 export FreeIntType :: struct {}
-/// Untyped float literal — flexible until placed in a typed context.
+/// Untyped float literal: flexible until placed in a typed context.
 export FreeFloatType :: struct {}
-/// Untyped char LITERAL — flexible until placed in a typed context. A char
+/// Untyped char LITERAL: flexible until placed in a typed context. A char
 /// literal carries a compile-time codepoint, so it coerces to an integer type
 /// (with a bounds check) the same way a free int does ; absent any numeric
-/// context it defaults to `char`. Note: only LITERALS get this type — a `char`
+/// context it defaults to `char`. Note: only LITERALS get this type, a `char`
 /// variable stays the concrete `char` and never auto-coerces to an integer.
 export FreeCharType :: struct {}
-/// Bottom type for `return` / `panic` etc. — assignable to anything.
+/// Bottom type for `return` / `panic` etc.: assignable to anything.
 export NeverType :: struct {}
 
-/// The Type IR — discriminated union over every kind of Vader value.
+/// The Type IR: discriminated union over every kind of Vader value.
 export Type ::
     | PrimitiveType
     | StructType
@@ -197,7 +197,7 @@ export mk_struct :: fn(symbol: Symbol, args: Type[]) -> Type =
 export mk_trait :: fn(symbol: Symbol, args: Type[]) -> Type =
     TraitType { .symbol = symbol, .args = args }
 
-/// Distinct (newtype) over `backing` — see `DistinctType`. `backing` is a
+/// Distinct (newtype) over `backing`, see `DistinctType`. `backing` is a
 /// primitive, an array, a struct or a tuple (`distinct_backing` decides).
 export mk_distinct :: fn(symbol: Symbol, backing: Type) -> Type = DistinctType { .symbol = symbol, .backing = backing }
 
@@ -300,7 +300,7 @@ export TY_I64 :: RangeType { .bounds = Interval { .lo = I64_MIN, .hi = I64_MAX }
 /// @param t  the type to test.
 export is_null_type :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "null"
 
-/// True when `t` is the `void` primitive — by name, so a `void` built anywhere
+/// True when `t` is the `void` primitive: by name, so a `void` built anywhere
 /// passes, not only the `TY_VOID` singleton.
 export is_void :: fn(t: Type) -> bool {
     if t is PrimitiveType { return t.name == "void" }
@@ -389,7 +389,7 @@ nominal_name :: fn(sym: Symbol, qualified: bool) -> string {
     return sym.name
 }
 
-/// The impl tables' key for a type's BASE — the declaration a nominal type
+/// The impl tables' key for a type's BASE: the declaration a nominal type
 /// instantiates (`Foo<i32>` and `Foo<T>` alike), as `#<symbol id>`, so two
 /// same-named types from different modules never share an entry. Keys
 /// `impl_methods`, `iter_element_types`, `index_*_types`, the trait membership
@@ -419,8 +419,8 @@ export impl_base_key :: fn(t: Type) -> string {
 
 /// The nominal symbol an impl written for `t` is keyed by ; null for
 /// shapes that can't carry an impl (Primitive, Array, Fn, TypeParam,
-/// Union, …). A distinct (newtype) is nominal — it carries its OWN impls
-/// (`MyId implements Hash`), not the backing's — so it resolves to its own
+/// Union, …). A distinct (newtype) is nominal, it carries its OWN impls
+/// (`MyId implements Hash`), not the backing's, so it resolves to its own
 /// symbol.
 export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
     // @partial: only the three nominal variants carry an impl target symbol;
@@ -543,7 +543,7 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is UnionType -> b is UnionType && type_list_equals(a.variants, b.variants)
     // Distinct (newtype) types : nominal identity by symbol id. A distinct
     // type equals only itself, never its backing primitive nor another
-    // distinct over the same backing — that's the whole point.
+    // distinct over the same backing: that's the whole point.
     is DistinctType  -> b is DistinctType && a.symbol.id == b.symbol.id
 }
 
@@ -553,7 +553,7 @@ nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {
 }
 
 /// Element-wise structural equality of two type lists (params, tuple
-/// elements, union variants). Companion to `equals_type` — same per-element
+/// elements, union variants). Companion to `equals_type`: same per-element
 /// `equals_type` comparison, length-checked first.
 export type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
     if a.len() != b.len() { return false }
@@ -563,7 +563,7 @@ export type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
     return true
 }
 
-/// The variants of `t` when it is a union, `null` otherwise —
+/// The variants of `t` when it is a union, `null` otherwise:
 /// `union_variants(t) ?? [t]` reads any type as its list of variants.
 ///
 /// @param t  the type to read.
@@ -627,7 +627,7 @@ range_key :: fn(r: RangeType) -> string {
     return "r${display_bounds(r.bounds)}"
 }
 
-/// Compose an arg-list canonical key — used as the inner key in
+/// Compose an arg-list canonical key: used as the inner key in
 /// mono-instance DCE and impl-method indexing.
 export canonical_args_key :: fn(args: Type[]) -> string {
     if args.len() == 0 { return "" }
@@ -661,7 +661,7 @@ export for_each_type :: fn(t: Type, visit: fn(Type) -> void) -> void {
     }
 }
 
-/// Whether `t` or a type nested in it satisfies `pred` — `for_each_type`'s walk,
+/// Whether `t` or a type nested in it satisfies `pred`: `for_each_type`'s walk,
 /// stopping at the first type that does.
 ///
 /// @param t     the type to walk.
@@ -711,12 +711,12 @@ export contains_distinct :: fn(t: Type) -> bool {
 
 /// Replace every `DistinctType` in `t` with its backing, recursively.
 ///
-/// A distinct (newtype) has no runtime identity (Axe E) — it monomorphises,
+/// A distinct (newtype) has no runtime identity (Axe E): it monomorphises,
 /// boxes and lays out exactly as its backing primitive, so the backend must
 /// never see one inside a monomorphisation instance key. Applied to type-args
 /// at every instance-registration source (`lower/generic_call.vader`, `lower/ufcs.vader`,
 /// `instances.add`, the direct `GenericInstance` builders) so `MutableMap<BlockId>`
-/// IS `MutableMap<i32>` for the whole lowerer / comptime / emit pipeline — one
+/// IS `MutableMap<i32>` for the whole lowerer / comptime / emit pipeline: one
 /// raw instance, no separate erased instance to collide with the genuine one.
 /// Nominal distinctness is a typechecker-only concept; it ends here, at the
 /// lowering boundary.
@@ -742,13 +742,13 @@ export strip_distinct :: fn(t: Type) -> Type {
     return t
 }
 
-/// The backing array of `t` — `t` itself when it's an array, or the array a
+/// The backing array of `t`: `t` itself when it's an array, or the array a
 /// distinct newtype wraps (`BigInt :: u32[]` → `u32[]`). `null` for anything
 /// else. Lets the STRUCTURAL array ops (index, `len`/`push`, literal coercion,
 /// for-in) forward through an array-backed distinct newtype while its trait
 /// impls (operator overloads) stay nominal on the distinct's own key.
 ///
-/// Unwraps only the OUTER distinct — the element type is preserved verbatim, so
+/// Unwraps only the OUTER distinct: the element type is preserved verbatim, so
 /// `LocalId[]` stays `LocalId[]` (NOT `strip_distinct`, which would deep-strip
 /// the element to `i32[]` and corrupt `arr[i]`'s type).
 export array_backing :: fn(t: Type) -> ArrayType | null {
@@ -757,13 +757,13 @@ export array_backing :: fn(t: Type) -> ArrayType | null {
     return null
 }
 
-/// The backing struct of `t` — `t` itself when it's a struct, or the struct a
+/// The backing struct of `t`: `t` itself when it's a struct, or the struct a
 /// distinct newtype wraps (`Color :: Rgb` → `Rgb`). `null` for anything else.
 /// Lets the STRUCTURAL struct ops (field access, struct-literal construction)
 /// forward through a struct-backed distinct newtype while its trait impls
 /// (operator overloads) stay nominal on the distinct's own key.
 ///
-/// Unwraps only the OUTER distinct — the struct's type args are preserved
+/// Unwraps only the OUTER distinct: the struct's type args are preserved
 /// verbatim (mirror of `array_backing`).
 export struct_backing :: fn(t: Type) -> StructType | null {
     if t is StructType { return t }
@@ -771,7 +771,7 @@ export struct_backing :: fn(t: Type) -> StructType | null {
     return null
 }
 
-/// The backing tuple of `t` — `t` itself when it's a tuple, or the tuple a
+/// The backing tuple of `t`: `t` itself when it's a tuple, or the tuple a
 /// distinct newtype wraps (`Coord :: [i32, i32]` → `[i32, i32]`). `null` for
 /// anything else. Lets the STRUCTURAL tuple ops (positional `.0` access,
 /// literal construction, `[a, b]` destructure) forward through a tuple-backed
@@ -805,8 +805,8 @@ export enum_data_of :: fn(src: Type, target: Type) -> StructType | null {
 /// The type a mixed instance keeps for the type argument `t` ; null when `t`
 /// erases to `Any`, i.e. when the instance shares its body with every other
 /// instance erasing there. Every site that depends on the split asks this one
-/// question — the monomorphiser's flavor gate, substitutions and instance
-/// suffix, and the `is` tests that cannot see through a shared body (T3087) —
+/// question, the monomorphiser's flavor gate, substitutions and instance
+/// suffix, and the `is` tests that cannot see through a shared body (T3087),
 /// so they always agree on the instance.
 ///
 /// A primitive is kept, and so is a newtype over one, as its backing, a machine

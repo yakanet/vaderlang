@@ -34,7 +34,7 @@ test("membuf .virt -> C emits the buffer ABI helpers (not stubs)", async () => {
   expect(r.exit).toBe(0);
   const c = readFileSync(cpath, "utf8");
   // A buffer is a concrete heap ref, so it rides as a raw `void*` (not a
-  // tagged box) — its object header carries the BUFFER sentinel, so the GC
+  // tagged box): its object header carries the BUFFER sentinel, so the GC
   // forwards it via the raw-ref scan (exercised behaviourally by the
   // "survives a forced moving collection" test below). Construction + the typed
   // ops still go through the inline byte helpers.

@@ -1,4 +1,4 @@
-# 0066 — An access keeps the constraint that put it in its set
+# 0066: An access keeps the constraint that put it in its set
 
 ## Status
 

@@ -17,7 +17,7 @@ main :: fn() -> i32 {
         println("${b}")
     }
 
-    // Pinpoint access (BOM detection style — first 3 bytes of a BOM-prefixed
+    // Pinpoint access (BOM detection style: first 3 bytes of a BOM-prefixed
     // string match 0xEF 0xBB 0xBF).
     bom :: "\u{FEFF}data"
     bb :: bom.bytes()

@@ -1,4 +1,4 @@
-// T3043 / T3001 — what a tuple `==` refuses.
+// T3043 / T3001: what a tuple `==` refuses.
 //
 // The rewrite is unconditional (`lower/value_eq.vader`), so anything this
 // gate lets through must have a working `==` at every position. What cannot: an
@@ -7,7 +7,7 @@
 //
 // T3043 names the ELEMENT's type, not the tuple's: that is what needs the impl.
 // Mismatched shapes are T3001 instead, and the check is `equals_type`, not an
-// arity test — the lowerer drives both sides from the left type, and equality is
+// arity test: the lowerer drives both sides from the left type, and equality is
 // what makes that sound at every depth.
 
 module "snippet"

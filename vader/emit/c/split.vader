@@ -1,12 +1,12 @@
 // vader/emit/c/split: multi-file C emit for a parallel native build.
 //
 // The monolithic emitter (`emit.vader::emit_c`) produces one `.c` TU that
-// `cc -O3` compiles single-threaded — the dominant local build cost. This
+// `cc -O3` compiles single-threaded: the dominant local build cost. This
 // module re-routes the SAME section emitters into a shared header plus N
 // compilation units so an outer driver can `cc -c` them in parallel and link.
 //
 // Layout (one program → several files) :
-//   - `<base>.h`    — every cross-TU declaration : struct typedefs / bodies,
+//   - `<base>.h`: every cross-TU declaration : struct typedefs / bodies,
 //                     fn-sig typedefs, the EXTERNAL fn / dispatcher / closure
 //                     prototypes, the import shims themselves (`static inline`,
 //                     so every unit absorbs them) but for the `CLibrary` ones,
@@ -14,9 +14,9 @@
 //                     for the data globals defined in the globals TU.
 //                     (`vader_type_info_table` is already extern'd by
 //                     `vader.h`.)
-//   - `<base>.g.c`  — the data-global DEFINITIONS : atom table, data pool,
+//   - `<base>.g.c`: the data-global DEFINITIONS : atom table, data pool,
 //                     type-info table. Pure data, no code.
-//   - `<base>.<k>.c`— the function bodies, partitioned into N buckets by body
+//   - `<base>.<k>.c`: the function bodies, partitioned into N buckets by body
 //                     size in mangle-sorted order (deterministic → stable for
 //                     the bootstrap fixed point). Unit 0 also carries the
 //                     trampolines, dispatchers, and `main`.
@@ -40,14 +40,14 @@ import "vader/emit/c/ast"
 import "vader/support/text"
 
 /// A program emitted as several C translation units. `header` is the shared
-/// `.h`, `globals` the data-globals `.c`, and `units` the function `.c` bodies —
+/// `.h`, `globals` the data-globals `.c`, and `units` the function `.c` bodies:
 /// one per source module, plus `unit_names[0] == GLUE_UNIT` for the trampolines,
 /// dispatchers and `main`, then one per `CLibrary` for its shims.
 export CProgram :: struct {
     header:  string
     /// The `@extern` declarations and their shims, split out of `header`
     /// because they are the part of it a target is most likely to change.
-    /// Keeping them apart lets the shared header stay shared — see
+    /// Keeping them apart lets the shared header stay shared, see
     /// `IMPORTS_HEADER_SUFFIX`.
     imports: string
     globals: string
@@ -99,7 +99,7 @@ push_library_units :: fn(ctx: EmitCtx, names: string[], units: string[]) -> void
     }
 }
 
-/// Name of the unit holding the code that belongs to no module — trampolines,
+/// Name of the unit holding the code that belongs to no module: trampolines,
 /// import shims, vtable dispatchers, `main`. Leading `_` so it cannot collide
 /// with a module stem, which is always a sanitised identifier.
 export GLUE_UNIT :: "_glue"
@@ -140,7 +140,7 @@ export imports_header_name :: fn(header_name: string) -> string {
 /// @param m            the bytecode module to lower.
 /// @param opts         emit-time switches ; `entry_mangled` resolves `main`.
 /// @param header_name  basename of the shared header, `#include`d by every TU
-///                     (resolved relative to each `.c` — keep them co-located).
+///                     (resolved relative to each `.c`: keep them co-located).
 /// @return             the header, the globals TU, and one function TU per
 ///                     module (plus unit 0 for the glue), then one per
 ///                     `CLibrary`.
@@ -163,7 +163,7 @@ export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: st
     ctx.emit_closure_forward_decls(header)
     ctx.emit_vtable_forward_decls(header)
     // The shim DEFINITIONS, not prototypes: they stay `static inline` so every
-    // unit inlines them instead of calling into unit 0 — but they live in their
+    // unit inlines them instead of calling into unit 0, but they live in their
     // OWN header, included here under a fixed name. They are the only part of
     // this file a target can change, and keeping them inline in the shared one
     // forced a whole 6000-line copy per target the moment a binding diverged.
@@ -182,8 +182,8 @@ export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: st
     // ---- globals TU : the data-global definitions -------------------------
     globals :: including(header_name)
     // Re-emits `#define VADER_COMPTIME_ATOM_COUNT` too. Both sides count
-    // `ctx.atom_table`, so the redefinition is identical by construction — and
-    // stays silent — rather than by the two pools happening to match.
+    // `ctx.atom_table`, so the redefinition is identical by construction (and
+    // stays silent) rather than by the two pools happening to match.
     ctx.emit_atom_comptime_table(globals)
     ctx.emit_data_pool(globals)
     ctx.emit_type_info_table(globals)
@@ -193,7 +193,7 @@ export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: st
     units: string[]: []
     for k in 0..<buckets.len() {
         unit :: including(header_name)
-        // Prototypes for this unit's OWN internal functions — the shared header
+        // Prototypes for this unit's OWN internal functions: the shared header
         // carries only the external ones, and a `static` definition needs a
         // `static` declaration ahead of any mutually-recursive use.
         ctx.emit_internal_forward_decls(buckets[k], unit)
@@ -252,7 +252,7 @@ emit_internal_forward_decls :: fn(ctx: EmitCtx, bucket: i32[], printer: CPrinter
 /// `static` in that unit.
 ///
 /// Splitting used to give every function external linkage, which forbids `cc`
-/// from inlining it — a definition another TU may call has to be emitted as
+/// from inlining it: a definition another TU may call has to be emitted as
 /// written. That is what the split cost: measured at +10 % to +29 % on the
 /// stdlib-heavy bench workloads, against a monolithic build where everything
 /// is already `static`.
@@ -261,10 +261,10 @@ emit_internal_forward_decls :: fn(ctx: EmitCtx, bucket: i32[], printer: CPrinter
 /// set of ways a name can be reached from outside its unit, and erring towards
 /// external is safe (it only forgoes an inline); erring the other way is a link
 /// error, so each entry is a reference site, not a heuristic:
-///   - an `@export` target — a host names it;
-///   - the entry point — `emit_main` calls it from unit 0;
-///   - a vtable target — the vtable arrays live in the globals TU;
-///   - taken as a fn-value — `emit_fn_trampolines` wraps it from unit 0;
+///   - an `@export` target: a host names it;
+///   - the entry point: `emit_main` calls it from unit 0;
+///   - a vtable target: the vtable arrays live in the globals TU;
+///   - taken as a fn-value: `emit_fn_trampolines` wraps it from unit 0;
 ///   - called by a function in another unit.
 ///
 /// @param m              the module being emitted.
@@ -322,7 +322,7 @@ internal_fn_flags :: fn(m: BytecodeModule, buckets: i32[][], entry_mangled: stri
 
 /// Index of the function `op` refers to, or `-1` when it refers to none.
 /// `fn.ref` counts: the reference itself crosses units even though the call
-/// through it does not. `fn.addr` counts for a stronger reason — it emits
+/// through it does not. `fn.addr` counts for a stronger reason: it emits
 /// `&<symbol>`, so a unit taking the address of a function defined in another
 /// one needs that function to keep external linkage or the link fails.
 callee_index_of :: fn(op: Op) -> i32 {
@@ -378,7 +378,7 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
     // a lifted lambda) sorts among the module-qualified ones by its own first
     // letter, so the moduleless group interleaves with them. Detecting runs
     // therefore produced several buckets called `_root`, which wrote the same
-    // file and lost every function but the last — a link failure listing
+    // file and lost every function but the last: a link failure listing
     // undefined `vader_fn_lift_*`, and only in projects with enough bare names
     // to straddle a module.
     of_module :: MutableMap<string, i32[]> {}
@@ -392,7 +392,7 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
     return buckets
 }
 
-// The module stems, sorted — the deterministic unit order.
+// The module stems, sorted: the deterministic unit order.
 sorted_module_stems :: fn(of_module: MutableMap<string, i32[]>) -> string[] {
     stems: string[]: []
     for [m, _] in of_module {
@@ -403,7 +403,7 @@ sorted_module_stems :: fn(of_module: MutableMap<string, i32[]>) -> string[] {
 
 // The module each bucket holds. Bucket 0 is the glue; every other takes the
 // module stem of its first function, which is the same for all of them because
-// `partition_functions` groups by exactly that — and is non-empty, since every
+// `partition_functions` groups by exactly that, and is non-empty, since every
 // bucket past 0 comes from a map entry that holds at least one index.
 //
 // The names are what `unit_path` keys the output file on, so two units sharing
@@ -417,7 +417,7 @@ unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
     for k in 1..<buckets.len() {
         stem :: module_stem_of(fns[buckets[k][0]].name)
         // A stem names a MODULE, so every byte of it is an identifier byte. An
-        // EMPTY stem is ordinary — a bare name like `main` has no `$` — and
+        // EMPTY stem is ordinary (a bare name like `main` has no `$`) and
         // becomes `_root` below. A stem that is non-empty but not an identifier
         // cannot come from source: it means the mangled name was corrupted
         // upstream, and letting it through writes `<out>-<garbage>.c`, which
@@ -452,7 +452,7 @@ module_stem_of :: fn(name: string) -> string {
     return name.byte_slice(0, at)
 }
 
-/// Fn indices sorted by mangled name — the deterministic visit order.
+/// Fn indices sorted by mangled name: the deterministic visit order.
 sorted_fn_indices :: fn(fns: BcFunction[]) -> i32[] {
     idxs: i32[]: []
     for i in 0..<fns.len() { idxs.push(i32(i)) }

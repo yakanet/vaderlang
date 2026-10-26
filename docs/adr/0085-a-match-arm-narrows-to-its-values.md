@@ -1,4 +1,4 @@
-# 0085 — A match arm narrows to its values
+# 0085: A match arm narrows to its values
 
 ## Status
 

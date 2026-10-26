@@ -102,7 +102,7 @@ function unifiedDiff(expected: string, actual: string, ctx = 3): string {
 /** Format a snapshot mismatch for use in test error messages. */
 export function snapshotDiff(label: string, expected: string | null, actual: string): string {
   if (expected === null) {
-    return `(no snapshot yet — run with UPDATE_SNAPSHOTS=1)\n\n--- actual ---\n${actual}`;
+    return `(no snapshot yet: run with UPDATE_SNAPSHOTS=1)\n\n--- actual ---\n${actual}`;
   }
   const diff = unifiedDiff(expected, actual);
   return diff !== "" ? diff : `(diff produced no output for ${label})`;

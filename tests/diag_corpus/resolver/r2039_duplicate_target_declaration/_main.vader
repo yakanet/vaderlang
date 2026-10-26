@@ -1,5 +1,5 @@
 // One group, one declaration: it is the single place the signature lives. The
-// second case is the one that actually bites — two OVERLOADS, each wanting its
+// second case is the one that actually bites: two OVERLOADS, each wanting its
 // own per-platform bodies. A group is keyed by name alone, so `@target` cannot
 // tell them apart, and the diagnostic says so rather than reporting a duplicate
 // the author did not write.

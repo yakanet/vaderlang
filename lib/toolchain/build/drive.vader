@@ -17,7 +17,7 @@
 //                                                  Lowered → OutputWritten → Complete
 //
 // `emit_native` / `emit_c` are shortcuts that drain this, not a second
-// implementation — so a driver that observes sees exactly the build a driver that
+// implementation, so a driver that observes sees exactly the build a driver that
 // does not observe gets.
 
 module "toolchain/build"
@@ -42,20 +42,20 @@ AST :: import "toolchain/ast"
 /// `TypecheckedMessage` per module, then a `PhaseMessage`, and finally one
 /// `CompleteMessage` for the whole run.
 ///
-/// **Every** typed module is yielded, the stdlib included — a driver that only
+/// **Every** typed module is yielded, the stdlib included: a driver that only
 /// cares about its own code filters on `module_name`. Reporting the full set is
 /// the honest default: which modules are "the project" is the driver's policy,
 /// not this function's.
 ///
 /// Every declaration is delivered exactly ONCE per entry, however many
-/// generation rounds that entry takes — see `TypecheckedMessage`. A module with
+/// generation rounds that entry takes, see `TypecheckedMessage`. A module with
 /// nothing new is not yielded at all. The "once" is per ENTRY, not per build: two
 /// entries sharing a module both report it, which is already true of the stdlib.
 ///
 /// Batched per file rather than streamed per declaration: Vader is
 /// single-threaded here, so the compiler fills a phase and hands it over. The
 /// loop shape is the same either way, and the order is specified rather than
-/// dependent on scheduling — which is what keeps a driven build reproducible.
+/// dependent on scheduling, which is what keeps a driven build reproducible.
 ///
 /// A driver that generates code makes the stream LOOP: the phases from
 /// `Typechecked` to `BeforeEmit` repeat once per generation round, and the back
@@ -80,7 +80,7 @@ AST :: import "toolchain/ast"
 export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
     // Configuration is read ONCE, here. Mutating `ctx.cc` / `ctx.target` / …
     // after the first pull is therefore ignored uniformly, rather than honoured
-    // for entries not yet reached — a stream cannot re-read what it already
+    // for entries not yet reached: a stream cannot re-read what it already
     // acted on, and half-applying a change is worse than ignoring it.
     destination :: ctx.target
     request     :: ctx.request
@@ -120,8 +120,8 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
         yield CompleteMessage { .code = 0 }
         return
     }
-    // Generated modules of an EARLIER build would still resolve, and — file
-    // names being content hashes — a module whose text changed would sit beside
+    // Generated modules of an EARLIER build would still resolve, and (file
+    // names being content hashes) a module whose text changed would sit beside
     // its own previous version and collide with it. Swept BEFORE the first front
     // end rather than after the last: a build that fails never reaches its own
     // cleanup, and the guarantee that matters is about the build starting now.
@@ -142,14 +142,14 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
     roots :: search_roots(ctx)
     for chosen_entry in chosen {
         entry :: Path(join_path(ctx.project_root, chosen_entry.path))
-        // Declarations are delivered ONCE per build — the Jai property, without
+        // Declarations are delivered ONCE per build: the Jai property, without
         // Jai's incremental typechecker. What is tracked is the FILE, not the
         // module, and that precision is load-bearing: when a driver emits into a
-        // module it also inspects (the `@derive` shape — read `app`'s structs,
+        // module it also inspects (the `@derive` shape: read `app`'s structs,
         // generate into `app`), the next round re-delivers that module carrying
         // ONLY the generated file's declarations. A lint rule over the
         // hand-written ones therefore still fires exactly once. File paths are
-        // stable across rounds — a generated one IS its own content hash.
+        // stable across rounds: a generated one IS its own content hash.
         //
         // So a driver accumulates in its own variables across rounds rather than
         // guarding against seeing the same declaration twice.
@@ -180,7 +180,7 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
             yield PhaseMessage { .phase = .Evaluated }
 
             // Last exit before anything is written. A driver that only observes
-            // leaves the loop here — and one that generates has had every chance
+            // leaves the loop here, and one that generates has had every chance
             // to call `emit_module` by now, which is why the flush FOLLOWS this
             // yield instead of preceding it.
             yield PhaseMessage { .phase = .BeforeEmit }
@@ -190,7 +190,7 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
                 if round < MAX_GENERATION_ROUNDS {
                     continue
                 }
-                // Not a hang — a driver whose emitted text never stabilises. The
+                // Not a hang: a driver whose emitted text never stabilises. The
                 // detail names what was still moving, since that is the only
                 // clue to which rule is unstable.
                 ctx.diagnostics.push(hook_error(.GenerationDidNotSettle, driver_span(ctx),
@@ -284,7 +284,7 @@ chosen_entries :: fn(ctx: BuildContext, request: DriverRequest) -> ManifestEntry
 }
 
 // Top-level declarations of the files not yet delivered, marking them delivered
-// as it goes. Returns empty when the module has nothing new — see the delivery
+// as it goes. Returns empty when the module has nothing new, see the delivery
 // note in `messages`.
 //
 // Filters the FILES and hands them to `concat_file_decls`, rather than
@@ -316,7 +316,7 @@ emit_one :: fn(
     ctx.diagnostics.push_all(cfg.lower_diags)
     // BOTH bags, as `flush_build_diags` does for `vader build <file>`: a lowering
     // error still leaves bytecode behind, so gating on `pre_diags` alone would
-    // emit C from it, link a binary, and report success — a silently wrong build.
+    // emit C from it, link a binary, and report success: a silently wrong build.
     if any_error_diag(cfg.pre_diags) || any_error_diag(cfg.lower_diags) {
         return 1
     }
@@ -365,13 +365,13 @@ export emit_native :: fn(ctx: BuildContext) -> i32 {
 
 /// Compile the entries to C, without linking.
 ///
-/// The counterpart of `emit_native` for a driver that wants the source — to
+/// The counterpart of `emit_native` for a driver that wants the source: to
 /// post-process it, to hand it to another toolchain, or just to look. Mirrors
 /// `--target=c`.
 ///
 /// @param ctx  the configured context ; add entries with `add_entry`.
 /// @return     one C source per entry, in the order they were added. Empty when a
-///             front end rejected an entry — the reports say why.
+///             front end rejected an entry: the reports say why.
 export emit_c :: fn(ctx: BuildContext) -> string[] {
     ctx.target = .C
     drain(ctx)

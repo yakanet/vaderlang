@@ -1,7 +1,7 @@
 // A distinct's own `Index` / `IndexSet` impl wins over its backing, trait by trait :
 // `Offset` reads through its `at` and writes through its `set_at`, `Cells` (a distinct
 // over a struct) indexes through its `at`, and `Log`, which implements only `Index`,
-// reads through it and writes into its backing array — a plain write, `+=` (whose
+// reads through it and writes into its backing array: a plain write, `+=` (whose
 // read is `at`'s -1) and a destructuring write alike. A `Range` index slices.
 module "snippet"
 

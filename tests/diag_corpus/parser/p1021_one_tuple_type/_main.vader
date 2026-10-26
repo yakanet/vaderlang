@@ -1,4 +1,4 @@
-// `[T]` (single-element bracketed type) is rejected with P1021 — the
+// `[T]` (single-element bracketed type) is rejected with P1021: the
 // array form is postfix `T[]`, and a 1-tuple has no use case (just write
 // the element type). The bracketed `[T1, T2, ...]` shape is reserved for
 // tuples (≥ 2 elements).

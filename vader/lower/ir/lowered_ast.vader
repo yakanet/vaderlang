@@ -78,7 +78,7 @@ export ConstRoute :: struct {
 export DataPoolEntry :: PrimDataPoolEntry | StrDataPoolEntry | AggregateDataPoolEntry
 
 /// A pooled array of primitive elements. Carries raw bit patterns as `i64`
-/// (the natural width's low bits ; signed view) — `midir` reinterprets per
+/// (the natural width's low bits ; signed view): `midir` reinterprets per
 /// `element_type_name` into a `BcPrimData { items: u64[] }`.
 export PrimDataPoolEntry :: struct {
     element_type_name: string
@@ -92,10 +92,10 @@ export StrDataPoolEntry :: struct {
     values: string[]
 }
 
-/// A pooled aggregate `T[]` — struct / tuple / nested-array elements.
+/// A pooled aggregate `T[]`: struct / tuple / nested-array elements.
 /// Carries the raw array literal ; `midir::convert_data_pool` recursively lowers
 /// it to a `BcAggregateData` (resolving struct symbol-ids + element kinds). The
-/// `LoweredExpr` tree IS the recursive value — no doubled lower-side type. The
+/// `LoweredExpr` tree IS the recursive value: no doubled lower-side type. The
 /// producer's `is_bakeable` gate guarantees every node is a constant literal.
 export AggregateDataPoolEntry :: struct {
     element_type_name: string
@@ -107,10 +107,10 @@ export AggregateDataPoolEntry :: struct {
 /// (CFG `build_ident`) instead of re-emitting the whole literal at every
 /// read site.
 export ConstFnWrap :: struct {
-    /// The synthesized accessor fn's symbol — its negative id is what the
+    /// The synthesized accessor fn's symbol: its negative id is what the
     /// emitted `call` resolves through (`function_index_by_symbol_id`).
     fn_symbol: Symbol
-    /// The const's declared type — the accessor's return type and the
+    /// The const's declared type: the accessor's return type and the
     /// `call` result type.
     call_type: Type
 }
@@ -119,7 +119,7 @@ export ConstFnWrap :: struct {
 /// (bytecode emit, C emit, DCE) read this directly.
 export LoweredProject :: struct {
     modules:        MutableMap<string, LoweredModule>
-    /// Entry module id — the module being built / tested. Lowering and DCE
+    /// Entry module id: the module being built / tested. Lowering and DCE
     /// treat every OTHER module as a lazily-lowered dependency ; this is the
     /// axis that replaced the old stdlib-vs-user split (a dependency is pruned
     /// to its reachable set, the entry keeps its whole surface in a no-main
@@ -150,7 +150,7 @@ export LoweredProject :: struct {
     /// The storage of every module constant, in the order `inline_consts` met
     /// them. Read by the lowered dump.
     const_routes: ConstRoute[] = []
-    /// `Symbol.id → trait_key`s — the frontend's authoritative trait
+    /// `Symbol.id → trait_key`s: the frontend's authoritative trait
     /// membership (from `ImplTables.struct_traits_by_sym`), threaded to the
     /// bytecode emitter to seed `is Trait` impl_table rows per interned struct
     /// tag.
@@ -282,10 +282,10 @@ export LoweredReturn :: struct {
     value: LoweredExpr | null
 }
 
-/// TRANSIENT generator marker — one `yield e` inside a `generator` body.
+/// TRANSIENT generator marker: one `yield e` inside a `generator` body.
 /// Emitted by `vader/lower/stmt.vader` ONLY when `FnLowerCtx.in_generator` is set, and
 /// wholly consumed by the generator state-machine transform
-/// (`vader/lower/generator.vader`) — it never reaches the backend. Backend / midir
+/// (`vader/lower/generator.vader`): it never reaches the backend. Backend / midir
 /// consumers arm it as `unreachable`: a `LoweredYield` surviving past the
 /// generator transform is a compiler bug.
 export LoweredYield :: struct {
@@ -293,7 +293,7 @@ export LoweredYield :: struct {
     value: LoweredExpr
 }
 
-/// TRANSIENT async marker — one `await e` inside an `async` body, produced by
+/// TRANSIENT async marker: one `await e` inside an `async` body, produced by
 /// the ANF pass when `FnLowerCtx.in_async` is set, and wholly consumed by the
 /// coroutine state-machine transform (`vader/lower/coroutine.vader`). Like
 /// `LoweredYield` it never reaches the backend (armed `unreachable`). Binds the
@@ -306,7 +306,7 @@ export LoweredAwait :: struct {
 }
 
 /// A block that a `break <label>` leaves early, where the lowering has to jump
-/// out of code that is not a loop — past everything an inlined generator emits,
+/// out of code that is not a loop: past everything an inlined generator emits,
 /// or past the rest of a loop body spliced into one. It is not a loop: no
 /// `continue` targets it, and no analysis may take it for one.
 export LoweredLabelledBlock :: struct {
@@ -323,7 +323,7 @@ export LoweredLoop :: struct {
     cond:  LoweredExpr | null
     body:  LoweredBlock
     /// Runs after the body, and wherever a `continue` targets this loop, before
-    /// `cond` is tested again — a counted loop's increment. Straight-line code:
+    /// `cond` is tested again: a counted loop's increment. Straight-line code:
     /// no jump, no `yield` or `await`. Empty for a loop with no step.
     step:  LoweredStmt[]
     /// How many turns the loop runs, when the emitter that built it knows ; null
@@ -336,7 +336,7 @@ export LoweredLoop :: struct {
 /// `counter`: it is a local of the emitter's own or a `for … in` variable, which
 /// nothing may rebind (T3041). `start` is what the counter is initialised from
 /// and `bound` what it is tested against, each as the loop's preheader computes
-/// it — any expression, a call included: evaluating either one again, or
+/// it, any expression, a call included: evaluating either one again, or
 /// earlier, is the reader's to prove safe.
 ///
 /// Valid only while the block holding the loop lowers (`vader/lower/optimise/push_reserve.vader`):
@@ -424,7 +424,7 @@ export LoweredCharLit :: struct {
     value: u32
 }
 
-/// Pure-text string literal — no interpolation parts after lowering.
+/// Pure-text string literal: no interpolation parts after lowering.
 export LoweredStringLit :: struct {
     span:  Span
     type:  Type
@@ -440,7 +440,7 @@ export LoweredIdent :: struct {
     fresh:  bool = false
 }
 
-/// A `type` reified as a value — emitted when a `TypeMeta`-typed ident
+/// A `type` reified as a value: emitted when a `TypeMeta`-typed ident
 /// flows into a value position. `type` carries the surrounding expression's
 /// static type (always `TypeMeta`) ; `value` carries the concrete `Type`
 /// the alias resolves to. The bytecode emitter interns `value` into the
@@ -458,7 +458,7 @@ export LoweredCall :: struct {
     args:   LoweredExpr[]
 }
 
-/// Virtual dispatch on a trait-typed receiver — the runtime indexes a
+/// Virtual dispatch on a trait-typed receiver: the runtime indexes a
 /// per-(trait, method) vtable by the receiver's type tag to pick the impl
 /// fn. `trait_name` (the trait's `trait_key`) and `method` together key the
 /// vtable.
@@ -470,7 +470,7 @@ export LoweredVirtualCall :: struct {
     receiver:   LoweredExpr
     args:       LoweredExpr[]
     /// The method's declared parameter types, `self` excluded, parallel to
-    /// `args` — midir tags a scalar entering a union one. Empty on a synthesised
+    /// `args`: midir tags a scalar entering a union one. Empty on a synthesised
     /// call, whose parameters are erased.
     param_types: Type[]
 }
@@ -628,7 +628,7 @@ export LoweredIf :: struct {
     else_block:  LoweredBlock | null
 }
 
-/// Block — both a statement-position and an expression-position citizen.
+/// Block: both a statement-position and an expression-position citizen.
 /// The `trailing` expr (if any) is the block's value ; otherwise `void`.
 export LoweredBlock :: struct {
     span:     Span
@@ -673,7 +673,7 @@ export LoweredGlobalGet :: struct {
 
 /// Length of an array, exposed by the bytecode op `array.len`.
 ///
-/// This is what `arr.len()` lowers TO — `ArrayOps.len` does exist, in the
+/// This is what `arr.len()` lowers TO: `ArrayOps.len` does exist, in the
 /// prelude (`std/core/array.vader`), and `lower_call` turns every call on an
 /// array receiver into this node rather than a `LoweredCall`. Being the op
 /// itself, it needs no callee resolution and no inlining pass to collapse, and
@@ -692,7 +692,7 @@ export LoweredArrayPush :: struct {
     target: LoweredExpr
     value:  LoweredExpr
     /// Set by `push_cache_tag` when this push sits in a loop that can keep the
-    /// array's length / capacity / slots in locals instead of memory — nothing
+    /// array's length / capacity / slots in locals instead of memory: nothing
     /// in the body observes the array, and nothing but this push's own grow can
     /// move its buffer. A backend may honour it or ignore it; ignoring it is the
     /// current shape and stays correct. See `vader/lower/optimise/push_cache.vader`.
@@ -715,7 +715,7 @@ export LoweredCast :: struct {
     value: LoweredExpr
 }
 
-/// Runtime tag check — tests whether a value of a union type is currently
+/// Runtime tag check: tests whether a value of a union type is currently
 /// the given variant. Lowered from `match` arm patterns (`is T`).
 export LoweredTypeCheck :: struct {
     span:       Span
@@ -749,7 +749,7 @@ export LoweredIntrinsicCall :: struct {
 }
 
 /// Allocate a new closure cell holding `value`. Cells are 1-slot heap
-/// objects used to give captured locals by-reference closure semantics —
+/// objects used to give captured locals by-reference closure semantics:
 /// multiple closures referencing the same captured local share the same
 /// cell. `type` is the cell's "outer" type (an opaque ref) ; `value_type`
 /// is the statically-known type of the slot contents.
@@ -792,18 +792,18 @@ export INTRINSIC_SIZE_OF_TYPE :: "size_of.type"
 
 /// Array construction / bulk-mutation intrinsics. Each maps to a dedicated
 /// parameterless bytecode op (`intrinsic_op_for_name`) backed by a GC-coupled
-/// runtime fn — they ride the intrinsic channel (generic operand walking) so no
+/// runtime fn: they ride the intrinsic channel (generic operand walking) so no
 /// per-pass Lowered/Instr node is needed. The runtime reads the element kind/tag
 /// off the array buf, so none of these need a static element type_id.
-/// `[lhs] * n` — repeat / preallocate (`[] * n` reserves n, length 0).
+/// `[lhs] * n`: repeat / preallocate (`[] * n` reserves n, length 0).
 export INTRINSIC_ARRAY_REPEAT :: "array.repeat"
-/// `dst.push_all(src)` — append every element of `src` to `dst` (grows dst).
+/// `dst.push_all(src)`: append every element of `src` to `dst` (grows dst).
 export INTRINSIC_ARRAY_PUSH_ALL :: "array.push_all"
-/// `src.copy_to(src_start, dst, dst_start, len)` — overlap-safe positional copy.
+/// `src.copy_to(src_start, dst, dst_start, len)`: overlap-safe positional copy.
 export INTRINSIC_ARRAY_COPY :: "array.copy"
-/// `arr.remove_last()` — pop + return the last element as `T | null`.
+/// `arr.remove_last()`: pop + return the last element as `T | null`.
 export INTRINSIC_ARRAY_REMOVE_LAST :: "array.remove_last"
-/// `arr.clear()` — drop every element (length 0, keep buf + capacity).
+/// `arr.clear()`: drop every element (length 0, keep buf + capacity).
 export INTRINSIC_ARRAY_CLEAR :: "array.clear"
 
 // ============================================================================

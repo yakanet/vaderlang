@@ -1,4 +1,4 @@
-/// `@extern` ABI smoke test — wires Vader signatures to real C symbols.
+/// `@extern` ABI smoke test: wires Vader signatures to real C symbols.
 /// Three foreign symbols : `add_i32` from the adjacent `helper.c`, and `strlen`
 /// and `strnlen` from libc (overridden via the decorator string arg). Neither
 /// libc one names its header, so its prototype is synthesised, its `size_t`

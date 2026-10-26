@@ -2,7 +2,7 @@
 //
 // Seeds the entry module from its own folder, then BFS-walks the import graph,
 // resolving each import lazily by path-mapping against the include-paths
-// (`lazy.vader`) — no up-front filesystem scan. Each visited module pays a full
+// (`lazy.vader`): no up-front filesystem scan. Each visited module pays a full
 // `parse_source` once. Load order is the import BFS, so symbol-id assignment is
 // independent of discovery.
 //
@@ -29,12 +29,12 @@ import "vader/support/target"
 import "toolchain/span"
 
 /// Synthetic 1:1 span anchored on a file path. Used by R2001 when the
-/// entry folder lies outside every scoped root — there is no source-
+/// entry folder lies outside every scoped root: there is no source-
 /// level token to point at, so the span just records the file.
 ///
 /// TODO consolidate with `vader/front/lexer/token::empty_span(file)` and
 /// `vader/support/diagnostics::empty_span()` (no-arg, synthetic file). Same
-/// shape, three callers, no shared definition — Vader's overload
+/// shape, three callers, no shared definition: Vader's overload
 /// resolution picks the no-arg variant when both are in scope which
 /// blocks naive reuse. Land a single `empty_span(file: string)` in
 /// `vader/support/diagnostics/` and migrate every caller.
@@ -59,7 +59,7 @@ export LoadedProject :: struct {
     diags:        Diagnostic[]
 }
 
-/// Empty placeholder — used by test fixtures that construct downstream
+/// Empty placeholder: used by test fixtures that construct downstream
 /// project contexts without going through `load_project`.
 export empty_loaded_project :: fn() -> LoadedProject {
     return LoadedProject {
@@ -141,7 +141,7 @@ export load_project_with_overlay :: fn(
     // Resolved ONCE, here, before anything loads: selection has to see the same
     // target in every module, and defaulting at each entry point instead would
     // mean every command remembering to ask. `host_target()` reads the running
-    // platform, which is the right default — a build with no `--target=` is a
+    // platform, which is the right default: a build with no `--target=` is a
     // build for this machine.
     view :: selection ?? host_target()
     bake_target :: baked_target_of(view)
@@ -156,8 +156,8 @@ export load_project_with_overlay :: fn(
 
     // Lazy import-driven resolution (see `lazy.vader`). No eager scan : `index`
     // is a cache filled on demand by `resolve_lazy`, which path-maps each module
-    // name to a folder under `roots.paths`. Load ORDER — and thus symbol-id
-    // assignment — is driven solely by the import BFS in `drain_load_queue`, not
+    // name to a folder under `roots.paths`. Load ORDER (and thus symbol-id
+    // assignment) is driven solely by the import BFS in `drain_load_queue`, not
     // by discovery, so the self-compile is byte-identical regardless of how the
     // include-paths are sourced.
     index: MutableMap<string, DiscoveredModule>: MutableMap<string, DiscoveredModule> {}
@@ -182,7 +182,7 @@ export load_project_with_overlay :: fn(
             bases :: roots.paths
             // Re-resolve the entry through the generic path now that the roots
             // exist. `paths[0]` is the entry's own folder rooted at its declared
-            // name, so this finds the same primary — and then applies the merge
+            // name, so this finds the same primary, and then applies the merge
             // rule, so a generated file can join the ENTRY module without
             // `seed_entry` re-implementing the rule. Falls back to the discovered
             // module if resolution somehow misses, which it cannot: `paths[0]`
@@ -203,7 +203,7 @@ export load_project_with_overlay :: fn(
             // a dependency no source import makes visible. DCE'd when unused.
             //
             // It MUST come after the natural BFS, not be seeded early, so module
-            // load order — and thus symbol-id assignment — stays identical to a
+            // load order (and thus symbol-id assignment) stays identical to a
             // build that never asked for it. Seeding it early strands `build_stmt`
             // in bootstrap.vader.
             string_builder :: resolve_lazy("std/string_builder", bases, index, overlay, loader_diags)
@@ -224,7 +224,7 @@ export load_project_with_overlay :: fn(
             drain_load_queue(extra_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target)
             // The baked target constants (`VADER_OS` / `VADER_ARCH`), appended
             // after the natural BFS for the same order-preserving reason as
-            // `std/string_builder` above. The module is VIRTUAL — generated per
+            // `std/string_builder` above. The module is VIRTUAL: generated per
             // build and served through the overlay, never written to disk, which
             // would be a second source of truth and wrong on the first
             // cross-compile. Skipped without `std/target`, since the constants
@@ -263,7 +263,7 @@ selected_target_of :: fn(view: Selection) -> Target | null = match view {
     is HostBodies -> host_target()
 }
 
-/// Where a load from one entry file looks for modules — what `load_project`
+/// Where a load from one entry file looks for modules: what `load_project`
 /// reads, and what the language server reads to follow an import the same way.
 export SearchRoots :: struct {
     /// The module the entry's folder declares, or null when no file of it
@@ -300,7 +300,7 @@ export search_roots :: fn(
 ) -> SearchRoots {
     plain :: project_include_paths(project_root, manifest_at(project_root), include_path_flags)
     // Generated modules are a property of the PROJECT, not of whoever asked for
-    // the load: derived here, every command sees them — `run`, `test`, `lint`,
+    // the load: derived here, every command sees them, `run`, `test`, `lint`,
     // `dump` and the LSP, not only the `vader build` that produced them.
     generated :: generated_root_for(project_root)
     // The entry's declared name is what roots its namespace, so the include-paths
@@ -447,7 +447,7 @@ drain_load_queue :: fn(
     }
 }
 
-// Detect import cycles once every module is loaded — R2005. The load BFS only
+// Detect import cycles once every module is loaded: R2005. The load BFS only
 // dedupes (a back-edge to an already-loaded module is silently dropped), so the
 // cycle is invisible there ; a separate three-colour DFS over the resolved
 // import graph surfaces it. SPEC §11 forbids cyclic imports.
@@ -502,13 +502,13 @@ ingest_module :: fn(
     if m.files.len() == 0 { return }
     parsed :: parse_module_files(m.files, diags, overlay, node_factory)
     if parsed.len() == 0 { return }
-    // Target selection happens HERE — after parsing, before collection. Every
+    // Target selection happens HERE: after parsing, before collection. Every
     // pass downstream then sees one declaration per name and needs to know
     // nothing about targets: a losing body does not reach them at all.
     dropped_bodies :: discarded_bodies(parsed, target)
     sources :: select_target_bodies(parsed, target, diags)
     // Pre-resolve this module's imports into the cache so `collect_files`'
-    // `diagnose_import_path` finds them instead of firing a spurious R2001 —
+    // `diagnose_import_path` finds them instead of firing a spurious R2001:
     // the failure mode that reverted the earlier lazy attempt.
     preresolve_imports(sources, bases, index, overlay, diags)
     collected :: collect_files(sources, m.folder, m.name, factory, index, bases, diags)
@@ -536,7 +536,7 @@ ingest_module :: fn(
 // current text) before the disk. The LSP populates the overlay from its
 // didChange buffer so unsaved edits are parsed ; an empty overlay falls
 // straight through to `read_file`. Returns "" when neither the overlay nor
-// the disk has the file (the caller skips empty content) — same handling the
+// the disk has the file (the caller skips empty content): same handling the
 // pre-overlay code gave `read_file`'s error case.
 read_with_overlay :: fn(overlay: MutableMap<string, string>, path: string) -> string {
     buffered :: overlay[path]
@@ -548,10 +548,10 @@ read_with_overlay :: fn(overlay: MutableMap<string, string>, path: string) -> st
 
 parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableMap<string, string>, node_factory: NodeIdFactory) -> SourceFile[] {
     // ONE factory threaded across the WHOLE project, so AST node ids are
-    // globally unique — not just module-unique. Per-module factories (each
+    // globally unique, not just module-unique. Per-module factories (each
     // restarting at 1) overlapped, and the side-tables keyed by raw node id
     // (`expr_types` / `expr_kinds` / `node_spans`) then collided whenever one
-    // module's typecheck recorded a FOREIGN node — e.g. a trait's
+    // module's typecheck recorded a FOREIGN node, e.g. a trait's
     // default-method clones, materialised via `node_id_factory` and typed
     // into a consumer module (the `expand_tilde` return-array
     // miscompile). A global factory makes that collision impossible (mirrors
@@ -574,7 +574,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableM
     return out
 }
 
-// Assemble the plain (unrooted) include-paths for a project — GCC `-I` style,
+// Assemble the plain (unrooted) include-paths for a project: GCC `-I` style,
 // first-match-wins: the `--include-paths` flag entries (a driven build injects the
 // compiler's own sources through these), then a BUNDLED library root when the
 // binary is part of one, then the project folder itself, then each `vader.json
@@ -582,7 +582,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableM
 //
 // The bundled root outranks the project to RESERVE the namespaces `lib/` ships,
 // which are ordinary directory names (`std`, and in time `json`, `cli`, …).
-// Project-first, a project declaring `module "cli"` wins over the shipped `cli` —
+// Project-first, a project declaring `module "cli"` wins over the shipped `cli`,
 // and in a DRIVEN build, where the compiler's sources compile in the same unit,
 // `vader/tools/cli` would then be built against the user's module.
 //
@@ -598,14 +598,14 @@ project_include_paths :: fn(
     project_root: string | null, manifest: Manifest, flag_paths: string[],
 ) -> IncludePath[] {
     roots: IncludePath[]: []
-    // A flag is probed exactly like a manifest entry — the marker decides, never
+    // A flag is probed exactly like a manifest entry: the marker decides, never
     // where the path came from. Hard-coding `.Build` here bought nothing (an
     // importer under `vader/` is already exempt from R2034 by NAME) and cost an
     // inconsistency: `--include-paths lib` and `vader.json includePaths: ["lib"]`
     // name the same directory and would answer differently.
     for p in flag_paths { roots.push(plain_root(p, origin_of_root(p))) }
     // One probe, read twice : the bundled root is listed once, and the cwd
-    // fallback below fires only when there is no bundle — a duplicate root is a
+    // fallback below fires only when there is no bundle: a duplicate root is a
     // duplicate answer.
     bundled :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
     if bundled != null {
@@ -614,7 +614,7 @@ project_include_paths :: fn(
     match project_root {
         is string -> {
             roots.push(plain_root(project_root, .Build))
-            // A manifest entry can be either, and the MARKER is what says which —
+            // A manifest entry can be either, and the MARKER is what says which,
             // never the spelling. This repo's own `includePaths: ["lib"]` is how a
             // checkout reaches the shipped namespaces, while a project keeping its
             // own code under a directory of any name is its own. One probe per
@@ -668,7 +668,7 @@ toolchain_folder :: fn(bundled: string | null) -> string {
     return dir_of(bundled)
 }
 
-// An unrooted include-path — no `prefix`, so it serves every module name.
+// An unrooted include-path: no `prefix`, so it serves every module name.
 plain_root :: fn(dir: string, origin: ModuleOrigin) = IncludePath {
     .dir = dir, .prefix = "", .origin = origin,
 }
@@ -677,13 +677,13 @@ plain_root :: fn(dir: string, origin: ModuleOrigin) = IncludePath {
 ///
 /// Gated on the directory EXISTING rather than on a manifest declaration: nothing
 /// has to be configured for a driver's output to be found. That makes it a
-/// filesystem probe, which module resolution otherwise avoids (SPEC §11) — but
+/// filesystem probe, which module resolution otherwise avoids (SPEC §11), but
 /// what is probed is where a build ARTEFACT lives, not what a module is called:
 /// the generated files still declare their own `module`, and an absent or empty
 /// directory contributes nothing.
 ///
 /// Anchored on the project folder the caller names, and on the invocation
-/// directory for a file on its own — the same shape as `resolve_sidecar`'s
+/// directory for a file on its own: the same shape as `resolve_sidecar`'s
 /// stdlib fallback. A driven build names its root (the folder holding
 /// `build.vader`), which is where `generate` writes the tree, so the two agree
 /// wherever the build is started from.
@@ -710,7 +710,7 @@ entry_folder_of :: fn(path: string) -> string {
     if exists(path) && is_dir(path) { return path }
     folder :: dir_of(path)
     // A bare filename ("main.vader", no separator) has no parent, and `read_dir`
-    // of "" fails — surfacing as the entry-folder R2001 above, which points at a
+    // of "" fails: surfacing as the entry-folder R2001 above, which points at a
     // missing module declaration rather than at the path. The invocation
     // directory is what the user meant.
     if folder == "" { return "." }
@@ -797,7 +797,7 @@ import "std/testing"
 test_project_include_paths_labels_a_manifest_library_root :: fn() -> void {
     // A manifest entry can be either, and this repo is the case that matters: its
     // `includePaths: ["lib"]` is how a checkout reaches the shipped namespaces, so
-    // that entry must come back `.Toolchain` — the classification the deleted
+    // that entry must come back `.Toolchain`: the classification the deleted
     // path-matching got wrong in both directions.
     paths :: project_include_paths("", Manifest { .include_paths = ["lib"] }, [])
     for p in paths {
@@ -811,7 +811,7 @@ test_project_include_paths_labels_a_manifest_library_root :: fn() -> void {
 
 @test
 test_project_include_paths_calls_a_flag_the_builds_own :: fn() -> void {
-    // A `--include-paths` flag is whatever the caller pointed at — including, in a
+    // A `--include-paths` flag is whatever the caller pointed at, including, in a
     // driven build, the compiler's own sources. Never the toolchain's, so R2034
     // does not fire on the compiler importing itself through that root.
     paths :: project_include_paths(null, Manifest {}, ["some/where"])

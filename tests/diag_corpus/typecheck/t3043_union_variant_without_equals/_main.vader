@@ -1,5 +1,5 @@
 // T3043: a union compares by variant, so every variant but `null` needs a `==` of
-// its own. `Square` has no `Equals`, so `Circle | Square` has no `==` either —
+// its own. `Square` has no `Equals`, so `Circle | Square` has no `==` either:
 // the diagnostic names the variant, which is what needs the impl.
 module "snippet"
 

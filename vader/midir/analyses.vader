@@ -1,6 +1,6 @@
 // vader/midir/analyses: shared CFG analyses + traversals.
 //
-// Pure data — no IO, no diagnostics.
+// Pure data: no IO, no diagnostics.
 //
 // Operand-walking helpers (`for_each_read_local`,
 // `for_each_read_in_terminator`) thread a closure that gets called on
@@ -152,7 +152,7 @@ export for_each_read_in_terminator :: fn(t: Terminator, visit: fn(LocalId) -> vo
 /// Natural-loop bodies, keyed by header block id. A back-edge u→v
 /// exists when v dominates u ; the natural loop's body is
 /// `{v} ∪ all blocks that reach u without going through v`. Returns
-/// one entry per back-edge target. Pure-fn — caller passes the preds
+/// one entry per back-edge target. Pure-fn: caller passes the preds
 /// + idom they already computed.
 export natural_loop_bodies :: fn(
     fn_: CFGFunction, preds: BlockId[][], idom: i32[],
@@ -249,7 +249,7 @@ walk_rpo :: fn(fn_: CFGFunction, b: BlockId, visited: bool[], order: BlockId[]) 
 
 /// Cooper-Harvey-Kennedy iterative dominator computation. Returns
 /// `idom[b]` = immediate dominator of `b` (entry's idom is itself ;
-/// unreachable blocks return -1 — interpreted as "no known idom").
+/// unreachable blocks return -1: interpreted as "no known idom").
 export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
     n :: fn_.blocks.len()
     idom: i32[]: [-1] * n
@@ -367,8 +367,8 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     // Double-buffered fixpoint : recompute each block's live_out / live_in into
     // two reusable SCRATCH sets (cleared each round), then SWAP a scratch with
     // the stored set only when it actually changed. The old set becomes the next
-    // scratch — so the fixpoint allocates zero sets per iteration×block (it minted
-    // a fresh `out` + `in_set` every round before — millions of dead allocations
+    // scratch, so the fixpoint allocates zero sets per iteration×block (it minted
+    // a fresh `out` + `in_set` every round before, millions of dead allocations
     // once a block stabilised). The clear()ed scratch keeps its backing arrays.
     scratch_out := MutableSet<LocalId> {}
     scratch_in  := MutableSet<LocalId> {}
@@ -416,8 +416,8 @@ sets_equal :: fn(a: MutableSet<LocalId>, b: MutableSet<LocalId>) -> bool {
 
 // ---- dst extraction -------------------------------------------------------
 
-/// The locals an instruction writes when there are SEVERAL — a call handing back
-/// a scalarised composite — or null when `dst_of` answers for it.
+/// The locals an instruction writes when there are SEVERAL (a call handing back
+/// a scalarised composite) or null when `dst_of` answers for it.
 ///
 /// Deliberately not a `visit` callback: the definition walks that need this run
 /// over every instruction of every function, and a closure there costs two heap
@@ -431,7 +431,7 @@ export multi_dsts :: fn(ins: Instruction) -> LocalId[] | null {
 }
 
 /// The local an instruction writes to, or `null` for pure side-
-/// effecting ops (FieldSet, ArraySet, …), zero-result calls — and a call
+/// effecting ops (FieldSet, ArraySet, …), zero-result calls, and a call
 /// handing back SEVERAL values, where there is no single answer. Ask
 /// `multi_dsts` first when every written local matters, or `writes_local`
 /// about one.

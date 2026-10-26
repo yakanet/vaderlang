@@ -12,7 +12,7 @@ import "std/collections"
 import "vader/core/symbol"
 import "vader/support/diagnostics"
 
-/// LIFO stack of binding frames — innermost at the end, root at index 0.
+/// LIFO stack of binding frames: innermost at the end, root at index 0.
 export Scope :: struct {
     frames: MutableMap<string, Symbol>[]
 }
@@ -23,7 +23,7 @@ export new_scope :: fn(root: MutableMap<string, Symbol>) -> Scope {
     return Scope { .frames = [root] }
 }
 
-/// Replace the root frame, returning the one it replaces — the inner frames stay.
+/// Replace the root frame, returning the one it replaces: the inner frames stay.
 ///
 /// @param root  the new root frame.
 /// @return      the previous root frame, to put back.
@@ -41,7 +41,7 @@ export push :: fn(self: Scope) -> void {
     self.frames.push(MutableMap<string, Symbol> {})
 }
 
-/// Drop the innermost scope. No-op on an empty stack — the body walker
+/// Drop the innermost scope. No-op on an empty stack: the body walker
 /// over-pops on malformed AST rather than crashing.
 export pop :: fn(self: Scope) -> void {
     self.frames.remove_last()
@@ -72,7 +72,7 @@ export lookup :: fn(self: Scope, name: string) -> Symbol | null {
     return null
 }
 
-/// Number of live frames — frame 0 is the root (module top-level seed),
+/// Number of live frames: frame 0 is the root (module top-level seed),
 /// `frame_count() - 1` is the innermost.
 export frame_count :: fn(self: Scope) -> i32 = i32(self.frames.len())
 

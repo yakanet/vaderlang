@@ -2,16 +2,16 @@
 //
 // Every value the VM holds carries a `StackTag` (`exec.vader`). Some arms test an
 // operand's tag before they read its raw bits (`accepted_tags`). This pass
-// computes, for every pc, the SET of tags each stack cell can hold there — a
+// computes, for every pc, the SET of tags each stack cell can hold there (a
 // forward dataflow over the basic blocks of `verify.vader`'s graph, merged by
-// union until nothing grows — and `prepare` refuses a module in which one of those
+// union until nothing grows) and `prepare` refuses a module in which one of those
 // arms could meet a tag it does not accept (`check_module_tags`). An accepted
 // module therefore never trips those tests.
 //
 // Tags come from the declared types the bytecode carries: a signature's `ValType`s
 // for parameters and results, the `type_id` on heap reads (`struct.get`,
 // `local.field`, `array.get`), the op itself for everything computed. A parameter
-// holds what its type declares — callers push values of that type, and the host
+// holds what its type declares: callers push values of that type, and the host
 // hands an entry nothing else (`build_main_args`). A local starts `.Null`: `exec`
 // zeroes a callee's locals that way. What the bytecode declares `any`, `ref _` or
 // a union keeps every tag its variants allow.
@@ -49,11 +49,11 @@ FunctionTags :: struct {
     /// Operand-stack depth before each pc, `-1` where no path reaches it.
     depth:   i64[]
     /// For each pc, `deepest` sets: the stack cells from the bottom. A slot's tags
-    /// are not kept — every read of a slot lands on the stack.
+    /// are not kept: every read of a slot lands on the stack.
     stack:   u8[]
 }
 
-/// The tag set of the stack cell `back` places below the top, before `pc` —
+/// The tag set of the stack cell `back` places below the top, before `pc`:
 /// `back = 1` is the top.
 ///
 /// @param facts  the function's inferred tags.
@@ -181,7 +181,7 @@ infer_module_tags :: fn(module: bc.BytecodeModule, depths: i64[]) -> FunctionTag
     return out
 }
 
-// The tags of one function. The fixpoint keeps a full state — slots and stack —
+// The tags of one function. The fixpoint keeps a full state (slots and stack)
 // only at the entry of each basic block and walks a block's ops linearly ; a last
 // walk records the stack of every pc.
 infer_function_tags :: fn(ctx: TagContext, f: bc.BcFunction, deepest: i64) -> FunctionTags {
@@ -360,7 +360,7 @@ transfer :: fn(
     return base + e.pushes
 }
 
-// What a call leaves — possibly several values — or `null` for any other op. A
+// What a call leaves (possibly several values) or `null` for any other op. A
 // vtable key with no row is served by the host, which leaves one value.
 call_results :: fn(ctx: TagContext, op: bc.Op) -> bc.ValType[] | null {
     module :: ctx.module

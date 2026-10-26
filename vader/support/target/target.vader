@@ -4,7 +4,7 @@
 // The two axes and their asymmetry live in `std/target`, which holds the
 // vocabulary alone: `Os` selects CODE (it is what `@target` filters on), `Arch`
 // selects nothing and only parameterises values. They sit in the standard
-// library because `current_os()` — the OS a program is RUNNING on — must share
+// library because `current_os()` (the OS a program is RUNNING on) must share
 // their type, and `std/` may not import a layer above it.
 //
 // What lives here is the part only a toolchain needs: the pair, and reading one
@@ -14,7 +14,7 @@
 // This module depends on nothing in the compiler, which is what will make it a
 // `git mv` away from `toolchain/` the day a build driver asks for its target.
 // It is not there yet because the shape of that namespace is still an open
-// question (TODO §`lib/` — "does the namespace publish the AST, or the RESOLVED
+// question (TODO §`lib/`: "does the namespace publish the AST, or the RESOLVED
 // declaration?").
 
 module "vader/support/target"
@@ -22,7 +22,7 @@ module "vader/support/target"
 import "std/string"
 import "std/target"
 
-/// No selection at all — every `@target` body is kept.
+/// No selection at all: every `@target` body is kept.
 ///
 /// The NAVIGATION view, and the only one that can reach a body this machine does
 /// not build: `textDocument/implementation` on a bare declaration must list the
@@ -30,7 +30,7 @@ import "std/target"
 /// typed view exists.
 ///
 /// It must NEVER feed diagnostics. Under it, another platform's code is resolved
-/// and type-checked — which is exactly the property `@target` exists to remove.
+/// and type-checked, which is exactly the property `@target` exists to remove.
 /// A library's Windows bug would squiggle in a Linux editor.
 export AllTargets :: struct {}
 
@@ -52,7 +52,7 @@ export HostBodies :: struct {
 /// time, so one `LoadedProject` cannot serve two views.
 export Selection :: Target | AllTargets | HostBodies
 
-/// A compilation target — the pair a build is parameterised by.
+/// A compilation target: the pair a build is parameterised by.
 export Target :: struct {
     os: Os
     arch: Arch
@@ -60,13 +60,13 @@ export Target :: struct {
 
 Target implements Equals -> self.os == other.os && self.arch == other.arch
 
-/// Render a target as `<os>-<arch>` — the form `--target=` accepts and
+/// Render a target as `<os>-<arch>`: the form `--target=` accepts and
 /// `parse_target` round-trips.
 ///
 /// @param t  the target.
 export display_target :: fn(t: Target) -> string = "${t.os.to_string()}-${t.arch.to_string()}"
 
-/// The target this machine IS — the default a build assumes when `--target=` is
+/// The target this machine IS: the default a build assumes when `--target=` is
 /// not given.
 ///
 /// Reads the running platform rather than the compilation one, which is the only
@@ -84,7 +84,7 @@ export host_target :: fn() -> Target = Target { .os = current_os(), .arch = curr
 export TargetParseError :: struct {
     /// Human-readable reason, lowercase and without a trailing period.
     reason: string
-    /// The fragment at fault — the whole string for a shape error, the OS or
+    /// The fragment at fault: the whole string for a shape error, the OS or
     /// arch fragment for an unknown value. Empty when the input was empty.
     fragment: string
 }
@@ -106,7 +106,7 @@ export parse_target :: fn(s: string) -> Target | TargetParseError {
         return TargetParseError { .reason = "empty target", .fragment = "" }
     }
     parts :: s.split("-")
-    // Guarded before destructuring: an array pattern does NOT check arity —
+    // Guarded before destructuring: an array pattern does NOT check arity,
     // surplus elements are dropped silently and missing ones trap at runtime
     // (SPEC §Destructuring, "Array sources").
     if parts.len() != 2 {
@@ -170,7 +170,7 @@ import "std/testing"
 }
 
 @test test_parse_target_rejects_extra_fragments :: fn() -> void {
-    // Exactly two fragments — a third is a shape error, not a longer arch name.
+    // Exactly two fragments: a third is a shape error, not a longer arch name.
     r :: parse_target("linux-x86_64-gnu")
     assert(r is TargetParseError, "three fragments is an error")
 }
@@ -219,7 +219,7 @@ import "std/testing"
 @test test_the_c_runtime_agrees_with_the_enum :: fn() -> void {
     // `current_os()` reads the C runtime, which returns ORDINALS it hardcodes
     // (`vader_runtime.c::vader_current_os`); `VADER_OS` is baked from the enum
-    // the compiler parsed. Nothing else makes the two agree — reorder `Os` and
+    // the compiler parsed. Nothing else makes the two agree: reorder `Os` and
     // the C keeps returning the old numbers, silently, with `current_os()`
     // naming the wrong platform on every machine.
     //

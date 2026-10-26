@@ -1,4 +1,4 @@
-// T3006: an array has no `Equals`, so it meets no `T: Equals` bound — an erased
+// T3006: an array has no `Equals`, so it meets no `T: Equals` bound, an erased
 // generic body would otherwise compare it through a vtable with no row for it.
 module "snippet"
 

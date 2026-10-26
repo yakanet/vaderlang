@@ -10,8 +10,8 @@
 // Safety : a `TextEdit` replaces a range with `newName` regardless of what the
 // range currently holds, so to never corrupt source we rewrite ONLY sites whose
 // current text equals the old name (the identifier under the cursor). That
-// skips the awkward cases the index can't disambiguate yet — e.g. the `foo` in
-// an aliased import `{ foo as f }`, whose binding span may point at `f` — at the
+// skips the awkward cases the index can't disambiguate yet (e.g. the `foo` in
+// an aliased import `{ foo as f }`, whose binding span may point at `f`) at the
 // cost of leaving them untouched rather than mangling them. The handler itself
 // is read-only ; the editor applies the returned edit on user confirmation.
 
@@ -27,7 +27,7 @@ AST :: import "toolchain/ast"
 
 /// Validate that the cursor sits on a renameable identifier and return its
 /// range (LSP `prepareRename`). Returns `JsonNull` when the cursor isn't on a
-/// resolved reference — the client then refuses the rename.
+/// resolved reference: the client then refuses the rename.
 export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonNull {} }
@@ -220,7 +220,7 @@ test_sites_to_rename_filters_by_text :: fn() -> void {
     foo_a :: mk_site("t.vader", 0, 3, 1)
     foo_b :: mk_site("t.vader", 6, 3, 1)
     bar   :: mk_site("t.vader", 12, 3, 2)
-    // A site claiming symbol 1 but covering `bar` text — must be filtered out.
+    // A site claiming symbol 1 but covering `bar` text: must be filtered out.
     decoy :: mk_site("t.vader", 12, 3, 1)
     picked :: sites_to_rename(new_state(""), [foo_a, foo_b, bar, decoy], "foo", sources)
     assert_eq(picked.len(), 2)

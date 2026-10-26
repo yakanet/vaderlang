@@ -14,13 +14,13 @@ import "vader/front/typecheck"
 
 
 /// Post-lowering pass : surface the referenced impl members of every
-/// LAZILY-lowered module (every non-entry module — stdlib and user alike),
+/// LAZILY-lowered module (every non-entry module: stdlib and user alike),
 /// appended to their owning module's lowered decls (intrinsic members as
 /// bodyless externs the bytecode emit reserves as imports ; with-body members as
 /// real fns). Gated by `referenced_impl_mangles` so only members an actual call
-/// hit are surfaced — see `surface_stdlib_impl_externs`. The entry module's own
+/// hit are surfaced, see `surface_stdlib_impl_externs`. The entry module's own
 /// members are lowered eagerly by `lower_module` (surfacing them again would
-/// double-emit) — all but its array impls, which only ever materialise per
+/// double-emit): all but its array impls, which only ever materialise per
 /// element (`surface_array_impl_members`).
 surface_referenced_intrinsic_externs :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
@@ -32,7 +32,7 @@ surface_referenced_intrinsic_externs :: fn(
         // Bracket the synth_decls the with-body members surfaced below spawn :
         // `surface_stdlib_impl_externs` / `surface_array_impl_members` call
         // `lower_fn_body`, which lifts any lambda/defer in the body into
-        // `synth_decls` — the same post-module orphan class as the materialise
+        // `synth_decls`: the same post-module orphan class as the materialise
         // sites. Drained into this module after the batch merge.
         synth_start :: project_ctx.synth_decls.len()
         extra: LoweredDecl[]: []
@@ -64,7 +64,7 @@ surface_referenced_intrinsic_externs :: fn(
 /// intrinsic impl (e.g. `string implements Display { to_string }`) resolves
 /// to a `CallImport` the Vader VM dispatches via `host.vader`. Mangle
 /// matches `find_impl_member_for`'s call-site mangle (both via the impl's
-/// owning module). With-body members are skipped — surfacing them as
+/// owning module). With-body members are skipped: surfacing them as
 /// externs would lose their behaviour, and lowering their bodies up front
 /// is the thing the stdlib-skip is meant to avoid.
 surface_stdlib_impl_externs :: fn(
@@ -78,7 +78,7 @@ surface_stdlib_impl_externs :: fn(
     self_type :: impl_self_type(impl_entry)
     impl_trait :: impl_entry.trait_key
     // An impl whose trait was reached by a VIRTUAL dispatch must place EVERY
-    // implementor in the vtable — the boxed receiver tag picks the impl at
+    // implementor in the vtable: the boxed receiver tag picks the impl at
     // runtime, so no single concrete mangle was recorded. This is the only path
     // that surfaces a member NOT individually referenced.
     //
@@ -87,7 +87,7 @@ surface_stdlib_impl_externs :: fn(
     //
     // Non-generic STRUCT receivers : a non-generic stdlib struct implementing a
     // virtually-dispatched trait (`StringChars implements Iterator<char>`, the
-    // sole such impl) reached via a trait-typed `self.source.next()` vcall — the
+    // sole such impl) reached via a trait-typed `self.source.next()` vcall: the
     // generic-impl materialiser never covers it (no type params) and no direct
     // call records its mangle. Gated on `constructed_struct_symbols` : surface
     // only when the struct is actually built (`StringChars` via `chars()`), so
@@ -104,7 +104,7 @@ surface_stdlib_impl_externs :: fn(
         mangled :: impl_member_mangled(impl_entry, member, self_type)
         // Only emit members an actual call referenced (direct call → exact
         // mangle) OR an eligible implementor of a virtually-dispatched trait
-        // (`vtable_gate`, above) — emitting every stdlib impl member
+        // (`vtable_gate`, above): emitting every stdlib impl member
         // unconditionally would intern unused signature types and shift the
         // type table for unrelated snippets.
         if !project_ctx.referenced_impl_mangles.contains(mangled) && !vtable_gate { continue }
@@ -125,7 +125,7 @@ surface_stdlib_impl_externs :: fn(
 }
 
 // Receiver eligible for vtable surfacing of a virtually-dispatched trait.
-// PRIMITIVE : always (the erased-dispatch case — the boxed primitive tag picks
+// PRIMITIVE : always (the erased-dispatch case, the boxed primitive tag picks
 // the impl at runtime). STRUCT : only when the struct is actually constructed
 // (`constructed_struct_symbols`), so an unconstructed stdlib implementor isn't
 // pulled into an unrelated snippet. Other receiver shapes don't reach here.
@@ -152,7 +152,7 @@ vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx) ->
 /// `MonType[] implements Into<Label>`).
 ///
 /// @param impl_decl    the candidate impl ; ignored unless it is on an array.
-/// @param typed        the impl's owning module (std/core) — source of the subst
+/// @param typed        the impl's owning module (std/core): source of the subst
 ///                     symbols and entry types.
 /// @param project_ctx  carries `array_member_uses` (mangle → element and member)
 ///                     and the `materialized_impl_keys` dedupe set.
@@ -165,7 +165,7 @@ surface_array_impl_members :: fn(
     impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return out
     for member in impl_decl.members {
         // A bodyless `@intrinsic` member (`T[] implements ArrayOps`) has no body to
-        // lower — the lowerer emits the dedicated array op at the call site. Skip it
+        // lower: the lowerer emits the dedicated array op at the call site. Skip it
         // here so surfacing doesn't try to lower a null body.
         if member.body == null {
             continue

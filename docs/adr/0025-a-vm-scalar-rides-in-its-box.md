@@ -1,4 +1,4 @@
-# 0025 — A VM scalar rides in its box
+# 0025: A VM scalar rides in its box
 
 ## Status
 
@@ -7,10 +7,10 @@ Accepted (2026-09-29). Amends the heap consequence of 0024.
 ## Context
 
 A VM `Value` is a union; the native backend stores a union as a 16-byte
-`vader_box_t` — a tag and an 8-byte payload. The scalar variants were structs
+`vader_box_t`: a tag and an 8-byte payload. The scalar variants were structs
 (`I32Val :: struct { value: i32 }`), so every integer, float, bool, char or
-string that left a register — into a struct field, an array element, a host
-call's argument or result — was a heap object of its own, and the box only held
+string that left a register: into a struct field, an array element, a host
+call's argument or result: was a heap object of its own, and the box only held
 a pointer to it. At the end of the compiler's self-compilation on the VM, 34.9 M
 `I32Val` objects were live: 837 MB of a 1 471 MB live set.
 
@@ -40,7 +40,7 @@ array buffers grew from 421 to 786 MB.
 ## Consequences
 
 - `Value` is no longer a union of references only, so a `Value[]` is stored
-  `Boxed` — 16-byte slots — instead of `Ref`, 8-byte raw pointers. An element
+  `Boxed` (16-byte slots) instead of `Ref`, 8-byte raw pointers. An element
   that is a struct pays 8 bytes more, and its box is built from the object's
   header when stored.
 - The peak RSS did not move: 2.5 to 3.0 GB across runs of one binary, before and

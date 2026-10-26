@@ -1,4 +1,4 @@
-# 0026 — A scalar entering a union is tagged by midir
+# 0026: A scalar entering a union is tagged by midir
 
 ## Status
 
@@ -16,7 +16,7 @@ bytecode stack, and the class does not name the type: the bytecode has no `u8`
 constant, so `6 : u8`, a conversion `u8(n)` and an enum variant `.Blue` all
 arrive as an `i32.const` or an `i32`-class result. Such a value entering
 `u8 | string` was tagged `i32`, and `is u8` never held natively. The VM's tags
-are coarse — an `I32Val` matches any integer of 32 bits or fewer — so it printed
+are coarse (an `I32Val` matches any integer of 32 bits or fewer) so it printed
 the right answer and nothing noticed.
 
 Two more gaps fed it. The typechecker left a free literal entering a union at
@@ -37,22 +37,22 @@ gone before midir.
   value-position `if` / `match`), the arguments of a direct, indirect and
   virtual call, a struct field, an array element, a cell. It compares the
   value's type with the slot's declared type and, when a scalar enters a union,
-  emits `retag <type>` — the op formerly named `box`. It allocates nothing; the
+  emits `retag <type>`: the op formerly named `box`. It allocates nothing; the
   native backend writes the tag it names, and the VM drops it. `fold_moves`
   keeps such a move, so the producer cannot write the union slot directly.
   A return follows the same rule.
 - Every primitive's `Equals` lowers to its class's comparison op (a `u8` to
   `I32Eq`), in a vtable wrapper as at a direct call. A union value carries its
-  member's exact tag, so a set of `u8 | string` compares through `u8`'s impl —
+  member's exact tag, so a set of `u8 | string` compares through `u8`'s impl,
   which, natively, had no binding: only `i32` and `i64` had an op.
 
 The first version of this fix made each entry an explicit cast in the lowering,
-site by site. Every lowering path that builds its nodes itself bypassed it — calls
+site by site. Every lowering path that builds its nodes itself bypassed it (calls
 through a namespace alias, virtual calls, value-position `if` / `match`,
-`yield` — and each needed its own patch. midir is downstream of all of them.
+`yield`) and each needed its own patch. midir is downstream of all of them.
 
-A second alternative — constants and conversions carrying their exact width in
-the bytecode (`u8.const`) — would have let the class name the type, at the cost
+A second alternative: constants and conversions carrying their exact width in
+the bytecode (`u8.const`): would have let the class name the type, at the cost
 of a bytecode format change across the reader, the VM and every snapshot.
 
 ## Consequences
@@ -64,7 +64,7 @@ of a bytecode format change across the reader, the VM and every snapshot.
   or the `BcType` row, since both have the `Any` value class.
 - A virtual call's slots come from the method's declared parameter types, which
   the lowering records on the call (`param_types`). A synthesised virtual call
-  states none — its parameters are erased — and its arguments keep the class tag.
+  states none (its parameters are erased) and its arguments keep the class tag.
 - A generic instantiated on a union (`id<Byte>(u8(6))`) passes it through an
   erased slot, where the member keeps its class tag: `is u8` still misses there
   natively.

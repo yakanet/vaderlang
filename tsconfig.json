@@ -27,7 +27,7 @@
     "noPropertyAccessFromIndexSignature": false
   },
 
-  // Scope to the surviving Bun harness — the TypeScript compiler under src/ was
+  // Scope to the surviving Bun harness: the TypeScript compiler under src/ was
   // retired (§2.8), so the only first-party TS left is the test runner and the
   // benchmark programs. editors/vscode carries its own tsconfig + dev deps.
   "include": ["tests", "bench"]

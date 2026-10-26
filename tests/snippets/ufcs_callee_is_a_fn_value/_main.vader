@@ -1,5 +1,5 @@
 // A UFCS call passing a fn VALUE along. The dispatch picks the callee, and the
-// pick is kept — re-deriving it from the receiver type answered a different
+// pick is kept: re-deriving it from the receiver type answered a different
 // question and reached `midir/build`'s "argument N names X, which is not a
 // function" panic on a program that is perfectly legal.
 module "snippet"

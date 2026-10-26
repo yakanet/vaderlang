@@ -3,10 +3,10 @@
 // `spawn_async` is the primitive: a non-blocking awaitable over a child
 // process. `spawn_start` launches the child, the awaitable polls
 // it to completion on the cooperative scheduler (`spawn_poll`, re-arming a
-// short timer between polls — the same timer-driven suspension `std/async`'s
+// short timer between polls: the same timer-driven suspension `std/async`'s
 // `sleep` uses), then interns the captured pipes (`spawn_take_stdout/_stderr`).
 // Launching N children and joining them with `std/async::join_all` runs them
-// concurrently — the OS schedules the child processes across cores.
+// concurrently: the OS schedules the child processes across cores.
 //
 // Blocking `spawn` is `block_on(spawn_async(...))`: one mechanism, cross-
 // platform (the child primitives have a POSIX and a Win32 body).
@@ -36,7 +36,7 @@ RUNNING  :: -1
 SIGNALED :: -2
 
 /// Error from `spawn` / `spawn_async` when the child can't be launched or
-/// terminates abnormally (a non-zero exit is NOT an error — it rides in
+/// terminates abnormally (a non-zero exit is NOT an error: it rides in
 /// `ProcessResult.exit`).
 export ProcessError :: struct {
     msg: string
@@ -61,7 +61,7 @@ export ProcessResult :: struct {
 //
 // Draining is POLL-BEFORE-READ on both systems: ask whether bytes are waiting,
 // read only then. The alternative on POSIX is a non-blocking descriptor and on
-// Windows a thread per pipe, and the reason for either is the same deadlock —
+// Windows a thread per pipe, and the reason for either is the same deadlock:
 // a child that fills one pipe while the parent blocks on the other. One
 // question asked before each read removes it without a descriptor flag or a
 // thread.
@@ -92,7 +92,7 @@ children :: fn() -> Child[] = []
 @singleton
 win_handles :: fn() -> u64[] = []
 
-/// The `k`-th handle of child `handle` — 0 process, 1 stdout, 2 stderr.
+/// The `k`-th handle of child `handle`: 0 process, 1 stdout, 2 stderr.
 ///
 /// @param handle  the child handle.
 /// @param k       which of the three.
@@ -124,7 +124,7 @@ child_alloc :: fn() -> i64 {
 child_valid :: fn(handle: i64) -> bool =
     handle >= 0 && handle < children().len() && children()[handle].in_use
 
-/// Number of logical processors online — what a caller sizes a parallel fan-out
+/// Number of logical processors online: what a caller sizes a parallel fan-out
 /// on. At least 1: a platform that cannot tell answers 1.
 export processor_count :: fn() -> i32 {
     n :: platform_processor_count()
@@ -156,10 +156,10 @@ export spawn_poll :: fn(handle: i64) -> i32
 
 /// Terminate a spawned child and reap it, freeing its slot.
 ///
-/// For a caller that has given up — a timeout fired, and without this the child
+/// For a caller that has given up: a timeout fired, and without this the child
 /// keeps running after its parent stopped caring, holding a core and its table
 /// slot. SIGKILL rather than a polite signal: this is the path for code that is
-/// not responding. Idempotent — killing a finished or unknown handle does
+/// not responding. Idempotent: killing a finished or unknown handle does
 /// nothing, since a caller cannot know which it holds.
 ///
 /// @param handle  the handle `spawn_start` returned.
@@ -266,7 +266,7 @@ close_pair :: fn(fds: i32[]) -> void {
 /// stall while the other filled and the child wedged.
 ///
 /// @param child  the child handle.
-/// @param which  1 for stdout, 2 for stderr — the same indices `win_handle` uses.
+/// @param which  1 for stdout, 2 for stderr: the same indices `win_handle` uses.
 /// @param into   the accumulating buffer.
 /// @return       true once the writer is gone and the pipe is drained.
 @target
@@ -289,7 +289,7 @@ drain_pipe :: fn(child: i64, which: i64, into: u8[]) -> bool {
         }
         if n < 0 {
             // An ERROR, not an end. `errno` is out of reach here, and the common
-            // case is `EINTR` — a signal landing mid-read. Reporting EOF would
+            // case is `EINTR`: a signal landing mid-read. Reporting EOF would
             // discard the rest of the child's output; report "no progress" and
             // let the next poll try again.
             return false
@@ -319,7 +319,7 @@ spawn_poll :: fn(handle: i64) -> i32 {
         return RUNNING
     }
     if rc < 0 {
-        // The child is unreachable — `waitpid` answers -1/ECHILD when `SIGCHLD`
+        // The child is unreachable: `waitpid` answers -1/ECHILD when `SIGCHLD`
         // is `SIG_IGN`, and that disposition is INHERITED across `execve`, so a
         // build launched from a harness that ignores it sees every child
         // auto-reaped. Close here or the descriptors leak for good: the slot is
@@ -425,7 +425,7 @@ spawn_start :: fn(argv: string[]) -> i64 {
     err_write :: ptr_at(err_w, 0)
     // The read ends are the parent's. `CreatePipe` made both ends inheritable so
     // the child gets the write end, and `CreateProcess` inherits everything
-    // marked — so without this the child, and every sibling launched after it,
+    // marked, so without this the child, and every sibling launched after it,
     // also receives handles it has no business holding.
     set_handle_information(out_read, HANDLE_FLAG_INHERIT, 0)
     set_handle_information(err_read, HANDLE_FLAG_INHERIT, 0)
@@ -510,7 +510,7 @@ command_line_bytes :: fn(argv: string[]) -> u8[] {
 /// it back.
 ///
 /// The rules are not "wrap in quotes when it has a space". A backslash is
-/// ordinary EXCEPT immediately before a quote, where it escapes — so a run of
+/// ordinary EXCEPT immediately before a quote, where it escapes, so a run of
 /// backslashes that meets a quote (the one we add, or one in the argument) has
 /// to be doubled, and a quote inside the argument has to be escaped on top of
 /// that. Get it wrong and the child sees a different argv: `a"b` plus `c`
@@ -581,7 +581,7 @@ drain_pipe :: fn(child: i64, which: i64, into: u8[]) -> bool {
     got: u32[]: [0]
     for {
         if !peek_named_pipe(h, null, 0, null, avail, null) {
-            // The peek fails once the write end is gone — that is the EOF.
+            // The peek fails once the write end is gone: that is the EOF.
             return true
         }
         if avail[0] == 0 {
@@ -669,7 +669,7 @@ export spawn_take_stdout :: fn(handle: i64) -> string {
     return children()[handle].out.bytes_to_string()
 }
 
-/// Intern the child's captured stderr AND release the child slot — the last
+/// Intern the child's captured stderr AND release the child slot: the last
 /// call for a handle. Take order is stdout then stderr.
 export spawn_take_stderr :: fn(handle: i64) -> string {
     if !child_valid(handle) {
@@ -677,7 +677,7 @@ export spawn_take_stderr :: fn(handle: i64) -> string {
     }
     c :: children()[handle]
     out :: c.err.bytes_to_string()
-    // The LAST call for a handle — releasing here is what frees the slot and
+    // The LAST call for a handle: releasing here is what frees the slot and
     // the captured buffers, and take order is stdout then stderr.
     children()[handle] = Child {}
     return out
@@ -699,7 +699,7 @@ SpawnAsync :: struct {
 SpawnAsync implements Async<ProcessResult | ProcessError> {
     /// Kill the child and free its slot. Overriding this matters: `Async`'s
     /// default `cancel` is a v1 no-op, so a `timeout` over a spawn would
-    /// otherwise unblock the CALLER while the child kept running — spinning a
+    /// otherwise unblock the CALLER while the child kept running: spinning a
     /// core and holding its table slot for the life of the process. A cancelled
     /// spawn has to actually stop.
     cancel :: fn(self) -> void {
@@ -763,7 +763,7 @@ export spawn_finished :: fn(handle: i64, program: string) -> ProcessResult | Pro
     return ProcessResult { .exit = code, .stdout = out, .stderr = err }
 }
 
-/// Run `argv[0]` with `argv[1..]` as an awaitable — launches immediately, then
+/// Run `argv[0]` with `argv[1..]` as an awaitable: launches immediately, then
 /// completes once the child exits, WITHOUT blocking the scheduler. Fan several
 /// out and `await join_all([...])` to run them concurrently (the OS parallelises the
 /// child processes). The WASM targets have no subprocess support (unbound).
@@ -776,7 +776,7 @@ export spawn_async :: fn(argv: string[]) -> Async<ProcessResult | ProcessError> 
     SpawnAsync { .argv = argv }
 
 /// Run `argv[0]` with `argv[1..]`, BLOCK until exit, and return the exit code
-/// plus captured stdout/stderr. A `block_on` over `spawn_async` — prefer
+/// plus captured stdout/stderr. A `block_on` over `spawn_async`: prefer
 /// `spawn_async` when you need concurrency.
 ///
 /// @param argv   the command line ; `argv[0]` is the program. Empty is an error.

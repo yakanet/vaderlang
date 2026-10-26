@@ -2,7 +2,7 @@
 //
 // The growable array `T[]` is a compiler built-in (no struct declaration), but
 // its mutation / query methods live here as a bodyless `@intrinsic T[] implements
-// ArrayOps` — the single source of their names and signatures. This mirrors how
+// ArrayOps`: the single source of their names and signatures. This mirrors how
 // `Buffer`'s byte ops (buffer.vader) and primitive arithmetic (`i32 + i32`) are
 // declared: an `@intrinsic` impl whose members the backend provides directly.
 //
@@ -13,11 +13,11 @@
 // `array.*` intrinsics (the runtime reads the element tag off the buffer).
 //
 // `ArrayOps` lives in `std/core` (the prelude), so array methods resolve with no
-// import — exactly like `arr in coll` (Contains) or `[v] * n` (Mul) in core.vader.
+// import: exactly like `arr in coll` (Contains) or `[v] * n` (Mul) in core.vader.
 
 module "std/core"
 
-/// The built-in methods of `T[]`. Bodyless — provided by the compiler's array
+/// The built-in methods of `T[]`. Bodyless: provided by the compiler's array
 /// ops, not a Vader body. `T` is the element type.
 export ArrayOps :: trait<T> {
     /// Number of live elements.
@@ -37,12 +37,12 @@ export ArrayOps :: trait<T> {
 
 @intrinsic T[] implements<T> ArrayOps<T>
 
-/// `a + b` — a fresh array holding `a`'s elements then `b`'s.
+/// `a + b`: a fresh array holding `a`'s elements then `b`'s.
 ///
 /// Mirrors `string + string`, which concatenates rather than adding: an array is
 /// the same kind of sequence, so `+` reads the same way. Neither operand is
 /// touched; the result is a new allocation, so `a + b` in a loop allocates each
-/// time — build with `push_all` when that matters.
+/// time: build with `push_all` when that matters.
 // Tests for `+` do NOT live in this file, unlike everything else here: using the
 // impl from inside `std/core` itself leaves its callee unmaterialised, and the emitter
 // panics (`unresolved callee 'std_core$$array$Add$add__i32'`). Any other module resolves it

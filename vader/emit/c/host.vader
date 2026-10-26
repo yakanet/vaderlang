@@ -2,9 +2,9 @@
 //
 // Every `call.import N` op resolves to a `vader_host_<mangled>(...)` C function
 // generated here. Two flavours, switched on `BcImport.is_extern` :
-//   - `@intrinsic` stdlib ops (`is_extern = false`) — routed to the
+//   - `@intrinsic` stdlib ops (`is_extern = false`): routed to the
 //     runtime's `vader_*` helpers by mangled name (`import_shim`).
-//   - `@extern` user FFI (`is_extern = true`) — a forwarding shim that
+//   - `@extern` user FFI (`is_extern = true`): a forwarding shim that
 //     marshals `vader_string_t` args to `const char*` and calls the real
 //     foreign symbol (`user_extern_shim`), declared once via an `extern`.
 //
@@ -34,7 +34,7 @@ import "vader/emit/c/ast"
 /// referenced host fns.
 emit_import_shims :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     // Ahead of the shims that dereference them, and of the assertions that check
-    // them — both of which name these types. Only under `--split`, where this
+    // them: both of which name these types. Only under `--split`, where this
     // lands in the per-target imports header; a single file already carries them
     // with the other typedefs.
     if ctx.split {
@@ -118,7 +118,7 @@ emit_foreign_declarations :: fn(
             seen_extern.push(imp.extern_name)
             if imp.c_header != "" {
                 // The header carries the real prototype. Synthesising one beside
-                // it is a CONFLICTING DECLARATION the C compiler refuses — which
+                // it is a CONFLICTING DECLARATION the C compiler refuses, which
                 // is what blocked `WriteFile` against `<windows.h>` and
                 // `clock_gettime` against `<time.h>`.
                 if !(imp.c_header in headers) {
@@ -149,8 +149,8 @@ emit_foreign_declarations :: fn(
         .comment = ["`@c_type` spellings, checked against the C types."],
         .items = c_type_asserts(imports),
     })
-    // Layout assertions for every `@c_struct` a shim marshals. `cc` — which has
-    // the real header — refuses to compile a mirror whose field width differs
+    // Layout assertions for every `@c_struct` a shim marshals. `cc` (which has
+    // the real header) refuses to compile a mirror whose field width differs
     // from what the library declares, in EITHER direction, or whose offset does.
     // So the field-by-field copy cannot truncate and the interpreter's block
     // cannot drift. `cc` IS the consumer: the check is spent entirely at build
@@ -254,8 +254,8 @@ signedness_assert :: fn(
 ///
 /// Never a struct assignment and never a `memcpy`: the two sides are different C
 /// types, and Vader holds a nested mirror BY POINTER where C has it inline. So a
-/// nested field is reached as `v->f_srWindow->f_right` against `p.srWindow.Right`
-/// — one scalar copy per leaf, each of which `cc` type-checks.
+/// nested field is reached as `v->f_srWindow->f_right` against `p.srWindow.Right`:
+/// one scalar copy per leaf, each of which `cc` type-checks.
 ///
 /// @param types   the module type table.
 /// @param fields  the fields at this level.
@@ -263,7 +263,7 @@ signedness_assert :: fn(
 /// @param v_expr  the Vader side so far, a pointer already cast to its struct
 ///                type.
 /// @param into_c  true when C READS (fill `p` first), false when C WRITES.
-/// @param out     accumulator — the statements before or after the call.
+/// @param out     accumulator: the statements before or after the call.
 /// @param depth   guards a malformed self-referential mirror.
 push_member_copies :: fn(
     types: BcType[], fields: BcField[], c_expr: CExpression, v_expr: CExpression,
@@ -282,8 +282,8 @@ push_member_copies :: fn(
             continue
         }
         // Converted, not assigned raw. A member a mirror only needs to RESERVE
-        // SPACE for — `STARTUPINFOA` has eleven before `dwFlags`, four of them
-        // pointers — has no Vader type that is both writable and the right
+        // SPACE for: `STARTUPINFOA` has eleven before `dwFlags`, four of them
+        // pointers: has no Vader type that is both writable and the right
         // shape: `CPointer` has no constructible value, `CPointer | null` is a
         // 16-byte box, and a plain word will not assign to an `LPSTR`. A machine
         // word converts.
@@ -291,7 +291,7 @@ push_member_copies :: fn(
         // This cannot hide a LAYOUT error, and only became safe when it stopped
         // being able to: every leaf now carries both a width and an OFFSET
         // `_Static_assert`. What it still allows is a member declared as a word
-        // where a pointer was meant — which, for a member reserved and never
+        // where a pointer was meant, which, for a member reserved and never
         // read, is the intent.
         target :: if into_c { c_member } else { v_member }
         source :: if into_c { v_member } else { c_member }
@@ -396,7 +396,7 @@ push_mirror_allocation :: fn(
 ///
 /// @param types      the module type table.
 /// @param fields     the fields at this level.
-/// @param c_name     the OUTERMOST C type — every path is rooted there.
+/// @param c_name     the OUTERMOST C type: every path is rooted there.
 /// @param c_prefix   the member path reached so far, `""` at the top.
 /// @param vader_ty   the Vader C type name holding `fields`.
 /// @param base       this level's byte offset inside the INTERPRETER's block.
@@ -428,7 +428,7 @@ push_leaf_asserts :: fn(
         // The OFFSET, which is the interpreter's whole exposure. It builds its
         // block from the declared fields at natural alignment from zero and
         // hands the address to the real callee, so its layout equals C's only
-        // while the mirror stays a contiguous LEADING prefix — skip a member,
+        // while the mirror stays a contiguous LEADING prefix: skip a member,
         // or nest a partial one, and every field after it lands somewhere else.
         // Widths alone do not catch that: they were all correct in the two
         // mirrors this found.
@@ -445,7 +445,7 @@ push_leaf_asserts :: fn(
 /// mirrors.
 ///
 /// The shim declares its OWN C struct and copies field by field, by name, so the
-/// two layouts never have to agree — `cc` lays the C side out itself. What must
+/// two layouts never have to agree: `cc` lays the C side out itself. What must
 /// hold is per FIELD: a width mismatch would truncate or sign-extend in silence
 /// on the way in or out. Naming a field the C type does not have fails the build
 /// here too, which is the other half of the check.
@@ -522,7 +522,7 @@ c_struct_layout_asserts :: fn(types: BcType[], crossings: MirrorCrossings) -> CT
         // its OWN C struct and copies member by member BY NAME, so `cc` resolves
         // both offsets itself and a Vader offset never meets a C one there.
         //
-        // The VM has no such luxury — it lays the block out from these very
+        // The VM has no such luxury: it lays the block out from these very
         // widths and hands its address to the real callee. That is why each leaf
         // is pinned EXACTLY rather than merely fitting, AND why its offset is
         // pinned too: a wider Vader field, or a skipped member, shifts every
@@ -540,7 +540,7 @@ static_assert :: fn(condition: CExpression, message: string) -> CTopLevel = CSta
     .message = CStringLiterals { .literals = [c_string_lit(message)] },
 }
 
-// `((type*) 0)->member` — a member named without an object, for `sizeof` and
+// `((type*) 0)->member`: a member named without an object, for `sizeof` and
 // `__typeof__`.
 null_member :: fn(type: string, member: string) -> CExpression = pointer_member(
     "${type}*",
@@ -548,7 +548,7 @@ null_member :: fn(type: string, member: string) -> CExpression = pointer_member(
     member,
 )
 
-/// `extern <ret> <name>(<params>);` for an `@extern` import — foreign ABI
+/// `extern <ret> <name>(<params>);` for an `@extern` import: foreign ABI
 /// types (`string` → `const char*`), declared once per distinct symbol.
 extern_decl :: fn(imp: BcImport, types: BcType[]) -> CTopLevel {
     parameters: CParameter[]: []
@@ -571,7 +571,7 @@ extern_parameter_type :: fn(imp: BcImport, types: BcType[], j: i64) -> string {
     writes :: param_is_c_out(sig, j)
     if is_abi_array(types, sig.param_types[j]) {
         // One Vader array = ONE C argument, a bare pointer. A length, when
-        // the callee wants one, is an ordinary declared parameter — so the
+        // the callee wants one, is an ordinary declared parameter, so the
         // declaration transcribes the C prototype one-to-one, and a callee
         // wanting a NUL-terminated `LPCWSTR` gets exactly one argument.
         // `@c_out` decides `void*` vs `const void*`, through
@@ -659,7 +659,7 @@ pointer_to :: fn(type: string, writes: bool) -> string = if writes {
     "const ${type}*"
 }
 
-/// True when the slot at `type_index` is `CPointer | null` — the nullable
+/// True when the slot at `type_index` is `CPointer | null`: the nullable
 /// foreign pointer. Inside Vader it stays an ordinary boxed union; the shim
 /// converts it to a bare `void*` at the boundary, the same way it already
 /// converts a `vader_string_t` atom id to a `const char*`.
@@ -700,7 +700,7 @@ is_abi_nullable_pointer :: fn(types: BcType[], type_index: i32) -> bool {
     return false
 }
 
-/// Whether the slot at `type_index` is `string | null` — the shape a C function
+/// Whether the slot at `type_index` is `string | null`: the shape a C function
 /// returning a `char*` uses to say "absent" rather than "empty".
 ///
 /// @param types       the module's BcType table.
@@ -732,7 +732,7 @@ is_abi_nullable_string :: fn(types: BcType[], type_index: i32) -> bool {
     return has_null && has_str
 }
 
-/// True when the import slot at `type_index` is a primitive-element array —
+/// True when the import slot at `type_index` is a primitive-element array:
 /// the shape `validate_extern` admits, and which crosses as ONE bare pointer.
 ///
 /// A length, when the callee wants one, is a parameter of its own.
@@ -752,25 +752,25 @@ is_abi_array :: fn(types: BcType[], type_index: i32) -> bool {
 
 // ---- per-import shim ------------------------------------------------------
 
-/// C name of the shim that serves `imp` — `vader_host_` plus its mangled name,
+/// C name of the shim that serves `imp`: `vader_host_` plus its mangled name,
 /// sanitised.
 ///
 /// Named rather than indexed, for two reasons. It says WHICH host the emitted C
 /// reaches, where `vader_import_5` said nothing; and it is stable, where an
-/// index renumbers every later shim the moment an import is added — which
+/// index renumbers every later shim the moment an import is added, which
 /// rewrote unrelated lines in every snapshot.
 ///
 /// `host` rather than `import` or `intrinsic`: these shims serve BOTH the
 /// stdlib's `@intrinsic` hosts and a user's `@extern` symbols, so neither of the
-/// narrower words covers them — and `import` already means a module import in
+/// narrower words covers them, and `import` already means a module import in
 /// Vader source. It is the word the SPEC, the VM and the diagnostics use.
 ///
 /// @param imp  the import to name.
 /// @return     a valid C identifier, unique per import.
 export host_shim_name :: fn(imp: BcImport) -> string = "vader_host_${sanitise(imp.mangled_name)}"
 
-/// The `vader_host_*` definition for one import : its erased signature — each
-/// parameter `a<j>` — and the body `shim_body` builds.
+/// The `vader_host_*` definition for one import : its erased signature (each
+/// parameter `a<j>`) and the body `shim_body` builds.
 ///
 /// @param ctx  the emit context.
 /// @param imp  the import the shim serves.
@@ -812,16 +812,16 @@ library_open_shim :: fn(opener: string, name: CExpression) -> CStatement[] = [
 // its `vader_*` runtime helper by its IntrinsicId (classified from the mangled
 // name by `core/bytecode/intrinsic_manifest::intrinsic_id_for`, shared with the VM's
 // `dispatch_import`). Hosts the
-// VM serves but c-emit doesn't — string index_of/last_index_of, the primitive
+// VM serves but c-emit doesn't: string index_of/last_index_of, the primitive
 // Equals/Display (materialised as pure Vader natively), the extra std/math
-// overloads — plus non-intrinsics fall through to the @extern forwarder or to a
+// overloads, plus non-intrinsics fall through to the @extern forwarder or to a
 // loud trap (compiler/runtime version skew). Exhaustive, so a new IntrinsicId
 // trips T3013 here.
 shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     a0 :: argument(0)
     a1 :: argument(1)
     match intrinsic_id_for(imp.mangled_name) {
-    // std/io — implemented by the runtime.
+    // std/io: implemented by the runtime.
     .AbortPanic -> { return [perform("vader_panic", [a0])] }
 
     // std/string internals + std/core string intrinsics.
@@ -842,13 +842,13 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     // `string implements Hash` reads the hash cached on the atom (O(1)).
     .StringHash -> { return [returning("vader_string_hash", [a0])] }
 
-    // std/runtime — GC introspection.
+    // std/runtime: GC introspection.
     .RuntimeCollect      -> { return [perform("vader_gc_collect", [])] }
     .RuntimeCollections  -> { return [gc_statistic("total_collections")] }
     .RuntimeBytesUsed    -> { return [gc_statistic("bytes_used")] }
     .RuntimeBytesCopied  -> { return [gc_statistic("total_copied")] }
 
-    // std/runtime — cooperative async scheduler.
+    // std/runtime: cooperative async scheduler.
     .SchedNow  -> { return [returning("vader_sched_now", [])] }
     .SchedArm  -> { return [perform("vader_sched_arm", [a0])] }
     .SchedPark -> { return [returning("vader_sched_park", [])] }
@@ -889,12 +889,12 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .TargetCurrentOs -> { return [returning("vader_current_os", [])] }
     .TargetCurrentArch -> { return [returning("vader_current_arch", [])] }
 
-    // Served by the VM only — primitive Equals/Display, surfaced there by erased
-    // virtual dispatch, materialised as pure Vader natively — plus non-intrinsics.
+    // Served by the VM only (primitive Equals/Display, surfaced there by erased
+    // virtual dispatch, materialised as pure Vader natively) plus non-intrinsics.
     // Grouped so a new IntrinsicId variant trips T3013.
     .StringEquals | .PrimIntEquals | .PrimDisplayToString | .NotIntrinsic -> {}
     }
-    // User `@extern` — forward to the real C symbol ; everything else is a
+    // User `@extern`: forward to the real C symbol ; everything else is a
     // host fn the c-emit doesn't recognise (version skew) → trap loudly.
     if imp.is_extern {
         return user_extern_shim(imp, types)
@@ -905,7 +905,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
 // `a<j>`, the shim's `j`-th parameter.
 argument :: fn(j: i64) -> CExpression = verbatim("a${j}")
 
-// `vader_trap("message");` — a runtime abort naming what went wrong.
+// `vader_trap("message");`: a runtime abort naming what went wrong.
 trap :: fn(message: string) -> CStatement = perform("vader_trap", [verbatim(c_string_lit(message))])
 
 // `return (int32_t) vader_gc_get_stats().<field>;`.
@@ -926,7 +926,7 @@ integer_as_address :: fn(value: CExpression) -> CExpression = cast("void*", cast
 /// `string` arg (a `vader_string_t` atom id) to a NUL-terminated
 /// `const char*` via `vader_string_to_cstr` : owner atoms hand out their
 /// bytes with no copy, slice atoms get a heap dup. Every marshalled arg
-/// is paired with `vader_cstr_free_for(atom, cstr)` — the O(1) form that
+/// is paired with `vader_cstr_free_for(atom, cstr)`: the O(1) form that
 /// discriminates owner vs dup from the atom id (the id-less
 /// `vader_cstr_free` has to scan the atom table, hot at one call per
 /// string arg per FFI call). A `string` result is INTERNED before the frees,
@@ -944,7 +944,7 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
         if is_abi_array(types, sig.param_types[j]) {
             // Lent for the duration of the call. A callback makes that call a
             // safepoint, so `vader_array_bytes` tenures the buffer out of the
-            // moving generation first — it owns that and the three lend cases
+            // moving generation first: it owns that and the three lend cases
             // (GC forward, borrowed view, materialised buf); contract in `vader.h`.
             slice :: call("vader_array_bytes", [cast("vader_array_t*", a)])
             before.push(declaration("vader_slice_t", "s${j}", slice))
@@ -969,14 +969,14 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
             spilled :: verbatim("p${j}")
             object :: CParenthesized { .inner = cast("${vader_ty}*", a) }
             // ZERO-INITIALISED. A mirror may be a PREFIX, and where C READS the
-            // members it does not name are still passed to the callee — from the
+            // members it does not name are still passed to the callee: from the
             // stack, uninitialised, if this is left bare. Zero is not necessarily
             // the RIGHT value for an unnamed member, but it is a defined one, and
             // a wrong answer beats undefined behaviour.
             before.push(declaration(mirror, "p${j}", initializer_list([number(0)])))
             // Filled BEFORE the call either way. `@c_out` says C writes; it does not
             // say the value is meaningless on entry, and a C parameter is often
-            // IN-OUT — `poll` reads `fd` and `events` to decide what to watch and
+            // IN-OUT: `poll` reads `fd` and `events` to decide what to watch and
             // writes `revents`. Filling a pure-out parameter costs one copy the
             // callee overwrites; NOT filling an in-out one hands C a zeroed struct.
             push_member_copies(types, fields, spilled, object, true, before, 0)
@@ -994,12 +994,12 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
             call_args.push(address_of(spilled))
         } else if param_is_by_address(sig, j) {
             // Spill to a stack temporary and hand over its address. The
-            // temporary lives for the call and no longer — which is the whole
+            // temporary lives for the call and no longer, which is the whole
             // contract, and why no pointer type appears in Vader.
             before.push(declaration(spilled_c_type(imp, j), "p${j}", a))
             // `(void*)` and not a bare `&p`: with `@c_header` the real prototype
             // is visible, and a Vader `u32` is `uint32_t` while Win32 spells the
-            // same 32 bits `unsigned long` — distinct pointer types to C, which
+            // same 32 bits `unsigned long`: distinct pointer types to C, which
             // rejects the mismatch. `void*` converts to either.
             call_args.push(cast("void*", address_of(verbatim("p${j}"))))
         } else if is_abi_nullable_pointer(types, sig.param_types[j]) {
@@ -1022,7 +1022,7 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
             call_args.push(renamed_argument(imp, j, a))
         }
     }
-    // C never receives a mirror's Vader address — it gets `&p{j}`, the shim's own
+    // C never receives a mirror's Vader address: it gets `&p{j}`, the shim's own
     // temporary. What can move is the object `a{j}` addresses, which the shim
     // writes back through after the call. Rooting it lets the collector rewrite
     // it, and carries any nested child with it: the parent's own ref slot is
@@ -1039,7 +1039,7 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     }
     after.push_all(write_backs)
 
-    // The call's result is captured, the write-backs run, then the frees — and a
+    // The call's result is captured, the write-backs run, then the frees, and a
     // string result is interned BEFORE the frees: a returned `char*` may point
     // INTO an argument (`strstr` returns a suffix of its haystack), and
     // `vader_cstr_free_for` frees the dup a SLICE atom was marshalled through.
@@ -1124,14 +1124,14 @@ forwarded_result :: fn(
     }
     if bc_single_result(sig) == .String {
         // A C string comes back BORROWED: interned into the atom table, never
-        // freed. Not a stopgap — it is the CORRECT semantics for a pointer the
+        // freed. Not a stopgap: it is the CORRECT semantics for a pointer the
         // library owns (`getenv`, `strerror`, a struct member), which is what
         // every such callee in this tree returns, and its worst case elsewhere
         // is a leak on the C side rather than a corruption.
         //
         // A callee that hands over memory is bound to return `CPointer` and
-        // freed explicitly through its own deallocator — `curl_free`,
-        // `sqlite3_free` — because ownership is not one bit but a function name.
+        // freed explicitly through its own deallocator (`curl_free`,
+        // `sqlite3_free`) because ownership is not one bit but a function name.
         // An `@owned` marker was designed and dropped for that reason; it would
         // also have been the only claim on this boundary that `cc` could not
         // check.
@@ -1164,14 +1164,14 @@ forwarded_result :: fn(
     }
 }
 
-// `pointer == NULL ? vader_box_null() : boxed` — a nullable result as a box.
+// `pointer == NULL ? vader_box_null() : boxed`: a nullable result as a box.
 null_or :: fn(pointer: CExpression, boxed: CExpression) -> CExpression = CConditional {
     .condition = binary(.Equal, pointer, NULL_POINTER),
     .then_value = call("vader_box_null", []),
     .else_value = boxed,
 }
 
-// `vader_atom_intern(text, strlen(text))` — a C string as a Vader string.
+// `vader_atom_intern(text, strlen(text))`: a C string as a Vader string.
 interned :: fn(text: CExpression) -> CExpression =
     call("vader_atom_intern", [text, call("strlen", [text])])
 
@@ -1226,7 +1226,7 @@ bc_struct_fields :: fn(types: BcType[], type_index: i32) -> BcField[] {
 /// @return   the C member name.
 c_field_name :: fn(f: BcField) -> string = f.name
 
-/// Foreign C-ABI type for an `@extern` slot — identical to
+/// Foreign C-ABI type for an `@extern` slot: identical to
 /// `c_type_for_val_bare` except `string`, which the foreign side consumes
 /// as `const char*` (the shim marshals between the two).
 extern_c_type :: fn(v: ValType) -> string {

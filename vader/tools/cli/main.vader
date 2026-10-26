@@ -17,7 +17,7 @@ import "toolchain/ast"
 import "vader/pipeline"
 
 // Every invocation is `vader <action> <options>`: the action comes first and
-// owns the whole tail. There is no global option zone ahead of it — the old
+// owns the whole tail. There is no global option zone ahead of it: the old
 // `parse_global_opts` pass scanned all of argv and pulled its three flags out
 // from anywhere, which is how `vader run prog --allow-env` used to consume the
 // flag instead of forwarding it to the program.
@@ -85,7 +85,7 @@ parse_action :: fn(name: string, args: string[]) -> ParsedArgs | i32 {
     return parsed
 }
 
-// The action's own argument — `positionals[0]`, or `""` when it has none.
+// The action's own argument: `positionals[0]`, or `""` when it has none.
 // Anything past it belongs to the action's `TailKind`, never to the CLI.
 action_file :: fn(parsed: ParsedArgs) -> Path =
     if parsed.positionals.len() == 0 { empty_path() } else { Path(parsed.positionals[0]) }
@@ -100,12 +100,12 @@ action_input :: fn(parsed: ParsedArgs) -> Path {
     return given
 }
 
-// Reject a positional the action does not take — the SECOND one for an action
+// Reject a positional the action does not take: the SECOND one for an action
 // that takes an argument, the FIRST for one that takes none.
 //
 // Both halves come from the action's own usage line via `positional_noun`: an
 // empty noun means "takes none", and a present one is what the message calls it.
-// That is why there is one guard rather than one per noun — `build` says "file",
+// That is why there is one guard rather than one per noun: `build` says "file",
 // `new` says "name", and `doctor` names no argument because it accepts none.
 //
 // The message names the likely cause: a flag written after the argument, which
@@ -137,19 +137,19 @@ reject_extra_positionals :: fn(name: string, parsed: ParsedArgs) -> bool {
 
 
 // `forwarded_argv` is gone: the parser already hands back exactly the argv the
-// program wants — `positionals[0]` is the path (which the program skips as its
+// program wants: `positionals[0]` is the path (which the program skips as its
 // own argv[0]) and the rest is its tail, untouched.
 
 // Compile a `.vader` source through load → typecheck → comptime → lower →
 // CFG → bytecode (the same path as `dump --stage=bytecode`), then execute
 // the result on the VM. The emitted `BytecodeModule` round-trips through
-// `dump_bytecode` / `parse_virt_bc` — the in-memory equivalent of
-// `vader dump --stage=bytecode … | vader run` — preserving the exact `.virt`
+// `dump_bytecode` / `parse_virt_bc`: the in-memory equivalent of
+// `vader dump --stage=bytecode … | vader run`: preserving the exact `.virt`
 // behaviour the VM corpus is validated against.
 
 // Resolve the VM entry index for `vader run <file>`. The default entry is the
 // first `is_main` fn (`main_function_index`), which is blind to which file was
-// named — so with two sibling programs `a.vader` / `b.vader` in one folder,
+// named, so with two sibling programs `a.vader` / `b.vader` in one folder,
 // `vader run b.vader` would silently run `a.vader`'s `main`. Prefer the `main`
 // DECLARED in the named file instead. Match by file basename : sibling files of
 // a folder-module can't share a basename, so it's unambiguous and sidesteps
@@ -173,7 +173,7 @@ entry_index_for_file :: fn(
 
 // Mangled name of the `main` declared in the named entry file, or "" when the
 // entry module declares no `main` whose source-file basename matches `file`.
-// Reads the lowered fn's origin AST `FnDecl` for its span's file — the same
+// Reads the lowered fn's origin AST `FnDecl` for its span's file: the same
 // `LoweredFnDecl` / `origin.decl is FnDecl` shape `find_tests` walks.
 named_file_main_mangled :: fn(lowered: LoweredProject, file: Path) -> string {
     md :: lowered.modules[lowered.entry] ?? return ""

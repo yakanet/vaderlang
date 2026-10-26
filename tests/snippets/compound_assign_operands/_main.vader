@@ -3,7 +3,7 @@
 // `rhs`, then the write lands where the read came from. Every operand logs its
 // evaluation, so an index or a receiver evaluated twice shows in the output.
 //
-// The place itself is read twice — a name, a field or an array element does no
+// The place itself is read twice: a name, a field or an array element does no
 // work ; an element an `Index` impl returns is a call, so that receiver is bound
 // whole. A hand-written `a[i()] = a[i()] + 1` keeps its two evaluations.
 module "snippet"

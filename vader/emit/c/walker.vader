@@ -22,7 +22,7 @@ import "vader/support/fixpoint"
 // import to one line and tags every op site as `Bc.<Op>` at the match.
 Bc :: import "vader/core/bytecode"
 
-/// Per-fn body emit — one C function definition per `BcFunction`, printed as
+/// Per-fn body emit: one C function definition per `BcFunction`, printed as
 /// soon as it is built. Delegates to `function_definition`, which
 /// walks the op stream against a `FnState` ; `emit_op` is the exhaustive
 /// per-op dispatch with a real arm for every `Op` variant.
@@ -71,7 +71,7 @@ direct_callees :: fn(fn_decl: BcFunction) -> i32[] {
 /// escape-proven `stack` flag). Such a storage is hoisted into the prologue and
 /// its address goes into `gc_stack_objs[]` so the collector traces its FIELDS;
 /// left unrooted, the heap refs it captured go stale across a safepoint. Kept
-/// separate from `op_may_collect` — a stack `struct.new` does NOT allocate, and
+/// separate from `op_may_collect`: a stack `struct.new` does NOT allocate, and
 /// folding it in would wrongly mark its callers as collectors too.
 fn_builds_stack_object :: fn(fn_decl: BcFunction) -> bool =
     fn_decl.body.any_match((op) -> op is Bc.StructNew && op.stack)
@@ -87,7 +87,7 @@ fn_has_direct_alloc :: fn(fn_decl: BcFunction, import_may_collect: bool[]) -> bo
 imports_may_collect :: fn(imports: BcImport[]) -> bool[] =
     imports.map((imp) -> intrinsic_may_collect(intrinsic_id_for(imp.mangled_name))).collect()
 
-// Drop the header-cache entries this op invalidates — see
+// Drop the header-cache entries this op invalidates, see
 // `FnState.bound_arrays`. Called before every op is emitted.
 invalidate_header_cache :: fn(s: FnState, op: Bc.Op) -> void {
     if op is Bc.LocalSet {
@@ -130,17 +130,17 @@ invalidate_header_cache :: fn(s: FnState, op: Bc.Op) -> void {
 }
 
 // Structured control-flow ops that OPEN a nested scope (push a C block) rather
-// than closing one : only these keep a cached header dominating — and in C
-// scope — for the code they admit.
+// than closing one : only these keep a cached header dominating (and in C
+// scope) for the code they admit.
 is_scope_opening :: fn(op: Bc.Op) -> bool = op is Bc.Block | Bc.Loop | Bc.If
 
 // True when the op provably cannot trigger a GC (which moves headers) or end the
-// straight-line region the cached `_slotarr` C temps are scoped to — so the
+// straight-line region the cached `_slotarr` C temps are scoped to, so the
 // header cache survives it. DEFAULT-DENY : anything NOT listed clears the cache.
 // A missing pure op only costs CSE coverage (under-optimised) ; trusting an
 // allow-list of *dangerous* ops would turn a missing alloc/call op (e.g. the
 // GC-moving `array.slice`) into a stale-pointer use-after-free. New pure value ops
-// just get added here. `LocalSet` / `LocalTee` never reach this — they invalidate
+// just get added here. `LocalSet` / `LocalTee` never reach this: they invalidate
 // precisely upstream. Slot stores stay safe : every access re-reads `->buf`.
 is_cache_safe :: fn(op: Bc.Op) -> bool {
     if op is Bc.LocalGet | Bc.LocalField | Bc.StructGet | Bc.UnionFieldGet                                                     { return true }
@@ -170,7 +170,7 @@ is_cache_safe :: fn(op: Bc.Op) -> bool {
     return false
 }
 
-// Drop cache entries whose array expression reads local `l<slot>` — it was
+// Drop cache entries whose array expression reads local `l<slot>`: it was
 // just reassigned, so any `_slotarr` bound from its old value is stale.
 drop_bound_for_local :: fn(s: FnState, slot: i32) -> void {
     kept: BoundArray[]: []
@@ -188,7 +188,7 @@ drop_bound_for_local :: fn(s: FnState, slot: i32) -> void {
 // stale pointer (the `array.slice` CR-b bug). This is an EXHAUSTIVE `match` over
 // the closed `Bc.Op` union precisely so a new op can't be silently omitted :
 // T3013 forces every future variant to be classified here. Keep the arms in sync
-// with the runtime — an op belongs in the `true` arm iff its emitted C reaches
+// with the runtime: an op belongs in the `true` arm iff its emitted C reaches
 // `vader_gc_alloc` (directly or transitively). A host call answers for its host:
 // `import_may_collect` holds `intrinsic_may_collect` per import.
 op_may_collect :: fn(op: Bc.Op, import_may_collect: bool[]) -> bool = match op {
@@ -218,7 +218,7 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
     for i in 0..<function.body.len() {
         op :: function.body[i]
         // A `call` / `call.import` whose non-void result is dropped immediately
-        // was emitted as a bare statement (see `emit_call_result`) — the result
+        // was emitted as a bare statement (see `emit_call_result`): the result
         // was never pushed, so skip the paired `drop` rather than pop a live
         // value. The preceding call already invalidated the header cache.
         if s.drop_call_result && op is Bc.Drop {
@@ -236,7 +236,7 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
             }
         }
         // Look ahead : a value-returning direct call consumed by the next op's
-        // `drop` needs no result temp — flag `emit_call_result` to emit it bare.
+        // `drop` needs no result temp: flag `emit_call_result` to emit it bare.
         //
         // NOT for a call handing back several values: the `drop` then consumes
         // ONE of them and the rest are live, so skipping it would leave them on
@@ -256,7 +256,7 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
     if s.needs_frame && !ends_with_return(s.root) {
         s.root.body.push(FRAME_RESTORE)
     }
-    // Coalesce operand temps with disjoint live ranges into shared slots — the
+    // Coalesce operand temps with disjoint live ranges into shared slots: the
     // walk mints one `tN` per materialisation and never recycles, inflating the
     // frame and GC-root set. The declarations below are one per slot. See
     // `ast/coalesce.vader`.
@@ -309,7 +309,7 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
         // Stack-object roots : the escape-stack-allocated GC structs discovered
         // during the walk (see `emit_struct_new`). Their decls are hoisted here so
         // they are function-scoped, and the array is initialised with their
-        // addresses — the GC scans each object's FIELDS in place so captured heap
+        // addresses: the GC scans each object's FIELDS in place so captured heap
         // refs survive a safepoint. Zero-init'd storage reads as type 0 (a scan
         // no-op) until its `StructNew` writes the real header + fields.
         nstack :: s.stack_storages.len()
@@ -414,7 +414,7 @@ emit_temporary_declarations :: fn(
 /// Declare a group of same-kind C slots (`vals[i]` is the ValType of
 /// `names[i]`), bucketed by ValType in first-appearance order :
 /// `<ctype> nameA, nameB;` per type. Shared by the local + temp decls.
-/// PER_LINE chunking (10 names / line) is deferred — it only
+/// PER_LINE chunking (10 names / line) is deferred: it only
 /// diverges past 10 slots of one type.
 emit_slot_decls :: fn(
     prologue: CStatement[],
@@ -432,15 +432,15 @@ emit_slot_decls :: fn(
             continue
         }
         emitted.push(val)
-        // Rooting. A `.Ref` slot is a raw `void*` — init `NULL`, `&name`
+        // Rooting. A `.Ref` slot is a raw `void*`: init `NULL`, `&name`
         // chains into the raw root list (scanned via scan_raw). An `.Any` slot is
-        // a `vader_box_t` — init `vader_box_null()`, `&name` chains into the box
+        // a `vader_box_t`: init `vader_box_null()`, `&name` chains into the box
         // root list. Both give the GC a valid root before the first write.
         // A fn without a frame (and a primitive) gets a bare decl (write-before-read).
         is_raw_ref :: val == .Ref || val == .Pointer
         rooted :: is_ref_val(val) && framed
         // A `string` slot holds an ATOM ID, not a pointer, so it belongs to
-        // neither root list above — `ptrs` and `raw` are pointer arrays. It gets
+        // neither root list above: `ptrs` and `raw` are pointer arrays. It gets
         // its own list; without it an atom's only root is the conservative stack
         // scan, which finds the id only when `cc` spills it instead of keeping
         // it in a register.
@@ -454,7 +454,7 @@ emit_slot_decls :: fn(
             continue
         }
         if is_raw_ref {
-            // `void*` can't be group-declared — `void* a, b` makes `b` a bare
+            // `void*` can't be group-declared: `void* a, b` makes `b` a bare
             // `void` (the `*` binds only to `a`). Emit one per line.
             for j in 0..<vals.len() {
                 if vals[j] == val {
@@ -485,9 +485,9 @@ emit_slot_decls :: fn(
     }
 }
 
-/// Per-op C emit — the function-body walker's dispatch. Exhaustive over
+/// Per-op C emit: the function-body walker's dispatch. Exhaustive over
 /// every `Op` variant (no `_`), each with a real emit, so adding an
-/// opcode trips T3013 here and forces a conscious decision — mirroring
+/// opcode trips T3013 here and forces a conscious decision: mirroring
 /// `vader/emit/virt/dump.vader::write_op_refs`. The arm order tracks it so the
 /// two stay diffable. The only `todo(...)` calls are malformed-
 /// bytecode guards inside a handler (e.g. `struct.new` on a non-struct
@@ -657,11 +657,11 @@ emit_op :: fn(s: FnState, pc: i32, op: Bc.Op) -> void {
 
 }
 
-/// C source for a constant op — used both for the `return.lit` payload
+/// C source for a constant op: used both for the `return.lit` payload
 /// (`emit_return_lit`) and the const-push path (`push_const`). Exhaustive
 /// over the closed `ConstOp` union.
 ///
-/// @param ctx  emit context — supplies the null primitive tag and the
+/// @param ctx  emit context: supplies the null primitive tag and the
 ///             string-literal atom ids.
 /// @param c    the constant op to render.
 /// @return     a C expression (no trailing `;`).
@@ -679,7 +679,7 @@ const_lit_c :: fn(ctx: EmitCtx, c: Bc.ConstOp) -> CExpression = match c {
 /// value has no `.`/`e`, so the C literal stays a `double`.
 ///
 /// IEEE non-finite values (`inf` / `-inf` / `nan`, e.g. a comptime-folded
-/// `1.0e308 * 100.0`) have no plain C literal — `"${value}"` renders them as
+/// `1.0e308 * 100.0`) have no plain C literal: `"${value}"` renders them as
 /// the bare words `inf` / `nan`, which the C compiler reads as undeclared
 /// identifiers. Emit the equivalent compiler builtins instead : they need no
 /// `<math.h>` and, unlike `(1.0/0.0)`, don't trip a div-by-zero constant-fold
@@ -693,7 +693,7 @@ float_lit :: fn(value: f64) -> string {
     return "${s}.0"
 }
 
-/// Push a constant op as a `StackLit` — `const_val` gives the stack
+/// Push a constant op as a `StackLit`: `const_val` gives the stack
 /// ValType, `const_lit_c` the C literal.
 push_const :: fn(s: FnState, c: Bc.ConstOp) -> void = push_lit(
     s,
@@ -702,7 +702,7 @@ push_const :: fn(s: FnState, c: Bc.ConstOp) -> void = push_lit(
 )
 
 /// Stack ValType produced by a constant op. Exhaustive over `ConstOp`.
-/// `NullConst` boxes to `.Any` on the C stack — a deliberate divergence
+/// `NullConst` boxes to `.Any` on the C stack: a deliberate divergence
 /// from `emit/bytecode::const_val_type`, which wants `.Null` for its
 /// const-propagation slot typing.
 const_val :: fn(c: Bc.ConstOp) -> ValType = match c {
@@ -715,7 +715,7 @@ const_val :: fn(c: Bc.ConstOp) -> ValType = match c {
     is Bc.StringConst -> .String
 }
 
-/// `local.get` — push a snapshot of slot `l.slot` (spelled `lN`). A
+/// `local.get`: push a snapshot of slot `l.slot` (spelled `lN`). A
 /// `void` slot carries nothing on the stack, so it is a no-op.
 emit_local_get :: fn(s: FnState, l: Bc.LocalGet) -> void {
     val :: slot_val_type(s.function, l.slot)
@@ -769,7 +769,7 @@ literal_within :: fn(count: StackVal, mask: i64) -> bool {
 }
 
 /// Push a comparison as a `StackExpr` of class `.Bool`. The operands carry
-/// the op's numeric class (`operand_val`), distinct from the `.Bool` result —
+/// the op's numeric class (`operand_val`), distinct from the `.Bool` result,
 /// so an erased operand (an `any` flowing into `i32.lt` etc.) is unboxed to
 /// the right class before the C compare.
 push_cmp :: fn(s: FnState, op: CBinaryOperator, operand_val: ValType) -> void = push_expr(
@@ -778,8 +778,8 @@ push_cmp :: fn(s: FnState, op: CBinaryOperator, operand_val: ValType) -> void = 
     binary_expression(s, op, operand_val),
 )
 
-/// Pop the two operands, coerce each to `operand_val` (the op's operand class
-/// — identity when already that class, an unbox when an erased `any` reaches
+/// Pop the two operands, coerce each to `operand_val` (the op's operand class:
+/// identity when already that class, an unbox when an erased `any` reaches
 /// the op), and build the infix expression. Equality stays paren-free so an
 /// `if` on it doesn't trip `-Wparentheses-equality` ; every other operator is
 /// parenthesised for precedence safety.
@@ -824,7 +824,7 @@ coerced_as :: fn(s: FnState, value: StackVal, class: ValType) -> CExpression =
     coerce_expr(s.ctx.module.types, expression_of(value), val_of(value), class)
 
 /// Push a unary op result as a `StackExpr`. The operand is coerced to `val`
-/// (unbox an erased `any`) and wrapped in parens — unary binds tighter than
+/// (unbox an erased `any`) and wrapped in parens: unary binds tighter than
 /// the comparisons, so e.g. `~l0 == 0` would otherwise mis-parse.
 push_unop :: fn(s: FnState, op: string, val: ValType) -> void {
     v :: pop(s)
@@ -835,8 +835,8 @@ push_unop :: fn(s: FnState, op: string, val: ValType) -> void {
 /// literal `-9223372036854775808` reaches the emitter as
 /// `i64.const INT64_MIN ; i64.neg`, and spelling that `-(INT64_MIN)`
 /// overflows `int64_t` (UB ; trips `-Woverflow` on gcc). Since
-/// `-INT64_MIN` wraps back to `INT64_MIN` on two's-complement — exactly
-/// the value the source denotes — fold the pair to a bare `INT64_MIN`,
+/// `-INT64_MIN` wraps back to `INT64_MIN` on two's-complement (exactly
+/// the value the source denotes) fold the pair to a bare `INT64_MIN`,
 /// identical to how a plain `i64.const INT64_MIN` is spelled. Any other
 /// operand negates normally.
 push_i64_neg :: fn(s: FnState) -> void {
@@ -849,7 +849,7 @@ push_i64_neg :: fn(s: FnState) -> void {
     }
 }
 
-/// `f64.to_bits` — reinterpret an f64 as its raw IEEE u64 bits. Emits a C99
+/// `f64.to_bits`: reinterpret an f64 as its raw IEEE u64 bits. Emits a C99
 /// compound-literal union (well-defined type-punning in C ; the optimiser folds
 /// it to a bit-move) so there is NO runtime symbol. The u64 result rides in the
 /// `.I64` stack slot (same 64 bits).
@@ -858,21 +858,21 @@ emit_f64_to_bits :: fn(s: FnState) -> void {
     push_expr(s, .I64, around("(int64_t)(((union { double __vd; uint64_t __vu; }){ .__vd = ", operand_as(s, v, .F64), " }).__vu)"))
 }
 
-/// `u64.from_bits` — the inverse : reinterpret a u64 bit pattern (in the `.I64`
+/// `u64.from_bits`, the inverse : reinterpret a u64 bit pattern (in the `.I64`
 /// slot) as an f64. Same compound-literal-union technique, no runtime symbol.
 emit_bits_to_f64 :: fn(s: FnState) -> void {
     v :: pop(s)
     push_expr(s, .F64, around("(((union { uint64_t __vu; double __vd; }){ .__vu = (uint64_t)(", operand_as(s, v, .I64), ") }).__vd)"))
 }
 
-/// `f32.to_bits` — the 32-bit analogue. The u32 result rides in the `.I32`
+/// `f32.to_bits`: the 32-bit analogue. The u32 result rides in the `.I32`
 /// stack slot.
 emit_f32_to_bits :: fn(s: FnState) -> void {
     v :: pop(s)
     push_expr(s, .I32, around("(int32_t)(((union { float __vf; uint32_t __vb; }){ .__vf = ", operand_as(s, v, .F32), " }).__vb)"))
 }
 
-/// `u32.from_bits` — the inverse : reinterpret a u32 bit pattern (in the `.I32`
+/// `u32.from_bits`, the inverse : reinterpret a u32 bit pattern (in the `.I32`
 /// slot) as an f32. Same compound-literal-union technique, no runtime symbol.
 emit_bits_to_f32 :: fn(s: FnState) -> void {
     v :: pop(s)
@@ -880,7 +880,7 @@ emit_bits_to_f32 :: fn(s: FnState) -> void {
 }
 
 /// Emit an eager binary op into a fresh temp : `tN = l <op> r;`. Used for
-/// `div` / `rem` (every width, incl. f64) — materialised unconditionally so a
+/// `div` / `rem` (every width, incl. f64): materialised unconditionally so a
 /// divide-by-zero guard runs whether or not the result is consumed. An integer
 /// `div` / `mod` is routed through a `vader_{div,mod}_<width>` runtime helper
 /// that traps on a zero divisor (and folds `INT_MIN / -1`), aligning native on
@@ -936,7 +936,7 @@ stack_class_of :: fn(kind: ValType) -> ValType {
 }
 
 /// Runtime guard-helper name for an integer `div` / `mod`, or `null` for a
-/// width the backend leaves as a bare operator (floats — IEEE `inf` / `nan`,
+/// width the backend leaves as a bare operator (floats: IEEE `inf` / `nan`,
 /// no guard). `push_eager` only ever passes `.Divide` or `.Remainder` here. The name is
 /// `vader_<div|mod>_<width>` ; the helpers live in `runtime/c/vader.h` and
 /// carry trap messages matching the VM's op labels.
@@ -951,21 +951,21 @@ div_mod_helper :: fn(op: CBinaryOperator, val: ValType) -> string | null = @part
 }
 
 /// Reinterpret the top value into `target_val` (the `Convert` op, whatever its
-/// target width — `char` included). Same type → pass-through ; else a `((to)(from) v)`
+/// target width: `char` included). Same type → pass-through ; else a `((to)(from) v)`
 /// double-cast where the inner cast pins the *source* signedness.
 ///
 /// The bytecode collapses every integer ≤ 32 bits onto the `I32` stack
 /// class, so a `u32` source rides as `.I32` and `val_of(v)` alone would
 /// sign-extend it on a widen to 64 bits. When the op records an unsigned
 /// source (`from_name` starts with `"u"`) widening to `i64`, reinterpret
-/// through `uint32_t` so the bits zero-extend — a `u32` carries a magnitude,
+/// through `uint32_t` so the bits zero-extend: a `u32` carries a magnitude,
 /// not a signed value.
 ///
 /// Kept deliberately narrow to the `i32`-class unsigned source widening to
-/// `i64` OR `f64` — the two cases where an `I32`-class `u32` gets extended past
+/// `i64` OR `f64`: the two cases where an `I32`-class `u32` gets extended past
 /// its 32 bits. `f64` matters too : `f64(x)` on a `u32` ≥ 2^31 otherwise emits
 /// `((double)(int32_t) x)`, reinterpreting the magnitude as a negative int and
-/// landing a negative double (the VM zero-extends, so native diverged — CR-a).
+/// landing a negative double (the VM zero-extends, so native diverged: CR-a).
 /// A BROADER rule (reinterpret *every* unsigned source through its stack-width
 /// unsigned type, incl. the `.I64` class → `uint64_t`) regresses the
 /// bootstrap : it changes how the compiler's own 64-bit literal rendering
@@ -987,10 +987,10 @@ emit_convert :: fn(s: FnState, target_val: ValType, from_name: string) -> void {
         stack_val
     }
     if is_ref_val(stack_val) {
-        // The value is still BOXED (an erased `any`/`ref` slot — e.g. a
+        // The value is still BOXED (an erased `any`/`ref` slot, e.g. a
         // `Distinct | null` field narrowed to its raw member) flowing into a
-        // numeric convert. Unbox it to the target primitive, like `coerce_expr`
-        // — a plain `(int64_t)(vader_box_t)x` cast of a box is invalid C.
+        // numeric convert. Unbox it to the target primitive, like `coerce_expr`:
+        // a plain `(int64_t)(vader_box_t)x` cast of a box is invalid C.
         push_expr(s, target_val, unbox_expr(expression_of(v), target_val))
     } else if from_val == target_val {
         push_expr(s, target_val, expression_of(v))
@@ -1007,7 +1007,7 @@ convert_target_val :: fn(t: Bc.ConvertTarget) -> ValType = match t {
     .Char -> .Char
 }
 
-/// `return` — `return;` for a void result, else pop the value, coerce it
+/// `return`: `return;` for a void result, else pop the value, coerce it
 /// to the result class via `coerce_expr`, and emit `return <value>;`. A
 /// framed fn pops its GC frame first : the value is snapshotted into a
 /// `__vret` temp before the pop, since it may read a frame-pinned local.
@@ -1040,7 +1040,7 @@ emit_return :: fn(s: FnState) -> void {
 // A multi-value return writes each value through its out-param and returns void.
 //
 // The stack holds them in the order the caller receives them, deepest first, so
-// they pop in reverse — the assignments are emitted back to front and the
+// they pop in reverse: the assignments are emitted back to front and the
 // snapshot rule of the single-value path applies to all of them at once: every
 // value is read into a temp BEFORE the GC frame is popped, since any of them may
 // read a frame-pinned local.
@@ -1053,7 +1053,7 @@ emit_multi_return :: fn(s: FnState) -> void {
     }
     stores: CAssign[]: []
     for i in 0..<arity {
-        // Popped from the top, so this is result `arity - 1 - i` — which is also
+        // Popped from the top, so this is result `arity - 1 - i`, which is also
         // the order the assignments go out in.
         idx :: arity - 1 - i
         v :: pop(s)
@@ -1062,7 +1062,7 @@ emit_multi_return :: fn(s: FnState) -> void {
     return_statement(s, CReturn { .stores = stores })
 }
 
-/// `return.lit` — the fused `<T>.const X ; return`. A const can't read a
+/// `return.lit`: the fused `<T>.const X ; return`. A const can't read a
 /// frame-pinned local, so the framed form pops the frame inline (no
 /// `__vret` snapshot needed).
 emit_return_lit :: fn(s: FnState, value: Bc.ConstOp) -> void {
@@ -1077,7 +1077,7 @@ emit_return_lit :: fn(s: FnState, value: Bc.ConstOp) -> void {
     return_statement(s, CReturn { .value = rv })
 }
 
-/// `local.set` / `local.tee` — materialise any stack entry the write
+/// `local.set` / `local.tee`: materialise any stack entry the write
 /// would invalidate, pop the value, emit `lN = <value>;`, and (for
 /// `tee`) re-push the slot. A `void` slot is a no-op. A value whose
 /// ValType differs from the slot's is reconciled by `coerce_expr` (box /
@@ -1116,7 +1116,7 @@ ScopeInfo :: struct {
 }
 
 /// Pair every `block` / `loop` / `if` with its matching `end` in one
-/// forward pass (the Vader bytecode carries no nesting depth on the op —
+/// forward pass (the Vader bytecode carries no nesting depth on the op:
 /// scopes are reconstructed structurally, like `dump.vader`). `else` is
 /// not a scope of its own ; it is handled at emit time. Branch targets
 /// live in `function.jump_table`, resolved against this table by
@@ -1200,7 +1200,7 @@ is_continue_branch :: fn(sc: ScopeInfo, target: i32) -> bool = sc.kind == .Loop 
 
 /// Resolve a `jump_table` target pc to the scope it lands in : the continue
 /// back-edge of a `loop` (`opener + 1`), or the forward exit past ANY scope's
-/// `end` (`end + 1` — break out of a block / loop, or jump past an `if`).
+/// `end` (`end + 1`: break out of a block / loop, or jump past an `if`).
 /// Continue wins when a pc is ambiguously both. Returns `null` for an
 /// unresolved target (malformed bytecode).
 branch_target :: fn(scopes: ScopeInfo[], target: i32) -> ScopeInfo | null {
@@ -1217,7 +1217,7 @@ branch_target :: fn(scopes: ScopeInfo[], target: i32) -> ScopeInfo | null {
     return null
 }
 
-/// The scope OPENED at `pc` — the mirror of `scope_ending_at`, for a caller
+/// The scope OPENED at `pc`: the mirror of `scope_ending_at`, for a caller
 /// that holds an opener and wants the region it covers.
 scope_ending_for_opener :: fn(scopes: ScopeInfo[], opener_pc: i32) -> ScopeInfo | null {
     for i in 0..<scopes.len() {
@@ -1229,7 +1229,7 @@ scope_ending_for_opener :: fn(scopes: ScopeInfo[], opener_pc: i32) -> ScopeInfo 
 }
 
 /// The scope closed by the `end` op at `pc`, or `null` if none (malformed
-/// bytecode — every `end` pairs with an opener in `precompute_scopes`).
+/// bytecode: every `end` pairs with an opener in `precompute_scopes`).
 scope_ending_at :: fn(scopes: ScopeInfo[], pc: i32) -> ScopeInfo | null {
     for i in 0..<scopes.len() {
         if scopes[i].end_pc == pc {
@@ -1261,10 +1261,10 @@ callee_result_arity :: fn(ctx: EmitCtx, op: Bc.Op) -> i64 {
 }
 
 // The operand stack MUST be empty at every scope boundary : the lowerer
-// materialises all control-flow results into locals (`vader/midir/build.vader`
-// — `if_res` / `and_res` / `or_res`, loops are void), so no operand ever
+// materialises all control-flow results into locals (`vader/midir/build.vader`:
+// `if_res` / `and_res` / `or_res`, loops are void), so no operand ever
 // survives a block / loop / if / br. `emit/c/ast/coalesce.vader`'s GC-safety
-// rests on exactly this — a temp live across a scope would break its
+// rests on exactly this: a temp live across a scope would break its
 // straight-line live-range assumption and could free a still-live GC slot.
 // Guard it here so a future change that leaks an operand trips a loud ICE
 // instead of a silent mis-compile.
@@ -1276,7 +1276,7 @@ assert_stack_empty :: fn(s: FnState, where: string) -> void {
     }
 }
 
-/// `block` / `loop` — open a C compound statement. A `loop` that some
+/// `block` / `loop`: open a C compound statement. A `loop` that some
 /// `br` continues to gets a `loop_<pc>:` label before the brace (the
 /// backward-jump target) ; everything else is a bare `{`. `block` close
 /// labels are emitted by `emit_end`.
@@ -1294,14 +1294,14 @@ emit_open_scope :: fn(s: FnState, pc: i32, kind: ScopeKind) -> void {
     open_scope(s, if kind == .Loop && pc in s.continue_targets { "loop_${pc}" } else { "" })
 }
 
-/// `if` — pop the condition and open `if (<cond>) {`.
+/// `if`: pop the condition and open `if (<cond>) {`.
 emit_if_open :: fn(s: FnState) -> void {
     cond :: pop(s)
     assert_stack_empty(s, "if open")
     open_if(s, expression_of(cond))
 }
 
-/// `else` — close the then-arm and open the else-arm ; an arm holding a single
+/// `else`: close the then-arm and open the else-arm ; an arm holding a single
 /// `if` prints as `else if` (`write_if`). Block results are already
 /// materialised into locals by the lowerer (every scope is `void`), so there is
 /// nothing to hoist across the boundary.
@@ -1310,7 +1310,7 @@ emit_else :: fn(s: FnState) -> void {
     open_else(s)
 }
 
-/// `end` — close the scope opened earlier. Any scope (block / loop / if)
+/// `end`: close the scope opened earlier. Any scope (block / loop / if)
 /// that a `br` exits past gets its `end_<opener>: ;` label after the brace ;
 /// untargeted scopes close with a bare `}`.
 emit_end :: fn(s: FnState, pc: i32) -> void {
@@ -1322,7 +1322,7 @@ emit_end :: fn(s: FnState, pc: i32) -> void {
     close_node(s, if sc.opener_pc in s.break_targets { "end_${sc.opener_pc}" } else { "" })
 }
 
-/// `br` / `br_if` — a `goto` to the resolved scope label (`loop_<opener>`
+/// `br` / `br_if`: a `goto` to the resolved scope label (`loop_<opener>`
 /// for a continue back-edge, `end_<opener>` for a break forward-exit).
 /// `br_if` pops its i32 condition and guards the jump. Block results are
 /// local-materialised by the lowerer, so no value is hoisted before the
@@ -1348,7 +1348,7 @@ emit_branch :: fn(s: FnState, pc: i32, conditional: bool) -> void {
 
 // ---- calls ----------------------------------------------------------------
 
-/// `call` — direct call of a Vader function by index. Resolves the callee
+/// `call`: direct call of a Vader function by index. Resolves the callee
 /// in `module.functions`, derives its C name the same way the forward decl
 /// / definition do (`sanitise(name)`, see `signature_for`), and delegates
 /// to the shared `emit_call_to`.
@@ -1357,7 +1357,7 @@ emit_call :: fn(s: FnState, op: Bc.Call) -> void {
     emit_call_to(s, sanitise(callee.name), callee.signature)
 }
 
-/// `call.import` — call a host fn through its generated `vader_host_*`
+/// `call.import`: call a host fn through its generated `vader_host_*`
 /// shim (see `host.vader`). Reuses the shared `emit_call_to` with
 /// the import's signature.
 emit_call_import :: fn(s: FnState, op: Bc.CallImport) -> void {
@@ -1365,7 +1365,7 @@ emit_call_import :: fn(s: FnState, op: Bc.CallImport) -> void {
     emit_call_to(s, host_shim_name(imp), imp.signature)
 }
 
-/// Shared direct-call path — own fns (`emit_call`) and host imports
+/// Shared direct-call path: own fns (`emit_call`) and host imports
 /// (`emit_call_import`) both route through it. Pops `sig`'s params off the
 /// operand stack in reverse, reassembles them in source order, and routes
 /// the result through `emit_call_result`. Each arg is reconciled to its
@@ -1393,7 +1393,7 @@ emit_call_to :: fn(s: FnState, callee_name: string, sig: BcSignature) -> void {
 //
 // The temps are ordinary operand-stack slots, so the ops that follow read them
 // exactly as they would read a single returned value. Nothing here can hold a
-// heap reference — the value ABI admits only composites whose every leaf is a
+// heap reference: the value ABI admits only composites whose every leaf is a
 // non-reference primitive, which is what keeps the caller from having to root
 // the address it takes.
 emit_multi_call :: fn(
@@ -1413,11 +1413,11 @@ emit_multi_call :: fn(
 }
 
 /// Capture a call's result : a `void` call is a bare statement ; otherwise
-/// materialise into a fresh `tN` (calls are eager — they may have side
+/// materialise into a fresh `tN` (calls are eager: they may have side
 /// effects, so the result is forced even when unused) and push it.
 emit_call_result :: fn(s: FnState, call: CExpression, result: ValType) -> void {
-    // A `void` call — or a call whose result the next op drops (`drop_call_result`,
-    // set by the walk driver) — is a bare statement : the side effect runs, no
+    // A `void` call, or a call whose result the next op drops (`drop_call_result`,
+    // set by the walk driver), is a bare statement : the side effect runs, no
     // unread `tN` is minted. The driver skips the paired `drop`.
     if result == .Void || s.drop_call_result {
         evaluate(s, call)
@@ -1438,7 +1438,7 @@ emit_call_result :: fn(s: FnState, call: CExpression, result: ValType) -> void {
 // once per module by `emit_fn_trampolines` below.
 
 /// Pop `count` args off the operand stack (top is the last arg), box each to
-/// the erased `any` ABI, and return them in source order — pop #k lands in
+/// the erased `any` ABI, and return them in source order: pop #k lands in
 /// slot `count-1-k`. Shared by the erased-call sites (`call.indirect` args,
 /// `virtual.call` tail).
 pop_args_boxed :: fn(s: FnState, count: i32) -> CExpression[] {
@@ -1469,7 +1469,7 @@ fn_symbol_name :: fn(fns: BcFunction[], index: i32) -> string {
     return sanitise(fns[index].name)
 }
 
-/// `fn.ref` — push a raw pointer to the fn's static trampoline value. The
+/// `fn.ref`: push a raw pointer to the fn's static trampoline value. The
 /// trampoline (`vader_fn_static_N`) is emitted by `emit_fn_trampolines`.
 emit_fn_ref :: fn(s: FnState, op: Bc.FnRef) -> void {
     push_object(
@@ -1482,13 +1482,13 @@ emit_fn_ref :: fn(s: FnState, op: Bc.FnRef) -> void {
     )
 }
 
-/// `fn.addr` — the function's own symbol, not `&vader_fn_static_N`. See
+/// `fn.addr`: the function's own symbol, not `&vader_fn_static_N`. See
 /// `core/bytecode/op::FnAddr` for why the two differ.
 emit_fn_addr :: fn(s: FnState, op: Bc.FnAddr) -> void {
-    // `.Pointer`, NOT `.Ref` — the difference is a GC root. A `.Ref` temp lands
+    // `.Pointer`, NOT `.Ref`: the difference is a GC root. A `.Ref` temp lands
     // in the frame's `raw[]`, and `vader_gc_scan_raw` reads its pointee's header
     // without checking the pointee is on the heap. A function's address is in
-    // `.text`, so `hdr->forward` would be machine code — never NULL — and the
+    // `.text`, so `hdr->forward` would be machine code (never NULL) and the
     // collector would overwrite the slot. `fn.ref` gets away with `.Ref` because
     // `vader_fn_static_N` carries a real object header whose `forward` IS NULL.
     temporary :: new_temporary(s, .Pointer)
@@ -1509,10 +1509,10 @@ emit_fn_addr :: fn(s: FnState, op: Bc.FnAddr) -> void {
     push_temporary(s, temporary, .Pointer)
 }
 
-/// `make_closure` — pop the captured env (a struct, raw or boxed), heap-allocate
+/// `make_closure`: pop the captured env (a struct, raw or boxed), heap-allocate
 /// a `vader_fn_t` with `code` = the lifted-fn wrapper + `env` = the env ptr and
 /// the closure's fn-type tag in its header, push the raw pointer.
-/// `env_type_id` carries the closure's own BcFn type — the field name says
+/// `env_type_id` carries the closure's own BcFn type: the field name says
 /// `env_type` but the id is the closure's, a misnomer inherited from the
 /// lowered node.
 emit_make_closure :: fn(s: FnState, op: Bc.MakeClosure) -> void {
@@ -1536,17 +1536,17 @@ emit_make_closure :: fn(s: FnState, op: Bc.MakeClosure) -> void {
     push_object(s, verbatim(fn_obj))
 }
 
-/// `call.indirect` — invoke a `vader_fn_t` value through the canonical erased
+/// `call.indirect`: invoke a `vader_fn_t` value through the canonical erased
 /// signature. Every arg is boxed to `vader_box_t` and the `code` pointer cast
 /// to `vader_fn_erased_sig_N_t`, so a concrete-typed closure flows through an
 /// erased call site without a calling-convention mismatch ; the wrapper unboxes
-/// per the underlying fn's concrete sig. The wrapper returns the erased box —
+/// per the underlying fn's concrete sig. The wrapper returns the erased box:
 /// coerce it back to the static return class for direct readers.
 emit_call_indirect :: fn(s: FnState, op: Bc.CallIndirect) -> void {
     types :: s.ctx.module.types
     t :: types[op.type_id]
     if t is BcFn {
-        // `fn_val` is on top — pop it before the args.
+        // `fn_val` is on top: pop it before the args.
         fn_val :: pop(s)
         n :: i32(t.params.len())
         args :: pop_args_boxed(s, n)
@@ -1574,11 +1574,11 @@ emit_call_indirect :: fn(s: FnState, op: Bc.CallIndirect) -> void {
     }
 }
 
-/// `virtual.call` — trait-method dispatch. Pop the receiver (top of stack),
+/// `virtual.call`: trait-method dispatch. Pop the receiver (top of stack),
 /// then the tail args below it (source order), box everything to the erased
 /// ABI, and call the per-key dispatcher (`vader_vt_<key>`, emitted in
 /// `dispatch.vader`) which switches on `recv.tag`. The Vader op carries no
-/// result-type index, so there is no erasure-boundary repack here — a
+/// result-type index, so there is no erasure-boundary repack here: a
 /// following `ref.cast` / `convert` handles any per-tag reshape.
 emit_virtual_call :: fn(s: FnState, op: Bc.VirtualCall) -> void {
     row :: find_vtable_row(s.ctx, op.vtable_key)
@@ -1607,7 +1607,7 @@ emit_virtual_call :: fn(s: FnState, op: Bc.VirtualCall) -> void {
 /// `vader_fn_t` + a wrapper dropping env) and which are lifted into closures
 /// (need a wrapper boxing env). Both expose the canonical erased ABI
 /// (`vader_box_t` per arg + return) so one `code` pointer is castable at any
-/// `call.indirect` site. Gated on the ops actually appearing — a fn-typed
+/// `call.indirect` site. Gated on the ops actually appearing: a fn-typed
 /// field can exist with no fn-value op.
 emit_fn_trampolines :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     usage :: scan_fn_value_usage(ctx.module.functions)
@@ -1629,7 +1629,7 @@ emit_fn_trampolines :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     printer.print_section(CSection { .items = wrappers })
 }
 
-/// Which fns are taken as fn-values — the shared scan behind both the
+/// Which fns are taken as fn-values: the shared scan behind both the
 /// trampoline definitions (`emit_fn_trampolines`) and their split-build
 /// forward decls (`emit_closure_forward_decls`).
 FnValueUsage :: struct {
@@ -1667,7 +1667,7 @@ scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
     return FnValueUsage { .fn_ref_type = fn_ref_type, .is_closure = is_closure, .any = any }
 }
 
-/// Forward decls for the address-taken fn-value closures — split builds only.
+/// Forward decls for the address-taken fn-value closures: split builds only.
 ///
 /// The trampolines (`vader_fn_tramp_N` / `vader_fn_lift_N`) and their static
 /// value (`vader_fn_static_N`) are synthesised OUTSIDE `module.functions`, so
@@ -1748,7 +1748,7 @@ emit_closure_lift :: fn(ctx: EmitCtx, items: CTopLevel[], fn_index: i32) -> void
     items.push(CFunction { .signature = lift_signature(ctx, cname, sig), .body = body })
 }
 
-/// Head of an erased-ABI wrapper — a `fn.ref` trampoline or a `make_closure`
+/// Head of an erased-ABI wrapper: a `fn.ref` trampoline or a `make_closure`
 /// lift : `env`, then `count` boxes. Shared by the definition and its
 /// split-build prototype, which must match.
 ///
@@ -1771,7 +1771,7 @@ trampoline_signature :: fn(ctx: EmitCtx, name: string, signature: BcSignature) -
 lift_signature :: fn(ctx: EmitCtx, name: string, signature: BcSignature) -> CSignature =
     erased_wrapper_signature(ctx, "vader_fn_lift_${name}", signature.params.len() - 1)
 
-/// Unbox `a0..a<n-1>` to the concrete `params` classes — the `fn.ref`
+/// Unbox `a0..a<n-1>` to the concrete `params` classes: the `fn.ref`
 /// trampoline's argument list (params map 1:1 to `a<j>`).
 tramp_unbox_args :: fn(params: ValType[]) -> CExpression[] {
     arguments: CExpression[]: []
@@ -1815,10 +1815,10 @@ forward_boxed :: fn(cname: string, arguments: CExpression[], sig: BcSignature) -
 
 // ---- type ops + defer -----------------------------------------------------
 
-/// `type.const` — box `type_id` into the payload pointer via `(uintptr_t)` so
+/// `type.const`: box `type_id` into the payload pointer via `(uintptr_t)` so
 /// `@size_of` can recover the BcType slot at runtime (decoded by
 /// `emit_size_of_type`). Tagged `null` keeps GC + display off the synthetic
-/// pointer. A pure literal — push as a lit so a direct `size_of.type` reader
+/// pointer. A pure literal: push as a lit so a direct `size_of.type` reader
 /// inlines it.
 emit_type_const :: fn(s: FnState, op: Bc.TypeConst) -> void = push_lit(
     s,
@@ -1826,7 +1826,7 @@ emit_type_const :: fn(s: FnState, op: Bc.TypeConst) -> void = push_lit(
     verbatim("vader_box_obj(${s.ctx.null_tag}u, (void*)(uintptr_t)${op.type_id}u)"),
 )
 
-/// `size_of.type` — decode the `type.const` payload back to a BcType slot and
+/// `size_of.type`: decode the `type.const` payload back to a BcType slot and
 /// read its `slot_size` in `vader_type_info_table` (`emit_type_info_table`).
 emit_size_of_type :: fn(s: FnState) -> void {
     tv :: pop(s)
@@ -1837,7 +1837,7 @@ emit_size_of_type :: fn(s: FnState) -> void {
     )
 }
 
-/// `type_check` — runtime `x is T`. A boxed value compares its tag (a trait
+/// `type_check`: runtime `x is T`. A boxed value compares its tag (a trait
 /// ref expands to a disjunction over every implementing struct's tag, plus the
 /// ref type itself) ; a primitively-typed value resolves at compile time
 /// (`class_matches_type`). Pushed as an expression so a downstream `if` /
@@ -1848,7 +1848,7 @@ emit_type_check :: fn(s: FnState, op: Bc.TypeCheck) -> void {
     if is_ref_val(val) {
         target :: s.ctx.module.types[op.type_id]
         if target is BcUnion {
-            // `x is (A | B)` — a boxed value never carries a union's own tag, so
+            // `x is (A | B)`: a boxed value never carries a union's own tag, so
             // OR the per-variant checks (mirrors the VM's `union_matches`). This
             // makes `is <union>` correct on native, matching the VM.
             parts: CExpression[]: []
@@ -1878,7 +1878,7 @@ one_variant_check :: fn(s: FnState, tag_expr: CExpression, type_id: i32) -> CExp
     // by class and can't tell f32 from f64. Match ANY float-primitive tag here
     // (mirrors the VM's `class_matches` float aliasing) so `is f32` in an
     // `i32 | f32` union matches a value tagged with whichever float row the boxer
-    // reached — even one f64 index when the table also carries f64.
+    // reached: even one f64 index when the table also carries f64.
     if target is BcScalar {
         if is_float_val(target.val) {
             return float_tag_check_expr(s.ctx.module.types, tag_expr)
@@ -1892,7 +1892,7 @@ tag_equals :: fn(tag: CExpression, type_id: i32) -> CExpression =
     binary(.Equal, tag, verbatim("${type_id}u"))
 
 // C boolean expr matching `tag_expr` against EVERY float-primitive tag in the
-// table (f32/f64 are representationally identical — see `one_variant_check`).
+// table (f32/f64 are representationally identical, see `one_variant_check`).
 // `0` (never matches) when the table has no float primitive.
 float_tag_check_expr :: fn(types: BcType[], tag_expr: CExpression) -> CExpression {
     parts: CExpression[]: []
@@ -1911,7 +1911,7 @@ float_tag_check_expr :: fn(types: BcType[], tag_expr: CExpression) -> CExpressio
 }
 
 /// The C boolean expression testing whether `tag_expr` matches the trait
-/// `trait_name` — an OR over the ref type index itself (built-in trait refs
+/// `trait_name`: an OR over the ref type index itself (built-in trait refs
 /// like `Error` carry their own tag) plus every struct or array type implementing
 /// the trait (the module's `impl_table`).
 trait_check_expr :: fn(ctx: EmitCtx, tag_expr: CExpression, trait_name: string, ref_type_index: i32) -> CExpression {
@@ -1924,7 +1924,7 @@ trait_check_expr :: fn(ctx: EmitCtx, tag_expr: CExpression, trait_name: string, 
     return any_of(parts)
 }
 
-/// `defer.push` — register the deferred closure (on top of the stack, built by
+/// `defer.push`: register the deferred closure (on top of the stack, built by
 /// a preceding `make_closure`) on the runtime defer stack.
 emit_defer_push :: fn(s: FnState) -> void {
     closure :: pop(s)
@@ -1933,7 +1933,7 @@ emit_defer_push :: fn(s: FnState) -> void {
     evaluate(s, call("vader_defer_push", [coerced_as(s, closure, .Any)]))
 }
 
-/// `defer.pop_exec` — run + pop the top `count` deferred closures at a scope
+/// `defer.pop_exec`: run + pop the top `count` deferred closures at a scope
 /// exit.
 emit_defer_pop_exec :: fn(s: FnState, op: Bc.DeferPopExec) -> void =
     evaluate(s, call("vader_defer_pop_exec", [verbatim("${op.count}u")]))
@@ -1947,7 +1947,7 @@ emit_defer_pop_exec :: fn(s: FnState, op: Bc.DeferPopExec) -> void =
 // the GC-heap variant (`struct.new`, allocated under the frame prologue)
 // are emitted by `emit_struct_new`.
 
-/// `struct.new` / `struct.new_stack` — allocate, header-init, store each
+/// `struct.new` / `struct.new_stack`: allocate, header-init, store each
 /// field, push the raw object pointer. The escape-proven stack variant
 /// (`op.stack`) uses a C local for storage (no GC) ; the heap variant
 /// allocates via `vader_gc_alloc`. Fields pop right-to-left then store in
@@ -1977,8 +1977,8 @@ emit_struct_new :: fn(s: FnState, op: Bc.StructNew) -> void {
             // leaving captured heap refs stale across a safepoint (the
             // walk_elements closure-env use-after-forward bug). In a framed fn,
             // HOIST the storage decl to the function top (`stack_storage_decls`)
-            // so it is function-scoped — its address goes into `gc_stack_objs[]`
-            // and must not dangle past a nested block — and zero-init it so a
+            // so it is function-scoped: its address goes into `gc_stack_objs[]`
+            // and must not dangle past a nested block, and zero-init it so a
             // scan before the header/fields are written sees type 0 (a no-op).
             // ALWAYS hoisted and rooted, even in a fn that reaches no safepoint
             // (ADR 0003) : the frame decision raises a frame for any fn that has
@@ -2000,8 +2000,8 @@ emit_struct_new :: fn(s: FnState, op: Bc.StructNew) -> void {
     } else {
         // Say what the slot ACTUALLY holds, not just that it is wrong. A
         // `struct.new` whose type index is not a struct means the module's type
-        // table disagrees with its own ops, and the two ways that happens —
-        // an index past the end, or an entry of the wrong shape — need different
+        // table disagrees with its own ops, and the two ways that happens
+        // (an index past the end, or an entry of the wrong shape) need different
         // investigations. This message once cost a day for want of naming which.
         types :: s.ctx.module.types
         found :: if i64(op.type_id) !in 0..<types.len() {
@@ -2013,14 +2013,14 @@ emit_struct_new :: fn(s: FnState, op: Bc.StructNew) -> void {
     }
 }
 
-/// `struct.get` — pop the receiver (a raw `void*`, or a box when erased), push
+/// `struct.get`: pop the receiver (a raw `void*`, or a box when erased), push
 /// field `field_index` as an inlined dereference expression.
 emit_struct_get :: fn(s: FnState, op: Bc.StructGet) -> void {
     obj :: pop(s)
     push_struct_field(s, op.type_id, op.field_index, expression_of(obj), val_of(obj))
 }
 
-/// `local.field` — the fused `local.get N ; struct.get`. Push field
+/// `local.field`: the fused `local.get N ; struct.get`. Push field
 /// `field_index` of the struct in slot `slot`.
 emit_local_field :: fn(s: FnState, op: Bc.LocalField) -> void {
     push_struct_field(
@@ -2056,13 +2056,13 @@ push_struct_field :: fn(
         // Erasure boundary. An erased-generic producer (e.g. a generic
         // `zip` / `indexed`) returns an erased sibling layout (some or all
         // fields boxed), and a concrete producer hands an erased consumer its
-        // concrete layout — a `filter` erased over tuples reads the steps of a
+        // concrete layout: a `filter` erased over tuples reads the steps of a
         // concrete `indexed`. Vader erases the carrying array / result to a
         // bare `ref`, so the layout the value has only resurfaces HERE, at the
         // field read (the `local.field` / `struct.get` op carries the type_id it
         // expects). Dispatch on the runtime tag : a value of the expected type
         // reads its layout directly ; a sibling reads the sibling's field and
-        // box/unboxes it to the expected field's storage. Self-gating — a value
+        // box/unboxes it to the expected field's storage. Self-gating: a value
         // of the expected type never matches a sibling tag. Vader's array is
         // erased to `ref`, so the reshape happens per-read here rather than
         // eagerly over the whole array.
@@ -2071,8 +2071,8 @@ push_struct_field :: fn(
             push_expr(s, fval, concrete)
         } else {
             // One tag test per erased sibling, falling back to the concrete
-            // read (a value tagged as the concrete type — or anything
-            // unexpected — matches no sibling tag, so it lands on `concrete`).
+            // read (a value tagged as the concrete type, or anything
+            // unexpected, matches no sibling tag, so it lands on `concrete`).
             // `recv_tag` is only needed on this rare erased-sibling path.
             recv_tag :: tag_expression(recv, recv_val)
             acc := concrete
@@ -2092,7 +2092,7 @@ push_struct_field :: fn(
 
 /// Find every sibling layout of struct `struct_idx` : same generic group (a
 /// shared `symbol_id` for named generics, or both anonymous `__Tuple_*`), same
-/// arity, and each field identical or erased on one side — an open `ref` in the
+/// arity, and each field identical or erased on one side: an open `ref` in the
 /// sibling, or an open `ref` here where the sibling holds a reference. Covers
 /// the all-`Any` form (`zip` erases every field → `[Any, Any]`), partial erasure
 /// (`indexed` keeps the concrete `i64` index, erases only the element →
@@ -2102,7 +2102,7 @@ find_layout_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
     out: i32[]: []
     et :: types[struct_idx]
     if et is BcStruct {
-        // Anonymous tuples carry no source symbol — they group by the reserved
+        // Anonymous tuples carry no source symbol: they group by the reserved
         // `__Tuple` name marker ; named generics group by a shared `symbol_id`.
         is_tuple :: "__Tuple" in et.name
         for i in 0..<types.len() {
@@ -2124,7 +2124,7 @@ find_layout_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
 // True when `cand` lays out the same fields as `expected` with some of them
 // erased on one side: each field is the same type, or boxed in `cand` (an erased
 // producer), or boxed in `expected` while `cand` holds a reference there (a
-// concrete producer read by an erased consumer — erasure boxes only references).
+// concrete producer read by an erased consumer: erasure boxes only references).
 fields_are_layout_siblings :: fn(types: BcType[], expected: BcStruct, cand: BcStruct) -> bool {
     if cand.fields.len() != expected.fields.len() {
         return false
@@ -2167,7 +2167,7 @@ erased_sibling_field_read :: fn(
         sf_val :: val_type_of_field(types, sf.type_index)
         raw :: field_of(sib_cname, recv, sf.name)
         // Reconcile the sibling field's storage class to the concrete field's via
-        // the canonical `coerce_expr` — it handles every direction incl. the
+        // the canonical `coerce_expr`: it handles every direction incl. the
         // `.Any → .Ref` unbox (`.payload.obj`) where the `push_struct_field`
         // splice requires a raw `void*` rather than the sibling's box.
         return coerce_expr(types, raw, sf_val, target_val)
@@ -2179,7 +2179,7 @@ erased_sibling_field_read :: fn(
 field_of :: fn(c_name: string, pointer: CExpression, field: string) -> CExpression =
     pointer_member("${c_name}*", pointer, field_c_name(field))
 
-/// `struct.set` / `struct.set_stack` — pop the field value then the
+/// `struct.set` / `struct.set_stack`: pop the field value then the
 /// receiver, write the body slot in place, then fire the generational write
 /// barrier when the store writes a reference, so a later minor rescans this
 /// object's slots. A value-type mismatch is reconciled by `coerce_expr`.
@@ -2188,7 +2188,7 @@ field_of :: fn(c_name: string, pointer: CExpression, field: string) -> CExpressi
 /// mutating an old object's field to reference a young object creates an
 /// old→young edge whose card must be marked dirty, else `scan_old_dirty_cards`
 /// skips the object and the young referent goes stale when the next minor
-/// moves it. `struct.set_stack` opts out — the lowerer's escape analysis proved
+/// moves it. `struct.set_stack` opts out: the lowerer's escape analysis proved
 /// the receiver is stack-allocated, so the macro's `in old?` test would always
 /// be false anyway.
 emit_struct_set :: fn(s: FnState, op: Bc.StructSet) -> void {
@@ -2286,7 +2286,7 @@ union_field_place :: fn(
     return UnionFieldPlace { .place = place, .type_index = f.type_index }
 }
 
-/// `ref.cast` — re-tag the top value to `type_id`'s storage class :
+/// `ref.cast`: re-tag the top value to `type_id`'s storage class :
 /// box or unbox across the erasure boundary, else a plain C cast.
 /// Materialised into a fresh temp (the lowerer emits it after `local.field`
 /// to pin a field's type).
@@ -2296,7 +2296,7 @@ emit_ref_cast :: fn(s: FnState, op: Bc.RefCast) -> void {
     // A ref.cast is a representation-preserving reinterpret, so it must honour the
     // erasure boundary: widening a concrete `.Ref` (raw `void*`) into an erased `.Any`
     // slot boxes it (`vader_ref_box`), narrowing `.Any → .Ref` unboxes, same-class
-    // is identity. `coerce_expr` covers all of these — the old `unbox_expr` arm
+    // is identity. `coerce_expr` covers all of these: the old `unbox_expr` arm
     // wrongly treated a `.Ref` source as already-boxed (copying a `void*` into a
     // box slot, or `.payload.obj`-ing a raw pointer).
     push_into_temporary(s, coerced_as(s, v, target_val), target_val)
@@ -2339,7 +2339,7 @@ emit_retag_op :: fn(s: FnState, op: Bc.Retag) -> void {
 
 // ---- memory opcodes (bytes-only Buffer) ----------------------------------
 
-/// `buffer.new` — allocate a fresh zeroed `vader_buffer_t` of the popped byte
+/// `buffer.new`: allocate a fresh zeroed `vader_buffer_t` of the popped byte
 /// size and push the reference. The size operand is a primitive, so there is no
 /// in-flight reference to root across the allocation.
 emit_buffer_new :: fn(s: FnState) -> void {
@@ -2356,7 +2356,7 @@ emit_buffer_new :: fn(s: FnState) -> void {
 /// rooted slot (a collection can move the buffer, so the pointer is never
 /// cached across an allocating op), reads via `helper`, pushes the result with
 /// stack class `result`.
-/// `(vader_buffer_t*) <pointer>` — the buffer pointer behind a popped
+/// `(vader_buffer_t*) <pointer>`: the buffer pointer behind a popped
 /// reference (raw or boxed), shared by the load / store / copy emitters.
 buffer_pointer :: fn(v: StackVal) -> CExpression = cast("vader_buffer_t*", object_pointer_of(v))
 
@@ -2374,7 +2374,7 @@ emit_buffer_load :: fn(s: FnState, helper: string, result: ValType) -> void {
 
 /// Shared body of the typed byte stores. Pops `obj` + `off` + `value` and
 /// writes `value` (cast to the C type `width`) via `helper`. No write
-/// barrier — the byte region holds no references.
+/// barrier: the byte region holds no references.
 emit_buffer_store :: fn(s: FnState, helper: string, width: string) -> void {
     value :: pop(s)
     off :: pop(s)
@@ -2385,7 +2385,7 @@ emit_buffer_store :: fn(s: FnState, helper: string, width: string) -> void {
     )
 }
 
-/// `memory_copy` — pop `dst, dst_off, src, src_off, n` and copy `n` bytes
+/// `memory_copy`: pop `dst, dst_off, src, src_off, n` and copy `n` bytes
 /// (memmove semantics, overlap-safe).
 emit_memory_copy :: fn(s: FnState) -> void {
     n :: pop(s)
@@ -2408,7 +2408,7 @@ emit_memory_copy :: fn(s: FnState) -> void {
     )
 }
 
-/// `buffer_to_string` — pop buffer + `len`, intern the buffer's leading `len`
+/// `buffer_to_string`: pop buffer + `len`, intern the buffer's leading `len`
 /// bytes as a string in a single copy (no read-back). Verbatim-bytes intern,
 /// identical semantics to `bytes_to_string` over a `u8[]` (neither validates
 /// UTF-8). The buffer pointer is re-derived from its rooted slot ;
@@ -2423,7 +2423,7 @@ emit_buffer_to_string :: fn(s: FnState) -> void {
     )
 }
 
-/// `buffer_write_string` — pop buffer + `off` + string, memcpy the string's
+/// `buffer_write_string`: pop buffer + `off` + string, memcpy the string's
 /// bytes into the buffer at `off` (no push). The string operand is coerced to a
 /// `vader_string_t` (unboxed when it arrives as an erased `any`).
 emit_buffer_write_string :: fn(s: FnState) -> void {
@@ -2441,7 +2441,7 @@ emit_buffer_write_string :: fn(s: FnState) -> void {
 
 // ---- array slot access ----------------------------------------------------
 
-// `((vader_array_t*) <pointer>)` — the array header behind a popped
+// `((vader_array_t*) <pointer>)`: the array header behind a popped
 // `T[]` reference. The slot ops receive the ARRAY (the `@intrinsic`s are impl'd
 // on `T[]`, which knows the element type) and deref `->buf` + apply `->offset`
 // internally, so slice views (offset > 0) address the parent's slots correctly.
@@ -2457,7 +2457,7 @@ object_pointer_of :: fn(v: StackVal) = object_pointer(expression_of(v), val_of(v
 /// header ; `.Any` reads the box's `.tag`.
 tag_of :: fn(v: StackVal) = tag_expression(expression_of(v), val_of(v))
 
-/// Object-pointer / header-tag expressions from an `(expression, class)` pair —
+/// Object-pointer / header-tag expressions from an `(expression, class)` pair:
 /// the primitives behind `object_pointer_of` / `tag_of`. A concrete `.Ref` is
 /// already the raw pointer ; an erased `.Any` unwraps it from the box. Used
 /// directly by sites that hold an expression rather than a `StackVal`
@@ -2481,7 +2481,7 @@ typed_slot :: fn(c_type: string, array: string, index: CExpression) -> CExpressi
     .index = index,
 }
 
-// `array->offset + <slot>u` — a constant slot of an array being built.
+// `array->offset + <slot>u`: a constant slot of an array being built.
 fresh_slot :: fn(array: string, slot: i32) -> CExpression =
     binary(.Add, verbatim("${array}->offset"), verbatim("${slot}u"))
 
@@ -2524,7 +2524,7 @@ emit_slot_array_local :: fn(s: FnState, obj: StackVal, idx: StackVal, bounds_saf
     return arr
 }
 
-/// Primitive slot load — pop array + slot index, read the `cty`-typed element
+/// Primitive slot load: pop array + slot index, read the `cty`-typed element
 /// at `arr->buf->slots[arr->offset + i]`, push it with stack class `result`.
 /// Bounds-checked + buffer-guarded (see `emit_slot_array_local`).
 emit_slot_load_prim :: fn(s: FnState, cty: string, result: ValType, bounds_safe: bool) -> void {
@@ -2536,7 +2536,7 @@ emit_slot_load_prim :: fn(s: FnState, cty: string, result: ValType, bounds_safe:
 
 /// Emit one typed (non-boxed) slot store : `((cty*) a->buf->slots)[a->offset + i]
 /// = (cty) <coerced value>`. Shared by the `StoreSlot*` opcode handler
-/// (`emit_slot_store_prim`) and the open-coded array set (`emit_array_set`) — both
+/// (`emit_slot_store_prim`) and the open-coded array set (`emit_array_set`): both
 /// reach the same `(a, idx, value, cty, val)` state after their own pop +
 /// `emit_slot_array_local`. No write barrier (a primitive slot holds no reference).
 /// The value is coerced to `val` first (unboxing an erased `Any` box).
@@ -2551,7 +2551,7 @@ emit_typed_slot_write :: fn(
     assign(s, typed_slot(cty, a, slot_index(a, idx)), cast(cty, coerced_as(s, value, val)))
 }
 
-/// Primitive slot store — pop array + slot index + value ; write the `cty`-typed
+/// Primitive slot store: pop array + slot index + value ; write the `cty`-typed
 /// element. No write barrier (the primitive region holds no references).
 /// Bounds-checked + buffer-guarded (see `emit_slot_array_local`).
 emit_slot_store_prim :: fn(s: FnState, cty: string, val: ValType, bounds_safe: bool) -> void {
@@ -2565,7 +2565,7 @@ emit_slot_store_prim :: fn(s: FnState, cty: string, val: ValType, bounds_safe: b
 /// C type + coerce-target stack class for a typed (non-boxed) array slot store.
 /// The `cty` is the element's native storage type ; `val` is the stack class the
 /// stored value is coerced to before the `(cty)` cast. Returns `null` for the
-/// `Ref` and `Boxed` kinds ONLY — every primitive width (flippable AND sub-word)
+/// `Ref` and `Boxed` kinds ONLY: every primitive width (flippable AND sub-word)
 /// stores raw here, so `typed_array_fill_for(k) == null` is the canonical "is
 /// this array raw-ref or boxed?" test shared by construction (`emit_array_new`) and access
 /// (`emit_array_get`/`emit_array_set`). The flippable widths keep the slot-op
@@ -2577,7 +2577,7 @@ SlotFill :: struct { cty: string, val: ValType }
 /// The typed `vader_array_push_*` helper for a primitive element kind, or `null`
 /// for `Ref` / `Boxed` (which box through the generic append). Kept beside
 /// `typed_array_fill_for` because the two answer the same question about the
-/// same kind — the C storage width — and a mismatch between them writes the
+/// same kind (the C storage width) and a mismatch between them writes the
 /// wrong number of bytes: `push_i32` into a `u8[]` overruns its slot by three.
 push_helper_for :: fn(k: ArrayKind) -> string | null = match k {
     .I32 | .U32 | .Char -> "vader_array_push_i32"
@@ -2609,12 +2609,12 @@ typed_array_fill_for :: fn(k: ArrayKind) -> SlotFill | null = match k {
     .Boxed -> null
 }
 // Ref slots aren't a typed-primitive fill (they hold raw `void*`, not a
-// widened scalar) and aren't a plain box either — the ref/boxed-carrying
+// widened scalar) and aren't a plain box either: the ref/boxed-carrying
 // paths handle them, so `fill == null` covers both `.Ref` and `.Boxed`.
 
 // Array access must runtime-dispatch on `buf->element_kind` (raw-ref vs
 // boxed slot) for any element whose backing buf could be EITHER kind across the
-// erasure boundary — a concrete-ref element (`Ref` buf when built concretely,
+// erasure boundary: a concrete-ref element (`Ref` buf when built concretely,
 // `Boxed` when built in erased generic code) OR an erased `BcRef` (`Any[]`/trait
 // object, which a concrete-ref buf flows into). A genuine `string[]` / union[]
 // buf is always boxed, so those keep the plain box path (no dispatch, no churn).
@@ -2626,7 +2626,7 @@ ref_carrying_element :: fn(element: BcType, types: BcType[]) -> bool {
     return false
 }
 
-// `data.const N` — push a zero-copy box over the immortal `.rodata` array
+// `data.const N`: push a zero-copy box over the immortal `.rodata` array
 // `vader_data_N` (emitted by `emit_data_pool`). Re-stamps the call-site type_id
 // onto the box, mirroring the VM's `DataConst` arm + the static-fn-ref box.
 emit_data_const_op :: fn(s: FnState, op: Bc.DataConst) -> void {
@@ -2688,7 +2688,7 @@ emit_array_new :: fn(s: FnState, op: Bc.ArrayNew) -> void {
             assign(s, typed_slot(fill.cty, arr_buf, fresh_slot(arr_buf, slot)), cast(fill.cty, coerced_as(s, v, fill.val)))
         } else if kind == .Ref {
             // Fresh buf is statically `.Ref` here (we chose the kind), so store the
-            // raw object pointer — no runtime dispatch, no box.
+            // raw object pointer: no runtime dispatch, no box.
             assign(s, typed_slot("void*", arr_buf, fresh_slot(arr_buf, slot)), coerced_as(s, v, .Ref))
         } else {
             // The box takes the VALUE's tag, not `elem_tag` : an `i32` stored into
@@ -2699,7 +2699,7 @@ emit_array_new :: fn(s: FnState, op: Bc.ArrayNew) -> void {
     push_object(s, verbatim(arr_buf))
 }
 
-/// `array.get` — pop index + array, push the element : a ref-carrying element in
+/// `array.get`, pop index + array, push the element : a ref-carrying element in
 /// its own stack class (the `buf->element_kind` dispatch below), any other as a
 /// boxed `.Any` (the lowerer's following `ref.cast` re-tags / unboxes it) unless
 /// it can travel unboxed. Fully open-coded over the kept `vader_array_t` layout,
@@ -2715,7 +2715,7 @@ emit_array_new :: fn(s: FnState, op: Bc.ArrayNew) -> void {
 ///     (`reboxes_to_own_tag` : `bool`, `f32`), re-boxed via `box_expr` otherwise
 ///     (the uint/int/float promotion mirrors `vader_array_load_slot`).
 /// `emit_slot_array_local` (buffer guard + bounds check) is hoisted before the
-/// branch — borrowed-safe (its guard tests `buf != NULL` and the bounds check
+/// branch: borrowed-safe (its guard tests `buf != NULL` and the bounds check
 /// reads the header). Flippable widths never reach here (midir
 /// routes them to `LoadSlot*`).
 emit_array_get :: fn(s: FnState, op: Bc.ArrayGet) -> void {
@@ -2730,7 +2730,7 @@ emit_array_get :: fn(s: FnState, op: Bc.ArrayGet) -> void {
     if fill == null && ref_carrying_element(elem, types) {
         // Erasure boundary: the buf may be `Ref` (built concretely) or
         // `Boxed` (built in erased generic code), so the reader dispatches on
-        // `buf->element_kind` — via a `static inline` runtime helper (inlined at
+        // `buf->element_kind`: via a `static inline` runtime helper (inlined at
         // -O3, but keeps the emitted C a clean call). The pushed class is the
         // element's STACK class : a concrete ref → `.Ref` (raw obj ptr,
         // `_load_obj`), an erased `BcRef` / a union → `.Any` (tagged box,
@@ -2771,11 +2771,11 @@ emit_array_get :: fn(s: FnState, op: Bc.ArrayGet) -> void {
 reboxes_to_own_tag :: fn(types: BcType[], elem_tag: i32, val: ValType) -> bool =
     class_tag_of(types, val) == elem_tag
 
-/// `array.set` — pop value + index + array, store the value in place. A Boxed
+/// `array.set`: pop value + index + array, store the value in place. A Boxed
 /// element stores the slot inline (`box_expr` tags `string`, no-op for already-
 /// boxed refs) and fires the generational write barrier when the value may be a
 /// reference (`write_barrier_for`) ; a typed (sub-word) element stores the native
-/// width raw (no barrier — primitives hold no refs). Flippable widths never
+/// width raw (no barrier: primitives hold no refs). Flippable widths never
 /// reach here (midir routes them to `StoreSlot*`). A view of a string's bytes is
 /// never written (T3070, T3072), so `a->buf` is never NULL on this path.
 emit_array_set :: fn(s: FnState, op: Bc.ArraySet) -> void {
@@ -2794,12 +2794,12 @@ emit_array_set :: fn(s: FnState, op: Bc.ArraySet) -> void {
         if elem is BcRef {
             // Erased trait-object element : the value may be a boxed / raw PRIMITIVE
             // (a distinct-primitive trait impl), not a header-bearing ref, so route
-            // it through `coerce_expr(.. .Any)` — the SAME box path a `.Any`-slot
+            // it through `coerce_expr(.. .Any)`: the SAME box path a `.Any`-slot
             // `local.set` / plain assignment uses, so the box carries the value's
             // concrete tag (a ref → header tag; a primitive → its own type index),
             // NOT the array's erased `elem_tag` (which would stamp the trait tag and
             // mis-dispatch). Then store box-or-raw by buf kind. (`object_pointer_of` /
-            // `box_expr(elem_tag)` were both wrong here — the former splices
+            // `box_expr(elem_tag)` were both wrong here: the former splices
             // `.payload.obj` onto a primitive, the latter loses the concrete tag.)
             evaluate(
                 s,
@@ -2810,7 +2810,7 @@ emit_array_set :: fn(s: FnState, op: Bc.ArraySet) -> void {
             )
         } else {
             // Concrete-ref / union-of-refs element : the value is a genuine ref (or
-            // null), so its raw object pointer is valid — take the fast raw path.
+            // null), so its raw object pointer is valid: take the fast raw path.
             evaluate(
                 s,
                 call(
@@ -2830,7 +2830,7 @@ emit_array_set :: fn(s: FnState, op: Bc.ArraySet) -> void {
     }
 }
 
-/// `array.push` — pop value + array, append the value. Here `op.type_id` is the
+/// `array.push`: pop value + array, append the value. Here `op.type_id` is the
 /// ELEMENT type directly (not the array type). A primitive element appends
 /// through its typed `vader_array_push_*` helper, a ref, boxed or string element
 /// through the raw-ref or boxed one `emit_boxed_push` picks: all are `static
@@ -2856,7 +2856,7 @@ emit_array_push :: fn(s: FnState, op: Bc.ArrayPush) -> void {
         return
     }
     // Every primitive kind gets a typed `vader_array_push_*` helper (no box, no
-    // dispatch, no barrier) — full parity with the store path, which is likewise
+    // dispatch, no barrier): full parity with the store path, which is likewise
     // typed for all primitives (i32/i64/f64 via `StoreSlot*`, the rest via
     // `emit_array_set`). The helper name and the coerce target come from the two
     // kind tables (`push_helper_for` / `typed_array_fill_for`) so the width they
@@ -2895,7 +2895,7 @@ emit_array_len :: fn(s: FnState) -> void {
     push_into_temporary(s, CMember { .base = array_header_pointer(arr), .member = "length", .arrow = true }, .I64)
 }
 
-/// `array.slice` — pop array + lo + hi, push a fresh array header over the
+/// `array.slice`: pop array + lo + hi, push a fresh array header over the
 /// `[lo, hi)` range (the C runtime views ; the VM copies).
 emit_array_slice :: fn(s: FnState, op: Bc.ArraySlice) -> void {
     hi :: pop(s)
@@ -2914,7 +2914,7 @@ emit_array_slice :: fn(s: FnState, op: Bc.ArraySlice) -> void {
     push_object(s, verbatim(arr_buf))
 }
 
-/// `[lhs] * n` — pop `n` then the source array ; push a fresh array repeating
+/// `[lhs] * n`: pop `n` then the source array ; push a fresh array repeating
 /// the source's elements n times (`[] * n` reserves n slots, length 0). The
 /// result is boxed with the runtime array's OWN `header.type_index` (set by the
 /// runtime from the source), so no static element type_id is threaded through
@@ -2932,7 +2932,7 @@ emit_array_repeat :: fn(s: FnState) -> void {
     push_object(s, verbatim(arr_buf))
 }
 
-/// `dst.push_all(src)` — pop `src` then `dst` ; append every element of `src` to
+/// `dst.push_all(src)`: pop `src` then `dst` ; append every element of `src` to
 /// `dst`. Statement-form, no value pushed back. Runtime call (grows + GC).
 emit_array_push_all :: fn(s: FnState) -> void {
     src :: pop(s)
@@ -2946,7 +2946,7 @@ emit_array_push_all :: fn(s: FnState) -> void {
     )
 }
 
-/// `src.copy_to(src_start, dst, dst_start, len)` — pop `len` / `dst_start` /
+/// `src.copy_to(src_start, dst, dst_start, len)`: pop `len` / `dst_start` /
 /// `dst` / `src_start` / `src` (top-to-bottom) ; overlap-safe positional copy.
 /// Statement-form. No allocation in the runtime fn, but a plain runtime call.
 emit_array_copy :: fn(s: FnState) -> void {
@@ -2970,9 +2970,9 @@ emit_array_copy :: fn(s: FnState) -> void {
     )
 }
 
-/// `arr.remove_last()` — pop an array ; push the removed last element as a boxed
+/// `arr.remove_last()`: pop an array ; push the removed last element as a boxed
 /// `T | null` (the runtime returns `vader_box_null()` when empty, else a box
-/// pre-tagged with the element's static tag — so `.Any`, no follow-up cast).
+/// pre-tagged with the element's static tag, so `.Any`, no follow-up cast).
 emit_array_remove_last :: fn(s: FnState) -> void {
     arr :: pop(s)
     push_into_temporary(
@@ -2982,14 +2982,14 @@ emit_array_remove_last :: fn(s: FnState) -> void {
     )
 }
 
-/// `arr.clear()` — pop an array ; set its length to 0. Statement-form.
+/// `arr.clear()`: pop an array ; set its length to 0. Statement-form.
 emit_array_clear :: fn(s: FnState) -> void {
     arr :: pop(s)
     evaluate(s, call("vader_array_clear", [array_pointer(object_pointer_of(arr))]))
 }
 
 /// Element BcType index of array type `type_index` (the `BcArray.element`),
-/// or `type_index` itself when it isn't an array (defensive — the lowerer
+/// or `type_index` itself when it isn't an array (defensive: the lowerer
 /// only emits these ops on array types).
 array_element_tag :: fn(types: BcType[], type_index: i32) -> i32 {
     t :: types[type_index]
@@ -3022,7 +3022,7 @@ push_binop_any :: fn(s: FnState, op: CBinaryOperator, result_val: ValType) -> vo
         push_expr(s, result_val, compared)
         return
     }
-    // A raw object pointer against a box — compare the object pointers. A `.Ref`
+    // A raw object pointer against a box: compare the object pointers. A `.Ref`
     // is already the pointer ; an `.Any` box carries it in `.payload.obj` (NULL
     // for the null variant). Same object ⇒ same pointer ⇒ same tag, so the
     // pointer compare is identity.

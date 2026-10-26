@@ -1,6 +1,6 @@
 // TypeScript peer of bench/arr_map.vader. Uses the idiomatic eager
-// `a.map(x => x * x)` — which allocates a fresh result array every pass and
-// then reduces it — the natural JS shape, vs Vader's fused (zero-alloc)
+// `a.map(x => x * x)`, which allocates a fresh result array every pass and
+// then reduces it: the natural JS shape, vs Vader's fused (zero-alloc)
 // `a.map(square)` iterator.
 
 const N = 1024;

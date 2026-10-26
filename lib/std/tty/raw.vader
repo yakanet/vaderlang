@@ -2,8 +2,8 @@
 //
 // Split from `tty.vader` because it is a different KIND of thing: the colour
 // helpers decorate a string and change nothing, while these mutate the
-// terminal's state and impose a pairing contract on the caller. Same module —
-// `std/tty` — so nothing about an import changes.
+// terminal's state and impose a pairing contract on the caller. Same module
+// (`std/tty`) so nothing about an import changes.
 //
 // The widgets built on these live in `cli/prompt`; this layer is the terminal,
 // not the interaction.
@@ -24,8 +24,8 @@ import "system/windows"
 /// line editing.
 ///
 /// It also turns OFF signal generation, so **Ctrl-C arrives as the byte `0x03`**
-/// instead of killing the process. That is what keeps the terminal usable — a
-/// process killed mid-prompt would leave the shell with no echo — and it makes
+/// instead of killing the process. That is what keeps the terminal usable (a
+/// process killed mid-prompt would leave the shell with no echo) and it makes
 /// handling the cancellation the caller's job.
 ///
 /// ⚠️ **Always pair it with `defer raw_mode_end()`.** `defer` covers the normal
@@ -34,15 +34,15 @@ import "system/windows"
 /// not cover is a kill from outside the process; a shell's `reset` fixes that.
 ///
 /// @return `true` when raw mode is now installed, `false` when stdin is not an
-///         interactive terminal — in which case NOTHING was changed and the
+///         interactive terminal: in which case NOTHING was changed and the
 ///         caller must fall back rather than read keys.
 ///
 /// ⚠️ On POSIX this goes through `cfmakeraw`, which also clears `OPOST`: a bare
 /// `\n` no longer returns the carriage. Print through `raw_print` between
-/// `begin` and `end` — `println` is only safe once the terminal is restored.
+/// `begin` and `end`: `println` is only safe once the terminal is restored.
 @target
 export raw_mode_begin :: fn() -> bool {
-    // No terminal to put in raw mode — `wasi-wasm32` and `browser-wasm32`.
+    // No terminal to put in raw mode: `wasi-wasm32` and `browser-wasm32`.
     return false
 }
 
@@ -110,7 +110,7 @@ raw_mode_begin :: fn() -> bool {
         return false
     }
     mode: u32[]: [0]
-    // Fails on a pipe or a redirected file — exactly when there is no console to
+    // Fails on a pipe or a redirected file: exactly when there is no console to
     // put in raw mode. Reported rather than pretended.
     if !get_console_mode(h, mode) {
         return false
@@ -138,12 +138,12 @@ raw_mode_end :: fn() -> void {
     state.active = false
 }
 
-/// Terminal width in columns, or 0 when it cannot be determined — not a
+/// Terminal width in columns, or 0 when it cannot be determined, not a
 /// terminal, or the query failed. A caller that needs a number anyway should
 /// pick its own default rather than treat 0 as a width.
 @target
 export columns :: fn() -> i32 {
-    // No terminal to measure — `wasi-wasm32` and `browser-wasm32`. `0` is the
+    // No terminal to measure: `wasi-wasm32` and `browser-wasm32`. `0` is the
     // documented "cannot be determined", which every caller already handles.
     return 0
 }
@@ -186,22 +186,22 @@ columns :: fn() -> i32 {
 /// `Escape` alone arrives as one byte. No timing is involved, and it behaves the
 /// same on POSIX and on a Windows console.
 ///
-/// ⚠️ Reads the raw descriptor, not the buffered stream — never mix it with
+/// ⚠️ Reads the raw descriptor, not the buffered stream, never mix it with
 /// `std/io::read_stdin` on the same input.
 ///
 /// @param max  ceiling on the bytes returned; values above 64 are clamped.
-/// @return     the bytes read — never empty, since a successful read yields at
-///             least one byte — or `null` at end of input, on a read failure,
+/// @return     the bytes read, never empty, since a successful read yields at
+///             least one byte, or `null` at end of input, on a read failure,
 ///             and on a target with no terminal.
 @target
 export read_keys :: fn(max: i32) -> string | null {
-    // No terminal to read from — `wasi-wasm32` and `browser-wasm32`. Same answer
+    // No terminal to read from: `wasi-wasm32` and `browser-wasm32`. Same answer
     // as end of input, which every caller already handles.
     return null
 }
 
 /// Bytes to read at most, whatever the caller asked for. A key press is a few
-/// bytes — an arrow is three — and the ceiling keeps the stack buffer bounded.
+/// bytes (an arrow is three) and the ceiling keeps the stack buffer bounded.
 KEYS_MAX: i32 : 64
 
 /// Attempts before giving up on a read that returns nothing.
@@ -268,13 +268,13 @@ clamp_keys :: fn(max: i32) -> i32 {
 /// Print `s` the way a raw-mode terminal needs, terminated.
 ///
 /// `raw_mode_begin` clears `OPOST` on POSIX, so a bare `\n` advances a row
-/// without returning the carriage. `s` may be several lines — terminating only
+/// without returning the carriage. `s` may be several lines: terminating only
 /// the last one leaves the rest climbing a staircase to the right.
 ///
 /// @param s  one line, or a whole frame joined on `\n`.
 export raw_print :: fn(s: string) -> void = print(raw_terminated(s))
 
-// Split out so a test can see it — `raw_print` itself only prints.
+// Split out so a test can see it: `raw_print` itself only prints.
 raw_terminated :: fn(s: string) -> string = "${s.replace_all("\n", "\r\n")}\r\n"
 
 // ---- tests ----------------------------------------------------------------

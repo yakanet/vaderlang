@@ -23,7 +23,7 @@ import com.redhat.devtools.lsp4ij.dap.configurations.DAPRunConfigurationOptions
 import com.redhat.devtools.lsp4ij.templates.ServerMappingSettings
 
 // A native "Vader" run/debug configuration : pick a `.vader` file, then Run OR
-// Debug it (breakpoints, stepping) — one config, both buttons. It's a thin
+// Debug it (breakpoints, stepping): one config, both buttons. It's a thin
 // preset over LSP4IJ's DAP run configuration: we extend DAPRunConfiguration and
 // pin it to our registered "Vader Debug Adapter" (spawns `vader dap`), so we
 // reuse LSP4IJ's whole tested Run+Debug machinery instead of reimplementing it.
@@ -49,7 +49,7 @@ internal class VaderConfigurationFactory(type: ConfigurationType) : Configuratio
         //
         // NOTE: LSP4IJ's DAP API is version-sensitive (ServerMappingSettings /
         // DAPRunConfiguration signatures drift across releases), so the plugin
-        // MUST be built against the LSP4IJ version actually installed — a mismatch
+        // MUST be built against the LSP4IJ version actually installed: a mismatch
         // throws NoSuchMethodError here at RunManager init. See build.gradle.kts
         // (pinned to LSP4IJ 0.20.1).
         config.serverId = SERVER_ID
@@ -61,7 +61,7 @@ internal class VaderConfigurationFactory(type: ConfigurationType) : Configuratio
         return config
     }
 
-    // Options are DAP's — VaderRunConfiguration is just a preset DAP config.
+    // Options are DAP's: VaderRunConfiguration is just a preset DAP config.
     override fun getOptionsClass(): Class<out RunConfigurationOptions> =
         DAPRunConfigurationOptions::class.java
 }
@@ -71,10 +71,10 @@ internal class VaderConfigurationFactory(type: ConfigurationType) : Configuratio
 //   • Debug → the inherited DAPRunConfiguration path (DAP client, breakpoints,
 //     stepping, variables) driving `vader dap`.
 //   • Run   → a plain `vader run <file>` process with a colored console, NO
-//     debugger — same VM path as the CLI.
+//     debugger: same VM path as the CLI.
 //
 // LSP4IJ ships a single ProgramRunner (DAPDebugRunner) that ALWAYS opens an
-// XDebugSession, and it claims every executor its config's `canRun` accepts —
+// XDebugSession, and it claims every executor its config's `canRun` accepts,
 // so out of the box pressing Run also launches a debug session. We fix that by
 // declining the Run executor in `canRun` (DAPDebugRunner then yields Run to the
 // platform's default run runner) and returning a plain CommandLineState from
@@ -91,7 +91,7 @@ internal class VaderRunConfiguration(
         return object : CommandLineState(environment) {
             override fun startProcess(): ProcessHandler {
                 // Binary path from the shared plugin settings (Settings → Tools →
-                // Vader), falling back to `vader` on $PATH — same source the DAP/LSP
+                // Vader), falling back to `vader` on $PATH: same source the DAP/LSP
                 // factories use. Run from the project root so `std/*` imports resolve.
                 val configured = VaderSettings.getInstance().lspPath.trim()
                 val binary = if (configured.isNotEmpty()) configured else "vader"

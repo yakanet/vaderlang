@@ -1,5 +1,5 @@
 // Java peer of bench/string_builder.vader. Uses `java.lang.StringBuilder`,
-// the stdlib's pre-allocated-buffer concatenator — closest analogue to
+// the stdlib's pre-allocated-buffer concatenator: closest analogue to
 // Vader's `StringBuilder`.
 
 static final int N = 80_000;

@@ -27,7 +27,7 @@ enum_for_bare_variant :: fn(
 ) -> Type | null {
     slot :: expected ?? return null
     lifted :: lift_enum_placeholder(slot, typed)
-    // Union expected — descend into variants and pick the first enum
+    // Union expected: descend into variants and pick the first enum
     // that carries `.variant`. Lets `fn() -> Direction | Error { return .North }`
     // resolve `.North` to Direction.
     if lifted is UnionType {
@@ -65,7 +65,7 @@ infer_dot_variant :: fn(
     if found !is null {
         return found
     }
-    // Nothing resolved — say which of the two reasons it was.
+    // Nothing resolved: say which of the two reasons it was.
     slot :: lift_enum_placeholder(expected, typed)
     if slot is EnumType {
         diags.push(typecheck_error(.UnknownEnumVariant, e.variant_span,
@@ -78,7 +78,7 @@ infer_dot_variant :: fn(
 }
 
 // `type_from_expr` returns a `StructType<EnumSym>` placeholder for enum
-// names — the proper `EnumType` (with `indices`) only lands in
+// names: the proper `EnumType` (with `indices`) only lands in
 // `decl_types[name_span]` via `declare_enum`. This helper swaps the
 // placeholder back to the real EnumType when one is available, falling
 // back to the cross-module `external_types` cache so enums defined in

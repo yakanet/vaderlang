@@ -1,4 +1,4 @@
-# 0006 — The fixed-point gate runs on every push
+# 0006: The fixed-point gate runs on every push
 
 ## Status
 
@@ -26,7 +26,7 @@ Drop the `if:` gate. The job runs on push and pull request like the others.
 ## Consequences
 
 Confirmed on the first green run after the change: fixed-point **4 m 41 s**,
-Windows **11 m 2 s**, total **11 m 7 s** — the prediction held.
+Windows **11 m 2 s**, total **11 m 7 s**: the prediction held.
 
 The gate found a real fixed-point failure on its first push (ADR 0004) and a real
 seed divergence on its second, both of which had been invisible until then.

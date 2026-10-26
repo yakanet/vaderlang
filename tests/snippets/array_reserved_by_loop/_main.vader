@@ -1,5 +1,5 @@
 // An empty array filled by a counted loop, one push per turn, is created at the
-// loop's trip count (`[] * n`, see the lower snapshot) — a hand-written loop over
+// loop's trip count (`[] * n`, see the lower snapshot): a hand-written loop over
 // an array, a field or a range (inclusive too), and a `collect` over a chain
 // alike; several arrays filled by one loop, past a `let` in between, and in an
 // async fn. A narrow signed range whose span passes the type's positive half

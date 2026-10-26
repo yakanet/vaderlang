@@ -1,4 +1,4 @@
-// T3078: a namespace alias qualifies its module's exports — it puts nothing in
+// T3078: a namespace alias qualifies its module's exports, it puts nothing in
 // unqualified scope, in EITHER call form. `bump(c)` is R2006 and `c.bump()` must
 // fail the same way (SPEC §UFCS: "resolves … exactly as `foo(x)` would"), with a
 // diagnostic naming the alias instead of a bare "no such field".

@@ -7,15 +7,15 @@
 //   * a `vader.json`, which declares the program (`entries`), so that the folder
 //     builds and runs as it is, and where extra search roots go
 //     (`includePaths`).
-//   * `src/main.vader` declaring `module "src"` — the module name is the folder
+//   * `src/main.vader` declaring `module "src"`: the module name is the folder
 //     name, and the compiler does not infer it from the filesystem.
 //   * a `.gitignore` covering `build/`, where every artefact lands.
 //
-// What describes the BUILD is a choice — `--build`, or a question on a terminal:
+// What describes the BUILD is a choice: `--build`, or a question on a terminal:
 // a `vader.json`, a `build.vader` the project drives itself with, or neither. The
 // three are exclusive rather than layered, because a driver supersedes the
 // manifest as the build's description instead of sitting on top of it. Offered as
-// a choice, a driven build is not taught as the default — which is what had kept
+// a choice, a driven build is not taught as the default, which is what had kept
 // it out of the first cut.
 //
 // Same module as `main.vader`: imports are file-scoped, declarations are not.
@@ -44,11 +44,11 @@ BuildSetup :: enum(u8) {
     Manifest,
     /// A `build.vader`, which `vader build` finds and runs so the project decides
     /// its own compilation (SPEC §11). Needs the compiler's own sources
-    /// reachable — `vader doctor` reports that as `compiler-sources`.
+    /// reachable: `vader doctor` reports that as `compiler-sources`.
     Driver,
 }
 
-/// Folder the entry module lives in — and therefore the module it declares.
+/// Folder the entry module lives in, and therefore the module it declares.
 SOURCE_DIR :: "src"
 
 /// Entry file written inside `SOURCE_DIR`.
@@ -56,14 +56,14 @@ ENTRY_FILENAME :: "main.vader"
 
 // ---- the command ----------------------------------------------------------
 
-/// `vader new [name]` — write a minimal project and say what each file is for.
+/// `vader new [name]`: write a minimal project and say what each file is for.
 ///
 /// With a name, it creates that directory; without one, it initialises the
 /// working directory in place. The two differ in what counts as "already taken":
 /// creating refuses ANY existing content, since writing into a directory the user
 /// did not mean to name is the mistake that cannot be undone; in place, only an
 /// existing `vader.json` refuses, because a directory with files in it is the
-/// normal case — you are adding a manifest to work already started.
+/// normal case: you are adding a manifest to work already started.
 ///
 /// @param args  the action's zone; the optional name is the one positional, and
 ///              `--git` the only flag read.
@@ -122,7 +122,7 @@ cmd_new :: fn(args: string[]) -> i32 {
 // ---- asking ---------------------------------------------------------------
 //
 // The prompts appear ONLY on a terminal, and only for what the command line did
-// not already say. A pipe — a script, CI, an agent — gets exactly the behaviour
+// not already say. A pipe (a script, CI, an agent) gets exactly the behaviour
 // this command shipped with, which is why none of its tests had to change: they
 // spawn through a pipe and never see a question.
 
@@ -175,12 +175,12 @@ choose_build :: fn(parsed: ParsedArgs) -> BuildSetup | PromptError {
 
 // The prompt's options, rendered FROM the flag's declared values rather than
 // restated beside them. The first cut wrote its own three strings, in a
-// different order and different words — drift that was already visible in the
+// different order and different words: drift that was already visible in the
 // same diff, and would have grown with a fourth shape.
 build_setup_labels :: fn() -> string[] =
     NEW_BUILD_SETUPS.map((v) -> "${v.name}: ${v.help}").collect()
 
-// The flag's value, and the prompt's answer — both arrive as a name from
+// The flag's value, and the prompt's answer: both arrive as a name from
 // `NEW_BUILD_SETUPS`, so one function decodes both. `std/cli` has already
 // rejected anything outside the declared set, so the fall-through is unreachable
 // rather than a real default.
@@ -195,7 +195,7 @@ setup_named :: fn(named: string) -> BuildSetup {
 }
 
 // Whether to run `git init`. A `--git` in either spelling is a decision already
-// made — only its ABSENCE on a terminal is a question, and off a terminal it
+// made: only its ABSENCE on a terminal is a question, and off a terminal it
 // stays the documented default of no.
 choose_git :: fn(parsed: ParsedArgs) -> bool | PromptError {
     if parsed.flags["git"] != null {
@@ -211,12 +211,12 @@ choose_git :: fn(parsed: ParsedArgs) -> bool | PromptError {
 
 /// What `vader new` decided to write, and where.
 NewProject :: struct {
-    /// Directory to write into, spelled as the user typed it — a relative path
+    /// Directory to write into, spelled as the user typed it: a relative path
     /// stays relative, so the report echoes what they can `cd` to.
     dir:      string
     /// The manifest's `name`: the directory's own last segment.
     name:     string
-    /// True when this fills the working directory rather than a named one —
+    /// True when this fills the working directory rather than a named one,
     /// which is what decides whether the report has a `cd` line to offer.
     in_place: bool
 }
@@ -228,7 +228,7 @@ ScaffoldError :: struct {
     msg: string
 }
 
-/// The path standing for "the working directory" — what a bare `vader new` gets.
+/// The path standing for "the working directory": what a bare `vader new` gets.
 IN_PLACE :: "."
 
 // Decide where to write, or refuse. See `cmd_new` for why the two modes differ.
@@ -265,7 +265,7 @@ resolve_target :: fn(raw: string) -> NewProject | ScaffoldError {
     return NewProject { .dir = raw, .name = directory_name(raw), .in_place = false }
 }
 
-/// Last segment of a path, whatever separator wrote it — the project's name.
+/// Last segment of a path, whatever separator wrote it: the project's name.
 ///
 /// Windows hands `current_working_directory` back `/`-separated already, but a
 /// name the user TYPED can carry either, so it is normalised here rather than
@@ -280,7 +280,7 @@ directory_name :: fn(path: string) -> string {
 
 // ---- writing --------------------------------------------------------------
 
-// Write the three files. Creating `<dir>/src` creates `<dir>` on the way — the
+// Write the three files. Creating `<dir>/src` creates `<dir>` on the way: the
 // intrinsic is `mkdir -p`, and an existing directory is success.
 scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
     made :: create_dir(join_path(project.dir, SOURCE_DIR))
@@ -340,7 +340,7 @@ render_manifest :: fn(name: string) -> string {
 }
 
 /// The entry module. It declares `module "${SOURCE_DIR}"` because the module IS
-/// the folder — the one rule about the layout that nothing else states.
+/// the folder: the one rule about the layout that nothing else states.
 render_entry :: fn(name: string) -> string {
     out :: StringBuilder {}
     out.append("// ${SOURCE_DIR}/${ENTRY_FILENAME}: entry point of ${name}.\n")
@@ -362,7 +362,7 @@ scaffolded_manifest :: fn(name: string) -> Manifest = Manifest {
     .entries = [ManifestEntry { .name = name, .path = "${SOURCE_DIR}/${ENTRY_FILENAME}" }],
 }
 
-/// One line: `build/` holds every artefact — the binary, the generated C, a
+/// One line: `build/` holds every artefact, the binary, the generated C, a
 /// driver's own build, and the generated module tree.
 render_gitignore :: fn() -> string = "build/\n"
 
@@ -382,7 +382,7 @@ init_git :: fn(dir: string) -> string | null {
 
 // ---- reporting ------------------------------------------------------------
 
-// What was written and what each file is for — the part that makes this a
+// What was written and what each file is for: the part that makes this a
 // teaching command rather than three `write_file_string` calls.
 report :: fn(project: NewProject, setup: BuildSetup, git_initialised: bool) -> string {
     out :: StringBuilder {}

@@ -1,4 +1,4 @@
-// `@assert(cond)` — top-level compile-time assertion. The condition runs
+// `@assert(cond)`: top-level compile-time assertion. The condition runs
 // through the comptime VM ; the build only succeeds if it evaluates to
 // `true`. Useful for build-config sanity, generic-instance invariants,
 // and anything else that should be enforced before the program ever runs.

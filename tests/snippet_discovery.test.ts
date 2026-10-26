@@ -1,10 +1,10 @@
-// Unit tests for `listSnippets`' helper-C detection — the one piece of the
+// Unit tests for `listSnippets`' helper-C detection: the one piece of the
 // harness whose misbehaviour is SILENT.
 //
 // `vader_vm.test.ts` skips any snippet that `listSnippets` reports a helper `.c`
 // for, since the interpreter resolves `@extern` by `dlsym` on the running process
 // and cannot reach a symbol linked into some other executable. So a false
-// positive there does not fail anything — it removes a parity test and the suite
+// positive there does not fail anything: it removes a parity test and the suite
 // still prints green, one test lighter. That is exactly what a stray
 // `vader build --split` output in a snippet directory used to do, and the files
 // are gitignored, so `git status` showed nothing either.
@@ -41,7 +41,7 @@ beforeAll(() => {
   snippet("plain", []);
   snippet("with_helper", ["helper.c"]);
   snippet("mono_build", ["native.c", "_main.c"]);
-  // What `vader build --split` — the DEFAULT — leaves behind.
+  // What `vader build --split` (the DEFAULT) leaves behind.
   snippet("split_build", ["_main-_glue.c", "_main-_root.c", "_main-snippet.c", "_main.split.g.c"]);
   snippet("helper_and_split", ["helper.c", "_main-_root.c", "native.c"]);
   snippet("helper_and_c_golden", ["helper.c", C_SNAPSHOT]);

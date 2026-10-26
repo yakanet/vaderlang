@@ -2,7 +2,7 @@
 // generator after its `yield`: `indexed`, `take`, a generator with two
 // `yield`s per round, a generator with no loop, `continue y` from an inner loop,
 // `chars().indexed()`, `indexed` in an async fn across an `await`, a
-// `?? continue`, a stage's own `continue` over `take` — and `flat_map` and
+// `?? continue`, a stage's own `continue` over `take`, and `flat_map` and
 // `chain`, where the `continue` already lands on the loop it means, by name
 // from an inner loop too.
 //

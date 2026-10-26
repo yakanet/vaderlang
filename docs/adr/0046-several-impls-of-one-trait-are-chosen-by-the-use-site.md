@@ -1,4 +1,4 @@
-# 0046 — Several impls of one trait are chosen by the use site
+# 0046: Several impls of one trait are chosen by the use site
 
 ## Status
 

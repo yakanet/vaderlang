@@ -3,14 +3,14 @@
 // `LoweredYield` / `LoweredAwait` are TRANSIENT: they exist between the ANF
 // pass that mints them and the state-machine transform that consumes them
 // (`vader/lower/generator.vader`, `vader/lower/coroutine.vader`), and never reach a
-// backend. No type says so — they are ordinary `LoweredStmt` variants — and
+// backend. No type says so (they are ordinary `LoweredStmt` variants) and
 // `vader/midir/build.vader` panics when one survives, naming `build_stmt`, the
 // consumer, rather than the pass that failed to consume it.
 //
 // Symbol resolution is NOT checked here: it is a property of the CFG boundary
 // and lives in `vader/midir/verify.vader`. Do not replay it here.
 //
-// Pure read over the IR — no mutation, no IO. `verify_lowered` is wired behind
+// Pure read over the IR: no mutation, no IO. `verify_lowered` is wired behind
 // `--verify`; `verify_captured_cells` and `verify_functions_defined_once` run on
 // every build, because the defect each looks for is otherwise silent.
 
@@ -41,7 +41,7 @@ export verify_lowered :: fn(project: LoweredProject, after: string, diags: Diagn
 
 // ---- checks ---------------------------------------------------------------
 
-// I7001 — a surviving transient marker. Reported against the marker's own
+// I7001: a surviving transient marker. Reported against the marker's own
 // span, which is the `yield` / `await` the user wrote, so the report points
 // at the construct the transform failed to rewrite rather than at the
 // function that contains it.
@@ -104,7 +104,7 @@ export verify_functions_defined_once :: fn(project: LoweredProject, diags: Diagn
 /// Report every `let` that binds a cell-promoted capture to its bare value.
 ///
 /// A closure reads a rebound capture through `CellGet`, so a slot left holding the
-/// bare value is read as a cell — garbage under the VM, a crash natively — and
+/// bare value is read as a cell (garbage under the VM, a crash natively) and
 /// nothing downstream notices. The `let`s a coroutine spills into its frame are gone by the time this runs;
 /// `gb_collect_stmt` checks those as it spills them.
 ///

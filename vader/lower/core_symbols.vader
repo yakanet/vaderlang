@@ -43,7 +43,7 @@ find_core_type :: fn(ctx: FnLowerCtx, name: string, args: Type[]) -> Type | null
 
 /// Resolve a `std/core` trait symbol by name.
 ///
-/// One probe into the already-built `core_symbols` map plus a kind check —
+/// One probe into the already-built `core_symbols` map plus a kind check:
 /// there is nothing here worth memoising on top.
 /// @param ctx   the project context.
 /// @param name  the source-level trait name (e.g. `"Display"`).
@@ -63,7 +63,7 @@ find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | null {
 /// Resolve a `std/core` ENUM type by name.
 ///
 /// Separate from `find_core_type` because an enum decl reaches lowering as a
-/// placeholder `StructType` whose symbol is `SymbolKind.Enum` — the variant
+/// placeholder `StructType` whose symbol is `SymbolKind.Enum`: the variant
 /// indices live on the `EnumType` the TYPER built, and only the module that
 /// typed the decl holds it.
 ///
@@ -85,7 +85,7 @@ find_core_enum :: fn(ctx: FnLowerCtx, name: string) -> Type | null {
         return null
     }
     // `unwrap_enum_type` reads `ctx.typed.decl_types`, the CURRENT module's, and
-    // a core enum is declared in std/core — so it is never there. `Symbol.id` is
+    // a core enum is declared in std/core, so it is never there. `Symbol.id` is
     // unique project-wide, so at most one module answers. Memoised because the
     // answer is one per project and this runs at every for-in that falls through.
     for [_, program] in ctx.project.typed.modules {
@@ -127,7 +127,7 @@ import "vader/front/resolver"
 @test test_lookup_core_symbol_missing_returns_null :: fn() -> void {
     typed :: new_typed_project(FreshReads {})
     project :: new_lower_project_ctx(new_evaluated_project(typed), empty_loaded_project(), typed)
-    // No symbols pre-seeded — every lookup should miss.
+    // No symbols pre-seeded: every lookup should miss.
     assert(find_core_trait(project, "Display") is null, "expected miss to return null")
 }
 

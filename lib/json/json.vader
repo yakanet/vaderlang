@@ -5,7 +5,7 @@
 // propagated by an explicit `if e is JsonError { return e }` narrowing guard.
 // `stringify` and `stringify_pretty` build a string via std/string_builder.
 //
-// Numbers are stored as `f64` for MVP — fine for the compiler's use cases
+// Numbers are stored as `f64` for MVP: fine for the compiler's use cases
 // (manifests, diagnostics) but loses precision past 2^53. Cf. TODO.md `std/json`
 // v2 for the post-MVP compile-time-generated parser à la kotlinx-serialization.
 
@@ -25,10 +25,10 @@ import "std/numbers"
 /// limitation).
 export JsonValue :: JsonString | JsonNumber | JsonBool | JsonNull | JsonArray | JsonObject
 
-/// JSON string variant — UTF-8 decoded, escape-resolved.
+/// JSON string variant: UTF-8 decoded, escape-resolved.
 export JsonString :: struct { value: string }
 
-/// JSON number variant — `f64`. Integer-valued numbers round-trip
+/// JSON number variant: `f64`. Integer-valued numbers round-trip
 /// through `to_compact_str` for cleaner output.
 export JsonNumber :: struct { value: f64 }
 
@@ -38,10 +38,10 @@ export JsonBool :: struct { value: bool }
 /// JSON `null`. No payload.
 export JsonNull :: struct {}
 
-/// JSON array — ordered list of `JsonValue`s.
+/// JSON array: ordered list of `JsonValue`s.
 export JsonArray :: struct { items: JsonValue[] }
 
-/// JSON object — string-keyed map of `JsonValue`s. Insertion order is
+/// JSON object: string-keyed map of `JsonValue`s. Insertion order is
 /// preserved by the parser ; lookup is O(1) average via `MutableMap`.
 export JsonObject :: struct { entries: MutableMap<string, JsonValue> }
 
@@ -118,8 +118,8 @@ match_keyword :: fn(p: Parser, kw: string) -> bool {
 /// Maximum container-nesting depth. A guard against unbounded recursion on
 /// adversarial input (`[[[[…` / `{"a":{"a":…`) : without it a deep document
 /// overflows the call stack (VM trap / native segfault) instead of returning a
-/// `JsonError`. Kept well under the VM's 1024-frame limit — each nesting level
-/// costs ~2 frames — and comfortably above any realistic document.
+/// `JsonError`. Kept well under the VM's 1024-frame limit (each nesting level
+/// costs ~2 frames) and comfortably above any realistic document.
 MAX_DEPTH :: 200
 
 parse_value :: fn(p: Parser, depth: i32) -> JsonValue | JsonError {
@@ -193,7 +193,7 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
     if at_end(p) || !is_digit(peek_byte(p)) {
         return fail(p, "expected digit")
     }
-    // RFC 8259 `int = zero / (digit1-9 *DIGIT)` — the integer part is a lone `0`
+    // RFC 8259 `int = zero / (digit1-9 *DIGIT)`: the integer part is a lone `0`
     // or a nonzero digit followed by more ; a leading zero (`01`, `-0123`) is
     // invalid.
     first_digit :: peek_byte(p)
@@ -268,7 +268,7 @@ parse_string :: fn(p: Parser) -> string | JsonError {
     return fail(p, "unterminated string")
 }
 
-/// Slow path of `parse_string` — invoked once the scanner sees a `\` byte.
+/// Slow path of `parse_string`: invoked once the scanner sees a `\` byte.
 /// `sb` already carries the literal prefix that preceded the escape ;
 /// `p.pos` points at the `\`. Each decoded escape and each run of raw bytes
 /// between escapes goes onto `sb` as one part.
@@ -327,7 +327,7 @@ parse_string_with_escapes :: fn(p: Parser, sb: StringBuilder) -> string | JsonEr
     return fail(p, "unterminated string")
 }
 
-// Read exactly 4 hex digits at `p.pos` (a `\uXXXX` payload — the `\u` is
+// Read exactly 4 hex digits at `p.pos` (a `\uXXXX` payload: the `\u` is
 // already consumed), advancing `p.pos` by 4 on success. Returns the 0..0xFFFF
 // value, or -1 (without advancing) on incomplete input / a non-hex digit.
 read_hex4 :: fn(p: Parser) -> i32 {
@@ -349,7 +349,7 @@ read_hex4 :: fn(p: Parser) -> i32 {
 // Decode a `\uXXXX` escape (the `\u` is already consumed) and append the result
 // to `sb`. A high surrogate is recombined with an immediately-following
 // `\uYYYY` low surrogate into one non-BMP code point (JSON's only way to escape
-// U+10000..U+10FFFF). An unpaired / mismatched surrogate becomes U+FFFD — any
+// U+10000..U+10FFFF). An unpaired / mismatched surrogate becomes U+FFFD: any
 // trailing escape that wasn't a low surrogate is left unconsumed for the main
 // loop to re-decode, so it keeps its own meaning. Returns false on incomplete /
 // non-hex input.
@@ -462,7 +462,7 @@ parse_object :: fn(p: Parser, depth: i32) -> JsonObject | JsonError {
 ///
 /// Policy: malformed *syntax* (a bad escape, an unterminated string / container,
 /// an invalid number, nesting past `MAX_DEPTH`) returns a `JsonError`. A
-/// syntactically valid but unpaired `\u` surrogate is handled leniently — it
+/// syntactically valid but unpaired `\u` surrogate is handled leniently: it
 /// decodes to U+FFFD (matching Go's `encoding/json`), since a lone surrogate
 /// has no UTF-8 representation.
 /// @param input  the JSON text.
@@ -482,7 +482,7 @@ export parse :: fn(input: string) -> JsonValue | JsonError {
 
 // ---- stringify ------------------------------------------------------------
 
-// `s` quoted, then `close` — `"` after a value, `":` after an object key. The
+// `s` quoted, then `close`: `"` after a value, `":` after an object key. The
 // bytes between two escapes go onto `sb` as one part, undecoded : only ASCII
 // bytes are ever escaped, so a multi-byte UTF-8 sequence passes through intact.
 write_string :: fn(sb: StringBuilder, s: string, close: string) -> void {
@@ -518,8 +518,8 @@ escape_of :: fn(c: u8) -> string | null = match c {
 
 // Strip the trailing `.0` from integer-valued floats so `42.0` round-trips
 // as `42`. Vader stores every JsonNumber as `f64` (the parser doesn't keep
-// an int/float distinction), so preserving `.0` would carry no information
-// — emit the canonical short form, matching JS `JSON.stringify`, Go
+// an int/float distinction), so preserving `.0` would carry no information:
+// emit the canonical short form, matching JS `JSON.stringify`, Go
 // `encoding/json`, and RFC 8785 (JCS).
 write_number :: fn(sb: StringBuilder, v: f64) -> void = sb.append(v.to_compact_str())
 
@@ -590,7 +590,7 @@ write_object :: fn(sb: StringBuilder, o: JsonObject, indent: i32, depth: i32) ->
     sb.append("}")
 }
 
-/// Serialise `v` to a compact JSON string — no spaces, no newlines, the
+/// Serialise `v` to a compact JSON string: no spaces, no newlines, the
 /// smallest valid encoding. For pretty-printed output with indentation
 /// use `stringify_pretty`.
 /// @param v   the value to serialise.
@@ -712,7 +712,7 @@ expect_number :: fn(src: string, expected: f64) -> void {
     // Regression : `test_string_unicode_passthrough` only covers raw
     // multi-byte chars on the fast (no-escape) path. Once any escape
     // appears, the rest of the string runs through the slow path, which
-    // used to step the cursor a single byte per character — stranding it
+    // used to step the cursor a single byte per character: stranding it
     // on the continuation byte of a multi-byte codepoint and decoding the
     // tail as `U+FFFD`. So `'é'` round-tripped to TWO codepoints (the LSP
     // surfaced this as L0005 on every accented char in an opened file).
@@ -720,7 +720,7 @@ expect_number :: fn(src: string, expected: f64) -> void {
     expect_string("\"\\tcafé\"",     "\tcafé")
     expect_string("\"a\\né☃b\"",     "a\né☃b")
     expect_string("\"\\u0041café\"", "Acafé")
-    // Escape AFTER the multi-byte char too — the cursor must be aligned
+    // Escape AFTER the multi-byte char too: the cursor must be aligned
     // when it reaches the escape.
     expect_string("\"café\\tx\"",    "café\tx")
 }
@@ -733,7 +733,7 @@ expect_number :: fn(src: string, expected: f64) -> void {
 }
 
 @test test_object_string_keys :: fn() -> void {
-    // Object keys go through the same `parse_string` path — exercise an
+    // Object keys go through the same `parse_string` path: exercise an
     // input where one key is escape-free (fast path) and one carries an
     // escape (slow path).
     parsed :: parse("{\"key\": 1, \"k\\ny\": 2}")
@@ -756,7 +756,7 @@ expect_number :: fn(src: string, expected: f64) -> void {
 
 @test test_string_escape_surrogate_pair :: fn() -> void {
     // A `\uXXXX\uYYYY` surrogate pair recombines into one non-BMP code point
-    // (U+1D11E), encoded as 4-byte UTF-8 — not two 3-byte WTF-8 halves.
+    // (U+1D11E), encoded as 4-byte UTF-8, not two 3-byte WTF-8 halves.
     expect_string("\"\\uD834\\uDD1E\"",   "\u{1D11E}")
     expect_string("\"a\\uD834\\uDD1Eb\"", "a\u{1D11E}b")
 }

@@ -30,7 +30,7 @@ export is_evaluated :: fn(kind: IntrinsicArgKind) -> bool = match kind {
 export IntrinsicSpec :: struct {
     name:      string
     args:      IntrinsicArgKind[]
-    // Result kind is informative — the typechecker / lower passes have
+    // Result kind is informative: the typechecker / lower passes have
     // their own per-name dispatch and don't consult this. Stored here for
     // completeness.
     result:    string
@@ -116,7 +116,7 @@ export INTRINSICS: IntrinsicSpec[]: [
         .signature = "@satisfies(T: type, Trait: type) -> bool",
         .doc       = "True when `T` implements `Trait`, by an impl in scope or built in (an enum's `Equals`).",
     },
-    // `@min(T)` / `@max(T)` — the least and the greatest value of an integer type,
+    // `@min(T)` / `@max(T)`: the least and the greatest value of an integer type,
     // a value of `T` itself.
     IntrinsicSpec {
         .name      = "min",
@@ -140,7 +140,7 @@ export INTRINSICS: IntrinsicSpec[]: [
         .signature = "@type_of(x) -> type",
         .doc       = "The static type of `x`, as a `type` value. `x` never runs.",
     },
-    // `@fields(T)` — struct's fields as a `Field[]` literal materialised
+    // `@fields(T)`: struct's fields as a `Field[]` literal materialised
     // at lower time. T must be a static struct-typed expression.
     IntrinsicSpec {
         .name      = "fields",
@@ -149,7 +149,7 @@ export INTRINSICS: IntrinsicSpec[]: [
         .signature = "@fields(T: type) -> Field[]",
         .doc       = "The fields of the struct `T`, each a `Field` with a `name` and a `type`. Unrolled per field by `@comptime for f in @fields(T)`.",
     },
-    // `@type_args(T)` — generic type-args of a struct / trait instance
+    // `@type_args(T)`: generic type-args of a struct / trait instance
     // as a `type[]`. Non-generic types yield `[]`.
     IntrinsicSpec {
         .name      = "type_args",
@@ -158,7 +158,7 @@ export INTRINSICS: IntrinsicSpec[]: [
         .signature = "@type_args(T: type) -> type[]",
         .doc       = "The type arguments of a generic struct or trait instance; `[]` for a non-generic type.",
     },
-    // `@field(x, "name")` — dynamic-by-string field access. The second
+    // `@field(x, "name")`: dynamic-by-string field access. The second
     // arg is a static string literal (or a `f.name` access that folds to
     // one inside `@comptime for f in @fields(T)`). The result type is
     // the field's declared type, resolved per-call.

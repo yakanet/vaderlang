@@ -15,7 +15,7 @@ import "vader/support/text"
 /// survive (`Box<Box<i32>>` → `snippet_Box_snippet_Box_i32__`), and two
 /// same-named types of different modules name two instances. A bare
 /// type-name fallback collapses `Any`/nested args and breaks dedup parity.
-// A distinct (newtype) has no backend identity — it mangles as its backing so
+// A distinct (newtype) has no backend identity: it mangles as its backing so
 // every instance name (call site, struct literal, allocation, dispatch) is
 // consistent with the source-stripped instance entries. `strip_distinct`
 // handles nesting (`MutableMap<BlockId>` → `MutableMap<i32>`).
@@ -35,7 +35,7 @@ export uniq :: fn(seen: MutableMap<string, bool>, candidate: string) -> string {
         seen[candidate] = true
         return candidate
     }
-    // collision — find the next free `candidate_N`.
+    // collision: find the next free `candidate_N`.
     i: i32 = 1
     for i < 1_000_000 {     // hard-stop for malformed input
         fresh :: "${candidate}_${i}"

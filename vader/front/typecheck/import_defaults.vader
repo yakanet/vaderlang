@@ -4,7 +4,7 @@
 // `normalize_call_args` fills an omitted argument by splicing the CALLEE's
 // `default_value` AST node into the caller's argument list, so that node is
 // lowered in the CALLER's context. `lower_ident` resolves through
-// `resolved.idents[span.hash()]` — the caller's table — while the node's span
+// `resolved.idents[span.hash()]` (the caller's table) while the node's span
 // belongs to the declaring file. Every identifier inside a cross-module default
 // therefore missed, and a miss used to lower to `LoweredUnreachable`, which
 // makes `midir` replace the whole entry block: the call, and often the function
@@ -31,8 +31,8 @@ import "vader/front/resolver"
 
 /// Publish the resolutions for every identifier inside `fd`'s default values.
 ///
-/// @param from  the module that declared `fd` — the resolutions come from here.
-/// @param into  the module importing it — the resolutions are copied here.
+/// @param from  the module that declared `fd`: the resolutions come from here.
+/// @param into  the module importing it: the resolutions are copied here.
 /// @param fd    the exported declaration whose defaults may name something.
 publish_default_resolutions :: fn(
     from: TypedProgram,

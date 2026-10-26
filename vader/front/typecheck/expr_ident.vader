@@ -6,7 +6,7 @@
 //     decl's declared type in `typed.decl_types` keyed by `name_span`.
 //   - Param → look up `typed.param_types` keyed by the parameter's
 //     own span (populated by `declare_fn`).
-//   - TypeParam → mk_type_param(sym) — type-param refs in value
+//   - TypeParam → mk_type_param(sym): type-param refs in value
 //     position are usable as the metatype value of that param.
 //   - BuiltinType → `type` (the metatype). A bare reference to a
 //     primitive name in expression context is a type-valued expr ;
@@ -65,11 +65,11 @@ export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sy
     .Local     -> lookup_in(sym, typed.local_types)
     .Binding   -> lookup_in(sym, typed.local_types)
     .TypeParam -> mk_type_param(sym)
-    // Bare type-name in value position is the metatype — the actual
+    // Bare type-name in value position is the metatype: the actual
     // primitive shape comes back via `type_from_expr` in type-demanding
     // slots. Lets `Foo :: f32 | f64` parse cleanly.
     .BuiltinType -> TY_TYPE
-    // ImportBinding / BuiltinFn / Impl / Synthetic carry no value type — see header.
+    // ImportBinding / BuiltinFn / Impl / Synthetic carry no value type, see header.
     .Impl          -> TY_UNRESOLVED
     .ImportBinding -> TY_UNRESOLVED
     .BuiltinFn     -> TY_UNRESOLVED
@@ -93,7 +93,7 @@ lookup_decl_in :: fn(sym: Symbol, table: MutableMap<i32, Type>) -> Type {
 /// Lookup with cross-module fallback : when the local `decl_types`
 /// misses (the symbol lives in another module), consult
 /// `typed.external_types` keyed by Symbol.id. When `sym.module` is
-/// a different module than the entry's, skip the local lookup entirely —
+/// a different module than the entry's, skip the local lookup entirely:
 /// `decl_types` is span-keyed (`line:col`) and two top-level decls at
 /// the same line:col in different files (e.g. entry's `JsonNumber` at
 /// L30:8 vs std/testing's `fail` at L30:8) would otherwise collide.
@@ -117,7 +117,7 @@ import "std/testing"
 import "vader/front/parser"
 import "vader/support/diagnostics"
 
-// Test harness — bundles parse + resolve + check. Returns the parsed
+// Test harness: bundles parse + resolve + check. Returns the parsed
 // program and the populated typed program ; tests reach into both.
 CheckedSrc :: struct {
     program: AST.Program
@@ -134,7 +134,7 @@ check_test_module :: fn(src: string) -> CheckedSrc {
 }
 
 // Look up the type of the first IdentExpr whose name matches `target`
-// inside the first decl's body. Walks one decl level deep — enough
+// inside the first decl's body. Walks one decl level deep: enough
 // for the test fixtures here.
 infer_ident_in_first_fn :: fn(src: string, target: string) -> string {
     checked :: check_test_module(src)
@@ -148,7 +148,7 @@ infer_ident_in_first_fn :: fn(src: string, target: string) -> string {
     }
 }
 
-// Name-keyed walker — kept local because `find_first_in_block`'s
+// Name-keyed walker: kept local because `find_first_in_block`'s
 // predicate signature `fn(Expr) -> Expr | null` doesn't carry the
 // captured target name. Vader's VM trips on closures capturing
 // string params today ; revisit after that's fixed.
@@ -165,7 +165,7 @@ scan_block_for_ident :: fn(b: AST.BlockExpr, target: string) -> AST.IdentExpr | 
 }
 
 scan_stmt_for_ident :: fn(s: AST.Stmt, target: string) -> AST.IdentExpr | null {
-    // @partial: test walker — only return / expr statements carry a scannable
+    // @partial: test walker, only return / expr statements carry a scannable
     // expression; let / assign / for / break / continue / defer are skipped.
     @partial match s {
         is AST.ReturnStmt -> {
@@ -231,7 +231,7 @@ main :: fn() -> i32 { return add(1, 2) }
 
 @test
 test_ident_unresolved_when_resolver_failed :: fn() -> void {
-    // `unknown` is not bound — resolver emits R2006, infer_ident sees
+    // `unknown` is not bound: resolver emits R2006, infer_ident sees
     // no entry in `resolved.idents` and returns Unresolved.
     assert_eq(infer_ident_in_first_fn("f :: fn() -> i32 { return unknown }", "unknown"), "?")
 }

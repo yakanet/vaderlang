@@ -8,7 +8,7 @@
 // `file:///c:/dir/f` ↔ `c:/dir/f`. The drive form carries an EXTRA leading
 // slash after the scheme (the path is `/c:/...`, not `c:/...`), so the two
 // conversions add / strip that slash. Without this, `uri_to_path` leaves a
-// stray leading `/` before the drive (`/c:/...`) — an invalid Windows path that
+// stray leading `/` before the drive (`/c:/...`): an invalid Windows path that
 // fails `exists()`, so `find_project_root` can't locate `vader.json` and the
 // whole project resolves against the binary-adjacent stdlib instead of the
 // workspace ; and `file://` + a Windows path yields `file://c:\...`, which the
@@ -21,7 +21,7 @@ import "std/path"
 
 /// Recover the filesystem path from a `file://` URI. Returns `""` for any
 /// non-`file://` URI (untitled buffers, `vader:` virtual docs, …), which every
-/// caller treats as "no on-disk file". Percent-escapes are decoded — VS Code
+/// caller treats as "no on-disk file". Percent-escapes are decoded: VS Code
 /// sends the Windows drive colon as `%3A` (`file:///c%3A/dir`), and any path
 /// with spaces / unicode arrives encoded. On Windows the decoded
 /// `file:///c:/dir` → `c:/dir` (the leading slash before the drive is dropped) ;
@@ -79,7 +79,7 @@ export path_to_uri :: fn(path: string) -> string {
     return "file:///" + p
 }
 
-// `/c:/...` — a leading slash, an ASCII letter, then `:` (a Windows drive path
+// `/c:/...`: a leading slash, an ASCII letter, then `:` (a Windows drive path
 // that picked up the URL's extra leading slash).
 is_drive_after_slash :: fn(s: string) -> bool {
     if s.byte_len() < 3 { return false }
@@ -101,7 +101,7 @@ import "std/testing"
 
 @test test_uri_path_roundtrip_windows :: fn() -> void {
     assert_eq(uri_to_path("file:///c:/dev/path.vader"), "c:/dev/path.vader")
-    // VS Code percent-encodes the drive colon as %3A — decode it
+    // VS Code percent-encodes the drive colon as %3A: decode it
     assert_eq(uri_to_path("file:///c%3A/dev/path.vader"), "c:/dev/path.vader")
     // and spaces as %20
     assert_eq(uri_to_path("file:///c%3A/my%20app/x.vader"), "c:/my app/x.vader")

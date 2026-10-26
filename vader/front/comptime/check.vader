@@ -44,7 +44,7 @@ export evaluate_project :: fn(
     evaluate_extern_libraries(typed, project, diags)
     // `instances` is the concrete generic-instance set the lowerer's
     // struct path materialises (`lower/mono_struct.vader`). The lowerer is the
-    // authoritative monomorphizer — there is no separate comptime mono pass.
+    // authoritative monomorphizer: there is no separate comptime mono pass.
     project.instances = harvest_instances(typed, loaded.entry)
     return project
 }
@@ -73,7 +73,7 @@ harvest_instances :: fn(typed: TypedProject, entry: string) -> GenericInstance[]
         }
         // Impl-method types live in `impl_methods` (mangled-name keyed, read
         // below) and `impl_method_decl_types` (span-keyed), not `decl_types`
-        // (Symbol.id-keyed — impl methods aren't in `resolved.symbols`).
+        // (Symbol.id-keyed: impl methods aren't in `resolved.symbols`).
         for [_, t] in module_typed.impl_method_decl_types {
             observe(registry, t)
         }
@@ -92,7 +92,7 @@ harvest_instances :: fn(typed: TypedProject, entry: string) -> GenericInstance[]
 }
 
 // Concatenate the decls of EVERY file in the module (a module may span several
-// files of one folder — `discover.vader` merges them). A `files[0]`-only read
+// files of one folder: `discover.vader` merges them). A `files[0]`-only read
 // drops a 2nd file's decls, so the comptime const-bake never folds a const
 // living there (e.g. a std/core formatter table moved to a sibling file) and its
 // readers emit an unreachable. Mirrors `lower.vader::module_decls`.
@@ -118,7 +118,7 @@ evaluate_module_decls :: fn(
         // The tree-walk gave up on a VM-evaluable shape (loop / mutation /
         // statement-bodied callee). Record the decl for the VM stage
         // (`pipeline/comptime_vm`, run once `evaluated` is complete) and suppress
-        // the C4001 — unless the RHS isn't a stageable nullary call, in which
+        // the C4001, unless the RHS isn't a stageable nullary call, in which
         // case the diagnostic stands.
         if result.vm_required {
             symbol :: symbol_declared_at(typed.resolved, decl.name_span)
@@ -147,7 +147,7 @@ evaluate_module_decls :: fn(
     // Second pass : best-effort fold of plain consts (no `@comptime`
     // decorator). Successful folds populate `comptime_decls` so the
     // lowerer can inline scalar use sites. Failures are silently
-    // swallowed — these decls don't promise comptime evaluability.
+    // swallowed: these decls don't promise comptime evaluability.
     for decl in decls {
         if decl is AST.ConstDecl {
             if has_comptime_decorator(decl) {

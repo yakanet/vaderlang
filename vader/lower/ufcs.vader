@@ -241,7 +241,7 @@ impl_lookup_type :: fn(surface: Type, receiver: Type) -> Type {
 }
 
 // Declared param types of a UFCS-resolved free fn, receiver slot first. Empty
-// when the symbol carries no fn type — arg preparation then leaves the call alone.
+// when the symbol carries no fn type: arg preparation then leaves the call alone.
 ufcs_param_types :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type[] {
     ft :: lookup_fn_type_anywhere(ctx, sym)
     if ft is FnType { return ft.params }
@@ -249,15 +249,15 @@ ufcs_param_types :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type[] {
 }
 
 // Assemble a UFCS call's argument list, every element prepared for the slot it
-// lands in (`helpers::prepare_value_for_slot`). Both UFCS branches — impl member
-// and free fn — build their args here so a method call and its equivalent free
+// lands in (`helpers::prepare_value_for_slot`). Both UFCS branches (impl member
+// and free fn) build their args here so a method call and its equivalent free
 // call lower identically ; they used to diverge, and only the receiver was ever
 // coerced, so an array argument reached an `Iterator<T>` param unwrapped.
 //
 // `first_slot` says where the call's own args start in `params` : 1 for a free fn,
 // whose `params[0]` is the receiver slot (and whose receiver is prepared for it
 // here) ; 0 for an impl member, whose recorded signature already dropped the
-// receiver (there is no slot to prepare it against — it is the impl's for-type).
+// receiver (there is no slot to prepare it against: it is the impl's for-type).
 // `target` is the receiver's node, where the typecheck filed its conversion.
 build_ufcs_args :: fn(
     ctx: FnLowerCtx,
@@ -284,7 +284,7 @@ build_ufcs_args :: fn(
 /// materialization. Every non-entry module is lowered lazily, so a referenced
 /// non-generic free fn is harvested here regardless of origin (stdlib or user).
 /// The entry module's own fns are seeded into `nongeneric_imported_fns` up front
-/// (`lower_project`) so they short-circuit on the seen-set check below — they
+/// (`lower_project`) so they short-circuit on the seen-set check below: they
 /// are already lowered eagerly and must not be harvested a second time. Dedup
 /// by `fn_symbol.id`.
 register_nongeneric_imported_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
@@ -342,7 +342,7 @@ ufcs_callee_symbol :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, fn_sym: Sy
 
 // Look up an evaluated module's `display_path` (the declared
 // `module "..."` name) from its module id. Returns null when the
-// module isn't in the evaluated project — callers default to the
+// module isn't in the evaluated project: callers default to the
 // raw module id in that case.
 lookup_module_display_path :: fn(ctx: FnLowerCtx, module_id: string) -> string | null {
     program :: ctx.project.evaluated.modules[module_id]
@@ -351,7 +351,7 @@ lookup_module_display_path :: fn(ctx: FnLowerCtx, module_id: string) -> string |
 }
 
 lookup_fn_type_anywhere :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
-    // `Symbol.module` carries the owning module id — direct lookup
+    // `Symbol.module` carries the owning module id: direct lookup
     // beats walking every evaluated module per UFCS call site.
     program :: ctx.project.evaluated.modules[sym.module] ?? return null
     if program is EvaluatedProgram {

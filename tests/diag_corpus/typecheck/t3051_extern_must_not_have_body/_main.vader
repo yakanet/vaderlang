@@ -1,4 +1,4 @@
-// `@extern` decl with a body — T3051.
+// `@extern` decl with a body: T3051.
 module "snippet"
 
 @extern("c_strlen")

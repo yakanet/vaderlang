@@ -61,7 +61,7 @@ add :: fn(registry: InstanceRegistry, symbol: Symbol, raw_args: Type[]) -> Gener
 /// Walk `t`, registering every `StructType` / `EnumType` / `TraitType`
 /// instance whose args list is non-empty AND made of resolved types
 /// (no `Unresolved` / `FreeInt` / `FreeFloat` / `Self`). TypeParam
-/// references are accepted — they appear in the snapshot as the bare
+/// references are accepted: they appear in the snapshot as the bare
 /// name (`T`).
 /// @param registry  the registry.
 /// @param t         the type to scan.
@@ -95,7 +95,7 @@ walk_type :: fn(registry: InstanceRegistry, t: Type) -> void {
     }
 }
 
-// Filter that allows TypeParam through — the registry stores `Range<T>`
+// Filter that allows TypeParam through: the registry stores `Range<T>`
 // etc. as observed alongside `Range<i32>`. Rejects only types that signal
 // "not yet resolved" or "free literal".
 all_concrete_enough :: fn(args: Type[]) -> bool {
@@ -107,7 +107,7 @@ all_concrete_enough :: fn(args: Type[]) -> bool {
 
 is_concrete_enough :: fn(t: Type) -> bool {
     // @partial: only the "not yet pinned" kinds (Unresolved / Free* / Self) are
-    // rejected; every other type — concrete or generic — counts as concrete enough.
+    // rejected; every other type (concrete or generic) counts as concrete enough.
     @partial match t {
         is UnresolvedType | FreeIntType | FreeCharType | FreeFloatType | SelfType -> { return false }
         _ -> { return true }

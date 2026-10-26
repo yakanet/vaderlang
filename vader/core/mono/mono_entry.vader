@@ -20,7 +20,7 @@ import "vader/core/types"
 /// identity by the bytecode emit, the C emitter, and the binary writer.
 export MonoEntry :: struct {
     /// Pipeline-stable numeric identity. Used by DCE root detection,
-    /// VM entry-point lookup, and the C emitter's `main()` shim — none
+    /// VM entry-point lookup, and the C emitter's `main()` shim: none
     /// of them re-parse `mangled` to recover the entry's role. Assigned
     /// monotonically at construction.
     id: i32
@@ -39,7 +39,7 @@ export MonoEntry :: struct {
     /// the same origin (different specialisations).
     decl: Decl
 
-    /// The decl's symbol, when applicable. `ImplDecl` has none — its
+    /// The decl's symbol, when applicable. `ImplDecl` has none: its
     /// members ship as separate entries.
     symbol: Symbol | null
 
@@ -63,7 +63,7 @@ export MonoEntry :: struct {
 }
 
 /// The vtable slot an impl member fills : its trait's `trait_key` and the
-/// method a `vcall` names — together the key `"${trait}.${method}"`.
+/// method a `vcall` names: together the key `"${trait}.${method}"`.
 export VtableSlot :: struct {
     trait_key:  string
     method: string

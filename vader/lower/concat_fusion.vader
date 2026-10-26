@@ -2,12 +2,12 @@
 //
 // `s = s + a` then `s = s + b` lowers to two `concat_N` calls, and each one is a
 // whole string construction: a right-sized byte buffer, one write per part, and
-// an atom-table intern of the result. The first result is then thrown away — the
+// an atom-table intern of the result. The first result is then thrown away: the
 // second call's only use of it is to copy its bytes again. Building the string
 // in k steps costs k buffers and k interns where one would do.
 //
-// So the pass rewrites `concat_M(concat_N(s, a…), b…)` — the shape the two
-// statements form — into `concat_{N+M-1}(s, a…, b…)`. It runs from
+// So the pass rewrites `concat_M(concat_N(s, a…), b…)` (the shape the two
+// statements form) into `concat_{N+M-1}(s, a…, b…)`. It runs from
 // `lower_block` right after each statement is lowered, which is what makes it
 // cheap and what keeps it safe: the two statements are ADJACENT by construction,
 // so nothing can read `s` between them, and a third append fuses against the
@@ -24,7 +24,7 @@ import "toolchain/span"
 import "vader/lower/ir"
 
 // One `s = s + …` append statement, destructured. `args` is the concat call's
-// full operand list — `args[0]` is the `s` being appended to, the rest is what
+// full operand list: `args[0]` is the `s` being appended to, the rest is what
 // this statement adds.
 CfAppend :: struct {
     span:   Span
@@ -38,7 +38,7 @@ CfAppend :: struct {
 /// it after every statement a block lowers: a run of k appends collapses to one
 /// concat by folding pairwise, left to right.
 ///
-/// @param ctx    the lowering context — `lower_concat_chain` mints the fused
+/// @param ctx    the lowering context: `lower_concat_chain` mints the fused
 ///               arity's `concat_N` through it.
 /// @param stmts  the block's statements so far ; rewritten in place.
 fuse_concat_tail :: fn(ctx: FnLowerCtx, stmts: LoweredStmt[]) -> void {
@@ -72,7 +72,7 @@ fuse_concat_tail :: fn(ctx: FnLowerCtx, stmts: LoweredStmt[]) -> void {
 
 // Destructure `s = concat_N(s, …)`, or `null` for anything else. The target must
 // be a plain local: a captured one is rebound by this very assignment, so it lives
-// in a cell, arrives as a `LoweredCellSet` and never reaches here — which is what rules out a closure
+// in a cell, arrives as a `LoweredCellSet` and never reaches here, which is what rules out a closure
 // observing the intermediate.
 //
 // The self-referential first argument is checked BEFORE `cf_is_concat_call`:
@@ -107,7 +107,7 @@ cf_append_of :: fn(ctx: FnLowerCtx, st: LoweredStmt) -> CfAppend | null {
 }
 
 // True when `call` is the synthesised `concat_N` for its own arity. Keyed on the
-// symbol id in `concat_fn_syms`, not on the mangle — the name is ours to change.
+// symbol id in `concat_fn_syms`, not on the mangle: the name is ours to change.
 cf_is_concat_call :: fn(ctx: FnLowerCtx, call: LoweredCall) -> bool {
     callee :: call.callee
     if !(callee is LoweredIdent) {

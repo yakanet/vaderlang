@@ -1,4 +1,4 @@
-# 0068 — A module keeps state in a singleton
+# 0068: A module keeps state in a singleton
 
 ## Status
 

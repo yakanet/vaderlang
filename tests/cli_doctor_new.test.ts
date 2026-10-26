@@ -1,15 +1,15 @@
 // The two project-level commands, end to end: `vader new` writes a project, and
 // `vader doctor` says whether one can be built here.
 //
-// They are pinned together because they are two halves of one answer — one says
-// the toolchain is sound, the other that the project is — and because a scaffold
+// They are pinned together because they are two halves of one answer (one says
+// the toolchain is sound, the other that the project is) and because a scaffold
 // is only worth anything if what it writes RUNS. That is the first test below,
 // and it is the reason this file spawns rather than unit-tests: the per-file
 // pieces (the templates, the target rules, the environment parsing) are covered
 // by colocated `@test`s in `vader/tools/cli/cmd_new.vader` and `cmd_doctor.vader`.
 // What only a spawn can show is the three files reaching the compiler.
 //
-// NOT in `cli_unknown_flag.test.ts`: that file pins the ARGUMENT BOUNDARY — one
+// NOT in `cli_unknown_flag.test.ts`: that file pins the ARGUMENT BOUNDARY, one
 // rule, applied to every action. This one pins what two actions do.
 
 import { test, expect } from "bun:test";
@@ -22,8 +22,8 @@ const REPO = resolve(".");
 
 // Where a scaffolded project finds `lib/` and `runtime/c/`, which it needs to
 // resolve `std/…` when the binary is not part of a `dist/` bundle. `$VADER_HOME`
-// says it directly, rather than planting symlinks Windows refuses to a plain user
-// — the same move `hook_driver.test.ts` makes, and for the same reason.
+// says it directly, rather than planting symlinks Windows refuses to a plain user:
+// the same move `hook_driver.test.ts` makes, and for the same reason.
 //
 // The two `$VADER_HOME` tests below set it deliberately and keep doing so:
 // `hermeticEnv` clears the variable, and applies its `extra` last.
@@ -39,7 +39,7 @@ test("`vader new` writes a project that runs", async () => {
     const created = await spawnCapture(["new", "my-app"], { cwd: workspace });
     expect(created.exit).toBe(0);
 
-    // The three files, and what each is for — the report is part of the
+    // The three files, and what each is for: the report is part of the
     // deliverable, since a scaffold nobody can read teaches nothing.
     const project = join(workspace, "my-app");
     expect(existsSync(join(project, "vader.json"))).toBe(true);
@@ -48,7 +48,7 @@ test("`vader new` writes a project that runs", async () => {
     expect(created.stdout).toContain("vader run .");
 
     // The manifest carries the directory's name, and the entry declares the
-    // module its folder is called — the one rule about the layout that nothing
+    // module its folder is called: the one rule about the layout that nothing
     // else in the toolchain states.
     expect(readFileSync(join(project, "vader.json"), "utf8")).toContain('"name": "my-app"');
     expect(readFileSync(join(project, "src/main.vader"), "utf8")).toContain('module "src"');
@@ -81,7 +81,7 @@ test("the two modes refuse different things", async () => {
     expect(named.exit).toBe(1);
     expect(named.stderr).toContain("not empty");
 
-    // IN PLACE, a non-empty directory is the normal case — you are adding a
+    // IN PLACE, a non-empty directory is the normal case: you are adding a
     // manifest to work already started.
     writeFileSync(join(workspace, "started.vader"), "");
     const inPlace = await spawnCapture(["new"], { cwd: workspace });
@@ -108,7 +108,7 @@ test("`vader doctor` reports a working toolchain, and its JSON is the documented
   const report = JSON.parse(json.stdout);
   expect(report.ok).toBe(true);
   expect(Array.isArray(report.checks)).toBe(true);
-  // `name` is the stable key — the summaries are prose and will drift.
+  // `name` is the stable key: the summaries are prose and will drift.
   const names = report.checks.map((c: { name: string }) => c.name);
   expect(names).toContain("cc");
   expect(names).toContain("library-root");
@@ -154,7 +154,7 @@ test("$VADER_HOME points a binary at a toolchain that is not beside it", async (
     expect(created.exit).toBe(0);
     const project = join(workspace, "elsewhere");
 
-    // No symlinks this time — nothing beside the project, nothing beside the
+    // No symlinks this time: nothing beside the project, nothing beside the
     // binary. Only the variable.
     const ran = await spawnCapture(["run", "src/main.vader"], {
       cwd: project,
@@ -249,11 +249,11 @@ test("each --build shape writes what it says, and only that", async () => {
   });
 }, MEDIUM_BUILD);
 
-// The mistake a first hand-written file makes — no `module "…"` line. Two codes
+// The mistake a first hand-written file makes: no `module "…"` line. Two codes
 // fire and NEITHER is pinned anywhere else: the `diag_corpus` harness provokes a
 // diagnostic with `vader dump`, and `dump` does not surface the loader's, so a
 // fixture there snapshots an empty report. Same shape as the `H6xxx` exception
-// (`hook_driver.test.ts`) — asserted explicitly rather than taught to a uniform
+// (`hook_driver.test.ts`): asserted explicitly rather than taught to a uniform
 // harness.
 //
 // R2020 names the cause. R2001 is its consequence, and it carries the sentence

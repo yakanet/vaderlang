@@ -1,5 +1,5 @@
 // A `defer` or a lambda inside an unrolled `@comptime for` reads the loop
-// variable as the literal of its own copy of the body — it has no runtime slot to
+// variable as the literal of its own copy of the body: it has no runtime slot to
 // capture. Nested lambdas see it too, and a runtime local is still captured
 // beside it.
 

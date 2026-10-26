@@ -1,4 +1,4 @@
-# 0088 — A loop variable is a constant binding
+# 0088: A loop variable is a constant binding
 
 ## Status
 

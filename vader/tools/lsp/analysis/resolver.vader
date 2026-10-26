@@ -3,9 +3,9 @@
 // When a click falls on a name that doesn't resolve in the current
 // document, we look for it where the compiler would : the other files of the
 // document's module, the file's import bindings, the prelude, then the
-// wildcard imports. A module is found as the loader finds it — `search_roots`
+// wildcard imports. A module is found as the loader finds it, `search_roots`
 // gives the roots in the loader's order and `resolve_lazy` the folder whose
-// files declare that module — and each candidate file is parsed + indexed to
+// files declare that module, and each candidate file is parsed + indexed to
 // locate the decl.
 
 module "vader/tools/lsp/analysis"
@@ -38,7 +38,7 @@ export ExternalHit :: struct {
 ///                      not a top-level one anywhere. Only true when the cursor
 ///                      actually follows a dot: without the gate the search
 ///                      fires on ordinary identifiers, and a parameter named
-///                      `decls` jumped to `DocIndex.decls` — a field it has
+///                      `decls` jumped to `DocIndex.decls`: a field it has
 ///                      nothing to do with. It also costs a full re-read of
 ///                      every wildcard module plus `std/core` (79 files, 1.2 MB
 ///                      for `lower/expr.vader`), which a miss should not pay.
@@ -64,7 +64,7 @@ export resolve :: fn(
     // The prelude answers where nothing of the file does, ahead of any wildcard.
     prelude :: find_in_module(state, roots.paths, PRELUDE_MODULE, name, true)
     if prelude != null { return prelude }
-    // A wildcard import binds no `ImportEntry` — search each wildcard-imported
+    // A wildcard import binds no `ImportEntry`: search each wildcard-imported
     // module for an export of this name. First hit wins ; a name two of them
     // export is an R2031 compile error anyway, so any provider is acceptable for
     // goto / hover.
@@ -78,11 +78,11 @@ export resolve :: fn(
     if !allow_member {
         return null
     }
-    // Still nothing — the name may be a MEMBER: a method or a struct field,
+    // Still nothing, so the name may be a MEMBER: a method or a struct field,
     // i.e. whatever sits after a dot. Every strategy above hunts a top-level
     // name that a module EXPORTS, and a member is neither: a trait method lives
     // in its trait's body, a field in its struct's. Measured dead for `push`,
-    // `len`, `push_all` and `e.cond` — the form most of this tree is written in.
+    // `len`, `push_all` and `e.cond`: the form most of this tree is written in.
     return resolve_member(state, roots.paths, idx, name)
 }
 
@@ -92,7 +92,7 @@ PRELUDE_MODULE :: "std/core"
 // Search for a member named `name`: first the wildcard-imported modules, then
 // the prelude.
 //
-// The prelude is searched even though nothing imports it — it is where the
+// The prelude is searched even though nothing imports it: it is where the
 // methods of the BUILT-IN receivers live (`i32[]`, `string`, `MutableMap`). A
 // user struct's methods come through the wildcard pass or the in-document index;
 // the built-ins have no import to follow, which is why they were the ones that
@@ -162,7 +162,7 @@ find_in_module :: fn(
 }
 
 /// The first of `files` whose index answers `query`, each read through the
-/// overlay — the open document's unsaved text first, the disk second.
+/// overlay: the open document's unsaved text first, the disk second.
 ///
 /// The overlay is not optional : `def_response` encodes the returned span with
 /// `line_index_for_path`, which reads the overlay too, so reading the disk here
@@ -171,7 +171,7 @@ find_in_module :: fn(
 ///
 /// @param state  the server state, for the overlay and the position encoding.
 /// @param files  the candidate files, in search order.
-/// @param skip   a file to pass over — the document already searched — or `""`.
+/// @param skip   a file to pass over (the document already searched) or `""`.
 /// @param query  the decl to look for in one file's index.
 export first_in_files :: fn(
     state: ServerState, files: string[], skip: string, query: fn(DocIndex) -> DeclEntry | null,
@@ -212,7 +212,7 @@ project_of_document :: fn(path: string) -> string | null = find_project_root(pat
 /// document belongs to. Null for a URI that names no file.
 ///
 /// Absolute because a target becomes a URI, and `path_to_uri("lib/…")` reads as
-/// root-absolute to the editor ("file not found") — the loader falls back to a
+/// root-absolute to the editor ("file not found"): the loader falls back to a
 /// cwd-relative `lib` when no bundle sits beside the binary.
 ///
 /// @param state  carries the host's roots, searched first (`include_flags`).
@@ -233,7 +233,7 @@ export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | nu
     return SearchRoots { ...roots, .paths = paths }
 }
 
-/// The module `name` names when searched in `paths` — the folder of the first
+/// The module `name` names when searched in `paths`: the folder of the first
 /// root whose files declare it, with those files in the loader's order, the
 /// documents open in the editor included. Null when no root holds it.
 ///

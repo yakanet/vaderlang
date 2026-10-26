@@ -1,4 +1,4 @@
-# 0021 — The Windows CI builds with clang, and `CC` is read by `vader build`
+# 0021: The Windows CI builds with clang, and `CC` is read by `vader build`
 
 ## Status
 

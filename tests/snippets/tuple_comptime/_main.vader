@@ -2,7 +2,7 @@ module "snippet"
 
 import "std/io"
 
-// Comptime tuple values — the comptime VM materialises a Tuple result
+// Comptime tuple values: the comptime VM materialises a Tuple result
 // into a `ComptimeValue.struct` (with synthetic `_0`, `_1`, … field
 // names) and the lowerer re-emits it as a `LoweredStructLit` at every
 // inline site, just like a regular struct const. Typed top-level const

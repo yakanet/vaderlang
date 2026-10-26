@@ -1,8 +1,8 @@
-// A project whose driver generates part of it — both ways round.
+// A project whose driver generates part of it: both ways round.
 //
 // `describe_Point` comes from a generated module this file IMPORTS. `describe`
 // comes from a generated file that joined THIS module, so there is no import for
-// it and it can take `Point` by type — which an imported module could not, since
+// it and it can take `Point` by type, which an imported module could not, since
 // it would have to import `app` back and that is a cycle.
 
 module "app"
@@ -25,7 +25,7 @@ main :: fn() -> i32 {
 //
 // Both shapes of generation, asserted in Vader: `describe_Point` comes from a
 // generated module this file IMPORTS, `describe` from a generated file that
-// JOINED this module. Neither exists until the driven build has run — before it,
+// JOINED this module. Neither exists until the driven build has run: before it,
 // these two lines are `R2006`, and an EDITOR will flag them for the same reason:
 // nothing that comes out of a build is committed, so there is no tree on disk for
 // it to resolve through. `generated.snapshot` beside this file carries the
@@ -41,6 +41,6 @@ test_generated_module_is_callable :: fn() -> void {
 @test
 test_generated_same_module_decl_takes_the_local_type :: fn() -> void {
     // The reason this shape has to exist: `describe` names `Point`, so it cannot
-    // live in an imported module — that module would have to import `app` back.
+    // live in an imported module: that module would have to import `app` back.
     assert_eq(describe(Point { .x = 1, .y = 2 }), "Point = 1 + 2")
 }

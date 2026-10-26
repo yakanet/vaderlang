@@ -21,8 +21,8 @@ import "vader/midir"
 //
 // A function reachable as a value keeps its name, its signature and its vtable
 // slot, and forwards to a copy that carries the scalarised shape. The forwarding
-// body is an ordinary call, so the call-site rewrite rebuilds the object for it
-// — no bespoke code.
+// body is an ordinary call, so the call-site rewrite rebuilds the object for it:
+// no bespoke code.
 scalarised_forms :: fn(f: CFGFunction, shape: ReturnShape | null) -> CFGFunction[] {
     if shape == null {
         return [f]
@@ -40,7 +40,7 @@ scalarised_forms :: fn(f: CFGFunction, shape: ReturnShape | null) -> CFGFunction
 
 // `f` under the copy's name, and findable ONLY by that name.
 //
-// A function has TWO identities here — its mangle and its `origin.symbol.id` —
+// A function has TWO identities here (its mangle and its `origin.symbol.id`)
 // and `emit/bytecode/emit` registers both (`function_index_by_symbol_id[sym.id]`) then
 // resolves a callee by symbol id when the mangle probe misses. Renaming only the
 // mangle leaves the copy answering to the original's id as well, so both land in
@@ -98,7 +98,7 @@ forwarding_body :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction {
 //
 // It cannot collide with a real one. A mangle is `module$name` or
 // `module$Type$Trait$method`, and every segment before the last names a module,
-// a type or a trait — never a function. So `<some function's mangle>$v` is not a
+// a type or a trait, never a function. So `<some function's mangle>$v` is not a
 // shape the mangler can produce, whatever a source function is called.
 scalarised_copy_mangle :: fn(mangled: string) -> string = "${mangled}\$v"
 
@@ -107,13 +107,13 @@ scalarised_copy_mangle :: fn(mangled: string) -> string = "${mangled}\$v"
 //
 // A fn value, a callback address and a vtable row all promise ONE signature to a
 // site that cannot see which function it holds. Changing that function's shape
-// would break them — so the function keeps its name, its signature and its slot,
+// would break them, so the function keeps its name, its signature and its slot,
 // and forwards to a copy that carries the scalarised shape. Direct calls go to
 // the copy; everything reached as a value still finds the original.
 //
 // The walk comes FIRST, and the decision after it: `callers` then means "this
-// body calls a candidate" and nothing else, so a copy — which carries the
-// original's body — inherits the flag only when it is actually true.
+// body calls a candidate" and nothing else, so a copy (which carries the
+// original's body) inherits the flag only when it is actually true.
 plan_forwarding :: fn(
     p: CFGProject, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
     callers: MutableSet<string>,
@@ -125,7 +125,7 @@ plan_forwarding :: fn(
     }
     // The one instruction walk. It records which functions CALL a candidate, so
     // the rewrite needs no second scan to find them, and which candidates are
-    // called DIRECTLY — a candidate reached only as a value has nothing to gain
+    // called DIRECTLY: a candidate reached only as a value has nothing to gain
     // from a copy, and would put a dead function through emit and codegen.
     for [_, m] in p.modules {
         for f in m.functions {
@@ -209,7 +209,7 @@ mark_forwarding :: fn(
     chosen[mangled] = ReturnShape { ...shape, .forward_to = copy_mangle }
     // The copy answers to a name of its own: `emit/bytecode/emit` resolves a callee by
     // mangle FIRST, so the wrapper's call finds it under this key. Its shape is
-    // the original's — the guard above already proved `forward_to` null.
+    // the original's: the guard above already proved `forward_to` null.
     chosen[copy_mangle] = shape
     // The copy carries the original's body, so it calls whatever that called.
     if mangled in callers {
@@ -221,13 +221,13 @@ mark_forwarding :: fn(
 
 // The callee a forwarded call names: the original symbol under the copy's name.
 //
-// Spread rather than built from scratch — a symbol carries a module identity and
+// Spread rather than built from scratch: a symbol carries a module identity and
 // a visibility this pass has no business inventing, and only the name is what
 // resolution reads.
 //
 // The id is KEPT, deliberately. `emit/bytecode/emit` probes the mangle first and finds
 // the copy there; the id is the fallback, and the original's still names the
-// wrapper — which has the signature this call site was compiled against, so a
+// wrapper, which has the signature this call site was compiled against, so a
 // missed probe degrades to a correct call rather than a wrong one. A sentinel
 // would not: `-1` is the first id `lower` mints for a lifted lambda.
 forwarded_symbol :: fn(sym: Symbol, copy_mangle: string) -> Symbol =
@@ -236,7 +236,7 @@ forwarded_symbol :: fn(sym: Symbol, copy_mangle: string) -> Symbol =
 // Symbol id → mangle, for the chosen functions only.
 //
 // `emit/bytecode/emit` resolves a callee by mangle FIRST and by symbol id second, and a
-// call site carries whichever the lowerer put there — an impl member carries its
+// call site carries whichever the lowerer put there: an impl member carries its
 // mangle with a synthetic id 0, a free fn its bare name. Resolving only one way
 // is how a call site keeps the old shape while its callee changed.
 fill_mangles_by_symbol_id :: fn(

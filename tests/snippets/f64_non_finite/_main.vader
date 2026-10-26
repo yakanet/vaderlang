@@ -1,4 +1,4 @@
-// Comptime-folded IEEE non-finite f64 constants — `inf` / `-inf` / `nan` — must
+// Comptime-folded IEEE non-finite f64 constants (`inf` / `-inf` / `nan`) must
 // emit valid C. The float literal emitter renders them via compiler builtins
 // (`__builtin_inf()` / `__builtin_nan("")`), not the bare words `inf` / `nan`
 // that a C compiler reads as undeclared identifiers.

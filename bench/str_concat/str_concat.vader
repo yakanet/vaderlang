@@ -1,4 +1,4 @@
-/// String concatenation hot loop — builds a 13-byte string by repeated `+`
+/// String concatenation hot loop: builds a 13-byte string by repeated `+`
 /// (`s = s + "..."`), 300 000 times. On `feat/target-abi` the `+` lowers to the
 /// pure-Vader Buffer-backed concat rather than `main`'s `vader_string_concat`
 /// host intrinsic, so this measures the off-runtime concat path.

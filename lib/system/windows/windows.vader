@@ -12,7 +12,7 @@ import "std/ffi"
 /// `kernel32.dll` to find them, and `<windows.h>` declares them.
 KERNEL32 :: CLibrary { .name = "kernel32", .header = "<windows.h>" }
 
-/// A Win32 `HANDLE` — an opaque kernel object, never dereferenced.
+/// A Win32 `HANDLE`: an opaque kernel object, never dereferenced.
 export Handle :: CPointer
 
 /// `nStdHandle` selectors. `DWORD` is unsigned, so the negative constants are
@@ -32,7 +32,7 @@ export STD_INPUT_HANDLE: u32 : 0xFFFF_FFF6
 @extern(KERNEL32, "GetStdHandle")
 export get_std_handle :: fn(which: u32) -> Handle
 
-/// `ALL_PROCESSOR_GROUPS` — asks `GetActiveProcessorCount` for every group, not
+/// `ALL_PROCESSOR_GROUPS`: asks `GetActiveProcessorCount` for every group, not
 /// just the caller's (a group holds at most 64 processors).
 export ALL_PROCESSOR_GROUPS: u16 : 0xFFFF
 
@@ -67,7 +67,7 @@ export set_current_directory :: fn(path: u16[]) -> i32
 
 /// `GetTempPathW`. Writes the temp directory, trailing backslash included, into
 /// `buf`. Returns its length, 0 on failure, or a length >= `size` when `buf` is
-/// too small — in both of which cases nothing usable was written.
+/// too small: in both of which cases nothing usable was written.
 ///
 /// @param size  `buf`'s capacity in UTF-16 UNITS, not bytes.
 /// @param buf   receives the path, NUL-terminated.
@@ -75,7 +75,7 @@ export set_current_directory :: fn(path: u16[]) -> i32
 @extern(KERNEL32, "GetTempPathW")
 export get_temp_path :: fn(size: u32, @c_out buf: u16[]) -> u32
 
-/// `CreateDirectoryW`. False on failure, `ERROR_ALREADY_EXISTS` included — the
+/// `CreateDirectoryW`. False on failure, `ERROR_ALREADY_EXISTS` included: the
 /// caller re-tests the path rather than reading `GetLastError`.
 ///
 /// @param path      directory to create.
@@ -83,7 +83,7 @@ export get_temp_path :: fn(size: u32, @c_out buf: u16[]) -> u32
 @extern(KERNEL32, "CreateDirectoryW")
 export create_directory :: fn(path: u16[], security: CPointer | null) -> bool
 
-/// `FILE_ATTRIBUTE_DIRECTORY` — set when the entry is a directory.
+/// `FILE_ATTRIBUTE_DIRECTORY`: set when the entry is a directory.
 export FILE_ATTRIBUTE_DIRECTORY: u32 : 0x10
 
 /// What `GetFileAttributesW` returns for a path it cannot query.
@@ -106,7 +106,7 @@ export GET_FILE_EX_INFO_STANDARD: i32: 0
 export get_file_attributes_ex :: fn(path: u16[], level: i32, @c_out data: u32[]) -> bool
 
 /// `GetFileAttributesW`. `INVALID_FILE_ATTRIBUTES` when the path cannot be
-/// queried — which is how existence is tested, there being no `access` here.
+/// queried, which is how existence is tested, there being no `access` here.
 ///
 /// @param path  the path to query.
 /// @return      the attribute bitmask, or `INVALID_FILE_ATTRIBUTES`.
@@ -123,7 +123,7 @@ export delete_file :: fn(path: u16[]) -> i32
 
 /// `GetLastError`. The calling thread's last Win32 error code.
 ///
-/// ⚠️ Read it IMMEDIATELY after the call that failed — any Win32 call in
+/// ⚠️ Read it IMMEDIATELY after the call that failed: any Win32 call in
 /// between may overwrite it.
 ///
 /// @return the raw Win32 code ; 0 when nothing has failed.
@@ -142,7 +142,7 @@ export ERROR_DISK_FULL: u32: 112
 export ERROR_DIR_NOT_EMPTY: u32: 145
 export ERROR_ALREADY_EXISTS: u32: 183
 
-/// `WriteFile`. False on failure — the caller reads `GetLastError`.
+/// `WriteFile`. False on failure: the caller reads `GetLastError`.
 ///
 /// `written` is Win32's `lpNumberOfBytesWritten`, which a synchronous call may
 /// NOT pass as null.
@@ -155,7 +155,7 @@ export ERROR_ALREADY_EXISTS: u32: 183
 /// @param buf         the bytes to write.
 /// @param count       how many of them.
 /// @param written     scratch the callee fills with the byte count; unread.
-/// @param overlapped  always null here — this is the synchronous form.
+/// @param overlapped  always null here: this is the synchronous form.
 /// @return            whether the write succeeded.
 @extern(KERNEL32, "WriteFile")
 export write_file :: fn(h: Handle, buf: u8[], count: u32,
@@ -168,7 +168,7 @@ export write_file :: fn(h: Handle, buf: u8[], count: u32,
 // Every LENGTH below is in UTF-16 UNITS, which for a `u16[]` is also the
 // buffer's length -- not its size in bytes.
 
-/// `CP_UTF8` — the code page identifier for UTF-8.
+/// `CP_UTF8`: the code page identifier for UTF-8.
 export CP_UTF8: u32 : 65001
 
 /// `MultiByteToWideChar`. With `src_len` of `-1` the input is read up to its NUL
@@ -206,22 +206,22 @@ export GENERIC_READ: u32 : 0x8000_0000
 /// See `GENERIC_READ`.
 export GENERIC_WRITE: u32 : 0x4000_0000
 
-/// `dwShareMode` — let other readers in while we hold the file.
+/// `dwShareMode`: let other readers in while we hold the file.
 export FILE_SHARE_READ: u32 : 0x1
 
 /// See `FILE_SHARE_READ`.
 export FILE_SHARE_WRITE: u32 : 0x2
 
-/// `dwCreationDisposition` — truncate an existing file, create it otherwise.
+/// `dwCreationDisposition`: truncate an existing file, create it otherwise.
 export CREATE_ALWAYS: u32 : 2
 
-/// See `CREATE_ALWAYS` — open only what already exists.
+/// See `CREATE_ALWAYS`: open only what already exists.
 export OPEN_EXISTING: u32 : 3
 
-/// `dwFlagsAndAttributes` — no special semantics.
+/// `dwFlagsAndAttributes`: no special semantics.
 export FILE_ATTRIBUTE_NORMAL: u32 : 0x80
 
-/// `CreateFileW`. Returns `INVALID_HANDLE_VALUE` on failure — test it with
+/// `CreateFileW`. Returns `INVALID_HANDLE_VALUE` on failure: test it with
 /// `i64(h) == INVALID_HANDLE`, never against null.
 ///
 /// Unlike `fopen` there is no text mode, so nothing ever rewrites a `\n`.
@@ -238,8 +238,8 @@ export create_file_w :: fn(path: u16[], access: u32, share: u32,
 ///
 /// An OPAQUE buffer: Vader never looks inside it, `FindFirstFileW` fills it and
 /// `find_data_name` reads the one member a listing needs. Nothing checks this
-/// number — the callee writes `sizeof(WIN32_FIND_DATAW)` bytes whatever it says
-/// — so it is taken HIGH on purpose. The real size is 592 on x86_64 (measured
+/// number (the callee writes `sizeof(WIN32_FIND_DATAW)` bytes whatever it says)
+/// so it is taken HIGH on purpose. The real size is 592 on x86_64 (measured
 /// against the mingw headers, and it is 320 for the ANSI twin); over-reserving
 /// wastes a few hundred bytes on the stack, under-reserving corrupts.
 ///
@@ -248,7 +248,7 @@ export FIND_DATA_BYTES: i64: 1024
 
 /// `FindFirstFileW`. The pattern is a directory path with `\*` appended.
 ///
-/// Returns `INVALID_HANDLE_VALUE` on failure — test it with
+/// Returns `INVALID_HANDLE_VALUE` on failure: test it with
 /// `i64(h) == INVALID_HANDLE`, never against null.
 ///
 /// @param pattern  a NUL-terminated UTF-16 glob, from `to_wide`.
@@ -274,7 +274,7 @@ export find_close :: fn(handle: Handle) -> bool
 ///
 /// The Windows twin of `system/posix::dirent_name`, and it exists for the same
 /// reason: reading a NAMED member of a C struct is the one step a Vader FFI call
-/// cannot take for itself. It has to be a CALL, not a read of the struct — the
+/// cannot take for itself. It has to be a CALL, not a read of the struct: the
 /// interpreter has no C layout but resolves an `@extern` by name out of the
 /// running process. It carries the UTF-16 to UTF-8 conversion with it.
 ///
@@ -286,14 +286,14 @@ export find_close :: fn(handle: Handle) -> bool
 @extern("vader_find_data_name")
 export find_data_name :: fn(data: u8[]) -> string
 
-/// `COORD` — a console cell position or size.
+/// `COORD`: a console cell position or size.
 ///
 /// Field names are the C ones because a mirror copies BY NAME; the snake_case
 /// rule does not reach across the boundary.
 @c_struct("COORD")
 export Coord :: struct { X: i16, Y: i16 }
 
-/// `SMALL_RECT` — an inclusive rectangle of console cells.
+/// `SMALL_RECT`: an inclusive rectangle of console cells.
 @c_struct("SMALL_RECT")
 export SmallRect :: struct { Left: i16, Top: i16, Right: i16, Bottom: i16 }
 
@@ -322,7 +322,7 @@ export get_console_screen_buffer_info :: fn(
 
 /// `PeekNamedPipe`. Reports how many bytes are readable WITHOUT consuming them.
 ///
-/// It works on an anonymous pipe too, despite the name — which is what makes it
+/// It works on an anonymous pipe too, despite the name, which is what makes it
 /// the console-less way to ask "is there input". False when the handle is not a
 /// pipe (a console, a redirected file) or the peer closed it; a caller reads that
 /// as "go ahead and read", never as "idle".
@@ -342,10 +342,10 @@ export sleep_ms :: fn(ms: u32) -> void
 
 // ---- subprocess ------------------------------------------------------------
 
-/// `STARTF_USESTDHANDLES` — `hStdInput` / `hStdOutput` / `hStdError` are used.
+/// `STARTF_USESTDHANDLES`: `hStdInput` / `hStdOutput` / `hStdError` are used.
 export STARTF_USESTDHANDLES: u32 : 0x0100
 
-/// `WAIT_OBJECT_0` — the object is signalled, i.e. the process has exited.
+/// `WAIT_OBJECT_0`: the object is signalled, i.e. the process has exited.
 export WAIT_OBJECT_0: u32 : 0
 
 /// `INFINITE`: a wait with no timeout.
@@ -353,11 +353,11 @@ export INFINITE: u32 : 0xFFFF_FFFF
 
 /// `SECURITY_ATTRIBUTES`, mirrored for the two members a pipe needs.
 ///
-/// EVERY member, in order — not a prefix of the useful ones. The interpreter
+/// EVERY member, in order, not a prefix of the useful ones. The interpreter
 /// lays a mirror out from its DECLARED fields alone, at natural alignment from
 /// zero, so skipping `lpSecurityDescriptor` put `bInheritHandle` at 4 where C
 /// has it at 16: the callee read a zero, made the pipe non-inheritable, and
-/// reported success. Native was unaffected — the shim copies by name — which is
+/// reported success. Native was unaffected (the shim copies by name) which is
 /// exactly what kept it invisible. The offset `_Static_assert` catches it now.
 ///
 /// `lpSecurityDescriptor` is a `u64` because it is RESERVED, never read: it
@@ -373,13 +373,13 @@ export SecurityAttributes :: struct {
 /// `STARTUPINFOA`, mirrored for the members a redirected child needs.
 ///
 /// EVERY member up to `hStdError`, for the reason spelled out on
-/// `SecurityAttributes` — eleven precede `dwFlags` in the real struct, and
+/// `SecurityAttributes`: eleven precede `dwFlags` in the real struct, and
 /// naming only the useful ones put every one of them at the wrong offset in the
 /// interpreter's block.
 ///
 /// The reserved ones are machine words that stay zero, which is what
 /// `CreateProcess` expects of a plain console child. `cb` must be
-/// `sizeof(STARTUPINFOA)` — 104 on x86_64 — and is the one member the callee
+/// `sizeof(STARTUPINFOA)` (104 on x86_64) and is the one member the callee
 /// validates.
 @c_struct("STARTUPINFOA")
 export StartupInfo :: struct {
@@ -403,7 +403,7 @@ export StartupInfo :: struct {
     hStdError:       Handle
 }
 
-/// `PROCESS_INFORMATION` — what `CreateProcess` hands back.
+/// `PROCESS_INFORMATION`: what `CreateProcess` hands back.
 @c_struct("PROCESS_INFORMATION")
 export ProcessInformation :: struct {
     hProcess:    Handle
@@ -441,7 +441,7 @@ export HANDLE_FLAG_INHERIT: u32 : 1
 /// `SetHandleInformation`. Used to CLEAR the inherit flag on a pipe's read end.
 ///
 /// The pipe is created inheritable so the child receives its write end; without
-/// this the child — and every sibling launched after it — also receives the READ
+/// this the child (and every sibling launched after it) also receives the READ
 /// ends, which are the parent's alone.
 ///
 /// @param h      the handle to adjust.
@@ -456,14 +456,14 @@ export set_handle_information :: fn(h: Handle, mask: u32, flags: u32) -> bool
 /// The ANSI form: the argument vector is one command line by then, and the wide
 /// form would need it widened for nothing the child can see.
 ///
-/// @param application   null — the program is the first word of the line.
+/// @param application   null: the program is the first word of the line.
 /// @param command_line  the whole command line, which the callee MODIFIES.
 /// @param proc_attrs    null.
 /// @param thread_attrs  null.
 /// @param inherit       true, so the child receives the pipe ends.
 /// @param flags         0.
-/// @param environment   null — inherit the parent's.
-/// @param directory     null — inherit the parent's.
+/// @param environment   null: inherit the parent's.
+/// @param directory     null: inherit the parent's.
 /// @param startup       the redirected handles.
 /// @param info          filled with the child's handles and ids.
 @extern(KERNEL32, "CreateProcessA")
@@ -495,8 +495,8 @@ export get_exit_code_process :: fn(h: Handle, @c_out code: u32[]) -> bool
 @extern(KERNEL32, "TerminateProcess")
 export terminate_process :: fn(h: Handle, code: u32) -> bool
 
-/// Console INPUT mode bits raw mode turns off — line buffering, echo, and the
-/// translation of Ctrl-C into a signal — plus the one it turns on, so escape
+/// Console INPUT mode bits raw mode turns off (line buffering, echo, and the
+/// translation of Ctrl-C into a signal) plus the one it turns on, so escape
 /// sequences arrive as bytes.
 export ENABLE_PROCESSED_INPUT: u32 : 0x0001
 export ENABLE_LINE_INPUT: u32 : 0x0002
@@ -507,14 +507,14 @@ export ENABLE_VIRTUAL_TERMINAL_INPUT: u32 : 0x0200
 /// it set do escapes render rather than print literally.
 export ENABLE_VIRTUAL_TERMINAL_PROCESSING: u32 : 0x0004
 
-/// `GetConsoleMode`. False when the handle is not a console — which is also how
+/// `GetConsoleMode`. False when the handle is not a console, which is also how
 /// a caller tests for one, a redirected stream having no mode to read.
 ///
 /// @param mode  receives the current mode; a one-element array so it reads back.
 @extern(KERNEL32, "GetConsoleMode")
 export get_console_mode :: fn(h: Handle, @c_out mode: u32[]) -> bool
 
-/// `SetConsoleMode`. False on failure — an old console refusing a mode bit it
+/// `SetConsoleMode`. False on failure: an old console refusing a mode bit it
 /// does not know, which is what tells a caller ANSI is unavailable.
 @extern(KERNEL32, "SetConsoleMode")
 export set_console_mode :: fn(h: Handle, mode: u32) -> bool
@@ -523,7 +523,7 @@ export set_console_mode :: fn(h: Handle, mode: u32) -> bool
 /// short of `count` has reached end of file.
 ///
 /// @param read        receives the byte count; a one-element array so it reads
-///                    back — Win32 forbids null here on a synchronous call.
+///                    back: Win32 forbids null here on a synchronous call.
 /// @param overlapped  always null: this is the synchronous form.
 @extern(KERNEL32, "ReadFile")
 export read_file :: fn(h: Handle, @c_out buf: u8[], count: u32, @c_out read: u32[],

@@ -66,12 +66,12 @@ lower_for_in :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor) -
 
     // THE FALL. Every fast path above declined, so this `for` steps the `Iterator`
     // impl: one `next()` call per iteration instead of an inlined loop. That is
-    // correct and it is what the language promises — but it is also the single
+    // correct and it is what the language promises, but it is also the single
     // point where the recognisers stop, so it is the one worth counting.
     //
     // Say what is actually left, and no more. The call is usually a DIRECT one
     // (the receiver's concrete type is known by the time the backend emits it),
-    // and the step pair usually crosses in registers (`midir/value_return`) —
+    // and the step pair usually crosses in registers (`midir/value_return`):
     // a reader told "vtable" or "allocation" goes looking for something that is
     // not in the C.
     record_miss(ctx.project, "for-in fusion", span,
@@ -98,7 +98,7 @@ lower_for_in :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor) -
     // union : emit a single `unreachable` rather than a `next()` nothing
     // materialised. The typechecker refused the receiver (T3088) unless it was a
     // type parameter or `Self`, only known here per instance, or a string, which
-    // iterates only when its `Iterator` impl is in scope — those are M5001.
+    // iterates only when its `Iterator` impl is in scope: those are M5001.
     if iter_type is PrimitiveType | RangeType | UnionType {
         checked :: ctx.types.raw_expr_type(in_form.iter)
         if is_string_type(iter_type) || checked is TypeParamType | SelfType {
@@ -184,7 +184,7 @@ lower_for_in :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor) -
 // loop by its iteration variable recorded that variable in `loop_target_labels`
 // (typecheck) ; the break carries the same name, so stamping it here makes the
 // backend / block-split resolve the jump. Otherwise the loop keeps its pristine
-// user label (`name:` prefix, usually null for a for-in — see W0010).
+// user label (`name:` prefix, usually null for a for-in, see W0010).
 resolve_loop_label :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt) -> string | null {
     injected :: ctx.typed.loop_target_labels[for_stmt.id]
     return instance_label(ctx, if injected != null { injected } else { for_stmt.label })
@@ -199,7 +199,7 @@ build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
 // Build the per-iteration loop-var binding stmt(s). A plain `for x in …` yields
 // a single `let`, which no body rebinds (T3041), so a closure copies its value. A
 // destructuring `for [k, v] in …` (`pattern != null`) binds the element to a temp
-// then destructures it into the pattern leaves — the exact shape a
+// then destructures it into the pattern leaves: the exact shape a
 // `let [k, v] := <element>` lowers to (reuses `emit_let_binding_leaves` ; the k/v
 // symbols were minted by the resolver). Returns a list so every bind site splices it.
 bind_loop_var :: fn(
@@ -221,7 +221,7 @@ bind_loop_var :: fn(
 }
 
 // The `let <pattern> := <elem_sym>` destructure stmts for a `for [k, v]` loop
-// variable — the leaves the resolver minted for the pattern, bound to the
+// variable: the leaves the resolver minted for the pattern, bound to the
 // element temp's fields (reuses the let-destructure emission). MUST run in the
 // ctx that resolved the pattern's leaves (the CONSUMER's fn-ctx) : the generator
 // fusion path pre-lowers this into the sink body there, since the sink itself is
@@ -279,7 +279,7 @@ resolve_element_type :: fn(ctx: FnLowerCtx, iter_type: Type, binding_key: u64) -
 //
 // Invariant this relies on: the generator fn still RETURNS a boxed `Iterator<U>`
 // (its declared return type), so a raw `__genstate` value only ever reaches (a) a
-// fusible chain — where it never materialises — or (b) this un-fused for-in. Every
+// fusible chain (where it never materialises) or (b) this un-fused for-in. Every
 // other consumer (arg / slot / return) boxes it back to `Iterator` at the
 // `is_assignable` boundary. If a future pass inspects a generator result's
 // concrete type elsewhere, prefer routing it through that shared boundary
@@ -342,7 +342,7 @@ resolve_or_synth_symbol :: fn(ctx: FnLowerCtx, name: string, span: Span) -> Symb
             // from `resolved.idents`). Mint a FRESH unique id rather than a
             // shared `0` : the counter is still a real local that drives the
             // loop's increment/condition, and bytecode slots are keyed by
-            // symbol id — two nested unused-binding loops both at id 0 would
+            // symbol id: two nested unused-binding loops both at id 0 would
             // alias one slot, so the outer increment writes the inner's
             // counter and the outer loop never terminates (infinite loop).
             fresh :: fresh_synthetic_symbol(ctx, name)
@@ -384,7 +384,7 @@ resolve_loop_binding :: fn(ctx: FnLowerCtx, loop_var: AST.LoopVar, fallback_span
     }
 }
 
-/// The span a for-loop variable is keyed by — the `NamedVar`'s own span, else
+/// The span a for-loop variable is keyed by: the `NamedVar`'s own span, else
 /// `fallback` (destructure leaves / discard carry no single binding span).
 loop_var_span :: fn(loop_var: AST.LoopVar, fallback: Span) -> Span {
     if loop_var is AST.NamedVar { return loop_var.span }
@@ -397,7 +397,7 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 // ---- raw-array fast path --------------------------------------------------
 
 // `for x in arr` over a raw `T[]` lowers to a counter loop with index
-// lookup — no iterator object, no per-iter virtual call.
+// lookup: no iterator object, no per-iter virtual call.
 //
 // Returns null when the iter type isn't a plain array ; caller falls
 // back to the generic step-loop.
@@ -406,7 +406,7 @@ try_lower_for_in_raw_array :: fn(
     iter_lowered: LoweredExpr, iter_type: Type,
 ) -> LoweredStmt | null {
     array_elem_type: Type = TY_UNRESOLVED
-    // Arrays — and array-backed distinct newtypes via `array_backing` — iterate
+    // Arrays (and array-backed distinct newtypes via `array_backing`) iterate
     // by index over the value (which is the backing array at runtime).
     ab :: array_backing(iter_type)
     if ab != null {

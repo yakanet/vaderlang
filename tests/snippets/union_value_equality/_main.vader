@@ -1,5 +1,5 @@
 // `==` on a union compares by value: the two sides hold the same variant, and
-// those two values are equal by that variant's own rule — its `Equals`, a
+// those two values are equal by that variant's own rule: its `Equals`, a
 // tuple's fields, a scalar's value. `null` equals `null`.
 //
 // A union compares with another union or with one of its members. A `T | null`

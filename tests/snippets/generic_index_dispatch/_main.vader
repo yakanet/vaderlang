@@ -34,7 +34,7 @@ write_nth :: fn<C: IndexSet<i64, i32>>(c: C, i: i64, v: i32) {
 main :: fn() -> i32 {
     cell :: Cell { .slots = [10, 20, 30] }
 
-    // Direct concrete indexing — the baseline.
+    // Direct concrete indexing: the baseline.
     println("direct_read=${cell[1]}")
     cell[1] = 99
     println("direct_after_write=${cell[1]}")

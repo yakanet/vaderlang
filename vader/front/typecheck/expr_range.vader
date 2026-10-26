@@ -61,7 +61,7 @@ range_element :: fn(expected: Type | null, typed: TypedProgram) -> Type | null {
     return element
 }
 
-/// Whether the literals of a container — a range's bounds, an array's elements —
+/// Whether the literals of a container (a range's bounds, an array's elements)
 /// can take `t` from the slot: a concrete type, not a union, whose variant a
 /// literal alone cannot pick.
 ///

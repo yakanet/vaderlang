@@ -1,4 +1,4 @@
-# 0028 — A condition branches on each operand where the C needs no `goto`
+# 0028: A condition branches on each operand where the C needs no `goto`
 
 ## Status
 
@@ -18,7 +18,7 @@ that limit.
 Branching on each operand makes some blocks shared targets. In `if a || b { X }`
 both tests jump to `X`; in `if a && b { X } else { Y }` both jump to `Y`. In
 structured bytecode a shared target follows a `block`, and every edge into it is a
-`br` — one fused compare-and-jump on the VM. C has no statement that leaves an
+`br`: one fused compare-and-jump on the VM. C has no statement that leaves an
 enclosing brace block, only `break` and `continue` for loops, so the C emitter
 writes those `br`s as `goto end_N`.
 
@@ -44,7 +44,7 @@ and branches on each operand (`branch_on_cond`) when no target two of them share
 needs a `br` that is not a fall-through, `break` or `continue`:
 
 - a then-target shared by several tests (`||`) only when the then-arm leaves at
-  once — a lone `break`, `continue`, or `return` of a literal or a name;
+  once: a lone `break`, `continue`, or `return` of a literal or a name;
 - an else-target shared by several tests (`&&`) when there is no `else`, or the
   then-arm leaves at once.
 
@@ -63,7 +63,7 @@ The structurer keeps the shapes the source wrote:
 - **A merge that returns or traps in at most two instructions is copied** to each
   edge into it, unless a loop's own test leaves for it (copied into the loop, it
   would cost the loop its `while`). `if a || b { return -1 }` becomes two
-  `return -1`s; each arm of `fn(n) = if n < 2 { n } else { … }` returns directly —
+  `return -1`s; each arm of `fn(n) = if n < 2 { n } else { … }` returns directly:
   the `vm_fib` gain.
 - **A shared `break` or `continue` is threaded** to the header or the test exit of
   the innermost loop around its sources (`vader/midir/forwarding.vader`), so
@@ -81,6 +81,6 @@ noise.
 
 Branching on every operand stays one condition away (`split` in `build_if`). It
 would pay off without the `goto`s if the C emitter rebuilt `if (a || b)` from a
-run of `br_if`s to one target — or if `If` / `BranchIf` carried their polarity, so
+run of `br_if`s to one target, or if `If` / `BranchIf` carried their polarity, so
 the structurer could say "if not" instead of leaving an empty then-arm for each
 backend to recognise.

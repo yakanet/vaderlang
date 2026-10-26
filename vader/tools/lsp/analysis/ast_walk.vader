@@ -1,14 +1,14 @@
 // vader/tools/lsp/analysis/ast_walk: cursor-driven AST position finders.
 //
 // Shared "what AST node is under the cursor" traversals, factored out of the
-// individual handlers so hover, typeDefinition, signatureHelp — and the
-// completion / code-action layers — all descend the tree the same way :
+// individual handlers so hover, typeDefinition, signatureHelp (and the
+// completion / code-action layers) all descend the tree the same way :
 //
 //   - `enclosing_exprs`         : the full containing-expression chain, innermost
 //                                 first (code actions). The base traversal that
 //                                 `find_enclosing_call` filters.
 //   - `find_enclosing_call`     : the innermost `CallExpr` containing the cursor
-//                                 (signatureHelp) — a thin filter over
+//                                 (signatureHelp): a thin filter over
 //                                 `enclosing_exprs`.
 //   - `find_expr_at`            : the smallest *typed* expression at a position
 //                                 (hover, typeDefinition, completion receiver).
@@ -79,7 +79,7 @@ export find_expr_at :: fn(
 ) -> AST.Expr | null = find_expr_with_mode(decls, line, col, .SmallestContaining, typed)
 
 /// The receiver expression of a member access whose `.` sits at 1-based
-/// `(line, dot_col)` — the outermost typed expression that *ends* exactly where
+/// `(line, dot_col)`: the outermost typed expression that *ends* exactly where
 /// the dot begins. Spans encode `end` as one-past-the-last-char, so the receiver
 /// of `recv.field` ends at the dot.
 ///
@@ -88,7 +88,7 @@ export find_expr_at :: fn(
 /// (`f(a, b).m`) to its last argument, whose exclusive-end column overlaps the
 /// closing `)`. The largest node ending at the dot is the call itself. Returns
 /// `null` when nothing typed ends there (whitespace before the dot, an untyped
-/// receiver) — callers fall back to a positional lookup.
+/// receiver): callers fall back to a positional lookup.
 ///
 /// @param decls    the file's top-level declarations to descend.
 /// @param line     1-based line of the dot.
@@ -264,7 +264,7 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
         }
         // These three were listed as LEAVES and are not. Each carries child
         // expressions with their own spans, and a cursor inside one reached
-        // nothing — invisible for as long as members were also findable by
+        // nothing: invisible for as long as members were also findable by
         // name, because the name search covered for the walk. Removing that
         // fallback took the cover away and four correct answers with it.
         //
@@ -292,7 +292,7 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
 }
 
 hv_consider :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
-    // Skip until we have a type entry — no point reporting a node whose hover
+    // Skip until we have a type entry: no point reporting a node whose hover
     // would show `?`, nor resolving a receiver the typed cache can't type. A
     // namespace alias is a receiver all the same : in a type position
     // (`bc.LocalGet { … }`) it has no type, and its module lists the members.
@@ -301,7 +301,7 @@ hv_consider :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
     }
     sp :: e.span
     if st.mode == .EndsAt {
-        // Outermost node ending exactly at the dot — the member-access receiver.
+        // Outermost node ending exactly at the dot: the member-access receiver.
         if sp.end.line != st.line || sp.end.column != st.col { return }
         size :: span_size(sp)
         if st.best is null || size > st.best_size {
@@ -331,7 +331,7 @@ is_namespace_receiver :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> 
 /// @param decls  the file's top-level declarations to descend.
 /// @param line   1-based cursor line.
 /// @param col    1-based cursor column.
-/// @param typed  the typed program — `expr_types` for a single name,
+/// @param typed  the typed program: `expr_types` for a single name,
 ///               `local_types` for a destructuring slot.
 /// @return       the binding's inferred type, or `null`.
 export find_binding_rhs_type_at :: fn(
@@ -414,7 +414,7 @@ binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingStat
 /// not on a bound name.
 ///
 /// A single name reports the INITIALIZER's inferred type, which is the whole
-/// point of this walk — `hover.vader` wants `origin: ? | null :: span_at(…)` to
+/// point of this walk: `hover.vader` wants `origin: ? | null :: span_at(…)` to
 /// surface what the typechecker resolved, not the `?` the user wrote.
 /// `local_types` holds the DECLARED type, so it is only right where there is no
 /// single initializer to read: a destructuring slot.
@@ -428,7 +428,7 @@ binding_type_at :: fn(
             }
         }
         is AST.RestBinding -> {
-            // Keyed by the whole span, not `name_span` — `assign_binding_types`
+            // Keyed by the whole span, not `name_span`: `assign_binding_types`
             // writes it so, and the `...` makes the two start at different columns.
             if span_contains(b.name_span, line, col) {
                 return typed.local_types[b.span.hash()]
@@ -450,7 +450,7 @@ binding_type_at :: fn(
 
 binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingState) -> void {
     // Only the block-bearing forms reachable DIRECTLY. A binding inside a lambda
-    // passed as a call argument is not found — pre-existing gap, not a design.
+    // passed as a call argument is not found: pre-existing gap, not a design.
     //
     // The list is spelled out rather than aliased on purpose: it is what makes
     // the match below exhaustive, so a new `Expr` variant stops here.
@@ -493,7 +493,7 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
 // ---- innermost enclosing call --------------------------------------------
 
 /// The innermost `CallExpr` whose span contains `(line, col)`, or `null`.
-/// "Innermost" matters for nested calls like `f(g(|))` — we want `g` when the
+/// "Innermost" matters for nested calls like `f(g(|))`: we want `g` when the
 /// cursor is between its parens, not the outer `f`.
 ///
 /// A thin filter over `enclosing_exprs`, which already yields the containing
@@ -633,7 +633,7 @@ ee_walk_stmt :: fn(s: AST.Stmt, st: EncloseState) -> void {
     }
 }
 
-// Recurse into children FIRST, then record `e` — post-order push yields an
+// Recurse into children FIRST, then record `e`: post-order push yields an
 // innermost-first chain (a child is appended before its parent).
 ee_walk_expr :: fn(e: AST.Expr, st: EncloseState) -> void {
     match e {

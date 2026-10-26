@@ -8,14 +8,14 @@ import { snapshotDiff } from "./diff.ts";
 import { LONG_BUILD } from "./cli-bin.ts";
 
 // Each phase entry describes one compilation stage to snapshot:
-//   name    — label used in test names and error messages.
-//   snap    — filename of the snapshot written inside tests/snippets/{name}/.
-//   dump    — function that runs the stage and returns the text to snapshot.
-//   usePath — true: pass the absolute file path to dump (it reads from disk to
+//   name: label used in test names and error messages.
+//   snap: filename of the snapshot written inside tests/snippets/{name}/.
+//   dump: function that runs the stage and returns the text to snapshot.
+//   usePath, true: pass the absolute file path to dump (it reads from disk to
 //             resolve imports); false: pass the logical filename and let dump
 //             use the source string directly (no import resolution needed).
 // Every stage is sourced from the native Vader CLI (`./build/vader dump
-// --stage=…`) — the self-hosted compiler is the snapshot oracle. usePath is
+// --stage=…`): the self-hosted compiler is the snapshot oracle. usePath is
 // true throughout: the CLI reads the entry file from disk to resolve imports.
 const PHASES = [
   { name: "lexer",     snap: "lexer.snapshot",     dump: dumpLexerViaVader,     usePath: true },

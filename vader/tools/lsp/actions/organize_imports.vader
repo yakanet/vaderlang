@@ -9,7 +9,7 @@
 //   import "std/string" { join as _ }             import "vader/geometry" { Span as S }
 //
 // Conservative by design (lossy = refuse, like the rewrite actions). The action
-// DECLINES — contributing nothing — when it can't transform safely :
+// DECLINES (contributing nothing) when it can't transform safely :
 //   - the imports aren't one contiguous run at the head of the file (a non-import
 //     decl interleaved would force moving code across declarations) ;
 //   - any import carries a decorator (unusual ; rendering it isn't modelled) ;
@@ -17,7 +17,7 @@
 //   - the block is already organised (the rewrite would be a no-op).
 //
 // Namespace-alias imports (`X :: import "p"`) are reordered but never merged with
-// each other or with a brace import of the same path — distinct bindings. Drop
+// each other or with a brace import of the same path: distinct bindings. Drop
 // of unused imports is intentionally out of scope (it needs a whole-file
 // reference scan) ; tracked as a follow-up.
 
@@ -45,7 +45,7 @@ organize_imports_applicable :: fn(decls: AST.Decl[], ctx: ActionCtx) -> bool = r
 // The safety gate (shared by `is_applicable` and `apply`, since `apply` may be
 // driven directly): a single contiguous import run at the head of the file, no
 // decorators, no comments interleaved between imports. The no-op check (already
-// organised) lives in `apply` — it needs the rendered text.
+// organised) lives in `apply`: it needs the rendered text.
 run_is_rewritable :: fn(decls: AST.Decl[], ctx: ActionCtx) -> bool {
     run :: import_run(decls)
     if run.len() < 1 { return false }
@@ -101,7 +101,7 @@ has_decorators :: fn(run: AST.ImportDecl[]) -> bool {
 }
 
 // A non-whitespace byte between two consecutive imports is a comment (the only
-// thing the grammar allows there) — replacing the region would drop it, so the
+// thing the grammar allows there): replacing the region would drop it, so the
 // action must decline.
 has_interleaved_comments :: fn(run: AST.ImportDecl[], source: string) -> bool {
     if run.len() < 2 { return false }
@@ -123,9 +123,9 @@ has_interleaved_comments :: fn(run: AST.ImportDecl[], source: string) -> bool {
 // two hard-coded prefixes that described the tree before `lib/` split the stdlib
 // into namespaces: `toolchain/`, `json`, `cli` and every library the package
 // manager will add all landed in "the rest", which names nothing. Deriving the
-// order instead is not available at this granularity — a manifest declares
+// order instead is not available at this granularity, a manifest declares
 // include-path ROOTS (`includePaths: ["lib"]`, one entry), and `std/`,
-// `toolchain/` and `json` all come from that one root — and grouping by providing
+// `toolchain/` and `json` all come from that one root, and grouping by providing
 // root would sort a file differently in a checkout than in a bundle, since a
 // bundle promotes the library root ahead of the project. So: sorted, not grouped.
 ImportEntry :: struct {
@@ -199,7 +199,7 @@ import_entry_less :: fn(a: ImportEntry, b: ImportEntry) -> bool {
     return compare_ascending(a.text, b.text)
 }
 
-// `import "path" { a as x, b as _ }` — entries de-duplicated + sorted. Single-line
+// `import "path" { a as x, b as _ }`: entries de-duplicated + sorted. Single-line
 // unless it would exceed the 100-column soft wrap, then one entry per line.
 render_modifier_import :: fn(path: string, names: AST.ImportName[]) -> string {
     texts :: sorted_name_texts(names)
@@ -257,7 +257,7 @@ test_organize_sorts_alphabetically :: fn() -> void {
         return
     }
     // One list, alphabetical, no blank line: `std/…` < `vader/…` here by path, not
-    // by origin — which is the point. A `json` or `toolchain/…` import sorts among
+    // by origin, which is the point. A `json` or `toolchain/…` import sorts among
     // them rather than into a nameless "other" bucket.
     expected :: "import \"std/string\" { split as cut }\nimport \"vader/geometry\" { Span as S }"
     assert(r.new_text == expected, "sorts by path with no group break: got [${r.new_text}]")

@@ -5,7 +5,7 @@ import { runCli } from "./cli-bin.ts";
 
 // The native, self-hosted Vader CLI (`./build/vader dump --stage=…`) is the
 // snapshot oracle for every pipeline stage. The legacy TypeScript pipeline that
-// once produced these dumps in-process was removed with `src/` (§2.8) — its
+// once produced these dumps in-process was removed with `src/` (§2.8): its
 // final state is preserved under the `v0.0.0-pre-mvp-final-ts` tag.
 
 export const MAIN_FILE = "_main.vader";
@@ -37,7 +37,7 @@ export interface TestConfig {
   readonly phases?: readonly PhaseName[];
   /** Modules rendered by the module-filtered dumps (typecheck / comptime /
    *  lower), passed through as `--module`. Defaults to the entry module's
-   *  subtree when absent — set this only for a snippet whose modules fall
+   *  subtree when absent: set this only for a snippet whose modules fall
    *  outside the entry module's display-path prefix. */
   readonly modules?: readonly string[];
   /** The native run, compared with `vm.snapshot` (`parity-cemit.test.ts`). On for
@@ -212,7 +212,7 @@ export function listSnippets(snippetsDir: string): Scenario[] {
     const mainPath = join(dir, MAIN_FILE);
     let source: string;
     try { source = readFileSync(mainPath, "utf8"); } catch { continue; }
-    // A helper — the C defining an `@extern` test's foreign symbols — is named
+    // A helper (the C defining an `@extern` test's foreign symbols) is named
     // `helper*.c`. Every other `.c` in a snippet directory is an output: the
     // committed `C_SNAPSHOT` golden, `native.c` from `tests/native.test.ts`, the
     // gitignored `_main*.c` a CLI build leaves behind. Only the name counts: an
@@ -325,14 +325,14 @@ export async function dumpCViaVader(_source: string, entryPath: string, _modules
 export async function dumpBytecodeViaVader(_source: string, entryPath: string, _modules?: readonly string[]): Promise<string> {
   // `--annotate` appends `; <mangled name>` after every index-bearing op. The
   // index is a rank of insertion and says nothing on its own; the name is what a
-  // reader — and a snapshot diff — actually needs. The reader strips `;`
+  // reader (and a snapshot diff) actually needs. The reader strips `;`
   // comments, so the dump stays re-readable and `vader-vm-self` still runs it.
   return runVaderDump("bytecode", entryPath, undefined, ["--annotate"]);
 }
 
 // Drive `./build/vader dump --stage=<S> <file>` through the shared `runCli`
 // spawn wrapper, which drains both pipes concurrently and enforces a SIGKILL
-// wall-clock budget (a regressed stage can otherwise pin a CPU for hours —
+// wall-clock budget (a regressed stage can otherwise pin a CPU for hours,
 // see `cli-bin.ts`). A non-zero exit is surfaced inline so snapshot diffs are
 // debuggable rather than mysteriously empty.
 async function runVaderDump(stage: string, entryPath: string, modules?: readonly string[], extra?: readonly string[]): Promise<string> {
@@ -354,8 +354,8 @@ async function runVaderDump(stage: string, entryPath: string, modules?: readonly
 }
 
 // A vader trap or panic prints its `STOP_LINE` to stderr, then abort()s. The abort's
-// OS exit code is NOT portable — POSIX reports 134 (128 + SIGABRT), the Windows
-// CI 9 — so a snapshot can't bake a single number. Identify the abort by
+// OS exit code is NOT portable: POSIX reports 134 (128 + SIGABRT), the Windows
+// CI 9, so a snapshot can't bake a single number. Identify the abort by
 // its stderr signature (printed before abort() on every platform), or by a
 // POSIX signal-range code, and canonicalise to 134 (what the crash snapshots
 // bake) so a snippet that aborts the compiler (e.g. for_in_iter_trait's midir

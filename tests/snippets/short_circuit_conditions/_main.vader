@@ -1,5 +1,5 @@
 // Conditions built from `&&`, `||` and `!`, with or without an `else`, in an
-// `if`, a value `if`, an `else if` chain and a loop condition — some branch on
+// `if`, a value `if`, an `else if` chain and a loop condition: some branch on
 // each operand, some test a computed value. Each operand records itself as it is
 // evaluated, so the output pins both the outcome and which operands ran:
 // short-circuiting must skip the rest.

@@ -6,15 +6,15 @@
 //
 // The server is cocompiled into the main `vader` binary (not a slim separate
 // one like `vader-lsp`) because it must drive `vader/vm`. It reuses the LSP
-// transport (`read_frame` / `write_frame`) — DAP shares LSP's `Content-Length`
-// framing — and supplies its own DAP-shaped encoders (see protocol.vader).
+// transport (`read_frame` / `write_frame`): DAP shares LSP's `Content-Length`
+// framing, and supplies its own DAP-shaped encoders (see protocol.vader).
 //
 // Program-under-debug I/O is redirected to DAP `output` events through the
 // VM's `DebugController.output_sink` (vader/vm/debug.vader) : in stdio
 // transport a stray write to fd 1 would corrupt the protocol stream.
 //
 // Compilation of the launch target is injected as a callback (`DapCompile`) so
-// this module needs no dependency on `vader/tools/cli` (which imports it) — the
+// this module needs no dependency on `vader/tools/cli` (which imports it): the
 // compile impl lives in `tools/cli/cmd_dap.vader::cmd_dap`.
 
 module "vader/tools/dap"
@@ -28,7 +28,7 @@ import "vader/vm"
 
 // ---- compile injection -----------------------------------------------------
 
-/// A compiled launch target. `state == null` marks a front-end failure — the
+/// A compiled launch target. `state == null` marks a front-end failure: the
 /// server then reports `error` as stderr output and terminates without running.
 export DapProgram :: struct {
     /// Prepared VM state, or `null` when the target failed to compile.
@@ -44,7 +44,7 @@ export DapProgram :: struct {
 /// Run the DAP server loop on stdio until `disconnect` (or EOF).
 ///
 /// `compile` is injected by `cli::cmd_dap` so `vader/tools/dap` doesn't import
-/// `vader/tools/cli` (which would close an import cycle) — it maps a launch-target
+/// `vader/tools/cli` (which would close an import cycle): it maps a launch-target
 /// path to its compiled `DapProgram`.
 ///
 /// @param compile  compiles a launch-target path to a `DapProgram`.
@@ -85,7 +85,7 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
         } else if command == "setBreakpoints" {
             // Record the breakpoints for the VM, then echo them back. VSCode
             // gates `configurationDone` (the run trigger) on a well-formed
-            // response — one breakpoint object per requested line. They're
+            // response: one breakpoint object per requested line. They're
             // reported `verified: true` since the line table backs them.
             args :: get_field(msg, "arguments")
             store_breakpoints(bps, args)
@@ -108,7 +108,7 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
 // Replace the breakpoints for one source file with the requested lines. VSCode
 // sends the FULL set per file on each `setBreakpoints`, so the file's old set
 // is dropped. Keyed by the source path normalised to forward slashes via
-// `to_posix` — the module loader records `DebugPos.file` that way, so a Windows
+// `to_posix`: the module loader records `DebugPos.file` that way, so a Windows
 // client that sends a backslash path (`C:\dir\f.vader`) still matches the VM's
 // lookup key (`C:/dir/f.vader`). Without this the breakpoint never binds on
 // Windows and the program runs straight past it.
@@ -140,7 +140,7 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: MutableMap<stri
         emit_event(seq_cell, "terminated", empty_body())
         return
     }
-    // Route every program write to an `output` event — stdout → category
+    // Route every program write to an `output` event: stdout → category
     // "stdout", stderr → "stderr". Captures `seq_cell` by cell.
     sink :: fn(stream: i32, text: string) -> void {
         category :: if stream == 0 { "stdout" } else { "stderr" }
@@ -162,7 +162,7 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: MutableMap<stri
         // Pause on the crash so VSCode shows "Paused on exception" with the trap
         // message, letting the user read it before the session ends. `exec_entry`
         // has already unwound, so there's no live stack to show (an empty
-        // PauseCtx) — a full crash-point stack would need the dispatch_op refactor.
+        // PauseCtx): a full crash-point stack would need the dispatch_op refactor.
         no_frames: PauseFrame[]: []
         exc :: PauseCtx { .reason = "exception", .frames = no_frames }
         run_pause_loop(exc, seq_cell, bps, result.message)
@@ -302,9 +302,9 @@ capabilities :: fn() -> JsonValue {
 }
 
 // The `setBreakpoints` response body : one `{ verified, line }` per requested
-// breakpoint. `verified: true` — the per-op line table backs them ; the VM
-// stops at the first op of the line. (A breakpoint on a line with no op — a
-// blank / comment — simply never fires ; refining `verified` to reflect that
+// breakpoint. `verified: true`: the per-op line table backs them ; the VM
+// stops at the first op of the line. (A breakpoint on a line with no op, a
+// blank / comment, simply never fires ; refining `verified` to reflect that
 // is a later nicety.)
 breakpoints_body :: fn(args: JsonValue) -> JsonValue {
     result: JsonValue[]: []
@@ -333,7 +333,7 @@ single_thread :: fn() -> JsonValue {
     return JsonObject { .entries = body }
 }
 
-// The `stackTrace` body from the paused call stack — one frame per `PauseFrame`,
+// The `stackTrace` body from the paused call stack: one frame per `PauseFrame`,
 // innermost first, with `id` = its index (the frame reference `scopes` keys on).
 stacktrace_body :: fn(ctx: PauseCtx) -> JsonValue {
     frames_json: JsonValue[]: []
@@ -372,7 +372,7 @@ scopes_body :: fn(frame_id: i32) -> JsonValue {
 
 // The `variables` body : the vars registered under `reference` (a scope's
 // frame locals, or a previously-expanded aggregate's children). A var that has
-// children is itself expandable — mint a fresh reference, register its
+// children is itself expandable: mint a fresh reference, register its
 // children, and hand VSCode that reference so a later `variables` call descends.
 // Leaves get `variablesReference: 0`.
 variables_body :: fn(var_refs: MutableMap<i32, PauseVar[]>, next_ref: i32[], reference: i32) -> JsonValue {
@@ -428,7 +428,7 @@ stop_line :: fn(message: string) -> string {
 
 // Display name for a stack frame : the tail after the last `$` of the mangled
 // name (`snippet$main` → `main`), or the whole name when it carries no `$`.
-// Uses a char literal (not a `"$"` string — a bare `$` opens interpolation).
+// Uses a char literal (not a `"$"` string: a bare `$` opens interpolation).
 display_fn_name :: fn(mangled: string) -> string {
     idx :: last_index_of(mangled, '$', 0)
     if idx < 0 { return mangled }

@@ -1,4 +1,4 @@
-# 0024 — The VM runs register code translated at load
+# 0024: The VM runs register code translated at load
 
 ## Status
 
@@ -11,7 +11,7 @@ both are deleted.
 The VM dispatched the shared bytecode directly: an operand stack per `Frame`
 object, a push and a pop for every value, a tag test in every arm, a `Frame`
 allocated per call. After the heap-side work of ADR 0023 the profile of the seven
-VM benches was the dispatch itself — the stack traffic and the tag tests, not the
+VM benches was the dispatch itself: the stack traffic and the tag tests, not the
 work the ops do.
 
 The shared bytecode (`Op`, `.virt`, the C backend, the snapshots) is the contract
@@ -25,7 +25,7 @@ the bytecode.
 (`reg_code.vader`, `reg_translate.vader`); `reg_exec.vader` runs it. Four decisions
 framed it:
 
-- **`Value` stays the exchange format** at the edges — the host dispatcher, the
+- **`Value` stays the exchange format** at the edges: the host dispatcher, the
   FFI, comptime, the heap. The engine boxes only where a value crosses one.
 - **Operand tags are proven at load** (`tags.vader`, a forward dataflow over basic
   blocks). `prepare` refuses a module where an arm could meet a tag it does not
@@ -54,8 +54,8 @@ The shape of the code:
 - **Fusion.** An integer comparison (signed or unsigned) feeding an `if` or
   `br_if` becomes one conditional jump; `>` and `>=` swap their operands onto `<`
   and `<=`. `ref.cast` and `box` translate to nothing.
-- **Cold ops** — the bulk array, string and buffer ops, closures, conversions the
-  tags do not prove — run through `apply_boxed` on a scratch operand stack holding
+- **Cold ops**: the bulk array, string and buffer ops, closures, conversions the
+  tags do not prove: run through `apply_boxed` on a scratch operand stack holding
   their operands.
 - **`defer`** is one stack for the whole run, as in the native runtime. A thunk runs
   as a nested call above the running frame.
@@ -94,7 +94,7 @@ so they do not inline). Moving the old loop's arms into `apply_boxed` behind a
 call, rather than copying them, made the old loop 17 to 44 % slower while both
 engines coexisted.
 
-A trap label interpolated as an argument — `read_i32(v, pc, "${label} offset")` —
+A trap label interpolated as an argument (`read_i32(v, pc, "${label} offset")`)
 is built and interned on every execution, not only when the read fails. It cost
 `vm_str` a fifth of its time in the byte ops, and `vm_arr` a quarter once
 reintroduced by accident. The label is built in the trap branch only.

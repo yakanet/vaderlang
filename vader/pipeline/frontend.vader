@@ -4,7 +4,7 @@
 // carries every table a later stage or an observer needs. Lifted out of
 // `vader/tools/cli/main.vader` unchanged: the CLI was its only caller, and a build
 // driver (`toolchain/build`) needs the same sequence, so leaving it private would
-// have forced a second implementation — the one thing guaranteed to drift.
+// have forced a second implementation: the one thing guaranteed to drift.
 //
 // Sits below both callers in the import graph (`vader/tools/cli` and `toolchain/build`
 // import this; it imports neither), so no cycle forms.
@@ -47,7 +47,7 @@ export prepare_evaluated_project_with :: fn(
 ) -> EvaluatedPipeline {
     // Per-pass profiling brackets (here + in lower_to_entry_with /
     // prepare_cfg_bytecode_with / the C emit of `output.vader`). `prof_begin` / `prof_end` are
-    // no-ops — one cached env check + early return — unless $VADER_PROFILE is
+    // no-ops (one cached env check + early return) unless $VADER_PROFILE is
     // set, in which case the runtime accumulates the per-pass wall / RSS / GC
     // table dumped at the end of the compile. Kept in the pipeline so the
     // self-compile profile (`bun run bench:profile`) stays one flag away ; they
@@ -68,14 +68,14 @@ export prepare_evaluated_project_with :: fn(
     // dependency ordering (source of the C4009 cycle diagnostic), folds
     // tree-walkable `@comptime` decls, harvests the generic instances the
     // lowerer needs (e.g. `concat_N`), and force-loads std/core. Only the
-    // VM-backed baking is gated on front-end errors — it emits the WHOLE project
+    // VM-backed baking is gated on front-end errors: it emits the WHOLE project
     // to bytecode and runs it, which ICEs on the unresolved / malformed IR of a
     // front-end-errored program (a single prelude `@comptime` like std/core's
     // parse-float table would otherwise ICE every errored user compile). A
     // program with front-end errors never reaches codegen, so nothing to bake.
     evaluated :: evaluate_project(loaded, typed, comptime_diags)
     Prof.prof_end(.Comptime)
-    // Only bake when the project is error-free — front end AND comptime. The
+    // Only bake when the project is error-free: front end AND comptime. The
     // VM-backed baking stages the WHOLE project to bytecode ; on a front-end-
     // errored program that ICEs on malformed IR, and on a program with a
     // comptime error (e.g. a C4009 `@comptime` dependency cycle) the staging

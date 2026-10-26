@@ -1,5 +1,5 @@
 // TypeScript peer of bench/wordfreq.vader. The corpus is decoded once to a
-// string and each token is taken with `corpus.slice()` — what a JS tokenizer
+// string and each token is taken with `corpus.slice()`: what a JS tokenizer
 // does, rather than running a TextDecoder per token. The payload is ASCII so a
 // string index is a byte index.
 

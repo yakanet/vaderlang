@@ -3,7 +3,7 @@
 #
 # The image ships LLVM (MSVC-targeting by default) and a MinGW-Builds gcc at
 # C:\mingw64. A copy of clang named `x86_64-w64-mingw32-clang.exe` targets MinGW
-# by its name, and the `.cfg` beside it — which clang reads on its own — points
+# by its name, and the `.cfg` beside it (which clang reads on its own) points
 # it at the MinGW sysroot, at lld (ThinLTO needs it), and back at the resource
 # directory the copy no longer sits next to. The `.cfg` is named after the
 # NORMALISED triple, `x86_64-w64-windows-gnu`: that is the name clang looks up,

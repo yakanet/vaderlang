@@ -3,7 +3,7 @@
 // Regression guard for "distinct newtypes over arrays" : a `Name :: T[]` decl is
 // a distinct nominal type, so its structural array ops (index, `len`/`push`,
 // for-in, `[…]` literals) forward to the backing array while its arithmetic is
-// overloaded on the nominal type — `histogram * u32` (`Mul<u32>`) and
+// overloaded on the nominal type: `histogram * u32` (`Mul<u32>`) and
 // `histogram / u32` → `[quotient, remainder]` (`Div<u32, […]>`). Also covers the
 // operator fallback : a distinct-over-primitive with no impl inherits the
 // backing type's arithmetic.

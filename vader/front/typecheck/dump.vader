@@ -83,7 +83,7 @@ modules_in_scope :: fn(
 
 build_decl_lines :: fn(typed: TypedProgram) -> string[] {
     // Sort by symbol name (case-insensitive) rather than by the
-    // formatted line —
+    // formatted line:
     // otherwise `S`tructDecl always wins over `T`raitDecl regardless
     // of the actual name ordering. Fn symbols expand into every
     // overload Symbol from `fn_overloads` so the dump lists each
@@ -140,7 +140,7 @@ build_expr_lines :: fn(typed: TypedProgram) -> string[] {
 }
 
 // Look up the node's span via `node_spans` and render its start as
-// `line:col`. Materialised cloned bodies have trait-source spans —
+// `line:col`. Materialised cloned bodies have trait-source spans:
 // the dump renders them at the trait method's source position.
 start_loc_for_id :: fn(typed: TypedProgram, id: i64) -> string {
     s :: typed.node_spans[id] ?? return "undefined:undefined"
@@ -285,7 +285,7 @@ dump_test :: fn(src: string) -> string {
 
 @test
 test_dump_renders_fn_decl :: fn() -> void {
-    // Expected string excludes the trailing newline — `println` adds it
+    // Expected string excludes the trailing newline: `println` adds it
     // at the CLI boundary.
     expected :: "# Typecheck\n\n## t\n  FnDecl         add                  :: fn(f64, f64) -> f64"
     assert_eq(dump_test("add :: fn(a: f64, b: f64) -> f64 { return a + b }"), expected)

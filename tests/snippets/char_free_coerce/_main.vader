@@ -1,4 +1,4 @@
-// Char literals are "free" — they coerce to the integer type of their context
+// Char literals are "free": they coerce to the integer type of their context
 // (bounds-checked), so byte-parsing reads naturally without `b'A'` or a cast.
 // A char VARIABLE stays `char` and needs an explicit `u8(c)`.
 

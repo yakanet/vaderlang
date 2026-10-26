@@ -1,4 +1,4 @@
-# 0069 — The marker leaves the grammar without a transition
+# 0069: The marker leaves the grammar without a transition
 
 ## Status
 

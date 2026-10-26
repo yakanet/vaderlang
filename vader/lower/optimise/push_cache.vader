@@ -3,7 +3,7 @@
 // `a.push(v)` reads and writes the array through memory every time: the header's
 // `length` and `capacity`, the buffer pointer, and the buffer's own `length`.
 // The emitted fast path is 18 instructions and 6 loads for one 4-byte store,
-// because none of it can stay in a register — the stores may alias everything
+// because none of it can stay in a register: the stores may alias everything
 // reachable from the header, and the header itself sits in a slot the collector
 // may rewrite.
 //
@@ -11,13 +11,13 @@
 // the array, and nothing can move its buffer. So the whole state can be lifted
 // into locals for the duration and written back once. That is what this pass
 // proves; a backend that honours the mark emits the lifted form, and a backend
-// that ignores it is still correct — it just keeps the loads.
+// that ignores it is still correct: it just keeps the loads.
 //
 // It marks the PUSH, not the loop. The structured loop does not survive `midir`
 // (`cf_loop` rebuilds an op from a CFG back edge), while a push travels intact
 // as `LoweredArrayPush → InstrArrayPush → ArrayPush`. Where to put the lifted
-// locals is a backend question anyway — a C local and a wasm local are not the
-// same thing — so the split is: this pass proves it is SAFE, the backend decides
+// locals is a backend question anyway: a C local and a wasm local are not the
+// same thing, so the split is: this pass proves it is SAFE, the backend decides
 // where the state lives.
 //
 // Whether a loop body may disturb the array comes from `purity.vader`.
@@ -50,7 +50,7 @@ export push_cache_tag :: fn(project: LoweredProject) -> void {
 // ---- find the loops -------------------------------------------------------
 
 // `live` is the set of arrays minted fresh in an enclosing scope and not yet
-// handed to anyone else — the only ones a lift may hold in locals. It is carried
+// handed to anyone else: the only ones a lift may hold in locals. It is carried
 // down and refined statement by statement, which is what makes the answer
 // flow-sensitive: `return out` AFTER the loop is harmless (the write-back has
 // run), the same `return` before it would not be.
@@ -102,7 +102,7 @@ is_fresh_array :: fn(value: LoweredExpr) -> bool {
 }
 
 // Entering a loop, an array minted OUTSIDE it loses its standing if anything in
-// the body hands it away — the body runs again with that reference still live,
+// the body hands it away: the body runs again with that reference still live,
 // where a statement after a non-loop keeps its ordering.
 pc_live_entering :: fn(live: i32[], lp: LoweredLoop) -> i32[] {
     kept: i32[]: []
@@ -212,7 +212,7 @@ pc_try_cache :: fn(ctx: PurityCtx, lp: LoweredLoop, live: i32[]) -> void {
     }
 }
 
-// The pushes this loop owns. A nested loop's pushes are its own candidates —
+// The pushes this loop owns. A nested loop's pushes are its own candidates:
 // descending into one would mark a push whose enclosing region is not this body.
 pc_collect_pushes :: fn(b: LoweredBlock, out: LoweredArrayPush[]) -> void {
     for st in b.stmts {
@@ -258,7 +258,7 @@ pc_collect_in_expr :: fn(e: LoweredExpr, out: LoweredArrayPush[]) -> void {
 }
 
 // The symbol id every push targets, or null when there is no push, when they
-// disagree, or when a target is not a plain local — a capture something rebinds
+// disagree, or when a target is not a plain local: a capture something rebinds
 // arrives as a cell ; one copied into a closure's env dropped out of `live` when
 // the closure was made. "None" is null rather than `-1`: that is
 // the id of the first synthetic local lower mints (a fused `collect`'s accumulator).
@@ -283,7 +283,7 @@ pc_single_target :: fn(pushes: LoweredArrayPush[]) -> i32 | null {
 // A `return` leaves the loop without passing its end, where the state is written
 // back. A `break` of this loop does pass it: midir compiles one as a fall-through
 // to the loop's end, and c_emit refuses the region if a branch past that end
-// shows up in the op stream (`pc_plan_for_loop`). `continue` does not leave — it
+// shows up in the op stream (`pc_plan_for_loop`). `continue` does not leave: it
 // re-enters the body with the locals still live. A LABELLED jump can reach an
 // enclosing loop, and the label is not resolved here, so any labelled one is
 // refused.

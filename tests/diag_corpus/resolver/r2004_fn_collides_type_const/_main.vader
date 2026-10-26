@@ -5,9 +5,9 @@
 module "snippet"
 
 Shape :: struct { n: i32 }
-Shape :: fn() -> i32 = 1     // R2004 — fn collides with the struct declared above
+Shape :: fn() -> i32 = 1     // R2004, fn collides with the struct declared above
 
 LIMIT :: 99
-LIMIT :: fn() -> i32 = 2     // R2004 — fn collides with the const declared above
+LIMIT :: fn() -> i32 = 2     // R2004, fn collides with the const declared above
 
 main :: fn() -> i32 = 0

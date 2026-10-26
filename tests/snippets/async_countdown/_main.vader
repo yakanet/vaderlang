@@ -1,6 +1,6 @@
 // Genuine suspension: a hand-written awaitable that parks twice before it
 // completes. Proves the drive-state is re-entrant (Model A self-drive). No
-// `@async` — `waiter` awaits, so it is inferred async and returns `Async<i32>`.
+// `@async`: `waiter` awaits, so it is inferred async and returns `Async<i32>`.
 module "snippet"
 
 import "std/io"

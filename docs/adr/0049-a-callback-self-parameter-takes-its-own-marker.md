@@ -1,4 +1,4 @@
-# 0049 — A callback's `Self` parameter takes its own marker
+# 0049: A callback's `Self` parameter takes its own marker
 
 ## Status
 

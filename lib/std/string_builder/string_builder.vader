@@ -5,7 +5,7 @@
 // `to_string` : one `Buffer` sized to the total byte length, each part copied
 // in via the `write_string` primitive, interned in a single pass via
 // `intern_string`. This is the lean, off-runtime equivalent of the former
-// `vader_string_concat_all` host intrinsic — finalisation, not every append,
+// `vader_string_concat_all` host intrinsic: finalisation, not every append,
 // pays for the copy.
 //
 // The byte primitives (`new_byte_buffer` / `write_string` / `intern_string`) live
@@ -31,12 +31,12 @@ export StringBuilder :: struct {
     /// callers go through `append` / `to_string`, never the backing array.
     /// Defaults to `[]` so `StringBuilder {}` constructs an empty builder from
     /// any module (the `@internal` field needs a default to stay constructible
-    /// across the module boundary — SPEC §"Field defaults").
+    /// across the module boundary: SPEC §"Field defaults").
     @internal
     parts: string[] = []
 }
 
-/// Append a string — an O(1) reference push, no byte copy.
+/// Append a string: an O(1) reference push, no byte copy.
 /// @param self  builder receiver.
 /// @param s     UTF-8 string to append.
 export append :: fn(self: StringBuilder, s: string) -> void {
@@ -68,15 +68,15 @@ export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
     }
 }
 
-// Display — concatenates the parts into one interned string. `${sb}`
+// Display: concatenates the parts into one interned string. `${sb}`
 // interpolation and `sb.to_string()` both resolve here.
 StringBuilder implements Display {
     /// Assemble all parts into a single interned string : size one `Buffer` to
     /// the total byte length, copy each part in via `write_string`, intern the
-    /// result. The byte movement is a single bulk pass — no per-append copy.
+    /// result. The byte movement is a single bulk pass: no per-append copy.
     to_string :: fn(self) -> string {
         // 0 / 1 parts need no buffer : an empty builder is the empty string, and
-        // a single part is already an interned atom — return it verbatim, skipping
+        // a single part is already an interned atom: return it verbatim, skipping
         // the `Buffer` alloc + byte copy + re-intern the general path would pay
         // (each is ~12 % of self-compile allocs).
         n :: self.parts.len()

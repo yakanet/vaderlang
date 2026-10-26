@@ -50,7 +50,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
 // arguments prepared for `params`. Shared by the direct-ident path
 // (`try_lower_generic_fn_call`) and the namespace-member path
 // (`try_lower_namespace_call`, `io.println` → `println<T: Display>`). Null when the
-// fn takes no type argument or they are not all concrete (recovery — the caller
+// fn takes no type argument or they are not all concrete (recovery: the caller
 // falls through to its non-generic handling).
 emit_generic_fn_call :: fn(
     ctx: FnLowerCtx, call: CallExpr, type: Type, fn_sym: Symbol, params: Type[], callee_span: Span,
@@ -99,17 +99,17 @@ instance_symbol :: fn(fn_sym: Symbol, mangled: string) -> Symbol = Symbol {
 // `fn_sym<type_args>` and return its mangle.
 //
 // THE one place that builds either the mangle or the dedupe key. Both are derived
-// here from the arguments, so no caller can build them differently — which is
+// here from the arguments, so no caller can build them differently, which is
 // exactly what went wrong before: the UFCS harvest doubled the module prefix
 // (`mod$mod$name`) while the direct-call path emitted it once. Since both key the
 // instance identically and this fn returns whatever mangle was registered FIRST
 // for that key, the emitted symbol depended on which syntactic form the lowering
-// reached first — moving two lines of source renamed the function in the binary
+// reached first: moving two lines of source renamed the function in the binary
 // (`snippet$first_of__i32` vs `snippet$snippet$first_of__i32`). Keep the
 // derivation in here; a `base_mangled` parameter is what let the two drift.
 //
-// The mangle is `<module>$<name><suffix>` — single module prefix, aligned with the
-// canonical mono mangle in `front/comptime/mangle.vader` — run through `uniq` so two
+// The mangle is `<module>$<name><suffix>` (single module prefix, aligned with the
+// canonical mono mangle in `front/comptime/mangle.vader`) run through `uniq` so two
 // same-name / same-arity overloads (`collect(arr: T[])` vs
 // `collect(it: Iterator<T>)`) don't collide on one fn name: the second to register
 // gets a `_1` suffix, keeping the `dump_bytecode → parse_virt → exec` round-trip's
@@ -121,7 +121,7 @@ instance_symbol :: fn(fn_sym: Symbol, mangled: string) -> Symbol = Symbol {
 // The module is the fn's DEFINING one (`fn_sym.module`), never the caller's:
 // `build_fn_instance_decl` looks the AST decl up there. Its *display* path (the
 // declared `module "..."` name) feeds the mangle, not the filesystem id, so the
-// name matches the surfaced decl's — falling back to the id when the lookup misses.
+// name matches the surfaced decl's: falling back to the id when the lookup misses.
 register_fn_instance_mangle :: fn(
     ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[],
 ) -> string {

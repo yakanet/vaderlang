@@ -1,4 +1,4 @@
-// Three `generator`s named `upto`, told apart by their parameter — two declared
+// Three `generator`s named `upto`, told apart by their parameter: two declared
 // here, one imported from `snippet/halves`: each declaration has its own state
 // machine (`__genstate_upto`, `__genstate_upto_1`, and the other module's
 // `__genstate_upto`), whether the call fuses into the loop that consumes it,

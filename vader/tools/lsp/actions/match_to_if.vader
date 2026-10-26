@@ -11,7 +11,7 @@
 //                           }
 //
 // When ONE arm's body is empty (`-> {}`) the empty branch is dropped and the
-// other becomes a single-branch guard on the (possibly negated) condition —
+// other becomes a single-branch guard on the (possibly negated) condition:
 // the common null-guard idiom:
 //
 //   match ns_lookup {          if ns_lookup !is null {
@@ -21,7 +21,7 @@
 //
 // Lossy policy = REFUSE : exactly two arms, no guards, the first arm an `is T`
 // (no nested sub-pattern) or a literal (→ the condition), and the second arm
-// droppable to the `else` — a `_`, a literal, or an `is T`. The second arm's
+// droppable to the `else`: a `_`, a literal, or an `is T`. The second arm's
 // predicate is implied by the match's exhaustiveness.
 
 module "vader/tools/lsp/actions"
@@ -75,12 +75,12 @@ cond_pattern_ok :: fn(p: AST.Pattern) -> bool {
     return false
 }
 
-// A pattern that can be dropped to the `else` branch — it binds nothing the arm
+// A pattern that can be dropped to the `else` branch: it binds nothing the arm
 // body could reference : `_`, a literal, or `is T` with no nested pattern.
 else_pattern_ok :: fn(p: AST.Pattern) = p is AST.WildcardPattern || cond_pattern_ok(p)
 
 // Synthesise the `if` from a convertible match. Sub-expressions (scrutinee,
-// pattern type, literal value, arm bodies) are reused verbatim — they keep
+// pattern type, literal value, arm bodies) are reused verbatim: they keep
 // their original spans, so `format_expr` slices their exact source text.
 build_if :: fn(m: AST.MatchExpr) -> AST.IfExpr {
     a0 :: m.arms[0]
@@ -114,7 +114,7 @@ build_if :: fn(m: AST.MatchExpr) -> AST.IfExpr {
     }
 }
 
-// True when an arm body is the empty block `{}` — no statements, no trailing
+// True when an arm body is the empty block `{}`: no statements, no trailing
 // value. Such an arm carries no work, so the `if` drops that branch.
 arm_body_empty :: fn(body: AST.Expr) -> bool {
     if body is AST.BlockExpr {
@@ -125,7 +125,7 @@ arm_body_empty :: fn(body: AST.Expr) -> bool {
 
 // Negate a condition for the empty-arm-0 case. `X == v` → `X != v` ; `X is T`
 // → `X !is T` (built as `Not(Is)`, which the printer restores to the `!is`
-// spelling — a binding is dropped, unusable on the negated side). Anything else
+// spelling: a binding is dropped, unusable on the negated side). Anything else
 // wraps in `!(…)`.
 negate_cond :: fn(cond: AST.Expr) -> AST.Expr {
     if cond is AST.BinaryExpr {
@@ -157,7 +157,7 @@ build_cond :: fn(scrut: AST.Expr, p: AST.Pattern) -> AST.Expr {
             .span = scrut.span, .op = .Eq, .left = scrut, .right = p.value,
         }
     }
-    // Unreachable for a convertible match — `is_convertible` gates the kinds.
+    // Unreachable for a convertible match: `is_convertible` gates the kinds.
     return scrut
 }
 
@@ -173,7 +173,7 @@ arm_block :: fn(body: AST.Expr) -> AST.BlockExpr {
 
 import "std/testing"
 
-// Find the first source-backed `MatchExpr` in a parsed program — test helper so
+// Find the first source-backed `MatchExpr` in a parsed program: test helper so
 // the asserts run against real (source-backed) AST nodes. Shares the descent
 // with the other actions via `registry::t_find_expr`.
 tm_is_match :: fn(e: AST.Expr) -> bool = e is AST.MatchExpr
@@ -248,7 +248,7 @@ test_match_to_if_two_is_arms :: fn() -> void {
 
 @test
 test_match_to_if_null_guard :: fn() -> void {
-    // The empty null arm collapses to a single-branch `if X !is null { … }` —
+    // The empty null arm collapses to a single-branch `if X !is null { … }`:
     // no empty `if` branch, no `else`.
     src :: """
 f :: fn(ns: i32 | null) -> i32 {
@@ -299,7 +299,7 @@ g :: fn(v: i32 | string) -> void {
 
 @test
 test_match_to_if_declines_header_binding :: fn() -> void {
-    // The header names the scrutinee `s` for both arms — an `if` has no place for it.
+    // The header names the scrutinee `s` for both arms: an `if` has no place for it.
     src :: "k :: fn(v: i32 | string) -> i32 {\n    return match s :: v {\n        is i32 -> 0\n        is string -> s.byte_len()\n    }\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
     m :: tm_find_match(parsed.program.decls)

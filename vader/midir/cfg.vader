@@ -8,7 +8,7 @@
 //
 // Cross-IR carry : MonoEntry, Type, Symbol, LoweredBinaryOp /
 // LoweredUnaryOp, LoweredVtableEntry are imported from upstream phases.
-// IntrinsicName is a `string` here — Vader stores the verbatim name.
+// IntrinsicName is a `string` here: Vader stores the verbatim name.
 
 module "vader/midir"
 
@@ -41,7 +41,7 @@ LocalId implements Comparable -> i32(self).compare(i32(other))
 
 // ---- function / decl shapes ----------------------------------------------
 
-/// A function's CFG — entry block, all blocks, all locals/params.
+/// A function's CFG: entry block, all blocks, all locals/params.
 /// Carries enough metadata for bytecode reservation (export/extern
 /// routing) so the emitter never has to walk back into the LoweredAST.
 export CFGFunction :: struct {
@@ -53,7 +53,7 @@ export CFGFunction :: struct {
     entry:       BlockId               // canonically 0
     origin:      MonoEntry              // mirrored from LoweredFnDecl.origin
     /// When non-empty, the values this fn hands back INSTEAD of the single
-    /// object `return_type` names — set by `scalarise_value_returns`.
+    /// object `return_type` names: set by `scalarise_value_returns`.
     ///
     /// `return_type` is deliberately left alone: it is what the callee's
     /// composite still IS, and a caller that needs the object rebuilds it from
@@ -82,7 +82,7 @@ export CFGExternDecl :: struct {
     origin:      MonoEntry
     extern_name: string
     /// True when the originating decl carried @extern (user-supplied
-    /// foreign symbol — c-emit emits a real `extern …(…)` declaration
+    /// foreign symbol: c-emit emits a real `extern …(…)` declaration
     /// that the linker resolves). False for @intrinsic-style bodyless
     /// fns (stdlib host bindings handled by the c-emit shim switch).
     is_extern:   bool
@@ -279,7 +279,7 @@ export InstrUnOp :: struct {
     type:    Type
 }
 
-/// Direct call — the callee is a known fn symbol. The bytecode emit
+/// Direct call: the callee is a known fn symbol. The bytecode emit
 /// decides whether to route as `call <fn>` or `call.import <imp>`
 /// (and whether to apply the OP_INTRINSIC fast path for stdlib hot
 /// calls like `string.concat`) based on which side-table the symbol
@@ -306,7 +306,7 @@ export call_single_dst :: fn(ins: InstrCall) -> LocalId | null {
     return ins.dsts[0]
 }
 
-/// Indirect call — the callee is a fn-typed local (closure or fn-ref
+/// Indirect call: the callee is a fn-typed local (closure or fn-ref
 /// read out of a struct field). Emits `call.indirect <typeIdx>`.
 export InstrCallIndirect :: struct {
     span:    Span
@@ -336,7 +336,7 @@ export InstrFnAddr :: struct {
     span:      Span
     dst:       LocalId
     fn_symbol: Symbol
-    /// The callee's signature as written at the site. Informational — it feeds
+    /// The callee's signature as written at the site. Informational: it feeds
     /// the dump only. `dst` is typed `TY_CPOINTER`, not this.
     type:      Type
 }
@@ -357,7 +357,7 @@ export InstrVirtualCall :: struct {
     receiver:   LocalId
     args:       LocalId[]
     type:       Type
-    /// `LoweredVirtualCall.param_types` — what each arg's slot declares.
+    /// `LoweredVirtualCall.param_types`: what each arg's slot declares.
     param_types: Type[]
 }
 
@@ -443,7 +443,7 @@ export InstrArrayPush :: struct {
 export InstrArraySlice :: struct {
     span: Span
     dst:  LocalId
-    /// BcType index of the result — the slice view inherits the parent
+    /// BcType index of the result: the slice view inherits the parent
     /// array's element type, mangled the same way.
     type:   Type
     target: LocalId
@@ -475,8 +475,8 @@ export InstrArrayNew :: struct {
 }
 
 /// Pre-materialised module-level read-only `T[]` literal. Pool entry built
-/// by inline-consts ; emit lowers to bytecode `data.const`. No operands
-/// — the value is the static pool entry's runtime ref.
+/// by inline-consts ; emit lowers to bytecode `data.const`. No operands:
+/// the value is the static pool entry's runtime ref.
 export InstrDataConst :: struct {
     span:       Span
     dst:        LocalId
@@ -500,7 +500,7 @@ export InstrGlobalSet :: struct {
     type:  Type
 }
 
-/// Runtime tag check — `is X`.
+/// Runtime tag check: `is X`.
 export InstrTypeCheck :: struct {
     span:       Span
     dst:        LocalId
@@ -518,7 +518,7 @@ export InstrTypeConst :: struct {
     value_type: Type
 }
 
-/// Static type cast — same as LoweredCast ; emits a tag re-stamp or
+/// Static type cast: same as LoweredCast ; emits a tag re-stamp or
 /// no-op depending on source/target representation.
 export InstrCast :: struct {
     span:  Span
@@ -570,7 +570,7 @@ export InstrIntrinsic :: struct {
 }
 
 /// Local-to-local copy. Surfaces in lowered constructs like
-/// `let x = y` where the RHS is already in a local — the converter
+/// `let x = y` where the RHS is already in a local: the converter
 /// emits a Move rather than synthesising a fresh tmp. SSA conversion
 /// elides moves entirely (rename instead).
 export InstrMove :: struct {
@@ -579,7 +579,7 @@ export InstrMove :: struct {
     src:  LocalId
 }
 
-// ---- constants — payload of InstrConst -----------------------------------
+// ---- constants: payload of InstrConst -----------------------------------
 
 export ConstValue ::
     | ConstInt
@@ -602,20 +602,20 @@ export ConstNull   :: struct {}
 /// Collection of CFGFunctions, mirrors LoweredProject's shape.
 export CFGProject :: struct {
     modules: MutableMap<string, CFGModule>
-    /// Same vtable entries the LoweredProject carries — bytecode emit
+    /// Same vtable entries the LoweredProject carries: bytecode emit
     /// reuses them as-is.
     vtable_entries: LoweredVtableEntry[]
     /// Project-level string pool. The converter interns each
     /// LoweredStringLit here ; ConstString stores the index. The
     /// emitter reuses this pool verbatim as `BcModule.strings`.
     strings: string[]
-    /// Mirrors LoweredProject.dataPool — carried verbatim into
+    /// Mirrors LoweredProject.dataPool: carried verbatim into
     /// `BytecodeModule.dataPool`. InstrDataConst references entries by
     /// index.
     data_pool: BcDataEntry[]
     /// Mirrors `LoweredProject.globals`: the type of each global slot.
     globals: GlobalSlot[]
-    /// `Symbol.id → trait names` — frontend trait membership carried verbatim
+    /// `Symbol.id → trait names`: frontend trait membership carried verbatim
     /// from `LoweredProject`, consumed by `build_impl_table_from_vtable` to
     /// emit `is Trait` rows for every interned struct tag (incl. generic
     /// instances + never-called impls the vtable-sourced path misses).
@@ -630,7 +630,7 @@ export CFGModule :: struct {
     /// these to the import table ; no CFG body exists for them.
     externs: CFGExternDecl[]
     /// Struct declarations the bytecode emit needs to intern into the
-    /// type table. Const decls don't appear here — they're inlined
+    /// type table. Const decls don't appear here: they're inlined
     /// into every read site by the inline-consts lowering pass.
     struct_decls: CFGStructDecl[]
 }

@@ -1,8 +1,8 @@
-# 0014 — The interpreter's cost is the buffer resolve, and the hoist that would fix it is disabled
+# 0014: The interpreter's cost is the buffer resolve, and the hoist that would fix it is disabled
 
 ## Status
 
-Accepted (2026-09-05). Investigation only — no code changed.
+Accepted (2026-09-05). Investigation only: no code changed.
 
 **Superseded by [0024](0024-the-vm-runs-register-code-translated-at-load.md)
 (2026-09-29)**: the interpreter loop it measures is gone.
@@ -17,17 +17,17 @@ the tree on 2026-09-05 and is single today.
 (2026-09-06)**: the 23 ns/op is one workload's figure rather than the interpreter's
 speed, the lever this record files as its main one is measured at ~13 %, and the
 `gc_alloc` count below does not reproduce (195, not 786). The write-barrier count
-here is CORRECT — 0015 first disputed it and was itself wrong. The fourth
+here is CORRECT: 0015 first disputed it and was itself wrong. The fourth
 hypothesis below is confirmed and then some: the dispatch is a jump table, ~1 cycle
 of a 22-35 cycle op, so the chain is never walked at all. The FOURTH is confirmed too,
 by the allocation counter this record wanted: a `u8` local costs exactly 2 allocations
 per iteration, one per `local.set`, ceiling −19.3 %.
 
 ⚠️ **Every static count below is DOUBLE.** The C emitter tail-duplicates the whole loop
-body into both branches of `if is_comptime`, so the arms are **147 per copy** — near this
-record's own "real 145 arms", quoted from its prototype — and the resolve / barrier /
+body into both branches of `if is_comptime`, so the arms are **147 per copy** (near this
+record's own "real 145 arms", quoted from its prototype) and the resolve / barrier /
 alloc figures halve the same way (469 / 244 / ~96). Neither copy is dead: copy 1 is the
-comptime path, copy 2 the normal one. De-duplicating measures **+22 %**, i.e. worse — the
+comptime path, copy 2 the normal one. De-duplicating measures **+22 %**, i.e. worse: the
 merged copy becomes a join reached from two predecessors with different live states, and
 spill traffic per dispatch copy rises 29 % (4 650 against 6 003) while the stack frame
 GROWS. The duplication is a specialisation that pays.
@@ -37,7 +37,7 @@ GROWS. The duplication is a specialisation that pays.
 `@comptime` folding of `std/core/dtoa_tables` costs ~80 ms on every build of any
 program that reaches `std/core`, which is every program. That is ~70 % of the
 compile of a trivial one. Asking where it goes leads to the interpreter, and the
-answer took four wrong hypotheses to reach — all four recorded below, because
+answer took four wrong hypotheses to reach: all four recorded below, because
 each is a plausible thing to try again.
 
 ## What was measured
@@ -48,8 +48,8 @@ per table build under `vader run`, 120 µs compiled. Roughly 23 ns per VM
 operation, ~90 cycles.
 
 **The tables are built about seven times, not once.** `build_pow5_split(326)` and
-`build_pow5_inv(342)` each run twice — `DOUBLE_POW5_SPLIT_LO` and `_HI` recompute
-the same table and differ only in the `even_words` / `odd_words` they apply — plus
+`build_pow5_inv(342)` each run twice, `DOUBLE_POW5_SPLIT_LO` and `_HI` recompute
+the same table and differ only in the `even_words` / `odd_words` they apply, plus
 the f32 pair. `dtoa_tables.vader`'s own header says why: an un-baked `@comptime`
 const referenced inside another `@comptime` block gets its RHS re-inlined per
 loop iteration. So the duplication is deliberate, and the ~7× is a compiler
@@ -57,7 +57,7 @@ limitation rather than an authoring mistake.
 
 **Each interpreted instruction performs ~3.3 array accesses.** Static count over
 the emitted dispatch region: 963 buffer resolves, 966 bounds checks, 489 write
-barriers, across 292 arms. Every access re-resolves the array's buffer — a null
+barriers, across 292 arms. Every access re-resolves the array's buffer: a null
 test, a `header.forward` test for a moved object, a bounds test, then a double
 indirection through `buf->slots` plus the offset. Around 15-20 machine operations
 per interpreted instruction before any useful work, which is the shape of the
@@ -68,8 +68,8 @@ and it is switched off here.** `bce_hoist.vader::bh_try_hoist` pins an array's
 resolve outside a loop only when the body is "BCE-safe (no alloc / impure call /
 yield / rebind)". The interpreter's dispatch loop holds 786 `gc_alloc` calls
 spread across its 292 arms; one is enough to disqualify the whole loop, even
-though the hot arms allocate nothing. The safety condition is sound — a
-collection can move a buffer, so a pinned resolve would go stale — but it is
+though the hot arms allocate nothing. The safety condition is sound (a
+collection can move a buffer, so a pinned resolve would go stale) but it is
 evaluated per LOOP while the hazard is per PATH.
 
 ## Decision
@@ -99,8 +99,8 @@ block by its baked value rather than by re-inlining its RHS.
 Each was plausible, each was measured, each is written here so it is not tried
 again from scratch.
 
-**Values are boxed on the hot path.** They are not. The stack is tagged —
-`payload: i64[]` beside `tag: StackTag[]` — and `I64Add` adds in place. Locals
+**Values are boxed on the hot path.** They are not. The stack is tagged
+(`payload: i64[]` beside `tag: StackTag[]`) and `I64Add` adds in place. Locals
 are tagged the same way. Deterministic check: a 100 000-iteration scalar loop
 allocates **zero bytes**, cast included. `peek_val` does build an `I64Val`, but
 the hot arms do not call it.
@@ -118,8 +118,8 @@ indirect branch. An earlier claim of "~146 comparisons, potentially an order of
 magnitude" came from an extraction that mixed in nested matches and was wrong.
 
 **A narrow local forces the boxing path for the whole function.** The mechanism
-is real — `cur_has_narrow` is read per FUNCTION from `fn_narrow_tbl`, so one
-narrow slot puts every `local.set` in that function through `peek_val` — but it
+is real, `cur_has_narrow` is read per FUNCTION from `fn_narrow_tbl`, so one
+narrow slot puts every `local.set` in that function through `peek_val`, but it
 was not what a measurement appeared to show. The +14 % attributed to it came from
 adding a `u32` local, and `is_narrow_valtype` covers only `u8` / `i8` / `u16` /
 `i16`. Re-measured with an actual `u8`: within the machine's ±8 % run-to-run
@@ -129,7 +129,7 @@ right; no measurement supports it today.
 ## A note on the instrument
 
 Wall-clock on the machine this was measured on drifts ~8 % between runs, which is
-wider than most of the effects being chased — one "baseline" moved from 178 ns to
+wider than most of the effects being chased: one "baseline" moved from 178 ns to
 191 ns within ten minutes. Three of the four wrong hypotheses above survived as
 long as they did because they were read off timings. What settled each of them in
 the end was deterministic: a static count in the emitted C, an allocation counter,

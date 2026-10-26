@@ -47,7 +47,7 @@ export ConstLocal :: enum {
 /// by its span via `Span.hash()` (the file's string hash folded with the start
 /// line/column, unique per node). Consumers look up a span to get
 /// the bound symbol's kind ; `Variable` is the fallback for un-resolvable
-/// idents (the resolver is intentionally lenient — diagnostics are
+/// idents (the resolver is intentionally lenient: diagnostics are
 /// the compiler-grade resolver's job).
 export ResolvedFile :: struct {
     /// Every `AST.IdentExpr` reached during the body walk, span-keyed
@@ -58,7 +58,7 @@ export ResolvedFile :: struct {
     /// typecheck's check_assign for T3041.
     immutable_locals: MutableMap<i32, ConstLocal>
     /// Locals, parameters and pattern bindings no assignment of the file rebinds,
-    /// `::` or not. Two reads of one yield the same value — within one iteration,
+    /// `::` or not. Two reads of one yield the same value: within one iteration,
     /// for a `for` loop variable, which the loop itself advances. A symbol missing
     /// here may be rebound, so an empty set claims nothing.
     rebind_free: MutableSet<i32>
@@ -81,7 +81,7 @@ export ResolvedFile :: struct {
 }
 
 /// Build a `ResolvedFile` for `program`. `top_level_seed` provides
-/// names that should resolve in the root scope — typically the
+/// names that should resolve in the root scope: typically the
 /// module's own top-level symbols + any auto-imported std/core names.
 /// Caller-owned so multi-module projects can extend the root scope
 /// before walking.
@@ -98,8 +98,8 @@ export resolve_program :: fn(
 }
 
 /// Resolve the files of one module, each against its own scope, since imports
-/// are file-scoped. A fn body written in another file — a `@target` body grafted
-/// onto a declaration — resolves in the scope of the file it was written in ; its
+/// are file-scoped. A fn body written in another file (a `@target` body grafted
+/// onto a declaration) resolves in the scope of the file it was written in ; its
 /// signature stays the declaration's.
 ///
 /// @param programs     the module's files.
@@ -148,7 +148,7 @@ ResolveState :: struct {
     idents:           MutableMap<u64, Symbol>
     immutable_locals: MutableMap<i32, ConstLocal>
     type_param_bounds: MutableMap<i32, AST.Expr>
-    /// W0015 candidates, in declaration order — one entry per `:=` statement.
+    /// W0015 candidates, in declaration order: one entry per `:=` statement.
     mutable_decls:    MutableDecl[]
     /// Symbol ids an assignment rebinds. Read once the file is walked.
     reassigned:       MutableSet<i32>
@@ -176,7 +176,7 @@ ResolveState :: struct {
     file_scopes:      MutableMap<string, FileScope>
 }
 
-// Walk on in `scope`'s file — its root, its ambiguities ; return the scope it
+// Walk on in `scope`'s file: its root, its ambiguities ; return the scope it
 // replaces.
 enter_file :: fn(self: ResolveState, scope: FileScope) -> FileScope {
     previous :: FileScope {
@@ -196,10 +196,10 @@ mint_local :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span)
 
 // Mint a value binding (`.Local` / `.Param`), warn if it collides with a name
 // already in scope, then bind it. Two collisions are flagged (warnings for now,
-// per the phased rollout — a later pass may promote them to errors):
-//   W0009 — the name is already bound in the CURRENT block (redeclaration).
-//   W0008 — it shadows an outer LOCAL or PARAMETER (an enclosing non-root frame).
-// A top-level name (root frame, index 0) is intentionally NOT flagged — a local
+// per the phased rollout: a later pass may promote them to errors):
+//   W0009: the name is already bound in the CURRENT block (redeclaration).
+//   W0008: it shadows an outer LOCAL or PARAMETER (an enclosing non-root frame).
+// A top-level name (root frame, index 0) is intentionally NOT flagged: a local
 // may legitimately share a name with a module-level fn/type/const. A `match`
 // header's `x ::` doesn't route here : reusing the scrutinee's name there is
 // idiomatic, not problematic shadowing.
@@ -222,7 +222,7 @@ bind_param :: fn(self: ResolveState, p: AST.FnParam) -> void {
 // Push W0009 or W0008 when `name`, about to be bound at `at`, collides with a
 // local or a parameter already in scope (see `bind_local_checked`).
 warn_collision :: fn(self: ResolveState, name: string, at: Span) -> void {
-    // `_` is the discard wildcard — many `_` bindings coexist by design
+    // `_` is the discard wildcard: many `_` bindings coexist by design
     // (`for _ in …`, `_ :: expr`), so never flag it as a shadow / redeclaration.
     idx :: if name == "_" { -1 } else { self.scope.lookup_frame_index(name) }
     if idx <= 0 {
@@ -307,7 +307,7 @@ declare_type_param :: fn(self: ResolveState, tp: AST.TypeParam) -> Symbol {
 }
 
 // R2042 on a union in `tp`'s bound : a `null` member belongs where `T` is used, not
-// on the bound. Returns the bound to record — the union's other member when `null`
+// on the bound. Returns the bound to record: the union's other member when `null`
 // is all it adds, so the body is checked against what was meant. A comptime value
 // parameter's `:` gives its type, not a bound.
 checked_bound :: fn(self: ResolveState, tp: AST.TypeParam, bound: AST.Expr) -> AST.Expr {
@@ -383,8 +383,8 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
 
 // A fn body, in the scope of the file it was written in : a `@target` body
 // grafted from a sibling file sees that file's imports, not the declaration's.
-// A body whose spans name no file of the module — a trait default cloned into an
-// impl, stamped `<clone>:<impl file>` — belongs to the file being walked.
+// A body whose spans name no file of the module (a trait default cloned into an
+// impl, stamped `<clone>:<impl file>`) belongs to the file being walked.
 walk_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
     written_in :: self.file_scopes[body.span.start.file]
     if written_in == null {
@@ -438,7 +438,7 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
     self.auto_bind_for_type_params(d.for_type)
     self.walk_expr(d.for_type)
     for ta in d.trait_args { self.walk_expr(ta) }
-    // The symbol the trait name binds to — a local trait, or an import — so later
+    // The symbol the trait name binds to (a local trait, or an import) so later
     // passes follow the binding instead of looking the name up again. A name the
     // scope doesn't bind stays unrecorded: R2007 / R2009 on it come from the
     // impl-member pass that runs before this walk (`materialize_impl_members`,
@@ -448,7 +448,7 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
         self.idents[d.trait_name_span.hash()] = trait_sym
         self.check_wildcard_ambiguity(d.trait_name, d.trait_name_span, trait_sym)
     }
-    // Skip only SAM short-impl synthetics — their body is the user's
+    // Skip only SAM short-impl synthetics: their body is the user's
     // expression and their params never got minted, so walking would
     // cascade R2006 on `self`. Default-method clones are also
     // `materialized` but carry proper substituted params, so the
@@ -478,7 +478,7 @@ walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
             self.diags.push(resolver_error(.UnknownDecorator, d.span, "`@${d.name}`"))
         }
         // `@target`'s arguments are TARGET SELECTORS, not expressions. They name
-        // an OS from a closed set and are compared syntactically — the selection
+        // an OS from a closed set and are compared syntactically: the selection
         // happens before any name resolution, so there is no scope in which
         // `.Windows` could be looked up, and walking it as an expression would
         // report "cannot infer enum type from context" for a construct that is
@@ -496,8 +496,8 @@ walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
     }
 }
 
-// Each argument must be `.Os` for a known OS. Anything else — a misspelling, an
-// expression, a bare identifier — is R2035, named rather than left to surface as
+// Each argument must be `.Os` for a known OS. Anything else (a misspelling, an
+// expression, a bare identifier) is R2035, named rather than left to surface as
 // an unresolved identifier three passes later.
 check_target_selectors :: fn(self: ResolveState, d: AST.Decorator) -> void {
     for a in d.args {
@@ -712,8 +712,8 @@ declared_outside_lambda :: fn(self: ResolveState, name: string) -> bool {
 }
 
 // Where W0015 points: the whole `[a, b]` for a destructure, since the warning's
-// unit is the declaration. That is what `Symbol.defined_at` cannot give — it
-// carets the first leaf — so this is not a re-derivation of it. Each variant
+// unit is the declaration. That is what `Symbol.defined_at` cannot give (it
+// carets the first leaf) so this is not a re-derivation of it. Each variant
 // names the field the mint site used, and is spelled out because a common-field
 // read on a bare union takes a FIXED offset.
 binding_span :: fn(b: AST.LetBinding) -> Span = match b {
@@ -735,7 +735,7 @@ rebind_free_locals :: fn(self: ResolveState) -> MutableSet<i32> {
     return out
 }
 
-// W0015 — every `:=` nothing ever reassigned. Reported at the end of the file
+// W0015: every `:=` nothing ever reassigned. Reported at the end of the file
 // rather than at each `scope.pop()`, which the scope stack would also allow:
 // it is the cheaper seam, and `render_diagnostics` sorts by offset, so push
 // order never reaches the user.
@@ -764,10 +764,10 @@ has_reassignment :: fn(self: ResolveState, syms: Symbol[]) -> bool {
 
 // ---- expr walkers ---------------------------------------------------------
 
-// R2031 — an unqualified reference `x` that resolves, through the wildcard seed,
+// R2031: an unqualified reference `x` that resolves, through the wildcard seed,
 // to a name TWO+ bare-imported modules both export. `s.module == module_path`
 // means the reference bound to a local / param / this module's own decl / a
-// destructure import (all same-module) — those shadow the wildcard and are
+// destructure import (all same-module): those shadow the wildcard and are
 // unambiguous. A cross-module `s` whose name is in `ambiguous` is the real clash.
 check_wildcard_ambiguity :: fn(self: ResolveState, name: string, span: Span, s: Symbol) -> void {
     if s.module == self.module_path { return }
@@ -784,7 +784,7 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
                     self.idents[e.span.hash()] = v
                     self.check_wildcard_ambiguity(e.name, e.span, v)
                 }
-                // R2006 — the root scope must carry the core prelude
+                // R2006: the root scope must carry the core prelude
                 // (`build_core_seed`, folded in by `file_root_scope`) ;
                 // otherwise bare references to `Range`, `Display`,
                 // `Iterator`, … would over-fire here.
@@ -869,7 +869,7 @@ walk_if :: fn(self: ResolveState, e: AST.IfExpr) -> void {
 
 walk_match :: fn(self: ResolveState, e: AST.MatchExpr) -> void {
     self.walk_expr(e.scrutinee)
-    // `match x :: e { … }` — one scope around every arm, minted AFTER the
+    // `match x :: e { … }`: one scope around every arm, minted AFTER the
     // scrutinee is walked so `x` cannot refer to itself. Registered in `idents`
     // at the `x` token so the type-checker can find the symbol from the
     // MatchExpr alone (mirrors the param / type-param declarations above).
@@ -953,7 +953,7 @@ walk_struct_lit_items :: fn(self: ResolveState, items: AST.StructLitItem[]) -> v
 
 import "std/testing"
 
-// A zero-width span at `(line, column)` in `file` — enough for `Span.hash()`,
+// A zero-width span at `(line, column)` in `file`: enough for `Span.hash()`,
 // which reads only `start.file` / `start.line` / `start.column`.
 span_at :: fn(file: string, line: i32, column: i32) -> Span {
     pos :: Position { .file = file, .offset = 0, .line = line, .column = column }

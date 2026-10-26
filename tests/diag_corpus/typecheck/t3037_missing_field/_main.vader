@@ -1,4 +1,4 @@
-// Struct literal missing required field `b` — T3037.
+// Struct literal missing required field `b`: T3037.
 module "snippet"
 
 Foo :: struct { a: i32, b: i32 }

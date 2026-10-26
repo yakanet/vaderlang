@@ -7,7 +7,7 @@ per line. A `;` starts a comment that runs to the end of the line; `--annotate` 
 comments to name what an index points at.
 
 The ops drive a value stack. An operand written after an op is an index into one of
-the module's tables — `type N`, `string N`, `data N`, `import N`, `fn N` — or a local
+the module's tables (`type N`, `string N`, `data N`, `import N`, `fn N`) or a local
 slot: the function's parameters first, then its `local` declarations, in order.
 
 This file is also what an editor shows when hovering an op: every `###` heading below
@@ -22,7 +22,7 @@ Names the module. First line of the file.
 Declares entry `<index>` of the type table. Kinds:
 `scalar <name>` (`i32`, `string`, `void`, …), `struct <name> { <field>:<type>, … }`,
 `array <element type>`, `union <type>,<type>,…`, `fn (<param types>) -> <return type>`,
-and `ref <trait>` / `ref _` — a reference whose concrete type is known only at run time.
+and `ref <trait>` / `ref _`: a reference whose concrete type is known only at run time.
 
 ### `string <index> "<text>"`
 Declares entry `<index>` of the string table, read by `string.const`.
@@ -42,7 +42,7 @@ Declares entry `<index>` of the import table, called by `call.import`: a functio
 host provides (`extern` for a C function, with its header), with its signature.
 
 ### `impl <type> <trait>`
-Records that the type implements the trait — what a run-time `is Trait` test reads.
+Records that the type implements the trait: what a run-time `is Trait` test reads.
 
 ### `vtable <trait>.<method> <type> <fn>`
 Virtual dispatch row: a `virtual.call` of `<trait>.<method>` on a receiver of type
@@ -86,7 +86,7 @@ Push entry `<string>` of the string table.
 Push the pre-built array at entry `<data>` of the data pool; `<type>` is its array type.
 
 ### `type.const <type>`
-Push type `<type>` as a value — the run-time form of a `type`-typed expression.
+Push type `<type>` as a value: the run-time form of a `type`-typed expression.
 
 ## Globals
 
@@ -108,7 +108,7 @@ Pop a value into local `<slot>`.
 Store the top of the stack into local `<slot>` without popping it.
 
 ### `local.field <slot> <type> <field>`
-Push field `<field>` of the struct of type `<type>` held in local `<slot>` — a fused
+Push field `<field>` of the struct of type `<type>` held in local `<slot>`: a fused
 `local.get` + `struct.get`.
 
 ### `drop`
@@ -143,7 +143,7 @@ Pop a condition; non-zero jumps as `br` does, zero falls through.
 Return from the function, with the top of the stack as its result when it has one.
 
 ### `return.lit <constant op>`
-Push a constant and return it — a fused `<type>.const …` + `return`.
+Push a constant and return it: a fused `<type>.const …` + `return`.
 
 ### `unreachable`
 Trap. The compiler emits it where it proved control cannot arrive.
@@ -168,7 +168,7 @@ then run the function the `vtable` rows give for the receiver's type.
 Push function `<fn>` as a value, with no captured environment.
 
 ### `fn.addr <fn>`
-Push the machine address of function `<fn>` — for a C callback. Native code only: the
+Push the machine address of function `<fn>`: for a C callback. Native code only: the
 VM traps.
 
 ### `make_closure <fn> <env type>`
@@ -220,13 +220,13 @@ is out of bounds.
 ### `array.push <type>` `array.push <type> <slot>`
 Pop a value, then an array; append the value. The optional `<slot>` is the local holding
 the array, written when the compiler proved the surrounding loop may keep the array's
-length and capacity in locals — a hint the native backend uses.
+length and capacity in locals: a hint the native backend uses.
 
 ### `array.slice <type>`
 Pop `hi`, `lo` and an array; push the elements in `lo..<hi`.
 
 ### `array.repeat`
-Pop a count `n`, then an array; push a new array repeating its elements `n` times —
+Pop a count `n`, then an array; push a new array repeating its elements `n` times:
 `[] * n` keeps the length at 0 and reserves `n` slots.
 
 ### `array.push_all`
@@ -253,7 +253,7 @@ Bounds-checked, like `array.set`.
 ## Types and tags
 
 ### `type_check <type>`
-Pop a value, push whether its run-time type is `<type>` — the test behind `is` and
+Pop a value, push whether its run-time type is `<type>`: the test behind `is` and
 `match`. A union type matches any of its variants.
 
 ### `ref.cast <type>`
@@ -261,7 +261,7 @@ Narrow the static type of the top of the stack to `<type>`. Nothing happens at r
 
 ### `retag <type>`
 Name the precise type of the primitive on the stack as it enters a union or an erased
-slot — a `u8` constant is pushed as an `i32`, and the tag is what a later `is u8` reads.
+slot: a `u8` constant is pushed as an `i32`, and the tag is what a later `is u8` reads.
 
 ### `intrinsic size_of.type`
 Pop a type value, push its size in bytes as an `i64`.
@@ -385,7 +385,7 @@ Pop two floats (left, right); push `left > right`.
 Pop two floats (left, right); push `left >= right`.
 
 ### `f64_to_bits` `f32_to_bits`
-Pop a float, push its IEEE 754 bit pattern (`u64` / `u32`) — a reinterpretation, not a
+Pop a float, push its IEEE 754 bit pattern (`u64` / `u32`): a reinterpretation, not a
 numeric conversion.
 
 ### `bits_to_f64` `bits_to_f32`
@@ -394,7 +394,7 @@ Pop a bit pattern (`u64` / `u32`), push the float it encodes.
 ## Conversions
 
 ### `<from>.to_<to>`
-Pop a number (or `char`) of type `<from>`, push it converted to `<to>` — `i32.to_i64`,
+Pop a number (or `char`) of type `<from>`, push it converted to `<to>`: `i32.to_i64`,
 `u64.to_i32`, `i64.to_f64`, `u32.to_char`, …
 
 ## Booleans
@@ -424,7 +424,7 @@ Pop two strings, push whether their bytes differ.
 
 ### `string.compare`
 Pop two strings, push an `i32` that is negative, zero or positive as the first orders
-before, with or after the second. Byte-wise — codepoint order in UTF-8 — and a proper
+before, with or after the second. Byte-wise (codepoint order in UTF-8) and a proper
 prefix orders first.
 
 ### `ref.eq`

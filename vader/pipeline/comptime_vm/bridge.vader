@@ -7,7 +7,7 @@
 // The VM collapses width-suffixed integers (`u32`, `i64`, …) into `I32Val` /
 // `I64Val`, so the runtime tag alone cannot recover the source width. Every
 // scalar therefore takes its primitive name from the typechecker-resolved
-// `Type` of the decl, NOT from the `Value` tag — `IntValue.type_name` is
+// `Type` of the decl, NOT from the `Value` tag: `IntValue.type_name` is
 // load-bearing for downstream typing and the comptime dump.
 //
 // Scalars, arrays, structs and tuples are bridged. A struct takes its fields'
@@ -38,7 +38,7 @@ BakeScope :: struct {
 ///
 /// @param ctx    the type table and the program the value is read against.
 /// @param value  the VM runtime value produced by `exec_fn_value`.
-/// @param ty     the typechecker-resolved type of the comptime decl — drives
+/// @param ty     the typechecker-resolved type of the comptime decl: drives
 ///               every scalar's `type_name` and the array element name.
 /// @param span   the comptime decl's span, attached to any failure diagnostic.
 /// @return       the bridged `ComptimeValue` on success.
@@ -75,7 +75,7 @@ int_scalar :: fn(raw: i64, type_name: string) -> Ct.ComptimeValue =
     Ct.int_val_typed(Ct.wrap_to_width(raw, type_name), type_name)
 
 // Primitive name of `ty` (resolving a distinct type to its backing), or
-// `fallback` when `ty` isn't a primitive — the scalar arms then keep the VM
+// `fallback` when `ty` isn't a primitive: the scalar arms then keep the VM
 // tag's natural width.
 prim_name :: fn(ty: Type, fallback: string) -> string {
     name :: primitive_name(strip_distinct(ty))
@@ -165,7 +165,7 @@ lays_out_as :: fn(t: Type, layout: BcStruct, arity: i64) -> bool {
 }
 
 // Element type of an array type ; falls back to `ty` itself for a non-array
-// (defensive — a well-typed array result always carries an `ArrayType`).
+// (defensive: a well-typed array result always carries an `ArrayType`).
 array_element_type :: fn(ty: Type) -> Type {
     if ty is ArrayType { return ty.element }
     return ty
@@ -179,7 +179,7 @@ unsupported :: fn(span: Span, what: string) -> Diagnostic =
 import "std/testing"
 import "vader/core/symbol"
 
-// Bridge then render — narrows the result union for the happy-path asserts.
+// Bridge then render: narrows the result union for the happy-path asserts.
 display_bridged :: fn(value: Vm.Value, ty: Type, span: Span) -> string =
     display_bridged_in(test_scope([]), value, ty, span)
 

@@ -1,7 +1,7 @@
 // A `for … in` over a collection whose ELEMENTS are themselves nullable.
 //
 // `Iterator.next` hands back `[T, Continuation]`, and the `Continuation` is what
-// says whether there IS an element — so a yielded `null` is just an element.
+// says whether there IS an element, so a yielded `null` is just an element.
 // This pins the case any change to the iterator protocol would otherwise break
 // in silence: the loop would stop at the first `null` element and report a
 // shorter collection.

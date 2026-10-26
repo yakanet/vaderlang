@@ -1,5 +1,5 @@
 // `zip(a, b)` as the source of a chain fuses to one index loop up to the shorter
-// array, and gives what the lazy chain gives — each case prints the chain
+// array, and gives what the lazy chain gives: each case prints the chain
 // consumed where it is written, then the same chain bound to a local first.
 
 module "snippet"

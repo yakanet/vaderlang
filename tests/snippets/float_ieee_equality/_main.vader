@@ -1,5 +1,5 @@
 // A float compares by IEEE 754 wherever it travels : `0.0 == -0.0`, and `nan`
-// equals nothing, itself included — in a union, an array searched with `in`, a
+// equals nothing, itself included: in a union, an array searched with `in`, a
 // literal pattern, an erased `T: Equals`, a value typed `Equals`, a nullable
 // field, a tuple. The box that carries it never compares its bits instead.
 

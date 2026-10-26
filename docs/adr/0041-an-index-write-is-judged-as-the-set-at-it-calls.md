@@ -1,4 +1,4 @@
-# 0041 — An index write is judged as the `set_at` it calls
+# 0041: An index write is judged as the `set_at` it calls
 
 ## Status
 

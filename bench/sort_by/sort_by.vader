@@ -1,7 +1,7 @@
 /// The stdlib's comparator sort, which is a different thing from `quicksort`.
 /// That row hand-writes a monomorphic median-of-three Lomuto partition and
 /// compares codegen; this one calls `std/sort` through a fn value, so it
-/// measures the library's merge sort plus one indirect call per comparison —
+/// measures the library's merge sort plus one indirect call per comparison:
 /// the shape any user's `sort(items, by_name)` actually takes.
 ///
 /// The comparator orders on a DERIVED key rather than on the element, so it

@@ -1,4 +1,4 @@
-/// Array append hot loop — builds a fresh `i32[]` by `push`-ing 100 000
+/// Array append hot loop: builds a fresh `i32[]` by `push`-ing 100 000
 /// elements, 200 times over (20 M pushes total), discarding each array. `push`
 /// lowers to the Target-ABI open-coded append (typed store at the tail + length
 /// bump, amortised-doubling buffer realloc on overflow). Unlike `arr_rw` this

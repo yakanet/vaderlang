@@ -14,7 +14,7 @@ import "std/numbers"
 import "std/string"
 import "vader/core/types"
 
-/// One comptime-evaluated value. Variants closed — every new
+/// One comptime-evaluated value. Variants closed: every new
 /// representation lives behind a new variant rather than a `?` payload.
 export ComptimeValue ::
     | IntValue
@@ -36,7 +36,7 @@ export IntValue :: struct {
     type_name: string
 }
 
-/// IEEE-754 float64 carrier — `f32` values widen on entry, narrow on
+/// IEEE-754 float64 carrier: `f32` values widen on entry, narrow on
 /// emit. `type_name` keeps the source-level kind so the dump round-trips.
 export FloatValue :: struct {
     value:     f64
@@ -52,7 +52,7 @@ export CharValue :: struct { value: u32 }
 
 export StringValue :: struct { value: string }
 
-/// The literal `null` value — distinct from a `void`-returning fn.
+/// The literal `null` value: distinct from a `void`-returning fn.
 export NullValue :: struct {}
 
 /// The result of a `void`-returning fn ; a unit value.
@@ -75,7 +75,7 @@ export StructValue :: struct {
     fields: MutableMap<string, ComptimeValue>
 }
 
-/// `@comptime t :: i32` — the value of `t` is the Type IR itself. The
+/// `@comptime t :: i32`: the value of `t` is the Type IR itself. The
 /// dump uses `display_type` so the rendering matches every other
 /// type-position dump in the project.
 export TypeValue :: struct { value: Type }
@@ -170,7 +170,7 @@ int_digits :: fn(value: IntValue) -> string {
 // Arrays longer than this are truncated in the dump: a comptime snapshot
 // verifies that evaluation produced an array of the right shape, not the exact
 // payload of a large data table (e.g. std/core's Ryu power-of-5 tables, the
-// crypto round-constant tables) — inlining all ~1300 entries into the 276
+// crypto round-constant tables): inlining all ~1300 entries into the 276
 // prelude-bearing snapshots would bloat them by megabytes. The head elements +
 // the total length stay visible; the exact values are checked by their
 // colocated reference-row `@test`s (e.g. `dtoa_tables.vader`,

@@ -1,5 +1,5 @@
 // Combinators UFCS-resolve on an ERASED `Iterator<T>` receiver (a fn param, an
-// `.into()` result, any boxed iterator) — not just on a concrete
+// `.into()` result, any boxed iterator), not just on a concrete
 // `__genstate` head. `it.map(f)` must lower to the free-fn combinator, NOT a
 // `virtual.call Iterator.map` (the trait has no `map` method → runtime miss).
 // Regression guard for the lowering rule: when the typer resolved free-fn UFCS,
@@ -13,7 +13,7 @@ import "std/iter"
 triple  :: fn(x: i32) -> i32 = x * 3
 keep_hi :: fn(x: i32) -> bool = x > 6
 
-// `.map` / `.filter` on the erased `Iterator<i32>` param — a chain + a terminal.
+// `.map` / `.filter` on the erased `Iterator<i32>` param: a chain + a terminal.
 sum_tripled_hi :: fn(it: Iterator<i32>) -> i32 {
     total := 0
     for x in it.map(triple).filter(keep_hi) {

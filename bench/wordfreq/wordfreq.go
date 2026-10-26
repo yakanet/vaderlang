@@ -1,5 +1,5 @@
 // Go peer of bench/wordfreq.vader. The corpus is a []byte, and each token is
-// turned into a string with `string(corpus[start:end])` — the conversion Go
+// turned into a string with `string(corpus[start:end])`: the conversion Go
 // tokenizers write, which allocates and copies the bytes before the map hashes
 // them.
 

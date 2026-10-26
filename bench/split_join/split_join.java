@@ -1,5 +1,5 @@
 // Java peer of bench/split_join.vader. `String.split` takes a regex, but the
-// single-character fast path skips the engine — which is what Java code writes
+// single-character fast path skips the engine, which is what Java code writes
 // for a separator this simple.
 
 import java.util.ArrayList;

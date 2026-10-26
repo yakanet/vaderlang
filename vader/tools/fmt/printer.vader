@@ -1,7 +1,7 @@
 // vader/tools/fmt/printer: AST → source emitter.
 //
 // `emit_expr` / `emit_type_expr` accept `Expr | null` directly (with `null`
-// being a no-op) — the Vader typechecker flattens the union-alias `Expr` into
+// being a no-op): the Vader typechecker flattens the union-alias `Expr` into
 // its 26 individual variants for exhaustiveness purposes, so passing
 // `TypeExpr | null` through a generic dispatch is only practical when the
 // dispatcher itself enumerates every variant in one place.
@@ -35,7 +35,7 @@ export Printer :: struct {
     align_name_width: i64
     // How the NEXT `emit_block_expr` should lay out its body. The block-stmt
     // loop sets it per statement (then restores) : `.Expand` for a control-flow
-    // statement body (`if` / `for` / `while` — always multi-line), `.Inline` for
+    // statement body (`if` / `for` / `while`: always multi-line), `.Inline` for
     // a member of a lookup-table `if`-chain (kept inline), `.Preserve` (the
     // default) everywhere else (inline iff the source was single-line).
     // Value-position blocks (`x :: if c { a } else { b }`) stay `.Preserve`, so
@@ -65,7 +65,7 @@ export Printer :: struct {
     // the source never had.
     keep_line_breaks: bool = true
     // Width that follows on the same line once the NEXT delimited construct
-    // closes — the ` ?? return …` after a call. That construct counts it in its
+    // closes: the ` ?? return …` after a call. That construct counts it in its
     // fit test (`fits_inline`), which clears it before the construct's own
     // children are emitted.
     trailing: i64 = 0
@@ -73,11 +73,11 @@ export Printer :: struct {
 
 /// How `emit_block_expr` lays out a block body (see `Printer.block_mode`).
 BlockLayout :: enum(u8) {
-    /// Inline iff the source was single-line — the default.
+    /// Inline iff the source was single-line: the default.
     Preserve,
-    /// Always multi-line — a control-flow statement body (`if` / `for` / `while`).
+    /// Always multi-line: a control-flow statement body (`if` / `for` / `while`).
     Expand,
-    /// Always inline — a member of a lookup-table `if`-chain.
+    /// Always inline: a member of a lookup-table `if`-chain.
     Inline,
 }
 
@@ -142,7 +142,7 @@ nl_indent :: fn(self: Printer) -> void {
 }
 
 // ----- source-slice helper (for shapes we can't faithfully reconstruct
-//        from the AST — strings, generic-inst syntax forms) -----
+//        from the AST: strings, generic-inst syntax forms) -----
 
 source_slice :: fn(self: Printer, span: Span) -> string =
     self.source.byte_slice(span.start.offset, span.end.offset)
@@ -179,9 +179,9 @@ opens_gap :: fn(self: Printer, prev_end: i32, offset: i64, line: i32) -> bool {
 // Emit every queued leading comment as one full line each, terminated by
 // a newline. Preserves source blank lines between consecutive comments
 // AND between the last comment and the node that follows (caller passes
-// `node_line` — the source line where the AST node starts ; if there's a
+// `node_line`: the source line where the AST node starts ; if there's a
 // gap > 1 line, emit one extra newline as the visual separator).
-// `prev_end_line` tracks where the previous comment FINISHED — needed for
+// `prev_end_line` tracks where the previous comment FINISHED: needed for
 // multi-line block comments whose `start_line` is well before `end_line`.
 flush_leading_comments :: fn(self: Printer, before: i64, node_line: i32) -> void {
     cs :: self.comments.take_before(before)
@@ -408,7 +408,7 @@ emit_decl :: fn(self: Printer, d: p.Decl) -> void {
 
 // True when the decl's name is in a `name :: …` slot eligible for column
 // alignment within a group. Signature-only fns and consts both fit ;
-// fns with a body (block or expression) don't — the existing stdlib
+// fns with a body (block or expression) don't: the existing stdlib
 // convention is single-space `::` for those.
 decl_is_alignable :: fn(d: p.Decl) -> bool {
     // @partial: only signature-only fns and consts get column-aligned `::`
@@ -436,7 +436,7 @@ decl_alignable_name :: fn(d: p.Decl) -> string {
 }
 
 // True iff `a` and `b` carry the same ordered list of decorator names.
-// Walks both lists in lock-step — no intermediate `string[]` allocation.
+// Walks both lists in lock-step: no intermediate `string[]` allocation.
 decorators_equal :: fn(a: p.Decorator[], b: p.Decorator[]) -> bool {
     if a.len() != b.len() { return false }
     for i in 0..<a.len() {
@@ -479,7 +479,7 @@ decls_in_same_group :: fn(prev: p.Decl, cur: p.Decl) -> bool {
 // alignment width that its emitter should use for the `name :: ` slot.
 // Decls outside an alignable group (or that are the sole member of one)
 // get `0`, which disables padding. Groups extending across two or more
-// decls all see the same width — the max name length in the group — so
+// decls all see the same width (the max name length in the group) so
 // every name in the group aligns to the same column.
 compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> i64[] {
     out: i64[]: []
@@ -498,7 +498,7 @@ compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> i64[] {
             if w > width { width = w }
             end = end + 1
         }
-        // Solo groups (`end == i + 1`) skip alignment — `pad_end` of a
+        // Solo groups (`end == i + 1`) skip alignment: `pad_end` of a
         // name to its own width is a no-op, just wasted work.
         group_width :: if end == i + 1 { 0 } else { width }
         for k in i..<end { out.push(group_width) }
@@ -508,7 +508,7 @@ compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> i64[] {
 }
 
 
-// Decorators sit OUTSIDE the decl's own span — they're collected separately
+// Decorators sit OUTSIDE the decl's own span: they're collected separately
 // by the parser. For "what line does this decl visually start on" we want
 // the first decorator's line if any, else the decl's own span start.
 decl_first_line :: fn(d: p.Decl) -> i32 {
@@ -520,9 +520,9 @@ decl_first_line :: fn(d: p.Decl) -> i32 {
 // Decorators followed by either a newline (the common case ; matches the
 // canonical multi-line form) or a single space (when the source placed the
 // decorator on the same line as the decl). `decl_start_line` is the line
-// of the decl's first non-decorator token — the printer's call site picks
+// of the decl's first non-decorator token: the printer's call site picks
 // it (`name_span.start.line` for named decls, fallback to `span.start.line`).
-/// One decorator — `@name` or `@name(args)` — with nothing after it.
+/// One decorator (`@name` or `@name(args)`) with nothing after it.
 ///
 /// Shared by the declaration form, which picks its separator from the source
 /// lines, and the parameter form, which is always inline.
@@ -586,7 +586,7 @@ emit_import :: fn(self: Printer, d: p.ImportDecl) -> void {
             self.write("import \"")
             self.write(d.path)
             self.write("\"")
-            // `import "p" {}` — an empty modifier list is just the bare wildcard;
+            // `import "p" {}`: an empty modifier list is just the bare wildcard;
             // normalise it away (this also silences W0011 on re-format).
             if nn.names.len() > 0 { self.emit_import_name_block(nn.names, nn.trailing_comma) }
         }
@@ -603,7 +603,7 @@ emit_import_name_block :: fn(self: Printer, names: p.ImportName[], trailing_comm
 }
 
 // Flat width of an import modifier block rendered as ` { a, b as c }`,
-// including the surrounding braces — drives the Dart-style layout choice.
+// including the surrounding braces: drives the Dart-style layout choice.
 // Measures by rendering through the real emitter in `flat` mode (which forces
 // the single-line branch), so the two never drift.
 flat_import_block_width :: fn(source: string, names: p.ImportName[]) -> i64 {
@@ -676,7 +676,7 @@ emit_fn_params :: fn(self: Printer, params: p.FnParam[], trailing_comma: bool) -
 }
 
 // Flat width of a parameter list rendered as `(a: T, b: U)`, including the
-// parens — used to decide the Dart-style single-line vs exploded layout.
+// parens: used to decide the Dart-style single-line vs exploded layout.
 flat_params_width :: fn(source: string, params: p.FnParam[]) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
@@ -711,7 +711,7 @@ emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
         self.write(" {}")
         return
     }
-    // Inline rendering when the source was single-line — matches the
+    // Inline rendering when the source was single-line: matches the
     // stdlib idiom `export Foo :: struct { value: string }` for small
     // newtype-style declarations. An `@internal` field renders on its own
     // line, so a struct carrying one falls through to the multi-line form.
@@ -727,7 +727,7 @@ emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
     self.write(" {")
     self.depth = self.depth + 1
     for f in d.fields {
-        // Flush the field's leading `///` vaderdoc / `//` comments — without
+        // Flush the field's leading `///` vaderdoc / `//` comments: without
         // this they detach from the field and get dumped at end-of-file. An
         // `@internal` field renders the decorator one line above the field
         // name ; use THAT line for the blank-line check so a doc directly above
@@ -746,7 +746,7 @@ emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
 }
 
 // True when any field opts out of the public default via `@internal`
-// (`.Private`) — such a struct can't use the inline single-line form.
+// (`.Private`): such a struct can't use the inline single-line form.
 has_internal_field :: fn(fields: p.StructField[]) -> bool {
     for f in fields { if f.visibility == .Private { return true } }
     return false
@@ -779,7 +779,7 @@ emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
         self.write(" {}")
         return
     }
-    // Inline rendering when the source was single-line — matches stdlib
+    // Inline rendering when the source was single-line: matches stdlib
     // idiom `Color :: enum { Red, Green, Blue }`. No trailing comma.
     if d.span.start.line == d.span.end.line {
         self.write(" { ")
@@ -801,7 +801,7 @@ emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
         if i > 0 && self.opens_gap(variant_last_line(d.variants[i - 1]), v.span.start.offset, v.span.start.line) {
             self.newline()
         }
-        // Flush the variant's leading `///` / `//` comments — without this they
+        // Flush the variant's leading `///` / `//` comments: without this they
         // detach from the variant and are relocated after the enum's `}`.
         self.flush_leading_comments(v.span.start.offset, v.span.start.line)
         self.indent()
@@ -819,7 +819,7 @@ EnumVariantColumns :: struct {
 }
 
 // One `EnumVariantColumns` per variant. A group is a run of variants on
-// adjacent lines — a blank line or a comment line ends it — and a variant
+// adjacent lines (a blank line or a comment line ends it) and a variant
 // alone in its group pads nothing.
 enum_variant_columns :: fn(source: string, variants: p.EnumVariant[]) -> EnumVariantColumns[] {
     out: EnumVariantColumns[]: []
@@ -850,7 +850,7 @@ enum_variant_columns :: fn(source: string, variants: p.EnumVariant[]) -> EnumVar
     return out
 }
 
-// The last source line a variant occupies — its value, else its data block.
+// The last source line a variant occupies: its value, else its data block.
 variant_last_line :: fn(v: p.EnumVariant) -> i32 {
     if v.value_span is Span {
         return v.value_span.end.line
@@ -908,7 +908,7 @@ emit_trait_decl :: fn(self: Printer, d: p.TraitDecl) -> void {
         self.write(" {}")
         return
     }
-    // Inline single-line trait body — matches the stdlib idiom
+    // Inline single-line trait body: matches the stdlib idiom
     // `Add :: trait { add :: fn(self, other: Self) -> Self }`. Single-stmt
     // bodies stay on one line ; multi-stmt bodies break.
     if d.span.start.line == d.span.end.line && d.members.len() == 1 {
@@ -940,7 +940,7 @@ emit_trait_decl :: fn(self: Printer, d: p.TraitDecl) -> void {
     self.close_brace_after_comments(d.span)
 }
 
-// Mirror of `compute_decl_alignment_widths` for `FnDecl[]` — drives the
+// Mirror of `compute_decl_alignment_widths` for `FnDecl[]`: drives the
 // `::` column alignment inside trait / impl bodies. Same group rule :
 // consecutive signature-only fns with matching visibility and decorator
 // set share a group.
@@ -986,7 +986,7 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
     self.emit_decorators(d.decorators, d.for_type.span.start.line)
     self.emit_type_expr(d.for_type)
     self.write(" implements")
-    // Bounded-generic typeParam list — `Foo<T> implements<T: Bound> Trait`.
+    // Bounded-generic typeParam list: `Foo<T> implements<T: Bound> Trait`.
     // The angle list always follows the keyword that opens its scope
     // (here `implements`), mirroring `fn<T>` / `struct<T>` / `trait<T>`.
     if d.type_params.len() > 0 {
@@ -1022,7 +1022,7 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
         self.write(" {}")
         return
     }
-    // SAM-sugar forms — the parser synthesises a single fn member with
+    // SAM-sugar forms: the parser synthesises a single fn member with
     // `sam_synthetic = true` for `Type implements Trait -> expr` and
     // `Type implements Trait { stmts }`. Re-emit the user-facing surface
     // rather than the synthesised `name :: fn(args) { … }` shape.
@@ -1046,7 +1046,7 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
                 return
             }
         }
-        // Fallthrough : malformed SAM (body null) — emit `{}` to keep parse.
+        // Fallthrough : malformed SAM (body null), emit `{}` to keep parse.
         self.write(" {}")
         return
     }
@@ -1099,7 +1099,7 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     // Typed const-decls use the Odin-style `NAME: T: value` form (two single
-    // colons — `parse_typed_const_decl`), not `NAME: T :: value`. They skip
+    // colons: `parse_typed_const_decl`), not `NAME: T :: value`. They skip
     // name-column alignment : the `: T` segment breaks the per-name column
     // anyway.
     name_width: i64 = 0
@@ -1155,7 +1155,7 @@ is_inline_comptime :: fn(d: p.ConstDecl) -> bool =
 // Re-emit the `NAME :: @comptime <expr>` (untyped) or `NAME: T: @comptime
 // <expr>` (typed) const sugar from a desugared `ConstDecl`. `body` is the raw
 // operand the parser kept in `comptime_body`. The desugar appended a synthetic
-// `@comptime` decorator to `d.decorators` for the compile path — strip that
+// `@comptime` decorator to `d.decorators` for the compile path: strip that
 // trailing entry, since the inline `@comptime` keyword below carries it.
 emit_comptime_const :: fn(self: Printer, d: p.ConstDecl, body: p.Expr) -> void {
     n :: d.decorators.len()
@@ -1177,7 +1177,7 @@ emit_comptime_const :: fn(self: Printer, d: p.ConstDecl, body: p.Expr) -> void {
     self.emit_expr(body)
 }
 
-// True iff `e` is a `BinaryExpr` with `BitOr` op — i.e. a union RHS
+// True iff `e` is a `BinaryExpr` with `BitOr` op, i.e. a union RHS
 // candidate for the multi-line layout in `emit_const_decl`.
 is_bitor_chain :: fn(e: p.Expr) -> bool = e is p.BinaryExpr && e.op == .BitOr
 
@@ -1185,7 +1185,7 @@ is_bitor_chain :: fn(e: p.Expr) -> bool = e is p.BinaryExpr && e.op == .BitOr
 // formatter and the typechecker share one implementation.
 
 /// Render a single expression to a standalone string. `source` is the document
-/// the expression's spans index into — leaf emitters slice verbatim literal
+/// the expression's spans index into: leaf emitters slice verbatim literal
 /// spellings (radix, underscores) from it, so reused sub-expressions keep their
 /// exact text ; freshly synthesised nodes are emitted structurally. Comments are
 /// skipped : used to measure a width, where `format_expr_keeping_comments`
@@ -1289,7 +1289,7 @@ emit_let_binding :: fn(self: Printer, b: p.LetBinding) -> void {
 }
 
 emit_let_stmt :: fn(self: Printer, s: p.LetStmt) -> void {
-    // Surface forms (mirrors the parser) — the `mutable` flag picks between
+    // Surface forms (mirrors the parser): the `mutable` flag picks between
     // the two forms in each column :
     //   untyped immutable   name :: value
     //   untyped mutable     name := value
@@ -1297,7 +1297,7 @@ emit_let_stmt :: fn(self: Printer, s: p.LetStmt) -> void {
     //   typed   mutable     name: T = value
     // Emitting ` = ` for a typed immutable local silently widens it to mutable
     // (`mutable: false` → `true` on reparse), so the typed branch also keys on
-    // `mutable` — mirrors the top-level typed-const form in `emit_const_decl`.
+    // `mutable`: mirrors the top-level typed-const form in `emit_const_decl`.
     self.emit_let_binding(s.binding)
     match s.ty {
         is null -> {
@@ -1340,7 +1340,7 @@ emit_destructure_assign_stmt :: fn(self: Printer, s: p.DestructureAssignStmt) ->
 }
 
 emit_assign_stmt :: fn(self: Printer, s: p.AssignStmt) -> void {
-    // Recover compound assignment (`+=`, `-=`, `*=`, `/=`, `%=`) — the parser
+    // Recover compound assignment (`+=`, `-=`, `*=`, `/=`, `%=`): the parser
     // desugars `lhs += rhs` to `lhs = lhs + rhs` (`p.compound_assign_op`).
     // Falling back to `=` for anything else preserves the expansion when the
     // user typed it out.
@@ -1400,7 +1400,7 @@ emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
         }
         is p.InFor       -> {
             // The loop variable lives structurally on the node (no parse-time
-            // desugaring), so each shape re-prints verbatim — no span heuristics.
+            // desugaring), so each shape re-prints verbatim: no span heuristics.
             match nv :: form.loop_var {
                 is p.NamedVar       -> {
                     self.write(" ")
@@ -1415,7 +1415,7 @@ emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
                     self.emit_condition(form.iter)
                 }
                 is p.DiscardVar     -> {
-                    // `for <range>` — no variable written ; the iterable follows `for`.
+                    // `for <range>`: no variable written ; the iterable follows `for`.
                     self.write(" ")
                     self.emit_expr(form.iter)
                 }
@@ -1456,7 +1456,7 @@ emit_defer_stmt :: fn(self: Printer, s: p.DeferStmt) -> void {
     }
 }
 
-// `left ?? fallback` — the fallback is a value expression or a divergent
+// `left ?? fallback`: the fallback is a value expression or a divergent
 // statement (`return` / `break` / `continue`).
 emit_null_coalesce :: fn(self: Printer, e: p.NullCoalesceExpr) -> void {
     right_start :: fallback_start(e.fallback)
@@ -1527,7 +1527,7 @@ OperatorPlace :: struct {
 // Where the source breaks the line around `symbol`, the operator written between
 // `left_end` and `right_start`. Operands on one line keep it inline with no scan ;
 // otherwise the operator is found past blanks, `//` comments and the `)` closing a
-// parenthesised left operand — anything else there keeps it inline, as does a
+// parenthesised left operand: anything else there keeps it inline, as does a
 // measurement.
 operator_place :: fn(
     self: Printer,
@@ -1678,7 +1678,7 @@ emit_expr :: fn(self: Printer, e: p.Expr | null) -> void {
         }
         is p.FnTypeExpr    -> self.emit_fn_type(e)
         is p.ArrayTypeExpr -> {
-            // Postfix `[]` binds tighter than `|` / `&` — `A | B[]` parses
+            // Postfix `[]` binds tighter than `|` / `&`: `A | B[]` parses
             // as `A | (B[])`. If the element is a union/intersection
             // BinaryExpr, wrap it so the round-trip stays semantically
             // identical : source `(A | B)[]` must round-trip verbatim.
@@ -1739,7 +1739,7 @@ emit_int_lit :: fn(self: Printer, x: p.IntLitExpr) -> void {
 }
 
 emit_float_lit :: fn(self: Printer, x: p.FloatLitExpr) -> void {
-    // Same rationale as `emit_int_lit` — preserve underscores and the
+    // Same rationale as `emit_int_lit`: preserve underscores and the
     // exact mantissa / exponent formatting from the source.
     self.write(self.source_slice(x.span))
 }
@@ -1829,7 +1829,7 @@ postfix_target_needs_parens :: fn(e: p.Expr) -> bool {
     if e is p.LambdaExpr { return true }
     // `await` binds looser than postfix (bp 95 < 100), so `(await x).f` /
     // `(await x)[i]` only reach a postfix target because the source
-    // parenthesised the await — keep the parens or the postfix rebinds inside
+    // parenthesised the await: keep the parens or the postfix rebinds inside
     // the await (`await x.f` = `await (x.f)`).
     if e is p.AwaitExpr  { return true }
     // A fn type's result extends to the right, so a postfix placed after one
@@ -1859,7 +1859,7 @@ emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
     }
     self.write(p.unary_op_symbol(x.op))
     // A binary operand binds looser than the unary, so it must be parenthesised
-    // to preserve precedence — `!(a || b)`, `-(a + b)` — otherwise the re-emitted
+    // to preserve precedence: `!(a || b)`, `-(a + b)`, otherwise the re-emitted
     // source reparses as `(!a) || b`. (The `!is` sugar above already handled the
     // one binary case that needs no parens.) A negation of an operand that starts
     // with a number keeps them too: `-5` and `-5.abs()` would reparse with the `-`
@@ -1926,7 +1926,7 @@ emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp,
         }
     }
     // `??` binds looser than every binary operator, so a null-coalescing
-    // operand of any binary parent must be parenthesised — otherwise
+    // operand of any binary parent must be parenthesised: otherwise
     // `(a ?? b) + c` re-emits as `a ?? b + c` and reparses as `a ?? (b + c)`.
     if operand is p.NullCoalesceExpr {
         self.write("(")
@@ -1991,7 +1991,7 @@ binary_precedence :: fn(op: p.BinaryOp) -> i32 = match op {
     .MulWrap -> 10
 }
 
-// Non-associative binary ops (parser bp 20, `non_assoc = true`) — a chained
+// Non-associative binary ops (parser bp 20, `non_assoc = true`): a chained
 // `a == b == c` / `a is T is U` is a parse error, so a same-rank operand on
 // EITHER side must be parenthesised, not just the right-hand one.
 is_non_assoc_binop :: fn(op: p.BinaryOp) = binary_precedence(op) == 3
@@ -2000,7 +2000,7 @@ is_shift_op   :: fn(op: p.BinaryOp) = op == .Shl || op == .Shr
 is_bitwise_op :: fn(op: p.BinaryOp) = op == .BitAnd || op == .BitOr || op == .BitXor
 
 // Add clarifying parentheses around a `BinaryExpr` operand when it mixes the
-// arithmetic / shift / bitwise families — C's classic `a + b & c` precedence
+// arithmetic / shift / bitwise families: C's classic `a + b & c` precedence
 // footgun (`+` binds tighter than `&`, which almost nobody remembers). Same
 // family is fine (`a * b + c` reads clearly) except two *different* bitwise ops
 // (`a & b | c`). This only ever ADDS parens (OR-ed into `need_parens`), so it
@@ -2099,7 +2099,7 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
     self.write(" {")
     self.depth = self.depth + 1
     // Align every arm's `->` : pad each arm head (`pattern [if guard]`) to the
-    // widest head across the arms, so the arrows line up. `0` disables — fewer than 2 arms, or a head too wide to
+    // widest head across the arms, so the arrows line up. `0` disables: fewer than 2 arms, or a head too wide to
     // align without pushing the bodies off the line.
     align :: match_arm_align(self.source, x.arms)
     for arm in x.arms {
@@ -2117,7 +2117,7 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
     self.close_brace_after_comments(x.span)
 }
 
-// Rendered width of a match arm's head — `pattern [if guard]`, the part before
+// Rendered width of a match arm's head: `pattern [if guard]`, the part before
 // ` -> `. Measured via a sub-printer, like `if_cond_width`.
 match_arm_head_width :: fn(source: string, arm: p.MatchArm) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
@@ -2129,7 +2129,7 @@ match_arm_head_width :: fn(source: string, arm: p.MatchArm) -> i64 {
 
 // The `->` alignment column for a match : the widest arm head. `0` (no
 // alignment) when there are fewer than 2 arms, or when the widest head exceeds
-// `MATCH_ALIGN_MAX` — past that, padding the short arms wastes space and risks
+// `MATCH_ALIGN_MAX`: past that, padding the short arms wastes space and risks
 // pushing bodies past `MAX_LINE`, so each `->` just follows its own head.
 match_arm_align :: fn(source: string, arms: p.MatchArm[]) -> i64 {
     if arms.len() < 2 { return 0 }
@@ -2147,7 +2147,7 @@ match_arm_align :: fn(source: string, arms: p.MatchArm[]) -> i64 {
 // body still fits comfortably under `MAX_LINE`.
 MATCH_ALIGN_MAX: i64: 44
 
-// A single-line `if <cond> { <one stmt/expr> }` with no `else` — a lookup-table
+// A single-line `if <cond> { <one stmt/expr> }` with no `else`: a lookup-table
 // entry. A RUN of ≥2 consecutive such statements is kept inline (the aligned
 // lookup-table idiom) ; a lone one is expanded like any other control-flow body.
 inline_if_stmt :: fn(s: p.Stmt) -> bool {
@@ -2226,7 +2226,7 @@ compute_if_align :: fn(stmts: p.Stmt[], source: string) -> i64[] {
 
 // Does this block's INLINE form (`{ <one stmt or trailing expr> }`) fit on the
 // current line ? `4` covers the braces and their two spaces. True for any block
-// shape that has no inline form to begin with (empty, or more than one entry) —
+// shape that has no inline form to begin with (empty, or more than one entry):
 // those are decided elsewhere and must not be forced to expand here.
 inline_block_fits :: fn(self: Printer, b: p.BlockExpr) -> bool {
     tr :: b.trailing
@@ -2261,7 +2261,7 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
     // `.Inline` keeps its UNCONDITIONAL answer, and that is measured rather than
     // assumed: a lookup-table `if`-chain stays inline by contract, and
     // giving it the fit test too takes tree-wide idempotency from 272/285 to
-    // 267/285 — a member that expands stops the run from reading as a chain on the
+    // 267/285: a member that expands stops the run from reading as a chain on the
     // next pass, so the alignment moves instead. The chain members that do not fit
     // are a SEPARATE non-idempotency, not this one.
     inline_ok :: match self.block_mode {
@@ -2300,7 +2300,7 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
         }
         self.write("{")
         self.depth = self.depth + 1
-        // Flush the trailing's leading comments — without this a comment above a
+        // Flush the trailing's leading comments: without this a comment above a
         // block-trailing expression (e.g. a doc line above a `match` that is a
         // function's whole body) detaches and is relocated to end-of-block or
         // swallowed by a nested block. Mirrors the stmt-loop / main-trailing flush.
@@ -2313,7 +2313,7 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
         self.write("}")
         return
     }
-    // Single-stmt no-trailing block — inline per `block_mode` (a lookup-table
+    // Single-stmt no-trailing block: inline per `block_mode` (a lookup-table
     // `if`-chain member, or a preserved single-line source block).
     if b.stmts.len() == 1 && inline_ok {
         match b.trailing {
@@ -2357,7 +2357,7 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
 emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
     // Arrow form (`(p) -> expr` or `x -> expr`) and `fn(p) { expr }`
     // both parse into a `LambdaExpr` whose body is a `BlockExpr` with
-    // no stmts and a single trailing expression — the AST loses the
+    // no stmts and a single trailing expression: the AST loses the
     // surface form. The arrow form only accepts an inferred return
     // type, so emit it when there's no explicit `return_type` and the
     // body collapses to one expression. Higher-order callsites
@@ -2383,7 +2383,7 @@ emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
 // the Dart-style layout : when `inline`, render on one line (an inner space on
 // each side when `inner_space`, e.g. `{ a, b }`) ; otherwise explode one item
 // per line, each ending in a trailing comma. An empty list collapses to
-// `open`+`close`. `emit_item` renders a single element — pass the element's
+// `open`+`close`. `emit_item` renders a single element: pass the element's
 // dedicated emitter (`emit_call_arg`, `emit_fn_param`, …). The caller writes
 // any prefix (callee, type name) and computes `inline` before calling.
 emit_comma_list :: fn<T>(
@@ -2461,7 +2461,7 @@ flat_printer :: fn(source: string, e: p.Expr) -> Printer {
     return sub
 }
 
-// Same, for a statement — the inline-block fit decision in `emit_block_expr`.
+// Same, for a statement: the inline-block fit decision in `emit_block_expr`.
 flat_stmt_width :: fn(source: string, st: p.Stmt) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
@@ -2480,7 +2480,7 @@ emit_range :: fn(self: Printer, x: p.RangeExpr) -> void {
     self.emit_range_operand(x.upper)
 }
 
-// A range binds at parser bp 30 (rank 4 here) — tighter than comparisons /
+// A range binds at parser bp 30 (rank 4 here): tighter than comparisons /
 // `is` / `in` / `and` / `or`, looser than bitwise + arithmetic. An operand
 // that is a looser binary, or another range (range is non-associative), must
 // be parenthesised : otherwise `(a < b)..<c` re-emits as `a < b..<c` and
@@ -2507,7 +2507,7 @@ range_operand_needs_parens :: fn(operand: p.Expr) -> bool {
 emit_await :: fn(self: Printer, x: p.AwaitExpr) -> void {
     self.write("await ")
     // A binary / range / `??` inner binds looser than `await` (bp 95), so it
-    // must be parenthesised — `await (a + b)` otherwise reparses as `(await a) + b`.
+    // must be parenthesised: `await (a + b)` otherwise reparses as `(await a) + b`.
     if x.inner is p.BinaryExpr || x.inner is p.RangeExpr || x.inner is p.NullCoalesceExpr {
         self.write("(")
         self.emit_expr(x.inner)
@@ -2525,7 +2525,7 @@ emit_cast :: fn(self: Printer, x: p.CastExpr) -> void {
 }
 
 emit_generic_inst :: fn(self: Printer, x: p.GenericInstExpr) -> void {
-    // Verbatim from source to preserve `[T, U]` vs `(T, U)` choice — both
+    // Verbatim from source to preserve `[T, U]` vs `(T, U)` choice: both
     // shapes collapse to the same AST node and the surrounding context drives
     // the surface form.
     self.write(self.source_slice(x.span))
@@ -2621,7 +2621,7 @@ emit_struct_pattern :: fn(self: Printer, x: p.StructPattern) -> void {
             }
             is p.PatternLiteral -> {
                 // Source spells a literal field match `field: <expr>` (see
-                // `parse_struct_pattern`) — emit `:`, not `=`, or the result
+                // `parse_struct_pattern`): emit `:`, not `=`, or the result
                 // no longer reparses (audit F5).
                 self.write(": ")
                 self.emit_expr(value.value)

@@ -1,4 +1,4 @@
-# 0050 — A `Self` lent read-only stays read-only behind a type parameter
+# 0050: A `Self` lent read-only stays read-only behind a type parameter
 
 ## Status
 

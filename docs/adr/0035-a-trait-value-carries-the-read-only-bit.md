@@ -1,4 +1,4 @@
-# 0035 — A trait value carries the read-only bit
+# 0035: A trait value carries the read-only bit
 
 ## Status
 

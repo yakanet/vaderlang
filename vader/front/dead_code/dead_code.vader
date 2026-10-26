@@ -3,7 +3,7 @@
 // `vader lint` only).
 //
 // A reference-reachability lint. For every top-level declaration of the (merged,
-// all-files) module, collect the NAMES it references — in bodies, signatures,
+// all-files) module, collect the NAMES it references: in bodies, signatures,
 // field / alias / const / enum types, decorator args. Then BFS from the roots
 // (`export`-visible decls, `main`, `@test` / `@extern` / `@intrinsic`, every
 // `impl` member, `@assert`); a PRIVATE top-level decl whose name is never reached
@@ -11,15 +11,15 @@
 //
 // `dead_exports` (W0012, at the bottom) reuses the very same collectors and BFS,
 // but merges EVERY module's decls and drops the `export`-is-a-root clause, so a
-// public fn unreachable across the whole project — invisible to the per-module
-// W0007 and to a lowered-project DCE diff (lazy lowering never materialises it) —
-// is flagged. Never on the default build — `vader lint` and the LSP's diagnostic
+// public fn unreachable across the whole project, invisible to the per-module
+// W0007 and to a lowered-project DCE diff (lazy lowering never materialises it),
+// is flagged. Never on the default build: `vader lint` and the LSP's diagnostic
 // pass (`tools/lsp/analysis/diagnostics.vader`) are its only two callers.
 //
 // Name-based by design. Resolving every reference to a `Symbol.id` is the gap
 // that sank the unused-import attempt (W0006) : `resolved.idents` is span-keyed,
 // `files[0]`-only, and misses positions. Collecting names over the merged AST
-// over-approximates uses (a local shadowing a top-level name marks it used) — the
+// over-approximates uses (a local shadowing a top-level name marks it used): the
 // SAFE bias for a lint : we under-report, never false-positive (a false positive
 // would tell you to delete live code). The names come from one `AST.inspect` walk,
 // which reaches every node, interpolated parts included: an identifier names what
@@ -36,7 +36,7 @@ AST :: import "toolchain/ast"
 Parse :: import "vader/front/parser"
 import "toolchain/span"
 
-// A private top-level declaration that may be dead — keyed for the final report.
+// A private top-level declaration that may be dead: keyed for the final report.
 DeadDecl :: struct {
     name: string
     name_span: Span
@@ -93,7 +93,7 @@ is_wired_root :: fn(decorators: AST.Decorator[], name: string) -> bool {
 // A W0007 reachability root : the public surface (`export`), every wired-or-exempt
 // root, plus a build driver's entry. Never flagged, its refs kept live.
 //
-// `build` in `build.vader` is an entry point exactly as `main` is — reserved by
+// `build` in `build.vader` is an entry point exactly as `main` is: reserved by
 // NAME in its module, with no decorator to mark it. Its only caller is the shim
 // `vader build` writes beside it and removes afterwards, so from the module's own
 // point of view nothing reaches it ; without this the lint tells every driver
@@ -110,7 +110,7 @@ is_root_decl :: fn(
 
 // ---- shared traversal (W0007 + W0012) -------------------------------------
 
-// One named top-level decl's identity plus the names it references — the unit
+// One named top-level decl's identity plus the names it references: the unit
 // both lints classify. `is_fn` lets W0012 flag fn exports only.
 NamedDeclRefs :: struct {
     name: string
@@ -205,11 +205,11 @@ bfs_reachable :: fn(
 // ---- entry ----------------------------------------------------------------
 
 /// Flag every private top-level declaration of `decls` that is never reached
-/// from the module's public surface — W0007. Runs on every module of a checked
+/// from the module's public surface: W0007. Runs on every module of a checked
 /// project (`vader/pipeline/check`).
 ///
 /// @param decls        the module's merged top-level declarations (all files).
-/// @param module_name  the module's declared name — what tells a build driver's
+/// @param module_name  the module's declared name: what tells a build driver's
 ///                     `build` apart from any other fn of that name.
 /// @param diags        sink for the W0007 warnings.
 /// @param discarded    bodies target selection dropped. Their references count
@@ -270,18 +270,18 @@ register_refs :: fn(m: MutableMap<string, string[]>, name: string, refs: string[
 // per-module, and with one root difference : a plain `export` is NOT a root here.
 // W0007 roots the whole public surface (`is_root_decl`, so it only flags dead
 // PRIVATES) ; unused-export uses `is_wired_root` alone, so a public fn
-// unreachable across the WHOLE project is flaggable — what the per-module pass
+// unreachable across the WHOLE project is flaggable: what the per-module pass
 // structurally can't see (an `export` used by no other module looks live to
 // W0007 but is dead project-wide).
 //
 // This lives OUTSIDE the default build : `vader lint` calls it, `vader build`
-// never does (P-lean). It runs on load+parse alone — a name-reachability walk
-// needs no types — so it is cheap and, unlike a lowered-project diff, immune to
+// never does (P-lean). It runs on load+parse alone (a name-reachability walk
+// needs no types) so it is cheap and, unlike a lowered-project diff, immune to
 // lazy lowering (which never materialises an unreached imported-module fn and so
 // would hide a dead export from any input-vs-output diff).
 
 /// One dead exported function : an `export`-keyword fn unreachable from the
-/// project's true roots. `name_span` points at the name token — its file + line
+/// project's true roots. `name_span` points at the name token: its file + line
 /// carry the location for the report, so no separate module field is needed.
 export DeadExport :: struct {
     name: string
@@ -289,11 +289,11 @@ export DeadExport :: struct {
 }
 
 /// Report every `export`-keyword FUNCTION unreachable from the project's true
-/// roots — the `unused-export` lint (W0012).
+/// roots: the `unused-export` lint (W0012).
 ///
 /// Pass the MERGED decls of every non-stdlib module, so a fn used by any module
-/// counts as reached. Seeds the BFS with the wired roots only (`is_wired_root`)
-/// — NOT plain exports — then flags each public non-root fn whose name no live
+/// counts as reached. Seeds the BFS with the wired roots only (`is_wired_root`),
+/// NOT plain exports, then flags each public non-root fn whose name no live
 /// decl reaches. Types / consts are registered (a live one can be a fn's sole
 /// caller) but never flagged: fn exports only in v1.
 ///
@@ -342,17 +342,17 @@ dead_exports :: fn(decls: AST.Decl[], discarded: AST.FnDecl[] = []) -> DeadExpor
 
 /// Result of linting a LOADED project for unused exports : the findings plus
 /// whether the project exposed a `main` (its reachability seed). A rootless
-/// project (`has_main == false`) yields no findings — callers surface an
+/// project (`has_main == false`) yields no findings: callers surface an
 /// under-report warning instead of trusting the empty list.
 ///
 /// ⚠️ A build driver's `build` is deliberately NOT accepted as that seed, unlike
 /// in W0007's per-module roots. Rooting it makes the lint RUN on a driven
-/// project, whose closure is the whole compiler — and every compiler export the
+/// project, whose closure is the whole compiler, and every compiler export the
 /// driver does not reach then reports as unused, all of
 /// them alive and called by `vader/tools/cli`, which is not in that closure. Running it
 /// needs a scope predicate first: "was this module provided by a TOOLCHAIN root or
 /// by the project?", which `Module.origin` answers for `lib/` but not for
-/// the compiler, since a checkout reaches `vader/` through the project root — and
+/// the compiler, since a checkout reaches `vader/` through the project root, and
 /// there the compiler IS the project, where the lint must keep working.
 export UnusedExportReport :: struct {
     has_main: bool
@@ -365,7 +365,7 @@ export UnusedExportReport :: struct {
 /// (`vader/tools/lsp/analysis`) so the stdlib filter and `main` detection never drift.
 ///
 /// Bodies target selection discarded are gathered from the same modules and fed
-/// in as reachability seeds — see `dead_exports`.
+/// in as reachability seeds, see `dead_exports`.
 ///
 /// @param project  the loaded module graph (from `load_project` or the LSP cache).
 /// @return         findings + `has_main` (see `UnusedExportReport`).
@@ -375,7 +375,7 @@ export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportRepo
     has_main := false
     // Where a module came from, not what it is called: `lib/` hosts every
     // namespace the toolchain ships, so a `std/` name test would put `json`,
-    // `regex` and `toolchain` inside a project's lint scope — reporting W0012 on
+    // `regex` and `toolchain` inside a project's lint scope: reporting W0012 on
     // every export the toolchain provides.
     for [_, lm] in project.modules {
         if lm.module.origin == .Toolchain {
@@ -414,7 +414,7 @@ dead_export_diag :: fn(e: DeadExport) = warning(
     "`${e.name}` is never used",
 )
 
-/// Render every finding of `es` as its W0012 warning — the list form of
+/// Render every finding of `es` as its W0012 warning: the list form of
 /// `dead_export_diag`, used by both `vader lint` and the LSP.
 ///
 /// @param es  the dead exported fns to report.
@@ -426,10 +426,10 @@ export dead_export_diags :: fn(es: DeadExport[]) -> Diagnostic[] =
 import "std/testing"
 
 // Parse `src` as a single-file module and return the number of W0007 the pass
-// raises — the reachability BFS exercised end to end on a synthetic graph.
+// raises: the reachability BFS exercised end to end on a synthetic graph.
 dead_count :: fn(src: string) -> i64 = dead_count_in(src, "t")
 
-// The module name matters to one root only — a driver's `build` — so the tests
+// The module name matters to one root only (a driver's `build`) so the tests
 // that do not exercise it pass an ordinary name.
 dead_count_in :: fn(src: string, module_name: string) -> i64 {
     parsed :: Parse.parse_source(src, "t.vader")
@@ -443,7 +443,7 @@ dead_count_in :: fn(src: string, module_name: string) -> i64 {
     // caller is the shim `vader build` writes beside it and removes afterwards,
     // so nothing in the module reaches it. Flagging it told every driver author
     // their driver was dead code.
-    // The module NAME is what decides, not the source text — the lint is handed
+    // The module NAME is what decides, not the source text: the lint is handed
     // the name its caller resolved.
     src :: "module \"t\"\nbuild :: fn(args: string[]) -> i32 = 0\n"
     assert_eq(dead_count_in(src, DRIVER_MODULE), 0)

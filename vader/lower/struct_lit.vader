@@ -22,7 +22,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     provided :: MutableMap<string, Expr> {}
     // Bind each `...spread` source to a synthetic temp so it's
     // evaluated exactly once even when several fields inherit from it.
-    // Later spreads win, so `spread_sym` tracks the LAST source —
+    // Later spreads win, so `spread_sym` tracks the LAST source:
     // omitted fields read from it.
     spread_stmts: LoweredStmt[]: []
     spread_sym: Symbol | null = null
@@ -49,7 +49,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     // under the REF-ERASED self (`Ready<Boom>` → `Ready<Any>`, via
     // `keep_concrete_or_erase`) so every ref-arg instance shares one row ; a
     // NON-generic construction site would otherwise mint the CONCRETE tag
-    // (`Ready<Boom>`) — identical layout, divergent tag → `vtable miss`. Inside a
+    // (`Ready<Boom>`): identical layout, divergent tag → `vtable miss`. Inside a
     // generic fn body the carried subst already erases the lit's type to
     // `Ready<Any>` ; this generalises that same erasure to the non-generic site.
     // Primitive args stay concrete (`Ready<i32>` unchanged) so their devirtualised
@@ -74,7 +74,7 @@ note_construction :: fn(ctx: FnLowerCtx, type: Type) -> void {
     // Queue EVERY generic-struct instance (any non-empty type args), not just
     // fully-erased (all-`Any`) ones : a CONCRETE instance built only inside a
     // generic-fn-instance body (`Box<i32>` from `fn viagen<T>() = Box<T>{…}`)
-    // is NOT covered by the comptime harvest — the harvest only ever saw the
+    // is NOT covered by the comptime harvest: the harvest only ever saw the
     // source-level `Box<T>` (a type-param arg, which the materialiser rejects).
     // Deduped by `seen_generic_impl_recv` here + `materialized_impl_keys` in the
     // materialiser, so re-queuing a harvest-covered instance is a harmless no-op.
@@ -97,8 +97,8 @@ note_construction :: fn(ctx: FnLowerCtx, type: Type) -> void {
 // (`build_mixed_args_list`, the shared kernel). So `Ready<Boom>` and
 // `Ready<User>` intern to the single `Ready<Any>` tag the erased vtable row is
 // keyed on, while `Ready<i32>` stays concrete
-// (devirtualised dispatch preserved). A non-generic struct (no args) — and any
-// non-struct type — is returned verbatim ; the empty-args guard also skips the
+// (devirtualised dispatch preserved). A non-generic struct (no args), and any
+// non-struct type, is returned verbatim ; the empty-args guard also skips the
 // allocation on the common non-generic literal. The box LAYOUT is already
 // ref-erased upstream, so this only touches the identity tag.
 //
@@ -118,7 +118,7 @@ erase_generic_struct_tag :: fn(ctx: FnLowerCtx, t: Type) -> Type {
 // `.North` resolves through context : the surrounding slot's expected
 // type pins the enum. Look up the variant's integer index off the
 // resolved `EnumType` and emit a `LoweredIntLit`. Falls back to a
-// stub when the context isn't an enum (defensive — earlier
+// stub when the context isn't an enum (defensive: earlier
 // diagnostics should have caught the bad use).
 lower_dot_variant :: fn(ctx: FnLowerCtx, expr: DotVariantExpr, type: Type) -> LoweredExpr {
     resolved :: enum_type_or_unwrap(ctx, type)
@@ -196,7 +196,7 @@ ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl,
     owner_typed :: ctx.project.evaluated.typed.modules[module_id] ?? return ctx
     // Thread the instance's type-args into the subst so a field DEFAULT that
     // references the struct's own type-param (`ekeys: K[] = []`) lowers with `K`
-    // bound to the concrete instance arg — MIXED (primitive → concrete so the
+    // bound to the concrete instance arg: MIXED (primitive → concrete so the
     // array lands RAW, ref → `Any`), matching the instance's mixed field layout
     // (`build_mixed_subst`). Without this the default lowers in the owner's
     // ERASED view (`K = Any` → boxed array) while the construction + later usage
@@ -307,7 +307,7 @@ literal_field_type :: fn(ctx: FnLowerCtx, st: StructType, field: StructField) ->
 // A field the site does not provide takes its declared default, as in a user
 // literal, so a defaulted field can join a core struct without its synthesising
 // site naming it. Panics on a missing struct decl or a declared field with
-// neither a value nor a default — both are compiler invariants for a
+// neither a value nor a default: both are compiler invariants for a
 // synthesised build (fail loud, never a silent wrong-slot write).
 build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLitField[], span: Span) -> LoweredExpr {
     st :: struct_backing(type)
@@ -341,7 +341,7 @@ build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLi
     return LoweredStructLit { .span = span, .type = type, .fields = ordered }
 }
 
-// Linear lookup of a provided field by name — synthesised core structs have
+// Linear lookup of a provided field by name: synthesised core structs have
 // only a handful of fields, so no map is warranted.
 find_lowered_field :: fn(fields: LoweredStructLitField[], name: string) -> LoweredStructLitField | null {
     for f in fields {
@@ -371,7 +371,7 @@ fallback_provided_order :: fn(ctx: FnLowerCtx, lit: StructLitExpr) -> LoweredStr
 }
 
 lower_seq_lit :: fn(ctx: FnLowerCtx, lit: SeqLitExpr, type: Type) -> LoweredExpr {
-    // Tuples share the parser shape `[a, b, c]` with arrays — disambiguate
+    // Tuples share the parser shape `[a, b, c]` with arrays: disambiguate
     // by the resolved type. Tuple-typed literals (and tuple-backed distinct
     // newtypes, via `tuple_backing`) become struct lits with synthetic
     // `_0` / `_1` / ... fields ; the bytecode emit reads them off the same

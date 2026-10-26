@@ -1,4 +1,4 @@
-# 0036 — A type parameter grants mutation through a marked bound
+# 0036: A type parameter grants mutation through a marked bound
 
 ## Status
 

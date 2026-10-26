@@ -1,4 +1,4 @@
-/// Polymorphic trait dispatch — the counterpart to `iter_chain`, which measures
+/// Polymorphic trait dispatch: the counterpart to `iter_chain`, which measures
 /// dispatch being REMOVED. Nothing else in the corpus measures a call the
 /// compiler cannot devirtualize, so a regression in the vtable layout, in
 /// midir's vtable pruning, or in how a trait value carries its witness would
@@ -6,7 +6,7 @@
 ///
 /// The array holds three concrete types behind one trait, cycled so no run of
 /// elements shares a receiver type. Each `area()` is therefore an indirect call
-/// through the element's own witness — a monomorphic-inline-cache guess would
+/// through the element's own witness: a monomorphic-inline-cache guess would
 /// miss on every third element, which is the point.
 ///
 /// Dimensions are bounded by `index % DIMENSION_LIMIT` so the total stays exact

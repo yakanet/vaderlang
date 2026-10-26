@@ -1,4 +1,4 @@
-# 0094 — No integer has the target's width
+# 0094: No integer has the target's width
 
 ## Status
 

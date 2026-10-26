@@ -7,8 +7,8 @@
         Syntax highlighting plus full LSP-driven editor features for the
         <a href="https://github.com/vaderlang">Vader</a> programming language.<br>
         TextMate grammar is shared with the official VS Code extension.
-        Semantic features — goto-definition, hover with VaderDoc, semantic
-        tokens, diagnostics — are delivered by the Vader Language Server,
+        Semantic features: goto-definition, hover with VaderDoc, semantic
+        tokens, diagnostics: are delivered by the Vader Language Server,
         spawned via the <code>vader lsp</code> subcommand and wired through
         <a href="https://plugins.jetbrains.com/plugin/23257-lsp4ij">LSP4IJ</a>.
         Works on IntelliJ IDEA Community and Ultimate (as well as every
@@ -30,7 +30,7 @@
         <!-- Green ▶ gutter icon on a top-level `main ::` in a .vader file.
              Was a `runLineMarkerContributor` and never fired: registering it for
              `TEXT` too changed nothing, which left only its `element.text ==
-             "main"` test — a `.vader` PSI does not give one leaf per identifier.
+             "main"` test: a `.vader` PSI does not give one leaf per identifier.
              Now a provider using the same recipe as the `(I)` marker below,
              which does fire: read the file text, carry an explicit range. -->
         <codeInsight.lineMarkerProvider language="textmate"
@@ -44,7 +44,7 @@
         <codeInsight.lineMarkerProvider language="textmate"
                                         implementationClass="dev.vaderlang.intellij.VaderImplementationLineMarkerProvider"/>
         <!-- AND plain text. Which language a `.vader` file resolves to is not
-             answerable outside a running IDE — "no PSI Language registered"
+             answerable outside a running IDE: "no PSI Language registered"
              (see the LSP block below) means it is whatever IntelliJ falls back
              to. Registering both costs one no-op call; guessing wrong costs
              silence, which is how the ▶ above went unnoticed. -->
@@ -52,7 +52,7 @@
                                         implementationClass="dev.vaderlang.intellij.VaderImplementationLineMarkerProvider"/>
         <!-- Ctrl+click on `[path:line:col]` in the Run console. The compiler
              prints paths relative to its working directory, and IntelliJ's
-             built-in filters only link absolute ones — so shortening them cost
+             built-in filters only link absolute ones, so shortening them cost
              navigation until this landed. -->
         <consoleFilterProvider implementation="dev.vaderlang.intellij.VaderConsoleFilterProvider"/>
         <applicationConfigurable
@@ -60,7 +60,7 @@
             id="dev.vaderlang.intellij.config"
             displayName="Vader"
             parentId="tools"/>
-        <!-- Values for the plugin's own colour keys — see VaderColors.kt for why
+        <!-- Values for the plugin's own colour keys, see VaderColors.kt for why
              they have to exist at all. -->
         <additionalTextAttributes scheme="Darcula" file="colorSchemes/VaderDarcula.xml"/>
         <additionalTextAttributes scheme="Default" file="colorSchemes/VaderDefault.xml"/>
@@ -76,7 +76,7 @@
                 configurable under <i>Settings → Tools → Vader</i>.
             ]]></description>
         </server>
-        <!-- TextMate-only language — no PSI Language registered, so we
+        <!-- TextMate-only language: no PSI Language registered, so we
              map by filename glob. `languageId="vader"` is what the
              server receives in `textDocument/didOpen`'s `languageId`
              field ; downstream code uses it for diagnostics filtering

@@ -7,7 +7,7 @@
 // right after the op that computed its value retargets that op onto the slot.
 //
 // Everything pending is written to its canonical register wherever control can
-// arrive from elsewhere — at a jump target, before a jump, before a call — so
+// arrive from elsewhere (at a jump target, before a jump, before a call) so
 // every path into a pc finds the stack in the same registers.
 
 module "vader/vm"
@@ -21,7 +21,7 @@ PendingKind :: enum { Register, Slot, Constant }
 // One operand-stack cell during translation.
 Pending :: struct {
     kind:     PendingKind
-    /// The register the value is in — for a `Constant`, its constant register.
+    /// The register the value is in: for a `Constant`, its constant register.
     register: i32
 }
 
@@ -822,13 +822,13 @@ narrow_code :: fn(v: bc.ValType) -> i32 = match v {
      | .Void | .Pointer | .Ref | .Any -> -1
 }
 
-// `local.set slot` — or `local.tee`, which leaves the value on the stack. A slot of
+// `local.set slot`, or `local.tee`, which leaves the value on the stack. A slot of
 // a narrow class is truncated to its width after the store. `previous` is the op
 // that may be retargeted onto the slot, or `-1`.
 store_slot :: fn(t: Translation, f: bc.BcFunction, pc: i64, slot: i32, keep: bool, previous: i64) -> void {
     top :: t.stack.len() - 1
     narrow :: narrow_code(slot_valtype(f, slot))
-    // A cell still reading the slot must be read before the slot changes — and
+    // A cell still reading the slot must be read before the slot changes, and
     // then the op that computed the value can no longer write the slot itself,
     // since that copy comes after it.
     retarget := previous

@@ -29,7 +29,7 @@ check_block :: fn(
     // { return … }`) so subsequent stmts see the complement type ; each
     // entry holds what to restore on block exit.
     divergent_narrows: PushedNarrow[]: []
-    // W0002 — track the first stmt past a divergent guard so we can
+    // W0002: track the first stmt past a divergent guard so we can
     // warn once per block.
     first_unreachable_span: Span | null = null
     diverged := false
@@ -71,7 +71,7 @@ check_block :: fn(
     // the narrowed shape. In reverse: a binding several guards narrowed gets back
     // what it had before the first, not what a later guard found.
     pop_narrows(divergent_narrows, typed)
-    // Don't clobber the trailing expression's `expr_kinds` entry —
+    // Don't clobber the trailing expression's `expr_kinds` entry:
     // expression-bodied fns synthesise a BlockExpr around the trailing
     // with overlapping spans, and the trailing's true kind (BinaryExpr
     // / CallExpr / …) is what callers want to see in the dump.
@@ -204,9 +204,9 @@ check_fn_body :: fn(
     }
     if is_generator {
         // A generator returns its stream via `yield`, not the trailing
-        // expression — skip the implicit-return obligation entirely.
+        // expression: skip the implicit-return obligation entirely.
     } else if inferred_return {
-        // Recursive fns leave their return as `?` — the body's
+        // Recursive fns leave their return as `?`: the body's
         // inferred type contains an Unresolved leaf (the recursive
         // call) so substituting would just amplify the unresolved-
         // ness. Surface T3034 instead.
@@ -312,7 +312,7 @@ flows_into :: fn(got: Type, expected: Type, value: AST.Expr, typed: TypedProgram
     return try_into(got, expected, typed, value)
 }
 
-// Push `code` when `got` doesn't flow into `expected` — neither assignable nor
+// Push `code` when `got` doesn't flow into `expected`: neither assignable nor
 // `Into`-coercible. Shared by the return / yield mismatch checks and by field
 // defaults so wording stays in sync ; only the diagnostic code differs. `value` is the coerced
 // expression, whose id feeds `try_into`'s LSP into-hint table. Null for a bare `return`.
@@ -368,7 +368,7 @@ check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> voi
         declared = ann
         emit_mismatch_if(got, ann, s.span, s.value, .TypeMismatch, typed, diags)
     }
-    // Layer 5b — `t :: <type-expr>` inside a fn body is an in-fn type
+    // Layer 5b: `t :: <type-expr>` inside a fn body is an in-fn type
     // alias : pre-resolve the underlying Type and stash it in
     // `typed.let_type_aliases` keyed by the binding's Symbol.id.
     // Downstream type-position references (e.g. `@size_of(t)`) read
@@ -489,25 +489,25 @@ check_assign :: fn(s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[]) 
         typed, diags,
     )
     // A write to a narrowed binding / field chain retires its stale
-    // narrowings — see `narrow.vader::invalidate_narrow_on_assign`.
+    // narrowings, see `narrow.vader::invalidate_narrow_on_assign`.
     invalidate_narrow_on_assign(s.target, value_ty, typed)
     return
 }
 
-// Declared (pre-narrow) type of an assignment LHS — the slot type a write
+// Declared (pre-narrow) type of an assignment LHS: the slot type a write
 // must be assignable to. `type_of_symbol` skips the narrowing that
 // `infer_ident` layers on ; `declared_struct_field_type` skips
 // `narrow_field_if_active`. Any other lvalue shape (or an unresolved
-// lookup) falls back to `fallback` — the checked target type — which
+// lookup) falls back to `fallback` (the checked target type) which
 // already equals the declared type whenever no narrowing is active.
 //
-// Narrowing attaches to *only* `IdentExpr` and `FieldExpr` — the exact two
-// shapes handled explicitly — so `fallback` diverges from the declaration
+// Narrowing attaches to *only* `IdentExpr` and `FieldExpr` (the exact two
+// shapes handled explicitly) so `fallback` diverges from the declaration
 // only for those, and only while a narrowing is live. When the relevant
 // table is empty the fast path returns `fallback` and dodges the re-resolve
 // (and, for fields, the `declared_struct_field_type` sink allocation)
 // entirely. This must stay in lockstep with `invalidate_narrow_on_assign`
-// (`narrow.vader`) — a new narrowable lvalue shape has to be added to both.
+// (`narrow.vader`): a new narrowable lvalue shape has to be added to both.
 declared_lvalue_type :: fn(target: AST.Expr, fallback: Type, typed: TypedProgram) -> Type {
     if target is AST.IdentExpr {
         if typed.narrow.bindings.is_empty() {
@@ -529,8 +529,8 @@ declared_lvalue_type :: fn(target: AST.Expr, fallback: Type, typed: TypedProgram
 
 // Push T3063 when `got` doesn't flow into the declared slot type `expected`.
 // Same gate as `emit_mismatch_if` (via `flows_into`), only the wording and the
-// dedicated code differ, `hint` closing the detail. A `null` `expected` — e.g. a
-// receiver with no recorded `IndexSet` impl — has no declared slot to enforce (the
+// dedicated code differ, `hint` closing the detail. A `null` `expected` (e.g. a
+// receiver with no recorded `IndexSet` impl) has no declared slot to enforce (the
 // read side already surfaced any error), so it no-ops.
 emit_assign_mismatch_if :: fn(
     got: Type,
@@ -565,7 +565,7 @@ unwritten_local_hint :: fn(target: AST.Expr, declared: Type, typed: TypedProgram
         + "write the type it may hold, as `${target.name}: i64 = …`"
 }
 
-/// Check `[t0, _, ...rest] = value` — one assignment per place, against the
+/// Check `[t0, _, ...rest] = value`: one assignment per place, against the
 /// element types of a tuple or array `value`.
 ///
 /// Arity is fixed for a tuple and unknown for an array, so only the tuple case
@@ -577,7 +577,7 @@ check_destructuring_assign :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    // `[] = v` — P1023 already reported it.
+    // `[] = v`: P1023 already reported it.
     if s.targets.len() == 0 {
         return
     }
@@ -664,7 +664,7 @@ check_destructuring_assign :: fn(
 
 // The slot a destructuring place offers, typed before the source so the source
 // takes its shape. An index place is a write : it offers what its receiver stores,
-// never what an `Index` read gives back — `check_destructure_target` judges it.
+// never what an `Index` read gives back: `check_destructure_target` judges it.
 place_slot :: fn(place: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     if place !is AST.IndexExpr {
         return declared_lvalue_type(place, check_expr(place, null, typed, diags), typed)
@@ -700,7 +700,7 @@ destructure_element_types :: fn(value_ty: Type, count: i64) -> Type[] | null {
 // (`reject_index_write_receiver`) and its key too (`reject_index_key`), an array's
 // element, else the `IndexSet` value of a receiver dispatching through the trait
 // (`dispatched_index_args`) or of its own impl. Null when the receiver is
-// unresolved or the write is refused — reported.
+// unresolved or the write is refused: reported.
 index_write_slot :: fn(ix: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type | null {
     set_trait :: core_trait_key(TRAIT_INDEX_SET)
     receiver_ty :: check_expr(ix.target, null, typed, diags)
@@ -759,7 +759,7 @@ index_write_slot :: fn(ix: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic
 }
 
 // The slot an element write into an array fills : the backing's element, recorded
-// on `ix` — never what a distinct's own `Index` would read there (`index_route`).
+// on `ix`, never what a distinct's own `Index` would read there (`index_route`).
 array_write_slot :: fn(
     ix: AST.IndexExpr, arr: ArrayType, index_ty: Type, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
@@ -953,7 +953,7 @@ check_return :: fn(
         diags.push(typecheck_error(.ReturnInDefer, s.span, ""))
         return
     }
-    // Generator: `return <value>` is a mistake (produce via `yield` — T3058);
+    // Generator: `return <value>` is a mistake (produce via `yield`, T3058);
     // a bare `return` stops the stream and needs no return-type check.
     if effective != null && effective.is_generator {
         if s.value !is null {
@@ -1095,7 +1095,7 @@ check_for :: fn(
             }
         }
     }
-    // W0010 — a label on a for-in loop is redundant : it already has an iteration
+    // W0010, a label on a for-in loop is redundant : it already has an iteration
     // variable to target it by (`break <var>`). A label is only needed for a
     // `while` / infinite loop, which has no variable.
     if s.label != null && binding != null {
@@ -1196,7 +1196,7 @@ check_loop_jump :: fn(
     ctx: FnContext | null,
     diags: Diagnostic[],
 ) -> void {
-    // A bare `break`/`continue` targets the innermost loop (no diagnostic — reader
+    // A bare `break`/`continue` targets the innermost loop (no diagnostic: reader
     // clarity is served by the LSP go-to-loop). A `break <name>` must resolve to an
     // enclosing loop by its iteration variable (preferred) or its label ; the walk-
     // global `loop_stack` survives `if`/`match` nesting, mirroring `loop_depth`.
@@ -1208,7 +1208,7 @@ check_loop_jump :: fn(
         name :: label
         target :: resolve_loop_target(typed.loop_stack, name)
         if target == null {
-            // A local, an unknown name, or a jump outside any loop — never a valid
+            // A local, an unknown name, or a jump outside any loop, never a valid
             // target. `break`ing a non-loop makes no sense → hard error (T3067).
             diags.push(
                 typecheck_error(
@@ -1234,7 +1234,7 @@ check_loop_jump :: fn(
             }
         }
     }
-    // T3015 — `break`/`continue` outside any loop. Kept on `ctx.loop_depth`. A null
+    // T3015: `break`/`continue` outside any loop. Kept on `ctx.loop_depth`. A null
     // ctx is an expression-nested block (`x ?? break`), where the walk-global loop
     // stack answers instead ; lambdas do not reset that stack, so it can miss a
     // jump written in a lambda inside a loop.
@@ -1287,7 +1287,7 @@ check_defer :: fn(
     diags: Diagnostic[],
     ctx: FnContext | null,
 ) -> void {
-    // `defer` inside a generator is still forbidden in v1 — a generator can be
+    // `defer` inside a generator is still forbidden in v1: a generator can be
     // abandoned mid-iteration, and the runtime has no drop hook to fire pending
     // defers on teardown (T3060 ; lifted with async cancellation, 4c). `defer`
     // inside an async coroutine IS supported : the coroutine always runs to
@@ -1376,9 +1376,9 @@ statement_call :: fn(stmt: AST.Stmt) -> AST.CallExpr | null {
 
 // Push the complement narrowing(s) a guard condition leaves for the rest of the
 // block. A `||` contributes one per operand : reaching the fall-through means
-// EVERY operand was false. Subtraction composes — pushing them in sequence, each
+// EVERY operand was false. Subtraction composes, pushing them in sequence, each
 // detected against the narrowing the previous one left, lands on the same type as
-// subtracting their union at once — so no grouping is needed.
+// subtracting their union at once, so no grouping is needed.
 push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram, stack: PushedNarrow[]) -> void {
     if cond is AST.BinaryExpr {
         if cond.op == .Or {
@@ -1406,8 +1406,8 @@ push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram, stack: PushedNarro
 }
 
 then_is_divergent :: fn(b: AST.BlockExpr, typed: TypedProgram) -> bool {
-    // A guard block whose sole (or final) content is a `@no_return` call —
-    // `{ panic(...) }` — parses that call as the block's trailing expression,
+    // A guard block whose sole (or final) content is a `@no_return` call
+    // (`{ panic(...) }`) parses that call as the block's trailing expression,
     // not a statement, so `b.stmts` is empty. Honor a `never`-typed trailing
     // expr as divergent, mirroring the `is_divergent_stmt` ExprStmt arm ;
     // otherwise the complement narrowing is dropped and the guarded binding
@@ -1428,7 +1428,7 @@ is_divergent_stmt :: fn(s: AST.Stmt, typed: TypedProgram) -> bool {
     if s is AST.BreakStmt    { return true }
     if s is AST.ContinueStmt { return true }
     // An expression statement that evaluates to `never` (a call to a
-    // `@no_return` fn — `panic` / `todo` / `unreachable`) terminates the
+    // `@no_return` fn: `panic` / `todo` / `unreachable`) terminates the
     // flow : code after it is unreachable, and it discharges a non-`void`
     // fn's return obligation.
     if s is AST.ExprStmt {
@@ -1437,7 +1437,7 @@ is_divergent_stmt :: fn(s: AST.Stmt, typed: TypedProgram) -> bool {
         }
     }
     // A `for { … }` no `break` can leave has no exit edge, so whatever follows
-    // it cannot run. A `return` in the body doesn't reopen one — it leaves the
+    // it cannot run. A `return` in the body doesn't reopen one: it leaves the
     // fn, not the loop.
     if s is AST.ForStmt {
         return loop_never_exits(s)
@@ -1453,7 +1453,7 @@ BlockNarrow :: struct {
 }
 
 detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNarrow | null {
-    // Mirrors `expr_if.vader::detect_is_narrow` at a narrower result shape —
+    // Mirrors `expr_if.vader::detect_is_narrow` at a narrower result shape:
     // the divergent-guard case only needs the else-type.
     by_value :: detect_value_narrow(cond, typed)
     if by_value != null {
@@ -1468,7 +1468,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         if cond.op == .Not {
             inner :: detect_is_narrow_for_block(cond.operand, typed) ?? return null
             // Compose `!(x is T)`'s fall-through from the CURRENT narrowing
-            // (after prior guards), not `inner.static_ty` (declared) — which
+            // (after prior guards), not `inner.static_ty` (declared), which
             // would RE-WIDEN and undo earlier guards, leaving a chain
             // `if x is A{return} if !(x is B){return}` as `A | B` not `B`, so a
             // later `x.<B-field>` drops (infer_call's `callee_ty.params` after
@@ -1484,7 +1484,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     if cond !is AST.BinaryExpr {
         return null
     }
-    // `x == null` / `x != null` / `null == x` / `null != x` — both
+    // `x == null` / `x != null` / `null == x` / `null != x`: both
     // orderings flip the same way ; divergent guard pushes the
     // complement narrowing for the rest of the block.
     if cond.op == .Eq || cond.op == .Neq {
@@ -1492,7 +1492,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         if ident_side !is null {
             sym :: typed.resolved.idents[ident_side.span.hash()] ?? return null
             base :: type_of_symbol(sym, typed)
-            // Don't record a narrowing off an unresolved base — mirrors
+            // Don't record a narrowing off an unresolved base: mirrors
             // `detect_is_narrow` (expr_if.vader). The premature imported-body
             // walk in `settle_external_expr_bodied_returns` runs before the
             // module's `MutableMap.at` &c are wired, so an `m[k]`-bound local
@@ -1560,7 +1560,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     // Field-chain scrutinee : `x.y is T` complement-narrows the `x.y` slot,
     // mirroring the `x.y == null` field path above. The divergent guard
     // `if d.body is null { return }` then flows `Block` (not `Block | null`)
-    // to `body :: d.body` — the `convert_function` drop this closes.
+    // to `body :: d.body`: the `convert_function` drop this closes.
     if cond.left is AST.FieldExpr {
         field_info :: resolve_field_chain_static(cond.left, typed) ?? return null
         current :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
@@ -1588,7 +1588,7 @@ diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
 /// @param typed    the module whose impl tables are read.
 /// @return         `TY_UNRESOLVED` when the iterable yields nothing the tables know.
 export for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
-    // Arrays — and array-backed distinct newtypes — yield their element type.
+    // Arrays (and array-backed distinct newtypes) yield their element type.
     ab :: array_backing(iter_ty)
     if ab != null {
         return ab.element
@@ -1598,7 +1598,7 @@ export for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
     @partial match iter_ty {
         is StructType -> {
             // A `generator`'s `<fn>$State<E>` carries the concrete element as its
-            // sole type arg (`<fn>$State<E> implements Iterator<E>`) — the synthetic
+            // sole type arg (`<fn>$State<E> implements Iterator<E>`): the synthetic
             // struct has no `struct_decl` for the generic-substitution path below, so
             // read the arg directly (else a captured loop var over a generator chain
             // erases to the impl's generic `E`).
@@ -1642,9 +1642,9 @@ export for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             // unresolved → it defaults to `i32`, which happens to match an i32
             // element but mis-types every other (e.g. `Iterator<string>` → `i32.add`).
             //
-            // A type-param-bearing element — a bare `T` inside a generic combinator
+            // A type-param-bearing element: a bare `T` inside a generic combinator
             // (`my_map<T, U>(self: Iterator<T>, …)`), or a composite like `[K, V]` /
-            // `T[]` — is returned AS WRITTEN. It is the honest type of the loop var
+            // `T[]`: is returned AS WRITTEN. It is the honest type of the loop var
             // in that body, and it is what LSP hover and the typecheck snapshots
             // read. Concretising it is the LOWERER's job, per instance: the entry's
             // `Substitution` binds `T`, and `resolve_element_type` applies it.
@@ -1679,7 +1679,7 @@ lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
 
 /// Walk a let-binding tree and write the inferred / declared type into
 /// `typed.local_types` keyed by the binding span (the same span the
-/// resolver passed to `mint_local`). Wildcards are skipped — they
+/// resolver passed to `mint_local`). Wildcards are skipped: they
 /// don't introduce a Symbol.
 assign_binding_types :: fn(
     b: AST.LetBinding,
@@ -1702,7 +1702,7 @@ assign_tuple :: fn(
     diags: Diagnostic[],
 ) -> void {
     // A tuple- or array-backed distinct newtype (`Coord :: [i32, i32]`,
-    // `BigInt :: u32[]`) destructures through its backing composite — the
+    // `BigInt :: u32[]`) destructures through its backing composite: the
     // shape checks are identical, only the nominal wrapper is stripped.
     tup :: tuple_backing(declared)
     if tup != null {
@@ -1745,7 +1745,7 @@ assign_tuple :: fn(
         return
     }
     // A `[...]` pattern against a value that is neither a tuple nor an
-    // array — a struct that implements `Into<[...]>` of the same arity.
+    // array: a struct that implements `Into<[...]>` of the same arity.
     // The value destructures by binding each leaf to the coerced tuple's
     // element type. (Maps no longer take this path : they yield `[K, V]`
     // tuples, an ordinary tuple destructure.)

@@ -1,5 +1,5 @@
 // Go peer of bench/split_join.vader. `strings.Split` returns slices sharing the
-// original backing array, so Go does no copying here — part of what the row
+// original backing array, so Go does no copying here: part of what the row
 // compares.
 
 package main

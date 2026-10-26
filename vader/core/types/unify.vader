@@ -90,7 +90,7 @@ export unify_type_param :: fn(
                 // An array argument satisfies an `Iterator<T>` parameter through
                 // the blanket `T[] -> Iterator<T>` `into` coercion. That coercion
                 // is applied later (`try_into`), but the element type must be
-                // unified with `T` *here* or the type param stays unbound — the
+                // unified with `T` *here* or the type param stays unbound: the
                 // callee then infers `Iterator<T>` (T3008 downstream) and the
                 // generic body is never specialised. Bind `T = element`.
                 is ArrayType -> {
@@ -148,11 +148,11 @@ export UnionLeftover :: struct {
 /// pattern variant with no type parameter that the argument lacks binds nothing,
 /// and is dropped rather than paired: the argument is narrower than the pattern
 /// (`T | null` against a narrowed `i32`). A lone type parameter left over stands
-/// for EVERY argument variant left — `T | null` against `i32 | string | null`
+/// for EVERY argument variant left: `T | null` against `i32 | string | null`
 /// binds `T = i32 | string`. Several leftovers on both sides pair by position.
 ///
 /// @param pattern  the pattern's variants.
-/// @param actual   the argument's variants — a single one for an argument that is
+/// @param actual   the argument's variants: a single one for an argument that is
 ///                 not a union (`union_variants(t) ?? [t]`).
 /// @return         the pairs to unify, in pattern order.
 export union_leftovers :: fn(pattern: Type[], actual: Type[]) -> UnionLeftover[] {
@@ -191,7 +191,7 @@ export union_leftovers :: fn(pattern: Type[], actual: Type[]) -> UnionLeftover[]
 /// `union_leftovers`.
 ///
 /// @param types   the candidate variants to scan.
-/// @param used    parallel flags — entries already paired off are skipped.
+/// @param used    parallel flags: entries already paired off are skipped.
 /// @param target  the variant to find a structural match for.
 /// @return        the matching index, or -1 when none is free + equal.
 find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
@@ -316,7 +316,7 @@ bind_infer_var :: fn(
 /// @param id  the variable's id.
 export mentions_infer_var :: fn(t: Type, id: i32) -> bool = holds_infer_var(t, id)
 
-/// True when `t` carries an `UnresolvedType` anywhere in its tree — i.e. the
+/// True when `t` carries an `UnresolvedType` anywhere in its tree, i.e. the
 /// checker failed to work out part of it, so the type says nothing. Used by
 /// `unify_type_param` and `bind_infer_var` to refuse a binding that would freeze a
 /// parameter at `?`.

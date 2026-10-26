@@ -29,7 +29,7 @@
     "comments": {
       "patterns": [
         {
-          "comment": "VaderDoc — `///` line form. Pattern must come before the regular `//` rule.",
+          "comment": "VaderDoc, `///` line form. Pattern must come before the regular `//` rule.",
           "name": "comment.line.documentation.vader",
           "begin": "///",
           "end": "$",

@@ -7,7 +7,7 @@
 // body must be cloned and its `T` references rewritten to the impl's trait
 // arg (e.g. `i32` for an impl of `Trait<i32>`).
 //
-// SCOPE : sketch. Not all variants are handled — TODOs mark the gaps.
+// SCOPE : sketch. Not all variants are handled: TODOs mark the gaps.
 // Calling `substitute_block` on a body that uses an unsupported variant
 // returns the original sub-tree unchanged (the walker is total but not
 // total-cloning, so partial coverage doesn't trap).
@@ -56,9 +56,9 @@ subst_opt_expr :: fn(v: AST.Expr | null, subst: Subst) -> AST.Expr | null {
 /// and recursing into value-position children for the rest.
 ///
 /// EXHAUSTIVE over the closed `Expr` union: every node is rebuilt with a fresh
-/// `UNASSIGNED_NODE_ID`, so the shared trait AST is never aliased — a
+/// `UNASSIGNED_NODE_ID`, so the shared trait AST is never aliased, a
 /// passed-through node would later be mutated in place by `assign_block_ids`,
-/// corrupting the trait's own ids across every impl — and every nested `Self` /
+/// corrupting the trait's own ids across every impl, and every nested `Self` /
 /// type-param is substituted. A new `Expr` variant trips T3013 here until it is
 /// handled; there is no silent pass-through. Each rebuild lists its fields
 /// rather than spreading the node for the same reason: a field added without a
@@ -133,7 +133,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.BinaryExpr -> {
-            // Includes `is` op : RHS is type position — substitute_type_expr
+            // Includes `is` op : RHS is type position, substitute_type_expr
             // would catch the leaf, but here we keep the BinaryExpr shape
             // since the value-position walker also needs to handle LHS.
             return AST.BinaryExpr {
@@ -151,7 +151,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                     new_else = AST.IfElseBlock { .block = substitute_block(eb.block, subst) }
                 }
                 is AST.IfElseIf    -> {
-                    // IfElseIf.branch is specifically AST.IfExpr — extract
+                    // IfElseIf.branch is specifically AST.IfExpr: extract
                     // via a narrow match since substitute_expr_full returns
                     // the wider Expr union.
                     sub :: substitute_expr_full(eb.branch, subst)
@@ -159,7 +159,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                         is AST.IfExpr -> {
                             new_else = AST.IfElseIf { .branch = sub }
                         }
-                        _ -> {}     // shouldn't happen — IfExpr is closed
+                        _ -> {}     // shouldn't happen: IfExpr is closed
                     }
                 }
             }
@@ -256,7 +256,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.DotVariantExpr -> {
-            // Leaf (no child exprs / type refs) — still cloned so the trait
+            // Leaf (no child exprs / type refs): still cloned so the trait
             // node is never re-id'd in place.
             return AST.DotVariantExpr {
                 .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -299,7 +299,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                     .span = pm.span, .id = AST.UNASSIGNED_NODE_ID, .name = pm.name,
                     .name_span = pm.name_span,
                     .ty = new_pty, .default_value = new_default, .variadic = pm.variadic,
-                    // Carried over — see the field's own note on why it has no default.
+                    // Carried over, see the field's own note on why it has no default.
                     .decorators = pm.decorators,
                 })
             }
@@ -316,9 +316,9 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
     }
 }
 
-/// Clone a Stmt, recursing into child Exprs. Fields are listed, not spread —
+/// Clone a Stmt, recursing into child Exprs. Fields are listed, not spread,
 /// see `substitute_expr_full`.
-// @partial: sketch coverage — the TODO'd DeferStmt passes through unchanged until
+// @partial: sketch coverage, the TODO'd DeferStmt passes through unchanged until
 // the walker is completed.
 export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
     @partial match s {
@@ -331,7 +331,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
                 .span = s.span, .id = AST.UNASSIGNED_NODE_ID,
                 .mutable = s.mutable,
                 // Clone the binding (don't reuse the trait node) so its
-                // span/name_span can be stamped per-clone — the resolver keys
+                // span/name_span can be stamped per-clone: the resolver keys
                 // the local Symbol on `binding.name_span`, which must agree
                 // with the body's stamped use-site idents.
                 .binding = clone_let_binding(s.binding),
@@ -417,7 +417,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
 
 // The clone of an assignment's value. A compound assignment's `value.left` IS its
 // target, so its clone is the cloned `target` : two copies would each get an id
-// and a stamped span of their own — no longer read as `op=`, and each lowered on
+// and a stamped span of their own: no longer read as `op=`, and each lowered on
 // its own, evaluating the place's operands twice.
 clone_assign_value :: fn(s: AST.AssignStmt, target: AST.Expr, subst: Subst) -> AST.Expr {
     if AST.compound_assign_op(s) != null {
@@ -464,7 +464,7 @@ clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding {
 }
 
 /// Clone a Pattern, substituting TypeExprs inside `is T` patterns.
-// @partial: sketch coverage — the TODO'd patterns (StructPattern,
+// @partial: sketch coverage, the TODO'd patterns (StructPattern,
 // LiteralPattern, EnumVariantPattern) and the childless WildcardPattern pass
 // through unchanged.
 export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
@@ -481,7 +481,7 @@ export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
             }
         }
         // TODO : StructPattern, LiteralPattern, EnumVariantPattern.
-        // WildcardPattern has no children — pass through.
+        // WildcardPattern has no children: pass through.
         _ -> { return p }
     }
 }
@@ -510,23 +510,23 @@ export substitute_block_materialized :: fn(
 // Rewrite every cloned node's span to `<clone>:(base_line):(N)`. A clone that
 // keeps the trait method's spans collides with every sibling impl of that trait
 // in the span-keyed `idents` map, and the replacement span must be DETERMINISTIC
-// rather than merely unique — a node id will not do. Both constraints, and what
+// rather than merely unique: a node id will not do. Both constraints, and what
 // each ingredient of the span answers for, are recorded in
 // docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
 //
 // Coverage mirrors `substitute_block` / `substitute_expr_full` : a node kind
 // missed here silently keeps its trait span.
 
-/// Deterministic span allocator for one impl's materialised clones — created once
+/// Deterministic span allocator for one impl's materialised clones: created once
 /// per impl, then threaded through every member clone.
 ///
 /// `base_line` is the impl's source `line * 1024 + column`, `counter` a traversal
 /// counter accumulating across the impl's members, and `file` is
-/// `"<clone>:<src>"` — the impl's source file folded in, since `Span.hash` folds
+/// `"<clone>:<src>"`: the impl's source file folded in, since `Span.hash` folds
 /// in `start.file`.
 export StampCtx :: struct { base_line: i32, counter: i32, file: string }
 
-/// Prefix marking a materialised clone's synthetic file path — the rest of the
+/// Prefix marking a materialised clone's synthetic file path: the rest of the
 /// string is the impl's real source file. Read by anything that has to map a
 /// cloned node back to the file whose imports it resolves against
 /// (`front/typecheck/orchestrate.vader::file_overload_table`), so producer and

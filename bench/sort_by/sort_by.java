@@ -1,5 +1,5 @@
-// Java peer of bench/sort_by.vader. A comparator sort needs boxed elements —
-// `Arrays.sort(long[])` takes no comparator — so `Long[]` is what Java code
+// Java peer of bench/sort_by.vader. A comparator sort needs boxed elements
+// (`Arrays.sort(long[])` takes no comparator) so `Long[]` is what Java code
 // writes here, and the boxing is part of what the row compares. TimSort is
 // stable, which the checksum depends on.
 

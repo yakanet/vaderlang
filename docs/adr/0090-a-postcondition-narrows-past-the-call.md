@@ -1,4 +1,4 @@
-# 0090 — A postcondition narrows past the call
+# 0090: A postcondition narrows past the call
 
 ## Status
 

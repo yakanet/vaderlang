@@ -53,7 +53,7 @@ for (const s of snippets.filter((x) => existsSync(join(x.dir, VM_SNAPSHOT)))) {
       CC, "-std=c11", "-O0", "-fwrapv", "-I", RUNTIME_ROOT, "-iquote", RUNTIME_ROOT, "-iquote", s.dir,
       cFile, join(RUNTIME_ROOT, "vader_runtime.c"),
       // `@extern` snippets carry their foreign symbols in helper `.c`
-      // files next to `_main.vader` — compile them into the binary.
+      // files next to `_main.vader`: compile them into the binary.
       ...s.helperCFiles,
       "-o", binFile, "-lm",
     ], { stderr: "pipe", stdout: "pipe" });

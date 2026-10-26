@@ -37,7 +37,7 @@ infer_field :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    // Namespace-import field access — `mod.foo` where `mod` is an
+    // Namespace-import field access: `mod.foo` where `mod` is an
     // import binding. Runs before the recursive target check.
     ns_lookup :: try_namespace_field(e, typed, diags)
     if ns_lookup !is null {
@@ -130,7 +130,7 @@ try_impl_method_ufcs :: fn(
     diags: Diagnostic[],
 ) -> Type | null {
     // A free numeric literal receiver (`42.to_string()`) carries no impl methods
-    // of its own — every impl is keyed on the concrete default (`i32`/`f64`/`char`,
+    // of its own: every impl is keyed on the concrete default (`i32`/`f64`/`char`,
     // e.g. `i32 implements Display`). Default the free type before building the
     // lookup key so a literal resolves the same impl a pinned variable (`x :: 42`)
     // would. `default_if_free` is the identity on concrete types, so concrete
@@ -437,8 +437,8 @@ TypeMember :: struct {
     refused: bool = false
 }
 
-/// `Type.member` on a static trait member — `T.zero()` with `T: Zero`,
-/// `i64.zero()`, `ns.Sq.unit(3)` — typed as the member, and recorded in
+/// `Type.member` on a static trait member: `T.zero()` with `T: Zero`,
+/// `i64.zero()`, `ns.Sq.unit(3)`: typed as the member, and recorded in
 /// `static_members` for the lowerer, which calls the owner's impl member with no
 /// receiver.
 ///
@@ -628,7 +628,7 @@ bound_trait_declaring :: fn(
 trait_member_decl :: fn(trait_ty: TraitType, name: string, typed: TypedProgram) -> AST.FnDecl | null =
     lookup_trait_method(typed.trait_decls[trait_ty.symbol.id], name)
 
-// T3091 when `x.<name>` reaches a static member — one taking no `self`, called on
+// T3091 when `x.<name>` reaches a static member: one taking no `self`, called on
 // a type instead. `x` may be the trait itself, which types as a trait value.
 rejects_static_member :: fn(
     decl: AST.FnDecl | null,
@@ -771,7 +771,7 @@ try_dispatched_method :: fn(
 }
 
 // Struct that implements a trait carrying a same-named method WITH a default body
-// (`Async.cancel`) — synthesise the dispatch from the trait method's signature.
+// (`Async.cancel`): synthesise the dispatch from the trait method's signature.
 try_default_trait_method_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
@@ -783,7 +783,7 @@ try_default_trait_method_dispatch :: fn(
     return try_default_trait_method(target_ty, e.field, typed)
 }
 
-// `tup.0` — positional access on tuples. Out-of-range raises T3009.
+// `tup.0`: positional access on tuples. Out-of-range raises T3009.
 try_tuple_index_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
@@ -898,7 +898,7 @@ try_enum_variant_dispatch :: fn(
         )
         return TY_UNRESOLVED
     }
-    // W0016 — the slot already pins this enum, so the name in front of the dot
+    // W0016: the slot already pins this enum, so the name in front of the dot
     // is dead weight. Only when the shorthand would land on the SAME enum: a
     // slot whose union carries two enums sharing this variant name resolves the
     // bare form to the first, and there the prefix is what disambiguates.
@@ -920,7 +920,7 @@ enum_data_field :: fn(target_ty: EnumType, e: AST.FieldExpr, typed: TypedProgram
     return found
 }
 
-/// Whether `target` names an enum-typed TYPE rather than a value of it — the
+/// Whether `target` names an enum-typed TYPE rather than a value of it: the
 /// receiver `Enum.Variant` needs : a name bound to a type, including through an
 /// import, or a namespace member `alias.Enum`.
 ///
@@ -957,7 +957,7 @@ names_symbol_of_kind :: fn(target: AST.Expr, kind: SymbolKind, typed: TypedProgr
 }
 
 // True when `name` has UFCS free-fn candidates visible in `file` (declared by
-// the module, or imported by that file) — i.e. a method by that name exists, so
+// the module, or imported by that file), i.e. a method by that name exists, so
 // a failed dispatch is "no overload fit the receiver", not "unknown method".
 // Drives the tailored union-receiver hint.
 ufcs_name_has_candidates :: fn(name: string, file: string, typed: TypedProgram) -> bool {
@@ -968,10 +968,10 @@ ufcs_name_has_candidates :: fn(name: string, file: string, typed: TypedProgram) 
     return imported[name] != null
 }
 
-// T3078 — the receiver has no such member, but a module imported under a
+// T3078: the receiver has no such member, but a module imported under a
 // NAMESPACE ALIAS exports a free fn by that name whose first param accepts it.
 // An alias binds one name and qualifies the rest, so the fn is out of
-// unqualified scope in both call forms (`f(x)` is R2006, `x.f()` lands here) —
+// unqualified scope in both call forms (`f(x)` is R2006, `x.f()` lands here):
 // SPEC §UFCS, "resolves … exactly as `foo(x)` would". Point at the qualified
 // form instead of leaving the reader with a bare "no such field".
 //
@@ -992,7 +992,7 @@ report_namespace_alias_method :: fn(
         if ft.params.len() == 0 {
             continue
         }
-        // Same receiver test the UFCS dispatch itself runs — an alias exporting
+        // Same receiver test the UFCS dispatch itself runs: an alias exporting
         // an unrelated `f(i32)` explains nothing about `recv.f()`.
         if try_curry_receiver(ft, target_ty, typed) == null {
             continue
@@ -1096,7 +1096,7 @@ resolve_struct_field :: fn(
             return TY_UNRESOLVED
         }
         // A UFCS method by this name exists, but no overload's first param
-        // accepts this union receiver — the common case being a value combinator
+        // accepts this union receiver: the common case being a value combinator
         // (`or` / `map` / …) fed a union with more than one "unhappy" variant
         // (e.g. `T | Error | null` fits neither the `T | null` nor the `T | Error`
         // overload). Point at narrowing rather than the bare "not indexable".
@@ -1187,7 +1187,7 @@ report_gen_state_member :: fn(
 /// slot type an assignment `recv.field = v` must be assignable to :
 /// `resolve_struct_field` layers `narrow_field_if_active` on top for
 /// *reads*, but a write targets the *declared* field, not its narrowing
-/// (mirrors `invalidate_narrow_on_assign`, which retires — not rejects —
+/// (mirrors `invalidate_narrow_on_assign`, which retires, not rejects,
 /// a write outside the current narrowing).
 ///
 /// @param recv_ty  the receiver's checked type : a struct, a struct-backed
@@ -1195,7 +1195,7 @@ report_gen_state_member :: fn(
 /// @param field    the field name being written.
 /// @return         the substituted field type, or `null` when `recv_ty`
 ///                 is none of those, its decl isn't indexed, or the field
-///                 doesn't resolve — the caller then skips the write check
+///                 doesn't resolve: the caller then skips the write check
 ///                 (the read-side typing already surfaced any field error).
 export declared_struct_field_type :: fn(
     recv_ty: Type,
@@ -1218,7 +1218,7 @@ export declared_struct_field_type :: fn(
 /// constructible, and pattern-bindable only from its declaring module. Fields
 /// are public by default, so this fires only for the rare opt-in field.
 ///
-/// Same-module access is always allowed — the test mirrors the established
+/// Same-module access is always allowed: the test mirrors the established
 /// cross-module comparison `sym.module != typed.resolved.path`
 /// (`vader/front/typecheck/expr_ident.vader`). Shared by the read sites (a struct's
 /// field, a union's common one, an enum's variant data), the construction site
@@ -1296,7 +1296,7 @@ export lookup_pre_resolved_field :: fn(
     return fmap[name]
 }
 
-/// Resolve field `name`'s type on the struct with symbol id `struct_id` — the
+/// Resolve field `name`'s type on the struct with symbol id `struct_id`: the
 /// owner-resolved `struct_field_types` cache first (authoritative cross-module),
 /// else a local AST re-walk of `decl` (same-module cold path). The
 /// cache-before-walk ordering lives HERE so no field-type consumer can reorder
@@ -1673,7 +1673,7 @@ UfcsResult :: struct {
     curried: Type
     /// The winning overload, in the module that declares it.
     winner: FnCandidate
-    /// An overload ranked level with `winner` — see `is_rival`.
+    /// An overload ranked level with `winner`, see `is_rival`.
     rival: FnCandidate | null = null
 }
 
@@ -1716,7 +1716,7 @@ try_free_fn_ufcs_with_first :: fn(
     return UfcsResult { ...found, .rival = rival }
 }
 
-/// A free function callable on a receiver type via UFCS — its name plus the
+/// A free function callable on a receiver type via UFCS: its name plus the
 /// curried signature (the type after the receiver is bound). Powers LSP member
 /// completion, which lists these alongside struct fields and impl methods.
 export UfcsMethod :: struct {
@@ -1726,11 +1726,11 @@ export UfcsMethod :: struct {
 
 /// Every free function callable on `target_ty` via UFCS (first param fits the
 /// receiver), deduplicated by name. Enumerates the module's own overloads then
-/// the imported ones — the same two buckets `try_free_fn_ufcs_with_first`
+/// the imported ones: the same two buckets `try_free_fn_ufcs_with_first`
 /// resolves a single call against, but surfaced as a list for completion.
 ///
 /// @param target_ty  the receiver type the completion is being offered on.
-/// @param file       the file the completion fires in — imports are file-scoped,
+/// @param file       the file the completion fires in: imports are file-scoped,
 ///                   so a sibling file's imports must not be offered here.
 /// @param typed      the module's typechecked program.
 export ufcs_methods_for :: fn(target_ty: Type, file: string, typed: TypedProgram) -> UfcsMethod[] {
@@ -1795,8 +1795,8 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
 }
 
 // A receiver fits a UFCS first-param when (a) it is assignable to the param with
-// the param's type parameters erased — nothing has bound them yet, so a bare `T`
-// fits anything — or (b) the param is a trait the receiver implements.
+// the param's type parameters erased: nothing has bound them yet, so a bare `T`
+// fits anything, or (b) the param is a trait the receiver implements.
 // Trait widening here covers user `T implements Trait` impls AND
 // `Array<T> implements Iterator<T>` (which is hardcoded via `try_array_to_iter`
 // because adding it to `is_assignable` bloats c-emit).
@@ -1817,7 +1817,7 @@ receiver_fits_first_param :: fn(target_ty: Type, first: Type, typed: TypedProgra
 }
 
 // Parse `0`, `1`, … from a tuple `.N` field name. Returns -1 when
-// the name isn't a non-negative integer literal — `.foo` on a tuple
+// the name isn't a non-negative integer literal: `.foo` on a tuple
 // then falls through to T3009 via the bounds check.
 parse_tuple_index :: fn(s: string) -> i32 {
     len :: s.byte_len()
@@ -1862,7 +1862,7 @@ namespace_call_mod_id :: fn(e: AST.FieldExpr, typed: TypedProgram) = namespace_b
     typed,
 )
 
-/// Module id behind a namespace base expr — the `mod` in a `mod.field` access,
+/// Module id behind a namespace base expr: the `mod` in a `mod.field` access,
 /// where `mod` is an `import "p"` namespace binding. Null when `base` isn't such
 /// a binding. Exported so the LSP can list a namespace alias's exports on
 /// `mod.<member>` completion (shared with `namespace_call_mod_id`).
@@ -1888,7 +1888,7 @@ type_param_member_detail :: fn(tp: TypeParamType, field: string, typed: TypedPro
     return "no bound of `${name}` declares `${field}`"
 }
 
-/// Method names declared by a type parameter's bound trait(s) — a single trait
+/// Method names declared by a type parameter's bound trait(s): a single trait
 /// or an `A & B` chain. For LSP completion on a `t.<member>` receiver typed as
 /// that param (`t: T` where `T: Display` → `to_string`). Empty when the param is
 /// unbound or its bound doesn't resolve to a trait.
@@ -1920,7 +1920,7 @@ collect_bound_method_names :: fn(bound: AST.Expr, typed: TypedProgram, out: stri
 
 /// Walk a struct's fields for `name` and return the resolved field type,
 /// or `null` if the field doesn't exist. Shared with `struct_lit.vader`
-/// so the lookup convention stays in one place — generic substitution,
+/// so the lookup convention stays in one place: generic substitution,
 /// when it lands, plugs in here.
 find_struct_field_type :: fn(
     decl: AST.StructDecl,

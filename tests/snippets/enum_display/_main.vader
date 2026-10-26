@@ -1,5 +1,5 @@
 // `@displayable` gives an enum the `Display` that renders each variant by its
-// name — a variable, a literal (which lowers to the bare rank), a narrowed
+// name: a variable, a literal (which lowers to the bare rank), a narrowed
 // union, an array element, an enum with variant data (its written values are
 // not what it renders), and a generic `T: Display` instantiated with it, which
 // gets a concrete instance so the dispatch reaches the enum's impl rather than

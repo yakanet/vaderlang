@@ -1,6 +1,6 @@
 // `==` / `!=` between a union and a scalar of one of its variants : the scalar
 // is boxed as it would be entering the union, and the two boxes compare by tag
-// and payload — so `null` is never equal to a zero, whose payload is the same
+// and payload, so `null` is never equal to a zero, whose payload is the same
 // word.
 module "snippet"
 

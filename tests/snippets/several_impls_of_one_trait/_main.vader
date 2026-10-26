@@ -3,10 +3,10 @@ module "snippet"
 import "std/io"
 
 // Several impls of one trait on one receiver, told apart by the trait's arguments :
-// each use site runs the impl its own types pick — an operator by its right
+// each use site runs the impl its own types pick, an operator by its right
 // operand, a call by its argument or its expected result, `in` by the element, an
 // index by its key, a destructuring by its arity, a static member by its argument,
-// a bounded `T` by its bound — in a generic fn and in a generic impl's members —
+// a bounded `T` by its bound, in a generic fn and in a generic impl's members,
 // and a default method by the impl it is cloned into. A type that is an `Iterator`
 // and converts into another one is walked through its own `next`.
 

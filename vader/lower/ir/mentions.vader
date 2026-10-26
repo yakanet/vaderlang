@@ -13,7 +13,7 @@ module "vader/lower/ir"
 /// Two orthogonal gates, because three callers want three combinations of them.
 export MentionKinds :: struct {
     /// Count a `LoweredArrayPush` whose TARGET is the symbol. The concat fusion
-    /// says yes — `s = s + f(a)` where `f` pushes to `s` observes it. The push
+    /// says yes: `s = s + f(a)` where `f` pushes to `s` observes it. The push
     /// cache says no: that target is exactly the use it is replacing.
     push_target: bool
     /// Count an `array.len()` whose object is the BARE symbol. Reading the
@@ -32,7 +32,7 @@ len_mentions :: fn(target: LoweredExpr, symbol_id: i32, kinds: MentionKinds) -> 
     return expr_mentions(target, symbol_id, kinds)
 }
 
-// Does `e` mention `symbol_id`? Exhaustive by design — a `_ ->` arm would answer
+// Does `e` mention `symbol_id`? Exhaustive by design: a `_ ->` arm would answer
 // "no" for a variant nobody taught it about, and a wrong "no" fuses away a read
 // that mattered.
 //

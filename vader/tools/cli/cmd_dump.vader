@@ -6,7 +6,7 @@
 // than in the middle of the command dispatch.
 //
 // Same module as `main.vader`, so the pipeline helpers stay reachable without
-// exporting them — imports are file-scoped, declarations are not.
+// exporting them: imports are file-scoped, declarations are not.
 
 module "vader/tools/cli"
 
@@ -131,7 +131,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
         return 2
     }
     // Reachable only for a stage listed in `DUMP_STAGES` that has no dispatch
-    // arm above — a spec/dispatch mismatch, not user error. The parser rejects
+    // arm above: a spec/dispatch mismatch, not user error. The parser rejects
     // anything outside the list before we get here.
     eprintln("vader dump: stage \"${stage}\" is declared but not wired")
     return 2
@@ -139,7 +139,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
 
 // Read `file` for a dump stage. Returns the contents on success or
 // null after writing the canonical "vader: cannot read …" line to
-// stderr — every stage that consumes a source file shares this path.
+// stderr: every stage that consumes a source file shares this path.
 read_source :: fn(file: Path) -> string | null {
     src_or_err :: read_file_string(file.as_string())
     match src_or_err {
@@ -151,7 +151,7 @@ read_source :: fn(file: Path) -> string | null {
     }
 }
 
-// Token + diagnostic dump go to stdout — the snapshot suite snapshots
+// Token + diagnostic dump go to stdout: the snapshot suite snapshots
 // stdout only, so this stays unchanged. Only the file-read failure path
 // moves to stderr.
 run_lexer_stage :: fn(file: Path) -> i32 {
@@ -357,7 +357,7 @@ run_ranges_stage :: fn(
 /// `EvaluatedPipeline` (`loaded` + `typed` + `evaluated`) already out of scope.
 /// `LoweredProject` carries a static `Type` on every expression (see
 /// `vader/lower/ir/lowered_ast.vader`), so nothing here references the typecheck
-/// side-table maps that dominate the live set — returning this lets the caller
+/// side-table maps that dominate the live set: returning this lets the caller
 /// run emit without those maps coexisting with the emitter's own tables.
 
 /// Parse a `--target=<os-arch>` flag for a dump stage. Empty means "this
@@ -379,7 +379,7 @@ run_bytecode_stage :: fn(
     // The bytecode dump never renders `debug`, so skip populating it.
     b :: prepare_cfg_bytecode_with(file, false, include_path_flags, project_root, target)
     // A front-end-rejected program emits no bytecode (`lower_to_entry_with`
-    // skips lowering on a front-end error) — print only the diagnostics, never
+    // skips lowering on a front-end error): print only the diagnostics, never
     // a bare `module` shell for code that was never compiled. Gate on
     // `pre_diags` (loader / resolver / typecheck / comptime) only : a
     // lower-stage diagnostic still leaves real, runnable bytecode behind (the
@@ -393,7 +393,7 @@ run_bytecode_stage :: fn(
     // double-newlined.
     //
     // `--annotate` appends `; <name>` after each index-bearing op. It IS
-    // round-trippable — `strip_comment` removes `;` comments before parsing —
+    // round-trippable (`strip_comment` removes `;` comments before parsing)
     // and the parity snapshots use it: an index is a rank of insertion, the name
     // is what a reader needs. (This comment claimed the opposite; the corpus
     // re-reads and executes every annotated dump, which settles it.)
@@ -415,7 +415,7 @@ run_c_stage :: fn(
         file, line_directives, include_path_flags, project_root, target, false,
         proves_bounds(false),
     )
-    // No C for a front-end-rejected program — print only the diagnostics,
+    // No C for a front-end-rejected program: print only the diagnostics,
     // mirroring `run_bytecode_stage` (front-end errors only ; see its note).
     if any_error_diag(b.pre_diags) {
         print_dump_diags(b)
@@ -423,7 +423,7 @@ run_c_stage :: fn(
     }
     // Designate the program entry by name (same source as the bytecode
     // stage's `export main N`) so the `main()` shim resolves the entry
-    // module's `main` — a multi-module input (the compiler imports
+    // module's `main`: a multi-module input (the compiler imports
     // `vader/tools/lsp`, which has its own `main`) flags several fns `is_main`.
     // `emit_c` already returns a trailing-newline-terminated string ; use
     // `print` (no auto-newline) so the output isn't double-newlined.
@@ -452,21 +452,21 @@ run_lower_stage :: fn(
 }
 
 // Lowered tree after whole-program dead-function elimination. Roots are
-// `main` + `@export` / `@extern` (tests dropped — this is the run/build
+// `main` + `@export` / `@extern` (tests dropped: this is the run/build
 // view, not the test-runner view). Validates the call-graph reachability
 // walk before it's wired into the emit paths.
-// `--stage=targets` — which body each `@target` group selected, one line per
+// `--stage=targets`, which body each `@target` group selected, one line per
 // group, and nothing else.
 //
 // A dedicated stage rather than reading `dced-ast` or the emitted C: those answer
 // the question in thousands of lines of which one matters, and they change shape
 // whenever codegen does. This is also the corpus oracle
-// (`tests/target_model.test.ts`), and it needs NO TOOLCHAIN — so it answers for
+// (`tests/target_model.test.ts`), and it needs NO TOOLCHAIN, so it answers for
 // every target from any machine, which is what makes cross-target selection
 // testable in CI as it stands.
 run_targets_stage :: fn(file: Path, target: Target | null, project_root: string | null) -> i32 {
     project :: load_project(file.as_string(), [], project_root, target)
-    // The baked constants, read back from the module the compiler GENERATED —
+    // The baked constants, read back from the module the compiler GENERATED,
     // not re-rendered from the `Target` parsed above. The difference is the
     // whole point: a build that parses `--target=windows-x86_64` and then bakes
     // the host's OS anyway is exactly the regression this catches, and printing
@@ -503,8 +503,8 @@ run_targets_stage :: fn(file: Path, target: Target | null, project_root: string 
                     body :: d.body
                     // Relative to the cwd, like every diagnostic. A stdlib body
                     // resolves through an absolute path, so printing it verbatim
-                    // put the DEVELOPER'S home directory in a committed snapshot
-                    // — green locally, red on any other machine.
+                    // put the DEVELOPER'S home directory in a committed snapshot:
+                    // green locally, red on any other machine.
                     origin :: if body is BlockExpr {
                         "${relative_to(body.span.start.file, cwd)}:${body.span.start.line}"
                     } else {
@@ -527,7 +527,7 @@ run_targets_stage :: fn(file: Path, target: Target | null, project_root: string 
     return 0
 }
 
-// The baked constants are `.Darwin` / `.Arm64` by construction — a bare variant
+// The baked constants are `.Darwin` / `.Arm64` by construction: a bare variant
 // against the ascribed slot, and nothing else. Any other shape means the
 // generator changed, and printing `(unexpected)` says so rather than rendering
 // something plausible. Reading the qualified form too would blunt exactly that:
@@ -541,7 +541,7 @@ render_baked_value :: fn(e: Expr) -> string {
 
 // A group member survives selection with its `@target` decorator stripped only
 // when it was merged; a lone bare declaration keeps it. Either way, what marks a
-// declaration as belonging to a group is that it once carried `@target` — which
+// declaration as belonging to a group is that it once carried `@target`, which
 // after merging is only visible on the ones that did NOT merge. So report on the
 // declarations the selection produced, not on the decorator.
 selected_by_target :: fn(fd: FnDecl) -> bool {
@@ -573,12 +573,12 @@ run_dced_stage :: fn(
 // Order : loader first (parse / discover /
 // import-path / collect), then typecheck (with resolver-side
 // forwards via orchestrate.vader:168), then comptime, then `extra`
-// (the per-stage tail — currently lower).
-// Collection is total (build surfaces every module's diagnostics — see
+// (the per-stage tail: currently lower).
+// Collection is total (build surfaces every module's diagnostics, see
 // `orchestrate.vader`), but a `dump` stage shows only the modules under
 // inspection. These two helpers implement that per-caller scoping: gather the
 // file paths of the in-scope modules, then drop any diagnostic anchored outside
-// them. `build` never calls these — `flush_build_diags` shows the full set.
+// them. `build` never calls these: `flush_build_diags` shows the full set.
 
 filter_diags_in_scope :: fn(diags: Diagnostic[], files: string[]) -> Diagnostic[] {
     out: Diagnostic[]: []
@@ -620,7 +620,7 @@ print_merged_diags :: fn(head: Diagnostic[], extra: Diagnostic[]) -> void {
     }
 }
 
-// Same rendering as `print_dump_diags`, on stderr — for the C stage, whose stdout
+// Same rendering as `print_dump_diags`, on stderr: for the C stage, whose stdout
 // must stay valid C.
 eprint_dump_diags :: fn(b: CfgBytecode) -> void {
     all_diags :: filter_diags_in_scope(b.pre_diags, b.in_scope_files)

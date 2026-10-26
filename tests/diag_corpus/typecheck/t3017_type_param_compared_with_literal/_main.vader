@@ -1,5 +1,5 @@
 // T3017: a type parameter is opaque in its body, so only another value of the
-// same parameter compares with it — `x == 0` holds no meaning for `T = string`.
+// same parameter compares with it: `x == 0` holds no meaning for `T = string`.
 module "snippet"
 
 is_nought :: fn<T: Equals>(x: T) -> bool = x == 0

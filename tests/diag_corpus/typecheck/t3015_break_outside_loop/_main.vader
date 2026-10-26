@@ -1,4 +1,4 @@
-// `break` at top level of a fn body — T3015.
+// `break` at top level of a fn body: T3015.
 module "snippet"
 
 main :: fn() -> i32 {

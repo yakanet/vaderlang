@@ -22,7 +22,7 @@ import "vader/vm"
 
 
 // The one forwarding action: the CLI reads flags up to the path, and everything
-// after it is the executed program's argv — verbatim, uninspected, `-o` and
+// after it is the executed program's argv: verbatim, uninspected, `-o` and
 // `--allow-env` alike. No `--` needed:
 //   vader run compiler.virt dump --stage=bytecode vader/tools/cli/main.vader
 // A `--` is still accepted, but as a zone-closer BEFORE the path, which is how a
@@ -91,7 +91,7 @@ run_virt :: fn(path: Path, forward: string[]) -> i32 {
 
 run_source :: fn(file: Path, host_argv: string[], project_root: string | null) -> i32 {
     // `lower_to_entry` drops the typed/evaluated/loaded pipeline (its per-module
-    // side-table maps dominate the live set) before this CFG → bytecode tail —
+    // side-table maps dominate the live set) before this CFG → bytecode tail:
     // the lowered IR carries its own `Type`s, so emit never revisits the
     // typed-AST tables.
     le :: lower_to_entry(file, project_root)
@@ -106,7 +106,7 @@ run_source :: fn(file: Path, host_argv: string[], project_root: string | null) -
     if !ready_to_emit(prepared, "run", file) {
         return 1
     }
-    // Feed the in-hand `BytecodeModule` straight to the VM — no `.virt` text
+    // Feed the in-hand `BytecodeModule` straight to the VM: no `.virt` text
     // round-trip. The former `dump_bytecode → parse_virt_bc` hop was both
     // pointless overhead and lossy (dump_bytecode drops the data pool).
     // `run_virt` still parses real `.virt` files ; this is the source path.

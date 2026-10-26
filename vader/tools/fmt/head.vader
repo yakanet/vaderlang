@@ -17,14 +17,14 @@ import "vader/front/parser"
 
 /// Longest const, field or variant head shown before it is cut with ` …` : a
 /// table written over many lines is a value, not a signature. A union alias is
-/// never cut — its `|` chain IS the signature.
+/// never cut: its `|` chain IS the signature.
 HEAD_VALUE_MAX: i64: 120
 
 /// Render the head of a declaration on one line : `area :: fn(a: i32) -> i32`,
 /// `Point :: struct`, `Kind :: enum(u8)`, `Add :: trait<Rhs = Self>`,
 /// `Value :: I32Val | I64Val`, `MASK: u32: 0xFFFF`.
 ///
-/// @param source  the document the declaration's spans index into — literals
+/// @param source  the document the declaration's spans index into: literals
 ///                are sliced from it verbatim.
 /// @param d       the declaration ; an import, an impl or an `assert` has no head
 ///                and renders as "".
@@ -231,7 +231,7 @@ head_printer :: fn(source: string) -> Printer {
     return h
 }
 
-// `NAME :: value`, `NAME: T: value`, or their `@comptime` form — the operand the
+// `NAME :: value`, `NAME: T: value`, or their `@comptime` form: the operand the
 // parser kept, not the helper call it desugared the const into.
 const_head :: fn(h: Printer, d: p.ConstDecl) -> string {
     h.write(d.name)
@@ -270,7 +270,7 @@ cut_head :: fn(text: string, limit: i64) -> string {
     return text.byte_slice(0, end).trim() + " …"
 }
 
-// Byte length of `text`'s first line — all of it when it holds no newline.
+// Byte length of `text`'s first line: all of it when it holds no newline.
 first_line_len :: fn(text: string) -> i64 {
     for i in 0..<text.byte_len() {
         if text.byte_at(i) == '\n' {

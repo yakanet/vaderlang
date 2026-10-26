@@ -23,7 +23,7 @@ import "vader/tools/lsp/protocol"
 
 /// Type-check the file at `uri` and push the resulting diagnostics to
 /// the client. Non-file URIs and empty docs short-circuit to an empty
-/// array — the client clears any stale squiggles either way.
+/// array: the client clears any stale squiggles either way.
 export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void {
     file_path :: uri_to_path(uri)
     if file_path == "" {
@@ -40,7 +40,7 @@ export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void
     cached :: typed_project_for(self, file_path)
     // Merge the typecheck diagnostics (W0007 etc.) with the opt-in project-wide
     // lints the LSP surfaces but `vader build` never runs (W0012 unused-export).
-    // The lint walks the already-loaded project graph — no reload — and
+    // The lint walks the already-loaded project graph (no reload) and
     // `publish`'s per-file filter scopes its findings to the open document, so
     // the analysis stays project-wide while the display is per-file, as W0007.
     diags: Diagnostic[]: []
@@ -49,19 +49,19 @@ export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void
     publish(self, uri, diags)
 }
 
-/// Push an empty diagnostics array — clears any existing squiggles in
+/// Push an empty diagnostics array: clears any existing squiggles in
 /// the client. Called from `didClose`.
 export clear_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void {
     publish(self, uri, [])
 }
 
 /// The opt-in project-wide `unused-export` (W0012) findings for an
-/// already-loaded project — the LSP side of the `vader lint` recipe. Surfaced
+/// already-loaded project: the LSP side of the `vader lint` recipe. Surfaced
 /// by the editor but NEVER by `vader build` : it runs here in the diagnostics
 /// path only (not at cache build, so hover / completion never pay it), off the
 /// shared typecheck path (P-lean).
 ///
-/// Walks the cached `LoadedProject` — NO reload — via `dead_exports_of_project`,
+/// Walks the cached `LoadedProject` (NO reload) via `dead_exports_of_project`,
 /// so it is a bare name-reachability walk over decls already in memory. The
 /// caller merges these into the published set, where `publish`'s per-file filter
 /// scopes them to the open document : the ANALYSIS is project-wide (a
@@ -117,7 +117,7 @@ encode_diagnostic :: fn(d: Diagnostic, li: LineIndex) -> JsonValue {
 }
 
 /// LSP `DiagnosticTag` for a diagnostic code (LSP §3.17.16) : `1` = Unnecessary
-/// (the editor renders the range faded — for dead code), `2` = Deprecated
+/// (the editor renders the range faded: for dead code), `2` = Deprecated
 /// (struck through), `0` = no tag. `W0007` (dead private decl) and `W0012`
 /// (dead exported fn) both fade the unused declaration ; `W0001` (use of a
 /// `@deprecated` decl) strikes the reference.

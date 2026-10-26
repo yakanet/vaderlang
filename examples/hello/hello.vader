@@ -1,4 +1,4 @@
-// Hello world — the canonical first program.
+// Hello world: the canonical first program.
 // Compile and run with:
 //   vader build examples/hello.vader
 //   ./hello

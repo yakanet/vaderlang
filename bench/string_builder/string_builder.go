@@ -1,5 +1,5 @@
 // Go peer of bench/string_builder.vader. Uses strings.Builder, the
-// stdlib's pre-allocated-buffer concatenator — closest analogue to Vader's
+// stdlib's pre-allocated-buffer concatenator: closest analogue to Vader's
 // StringBuilder.
 
 package main

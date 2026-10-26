@@ -1,4 +1,4 @@
-// Code after a divergent statement (`return`) — both TS and Vader
+// Code after a divergent statement (`return`): both TS and Vader
 // emit W0002 (unreachable code) at the first dead stmt.
 
 module "snippet"

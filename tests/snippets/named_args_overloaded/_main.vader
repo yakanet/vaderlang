@@ -6,7 +6,7 @@
 // accept the primary's params on arity alone, so the call was normalised against
 // the wrong signature: `pick("a")` silently took the `i32` overload's default
 // ("a:int" instead of "a:str"), and a named arg legal for the picked overload was
-// rejected as T3004. Both directions are checked here — the primary AND the
+// rejected as T3004. Both directions are checked here: the primary AND the
 // sibling, so a fix that just swaps which one wins doesn't pass.
 
 module "snippet"

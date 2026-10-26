@@ -1,4 +1,4 @@
-// `join_any` completes with the first SUCCESS, cancelling the losers — a settled error
+// `join_any` completes with the first SUCCESS, cancelling the losers: a settled error
 // is NOT a win. Here the first child fails fast and the second succeeds slower,
 // so `join_any` waits past the failure for the success. (If every child failed, it
 // would complete with the last error instead.)

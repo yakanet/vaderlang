@@ -1,4 +1,4 @@
-/// Byte-scan / tokenize stress — the inverse of the string-*building* benches
+/// Byte-scan / tokenize stress: the inverse of the string-*building* benches
 /// (`string_builder`, `str_concat`, `interp`) : this one *reads* a buffer
 /// byte-by-byte through the open-coded `u8[]` load and runs a branchy
 /// whitespace state machine over it, counting words and lines. That's the

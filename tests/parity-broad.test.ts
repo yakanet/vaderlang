@@ -11,7 +11,7 @@
 //      sibling `.vader`, so unresolved-name errors here would point at
 //      real bugs.
 //
-// Gated by `RUN_BROAD_PARITY=1` — heavy (Vader self-host is slow on
+// Gated by `RUN_BROAD_PARITY=1`: heavy (Vader self-host is slow on
 // large modules).
 
 import { test, expect } from "bun:test";
@@ -65,7 +65,7 @@ test("broad-parity: gated by RUN_BROAD_PARITY=1", () => {
 // 4MB young / 16MB old GC arena when transitively loading a real folder
 // module (eval_types.vader pulls in ~30K LoC of imports). 16M old → OOM,
 // 32M old → OK on every module tested so far. Bumping young helps the
-// throughput too — minor collects dominate hot paths.
+// throughput too: minor collects dominate hot paths.
 const BOOTSTRAP_ENV: Record<string, string> = {
   VADER_GC_YOUNG_BYTES: String(16 * 1024 * 1024),
   VADER_GC_OLD_BYTES:   String(128 * 1024 * 1024),

@@ -1,4 +1,4 @@
-# 0064 — A `for` inlines the generator its `into` is
+# 0064: A `for` inlines the generator its `into` is
 
 ## Status
 

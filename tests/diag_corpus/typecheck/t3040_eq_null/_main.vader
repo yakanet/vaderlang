@@ -1,4 +1,4 @@
-// `==` / `!=` against `null` on a non-nullable operand can never match — T3040.
+// `==` / `!=` against `null` on a non-nullable operand can never match: T3040.
 module "snippet"
 
 main :: fn() -> i32 {

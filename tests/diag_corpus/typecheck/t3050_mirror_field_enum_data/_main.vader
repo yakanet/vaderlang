@@ -1,4 +1,4 @@
-// A `@c_struct` field whose enum carries variant data — T3050.
+// A `@c_struct` field whose enum carries variant data: T3050.
 //
 // Such an enum stores its variant's rank, not the value written after `=`, so
 // C would read 1 where the source says 404.

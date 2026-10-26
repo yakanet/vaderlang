@@ -8,13 +8,13 @@
 // `struct.get` diagnostics.
 //
 // Type-index references (`BcField`, `BcArray.element`, `BcFn`) are plain `i32`s
-// into the parent module's type list, never direct references — the table is
+// into the parent module's type list, never direct references: the table is
 // assembled once and addressed positionally from then on.
 //
 // Every shape declared here is intentionally read-only after construction (the
 // emitter assembles each module once, the C-emit then walks it).
 
-/// Stack-machine value class — every operand the VM / C-emit can carry
+/// Stack-machine value class: every operand the VM / C-emit can carry
 /// in a local or on the operand stack lands in exactly one of these
 /// classes. Closed enum so `match` arms stay exhaustive across the
 /// pipeline.
@@ -32,7 +32,7 @@ export ValType :: enum(u8) {
     F32, F64,
     // Other primitives
     Bool, Char, String, Null, Void,
-    // Opaque foreign pointer — a `void*` the program never dereferences. NOT a
+    // Opaque foreign pointer: a `void*` the program never dereferences. NOT a
     // `Ref`: the GC must not scan it, and it holds no object header.
     Pointer,
     // Reference shapes
@@ -177,7 +177,7 @@ export is_64_bit_int_val :: fn(v: ValType) -> bool = match v {
 /// True when the val-type is one of the 64-bit-wide unsigned integer
 /// widths. Consumed by `midir/select/op_select.vader` to route `div`
 /// / `mod` / comparison ops onto the `U64X` op family instead of the
-/// sign-aware `I64X` family — sign-aware ops would mis-handle u64
+/// sign-aware `I64X` family: sign-aware ops would mis-handle u64
 /// values with the high bit set (e.g. SHA-256 round constants).
 ///
 /// @param v  the value class to classify.
@@ -239,7 +239,7 @@ export is_u32_class :: fn(v: ValType) -> bool = match v {
 export is_unsigned_val :: fn(v: ValType) -> bool = is_u32_class(v) || is_u64_class(v)
 
 /// True when the val-type is an integer width narrower than the 32 bits it rides
-/// in — `u8` / `i8` / `u16` / `i16` — so a value of it must be cut to its width.
+/// in (`u8` / `i8` / `u16` / `i16`) so a value of it must be cut to its width.
 ///
 /// @param v  the value class to classify.
 export is_narrow_valtype :: fn(v: ValType) -> bool = v == .U8 || v == .I8 || v == .U16 || v == .I16
@@ -288,7 +288,7 @@ export ArrayKind :: enum(u8) {
     F32, F64,
     Char, Bool,
     // Raw 8-byte `void*` slots for arrays whose element is a concrete
-    // heap ref (struct/array/fn) — the tag is recovered from each referent's
+    // heap ref (struct/array/fn): the tag is recovered from each referent's
     // object header on read (`vader_ref_box`), the GC traces the slots via
     // `vader_gc_scan_raw`. Index 13, matching `vader_array_kind_t` in vader.h.
     Ref,
@@ -383,35 +383,35 @@ export array_kind_from_name :: fn(name: string) -> ArrayKind = match name {
 }
 
 // =========================================================================
-// Data pool — module-level static arrays of primitive elements
+// Data pool: module-level static arrays of primitive elements
 // =========================================================================
 
 /// One pre-materialised read-only `T[]` literal. Built once at module-load time on
 /// the VM, baked into `.rodata` on native. `data.const N` references the parent
 /// module's `data_pool[N]`. A flat primitive array (`BcPrimData`), a flat string
-/// array (`BcStrData`), or a recursive aggregate (`BcAggregateData`) — struct /
+/// array (`BcStrData`), or a recursive aggregate (`BcAggregateData`): struct /
 /// tuple / nested-array elements.
 export BcDataEntry :: BcPrimData | BcStrData | BcAggregateData
 
 /// A pooled array of primitive elements. `items` carries one u64 entry per
-/// element — the raw bit pattern at the element's natural width (low bits used).
+/// element: the raw bit pattern at the element's natural width (low bits used).
 /// For signed integers, callers reinterpret the u64 as `iN` ; for floats, as the
 /// IEEE 754 bit pattern.
 export BcPrimData :: struct {
-    kind: ArrayKind         // never Boxed — primitive arrays only
+    kind: ArrayKind         // never Boxed, primitive arrays only
     items: u64[]
 }
 
 /// A pooled read-only `string[]`. `values` carries the element string values ; each
 /// backend resolves them its own way (native : a boxed atom-id slot in `.rodata`
 /// once the bytecode emitter has interned them into the module string table ; VM : a
-/// `StringVal` sharing the value). Stored as Boxed slots at runtime — a string
+/// `StringVal` sharing the value). Stored as Boxed slots at runtime: a string
 /// is a `vader_string_t` atom id, never an inline primitive.
 export BcStrData :: struct {
     values: string[]
 }
 
-/// A pooled aggregate `T[]` — a struct / tuple array, or any array whose
+/// A pooled aggregate `T[]`: a struct / tuple array, or any array whose
 /// elements aren't uniformly flat primitives / strings. `elements` are recursive
 /// `BcDataValue`s (each itself a struct, array, string, or primitive). Stored as
 /// a Boxed slot buffer at runtime (each element a `vader_box_t` pointing at its
@@ -422,20 +422,20 @@ export BcAggregateData :: struct {
     elements: BcDataValue[]
 }
 
-/// A single recursive baked value — the element of a `BcAggregateData` or a field
+/// A single recursive baked value: the element of a `BcAggregateData` or a field
 /// of a `BcValStruct` / element of a `BcValArray`. Type identity is carried by KEY
 /// (struct `symbol_id`, element type name) and resolved to a type-index at each
-/// backend from `module.types` — the type table doesn't exist at the lower→CFG
+/// backend from `module.types`: the type table doesn't exist at the lower→CFG
 /// boundary where these are built.
 export BcDataValue :: BcValPrim | BcValStr | BcValStruct | BcValArray
 
-/// A primitive leaf — a raw `u64` bit pattern at the element's natural width.
+/// A primitive leaf: a raw `u64` bit pattern at the element's natural width.
 export BcValPrim :: struct {
     kind: ArrayKind
     bits: u64
 }
 
-/// A string leaf — the value verbatim ; resolved to an atom id at the backend
+/// A string leaf: the value verbatim ; resolved to an atom id at the backend
 /// (interned into `module.strings` by `emit/bytecode`).
 export BcValStr :: struct {
     value: string
@@ -489,7 +489,7 @@ export BcField :: struct {
 /// generic source decl share a `symbol_id`, which C-emit uses to find
 /// a struct's all-`Any` counterpart for the erasure boundary
 /// conversion.
-/// Mangled type-table name of the `std/io` `IOError` struct — the identity a
+/// Mangled type-table name of the `std/io` `IOError` struct: the identity a
 /// host-fabricated io error carries, so `is IOError` narrows and `Error.message`
 /// dispatches on it.
 export MANGLED_IO_ERROR :: r"std_io$IOError"
@@ -556,7 +556,7 @@ export union_layout_struct :: fn(types: BcType[], union_index: i32) -> i32 | nul
 export BcStruct :: struct {
     name: string
     fields: BcField[]
-    /// C type this struct mirrors, from `@c_struct("struct timespec")` — `""`
+    /// C type this struct mirrors, from `@c_struct("struct timespec")`: `""`
     /// for an ordinary Vader struct. The `@extern` shim declares a real one of
     /// these and marshals FIELD BY FIELD, which is why no offset is recorded
     /// here: the C compiler computes them, per platform, from the real header.
@@ -578,7 +578,7 @@ export BcUnion :: struct {
     variants: i32[]
 }
 
-/// Open reference type — `ref any` from the verifier's PoV. Only used
+/// Open reference type: `ref any` from the verifier's PoV. Only used
 /// for trait-typed slots that escaped monomorphization. `trait_name`
 /// is `""` for the wildcard `ref _` form.
 export BcRef :: struct {
@@ -603,7 +603,7 @@ export BcFn :: struct {
 /// built so that a read is a literal, every checked integer op of the VM asking
 /// it ; a reference shape its slot's.
 /// @param v  the value class.
-/// @return   the byte size (`0` for `Void` / `Null` — those never
+/// @return   the byte size (`0` for `Void` / `Null`: those never
 ///           reach a struct field or signature slot).
 export size_of_val_type :: fn(v: ValType) -> i32 = match v {
     .I8      -> I8_BYTES
@@ -646,7 +646,7 @@ NULL_BYTES: i32: @comptime { return i32(primitive_size("null")) }
 VOID_BYTES: i32: @comptime { return i32(primitive_size("void")) }
 POINTER_BYTES: i32: @comptime { return i32(primitive_size("CPointer")) }
 
-/// Byte size of the slot that carries a `BcType` — primitives use their native
+/// Byte size of the slot that carries a `BcType`: primitives use their native
 /// widths, a concrete reference (struct, array, fn value) is a bare pointer, and
 /// only an erased slot (union, trait ref) carries a `vader_box_t`. The same
 /// answer the lowerer folds for a static `@size_of` ; this one backs the run-time
@@ -662,9 +662,9 @@ export size_of_bc_type :: fn(t: BcType) -> i32 = match t {
 /// True when `t` can be stored as a raw `void*` array slot: a
 /// header-bearing heap object, or `null` (a `NULL` slot). Drives `array_kind_of`'s
 /// `Ref` decision. A non-null scalar (no object header) and an
-/// erased `BcRef` (may box a distinct-primitive impl) are NOT ref-only — any
+/// erased `BcRef` (may box a distinct-primitive impl) are NOT ref-only: any
 /// doubt stays boxed. A `BcUnion` is ref-only iff EVERY variant is (so
-/// `Expr[]` / `Stmt[]` / `T | null` qualify) — recurse via the `types` table.
+/// `Expr[]` / `Stmt[]` / `T | null` qualify): recurse via the `types` table.
 /// @param t      the element bytecode type.
 /// @param types  the module type table (to resolve union variant indices).
 export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
@@ -683,8 +683,8 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
 
 /// Map an array's element `BcType` to the storage class its slots use.
 ///
-/// A concrete heap ref (struct/array/fn) — and a union of only such refs
-/// or `null` (`Expr[]`, `T | null`) — stores as a raw `void*` slot (`.Ref`, 8 B),
+/// A concrete heap ref (struct/array/fn), and a union of only such refs
+/// or `null` (`Expr[]`, `T | null`): stores as a raw `void*` slot (`.Ref`, 8 B),
 /// the tag recovered from each referent's header on read. A `BcRef` (erased trait,
 /// may box a scalar) and a mixed / scalar-bearing union stay `Boxed` (24 B).
 /// Access sites runtime-dispatch on `buf->element_kind` because the SAME array type
@@ -736,7 +736,7 @@ export array_kind_of_val :: fn(v: ValType) -> ArrayKind = match v {
 /// `BytecodeModule.types` is index-addressed and the entries reference each
 /// other by index, so two targets that compile the same program can hold the
 /// same type at different slots. Emitting several targets against one table
-/// needs a name for a type that does not move — this is it.
+/// needs a name for a type that does not move: this is it.
 ///
 /// A struct keys by NAME, not by its fields: the name is already unique
 /// post-monomorphisation, and descending into fields would not terminate on a
@@ -763,7 +763,7 @@ export bc_type_key :: fn(types: BcType[], idx: i32) -> string {
     }
 }
 
-/// Join the keys of `indices` with `sep` — the shared shape behind a union's
+/// Join the keys of `indices` with `sep`: the shared shape behind a union's
 /// variants and a fn's parameters.
 key_join :: fn(types: BcType[], indices: i32[], sep: string) -> string {
     parts: string[]: []

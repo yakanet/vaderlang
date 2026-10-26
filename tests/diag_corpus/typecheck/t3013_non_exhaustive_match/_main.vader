@@ -1,4 +1,4 @@
-// Match on `bool` without covering both arms — T3013.
+// Match on `bool` without covering both arms: T3013.
 module "snippet"
 
 main :: fn() -> i32 {

@@ -10,7 +10,7 @@ import "std/runtime"
 //     cycle ; the borrowed flag + owner id + offset must survive the copy
 //     (vader_gc_copy_into memcpy + the NULL-`buf` scan).
 //   - the owner atoms are built at runtime (non-PERM) and reachable only via
-//     the views — vader_atom_mark_heap must mark them through the view header.
+//     the views: vader_atom_mark_heap must mark them through the view header.
 // `view_of` lets its source string die so only the returned view holds the
 // atom. On the VM, `bytes()` copies (no aliasing), so reads are trivially
 // stable ; the assertion holds identically on both targets.
@@ -44,7 +44,7 @@ main :: fn() -> i32 {
     collect()
     collect()
 
-    // Re-read the SAME views post-GC — no re-interning happens in between, so
+    // Re-read the SAME views post-GC: no re-interning happens in between, so
     // a swept or mis-relocated view surfaces as a changed sum (or a crash).
     if fold(va) != sa || fold(vb) != sb || fold(vc) != sc || fold(vd) != sd {
         println("byte-view GC corruption after major cycles")

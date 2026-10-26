@@ -1,4 +1,4 @@
-# 0056 — The typecheck records what each call site invokes
+# 0056: The typecheck records what each call site invokes
 
 ## Status
 

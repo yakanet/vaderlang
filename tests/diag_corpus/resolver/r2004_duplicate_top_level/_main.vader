@@ -1,4 +1,4 @@
-// Two top-level constants with the same name — fn overloads bucket
+// Two top-level constants with the same name: fn overloads bucket
 // elsewhere, but constant-vs-constant is an unambiguous R2004.
 module "snippet"
 

@@ -1,21 +1,21 @@
 // vader/emit/bytecode/structure: recover structured control flow from a function's CFG.
 //
-// Ramsey, "Beyond Relooper" (ICFP 2022) — the algorithm LLVM's WebAssembly
+// Ramsey, "Beyond Relooper" (ICFP 2022): the algorithm LLVM's WebAssembly
 // CFGStackify implements too. Every block is emitted exactly once, beneath its
 // parent in the dominator tree:
 //
 // - a loop header opens a `loop`, and its back edges are `br`s to it;
-// - a merge — a block entered along two or more forward edges — is preceded by
+// - a merge (a block entered along two or more forward edges) is preceded by
 //   a `block` its placement parent opens around the code that reaches it, and
 //   every edge into it is a `br` to that `block`;
 // - any other block has a single predecessor and is emitted where that
 //   predecessor branches to it.
 //
-// The code after a loop — the exit the header's test takes — is a merge
+// The code after a loop (the exit the header's test takes) is a merge
 // emitted after the loop's `end`, in a `block` around the loop. Beneath its
 // immediate dominator, inside the loop, it would nest there, one level per
 // successive loop, and C11 only guarantees 127. An exit the source writes inside
-// the loop — the code before a `break` or a `return` — stays where Ramsey has it.
+// the loop (the code before a `break` or a `return`) stays where Ramsey has it.
 //
 // A branch to the block control falls through to emits nothing. An `if` whose
 // then-arm always leaves puts its else-arm after the `end`, a then-arm that only
@@ -24,7 +24,7 @@
 // that returns or traps in a few instructions is copied to each edge into it
 // instead (`docs/adr/0028`).
 //
-// The CFG must be reducible — the builder only produces structured shapes.
+// The CFG must be reducible: the builder only produces structured shapes.
 // `shape_of` checks it, and `structure_function` checks that every `br` found
 // its scope: either failure would otherwise emit wrong code in silence.
 
@@ -135,7 +135,7 @@ shape_of :: fn(fn_: CFGFunction, preds: BlockId[][], idom: i32[]) -> StructureSh
         if exited >= 0 {
             // In a loop with a test of its own, the code after the loop is the
             // exit that test takes, beneath the header; any other exit is code
-            // the source writes inside the loop — what precedes a `break`, an
+            // the source writes inside the loop: what precedes a `break`, an
             // `if x is Trap { return x }`, a nested search that returns. It stays
             // beneath its immediate dominator: after the loop it would add a
             // `block` and a `br` over the loop's own exit. A loop with no test
@@ -282,8 +282,8 @@ emit_subtree :: fn(ctx: FnEmitCfg, shape: StructureShape, x: BlockId, next: Bloc
 
 // Loop header `x`'s loop, inside one `block` per exit it emits after its `end`.
 //
-// Inside the loop nothing falls through: leaving it is an explicit `br` — a
-// `break` to the C emitter — except the header's own test falling out of a
+// Inside the loop nothing falls through: leaving it is an explicit `br` (a
+// `break` to the C emitter) except the header's own test falling out of a
 // body that ends with it, the shape the C emitter turns into a `while`; the
 // edge that test takes follows the loop's `end`.
 emit_loop :: fn(ctx: FnEmitCfg, shape: StructureShape, x: BlockId, next: BlockId) -> void {
@@ -302,9 +302,9 @@ emit_loop :: fn(ctx: FnEmitCfg, shape: StructureShape, x: BlockId, next: BlockId
 
 // `x`'s instructions and terminator, inside one `block` per merge it emits
 // beneath it, each merge emitted after its `block`'s `end`. `exit` is the block
-// a loop header's test may fall out to — see `emit_loop`.
+// a loop header's test may fall out to, see `emit_loop`.
 //
-// `x`'s own instructions never branch — only its terminator does — so those
+// `x`'s own instructions never branch (only its terminator does) so those
 // `block`s open as late as the operand stack allows, right before the code that
 // branches to them. A loop header's open inside its `loop`: its instructions
 // run on every iteration.
@@ -345,8 +345,8 @@ close_blocks :: fn(ctx: FnEmitCfg, shape: StructureShape, ys: BlockId[], next: B
     }
 }
 
-// Where the test of loop header `x` leaves the loop — a merge placed outside it
-// or the header of a loop around it — or -1. With no `block` between that test
+// Where the test of loop header `x` leaves the loop (a merge placed outside it
+// or the header of a loop around it) or -1. With no `block` between that test
 // and the loop's `end`, the test falls out of the loop and the edge follows the
 // `end`.
 loop_exit :: fn(ctx: FnEmitCfg, shape: StructureShape, x: BlockId) -> BlockId {
@@ -362,7 +362,7 @@ loop_exit :: fn(ctx: FnEmitCfg, shape: StructureShape, x: BlockId) -> BlockId {
     return BlockId(-1)
 }
 
-// The last instruction index of `x` before which the operand stack is empty —
+// The last instruction index of `x` before which the operand stack is empty:
 // a scope may only open there. An instruction the scheduler leaves on the stack
 // for the next one, or for the terminator, holds the stack until its consumer.
 last_empty_stack_point :: fn(ctx: FnEmitCfg, x: BlockId) -> i64 {
@@ -440,8 +440,8 @@ emit_cond_branch :: fn(
         }
         return
     }
-    // An else-arm that leaves at once — a `br`, or a block of its own that
-    // returns or traps — goes first, under the test the other way round, and the
+    // An else-arm that leaves at once: a `br`, or a block of its own that
+    // returns or traps: goes first, under the test the other way round, and the
     // then-arm follows its `end`: `if !f(x) { return false }` stays the guard the
     // source wrote, and a loop body around it still ends on its `continue`. A
     // copied block is the join of the `if` it follows, and keeps its place.

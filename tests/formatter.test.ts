@@ -1,15 +1,15 @@
 // Formatter end-to-end tests : invokes `vader fmt --stdout` over a curated
 // subset of snippets to verify two contracts :
 //
-// 1. **Idempotency** — `fmt(fmt(src)) === fmt(src)` for every formatted file.
-// 2. **Parse round-trip** — `parse(fmt(src))` is AST-equal to `parse(src)`
+// 1. **Idempotency**: `fmt(fmt(src)) === fmt(src)` for every formatted file.
+// 2. **Parse round-trip**: `parse(fmt(src))` is AST-equal to `parse(src)`
 //    modulo spans. Demonstrates that the format pass doesn't change the
 //    program's structural meaning.
 //
 // Each check spawns the native `build/vader` once (~20 ms). This suite used to be
 // gated behind `RUN_FMT_TESTS=1` because `vader fmt` ran through a TS shim over
 // the bytecode VM and paid a ~2-3 s bootstrap per call; that shim went with
-// `src/`, and the gate outlived its reason — silently, since a gated test
+// `src/`, and the gate outlived its reason: silently, since a gated test
 // registers and passes.
 
 import { test, expect } from "bun:test";
@@ -19,7 +19,7 @@ import { join } from "node:path";
 import { MEDIUM_BUILD, fmtStdout, fmtString, runCli } from "./cli-bin.ts";
 
 // A representative cross-section of the snippet corpus. Adding every
-// snippet would push the runtime past 5 minutes — pick fixtures that
+// snippet would push the runtime past 5 minutes: pick fixtures that
 // exercise distinct AST shapes (decorators, generics, traits, match,
 // multi-line strings, …).
 const SNIPPETS = [
@@ -65,7 +65,7 @@ async function astDump(path: string): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// Regression fixtures — inline sources for the round-trip bugs fixed 2026-07-06
+// Regression fixtures: inline sources for the round-trip bugs fixed 2026-07-06
 // (audit F3/F4/F5, plus a typed-const `::` slip surfaced by the tree-wide
 // sweep). Each asserts BOTH that the formatted output reparses to the same AST
 // (a corrupt re-emit either fails to parse or drifts structurally) AND that
@@ -93,7 +93,7 @@ ranged :: fn() -> i32 {
   },
   {
     // F3 : nested generic in impl position. `Into<Iterator<T>>` used to gain an
-    // extra `>` — the split `>>` handed both closers the whole-`>>` span.
+    // extra `>`: the split `>>` handed both closers the whole-`>>` span.
     name: "nested_generic_impl",
     source: `module "reg/nested_generic_impl"
 
@@ -178,7 +178,7 @@ NAMES: string[]: ["a", "b"]
   {
     // Postfix target paren-drop. A range / binary / unary receiver of `.method`,
     // `[index]` or a call binds looser than the postfix, so its parens are
-    // required — dropping them re-targets the postfix at a sub-expression
+    // required: dropping them re-targets the postfix at a sub-expression
     // (`(0..<3).count()` → `0..<3.count()` binds `.count()` to `3`).
     name: "postfix_target_parens",
     source: `module "reg/postfix_target_parens"
@@ -242,7 +242,7 @@ for (const { name, source } of REGRESSIONS) {
 // ---------------------------------------------------------------------------
 // Comment-preservation fixtures. Each source is already canonically formatted,
 // so fmt must be a NO-OP : `fmt(src) === src`. A relocated or dropped comment
-// changes the output and trips the check — which neither the AST round-trip
+// changes the output and trips the check, which neither the AST round-trip
 // (comments aren't in the AST) nor idempotency (stable on the moved version)
 // catches. Guards the enum-variant + block-trailing comment flush fixes.
 // ---------------------------------------------------------------------------
@@ -338,7 +338,7 @@ for (const { name, source } of MATCH_ALIGN) {
 // Enum variant alignment. Canonical sources, so fmt is a NO-OP. Across a run of
 // variants on adjacent lines the `{ … }` blocks start in one column and the `=`
 // in another ; a blank line or a comment line starts a new run, and survives.
-// A written value keeps its spelling — `0x8892` used to come back as `34962`.
+// A written value keeps its spelling: `0x8892` used to come back as `34962`.
 // ---------------------------------------------------------------------------
 const ENUM_ALIGN: { name: string; source: string }[] = [
   {
@@ -405,7 +405,7 @@ for (const { name, source } of ENUM_ALIGN) {
 
 // ---------------------------------------------------------------------------
 // Trailing comments : a `//` after code stays at the end of its line, and a run
-// of consecutive such lines at one indentation shares one column — one space
+// of consecutive such lines at one indentation shares one column: one space
 // past the longest code line of the run. Each source is already in that form,
 // so formatting must leave it unchanged.
 // ---------------------------------------------------------------------------
@@ -519,7 +519,7 @@ g :: fn(first_parameter: i32, second_parameter: i32, third_parameter: i32) -> i3
   {
     // Exactly 100 columns, and a fallback that explodes on its own : only its
     // head \`return Foo {\` shares the call's line, so the call stays inline.
-    // Already canonical — no \`expected\`.
+    // Already canonical: no \`expected\`.
     name: "fitting_lines_stay",
     source: `module "reg/coalesce_fit_stays"
 

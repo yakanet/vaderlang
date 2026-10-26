@@ -2,7 +2,7 @@
 ///
 /// `push_cache_tag` marks a `push` when its loop can keep the array's length /
 /// capacity / slots out of memory: the array must be a local nothing else in the
-/// body touches, and the body must reach no GC safepoint — an allocation could
+/// body touches, and the body must reach no GC safepoint: an allocation could
 /// move the buffer the cached pointer aims at, and on a boxed array a stale
 /// `buf->length` would make the collector skip the slots just written.
 ///
@@ -121,7 +121,7 @@ boxed :: fn(n: i32) -> string[] {
 }
 
 // A view shares its parent's buffer, so `v` is an aliased array and the lift
-// declines it — `base` is a second way to reach the same storage. Pushing into
+// declines it: `base` is a second way to reach the same storage. Pushing into
 // a view detaches it, which is what keeps the ANSWER right either way ; the
 // analysis does not get to lean on that.
 into_view :: fn() -> i32[] {
@@ -150,7 +150,7 @@ nested :: fn(n: i32) -> i32 {
 
 // Each packed width writes through its OWN C type and its own push helper. A
 // lift keyed on the value type instead of the element kind maps u8 / i8 / u16 /
-// i16 to `push_i32` and f32 to `push_f64`, which overruns the slot — the sums
+// i16 to `push_i32` and f32 to `push_f64`, which overruns the slot: the sums
 // below are what catches it.
 widths :: fn(n: i32) -> string {
     // One loop each : a loop pushing to several arrays has no single target and
@@ -191,7 +191,7 @@ observed_length :: fn(holder: Holder) -> i32 = i32(holder.items.len())
 
 // The alias arrives through the DEFINITION, not through a leak: `out` is a
 // second name for an array the holder still points at. This is what broke the
-// compiler when it first compiled itself through the lift — every case above
+// compiler when it first compiled itself through the lift: every case above
 // mints its array locally, so none of them could catch it.
 aliased :: fn(n: i32) -> i32 {
     holder :: Holder { .items = [] }
@@ -246,7 +246,7 @@ rebound :: fn(n: i32) -> i32 {
 }
 
 // The other side of the same rule: a `len()` AFTER the loop must not block the
-// lift — the write-back has already run. `bench/arr_push` is this shape, so
+// lift: the write-back has already run. `bench/arr_push` is this shape, so
 // telling a read from a leak is what keeps it.
 len_after :: fn(n: i32) -> i32 {
     out: i32[]: []
@@ -257,7 +257,7 @@ len_after :: fn(n: i32) -> i32 {
 }
 
 // A loop that runs once has no back edge, so it compiles to no loop of its own
-// and its push lands in the enclosing loop — whose body reads the length.
+// and its push lands in the enclosing loop: whose body reads the length.
 one_shot :: fn(a: i32[]) -> i32 {
     out: i32[]: []
     seen: i64 = 0

@@ -11,7 +11,7 @@ import com.intellij.openapi.components.Storage
 // `vader lsp`. Stored in the IDE's per-user config dir as `vader.xml`
 // so the value survives IDE restarts and applies across every project.
 //
-// The `@Service(Level.APP)` annotation auto-registers the singleton —
+// The `@Service(Level.APP)` annotation auto-registers the singleton:
 // no explicit `<applicationService>` entry in plugin.xml is required on
 // recent IntelliJ Platform builds (242+ shipped with this plugin).
 @State(name = "VaderSettings", storages = [Storage("vader.xml")])
@@ -20,7 +20,7 @@ internal class VaderSettings : PersistentStateComponent<VaderSettings.State> {
 
     class State {
         // Absolute path to a `vader` executable. Empty value means
-        // "spawn `vader lsp` from $PATH" — same default as the VSCode
+        // "spawn `vader lsp` from $PATH": same default as the VSCode
         // extension, so the plugin works out of the box for users who
         // have `vader` symlinked / installed system-wide.
         var lspPath: String = ""

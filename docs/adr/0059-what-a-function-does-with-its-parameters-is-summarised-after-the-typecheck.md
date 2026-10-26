@@ -1,4 +1,4 @@
-# 0059 — What a function does with its parameters is summarised after the typecheck
+# 0059: What a function does with its parameters is summarised after the typecheck
 
 ## Status
 

@@ -1,5 +1,5 @@
 // An array renders as `[`, each element's own `Display` separated by `, `, then
-// `]` — numbers, strings, structs, nested arrays, an empty one, the elements of
+// `]`: numbers, strings, structs, nested arrays, an empty one, the elements of
 // a generic `T[]`, and an array held by a generic struct whose `Display` an
 // erased instance dispatches. `null` renders as `null`.
 module "snippet"

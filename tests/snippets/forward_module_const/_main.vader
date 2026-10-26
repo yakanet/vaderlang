@@ -1,4 +1,4 @@
-// A module constant used BEFORE its declaration — every shape that used to break.
+// A module constant used BEFORE its declaration: every shape that used to break.
 //
 // Top-level declarations are order-independent, but an un-annotated const's TYPE
 // is inferred by typechecking its value, and that ran in the same file-ordered
@@ -7,14 +7,14 @@
 // then failed in three different ways downstream:
 //
 //   * `x in LATE`        → lowered SILENTLY to `unreachable` (wrong code, no
-//                          diagnostic) — `lower/binary.vader` resolves `Contains`
+//                          diagnostic): `lower/binary.vader` resolves `Contains`
 //                          on the operand's type and fell through on `?`.
 //   * `LATE.len()`       → `midir/emit: no field len on ?` (compiler panic).
 //   * `for _ in LATE`    → `midir/emit: unresolved callee 'next'` (panic).
 //   * `LIMIT.to_string()`→ same panic on a scalar const.
 //
-// Indexing (`LATE[0]`) and `string.len()` always worked — neither dispatches on
-// the receiver's type — which is what made the bug look narrower than it was.
+// Indexing (`LATE[0]`) and `string.len()` always worked (neither dispatches on
+// the receiver's type) which is what made the bug look narrower than it was.
 //
 // Fixed by typing literal-valued consts in a pre-pass before the bodies
 // (`front/typecheck/orchestrate.vader`). A const whose value CALLS something keeps the

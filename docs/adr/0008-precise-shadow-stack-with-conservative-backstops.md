@@ -1,4 +1,4 @@
-# 0008 — Precise shadow stack, with conservative backstops
+# 0008: Precise shadow stack, with conservative backstops
 
 ## Status
 
@@ -15,7 +15,7 @@ listing its box roots (`ptrs`), its raw ref locals (`raw`), and the GC structs t
 escape analysis put on the C stack (`stack_objs`). That is the precise root set.
 
 It is not complete. A live old ref can sit only in a C local or a register, which
-no frame lists. And a `vader_string_t` is a bare `u32` atom id — it never appears
+no frame lists. And a `vader_string_t` is a bare `u32` atom id: it never appears
 as a heap pointer or in a box, so it is invisible to both the frame chain and the
 heap walk.
 
@@ -36,7 +36,7 @@ objects and no box roots must still be visited.
 ## Consequences
 
 ⚠️ **A conservative scan has a false-NEGATIVE class the comments long ignored.**
-Both scans reason only about false positives ("merely retains a dead object — no
+Both scans reason only about false positives ("merely retains a dead object: no
 correctness risk"). A live ref the scan *cannot see* is swept, and the slot is
 reused immediately. On 2026-08-30 that produced C that does not parse: an
 18-character expression emitted as 18 NUL bytes, a string freed under a live
@@ -48,6 +48,6 @@ off, every failure names a reference the precise rooting misses. When nothing
 breaks, the scan goes, and the false-negative class with it.
 
 Known open as of 2026-08-30: `VADER_GC_STRESS_MAJOR=1` breaks the compiler on a
-snippet in seconds, locally, 3 runs out of 3 — a rooting gap that predates the
+snippet in seconds, locally, 3 runs out of 3: a rooting gap that predates the
 fix in ADR 0009 and is not the misaligned-candidate variety, since the alignment
 guard does not fire on it.

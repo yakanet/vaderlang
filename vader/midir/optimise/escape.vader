@@ -39,7 +39,7 @@ export EscapeStats :: struct {
 /// One allocation the escape pass could not put on the stack.
 export EscapeSite :: struct {
     span: Span
-    /// `struct` or `array` — what was allocated.
+    /// `struct` or `array`: what was allocated.
     kind: string
     /// The allocated type, rendered. Says whether a site is a candidate for a
     /// scalarised ABI (a small all-primitive tuple) or structurally cannot be.
@@ -124,7 +124,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     res :: compute_escaping(fn_, alloc_locals)
     carried :: compute_carried_across_loop_headers(fn_, res.alias_of)
     // Forward-propagate `barrierless` through Move/Cast. A Move/Cast
-    // with any non-stack source stays out — one heap origin requires
+    // with any non-stack source stays out: one heap origin requires
     // the barrier.
     stack_origin :: MutableSet<LocalId> {}
     worklist: LocalId[]: []
@@ -315,14 +315,14 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
                 // Reading a sub-object out of a container makes the result an
                 // alias of the container : if the read value escapes, the
                 // container (and, transitively, the alloc stored into it via
-                // the StructNew/ArrayNew edges above) must escape too —
+                // the StructNew/ArrayNew edges above) must escape too:
                 // otherwise a stack-promoted member leaks a dangling pointer.
                 // Scalar reads (`p.x : i32`) carry no reference into the
-                // container and add no edge — most reads, so stack promotion
+                // container and add no edge: most reads, so stack promotion
                 // survives. alias_of only (backward escape propagation) : the
                 // result of a read from a stack container is NOT itself
                 // stack-origin (the field may hold a heap ref), so no
-                // alias_from edge — that would let the barrierless
+                // alias_from edge: that would let the barrierless
                 // forward-prop skip a needed write barrier.
                 is InstrFieldGet | InstrUnionFieldGet | InstrArrayGet -> {
                     if read_may_carry_ref(ins.type) { append_alias(alias_of, ins.dst, ins.target) }
@@ -361,7 +361,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
 
 // A field / element read only aliases its container when the read value can
 // carry a reference into it. Classify through the canonical stack-class
-// (`val_type_of_type` — exhaustive over `Type`, and it recurses into
+// (`val_type_of_type`: exhaustive over `Type`, and it recurses into
 // distinct backings, so a newtype over a composite still counts as
 // ref-carrying) : only `Ref` / `Any` slots can point into the container ;
 // scalar reads (ints, floats, bool, char, string atoms, enums) are by value.

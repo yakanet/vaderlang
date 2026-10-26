@@ -1,7 +1,7 @@
 // lib/cli/prompt: interactive prompts (a list, checkboxes, a yes/no, a line).
 //
 // The terminal half of `keys.vader`. Everything here that can be tested without
-// a terminal is a separate function that takes a state and returns a string —
+// a terminal is a separate function that takes a state and returns a string:
 // the frames are rendered by `render_*` and pinned by unit tests; only the loops
 // need a keyboard.
 //
@@ -10,14 +10,14 @@
 //   * **No terminal, no prompt.** When stdin is not interactive the prompt
 //     REFUSES rather than reading a line or silently taking a default. A script
 //     must never wait on input that will not come, and a caller that gets
-//     `.NoTerminal` back is expected to name the flag to pass instead — the
+//     `.NoTerminal` back is expected to name the flag to pass instead: the
 //     library cannot know it, the command can.
 //   * **The terminal is always restored.** `raw_mode_begin` is paired with a
 //     `defer`, which covers the normal return and a panic alike (the runtime runs
 //     pending defers before aborting). Ctrl-C is a BYTE here, not a signal, so it
 //     unwinds through the same path.
 //   * **Each prompt starts with an empty key queue.** Keys typed before a
-//     question appears are dropped rather than answering it — a burst read by one
+//     question appears are dropped rather than answering it: a burst read by one
 //     widget does not carry into the next. That is deliberate for a prompt: an
 //     answer should be given to a question the user has actually seen.
 //   * **ASCII only in the frames.** A pointer is `>`, a checked box is `[x]`.
@@ -36,7 +36,7 @@ TTY :: import "std/tty"
 /// Why a prompt produced no answer.
 export PromptFailure :: enum(u8) {
     /// stdin is not an interactive terminal. The caller must fall back to a flag
-    /// or a default — retrying will not help.
+    /// or a default: retrying will not help.
     NoTerminal,
     /// The user pressed Escape or Ctrl-C.
     Cancelled,
@@ -47,7 +47,7 @@ export PromptFailure :: enum(u8) {
 /// A prompt that produced no answer, and why.
 export PromptError :: struct {
     reason: PromptFailure
-    /// One line, ready to print. It does NOT name a flag to use instead — the
+    /// One line, ready to print. It does NOT name a flag to use instead: the
     /// library does not know the command's options; the caller adds that.
     message: string
 }
@@ -67,7 +67,7 @@ input_closed :: fn() = PromptError {
 // ---- the terminal session -------------------------------------------------
 
 // A burst can hold several presses (typing fast, or a paste), so they queue here
-// rather than being dropped — reading one key must not discard the rest.
+// rather than being dropped: reading one key must not discard the rest.
 KeyReader :: struct {
     pending: KeyPress[]
     at:      i64
@@ -125,7 +125,7 @@ export fit :: fn(s: string, width: i32) -> string {
 
 // ---- select ---------------------------------------------------------------
 
-/// Render one frame of a single-choice list. Pure — the tests read this, not the
+/// Render one frame of a single-choice list. Pure: the tests read this, not the
 /// terminal.
 ///
 /// @param question  the line above the list.
@@ -150,7 +150,7 @@ export render_select :: fn(
 /// @param options   at least one; an empty list is a caller mistake and returns
 ///                  `.NoTerminal` rather than drawing an empty frame.
 /// @return          the chosen INDEX into `options`.
-/// @error           `.NoTerminal` when stdin is not interactive — name the flag
+/// @error           `.NoTerminal` when stdin is not interactive: name the flag
 ///                  to pass instead; `.Cancelled` on Escape or Ctrl-C;
 ///                  `.InputClosed` when input ends first.
 export select :: fn(question: string, options: string[]) -> i64 | PromptError {
@@ -183,7 +183,7 @@ export select :: fn(question: string, options: string[]) -> i64 | PromptError {
     }
 }
 
-/// Where the cursor goes for a movement key — wrapping at both ends, so a long
+/// Where the cursor goes for a movement key: wrapping at both ends, so a long
 /// list is reachable from either direction.
 ///
 /// @param cursor  current index.
@@ -276,7 +276,7 @@ export render_confirm :: fn(question: string, default_yes: bool, width: i32) -> 
 
 /// Ask a yes/no question. Enter takes `default_yes`.
 ///
-/// @error `.NoTerminal` when stdin is not interactive — the caller should use
+/// @error `.NoTerminal` when stdin is not interactive: the caller should use
 ///        its flag's own default; `.Cancelled` on Escape or Ctrl-C.
 export confirm :: fn(question: string, default_yes: bool) -> bool | PromptError {
     if !TTY.raw_mode_begin() {
@@ -377,7 +377,7 @@ export text :: fn(question: string, default_value: string) -> string | PromptErr
     }
 }
 
-/// Drop the last CHARACTER of `s` — not its last byte, so backspacing over a
+/// Drop the last CHARACTER of `s`, not its last byte, so backspacing over a
 /// multi-byte character removes the whole thing.
 export drop_last :: fn(s: string) -> string {
     n :: s.len()
@@ -453,6 +453,6 @@ import "std/testing"
 @test test_fit_marks_what_it_cut :: fn() -> void {
     assert_eq(fit("abcdef", 4), "abc…")
     assert_eq(fit("abc", 10), "abc")
-    // No room to mark anything — better untouched than a bare ellipsis.
+    // No room to mark anything: better untouched than a bare ellipsis.
     assert_eq(fit("abcdef", 1), "abcdef")
 }

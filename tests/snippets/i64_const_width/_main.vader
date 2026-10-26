@@ -1,7 +1,7 @@
 // 64-bit integer literals whose magnitude exceeds 2^31 must keep their full
 // width through the CFG bytecode emit. The CFG `emit_const_instr` always emitted
 // `i32.const i32(value)`, truncating any value >= 2^31 to a 32-bit pattern ; a
-// following `i64.neg` then produced the wrong sign — `i64 = -2147483648` came
+// following `i64.neg` then produced the wrong sign: `i64 = -2147483648` came
 // back as `+2147483648`. This is the compiler's own `repr_range("i32")`,
 // whose `.min = -2_147_483_648` was emitted as `+2147483648`, so the enum
 // backing-range check (T3030) rejected every valid i32-repr variant in the

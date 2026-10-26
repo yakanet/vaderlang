@@ -11,9 +11,9 @@
 // no signature `BcType` indices (`param_types` / `result_type`), no struct
 // `symbol_id`, and no debug spans. The first is RECONSTRUCTED here from the
 // type table via `class_tag_of` (exact for scalar slots ; `0` for
-// ref/any slots, which `emit/c::box_expr` ignores anyway — Ref/Any box to a
-// bare value, no tag). A struct's `symbol_id` becomes its TYPE INDEX — the
-// identity the data section names it by (`emit/virt/dump`) — and `debug` all-null
+// ref/any slots, which `emit/c::box_expr` ignores anyway: Ref/Any box to a
+// bare value, no tag). A struct's `symbol_id` becomes its TYPE INDEX, the
+// identity the data section names it by (`emit/virt/dump`), and `debug` all-null
 // (`#line` directives are dropped from `.virt`-sourced C). The contract this
 // upholds is *emitted-C equivalence* (`source → C` == `source → .virt → C`,
 // modulo `#line`), not byte-identical module round-trip.
@@ -30,7 +30,7 @@ import "vader/core/bytecode"
 /// Every non-blank line of a `.virt` dump carries meaning: outside a function
 /// body it is one of the ten module directives, inside one it is an instruction
 /// (comments and blank lines are already gone by the time either is reached). So
-/// an uninterpretable line is never "extra text to step over" — it is a dump this
+/// an uninterpretable line is never "extra text to step over": it is a dump this
 /// reader cannot rebuild faithfully, and reading past it would shift every
 /// following pc while looking like a successful parse.
 ///
@@ -41,13 +41,13 @@ import "vader/core/bytecode"
 export VirtParseError :: struct {
     /// 1-based line number, ready for a `path:line:` diagnostic prefix.
     line_number: i64
-    /// The offending line, comment already stripped — echoed under the message.
+    /// The offending line, comment already stripped: echoed under the message.
     line:        string
     /// What went wrong, e.g. ``unrecognised instruction `frobnicate` ``.
     reason:      string
 }
 
-/// Why a module-level directive could not be read — the reason without the
+/// Why a module-level directive could not be read: the reason without the
 /// position.
 ///
 /// A directive parser knows WHAT is wrong with its line but not WHERE the line
@@ -65,14 +65,14 @@ export DirectiveError :: struct {
 /// it. Shared so the two call sites can't drift apart on the format.
 ///
 /// @param e        the error to render.
-/// @param command  the invoking command, e.g. `"vader run"` — heads the message.
+/// @param command  the invoking command, e.g. `"vader run"`: heads the message.
 /// @param path     the `.virt` file the error was read from.
-/// @return         the full message, no trailing newline — `eprintln` adds one.
+/// @return         the full message, no trailing newline: `eprintln` adds one.
 export display_virt_parse_error :: fn(e: VirtParseError, command: string, path: string) -> string =
     "${command}: ${path}:${e.line_number}: ${e.reason}\n  ${e.line}"
 
 // Pair a directive parser's reason with the line it came from. Returns the
-// positioned error, or null when the directive parsed — the caller still does its
+// positioned error, or null when the directive parsed: the caller still does its
 // own `return`, since a helper cannot return on its behalf.
 positioned :: fn(
     failure: DirectiveError | null, line_number: i64, line: string,
@@ -85,7 +85,7 @@ positioned :: fn(
 
 /// Where one function of a `.virt` dump sits, by 0-based line.
 export VirtFunctionLines :: struct {
-    /// The `fn N …` header — where the parameters, which the dump leaves
+    /// The `fn N …` header, where the parameters, which the dump leaves
     /// unnamed, are declared.
     header: i64
     /// Each `local` line, in slot order after the parameters.
@@ -95,7 +95,7 @@ export VirtFunctionLines :: struct {
 }
 
 /// A `.virt` dump read back, with the 0-based line every indexed entry came
-/// from — what a tool pointing back into the text needs.
+/// from: what a tool pointing back into the text needs.
 export VirtListing :: struct {
     module:    BytecodeModule
     /// One per function, by function index.
@@ -116,7 +116,7 @@ export VirtListing :: struct {
 ///
 /// @param source  the full `.virt` text (UTF-8).
 /// @return        the reconstructed module, or the first line that defeated the
-///                reader — never a partial module.
+///                reader, never a partial module.
 /// @error         `VirtParseError` as `parse_virt_listing` reports it.
 export parse_virt_bc :: fn(source: string) -> BytecodeModule | VirtParseError {
     listing :: parse_virt_listing(source)
@@ -137,7 +137,7 @@ export parse_virt_bc :: fn(source: string) -> BytecodeModule | VirtParseError {
 ///
 /// @param source  the full `.virt` text (UTF-8).
 /// @return        the reconstructed module with its op lines, or the first line
-///                that defeated the reader — never a partial module.
+///                that defeated the reader, never a partial module.
 /// @error         `VirtParseError` on an unrecognised module directive; a
 ///                RECOGNISED directive whose payload doesn't parse (an unknown
 ///                type kind, a malformed struct field, a non-numeric index, a
@@ -203,7 +203,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
             // after the module when the compile raised warnings
             // (`tools/cli/cmd_dump.vader::run_bytecode_stage` →
             // `support/diagnostics/render.vader`).
-            // It is prose, always terminal, and never bytecode — so it ends the
+            // It is prose, always terminal, and never bytecode, so it ends the
             // stream rather than failing it. Inside a function body a `#` is not
             // this block (the report is appended past the last `end`) and stays
             // an error.
@@ -226,7 +226,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
             }
             // Each pool directive below reports why it could not read its line. A
             // silent drop removed a whole pool entry and renumbered every index
-            // after it — the pool analogue of the pc shift fixed for instructions.
+            // after it: the pool analogue of the pc shift fixed for instructions.
             if head == "string" {
                 failed :: positioned(parse_string_decl(cleaned, strings), line_index, cleaned)
                 if failed is VirtParseError {
@@ -298,8 +298,8 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
             }
             // The directive vocabulary above is closed, so anything left here is
             // a dump this reader doesn't understand. Skipping it drops a whole
-            // pool entry — a missing `type` collapses a struct to nothing, a
-            // missing `string` shifts every later pool index — with no sign at
+            // pool entry (a missing `type` collapses a struct to nothing, a
+            // missing `string` shifts every later pool index) with no sign at
             // the call site that the module came back incomplete.
             return VirtParseError {
                 .line_number = line_index,
@@ -338,7 +338,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         // Inside a body, position alone settles what this line is: comments and
         // blank lines are gone, `local` and the closing `end` were taken above,
         // so it is an instruction. A `null` back means either an opcode outside
-        // the set or operands that don't parse — see `VirtParseError` for why
+        // the set or operands that don't parse, see `VirtParseError` for why
         // neither can be stepped over.
         op :: parse_op_line(cleaned, head) ?? return VirtParseError {
             .line_number = line_index,
@@ -396,7 +396,7 @@ parse_module_name :: fn(cleaned: string) -> string {
     return cleaned.trim_prefix("module ").trim()
 }
 
-/// Parse `type N <decl>` into the matching `BcType`, appended in ordinal order —
+/// Parse `type N <decl>` into the matching `BcType`, appended in ordinal order:
 /// the index is implicit in the array position.
 ///
 /// Returns the reason the line could not be read, or `null` on success. It used to
@@ -483,7 +483,7 @@ find_mirror_marker :: fn(s: string) -> i64 {
 /// → `-1`.
 ///
 /// Field order IS the field index, so a dropped field silently renumbers every one
-/// after it — the reader refuses the line rather than hand back a struct whose
+/// after it: the reader refuses the line rather than hand back a struct whose
 /// slots no longer line up with the emitter's.
 ///
 /// @param rest  the text after `type N `, starting at `struct `.
@@ -496,7 +496,7 @@ parse_struct_type_bc :: fn(rest: string) -> BcStruct | DirectiveError {
     // (e.g. the `/` of a path-qualified synthetic Cell struct) in `"..."` by
     // `emit/virt::quote_string` ; unquote so `sanitise` derives the same C identifier as the
     // direct-source build.
-    // `Name as "struct timespec"` — the mirrored C type, absent on an ordinary
+    // `Name as "struct timespec"`: the mirrored C type, absent on an ordinary
     // struct. Split before unquoting: both halves are quoted independently.
     marker :: find_mirror_marker(raw_name)
     c_name :: if marker < 0 {
@@ -542,7 +542,7 @@ parse_struct_type_bc :: fn(rest: string) -> BcStruct | DirectiveError {
     return BcStruct { .name = name, .fields = fields, .c_name = c_name, .symbol_id = -1 }
 }
 
-/// Parse `fn (tid,tid) -> tid` (a fn-VALUE type — its slots are type indices,
+/// Parse `fn (tid,tid) -> tid` (a fn-VALUE type: its slots are type indices,
 /// not ValType names) into a `BcFn`.
 parse_fn_type_bc :: fn(rest: string) -> BcFn {
     open :: rest.index_of('(', 0)
@@ -584,7 +584,7 @@ parse_import_decl_bc :: fn(
             .reason = "expected `import <module> <name> …`, got ${parts.len()} field(s)",
         }
     }
-    // `<lib>:<symbol>` when the symbol comes from a named library — see
+    // `<lib>:<symbol>` when the symbol comes from a named library, see
     // `emit/virt::write_imports`. A bare name means the default resolution scope.
     raw_name :: parts[name_i]
     extern_name :: raw_name.byte_slice(raw_name.index_of(':', 0) + 1, raw_name.byte_len())
@@ -656,7 +656,7 @@ parse_import_decl_bc :: fn(
         }
     }
     // The result's type index is carried as an attribute rather than by
-    // `emit/virt::write_signature`, which renders a union as `any` — so it is stitched back
+    // `emit/virt::write_signature`, which renders a union as `any`, so it is stitched back
     // in here. Without it a `string | null` result reads as a plain word and the
     // FFI hands the atom back as an integer.
     final_sig :: BcSignature {
@@ -669,8 +669,8 @@ parse_import_decl_bc :: fn(
         } else {
             sig.param_types
         },
-        // The attribute names ONE result type — an `@extern` returns one value
-        // or none — so it overlays the single slot and leaves a void signature
+        // The attribute names ONE result type: an `@extern` returns one value
+        // or none, so it overlays the single slot and leaves a void signature
         // void.
         .result_types = if result_type == 0 || sig.results.len() != 1 {
             sig.result_types
@@ -891,7 +891,7 @@ parse_quoted_strings :: fn(s: string) -> string[] {
 }
 
 // Parse the `agg` payload `<elemname> <count> <value>…` into a `BcAggregateData`.
-// Values are count-prefixed (no paren balancing) — see `emit/virt::write_data_value`.
+// Values are count-prefixed (no paren balancing), see `emit/virt::write_data_value`.
 // `strings` resolves any `strref <i>` leaf back to its pooled value.
 parse_agg_decl :: fn(payload: string, strings: string[]) -> BcAggregateData {
     tokens :: tokenize_agg(payload)
@@ -909,7 +909,7 @@ parse_agg_decl :: fn(payload: string, strings: string[]) -> BcAggregateData {
 // Parse the compact homogeneous-struct form `<symid> <nfields> <count> <field>…`
 // (the dumper's `structs` header). Every element is a `BcValStruct` with the
 // hoisted `symid` ; its `nfields` field values are read flat from the stream.
-// The reconstructed aggregate's top-level `element_type_name` is left "" — it is
+// The reconstructed aggregate's top-level `element_type_name` is left "": it is
 // informational only (both the VM's `bc_value_to_vm` and c-emit resolve struct
 // identity from each element's `symbol_id`, never the aggregate name ; only a
 // nested `BcValArray.element_type_name` is read).
@@ -1038,7 +1038,7 @@ parse_signature_bc :: fn(line: string, types: BcType[]) -> BcSignature {
     result_types: i32[]: []
     if arrow >= 0 {
         rtext :: line.byte_slice(arrow + 1, line.byte_len()).trim()
-        // `-> i32` is one result and `-> (i32,i32)` several — the same split the
+        // `-> i32` is one result and `-> (i32,i32)` several: the same split the
         // writer makes, so a single-value signature round-trips through the
         // format it has always used.
         if rtext.starts_with("(") && rtext.ends_with(")") {
@@ -1053,7 +1053,7 @@ parse_signature_bc :: fn(line: string, types: BcType[]) -> BcSignature {
         }
     }
     if results.len() == 0 {
-        // No parenthesised list, so the header named one result — or none, which
+        // No parenthesised list, so the header named one result, or none, which
         // the representation spells as a single `Void` entry.
         results.push(result)
         result_types.push(class_tag_of(types, result))
@@ -1160,7 +1160,7 @@ import "std/testing"
 // The two silent-skip paths this reader used to have. Each dropped its line and
 // carried on, handing back a module that looked complete: the instruction case
 // shifts every following pc, the directive case leaves a hole in a pool. Both
-// now stop the parse and name the line — see `VirtParseError`.
+// now stop the parse and name the line, see `VirtParseError`.
 
 @test test_parse_virt_listing_notes_each_line :: fn() -> void {
     // A comment, a blank line and a `local` take a line but no op ; a structured
@@ -1242,7 +1242,7 @@ import "std/testing"
 }
 
 // Directive-level refusals. Each of these used to be swallowed: the parser
-// dropped or degraded the entry and handed back a module that looked complete —
+// dropped or degraded the entry and handed back a module that looked complete:
 // a missing `type` collapsed a struct to an opaque ref (blocker #1 of the
 // self-host audit), a dropped pool entry renumbered every index after it.
 @test test_unknown_type_kind_stops_the_parse :: fn() -> void {

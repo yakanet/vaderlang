@@ -1,12 +1,12 @@
 // A fused iterator chain evaluates its operands as the lazy chain does when it
-// is built : each once, in source order — the source, each combinator's
-// argument, then the terminal's predicate — before the first element, and on an
+// is built : each once, in source order, the source, each combinator's
+// argument, then the terminal's predicate: before the first element, and on an
 // empty source too. Every operand logs its evaluation, so a predicate evaluated
 // per element, a range bound read at every test, or an argument evaluated ahead
 // of its source shows in the output.
 //
 // The tail is the unfused reference, which a range also takes : a range value,
-// the plain counted `for` — whose body rebinding the bound does not extend it —
+// the plain counted `for` (whose body rebinding the bound does not extend it)
 // and the `x in lo..<hi` test, whose `hi` is evaluated even when `x` is below
 // `lo`.
 module "snippet"

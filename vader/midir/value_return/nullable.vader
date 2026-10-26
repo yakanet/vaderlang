@@ -23,7 +23,7 @@ import "vader/midir"
 // elements is the same value by another route. A struct has reference
 // semantics: returning one the callee got from elsewhere, and rebuilding it at
 // the caller, would break an alias someone else holds. `returns_fresh_struct`
-// is the proof nobody does — every `return` builds its value here or hands back
+// is the proof nobody does: every `return` builds its value here or hands back
 // `null`.
 
 /// What a nullable-struct return hands back, or null when the function does not
@@ -37,7 +37,7 @@ NullableReturn :: struct {
 
 // The shape of `f`'s returns, or null.
 //
-// The TYPE answers first and alone — a return type with no `null` in it never
+// The TYPE answers first and alone: a return type with no `null` in it never
 // reaches a block. It cannot answer the rest: `bc.Op | null` peels to an open
 // union of opcodes, and whether one call site can rebuild what came back is a
 // question about the `struct.new`s the body actually runs, not about that union.
@@ -67,7 +67,7 @@ has_null_variant :: fn(t: Type) -> bool {
     return false
 }
 
-// What every `return` builds — one composite type and its field types — or null
+// What every `return` builds (one composite type and its field types) or null
 // when a `return` hands back a value it did not build, or builds a DIFFERENT
 // composite than another does.
 //
@@ -146,7 +146,7 @@ nullable_results :: fn(elements: Type[]) -> Type[] {
     return out
 }
 
-/// The tag a nullable return carries — 0 absent, 1 present.
+/// The tag a nullable return carries: 0 absent, 1 present.
 TY_TAG :: TY_I32
 
 rewrite_nullable_return :: fn(
@@ -192,7 +192,7 @@ const_i32 :: fn(instrs: Instruction[], locals: CFGLocal[], v: i64, span: Span) -
     return dst
 }
 
-// A fresh local holding the zero of `t` — the filler the absent path pushes.
+// A fresh local holding the zero of `t`: the filler the absent path pushes.
 zero_of :: fn(instrs: Instruction[], locals: CFGLocal[], t: Type, span: Span) -> LocalId {
     dst :: add_local(locals, "absent", t)
     instrs.push(InstrConst {
@@ -252,7 +252,7 @@ present_arm :: fn(
         .id = id,
         .instructions = [
             InstrStructNew {
-                // The STRUCT's type, not the call's — that one is the `S | null`
+                // The STRUCT's type, not the call's: that one is the `S | null`
                 // union, which `struct.new` cannot build.
                 .span = ins.span,
                 .dst = dst,

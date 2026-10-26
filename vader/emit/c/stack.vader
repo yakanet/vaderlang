@@ -2,9 +2,9 @@
 //
 // The bytecode is a stack machine ; the C body walker maps it to C
 // statements + expressions by maintaining a virtual operand stack of
-// `StackVal`. Each push records the value's expression — a literal, an
+// `StackVal`. Each push records the value's expression (a literal, an
 // inlined side-effect-free expression, a local slot `lN`, or a materialised
-// temp `tN` — and the consumer pops it and builds it into its own node.
+// temp `tN`) and the consumer pops it and builds it into its own node.
 //
 // `StackTemporary` is the materialised case : `local.set`, call results, and
 // allocations force their value into a fresh `tN` temp (see the
@@ -24,7 +24,7 @@ import "vader/emit/c/ast"
 /// C-storage `ValType` ; the consumer pops it and inlines `expression_of`.
 StackVal :: StackTemporary | StackLit | StackLocalRef | StackExpr
 
-/// A value already materialised into a fresh `tN` temp — the eager
+/// A value already materialised into a fresh `tN` temp: the eager
 /// case (calls, allocations, anything with a side effect).
 StackTemporary :: struct {
     temporary: CTemporary
@@ -81,8 +81,8 @@ BoundArray :: struct {
 
 /// One escape-stack-allocated GC struct to hoist to the function top. Both the
 /// zeroed decl (`<cname> <storage> = {0};`) and the root address
-/// (`(void*) &<storage>`) are rendered from these two names at emit time — see
-/// `function_definition` — so there is no pre-rendered-C-syntax to keep in sync.
+/// (`(void*) &<storage>`) are rendered from these two names at emit time (see
+/// `function_definition`) so there is no pre-rendered-C-syntax to keep in sync.
 StackStorage :: struct {
     cname:   string
     storage: string
@@ -96,9 +96,9 @@ FnState :: struct {
     function: BcFunction
     /// The function body, the `CFunction`'s once the walk is done.
     root:     CBlock
-    /// Virtual operand stack — the top of stack is the last element.
+    /// Virtual operand stack: the top of stack is the last element.
     stack:    StackVal[]
-    /// Every temp minted by `new_temporary`, indexed by id — the one object
+    /// Every temp minted by `new_temporary`, indexed by id: the one object
     /// each use of it shares, so `coalesce_temporaries` renames them all at
     /// once. Allocation is monotone : a temp is never recycled during the walk.
     temporaries: CTemporary[]
@@ -109,12 +109,12 @@ FnState :: struct {
     /// opener pc. Drives the `if` / `else` / `end` close labels and the
     /// `br` / `br_if` goto-target resolution. See `precompute_scopes`.
     scopes: ScopeInfo[]
-    /// Loop opener pcs that a `continue` (`br` to `opener_pc + 1`) jumps to —
+    /// Loop opener pcs that a `continue` (`br` to `opener_pc + 1`) jumps to:
     /// they get a `loop_<opener>:` label before the `{`. A label is emitted
     /// only for referenced openers (an unreferenced one warns).
     continue_targets: i32[]
     /// Scope opener pcs (block / loop / if) that a `break` / forward exit
-    /// (`br` to `end_pc + 1`) jumps past — they get an `end_<opener>:` label
+    /// (`br` to `end_pc + 1`) jumps past: they get an `end_<opener>:` label
     /// after the closing `}`. Distinct from `continue_targets` so a loop
     /// targeted only by a continue doesn't emit an unused `end_` label.
     break_targets: i32[]
@@ -141,22 +141,22 @@ FnState :: struct {
     /// in this straight-line region. A second slot access on the same array
     /// expression reuses one instead of binding (and guarding) a fresh local.
     /// Cleared at every GC safepoint / control-flow op and on reassignment of
-    /// the array's local (see `invalidate_header_cache`) — a `_slotarrK` is
+    /// the array's local (see `invalidate_header_cache`): a `_slotarrK` is
     /// not a GC root, so a stale entry would point at a moved header.
     bound_arrays: BoundArray[]
     /// Set by the walk driver when the current `call` / `call.import` op is
-    /// immediately followed by a `drop` — its non-void result is emitted as a
+    /// immediately followed by a `drop`: its non-void result is emitted as a
     /// bare statement (like a void call) instead of `tN = call(...);` + an
     /// unread temp. `emit_call_result` reads it ; the driver skips the paired
     /// `drop`. See `function_definition`.
     drop_call_result: bool
-    /// Escape-stack-allocated GC structs to hoist to the function top — one per
+    /// Escape-stack-allocated GC structs to hoist to the function top: one per
     /// stack `StructNew` in a framed fn (see `emit_struct_new`). Hoisting makes
     /// each storage FUNCTION-scoped so its address in the `gc_stack_objs[]` root
     /// array never dangles past a nested block, and its zeroed decl reads as type
     /// 0 (a scan no-op) until the `StructNew` writes the real header + fields.
     /// The GC scans each object's FIELDS in place so its captured heap refs are
-    /// forwarded across a safepoint (else they dangle — the walk_elements
+    /// forwarded across a safepoint (else they dangle: the walk_elements
     /// closure-env use-after-forward bug).
     stack_storages: StackStorage[]
     /// The `if` / scope nodes the walk is inside, innermost last. Statements
@@ -212,7 +212,7 @@ init_object_header :: fn(s: FnState, object: string, type_index: i32) -> void =
 gc_allocation :: fn(c_type: string) -> CExpression =
     cast("${c_type}*", call("vader_gc_alloc", [verbatim("sizeof(${c_type})")]))
 
-/// Append a statement macro call `name(arguments…)` — its expansion is a whole
+/// Append a statement macro call `name(arguments…)`: its expansion is a whole
 /// statement, so it takes no `;`.
 statement_macro :: fn(s: FnState, name: string, arguments: CExpression[]) -> void =
     append_statement(s, CMacroStatement { .call = CCall { .callee = name, .arguments = arguments } })
@@ -262,8 +262,8 @@ return_statement :: fn(s: FnState, node: CReturn) -> void {
 COpenNode :: CIf | CScope
 
 // The block statements go to : the innermost open node's, else the root. The
-// tree and `open_nodes` hold the SAME objects — statements pushed while a node
-// is open land in the tree — so `CBlock`, `CIf` and `CScope` must stay
+// tree and `open_nodes` hold the SAME objects (statements pushed while a node
+// is open land in the tree) so `CBlock`, `CIf` and `CScope` must stay
 // reference types.
 current_block :: fn(s: FnState) -> CBlock {
     if s.open_nodes.len() == 0 {
@@ -314,7 +314,7 @@ open_node :: fn(s: FnState, node: COpenNode) -> void {
     s.open_nodes.push(node)
 }
 
-/// Push a pure literal — inlined at the consumer, no temp line emitted.
+/// Push a pure literal: inlined at the consumer, no temp line emitted.
 push_lit :: fn(s: FnState, val: ValType, expression: CExpression) -> void {
     s.stack.push(StackLit { .expression = expression, .val = val })
 }
@@ -332,7 +332,7 @@ push_local_ref :: fn(s: FnState, slot: i32, val: ValType) -> void {
 }
 
 /// Pop the top of the operand stack. An empty stack means the op is in
-/// unreachable code — the lowerer emits dead ops after a terminator (e.g.
+/// unreachable code: the lowerer emits dead ops after a terminator (e.g.
 /// a `drop` / `call` past an exhaustive-returning match), and the walker
 /// tracks no reachability. Return a defensive dummy so the dead op
 /// emits harmless (never-executed) C rather than trapping.
@@ -344,7 +344,7 @@ pop :: fn(s: FnState) -> StackVal {
     return top
 }
 
-/// Discard the top of the operand stack — the `drop` op. An empty stack
+/// Discard the top of the operand stack: the `drop` op. An empty stack
 /// means a dead `drop` in unreachable code (see `pop`) ; no-op rather than
 /// trap.
 drop_top :: fn(s: FnState) -> void {
@@ -353,7 +353,7 @@ drop_top :: fn(s: FnState) -> void {
     s.stack = s.stack[0..<n - 1]
 }
 
-/// C-storage `ValType` of local slot `slot` — params occupy the first
+/// C-storage `ValType` of local slot `slot`: params occupy the first
 /// `params.len()` slots, then `locals` in order.
 slot_val_type :: fn(function: BcFunction, slot: i32) -> ValType {
     params :: function.signature.params
@@ -387,7 +387,7 @@ push_into_temporary :: fn(s: FnState, value: CExpression, val: ValType) -> void 
     push_temporary(s, temporary, val)
 }
 
-/// Allocate a fresh monotone scratch C identifier `_aN_<suffix>` — block-
+/// Allocate a fresh monotone scratch C identifier `_aN_<suffix>`: block-
 /// local storage that isn't an operand-stack temp (struct stack storage,
 /// the obj pointer, call-arg buffers). Never recycled, so names never
 /// collide with a reused `tN`.

@@ -30,7 +30,7 @@ UfcsMember :: struct {
     arg_types: Type[] = []
 }
 
-// True when `m` is the trivial identity `fn(self) = self` — expression-bodied,
+// True when `m` is the trivial identity `fn(self) = self`: expression-bodied,
 // exactly one param (`self`), body a bare reference to that param. Such a member
 // is inlined to its receiver at the call site (`build_member_call_or_inline`).
 is_identity_member :: fn(m: FnDecl) -> bool {
@@ -44,14 +44,14 @@ is_identity_member :: fn(m: FnDecl) -> bool {
 }
 
 /// Build a call to a resolved impl member, OR inline its body when trivial.
-/// Only the identity `fn(self) = self` is inlined — the call collapses
+/// Only the identity `fn(self) = self` is inlined: the call collapses
 /// to the receiver (`args[0]`), eliminating the call (e.g. every `string`-part
 /// `${…}` interpolation's no-op `to_string`). All other members emit the direct
 /// `LoweredCall`. The single hook every "resolve impl member + build call" site
 /// should route through.
 build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr {
     // Identity uses `self` exactly once, so returning the (already-lowered)
-    // receiver evaluates it once — no temp / double-eval concern.
+    // receiver evaluates it once: no temp / double-eval concern.
     if member.is_identity && args.len() == 1 { return args[0] }
     return mk_lowered_call(member.symbol, args, ret, span)
 }
@@ -62,7 +62,7 @@ build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: 
 // `seen_generic_impl_recv`. Shared by the erased-receiver path
 // (`build_ufcs_member`) and a generic struct literal.
 queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
-    // Distinct→backing on the receiver's args before keying/queuing — the
+    // Distinct→backing on the receiver's args before keying/queuing: the
     // queued instance must match the registry's raw backing instance, not a
     // separate distinct one. Distinct ends at the lowering boundary.
     mono_args :: strip_distinct_each(recv.args)
@@ -83,7 +83,7 @@ queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
 // as constructed, so the existing `vtable_gate` surfaces their impl methods.
 // The old per-is-check `materialize_trait_check_impls` force-hook is gone.
 
-// An impl-member match carried across the scan as the `@intrinsic` fallback —
+// An impl-member match carried across the scan as the `@intrinsic` fallback:
 // a named struct (not a bare tuple) so its fields keep their types through the
 // `| null` union and narrow cleanly after the null guard.
 ImplMemberMatch :: struct {
@@ -96,7 +96,7 @@ ImplMemberMatch :: struct {
 /// another trait the type implements from being the one called.
 ///
 /// Owns the one invariant every lookup shares: a user impl (with a real
-/// body) shadows an `@intrinsic` builtin of the same (type, member) —
+/// body) shadows an `@intrinsic` builtin of the same (type, member):
 /// `i32 implements Display -> "..."` must win over the std_core intrinsic
 /// `Display`. Single pass: return the first non-intrinsic match immediately;
 /// remember the first intrinsic match as a fallback and use it only when no
@@ -177,7 +177,7 @@ receiver_suffix :: fn(ctx: FnLowerCtx, entry: ImplEntry, target_type: Type) -> s
         }
         // Blanket array impl (`T[] implements Contains`) : materialise one
         // CONCRETE body per element type (`contains__i32`) so the member's `==`
-        // devirtualises to the element primop — distinct from the struct
+        // devirtualises to the element primop: distinct from the struct
         // generic-erasure path (`__Any`).
         is ArrayType -> args_suffix([target_type.element])
         _ -> ""
@@ -264,14 +264,14 @@ ufcs_member_named :: fn(
 
 // Declared types of the member's arguments, receiver EXCLUDED.
 //
-// Read from the frontend's `impl_methods` table — the very table the typer keyed
+// Read from the frontend's `impl_methods` table: the very table the typer keyed
 // this dispatch on, so the slot types here are the ones it type-checked the call
 // against, and its `ty` is already receiver-dropped (`ufcs_method_type`). Every
 // module reads the same table, which holds the impls of the whole project. Keys
-// mirror the typer's two probes — exact display key, then base name.
+// mirror the typer's two probes: exact display key, then base name.
 //
 // Empty when the member has no entry (a receiver shape the typer keyed
-// differently) — the caller then passes its args through untouched rather than
+// differently): the caller then passes its args through untouched rather than
 // guessing a slot type.
 impl_member_arg_types :: fn(
     ctx: FnLowerCtx,
@@ -468,7 +468,7 @@ impl_symbol_segment :: fn(impl_module: string, sym: Symbol) -> string {
 // Nominal token a receiver type registers UFCS impls under. Exhaustive over
 // `Type` (no `_`) : the non-nominal shapes (fn / union / trait / type-param /
 // meta / self / unresolved / free-numeric / never / any) have no single
-// surface name and resolve through other paths, so they map to "" explicitly —
+// surface name and resolve through other paths, so they map to "" explicitly:
 // listing them trips T3013 if a new *nominal* Type variant is added that ought
 // to carry a UFCS surface.
 type_surface_name :: fn(t: Type) -> string = match t {
@@ -476,7 +476,7 @@ type_surface_name :: fn(t: Type) -> string = match t {
     is StructType    -> t.symbol.name
     is EnumType      -> t.symbol.name
     // Distinct (newtype) dispatches operators / UFCS under its own nominal
-    // name (opaque — an impl on the distinct, never the backing's).
+    // name (opaque: an impl on the distinct, never the backing's).
     is DistinctType -> t.symbol.name
     // A range is its integer to every impl.
     is RangeType -> storage_integer(t).name
@@ -504,7 +504,7 @@ type_surface_name :: fn(t: Type) -> string = match t {
 /// is a type-shaped symbol (builtin primitive, struct, enum, or type alias) or a type
 /// written in place (`i32[](row)`, `(i32 | string)(x)`), with a single arg. For non-numeric targets the typer already routed the arg
 /// through `try_into` ; the lowered arg is then handed back verbatim only when
-/// the cast is a true identity — unwrapping a distinct still stamps its target,
+/// the cast is a true identity: unwrapping a distinct still stamps its target,
 /// see `emit_value_cast`.
 try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     if call.args.len() != 1 { return null }
@@ -528,7 +528,7 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         _            -> false
     }
     // A non-generic type alias (`Foo :: i64`) or a distinct newtype is a
-    // ConstDecl, so its symbol kind is `.Const` — but it resolves into
+    // ConstDecl, so its symbol kind is `.Const`, but it resolves into
     // `alias_types`. Recognise such a type-valued const as a cast/wrap callee
     // too (without this, `Foo(x)` / `Instant(x)` lowers to a bogus call).
     is_type_const :: !(ctx.typed.resolved.alias_types[type_sym.id] is null)
@@ -608,7 +608,7 @@ emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExp
             // `n : Name` must stamp `string`, or the lowered tree keeps carrying
             // `Name` and anything reading the result's type resolves against the
             // distinct. That is how `string(n).trim()` lowered to a field access
-            // and panicked in midir with "no field `trim` on `Name`" — while
+            // and panicked in midir with "no field `trim` on `Name`", while
             // binding the cast first, or calling `trim(string(n))`, both worked.
             // The wrap direction below already stamps; this is the missing half.
             // Free at runtime: `bc_type_of(distinct) == bc_type_of(backing)`.
@@ -619,7 +619,7 @@ emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExp
         }
         return LoweredCast { .span = call.span, .type = type, .value = inner }
     }
-    // Distinct `X :: P` wrap — `X(v)` is a pure representation no-op (X shares
+    // Distinct `X :: P` wrap: `X(v)` is a pure representation no-op (X shares
     // P's backend repr) ; stamp the distinct type so the lowered tree stays
     // well-typed. `bc_type_of(distinct) == bc_type_of(backing)`, so the cast
     // emit is a no-op too. (Unwrap `P(x)` rides the `PrimitiveType` arm above.)

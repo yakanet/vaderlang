@@ -3,14 +3,14 @@
 // Each entry point expands an `ImplDecl.members` array with synthesised method
 // declarations drawn from the trait :
 //
-//   1. `materialize_intrinsic_members` — @intrinsic impl with an empty
+//   1. `materialize_intrinsic_members`: @intrinsic impl with an empty
 //      body : push one stub FnDecl per trait method, signature only.
-//   2. `materialize_default_members`   — trait methods with a default
+//   2. `materialize_default_members`: trait methods with a default
 //      body : inject for any name the impl didn't override. Clones the
 //      default body via `substitute_block_materialized` and assigns it
 //      to the synthesised `FnDecl.body` ; signature substitution runs
 //      end-to-end.
-//   3. `materialize_sam_members`       — single-abstract-method sugar
+//   3. `materialize_sam_members`: single-abstract-method sugar
 //      (`Foo implements Trait -> expr`) : fill name/params/return_type
 //      on the parser-fabricated synthetic FnDecl(s) from the trait's
 //      single required method.
@@ -75,7 +75,7 @@ export materialize_default_members :: fn(
     subst :: build_subst(impl_, trait_)
     // One deterministic span allocator per impl, threaded through every member
     // clone below. The spans must be derived from the SOURCE position and a
-    // traversal counter — never from a node id — or the two materialisation
+    // traversal counter (never from a node id) or the two materialisation
     // generations disagree on the span-keyed `idents` keys. See
     // docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
     impl_pos :: impl_.trait_name_span.start
@@ -149,7 +149,7 @@ synth_clone_span :: fn(factory: NodeIdFactory) -> Span {
 
 /// `substitute_params` but `self` re-anchors at `self_span` (its type is
 /// contextual, so a shared span is fine) while every non-self param gets a
-/// fresh minted span — so a two-arg SAM method (`Comparable.compare(self,
+/// fresh minted span, so a two-arg SAM method (`Comparable.compare(self,
 /// other: Self)`) doesn't collide `other` across sibling impls in the
 /// span-keyed `param_types` table.
 substitute_params_disambiguated :: fn(
@@ -174,7 +174,7 @@ substitute_params_disambiguated :: fn(
 /// name and an empty param list ; the trait's lone required method
 /// supplies the canonical name + signature. Mutates each synthetic
 /// member in place. SAM shape-mismatch diagnostics (R2016) aren't
-/// emitted here — `check_short_impl_arity` (orchestrate.vader) fires
+/// emitted here: `check_short_impl_arity` (orchestrate.vader) fires
 /// them before this runs.
 export materialize_sam_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl, factory: NodeIdFactory) -> void {
     syn_count :: count_sam_synthetics(impl_.members)
@@ -238,7 +238,7 @@ export required_methods :: fn(members: AST.FnDecl[]) -> AST.FnDecl[] {
     for m in members {
         match m.body {
             is null          -> { out.push(m) }
-            is AST.BlockExpr -> {}     // default-bodied — not a "required" method
+            is AST.BlockExpr -> {}     // default-bodied, not a "required" method
         }
     }
     return out
@@ -253,7 +253,7 @@ build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
     }
     // Fill any trailing params the impl didn't supply from their `<T = Default>`
     // defaults. `Self` (and any earlier param) is already bound, so a `Self`
-    // default — or a default referencing an earlier param — resolves through
+    // default (or a default referencing an earlier param) resolves through
     // `subst`. Bind in order so a later default can reference an earlier one.
     for i in n..<trait_.type_params.len() {
         d :: trait_.type_params[i].default ?? break

@@ -2,7 +2,7 @@
 //
 // A text-only string literal becomes a single `LoweredStringLit`. A literal with
 // any `${expr}` segment lowers to ONE right-sized byte buffer (`lower_interp_buffer`)
-// when some part is a directly-writable primitive (int / uint / bool) — each
+// when some part is a directly-writable primitive (int / uint / bool): each
 // writes its bytes straight in, no throwaway interned string per part. A purely
 // text + `${string}` / `${Display}` interpolation has no digit to format, so it
 // stays on the leaner all-string concat path (`lower_concat_chain`, the shared
@@ -46,7 +46,7 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
 // Lower a flattened string `+` chain (`operands` are the lowered leaves, in
 // order) to a single interned string : a call to the shared, arity-specialised
 // `concat_N` (`vader/lower/concat.vader`). `concat_N` is one right-sized
-// byte buffer written part-by-part and interned once — no StringBuilder struct /
+// byte buffer written part-by-part and interned once: no StringBuilder struct /
 // parts array, one intern for the whole chain, ANY arity (no magic 2/3/4, no
 // cliff). It is synthesised on first use of arity N and shared across every
 // N-leaf concat ; the call site stays one `call`.
@@ -70,18 +70,18 @@ lower_concat_chain :: fn(ctx: FnLowerCtx, operands: LoweredExpr[], span: Span) -
 /// `"a" + "b" + x + "c" + "d"` collects five leaves and would emit a `concat_5`
 /// that allocates a buffer, writes five parts and interns the result at run
 /// time. Three of those parts are known here, so the chain becomes `["ab", x,
-/// "cd"]` — a `concat_3`. An ALL-literal chain folds to a single
+/// "cd"]`: a `concat_3`. An ALL-literal chain folds to a single
 /// `LoweredStringLit`, which the caller returns directly : the whole
 /// concatenation then costs nothing at run time, the bytes being interned once
 /// as a comptime atom.
 ///
 /// The leaves are already lowered, so a `LoweredStringLit` here is a genuine
-/// compile-time constant — a `const` local still arrives as a `LoweredIdent` and
+/// compile-time constant: a `const` local still arrives as a `LoweredIdent` and
 /// is left alone.
 ///
 /// @param operands  the flattened chain leaves, in order. Returned as-is when
 ///                  nothing folds, so the common chain pays no copy.
-/// @param span      the whole chain's span — carried by the `""` fallback when
+/// @param span      the whole chain's span: carried by the `""` fallback when
 ///                  every leaf was an empty literal and nothing else is left.
 /// @return          the folded leaves, always at least one.
 fold_literal_runs :: fn(operands: LoweredExpr[], span: Span) -> LoweredExpr[] {
@@ -110,8 +110,8 @@ fold_literal_runs :: fn(operands: LoweredExpr[], span: Span) -> LoweredExpr[] {
 }
 
 // True when `fold_literal_runs` would change something : an empty literal to
-// drop, or two adjacent literals to merge. The shape a `${}` lowers to —
-// `"x=" + v + ", y=" + w` — has neither, so it keeps its own operand array and
+// drop, or two adjacent literals to merge. The shape a `${}` lowers to
+// (`"x=" + v + ", y=" + w`) has neither, so it keeps its own operand array and
 // the fold costs one scan instead of a fresh array plus a copy per leaf.
 has_foldable_leaf :: fn(operands: LoweredExpr[]) -> bool {
     after_literal := false
@@ -148,7 +148,7 @@ merge_into_literal_tail :: fn(out: LoweredExpr[], lit: LoweredStringLit) -> bool
     return false
 }
 
-// ICE for the (provably-dead) std/core buffer-API resolution guards — std/core
+// ICE for the (provably-dead) std/core buffer-API resolution guards: std/core
 // is the force-loaded prelude, so these never fire. A resolution miss here is a
 // broken toolchain, not a user error, so we PANIC (fail loud) rather than emit a
 // degraded `stub` that would silently miscompile every `${…}` / `+`.
@@ -185,7 +185,7 @@ INTEGER_TEXT_BYTES: i64: 20
 WriterKind :: enum(u8) { Text, Str, Signed, Unsigned, Bool, Display }
 
 // The writer of a bare primitive ; `.Display` for any other type, which renders
-// through its `Display` (`render_part`) — a distinct included, whose own `Display`
+// through its `Display` (`render_part`): a distinct included, whose own `Display`
 // may differ from its backing's (`Instant`'s ISO-8601 form over `distinct i64`).
 classify_kind :: fn(t: Type) -> WriterKind {
     if t is RangeType {
@@ -201,8 +201,8 @@ classify_kind :: fn(t: Type) -> WriterKind {
 // Interpolation → ONE exact-sized byte buffer when some part is a directly
 // writable primitive (int / uint / bool) : those write their digits straight in,
 // skipping the throwaway interned string the old `value.to_string()` minted per
-// `${int}`. The buffer is sized up front — verbatim text bytes + bounds (≤ 20 per
-// int, ≤ 5 per bool) + the runtime `byte_len` of string / `${Display}` parts — so
+// `${int}`. The buffer is sized up front, verbatim text bytes + bounds (≤ 20 per
+// int, ≤ 5 per bool) + the runtime `byte_len` of string / `${Display}` parts, so
 // it never grows ; `off` threads through the offset-returning `write_*`
 // primitives, interned once. A purely text + `${string}` / `${Display}`
 // interpolation has no digit to format, so it stays on the leaner all-string
@@ -264,8 +264,8 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     register_nongeneric_imported_fn(ctx, wuint_sym)
     register_nongeneric_imported_fn(ctx, wbool_sym)
 
-    // Process parts : bind each string / `${Display}` to a tmp (referenced twice —
-    // size + write — so `${f()}` isn't evaluated twice), accumulate the static byte
+    // Process parts : bind each string / `${Display}` to a tmp (referenced twice,
+    // size + write, so `${f()}` isn't evaluated twice), accumulate the static byte
     // bound + the runtime `byte_len` size terms, and record what to write.
     stmts: LoweredStmt[]: []
     write_values: LoweredExpr[]: []
@@ -292,7 +292,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
             write_values.push(v)
             write_kinds.push(.Str)
         } else {
-            // A string — bind to a tmp, add a runtime `byte_len` size term.
+            // A string: bind to a tmp, add a runtime `byte_len` size term.
             tmp_sym :: fresh_synthetic_symbol(ctx, "p")
             stmts.push(LoweredLet {
                 .span = span,
@@ -326,7 +326,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
         .span = span, .name = off_sym.name, .symbol = off_sym, .type = TY_I64,
         .value = LoweredIntLit { .span = span, .type = TY_I64, .value = 0 },
     })
-    // `off = buf.write_X(off, value)` per part — the write returns the new offset.
+    // `off = buf.write_X(off, value)` per part: the write returns the new offset.
     for i in 0..<write_values.len() {
         wv :: write_values[i]
         wsym :: match write_kinds[i] {
@@ -355,8 +355,8 @@ integer_writer :: fn(values: Interval) -> WriterKind {
 
 // What renders the interpolated `value` of type `shown`, as the typecheck recorded
 // it : its `Display` member, called or inlined, or the vtable's. Null when the
-// interpolation writes the value itself — an integer, a `bool`, a `string`, or a
-// distinct over one with no `Display` of its own — a bound's settled on such an
+// interpolation writes the value itself (an integer, a `bool`, a `string`, or a
+// distinct over one with no `Display` of its own) a bound's settled on such an
 // instance included.
 render_part :: fn(
     ctx: FnLowerCtx,
@@ -380,7 +380,7 @@ render_part :: fn(
 }
 
 // Whether the interpolation writes a part of type `shown` itself : the typecheck
-// recorded no call, or the type it settles on is one the interpolation writes — a
+// recorded no call, or the type it settles on is one the interpolation writes: a
 // bound's member at its instance, a part typed only once unrolled (`@field` in a
 // `@comptime for`, recorded as erroneous).
 writes_part :: fn(ctx: FnLowerCtx, callee: Callee | null, shown: Type) -> bool {
@@ -429,7 +429,7 @@ import "std/testing"
 // leaves with `fold_test_lit_at` instead.
 fold_test_lit :: fn(value: string) -> LoweredExpr = fold_test_lit_at(value, 1)
 
-// A literal leaf whose span sits on `line` — the marker the merge test reads
+// A literal leaf whose span sits on `line`: the marker the merge test reads
 // back: folding keeps the run's FIRST start and its LAST end.
 fold_test_lit_at :: fn(value: string, line: i32) -> LoweredExpr = LoweredStringLit {
     .span = Span {
@@ -486,7 +486,7 @@ fold_test_run :: fn(leaves: LoweredExpr[]) -> string {
     assert_eq(fold_test_run(leaves), "var:x")
 }
 
-// An empty literal between two literals must not break the run — dropping it
+// An empty literal between two literals must not break the run: dropping it
 // first is what lets `"e" + "" + "f"` reach a single `"ef"`.
 @test test_fold_literal_runs_empty_does_not_break_a_run :: fn() -> void {
     leaves: LoweredExpr[]: [fold_test_lit("e"), fold_test_lit(""), fold_test_lit("f")]
@@ -515,7 +515,7 @@ fold_test_run :: fn(leaves: LoweredExpr[]) -> string {
     }
 }
 
-// A chain with nothing to fold keeps its own array — the early-out that spares
+// A chain with nothing to fold keeps its own array: the early-out that spares
 // the common `"x=" + v + ", y=" + w` shape a copy per leaf.
 @test test_fold_literal_runs_returns_the_input_when_nothing_folds :: fn() -> void {
     mixed: LoweredExpr[]: [fold_test_lit("a"), fold_test_opaque("x")]

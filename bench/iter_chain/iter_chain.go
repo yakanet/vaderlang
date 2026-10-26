@@ -1,6 +1,6 @@
 // Go peer of bench/iter_chain.vader. Go 1.23+ has range-over-func iterators
 // (used in bench/arr_map.go), but for iter_chain we deliberately keep a direct
-// for-loop as the strict lower bound — no chain abstraction, no per-item alloc ;
+// for-loop as the strict lower bound: no chain abstraction, no per-item alloc ;
 // Vader's lazy chain vs Go's direct loop measures the cost of the chain
 // abstraction itself.
 

@@ -10,7 +10,7 @@ import com.redhat.devtools.lsp4ij.client.features.LSPSemanticTokensFeature
 // LSP4IJ already ships a complete `DefaultSemanticTokensColorsProvider` mapping
 // every standard token type to an `LSP_*` key the user can recolour under
 // Settings → Editor → Color Scheme. That default is kept for everything not
-// handled below — replacing it wholesale would take those settings away.
+// handled below: replacing it wholesale would take those settings away.
 //
 // Each override answers one question: does the token type end up coloured for the
 // user, or not? Three answers, three branches:
@@ -23,7 +23,7 @@ import com.redhat.devtools.lsp4ij.client.features.LSPSemanticTokensFeature
 //     grammar already paints call sites via `entity.name.function.call.vader`
 //     while LSP4IJ's `LSP_FUNCTION` → `FUNCTION_CALL` is a key themes leave at the
 //     plain foreground. Emitting a token there REPLACED a coloured scope with an
-//     uncoloured key, whitening every call — while the same call inside a string
+//     uncoloured key, whitening every call, while the same call inside a string
 //     interpolation (no AST token emitted) stayed coloured. Returning null makes
 //     LSP4IJ skip the highlight (`SemanticTokensData` null-checks the key), so the
 //     grammar keeps it.

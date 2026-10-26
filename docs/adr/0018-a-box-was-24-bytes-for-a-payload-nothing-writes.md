@@ -1,4 +1,4 @@
-# 0018 — A box was 24 bytes for a payload nothing writes
+# 0018: A box was 24 bytes for a payload nothing writes
 
 ## Status
 
@@ -17,7 +17,7 @@ pointer. One recursive call in `bench/tree_eval` compiled to three loads, three
 stores and a pointer setup, where Go's 16-byte interface is two register moves.
 
 The comment justifying the width said `vader_string_t` already made the union 16
-bytes wide. It does not — `vader_string_t` is a `vader_atom_t`, four bytes. The
+bytes wide. It does not: `vader_string_t` is a `vader_atom_t`, four bytes. The
 claim had been false since atom interning landed, and nothing made a reader
 doubt it.
 
@@ -34,7 +34,7 @@ Three facts said the room was reserved for nothing:
 
 A `_Static_assert(sizeof(vader_box_t) == 16)` now guards it, the first in
 `runtime/c/`. Anything that needs more inline space needs a different mechanism,
-not a wider box — a per-mirror assertion at the emission site would be the place
+not a wider box: a per-mirror assertion at the emission site would be the place
 to bound it.
 
 ## Consequences
@@ -56,7 +56,7 @@ Measured back to back, 40 runs each, on a 2026 Apple Silicon laptop:
 did not hold: a later capture of the same build read 13.6 ms, BELOW the 24-byte
 figure, and the row has spanned 13.6 to 15.5 ms across captures of one unchanged
 build. Its loop pushes `i32` into a packed array and never touches a box, so it
-moves with the runtime's code layout rather than with anything semantic —
+moves with the runtime's code layout rather than with anything semantic:
 `-falign-functions=64` is in the tree to damp exactly that. Recorded because the
 first reading was published as a real cost before a second one contradicted it.
 

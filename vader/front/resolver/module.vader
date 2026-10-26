@@ -6,16 +6,16 @@
 // `import "./foo"` / `import "../foo"` are not a language form and are
 // rejected (R2025).
 //
-//   - `import "std/foo"`  — resolves against the library root `lib/`, which
+//   - `import "std/foo"`: resolves against the library root `lib/`, which
 //     hosts every namespace the toolchain ships (probed next to the
-//     executable, then `<cwd>/lib` — see `resolve_sidecar`).
-//   - `import "vader/front/parser"` — a bare name resolved against the project
+//     executable, then `<cwd>/lib`, see `resolve_sidecar`).
+//   - `import "vader/front/parser"`: a bare name resolved against the project
 //     root and each `includePaths` entry, first match wins.
 //
 // Each candidate path is probed first as a directory (multi-file
 // module : every `*.vader` inside contributes), then as a single
 // `*.vader` file. The `displayPath` is what shows up in diagnostics
-// and dumps — for stdlib this is the raw `std/...` text ; for a project
+// and dumps: for stdlib this is the raw `std/...` text ; for a project
 // module it's the module's declared `module "..."` name.
 
 module "vader/front/resolver"
@@ -42,11 +42,11 @@ export MANIFEST_FILENAME :: "vader.json"
 /// Lives here, not in `vader/tools/cli`, because two passes need it and only one of
 /// them may import a front-end: the CLI writes the shim, and the dead-code lint
 /// has to know that `DRIVER_ENTRY` in this module is an ENTRY POINT. Without
-/// that, `build` reads as unreachable — nothing in the project calls it, since
+/// that, `build` reads as unreachable: nothing in the project calls it, since
 /// its only caller is a shim that exists solely during a driven build.
 export DRIVER_MODULE :: "build"
 
-/// Function a build driver must declare — reserved in `DRIVER_MODULE` the way
+/// Function a build driver must declare: reserved in `DRIVER_MODULE` the way
 /// `main` is reserved in a program, with no decorator involved.
 export DRIVER_ENTRY :: "build"
 
@@ -56,13 +56,13 @@ export DRIVER_ENTRY :: "build"
 /// directory exists under the project root, it becomes a merge root
 /// (`lazy::IncludePath.merge`), so `vader run` / `test` / `lint` / `dump` and the
 /// LSP see generated code exactly as `vader build` does. A build driver writes
-/// here (`toolchain/build`), it does not decide the location — the two halves have to
+/// here (`toolchain/build`), it does not decide the location: the two halves have to
 /// agree, and only one of them can be authoritative.
 ///
 /// Under `build/` so a checkout's existing ignore rules already cover it.
 export GENERATED_ROOT_DIR :: "build/generated"
 
-/// A loaded source file in a module — raw text plus its parsed AST.
+/// A loaded source file in a module: raw text plus its parsed AST.
 /// `id_factory` is the post-parse factory state for this file, threaded
 /// to `LoadedModule` so cloned default-method bodies inserted by
 /// `materialize.vader` mint IDs in the same namespace as parse-time IDs.
@@ -75,7 +75,7 @@ export SourceFile :: struct {
 
 /// Concatenate every file's top-level decls of a (possibly multi-file) module
 /// into one `Decl[]`. Single-file modules (the common case) return the file's
-/// decls directly — zero-copy, no concat allocation. Shared by the typecheck /
+/// decls directly: zero-copy, no concat allocation. Shared by the typecheck /
 /// lower / comptime "decls of a module" accessors so the concat lives once.
 ///
 /// @param files  the module's source files (`Module.files`).
@@ -94,13 +94,13 @@ export concat_file_decls :: fn(files: SourceFile[]) -> Decl[] {
     return out
 }
 
-/// Who brought a root into the module search — and so who provided the modules
+/// Who brought a root into the module search, and so who provided the modules
 /// found under it. The question every policy site actually asks: a shipped
 /// library must not import the compiler (R2034), and the toolchain's own exports
 /// are outside a project's lint scope (W0012).
 ///
 /// Decided ONCE, where the roots are assembled (`loader::project_include_paths`),
-/// and carried from there — never recomputed by matching a module's folder
+/// and carried from there, never recomputed by matching a module's folder
 /// against a list of roots, which is what this replaces.
 @displayable
 export ModuleOrigin :: enum(u8) {
@@ -109,7 +109,7 @@ export ModuleOrigin :: enum(u8) {
     /// a `vader.json includePaths` entry holding no library marker, the generated
     /// tree.
     ///
-    /// The ENTRY is always this, whatever it sits under — a root exists because the
+    /// The ENTRY is always this, whatever it sits under: a root exists because the
     /// caller named that file. `paths[0]` is that root and first match wins, so the
     /// entry never picks up another root's origin.
     ///
@@ -123,7 +123,7 @@ export ModuleOrigin :: enum(u8) {
     /// is not that, whatever it sits under.
     ///
     /// The alternative was testing the entry folder's ANCESTRY against the marker
-    /// (which sits at the library ROOT, `lib/`, not at `lib/probe/`) — reintroducing
+    /// (which sits at the library ROOT, `lib/`, not at `lib/probe/`): reintroducing
     /// the path-matching this type exists to remove, to report an error whose
     /// premise does not hold.
     Build,
@@ -141,7 +141,7 @@ export Module :: struct {
     id: string
     display_path: string
     module_name: string
-    /// Who provided this module — see `ModuleOrigin`. It replaces `root_dir`, a
+    /// Who provided this module, see `ModuleOrigin`. It replaces `root_dir`, a
     /// byte-identical duplicate of `id` with no reader, which is what makes the
     /// tag free. Required, with no default: the predecessor it replaces was a
     /// defaulted list on `LoadedProject`, and a literal that omitted it answered
@@ -226,7 +226,7 @@ try_read :: fn(path: string) -> string | null {
 /// `base` ; callers are expected to pass clean inputs.
 export join_path :: fn(base: string, seg: string) -> string {
     // Strip a leading `./` from the relative segment so module ids
-    // stay normalised — `from/./mod_a` would render as `## from/./mod_a`
+    // stay normalised: `from/./mod_a` would render as `## from/./mod_a`
     // in the typecheck dump.
     s :: trim_prefix(seg, "./")
     if base == "" {
@@ -307,11 +307,11 @@ export register_toolchain_root :: fn(dir: string) -> void {
     registered_toolchain().path = dir
 }
 
-/// Environment variable naming the toolchain's own directory — the one holding
+/// Environment variable naming the toolchain's own directory: the one holding
 /// `lib/`, `runtime/` and (in a bundle) `src/`.
 ///
 /// Optional. Without it the toolchain is found beside the binary, then relative
-/// to the working directory, and those two are all a bare binary has — which is
+/// to the working directory, and those two are all a bare binary has, which is
 /// why it only works from a directory that happens to hold a `lib/`.
 export TOOLCHAIN_HOME_VAR :: "VADER_HOME"
 
@@ -319,7 +319,7 @@ export TOOLCHAIN_HOME_VAR :: "VADER_HOME"
 /// `marker`, else null.
 ///
 /// Probed BEFORE the executable's own neighbourhood: an explicit setting beats an
-/// implicit guess, which is the only reason to have the variable — pointing a
+/// implicit guess, which is the only reason to have the variable: pointing a
 /// binary at a toolchain that is not the one beside it.
 ///
 /// A value that does not hold the marker is IGNORED rather than fatal, so a stale
@@ -327,8 +327,8 @@ export TOOLCHAIN_HOME_VAR :: "VADER_HOME"
 /// instead of bricking every invocation. That silence is deliberate and it is
 /// paid for by `vader doctor`, which reports the variable as set-and-unusable.
 ///
-/// ⚠️ The root it returns is ABSOLUTE, so it becomes an absolute module-id prefix
-/// — the same thing a `dist/` bundle already does, and the reason the cwd fallback
+/// ⚠️ The root it returns is ABSOLUTE, so it becomes an absolute module-id prefix:
+/// the same thing a `dist/` bundle already does, and the reason the cwd fallback
 /// in `resolve_sidecar` stays relative (see its note on snapshot-order drift). Do
 /// not set this variable when running the snapshot corpus.
 ///
@@ -349,7 +349,7 @@ export home_root :: fn(subdir: string, marker: string) -> string | null {
 
 /// Marker proving a candidate directory really is a library root.
 ///
-/// `lib/` hosts every namespace the toolchain ships, `std/` among them — it is not
+/// `lib/` hosts every namespace the toolchain ships, `std/` among them: it is not
 /// the stdlib's own directory, which is why the name says library and not stdlib.
 /// The marker is `std/io/io.vader` : `std/io` is a folder module, so the bare
 /// `std/io.vader` file does not exist. A stale marker silently defeats the
@@ -377,13 +377,13 @@ export origin_of_root :: fn(dir: string) -> ModuleOrigin {
 /// Directory name a bundled library root goes by, beside the binary.
 export LIBRARY_ROOT_DIR :: "lib"
 
-/// The one module under the library root allowed to import `vader/**` — the
+/// The one module under the library root allowed to import `vader/**`: the
 /// build-driver contract, which exists to drive the compiler.
 ///
 /// A driver LINKS the compiler (a hook shares its compilation unit: type indices
 /// and atom ids are per-unit), so this cannot be a library that merely reads the
 /// language's shapes. `toolchain/span` and `toolchain/ast` are those, and they
-/// import nothing from `vader/` — which is what lets a library depend on them.
+/// import nothing from `vader/`, which is what lets a library depend on them.
 export DRIVER_CONTRACT_MODULE :: "toolchain/build"
 
 import "json"
@@ -397,7 +397,7 @@ MANIFEST_KEYS :: ["name", "version", "includePaths", "entries", "assets"]
 export Manifest :: struct {
     /// Extra module search roots (`includePaths` key), each relative to the
     /// project root. Joined onto the project root and searched (after the
-    /// manifest dir itself) by lazy resolution — GCC `-I` style. E.g.
+    /// manifest dir itself) by lazy resolution: GCC `-I` style. E.g.
     /// `["lib"]` makes `module "std/io"` resolve at `<root>/lib/std/io`.
     include_paths: string[] = []
     /// The programs the project builds (`entries` key), in declaration order.
@@ -560,8 +560,8 @@ test_a_build_vader_of_another_module_is_no_driver :: fn() -> void {
 @test
 test_read_manifest_reads_repo_include_paths :: fn() -> void {
     // Tests run with the repo root as cwd, so `""` joins to `"vader.json"`.
-    // The Vader repo declares its library root via `"includePaths": ["lib"]`
-    // — guards against a renamed key or a regressed parse silently dropping the
+    // The Vader repo declares its library root via `"includePaths": ["lib"]`:
+    // guards against a renamed key or a regressed parse silently dropping the
     // search roots (which would break every `std/*` import). It is also the
     // BRIDGE that lets a seed-built binary, whose sidecar probe is baked to the
     // previous layout, resolve against a renamed tree; see docs/BOOTSTRAP.md.

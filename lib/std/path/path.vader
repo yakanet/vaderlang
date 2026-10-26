@@ -1,7 +1,7 @@
 // std/path: filesystem path manipulation.
 //
 // Paths are immutable string-backed values. Every operation returns a fresh
-// Path rather than mutating. POSIX-style `/` separator only in MVP — Windows
+// Path rather than mutating. POSIX-style `/` separator only in MVP: Windows
 // support deferred (will replace the constant with a runtime-determined value).
 
 module "std/path"
@@ -13,26 +13,26 @@ import "std/string_builder"
 
 /// Path separator codepoint. POSIX-only in MVP (`/`).
 export SEP :: '/'
-/// Path separator as a string — useful for direct concatenation.
+/// Path separator as a string: useful for direct concatenation.
 export SEP_STR :: "/"
 
 /// Rewrite OS-native path separators to the canonical `/`. The compiler keeps
-/// `/` as its single internal separator — module discovery, the module index,
-/// and `vader/front/resolver::join_path` are all `/`-based — so a path entering from
+/// `/` as its single internal separator (module discovery, the module index,
+/// and `vader/front/resolver::join_path` are all `/`-based) so a path entering from
 /// an OS boundary that may carry `\` (Windows CLI arguments, env vars) must be
 /// funnelled through here first, otherwise `parent` / `filename` (which split
 /// on `SEP`) silently return empty. POSIX paths pass through unchanged.
 /// Takes and returns a raw `string`, not a `Path`: the compiler internals it
 /// serves (`vader/front/resolver::loader`, `vader/tools/lsp/protocol::uri`) are string-based,
 /// and the CLI-side `Path` conversion stops at their boundary. Nothing technical
-/// forces this any more — a `Path -> Path` signature used to panic in midir on the
-/// chained cast inside, which is fixed — it is scope.
+/// forces this any more: a `Path -> Path` signature used to panic in midir on the
+/// chained cast inside, which is fixed: it is scope.
 ///
 /// @param s  a path string, possibly using `\` separators.
 /// @return   the same path with every `\` rewritten to `/`.
 export to_posix :: fn(s: string) -> string = s.replace_chars_where((c: char) -> c == '\\', SEP_STR)
 
-/// An immutable filesystem path — a nominal newtype over `string`. Zero-cost:
+/// An immutable filesystem path: a nominal newtype over `string`. Zero-cost:
 /// at runtime a `Path` *is* its UTF-8 string, with no wrapper box. Nominal at
 /// typecheck so a `Path` never silently mixes with a raw `string` ; every
 /// combinator returns a fresh `Path` rather than mutating in place.
@@ -40,7 +40,7 @@ export Path :: string
 
 // ---- constructors ---------------------------------------------------------
 
-/// Wrap an existing string as a `Path`. No validation — assumes the caller
+/// Wrap an existing string as a `Path`. No validation: assumes the caller
 /// has produced a syntactically valid path.
 /// @param s  the path string.
 export to_path :: fn(s: string) -> Path = Path(s)
@@ -58,7 +58,7 @@ export as_string :: fn(self: Path) -> string = string(self)
 export is_absolute :: fn(self: Path) -> bool = self.as_string().str_starts_with(SEP_STR)
 
 
-/// Parent directory — everything before the last separator. Returns the
+/// Parent directory: everything before the last separator. Returns the
 /// empty path when there's no separator, or `/` when the path is at the
 /// filesystem root.
 /// @param self  the path receiver.
@@ -92,16 +92,16 @@ export filename :: fn(self: Path) -> string {
 /// The two halves of a filename, as returned by `basename`.
 ///
 /// RETAINED against its own redundancy: `filename()` / `name()` / `extension()`
-/// cover every use, and this should have gone with them — but removing it makes
+/// cover every use, and this should have gone with them, but removing it makes
 /// `vader test lib/std/path` panic in `to_posix`, a function it never touched
 /// (`no field replace_chars_where on Path`). Bisected: ADDING the three views is
 /// fine, REMOVING this is what breaks, so it is a materialisation bug the removal
 /// merely exposes. `tests/vader_e2e.test.ts` runs that isolated mode per stdlib
 /// module, so the panic is CI-visible. See TODO.md; delete this once fixed.
 export Basename :: struct {
-    /// The filename without its final extension — `"archive.tar"`.
+    /// The filename without its final extension: `"archive.tar"`.
     name:      string
-    /// The final extension without the leading dot — `"gz"`.
+    /// The final extension without the leading dot: `"gz"`.
     extension: string
 }
 
@@ -114,7 +114,7 @@ export basename :: fn(self: Path) -> Basename =
 // Byte offset of the extension-separating dot inside a FILENAME (never a full
 // path), or -1 when there is none. The `min_index` of 1 is the whole subtlety: a
 // leading dot marks a hidden file rather than an extension, and it only means
-// that at the start of the filename — which is why callers must have narrowed to
+// that at the start of the filename, which is why callers must have narrowed to
 // `filename()` first. `last_index_of` returns a BYTE offset, so every caller
 // slices `bytes()` and not the codepoint-indexed `s[a..<b]`; mixing the two turns
 // `café.vader` into `ader`.
@@ -128,7 +128,7 @@ extension_dot :: fn(fname: string) -> i64 = fname.last_index_of('.', 1)
 ///
 /// @param self  the path receiver.
 /// @return      the filename with its extension and dot removed, or the filename
-///              unchanged when it has no extension — a dotfile keeps its full
+///              unchanged when it has no extension: a dotfile keeps its full
 ///              name (`.gitignore` → `.gitignore`), since its leading dot is not
 ///              an extension separator.
 /// @example
@@ -152,7 +152,7 @@ export name :: fn(self: Path) -> string {
 ///
 /// @param self  the path receiver.
 /// @return      the extension without its dot, or `""` when the final segment
-///              has none — a dotfile and a trailing dot both count as none.
+///              has none: a dotfile and a trailing dot both count as none.
 /// @example
 ///   "src/archive.tar.gz".to_path().extension()  // "gz"
 ///   "dir/.gitignore".to_path().extension()      // ""
@@ -190,7 +190,7 @@ export join :: fn(self: Path, other: string) -> Path {
     return Path(s + SEP_STR + other)
 }
 
-// `path / "child"` — operator sugar for `join`. The `/` mirrors the path
+// `path / "child"`: operator sugar for `join`. The `/` mirrors the path
 // separator and reads naturally when building child paths.
 Path implements Div<string> {
     div :: fn(self, other: string) -> Path = self.join(other)
@@ -198,7 +198,7 @@ Path implements Div<string> {
 
 // ---- predicates -----------------------------------------------------------
 
-/// True when `self` starts with `prefix` on a segment boundary — so
+/// True when `self` starts with `prefix` on a segment boundary, so
 /// `/foo/bar` starts with `/foo` but `/foobar` does NOT. Useful for
 /// "is this under that directory" checks.
 /// @param self    the path receiver.
@@ -246,7 +246,7 @@ export ends_with :: fn(self: Path, suffix: Path) -> bool {
 
 // ---- normalization --------------------------------------------------------
 
-/// Collapse `.` and `..` segments. Purely lexical — does NOT touch the
+/// Collapse `.` and `..` segments. Purely lexical: does NOT touch the
 /// filesystem (no symlink resolution, no existence check). Preserves an
 /// absolute prefix when present.
 ///
@@ -363,7 +363,7 @@ import "std/testing"
     assert_eq("README".to_path().name(), "README")
     assert_eq("README".to_path().extension(), "")
 
-    // A leading dot marks a hidden file, it is not an extension separator —
+    // A leading dot marks a hidden file, it is not an extension separator,
     // and that holds in a subdirectory too, which is why the search runs on
     // `filename()` rather than on the whole path.
     assert_eq(".gitignore".to_path().name(), ".gitignore")

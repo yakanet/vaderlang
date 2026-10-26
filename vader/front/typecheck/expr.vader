@@ -15,7 +15,7 @@
 //
 // Every Expr variant has a dedicated per-variant handler (literals, ident,
 // call, field, binary, …) and the dispatch match in `infer_expr` is
-// exhaustive — a newly-added Expr variant trips T3013 here.
+// exhaustive: a newly-added Expr variant trips T3013 here.
 
 module "vader/front/typecheck"
 
@@ -28,7 +28,7 @@ import "vader/core/types"
 import "toolchain/span"
 import "vader/support/integer"
 
-/// Type-check `expr`. `expected` provides bidirectional context — pass
+/// Type-check `expr`. `expected` provides bidirectional context: pass
 /// `null` for fresh-position uses. The returned `Type` is the post-
 /// narrowing type ; it's also written into `typed.expr_types`.
 check_expr :: fn(
@@ -221,7 +221,7 @@ settle_ambiguous_literal :: fn(
 /// Write the final type of `expr` into `expr_types`, plus its kind + span
 /// into the dump-only side-tables. Centralised so every writer keeps the
 /// three in lockstep. `expr_kinds` / `node_spans` are populated only when
-/// `typed.dump_types` is set (the typed-ast dump) — they feed nothing else,
+/// `typed.dump_types` is set (the typed-ast dump): they feed nothing else,
 /// so build / run / LSP skip those two inserts per expression.
 record_expr :: fn(typed: TypedProgram, expr: AST.Expr, ty: Type) -> void {
     typed.expr_types[expr.id] = ty
@@ -268,7 +268,7 @@ infer_expr :: fn(
     expr: AST.Expr, expected: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    // Every Expr variant has a dedicated arm — the match is exhaustive, so
+    // Every Expr variant has a dedicated arm: the match is exhaustive, so
     // T3013 now guards it: a new Expr variant trips the check here.
     match expr {
         is AST.IntLitExpr    -> { return TY_FREE_INT }
@@ -343,7 +343,7 @@ infer_expr :: fn(
 }
 
 // Attribute to the enclosing fn the `Display` an interpolated value dispatches on
-// a type-param — see `fn_display_dispatches`.
+// a type-param, see `fn_display_dispatches`.
 mark_display_dispatch :: fn(type: Type, typed: TypedProgram) -> void {
     if !type_contains_type_param(type) {
         return
@@ -355,12 +355,12 @@ mark_display_dispatch :: fn(type: Type, typed: TypedProgram) -> void {
 }
 
 // T3018 : an interpolated value renders through its `Display`, so a type with
-// none is refused here — past this check it would compile and fail at run time,
+// none is refused here: past this check it would compile and fail at run time,
 // a dispatch finding no impl.
 //
 // T3086 : a boxed enum or distinct carries its representation's runtime type, not
-// its own, so one reached through a union — the value itself, or an array's
-// elements — would render through its representation's `Display`. Refused until a
+// its own, so one reached through a union: the value itself, or an array's
+// elements: would render through its representation's `Display`. Refused until a
 // boxed value keeps its identity ; a narrowed value renders through its own. Only
 // worth reporting on a type that would otherwise render.
 //

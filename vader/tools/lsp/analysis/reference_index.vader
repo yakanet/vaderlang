@@ -49,7 +49,7 @@ export RefSite :: struct {
 }
 
 /// Project-wide reference table : a flat list of every recorded use / decl
-/// site. Flat (not a map) — a references query does two linear passes (find the
+/// site. Flat (not a map): a references query does two linear passes (find the
 /// target under the cursor, then collect its sites), both bounded by project
 /// size, which is fine for an on-demand request.
 export ReferenceIndex :: struct {
@@ -98,7 +98,7 @@ export is_fn_key :: fn(key: i64) -> bool = key < 0
 ///
 /// The FILE test is the whole point. The index is project-wide and flat, so a
 /// position alone matches the first site anywhere that happens to cover that
-/// line and column — in a 30 kLoC tree, almost always a different file. That is
+/// line and column: in a 30 kLoC tree, almost always a different file. That is
 /// not a corner case: `push_all` at `front/resolver/loader.vader:650:20` resolved to
 /// `label` at `front/parser/dump.vader:650:18`, and find-usages answered with three
 /// sites in a file the cursor was never in. Rename used the same lookup, so it
@@ -116,7 +116,7 @@ export cursor_in_file_span :: fn(sp: Span, file: string, line: i32, col: i32) ->
 }
 
 /// True when the 1-based (line, col) falls inside the half-open span
-/// [start, end). Position only — callers that have a file MUST use
+/// [start, end). Position only: callers that have a file MUST use
 /// `cursor_in_file_span`, which is every caller serving a cursor.
 export cursor_in_span :: fn(sp: Span, line: i32, col: i32) -> bool {
     if line < sp.start.line { return false }
@@ -401,7 +401,7 @@ add_namespace_member :: fn(index: IndexBuilder, typed: TypedProgram, e: AST.Fiel
 // ---- collectors (mirror ast_tokens.vader coverage) --------------------------
 //
 // Accumulate every identifier-bearing span : `IdentExpr` use-sites AND the
-// name_spans of declarations the body-walker records in `idents` — local lets,
+// name_spans of declarations the body-walker records in `idents`: local lets,
 // type-params, for-bindings, pattern bindings. Top-level decl names are
 // NOT pushed here (they come from `resolved.symbols`). Every expression node is
 // gathered too, for the call sites the typecheck recorded at it, and every impl
@@ -649,7 +649,7 @@ collect_expr :: fn(e: AST.Expr, out: Collected) -> void {
         is AST.NullLitExpr     -> {}
         is AST.CharLitExpr     -> {}
         // An interpolated `${…}` holds a real expression, and rename REWRITES
-        // what this collects — miss one and the edit deletes a binding whose
+        // what this collects: miss one and the edit deletes a binding whose
         // uses inside a string still name it, leaving source that no longer
         // compiles.
         is AST.StringLitExpr -> {
@@ -750,7 +750,7 @@ collect_opt_pattern :: fn(p: AST.Pattern | null, out: Collected) -> void {
 
 import "std/testing"
 
-// Count the identifier spans the walker collects from a parsed source — guards
+// Count the identifier spans the walker collects from a parsed source: guards
 // the walker's coverage (parse-only, no resolution needed).
 collect_count :: fn(src: string) -> i64 {
     parsed :: Parse.parse_source(src, "t.vader")
@@ -784,7 +784,7 @@ test_collect_idents_includes_interpolated_uses :: fn() -> void {
 test_collect_idents_includes_decls_and_uses :: fn() -> void {
     // `total` : the `::` local binding name + 2 uses = 3 (collecting the decl
     // name is what lets rename rewrite a local's declaration, not only its
-    // uses). `a` : the param decl span is wide so isn't collected — only its 1
+    // uses). `a` : the param decl span is wide so isn't collected, only its 1
     // use. `println` : 1 callee use.
     src :: "module \"t\"\nsum :: fn(a: i32, b: i32) -> i32 {\n    total :: a + b\n    println(total)\n    return total\n}\n"
     assert(idents_named(src, "total") == 3, "local binding name + two uses of total")

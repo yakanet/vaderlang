@@ -4,7 +4,7 @@ import "std/io"
 
 // `[i32, string] | null` carries a tuple variant alongside null. The arm
 // `is [i32, string]` narrows the scrutinee to the tuple variant, and the
-// destructure in its body reads the slots off the narrowed value — without
+// destructure in its body reads the slots off the narrowed value: without
 // the narrowing it would be a bare field access on the union value and trap.
 lookup :: fn(key: string) -> [i32, string] | null {
     if key == "found" {

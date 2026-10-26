@@ -15,15 +15,15 @@ main :: fn() -> i32 {
     a: u32: 0xFFFFFFFF
     b: u32: 0x80000000
 
-    // shr — must zero-fill, not sign-extend.
+    // shr: must zero-fill, not sign-extend.
     check("shr_high",    a >> 1 == 0x7FFFFFFF)
     check("shr_top_bit", b >> 31 == 1)
 
-    // shl — must wrap modulo 2^32, not sign-flip.
+    // shl: must wrap modulo 2^32, not sign-flip.
     check("shl_top",  1 << 31 == b)
     check("shl_wrap", b << 1 == 0)
 
-    // bitand / bitor / bitxor — high-bit values must round-trip.
+    // bitand / bitor / bitxor: high-bit values must round-trip.
     check("and", a & a == a)
     check("or",  b | 1 == 0x80000001)
     check("xor", a ^ b == 0x7FFFFFFF)

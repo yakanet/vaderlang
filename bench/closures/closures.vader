@@ -1,11 +1,11 @@
-/// Closures — a captured environment on the heap, and an indirect call through
+/// Closures: a captured environment on the heap, and an indirect call through
 /// a fn value. Neither is measured anywhere else: `iter_chain` and `arr_map`
 /// both exist to show the lowerer DELETING the indirection, and `shapes`
 /// measures a trait witness rather than a captured frame.
 ///
 /// Two halves, because a closure costs in two separate places. A mutating
 /// capture forces the local into a heap CELL, so every read and write goes
-/// through a pointer — `counter += 1` under a lambda is not the same store it
+/// through a pointer: `counter += 1` under a lambda is not the same store it
 /// was outside one. And a factory called many times mints one environment per
 /// closure, which is an allocation the call site cannot see.
 ///

@@ -1,4 +1,4 @@
-// `@c_pointer` on a type that is already a pointer — T3079.
+// `@c_pointer` on a type that is already a pointer: T3079.
 //
 // The decorator spills the argument to a stack temporary and passes its
 // address. A `string` already crosses as a `const char*`, so the address is of

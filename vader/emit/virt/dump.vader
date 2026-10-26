@@ -31,11 +31,11 @@ import "std/iter"
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The resulting
 /// string carries a trailing newline ; pipe to stdout directly. This is the
 /// canonical `.virt` form `parse_virt_bc` consumes and the parity snapshots
-/// compare — byte-for-byte stable.
+/// compare: byte-for-byte stable.
 ///
 /// @param module         the bytecode module to render.
 /// @param entry_mangled  mangled name of the entry fn (`<mod>$main`), or `""`
-///                       when none — drives the `export main N` directive.
+///                       when none: drives the `export main N` directive.
 /// @return               the textual dump.
 export dump_bytecode :: fn(module: BytecodeModule, entry_mangled: string) -> string =
     dump_bytecode_impl(module, entry_mangled, false)
@@ -45,7 +45,7 @@ export dump_bytecode :: fn(module: BytecodeModule, entry_mangled: string) -> str
 /// `string.const`, the callee mangle behind `call`, the `local.field`'s
 /// receiver + field name, the type name behind `ref.cast`, …).
 ///
-/// A human/AI-facing disassembly view — **not** round-trippable through
+/// A human/AI-facing disassembly view: **not** round-trippable through
 /// `parse_virt_bc` (the comments aren't part of the grammar), so it's gated
 /// behind `dump --stage=bytecode --annotate` and never feeds the VM or the
 /// parity snapshots. Every index lookup is bounds-guarded : an out-of-range
@@ -91,7 +91,7 @@ write_types :: fn(sb: StringBuilder, types: BcType[]) -> void {
     }
 }
 
-// Data pool — one line per pre-materialised read-only `T[]`. Primitive arrays dump
+// Data pool: one line per pre-materialised read-only `T[]`. Primitive arrays dump
 // as `data N <kind> hex"<le-bytes>"` ; string arrays as `data N str "v0" "v1" …`
 // (each value `quote_string`-escaped, mirroring the `string N "…"` section).
 // Round-trips through `front/virt/virt_reader_bc::parse_data_decl_bc` so the VM reconstructs
@@ -112,8 +112,8 @@ write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[], strings: stri
             sb.append("data ${i} ${array_kind_name(e.kind)} hex\"${data_items_hex(e)}\"\n")
         } else if e is BcAggregateData {
             // Count-prefixed token stream (no paren balancing). String leaves dump
-            // as `strref <i>` (a `string N` pool index) instead of inline `str "…"`
-            // — the value is interned once in the pool, so the inline copy was a
+            // as `strref <i>` (a `string N` pool index) instead of inline `str "…"`:
+            // the value is interned once in the pool, so the inline copy was a
             // textual redundancy. A HOMOGENEOUS struct array hoists its element type
             // + field count to the header and drops the per-element `struct <symid>
             // <nfields>` prefix :
@@ -142,8 +142,8 @@ write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[], strings: stri
 }
 
 // Result of the homogeneity probe : `symbol_id >= 0` (with its `nfields`) when
-// every element is a `BcValStruct` sharing that `symbol_id` — so the array is
-// homogeneous and the header can hoist both once — else `symbol_id = -1`.
+// every element is a `BcValStruct` sharing that `symbol_id` (so the array is
+// homogeneous and the header can hoist both once) else `symbol_id = -1`.
 HomogeneousAgg :: struct {
     symbol_id: i32
     nfields:   i32
@@ -164,7 +164,7 @@ homogeneous_struct :: fn(ad: BcAggregateData) -> HomogeneousAgg {
     return HETEROGENEOUS
 }
 
-// True when the pool has an aggregate entry — the only kind that dumps `strref`
+// True when the pool has an aggregate entry: the only kind that dumps `strref`
 // (and so the only reason to build the string→index map).
 data_pool_has_aggregate :: fn(data_pool: BcDataEntry[]) -> bool {
     for e in data_pool { if e is BcAggregateData { return true } }
@@ -236,7 +236,7 @@ data_items_hex :: fn(entry: BcPrimData) -> string {
 format_bc_type :: fn(t: BcType) -> string = match t {
     is BcScalar    -> "scalar ${val_type_name(t.val)}"
     is BcStruct    -> {
-        // `as "<c type>"` only when the struct mirrors one — an ordinary struct
+        // `as "<c type>"` only when the struct mirrors one: an ordinary struct
         // writes exactly what it did before, so no committed snapshot moves.
         mirror :: if t.c_name == "" { "" } else { " as \"${t.c_name}\"" }
         "struct ${quote_ident(t.name)}${mirror} { ${format_fields(t.fields)} }"
@@ -306,16 +306,16 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         // The header, when one owns the prototype. Same reason as the library:
         // without it a `.virt` re-read SYNTHESISES a prototype, which is the
         // conflicting declaration `@c_header` exists to avoid. Written BEFORE
-        // the signature — `front/virt::parse_signature_bc` reads the return type to the end
+        // the signature: `front/virt::parse_signature_bc` reads the return type to the end
         // of the line, so a trailing field lands inside it.
         header :: if imp.c_header == "" { "" } else { "header=${imp.c_header} " }
         // The fixed-argument count of a VARIADIC callee. Read back without it, a
-        // `@c_variadic` import calls through a non-variadic cast again — the
+        // `@c_variadic` import calls through a non-variadic cast again: the
         // exact silent corruption the marker exists to stop.
         va :: if imp.c_variadic_fixed < 0 { "" } else { "variadic=${imp.c_variadic_fixed} " }
         // The result's TYPE index, not just its `ValType`. `write_signature`
         // renders a union as `any`, so a `string | null` result read back from a
-        // `.virt` looked like a plain word — and the FFI then returned the atom
+        // `.virt` looked like a plain word, and the FFI then returned the atom
         // as an integer instead of a string. Only non-zero indices are written;
         // 0 is the "no type" slot every other import carries.
         rti :: bc_single_result_type(imp.signature)
@@ -452,7 +452,7 @@ write_vtable_rows :: fn(sb: StringBuilder, vtables: VtableRow[]) -> void {
 // Emit `export main <index>` for the entry function, identified by its
 // mangled name (`<entry-module>$main`). The textual `.virt` carries no
 // `is_main` flag, so `parse_virt_bc` recovers the entry from this
-// directive — without it, it falls back to "first `$main`-suffixed fn",
+// directive: without it, it falls back to "first `$main`-suffixed fn",
 // which is emission-order-dependent and picks the wrong module's `main`
 // when several modules declare one (e.g. `vader_tools_lsp$main` before
 // `vader_tools_cli$main`). `entry_mangled == ""` (no known entry) emits nothing.
@@ -524,7 +524,7 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
     stack_is_loop:   bool[]  : []
     // Where each open scope's matching `End` sits. A non-loop `br` targets
     // `end_pc + 1`, so this is what turns a jump-table entry back into the
-    // label that OWNS it — see the `Branch` case.
+    // label that OWNS it, see the `Branch` case.
     stack_end_pc:    i32[]   : []
     sp: i64 = 0
     // Pending Branch/BranchIf whose target scope hasn't closed yet
@@ -547,7 +547,7 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
             depth = depth - 1
             label :: stack_labels[sp - 1]
             // Resolve any pending branches whose target scope is this
-            // one — they branch to the End's label.
+            // one: they branch to the End's label.
             new_psp: i64 = 0
             for j in 0..<psp {
                 if pending_label[j] == label {
@@ -674,7 +674,7 @@ matching_end_pc :: fn(body: Op[], opener_pc: i64) -> i32 {
     return -1
 }
 
-// The label of the open non-loop scope a `br` to `target_pc` belongs to —
+// The label of the open non-loop scope a `br` to `target_pc` belongs to:
 // the one whose `End` sits immediately before it.
 //
 // Guessing the INNERMOST non-loop scope instead is wrong as soon as a branch
@@ -711,7 +711,7 @@ write_indent :: fn(sb: StringBuilder, depth: i32) -> void {
     for d > 0 { sb.append("  ")  d = d - 1 }
 }
 
-/// Render an op as its `.virt`-style name + operands (when any) — human-readable
+/// Render an op as its `.virt`-style name + operands (when any): human-readable
 /// debug output, not the round-trippable form (`write_virt`).
 convert_target_name :: fn(t: ConvertTarget) -> string = match t {
     .I32  -> "i32"
@@ -721,12 +721,12 @@ convert_target_name :: fn(t: ConvertTarget) -> string = match t {
 }
 
 // Operands for an `f64.const` dump line. A *finite* double keeps a trailing bit
-// column so `virt_reader` round-trips it losslessly — the decimal rendering
+// column so `virt_reader` round-trips it losslessly: the decimal rendering
 // alone can lose precision. A *non-finite* value carries no meaningful payload
 // (±inf are unique, every NaN is one value) and a NaN's raw bits aren't even
-// architecturally stable — `0.0 / 0.0` folds to a sign-set NaN on x86-64 but the
+// architecturally stable: `0.0 / 0.0` folds to a sign-set NaN on x86-64 but the
 // canonical +NaN on arm64. So dump non-finite values as their bare abstract word
-// (`inf` / `-inf` / `nan`, exactly what `${v}` renders — `dtoa` prints every NaN
+// (`inf` / `-inf` / `nan`, exactly what `${v}` renders: `dtoa` prints every NaN
 // as `nan` regardless of sign) with no bit column ; `virt_reader` reconstructs
 // the value from that word. The `.virt` output is then byte-identical on every
 // build arch.
@@ -737,7 +737,7 @@ f64_const_operands :: fn(v: f64) -> string {
     return "${v} ${bits}"
 }
 
-/// Append `op`'s `.virt` mnemonic to `out` — no scope labels : control-flow ops
+/// Append `op`'s `.virt` mnemonic to `out`, no scope labels : control-flow ops
 /// render bare, and callers that need labels handle those themselves.
 ///
 /// @param out  the text being written.
@@ -752,14 +752,14 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
 // nested if-expressions whose
 // per-arm result is teed up through an `if_res` chain, which makes a 128-arm
 // exhaustive match compile ~3.5x larger. Appending in place sidesteps that
-// entirely while staying exhaustive (a new op with no arm trips T3013 — no `_`
+// entirely while staying exhaustive (a new op with no arm trips T3013: no `_`
 // wildcard).
 //
 // An op whose operands are table indices prints them through `printed`, which
 // writes each operand's number from the `OperandRef` saying what it names and
 // pushes that ref onto `refs` : the text and the refs cannot disagree, and
 // `operand_refs` / `annotate_op` read the refs. `refs` gets one entry per
-// printed operand up to the last index — null for a word that names nothing.
+// printed operand up to the last index: null for a word that names nothing.
 write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> void {
     match op {
         is I32Const                 -> out.append("i32.const ${op.value}")
@@ -817,7 +817,7 @@ write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> 
             out.append(" ${op.length}")
         }
         is ArrayLen                 -> out.append("array.len")
-        // The cache slot is written only when the lift was proven — `.virt`
+        // The cache slot is written only when the lift was proven: `.virt`
         // integers are non-negative by convention, and an absent token is how
         // the format already spells "no hint".
         is ArrayPush                -> if op.cache_slot >= 0 {
@@ -943,19 +943,19 @@ write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> 
 // ---- annotation (--annotate) ----------------------------------------------
 
 // Every lookup is bounds-guarded via the `*_label` helpers, so the annotator
-// never traps on an out-of-range index — surfacing it as `<… #N out of range>`
+// never traps on an out-of-range index: surfacing it as `<… #N out of range>`
 // is itself the signal we want when reading the invalid bytecode this view
 // exists to debug.
 
 /// A short, human/AI-facing label for `op` : the names its table-index
-/// operands point at, in printed order — the string literal behind
+/// operands point at, in printed order, the string literal behind
 /// `string.const`, the callee behind `call`, the type behind `ref.cast`, a field
-/// glued to its struct (`json$JsonError.msg`) — or `""` when none of its
+/// glued to its struct (`json$JsonError.msg`), or `""` when none of its
 /// operands is an index. `dump_bytecode_annotated` appends it as a trailing
 /// `; …` ; the language server shows it as an inlay hint on a plain dump.
 ///
 /// @param module    the module the op's indices point into.
-/// @param function  the function whose body holds the op — its locals name the
+/// @param function  the function whose body holds the op: its locals name the
 ///                  slots ; a parameter, which the bytecode leaves unnamed,
 ///                  renders `arg N`.
 /// @param op        the op to label.
@@ -1020,7 +1020,7 @@ global_label :: fn(module: BytecodeModule, index: i32) -> string {
 }
 
 // Slot numbering is WASM-style : slots `0..param_count` are the function's
-// parameters (whose names aren't tracked in the bytecode — rendered
+// parameters (whose names aren't tracked in the bytecode: rendered
 // `arg N`), declared locals follow at `param_count..`. `BcFunction.locals`
 // holds only the declared locals, so a body slot indexes it offset by
 // `param_count`.
@@ -1074,12 +1074,12 @@ type_label_at :: fn(module: BytecodeModule, type_id: i32, depth: i32) -> string 
 /// @return        the `.virt` text dump (canonical form, trailing newline).
 export write_virt :: fn(module: BytecodeModule) -> string = dump_bytecode(module, main_function_name(module))
 
-/// JSON-style quoting — wraps in `"..."`, escaping `\\`, `\"`, `\n`, `\r`,
-/// `\t` and NUL (`\0`). Every other byte — including multi-byte UTF-8 — is
+/// JSON-style quoting: wraps in `"..."`, escaping `\\`, `\"`, `\n`, `\r`,
+/// `\t` and NUL (`\0`). Every other byte (including multi-byte UTF-8) is
 /// copied verbatim so the round-trip is byte-exact. The escape set matches
 /// `std/string::decode_escapes` (the decoder `front/virt/virt_reader::parse_string_decl`
 /// reads back through), which understands exactly `\n \t \r \" \\ \0` and is
-/// byte-transparent for the rest — it has no `\u` / `\x` form.
+/// byte-transparent for the rest: it has no `\u` / `\x` form.
 quote_string :: fn(value: string) -> string {
     out :: StringBuilder {}
     out.append("\"")
@@ -1093,7 +1093,7 @@ quote_string :: fn(value: string) -> string {
         else if b == '\t' { out.append("\\t") }
         else if b == 0     { out.append("\\0") }
         else {
-            // Copy the raw byte verbatim — `char(u32(b))` would re-encode it
+            // Copy the raw byte verbatim: `char(u32(b))` would re-encode it
             // as UTF-8 and double-encode any byte >= 0x80.
             out.append(value.byte_slice(i, i + 1))
         }
@@ -1131,7 +1131,7 @@ import "std/testing"
 }
 
 // Non-finite `f64.const`s dump as a bare abstract word (no bit column) so the
-// `.virt` is arch-stable — a NaN's raw bits differ by arch (`0.0/0.0` is +NaN on
+// `.virt` is arch-stable: a NaN's raw bits differ by arch (`0.0/0.0` is +NaN on
 // arm64, sign-set on x86-64), yet both must dump identically. Finite values keep
 // their exact bit column for lossless round-trip.
 @test test_f64_const_operands_abstracts_non_finite :: fn() -> void {

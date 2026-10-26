@@ -1,4 +1,4 @@
-// T3017: `===` compares objects, and a value has no identity — a number, a
+// T3017: `===` compares objects, and a value has no identity, a number, a
 // `string`, an enum, a tuple, a fn. Two equal values are compared with `==`.
 module "snippet"
 

@@ -24,7 +24,7 @@ export dump_program :: fn(prog: Program) -> string {
 // JSON primitives (raw strings, indentation, key-value helpers)
 // ============================================================================
 
-// Local indentation helper — wraps `append_repeated` so existing call sites
+// Local indentation helper: wraps `append_repeated` so existing call sites
 // that pass `level` (rather than the absolute space count) don't have to
 // multiply themselves. The stride is 2 spaces per level.
 indent :: fn(sb: StringBuilder, level: i32) -> void {
@@ -55,7 +55,7 @@ write_string :: fn(sb: StringBuilder, s: string) -> void {
 }
 
 // Bigint rendering : quoted decimal with a trailing `n`, for EnumVariant.value
-// (signed repr — variants can be negative) as for an `IntLitExpr`.
+// (signed repr: variants can be negative) as for an `IntLitExpr`.
 write_signed_bigint :: fn(sb: StringBuilder, v: i64) -> void {
     sb.append("\"${v}n\"")
 }
@@ -725,7 +725,7 @@ write_for_form :: fn(sb: StringBuilder, f: ForForm, level: i32) -> void {
                     sb.entry(false, level + 1, "pattern")
                     sb.write_let_binding(nv.pattern, level + 1)
                 }
-                // DiscardVar (`for <range>`) : no binding entry — the iterable is
+                // DiscardVar (`for <range>`) : no binding entry, the iterable is
                 // the range itself.
                 is DiscardVar -> {}
             }

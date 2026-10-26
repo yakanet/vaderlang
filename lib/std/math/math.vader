@@ -10,7 +10,7 @@ export e :: 2.718281828459045
 // ---- Float operations -----------------------------------------------------
 //
 // libm, named as what it is. `@c_header` hands `cc` the real prototype from
-// `<math.h>` — synthesising one beside it would be a conflicting declaration —
+// `<math.h>` (synthesising one beside it would be a conflicting declaration)
 // and the same symbol resolves on every platform we target.
 //
 // On Linux libm is a separate object that nothing else references, so the driver
@@ -24,7 +24,7 @@ export e :: 2.718281828459045
 @extern("sqrt")
 export sqrt :: fn(x: f64) -> f64
 
-/// Power — `x^n`. Both base and exponent are floats ; for integer exponents
+/// Power: `x^n`. Both base and exponent are floats ; for integer exponents
 /// the caller is expected to cast.
 /// @param x  base.
 /// @param n  exponent.
@@ -86,7 +86,7 @@ export max :: fn(a: i32, b: i32) = if a > b { a } else { b }
 export max :: fn(a: i64, b: i64) = if a > b { a } else { b }
 
 /// Absolute value of an `f64`. Preserves the sign of zero (`abs(-0.0)` →
-/// `-0.0`) — caller normalises if needed.
+/// `-0.0`): caller normalises if needed.
 export abs :: fn(x: f64) = if x < 0.0 { -x } else { x }
 /// Absolute value of an `i32`. `abs(i32::MIN)` overflows (panics in debug,
 /// wraps in release).
@@ -95,7 +95,7 @@ export abs :: fn(x: i32) = if x < 0 { -x } else { x }
 export abs :: fn(x: i64) = if x < 0 { -x } else { x }
 
 /// Clamp `x` to `[lo, hi]`. Equivalent to `min(max(x, lo), hi)`. Behaviour
-/// when `lo > hi` matches the underlying calls — `lo` wins.
+/// when `lo > hi` matches the underlying calls: `lo` wins.
 export clamp :: fn(x: f64, lo: f64, hi: f64) = min(max(x, lo), hi)
 /// Clamp an `f32` to `[lo, hi]`.
 export clamp :: fn(x: f32, lo: f32, hi: f32) = min(max(x, lo), hi)
@@ -137,7 +137,7 @@ import "std/testing"
 // sin / cos / tan had no test on either backend. They are `@extern`, so the
 // wiring check that used to force every bodyless declaration to be served no
 // longer covers them: a typo in the symbol would fail at link time natively and
-// trap on the VM, with nothing pointing at the cause. Exact values only — these
+// trap on the VM, with nothing pointing at the cause. Exact values only: these
 // are the points where libm is required to be exact, so the test cannot drift
 // between platforms.
 @test test_trigonometry :: fn() -> void {

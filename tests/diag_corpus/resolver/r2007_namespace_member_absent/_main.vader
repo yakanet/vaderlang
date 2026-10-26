@@ -1,5 +1,5 @@
 // resolver-modules-2 : a `P :: import` namespace alias reaching a member that does
-// not exist AT ALL must fire R2007, the same answer the unqualified form gives —
+// not exist AT ALL must fire R2007, the same answer the unqualified form gives,
 // and it must fire from inside a `match` arm, which is where the silence bit.
 //
 // Two silences stacked before the fix. `namespace_member_type` returned

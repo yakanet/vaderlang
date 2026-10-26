@@ -1,4 +1,4 @@
-# 0087 — An enum is a named set of integers
+# 0087: An enum is a named set of integers
 
 ## Status
 

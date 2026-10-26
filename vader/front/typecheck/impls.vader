@@ -1,7 +1,7 @@
 // vader/front/typecheck/impls: registry of `T implements Trait { ... }` blocks.
 //
 // One entry per impl, its trait and target resolved through the names the impl
-// writes — an import followed to the declaration it names — so an entry is keyed
+// writes (an import followed to the declaration it names) so an entry is keyed
 // on identity (`impl_base_key` of the target, `trait_key` of the trait), never on
 // a spelling two modules can share. The lowerer drives impl-member lookup,
 // virtual dispatch and the vtables from it.
@@ -24,7 +24,7 @@ export ImplEntry :: struct {
     trait_symbol: Symbol
     /// Display path of the module that DECLARES this impl block (e.g.
     /// `"std/core"` for the intrinsic `string implements Display`).
-    /// Distinct from the caller's module — the impl-member mangle must
+    /// Distinct from the caller's module: the impl-member mangle must
     /// use the owning module so cross-module calls resolve to the same
     /// mangle the impl's lowered/surfaced decl is registered under.
     module: string = ""
@@ -42,7 +42,7 @@ export ImplEntry :: struct {
     trait_key: string = ""
     /// The type the impl is written for, resolved in its own module.
     for_type: Type = TY_UNRESOLVED
-    /// `impl_base_key(for_type)` — compared with a receiver's to ask whether the
+    /// `impl_base_key(for_type)`: compared with a receiver's to ask whether the
     /// impl applies to its declaration.
     target: string = ""
     /// Written for one instance of its base (`Wrapper<MonType> implements …`,
@@ -55,7 +55,7 @@ export ImplEntry :: struct {
     /// What tells apart the members of several impls of one trait on one base,
     /// declared in one module (`Vec2 implements Add<f64>` beside `Add<Vec2>`,
     /// `MonType[] implements Into<Label>` beside `… Into<Tag>`) : "" for the first
-    /// registered, then `$1`, `$2`, … — a `$`, which no type name in a receiver's
+    /// registered, then `$1`, `$2`, …: a `$`, which no type name in a receiver's
     /// own suffix carries. Every builder of an impl member's mangle appends it : the
     /// call sites and the materialisers.
     overload_suffix: string = ""
@@ -64,24 +64,24 @@ export ImplEntry :: struct {
 /// Project-wide registry. Built once by `build_impl_registry` ; queried
 /// by the typechecker and the lowerer.
 export ImplRegistry :: struct {
-    /// Entries keyed `"${target}::${trait_key}"` — several when concrete
+    /// Entries keyed `"${target}::${trait_key}"`: several when concrete
     /// instantiations (`Box<i32>`, `Box<string>`) each implement the trait.
     by_target: MutableMap<string, ImplEntry[]> = MutableMap<string, ImplEntry[]> {}
-    /// Every entry, keyed by its impl's `span.hash()` — unique project-wide.
+    /// Every entry, keyed by its impl's `span.hash()`: unique project-wide.
     by_decl: MutableMap<u64, ImplEntry> = MutableMap<u64, ImplEntry> {}
     /// Every entry, keyed by the node id of each member it declares, a materialised
     /// one included (`member_entry`).
     by_member: MutableMap<i64, ImplEntry> = MutableMap<i64, ImplEntry> {}
-    /// Every entry the registry has seen — used by the lowerer to drive
+    /// Every entry the registry has seen: used by the lowerer to drive
     /// virtual dispatch over trait-typed receivers.
     all: ImplEntry[] = []
     /// Entries keyed by their `target`, every trait together.
     by_base: MutableMap<string, ImplEntry[]> = MutableMap<string, ImplEntry[]> {}
     /// `impl_type_key` of every type an impl on one instance is built from
-    /// (`MonType` for `Wrapper<MonType>`) — see `is_specialized_arg`.
+    /// (`MonType` for `Wrapper<MonType>`), see `is_specialized_arg`.
     specialized_args: MutableSet<string> = MutableSet<string> {}
     /// `target` of every base two impls of one trait cover whole (`Vec2 implements
-    /// Mul<f64>` beside `Mul<Vec2>`) — see `is_specialized_arg`.
+    /// Mul<f64>` beside `Mul<Vec2>`), see `is_specialized_arg`.
     overloaded_bases: MutableSet<string> = MutableSet<string> {}
 }
 
@@ -99,7 +99,7 @@ build_impl_registry :: fn(program_decls: Decl[], resolved: ResolvedModule) -> Im
 /// trait.
 ///
 /// @param decls     one module's declarations.
-/// @param resolved  the module that declares them — it resolves each impl.
+/// @param resolved  the module that declares them: it resolves each impl.
 export collect_impls :: fn(self: ImplRegistry, decls: Decl[], resolved: ResolvedModule) -> void {
     for d in decls {
         if d is ImplDecl {
@@ -264,7 +264,7 @@ export impls_for :: fn(self: ImplRegistry, receiver: Type, trait_key: string) ->
     covering_first(self.impls_of(impl_base_key(receiver), trait_key), receiver)
 
 /// `entries` that cover `receiver`, the instance impls first, less the generic impls
-/// one of them hides — the same trait at arguments some instantiation makes equal
+/// one of them hides: the same trait at arguments some instantiation makes equal
 /// (`MonType[] implements Into<Label>` leaves `T[] implements<T> Into<Iterator<T>>`).
 ///
 /// @param entries   impls of `receiver`'s base.
@@ -300,8 +300,8 @@ export covering_first :: fn(entries: ImplEntry[], receiver: Type) -> ImplEntry[]
 
 /// The impl of `trait_key` covering `receiver` at the trait arguments `args`, when
 /// several impls of the trait cover it (`Vec2 implements Mul<f64>` beside
-/// `Mul<Vec2>`, reached through `T: Mul<f64>`) ; null when at most one does — it is
-/// found by name — or none matches.
+/// `Mul<Vec2>`, reached through `T: Mul<f64>`) ; null when at most one does (it is
+/// found by name) or none matches.
 ///
 /// @param receiver   the concrete receiver.
 /// @param trait_key  the trait.

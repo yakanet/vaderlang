@@ -22,7 +22,7 @@ main :: fn() -> i32 {
     println("view[1]=${view[1]}")
     println("view[2]=${view[2]}")
 
-    // `push` on a view detaches into a fresh backing buf — that's what
+    // `push` on a view detaches into a fresh backing buf: that's what
     // disowns the aliasing without needing an explicit clone (since
     // `T[] implements Clone` isn't wired yet ; see std/iter::clone).
     indep :: view

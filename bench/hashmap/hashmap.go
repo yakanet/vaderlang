@@ -1,5 +1,5 @@
 // Go peer of bench/hashmap.vader. `map[int32]int32` driven through the same
-// insert / lookup / delete / probe rounds — Go's built-in map is the direct
+// insert / lookup / delete / probe rounds: Go's built-in map is the direct
 // analogue of Vader's compact-dict MutableMap.
 
 package main
@@ -14,7 +14,7 @@ const (
 )
 
 func main() {
-	m := make(map[int32]int32) // grow from empty — no port pre-sizes, so all measure the grow path
+	m := make(map[int32]int32) // grow from empty: no port pre-sizes, so all measure the grow path
 	var chk int64
 	for r := int32(0); r < rounds; r++ {
 		for i := 0; i < n; i++ {

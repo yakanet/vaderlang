@@ -6,7 +6,7 @@
 // receiver type (cf. SPEC §6 *Function overloading*).
 //
 // Sequence collections live in the language : `[T]` arrays support `push`,
-// `len`, indexed access, mutation, and `for x in arr` — no `MutableList`
+// `len`, indexed access, mutation, and `for x in arr`: no `MutableList`
 // wrapper is needed at MVP.
 //
 // Construction examples :
@@ -20,13 +20,13 @@
 // `MutableMap` is a COMPACT (open-addressed) hash map : dense parallel
 // `ekeys` / `evals` arrays in insertion order, plus a sparse `i32` index
 // (hash slot → entry position). No per-entry node, no `next` pointer, no
-// nullable bucket array — ~3-4× less memory than a chained map, faster
+// nullable bucket array: ~3-4× less memory than a chained map, faster
 // insert / iterate, and far faster string-key lookups. The index doubles and
 // rehashes past a 0.75 load factor. `MutableSet` wraps it (each member a
 // `T → true`).
 
 // ===========================================================================
-// MutableMap<K, V> — compact open-addressed hash map. Live entries live in two
+// MutableMap<K, V>: compact open-addressed hash map. Live entries live in two
 // dense parallel arrays (`ekeys[i]` ↔ `evals[i]`) in insertion order; a sparse
 // `index` of `i32` maps a hash slot to an entry position (1-based; 0 = empty,
 // -1 = tombstone). Lookup hashes the key, probes the index (`next_slot`) skipping
@@ -79,7 +79,7 @@ export MutableMap :: struct<K: Hash & Equals, V> {
     tombs: i64 = 0
 }
 
-// Method signatures below declare just `[K, V]` (no bound repetition) — the
+// Method signatures below declare just `[K, V]` (no bound repetition): the
 // `Hash & Equals` constraint is auto-inherited from the struct decl above by
 // the typecheck `inherit-bounds` pass when the first param is `MutableMap<K, V>`.
 
@@ -91,7 +91,7 @@ first_slot :: fn(h: u64, mask: i64) -> i64 = i64(h) & mask
 // takes exactly this sequence, or a key stops being found.
 next_slot :: fn(s: i64, perturb: u64, mask: i64) -> i64 = (s *% 5 +% i64(perturb) +% 1) & mask
 
-// Rebuild the index at `new_count` slots from the dense entries — re-probing
+// Rebuild the index at `new_count` slots from the dense entries: re-probing
 // each live key. Clears all tombstones. The dense `ekeys` / `evals` are never
 // touched (entries don't move), so growth allocates no entries.
 rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, new_count: i64) -> void {
@@ -297,7 +297,7 @@ entry_of :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> i64 {
 
 /// Logically empty the map while KEEPING its backing arrays (`ekeys` / `evals` /
 /// `index`) allocated, so a subsequent refill reuses them instead of allocating
-/// a fresh map. For hot reuse loops — e.g. a dataflow fixpoint's scratch set
+/// a fresh map. For hot reuse loops, e.g. a dataflow fixpoint's scratch set
 /// that would otherwise mint a new map every round. The dense entries past
 /// `size` are stale but unreachable (`size = 0`), and `put` overwrites them
 /// from slot 0 on the next insert. O(index slots).
@@ -333,7 +333,7 @@ get :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> V | null {
 }
 
 /// True iff `key` has an entry in the map. Distinguishes "key absent" from
-/// "key maps to a null-typed value" — `get` collapses both to `null`.
+/// "key maps to a null-typed value": `get` collapses both to `null`.
 /// @param self  the map receiver.
 /// @param key   key to test.
 contains_key :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool {
@@ -411,7 +411,7 @@ export len :: fn<K, V>(self: MutableMap<K, V>) -> i64 { return self.size }
 /// True iff no entries have been inserted (or all were removed). O(1).
 export is_empty :: fn<K, V>(self: MutableMap<K, V>) -> bool { return self.size == 0 }
 
-// Operator sugar — `m[key]` reads via Index, `m[key] = v` writes via
+// Operator sugar: `m[key]` reads via Index, `m[key] = v` writes via
 // IndexSet, `key in m` dispatches via Contains. The impl bodies reuse `get` /
 // `put` / `contains_key`, so each impl restates the struct's `K: Hash & Equals`
 // bound those calls require.
@@ -447,7 +447,7 @@ export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
 }
 
 // `for [k, v] in m` works directly thanks to the `Into<Iterator<...>>` impl
-// below — no explicit conversion needed. Each entry is yielded as a plain
+// below: no explicit conversion needed. Each entry is yielded as a plain
 // `[K, V]` tuple (like `zip` / `indexed`), so the `[k, v]` destructure reads
 // its two leaves positionally. `into` is a `generator` : a `for` loop or a
 // terminal inlines its body, so `for [k, v] in m` never materialises it ; an
@@ -468,13 +468,13 @@ MutableMap<K, V> implements<K, V> Into<Iterator<[K, V]>> {
 }
 
 // ===========================================================================
-// MutableSet<T> — hash-backed via a wrapping MutableMap. Each member is stored
+// MutableSet<T>: hash-backed via a wrapping MutableMap. Each member is stored
 // as a (T → true) entry, so lookups inherit the compact-map O(1) behaviour.
 // `where T: Hash + Equals` mirrors MutableMap's own bound.
 // ===========================================================================
 
 /// Hash set keyed by any `T` that implements `Hash & Equals`. Backed by a
-/// `MutableMap<T, bool>` — every member is stored as a `(T → true)` entry,
+/// `MutableMap<T, bool>`: every member is stored as a `(T → true)` entry,
 /// so lookups inherit the compact-map O(1)-average behaviour.
 export MutableSet :: struct<T: Hash & Equals> {
     /// Backing map. Defaults empty so `MutableSet<T> {}` is a valid literal.
@@ -504,17 +504,17 @@ export len :: fn<T>(self: MutableSet<T>) -> i64 = self.inner.size
 /// True iff no members have been added (or all were removed). O(1).
 export is_empty :: fn<T>(self: MutableSet<T>) -> bool = self.inner.size == 0
 
-/// Logically empty the set, keeping the backing arrays for reuse — for hot
+/// Logically empty the set, keeping the backing arrays for reuse: for hot
 /// reuse loops (e.g. a dataflow fixpoint's scratch set). Delegates to the
 /// backing map's `clear`. O(index slots).
 export clear :: fn<T>(self: MutableSet<T>) -> void = self.inner.clear()
 
 // `value in set` / `value !in set` dispatch through Contains. No
-// Index/IndexSet impl — sets have no value-at-key semantics, and `s.add(v)`
+// Index/IndexSet impl: sets have no value-at-key semantics, and `s.add(v)`
 // reads more clearly than a hypothetical `s[v] = true`.
 MutableSet<T> implements<T: Hash & Equals> Contains<T> -> value in self.inner
 
-// `for v in s` works directly via the `Into<Iterator<...>>` impl below — same
+// `for v in s` works directly via the `Into<Iterator<...>>` impl below: same
 // `generator` pattern as `MutableMap` (inlined by `for v in s`, state machine
 // only when the iterator escapes). Walks the backing map's dense key array by
 // index. Same undefined-behaviour caveat on concurrent mutation.

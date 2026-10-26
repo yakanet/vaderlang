@@ -1,4 +1,4 @@
-// `break` as the fallback of a `??` outside any loop — T3015, though the jump sits
+// `break` as the fallback of a `??` outside any loop: T3015, though the jump sits
 // inside an expression.
 module "snippet"
 

@@ -1,13 +1,13 @@
 // Unwrapping a distinct type and chaining a method on the result, inline.
 //
 // `string(n).trim()` on a string-backed distinct used to panic in midir:
-// `no field 'trim' on 'Name' — a method reference on a primitive isn't a
+// `no field 'trim' on 'Name': a method reference on a primitive isn't a
 // first-class value`. `emit_value_cast` returned the argument verbatim for a
 // string / bool / void / null target, so the lowered tree kept carrying the
 // distinct and the method resolved against it instead of the backing type. The
 // WRAP direction already stamped its type; this was the missing half.
 //
-// Binding the cast first, or calling the free-fn form, always worked — which is
+// Binding the cast first, or calling the free-fn form, always worked, which is
 // what made the bug look narrower than it was. Any method chained on any distinct
 // unwrap hit it.
 
@@ -27,7 +27,7 @@ inline_trim :: fn(n: Name) -> string = string(n).trim()
 shout :: fn(n: Name) -> Name =
     Name(string(n).replace_chars_where((c: char) -> c == 'a', "A"))
 
-// The two forms that already worked — guard against over-correction.
+// The two forms that already worked: guard against over-correction.
 bound :: fn(n: Name) -> string {
     base :: string(n)
     return base.trim()
@@ -40,7 +40,7 @@ identity :: fn(s: string) -> string = string(s).trim()
 // Unwrapping a distinct is one operation whatever the backing type is: `string(p)`
 // on a string-backed one and `i64(d)` on an i64-backed one are the same thing. The
 // numeric arm always stamped its target type, so only the string / bool / void /
-// null arm was broken — hence a case for each here.
+// null arm was broken, hence a case for each here.
 backed_int :: fn(c: Count) -> string = i64(c).to_string()
 backed_bool :: fn(f: Flag) -> string = bool(f).to_string()
 

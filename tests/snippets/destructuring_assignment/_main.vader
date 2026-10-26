@@ -1,4 +1,4 @@
-// Destructuring assignment — `[a, b] = value` writes to targets that already
+// Destructuring assignment: `[a, b] = value` writes to targets that already
 // exist, where a `let` pattern would introduce names.
 //
 // The swap is the case worth pinning: every element is read into a temporary
@@ -9,7 +9,7 @@
 // The source is bound once too, so a call on the right runs a single time.
 //
 // `_` skips an element without reading it, and a trailing `...rest` writes a
-// fresh array of what the other targets left — built in the read phase like
+// fresh array of what the other targets left: built in the read phase like
 // every other element, so `[head, ...xs] = xs` sees the old `xs`.
 
 module "snippet"
@@ -41,7 +41,7 @@ main :: fn() -> i32 {
     [box.x, arr[1]] = [30, 40]
     println("mixed:   box.x=${box.x} arr[1]=${arr[1]}")
 
-    // Three-way rotation — the same read-then-write order carries it.
+    // Three-way rotation: the same read-then-write order carries it.
     p := 1
     q := 2
     r := 3

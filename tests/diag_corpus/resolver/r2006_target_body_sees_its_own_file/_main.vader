@@ -2,7 +2,7 @@
 // imports of THAT file (SPEC §"Modules" : imports are file-scoped), not those
 // of the declaration it is grafted onto. Here the declaration imports
 // `std/string` and uses `trim` ; the body in `other.vader`, selected on every
-// operating system, imports nothing — so its `trim` is unresolved (R2006).
+// operating system, imports nothing, so its `trim` is unresolved (R2006).
 
 module "snippet"
 

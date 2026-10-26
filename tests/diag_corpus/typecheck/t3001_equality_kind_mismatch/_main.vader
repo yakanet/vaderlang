@@ -1,7 +1,7 @@
 module "snippet"
 
 // `==` compares scalars by representation. `Handle` is a `CPointer`, so it
-// cannot equal an `i64` — convert one side explicitly (`i64(h)`).
+// cannot equal an `i64`: convert one side explicitly (`i64(h)`).
 Handle :: CPointer
 
 INVALID_HANDLE: i64: -1

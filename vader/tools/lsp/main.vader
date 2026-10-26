@@ -2,7 +2,7 @@
 //
 // Reads JSON-RPC frames from stdin in a loop, dispatches on `method`, writes
 // responses to stdout. The dispatch `match` below is the authoritative method
-// list — it is not restated here, because it grows. Anything it does not name is
+// list: it is not restated here, because it grows. Anything it does not name is
 // answered with a JSON-RPC `MethodNotFound` so the client degrades gracefully.
 //
 // Exit contract : `shutdown` responds null and arms the flag ; `exit` terminates
@@ -27,7 +27,7 @@ A :: import "vader/tools/lsp/analysis"
 H :: import "vader/tools/lsp/handlers"
 
 /// The two flags the server accepts, declared here rather than in the CLI's
-/// table because they belong to this module — `vader/tools/cli/spec.vader` borrows
+/// table because they belong to this module: `vader/tools/cli/spec.vader` borrows
 /// them for the `lsp` action, and the standalone `vader-lsp` binary
 /// (`main_entry.vader`) parses against the same array. One declaration, two
 /// entry points, no drift.
@@ -39,12 +39,12 @@ export LSP_FLAGS: FlagSpec[]: [
     },
     // Accepted and ignored. `vscode-languageclient` APPENDS `--stdio` to the
     // server's argv whenever the transport is `TransportKind.stdio`, which the
-    // VSCode extension uses — the client does not offer a way to suppress it,
+    // VSCode extension uses: the client does not offer a way to suppress it,
     // and every other language server accepts it for the same reason. Since
     // argv parsing became strict (`9255d3add`), rejecting it took the whole
     // extension down: "Server initialization failed", five restarts, then give
-    // up. There is nothing to select — stdio is the only transport this server
-    // speaks — so the flag names the transport rather than choosing it.
+    // up. There is nothing to select: stdio is the only transport this server
+    // speaks, so the flag names the transport rather than choosing it.
     FlagSpec {
         .name = "stdio",
         .help = "Accepted for LSP-client compatibility; stdio is the only transport",
@@ -90,7 +90,7 @@ export run_server :: fn(library_root: string) -> i32 {
         // Burst settled. If a didChange left diagnostics dirty, wait out a short
         // quiescent window before the (single) typecheck : if the user is still
         // typing, more input arrives within DEBOUNCE_MS and we loop back to drain
-        // it — type-checking a buffer that's about to change again is wasted work
+        // it: type-checking a buffer that's about to change again is wasted work
         // and the source of the per-keystroke freeze.
         if A.has_dirty(state) {
             if !P.poll_pending(DEBOUNCE_MS) {
@@ -105,7 +105,7 @@ export run_server :: fn(library_root: string) -> i32 {
 DESCRIBE_POLL_MS :: 100
 
 // Milliseconds of input silence before a debounced diagnostics typecheck fires.
-// Below the threshold of perception, above the inter-keystroke interval — so a
+// Below the threshold of perception, above the inter-keystroke interval, so a
 // burst of edits coalesces into a single typecheck once typing pauses.
 DEBOUNCE_MS :: 200
 
@@ -156,7 +156,7 @@ dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) ->
         result :: handle_initialize(state, params)
         P.write_frame(P.encode_response(id, result))
         // First log emitted *after* the response so the client has already
-        // installed its trace listener — earlier log lines are sometimes
+        // installed its trace listener: earlier log lines are sometimes
         // dropped by clients that buffer pre-initialize traffic.
         P.log_info("vader-lsp: initialize complete")
         return .Continue
@@ -379,7 +379,7 @@ dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) ->
     return .Continue
 }
 
-// Best-effort URI extraction for log lines — handles the
+// Best-effort URI extraction for log lines: handles the
 // `{ textDocument: { uri } }` shape used by every textDocument/* request.
 // Returns "" when params doesn't carry a textDocument, which keeps the
 // log line readable rather than aborting the dispatch.

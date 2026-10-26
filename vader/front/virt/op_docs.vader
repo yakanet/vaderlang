@@ -35,7 +35,7 @@ export OpDoc :: struct {
     text: string
 }
 
-/// The reference entry for `head`, the first word of a `.virt` line — an op or
+/// The reference entry for `head`, the first word of a `.virt` line: an op or
 /// a directive. Every conversion (`u64.to_i32`) finds the `<from>.to_<to>`
 /// entry, every checked op the entry of its operation (`u8.checked_add` finds
 /// `<type>.checked_add`).

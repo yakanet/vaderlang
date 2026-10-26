@@ -2,10 +2,10 @@
 //
 // MVP scope : standard alphabet only (`A-Z a-z 0-9 + /`), strict
 // padding with `=`. URL-safe variant (`- _`, optional padding) is a
-// follow-up — call site is small (alphabet + sentinel for the missing
+// follow-up: call site is small (alphabet + sentinel for the missing
 // pad).
 //
-// Pure Vader, zero host imports — WASM-ready as-is.
+// Pure Vader, zero host imports: WASM-ready as-is.
 
 module "base64"
 
@@ -67,7 +67,7 @@ Base64Error implements Error {
 // Decode one base64 character to its 6-bit value, or i32(-1) for any
 // non-alphabet byte. Sentinel out-of-band avoids the cost of building
 // a 256-entry lookup table on every call (the bytecode emitter would
-// rebuild the array per access — same gotcha as std/crypto's K tables).
+// rebuild the array per access: same gotcha as std/crypto's K tables).
 decode_byte :: fn(b: u8) -> i32 = match b {
     'A'..='Z' -> i32(b - 'A')
     'a'..='z' -> i32(b - 'a') + 26
@@ -79,7 +79,7 @@ decode_byte :: fn(b: u8) -> i32 = match b {
 
 /// Decode a base64 string back to the raw bytes it encodes. Strict : input
 /// length MUST be a multiple of 4 and padding MUST be canonical (one or two
-/// trailing `=`, nothing else). Whitespace and newlines are NOT allowed —
+/// trailing `=`, nothing else). Whitespace and newlines are NOT allowed:
 /// strip them upstream if your transport adds them.
 ///
 /// Returns `u8[]` rather than `string` so arbitrary binary round-trips
@@ -100,7 +100,7 @@ export decode :: fn(input: string) -> u8[] | Base64Error {
 
     // `=` padding is only canonical at the very end : one or two trailing
     // `=`. A `=` at `n - 2` while `n - 1` is a data byte (e.g. "ab=c") is
-    // malformed and must be rejected — otherwise pad_count would wrongly read
+    // malformed and must be rejected: otherwise pad_count would wrongly read
     // 2 and the trailing data byte would be silently dropped.
     pad_count: i64 = 0
     if input.byte_at(n - 1) == '=' {
@@ -112,7 +112,7 @@ export decode :: fn(input: string) -> u8[] | Base64Error {
 
     // Accumulate the decoded octets into a `u8[]` and return them raw. An
     // earlier version returned a `string` built via `char()` + StringBuilder,
-    // which UTF-8-encodes each codepoint — so every octet >= 0x80 was doubled,
+    // which UTF-8-encodes each codepoint, so every octet >= 0x80 was doubled,
     // corrupting binary payloads.
     out: u8[]: []
     i: i64 = 0

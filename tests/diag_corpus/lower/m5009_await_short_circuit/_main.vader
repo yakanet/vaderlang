@@ -7,7 +7,7 @@ Ready<T> implements Async<T> {
 
 flag_of :: fn() -> Async<bool> = Ready<bool> { .v = true }
 
-// `await` in a `&&` RHS runs conditionally — hoisting it to a statement would
+// `await` in a `&&` RHS runs conditionally: hoisting it to a statement would
 // run it unconditionally. v1 diagnoses M5009. `combine` awaits, so it is
 // inferred async and returns `Async<bool>`.
 combine :: fn(a: bool) -> Async<bool> {

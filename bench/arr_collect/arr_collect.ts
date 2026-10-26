@@ -1,6 +1,6 @@
 // TypeScript peer of bench/arr_collect.vader. Uses the idiomatic eager
-// `a.filter(isOdd).map(square)` — two fresh arrays per pass, the natural JS
-// shape — vs Vader's fused filter + map collected into one array.
+// `a.filter(isOdd).map(square)`: two fresh arrays per pass, the natural JS
+// shape: vs Vader's fused filter + map collected into one array.
 
 const N = 1024;
 const a: number[] = new Array(N);

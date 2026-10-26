@@ -16,7 +16,7 @@ Byte :: u8
 // Data first, width second : the first argument is not a struct.
 Listed :: enum(i32[], u8) { A }
 
-// Quiet — a width, a distinct width, data, and data with a width.
+// Quiet: a width, a distinct width, data, and data with a width.
 Plain :: enum(u16) { A }
 Narrow :: enum(Byte) { A }
 Carried :: enum(Info) { A { .code = 1 } }

@@ -3,7 +3,7 @@
 // Four shapes, because they are found by three different mechanisms: the
 // scrutinee left with nothing (`remaining` empty), an arm after a wildcard,
 // an enum variant named twice, and an `is` whose type an earlier arm already
-// took. T3013 asks the opposite question — is a variant MISSING — and T3040
+// took. T3013 asks the opposite question (is a variant MISSING) and T3040
 // compares against the scrutinee's static type, so neither sees a double.
 
 module "snippet"

@@ -5,7 +5,7 @@
 //     `filter_not_null` are `generator`s. `arr.map(f)` / `it.indexed()` read like
 //     a pipeline and dispatch via UFCS ; consumed by a `for` loop or a terminal
 //     (`collect` / `count` / `any_match` / ...), the chain fuses to a single flat
-//     loop — no intermediate arrays, no iterator struct, no `next()` dispatch
+//     loop: no intermediate arrays, no iterator struct, no `next()` dispatch
 //     (`vader/lower/iter_fusion.vader`). `chain` fuses two source loops ;
 //     `zip` stays `T[]`/`U[]` (its lockstep pull needs indexed access, unlike the
 //     source-driven combinators). Their tuple elements destructure in `for [x, y]
@@ -39,12 +39,12 @@ export is_empty :: fn<T>(it: Iterator<T>) -> bool {
     return true
 }
 
-/// How many elements `arr` holds — its length, O(1).
+/// How many elements `arr` holds: its length, O(1).
 ///
 /// @param arr  source array.
 export count :: fn<T>(arr: T[]) -> i64 = arr.len()
 
-/// Drain `it`, returning how many elements it yielded — O(n).
+/// Drain `it`, returning how many elements it yielded: O(n).
 ///
 /// @param it  source iterator.
 export count :: fn<T>(it: Iterator<T>) -> i64 {
@@ -55,7 +55,7 @@ export count :: fn<T>(it: Iterator<T>) -> i64 {
     return total
 }
 
-/// The last element of `arr`, or `null` when it is empty — O(1).
+/// The last element of `arr`, or `null` when it is empty: O(1).
 ///
 /// @param arr  source array.
 export last :: fn<T>(arr: T[]) -> T | null {
@@ -78,7 +78,7 @@ export last :: fn<T>(it: Iterator<T>) -> T | null {
 }
 
 // `collect` on an array is `arr.clone()` (built-in) ; the only `collect` here
-// is the Iterator terminal below — drains a lazy chain into a fresh array.
+// is the Iterator terminal below: drains a lazy chain into a fresh array.
 
 /// Drain `it` into a fresh array. Pair with the lazy combinators
 /// (`it.filter(p).map(f).collect()`) when a snapshot is required ;
@@ -91,7 +91,7 @@ export collect :: fn<T>(it: Iterator<T>) -> T[] {
     return out
 }
 
-// Eager `map` / `filter` array overloads removed — `map` / `filter` are ONLY the
+// Eager `map` / `filter` array overloads removed: `map` / `filter` are ONLY the
 // lazy `generator` combinators now (bottom of this file). `arr.map(f)` resolves
 // unambiguously to the lazy `Iterator<U>` and fuses over the raw array (the
 // implicit array head) ; drain to an array with `.collect()` when needed.
@@ -139,7 +139,7 @@ export product :: fn<T: Mul & One>(self: Iterator<T>) -> T {
     return p
 }
 
-// `slice` removed — it was a trivial wrapper over the built-in `arr[start..<end]`
+// `slice` removed: it was a trivial wrapper over the built-in `arr[start..<end]`
 // view (zero-copy, copy-on-write on push, const-preserving). Use the index-range
 // form directly.
 
@@ -151,7 +151,7 @@ export product :: fn<T: Mul & One>(self: Iterator<T>) -> T {
 ///
 /// Naming overlaps with the `Clone` trait in `std/core` (currently
 /// without implementors). When `T[] implements Clone` lands, this free
-/// fn becomes the impl — `arr.clone()` resolves identically either way.
+/// fn becomes the impl: `arr.clone()` resolves identically either way.
 export clone :: fn<T>(arr: T[]) -> T[] {
     out: T[]: [] * arr.len()
     out.push_all(arr)
@@ -161,12 +161,12 @@ export clone :: fn<T>(arr: T[]) -> T[] {
 /// Lazily pair elements of `self` and `other` into tuples, stopping at the
 /// shorter of the two. Mirrors Python `zip` ; useful for stepping parallel
 /// arrays in lockstep (e.g. keys + values from a map). Both inputs stay `T[]`/
-/// `U[]` — the lockstep pull needs indexed access, so unlike the source-driven
+/// `U[]`: the lockstep pull needs indexed access, so unlike the source-driven
 /// combinators `zip` does not take a lazy `Iterator`. `for [x, y] in zip(a, b)`
 /// destructures each pair ; consumed directly it fuses to a single index loop.
 /// @param self   left source array.
 /// @param other  right source array.
-/// @return       a lazy `Iterator([T, U])` — `(self[0], other[0])`, ... capped at
+/// @return       a lazy `Iterator([T, U])`: `(self[0], other[0])`, ... capped at
 ///               `min(self.len(), other.len())`.
 export zip :: fn<T, U>(self: T[], other: U[]) -> Iterator<[T, U]> {
     n :: if self.len() < other.len() { self.len() } else { other.len() }
@@ -176,18 +176,18 @@ export zip :: fn<T, U>(self: T[], other: U[]) -> Iterator<[T, U]> {
 }
 
 /// Slide a fixed-size window over `self`, yielding each run of `size` consecutive
-/// elements. Step 1, no partial windows — a source shorter than `size` yields
+/// elements. Step 1, no partial windows: a source shorter than `size` yields
 /// nothing. Mirrors Kotlin's `windowed(size)`. Like `zip`, takes `T[]` (not a lazy
 /// `Iterator`) because the overlapping pull needs indexed access.
 ///
 /// Each window is a zero-copy VIEW aliasing `self` (the built-in `arr[lo..<hi]`
-/// slice) — cheap, but a later mutation of `self` shows through ; `.clone()` a
+/// slice): cheap, but a later mutation of `self` shows through ; `.clone()` a
 /// window to detach it.
 ///
 /// @param self  source array.
 /// @param size  window width in elements ; `size == 0` (or `self.len() < size`)
 ///              yields nothing.
-/// @return      a lazy `Iterator<T[]>` — `self[0..<size]`, `self[1..<size+1]`, ...
+/// @return      a lazy `Iterator<T[]>`: `self[0..<size]`, `self[1..<size+1]`, ...
 ///              while the window fits.
 /// @example
 ///   for w in [1, 2, 3, 4, 5].window(3) { println("${w}") }   // [1,2,3] [2,3,4] [3,4,5]
@@ -199,7 +199,7 @@ export window :: fn<T>(self: T[], size: i64) -> Iterator<T[]> {
     }
 }
 
-/// Lazily yield every element of `self`, then every element of `other` — a
+/// Lazily yield every element of `self`, then every element of `other`: a
 /// concatenated stream. Fuses to two back-to-back source loops (no intermediate
 /// array) when consumed by a `for` loop or a terminal.
 /// @param self   first source iterator (a raw array auto-coerces at the call site).
@@ -210,11 +210,11 @@ export chain :: fn<T>(self: Iterator<T>, other: Iterator<T>) -> Iterator<T> {
     for y in other { yield y }
 }
 
-/// Lazily pair each element with its index, starting at 0 — the element first,
+/// Lazily pair each element with its index, starting at 0: the element first,
 /// so `for [x, i] in it.indexed() { … }` reads in the order it is yielded. A
 /// 0-arg combinator: fuses over the source with no intermediate array.
 /// @param self  source iterator (a raw array auto-coerces at the call site).
-/// @return      a lazy `Iterator<[T, i64]>` — `[self[0], 0]`, `[self[1], 1]`, …
+/// @return      a lazy `Iterator<[T, i64]>`: `[self[0], 0]`, `[self[1], 1]`, …
 export indexed :: fn<T>(self: Iterator<T>) -> Iterator<[T, i64]> {
     i: i64 = 0
     for x in self {
@@ -234,7 +234,7 @@ CHUNK_RESERVE_CAP: i64: 1024
 ///
 /// @param self  source iterator (a raw array auto-coerces at the call site).
 /// @param size  elements per chunk ; `size == 0` yields nothing.
-/// @return      a lazy `Iterator<T[]>` — `[x0, …, x(size-1)]`, then the next
+/// @return      a lazy `Iterator<T[]>`: `[x0, …, x(size-1)]`, then the next
 ///              run, … , then the shorter remainder if any.
 /// @example
 ///   for c in [1, 2, 3, 4, 5].chunked(2) { println("${c}") }   // [1, 2] [3, 4] [5]
@@ -279,7 +279,7 @@ export distinct :: fn<T: Hash & Equals>(self: Iterator<T>) -> Iterator<T> {
 /// Lazily yield the non-null elements of `self`, typed without the `null`.
 /// Mirrors Kotlin's `filterNotNull()`.
 /// @param self  source iterator over a nullable element type.
-/// @return      a lazy `Iterator<T>` — `self` with every `null` dropped.
+/// @return      a lazy `Iterator<T>`: `self` with every `null` dropped.
 /// @example
 ///   maybe: (i32 | null)[]: [1, null, 3]
 ///   for x in maybe.filter_not_null() { println("${x + 1}") }   // 2 4
@@ -309,11 +309,11 @@ export flat_map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[]) -> Iterator<U> {
 //
 // Each combinator takes an `Iterator<T>`. Raw arrays are accepted at the
 // call site via the blanket `T[] implements<T> Into<Iterator<T>>` impl in
-// `std/core` — both direct (`any_match(arr, p)`) and UFCS (`arr.any_match(p)`) forms
+// `std/core`: both direct (`any_match(arr, p)`) and UFCS (`arr.any_match(p)`) forms
 // auto-coerce.
 
 /// `true` as soon as any element satisfies `pred` ; `false` if none do.
-/// Short-circuits — `pred` is not invoked past the first match.
+/// Short-circuits: `pred` is not invoked past the first match.
 /// @param it    source array or iterator.
 /// @param pred  predicate invoked on each element until one returns `true`.
 export any_match :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> bool {
@@ -352,7 +352,7 @@ export find :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> T | null {
 }
 
 /// Apply `f` to each element ; return the first non-null result. Combines
-/// the transform and the search in one pass — useful for parsing chains
+/// the transform and the search in one pass: useful for parsing chains
 /// where the mapper itself decides whether an element qualifies.
 /// @param it  source array or iterator.
 /// @param f   mapper that returns `null` to skip the element or a value
@@ -372,15 +372,15 @@ export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
 // ============================================================================
 //
 // Each combinator below is a `generator` over a source `Iterator<T>` : it
-// `yield`s transformed elements one at a time, so a chain stays lazy — an
+// `yield`s transformed elements one at a time, so a chain stays lazy: an
 // element only flows through when the downstream consumer pulls it (`next()`,
 // or `for x in chain {…}`). The fluent shape (`it.map(f).filter(p)`) reads
 // like an Iterator pipeline and dispatches via UFCS through the first param's
-// type — overload-resolved against the eager `T[]`-first-param siblings above.
+// type: overload-resolved against the eager `T[]`-first-param siblings above.
 // The lowerer's iter-chain fusion folds a `for`/terminal-consumed chain into a
 // single counter loop when it bottoms at an inline range or an array.
 
-/// Fluent lazy `filter`. Distinct from the eager `T[]`-overload above —
+/// Fluent lazy `filter`. Distinct from the eager `T[]`-overload above:
 /// the resolver picks this one when the receiver implements `Iterator<T>`
 /// (Range, an array iterator, MutableMap, …).
 export filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T> {
@@ -393,7 +393,7 @@ export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
     for x in self { yield f(x) }
 }
 
-/// Fluent lazy `take`. Yields the first `n` items from `self`, then ends —
+/// Fluent lazy `take`. Yields the first `n` items from `self`, then ends:
 /// pulling exactly `n` items from `self`, none for `take(0)`.
 export take :: fn<T>(self: Iterator<T>, n: i64) -> Iterator<T> {
     if n == 0 {

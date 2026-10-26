@@ -1,20 +1,20 @@
 // vader/support/text/text: low-level byte/text helpers shared across the compiler.
 //
-// Byte-level ASCII predicates over raw `bytes()` views — name mangling
-// (`c_emit`, `comptime`) and identifier-boundary scans (`lsp`) — plus small
+// Byte-level ASCII predicates over raw `bytes()` views, name mangling
+// (`c_emit`, `comptime`) and identifier-boundary scans (`lsp`), plus small
 // dump/text helpers. Distinct from `std/char` (codepoint-typed) and from the
 // lexer's `is_ident_start` / `is_ident_continue`, which classify `char`.
 
 module "vader/support/text"
 
-// `std/string` for the `chars` free fn `for c in s` lowers to — the impl has to
+// `std/string` for the `chars` free fn `for c in s` lowers to: the impl has to
 // be in THIS module's closure, not merely somewhere in the program.
 import "std/math"
 import "std/numbers"
 import "std/string"
 import "std/string_builder"
 
-/// Identifier byte — `[A-Za-z0-9_]` (regex `\w`). The byte-level classifier
+/// Identifier byte: `[A-Za-z0-9_]` (regex `\w`). The byte-level classifier
 /// for raw UTF-8 / ASCII `bytes()` views ; bytes outside the class are what
 /// `sanitise`-style helpers replace with `_`.
 export is_ident_byte :: fn(b: u8) = (b >= 'A' && b <= 'Z') || (b >= 'a' && b <= 'z')

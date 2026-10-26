@@ -3,7 +3,7 @@
 // The env literal at the inner lift site names a symbol the enclosing LIFTED fn
 // does not own as a local, so it has to be read out of that fn's own env. Built
 // as a bare ident instead, `midir` could not resolve it and replaced the entry
-// block with `unreachable` — the nested closure and everything around it went
+// block with `unreachable`: the nested closure and everything around it went
 // silently missing.
 //
 // A captured PARAMETER is the shape that broke; a captured local resolved by

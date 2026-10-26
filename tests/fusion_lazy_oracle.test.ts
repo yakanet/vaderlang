@@ -1,5 +1,5 @@
 // The `fusion_*` snippets print every chain twice: fused where it is written,
-// then bound to a local first — the lazy reference. The reference only
+// then bound to a local first: the lazy reference. The reference only
 // holds while that local stays a state machine: a pass that fused through the
 // local would make both halves agree on the wrong answer, and the snippets would
 // pin nothing without a single snapshot line saying so. So every lazy local must

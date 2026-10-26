@@ -1,5 +1,5 @@
 // T3006: a type argument bound by a trait must implement it, a generic impl's
-// own bounds included — `Box<Point>` meets `T: Display` only if `Point` does.
+// own bounds included: `Box<Point>` meets `T: Display` only if `Point` does.
 module "snippet"
 
 Point :: struct { x: i32 }

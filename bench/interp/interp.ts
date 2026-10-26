@@ -2,7 +2,7 @@
 // integers into a string via interpolation, 200 000 times), same checksum.
 // The payload carries a leading `🚀` (a supplementary-plane codepoint), so the
 // checksum counts CODEPOINTS (`[...s].length` iterates by codepoint), matching
-// Vader's s.len() — plain `s.length` counts UTF-16 code units (🚀 = 2) and would
+// Vader's s.len(): plain `s.length` counts UTF-16 code units (🚀 = 2) and would
 // diverge.
 
 let total = 0;

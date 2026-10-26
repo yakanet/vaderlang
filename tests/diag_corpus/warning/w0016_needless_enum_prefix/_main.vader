@@ -12,17 +12,17 @@ paint :: fn(c: Color) -> i32 = if c == .Red { 1 } else { 2 }
 // The warning: the comparison's left operand already pins `Color`.
 compared :: fn(c: Color) -> bool = c == Color.Red
 
-// Quiet — an unannotated local has no slot to infer from.
+// Quiet: an unannotated local has no slot to infer from.
 unpinned :: fn() -> Color {
     c :: Color.Green
     return c
 }
 
-// Quiet — the slot is a union carrying two enums that share `Red`. The bare
+// Quiet: the slot is a union carrying two enums that share `Red`. The bare
 // form would resolve to `Color`, so the prefix is what picks `Fruit`.
 ambiguous :: fn() -> Color | Fruit = Fruit.Red
 
-// Quiet — at an argument of an OVERLOADED call the prefix is what picks the
+// Quiet: at an argument of an OVERLOADED call the prefix is what picks the
 // candidate: `pick(.Red)` would reach the `Color` one whatever was written.
 pick :: fn(c: Color) -> i32 = 1
 pick :: fn(f: Fruit) -> i32 = 2

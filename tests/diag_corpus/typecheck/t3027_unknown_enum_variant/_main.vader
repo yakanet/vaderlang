@@ -1,4 +1,4 @@
-// `.Bogus` doesn't exist on `Color` — T3027.
+// `.Bogus` doesn't exist on `Color`: T3027.
 module "snippet"
 
 Color :: enum { Red, Green, Blue }

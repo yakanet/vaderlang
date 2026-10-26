@@ -9,7 +9,7 @@
 
 **The discipline of static typing, the ergonomics of a script.**
 
-A general-purpose, statically-typed language with type inference — compiled to
+A general-purpose, statically-typed language with type inference: compiled to
 fast native binaries through a compiler that is written in Vader and compiles itself.
 
 </div>
@@ -20,7 +20,7 @@ module "main"
 import "std/io"
 import "std/math"
 
-// A sum type — `match` must cover every variant (the compiler checks).
+// A sum type: `match` must cover every variant (the compiler checks).
 Shape :: Circle | Rect
 
 Circle :: struct { radius: f64 }
@@ -57,14 +57,14 @@ vader run shapes.vader
 
 ## Why Vader
 
-- **Static typing that gets out of the way.** Bidirectional inference means you rarely write a type. `::` binds a constant, `:=` a mutable local — the distinction is the whole ceremony.
-- **Explicit nullability, no exceptions.** There is no implicit `null`: a value is nullable only as an explicit `T | null` union. Errors are values too, returned in a union with the success type. Both are checked — and narrowed — at compile time.
+- **Static typing that gets out of the way.** Bidirectional inference means you rarely write a type. `::` binds a constant, `:=` a mutable local: the distinction is the whole ceremony.
+- **Explicit nullability, no exceptions.** There is no implicit `null`: a value is nullable only as an explicit `T | null` union. Errors are values too, returned in a union with the success type. Both are checked (and narrowed) at compile time.
 - **No OOP, no boilerplate.** No classes, no inheritance. UFCS (`a.f(b)` ≡ `f(a, b)`) gives you method-call ergonomics over plain functions and structs.
-- **Metaprogramming without macros.** `@comptime` runs real Vader at compile time — no text substitution, no runtime reflection.
+- **Metaprogramming without macros.** `@comptime` runs real Vader at compile time: no text substitution, no runtime reflection.
 - **Compiles to fast native code.** A C backend (`vader build`) produces native binaries backed by a precise generational GC; a bytecode VM (`vader run`) executes without a build step. WASM is on the roadmap.
 - **Self-hosted, reproducibly.** The compiler is written in Vader and compiles itself to a *byte-for-byte* fixed point. A committed C seed lets any machine with a C compiler rebuild the whole toolchain from source.
 
-> **Status: hobby project.** The backends run the examples end-to-end but are not battle-tested — treat Vader as an experiment, not a tool to build on yet. The compiler internals (frontend → midir CFG → bytecode → C) are documented in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+> **Status: hobby project.** The backends run the examples end-to-end but are not battle-tested, treat Vader as an experiment, not a tool to build on yet. The compiler internals (frontend → midir CFG → bytecode → C) are documented in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
 ## Quick start
 
@@ -85,7 +85,7 @@ vader run examples/hello/hello.vader              # run via the bytecode VM
 vader build --out=hello examples/hello/hello.vader && ./hello   # or compile to native
 ```
 
-Starting your own instead of running an example: `vader new my-app` writes what a project needs — by default a `vader.json`, `src/main.vader` and a `.gitignore` — and `vader doctor` reports whether the toolchain around it is sound.
+Starting your own instead of running an example: `vader new my-app` writes what a project needs (by default a `vader.json`, `src/main.vader` and a `.gitignore`) and `vader doctor` reports whether the toolchain around it is sound.
 
 Inspect any compilation stage with [`vader dump`](#dump-stages), or emit textual IR with `vader build --emit=bytecode`.
 
@@ -98,7 +98,7 @@ Inspect any compilation stage with [`vader dump`](#dump-stages), or emit textual
 Prebuilt archives ship the `vader` binary alongside the stdlib, the C runtime, and the Vader sources it loads at runtime. Extract anywhere, then run `vader` directly (or add the folder to your `PATH`).
 
 ```sh
-# macOS arm64 (Apple Silicon — Intel Macs are not supported)
+# macOS arm64 (Apple Silicon: Intel Macs are not supported)
 tar -xzf vader-darwin-arm64.tar.gz && ./vader-darwin-arm64/vader --version
 
 # Linux x64
@@ -108,9 +108,9 @@ tar -xzf vader-linux-x64.tar.gz && ./vader-linux-x64/vader --version
 tar -xf vader-windows-x64.zip && vader-windows-x64\vader.exe --version
 ```
 
-The prebuilt `vader` is the native self-hosted compiler, built from the committed C seed (see [Build from source](#build-from-source)) and packaged as a self-contained bundle — it loads `lib/` (the namespaces it ships: `std/`, `toolchain/` and the libraries), `src/vader/` (the compiler's own sources, which compiling a project's `build.vader` needs) and `runtime/c/` from next to itself, so keep the extracted folder intact. If you would rather move the binary on its own, set `VADER_HOME` to the extracted folder — it takes precedence over the search beside the binary.
+The prebuilt `vader` is the native self-hosted compiler, built from the committed C seed (see [Build from source](#build-from-source)) and packaged as a self-contained bundle, it loads `lib/` (the namespaces it ships: `std/`, `toolchain/` and the libraries), `src/vader/` (the compiler's own sources, which compiling a project's `build.vader` needs) and `runtime/c/` from next to itself, so keep the extracted folder intact. If you would rather move the binary on its own, set `VADER_HOME` to the extracted folder: it takes precedence over the search beside the binary.
 
-On macOS, Gatekeeper blocks the unsigned binary on first launch — strip the quarantine attribute:
+On macOS, Gatekeeper blocks the unsigned binary on first launch: strip the quarantine attribute:
 
 ```sh
 xattr -d com.apple.quarantine ./vader-darwin-arm64/vader
@@ -119,16 +119,16 @@ xattr -d com.apple.quarantine ./vader-darwin-arm64/vader
 
 ## Build from source
 
-Vader is self-hosted, so building from a checkout needs only a **C compiler**. It bootstraps in three stages from a committed C **seed** (`bootstrap/seed/`) — the exact chain CI replays on every push:
+Vader is self-hosted, so building from a checkout needs only a **C compiler**. It bootstraps in three stages from a committed C **seed** (`bootstrap/seed/`): the exact chain CI replays on every push:
 
-- **seed → stage0.** The seed is frozen C, once emitted by a Vader compiler for the build-only entrypoint `vader/bootstrap/bootstrap.vader`. `cc` turns it into `build/stage0`. This trusted starting point needs no pre-existing Vader toolchain — that's what breaks the chicken-and-egg.
+- **seed → stage0.** The seed is frozen C, once emitted by a Vader compiler for the build-only entrypoint `vader/bootstrap/bootstrap.vader`. `cc` turns it into `build/stage0`. This trusted starting point needs no pre-existing Vader toolchain: that's what breaks the chicken-and-egg.
 - **stage0 → stage1 → stage2.** stage0 builds the full compiler (`build/stage1`), which builds itself once more into `build/vader` (stage2). A fixed-point check confirms stage1 and stage2 emit identical C.
 
 ```sh
 git clone https://github.com/yakanet/vaderlang.git
 cd vaderlang
 bash bootstrap/build.sh --dist        # seed → stage0 → stage1 → vader (stage2), + dist/vader-<os>-<arch>/
-dist/vader-*/vader --version          # the bundle is self-contained — run it from anywhere
+dist/vader-*/vader --version          # the bundle is self-contained: run it from anywhere
 ```
 
 The `dist/vader-<os>-<arch>/` bundle (binary + `lib/` + C runtime + `third_party/`) resolves `lib/` and `runtime/c/` next to its own executable, so it runs from any directory. Omit `--dist` to stop at `build/vader`. Override the compiler with `CC=clang bootstrap/build.sh`; the GC arenas auto-grow, so self-compiling needs no environment tuning. See [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md) for the seed lifecycle, regeneration (`bootstrap/seed.sh regenerate`), and fixed-point verification (`bootstrap/verify.sh`).
@@ -153,9 +153,9 @@ Pass `-CC clang` to pick a different compiler, or drop `-Dist` to just build `bu
 
 Invoke as `vader <action> [options] [args]`. The examples assume `vader` is on your `PATH`; otherwise call it by path (`./build/vader <action>`).
 
-**An action's options come before its first positional argument.** Everything after that argument is no longer the compiler's — `vader run prog.vader --verbose` passes `--verbose` straight to the program, no `--` needed. Write `vader build --release --out=x foo.vader`, not `vader build foo.vader --release`; the latter is an error that says so. A leading `--` closes the option zone explicitly, which is how you name a path that starts with a dash (`vader run -- -weird.vader`).
+**An action's options come before its first positional argument.** Everything after that argument is no longer the compiler's: `vader run prog.vader --verbose` passes `--verbose` straight to the program, no `--` needed. Write `vader build --release --out=x foo.vader`, not `vader build foo.vader --release`; the latter is an error that says so. A leading `--` closes the option zone explicitly, which is how you name a path that starts with a dash (`vader run -- -weird.vader`).
 
-Anything the action doesn't recognise is an error rather than a silently ignored token, in both `--long` and `-s` forms. Run `vader build --help` (or `-h`, or `vader help build`) for one action's full option list — the help is generated from the same table the parser reads, so it can't drift. Note that `--help` past a `run` path goes to the program, not to the compiler, so a script keeps its own.
+Anything the action doesn't recognise is an error rather than a silently ignored token, in both `--long` and `-s` forms. Run `vader build --help` (or `-h`, or `vader help build`) for one action's full option list: the help is generated from the same table the parser reads, so it can't drift. Note that `--help` past a `run` path goes to the program, not to the compiler, so a script keeps its own.
 
 | Command                                        | Status  | What it does                                                                                                                                                                                                                                                              |
 |------------------------------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -168,16 +168,16 @@ Anything the action doesn't recognise is an error rather than a silently ignored
 | `vader fmt [path]`                             | partial | Opinionated formatter, no config. Written in Vader (`vader/tools/fmt/`), dispatched through the VM. Flags: `--check` (read-only, exits 1 on drift), `--stdout` (single-file). Default rewrites in place. Idempotent and parse-equivalent; not yet a byte-for-byte no-op on the stdlib. |
 | `vader test [path]`                            | ✓       | Discover and run `@test` functions under `[path]` (default cwd). Each runs as a separate VM entry; failures report message + source span. Name override: `@test("readable name") my_test :: fn() -> void { … }`. Exits non-zero on any failure.                            |
 | `vader dump --stage=<stage> <file>`            | ✓       | Run the frontend up to `<stage>` and print the result (JSON or text).                                                                                                                                                                                                     |
-| `vader graph <file> [--format=…] [--scope=…]` | ✓       | Print the project's module import graph, read off the loader — so it is the graph a build actually resolves. `--format=mermaid` (default, `graph TB`) renders with no tool installed; `--format=dot` pipes to Graphviz. `--scope=project` (default) hides library modules; `--scope=all` keeps them. |
+| `vader graph <file> [--format=…] [--scope=…]` | ✓       | Print the project's module import graph, read off the loader, so it is the graph a build actually resolves. `--format=mermaid` (default, `graph TB`) renders with no tool installed; `--format=dot` pipes to Graphviz. `--scope=project` (default) hides library modules; `--scope=all` keeps them. |
 | `vader doctor [--json]`                        | ✓       | Check that this toolchain can build: the `cc` it would invoke (resolved and run), the library root and which branch found it, the compiler sources a `build.vader` needs, the C runtime header, the manifest's `includePaths`, and any `VADER_GC_*` override in force. Exits 1 on a failure, 0 on warnings. |
 
 ### Common options
 
-Accepted by every action, after the action name. All three are **reserved** — parsed but not yet wired into any pass.
+Accepted by every action, after the action name. All three are **reserved**: parsed but not yet wired into any pass.
 
-- `--diagnostics=text|json` — render diagnostics for terminals (default) or as a stable JSON schema for tooling.
-- `--allow-env` — reserved; no effect yet (`@comptime` code may read the environment).
-- `--no-bytecode-opt` — disable bytecode peephole optimisations.
+- `--diagnostics=text|json`: render diagnostics for terminals (default) or as a stable JSON schema for tooling.
+- `--allow-env`: reserved; no effect yet (`@comptime` code may read the environment).
+- `--no-bytecode-opt`: disable bytecode peephole optimisations.
 
 ### Short aliases
 
@@ -185,8 +185,8 @@ Accepted by every action, after the action name. All three are **reserved** — 
 
 ### Environment
 
-- `VADER_HOME` — directory holding the toolchain (`lib/`, `runtime/`, and `src/` in a bundle). Optional, and it outranks the two implicit probes: beside the binary, then under the working directory. Set it to run a binary that lives apart from the files it loads. A value that does not hold `lib/std/io/io.vader` is ignored rather than fatal, so a stale setting degrades to the ordinary search instead of breaking every build — `vader doctor` reports it.
-- `CC` — the C compiler `vader build` invokes when `--cc` is absent (default: `cc`, or `gcc` on Windows). It names one program, not a command line: `CC=clang` works, `CC="gcc -m32"` does not. The bootstrap scripts honour it too. `vader doctor` reports it when it is set.
+- `VADER_HOME`: directory holding the toolchain (`lib/`, `runtime/`, and `src/` in a bundle). Optional, and it outranks the two implicit probes: beside the binary, then under the working directory. Set it to run a binary that lives apart from the files it loads. A value that does not hold `lib/std/io/io.vader` is ignored rather than fatal, so a stale setting degrades to the ordinary search instead of breaking every build: `vader doctor` reports it.
+- `CC`: the C compiler `vader build` invokes when `--cc` is absent (default: `cc`, or `gcc` on Windows). It names one program, not a command line: `CC=clang` works, `CC="gcc -m32"` does not. The bootstrap scripts honour it too. `vader doctor` reports it when it is set.
 - `VADER_GC_*` tune the collector. They are read as plain byte counts: `VADER_GC_OLD_MAX=512M` means 512 **bytes**, not 512 MB. `vader doctor` reports the value each one actually resolves to.
 
 ### `dump` stages
@@ -222,7 +222,7 @@ vader build --emit=executable --out=/tmp/foo foo.vader            # native binar
 vader build --emit=executable --cc=clang --out=/tmp/foo foo.vader # pick the C compiler (`--cc` wins over `CC`)
 ```
 
-**Cross-compile to Windows from macOS/Linux** — install [mingw-w64](https://www.mingw-w64.org/) (`brew install mingw-w64` / `apt install mingw-w64`), then point `vader build` at the cross-compiler. The `.exe` extension is added automatically when the triplet ends in `mingw32-gcc`:
+**Cross-compile to Windows from macOS/Linux**: install [mingw-w64](https://www.mingw-w64.org/) (`brew install mingw-w64` / `apt install mingw-w64`), then point `vader build` at the cross-compiler. The `.exe` extension is added automatically when the triplet ends in `mingw32-gcc`:
 
 ```sh
 vader build --emit=executable --cc=x86_64-w64-mingw32-gcc --out=/tmp/hello-win examples/hello/hello.vader
@@ -239,8 +239,8 @@ file /tmp/hello-win.exe          # → PE32+ executable (console) x86-64, for MS
 
 Two editor plugins share one syntax grammar ([`editors/common/`](./editors/common/), in the `.tmLanguage` format both read) and the same language server, `vader lsp`:
 
-- **VS Code** — see [`editors/vscode/README.md`](./editors/vscode/README.md).
-- **JetBrains IDEs** (IntelliJ IDEA, PyCharm, CLion, …) — see [`editors/intellij/README.md`](./editors/intellij/README.md).
+- **VS Code**: see [`editors/vscode/README.md`](./editors/vscode/README.md).
+- **JetBrains IDEs** (IntelliJ IDEA, PyCharm, CLion, …), see [`editors/intellij/README.md`](./editors/intellij/README.md).
 
 ## Development
 
@@ -253,7 +253,7 @@ RUN_FMT_TESTS=1 bun run test               # also exercise the Vader formatter e
 
 ### Running the suite on Windows
 
-[`tools/windows-vm/`](./tools/windows-vm/) holds a Vagrant definition for a headless **Windows 11 ARM64** guest, so the `_WIN32` paths can be built and tested from a macOS or Linux terminal without waiting on CI. It runs a real NT kernel, which is what makes it an oracle for the Windows-only surface — drive roots, path separators, CRLF stdio, pipes, process spawn.
+[`tools/windows-vm/`](./tools/windows-vm/) holds a Vagrant definition for a headless **Windows 11 ARM64** guest, so the `_WIN32` paths can be built and tested from a macOS or Linux terminal without waiting on CI. It runs a real NT kernel, which is what makes it an oracle for the Windows-only surface: drive roots, path separators, CRLF stdio, pipes, process spawn.
 
 ```sh
 cd tools/windows-vm && vagrant up   # once: boots the guest, installs clang/bun/pwsh
@@ -262,7 +262,7 @@ bin/vwin test                       # push the tree, then bun run test --only-fa
 bin/vwin test tests/lsp             # …scoped to a path
 ```
 
-Measured: a full bootstrap in the guest runs in **~80 s** on an M-series Mac (6 vCPU), against ~4 min for the bootstrap step alone on a GitHub runner. It builds `aarch64` with clang, so it covers OS behaviour rather than the `x86_64-w64-mingw32` codegen CI uses — see the directory's README for that distinction and the rest of the setup.
+Measured: a full bootstrap in the guest runs in **~80 s** on an M-series Mac (6 vCPU), against ~4 min for the bootstrap step alone on a GitHub runner. It builds `aarch64` with clang, so it covers OS behaviour rather than the `x86_64-w64-mingw32` codegen CI uses, see the directory's README for that distinction and the rest of the setup.
 
 Snapshot tests live under `tests/snippets/<name>/` (a `_main.vader` + one `*.snapshot` per stage); set `UPDATE_SNAPSHOTS=1` to regenerate, then `git diff` to review. Contributor conventions: the AST is never mutated (each phase produces side-tables keyed by node identity), every phase emits `Diagnostic`s rather than throwing (codes namespaced `L0`/`P1`/`R2`/`T3`/`C4`/`M5`/`H6`/`I7`/`W0`), and a single midir backbone feeds the VM, the C emitter, and the future WASM emitter. The architecture is documented in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
@@ -274,10 +274,10 @@ The live, item-by-item roadmap is in [`TODO.md`](./TODO.md). High-level mileston
 
 | Phase | Goal | Status |
 |-------|------|--------|
-| **0 — Bootstrap** | Project scaffold, test runner, CLI stub | ✓ done |
-| **1 — MVP** | Full TypeScript pipeline: lexer → … → midir CFG → bytecode VM (`vader run`) + C emitter with a precise Cheney GC (`vader build`). Traits, tuples, typed enums, `@comptime`, `vader test`, `vader fmt`, and `std/` (io / string / math / collections / iter / sort / json / path / process / runtime / testing) all landed. | shipped |
-| **2 — Self-hosting** | Port the compiler to Vader and reach the fixed point (the Vader-built compiler reproduces its own generated C byte-for-byte). The full pipeline is self-hosted, a committed C seed rebuilds the toolchain from a stock C compiler, and the legacy TypeScript `src/` has been retired. | ✓ done |
-| **3 — Post-MVP** | WASM emitter (bytecode → WASM with GC types), concurrency, networking, richer editor support, multi-platform CI. | pending |
+| **0: Bootstrap** | Project scaffold, test runner, CLI stub | ✓ done |
+| **1: MVP** | Full TypeScript pipeline: lexer → … → midir CFG → bytecode VM (`vader run`) + C emitter with a precise Cheney GC (`vader build`). Traits, tuples, typed enums, `@comptime`, `vader test`, `vader fmt`, and `std/` (io / string / math / collections / iter / sort / json / path / process / runtime / testing) all landed. | shipped |
+| **2: Self-hosting** | Port the compiler to Vader and reach the fixed point (the Vader-built compiler reproduces its own generated C byte-for-byte). The full pipeline is self-hosted, a committed C seed rebuilds the toolchain from a stock C compiler, and the legacy TypeScript `src/` has been retired. | ✓ done |
+| **3: Post-MVP** | WASM emitter (bytecode → WASM with GC types), concurrency, networking, richer editor support, multi-platform CI. | pending |
 
 ## Further reading
 
@@ -290,4 +290,4 @@ The live, item-by-item roadmap is in [`TODO.md`](./TODO.md). High-level mileston
 
 ## License
 
-MIT — see [`LICENSE`](./LICENSE).
+MIT, see [`LICENSE`](./LICENSE).

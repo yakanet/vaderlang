@@ -1,6 +1,6 @@
 // `@displayable` generates an enum's `Display`, one variant name per variant.
 // Anywhere else there is no variant to name, and nothing would read the
-// decorator — so it is refused where the parser still knows what it decorates,
+// decorator, so it is refused where the parser still knows what it decorates,
 // an impl member included.
 
 module "main"

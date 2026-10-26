@@ -1,5 +1,5 @@
 // Java peer of bench/closures.vader. Java cannot mutate a captured local, so
-// the counter is a one-element array — what Java code writes, and the same
+// the counter is a one-element array: what Java code writes, and the same
 // pointer hop Vader's heap cell costs.
 
 import java.util.function.LongUnaryOperator;

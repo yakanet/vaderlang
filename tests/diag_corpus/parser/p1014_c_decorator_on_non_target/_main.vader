@@ -1,6 +1,6 @@
 // `@c_pointer` decorates a PARAMETER of an `@extern`, and `@c_struct` names the
 // C type a STRUCT mirrors. Written on any other declaration they would parse,
-// pass the resolver's decorator whitelist, and reach neither check — the same
+// pass the resolver's decorator whitelist, and reach neither check: the same
 // silent no-op `@target` is rejected for.
 //
 // The `@extern` case is the trap: `@c_pointer` there LOOKS like it says

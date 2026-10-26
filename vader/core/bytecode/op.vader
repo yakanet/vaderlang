@@ -3,18 +3,18 @@
 // One variant per supported op kind, plus the `ConstOp` sub-union and the
 // `ConvertTarget` enum. The union grows sprint by sprint in lock-step with the
 // acceptance snippets (docs/SELFHOST_VM.md). Control-flow ops (`If`, `Else`,
-// `End`, `Branch`, `BranchIf`) carry no operand here — their target pc lives in
+// `End`, `Branch`, `BranchIf`) carry no operand here: their target pc lives in
 // `BcFunction.jump_table[pc]` (`module.vader`).
 //
 // The instruction format lives in `vader/core/bytecode` ; the emitter, the VM's
 // runtime values (`vader/vm/value.vader`) and parsed-module shape
-// (`vader/vm/module.vader`) import these opcodes — the one-way `vm -> core/bytecode`
+// (`vader/vm/module.vader`) import these opcodes: the one-way `vm -> core/bytecode`
 // dependency edge. Nothing in `vader/core/bytecode` imports `vader/vm`.
 
 module "vader/core/bytecode"
 
 /// The full op set understood by the Vader-side VM. Each variant is
-/// pure data — the executor's `match` arms in `exec.vader` carry the
+/// pure data: the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended after `Unreachable` (never reshaped),
 /// so the existing pattern-match arms keep compiling across sprints.
 ///
@@ -173,7 +173,7 @@ export Op :: Unreachable
     | CheckedArith
     | CheckedNeg
 
-/// Trap unconditionally — the bytecode reached a point the compiler proved
+/// Trap unconditionally: the bytecode reached a point the compiler proved
 /// (or asserted, via `@unreachable match`) can never execute. Carries a
 /// human-readable `reason` for the panic message. The VM raises a `Trap` ;
 /// the C emitter lowers it to `vader_unreachable(reason)`. Tag 0 so a zeroed
@@ -188,7 +188,7 @@ export LocalGet :: struct { slot: i32 }
 /// Pop the value stack into `slots[slot]`.
 export LocalSet :: struct { slot: i32 }
 /// Write the top of the value stack into `slots[slot]` *without*
-/// popping — useful when the bytecode wants both side-effect and the
+/// popping: useful when the bytecode wants both side-effect and the
 /// value still available (e.g. just after `struct.new_stack`).
 export LocalTee :: struct { slot: i32 }
 /// Push `module.strings[index]` onto the value stack.
@@ -200,9 +200,9 @@ export BoolConst :: struct { value: bool }
 /// Push a `CharVal(value)`. The codepoint is parsed from the .virt
 /// as a base-10 integer (u32 range) and stored as a `char`. Sprint 5a.
 export CharConst :: struct { value: char }
-/// Invoke a host-side import (e.g. `println`) — `index` keys into `module.imports`.
+/// Invoke a host-side import (e.g. `println`): `index` keys into `module.imports`.
 export CallImport :: struct { index: i32 }
-/// Invoke a Vader-side function — `function_index` keys into `module.functions`.
+/// Invoke a Vader-side function: `function_index` keys into `module.functions`.
 /// The executor pops `parameter_count` values
 /// from the caller's stack, builds a new `Frame`, and pushes it.
 export Call :: struct { function_index: i32 }
@@ -210,10 +210,10 @@ export Call :: struct { function_index: i32 }
 /// Push a function reference (`FnVal`) for `function_index`. Used when
 /// a fn is stored in a struct field, passed as an argument, or bound to
 /// a local. The resulting `FnVal.env` is
-/// always `null` — closures with captured state come from `MakeClosure`.
+/// always `null`: closures with captured state come from `MakeClosure`.
 export FnRef :: struct { function_index: i32, type_id: i32 }
 
-/// Push the address of `function_index`'s own compiled symbol — not a `FnVal`.
+/// Push the address of `function_index`'s own compiled symbol, not a `FnVal`.
 ///
 /// The shape a C callback needs. `FnRef` pushes a `vader_fn_t { code, env }`
 /// whose `code` takes a leading `env` and boxed arguments (the erased ABI), so a
@@ -270,18 +270,18 @@ export MakeClosure :: struct { function_index: i32, env_type_id: i32 }
 /// closure body expects them).
 export CallIndirect :: struct { type_id: i32 }
 
-/// Trait-method virtual dispatch — pops the receiver from the top of
+/// Trait-method virtual dispatch: pops the receiver from the top of
 /// the stack, looks up its type id in the per-(trait, method) vtable
 /// keyed by `vtable_key` (format `"<TraitName>.<MethodName>"`), then
 /// invokes the resolved fn with `[receiver, ...args]`. `parameter_count`
-/// includes the receiver — so the executor pops `parameter_count - 1`
+/// includes the receiver, so the executor pops `parameter_count - 1`
 /// user args plus the receiver itself.
 export VirtualCall :: struct { parameter_count: i32, vtable_key: string }
 
 /// Allocate a struct of type `type_id`. Pops `field_count` values (in
 /// field-declaration order) from the value stack and wraps them in a
-/// `StructVal`. The bytecode pipeline emits two variants — `struct.new`
-/// and `struct.new_stack` — that share this VM op : the heap/stack
+/// `StructVal`. The bytecode pipeline emits two variants (`struct.new`
+/// and `struct.new_stack`) that share this VM op : the heap/stack
 /// distinction is a codegen concern, not a runtime one.
 export StructNew :: struct { type_id: i32, stack: bool }
 /// Pop a `StructVal`, push `struct.fields[field_index]`. `type_id` is
@@ -289,7 +289,7 @@ export StructNew :: struct { type_id: i32, stack: bool }
 /// tag doesn't match).
 export StructGet :: struct { type_id: i32, field_index: i32 }
 /// Pop the new field value, then the struct ; mutate `struct.fields[
-/// field_index]` to the new value. Statement-form — no value pushed
+/// field_index]` to the new value. Statement-form: no value pushed
 /// back. Mirrors `StructNew` in collapsing the heap/stack variants
 /// (`struct.set` / `struct.set_stack`) into one VM op.
 export StructSet :: struct { type_id: i32, field_index: i32, stack: bool }
@@ -306,7 +306,7 @@ export UnionFieldSet :: struct { type_id: i32, field_index: i32 }
 
 /// Allocate an `ArrayVal` of type `type_id`. If `length > 0`, pops
 /// `length` initial elements from the value stack (in caller-push
-/// order — first pushed becomes `elements[0]`) and uses them as the
+/// order: first pushed becomes `elements[0]`) and uses them as the
 /// initial contents ; if `length == 0`, creates a fresh empty array
 /// ready for `array.push`.
 export ArrayNew :: struct { type_id: i32, length: i32 = 0 }
@@ -334,30 +334,30 @@ export ArrayLen :: struct {}
 /// (no shared mutability) ; the C runtime version views.
 export ArraySlice :: struct { type_id: i32 }
 
-// Array construction / bulk-mutation ops — all parameterless : each backing
+// Array construction / bulk-mutation ops, all parameterless : each backing
 // runtime fn reads the element kind/tag off the array buf, and the repeat
 // result is boxed with the runtime array's own `header.type_index`, so none
 // needs a static element type_id. Reached via the intrinsic channel
 // (`intrinsic_op_for_name`), not a dedicated Lowered/Instr node.
 
-/// `[lhs] * n` — pop `n` (i64) then the source array ; push a fresh array
+/// `[lhs] * n`: pop `n` (i64) then the source array ; push a fresh array
 /// repeating the source's elements n times. `length = src.length * n`,
 /// `capacity = max(length, n)` (so `[] * n` reserves n slots with length 0, the
 /// preallocation case). Ref elements are repeated by reference (shallow). The
 /// C runtime calls `vader_array_repeat` ; the VM copies into a fresh `ArrayVal`.
 export ArrayRepeat :: struct {}
-/// `dst.push_all(src)` — pop `src` then `dst` ; append every element of `src`
+/// `dst.push_all(src)`: pop `src` then `dst` ; append every element of `src`
 /// to `dst` (grows dst). Statement-form, no value pushed back.
 export ArrayPushAll :: struct {}
-/// `src.copy_to(src_start, dst, dst_start, len)` — pop `len` / `dst_start` /
+/// `src.copy_to(src_start, dst, dst_start, len)`: pop `len` / `dst_start` /
 /// `dst` / `src_start` / `src` (top-to-bottom) ; overlap-safe positional copy of
 /// `len` elements into the existing `dst` region. Statement-form, no push back.
 export ArrayCopy :: struct {}
-/// `arr.remove_last()` — pop an array ; shrink its length by one and push the
+/// `arr.remove_last()`: pop an array ; shrink its length by one and push the
 /// removed last element as a boxed `T | null` (null when empty). The runtime
 /// pre-tags the box (element_tag off the buf), so no static type_id is needed.
 export ArrayRemoveLast :: struct {}
-/// `arr.clear()` — pop an array ; set its length to 0 (keeps buf + capacity).
+/// `arr.clear()`: pop an array ; set its length to 0 (keeps buf + capacity).
 /// Statement-form, no value pushed back.
 export ArrayClear :: struct {}
 
@@ -381,7 +381,7 @@ export GlobalGet :: struct { index: i32 }
 /// Pop a value into the global slot `module.globals[index]`.
 export GlobalSet :: struct { index: i32 }
 
-/// No-op runtime cast — the .virt format emits `ref.cast TID` after
+/// No-op runtime cast: the .virt format emits `ref.cast TID` after
 /// every `array.get` / `struct.get` to narrow the static type from
 /// `ref` to a concrete element type. Our VM's Values already carry
 /// their concrete tag, so the cast is purely informational ; the op's
@@ -426,7 +426,7 @@ export ConvertTarget :: enum(u8) {
 }
 
 /// Map a `ValType` to the matching `ConvertTarget`. Returns `null` for
-/// non-numeric / non-char targets — callers skip the `Convert` emit since the
+/// non-numeric / non-char targets: callers skip the `Convert` emit since the
 /// runtime tag is unchanged. Used by the bytecode emitter and the `.virt`
 /// reader. (Both `ValType` and `ConvertTarget` live in `vader/core/bytecode`, so this
 /// needs no imports.)
@@ -457,7 +457,7 @@ export convert_target_of :: fn(v: ValType) -> ConvertTarget | null = match v {
 /// Sprint 5b addition.
 export TypeCheck :: struct { type_id: i32 }
 
-/// Push a `TypeVal { type_id }` — the runtime reification of a `type`
+/// Push a `TypeVal { type_id }`: the runtime reification of a `type`
 /// value. Emitted when a `TypeMeta`-typed ident reaches value position
 /// (`@type_of(x)`, `let m : type = i32`, etc.).
 export TypeConst :: struct { type_id: i32 }
@@ -468,7 +468,7 @@ export TypeConst :: struct { type_id: i32 }
 export DeferPush :: struct {}
 
 /// Pop and execute the last `count` entries of the defer stack (LIFO). Emitted by the lowerer at every normal exit
-/// (return / break / continue / block fall-through) — the `count`
+/// (return / break / continue / block fall-through): the `count`
 /// matches the number of defers introduced in the scopes the exit
 /// transcends.
 export DeferPopExec :: struct { count: i32 }
@@ -501,7 +501,7 @@ export I32Ge :: struct {}
 /// Push a constant f64 onto the value stack. In the .virt format a finite
 /// value is `f64.const <decimal> <u64 bits>` (the bit column round-trips it
 /// losslessly) ; a non-finite value is the bare abstract word `f64.const inf`
-/// / `-inf` / `nan` (no bits — a NaN's raw pattern isn't arch-stable). See
+/// / `-inf` / `nan` (no bits: a NaN's raw pattern isn't arch-stable). See
 /// `dump::f64_const_operands` and `vm::parse_f64_const`.
 export F64Const :: struct { value: f64 }
 /// Push a constant i64 onto the value stack.
@@ -594,12 +594,12 @@ export I32BitOr :: struct {}
 export I32BitXor :: struct {}
 /// Pop two i32 (left, right) ; push `left << right`.
 export I32Shl :: struct {}
-/// Pop two i32 (left, right) ; push `left >> right` (arithmetic shift —
+/// Pop two i32 (left, right) ; push `left >> right` (arithmetic shift:
 /// preserves the sign bit). Used by signed-width source ops
 /// (`i32.shr` / `i64.shr` / `i8.shr` / `i16.shr`).
 export I32Shr :: struct {}
 /// Pop two i32 (left, right) ; push `left >> right` interpreted as a
-/// logical (unsigned) shift — the sign bit is replaced by zero. Used by
+/// logical (unsigned) shift: the sign bit is replaced by zero. Used by
 /// unsigned-width source ops (`u32.shr` / `u64.shr` / `u8.shr` /
 /// `u16.shr`). The Vader VM aliases every integer width to
 /// signed `I32Val`, so we distinguish the two shifts at the op level
@@ -642,29 +642,29 @@ export StringNe :: struct {}
 /// is codepoint order ; a proper prefix orders first. Backs `string implements
 /// Comparable`.
 export StringCompare :: struct {}
-/// Pop two references ; push `BoolVal` for identity equality — `===` on two
+/// Pop two references ; push `BoolVal` for identity equality: `===` on two
 /// objects, and `==` on two boxes. `vm/value.vader::value_ref_eq` compares a boxed
 /// scalar by value and a heap value by identity.
 export RefEq :: struct {}
 /// Pop two references ; push `BoolVal` for identity inequality. See `RefEq`.
 export RefNe :: struct {}
-/// Pop and discard the top of the value stack. Sprint 5a addition —
+/// Pop and discard the top of the value stack. Sprint 5a addition:
 /// emitted by the lowerer when a value is computed but never read
 /// (e.g. an expression-statement whose result is unused).
 export Drop :: struct {}
-/// Marker — the executor just bumps pc. Opens a forward-jumping scope.
+/// Marker: the executor just bumps pc. Opens a forward-jumping scope.
 export Block :: struct {}
-/// Marker — the executor just bumps pc. Opens a backward-jumping scope
+/// Marker: the executor just bumps pc. Opens a backward-jumping scope
 /// (`Branch` to a loop label resolves to the body start, not past-end).
 export Loop :: struct {}
 /// Pops one i32 condition. Non-zero falls through ; zero jumps to the
 /// matching `Else` (or past the matching `End` if none). The actual
 /// target pc lives in the enclosing function's `jump_table[pc]`.
 export If :: struct {}
-/// Reached only when the matching `If` took the truthy path — jumps
+/// Reached only when the matching `If` took the truthy path: jumps
 /// past the matching `End`. Target pc in `jump_table[pc]`.
 export Else :: struct {}
-/// Marker — closes the matching `Block`/`Loop`/`If`/`Else`. The
+/// Marker: closes the matching `Block`/`Loop`/`If`/`Else`. The
 /// executor bumps pc through it ; the parser uses `End` lines to
 /// resolve every still-pending `Branch` / `BranchIf`.
 export End :: struct {}
@@ -676,7 +676,7 @@ export BranchIf :: struct {}
 /// (if any) becomes the value pushed onto the caller's stack ;
 /// the executor pops the current `Frame` and resumes the parent.
 export Return :: struct {}
-/// Fused `<T>.const X ; return` — pushes the literal then returns it.
+/// Fused `<T>.const X ; return`: pushes the literal then returns it.
 /// `value` is the inner const op (carried verbatim) so every backend
 /// inlines the right literal form.
 export ReturnLit :: struct { value: ConstOp }
@@ -694,7 +694,7 @@ export ReturnLit :: struct { value: ConstOp }
 // backend provides.
 
 /// GC-allocate a zero-filled byte region of `size` bytes (popped) and push the
-/// handle. The CONSTRUCTOR of the Target ABI memory family — `Load*` / `Store*` /
+/// handle. The CONSTRUCTOR of the Target ABI memory family: `Load*` / `Store*` /
 /// `MemoryCopy` / `BufferToString` / `BufferWriteString` are its accessors.
 ///
 /// Carries no operand: the allocated object is always a `Buffer`, so its type is
@@ -704,7 +704,7 @@ export ReturnLit :: struct { value: ConstOp }
 /// field, and the one thing it ever allocated was a `Buffer`.)
 ///
 /// C lowering is a call to the runtime's `vader_buffer_new(size)`, which zeroes
-/// the region and stamps the header with that same sentinel — the GC forwards a
+/// the region and stamps the header with that same sentinel: the GC forwards a
 /// boxed reference through the header, so the two must agree.
 ///
 /// Emitted from the core library's buffer allocation only, `new_byte_buffer`,
@@ -719,24 +719,24 @@ export BufferNew :: struct {}
 // `Store*` twins) are COMPLETE but have no way to fire: the VM executes them
 // (`vm/exec.vader`), the C emit lowers them onto `vader_buffer_load_i32` & co
 // (`emit/c/walker.vader`), the dump writes them and the `.virt` reader parses
-// them back — but the only thing that MINTS a memory op is a mangle match in
+// them back, but the only thing that MINTS a memory op is a mangle match in
 // `midir/select/intrinsics.vader`, and `std/core/buffer.vader`'s `ByteAccess` trait
 // declares just `load_u8` / `store_u8` / `memory_copy` / `intern_string` /
 // `write_string`. So nothing user-writable reaches them. They are an ABI landed
-// ahead of its surface, NOT dead weight — do not prune them as unreachable.
+// ahead of its surface, NOT dead weight: do not prune them as unreachable.
 //
 // Their intended consumer is named in `core/bytecode/byte_codec.vader`'s header: a future
 // `std/encoding` built over `Buffer`. Two constraints to settle there first:
 //
 //   - ENDIANNESS must be explicit in the name (`load_i32_le` / `_be`), not left
 //     "native". WASM defines its linear memory as little-endian NORMATIVELY,
-//     while the C backend's `memcpy` follows the machine — so one "native" op
+//     while the C backend's `memcpy` follows the machine, so one "native" op
 //     means two different things across backends on a big-endian target. An
 //     explicit `_le` is the same instruction everywhere.
 //   - A `_be` accessor is CHEAP natively (`__builtin_bswap32`) and EXPENSIVE in
 //     WASM, which has no byteswap instruction at all: it costs shifts + masks,
 //     about what the pure-Vader shift loop already costs. Worth knowing before
-//     promising anyone a speed-up — SHA-256 is big-endian, MD5 little-endian.
+//     promising anyone a speed-up: SHA-256 is big-endian, MD5 little-endian.
 //
 // Everything else about the family maps 1:1 onto WASM (`i32.load`, `i64.store`,
 // `memory.copy`, …), and WASM permits unaligned access, which matters because a
@@ -795,7 +795,7 @@ export BufferWriteString :: struct {}
 
 /// Bit-reinterpret an `f64` as its raw IEEE 754 `u64` bit pattern. Pops an
 /// `f64`, pushes the `u64`. This is NOT a numeric conversion (`u64(x)` truncates
-/// the VALUE) — it returns the exact bits (`3.0 → 0x4008000000000000`). Lowers
+/// the VALUE): it returns the exact bits (`3.0 → 0x4008000000000000`). Lowers
 /// to a `union`/`memcpy` cast in C, no runtime symbol. The shortest-double
 /// formatter (and any float bit-fiddling) is built on this.
 export F64ToBits :: struct {}

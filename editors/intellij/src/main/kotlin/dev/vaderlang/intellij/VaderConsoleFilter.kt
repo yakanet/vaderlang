@@ -12,12 +12,12 @@ import com.intellij.openapi.vfs.VirtualFile
 // The compiler prints a path RELATIVE to its working directory when the file is
 // under it, which is what keeps a diagnostic readable instead of spending most
 // of the line on `/Users/…/vaderlang2/`. IntelliJ's built-in console filters do
-// not link a relative path — they linked the old absolute ones, so shortening
+// not link a relative path: they linked the old absolute ones, so shortening
 // them silently cost Ctrl+click. This gives it back rather than trading one for
 // the other.
 //
 // Resolution mirrors what the compiler did: an absolute path is opened as-is, a
-// relative one is joined to the project root — which is exactly the working
+// relative one is joined to the project root, which is exactly the working
 // directory the run configuration sets (`VaderRunConfigurationType`), so the two
 // agree by construction rather than by coincidence.
 internal class VaderConsoleFilterProvider : ConsoleFilterProvider {
@@ -56,7 +56,7 @@ private class VaderDiagnosticFilter(private val project: Project) : Filter {
     }
 
     private companion object {
-        // `[<path>:<line>:<col>]` — the shape `format_diagnostic` emits
+        // `[<path>:<line>:<col>]`: the shape `format_diagnostic` emits
         // (`vader/support/diagnostics/render.vader`). Anchored on the brackets so a
         // colon-separated fragment inside a message cannot masquerade as one.
         val PATTERN = Regex("\\[([^\\[\\]:]+\\.vader):(\\d+):(\\d+)]")

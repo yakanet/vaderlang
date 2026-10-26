@@ -2,7 +2,7 @@
 //
 // Fusion is push: each `yield` site gets its own copy of the consumer body, and
 // `chain` has one loop per source. A `break` lowered as written leaves only the
-// loop holding that copy, and the second source runs anyway — 61 (1 + 10 + 20 +
+// loop holding that copy, and the second source runs anyway: 61 (1 + 10 + 20 +
 // 30) where the lazy iterator stops at 1 ; a labelled `break <var>` reaches only
 // the loop carrying the label, and fails the same way. So such a `break` leaves
 // the block around the whole `chain` instead. A `continue` is right as written:
@@ -37,7 +37,7 @@ main :: fn() -> i32 {
     }
     println("break in 2nd source=${second} want=16")
 
-    // Labelled break by iteration variable — same requirement.
+    // Labelled break by iteration variable: same requirement.
     labelled := 0
     for y in a.chain(b) {
         if y == 2 {

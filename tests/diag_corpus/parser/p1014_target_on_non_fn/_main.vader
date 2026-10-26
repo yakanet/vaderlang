@@ -1,5 +1,5 @@
 // `@target` selects a function BODY. Anywhere else it would parse, pass the
-// resolver's decorator whitelist, and do nothing at all — a silent no-op is
+// resolver's decorator whitelist, and do nothing at all: a silent no-op is
 // worse than either accepting or rejecting, because nothing tells the author
 // their annotation was ignored.
 //

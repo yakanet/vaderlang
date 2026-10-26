@@ -1,4 +1,4 @@
-/// Mandelbrot kernel — counts iterations until escape for every pixel of a
+/// Mandelbrot kernel: counts iterations until escape for every pixel of a
 /// fixed grid and prints a single-line checksum. Sized so that the natively
 /// compiled binary takes 100-300 ms on a 2026-era laptop ; the VM-interpreted
 /// run takes a few seconds. The `bench/` peers (TS, Go) compute the same

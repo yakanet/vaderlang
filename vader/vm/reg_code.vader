@@ -124,7 +124,7 @@ RegOp :: enum(i32) {
     // pc <- a when r[b] is false / true.
     JumpIfFalse
     JumpIfTrue
-    // pc <- a when r[b] op r[c] — a comparison fused with the branch reading it.
+    // pc <- a when r[b] op r[c]: a comparison fused with the branch reading it.
     // `>` and `>=` swap their operands onto `<` and `<=`.
     JumpEqI32
     JumpNeI32
@@ -221,7 +221,7 @@ RegFunction :: struct {
     texts:     string[]
     /// Parameters, locals, then one register per operand-stack depth.
     registers: i64
-    /// `signature.params.len()` — the arity the call arm checks a fn value or a
+    /// `signature.params.len()`: the arity the call arm checks a fn value or a
     /// vtable impl against before entering it.
     params:    i64
     /// Parameters plus locals: the registers a call resets.
@@ -237,7 +237,7 @@ RegModule :: struct {
 OPERAND_A_BITS: i64: 22
 OPERAND_BC_BITS: i64: 21
 
-// `a`, `b`, `c` in one word — `a` in the low bits, then `b`, then `c` — or `null`
+// `a`, `b`, `c` in one word (`a` in the low bits, then `b`, then `c`) or `null`
 // when one does not fit its width.
 pack_operands :: fn(a: i32, b: i32, c: i32) -> i64 | null {
     fits :: fits_signed(a, OPERAND_A_BITS) && fits_signed(b, OPERAND_BC_BITS)

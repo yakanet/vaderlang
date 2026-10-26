@@ -2,16 +2,16 @@
 //
 // `out := []` followed by a loop that runs a known number of times, pushing onto
 // `out` once per turn, grows `out` by doubling: each growth allocates a buffer,
-// copies the elements and leaves the old buffer to the collector — on a large
+// copies the elements and leaves the old buffer to the collector: on a large
 // array as much work as the loop itself. When the trip count is known before the
 // loop starts, `out` is created with that capacity instead (`[] * n`), which the
 // runtime and the push cache treat as any fresh array. The loop's emitter
 // decides, by recording the trip count on `LoweredLoop.turns`: a `for` over a
-// range or an array does, hand-written or fused — an inlined `collect` included.
+// range or an array does, hand-written or fused: an inlined `collect` included.
 //
 // The capacity is a hint, never a semantics: a skipped push or an early exit only
-// leaves slots unused. So the rule asks for what keeps the hint tight — a push at
-// the top of the body, no jump in it — not for what keeps the program correct.
+// leaves slots unused. So the rule asks for what keeps the hint tight (a push at
+// the top of the body, no jump in it) not for what keeps the program correct.
 
 module "vader/lower/optimise"
 
@@ -21,7 +21,7 @@ import "vader/core/types"
 import "vader/lower/ir"
 
 /// When the last statement of `stmts` is a counted loop, create each empty array
-/// it fills — one push per turn — at the loop's trip count instead.
+/// it fills (one push per turn) at the loop's trip count instead.
 ///
 /// The arrays are the `let`s right ahead of the loop, walked back to the first
 /// statement that is not a `let`, or to the `let` of a value the trip count
@@ -70,7 +70,7 @@ CountedLoop :: struct {
 }
 
 // The counted loop `st` runs: the loop itself, or a block whose statements are
-// `let`s then a block of the same shape or the loop — null for any other shape,
+// `let`s then a block of the same shape or the loop: null for any other shape,
 // for a loop whose emitter knows no trip count, or when the count is not known
 // before the block starts.
 counted_loop_of :: fn(st: LoweredStmt) -> CountedLoop | null {
@@ -233,7 +233,7 @@ count_lit :: fn(value: i64, span: Span) -> LoweredExpr = LoweredIntLit {
 }
 
 // `e` with each read of a preheader `let` replaced by that `let`'s value, when
-// what remains only reads locals, fields and lengths — values the `let`s
+// what remains only reads locals, fields and lengths: values the `let`s
 // between the empty array and the loop leave alone. A literal, a local, a field
 // and an array's length are the values a counter loop starts from or runs to ;
 // a call may not be re-run early. Read early, a value some `let` in between does

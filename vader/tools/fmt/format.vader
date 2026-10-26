@@ -17,7 +17,7 @@ export ParseFailure :: struct {
     diagnostics: Diagnostic[]
 }
 
-/// Successful format — `output` is the canonical text of the input source.
+/// Successful format: `output` is the canonical text of the input source.
 export Formatted :: struct {
     output: string
 }
@@ -28,7 +28,7 @@ export Formatted :: struct {
 /// `format_source(s, p)` result) and parse-equivalent to the input.
 ///
 /// @param source  the raw `.vader` source bytes.
-/// @param path    informational — used as the `Program.file` field for
+/// @param path    informational: used as the `Program.file` field for
 ///                diagnostic provenance ; reading is done from `source`.
 /// @return        `Formatted` on success, `ParseFailure` carrying every
 ///                parser diagnostic otherwise.
@@ -41,7 +41,7 @@ export Formatted :: struct {
 export format_source :: fn(source: string, path: string) -> FormatResult {
     pr :: parse_source(source, path)
     if pr.errors.len() > 0 {
-        // Don't format files with parse errors — round-trip parity cannot
+        // Don't format files with parse errors: round-trip parity cannot
         // hold when the AST is partial.
         return ParseFailure { .diagnostics = pr.errors }
     }

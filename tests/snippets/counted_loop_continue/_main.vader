@@ -1,6 +1,6 @@
 // A `continue` in a counted loop still advances the counter : the loop carries its
-// increment as a step that every `continue` reaches, wherever the `continue` sits
-// — a nested `if`, a `match` arm, the fallback of a `??` inside a call argument,
+// increment as a step that every `continue` reaches, wherever the `continue` sits:
+// a nested `if`, a `match` arm, the fallback of a `??` inside a call argument,
 // a loop that also has a `break <var>`, a `continue <var>` from an inner loop.
 // Each shape runs over a plain range, a raw array, and a fused chain on either
 // source. A loop that failed to advance would repeat its body with the same

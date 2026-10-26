@@ -1,4 +1,4 @@
-// `push_all` from a module const into a freshly allocated array — the two carry
+// `push_all` from a module const into a freshly allocated array: the two carry
 // their elements in DIFFERENT representations, and the runtime used to memcpy
 // between them regardless.
 //
@@ -6,7 +6,7 @@
 // while `dst: Item[]: []` allocates KIND_REF slots (8-byte raw pointers).
 // `vader_array_push_all` copied with the SOURCE's element size and never compared
 // the two `element_kind`s, so it wrote 16-byte boxes at 16-byte strides into an
-// 8-byte-stride buffer — overrunning it, and leaving the reader to treat boxes as
+// 8-byte-stride buffer: overrunning it, and leaving the reader to treat boxes as
 // pointers. Segfault at the first element read, with the length already correct
 // (that is the tell: `len=2` printed, then death).
 //

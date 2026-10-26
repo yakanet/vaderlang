@@ -22,7 +22,7 @@ import java.awt.event.MouseEvent
 // TWO THINGS THIS MUST NOT ASSUME, both learned by getting them wrong.
 //
 // 1. That a `.vader` file has a PSI tree with one leaf per identifier. It does
-//    not — `plugin.xml` says it plainly: "TextMate-only language, no PSI
+//    not. `plugin.xml` says it plainly: "TextMate-only language, no PSI
 //    Language registered". A plain-text PSI is a SINGLE leaf spanning the whole
 //    file, so anchoring one marker per leaf would put every icon on line 1.
 //    Each marker therefore carries its own `TextRange`, which is what decides
@@ -30,15 +30,15 @@ import java.awt.event.MouseEvent
 //
 // 2. That the provider is reached under `language="textmate"`. Registered for
 //    both that and `TEXT`, because which one a `.vader` file actually resolves
-//    to is not answerable outside a running IDE — and the symptom of guessing
+//    to is not answerable outside a running IDE, and the symptom of guessing
 //    wrong is silence, not an error. The `▶` marker on `main` guessed once and
 //    has never fired.
 //
 // WHY THE FOLDER IS ENOUGH, rather than asking the language server (which
 // answers this exactly, via `textDocument/implementation`): a marker provider
 // runs inside highlighting and a per-line JSON-RPC round-trip is not affordable
-// there. A Vader module IS a directory — `module "..."` must match the folder,
-// and two module names in one folder is R2022 — so every body of a group lives
+// there. A Vader module IS a directory (`module "..."` must match the folder,
+// and two module names in one folder is R2022) so every body of a group lives
 // beside the declaration, including the cross-file shape the SPEC's own example
 // uses (`path.vader` + `path-windows.vader`).
 internal class VaderImplementationLineMarkerProvider : LineMarkerProviderDescriptor() {
@@ -92,14 +92,14 @@ internal class VaderImplementationLineMarkerProvider : LineMarkerProviderDescrip
 
             val icon = if (bare) AllIcons.Gutter.ImplementedMethod else AllIcons.Gutter.ImplementingMethod
             val tooltip = if (bare) {
-                "Bodies of `${decl.name}` — one per target"
+                "Bodies of `${decl.name}`: one per target"
             } else {
-                "Declaration of `${decl.name}` — the signature this body fills"
+                "Declaration of `${decl.name}`: the signature this body fills"
             }
             // The RANGE is what places the icon, not the anchor: see (1) above.
             // But `LineMarkerInfo` requires the range to lie INSIDE the anchor,
-            // so the anchor is the element covering the name — the whole-file
-            // leaf under a plain-text PSI, the identifier under a finer one —
+            // so the anchor is the element covering the name (the whole-file
+            // leaf under a plain-text PSI, the identifier under a finer one)
             // and the range is clipped to it. Anchoring everything on one
             // arbitrary element instead throws in a loop under a fine tree.
             val host = file.findElementAt(decl.nameStart) ?: anchor
@@ -118,13 +118,13 @@ internal class VaderImplementationLineMarkerProvider : LineMarkerProviderDescrip
             )
         }
         if (seen > 0) {
-            LOG.info("vader: @target gutter in ${self.name} — $seen group member(s), $matched marker(s)")
+            LOG.info("vader: @target gutter in ${self.name}, $seen group member(s), $matched marker(s)")
         }
     }
 
     // `JBPopupFactory` rather than `NavigationUtil.getPsiElementPopup`: that
     // helper is not in the platform distribution this plugin builds against
-    // (checked in `ideaIC-2024.2`'s jars — only `DomNavigationUtil` is there),
+    // (checked in `ideaIC-2024.2`'s jars: only `DomNavigationUtil` is there),
     // and a chooser built from core API cannot go missing under another IDE
     // version. The body → declaration direction always has exactly one target
     // anyway; R2039 makes a second one an error.
@@ -147,7 +147,7 @@ internal class VaderImplementationLineMarkerProvider : LineMarkerProviderDescrip
     }
 }
 
-// `file.vader:12` per row — the file is what tells two bodies of one group
+// `file.vader:12` per row: the file is what tells two bodies of one group
 // apart, since they share the name by construction.
 private class TargetCellRenderer : javax.swing.DefaultListCellRenderer() {
     override fun getListCellRendererComponent(
@@ -171,7 +171,7 @@ private class Decl(val name: String, val nameStart: Int)
 
 // Every `name ::` binding in the file, with the absolute offset of the name.
 //
-// Read from the TEXT rather than from PSI leaves — see (1) on the class. The
+// Read from the TEXT rather than from PSI leaves, see (1) on the class. The
 // `export` prefix is accepted here and only checked by the compiler: a body
 // carrying it is R2037, and a marker that vanished on invalid source would read
 // as "no bodies" rather than as an error.
@@ -184,8 +184,8 @@ private fun declarationsIn(text: String): List<Decl> {
     return out
 }
 
-// The `@target` governing the declaration whose name starts at `offset` —
-// `"@target"` for the bare form, `"@target(...)"` for a body — or null when
+// The `@target` governing the declaration whose name starts at `offset`
+// (`"@target"` for the bare form, `"@target(...)"` for a body) or null when
 // there is none. Walks up past vaderdoc and other decorators, which may legally
 // sit between the two.
 private fun targetDecoratorAbove(text: String, offset: Int): String? {
@@ -202,7 +202,7 @@ private fun targetDecoratorAbove(text: String, offset: Int): String? {
     return null
 }
 
-// Every `@target(...)`-decorated declaration of `name` in the module — that is,
+// Every `@target(...)`-decorated declaration of `name` in the module: that is,
 // in the folder.
 private fun bodiesOf(name: String, self: VirtualFile, psi: PsiManager): List<PsiElement> =
     matchesInFolder(
@@ -211,13 +211,13 @@ private fun bodiesOf(name: String, self: VirtualFile, psi: PsiManager): List<Psi
         name,
     )
 
-// The module's bare `@target` declaration of `name` — the signature a body
+// The module's bare `@target` declaration of `name`: the signature a body
 // fills. One per group (a second is R2039), but returned as a list: on invalid
 // source the honest answer is "these, plural" rather than an arbitrary pick.
 private fun declarationOf(name: String, self: VirtualFile, psi: PsiManager): List<PsiElement> =
     matchesInFolder(
         self, psi,
-        // `@target` NOT followed by `(` — the tab/space class stops the match
+        // `@target` NOT followed by `(`: the tab/space class stops the match
         // from swallowing the body form.
         Regex("@target[ \\t]*(\\n\\s*@[^\\n]*)*\\s*\\n\\s*(export\\s+)?${Regex.escape(name)}\\s*::"),
         name,

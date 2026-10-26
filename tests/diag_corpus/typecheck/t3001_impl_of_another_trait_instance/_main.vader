@@ -1,4 +1,4 @@
-// A struct whose impl is `Source<i64>` handed to a `Source<i32>` slot — T3001.
+// A struct whose impl is `Source<i64>` handed to a `Source<i32>` slot: T3001.
 // Widening a struct into a trait checks the impl's trait arguments, not only
 // that some impl of the trait exists.
 module "snippet"

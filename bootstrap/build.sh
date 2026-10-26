@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the full Vader compiler from the committed C seed — THREE stages:
+# Build the full Vader compiler from the committed C seed: THREE stages:
 #   seed   ─cc→                 build/stage0  (bootstrap compiler; emits C only)
 #   stage0 ─emit C→ cc release→ build/stage1  (the tree's semantics, the seed's codegen)
 #   stage1 ─build native→       build/vader   (= stage2, the shipped compiler)
@@ -8,7 +8,7 @@
 # tree's; stage2 is the tree compiled by the tree, so the shipped binary does not
 # depend on the seed's age. `verify.sh` proves stage1 and stage2 emit the same C.
 #
-# Needs only a C compiler — no Bun, no TS, no pre-existing vader binary.
+# Needs only a C compiler: no Bun, no TS, no pre-existing vader binary.
 # The C compiler defaults to `cc`; override with `CC=clang bootstrap/build.sh`. It
 # is resolved to an absolute path and passed to stage1 via --cc, so the compiler
 # stage1 spawns is exactly the one used here. stage0 is a throwaway built -O1
@@ -36,7 +36,7 @@ fi
 STAGE0_CFLAGS="${STAGE0_CFLAGS:--O1} -fwrapv"
 runtime="runtime/c/vader_runtime.c"
 
-# Arena sizing is RAM-proportional (runtime/c/vader_runtime.c::vader_gc_init —
+# Arena sizing is RAM-proportional (runtime/c/vader_runtime.c::vader_gc_init:
 # old init + cap derived from physical RAM, single VADER_GC_RAM_PERCENT knob), so
 # the bootstrap self-compiles at a saner initial size on any machine with no manual
 # override. This used to pin VADER_GC_YOUNG_BYTES / VADER_GC_OLD_BYTES to avoid the
@@ -58,7 +58,7 @@ cc_jobs() {
 CC_JOBS="${CC_JOBS:-$(cc_jobs)}"
 case "$CC_JOBS" in ''|*[!0-9]*|0) CC_JOBS=$(cc_jobs) ;; esac
 
-# Release codegen policy, DUPLICATED from `vader/pipeline/emit.vader` — which
+# Release codegen policy, DUPLICATED from `vader/pipeline/emit.vader`, which
 # calls itself its single source of truth, and is right to. stage1 is linked by
 # a `cc` this script drives, so the script has to know the policy; there is no
 # compiler in the loop yet to ask. Keep the two in step: the flags, the toolchain
@@ -140,10 +140,10 @@ host_target() {
 
 # The seed is a SET: the units every target shares, plus the ones that differ
 # for this host. A unit lands in the second group only when the targets actually
-# emitted different bytes for it, so today there are none — the list is built by
+# emitted different bytes for it, so today there are none: the list is built by
 # globbing rather than hardcoded, and starts working the day one appears.
 HOST_TARGET="$(host_target)"
-# A host the seed does not name by triple builds from its OS SIBLING — the
+# A host the seed does not name by triple builds from its OS SIBLING: the
 # per-target units are chosen by `@target`, whose granularity is the OS and never
 # the arch. `bootstrap/seed.sh::SEED_TARGETS` owns that rule.
 SEED_TARGET="$HOST_TARGET"
@@ -162,27 +162,27 @@ if [ -z "$SEED_TARGET" ]; then
     exit 1
 fi
 if [ "$SEED_TARGET" != "$HOST_TARGET" ]; then
-    printf 'bootstrap/build.sh: no seed for %s — building stage0 from its OS sibling %s\n' \
+    printf 'bootstrap/build.sh: no seed for %s, building stage0 from its OS sibling %s\n' \
         "$HOST_TARGET" "$SEED_TARGET" >&2
 fi
 # `bootstrap-<module>.c`, flat, is shared by every target; a unit the targets
 # disagreed on lives in `seed/<target>/` instead. So the host's set is the flat
-# shared list plus ONE directory — nothing else is compiled, and a stale unit
+# shared list plus ONE directory: nothing else is compiled, and a stale unit
 # from another target cannot be picked up by a glob.
 seed_shared=$(ls bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c 2>/dev/null || true)
 seed_host=$(ls bootstrap/seed/"$SEED_TARGET"/*.c 2>/dev/null || true)
 # Two include roots, target first: the per-target directory owns
 # `bootstrap.imports.h`, and the seed root owns the shared `bootstrap.split.h`
-# that every unit — including the ones now sitting in a target directory —
+# that every unit (including the ones now sitting in a target directory)
 # includes by bare name.
 seed_includes="-Ibootstrap/seed/$SEED_TARGET -Ibootstrap/seed"
 if [ -z "$seed_shared" ]; then
-    echo "bootstrap/build.sh: no seed under bootstrap/seed/ — run bootstrap/seed.sh regenerate" >&2
+    echo "bootstrap/build.sh: no seed under bootstrap/seed/, run bootstrap/seed.sh regenerate" >&2
     exit 1
 fi
 
 # stage1 carries stage2's flags, not stage0's: `verify.sh` compares their
-# emission — docs/adr/0004-bootstrap-stages-share-the-release-flags.md.
+# emission: docs/adr/0004-bootstrap-stages-share-the-release-flags.md.
 stage1_cflags="$(release_cflags) $(lto_compile_flags)"
 stage1_ldflags="$(lto_link_flags)"
 
@@ -193,10 +193,10 @@ UNIT_INCLUDES="$seed_includes"
 cc_link_parallel "$STAGE0_CFLAGS" build/work/stage0 build/stage0 "$STAGE0_CFLAGS" $seed_shared $seed_host "$runtime"
 UNIT_INCLUDES=""
 
-step "[2/3] Building stage1 (full compiler, via stage0)  — self-compiles"
+step "[2/3] Building stage1 (full compiler, via stage0): self-compiles"
 rm -rf build/work/stage1
 mkdir -p build/work/stage1
-# A frozen contract with an older stage0 — see `vader/bootstrap/bootstrap.vader::main`.
+# A frozen contract with an older stage0, see `vader/bootstrap/bootstrap.vader::main`.
 ./build/stage0 vader/tools/cli/main.vader build/work/stage1/stage1
 cc_link_parallel "$stage1_cflags" build/work/stage1 build/stage1 "$stage1_ldflags" build/work/stage1/*.c "$runtime"
 
@@ -204,7 +204,7 @@ step "[3/3] Building vader = stage2 (via stage1, --release)"
 rm -rf build/work/stage2
 mkdir -p build/work/stage2
 ./build/stage1 build --release --emit=executable --out=build/work/stage2/vader --cc="$CC_ABS" vader/tools/cli/main.vader
-# `cc -o vader` writes `vader` on Unix and `vader.exe` on Windows — the same
+# `cc -o vader` writes `vader` on Unix and `vader.exe` on Windows: the same
 # reason `vader/pipeline::linked_binary` probes instead of guessing.
 if [ -f build/work/stage2/vader ]; then
     mv build/work/stage2/vader build/vader
@@ -236,7 +236,7 @@ if [ "$dist" = 1 ]; then
   mkdir -p "$out/runtime" "$out/src"
   cp build/vader "$out/vader"
   # `lib/` holds every namespace the toolchain ships FOR CONSUMPTION, copied
-  # WHOLE rather than namespace by namespace — a named list silently stops
+  # WHOLE rather than namespace by namespace: a named list silently stops
   # shipping the next namespace added, which is exactly how `toolchain/` came to
   # be missing from a bundle while the checkout was fine.
   # The loader's library probe (`sidecar_root`) finds `<exe>/lib` by the
@@ -244,7 +244,7 @@ if [ "$dist" = 1 ]; then
   #
   # The compiler's sources go to `src/`, NOT into `lib/`: they must ship (a
   # `build.vader` is compiled, and an import resolves from source), but the
-  # compiler is not a library — it is the implementation a driver links. Keeping
+  # compiler is not a library: it is the implementation a driver links. Keeping
   # it out of `lib/` makes that structural rather than policed.
   cp -R lib "$out/lib"
   cp -R vader "$out/src/vader"
@@ -259,5 +259,5 @@ if [ "$dist" = 1 ]; then
   cp -R runtime/c "$out/runtime/"
   cp -R third_party "$out/third_party"
 
-  printf '%b==> dist%b  %s ready — a self-contained toolchain (resolves lib/ + runtime/c/ next to the binary, so it runs — and drives builds — from any directory).\n' "$g" "$r" "$out"
+  printf '%b==> dist%b  %s ready, a self-contained toolchain (resolves lib/ + runtime/c/ next to the binary, so it runs, and drives builds: from any directory).\n' "$g" "$r" "$out"
 fi

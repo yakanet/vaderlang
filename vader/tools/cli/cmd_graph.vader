@@ -2,7 +2,7 @@
 //
 // Renders the module import graph of a loaded project. Load + parse is enough:
 // an `import "..."` is syntax, so the graph is exact without resolving a single
-// name — the same reason `vader lint` stops at the load stage.
+// name: the same reason `vader lint` stops at the load stage.
 //
 // Same module as `main.vader`: imports are file-scoped, declarations are not.
 
@@ -20,9 +20,9 @@ import "vader/support/diagnostics"
 
 /// How to spell the graph.
 GraphFormat :: enum(u8) {
-    /// Mermaid `graph TB` — renders in a Markdown viewer with no tool installed.
+    /// Mermaid `graph TB`: renders in a Markdown viewer with no tool installed.
     Mermaid
-    /// Graphviz DOT — `vader graph x.vader --format=dot | dot -Tpng -o deps.png`.
+    /// Graphviz DOT: `vader graph x.vader --format=dot | dot -Tpng -o deps.png`.
     Dot
 }
 
@@ -32,7 +32,7 @@ GraphNode :: struct {
     imports: string[]
 }
 
-/// `vader graph <file>` — print the module import graph rooted at `<file>`.
+/// `vader graph <file>`: print the module import graph rooted at `<file>`.
 ///
 /// Reads the same module graph a build reads (`load_project`), so what it draws
 /// is what the compiler actually loads, include paths included. Library modules
@@ -67,7 +67,7 @@ cmd_graph :: fn(args: string[]) -> i32 {
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
 
     loaded :: load_project(entry.file.as_string(), include_path_flags, entry.project_root)
-    // A parse or import error leaves a graph with edges missing — the one thing
+    // A parse or import error leaves a graph with edges missing: the one thing
     // this command exists to show. Surface it rather than draw a partial picture.
     if any_error_diag(loaded.diags) {
         eprintln(loaded.diags.dump_diagnostics_with_file())
@@ -88,7 +88,7 @@ cmd_graph :: fn(args: string[]) -> i32 {
 // Two tests, the asymmetry `collect.vader::diagnose_import_path` also depends on:
 // provenance says who is the LIBRARY, the module name says who is the COMPILER.
 // `ModuleOrigin` has no `.Compiler` variant, and in a driven build `vader/*`
-// arrives through `--include-paths` as `.Build` — so provenance alone draws the
+// arrives through `--include-paths` as `.Build`, so provenance alone draws the
 // whole compiler as the user's project. Unless the entry is itself `vader/*`, in
 // which case the compiler IS what is being drawn.
 is_project_module :: fn(origin: ModuleOrigin, name: string, entry_is_compiler: bool) =
@@ -96,7 +96,7 @@ is_project_module :: fn(origin: ModuleOrigin, name: string, entry_is_compiler: b
 
 /// Collect every loaded module with the imports that survive the scope filter.
 ///
-/// An edge to a filtered-out module is dropped, not redirected — no dangling
+/// An edge to a filtered-out module is dropped, not redirected: no dangling
 /// stubs. Self-imports go too: legal, and no dependency.
 collect_graph :: fn(loaded: LoadedProject, include_all: bool) -> GraphNode[] {
     // Keyed by `module_name`: `load_project` keys modules by their FOLDER, and
@@ -118,7 +118,7 @@ collect_graph :: fn(loaded: LoadedProject, include_all: bool) -> GraphNode[] {
         }
         // The list the loader's own BFS walks, so this is the build's graph and
         // not a second opinion. One entry per `import` line across the module's
-        // files, so a path can repeat — hence `seen`.
+        // files, so a path can repeat, hence `seen`.
         seen :: MutableSet<string> {}
         imports: string[]: []
         for target in module.collected.import_paths {

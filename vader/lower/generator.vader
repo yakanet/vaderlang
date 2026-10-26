@@ -5,7 +5,7 @@
 // generator mode (so every `yield e` is a transient `LoweredYield` marker) and
 // produces, per generator `g`:
 //
-//   1. a synthesized `g$State` struct — every param + every spilled local
+//   1. a synthesized `g$State` struct: every param + every spilled local
 //      (v1: spill-all) + a `state: i32` resume discriminant;
 //   2. a synthesized `<module>$<State>$Iterator$next` fn whose body is the
 //      resumable state machine `loop { if self.state == 0 { … } else if … }`
@@ -39,7 +39,7 @@ import "vader/lower/ir"
 generator_element_of :: fn(return_type: Type) -> Type =
     core_trait_arg(return_type, TRAIT_ITERATOR) ?? TY_VOID
 
-// A zero value of `ty` for a local `g$State` field's initial slot — overwritten
+// A zero value of `ty` for a local `g$State` field's initial slot: overwritten
 // in `next()` before its first read, but `struct.new` needs every field set.
 // Primitives get their typed zero ; every ref type gets a typed `null`.
 zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
@@ -50,7 +50,7 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
         if ty.name == "bool" { return LoweredBoolLit { .span = span, .type = ty, .value = false } }
         if is_float_name(ty.name) { return LoweredFloatLit { .span = span, .type = ty, .value = 0.0 } }
         if ty.name == "string" { return LoweredStringLit { .span = span, .type = ty, .value = "" } }
-        // `null` is a boxed slot, not an integer width — its zero value is `null`
+        // `null` is a boxed slot, not an integer width: its zero value is `null`
         // (a void `async` await binds a `null`-typed target). Falling through to
         // the integer arm would emit `(vader_box_t)(int32_t)0`, invalid C.
         if ty.name == "null" { return LoweredNullLit { .span = span, .type = ty } }
@@ -63,7 +63,7 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
 // ---- state-struct synthesis + entry ---------------------------------------
 
 // Synthesize + register the `g$State` struct and its `$Iterator$next` fn, which
-// carries its `Iterator` vtable slot — what `collect_vtable_entries` reads.
+// carries its `Iterator` vtable slot: what `collect_vtable_entries` reads.
 push_generator_decls :: fn(
     fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
     step_type: Type, next_body: LoweredBlock, state_fields: LoweredStructField[],
@@ -119,9 +119,9 @@ lower_generator_fn :: fn(
     element_ty :: generator_element_of(return_type)
 
     // Direction A : build the state struct under the symbol typecheck recorded for
-    // this declaration, so an escaping generator — typed as that concrete struct —
+    // this declaration, so an escaping generator (typed as that concrete struct)
     // has its `Iterator::next` mangle resolve at the consumer's devirtualized call.
-    // A generic instance with no symbol of its own — one per key — has fields of
+    // A generic instance with no symbol of its own (one per key) has fields of
     // its own, so a struct of its own.
     state :: generator_state_of(fn_decl, fn_ctx.typed)
     state_sym :: if fn_ctx.entry.symbol != null && state != null {
@@ -129,7 +129,7 @@ lower_generator_fn :: fn(
     } else {
         fresh_lifted_symbol_with_prefix(fn_ctx, true, "__gen_", "__gen_state_")
     }
-    // The lowered state struct stays NO-ARG (`__genstate_<fn>`) — its `next()` body
+    // The lowered state struct stays NO-ARG (`__genstate_<fn>`): its `next()` body
     // accesses concrete fields (`self.state`, `self.s0`), so a parameterised type
     // would break field resolution at emit. Typecheck's parameterised
     // `__genstate_<fn><element>` only exists to concretise chain terminals; the boxed
@@ -159,7 +159,7 @@ lower_generator_fn :: fn(
 
     // Synthesize the `g$State` struct (spilled fields + optional `__defers` +
     // `state: i32` resume discriminant) and its `$Iterator$next` fn. `__defers`
-    // is materialized only if the body has a `defer` — which T3060 currently
+    // is materialized only if the body has a `defer`, which T3060 currently
     // rejects, so it never fires today ; mirroring the async driver keeps the
     // shared engine's defer rewrite (`gb_route_stmt`) self-consistent instead of
     // emitting `self.__defers` against a field only async provides (4c lifts T3060).
@@ -172,8 +172,8 @@ lower_generator_fn :: fn(
     push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, shape.type, gb_next_body(gb), state_fields)
 
     // Rewrite `g`'s body: `return g$State { <all fields>, .state = entry }`.
-    // Param fields carry the incoming args (a param in a cell is cell-wrapped here
-    // — `gb_param_construct_value`) ; local fields get a zero value (assigned in
+    // Param fields carry the incoming args (a param in a cell is cell-wrapped here:
+    // `gb_param_construct_value`) ; local fields get a zero value (assigned in
     // `next()` before first read, but `struct.new` needs every field). Field
     // order matches the struct decl (params, locals, state).
     nparams :: params.len()

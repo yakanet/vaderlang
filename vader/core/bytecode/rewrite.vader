@@ -26,7 +26,7 @@ export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: i64) ->
         if new_pc_branch < 0 { i = i + 1  continue }
         // Resolve target : the op at `old PC target` may have been
         // deleted (old_to_new[target] = -1). In that case the branch's
-        // semantic destination is the NEXT surviving op — scan forward
+        // semantic destination is the NEXT surviving op: scan forward
         // until we find one (or the end of the body).
         new_pc_target: i32 = -1
         for t in i64(target)..<old_to_new.len() {

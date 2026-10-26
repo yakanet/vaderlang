@@ -1,4 +1,4 @@
-// Writing an incompatible value into a map's value slot — T3063.
+// Writing an incompatible value into a map's value slot: T3063.
 module "snippet"
 
 import "std/collections"

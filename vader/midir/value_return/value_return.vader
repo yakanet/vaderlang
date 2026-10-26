@@ -7,7 +7,7 @@
 // the arity from here to both backends: `TermReturn.values`, `InstrCall.dsts`,
 // `BcSignature.results`. The C emitter degrades to out-params because C has no
 // multi-value return; the VM's operand stack takes N values natively, and so
-// does WASM — which is why the IR keeps the arity rather than the C shape.
+// does WASM, which is why the IR keeps the arity rather than the C shape.
 //
 // TUPLES ONLY, deliberately. A tuple has no observable identity: its elements
 // cannot be written (T3101), so handing back its elements is not a change of
@@ -31,7 +31,7 @@ import "vader/midir"
 /// call sites to match.
 ///
 /// Value-preserving: a caller that needs the object rebuilds it, and pays what
-/// it already paid. No diagnostics — nothing here can fail on user input.
+/// it already paid. No diagnostics: nothing here can fail on user input.
 ///
 /// @param p  the CFG project, fresh from `build_cfg_project`.
 /// @return   a fresh project; `p` is untouched.
@@ -61,7 +61,7 @@ export scalarise_value_returns :: fn(p: CFGProject) -> CFGProject {
 ReturnShape :: struct {
     /// The values that cross, tag excluded.
     elements: Type[]
-    /// The struct each call site rebuilds from them, or null for a tuple — whose
+    /// The struct each call site rebuilds from them, or null for a tuple: whose
     /// elements ARE the value and need no object. Doubles as "carries a tag".
     rebuilt: Type | null
     /// Mangle of the scalarised copy to call INSTEAD, when the function is also
@@ -75,7 +75,7 @@ ReturnShape :: struct {
 //
 // The TYPE walk comes FIRST and alone: both gates read `f.return_type` and
 // nothing else, so a project whose functions return neither a tuple nor a
-// nullable struct — which is most of them — answers in one pass over the
+// nullable struct (which is most of them) answers in one pass over the
 // function list, and no block is ever touched.
 choose_functions :: fn(
     p: CFGProject, by_symbol: MutableMap<i32, string>, callers: MutableSet<string>,
@@ -91,7 +91,7 @@ choose_functions :: fn(
                 chosen[f.mangled] = ReturnShape { .elements = tuple, .rebuilt = null }
                 continue
             }
-            // `S | null` built at every return — one more value than the tuple
+            // `S | null` built at every return: one more value than the tuple
             // case, the tag, and a rebuild at each call site.
             shape :: nullable_return_of(f) ?? continue
             chosen[f.mangled] = ReturnShape {
@@ -114,7 +114,7 @@ choose_functions :: fn(
 // ---- the callee -----------------------------------------------------------
 
 // Every `return` hands back the scalarised values instead of one object: the
-// tuple's elements, or — when `nullable` — the tag then the struct's fields.
+// tuple's elements, or (when `nullable`) the tag then the struct's fields.
 rewrite_callee :: fn(f: CFGFunction, elements: Type[], nullable: bool) -> CFGFunction {
     locals: CFGLocal[]: []
     locals.push_all(f.locals)
@@ -143,7 +143,7 @@ rewrite_return_block :: fn(
     }
     returned :: term_return_single(t) ?? return b
     // The common shape: the tuple is built right here, so its field locals ARE
-    // the values to hand back and the `struct.new` becomes unread — DCE drops
+    // the values to hand back and the `struct.new` becomes unread: DCE drops
     // it, and that is where the allocation goes.
     built :: return_source(b.instructions, returned)
     if built is ReturnsStruct && built.fields.len() == elements.len() {
@@ -188,7 +188,7 @@ rewrite_call_sites :: fn(
     }
     locals: CFGLocal[]: []
     locals.push_all(f.locals)
-    // A rewritten block keeps `b.id`, so `kept` stays indexed by id — which is
+    // A rewritten block keeps `b.id`, so `kept` stays indexed by id, which is
     // how `emit/bytecode/emit.vader` reads it (`blocks[i64(id)]`). A nullable rebuild needs
     // extra blocks; they take fresh ids ABOVE every existing one, in the order
     // they are minted, so appending `extra` keeps the whole array indexed.
@@ -250,7 +250,7 @@ emit_rewritten_block :: fn(
         rebuilt :: shape.rebuilt
         if rebuilt == null {
             // The object is rebuilt on the spot. A caller that only destructures
-            // it leaves the `struct.new` unread — DCE removes it, and nothing was
+            // it leaves the `struct.new` unread: DCE removes it, and nothing was
             // allocated. A caller that keeps the object pays what it already paid.
             instrs.push(InstrStructNew {
                 .span = ins.span,

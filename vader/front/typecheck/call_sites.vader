@@ -652,7 +652,7 @@ shared_variants :: fn(left: Type, right: Type) -> Type[] {
 }
 
 // What comparing each of `parts` with itself runs : `Builtin` when none calls, every
-// call otherwise — a list even of one, which names the `equals` of a part and no
+// call otherwise: a list even of one, which names the `equals` of a part and no
 // dispatch of the compared value.
 parts_equality :: fn(parts: Type[], typed: TypedProgram) -> Callee {
     calls: Callee[]: []

@@ -12,7 +12,7 @@ import "std/string"
 import "system/posix"
 import "system/windows"
 
-/// Wall-clock instant — nanoseconds since the Unix epoch (1970-01-01 UTC).
+/// Wall-clock instant: nanoseconds since the Unix epoch (1970-01-01 UTC).
 /// Suitable for formatting, persistence, and absolute-time comparisons.
 /// NOT suitable for measuring elapsed time : the wall clock can jump
 /// forwards or backwards (NTP corrections, manual clock adjustments,
@@ -20,7 +20,7 @@ import "system/windows"
 /// elapsed measurements.
 export Instant :: i64
 
-/// Monotonic instant — nanoseconds since an opaque, process-stable epoch.
+/// Monotonic instant: nanoseconds since an opaque, process-stable epoch.
 /// Guaranteed never to decrease across observations within a single
 /// process. Use for micro-benchmarks, timeouts, deadlines, and any
 /// elapsed-time measurement. NOT comparable across processes ; NOT
@@ -35,7 +35,7 @@ export Duration :: i64
 //      `monotonic()` / `StopWatch`, never the bare i64) --------------------
 //
 // POSIX reads a `struct timespec`, Win32 a FILETIME and a performance counter,
-// and the two shapes differ enough that `@target` selects a BODY — the split
+// and the two shapes differ enough that `@target` selects a BODY: the split
 // `std/io::write_bytes` already makes between a descriptor and a HANDLE.
 //
 // The bare `@target` declaration carries no body on purpose: a target with no
@@ -56,7 +56,7 @@ now_unix_ms :: fn() -> i64 {
     return ts[0] * 1_000 + ts[1] / 1_000_000
 }
 
-// The FILETIME epoch (1601-01-01 UTC) to the Unix one, in milliseconds — the
+// The FILETIME epoch (1601-01-01 UTC) to the Unix one, in milliseconds: the
 // 134_774 days between them.
 FILETIME_TO_UNIX_MS: i64: 11_644_473_600_000
 
@@ -112,7 +112,7 @@ export seconds :: fn(n: i64) -> Duration = Duration(n * 1_000_000_000)
 
 // ---- clocks --------------------------------------------------------------
 
-/// Current wall-clock time. Reads the host clock — successive calls may
+/// Current wall-clock time. Reads the host clock: successive calls may
 /// observe non-monotonic jumps (NTP, manual adjustments).
 export now :: fn() -> Instant = Instant(now_unix_ms() * 1_000_000)
 
@@ -143,22 +143,22 @@ export to_unix_nanos :: fn(self: Instant) -> i64 = i64(self)
 /// UFCS-callable as `start.since()`.
 export since :: fn(self: Monotonic) -> Duration = Duration(monotonic_ns() - i64(self))
 
-// `instant + duration` — shift an Instant forward (a negative Duration shifts
+// `instant + duration`: shift an Instant forward (a negative Duration shifts
 // back). Heterogeneous : right operand is a Duration, result is an Instant.
 Instant implements Add<Duration, Instant> -> Instant(i64(self) + i64(other))
 
-// `instant_a - instant_b` — signed elapsed time between two instants. The
+// `instant_a - instant_b`: signed elapsed time between two instants. The
 // result type (`Out`) is a Duration, distinct from `Self`.
 Instant implements Sub<Instant, Duration> -> Duration(i64(self) - i64(other))
 
-// Human-readable form — the ISO 8601 UTC timestamp. Drives `"${instant}"`
+// Human-readable form: the ISO 8601 UTC timestamp. Drives `"${instant}"`
 // interpolation and `println(instant)`.
 Instant implements Display -> format_iso8601(self)
 
-// `monotonic + duration` — shift a Monotonic instant forward.
+// `monotonic + duration`: shift a Monotonic instant forward.
 Monotonic implements Add<Duration, Monotonic> -> Monotonic(i64(self) + i64(other))
 
-// `duration + duration` / `duration - duration` — homogeneous, so `Rhs`/`Out`
+// `duration + duration` / `duration - duration`: homogeneous, so `Rhs`/`Out`
 // both default to `Self` (Duration).
 Duration implements Add -> Duration(i64(self) + i64(other))
 Duration implements Sub -> Duration(i64(self) - i64(other))
@@ -246,7 +246,7 @@ civil_from_days :: fn(z: i64) -> [i64, i64, i64] {
 /// after 9999 are still formatted but the year field widens beyond four
 /// digits (no truncation).
 ///
-/// Sub-millisecond nanosecond detail is intentionally dropped — the
+/// Sub-millisecond nanosecond detail is intentionally dropped: the
 /// MVP host clock only provides millisecond resolution for the wall
 /// clock, and emitting trailing zero-noise would mislead the reader.
 export format_iso8601 :: fn(self: Instant) -> string {
@@ -323,7 +323,7 @@ digit_at :: fn(s: string, i: i64) -> bool =
 /// @return   the parsed `Instant`.
 /// @error    `TimeError` when `s` doesn't fit the accepted shape.
 export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
-    // Minimum is `1970-01-01T00:00:00Z` — 20 bytes.
+    // Minimum is `1970-01-01T00:00:00Z`: 20 bytes.
     if s.byte_len() < 20 {
         return TimeError { .msg = "iso8601: too short" }
     }
@@ -355,7 +355,7 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
     ms_part: i64 = 0
     if cursor < s.byte_len() && s.byte_at(cursor) == '.' {
         cursor = cursor + 1
-        // Consume up to 3 digits — truncate further fractional detail.
+        // Consume up to 3 digits: truncate further fractional detail.
         consumed: i64 = 0
         for consumed < 3 && digit_at(s, cursor) {
             ms_part = ms_part * 10 + i64(s.byte_at(cursor) - '0')
@@ -375,7 +375,7 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
     }
     zone :: expect_byte(s, cursor, 'Z')
     if zone is TimeError { return zone }
-    // `Z` must be the final byte — reject trailing garbage (`…Z…`), which the
+    // `Z` must be the final byte: reject trailing garbage (`…Z…`), which the
     // per-field parse would otherwise silently ignore.
     if cursor + 1 != s.byte_len() {
         return TimeError { .msg = "iso8601: trailing characters after `Z`" }
@@ -407,7 +407,7 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
 }
 
 // Largest millisecond magnitude whose nanosecond value (`× 1_000_000`) still
-// fits an i64 — i.e. `i64.MAX / 1_000_000`. Bounds `parse_iso8601`. Typed i64 :
+// fits an i64, i.e. `i64.MAX / 1_000_000`. Bounds `parse_iso8601`. Typed i64 :
 // the value overflows the default i32 for a bare literal.
 MAX_INSTANT_MS: i64: 9_223_372_036_854
 
@@ -416,7 +416,7 @@ MAX_INSTANT_MS: i64: 9_223_372_036_854
 import "std/testing"
 
 // The clocks read the OS through `@target` + `@extern`, so this is what fails if
-// a platform's declaration is wrong — a bad `clockid_t`, a FILETIME read at the
+// a platform's declaration is wrong: a bad `clockid_t`, a FILETIME read at the
 // wrong width. It runs on the VM, which reaches the same symbols.
 // (`test_monotonic_non_negative_elapsed` already pins that monotonic never
 // decreases; what is new here is that both clocks are actually SET.)
@@ -462,7 +462,7 @@ import "std/testing"
 }
 
 @test test_instant_display :: fn() -> void {
-    // `Display` drives `"${…}"` interpolation — an Instant renders as ISO 8601.
+    // `Display` drives `"${…}"` interpolation: an Instant renders as ISO 8601.
     assert_eq("${Instant(0)}", "1970-01-01T00:00:00.000Z")
 }
 

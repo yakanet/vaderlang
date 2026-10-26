@@ -4,7 +4,7 @@ module "snippet"
 @extern("malloc")
 c_malloc :: fn(n: u64) -> CPointer
 
-// Reading a `CPointer` as a 64-bit integer is allowed — it is the only
+// Reading a `CPointer` as a 64-bit integer is allowed: it is the only
 // way to test a non-NULL failure sentinel. Everything around it is not:
 // fabricating a pointer from an integer, and reading one into a target too
 // narrow to hold an address.

@@ -1,4 +1,4 @@
-// Regression: host-fabricated io errors carry a real `IOError` identity —
+// Regression: host-fabricated io errors carry a real `IOError` identity,
 // `is IOError` narrows, `.msg` reads, `.message()` dispatches through the
 // vtable, and the trait test `is Error` matches a struct implementer even
 // when no trait method is ever called (the lowering materialises the

@@ -22,7 +22,7 @@ const THRESHOLD = 0.15;       // 15 % regression triggers a non-zero exit
                               // a single sample blip on a < 20 ms native workload doesn't
                               // flip CI red.
 const MIN_REGRESSION_MS = 5;  // Skip regression detection on measurements faster
-                              // than this — OS scheduling noise routinely accounts
+                              // than this: OS scheduling noise routinely accounts
                               // for ±1 ms which is > 15 % of a 5 ms sample.
 
 interface Args { runs: number; update: boolean; workloads: string[] | null }
@@ -43,7 +43,7 @@ interface Workload {
   readonly name: string;
   /** Long-form description for README/table headers. */
   readonly description: string;
-  /** Substring expected in every implementation's stdout — guards against
+  /** Substring expected in every implementation's stdout: guards against
    *  silent algorithmic divergence. */
   readonly outputMatch: string;
   /** Caps the timed runs of a workload whose single run takes seconds, where
@@ -96,13 +96,13 @@ const WORKLOADS: readonly Workload[] = [
   { name: "vm_map",    description: "4 × 50 k MutableMap inserts + lookups",        outputMatch: "vm_map" },
   { name: "vm_shapes", description: "1 M trait calls over 3 cycled concrete types", outputMatch: "vm_shapes" },
   // Vader-only : compiler THROUGHPUT, not generated-code runtime. Times a full C
-  // emission of the self-hosted compiler (~30 kLoC) — the largest realistic input,
+  // emission of the self-hosted compiler (~30 kLoC): the largest realistic input,
   // and the one thing the runtime-only workloads above can't catch (an O(n²) crept
   // into a typecheck / lower / emit pass). `--emit=c --release` stops after the
   // compiler's own passes (no cc / linker time, no `#line` bloat). stdout is empty
   // (the "wrote" line is on stderr) so `checksum` is "" ; the exit-0 guard in
   // `timedRun` already asserts the compile succeeded. NB: this time GROWS as the
-  // compiler grows — re-baseline (`--update`) after a large feature lands, the way
+  // compiler grows: re-baseline (`--update`) after a large feature lands, the way
   // the bootstrap seed is refreshed.
   { name: "selfcompile_c",  description: "emit C for the whole self-hosted compiler (~30 kLoC)", outputMatch: "" },
 ];
@@ -112,14 +112,14 @@ const WORKLOADS: readonly Workload[] = [
 interface Impl {
   readonly name: string;
   /** Path (relative to the repo root) to this impl's source for a workload.
-   *  An impl whose source is absent is silently skipped for that workload —
+   *  An impl whose source is absent is silently skipped for that workload,
    *  so a workload that ships only a subset of language ports still works,
    *  its row showing just the columns it has. */
   source: (workload: string) => string;
   /** Optional one-shot build step. Runs once per workload up-front, before
    *  any timed runs ; all `build` invocations are scheduled together via
    *  `Promise.all` so independent compilers (Vader native + Go) can use
-   *  every available core. Measurements remain serial — concurrent
+   *  every available core. Measurements remain serial: concurrent
    *  CPU-bound timed runs would contend on caches / thermal headroom and
    *  destroy the signal. */
   build?: (workload: string) => Promise<void>;
@@ -237,7 +237,7 @@ function median(xs: readonly number[]): number {
 }
 
 function measure(impl: Impl, workload: Workload, runs: number): SampleResult {
-  // Build steps already ran upfront in parallel — see `buildAll` below.
+  // Build steps already ran upfront in parallel, see `buildAll` below.
   // One warmup invocation so JIT-ish runtimes (Bun) and OS caches are warm,
   // then `runs` measured samples, capped by the workload's `maxRuns`.
   timedRun(impl, workload.name);
@@ -269,7 +269,7 @@ function formatTable(results: readonly SampleResult[]): string {
   for (const w of workloads) {
     const row = impls.map((i) => {
       const r = results.find((x) => x.workload === w && x.impl === i);
-      return r ? `${r.minMs.toFixed(1)} ms` : "—";
+      return r ? `${r.minMs.toFixed(1)} ms` : "-";
     });
     lines.push(`| **${w}** | ${row.join(" | ")} |`);
   }
@@ -381,7 +381,7 @@ async function main(): Promise<void> {
     for (const r of regressions) console.error(`  ${r}`);
     process.exit(1);
   }
-  console.log(`ok — no regression beyond ${(THRESHOLD * 100).toFixed(0)} % vs baseline.`);
+  console.log(`ok: no regression beyond ${(THRESHOLD * 100).toFixed(0)} % vs baseline.`);
 }
 
 await main();

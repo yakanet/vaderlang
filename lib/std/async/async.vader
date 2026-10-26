@@ -8,7 +8,7 @@
 // timer and parks until it fires. `run_async_main` is the program entry the
 // compiler routes an `async main` through : it drives the root coroutine, and
 // whenever every task is parked it `sched_park`s (blocks until the nearest
-// timer) rather than spinning — then re-drives. A park with nothing armed is a
+// timer) rather than spinning, then re-drives. A park with nothing armed is a
 // deadlock.
 
 module "std/async"
@@ -21,13 +21,13 @@ import "std/collections"
 
 /// The awaitable backing `sleep` : arms a wake timer on its first `resume`, then
 /// parks (returns `Suspended`) until the scheduler's clock reaches its deadline.
-/// Completes with `null` (an async that yields no value — `await sleep(...)`
+/// Completes with `null` (an async that yields no value: `await sleep(...)`
 /// discards it).
 ///
 /// Cancellation uses `Async`'s default no-op : v1 has no `sched_disarm`, so a
 /// cancelled `Sleep` leaves its timer armed. The deadline still fires harmlessly
 /// (nobody re-drives it), and a lingering timer can only DELAY deadlock
-/// detection, never mask it — accepted v1 debt.
+/// detection, never mask it: accepted v1 debt.
 Sleep :: struct {
     ms:       i64
     deadline: i64 = 0
@@ -59,17 +59,17 @@ export sleep :: fn(ms: i64) -> Async<null> = Sleep { .ms = ms }
 /// Drive an `async main`'s root frame to completion and return its exit code.
 /// Compiler-invoked : when `main` awaits, the program entry calls this with
 /// `main()`'s `Async<i32>` frame. Resumes the root ; whenever it parks, blocks
-/// on the nearest armed timer (`sched_park`) and re-drives — never spins.
+/// on the nearest armed timer (`sched_park`) and re-drives, never spins.
 ///
 /// @param root  the `Async<i32>` frame produced by calling the async `main`.
 /// @return      main's completed `i32` exit code.
-/// @error       panics on a park with no timer armed — every task is suspended
+/// @error       panics on a park with no timer armed: every task is suspended
 ///              with nothing left to wake it (a deadlock).
 export run_async_main :: fn(root: Async<i32>) -> i32 = block_on(root)
 
 /// Drive any awaitable to completion from synchronous code, returning its
 /// result. Resumes `root` and, whenever it parks, blocks on the nearest armed
-/// timer (`sched_park`) then re-drives — never spins. Needs no `async main`: it
+/// timer (`sched_park`) then re-drives, never spins. Needs no `async main`: it
 /// works over the global scheduler state, so a plain sync caller (e.g. the CLI
 /// spawning subprocesses) can fan out awaitables and join them here.
 ///
@@ -131,7 +131,7 @@ export share :: fn<T>(task: Async<T>) -> Async<T> = Shared<T> { .task = task }
 
 // ---- wake times -----------------------------------------------------------
 
-// Later than any wake time — the starting point of `earlier`.
+// Later than any wake time: the starting point of `earlier`.
 NEVER: i64: 0x7FFF_FFFF_FFFF_FFFF
 
 // The earlier of two `Suspended.wake_at` values. An unknown one (`0`) wins, so a
@@ -141,8 +141,8 @@ earlier :: fn(a: i64, b: i64) = if a < b { a } else { b }
 // ---- join_all -------------------------------------------------------------
 
 /// Concurrent join of a group of awaitables (Model A : one awaitable that drives
-/// its children on each `resume`). Children make progress together — their timers
-/// all sit on the one scheduler heap and fire in deadline order — and their
+/// its children on each `resume`). Children make progress together (their timers
+/// all sit on the one scheduler heap and fire in deadline order) and their
 /// results are returned in INPUT order once every one completes. A `resume` drives
 /// only the children whose `wake_at` has passed. No cancellation in v1, so
 /// `join_all` waits for every child (failure latency = the slowest child).
@@ -206,7 +206,7 @@ new_join_all :: fn<T>(xs: Async<T>[]) = JoinAll<T> {
 
 // ---- try_join_all (fallible join, first-error) ----------------------------
 
-/// The awaitable backing `try_join_all` — a hand-written driver (NOT a coroutine :
+/// The awaitable backing `try_join_all`: a hand-written driver (NOT a coroutine :
 /// generic async coroutines are out of v1 scope). Wraps a `JoinAll<U | E>` to do
 /// the concurrent join, then scans the joined array in input order for the first
 /// error. Returns that array verbatim on success, so each element keeps its
@@ -224,17 +224,17 @@ TryJoinAll<U, E> implements Async<(U | E)[] | Error> {
         }
         return r
     }
-    // Delegate to the wrapped `JoinAll` — it owns the children.
+    // Delegate to the wrapped `JoinAll`: it owns the children.
     cancel :: fn(self) -> void = self.inner.cancel()
 }
 
 /// Concurrent join of FALLIBLE awaitables (children of type `U | E`). Runs every
-/// child (like `join_all` — no cancellation in v1, so failure latency is the slowest
-/// child), then — scanning in input order — completes with the FIRST error, or
+/// child (like `join_all`: no cancellation in v1, so failure latency is the slowest
+/// child), then (scanning in input order) completes with the FIRST error, or
 /// the full results if none failed.
 ///
-/// The successes come back as `(U | E)[]`, each element typed as the child union
-/// — narrow per element at the use site if you need the raw `U`.
+/// The successes come back as `(U | E)[]`, each element typed as the child union:
+/// narrow per element at the use site if you need the raw `U`.
 ///
 /// @param xs  the fallible awaitables to join.
 /// @return    the results in input order, or the first `Error`.
@@ -244,7 +244,7 @@ export try_join_all :: fn<U, E>(xs: Async<U | E>[]) -> Async<(U | E)[] | Error> 
 // ---- race -----------------------------------------------------------------
 
 /// The awaitable backing `race` : drives every child whose `wake_at` has passed on
-/// each `resume` and, the moment one settles (value OR error — `race` does not
+/// each `resume` and, the moment one settles (value OR error: `race` does not
 /// distinguish), cancels all the others and completes with its result.
 /// Deterministic tie-break : the lowest input index wins within a tick.
 Race :: struct<T> {
@@ -281,7 +281,7 @@ Race<T> implements Async<T> {
 
 /// Race a group of awaitables : complete with the FIRST to settle (value or
 /// error), cancelling the losers so they leave no orphaned work. Unlike
-/// `join_all`, the return type is a single `T` — the winner's result.
+/// `join_all`, the return type is a single `T`: the winner's result.
 ///
 /// @param xs  the awaitables to race.
 /// @return    an awaitable of the first to settle.
@@ -292,9 +292,9 @@ export race :: fn<T>(xs: Async<T>[]) -> Async<T> = Race<T> {
 
 // ---- join_any -------------------------------------------------------------
 
-/// The awaitable backing `join_any` : like `race`, but a settled ERROR is not a win —
+/// The awaitable backing `join_any` : like `race`, but a settled ERROR is not a win,
 /// the child is retired and the others keep running. Completes with the FIRST
-/// SUCCESS (cancelling the losers), or — if every child fails — the last error.
+/// SUCCESS (cancelling the losers), or (if every child fails): the last error.
 JoinAny :: struct<U, E> {
     children: Async<U | E>[]
     /// The `wake_at` each child last reported, by input index ; `NEVER` once it
@@ -302,7 +302,7 @@ JoinAny :: struct<U, E> {
     wake_at:  i64[]
     /// How many children settled as an error.
     failed:   i64 = 0
-    /// The most recent error — returned if every child ends up failing.
+    /// The most recent error: returned if every child ends up failing.
     last:     (U | E) | null = null
 }
 
@@ -371,8 +371,8 @@ TimeoutError implements Error {
 }
 
 /// The awaitable backing `timeout` : each `resume` drives the child first, then
-/// (only if the child is not ready) the timer. Whoever settles first wins — the
-/// child's value, or a `TimeoutError` once the timer fires — and the loser is
+/// (only if the child is not ready) the timer. Whoever settles first wins (the
+/// child's value, or a `TimeoutError` once the timer fires) and the loser is
 /// cancelled.
 Timeout :: struct<T> {
     child: Async<T>
@@ -388,11 +388,11 @@ Timeout<T> implements Async<T | TimeoutError> {
             if rt is Suspended {
                 return if rc.wake_at <= rt.wake_at { rc } else { rt }
             }
-            // Timer fired first — cancel the pending child, report the timeout.
+            // Timer fired first: cancel the pending child, report the timeout.
             self.child.cancel()
             return TimeoutError { .ms = self.ms }
         }
-        // Child completed first — cancel the timer (a no-op in v1), return it.
+        // Child completed first: cancel the timer (a no-op in v1), return it.
         self.timer.cancel()
         return rc
     }

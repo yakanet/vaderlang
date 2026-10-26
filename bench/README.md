@@ -1,8 +1,8 @@
 # Vader benchmarks
 
-Thirty-one cross-language workloads spanning float CPU, integer CPU, iterator chains, non-tail recursion / call overhead, GC throughput, hash-map build + probe, string-runtime throughput, byte scanning, sorting by hand and through a comparator, array accessors, nested-array indexing, string interning, split / join, float formatting and parsing, trait dispatch, closed-union tag dispatch, captured closures and coroutine resumption, plus four programs taken from an outside suite (plb2, below) — so a perf change in any of those subsystems trips a regression. Thirty carry all four languages; `async_await` carries two, for the reason its row explains.
+Thirty-one cross-language workloads spanning float CPU, integer CPU, iterator chains, non-tail recursion / call overhead, GC throughput, hash-map build + probe, string-runtime throughput, byte scanning, sorting by hand and through a comparator, array accessors, nested-array indexing, string interning, split / join, float formatting and parsing, trait dispatch, closed-union tag dispatch, captured closures and coroutine resumption, plus four programs taken from an outside suite (plb2, below), so a perf change in any of those subsystems trips a regression. Thirty carry all four languages; `async_await` carries two, for the reason its row explains.
 
-Every workload lives in its own directory `bench/<name>/` with all four language implementations colocated — `<name>.vader`, `<name>.ts` (`<name>.js` for the plb2 rows), `<name>.go`, `<name>.java` — alongside the compiled artefacts the harness produces.
+Every workload lives in its own directory `bench/<name>/` with all four language implementations colocated, `<name>.vader`, `<name>.ts` (`<name>.js` for the plb2 rows), `<name>.go`, `<name>.java`, alongside the compiled artefacts the harness produces.
 
 | workload         | exercises                                       | algorithm                                                       | scale                                  |
 |------------------|-------------------------------------------------|-----------------------------------------------------------------|----------------------------------------|
@@ -14,8 +14,8 @@ Every workload lives in its own directory `bench/<name>/` with all four language
 | `map_iter`       | hash-map entry iteration, per-visit alloc       | 1 000 outer × 1 000 inner `for entry in m` over a 1 000-entry map | 1 M map visits total                 |
 | `arr_rw`         | array element get/set, no allocation            | `a[i] = a[i] + 1` over a fixed buffer (open-coded typed load/store) | 1024-elt `i32[]`, 100 000 passes     |
 | `arr_set`        | indexed r-m-w bounded by `a.len()`              | same as `arr_rw` but `for i in 0..<a.len()`                    | 1024-elt `i32[]`, 100 000 passes  |
-| `arr_map`        | map-over-array iterator, fused (bounds proven)  | Σ `square(a[i])` via `for x in a.map(square)` — fused iter, range analysis proves the bounds | 1024-elt `i32[]`, 300 000 passes |
-| `arr_collect`    | fused iterator chain drained into an array      | `a.filter(is_odd).map(square).collect()` — one fused loop, its result pushed through the push cache | 1024-elt `i32[]`, 40 000 passes |
+| `arr_map`        | map-over-array iterator, fused (bounds proven)  | Σ `square(a[i])` via `for x in a.map(square)`: fused iter, range analysis proves the bounds | 1024-elt `i32[]`, 300 000 passes |
+| `arr_collect`    | fused iterator chain drained into an array      | `a.filter(is_odd).map(square).collect()`: one fused loop, its result pushed through the push cache | 1024-elt `i32[]`, 40 000 passes |
 | `arr_push`       | array append + grow path + young-arena GC churn | build a fresh `i32[]` by `push`, discard, repeat                | 20 M pushes (200 × 100 000)            |
 | `str_concat`     | string `+` concat (Buffer-backed, off-runtime)  | grow a 13-byte string by repeated `s = s + "…"`                 | 300 000 iterations                     |
 | `interp`         | `${}` interpolation + integer formatting        | format three ints into one string via `${}`                     | 200 000 iterations                     |
@@ -53,7 +53,7 @@ The four `plb2_*` rows are [plb2](https://github.com/attractivechaos/plb2) (CC0)
 | `go`              | `bench/<name>/<name>.go` → native binary          | `go build`, then exec                                      |
 | `java`            | `bench/<name>/<name>.java` → `<name>.class`       | `javac --release 25 -d bench/<name>`, then `java -cp bench/<name> <Name>` |
 
-The harness times each invocation with `performance.now()` around a `spawnSync`, so what's measured is the **process wall-clock** — startup, runtime initialization, kernel, I/O, teardown.
+The harness times each invocation with `performance.now()` around a `spawnSync`, so what's measured is the **process wall-clock**: startup, runtime initialization, kernel, I/O, teardown.
 
 A fifth implementation, `vader-vm`, runs only the `vm_*` workloads (see below): its source is `bench/vm/<name>/<name>.vader`, which no cross-language workload has, so its column is empty on those rows. The build step compiles each program to bytecode text once, batched with the other builds (`./build/vader build --emit=bytecode-text -o build/_bench_vm/<name>.virt bench/vm/<name>/<name>.vader`), and the timed run is `./build/vader run build/_bench_vm/<name>.virt`. The Vader parse + typecheck + lower + bytecode pipeline therefore stays out of the measurement: what is timed is the VM loading and running the bytecode, plus process startup.
 
@@ -61,9 +61,9 @@ Java is precompiled in the build phase rather than run via the single-source-fil
 
 ### Build parallelism
 
-Every implementation that needs a build step (`vader-native` via the Vader compiler + `cc`, `go` via `go build`, `java` via `javac`) is batched up-front in a single `Promise.all` so independent compilers use every available core — an implementation with no source for a given workload is dropped before this step. Building every workload's compiled implementations finishes in 1-3 s instead of the 15+ s a serial compile would take.
+Every implementation that needs a build step (`vader-native` via the Vader compiler + `cc`, `go` via `go build`, `java` via `javac`) is batched up-front in a single `Promise.all` so independent compilers use every available core: an implementation with no source for a given workload is dropped before this step. Building every workload's compiled implementations finishes in 1-3 s instead of the 15+ s a serial compile would take.
 
-**Measurements stay strictly serial.** Running two CPU-bound benchmarks concurrently on the same machine corrupts the signal — they steal cycles from each other, contend on L3 + memory bandwidth, and on Apple Silicon shuffle between P/E cores. Wall-clock numbers from parallel measurements aren't comparable across runs, which is exactly the opposite of what a regression-detection bench needs.
+**Measurements stay strictly serial.** Running two CPU-bound benchmarks concurrently on the same machine corrupts the signal: they steal cycles from each other, contend on L3 + memory bandwidth, and on Apple Silicon shuffle between P/E cores. Wall-clock numbers from parallel measurements aren't comparable across runs, which is exactly the opposite of what a regression-detection bench needs.
 
 ## Running the bench
 
@@ -83,11 +83,11 @@ is the VM alone.
 
 Exit status is non-zero if any (workload, implementation) `min(samples)` regresses by more than **15 %** against `bench/baseline.json`, or if any implementation's checksum diverges from its committed baseline.
 
-Regression detection skips samples whose baseline is faster than **5 ms** — OS scheduling noise routinely adds ±1 ms, which exceeds 15 % of a 5 ms sample, so flagging those would just create false positives. Those rows still appear in the output table.
+Regression detection skips samples whose baseline is faster than **5 ms**: OS scheduling noise routinely adds ±1 ms, which exceeds 15 % of a 5 ms sample, so flagging those would just create false positives. Those rows still appear in the output table.
 
-The threshold does not cover everything it should: `binary_trees/go` sits just above it at 5.4 ms and read anywhere from 5.4 to 6.9 ms over four passes of one unchanged build on 2026-10-04, so it trips the 15 % gate on its own noise — it did in one of those four. The Vader column of the same row sat in that spot before it dropped under the floor. Treat a lone `binary_trees` flag as noise until a second pass confirms it. The baseline keeps the number the `--update` run actually measured rather than a hand-picked typical one.
+The threshold does not cover everything it should: `binary_trees/go` sits just above it at 5.4 ms and read anywhere from 5.4 to 6.9 ms over four passes of one unchanged build on 2026-10-04, so it trips the 15 % gate on its own noise, it did in one of those four. The Vader column of the same row sat in that spot before it dropped under the floor. Treat a lone `binary_trees` flag as noise until a second pass confirms it. The baseline keeps the number the `--update` run actually measured rather than a hand-picked typical one.
 
-We compare on `min(samples)` rather than the median because these workloads finish in tens of milliseconds — JIT warm-up and GC pauses routinely push the median 15 %+ above the steady-state cost, but the best sample stays close to the actual CPU path.
+We compare on `min(samples)` rather than the median because these workloads finish in tens of milliseconds: JIT warm-up and GC pauses routinely push the median 15 %+ above the steady-state cost, but the best sample stays close to the actual CPU path.
 
 ## Baseline (committed)
 
@@ -196,10 +196,10 @@ The `mandelbrot` checksum splits three ways : Bun-TS / Java agree at 5 705 453, 
 ## Adding a workload
 
 1. Write the kernel in `bench/<name>/<name>.vader`. Print a one-line checksum to stdout.
-2. Port it to `bench/<name>/<name>.ts`, `bench/<name>/<name>.go`, `bench/<name>/<name>.java` — all colocated in the same directory. Keep the algorithm bit-identical (the harness verifies checksum equality against the committed baseline). A port may be omitted : the harness silently drops any implementation whose source file is absent, so a Vader-only workload still works (its row just shows only the `vader-native` column).
+2. Port it to `bench/<name>/<name>.ts`, `bench/<name>/<name>.go`, `bench/<name>/<name>.java`: all colocated in the same directory. Keep the algorithm bit-identical (the harness verifies checksum equality against the committed baseline). A port may be omitted : the harness silently drops any implementation whose source file is absent, so a Vader-only workload still works (its row just shows only the `vader-native` column).
 3. Add an entry to `WORKLOADS` in `bench/run.ts`.
 4. Add the Vader binary line `bench/<name>/<name>` to `.gitignore` ; the `.c`, Go binary and `.class` artefacts are already covered by the `bench/*/*.c`, `bench/*/*_go`, `bench/*/*.class` globs.
-5. Run `bun run bench -- --update` to extend the baseline (baselines are machine-specific — a new workload simply isn't regression-gated until someone records it on the canonical machine).
+5. Run `bun run bench -- --update` to extend the baseline (baselines are machine-specific: a new workload simply isn't regression-gated until someone records it on the canonical machine).
 
 ## Caveats
 

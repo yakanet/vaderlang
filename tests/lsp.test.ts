@@ -3,7 +3,7 @@
 // `completion` / `codeAction` land on the right declaration and produce the
 // expected payloads.
 //
-// The server is the compiled native binary (`build/vader lsp`) — fast enough
+// The server is the compiled native binary (`build/vader lsp`): fast enough
 // (~25 ms/session) to run unconditionally. Each session writes the source to a
 // real on-disk fixture under a fresh temp dir and points `rootUri` at it, so
 // the resolver discovers a bounded project root (NOT the entry file's folder,
@@ -52,7 +52,7 @@ interface Query {
     | "textDocument/selectionRange"
     | "workspace/symbol";
   // `position` drives hover/definition/completion/codeAction ; `range` drives
-  // inlayHint ; documentLink needs neither — it answers for the whole document,
+  // inlayHint ; documentLink needs neither: it answers for the whole document,
   // and the params it ignores are harmless.
   position?: Position;
   range?: LocationRange;
@@ -92,7 +92,7 @@ async function driveLsp(
       params: { rootUri: pathToUri(dir), capabilities: {} } },
     { jsonrpc: "2.0", method: "initialized", params: {} },
     // `openedFiles` (relative path → text) are open in the editor with text the
-    // disk does not have — unsaved edits.
+    // disk does not have: unsaved edits.
     ...Object.entries(openedFiles).map(([rel, text]) => ({
       jsonrpc: "2.0", method: "textDocument/didOpen",
       params: { textDocument: { uri: pathToUri(join(dir, rel)), languageId: "vader", version: 1, text } },
@@ -110,7 +110,7 @@ async function driveLsp(
       id: 100 + i,
       method: q.method,
       // `position` serves hover/def/completion ; `range` + `context` serve
-      // codeAction and inlayHint. Sending all of them is harmless — each
+      // codeAction and inlayHint. Sending all of them is harmless: each
       // handler reads what it needs.
       params: {
         textDocument: { uri },
@@ -218,7 +218,7 @@ test("lsp: goto-def + hover end-to-end", async () => {
     { method: "textDocument/definition", position: { line: 16, character: 4 } },
     // 5: hover on whitespace → null
     { method: "textDocument/hover", position: { line: 0, character: 0 } },
-    // 6: goto-loop — click on `break i` (line 22) jumps to the `for i` loop it
+    // 6: goto-loop, click on `break i` (line 22) jumps to the `for i` loop it
     //    targets by its iteration variable (line 20). Replaces the W0004 nudge.
     { method: "textDocument/definition", position: { line: 22, character: 26 } },
   ];
@@ -253,14 +253,14 @@ test("lsp: goto-def + hover end-to-end", async () => {
   expect(results[4]!.result).toBeNull();
   expect(results[5]!.result).toBeNull();
 
-  // 6: goto-loop — `break i` jumps to the `for i` loop it targets (line 20).
+  // 6: goto-loop, `break i` jumps to the `for i` loop it targets (line 20).
   const def_loop = results[6]!.result as Location;
   expect(def_loop.uri).toMatch(/lsp-test\.vader$/);
   expect(def_loop.range.start).toEqual({ line: 20, character: 4 });
 }, { timeout: MEDIUM_BUILD });
 
 // A hover renders a declaration's head on one line, as `vader fmt` writes it: a
-// union alias continued on `|` lines, a parameter list wrapped across lines —
+// union alias continued on `|` lines, a parameter list wrapped across lines:
 // its comment and trailing comma dropped, a default value kept.
 const WRAPPED_SOURCE = `Circle :: struct {
     r: i32
@@ -495,7 +495,7 @@ test("lsp: hover on a generic method-syntax call shows the call's binding", asyn
 // Regression (audit LC1): the server maps an incoming `character` as a CODEPOINT
 // offset, matching the lexer's codepoint columns. Before the fix `lsp_to_offset`
 // added `character` as raw UTF-8 bytes, so on a line with a multi-byte char
-// (`café`) every cursor past it landed one byte early — goto-def missed. Here the
+// (`café`) every cursor past it landed one byte early: goto-def missed. Here the
 // SECOND `greet` sits after `café` on the same line: at codepoint column 33 but
 // byte column 34 (the `é` is two bytes). Clicking its start must still resolve to
 // the `greet` decl on line 0; the old byte model landed on the preceding space.
@@ -508,9 +508,9 @@ main :: fn() -> i32 {
 
 test("lsp: goto-def resolves past a multi-byte char on the line (LC1)", async () => {
   const results = await driveLsp(NON_ASCII_SOURCE, [
-    // 0: first greet (before café — codepoint == byte, always worked) → control.
+    // 0: first greet (before café, codepoint == byte, always worked) → control.
     { method: "textDocument/definition", position: { line: 3, character: 11 } },
-    // 1: second greet (after café — codepoint 33, byte 34) → the regression.
+    // 1: second greet (after café, codepoint 33, byte 34) → the regression.
     { method: "textDocument/definition", position: { line: 3, character: 33 } },
   ]);
   expect(results).toHaveLength(2);
@@ -526,7 +526,7 @@ test("lsp: goto-def resolves past a multi-byte char on the line (LC1)", async ()
 
 // A `module`-declared variant so the typed project loads (and `std/io`'s
 // wildcard exports reach completion). The shared module-less SOURCE has an
-// empty typed project — fine for goto-def (DocIndex-based) but wildcard
+// empty typed project: fine for goto-def (DocIndex-based) but wildcard
 // completion needs the loaded project.
 const COMPLETION_SOURCE = `module "lsp_test"
 
@@ -577,7 +577,7 @@ test("lsp: completion lists in-scope identifiers + keywords", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 // A module-declared entry (so the typed project loads its bodies) with two
-// unannotated locals — `n :: mk()` and `b :: Box {...}`. Completion should
+// unannotated locals: `n :: mk()` and `b :: Box {...}`. Completion should
 // surface their *inferred* type as detail (TS-style), resolved through the
 // typed cache, rather than the index's RHS source slice.
 const LOCAL_TYPE_SOURCE = `module "demo"
@@ -598,7 +598,7 @@ main :: fn() -> i32 {
 `;
 
 // The hint nests BETWEEN the two operator characters (`v :u32[]: …`), so its
-// position must track the real operator — not `value.column - 3`, which assumed
+// position must track the real operator, not `value.column - 3`, which assumed
 // exactly one space after it. Here the operator is padded for vertical alignment
 // AND followed by two spaces, the shape that used to push the hint past it.
 const INLAY_SPACING_SOURCE = `module "demo"
@@ -625,7 +625,7 @@ test("lsp: an inlay hint anchors on the operator, whatever the spacing", async (
   }[];
   const hint = hints.find((h) => h.label === "i32");
   expect(hint).toBeDefined();
-  // `    n     ::   42` — the first `:` sits at 1-based column 11, so the hint
+  // `    n     ::   42`: the first `:` sits at 1-based column 11, so the hint
   // inserts before the second one at 0-based character 11.
   expect(hint!.position).toEqual({ line: 3, character: 11 });
 }, { timeout: MEDIUM_BUILD });
@@ -722,7 +722,7 @@ test("lsp: inlay hints show implicit return types and discarded values", async (
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: completion shows a local's inferred type as detail", async () => {
-  // Line 13 = `    return n` — inside main's body, so `n` and `b` are visible.
+  // Line 13 = `    return n`: inside main's body, so `n` and `b` are visible.
   const results = await driveLsp(LOCAL_TYPE_SOURCE, [
     { method: "textDocument/completion", position: { line: 13, character: 4 } },
   ]);
@@ -736,7 +736,7 @@ test("lsp: completion shows a local's inferred type as detail", async () => {
   expect(list.items.find((i) => i.label === "b")?.detail).toBe("Box");
 
   // A function's detail is its signature, with the redundant `<name> :: `
-  // prefix stripped — the label already carries the name.
+  // prefix stripped: the label already carries the name.
   expect(list.items.find((i) => i.label === "mk")?.detail).toBe("fn() -> i32");
 }, { timeout: MEDIUM_BUILD });
 
@@ -780,7 +780,7 @@ test("lsp: completion after `.` lists struct fields + impl methods", async () =>
   expect(labels.has("greet")).toBe(true);
   // Free-fn UFCS method on Point (`magnitude :: fn(self: Point)` → `p.magnitude()`).
   expect(labels.has("magnitude")).toBe(true);
-  // Member completion is receiver-scoped — no top-level idents / keywords leak.
+  // Member completion is receiver-scoped: no top-level idents / keywords leak.
   expect(labels.has("main")).toBe(false);
   expect(labels.has("return")).toBe(false);
 
@@ -814,7 +814,7 @@ test("lsp: member completion on a trailing dot (mid-edit, no member yet)", async
   const labels = new Set(list.items.map((i) => i.label));
   expect(labels.has("x")).toBe(true);
   expect(labels.has("y")).toBe(true);
-  // Still member-scoped — no keywords leak in.
+  // Still member-scoped: no keywords leak in.
   expect(labels.has("return")).toBe(false);
 }, { timeout: MEDIUM_BUILD });
 
@@ -916,7 +916,7 @@ test("lsp: completion offers wildcard-imported names", async () => {
   // Both the wildcard-exposed fn and struct are in scope unqualified.
   expect(labels.has("spin")).toBe(true);
   expect(labels.has("Widget")).toBe(true);
-  // The module's struct FIELDS are not module exports — must not leak in.
+  // The module's struct FIELDS are not module exports: must not leak in.
   expect(labels.has("width")).toBe(false);
   // The provenance rides along in `detail`.
   expect(list.items.find((i) => i.label === "spin")?.detail).toBe('import "demo/widget"');
@@ -1055,7 +1055,7 @@ test("lsp: member completion on a trait-bounded generic param lists the bound's 
   expect(labels.has("bytes_to_string")).toBe(false);
 }, { timeout: MEDIUM_BUILD });
 
-// Leading-dot enum-literal completion. There's no receiver before the dot — the
+// Leading-dot enum-literal completion. There's no receiver before the dot: the
 // variant's enum comes from context (a param default's type, a call arg's param
 // type). Without this, completion returned [] and the editor showed buffer words.
 const ENUM_DEFAULT_SOURCE = `module "lsp_test"
@@ -1185,7 +1185,7 @@ test("lsp: enum completion in a match-arm pattern", async () => {
   expect(labels.has("Blue")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
-// Enum completion in a `return` value — expected type is the fn's return type.
+// Enum completion in a `return` value: expected type is the fn's return type.
 const RETURN_ENUM_SOURCE = `module "lsp_test"
 
 Color :: enum { Red, Green, Blue }
@@ -1205,7 +1205,7 @@ test("lsp: enum completion in a return value", async () => {
   expect(labels.has("Blue")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
-// Enum completion in a typed local's value — expected type is the annotation.
+// Enum completion in a typed local's value: expected type is the annotation.
 const TYPED_LOCAL_ENUM_SOURCE = `module "lsp_test"
 
 Color :: enum { Red, Green, Blue }
@@ -1226,7 +1226,7 @@ test("lsp: enum completion in a typed local value", async () => {
   expect(labels.has("Green")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
-// Enum completion in a struct-literal field VALUE — expected type is the field's.
+// Enum completion in a struct-literal field VALUE: expected type is the field's.
 const STRUCT_FIELD_VALUE_ENUM_SOURCE = `module "lsp_test"
 
 Color :: enum { Red, Green, Blue }
@@ -1249,7 +1249,7 @@ test("lsp: enum completion in a struct-literal field value", async () => {
   expect(labels.has("Blue")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
-// Enum completion in a match-arm BODY — expected type is the match result.
+// Enum completion in a match-arm BODY: expected type is the match result.
 const MATCH_BODY_ENUM_SOURCE = `module "lsp_test"
 
 Color :: enum { Red, Green, Blue }
@@ -1271,7 +1271,7 @@ test("lsp: enum completion in a match-arm body", async () => {
   expect(labels.has("Green")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
-// Enum completion in a comparison operand (`c == .<here>`) — expected type is the
+// Enum completion in a comparison operand (`c == .<here>`): expected type is the
 // other operand's, even where the statement expects another enum.
 const COMPARISON_ENUM_SOURCE = `module "lsp_test"
 
@@ -1305,7 +1305,7 @@ interface CodeActionT { title: string; kind: string; edit: WorkspaceEditT }
 
 // The edits a SINGLE-file refactor produces. `changes` is keyed by URI, and a
 // map's key order carries no meaning, so reaching for `[0]` is only sound once
-// the count is pinned — otherwise the assertion below rides on whichever key the
+// the count is pinned: otherwise the assertion below rides on whichever key the
 // runtime happened to enumerate first. That is the shape that hid the built-in
 // receiver bug for three CI runs, and the rename test already writes the guard
 // out at its own call site.
@@ -1400,7 +1400,7 @@ test("lsp: code action converts an if/else-if chain to match", async () => {
   const edit = soleFileEdits(conv!.edit)[0]!;
   expect(edit.newText).toContain("match v {");
   expect(edit.newText).toMatch(/is i32\s+->/);
-  // The `_` arm — `->` may be padded to align with the longer arm's arrow.
+  // The `_` arm: `->` may be padded to align with the longer arm's arrow.
   expect(edit.newText).toMatch(/_\s+->/);
 }, { timeout: MEDIUM_BUILD });
 
@@ -1482,7 +1482,7 @@ test("lsp: hover on fn param shows its type", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: goto-def jumps to local let-binding", async () => {
-  // `return y` on line 4 — `y` at character 11.
+  // `return y` on line 4: `y` at character 11.
   // Local `y` is declared on line 3 at character 4 : `    y :: x * 2`.
   const results = await driveLsp(BINDINGS_SOURCE, [
     { method: "textDocument/definition", position: { line: 4, character: 11 } },
@@ -1514,7 +1514,7 @@ test("lsp: goto-def jumps to for-in binding", async () => {
 
 test("lsp: param goto-def is not visible outside its fn body", async () => {
   // `x` is a param of `double` (lines 2-5). Click on the `x` of `i32`
-  // type name later in `main` — there's no `x` named there, so the
+  // type name later in `main`: there's no `x` named there, so the
   // lookup should NOT bleed through to the param.
   const src = `double :: fn(x: i32) -> i32 {
     return x * 2
@@ -1524,7 +1524,7 @@ main :: fn() -> i32 {
     return 0
 }
 `;
-  // Click on `0` literal on line 5 char 11 — definitely not on any identifier.
+  // Click on `0` literal on line 5 char 11: definitely not on any identifier.
   const results = await driveLsp(src, [
     { method: "textDocument/definition", position: { line: 5, character: 11 } },
   ]);
@@ -1555,7 +1555,7 @@ test("lsp: goto-def follows imports across files (std/io)", async () => {
   ]);
   const loc = results[0]!.result as Location;
   expect(loc.uri).toMatch(/std\/io\/io\.vader$/);
-  // We don't pin the exact line — `std/io/io.vader` evolves and the test
+  // We don't pin the exact line: `std/io/io.vader` evolves and the test
   // would churn on every stdlib edit. The contract is "lands in
   // io.vader on a non-zero line".
   expect(loc.range.start.line).toBeGreaterThan(0);
@@ -1600,7 +1600,7 @@ test("lsp: cross-file resolution doesn't bleed for non-imported names", async ()
 test("lsp: definition returns LocationLink when client supports it", async () => {
 
   // Manual run (the `driveLsp` helper sends `capabilities: {}` which
-  // falls into the legacy `Location` branch — here we send the
+  // falls into the legacy `Location` branch: here we send the
   // `linkSupport` flag VSCode/IntelliJ actually send so the server
   // emits a `LocationLink[]` payload).
   const src = `double :: fn(x: i32) -> i32 {
@@ -1660,7 +1660,7 @@ main :: fn() -> i32 {
 
 test("lsp: initialize advertises definition + hover providers", async () => {
 
-  // Drive a session with zero queries — we only care about the
+  // Drive a session with zero queries: we only care about the
   // `initialize` response.
   const requests: object[] = [
     { jsonrpc: "2.0", id: 1, method: "initialize",
@@ -1680,17 +1680,17 @@ test("lsp: initialize advertises definition + hover providers", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: documentLink resolves an import to every shipped namespace", async () => {
-  // REASON: every namespace the library ships — `toolchain/*`, `json`, `regex`
-  // and the rest, not only `std/` and `vader/` — must resolve to a clickable
+  // REASON: every namespace the library ships (`toolchain/*`, `json`, `regex`
+  // and the rest, not only `std/` and `vader/`) must resolve to a clickable
   // import path. The server finds a module where the loader would, so each
   // import below lands in the library root.
   //
   // Ordered by what each line proves, and the source's line numbers are the
-  // assertion keys — documentLink answers for the whole document at once.
+  // assertion keys: documentLink answers for the whole document at once.
   const source = 'module "t"\n'
     + '\n'
     + 'import "std/io"\n'              // 2: the case that always worked
-    + 'AST :: import "toolchain/ast"\n' // 3: the public API — the point of this test
+    + 'AST :: import "toolchain/ast"\n' // 3: the public API, the point of this test
     + 'J :: import "json"\n'            // 4: a library that left std/
     + 'import "nosuchns/thing"\n'       // 5: must yield NO link, not a path to nowhere
     + '\n'
@@ -1712,7 +1712,7 @@ test("lsp: documentLink resolves an import to every shipped namespace", async ()
 test("lsp: a project module outranks a shipped namespace of the same name", async () => {
   // REASON: since the library split, `json` / `cli` / `regex` / `semver` /
   // `random` / `crypto` / `base64` are ordinary top-level names a project may also
-  // declare — and the compiler resolves such a name through the PROJECT root,
+  // declare, and the compiler resolves such a name through the PROJECT root,
   // which `project_include_paths` searches ahead of the cwd-relative library
   // fallback. Probing the library first made the editor disagree with the compiler
   // in exactly that case: ctrl-click landed in the toolchain's file while the
@@ -1784,7 +1784,7 @@ test("lsp: --library-root is searched before the project", async () => {
 // `textDocument/implementation` over a `@target` group. The property under test
 // is the one the handler exists for: the body for a platform this machine does
 // NOT build must still be listed. Selection runs at load time, so the targeted
-// project the editor's diagnostics come from has already dropped it — the
+// project the editor's diagnostics come from has already dropped it: the
 // handler reads a second, unselected load (`union_project_for`).
 //
 // Split across two files on purpose. That is the shape the model is written in
@@ -1842,7 +1842,7 @@ test("lsp: implementation lists every @target body, including a foreign one", as
 });
 
 // The reference index is project-wide and FLAT, so a lookup by position alone
-// matches the first site anywhere covering that line and column — in a real tree
+// matches the first site anywhere covering that line and column: in a real tree
 // almost always another file. Measured on this repo before the fix: find-usages
 // on `push_all` at `front/resolver/loader.vader:650:20` answered with three sites in
 // `front/parser/dump.vader`, on `label`. Rename shared the lookup, so it would have
@@ -1852,7 +1852,7 @@ test("lsp: implementation lists every @target body, including a foreign one", as
 // That is what makes the test bite regardless of order: a first attempt put a
 // declaration at the same position in both files and passed WITH the bug
 // reinstated, because the flat index happened to reach the open file first. Here
-// there is nothing in the open file to reach — the buggy lookup has only the
+// there is nothing in the open file to reach: the buggy lookup has only the
 // sibling's site to find, so it answers with another file or not at all.
 const REF_OTHER_FILE_ONLY = `module "lsptest"
 
@@ -1873,7 +1873,7 @@ test("lsp: references stay in the file the cursor is in", async () => {
   const results = await driveLsp(
     REF_OTHER_FILE_ONLY,
     [
-      // 0: line 3 column 3 — blank here, inside `bravo` in the sibling.
+      // 0: line 3 column 3, blank here, inside `bravo` in the sibling.
       { method: "textDocument/references", position: { line: 2, character: 2 } },
       // 1: `alpha`'s declaration, so the test also pins that references still work.
       { method: "textDocument/references", position: { line: 3, character: 2 } },
@@ -1891,13 +1891,13 @@ test("lsp: references stay in the file the cursor is in", async () => {
 });
 
 // Ctrl+click on a method of a BUILT-IN receiver. Measured dead before this:
-// `xs.push(1)`, `xs.len()`, `out.push_all(hb)` all returned no definition — the
+// `xs.push(1)`, `xs.len()`, `out.push_all(hb)` all returned no definition: the
 // form most of this tree is written in (~3000 container calls in method form
 // against zero bare).
 //
 // Two things had to be true and neither was. The cross-file resolver only ever
-// looked for TOP-LEVEL decls, and its wildcard pass restricted to EXPORTED ones
-// — but a trait member is recorded as top-level and NOT exported, since the
+// looked for TOP-LEVEL decls, and its wildcard pass restricted to EXPORTED ones,
+// but a trait member is recorded as top-level and NOT exported, since the
 // visibility belongs to the enclosing trait. And nothing imports `std/core`: it
 // is the prelude, so no import table leads to the place these declarations live.
 const BUILTIN_METHOD_SOURCE = `module "lsptest"
@@ -1922,9 +1922,9 @@ test("lsp: rename stays in the file the cursor is in", async () => {
   const results = await driveLsp(
     REF_OTHER_FILE_ONLY,
     [
-      // 0: line 3 column 3 — blank here, inside `bravo` in the sibling.
+      // 0: line 3 column 3, blank here, inside `bravo` in the sibling.
       { method: "textDocument/rename", position: { line: 2, character: 2 } },
-      // 1: `alpha`'s declaration — the positive half.
+      // 1: `alpha`'s declaration, the positive half.
       { method: "textDocument/rename", position: { line: 3, character: 2 } },
       // 2: the same blank position, asked whether a rename is even possible.
       { method: "textDocument/prepareRename", position: { line: 2, character: 2 } },
@@ -2247,7 +2247,7 @@ function rangeText(source: string, range: RangeT): string {
 }
 
 // A member reached through a NAMESPACE ALIAS. `S.trim` has no receiver whose
-// type could be read — the alias names a module, not a value — so the typed path
+// type could be read (the alias names a module, not a value) so the typed path
 // can never answer it, and the name-based one never looked at aliases:
 // `collect_import` discarded the binding outright. That spelling is MANDATORY
 // once an alias is taken (T3078), so it was dead on the form the tree is required
@@ -2256,7 +2256,7 @@ function rangeText(source: string, range: RangeT): string {
 // The local `trim` is a decoy: without the alias lookup, the answer is IT, in
 // this file. A real stdlib module is used rather than an invented sibling
 // because a module IS a folder (R2022) and a sibling one needs a manifest to be
-// found at all — the fixture would test the harness, not the feature.
+// found at all: the fixture would test the harness, not the feature.
 const ALIAS_SOURCE = `module "lsptest"
 
 S :: import "std/string"
@@ -2273,7 +2273,7 @@ test("lsp: goto-def follows a namespace alias", async () => {
 
   const loc = results[0]!.result as { uri: string } | null;
   expect(loc).not.toBeNull();
-  // `std/string`'s `trim`, wherever the stdlib is rooted — not the decoy, which
+  // `std/string`'s `trim`, wherever the stdlib is rooted, not the decoy, which
   // would answer with this very file.
   expect(loc!.uri.endsWith("string.vader")).toBe(true);
 });
@@ -2284,7 +2284,7 @@ test("lsp: goto-def reaches a method on a built-in receiver", async () => {
     { method: "textDocument/definition", position: { line: 5, character: 19 } },
   ]);
 
-  // `std/core`'s array trait, wherever the stdlib is rooted — the assertion is
+  // `std/core`'s array trait, wherever the stdlib is rooted: the assertion is
   // that it LANDED, not where the stdlib happens to live on this machine. The
   // file NAME is compared rather than `endsWith` on the uri, and both queries at
   // once, because `expect(uri.endsWith(...)).toBe(true)` throws the value away:
@@ -2301,11 +2301,11 @@ test("lsp: goto-def reaches a method on a built-in receiver", async () => {
 // declaration to point at: `len(s: string)` is a free function in
 // `utf8.vader`, reached by UFCS, not a member of any trait. `type_symbol`
 // declines on a primitive, so this used to fall through to the name-based
-// lookup — which is blind to the receiver's type and answered `array.vader`
+// lookup, which is blind to the receiver's type and answered `array.vader`
 // (`ArrayOps.len`), because that is what the folder enumeration served first.
 //
 // Four `len`s are declared across the stdlib. What picks between them is the
-// receiver, and nothing else — which is exactly what the array test above cannot
+// receiver, and nothing else, which is exactly what the array test above cannot
 // check, since `ArrayOps` gives it an owner to follow.
 const BUILTIN_FREE_FN_SOURCE = `module "lsptest"
 
@@ -2325,7 +2325,7 @@ test("lsp: goto-def on a string receiver reaches the free fn, not the array trai
 });
 
 // Ctrl+click on a STRUCT FIELD. Only the struct's own name was indexed, so
-// `img.pixels` resolved to nothing — the second half of the same omission that
+// `img.pixels` resolved to nothing: the second half of the same omission that
 // left methods unreachable: a `FieldExpr` contributes its target and drops the
 // name after the dot, whether that name is a method or a field.
 const STRUCT_FIELD_SOURCE = `module "lsptest"
@@ -2339,7 +2339,7 @@ area :: fn(img: Image) -> i32 = img.width * i32(img.pixels.len())
 `;
 
 // Two structs declare `cond`. Resolving by NAME lands on whichever comes first,
-// which is a coin flip — and the wrong half of it 250 lines from the right one.
+// which is a coin flip, and the wrong half of it 250 lines from the right one.
 // The receiver's TYPE is what tells them apart, and the editor already knows it:
 // hovering `form` in a `is WhileFor` arm renders `WhileFor`. Goto-def now uses
 // the same information instead of throwing it away.
@@ -2366,8 +2366,8 @@ test("lsp: goto-def picks the field of the RECEIVER's type", async () => {
 });
 
 // An enum variant is the third thing that sits after a dot, and it was indexed
-// no more than fields were. `.Two` carries no receiver — its type comes from the
-// slot it is assigned to — so it exercises the other half of the type lookup.
+// no more than fields were. `.Two` carries no receiver (its type comes from the
+// slot it is assigned to) so it exercises the other half of the type lookup.
 //
 // TWO enums declare `Two`, deliberately. A first version had only one, and it
 // stayed GREEN with the typed lookup neutralised: the name-based path found the
@@ -2399,14 +2399,14 @@ test("lsp: goto-def reaches an enum variant", async () => {
   expect(loc).not.toBeNull();
   // `Choice.Two` is on line 10 (0-based 9); the decoy's `Two` is on line 5.
   // What the decoy pins is the `owner` filter in `find_member_of`: remove it and
-  // this answers 4, the decoy. It does NOT pin the name-based path — since
+  // this answers 4, the decoy. It does NOT pin the name-based path, since
   // `is_member_kind`, that path finds no variant at all and would answer null.
   expect(loc!.range.start.line).toBe(9);
 });
 
 test("lsp: goto-def reaches a struct field", async () => {
   const results = await driveLsp(STRUCT_FIELD_SOURCE, [
-    // `img.pixels` on the last line — the field, not the struct.
+    // `img.pixels` on the last line: the field, not the struct.
     { method: "textDocument/definition", position: { line: 7, character: 54 } },
   ]);
 
@@ -2421,7 +2421,7 @@ test("lsp: goto-def reaches a struct field", async () => {
 // and every lookup that answers "what does this name denote" saw them.
 //
 // `count` is a field of `Holder` AND a top-level fn, with the field declared
-// first — exactly the shape that made `vm_required(…)` in `comptime/eval_call`
+// first: exactly the shape that made `vm_required(…)` in `comptime/eval_call`
 // resolve to a `bool` field instead of the function it calls. `.Two` in a match
 // PATTERN is the other: a pattern is not an expression, so the smallest
 // expression containing the cursor is the whole `match`, whose type is the
@@ -2447,10 +2447,10 @@ use :: fn() -> i32 = count() + classify(.One)
 
 test("lsp: a field never masks a top-level fn of the same name", async () => {
   const results = await driveLsp(MEMBER_RANK_SOURCE, [
-    // The CALL `count()` — must reach the fn on line 10 (0-based 9), not the
+    // The CALL `count()`: must reach the fn on line 10 (0-based 9), not the
     // field on line 4 (0-based 3), which is declared first.
     { method: "textDocument/definition", position: { line: 16, character: 23 } },
-    // `.Two` in the match ARM — must reach `Pick.Two` (line 8, 0-based 7), not
+    // `.Two` in the match ARM: must reach `Pick.Two` (line 8, 0-based 7), not
     // `Decoy.Two` on line 7, which the name-based path finds first.
     { method: "textDocument/definition", position: { line: 13, character: 6 } },
   ]);
@@ -2601,8 +2601,8 @@ test("lsp: signature help before the first argument", async () => {
   expect(help.activeParameter).toBe(0);
 });
 
-// A `.virt` dump gets a hover over the first word of each line — every op and
-// directive must have an entry in `vader/front/virt/ops.md` — and nothing else
+// A `.virt` dump gets a hover over the first word of each line (every op and
+// directive must have an entry in `vader/front/virt/ops.md`) and nothing else
 // from the server. The heads come from the committed bytecode snapshots and
 // from the printer's arms, so an op no snippet uses is covered too.
 test("lsp: hover documents every op of the text bytecode", async () => {
@@ -2637,7 +2637,7 @@ test("lsp: hover documents every op of the text bytecode", async () => {
 });
 
 // A plain dump writes bare table indices. Each op carrying one gets, as an inlay
-// hint after its last operand, the label `--annotate` writes as a `;` comment —
+// hint after its last operand, the label `--annotate` writes as a `;` comment,
 // so the hints over the plain dump are exactly the annotated dump's comments.
 async function bytecodeDump(entry: string, ...flags: string[]): Promise<string> {
   const run = await runCli(["dump", "--stage=bytecode", ...flags, entry]);

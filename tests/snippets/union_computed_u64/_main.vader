@@ -2,7 +2,7 @@
 // through a union (`u64 | Err`), then matched. The VM stores integers in
 // `I32Val` (≤32-bit) or `I64Val` (64-bit) ; a computed u64 lands in `I64Val`,
 // but `primitive_matches` only accepted `I32Val` for width-suffixed integer
-// aliases — so `match r { is u64 … }` fell through its no-match arm and the
+// aliases, so `match r { is u64 … }` fell through its no-match arm and the
 // value was silently dropped. (This is exactly how the self-hosted lexer's
 // `parse_uint_in_base` result vanished, dropping every computed int literal.)
 // Guards the Vader-VM type-check fix ; small u64 LITERALS rode in I32Val and

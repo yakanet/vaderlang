@@ -1,4 +1,4 @@
-// `@c_out` on a scalar crossing as an address — T3079.
+// `@c_out` on a scalar crossing as an address: T3079.
 //
 // C writes into the shim's stack temporary, which dies at the return: nothing
 // reaches Vader. Only an array's buffer or a `@c_struct` mirror can carry C's

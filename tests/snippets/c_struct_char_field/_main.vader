@@ -2,13 +2,13 @@
 //
 // `validate_mirror_fields` admits `bool` and `char`, and the native shim copies
 // them with a plain C assignment. The interpreter read every field through
-// `read_i64`, which unwraps only the two integer carriers — so a mirror the
+// `read_i64`, which unwraps only the two integer carriers, so a mirror the
 // front end had accepted trapped at the call: "expected i64, got char". The
 // read-back had the matching half of the same hole, handing an `I32Val` where
 // the field was a `char`.
 //
 // `div_t` because its members are `int`, four bytes, which is what a Vader
-// `char` is — the width check is exact. `memset` because it is libc, so the
+// `char` is: the width check is exact. `memset` because it is libc, so the
 // interpreter resolves it and this snippet runs on both backends.
 
 module "snippet"

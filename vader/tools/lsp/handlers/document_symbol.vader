@@ -124,7 +124,7 @@ symbol_json :: fn(e: DeclEntry, li: LineIndex, children: JsonValue[]) -> JsonVal
     obj["range"]          = range_json(e.full_span.span_to_range_json(li))
     // The LSP requires `selectionRange ⊆ range`. A malformed `name_span` (a
     // synthetic decl whose name span sits outside its full span) would otherwise
-    // make the client reject the ENTIRE `documentSymbol` response — fall back to
+    // make the client reject the ENTIRE `documentSymbol` response: fall back to
     // the full span when the name span isn't contained.
     sel :: if span_encloses(e.full_span, e.name_span) { e.name_span } else { e.full_span }
     obj["selectionRange"] = range_json(sel.span_to_range_json(li))
@@ -150,7 +150,7 @@ symbol_kind :: fn(kind: DeclKind, owner: string) -> i32 {
 
 import "std/testing"
 
-// `name` of the i-th top-level symbol, or "" out of range — keeps the asserts
+// `name` of the i-th top-level symbol, or "" out of range: keeps the asserts
 // terse without a find helper.
 sym_name_at :: fn(syms: DeclEntry[], i: i64) -> string {
     if i >= syms.len() { return "" }
@@ -173,7 +173,7 @@ MAX :: 10
 """
     idx :: build_index("t.vader", src, .Utf16)
     syms :: toplevel_symbols(idx)
-    // The intra-fn binding `sum` (Local) must NOT appear — only the 4 decls.
+    // The intra-fn binding `sum` (Local) must NOT appear: only the 4 decls.
     assert_eq(syms.len(), 4)
     assert_eq(sym_name_at(syms, 0), "Color")
     assert_eq(sym_name_at(syms, 1), "Point")
@@ -221,10 +221,10 @@ test_lsp_symbol_kind_mapping :: fn() -> void {
 @test
 test_sam_synthetic_impl_member_not_a_symbol :: fn() -> void {
     // SAM-sugar impl members (`Type implements Trait -> expr`) are nameless in
-    // the AST — the method name is resolved from the trait later. They must not
+    // the AST: the method name is resolved from the trait later. They must not
     // surface as outline symbols : an empty `DocumentSymbol.name` is falsy and
     // crashes the whole `documentSymbol` response client-side (the bug this
-    // guards — `MutableSet<T> implements Contains<T> -> value in self.inner`).
+    // guards: `MutableSet<T> implements Contains<T> -> value in self.inner`).
     src :: """
 Box :: struct { v: i32 }
 
@@ -232,7 +232,7 @@ Box implements Contains<i32> -> value == self.v
 """
     idx :: build_index("t.vader", src, .Utf16)
     syms :: toplevel_symbols(idx)
-    // Only `Box` — the SAM member contributes no (empty-named) symbol.
+    // Only `Box`: the SAM member contributes no (empty-named) symbol.
     assert_eq(syms.len(), 1)
     assert_eq(sym_name_at(syms, 0), "Box")
 }
@@ -250,7 +250,7 @@ K :: @comptime {
 """
     idx :: build_index("t.vader", src, .Utf16)
     syms :: toplevel_symbols(idx)
-    // Only the const `K` — the synthetic `__comptime_K` fn is excluded.
+    // Only the const `K`: the synthetic `__comptime_K` fn is excluded.
     assert_eq(syms.len(), 1)
     assert_eq(sym_name_at(syms, 0), "K")
     // And every surfaced symbol's name span is contained in its full span.
@@ -269,7 +269,7 @@ helper :: fn(arg: i32) -> i32 {
 """
     idx :: build_index("t.vader", src, .Utf16)
     syms :: toplevel_symbols(idx)
-    // Only `helper` — `arg` (Param) and `tmp` (Local) are scoped, not file-wide.
+    // Only `helper`: `arg` (Param) and `tmp` (Local) are scoped, not file-wide.
     assert_eq(syms.len(), 1)
     assert_eq(sym_name_at(syms, 0), "helper")
 }

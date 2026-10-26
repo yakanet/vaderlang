@@ -15,7 +15,7 @@ class VaderBundleProvider : TextMateBundleProvider {
     }
 
     // The TextMate plugin reads the extracted copy, not the jar: copy
-    // `bundle/package.json` and every file it names — each language's
+    // `bundle/package.json` and every file it names: each language's
     // configuration, each grammar.
     private fun extractBundle(): Path? {
         val manifest = javaClass.getResourceAsStream("/bundle/package.json")

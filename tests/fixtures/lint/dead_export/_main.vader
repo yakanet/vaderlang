@@ -1,4 +1,4 @@
-// Fixture for `vader lint` — one dead export (W0012), one reached export, one
+// Fixture for `vader lint`: one dead export (W0012), one reached export, one
 // dead private fn (W0007's job, never W0012).
 
 module "snippet"

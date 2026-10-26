@@ -3,10 +3,10 @@
 // Vader has no nominal `Option` / `Result` types : nullability is the structural
 // union `T | null` and fallibility is `T | Error` (an error is any value whose
 // type implements the `Error` trait). These free functions are the conveniences
-// on top of `if x == null` / `if x is Error` narrowing — called via UFCS
+// on top of `if x == null` / `if x is Error` narrowing: called via UFCS
 // (`x.or(d)` on either, `r.map(f)`) for default / transform / chain, the
-// cases where a full narrowing block would be noise. Control flow — early
-// return, branching, propagation — stays with `if` / `match`. They replace the
+// cases where a full narrowing block would be noise. Control flow (early
+// return, branching, propagation) stays with `if` / `match`. They replace the
 // removed `?` operator. See `docs/adr/0011-errors-and-null-are-ordinary-union-values.md`.
 
 module "std/option"
@@ -27,7 +27,7 @@ export or :: fn<T>(x: T | null, d: T) -> T {
     return x
 }
 
-/// The value, or `f()` when it is null — the lazy form of `or`, for a fallback
+/// The value, or `f()` when it is null: the lazy form of `or`, for a fallback
 /// that is expensive or has a side effect (evaluated only on the null path).
 ///
 /// @param x  a nullable value.
@@ -40,7 +40,7 @@ export or_else :: fn<T>(x: T | null, f: fn() -> T) -> T {
 
 // ---- fallible (`T | Error`) -----------------------------------------------
 
-/// The value, or `d` when it is an error — the `T | Error` overload of `or`
+/// The value, or `d` when it is an error: the `T | Error` overload of `or`
 /// (dispatched by receiver, so `x.or(d)` reads the same for nullable and
 /// fallible values).
 ///
@@ -54,7 +54,7 @@ export or :: fn<T>(x: T | Error, d: T) -> T {
     return x
 }
 
-/// The value, or `f(err)` when it is an error — the lazy `T | Error` overload of
+/// The value, or `f(err)` when it is an error: the lazy `T | Error` overload of
 /// `or_else`, with access to the error (to log it, or derive the fallback).
 ///
 /// @param x  a fallible value.
@@ -87,7 +87,7 @@ export and_then :: fn<T, U>(x: T | Error, f: fn(T) -> U | Error) -> U | Error {
 }
 
 /// The value, or `panic` with the error's own message. Use only when an error is
-/// genuinely unrecoverable — it aborts the process.
+/// genuinely unrecoverable: it aborts the process.
 ///
 /// @param x  a fallible value.
 /// @return   `x` narrowed to `T` ; never returns on the error path.
@@ -96,7 +96,7 @@ export unwrap :: fn<T>(x: T | Error) -> T {
     return x
 }
 
-/// The value, or `panic(msg)` — like `unwrap`, with a caller-supplied message.
+/// The value, or `panic(msg)`: like `unwrap`, with a caller-supplied message.
 ///
 /// @param x    a fallible value.
 /// @param msg  the panic message on the error path.

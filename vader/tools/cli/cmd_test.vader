@@ -27,7 +27,7 @@ import "vader/support/diagnostics"
 import "vader/vm"
 TTY :: import "std/tty"
 
-/// `vader test [path]` — discover `@test` fns under `path` (default `.`),
+/// `vader test [path]`: discover `@test` fns under `path` (default `.`),
 /// compile each module keeping the tests as roots, and run every test in
 /// isolation on the VM. A trap (e.g. a failed `assert`) is a FAIL ; clean
 /// return is a pass.
@@ -207,7 +207,7 @@ walk_test_dir :: fn(dir: Path, out: Path[]) -> void {
         if name in SKIP_TEST_DIRS {
             continue
         }
-        // `dir / name` is `join` — it handles the separator, unlike the
+        // `dir / name` is `join`: it handles the separator, unlike the
         // "${dir}/${name}" this used to build, which doubled the slash on a `dir`
         // already ending in one.
         full :: dir / name
@@ -287,7 +287,7 @@ FileFacts :: struct {
 }
 
 // `declared` is "" for a file that declares no module (R2020 territory) or cannot
-// be read — the callers treat that as "not a folder module", the conservative
+// be read: the callers treat that as "not a folder module", the conservative
 // answer. A file that cannot be read counts as holding a test, so that its
 // compile reports why rather than the file being skipped in silence.
 file_facts :: fn(f: Path) -> FileFacts {
@@ -310,7 +310,7 @@ holds_a_test :: fn(src: string) -> bool {
     return false
 }
 
-/// True when every file declares the SAME module — the language's own definition
+/// True when every file declares the SAME module: the language's own definition
 /// of a folder module (a folder holds at most one module; mixed names are R2022).
 /// A folder module is compiled once, as its directory: taking each of its files
 /// for a module of its own would compile the whole folder once per file.

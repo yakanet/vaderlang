@@ -1,7 +1,7 @@
 // A project driving its own build: one house rule, checked at compile time.
 //
 // `vader build` with no file argument finds this file, compiles it, and runs
-// `build` — which then decides what to compile. See vader/tools/cli/driver.vader.
+// `build`, which then decides what to compile. See vader/tools/cli/driver.vader.
 //
 // Draining `messages()` IS the build: the front end runs once and the back end
 // reuses it. A driver that only wanted to lint would leave the loop at
@@ -21,12 +21,12 @@ build :: fn(args: string[]) -> i32 {
     exit := 0
     for msg in ctx.messages() {
         if msg is TypecheckedMessage {
-            // Every typed module is yielded, stdlib included — which modules
+            // Every typed module is yielded, stdlib included, which modules
             // are "this project" is the driver's call.
             //
             // The filter is on the DECLARED module name. When `module_name`
             // carried the loader's filesystem key instead, this matched nothing
-            // and the rule ran over the stdlib too — so the committed
+            // and the rule ran over the stdlib too, so the committed
             // expectation showing no `std/…` report is what pins that fix.
             if msg.module_name.starts_with("std/") {
                 continue
@@ -45,10 +45,10 @@ build :: fn(args: string[]) -> i32 {
         }
     }
 
-    // A reported rule violation fails the build — that is the point of a house
+    // A reported rule violation fails the build: that is the point of a house
     // rule. Without this the driver would report and still exit 0.
     if ctx.flush_reports() {
-        println("driver: ${ctx.reports_of().len()} report(s) — build failed")
+        println("driver: ${ctx.reports_of().len()} report(s), build failed")
         return 1
     }
     return exit

@@ -1,8 +1,8 @@
 // `for x in iter` where `iter` has trait type `Iterator<T>` dispatches
 // `next()` through `LoweredVirtualCall` instead of looking up a static
 // impl on a concrete struct. Same surface, but the receiver may be a
-// `Range`, an array iterator, or any user struct implementing `Iterator<T>`
-// — the runtime dispatches by tag.
+// `Range`, an array iterator, or any user struct implementing `Iterator<T>`:
+// the runtime dispatches by tag.
 //
 // Before this fix, `for x in it` on a trait-typed `it` errored with
 // B5001 ("requires Iterator impl on Iterator<T>") because the lowerer

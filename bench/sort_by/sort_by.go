@@ -1,5 +1,5 @@
 // Go peer of bench/sort_by.vader. `slices.SortStableFunc` takes the elements and
-// returns an ordering, which is the closest shape to the other three — and it
+// returns an ordering, which is the closest shape to the other three, and it
 // must be the STABLE variant, since equal keys are common here and the checksum
 // reads their order.
 

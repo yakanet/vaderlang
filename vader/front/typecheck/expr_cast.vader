@@ -17,7 +17,7 @@ AST :: import "toolchain/ast"
 
 /// Type-check a `CastExpr`. Returns the cast's target type.
 ///
-/// @error T3010 when the (value → target) pair is not a legal conversion —
+/// @error T3010 when the (value → target) pair is not a legal conversion:
 ///        scalar↔scalar (numeric / char / enum), a distinct newtype
 ///        construct / unwrap, an assignable/subtype pair, or an `Into<T>` impl.
 infer_cast :: fn(e: AST.CastExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
@@ -35,7 +35,7 @@ infer_cast :: fn(e: AST.CastExpr, typed: TypedProgram, diags: Diagnostic[]) -> T
 /// The type a cast `T(x)` hands its operand as expected : the target, an `i64` for
 /// an enum, or the primitive under a primitive-backed distinct, unwrapped through
 /// every level.
-/// `Wide(4000000000)` with `Wide :: i64` must see an `i64` slot — a distinct is
+/// `Wide(4000000000)` with `Wide :: i64` must see an `i64` slot: a distinct is
 /// no slot for a free literal, which would then default to `i32` and wrap before
 /// the conversion. A composite-backed distinct stays : it already forwards its
 /// literal coercion (`Pair([1, 2])`).
@@ -61,7 +61,7 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
         return is_integer_type(src, typed)
     }
     // Undecidable operands (an earlier error, an unbound type param, a metatype)
-    // opt out — never pile a T3010 on top of a cascade.
+    // opt out, never pile a T3010 on top of a cascade.
     if not_decidable(src) || not_decidable(target) { return true }
     // A machine integer converts as any primitive : `i32(x)` is no checked conversion.
     // A distinct over a range converts as the range does.
@@ -70,7 +70,7 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
         return range_conversion_allowed(src, refined)
     }
     if enum_data_of(src, target) != null { return true }
-    // The `Convert` op domain — numeric / char / enum conversions (`u64(i32)`,
+    // The `Convert` op domain: numeric / char / enum conversions (`u64(i32)`,
     // `f64(u64)`, `u8(char)`, `i32(enum)`) and distinct newtype construct / unwrap
     // (`BlockId(-1)`, `i32(blockId)`). These are cheap tag-test gates and cover
     // the dominant cast case, so they run before the heavier `is_assignable` walk
@@ -90,7 +90,7 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
     // Identity / compatible either direction : `i32(x: i32)`, a free literal
     // narrowed to the target, a subtype widen (`Animal(cat)`).
     if is_assignable(src, target) || is_assignable(target, src) { return true }
-    // Explicit `Into<Target>` conversion — last resort.
+    // Explicit `Into<Target>` conversion: last resort.
     return into_converting(typed, src, target) != null
 }
 
@@ -122,7 +122,7 @@ range_conversion_allowed :: fn(src: Type, target: RangeType) -> bool {
     return interval_meet(values, target.bounds) != null
 }
 
-// Numeric (int / float, free or concrete), `char`, or an enum — everything the
+// Numeric (int / float, free or concrete), `char`, or an enum: everything the
 // `Convert` op can move between. `is_numeric` already covers the free / numeric
 // cases ; `char` is NOT numeric so it is added explicitly, as is `enum` (↔ its
 // repr int). `bool` and `string` are deliberately absent (no scalar cast).

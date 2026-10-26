@@ -2,13 +2,13 @@
 //
 // The Go `go/packages` model : instead of eagerly walking every scoped root
 // (which, for a project-less entry whose folder is the filesystem root, walks
-// the whole disk — the `discover_modules` 100 % CPU hang the LSP hit on a
+// the whole disk: the `discover_modules` 100 % CPU hang the LSP hit on a
 // virtual `/`-rooted URI), resolve each module ON DEMAND by deterministic
 // path-mapping. A module named `a/b/c` lives at `<base>/a/b/c` for exactly one
 // base in `bases` (the module path mirrors the physical path),
 // so `import "a/b/c"` is a direct stat, never a walk.
 //
-// Load ORDER — and thus symbol-id assignment — is UNCHANGED : it is driven by
+// Load ORDER (and thus symbol-id assignment) is UNCHANGED : it is driven by
 // the BFS over imports in `loader::drain_load_queue`, not by discovery. Lazy
 // resolution returns the same `DiscoveredModule` the eager scan would have
 // indexed for a well-formed project, so the self-compile stays byte-identical.
@@ -37,7 +37,7 @@ import "toolchain/span"
 export IncludePath :: struct {
     dir:    string
     prefix: string
-    /// A merge root does NOT shadow a module an earlier root already provided —
+    /// A merge root does NOT shadow a module an earlier root already provided:
     /// its files are APPENDED to it. It is the one exception to "a module lives
     /// in one folder", and the generated tree is its only user: a driver's
     /// `emit_module("app", …)` has to extend the project's own `app`, whose
@@ -48,10 +48,10 @@ export IncludePath :: struct {
     /// A merge root still PROVIDES a module nothing else declares, so a
     /// generated-only module resolves through it like any other root.
     merge:  bool = false
-    /// Who brought this root into the search — see `ModuleOrigin`. Required, like
+    /// Who brought this root into the search, see `ModuleOrigin`. Required, like
     /// the `DiscoveredModule.origin` and `Module.origin` it feeds: this is the
     /// AUTHORITATIVE layer, so a default here is the one wrong answer that would
-    /// compile — the next root added to `include_paths` would be silently `.Build`,
+    /// compile: the next root added to `include_paths` would be silently `.Build`,
     /// outside R2034 and inside W0012's scope.
     origin: ModuleOrigin
 }
@@ -70,7 +70,7 @@ export IncludePath :: struct {
 /// @param plain      the ordered plain include-paths (no namespace prefix).
 /// @param generated  root holding a build driver's generated modules, or ""
 ///                   when nothing generates. Appended LAST and flagged `merge`,
-///                   so it extends a module rather than shadowing one — see
+///                   so it extends a module rather than shadowing one, see
 ///                   `IncludePath.merge`.
 export include_paths :: fn(entry: IncludePath, plain: IncludePath[], generated: string) -> IncludePath[] {
     // The generated tree is `.Build`, being written by this build.
@@ -114,12 +114,12 @@ export resolve_lazy :: fn(
 ) -> DiscoveredModule | null {
     cached :: index[name]
     if cached is DiscoveredModule { return cached }
-    // The folder that OWNS the module — the first root to declare it, and the
+    // The folder that OWNS the module: the first root to declare it, and the
     // module's identity. Every later contribution is appended to `files`, in root
     // order, so generated files land after the hand-written ones and file order
     // stays a function of the content alone.
     home: string | null = null
-    // The origin of the root that PROVIDES the module — captured with `home`, on
+    // The origin of the root that PROVIDES the module: captured with `home`, on
     // the one line that knows it. A later contribution from a merge root does not
     // change it: identity belongs to the first root to declare the module.
     origin := ModuleOrigin.Build
@@ -127,7 +127,7 @@ export resolve_lazy :: fn(
     for pi in 0..<paths.len() {
         // Once the module is found, only a MERGE root is still worth probing:
         // every other root is shadowed, first match wins. Skipping BEFORE the
-        // `is_dir` / `scan_folder` is what keeps this free — a build with no
+        // `is_dir` / `scan_folder` is what keeps this free: a build with no
         // generated root has no merge root at all, so it does exactly the work
         // it did when this loop returned on first match.
         if home != null && !paths[pi].merge {
@@ -145,7 +145,7 @@ export resolve_lazy :: fn(
             continue
         }
         // Same folder reached through two roots (a generated root also listed in
-        // `--include-paths`) — appending would duplicate every declaration in it,
+        // `--include-paths`): appending would duplicate every declaration in it,
         // which reads as T3053 on code the user did not write twice.
         if cand == home {
             continue
@@ -161,7 +161,7 @@ export resolve_lazy :: fn(
 }
 
 /// When `name` failed to resolve, report whether some include-path holds a
-/// folder at `name`'s canonical location that declares a DIFFERENT module — i.e.
+/// folder at `name`'s canonical location that declares a DIFFERENT module, i.e.
 /// the module is misplaced. Returns that wrong declared name (for a clearer
 /// "module not found" diagnostic), else null. The folder was already scanned
 /// (any R2020 / R2022 emitted) during resolution, so this re-scan discards diags.
@@ -186,7 +186,7 @@ export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string |
     return null
 }
 
-/// Discover the entry module from its own folder — it is the BFS root, not
+/// Discover the entry module from its own folder: it is the BFS root, not
 /// reached through an import, so path-mapping doesn't apply.
 ///
 /// Its declared NAME is the point: the include-paths root the entry's namespace
@@ -206,7 +206,7 @@ export seed_entry :: fn(
     bucket :: scan_folder(entry_folder, overlay, diags) ?? return null
     if bucket.name == "" { return null }
     // `.Build`: this is the ENTRY, and a root exists because the caller named that
-    // file — see `ModuleOrigin.Build`. Never cached in `index` anyway (below), so
+    // file, see `ModuleOrigin.Build`. Never cached in `index` anyway (below), so
     // the value `resolve_lazy` computes from the real include-paths is what lands.
     seeded :: DiscoveredModule {
         .name = bucket.name, .folder = entry_folder, .files = bucket.files,
@@ -215,13 +215,13 @@ export seed_entry :: fn(
     // NOT cached in `index`: the loader re-resolves the entry through
     // `resolve_lazy` once the include-paths exist, and a cached entry here would
     // shadow that with an un-merged module. This function's job is to DISCOVER
-    // the entry's declared name — which is what building the include-paths needs.
+    // the entry's declared name, which is what building the include-paths needs.
     return seeded
 }
 
 /// Pre-resolve every import declared in `sources` into `index`, so the later
 /// `collect_files → diagnose_import_path` lookup finds the target instead of
-/// firing a spurious R2001 — the failure mode that reverted the earlier lazy
+/// firing a spurious R2001: the failure mode that reverted the earlier lazy
 /// attempt (see the note in `loader.vader`). A no-op for already-cached imports.
 ///
 /// @param sources  the entry/module's parsed files.

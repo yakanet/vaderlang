@@ -32,8 +32,8 @@ NO_DISPATCH_KEY :: "<type parameter>"
 /// The impl tables' key for a type itself, arguments included (`Wrapper<i32>`).
 impl_type_key :: fn(t: Type) -> string = canonical_key(t)
 
-/// Whether an impl for `t` covers one instance of a generic base — `Wrapper<MonType>`,
-/// `MonType[]` — and so wins over the base's generic impl for that instance alone.
+/// Whether an impl for `t` covers one instance of a generic base (`Wrapper<MonType>`,
+/// `MonType[]`) and so wins over the base's generic impl for that instance alone.
 ///
 /// @param t  an impl's receiver.
 is_instance_receiver :: fn(t: Type) -> bool =
@@ -81,7 +81,7 @@ impl_side :: fn<V>(
     return table["${dispatch_key(t)}${suffix}"]
 }
 
-/// The entries `t`'s own instance impls and its base's gather — for tables that list
+/// The entries `t`'s own instance impls and its base's gather: for tables that list
 /// several under one key (`struct_implemented_traits`, `impl_method_traits`).
 ///
 /// @param typed   a module of the project, whose impl tables `table` is one of.
@@ -210,7 +210,7 @@ hides_trait_instance :: fn(
     return false
 }
 
-/// Whether an impl written for `t` itself — one instance, `Wrapper<MonType>` —
+/// Whether an impl written for `t` itself (one instance, `Wrapper<MonType>`)
 /// implements `trait_key` : it wins over the base's generic impl, bounds unasked.
 ///
 /// @param t          the receiver.
@@ -297,7 +297,7 @@ base_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> 
 /// True iff `t` implements `trait_key` : it has the impl built in
 /// (`has_builtin_impl`), or its nominal carrier
 /// has an impl of it (`base_implements_trait`), and a generic impl counts only
-/// for the arguments its bounds admit — `Box<T> implements<T: Display>
+/// for the arguments its bounds admit, `Box<T> implements<T: Display>
 /// Display` makes `Box<i32>` implement `Display`, not `Box<Point>` when `Point`
 /// has none (`ImplTables.impl_bounds`).
 export struct_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool {
@@ -486,11 +486,11 @@ unmet_bound_detail :: fn(
 ) -> string =
     "type parameter `${param}` of `${owner}` requires `${display_type(required)}`, and ${reason}"
 
-// Whether `arg` satisfies the bound trait `trait_key` — at a bounded position of a
+// Whether `arg` satisfies the bound trait `trait_key`: at a bounded position of a
 // generic impl, or bound to a callee's type parameter (T3006). An erased instance
 // dispatches on the boxed value, so what counts is what that dispatch reaches : a
 // type parameter through its own bound, a union through every variant, a distinct
-// through its own impl or its backing's — and an array not for `Display`, which
+// through its own impl or its backing's, and an array not for `Display`, which
 // no vtable carries.
 // A type still unknown here is not held against the bound.
 satisfies_bound :: fn(arg: Type, trait_key: string, typed: TypedProgram) -> bool = match arg {
@@ -561,7 +561,7 @@ export lookup_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedPr
 
 /// Every argument list the impls of `trait_key` covering `t` record, one per impl
 /// (`Vec2 implements Add<f64>` beside `Add<Vec2>` gives two) : those written for
-/// `t` itself first, then its base's, less those an impl on `t` hides — the same
+/// `t` itself first, then its base's, less those an impl on `t` hides: the same
 /// arguments, as `impl_candidates` hides members.
 ///
 /// @param t          the implementing type.
@@ -617,7 +617,7 @@ coincides_with_any :: fn(lists: Type[][], args: Type[]) -> bool {
 /// `field.vader::substitute_trait_typeparams`; the source of truth for binding a
 /// combinator/terminal's `Iterator<T>` param `T` from a concrete receiver.
 resolve_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
-    // A `generator`'s `<fn>$State<E>` implements `Iterator<E>` — its trait args ARE
+    // A `generator`'s `<fn>$State<E>` implements `Iterator<E>`: its trait args ARE
     // its own type args (the concrete element carried per instance). The synthetic
     // struct has no `struct_decl`, so the generic-substitution path below can't apply.
     if trait_key == core_trait_key(TRAIT_ITERATOR) {

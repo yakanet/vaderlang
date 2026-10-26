@@ -39,7 +39,7 @@ export const exampleInput = (name: string): string => {
 export const TEST_DECORATOR_RE = /^@test\s/m;
 
 /** Every `.vader` file under `dir`, recursively, in `readdir` order. `dir` may
- *  also BE a `.vader` file, in which case the answer is just that file — which is
+ *  also BE a `.vader` file, in which case the answer is just that file, which is
  *  what an import path resolving to a file-form module needs.
  *
  *  The one recursion. Three hand-written copies of it lived in as many test files
@@ -61,7 +61,7 @@ export function listVaderFiles(dir: string): string[] {
   return out;
 }
 
-/** True when `dir` ITSELF holds a test-bearing `.vader` — no recursion.
+/** True when `dir` ITSELF holds a test-bearing `.vader`: no recursion.
  *
  *  DIRECTLY is the load-bearing word. A walker looking for module directories
  *  needs this question and not the subtree-shaped one: `lib/std` and
@@ -85,7 +85,7 @@ export function containsTestFn(dir: string): boolean {
  *
  *  One walker for every root, and it names no level: descend until a directory
  *  holds a test file, register it, and stop there. Naming levels is how discovery
- *  silently loses modules — first `lib/std` by name when the build contract moved
+ *  silently loses modules: first `lib/std` by name when the build contract moved
  *  out of `vader/` (33 tests, no warning), then `lib/<ns>` when the libraries left
  *  `std/` and each became a leaf (25 more). An undiscovered module is simply
  *  skipped, so nothing reports the loss.
@@ -96,7 +96,7 @@ export function containsTestFn(dir: string): boolean {
  *  directory has a subdirectory at all).
  *
  *  Paths are normalised to `/` : these are Vader module paths, and `join` yields
- *  `\` on Windows — the test names would then differ from one OS to the next. */
+ *  `\` on Windows: the test names would then differ from one OS to the next. */
 export function findTestModules(root: string): string[] {
   const dirs: string[] = [];
   const visit = (dir: string) => {

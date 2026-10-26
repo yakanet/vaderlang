@@ -1,12 +1,12 @@
 // vader/midir/optimise/cfg_dce: CFG-level cleanup on each `CFGFunction`.
 //
-//   Pass 0 — `fold_moves` : copy-fold `producer.dst=X ; Move dst=Y src=X`
+//   Pass 0, `fold_moves` : copy-fold `producer.dst=X ; Move dst=Y src=X`
 //            where X is single-use, so the producer writes directly into
 //            Y and the Move drops. Unlocks const-folding through let-
 //            bindings (`a :: 7 ; b :: 5 ; a*b` would otherwise stall at
 //            the moves). It must NOT reorder across an intervening READ of
-//            the Move's destination — see `tests/snippets/swap_reassign`.
-//   Pass 1 — `compact_locals` (drop unreferenced locals, renumber).
+//            the Move's destination, see `tests/snippets/swap_reassign`.
+//   Pass 1: `compact_locals` (drop unreferenced locals, renumber).
 //
 // Dead-instruction elimination used to sit between the two and is gone :
 // it removed 73 ops out of 129 772 on the compiler itself for ~10,5 % of the
@@ -19,7 +19,7 @@ import "vader/core/symbol"
 import "vader/midir"
 import "vader/midir/select"
 
-/// Top-level entry — apply all CFG-level optimisations to every fn in
+/// Top-level entry: apply all CFG-level optimisations to every fn in
 /// the project. Pure : returns a fresh CFGProject sharing unchanged
 /// modules with the input.
 export eliminate_dead_cfg :: fn(p: CFGProject) -> CFGProject {
@@ -35,7 +35,7 @@ export eliminate_dead_cfg :: fn(p: CFGProject) -> CFGProject {
 optimise_function :: fn(f: CFGFunction) -> CFGFunction = compact_locals(fold_moves(f))
 
 // ============================================================================
-// Pass 0 — fold_moves : copy-fold producer → Move chains
+// Pass 0, fold_moves : copy-fold producer → Move chains
 // ============================================================================
 
 fold_moves :: fn(f: CFGFunction) -> CFGFunction {
@@ -70,14 +70,14 @@ fold_moves_in_block :: fn(
             // producer's (earlier) position, so any instruction BETWEEN the
             // producer and this Move that touches `m.dst` would then observe
             // the wrong value. Bail when such an intervening instr WRITES
-            // `m.dst` (stale-value resurrection) OR READS it — the latter is
+            // `m.dst` (stale-value resurrection) OR READS it: the latter is
             // the swap/rotate idiom `a = b ; b = c` : folding `b = (a+b)` up
             // past `a = b` makes the `a = b` read the not-yet-clobbered
             // slot's new value, doubling instead of swapping.
             mdst :: ins.dst
             producer_idx: i64 = -1
             intervening := false
-            // Reused mutable cell for the closure below — declared once, reset
+            // Reused mutable cell for the closure below: declared once, reset
             // per iteration (a fresh `[false]` per step would heap-allocate on
             // every backward step).
             reads_cell: bool[]: [false]
@@ -101,14 +101,14 @@ fold_moves_in_block :: fn(
             if instruction_has_side_effect(producer) { folded.push(ins)  continue }
             rewritten :: with_dst(producer, ins.dst)
             folded[producer_idx] = rewritten
-            // Move drops — don't push it. continue the outer loop.
+            // Move drops: don't push it. continue the outer loop.
         }
     }
     return folded
 }
 
 // ============================================================================
-// Pass 1 — compact_locals : drop unreferenced locals + renumber survivors
+// Pass 1, compact_locals : drop unreferenced locals + renumber survivors
 //
 // Walks every instruction + terminator collecting referenced locals.
 // Params + side-effecting dsts always count (the slot must exist for
@@ -419,14 +419,14 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction = match ins {
         .param_types = ins.param_types,
     }
     // `InstrDeferPush.value` is a read operand (`for_each_read_local` visits it),
-    // so `compact_locals` renumbers it and it MUST be remapped here too — else
+    // so `compact_locals` renumbers it and it MUST be remapped here too: else
     // the deferred thunk reads a stale slot after compaction.
     is InstrDeferPush     -> InstrDeferPush { .span = ins.span, .value = remap_local(m, ins.value) }
     // Carries no local.
     is InstrDeferPopExec  -> ins
 }
 
-// Fields listed, not spread — same reason as `remap_instr`.
+// Fields listed, not spread: same reason as `remap_instr`.
 remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
     if t is TermBranch          { return t }
     if t is TermUnreachable     { return t }
@@ -445,7 +445,7 @@ remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
 }
 
 /// Rebuild an instruction with its `dst` changed to `new_dst`. Pure
-/// producers only — callers must check `instruction_has_side_effect`
+/// producers only: callers must check `instruction_has_side_effect`
 /// first. Returns the input unchanged when the variant has no dst.
 with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction = match ins {
     is InstrConst           -> InstrConst { ...ins, .dst = new_dst }
@@ -492,8 +492,8 @@ import "toolchain/span"
 
 // `fold_moves_in_block` holds every decision the pass makes ; `fold_moves` is the
 // per-block plumbing around it. Testing the inner fn keeps the fixtures to the
-// four things it reads — a block, the local types, the use counts, and the param
-// slots — instead of a whole CFGFunction with its MonoEntry.
+// four things it reads: a block, the local types, the use counts, and the param
+// slots: instead of a whole CFGFunction with its MonoEntry.
 
 fm_sym :: fn() -> Symbol = Symbol {
     .id = 1, .kind = .Fn, .name = "f", .module = "test",
@@ -535,7 +535,7 @@ fm_uses :: fn(pairs: [LocalId, i32][]) -> MutableMap<LocalId, i32> {
 
 fm_no_params :: fn() -> MutableSet<LocalId> = MutableSet<LocalId> {}
 
-/// Four `i32` locals, `t0` to `t3` — every fixture below stays within them.
+/// Four `i32` locals, `t0` to `t3`: every fixture below stays within them.
 fm_locals :: fn() -> CFGLocal[] = fm_locals_typed(TY_I32, TY_I32)
 
 /// `t0` and `t1` are `i32`, `t2` and `t3` take the given types.

@@ -1,9 +1,9 @@
-# 0016 — A guard's continuation is duplicated, once per guard, by the structurer
+# 0016: A guard's continuation is duplicated, once per guard, by the structurer
 
 ## Status
 
-Accepted (2026-09-06). Its mechanism — `TermCondBranch.join`, `cond_branch_merge`
-— is superseded by [0027](0027-the-structurer-places-each-block-once-by-dominator-tree.md),
+Accepted (2026-09-06). Its mechanism (`TermCondBranch.join`, `cond_branch_merge`)
+is superseded by [0027](0027-the-structurer-places-each-block-once-by-dominator-tree.md),
 which places every block once; the `exec.vader` source-shape decision stands.
 Supersedes in part
 [0014](0014-the-interpreters-cost-is-the-buffer-resolve.md) and
@@ -17,7 +17,7 @@ emitter's. One source-shape change landed
 0014 and 0015 both found `exec_entry` holding two copies of the VM's whole
 dispatch, and both wrote it down as *"the C emitter tail-duplicates the loop body
 into both branches of `if is_comptime`"*. 0014 went further and concluded the
-duplication was worth keeping — de-duplicating the two emitted copies measured
+duplication was worth keeping: de-duplicating the two emitted copies measured
 **+22 %**, so *"the duplication is a specialisation that pays."*
 
 Two things were wrong with that.
@@ -46,7 +46,7 @@ if steps > step_budget { return Trap { … } }
 
 Measured, three alternating draws each: `vader_vm.c` **46 250 → 32 667 lines
 (−29 %)**, its `cc -O3` **4,7 → 2,9 s (−38 %)**, the whole parallel compile of the
-compiler **6,04 → 4,77 s (−21 %)**, for **+1,7 %** on the comptime pass — ~3 % of a
+compiler **6,04 → 4,77 s (−21 %)**, for **+1,7 %** on the comptime pass: ~3 % of a
 real compile, so about **+0,05 %** end to end.
 
 **The attribution was wrong.** `vader/emit/c` renders faithfully what it is
@@ -91,7 +91,7 @@ A then-arm that can `return` destroys post-dominance of the true rejoin, so
 `merge` degrades to the enclosing region's `until`, and the two `emit_range`
 calls in `emit_block_contents` each independently walk the shared continuation to
 the end of the region. What the structurer needs there is the nearest common
-successor reachable from both arms — or, failing that, a labelled `block` scope
+successor reachable from both arms, or, failing that, a labelled `block` scope
 and a `br`, which the bytecode already has.
 
 ## Decision
@@ -99,7 +99,7 @@ and a `br`, which the bytecode already has.
 Keep the source-shape change in `vader/vm/exec.vader`; it is one line and it pays
 on every build of the compiler, every CI run and every bootstrap stage.
 
-**Fix the general defect too — done 2026-09-06.** The builder knew the join all
+**Fix the general defect too: done 2026-09-06.** The builder knew the join all
 along: `build_if` and `build_short_circuit` create the block and terminate both
 arms with a `TermBranch` to it, and only never wrote it down. `TermCondBranch`
 carries it now, and `cond_branch_merge` falls back to it where post-dominance
@@ -110,8 +110,8 @@ over the 51 TUs **5,13 → 4,77 s (−7,0 %)**.
 Post-dominance stays the primary answer and the two are NOT cross-checked: they
 answer different questions. Post-dominance asks what every path goes through, the
 builder asks where these two arms rejoin. They coincide for a plain `if` and part
-company as soon as an arm leaves the region — `for { … if c { break } … }`
-post-dominates on the loop's exit while the arms rejoin in the body — so a
+company as soon as an arm leaves the region (`for { … if c { break } … }`
+post-dominates on the loop's exit while the arms rejoin in the body) so a
 "they must agree" assertion fires on correct code, which is how this was found.
 
 ## Consequences
@@ -121,7 +121,7 @@ conclusion that survives only until someone asks what produced the two copies.
 
 - The guard in `exec.vader` carries a CONSTRAINT comment pointing here. It names
   `vader/midir`, not the C emitter, and says the constraint is general rather
-  than local to that file — otherwise the next reader learns the wrong lesson
+  than local to that file: otherwise the next reader learns the wrong lesson
   about their own code.
 - The non-comptime path now pays `steps += 1` and one compare per op that it did
   not pay before. The +1,7 % quoted above is the comptime pass; the
@@ -129,11 +129,11 @@ conclusion that survives only until someone asks what produced the two copies.
 - Every static count in 0014 and 0015 was taken on the doubled tree. They are
   right for the tree of 2026-09-05 and halve for today's.
 - `tests/diag_corpus/comptime/c4002_non_terminating/` pins that a
-  non-terminating `@comptime` errors rather than hanging the build — the
+  non-terminating `@comptime` errors rather than hanging the build: the
   behaviour whose shape this change moves. Nothing pinned it before.
 - **The trade, and what removes it.** An arm that falls through now gets a real
   `else` where the duplication used to flatten it, so brace nesting in the three
-  op-dispatch modules goes from 12 to ~152 — past the 127 levels C11 guarantees
+  op-dispatch modules goes from 12 to ~152: past the 127 levels C11 guarantees
   an implementation supports, and ~10 % more bytes on indentation alone. Both CI
   toolchains compile it (gcc-16 in 9,5 s, `x86_64-w64-mingw32-gcc` in 8,0 s on
   the Windows-target C). What removes it properly is lowering a dense `match` to
@@ -142,7 +142,7 @@ conclusion that survives only until someone asks what produced the two copies.
   dispatch. That is also the op a WASM backend would want (`br_table`).
 - **The `.virt` dumper was guessing.** It resolved a non-loop `br` to the
   innermost enclosing non-loop scope rather than to the scope its jump-table
-  entry names — wrong as soon as a branch skips past an intermediate scope, which
+  entry names: wrong as soon as a branch skips past an intermediate scope, which
   this change makes it do. The round trip then produced a different program:
   `std_regex` ran correctly from source and natively and looped forever through
   its own dump. Fixed by matching the branch's target against each open scope's
