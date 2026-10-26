@@ -27,6 +27,10 @@
 //   vader run examples/brainfuck --help             # lists the options
 //   vader build --out=bf examples/brainfuck         # then ./bf path/to.bf
 //
+// Two programs come with it: `hello.bf`, and `life.bf`, Conway's Game of Life
+// played at the keyboard: type a cell such as `be` to toggle it, an empty line to
+// advance one generation, `q` to quit.
+//
 // The folder is a project: its `vader.json` reaches the compiler's own modules
 // (`vader/vm`, `vader/front/virt`) at the root of the checkout.
 //
