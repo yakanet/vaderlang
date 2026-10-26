@@ -185,6 +185,8 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
 
 ### Typecheck and lowering
 
+- [ ] **Variant data cannot read a constant computed from another file's constant** (found 2026-10-26, `examples/raycaster`). In a module of two files, `other.vader` declaring `LATE: i32: 40` and `main.vader` declaring `DERIVED: i32: LATE + 3` with `Kind :: enum(Info) { Derived { .sprite = DERIVED } }`, the build stops on C4001 "the data of `Kind.Derived` must be a constant", wherever `DERIVED` sits; the same three declarations in one file print 43, and reading `LATE` directly passes. Raised by `lower_data_table` (`vader/lower/enum_data.vader`), whose `is_bakeable_value` sees `DERIVED` unfolded when its operand lives in a sibling file. The raycaster keeps `BLOOD_SPRITE` and `PUFF_SPRITE` beside `ZOMBIE_FALL` in `engine/enemies.vader` for this reason.
+
 - [ ] **A module constant holding an instantiated generic function is miscompiled** (found 2026-10-26). With `name_of :: fn<T>(x: T) -> string`, `named: fn(f64) -> string: name_of<f64>` compiles, then the VM stops on "byte_len receiver at pc=1: expected string, got f64" and the native build prints an empty line. `: name_of`, with no type argument, works.
 
 - [ ] **A rename does not hide a function two wildcards export** (found 2026-10-26). With `app/geo` and `app/paint` both exporting `area(Square)`, `import "app/extra" { triple as area }` leaves `area(s)` ambiguous between the rename and the last wildcard. With one wildcard the rename hides it, and a constant is hidden in both cases. SPEC §11 *Resolution rules*: a rename binding shadows the wildcards.
