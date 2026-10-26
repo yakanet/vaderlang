@@ -1,17 +1,19 @@
 // examples/raycaster/engine/render: one frame of the view, into a pixel buffer.
 //
-// A frame is drawn in three passes, back to front. The floor and the ceiling
+// A frame is drawn in passes, back to front. The floor and the ceiling
 // first, a row at a time: every pixel of a row lies at the same distance, so a
 // row is one step along the floor per pixel. Then the walls, a column at a time:
 // one ray per column, a vertical strip of texture scaled by the distance, and the
-// distance kept per column. Then the sprites, farthest first, each column of a
-// sprite drawn only where it is nearer than that column's wall.
+// distance kept per column. Then the sprites, the things and the zombies,
+// farthest first, each column of a sprite drawn only where it is nearer than
+// that column's wall. Last, the player's pistol, and the red of a hit.
 //
 // The light is coloured. Each cell has an ambient level per channel, raised by
 // the glow of the lamps, light columns and torches around it (`light_map`, once
 // per level), and the distance dims it all. The textures are read in place, out
 // of the constants the build computed, and reach the drawing functions as
-// arguments: a texture bound to a local name would be a copy.
+// arguments, which share them: a texture stored in a struct, or returned, would
+// be a copy.
 
 module "engine"
 
@@ -76,9 +78,8 @@ export light_map :: fn(level: Level) -> LightMap {
     for thing in level.things {
         for y in 0..<level.height {
             for x in 0..<level.width {
-                offset_x :: f64(x) + 0.5 - thing.x
-                offset_y :: f64(y) + 0.5 - thing.y
-                share :: 1.0 / (1.0 + GLOW_SPREAD * (offset_x * offset_x + offset_y * offset_y))
+                spread :: squared_distance(thing.x, thing.y, f64(x) + 0.5, f64(y) + 0.5)
+                share :: 1.0 / (1.0 + GLOW_SPREAD * spread)
                 cell :: level.index_of(x, y)
                 lights.red[cell] += thing.kind.glow_red * share
                 lights.green[cell] += thing.kind.glow_green * share
@@ -154,7 +155,11 @@ texel_footprint :: fn(frame: Frame, distance: f64) -> f64 =
 export render :: fn(frame: Frame, level: Level, player: Player, lights: LightMap) -> void {
     draw_floor_and_ceiling(frame, player, lights)
     draw_walls(frame, level, player, lights)
-    draw_things(frame, level, player, lights)
+    draw_billboards(frame, player, lights, billboards(level))
+    draw_weapon(frame, player, lights)
+    if player.hurt > 0.0 {
+        frame.redden(player.hurt)
+    }
 }
 
 // ---- floor and ceiling ----------------------------------------------------
@@ -258,23 +263,61 @@ side_dimming :: fn(faces_east_west: bool) -> f64 {
 
 // ---- sprites --------------------------------------------------------------
 
-// The things, farthest first, each a sprite standing on the floor.
-draw_things :: fn(frame: Frame, level: Level, player: Player, lights: LightMap) -> void {
-    far_first :: sort(level.things, (a, b) -> player.is_farther(a, b))
+// A picture standing on the floor this frame: a thing, or a zombie.
+Billboard :: struct {
+    x: f64
+    y: f64
+    // Its picture in `SPRITE_TEXTURES`.
+    sprite: i32
+    // Whether it lights itself, whatever the light around it.
+    glows: bool
+}
+
+// The things and the zombies of `level`, as pictures to draw. A zombie firing
+// is lit by its own flash.
+billboards :: fn(level: Level) -> Billboard[] {
+    out: Billboard[]: [] * (level.things.len() + level.enemies.len())
+    for thing in level.things {
+        out.push(Billboard {
+            .x = thing.x,
+            .y = thing.y,
+            .sprite = thing.kind.sprite,
+            .glows = thing.kind.glows(),
+        })
+    }
+    for enemy in level.enemies {
+        out.push(Billboard {
+            .x = enemy.x,
+            .y = enemy.y,
+            .sprite = enemy_sprite(enemy),
+            .glows = enemy.state == .Firing,
+        })
+    }
+    return out
+}
+
+// Draw `pictures`, farthest first, each standing on the floor.
+draw_billboards :: fn(
+    frame: Frame,
+    player: Player,
+    lights: LightMap,
+    pictures: Billboard[],
+) -> void {
+    far_first :: sort(pictures, (a, b) -> player.is_farther(a, b))
     // Undo the camera: a point `offset` from the player is
     // `plane * across + direction * depth`.
     inverse :: 1.0 / (player.plane_x * player.direction_y - player.direction_x * player.plane_y)
-    for thing in far_first {
-        offset_x :: thing.x - player.x
-        offset_y :: thing.y - player.y
+    for picture in far_first {
+        offset_x :: picture.x - player.x
+        offset_y :: picture.y - player.y
         across :: inverse * (player.direction_y * offset_x - player.direction_x * offset_y)
         depth :: inverse * (player.plane_x * offset_y - player.plane_y * offset_x)
         if depth < 0.2 {
             continue
         }
         centre :: i32(f64(frame.width) / 2.0 * (1.0 + across / depth))
-        light :: sprite_light(lights, thing, depth)
-        draw_sprite(frame, centre, depth, light, SPRITE_TEXTURES[i64(thing.kind.sprite)])
+        light :: billboard_light(lights, picture, depth)
+        draw_sprite(frame, centre, depth, light, SPRITE_TEXTURES[i64(picture.sprite)])
     }
 }
 
@@ -282,10 +325,24 @@ draw_things :: fn(frame: Frame, level: Level, player: Player, lights: LightMap) 
 // `depth` away, centred on column `centre`: only in the columns where it is
 // nearer than the wall.
 draw_sprite :: fn(frame: Frame, centre: i32, depth: f64, light: u32, texture: u32[]) -> void {
-    width :: frame.width
     size :: i32(frame.projection() / depth)
     top :: frame.height / 2 + i32(EYE_HEIGHT * frame.projection() / depth) - size
-    left :: centre - size / 2
+    draw_picture(frame, centre - size / 2, top, size, depth, light, texture)
+}
+
+// Draw the picture `texture`, `size` pixels square and lit by `light`, its
+// top-left corner at `(left, top)`, clipped to the frame: only in the columns
+// where it is nearer than the wall, at `depth`.
+draw_picture :: fn(
+    frame: Frame,
+    left: i32,
+    top: i32,
+    size: i32,
+    depth: f64,
+    light: u32,
+    texture: u32[],
+) -> void {
+    width :: frame.width
     step :: f64(TEXTURE_SIZE) / f64(size)
     for column in max(left, 0)..<min(left + size, width) {
         if depth >= frame.depth[i64(column)] {
@@ -303,26 +360,21 @@ draw_sprite :: fn(frame: Frame, centre: i32, depth: f64, light: u32, texture: u3
     }
 }
 
-// The light a thing is drawn in: a thing that glows is lit by itself, whatever
-// the light around it.
-sprite_light :: fn(lights: LightMap, thing: Thing, depth: f64) -> u32 {
-    glows :: thing.kind.glow_red + thing.kind.glow_green + thing.kind.glow_blue > 0.0
-    if glows {
+// The light `picture` is drawn in, `depth` away.
+billboard_light :: fn(lights: LightMap, picture: Billboard, depth: f64) -> u32 {
+    if picture.glows {
         return grey_light(FULL_LIGHT)
     }
-    return light_at(lights, thing.x, thing.y, dimming(depth))
+    return light_at(lights, picture.x, picture.y, dimming(depth))
 }
 
 // Whether `a` stands farther from `player` than `b`.
-is_farther :: fn(player: Player, a: Thing, b: Thing) -> bool =
+is_farther :: fn(player: Player, a: Billboard, b: Billboard) -> bool =
     player.squared_distance_to(a) > player.squared_distance_to(b)
 
-// How far `thing` is from `player`, squared: enough to compare distances.
-squared_distance_to :: fn(player: Player, thing: Thing) -> f64 {
-    offset_x :: thing.x - player.x
-    offset_y :: thing.y - player.y
-    return offset_x * offset_x + offset_y * offset_y
-}
+// How far `picture` is from `player`, squared: enough to compare distances.
+squared_distance_to :: fn(player: Player, picture: Billboard) -> f64 =
+    squared_distance(player.x, player.y, picture.x, picture.y)
 
 // ---- overlay --------------------------------------------------------------
 
@@ -372,6 +424,19 @@ fill :: fn(frame: Frame, left: i32, top: i32, width: i32, height: i32, colour: u
         for x in max(left, 0)..<min(left + width, frame.width) {
             frame.pixels[i64(y * frame.width + x)] = colour
         }
+    }
+}
+
+// The red a hit tints the view with, and how far towards it the view goes at
+// its strongest, out of `FULL_LIGHT`.
+RED: u32: rgb(208, 0, 0)
+RED_TINT: u32: 110
+
+// Tint the whole frame red, by `amount` from none to `RED_TINT` of the way.
+redden :: fn(frame: Frame, amount: f64) -> void {
+    share :: u32(f64(RED_TINT) * min(amount, 1.0))
+    for i in 0..<frame.pixels.len() {
+        frame.pixels[i] = blend(frame.pixels[i], RED, share)
     }
 }
 

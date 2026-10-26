@@ -1,0 +1,139 @@
+// examples/raycaster/engine/weapon: the player's pistol, fired and drawn.
+//
+// A bullet flies along the centre of the view, where the crosshair sits, and
+// strikes the nearest zombie still standing whose body crosses that line, short
+// of the wall. The pistol is drawn at the foot of the view, in the light of the
+// player's cell, and follows its recoil after a shot: the frame of the shot with
+// its flash, then the pistol thrown up, then on its way back down.
+
+module "engine"
+
+import "std/math"
+
+// The bullets the player starts with.
+START_AMMO: i32: 40
+
+// Seconds between two shots.
+FIRE_INTERVAL :: 0.4
+
+// When each picture of the recoil gives way to the next, in seconds after the
+// shot: in `WEAPON_TEXTURES`, the pistol at rest comes first, then the three of
+// the recoil.
+FLASH_ENDS :: 0.08
+KICK_ENDS :: 0.18
+RECOIL_ENDS :: 0.28
+
+// The share of the view's height the pistol's canvas spans: the pistol stands
+// as tall against the view as against Doom's 200 rows.
+WEAPON_HEIGHT :: 0.64
+
+/// Fire the pistol, if it is ready and loaded: the nearest zombie still standing
+/// on the centre of the view, in front of the wall there, takes the bullet.
+///
+/// @param noises  what the player hears, appended to.
+export fire :: fn(player: Player, level: Level, noises: Noise[]) -> void {
+    if player.health <= 0 || player.ammo <= 0 || player.since_shot < FIRE_INTERVAL {
+        return
+    }
+    player.ammo -= 1
+    player.since_shot = 0.0
+    noises.push(.Shot)
+    target :: target_of(player, level) ?? return
+    target.take_bullet(noises)
+}
+
+// The zombie a bullet fired now strikes: the nearest one still standing whose
+// body crosses the line of sight, short of the wall.
+target_of :: fn(player: Player, level: Level) -> Enemy | null {
+    wall :: cast_ray(level, player.x, player.y, player.direction_x, player.direction_y)
+    nearest := wall.distance
+    target: Enemy | null = null
+    for enemy in level.enemies {
+        offset_x :: enemy.x - player.x
+        offset_y :: enemy.y - player.y
+        // Along the line of sight and across it: the direction is a unit vector.
+        along :: offset_x * player.direction_x + offset_y * player.direction_y
+        across :: abs(offset_x * player.direction_y - offset_y * player.direction_x)
+        if enemy.is_alive() && along > 0.0 && along < nearest && across < ENEMY_RADIUS {
+            nearest = along
+            target = enemy
+        }
+    }
+    return target
+}
+
+// Draw the pistol at the foot of `frame`, centred, as far along its recoil as
+// the last shot left it. It lights itself while it flashes.
+draw_weapon :: fn(frame: Frame, player: Player, lights: LightMap) -> void {
+    size :: i32(f64(frame.height) * WEAPON_HEIGHT)
+    left :: (frame.width - size) / 2
+    light :: weapon_light(player, lights)
+    texture :: weapon_picture(player.since_shot)
+    // Nothing stands nearer than the player's own hand.
+    draw_picture(frame, left, frame.height - size, size, 0.0, light, WEAPON_TEXTURES[texture])
+}
+
+// The picture of the pistol `since_shot` seconds after its last shot, in
+// `WEAPON_TEXTURES`.
+weapon_picture :: fn(since_shot: f64) -> i64 {
+    if since_shot < FLASH_ENDS  { return 1 }
+    if since_shot < KICK_ENDS   { return 2 }
+    if since_shot < RECOIL_ENDS { return 3 }
+    return 0
+}
+
+// The light the pistol is drawn in: the player's own cell's, or full while the
+// shot flashes.
+weapon_light :: fn(player: Player, lights: LightMap) -> u32 {
+    if player.since_shot < FLASH_ENDS {
+        return grey_light(FULL_LIGHT)
+    }
+    return light_at(lights, player.x, player.y, 1.0)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A corridor with a zombie three cells east of the player, a wall beyond it.
+range_level :: fn() -> Level = parsed(["########", "#@..Z..#", "########"])
+
+@test
+test_weapon_bullet_strikes_the_zombie_ahead :: fn() -> void {
+    level :: range_level()
+    player :: new_player(level)
+    noises: Noise[]: []
+    player.fire(level, noises)
+    assert_eq(level.enemies[0].health, ZOMBIE_HEALTH - 1)
+    assert(noises[0] == .Shot && noises[1] == .EnemyHurt, "a shot, then the zombie flinches")
+}
+
+@test
+test_weapon_waits_between_shots :: fn() -> void {
+    level :: range_level()
+    player :: new_player(level)
+    noises: Noise[]: []
+    player.fire(level, noises)
+    player.fire(level, noises)
+    assert_eq(player.ammo, START_AMMO - 1)
+    player.update_player(FIRE_INTERVAL)
+    player.fire(level, noises)
+    assert(level.enemies[0].state == .Dying, "the second shot fells the zombie")
+}
+
+@test
+test_weapon_misses_a_zombie_off_the_line_of_sight :: fn() -> void {
+    level :: range_level()
+    player :: new_player(level)
+    player.turn(0.3)
+    noises: Noise[]: []
+    player.fire(level, noises)
+    assert_eq(level.enemies[0].health, ZOMBIE_HEALTH)
+}
+
+@test
+test_weapon_recoil_returns_to_rest :: fn() -> void {
+    assert_eq(weapon_picture(0.0), 1)
+    assert_eq(weapon_picture(0.25), 3)
+    assert_eq(weapon_picture(FIRE_INTERVAL), 0)
+}

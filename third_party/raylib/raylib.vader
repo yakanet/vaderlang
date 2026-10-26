@@ -94,24 +94,59 @@ Image :: struct {
     format: i32
 }
 
+/// Audio samples in CPU memory, decoded and not yet playable. raylib owns
+/// `data` until `UnloadWave`.
+@c_struct
+Wave :: struct {
+    frameCount: u32
+    sampleRate: u32
+    sampleSize: u32
+    channels: u32
+    data: CPointer
+}
+
+/// The stream a sound plays through. Every member is raylib's.
+@c_struct
+export AudioStream :: struct {
+    buffer: CPointer
+    processor: CPointer
+    sampleRate: u32
+    sampleSize: u32
+    channels: u32
+}
+
+/// A sound held in memory, ready to play over and over.
+@c_struct
+export Sound :: struct {
+    stream: AudioStream
+    frameCount: u32
+}
+
 /// The keys this binding names, by their GLFW key codes, which raylib reuses.
 ///
 /// A letter names a key by where it sits on a US keyboard, whatever the layout
 /// prints on it: `W` is the key an AZERTY keyboard labels Z.
 export KeyboardKey :: enum(i32) {
-    Space  = 32,
-    A      = 65,
-    D      = 68,
-    E      = 69,
-    M      = 77,
-    P      = 80,
-    S      = 83,
-    W      = 87,
-    Escape = 256,
-    Right  = 262,
-    Left   = 263,
-    Down   = 264,
-    Up     = 265,
+    Space       = 32,
+    A           = 65,
+    D           = 68,
+    E           = 69,
+    M           = 77,
+    P           = 80,
+    S           = 83,
+    W           = 87,
+    Escape      = 256,
+    Enter       = 257,
+    Right       = 262,
+    Left        = 263,
+    Down        = 264,
+    Up          = 265,
+    LeftControl = 341,
+}
+
+/// The mouse buttons this binding names, by raylib's numbers.
+export MouseButton :: enum(i32) {
+    Left = 0,
 }
 
 // ---- colours --------------------------------------------------------------
@@ -153,6 +188,11 @@ export DARKGRAY :: Color {
 /// Open a window and create its OpenGL context.
 @extern(RAYLIB, "InitWindow")
 export init_window :: fn(width: i32, height: i32, title: string) -> void
+
+/// Whether `init_window` opened the window: it fails on a machine with no display
+/// to open one on, and logs why.
+@extern(RAYLIB, "IsWindowReady")
+export is_window_ready :: fn() -> bool
 
 /// Close the window and release its OpenGL context.
 @extern(RAYLIB, "CloseWindow")
@@ -197,6 +237,11 @@ export clear_background :: fn(color: Color) -> void
 /// Draw `text` in raylib's default font, its top-left corner at `x`, `y`.
 @extern(RAYLIB, "DrawText")
 export draw_text :: fn(text: string, x: i32, y: i32, font_size: i32, color: Color) -> void
+
+/// The width `text` takes drawn at `font_size` with raylib's default font, in
+/// pixels.
+@extern(RAYLIB, "MeasureText")
+export measure_text :: fn(text: string, font_size: i32) -> i32
 
 /// Draw the current frame rate, its top-left corner at `x`, `y`.
 @extern(RAYLIB, "DrawFPS")
@@ -296,3 +341,55 @@ export is_key_pressed :: fn(key: KeyboardKey) -> bool
 /// How far the mouse moved since the last frame, in pixels.
 @extern(RAYLIB, "GetMouseDelta")
 export get_mouse_delta :: fn() -> Vector2
+
+/// Whether `button` is held down during this frame.
+@extern(RAYLIB, "IsMouseButtonDown")
+export is_mouse_button_down :: fn(button: MouseButton) -> bool
+
+// ---- audio ----------------------------------------------------------------
+
+/// Open the default audio device: `load_sound_from_memory` and `play_sound`
+/// need it open.
+@extern(RAYLIB, "InitAudioDevice")
+export init_audio_device :: fn() -> void
+
+/// Close the audio device, once every sound is unloaded.
+@extern(RAYLIB, "CloseAudioDevice")
+export close_audio_device :: fn() -> void
+
+@extern(RAYLIB, "LoadWaveFromMemory")
+load_wave_from_memory :: fn(file_type: string, data: u8[], size: i32) -> Wave
+
+@extern(RAYLIB, "LoadSoundFromWave")
+load_sound_from_wave :: fn(wave: Wave) -> Sound
+
+@extern(RAYLIB, "UnloadWave")
+unload_wave :: fn(wave: Wave) -> void
+
+@extern(RAYLIB, "IsWaveValid")
+is_wave_valid :: fn(wave: Wave) -> bool
+
+/// Load a sound file held in memory: one baked into the program by `@comptime`,
+/// which then needs no file beside it.
+///
+/// @param file_type  the file's extension, dot included: `".wav"`.
+/// @param data       the file's bytes.
+/// @return           the sound, or `null` when the bytes do not decode (raylib
+///                   logs why).
+export load_sound_from_memory :: fn(file_type: string, data: u8[]) -> Sound | null {
+    wave :: load_wave_from_memory(file_type, data, i32(data.len()))
+    if !is_wave_valid(wave) {
+        return null
+    }
+    sound :: load_sound_from_wave(wave)
+    unload_wave(wave)
+    return sound
+}
+
+/// Release a sound's memory.
+@extern(RAYLIB, "UnloadSound")
+export unload_sound :: fn(sound: Sound) -> void
+
+/// Play a sound from its start, cutting it short if it is still playing.
+@extern(RAYLIB, "PlaySound")
+export play_sound :: fn(sound: Sound) -> void

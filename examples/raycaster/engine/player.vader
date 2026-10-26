@@ -21,6 +21,12 @@ BODY_RADIUS :: 0.22
 // How far ahead the player reaches for a door, in cells.
 REACH :: 1.2
 
+// The health the player starts with.
+FULL_HEALTH: i32: 100
+
+// How fast the red of a hit fades from the view, in shares per second.
+HURT_FADE :: 2.5
+
 /// Where the player stands and looks.
 export Player :: struct {
     x: f64
@@ -31,6 +37,14 @@ export Player :: struct {
     /// The camera plane, `PLANE_LENGTH` long, pointing to their right.
     plane_x: f64
     plane_y: f64
+    /// What is left of their health, `0` once they fall.
+    health: i32 = FULL_HEALTH
+    /// The bullets left in their pistol.
+    ammo: i32 = START_AMMO
+    /// Seconds since the pistol last fired: its picture follows the recoil.
+    since_shot: f64 = FIRE_INTERVAL
+    /// How red the view is from the last hit: `1.0` just hit, fading to `0.0`.
+    hurt: f64 = 0.0
 }
 
 /// The player at `level`'s start, facing east.
@@ -61,12 +75,33 @@ export turn :: fn(player: Player, angle: f64) -> void {
 export walk :: fn(player: Player, level: Level, forward: f64, right: f64) -> void {
     step_x :: player.direction_x * forward - player.direction_y * right
     step_y :: player.direction_y * forward + player.direction_x * right
-    if level.is_free(player.x + step_x, player.y, BODY_RADIUS) {
+    if level.has_room(player.x + step_x, player.y, BODY_RADIUS, null) {
         player.x += step_x
     }
-    if level.is_free(player.x, player.y + step_y, BODY_RADIUS) {
+    if level.has_room(player.x, player.y + step_y, BODY_RADIUS, null) {
         player.y += step_y
     }
+}
+
+/// Move the player's clocks on by `seconds`: the pistol's recoil, the red of a
+/// hit.
+export update_player :: fn(player: Player, seconds: f64) -> void {
+    player.since_shot += seconds
+    player.hurt = max(player.hurt - seconds * HURT_FADE, 0.0)
+}
+
+// Take `damage` from the player's health; with none left, they fall.
+take_damage :: fn(player: Player, damage: i32, noises: Noise[]) -> void {
+    if player.health <= 0 {
+        return
+    }
+    player.health = max(player.health - damage, 0)
+    player.hurt = 1.0
+    if player.health > 0 {
+        noises.push(.PlayerHurt)
+        return
+    }
+    noises.push(.PlayerDies)
 }
 
 /// The door in front of the player, within reach, or `null` when none is.
@@ -111,6 +146,24 @@ test_player_walk_slides_along_a_wall :: fn() -> void {
     player.walk(level, -0.4, 0.25)
     assert_eq(player.x, 1.5)
     assert_eq(player.y, 1.75)
+}
+
+@test
+test_player_walk_stops_at_a_zombie :: fn() -> void {
+    level :: parsed(["######", "#@.Z.#", "######"])
+    player :: new_player(level)
+    player.walk(level, 2.0, 0.0)
+    assert_eq(player.x, 1.5)
+}
+
+@test
+test_player_falls_at_no_health :: fn() -> void {
+    player :: new_player(tiny())
+    noises: Noise[]: []
+    player.take_damage(FULL_HEALTH - 1, noises)
+    player.take_damage(5, noises)
+    assert_eq(player.health, 0)
+    assert(noises[0] == .PlayerHurt && noises[1] == .PlayerDies, "hurt, then dead")
 }
 
 @test

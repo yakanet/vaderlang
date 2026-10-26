@@ -1,8 +1,9 @@
 // examples/raycaster/engine/doors: doors that slide open and shut over time.
 //
 // A door slides at `DOOR_SPEED` towards the end it is headed for: fully open
-// while `opening` holds, shut otherwise. It never shuts on the player: a door
-// whose cell the player's body overlaps stays where it is until they leave.
+// while `opening` holds, shut otherwise. It never shuts on anyone: a door whose
+// cell the player's body, or a standing zombie's, overlaps stays where it is
+// until they leave.
 
 module "engine"
 
@@ -12,8 +13,15 @@ import "std/math"
 DOOR_SPEED :: 1.6
 
 /// Send `door` the other way: open it if it is shut or shutting, shut it otherwise.
-export toggle :: fn(door: Door) -> void {
+///
+/// @param noises  what the player hears, appended to.
+export toggle :: fn(door: Door, noises: Noise[]) -> void {
     door.opening = !door.opening
+    if door.opening {
+        noises.push(.DoorOpens)
+        return
+    }
+    noises.push(.DoorCloses)
 }
 
 /// Slide every door of `level` for `seconds` towards the end it is headed for.
@@ -22,16 +30,29 @@ export update_doors :: fn(level: Level, player: Player, seconds: f64) -> void {
     for door in level.doors {
         if door.opening {
             door.open = min(door.open + step, 1.0)
-        } else if !overlaps(player, door) {
+        } else if !door.is_in_the_way(level, player) {
             door.open = max(door.open - step, 0.0)
         }
     }
 }
 
-// Whether the player's body reaches into `door`'s cell.
-overlaps :: fn(player: Player, door: Door) -> bool =
-    abs(player.x - f64(door.x) - 0.5) < 0.5 + BODY_RADIUS
-    && abs(player.y - f64(door.y) - 0.5) < 0.5 + BODY_RADIUS
+// Whether the player, or a zombie still standing, reaches into `door`'s cell.
+is_in_the_way :: fn(door: Door, level: Level, player: Player) -> bool {
+    if door.reaches_into(player.x, player.y, BODY_RADIUS) {
+        return true
+    }
+    for enemy in level.enemies {
+        if enemy.is_alive() && door.reaches_into(enemy.x, enemy.y, ENEMY_RADIUS) {
+            return true
+        }
+    }
+    return false
+}
+
+// Whether a body reaching `radius` cells around `(x, y)` reaches into `door`'s
+// cell.
+reaches_into :: fn(door: Door, x: f64, y: f64, radius: f64) -> bool =
+    abs(x - f64(door.x) - 0.5) < 0.5 + radius && abs(y - f64(door.y) - 0.5) < 0.5 + radius
 
 // ---- tests ----------------------------------------------------------------
 
@@ -41,7 +62,8 @@ import "std/testing"
 test_doors_open_over_time :: fn() -> void {
     level :: tiny()
     player :: new_player(level)
-    level.doors[0].toggle()
+    noises: Noise[]: []
+    level.doors[0].toggle(noises)
     level.update_doors(player, 0.25)
     assert_eq(level.doors[0].open, 0.4)
     level.update_doors(player, 1.0)
@@ -57,4 +79,23 @@ test_doors_do_not_shut_on_the_player :: fn() -> void {
     player.y = 2.5
     level.update_doors(player, 1.0)
     assert_eq(level.doors[0].open, 1.0)
+}
+
+@test
+test_doors_do_not_shut_on_a_zombie :: fn() -> void {
+    level :: tiny()
+    player :: new_player(level)
+    level.doors[0].open = 1.0
+    level.enemies[0].y = 2.5
+    level.update_doors(player, 1.0)
+    assert_eq(level.doors[0].open, 1.0)
+}
+
+@test
+test_doors_are_heard_both_ways :: fn() -> void {
+    door :: tiny().doors[0]
+    noises: Noise[]: []
+    door.toggle(noises)
+    door.toggle(noises)
+    assert(noises[0] == .DoorOpens && noises[1] == .DoorCloses, "opening, then shutting")
 }

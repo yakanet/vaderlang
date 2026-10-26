@@ -5,8 +5,9 @@
 // They are binary PPM files under `assets/` (where each comes from is in
 // `assets/README.md`). The `@comptime` constants at the end read them during the
 // build, so the program carries the pixels as data and opens no file. The door is
-// composed there too, from a metal plate, and each sprite is set on a square
-// canvas standing on its bottom edge.
+// composed there too, from a metal plate, and so is the pistol's shot, its flash
+// drawn over the muzzle. Each sprite is set on a square canvas standing on its
+// bottom edge.
 //
 // A wall, floor or ceiling texture carries its mipmaps after it: the same picture
 // at half the size, a quarter, an eighth, each texel the average of four of the
@@ -100,10 +101,10 @@ load_texture :: fn(path: string) -> u32[] {
 // on a transparent square canvas, centred and standing on its bottom edge: a
 // sprite is drawn one cell tall, so a picture shorter than the canvas stands
 // shorter than that. One that does not fit stops the build.
-load_sprite :: fn(path: string, scale: i32) -> u32[] {
+load_sprite :: fn(path: string, scale: f64) -> u32[] {
     picture :: load_picture(path)
-    width :: picture.width * scale
-    height :: picture.height * scale
+    width :: i32(f64(picture.width) * scale)
+    height :: i32(f64(picture.height) * scale)
     if width > TEXTURE_SIZE || height > TEXTURE_SIZE {
         panic("`${path}` scaled by ${scale} is ${width}x${height}: it must fit ${TEXTURE_SIZE}")
     }
@@ -112,7 +113,7 @@ load_sprite :: fn(path: string, scale: i32) -> u32[] {
     canvas: u32[]: [TRANSPARENT] * i64(TEXTURE_SIZE * TEXTURE_SIZE)
     for y in 0..<height {
         for x in 0..<width {
-            source :: picture.pixels[i64((y / scale) * picture.width + x / scale)]
+            source :: picture.pixels[i64(i32(f64(y) / scale) * picture.width + i32(f64(x) / scale))]
             canvas[i64((top + y) * TEXTURE_SIZE + left + x)] = source
         }
     }
@@ -242,6 +243,31 @@ hazard_stripe :: fn(x: i32, y: i32) -> u32 {
     return rgb(24, 22, 20)
 }
 
+// ---- the pistol -----------------------------------------------------------
+
+// Where the flash of a shot sits on the pistol's canvas: its top row, and the
+// column it is centred on, the muzzle's. The muzzle's tip is at row 52, so the
+// lower third of the flash covers it.
+FLASH_TOP: i32: 26
+MUZZLE_COLUMN: i32: 61
+
+// The pistol `gun` (a canvas from `load_sprite`) firing: the flash in the PPM
+// file at `path` drawn over its muzzle.
+compose_shot :: fn(gun: u32[], path: string) -> u32[] {
+    flash :: load_picture(path)
+    shot :: gun.clone()
+    left :: MUZZLE_COLUMN - flash.width / 2
+    for y in 0..<flash.height {
+        for x in 0..<flash.width {
+            pixel :: flash.pixels[i64(y * flash.width + x)]
+            if is_opaque(pixel) {
+                shot[i64((FLASH_TOP + y) * TEXTURE_SIZE + left + x)] = pixel
+            }
+        }
+    }
+    return shot
+}
+
 // ---- the textures, read by the build --------------------------------------
 
 // The walls, indexed by `CellInfo.texture`, mipmapped: the door first, then one
@@ -261,13 +287,38 @@ WALL_TEXTURES: u32[][]: @comptime [
 FLOOR_TEXTURE: u32[]: @comptime load_mipmapped("../assets/textures/MetalPlates006.ppm")
 // Bare concrete overhead, mipmapped.
 CEILING_TEXTURE: u32[]: @comptime load_mipmapped("../assets/textures/Concrete031.ppm")
-// The sprites, indexed by `ThingInfo.sprite`.
+// The sprites: the things', indexed by `ThingInfo.sprite`, then the zombie's
+// (`ZOMBIE_WALK` and after, in `enemies.vader`).
 SPRITE_TEXTURES: u32[][]: @comptime [
-    load_sprite("../assets/sprites/bar1a0.ppm", 2),
-    load_sprite("../assets/sprites/col1a0.ppm", 2),
-    load_sprite("../assets/sprites/colua0.ppm", 2),
-    load_sprite("../assets/sprites/tlmpa0.ppm", 1),
-    load_sprite("../assets/sprites/tgrna0.ppm", 1),
+    load_sprite("../assets/sprites/bar1a0.ppm", 2.0),
+    load_sprite("../assets/sprites/col1a0.ppm", 2.0),
+    load_sprite("../assets/sprites/colua0.ppm", 2.0),
+    load_sprite("../assets/sprites/tlmpa0.ppm", 1.0),
+    load_sprite("../assets/sprites/tgrna0.ppm", 1.0),
+    load_sprite("../assets/sprites/possa1.ppm", ZOMBIE_SCALE),
+    load_sprite("../assets/sprites/possb1.ppm", ZOMBIE_SCALE),
+    load_sprite("../assets/sprites/possc1.ppm", ZOMBIE_SCALE),
+    load_sprite("../assets/sprites/possd1.ppm", ZOMBIE_SCALE),
+    load_sprite("../assets/sprites/posse1.ppm", ZOMBIE_SCALE),
+    load_sprite("../assets/sprites/possf1.ppm", ZOMBIE_SCALE),
+    load_sprite("../assets/sprites/possg1.ppm", ZOMBIE_SCALE),
+    load_sprite("../assets/sprites/possh0.ppm", ZOMBIE_SCALE),
+    load_sprite("../assets/sprites/possi0.ppm", ZOMBIE_SCALE),
+    load_sprite("../assets/sprites/possj0.ppm", ZOMBIE_SCALE),
+    load_sprite("../assets/sprites/possk0.ppm", ZOMBIE_SCALE),
+    load_sprite("../assets/sprites/possl0.ppm", ZOMBIE_SCALE),
+]
+
+// The zombie's pictures against a canvas one cell tall: three quarters of a
+// cell, a little taller than the eye.
+ZOMBIE_SCALE :: 1.7
+
+// The pistol: at rest, then the three pictures of its recoil (`weapon.vader`).
+WEAPON_TEXTURES: u32[][]: @comptime [
+    load_sprite("../assets/sprites/pisga0.ppm", 1.0),
+    compose_shot(load_sprite("../assets/sprites/pisgb0.ppm", 1.0), "../assets/sprites/pisfa0.ppm"),
+    load_sprite("../assets/sprites/pisgc0.ppm", 1.0),
+    load_sprite("../assets/sprites/pisgb0.ppm", 1.0),
 ]
 
 // ---- tests ----------------------------------------------------------------

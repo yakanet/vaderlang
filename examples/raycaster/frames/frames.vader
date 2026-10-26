@@ -1,10 +1,11 @@
 // examples/raycaster/frames: the raycaster without a window.
 //
 // Renders a scripted walk through the hangar, one frame per shot, and prints for
-// each a checksum of its pixels and a thumbnail in characters: the same program
-// under `vader run` and built natively must print the same thing, which makes it
-// a check that both backends draw the same frames. Given a folder, it also writes
-// each frame there as a PPM image.
+// each a checksum of its pixels and a thumbnail in characters. Then it plays a
+// fight out a step at a time, and prints what came of it. The same program under
+// `vader run` and built natively must print the same thing, which makes it a
+// check that both backends draw the same frames and play the same game. Given a
+// folder, it also writes each frame of the walk there as a PPM image.
 //
 //   vader run --entry=frames examples/raycaster
 //   vader run --entry=frames examples/raycaster /tmp/shots   # and the images
@@ -14,6 +15,7 @@ module "frames"
 import "engine"
 import "images/ppm"
 import "std/io"
+import "std/iter"
 import "std/numbers"
 import "std/path"
 import "std/string"
@@ -78,6 +80,16 @@ SHOTS: Shot[]: [
     },
 ]
 
+// The fight: the player stands two cells into the hall, facing east, where a
+// zombie sees them, comes and fires; they fire back from step `FIRE_FROM` to step
+// `FIRE_UNTIL`. `FIGHT_STEPS` steps of `FIGHT_STEP` seconds, a frame every
+// `FIGHT_FRAME` steps.
+FIGHT_STEPS: i32: 150
+FIGHT_STEP :: 1.0 / 30.0
+FIGHT_FRAME: i32: 25
+FIRE_FROM: i32: 60
+FIRE_UNTIL: i32: 90
+
 // The characters a thumbnail is drawn with, darker to brighter.
 RAMP :: " .:-=+*#%@"
 
@@ -111,7 +123,34 @@ main :: fn(argv: string[]) -> i32 {
             }
         }
     }
+    fight(lights, frame)
     return 0
+}
+
+// Play the fight out and print, every `FIGHT_FRAME` steps, the frame's checksum
+// and thumbnail; then the player's health and ammunition, each zombie's state,
+// and every noise in the order it was made.
+fight :: fn(lights: LightMap, frame: Frame) -> void {
+    level :: HANGAR
+    player :: new_player(level)
+    player.x = 12.5
+    player.y = 2.5
+    noises: Noise[]: []
+    for step in 1..=FIGHT_STEPS {
+        if step >= FIRE_FROM && step <= FIRE_UNTIL {
+            player.fire(level, noises)
+        }
+        level.update_enemies(player, FIGHT_STEP, noises)
+        player.update_player(FIGHT_STEP)
+        if step % FIGHT_FRAME == 0 {
+            render(frame, level, player, lights)
+            println("fight, step ${step}: ${checksum(frame)}")
+            println(thumbnail(frame, 48, 14))
+        }
+    }
+    println("health ${player.health}, ammo ${player.ammo}")
+    println("zombies: ${level.enemies.map(enemy -> "${enemy.state}").collect().join(" ")}")
+    println("heard: ${noises.map(noise -> "${noise}").collect().join(" ")}")
 }
 
 // The argument at `index`, or `null` when there are fewer.

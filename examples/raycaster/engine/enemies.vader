@@ -1,0 +1,288 @@
+// examples/raycaster/engine/enemies: the zombies, and what they do each frame.
+//
+// A zombie waits until it sees the player, then walks towards them, stops now and
+// then to aim and fire, flinches when hit and falls at its second bullet. Nothing
+// here draws lots: a zombie that sees the player always fires, and every shot
+// lands, so a run of the same inputs gives the same frames under `vader run` and
+// natively.
+//
+// What the player should hear comes back as `Noise`s (`noise.vader`).
+
+module "engine"
+
+import "std/iter"
+import "std/math"
+
+/// What a zombie is doing.
+@displayable
+export EnemyState :: enum {
+    /// Standing still until it sees the player.
+    Idle,
+    /// Walking towards the player.
+    Chasing,
+    /// Raising its rifle at the player.
+    Aiming,
+    /// Firing, for as long as its muzzle flashes.
+    Firing,
+    /// Flinching from a bullet.
+    Hurt,
+    /// Falling.
+    Dying,
+    /// A body on the floor: drawn, and in nobody's way.
+    Dead,
+}
+
+/// A zombie: where it stands, and how long it has been doing what it does.
+export Enemy :: struct {
+    x: f64
+    y: f64
+    health: i32 = ZOMBIE_HEALTH
+    state: EnemyState = .Idle
+    /// Seconds since it entered `state`.
+    time: f64 = 0.0
+}
+
+// The bullets a zombie takes before it falls.
+ZOMBIE_HEALTH: i32: 2
+
+// How far a zombie's body reaches around its centre, in cells: bullets within it
+// hit, and the player cannot walk into it.
+ENEMY_RADIUS :: 0.3
+
+// Walking speed, in cells per second.
+ZOMBIE_SPEED :: 1.2
+
+// How far a zombie sees, and how near it must be to fire, in cells.
+SIGHT_RANGE :: 14.0
+FIRING_RANGE :: 8.0
+
+// A chasing zombie stops this near the player.
+CLOSEST :: 1.2
+
+// How long a zombie chases before it may fire, aims, fires, and flinches, in
+// seconds.
+CHASE_TIME :: 1.4
+AIM_TIME :: 0.5
+FIRE_TIME :: 0.2
+HURT_TIME :: 0.3
+
+// The health a zombie's shot takes from the player.
+ZOMBIE_DAMAGE: i32: 6
+
+/// Move every zombie of `level` on by `seconds`: the ones that see `player`
+/// chase them, those close enough fire at them.
+///
+/// @param noises  what the player hears, appended to.
+export update_enemies :: fn(level: Level, player: Player, seconds: f64, noises: Noise[]) -> void {
+    for enemy in level.enemies {
+        enemy.time += seconds
+        match enemy.state {
+            .Idle -> {
+                if enemy.sees(player, level) {
+                    enemy.enter(.Chasing)
+                    noises.push(.EnemySees)
+                }
+            }
+            .Chasing -> { chase(enemy, level, player, seconds) }
+            .Aiming -> {
+                if enemy.time >= AIM_TIME {
+                    enemy.enter(.Firing)
+                    noises.push(.EnemyFires)
+                    if enemy.sees(player, level) {
+                        player.take_damage(ZOMBIE_DAMAGE, noises)
+                    }
+                }
+            }
+            .Firing -> {
+                if enemy.time >= FIRE_TIME {
+                    enemy.enter(.Chasing)
+                }
+            }
+            .Hurt -> {
+                if enemy.time >= HURT_TIME {
+                    enemy.enter(.Chasing)
+                }
+            }
+            .Dying -> {
+                if enemy.time >= DYING_FRAME_TIME * f64(DYING_FRAMES) {
+                    enemy.enter(.Dead)
+                }
+            }
+            .Dead -> {}
+        }
+    }
+}
+
+// Walk `enemy` towards the player for `seconds`, or start aiming once it has
+// chased long enough and the player is in range and in sight.
+chase :: fn(enemy: Enemy, level: Level, player: Player, seconds: f64) -> void {
+    distance :: sqrt(squared_distance(enemy.x, enemy.y, player.x, player.y))
+    if enemy.time >= CHASE_TIME && distance < FIRING_RANGE && enemy.sees(player, level) {
+        enemy.enter(.Aiming)
+        return
+    }
+    if distance < CLOSEST {
+        return
+    }
+    stride :: ZOMBIE_SPEED * seconds / distance
+    step_x :: (player.x - enemy.x) * stride
+    step_y :: (player.y - enemy.y) * stride
+    if level.has_room(enemy.x + step_x, enemy.y, ENEMY_RADIUS, enemy) {
+        enemy.x += step_x
+    }
+    if level.has_room(enemy.x, enemy.y + step_y, ENEMY_RADIUS, enemy) {
+        enemy.y += step_y
+    }
+}
+
+// Put `enemy` in `state`, from its start.
+enter :: fn(enemy: Enemy, state: EnemyState) -> void {
+    enemy.state = state
+    enemy.time = 0.0
+}
+
+// Whether `enemy` sees `player`: near enough, with no wall or closed door
+// between them. A zombie sees all around it.
+sees :: fn(enemy: Enemy, player: Player, level: Level) -> bool {
+    if player.health <= 0 {
+        return false
+    }
+    distance :: sqrt(squared_distance(enemy.x, enemy.y, player.x, player.y))
+    if distance > SIGHT_RANGE {
+        return false
+    }
+    toward_x :: (player.x - enemy.x) / distance
+    toward_y :: (player.y - enemy.y) / distance
+    return cast_ray(level, enemy.x, enemy.y, toward_x, toward_y).distance > distance
+}
+
+// Whether `enemy` still stands: hit, it can be hit again, and it blocks the way.
+is_alive :: fn(enemy: Enemy) -> bool =
+    enemy.state != .Dying && enemy.state != .Dead
+
+/// How many zombies of `level` still stand.
+export standing :: fn(level: Level) -> i64 = level.enemies.filter(enemy -> enemy.is_alive()).count()
+
+// `enemy` takes a bullet: it flinches, or falls when it has no health left.
+take_bullet :: fn(enemy: Enemy, noises: Noise[]) -> void {
+    enemy.health -= 1
+    if enemy.health > 0 {
+        enemy.enter(.Hurt)
+        noises.push(.EnemyHurt)
+        return
+    }
+    enemy.enter(.Dying)
+    noises.push(.EnemyDies)
+}
+
+// Whether a body reaching `radius` cells around `(x, y)` fits there: clear of
+// walls, closed doors and things, and of every zombie still standing but
+// `mover`, the one moving if it is a zombie.
+has_room :: fn(level: Level, x: f64, y: f64, radius: f64, mover: Enemy | null) -> bool =
+    level.is_free(x, y, radius) && level.clear_of_enemies(x, y, radius, mover)
+
+// Whether a body reaching `radius` cells around `(x, y)` stays clear of every
+// zombie still standing but `mover`.
+clear_of_enemies :: fn(level: Level, x: f64, y: f64, radius: f64, mover: Enemy | null) -> bool {
+    reach :: radius + ENEMY_RADIUS
+    for enemy in level.enemies {
+        if enemy === mover || !enemy.is_alive() {
+            continue
+        }
+        if squared_distance(enemy.x, enemy.y, x, y) < reach * reach {
+            return false
+        }
+    }
+    return true
+}
+
+// ---- pictures -------------------------------------------------------------
+
+// The zombie's pictures in `SPRITE_TEXTURES`, after the things': four steps of
+// its walk, aiming, firing, flinching, and five of its fall, the last one the
+// body on the floor.
+ZOMBIE_WALK: i32: 5
+WALK_FRAMES: i32: 4
+ZOMBIE_AIM: i32: 9
+ZOMBIE_FIRE: i32: 10
+ZOMBIE_HURT: i32: 11
+ZOMBIE_FALL: i32: 12
+DYING_FRAMES: i32: 5
+
+// How long each step of the walk and of the fall shows, in seconds.
+WALK_FRAME_TIME :: 0.18
+DYING_FRAME_TIME :: 0.12
+
+// The picture `enemy` shows now, in `SPRITE_TEXTURES`.
+enemy_sprite :: fn(enemy: Enemy) -> i32 = match enemy.state {
+    .Idle    -> ZOMBIE_WALK
+    .Chasing -> ZOMBIE_WALK + i32(enemy.time / WALK_FRAME_TIME) % WALK_FRAMES
+    .Aiming  -> ZOMBIE_AIM
+    .Firing  -> ZOMBIE_FIRE
+    .Hurt    -> ZOMBIE_HURT
+    .Dying   -> ZOMBIE_FALL + min(i32(enemy.time / DYING_FRAME_TIME), DYING_FRAMES - 1)
+    .Dead    -> ZOMBIE_FALL + DYING_FRAMES - 1
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// The zombie of `TINY`, in the room south of the door.
+tiny_zombie :: fn(level: Level) -> Enemy = level.enemies[0]
+
+@test
+test_enemies_wait_behind_a_closed_door :: fn() -> void {
+    level :: tiny()
+    noises: Noise[]: []
+    level.update_enemies(new_player(level), 0.1, noises)
+    assert(tiny_zombie(level).state == .Idle, "the door hides the player")
+    assert_eq(noises.len(), 0)
+}
+
+@test
+test_enemies_see_the_player_through_an_open_door :: fn() -> void {
+    level :: tiny()
+    level.doors[0].open = 1.0
+    player :: new_player(level)
+    player.x = 2.5
+    noises: Noise[]: []
+    level.update_enemies(player, 0.1, noises)
+    assert(tiny_zombie(level).state == .Chasing, "the zombie sees the player")
+    assert(noises[0] == .EnemySees, "it is heard seeing them")
+}
+
+@test
+test_enemies_fall_at_the_second_bullet :: fn() -> void {
+    zombie :: Enemy { .x = 1.5, .y = 1.5 }
+    noises: Noise[]: []
+    zombie.take_bullet(noises)
+    assert(zombie.state == .Hurt && zombie.is_alive(), "one bullet hurts")
+    zombie.take_bullet(noises)
+    assert(zombie.state == .Dying && !zombie.is_alive(), "two bullets fell it")
+}
+
+@test
+test_enemies_keep_out_of_each_other :: fn() -> void {
+    level :: parsed(["#######", "#@.ZZ.#", "#######"])
+    zombie :: level.enemies[1]
+    west :: zombie.x - 0.4
+    east :: zombie.x + 0.4
+    assert(!level.has_room(west, zombie.y, ENEMY_RADIUS, zombie), "the zombie to the west blocks")
+    assert(level.has_room(east, zombie.y, ENEMY_RADIUS, zombie), "a zombie does not block itself")
+}
+
+@test
+test_enemies_pictures_end_with_the_fall :: fn() -> void {
+    assert_eq(SPRITE_TEXTURES.len(), i64(ZOMBIE_FALL + DYING_FRAMES))
+}
+
+@test
+test_enemies_fall_into_a_body :: fn() -> void {
+    zombie :: Enemy { .x = 1.5, .y = 1.5 }
+    zombie.enter(.Dying)
+    zombie.time = 0.25
+    assert_eq(enemy_sprite(zombie), ZOMBIE_FALL + 2)
+    zombie.enter(.Dead)
+    assert_eq(enemy_sprite(zombie), ZOMBIE_FALL + DYING_FRAMES - 1)
+}

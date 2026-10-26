@@ -1,12 +1,12 @@
 // examples/raycaster/engine/level: the map, read from rows of text.
 //
 // A level is a grid of cells, one character each: walls, empty floor, doors,
-// the player's start and the things standing on the floor (`LEGEND` below). The
-// levels are text files under `assets/levels/`, read and checked when the
-// program is compiled (`load_level`): a level that does not parse stops the
-// build. Coordinates are in cells: the cell `(x, y)` covers `x..<x + 1` and
-// `y..<y + 1`, `x` growing to the east and `y` to the south, as the rows are
-// written.
+// the player's start, the things standing on the floor and the zombies where
+// they wait (`LEGEND` below). The levels are text files under `assets/levels/`,
+// read and checked when the program is compiled (`load_level`): a level that
+// does not parse stops the build. Coordinates are in cells: the cell `(x, y)`
+// covers `x..<x + 1` and `y..<y + 1`, `x` growing to the east and `y` to the
+// south, as the rows are written.
 
 module "engine"
 
@@ -81,6 +81,9 @@ export ThingKind :: enum(ThingInfo) {
     Torch       { .sprite = 4, .glow_red = 0.25, .glow_green = 0.9, .glow_blue = 0.3 },
 }
 
+// Whether a thing of `kind` sheds a light of its own.
+glows :: fn(kind: ThingKind) -> bool = kind.glow_red + kind.glow_green + kind.glow_blue > 0.0
+
 /// A sprite standing at the centre of its cell.
 export Thing :: struct {
     x: f64
@@ -88,7 +91,8 @@ export Thing :: struct {
     kind: ThingKind
 }
 
-/// A parsed level: the grid, its doors, its things and where the player starts.
+/// A parsed level: the grid, its doors, its things, its zombies and where the
+/// player starts.
 export Level :: struct {
     width: i32
     height: i32
@@ -98,6 +102,8 @@ export Level :: struct {
     /// Per cell, the index of its door in `doors`, `-1` for a cell that is not one.
     door_index: i32[]
     things: Thing[]
+    /// The zombies, each where it stands and what it is doing.
+    enemies: Enemy[]
     start_x: f64
     start_y: f64
 }
@@ -117,6 +123,7 @@ export LEGEND :: """
     g  green metal  x  red metal    c  concrete       z  corrugated steel
     D  door         .  floor        @  player start, facing east
     B  barrel       C  column       U  light column   L  lamp   T  torch
+    Z  zombie
     """
 
 // How far a thing reaches around its centre, in cells: bodies bump into it.
@@ -168,6 +175,7 @@ parse_level :: fn(rows: string[]) -> Level | LevelError {
     height :: i32(rows.len())
     cells: Cell[]: [] * i64(width * height)
     things: Thing[]: []
+    enemies: Enemy[]: []
     starts: [i32, i32][]: []
     for y in 0..<height {
         row :: rows[i64(y)]
@@ -194,6 +202,9 @@ parse_level :: fn(rows: string[]) -> Level | LevelError {
                     .kind = kind,
                 })
             }
+            if c == 'Z' {
+                enemies.push(Enemy { .x = f64(x) + 0.5, .y = f64(y) + 0.5 })
+            }
             if c == '@' {
                 starts.push([x, y])
             }
@@ -213,6 +224,7 @@ parse_level :: fn(rows: string[]) -> Level | LevelError {
         .doors = [],
         .door_index = [-1] * i64(width * height),
         .things = things,
+        .enemies = enemies,
         .start_x = f64(starts[0].0) + 0.5,
         .start_y = f64(starts[0].1) + 0.5,
     }
@@ -224,19 +236,19 @@ parse_level :: fn(rows: string[]) -> Level | LevelError {
 }
 
 // The cell a level character stands for, `null` for a character not in `LEGEND`.
-// A thing and the player's start stand on empty floor.
+// A thing, a zombie and the player's start stand on empty floor.
 cell_of :: fn(c: char) -> Cell | null = match c {
-    '#'                                     -> .Stone
-    'b'                                     -> .Brick
-    'r'                                     -> .Rust
-    's'                                     -> .Steel
-    'g'                                     -> .Green
-    'x'                                     -> .Red
-    'c'                                     -> .Concrete
-    'z'                                     -> .Corrugated
-    'D'                                     -> .Door
-    '.' | '@' | 'B' | 'C' | 'U' | 'L' | 'T' -> .Empty
-    _                                       -> null
+    '#'                                           -> .Stone
+    'b'                                           -> .Brick
+    'r'                                           -> .Rust
+    's'                                           -> .Steel
+    'g'                                           -> .Green
+    'x'                                           -> .Red
+    'c'                                           -> .Concrete
+    'z'                                           -> .Corrugated
+    'D'                                           -> .Door
+    '.' | '@' | 'B' | 'C' | 'U' | 'L' | 'T' | 'Z' -> .Empty
+    _                                             -> null
 }
 
 // The thing a level character places, `null` for one that places none.
@@ -335,14 +347,17 @@ is_free :: fn(level: Level, x: f64, y: f64, radius: f64) -> bool {
     }
     reach :: radius + THING_RADIUS
     for thing in level.things {
-        offset_x :: thing.x - x
-        offset_y :: thing.y - y
-        if offset_x * offset_x + offset_y * offset_y < reach * reach {
+        if squared_distance(thing.x, thing.y, x, y) < reach * reach {
             return false
         }
     }
     return true
 }
+
+// The square of the distance between `(x, y)` and `(other_x, other_y)`, in
+// cells: enough to compare distances.
+squared_distance :: fn(x: f64, y: f64, other_x: f64, other_y: f64) -> f64 =
+    (other_x - x) * (other_x - x) + (other_y - y) * (other_y - y)
 
 // Whether the point `(x, y)` lies on floor, or in a door open enough to pass.
 corner_free :: fn(level: Level, x: f64, y: f64) -> bool {
@@ -359,12 +374,15 @@ corner_free :: fn(level: Level, x: f64, y: f64) -> bool {
 
 import "std/testing"
 
-TINY :: ["#####", "#@.B#", "##D##", "#...#", "#####"]
+TINY :: ["#####", "#@.B#", "##D##", "#.Z.#", "#####"]
 
-tiny :: fn() -> Level {
-    level :: parse_level(TINY)
+tiny :: fn() -> Level = parsed(TINY)
+
+// The level of `rows`, which the test that writes them knows to be right.
+parsed :: fn(rows: string[]) -> Level {
+    level :: parse_level(rows)
     if level is LevelError {
-        panic("tiny level refused: ${level}")
+        panic("a test level is refused: ${level}")
     }
     return level
 }
@@ -413,6 +431,13 @@ test_level_is_free_blocks_walls_doors_and_things :: fn() -> void {
     assert(!level.is_free(2.5, 2.5, 0.2), "a closed door blocks")
     assert(!level.is_free(3.4, 1.5, 0.2), "a barrel blocks")
     assert(!level.is_free(0.5, 1.5, 0.2), "a wall blocks")
+}
+
+@test
+test_level_parse_places_a_zombie_on_empty_floor :: fn() -> void {
+    level :: tiny()
+    assert_eq(level.enemies.len(), 1)
+    assert(level.cell_at(2, 3) == .Empty, "a zombie stands on floor")
 }
 
 @test

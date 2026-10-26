@@ -1,22 +1,26 @@
-// examples/raycaster: a first-person walk through a hangar, in a window.
+// examples/raycaster: a first-person walk through a hangar full of zombies, in
+// a window.
 //
 // The engine (`engine/`) draws each frame in Vader, pixel by pixel, into a
-// buffer; raylib only opens the window, reads the keyboard and the mouse, and
-// shows the buffer, scaled up, as one texture. The level, the textures and the
-// sprites are files under `assets/`, read when the program is compiled.
+// buffer; raylib only opens the window, reads the keyboard and the mouse, plays
+// the sounds, and shows the buffer, scaled up, as one texture. The level, the
+// textures, the sprites and the sounds are files under `assets/`, read when the
+// program is compiled.
 //
 //   vader build --run --release examples/raycaster
 //
 // Keys go by position: W A S D (Z Q S D on an AZERTY keyboard), Up and Down to
-// move, the mouse, Left and Right to turn, E or Space for the door ahead, M for the
-// map, P to save the view as `raycaster.png` in the working directory, Escape to
-// leave.
+// move, the mouse, Left and Right to turn, the left button or Ctrl to fire, E or
+// Space for the door ahead, M for the map, P to save the view as `raycaster.png`
+// in the working directory, Enter to start again once fallen, Escape to leave.
 // `frames/` is the same engine without a window.
 
 module "main"
 
 import "engine"
 import "raylib"
+import "std/abort"
+import "std/io"
 
 /// The size of the frame the engine draws; the window shows it `SCALE` times larger.
 VIEW_WIDTH: i32: 640
@@ -33,16 +37,34 @@ MOUSE_TURN :: 0.0025
 /// diagonally is no faster: the square root of one half.
 DIAGONAL :: 0.70710678
 
-HELP :: "WASD Up Down: move   mouse Left Right: turn   E: door   M: map   P: screenshot   Esc: quit"
+HELP :: "WASD: move   mouse: turn   click: fire   E: door   M: map   P: screenshot   Esc: quit"
+
+/// One game: the level as it stands, and the player in it.
+Game :: struct {
+    level: Level
+    player: Player
+}
+
+/// A game from the start: the hangar as the build read it, the player at its start.
+new_game :: fn() -> Game {
+    level :: HANGAR
+    return Game { .level = level, .player = new_player(level) }
+}
 
 main :: fn() -> i32 {
     init_window(VIEW_WIDTH * SCALE, VIEW_HEIGHT * SCALE, "Vader raycaster")
+    if !is_window_ready() {
+        eprintln("raycaster: no window could be opened (raylib says why above)")
+        return 1
+    }
     defer close_window()
+    init_audio_device()
+    defer close_audio_device()
     set_target_fps(60)
     disable_cursor()
-    level :: HANGAR
-    player :: new_player(level)
-    lights :: light_map(level)
+    sounds :: load_sounds()
+    defer unload_sounds(sounds)
+    lights :: light_map(HANGAR)
     frame :: new_frame(VIEW_WIDTH, VIEW_HEIGHT)
     screen :: load_blank_texture(VIEW_WIDTH, VIEW_HEIGHT)
     defer unload_texture(screen)
@@ -58,20 +80,37 @@ main :: fn() -> i32 {
         .width = f32(VIEW_WIDTH * SCALE),
         .height = f32(VIEW_HEIGHT * SCALE),
     }
+    game := new_game()
     show_map := true
     for !window_should_close() {
         seconds :: f64(get_frame_time())
-        steer(player, level, seconds)
-        if is_key_pressed(.E) || is_key_pressed(.Space) {
-            door :: player.door_ahead(level)
-            if door != null {
-                door.toggle()
+        level :: game.level
+        player :: game.player
+        noises: Noise[]: []
+        if player.health > 0 {
+            steer(player, level, seconds)
+            if is_mouse_button_down(.Left) || is_key_down(.LeftControl) {
+                player.fire(level, noises)
             }
+            if is_key_pressed(.E) || is_key_pressed(.Space) {
+                door :: player.door_ahead(level)
+                if door != null {
+                    door.toggle(noises)
+                }
+            }
+        } else if is_key_pressed(.Enter) {
+            game = new_game()
+            continue
         }
         if is_key_pressed(.M) {
             show_map = !show_map
         }
         level.update_doors(player, seconds)
+        level.update_enemies(player, seconds, noises)
+        player.update_player(seconds)
+        for noise in noises {
+            play_sound(sound_of(sounds, noise))
+        }
         render(frame, level, player, lights)
         if show_map {
             draw_minimap(frame, level, player, 3)
@@ -80,8 +119,7 @@ main :: fn() -> i32 {
         update_texture(screen, frame.pixels)
         begin_drawing()
         draw_texture_pro(screen, source, target, Vector2 { .x = 0.0, .y = 0.0 }, 0.0, WHITE)
-        draw_fps(VIEW_WIDTH * SCALE - 90, 10)
-        draw_text(HELP, 10, VIEW_HEIGHT * SCALE - 26, 20, RAYWHITE)
+        draw_hud(level, player)
         end_drawing()
         if is_key_pressed(.P) {
             take_screenshot("raycaster.png")
@@ -109,4 +147,103 @@ steer :: fn(player: Player, level: Level, seconds: f64) -> void {
     if is_key_down(.Right) { angle += TURN_SPEED * seconds }
     if is_key_down(.Left)  { angle -= TURN_SPEED * seconds }
     player.turn(angle)
+}
+
+// The health and the bullets left, the keys, and what became of the player.
+draw_hud :: fn(level: Level, player: Player) -> void {
+    height :: VIEW_HEIGHT * SCALE
+    draw_fps(VIEW_WIDTH * SCALE - 90, 10)
+    draw_text("HEALTH ${player.health}   AMMO ${player.ammo}", 16, height - 64, 30, RAYWHITE)
+    draw_text(HELP, 16, height - 26, 20, RAYWHITE)
+    if player.health <= 0 {
+        draw_centred("YOU FELL. Enter: start again", height / 2 - 20, 40)
+    } else if level.standing() == 0 {
+        draw_centred("THE HANGAR IS CLEAR", height / 2 - 20, 40)
+    }
+}
+
+// Draw `text` centred across the window, its top at `y`.
+draw_centred :: fn(text: string, y: i32, size: i32) -> void {
+    left :: (VIEW_WIDTH * SCALE - measure_text(text, size)) / 2
+    draw_text(text, left, y, size, RAYWHITE)
+}
+
+// ---- sounds ---------------------------------------------------------------
+
+// The sounds the game plays, one per noise the engine makes. The zombies' shots
+// have a sound of their own, from the same file as the player's, so that the
+// two play over each other instead of cutting each other short.
+Sounds :: struct {
+    shot: Sound
+    enemy_sees: Sound
+    enemy_hurt: Sound
+    enemy_dies: Sound
+    enemy_fires: Sound
+    player_hurt: Sound
+    player_dies: Sound
+    door_opens: Sound
+    door_closes: Sound
+}
+
+// The sound files, from Freedoom, read by the build.
+PISTOL_WAV: u8[]: @comptime read_sound("assets/sounds/dspistol.wav")
+SIGHT_WAV: u8[]: @comptime read_sound("assets/sounds/dsposit1.wav")
+PAIN_WAV: u8[]: @comptime read_sound("assets/sounds/dspopain.wav")
+DEATH_WAV: u8[]: @comptime read_sound("assets/sounds/dspodth1.wav")
+PLAYER_PAIN_WAV: u8[]: @comptime read_sound("assets/sounds/dsplpain.wav")
+PLAYER_DEATH_WAV: u8[]: @comptime read_sound("assets/sounds/dspldeth.wav")
+DOOR_OPENS_WAV: u8[]: @comptime read_sound("assets/sounds/dsdoropn.wav")
+DOOR_CLOSES_WAV: u8[]: @comptime read_sound("assets/sounds/dsdorcls.wav")
+
+// The bytes of the sound file at `path`, relative to this source file: one that
+// is missing stops the build.
+read_sound :: fn(path: string) -> u8[] {
+    data :: read_file_bytes(path)
+    if data is IOError {
+        panic("cannot read `${path}`: ${data.message()}")
+    }
+    return data
+}
+
+// Every sound, decoded for the audio device, which must be open.
+load_sounds :: fn() -> Sounds = Sounds {
+    .shot = decode_sound(PISTOL_WAV),
+    .enemy_sees = decode_sound(SIGHT_WAV),
+    .enemy_hurt = decode_sound(PAIN_WAV),
+    .enemy_dies = decode_sound(DEATH_WAV),
+    .enemy_fires = decode_sound(PISTOL_WAV),
+    .player_hurt = decode_sound(PLAYER_PAIN_WAV),
+    .player_dies = decode_sound(PLAYER_DEATH_WAV),
+    .door_opens = decode_sound(DOOR_OPENS_WAV),
+    .door_closes = decode_sound(DOOR_CLOSES_WAV),
+}
+
+// The sound in the WAV file `data`. The files are the build's, so one that does
+// not decode is a broken build.
+decode_sound :: fn(data: u8[]) -> Sound =
+    load_sound_from_memory(".wav", data) ?? panic("a sound baked into the program does not decode")
+
+unload_sounds :: fn(sounds: Sounds) -> void {
+    unload_sound(sounds.shot)
+    unload_sound(sounds.enemy_sees)
+    unload_sound(sounds.enemy_hurt)
+    unload_sound(sounds.enemy_dies)
+    unload_sound(sounds.enemy_fires)
+    unload_sound(sounds.player_hurt)
+    unload_sound(sounds.player_dies)
+    unload_sound(sounds.door_opens)
+    unload_sound(sounds.door_closes)
+}
+
+// The sound that plays for `noise`.
+sound_of :: fn(sounds: Sounds, noise: Noise) -> Sound = match noise {
+    .Shot       -> sounds.shot
+    .EnemySees  -> sounds.enemy_sees
+    .EnemyHurt  -> sounds.enemy_hurt
+    .EnemyDies  -> sounds.enemy_dies
+    .EnemyFires -> sounds.enemy_fires
+    .PlayerHurt -> sounds.player_hurt
+    .PlayerDies -> sounds.player_dies
+    .DoorOpens  -> sounds.door_opens
+    .DoorCloses -> sounds.door_closes
 }

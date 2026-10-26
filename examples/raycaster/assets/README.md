@@ -1,8 +1,9 @@
 # Assets of the raycaster
 
-Every picture here is a binary PPM file (P6, 8 bits per sample). The engine reads
-them when the program is compiled (`engine/textures.vader`), so the program
-carries their pixels and opens no file.
+Every picture here is a binary PPM file (P6, 8 bits per sample), and every sound
+a WAV file. They are read when the program is compiled (`engine/textures.vader`
+for the pictures, `raycaster.vader` for the sounds), so the program carries them
+and opens no file.
 
 ## Textures: ambientCG, CC0
 
@@ -27,11 +28,11 @@ released under **CC0 1.0** (public domain dedication), scaled down from their
 
 ## Sprites: Freedoom, BSD licence
 
-`sprites/` holds the things standing on the floor, from
-[Freedoom](https://freedoom.github.io), under the BSD-style licence in
-`sprites/COPYING.adoc`, which applies to these five files and must travel with
-them. The file names are Freedoom's sprite names. Magenta (`#FF00FF`) marks
-where a sprite is transparent.
+`sprites/` holds the things standing on the floor, the zombie and the pistol,
+from [Freedoom](https://freedoom.github.io), under the BSD-style licence in
+`sprites/COPYING.adoc`, which applies to these files and must travel with them.
+The file names are Freedoom's sprite names. Magenta (`#FF00FF`) marks where a
+sprite is transparent.
 
 | file | used for |
 |---|---|
@@ -40,6 +41,28 @@ where a sprite is transparent.
 | `colua0.ppm` | light column (`U`) |
 | `tlmpa0.ppm` | lamp (`L`) |
 | `tgrna0.ppm` | torch (`T`) |
+| `possa1.ppm` to `possd1.ppm` | the zombie (`Z`) walking |
+| `posse1.ppm`, `possf1.ppm` | the zombie aiming, then firing |
+| `possg1.ppm` | the zombie hit |
+| `possh0.ppm` to `possl0.ppm` | the zombie falling, the last one its body |
+| `pisga0.ppm` | the pistol at rest |
+| `pisgb0.ppm`, `pisgc0.ppm` | the pistol's recoil |
+| `pisfa0.ppm` | the pistol's flash, drawn over `pisgb0.ppm` for the shot |
+
+## Sounds: Freedoom, BSD licence
+
+`sounds/` holds Freedoom's sounds, 8-bit mono WAV files, under the same licence,
+copied beside them as `sounds/COPYING.adoc`.
+
+| file | played when |
+|---|---|
+| `dspistol.wav` | the player or a zombie fires |
+| `dsposit1.wav` | a zombie sees the player |
+| `dspopain.wav` | a zombie is hit |
+| `dspodth1.wav` | a zombie falls |
+| `dsplpain.wav` | the player is hit |
+| `dspldeth.wav` | the player falls |
+| `dsdoropn.wav`, `dsdorcls.wav` | a door opens, shuts |
 
 ## Levels
 

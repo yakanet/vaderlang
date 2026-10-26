@@ -1,0 +1,31 @@
+// examples/raycaster/engine/noise: what the player hears.
+//
+// The engine plays nothing: what makes a sound appends a `Noise` to the list the
+// caller hands it, in the order things happen. The program with a window turns
+// each into a sound; `frames` prints them, which is how a run checks that both
+// backends play the same game.
+
+module "engine"
+
+/// Something the player hears.
+@displayable
+export Noise :: enum {
+    /// The player's pistol.
+    Shot,
+    /// A zombie that has just seen the player.
+    EnemySees,
+    /// A zombie hit, still standing.
+    EnemyHurt,
+    /// A zombie falling.
+    EnemyDies,
+    /// A zombie firing.
+    EnemyFires,
+    /// The player hit, still alive.
+    PlayerHurt,
+    /// The player falling.
+    PlayerDies,
+    /// A door starting to slide open.
+    DoorOpens,
+    /// A door starting to slide shut.
+    DoorCloses,
+}
