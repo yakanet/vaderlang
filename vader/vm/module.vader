@@ -184,6 +184,42 @@ test_virt_roundtrip :: fn() -> void {
     assert(exec_value(round_tripped) == 82, "round-tripped module should exec to 82")
 }
 
+// A module whose fn `os` returns what the `current_os` host answers: a host a
+// comptime evaluation may not call, since its answer depends on the machine.
+current_os_module :: fn() -> bc.BytecodeModule | null = parse_test_module("""
+    module demo
+    type 0 scalar i32
+    import 0 current_os std_target\$current_os () -> i32
+
+    fn 0 os () -> i32
+      call.import 0
+      return
+    end
+    """)
+
+@test
+test_exec_fn_value_calls_a_host_comptime_refuses :: fn() -> void {
+    module :: current_os_module() ?? return
+    state :: prepared(module) ?? return
+    result :: exec_fn_value(state, "os")
+    if result is Trap {
+        assert(false, "a plain run calls every host, got: ${result.message}")
+    }
+}
+
+@test
+test_exec_comptime_value_refuses_a_build_machine_host :: fn() -> void {
+    module :: current_os_module() ?? return
+    state :: prepared(module) ?? return
+    result :: exec_comptime_value(state, "os")
+    if result !is Trap {
+        assert(false, "a comptime run refuses `current_os`")
+        return
+    }
+    message :: result.message
+    assert(is_comptime_refusal_message(message), "a comptime refusal, got: ${message}")
+}
+
 // `module` prepared for a run, failing the test when the verifier rejects it.
 prepared :: fn(module: bc.BytecodeModule) -> VmState | null {
     state :: prepare(module)

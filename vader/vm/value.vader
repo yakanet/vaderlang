@@ -26,9 +26,9 @@ export VmResult :: Ok | Trap
 export Ok   :: struct { value: i32 }
 export Trap :: struct { message: string }
 
-/// Outcome of a value-returning entry run (`exec_fn_value`): used by the
-/// VM-backed comptime fallback, which needs the callee's full return `Value`
-/// (an array / struct / wide int), not the i32 exit code `VmResult` carries.
+/// Outcome of a value-returning entry run (`exec_fn_value`,
+/// `exec_comptime_value`): the callee's full return `Value` (an array / struct /
+/// wide int), not the i32 exit code `VmResult` carries.
 /// `Trap` is shared with `VmResult`.
 export ValueResult :: ValueOk | Trap
 export ValueOk :: struct { value: Value }

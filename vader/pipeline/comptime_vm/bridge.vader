@@ -37,7 +37,7 @@ BakeScope :: struct {
 /// typechecker-resolved `ty` rather than the runtime tag.
 ///
 /// @param ctx    the type table and the program the value is read against.
-/// @param value  the VM runtime value produced by `exec_fn_value`.
+/// @param value  the VM runtime value produced by `exec_comptime_value`.
 /// @param ty     the typechecker-resolved type of the comptime decl: drives
 ///               every scalar's `type_name` and the array element name.
 /// @param span   the comptime decl's span, attached to any failure diagnostic.

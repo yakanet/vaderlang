@@ -97,7 +97,7 @@ hosted_frame_call :: fn(
 /// @param types     the module type table: an `@extern` lending an array needs
 ///                  its element width, which only the type table spells.
 /// @param is_comptime  true when this dispatch runs inside a `@comptime`
-///                  evaluation (`exec_fn_value` path). Gates the hosts such an
+///                  evaluation (`exec_comptime_value` path). Gates the hosts such an
 ///                  evaluation may not call (`comptime_refusal`).
 /// @param id        `intrinsic_id_for(info.mangled_name)`, classified by the
 ///                  caller: `prepare` does it once per import (`VmState.import_ids`),

@@ -12,7 +12,7 @@
 //      lower → cfg → emit). A pending const is still un-baked, so `lower` inlines
 //      its RHS call `f()` at each use site, which makes the callee `f` reachable
 //      and lowered (see `lower/inline_consts.vader`);
-//   2. runs `f` via `exec_fn_value` and bridges the result `Value` into a
+//   2. runs `f` via `exec_comptime_value` and bridges the result `Value` into a
 //      `ComptimeValue` (`bridge.vader`);
 //   3. injects it into the owning module's `comptime_decls`.
 //
@@ -167,7 +167,7 @@ bake_decl :: fn(
     // so a relative path it reads names a file beside that file, wherever the
     // compiler was started.
     switched :: enter_source_folder(home, vr.span.start.file)
-    outcome :: Vm.exec_fn_value(state, mangle)
+    outcome :: Vm.exec_comptime_value(state, mangle)
     if switched {
         leave_source_folder(home)
     }
