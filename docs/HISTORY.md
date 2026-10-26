@@ -1382,5 +1382,6 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 
 ### Priority: next up
 
+- [x] **Most parser codes had no diagnostic fixture**, **closed 2026-10-26** (`fc3d04932`, noticed the same day): P1001, P1002, P1005, P1007 and P1027 got one each, the smallest program raising its code alone. P1011 and P1017 are reserved, and P1018 and P1019 come only from the parenthesised type parameter list, whose TODO entry they now follow.
 - [x] **A namespace alias behaved as module-global during materialisation**, **closed before 2026-10-26** (opened 2026-08-27, last reproduced 2026-10-02): three files of one module, two declaring `X :: import "pa"` and one `X :: import "pb"`, with a name both export and one only `pb` exports, check, run, build and test clean at `9a1bef810`, whatever the file order or entry.
 - [x] **A free value in a range slot was refused**, **closed before 2026-10-26** (part of an open entry): `if c { 1 } else { 2 }` in a slot of `0..=23` now checks and runs, as an argument and as a `= if` body too, and a branch outside the range is T3066.
