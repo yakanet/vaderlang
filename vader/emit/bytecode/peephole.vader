@@ -408,11 +408,13 @@ push_or_assign :: fn(items: Op[], sp: i64, value: Op) -> void {
 
 /// Rule 6: propagate a constant op through a single-use primitive local.
 ///
+/// ```
 /// Detects:                      Becomes:
 ///   <T>.const K                   <ops between>          // const + set both gone
 ///   local.set N                   <T>.const K            // pushed at the get site
 ///   <ops between>                 <T>.const K
 ///   local.get N
+/// ```
 ///
 /// Conditions :
 ///   - Slot N is a non-param local (params can't be eliminated).

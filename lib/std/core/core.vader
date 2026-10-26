@@ -37,10 +37,11 @@ export Equals :: trait {
 /// `a.compare(b) < 0`, so an impl provides `compare` alone and the four operators
 /// cannot disagree with it.
 ///
-/// `compare(a, b)` must return :
-///   `< 0` when `a` is strictly less than `b`,
-///   `= 0` when they're equal,
-///   `> 0` when `a` is strictly greater than `b`.
+/// `compare(a, b)` must return:
+///
+/// - `< 0` when `a` is strictly less than `b`,
+/// - `= 0` when they're equal,
+/// - `> 0` when `a` is strictly greater than `b`.
 export Comparable :: trait {
     compare :: fn(self, other: Self) -> i32
 }

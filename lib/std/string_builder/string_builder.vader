@@ -54,13 +54,14 @@ export append_char :: fn(self: StringBuilder, c: char) -> void {
 /// once, then pushed `count` times (each push shares the one interned atom).
 /// Negative or zero counts are a no-op.
 ///
-/// Examples :
-///   `sb.append_repeated(' ', level * 2)   // indentation`
-///   `sb.append_repeated('-', 40)           // divider line`
-///
 /// @param self   builder receiver.
 /// @param c      codepoint to repeat.
 /// @param count  number of copies to append (≤ 0 → no-op).
+/// @example
+///   # sb :: StringBuilder {}
+///   # level :: 2
+///   sb.append_repeated(' ', level * 2)   // indentation
+///   sb.append_repeated('-', 40)          // divider line
 export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
     s :: utf8_encode(c).bytes_to_string()
     for _ in 0..<count {

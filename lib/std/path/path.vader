@@ -250,14 +250,13 @@ export ends_with :: fn(self: Path, suffix: Path) -> bool {
 /// filesystem (no symlink resolution, no existence check). Preserves an
 /// absolute prefix when present.
 ///
-/// Examples :
-///   `"a/./b".to_path().normalize()       → "a/b"`
-///   `"a/b/..".to_path().normalize()      → "a"`
-///   `"/a/../b".to_path().normalize()     → "/b"`
-///   `"../foo".to_path().normalize()      → "../foo"` (can't escape rel root)
-///
 /// @param self  the path receiver.
 /// @return      a fresh, lexically-normalised `Path`.
+/// @example
+///   "a/./b".to_path().normalize()     // "a/b"
+///   "a/b/..".to_path().normalize()    // "a"
+///   "/a/../b".to_path().normalize()   // "/b"
+///   "../foo".to_path().normalize()    // "../foo"
 export normalize :: fn(self: Path) -> Path {
     s :: string(self)
     if s.is_empty() {

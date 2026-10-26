@@ -284,7 +284,7 @@ format_vaderdoc :: fn(raw: string) -> string {
     if errors.len() > 0 {
         parts.push("**Errors**\n" + bullets(errors))
     }
-    code :: dedent(example).trim()
+    code :: dedent(shown_example_lines(example)).trim()
     if code.byte_len() > 0 {
         parts.push("**Example**\n" + code_fence(code))
     }
@@ -317,6 +317,20 @@ bullets :: fn(items: string[]) -> string {
         out.push("- " + item)
     }
     return out.join("\n")
+}
+
+// The lines of an `@example` a reader sees : one that opens with `# ` sets the
+// example up so that it compiles, and stays hidden.
+shown_example_lines :: fn(lines: string[]) -> string[] {
+    out: string[]: []
+    for ln in lines {
+        rest :: ln.left_trim()
+        if rest == "#" || rest.starts_with("# ") {
+            continue
+        }
+        out.push(ln)
+    }
+    return out
 }
 
 // `lines` with the indentation they all share removed ; blank lines do not
@@ -435,6 +449,12 @@ test_vaderdoc_sections :: fn() -> void {
 test_vaderdoc_example_becomes_a_code_fence :: fn() -> void {
     doc :: "Add.\n@example\n  x :: add(1, 2)\n  println(x)"
     assert_eq(format_vaderdoc(doc), "Add.\n\n**Example**\n```\nx :: add(1, 2)\nprintln(x)\n```")
+}
+
+@test
+test_vaderdoc_example_hides_its_setup_lines :: fn() -> void {
+    doc :: "Add.\n@example\n  # import \"std/io\"\n  # a :: 1\n  println(a + 1)"
+    assert_eq(format_vaderdoc(doc), "Add.\n\n**Example**\n```\nprintln(a + 1)\n```")
 }
 
 @test

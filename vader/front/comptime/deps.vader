@@ -17,10 +17,10 @@ AST :: import "toolchain/ast"
 /// evaluation order, plus the diagnostics emitted for any detected
 /// cycle. Decls participating in a cycle are dropped from `order` ;
 /// callers evaluate only what's left.
-/// @field order        decls in topological order (deps before users).
-/// @field cycle_diags  one diagnostic per detected cycle.
 ComptimeOrder :: struct {
+    /// Decls in topological order (deps before users).
     order:       AST.ConstDecl[]
+    /// One diagnostic per detected cycle.
     cycle_diags: Diagnostic[]
 }
 

@@ -183,11 +183,12 @@ export to_seconds :: fn(self: Duration) -> i64 { return i64(self) / 1_000_000_00
 /// such that the integer part is non-empty and < 1000. Picks the largest
 /// unit that fits. Negative durations are formatted with a leading `-`.
 ///
-/// Examples :
-///   `nanos(500).format()`     // "500 ns"
-///   `nanos(1500).format()`    // "1 µs"             (truncated)
-///   `millis(42).format()`     // "42 ms"
-///   `seconds(-3).format()`    // "-3 s"
+/// @param self  the duration to render.
+/// @example
+///   nanos(500).format()     // "500 ns"
+///   nanos(1500).format()    // "1 µs", truncated
+///   millis(42).format()     // "42 ms"
+///   seconds(-3).format()    // "-3 s"
 export format :: fn(self: Duration) -> string {
     n :: i64(self)
     a :: abs(n)

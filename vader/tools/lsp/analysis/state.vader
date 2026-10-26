@@ -387,8 +387,8 @@ track_virt_document :: fn(self: ServerState, uri: string, text: string) -> void 
     self.virt_line_indices[uri] = new_line_index(text, self.position_encoding)
 }
 
-/// `textDocument/didOpen` handler. Params shape :
-///   { textDocument: { uri, languageId, version, text } }
+/// `textDocument/didOpen` handler. Params shape:
+/// `{ textDocument: { uri, languageId, version, text } }`.
 export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
     uri :: get_string(td, "uri")
@@ -428,8 +428,7 @@ forget_analyses :: fn(self: ServerState) -> void {
 }
 
 /// `textDocument/didChange` handler. With full-document sync the params
-/// look like :
-///   { textDocument: { uri, version }, contentChanges: [ { text } ] }
+/// look like `{ textDocument: { uri, version }, contentChanges: [ { text } ] }`.
 /// We take the first contentChange's `text` as the new source.
 export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")

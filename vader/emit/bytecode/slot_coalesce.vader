@@ -241,8 +241,10 @@ push_scope :: fn(kinds: string[], starts: i32[], sp: i64, kind: string, start_pc
 /// destination of a local-to-local move onto one physical slot. Two adjacent,
 /// same-slot patterns are provable no-ops:
 ///
-///   local.get N ; local.tee N  →  local.get N   (the tee stores self)
-///   local.get N ; local.set N  →  ε              (get pushes, set pops self)
+/// ```
+/// local.get N ; local.tee N  →  local.get N   (the tee stores self)
+/// local.get N ; local.set N  →  ε             (get pushes, set pops self)
+/// ```
 ///
 /// Without this the C backend emits `lN = lN;` (a `-Wself-assign`) and the VM
 /// runs a pointless get + self-store. Runs LAST, after `coalesce_slots`: the

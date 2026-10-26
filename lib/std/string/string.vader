@@ -97,11 +97,10 @@ StringChars implements Iterator<char> {
 /// without one. It walks `s` once, where `s[i]` walks from the start at
 /// every index.
 ///
-/// Example :
-///   `letters :: "héllo".chars()`
-///
 /// @param s  source string.
 /// @return   a `StringChars` iterator over its codepoints.
+/// @example
+///   letters :: "héllo".chars()
 export chars :: fn(s: string) -> StringChars = StringChars { .s = s }
 
 // `for c in s` desugars to `for c in s.into()` via this impl: codepoints
@@ -519,21 +518,20 @@ export trim_prefix :: fn(s: string, prefix: string) -> string {
     return s
 }
 
-/// Decode the common C-style escape sequences in `body` :
-///   `\n` → LF, `\t` → TAB, `\r` → CR, `\"` → `"`, `\\` → `\`, `\0` → NUL.
-/// A backslash at the very end of `body` is preserved verbatim. A string
-/// with no backslash is returned as it is, without a copy.
+/// Decode the common C-style escape sequences in `body`: `\n` (LF), `\t` (TAB),
+/// `\r` (CR), `\"`, `\\` and `\0` (NUL). A backslash at the very end of `body` is
+/// preserved verbatim. A string with no backslash is returned as it is, without a
+/// copy.
 ///
-/// @note Lenient. Unknown escapes (e.g. `\q`) drop the leading backslash
-///       and pass the following byte through (`"a\\qb"` → `"aqb"`).
-///       Mirrors the lexer / VM parser's behaviour ; callers that want
-///       strict-mode rejection should validate beforehand.
+/// Lenient: an unknown escape (`\q`) drops its backslash and passes the following
+/// byte through (`"a\\qb"` gives `"aqb"`), as the lexer and the VM parser do. A
+/// caller that wants unknown escapes rejected validates beforehand.
 ///
 /// @param body  the raw source bytes (without surrounding quotes).
 /// @return      the decoded string.
 /// @example
-///   `decode_escapes(r"a\nb\tc")  // "a\nb\tc" (literal LF + TAB)`
-///   `decode_escapes("plain")     // "plain"`
+///   decode_escapes(r"a\nb\tc")  // "a\nb\tc"
+///   decode_escapes("plain")     // "plain"
 export decode_escapes :: fn(body: string) -> string {
     if !body.contains("\\") { return body }
     out :: StringBuilder {}
@@ -595,14 +593,16 @@ export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement:
 /// segments. Mirrors `replace_chars_where(s, pred, ...)`: same predicate
 /// convention, same pair-with-`is_*` ergonomics. For whitespace
 /// splitting, pass `is_white_char` ; for word-boundary splitting
-/// (alphanumeric runs), pass `c => !c.is_alnum()`. Empty inputs return
+/// (alphanumeric runs), pass `c -> !c.is_alnum()`. Empty inputs return
 /// an empty array.
+///
 /// @param s     source string.
 /// @param pred  predicate over each codepoint ; truthy → separator.
 /// @return      non-empty segments (in source order).
 /// @example
-///    `"  hello\tworld  ".split_where(is_white_char) → ["hello", "world"]`
-///    `"a,b,,c".split_where(c => c == ',') → ["a", "b", "c"]`
+///   # import "std/char"
+///   "  hello\tworld  ".split_where(is_white_char)   // ["hello", "world"]
+///   "a,b,,c".split_where(c -> c == ',')             // ["a", "b", "c"]
 export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
     out: string[]: []
     sb := StringBuilder {}

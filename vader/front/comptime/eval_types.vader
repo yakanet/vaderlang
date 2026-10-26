@@ -9,15 +9,13 @@ import "vader/front/typecheck"
 import "toolchain/span"
 
 /// Context threaded through the recursive evaluator.
-/// @field typed     owning typed program: gives the resolver lookup
-///                  (`resolved.idents` / `resolved.symbols`) plus the
-///                  decl type tables.
-/// @field bindings  `Symbol.id → ComptimeValue` for already-evaluated
-///                  `@comptime` decls in the current module ; built up
-///                  as `evaluate_module_decls` walks the topo-sorted
-///                  order.
 ComptimeContext :: struct {
+    /// Owning typed program: gives the resolver lookup (`resolved.idents` /
+    /// `resolved.symbols`) plus the decl type tables.
     typed:    TypedProgram
+    /// `Symbol.id → ComptimeValue` for already-evaluated `@comptime` decls in the
+    /// current module ; built up as `evaluate_module_decls` walks the topo-sorted
+    /// order.
     bindings: MutableMap<i32, ComptimeValue>
     /// Current evaluator nesting depth. Bounds the tree-walk recursion so a
     /// cyclic / non-terminating comptime expression reports C4001 instead of
