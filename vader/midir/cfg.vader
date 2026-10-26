@@ -457,10 +457,10 @@ export InstrStructNew :: struct {
     type: Type
     /// Per-field initialiser locals, in declaration order.
     fields: LocalId[]
-    /// True when the struct value never escapes its fn and can be
-    /// stack-allocated. Set by `optimise/escape.vader` ; defaults to false (heap
-    /// alloc). Stack-alloc codegen lives in a later phase ; the flag
-    /// is informational + shows up in the dump.
+    /// True when the struct value never escapes its fn and is not carried across
+    /// a loop header. Set by `optimise/escape.vader` ; false means a heap alloc.
+    /// The bytecode `StructNew` carries it (`struct.new_stack`), and a native
+    /// build then places the struct on the C stack.
     stack: bool
 }
 
@@ -470,7 +470,9 @@ export InstrArrayNew :: struct {
     type:     Type
     length:   i32
     elements: LocalId[]
-    /// Same `stack` semantics as InstrStructNew.
+    /// Set by `optimise/escape.vader` as `InstrStructNew.stack` is, but read by no
+    /// backend: the bytecode `array.new` has no such flag, so every array stays on
+    /// the heap.
     stack: bool
 }
 

@@ -295,8 +295,7 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
       a native build. `annotate_escape` sets `stack` on `array_new` too, but the bytecode
       `ArrayNew` op has no such flag (`vader/emit/bytecode/emit.vader`), so every array
       stays on the heap, while the `$VADER_OPT_REPORT` count adds them to `stack_promoted`.
-      Either carry the flag to the C emitter or stop marking arrays (the comment on
-      `InstrStructNew.stack` in `vader/midir/cfg.vader` is stale too).
+      Either carry the flag to the C emitter or stop marking arrays.
 
 ### Bytecode emit and dumps
 
