@@ -11,6 +11,7 @@ module "vader/tools/fmt"
 import "std/string"
 import "std/string_builder"
 import "std/io"
+import "std/iter"
 import "vader/support/diagnostics"
 p :: import "toolchain/ast"
 import "toolchain/span"
@@ -2243,7 +2244,8 @@ inline_block_fits :: fn(self: Printer, b: p.BlockExpr) -> bool {
     return true
 }
 
-emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
+emit_block_expr :: fn(self: Printer, block: p.BlockExpr) -> void {
+    b :: trailing_if_as_statement(block)
     // Inline this block ? `.Expand` never, `.Inline` always, else preserve the
     // source's single-line form. Set by the enclosing stmt loop.
     //
@@ -2352,6 +2354,32 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
         self.emit_expr(trailing)
     }
     self.close_brace_after_comments(b.span)
+}
+
+// `b` with a trailing `if` that ends with no `else` moved to the end of its
+// statements. The parser makes the last expression of a block its trailing one,
+// but such an `if` is a statement and is laid out as one: a member of a
+// lookup-table chain, or a control-flow body that expands.
+trailing_if_as_statement :: fn(b: p.BlockExpr) -> p.BlockExpr {
+    tr :: b.trailing
+    if tr is p.IfExpr && has_no_final_else(tr) {
+        stmts :: b.stmts.clone()
+        stmts.push(p.ExprStmt { .span = tr.span, .expr = tr })
+        return p.BlockExpr { ...b, .stmts = stmts, .trailing = null }
+    }
+    return b
+}
+
+// Whether the chain of `else if`s of `x` ends with no `else`: it yields no value.
+has_no_final_else :: fn(x: p.IfExpr) -> bool {
+    branch :: x.else_branch
+    if branch == null {
+        return true
+    }
+    if branch is p.IfElseIf {
+        return has_no_final_else(branch.branch)
+    }
+    return false
 }
 
 emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {

@@ -156,6 +156,28 @@ test_fmt_aligns_trailing_comments_by_codepoint :: fn() -> void {
     fmt_leaves("module \"t\"\n\na :: \"été\"  // one\nb :: \"abcd\" // two\n")
 }
 
+@test
+test_fmt_keeps_a_lookup_table_ending_a_block :: fn() -> void {
+    // The last `if` of a block is laid out as a statement, although it parses as
+    // the block's trailing expression.
+    fmt_leaves("module \"t\"\n\nf :: fn(k: i32) -> i32 {\n    if k != 7 {\n        if k > 0  { return 1 }\n        if k > 10 { return 2 }\n    }\n    return 0\n}\n")
+    fmt_leaves("module \"t\"\n\nf :: fn(k: i32) -> i32 {\n    for i in 0..<k {\n        if i > 0  { return 1 }\n        if i > 10 { return 2 }\n    }\n    return 0\n}\n")
+}
+
+@test
+test_fmt_expands_a_lone_if_ending_a_block :: fn() -> void {
+    expanded :: "    if k > 0 {\n        g()\n    }\n"
+    fmt_keeps("f :: fn(k: i32) -> void {\n    g()\n    if k > 0 { g() }\n}", expanded)
+    fmt_keeps("f :: fn(k: i32) -> void {\n    if k > 0 { g() }\n}", expanded)
+    chain :: "    if k > 0 {\n        g()\n    } else if k < 0 {\n        g()\n    }\n"
+    fmt_keeps("f :: fn(k: i32) -> void {\n    g()\n    if k > 0 { g() } else if k < 0 { g() }\n}", chain)
+}
+
+@test
+test_fmt_keeps_a_conditional_value_ending_a_block :: fn() -> void {
+    fmt_leaves("module \"t\"\n\nf :: fn(k: i32) -> i32 {\n    j :: k + 1\n    if j > 0 { 1 } else { 2 }\n}\n")
+}
+
 // Formatting `source` must give it back unchanged.
 fmt_leaves :: fn(source: string) -> void {
     assert_eq(formatted(source), source)
