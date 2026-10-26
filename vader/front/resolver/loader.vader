@@ -131,10 +131,6 @@ export load_project_with_overlay :: fn(
     keep_docs: bool = false,
 ) -> LoadedProject {
     factory :: SymbolFactory {}
-    // ONE node-id factory for the whole project so AST node ids are globally
-    // unique across modules (see `parse_module_files`). Threaded into every
-    // module's parse + carried as each module's `node_id_factory`.
-    node_factory :: new_node_id_factory()
     // Windows hands the entry path with `\` separators ; the resolver keeps `/`
     // as its single internal separator (join_path, the module index, std/path
     // are all `/`-based), so normalise once at this boundary. POSIX paths are
@@ -183,7 +179,17 @@ export load_project_with_overlay :: fn(
             }
         }
         is DiscoveredModule -> {
-            bases :: roots.paths
+            ctx :: LoadState {
+                .bases = roots.paths,
+                .modules = modules,
+                .factory = factory,
+                .index = index,
+                .diags = loader_diags,
+                .overlay = overlay,
+                .node_factory = new_node_id_factory(),
+                .selected_target = effective_target,
+                .keep_docs = keep_docs,
+            }
             // Re-resolve the entry through the generic path now that the roots
             // exist. `paths[0]` is the entry's own folder rooted at its declared
             // name, so this finds the same primary, and then applies the merge
@@ -191,17 +197,16 @@ export load_project_with_overlay :: fn(
             // `seed_entry` re-implementing the rule. Falls back to the discovered
             // module if resolution somehow misses, which it cannot: `paths[0]`
             // matches by construction.
-            entry_resolved :: resolve_lazy(
-                entry_module.name, bases, index, overlay, loader_diags) ?? entry_module
+            entry_resolved :: resolve_in(ctx, entry_module.name) ?? entry_module
             queue: DiscoveredModule[]: [entry_resolved]
-            core :: resolve_lazy("std/core", bases, index, overlay, loader_diags)
+            core :: resolve_in(ctx, "std/core")
             match core {
                 is DiscoveredModule -> {
                     if core.folder != entry_module.folder { queue.push(core) }
                 }
                 _ -> {}
             }
-            drain_load_queue(queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target, keep_docs)
+            drain_load_queue(ctx, queue)
             // Force-load `std/string_builder`: the lowerer resolves
             // `StringBuilder {}` + `append`/`to_string` for `${sb}` interpolation,
             // a dependency no source import makes visible. DCE'd when unused.
@@ -210,22 +215,21 @@ export load_project_with_overlay :: fn(
             // load order (and thus symbol-id assignment) stays identical to a
             // build that never asked for it. Seeding it early strands `build_stmt`
             // in bootstrap.vader.
-            string_builder :: resolve_lazy("std/string_builder", bases, index, overlay, loader_diags)
+            string_builder :: resolve_in(ctx, "std/string_builder")
             match string_builder {
                 is DiscoveredModule -> {
                     if !has_module(modules, string_builder.folder) {
-                        sb_queue: DiscoveredModule[]: [string_builder]
-                        drain_load_queue(sb_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target, keep_docs)
+                        drain_load_queue(ctx, [string_builder])
                     }
                 }
                 _ -> {}
             }
             extra_queue: DiscoveredModule[]: []
             for seed in extra_seeds {
-                found :: resolve_lazy(seed, bases, index, overlay, loader_diags) ?? continue
+                found :: resolve_in(ctx, seed) ?? continue
                 extra_queue.push(found)
             }
-            drain_load_queue(extra_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target, keep_docs)
+            drain_load_queue(ctx, extra_queue)
             // The baked target constants (`VADER_OS` / `VADER_ARCH`), appended
             // after the natural BFS for the same order-preserving reason as
             // `std/string_builder` above. The module is VIRTUAL: generated per
@@ -238,8 +242,7 @@ export load_project_with_overlay :: fn(
             // bodies of `effective_target`: the two differ in the union view and
             // under `HostBodies`. Defaulting here rather than per entry point is
             // what makes `run` / `test` / `lint` / `dump` / the LSP consistent.
-            load_baked_target(modules, bases, index, loader_diags, overlay,
-                factory, node_factory, effective_target, bake_target, keep_docs)
+            load_baked_target(ctx, bake_target)
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = entry_module.folder, .modules = modules, .factory = factory,
@@ -383,25 +386,45 @@ export entry_namespace :: fn(name: string, folder: string) -> IncludePath {
     }
 }
 
+/// What every step of one load shares: where modules are searched, what is
+/// loaded so far, and how a file is parsed and selected. Set once the roots are
+/// known; `load_baked_target` alone derives a copy with another overlay.
+LoadState :: struct {
+    /// The roots an import is searched in (`SearchRoots.paths`).
+    bases: IncludePath[]
+    modules: MutableMap<string, LoadedModule>
+    factory: SymbolFactory
+    /// The modules found so far, by name (`resolve_lazy`'s cache).
+    index: MutableMap<string, DiscoveredModule>
+    diags: Diagnostic[]
+    overlay: MutableMap<string, string>
+    /// ONE node-id factory for the whole project (see `parse_module_files`),
+    /// carried as each module's `node_id_factory`.
+    node_factory: NodeIdFactory
+    /// The target whose `@target` bodies the load keeps, null to keep every body.
+    /// NO default: it would make "I forgot" and "I mean no target" the same
+    /// keystroke, and a load that took it would silently run with selection
+    /// DISABLED and let every `@target` body through to the type checker.
+    selected_target: Target | null
+    keep_docs: bool
+}
+
+// The module `name` resolves to from the roots of the load `ctx`.
+resolve_in :: fn(ctx: LoadState, name: string) -> DiscoveredModule | null =
+    resolve_lazy(name, ctx.bases, ctx.index, ctx.overlay, ctx.diags)
+
 // Generate and ingest the baked-constants module. Requires `std/target`, which
 // declares the enums the constants name; loads it first if the natural BFS did
 // not, so that `VADER_OS` is available to a program that never imported anything.
-load_baked_target :: fn(
-    modules: MutableMap<string, LoadedModule>, bases: IncludePath[],
-    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
-    overlay: MutableMap<string, string>, factory: SymbolFactory,
-    node_factory: NodeIdFactory, selected: Target | null, baked_for: Target,
-    keep_docs: bool,
-) -> void {
-    std_target :: resolve_lazy("std/target", bases, index, overlay, diags) ?? return
-    if !has_module(modules, std_target.folder) {
-        pre: DiscoveredModule[]: [std_target]
-        drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory, selected, keep_docs)
+load_baked_target :: fn(ctx: LoadState, baked_for: Target) -> void {
+    std_target :: resolve_in(ctx, "std/target") ?? return
+    if !has_module(ctx.modules, std_target.folder) {
+        drain_load_queue(ctx, [std_target])
     }
     // A COPY of the overlay: the baked source is this call's business, not the
     // caller's.
     with_baked :: MutableMap<string, string> {}
-    for [path, text] in overlay { with_baked[path] = text }
+    for [path, text] in ctx.overlay { with_baked[path] = text }
     with_baked[BAKED_PATH] = baked_module_source(baked_for)
     baked :: DiscoveredModule {
         .name = BAKED_MODULE,
@@ -409,45 +432,26 @@ load_baked_target :: fn(
         .files = [BAKED_PATH],
         .origin = .Toolchain,
     }
-    queue: DiscoveredModule[]: [baked]
-    drain_load_queue(queue, bases, modules, factory, index, diags, with_baked, node_factory, selected, keep_docs)
+    drain_load_queue(LoadState { ...ctx, .overlay = with_baked }, [baked])
 }
 
 // BFS-drain a work-queue of discovered modules: ingest each not-yet-loaded
 // module, then enqueue its imports. Shared by the entry BFS and the
 // `std/string_builder` force-load, so the force-load runs as a separate pass
 // without diverging from the ingestion logic.
-drain_load_queue :: fn(
-    queue: DiscoveredModule[], bases: IncludePath[],
-    modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
-    overlay: MutableMap<string, string>, node_factory: NodeIdFactory,
-    // NO default: it would make "I forgot" and "I mean no target" the same
-    // keystroke. A call site that takes it silently runs with selection
-    // DISABLED and lets every `@target` body through to the type checker.
-    target: Target | null,
-    keep_docs: bool,
-) -> void {
+drain_load_queue :: fn(ctx: LoadState, queue: DiscoveredModule[]) -> void {
     cursor: i64 = 0
     for cursor < queue.len() {
         m :: queue[cursor]
         cursor = cursor + 1
         id :: m.folder
-        if has_module(modules, id) { continue }
-        ingest_module(m, bases, modules, factory, index, diags, overlay, node_factory, target, keep_docs)
-        ingested :: modules[id]
-        match ingested {
-            is null -> {}
-            is LoadedModule -> {
-                for raw in ingested.collected.import_paths {
-                    dep :: index[raw]
-                    match dep {
-                        is DiscoveredModule -> {
-                            if !has_module(modules, dep.folder) { queue.push(dep) }
-                        }
-                        _ -> {}
-                    }
-                }
+        if has_module(ctx.modules, id) { continue }
+        ingest_module(ctx, m)
+        ingested :: ctx.modules[id] ?? continue
+        for raw in ingested.collected.import_paths {
+            dep :: ctx.index[raw] ?? continue
+            if !has_module(ctx.modules, dep.folder) {
+                queue.push(dep)
             }
         }
     }
@@ -495,30 +499,24 @@ walk_import_cycle :: fn(
 
 // Full-parse + collect one module's files. The index is header-only and records
 // the file *paths*, so the files are re-read and re-parsed here to produce the
-// SourceFile + CollectedModule downstream expects. `index` is what lets
+// SourceFile + CollectedModule downstream expects. `ctx.index` is what lets
 // `collect_files` resolve each import path and emit R2001/R2024/R2025/R2028 with
 // the right span.
-ingest_module :: fn(
-    m: DiscoveredModule, bases: IncludePath[],
-    modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
-    overlay: MutableMap<string, string>, node_factory: NodeIdFactory,
-    target: Target | null, keep_docs: bool,
-) -> void {
+ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
     if m.files.len() == 0 { return }
-    parsed :: parse_module_files(m.files, diags, overlay, node_factory, keep_docs)
+    parsed :: parse_module_files(ctx, m.files)
     if parsed.len() == 0 { return }
     // Target selection happens HERE: after parsing, before collection. Every
     // pass downstream then sees one declaration per name and needs to know
     // nothing about targets: a losing body does not reach them at all.
-    dropped_bodies :: discarded_bodies(parsed, target)
-    sources :: select_target_bodies(parsed, target, diags)
+    dropped_bodies :: discarded_bodies(parsed, ctx.selected_target)
+    sources :: select_target_bodies(parsed, ctx.selected_target, ctx.diags)
     // Pre-resolve this module's imports into the cache so `collect_files`'
     // `diagnose_import_path` finds them instead of firing a spurious R2001:
     // the failure mode that reverted the earlier lazy attempt.
-    preresolve_imports(sources, bases, index, overlay, diags)
-    collected :: collect_files(sources, m.folder, m.name, factory, index, bases, diags)
-    modules[m.folder] = LoadedModule {
+    preresolve_imports(sources, ctx.bases, ctx.index, ctx.overlay, ctx.diags)
+    collected :: collect_files(sources, m.folder, m.name, ctx.factory, ctx.index, ctx.bases, ctx.diags)
+    ctx.modules[m.folder] = LoadedModule {
         .discarded_bodies = dropped_bodies,
         .module = Module {
             .id           = m.folder,
@@ -534,7 +532,7 @@ ingest_module :: fn(
         // Same project-global factory every module's parse used (each
         // `SourceFile.id_factory` is `node_factory`) ; carried here so
         // materialised clones mint past the project-global max.
-        .node_id_factory = node_factory,
+        .node_id_factory = ctx.node_factory,
     }
 }
 
@@ -552,10 +550,7 @@ read_with_overlay :: fn(overlay: MutableMap<string, string>, path: string) -> st
     return ""
 }
 
-parse_module_files :: fn(
-    paths: string[], diags: Diagnostic[], overlay: MutableMap<string, string>,
-    node_factory: NodeIdFactory, keep_docs: bool,
-) -> SourceFile[] {
+parse_module_files :: fn(ctx: LoadState, paths: string[]) -> SourceFile[] {
     // ONE factory threaded across the WHOLE project, so AST node ids are
     // globally unique, not just module-unique. Per-module factories (each
     // restarting at 1) overlapped, and the side-tables keyed by raw node id
@@ -567,17 +562,17 @@ parse_module_files :: fn(
     // globally-unique Symbol ids).
     out: SourceFile[]: []
     for path in paths {
-        content :: read_with_overlay(overlay, path)
+        content :: read_with_overlay(ctx.overlay, path)
         if content == "" { continue }
-        parsed :: parse_file(content, path, keep_docs)
-        for e in parsed.errors { diags.push(e) }
+        parsed :: parse_file(content, path, ctx.keep_docs)
+        for e in parsed.errors { ctx.diags.push(e) }
         program :: with_displayable_impls(parsed.program)
-        assign_program_ids(program, node_factory)
+        assign_program_ids(program, ctx.node_factory)
         out.push(SourceFile {
             .path       = path,
             .content    = content,
             .program    = program,
-            .id_factory = node_factory,
+            .id_factory = ctx.node_factory,
         })
     }
     return out
