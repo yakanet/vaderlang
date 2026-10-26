@@ -229,14 +229,14 @@ write :: fn(out: Stream, msg: string) -> void {
 /// Write `msg` to stdout without a trailing newline. Accepts any type
 /// implementing `Display`: the wrapper renders it via `to_string`
 /// before handing the string to the host.
-export print :: fn<T: Display>(msg: T) = write(.Stdout, msg.to_string())
+export print :: fn<T: Display>(msg: T) -> void = write(.Stdout, msg.to_string())
 
 /// Write `msg` to stdout followed by a `\n`. See `print` for the
 /// Display routing rule.
 export println :: fn<T: Display>(msg: T) -> void = write(.Stdout, "${msg}\n")
 
 /// Write `msg` to stderr without a trailing newline.
-export eprint :: fn<T: Display>(msg: T) = write(.Stderr, msg.to_string())
+export eprint :: fn<T: Display>(msg: T) -> void = write(.Stderr, msg.to_string())
 
 /// Write `msg` to stderr followed by a `\n`.
 export eprintln :: fn<T: Display>(msg: T) -> void = write(.Stderr, "${msg}\n")

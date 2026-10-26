@@ -263,6 +263,7 @@ export WarningCode :: enum(CodeInfo) {
     UnreachableMatchArm         { .id = "W0014", .message = "match arm can never be taken, since an earlier arm already covers it" },
     MutableNeverReassigned      { .id = "W0015", .message = "local is declared mutable but never reassigned (declare it with `::`)" },
     NeedlessEnumTypePrefix      { .id = "W0016", .message = "the enum name adds nothing here, since the slot already pins it and the bare variant reads the same" },
+    InferredExportReturnType    { .id = "W0017", .message = "exported function leaves its return type to inference" },
     WriteToUnreadCopy           { .id = "W0019", .message = "a write into a copy nothing reads" },
 }
 

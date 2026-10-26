@@ -118,3 +118,10 @@
     struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
     struct system.windows.SmallRect  // system_windows$SmallRect
     struct system.windows.StartupInfo  // system_windows$StartupInfo
+
+# Diagnostics
+[9:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
+[11:8] warning[W0017] exported function leaves its return type to inference: write `-> f64`
+[15:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
+[16:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
+[19:8] warning[W0017] exported function leaves its return type to inference: write `-> T`

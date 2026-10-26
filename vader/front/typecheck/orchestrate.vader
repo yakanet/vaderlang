@@ -2151,6 +2151,30 @@ lookup_external_type :: fn(
     return typed.resolved.alias_types[st.symbol.id]
 }
 
+// W0017: an exported function whose expression body decides its return type,
+// which then follows every edit of the body. Allocates nothing, unlike the warning
+// it gates, which runs on a hit only.
+leaves_export_return_to_inference :: fn(fd: AST.FnDecl) -> bool =
+    fd.visibility == .Public && needs_return_inference(fd) && !fd.comptime_synthetic
+
+// Warn about `fd`, naming the type to write. A `never` return has no spelling to
+// write (a `@no_return` function), and an unresolved one already draws T3034.
+warn_inferred_export_return :: fn(
+    fd: AST.FnDecl,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    fn_type :: declared_type_at(typed, fd.name_span)
+    if fn_type !is FnType {
+        return
+    }
+    ret :: fn_type.return_type
+    if ret !is UnresolvedType && ret !is NeverType {
+        detail :: "write `-> ${display_type(ret)}`"
+        diags.push(warning(.InferredExportReturnType, fd.name_span, detail))
+    }
+}
+
 /// How `walk_bodies` treats fn bodies that don't need return inference.
 WalkMode :: enum(u8) {
     /// Type-check every body: populate `expr_types`, materialise stdlib fns.
@@ -2191,6 +2215,9 @@ walk_bodies :: fn(
         match decl {
             is AST.FnDecl        -> {
                 walk_fn_body(decl, typed, diags, mode)
+                if mode == .Full && leaves_export_return_to_inference(decl) {
+                    warn_inferred_export_return(decl, typed, diags)
+                }
             }
             is AST.ConstDecl     -> {
                 settle_with_reads(decl, typed)

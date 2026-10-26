@@ -111,62 +111,62 @@ paint :: fn(code: string, s: string) -> string {
 /// Wrap `s` in an arbitrary SGR sequence `code` (e.g. "1;31") when coloring is
 /// enabled, else return `s` unchanged. Escape hatch for combinations the named
 /// helpers don't cover; prefer the named helpers for the common cases.
-export sgr :: fn(code: string, s: string) = paint(code, s)
+export sgr :: fn(code: string, s: string) -> string = paint(code, s)
 
 // ---- styles ---------------------------------------------------------------
 
 /// Reset all SGR attributes (SGR 0) when coloring is enabled, else "". Useful
 /// when composing sequences by hand.
-export reset :: fn() = escape(should_colorize(), "0")
+export reset :: fn() -> string = escape(should_colorize(), "0")
 /// Bold (SGR 1): emphasis, e.g. diagnostic codes.
-export bold :: fn(s: string) = paint("1", s)
+export bold :: fn(s: string) -> string = paint("1", s)
 /// Dim / faint (SGR 2). Renders on modern terminals; a no-op on consoles that
 /// don't support it (never raw escapes).
-export dim :: fn(s: string) = paint("2", s)
+export dim :: fn(s: string) -> string = paint("2", s)
 /// Italic (SGR 3). As `dim`, degrades to a no-op where unsupported.
-export italic :: fn(s: string) = paint("3", s)
+export italic :: fn(s: string) -> string = paint("3", s)
 /// Underline (SGR 4).
-export underline :: fn(s: string) = paint("4", s)
+export underline :: fn(s: string) -> string = paint("4", s)
 /// Reverse video: swap foreground and background (SGR 7).
-export reverse :: fn(s: string) = paint("7", s)
+export reverse :: fn(s: string) -> string = paint("7", s)
 
 // ---- foreground colors (normal, SGR 30–37) --------------------------------
 
 /// Black foreground (SGR 30).
-export black :: fn(s: string) = paint("30", s)
+export black :: fn(s: string) -> string = paint("30", s)
 /// Red foreground (SGR 31): errors / failures.
-export red :: fn(s: string) = paint("31", s)
+export red :: fn(s: string) -> string = paint("31", s)
 /// Green foreground (SGR 32): successes.
-export green :: fn(s: string) = paint("32", s)
+export green :: fn(s: string) -> string = paint("32", s)
 /// Yellow foreground (SGR 33): warnings (the ANSI stand-in for orange).
-export yellow :: fn(s: string) = paint("33", s)
+export yellow :: fn(s: string) -> string = paint("33", s)
 /// Blue foreground (SGR 34).
-export blue :: fn(s: string) = paint("34", s)
+export blue :: fn(s: string) -> string = paint("34", s)
 /// Magenta foreground (SGR 35).
-export magenta :: fn(s: string) = paint("35", s)
+export magenta :: fn(s: string) -> string = paint("35", s)
 /// Cyan foreground (SGR 36).
-export cyan :: fn(s: string) = paint("36", s)
+export cyan :: fn(s: string) -> string = paint("36", s)
 /// White foreground (SGR 37).
-export white :: fn(s: string) = paint("37", s)
+export white :: fn(s: string) -> string = paint("37", s)
 
 // ---- foreground colors (bright, SGR 90–97) --------------------------------
 
 /// Bright black / gray foreground (SGR 90).
-export gray :: fn(s: string) = paint("90", s)
+export gray :: fn(s: string) -> string = paint("90", s)
 /// Bright red foreground (SGR 91).
-export bright_red :: fn(s: string) = paint("91", s)
+export bright_red :: fn(s: string) -> string = paint("91", s)
 /// Bright green foreground (SGR 92).
-export bright_green :: fn(s: string) = paint("92", s)
+export bright_green :: fn(s: string) -> string = paint("92", s)
 /// Bright yellow foreground (SGR 93).
-export bright_yellow :: fn(s: string) = paint("93", s)
+export bright_yellow :: fn(s: string) -> string = paint("93", s)
 /// Bright blue foreground (SGR 94).
-export bright_blue :: fn(s: string) = paint("94", s)
+export bright_blue :: fn(s: string) -> string = paint("94", s)
 /// Bright magenta foreground (SGR 95).
-export bright_magenta :: fn(s: string) = paint("95", s)
+export bright_magenta :: fn(s: string) -> string = paint("95", s)
 /// Bright cyan foreground (SGR 96).
-export bright_cyan :: fn(s: string) = paint("96", s)
+export bright_cyan :: fn(s: string) -> string = paint("96", s)
 /// Bright white foreground (SGR 97).
-export bright_white :: fn(s: string) = paint("97", s)
+export bright_white :: fn(s: string) -> string = paint("97", s)
 
 // ---- tests ----------------------------------------------------------------
 

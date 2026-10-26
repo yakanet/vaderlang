@@ -398,7 +398,7 @@ export struct_c_name :: fn(name: string) -> string {
 /// identifier, and the prefix keeps it off the C keywords.
 ///
 /// @param name  the source-level field name.
-export field_c_name :: fn(name: string) = "f_${name}"
+export field_c_name :: fn(name: string) -> string = "f_${name}"
 
 // ---- tests ----------------------------------------------------------------
 

@@ -9,19 +9,19 @@ module "std/char"
 
 /// True for ASCII whitespace: space, tab, newline, carriage return.
 /// @param c  the codepoint to test.
-export is_white_char :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c == '\r'
+export is_white_char :: fn(c: char) -> bool = c == ' ' || c == '\t' || c == '\n' || c == '\r'
 
 /// True for an ASCII decimal digit `'0'`–`'9'`.
 /// @param c  the codepoint to test.
-export is_digit :: fn(c: char) = c in '0'..='9'
+export is_digit :: fn(c: char) -> bool = c in '0'..='9'
 
 /// True for an ASCII letter `'a'`–`'z'` or `'A'`–`'Z'`.
 /// @param c  the codepoint to test.
-export is_alpha :: fn(c: char) = c in 'a'..='z' || c in 'A'..='Z'
+export is_alpha :: fn(c: char) -> bool = c in 'a'..='z' || c in 'A'..='Z'
 
 /// True for an ASCII letter or digit (`is_alpha` or `is_digit`).
 /// @param c  the codepoint to test.
-export is_alnum :: fn(c: char) = c.is_alpha() || c.is_digit()
+export is_alnum :: fn(c: char) -> bool = c.is_alpha() || c.is_digit()
 
 // ---- tests ----------------------------------------------------------------
 

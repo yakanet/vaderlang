@@ -346,7 +346,7 @@ export InstrFnAddr :: struct {
 ///
 /// @param trait_name  the trait's `trait_key`.
 /// @param method      the method's name.
-export vtable_key :: fn(trait_name: string, method: string) = "${trait_name}.${method}"
+export vtable_key :: fn(trait_name: string, method: string) -> string = "${trait_name}.${method}"
 
 /// Trait-method virtual dispatch. Lowers to bytecode `virtual.call`.
 export InstrVirtualCall :: struct {

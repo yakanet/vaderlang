@@ -826,7 +826,12 @@ export INTRINSIC_ARRAY_CLEAR :: "array.clear"
 /// @param count   how many times.
 /// @param type    the resulting array type.
 /// @param span    the source construct.
-export mk_array_repeat :: fn(source: LoweredExpr, count: LoweredExpr, type: Type, span: Span) =
+export mk_array_repeat :: fn(
+    source: LoweredExpr,
+    count: LoweredExpr,
+    type: Type,
+    span: Span,
+) -> LoweredIntrinsicCall =
     LoweredIntrinsicCall {
         .span = span,
         .type = type,
@@ -933,7 +938,7 @@ export fn_symbol_of :: fn(d: LoweredFnDecl) -> Symbol =
 /// @param id    from `next_project_synthetic_id`, or 0 where only the name is read.
 /// @param kind  what it names.
 /// @param name  its name, the mangle of what it names.
-export synthetic_symbol :: fn(id: i32, kind: SymbolKind, name: string) = Symbol {
+export synthetic_symbol :: fn(id: i32, kind: SymbolKind, name: string) -> Symbol = Symbol {
     .id = id,
     .kind = kind,
     .name = name,

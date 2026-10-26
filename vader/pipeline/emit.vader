@@ -36,7 +36,7 @@ export runtime_or_probe :: fn(runtime_root: string) -> string {
 ///
 /// Beside the executable first (the `dist/` bundle layout), then the invocation
 /// directory: the same sidecar probe the stdlib resolution uses.
-export runtime_c_root :: fn() = resolve_sidecar("runtime/c", "vader.h")
+export runtime_c_root :: fn() -> string = resolve_sidecar("runtime/c", "vader.h")
 /// The flags every C compile of emitted code takes, by build mode.
 ///
 /// Release adds `-falign-functions=64`, measured as worth it on this codebase;

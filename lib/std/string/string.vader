@@ -291,7 +291,7 @@ export replace :: fn(s: string, old: string, new: string) -> string {
 /// @param old  literal substring to replace.
 /// @param new  replacement for each match.
 /// @return     `s` with every `old` replaced by `new`.
-export replace_all :: fn(s: string, old: string, new: string) = s.split(old).join(new)
+export replace_all :: fn(s: string, old: string, new: string) -> string = s.split(old).join(new)
 
 /// Concatenate `n` copies of `s` ; `n == 0` yields the empty string.
 /// @param s  the fragment to repeat.
@@ -308,7 +308,7 @@ export repeat :: fn(s: string, n: i64) -> string {
 /// @param s  string to search.
 /// @param c  codepoint to look for.
 /// @return   whether `c` appears in `s`.
-export contains_char :: fn(s: string, c: char) = s.index_of(c, 0) >= 0
+export contains_char :: fn(s: string, c: char) -> bool = s.index_of(c, 0) >= 0
 
 /// Strip leading and trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`,
 /// `'\r'`). Unicode whitespace is not recognised in MVP.

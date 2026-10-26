@@ -48,7 +48,12 @@ export any_error_diag :: fn(diags: Diagnostic[]) -> bool {
 /// normally reach for one of the typed `*_error` / `*_warning` shortcuts
 /// below ; `new_diagnostic` is exposed for the rare emitter that knows
 /// its `CodeInfo` ahead of time (snapshot loaders, JSON re-import).
-export new_diagnostic :: fn(severity: Severity, code: CodeInfo, primary: Span, detail: string) =
+export new_diagnostic :: fn(
+    severity: Severity,
+    code: CodeInfo,
+    primary: Span,
+    detail: string,
+) -> Diagnostic =
     Diagnostic { .severity = severity, .code = code, .detail = detail, .primary = primary }
 
 // One typed shortcut per phase: `<phase>_<severity>(.VariantName, span, detail)`.
@@ -56,25 +61,25 @@ export new_diagnostic :: fn(severity: Severity, code: CodeInfo, primary: Span, d
 // (callers exist today only for `error` ; `warning` / `info` / `hint` join
 // when the first call site needs them: no point shipping dead helpers).
 
-export lexer_error :: fn(code: LexerCode, primary: Span, detail: string) =
+export lexer_error :: fn(code: LexerCode, primary: Span, detail: string) -> Diagnostic =
     new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
-export parser_error :: fn(code: ParserCode, primary: Span, detail: string) =
+export parser_error :: fn(code: ParserCode, primary: Span, detail: string) -> Diagnostic =
     new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
-export typecheck_error :: fn(code: TypecheckCode, primary: Span, detail: string) =
+export typecheck_error :: fn(code: TypecheckCode, primary: Span, detail: string) -> Diagnostic =
     new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
-export resolver_error :: fn(code: ResolverCode, primary: Span, detail: string) =
+export resolver_error :: fn(code: ResolverCode, primary: Span, detail: string) -> Diagnostic =
     new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
-export comptime_error :: fn(code: ComptimeCode, primary: Span, detail: string) =
+export comptime_error :: fn(code: ComptimeCode, primary: Span, detail: string) -> Diagnostic =
     new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
-export lower_error :: fn(code: LowerCode, primary: Span, detail: string) =
+export lower_error :: fn(code: LowerCode, primary: Span, detail: string) -> Diagnostic =
     new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
-export hook_error :: fn(code: HookCode, primary: Span, detail: string) =
+export hook_error :: fn(code: HookCode, primary: Span, detail: string) -> Diagnostic =
     new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
 /// The detail of a name several wildcard-imported modules export, the bare use of
@@ -89,8 +94,8 @@ export wildcard_clash_detail :: fn(name: string, modules: string[]) -> string {
     return "${exporters} ; ${via} or drop one with `{ ${name} as _ }`"
 }
 
-export internal_error :: fn(code: InternalCode, primary: Span, detail: string) =
+export internal_error :: fn(code: InternalCode, primary: Span, detail: string) -> Diagnostic =
     new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
-export warning :: fn(code: WarningCode, primary: Span, detail: string) =
+export warning :: fn(code: WarningCode, primary: Span, detail: string) -> Diagnostic =
     new_diagnostic(.Warning, CodeInfo(code), primary, detail)

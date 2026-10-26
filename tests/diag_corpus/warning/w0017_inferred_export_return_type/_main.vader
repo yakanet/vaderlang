@@ -1,0 +1,32 @@
+// W0017: an exported function that leaves its return type to inference.
+//
+// Its public type would then change with its body. Only an expression body can
+// leave the type out, and only an `export` is public, so a private helper, a
+// written `->`, a block body and a `@no_return` function stay quiet.
+
+module "snippet"
+
+import "std/abort"
+import "std/io"
+
+// Exported, expression body, no `->`: warns, naming the type to write.
+export double :: fn(x: i32) = x * 2
+
+// The type written: quiet.
+export triple :: fn(x: i32) -> i32 = x * 3
+
+// Private: quiet.
+halve :: fn(x: i32) = x / 2
+
+// `@no_return` fixes the type itself: quiet.
+@no_return export give_up :: fn(msg: string) = panic(msg)
+
+// A block body without `->` returns nothing: quiet.
+export greet :: fn(name: string) {
+    println("hello ${name}")
+}
+
+main :: fn() -> i32 {
+    greet("w")
+    return double(1) + triple(1) + halve(4) - 5
+}

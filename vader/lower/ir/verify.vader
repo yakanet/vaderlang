@@ -134,7 +134,7 @@ export verify_captured_cells :: fn(
 ///
 /// @param captured  symbol ids of the bindings that live in a cell.
 /// @param s         the binding.
-export binds_bare_capture :: fn(captured: MutableSet<i32>, s: LoweredLet) =
+export binds_bare_capture :: fn(captured: MutableSet<i32>, s: LoweredLet) -> bool =
     s.symbol.id in captured && !(s.value is LoweredCellNew)
 
 /// The `I7011` for a binding that holds its bare value where a closure reads it
@@ -142,7 +142,7 @@ export binds_bare_capture :: fn(captured: MutableSet<i32>, s: LoweredLet) =
 ///
 /// @param s      the binding.
 /// @param owner  the mangle of the function holding it.
-export bare_capture_error :: fn(s: LoweredLet, owner: string) = internal_error(
+export bare_capture_error :: fn(s: LoweredLet, owner: string) -> Diagnostic = internal_error(
     .CapturedBindingNotInCell, s.span,
     "`${s.name}` in `${owner}` holds its bare value, but a closure reads it through a cell",
 )

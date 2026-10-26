@@ -631,7 +631,7 @@ truncate_to :: fn(arr: Inst[], n: i64) = extract_range(arr, 0, n)
 
 /// True iff `input` is matched by `pattern` from offset 0 to its end
 /// (anchored on both sides).
-export matches :: fn(self: Pattern, input: string) = run_vm(self, input, 0, true) != null
+export matches :: fn(self: Pattern, input: string) -> bool = run_vm(self, input, 0, true) != null
 
 /// Find the first match anywhere in `input` (leftmost). Returns `null`
 /// when there's no match.

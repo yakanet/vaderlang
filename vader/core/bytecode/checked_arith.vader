@@ -49,13 +49,13 @@ export checked_neg :: fn(kind: ValType, a: i64) -> i64 | null {
 ///
 /// @param kind  the op's integer class.
 /// @param op    the operation.
-export checked_overflow_message :: fn(kind: ValType, op: CheckedOp) =
+export checked_overflow_message :: fn(kind: ValType, op: CheckedOp) -> string =
     "${val_type_name(kind)}.${checked_op_name(op)} overflow"
 
 /// The message a `CheckedNeg` stops the run with: `i8.neg overflow`.
 ///
 /// @param kind  the op's integer class.
-export checked_neg_message :: fn(kind: ValType) = "${val_type_name(kind)}.neg overflow"
+export checked_neg_message :: fn(kind: ValType) -> string = "${val_type_name(kind)}.neg overflow"
 
 /// The operation's name in the op's text form and its trap message: `add`.
 ///

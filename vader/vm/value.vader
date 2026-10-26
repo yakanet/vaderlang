@@ -101,7 +101,8 @@ export find_string_array_type_id :: fn(types: bc.BcType[]) -> i32 {
 /// Host io arms stamp their error values with it so `is IOError` narrows
 /// and `Error.message` dispatches ; `-1` (io never imported) falls back
 /// to the legacy tag-only `ErrorVal`.
-export find_io_error_type_id :: fn(types: bc.BcType[]) = bc.struct_type_index(types, bc.MANGLED_IO_ERROR)
+export find_io_error_type_id :: fn(types: bc.BcType[]) -> i32 =
+    bc.struct_type_index(types, bc.MANGLED_IO_ERROR)
 
 /// Locate the module's `u8[]` `ArrayType` index: the tag a host-produced
 /// `bytes()` array must carry so `is u8[]` narrows. Sibling of
@@ -136,7 +137,7 @@ export find_u8_array_type_id :: fn(types: bc.BcType[]) -> i32 {
 /// @return   `"i32"` / `"i64"` / `"f64"` / `"string"` / `"struct"` / `"array"`
 ///           / `"fn"` / `"null"` / `"bool"` / `"char"` / `"error"` / `"type"`
 ///           / `"object"`.
-export describe_value_tag :: fn(v: Value) = match v {
+export describe_value_tag :: fn(v: Value) -> string = match v {
     is I32Val     -> "i32"
     is I64Val     -> "i64"
     is F64Val     -> "f64"

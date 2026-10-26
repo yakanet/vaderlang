@@ -94,7 +94,7 @@ append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
 // Public so the
 // parser's `describe_token` can reuse it (folder-modules ignore `private`
 // across files but the explicit visibility documents intent).
-export kind_name :: fn(k: TokenKind) = match k {
+export kind_name :: fn(k: TokenKind) -> string = match k {
     .Ident       -> "ident"
     .IntLit      -> "int_literal"
     .FloatLit    -> "float_literal"

@@ -1993,3 +1993,10 @@ fn 34 std_io$println__string (string) -> void
   call 32   ; std_io$write
   return
 end
+
+# Diagnostics
+[9:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
+[11:8] warning[W0017] exported function leaves its return type to inference: write `-> f64`
+[15:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
+[16:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
+[19:8] warning[W0017] exported function leaves its return type to inference: write `-> T`

@@ -91,7 +91,7 @@ export empty_file_span :: fn(file: string) -> Span {
     return Span { .start = p, .end = p }
 }
 
-export make_token :: fn(kind: TokenKind, text: string, span: Span) = Token {
+export make_token :: fn(kind: TokenKind, text: string, span: Span) -> Token = Token {
     .kind = kind,
     .text = text,
     .span = span,

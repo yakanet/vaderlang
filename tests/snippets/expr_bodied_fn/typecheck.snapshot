@@ -58,3 +58,10 @@
   expr 9:31     BinaryExpr     :: i32
   expr 9:31     IdentExpr      :: i32
   expr 9:35     IdentExpr      :: i32
+
+# Diagnostics
+[9:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
+[11:8] warning[W0017] exported function leaves its return type to inference: write `-> f64`
+[15:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
+[16:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
+[19:8] warning[W0017] exported function leaves its return type to inference: write `-> T`
