@@ -294,7 +294,8 @@ SPRITE_TEXTURES: u32[][]: @comptime sprite_textures()
 // The sprites in the order `SPRITE_TEXTURES` keeps them: the things, each step
 // of the zombie's walk seen from its `ROTATIONS` sides (Freedoom's rotations 1
 // to 8, the first facing the eye), then its aim, its shot and its flinch, seen
-// from the front, and its fall, the same from every side.
+// from the front, and its fall, the same from every side; then the effects'
+// pictures, each in the order it shows them.
 sprite_textures :: fn() -> u32[][] {
     sprites: u32[][]: [
         load_sprite("../assets/sprites/bar1a0.ppm", 2.0),
@@ -313,6 +314,9 @@ sprite_textures :: fn() -> u32[][] {
     }
     for picture in ["e1", "f1", "g1", "h0", "i0", "j0", "k0", "l0"] {
         sprites.push(load_sprite("../assets/sprites/poss${picture}.ppm", ZOMBIE_SCALE))
+    }
+    for picture in ["bludc0", "bludb0", "bluda0", "puffa0", "puffb0", "puffc0", "puffd0"] {
+        sprites.push(load_sprite("../assets/sprites/${picture}.ppm", 2.0))
     }
     return sprites
 }

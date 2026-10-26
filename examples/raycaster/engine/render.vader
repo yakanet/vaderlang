@@ -263,7 +263,8 @@ side_dimming :: fn(faces_east_west: bool) -> f64 {
 
 // ---- sprites --------------------------------------------------------------
 
-// A picture standing on the floor this frame: a thing, or a zombie.
+// A picture standing this frame: a thing or a zombie on the floor, or an effect
+// in the air.
 Billboard :: struct {
     x: f64
     y: f64
@@ -271,12 +272,14 @@ Billboard :: struct {
     sprite: i32
     // Whether it lights itself, whatever the light around it.
     glows: bool
+    // How far above the floor its canvas stands, in cells.
+    elevation: f64 = 0.0
 }
 
-// The things and the zombies of `level`, as pictures to draw for `player` to
-// see. A zombie firing is lit by its own flash.
+// The things, the zombies and the effects of `level`, as pictures to draw for
+// `player` to see. A zombie firing is lit by its own flash.
 billboards :: fn(level: Level, player: Player) -> Billboard[] {
-    out: Billboard[]: [] * (level.things.len() + level.enemies.len())
+    out: Billboard[]: [] * (level.things.len() + level.enemies.len() + level.effects.len())
     for thing in level.things {
         if thing.taken {
             continue
@@ -294,6 +297,15 @@ billboards :: fn(level: Level, player: Player) -> Billboard[] {
             .y = enemy.y,
             .sprite = enemy_sprite(enemy, player.x, player.y),
             .glows = enemy.state == .Firing,
+        })
+    }
+    for effect in level.effects {
+        out.push(Billboard {
+            .x = effect.x,
+            .y = effect.y,
+            .sprite = effect_sprite(effect),
+            .glows = effect.effect_glows(),
+            .elevation = EYE_HEIGHT - EFFECT_DROP,
         })
     }
     return out
@@ -320,16 +332,24 @@ draw_billboards :: fn(
         }
         centre :: i32(f64(frame.width) / 2.0 * (1.0 + across / depth))
         light :: billboard_light(lights, picture, depth)
-        draw_sprite(frame, centre, depth, light, SPRITE_TEXTURES[i64(picture.sprite)])
+        texture :: SPRITE_TEXTURES[i64(picture.sprite)]
+        draw_sprite(frame, centre, depth, picture.elevation, light, texture)
     }
 }
 
-// Draw `texture`, lit by `light`, as a thing one cell tall standing on the floor
-// `depth` away, centred on column `centre`: only in the columns where it is
-// nearer than the wall.
-draw_sprite :: fn(frame: Frame, centre: i32, depth: f64, light: u32, texture: u32[]) -> void {
+// Draw `texture`, lit by `light`, as a canvas one cell tall standing `elevation`
+// cells above the floor `depth` away, centred on column `centre`: only in the
+// columns where it is nearer than the wall.
+draw_sprite :: fn(
+    frame: Frame,
+    centre: i32,
+    depth: f64,
+    elevation: f64,
+    light: u32,
+    texture: u32[],
+) -> void {
     size :: i32(frame.projection() / depth)
-    top :: frame.height / 2 + i32(EYE_HEIGHT * frame.projection() / depth) - size
+    top :: frame.height / 2 + i32((EYE_HEIGHT - elevation) * frame.projection() / depth) - size
     draw_picture(frame, centre - size / 2, top, size, depth, light, texture)
 }
 

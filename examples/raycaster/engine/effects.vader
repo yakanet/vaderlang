@@ -1,0 +1,116 @@
+// examples/raycaster/engine/effects: what a shot leaves for a moment.
+//
+// A bullet that strikes a zombie makes it bleed; one that misses throws up a
+// puff where it strikes the wall. Each shows its pictures in turn, then is gone.
+// Both hang at the height the bullet flies, the eye's.
+
+module "engine"
+
+import "std/math"
+
+/// How an effect looks, and how long it lasts.
+export EffectInfo :: struct {
+    /// Its first picture in `SPRITE_TEXTURES`; the others follow.
+    sprite: i32
+    /// How many pictures it shows, one after the other.
+    frames: i32
+    /// How long each picture shows, in seconds.
+    frame_time: f64
+    /// Whether its first picture lights itself, whatever the light around it.
+    first_glows: bool = false
+}
+
+/// What a shot leaves for a moment.
+export EffectKind :: enum(EffectInfo) {
+    /// A zombie hit.
+    Blood { .sprite = BLOOD_SPRITE, .frames = 3, .frame_time = 0.08 },
+    /// A wall hit: a spark, then smoke.
+    Puff  { .sprite = PUFF_SPRITE, .frames = 4, .frame_time = 0.07, .first_glows = true },
+}
+
+/// An effect where a bullet struck, and how long ago.
+export Effect :: struct {
+    x: f64
+    y: f64
+    kind: EffectKind
+    /// Seconds since it appeared.
+    time: f64 = 0.0
+}
+
+// How far below the eye an effect's picture stands, in cells: about half the
+// height of the pictures, so that they show centred on the bullet's path.
+EFFECT_DROP :: 0.08
+
+// How far a zombie hit is pushed along the bullet's path, in cells.
+KNOCKBACK :: 0.12
+
+// How far before the wall a puff shows, in cells: in front of it, not inside.
+PUFF_OFFSET :: 0.05
+
+/// Move every effect of `level` on by `seconds`, and drop the ones done.
+export update_effects :: fn(level: Level, seconds: f64) -> void {
+    kept: Effect[]: [] * level.effects.len()
+    for effect in level.effects {
+        effect.time += seconds
+        if effect.time < f64(effect.kind.frames) * effect.kind.frame_time {
+            kept.push(effect)
+        }
+    }
+    level.effects = kept
+}
+
+// The picture `effect` shows now, in `SPRITE_TEXTURES`.
+effect_sprite :: fn(effect: Effect) -> i32 =
+    effect.kind.sprite + min(i32(effect.time / effect.kind.frame_time), effect.kind.frames - 1)
+
+// Whether `effect` lights itself now: its first picture, for a kind whose first
+// one does.
+effect_glows :: fn(effect: Effect) -> bool =
+    effect.kind.first_glows && effect_sprite(effect) == effect.kind.sprite
+
+// `enemy` bleeds where `player`'s bullet enters its body, and is pushed back
+// along the shot where it has room.
+bleed :: fn(level: Level, enemy: Enemy, player: Player) -> void {
+    along :: (enemy.x - player.x) * player.direction_x + (enemy.y - player.y) * player.direction_y
+    level.leave_on_shot(player, along - ENEMY_RADIUS, .Blood)
+    pushed_x :: enemy.x + player.direction_x * KNOCKBACK
+    pushed_y :: enemy.y + player.direction_y * KNOCKBACK
+    if level.has_room(pushed_x, pushed_y, ENEMY_RADIUS, enemy) {
+        enemy.x = pushed_x
+        enemy.y = pushed_y
+    }
+}
+
+// Leave an effect of `kind` on the path of `player`'s bullet, `distance` cells
+// ahead of them.
+leave_on_shot :: fn(level: Level, player: Player, distance: f64, kind: EffectKind) -> void {
+    level.effects.push(Effect {
+        .x = player.x + player.direction_x * distance,
+        .y = player.y + player.direction_y * distance,
+        .kind = kind,
+    })
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_effects_end_the_sprite_list :: fn() -> void {
+    assert_eq(PUFF_SPRITE, BLOOD_SPRITE + EffectKind.Blood.frames)
+    assert_eq(SPRITE_TEXTURES.len(), i64(PUFF_SPRITE + EffectKind.Puff.frames))
+}
+
+@test
+test_effects_go_once_their_pictures_are_shown :: fn() -> void {
+    level :: tiny()
+    level.effects.push(Effect {
+        .x = 1.5,
+        .y = 1.5,
+        .kind = .Blood,
+    })
+    level.update_effects(0.1)
+    assert_eq(effect_sprite(level.effects[0]), BLOOD_SPRITE + 1)
+    level.update_effects(0.2)
+    assert_eq(level.effects.len(), 0)
+}

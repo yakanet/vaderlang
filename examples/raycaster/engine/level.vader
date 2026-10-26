@@ -116,6 +116,8 @@ export Level :: struct {
     things: Thing[]
     /// The zombies, each where it stands and what it is doing.
     enemies: Enemy[]
+    /// What the shots left, for a moment.
+    effects: Effect[] = []
     start_x: f64
     start_y: f64
 }

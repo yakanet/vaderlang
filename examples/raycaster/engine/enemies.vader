@@ -242,6 +242,12 @@ ZOMBIE_HURT: i32: ZOMBIE_AIM + 2
 ZOMBIE_FALL: i32: ZOMBIE_AIM + 3
 DYING_FRAMES: i32: 5
 
+// The effects' pictures, after the zombie's (`effects.vader`). They are set here,
+// beside the constants they are counted from, because an enum's variant data
+// cannot yet read a constant computed from another file's.
+BLOOD_SPRITE: i32: ZOMBIE_FALL + DYING_FRAMES
+PUFF_SPRITE: i32: BLOOD_SPRITE + 3
+
 // The eight directions a zombie is seen from, an eighth of a turn apart, as
 // (along, across) its facing: `across` counts towards its left.
 EIGHTHS: [f64, f64][]: [
@@ -341,11 +347,6 @@ test_enemies_keep_out_of_each_other :: fn() -> void {
     east :: zombie.x + 0.4
     assert(!level.has_room(west, zombie.y, ENEMY_RADIUS, zombie), "the zombie to the west blocks")
     assert(level.has_room(east, zombie.y, ENEMY_RADIUS, zombie), "a zombie does not block itself")
-}
-
-@test
-test_enemies_pictures_end_with_the_fall :: fn() -> void {
-    assert_eq(SPRITE_TEXTURES.len(), i64(ZOMBIE_FALL + DYING_FRAMES))
 }
 
 @test

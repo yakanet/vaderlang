@@ -28,7 +28,8 @@ RECOIL_ENDS :: 0.28
 WEAPON_HEIGHT :: 0.64
 
 /// Fire the pistol, if it is ready and loaded: the nearest zombie still standing
-/// on the centre of the view, in front of the wall there, takes the bullet.
+/// on the centre of the view, in front of the wall there, takes the bullet and
+/// bleeds; with none, the bullet puffs on the wall.
 ///
 /// @param noises  what the player hears, appended to.
 export fire :: fn(player: Player, level: Level, noises: Noise[]) -> void {
@@ -38,15 +39,20 @@ export fire :: fn(player: Player, level: Level, noises: Noise[]) -> void {
     player.ammo -= 1
     player.since_shot = 0.0
     noises.push(.Shot)
-    target :: target_of(player, level) ?? return
+    wall :: cast_ray(level, player.x, player.y, player.direction_x, player.direction_y)
+    target :: target_of(player, level, wall.distance)
+    if target == null {
+        level.leave_on_shot(player, wall.distance - PUFF_OFFSET, .Puff)
+        return
+    }
     target.take_bullet(noises)
+    level.bleed(target, player)
 }
 
 // The zombie a bullet fired now strikes: the nearest one still standing whose
-// body crosses the line of sight, short of the wall.
-target_of :: fn(player: Player, level: Level) -> Enemy | null {
-    wall :: cast_ray(level, player.x, player.y, player.direction_x, player.direction_y)
-    nearest := wall.distance
+// body crosses the line of sight, short of the wall `wall` cells away.
+target_of :: fn(player: Player, level: Level, wall: f64) -> Enemy | null {
+    nearest := wall
     target: Enemy | null = null
     for enemy in level.enemies {
         offset_x :: enemy.x - player.x

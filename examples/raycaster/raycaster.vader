@@ -252,6 +252,7 @@ play :: fn(level: Level, player: Player, seconds: f64, typed: char[], noises: No
     }
     level.update_doors(player, seconds)
     level.update_enemies(player, seconds, noises)
+    level.update_effects(seconds)
     player.update_player(seconds)
 }
 

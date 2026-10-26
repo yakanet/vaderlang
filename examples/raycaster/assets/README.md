@@ -28,8 +28,9 @@ released under **CC0 1.0** (public domain dedication), scaled down from their
 
 ## Sprites: Freedoom, BSD licence
 
-`sprites/` holds the things standing on the floor, the zombie and the pistol,
-from [Freedoom](https://freedoom.github.io), under the BSD-style licence in
+`sprites/` holds the things standing on the floor, the zombie, the pistol, and
+what a shot leaves (blood, a puff on the wall), from
+[Freedoom](https://freedoom.github.io), under the BSD-style licence in
 `sprites/COPYING.adoc`, which applies to these files and must travel with them.
 The file names are Freedoom's sprite names. Magenta (`#FF00FF`) marks where a
 sprite is transparent.
@@ -51,6 +52,8 @@ sprite is transparent.
 | `pisga0.ppm` | the pistol at rest |
 | `pisgb0.ppm`, `pisgc0.ppm` | the pistol's recoil |
 | `pisfa0.ppm` | the pistol's flash, drawn over `pisgb0.ppm` for the shot |
+| `bludc0.ppm`, `bludb0.ppm`, `bluda0.ppm` | a zombie bleeding where a bullet struck |
+| `puffa0.ppm` to `puffd0.ppm` | a bullet striking a wall: the spark, then the smoke |
 
 ## Sounds: Freedoom, BSD licence
 

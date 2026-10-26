@@ -141,6 +141,7 @@ fight :: fn(lights: LightMap, frame: Frame) -> void {
             player.fire(level, noises)
         }
         level.update_enemies(player, FIGHT_STEP, noises)
+        level.update_effects(FIGHT_STEP)
         player.update_player(FIGHT_STEP)
         if step % FIGHT_FRAME == 0 {
             render(frame, level, player, lights)
