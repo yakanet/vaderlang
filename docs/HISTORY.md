@@ -1377,3 +1377,10 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 ### 3.8 Language ergonomics
 
 - [x] **Range and literal pattern bounds were typed alone**, **closed 2026-10-11, archived 2026-10-22** (opened 2026-07-24): each bound is repinned to what the arms above leave of the scrutinee (`0ba97c012`), so a free literal takes the scrutinee's width, T3066 reports one out of range and T3001 one of another type. The inverted-range warning stays open.
+
+## Archived from TODO.md, 2026-10-26
+
+### Priority: next up
+
+- [x] **A namespace alias behaved as module-global during materialisation**, **closed before 2026-10-26** (opened 2026-08-27, last reproduced 2026-10-02): three files of one module, two declaring `X :: import "pa"` and one `X :: import "pb"`, with a name both export and one only `pb` exports, check, run, build and test clean at `9a1bef810`, whatever the file order or entry.
+- [x] **A free value in a range slot was refused**, **closed before 2026-10-26** (part of an open entry): `if c { 1 } else { 2 }` in a slot of `0..=23` now checks and runs, as an argument and as a `= if` body too, and a branch outside the range is T3066.
