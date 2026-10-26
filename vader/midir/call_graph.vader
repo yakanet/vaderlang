@@ -211,22 +211,30 @@ node_callees :: fn(index: CalleeIndex, node: CallNode, taken: TakenFunctions) ->
 
 // Record the function `ins` makes a value or an address of, if any.
 note_taken :: fn(index: CalleeIndex, ins: Instruction, taken: TakenFunctions) -> void {
-    match ins {
-        is InstrFnRef | InstrMakeClosure -> {
-            taken.as_values.add(taken_node(index, ins.fn_symbol))
-        }
-        is InstrFnAddr -> {
-            taken.as_addresses.add(taken_node(index, ins.fn_symbol))
-        }
-        is InstrConst | InstrBinOp | InstrUnOp | InstrCall | InstrCallIndirect -> {}
-        is InstrVirtualCall | InstrFieldGet | InstrFieldSet | InstrArrayGet -> {}
-        is InstrUnionFieldGet | InstrUnionFieldSet -> {}
-        is InstrArraySet | InstrArrayLen | InstrArrayPush | InstrArraySlice -> {}
-        is InstrStructNew | InstrArrayNew | InstrDataConst -> {}
-        is InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet -> {}
-        is InstrCellSet | InstrIntrinsic | InstrMove | InstrDeferPush | InstrDeferPopExec -> {}
-        is InstrGlobalGet | InstrGlobalSet -> {}
+    target :: taken_function(ins) ?? return
+    node :: taken_node(index, target)
+    if ins is InstrFnAddr {
+        taken.as_addresses.add(node)
+        return
     }
+    taken.as_values.add(node)
+}
+
+/// The function `ins` makes a value or an address of without calling it, or
+/// `null`. Exhaustive: an instruction added later that names a function has to
+/// say whether it calls it.
+///
+/// @param ins  any instruction of a CFG body.
+export taken_function :: fn(ins: Instruction) -> Symbol | null = match ins {
+    is InstrFnRef | InstrFnAddr | InstrMakeClosure -> ins.fn_symbol
+    is InstrConst | InstrBinOp | InstrUnOp | InstrCall | InstrCallIndirect
+        | InstrVirtualCall | InstrFieldGet | InstrFieldSet | InstrArrayGet
+        | InstrUnionFieldGet | InstrUnionFieldSet
+        | InstrArraySet | InstrArrayLen | InstrArrayPush | InstrArraySlice
+        | InstrStructNew | InstrArrayNew | InstrDataConst
+        | InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet
+        | InstrCellSet | InstrIntrinsic | InstrMove | InstrDeferPush | InstrDeferPopExec
+        | InstrGlobalGet | InstrGlobalSet -> null
 }
 
 // The node of a function taken as a value or an address: by mangle, then by symbol

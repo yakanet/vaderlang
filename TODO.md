@@ -255,18 +255,6 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
 
 ### Mid-IR and VM
 
-- [ ] **A capturing lambda that returns a tuple is miscompiled** (found 2026-10-25).
-      `scalarise_value_returns` keeps the signature of a function used as a value, but
-      `note_if_taken_as_value` (`vader/midir/value_return/fn_values.vader`) counts `fn_ref`
-      and `fn_addr` and misses `make_closure`: its `@partial` match lists the instructions
-      that name a function without calling it, and `make_closure` is one. A capturing
-      lambda returning `[i32, i32]` is rewritten in place to hand back two values while its
-      `call_indirect` still expects one object: `vader run` stops on "struct.get field 1 out
-      of range" and `vader build` panics in `bc_single_result`. Repro:
-      `apply :: fn(f: fn(i32) -> [i32, i32], x: i32) -> [i32, i32] = f(x)`, then in `main`
-      `k := 3`, `k = k + 1`, `g :: fn(x: i32) -> [i32, i32] { return [x + k, x * k] }`,
-      `apply(g, 5)`. Fix: count `make_closure`, and make the match exhaustive.
-
 - [ ] **`%` on `f64` emits the integer remainder** (found 2026-10-25). The CFG carries
       `binop mod ... :f64`, but `mod_op` (`vader/midir/select/op_select.vader`) ends on a
       catch-all `return I32Mod {}` with no float case. `vader run` refuses the program

@@ -1,0 +1,19 @@
+// A lambda that captures a rebound local and returns a tuple, passed as a value
+// and called through it. A direct call may receive a tuple's elements instead of
+// one object; a closure is called through a value, so it keeps returning the
+// tuple.
+
+module "snippet"
+
+import "std/io"
+
+apply :: fn(f: fn(i32) -> [i32, i32], x: i32) -> [i32, i32] = f(x)
+
+main :: fn() -> i32 {
+    k := 3
+    k = k + 1
+    g :: fn(x: i32) -> [i32, i32] { return [x + k, x * k] }
+    [sum, product] :: apply(g, 5)
+    println("${sum} ${product}")
+    return 0
+}
