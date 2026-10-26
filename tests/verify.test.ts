@@ -16,7 +16,7 @@
 
 import { test, expect } from "bun:test";
 import { ensureCliBuilt, runCli, MEDIUM_BUILD, LONG_BUILD } from "./cli-bin.ts";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { COMPILER_ENTRY, exampleEntry, exampleInput, exampleNames } from "./vader-sources.ts";
@@ -31,9 +31,21 @@ const RUN_SELF_HOST = process.env["RUN_VERIFY_SELFHOST"] === "1";
 
 // `--out` into a scratch dir: the sweep runs on every example, and `--out=-`
 // would drop a file named `-` in the repo root each time.
-const buildVerify = (entry: string, timeout: number, out: string) =>
+const buildVerify = (entry: string, timeout: number, out: string, flags: string[] = []) =>
   runCli(
-    ["build", "--emit=bytecode-text", `--out=${out}`, "--verify", entry], undefined, timeout);
+    ["build", "--emit=bytecode-text", `--out=${out}`, "--verify", ...flags, entry], undefined, timeout);
+
+// What to build an example as: one `--entry=` per entry of a project, as
+// `vader info` lists them (one `--out` serves one entry, H6011), nothing for a
+// single file or a project that names no entry.
+const entryFlags = async (input: string): Promise<string[][]> => {
+  if (!statSync(input).isDirectory()) return [[]];
+  const info = await runCli(["info", "--json", input]);
+  expect({ input, exit: info.exit }).toEqual({ input, exit: 0 });
+  const entries = Object.keys(JSON.parse(info.stdout).entries ?? {});
+  if (entries.length === 0) return [[]];
+  return entries.map((e) => [`--entry=${e}`]);
+};
 
 // A finding on any of these is a false positive by construction: they are the
 // programs the repo ships as correct. An `I7xxx` here means a check is wrong,
@@ -42,17 +54,19 @@ test("verify finds nothing in the examples", async () => {
   const dir = mkdtempSync(join(tmpdir(), "vader-verify-"));
   try {
     for (const entry of exampleNames().map(exampleInput)) {
-      // LONG_BUILD, matching this test's own declared budget rather than the
-      // 30 s one: `examples/brainfuck` imports `vader/vm` + `vader/front/virt`,
-      // so it type-checks 40 modules where the other seven load 12. That is
-      // ~2 s locally against ~85 ms, and on a 4-core runner with the suite at
-      // 4× parallel it reached the 30 s spawn kill and came back as exit 137.
-      const r = await buildVerify(entry, LONG_BUILD, join(dir, "out.virt"));
-      // A verifier finding is error-severity, so it also fails the build:
-      // asserting the exit code catches a check that fires without us having
-      // to match on the text.
-      expect({ entry, exit: r.exit }).toEqual({ entry, exit: 0 });
-      expect(r.stdout + r.stderr).not.toContain("error[I7");
+      for (const flags of await entryFlags(entry)) {
+        // LONG_BUILD, matching this test's own declared budget rather than the
+        // 30 s one: `examples/brainfuck` imports `vader/vm` + `vader/front/virt`,
+        // so it type-checks 40 modules where the others load about 12. That is
+        // ~2 s locally against ~85 ms, and on a 4-core runner with the suite at
+        // 4× parallel it reached the 30 s spawn kill and came back as exit 137.
+        const r = await buildVerify(entry, LONG_BUILD, join(dir, "out.virt"), flags);
+        // A verifier finding is error-severity, so it also fails the build:
+        // asserting the exit code catches a check that fires without us having
+        // to match on the text.
+        expect({ entry, flags, exit: r.exit }).toEqual({ entry, flags, exit: 0 });
+        expect(r.stdout + r.stderr).not.toContain("error[I7");
+      }
     }
   } finally {
     rmSync(dir, { recursive: true, force: true });

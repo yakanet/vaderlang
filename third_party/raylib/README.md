@@ -12,7 +12,8 @@ A project reaches it by naming the toolchain's `third_party/` folder in its
 { "includePaths": ["$VADER_HOME/third_party"] }
 ```
 
-then `import "raylib"`. `examples/raylib_sprite` is a complete program.
+then `import "raylib"`. `examples/raylib_sprite` is a complete program, and
+`examples/raycaster` a larger one: a first-person view drawn pixel by pixel.
 
 `vader build` links the archive into the program. `vader run` reaches it too:
 the interpreter opens no static archive, so the run first compiles, with `cc`,

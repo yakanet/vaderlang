@@ -1,0 +1,322 @@
+// examples/raycaster/engine/textures: the walls, floor, ceiling and sprites, read
+// from image files when the program is compiled.
+//
+// Every texture is `TEXTURE_SIZE` texels square, row-major, one pixel per texel.
+// They are binary PPM files under `assets/` (where each comes from is in
+// `assets/README.md`). The `@comptime` constants at the end read them during the
+// build, so the program carries the pixels as data and opens no file. The door is
+// composed there too, from a metal plate, and each sprite is set on a square
+// canvas standing on its bottom edge.
+//
+// A wall, floor or ceiling texture carries its mipmaps after it: the same picture
+// at half the size, a quarter, an eighth, each texel the average of four of the
+// level above (`with_mipmaps`). A surface far enough that several texels fall on
+// one pixel reads a smaller level (`mip_level`), which shows their average instead
+// of whichever one the pixel lands on: no shimmering, no grain.
+
+module "engine"
+
+import "images/ppm"
+import "std/abort"
+import "std/io"
+import "std/iter"
+import "std/math"
+
+// The side of every texture, in texels. A power of two, so a coordinate wraps
+// into the texture with `& TEXTURE_MASK`.
+TEXTURE_SIZE: i32: 128
+
+// `TEXTURE_SIZE - 1`, the mask that wraps a texel coordinate.
+TEXTURE_MASK: i32: TEXTURE_SIZE - 1
+
+// How many sizes a mipmapped texture holds: 128, 64, 32 and 16 texels square.
+MIP_LEVELS: i32: 4
+
+// The colour a sprite file paints where the sprite is not: pure magenta.
+KEY_RED: u32: 255
+KEY_GREEN: u32: 0
+KEY_BLUE: u32: 255
+
+// ---- files ----------------------------------------------------------------
+
+// An image read from a PPM file: its size and its pixels, transparent where the
+// file has the key colour.
+Picture :: struct {
+    width: i32
+    height: i32
+    pixels: u32[]
+}
+
+// The picture in the PPM file at `path`, relative to this source file. A file
+// that is missing, or not a P6 PPM with 8-bit samples, stops the build.
+load_picture :: fn(path: string) -> Picture {
+    data :: read_file_bytes(path)
+    if data is IOError {
+        panic("cannot read `${path}`: ${data.message()}")
+    }
+    image :: decode(data)
+    if image is PpmError {
+        panic("`${path}`: ${image.msg}")
+    }
+    if image.maxval != 255 {
+        panic("`${path}` has maxval ${image.maxval}: expected 255")
+    }
+    count :: i64(image.width) * i64(image.height)
+    pixels: u32[]: [] * count
+    for texel in 0..<count {
+        red :: u32(image.pixels[texel * 3])
+        green :: u32(image.pixels[texel * 3 + 1])
+        blue :: u32(image.pixels[texel * 3 + 2])
+        pixels.push(keyed_pixel(red, green, blue))
+    }
+    return Picture {
+        .width = i32(image.width),
+        .height = i32(image.height),
+        .pixels = pixels,
+    }
+}
+
+// The pixel a picture file's `(red, green, blue)` stands for: `TRANSPARENT` for
+// the key colour.
+keyed_pixel :: fn(red: u32, green: u32, blue: u32) -> u32 {
+    if red == KEY_RED && green == KEY_GREEN && blue == KEY_BLUE {
+        return TRANSPARENT
+    }
+    return rgb(red, green, blue)
+}
+
+// The wall, floor or ceiling texture in the PPM file at `path`: one that is not
+// `TEXTURE_SIZE` square stops the build.
+load_texture :: fn(path: string) -> u32[] {
+    picture :: load_picture(path)
+    if picture.width != TEXTURE_SIZE || picture.height != TEXTURE_SIZE {
+        size :: "${picture.width}x${picture.height}"
+        panic("`${path}` is ${size}: expected ${TEXTURE_SIZE}x${TEXTURE_SIZE}")
+    }
+    return picture.pixels
+}
+
+// The sprite in the PPM file at `path`, `scale` times larger (nearest texel), set
+// on a transparent square canvas, centred and standing on its bottom edge: a
+// sprite is drawn one cell tall, so a picture shorter than the canvas stands
+// shorter than that. One that does not fit stops the build.
+load_sprite :: fn(path: string, scale: i32) -> u32[] {
+    picture :: load_picture(path)
+    width :: picture.width * scale
+    height :: picture.height * scale
+    if width > TEXTURE_SIZE || height > TEXTURE_SIZE {
+        panic("`${path}` scaled by ${scale} is ${width}x${height}: it must fit ${TEXTURE_SIZE}")
+    }
+    left :: (TEXTURE_SIZE - width) / 2
+    top :: TEXTURE_SIZE - height
+    canvas: u32[]: [TRANSPARENT] * i64(TEXTURE_SIZE * TEXTURE_SIZE)
+    for y in 0..<height {
+        for x in 0..<width {
+            source :: picture.pixels[i64((y / scale) * picture.width + x / scale)]
+            canvas[i64((top + y) * TEXTURE_SIZE + left + x)] = source
+        }
+    }
+    return canvas
+}
+
+// ---- mipmaps --------------------------------------------------------------
+
+// The texture in the PPM file at `path`, with its mipmaps.
+load_mipmapped :: fn(path: string) -> u32[] = with_mipmaps(load_texture(path))
+
+// `texture` followed by its smaller levels, each half the size of the one before.
+with_mipmaps :: fn(texture: u32[]) -> u32[] {
+    out :: texture.clone()
+    above := texture
+    size := TEXTURE_SIZE
+    for 1..<MIP_LEVELS {
+        half :: halved(above, size)
+        out.push_all(half)
+        above = half
+        size = size / 2
+    }
+    return out
+}
+
+// The `size`-square picture `texture` at half its size, each texel the average of
+// the four it covers.
+halved :: fn(texture: u32[], size: i32) -> u32[] {
+    half :: size / 2
+    out: u32[]: [] * i64(half * half)
+    for y in 0..<half {
+        for x in 0..<half {
+            corner :: i64(2 * y * size + 2 * x)
+            out.push(average_of_four(
+                texture[corner],
+                texture[corner + 1],
+                texture[corner + i64(size)],
+                texture[corner + i64(size) + 1],
+            ))
+        }
+    }
+    return out
+}
+
+// The average of four pixels, channel by channel.
+average_of_four :: fn(a: u32, b: u32, c: u32, d: u32) -> u32 {
+    [a_red, a_green, a_blue] :: channels(a)
+    [b_red, b_green, b_blue] :: channels(b)
+    [c_red, c_green, c_blue] :: channels(c)
+    [d_red, d_green, d_blue] :: channels(d)
+    return rgb(
+        (a_red + b_red + c_red + d_red) / 4,
+        (a_green + b_green + c_green + d_green) / 4,
+        (a_blue + b_blue + c_blue + d_blue) / 4,
+    )
+}
+
+// The mipmap level to read where one pixel spans `footprint` texels of the
+// full-size texture: the level whose texels come nearest one pixel each. Level
+// `n` serves the footprints below `1.5 * 2^n`, the last level all the others.
+mip_level :: fn(footprint: f64) -> i32 {
+    level := 0
+    bound := 1.5
+    for level < MIP_LEVELS - 1 && footprint >= bound {
+        level += 1
+        bound *= 2.0
+    }
+    return level
+}
+
+// Where the texel `(x, y)` of the full-size texture, each in `0..<TEXTURE_SIZE`,
+// sits in level `level` of a mipmapped texture (`with_mipmaps`).
+mip_index :: fn(level: i32, x: i32, y: i32) -> i64 =
+    level_start(level) + i64((y >> level) * (TEXTURE_SIZE >> level) + (x >> level))
+
+// Where level `level` starts in a mipmapped texture: after the levels above it,
+// `A + A / 4 + ... + A / 4^(level - 1)` texels for a full size of `A`, which is
+// `4 / 3 * (A - A / 4^level)`.
+level_start :: fn(level: i32) -> i64 {
+    full :: i64(TEXTURE_SIZE * TEXTURE_SIZE)
+    return 4 * (full - (full >> i64(2 * level))) / 3
+}
+
+// ---- the door -------------------------------------------------------------
+
+// A door made from the metal plate `base`: a dark frame, a seam down the middle
+// where the two halves meet, two handles, and yellow and black hazard stripes
+// across its foot.
+compose_door :: fn(base: u32[]) -> u32[] {
+    door: u32[]: [] * base.len()
+    for y in 0..<TEXTURE_SIZE {
+        for x in 0..<TEXTURE_SIZE {
+            door.push(door_texel(base, x, y))
+        }
+    }
+    return door
+}
+
+door_texel :: fn(base: u32[], x: i32, y: i32) -> u32 {
+    plate :: base[i64(y * TEXTURE_SIZE + x)]
+    edge :: min(min(x, TEXTURE_SIZE - 1 - x), min(y, TEXTURE_SIZE - 1 - y))
+    if edge < 4 {
+        return shade(plate, 90)
+    }
+    if edge < 6 {
+        return blend(plate, rgb(230, 230, 220), 110)
+    }
+    seam :: x - TEXTURE_SIZE / 2
+    if seam == 0 || seam == -1 {
+        return shade(plate, 70)
+    }
+    if y > TEXTURE_SIZE - 26 && y < TEXTURE_SIZE - 8 {
+        return blend(plate, hazard_stripe(x, y), 210)
+    }
+    handle :: (seam == -7 || seam == 6) && y > 56 && y < 72
+    if handle {
+        return rgb(40, 40, 44)
+    }
+    return plate
+}
+
+// The colour of the hazard stripes at `(x, y)`: slanted bands of yellow and black.
+hazard_stripe :: fn(x: i32, y: i32) -> u32 {
+    if ((x + y) / 10) % 2 == 0 {
+        return rgb(236, 178, 24)
+    }
+    return rgb(24, 22, 20)
+}
+
+// ---- the textures, read by the build --------------------------------------
+
+// The walls, indexed by `CellInfo.texture`, mipmapped: the door first, then one
+// per kind of wall cell.
+WALL_TEXTURES: u32[][]: @comptime [
+    with_mipmaps(compose_door(load_texture("../assets/textures/MetalPlates014.ppm"))),
+    load_mipmapped("../assets/textures/Bricks106A.ppm"),
+    load_mipmapped("../assets/textures/Bricks105.ppm"),
+    load_mipmapped("../assets/textures/MetalPlates013.ppm"),
+    load_mipmapped("../assets/textures/Metal021.ppm"),
+    load_mipmapped("../assets/textures/PaintedMetal006.ppm"),
+    load_mipmapped("../assets/textures/PaintedMetal004.ppm"),
+    load_mipmapped("../assets/textures/Concrete034.ppm"),
+    load_mipmapped("../assets/textures/CorrugatedSteel005.ppm"),
+]
+// Steel floor plates, mipmapped.
+FLOOR_TEXTURE: u32[]: @comptime load_mipmapped("../assets/textures/MetalPlates006.ppm")
+// Bare concrete overhead, mipmapped.
+CEILING_TEXTURE: u32[]: @comptime load_mipmapped("../assets/textures/Concrete031.ppm")
+// The sprites, indexed by `ThingInfo.sprite`.
+SPRITE_TEXTURES: u32[][]: @comptime [
+    load_sprite("../assets/sprites/bar1a0.ppm", 2),
+    load_sprite("../assets/sprites/col1a0.ppm", 2),
+    load_sprite("../assets/sprites/colua0.ppm", 2),
+    load_sprite("../assets/sprites/tlmpa0.ppm", 1),
+    load_sprite("../assets/sprites/tgrna0.ppm", 1),
+]
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_textures_have_one_pixel_per_texel :: fn() -> void {
+    assert_eq(SPRITE_TEXTURES[0].len(), i64(TEXTURE_SIZE * TEXTURE_SIZE))
+}
+
+@test
+test_textures_mipmaps_follow_the_full_size :: fn() -> void {
+    // 128² + 64² + 32² + 16² texels.
+    assert_eq(CEILING_TEXTURE.len(), 21760)
+    assert_eq(mip_index(3, TEXTURE_SIZE - 1, TEXTURE_SIZE - 1), 21759)
+}
+
+@test
+test_textures_mip_level_doubles_its_bound :: fn() -> void {
+    assert_eq(mip_level(1.0), 0)
+    assert_eq(mip_level(2.0), 1)
+    assert_eq(mip_level(5.9), 2)
+    assert_eq(mip_level(100.0), MIP_LEVELS - 1)
+}
+
+@test
+test_textures_mipmap_averages_four_texels :: fn() -> void {
+    black :: rgb(0, 0, 0)
+    grey :: rgb(4, 8, 12)
+    assert_eq(average_of_four(black, grey, grey, black), rgb(2, 4, 6))
+}
+
+@test
+test_textures_walls_are_opaque :: fn() -> void {
+    for pixel in WALL_TEXTURES[1] {
+        assert(is_opaque(pixel), "a wall texel is opaque")
+    }
+}
+
+@test
+test_textures_sprites_stand_on_the_bottom_edge :: fn() -> void {
+    barrel :: SPRITE_TEXTURES[0]
+    assert_eq(barrel[0], TRANSPARENT)
+    bottom_middle :: i64((TEXTURE_SIZE - 1) * TEXTURE_SIZE + TEXTURE_SIZE / 2)
+    assert(is_opaque(barrel[bottom_middle]), "the barrel stands on the floor")
+}
+
+@test
+test_textures_door_has_a_dark_frame :: fn() -> void {
+    assert(channels(WALL_TEXTURES[0][0]).0 < 120, "the door's corner is dark")
+}

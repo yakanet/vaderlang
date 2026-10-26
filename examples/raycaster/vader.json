@@ -1,0 +1,7 @@
+{
+    "includePaths": ["$VADER_HOME/third_party"],
+    "entries": {
+        "raycaster": "raycaster.vader",
+        "frames": "frames/frames.vader"
+    }
+}

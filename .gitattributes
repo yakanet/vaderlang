@@ -7,6 +7,9 @@
 *.c text eol=lf
 *.h text eol=lf
 
+# A PPM image is raw samples after a text header: never normalise its line ends.
+*.ppm binary
+
 # The committed C seed is generated.
 bootstrap/seed/** -diff -merge linguist-generated=true
 

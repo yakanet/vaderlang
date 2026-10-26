@@ -1,0 +1,108 @@
+// examples/raycaster/engine/pixels: packed pixels, and the light that colours them.
+//
+// A pixel is one `u32`: red in the low byte, then green, blue and alpha. Stored
+// in memory on a little-endian machine, that is the byte order of raylib's
+// `PIXELFORMAT_UNCOMPRESSED_R8G8B8A8`, so a frame goes to the GPU as it is.
+//
+// A light is one `u32` too: a level per channel, ten bits each (`pack_light`).
+// `FULL_LIGHT` leaves a channel as it is; a level above it brightens the channel,
+// up to white, which is how a lamp makes the wall beside it glow.
+
+module "engine"
+
+// A pixel a sprite leaves see-through: its alpha byte is zero.
+TRANSPARENT: u32: 0
+
+// The light level that leaves a channel as it is: `lit(p, grey_light(FULL_LIGHT))` is `p`.
+FULL_LIGHT: u32: 256
+
+// The brightest a light level gets: twice `FULL_LIGHT`.
+BRIGHTEST: u32: 512
+
+// Pack an opaque pixel from its three channels, each in `0..=255`.
+rgb :: fn(red: u32, green: u32, blue: u32) -> u32 =
+    red | (green << 8) | (blue << 16) | 0xFF00_0000
+
+// Whether `pixel` is drawn: a sprite's transparent pixels are skipped.
+is_opaque :: fn(pixel: u32) -> bool = (pixel >> 24) != 0
+
+/// The red, green and blue channels of `pixel`, each in `0..=255`.
+export channels :: fn(pixel: u32) -> [u32, u32, u32] =
+    [pixel & 0xFF, (pixel >> 8) & 0xFF, (pixel >> 16) & 0xFF]
+
+// Dim `pixel` to `light / FULL_LIGHT` of its brightness, `light` in
+// `0..=FULL_LIGHT`, keeping it opaque. Red and blue are scaled together, sixteen
+// bits apart, so a pixel costs two multiplications.
+shade :: fn(pixel: u32, light: u32) -> u32 {
+    red_blue :: (((pixel & 0x00FF_00FF) * light) >> 8) & 0x00FF_00FF
+    green :: (((pixel & 0x0000_FF00) * light) >> 8) & 0x0000_FF00
+    return red_blue | green | 0xFF00_0000
+}
+
+// Mix `pixel` with `tint` in proportion `amount / FULL_LIGHT` of the tint: 0
+// keeps `pixel`, `FULL_LIGHT` gives `tint`.
+blend :: fn(pixel: u32, tint: u32, amount: u32) -> u32 =
+    shade(pixel, FULL_LIGHT - amount) - 0xFF00_0000 + shade(tint, amount)
+
+// Pack three light levels into one light, each capped at `BRIGHTEST`.
+pack_light :: fn(red: u32, green: u32, blue: u32) -> u32 =
+    at_most(red, BRIGHTEST) | (at_most(green, BRIGHTEST) << 10) | (at_most(blue, BRIGHTEST) << 20)
+
+// The same light level on every channel.
+grey_light :: fn(level: u32) -> u32 = pack_light(level, level, level)
+
+// Light `pixel` by `light` (`pack_light`), channel by channel, keeping it opaque.
+lit :: fn(pixel: u32, light: u32) -> u32 {
+    [red, green, blue] :: channels(pixel)
+    return rgb(
+        lit_channel(red, light & 0x3FF),
+        lit_channel(green, (light >> 10) & 0x3FF),
+        lit_channel(blue, light >> 20),
+    )
+}
+
+// A channel in `0..=255` lit by a light level, white at most.
+lit_channel :: fn(channel: u32, level: u32) -> u32 = at_most((channel * level) >> 8, 255)
+
+// `value`, or `cap` when it is larger.
+at_most :: fn(value: u32, cap: u32) -> u32 {
+    if value > cap {
+        return cap
+    }
+    return value
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_pixels_rgb_puts_red_in_the_low_byte :: fn() -> void {
+    assert_eq(rgb(0x12, 0x34, 0x56), 0xFF56_3412)
+}
+
+@test
+test_pixels_shade_halves_each_channel :: fn() -> void {
+    assert_eq(shade(rgb(200, 100, 50), 128), rgb(100, 50, 25))
+}
+
+@test
+test_pixels_blend_ends :: fn() -> void {
+    assert_eq(blend(rgb(200, 100, 50), rgb(0, 0, 255), 0), rgb(200, 100, 50))
+    assert_eq(blend(rgb(200, 100, 50), rgb(0, 0, 255), FULL_LIGHT), rgb(0, 0, 255))
+}
+
+@test
+test_pixels_full_light_keeps_the_pixel :: fn() -> void {
+    assert_eq(lit(rgb(200, 100, 50), grey_light(FULL_LIGHT)), rgb(200, 100, 50))
+}
+
+@test
+test_pixels_coloured_light_tints_each_channel :: fn() -> void {
+    assert_eq(lit(rgb(100, 100, 100), pack_light(512, 128, 0)), rgb(200, 50, 0))
+}
+
+@test
+test_pixels_bright_light_stops_at_white :: fn() -> void {
+    assert_eq(lit(rgb(200, 200, 200), pack_light(9000, 512, 512)), rgb(255, 255, 255))
+}

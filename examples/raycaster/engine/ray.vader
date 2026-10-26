@@ -1,0 +1,195 @@
+// examples/raycaster/engine/ray: where a ray from the player meets a wall.
+//
+// The ray walks the grid one cell boundary at a time (a digital differential
+// analyser): at each step it crosses either the next vertical grid line or the
+// next horizontal one, whichever is nearer, until the cell it enters is solid.
+// A door is a panel halfway through its cell, so a ray entering a door cell
+// either strikes the panel or carries on past its open part.
+//
+// Distances are measured along the view direction, not along the ray: a ray
+// `direction + plane * camera` is longer than the direction at the screen's
+// edges, and measuring along it would bend straight walls into curves.
+
+module "engine"
+
+import "std/math"
+
+// Where a ray met a wall, and what it saw there.
+Hit :: struct {
+    // Distance to the wall along the view direction, in cells.
+    distance: f64
+    // The cell whose face the ray struck.
+    cell: Cell
+    // Where across that face the ray struck, in `0.0..<1.0`: the texture's column.
+    across: f64
+    // Whether the face runs north to south: such faces are lit a little less, so
+    // the two faces of a corner stand apart.
+    faces_east_west: bool
+}
+
+// A distance no ray reaches: the step along an axis the ray does not move on.
+FAR :: 1.0e30
+
+// Cast the ray `(ray_x, ray_y)` from `(x, y)` and return the first face it meets.
+// `(ray_x, ray_y)` is `direction + plane * camera`, not a unit vector. The level's
+// border is wall (`parse_level` checks it), so every ray strikes one.
+cast_ray :: fn(level: Level, x: f64, y: f64, ray_x: f64, ray_y: f64) -> Hit {
+    cell_x := i32(floor(x))
+    cell_y := i32(floor(y))
+    delta_x :: crossing_step(ray_x)
+    delta_y :: crossing_step(ray_y)
+    step_x :: direction_of(ray_x)
+    step_y :: direction_of(ray_y)
+    // The distance, along the ray, to the next vertical and horizontal grid line.
+    next_x := first_crossing(x, cell_x, ray_x) * delta_x
+    next_y := first_crossing(y, cell_y, ray_y) * delta_y
+    for {
+        crossed_x :: next_x < next_y
+        if crossed_x {
+            next_x += delta_x
+            cell_x += step_x
+        } else {
+            next_y += delta_y
+            cell_y += step_y
+        }
+        cell :: level.cell_at(cell_x, cell_y)
+        if cell == .Door {
+            door :: level.door_at(cell_x, cell_y) ?? continue
+            return strike_door(door, x, y, ray_x, ray_y) ?? continue
+        }
+        if !cell.solid {
+            continue
+        }
+        if crossed_x {
+            distance :: next_x - delta_x
+            return face_hit(cell, distance, y + distance * ray_y, ray_x > 0.0, true)
+        }
+        distance :: next_y - delta_y
+        return face_hit(cell, distance, x + distance * ray_x, ray_y < 0.0, false)
+    }
+}
+
+// How far along the ray it moves between two grid lines of one axis, given its
+// component on that axis.
+crossing_step :: fn(component: f64) -> f64 {
+    if component == 0.0 {
+        return FAR
+    }
+    return abs(1.0 / component)
+}
+
+// The share of a cell between `position`, in `cell`, and the first grid line the
+// ray meets on that axis.
+first_crossing :: fn(position: f64, cell: i32, component: f64) -> f64 {
+    if component < 0.0 {
+        return position - f64(cell)
+    }
+    return f64(cell) + 1.0 - position
+}
+
+// The cell step a ray takes on an axis: towards the side its component points to.
+direction_of :: fn(component: f64) -> i32 {
+    if component < 0.0 {
+        return -1
+    }
+    return 1
+}
+
+// The hit on a wall face of `cell`, `distance` away, struck at `along` (a
+// coordinate along the face). `mirrored` faces read their texture right to left,
+// so that no face shows it backwards.
+face_hit :: fn(
+    cell: Cell,
+    distance: f64,
+    along: f64,
+    mirrored: bool,
+    faces_east_west: bool,
+) -> Hit =
+    Hit {
+        .distance = distance,
+        .cell = cell,
+        .across = texture_column(along - floor(along), mirrored),
+        .faces_east_west = faces_east_west,
+    }
+
+// The column a face shows at `fraction` across it, read right to left when
+// `mirrored`.
+texture_column :: fn(fraction: f64, mirrored: bool) -> f64 {
+    if mirrored {
+        return 1.0 - fraction
+    }
+    return fraction
+}
+
+// Where the ray meets `door`'s panel, or `null` when it passes through the open
+// part, or misses the panel inside the cell.
+strike_door :: fn(door: Door, x: f64, y: f64, ray_x: f64, ray_y: f64) -> Hit | null {
+    if door.axis == .AlongY {
+        return strike_panel(door, f64(door.x) + 0.5 - x, y - f64(door.y), ray_x, ray_y, true)
+    }
+    return strike_panel(door, f64(door.y) + 0.5 - y, x - f64(door.x), ray_y, ray_x, false)
+}
+
+// The hit on a door panel `ahead` away across the axis the ray `towards` moves
+// on, the ray starting `sideways` from the cell's edge along the panel. The panel
+// slides along its own length, so its texture slides with it.
+strike_panel :: fn(
+    door: Door,
+    ahead: f64,
+    sideways: f64,
+    towards: f64,
+    along_panel: f64,
+    faces_east_west: bool,
+) -> Hit | null {
+    if towards == 0.0 {
+        return null
+    }
+    distance :: ahead / towards
+    along :: sideways + distance * along_panel
+    if distance <= 0.0 || along < door.open || along >= 1.0 {
+        return null
+    }
+    return Hit {
+        .distance = distance,
+        .cell = .Door,
+        .across = along - door.open,
+        .faces_east_west = faces_east_west,
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_ray_passes_the_barrel_to_the_wall :: fn() -> void {
+    // From the start of `TINY`, east past the barrel's cell, the wall is at x = 4.
+    hit :: cast_ray(tiny(), 1.5, 1.5, 1.0, 0.0)
+    assert_eq(hit.distance, 2.5)
+    assert(hit.faces_east_west, "a wall met going east faces west")
+}
+
+@test
+test_ray_south_strikes_the_closed_door :: fn() -> void {
+    hit :: cast_ray(tiny(), 2.5, 1.5, 0.0, 1.0)
+    assert_eq(hit.distance, 1.0)
+    assert(hit.cell == .Door, "the ray strikes the door")
+}
+
+@test
+test_ray_passes_an_open_door :: fn() -> void {
+    level :: tiny()
+    level.doors[0].open = 1.0
+    hit :: cast_ray(level, 2.5, 1.5, 0.0, 1.0)
+    assert_eq(hit.distance, 2.5)
+}
+
+@test
+test_ray_distance_is_along_the_view :: fn() -> void {
+    // A ray towards the screen's edge, `(1, 0.5)`, meets the south wall of the
+    // room under the door at (2.5, 4): 1.0 along the view direction east, though
+    // the hit point is 1.118 away.
+    hit :: cast_ray(tiny(), 1.5, 3.5, 1.0, 0.5)
+    assert_eq(hit.distance, 1.0)
+    assert(!hit.faces_east_west, "a wall met going south faces north")
+}

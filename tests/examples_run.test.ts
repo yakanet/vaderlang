@@ -17,10 +17,15 @@ import { exampleInput, exampleNames } from "./vader-sources.ts";
 ensureCliBuilt();
 
 const SNAPSHOTS = join(import.meta.dir, "fixtures", "examples");
-// Examples no test runs: raylib opens a window. `raylib_sprite.test.ts` builds
-// this one natively instead.
-const WINDOWED = new Set(["raylib_sprite"]);
-const examples = exampleNames().filter((name) => !WINDOWED.has(name));
+// What runs for an example whose default program opens a window: nothing for
+// `raylib_sprite` (`raylib_examples.test.ts` builds it natively instead), the
+// `frames` entry for `raycaster`, which draws the game's views with no window
+// (`raycaster.test.ts` runs it natively against the same snapshot).
+const RUN_FLAGS: Record<string, string[] | null> = {
+  raylib_sprite: null,
+  raycaster: ["--entry=frames"],
+};
+const examples = exampleNames().filter((name) => RUN_FLAGS[name] !== null);
 
 test("examples: at least one discovered", () => {
   expect(examples.length).toBeGreaterThan(0);
@@ -30,7 +35,7 @@ for (const name of examples) {
   // LONG_BUILD: `brainfuck` imports `vader/vm`, so it loads about 40 modules
   // where the others load 12 (see `verify.test.ts`).
   test.concurrent(`example runs: ${name}`, async () => {
-    const r = await runCli(["run", exampleInput(name)], undefined, LONG_BUILD);
+    const r = await runCli(["run", ...(RUN_FLAGS[name] ?? []), exampleInput(name)], undefined, LONG_BUILD);
     const actual = formatRun(r.stdout, r.stderr, r.exit);
     const snap = snapshotEquals(SNAPSHOTS, `${name}.run.snapshot`, actual);
     if (!snap.ok) {

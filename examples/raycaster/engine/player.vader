@@ -1,0 +1,123 @@
+// examples/raycaster/engine/player: where the player stands, where they look,
+// and how they move through the level.
+//
+// The view is a direction and a camera plane at right angles to it, as in
+// Lode Vandevenne's raycasting tutorial: a screen column at `camera` in
+// `-1.0..=1.0` casts the ray `direction + plane * camera`, so the plane's length
+// sets the field of view. With `y` growing to the south, the plane points to the
+// player's right.
+
+module "engine"
+
+import "std/math"
+
+// Half the width of the camera plane: the tangent of half the field of view,
+// about 66 degrees in all.
+PLANE_LENGTH :: 0.66
+
+// How far the player's body reaches around their centre, in cells.
+BODY_RADIUS :: 0.22
+
+// How far ahead the player reaches for a door, in cells.
+REACH :: 1.2
+
+/// Where the player stands and looks.
+export Player :: struct {
+    x: f64
+    y: f64
+    /// The direction they face, a unit vector.
+    direction_x: f64
+    direction_y: f64
+    /// The camera plane, `PLANE_LENGTH` long, pointing to their right.
+    plane_x: f64
+    plane_y: f64
+}
+
+/// The player at `level`'s start, facing east.
+export new_player :: fn(level: Level) -> Player = Player {
+    .x = level.start_x,
+    .y = level.start_y,
+    .direction_x = 1.0,
+    .direction_y = 0.0,
+    .plane_x = 0.0,
+    .plane_y = PLANE_LENGTH,
+}
+
+/// Turn the player by `angle` radians; a positive angle turns right.
+export turn :: fn(player: Player, angle: f64) -> void {
+    cosine :: cos(angle)
+    sine :: sin(angle)
+    direction_x :: player.direction_x * cosine - player.direction_y * sine
+    player.direction_y = player.direction_x * sine + player.direction_y * cosine
+    player.direction_x = direction_x
+    plane_x :: player.plane_x * cosine - player.plane_y * sine
+    player.plane_y = player.plane_x * sine + player.plane_y * cosine
+    player.plane_x = plane_x
+}
+
+/// Move the player `forward` cells along their direction and `right` cells to
+/// their right, sliding along what blocks them: each axis moves only when the
+/// body fits there, so a wall met at an angle stops one axis and not the other.
+export walk :: fn(player: Player, level: Level, forward: f64, right: f64) -> void {
+    step_x :: player.direction_x * forward - player.direction_y * right
+    step_y :: player.direction_y * forward + player.direction_x * right
+    if level.is_free(player.x + step_x, player.y, BODY_RADIUS) {
+        player.x += step_x
+    }
+    if level.is_free(player.x, player.y + step_y, BODY_RADIUS) {
+        player.y += step_y
+    }
+}
+
+/// The door in front of the player, within reach, or `null` when none is.
+export door_ahead :: fn(player: Player, level: Level) -> Door | null {
+    cell_x :: i32(floor(player.x + player.direction_x * REACH))
+    cell_y :: i32(floor(player.y + player.direction_y * REACH))
+    return level.door_at(cell_x, cell_y)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_player_starts_facing_east :: fn() -> void {
+    player :: new_player(tiny())
+    assert_eq(player.direction_x, 1.0)
+    assert_eq(player.plane_y, PLANE_LENGTH)
+}
+
+@test
+test_player_turn_right_faces_south :: fn() -> void {
+    player :: new_player(tiny())
+    player.turn(pi / 2.0)
+    assert(abs(player.direction_y - 1.0) < 0.000001, "a quarter turn right faces south")
+    assert(abs(player.plane_x + PLANE_LENGTH) < 0.000001, "the plane follows, to the west")
+}
+
+@test
+test_player_walk_stops_at_a_wall :: fn() -> void {
+    level :: tiny()
+    player :: new_player(level)
+    player.walk(level, -2.0, 0.0)
+    assert_eq(player.x, 1.5)
+}
+
+@test
+test_player_walk_slides_along_a_wall :: fn() -> void {
+    level :: tiny()
+    player :: new_player(level)
+    // Backwards into the west wall and right into the open: only the south part moves.
+    player.walk(level, -0.4, 0.25)
+    assert_eq(player.x, 1.5)
+    assert_eq(player.y, 1.75)
+}
+
+@test
+test_player_door_ahead_finds_the_door :: fn() -> void {
+    level :: tiny()
+    player :: new_player(level)
+    player.x = 2.5
+    player.turn(pi / 2.0)
+    assert(player.door_ahead(level) != null, "the door is south of the player")
+}

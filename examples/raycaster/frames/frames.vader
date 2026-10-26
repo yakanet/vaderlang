@@ -1,0 +1,174 @@
+// examples/raycaster/frames: the raycaster without a window.
+//
+// Renders a scripted walk through the hangar, one frame per shot, and prints for
+// each a checksum of its pixels and a thumbnail in characters: the same program
+// under `vader run` and built natively must print the same thing, which makes it
+// a check that both backends draw the same frames. Given a folder, it also writes
+// each frame there as a PPM image.
+//
+//   vader run --entry=frames examples/raycaster
+//   vader run --entry=frames examples/raycaster /tmp/shots   # and the images
+
+module "frames"
+
+import "engine"
+import "images/ppm"
+import "std/io"
+import "std/numbers"
+import "std/path"
+import "std/string"
+import "std/string_builder"
+
+WIDTH: i32: 160
+HEIGHT: i32: 100
+
+/// Where the camera stands for one frame, and how far the doors are open.
+Shot :: struct {
+    x: f64
+    y: f64
+    /// Radians from east; a positive angle turns towards the south.
+    angle: f64
+    /// How far every door is open, `0.0` to `1.0`.
+    doors_open: f64 = 0.0
+    minimap: bool = false
+}
+
+SHOTS: Shot[]: [
+    Shot {
+        .x = 1.5,
+        .y = 1.5,
+        .angle = 0.3,
+        .minimap = true,
+    },
+    Shot {
+        .x = 7.5,
+        .y = 3.5,
+        .angle = 0.0,
+    },
+    Shot {
+        .x = 7.5,
+        .y = 3.5,
+        .angle = 0.0,
+        .doors_open = 0.6,
+    },
+    Shot {
+        .x = 12.5,
+        .y = 6.0,
+        .angle = 0.15,
+    },
+    Shot {
+        .x = 21.5,
+        .y = 9.5,
+        .angle = -1.9,
+    },
+    Shot {
+        .x = 5.5,
+        .y = 12.5,
+        .angle = -1.57,
+    },
+    Shot {
+        .x = 16.5,
+        .y = 13.5,
+        .angle = 1.0,
+    },
+    Shot {
+        .x = 28.5,
+        .y = 17.5,
+        .angle = -2.4,
+    },
+]
+
+// The characters a thumbnail is drawn with, darker to brighter.
+RAMP :: " .:-=+*#%@"
+
+main :: fn(argv: string[]) -> i32 {
+    out_dir :: argument_at(argv, 1)
+    level :: HANGAR
+    lights :: light_map(level)
+    frame :: new_frame(WIDTH, HEIGHT)
+    for index in 0..<SHOTS.len() {
+        shot :: SHOTS[index]
+        for door in level.doors {
+            door.open = shot.doors_open
+        }
+        player :: new_player(level)
+        player.x = shot.x
+        player.y = shot.y
+        player.turn(shot.angle)
+        render(frame, level, player, lights)
+        if shot.minimap {
+            draw_minimap(frame, level, player, 2)
+        }
+        where :: "at (${shot.x}, ${shot.y}), angle ${shot.angle}"
+        println("shot ${index + 1} ${where}: ${checksum(frame)}")
+        println(thumbnail(frame, 48, 14))
+        if out_dir != null {
+            path :: to_path(out_dir) / "shot_${index + 1}.ppm"
+            written :: write_ppm(frame, path.as_string())
+            if written is IOError {
+                eprintln("cannot write `${path.as_string()}`: ${written.message()}")
+                return 1
+            }
+        }
+    }
+    return 0
+}
+
+// The argument at `index`, or `null` when there are fewer.
+argument_at :: fn(argv: string[], index: i64) -> string | null {
+    if argv.len() > index {
+        return argv[index]
+    }
+    return null
+}
+
+// A hash of the frame's pixels, eight hexadecimal digits: FNV-1a's mix, a pixel
+// at a time.
+checksum :: fn(frame: Frame) -> string {
+    hash: u32 = 0x811C_9DC5
+    for pixel in frame.pixels {
+        hash = (hash ^ pixel) *% 0x0100_0193
+    }
+    return u64(hash).to_hex().pad_start(8, '0')
+}
+
+// The frame in `columns` by `rows` characters of `RAMP`, darker to brighter.
+thumbnail :: fn(frame: Frame, columns: i32, rows: i32) -> string {
+    out :: StringBuilder {}
+    shades :: u32(RAMP.len())
+    for row in 0..<rows {
+        y :: row * frame.height / rows + frame.height / (rows * 2)
+        for column in 0..<columns {
+            x :: column * frame.width / columns
+            [red, green, blue] :: channels(frame.pixels[i64(y * frame.width + x)])
+            brightness :: (red * 3 + green * 6 + blue) / 10
+            out.append_char(RAMP[i64(brightness * shades / 256)])
+        }
+        if row < rows - 1 {
+            out.append_char('\n')
+        }
+    }
+    return out.to_string()
+}
+
+// Write the frame as a binary PPM file.
+write_ppm :: fn(frame: Frame, path: string) -> null | IOError {
+    raster: u8[]: [] * i64(frame.width * frame.height * 3)
+    for pixel in frame.pixels {
+        [red, green, blue] :: channels(pixel)
+        raster.push(u8(red))
+        raster.push(u8(green))
+        raster.push(u8(blue))
+    }
+    image :: Ppm {
+        .width = u32(frame.width),
+        .height = u32(frame.height),
+        .maxval = 255,
+        .pixels = raster,
+    }
+    data :: encode(image)
+    if data is PpmError {
+        return IOError { .msg = data.msg }
+    }
+    return write_file_bytes(path, data)
+}

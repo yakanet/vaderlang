@@ -1,0 +1,421 @@
+// examples/raycaster/engine/level: the map, read from rows of text.
+//
+// A level is a grid of cells, one character each: walls, empty floor, doors,
+// the player's start and the things standing on the floor (`LEGEND` below). The
+// levels are text files under `assets/levels/`, read and checked when the
+// program is compiled (`load_level`): a level that does not parse stops the
+// build. Coordinates are in cells: the cell `(x, y)` covers `x..<x + 1` and
+// `y..<y + 1`, `x` growing to the east and `y` to the south, as the rows are
+// written.
+
+module "engine"
+
+import "std/abort"
+import "std/io"
+import "std/math"
+import "std/string"
+
+/// What a kind of cell is made of.
+export CellInfo :: struct {
+    /// The cell's texture in `WALL_TEXTURES`, `-1` for a cell with none.
+    texture: i32 = -1
+    /// Whether rays stop at it and bodies cannot enter it. A door is not solid:
+    /// how far it is open decides.
+    solid: bool = true
+    /// How many cells of height the texture spans: a wall shows it once per cell,
+    /// a door stretches it over its whole height.
+    texture_height: f64 = 1.0
+}
+
+/// What fills a cell of the map.
+export Cell :: enum(CellInfo) {
+    Empty      { .solid = false },
+    Door       { .texture = 0, .solid = false, .texture_height = WALL_HEIGHT },
+    Stone      { .texture = 1 },
+    Brick      { .texture = 2 },
+    Rust       { .texture = 3 },
+    Steel      { .texture = 4 },
+    Green      { .texture = 5 },
+    Red        { .texture = 6 },
+    Concrete   { .texture = 7 },
+    Corrugated { .texture = 8 },
+}
+
+/// Which way a door's panel lies across its cell. A panel sits halfway through
+/// the cell and slides along its own length.
+export DoorAxis :: enum {
+    /// The panel runs east to west, at `y + 0.5`: one walks through it north or south.
+    AlongX,
+    /// The panel runs north to south, at `x + 0.5`: one walks through it east or west.
+    AlongY,
+}
+
+/// A door, and how far it has slid open.
+export Door :: struct {
+    x: i32
+    y: i32
+    axis: DoorAxis
+    /// `0.0` closed, `1.0` fully open: the share of the panel slid into the wall.
+    open: f64 = 0.0
+    /// Whether the door is headed open rather than shut.
+    opening: bool = false
+}
+
+/// What a kind of thing looks like, and the light it sheds.
+export ThingInfo :: struct {
+    /// The thing's picture in `SPRITE_TEXTURES`.
+    sprite: i32
+    /// The light it sheds on the cells around it, per channel, as a share of
+    /// `FULL_LIGHT` added at its own cell's centre: `0.0` for none.
+    glow_red: f64 = 0.0
+    glow_green: f64 = 0.0
+    glow_blue: f64 = 0.0
+}
+
+/// What stands on the floor and is drawn as a sprite.
+export ThingKind :: enum(ThingInfo) {
+    Barrel      { .sprite = 0 },
+    Column      { .sprite = 1 },
+    LightColumn { .sprite = 2, .glow_red = 1.3, .glow_green = 1.1, .glow_blue = 0.4 },
+    Lamp        { .sprite = 3, .glow_red = 1.4, .glow_green = 1.35, .glow_blue = 1.2 },
+    Torch       { .sprite = 4, .glow_red = 0.25, .glow_green = 0.9, .glow_blue = 0.3 },
+}
+
+/// A sprite standing at the centre of its cell.
+export Thing :: struct {
+    x: f64
+    y: f64
+    kind: ThingKind
+}
+
+/// A parsed level: the grid, its doors, its things and where the player starts.
+export Level :: struct {
+    width: i32
+    height: i32
+    /// Row-major, `width * height` cells.
+    cells: Cell[]
+    doors: Door[]
+    /// Per cell, the index of its door in `doors`, `-1` for a cell that is not one.
+    door_index: i32[]
+    things: Thing[]
+    start_x: f64
+    start_y: f64
+}
+
+// Why a level's text was refused, and where.
+LevelError :: struct {
+    message: string
+    row: i32
+    column: i32
+}
+
+LevelError implements Display -> "level ${self.row + 1}:${self.column + 1}: ${self.message}"
+
+/// What each character of a level's text stands for.
+export LEGEND :: """
+    #  stone        b  brick        r  rusty plates   s  steel
+    g  green metal  x  red metal    c  concrete       z  corrugated steel
+    D  door         .  floor        @  player start, facing east
+    B  barrel       C  column       U  light column   L  lamp   T  torch
+    """
+
+// How far a thing reaches around its centre, in cells: bodies bump into it.
+THING_RADIUS :: 0.25
+
+// How far a door must be open for a body to pass it.
+DOOR_PASSABLE :: 0.9
+
+/// The level the examples walk through, read and checked when the program is
+/// compiled.
+export HANGAR: Level: @comptime load_level("../assets/levels/hangar.txt")
+
+// ---- reading --------------------------------------------------------------
+
+// Read the level in the text file at `path`, relative to this source file. A
+// file that is missing or does not parse stops the build, naming the file and why.
+load_level :: fn(path: string) -> Level {
+    text :: read_file_string(path)
+    if text is IOError {
+        panic("cannot read `${path}`: ${text.message()}")
+    }
+    rows: string[]: []
+    for line in text.split("\n") {
+        row :: line.right_trim()
+        if row.len() > 0 {
+            rows.push(row)
+        }
+    }
+    level :: parse_level(rows)
+    if level is LevelError {
+        panic("`${path}`: ${level}")
+    }
+    return level
+}
+
+// Read a level from its rows of text, one character per cell (`LEGEND`), north
+// to south. Refused when the rows differ in length, when a character is not in
+// `LEGEND`, when the border has a gap, when a door has no wall on either side,
+// or when there is not exactly one start.
+parse_level :: fn(rows: string[]) -> Level | LevelError {
+    if rows.len() == 0 {
+        return LevelError {
+            .message = "no rows",
+            .row = 0,
+            .column = 0,
+        }
+    }
+    width :: i32(rows[0].len())
+    height :: i32(rows.len())
+    cells: Cell[]: [] * i64(width * height)
+    things: Thing[]: []
+    starts: [i32, i32][]: []
+    for y in 0..<height {
+        row :: rows[i64(y)]
+        if i32(row.len()) != width {
+            return LevelError {
+                .message = "expected ${width} cells, got ${row.len()}",
+                .row = y,
+                .column = 0,
+            }
+        }
+        for x in 0..<width {
+            c :: row[i64(x)]
+            cell :: cell_of(c) ?? return LevelError {
+                .message = "unknown cell `${c}`",
+                .row = y,
+                .column = x,
+            }
+            cells.push(cell)
+            kind :: thing_of(c)
+            if kind != null {
+                things.push(Thing {
+                    .x = f64(x) + 0.5,
+                    .y = f64(y) + 0.5,
+                    .kind = kind,
+                })
+            }
+            if c == '@' {
+                starts.push([x, y])
+            }
+        }
+    }
+    if starts.len() != 1 {
+        return LevelError {
+            .message = "expected one player start, got ${starts.len()}",
+            .row = 0,
+            .column = 0,
+        }
+    }
+    level :: Level {
+        .width = width,
+        .height = height,
+        .cells = cells,
+        .doors = [],
+        .door_index = [-1] * i64(width * height),
+        .things = things,
+        .start_x = f64(starts[0].0) + 0.5,
+        .start_y = f64(starts[0].1) + 0.5,
+    }
+    gap :: border_gap(level)
+    if gap != null {
+        return gap
+    }
+    return place_doors(level)
+}
+
+// The cell a level character stands for, `null` for a character not in `LEGEND`.
+// A thing and the player's start stand on empty floor.
+cell_of :: fn(c: char) -> Cell | null = match c {
+    '#'                                     -> .Stone
+    'b'                                     -> .Brick
+    'r'                                     -> .Rust
+    's'                                     -> .Steel
+    'g'                                     -> .Green
+    'x'                                     -> .Red
+    'c'                                     -> .Concrete
+    'z'                                     -> .Corrugated
+    'D'                                     -> .Door
+    '.' | '@' | 'B' | 'C' | 'U' | 'L' | 'T' -> .Empty
+    _                                       -> null
+}
+
+// The thing a level character places, `null` for one that places none.
+thing_of :: fn(c: char) -> ThingKind | null = match c {
+    'B' -> .Barrel
+    'C' -> .Column
+    'U' -> .LightColumn
+    'L' -> .Lamp
+    'T' -> .Torch
+    _   -> null
+}
+
+// The first border cell that is not a wall: a ray must never leave the map.
+border_gap :: fn(level: Level) -> LevelError | null {
+    for y in 0..<level.height {
+        for x in 0..<level.width {
+            on_border :: x == 0 || y == 0 || x == level.width - 1 || y == level.height - 1
+            if on_border && !level.cell_at(x, y).solid {
+                return LevelError {
+                    .message = "the border must be wall",
+                    .row = y,
+                    .column = x,
+                }
+            }
+        }
+    }
+    return null
+}
+
+// Give every door cell its `Door`, its panel running between the two walls
+// that frame it.
+place_doors :: fn(level: Level) -> Level | LevelError {
+    for y in 0..<level.height {
+        for x in 0..<level.width {
+            if level.cell_at(x, y) != .Door {
+                continue
+            }
+            axis :: door_axis(level, x, y) ?? return LevelError {
+                .message = "a door needs a wall on two opposite sides",
+                .row = y,
+                .column = x,
+            }
+            level.door_index[level.index_of(x, y)] = i32(level.doors.len())
+            level.doors.push(Door {
+                .x = x,
+                .y = y,
+                .axis = axis,
+            })
+        }
+    }
+    return level
+}
+
+// How the door at `(x, y)` lies: between walls to its east and west, its
+// panel runs along x.
+door_axis :: fn(level: Level, x: i32, y: i32) -> DoorAxis | null {
+    if level.cell_at(x - 1, y).solid && level.cell_at(x + 1, y).solid {
+        return .AlongX
+    }
+    if level.cell_at(x, y - 1).solid && level.cell_at(x, y + 1).solid {
+        return .AlongY
+    }
+    return null
+}
+
+// ---- queries --------------------------------------------------------------
+
+// The index of cell `(x, y)` in `level.cells`.
+index_of :: fn(level: Level, x: i32, y: i32) -> i64 = i64(y * level.width + x)
+
+// The cell at `(x, y)`. Outside the map, every cell is stone.
+cell_at :: fn(level: Level, x: i32, y: i32) -> Cell {
+    if x < 0 || y < 0 || x >= level.width || y >= level.height {
+        return .Stone
+    }
+    return level.cells[level.index_of(x, y)]
+}
+
+// The door at `(x, y)`, or `null` when that cell holds none.
+door_at :: fn(level: Level, x: i32, y: i32) -> Door | null {
+    if level.cell_at(x, y) != .Door {
+        return null
+    }
+    return level.doors[i64(level.door_index[level.index_of(x, y)])]
+}
+
+// Whether a body reaching `radius` cells around `(x, y)` fits there: on floor,
+// in a door open enough to pass, and clear of every thing.
+is_free :: fn(level: Level, x: f64, y: f64, radius: f64) -> bool {
+    corners_free :: corner_free(level, x - radius, y - radius)
+        && corner_free(level, x + radius, y - radius)
+        && corner_free(level, x - radius, y + radius)
+        && corner_free(level, x + radius, y + radius)
+    if !corners_free {
+        return false
+    }
+    reach :: radius + THING_RADIUS
+    for thing in level.things {
+        offset_x :: thing.x - x
+        offset_y :: thing.y - y
+        if offset_x * offset_x + offset_y * offset_y < reach * reach {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether the point `(x, y)` lies on floor, or in a door open enough to pass.
+corner_free :: fn(level: Level, x: f64, y: f64) -> bool {
+    cell_x :: i32(floor(x))
+    cell_y :: i32(floor(y))
+    if level.cell_at(cell_x, cell_y).solid {
+        return false
+    }
+    door :: level.door_at(cell_x, cell_y)
+    return door == null || door.open >= DOOR_PASSABLE
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+TINY :: ["#####", "#@.B#", "##D##", "#...#", "#####"]
+
+tiny :: fn() -> Level {
+    level :: parse_level(TINY)
+    if level is LevelError {
+        panic("tiny level refused: ${level}")
+    }
+    return level
+}
+
+@test
+test_level_parse_finds_the_start :: fn() -> void {
+    level :: tiny()
+    assert_eq(level.start_x, 1.5)
+    assert_eq(level.start_y, 1.5)
+}
+
+@test
+test_level_parse_places_things_on_empty_floor :: fn() -> void {
+    level :: tiny()
+    assert_eq(level.things.len(), 1)
+    assert(level.cell_at(3, 1) == .Empty, "a barrel stands on floor")
+}
+
+@test
+test_level_door_between_walls_runs_along_x :: fn() -> void {
+    door :: tiny().door_at(2, 2)
+    assert(door != null && door.axis == .AlongX, "the door spans east to west")
+}
+
+@test
+test_level_parse_refuses_a_gap_in_the_border :: fn() -> void {
+    result :: parse_level(["###", "#@.", "###"])
+    assert(result is LevelError, "an open border is refused")
+}
+
+@test
+test_level_parse_refuses_ragged_rows :: fn() -> void {
+    result :: parse_level(["####", "#@#", "####"])
+    assert(result is LevelError, "rows of different lengths are refused")
+}
+
+@test
+test_level_outside_is_wall :: fn() -> void {
+    assert(tiny().cell_at(-1, 2).solid, "outside the map is wall")
+}
+
+@test
+test_level_is_free_blocks_walls_doors_and_things :: fn() -> void {
+    level :: tiny()
+    assert(level.is_free(1.5, 1.5, 0.2), "the start is free")
+    assert(!level.is_free(2.5, 2.5, 0.2), "a closed door blocks")
+    assert(!level.is_free(3.4, 1.5, 0.2), "a barrel blocks")
+    assert(!level.is_free(0.5, 1.5, 0.2), "a wall blocks")
+}
+
+@test
+test_level_hangar_is_read_by_the_build :: fn() -> void {
+    assert(HANGAR.doors.len() == 6, "the hangar has six doors")
+}

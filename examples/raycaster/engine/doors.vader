@@ -1,0 +1,60 @@
+// examples/raycaster/engine/doors: doors that slide open and shut over time.
+//
+// A door slides at `DOOR_SPEED` towards the end it is headed for: fully open
+// while `opening` holds, shut otherwise. It never shuts on the player: a door
+// whose cell the player's body overlaps stays where it is until they leave.
+
+module "engine"
+
+import "std/math"
+
+// How fast a door slides, in door lengths per second.
+DOOR_SPEED :: 1.6
+
+/// Send `door` the other way: open it if it is shut or shutting, shut it otherwise.
+export toggle :: fn(door: Door) -> void {
+    door.opening = !door.opening
+}
+
+/// Slide every door of `level` for `seconds` towards the end it is headed for.
+export update_doors :: fn(level: Level, player: Player, seconds: f64) -> void {
+    step :: DOOR_SPEED * seconds
+    for door in level.doors {
+        if door.opening {
+            door.open = min(door.open + step, 1.0)
+        } else if !overlaps(player, door) {
+            door.open = max(door.open - step, 0.0)
+        }
+    }
+}
+
+// Whether the player's body reaches into `door`'s cell.
+overlaps :: fn(player: Player, door: Door) -> bool =
+    abs(player.x - f64(door.x) - 0.5) < 0.5 + BODY_RADIUS
+    && abs(player.y - f64(door.y) - 0.5) < 0.5 + BODY_RADIUS
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_doors_open_over_time :: fn() -> void {
+    level :: tiny()
+    player :: new_player(level)
+    level.doors[0].toggle()
+    level.update_doors(player, 0.25)
+    assert_eq(level.doors[0].open, 0.4)
+    level.update_doors(player, 1.0)
+    assert_eq(level.doors[0].open, 1.0)
+}
+
+@test
+test_doors_do_not_shut_on_the_player :: fn() -> void {
+    level :: tiny()
+    player :: new_player(level)
+    level.doors[0].open = 1.0
+    player.x = 2.5
+    player.y = 2.5
+    level.update_doors(player, 1.0)
+    assert_eq(level.doors[0].open, 1.0)
+}

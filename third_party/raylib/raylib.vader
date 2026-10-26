@@ -62,6 +62,15 @@ export Vector3 :: struct {
     z: f32
 }
 
+/// A rectangle on the screen or in a texture, in pixels.
+@c_struct
+export Rectangle :: struct {
+    x: f32
+    y: f32
+    width: f32
+    height: f32
+}
+
 /// A texture in GPU memory. Read `width` and `height`; the rest is raylib's.
 @c_struct
 export Texture2D :: struct {
@@ -86,7 +95,18 @@ Image :: struct {
 }
 
 /// The keys this binding names, by their GLFW key codes, which raylib reuses.
+///
+/// A letter names a key by where it sits on a US keyboard, whatever the layout
+/// prints on it: `W` is the key an AZERTY keyboard labels Z.
 export KeyboardKey :: enum(i32) {
+    Space  = 32,
+    A      = 65,
+    D      = 68,
+    E      = 69,
+    M      = 77,
+    P      = 80,
+    S      = 83,
+    W      = 87,
     Escape = 256,
     Right  = 262,
     Left   = 263,
@@ -109,6 +129,14 @@ export WHITE :: Color {
     .r = 255,
     .g = 255,
     .b = 255,
+    .a = 255,
+}
+
+/// Opaque black.
+export BLACK :: Color {
+    .r = 0,
+    .g = 0,
+    .b = 0,
     .a = 255,
 }
 
@@ -142,6 +170,16 @@ export set_target_fps :: fn(fps: i32) -> void
 @extern(RAYLIB, "GetFrameTime")
 export get_frame_time :: fn() -> f32
 
+/// Save what the window shows as an image file, in the working directory: raylib
+/// keeps only the file name of `file_name`, and its extension picks the format.
+@extern(RAYLIB, "TakeScreenshot")
+export take_screenshot :: fn(file_name: string) -> void
+
+/// Hide the cursor and keep it in the window, so that the mouse turns the view
+/// instead of leaving it.
+@extern(RAYLIB, "DisableCursor")
+export disable_cursor :: fn() -> void
+
 // ---- drawing --------------------------------------------------------------
 
 /// Start a frame. Every draw call sits between this and `end_drawing`.
@@ -168,6 +206,9 @@ export draw_fps :: fn(x: i32, y: i32) -> void
 
 @extern(RAYLIB, "LoadImageFromMemory")
 load_image_from_memory :: fn(file_type: string, data: u8[], size: i32) -> Image
+
+@extern(RAYLIB, "GenImageColor")
+gen_image_color :: fn(width: i32, height: i32, color: Color) -> Image
 
 @extern(RAYLIB, "LoadTextureFromImage")
 load_texture_from_image :: fn(image: Image) -> Texture2D
@@ -201,6 +242,15 @@ export load_texture_from_memory :: fn(file_type: string, data: u8[]) -> Texture2
     return texture
 }
 
+/// A black texture of `width` by `height` pixels in GPU memory, in raylib's RGBA
+/// layout: `update_texture` then fills it with one RGBA pixel per `u32`.
+export load_blank_texture :: fn(width: i32, height: i32) -> Texture2D {
+    image :: gen_image_color(width, height, BLACK)
+    texture :: load_texture_from_image(image)
+    unload_image(image)
+    return texture
+}
+
 /// Release a texture's GPU memory.
 @extern(RAYLIB, "UnloadTexture")
 export unload_texture :: fn(texture: Texture2D) -> void
@@ -211,8 +261,38 @@ export unload_texture :: fn(texture: Texture2D) -> void
 @extern(RAYLIB, "DrawTextureV")
 export draw_texture_v :: fn(texture: Texture2D, position: Vector2, tint: Color) -> void
 
+/// Draw the part `source` of a texture into `target`, scaled to fit it.
+///
+/// @param origin    the point of `target` that `rotation` turns around, from its
+///                  top-left corner.
+/// @param rotation  in degrees, clockwise.
+/// @param tint      multiplied into every pixel; `WHITE` draws the texture as is.
+@extern(RAYLIB, "DrawTexturePro")
+export draw_texture_pro :: fn(
+    texture: Texture2D,
+    source: Rectangle,
+    target: Rectangle,
+    origin: Vector2,
+    rotation: f32,
+    tint: Color,
+) -> void
+
+/// Replace every pixel of a texture: `pixels` holds one RGBA pixel per `u32`,
+/// red in the low byte, row-major, `width * height` of them.
+@extern(RAYLIB, "UpdateTexture")
+export update_texture :: fn(texture: Texture2D, pixels: u32[]) -> void
+
 // ---- input ----------------------------------------------------------------
 
 /// Whether `key` is held down during this frame.
 @extern(RAYLIB, "IsKeyDown")
 export is_key_down :: fn(key: KeyboardKey) -> bool
+
+/// Whether `key` went down during this frame: once per press, however long it
+/// is held.
+@extern(RAYLIB, "IsKeyPressed")
+export is_key_pressed :: fn(key: KeyboardKey) -> bool
+
+/// How far the mouse moved since the last frame, in pixels.
+@extern(RAYLIB, "GetMouseDelta")
+export get_mouse_delta :: fn() -> Vector2
