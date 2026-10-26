@@ -810,18 +810,17 @@ library_open_shim :: fn(opener: string, name: CExpression) -> CStatement[] = [
 
 // The body of the `vader_host_*` shim for `imp`. A host `@intrinsic` routes to
 // its `vader_*` runtime helper by its IntrinsicId (classified from the mangled
-// name by `core/bytecode/intrinsic_manifest::intrinsic_id_for`, shared with the VM's
-// `dispatch_import`). Hosts the
-// VM serves but c-emit doesn't: string index_of/last_index_of, the primitive
-// Equals/Display (materialised as pure Vader natively), the extra std/math
-// overloads, plus non-intrinsics fall through to the @extern forwarder or to a
-// loud trap (compiler/runtime version skew). Exhaustive, so a new IntrinsicId
+// name by `core/bytecode/intrinsic_manifest::intrinsic_id_for`, shared with the
+// VM's `dispatch_import`). The hosts only the VM serves (string equality and the
+// primitive Equals/Display, which a native build reaches without a host call)
+// and non-intrinsics fall through to the @extern forwarder or to a loud trap
+// (compiler/runtime version skew). Exhaustive, so a new IntrinsicId
 // trips T3013 here.
 shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     a0 :: argument(0)
     a1 :: argument(1)
     match intrinsic_id_for(imp.mangled_name) {
-    // std/io: implemented by the runtime.
+    // std/abort: implemented by the runtime.
     .AbortPanic -> { return [perform("vader_panic", [a0])] }
 
     // std/string internals + std/core string intrinsics.
@@ -889,8 +888,8 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .TargetCurrentOs -> { return [returning("vader_current_os", [])] }
     .TargetCurrentArch -> { return [returning("vader_current_arch", [])] }
 
-    // Served by the VM only (primitive Equals/Display, surfaced there by erased
-    // virtual dispatch, materialised as pure Vader natively) plus non-intrinsics.
+    // Served by the VM only (string equality and the primitive Equals/Display; a
+    // native build reaches them without a host call) plus non-intrinsics.
     // Grouped so a new IntrinsicId variant trips T3013.
     .StringEquals | .PrimIntEquals | .PrimDisplayToString | .NotIntrinsic -> {}
     }

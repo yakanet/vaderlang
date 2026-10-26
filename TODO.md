@@ -300,21 +300,6 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
 
 ### Bytecode emit and dumps
 
-- [ ] **Stale comments in the bytecode types and elsewhere** (found 2026-10-25, while
-      writing `docs/RUNTIME.md`). Each says something the code no longer does:
-      - `vader/core/bytecode/types.vader`: a box of 24 bytes (it is 16), and a union tag
-        that is "the variant's position" (it is the index of the value's own type).
-      - `vader/core/bytecode/module.vader`: literals hoisted to static `vader_string_t`s
-        (they are atom ids written at each use).
-      - `vader/core/bytecode/intrinsic_manifest.vader`: section comments for hosts that
-        were removed; `vader/emit/c/host.vader`: `index_of` and math overloads.
-      - `vader/front/resolver/module.vader`: a test calls `vader.json`'s `includePaths`
-        the bridge that lets a seed-built binary resolve a renamed tree, but stage0
-        passes no project root and reads no manifest.
-      - `vader/bootstrap/bootstrap.vader`: a change to stage0's contract "forces a reseed
-        in the same commit", while `seed.sh regenerate` refuses to run until that
-        change is committed.
-
 - [ ] **The checked arithmetic ops should take the plain names** (noted 2026-10-14). What
       source `+`, `-`, `*` and unary `-` lower to is `<type>.checked_add`, `checked_sub`,
       `checked_mul`, `checked_neg`, while the plain `i32.add` / `i64.add` (`sub`, `mul`) wrap

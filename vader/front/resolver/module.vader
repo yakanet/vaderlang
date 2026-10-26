@@ -562,9 +562,7 @@ test_read_manifest_reads_repo_include_paths :: fn() -> void {
     // Tests run with the repo root as cwd, so `""` joins to `"vader.json"`.
     // The Vader repo declares its library root via `"includePaths": ["lib"]`:
     // guards against a renamed key or a regressed parse silently dropping the
-    // search roots (which would break every `std/*` import). It is also the
-    // BRIDGE that lets a seed-built binary, whose sidecar probe is baked to the
-    // previous layout, resolve against a renamed tree; see docs/BOOTSTRAP.md.
+    // search roots (which would break every `std/*` import).
     m :: read_manifest("")
     assert(m.include_paths.len() > 0, "repo manifest lists includePaths")
     found_lib := false

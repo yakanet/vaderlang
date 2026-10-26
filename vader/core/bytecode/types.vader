@@ -316,7 +316,7 @@ export array_kind_index :: fn(k: ArrayKind) -> i32 = match k {
 }
 
 /// Byte width per slot of a primitive array kind. `Boxed` is the size
-/// of `vader_box_t` (24 B) on native but pool entries never use it ;
+/// of `vader_box_t` (16 B) on native but pool entries never use it ;
 /// returns 0 for `Boxed` so callers can guard.
 /// @param k  the storage discriminator.
 /// @return   the per-slot byte width (1, 2, 4, 8), or `0` for `Boxed`.
@@ -570,10 +570,10 @@ export BcArray :: struct {
     element: i32
 }
 
-/// Tagged union of variants. Each variant is a type-index ; the
-/// runtime tag is the variant's position in `variants`, and the
-/// payload slot is wide enough for the largest variant. Used by
-/// `type_check`'s recursive variant matching (`is T` patterns).
+/// Tagged union of variants. Each variant is a type-index ; a value
+/// in the union carries the index of its own type, never the
+/// variant's position, and `type_check` tests it against each
+/// variant (`is T` patterns).
 export BcUnion :: struct {
     variants: i32[]
 }
@@ -686,7 +686,7 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
 /// A concrete heap ref (struct/array/fn), and a union of only such refs
 /// or `null` (`Expr[]`, `T | null`): stores as a raw `void*` slot (`.Ref`, 8 B),
 /// the tag recovered from each referent's header on read. A `BcRef` (erased trait,
-/// may box a scalar) and a mixed / scalar-bearing union stay `Boxed` (24 B).
+/// may box a scalar) and a mixed / scalar-bearing union stay `Boxed` (16 B).
 /// Access sites runtime-dispatch on `buf->element_kind` because the SAME array type
 /// is constructed `Ref` at a concrete site but `Boxed` in erased generic code.
 ///

@@ -281,8 +281,8 @@ export VtableRow :: struct {
 /// - `types`: the type table. Indices referenced by `struct.*`,
 ///                `array.*`, `type_check`, `ref.cast`, and `BcSignature`.
 /// - `strings`: interned string-literal pool. `string.const N` reads
-///                this directly ; the C-emit hoists each entry to a
-///                static `vader_string_t`.
+///                this directly ; the C-emit writes each use as the
+///                entry's atom id.
 /// - `data_pool`: pre-materialised primitive arrays. `data.const N` op
 ///                references entries here ; the C-emit lowers each into
 ///                a `.rodata` block.

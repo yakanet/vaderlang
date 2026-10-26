@@ -106,13 +106,11 @@ export IntrinsicId :: enum(u8) {
     RuntimeCollect, RuntimeCollections, RuntimeBytesUsed, RuntimeBytesCopied,
     // std/runtime: cooperative async scheduler (std/async backend)
     SchedNow, SchedArm, SchedPark,
-    // std/process: non-blocking subprocess (backs spawn_async ; spawn = block_on)
-    // std/tty + std/env + std/abort
+    // std/abort
     AbortPanic,
     // std/target: the OS the process is RUNNING on, not the one it was built
     // for. `VADER_OS` answers the latter and is a baked constant, not a host.
     TargetCurrentOs, TargetCurrentArch,
-    // std/tty raw mode: what `cli/prompt` reads keys through
     // vader/vm: dynamic foreign calls, the VM's answer to `@extern`. NOT in
     // `std/`: they amount to running arbitrary native code.
     FfiOpen, FfiOpenPath, FfiSymbol, FfiCall, FfiCallFrame,

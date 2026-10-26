@@ -43,7 +43,8 @@ import "vader/pipeline"
 ///
 /// The argv shape and the file layout (`write_split_c`) are a FROZEN contract:
 /// the build scripts evolve with the tree but drive the stage0 of an older,
-/// committed seed. Changing either forces a reseed in the same commit.
+/// committed seed. Changing either forces a reseed: `seed.sh regenerate` once the
+/// change is committed, the new seed committed right after.
 ///
 /// The prefix's DIRECTORY must exist: the caller creates it. Nothing here
 /// mkdir's, so a typo fails as a write error rather than scattering a tree.
