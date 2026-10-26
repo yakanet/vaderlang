@@ -12,7 +12,8 @@
 // Keys go by position: W A S D (Z Q S D on an AZERTY keyboard), Up and Down to
 // move, the mouse, Left and Right to turn, the left button or Ctrl to fire, E or
 // Space for the door ahead, M for the map, P to save the view as `raycaster.png`
-// in the working directory, Enter to start again once fallen, Escape to leave.
+// in the working directory, Enter to start again once fallen or once every
+// zombie is down, Escape to leave.
 // `frames/` is the same engine without a window.
 
 module "main"
@@ -98,7 +99,8 @@ main :: fn() -> i32 {
                     door.toggle(noises)
                 }
             }
-        } else if is_key_pressed(.Enter) {
+        }
+        if is_over(level, player) && is_key_pressed(.Enter) {
             game = new_game()
             continue
         }
@@ -157,10 +159,14 @@ draw_hud :: fn(level: Level, player: Player) -> void {
     draw_text(HELP, 16, height - 26, 20, RAYWHITE)
     if player.health <= 0 {
         draw_centred("YOU FELL. Enter: start again", height / 2 - 20, 40)
-    } else if level.standing() == 0 {
-        draw_centred("THE HANGAR IS CLEAR", height / 2 - 20, 40)
+    } else if level.cleared() {
+        draw_centred("YOU WIN", height / 2 - 60, 80)
+        draw_centred("The hangar is clear. Enter: play again", height / 2 + 30, 30)
     }
 }
+
+// Whether the game has ended: the player fell, or no zombie still stands.
+is_over :: fn(level: Level, player: Player) -> bool = player.health <= 0 || level.cleared()
 
 // Draw `text` centred across the window, its top at `y`.
 draw_centred :: fn(text: string, y: i32, size: i32) -> void {
