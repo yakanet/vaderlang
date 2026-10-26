@@ -20,8 +20,10 @@ import "vader/lower/ir"
 
 // ---- chain fusion ---------------------------------------------------------
 
-// One layer of a fusible iterator chain. The two bottoms are `Range`
-// (an integer-typed `RangeExpr`) and `Array` (a bare array or `arr.into()`) ;
+// One layer of a fusible iterator chain. The bottoms are `Range` (an
+// integer-typed `RangeExpr`), `Array` (a bare array or `arr.into()`),
+// `GenSource` (a generator call whose body is inlined) and `OpaqueIter` (a
+// concrete iterator struct) ;
 // a `Generator` layer wraps a `source` layer with an inlined `generator`
 // combinator body (map / filter / take / skip). Non-int ranges,
 // runtime-bound chains, etc fall back to the generic slow path.
@@ -63,8 +65,8 @@ IterChain :: struct {
     gen_layer:    GenComboLayer | null = null
     // GenSource bottom: the generator call whose body is inlined.
     gen_source:   GenSourceCall | null = null
-    // OpaqueIter bottom: the `Iterator`-typed receiver expression iterated via a
-    // virtual `next()` loop. Defaulted ; set only by `mk_opaque_iter_chain`.
+    // OpaqueIter bottom: a concrete iterator struct, stepped through its own
+    // `next()`. Defaulted ; set only by `mk_opaque_iter_chain`.
     iter_expr:    AST.Expr | null = null
     span:         Span
     // The operands the loops read, each evaluated once ahead of them by
@@ -76,8 +78,8 @@ IterChain :: struct {
     bound_source: LoweredExpr | null = null
 }
 
-// Build an `OpaqueIter` chain bottom over an `Iterator`-typed receiver, iterated
-// through the virtual `next()` vtable path (see `emit_fused_opaque_iter`).
+// Build an `OpaqueIter` chain bottom over a concrete iterator struct, stepped
+// through its own `next()` (see `emit_fused_opaque_iter`).
 mk_opaque_iter_chain :: fn(iter_expr: AST.Expr, elem: Type, span: Span) -> IterChain = IterChain {
     .kind = .OpaqueIter,
     .range_lower = null, .range_upper = null, .inclusive = false,

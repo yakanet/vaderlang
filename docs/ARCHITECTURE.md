@@ -1,8 +1,8 @@
 # Compiler architecture
 
-How the Vader compiler turns source into a running program. The language itself is
-described in [`SPEC.md`](../SPEC.md); this document covers the implementation and
-may change without the language changing.
+How the Vader compiler turns source into a running program. The language is in
+[`SPEC.md`](../SPEC.md); this document covers the implementation, which may change
+without the language changing.
 
 ## Pipeline
 
@@ -26,25 +26,39 @@ flowchart TD
 | Stage | Directory | Output |
 |---|---|---|
 | Lexer | `vader/front/lexer/` | tokens |
-| Parser | `vader/front/parser/` | AST, never mutated afterwards |
+| Parser | `vader/front/parser/` | AST |
 | Resolver | `vader/front/resolver/` | names bound to declarations, imports collected |
 | Type checker | `vader/front/typecheck/` | types, narrowing, trait resolution |
 | Comptime | `vader/front/comptime/`, `vader/pipeline/comptime_vm/` | `@comptime` values, generic struct instances |
 | Lowerer | `vader/lower/` | lowered AST (`vader/lower/ir/`), generic instances materialised |
-| Dead-code elimination | `vader/lower/dce/` | functions unreachable from the roots removed |
+| Dead-code elimination | `vader/lower/dce/` | unreachable functions removed |
 | Mid-IR | `vader/midir/` | CFG, escape analysis, range analysis |
-| Bytecode emitter | `vader/emit/bytecode/` | stack-based bytecode, whose format is `vader/core/bytecode/` |
+| Bytecode emitter | `vader/emit/bytecode/` | stack-based bytecode (format: `vader/core/bytecode/`) |
 | `.virt` text | `vader/emit/virt/`, `vader/front/virt/` | the bytecode written as text, and read back |
 | VM | `vader/vm/` | runs the bytecode |
-| C emitter | `vader/emit/c/` | one C file per module (`--split`) or one for the program |
+| C emitter | `vader/emit/c/` | one C file per module, or one under `--no-split` |
 
 The stack-based bytecode is the canonical IR: the VM runs it, the C emitter
-translates it, and it maps one to one to WebAssembly. How a running program holds
-its values and its memory, natively and on the VM, is described in
-[`RUNTIME.md`](RUNTIME.md).
+translates it, and it maps one to one to WebAssembly. [`RUNTIME.md`](RUNTIME.md)
+describes the values and memory of a running program.
 
-Every stage can be dumped with `vader dump --stage=<name>`. The resolver is shared
-with the LSP (`vader/tools/lsp/`) and the formatter (`vader/tools/fmt/`).
+`vader dump --stage=<name>` prints any stage; `vader run` and `vader build` accept
+a `.virt` file, the whole program after monomorphization without source
+positions. The LSP (`vader/tools/lsp/`) and the formatter (`vader/tools/fmt/`)
+share the resolver; `vader/support/diagnostics/codes.vader` holds every phase's
+diagnostic codes.
+
+Before the type checker, the loader keeps one body per `@target` group
+(`vader/front/resolver/target_select.vader`), so a body for another target is never
+type-checked, and the resolver fills each impl from its trait
+(`vader/front/resolver/impl_members.vader`): the method a short impl stands for,
+plus a clone of each default method it does not override, with `Self` and the
+trait's parameters substituted.
+
+A project's `build.vader` drives the same pipeline through `toolchain/build`
+(`lib/toolchain/build/drive.vader`): per generation round the front end runs once,
+the driver reads each module's typed declarations and phase boundaries from that
+run, which the back end lowers.
 
 ## Lexer: interpolated strings
 
@@ -54,163 +68,211 @@ The lexer emits a flat token stream for an interpolated string:
 STRING_BEGIN  STRING_PART("foo ")  INTERP_OPEN  <expression tokens>  INTERP_CLOSE  STRING_PART(" bar")  STRING_END
 ```
 
-`STRING_PART` carries decoded text. Between `INTERP_OPEN` and `INTERP_CLOSE` the
-lexer emits ordinary tokens. A stack of modes (string or interpolation) handles
-nesting. A raw string emits `STRING_BEGIN`, a single `STRING_PART` with its contents
-as written, and `STRING_END`.
+`STRING_PART` carries decoded text, ordinary tokens come between `INTERP_OPEN` and
+`INTERP_CLOSE`, and a stack of string and interpolation modes handles nesting. A
+raw string is `STRING_BEGIN`, one `STRING_PART` as written, and `STRING_END`.
 
-The lexer drops comments. Tools that need doc blocks re-scan the source.
+The lexer drops comments; tools that need doc blocks re-scan the source.
 
 ## Comptime engine
 
-`@comptime` values are evaluated by a tree-walking interpreter
-(`vader/front/comptime/`) for the common case: expressions, and calls to functions
-whose body is a single `return <expr>` or trailing expression. A declaration it
-cannot evaluate (a loop, a statement body, local mutation) is compiled to bytecode
-and run by the embedded VM (`vader/pipeline/comptime_vm`). The result is converted
-back to a comptime value.
+A tree-walking interpreter (`vader/front/comptime/`) evaluates expressions and calls
+to functions whose body is a single `return <expr>` or trailing expression. A
+declaration it cannot evaluate (a loop, a statement body, local mutation) runs as
+bytecode on the embedded VM (`vader/pipeline/comptime_vm`), and its result becomes
+a comptime value.
 
-A step budget stops loops that do not terminate. Running out of it, like any VM
-trap, is reported as a comptime evaluation error (`C4002`). A shape neither engine
-can evaluate is `C4001`.
+The parser wraps every `@comptime` value other than a call without arguments in a
+function without parameters, which the constant calls: the comptime VM runs such
+calls.
 
-Inside the compiler's own tree, a `@comptime` value must not depend on the clock or
-the environment, or the fixed-point check fails (*Self-hosting and bootstrap*). The
-language does not impose this on other programs.
+It also folds the constants without `@comptime` it can evaluate, for the lowerer to
+inline their scalar uses; the others reach the lowerer as written, without error.
+
+A step budget stops a loop that does not terminate; running out of it is, like any
+VM trap, a comptime evaluation error.
+
+The compiler's own tree, unlike other programs, must keep its `@comptime` values
+free of the clock and the environment, or the fixed-point check fails
+(*Self-hosting and bootstrap*).
 
 ## Monomorphization
 
 The comptime pass records the generic struct instances the typed program names. The
-lowerer materialises them, then discovers each generic function instance while it
-lowers the bodies that call it, until no new instance appears. A recursion that
-would grow its type argument forever is rejected before that (`T3104`).
+lowerer materialises them, then discovers each generic function instance while
+lowering its callers, until no new instance appears. The type checker has already
+rejected a recursion whose type argument would grow forever
+(`vader/front/typecheck/growing_recursion.vader`).
 
 After lowering, every `Struct<args>` names an emitted declaration and every generic
-call names the instance that serves it. No later stage sees an unbound type
-parameter.
+call its instance: no later stage sees an unbound type parameter.
 
 ### Instance flavors
 
-Cloning every instance would multiply identical bodies: a `List<T>` used at ten
-reference types would emit ten copies of the same pointer code. Each
-`(declaration, type arguments)` instance gets one of three flavors instead. The
-split depends on whether a type argument is a primitive value type or a reference
-type.
+So that identical bodies are emitted once, each `(declaration, type arguments)`
+instance gets one of three flavors, by whether its type arguments are primitive
+value types or reference types:
 
 - **Primitive value types**: the fixed-width integers, `f32`, `f64`, `bool`, `char`,
   `string`, an integer range, an enum, and a distinct type over any of these.
-- **Reference types**: structs, arrays, tuples, closures. At run time they are all
-  a uniform pointer.
+- **Reference types**: structs, arrays, tuples, closures, all a uniform pointer at
+  run time.
 
 | Flavor | When | Representation |
 |---|---|---|
-| **Mono** | a free function that dispatches a trait method on a type parameter, or returns a `T[]` | one body per instance, fully substituted (`second__i32`) |
-| **Mixed** | at least one type argument is primitive | primitives stay concrete and unboxed (`Box<i64>` stores a raw `i64`); references are erased. One body per primitive shape (`Box__i64`, `Box__f32`) |
-| **Erased** | every type argument is a reference type | every type parameter becomes the uniform pointer (`Any`). Identical erased instances share one body; a trait call dispatches at run time on the value's tag |
+| **Mono** | a free function whose code depends on the concrete type of a type parameter | one fully substituted body per instance (`second__i32`) |
+| **Mixed** | at least one type argument is primitive | primitives stay concrete and unboxed (`Box<i64>` stores a raw `i64`), references are erased; one body per primitive shape (`Box__i64`, `Box__f32`) |
+| **Erased** | every type argument is a reference type | every type parameter becomes the uniform pointer (`Any`); identical instances share one body, and a trait call dispatches on the value's tag |
 
-Since the split follows from the type arguments, no declaration needs an
-annotation to be specialised.
+The erased instances of a generic struct share one body and one tag: nothing in a
+value tells `Box<Foo>` from `Box<Bar>`, and the type checker refuses a type test,
+or an `==` on a union, that would need to.
 
-The classifier is `fn_instance_flavor` in `vader/lower/mono_fn.vader`. Struct layout
-and impl materialisation follow the same split in `vader/lower/mono_struct.vader`
-and `vader/lower/subst.vader`.
+The classifier is `fn_instance_flavor` (`vader/lower/mono_fn.vader`); struct layout
+and impl materialisation follow the same split (`vader/lower/mono_struct.vader`,
+`vader/lower/subst.vader`).
 
 ## Lowered AST
 
-The lowerer reads the typed AST and builds a separate, smaller AST of primitive
-operations. The typed AST is never mutated. That lowered AST, its walks and its
-self-check are `vader/lower/ir/`, which DCE, the CFG core and the emitters read
-without the lowerer; its `vader dump --stage=lowered-ast` text is `vader/lower/dump/`.
-The passes the lowerer runs over its own output are `vader/lower/optimise/`: arrays
-created at the size a counted loop fills them to, pushes marked when their loop can
-keep the array's state in locals (with the purity analysis that proves it safe),
-and calls through a fn-value local made direct.
+The lowerer builds, from the typed AST it never mutates, a separate, smaller AST of
+primitive operations (`vader/lower/ir/`) that later stages read without the
+lowerer; `vader/lower/optimise/` holds its rewrites of that output,
+`vader/lower/dump/` the `vader dump --stage=lowered-ast` text.
+
+The lowerer does not choose a callee again: it follows the type checker's record of
+each call site's callee, operators and indexing included, and of each `Into`
+conversion (`vader/front/typecheck/call_sites.vader`,
+`vader/lower/recorded_callee.vader`), inserting the `into()` calls. Only a site the
+record leaves open (a call through a fn value, a member settled per instance) takes
+the lowerer's own route.
 
 - **`match`**: each arm becomes a guarded `if` on the pattern's discriminator (type
-  tag, struct shape, literal equality) and its optional guard. The `match x :: e`
-  binder becomes a local before the arms; struct patterns bind locals at the head of
-  the arm. There is no decision-tree compilation.
-- **String interpolation**: one string build, through the `std/core` byte-buffer
-  API, or the shared `concat_N` when no segment is an integer or a `bool`. Other
-  segments render through `Display.to_string`, called directly when the impl is
-  known.
-- **`defer`**: each body becomes a closure over the locals it captures (a captured
-  local that an assignment rebinds moves to a heap cell). The statement pushes it
-  on the defer stack (`defer.push`), and each block exit runs the closures
-  registered since the block was entered, last in first out (`defer.pop_exec N`).
-  In an async coroutine the stack lives in the coroutine frame and survives a
-  suspension.
+  tag, struct shape, literal equality) and its optional guard. There is no
+  decision-tree compilation.
+- **String interpolation**: one string build through the `std/core` byte-buffer
+  API; a segment other than a string, an integer or a `bool` renders through
+  `Display.to_string`.
+- **`defer`**: each body becomes a closure over its captured locals, pushed on the
+  defer stack (`defer.push`); each block exit runs, last in first out, the
+  closures registered since its entry (`defer.pop_exec N`). The stack:
+  [`RUNTIME.md`](RUNTIME.md) *Traps and defer*.
 - **Trait calls**: a call on a receiver of concrete type calls that type's impl
-  member directly. A call on a trait-typed value, or on the receiver of an erased
-  instance, goes through a vtable (`virtual.call`) filled with the impl members that
-  take `self`.
+  member; one on a trait-typed value, or on an erased instance's receiver, goes
+  through a vtable (`virtual.call`) of the impl members that take `self`.
+- **Operators**: an operator on a non-primitive type calls its trait member
+  (`a < b` becomes `compare(a, b) < 0`). `==` on a tuple or a union, which have no
+  `Equals` impl, compares part by part (`vader/lower/value_eq.vader`).
+- **`for`**: a fused chain, a range written in place or an array becomes a plain
+  loop (`vader/lower/for_in.vader`); any other loop calls `next()` until
+  `Continuation.Stop`, after the recorded `into()` for a value that only converts
+  into an iterator.
+- **Iterator fusion**: a `for` over a chain of generator calls
+  (`(0..<n).map(f).filter(p)`) becomes one loop, with no iterator object and no
+  intermediate array (`vader/lower/iter_fusion.vader`). A generator's role comes
+  from the shape of its body, never from its name: one whose loops iterate its
+  source parameter is a layer over the source beneath it, any other a source. A
+  function that drains an `Iterator<T>` parameter with one `for`, a user function
+  as much as `collect`, is inlined where its argument fuses. A chain stored,
+  returned or passed to a function not inlined runs as real iterators.
+- **Generators and `async`**: each becomes a state machine
+  (`vader/lower/coroutine.vader`): the function returns a fresh struct holding its
+  parameters, its locals and the state to resume at, which `Iterator.next`
+  (`vader/lower/generator.vader`) or `Async.resume` (`vader/lower/async.vader`)
+  resumes.
+- **Reflection**: the reflection intrinsics (`@size_of`, `@type_name`, ...) fold to
+  literals on a type known at lowering (in a generic body, the instance's types),
+  and `@fields(T)` to an array literal of `Field` (`vader/lower/intrinsic.vader`).
+  `@comptime for` unrolls over an array literal, one copy of the body per element.
 
 ## Dead-code elimination
 
-Between the lowerer and the CFG, DCE drops the functions that are not reachable from
-the roots. Structs and constants are kept. The roots are `main`, every function
-with `@export` or `@extern` or without a body, the `@test` functions in a test build,
-and every function of the entry module when the program has no `main`. A call
-through a vtable keeps every impl member that can fill that slot.
+DCE drops the functions unreachable from the roots, keeping structs and constants.
+The roots are `main`, every function with `@export` or `@extern` or without a body,
+the `@test` functions in a test build, and every function of the entry module when
+the program has no `main`. A call through a vtable keeps every impl member that can
+fill that slot.
 
 ## Mid-IR (CFG)
 
-Each lowered function becomes a reducible CFG of basic blocks over typed locals.
-[`MID_IR.md`](MID_IR.md) describes the Mid-IR as a language.
-
-`vader/midir/` holds the CFG, its construction from the lowered AST, its verifier
-and the call graph. The passes over it are sub-modules that import it. They run in
-this order, and `vader build --verify` checks the CFG after each:
+Each lowered function becomes a reducible CFG of basic blocks over typed locals
+([`MID_IR.md`](MID_IR.md) describes it as a language). `vader/midir/` holds the
+CFG, its construction, its verifier and the call graph; its passes, sub-modules
+importing it, run in this order, and `vader build --verify` checks the CFG after
+each:
 
 1. `value_return/`: a function returning a small tuple, or an `S | null` built at
-   every `return`, hands back the elements as separate values; a read of a field of
-   a freshly built tuple becomes a copy of the value it was built from;
-2. `optimise/`: moves are folded and the locals nothing reads are dropped;
+   every `return`, hands back the elements as separate values;
+2. `optimise/`: folds moves and drops the locals nothing reads;
 3. `optimise/`, escape analysis: in a native build, a struct that cannot outlive its
-   function is placed on the stack. An allocation made in a loop and still live when
-   the next iteration starts counts as escaping;
-4. `optimise/`: a repeated read of the same array element within a block becomes a
-   copy;
-5. `ranges/`, range analysis: it tracks integer intervals and array lengths, and in a
-   release native build marks the index checks it proves useless, which the C
-   emitter drops.
+   function is placed on the stack;
+4. `optimise/`: a repeated read of an array element within a block becomes a copy;
+5. `ranges/`, range analysis: tracks integer intervals and array lengths and, in a
+   release native build, marks the index checks it proves useless for the C emitter
+   to drop.
 
-`vader/midir/pipeline/` runs them in that order, for every path that emits bytecode:
-the build, `vader run`, the dumps, the bootstrap entry and the comptime VM. The
-comptime VM skips `value_return/`: it calls a staged function as the outermost
-frame, where a multi-value return cannot land.
+`vader/midir/pipeline/` runs them on every path that emits bytecode; the comptime
+VM skips `value_return/`. Below the passes, `select/` maps types to bytecode value
+types and operations to ops.
 
-Below the passes, `select/` maps a type to the value type the bytecode holds it as, and an
-operation to its op.
-
-The bytecode emitter reads the CFG and recovers structured nesting, placing each
-block once by dominator tree ([ADR 0027](adr/0027-the-structurer-places-each-block-once-by-dominator-tree.md)).
+The bytecode emitter recovers structured nesting from the CFG, placing each block
+once by dominator tree ([ADR 0027](adr/0027-the-structurer-places-each-block-once-by-dominator-tree.md)).
 
 ## Intrinsics
 
-A function without a body must carry `@intrinsic` or `@extern` (`T3062`). At
-bytecode emission, the compiler checks that every host import other than `@extern`
-is wired: its mangled name is known to the intrinsic manifest (`intrinsic_id_for` in
-`vader/core/bytecode/intrinsic_manifest.vader`) or maps to a dedicated op. The VM and
-the C backend each match on the manifest exhaustively, so a new intrinsic must be
-handled by both. An unwired host fails the build instead of reaching run time as an
-unbound `call.import`.
+A function without a body is an `@intrinsic` or an `@extern` (SPEC §12). Bytecode
+emission fails the build on a host import, other than an `@extern`, whose mangled
+name is neither in the intrinsic manifest
+(`vader/core/bytecode/intrinsic_manifest.vader`) nor mapped to a dedicated op, so
+no unbound `call.import` reaches run time. The VM and the C backend each match on
+the manifest exhaustively: both must handle a new intrinsic.
 
-`@intrinsic` on an impl (`string implements Hash`) makes the compiler create one
+`@intrinsic` on an impl (`string implements Hash`) makes the resolver create one
 bodiless function per trait method, mangled `<module>$<type>$<trait>$<method>`.
+For some, the bytecode emitter recognises that name (`std_core$i32$Add$add`) and
+emits a dedicated op (`i32.add`), so `a + b` and `a.add(b)` take the same path.
 
-Some intrinsic impl methods are op-level: the bytecode emitter recognises the
-mangled name (`std_core$i32$Add$add`) and emits a dedicated op (`i32.add`), so
-`a + b` and `a.add(b)` take the same path.
+## Foreign calls
+
+An `@extern` declaration becomes a host import of the bytecode, which each backend
+binds its own way.
+
+**Native build.** For each `@extern`, the C emitter writes a shim,
+`vader_host_<mangled>` (`vader/emit/c/host.vader`), reached by the import's
+`call.import`. It converts the values from the representations of
+[`RUNTIME.md`](RUNTIME.md) to what SPEC §13 *Allowed signature types* says crosses,
+and calls the foreign symbol, declared by the header that `@c_header` or the
+`CLibrary` names, else by an `extern` synthesised from the Vader signature. A
+`@c_struct` mirror is copied field by field, by name, into a real C struct, so `cc`
+takes every offset from the header.
+
+`_Static_assert` lines in the generated C pin each mirrored field's width, offset
+and, for an integer, signedness to the C field of that name, and each `@c_type` to
+an integer as wide as the Vader one: `cc` checks what the declarations assume of
+the headers, at no run-time cost.
+
+A named function passed as a callback reaches C as its own symbol (`fn.addr`).
+Each `CLibrary`'s shims go in their own C unit, with that library's headers only,
+so two libraries whose headers declare the same names bind in one program.
+
+**`vader run`.** The VM calls an `@extern` dynamically (`runtime/c/vader_ffi.h`),
+opening the library, looking the symbol up and calling it through a trampoline per
+signature shape. It reads no header: a mirror lent by address is laid out from its
+Vader fields at natural alignment (`vader/core/bytecode/c_layout.vader`), which the
+native asserts check against C. A call no trampoline covers
+(`vader/vm/adapters.vader`) goes through a C adapter
+(`vader/emit/c/adapters.vader`), compiled by `cc` with the same asserts before the
+program starts (`vader/pipeline/ffi_adapters.vader`). An import taking a callback
+is never adapted: the VM traps on its `fn.addr` first.
 
 ## Self-hosting and bootstrap
 
-The compiler is written in Vader and compiles itself. Every stage of the native
-pipeline is self-hosted; only the WebAssembly emitter does not exist yet.
+The compiler is written in Vader and compiles itself, every stage of the native
+pipeline included; only the WebAssembly emitter does not exist yet.
 
-The compiler is at a fixed point: built by itself, it emits the same C as the
-compiler that built it, byte for byte. A committed C seed (`bootstrap/seed/`) rebuilds
-the toolchain on any machine with a C compiler (`bootstrap/build.sh`). CI checks the
-fixed point from the seed on every push to `main` and every pull request
-(`bootstrap/verify.sh`). The native CLI is the only compiler, and the snapshot tests
-use it as the oracle for every stage. Details: [`BOOTSTRAP.md`](BOOTSTRAP.md).
+It is at a fixed point: built by itself, it emits the same C as the compiler that
+built it, byte for byte. Its output must depend on the sources' content alone:
+since symbol ids are minted in file order, the loader reads a module's files
+sorted by name, a generated file last (`vader/front/resolver/lazy.vader`).
+[`BOOTSTRAP.md`](BOOTSTRAP.md) describes the C seed that rebuilds the toolchain and
+the CI check of the fixed point. The native CLI is the only compiler, and the
+snapshot tests' oracle for every stage.

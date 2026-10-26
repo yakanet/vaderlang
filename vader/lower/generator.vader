@@ -1,6 +1,6 @@
 // vader/lower/generator: the `generator` state-machine desugar.
 //
-// Called from `decl.vader::lowered_fn_of` for every `generator` fn,
+// Called from `mono_fn.vader::lower_generator_body` for every `generator` fn,
 // generic instance and impl member. Takes the generator body lowered in
 // generator mode (so every `yield e` is a transient `LoweredYield` marker) and
 // produces, per generator `g`:

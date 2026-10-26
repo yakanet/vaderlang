@@ -282,7 +282,9 @@ The live, item-by-item roadmap is in [`TODO.md`](./TODO.md). High-level mileston
 ## Further reading
 
 - [`SPEC.md`](./SPEC.md): the language specification
+- [`docs/TOOLING.md`](./docs/TOOLING.md): the `vader` command, the test runner, the debugger and the language server
 - [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md): how the compiler is built
+- [`docs/RUNTIME.md`](./docs/RUNTIME.md): how a running program holds its values and its memory
 - [`TODO.md`](./TODO.md): the implementation roadmap, item by item
 - [`examples/`](./examples/): working programs to play with
 - [`lib/std/`](./lib/std/): the (in-progress) standard library, written in Vader. `lib/` is the module root: it hosts every namespace the toolchain ships, `std/` being the first

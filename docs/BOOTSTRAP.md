@@ -181,7 +181,8 @@ git commit -m 'chore(bootstrap): bump seed'
 ```
 
 `regenerate` emits the seed with `$VADER`, else `./build/vader`, else the `vader`
-on `PATH`, and:
+on `PATH`, through `vader build --release --emit=c --seed-targets`, which writes
+every target against one atom table (*The seed*, above), and:
 
 - refuses to run when a tracked file under `vader/`, `lib/` or `runtime/c/` has
   uncommitted changes, since `VERSION` records `HEAD` and the seed embeds the

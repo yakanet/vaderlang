@@ -1,7 +1,7 @@
-// SPEC.md names diagnostic codes in its prose. Retiring or renumbering a code
-// in `vader/support/diagnostics/codes.vader` leaves those citations pointing at nothing,
-// and nothing else notices: the compiler does not read SPEC. This scan is what
-// notices, and it also holds each registry enum to its own family letter.
+// SPEC.md describes the language for a reader and names no diagnostic code:
+// which code a rule fires is recorded in `vader/support/diagnostics/codes.vader`
+// and pinned by the fixtures and snapshots. This scan keeps codes out of SPEC, and
+// holds each registry enum to its own family letter.
 
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
@@ -54,8 +54,6 @@ test("every registry enum holds only codes of its own family", () => {
   expect(misfiled).toEqual([]);
 });
 
-test("every diagnostic code SPEC.md cites exists in the registry", () => {
-  const cited = new Set(readFileSync(join(ROOT, "SPEC.md"), "utf8").match(CITED_CODE) ?? []);
-  expect(cited.size).toBeGreaterThan(0);
-  expect([...cited].filter((code) => !REGISTRY.has(code)).sort()).toEqual([]);
+test("SPEC.md names no diagnostic code", () => {
+  expect(readFileSync(join(ROOT, "SPEC.md"), "utf8").match(CITED_CODE) ?? []).toEqual([]);
 });

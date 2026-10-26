@@ -1,6 +1,6 @@
 // vader/lower/async: the `async` state-machine desugar.
 //
-// Called from `decl.vader::lowered_fn_of` for every `async` fn, generic
+// Called from `mono_fn.vader::lower_async_body` for every `async` fn, generic
 // instance and impl member. Takes the body lowered in async mode (so every
 // `await e` has been hoisted to a transient `LoweredAwait` statement by the ANF
 // sink in `lower_expr` / `lower_block`) and produces, per async fn `f`:
