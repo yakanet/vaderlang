@@ -121,10 +121,14 @@ export load_project :: fn(
 ///                     LSP's find-usages loads the modules that import the
 ///                     entry's this way. A load that names none loads what it
 ///                     always did, in the same order.
+/// @param keep_docs    parse with the vaderdoc of every declaration
+///                     (`parse_source_with_docs`), for a reader of the docs ; a
+///                     build leaves it off and pays nothing for them.
 export load_project_with_overlay :: fn(
     entry_path: string, overlay: MutableMap<string, string>,
     include_path_flags: string[], project_root: string | null,
     selection: Selection | null = null, extra_seeds: string[] = [],
+    keep_docs: bool = false,
 ) -> LoadedProject {
     factory :: SymbolFactory {}
     // ONE node-id factory for the whole project so AST node ids are globally
@@ -197,7 +201,7 @@ export load_project_with_overlay :: fn(
                 }
                 _ -> {}
             }
-            drain_load_queue(queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target)
+            drain_load_queue(queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target, keep_docs)
             // Force-load `std/string_builder`: the lowerer resolves
             // `StringBuilder {}` + `append`/`to_string` for `${sb}` interpolation,
             // a dependency no source import makes visible. DCE'd when unused.
@@ -211,7 +215,7 @@ export load_project_with_overlay :: fn(
                 is DiscoveredModule -> {
                     if !has_module(modules, string_builder.folder) {
                         sb_queue: DiscoveredModule[]: [string_builder]
-                        drain_load_queue(sb_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target)
+                        drain_load_queue(sb_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target, keep_docs)
                     }
                 }
                 _ -> {}
@@ -221,7 +225,7 @@ export load_project_with_overlay :: fn(
                 found :: resolve_lazy(seed, bases, index, overlay, loader_diags) ?? continue
                 extra_queue.push(found)
             }
-            drain_load_queue(extra_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target)
+            drain_load_queue(extra_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target, keep_docs)
             // The baked target constants (`VADER_OS` / `VADER_ARCH`), appended
             // after the natural BFS for the same order-preserving reason as
             // `std/string_builder` above. The module is VIRTUAL: generated per
@@ -235,7 +239,7 @@ export load_project_with_overlay :: fn(
             // under `HostBodies`. Defaulting here rather than per entry point is
             // what makes `run` / `test` / `lint` / `dump` / the LSP consistent.
             load_baked_target(modules, bases, index, loader_diags, overlay,
-                factory, node_factory, effective_target, bake_target)
+                factory, node_factory, effective_target, bake_target, keep_docs)
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = entry_module.folder, .modules = modules, .factory = factory,
@@ -387,11 +391,12 @@ load_baked_target :: fn(
     index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
     overlay: MutableMap<string, string>, factory: SymbolFactory,
     node_factory: NodeIdFactory, selected: Target | null, baked_for: Target,
+    keep_docs: bool,
 ) -> void {
     std_target :: resolve_lazy("std/target", bases, index, overlay, diags) ?? return
     if !has_module(modules, std_target.folder) {
         pre: DiscoveredModule[]: [std_target]
-        drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory, selected)
+        drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory, selected, keep_docs)
     }
     // A COPY of the overlay: the baked source is this call's business, not the
     // caller's.
@@ -405,7 +410,7 @@ load_baked_target :: fn(
         .origin = .Toolchain,
     }
     queue: DiscoveredModule[]: [baked]
-    drain_load_queue(queue, bases, modules, factory, index, diags, with_baked, node_factory, selected)
+    drain_load_queue(queue, bases, modules, factory, index, diags, with_baked, node_factory, selected, keep_docs)
 }
 
 // BFS-drain a work-queue of discovered modules: ingest each not-yet-loaded
@@ -421,6 +426,7 @@ drain_load_queue :: fn(
     // keystroke. A call site that takes it silently runs with selection
     // DISABLED and lets every `@target` body through to the type checker.
     target: Target | null,
+    keep_docs: bool,
 ) -> void {
     cursor: i64 = 0
     for cursor < queue.len() {
@@ -428,7 +434,7 @@ drain_load_queue :: fn(
         cursor = cursor + 1
         id :: m.folder
         if has_module(modules, id) { continue }
-        ingest_module(m, bases, modules, factory, index, diags, overlay, node_factory, target)
+        ingest_module(m, bases, modules, factory, index, diags, overlay, node_factory, target, keep_docs)
         ingested :: modules[id]
         match ingested {
             is null -> {}
@@ -497,10 +503,10 @@ ingest_module :: fn(
     modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,
     index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
     overlay: MutableMap<string, string>, node_factory: NodeIdFactory,
-    target: Target | null,
+    target: Target | null, keep_docs: bool,
 ) -> void {
     if m.files.len() == 0 { return }
-    parsed :: parse_module_files(m.files, diags, overlay, node_factory)
+    parsed :: parse_module_files(m.files, diags, overlay, node_factory, keep_docs)
     if parsed.len() == 0 { return }
     // Target selection happens HERE: after parsing, before collection. Every
     // pass downstream then sees one declaration per name and needs to know
@@ -546,7 +552,10 @@ read_with_overlay :: fn(overlay: MutableMap<string, string>, path: string) -> st
     return ""
 }
 
-parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableMap<string, string>, node_factory: NodeIdFactory) -> SourceFile[] {
+parse_module_files :: fn(
+    paths: string[], diags: Diagnostic[], overlay: MutableMap<string, string>,
+    node_factory: NodeIdFactory, keep_docs: bool,
+) -> SourceFile[] {
     // ONE factory threaded across the WHOLE project, so AST node ids are
     // globally unique, not just module-unique. Per-module factories (each
     // restarting at 1) overlapped, and the side-tables keyed by raw node id
@@ -560,7 +569,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableM
     for path in paths {
         content :: read_with_overlay(overlay, path)
         if content == "" { continue }
-        parsed :: parse_source(content, path)
+        parsed :: parse_file(content, path, keep_docs)
         for e in parsed.errors { diags.push(e) }
         program :: with_displayable_impls(parsed.program)
         assign_program_ids(program, node_factory)
@@ -572,6 +581,14 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableM
         })
     }
     return out
+}
+
+// Parse the file `content` was read from, keeping its vaderdoc when `keep_docs`.
+parse_file :: fn(content: string, path: string, keep_docs: bool) -> ParsedSource {
+    if keep_docs {
+        return parse_source_with_docs(content, path)
+    }
+    return parse_source(content, path)
 }
 
 // Assemble the plain (unrooted) include-paths for a project: GCC `-I` style,
@@ -886,4 +903,19 @@ test_manifest_root_of_vader_home_alone_is_the_toolchain_folder :: fn() -> void {
 @test
 test_manifest_root_of_any_other_entry_is_relative_to_the_project :: fn() -> void {
     assert_eq(manifest_root("project", "src", "/opt/vader/lib"), "project/src")
+}
+
+@test
+test_load_keeps_docs_when_asked :: fn() -> void {
+    entry :: "/no/such/vader_doc_project/main.vader"
+    overlay :: MutableMap<string, string> {}
+    overlay[entry] = "module \"main\"\n\n/// Say one.\nexport one :: fn() -> i32 = 1\n"
+    project :: load_project_with_overlay(entry, overlay, [], null, keep_docs = true)
+    assert_eq(entry_doc(project), "Say one.")
+}
+
+// The vaderdoc of the entry module's first declaration.
+entry_doc :: fn(project: LoadedProject) -> string {
+    entry :: project.modules[project.entry] ?? return "no entry module"
+    return doc_text(decl_doc(entry.module.files[0].program.decls[0]))
 }

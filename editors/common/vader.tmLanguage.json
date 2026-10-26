@@ -48,10 +48,11 @@
       ]
     },
     "vaderdoc-tags": {
+      "comment": "`\\G` anchors each tag where the doc text starts, right after `///`: a tag counts only when it opens the line, as for every other reader of vaderdoc, and one a sentence mentions stays prose.",
       "patterns": [
         {
           "comment": "Tag with following name (e.g. `@param msg`). The tag itself carries multiple parent scopes so both engines pick it up : `keyword.control.documentation.vader` covers IntelliJ's TextMate mapping (which falls back to `keyword.control` for the IDE keyword color) ; VSCode themes typically style any `storage.type.*` or `keyword.*` scope distinctly inside a doc-comment block.",
-          "match": "@(param)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+          "match": "\\G\\s*(@param)\\s+(\\w+)",
           "captures": {
             "1": { "name": "keyword.control.documentation.vader" },
             "2": { "name": "variable.parameter.documentation.vader" }
@@ -59,8 +60,10 @@
         },
         {
           "comment": "Bare tag (`@return`, `@error`, `@example`).",
-          "name": "keyword.control.documentation.vader",
-          "match": "@(return|error|example)\\b"
+          "match": "\\G\\s*(@(?:return|error|example))(?=\\s|$)",
+          "captures": {
+            "1": { "name": "keyword.control.documentation.vader" }
+          }
         }
       ]
     },

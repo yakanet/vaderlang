@@ -1,0 +1,322 @@
+// toolchain/ast/vaderdoc: the `///` comments a parse keeps, and what they say.
+//
+// A vaderdoc is CommonMark prose followed by tags, each opening a line:
+// `@param name text`, `@return text`, `@error text`, then `@example` and the
+// lines of an example to its end. `doc_sections` splits one by those tags, so
+// every reader (the language server's hover, highlighting and rename) agrees on
+// where a tag starts, which parameter it names, what its text is, and which
+// example lines a reader never sees.
+
+module "toolchain/ast"
+
+import "std/iter"
+import "std/string"
+import "toolchain/span"
+
+// ---- the comments ---------------------------------------------------------
+
+/// The `///` lines written right above a declaration, a struct field or an enum
+/// variant: its vaderdoc.
+///
+/// Only a parse that asks for docs fills one (`parse_source_with_docs` in
+/// `vader/front/parser`): the `parse_source` a build runs leaves every `doc` null, so
+/// a build pays nothing for comments it never reads. A plain `//` or `/* */` comment
+/// between the lines and the declaration detaches them; blank lines do not.
+export DocComment :: struct {
+    /// One per `///` line, in source order. Never empty.
+    lines: DocCommentLine[]
+}
+
+/// One `///` line of a `DocComment`.
+export DocCommentLine :: struct {
+    /// What follows the three slashes, as written: the space after them included.
+    text: string
+    /// The whole comment, slashes included.
+    span: Span
+}
+
+/// The text of `doc`: its lines joined by `\n`, each without its `///` and the one
+/// space that usually follows.
+///
+/// @param doc  a vaderdoc block, or null for none.
+/// @return     "" for null.
+export doc_text :: fn(doc: DocComment | null) -> string {
+    if doc == null {
+        return ""
+    }
+    out: string[]: []
+    for line in doc.lines {
+        out.push(line.text.trim_prefix(" "))
+    }
+    return out.join("\n")
+}
+
+/// The vaderdoc written above `decl`.
+///
+/// @param decl  a declaration.
+/// @return      null when it has none, when the parse did not keep docs, and for an
+///              import or an assert, which take none.
+export decl_doc :: fn(decl: Decl) -> DocComment | null = match decl {
+    is FnDecl                  -> decl.doc
+    is StructDecl              -> decl.doc
+    is EnumDecl                -> decl.doc
+    is TraitDecl               -> decl.doc
+    is ImplDecl                -> decl.doc
+    is TypeAliasDecl           -> decl.doc
+    is ConstDecl               -> decl.doc
+    is ImportDecl | AssertDecl -> null
+}
+
+// ---- the sections ---------------------------------------------------------
+
+/// A vaderdoc split by its tags.
+export DocSections :: struct {
+    /// The lines outside every tag, as written, trimmed of the blank lines around
+    /// them: CommonMark.
+    prose: string
+    /// One per `@param`, in source order.
+    params: DocParam[]
+    /// One text per `@return`.
+    returns: string[]
+    /// One text per `@error`.
+    errors: string[]
+    /// The lines under `@example`, as written: indented, hidden ones included.
+    example: string[]
+}
+
+/// What one `@param` says.
+export DocParam :: struct {
+    /// The parameter it names (`doc_param_name`).
+    name: string
+    /// The rest, its continuation lines joined; "" when the name stands alone.
+    text: string
+}
+
+/// Split the vaderdoc `text` by its tags.
+///
+/// A tag opens a line and runs until the next tag or a blank line: the lines
+/// under it join its text, wherever they are indented. A non-tag line after a
+/// blank one is prose again. `@example` runs to the end, and text on its own
+/// line is the example's first line.
+///
+/// @param text  a vaderdoc, as `doc_text` gives it.
+/// @example
+///   # import "std/io"
+///   # import "toolchain/ast"
+///   s :: doc_sections("Add.\n\n@param a  the first.\n@return the sum.")
+///   println(s.params[0].name + ": " + s.returns[0])
+export doc_sections :: fn(text: string) -> DocSections {
+    prose: string[]: []
+    params: string[]: []
+    returns: string[]: []
+    errors: string[]: []
+    example: string[]: []
+    // The entries the last tag opened, which its continuation lines extend;
+    // null in the prose.
+    current: string[] | null = null
+    in_example := false
+    for ln in text.split("\n") {
+        rest :: ln.trim()
+        tag :: doc_tag(rest)
+        if tag == "@example" {
+            in_example = true
+            inline :: rest.trim_prefix(tag).trim()
+            if inline.byte_len() > 0 {
+                example.push(inline)
+            }
+            continue
+        }
+        if in_example {
+            example.push(ln)
+            continue
+        }
+        if tag != "" {
+            entries :: tag_entries(tag, params, returns, errors)
+            entries.push(rest.trim_prefix(tag).trim())
+            current = entries
+            continue
+        }
+        if rest.byte_len() == 0 {
+            current = null
+            prose.push("")
+            continue
+        }
+        if current == null {
+            prose.push(ln)
+        } else {
+            last :: current.len() - 1
+            current[last] = current[last] + " " + rest
+        }
+    }
+    return DocSections {
+        .prose = prose.join("\n").trim(),
+        .params = params.map(doc_param).collect(),
+        .returns = returns,
+        .errors = errors,
+        .example = example,
+    }
+}
+
+/// The vaderdoc tag `line` opens, or "": `@param`, `@return`, `@error` or
+/// `@example`, followed by a blank or the end of the line, so `@params` opens
+/// none.
+///
+/// @param line  a doc line, past its `///` and its leading blanks.
+export doc_tag :: fn(line: string) -> string {
+    if !line.starts_with("@") {
+        return ""
+    }
+    for tag in ["@param", "@return", "@error", "@example"] {
+        if line.starts_with(tag) && ends_word_at(line, tag.byte_len()) {
+            return tag
+        }
+    }
+    return ""
+}
+
+/// The parameter a `@param` names: the identifier its text opens with, "" when
+/// it opens with none.
+///
+/// @param rest  the text after the tag, past its blanks.
+export doc_param_name :: fn(rest: string) -> string {
+    end: i64 = 0
+    for end < rest.byte_len() && is_name_byte(rest.byte_at(end)) {
+        end += 1
+    }
+    return rest.byte_slice(0, end)
+}
+
+/// The example of `sections` as a reader sees it: without the lines that open
+/// with `# `, which set it up so that it compiles, and without the indentation
+/// the shown lines share.
+///
+/// @param sections  a split vaderdoc.
+/// @return          "" without an example.
+export shown_example :: fn(sections: DocSections) -> string {
+    shown: string[]: []
+    for ln in sections.example {
+        if !is_hidden_example_line(ln) {
+            shown.push(ln)
+        }
+    }
+    return dedent(shown).trim()
+}
+
+// The entries `tag` adds to.
+tag_entries :: fn(tag: string, params: string[], returns: string[], errors: string[]) -> string[] {
+    if tag == "@param" {
+        return params
+    }
+    if tag == "@return" {
+        return returns
+    }
+    return errors
+}
+
+// Whether `line` ends at the byte `at` or has a blank there.
+ends_word_at :: fn(line: string, at: i64) -> bool =
+    at == line.byte_len() || line.byte_at(at) == ' ' || line.byte_at(at) == '\t'
+
+// Whether `b` may sit in a parameter's name: an ASCII letter, digit or `_`, or a
+// byte of a non-ASCII character.
+is_name_byte :: fn(b: u8) -> bool = b >= 'a' && b <= 'z' || b >= 'A' && b <= 'Z' || b >= '0' && b <= '9' || b == '_' || b >= 0x80
+
+// `name  text`, the payload of a `@param`.
+doc_param :: fn(payload: string) -> DocParam {
+    name :: doc_param_name(payload)
+    return DocParam {
+        .name = name,
+        .text = payload.byte_slice(name.byte_len(), payload.byte_len()).trim(),
+    }
+}
+
+// Whether the example line `line` is hidden: a lone `#`, or `# ` and code, past
+// its indentation.
+is_hidden_example_line :: fn(line: string) -> bool {
+    rest :: line.left_trim()
+    return rest == "#" || rest.starts_with("# ")
+}
+
+// `lines` with the indentation they all share removed; blank lines do not count
+// towards it.
+dedent :: fn(lines: string[]) -> string {
+    common: i64 = -1
+    for ln in lines {
+        if ln.trim().byte_len() == 0 {
+            continue
+        }
+        indent :: ln.byte_len() - ln.left_trim().byte_len()
+        if common < 0 || indent < common {
+            common = indent
+        }
+    }
+    if common <= 0 {
+        return lines.join("\n")
+    }
+    out: string[]: []
+    for ln in lines {
+        if ln.byte_len() >= common {
+            out.push(ln.byte_slice(common, ln.byte_len()))
+        } else {
+            out.push("")
+        }
+    }
+    return out.join("\n")
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_doc_sections_tags :: fn() -> void {
+    s :: doc_sections(
+        "Render the thing.\n\n@param source  the text.\n@param path    where it\n               came from.\n@return        the output.",
+    )
+    assert_eq(s.prose, "Render the thing.")
+    assert_eq(s.params.len(), 2)
+    assert_eq(s.params[1].name, "path")
+    assert_eq(s.params[1].text, "where it came from.")
+    assert_eq(s.returns.join("|"), "the output.")
+}
+
+@test
+test_doc_sections_blank_line_ends_a_tag :: fn() -> void {
+    s :: doc_sections("@return the head,\n        cut short.\n\nMore prose.")
+    assert_eq(s.returns.join("|"), "the head, cut short.")
+    assert_eq(s.prose, "More prose.")
+}
+
+@test
+test_doc_sections_param_without_text :: fn() -> void {
+    p :: doc_sections("@param x").params[0]
+    assert_eq(p.name, "x")
+    assert_eq(p.text, "")
+}
+
+@test
+test_doc_tag_is_anchored :: fn() -> void {
+    assert_eq(doc_tag("@params x"), "")
+    assert_eq(doc_tag("@return"), "@return")
+    assert_eq(doc_sections("See @return below.").returns.len(), 0)
+}
+
+@test
+test_shown_example_hides_its_setup_lines :: fn() -> void {
+    s :: doc_sections("Add.\n@example\n  # import \"std/io\"\n  #\n  println(a + 1)")
+    assert_eq(s.example.len(), 3)
+    assert_eq(shown_example(s), "println(a + 1)")
+}
+
+@test
+test_shown_example_keeps_inner_indentation :: fn() -> void {
+    s :: doc_sections("@example\n  if a {\n      b()\n  }")
+    assert_eq(shown_example(s), "if a {\n    b()\n}")
+}
+
+@test
+test_doc_param_name_is_the_identifier :: fn() -> void {
+    assert_eq(doc_param_name("x: the first"), "x")
+    assert_eq(doc_param_name("café ok"), "café")
+    assert_eq(doc_param_name("(x)"), "")
+}

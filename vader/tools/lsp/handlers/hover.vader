@@ -32,6 +32,7 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/iter"
 import "std/path"
 import "std/string"
 import "vader/tools/fmt"
@@ -215,99 +216,37 @@ builtin_hover :: fn(name: string) -> JsonValue | null {
 // ---- vaderdoc ------------------------------------------------------------
 
 // Re-flow vaderdoc into Markdown sections, the way an IDE lays out its quick
-// documentation :
-//
-//   - the prose, as written : Markdown joins its wrapped lines into paragraphs ;
-//   - **Params** : one bullet per `@param`, the name as code ;
-//   - **Returns** and **Errors** : the `@return` and `@error` texts ;
-//   - **Example** : the lines under `@example`, dedented into a code fence.
-//
-// A tag runs until the next tag or a blank line : its continuation lines, the
-// ones indented under the description column, join its text. `@example` runs to
-// the end. Tag recognition is anchored : `@params` or `@returns` would NOT
-// trigger it.
+// documentation : the prose as written (Markdown joins its wrapped lines into
+// paragraphs), then **Params** with each name as code, **Returns**, **Errors**,
+// and the shown lines of the **Example** in a code fence.
 format_vaderdoc :: fn(raw: string) -> string {
-    if raw.byte_len() == 0 { return raw }
-    prose: string[]: []
-    params: string[]: []
-    returns: string[]: []
-    errors: string[]: []
-    example: string[]: []
-    // The entries the last tag opened, which its continuation lines extend ;
-    // null in the prose.
-    current: string[] | null = null
-    in_example := false
-    for ln in raw.split("\n") {
-        rest :: ln.trim()
-        tag :: doc_tag(rest)
-        if tag == "@example" {
-            in_example = true
-            inline :: rest.trim_prefix(tag).trim()
-            if inline.byte_len() > 0 {
-                example.push(inline)
-            }
-            continue
-        }
-        if in_example {
-            example.push(ln)
-            continue
-        }
-        if tag != "" {
-            entries :: tag_entries(tag, params, returns, errors)
-            entries.push(tag_entry(tag, rest.trim_prefix(tag).trim()))
-            current = entries
-            continue
-        }
-        if rest.byte_len() == 0 {
-            current = null
-            prose.push("")
-            continue
-        }
-        if current == null {
-            prose.push(ln)
-        } else {
-            last :: current.len() - 1
-            current[last] = current[last] + " " + rest
-        }
-    }
+    sections :: AST.doc_sections(raw)
     parts: string[]: []
-    text :: prose.join("\n").trim()
-    if text.byte_len() > 0 {
-        parts.push(text)
+    if sections.prose.byte_len() > 0 {
+        parts.push(sections.prose)
     }
-    if params.len() > 0 {
-        parts.push("**Params**\n" + bullets(params))
+    if sections.params.len() > 0 {
+        parts.push("**Params**\n" + bullets(sections.params.map(param_item).collect()))
     }
-    if returns.len() > 0 {
-        parts.push("**Returns** " + returns.join(" "))
+    if sections.returns.len() > 0 {
+        parts.push("**Returns** " + sections.returns.join(" "))
     }
-    if errors.len() > 0 {
-        parts.push("**Errors**\n" + bullets(errors))
+    if sections.errors.len() > 0 {
+        parts.push("**Errors**\n" + bullets(sections.errors))
     }
-    code :: dedent(shown_example_lines(example)).trim()
+    code :: AST.shown_example(sections)
     if code.byte_len() > 0 {
         parts.push("**Example**\n" + code_fence(code))
     }
     return parts.join("\n\n")
 }
 
-// The section `tag` adds its entries to.
-tag_entries :: fn(tag: string, params: string[], returns: string[], errors: string[]) -> string[] {
-    if tag == "@param" {
-        return params
+// A `@param` as a bullet reads : its name as code, then what it says.
+param_item :: fn(p: AST.DocParam) -> string {
+    if p.text.byte_len() == 0 {
+        return "`" + p.name + "`"
     }
-    if tag == "@return" {
-        return returns
-    }
-    return errors
-}
-
-// How an entry of `tag` reads : a parameter's name set as code.
-tag_entry :: fn(tag: string, payload: string) -> string {
-    if tag == "@param" {
-        return format_param_payload(payload)
-    }
-    return payload
+    return "`" + p.name + "`: " + p.text
 }
 
 // `items` as a Markdown bullet list.
@@ -317,77 +256,6 @@ bullets :: fn(items: string[]) -> string {
         out.push("- " + item)
     }
     return out.join("\n")
-}
-
-// The lines of an `@example` a reader sees : one that opens with `# ` sets the
-// example up so that it compiles, and stays hidden.
-shown_example_lines :: fn(lines: string[]) -> string[] {
-    out: string[]: []
-    for ln in lines {
-        rest :: ln.left_trim()
-        if rest == "#" || rest.starts_with("# ") {
-            continue
-        }
-        out.push(ln)
-    }
-    return out
-}
-
-// `lines` with the indentation they all share removed ; blank lines do not
-// count towards it.
-dedent :: fn(lines: string[]) -> string {
-    common: i64 = -1
-    for ln in lines {
-        if ln.trim().byte_len() == 0 {
-            continue
-        }
-        indent :: leading_spaces(ln)
-        if common < 0 || indent < common {
-            common = indent
-        }
-    }
-    if common <= 0 {
-        return lines.join("\n")
-    }
-    out: string[]: []
-    for ln in lines {
-        if ln.byte_len() >= common {
-            out.push(ln.byte_slice(common, ln.byte_len()))
-        } else {
-            out.push("")
-        }
-    }
-    return out.join("\n")
-}
-
-// The number of spaces `line` starts with.
-leading_spaces :: fn(line: string) -> i64 {
-    n: i64 = 0
-    for n < line.byte_len() && line.byte_at(n) == ' ' {
-        n += 1
-    }
-    return n
-}
-
-// `@param NAME  description` → format the leading name as code, drop
-// the description into running text. Falls back to the bare payload
-// when no whitespace separates name from description.
-format_param_payload :: fn(payload: string) -> string {
-    n :: payload.byte_len()
-    if n == 0 { return payload }
-    space: u8: ' '
-    tab:   u8: '\t'
-    i: i64 = 0
-    for i < n {
-        b :: payload.byte_at(i)
-        if b == space || b == tab { break }
-        i = i + 1
-    }
-    if i == 0 || i >= n { return "`" + payload + "`" }
-    name :: payload.byte_slice(0, i)
-    desc :: payload.byte_slice(i, n).trim()
-    if desc.byte_len() == 0 { return "`" + name + "`" }
-    return "`" + name + "`: " + desc
 }
 
 // ---- typed-hover lookup --------------------------------------------------
@@ -449,12 +317,6 @@ test_vaderdoc_sections :: fn() -> void {
 test_vaderdoc_example_becomes_a_code_fence :: fn() -> void {
     doc :: "Add.\n@example\n  x :: add(1, 2)\n  println(x)"
     assert_eq(format_vaderdoc(doc), "Add.\n\n**Example**\n```\nx :: add(1, 2)\nprintln(x)\n```")
-}
-
-@test
-test_vaderdoc_example_hides_its_setup_lines :: fn() -> void {
-    doc :: "Add.\n@example\n  # import \"std/io\"\n  # a :: 1\n  println(a + 1)"
-    assert_eq(format_vaderdoc(doc), "Add.\n\n**Example**\n```\nprintln(a + 1)\n```")
 }
 
 @test

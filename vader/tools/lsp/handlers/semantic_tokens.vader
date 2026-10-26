@@ -23,7 +23,7 @@ import "vader/front/lexer"
 import "vader/tools/fmt"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
-import "vader/support/text"
+AST :: import "toolchain/ast"
 
 // ---- handler --------------------------------------------------------------
 
@@ -205,82 +205,49 @@ make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
     }
 }
 
-// `c.text` is the full source slice including the `///` prefix. Tokenise
-// recognised vaderdoc tags (`@param <name>`, `@return`, `@error`,
-// `@example`) and emit one RawToken per match. The comment body itself
-// is intentionally NOT covered by a base token : LSP semantic tokens
-// forbid overlap, and a base-comment token spanning the whole line
-// would either swallow the tag tokens (when the client favours the
-// earlier token at each character) or break the spec contract. The
-// `///` prefix and narrative therefore keep their TextMate coloring
-// from `comment.line.documentation.vader` ; only the tag fragments
-// receive semantic-token treatment.
+// `c.text` is the full source slice including the `///` prefix. Tokenise the
+// vaderdoc tag the line opens, if any (`AST.doc_tag` : a tag counts at the start
+// of a line only, the rule every reader of vaderdoc follows), and the parameter a
+// `@param` names (`AST.doc_param_name`). The comment body itself is intentionally NOT covered by a base
+// token : LSP semantic tokens forbid overlap, and a base-comment token spanning
+// the whole line would either swallow the tag tokens (when the client favours
+// the earlier token at each character) or break the spec contract. The `///`
+// prefix and narrative therefore keep their TextMate coloring from
+// `comment.line.documentation.vader` ; only the tag fragments receive
+// semantic-token treatment.
 collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]) -> void {
     text :: c.text
     n :: text.byte_len()
-    i: i64 = 0
-    line :: c.line - 1   // 0-based
-    // Each fragment's absolute byte offset is `c.offset + <index into text>` ;
-    // `reencode_columns` later turns the offsets into columns in the negotiated
-    // encoding, so an indented doc line and a multi-byte narrative before the tag
-    // (`/// café @param x`) both land correctly with no manual bookkeeping.
-    for i < n {
-        if text.byte_at(i) != '@' {
-            i = i + 1
-            continue
-        }
-        // Try to match `@param name`, `@return`, `@error`, `@example`.
-        tag_end :: scan_ident_end(text, i + 1)
-        if tag_end == i + 1 {
-            i = i + 1
-            continue
-        }
-        tag_name :: text.byte_slice(i + 1, tag_end)
-        is_known :: tag_name == "param" || tag_name == "return" || tag_name == "error" || tag_name == "example"
-        if !is_known {
-            i = tag_end
-            continue
-        }
-        out.push(RawToken {
-            .line         = line,
-            .col          = 0,
-            .length       = 0,
-            .tok_type     = i32(TokenType.Decorator),
-            .modifiers    = modifier_bit(.Documentation),
-            .start_offset = c.offset + i,
-            .end_offset   = c.offset + tag_end,
-        })
-        i = tag_end
-        if tag_name == "param" {
-            // Skip whitespace then capture an identifier.
-            j: i64 = i
-            for j < n && (text.byte_at(j) == ' ' || text.byte_at(j) == '\t') {
-                j = j + 1
-            }
-            name_end :: scan_ident_end(text, j)
-            if name_end > j {
-                out.push(RawToken {
-                    .line         = line,
-                    .col          = 0,
-                    .length       = 0,
-                    .tok_type     = i32(TokenType.Parameter),
-                    .modifiers    = modifier_bit(.Documentation),
-                    .start_offset = c.offset + j,
-                    .end_offset   = c.offset + name_end,
-                })
-                i = name_end
-            }
-        }
+    body :: text.byte_slice(3, n).left_trim()
+    tag :: AST.doc_tag(body)
+    if tag == "" {
+        return
+    }
+    // Byte offsets into `text` ; `reencode_columns` later turns the absolute
+    // offsets into columns in the negotiated encoding.
+    at :: n - body.byte_len()
+    tag_end :: at + tag.byte_len()
+    out.push(doc_tag_token(c, at, tag_end, .Decorator))
+    if tag != "@param" {
+        return
+    }
+    rest :: text.byte_slice(tag_end, n).left_trim()
+    name :: AST.doc_param_name(rest)
+    if name.byte_len() > 0 {
+        name_start :: n - rest.byte_len()
+        out.push(doc_tag_token(c, name_start, name_start + name.byte_len(), .Parameter))
     }
 }
 
-scan_ident_end :: fn(text: string, start: i64) -> i64 {
-    n :: text.byte_len()
-    j := start
-    for j < n && is_ident_byte(text.byte_at(j)) {
-        j = j + 1
-    }
-    return j
+// The token of a tag fragment, `start` to `end` bytes into the comment `c`.
+doc_tag_token :: fn(c: Comment, start: i64, end: i64, tok_type: TokenType) -> RawToken = RawToken {
+    .line         = c.line - 1,
+    .col          = 0,
+    .length       = 0,
+    .tok_type     = i32(tok_type),
+    .modifiers    = modifier_bit(.Documentation),
+    .start_offset = c.offset + start,
+    .end_offset   = c.offset + end,
 }
 
 // ---- sorting + delta encoding ---------------------------------------------
@@ -418,15 +385,19 @@ test_literals_emit_no_token :: fn() -> void {
 
 // Doc-comment tags carry source columns, not within-comment byte offsets : an
 // indented `/// @param x` (a trait-method doc) places `@param` at the comment's
-// column + `/// ` (4 + 4 = 8) and `x` at 15 ; a multi-byte narrative before the
-// tag (`/// café …`, café = 4 codepoints / 5 bytes) must not shift it either.
+// column + `/// ` (4 + 4 = 8) and `x` at 15.
 @test
 test_doc_tag_columns :: fn() -> void {
     indented :: build_sorted_for_test("M :: trait {\n    /// @param x ok.\n    f :: fn(x: i32) -> i32\n}\n", "file:///d.vader")
     assert_eq(doc_token_col(indented, 1, i32(TokenType.Decorator)), 8)
     assert_eq(doc_token_col(indented, 1, i32(TokenType.Parameter)), 15)
-    multibyte :: build_sorted_for_test("/// café @param y ok.\ng :: fn(y: i32) -> i32\n", "file:///d.vader")
-    assert_eq(doc_token_col(multibyte, 0, i32(TokenType.Decorator)), 9)
+}
+
+// A tag mentioned inside a sentence is prose : only a line it opens is a tag.
+@test
+test_doc_tag_inside_prose_is_not_a_tag :: fn() -> void {
+    toks :: build_sorted_for_test("/// café @param y ok.\ng :: fn(y: i32) -> i32\n", "file:///d.vader")
+    assert_eq(doc_token_col(toks, 0, i32(TokenType.Decorator)), -1)
 }
 
 // Is there a token of `tok_type` at exactly (`line`, `col`) spanning `length`?

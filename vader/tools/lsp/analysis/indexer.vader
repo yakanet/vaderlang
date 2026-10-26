@@ -1035,25 +1035,10 @@ param_tag_offset :: fn(line: DocCommentLine, name: string) -> i64 {
         return -1
     }
     rest :: body.byte_slice("@param".byte_len(), body.byte_len()).left_trim()
-    after :: name.byte_len()
-    if !rest.starts_with(name) || (rest.byte_len() > after && is_word_byte(rest.byte_at(after))) {
+    if doc_param_name(rest) != name {
         return -1
     }
     return line.span.end.offset - rest.byte_len()
-}
-
-/// The vaderdoc tag `line` opens, or "" : `@param`, `@return`, `@error` or
-/// `@example`, followed by a blank or the end of the line, so `@params` opens
-/// none.
-///
-/// @param line  a doc line, past its `///` and its leading blanks.
-export doc_tag :: fn(line: string) -> string {
-    for tag in ["@param", "@return", "@error", "@example"] {
-        if line == tag || line.starts_with(tag + " ") || line.starts_with(tag + "\t") {
-            return tag
-        }
-    }
-    return ""
 }
 
 // ---- token-based position resolution -------------------------------------

@@ -1,0 +1,105 @@
+// vader/front/resolver/walk: every module folder under a set of roots.
+//
+// The loader finds a module from an import, one at a time. A tool that needs
+// every module of a root (the language server's workspace search) walks the
+// folders instead, naming each one as an import would, and parses nothing.
+
+module "vader/front/resolver"
+
+import "std/collections"
+import "std/io"
+import "std/string"
+
+/// How deep under a root a walk looks for module folders.
+WALK_DEPTH_MAX: i64: 12
+
+/// Visit each folder under `roots` that may hold a module, with the module name
+/// an import gives it and its `.vader` files, read nowhere. A root nested in
+/// another (`lib/` under the project root) is walked from itself, where its
+/// folders get their module names, and not again from the outer root.
+///
+/// @param roots  the roots to walk, as the loader searches them.
+/// @param visit  called with each folder's module name and files.
+export walk_module_folders :: fn(roots: IncludePath[], visit: fn(string, string[]) -> void) -> void {
+    // A folder two roots name (the library, from the manifest and from the
+    // host) is walked once.
+    root_dirs :: MutableSet<string> {}
+    distinct: IncludePath[]: []
+    for root in roots {
+        if root_dirs.add(root.dir) {
+            distinct.push(root)
+        }
+    }
+    for root in distinct {
+        walk_folder(root, root.dir, "", 0, root_dirs, visit)
+    }
+}
+
+// Visit the folder `dir`, `rel` under `root` ("" at the root), after its
+// sub-folders.
+walk_folder :: fn(
+    root: IncludePath,
+    dir: string,
+    rel: string,
+    depth: i64,
+    root_dirs: MutableSet<string>,
+    visit: fn(string, string[]) -> void,
+) -> void {
+    entries :: read_dir(dir)
+    if entries is IOError {
+        return
+    }
+    files: string[]: []
+    for entry in entries {
+        path :: join_path(dir, entry)
+        if entry.ends_with(".vader") {
+            files.push(path)
+            continue
+        }
+        if skips(entry, path, depth, root_dirs) {
+            continue
+        }
+        if is_dir(path) {
+            walk_folder(root, path, join_path(rel, entry), depth + 1, root_dirs, visit)
+        }
+    }
+    module :: module_for(root.prefix, rel)
+    if module.byte_len() > 0 && files.len() > 0 {
+        visit(module, files)
+    }
+}
+
+// Whether a walk stays out of `entry`, at `path`, `depth` levels under its root :
+// a file name carries an extension and a module folder never does, and another
+// root is walked from itself.
+skips :: fn(entry: string, path: string, depth: i64, root_dirs: MutableSet<string>) -> bool =
+    "." in entry || depth >= WALK_DEPTH_MAX || is_skipped_folder(entry, depth)
+        || path in root_dirs
+
+// The module name of a folder `rel` under a root whose namespace is `prefix`.
+module_for :: fn(prefix: string, rel: string) -> string {
+    if rel.byte_len() == 0 {
+        return prefix
+    }
+    return join_path(prefix, rel)
+}
+
+// Whether a walk stays out of the folder `entry`, `depth` levels under its root:
+// a hidden one anywhere, a dependency folder, and at the root the build output.
+is_skipped_folder :: fn(entry: string, depth: i64) -> bool {
+    if entry.starts_with(".") || entry == "node_modules" {
+        return true
+    }
+    return depth == 0 && (entry == "build" || entry == "dist")
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_module_for_prefix :: fn() -> void {
+    assert_eq(module_for("", "vader/front/parser"), "vader/front/parser")
+    assert_eq(module_for("main", "config"), "main/config")
+    assert_eq(module_for("main", ""), "main")
+}

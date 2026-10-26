@@ -13,16 +13,12 @@
 module "vader/tools/lsp/analysis"
 
 import "std/collections"
-import "std/io"
 import "std/string"
 import "toolchain/span"
 import "vader/front/parser"
 import "vader/front/resolver"
 import "vader/support/text"
 import "vader/tools/lsp/protocol"
-
-/// How deep under a root a walk looks for module folders.
-WALK_DEPTH_MAX: i64: 12
 
 // The module every file sees without importing it.
 PRELUDE :: "std/core"
@@ -163,65 +159,6 @@ export modules_mentioning :: fn(
     return out
 }
 
-/// Visit each folder under `roots` that may hold a module, with the module name
-/// an import gives it and its `.vader` files, read nowhere. A root nested in
-/// another (`lib/` under the project root) is walked from itself, where its
-/// folders get their module names, and not again from the outer root.
-///
-/// @param roots  the roots a document's imports search, from `document_roots`.
-/// @param visit  called with each folder's module name and files.
-walk_module_folders :: fn(roots: IncludePath[], visit: fn(string, string[]) -> void) -> void {
-    // A folder two roots name (the library, from the manifest and from the
-    // host) is walked once.
-    root_dirs :: MutableSet<string> {}
-    distinct: IncludePath[]: []
-    for root in roots {
-        if root_dirs.add(root.dir) {
-            distinct.push(root)
-        }
-    }
-    for root in distinct {
-        walk_folder(root, root.dir, "", 0, root_dirs, visit)
-    }
-}
-
-// Visit the folder `dir`, `rel` under `root` ("" at the root), after its
-// sub-folders.
-walk_folder :: fn(
-    root: IncludePath, dir: string, rel: string, depth: i64,
-    root_dirs: MutableSet<string>, visit: fn(string, string[]) -> void,
-) -> void {
-    entries :: read_dir(dir)
-    if entries is IOError {
-        return
-    }
-    files: string[]: []
-    for entry in entries {
-        path :: join_path(dir, entry)
-        if entry.ends_with(".vader") {
-            files.push(path)
-            continue
-        }
-        if skips(entry, path, depth, root_dirs) {
-            continue
-        }
-        if is_dir(path) {
-            walk_folder(root, path, join_path(rel, entry), depth + 1, root_dirs, visit)
-        }
-    }
-    module :: module_for(root.prefix, rel)
-    if module.byte_len() > 0 && files.len() > 0 {
-        visit(module, files)
-    }
-}
-
-// Whether a walk stays out of `entry`, at `path`, `depth` levels under its root :
-// a file name carries an extension and a module folder never does, and another
-// root is walked from itself.
-skips :: fn(entry: string, path: string, depth: i64, root_dirs: MutableSet<string>) -> bool =
-    "." in entry || depth >= WALK_DEPTH_MAX || is_skipped_folder(entry, depth)
-    || path in root_dirs
-
 // Whether the file at `path`, in the folder `module` maps to, mentions `name`,
 // holds `spelling`, and declares that module.
 file_names :: fn(
@@ -233,23 +170,6 @@ file_names :: fn(
     }
     header :: parse_module_header(text, path) ?? return false
     return header.name == module
-}
-
-// The module name of a folder `rel` under a root whose namespace is `prefix`.
-module_for :: fn(prefix: string, rel: string) -> string {
-    if rel.byte_len() == 0 {
-        return prefix
-    }
-    return join_path(prefix, rel)
-}
-
-// Whether a walk stays out of the folder `entry`, `depth` levels under its root:
-// a hidden one anywhere, a dependency folder, and at the root the build output.
-is_skipped_folder :: fn(entry: string, depth: i64) -> bool {
-    if entry.starts_with(".") || entry == "node_modules" {
-        return true
-    }
-    return depth == 0 && (entry == "build" || entry == "dist")
 }
 
 /// Whether `text` holds `name` with no identifier character on either side.
@@ -290,11 +210,4 @@ test_mentions_word_whole_words_only :: fn() -> void {
     assert(!mentions_word("x :: my_Span", "Span"), "a suffix of a longer word is not")
     assert(mentions_word("Span", "Span"), "the whole text")
     assert(!mentions_word("", "Span"), "an empty text")
-}
-
-@test
-test_module_for_prefix :: fn() -> void {
-    assert_eq(module_for("", "vader/front/parser"), "vader/front/parser")
-    assert_eq(module_for("main", "config"), "main/config")
-    assert_eq(module_for("main", ""), "main")
 }
