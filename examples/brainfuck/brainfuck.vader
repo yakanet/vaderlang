@@ -12,7 +12,8 @@
 //     there's no point materialising a fixed 30000 cells up front: only the
 //     cells a program actually visits get allocated.
 //   - One i32 local holds the data pointer (cell index).
-//   - BF cells are i32-wide (no wrap at 256): matches the VM's native int.
+//   - BF cells are bytes: `+` and `-` wrap at 256, which programs written for
+//     the classic implementation count on.
 //
 // I/O goes through the C library, which the VM reaches by FFI: `.` calls
 // `putchar` then `fflush`, and `,` calls `getchar`, all `extern` imports of the
@@ -27,9 +28,7 @@
 //   vader run examples/brainfuck --help             # lists the options
 //   vader build --out=bf examples/brainfuck         # then ./bf path/to.bf
 //
-// Two programs come with it: `hello.bf`, and `life.bf`, Conway's Game of Life
-// played at the keyboard: type a cell such as `be` to toggle it, an empty line to
-// advance one generation, `q` to quit.
+// Programs to run sit in `programs/`
 //
 // The folder is a project: its `vader.json` reaches the compiler's own modules
 // (`vader/vm`, `vader/front/virt`) at the root of the checkout.
@@ -136,8 +135,7 @@ emit_bf_char :: fn(sb: StringBuilder, c: char, idx: i64, partner: i32[]) -> void
         '<' -> sb.append(move_pointer(-1))
         '+' -> sb.append(add_to_cell(1))
         '-' -> sb.append(add_to_cell(-1))
-        // Write the cell under the pointer: `putchar` keeps its low byte, and
-        // `fflush(NULL)` sends it on at once.
+        // Write the cell under the pointer, which `fflush(NULL)` sends on at once.
         '.' -> sb.append("""
                   local.get 0
                   local.get 1
@@ -198,7 +196,7 @@ move_pointer :: fn(delta: i32) -> string = """
       local.set 1
     """
 
-// The lines that add `delta` to the cell under the pointer.
+// The lines that add `delta` to the cell under the pointer, wrapping at 256.
 add_to_cell :: fn(delta: i32) -> string = """
       local.get 0
       local.get 1
@@ -207,6 +205,8 @@ add_to_cell :: fn(delta: i32) -> string = """
       array.get 1
       i32.const ${delta}
       i32.add
+      i32.const 255
+      i32.bitand
       array.set 1
     """
 

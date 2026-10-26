@@ -28,7 +28,7 @@ const RUN_FLAGS: Record<string, string[] | null> = {
 // What an example runs on, past its path: `brainfuck` needs a program to run,
 // named relative to the repo root.
 const RUN_ARGS: Record<string, string[]> = {
-  brainfuck: ["examples/brainfuck/hello.bf"],
+  brainfuck: ["examples/brainfuck/programs/hello.bf"],
 };
 const examples = exampleNames().filter((name) => RUN_FLAGS[name] !== null);
 
