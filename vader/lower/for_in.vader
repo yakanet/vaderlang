@@ -301,12 +301,8 @@ build_step_call :: fn(
     span: Span,
 ) -> LoweredExpr {
     if iter_type is TraitType && is_core_trait(iter_type, TRAIT_ITERATOR) {
-        args: LoweredExpr[]: []
-        return LoweredVirtualCall {
-            .span = span, .type = step_union,
-            .trait_name = core_trait_key(TRAIT_ITERATOR), .method = METHOD_NEXT,
-            .receiver = iter_ref, .args = args, .param_types = [],
-        }
+        trait_key :: core_trait_key(TRAIT_ITERATOR)
+        return virtual_call(ctx, trait_key, METHOD_NEXT, iter_ref, [], step_union, span)
     }
     next :: step_member(ctx, node, iter_type) ?? return LoweredUnreachable {
         .span = span,

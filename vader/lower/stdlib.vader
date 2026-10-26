@@ -86,10 +86,10 @@ surface_stdlib_impl_externs :: fn(
     // / Display coerce on `T`/`Any`).
     //
     // Non-generic STRUCT receivers : a non-generic stdlib struct implementing a
-    // virtually-dispatched trait (`StringChars implements Iterator<char>`, the
-    // sole such impl) reached via a trait-typed `self.source.next()` vcall: the
-    // generic-impl materialiser never covers it (no type params) and no direct
-    // call records its mangle. Gated on `constructed_struct_symbols` : surface
+    // virtually-dispatched trait (`StringChars implements Iterator<char>`, `Sleep`
+    // and `SpawnAsync` implementing `Async`), reached through a value of the trait,
+    // as a `for` over an `Iterator<char>` steps it: the generic-impl materialiser
+    // never covers it (no type params) and no direct call records its mangle. Gated on `constructed_struct_symbols` : surface
     // only when the struct is actually built (`StringChars` via `chars()`), so
     // an UNCONSTRUCTED stdlib implementor (`std_io$IOError`) is NOT pulled into a
     // snippet that merely dispatches the same trait. Generic struct implementors

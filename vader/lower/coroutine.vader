@@ -219,11 +219,15 @@ gb_drive_state :: fn(gb: GenBuild, target_field: string, target_type: Type, cont
     // r :: self.awaited.resume()   (virtual, Any | Suspended)
     let_r :: LoweredLet {
         .span = gb.span, .name = r_sym.name, .symbol = r_sym, .type = gb.resume_erased_ty,
-        .value = LoweredVirtualCall {
-            .span = gb.span, .type = gb.resume_erased_ty,
-            .trait_name = core_trait_key(TRAIT_ASYNC), .method = METHOD_RESUME,
-            .receiver = gb_awaited_field(gb), .args = [], .param_types = [],
-        },
+        .value = virtual_call(
+            gb.fn_ctx,
+            core_trait_key(TRAIT_ASYNC),
+            METHOD_RESUME,
+            gb_awaited_field(gb),
+            [],
+            gb.resume_erased_ty,
+            gb.span,
+        ),
     }
     // if r is Suspended { return r } else { self.<field> = cast(r); state = cont }
     parked :: LoweredReturn {
@@ -593,11 +597,15 @@ gb_cancel_body :: fn(gb: GenBuild) -> LoweredBlock {
     // The field is declared `Async<Any>` (non-null) but seeded null, so this
     // runtime null-check leans on the erased trait's fat-pointer representation
     // admitting null: sound because the drive path never observes it null.
-    child_cancel :: LoweredVirtualCall {
-        .span = gb.span, .type = TY_VOID,
-        .trait_name = core_trait_key(TRAIT_ASYNC), .method = METHOD_CANCEL,
-        .receiver = gb_awaited_field(gb), .args = [], .param_types = [],
-    }
+    child_cancel :: virtual_call(
+        gb.fn_ctx,
+        core_trait_key(TRAIT_ASYNC),
+        METHOD_CANCEL,
+        gb_awaited_field(gb),
+        [],
+        TY_VOID,
+        gb.span,
+    )
     guard :: LoweredIf {
         .span = gb.span, .type = TY_VOID,
         .cond = LoweredTypeCheck { .span = gb.span, .type = TY_BOOL, .value = gb_awaited_field(gb), .check_type = TY_NULL },

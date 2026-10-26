@@ -343,8 +343,12 @@ surface_array_into_trait :: fn(ctx: FnLowerCtx, value: Type, slot: Type) -> void
 }
 
 /// `receiver.method(args)` dispatched by the receiver's tag through `trait_key` : every
-/// primitive implementor enters the trait's vtable (`virtually_dispatched_traits`),
-/// and so does every array variant of a union receiver (`surface_array_variants`).
+/// primitive implementor, and every constructed non-generic stdlib struct that
+/// implements it (`StringChars`, `Sleep`), enters the trait's vtable
+/// (`virtually_dispatched_traits`), and so does every array variant of a union
+/// receiver (`surface_array_variants`). A virtual call is built here and never by
+/// hand: that is how a trait dispatched anywhere gets recorded. A pass rewriting an
+/// existing one keeps its trait, already recorded.
 ///
 /// @param receiver     the lowered receiver ; a value of the trait, a union of its
 ///                     implementors, an erased bounded `T`.

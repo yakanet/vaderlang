@@ -1,0 +1,14 @@
+# Typecheck
+
+## tests/snippets/string_chars_held_as_iterator
+  FnDecl         main                 :: fn() -> i32
+  expr 12:28    CallExpr       :: StringChars
+  expr 12:28    FieldExpr      :: fn() -> StringChars
+  expr 12:28    StringLitExpr  :: string
+  expr 14:14    IdentExpr      :: Iterator<char>
+  expr 15:9     BinaryExpr     :: i32
+  expr 15:9     IdentExpr      :: i32
+  expr 17:13    StringLitExpr  :: string
+  expr 17:16    IdentExpr      :: i32
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void

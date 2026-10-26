@@ -256,11 +256,15 @@ async_main_driver :: fn(
     // r :: (frame as Async<T>).resume()   (virtual, T | Suspended)
     let_r :: LoweredLet {
         .span = span, .name = r_sym.name, .symbol = r_sym, .type = resume_ty,
-        .value = LoweredVirtualCall {
-            .span = span, .type = resume_ty, .trait_name = core_trait_key(TRAIT_ASYNC), .method = METHOD_RESUME,
-            .receiver = LoweredCast { .span = span, .type = async_ty, .value = construct },
-            .args = [], .param_types = [],
-        },
+        .value = virtual_call(
+            fn_ctx,
+            core_trait_key(TRAIT_ASYNC),
+            METHOD_RESUME,
+            LoweredCast { .span = span, .type = async_ty, .value = construct },
+            [],
+            resume_ty,
+            span,
+        ),
     }
     // if r is Suspended { trap } : without the scheduler, a parked root cannot progress.
     trap :: LoweredExprStmt {

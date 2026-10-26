@@ -1,0 +1,19 @@
+// A string's characters held as an `Iterator<char>` and walked by a `for`: the
+// loop steps through the trait's vtable, so `StringChars`, a stdlib implementor
+// that nothing in the program calls directly, has to be in it. "héllo" is five
+// characters over six bytes.
+
+module "snippet"
+
+import "std/io"
+import "std/string"
+
+main :: fn() -> i32 {
+    chars: Iterator<char>: "héllo".chars()
+    count := 0
+    for c in chars {
+        count += 1
+    }
+    println("${count}")
+    return 0
+}
