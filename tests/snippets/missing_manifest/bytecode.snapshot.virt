@@ -10,8 +10,11 @@ type 7 scalar void
 type 8 union 9,1
 type 9 struct std_io$IOError { msg:1,kind:3,code:2 }
 type 10 union 9,6
-type 11 union 12,0
-type 12 scalar pointer
+type 11 struct __defer_env_std_io_1 { cap_0:13 }
+type 12 union 0,6
+type 13 scalar pointer
+type 14 union 13,0
+type 15 fn () -> 7
 string 0 "unreadable ("
 string 1 " / "
 string 2 ")"
@@ -41,13 +44,14 @@ import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=6 pa
 import 2 bytes std_core$bytes result_type=6 param_types=1 param_c_out= param_by_address= (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=2,6,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern vader_last_errno system_posix$sys_last_errno result_type=2 () -> i32
-import 5 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=2 param_types=12 param_c_out= param_by_address= (pointer) -> i32
-import 6 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=11 param_types=1,1 param_c_out= param_by_address= (string,string) -> any
-import 7 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=2 param_types=12 param_c_out= param_by_address= (pointer) -> i32
-import 8 extern fread system_posix$sys_fread header=<stdio.h> result_type=4 param_types=6,4,4,12 param_c_out=1,0,0,0 param_by_address= (ref,i64,i64,pointer) -> i64
+import 5 extern vader_stream_size system_posix$sys_stream_size result_type=4 param_types=13 param_c_out= param_by_address= (pointer) -> i64
+import 6 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=2 param_types=13 param_c_out= param_by_address= (pointer) -> i32
+import 7 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=14 param_types=1,1 param_c_out= param_by_address= (string,string) -> any
+import 8 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=2 param_types=13 param_c_out= param_by_address= (pointer) -> i32
+import 9 extern fread system_posix$sys_fread header=<stdio.h> result_type=4 param_types=6,4,4,13 param_c_out=1,0,0,0 param_by_address= (ref,i64,i64,pointer) -> i64
 impl 5 std_core$ByteAccess
 impl 9 std_core$Error
-vtable std_core$Error.message 9 11
+vtable std_core$Error.message 9 13
 export main 2
 
 fn 0 snippet$describe (string) -> string
@@ -65,7 +69,7 @@ fn 0 snippet$describe (string) -> string
   end $L0
   local.get 1   ; r
   ref.cast 9   ; std_io$IOError
-  call 11   ; std_io$IOError$std_core$Error$message
+  call 13   ; std_io$IOError$std_core$Error$message
   local.set 2   ; $call_7
   local.get 1   ; r
   ref.cast 9   ; std_io$IOError
@@ -108,10 +112,10 @@ end
 fn 2 snippet$main () -> i32
   string.const 5   ; "/no/such/manifest.toml"
   call 0   ; snippet$describe
-  call 12   ; std_io$println__string
+  call 14   ; std_io$println__string
   string.const 5   ; "/no/such/manifest.toml"
   call 1   ; snippet$catch_all
-  call 12   ; std_io$println__string
+  call 14   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -265,7 +269,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 8   ; std_io$write_bytes
+      call 9   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -290,23 +294,35 @@ fn 7 std_io$read_file_bytes (string,i64) -> any
   local __coalesce_0 any
   local out ref
   local chunk ref
-  local $len_18 i64
+  local $len_20 i64
   local n i64
-  local $slice_24 ref
-  local $len_32 i64
+  local $slice_26 ref
+  local __result_2 ref
+  local $len_34 i64
+  local __result_3 ref
+  local whole ref
+  local want i64
+  local $len_59 i64
+  local got i64
+  local __result_5 ref
+  local $add_checked_73 i64
+  local __result_6 ref
   local.get 0   ; arg 0
   string.const 6   ; "rb"
-  call.import 6   ; system_posix$sys_fopen
+  call.import 7   ; system_posix$sys_fopen
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
     string.const 7   ; "cannot open file"
-    call 9   ; std_io$last_io_error
+    call 10   ; std_io$last_io_error
     return
   end $L0
   local.get 3   ; __coalesce_0
-  ref.cast 12   ; pointer
-  local.set 2   ; f
+  ref.cast 13   ; pointer
+  local.tee 2   ; f
+  struct.new 11   ; __defer_env_std_io_1
+  make_closure 8 15   ; __defer_std_io_0 fn
+  defer.push
   array.new 6 0   ; u8[]
   local.set 4   ; out
   i32.const 0
@@ -317,12 +333,12 @@ fn 7 std_io$read_file_bytes (string,i64) -> any
   loop $L1 void
     local.get 5   ; chunk
     array.len
-    local.set 6   ; $len_18
+    local.set 6   ; $len_20
     local.get 5   ; chunk
     i64.const 1
-    local.get 6   ; $len_18
+    local.get 6   ; $len_20
     local.get 2   ; f
-    call.import 8   ; system_posix$sys_fread
+    call.import 9   ; system_posix$sys_fread
     local.tee 7   ; n
     i64.const 0
     i64.gt
@@ -331,9 +347,9 @@ fn 7 std_io$read_file_bytes (string,i64) -> any
       i64.const 0
       local.get 7   ; n
       array.slice 6   ; u8[]
-      local.set 8   ; $slice_24
+      local.set 8   ; $slice_26
       local.get 4   ; out
-      local.get 8   ; $slice_24
+      local.get 8   ; $slice_26
       array.push_all
     end $L2
     local.get 4   ; out
@@ -341,54 +357,126 @@ fn 7 std_io$read_file_bytes (string,i64) -> any
     local.get 1   ; arg 1
     i64.gt
     if $L3 void
-      local.get 2   ; f
-      call.import 7   ; system_posix$sys_fclose
-      drop
       string.const 8   ; "file too large"
       i32.const 0
       i32.const 0
       struct.new 9   ; std_io$IOError
+      local.set 9   ; __result_2
+      defer.pop_exec 1
+      local.get 9   ; __result_2
       return
     end $L3
     local.get 5   ; chunk
     array.len
-    local.set 9   ; $len_32
+    local.set 10   ; $len_34
     local.get 7   ; n
-    local.get 9   ; $len_32
+    local.get 10   ; $len_34
     i64.lt
     if $L4 void
-    else
-      br $L1
-    end $L4
-    local.get 2   ; f
-    call.import 5   ; system_posix$sys_ferror
-    i32.const 0
-    i32.ne
-    if $L5 void
+      local.get 2   ; f
+      call.import 6   ; system_posix$sys_ferror
+      i32.const 0
+      i32.ne
+      if $L5 void
+      else
+        defer.pop_exec 1
+        local.get 4   ; out
+        return
+      end $L5
       string.const 9   ; "read failed"
-      call 9   ; std_io$last_io_error
-      local.set 3   ; __coalesce_0
-    else
-      null.const
-      local.set 3   ; __coalesce_0
-    end $L5
-    local.get 2   ; f
-    call.import 7   ; system_posix$sys_fclose
-    drop
-    local.get 3   ; __coalesce_0
-    type_check 0   ; null
+      call 10   ; std_io$last_io_error
+      local.set 11   ; __result_3
+      defer.pop_exec 1
+      local.get 11   ; __result_3
+      return
+    end $L4
+    local.get 4   ; out
+    array.len
+    i64.const 65536
+    i64.eq
     if $L6 void
     else
-      local.get 3   ; __coalesce_0
-      ref.cast 9   ; std_io$IOError
-      return
+      br $L1
     end $L6
-    local.get 4   ; out
-    return
+    local.get 2   ; f
+    call.import 5   ; system_posix$sys_stream_size
+    local.get 1   ; arg 1
+    call 11   ; std_io$whole_buffer
+    local.tee 3   ; __coalesce_0
+    type_check 0   ; null
+    if $L7 void
+      br $L1
+    end $L7
+    local.get 3   ; __coalesce_0
+    ref.cast 6   ; u8[]
+    local.set 12   ; whole
+    local.get 5   ; chunk
+    i64.const 0
+    local.get 12   ; whole
+    i64.const 0
+    i64.const 65536
+    array.copy
+    local.get 12   ; whole
+    array.len
+    i64.const 65536
+    i64.checked_sub
+    local.set 13   ; want
+    local.get 12   ; whole
+    array.len
+    local.set 14   ; $len_59
+    local.get 12   ; whole
+    i64.const 65536
+    local.get 14   ; $len_59
+    array.slice 6   ; u8[]
+    i64.const 1
+    local.get 13   ; want
+    local.get 2   ; f
+    call.import 9   ; system_posix$sys_fread
+    local.tee 15   ; got
+    local.get 13   ; want
+    i64.lt
+    if $L8 void
+      local.get 2   ; f
+      call.import 6   ; system_posix$sys_ferror
+      i32.const 0
+      i32.ne
+      if $L9 void
+      else
+        i64.const 65536
+        local.get 15   ; got
+        i64.checked_add
+        local.set 17   ; $add_checked_73
+        local.get 12   ; whole
+        i64.const 0
+        local.get 17   ; $add_checked_73
+        array.slice 6   ; u8[]
+        local.set 18   ; __result_6
+        defer.pop_exec 1
+        local.get 18   ; __result_6
+        return
+      end $L9
+      string.const 9   ; "read failed"
+      call 10   ; std_io$last_io_error
+      local.set 16   ; __result_5
+      defer.pop_exec 1
+      local.get 16   ; __result_5
+      return
+    end $L8
+    local.get 12   ; whole
+    local.set 4   ; out
+    br $L1
   end $L1
 end
 
-fn 8 std_io$write_bytes (u8,ref,i64) -> i32
+fn 8 __defer_std_io_0 (ref) -> void
+  local.field 0 11 0   ; arg 0 __defer_env_std_io_1.cap_0
+  ref.cast 13   ; pointer
+  call.import 8   ; system_posix$sys_fclose
+  drop
+  return
+end
+
+fn 9 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -408,7 +496,7 @@ fn 8 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 9 std_io$last_io_error (string) -> ref
+fn 10 std_io$last_io_error (string) -> ref
   local e i32
   local kind u8
   local if_res i32
@@ -529,7 +617,7 @@ fn 9 std_io$last_io_error (string) -> ref
     local.set 2   ; kind
   end $L14
   local.get 2   ; kind
-  call 10   ; std_io$describe_io_error_kind
+  call 12   ; std_io$describe_io_error_kind
   local.tee 4   ; reason
   string.const 10   ; ""
   string.eq
@@ -547,7 +635,42 @@ fn 9 std_io$last_io_error (string) -> ref
   return
 end
 
-fn 10 std_io$describe_io_error_kind (u8) -> string
+fn 11 std_io$whole_buffer (i64,i64) -> any
+  local $arr_9 ref
+  local $add_checked_11 i64
+  local.get 0   ; arg 0
+  i64.const 65536
+  i64.le
+  if $L0 void
+    return.lit null.const
+  end $L0
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i64.gt
+  if $L1 void
+    return.lit null.const
+  end $L1
+  local.get 0   ; arg 0
+  i64.const 4294967295
+  i64.ge
+  if $L2 void
+  else
+    i32.const 0
+    array.new 6 1   ; u8[]
+    local.set 2   ; $arr_9
+    local.get 0   ; arg 0
+    i64.const 1
+    i64.checked_add
+    local.set 3   ; $add_checked_11
+    local.get 2   ; $arr_9
+    local.get 3   ; $add_checked_11
+    array.repeat
+    return
+  end $L2
+  return.lit null.const
+end
+
+fn 12 std_io$describe_io_error_kind (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
@@ -658,13 +781,13 @@ fn 10 std_io$describe_io_error_kind (u8) -> string
   return
 end
 
-fn 11 std_io$IOError$std_core$Error$message (ref) -> string
+fn 13 std_io$IOError$std_core$Error$message (ref) -> string
   local.field 0 9 0   ; arg 0 std_io$IOError.msg
   ref.cast 1   ; string
   return
 end
 
-fn 12 std_io$println__string (string) -> void
+fn 14 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 23   ; "\n"

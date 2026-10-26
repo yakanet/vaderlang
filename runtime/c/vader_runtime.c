@@ -3182,13 +3182,19 @@ vader_array_t* vader_array_repeat(vader_array_t* src, int64_t times) {
     src = (vader_array_t*) src_box.payload.obj;
     if (out_len == 0) return out;          /* `[] * n` reserve-only, or n == 0 */
     /* Recompute the source region after the possible relocation, then stamp the
-     * src block into the result n times. No safepoint between here and return. */
+     * src block into the result n times: once, then the filled prefix copied onto
+     * the rest, doubling each time, so `[0] * 65536` is 17 copies. Each copy reads
+     * a prefix the write never reaches. No safepoint between here and return. */
     const uint8_t* src_data = vader_array_src_region(src, 0, &kind, &tag, &esz);
     uint8_t* dst_data = out->buf->slots;
-    size_t block = src_len * esz;
-    for (size_t i = 0; i < n; i++) {
-        memcpy(dst_data + i * block, src_data, block);
+    size_t total = out_len * esz;
+    size_t filled = src_len * esz;
+    memcpy(dst_data, src_data, filled);
+    while (filled <= total - filled) {
+        memcpy(dst_data + filled, dst_data, filled);
+        filled *= 2;
     }
+    memcpy(dst_data + filled, dst_data, total - filled);
     if (kind == VADER_ARRAY_KIND_BOXED || kind == VADER_ARRAY_KIND_REF) {
         VADER_WRITE_BARRIER(out->buf);   /* coarse card covers the whole buf */
     }
@@ -3621,6 +3627,16 @@ int64_t vader_path_mtime(const char* path) {
 #  else
     return (int64_t) st.st_mtim.tv_sec * INT64_C(1000000000) + st.st_mtim.tv_nsec;
 #  endif
+}
+
+/* The size of the regular file the `FILE*` `stream` reads, or -1 for anything
+ * else (a pipe, a device) or when `fstat` fails: only a regular file's size says
+ * how much a read will find. Here for the reason `vader_path_kind` gives. */
+VADER_HOST_EXPORT
+int64_t vader_stream_size(void* stream) {
+    struct stat st;
+    if (fstat(fileno((FILE*) stream), &st) != 0 || !S_ISREG(st.st_mode)) return -1;
+    return (int64_t) st.st_size;
 }
 #endif
 

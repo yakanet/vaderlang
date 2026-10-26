@@ -113,6 +113,15 @@ export sys_path_kind :: fn(path: string) -> i32
 @extern("vader_path_mtime")
 export sys_path_mtime :: fn(path: string) -> i64
 
+/// The size of the regular file `stream` reads, via `fstat(2)`, for the reason
+/// `sys_path_kind` gives.
+///
+/// @param stream  an open `FILE*`.
+/// @return        -1 for anything but a regular file (a pipe, a device, whose
+///                size says nothing of what a read finds), or when `fstat` fails.
+@extern("vader_stream_size")
+export sys_stream_size :: fn(stream: CPointer) -> i64
+
 /// The four answers `sys_path_kind` gives. Values must match `vader_path_kind`.
 export PATH_MISSING: i32: 0
 export PATH_REGULAR: i32: 1

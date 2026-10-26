@@ -417,14 +417,17 @@ poll_stdin :: fn(timeout_ms: i32) -> bool {
 /// binary: the bytes are taken verbatim, no UTF-8 reinterpretation. This is
 /// the canonical file-read primitive ; `read_file_string` decodes on top.
 ///
-/// `max_bytes` bounds the read. The size cannot be taken up front and trusted:
-/// `fseek(SEEK_END)` reports 0 for a character device and a pipe has no size at
-/// all, so the read is a loop, and a loop over a stream that never ends has to
-/// stop somewhere. `READ_LIMIT_DEFAULT` by default; name your own when you know
-/// what you are reading, a larger file included.
+/// A first chunk is the whole of most files. Past it, a regular file is read in
+/// one go into an array of its size. Anything else is read by chunks to its end
+/// or to `max_bytes`: a pipe or a device, a file that grew, and one whose size
+/// passes `max_bytes`, a size being a claim the content may not bear out. On
+/// Windows, a read short of what it asked for ends the file, a pipe's included.
 ///
 /// @param path       filesystem path (absolute or cwd-relative).
-/// @param max_bytes  refuse once this many bytes have accumulated.
+/// @param max_bytes  the most bytes accepted, `READ_LIMIT_DEFAULT` by default:
+///                   the read is refused once it passes them, which also stops
+///                   a stream that never ends. Name your own when you know what
+///                   you are reading, a larger file included.
 /// @return           the file's raw bytes.
 /// @error            `IOError` if the file can't be opened or read, or if it
 ///                   passes `max_bytes`: `"file too large"`.
@@ -434,36 +437,44 @@ export read_file_bytes :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT) 
 @target(.Linux, .Darwin)
 read_file_bytes :: fn(path: string, max_bytes: i64) -> u8[] | IOError {
     f :: sys_fopen(path, "rb") ?? return last_io_error("cannot open file")
-    // Read to end of file in chunks rather than sizing it first: `fseek` +
-    // `ftell` would need `SEEK_END`, and a size taken up front is a lie on
-    // anything that is not a regular file.
-    out: u8[]: []
+    // Runs once a `return` has computed its value: `last_io_error` reads
+    // `errno` before `fclose` overwrites it.
+    defer sys_fclose(f)
+    out: u8[] = []
     chunk: u8[]: [0] * READ_CHUNK
     for {
         n :: sys_fread(chunk, 1, chunk.len(), f)
         if n > 0 {
             out.push_all(chunk[0..<n])
         }
-        // Checked after every chunk, INCLUDING the one that hits end of file:
-        // as a loop condition it only ran between chunks, so any file shorter
-        // than `READ_CHUNK` was never measured and a `max_bytes` under 64 KiB
-        // did nothing at all.
+        // After every read, the one that hits end of file included: a stream
+        // shorter than one chunk is held to `max_bytes` here.
         if out.len() > max_bytes {
-            sys_fclose(f)
             return IOError { .msg = "file too large" }
         }
         if n < chunk.len() {
             // A short `fread` is end of file OR an error; the count alone does
             // not say which. Without this, an openable-but-unreadable path -- a
             // DIRECTORY, where `fopen` succeeds and `fread` fails EISDIR --
-            // came back as an empty SUCCESS.
-            // Read the error BEFORE closing: `fclose` overwrites `errno`.
-            err :: if sys_ferror(f) != 0 { last_io_error("read failed") } else { null }
-            sys_fclose(f)
-            if err != null {
-                return err
+            // would read as an empty success.
+            if sys_ferror(f) != 0 {
+                return last_io_error("read failed")
             }
             return out
+        }
+        if out.len() == READ_CHUNK {
+            whole :: whole_buffer(sys_stream_size(f), max_bytes) ?? continue
+            chunk.copy_to(0, whole, 0, READ_CHUNK)
+            want :: whole.len() - READ_CHUNK
+            got :: sys_fread(whole[READ_CHUNK..<whole.len()], 1, want, f)
+            if got < want {
+                if sys_ferror(f) != 0 {
+                    return last_io_error("read failed")
+                }
+                return whole[0..<READ_CHUNK + got]
+            }
+            // It grew past its size: the chunks read on.
+            out = whole
         }
     }
 }
@@ -479,35 +490,69 @@ read_file_bytes :: fn(path: string, max_bytes: i64) -> u8[] | IOError {
     if i64(h) == INVALID_HANDLE {
         return last_io_error("file not found")
     }
-    out: u8[]: []
+    // Runs once a `return` has computed its value: `last_io_error` reads the
+    // last-error slot before `CloseHandle` overwrites it.
+    defer close_handle(h)
+    out: u8[] = []
     chunk: u8[]: [0] * READ_CHUNK
     got: u32[]: [0]
     for {
         if !read_file(h, chunk, u32(chunk.len()), got, null) {
-            // Before `CloseHandle`, which overwrites the last-error slot.
-            err :: last_io_error("read failed")
-            close_handle(h)
-            return err
+            return last_io_error("read failed")
         }
         n :: i64(got[0])
         if n > 0 {
             out.push_all(chunk[0..<n])
         }
-        // After every chunk, end-of-file one included, see the POSIX body.
+        // After every read, end of file included, as in the POSIX body.
         if out.len() > max_bytes {
-            close_handle(h)
             return IOError { .msg = "file too large" }
         }
         // A synchronous read short of the request has reached end of file --
         // and unlike the CRT path, a genuine ERROR took the branch above.
         if n < chunk.len() {
-            close_handle(h)
             return out
+        }
+        if out.len() == READ_CHUNK {
+            // A pipe, a console or a device has no size to go by.
+            size: i64[]: [-1]
+            if get_file_type(h) != FILE_TYPE_DISK || !get_file_size_ex(h, size) {
+                size[0] = -1
+            }
+            whole :: whole_buffer(size[0], max_bytes) ?? continue
+            chunk.copy_to(0, whole, 0, READ_CHUNK)
+            want :: whole.len() - READ_CHUNK
+            if !read_file(h, whole[READ_CHUNK..<whole.len()], u32(want), got, null) {
+                return last_io_error("read failed")
+            }
+            if i64(got[0]) < want {
+                return whole[0..<READ_CHUNK + i64(got[0])]
+            }
+            // It grew past its size: the chunks read on.
+            out = whole
         }
     }
 }
 
-// 64 KiB per read.
+// The array a regular file of `size` bytes is read into once its first chunk
+// came back full: its size and one byte more, so that a read short of it shows
+// the end, the first chunk copied in and the rest read in place. Null, for the
+// chunks to go on, when the size is unknown (-1) or does not pass one chunk, when
+// it passes `max_bytes` (a size is a claim: a file can shrink, `/proc/kcore`
+// reports the kernel's address space; the chunks refuse what does pass it), or
+// when one read cannot ask for that much.
+whole_buffer :: fn(size: i64, max_bytes: i64) -> u8[] | null {
+    if size <= READ_CHUNK || size > max_bytes || size >= WHOLE_READ_MAX {
+        return null
+    }
+    whole: u8[]: [0] * (size + 1)
+    return whole
+}
+
+// The largest file read whole: what one `ReadFile` call can ask for.
+WHOLE_READ_MAX: i64: @max(u32)
+
+// 64 KiB per chunk.
 READ_CHUNK: i64 : 64 * 1024
 
 /// A ceiling for a read whose caller has no figure of its own.
@@ -687,8 +732,8 @@ remove_file :: fn(path: string) -> null | IOError {
 /// Read a file fully into a UTF-8 string: a thin text decode over
 /// `read_file_bytes`. Use `read_file_bytes` directly for binary data.
 /// @param path       filesystem path (absolute or cwd-relative).
-/// @param max_bytes  refuse once this many bytes have accumulated ; see
-///                   `read_file_bytes`. Defaults to `READ_LIMIT_DEFAULT`.
+/// @param max_bytes  the most bytes accepted, `READ_LIMIT_DEFAULT` by default;
+///                   see `read_file_bytes`.
 /// @return           file contents as a UTF-8 string.
 /// @error            `IOError` if the file can't be opened or read, or if it
 ///                   passes `max_bytes`.
@@ -1149,12 +1194,75 @@ import "std/testing"
     assert(wrote !is IOError, "the probe was written")
     defer remove_file(file)
 
-    // The ceiling is inclusive, and it is measured after the chunk that reaches
-    // end of file, as a loop condition it never saw a file under `READ_CHUNK`.
+    // The ceiling is inclusive.
     assert(read_file_bytes(file, 10) !is IOError, "exactly at the ceiling is fine")
     assert(read_file_bytes(file, 9) is IOError, "one byte past it is refused")
 }
 
-// `read_file_bytes` on an endless stream is not tested here: `vader test` runs
-// the VM, where 256 MiB of `u8` exceeds `VADER_GC_YOUNG_MAX` before the chunk
-// loop can reach its ceiling.
+@test test_read_file_bytes_reads_a_file_past_one_chunk :: fn() -> void {
+    file :: "${temp_dir()}/vader_read_whole_probe"
+    content: u8[]: [7] * (READ_CHUNK + 10)
+    content[content.len() - 1] = 9
+    wrote :: write_file_bytes(file, content)
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    back :: read_file_bytes(file)
+    if back is IOError {
+        assert(false, "a file past one chunk reads")
+    } else {
+        assert(back.content_equals(content), "every byte read back, the last one included")
+    }
+}
+
+@test test_read_file_bytes_reads_a_file_of_exactly_one_chunk :: fn() -> void {
+    file :: "${temp_dir()}/vader_read_one_chunk_probe"
+    content: u8[]: [3] * READ_CHUNK
+    wrote :: write_file_bytes(file, content)
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    back :: read_file_bytes(file)
+    if back is IOError {
+        assert(false, "a file of one chunk reads")
+    } else {
+        assert_eq(back.len(), READ_CHUNK)
+    }
+}
+
+@test test_read_file_bytes_holds_a_stream_to_its_ceiling :: fn() -> void {
+    if VADER_OS == .Windows {
+        return
+    }
+    // Past its first chunk, a device has no size: the chunks go on to the ceiling.
+    endless :: read_file_bytes("/dev/zero", READ_CHUNK * 2)
+    assert(endless is IOError, "an endless stream stops at its ceiling")
+}
+
+@test test_read_file_bytes_holds_a_file_read_whole_to_its_ceiling :: fn() -> void {
+    file :: "${temp_dir()}/vader_read_whole_ceiling_probe"
+    content: u8[]: [5] * (READ_CHUNK * 3)
+    wrote :: write_file_bytes(file, content)
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    assert(read_file_bytes(file, content.len()) !is IOError, "exactly at the ceiling is fine")
+    assert(read_file_bytes(file, content.len() - 1) is IOError, "one byte past it is refused")
+}
+
+@test test_read_file_bytes_reads_the_null_device_empty :: fn() -> void {
+    read :: read_file_bytes(null_device())
+    if read is IOError {
+        assert(false, "the null device reads")
+    } else {
+        assert_eq(read.len(), 0)
+    }
+}
+
+// The device that reads empty, by platform.
+null_device :: fn() -> string {
+    if VADER_OS == .Windows {
+        return "NUL"
+    }
+    return "/dev/null"
+}

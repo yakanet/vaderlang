@@ -529,6 +529,20 @@ export set_console_mode :: fn(h: Handle, mode: u32) -> bool
 export read_file :: fn(h: Handle, @c_out buf: u8[], count: u32, @c_out read: u32[],
                        overlapped: CPointer | null) -> bool
 
+/// `GetFileType`. `FILE_TYPE_DISK` for a file on disk, whose size says how much
+/// a read will find; another value for a pipe, a console or a device.
+@extern(KERNEL32, "GetFileType")
+export get_file_type :: fn(h: Handle) -> u32
+
+/// What `get_file_type` answers for a file on disk.
+export FILE_TYPE_DISK: u32 : 0x0001
+
+/// `GetFileSizeEx`. False on failure.
+///
+/// @param size  receives the size in bytes; a one-element array so it reads back.
+@extern(KERNEL32, "GetFileSizeEx")
+export get_file_size_ex :: fn(h: Handle, @c_out size: i64[]) -> bool
+
 /// `CloseHandle`. False on failure, which a caller that is done with the file
 /// has nothing to do about.
 @extern(KERNEL32, "CloseHandle")
