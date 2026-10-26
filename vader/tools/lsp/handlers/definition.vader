@@ -43,8 +43,7 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
         is null     -> { return JsonNull {} }
         is DocIndex -> {
             // A `break` / `continue` jumps to the loop it targets (bare →
-            // innermost, `break <var>` / `<label>` → the named enclosing loop):
-            // the reader-clarity tool that replaced the retired W0004 nudge.
+            // innermost, `break <var>` / `<label>` → the named enclosing loop).
             loop_target :: loop_jump_at(idx, line, character)
             if loop_target != null {
                 origin :: idx.span_at(line, character)

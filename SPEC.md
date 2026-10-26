@@ -3445,7 +3445,7 @@ In a cross build, a `@comptime` value runs the `@target` bodies of the build mac
 
 A `@comptime` value cannot:
 
-- ask which machine the compiler runs on: `current_os`, `current_arch`, the scheduler's clock and the dynamic FFI (`ffi_open`, `ffi_symbol`, `ffi_call`) are rejected (`C4016`);
+- ask which machine the compiler runs on (`current_os`, `current_arch`, the dynamic FFI: `ffi_open`, `ffi_symbol`, `ffi_call`), or drive the async scheduler, which only runs with the program: both are rejected (`C4016`);
 - call a `@singleton` function, or anything that reaches one, such as spawning a process (`C4018`).
 
 ### Reflection / comptime intrinsics

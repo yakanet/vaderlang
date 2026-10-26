@@ -463,11 +463,11 @@ static inline size_t vader_array_element_size(uint8_t kind) {
  * `vader_array_t`. Set on the read-only `const u8[]` views returned by
  * `vader_string_bytes_view` : the header aliases an interned string's bytes
  * instead of owning a GC-backed `buf` (which is NULL). On a borrowed view
- * `capacity` is repurposed to carry `(element_tag << 32) | owner_atom_id`:
- * the view is never grown in place (push detaches / is a compile error via
- * T3042), so `capacity` is otherwise dead. The open-coded c-emit reads
- * (`vader_array_read_u8`) / `_slice` honour the flag ; `vader_atom_mark_heap`
- * keeps the owner atom alive through it. */
+ * `capacity` is repurposed to carry `(element_tag << 32) | owner_atom_id`: the
+ * view is never grown in place (modifying it is T3072, and the runtime traps on
+ * one that gets through), so `capacity` is otherwise dead. The open-coded c-emit
+ * reads (`vader_array_read_u8`) / `_slice` honour the flag ;
+ * `vader_atom_mark_heap` keeps the owner atom alive through it. */
 #define VADER_ARRAY_FLAG_BORROWED  ((uint16_t) 0x0001u)
 
 /* Shared-buffer mark: stored in `_reserved` of a `vader_array_buf_t`, set by

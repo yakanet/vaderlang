@@ -219,17 +219,17 @@ export ResolverCode :: enum(CodeInfo) {
 
 // C-codes belong to the comptime evaluator.
 export ComptimeCode :: enum(CodeInfo) {
-    CannotEvaluate  { .id = "C4001", .message = "expression cannot be evaluated at compile time" },
-    EvaluationPanic { .id = "C4002", .message = "comptime evaluation panicked" },
-    NotCallable     { .id = "C4003", .message = "function is not callable in comptime context" },
-    DivisionByZero  { .id = "C4005", .message = "comptime division by zero" },
-    TypeMismatch        { .id = "C4007", .message = "comptime value has incompatible type" },
-    DependencyCycle     { .id = "C4009", .message = "comptime evaluation depends on itself" },
-    FeatureNotSupported { .id = "C4011", .message = "comptime feature not yet supported" },
-    AssertFailed         { .id = "C4015", .message = "compile-time assertion failed" },
-    ImpureHostAtComptime { .id = "C4016", .message = "impure host call at comptime" },
-    IntegerOverflow      { .id = "C4017", .message = "integer overflow in a constant expression" },
-    SingletonAtComptime  { .id = "C4018", .message = "a `@singleton` function cannot run at comptime" },
+    CannotEvaluate        { .id = "C4001", .message = "expression cannot be evaluated at compile time" },
+    EvaluationPanic       { .id = "C4002", .message = "comptime evaluation panicked" },
+    NotCallable           { .id = "C4003", .message = "function is not callable in comptime context" },
+    DivisionByZero        { .id = "C4005", .message = "comptime division by zero" },
+    TypeMismatch          { .id = "C4007", .message = "comptime value has incompatible type" },
+    DependencyCycle       { .id = "C4009", .message = "comptime evaluation depends on itself" },
+    FeatureNotSupported   { .id = "C4011", .message = "comptime feature not yet supported" },
+    AssertFailed          { .id = "C4015", .message = "compile-time assertion failed" },
+    HostRefusedAtComptime { .id = "C4016", .message = "a comptime evaluation cannot call this host" },
+    IntegerOverflow       { .id = "C4017", .message = "integer overflow in a constant expression" },
+    SingletonAtComptime   { .id = "C4018", .message = "a `@singleton` function cannot run at comptime" },
 }
 
 // M-codes belong to the lowering pass (AST -> Lowered IR). The `M` prefix

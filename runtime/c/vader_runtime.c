@@ -3027,7 +3027,7 @@ VADER_PURE VADER_NOINLINE vader_array_buf_t* vader_array_buf_forward(vader_array
 
 void vader_array_push_slow(vader_array_t* a, vader_box_t v) {
     if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
-        /* Defensive : T3042 rejects mutation of a `const u8[]` view. */
+        /* Defensive : T3072 refuses to modify a view of a string's bytes. */
         vader_trap("cannot push to a borrowed `const u8[]` byte view");
     }
     /* Three reasons to detach into a fresh buf : (a) cap reached, (b) view
@@ -3384,7 +3384,7 @@ void vader_array_copy(vader_array_t* src, int64_t src_from, vader_array_t* dst, 
  * return the element as a pre-tagged box (the boxed kind's slot box verbatim ;
  * a primitive read boxed with the static `element_tag`). Returns `vader_box_null`
  * on an empty array: the `T | null` null variant. Rejects borrowed views (a
- * `const u8[]` is read-only, T3042). No allocation, so no rooting. */
+ * view of a string's bytes is read-only, T3072). No allocation, so no rooting. */
 vader_box_t vader_array_remove_last(vader_array_t* a) {
     if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
         vader_trap("cannot remove_last from a borrowed `const u8[]` byte view");
@@ -3429,7 +3429,7 @@ vader_box_t vader_array_remove_last(vader_array_t* a) {
 }
 
 /* `arr.clear()`: drop every element (length 0), keeping the buf + capacity for
- * reuse. Rejects borrowed views (read-only, T3042). */
+ * reuse. Rejects borrowed views (read-only, T3072). */
 void vader_array_clear(vader_array_t* a) {
     if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
         vader_trap("cannot clear a borrowed `const u8[]` byte view");

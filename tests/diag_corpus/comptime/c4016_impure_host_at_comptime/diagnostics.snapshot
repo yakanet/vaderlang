@@ -1,2 +1,0 @@
-[15:8] error[C4016] impure host call at comptime: host `std_target$current_os` is impure and cannot run at comptime, since it answers for the machine the compiler runs on and baking it would make the same source emit differently per builder
-[21:24] warning[W0016] the enum name adds nothing here, since the slot already pins it and the bare variant reads the same: write `.Darwin`

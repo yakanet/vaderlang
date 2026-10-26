@@ -172,11 +172,11 @@ bake_decl :: fn(
         leave_source_folder(home)
     }
     if outcome is Vm.Trap {
-        // An impure host reached at comptime (clock / env / fs / stdin /
-        // subprocess) is refused by `vm/host.vader`'s gate and tagged so it
-        // surfaces as C4016 rather than the generic C4002 panic.
-        if Vm.is_impure_comptime_trap_message(outcome.message) {
-            diags.push(comptime_error(.ImpureHostAtComptime, vr.span, outcome.message))
+        // A host a comptime evaluation may not call is refused by
+        // `vm/host.vader`'s gate and tagged so it surfaces as C4016 rather than
+        // the generic C4002 panic.
+        if Vm.is_comptime_refusal_message(outcome.message) {
+            diags.push(comptime_error(.HostRefusedAtComptime, vr.span, outcome.message))
         } else if Vm.is_singleton_comptime_trap_message(outcome.message) {
             diags.push(comptime_error(.SingletonAtComptime, vr.span, outcome.message))
         } else {

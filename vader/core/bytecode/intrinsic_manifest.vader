@@ -166,7 +166,7 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
 /// shadow-stack frame, so a wrong `false` leaves live refs unrooted across a
 /// collection.
 ///
-/// Not the question `vm/host`'s `is_impure_host` answers, which is whether a
+/// Not the question `vm/host`'s `comptime_refusal` answers, which is whether a
 /// comptime evaluation may call the host: `current_os` depends on the machine
 /// and never collects, `bytes` depends on nothing and allocates.
 ///

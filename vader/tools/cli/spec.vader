@@ -5,13 +5,6 @@
 // renders from it, so a flag described here is a flag the compiler accepts and
 // the help shows: there is no second copy to keep in step.
 //
-// It replaces four things that used to describe the surface separately: the
-// 60-line `HELP` string, the `STAGES_LIST` constant, `cmd_build`'s chain of
-// `target != …` comparisons, and `cmd_dump`'s twelve `stage == …` arms. They had
-// already drifted: `HELP` advertised a `.vir` input the CLI has never
-// recognised, promised a REPL for a bare `vader run`, and listed `fmt`'s flags
-// that live in a parser of their own.
-//
 // Adding a flag means adding it here and reading it in the matching `cmd_*`.
 // Adding a value to an enumerated flag means adding a `ValueSpec` here and an
 // arm to the dispatch; the validation and the error message follow on their own.
@@ -29,14 +22,11 @@ export TAGLINE :: "the Vader compiler"
 /// line to stamp `bootstrap/VERSION`, so it stays a one-line string literal.
 export CLI_VERSION :: "0.1.0"
 
-/// Flags every action accepts.
+/// Flags every action accepts, parsed with the action's own.
 ///
-/// All three are parsed and stripped but wired into no pass yet: `GlobalOpts`
-/// is built and never read. They say so rather than describing an effect they
-/// don't have: a help entry that overstates is worse than one admitting its own
-/// emptiness. They used to be "global options" consumed before the action was
-/// even dispatched, which is what let the CLI steal `--allow-env` from a program
-/// run under `vader run`.
+/// `--diagnostics`, `--allow-env` and `--no-bytecode-opt` are reserved: parsed,
+/// and read by no pass. Their help says so rather than describing an effect they
+/// don't have.
 export COMMON_FLAGS: FlagSpec[]: [
     FlagSpec {
         .name = "help",

@@ -219,7 +219,7 @@ test("lsp: goto-def + hover end-to-end", async () => {
     // 5: hover on whitespace → null
     { method: "textDocument/hover", position: { line: 0, character: 0 } },
     // 6: goto-loop, click on `break i` (line 22) jumps to the `for i` loop it
-    //    targets by its iteration variable (line 20). Replaces the W0004 nudge.
+    //    targets by its iteration variable (line 20).
     { method: "textDocument/definition", position: { line: 22, character: 26 } },
   ];
 

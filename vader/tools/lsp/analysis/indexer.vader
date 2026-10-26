@@ -122,7 +122,7 @@ export DocIndex :: struct {
     /// locate an unqualified name (see `resolver::resolve`).
     wildcards: Rs.FileImports
     /// `break` / `continue` → the loop it targets, for goto-definition on a
-    /// loop jump (the reader-clarity tool that replaced the W0004 nudge).
+    /// loop jump.
     loop_jumps: LoopJump[]
     /// Byte ↔ (line, character) map for this document, in the negotiated
     /// encoding. Powers the incoming position resolvers below and the outgoing

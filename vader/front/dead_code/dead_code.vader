@@ -16,12 +16,11 @@
 // is flagged. Never on the default build: `vader lint` and the LSP's diagnostic
 // pass (`tools/lsp/analysis/diagnostics.vader`) are its only two callers.
 //
-// Name-based by design. Resolving every reference to a `Symbol.id` is the gap
-// that sank the unused-import attempt (W0006) : `resolved.idents` is span-keyed,
-// `files[0]`-only, and misses positions. Collecting names over the merged AST
-// over-approximates uses (a local shadowing a top-level name marks it used): the
-// SAFE bias for a lint : we under-report, never false-positive (a false positive
-// would tell you to delete live code). The names come from one `AST.inspect` walk,
+// Name-based by design: a reference counts by its name, never resolved to a
+// `Symbol.id`. Collecting names over the merged AST over-approximates uses (a
+// local shadowing a top-level name marks it used): the SAFE bias for a lint : we
+// under-report, never false-positive (a false positive would tell you to delete
+// live code). The names come from one `AST.inspect` walk,
 // which reaches every node, interpolated parts included: an identifier names what
 // it reads, and the field of `recv.foo()` the fn UFCS reaches.
 
@@ -151,7 +150,7 @@ collect_decl_refs :: fn(d: AST.Decl, seed_refs: string[]) -> NamedDeclRefs | nul
         }
     }
 }
-// Imports name CROSS-module symbols ; unused imports are W0006's job.
+// Imports name CROSS-module symbols: an unused import is not this pass's to report.
 
 // A named decl's identity and the names it references: one constructor so the six
 // arms of `collect_decl_refs` stay one line each.
