@@ -31,6 +31,22 @@ import "std/sort"
 
 // ----------------------------------------------------------- build
 
+// Whether an executable for `target`, another platform than this one, cannot be
+// built, after saying why: it needs a C compiler that targets it, `--cc` or
+// `$CC`, trusted to do so. The host's own would hand back a binary for this
+// machine under the target's name. A driven project names its compiler in its
+// `build.vader` (`ctx.cc`), so the check is not this command's to make there.
+refuses_foreign_executable :: fn(target: Target, cc_flag: string) -> bool {
+    if named_cc(cc_flag) != null {
+        return false
+    }
+    shown :: display_target(target)
+    eprintln("vader build --target=${shown}: `${default_cc()}` builds for "
+        + "`${display_target(host_target())}`; name a compiler for `${shown}` with `--cc` "
+        + "or `\$CC`, or write the C with `--emit=c`")
+    return true
+}
+
 // Split a comma-separated `--include-paths=a,b,c` flag value into a list (empty
 // for an absent/empty flag). These prepend the module search order (GCC `-I`).
 parse_include_path_flag :: fn(raw: string) -> string[] =
@@ -52,6 +68,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     // swallowed in silence and the build would quietly produce something else.
     // `parse_target` names the offending fragment.
     target_flag :: parsed.string_flag("target", "")
+    cc_flag :: parsed.string_flag("cc", "")
     emit :: parsed.string_flag("emit", "executable")
     if emit == "bytecode" {
         eprintln("vader build --emit=bytecode: not yet implemented; "
@@ -98,7 +115,7 @@ cmd_build :: fn(args: string[]) -> i32 {
         .out = parsed.string_flag("out", ""),
         .release = parsed.bool_flag("release"),
         .verify = parsed.bool_flag("verify"),
-        .cc = parsed.string_flag("cc", default_cc()),
+        .cc = cc_or_default(cc_flag),
         .ldflags = parsed.string_flag("ldflags", ""),
         .include_paths = parse_include_path_flag(parsed.string_flag("include-paths", "")),
         .target = build_target,
@@ -111,6 +128,10 @@ cmd_build :: fn(args: string[]) -> i32 {
     input :: resolve_input("build", action_input(parsed), selected)
     if input is i32 {
         return input
+    }
+    if build_target != null && build_target != host_target() && emit == "executable"
+        && input !is DrivenProject && refuses_foreign_executable(build_target, cc_flag) {
+        return 2
     }
     // The C of several targets at once is the seed's shape, emitted from one file.
     if seed_flag != "" && input !is FileInput {

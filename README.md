@@ -222,10 +222,10 @@ vader build --emit=executable --out=/tmp/foo foo.vader            # native binar
 vader build --emit=executable --cc=clang --out=/tmp/foo foo.vader # pick the C compiler (`--cc` wins over `CC`)
 ```
 
-**Cross-compile to Windows from macOS/Linux**: install [mingw-w64](https://www.mingw-w64.org/) (`brew install mingw-w64` / `apt install mingw-w64`), then point `vader build` at the cross-compiler. The `.exe` extension is added automatically when the triplet ends in `mingw32-gcc`:
+**Cross-compile to Windows from macOS/Linux**: install [mingw-w64](https://www.mingw-w64.org/) (`brew install mingw-w64` / `apt install mingw-w64`), then name the target and point `vader build` at the cross-compiler: the target picks the `@target` bodies and `VADER_OS`, the compiler the machine code. The `.exe` extension is added automatically when the triplet ends in `mingw32-gcc`:
 
 ```sh
-vader build --emit=executable --cc=x86_64-w64-mingw32-gcc --out=/tmp/hello-win examples/hello/hello.vader
+vader build --emit=executable --target=windows-x86_64 --cc=x86_64-w64-mingw32-gcc --out=/tmp/hello-win examples/hello/hello.vader
 file /tmp/hello-win.exe          # → PE32+ executable (console) x86-64, for MS Windows
 ```
 

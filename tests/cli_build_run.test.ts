@@ -55,6 +55,23 @@ test("a build that fails runs nothing", async () => {
   expect(r.exit).toBe(1);
 }, MEDIUM_BUILD);
 
+test("an executable for another platform needs a C compiler for it", async () => {
+  const dir = stagedDir();
+  writeFileSync(join(dir, "main.vader"), program("app", 0));
+  const other = process.platform === "win32" ? "linux-x86_64" : "windows-x86_64";
+  // `CC` emptied: a machine that exports one (the Windows CI does) would pass the check.
+  const env = { ...TOOLCHAIN_ENV, CC: "" };
+  const run = (args: string[]) => spawnCapture(args, { cwd: dir, env, timeoutMs: MEDIUM_BUILD });
+  for (const target of [other, "browser-wasm32"]) {
+    const cross = await run(["build", `--target=${target}`, "main.vader"]);
+    expect({ target, exit: cross.exit }).toEqual({ target, exit: 2 });
+    expect(cross.stderr).toContain(`name a compiler for \`${target}\` with \`--cc\``);
+  }
+  // The C needs no compiler, whatever the target.
+  const c = await run(["build", "--emit=c", `--target=${other}`, `--out=${join(dir, "main.c")}`, "main.vader"]);
+  expect(c.exit).toBe(0);
+}, MEDIUM_BUILD);
+
 test("--run refuses a build that produces no program for this machine", async () => {
   const dir = stagedDir();
   writeFileSync(join(dir, "main.vader"), program("app", 0));
