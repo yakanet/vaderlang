@@ -11,9 +11,9 @@
 //
 // Keys go by position: W A S D (Z Q S D on an AZERTY keyboard), Up and Down to
 // move, the mouse, Left and Right to turn, the left button or Ctrl to fire, E or
-// Space for the door ahead, M for the map, P to save the view as `raycaster.png`
-// in the working directory, Enter to start again once fallen or once every
-// zombie is down, Escape to leave.
+// Space for the door ahead, M for the map, F11 to fill the screen or leave it, P
+// to save the window as `raycaster.png` in the working directory, Enter to start
+// again once fallen or once every zombie is down, Escape to leave.
 // `frames/` is the same engine without a window.
 
 module "main"
@@ -22,11 +22,20 @@ import "engine"
 import "raylib"
 import "std/abort"
 import "std/io"
+import "std/math"
 
-/// The size of the frame the engine draws; the window shows it `SCALE` times larger.
-VIEW_WIDTH: i32: 640
-VIEW_HEIGHT: i32: 360
-SCALE: i32: 2
+/// The size of the frame the engine draws; the window shows it as large as fits.
+VIEW_WIDTH: i32: 960
+VIEW_HEIGHT: i32: 540
+
+/// The window's size when it opens, until the user resizes it or fills the screen.
+/// The HUD's sizes and places are given in pixels of a window this size, and scale
+/// with the view the window shows.
+WINDOW_WIDTH: i32: 1280
+WINDOW_HEIGHT: i32: 720
+
+/// How loud the sounds play, as a share of how they were recorded.
+VOLUME: f32: 0.5
 
 /// Walking speed, in cells per second.
 WALK_SPEED :: 3.2
@@ -38,7 +47,7 @@ MOUSE_TURN :: 0.0025
 /// diagonally is no faster: the square root of one half.
 DIAGONAL :: 0.70710678
 
-HELP :: "WASD: move   mouse: turn   click: fire   E: door   M: map   P: screenshot   Esc: quit"
+HELP :: "WASD: move   mouse: turn   click: fire   E: door   M: map   F11: full screen   P: screenshot   Esc: quit"
 
 /// One game: the level as it stands, and the player in it.
 Game :: struct {
@@ -53,7 +62,8 @@ new_game :: fn() -> Game {
 }
 
 main :: fn() -> i32 {
-    init_window(VIEW_WIDTH * SCALE, VIEW_HEIGHT * SCALE, "Vader raycaster")
+    set_config_flags(FLAG_WINDOW_RESIZABLE)
+    init_window(WINDOW_WIDTH, WINDOW_HEIGHT, "Vader raycaster")
     if !is_window_ready() {
         eprintln("raycaster: no window could be opened (raylib says why above)")
         return 1
@@ -61,6 +71,7 @@ main :: fn() -> i32 {
     defer close_window()
     init_audio_device()
     defer close_audio_device()
+    set_master_volume(VOLUME)
     set_target_fps(60)
     disable_cursor()
     sounds :: load_sounds()
@@ -74,12 +85,6 @@ main :: fn() -> i32 {
         .y = 0.0,
         .width = f32(VIEW_WIDTH),
         .height = f32(VIEW_HEIGHT),
-    }
-    target :: Rectangle {
-        .x = 0.0,
-        .y = 0.0,
-        .width = f32(VIEW_WIDTH * SCALE),
-        .height = f32(VIEW_HEIGHT * SCALE),
     }
     game := new_game()
     show_map := true
@@ -107,6 +112,9 @@ main :: fn() -> i32 {
         if is_key_pressed(.M) {
             show_map = !show_map
         }
+        if is_key_pressed(.F11) {
+            toggle_borderless_windowed()
+        }
         level.update_doors(player, seconds)
         level.update_enemies(player, seconds, noises)
         player.update_player(seconds)
@@ -115,13 +123,15 @@ main :: fn() -> i32 {
         }
         render(frame, level, player, lights)
         if show_map {
-            draw_minimap(frame, level, player, 3)
+            draw_minimap(frame, level, player, 4)
         }
         draw_crosshair(frame)
         update_texture(screen, frame.pixels)
+        view :: fitted_view()
         begin_drawing()
-        draw_texture_pro(screen, source, target, Vector2 { .x = 0.0, .y = 0.0 }, 0.0, WHITE)
-        draw_hud(level, player)
+        clear_background(BLACK)
+        draw_texture_pro(screen, source, view, Vector2 { .x = 0.0, .y = 0.0 }, 0.0, WHITE)
+        draw_hud(view, level, player)
         end_drawing()
         if is_key_pressed(.P) {
             take_screenshot("raycaster.png")
@@ -151,28 +161,57 @@ steer :: fn(player: Player, level: Level, seconds: f64) -> void {
     player.turn(angle)
 }
 
-// The health and the bullets left, the keys, and what became of the player.
-draw_hud :: fn(level: Level, player: Player) -> void {
-    height :: VIEW_HEIGHT * SCALE
-    draw_fps(VIEW_WIDTH * SCALE - 90, 10)
-    draw_text("HEALTH ${player.health}   AMMO ${player.ammo}", 16, height - 64, 30, RAYWHITE)
-    draw_text(HELP, 16, height - 26, 20, RAYWHITE)
+// Where the window shows the frame: as large as fits, centred, black around it.
+fitted_view :: fn() -> Rectangle {
+    width :: f32(get_screen_width())
+    height :: f32(get_screen_height())
+    scale :: min(width / f32(VIEW_WIDTH), height / f32(VIEW_HEIGHT))
+    return Rectangle {
+        .x = (width - f32(VIEW_WIDTH) * scale) / 2.0,
+        .y = (height - f32(VIEW_HEIGHT) * scale) / 2.0,
+        .width = f32(VIEW_WIDTH) * scale,
+        .height = f32(VIEW_HEIGHT) * scale,
+    }
+}
+
+// The health and the bullets left, the keys, and what became of the player,
+// over `view`.
+draw_hud :: fn(view: Rectangle, level: Level, player: Player) -> void {
+    draw_text("${get_fps()} FPS", view.across(1180), view.down(10), view.scaled(20), RAYWHITE)
+    draw_text(
+        "HEALTH ${player.health}   AMMO ${player.ammo}",
+        view.across(16),
+        view.down(656),
+        view.scaled(30),
+        RAYWHITE,
+    )
+    draw_text(HELP, view.across(16), view.down(694), view.scaled(20), RAYWHITE)
     if player.health <= 0 {
-        draw_centred("YOU FELL. Enter: start again", height / 2 - 20, 40)
+        view.draw_centred("YOU FELL. Enter: start again", 340, 40)
     } else if level.cleared() {
-        draw_centred("YOU WIN", height / 2 - 60, 80)
-        draw_centred("The hangar is clear. Enter: play again", height / 2 + 30, 30)
+        view.draw_centred("YOU WIN", 300, 80)
+        view.draw_centred("The hangar is clear. Enter: play again", 390, 30)
     }
 }
 
 // Whether the game has ended: the player fell, or no zombie still stands.
 is_over :: fn(level: Level, player: Player) -> bool = player.health <= 0 || level.cleared()
 
-// Draw `text` centred across the window, its top at `y`.
-draw_centred :: fn(text: string, y: i32, size: i32) -> void {
-    left :: (VIEW_WIDTH * SCALE - measure_text(text, size)) / 2
-    draw_text(text, left, y, size, RAYWHITE)
+// Draw `text` centred across `view`, its top `y` HUD pixels down.
+draw_centred :: fn(view: Rectangle, text: string, y: i32, size: i32) -> void {
+    pixels :: view.scaled(size)
+    left :: i32(view.x + view.width / 2.0) - measure_text(text, pixels) / 2
+    draw_text(text, left, view.down(y), pixels, RAYWHITE)
 }
+
+// `size` HUD pixels, in the window's pixels for `view`.
+scaled :: fn(view: Rectangle, size: i32) -> i32 = i32(f32(size) * view.height / f32(WINDOW_HEIGHT))
+
+// The window column `x` HUD pixels from `view`'s left edge.
+across :: fn(view: Rectangle, x: i32) -> i32 = i32(view.x) + view.scaled(x)
+
+// The window row `y` HUD pixels below `view`'s top edge.
+down :: fn(view: Rectangle, y: i32) -> i32 = i32(view.y) + view.scaled(y)
 
 // ---- sounds ---------------------------------------------------------------
 

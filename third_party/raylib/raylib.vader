@@ -127,12 +127,15 @@ export Sound :: struct {
 /// A letter names a key by where it sits on a US keyboard, whatever the layout
 /// prints on it: `W` is the key an AZERTY keyboard labels Z.
 export KeyboardKey :: enum(i32) {
+    /// No key: given to `set_exit_key`, no key closes the window.
+    Null        = 0,
     Space       = 32,
     A           = 65,
     D           = 68,
     E           = 69,
     M           = 77,
     P           = 80,
+    Q           = 81,
     S           = 83,
     W           = 87,
     Escape      = 256,
@@ -141,6 +144,7 @@ export KeyboardKey :: enum(i32) {
     Left        = 263,
     Down        = 264,
     Up          = 265,
+    F11         = 300,
     LeftControl = 341,
 }
 
@@ -198,9 +202,35 @@ export is_window_ready :: fn() -> bool
 @extern(RAYLIB, "CloseWindow")
 export close_window :: fn() -> void
 
-/// Whether the user asked to close the window: its close button, or Escape.
+/// Whether the user asked to close the window: its close button, or the exit key
+/// (Escape unless `set_exit_key` named another).
 @extern(RAYLIB, "WindowShouldClose")
 export window_should_close :: fn() -> bool
+
+/// Let the user resize the window, given to `set_config_flags`.
+export FLAG_WINDOW_RESIZABLE: u32: 0x0000_0004
+
+/// Set how the window is created: the `FLAG_*` values, or-ed together. Takes
+/// effect at the next `init_window`.
+@extern(RAYLIB, "SetConfigFlags")
+export set_config_flags :: fn(flags: u32) -> void
+
+/// Name the key that makes `window_should_close` true; `.Null` for none.
+@extern(RAYLIB, "SetExitKey")
+export set_exit_key :: fn(key: KeyboardKey) -> void
+
+/// Switch between a window and a borderless window covering the whole monitor.
+@extern(RAYLIB, "ToggleBorderlessWindowed")
+export toggle_borderless_windowed :: fn() -> void
+
+/// The window's width, in screen coordinates: what `draw_text` and the other
+/// draw calls are placed in.
+@extern(RAYLIB, "GetScreenWidth")
+export get_screen_width :: fn() -> i32
+
+/// The window's height, in screen coordinates.
+@extern(RAYLIB, "GetScreenHeight")
+export get_screen_height :: fn() -> i32
 
 /// Cap the frame rate: `end_drawing` waits out the rest of each frame.
 @extern(RAYLIB, "SetTargetFPS")
@@ -219,6 +249,10 @@ export take_screenshot :: fn(file_name: string) -> void
 /// instead of leaving it.
 @extern(RAYLIB, "DisableCursor")
 export disable_cursor :: fn() -> void
+
+/// Show the cursor again and let it leave the window.
+@extern(RAYLIB, "EnableCursor")
+export enable_cursor :: fn() -> void
 
 // ---- drawing --------------------------------------------------------------
 
@@ -246,6 +280,10 @@ export measure_text :: fn(text: string, font_size: i32) -> i32
 /// Draw the current frame rate, its top-left corner at `x`, `y`.
 @extern(RAYLIB, "DrawFPS")
 export draw_fps :: fn(x: i32, y: i32) -> void
+
+/// How many frames were drawn over the last second.
+@extern(RAYLIB, "GetFPS")
+export get_fps :: fn() -> i32
 
 // ---- textures -------------------------------------------------------------
 
@@ -356,6 +394,11 @@ export init_audio_device :: fn() -> void
 /// Close the audio device, once every sound is unloaded.
 @extern(RAYLIB, "CloseAudioDevice")
 export close_audio_device :: fn() -> void
+
+/// Scale the volume of every sound, those already playing included: `1.0` plays
+/// them as recorded. The audio device must be open.
+@extern(RAYLIB, "SetMasterVolume")
+export set_master_volume :: fn(volume: f32) -> void
 
 @extern(RAYLIB, "LoadWaveFromMemory")
 load_wave_from_memory :: fn(file_type: string, data: u8[], size: i32) -> Wave
