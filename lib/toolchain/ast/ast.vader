@@ -23,6 +23,7 @@
 module "toolchain/ast"
 
 import "std/ffi"
+import "std/string"
 import "toolchain/span"
 
 /// Sentinel `id` on a node the parser has just minted.
@@ -331,6 +332,60 @@ export decl_is_public :: fn(decl: Decl) -> bool = match decl {
     is ImplDecl | AssertDecl | ImportDecl -> false
 }
 
+/// The vaderdoc written above `decl`.
+///
+/// @param decl  a declaration.
+/// @return      null when it has none, when the parse did not keep docs, and for an
+///              import or an assert, which take none.
+export decl_doc :: fn(decl: Decl) -> DocComment | null = match decl {
+    is FnDecl        -> decl.doc
+    is StructDecl    -> decl.doc
+    is EnumDecl      -> decl.doc
+    is TraitDecl     -> decl.doc
+    is ImplDecl      -> decl.doc
+    is TypeAliasDecl -> decl.doc
+    is ConstDecl     -> decl.doc
+    is ImportDecl | AssertDecl -> null
+}
+
+// ---- Vaderdoc -------------------------------------------------------------
+
+/// The `///` lines written right above a declaration, a struct field or an enum
+/// variant: its vaderdoc.
+///
+/// Only a parse that asks for docs fills one (`parse_source_with_docs` in
+/// `vader/front/parser`): the `parse_source` a build runs leaves every `doc` null, so
+/// a build pays nothing for comments it never reads. A plain `//` or `/* */` comment
+/// between the lines and the declaration detaches them; blank lines do not.
+export DocComment :: struct {
+    /// One per `///` line, in source order. Never empty.
+    lines: DocCommentLine[]
+}
+
+/// One `///` line of a `DocComment`.
+export DocCommentLine :: struct {
+    /// What follows the three slashes, as written: the space after them included.
+    text: string
+    /// The whole comment, slashes included.
+    span: Span
+}
+
+/// The text of `doc`: its lines joined by `\n`, each without its `///` and the one
+/// space that usually follows.
+///
+/// @param doc  a vaderdoc block, or null for none.
+/// @return     "" for null.
+export doc_text :: fn(doc: DocComment | null) -> string {
+    if doc == null {
+        return ""
+    }
+    out: string[]: []
+    for line in doc.lines {
+        out.push(line.text.trim_prefix(" "))
+    }
+    return out.join("\n")
+}
+
 // ---- Import ---------------------------------------------------------------
 
 /// An `import` statement, whatever its form, see `ImportBinding`.
@@ -413,6 +468,7 @@ export FnDecl :: struct {
     /// True when the source wrote a trailing comma after the last parameter.
     /// Drives the formatter's Dart-style layout: present -> one param per line.
     trailing_comma:        bool = false
+    doc:                   DocComment | null = null
 }
 
 /// One parameter of a function, lambda or trait method.
@@ -454,6 +510,7 @@ export StructDecl :: struct {
     type_params:   TypeParam[]
     fields:        StructField[]
     decorators:    Decorator[]
+    doc:           DocComment | null = null
 }
 
 /// One field of a struct.
@@ -468,6 +525,7 @@ export StructField :: struct {
     visibility: Visibility
     // Optional default value used when a struct literal omits this field.
     default:    Expr | null
+    doc:        DocComment | null = null
 }
 
 // ---- Enum -----------------------------------------------------------------
@@ -486,6 +544,7 @@ export EnumDecl :: struct {
     header:     TypeExpr[]
     variants:   EnumVariant[]
     decorators: Decorator[]
+    doc:        DocComment | null = null
 }
 
 /// One variant of an enum, with its explicit value when the source gave one.
@@ -501,6 +560,7 @@ export EnumVariant :: struct {
     /// The `{ .f = v }` block as written, checked against the header's data
     /// type ; null when the variant has none.
     data:        StructLitItem[] | null = null
+    doc:         DocComment | null = null
 }
 
 // ---- Trait ----------------------------------------------------------------
@@ -524,6 +584,7 @@ export TraitDecl :: struct {
     requires:    TypeExpr | null
     members:     FnDecl[]
     decorators:  Decorator[]
+    doc:         DocComment | null = null
 }
 
 // ---- Impl -----------------------------------------------------------------
@@ -542,6 +603,7 @@ export ImplDecl :: struct {
     trait_args:       TypeExpr[]
     members:          FnDecl[]
     decorators:       Decorator[]
+    doc:              DocComment | null = null
 }
 
 // ---- TypeAlias ------------------------------------------------------------
@@ -559,6 +621,7 @@ export TypeAliasDecl :: struct {
     type_params: TypeParam[]
     aliased:     TypeExpr
     decorators:  Decorator[]
+    doc:         DocComment | null = null
 }
 
 // ---- Const ----------------------------------------------------------------
@@ -585,6 +648,7 @@ export ConstDecl :: struct {
     /// True when `@comptime` decorated the const (`@comptime` above `NAME :: v`)
     /// rather than following `::` ; read with `comptime_body`.
     comptime_as_decorator: bool = false
+    doc:        DocComment | null = null
 }
 
 /// An `@assert` at the top level: a build-time invariant.

@@ -19,6 +19,7 @@ import "std/char"
 import "std/string_builder"
 import "std/numbers"
 import "vader/support/diagnostics"
+AST :: import "toolchain/ast"
 import "toolchain/span"
 // Position/Span are re-imported transparently via token.vader (same module);
 // no need to import them again here: that would trigger R2011.
@@ -55,6 +56,24 @@ export Lexer :: struct {
     tokens: Token[]
     errors: Diagnostic[]
     interp_stack: InterpFrame[]
+    // Set by `tokenize_with_docs` : every run of `///` lines is then kept in
+    // `doc_runs`. The token stream is the same either way.
+    include_doc_comments: bool = false
+    doc_runs: DocRun[] = []
+    // The `///` lines read since the last token ; null when there are none, or when
+    // a plain comment came after them.
+    open_doc: AST.DocComment | null = null
+}
+
+/// A run of `///` lines with nothing but blank lines between them and the token
+/// after them, kept when the lexer is asked for docs (`tokenize_with_docs`).
+///
+/// The parser gives it to the declaration whose first token starts at
+/// `followed_by`; a run no declaration starts at is dropped.
+export DocRun :: struct {
+    doc:         AST.DocComment
+    /// Where the token after the run starts.
+    followed_by: i64
 }
 
 new_lexer :: fn(source: string, file: string) = Lexer {
@@ -239,6 +258,44 @@ emit :: fn(l: Lexer, t: Token) -> void {
     }
     l.tokens.push(t)
     l.last_kind = t.kind
+    if l.open_doc != null {
+        l.close_doc_run(t)
+    }
+}
+
+// Hand the `///` lines read so far to `t`, the token after them : a declaration
+// starting there takes them. Line breaks reach `l.tokens` without coming through
+// `emit`, so blank lines keep a run attached.
+close_doc_run :: fn(l: Lexer, t: Token) -> void {
+    doc :: l.open_doc ?? return
+    l.doc_runs.push(DocRun { .doc = doc, .followed_by = t.span.start.offset })
+    l.open_doc = null
+}
+
+// Keep the `///` line just skipped, which opened at `start` in `column` of the
+// current line ; any other line comment detaches the lines read so far. Out of
+// `lex_one` so that its allocations cost the token loop nothing.
+note_line_comment :: fn(l: Lexer, start: i64, column: i32) -> void {
+    if !l.src.matches_at(start, "///") {
+        l.open_doc = null
+        return
+    }
+    begin :: Position {
+        .file   = l.file,
+        .offset = start,
+        .line   = l.line,
+        .column = column,
+    }
+    line :: AST.DocCommentLine {
+        .text = l.src.byte_slice(start + 3, l.pos),
+        .span = Span { .start = begin, .end = l.position_here() },
+    }
+    doc :: l.open_doc
+    if doc == null {
+        l.open_doc = AST.DocComment { .lines = [line] }
+        return
+    }
+    doc.lines.push(line)
 }
 
 push_simple :: fn(l: Lexer, kind: TokenKind, text: string, start: Position) -> void {
@@ -281,6 +338,8 @@ in_interp_expression :: fn(l: Lexer) -> bool {
 }
 
 lex_block_comment :: fn(l: Lexer) -> void {
+    // A block comment between `///` lines and their declaration detaches them.
+    l.open_doc = null
     start :: l.position_here()
     l.advance(2)  // consume `/*`
     depth := 1
@@ -987,12 +1046,17 @@ lex_one :: fn(l: Lexer) -> void {
         return
     }
     if c == '/' && l.peek_at(1) == '/' {
+        start :: l.pos
+        column :: l.col
         // Line comment: skip to (but not past) the newline. Stop on a bare
         // `\r` too: `handle_newline` (and the `\n || \r` test above) treats a
         // lone CR as a line break, so a classic-Mac file must end the comment
         // there or the scan swallows the following line.
         for !l.at_end() && l.peek() != '\n' && l.peek() != '\r' {
             l.advance(1)
+        }
+        if l.include_doc_comments {
+            l.note_line_comment(start, column)
         }
         return
     }
@@ -1069,8 +1133,23 @@ codepoint_label :: fn(c: char) -> string = "U+${u64(u32(c)).to_hex().to_upper().
 
 // ---- public entry ---------------------------------------------------------
 
-export tokenize :: fn(source: string, file: string) -> Lexer {
+export tokenize :: fn(source: string, file: string) -> Lexer = run_lexer(new_lexer(source, file))
+
+/// Tokenize `source` as `tokenize` does, keeping every `///` line in `doc_runs`.
+///
+/// The tokens are the same as `tokenize` gives: the docs travel beside them, never
+/// in the stream, since the parser reads the token array directly in places.
+///
+/// @param source  the text of the file.
+/// @param file    the path its spans name.
+export tokenize_with_docs :: fn(source: string, file: string) -> Lexer {
     l :: new_lexer(source, file)
+    l.include_doc_comments = true
+    return run_lexer(l)
+}
+
+// Lex the whole of `l.src` into `l.tokens`, the closing `Eof` included.
+run_lexer :: fn(l: Lexer) -> Lexer {
     l.skip_bom()
     // Shebang: only allowed on line 1 and silently dropped.
     if l.line == 1 && l.peek() == '#' && l.peek_at(1) == '!' {
@@ -1397,4 +1476,31 @@ count_newlines :: fn(l: Lexer) -> i64 {
     // `"a\"b"` (an escaped double quote) is valid in a string literal.
     l :: tokenize("\"a\\\"b\"", "test.vader")
     assert_eq(l.errors.len(), 0)
+}
+
+@test test_tokenize_with_docs_lexes_the_same_tokens :: fn() -> void {
+    src :: "/// Doc.\n@allow_unused\nexport f :: fn() -> i32 = 1 // note\n/* x */\n/// Lost.\n"
+    with_docs :: tokenize_with_docs(src, "test.vader")
+    assert_eq(dump_tokens(with_docs), dump_tokens(tokenize(src, "test.vader")))
+}
+
+@test test_tokenize_with_docs_keeps_a_run :: fn() -> void {
+    l :: tokenize_with_docs("/// One.\n///Two.\n\nf :: 1\n", "test.vader")
+    assert_eq(l.doc_runs.len(), 1)
+    run :: l.doc_runs[0]
+    assert_eq(run.doc.lines.len(), 2)
+    assert_eq(run.doc.lines[0].text, " One.")
+    assert_eq(run.doc.lines[1].text, "Two.")
+    // `f` opens at byte 18, past the two lines and the blank one.
+    assert_eq(run.followed_by, 18)
+}
+
+@test test_tokenize_with_docs_a_plain_comment_detaches_the_run :: fn() -> void {
+    l :: tokenize_with_docs("/// Doc.\n// note\nf :: 1\n", "test.vader")
+    assert_eq(l.doc_runs.len(), 0)
+}
+
+@test test_tokenize_keeps_no_docs :: fn() -> void {
+    l :: tokenize("/// Doc.\nf :: 1\n", "test.vader")
+    assert_eq(l.doc_runs.len(), 0)
 }

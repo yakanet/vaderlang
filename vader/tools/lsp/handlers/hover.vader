@@ -123,9 +123,10 @@ decl_hover :: fn(hit: ExternalHit, instance: string) -> JsonValue {
     if instance.byte_len() > 0 {
         parts.push("called here as `${instance}`")
     }
-    if d.doc.byte_len() > 0 {
+    doc :: entry_doc(d)
+    if doc.byte_len() > 0 {
         parts.push("---")
-        parts.push(format_vaderdoc(d.doc))
+        parts.push(format_vaderdoc(doc))
     }
     parts.push("*${uri_to_path(hit.uri).to_path().filename()}*")
     return markdown_hover(parts.join("\n\n"))

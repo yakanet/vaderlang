@@ -118,6 +118,7 @@ synth_with_body :: fn(
         .sam_synthetic = false,
         .is_expression_bodied = method.is_expression_bodied,
         .materialized = true,
+        .doc = method.doc,
     }
 }
 
@@ -279,6 +280,7 @@ synth_signature :: fn(
         .sam_synthetic = false,
         .is_expression_bodied = method.is_expression_bodied,
         .materialized = true,
+        .doc = method.doc,
     }
 }
 

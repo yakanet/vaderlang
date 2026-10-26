@@ -63,7 +63,8 @@ export DeclKind :: enum(u8) {
 }
 
 /// One indexed declaration or binding. `name_span` is what goto-def
-/// jumps to ; `signature` + `doc` feed the hover. `scope_span` is
+/// jumps to ; `signature` and the vaderdoc of `node` (`entry_doc`) feed the
+/// hover. `scope_span` is
 /// `null` for file-wide visibility (top-level decls) and `Span` for
 /// intra-file bindings.
 export DeclEntry :: struct {
@@ -72,7 +73,6 @@ export DeclEntry :: struct {
     name_span:  Span
     full_span:  Span
     signature:  string
-    doc:        string
     scope_span: Span | null
     /// The type this member belongs to: the struct for a field, the trait or
     /// the impl's for-type for a method. Empty for anything that is not a
@@ -144,12 +144,11 @@ export LoopJump :: struct {
 /// Build the index for a freshly-opened or modified document.
 /// @param encoding  the negotiated LSP position encoding (from `ServerState`).
 export build_index :: fn(uri: string, source: string, encoding: PositionEncoding) -> DocIndex {
-    parsed :: parse_source(source, uri)
-    cmap :: scan_comments(source)
+    parsed :: parse_source_with_docs(source, uri)
     entries: DeclEntry[]: []
     for d in parsed.program.decls {
         if d !is ImportDecl {
-            collect_decl(d, source, cmap, entries)
+            collect_decl(d, source, entries)
         }
     }
     collected :: Rs.collect_module_no_index(parsed.program, uri, SymbolFactory {})
@@ -531,10 +530,7 @@ export find_import :: fn(idx: DocIndex, name: string) -> Rs.ImportInfo | null {
 
 // ---- top-level decl collection -------------------------------------------
 
-collect_decl :: fn(
-    d: Decl, source: string, cmap: CommentMap,
-    entries: DeclEntry[],
-) -> void {
+collect_decl :: fn(d: Decl, source: string, entries: DeclEntry[]) -> void {
     match d {
         is FnDecl -> {
             // `__comptime_NAME` synthetic fns (from the `NAME :: @comptime …`
@@ -543,12 +539,12 @@ collect_decl :: fn(
             // are not outline symbols. Still walk the body so goto-def works on
             // locals inside the block.
             if !d.comptime_synthetic {
-                entries.push(top_entry(d.name, .Fn, d.name_span, d.span, d, d.visibility == .Public, source, cmap, "", d.type_params.len() > 0))
+                entries.push(top_entry(d.name, .Fn, d.name_span, d.span, d, d.visibility == .Public, source, "", d.type_params.len() > 0))
             }
             ix_walk_fn_body(d, source, entries)
         }
         is StructDecl -> {
-            entries.push(top_entry(d.name, .Struct, d.name_span, d.span, d, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .Struct, d.name_span, d.span, d, d.visibility == .Public, source))
             // Fields too, for the same reason trait members are indexed just
             // below: `img.pixels` is a reference to one, and without an entry
             // goto-def has nothing to land on. Recorded at top level (no
@@ -558,28 +554,28 @@ collect_decl :: fn(
             // the jump lands on the field's line and the highlight covers the
             // whole declaration rather than just the name.
             for f in d.fields {
-                entries.push(top_entry(f.name, .Field, f.span, f.span, f, false, source, cmap, d.name))
+                entries.push(top_entry(f.name, .Field, f.span, f.span, f, false, source, d.name))
             }
         }
         is EnumDecl -> {
-            entries.push(top_entry(d.name, .Enum, d.name_span, d.span, d, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .Enum, d.name_span, d.span, d, d.visibility == .Public, source))
             for v in d.variants {
-                entries.push(top_entry(v.name, .EnumVariant, v.span, v.span, v, false, source, cmap, d.name))
+                entries.push(top_entry(v.name, .EnumVariant, v.span, v.span, v, false, source, d.name))
             }
         }
         is TraitDecl -> {
-            entries.push(top_entry(d.name, .Trait, d.name_span, d.span, d, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .Trait, d.name_span, d.span, d, d.visibility == .Public, source))
             // Trait members are fn decls: index their names too so
             // goto-def on a method-name reference can land somewhere.
             for m in d.members {
-                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m, false, source, cmap, d.name, d.type_params.len() + m.type_params.len() > 0))
+                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m, false, source, d.name, d.type_params.len() + m.type_params.len() > 0))
             }
         }
         is TypeAliasDecl -> {
-            entries.push(top_entry(d.name, .TypeAlias, d.name_span, d.span, d, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .TypeAlias, d.name_span, d.span, d, d.visibility == .Public, source))
         }
         is ConstDecl -> {
-            entries.push(top_entry(d.name, const_kind(d), d.name_span, d.span, d, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, const_kind(d), d.name_span, d.span, d, d.visibility == .Public, source))
         }
         is ImplDecl -> {
             // Impl members are fn decls on the target type. They
@@ -599,7 +595,7 @@ collect_decl :: fn(
                     // yields a name: a generic instantiation has no single one,
                     // and an empty owner degrades to the name-based lookup
                     // rather than pointing somewhere wrong.
-                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m, false, source, cmap, impl_owner_name(d.for_type), d.type_params.len() + m.type_params.len() > 0))
+                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m, false, source, impl_owner_name(d.for_type), d.type_params.len() + m.type_params.len() > 0))
                 }
                 ix_walk_fn_body(m, source, entries)
             }
@@ -611,32 +607,18 @@ collect_decl :: fn(
 
 top_entry :: fn(
     name: string, kind: DeclKind, name_span: Span, full_span: Span, node: DeclNode,
-    exported: bool, source: string, cmap: CommentMap,
+    exported: bool, source: string,
     // The declaring type, for a member. Empty for everything else, see
     // `DeclEntry.owner`.
     owner: string = "",
     generic: bool = false,
 ) -> DeclEntry {
-    // `///` doc-comments sit above the decorators in the source. The
-    // decl's `span.start` covers neither :
-    //   - decorator stack (`@intrinsic`, `@deprecated`, …) sits on
-    //     lines ABOVE the decl ;
-    //   - the `export` keyword sits on the SAME line as the decl but
-    //     BEFORE `name :: …`, and the parser anchors `span.start`
-    //     at the identifier rather than at `export`.
-    // Walking back to the start of the line absorbs `export` ; then
-    // we take the min of that and every decorator's `span.start` so
-    // both gaps close before `leading_doc` scans for `///` runs.
-    line_start :: line_start_offset(source, full_span.start.offset)
-    doc_boundary :: doc_boundary_offset(line_start, node_decorators(node))
-    doc :: leading_doc(cmap, doc_boundary, source)
     return DeclEntry {
         .name       = name,
         .kind       = kind,
         .name_span  = name_span,
         .full_span  = full_span,
         .signature  = node_head(source, node),
-        .doc        = doc,
         .scope_span = null,
         .owner      = owner,
         .exported   = exported,
@@ -652,10 +634,20 @@ node_head :: fn(source: string, node: DeclNode) -> string = match node {
     is Decl        -> format_decl_head(source, node)
 }
 
-// The decorators above `node` ; a member carries none.
-node_decorators :: fn(node: DeclNode) -> Decorator[] = match node {
-    is StructField | EnumVariant -> []
-    is Decl                      -> decl_decorators(node)
+// The vaderdoc written above `node`, null when it has none.
+node_doc :: fn(node: DeclNode) -> DocComment | null = match node {
+    is StructField -> node.doc
+    is EnumVariant -> node.doc
+    is Decl        -> decl_doc(node)
+}
+
+/// The vaderdoc of the declaration `d` indexes, as text.
+///
+/// @param d  an entry of a document index.
+/// @return   "" when it has none, and for a binding, which has no declaration.
+export entry_doc :: fn(d: DeclEntry) -> string {
+    node :: d.node ?? return ""
+    return doc_text(node_doc(node))
 }
 
 // The kind of a module constant : `.TypeAlias` for a distinct type or an alias,
@@ -727,17 +719,6 @@ is_type_name :: fn(name: string) -> bool {
     return false
 }
 
-// Smallest start-offset among the decl itself and every decorator
-// stacked above it. `///` comments contiguous with this offset are
-// the decl's vaderdoc.
-doc_boundary_offset :: fn(decl_start: i64, decorators: Decorator[]) -> i64 {
-    best := decl_start
-    for d in decorators {
-        if d.span.start.offset < best { best = d.span.start.offset }
-    }
-    return best
-}
-
 binding_entry :: fn(
     name: string, kind: DeclKind, name_span: Span, scope: Span, signature: string,
 ) -> DeclEntry {
@@ -747,7 +728,6 @@ binding_entry :: fn(
         .name_span  = name_span,
         .full_span  = name_span,
         .signature  = signature,
-        .doc        = "",
         .scope_span = scope,
         .exported   = false,
     }
@@ -1012,70 +992,29 @@ param_signature_slice :: fn(span: Span, fallback: string, source: string) -> str
     return fallback
 }
 
-// ---- vaderdoc extraction --------------------------------------------------
-
-// Collect every `///` comment whose end is contiguous (only whitespace
-// between) with the decl's start. Strips the leading `/// ` prefix and
-// joins with `\n`.
-leading_doc :: fn(cmap: CommentMap, decl_start: i64, source: string) -> string {
-    lines: string[]: []
-    for c in leading_doc_comments(cmap, decl_start, source) {
-        lines.push(strip_doc_prefix(c.text))
-    }
-    return lines.join("\n")
-}
-
-// The `///` comments right above `decl_start`, in source order : the run of doc
-// lines with only whitespace between them and the declaration.
-leading_doc_comments :: fn(cmap: CommentMap, decl_start: i64, source: string) -> Comment[] {
-    out: Comment[]: []
-    n :: cmap.comments.len()
-    next_boundary := decl_start
-    first_idx: i64 = n
-    i: i64 = n - 1
-    for i >= 0 {
-        c :: cmap.comments[i]
-        if c.end_offset > next_boundary {
-            i -= 1
-            continue
-        }
-        if !whitespace_between(source, c.end_offset, next_boundary) || c.kind != .DocLine {
-            break
-        }
-        first_idx = i
-        next_boundary = c.offset
-        i -= 1
-    }
-    for j in first_idx..<n {
-        c :: cmap.comments[j]
-        if c.kind != .DocLine || c.offset >= decl_start {
-            break
-        }
-        out.push(c)
-    }
-    return out
-}
+// ---- vaderdoc ------------------------------------------------------------
 
 /// The spans of `name` in the `@param name` tags of the vaderdoc of `d`.
 ///
 /// @param source  the text of the file declaring `d`.
-/// @param path    that file, as the spans name it.
+/// @param path    that file, as the spans name it: not the URI the index parsed it
+///                under.
 /// @param d       a declaration of that file.
 /// @param name    the name of one of its parameters.
 export param_tag_spans :: fn(source: string, path: string, d: DeclEntry, name: string) -> Span[] {
     node :: d.node ?? return []
-    boundary :: doc_boundary_offset(d.full_span.start.offset, node_decorators(node))
+    doc :: node_doc(node) ?? return []
     out: Span[]: []
-    for c in leading_doc_comments(scan_comments(source), boundary, source) {
-        at :: param_tag_offset(c, name)
+    for line in doc.lines {
+        at :: param_tag_offset(line, name)
         if at < 0 {
             continue
         }
         column :: i32(at - line_start_offset(source, at)) + 1
         start :: Position {
+            ...line.span.start,
             .file   = path,
             .offset = at,
-            .line   = c.line,
             .column = column,
         }
         end :: Position {
@@ -1088,10 +1027,10 @@ export param_tag_spans :: fn(source: string, path: string, d: DeclEntry, name: s
     return out
 }
 
-// Where `name` sits in the doc comment `c` when it reads `/// @param name …`,
+// Where `name` sits in the doc line `line` when it reads `/// @param name …`,
 // else -1.
-param_tag_offset :: fn(c: Comment, name: string) -> i64 {
-    body :: strip_doc_prefix(c.text).left_trim()
+param_tag_offset :: fn(line: DocCommentLine, name: string) -> i64 {
+    body :: line.text.left_trim()
     if doc_tag(body) != "@param" {
         return -1
     }
@@ -1100,7 +1039,7 @@ param_tag_offset :: fn(c: Comment, name: string) -> i64 {
     if !rest.starts_with(name) || (rest.byte_len() > after && is_word_byte(rest.byte_at(after))) {
         return -1
     }
-    return c.offset + c.text.byte_len() - rest.byte_len()
+    return line.span.end.offset - rest.byte_len()
 }
 
 /// The vaderdoc tag `line` opens, or "" : `@param`, `@return`, `@error` or
@@ -1115,26 +1054,6 @@ export doc_tag :: fn(line: string) -> string {
         }
     }
     return ""
-}
-
-whitespace_between :: fn(source: string, start: i64, end: i64) -> bool {
-    for cursor in start..<end {
-        b :: source.byte_at(cursor)
-        if b != ' ' && b != '\t' && b != '\n' && b != '\r' {
-            return false
-        }
-    }
-    return true
-}
-
-strip_doc_prefix :: fn(text: string) -> string {
-    n :: text.byte_len()
-    if n < 3 { return text }
-    cursor: i64 = 3
-    if cursor < n && text.byte_at(cursor) == ' ' {
-        cursor = cursor + 1
-    }
-    return text.byte_slice(cursor, n)
 }
 
 // ---- token-based position resolution -------------------------------------
@@ -1234,4 +1153,15 @@ test_index_type_constants_as_types :: fn() -> void {
     want :: "Celsius=true Mixed=true Coord=true Names=true Hour=true Node=true MAX=false "
         + "BOTH=false PAIR=false"
     assert_eq(kinds.join(" "), want)
+}
+
+@test
+test_index_doc_of_an_internal_field :: fn() -> void {
+    src :: "module \"t\"\n\nS :: struct {\n    /// Hidden.\n    @internal\n    y: i32 = 0\n}\n"
+    idx :: build_index("t.vader", src, .Utf16)
+    docs: string[]: []
+    for d in idx.decls {
+        docs.push("${d.name}=${entry_doc(d)}")
+    }
+    assert_eq(docs.join(" "), "S= y=Hidden.")
 }

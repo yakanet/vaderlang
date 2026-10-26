@@ -27,9 +27,25 @@ export ParsedSource :: struct {
     id_factory: NodeIdFactory
 }
 
-export parse_source :: fn(source: string, file: string) -> ParsedSource {
-    l :: tokenize(source, file)
-    p :: new_parser(l.tokens, file)
+export parse_source :: fn(source: string, file: string) -> ParsedSource =
+    parse_lexed(tokenize(source, file))
+
+/// Parse `source` as `parse_source` does, and give every declaration, struct field,
+/// enum variant and trait or impl member the `///` block written above it, in its
+/// `doc` field. The tree is otherwise the same.
+///
+/// What the language server reads; a build calls `parse_source` and pays nothing for
+/// comments.
+///
+/// @param source  the text of the file.
+/// @param file    the path its spans name.
+export parse_source_with_docs :: fn(source: string, file: string) -> ParsedSource =
+    parse_lexed(tokenize_with_docs(source, file))
+
+// Parse what `l` lexed.
+parse_lexed :: fn(l: Lexer) -> ParsedSource {
+    p :: new_parser(l.tokens, l.file)
+    p.doc_runs = l.doc_runs
     // Carry lexer diagnostics through so the snapshot shows both phases.
     for e in l.errors { p.errors.push(e) }
     program :: parse_program(p)
@@ -224,6 +240,10 @@ export Parser :: struct {
     // the unwinding `expect` calls don't cascade one error per nesting level.
     // Never cleared: past this depth the token stream is unrecoverable.
     depth_exceeded: bool = false
+    // The `///` runs the lexer kept, empty unless the parse asked for docs, and the
+    // first one no declaration has claimed yet (`take_doc`).
+    doc_runs: DocRun[] = []
+    doc_cursor: i64 = 0
 }
 
 new_parser :: fn(tokens: Token[], file: string) = Parser {
@@ -555,6 +575,7 @@ is_module_segment_continue :: fn(c: char) = c in 'a'..='z' || c.is_digit() || c 
 // ============================================================================
 
 parse_decl :: fn(p: Parser) -> Decl | null {
+    doc :: p.take_doc()
     if p.check(.At) && p.check_at(.Ident, 1) && p.peek_at(1).text == "assert" {
         return p.parse_assert_decl()
     }
@@ -570,7 +591,44 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     if decl != null && decl !is EnumDecl {
         p.reject_displayable_decorator(decorators)
     }
+    if decl != null && doc != null {
+        set_decl_doc(decl, doc)
+    }
     return decl
+}
+
+// The `///` run written right above the current token, the first of a declaration,
+// field, variant or member, decorators and `export` included ; null when there is
+// none, or when the parse did not ask for docs. The parser meets these in source
+// order, so the cursor only moves forward, past the runs nothing claimed (one above
+// a local binding).
+take_doc :: fn(p: Parser) -> DocComment | null {
+    at :: p.peek().span.start.offset
+    for p.doc_cursor < p.doc_runs.len() {
+        run :: p.doc_runs[p.doc_cursor]
+        if run.followed_by > at {
+            return null
+        }
+        p.doc_cursor += 1
+        if run.followed_by == at {
+            return run.doc
+        }
+    }
+    return null
+}
+
+// Give `decl` the vaderdoc written above it.
+set_decl_doc :: fn(decl: Decl, doc: DocComment) -> void {
+    match decl {
+        is FnDecl        -> { decl.doc = doc }
+        is StructDecl    -> { decl.doc = doc }
+        is EnumDecl      -> { decl.doc = doc }
+        is TraitDecl     -> { decl.doc = doc }
+        is ImplDecl      -> { decl.doc = doc }
+        is TypeAliasDecl -> { decl.doc = doc }
+        is ConstDecl     -> { decl.doc = doc }
+        is ImportDecl | AssertDecl -> {}
+    }
 }
 
 // `@assert(condition)` or `@assert(condition, "message")` : a top-level
@@ -1179,6 +1237,7 @@ parse_fn_body_tail :: fn(p: Parser, return_type: TypeExpr | null) -> FnBodyTail 
 }
 
 parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
+    doc :: p.take_doc()
     decorators :: p.parse_decorators()
     p.reject_displayable_decorator(decorators)
     visibility: Visibility = .Private
@@ -1221,6 +1280,7 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
         .is_expression_bodied = tail.is_expression_bodied,
         .materialized         = false,
         .trailing_comma       = sig.trailing_comma,
+        .doc                  = doc,
     }
 }
 
@@ -1328,6 +1388,7 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
         // Fields are PUBLIC by default ; an `@internal` decorator restricts a
         // field to its declaring module (typecheck enforces, T3054). Any other
         // decorator is rejected here: `@internal` is the only field decorator.
+        doc :: p.take_doc()
         field_decos :: p.parse_decorators()
         field_visibility: Visibility = .Public
         for d in field_decos {
@@ -1353,6 +1414,7 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
             .ty         = ftype,
             .visibility = field_visibility,
             .default    = fdefault,
+            .doc        = doc,
         })
         if !p.check(.RBrace) {
             p.match_kind(.Comma)
@@ -1562,6 +1624,7 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
     variants: EnumVariant[]: []
     for !p.check(.RBrace) && !p.check(.Eof) {
         errors_before :: p.errors.len()
+        doc :: p.take_doc()
         v_tok :: p.expect(.Ident, "variant name")
         variant_data: StructLitItem[] | null = null
         if p.match_kind(.LBrace) != null {
@@ -1591,6 +1654,7 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
             .value      = value,
             .value_span = value_span,
             .data       = variant_data,
+            .doc        = doc,
         })
         // `expect` reports without consuming : resynchronise on the next
         // separator, or the rejected token is re-read by every iteration.
@@ -4362,4 +4426,83 @@ header_arity :: fn(src: string) -> i64 {
     assert(!is_valid_module_name("2a"), "a segment starts with a letter")
     assert(!is_valid_module_name("Std"), "a segment is lowercase")
     assert(!is_valid_module_name("a-b"), "`-` is refused")
+}
+
+// The vaderdoc text of each declaration `src` parses to, keeping docs, joined by
+// `|`.
+decl_doc_texts :: fn(src: string) -> string {
+    out: string[]: []
+    for d in parse_source_with_docs(src, "t.vader").program.decls {
+        out.push(doc_text(decl_doc(d)))
+    }
+    return out.join("|")
+}
+
+@test test_doc_sits_above_decorators_and_export :: fn() -> void {
+    src :: "module \"t\"\n\n/// Adds one.\n///\n/// @param x  the input.\n"
+        + "@allow_unused\nexport f :: fn(x: i32) -> i32 = x + 1\n"
+    assert_eq(decl_doc_texts(src), "Adds one.\n\n@param x  the input.")
+}
+
+@test test_doc_survives_a_blank_line_not_a_plain_comment :: fn() -> void {
+    src :: "module \"t\"\n/// Kept.\n\nA :: 1\n/// Cut off.\n// note\nB :: 2\n"
+    assert_eq(decl_doc_texts(src), "Kept.|")
+}
+
+@test test_doc_of_a_local_reaches_no_declaration :: fn() -> void {
+    src :: "module \"t\"\nf :: fn() -> void {\n    /// Local.\n    x :: 1\n}\n"
+        + "g :: fn() -> void {\n}\n"
+    assert_eq(decl_doc_texts(src), "|")
+}
+
+@test test_doc_of_a_comptime_constant :: fn() -> void {
+    src :: "module \"t\"\n/// Table.\nT :: @comptime [1, 2]\n"
+    // The synthetic `__comptime_T` helper comes first, without a doc.
+    assert_eq(decl_doc_texts(src), "|Table.")
+}
+
+@test test_doc_of_fields_and_variants :: fn() -> void {
+    src :: "module \"t\"\n"
+        + "S :: struct {\n    /// The x.\n    x: i32\n"
+        + "    /// Hidden.\n    @internal\n    y: i32\n}\n"
+        + "E :: enum {\n    /// First.\n    A,\n    B,\n}\n"
+    decls :: parse_source_with_docs(src, "t.vader").program.decls
+    s :: decls[0]
+    if s is StructDecl {
+        assert_eq(doc_text(s.fields[0].doc), "The x.")
+        assert_eq(doc_text(s.fields[1].doc), "Hidden.")
+    } else {
+        assert(false, "the first declaration is the struct")
+    }
+    e :: decls[1]
+    if e is EnumDecl {
+        assert_eq(doc_text(e.variants[0].doc), "First.")
+        assert_eq(doc_text(e.variants[1].doc), "")
+    } else {
+        assert(false, "the second declaration is the enum")
+    }
+}
+
+@test test_doc_of_trait_and_impl_members :: fn() -> void {
+    src :: "module \"t\"\n"
+        + "T :: trait {\n    /// Area.\n    area :: fn(self) -> f64\n}\n"
+        + "S implements T {\n    /// Zero.\n    area :: fn(self) -> f64 = 0.0\n}\n"
+    decls :: parse_source_with_docs(src, "t.vader").program.decls
+    t :: decls[0]
+    if t is TraitDecl {
+        assert_eq(doc_text(t.members[0].doc), "Area.")
+    } else {
+        assert(false, "the first declaration is the trait")
+    }
+    i :: decls[1]
+    if i is ImplDecl {
+        assert_eq(doc_text(i.members[0].doc), "Zero.")
+    } else {
+        assert(false, "the second declaration is the impl")
+    }
+}
+
+@test test_parse_source_keeps_no_docs :: fn() -> void {
+    d :: parse_source("module \"t\"\n/// Doc.\nA :: 1\n", "t.vader").program.decls[0]
+    assert(decl_doc(d) == null, "a build parse keeps no docs")
 }

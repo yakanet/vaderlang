@@ -17,10 +17,9 @@ import "toolchain/span"
 /// doc-comment.
 export CommentKind :: enum(u8) {
     Line,     // `// …`, or the `#!` line opening the file
-    DocLine,  // `/// …`: VaderDoc form. Tagged at scan time so a future
-              //   `vader doc` extractor can pick them out without
-              //   re-walking the source. The formatter still treats them
-              //   like `Line` for round-trip equality (text is verbatim).
+    DocLine,  // `/// …`: VaderDoc form, which semantic tokens colours apart.
+              //   The formatter treats them like `Line` for round-trip
+              //   equality (text is verbatim).
     Block,    // `/* … */` (may contain nested `/* … */`)
 }
 
