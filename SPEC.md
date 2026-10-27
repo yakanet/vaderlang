@@ -3014,7 +3014,7 @@ A project is a folder described by its `vader.json` or by its `build.vader` (*Pr
 | `includePaths` | Extra module roots, each a folder relative to the project root or under `$VADER_HOME` (*Include paths*, below). |
 | `entries` | The programs of the project, each binary's name mapped to its entry file. |
 | `assets` | The files and folders copied beside the binaries. |
-| `name`, `version` | A description of the project, read by nothing. |
+| `name`, `version` | A description of the project, which no build uses. |
 
 The paths of `entries` and `assets` are relative to the project root. An asset path that is absolute, or that leaves the project through `..`, is an error, and so is any other key, or a key of the wrong shape.
 

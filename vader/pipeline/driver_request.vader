@@ -11,8 +11,6 @@
 
 module "vader/pipeline"
 
-import "json"
-import "std/collections"
 import "std/io"
 import "std/string"
 import "vader/front/resolver"
@@ -186,54 +184,12 @@ read_build_arg :: fn(build: BuildRequest, arg: string) -> void {
 /// `includePaths` holds the module search roots as the driver declared them,
 /// `entries` the entries chosen, `assets` the files to copy.
 ///
-/// @param path           where the CLI asked for it.
-/// @param include_paths  the module search roots, each relative to the project
-///                       or under `$VADER_HOME`.
-/// @param entries        the entries chosen, paths relative to the project.
-/// @param assets         the assets, relative to the project.
-/// @error                the `IOError` of a file that could not be written.
-export write_driver_description :: fn(
-    path: string,
-    include_paths: string[],
-    entries: ManifestEntry[],
-    assets: string[],
-) -> null | IOError {
-    project :: MutableMap<string, JsonValue> {}
-    write_project_json(project, include_paths, entries, assets)
-    return write_file_string(path, stringify(JsonObject { .entries = project }))
-}
-
-/// Add a project's keys to `out` in the shape of a `vader.json`: what a driver
-/// describes, and what `vader info --json` reports.
-///
-/// @param out            the JSON object being built; keys already there stay
-///                       first.
-/// @param include_paths  the module search roots, as declared.
-/// @param entries        the entries, paths relative to the project.
-/// @param assets         the assets, relative to the project.
-export write_project_json :: fn(
-    out: MutableMap<string, JsonValue>,
-    include_paths: string[],
-    entries: ManifestEntry[],
-    assets: string[],
-) -> void {
-    named :: MutableMap<string, JsonValue> {}
-    for entry in entries {
-        named[entry.name] = JsonString { .value = entry.path }
-    }
-    out["includePaths"] = string_array(include_paths)
-    out["entries"] = JsonObject { .entries = named }
-    out["assets"] = string_array(assets)
-}
-
-// `strings` as a JSON array.
-string_array :: fn(strings: string[]) -> JsonValue {
-    items: JsonValue[]: []
-    for s in strings {
-        items.push(JsonString { .value = s })
-    }
-    return JsonArray { .items = items }
-}
+/// @param path     where the CLI asked for it.
+/// @param project  the project as the driver declared it; its search roots may
+///                 also sit under `$VADER_HOME`.
+/// @error          the `IOError` of a file that could not be written.
+export write_driver_description :: fn(path: string, project: Manifest) -> null | IOError =
+    write_file_string(path, stringify_manifest(project))
 
 /// The project a driver described.
 ///
@@ -302,8 +258,8 @@ test_driver_request_defaults_to_a_debug_build_of_every_entry :: fn() -> void {
 @test
 test_driver_description_reads_back_as_a_manifest :: fn() -> void {
     path :: join_path(temp_dir(), "vader_driver_description.json")
-    entries :: [ManifestEntry { .name = "app", .path = "src/main.vader" }]
-    written :: write_driver_description(path, ["src"], entries, ["data"])
+    project :: Manifest { .entries = [ManifestEntry { .name = "app", .path = "src/main.vader" }] }
+    written :: write_driver_description(path, project)
     assert(written == null, "the project is written")
     read :: read_driver_description(path)
     remove_file(path)
@@ -312,7 +268,5 @@ test_driver_description_reads_back_as_a_manifest :: fn() -> void {
         return
     }
     assert_eq(read.problems.len(), 0)
-    assert_eq(read.include_paths[0], "src")
     assert_eq(read.entries[0].name, "app")
-    assert_eq(read.assets[0], "data")
 }

@@ -20,7 +20,6 @@
 
 module "vader/front/resolver"
 
-import "std/collections"
 import "std/env"
 import "std/io"
 import "std/path"
@@ -209,16 +208,6 @@ walk_up :: fn(start: string, holds: fn(string) -> bool) -> string | null {
     }
 }
 
-// ----------------------------------------------------- source-file loading
-
-try_read :: fn(path: string) -> string | null {
-    result :: read_file_string(path)
-    if result is string {
-        return result
-    }
-    return null
-}
-
 // ---------------------------------------------------------------- path utils
 
 /// Join two path segments with a `/` separator (no normalization).
@@ -404,150 +393,6 @@ export LIBRARY_ROOT_DIR :: "lib"
 /// import nothing from `vader/`, which is what lets a library depend on them.
 export DRIVER_CONTRACT_MODULE :: "toolchain/build"
 
-import "json"
-
-// Every key a `vader.json` may hold; `name` and `version` drive nothing.
-// `test_the_editor_schema_describes_exactly_the_manifest_keys` holds the schema
-// the editors validate the file against to this list, in this order.
-MANIFEST_KEYS :: ["name", "version", "includePaths", "entries", "assets"]
-
-/// The fields of a project `vader.json`, read in one pass.
-export Manifest :: struct {
-    /// Extra module search roots (`includePaths` key), each relative to the
-    /// project root. Joined onto the project root and searched (after the
-    /// manifest dir itself) by lazy resolution: GCC `-I` style. E.g.
-    /// `["lib"]` makes `module "std/io"` resolve at `<root>/lib/std/io`.
-    include_paths: string[] = []
-    /// The programs the project builds (`entries` key), in declaration order.
-    entries: ManifestEntry[] = []
-    /// Files and folders a build copies beside the project's binaries (`assets`
-    /// key), each relative to the project root.
-    assets: string[] = []
-    /// What the file gets wrong, each worded to follow the file's path. The
-    /// loader reads what it can and ignores these; a command given the project
-    /// refuses them.
-    problems: string[] = []
-}
-
-/// One program of a project: `"<name>": "<entry file>"` in the `entries` of a
-/// `vader.json`, or what a driver's `add_entry` adds.
-export ManifestEntry :: struct {
-    /// What the binary is called.
-    name: string
-    /// The entry file, relative to the project root.
-    path: string
-}
-
-/// Read `vader.json` at `project_root` in one read + parse. Returns an empty
-/// `Manifest` when the file is missing, and records in `problems` what a
-/// malformed one gets wrong.
-///
-/// One pass matters : the LSP re-loads the project on every didOpen / didChange,
-/// so re-reading + re-parsing the manifest per field would double the I/O.
-///
-/// @param project_root  the folder holding `vader.json`.
-export read_manifest :: fn(project_root: string) -> Manifest {
-    manifest_path :: join_path(project_root, MANIFEST_FILENAME)
-    if !exists(manifest_path) {
-        return Manifest {}
-    }
-    return parse_manifest(try_read(manifest_path) ?? "")
-}
-
-/// The `Manifest` the text of a `vader.json` describes.
-///
-/// @param text  the file's content.
-/// @return      the fields it declares; `problems` says what it gets wrong.
-export parse_manifest :: fn(text: string) -> Manifest {
-    manifest :: Manifest {}
-    parsed :: parse(text)
-    if parsed is JsonError {
-        manifest.problems.push("${parsed.message()} at byte ${parsed.pos}")
-        return manifest
-    }
-    if parsed !is JsonObject {
-        manifest.problems.push("it is not a JSON object")
-        return manifest
-    }
-    for [key, _] in parsed.entries {
-        if key !in MANIFEST_KEYS {
-            known :: MANIFEST_KEYS.join("`, `")
-            manifest.problems.push("unknown key `${key}`; the keys are `${known}`")
-        }
-    }
-    check_string(parsed, "name", manifest.problems)
-    check_string(parsed, "version", manifest.problems)
-    manifest.include_paths.push_all(string_list(parsed, "includePaths", manifest.problems))
-    entries :: parsed.entries["entries"]
-    if entries is JsonObject {
-        for [name, path] in entries.entries {
-            if path is JsonString {
-                manifest.entries.push(ManifestEntry { .name = name, .path = path.value })
-            } else {
-                manifest.problems.push("entry `${name}` is not the path of its entry file")
-            }
-        }
-    } else if entries != null {
-        manifest.problems.push("`entries` is not an object of `\"<name>\": \"<entry file>\"`")
-    }
-    for asset in string_list(parsed, "assets", manifest.problems) {
-        problem :: asset_problem(asset)
-        if problem == null {
-            manifest.assets.push(asset)
-        } else {
-            manifest.problems.push(problem)
-        }
-    }
-    return manifest
-}
-
-// A key of `object` that holds something other than a string goes to `problems`.
-check_string :: fn(object: JsonObject, key: string, problems: string[]) -> void {
-    found :: object.entries[key] ?? return
-    if found !is JsonString {
-        problems.push("`${key}` is not a string")
-    }
-}
-
-// The strings the array `key` of `object` holds, empty when the key is absent.
-// What is not an array of strings goes to `problems`.
-string_list :: fn(object: JsonObject, key: string, problems: string[]) -> string[] {
-    found :: object.entries[key] ?? return []
-    if found !is JsonArray {
-        problems.push("`${key}` is not an array of strings")
-        return []
-    }
-    strings: string[]: []
-    for item in found.items {
-        if item is JsonString {
-            strings.push(item.value)
-        } else {
-            problems.push("`${key}` lists a value that is not a string")
-        }
-    }
-    return strings
-}
-
-/// What is wrong with an asset of a project, which a build copies beside its
-/// binaries under the same relative path.
-///
-/// @param asset  the file or folder, as the project names it.
-/// @return       why it cannot be copied, worded to follow the project file's
-///               path, or null when it names something inside the project.
-export asset_problem :: fn(asset: string) -> string | null {
-    if leaves_project(asset) {
-        return "asset `${asset}` is not inside the project; name it relative to the project folder"
-    }
-    return null
-}
-
-// Whether `path` names something outside the project root it is relative to:
-// an absolute path, a drive, or a `..` step.
-leaves_project :: fn(path: string) -> bool {
-    posix :: to_posix(path)
-    return posix.starts_with("/") || ":" in posix || ".." in posix.split("/")
-}
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -576,23 +421,6 @@ test_a_build_vader_of_another_module_is_no_driver :: fn() -> void {
 }
 
 @test
-test_read_manifest_reads_repo_include_paths :: fn() -> void {
-    // Tests run with the repo root as cwd, so `""` joins to `"vader.json"`.
-    // The Vader repo declares its library root via `"includePaths": ["lib"]`:
-    // guards against a renamed key or a regressed parse silently dropping the
-    // search roots (which would break every `std/*` import).
-    m :: read_manifest("")
-    assert(m.include_paths.len() > 0, "repo manifest lists includePaths")
-    found_lib := false
-    for p in m.include_paths {
-        if p == "lib" {
-            found_lib = true
-        }
-    }
-    assert(found_lib, "repo includePaths contains `lib`")
-}
-
-@test
 test_origin_of_root_asks_the_marker_not_the_name :: fn() -> void {
     // A directory is the toolchain's because it holds `std/io/io.vader`, never
     // because it is spelled `lib`. This repo's own tree is the fixture.
@@ -601,58 +429,3 @@ test_origin_of_root_asks_the_marker_not_the_name :: fn() -> void {
     assert_eq(origin_of_root("runtime"), .Build)
     assert_eq(origin_of_root("/no/such/dir"), .Build)
 }
-
-@test
-test_read_manifest_reads_entries_in_order :: fn() -> void {
-    m :: parse_manifest("{\"entries\": {\"app\": \"src/main.vader\", \"tool\": \"tool.vader\"}}")
-    assert_eq(m.entries.len(), 2)
-    assert_eq(m.entries[0].name, "app")
-    assert_eq(m.entries[0].path, "src/main.vader")
-    assert_eq(m.entries[1].name, "tool")
-    assert_eq(m.problems.len(), 0)
-}
-
-@test
-test_read_manifest_reports_a_malformed_entry :: fn() -> void {
-    m :: parse_manifest("{\"entries\": {\"app\": 42}}")
-    assert_eq(m.entries.len(), 0)
-    assert_eq(m.problems.len(), 1)
-}
-
-@test
-test_read_manifest_reports_an_unknown_key :: fn() -> void {
-    m :: parse_manifest("{\"entries\": {\"app\": \"main.vader\"}, \"asset\": [\"a.png\"]}")
-    assert_eq(m.entries.len(), 1)
-    assert_eq(m.problems.len(), 1)
-    assert("`asset`" in m.problems[0], "the problem names the unknown key")
-}
-
-@test
-test_read_manifest_reports_a_version_that_is_not_a_string :: fn() -> void {
-    m :: parse_manifest("{\"version\": 1}")
-    assert_eq(m.problems.len(), 1)
-}
-
-@test
-test_the_editor_schema_describes_exactly_the_manifest_keys :: fn() -> void {
-    // Tests run with the repo root as cwd, as above.
-    schema :: parse(try_read("editors/common/vader.schema.json") ?? "")
-    if schema !is JsonObject {
-        assert(false, "the schema is a JSON object, read from the repo root")
-        return
-    }
-    properties :: schema.entries["properties"]
-    if properties !is JsonObject {
-        assert(false, "the schema lists its properties")
-        return
-    }
-    assert_eq(properties.entries.keys().join(", "), MANIFEST_KEYS.join(", "))
-}
-
-@test
-test_read_manifest_missing_is_empty :: fn() -> void {
-    m :: read_manifest("/no/such/project/root")
-    assert(m.include_paths.len() == 0, "absent manifest yields no include-paths")
-    assert(m.problems.len() == 0, "absent manifest is not a malformed one")
-}
-

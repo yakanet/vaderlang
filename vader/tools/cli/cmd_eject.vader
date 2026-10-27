@@ -53,8 +53,10 @@ cmd_eject :: fn(args: string[]) -> i32 {
         eprintln("vader eject: cannot remove `${manifest_path}`: ${removed.message()}")
         return 1
     }
-    println("vader eject: removed ${manifest_path}; its `name` and `version` are not carried, "
-        + "nothing reads them")
+    println("vader eject: removed ${manifest_path}")
+    if manifest.name != "" || manifest.version != "" {
+        println("vader eject: its `name` and `version` are not carried, no build uses them")
+    }
     return 0
 }
 

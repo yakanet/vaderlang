@@ -119,8 +119,7 @@ render_info_json :: fn(info: ProjectInfo) -> string {
     report :: MutableMap<string, Json.JsonValue> {}
     report["kind"] = Json.JsonString { .value = kind_of(info) }
     report["root"] = Json.JsonString { .value = info.root }
-    manifest :: info.manifest
-    write_project_json(report, manifest.include_paths, manifest.entries, manifest.assets)
+    write_manifest_json(report, info.manifest)
     return Json.stringify(Json.JsonObject { .entries = report }, 2)
 }
 
@@ -155,6 +154,21 @@ test_info_json_carries_the_project_in_the_shape_of_a_manifest :: fn() -> void {
     assert_eq(parsed.entries.keys().join(","), "kind,root,includePaths,entries,assets")
     kind :: parsed.entries["kind"]
     assert(kind is Json.JsonString && kind.value == "driver", "a driven project says so")
+}
+
+@test
+test_info_json_of_a_manifest_carries_its_name_and_version :: fn() -> void {
+    info :: ProjectInfo {
+        .described_by = MANIFEST_FILENAME,
+        .root = "game",
+        .manifest = Manifest { .name = "game", .version = "1.2.0" },
+    }
+    parsed :: Json.parse(render_info_json(info))
+    if parsed !is Json.JsonObject {
+        assert(false, "the report is a JSON object")
+        return
+    }
+    assert_eq(parsed.entries.keys().join(","), "kind,root,name,version,includePaths,entries,assets")
 }
 
 @test

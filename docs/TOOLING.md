@@ -196,7 +196,7 @@ x: f64
 - `--preserve-manifest` keeps the `vader.json`, to remove before the next build: a folder holding both is refused.
 - A folder with `.vader` sources at its root is refused: move them into a folder such as `src/` first.
 
-`vader info [path]` describes a project folder without building: its entries, search roots and assets, and which of `vader.json` and `build.vader` declares them. `--json` prints them in the shape of a `vader.json`, plus `kind` (`manifest` or `driver`) and `root`. Under `--no-driver-build`, a driven project whose driver is not compiled exits with 3.
+`vader info [path]` describes a project folder without building: its entries, search roots and assets, and which of `vader.json` and `build.vader` declares them. `--json` prints them in the shape of a `vader.json`, with the `name` and `version` a `vader.json` gives, plus `kind` (`manifest` or `driver`) and `root`. Under `--no-driver-build`, a driven project whose driver is not compiled exits with 3.
 
 `vader doctor` checks the toolchain (*Toolchain*), the C compiler `--cc` names, the working directory's `vader.json` and the environment (`$CC`, the collector's `VADER_GC_*` of [`RUNTIME.md`](RUNTIME.md) *Memory*), saying where it looked. It exits with 1 on a failed check, 0 on a warning. `--json` prints `{ "ok": ..., "checks": [...] }`, each check with its `name`, `status`, `summary` and `detail`.
 

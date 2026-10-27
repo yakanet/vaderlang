@@ -325,23 +325,17 @@ write_one :: fn(path: string, content: string) -> null | ScaffoldError {
     return null
 }
 
-/// The manifest: the identity, the include-path list the loader consults, and
-/// the one program `vader build` makes, named after the project. An empty
-/// `includePaths` is not filler: it is where a second search root goes.
-render_manifest :: fn(name: string) -> string {
-    out :: StringBuilder {}
-    out.append("{\n")
-    out.append("    \"name\": \"${name}\",\n")
-    out.append("    \"version\": \"0.1.0\",\n")
-    out.append("    \"includePaths\": [],\n")
-    out.append("    \"entries\": { \"${name}\": \"${SOURCE_DIR}/${ENTRY_FILENAME}\" }\n")
-    out.append("}\n")
-    return out.to_string()
-}
+/// The manifest: the identity, the include-path list the loader consults, the
+/// one program `vader build` makes, named after the project, and the assets. An
+/// empty list is not filler: it is where a second search root, or a file to
+/// copy beside the binary, goes.
+render_manifest :: fn(name: string) -> string =
+    stringify_manifest(scaffolded_manifest(name), 4) + "\n"
 
 /// The entry module. It declares `module "${SOURCE_DIR}"` because the module IS
 /// the folder: the one rule about the layout that nothing else states.
 render_entry :: fn(name: string) -> string {
+    greeting :: string_literal("hello from ${name}")
     out :: StringBuilder {}
     out.append("// ${SOURCE_DIR}/${ENTRY_FILENAME}: entry point of ${name}.\n")
     out.append("\n")
@@ -350,15 +344,18 @@ render_entry :: fn(name: string) -> string {
     out.append("import \"std/io\"\n")
     out.append("\n")
     out.append("main :: fn() -> i32 {\n")
-    out.append("    println(\"hello from ${name}\")\n")
+    out.append("    println(${greeting})\n")
     out.append("    return 0\n")
     out.append("}\n")
     return out.to_string()
 }
 
-// What a scaffolded project declares: one entry, named after the project. The
-// manifest says it in JSON, the driver in code (`render_driver`).
+// What a scaffolded project declares: its name, a first version, and one entry
+// named after it. The manifest says it in JSON (`render_manifest`), the driver
+// in code (`render_driver`), which has no place for the name and the version.
 scaffolded_manifest :: fn(name: string) -> Manifest = Manifest {
+    .name = name,
+    .version = "0.1.0",
     .entries = [ManifestEntry { .name = name, .path = "${SOURCE_DIR}/${ENTRY_FILENAME}" }],
 }
 
@@ -433,6 +430,16 @@ import "std/testing"
     manifest :: render_manifest("my-app")
     assert("\"name\": \"my-app\"" in manifest, "the name reaches the manifest")
     assert("\"includePaths\": []" in manifest, "and the include-path list is there to fill")
+    assert("\"assets\": []" in manifest, "and so is the asset list")
+}
+
+@test test_entry_escapes_the_project_name :: fn() -> void {
+    entry :: render_entry("my \"app\"")
+    assert("println(\"hello from my \\\"app\\\"\")" in entry, "the greeting escapes a quote")
+}
+
+@test test_manifest_escapes_the_project_name :: fn() -> void {
+    assert_eq(parse_manifest(render_manifest("my \"app\"")).name, "my \"app\"")
 }
 
 @test test_the_reader_accepts_the_scaffolded_manifest :: fn() -> void {

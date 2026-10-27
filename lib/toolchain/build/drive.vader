@@ -257,7 +257,12 @@ write_description :: fn(ctx: BuildContext, entries: ManifestEntry[]) -> i32 {
     if path == "" {
         return 0
     }
-    written :: write_driver_description(path, ctx.include_paths, entries, ctx.assets)
+    project :: Manifest {
+        .include_paths = ctx.include_paths,
+        .entries = entries,
+        .assets = ctx.assets,
+    }
+    written :: write_driver_description(path, project)
     if written is IOError {
         eprintln("vader: cannot write `${path}`: ${written.message()}")
         return 1
