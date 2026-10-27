@@ -1,10 +1,17 @@
 // random: pseudo-random number generator.
 //
+// ```
+// dice :: new_rng(42)
+// roll :: dice.range_i32(1, 7)   // from 1 to 6, the same at every run
+// deck :: [1, 2, 3, 4, 5]
+// new_rng().shuffle(deck)        // another order at every run
+// ```
+//
 // Algorithm : xoroshiro128++ (Blackman & Vigna, 2021). u64 output, 2^128
 // period, passes the BigCrush statistical battery. Fast on every modern
 // CPU and trivially portable to WASM (no SIMD intrinsics, no platform
-// primitives). Pure Vader: no host imports unless `new_from_clock` is
-// used, in which case the seed comes from `std/time.monotonic()`.
+// primitives). Pure Vader: its one host call is `std/time.monotonic()`,
+// read for the seed when `new_rng` is given none.
 //
 // NOT suitable for cryptography: the output is reversible from any
 // 256 consecutive u64s. For a cryptographic PRNG plug `std/crypto`
@@ -40,26 +47,30 @@ splitmix64 :: fn(seed: u64) -> u64 {
 
 rotl :: fn(x: u64, k: u64) -> u64 = mask64(x << k) | (x >> (64 - k))
 
-/// Build an Rng seeded from a single 64-bit value. The seed is fanned
-/// out via splitmix64 to populate both state words ; a `seed == 0`
-/// input therefore still produces a usable non-zero state.
-/// @param seed  any 64-bit value, including 0.
-/// @return      a fresh, deterministic RNG.
-export new_seeded :: fn(seed: u64) -> Rng {
+/// Build an Rng from a 64-bit seed: the same seed gives the same draws, and
+/// without one the seed is read from the clock, so the draws change from one
+/// run to the next. The seed is fanned out via splitmix64 to populate both state
+/// words ; a `seed == 0` input therefore still produces a usable non-zero state.
+///
+/// Two calls close together without a seed may read the same clock value (its
+/// resolution is bounded) ; pass distinct seeds when two streams of one process
+/// must differ.
+///
+/// @param seed  any 64-bit value, including 0; read from the clock when left out.
+/// @example
+///   replayed :: new_rng(42)   // the same draws at every run
+///   fresh :: new_rng()        // other draws at every run
+export new_rng :: fn(seed: u64 = u64(i64(monotonic()))) -> Rng {
     a :: splitmix64(seed)
     b :: splitmix64(a)
     return Rng { .s0 = a, .s1 = b }
 }
 
-/// Seed from `std/time.monotonic()`: useful for tests that don't
-/// need determinism but want a different stream each process. Within
-/// a single process two close-together calls may produce overlapping
-/// streams (monotonic resolution is bounded) ; mix in a counter at
-/// the call site if you need stronger separation.
-export new_from_clock :: fn() -> Rng = new_seeded(u64(i64(monotonic())))
-
 /// Draw the next u64. The full 64 bits are uniformly distributed.
-/// Advances the RNG state.
+///
+/// @param self  the generator, whose state advances.
+/// @example
+///   new_rng(42).next_u64()   // 1700210143001418247
 export next_u64 :: fn(self: Rng) -> u64 {
     sum    :: mask64(self.s0 +% self.s1)
     result :: mask64(rotl(sum, 17) +% self.s0)
@@ -72,9 +83,17 @@ export next_u64 :: fn(self: Rng) -> u64 {
 /// Draw the next u32 by taking the upper 32 bits of `next_u64`: the
 /// upper bits of xoroshiro128++ pass BigCrush, the lower bits are
 /// slightly weaker on certain tests.
+///
+/// @param self  the generator, whose state advances.
+/// @example
+///   new_rng(42).next_u32()   // 395861021
 export next_u32 :: fn(self: Rng) -> u32 = u32(self.next_u64() >> 32)
 
-/// Uniform random boolean (50/50). Advances the RNG state.
+/// Uniform random boolean (50/50).
+///
+/// @param self  the generator, whose state advances.
+/// @example
+///   new_rng(42).next_bool()   // false
 export next_bool :: fn(self: Rng) -> bool = (self.next_u64() >> 63) == 1
 
 /// Uniform i32 in the half-open range `[lo, hi)`. A degenerate range
@@ -83,6 +102,14 @@ export next_bool :: fn(self: Rng) -> bool = (self.next_u64() >> 63) == 1
 ///
 /// Implementation uses rejection sampling on the top 32 bits to avoid
 /// modulo bias when `(hi - lo)` doesn't divide `2^32`.
+///
+/// @param self  the generator, whose state advances.
+/// @param lo    the smallest value drawn.
+/// @param hi    the bound above the largest value drawn.
+/// @example
+///   rng :: new_rng(42)
+///   rng.range_i32(1, 7)   // 6: a die roll
+///   rng.range_i32(5, 5)   // 5: an empty range gives `lo`
 export range_i32 :: fn(self: Rng, lo: i32, hi: i32) -> i32 {
     if hi <= lo { return lo }
     span :: u32(hi -% lo)
@@ -97,6 +124,12 @@ export range_i32 :: fn(self: Rng, lo: i32, hi: i32) -> i32 {
 /// Uniform u32 in the half-open range `[lo, hi)`. A degenerate range
 /// (`hi <= lo`) is empty and returns `lo`: without this guard the
 /// modulus would divide by zero.
+///
+/// @param self  the generator, whose state advances.
+/// @param lo    the smallest value drawn.
+/// @param hi    the bound above the largest value drawn.
+/// @example
+///   new_rng(42).range_u32(10, 20)   // 11
 export range_u32 :: fn(self: Rng, lo: u32, hi: u32) -> u32 {
     if hi <= lo { return lo }
     span :: hi - lo
@@ -113,6 +146,10 @@ export range_u32 :: fn(self: Rng, lo: u32, hi: u32) -> u32 {
 /// divided by `2^52` is the immediate predecessor of `1.0` rather than
 /// rounding up to exactly `1.0` (which `(2^53 - 1) / 2^53` does on
 /// IEEE 754 round-to-nearest).
+///
+/// @param self  the generator, whose state advances.
+/// @example
+///   new_rng(42).unit_f64()   // 0.09216857653620125
 export unit_f64 :: fn(self: Rng) -> f64 {
     return f64(self.next_u64() >> 12) / f64(u64(0x10_0000_0000_0000))
 }
@@ -120,6 +157,13 @@ export unit_f64 :: fn(self: Rng) -> f64 {
 /// In-place Fisher-Yates shuffle. Visits each element once in O(n) ;
 /// O(1) extra memory (one i32 swap helper). Returns nothing: the
 /// input array is permuted directly.
+///
+/// @param self  the generator, whose state advances.
+/// @param arr   the array to permute.
+/// @example
+///   cards :: [1, 2, 3, 4, 5]
+///   new_rng(42).shuffle(cards)
+///   cards   // [5, 1, 3, 4, 2]
 export shuffle :: fn<T>(self: Rng, arr: T[]) -> void {
     n :: arr.len()
     if n <= 1 { return }
@@ -138,16 +182,16 @@ export shuffle :: fn<T>(self: Rng, arr: T[]) -> void {
 
 import "std/testing"
 
-@test test_new_seeded_deterministic :: fn() -> void {
-    a :: new_seeded(42)
-    b :: new_seeded(42)
+@test test_new_rng_deterministic :: fn() -> void {
+    a :: new_rng(42)
+    b :: new_rng(42)
     for k in 0..<16 {
         assert_eq(a.next_u64(), b.next_u64())
     }
 }
 
-@test test_new_seeded_zero_produces_nonzero :: fn() -> void {
-    r :: new_seeded(0)
+@test test_new_rng_zero_produces_nonzero :: fn() -> void {
+    r :: new_rng(0)
     // Sum a small batch: must not be all zeros (would mean a degenerate state).
     acc: u64 = 0
     for k in 0..<8 {
@@ -157,13 +201,13 @@ import "std/testing"
 }
 
 @test test_different_seeds_produce_different_streams :: fn() -> void {
-    a :: new_seeded(1)
-    b :: new_seeded(2)
+    a :: new_rng(1)
+    b :: new_rng(2)
     assert(a.next_u64() != b.next_u64(), "different seeds collided on first draw")
 }
 
 @test test_range_i32_within_bounds :: fn() -> void {
-    r :: new_seeded(7)
+    r :: new_rng(7)
     for k in 0..<200 {
         v :: r.range_i32(10, 20)
         assert(v >= 10, "range_i32 below lo")
@@ -174,7 +218,7 @@ import "std/testing"
 @test test_range_degenerate_returns_lo :: fn() -> void {
     // An empty range (`hi <= lo`) returns `lo` instead of dividing by zero
     // in the modulus.
-    r :: new_seeded(7)
+    r :: new_rng(7)
     assert_eq(r.range_i32(5, 5), 5)
     assert_eq(r.range_i32(8, 3), 8)
     assert_eq(i32(r.range_u32(4, 4)), 4)
@@ -182,7 +226,7 @@ import "std/testing"
 }
 
 @test test_unit_f64_within_bounds :: fn() -> void {
-    r :: new_seeded(123)
+    r :: new_rng(123)
     for k in 0..<200 {
         v :: r.unit_f64()
         assert(v >= 0.0, "unit_f64 below 0")
@@ -191,7 +235,7 @@ import "std/testing"
 }
 
 @test test_shuffle_preserves_length :: fn() -> void {
-    r :: new_seeded(99)
+    r :: new_rng(99)
     arr: i32[]: [1, 2, 3, 4, 5, 6, 7, 8]
     r.shuffle(arr)
     assert_eq(arr.len(), 8)
@@ -204,7 +248,7 @@ import "std/testing"
 }
 
 @test test_next_bool_both_observed :: fn() -> void {
-    r :: new_seeded(2026)
+    r :: new_rng(2026)
     seen_true: bool = false
     seen_false: bool = false
     for k in 0..<64 {

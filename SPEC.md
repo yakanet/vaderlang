@@ -1808,7 +1808,7 @@ The body of a generic function or impl binds none of its own type parameters at 
 
 An argument is matched against a signature's free type parameters when choosing an overload or the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>`), and on the fields of a generic struct literal without type arguments (`Box { .value = [4, 5] }`). A free literal binds no type parameter: write `Box<i32> { .value = 0 }`, not `Box { .value = 0 }`.
 
-**No inherent "associated functions"**: a static function belongs to a trait (*Static members*), never to a type alone. A factory outside a trait is a free function (`new_seeded(42)` in `random`); a struct is built by its literal (`MutableMap<K, V> {}`).
+**No inherent "associated functions"**: a static function belongs to a trait (*Static members*), never to a type alone. A factory outside a trait is a free function (`new_rng(42)` in `random`); a struct is built by its literal (`MutableMap<K, V> {}`).
 
 The primitive impls are listed in §15 *`std/core`*.
 
