@@ -1658,7 +1658,11 @@ main :: fn() -> i32 {
   expect(sel.end).toEqual({ line: 0, character: 6 });
 }, { timeout: MEDIUM_BUILD });
 
-test("lsp: initialize advertises definition + hover providers", async () => {
+// The legend indices of the token types the semantic tokens test decodes: the
+// initialize test holds each to its name in the legend the server announces.
+const TOKEN_TYPE = { keyword: 5, number: 7, operator: 9 } as const;
+
+test("lsp: initialize advertises definition + hover providers and the token legend", async () => {
 
   // Drive a session with zero queries: we only care about the
   // `initialize` response.
@@ -1677,6 +1681,10 @@ test("lsp: initialize advertises definition + hover providers", async () => {
   expect(caps).toBeDefined();
   expect(caps!.definitionProvider).toBe(true);
   expect(caps!.hoverProvider).toBe(true);
+  const legend = (caps!.semanticTokensProvider as { legend: { tokenTypes: string[] } }).legend;
+  for (const [name, index] of Object.entries(TOKEN_TYPE)) {
+    expect(legend.tokenTypes[index]).toBe(name);
+  }
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: documentLink resolves an import to every shipped namespace", async () => {
@@ -2634,6 +2642,28 @@ test("lsp: hover documents every op of the text bytecode", async () => {
   expect(hover.contents.value).toContain("```\nlocal.get <slot>\n```");
   expect(hover.contents.value).toContain("Push the value of local `<slot>`.");
   expect(results[ordered.length]!.result).toBeNull();
+});
+
+// The server colours an open document. Each 5-tuple starts with a line relative
+// to the token before, and a column relative to it on the same line, absolute
+// on a new one (`encode_delta`'s own tests pin that encoding).
+test("lsp: the server sends the semantic tokens of an open document", async () => {
+  const [res] = await driveLsp('module "t"\n\nx :: 1\n', [{ method: "textDocument/semanticTokens/full" }]);
+  const data = (res!.result as { data: number[] }).data;
+  expect(data.length % 5).toBe(0);
+  const tokens: number[][] = [];
+  let line = 0;
+  let column = 0;
+  for (let i = 0; i < data.length; i += 5) {
+    const [deltaLine, deltaColumn, length, type] = data.slice(i, i + 4) as [number, number, number, number];
+    line += deltaLine;
+    if (deltaLine > 0) column = 0;
+    column += deltaColumn;
+    tokens.push([line, column, length, type]);
+  }
+  expect(tokens).toContainEqual([0, 0, 6, TOKEN_TYPE.keyword]);
+  expect(tokens).toContainEqual([2, 2, 2, TOKEN_TYPE.operator]);
+  expect(tokens).toContainEqual([2, 5, 1, TOKEN_TYPE.number]);
 });
 
 // A plain dump writes bare table indices. Each op carrying one gets, as an inlay

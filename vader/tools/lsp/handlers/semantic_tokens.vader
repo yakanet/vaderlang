@@ -256,6 +256,31 @@ import "std/testing"
 build_sorted_for_test :: fn(source: string, uri: string) -> RawToken[] =
     document_tokens(build_index(uri, source, .Utf16))
 
+// A one-character keyword token at `line`, `column`: `encode_delta` reads no
+// offset.
+delta_token :: fn(line: i32, column: i32, modifiers: i32) -> RawToken = RawToken {
+    .line = line,
+    .column = column,
+    .length = 1,
+    .token_type = .Keyword,
+    .modifiers = modifiers,
+    .start_offset = 0,
+    .end_offset = 0,
+}
+
+@test
+test_delta_column_is_relative_on_a_line_and_absolute_on_the_next :: fn() -> void {
+    tokens :: [
+        delta_token(0, 4, 0),
+        delta_token(0, 10, 0),
+        delta_token(1, 2, modifier_bit(.Readonly)),
+    ]
+    keyword :: i32(TokenType.Keyword)
+    readonly :: modifier_bit(.Readonly)
+    expected :: "[0,4,1,${keyword},0,0,6,1,${keyword},0,1,2,1,${keyword},${readonly}]"
+    assert_eq(stringify(encode_delta(tokens)), expected)
+}
+
 // The first documentation-modifier token of `kind` on `line`, `null` if none.
 // Test helper for doc-comment tag positioning.
 doc_token :: fn(toks: RawToken[], line: i32, kind: TokenType) -> RawToken | null =
