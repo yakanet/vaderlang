@@ -32,6 +32,13 @@ export const index = read_json('index.json');
 
 export const module_paths = new Set(index.modules.map((m) => m.path));
 
+// The size of the site: its modules, and its exports, the entries that are
+// neither a member nor an impl.
+export const stats = {
+	modules: index.modules.length,
+	exports: index.entries.filter((e) => e.kind !== 'impl' && e.owner === '').length
+};
+
 /** @param {string} module_path */
 export const read_module = (module_path) => read_json(`modules/${module_path}.json`);
 

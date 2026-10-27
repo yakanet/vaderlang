@@ -42,6 +42,9 @@ jobs:
           BASE_PATH="$BASE/lib" VADER_DOC_TITLE="Library" ./build/vader doc -o _site/lib lib
           BASE_PATH="$BASE/vader" VADER_DOC_TITLE="Compiler" ./build/vader doc -o _site/vader vader
           cp .github/pages/index.html _site/
+          for href in $(grep -o 'href="[a-z][^":]*"' _site/index.html | cut -d'"' -f2); do
+            test -e "_site/${href%/}" || { echo "index.html links to $href, which the sites lack"; exit 1; }
+          done
       - if: github.event_name == 'push'
         uses: actions/upload-pages-artifact@v5
         with:

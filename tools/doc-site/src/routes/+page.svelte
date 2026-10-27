@@ -9,7 +9,7 @@
 
 <div class="home">
 	<h1>{data.title}</h1>
-	<p class="lede">{data.modules.length} modules, {data.entries} exports.</p>
+	<p class="lede">{data.modules.length} modules, {data.exports} exports.</p>
 	<ul class="modules">
 		{#each data.modules as m (m.path)}
 			<li>
