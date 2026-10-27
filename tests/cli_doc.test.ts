@@ -353,3 +353,43 @@ test("doc --search finds what a file gained since the last search", async () => 
   expect(r.stdout).toContain("\nexport FRESHLY_ADDED :: 1");
   expect(r.stdout).toContain("\n    Added after the first search.\n");
 }, MEDIUM_BUILD);
+
+// `vader doc -o`: building the site itself needs Node.js and its packages, so
+// the job `docs` of the CI runs it; these pin what is refused before.
+
+test("doc -o refuses a folder no site wrote, before it writes any data", async () => {
+  const dir = stage("shapes");
+  mkdirSync(join(dir, "taken"));
+  writeFileSync(join(dir, "taken", "keep.txt"), "");
+  const r = await spawnCapture(["doc", "-o", "taken", "shapes"], {
+    cwd: dir,
+    env: TOOLCHAIN_ENV,
+    timeoutMs: MEDIUM_BUILD,
+  });
+  expect(r.exit).toBe(2);
+  expect(r.stderr).toContain("`taken` holds files no site wrote");
+  expect(existsSync(join(dir, "taken", "keep.txt"))).toBe(true);
+  expect(existsSync(join(dir, "build", "doc"))).toBe(false);
+}, MEDIUM_BUILD);
+
+test("doc -o says it needs Node.js when none is on the PATH", async () => {
+  const dir = stage("shapes");
+  const r = await spawnCapture(["doc", "-o", "site", "shapes"], {
+    cwd: dir,
+    env: { ...TOOLCHAIN_ENV, PATH: join(dir, "no-bin") },
+    timeoutMs: MEDIUM_BUILD,
+  });
+  expect(r.exit).toBe(2);
+  expect(r.stderr).toContain("`-o` needs Node.js >=22.17.0 on the `PATH`");
+  expect(existsSync(join(dir, "build", "doc", "index.json"))).toBe(true);
+}, MEDIUM_BUILD);
+
+test("doc -o and --search do not go together", async () => {
+  const r = await spawnCapture(["doc", "-o", "site", "--search=point"], {
+    cwd: stage("shapes"),
+    env: TOOLCHAIN_ENV,
+    timeoutMs: MEDIUM_BUILD,
+  });
+  expect(r.exit).toBe(2);
+  expect(r.stderr).toContain("`--search` and `-o` do not go together");
+}, MEDIUM_BUILD);

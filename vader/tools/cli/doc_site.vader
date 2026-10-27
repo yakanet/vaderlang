@@ -1,0 +1,374 @@
+// vader/tools/cli/doc_site: the site `vader doc -o` builds from its data.
+//
+// The site is a SvelteKit project the toolchain ships as a template:
+// `tools/doc-site/` in a checkout, `doc-template/` in a bundle. Its
+// `node_modules` is installed once per lockfile in the user's cache; each set
+// of data gets a copy of the template under that install's `sites/`, which
+// finds the `node_modules` above it the way Node looks a package up, and holds
+// what SvelteKit writes as it builds. The template is never written to, so a
+// toolchain installed read-only builds sites all the same.
+//
+// The build reads its folders from variables (the template's `README.md`),
+// which `node --env-file` hands it from a file of the copy: what the toolchain
+// sets in its own environment, the C runtime of Windows would not see.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/tools/cli"
+
+import "crypto"
+Json :: import "json"
+import "semver"
+import "std/env"
+import "std/io"
+import "std/iter"
+import "std/path"
+import "std/process"
+import "std/string"
+import "std/target"
+import "vader/front/resolver"
+
+// Where the template sits in a bundle, in a checkout, and the file that tells
+// it from another folder of that name.
+DOC_TEMPLATE_DIR        :: "doc-template"
+DOC_TEMPLATE_SOURCE_DIR :: "tools/doc-site"
+DOC_TEMPLATE_MARKER     :: "src/lib/server/data.js"
+
+// The grammar the site colours Vader with: inside the template in a bundle,
+// shared with the editors in a checkout.
+DOC_GRAMMAR_FILE    :: "vader.tmLanguage.json"
+EDITOR_GRAMMAR_FILE :: "editors/common/vader.tmLanguage.json"
+
+// The folders of the template that are a build's, never copied.
+BUILD_FOLDERS: string[]: ["node_modules", ".svelte-kit", "build"]
+
+// The file an install writes once `npm ci` has succeeded in it.
+INSTALLED_MARKER :: ".installed"
+
+// The file the copy of a site holds its build's variables in.
+SITE_ENV_FILE :: ".vader-doc.env"
+
+// What a folder `-o` names holds when it is a site, which a new build may
+// replace.
+SITE_MARKER :: "search-index.json"
+
+// Build the site of the data under `data_dir` into `out_dir`: copy the
+// template into the user's cache, install its `node_modules` there when the
+// lockfile has none yet, then run `vite build`. 0 once it is written, 1 when the
+// build fails, 2 when something it needs is missing.
+build_doc_site :: fn(data_dir: string, out_dir: string) -> i32 {
+    template :: doc_template_root() ?? return missing("the site's template is not in the toolchain")
+    grammar :: grammar_file(template) ?? return missing("the toolchain holds no grammar of Vader")
+    if !node_is_recent(template) {
+        return 2
+    }
+    install :: site_install(template) ?? return 2
+    copy :: site_copy(install, template, data_dir) ?? return 2
+    out :: absolute_path(out_dir)
+    env :: site_env(absolute_path(data_dir), grammar, out)
+    if env == null {
+        return missing("a folder holds a `'`, which the build's variables cannot carry")
+    }
+    env_file :: join_path(copy, SITE_ENV_FILE)
+    written :: write_file_string(env_file, env)
+    if written is IOError {
+        return missing("cannot write `${env_file}`: ${written.message()}")
+    }
+    vite :: join_path(install, "node_modules/vite/bin/vite.js")
+    built :: run_in(
+        copy,
+        [
+            "node",
+            "--env-file=${SITE_ENV_FILE}",
+            vite,
+            "build",
+            "--configLoader",
+            "runner",
+            "--logLevel",
+            "warn",
+        ],
+    )
+    if built is ProcessError {
+        eprintln("vader doc: ${built.message()}")
+        return 1
+    }
+    if built != 0 || !exists(join_path(out, SITE_MARKER)) {
+        eprintln("vader doc: the site could not be built")
+        return 1
+    }
+    println("vader doc: site written to `${out_dir}`")
+    return 0
+}
+
+// Say that `what` keeps the site from being built; 2, the exit code.
+missing :: fn(what: string) -> i32 {
+    eprintln("vader doc: ${what}")
+    return 2
+}
+
+// Whether `-o` may write the site into `dir`: a folder that does not exist yet,
+// an empty one, or one a build of a site wrote. The build empties it first, so
+// anything else is refused, the project's own folder for one.
+is_site_folder :: fn(dir: string) -> bool {
+    if !exists(dir) {
+        return true
+    }
+    entries :: read_dir(dir)
+    if entries is IOError {
+        return false
+    }
+    return entries.len() == 0 || exists(join_path(dir, SITE_MARKER))
+}
+
+// The folder of the template, absolute: a bundle's, else a checkout's, under
+// the toolchain or the working directory; null when there is none.
+doc_template_root :: fn() -> string | null {
+    bundled :: sidecar_root(DOC_TEMPLATE_DIR, DOC_TEMPLATE_MARKER)
+    if bundled != null {
+        return absolute_path(bundled)
+    }
+    checkout :: resolve_sidecar(DOC_TEMPLATE_SOURCE_DIR, DOC_TEMPLATE_MARKER)
+    if exists(join_path(checkout, DOC_TEMPLATE_MARKER)) {
+        return absolute_path(checkout)
+    }
+    return null
+}
+
+// The grammar the template is built with: its own, else the editors' two
+// folders above it in a checkout; null when neither exists.
+grammar_file :: fn(template: string) -> string | null {
+    bundled :: join_path(template, DOC_GRAMMAR_FILE)
+    if exists(bundled) {
+        return bundled
+    }
+    shared :: Path(join_path(template, "../../${EDITOR_GRAMMAR_FILE}")).normalize().as_string()
+    if exists(shared) {
+        return shared
+    }
+    return null
+}
+
+// Whether `node` runs and is a version the template's `package.json` accepts
+// under `engines`, after saying why not.
+node_is_recent :: fn(template: string) -> bool {
+    wanted :: node_engines(template)
+    ran :: spawn(["node", "--version"])
+    if ran is ProcessError || ran.exit != 0 {
+        eprintln("vader doc: `-o` needs Node.js ${wanted} on the `PATH`: https://nodejs.org")
+        return false
+    }
+    version :: ran.stdout.trim()
+    if !accepts_node(wanted, version) {
+        eprintln("vader doc: `-o` needs Node.js ${wanted}, and `node` is ${version}")
+        return false
+    }
+    return true
+}
+
+// The versions of Node the `package.json` of `template` accepts, an npm range;
+// `*` when it names none.
+node_engines :: fn(template: string) -> string {
+    text :: read_file_string(join_path(template, "package.json"))
+    if text is IOError {
+        return "*"
+    }
+    manifest :: Json.parse(text)
+    if manifest !is Json.JsonObject {
+        return "*"
+    }
+    engines :: manifest.entries["engines"] ?? return "*"
+    if engines !is Json.JsonObject {
+        return "*"
+    }
+    node :: engines.entries["node"] ?? return "*"
+    if node !is Json.JsonString {
+        return "*"
+    }
+    return node.value
+}
+
+// Whether the Node `version`, as `node --version` writes it (`v22.19.0`), is
+// one `wanted`, an npm range, accepts.
+accepts_node :: fn(wanted: string, version: string) -> bool {
+    range :: parse_range(wanted)
+    found :: parse(version.trim_prefix("v"))
+    return range is VersionRange && found is Version && found in range
+}
+
+// The install of the template's `node_modules` for its lockfile, run first
+// when it has not succeeded yet; null after saying why it cannot be.
+site_install :: fn(template: string) -> string | null {
+    lock :: read_file_bytes(join_path(template, "package-lock.json"))
+    if lock is IOError {
+        eprintln("vader doc: the site's template has no lockfile: ${lock.message()}")
+        return null
+    }
+    cache :: user_cache_root()
+    if cache == null {
+        eprintln("vader doc: no folder to keep the site's packages in: `HOME` is not set")
+        return null
+    }
+    dir :: join_path(cache, "doc-site/${sha256(lock).byte_slice(0, 16)}")
+    if exists(join_path(dir, INSTALLED_MARKER)) {
+        return dir
+    }
+    for file in ["package.json", "package-lock.json", ".npmrc"] {
+        if !copy_file(join_path(template, file), join_path(dir, file)) {
+            return null
+        }
+    }
+    eprintln("vader doc: installing the site's packages in `${dir}`")
+    installed :: run_in(dir, npm_argv(["ci", "--no-audit", "--no-fund", "--loglevel=error"]))
+    if installed is ProcessError {
+        eprintln("vader doc: ${installed.message()}")
+        return null
+    }
+    if installed != 0 {
+        eprintln("vader doc: `npm ci` failed in `${dir}`")
+        return null
+    }
+    write_file_string(join_path(dir, INSTALLED_MARKER), "")
+    return dir
+}
+
+// `npm` with `args`: through `cmd`, on Windows, where `npm` is a script.
+npm_argv :: fn(args: string[]) -> string[] {
+    argv: string[]: []
+    if current_os() == .Windows {
+        argv.push_all(["cmd", "/c"])
+    }
+    argv.push("npm")
+    argv.push_all(args)
+    return argv
+}
+
+// The folder of the user's cache the toolchain keeps what it installs in;
+// null without the variable that names it.
+user_cache_root :: fn() -> string | null {
+    if current_os() == .Windows {
+        local :: get_env("LOCALAPPDATA") ?? return null
+        return join_path(local, "vader/cache")
+    }
+    if current_os() == .Darwin {
+        home :: get_env("HOME") ?? return null
+        return join_path(home, "Library/Caches/vader")
+    }
+    xdg :: get_env("XDG_CACHE_HOME") ?? ""
+    if xdg != "" {
+        return join_path(xdg, "vader")
+    }
+    home :: get_env("HOME") ?? return null
+    return join_path(home, ".cache/vader")
+}
+
+// The copy of the template the site of `data_dir` is built in, brought in line
+// with the template: each of its files copied, and each file the template no
+// longer has removed. Null after saying why it cannot be.
+site_copy :: fn(install: string, template: string, data_dir: string) -> string | null {
+    dir :: join_path(install, "sites/${sha256(absolute_path(data_dir)).byte_slice(0, 16)}")
+    files :: template_files(template, "")
+    for file in files {
+        if !copy_file(join_path(template, file), join_path(dir, file)) {
+            return null
+        }
+    }
+    for stale in template_files(dir, "") {
+        if !(stale in files) && stale != SITE_ENV_FILE {
+            remove_file(join_path(dir, stale))
+        }
+    }
+    return dir
+}
+
+// The files under `root`/`sub`, relative to `root`, the build's folders left
+// out.
+template_files :: fn(root: string, sub: string) -> string[] {
+    names :: read_dir(join_path(root, sub))
+    if names is IOError {
+        return []
+    }
+    out: string[]: []
+    for name in names {
+        if sub == "" && name in BUILD_FOLDERS {
+            continue
+        }
+        relative :: join_path(sub, name)
+        if is_dir(join_path(root, relative)) {
+            out.push_all(template_files(root, relative))
+        } else {
+            out.push(relative)
+        }
+    }
+    return out
+}
+
+// Copy the file `from` to `to`, its folder created; false after saying why it
+// could not be.
+copy_file :: fn(from: string, to: string) -> bool {
+    bytes :: read_file_bytes(from)
+    if bytes is IOError {
+        eprintln("vader doc: cannot read `${from}`: ${bytes.message()}")
+        return false
+    }
+    made :: create_dir(dir_of(to))
+    if made is IOError {
+        eprintln("vader doc: cannot create `${dir_of(to)}`: ${made.message()}")
+        return false
+    }
+    written :: write_file_bytes(to, bytes)
+    if written is IOError {
+        eprintln("vader doc: cannot write `${to}`: ${written.message()}")
+        return false
+    }
+    return true
+}
+
+// The variables of the build, one per line, each value in single quotes, which
+// `--env-file` reads as written; null when a value holds a quote itself.
+site_env :: fn(data: string, grammar: string, out: string) -> string | null {
+    lines: string[]: []
+    values :: [["VADER_DOC_DATA", data], ["VADER_DOC_GRAMMAR", grammar], ["VADER_DOC_OUT", out]]
+    for [name, value] in values {
+        if "'" in value {
+            return null
+        }
+        lines.push("${name}='${value}'")
+    }
+    return lines.join("\n") + "\n"
+}
+
+// Run `argv` in the folder `dir`, on this process's streams, and come back to
+// the working directory.
+run_in :: fn(dir: string, argv: string[]) -> i32 | ProcessError {
+    home :: current_working_directory()
+    moved :: set_current_working_directory(dir)
+    if moved is IOError {
+        return ProcessError { .msg = "cannot enter `${dir}`: ${moved.message()}" }
+    }
+    ran :: run_attached(argv)
+    set_current_working_directory(home)
+    return ran
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_doc_site_takes_the_node_its_template_accepts :: fn() -> void {
+    assert(accepts_node(">=22.17.0", "v22.17.0"), "the minimum is enough")
+    assert(accepts_node(">=22.17.0", "v24.1.0"), "a later major is")
+    assert(!accepts_node(">=22.17.0", "v22.16.9"), "an earlier minor is not")
+    assert(!accepts_node(">=22.17.0", "node"), "nor what is no version")
+}
+
+@test
+test_doc_site_env_quotes_each_folder :: fn() -> void {
+    env :: site_env("/d", "/g", "/o") ?? ""
+    assert_eq(env, "VADER_DOC_DATA='/d'\nVADER_DOC_GRAMMAR='/g'\nVADER_DOC_OUT='/o'\n")
+}
+
+@test
+test_doc_site_env_refuses_a_quote :: fn() -> void {
+    assert(site_env("/it's", "/g", "/o") == null, "a quote cannot be carried")
+}

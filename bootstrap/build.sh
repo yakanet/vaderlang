@@ -231,7 +231,7 @@ if [ "$dist" = 1 ]; then
   esac
   out="dist/vader-${os}-${arch}"
 
-  step "[dist] Bundling $out  (vader + lib/ + src/vader + runtime/c + third_party/)"
+  step "[dist] Bundling $out  (vader + lib/ + src/vader + runtime/c + third_party/ + doc-template/)"
   rm -rf "$out"
   mkdir -p "$out/runtime" "$out/src"
   cp build/vader "$out/vader"
@@ -258,6 +258,9 @@ if [ "$dist" = 1 ]; then
       done
   cp -R runtime/c "$out/runtime/"
   cp -R third_party "$out/third_party"
+  cp -R tools/doc-site "$out/doc-template"
+  rm -rf "$out/doc-template/node_modules" "$out/doc-template/.svelte-kit" "$out/doc-template/build"
+  cp editors/common/vader.tmLanguage.json "$out/doc-template/"
 
   printf '%b==> dist%b  %s ready, a self-contained toolchain (resolves lib/ + runtime/c/ next to the binary, so it runs, and drives builds: from any directory).\n' "$g" "$r" "$out"
 fi

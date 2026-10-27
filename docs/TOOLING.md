@@ -150,7 +150,7 @@ The data is JSON, at `version` 2, a draft that may still change:
 
 - `id` is `<module>/<name>`, `<module>/<name>~<n>` for the n-th declaration of an overloaded name, `<module>/<type>: <trait>` for an impl, and `<declaration>.<name>` for a member.
 - `kind` is `fn`, `struct`, `enum`, `trait`, `type` (an alias, or a constant whose value is a type), `const` or `impl`; a member's is `field`, `variant` or `method`. A field restricted to its module (`@internal`) is left out.
-- `signature` is the head as segments, whose texts, put end to end, give the head: each is `{ "text" }`, with the `module` and the `name` of the declaration it names when it is a name a reader can follow, a public function, type, trait or constant. A name reached through a namespace alias is one segment, `Geo.Point`.
+- `signature` is the head as segments, whose texts, put end to end, give the head: each is `{ "text" }`, with the `module` and the `name` of the declaration it names when it is a name a reader can follow, a public function, type, trait or constant, a scalar type such as `i32` or `string` aside. A name reached through a namespace alias is one segment, `Geo.Point`.
 - `inferred_type` is the type typing gave a constant without a written type, as segments too, empty otherwise. Only a struct, a trait, an enum or a distinct type links there: typing keeps no declaration for an alias, so an integer range such as `i32` shows its name without a link.
 - `function` holds the `parameters` and the `return_type` of a function or a method, `null` for another declaration. Each parameter is `{ "name", "type" }`, its `type` as segments, empty when the head writes none (`self`), with its `default` as segments and `"variadic": true` when it has them. `return_type` is what it returns, written or inferred, empty when it is neither; `return_inferred` says typing gave it, the `signature` then ending with ` -> ` and that type.
 - `targets` lists the platforms an `@target` group exists on, and is empty for a function that exists on every platform: one whose bare declaration has a body.
@@ -172,6 +172,14 @@ module shapes/geometry  shapes/geometry/geometry.vader:12:5
 x: f64
     The abscissa.
 ```
+
+`vader doc -o <folder> [path]` brings the data up to date, then builds its site into the folder: a page per module, its declarations grouped by kind with their vaderdoc, links between them, and a search over all of them. The folder must be new, empty, or a site built before, which is replaced.
+
+- The site is a SvelteKit project the toolchain ships as a template (`tools/doc-site/` in a checkout, `doc-template/` in a bundle), built with Node.js, which must be on the `PATH` at a version the `engines` of the template's `package.json` accepts.
+- Its packages are installed once per version of the template in the user's cache (`~/Library/Caches/vader/` on macOS, `$XDG_CACHE_HOME/vader/` or `~/.cache/vader/` on Linux, `%LOCALAPPDATA%\vader\cache\` on Windows), with `npm`, which needs the network the first time. The template itself is never written to.
+- `VADER_DOC_TITLE` names the site, `VADER_DOC_SOURCE_URL` is the prefix a file of the data is appended to for reading it online, and `BASE_PATH` the path it is served under (`/repo` for a project's GitHub Pages).
+- The same data gives the same site, byte for byte.
+- The exit code is 0 once the site is written, 1 when its build fails, 2 when the folder holds other files or Node.js is missing.
 
 ### `vader dump`
 

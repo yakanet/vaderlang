@@ -3,9 +3,10 @@
 // Loads and type-checks every module under a path with its vaderdoc, from the
 // entry of the project as `vader lint` takes it, and writes what
 // `vader/tools/doc` makes of them to the project's `build/doc/`, unless its
-// stamp says the data there is what it would write. `--search` brings that data
-// and the data of the toolchain's library up to date the same way, then shows
-// what its query names in them.
+// stamp says the data there is what it would write; `-o` then builds the site of
+// that data (`doc_site.vader`). `--search` brings that data and the data of the
+// toolchain's library up to date the same way, then shows what its query names
+// in them.
 //
 // Same module as `main.vader`: imports are file-scoped, declarations are not.
 
@@ -30,16 +31,21 @@ Doc :: import "vader/tools/doc"
 /// stamp, so that the next one reports it again, and the modules left out are
 /// said again while the data stays up to date.
 ///
+/// `vader doc -o <folder> [path]` then builds the site of that data into the
+/// folder, which must be new, empty, or a site built before.
+///
 /// `vader doc --search=<query> [path]` shows what the query names, as `go doc`
 /// reads one, in that data and in the data of the toolchain's library, which
 /// goes to `build/doc-lib/` beside it: both are brought up to date first.
 ///
 /// @param args  the action's arguments; the first positional is the path.
-/// @return      0 once the data is written or found up to date, or the query
-///              shown; 1 when the data cannot be written or holds no module, or
-///              the query matches nothing; 2 when the path holds none, no entry
-///              is chosen, the query is empty, or a set of data to search
-///              cannot be written.
+/// @return      0 once the data is written or found up to date, the site
+///              built, or the query shown; 1 when the data cannot be written or
+///              holds no module, the site's build fails, or the query matches
+///              nothing; 2 when the path holds none, no entry is chosen, the
+///              folder of the site holds other files, the site lacks Node.js,
+///              the query is empty, or a set of data to search cannot be
+///              written.
 cmd_doc :: fn(args: string[]) -> i32 {
     parsed :: parse_action("doc", args)
     if parsed is i32 {
@@ -49,6 +55,15 @@ cmd_doc :: fn(args: string[]) -> i32 {
         return 1
     }
     searching :: parsed.flags["search"] != null
+    site_dir :: parsed.string_flag("out", "")
+    if searching && site_dir != "" {
+        eprintln("vader doc: `--search` and `-o` do not go together")
+        return 2
+    }
+    if site_dir != "" && !is_site_folder(site_dir) {
+        eprintln("vader doc: `${site_dir}` holds files no site wrote: name a new folder")
+        return 2
+    }
     project :: doc_project(parsed)
     if project is i32 {
         if !searching {
@@ -67,12 +82,16 @@ cmd_doc :: fn(args: string[]) -> i32 {
     if inputs is i32 {
         return inputs
     }
-    refreshed :: refresh_data(inputs, home, data_dir(home, DOC_DATA_DIR))
+    data :: data_dir(home, DOC_DATA_DIR)
+    refreshed :: refresh_data(inputs, home, data)
     for line in refreshed.problems {
         eprintln(line)
     }
     status :: refreshed.status ?? return 1
     println("vader doc: ${status}")
+    if site_dir != "" {
+        return build_doc_site(data, site_dir)
+    }
     return 0
 }
 

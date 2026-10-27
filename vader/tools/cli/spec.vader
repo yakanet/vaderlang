@@ -128,6 +128,12 @@ DOC_FLAGS: FlagSpec[]: [
         .help = "Show what a query names, the library included: `io.read_file_bytes`, `IOError.kind`",
         .value_name = "query",
     },
+    FlagSpec {
+        .name = "out",
+        .alias = "o",
+        .help = "Build the site of the data into a folder, with Node.js",
+        .value_name = "folder",
+    },
 ]
 
 BUILD_FLAGS: FlagSpec[]: [

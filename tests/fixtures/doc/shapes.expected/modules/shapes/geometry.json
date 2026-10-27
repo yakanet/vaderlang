@@ -325,15 +325,7 @@
           "name": "Point"
         },
         {
-          "text": ", k: "
-        },
-        {
-          "text": "i32",
-          "module": "std/core",
-          "name": "i32"
-        },
-        {
-          "text": ") -> "
+          "text": ", k: i32) -> "
         },
         {
           "text": "Point",
@@ -358,9 +350,7 @@
             "name": "k",
             "type": [
               {
-                "text": "i32",
-                "module": "std/core",
-                "name": "i32"
+                "text": "i32"
               }
             ]
           }
@@ -487,15 +477,7 @@
       "kind": "fn",
       "signature": [
         {
-          "text": "export twice :: fn(n: "
-        },
-        {
-          "text": "i32",
-          "module": "std/core",
-          "name": "i32"
-        },
-        {
-          "text": ") -> i32"
+          "text": "export twice :: fn(n: i32) -> i32"
         }
       ],
       "inferred_type": [],
@@ -505,9 +487,7 @@
             "name": "n",
             "type": [
               {
-                "text": "i32",
-                "module": "std/core",
-                "name": "i32"
+                "text": "i32"
               }
             ]
           }

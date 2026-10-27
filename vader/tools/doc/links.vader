@@ -6,7 +6,7 @@
 // to a public declaration of a module: an identifier through the resolver's
 // `idents`, an import followed to what it imports, a member reached through a
 // namespace alias (`Ns.Name`) through the module the alias names. A local, a
-// parameter, a type parameter or a builtin stays text.
+// parameter, a type parameter, a builtin or a scalar type stays text.
 
 module "vader/tools/doc"
 
@@ -121,9 +121,11 @@ written_symbol :: fn(ctx: FileContext, node: Span | FieldExpr) -> Symbol | null 
     return Tc.declared_symbol(named, typed)
 }
 
-// Whether the documentation of its module lists `sym`: a public fn, type, trait
-// or constant.
-is_documented :: fn(sym: Symbol) -> bool = sym.visibility == .Public && is_listed_kind(sym.kind)
+// Whether `sym` is worth a link: a public fn, type, trait or constant, which the
+// documentation of its module lists, but no scalar type (`i32`, `string`), which
+// a reader knows without one.
+is_documented :: fn(sym: Symbol) -> bool =
+    sym.visibility == .Public && is_listed_kind(sym.kind) && !Ty.is_scalar_type_name(sym.name)
 
 is_listed_kind :: fn(kind: SymbolKind) -> bool = match kind {
     .Fn | .Struct | .Enum | .Trait | .TypeAlias | .Const -> true

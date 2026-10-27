@@ -213,7 +213,7 @@ if ($Dist) {
     $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
     $distDir = "dist\vader-windows-$arch"
 
-    Step "[dist] Bundling $distDir  (vader + lib/ + src/vader + runtime/c + third_party/)"
+    Step "[dist] Bundling $distDir  (vader + lib/ + src/vader + runtime/c + third_party/ + doc-template/)"
     if (Test-Path $distDir) { Remove-Item -Recurse -Force $distDir }
     New-Item -ItemType Directory -Force "$distDir\runtime" | Out-Null
     New-Item -ItemType Directory -Force "$distDir\src" | Out-Null
@@ -228,6 +228,11 @@ if ($Dist) {
     }
     Copy-Item -Recurse runtime\c "$distDir\runtime\c"
     Copy-Item -Recurse third_party "$distDir\third_party"
+    Copy-Item -Recurse tools\doc-site "$distDir\doc-template"
+    foreach ($built in 'node_modules', '.svelte-kit', 'build') {
+        Remove-Item -Recurse -Force "$distDir\doc-template\$built" -ErrorAction SilentlyContinue
+    }
+    Copy-Item editors\common\vader.tmLanguage.json "$distDir\doc-template\"
 
     Write-Host "==> dist  $distDir ready -- a self-contained toolchain (resolves lib\ + runtime\c\ next to the binary, so it runs -- and drives builds -- from any directory)." -ForegroundColor Green
 }
