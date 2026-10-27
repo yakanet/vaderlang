@@ -354,8 +354,9 @@ test("doc --search finds what a file gained since the last search", async () => 
   expect(r.stdout).toContain("\n    Added after the first search.\n");
 }, MEDIUM_BUILD);
 
-// `vader doc -o`: building the site itself needs Node.js and its packages, so
-// the job `docs` of the CI runs it; these pin what is refused before.
+// `vader doc -o` and `--open`: building the site itself needs Node.js and its
+// packages, so the workflow `docs` of the CI runs it; these pin what is refused
+// before.
 
 test("doc -o refuses a folder no site wrote, before it writes any data", async () => {
   const dir = stage("shapes");
@@ -372,24 +373,29 @@ test("doc -o refuses a folder no site wrote, before it writes any data", async (
   expect(existsSync(join(dir, "build", "doc"))).toBe(false);
 }, MEDIUM_BUILD);
 
-test("doc -o says it needs Node.js when none is on the PATH", async () => {
-  const dir = stage("shapes");
-  const r = await spawnCapture(["doc", "-o", "site", "shapes"], {
-    cwd: dir,
-    env: { ...TOOLCHAIN_ENV, PATH: join(dir, "no-bin") },
-    timeoutMs: MEDIUM_BUILD,
-  });
-  expect(r.exit).toBe(2);
-  expect(r.stderr).toContain("`-o` needs Node.js >=22.17.0 on the `PATH`");
-  expect(existsSync(join(dir, "build", "doc", "index.json"))).toBe(true);
+test("doc -o and --open say they need Node.js when none is on the PATH", async () => {
+  for (const flag of ["-o=site", "--open"]) {
+    const dir = stage("shapes");
+    const r = await spawnCapture(["doc", flag, "shapes"], {
+      cwd: dir,
+      env: { ...TOOLCHAIN_ENV, PATH: join(dir, "no-bin") },
+      timeoutMs: MEDIUM_BUILD,
+    });
+    expect(r.exit).toBe(2);
+    expect(r.stderr).toContain("the site needs Node.js >=22.17.0 on the `PATH`");
+    expect(existsSync(join(dir, "build", "doc", "index.json"))).toBe(true);
+  }
 }, MEDIUM_BUILD);
 
-test("doc -o and --search do not go together", async () => {
-  const r = await spawnCapture(["doc", "-o", "site", "--search=point"], {
-    cwd: stage("shapes"),
-    env: TOOLCHAIN_ENV,
-    timeoutMs: MEDIUM_BUILD,
-  });
-  expect(r.exit).toBe(2);
-  expect(r.stderr).toContain("`--search` and `-o` do not go together");
+test("doc --search goes with neither -o nor --open", async () => {
+  for (const flag of ["-o=site", "--open"]) {
+    const r = await spawnCapture(["doc", flag, "--search=point"], {
+      cwd: stage("shapes"),
+      env: TOOLCHAIN_ENV,
+      timeoutMs: MEDIUM_BUILD,
+    });
+    expect(r.exit).toBe(2);
+    expect(r.stderr).toContain("`--search` goes with neither `-o` nor `--open`");
+  }
 }, MEDIUM_BUILD);
+

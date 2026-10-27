@@ -106,6 +106,16 @@ export fresh_doc_data :: fn(dir: string, inputs: DocInputs) -> string[] | null {
     return stamp.left_out
 }
 
+/// The key of the stamp of the data under `dir`: what the data was written
+/// from, the same for the same data; null when the data has no stamp, as after
+/// a run that reported an error.
+///
+/// @param dir  the folder of the data.
+export doc_data_key :: fn(dir: string) -> string | null {
+    stamp :: read_stamp(dir) ?? return null
+    return stamp.key
+}
+
 /// Write the stamp of the data `checked` gave under `dir`, last: its key over
 /// what the load saw, the folders of the files it read, and what it left out.
 /// A stamp that cannot be written costs a run more, nothing else.

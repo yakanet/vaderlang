@@ -134,6 +134,11 @@ DOC_FLAGS: FlagSpec[]: [
         .help = "Build the site of the data into a folder, with Node.js",
         .value_name = "folder",
     },
+    FlagSpec {
+        .name = "open",
+        .kind = .Bool,
+        .help = "Serve the site of the data and open it in the browser, until stopped",
+    },
 ]
 
 BUILD_FLAGS: FlagSpec[]: [

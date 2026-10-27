@@ -1,4 +1,5 @@
-// vader/tools/cli/doc_site: the site `vader doc -o` builds from its data.
+// vader/tools/cli/doc_site: the site `vader doc -o` builds from its data, and
+// `vader doc --open` serves.
 //
 // The site is a SvelteKit project the toolchain ships as a template:
 // `tools/doc-site/` in a checkout, `doc-template/` in a bundle. Its
@@ -10,7 +11,9 @@
 //
 // The build reads its folders from variables (the template's `README.md`),
 // which `node --env-file` hands it from a file of the copy: what the toolchain
-// sets in its own environment, the C runtime of Windows would not see.
+// sets in its own environment, the C runtime of Windows would not see. A stamp
+// in the copy says what its last build was made of, which a build skips when
+// nothing changed since.
 //
 // Same module as `main.vader`: imports are file-scoped, declarations are not.
 
@@ -27,6 +30,7 @@ import "std/process"
 import "std/string"
 import "std/target"
 import "vader/front/resolver"
+Doc :: import "vader/tools/doc"
 
 // Where the template sits in a bundle, in a checkout, and the file that tells
 // it from another folder of that name.
@@ -52,19 +56,26 @@ SITE_ENV_FILE :: ".vader-doc.env"
 // replace.
 SITE_MARKER :: "search-index.json"
 
-// Build the site of the data under `data_dir` into `out_dir`: copy the
-// template into the user's cache, install its `node_modules` there when the
-// lockfile has none yet, then run `vite build`. 0 once it is written, 1 when the
-// build fails, 2 when something it needs is missing.
-build_doc_site :: fn(data_dir: string, out_dir: string) -> i32 {
+// The file the copy of a site keeps the stamp of its last build in.
+SITE_STAMP_FILE :: ".vader-doc.stamp"
+
+// The variables of the environment a build reads besides the folders: what
+// changes the site, so its stamp counts them.
+SITE_SETTINGS: string[]: ["BASE_PATH", "VADER_DOC_TITLE", "VADER_DOC_SOURCE_URL"]
+
+// Build the site of the data under `data_dir` into `out_dir`, the copy's own
+// `build/` when it is null: copy the template into the user's cache, install its
+// `node_modules` there when the lockfile has none yet, then run `vite build`,
+// unless the stamp says the folder holds that site already. With `open`, serve
+// it then and open it in the browser, until the reader stops it. 0 once it is
+// written or served, 1 when the build fails, 2 when something it needs is
+// missing.
+build_doc_site :: fn(data_dir: string, out_dir: string | null, open: bool) -> i32 {
     template :: doc_template_root() ?? return missing("the site's template is not in the toolchain")
     grammar :: grammar_file(template) ?? return missing("the toolchain holds no grammar of Vader")
-    if !node_is_recent(template) {
-        return 2
-    }
     install :: site_install(template) ?? return 2
     copy :: site_copy(install, template, data_dir) ?? return 2
-    out :: absolute_path(out_dir)
+    out :: absolute_path(out_dir ?? join_path(copy, "build"))
     env :: site_env(absolute_path(data_dir), grammar, out)
     if env == null {
         return missing("a folder holds a `'`, which the build's variables cannot carry")
@@ -74,30 +85,96 @@ build_doc_site :: fn(data_dir: string, out_dir: string) -> i32 {
     if written is IOError {
         return missing("cannot write `${env_file}`: ${written.message()}")
     }
-    vite :: join_path(install, "node_modules/vite/bin/vite.js")
-    built :: run_in(
-        copy,
-        [
-            "node",
-            "--env-file=${SITE_ENV_FILE}",
-            vite,
-            "build",
-            "--configLoader",
-            "runner",
-            "--logLevel",
-            "warn",
-        ],
-    )
-    if built is ProcessError {
-        eprintln("vader doc: ${built.message()}")
+    stamp_file :: join_path(copy, SITE_STAMP_FILE)
+    data :: Doc.doc_data_key(data_dir) ?? tree_digest(data_dir)
+    digests :: [
+        "data ${data}",
+        "template ${tree_digest(template)}",
+        "grammar ${tree_digest(grammar)}",
+    ]
+    stamp :: site_stamp(env, digests)
+    up_to_date :: is_built(copy, out, stamp_file, stamp)
+    if (!up_to_date || open) && !node_is_recent(template) {
+        return 2
+    }
+    if up_to_date {
+        println("vader doc: `${out}` is up to date")
+    } else {
+        remove_file(stamp_file)
+        code :: vite(install, copy, ["build", "--logLevel", "warn"])
+        if code != 0 || !exists(join_path(out, SITE_MARKER)) {
+            eprintln("vader doc: the site could not be built")
+            return 1
+        }
+        write_file_string(stamp_file, stamp)
+        println("vader doc: `${out}` holds the site")
+    }
+    if !open {
+        return 0
+    }
+    return vite(install, copy, ["preview", "--open"])
+}
+
+// Run Vite with `args` in the copy `copy` of the site, its variables from the
+// copy's file: its exit code, 1 after saying why it could not run.
+vite :: fn(install: string, copy: string, args: string[]) -> i32 {
+    argv: string[]: [
+        "node",
+        "--env-file=${SITE_ENV_FILE}",
+        join_path(install, "node_modules/vite/bin/vite.js"),
+    ]
+    argv.push_all(args)
+    argv.push_all(["--configLoader", "runner"])
+    ran :: run_in(copy, argv)
+    if ran is ProcessError {
+        eprintln("vader doc: ${ran.message()}")
         return 1
     }
-    if built != 0 || !exists(join_path(out, SITE_MARKER)) {
-        eprintln("vader doc: the site could not be built")
-        return 1
+    return ran
+}
+
+// What a site is built from: the variables of its build, `env`, what `digests`
+// say of the data, the template and the grammar they name, and the settings of
+// the environment.
+site_stamp :: fn(env: string, digests: string[]) -> string {
+    lines: string[]: [env.trim()]
+    lines.push_all(digests)
+    for name in SITE_SETTINGS {
+        lines.push("${name} ${get_env(name) ?? ""}")
     }
-    println("vader doc: site written to `${out_dir}`")
-    return 0
+    return lines.join("\n") + "\n"
+}
+
+// Whether `out` holds the site `stamp` says, as the copy's last build left it:
+// a build that failed removed its stamp, and a preview needs the copy's output.
+is_built :: fn(copy: string, out: string, stamp_file: string, stamp: string) -> bool {
+    last :: read_file_string(stamp_file)
+    if last is IOError || last != stamp {
+        return false
+    }
+    return exists(join_path(out, SITE_MARKER)) && exists(join_path(copy, ".svelte-kit/output"))
+}
+
+// A digest of the file `root`, or of the files under the folder `root`, the
+// build's folders left out: their names and their content.
+tree_digest :: fn(root: string) -> string {
+    if !is_dir(root) {
+        return digest_of_file(root)
+    }
+    parts: string[]: []
+    for file in template_files(root, "") {
+        parts.push("${file} ${digest_of_file(join_path(root, file))}")
+    }
+    return sha256(parts.join("\n"))
+}
+
+// A digest of the content of the file `path`, "" when it cannot be read.
+digest_of_file :: fn(path: string) -> string {
+    bytes :: read_file_bytes(path)
+    if bytes is IOError {
+        return ""
+    }
+    return sha256(bytes)
 }
 
 // Say that `what` keeps the site from being built; 2, the exit code.
@@ -154,12 +231,12 @@ node_is_recent :: fn(template: string) -> bool {
     wanted :: node_engines(template)
     ran :: spawn(["node", "--version"])
     if ran is ProcessError || ran.exit != 0 {
-        eprintln("vader doc: `-o` needs Node.js ${wanted} on the `PATH`: https://nodejs.org")
+        eprintln("vader doc: the site needs Node.js ${wanted} on the `PATH`: https://nodejs.org")
         return false
     }
     version :: ran.stdout.trim()
     if !accepts_node(wanted, version) {
-        eprintln("vader doc: `-o` needs Node.js ${wanted}, and `node` is ${version}")
+        eprintln("vader doc: the site needs Node.js ${wanted}, and `node` is ${version}")
         return false
     }
     return true
@@ -212,6 +289,9 @@ site_install :: fn(template: string) -> string | null {
     if exists(join_path(dir, INSTALLED_MARKER)) {
         return dir
     }
+    if !node_is_recent(template) {
+        return null
+    }
     for file in ["package.json", "package-lock.json", ".npmrc"] {
         if !copy_file(join_path(template, file), join_path(dir, file)) {
             return null
@@ -263,7 +343,8 @@ user_cache_root :: fn() -> string | null {
 
 // The copy of the template the site of `data_dir` is built in, brought in line
 // with the template: each of its files copied, and each file the template no
-// longer has removed. Null after saying why it cannot be.
+// longer has removed, but the two files the copy keeps for itself. Null after
+// saying why it cannot be.
 site_copy :: fn(install: string, template: string, data_dir: string) -> string | null {
     dir :: join_path(install, "sites/${sha256(absolute_path(data_dir)).byte_slice(0, 16)}")
     files :: template_files(template, "")
@@ -273,7 +354,7 @@ site_copy :: fn(install: string, template: string, data_dir: string) -> string |
         }
     }
     for stale in template_files(dir, "") {
-        if !(stale in files) && stale != SITE_ENV_FILE {
+        if !(stale in files) && !(stale in [SITE_ENV_FILE, SITE_STAMP_FILE]) {
             remove_file(join_path(dir, stale))
         }
     }

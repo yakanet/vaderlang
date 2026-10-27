@@ -32,7 +32,9 @@ Doc :: import "vader/tools/doc"
 /// said again while the data stays up to date.
 ///
 /// `vader doc -o <folder> [path]` then builds the site of that data into the
-/// folder, which must be new, empty, or a site built before.
+/// folder, which must be new, empty, or a site built before, and `--open`
+/// serves the site, built into the user's cache without `-o`, and opens it in
+/// the browser. Neither builds again what is up to date.
 ///
 /// `vader doc --search=<query> [path]` shows what the query names, as `go doc`
 /// reads one, in that data and in the data of the toolchain's library, which
@@ -55,12 +57,14 @@ cmd_doc :: fn(args: string[]) -> i32 {
         return 1
     }
     searching :: parsed.flags["search"] != null
-    site_dir :: parsed.string_flag("out", "")
-    if searching && site_dir != "" {
-        eprintln("vader doc: `--search` and `-o` do not go together")
+    site_dir :: parsed.flags["out"]
+    open :: parsed.bool_flag("open")
+    site :: site_dir != null || open
+    if searching && site {
+        eprintln("vader doc: `--search` goes with neither `-o` nor `--open`")
         return 2
     }
-    if site_dir != "" && !is_site_folder(site_dir) {
+    if site_dir != null && !is_site_folder(site_dir) {
         eprintln("vader doc: `${site_dir}` holds files no site wrote: name a new folder")
         return 2
     }
@@ -89,8 +93,8 @@ cmd_doc :: fn(args: string[]) -> i32 {
     }
     status :: refreshed.status ?? return 1
     println("vader doc: ${status}")
-    if site_dir != "" {
-        return build_doc_site(data, site_dir)
+    if site {
+        return build_doc_site(data, site_dir, open)
     }
     return 0
 }

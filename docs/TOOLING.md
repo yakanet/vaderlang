@@ -178,8 +178,10 @@ x: f64
 - The site is a SvelteKit project the toolchain ships as a template (`tools/doc-site/` in a checkout, `doc-template/` in a bundle), built with Node.js, which must be on the `PATH` at a version the `engines` of the template's `package.json` accepts.
 - Its packages are installed once per version of the template in the user's cache (`~/Library/Caches/vader/` on macOS, `$XDG_CACHE_HOME/vader/` or `~/.cache/vader/` on Linux, `%LOCALAPPDATA%\vader\cache\` on Windows), with `npm`, which needs the network the first time. The template itself is never written to.
 - `VADER_DOC_TITLE` names the site, `VADER_DOC_SOURCE_URL` is the prefix a file of the data is appended to for reading it online, and `BASE_PATH` the path it is served under (`/repo` for a project's GitHub Pages).
-- The same data gives the same site, byte for byte.
+- The same data gives the same site, byte for byte, and a site already built from the same data and settings is not built again.
 - The exit code is 0 once the site is written, 1 when its build fails, 2 when the folder holds other files or Node.js is missing.
+
+`vader doc --open [path]` does the same into the user's cache, or into the folder `-o` names, then serves the site on `localhost` with `vite preview` and opens it in the browser (`BROWSER=none` keeps it closed, over SSH for one), until stopped with Ctrl-C.
 
 ### `vader dump`
 
