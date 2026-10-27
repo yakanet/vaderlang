@@ -37,31 +37,47 @@ export InterpFrame :: struct {
 }
 
 export Lexer :: struct {
+    @internal
     src: string
     file: string
-    pos: i64
-    line: i32
-    col: i32
-    paren_depth: i32          // unclosed `(` and `[` since the innermost unclosed `{`
-    enclosing_paren_depths: i32[] // `paren_depth` outside each unclosed `{`, restored by its `}`
-    last_kind: TokenKind      // initialised to .Newline so first-token rules fire correctly
+    @internal
+    pos: i64 = 0
+    @internal
+    line: i32 = 1
+    @internal
+    col: i32 = 1
+    // Unclosed `(` and `[` since the innermost unclosed `{`.
+    @internal
+    paren_depth: i32 = 0
+    // `paren_depth` outside each unclosed `{`, restored by its `}`.
+    @internal
+    enclosing_paren_depths: i32[] = []
+    // `.Newline` at the start, so that the first-token rules fire.
+    @internal
+    last_kind: TokenKind = .Newline
     // A statement-ending line break not emitted yet : the next token decides
     // whether it ends the statement (`emit`).
+    @internal
     pending_newline: Span | null = null
     // How many malformed UTF-8 runs the file holds and where the first starts, for
     // its one L0012 (ADR 0063). Scalars only, so that `advance` allocates nothing
     // and keeps no GC frame.
+    @internal
     malformed_utf8_runs: i32 = 0
+    @internal
     malformed_utf8_at: i64 = 0
-    tokens: Token[]
-    errors: Diagnostic[]
-    interp_stack: InterpFrame[]
+    tokens: Token[] = []
+    errors: Diagnostic[] = []
+    @internal
+    interp_stack: InterpFrame[] = []
     // Set by `tokenize_with_docs` : every run of `///` lines is then kept in
     // `doc_runs`. The token stream is the same either way.
+    @internal
     include_doc_comments: bool = false
     doc_runs: DocRun[] = []
     // The `///` lines read since the last token ; null when there are none, or when
     // a plain comment came after them.
+    @internal
     open_doc: AST.DocComment | null = null
 }
 
@@ -74,20 +90,6 @@ export DocRun :: struct {
     doc:         AST.DocComment
     /// Where the token after the run starts.
     followed_by: i64
-}
-
-new_lexer :: fn(source: string, file: string) = Lexer {
-    .src = source,
-    .file = file,
-    .pos = 0,
-    .line = 1,
-    .col = 1,
-    .paren_depth = 0,
-    .enclosing_paren_depths = [],
-    .last_kind = .Newline,
-    .tokens = [],
-    .errors = [],
-    .interp_stack = [],
 }
 
 // ---- predicates -----------------------------------------------------------
@@ -169,7 +171,7 @@ is_malformed_utf8 :: fn(c: char, width: i64, lead: u8) =
 // The span of the file's first malformed run, found again by walking to it: the
 // lexer keeps only its offset.
 first_malformed_utf8 :: fn(l: Lexer) -> Span {
-    r :: new_lexer(l.src, l.file)
+    r :: Lexer { .src = l.src, .file = l.file }
     r.skip_bom()
     for r.pos < l.malformed_utf8_at {
         r.advance(1)
@@ -1133,7 +1135,8 @@ codepoint_label :: fn(c: char) -> string = "U+${u64(u32(c)).to_hex().to_upper().
 
 // ---- public entry ---------------------------------------------------------
 
-export tokenize :: fn(source: string, file: string) -> Lexer = run_lexer(new_lexer(source, file))
+export tokenize :: fn(source: string, file: string) -> Lexer =
+    run_lexer(Lexer { .src = source, .file = file })
 
 /// Tokenize `source` as `tokenize` does, keeping every `///` line in `doc_runs`.
 ///
@@ -1142,11 +1145,12 @@ export tokenize :: fn(source: string, file: string) -> Lexer = run_lexer(new_lex
 ///
 /// @param source  the text of the file.
 /// @param file    the path its spans name.
-export tokenize_with_docs :: fn(source: string, file: string) -> Lexer {
-    l :: new_lexer(source, file)
-    l.include_doc_comments = true
-    return run_lexer(l)
-}
+export tokenize_with_docs :: fn(source: string, file: string) -> Lexer =
+    run_lexer(Lexer {
+        .src = source,
+        .file = file,
+        .include_doc_comments = true,
+    })
 
 // Lex the whole of `l.src` into `l.tokens`, the closing `Eof` included.
 run_lexer :: fn(l: Lexer) -> Lexer {

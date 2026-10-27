@@ -42,10 +42,13 @@ export parse_source_with_docs :: fn(source: string, file: string) -> ParsedSourc
 
 // Parse what `l` lexed.
 parse_lexed :: fn(l: Lexer) -> ParsedSource {
-    p :: new_parser(l.tokens, l.file)
-    p.doc_runs = l.doc_runs
-    // Carry lexer diagnostics through so the snapshot shows both phases.
-    for e in l.errors { p.errors.push(e) }
+    // The lexer's diagnostics come first, so the snapshot shows both phases.
+    p :: Parser {
+        .tokens = l.tokens,
+        .file = l.file,
+        .errors = l.errors,
+        .doc_runs = l.doc_runs,
+    }
     program :: parse_program(p)
     // Mint stable IDs for every node: downstream side-tables key on
     // `node.id` rather than on stringified spans (which collide when
@@ -199,34 +202,32 @@ skip_block_comment :: fn(source: string, from: i64) -> i64 {
 // parser emits a single P1029 and stops descending.
 MAX_EXPR_DEPTH :: 256
 
-export Parser :: struct {
+Parser :: struct {
     tokens: Token[]
-    file:   string
-    pos:    i32
-    errors: Diagnostic[]
+    file: string
+    pos: i32 = 0
+    errors: Diagnostic[] = []
     // The brackets open at the current token, `(`, `[`, `{` and an interpolation,
     // counted as `advance` consumes them. The two rules below hold at one depth
     // only: a bracket opened inside the construct ends what it encloses, so the
     // ambiguity the rule avoids cannot arise there.
-    bracket_depth: i32
+    bracket_depth: i32 = 0
     // The depth of an if / for / match condition, where a struct literal is not
-    // parsed: `if Foo { … }` reads `Foo` as the condition and `{` as the body. -1
+    // parsed: `if Foo { ... }` reads `Foo` as the condition and `{` as the body. -1
     // outside any condition.
-    no_struct_lit_at: i32
+    no_struct_lit_at: i32 = -1
     // The depth of a match-arm guard, where a bare lambda is not parsed: in
     // `is T if n > 0 -> body` the arrow belongs to the arm. -1 outside a guard.
-    no_bare_lambda_at: i32
+    no_bare_lambda_at: i32 = -1
     // When non-null, the lexer's `>>` token has been split : its first `>`
     // was already consumed (and `pos` advanced past it), and this field
     // holds a synthetic `Gt` exposing the second `>`. The next
     // `consume_closing_angle` returns it without touching `pos`. Lets
     // `Box<Box<T>>` close two angle levels with the single `Shr` token.
-    shr_pending_half: Token | null
-    // Synthetic top-level decls produced by desugaring (currently the
-    // `NAME :: @comptime <expr>` sugar → a `__comptime_NAME` fn). `parse_program`
-    // flushes these into the decl list after each parsed decl. Avoids a
-    // dedicated `ComptimeExpr` AST node (which would ripple a T3013 arm across
-    // every exhaustive `match expr` in the compiler).
+    shr_pending_half: Token | null = null
+    // Synthetic top-level decls a desugaring produces: the `NAME :: @comptime <expr>`
+    // sugar becomes a `__comptime_NAME` fn. `parse_program` flushes these into the
+    // decl list after each parsed decl.
     pending_decls: Decl[] = []
     // Current `parse_expr` recursion depth ; guards against a native stack
     // overflow on pathologically nested input. Bounded by `MAX_EXPR_DEPTH`.
@@ -240,17 +241,6 @@ export Parser :: struct {
     // first one no declaration has claimed yet (`take_doc`).
     doc_runs: DocRun[] = []
     doc_cursor: i64 = 0
-}
-
-new_parser :: fn(tokens: Token[], file: string) = Parser {
-    .tokens           = tokens,
-    .file             = file,
-    .pos              = 0,
-    .errors           = [],
-    .bracket_depth = 0,
-    .no_struct_lit_at = -1,
-    .no_bare_lambda_at = -1,
-    .shr_pending_half = null,
 }
 
 // ----------------------------------------------------------- token helpers

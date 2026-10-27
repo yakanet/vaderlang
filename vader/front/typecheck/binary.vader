@@ -287,7 +287,7 @@ warn_shared_repeat_element :: fn(
 }
 
 /// True when the expression allocates its value on the spot: an array / struct
-/// literal, or a call (`MutableMap()`, `new_builder()`). Those are the shapes an
+/// literal, or a call (`MutableMap()`, `new_rng()`). Those are the shapes an
 /// author reads as "n of these", so repeating one reference surprises.
 is_fresh_allocation :: fn(e: AST.Expr) = e is AST.SeqLitExpr | AST.StructLitExpr | AST.CallExpr
 
