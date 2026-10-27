@@ -521,7 +521,7 @@ render_json :: fn(checks: Check[]) -> string {
     root :: MutableMap<string, Json.JsonValue> {}
     root["ok"]     = Json.JsonBool { .value = !has_failure(checks) }
     root["checks"] = Json.JsonArray { .items = items }
-    return Json.stringify_pretty(Json.JsonObject { .entries = root }, 2)
+    return Json.stringify(Json.JsonObject { .entries = root }, 2)
 }
 
 // ---- tests ----------------------------------------------------------------

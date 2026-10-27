@@ -173,6 +173,7 @@ fn 0 snippet$show (string,string) -> void
     return
   end $L0
   local.get 2   ; parsed
+  i32.const 0
   call 55   ; json$stringify
   local.set 3   ; $field_7
   local.get 0   ; arg 0
@@ -4818,16 +4819,16 @@ fn 54 json$parse (string) -> any
   return
 end
 
-fn 55 json$stringify (any) -> string
+fn 55 json$stringify (any,i32) -> string
   local sb ref
   array.new 47 0   ; string[]
   struct.new 32   ; std_string__builder$StringBuilder
-  local.tee 1   ; sb
+  local.tee 2   ; sb
   local.get 0   ; arg 0
-  i32.const 0
+  local.get 1   ; arg 1
   i32.const 0
   call 61   ; json$write_value
-  local.get 1   ; sb
+  local.get 2   ; sb
   call 95   ; std_string__builder$StringBuilder$std_core$Display$to_string
   return
 end

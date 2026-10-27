@@ -364,18 +364,18 @@ sample_module :: fn() -> DocModule {
 
 @test
 test_read_doc_module_reads_what_write_writes :: fn() -> void {
-    written :: stringify_pretty(module_json(sample_module()), 2)
+    written :: stringify(module_json(sample_module()), 2)
     back :: parse(written)
     if back is JsonError {
         assert(false, "the written module parses")
     } else {
-        assert_eq(stringify_pretty(module_json(module_of(back)), 2), written)
+        assert_eq(stringify(module_json(module_of(back)), 2), written)
     }
 }
 
 @test
 test_read_doc_index_gives_each_entry_its_owner :: fn() -> void {
-    back :: parse(stringify_pretty(index_json([sample_module()]), 2))
+    back :: parse(stringify(index_json([sample_module()]), 2))
     if back is JsonError {
         assert(false, "the written index parses")
     } else {
@@ -391,7 +391,7 @@ test_read_doc_index_gives_each_entry_its_owner :: fn() -> void {
 
 @test
 test_read_doc_index_reads_what_a_list_shows :: fn() -> void {
-    back :: parse(stringify_pretty(index_json([sample_module()]), 2))
+    back :: parse(stringify(index_json([sample_module()]), 2))
     if back is JsonError {
         assert(false, "the written index parses")
     } else {

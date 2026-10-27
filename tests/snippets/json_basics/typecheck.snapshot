@@ -16,7 +16,7 @@
   expr 14:17    StringLitExpr  :: string
   expr 14:20    IdentExpr      :: string
   expr 14:30    CallExpr       :: string
-  expr 14:30    IdentExpr      :: fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
+  expr 14:30    IdentExpr      :: fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString, i32) -> string
   expr 14:40    IdentExpr      :: JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString
   expr 14:9     CallExpr       :: void
   expr 14:9     IdentExpr      :: fn(T) -> void

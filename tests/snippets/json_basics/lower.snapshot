@@ -6,7 +6,7 @@
       if parsed is JsonError {
           std.io.println<string>(concat_3(label, ": error: ", JsonError(parsed).msg))
       } else {
-          std.io.println<string>(concat_3(label, ": ", json.stringify((JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)(parsed))))
+          std.io.println<string>(concat_3(label, ": ", json.stringify((JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)(parsed), 0)))
       }
   }
   snippet.main :: fn() -> i32 {  // snippet$main

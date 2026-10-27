@@ -121,7 +121,7 @@ render_info_json :: fn(info: ProjectInfo) -> string {
     report["root"] = Json.JsonString { .value = info.root }
     manifest :: info.manifest
     write_project_json(report, manifest.include_paths, manifest.entries, manifest.assets)
-    return Json.stringify_pretty(Json.JsonObject { .entries = report }, 2)
+    return Json.stringify(Json.JsonObject { .entries = report }, 2)
 }
 
 // `driver` or `manifest`, the `kind` of `vader info --json`.

@@ -3,7 +3,7 @@
 // `JsonValue` is the tagged union of every JSON shape. `parse` returns
 // `JsonValue | JsonError` ; parse failures surface as the `JsonError` variant,
 // propagated by an explicit `if e is JsonError { return e }` narrowing guard.
-// `stringify` and `stringify_pretty` build a string via std/string_builder.
+// `stringify` writes a value back, compact or indented.
 //
 // Numbers are stored as `f64` for MVP: fine for the compiler's use cases
 // (manifests, diagnostics) but loses precision past 2^53. Cf. TODO.md `std/json`
@@ -590,24 +590,17 @@ write_object :: fn(sb: StringBuilder, o: JsonObject, indent: i32, depth: i32) ->
     sb.append("}")
 }
 
-/// Serialise `v` to a compact JSON string: no spaces, no newlines, the
-/// smallest valid encoding. For pretty-printed output with indentation
-/// use `stringify_pretty`.
-/// @param v   the value to serialise.
-/// @return    a JSON document string.
-export stringify :: fn(v: JsonValue) -> string {
-    sb :: StringBuilder {}
-    write_value(sb, v, 0, 0)
-    return sb.to_string()
-}
-
-/// Serialise `v` with indentation. `indent` is the number of spaces per
-/// nesting level ; pass 2 for human-readable output, 0 for the same
-/// effect as `stringify`.
+/// Serialise `v` to a JSON string, one line per element when `indent` is
+/// positive.
+///
 /// @param v       the value to serialise.
-/// @param indent  spaces per nesting level (0 → no spaces / no newlines).
-/// @return        a JSON document string.
-export stringify_pretty :: fn(v: JsonValue, indent: i32) -> string {
+/// @param indent  spaces per nesting level; 0, the default, and below write the
+///                smallest valid encoding.
+/// @example
+///   list :: JsonArray { .items = [JsonNumber { .value = 1.0 }, JsonNull {}] }
+///   stringify(list)      // "[1,null]"
+///   stringify(list, 2)   // "[\n  1,\n  null\n]"
+export stringify :: fn(v: JsonValue, indent: i32 = 0) -> string {
     sb :: StringBuilder {}
     write_value(sb, v, indent, 0)
     return sb.to_string()

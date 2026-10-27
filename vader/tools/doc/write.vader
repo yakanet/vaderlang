@@ -55,7 +55,7 @@ module_file :: fn(dir: string, path: string) -> string = join_path(dir, "modules
 
 // `value` indented in the file `path`, a newline at its end.
 write_json :: fn(path: string, value: JsonValue) -> null | IOError =
-    write_file_string(path, stringify_pretty(value, 2) + "\n")
+    write_file_string(path, stringify(value, 2) + "\n")
 
 // Remove the module files the `index.json` under `dir` lists, those under
 // `modules/` only: a path read back from a file is not trusted to stay there.

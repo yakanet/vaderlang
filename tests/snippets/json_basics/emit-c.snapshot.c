@@ -1674,7 +1674,7 @@ static void std_io$write(uint8_t l0, vader_string_t l1);
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io$println__string(vader_string_t l0);
 static vader_box_t json$parse(vader_string_t l0);
-static vader_string_t json$stringify(vader_box_t l0);
+static vader_string_t json$stringify(vader_box_t l0, int32_t l1);
 static void* json$new_parser(vader_string_t l0);
 static vader_box_t json$parse_value(void* l0, int32_t l1);
 static void json$skip_ws(void* l0);
@@ -1942,7 +1942,7 @@ static void snippet$show(vader_string_t l0, vader_string_t l1) {
         std_io$println__string(t1);
         { vader_gc_top = gc_frame.prev; return; }
     }
-    l3 = json$stringify(l2);
+    l3 = json$stringify(l2, INT32_C(0));
     t1 = concat_3(l0, 2u, l3);
     std_io$println__string(t1);
     { vader_gc_top = gc_frame.prev; return; }
@@ -4376,12 +4376,12 @@ static vader_box_t json$parse(vader_string_t l0) {
     { vader_box_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t json$stringify(vader_box_t l0) {
-    void* l1 = NULL;
+static vader_string_t json$stringify(vader_box_t l0, int32_t l1) {
+    void* l2 = NULL;
     void* t0 = NULL;
     vader_string_t t1 = 0;
     vader_box_t* gc_roots[1] = { &l0 };
-    void** gc_raw_roots[2] = { &l1, &t0 };
+    void** gc_raw_roots[2] = { &l2, &t0 };
     vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
@@ -4392,9 +4392,9 @@ static vader_string_t json$stringify(vader_box_t l0) {
     vader_struct_std_string__builder$StringBuilder_t* _a1_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
     vader_obj_header_init(_a1_obj, 32u);
     _a1_obj->f_parts = t0;
-    l1 = (void*) _a1_obj;
-    json$write_value(l1, l0, INT32_C(0), INT32_C(0));
-    t1 = std_string__builder$StringBuilder$std_core$Display$to_string(l1);
+    l2 = (void*) _a1_obj;
+    json$write_value(l2, l0, l1, INT32_C(0));
+    t1 = std_string__builder$StringBuilder$std_core$Display$to_string(l2);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
