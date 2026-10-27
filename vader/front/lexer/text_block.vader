@@ -21,7 +21,7 @@ import "std/string_builder"
 
 /// A text block's state while its body is lexed, kept across the
 /// interpolations that suspend it (`InterpFrame.block`).
-export TextBlock :: struct {
+TextBlock :: struct {
     /// Where every line that holds more than spaces and tabs starts.
     lines: TextBlockLine[] = []
     /// The indentation every counted line shares ; -1 until one counts.
@@ -38,7 +38,7 @@ export TextBlock :: struct {
 }
 
 /// Where a counted line of a text block starts.
-export TextBlockLine :: struct {
+TextBlockLine :: struct {
     /// Index in `Lexer.tokens` of the `StringPart` the line starts in.
     part: i64
     /// Byte offset of the line's start in that part's decoded text.

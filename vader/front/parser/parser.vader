@@ -1,5 +1,5 @@
 // vader/front/parser/parser: recursive-descent parser + Pratt expression parser.
-// Public entry : parse_source(source, file) -> ParsedSource { program, errors }.
+// Public entry: `parse_source(source, file)`, which gives a `ParsedSource`.
 // Errors flow into the parser's `errors` array ; after an error the parser
 // synchronises on `}` / top-level keywords / NEWLINE so it can keep going.
 
@@ -15,6 +15,8 @@ import "toolchain/span"
 
 // ---- Public entry ---------------------------------------------------------
 
+/// What parsing a file gives: its program, the tokens it was read from, the
+/// lexer's and the parser's diagnostics, and the node-id factory past the program.
 export ParsedSource :: struct {
     program:    Program
     tokens:     Token[]
@@ -40,8 +42,7 @@ export parse_source :: fn(source: string, file: string) -> ParsedSource =
 export parse_source_with_docs :: fn(source: string, file: string) -> ParsedSource =
     parse_lexed(tokenize_with_docs(source, file))
 
-// Parse what `l` lexed.
-parse_lexed :: fn(l: Lexer) -> ParsedSource {
+parse_lexed :: fn(l: LexedSource) -> ParsedSource {
     // The lexer's diagnostics come first, so the snapshot shows both phases.
     p :: Parser {
         .tokens = l.tokens,

@@ -30,54 +30,43 @@ import "toolchain/span"
 // inside the current interp expression so we know when a `}` closes the
 // interp (depth 0) vs an inner expression (depth > 0). `triple` and `block`
 // record which string mode to resume on close.
-export InterpFrame :: struct {
+InterpFrame :: struct {
     brace_depth: i32
     triple: bool
     block: TextBlock | null = null
 }
 
-export Lexer :: struct {
-    @internal
+// The lexing machine: `tokenize` runs one over a file and hands back what it
+// produced, a `LexedSource`.
+Lexer :: struct {
     src: string
     file: string
-    @internal
     pos: i64 = 0
-    @internal
     line: i32 = 1
-    @internal
     col: i32 = 1
     // Unclosed `(` and `[` since the innermost unclosed `{`.
-    @internal
     paren_depth: i32 = 0
     // `paren_depth` outside each unclosed `{`, restored by its `}`.
-    @internal
     enclosing_paren_depths: i32[] = []
     // `.Newline` at the start, so that the first-token rules fire.
-    @internal
     last_kind: TokenKind = .Newline
     // A statement-ending line break not emitted yet : the next token decides
     // whether it ends the statement (`emit`).
-    @internal
     pending_newline: Span | null = null
     // How many malformed UTF-8 runs the file holds and where the first starts, for
     // its one L0012 (ADR 0063). Scalars only, so that `advance` allocates nothing
     // and keeps no GC frame.
-    @internal
     malformed_utf8_runs: i32 = 0
-    @internal
     malformed_utf8_at: i64 = 0
     tokens: Token[] = []
     errors: Diagnostic[] = []
-    @internal
     interp_stack: InterpFrame[] = []
     // Set by `tokenize_with_docs` : every run of `///` lines is then kept in
     // `doc_runs`. The token stream is the same either way.
-    @internal
     include_doc_comments: bool = false
     doc_runs: DocRun[] = []
     // The `///` lines read since the last token ; null when there are none, or when
     // a plain comment came after them.
-    @internal
     open_doc: AST.DocComment | null = null
 }
 
@@ -1135,7 +1124,22 @@ codepoint_label :: fn(c: char) -> string = "U+${u64(u32(c)).to_hex().to_upper().
 
 // ---- public entry ---------------------------------------------------------
 
-export tokenize :: fn(source: string, file: string) -> Lexer =
+/// What lexing a file gives.
+export LexedSource :: struct {
+    /// The path the tokens' spans name.
+    file: string
+    /// The tokens, the closing `Eof` included.
+    tokens: Token[]
+    errors: Diagnostic[]
+    /// The `///` runs, empty unless the lexing kept them (`tokenize_with_docs`).
+    doc_runs: DocRun[]
+}
+
+/// Lex `source` into its tokens and the diagnostics met on the way.
+///
+/// @param source  the text of the file.
+/// @param file    the path its spans name.
+export tokenize :: fn(source: string, file: string) -> LexedSource =
     run_lexer(Lexer { .src = source, .file = file })
 
 /// Tokenize `source` as `tokenize` does, keeping every `///` line in `doc_runs`.
@@ -1145,15 +1149,15 @@ export tokenize :: fn(source: string, file: string) -> Lexer =
 ///
 /// @param source  the text of the file.
 /// @param file    the path its spans name.
-export tokenize_with_docs :: fn(source: string, file: string) -> Lexer =
+export tokenize_with_docs :: fn(source: string, file: string) -> LexedSource =
     run_lexer(Lexer {
         .src = source,
         .file = file,
         .include_doc_comments = true,
     })
 
-// Lex the whole of `l.src` into `l.tokens`, the closing `Eof` included.
-run_lexer :: fn(l: Lexer) -> Lexer {
+// Lex the whole of `l.src`.
+run_lexer :: fn(l: Lexer) -> LexedSource {
     l.skip_bom()
     // Shebang: only allowed on line 1 and silently dropped.
     if l.line == 1 && l.peek() == '#' && l.peek_at(1) == '!' {
@@ -1171,7 +1175,12 @@ run_lexer :: fn(l: Lexer) -> Lexer {
     here :: l.position_here()
     eof_span :: Span { .start = here, .end = here }
     l.emit(make_token(.Eof, "", eof_span))
-    return l
+    return LexedSource {
+        .file = l.file,
+        .tokens = l.tokens,
+        .errors = l.errors,
+        .doc_runs = l.doc_runs,
+    }
 }
 
 // ---------------------------------------------------------------------- tests
@@ -1311,7 +1320,7 @@ import "std/testing"
 // ---- line-terminator counting --------------------------------------------
 
 // Report the start line of the first token whose text matches `text`, or 0.
-line_of :: fn(l: Lexer, text: string) -> i32 {
+line_of :: fn(l: LexedSource, text: string) -> i32 {
     for t in l.tokens {
         if t.text == text { return t.span.start.line }
     }
@@ -1347,7 +1356,7 @@ line_of :: fn(l: Lexer, text: string) -> i32 {
 
 // Count `.Newline` tokens in a lexed stream: a statement terminator survived
 // only where these helpers expect it to.
-count_newlines :: fn(l: Lexer) -> i64 {
+count_newlines :: fn(l: LexedSource) -> i64 {
     n: i64 = 0
     for t in l.tokens {
         if t.kind == .Newline { n += 1 }
