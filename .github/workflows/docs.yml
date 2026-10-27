@@ -1,0 +1,63 @@
+name: Docs
+
+# The API reference of the library (`lib/`) and of the compiler (`vader/`): two
+# sites `vader doc -o` builds, on every pull request so that a site that no
+# longer builds shows before the merge, and published to GitHub Pages from
+# `main`. Pages takes "GitHub Actions" as its source in the repository's
+# settings.
+#
+# A workflow of its own, not a job of `CI`: that one cancels a superseded run,
+# which would stop a deployment halfway.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build the API reference
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: tools/doc-site/package-lock.json
+      - name: Build Vader CLI from the C seed
+        run: bash bootstrap/build.sh
+      - id: pages
+        if: github.event_name == 'push'
+        uses: actions/configure-pages@v6
+      - name: Build the sites
+        env:
+          BASE: ${{ steps.pages.outputs.base_path }}
+          VADER_DOC_SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
+        run: |
+          BASE_PATH="$BASE/lib" VADER_DOC_TITLE="Library" ./build/vader doc -o _site/lib lib
+          BASE_PATH="$BASE/vader" VADER_DOC_TITLE="Compiler" ./build/vader doc -o _site/vader vader
+          cp .github/pages/index.html _site/
+      - if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    name: Publish to GitHub Pages
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
