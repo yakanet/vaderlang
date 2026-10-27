@@ -1,21 +1,35 @@
-// std/async: the cooperative async runtime, `sleep` and the entry run-driver.
+// std/async: run async functions, wait on time, and combine awaitables.
 //
-// Single-threaded, timer-driven. The scheduler state (a virtual clock + a
+// ```
+// import "std/async"
+// import "std/io"
+//
+// fetch :: fn(n: i64) -> Async<i64> {
+//     await sleep(n)
+//     return n * 10
+// }
+//
+// main :: fn() -> i32 {
+//     results :: await join_all([fetch(3), fetch(1), fetch(2)])
+//     println("${results}")   // [30, 10, 20]
+//     return 0
+// }
+// ```
+//
+// A function that uses `await` is async: it declares `-> Async<T>` and returns a
+// `T`. Calling it gives an `Async<T>`, which `await` waits on from another async
+// function and `block_on` runs to completion from one that is not; `main` may
+// `await` and keep its `i32`. The combinators are `join_all`, `try_join_all`,
+// `race`, `join_any`, `timeout` and `share`.
+//
+// Single-threaded, timer-driven: the scheduler state (a virtual clock + a
 // min-heap of wake deadlines) lives in the runtime (native C / VM host), reached
 // through the `std/runtime` `sched_*` intrinsics.
-//
-// `sleep(ms)` is the v1 suspension source : a hand-written awaitable that arms a
-// timer and parks until it fires. `run_async_main` is the program entry the
-// compiler routes an `async main` through : it drives the root coroutine, and
-// whenever every task is parked it `sched_park`s (blocks until the nearest
-// timer) rather than spinning, then re-drives. A park with nothing armed is a
-// deadlock.
 
 module "std/async"
 
 import "std/runtime"
 import "std/abort"
-import "std/collections"
 
 // ---- sleep ----------------------------------------------------------------
 
@@ -52,6 +66,8 @@ Sleep implements Async<null> {
 ///
 /// @param ms  the minimum delay, in milliseconds.
 /// @return    an awaitable that completes once the delay elapses.
+/// @example
+///   await sleep(10)   // null, 10 ms later
 export sleep :: fn(ms: i64) -> Async<null> = Sleep { .ms = ms }
 
 // ---- entry driver ---------------------------------------------------------
@@ -76,6 +92,8 @@ export run_async_main :: fn(root: Async<i32>) -> i32 = block_on(root)
 /// @param root  the awaitable to run to completion.
 /// @return      its completed value.
 /// @error       panics on a park with nothing armed to wake it (a deadlock).
+/// @example
+///   block_on(sleep(10))   // null: the caller need not be async
 export block_on :: fn<T>(root: Async<T>) -> T {
     for {
         r :: root.resume()
@@ -127,6 +145,9 @@ Shared<T> implements Async<T> {
 /// @param task  the awaitable to share.
 /// @return      an awaitable every awaiter may await.
 /// @error       panics when the task awaits its own shared awaitable.
+/// @example
+///   once :: share(sleep(10))
+///   await join_all([once, once])   // [null, null], one timer for both
 export share :: fn<T>(task: Async<T>) -> Async<T> = Shared<T> { .task = task }
 
 // ---- wake times -----------------------------------------------------------
@@ -148,9 +169,12 @@ earlier :: fn(a: i64, b: i64) = if a < b { a } else { b }
 /// `join_all` waits for every child (failure latency = the slowest child).
 JoinAll :: struct<T> {
     children: Async<T>[]
-    /// Completed results keyed by input index ; an index is present iff its
-    /// child is done. `results.len() == children.len()` ⇒ all joined.
-    results:  MutableMap<i64, T>
+    /// Completed results, in the order the children completed.
+    /// Every child is joined once `results.len() == children.len()`.
+    results:  T[]
+    /// For each input index, where its child's result sits in `results`; -1
+    /// while the child runs.
+    slot:     i64[]
     /// The `wake_at` each child last reported, by input index ; `NEVER` once it
     /// is done.
     wake_at:  i64[]
@@ -167,7 +191,8 @@ JoinAll<T> implements Async<T[]> {
                 if r is Suspended {
                     self.wake_at[i] = r.wake_at
                 } else {
-                    self.results[i] = r
+                    self.slot[i] = self.results.len()
+                    self.results.push(r)
                     self.wake_at[i] = NEVER
                 }
             }
@@ -178,8 +203,7 @@ JoinAll<T> implements Async<T[]> {
         }
         out: T[]: []
         for i in 0..<n {
-            v :: self.results[i]
-            if v != null { out.push(v) }
+            out.push(self.results[self.slot[i]])
         }
         return out
     }
@@ -195,12 +219,15 @@ JoinAll<T> implements Async<T[]> {
 ///
 /// @param xs  the awaitables to join.
 /// @return    an awaitable of the results, index-aligned with `xs`.
+/// @example
+///   await join_all([sleep(20), sleep(10)])   // [null, null], after 20 ms
 export join_all :: fn<T>(xs: Async<T>[]) -> Async<T[]> = new_join_all(xs)
 
 // The driver behind `join_all` and `try_join_all`: nothing joined, every child due.
 new_join_all :: fn<T>(xs: Async<T>[]) = JoinAll<T> {
     .children = xs,
-    .results = MutableMap<i64, T> {},
+    .results = [],
+    .slot = [-1] * xs.len(),
     .wake_at = [0] * xs.len(),
 }
 
@@ -285,6 +312,8 @@ Race<T> implements Async<T> {
 ///
 /// @param xs  the awaitables to race.
 /// @return    an awaitable of the first to settle.
+/// @example
+///   await race([sleep(20), sleep(10)])   // null, after 10 ms: the 20 ms sleep is cancelled
 export race :: fn<T>(xs: Async<T>[]) -> Async<T> = Race<T> {
     .children = xs,
     .wake_at = [0] * xs.len(),
@@ -409,5 +438,29 @@ Timeout<T> implements Async<T | TimeoutError> {
 /// @param ms  the deadline, in milliseconds.
 /// @param x   the awaitable to bound.
 /// @return    `x`'s result, or a `TimeoutError` if the deadline elapses first.
+/// @example
+///   await timeout(10, sleep(50))   // a TimeoutError, after 10 ms
+///   await timeout(50, sleep(10))   // null, after 10 ms
 export timeout :: fn<T>(ms: i64, x: Async<T>) -> Async<T | TimeoutError> =
     Timeout<T> { .child = x, .timer = sleep(ms), .ms = ms }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// What `v` gives once `ms` have passed.
+value_after :: fn(ms: i64, v: i32 | null) -> Async<i32 | null> {
+    await sleep(ms)
+    return v
+}
+
+@test
+test_join_all_keeps_a_null_result :: fn() -> void {
+    assert_eq(block_on(join_all([sleep(2), sleep(1)])).len(), 2)
+}
+
+@test
+test_join_all_aligns_results_around_a_null :: fn() -> void {
+    joined :: block_on(join_all([value_after(3, 1), value_after(1, null), value_after(2, 3)]))
+    assert_eq("${joined}", "[1, null, 3]")
+}

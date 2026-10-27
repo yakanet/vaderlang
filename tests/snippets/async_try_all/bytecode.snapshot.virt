@@ -17,34 +17,30 @@ type 14 union 15,17
 type 15 array 16
 type 16 union 6,1
 type 17 ref std_core$Error
-type 18 scalar u64
-type 19 scalar u8
-type 20 struct std_core$Buffer {  }
-type 21 array 19
-type 22 ref _
-type 23 struct std_async$TryJoinAll__i32__Any { inner:38 }
-type 24 union 25,17,9
-type 25 array 26
-type 26 union 22,6
-type 27 struct std_async$JoinAll__Any { children:34,results:39,wake_at:40 }
-type 28 union 29,9
-type 29 array 22
+type 18 scalar u8
+type 19 struct std_core$Buffer {  }
+type 20 array 18
+type 21 ref _
+type 22 struct std_async$TryJoinAll__i32__Any { inner:37 }
+type 23 union 24,17,9
+type 24 array 25
+type 25 union 21,6
+type 26 struct std_async$JoinAll__Any { children:33,results:28,slot:38,wake_at:38 }
+type 27 union 28,9
+type 28 array 21
+type 29 ref std_core$Async
 type 30 ref std_core$Async
-type 31 ref std_core$Async
-type 32 struct std_async$Sleep { ms:3,deadline:3,armed:4 }
-type 33 union 0,9
-type 34 array 13
-type 35 array 36
+type 31 struct std_async$Sleep { ms:3,deadline:3,armed:4 }
+type 32 union 0,9
+type 33 array 13
+type 34 array 35
+type 35 ref std_core$Async
 type 36 ref std_core$Async
-type 37 ref std_core$Async
-type 38 struct std_async$JoinAll__Any___i32 { children:34,results:39,wake_at:40 }
-type 39 struct std_collections$MutableMap__i64__Any { ekeys:40,evals:29,index:41,mask:3,grow_at:3,size:3,tombs:3 }
-type 40 array 3
-type 41 array 6
-type 42 union 22,0
-type 43 array 5
-type 44 ref std_core$Async
-type 45 union 25,9
+type 37 struct std_async$JoinAll__Any___i32 { children:33,results:28,slot:38,wake_at:38 }
+type 38 array 3
+type 39 array 5
+type 40 ref std_core$Async
+type 41 union 24,9
 string 0 "down: "
 string 1 "unexpected: "
 string 2 "?"
@@ -56,8 +52,8 @@ string 7 "carts"
 string 8 "\n"
 string 9 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len result_type=3 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=21 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=3 param_types=6,21,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes std_core$bytes result_type=20 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=3 param_types=6,20,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 sched_now std_runtime$sched_now result_type=3 () -> i64
 import 4 sched_arm std_runtime$sched_arm result_type=10 param_types=3 param_c_out= param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=6 () -> i32
@@ -65,26 +61,22 @@ import 6 panic std_abort$panic result_type=10 param_types=2 param_c_out= param_b
 impl 1 std_core$Error
 impl 7 std_core$Async
 impl 11 std_core$Async
-impl 20 std_core$ByteAccess
-impl 23 std_core$Async
-impl 27 std_core$Async
-impl 32 std_core$Async
-impl 39 std_core$Index
-impl 39 std_core$IndexSet
-impl 39 std_core$Contains
-impl 39 std_core$Into
-impl 38 std_core$Async
+impl 19 std_core$ByteAccess
+impl 22 std_core$Async
+impl 26 std_core$Async
+impl 31 std_core$Async
+impl 37 std_core$Async
 vtable std_core$Error.message 1 0
 vtable std_core$Async.resume 7 3
 vtable std_core$Async.resume 11 5
-vtable std_core$Async.resume 23 15
-vtable std_core$Async.resume 27 17
-vtable std_core$Async.resume 32 22
+vtable std_core$Async.resume 22 14
+vtable std_core$Async.resume 26 16
+vtable std_core$Async.resume 31 21
 vtable std_core$Async.cancel 7 4
 vtable std_core$Async.cancel 11 6
-vtable std_core$Async.cancel 23 16
-vtable std_core$Async.cancel 27 18
-vtable std_core$Async.cancel 32 23
+vtable std_core$Async.cancel 22 15
+vtable std_core$Async.cancel 26 17
+vtable std_core$Async.cancel 31 22
 export main 2
 
 fn 0 snippet$Outage$std_core$Error$message (ref) -> string
@@ -145,8 +137,8 @@ fn 2 snippet$main () -> i32
   local.get 6   ; $k_8
   i32.const 20
   struct.new 11   ; __asyncstate_snippet_1
-  ref.cast 31   ; ref std_core$Async
-  call 20   ; std_async$run_async_main
+  ref.cast 30   ; ref std_core$Async
+  call 19   ; std_async$run_async_main
   return
 end
 
@@ -265,7 +257,7 @@ fn 3 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
             end $L10
             local.field 0 7 1   ; arg 0 __asyncstate_snippet_0.s1
             ref.cast 3   ; i64
-            call 19   ; std_async$sleep
+            call 18   ; std_async$sleep
             local.set 3   ; $cast_49
             local.get 0   ; arg 0
             local.get 3   ; $cast_49
@@ -364,7 +356,7 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
       string.const 1   ; "unexpected: "
       local.get 1   ; $vcall_16
       call 7   ; concat_2
-      call 14   ; std_io$println__string
+      call 13   ; std_io$println__string
       local.get 0   ; arg 0
       i32.const 1
       struct.set 11 9   ; __asyncstate_snippet_1.state
@@ -434,7 +426,7 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
               i32.eq
               if $L9 void
                 string.const 2   ; "?"
-                call 14   ; std_io$println__string
+                call 13   ; std_io$println__string
                 local.get 0   ; arg 0
                 i32.const 6
                 struct.set 11 9   ; __asyncstate_snippet_1.state
@@ -452,7 +444,7 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                   local.get 5   ; __buf_5
                   local.get 6   ; __off_6
                   string.const 3   ; "ok "
-                  call 10   ; std_core$write_string_at
+                  call 9   ; std_core$write_string_at
                   local.set 6   ; __off_6
                   local.field 0 11 7   ; arg 0 __asyncstate_snippet_1.s7
                   ref.cast 6   ; i32
@@ -461,12 +453,12 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                   local.get 5   ; __buf_5
                   local.get 6   ; __off_6
                   local.get 7   ; $cast_59
-                  call 11   ; std_core$write_int
+                  call 10   ; std_core$write_int
                   local.set 6   ; __off_6
                   local.get 5   ; __buf_5
                   local.get 6   ; __off_6
-                  call 9   ; std_core$finish_buffer
-                  call 14   ; std_io$println__string
+                  call 8   ; std_core$finish_buffer
+                  call 13   ; std_io$println__string
                   local.get 0   ; arg 0
                   i32.const 6
                   struct.set 11 9   ; __asyncstate_snippet_1.state
@@ -604,8 +596,8 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                                 local.set 17   ; $call_118
                                 local.get 16   ; $call_114
                                 local.get 17   ; $call_118
-                                array.new 43 2   ; ref std_core$Async[]
-                                call 26   ; std_async$try_join_all__i32__Any
+                                array.new 39 2   ; ref std_core$Async[]
+                                call 25   ; std_async$try_join_all__i32__Any
                                 local.set 18   ; $cast_121
                                 local.get 0   ; arg 0
                                 local.get 18   ; $cast_121
@@ -625,7 +617,7 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                                   string.const 6   ; "failed: "
                                   local.get 19   ; $vcall_129
                                   call 7   ; concat_2
-                                  call 14   ; std_io$println__string
+                                  call 13   ; std_io$println__string
                                   local.get 0   ; arg 0
                                   i32.const 15
                                   struct.set 11 9   ; __asyncstate_snippet_1.state
@@ -712,8 +704,8 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                                         local.get 23   ; $call_160
                                         local.get 24   ; $call_164
                                         local.get 25   ; $call_168
-                                        array.new 43 3   ; ref std_core$Async[]
-                                        call 26   ; std_async$try_join_all__i32__Any
+                                        array.new 39 3   ; ref std_core$Async[]
+                                        call 25   ; std_async$try_join_all__i32__Any
                                         local.set 26   ; $cast_171
                                         local.get 0   ; arg 0
                                         local.get 26   ; $cast_171
@@ -794,20 +786,14 @@ fn 7 concat_2 (string,string) -> string
   return
 end
 
-fn 8 std_core$i64$Hash$hash (i64) -> u64
-  local.get 0   ; arg 0
-  i64.to_i64
-  return
-end
-
-fn 9 std_core$finish_buffer (ref,i64) -> string
+fn 8 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 10 std_core$write_string_at (ref,i64,string) -> i64
+fn 9 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -822,7 +808,7 @@ fn 10 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 11 std_core$write_int (ref,i64,i64) -> i64
+fn 10 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -936,7 +922,7 @@ fn 11 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 12 std_io$write (u8,string) -> void
+fn 11 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -965,14 +951,14 @@ fn 12 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 21   ; u8[]
+      array.slice 20   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 13   ; std_io$write_bytes
+      call 12   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -992,7 +978,7 @@ fn 12 std_io$write (u8,string) -> void
   return
 end
 
-fn 13 std_io$write_bytes (u8,ref,i64) -> i32
+fn 12 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -1012,7 +998,7 @@ fn 13 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 14 std_io$println__string (string) -> void
+fn 13 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 8   ; "\n"
@@ -1020,18 +1006,18 @@ fn 14 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 12   ; std_io$write
+  call 11   ; std_io$write
   return
 end
 
-fn 15 std_async$TryJoinAll$std_core$Async$resume__i32__Any (ref) -> any
+fn 14 std_async$TryJoinAll$std_core$Async$resume__i32__Any (ref) -> any
   local r any
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
   local v any
-  local.field 0 23 0   ; arg 0 std_async$TryJoinAll__i32__Any.inner
-  call 17   ; std_async$JoinAll$std_core$Async$resume__Any
+  local.field 0 22 0   ; arg 0 std_async$TryJoinAll__i32__Any.inner
+  call 16   ; std_async$JoinAll$std_core$Async$resume__Any
   local.tee 1   ; r
   type_check 9   ; std_core$Suspended
   if $L0 void
@@ -1040,7 +1026,7 @@ fn 15 std_async$TryJoinAll$std_core$Async$resume__i32__Any (ref) -> any
     return
   end $L0
   local.get 1   ; r
-  ref.cast 25   ; union[]
+  ref.cast 24   ; union[]
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1053,7 +1039,7 @@ fn 15 std_async$TryJoinAll$std_core$Async$resume__i32__Any (ref) -> any
     if $L2 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 25   ; union[]
+      array.get 24   ; union[]
       local.tee 5   ; v
       type_check 17   ; ref std_core$Error
       if $L3 void
@@ -1068,17 +1054,17 @@ fn 15 std_async$TryJoinAll$std_core$Async$resume__i32__Any (ref) -> any
     end $L2
   end $L1
   local.get 1   ; r
-  ref.cast 25   ; union[]
+  ref.cast 24   ; union[]
   return
 end
 
-fn 16 std_async$TryJoinAll$std_core$Async$cancel__i32__Any (ref) -> void
-  local.field 0 23 0   ; arg 0 std_async$TryJoinAll__i32__Any.inner
-  call 18   ; std_async$JoinAll$std_core$Async$cancel__Any
+fn 15 std_async$TryJoinAll$std_core$Async$cancel__i32__Any (ref) -> void
+  local.field 0 22 0   ; arg 0 std_async$TryJoinAll__i32__Any.inner
+  call 17   ; std_async$JoinAll$std_core$Async$cancel__Any
   return
 end
 
-fn 17 std_async$JoinAll$std_core$Async$resume__Any (ref) -> any
+fn 16 std_async$JoinAll$std_core$Async$resume__Any (ref) -> any
   local n i64
   local now i64
   local next i64
@@ -1087,9 +1073,11 @@ fn 17 std_async$JoinAll$std_core$Async$resume__Any (ref) -> any
   local $field_19 ref
   local $field_21 i64
   local $field_22 ref
-  local $cast_23 any
-  local $idx_27 i64
-  local.field 0 27 0   ; arg 0 std_async$JoinAll__Any.children
+  local $len_24 i64
+  local $field_25 ref
+  local $cast_26 any
+  local $idx_30 i64
+  local.field 0 26 0   ; arg 0 std_async$JoinAll__Any.children
   array.len
   local.set 1   ; n
   call.import 3   ; std_runtime$sched_now
@@ -1103,20 +1091,20 @@ fn 17 std_async$JoinAll$std_core$Async$resume__Any (ref) -> any
     local.get 1   ; n
     i64.lt
     if $L1 void
-      local.field 0 27 2   ; arg 0 std_async$JoinAll__Any.wake_at
+      local.field 0 26 3   ; arg 0 std_async$JoinAll__Any.wake_at
       local.get 4   ; i
       load_slot_i64
       local.get 2   ; now
       i64.le
       if $L2 void
-        local.field 0 27 0   ; arg 0 std_async$JoinAll__Any.children
+        local.field 0 26 0   ; arg 0 std_async$JoinAll__Any.children
         local.get 4   ; i
-        array.get 34   ; ref std_core$Async[]
+        array.get 33   ; ref std_core$Async[]
         virtual.call 1 std_core$Async.resume
         local.tee 5   ; r
         type_check 9   ; std_core$Suspended
         if $L3 void
-          local.field 0 27 2   ; arg 0 std_async$JoinAll__Any.wake_at
+          local.field 0 26 3   ; arg 0 std_async$JoinAll__Any.wake_at
           local.set 6   ; $field_19
           local.get 5   ; r
           ref.cast 9   ; std_core$Suspended
@@ -1128,27 +1116,35 @@ fn 17 std_async$JoinAll$std_core$Async$resume__Any (ref) -> any
           local.get 7   ; $field_21
           store_slot_i64
         else
-          local.field 0 27 1   ; arg 0 std_async$JoinAll__Any.results
+          local.field 0 26 2   ; arg 0 std_async$JoinAll__Any.slot
           local.set 8   ; $field_22
-          local.get 5   ; r
-          local.set 9   ; $cast_23
+          local.field 0 26 1   ; arg 0 std_async$JoinAll__Any.results
+          array.len
+          local.set 9   ; $len_24
           local.get 8   ; $field_22
           local.get 4   ; i
-          local.get 9   ; $cast_23
-          call 28   ; std_collections$MutableMap$std_core$IndexSet$set_at__i64__Any
-          local.field 0 27 2   ; arg 0 std_async$JoinAll__Any.wake_at
+          local.get 9   ; $len_24
+          store_slot_i64
+          local.field 0 26 1   ; arg 0 std_async$JoinAll__Any.results
+          local.set 10   ; $field_25
+          local.get 5   ; r
+          local.set 11   ; $cast_26
+          local.get 10   ; $field_25
+          local.get 11   ; $cast_26
+          array.push 21   ; ref
+          local.field 0 26 3   ; arg 0 std_async$JoinAll__Any.wake_at
           local.get 4   ; i
           i64.const 9223372036854775807
           store_slot_i64
         end $L3
       end $L2
-      local.field 0 27 2   ; arg 0 std_async$JoinAll__Any.wake_at
+      local.field 0 26 3   ; arg 0 std_async$JoinAll__Any.wake_at
       local.get 4   ; i
       load_slot_i64
-      local.set 10   ; $idx_27
+      local.set 12   ; $idx_30
       local.get 3   ; next
-      local.get 10   ; $idx_27
-      call 21   ; std_async$earlier
+      local.get 12   ; $idx_30
+      call 20   ; std_async$earlier
       local.set 3   ; next
       local.get 4   ; i
       i64.const 1
@@ -1157,8 +1153,8 @@ fn 17 std_async$JoinAll$std_core$Async$resume__Any (ref) -> any
       br $L0
     end $L1
   end $L0
-  local.field 0 27 1   ; arg 0 std_async$JoinAll__Any.results
-  call 35   ; std_collections$len__i64__Any
+  local.field 0 26 1   ; arg 0 std_async$JoinAll__Any.results
+  array.len
   local.get 1   ; n
   i64.ne
   if $L4 void
@@ -1166,44 +1162,58 @@ fn 17 std_async$JoinAll$std_core$Async$resume__Any (ref) -> any
     struct.new 9   ; std_core$Suspended
     return
   end $L4
-  array.new 29 0   ; ref[]
+  array.new 28 0   ; ref[]
+  local.set 6   ; $field_19
+  i64.const 0
+  local.get 1   ; n
+  i64.lt
+  if $L5 void
+    local.get 1   ; n
+    local.set 2   ; now
+  else
+    i64.const 0
+    local.set 2   ; now
+  end $L5
+  local.get 6   ; $field_19
+  local.get 2   ; now
+  array.repeat
   local.set 6   ; $field_19
   i64.const 0
   local.set 2   ; now
-  loop $L5 void
+  loop $L6 void
     local.get 2   ; now
     local.get 1   ; n
     i64.lt
-    if $L6 void
-      local.field 0 27 1   ; arg 0 std_async$JoinAll__Any.results
+    if $L7 void
+      local.field 0 26 1   ; arg 0 std_async$JoinAll__Any.results
+      local.set 8   ; $field_22
+      local.field 0 26 2   ; arg 0 std_async$JoinAll__Any.slot
       local.get 2   ; now
-      call 27   ; std_collections$MutableMap$std_core$Index$at__i64__Any
-      local.tee 5   ; r
-      type_check 0   ; null
-      if $L7 void
-      else
-        local.get 5   ; r
-        local.set 9   ; $cast_23
-        local.get 6   ; $field_19
-        local.get 9   ; $cast_23
-        array.push 22 6   ; ref $field_19
-      end $L7
+      load_slot_i64
+      local.set 3   ; next
+      local.get 8   ; $field_22
+      local.get 3   ; next
+      array.get 28   ; ref[]
+      local.set 5   ; r
+      local.get 6   ; $field_19
+      local.get 5   ; r
+      array.push 21 6   ; ref $field_19
       local.get 2   ; now
       i64.const 1
       i64.add
       local.set 2   ; now
-      br $L5
-    end $L6
-  end $L5
+      br $L6
+    end $L7
+  end $L6
   local.get 6   ; $field_19
   return
 end
 
-fn 18 std_async$JoinAll$std_core$Async$cancel__Any (ref) -> void
+fn 17 std_async$JoinAll$std_core$Async$cancel__Any (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
-  local.field 0 27 0   ; arg 0 std_async$JoinAll__Any.children
+  local.field 0 26 0   ; arg 0 std_async$JoinAll__Any.children
   local.tee 1   ; __for_arr_0
   array.len
   local.set 2   ; __for_len_1
@@ -1216,7 +1226,7 @@ fn 18 std_async$JoinAll$std_core$Async$cancel__Any (ref) -> void
     if $L1 void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
-      array.get 34   ; ref std_core$Async[]
+      array.get 33   ; ref std_core$Async[]
       virtual.call 1 std_core$Async.cancel
       local.get 3   ; __for_i_2
       i64.const 1
@@ -1228,21 +1238,21 @@ fn 18 std_async$JoinAll$std_core$Async$cancel__Any (ref) -> void
   return
 end
 
-fn 19 std_async$sleep (i64) -> any
+fn 18 std_async$sleep (i64) -> any
   local.get 0   ; arg 0
   i64.const 0
   bool.const false
-  struct.new 32   ; std_async$Sleep
+  struct.new 31   ; std_async$Sleep
   return
 end
 
-fn 20 std_async$run_async_main (any) -> i32
+fn 19 std_async$run_async_main (any) -> i32
   local.get 0   ; arg 0
-  call 24   ; std_async$block_on__i32
+  call 23   ; std_async$block_on__i32
   return
 end
 
-fn 21 std_async$earlier (i64,i64) -> i64
+fn 20 std_async$earlier (i64,i64) -> i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i64.lt
@@ -1254,19 +1264,19 @@ fn 21 std_async$earlier (i64,i64) -> i64
   return
 end
 
-fn 22 std_async$Sleep$std_core$Async$resume (ref) -> any
+fn 21 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
-  local.field 0 32 2   ; arg 0 std_async$Sleep.armed
+  local.field 0 31 2   ; arg 0 std_async$Sleep.armed
   ref.cast 4   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0
     bool.const true
-    struct.set 32 2   ; std_async$Sleep.armed
+    struct.set 31 2   ; std_async$Sleep.armed
     call.import 3   ; std_runtime$sched_now
     local.set 1   ; $call_3
-    local.field 0 32 0   ; arg 0 std_async$Sleep.ms
+    local.field 0 31 0   ; arg 0 std_async$Sleep.ms
     ref.cast 3   ; i64
     local.set 2   ; $field_4
     local.get 1   ; $call_3
@@ -1275,14 +1285,14 @@ fn 22 std_async$Sleep$std_core$Async$resume (ref) -> any
     local.set 1   ; $call_3
     local.get 0   ; arg 0
     local.get 1   ; $call_3
-    struct.set 32 1   ; std_async$Sleep.deadline
-    local.field 0 32 1   ; arg 0 std_async$Sleep.deadline
+    struct.set 31 1   ; std_async$Sleep.deadline
+    local.field 0 31 1   ; arg 0 std_async$Sleep.deadline
     ref.cast 3   ; i64
     call.import 4   ; std_runtime$sched_arm
   end $L0
   call.import 3   ; std_runtime$sched_now
   local.set 1   ; $call_3
-  local.field 0 32 1   ; arg 0 std_async$Sleep.deadline
+  local.field 0 31 1   ; arg 0 std_async$Sleep.deadline
   ref.cast 3   ; i64
   local.set 2   ; $field_4
   local.get 1   ; $call_3
@@ -1290,7 +1300,7 @@ fn 22 std_async$Sleep$std_core$Async$resume (ref) -> any
   i64.ge
   if $L1 void
   else
-    local.field 0 32 1   ; arg 0 std_async$Sleep.deadline
+    local.field 0 31 1   ; arg 0 std_async$Sleep.deadline
     ref.cast 3   ; i64
     struct.new 9   ; std_core$Suspended
     return
@@ -1298,11 +1308,11 @@ fn 22 std_async$Sleep$std_core$Async$resume (ref) -> any
   return.lit null.const
 end
 
-fn 23 std_async$Sleep$std_core$Async$cancel (ref) -> void
+fn 22 std_async$Sleep$std_core$Async$cancel (ref) -> void
   return
 end
 
-fn 24 std_async$block_on__i32 (any) -> i32
+fn 23 std_async$block_on__i32 (any) -> i32
   local r any
   loop $L0 void
     local.get 0   ; arg 0
@@ -1327,494 +1337,44 @@ fn 24 std_async$block_on__i32 (any) -> i32
   return
 end
 
-fn 25 std_async$new_join_all__Any___i32 (ref) -> ref
+fn 24 std_async$new_join_all__Any___i32 (ref) -> ref
   local $arr_1 ref
-  local $arr_2 ref
   local $arr_3 ref
-  local $len_11 i64
-  array.new 40 0   ; i64[]
+  local $len_4 i64
+  local $arr_7 ref
+  array.new 28 0   ; ref[]
   local.set 1   ; $arr_1
-  array.new 29 0   ; ref[]
-  local.set 2   ; $arr_2
-  array.new 41 0   ; i32[]
-  local.set 3   ; $arr_3
-  local.get 1   ; $arr_1
-  local.get 2   ; $arr_2
-  local.get 3   ; $arr_3
-  i64.const 0
-  i64.const 0
-  i64.const 0
-  i64.const 0
-  struct.new 39   ; std_collections$MutableMap__i64__Any
-  local.set 1   ; $arr_1
-  i64.const 0
-  array.new 40 1   ; i64[]
-  local.set 2   ; $arr_2
+  i64.const -1
+  array.new 38 1   ; i64[]
+  local.set 2   ; $arr_3
   local.get 0   ; arg 0
   array.len
-  local.set 4   ; $len_11
-  local.get 2   ; $arr_2
-  local.get 4   ; $len_11
+  local.set 3   ; $len_4
+  local.get 2   ; $arr_3
+  local.get 3   ; $len_4
   array.repeat
-  local.set 2   ; $arr_2
+  local.set 2   ; $arr_3
+  i64.const 0
+  array.new 38 1   ; i64[]
+  local.set 4   ; $arr_7
+  local.get 0   ; arg 0
+  array.len
+  local.set 3   ; $len_4
+  local.get 4   ; $arr_7
+  local.get 3   ; $len_4
+  array.repeat
+  local.set 4   ; $arr_7
   local.get 0   ; arg 0
   local.get 1   ; $arr_1
-  local.get 2   ; $arr_2
-  struct.new 27   ; std_async$JoinAll__Any
+  local.get 2   ; $arr_3
+  local.get 4   ; $arr_7
+  struct.new 26   ; std_async$JoinAll__Any
   return
 end
 
-fn 26 std_async$try_join_all__i32__Any (ref) -> any
+fn 25 std_async$try_join_all__i32__Any (ref) -> any
   local.get 0   ; arg 0
-  call 25   ; std_async$new_join_all__Any___i32
-  struct.new 23   ; std_async$TryJoinAll__i32__Any
-  return
-end
-
-fn 27 std_collections$MutableMap$std_core$Index$at__i64__Any (ref,i64) -> any
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 34   ; std_collections$get__i64__Any
-  return
-end
-
-fn 28 std_collections$MutableMap$std_core$IndexSet$set_at__i64__Any (ref,i64,any) -> void
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  local.get 2   ; arg 2
-  call 33   ; std_collections$put__i64__Any
-  drop
-  return
-end
-
-fn 29 std_collections$first_slot (u64,i64) -> i64
-  local.get 0   ; arg 0
-  u64.to_i64
-  local.get 1   ; arg 1
-  i64.bitand
-  return
-end
-
-fn 30 std_collections$next_slot (i64,u64,i64) -> i64
-  local $mul_4 i64
-  local $cast_5 i64
-  local.get 0   ; arg 0
-  i64.const 5
-  i64.mul
-  local.set 3   ; $mul_4
-  local.get 1   ; arg 1
-  u64.to_i64
-  local.set 4   ; $cast_5
-  local.get 3   ; $mul_4
-  local.get 4   ; $cast_5
-  i64.add
-  i64.const 1
-  i64.add
-  local.get 2   ; arg 2
-  i64.bitand
-  return
-end
-
-fn 31 std_collections$rehash__i64__Any (ref,i64) -> void
-  local $arr_2 ref
-  local if_res i64
-  local e i64
-  local __for_hi_1 i64
-  local perturb u64
-  local s i64
-  local $cast_37 i32
-  array.new 41 0   ; i32[]
-  local.set 2   ; $arr_2
-  i64.const 0
-  local.get 1   ; arg 1
-  i64.lt
-  if $L0 void
-    local.get 1   ; arg 1
-    local.set 3   ; if_res
-  else
-    i64.const 0
-    local.set 3   ; if_res
-  end $L0
-  local.get 2   ; $arr_2
-  local.get 3   ; if_res
-  array.repeat
-  local.set 2   ; $arr_2
-  i64.const 0
-  local.set 3   ; if_res
-  loop $L1 void
-    local.get 3   ; if_res
-    local.get 1   ; arg 1
-    i64.lt
-    if $L2 void
-      local.get 2   ; $arr_2
-      i32.const 0
-      array.push 6 2   ; i32 $arr_2
-      local.get 3   ; if_res
-      i64.const 1
-      i64.add
-      local.set 3   ; if_res
-      br $L1
-    end $L2
-  end $L1
-  local.get 1   ; arg 1
-  i64.const 1
-  i64.checked_sub
-  local.set 3   ; if_res
-  i64.const 0
-  local.set 4   ; e
-  local.field 0 39 5   ; arg 0 std_collections$MutableMap__i64__Any.size
-  ref.cast 3   ; i64
-  local.set 5   ; __for_hi_1
-  loop $L3 void
-    local.get 4   ; e
-    local.get 5   ; __for_hi_1
-    i64.lt
-    if $L4 void
-      local.field 0 39 0   ; arg 0 std_collections$MutableMap__i64__Any.ekeys
-      local.get 4   ; e
-      load_slot_i64
-      call 8   ; std_core$i64$Hash$hash
-      local.tee 6   ; perturb
-      local.get 3   ; if_res
-      call 29   ; std_collections$first_slot
-      local.set 7   ; s
-      loop $L5 void
-        local.get 2   ; $arr_2
-        local.get 7   ; s
-        load_slot_i32
-        i32.const 0
-        i32.ne
-        if $L6 void
-          local.get 6   ; perturb
-          i64.const 5
-          u64.shr
-          local.set 6   ; perturb
-          local.get 7   ; s
-          local.get 6   ; perturb
-          local.get 3   ; if_res
-          call 30   ; std_collections$next_slot
-          local.set 7   ; s
-          br $L5
-        end $L6
-      end $L5
-      local.get 4   ; e
-      i64.const 1
-      i64.checked_add
-      i64.to_i32
-      local.set 8   ; $cast_37
-      local.get 2   ; $arr_2
-      local.get 7   ; s
-      local.get 8   ; $cast_37
-      store_slot_i32
-      local.get 4   ; e
-      i64.const 1
-      i64.add
-      local.set 4   ; e
-      br $L3
-    end $L4
-  end $L3
-  local.get 0   ; arg 0
-  local.get 2   ; $arr_2
-  struct.set 39 2   ; std_collections$MutableMap__i64__Any.index
-  local.get 0   ; arg 0
-  local.get 3   ; if_res
-  struct.set 39 3   ; std_collections$MutableMap__i64__Any.mask
-  local.get 1   ; arg 1
-  i64.const 4
-  i64.div
-  i64.const 3
-  i64.checked_mul
-  local.set 3   ; if_res
-  local.get 0   ; arg 0
-  local.get 3   ; if_res
-  struct.set 39 4   ; std_collections$MutableMap__i64__Any.grow_at
-  local.get 0   ; arg 0
-  i64.const 0
-  struct.set 39 6   ; std_collections$MutableMap__i64__Any.tombs
-  return
-end
-
-fn 32 std_collections$grow_index__i64__Any (ref) -> void
-  local new_count i64
-  local $mul_checked_5 i64
-  local $mul_checked_7 i64
-  i64.const 16
-  local.set 1   ; new_count
-  loop $L0 void
-    local.field 0 39 5   ; arg 0 std_collections$MutableMap__i64__Any.size
-    ref.cast 3   ; i64
-    i64.const 4
-    i64.checked_mul
-    local.set 2   ; $mul_checked_5
-    local.get 1   ; new_count
-    i64.const 3
-    i64.checked_mul
-    local.set 3   ; $mul_checked_7
-    local.get 2   ; $mul_checked_5
-    local.get 3   ; $mul_checked_7
-    i64.gt
-    if $L1 void
-      local.get 1   ; new_count
-      i64.const 2
-      i64.checked_mul
-      local.set 1   ; new_count
-      br $L0
-    end $L1
-  end $L0
-  local.get 0   ; arg 0
-  local.get 1   ; new_count
-  call 31   ; std_collections$rehash__i64__Any
-  return
-end
-
-fn 33 std_collections$put__i64__Any (ref,i64,any) -> bool
-  local first_tomb i64
-  local empty i64
-  local perturb u64
-  local $field_13 i64
-  local slot i32
-  local ei i64
-  local $field_36 i64
-  local $field_58 ref
-  i64.const -1
-  local.set 3   ; first_tomb
-  i64.const -1
-  local.set 4   ; empty
-  local.field 0 39 2   ; arg 0 std_collections$MutableMap__i64__Any.index
-  array.len
-  i64.const 0
-  i64.gt
-  if $L0 void
-    local.get 1   ; arg 1
-    call 8   ; std_core$i64$Hash$hash
-    local.set 5   ; perturb
-    local.field 0 39 3   ; arg 0 std_collections$MutableMap__i64__Any.mask
-    ref.cast 3   ; i64
-    local.set 6   ; $field_13
-    local.get 5   ; perturb
-    local.get 6   ; $field_13
-    call 29   ; std_collections$first_slot
-    local.set 6   ; $field_13
-    loop $L1 void
-      local.field 0 39 2   ; arg 0 std_collections$MutableMap__i64__Any.index
-      local.get 6   ; $field_13
-      load_slot_i32
-      local.tee 7   ; slot
-      i32.const 0
-      i32.eq
-      if $L2 void
-      else
-        local.get 7   ; slot
-        i32.const -1
-        i32.eq
-        if $L3 void
-          local.get 3   ; first_tomb
-          i64.const 0
-          i64.lt
-          if $L4 void
-            local.get 6   ; $field_13
-            local.set 3   ; first_tomb
-          end $L4
-        else
-          local.get 7   ; slot
-          i32.to_i64
-          i64.const 1
-          i64.checked_sub
-          local.set 8   ; ei
-          local.field 0 39 0   ; arg 0 std_collections$MutableMap__i64__Any.ekeys
-          local.get 8   ; ei
-          load_slot_i64
-          local.get 1   ; arg 1
-          i64.eq
-          if $L5 void
-            local.field 0 39 1   ; arg 0 std_collections$MutableMap__i64__Any.evals
-            local.get 8   ; ei
-            local.get 2   ; arg 2
-            array.set 29   ; ref[]
-            return.lit bool.const false
-          end $L5
-        end $L3
-        local.get 5   ; perturb
-        i64.const 5
-        u64.shr
-        local.set 5   ; perturb
-        local.field 0 39 3   ; arg 0 std_collections$MutableMap__i64__Any.mask
-        ref.cast 3   ; i64
-        local.set 9   ; $field_36
-        local.get 6   ; $field_13
-        local.get 5   ; perturb
-        local.get 9   ; $field_36
-        call 30   ; std_collections$next_slot
-        local.set 6   ; $field_13
-        br $L1
-      end $L2
-    end $L1
-    local.get 6   ; $field_13
-    local.set 4   ; empty
-  end $L0
-  local.field 0 39 5   ; arg 0 std_collections$MutableMap__i64__Any.size
-  ref.cast 3   ; i64
-  local.set 6   ; $field_13
-  local.field 0 39 0   ; arg 0 std_collections$MutableMap__i64__Any.ekeys
-  array.len
-  local.set 8   ; ei
-  local.get 6   ; $field_13
-  local.get 8   ; ei
-  i64.lt
-  if $L6 void
-    local.field 0 39 0   ; arg 0 std_collections$MutableMap__i64__Any.ekeys
-    local.get 6   ; $field_13
-    local.get 1   ; arg 1
-    store_slot_i64
-    local.field 0 39 1   ; arg 0 std_collections$MutableMap__i64__Any.evals
-    local.get 6   ; $field_13
-    local.get 2   ; arg 2
-    array.set 29   ; ref[]
-  else
-    local.field 0 39 0   ; arg 0 std_collections$MutableMap__i64__Any.ekeys
-    local.get 1   ; arg 1
-    array.push 3   ; i64
-    local.field 0 39 1   ; arg 0 std_collections$MutableMap__i64__Any.evals
-    local.get 2   ; arg 2
-    array.push 22   ; ref
-  end $L6
-  local.get 6   ; $field_13
-  i64.const 1
-  i64.checked_add
-  local.set 8   ; ei
-  local.get 0   ; arg 0
-  local.get 8   ; ei
-  struct.set 39 5   ; std_collections$MutableMap__i64__Any.size
-  local.field 0 39 6   ; arg 0 std_collections$MutableMap__i64__Any.tombs
-  ref.cast 3   ; i64
-  local.set 8   ; ei
-  local.get 6   ; $field_13
-  local.get 8   ; ei
-  i64.checked_add
-  local.set 8   ; ei
-  local.field 0 39 4   ; arg 0 std_collections$MutableMap__i64__Any.grow_at
-  ref.cast 3   ; i64
-  local.set 9   ; $field_36
-  local.get 8   ; ei
-  local.get 9   ; $field_36
-  i64.ge
-  if $L7 void
-    local.get 0   ; arg 0
-    call 32   ; std_collections$grow_index__i64__Any
-    return.lit bool.const true
-  end $L7
-  local.get 3   ; first_tomb
-  i64.const 0
-  i64.ge
-  if $L8 void
-    local.field 0 39 6   ; arg 0 std_collections$MutableMap__i64__Any.tombs
-    ref.cast 3   ; i64
-    i64.const 1
-    i64.checked_sub
-    local.set 8   ; ei
-    local.get 0   ; arg 0
-    local.get 8   ; ei
-    struct.set 39 6   ; std_collections$MutableMap__i64__Any.tombs
-    local.field 0 39 2   ; arg 0 std_collections$MutableMap__i64__Any.index
-    local.set 10   ; $field_58
-    local.get 6   ; $field_13
-    i64.const 1
-    i64.checked_add
-    i64.to_i32
-    local.set 7   ; slot
-    local.get 10   ; $field_58
-    local.get 3   ; first_tomb
-    local.get 7   ; slot
-    store_slot_i32
-  else
-    local.field 0 39 2   ; arg 0 std_collections$MutableMap__i64__Any.index
-    local.set 10   ; $field_58
-    local.get 6   ; $field_13
-    i64.const 1
-    i64.checked_add
-    i64.to_i32
-    local.set 7   ; slot
-    local.get 10   ; $field_58
-    local.get 4   ; empty
-    local.get 7   ; slot
-    store_slot_i32
-  end $L8
-  return.lit bool.const true
-end
-
-fn 34 std_collections$get__i64__Any (ref,i64) -> any
-  local perturb u64
-  local $field_9 i64
-  local slot i32
-  local ei i64
-  local $field_31 i64
-  local.field 0 39 2   ; arg 0 std_collections$MutableMap__i64__Any.index
-  array.len
-  i64.const 0
-  i64.eq
-  if $L0 void
-    return.lit null.const
-  end $L0
-  local.get 1   ; arg 1
-  call 8   ; std_core$i64$Hash$hash
-  local.set 2   ; perturb
-  local.field 0 39 3   ; arg 0 std_collections$MutableMap__i64__Any.mask
-  ref.cast 3   ; i64
-  local.set 3   ; $field_9
-  local.get 2   ; perturb
-  local.get 3   ; $field_9
-  call 29   ; std_collections$first_slot
-  local.set 3   ; $field_9
-  loop $L1 void
-    local.field 0 39 2   ; arg 0 std_collections$MutableMap__i64__Any.index
-    local.get 3   ; $field_9
-    load_slot_i32
-    local.tee 4   ; slot
-    i32.const 0
-    i32.eq
-    if $L2 void
-    else
-      local.get 4   ; slot
-      i32.const -1
-      i32.ne
-      if $L3 void
-        local.get 4   ; slot
-        i32.to_i64
-        i64.const 1
-        i64.checked_sub
-        local.set 5   ; ei
-        local.field 0 39 0   ; arg 0 std_collections$MutableMap__i64__Any.ekeys
-        local.get 5   ; ei
-        load_slot_i64
-        local.get 1   ; arg 1
-        i64.eq
-        if $L4 void
-          local.field 0 39 1   ; arg 0 std_collections$MutableMap__i64__Any.evals
-          local.get 5   ; ei
-          array.get 29   ; ref[]
-          return
-        end $L4
-      end $L3
-      local.get 2   ; perturb
-      i64.const 5
-      u64.shr
-      local.set 2   ; perturb
-      local.field 0 39 3   ; arg 0 std_collections$MutableMap__i64__Any.mask
-      ref.cast 3   ; i64
-      local.set 6   ; $field_31
-      local.get 3   ; $field_9
-      local.get 2   ; perturb
-      local.get 6   ; $field_31
-      call 30   ; std_collections$next_slot
-      local.set 3   ; $field_9
-      br $L1
-    end $L2
-  end $L1
-  return.lit null.const
-end
-
-fn 35 std_collections$len__i64__Any (ref) -> i64
-  local.field 0 39 5   ; arg 0 std_collections$MutableMap__i64__Any.size
-  ref.cast 3   ; i64
+  call 24   ; std_async$new_join_all__Any___i32
+  struct.new 22   ; std_async$TryJoinAll__i32__Any
   return
 end

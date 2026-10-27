@@ -45,6 +45,9 @@ TOMB_SLOT  :: i32(-1)   // index slot held an entry that was removed
 /// are stored in insertion order in dense `ekeys` / `evals`; a sparse `i32`
 /// `index` resolves a key's hash to its entry position. `K`'s `hash()` is
 /// queried on insert / lookup / rehash, `equals()` on probe comparisons.
+///
+/// `m[k]` is `V | null`, null for an absent key: when `V` admits null itself,
+/// tell the two apart with `k in m`.
 export MutableMap :: struct<K: Hash & Equals, V> {
     /// Dense entry keys in insertion order. `ekeys[i]` pairs with `evals[i]`.
     /// `[size, ekeys.len())` are spare slots freed by `remove`, reused by `put`.
