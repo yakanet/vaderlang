@@ -55,7 +55,6 @@
     fn json.expect_byte  // json$expect_byte
     fn json.fail  // json$fail
     fn json.match_keyword  // json$match_keyword
-    fn json.new_parser  // json$new_parser
     fn json.parse  // json$parse
     fn json.parse_array  // json$parse_array
     fn json.parse_bool  // json$parse_bool

@@ -1675,7 +1675,6 @@ static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io$println__string(vader_string_t l0);
 static vader_box_t json$parse(vader_string_t l0);
 static vader_string_t json$stringify(vader_box_t l0, int32_t l1);
-static void* json$new_parser(vader_string_t l0);
 static vader_box_t json$parse_value(void* l0, int32_t l1);
 static void json$skip_ws(void* l0);
 static bool json$at_end(void* l0);
@@ -4361,7 +4360,11 @@ static vader_box_t json$parse(vader_string_t l0) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = json$new_parser(l0);
+    vader_struct_json$Parser_t* _a0_obj = (vader_struct_json$Parser_t*) vader_gc_alloc(sizeof(vader_struct_json$Parser_t));
+    vader_obj_header_init(_a0_obj, 31u);
+    _a0_obj->f_src = l0;
+    _a0_obj->f_pos = INT64_C(0);
+    l1 = (void*) _a0_obj;
     l2 = json$parse_value(l1, INT32_C(0));
     if (l2.tag == 25u) {
         t0 = l2.payload.obj;
@@ -4396,22 +4399,6 @@ static vader_string_t json$stringify(vader_box_t l0, int32_t l1) {
     json$write_value(l2, l0, l1, INT32_C(0));
     t1 = std_string__builder$StringBuilder$std_core$Display$to_string(l2);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static void* json$new_parser(vader_string_t l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_string_t* gc_atom_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-    vader_struct_json$Parser_t* _a0_obj = (vader_struct_json$Parser_t*) vader_gc_alloc(sizeof(vader_struct_json$Parser_t));
-    vader_obj_header_init(_a0_obj, 31u);
-    _a0_obj->f_src = l0;
-    _a0_obj->f_pos = INT64_C(0);
-    t0 = (void*) _a0_obj;
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t json$parse_value(void* l0, int32_t l1) {

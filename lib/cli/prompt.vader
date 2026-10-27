@@ -69,11 +69,9 @@ input_closed :: fn() = PromptError {
 // A burst can hold several presses (typing fast, or a paste), so they queue here
 // rather than being dropped: reading one key must not discard the rest.
 KeyReader :: struct {
-    pending: KeyPress[]
-    at:      i64
+    pending: KeyPress[] = []
+    at:      i64 = 0
 }
-
-new_key_reader :: fn() = KeyReader { .pending = [], .at = 0 }
 
 // The next press, reading a fresh burst when the queue is empty.
 next_press :: fn(reader: KeyReader) -> KeyPress | PromptError {
@@ -161,7 +159,7 @@ export select :: fn(question: string, options: string[]) -> i64 | PromptError {
         return no_terminal(question)
     }
     defer TTY.raw_mode_end()
-    reader :: new_key_reader()
+    reader :: KeyReader {}
     cursor: i64 = 0
     drawn := 0
     for {
@@ -229,7 +227,7 @@ export multiselect :: fn(question: string, options: string[]) -> i64[] | PromptE
         return no_terminal(question)
     }
     defer TTY.raw_mode_end()
-    reader :: new_key_reader()
+    reader :: KeyReader {}
     checked: bool[]: [false] * options.len()
     cursor: i64 = 0
     drawn := 0
@@ -283,7 +281,7 @@ export confirm :: fn(question: string, default_yes: bool) -> bool | PromptError 
         return no_terminal(question)
     }
     defer TTY.raw_mode_end()
-    reader :: new_key_reader()
+    reader :: KeyReader {}
     print(render_confirm(question, default_yes, render_width()))
     for {
         press :: next_press(reader)
@@ -345,7 +343,7 @@ export text :: fn(question: string, default_value: string) -> string | PromptErr
         return no_terminal(question)
     }
     defer TTY.raw_mode_end()
-    reader :: new_key_reader()
+    reader :: KeyReader {}
     typed := ""
     for {
         print("\r\u{1B}[0K")

@@ -62,10 +62,8 @@ JsonError implements Error {
 
 Parser :: struct {
     src: string
-    pos: i64
+    pos: i64 = 0
 }
-
-new_parser :: fn(s: string) -> Parser = Parser { .src = s, .pos = 0 }
 
 at_end :: fn(p: Parser) = p.pos >= p.src.byte_len()
 
@@ -470,7 +468,7 @@ parse_object :: fn(p: Parser, depth: i32) -> JsonObject | JsonError {
 /// @error        `JsonError` carrying a short message and the byte offset
 ///               of the offending character.
 export parse :: fn(input: string) -> JsonValue | JsonError {
-    p :: new_parser(input)
+    p :: Parser { .src = input }
     v :: parse_value(p, 0)
     if v is JsonError { return v }
     skip_ws(p)
