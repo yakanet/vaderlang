@@ -157,8 +157,20 @@ export interface SpawnOptions {
 /// Exported because `spawnCapture` is not the only way the suite starts the
 /// compiler: the LSP and DAP suites drive it through their own `Bun.spawn` to
 /// keep stdin open, and they need the same hermeticity.
-export function hermeticEnv(extra?: Record<string, string>): Record<string, string | undefined> {
-  return { ...process.env, VADER_HOME: undefined, ...(extra ?? {}) };
+export function hermeticEnv(extra: Record<string, string> = {}): Record<string, string | undefined> {
+  const overrides = { VADER_HOME: undefined, ...extra };
+  const env: Record<string, string | undefined> = { ...process.env };
+  if (process.platform === "win32") deleteSpellingsOf(env, Object.keys(overrides));
+  return { ...env, ...overrides };
+}
+
+// Windows reads a variable whatever its case, and its `process.env` spells the
+// path `Path`: a `PATH` added beside it would leave the inherited one in force.
+function deleteSpellingsOf(env: Record<string, string | undefined>, names: string[]): void {
+  const spelled = new Set(names.map((name) => name.toUpperCase()));
+  for (const key of Object.keys(env)) {
+    if (spelled.has(key.toUpperCase())) delete env[key];
+  }
 }
 
 // One spawn implementation for every test that drives a binary, so the pipe

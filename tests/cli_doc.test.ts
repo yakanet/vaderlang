@@ -376,9 +376,17 @@ test("doc -o refuses a folder no site wrote, before it writes any data", async (
 test("doc -o and --open say they need Node.js when none is on the PATH", async () => {
   for (const flag of ["-o=site", "--open"]) {
     const dir = stage("shapes");
+    // A cache of its own: one where the packages are installed already would
+    // skip the check, and the site would be copied into the user's.
     const r = await spawnCapture(["doc", flag, "shapes"], {
       cwd: dir,
-      env: { ...TOOLCHAIN_ENV, PATH: join(dir, "no-bin") },
+      env: {
+        ...TOOLCHAIN_ENV,
+        PATH: join(dir, "no-bin"),
+        HOME: dir,
+        LOCALAPPDATA: dir,
+        XDG_CACHE_HOME: join(dir, "cache"),
+      },
       timeoutMs: MEDIUM_BUILD,
     });
     expect(r.exit).toBe(2);

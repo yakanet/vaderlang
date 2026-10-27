@@ -40,7 +40,7 @@ import { rmSync, writeFileSync, readFileSync, readdirSync, mkdirSync, cpSync, mk
 import { withStagedLibraryRoot } from "./lib-probe.ts";
 import { basename, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { ensureCliBuilt, CLI_BIN, EXE_SUFFIX, HEAVY_BUILD, HOST_TARGET, exePath, spawnCapture } from "./cli-bin.ts";
+import { ensureCliBuilt, CLI_BIN, EXE_SUFFIX, HEAVY_BUILD, HOST_TARGET, exePath, hermeticEnv, spawnCapture } from "./cli-bin.ts";
 import type { CliResult, SpawnOptions } from "./cli-bin.ts";
 import { formatRun, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
@@ -660,7 +660,7 @@ function lspSession(cwd: string) {
   const proc = Bun.spawn({
     cmd: [resolve(CLI_BIN), "lsp"],
     cwd,
-    env: { ...process.env, ...TOOLCHAIN_ENV },
+    env: hermeticEnv(TOOLCHAIN_ENV),
     stdin: "pipe",
     stdout: "pipe",
     stderr: "ignore",
