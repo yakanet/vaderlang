@@ -356,13 +356,16 @@ check_public_fn_visibility :: fn(
     }
 }
 
-// First non-exported user type referenced anywhere in `t`, or null when the
-// whole type is nameable across the module boundary. Exhaustive over the
-// closed `Type` union (no `_` fall-through) so adding a new symbol-carrying
-// variant trips T3013 here and forces a conscious decision ; every type that
-// carries no nameable symbol (primitives, type-params, `Self`, the
-// erasure/inference synthetics) is a leaf that contributes nothing → null.
-first_unexported_type :: fn(t: Type) -> Symbol | null {
+/// The first type `t` names that its module declares without `export`.
+///
+/// Exhaustive over the closed `Type` union (no `_` fall-through) so adding a new
+/// symbol-carrying variant trips T3013 here and forces a conscious decision ;
+/// every type that carries no nameable symbol (primitives, type-params, `Self`,
+/// the erasure/inference synthetics) is a leaf that contributes nothing.
+///
+/// @param t  a resolved type.
+/// @return   null when the whole type is nameable across the module boundary.
+export first_unexported_type :: fn(t: Type) -> Symbol | null {
     match t {
         is StructType   -> {
             if is_private_user_type(t.symbol) {

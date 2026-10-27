@@ -344,6 +344,53 @@
           }
         }
       ]
+    },
+    {
+      "id": "shapes/text/mark_name",
+      "name": "mark_name",
+      "kind": "fn",
+      "signature": [
+        {
+          "text": "export mark_name :: fn(text: string) -> string"
+        }
+      ],
+      "inferred_type": [],
+      "function": {
+        "parameters": [
+          {
+            "name": "text",
+            "type": [
+              {
+                "text": "string"
+              }
+            ]
+          }
+        ],
+        "return_type": [
+          {
+            "text": "string"
+          }
+        ],
+        "return_inferred": false
+      },
+      "file": "shapes/text/text.vader",
+      "line": 37,
+      "column": 8,
+      "doc": {
+        "summary": "The name of a mark on `text`, the impl of `Named` for a private type.",
+        "prose": "The name of a mark on `text`, the impl of `Named` for a private type.",
+        "params": [
+          {
+            "name": "text",
+            "text": "what the mark says."
+          }
+        ],
+        "returns": [],
+        "errors": [],
+        "example": []
+      },
+      "targets": [],
+      "members": []
     }
   ]
 }

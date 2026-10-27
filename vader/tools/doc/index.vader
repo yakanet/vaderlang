@@ -179,9 +179,13 @@ index_module :: fn(checked: DocCheck, loaded: LoadedModule, base: string) -> Doc
     }
 }
 
-// The entry of `d`; null when `d` is neither an export nor an impl.
+// The entry of `d`; null when `d` is neither an export nor an impl a caller can
+// reach.
 doc_decl :: fn(ctx: FileContext, d: Decl) -> DocDecl | null {
     if d is ImplDecl {
+        if is_hidden_impl(ctx, d) {
+            return null
+        }
         return impl_decl(ctx, d)
     }
     if !decl_is_public(d) {
@@ -210,6 +214,13 @@ decl_function :: fn(ctx: FileContext, d: Decl) -> DocFunction | null {
         return function_of(ctx, d)
     }
     return null
+}
+
+// Whether no caller can reach the impl `d`: the type it is for names a type its
+// module declares without `export`, which no export may name either (T3052).
+is_hidden_impl :: fn(ctx: FileContext, d: ImplDecl) -> bool {
+    typed :: ctx.typed ?? return false
+    return Tc.first_unexported_type(Tc.type_from_expr(d.for_type, typed.resolved, [])) != null
 }
 
 // The entry of the impl `d`, named after the type it is for and its trait.

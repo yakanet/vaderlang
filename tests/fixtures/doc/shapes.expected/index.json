@@ -216,6 +216,15 @@
       "signature": "name :: fn(self) -> string",
       "summary": "The text of the tag, its return type left to inference.",
       "owner": "shapes/text/Tag: Named"
+    },
+    {
+      "id": "shapes/text/mark_name",
+      "module": "shapes/text",
+      "name": "mark_name",
+      "kind": "fn",
+      "signature": "export mark_name :: fn(text: string) -> string",
+      "summary": "The name of a mark on `text`, the impl of `Named` for a private type.",
+      "owner": ""
     }
   ]
 }

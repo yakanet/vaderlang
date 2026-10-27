@@ -114,19 +114,22 @@ h3 {
 
 .prose {
 	max-width: 65ch;
+	overflow-wrap: anywhere;
 }
 
-.prose p {
+.prose p,
+.prose pre,
+.prose ul,
+.prose ol {
 	margin: 0 0 var(--s3);
 }
 
-.prose p:last-child {
+.prose :last-child {
 	margin-bottom: 0;
 }
 
 .prose ul,
 .prose ol {
-	margin: 0 0 var(--s3);
 	padding-left: 1.2rem;
 }
 

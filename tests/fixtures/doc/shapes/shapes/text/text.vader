@@ -21,3 +21,17 @@ Tag implements Named {
     /// The text of the tag, its return type left to inference.
     name :: fn(self) = self.text
 }
+
+// No caller can name a mark, nor reach its impl: the data leaves both out.
+Mark :: struct {
+    text: string
+}
+
+Mark implements Named {
+    name :: fn(self) = "mark ${self.text}"
+}
+
+/// The name of a mark on `text`, the impl of `Named` for a private type.
+///
+/// @param text  what the mark says.
+export mark_name :: fn(text: string) -> string = Mark { .text = text }.name()

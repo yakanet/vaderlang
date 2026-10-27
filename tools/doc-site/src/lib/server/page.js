@@ -202,72 +202,57 @@ const member_view = (module, member) => ({
 });
 
 /**
- * What every declaration's view starts with: its title and its place.
- * @param {string} module
+ * One form of a name: its place, its signature, under its own anchor when the
+ * name has several, and what its vaderdoc says of it.
  * @param {any} decl
- * @param {{ entry: any, decl: any }[]} impls  the impls for it
+ * @param {string} anchor
  */
-function head_view(module, decl, impls) {
-	return {
-		anchor: overloads_anchor(anchor_of(module, decl.id)),
-		name: decl.name,
-		kind: decl.kind,
-		inferred: Boolean(decl.inferred_type?.length || decl.function?.return_inferred),
-		targets: decl.targets,
-		source: source_of(decl),
-		impls: impls.map((impl) => impl_view(module, impl))
-	};
-}
-
-// The parts of a view an overloaded name leaves empty.
-const NO_DETAIL = {
-	overloads: [],
-	prose_html: '',
-	parameters: [],
-	returns: null,
-	errors_html: [],
-	example: null,
-	generated: false,
-	members_title: '',
-	members: []
-};
-
-/**
- * The overloads of one name: their signatures, each under its anchor, and the
- * summary of each.
- * @param {string} module
- * @param {any[]} group
- * @param {{ entry: any, decl: any }[]} impls
- */
-const overloaded_view = (module, group, impls) => ({
-	...head_view(module, group[0], impls),
-	...NO_DETAIL,
-	signatures: group.map((d) => ({ anchor: anchor_of(module, d.id), html: signature_html(d) })),
-	overloads: group.map((d) => ({
-		anchor: anchor_of(module, d.id),
-		summary_html: inline_html(d.doc?.summary)
-	}))
-});
-
-/**
- * One declaration with its vaderdoc, its parameters and return, its members.
- * @param {string} module
- * @param {any} decl
- * @param {{ entry: any, decl: any }[]} impls
- */
-function decl_view(module, decl, impls) {
+function form_view(decl, anchor) {
 	const doc = decl.doc;
 	const fn = decl.function;
 	return {
-		...head_view(module, decl, impls),
-		signatures: [{ anchor: '', html: signature_html(decl) }],
-		overloads: [],
+		anchor,
+		inferred: Boolean(decl.inferred_type?.length || fn?.return_inferred),
+		targets: decl.targets,
+		source: source_of(decl),
+		signature_html: signature_html(decl),
 		prose_html: block_html(doc?.prose),
 		parameters: parameters_of(fn, doc),
 		returns: returns_of(fn, doc),
 		errors_html: (doc?.errors ?? []).map(inline_html),
 		example: example_of(doc),
-		generated: Boolean(fn) && !doc,
+		generated: Boolean(fn) && !doc
+	};
+}
+
+/**
+ * The anchor of the form `decl` of a name `group` declares: its own when the
+ * name has several, none when it is the only one, which the title's anchor
+ * names already.
+ * @param {string} module
+ * @param {any[]} group
+ * @param {any} decl
+ */
+function form_anchor(module, group, decl) {
+	if (group.length < 2) return '';
+	return anchor_of(module, decl.id);
+}
+
+/**
+ * The declarations that share a name, under one title: each form with its
+ * signature and its vaderdoc, then the members and the impls of the first.
+ * @param {string} module
+ * @param {any[]} group  in source order
+ * @param {{ entry: any, decl: any }[]} impls
+ */
+function decl_view(module, group, impls) {
+	const decl = group[0];
+	return {
+		anchor: overloads_anchor(anchor_of(module, decl.id)),
+		name: decl.name,
+		kind: decl.kind,
+		impls: impls.map((impl) => impl_view(module, impl)),
+		forms: group.map((d) => form_view(d, form_anchor(module, group, d))),
 		members_title: MEMBER_TITLES.get(decl.kind) ?? 'Members',
 		members: decl.members.map((/** @type {any} */ m) => member_view(module, m))
 	};
@@ -315,11 +300,14 @@ function impl_view(module, { entry, decl }) {
  * @param {string} module
  * @param {any} decl
  */
-const loose_impl_view = (module, decl) => ({
-	...decl_view(module, decl, []),
-	name: decl.signature.map((/** @type {Segment} */ s) => s.text).join(''),
-	signatures: []
-});
+function loose_impl_view(module, decl) {
+	const view = decl_view(module, [decl], []);
+	return {
+		...view,
+		name: decl.signature.map((/** @type {Segment} */ s) => s.text).join(''),
+		forms: [{ ...view.forms[0], signature_html: '' }]
+	};
+}
 
 /**
  * The page of the module `data` holds.
@@ -343,7 +331,7 @@ export function module_page(data) {
 	for (const [title, kinds] of GROUPS) {
 		const items = [...by_name.values()]
 			.filter((group) => kinds.includes(group[0].kind))
-			.map((group) => group_view(module, group, impls_for.get(group[0].id) ?? []));
+			.map((group) => decl_view(module, group, impls_for.get(group[0].id) ?? []));
 		if (items.length > 0) groups.push({ title, items });
 	}
 	const loose = decls
@@ -358,17 +346,6 @@ export function module_page(data) {
 		export_count: decls.filter((d) => d.kind !== 'impl').length,
 		groups
 	};
-}
-
-/**
- * The view of the declarations that share a name: one, or its overloads.
- * @param {string} module
- * @param {any[]} group
- * @param {{ entry: any, decl: any }[]} impls
- */
-function group_view(module, group, impls) {
-	if (group.length > 1) return overloaded_view(module, group, impls);
-	return decl_view(module, group[0], impls);
 }
 
 // The header of a module without the `path: summary` line it opens with,

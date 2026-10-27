@@ -1,5 +1,6 @@
 // Vaderdoc prose to HTML. It is CommonMark, but carries no HTML: a bare
 // `Iterator<T>` in a sentence stays visible instead of being read as a tag. A
+// heading is written as a bold paragraph, since the page owns its outline. A
 // fenced block without a language is Vader.
 
 import { Marked } from 'marked';
@@ -7,6 +8,9 @@ import { code_html, escape_html } from './highlight.js';
 
 const markdown = new Marked({
 	renderer: {
+		heading({ tokens }) {
+			return `<p><strong>${this.parser.parseInline(tokens)}</strong></p>\n`;
+		},
 		html: ({ text }) => escape_html(text),
 		codespan: ({ text }) => `<code class="ic">${escape_html(text)}</code>`,
 		code: ({ text, lang }) => {

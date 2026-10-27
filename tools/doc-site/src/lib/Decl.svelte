@@ -5,90 +5,28 @@
 	let { decl } = $props();
 </script>
 
-<section class="decl" id={decl.anchor}>
-	<div class="decl-head">
+<section class="decl">
+	<div class="decl-head" id={decl.anchor}>
 		<h3><a href="#{encodeURI(decl.anchor)}">{decl.name}</a></h3>
 		<span class="chip kind"><Icon kind={decl.kind} />{decl.kind}</span>
-		{#if decl.overloads.length > 1}
-			<span class="chip over">{decl.overloads.length} overloads</span>
-		{/if}
-		{#if decl.inferred}<span class="chip derived">type inferred</span>{/if}
-		{#if decl.targets.length > 0}
-			<span class="chip plat">{decl.targets.join(' · ')}</span>
-		{/if}
-		{#if decl.source.href}
-			<a class="src" href={decl.source.href} title={decl.source.title}>{decl.source.label}</a>
+		{#if decl.forms.length > 1}
+			<span class="chip over">{decl.forms.length} overloads</span>
 		{:else}
-			<span class="src" title={decl.source.title}>{decl.source.label}</span>
+			{@render place(decl.forms[0])}
 		{/if}
 	</div>
 
-	{#each decl.signatures as s, i (i)}
-		<pre class="code sig" id={s.anchor || undefined}><code>{@html s.html}</code></pre>
-	{/each}
-
-	{#if decl.overloads.length > 1}
-		<ul class="prose overloads">
-			{#each decl.overloads as o (o.anchor)}
-				<li><a class="ic" href="#{encodeURI(o.anchor)}">{o.anchor}</a> {@html o.summary_html}</li>
-			{/each}
-		</ul>
-	{/if}
-
-	{#if decl.prose_html}<div class="prose">{@html decl.prose_html}</div>{/if}
-
-	{#if decl.generated}
-		<div class="generated">
-			<p>No vaderdoc yet. The parameters and the return come from the signature.</p>
-			{#if decl.parameters.length > 0}{@render parameters(false)}{/if}
-			{#if decl.returns}
-				<div class="returns">
-					<span class="eyebrow">Returns</span>
-					<code class="ic">{@html decl.returns.type_html}</code>
-				</div>
+	{#each decl.forms as form, i (i)}
+		<div class="form">
+			{#if decl.forms.length > 1}
+				<div class="form-head" id={form.anchor}>{@render place(form)}</div>
 			{/if}
+			{#if form.signature_html}
+				<pre class="code sig"><code>{@html form.signature_html}</code></pre>
+			{/if}
+			{@render detail(form)}
 		</div>
-	{:else}
-		{#if decl.parameters.length > 0}
-			<div class="fields">
-				<h4 class="eyebrow">Parameters</h4>
-				{@render parameters(true)}
-			</div>
-		{/if}
-		{#if decl.returns}
-			<div class="fields">
-				<h4 class="eyebrow">Returns</h4>
-				<div class="prose">
-					<code class="ic">{@html decl.returns.type_html}</code>
-					{@html decl.returns.text_html}
-				</div>
-			</div>
-		{/if}
-	{/if}
-
-	{#if decl.errors_html.length > 0}
-		<div class="fields">
-			<h4 class="eyebrow">Errors</h4>
-			<ul class="prose">
-				{#each decl.errors_html as e, i (i)}<li>{@html e}</li>{/each}
-			</ul>
-		</div>
-	{/if}
-
-	{#if decl.example}
-		<div class="fields">
-			<h4 class="eyebrow">Example</h4>
-			<div class="example">
-				{#if decl.example.full_html}
-					<details class="ex-full">
-						<summary>expand</summary>
-						<pre class="code"><code>{@html decl.example.full_html}</code></pre>
-					</details>
-				{/if}
-				<pre class="code ex-short"><code>{@html decl.example.short_html}</code></pre>
-			</div>
-		</div>
-	{/if}
+	{/each}
 
 	{#if decl.members.length > 0}
 		<div class="fields">
@@ -124,10 +62,79 @@
 	{/each}
 </section>
 
-{#snippet parameters(/** @type {boolean} */ described)}
+{#snippet place(/** @type {any} */ form)}
+	{#if form.inferred}<span class="chip derived">type inferred</span>{/if}
+	{#if form.targets.length > 0}
+		<span class="chip plat">{form.targets.join(' · ')}</span>
+	{/if}
+	{#if form.source.href}
+		<a class="src" href={form.source.href} title={form.source.title}>{form.source.label}</a>
+	{:else}
+		<span class="src" title={form.source.title}>{form.source.label}</span>
+	{/if}
+{/snippet}
+
+{#snippet detail(/** @type {any} */ form)}
+	{#if form.prose_html}<div class="prose">{@html form.prose_html}</div>{/if}
+
+	{#if form.generated}
+		<div class="generated">
+			<p>No vaderdoc yet. The parameters and the return come from the signature.</p>
+			{#if form.parameters.length > 0}{@render parameters(form, false)}{/if}
+			{#if form.returns}
+				<div class="returns">
+					<span class="eyebrow">Returns</span>
+					<code class="ic">{@html form.returns.type_html}</code>
+				</div>
+			{/if}
+		</div>
+	{:else}
+		{#if form.parameters.length > 0}
+			<div class="fields">
+				<h4 class="eyebrow">Parameters</h4>
+				{@render parameters(form, true)}
+			</div>
+		{/if}
+		{#if form.returns}
+			<div class="fields">
+				<h4 class="eyebrow">Returns</h4>
+				<div class="prose">
+					<code class="ic">{@html form.returns.type_html}</code>
+					{@html form.returns.text_html}
+				</div>
+			</div>
+		{/if}
+	{/if}
+
+	{#if form.errors_html.length > 0}
+		<div class="fields">
+			<h4 class="eyebrow">Errors</h4>
+			<ul class="prose">
+				{#each form.errors_html as e, i (i)}<li>{@html e}</li>{/each}
+			</ul>
+		</div>
+	{/if}
+
+	{#if form.example}
+		<div class="fields">
+			<h4 class="eyebrow">Example</h4>
+			<div class="example">
+				{#if form.example.full_html}
+					<details class="ex-full">
+						<summary>expand</summary>
+						<pre class="code"><code>{@html form.example.full_html}</code></pre>
+					</details>
+				{/if}
+				<pre class="code ex-short"><code>{@html form.example.short_html}</code></pre>
+			</div>
+		</div>
+	{/if}
+{/snippet}
+
+{#snippet parameters(/** @type {any} */ form, /** @type {boolean} */ described)}
 	<table class="ptable">
 		<tbody>
-			{#each decl.parameters as p (p.name)}
+			{#each form.parameters as p (p.name)}
 				<tr>
 					<td class="nm">{p.name}</td>
 					<td class="ty">
@@ -148,13 +155,22 @@
 		border-top: var(--hair) solid var(--line);
 		padding-top: var(--s5);
 		margin-top: var(--s5);
+	}
+	.decl,
+	.form {
 		display: grid;
 		gap: var(--s3);
 	}
-	.decl:target {
-		background: linear-gradient(var(--accent-wash), var(--accent-wash)) no-repeat 0 0 / 100% 2.6rem;
+	/* What a link lands on is the row that carries its `id`: the title of a
+	   declaration or of one of its forms, a member, an impl. The shadow widens
+	   the band without moving the row. */
+	.decl :target {
+		background: var(--accent-wash);
+		box-shadow: 0 0 0 var(--s2) var(--accent-wash);
+		border-radius: var(--r1);
 	}
-	.decl-head {
+	.decl-head,
+	.form-head {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: baseline;
@@ -180,9 +196,10 @@
 		color: var(--muted);
 		font-family: var(--font-code);
 	}
-	.overloads {
-		margin: 0;
-		padding-left: 1.2rem;
+	.form + .form {
+		border-top: var(--hair) dashed var(--line);
+		padding-top: var(--s4);
+		margin-top: var(--s2);
 	}
 	.fields {
 		display: grid;
@@ -218,9 +235,11 @@
 	.def {
 		color: var(--muted);
 	}
+	/* The signatures take the room they need up to half the width, then wrap: a
+	   long one would leave its description a word per line. */
 	.members {
 		display: grid;
-		grid-template-columns: minmax(9rem, max-content) minmax(0, 1fr);
+		grid-template-columns: fit-content(50%) minmax(0, 1fr);
 		border: var(--hair) solid var(--line);
 		border-radius: var(--r2);
 		overflow: hidden;
