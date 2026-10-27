@@ -1,0 +1,360 @@
+// vader/tools/doc/read: the data `vader doc` writes, read back.
+//
+// The other half of `write.vader`: `index.json` into the entries a search goes
+// through, a module's file into the `DocModule` it was written from. A key one
+// side renames and the other does not reads as empty, which the round trip
+// tested below catches.
+
+module "vader/tools/doc"
+
+import "json"
+import "std/collections"
+import "std/io"
+import "std/iter"
+import "std/string"
+import "toolchain/ast"
+import "vader/front/resolver"
+
+// What `index.json` lists.
+DocIndex :: struct {
+    modules: IndexModule[]
+    entries: IndexEntry[]
+}
+
+// A module as the index lists it.
+IndexModule :: struct {
+    path: string
+    summary: string
+}
+
+// An export, an impl or a member as the index lists it.
+IndexEntry :: struct {
+    id: string
+    module: string
+    name: string
+    kind: string
+    signature: string
+    summary: string
+    /// The id of the declaration a member belongs to, of the type an impl is
+    /// for; "" otherwise.
+    owner: string
+}
+
+/// The modules of the data `vader doc` wrote under `dir`, none when it holds no
+/// readable index.
+///
+/// @param dir  the folder of the data.
+export documented_modules :: fn(dir: string) -> string[] {
+    index :: read_doc_index(dir) ?? return []
+    return index.modules.map((m: IndexModule) -> m.path).collect()
+}
+
+// The index under `dir`, null when it is missing or does not read.
+read_doc_index :: fn(dir: string) -> DocIndex | null {
+    index :: read_json(join_path(dir, INDEX_FILE)) ?? return null
+    return DocIndex {
+        .modules = items_at(index, "modules").map(module_entry_of).collect(),
+        .entries = items_at(index, "entries").map(index_entry_of).collect(),
+    }
+}
+
+// The module `item` of an index.
+module_entry_of :: fn(item: JsonValue) -> IndexModule = IndexModule {
+    .path = text_at(item, "path"),
+    .summary = text_at(item, "summary"),
+}
+
+// The entry `item` of an index.
+index_entry_of :: fn(item: JsonValue) -> IndexEntry = IndexEntry {
+    .id = text_at(item, "id"),
+    .module = text_at(item, "module"),
+    .name = text_at(item, "name"),
+    .kind = text_at(item, "kind"),
+    .signature = text_at(item, "signature"),
+    .summary = text_at(item, "summary"),
+    .owner = text_at(item, "owner"),
+}
+
+// The module `path` under `dir`, null when its file is missing or does not read.
+read_doc_module :: fn(dir: string, path: string) -> DocModule | null {
+    module :: read_json(module_file(dir, path)) ?? return null
+    return module_of(module)
+}
+
+// The module `value` holds.
+module_of :: fn(value: JsonValue) -> DocModule = DocModule {
+    .path = text_at(value, "path"),
+    .summary = text_at(value, "summary"),
+    .header = text_at(value, "header"),
+    .files = texts_at(value, "files"),
+    .decls = items_at(value, "decls").map(decl_of).collect(),
+}
+
+// The declaration `value` holds.
+decl_of :: fn(value: JsonValue) -> DocDecl = DocDecl {
+    .id = text_at(value, "id"),
+    .name = text_at(value, "name"),
+    .kind = text_at(value, "kind"),
+    .signature = segments_at(value, "signature"),
+    .inferred = inferred_at(value),
+    .file = text_at(value, "file"),
+    .line = number_at(value, "line"),
+    .column = number_at(value, "column"),
+    .doc = sections_at(value),
+    .targets = texts_at(value, "targets"),
+    .trait_name = text_at(value, "trait"),
+    .for_type = text_at(value, "for"),
+    .members = items_at(value, "members").map(member_of).collect(),
+}
+
+// The member `value` holds.
+member_of :: fn(value: JsonValue) -> DocMember = DocMember {
+    .id = text_at(value, "id"),
+    .name = text_at(value, "name"),
+    .kind = text_at(value, "kind"),
+    .signature = segments_at(value, "signature"),
+    .inferred = inferred_at(value),
+    .line = number_at(value, "line"),
+    .column = number_at(value, "column"),
+    .doc = sections_at(value),
+}
+
+// The segments under `key` of `value`.
+segments_at :: fn(value: JsonValue | null, key: string) -> DocSegment[] =
+    items_at(value, key).map(segment_of).collect()
+
+// The segment `value` holds.
+segment_of :: fn(value: JsonValue) -> DocSegment = DocSegment {
+    .text = text_at(value, "text"),
+    .module = text_at(value, "module"),
+    .name = text_at(value, "name"),
+}
+
+// What typing gave `value` that its source leaves out: the segments of its
+// `inferred` object, under `return` or `type` (`inferred_json`).
+inferred_at :: fn(value: JsonValue) -> DocSegment[] {
+    inferred :: value_at(value, "inferred")
+    returned :: segments_at(inferred, "return")
+    if returned.len() > 0 {
+        return returned
+    }
+    return segments_at(inferred, "type")
+}
+
+// The vaderdoc of `value`, null without one.
+sections_at :: fn(value: JsonValue) -> DocSections | null {
+    doc :: value_at(value, "doc")
+    if doc !is JsonObject {
+        return null
+    }
+    example :: text_at(doc, "example")
+    lines: string[]: []
+    if example != "" {
+        lines.push_all(example.split("\n"))
+    }
+    return DocSections {
+        .prose = text_at(doc, "prose"),
+        .params = items_at(doc, "params").map(
+            (p: JsonValue) -> DocParam {
+                .name = text_at(p, "name"),
+                .text = text_at(p, "text"),
+            },
+        ).collect(),
+        .returns = texts_at(doc, "returns"),
+        .errors = texts_at(doc, "errors"),
+        .example = lines,
+    }
+}
+
+// ---- reading JSON ---------------------------------------------------------
+
+// The JSON in the file `path`, null when it is missing or does not parse.
+read_json :: fn(path: string) -> JsonValue | null {
+    text :: read_file_string(path)
+    if text is IOError {
+        return null
+    }
+    value :: parse(text)
+    if value is JsonError {
+        return null
+    }
+    return value
+}
+
+// The value under `key` of `value`, null when it is no object or has none.
+value_at :: fn(value: JsonValue | null, key: string) -> JsonValue | null {
+    if value !is JsonObject {
+        return null
+    }
+    return value.entries[key]
+}
+
+// The string under `key` of `value`, "" when it holds none.
+text_at :: fn(value: JsonValue | null, key: string) -> string = string_of(value_at(value, key))
+
+// The items of the array under `key` of `value`, none when it holds no array.
+items_at :: fn(value: JsonValue | null, key: string) -> JsonValue[] {
+    found :: value_at(value, key)
+    if found is JsonArray {
+        return found.items
+    }
+    return []
+}
+
+// The strings of the array under `key` of `value`.
+texts_at :: fn(value: JsonValue | null, key: string) -> string[] =
+    items_at(value, key).map(string_of).collect()
+
+// The whole number under `key` of `value`, 0 when it holds none.
+number_at :: fn(value: JsonValue | null, key: string) -> i32 {
+    found :: value_at(value, key)
+    if found is JsonNumber {
+        return i32(found.value)
+    }
+    return 0
+}
+
+// The string `value` is, "" for any other value.
+string_of :: fn(value: JsonValue | null) -> string {
+    if value is JsonString {
+        return value.value
+    }
+    return ""
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A module with every shape the format writes: links, an inferred return, a
+// vaderdoc with each tag, platforms, members, and an impl.
+sample_module :: fn() -> DocModule {
+    point :: DocSegment { .text = "Point", .module = "geo", .name = "Point" }
+    return DocModule {
+        .path = "geo",
+        .summary = "The plane.",
+        .header = "geo: the plane.",
+        .files = ["geo/geo.vader"],
+        .decls = [
+            DocDecl {
+                .id = "geo/Point",
+                .name = "Point",
+                .kind = "struct",
+                .signature = [DocSegment { .text = "export Point :: struct" }],
+                .file = "geo/geo.vader",
+                .line = 3,
+                .column = 8,
+                .doc = null,
+                .members = [
+                    DocMember {
+                        .id = "geo/Point.x",
+                        .name = "x",
+                        .kind = "field",
+                        .signature = [DocSegment { .text = "x: f64" }],
+                        .line = 4,
+                        .column = 5,
+                        .doc = doc_sections("The abscissa."),
+                    },
+                ],
+            },
+            DocDecl {
+                .id = "geo/twice",
+                .name = "twice",
+                .kind = "fn",
+                .signature = [
+                    DocSegment { .text = "export twice :: fn(p: " },
+                    point,
+                    DocSegment { .text = ") -> " },
+                    point,
+                ],
+                .inferred = [point],
+                .file = "geo/geo.vader",
+                .line = 9,
+                .column = 8,
+                .doc = doc_sections(
+                    "Twice `p`.\n\n@param p  a point.\n@return the point.\n"
+                        + "@error none.\n@example\n  twice(p)",
+                ),
+                .targets = ["darwin", "linux"],
+            },
+            DocDecl {
+                .id = "geo/ORIGIN",
+                .name = "ORIGIN",
+                .kind = "const",
+                .signature = [
+                    DocSegment { .text = "export ORIGIN :: " },
+                    point,
+                    DocSegment { .text = " {}" },
+                ],
+                .inferred = [point],
+                .file = "geo/geo.vader",
+                .line = 11,
+                .column = 8,
+                .doc = null,
+            },
+            DocDecl {
+                .id = "geo/Point: Shape",
+                .name = "Point: Shape",
+                .kind = "impl",
+                .signature = [point, DocSegment { .text = " implements Shape" }],
+                .file = "geo/geo.vader",
+                .line = 12,
+                .column = 1,
+                .doc = null,
+                .trait_name = "Shape",
+                .for_type = "Point",
+                .members = [
+                    DocMember {
+                        .id = "geo/Point: Shape.area",
+                        .name = "area",
+                        .kind = "method",
+                        .signature = [DocSegment { .text = "area :: fn(self) -> f64" }],
+                        .inferred = [DocSegment { .text = "f64" }],
+                        .line = 13,
+                        .column = 5,
+                        .doc = null,
+                    },
+                ],
+            },
+        ],
+    }
+}
+
+@test
+test_read_doc_module_reads_what_write_writes :: fn() -> void {
+    written :: stringify_pretty(module_json(sample_module()), 2)
+    back :: parse(written)
+    if back is JsonError {
+        assert(false, "the written module parses")
+    } else {
+        assert_eq(stringify_pretty(module_json(module_of(back)), 2), written)
+    }
+}
+
+@test
+test_read_doc_index_gives_each_entry_its_owner :: fn() -> void {
+    back :: parse(stringify_pretty(index_json([sample_module()]), 2))
+    if back is JsonError {
+        assert(false, "the written index parses")
+    } else {
+        entries :: items_at(back, "entries").map(index_entry_of).collect()
+        owners :: entries.map((e: IndexEntry) -> "${e.id} <- ${e.owner}").collect()
+        assert_eq(
+            owners.join("\n"),
+            "geo/Point <- \ngeo/Point.x <- geo/Point\ngeo/twice <- \ngeo/ORIGIN <- "
+                + "\ngeo/Point: Shape <- geo/Point\ngeo/Point: Shape.area <- geo/Point: Shape",
+        )
+    }
+}
+
+@test
+test_read_doc_index_reads_what_a_list_shows :: fn() -> void {
+    back :: parse(stringify_pretty(index_json([sample_module()]), 2))
+    if back is JsonError {
+        assert(false, "the written index parses")
+    } else {
+        x :: index_entry_of(items_at(back, "entries")[1])
+        shown :: "${x.module}|${x.name}|${x.kind}|${x.signature}|${x.summary}"
+        assert_eq(shown, "geo|x|field|x: f64|The abscissa.")
+    }
+}

@@ -8,12 +8,16 @@
 // saw, so that a file changed, added or removed while it ran shows at the next
 // check. Not covered: a folder that comes, inside an unchanged root, to shadow a
 // loaded module or to join one from the generated tree.
+//
+// What a run leaves out of the scope follows from the key (the scope and the
+// roots), so the stamp keeps it, for an up-to-date run to say it again.
 
 module "vader/tools/doc"
 
 import "crypto"
 import "std/collections"
 import "std/io"
+import "std/iter"
 import "std/path"
 import "std/sort"
 import "std/string"
@@ -29,6 +33,9 @@ export DocInputs :: struct {
     entry: string
     /// The project folder, null for none.
     project_root: string | null
+    /// The folders the load searches beside the project's roots, as
+    /// `--include-paths` names them.
+    include_paths: string[]
     /// The lines of the key beside the files: the compiler, the entry, the
     /// project and its `vader.json`, the roots searched, the scope. Empty when
     /// the compiler cannot be read: no stamp is then written or matched.
@@ -37,34 +44,42 @@ export DocInputs :: struct {
 
 /// Take what the data of `scope` depends on, beside the files the load reads.
 ///
-/// @param scope         the modules documented (`doc_scope`).
-/// @param entry         the file the load starts from.
-/// @param project_root  the project folder, null for none.
-/// @param compiler      a digest of the running compiler, null when it cannot be
-///                      read.
+/// @param scope          the modules documented (`doc_scope`).
+/// @param entry          the file the load starts from.
+/// @param project_root   the project folder, null for none.
+/// @param include_paths  the folders the load searches beside the project's
+///                       roots.
+/// @param compiler       a digest of the running compiler, null when it cannot
+///                       be read.
 export doc_inputs :: fn(
     scope: DiscoveredModule[],
     entry: string,
     project_root: string | null,
+    include_paths: string[],
     compiler: string | null,
 ) -> DocInputs {
     inputs :: DocInputs {
         .scope = scope,
         .entry = entry,
         .project_root = project_root,
+        .include_paths = include_paths,
         .header = [],
     }
     digest :: compiler ?? return inputs
     root :: project_root ?? ""
     inputs.header.push("compiler ${digest}")
-    inputs.header.push("entry ${normalized_path(entry)}")
+    inputs.header.push("entry ${entry_key(entry)}")
     inputs.header.push("project ${normalized_root(root)}")
     inputs.header.push("manifest ${manifest_hash(root)}")
+    // The synthetic entry is no file: the folder `search_roots` takes from it
+    // would put the working directory in the key.
+    entry_folder :: normalized_path(dir_of(entry))
     ignored: Diagnostic[]: []
-    for searched in search_roots(entry, [], project_root, doc_overlay(), ignored).paths {
-        inputs.header.push(
-            "root ${normalized_path(searched.dir)} ${searched.prefix} ${searched.merge}",
-        )
+    for searched in search_roots(entry, include_paths, project_root, doc_overlay(), ignored).paths {
+        folder :: normalized_path(searched.dir)
+        if entry != SYNTHETIC_ENTRY || folder != entry_folder {
+            inputs.header.push("root ${folder} ${searched.prefix} ${searched.merge}")
+        }
     }
     for m in scope {
         inputs.header.push("scope ${m.name} ${normalized_path(m.folder)}")
@@ -72,45 +87,63 @@ export doc_inputs :: fn(
     return inputs
 }
 
-/// Whether the data under `dir` is what a run on `inputs` would write: its index
-/// is there, and its stamp's key is the key of what the folders it names hold
-/// now.
+/// What the data under `dir` left out of its scope, when it is what a run on
+/// `inputs` would write: its index is there, and its stamp's key is the key of
+/// what the folders it names hold now.
 ///
 /// @param dir     the folder the data goes to.
 /// @param inputs  what the data depends on beside the files the load reads.
-export doc_is_fresh :: fn(dir: string, inputs: DocInputs) -> bool {
+/// @return        one line per module left out, null when the data is not up to
+///                date.
+export fresh_doc_data :: fn(dir: string, inputs: DocInputs) -> string[] | null {
     if inputs.header.len() == 0 || !exists(join_path(dir, INDEX_FILE)) {
-        return false
+        return null
     }
-    stamp :: read_stamp(dir) ?? return false
-    return stamp.key == input_key(inputs, disk_lines(stamp.folders))
+    stamp :: read_stamp(dir) ?? return null
+    if stamp.key != input_key(inputs, disk_lines(stamp.folders)) {
+        return null
+    }
+    return stamp.left_out
 }
 
 /// Write the stamp of the data `checked` gave under `dir`, last: its key over
-/// what the load saw, and the folders of the files it read. A stamp that cannot
-/// be written costs a run more, nothing else.
+/// what the load saw, the folders of the files it read, and what it left out.
+/// A stamp that cannot be written costs a run more, nothing else.
 ///
-/// @param dir      the folder the data goes to.
-/// @param inputs   what the data depends on beside the files the load read.
-/// @param checked  the load the data comes from.
-export write_stamp :: fn(dir: string, inputs: DocInputs, checked: DocCheck) -> void {
+/// @param dir       the folder the data goes to.
+/// @param inputs    what the data depends on beside the files the load read.
+/// @param checked   the load the data comes from.
+/// @param left_out  one line per module of the scope the data leaves out.
+export write_stamp :: fn(
+    dir: string,
+    inputs: DocInputs,
+    checked: DocCheck,
+    left_out: string[],
+) -> void {
     if inputs.header.len() == 0 {
         return
     }
     seen :: loaded_lines(checked)
     lines: string[]: [input_key(inputs, seen.lines)]
     lines.push_all(seen.folders)
+    lines.push_all(left_out.map((l: string) -> LEFT_OUT_LINE + l).collect())
     write_file_string(join_path(dir, STAMP_FILE), lines.join("\n") + "\n")
 }
 
 // The stamp's file name in the data folder.
 STAMP_FILE :: "stamp"
 
-// What a stamp records: its first line, then one folder per line.
+// What opens a line of the stamp that names a module left out; a folder, absolute,
+// cannot open with it.
+LEFT_OUT_LINE :: "left out "
+
+// What a stamp records: its key on its first line, then a line per folder and
+// per module left out.
 Stamp :: struct {
     key: string
     /// The folders of the files the load read, sorted.
     folders: string[]
+    left_out: string[]
 }
 
 // The stamp under `dir`, null when there is none.
@@ -120,11 +153,16 @@ read_stamp :: fn(dir: string) -> Stamp | null {
         return null
     }
     lines :: text.trim().split("\n")
-    folders: string[]: []
+    stamp :: Stamp { .key = lines[0], .folders = [], .left_out = [] }
     for i in 1..<lines.len() {
-        folders.push(lines[i])
+        line :: lines[i]
+        if line.starts_with(LEFT_OUT_LINE) {
+            stamp.left_out.push(line.trim_prefix(LEFT_OUT_LINE))
+        } else {
+            stamp.folders.push(line)
+        }
     }
-    return Stamp { .key = lines[0], .folders = folders }
+    return stamp
 }
 
 // The folders of the files a load read, and the lines of the key that describe
@@ -207,6 +245,15 @@ manifest_hash :: fn(root: string) -> string {
     return "${text.hash()}"
 }
 
+// The entry as the key writes it: the synthetic one as it is, any other file
+// normalized.
+entry_key :: fn(entry: string) -> string {
+    if entry == SYNTHETIC_ENTRY {
+        return entry
+    }
+    return normalized_path(entry)
+}
+
 // The project folder `root` as `normalized_path` spells it, "" for none.
 normalized_root :: fn(root: string) -> string {
     if root == "" {
@@ -215,7 +262,10 @@ normalized_root :: fn(root: string) -> string {
     return normalized_path(root)
 }
 
-// `path` absolute and normalized: one spelling for a file, whatever the loader
-// or the command line wrote.
-normalized_path :: fn(path: string) -> string =
+/// `path` absolute and normalized: one spelling for a file, whatever the loader
+/// or the command line wrote. The data names its files from a folder spelled
+/// this way.
+///
+/// @param path  a `/`-separated path, relative to the working directory or absolute.
+export normalized_path :: fn(path: string) -> string =
     absolute_path(path).to_path().normalize().as_string()

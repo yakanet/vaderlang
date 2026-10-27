@@ -93,16 +93,16 @@ test("doc reads the project --project names as if it ran there", async () => {
   ]);
 }, MEDIUM_BUILD);
 
-// A module left out writes no stamp: the next run reads the modules again and
-// says it again.
+// What a run leaves out follows from what its stamp covers: the stamp keeps it,
+// and a run on data still up to date says it again.
 test("doc names a module another folder shadows, and leaves it out", async () => {
   const dir = stage("left_out");
-  for (let run = 0; run < 2; run++) {
+  for (const status of ["modules written", "is up to date"]) {
     const r = await spawnCapture(["doc", "apps"], { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: MEDIUM_BUILD });
     expect(r.exit).toBe(0);
     expect(r.stderr).toContain("`json` (`apps/json`) is shadowed by the module of ");
+    expect(r.stdout).toContain(status);
   }
-  expect(existsSync(join(dir, "build", "doc", "stamp"))).toBe(false);
   const index = JSON.parse(readFileSync(join(dir, "build", "doc", "index.json"), "utf8"));
   expect(index.modules.map((m: { path: string }) => m.path)).toEqual(["apps/app"]);
 }, MEDIUM_BUILD);
@@ -232,4 +232,124 @@ test("doc refuses a path that holds no module", async () => {
   const r = await spawnCapture(["doc", "nowhere"], { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: MEDIUM_BUILD });
   expect(r.exit).toBe(2);
   expect(r.stderr).toContain("`nowhere` does not exist");
+}, MEDIUM_BUILD);
+
+// `vader doc --search=<query>` in the staged copy `dir`: the project's modules
+// and the toolchain's library.
+function search(dir: string, query: string) {
+  return spawnCapture(["doc", `--search=${query}`], { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: MEDIUM_BUILD });
+}
+
+test("doc --search shows a declaration it names in full", async () => {
+  const r = await search(stage("shapes"), "distance");
+  expect(r.stderr).toBe("");
+  expect(r.exit).toBe(0);
+  expect(r.stdout).toBe([
+    "module shapes/geometry  shapes/geometry/geometry.vader:28:8",
+    "",
+    "export distance :: fn(a: Point, b: Point) -> f64",
+    "    The distance between `a` and `b`. Always positive or zero.",
+    "",
+    "    Parameters:",
+    "      a  the first point.",
+    "      b  the second point, possibly `a` itself.",
+    "    Returns:",
+    "      the distance, in the unit of the points.",
+    "    Example:",
+    "      distance(o, Point { .x = 3.0, .y = 4.0 })   // 5.0",
+    "",
+  ].join("\n"));
+}, MEDIUM_BUILD);
+
+test("doc --search shows the header of a module it names, then a line per export", async () => {
+  const r = await search(stage("shapes"), "geometry");
+  expect(r.exit).toBe(0);
+  expect(r.stdout).toStartWith(
+    "module shapes/geometry\n\nshapes/geometry: the `vader doc` fixture's main module, over two files.\n",
+  );
+  expect(r.stdout).toContain("\nexport distance :: fn(a: Point, b: Point) -> f64\n");
+  expect(r.stdout).toContain("\nexport twice :: fn(n: i32) -> i32\n");
+  expect(r.stdout).not.toContain("Parameters:");
+}, MEDIUM_BUILD);
+
+// A lower-case letter of the query matches either case: `point` names `Point`.
+test("doc --search shows a member its type names", async () => {
+  const r = await search(stage("shapes"), "point.x");
+  expect(r.exit).toBe(0);
+  expect(r.stdout).toBe("module shapes/geometry  shapes/geometry/geometry.vader:12:5\n\nx: f64\n    The abscissa.\n");
+}, MEDIUM_BUILD);
+
+test("doc --search shows every overload of a name", async () => {
+  const r = await search(stage("shapes"), "scaled");
+  expect(r.exit).toBe(0);
+  expect(r.stdout).toContain("export scaled :: fn(p: Point, k: f64) -> Point\n");
+  expect(r.stdout).toContain("export scaled :: fn(p: Point, k: i32) -> Point\n");
+  expect(r.stdout.split("module shapes/geometry  ").length - 1).toBe(2);
+}, MEDIUM_BUILD);
+
+test("doc --search reaches the toolchain's library from a project", async () => {
+  const r = await search(stage("shapes"), "io.read_file_bytes");
+  expect(r.stderr).toBe("");
+  expect(r.exit).toBe(0);
+  expect(r.stdout).toStartWith("module std/io  ");
+  expect(r.stdout).toContain("\nexport read_file_bytes :: fn(");
+}, MEDIUM_BUILD);
+
+test("doc --search names the platforms of an `@target` group", async () => {
+  const r = await search(stage("shapes"), "separator");
+  expect(r.exit).toBe(0);
+  expect(r.stdout).toContain("\nexport separator :: fn() -> string\n");
+  expect(r.stdout).toContain("\n    Platforms: darwin, linux, windows\n");
+}, MEDIUM_BUILD);
+
+// The place is `<file>:<line>:<column>` from the working directory, which the
+// terminal of an editor opens.
+test("doc --search names the file of a declaration from the working directory", async () => {
+  const dir = stage("shapes");
+  const r = await spawnCapture(["doc", `--project=${dir}`, "--search=pin"], {
+    cwd: join(dir, "shapes", "text"),
+    env: TOOLCHAIN_ENV,
+    timeoutMs: MEDIUM_BUILD,
+  });
+  expect(r.exit).toBe(0);
+  expect(r.stdout).toStartWith("module shapes/text  pin.vader:8:8\n");
+}, MEDIUM_BUILD);
+
+test("doc --search lists the names that contain a query that names nothing", async () => {
+  const r = await search(stage("shapes"), "read_fi");
+  expect(r.exit).toBe(0);
+  expect(r.stdout).toStartWith("nothing is named `read_fi`; names that contain `read_fi`:\n");
+  expect(r.stdout).toContain("\n  std/io.read_file_bytes ");
+  expect(r.stdout).toContain("\n  std/io.read_file_string ");
+}, MEDIUM_BUILD);
+
+test("doc --search lists the modules that contain a query that names nothing", async () => {
+  const r = await search(stage("shapes"), "geom");
+  expect(r.exit).toBe(0);
+  expect(r.stdout).toContain("\n  shapes/geometry ");
+}, MEDIUM_BUILD);
+
+test("doc --search fails on a query no name contains", async () => {
+  const r = await search(stage("shapes"), "zzz");
+  expect(r.exit).toBe(1);
+  expect(r.stdout).toBe("nothing is named `zzz`, and no name contains `zzz`\n");
+}, MEDIUM_BUILD);
+
+test("doc --search refuses an empty query", async () => {
+  const r = await search(stage("shapes"), "");
+  expect(r.exit).toBe(2);
+  expect(r.stderr).toContain("`--search` expects a query");
+}, MEDIUM_BUILD);
+
+// The data is brought up to date before it is searched: a name the first search
+// could not see is found by the next.
+test("doc --search finds what a file gained since the last search", async () => {
+  const dir = stage("shapes");
+  expect((await search(dir, "freshly_added")).exit).toBe(1);
+  const area = join(dir, "shapes", "geometry", "area.vader");
+  writeFileSync(area, readFileSync(area, "utf8") + "\n/// Added after the first search.\nexport FRESHLY_ADDED :: 1\n");
+  const r = await search(dir, "freshly_added");
+  expect(r.exit).toBe(0);
+  expect(r.stdout).toContain("\nexport FRESHLY_ADDED :: 1");
+  expect(r.stdout).toContain("\n    Added after the first search.\n");
 }, MEDIUM_BUILD);

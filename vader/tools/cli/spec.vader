@@ -123,6 +123,11 @@ DOC_FLAGS: FlagSpec[]: [
         .value_name = "folder",
         .default_text = "the working directory",
     },
+    FlagSpec {
+        .name = "search",
+        .help = "Show what a query names, the library included: `io.read_file_bytes`, `IOError.kind`",
+        .value_name = "query",
+    },
 ]
 
 BUILD_FLAGS: FlagSpec[]: [

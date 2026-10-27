@@ -3,7 +3,9 @@
 // Loads and type-checks every module under a path with its vaderdoc, from the
 // entry of the project as `vader lint` takes it, and writes what
 // `vader/tools/doc` makes of them to the project's `build/doc/`, unless its
-// stamp says the data there is what it would write.
+// stamp says the data there is what it would write. `--search` brings that data
+// and the data of the toolchain's library up to date the same way, then shows
+// what its query names in them.
 //
 // Same module as `main.vader`: imports are file-scoped, declarations are not.
 
@@ -13,6 +15,7 @@ import "cli"
 import "std/io"
 import "std/iter"
 import "std/path"
+TTY :: import "std/tty"
 import "vader/front/resolver"
 import "vader/pipeline"
 import "vader/support/diagnostics"
@@ -23,13 +26,20 @@ Doc :: import "vader/tools/doc"
 ///
 /// A file that does not parse loses what the parser could not recover, and
 /// the rest is written all the same. Nothing is rewritten when the data is
-/// still what the command would write; a run that reports an error or a module
-/// left out writes no stamp, so that the next one reports it again.
+/// still what the command would write; a run that reports an error writes no
+/// stamp, so that the next one reports it again, and the modules left out are
+/// said again while the data stays up to date.
+///
+/// `vader doc --search=<query> [path]` shows what the query names, as `go doc`
+/// reads one, in that data and in the data of the toolchain's library, which
+/// goes to `build/doc-lib/` beside it: both are brought up to date first.
 ///
 /// @param args  the action's arguments; the first positional is the path.
-/// @return      0 once the data is written or found up to date, 1 when it
-///              cannot be written or holds no module, 2 when the path holds
-///              none or no entry is chosen.
+/// @return      0 once the data is written or found up to date, or the query
+///              shown; 1 when the data cannot be written or holds no module, or
+///              the query matches nothing; 2 when the path holds none, no entry
+///              is chosen, the query is empty, or a set of data to search
+///              cannot be written.
 cmd_doc :: fn(args: string[]) -> i32 {
     parsed :: parse_action("doc", args)
     if parsed is i32 {
@@ -38,58 +48,197 @@ cmd_doc :: fn(args: string[]) -> i32 {
     if reject_extra_positionals("doc", parsed) {
         return 1
     }
+    searching :: parsed.flags["search"] != null
     project :: doc_project(parsed)
     if project is i32 {
-        return project
+        if !searching {
+            return project
+        }
+        eprintln("vader doc: the toolchain's library alone is searched")
+        return search_data(parsed, null, ".")
     }
     // The project folder, the working directory without a project: where the
     // path is read from by default, and the data written.
     home :: project.project_root ?? "."
+    if searching {
+        return search_data(parsed, project, home)
+    }
+    inputs :: path_inputs(parsed, project, home, compiler_digest())
+    if inputs is i32 {
+        return inputs
+    }
+    refreshed :: refresh_data(inputs, home, data_dir(home, DOC_DATA_DIR))
+    for line in refreshed.problems {
+        eprintln(line)
+    }
+    status :: refreshed.status ?? return 1
+    println("vader doc: ${status}")
+    return 0
+}
+
+// `vader doc --search=<query>`: the data of the path, when there is a project
+// or a path argument, and the data of the toolchain's library brought up to
+// date, then what the query names in them, the path's modules first. What the
+// refresh says is kept quiet unless a set of data cannot be written. Without a
+// `project`, the library alone.
+search_data :: fn(parsed: ParsedArgs, project: EntryInProject | null, home: string) -> i32 {
+    query :: parsed.string_flag("search", "")
+    if query == "" {
+        eprintln("vader doc: `--search` expects a query: `--search=read_file_bytes`")
+        return 2
+    }
+    compiler :: compiler_digest()
+    dirs: string[]: []
+    if project != null && (project.project_root != null || action_file(parsed).as_string() != "") {
+        inputs :: path_inputs(parsed, project, home, compiler)
+        if inputs is i32 {
+            return inputs
+        }
+        dirs.push(searchable_data(inputs, home, DOC_DATA_DIR) ?? return 2)
+    }
+    library :: Doc.doc_scope(resolve_sidecar(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER))
+    if library is string {
+        eprintln("vader doc: the toolchain's library cannot be searched: ${library}")
+        return 2
+    }
+    // A module the path's data holds is not read again from the library; one it
+    // left out is, which is what shadowed it.
+    documented: string[]: []
+    for dir in dirs {
+        documented.push_all(Doc.documented_modules(dir))
+    }
+    rest :: library.filter((m: DiscoveredModule) -> !(m.name in documented)).collect()
+    if rest.len() > 0 {
+        inputs :: Doc.doc_inputs(
+            rest,
+            Doc.SYNTHETIC_ENTRY,
+            null,
+            doc_include_paths(rest, home),
+            compiler,
+        )
+        dirs.push(searchable_data(inputs, home, DOC_LIBRARY_DATA_DIR) ?? return 2)
+    }
+    // Colour for a terminal only: a pipe or a file gets the text as it is.
+    colored :: TTY.is_tty(.Stdout) && TTY.should_colorize()
+    shown :: Doc.search_doc(
+        dirs,
+        query,
+        Doc.normalized_path(home),
+        Doc.normalized_path("."),
+        colored,
+    )
+    print(shown.text)
+    if shown.found {
+        return 0
+    }
+    return 1
+}
+
+// The folder of the data `inputs` describe, under `layout` of `home`, brought up
+// to date for a search; null after saying why when it cannot be written.
+searchable_data :: fn(inputs: Doc.DocInputs, home: string, layout: string) -> string | null {
+    out_dir :: data_dir(home, layout)
+    refreshed :: refresh_data(inputs, home, out_dir)
+    if refreshed.status != null {
+        return out_dir
+    }
+    for line in refreshed.problems {
+        eprintln(line)
+    }
+    return null
+}
+
+// What the data of the path `vader doc` documents depends on: the modules under
+// its argument, `home` without one, loaded from the entry of `project`. The
+// exit code after saying why the path holds none.
+path_inputs :: fn(
+    parsed: ParsedArgs,
+    project: EntryInProject,
+    home: string,
+    compiler: string | null,
+) -> Doc.DocInputs | i32 {
     scope :: Doc.doc_scope(doc_path(parsed, home))
     if scope is string {
         eprintln("vader doc: ${scope}")
         return 2
     }
-    out_dir :: Path(join_path(home, DOC_DATA_DIR)).normalize().as_string()
-    inputs :: Doc.doc_inputs(
+    return Doc.doc_inputs(
         scope,
         project.file.as_string(),
         project.project_root,
-        compiler_digest(),
+        doc_include_paths(scope, home),
+        compiler,
     )
-    if Doc.doc_is_fresh(out_dir, inputs) {
-        println("vader doc: `${out_dir}` is up to date")
-        return 0
+}
+
+// The folders a load of `scope` searches beside the roots of its project: the
+// compiler's own sources when it documents the contract a build driver links,
+// which imports them, and when they are found.
+doc_include_paths :: fn(scope: DiscoveredModule[], home: string) -> string[] {
+    if !scope.any_match((m: DiscoveredModule) -> m.name == DRIVER_CONTRACT_MODULE) {
+        return []
     }
-    checked :: Doc.check_scope(inputs.scope, inputs.entry, inputs.project_root)
+    sources :: compiler_source_root(home)
+    if !exists(join_path(sources, COMPILER_SOURCE_MARKER)) {
+        return []
+    }
+    return [sources]
+}
+
+// The folder `layout` names under `home`, normalized.
+data_dir :: fn(home: string, layout: string) -> string =
+    Path(join_path(home, layout)).normalize().as_string()
+
+// What bringing a set of data up to date said.
+Refreshed :: struct {
+    /// What went wrong and the modules left out, for stderr.
+    problems: string[]
+    /// What was done, for stdout; null when the data could not be written.
+    status: string | null
+}
+
+// Bring the data `inputs` describe under `out_dir` up to date, unless its stamp
+// says it is, the files named relative to `home`.
+refresh_data :: fn(inputs: Doc.DocInputs, home: string, out_dir: string) -> Refreshed {
+    fresh :: Doc.fresh_doc_data(out_dir, inputs)
+    if fresh != null {
+        return Refreshed {
+            .problems = left_out_lines(fresh),
+            .status = "`${out_dir}` is up to date",
+        }
+    }
+    checked :: Doc.check_scope(inputs)
+    problems: string[]: []
     // Errors only: a warning says nothing about what the data shows.
     errors :: checked.diags.filter((d: Diagnostic) -> d.severity == .Error).collect()
     if errors.len() > 0 {
-        eprintln(errors.dump_diagnostics_with_file())
+        problems.push(errors.dump_diagnostics_with_file())
     }
-    documented :: Doc.index_modules(
-        checked,
-        scope,
-        Path(absolute_path(home)).normalize().as_string(),
-    )
-    for line in documented.left_out {
-        eprintln("vader doc: ${line}, left out")
-    }
+    documented :: Doc.index_modules(checked, inputs.scope, Doc.normalized_path(home))
+    problems.push_all(left_out_lines(documented.left_out))
     if documented.modules.len() == 0 {
-        eprintln("vader doc: no module to document${without_project_hint(project)}")
-        return 1
+        problems.push(
+            "vader doc: no module to document${without_project_hint(inputs.project_root)}",
+        )
+        return Refreshed { .problems = problems, .status = null }
     }
     written :: Doc.write_doc_data(out_dir, documented.modules)
     if written is IOError {
-        eprintln("vader doc: cannot write `${out_dir}`: ${written.message()}")
-        return 1
+        problems.push("vader doc: cannot write `${out_dir}`: ${written.message()}")
+        return Refreshed { .problems = problems, .status = null }
     }
-    if errors.len() == 0 && documented.left_out.len() == 0 {
-        Doc.write_stamp(out_dir, inputs, checked)
+    if errors.len() == 0 {
+        Doc.write_stamp(out_dir, inputs, checked, documented.left_out)
     }
-    println("vader doc: ${documented.modules.len()} modules written to `${out_dir}`")
-    return 0
+    return Refreshed {
+        .problems = problems,
+        .status = "${documented.modules.len()} modules written to `${out_dir}`",
+    }
 }
+
+// The lines that say the modules of `left_out` are left out.
+left_out_lines :: fn(left_out: string[]) -> string[] =
+    left_out.map((line: string) -> "vader doc: ${line}, left out").collect()
 
 // The project of `vader doc` and the entry its load starts from: the folder
 // `--project` names, else the working directory, and its entry as `vader lint`
@@ -140,8 +289,8 @@ doc_path :: fn(parsed: ParsedArgs, home: string) -> string {
 }
 
 // Why nothing could be documented, when the cause is the missing project.
-without_project_hint :: fn(project: EntryInProject) -> string {
-    if project.project_root != null {
+without_project_hint :: fn(project_root: string | null) -> string {
+    if project_root != null {
         return ""
     }
     return ": the working directory holds no project, and only the toolchain's modules are "

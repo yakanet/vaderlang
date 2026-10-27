@@ -25,7 +25,8 @@
       "name": "square_area",
       "kind": "fn",
       "signature": "export square_area :: fn(side: f64) -> f64",
-      "summary": "The area of the square of side `side`."
+      "summary": "The area of the square of side `side`.",
+      "owner": ""
     },
     {
       "id": "shapes/geometry/separator",
@@ -33,7 +34,8 @@
       "name": "separator",
       "kind": "fn",
       "signature": "export separator :: fn() -> string",
-      "summary": "The separator of a path, on the machine the program runs on."
+      "summary": "The separator of a path, on the machine the program runs on.",
+      "owner": ""
     },
     {
       "id": "shapes/geometry/Point",
@@ -41,7 +43,8 @@
       "name": "Point",
       "kind": "struct",
       "signature": "export Point :: struct",
-      "summary": "A point of the plane."
+      "summary": "A point of the plane.",
+      "owner": ""
     },
     {
       "id": "shapes/geometry/Point.x",
@@ -49,7 +52,8 @@
       "name": "x",
       "kind": "field",
       "signature": "x: f64",
-      "summary": "The abscissa."
+      "summary": "The abscissa.",
+      "owner": "shapes/geometry/Point"
     },
     {
       "id": "shapes/geometry/Point.y",
@@ -57,7 +61,8 @@
       "name": "y",
       "kind": "field",
       "signature": "y: f64",
-      "summary": ""
+      "summary": "",
+      "owner": "shapes/geometry/Point"
     },
     {
       "id": "shapes/geometry/distance",
@@ -65,7 +70,8 @@
       "name": "distance",
       "kind": "fn",
       "signature": "export distance :: fn(a: Point, b: Point) -> f64",
-      "summary": "The distance between `a` and `b`."
+      "summary": "The distance between `a` and `b`.",
+      "owner": ""
     },
     {
       "id": "shapes/geometry/scaled~0",
@@ -73,7 +79,8 @@
       "name": "scaled",
       "kind": "fn",
       "signature": "export scaled :: fn(p: Point, k: f64) -> Point",
-      "summary": "`p`, `k` times as far from the origin."
+      "summary": "`p`, `k` times as far from the origin.",
+      "owner": ""
     },
     {
       "id": "shapes/geometry/scaled~1",
@@ -81,7 +88,8 @@
       "name": "scaled",
       "kind": "fn",
       "signature": "export scaled :: fn(p: Point, k: i32) -> Point",
-      "summary": "`p`, `k` times as far from the origin, `k` whole."
+      "summary": "`p`, `k` times as far from the origin, `k` whole.",
+      "owner": ""
     },
     {
       "id": "shapes/geometry/Quadrant",
@@ -89,7 +97,8 @@
       "name": "Quadrant",
       "kind": "enum",
       "signature": "export Quadrant :: enum",
-      "summary": ""
+      "summary": "",
+      "owner": ""
     },
     {
       "id": "shapes/geometry/Quadrant.First",
@@ -97,7 +106,8 @@
       "name": "First",
       "kind": "variant",
       "signature": "First",
-      "summary": "Both coordinates positive."
+      "summary": "Both coordinates positive.",
+      "owner": "shapes/geometry/Quadrant"
     },
     {
       "id": "shapes/geometry/Quadrant.Second",
@@ -105,7 +115,8 @@
       "name": "Second",
       "kind": "variant",
       "signature": "Second",
-      "summary": ""
+      "summary": "",
+      "owner": "shapes/geometry/Quadrant"
     },
     {
       "id": "shapes/geometry/ORIGIN",
@@ -113,7 +124,8 @@
       "name": "ORIGIN",
       "kind": "const",
       "signature": "export ORIGIN :: Point { .x = 0.0, .y = 0.0 }",
-      "summary": "The origin of the plane."
+      "summary": "The origin of the plane.",
+      "owner": ""
     },
     {
       "id": "shapes/geometry/twice",
@@ -121,7 +133,8 @@
       "name": "twice",
       "kind": "fn",
       "signature": "export twice :: fn(n: i32) -> i32",
-      "summary": "`n`, twice: its return type is left to inference."
+      "summary": "`n`, twice: its return type is left to inference.",
+      "owner": ""
     },
     {
       "id": "shapes/text/pin",
@@ -129,7 +142,8 @@
       "name": "pin",
       "kind": "fn",
       "signature": "export pin :: fn(tag: Tag, at: Geo.Point) -> Tag",
-      "summary": "`tag`, pinned at a point of the plane."
+      "summary": "`tag`, pinned at a point of the plane.",
+      "owner": ""
     },
     {
       "id": "shapes/text/tags_of",
@@ -137,7 +151,8 @@
       "name": "tags_of",
       "kind": "fn",
       "signature": "export tags_of :: fn<T: Named>(items: T[]) -> Tag[]",
-      "summary": "The tags of `items`, a tag per item."
+      "summary": "The tags of `items`, a tag per item.",
+      "owner": ""
     },
     {
       "id": "shapes/text/Named",
@@ -145,7 +160,8 @@
       "name": "Named",
       "kind": "trait",
       "signature": "export Named :: trait",
-      "summary": "What can name itself."
+      "summary": "What can name itself.",
+      "owner": ""
     },
     {
       "id": "shapes/text/Named.name",
@@ -153,7 +169,8 @@
       "name": "name",
       "kind": "method",
       "signature": "name :: fn(self) -> string",
-      "summary": "The name, as a reader sees it."
+      "summary": "The name, as a reader sees it.",
+      "owner": "shapes/text/Named"
     },
     {
       "id": "shapes/text/Label",
@@ -161,7 +178,8 @@
       "name": "Label",
       "kind": "type",
       "signature": "export Label :: string",
-      "summary": "A label: some text."
+      "summary": "A label: some text.",
+      "owner": ""
     },
     {
       "id": "shapes/text/Tag",
@@ -169,7 +187,8 @@
       "name": "Tag",
       "kind": "struct",
       "signature": "export Tag :: struct",
-      "summary": "A tag on a shape."
+      "summary": "A tag on a shape.",
+      "owner": ""
     },
     {
       "id": "shapes/text/Tag.text",
@@ -177,7 +196,8 @@
       "name": "text",
       "kind": "field",
       "signature": "text: string",
-      "summary": ""
+      "summary": "",
+      "owner": "shapes/text/Tag"
     },
     {
       "id": "shapes/text/Tag: Named",
@@ -185,7 +205,8 @@
       "name": "Tag: Named",
       "kind": "impl",
       "signature": "Tag implements Named",
-      "summary": "A tag is named by its text."
+      "summary": "A tag is named by its text.",
+      "owner": "shapes/text/Tag"
     },
     {
       "id": "shapes/text/Tag: Named.name",
@@ -193,7 +214,8 @@
       "name": "name",
       "kind": "method",
       "signature": "name :: fn(self) -> string",
-      "summary": "The text of the tag, its return type left to inference."
+      "summary": "The text of the tag, its return type left to inference.",
+      "owner": "shapes/text/Tag: Named"
     }
   ]
 }

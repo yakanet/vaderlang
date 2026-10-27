@@ -51,25 +51,20 @@ export DocCheck :: struct {
     diags: Diagnostic[]
 }
 
-/// Load the modules of `scope` with their vaderdoc, and type-check them as a
-/// build does, short of evaluating anything at compile time.
+/// Load the modules of `inputs.scope` with their vaderdoc, and type-check them
+/// as a build does, short of evaluating anything at compile time.
 ///
-/// @param scope         the modules to document, from `doc_scope`.
-/// @param entry         the file the project's build starts from,
-///                      `SYNTHETIC_ENTRY` without a project.
-/// @param project_root  the project folder, null for none.
-/// @return              the load of `entry`, the modules of `scope` seeded.
-export check_scope :: fn(
-    scope: DiscoveredModule[],
-    entry: string,
-    project_root: string | null,
-) -> DocCheck {
+/// @param inputs  what to load (`doc_inputs`): the load starts from its entry,
+///                `SYNTHETIC_ENTRY` without a project, and searches the roots of
+///                its project and its include paths.
+/// @return        the load of the entry, the modules of the scope seeded.
+export check_scope :: fn(inputs: DocInputs) -> DocCheck {
     project :: load_project_with_overlay(
-        entry,
+        inputs.entry,
         doc_overlay(),
-        [],
-        project_root,
-        extra_seeds = scope.map((m: DiscoveredModule) -> m.name).collect(),
+        inputs.include_paths,
+        inputs.project_root,
+        extra_seeds = inputs.scope.map((m: DiscoveredModule) -> m.name).collect(),
         keep_docs = true,
     )
     diags: Diagnostic[]: []

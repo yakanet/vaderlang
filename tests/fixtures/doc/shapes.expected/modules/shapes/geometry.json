@@ -20,6 +20,7 @@
       "inferred": null,
       "file": "shapes/geometry/area.vader",
       "line": 9,
+      "column": 8,
       "doc": {
         "summary": "The area of the square of side `side`.",
         "prose": "The area of the square of side `side`.",
@@ -50,6 +51,7 @@
       "inferred": null,
       "file": "shapes/geometry/area.vader",
       "line": 13,
+      "column": 8,
       "doc": {
         "summary": "The separator of a path, on the machine the program runs on.",
         "prose": "The separator of a path, on the machine the program runs on.",
@@ -77,6 +79,7 @@
       "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 10,
+      "column": 8,
       "doc": {
         "summary": "A point of the plane.",
         "prose": "A point of the plane.\n\nBoth coordinates are in the same unit.",
@@ -98,6 +101,7 @@
           ],
           "inferred": null,
           "line": 12,
+          "column": 5,
           "doc": {
             "summary": "The abscissa.",
             "prose": "The abscissa.",
@@ -118,6 +122,7 @@
           ],
           "inferred": null,
           "line": 13,
+          "column": 5,
           "doc": null
         }
       ]
@@ -150,6 +155,7 @@
       "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 28,
+      "column": 8,
       "doc": {
         "summary": "The distance between `a` and `b`.",
         "prose": "The distance between `a` and `b`. Always positive or zero.",
@@ -197,6 +203,7 @@
       "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 31,
+      "column": 8,
       "doc": {
         "summary": "`p`, `k` times as far from the origin.",
         "prose": "`p`, `k` times as far from the origin.",
@@ -241,6 +248,7 @@
       "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 34,
+      "column": 8,
       "doc": {
         "summary": "`p`, `k` times as far from the origin, `k` whole.",
         "prose": "`p`, `k` times as far from the origin, `k` whole.",
@@ -264,6 +272,7 @@
       "inferred": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 36,
+      "column": 8,
       "doc": null,
       "targets": [],
       "members": [
@@ -278,6 +287,7 @@
           ],
           "inferred": null,
           "line": 38,
+          "column": 5,
           "doc": {
             "summary": "Both coordinates positive.",
             "prose": "Both coordinates positive.",
@@ -298,6 +308,7 @@
           ],
           "inferred": null,
           "line": 39,
+          "column": 5,
           "doc": null
         }
       ]
@@ -330,6 +341,7 @@
       },
       "file": "shapes/geometry/geometry.vader",
       "line": 43,
+      "column": 8,
       "doc": {
         "summary": "The origin of the plane.",
         "prose": "The origin of the plane.",
@@ -367,6 +379,7 @@
       },
       "file": "shapes/geometry/geometry.vader",
       "line": 46,
+      "column": 8,
       "doc": {
         "summary": "`n`, twice: its return type is left to inference.",
         "prose": "`n`, twice: its return type is left to inference.",

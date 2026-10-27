@@ -41,6 +41,7 @@
       "inferred": null,
       "file": "shapes/text/pin.vader",
       "line": 8,
+      "column": 8,
       "doc": {
         "summary": "`tag`, pinned at a point of the plane.",
         "prose": "`tag`, pinned at a point of the plane.",
@@ -80,6 +81,7 @@
       "inferred": null,
       "file": "shapes/text/pin.vader",
       "line": 11,
+      "column": 8,
       "doc": {
         "summary": "The tags of `items`, a tag per item.",
         "prose": "The tags of `items`, a tag per item.",
@@ -103,6 +105,7 @@
       "inferred": null,
       "file": "shapes/text/text.vader",
       "line": 6,
+      "column": 8,
       "doc": {
         "summary": "What can name itself.",
         "prose": "What can name itself.",
@@ -124,6 +127,7 @@
           ],
           "inferred": null,
           "line": 8,
+          "column": 5,
           "doc": {
             "summary": "The name, as a reader sees it.",
             "prose": "The name, as a reader sees it.",
@@ -147,6 +151,7 @@
       "inferred": null,
       "file": "shapes/text/text.vader",
       "line": 12,
+      "column": 8,
       "doc": {
         "summary": "A label: some text.",
         "prose": "A label: some text.",
@@ -170,6 +175,7 @@
       "inferred": null,
       "file": "shapes/text/text.vader",
       "line": 15,
+      "column": 8,
       "doc": {
         "summary": "A tag on a shape.",
         "prose": "A tag on a shape.",
@@ -191,6 +197,7 @@
           ],
           "inferred": null,
           "line": 16,
+          "column": 5,
           "doc": null
         }
       ]
@@ -217,6 +224,7 @@
       "inferred": null,
       "file": "shapes/text/text.vader",
       "line": 20,
+      "column": 1,
       "doc": {
         "summary": "A tag is named by its text.",
         "prose": "A tag is named by its text.",
@@ -246,6 +254,7 @@
             ]
           },
           "line": 22,
+          "column": 5,
           "doc": {
             "summary": "The text of the tag, its return type left to inference.",
             "prose": "The text of the tag, its return type left to inference.",

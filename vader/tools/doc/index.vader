@@ -68,6 +68,9 @@ export DocDecl :: struct {
     file: string
     /// The line of its name, from 1; of its first line for an impl.
     line: i32
+    /// The column of its name on that line, from 1, in codepoints; of the start
+    /// of its first line for an impl.
+    column: i32
     /// Its vaderdoc split by its tags, null without one.
     doc: DocSections | null
     /// The platforms an `@target` group exists on; empty for a declaration that
@@ -95,6 +98,8 @@ export DocMember :: struct {
     inferred: DocSegment[] = []
     /// The line of its name, from 1.
     line: i32
+    /// The column of its name on that line, from 1, in codepoints.
+    column: i32
     doc: DocSections | null
 }
 
@@ -191,6 +196,7 @@ doc_decl :: fn(ctx: FileContext, d: Decl) -> DocDecl | null {
         .inferred = inferred,
         .file = ctx.path,
         .line = name_span.start.line,
+        .column = name_span.start.column,
         .doc = sections_of(decl_doc(d)),
         .targets = targets_of(d, ctx.target_decls),
         .members = members_of(ctx, d),
@@ -207,6 +213,7 @@ impl_decl :: fn(ctx: FileContext, d: ImplDecl) -> DocDecl {
         .signature = head_segments(ctx, format_impl_head(ctx.file.content, d)),
         .file = ctx.path,
         .line = d.span.start.line,
+        .column = d.span.start.column,
         .doc = sections_of(d.doc),
         .trait_name = trait_name,
         .for_type = for_type,
@@ -225,12 +232,15 @@ assign_ids :: fn(module: string, decls: DocDecl[]) -> void {
     for d in decls {
         n :: seen[d.name] ?? 0
         seen[d.name] = n + 1
-        d.id = "${module}/${d.name}${overload_suffix(counts[d.name] ?? 0, n)}"
+        d.id = doc_id(module, d.name) + overload_suffix(counts[d.name] ?? 0, n)
         for m in d.members {
             m.id = "${d.id}.${m.name}"
         }
     }
 }
+
+// The id of the declaration `name` of `module`, an overloaded one's `~n` aside.
+doc_id :: fn(module: string, name: string) -> string = "${module}/${name}"
 
 // `~n` for the n-th declaration of a name `count` declarations share, "" for a
 // name only one declares.
@@ -308,6 +318,7 @@ members_of :: fn(ctx: FileContext, d: Decl) -> DocMember[] = match d {
             .kind = "field",
             .signature = head_segments(ctx, format_field_head(ctx.file.content, f)),
             .line = f.span.start.line,
+            .column = f.span.start.column,
             .doc = sections_of(f.doc),
         },
     ).collect()
@@ -317,6 +328,7 @@ members_of :: fn(ctx: FileContext, d: Decl) -> DocMember[] = match d {
             .kind = "variant",
             .signature = head_segments(ctx, format_variant_head(ctx.file.content, v)),
             .line = v.span.start.line,
+            .column = v.span.start.column,
             .doc = sections_of(v.doc),
         },
     ).collect()
@@ -337,6 +349,7 @@ method_member :: fn(ctx: FileContext, fd: FnDecl) -> DocMember {
         .signature = signature_of(ctx, "", fd, inferred),
         .inferred = inferred,
         .line = fd.name_span.start.line,
+        .column = fd.name_span.start.column,
         .doc = sections_of(fd.doc),
     }
 }

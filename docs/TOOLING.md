@@ -89,12 +89,12 @@ An empty modifier list is dropped: `import "p" {}` becomes `import "p"`.
 
 The modules are read and type-checked as the project's build reads them, from its entry, without evaluating anything at compile time: the project is the working directory, or the folder `--project` names, which `path` defaults to, and its entry the only one of its `vader.json`, or the one `--entry` names. A project its `build.vader` describes is not supported yet. Without a project, only the toolchain's search roots are read, and the data goes to the working directory. A module these roots do not reach, or that another folder of the same name shadows, is named and left out, and a file that does not parse loses only what the parser could not recover.
 
-Nothing is rewritten while the data is what the command would write: `build/doc/stamp` holds a key over the files the load read and their folders, the roots it searched, the entry, the path documented, the project's `vader.json` and the compiler. A file no load reaches changes nothing. A run that reports an error or a module left out writes no stamp, so the next one reports it again; deleting `build/doc/` forces a new run.
+Nothing is rewritten while the data is what the command would write: `build/doc/stamp` holds a key over the files the load read and their folders, the roots it searched, the entry, the path documented, the project's `vader.json` and the compiler. A file no load reaches changes nothing. A run that reports an error writes no stamp, so the next one reports it again; the modules a run leaves out follow from what the key covers, so the stamp keeps them and a run on data still up to date names them again. Deleting `build/doc/` forces a new run.
 
 The data is JSON, at `version` 1, a draft that may still change:
 
-- `index.json` lists the `modules` (`path`, `summary`, `files`) and, in `entries`, every export, impl and member with what a list shows of it: `id`, `module`, `name`, `kind`, the text of its `signature` and `summary`, the first sentence of its vaderdoc.
-- `modules/<path>.json` holds one module whole: its `summary`, the `header` of its main file, its `files` and its `decls`. Each declaration adds `file`, `line`, `doc` (null without a vaderdoc), `targets` and `members`:
+- `index.json` lists the `modules` (`path`, `summary`, `files`) and, in `entries`, every export, impl and member with what a list shows of it: `id`, `module`, `name`, `kind`, the text of its `signature` and `summary`, the first sentence of its vaderdoc, and its `owner`: the id of the declaration a member belongs to, of the type an impl is for (empty for a type no declaration stands for, `T[]` or `string`), empty otherwise.
+- `modules/<path>.json` holds one module whole: its `summary`, the `header` of its main file, its `files` and its `decls`. Each declaration adds `file`, `line` and `column` (of its name, of its first line for an impl, from 1, the column in codepoints), `doc` (null without a vaderdoc), `targets` and `members`:
 
 ```json
 {
@@ -109,6 +109,7 @@ The data is JSON, at `version` 1, a draft that may still change:
   "inferred": null,
   "file": "shapes/text/text.vader",
   "line": 20,
+  "column": 1,
   "doc": {
     "summary": "A tag is named by its text.",
     "prose": "A tag is named by its text.",
@@ -128,6 +129,7 @@ The data is JSON, at `version` 1, a draft that may still change:
       "signature": [{ "text": "name :: fn(self) -> string" }],
       "inferred": { "return": [{ "text": "string" }] },
       "line": 22,
+      "column": 5,
       "doc": {
         "summary": "The text of the tag, its return type left to inference.",
         "prose": "The text of the tag, its return type left to inference.",
@@ -147,6 +149,23 @@ The data is JSON, at `version` 1, a draft that may still change:
 - `inferred` holds what typing gave that the source leaves out, as segments too: `{ "return": T }` for a function or a method without `->`, whose `signature` then ends with ` -> T`, `{ "type": T }` for a constant without a written type, `null` otherwise. Only a struct, a trait, an enum or a distinct type links there: typing keeps no declaration for an alias, so an integer range such as `i32` shows its name without a link.
 - `targets` lists the platforms an `@target` group exists on, and is empty for a function that exists on every platform: one whose bare declaration has a body.
 - `prose` is CommonMark, and `example` is shown as a reader sees it, its hidden `# ` lines left out.
+
+`vader doc --search=<query> [path]` shows what a query names, read the way `go doc` reads one. The data of the path, when there is a project or a path argument, and of the toolchain's library, in `build/doc-lib/` beside `build/doc/` with a stamp of its own, are brought up to date first; the path's modules hide the library's of the same name.
+
+- A query is a module by the end of its path (`io` for `std/io`), an export, a member, joined by dots: `read_file_bytes`, `io.read_file_bytes`, `IOError.kind`, `io.IOError.kind`. A lower-case letter matches either case.
+- A lone name is a module, then an export, then a member. Before a dot, a name is a module, then a type.
+- A module shows its header and the head of each export. An export or a member is shown whole, under the place it is declared at, `<file>:<line>:<column>`, named from the working directory when it lies under it and in full otherwise, which the terminal of an editor opens; an overloaded name shows each overload, and a method of an impl comes inside the impl's head.
+- When nothing is named, the modules and the names that contain the query's last part are listed.
+- On a terminal the text is coloured, unless `NO_COLOR` is set; a pipe or a file gets it plain.
+- The exit code is 0 when something is shown or listed, 1 when nothing matches, 2 for an empty query or data that cannot be written. A project that cannot be read leaves the library to search alone.
+
+```text
+$ vader doc --search=point.x
+module shapes/geometry  shapes/geometry/geometry.vader:12:5
+
+x: f64
+    The abscissa.
+```
 
 ### `vader dump`
 

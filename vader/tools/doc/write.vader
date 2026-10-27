@@ -101,8 +101,9 @@ index_json :: fn(modules: DocModule[]) -> JsonValue {
         item["files"] = json_texts(m.files)
         module_items.push(JsonObject { .entries = item })
         for d in m.decls {
-            signature :: segments_text(d.signature)
-            entries.push(index_entry(m.path, d.id, d.name, d.kind, signature, d.doc))
+            entries.push(
+                index_entry(m.path, d.id, d.name, d.kind, d.signature, d.doc, owner_of_decl(d)),
+            )
             for member in d.members {
                 entries.push(
                     index_entry(
@@ -110,8 +111,9 @@ index_json :: fn(modules: DocModule[]) -> JsonValue {
                         member.id,
                         member.name,
                         member.kind,
-                        segments_text(member.signature),
+                        member.signature,
                         member.doc,
+                        d.id,
                     ),
                 )
             }
@@ -130,17 +132,33 @@ index_entry :: fn(
     id: string,
     name: string,
     kind: string,
-    signature: string,
+    signature: DocSegment[],
     doc: DocSections | null,
+    owner: string,
 ) -> JsonValue {
     entry :: MutableMap<string, JsonValue> {}
     entry["id"] = json_text(id)
     entry["module"] = json_text(module)
     entry["name"] = json_text(name)
     entry["kind"] = json_text(kind)
-    entry["signature"] = json_text(signature)
+    entry["signature"] = json_text(segments_text(signature))
     entry["summary"] = json_text(summary_of(doc))
+    entry["owner"] = json_text(owner)
     return JsonObject { .entries = entry }
+}
+
+// The id of the type the impl `d` is for: the declaration its head names first,
+// when the type is that declaration, with or without type arguments. "" for
+// another declaration, and for a type no declaration stands for (`T[]`, `string`).
+owner_of_decl :: fn(d: DocDecl) -> string {
+    if d.kind != "impl" || d.signature.len() == 0 {
+        return ""
+    }
+    head :: d.signature[0]
+    if head.module == "" || !(d.for_type == head.text || d.for_type.starts_with("${head.text}<")) {
+        return ""
+    }
+    return doc_id(head.module, head.name)
 }
 
 // `modules/<path>.json`: one module whole.
@@ -165,6 +183,7 @@ decl_json :: fn(d: DocDecl) -> JsonValue {
     decl["inferred"] = inferred_json(d.kind, d.inferred)
     decl["file"] = json_text(d.file)
     decl["line"] = JsonNumber { .value = f64(d.line) }
+    decl["column"] = JsonNumber { .value = f64(d.column) }
     decl["doc"] = doc_json(d.doc)
     if d.kind == "impl" {
         decl["trait"] = json_text(d.trait_name)
@@ -184,6 +203,7 @@ member_json :: fn(m: DocMember) -> JsonValue {
     member["signature"] = segments_json(m.signature)
     member["inferred"] = inferred_json(m.kind, m.inferred)
     member["line"] = JsonNumber { .value = f64(m.line) }
+    member["column"] = JsonNumber { .value = f64(m.column) }
     member["doc"] = doc_json(m.doc)
     return JsonObject { .entries = member }
 }

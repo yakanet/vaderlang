@@ -248,11 +248,17 @@ export dir_of :: fn(path: string) -> string { return path.to_path().parent().as_
 /// @param path  a `/`-separated path; one that starts with `/` or a drive letter
 ///              is kept as it is.
 export absolute_path :: fn(path: string) -> string {
-    if path.starts_with("/") || (path.byte_len() > 1 && path.byte_at(1) == ':') {
+    if is_absolute_path(path) {
         return path
     }
     return join_path(current_working_directory(), path)
 }
+
+/// Whether `path` is absolute: it starts with `/`, or with a drive letter.
+///
+/// @param path  a `/`-separated path.
+export is_absolute_path :: fn(path: string) -> bool =
+    path.starts_with("/") || (path.byte_len() > 1 && path.byte_at(1) == ':')
 
 /// Resolve a resource directory `<base>/subdir` next to the executable, falling
 /// back to the bare cwd-relative `subdir`. The sidecar candidate wins only when

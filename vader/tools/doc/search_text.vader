@@ -1,0 +1,318 @@
+// vader/tools/doc/search_text: what `vader doc --search` prints of what it found.
+//
+// A declaration comes under the module and the place it is declared at, as
+// `<file>:<line>:<column>`, which the terminals of the editors open; then its
+// head, its members each under its vaderdoc, its vaderdoc, its platforms and
+// the impls for it. A method of an impl comes inside the head of its impl. A
+// module comes as its header and the head of each export. On a terminal the
+// text is coloured (`search_paint.vader`).
+
+module "vader/tools/doc"
+
+import "std/collections"
+import "std/io"
+import "std/iter"
+import "std/math"
+import "std/string"
+import "toolchain/ast"
+import "vader/front/resolver"
+
+// What writing the text of a search needs.
+TextCtx :: struct {
+    catalog: Catalog
+    /// The absolute folder the files of the data are relative to.
+    base: string
+    /// The working directory as the filesystem resolves it, the files are named
+    /// from.
+    here: string
+    /// Whether the text goes to a terminal that shows colours.
+    colored: bool
+    /// The files named so far, as the text names them: each is resolved once.
+    places: MutableMap<string, string>
+}
+
+// The text of the module `m`: its header, then the head of each export.
+module_text :: fn(ctx: TextCtx, m: IndexModule) -> string {
+    lines: string[]: [module_line(ctx, m.path), ""]
+    header :: module_header(ctx.catalog, m)
+    if header != "" {
+        lines.push_all(painted_paragraphs(ctx, header.split("\n")))
+        lines.push("")
+    }
+    for e in module_entries(ctx.catalog, m) {
+        if is_export(e) {
+            lines.push(painted_code(ctx, e.signature, e.name))
+        }
+    }
+    return text_of(lines)
+}
+
+// The header of the module `m`'s main file, its summary when it does not read.
+module_header :: fn(catalog: Catalog, m: IndexModule) -> string {
+    module :: whole_module(catalog, m.path) ?? return m.summary
+    return module.header
+}
+
+// `entries` in full, a blank line between two.
+entries_text :: fn(ctx: TextCtx, entries: IndexEntry[]) -> string {
+    lines: string[]: []
+    for e in entries {
+        if lines.len() > 0 {
+            lines.push("")
+        }
+        lines.push_all(entry_lines(ctx, e))
+    }
+    return text_of(lines)
+}
+
+// `lines` as one text, each without the blanks it ends with.
+text_of :: fn(lines: string[]) -> string {
+    trimmed :: lines.map((line: string) -> line.right_trim()).collect()
+    return trimmed.join("\n") + "\n"
+}
+
+// The lines of `e` in full, from its module read whole; its head alone when
+// the module does not hold it.
+entry_lines :: fn(ctx: TextCtx, e: IndexEntry) -> string[] {
+    module :: whole_module(ctx.catalog, e.module) ?? return [e.signature]
+    if !is_member(e) {
+        decl :: module.decls.find((d: DocDecl) -> d.id == e.id) ?? return [e.signature]
+        return declaration_lines(ctx, e, decl)
+    }
+    owner :: module.decls.find((d: DocDecl) -> d.id == e.owner) ?? return [e.signature]
+    member :: owner.members.find((m: DocMember) -> m.id == e.id) ?? return [e.signature]
+    lines: string[]: [place(ctx, e, owner.file, member.line, member.column), ""]
+    head :: head_of(ctx, member.name, member.signature, member.inferred, member.kind)
+    if owner.kind == "impl" {
+        lines.push(painted_code(ctx, segments_text(owner.signature), "") + " {")
+        lines.push(INDENT + head)
+        lines.push("}")
+    } else {
+        lines.push(head)
+    }
+    lines.push_all(doc_lines(ctx, member.doc))
+    return lines
+}
+
+// The lines of the declaration `decl` of `e`: its head, its members each under
+// its vaderdoc, its own vaderdoc and platforms, then the impls for it.
+declaration_lines :: fn(ctx: TextCtx, e: IndexEntry, decl: DocDecl) -> string[] {
+    lines: string[]: [place(ctx, e, decl.file, decl.line, decl.column), ""]
+    head :: head_of(ctx, decl.name, decl.signature, decl.inferred, decl.kind)
+    if decl.members.len() == 0 {
+        lines.push(head)
+    } else {
+        lines.push("${head} {")
+        for m in decl.members {
+            if m.doc != null {
+                for line in m.doc.prose.split("\n") {
+                    comment :: "/// ${line}"
+                    lines.push(INDENT + painted(ctx, .Comment, comment))
+                }
+            }
+            lines.push(INDENT + head_of(ctx, m.name, m.signature, m.inferred, m.kind))
+        }
+        lines.push("}")
+    }
+    lines.push_all(doc_lines(ctx, decl.doc))
+    if decl.targets.len() > 0 {
+        lines.push(INDENT + painted(ctx, .Label, "Platforms:") + " " + decl.targets.join(", "))
+    }
+    for_decl :: (i: IndexEntry) -> i.kind == "impl" && i.owner == decl.id
+    impls :: ctx.catalog.entries.filter(for_decl).collect()
+    if impls.len() > 0 {
+        lines.push("")
+        lines.push_all(impls.map((i: IndexEntry) -> painted_code(ctx, i.signature, "")).collect())
+    }
+    return lines
+}
+
+// `module <path>  <file>:<line>:<column>`, the file named from the working
+// directory when it lies under it. The working directory and the file are both
+// resolved first: one spelled through a link would not lie under the other.
+place :: fn(ctx: TextCtx, e: IndexEntry, file: string, line: i32, column: i32) -> string {
+    named :: ctx.places[file] ?? named_from_here(ctx, file)
+    ctx.places[file] = named
+    return module_line(ctx, e.module) + "  " + painted(ctx, .Place, "${named}:${line}:${column}")
+}
+
+// The file `file` of the data as the text names it.
+named_from_here :: fn(ctx: TextCtx, file: string) -> string {
+    whole :: if_relative(file, ctx.base)
+    return display_path(resolved(whole), ctx.here)
+}
+
+// `file` under `base` when it is relative, as it is otherwise.
+if_relative :: fn(file: string, base: string) -> string {
+    if is_absolute_path(file) {
+        return file
+    }
+    return join_path(base, file)
+}
+
+// `path` as the filesystem resolves it, as written when it does not resolve.
+resolved :: fn(path: string) -> string {
+    real :: real_path(path)
+    if real is IOError {
+        return path
+    }
+    return real
+}
+
+// `module <path>`: what opens the text of a module or of a declaration.
+module_line :: fn(ctx: TextCtx, path: string) -> string =
+    painted(ctx, .Comment, "module") + " " + painted(ctx, .Module, path)
+
+// The head of `name`, what typing gave it that its source leaves out said in a
+// comment.
+head_of :: fn(
+    ctx: TextCtx,
+    name: string,
+    signature: DocSegment[],
+    inferred: DocSegment[],
+    kind: string,
+) -> string {
+    head :: painted_code(ctx, segments_text(signature), name)
+    if inferred.len() == 0 {
+        return head
+    }
+    if kind == "const" {
+        comment :: "// type inferred: ${segments_text(inferred)}"
+        return head + "  " + painted(ctx, .Comment, comment)
+    }
+    return head + "  " + painted(ctx, .Comment, "// return type inferred")
+}
+
+// The lines of `doc` under the head it documents: its prose, then its
+// parameters, returns, errors and example, a blank line between the two. None
+// without a vaderdoc.
+doc_lines :: fn(ctx: TextCtx, doc: DocSections | null) -> string[] {
+    if doc == null {
+        return []
+    }
+    lines: string[]: []
+    if doc.prose != "" {
+        lines.push_all(behind(INDENT, painted_paragraphs(ctx, doc.prose.split("\n"))))
+    }
+    tags: string[]: []
+    if doc.params.len() > 0 {
+        tags.push(INDENT + painted(ctx, .Label, "Parameters:"))
+        width :: widest(doc.params.map((p: DocParam) -> p.name).collect())
+        hang :: INDENT + "  " + " ".repeat(width) + "  "
+        for p in doc.params {
+            text :: painted_paragraphs(ctx, wrapped(p.text, WRAP_WIDTH - hang.len()))
+            name :: painted(ctx, .Name, p.name) + " ".repeat(width - p.name.len())
+            tags.push("${INDENT}  ${name}  ${text[0]}")
+            tags.push_all(behind(hang, text[1..<text.len()]))
+        }
+    }
+    tags.push_all(section(ctx, "Returns:", doc.returns))
+    tags.push_all(section(ctx, "Errors:", doc.errors))
+    example :: shown_example(doc)
+    if example != "" {
+        tags.push(INDENT + painted(ctx, .Label, "Example:"))
+        code :: example.split("\n").map((line: string) -> painted_code(ctx, line, "")).collect()
+        tags.push_all(behind(INDENT + "  ", code))
+    }
+    if lines.len() > 0 && tags.len() > 0 {
+        lines.push("")
+    }
+    lines.push_all(tags)
+    return lines
+}
+
+// What a vaderdoc's lines sit behind, under the head they document.
+INDENT :: "    "
+
+// `lines`, each behind `indent`.
+behind :: fn(indent: string, lines: string[]) -> string[] =
+    lines.map((line: string) -> indent + line).collect()
+
+// The width of the widest of `texts`, in codepoints, as `pad_end` counts.
+widest :: fn(texts: string[]) -> i64 =
+    texts.map((t: string) -> t.len()).fold(0, (w: i64, n: i64) -> max(w, n))
+
+// `title`, then each of `texts` wrapped under it; nothing without texts.
+section :: fn(ctx: TextCtx, title: string, texts: string[]) -> string[] {
+    if texts.len() == 0 {
+        return []
+    }
+    lines: string[]: [INDENT + painted(ctx, .Label, title)]
+    for text in texts {
+        cut :: wrapped(text, WRAP_WIDTH - INDENT.len() - 2)
+        lines.push_all(behind(INDENT + "  ", painted_paragraphs(ctx, cut)))
+    }
+    return lines
+}
+
+// `text` cut at its spaces into lines of at most `width` codepoints. A word
+// longer than a line has a line of its own.
+wrapped :: fn(text: string, width: i64) -> string[] {
+    lines: string[]: []
+    line := ""
+    for word in text.split(" ") {
+        if word == "" {
+            continue
+        }
+        if line != "" && line.len() + 1 + word.len() > width {
+            lines.push(line)
+            line = ""
+        }
+        if line == "" {
+            line = word
+        } else {
+            line = "${line} ${word}"
+        }
+    }
+    lines.push(line)
+    return lines
+}
+
+// The width a vaderdoc's text is wrapped to.
+WRAP_WIDTH: i64: 80
+
+// The list of what contains `needle`, after saying that `query` names nothing.
+list_text :: fn(ctx: TextCtx, query: string, needle: string, listed: Listed[]) -> string {
+    width :: widest(listed.map((l: Listed) -> l.name).collect())
+    opening :: "nothing is named `${query}`; names that contain `${needle}`:"
+    lines: string[]: [painted_paragraphs(ctx, [opening])[0]]
+    for l in listed {
+        name :: painted_qualified(ctx, l.name) + " ".repeat(width - l.name.len())
+        lines.push("  ${name}  ${painted_paragraphs(ctx, [l.summary])[0]}")
+    }
+    return text_of(lines)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A context that writes no colour, over an empty catalog.
+plain_ctx :: fn() -> TextCtx = TextCtx {
+    .catalog = read_catalog([]),
+    .base = "/",
+    .here = "/",
+    .colored = false,
+    .places = MutableMap<string, string> {},
+}
+
+@test
+test_search_text_wraps_at_its_spaces :: fn() -> void {
+    lines :: wrapped("word ".repeat(30).trim(), 76)
+    assert_eq(lines.len(), 2)
+    assert(lines[0].len() <= 76, "the first line fits")
+}
+
+@test
+test_search_text_of_tags_without_prose_has_no_blank_line_first :: fn() -> void {
+    lines :: doc_lines(plain_ctx(), doc_sections("@param n  the count."))
+    assert_eq(lines.join("|"), "    Parameters:|      n  the count.")
+}
+
+@test
+test_search_text_hangs_a_long_parameter_under_its_text :: fn() -> void {
+    words :: "word ".repeat(20).trim()
+    lines :: doc_lines(plain_ctx(), doc_sections("@param n  ${words}"))
+    assert_eq(lines.len(), 3)
+    assert(lines[2].starts_with("         word"), "the second line hangs under the text")
+}

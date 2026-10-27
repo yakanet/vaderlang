@@ -1,0 +1,261 @@
+// vader/tools/doc/search_paint: the colours of `vader doc --search` on a terminal.
+//
+// The 16 colours of the terminal, which follow its theme, in the roles of the
+// site's code: keywords, types, constants, strings, comments; the name declared
+// in bold, the module in the green of the logo, its place dimmed. Off a
+// terminal, or under `NO_COLOR`, every helper gives its text back as it is.
+
+module "vader/tools/doc"
+
+import "std/collections"
+import "std/iter"
+import "std/string"
+TTY :: import "std/tty"
+Ty :: import "vader/core/types"
+Lex :: import "vader/front/lexer"
+import "vader/support/text"
+
+// What a piece of text is, for its colour. Each is a role: two roles may share
+// a colour today and part later.
+Paint :: enum {
+    Module,
+    Place,
+    Keyword,
+    Type,
+    Constant,
+    String,
+    Comment,
+    Name,
+    Label,
+    Code,
+}
+
+// `s` in the colour of `paint`, as it is when the text is not coloured.
+painted :: fn(ctx: TextCtx, paint: Paint, s: string) -> string {
+    if !ctx.colored || s == "" {
+        return s
+    }
+    return match paint {
+        .Module   -> TTY.sgr("1;32", s)
+        .Place    -> TTY.dim(s)
+        .Keyword  -> TTY.magenta(s)
+        .Type     -> TTY.cyan(s)
+        .Constant -> TTY.yellow(s)
+        .String   -> TTY.green(s)
+        .Comment  -> TTY.dim(s)
+        .Name     -> TTY.bold(s)
+        .Label    -> TTY.bold(s)
+        .Code     -> TTY.cyan(s)
+    }
+}
+
+// The lines of a paragraph of prose, the code between its backticks painted
+// without them, a span that runs over a line included. A paragraph whose
+// backticks do not pair keeps them all; a blank line ends a paragraph.
+painted_paragraphs :: fn(ctx: TextCtx, lines: string[]) -> string[] {
+    if !ctx.colored {
+        return lines
+    }
+    out: string[]: []
+    start: i64 = 0
+    for i in 0..=lines.len() {
+        if i == lines.len() || lines[i].trim() == "" {
+            out.push_all(painted_paragraph(ctx, lines[start..<i]))
+            if i < lines.len() {
+                out.push(lines[i])
+            }
+            start = i + 1
+        }
+    }
+    return out
+}
+
+// The lines of one paragraph, painted as `painted_paragraphs` says.
+painted_paragraph :: fn(ctx: TextCtx, lines: string[]) -> string[] {
+    ticks: i64 = 0
+    for line in lines {
+        ticks += line.split("`").len() - 1
+    }
+    if ticks % 2 == 1 {
+        return lines
+    }
+    out: string[]: []
+    inside := false
+    for line in lines {
+        parts :: line.split("`")
+        painted_line: string[]: []
+        for i in 0..<parts.len() {
+            if i > 0 {
+                inside = !inside
+            }
+            if inside {
+                painted_line.push(painted(ctx, .Code, parts[i]))
+            } else {
+                painted_line.push(parts[i])
+            }
+        }
+        out.push(painted_line.join(""))
+    }
+    return out
+}
+
+// A name as a query writes it, its module in the module's colour and the rest
+// in bold: `std/io.read_file_bytes`.
+painted_qualified :: fn(ctx: TextCtx, name: string) -> string {
+    dot :: name.index_of('.', 0)
+    if dot < 0 {
+        return painted(ctx, .Module, name)
+    }
+    rest :: name.byte_slice(dot, name.byte_len())
+    return painted(ctx, .Module, name.byte_slice(0, dot)) + painted(ctx, .Name, rest)
+}
+
+// A line of Vader with its words, strings and characters painted, and a
+// trailing comment; `name`, the name it declares, in bold.
+painted_code :: fn(ctx: TextCtx, line: string, name: string) -> string {
+    if !ctx.colored {
+        return line
+    }
+    out: string[]: []
+    n :: line.byte_len()
+    i: i64 = 0
+    for i < n {
+        if opens_comment(line, i) {
+            out.push(painted(ctx, .Comment, line.byte_slice(i, n)))
+            return out.join("")
+        }
+        b :: line.byte_at(i)
+        end := i + 1
+        if b == '"' || b == '\'' {
+            end = quoted_end(line, i)
+            out.push(painted(ctx, .String, line.byte_slice(i, end)))
+        } else if is_ident_byte(b) {
+            for end < n && is_ident_byte(line.byte_at(end)) {
+                end += 1
+            }
+            out.push(painted_word(ctx, line.byte_slice(i, end), name))
+        } else {
+            for end < n && !opens_token(line, end) {
+                end += 1
+            }
+            out.push(line.byte_slice(i, end))
+        }
+        i = end
+    }
+    return out.join("")
+}
+
+// Where the string or the character opened by the quote at `start` of `line`
+// ends, past its closing quote; at the end of the line when it does not close.
+quoted_end :: fn(line: string, start: i64) -> i64 {
+    quote :: line.byte_at(start)
+    end := start + 1
+    for end < line.byte_len() && line.byte_at(end) != quote {
+        if line.byte_at(end) == '\\' {
+            end += 1
+        }
+        end += 1
+    }
+    if end < line.byte_len() {
+        return end + 1
+    }
+    return line.byte_len()
+}
+
+// `word` in the colour of what it is: `name`, a keyword, a constant, a type.
+painted_word :: fn(ctx: TextCtx, word: string, name: string) -> string {
+    if word == name {
+        return painted(ctx, .Name, word)
+    }
+    if word in Lex.KEYWORDS {
+        return painted(ctx, .Keyword, word)
+    }
+    if is_constant_name(word) {
+        return painted(ctx, .Constant, word)
+    }
+    if word.byte_at(0) in 'A'..='Z' || Ty.is_scalar_type_name(word) || word == "never" {
+        return painted(ctx, .Type, word)
+    }
+    return word
+}
+
+// Whether a comment opens at `i` of `line`.
+opens_comment :: fn(line: string, i: i64) -> bool =
+    i + 1 < line.byte_len() && line.byte_at(i) == '/' && line.byte_at(i + 1) == '/'
+
+// Whether a word, a string, a character or a comment opens at `i` of `line`.
+opens_token :: fn(line: string, i: i64) -> bool {
+    b :: line.byte_at(i)
+    return is_ident_byte(b) || b == '"' || b == '\'' || opens_comment(line, i)
+}
+
+// Whether `word` is written as a constant: upper-case letters, digits and `_`,
+// two at least.
+is_constant_name :: fn(word: string) -> bool {
+    if word.byte_len() < 2 || !(word.byte_at(0) in 'A'..='Z') {
+        return false
+    }
+    for i in 0..<word.byte_len() {
+        b :: word.byte_at(i)
+        if !(b in 'A'..='Z' || b in '0'..='9' || b == '_') {
+            return false
+        }
+    }
+    return true
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A context that asks for colours, over an empty catalog. `std/tty` paints only
+// on a terminal: under a test the helpers may give their text back as it is,
+// which the tests below allow for.
+colored_ctx :: fn() -> TextCtx = TextCtx {
+    .catalog = read_catalog([]),
+    .base = "/",
+    .here = "/",
+    .colored = true,
+    .places = MutableMap<string, string> {},
+}
+
+@test
+test_search_paint_tells_constants_from_types :: fn() -> void {
+    assert(is_constant_name("READ_LIMIT_DEFAULT"), "upper case and `_` is a constant")
+    assert(!is_constant_name("IOError"), "a lower-case letter makes a type")
+    assert(!is_constant_name("T"), "and so does a single letter")
+}
+
+@test
+test_search_paint_keeps_unpaired_backticks :: fn() -> void {
+    assert_eq(painted_paragraphs(colored_ctx(), ["a ` b"]).join("|"), "a ` b")
+}
+
+@test
+test_search_paint_keeps_the_text_of_a_line_of_code :: fn() -> void {
+    line :: "export f :: fn(c: char) -> bool = c == '\"' && \"a\\\"b\" != \"\"  // done"
+    assert_eq(without_escapes(painted_code(colored_ctx(), line, "f")), line)
+}
+
+@test
+test_search_paint_ends_a_character_at_its_quote :: fn() -> void {
+    assert_eq(quoted_end("b == '\"' && x", 5), 8)
+}
+
+// `s` without its colour escapes, `ESC [`, digits, `m`.
+without_escapes :: fn(s: string) -> string {
+    out: string[]: []
+    i: i64 = 0
+    for i < s.byte_len() {
+        if s.byte_at(i) == 0x1B {
+            for i < s.byte_len() && s.byte_at(i) != 'm' {
+                i += 1
+            }
+            i += 1
+        } else {
+            out.push(s.byte_slice(i, i + 1))
+            i += 1
+        }
+    }
+    return out.join("")
+}

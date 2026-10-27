@@ -1,0 +1,494 @@
+// vader/tools/doc/search: what a query of `vader doc --search` names in the data.
+//
+// A query names what to show the way `go doc` reads one: a module by the end of
+// its path, an export, a member of a type, joined by dots (`io`,
+// `read_file_bytes`, `io.read_file_bytes`, `IOError.kind`, `io.IOError.kind`).
+// A lower-case letter of the query matches either case, any other byte only
+// itself. The first reading that names something is shown: a lone name is a
+// module, then an export, then a member; before a dot, a name is a module
+// before it is a type. When no reading names anything, the modules and the
+// names that contain the query's last part are listed.
+//
+// The data comes through `read.vader`; `search_text.vader` writes what is found.
+
+module "vader/tools/doc"
+
+import "std/collections"
+import "std/iter"
+import "std/sort"
+import "std/string"
+
+/// What a search shows, and whether the query named or matched anything.
+export SearchResult :: struct {
+    /// The text to print.
+    text: string
+    found: bool
+}
+
+/// Show what `query` names in the data under `dirs`.
+///
+/// @param dirs     the folders `vader doc` wrote, a module of one hiding the
+///                 module of the same path in the folders after it.
+/// @param query    the names to look for, joined by dots.
+/// @param base     the absolute folder the files of the data are relative to.
+/// @param here     the absolute working directory: a file under it is named
+///                 relative to it, any other one in full.
+/// @param colored  whether the text goes to a terminal that shows colours.
+/// @return         what the query names in full, else the modules and the names
+///                 that contain its last part; not `found` when none does.
+export search_doc :: fn(
+    dirs: string[],
+    query: string,
+    base: string,
+    here: string,
+    colored: bool,
+) -> SearchResult {
+    catalog :: read_catalog(dirs)
+    ctx :: TextCtx {
+        .catalog = catalog,
+        .base = base,
+        .here = resolved(here),
+        .colored = colored,
+        .places = MutableMap<string, string> {},
+    }
+    parts :: query.split(".")
+    named :: named_by(catalog, parts)
+    if named is IndexModule {
+        return SearchResult { .text = module_text(ctx, named), .found = true }
+    }
+    if named.len() > 0 {
+        return SearchResult { .text = entries_text(ctx, named), .found = true }
+    }
+    needle :: parts[parts.len() - 1]
+    listed :: holding(catalog, parts, needle.to_lower())
+    if listed.len() == 0 {
+        return SearchResult {
+            .text = "nothing is named `${query}`, and no name contains `${needle}`\n",
+            .found = false,
+        }
+    }
+    return SearchResult { .text = list_text(ctx, query, needle, listed), .found = true }
+}
+
+// ---- the catalog ----------------------------------------------------------
+
+// What a search reads: the modules and the entries of every folder of data, a
+// module of one hiding the module of the same path in the folders after it.
+Catalog :: struct {
+    modules: IndexModule[]
+    entries: IndexEntry[]
+    /// The entries kept, by id.
+    by_id: MutableMap<string, IndexEntry>
+    /// The folder each module is read from, by path.
+    holder: MutableMap<string, string>
+    /// The modules read whole so far, by path: each is read once.
+    whole: MutableMap<string, DocModule>
+}
+
+// The catalog of the data under `dirs`. A folder whose index does not read
+// holds nothing.
+read_catalog :: fn(dirs: string[]) -> Catalog {
+    catalog :: Catalog {
+        .modules = [],
+        .entries = [],
+        .by_id = MutableMap<string, IndexEntry> {},
+        .holder = MutableMap<string, string> {},
+        .whole = MutableMap<string, DocModule> {},
+    }
+    for dir in dirs {
+        index :: read_doc_index(dir) ?? continue
+        for m in index.modules {
+            if catalog.holder[m.path] == null {
+                catalog.holder[m.path] = dir
+                catalog.modules.push(m)
+            }
+        }
+        for e in index.entries {
+            if (catalog.holder[e.module] ?? "") == dir {
+                catalog.entries.push(e)
+                catalog.by_id[e.id] = e
+            }
+        }
+    }
+    return catalog
+}
+
+// The module `path` read whole, null when it does not read.
+whole_module :: fn(catalog: Catalog, path: string) -> DocModule | null {
+    known :: catalog.whole[path]
+    if known != null {
+        return known
+    }
+    dir :: catalog.holder[path] ?? return null
+    module :: read_doc_module(dir, path) ?? return null
+    catalog.whole[path] = module
+    return module
+}
+
+// Whether `e` is a field, a variant or a method.
+is_member :: fn(e: IndexEntry) -> bool = e.kind in MEMBER_KINDS
+
+// Whether `e` is an export: neither a member nor an impl.
+is_export :: fn(e: IndexEntry) -> bool = e.kind != "impl" && !is_member(e)
+
+// The kinds of a member.
+MEMBER_KINDS :: ["field", "variant", "method"]
+
+// ---- what a query names ---------------------------------------------------
+
+// What the dot-separated `parts` of a query name: one module, else exports or
+// members, none when no reading names anything.
+named_by :: fn(catalog: Catalog, parts: string[]) -> IndexModule | IndexEntry[] {
+    if parts.len() == 1 {
+        modules :: modules_named(catalog, parts[0])
+        if modules.len() > 0 {
+            return modules[0]
+        }
+        return named_in(catalog, null, parts)
+    }
+    if parts.len() > 3 {
+        return []
+    }
+    for m in modules_named(catalog, parts[0]) {
+        found :: named_in(catalog, m, parts[1..<parts.len()])
+        if found.len() > 0 {
+            return found
+        }
+    }
+    if parts.len() == 2 {
+        return named_in(catalog, null, parts)
+    }
+    return []
+}
+
+// What `parts` name in the module `m`, in every module when it is null: for one
+// name, the exports it names, else the members; for a type and a member, the
+// members of that name of the types it names, wherever their impls are.
+named_in :: fn(catalog: Catalog, m: IndexModule | null, parts: string[]) -> IndexEntry[] {
+    if parts.len() == 2 {
+        return members_named(catalog, owners_named(catalog, m, parts[0]), parts[1])
+    }
+    export_named :: (e: IndexEntry) -> is_export(e) && within(e, m) && names(parts[0], e.name)
+    exports :: catalog.entries.filter(export_named).collect()
+    if exports.len() > 0 {
+        return exports
+    }
+    if m == null {
+        return members_named(catalog, null, parts[0])
+    }
+    return members_named(catalog, owners_named(catalog, m, ""), parts[0])
+}
+
+// The members named `name` whose owner is in `owners`, of any owner when it is
+// null.
+members_named :: fn(
+    catalog: Catalog,
+    owners: MutableSet<string> | null,
+    name: string,
+) -> IndexEntry[] {
+    found: IndexEntry[]: []
+    for e in catalog.entries {
+        if !is_member(e) || !names(name, e.name) {
+            continue
+        }
+        if owners == null || e.owner in owners {
+            found.push(e)
+        }
+    }
+    return found
+}
+
+// The ids of the types of `m` (of every module when null) that `query` names,
+// any of them when it is "", and of the impls for them: what their members
+// belong to.
+owners_named :: fn(catalog: Catalog, m: IndexModule | null, query: string) -> MutableSet<string> {
+    owners :: MutableSet<string> {}
+    for e in catalog.entries {
+        if is_export(e) && within(e, m) && (query == "" || names(query, e.name)) {
+            owners.add(e.id)
+        }
+    }
+    for e in catalog.entries {
+        if e.kind == "impl" && e.owner in owners {
+            owners.add(e.id)
+        }
+    }
+    return owners
+}
+
+// Whether `e` belongs to the module `m`, to any when it is null.
+within :: fn(e: IndexEntry, m: IndexModule | null) -> bool {
+    if m == null {
+        return true
+    }
+    return e.module == m.path
+}
+
+// The modules `query` names, the one `go doc` would pick first: nearest the
+// root, then first in order.
+modules_named :: fn(catalog: Catalog, query: string) -> IndexModule[] {
+    found :: catalog.modules.filter((m: IndexModule) -> names_module(query, m.path)).collect()
+    return sort(found, nearer_root)
+}
+
+// Whether `a` goes before `b` among the modules a query names.
+nearer_root :: fn(a: IndexModule, b: IndexModule) -> bool {
+    depth_a :: a.path.split("/").len()
+    depth_b :: b.path.split("/").len()
+    if depth_a != depth_b {
+        return depth_a < depth_b
+    }
+    return a.path < b.path
+}
+
+// The entries of `catalog` in the module `m`.
+module_entries :: fn(catalog: Catalog, m: IndexModule) -> IndexEntry[] =
+    catalog.entries.filter((e: IndexEntry) -> e.module == m.path).collect()
+
+// Whether `query` names the module `path`: its whole path, or its end after a
+// `/`, as `json` names `std/json`.
+names_module :: fn(query: string, path: string) -> bool {
+    if names(query, path) {
+        return true
+    }
+    start :: path.byte_len() - query.byte_len()
+    return start > 0
+        && path.byte_at(start - 1) == '/'
+        && names(query, path.byte_slice(start, path.byte_len()))
+}
+
+// Whether `query` names `name`: a lower-case letter of the query matches either
+// case, any other byte only itself.
+names :: fn(query: string, name: string) -> bool =
+    query.byte_len() == name.byte_len() && folds_at(name, query, 0)
+
+// Whether `needle` sits at the byte `at` of `name`, each lower-case letter of
+// `needle` matching either case there.
+folds_at :: fn(name: string, needle: string, at: i64) -> bool {
+    if at + needle.byte_len() > name.byte_len() {
+        return false
+    }
+    for j in 0..<needle.byte_len() {
+        q :: needle.byte_at(j)
+        n :: name.byte_at(at + j)
+        if q != n && !(q in 'a'..='z' && n == q - 32) {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether `name` contains `needle`, as `folds_at` matches it.
+folds_in :: fn(name: string, needle: string) -> bool {
+    for at in 0..=name.byte_len() - needle.byte_len() {
+        if folds_at(name, needle, at) {
+            return true
+        }
+    }
+    return false
+}
+
+// ---- what contains a query ------------------------------------------------
+
+// A line of the list of what contains a query.
+Listed :: struct {
+    /// The module or the entry, as a query writes it.
+    name: string
+    summary: string
+    /// Whether its name starts with what the query contains: it comes first.
+    starts: bool
+}
+
+// The modules and the entries whose name contains `needle`, in lower case:
+// those of the modules the first of several `parts` names, when that lists any;
+// those of every module otherwise.
+holding :: fn(catalog: Catalog, parts: string[], needle: string) -> Listed[] {
+    if needle == "" {
+        return []
+    }
+    if parts.len() > 1 {
+        modules :: modules_named(catalog, parts[0])
+        if modules.len() > 0 {
+            paths :: modules.map((m: IndexModule) -> m.path).collect()
+            listed :: listed_in(catalog, paths, needle)
+            if listed.len() > 0 {
+                return listed
+            }
+        }
+    }
+    return listed_in(catalog, null, needle)
+}
+
+// What contains `needle` among the entries of the modules `paths`, among every
+// module and entry when it is null.
+listed_in :: fn(catalog: Catalog, paths: string[] | null, needle: string) -> Listed[] {
+    listed: Listed[]: []
+    if paths == null {
+        for m in catalog.modules {
+            if folds_in(m.path, needle) {
+                listed.push(
+                    Listed {
+                        .name = m.path,
+                        .summary = m.summary,
+                        .starts = folds_at(last_segment(m.path), needle, 0),
+                    },
+                )
+            }
+        }
+    }
+    for e in catalog.entries {
+        if e.kind != "impl" && (paths == null || e.module in paths) && folds_in(e.name, needle) {
+            listed.push(
+                Listed {
+                    .name = qualified(catalog, e),
+                    .summary = e.summary,
+                    .starts = folds_at(e.name, needle, 0),
+                },
+            )
+        }
+    }
+    return sort(listed, listed_before)
+}
+
+// The part of the module path `path` after its last `/`.
+last_segment :: fn(path: string) -> string {
+    segments :: path.split("/")
+    return segments[segments.len() - 1]
+}
+
+// Whether `a` goes before `b` in the list of what contains a query.
+listed_before :: fn(a: Listed, b: Listed) -> bool {
+    if a.starts != b.starts {
+        return a.starts
+    }
+    return a.name < b.name
+}
+
+// The name of `e` as a query writes it: `std/io.read_file_bytes`,
+// `std/io.IOError.kind`; `std/core.contains` for a member of a type that is no
+// declaration (`T[]`).
+qualified :: fn(catalog: Catalog, e: IndexEntry) -> string {
+    owner :: owner_name(catalog, e)
+    if !is_member(e) || owner == "" {
+        return "${e.module}.${e.name}"
+    }
+    return "${e.module}.${owner}.${e.name}"
+}
+
+// The name of the type the member `e` belongs to, through the impl it is a
+// method of when it is one; "" when that type is no declaration.
+owner_name :: fn(catalog: Catalog, e: IndexEntry) -> string {
+    owner :: catalog.by_id[e.owner] ?? return ""
+    if owner.kind != "impl" {
+        return owner.name
+    }
+    target :: catalog.by_id[owner.owner] ?? return ""
+    return target.name
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_search_a_lower_case_query_matches_either_case :: fn() -> void {
+    assert(names("ioerror", "IOError"), "lower case matches upper case")
+    assert(names("IOError", "IOError"), "the same name matches")
+    assert(!names("IOERROR", "IOError"), "an upper-case letter matches only itself")
+}
+
+@test
+test_search_a_query_names_a_whole_name :: fn() -> void {
+    assert(!names("ioerro", "IOError"), "a part of a name does not")
+    assert(folds_in("IOError", "oerr"), "but the list finds what it contains")
+}
+
+@test
+test_search_a_module_is_named_by_the_end_of_its_path :: fn() -> void {
+    assert(names_module("std/io", "std/io"), "its whole path")
+    assert(names_module("io", "std/io"), "its last segment")
+    assert(!names_module("o", "std/io"), "a part of a segment does not")
+    assert(!names_module("std", "std/io"), "nor its first segment")
+}
+
+// A catalog of the modules `geo` and `point`: a struct `Point` with a field `x`,
+// a generic struct `Box` with an impl and its method, a fn `point.x`, and an impl
+// in `point` for `Point`, with its method.
+sample_catalog :: fn() -> Catalog {
+    entries: IndexEntry[]: [
+        sample_entry("geo", "geo/Point", "Point", "struct", ""),
+        sample_entry("geo", "geo/Point.x", "x", "field", "geo/Point"),
+        sample_entry("geo", "geo/Box", "Box", "struct", ""),
+        sample_entry("geo", "geo/Box<T>: Shape", "Box<T>: Shape", "impl", "geo/Box"),
+        sample_entry("geo", "geo/Box<T>: Shape.area", "area", "method", "geo/Box<T>: Shape"),
+        sample_entry("point", "point/x", "x", "fn", ""),
+        sample_entry("point", "point/Point: Shape", "Point: Shape", "impl", "geo/Point"),
+        sample_entry("point", "point/Point: Shape.area", "area", "method", "point/Point: Shape"),
+    ]
+    catalog :: Catalog {
+        .modules = [
+            IndexModule { .path = "geo", .summary = "" },
+            IndexModule { .path = "point", .summary = "" },
+        ],
+        .entries = entries,
+        .by_id = MutableMap<string, IndexEntry> {},
+        .holder = MutableMap<string, string> {},
+        .whole = MutableMap<string, DocModule> {},
+    }
+    for e in entries {
+        catalog.by_id[e.id] = e
+    }
+    return catalog
+}
+
+sample_entry :: fn(
+    module: string,
+    id: string,
+    name: string,
+    kind: string,
+    owner: string,
+) -> IndexEntry = IndexEntry {
+    .id = id,
+    .module = module,
+    .name = name,
+    .kind = kind,
+    .signature = "",
+    .summary = "",
+    .owner = owner,
+}
+
+// The ids of what `query` names in the sample catalog, a module named alone
+// given as `module <path>`.
+sample_named :: fn(query: string) -> string {
+    named :: named_by(sample_catalog(), query.split("."))
+    if named is IndexModule {
+        return "module ${named.path}"
+    }
+    return named.map((e: IndexEntry) -> e.id).collect().join(" ")
+}
+
+@test
+test_search_a_first_part_is_a_module_before_a_type :: fn() -> void {
+    assert_eq(sample_named("point.x"), "point/x")
+    assert_eq(sample_named("Point.x"), "geo/Point.x")
+}
+
+@test
+test_search_a_method_of_an_impl_belongs_to_its_type :: fn() -> void {
+    assert_eq(sample_named("box.area"), "geo/Box<T>: Shape.area")
+}
+
+@test
+test_search_a_type_of_a_module_has_the_methods_of_impls_elsewhere :: fn() -> void {
+    assert_eq(sample_named("geo.Point.area"), "point/Point: Shape.area")
+}
+
+@test
+test_search_lists_a_method_of_an_impl_under_its_type :: fn() -> void {
+    method :: sample_catalog().by_id["geo/Box<T>: Shape.area"]
+    if method == null {
+        assert(false, "the sample holds the method")
+    } else {
+        assert_eq(qualified(sample_catalog(), method), "geo.Box.area")
+    }
+}
