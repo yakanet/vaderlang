@@ -197,9 +197,7 @@ stub :: fn(span: Span, type: Type, reason: string) -> LoweredExpr {
     return LoweredUnreachable { .span = span, .type = type, .reason = reason }
 }
 
-// ============================================================================
-// Per-kind expression lowerers
-// ============================================================================
+// ---- Per-kind expression lowerers -----------------------------------------
 
 // Whether the resolver already reported something at `span`. Linear, and only
 // ever reached on the error path.

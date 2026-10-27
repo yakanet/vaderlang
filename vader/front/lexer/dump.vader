@@ -7,15 +7,12 @@
 // table belongs next to the enum it indexes, and the dump is a primitive
 // other front-ends (LSP, formatter, future tools) will want to reuse.
 
-// `lexer.vader` (same module) already imports the std/string decode surface
-// and the StringBuilder surface ; we only need the extras here.
 module "vader/front/lexer"
 
 import "std/string"
 import "std/numbers"
 import "std/string_builder"
 import "vader/support/text"
-// Diagnostic info is now resolved at construction time, see vader/support/diagnostics.
 
 export dump_tokens :: fn(l: Lexer) -> string {
     sb :: StringBuilder {}

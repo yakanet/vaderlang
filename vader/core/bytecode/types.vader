@@ -14,15 +14,15 @@
 // Every shape declared here is intentionally read-only after construction (the
 // emitter assembles each module once, the C-emit then walks it).
 
-/// Stack-machine value class: every operand the VM / C-emit can carry
-/// in a local or on the operand stack lands in exactly one of these
-/// classes. Closed enum so `match` arms stay exhaustive across the
-/// pipeline.
 module "vader/core/bytecode"
 
 import "std/string"
 import "vader/core/types"
 
+/// Stack-machine value class: every operand the VM / C-emit can carry
+/// in a local or on the operand stack lands in exactly one of these
+/// classes. Closed enum so `match` arms stay exhaustive across the
+/// pipeline.
 export ValType :: enum(u8) {
     // Signed integers
     I8, I16, I32, I64,
@@ -272,9 +272,7 @@ export is_string_val :: fn(v: ValType) -> bool = match v {
     .Any -> false
 }
 
-// =========================================================================
-// Native-runtime element-storage discriminator
-// =========================================================================
+// ---- Native-runtime element-storage discriminator -------------------------
 
 /// Mirrors the `vader_array_kind_t` enum in `runtime/c/vader.h`. The
 /// bytecode emitter computes one of these per array type and threads it
@@ -382,9 +380,7 @@ export array_kind_from_name :: fn(name: string) -> ArrayKind = match name {
     _       -> .Boxed
 }
 
-// =========================================================================
-// Data pool: module-level static arrays of primitive elements
-// =========================================================================
+// ---- Data pool: module-level static arrays of primitive elements ----------
 
 /// One pre-materialised read-only `T[]` literal. Built once at module-load time on
 /// the VM, baked into `.rodata` on native. `data.const N` references the parent
@@ -456,9 +452,7 @@ export BcValArray :: struct {
     elements: BcDataValue[]
 }
 
-// =========================================================================
-// Type-table entries
-// =========================================================================
+// ---- Type-table entries ---------------------------------------------------
 
 /// Top-level union over every kind of bytecode type. `BytecodeModule.types`
 /// is a `BcType[]` and every `typeIndex` in this file (`BcField.type_index`,
@@ -594,9 +588,7 @@ export BcFn :: struct {
     return_type: i32
 }
 
-// =========================================================================
-// Helpers
-// =========================================================================
+// ---- Helpers --------------------------------------------------------------
 
 /// Byte size of a `ValType` : a primitive class the width `vader/core/types` gives its
 /// type (`primitive_size`, the one table of them), computed when the compiler is

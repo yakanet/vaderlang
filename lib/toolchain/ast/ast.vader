@@ -34,9 +34,7 @@ import "toolchain/span"
 /// `.id` default, so a construction may omit the field.
 export UNASSIGNED_NODE_ID :i64 : 0
 
-// ============================================================================
-// Type aliases (declared first, see header)
-// ============================================================================
+// ---- Type aliases (declared first, see header) ----------------------------
 
 /// Anything that can appear at the top level of a file.
 export Decl :: ImportDecl | FnDecl | StructDecl | EnumDecl | TraitDecl | ImplDecl | TypeAliasDecl | ConstDecl | AssertDecl
@@ -117,9 +115,7 @@ export assign_places :: fn(s: DestructureAssignStmt) -> Expr[] {
 /// the resolver knows which.
 export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
 
-// ============================================================================
-// Visibility / shared shapes
-// ============================================================================
+// ---- Visibility / shared shapes -------------------------------------------
 
 /// Whether a declaration carries `export`.
 export Visibility :: enum {
@@ -127,9 +123,7 @@ export Visibility :: enum {
     Private,
 }
 
-// ============================================================================
-// Top-level
-// ============================================================================
+// ---- Top-level ------------------------------------------------------------
 
 /// One parsed source file.
 ///
@@ -155,9 +149,7 @@ export ModuleDecl :: struct {
     name_span: Span
 }
 
-// ============================================================================
-// Generics / Decorators
-// ============================================================================
+// ---- Generics / Decorators ------------------------------------------------
 
 /// One entry of a `[T: Bound = Default]` list.
 ///
@@ -284,9 +276,7 @@ sole_string_argument :: fn(d: Decorator) -> string {
     return string_literal_text(d.args[0]) ?? ""
 }
 
-// ============================================================================
-// Declarations
-// ============================================================================
+// ---- Declarations ---------------------------------------------------------
 
 /// The span of the name `decl` declares.
 ///
@@ -610,9 +600,7 @@ export AssertDecl :: struct {
     decorators:   Decorator[]
 }
 
-// ============================================================================
-// Statements
-// ============================================================================
+// ---- Statements -----------------------------------------------------------
 
 /// A local binding, `x :: e` or `x := e`.
 ///
@@ -835,11 +823,7 @@ export Stmt :: LetStmt | AssignStmt | DestructureAssignStmt | ExprStmt | ReturnS
 /// What a `defer` defers: one statement, or a block.
 export DeferBody :: DeferStmtBody | DeferBlockBody
 
-// ============================================================================
-// Expressions
-// ============================================================================
-
-// ---- literals -------------------------------------------------------------
+// ---- Expressions: literals ------------------------------------------------
 
 /// An integer literal.
 ///
@@ -944,7 +928,7 @@ export string_literal_text :: fn(e: Expr) -> string | null {
     return null
 }
 
-// ---- naming / access ------------------------------------------------------
+// ---- Expressions: naming / access -----------------------------------------
 
 /// A bare name, in value or type position.
 ///
@@ -1014,7 +998,7 @@ export IndexExpr :: struct {
     index:  Expr
 }
 
-// ---- operators ------------------------------------------------------------
+// ---- Expressions: operators -----------------------------------------------
 
 /// Which prefix operator a `UnaryExpr` applies.
 export UnaryOp :: enum(u8) {
@@ -1106,7 +1090,7 @@ export NullCoalesceExpr :: struct {
     fallback: CoalesceFallback
 }
 
-// ---- control-flow expressions --------------------------------------------
+// ---- Expressions: control flow --------------------------------------------
 
 /// An `if`, in statement or value position.
 ///
@@ -1172,7 +1156,7 @@ export BlockExpr :: struct {
     trailing: Expr | null
 }
 
-// ---- lambdas / literals --------------------------------------------------
+// ---- Expressions: lambdas / literals --------------------------------------
 
 /// A lambda, `(x: i32) -> x + 1`.
 export LambdaExpr :: struct {
@@ -1240,7 +1224,7 @@ export RangeExpr :: struct {
     upper:     Expr
 }
 
-// ---- error / cast / generic / variant -----------------------------------
+// ---- Expressions: error / cast / generic / variant ------------------------
 
 /// `await e`: suspend the enclosing `async` fn until `e`'s async result is
 /// ready, then produce it. A single-operand prefix wrapper; carries no error
@@ -1294,9 +1278,7 @@ export DotVariantExpr :: struct {
     variant_span: Span
 }
 
-// ============================================================================
-// Patterns (for `match`)
-// ============================================================================
+// ---- Patterns (for `match`) -----------------------------------------------
 
 /// A type test in a pattern, `is T`. `inner` nests a further pattern.
 ///
@@ -1377,9 +1359,7 @@ export OrPattern :: struct {
     patterns: Pattern[]
 }
 
-// ============================================================================
-// Type expressions
-// ============================================================================
+// ---- Type expressions -----------------------------------------------------
 
 /// A function type as written, `fn(i32) -> bool`: type-only, with no value-side
 /// counterpart.
@@ -1399,9 +1379,7 @@ export ArrayTypeExpr :: struct {
     element: TypeExpr
 }
 
-// ============================================================================
-// Helpers
-// ============================================================================
+// ---- Helpers --------------------------------------------------------------
 
 /// Flatten a `T | U | V | …` `BitOr` BinaryExpr chain into its variant
 /// list, in source order. Non-`BitOr` expressions are returned as a

@@ -16,9 +16,7 @@ import "vader/support/diagnostics"
 p :: import "toolchain/ast"
 import "toolchain/span"
 
-// ============================================================================
-// Printer
-// ============================================================================
+// ---- Printer --------------------------------------------------------------
 
 export Printer :: struct {
     buf:      StringBuilder
@@ -320,9 +318,7 @@ indent_width :: fn(line: string) -> i64 {
     return n
 }
 
-// ============================================================================
-// Program
-// ============================================================================
+// ---- Program --------------------------------------------------------------
 
 // Source-visible decls only : drops the synthetic `__comptime_NAME` helper
 // fns produced by the `@comptime` const-sugar desugar. Every other decl passes
@@ -392,9 +388,7 @@ export emit_program :: fn(self: Printer, prog: p.Program) -> string {
     return attach_trailing_comments(self.finish())
 }
 
-// ============================================================================
-// Declarations
-// ============================================================================
+// ---- Declarations ---------------------------------------------------------
 
 emit_decl :: fn(self: Printer, d: p.Decl) -> void {
     match d {
@@ -1248,9 +1242,7 @@ emit_assert_decl :: fn(self: Printer, d: p.AssertDecl) -> void {
     self.write(")")
 }
 
-// ============================================================================
-// Statements
-// ============================================================================
+// ---- Statements -----------------------------------------------------------
 
 emit_stmt :: fn(self: Printer, s: p.Stmt) -> void {
     match s {
@@ -1636,9 +1628,7 @@ fits :: fn(self: Printer, flat: Printer, after: i64) -> bool {
         && end_column(self.column, text) + after <= i64(MAX_LINE)
 }
 
-// ============================================================================
-// Expressions
-// ============================================================================
+// ---- Expressions ----------------------------------------------------------
 
 // `Expr | null` accepted so callers with optional slots don't need a
 // per-call match dispatch. `null` is a no-op : the surrounding context is
@@ -2604,9 +2594,7 @@ emit_fn_type :: fn(self: Printer, x: p.FnTypeExpr) -> void {
     self.emit_type_expr_with_prefix(" -> ", x.return_type)
 }
 
-// ============================================================================
-// Patterns
-// ============================================================================
+// ---- Patterns -------------------------------------------------------------
 
 emit_pattern :: fn(self: Printer, pat: p.Pattern) -> void {
     match pat {

@@ -315,9 +315,7 @@ emit_preamble :: fn(printer: CPrinter, banner: string) -> void = printer.print_s
     ],
 })
 
-// =========================================================================
-// Section emitters
-// =========================================================================
+// ---- Section emitters -----------------------------------------------------
 //
 // The section order is fixed so the output stays deterministic.
 

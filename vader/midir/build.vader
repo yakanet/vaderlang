@@ -163,9 +163,7 @@ FnCtx :: struct {
 }
 
 
-// ============================================================================
-// Project-level orchestration
-// ============================================================================
+// ---- Project-level orchestration ------------------------------------------
 
 /// Top-level entry: walk the lowered project, emit one `CFGModule` per
 /// lowered module.
@@ -301,9 +299,7 @@ bc_value_bits :: fn(el: LoweredExpr, name: string) -> u64 {
 }
 
 
-// ============================================================================
-// Function-level conversion
-// ============================================================================
+// ---- Function-level conversion --------------------------------------------
 
 FnMetadata :: struct {
     extern_name: string
@@ -489,9 +485,7 @@ freeze_block :: fn(b: MutableBlock) -> BasicBlock {
     }
 }
 
-// ============================================================================
-// Block / statement / expression builders
-// ============================================================================
+// ---- Block / statement / expression builders ------------------------------
 
 /// Build a block body. Returns the LocalId carrying the trailing expr's
 /// value, held as the block's type (or null when the block is void / control
@@ -796,9 +790,7 @@ resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame {
         + "that no enclosing loop carries")
 }
 
-// ============================================================================
-// Expression conversion
-// ============================================================================
+// ---- Expression conversion ------------------------------------------------
 
 build_expr :: fn(fn_ctx: FnCtx, e: LoweredExpr) -> LocalId | null {
     if fn_ctx.current is null { return null }
@@ -1640,9 +1632,7 @@ build_make_closure :: fn(fn_ctx: FnCtx, e: LoweredMakeClosure) -> LocalId | null
     return dst
 }
 
-// ============================================================================
-// Bookkeeping helpers
-// ============================================================================
+// ---- Bookkeeping helpers --------------------------------------------------
 
 // `e`, built, as a slot of type `slot` holds it : an integer literal the slot's
 // integer holds is built at that integer, with nothing left to convert ; an integer

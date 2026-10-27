@@ -1,16 +1,16 @@
-// vader/front/lexer/keywords: keyword + numeric-suffix tables.
+// vader/front/lexer/keywords: the keyword table.
 //
 // A flat `if` chain is fine for 25 entries;
 // a hash table would be overkill at module init time. `lookup_keyword`
 // returns the dedicated `TokenKind` for a keyword text, or `Ident` to mean
 // "not a keyword: keep it as an identifier".
 
-// Special sentinel: callers compare against `TokenKind.Ident` to decide
-// whether the lookup hit. Returning a `TokenKind | null` would be cleaner
-// but every call site already needs the fallback `Ident`, so this saves
-// the unwrap.
 module "vader/front/lexer"
 
+/// The token kind of the keyword `text` spells.
+///
+/// @param text  an identifier as the lexer read it.
+/// @return      the keyword's own kind, `Ident` when `text` is no keyword.
 export lookup_keyword :: fn(text: string) -> TokenKind {
     if text == "fn"         { return .KwFn }
     if text == "struct"     { return .KwStruct }

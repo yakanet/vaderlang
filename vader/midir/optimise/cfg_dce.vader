@@ -34,9 +34,10 @@ export eliminate_dead_cfg :: fn(p: CFGProject) -> CFGProject {
 
 optimise_function :: fn(f: CFGFunction) -> CFGFunction = compact_locals(fold_moves(f))
 
-// ============================================================================
-// Pass 0, fold_moves : copy-fold producer → Move chains
-// ============================================================================
+// ---- Pass 0, fold_moves ---------------------------------------------------
+
+// Fold a `Move` into the instruction that produced its source, when the `Move`
+// is that source's only reader: the producer writes the destination itself.
 
 fold_moves :: fn(f: CFGFunction) -> CFGFunction {
     use_count :: count_uses(f)
@@ -107,8 +108,9 @@ fold_moves_in_block :: fn(
     return folded
 }
 
-// ============================================================================
-// Pass 1, compact_locals : drop unreferenced locals + renumber survivors
+// ---- Pass 1, compact_locals -----------------------------------------------
+
+// Drop unreferenced locals and renumber the survivors.
 //
 // Walks every instruction + terminator collecting referenced locals.
 // Params + side-effecting dsts always count (the slot must exist for
@@ -116,7 +118,6 @@ fold_moves_in_block :: fn(
 // `locals[]` containing only referenced entries, renumbers every read
 // + write to the compact index space. Pure instructions whose dst
 // renumbered to -1 (unused) drop entirely.
-// ============================================================================
 
 // Flag the local `l` as read in `referenced`, one flag per local.
 mark_referenced :: fn(referenced: bool[], l: LocalId) -> void {

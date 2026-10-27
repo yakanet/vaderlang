@@ -26,9 +26,7 @@ import "std/string_builder"
 import "std/math"
 import "std/numbers"
 
-// =========================================================================
-// Shared helpers
-// =========================================================================
+// ---- Shared helpers -------------------------------------------------------
 
 // Masks every u32 op to 32 bits: the TS VM stores u32 as JS number
 // and won't wrap on overflow.
@@ -45,9 +43,7 @@ append_hex_u8 :: fn(sb: StringBuilder, x: u8) -> void {
     sb.append_char(hex_digit(lo))
 }
 
-// =========================================================================
-// SHA-256
-// =========================================================================
+// ---- SHA-256 --------------------------------------------------------------
 
 /// SHA-256 hash of `input`, returned as a 64-char lowercase hex string.
 /// Operates on the UTF-8 bytes of the source string ; non-ASCII content
@@ -246,9 +242,7 @@ pad_sha256_bytes :: fn(ib: u8[]) -> u8[] {
     return out
 }
 
-// =========================================================================
-// MD5
-// =========================================================================
+// ---- MD5 ------------------------------------------------------------------
 
 /// MD5 hash of `input`, returned as a 32-char lowercase hex string.
 /// MD5 is cryptographically broken: do NOT use for digital signatures

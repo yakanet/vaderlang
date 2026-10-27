@@ -13,9 +13,7 @@ import "vader/support/diagnostics"
 import "toolchain/ast"
 import "toolchain/span"
 
-// ============================================================================
-// Public entry
-// ============================================================================
+// ---- Public entry ---------------------------------------------------------
 
 export ParsedSource :: struct {
     program:    Program
@@ -192,9 +190,7 @@ skip_block_comment :: fn(source: string, from: i64) -> i64 {
     return i
 }
 
-// ============================================================================
-// Parser state
-// ============================================================================
+// ---- Parser state ---------------------------------------------------------
 
 // Hard cap on `parse_expr` recursion depth. Deeper nesting than this is
 // almost always machine-generated (or hostile) input and would otherwise
@@ -473,9 +469,7 @@ export describe_token :: fn(t: Token) -> string {
     return kind_name(t.kind)
 }
 
-// ============================================================================
-// Program
-// ============================================================================
+// ---- Program --------------------------------------------------------------
 
 parse_program :: fn(p: Parser) -> Program {
     start_tok :: p.peek()
@@ -570,9 +564,7 @@ is_module_segment_start :: fn(c: char) = c in 'a'..='z'
 
 is_module_segment_continue :: fn(c: char) = c in 'a'..='z' || c.is_digit() || c == '_'
 
-// ============================================================================
-// Declarations
-// ============================================================================
+// ---- Declarations ---------------------------------------------------------
 
 parse_decl :: fn(p: Parser) -> Decl | null {
     doc :: p.take_doc()
@@ -1913,9 +1905,7 @@ parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Vis
     }
 }
 
-// ============================================================================
-// Type expressions
-// ============================================================================
+// ---- Type expressions -----------------------------------------------------
 
 // Build a plain `IdentExpr` with both flag fields off: most call sites
 // don't need the implicit-dot or type-param-intro variants.
@@ -2292,9 +2282,7 @@ collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]) -> void {
     }
 }
 
-// ============================================================================
-// Statements / blocks
-// ============================================================================
+// ---- Statements / blocks --------------------------------------------------
 
 parse_block :: fn(p: Parser) -> BlockExpr {
     lb :: p.expect(.LBrace, "`{` to open block")
@@ -2868,9 +2856,7 @@ parse_defer :: fn(p: Parser) -> DeferStmt {
     }
 }
 
-// ============================================================================
-// Expressions: Pratt + prefix + postfix
-// ============================================================================
+// ---- Expressions: Pratt + prefix + postfix --------------------------------
 
 // Precedence levels :
 //   logical : or 10/11, and 12/13
@@ -4059,9 +4045,7 @@ parse_lambda :: fn(p: Parser) -> LambdaExpr {
     }
 }
 
-// ============================================================================
-// Patterns
-// ============================================================================
+// ---- Patterns -------------------------------------------------------------
 
 // A struct pattern in an alternative may constrain a field but not bind it: the arm
 // could not tell which alternative supplied the name.

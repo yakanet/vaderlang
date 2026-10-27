@@ -28,9 +28,7 @@ module "regex"
 
 import "std/string_builder"
 
-// =========================================================================
-// Public surface
-// =========================================================================
+// ---- Public surface -------------------------------------------------------
 
 /// Compiled regex. Treat as opaque: the field layout may change.
 export Pattern :: struct {
@@ -60,9 +58,7 @@ RegexError implements Error {
     message :: fn(self) -> string { return "${self.msg} (at position ${self.position})" }
 }
 
-// =========================================================================
-// Instruction set (Cox VM)
-// =========================================================================
+// ---- Instruction set (Cox VM) ---------------------------------------------
 
 export Inst :: InstChar | InstAny | InstClass | InstMatch | InstJump | InstSplit | InstSave | InstAnchorStart | InstAnchorEnd
 
@@ -115,9 +111,7 @@ export InstAnchorStart :: struct {}
 /// `$`: match only at input length.
 export InstAnchorEnd :: struct {}
 
-// =========================================================================
-// Compile (parse + emit)
-// =========================================================================
+// ---- Compile (parse + emit) -----------------------------------------------
 
 Parser :: struct {
     pattern:        string
@@ -625,9 +619,7 @@ extract_range :: fn(arr: Inst[], start: i64, end: i64) -> Inst[] {
 
 truncate_to :: fn(arr: Inst[], n: i64) = extract_range(arr, 0, n)
 
-// =========================================================================
-// Match / Search
-// =========================================================================
+// ---- Match / Search -------------------------------------------------------
 
 /// True iff `input` is matched by `pattern` from offset 0 to its end
 /// (anchored on both sides).
@@ -714,9 +706,7 @@ expand_replacement :: fn(sb: StringBuilder, repl: string, m: Match) -> void {
     sb.append(repl.byte_slice(run, n))
 }
 
-// =========================================================================
-// Thompson VM execution
-// =========================================================================
+// ---- Thompson VM execution ------------------------------------------------
 
 Thread :: struct {
     pc:     i64

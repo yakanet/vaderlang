@@ -22,9 +22,7 @@ import "vader/front/resolver"
 import "vader/lower/ir"
 import "vader/support/opt_report"
 
-// ============================================================================
-// Closure analysis output
-// ============================================================================
+// ---- Closure analysis output ----------------------------------------------
 
 /// One captured-by-an-inner-lambda binding. `symbol` is the outer slot
 /// (param / local / pattern binding) and `type` its statically-known type
@@ -75,9 +73,7 @@ new_closure_analysis :: fn() -> ClosureAnalysis {
     }
 }
 
-// ============================================================================
-// Project context
-// ============================================================================
+// ---- Project context ------------------------------------------------------
 
 /// An array impl member a call reached (`LowerProjectCtx.array_member_uses`).
 ArrayMemberUse :: struct {
@@ -466,9 +462,7 @@ new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, 
     }
 }
 
-// ============================================================================
-// Block context
-// ============================================================================
+// ---- Block context --------------------------------------------------------
 
 /// Per-block bookkeeping. `defers` is filled by every `DeferStmt`
 /// encountered in source order ; every block-exit edge replays it in
@@ -495,9 +489,7 @@ new_block_ctx :: fn(is_fn_root: bool, loop_id: i64 | null) -> BlockCtx {
     }
 }
 
-// ============================================================================
-// Lifted-fn context
-// ============================================================================
+// ---- Lifted-fn context ----------------------------------------------------
 
 /// Where a lifted body finds one capture in its env.
 EnvSlot :: struct {
@@ -517,9 +509,7 @@ LiftedFnContext :: struct {
     captures:   MutableMap<i32, EnvSlot>
 }
 
-// ============================================================================
-// Function-body context
-// ============================================================================
+// ---- Function-body context ------------------------------------------------
 
 /// Per-fn lowering context. Threaded through every expr / stmt pass
 /// while a single function body is being lowered. The block stack

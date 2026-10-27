@@ -337,9 +337,7 @@ unwrap_enum_type :: fn(target_type: Type, ctx: FnLowerCtx) -> Type {
     }
 }
 
-// ============================================================================
-// Pattern bindings (let-stmts introduced inside the arm)
-// ============================================================================
+// ---- Pattern bindings (let-stmts introduced inside the arm) ---------------
 
 introduce_pattern_bindings :: fn(
     ctx: FnLowerCtx, pattern: Pattern, scrut_symbol: Symbol, scrut_type: Type,

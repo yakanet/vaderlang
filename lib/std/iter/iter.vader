@@ -367,9 +367,7 @@ export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
     return null
 }
 
-// ============================================================================
-// Lazy iterator chains
-// ============================================================================
+// ---- Lazy iterator chains -------------------------------------------------
 //
 // Each combinator below is a `generator` over a source `Iterator<T>` : it
 // `yield`s transformed elements one at a time, so a chain stays lazy: an

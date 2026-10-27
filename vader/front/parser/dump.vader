@@ -20,9 +20,7 @@ export dump_program :: fn(prog: Program) -> string {
     return sb.to_string()
 }
 
-// ============================================================================
-// JSON primitives (raw strings, indentation, key-value helpers)
-// ============================================================================
+// ---- JSON primitives (raw strings, indentation, key-value helpers) --------
 
 // Local indentation helper: wraps `append_repeated` so existing call sites
 // that pass `level` (rather than the absolute space count) don't have to
@@ -103,9 +101,7 @@ kind_entry :: fn(sb: StringBuilder, level: i32, kind: string) -> void {
     sb.write_string(kind)
 }
 
-// ============================================================================
-// Program / Decl
-// ============================================================================
+// ---- Program / Decl -------------------------------------------------------
 
 write_program :: fn(sb: StringBuilder, prog: Program, level: i32) -> void {
     sb.open_obj()
@@ -542,9 +538,7 @@ write_type_params :: fn(sb: StringBuilder, tps: TypeParam[], level: i32) -> void
     sb.close_arr(level)
 }
 
-// ============================================================================
-// Type expressions
-// ============================================================================
+// ---- Type expressions -----------------------------------------------------
 
 write_types :: fn(sb: StringBuilder, ts: TypeExpr[], level: i32) -> void {
     if ts.len() == 0 {
@@ -573,9 +567,7 @@ write_type :: fn(sb: StringBuilder, t: TypeExpr, level: i32) -> void {
     sb.write_expr(t, level)
 }
 
-// ============================================================================
-// Statements
-// ============================================================================
+// ---- Statements -----------------------------------------------------------
 
 write_stmts :: fn(sb: StringBuilder, ss: Stmt[], level: i32) -> void {
     if ss.len() == 0 {
@@ -736,9 +728,7 @@ write_for_form :: fn(sb: StringBuilder, f: ForForm, level: i32) -> void {
     sb.close_obj(level)
 }
 
-// ============================================================================
-// Expressions
-// ============================================================================
+// ---- Expressions ----------------------------------------------------------
 
 write_optional_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
     sb.write_expr(e, level)

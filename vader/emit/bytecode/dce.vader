@@ -24,9 +24,7 @@ import "std/collections"
 import "std/iter"
 import "vader/core/bytecode"
 
-// ============================================================================
-// pruneUnusedImports: drop import entries no `call.import` op references
-// ============================================================================
+// ---- Imports, data and globals --------------------------------------------
 
 /// Walk every fn body for `call.import` references, build a remap
 /// table, drop unused import entries, and rewrite the surviving
@@ -148,10 +146,7 @@ export prune_unused_globals :: fn(ctx: EmitterCtx) -> void {
     ctx.globals = kept
 }
 
-// ============================================================================
-// pruneUnusedFunctions: drop fn defs nothing reachable from main/exports/
-// vtables references
-// ============================================================================
+// ---- Functions ------------------------------------------------------------
 
 /// Root-and-walk over `ctx.functions` : start from `is_main` / `is_test`
 /// fns + every `@export` entry + every vtable target, walk every
@@ -348,9 +343,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     ctx.functions = kept
 }
 
-// ============================================================================
-// pruneUnusedTypes: drop BcType slots no live consumer references
-// ============================================================================
+// ---- Types ----------------------------------------------------------------
 
 /// Reachability-based prune on the type table. Roots : every type
 /// referenced by a live fn signature, fn body op (struct/array/etc.

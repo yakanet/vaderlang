@@ -597,7 +597,3 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) 
         .expr = mk_void_block(exit_block(frame, span, unrolled), span),
     }
 }
-
-// ============================================================================
-// Op translation tables
-// ============================================================================

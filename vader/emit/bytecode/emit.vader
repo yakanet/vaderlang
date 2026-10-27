@@ -30,10 +30,10 @@ import "vader/core/bytecode" {
 import "vader/core/symbol"
 import "toolchain/span"
 
-// ============================================================================
-// Reserve helpers : one function-table slot per CFG function, indexed by
-// symbol id and by mangle, for the body-emit pass to fill in.
-// ============================================================================
+// ---- Reserve helpers ------------------------------------------------------
+
+// One function-table slot per CFG function, indexed by symbol id and by mangle,
+// for the body-emit pass to fill in.
 
 reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx) -> void {
     signature :: build_cfg_signature(cfg_fn.params, cfg_fn.return_type, cfg_fn.scalarised_results, ctx)
@@ -286,9 +286,7 @@ build_cfg_signature :: fn(
     }
 }
 
-// ============================================================================
-// Project-level entry point
-// ============================================================================
+// ---- Project-level entry point --------------------------------------------
 
 /// Thread a peephole pass's `BcPeepholeOut` back onto `f`, replacing only the
 /// rewritten `body` / `debug` / `jump_table`: a pass can't mutate `f` in place
@@ -644,9 +642,7 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Mu
     return out
 }
 
-// ============================================================================
-// Per-fn structurer
-// ============================================================================
+// ---- Per-fn structurer ----------------------------------------------------
 
 /// Active structured scope, keyed by source-CFG BlockId. `opener_pc` is
 /// the pc of the `Block`/`Loop`/`If` op that opened this scope ; used
@@ -784,10 +780,10 @@ emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, 
     )
 }
 
-// ============================================================================
-// Scope wiring: indexes scopes by source-CFG BlockId target.
-// Maintains `slot.body` and `slot.jump_table` in parallel.
-// ============================================================================
+// ---- Scope wiring ---------------------------------------------------------
+
+// Indexes scopes by source-CFG BlockId target. Maintains `slot.body` and
+// `slot.jump_table` in parallel.
 
 cf_block :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
     pc :: push_op_with_span(ctx, Block {}, span)
@@ -1042,9 +1038,7 @@ last_op_exits :: fn(ctx: FnEmitCfg) -> bool {
 closure_header_type :: fn(t: Type) -> Type =
     if t is FnType { t } else { mk_fn([], TY_VOID) }
 
-// ============================================================================
-// Per-instr emit: covers the full `Instruction` set
-// ============================================================================
+// ---- Per-instruction emit -------------------------------------------------
 
 emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     if ins is InstrConst {

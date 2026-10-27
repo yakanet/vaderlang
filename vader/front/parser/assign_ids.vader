@@ -9,11 +9,11 @@
 // `Decl`, `Expr`, `Stmt`, `Pattern`, `LetBinding`, `ImportBinding`,
 // `StringLitPart`, etc. explicitly.
 
+module "vader/front/parser"
+
 /// Mints a unique `i64` id per call. One factory serves the whole project
 /// (`load_project_with_overlay`), and what `materialize.vader` clones or
 /// synthesises draws from it too, so no two nodes of a project share an id.
-module "vader/front/parser"
-
 export NodeIdFactory :: struct { next: i64 }
 
 /// Build a fresh factory. IDs start at 1: `0` is reserved for

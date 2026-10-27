@@ -16,9 +16,7 @@ import "vader/core/symbol"
 import "vader/core/types"
 import "toolchain/span"
 
-// ============================================================================
-// Project / module / decl shells
-// ============================================================================
+// ---- Project / module / decl shells ---------------------------------------
 
 /// One `(trait, method, concrete struct)` impl-fn binding. The bytecode
 /// emitter walks `vtable_entries` to populate `BytecodeModule.vtables` ;
@@ -204,9 +202,7 @@ export LoweredParam :: struct {
     type:   Type
 }
 
-// ============================================================================
-// Statements
-// ============================================================================
+// ---- Statements -----------------------------------------------------------
 
 export LoweredStmt ::
     | LoweredLet
@@ -358,9 +354,7 @@ export LoweredContinue :: struct {
     label: string | null
 }
 
-// ============================================================================
-// Expressions
-// ============================================================================
+// ---- Expressions ----------------------------------------------------------
 
 export LoweredExpr ::
     | LoweredIntLit
@@ -790,9 +784,7 @@ export LoweredMakeClosure :: struct {
     env:       LoweredExpr
 }
 
-// ============================================================================
-// Intrinsic names
-// ============================================================================
+// ---- Intrinsic names ------------------------------------------------------
 
 /// Canonical intrinsic names embedded into `LoweredIntrinsicCall.name`.
 /// Kept as string constants rather than an enum so the bytecode emitter's
@@ -815,9 +807,7 @@ export INTRINSIC_ARRAY_REMOVE_LAST :: "array.remove_last"
 /// `arr.clear()`: drop every element (length 0, keep buf + capacity).
 export INTRINSIC_ARRAY_CLEAR :: "array.clear"
 
-// ============================================================================
-// Constructors
-// ============================================================================
+// ---- Constructors ---------------------------------------------------------
 
 /// `[source] * count`, of the array type `type`: the `array.repeat` intrinsic,
 /// the count going in as the `i64` the runtime takes.
