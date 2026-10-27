@@ -1,0 +1,74 @@
+# Typecheck
+
+## tests/snippets/field_default_array_per_instance
+  StructDecl     Log                  :: Log
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      NO_TAGS              :: string[]
+  StructDecl     Tagged               :: Tagged
+  expr 11:20    SeqLitExpr     :: string[]
+  expr 14:23    SeqLitExpr     :: string[]
+  expr 18:22    IdentExpr      :: string[]
+  expr 22:10    StructLitExpr  :: Log
+  expr 23:10    StructLitExpr  :: Log
+  expr 24:18    StringLitExpr  :: string
+  expr 24:5     CallExpr       :: void
+  expr 24:5     FieldExpr      :: fn(string) -> void
+  expr 24:5     FieldExpr      :: string[]
+  expr 24:5     IdentExpr      :: Log
+  expr 25:13    StringLitExpr  :: string
+  expr 25:30    CallExpr       :: i64
+  expr 25:30    FieldExpr      :: fn() -> i64
+  expr 25:30    FieldExpr      :: string[]
+  expr 25:30    IdentExpr      :: Log
+  expr 25:47    CallExpr       :: i64
+  expr 25:47    FieldExpr      :: fn() -> i64
+  expr 25:47    FieldExpr      :: string[]
+  expr 25:47    IdentExpr      :: Log
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 27:18    SeqLitExpr     :: Log[]
+  expr 28:14    RangeExpr      :: Range<i32>
+  expr 29:19    StructLitExpr  :: Log
+  expr 29:9     CallExpr       :: void
+  expr 29:9     FieldExpr      :: fn(Log) -> void
+  expr 29:9     IdentExpr      :: Log[]
+  expr 31:24    StringLitExpr  :: string
+  expr 31:5     CallExpr       :: void
+  expr 31:5     FieldExpr      :: fn(string) -> void
+  expr 31:5     FieldExpr      :: string[]
+  expr 31:5     IdentExpr      :: Log[]
+  expr 31:5     IndexExpr      :: Log
+  expr 32:13    StringLitExpr  :: string
+  expr 32:39    CallExpr       :: i64
+  expr 32:39    FieldExpr      :: fn() -> i64
+  expr 32:39    FieldExpr      :: string[]
+  expr 32:39    IdentExpr      :: Log[]
+  expr 32:39    IndexExpr      :: Log
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 32:62    CallExpr       :: i64
+  expr 32:62    FieldExpr      :: fn() -> i64
+  expr 32:62    FieldExpr      :: string[]
+  expr 32:62    IdentExpr      :: Log[]
+  expr 32:62    IndexExpr      :: Log
+  expr 34:10    StructLitExpr  :: Tagged
+  expr 35:10    StructLitExpr  :: Tagged
+  expr 36:17    StringLitExpr  :: string
+  expr 36:5     CallExpr       :: void
+  expr 36:5     FieldExpr      :: fn(string) -> void
+  expr 36:5     FieldExpr      :: string[]
+  expr 36:5     IdentExpr      :: Tagged
+  expr 37:13    StringLitExpr  :: string
+  expr 37:35    CallExpr       :: i64
+  expr 37:35    FieldExpr      :: fn() -> i64
+  expr 37:35    FieldExpr      :: string[]
+  expr 37:35    IdentExpr      :: Tagged
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 37:51    CallExpr       :: i64
+  expr 37:51    FieldExpr      :: fn() -> i64
+  expr 37:51    FieldExpr      :: string[]
+  expr 37:51    IdentExpr      :: Tagged
+  expr 37:67    CallExpr       :: i64
+  expr 37:67    FieldExpr      :: fn() -> i64
+  expr 37:67    IdentExpr      :: string[]

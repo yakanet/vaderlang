@@ -1,0 +1,39 @@
+// A field default is evaluated at each literal that leaves the field out: every
+// instance gets an array of its own, and a push through one leaves the others
+// empty. That holds for two literals, for one literal run twice, and for a
+// default that names a module constant, which reads a fresh value built again by
+// the constant's accessor.
+
+module "snippet"
+
+import "std/io"
+
+NO_TAGS: string[]: []
+
+Log :: struct {
+    lines: string[] = []
+}
+
+Tagged :: struct {
+    tags: string[] = NO_TAGS
+}
+
+main :: fn() -> i32 {
+    a :: Log {}
+    b :: Log {}
+    a.lines.push("first")
+    println("two literals: ${a.lines.len()} ${b.lines.len()}")
+
+    logs: Log[]: []
+    for _ in 0..<2 {
+        logs.push(Log {})
+    }
+    logs[0].lines.push("x")
+    println("one literal run twice: ${logs[0].lines.len()} ${logs[1].lines.len()}")
+
+    c :: Tagged {}
+    d :: Tagged {}
+    c.tags.push("t")
+    println("a module constant: ${c.tags.len()} ${d.tags.len()} ${NO_TAGS.len()}")
+    return 0
+}
