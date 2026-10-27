@@ -91,10 +91,10 @@ The modules are read and type-checked as the project's build reads them, from it
 
 Nothing is rewritten while the data is what the command would write: `build/doc/stamp` holds a key over the files the load read and their folders, the roots it searched, the entry, the path documented, the project's `vader.json` and the compiler. A file no load reaches changes nothing. A run that reports an error writes no stamp, so the next one reports it again; the modules a run leaves out follow from what the key covers, so the stamp keeps them and a run on data still up to date names them again. Deleting `build/doc/` forces a new run.
 
-The data is JSON, at `version` 1, a draft that may still change:
+The data is JSON, at `version` 2, a draft that may still change:
 
 - `index.json` lists the `modules` (`path`, `summary`, `files`) and, in `entries`, every export, impl and member with what a list shows of it: `id`, `module`, `name`, `kind`, the text of its `signature` and `summary`, the first sentence of its vaderdoc, and its `owner`: the id of the declaration a member belongs to, of the type an impl is for (empty for a type no declaration stands for, `T[]` or `string`), empty otherwise.
-- `modules/<path>.json` holds one module whole: its `summary`, the `header` of its main file, its `files` and its `decls`. Each declaration adds `file`, `line` and `column` (of its name, of its first line for an impl, from 1, the column in codepoints), `doc` (null without a vaderdoc), `targets` and `members`:
+- `modules/<path>.json` holds one module whole: its `summary`, the `header` of its main file, its `files` and its `decls`. Each declaration adds `inferred_type`, `function`, `file`, `line` and `column` (of its name, of its first line for an impl, from 1, the column in codepoints), `doc` (null without a vaderdoc), `targets` and `members`:
 
 ```json
 {
@@ -106,7 +106,8 @@ The data is JSON, at `version` 1, a draft that may still change:
     { "text": " implements " },
     { "text": "Named", "module": "shapes/text", "name": "Named" }
   ],
-  "inferred": null,
+  "inferred_type": [],
+  "function": null,
   "file": "shapes/text/text.vader",
   "line": 20,
   "column": 1,
@@ -116,7 +117,7 @@ The data is JSON, at `version` 1, a draft that may still change:
     "params": [],
     "returns": [],
     "errors": [],
-    "example": ""
+    "example": []
   },
   "trait": "Named",
   "for": "Tag",
@@ -127,7 +128,11 @@ The data is JSON, at `version` 1, a draft that may still change:
       "name": "name",
       "kind": "method",
       "signature": [{ "text": "name :: fn(self) -> string" }],
-      "inferred": { "return": [{ "text": "string" }] },
+      "function": {
+        "parameters": [{ "name": "self", "type": [] }],
+        "return_type": [{ "text": "string" }],
+        "return_inferred": true
+      },
       "line": 22,
       "column": 5,
       "doc": {
@@ -136,7 +141,7 @@ The data is JSON, at `version` 1, a draft that may still change:
         "params": [],
         "returns": [],
         "errors": [],
-        "example": ""
+        "example": []
       }
     }
   ]
@@ -146,9 +151,10 @@ The data is JSON, at `version` 1, a draft that may still change:
 - `id` is `<module>/<name>`, `<module>/<name>~<n>` for the n-th declaration of an overloaded name, `<module>/<type>: <trait>` for an impl, and `<declaration>.<name>` for a member.
 - `kind` is `fn`, `struct`, `enum`, `trait`, `type` (an alias, or a constant whose value is a type), `const` or `impl`; a member's is `field`, `variant` or `method`. A field restricted to its module (`@internal`) is left out.
 - `signature` is the head as segments, whose texts, put end to end, give the head: each is `{ "text" }`, with the `module` and the `name` of the declaration it names when it is a name a reader can follow, a public function, type, trait or constant. A name reached through a namespace alias is one segment, `Geo.Point`.
-- `inferred` holds what typing gave that the source leaves out, as segments too: `{ "return": T }` for a function or a method without `->`, whose `signature` then ends with ` -> T`, `{ "type": T }` for a constant without a written type, `null` otherwise. Only a struct, a trait, an enum or a distinct type links there: typing keeps no declaration for an alias, so an integer range such as `i32` shows its name without a link.
+- `inferred_type` is the type typing gave a constant without a written type, as segments too, empty otherwise. Only a struct, a trait, an enum or a distinct type links there: typing keeps no declaration for an alias, so an integer range such as `i32` shows its name without a link.
+- `function` holds the `parameters` and the `return_type` of a function or a method, `null` for another declaration. Each parameter is `{ "name", "type" }`, its `type` as segments, empty when the head writes none (`self`), with its `default` as segments and `"variadic": true` when it has them. `return_type` is what it returns, written or inferred, empty when it is neither; `return_inferred` says typing gave it, the `signature` then ending with ` -> ` and that type.
 - `targets` lists the platforms an `@target` group exists on, and is empty for a function that exists on every platform: one whose bare declaration has a body.
-- `prose` is CommonMark, and `example` is shown as a reader sees it, its hidden `# ` lines left out.
+- `prose` is CommonMark, and `example` lists the lines of the example, each `{ "text" }` without the indentation the shown lines share; a line that sets the example up, written behind `# `, comes without it and with `"hidden": true`.
 
 `vader doc --search=<query> [path]` shows what a query names, read the way `go doc` reads one. The data of the path, when there is a project or a path argument, and of the toolchain's library, in `build/doc-lib/` beside `build/doc/` with a stamp of its own, are brought up to date first; the path's modules hide the library's of the same name.
 

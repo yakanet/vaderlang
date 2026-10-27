@@ -21,7 +21,6 @@ import "vader/front/resolver"
 import "vader/support/diagnostics"
 import "vader/tools/fmt"
 Tc :: import "vader/front/typecheck"
-Ty :: import "vader/core/types"
 
 /// What `vader doc` documented of a scope, and what it had to leave out.
 export Documented :: struct {
@@ -61,9 +60,9 @@ export DocDecl :: struct {
     /// typing gave a fn whose source writes none; each name in it that a reader
     /// can follow a link.
     signature: DocSegment[]
-    /// What typing gave that the source leaves unwritten: the return of a fn,
-    /// the type of a constant; empty otherwise.
-    inferred: DocSegment[] = []
+    /// The type typing gave a constant whose source writes none; empty
+    /// otherwise.
+    inferred_type: DocSegment[] = []
     /// The file that declares it, written as in `DocModule.files`.
     file: string
     /// The line of its name, from 1; of its first line for an impl.
@@ -81,6 +80,8 @@ export DocDecl :: struct {
     /// The type an impl is for; "" for an export.
     for_type: string = ""
     members: DocMember[] = []
+    /// The parameters and the return of a fn, null for another declaration.
+    function: DocFunction | null = null
 }
 
 /// A field of a struct, a variant of an enum, or a method of a trait or an impl.
@@ -93,14 +94,13 @@ export DocMember :: struct {
     /// Its head as the hover shows it, ending with the return typing gave a
     /// method whose source writes none.
     signature: DocSegment[]
-    /// The return typing gave a method whose source writes none; empty
-    /// otherwise.
-    inferred: DocSegment[] = []
     /// The line of its name, from 1.
     line: i32
     /// The column of its name on that line, from 1, in codepoints.
     column: i32
     doc: DocSections | null
+    /// The parameters and the return of a method, null for a field or a variant.
+    function: DocFunction | null = null
 }
 
 /// Document the modules of `scope`, as `project` loaded them.
@@ -188,19 +188,28 @@ doc_decl :: fn(ctx: FileContext, d: Decl) -> DocDecl | null {
         return null
     }
     name_span :: decl_name_span(d) ?? return null
-    inferred :: inferred_of(ctx, d)
+    function :: decl_function(ctx, d)
     return DocDecl {
         .name = ctx.file.content.byte_slice(name_span.start.offset, name_span.end.offset),
         .kind = kind_of(d),
-        .signature = signature_of(ctx, "export ", d, inferred),
-        .inferred = inferred,
+        .signature = signature_of(ctx, "export ", d, function),
+        .inferred_type = unwritten_type(ctx, d),
         .file = ctx.path,
         .line = name_span.start.line,
         .column = name_span.start.column,
         .doc = sections_of(decl_doc(d)),
         .targets = targets_of(d, ctx.target_decls),
         .members = members_of(ctx, d),
+        .function = function,
     }
+}
+
+// The parameters and the return of `d` when it is a fn, null otherwise.
+decl_function :: fn(ctx: FileContext, d: Decl) -> DocFunction | null {
+    if d is FnDecl {
+        return function_of(ctx, d)
+    }
+    return null
 }
 
 // The entry of the impl `d`, named after the type it is for and its trait.
@@ -342,78 +351,34 @@ methods_of :: fn(ctx: FileContext, methods: FnDecl[]) -> DocMember[] =
     methods.filter((fd: FnDecl) -> !fd.materialized).map((fd: FnDecl) -> method_member(ctx, fd)).collect()
 
 method_member :: fn(ctx: FileContext, fd: FnDecl) -> DocMember {
-    inferred :: unwritten_return(ctx, fd)
+    function :: function_of(ctx, fd)
     return DocMember {
         .name = fd.name,
         .kind = "method",
-        .signature = signature_of(ctx, "", fd, inferred),
-        .inferred = inferred,
+        .signature = signature_of(ctx, "", fd, function),
         .line = fd.name_span.start.line,
         .column = fd.name_span.start.column,
         .doc = sections_of(fd.doc),
+        .function = function,
     }
 }
 
 // The signature of `d`: `prefix`, its head, and for a fn whose source writes no
-// return, the return `inferred` typing gave it.
+// return, the return typing gave it.
 signature_of :: fn(
     ctx: FileContext,
     prefix: string,
     d: Decl,
-    inferred: DocSegment[],
+    function: DocFunction | null,
 ) -> DocSegment[] {
     out: DocSegment[]: []
     out.push_text(prefix)
     out.append_segments(head_segments(ctx, format_decl_head(ctx.file.content, d)))
-    if d is FnDecl && inferred.len() > 0 {
+    if function != null && function.return_inferred {
         out.push_text(" -> ")
-        out.append_segments(inferred)
+        out.append_segments(function.return_type)
     }
     return out
-}
-
-// What typing gave `d` that its source leaves unwritten: the return of a fn, the
-// type of a constant; empty for every other declaration.
-inferred_of :: fn(ctx: FileContext, d: Decl) -> DocSegment[] = match d {
-    is FnDecl    -> unwritten_return(ctx, d)
-    is ConstDecl -> unwritten_type(ctx, d)
-    is StructDecl | EnumDecl | TraitDecl | TypeAliasDecl | ImplDecl | AssertDecl | ImportDecl -> []
-}
-
-// The return typing gave the fn `fd` when its source writes none: inferred from an
-// expression body, or taken from the trait an impl method implements. Empty when
-// the source writes it, and for a return a reader would not write (`void`,
-// `never`) or typing could not settle.
-unwritten_return :: fn(ctx: FileContext, fd: FnDecl) -> DocSegment[] {
-    if fd.return_type != null || fd.comptime_synthetic {
-        return []
-    }
-    typed :: ctx.typed ?? return []
-    t :: Tc.declared_type_at(typed, fd.name_span)
-    if t is Ty.FnType {
-        return shown_type(t.return_type)
-    }
-    return []
-}
-
-// The type typing gave the constant `d` when its source writes none and its value
-// is no type, empty otherwise.
-unwritten_type :: fn(ctx: FileContext, d: ConstDecl) -> DocSegment[] {
-    if d.ty != null || is_type_value(d.value) {
-        return []
-    }
-    typed :: ctx.typed ?? return []
-    t :: Tc.declared_type_at(typed, d.name_span) ?? return []
-    return shown_type(t)
-}
-
-// `t` as a reader sees it, its nominal names linked; empty for what a reader
-// would not write (`void`, `never`) and for what typing could not settle.
-shown_type :: fn(t: Ty.Type) -> DocSegment[] {
-    if t is Ty.UnresolvedType || t is Ty.NeverType || Ty.is_void(t) {
-        return []
-    }
-    return type_segments(t)
 }
 
 // Whether `a` and `b` name the same folder, however each is spelled, a symbolic

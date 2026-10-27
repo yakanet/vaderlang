@@ -150,10 +150,28 @@ export format_impl_trait :: fn(source: string, d: p.ImplDecl) -> string {
 ///
 /// @param source  the document the type's spans index into.
 /// @param t       the type expression.
-export format_type_expr :: fn(source: string, t: p.TypeExpr) -> string {
+export format_type_expr :: fn(source: string, t: p.TypeExpr) -> string =
+    format_type_expr_named(source, t).text
+
+/// Render a type expression on one line, with the names it writes.
+///
+/// @param source  the document the type's spans index into.
+/// @param t       the type expression.
+export format_type_expr_named :: fn(source: string, t: p.TypeExpr) -> NamedText {
     h :: head_printer(source)
     h.emit_type_expr(t)
-    return h.finish()
+    return h.finish_named()
+}
+
+/// Render an expression on one line as a head writes it, a parameter's default
+/// for one, with the names it writes.
+///
+/// @param source  the document the expression's spans index into.
+/// @param e       the expression.
+export format_expr_named :: fn(source: string, e: p.Expr) -> NamedText {
+    h :: head_printer(source)
+    h.emit_expr(e)
+    return h.finish_named()
 }
 
 // ---- display --------------------------------------------------------------

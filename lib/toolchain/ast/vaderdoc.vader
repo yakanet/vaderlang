@@ -10,6 +10,7 @@
 module "toolchain/ast"
 
 import "std/iter"
+import "std/math"
 import "std/string"
 import "toolchain/span"
 
@@ -193,13 +194,37 @@ export doc_param_name :: fn(rest: string) -> string {
 /// @param sections  a split vaderdoc.
 /// @return          "" without an example.
 export shown_example :: fn(sections: DocSections) -> string {
-    shown: string[]: []
+    shown :: example_lines(sections).filter((l: ExampleLine) -> !l.hidden)
+    return shown.map((l: ExampleLine) -> l.text).collect().join("\n").trim()
+}
+
+/// A line of an example, as a reader sees it.
+export ExampleLine :: struct {
+    /// The line without the indentation the shown lines share, and without the
+    /// `# ` of a hidden line.
+    text: string
+    /// Whether the line sets the example up: a reader sees it only in the whole
+    /// example.
+    hidden: bool = false
+}
+
+/// The lines of the example of `sections`, hidden ones included, without the
+/// blank lines around them.
+///
+/// @param sections  a split vaderdoc.
+/// @return          none without an example.
+export example_lines :: fn(sections: DocSections) -> ExampleLine[] {
+    shown :: sections.example.filter((ln: string) -> !is_hidden_example_line(ln)).collect()
+    common :: common_indent(shown)
+    lines: ExampleLine[]: []
     for ln in sections.example {
-        if !is_hidden_example_line(ln) {
-            shown.push(ln)
+        if is_hidden_example_line(ln) {
+            lines.push(ExampleLine { .text = unmarked(outdented(ln, common)), .hidden = true })
+        } else {
+            lines.push(ExampleLine { .text = outdented(ln, common) })
         }
     }
-    return dedent(shown).trim()
+    return without_blank_ends(lines)
 }
 
 // The entries `tag` adds to.
@@ -237,31 +262,54 @@ is_hidden_example_line :: fn(line: string) -> bool {
     return rest == "#" || rest.starts_with("# ")
 }
 
-// `lines` with the indentation they all share removed; blank lines do not count
-// towards it.
-dedent :: fn(lines: string[]) -> string {
+// The indentation the non-blank lines of `lines` share, in bytes; 0 without any.
+common_indent :: fn(lines: string[]) -> i64 {
     common: i64 = -1
     for ln in lines {
-        if ln.trim().byte_len() == 0 {
-            continue
-        }
-        indent :: ln.byte_len() - ln.left_trim().byte_len()
-        if common < 0 || indent < common {
-            common = indent
+        if ln.trim().byte_len() > 0 {
+            common = min_indent(common, indent_of(ln))
         }
     }
-    if common <= 0 {
-        return lines.join("\n")
+    return max(common, 0)
+}
+
+// `indent` when `common` is still unset (negative), the smaller of the two
+// otherwise.
+min_indent :: fn(common: i64, indent: i64) -> i64 {
+    if common < 0 {
+        return indent
     }
-    out: string[]: []
-    for ln in lines {
-        if ln.byte_len() >= common {
-            out.push(ln.byte_slice(common, ln.byte_len()))
-        } else {
-            out.push("")
-        }
+    return min(common, indent)
+}
+
+// The bytes of indentation `line` opens with.
+indent_of :: fn(line: string) -> i64 = line.byte_len() - line.left_trim().byte_len()
+
+// `line` without `common` bytes of indentation, or without all of its own when
+// it has fewer.
+outdented :: fn(line: string, common: i64) -> string =
+    line.byte_slice(min(common, indent_of(line)), line.byte_len())
+
+// The hidden example line `line` without the `#` past its indentation, and the
+// blank after it.
+unmarked :: fn(line: string) -> string {
+    rest :: line.left_trim()
+    indent :: line.byte_slice(0, line.byte_len() - rest.byte_len())
+    return indent + rest.trim_prefix("#").trim_prefix(" ")
+}
+
+// `lines` without the blank lines they open and end with.
+without_blank_ends :: fn(lines: ExampleLine[]) -> ExampleLine[] {
+    start: i64 = 0
+    end :: lines.len()
+    for start < end && lines[start].text.trim() == "" {
+        start += 1
     }
-    return out.join("\n")
+    stop := end
+    for stop > start && lines[stop - 1].text.trim() == "" {
+        stop -= 1
+    }
+    return lines[start..<stop]
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -306,6 +354,20 @@ test_shown_example_hides_its_setup_lines :: fn() -> void {
     s :: doc_sections("Add.\n@example\n  # import \"std/io\"\n  #\n  println(a + 1)")
     assert_eq(s.example.len(), 3)
     assert_eq(shown_example(s), "println(a + 1)")
+}
+
+@test
+test_example_lines_mark_the_setup_lines :: fn() -> void {
+    s :: doc_sections("Add.\n@example\n  # import \"std/io\"\n  #\n  println(a + 1)\n")
+    shown :: example_lines(s).map((l: ExampleLine) -> "${l.hidden}|${l.text}").collect()
+    assert_eq(shown.join("\n"), "true|import \"std/io\"\ntrue|\nfalse|println(a + 1)")
+}
+
+@test
+test_example_lines_outdent_a_setup_line_no_further_than_its_own :: fn() -> void {
+    s :: doc_sections("@example\n# a\n    b()")
+    assert_eq(example_lines(s)[0].text, "a")
+    assert_eq(example_lines(s)[1].text, "b()")
 }
 
 @test

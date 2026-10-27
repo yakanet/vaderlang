@@ -1,0 +1,104 @@
+// vader/tools/doc/shape: the types of a declaration, apart from its head.
+//
+// What typing gave that the source leaves unwritten (the return of a fn, the
+// type of a constant), and the parameters and the return of a function one by
+// one, printed from the declaration by the printer of the head, with the same
+// links.
+
+module "vader/tools/doc"
+
+import "std/iter"
+import "toolchain/ast"
+import "vader/tools/fmt"
+Tc :: import "vader/front/typecheck"
+Ty :: import "vader/core/types"
+
+/// The parameters and the return of a fn or a method.
+export DocFunction :: struct {
+    parameters: DocParameter[]
+    /// What it returns, written or inferred; empty when it is neither.
+    return_type: DocSegment[]
+    /// Whether typing gave the return, which the head does not write.
+    return_inferred: bool
+}
+
+/// A parameter of a function, as its head writes it.
+export DocParameter :: struct {
+    name: string
+    /// Its type, each name a reader can follow a link; empty when the head
+    /// writes none (`self`).
+    param_type: DocSegment[]
+    /// Its default value, empty without one.
+    default: DocSegment[] = []
+    /// Whether it takes the rest of the arguments (`...name`).
+    variadic: bool = false
+}
+
+// The parameters and the return of `fd`.
+function_of :: fn(ctx: FileContext, fd: FnDecl) -> DocFunction {
+    inferred :: unwritten_return(ctx, fd)
+    return DocFunction {
+        .parameters = fd.params.map((p: FnParam) -> parameter_of(ctx, p)).collect(),
+        .return_type = written_type(ctx, fd.return_type) ?? inferred,
+        .return_inferred = inferred.len() > 0,
+    }
+}
+
+parameter_of :: fn(ctx: FileContext, p: FnParam) -> DocParameter = DocParameter {
+    .name = p.name,
+    .param_type = written_type(ctx, p.ty) ?? [],
+    .default = default_segments(ctx, p.default_value),
+    .variadic = p.variadic,
+}
+
+// The type expression `t` as segments; null without one.
+written_type :: fn(ctx: FileContext, t: TypeExpr | null) -> DocSegment[] | null {
+    if t == null {
+        return null
+    }
+    return head_segments(ctx, format_type_expr_named(ctx.file.content, t))
+}
+
+// The default value `e` as segments; none without one.
+default_segments :: fn(ctx: FileContext, e: Expr | null) -> DocSegment[] {
+    if e == null {
+        return []
+    }
+    return head_segments(ctx, format_expr_named(ctx.file.content, e))
+}
+
+// The return typing gave the fn `fd` when its source writes none: inferred from an
+// expression body, or taken from the trait an impl method implements. Empty when
+// the source writes it, and for a return a reader would not write (`void`,
+// `never`) or typing could not settle.
+unwritten_return :: fn(ctx: FileContext, fd: FnDecl) -> DocSegment[] {
+    if fd.return_type != null || fd.comptime_synthetic {
+        return []
+    }
+    typed :: ctx.typed ?? return []
+    t :: Tc.declared_type_at(typed, fd.name_span)
+    if t is Ty.FnType {
+        return shown_type(t.return_type)
+    }
+    return []
+}
+
+// The type typing gave the declaration `d` when it is a constant whose source
+// writes none and whose value is no type; empty otherwise.
+unwritten_type :: fn(ctx: FileContext, d: Decl) -> DocSegment[] {
+    if d !is ConstDecl || d.ty != null || is_type_value(d.value) {
+        return []
+    }
+    typed :: ctx.typed ?? return []
+    t :: Tc.declared_type_at(typed, d.name_span) ?? return []
+    return shown_type(t)
+}
+
+// `t` as a reader sees it, its nominal names linked; empty for what a reader
+// would not write (`void`, `never`) and for what typing could not settle.
+shown_type :: fn(t: Ty.Type) -> DocSegment[] {
+    if t is Ty.UnresolvedType || t is Ty.NeverType || Ty.is_void(t) {
+        return []
+    }
+    return type_segments(t)
+}

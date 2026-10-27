@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "path": "shapes/geometry",
   "summary": "the `vader doc` fixture's main module, over two files.",
   "header": "shapes/geometry: the `vader doc` fixture's main module, over two files.\n\nThe plane, its points and its quadrants.",
@@ -17,7 +17,25 @@
           "text": "export square_area :: fn(side: f64) -> f64"
         }
       ],
-      "inferred": null,
+      "inferred_type": [],
+      "function": {
+        "parameters": [
+          {
+            "name": "side",
+            "type": [
+              {
+                "text": "f64"
+              }
+            ]
+          }
+        ],
+        "return_type": [
+          {
+            "text": "f64"
+          }
+        ],
+        "return_inferred": false
+      },
       "file": "shapes/geometry/area.vader",
       "line": 9,
       "column": 8,
@@ -34,7 +52,7 @@
         "errors": [
           "none: a negative side gives a positive area."
         ],
-        "example": ""
+        "example": []
       },
       "targets": [],
       "members": []
@@ -48,7 +66,16 @@
           "text": "export separator :: fn() -> string"
         }
       ],
-      "inferred": null,
+      "inferred_type": [],
+      "function": {
+        "parameters": [],
+        "return_type": [
+          {
+            "text": "string"
+          }
+        ],
+        "return_inferred": false
+      },
       "file": "shapes/geometry/area.vader",
       "line": 13,
       "column": 8,
@@ -58,7 +85,7 @@
         "params": [],
         "returns": [],
         "errors": [],
-        "example": ""
+        "example": []
       },
       "targets": [
         "darwin",
@@ -76,7 +103,8 @@
           "text": "export Point :: struct"
         }
       ],
-      "inferred": null,
+      "inferred_type": [],
+      "function": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 10,
       "column": 8,
@@ -86,7 +114,7 @@
         "params": [],
         "returns": [],
         "errors": [],
-        "example": ""
+        "example": []
       },
       "targets": [],
       "members": [
@@ -99,7 +127,7 @@
               "text": "x: f64"
             }
           ],
-          "inferred": null,
+          "function": null,
           "line": 12,
           "column": 5,
           "doc": {
@@ -108,7 +136,7 @@
             "params": [],
             "returns": [],
             "errors": [],
-            "example": ""
+            "example": []
           }
         },
         {
@@ -120,7 +148,7 @@
               "text": "y: f64"
             }
           ],
-          "inferred": null,
+          "function": null,
           "line": 13,
           "column": 5,
           "doc": null
@@ -152,7 +180,37 @@
           "text": ") -> f64"
         }
       ],
-      "inferred": null,
+      "inferred_type": [],
+      "function": {
+        "parameters": [
+          {
+            "name": "a",
+            "type": [
+              {
+                "text": "Point",
+                "module": "shapes/geometry",
+                "name": "Point"
+              }
+            ]
+          },
+          {
+            "name": "b",
+            "type": [
+              {
+                "text": "Point",
+                "module": "shapes/geometry",
+                "name": "Point"
+              }
+            ]
+          }
+        ],
+        "return_type": [
+          {
+            "text": "f64"
+          }
+        ],
+        "return_inferred": false
+      },
       "file": "shapes/geometry/geometry.vader",
       "line": 28,
       "column": 8,
@@ -173,7 +231,15 @@
           "the distance, in the unit of the points."
         ],
         "errors": [],
-        "example": "distance(o, Point { .x = 3.0, .y = 4.0 })   // 5.0"
+        "example": [
+          {
+            "text": "o :: Point { .x = 0.0, .y = 0.0 }",
+            "hidden": true
+          },
+          {
+            "text": "distance(o, Point { .x = 3.0, .y = 4.0 })   // 5.0"
+          }
+        ]
       },
       "targets": [],
       "members": []
@@ -200,7 +266,37 @@
           "name": "Point"
         }
       ],
-      "inferred": null,
+      "inferred_type": [],
+      "function": {
+        "parameters": [
+          {
+            "name": "p",
+            "type": [
+              {
+                "text": "Point",
+                "module": "shapes/geometry",
+                "name": "Point"
+              }
+            ]
+          },
+          {
+            "name": "k",
+            "type": [
+              {
+                "text": "f64"
+              }
+            ]
+          }
+        ],
+        "return_type": [
+          {
+            "text": "Point",
+            "module": "shapes/geometry",
+            "name": "Point"
+          }
+        ],
+        "return_inferred": false
+      },
       "file": "shapes/geometry/geometry.vader",
       "line": 31,
       "column": 8,
@@ -210,7 +306,7 @@
         "params": [],
         "returns": [],
         "errors": [],
-        "example": ""
+        "example": []
       },
       "targets": [],
       "members": []
@@ -245,7 +341,39 @@
           "name": "Point"
         }
       ],
-      "inferred": null,
+      "inferred_type": [],
+      "function": {
+        "parameters": [
+          {
+            "name": "p",
+            "type": [
+              {
+                "text": "Point",
+                "module": "shapes/geometry",
+                "name": "Point"
+              }
+            ]
+          },
+          {
+            "name": "k",
+            "type": [
+              {
+                "text": "i32",
+                "module": "std/core",
+                "name": "i32"
+              }
+            ]
+          }
+        ],
+        "return_type": [
+          {
+            "text": "Point",
+            "module": "shapes/geometry",
+            "name": "Point"
+          }
+        ],
+        "return_inferred": false
+      },
       "file": "shapes/geometry/geometry.vader",
       "line": 34,
       "column": 8,
@@ -255,7 +383,7 @@
         "params": [],
         "returns": [],
         "errors": [],
-        "example": ""
+        "example": []
       },
       "targets": [],
       "members": []
@@ -269,7 +397,8 @@
           "text": "export Quadrant :: enum"
         }
       ],
-      "inferred": null,
+      "inferred_type": [],
+      "function": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 36,
       "column": 8,
@@ -285,7 +414,7 @@
               "text": "First"
             }
           ],
-          "inferred": null,
+          "function": null,
           "line": 38,
           "column": 5,
           "doc": {
@@ -294,7 +423,7 @@
             "params": [],
             "returns": [],
             "errors": [],
-            "example": ""
+            "example": []
           }
         },
         {
@@ -306,7 +435,7 @@
               "text": "Second"
             }
           ],
-          "inferred": null,
+          "function": null,
           "line": 39,
           "column": 5,
           "doc": null
@@ -330,15 +459,14 @@
           "text": " { .x = 0.0, .y = 0.0 }"
         }
       ],
-      "inferred": {
-        "type": [
-          {
-            "text": "Point",
-            "module": "shapes/geometry",
-            "name": "Point"
-          }
-        ]
-      },
+      "inferred_type": [
+        {
+          "text": "Point",
+          "module": "shapes/geometry",
+          "name": "Point"
+        }
+      ],
+      "function": null,
       "file": "shapes/geometry/geometry.vader",
       "line": 43,
       "column": 8,
@@ -348,7 +476,7 @@
         "params": [],
         "returns": [],
         "errors": [],
-        "example": ""
+        "example": []
       },
       "targets": [],
       "members": []
@@ -370,12 +498,26 @@
           "text": ") -> i32"
         }
       ],
-      "inferred": {
-        "return": [
+      "inferred_type": [],
+      "function": {
+        "parameters": [
+          {
+            "name": "n",
+            "type": [
+              {
+                "text": "i32",
+                "module": "std/core",
+                "name": "i32"
+              }
+            ]
+          }
+        ],
+        "return_type": [
           {
             "text": "i32"
           }
-        ]
+        ],
+        "return_inferred": true
       },
       "file": "shapes/geometry/geometry.vader",
       "line": 46,
@@ -386,7 +528,7 @@
         "params": [],
         "returns": [],
         "errors": [],
-        "example": ""
+        "example": []
       },
       "targets": [],
       "members": []

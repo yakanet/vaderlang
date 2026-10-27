@@ -82,7 +82,7 @@ entry_lines :: fn(ctx: TextCtx, e: IndexEntry) -> string[] {
     owner :: module.decls.find((d: DocDecl) -> d.id == e.owner) ?? return [e.signature]
     member :: owner.members.find((m: DocMember) -> m.id == e.id) ?? return [e.signature]
     lines: string[]: [place(ctx, e, owner.file, member.line, member.column), ""]
-    head :: head_of(ctx, member.name, member.signature, member.inferred, member.kind)
+    head :: head_of(ctx, member.name, member.signature, [], member.function)
     if owner.kind == "impl" {
         lines.push(painted_code(ctx, segments_text(owner.signature), "") + " {")
         lines.push(INDENT + head)
@@ -98,7 +98,7 @@ entry_lines :: fn(ctx: TextCtx, e: IndexEntry) -> string[] {
 // its vaderdoc, its own vaderdoc and platforms, then the impls for it.
 declaration_lines :: fn(ctx: TextCtx, e: IndexEntry, decl: DocDecl) -> string[] {
     lines: string[]: [place(ctx, e, decl.file, decl.line, decl.column), ""]
-    head :: head_of(ctx, decl.name, decl.signature, decl.inferred, decl.kind)
+    head :: head_of(ctx, decl.name, decl.signature, decl.inferred_type, decl.function)
     if decl.members.len() == 0 {
         lines.push(head)
     } else {
@@ -110,7 +110,7 @@ declaration_lines :: fn(ctx: TextCtx, e: IndexEntry, decl: DocDecl) -> string[] 
                     lines.push(INDENT + painted(ctx, .Comment, comment))
                 }
             }
-            lines.push(INDENT + head_of(ctx, m.name, m.signature, m.inferred, m.kind))
+            lines.push(INDENT + head_of(ctx, m.name, m.signature, [], m.function))
         }
         lines.push("}")
     }
@@ -164,23 +164,23 @@ module_line :: fn(ctx: TextCtx, path: string) -> string =
     painted(ctx, .Comment, "module") + " " + painted(ctx, .Module, path)
 
 // The head of `name`, what typing gave it that its source leaves out said in a
-// comment.
+// comment: the type of a constant, `inferred_type`, or the return of `function`.
 head_of :: fn(
     ctx: TextCtx,
     name: string,
     signature: DocSegment[],
-    inferred: DocSegment[],
-    kind: string,
+    inferred_type: DocSegment[],
+    function: DocFunction | null,
 ) -> string {
     head :: painted_code(ctx, segments_text(signature), name)
-    if inferred.len() == 0 {
-        return head
-    }
-    if kind == "const" {
-        comment :: "// type inferred: ${segments_text(inferred)}"
+    if inferred_type.len() > 0 {
+        comment :: "// type inferred: ${segments_text(inferred_type)}"
         return head + "  " + painted(ctx, .Comment, comment)
     }
-    return head + "  " + painted(ctx, .Comment, "// return type inferred")
+    if function != null && function.return_inferred {
+        return head + "  " + painted(ctx, .Comment, "// return type inferred")
+    }
+    return head
 }
 
 // The lines of `doc` under the head it documents: its prose, then its

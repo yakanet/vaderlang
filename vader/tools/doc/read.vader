@@ -96,7 +96,8 @@ decl_of :: fn(value: JsonValue) -> DocDecl = DocDecl {
     .name = text_at(value, "name"),
     .kind = text_at(value, "kind"),
     .signature = segments_at(value, "signature"),
-    .inferred = inferred_at(value),
+    .inferred_type = segments_at(value, "inferred_type"),
+    .function = function_at(value),
     .file = text_at(value, "file"),
     .line = number_at(value, "line"),
     .column = number_at(value, "column"),
@@ -113,10 +114,32 @@ member_of :: fn(value: JsonValue) -> DocMember = DocMember {
     .name = text_at(value, "name"),
     .kind = text_at(value, "kind"),
     .signature = segments_at(value, "signature"),
-    .inferred = inferred_at(value),
+    .function = function_at(value),
     .line = number_at(value, "line"),
     .column = number_at(value, "column"),
     .doc = sections_at(value),
+}
+
+// The parameters and the return of the fn or the method `value` holds, null for
+// another declaration.
+function_at :: fn(value: JsonValue) -> DocFunction | null {
+    function :: value_at(value, "function")
+    if function !is JsonObject {
+        return null
+    }
+    return DocFunction {
+        .parameters = items_at(function, "parameters").map(parameter_of_json).collect(),
+        .return_type = segments_at(function, "return_type"),
+        .return_inferred = flag_at(function, "return_inferred"),
+    }
+}
+
+// The parameter `value` holds.
+parameter_of_json :: fn(value: JsonValue) -> DocParameter = DocParameter {
+    .name = text_at(value, "name"),
+    .param_type = segments_at(value, "type"),
+    .default = segments_at(value, "default"),
+    .variadic = flag_at(value, "variadic"),
 }
 
 // The segments under `key` of `value`.
@@ -130,27 +153,11 @@ segment_of :: fn(value: JsonValue) -> DocSegment = DocSegment {
     .name = text_at(value, "name"),
 }
 
-// What typing gave `value` that its source leaves out: the segments of its
-// `inferred` object, under `return` or `type` (`inferred_json`).
-inferred_at :: fn(value: JsonValue) -> DocSegment[] {
-    inferred :: value_at(value, "inferred")
-    returned :: segments_at(inferred, "return")
-    if returned.len() > 0 {
-        return returned
-    }
-    return segments_at(inferred, "type")
-}
-
 // The vaderdoc of `value`, null without one.
 sections_at :: fn(value: JsonValue) -> DocSections | null {
     doc :: value_at(value, "doc")
     if doc !is JsonObject {
         return null
-    }
-    example :: text_at(doc, "example")
-    lines: string[]: []
-    if example != "" {
-        lines.push_all(example.split("\n"))
     }
     return DocSections {
         .prose = text_at(doc, "prose"),
@@ -162,8 +169,21 @@ sections_at :: fn(value: JsonValue) -> DocSections | null {
         ).collect(),
         .returns = texts_at(doc, "returns"),
         .errors = texts_at(doc, "errors"),
-        .example = lines,
+        .example = items_at(doc, "example").map(example_source_line).collect(),
     }
+}
+
+// The line of an example `value` holds, as its vaderdoc writes it: a setup line
+// behind its `# `.
+example_source_line :: fn(value: JsonValue) -> string {
+    text :: text_at(value, "text")
+    if !flag_at(value, "hidden") {
+        return text
+    }
+    if text == "" {
+        return "#"
+    }
+    return "# ${text}"
 }
 
 // ---- reading JSON ---------------------------------------------------------
@@ -212,6 +232,12 @@ number_at :: fn(value: JsonValue | null, key: string) -> i32 {
         return i32(found.value)
     }
     return 0
+}
+
+// Whether the value under `key` of `value` is `true`.
+flag_at :: fn(value: JsonValue | null, key: string) -> bool {
+    found :: value_at(value, key)
+    return found is JsonBool && found.value
 }
 
 // The string `value` is, "" for any other value.
@@ -267,13 +293,25 @@ sample_module :: fn() -> DocModule {
                     DocSegment { .text = ") -> " },
                     point,
                 ],
-                .inferred = [point],
+                .function = DocFunction {
+                    .parameters = [
+                        DocParameter { .name = "p", .param_type = [point] },
+                        DocParameter {
+                            .name = "rest",
+                            .param_type = [DocSegment { .text = "f64[]" }],
+                            .default = [point],
+                            .variadic = true,
+                        },
+                    ],
+                    .return_type = [point],
+                    .return_inferred = false,
+                },
                 .file = "geo/geo.vader",
                 .line = 9,
                 .column = 8,
                 .doc = doc_sections(
                     "Twice `p`.\n\n@param p  a point.\n@return the point.\n"
-                        + "@error none.\n@example\n  twice(p)",
+                        + "@error none.\n@example\n  # p :: Point {}\n  #\n  twice(p)",
                 ),
                 .targets = ["darwin", "linux"],
             },
@@ -286,7 +324,7 @@ sample_module :: fn() -> DocModule {
                     point,
                     DocSegment { .text = " {}" },
                 ],
-                .inferred = [point],
+                .inferred_type = [point],
                 .file = "geo/geo.vader",
                 .line = 11,
                 .column = 8,
@@ -309,7 +347,11 @@ sample_module :: fn() -> DocModule {
                         .name = "area",
                         .kind = "method",
                         .signature = [DocSegment { .text = "area :: fn(self) -> f64" }],
-                        .inferred = [DocSegment { .text = "f64" }],
+                        .function = DocFunction {
+                            .parameters = [DocParameter { .name = "self", .param_type = [] }],
+                            .return_type = [DocSegment { .text = "f64" }],
+                            .return_inferred = true,
+                        },
                         .line = 13,
                         .column = 5,
                         .doc = null,

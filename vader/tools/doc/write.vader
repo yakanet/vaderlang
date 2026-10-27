@@ -16,7 +16,7 @@ import "toolchain/ast"
 import "vader/front/resolver"
 
 /// The version of the data format, written in each file.
-DOC_FORMAT_VERSION: f64: 1.0
+DOC_FORMAT_VERSION: f64: 2.0
 
 /// Write the data of `modules` under `dir`: `index.json`, and one
 /// `modules/<path>.json` per module. The stamp goes first, since the data stops
@@ -180,7 +180,8 @@ decl_json :: fn(d: DocDecl) -> JsonValue {
     decl["name"] = json_text(d.name)
     decl["kind"] = json_text(d.kind)
     decl["signature"] = segments_json(d.signature)
-    decl["inferred"] = inferred_json(d.kind, d.inferred)
+    decl["inferred_type"] = segments_json(d.inferred_type)
+    decl["function"] = function_json(d.function)
     decl["file"] = json_text(d.file)
     decl["line"] = JsonNumber { .value = f64(d.line) }
     decl["column"] = JsonNumber { .value = f64(d.column) }
@@ -201,21 +202,37 @@ member_json :: fn(m: DocMember) -> JsonValue {
     member["name"] = json_text(m.name)
     member["kind"] = json_text(m.kind)
     member["signature"] = segments_json(m.signature)
-    member["inferred"] = inferred_json(m.kind, m.inferred)
+    member["function"] = function_json(m.function)
     member["line"] = JsonNumber { .value = f64(m.line) }
     member["column"] = JsonNumber { .value = f64(m.column) }
     member["doc"] = doc_json(m.doc)
     return JsonObject { .entries = member }
 }
 
-// What typing gave that the source leaves unwritten: `{ "type": T }` for a
-// constant, `{ "return": T }` for a fn or a method, `null` for nothing.
-inferred_json :: fn(kind: string, inferred: DocSegment[]) -> JsonValue {
-    if inferred.len() == 0 {
+// The parameters and the return of a fn or a method, `null` for another
+// declaration.
+function_json :: fn(function: DocFunction | null) -> JsonValue {
+    if function == null {
         return JsonNull {}
     }
     out :: MutableMap<string, JsonValue> {}
-    out[inferred_key(kind)] = segments_json(inferred)
+    out["parameters"] = JsonArray { .items = function.parameters.map(parameter_json).collect() }
+    out["return_type"] = segments_json(function.return_type)
+    out["return_inferred"] = JsonBool { .value = function.return_inferred }
+    return JsonObject { .entries = out }
+}
+
+// A parameter, its `default` and `variadic` written only when it has them.
+parameter_json :: fn(p: DocParameter) -> JsonValue {
+    out :: MutableMap<string, JsonValue> {}
+    out["name"] = json_text(p.name)
+    out["type"] = segments_json(p.param_type)
+    if p.default.len() > 0 {
+        out["default"] = segments_json(p.default)
+    }
+    if p.variadic {
+        out["variadic"] = JsonBool { .value = true }
+    }
     return JsonObject { .entries = out }
 }
 
@@ -235,15 +252,8 @@ segment_json :: fn(segment: DocSegment) -> JsonValue {
     return JsonObject { .entries = out }
 }
 
-inferred_key :: fn(kind: string) -> string {
-    if kind == "const" {
-        return "type"
-    }
-    return "return"
-}
-
-// A vaderdoc, `null` without one: its summary and its example as shown come
-// from its sections.
+// A vaderdoc, `null` without one: its summary comes from its sections, and its
+// example comes line by line, each setup line marked `hidden`.
 doc_json :: fn(doc: DocSections | null) -> JsonValue {
     if doc == null {
         return JsonNull {}
@@ -261,7 +271,17 @@ doc_json :: fn(doc: DocSections | null) -> JsonValue {
     out["params"] = JsonArray { .items = params }
     out["returns"] = json_texts(doc.returns)
     out["errors"] = json_texts(doc.errors)
-    out["example"] = json_text(shown_example(doc))
+    out["example"] = JsonArray { .items = example_lines(doc).map(example_line_json).collect() }
+    return JsonObject { .entries = out }
+}
+
+// A line of an example, `hidden` written only for a setup line.
+example_line_json :: fn(line: ExampleLine) -> JsonValue {
+    out :: MutableMap<string, JsonValue> {}
+    out["text"] = json_text(line.text)
+    if line.hidden {
+        out["hidden"] = JsonBool { .value = true }
+    }
     return JsonObject { .entries = out }
 }
 
