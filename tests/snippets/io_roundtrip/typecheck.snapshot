@@ -23,7 +23,7 @@
   expr 6:13     StringLitExpr  :: string
   expr 6:16     CallExpr       :: string
   expr 6:16     IdentExpr      :: fn() -> string
-  expr 738:62   IdentExpr      :: i64
+  expr 741:62   IdentExpr      :: i64
   expr 9:23     IdentExpr      :: string
   expr 9:29     StringLitExpr  :: string
   expr 9:5      CallExpr       :: IOError | null

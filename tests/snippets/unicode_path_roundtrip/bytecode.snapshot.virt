@@ -69,7 +69,7 @@ import 13 extern access system_posix$sys_access header=<unistd.h> result_type=1 
 import 14 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
 impl 6 std_core$ByteAccess
 impl 10 std_core$Error
-vtable std_core$Error.message 10 18
+vtable std_core$Error.message 10 20
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -102,7 +102,7 @@ fn 0 snippet$main () -> i32
     string.const 1   ; "write failed: "
     local.get 3   ; $vcall_15
     call 1   ; concat_2
-    call 19   ; std_io$println__string
+    call 21   ; std_io$println__string
     return.lit i32.const 1
   end $L0
   local.get 0   ; path
@@ -136,7 +136,7 @@ fn 0 snippet$main () -> i32
     local.get 1   ; $arr_9
     local.get 4   ; __off_1
     call 2   ; std_core$finish_buffer
-    call 19   ; std_io$println__string
+    call 21   ; std_io$println__string
     i64.const 12
     buffer.new
     local.set 1   ; $arr_9
@@ -158,7 +158,7 @@ fn 0 snippet$main () -> i32
     local.get 1   ; $arr_9
     local.get 4   ; __off_1
     call 2   ; std_core$finish_buffer
-    call 19   ; std_io$println__string
+    call 21   ; std_io$println__string
     local.get 0   ; path
     call 10   ; std_io$remove_file
     drop
@@ -184,7 +184,7 @@ fn 0 snippet$main () -> i32
     local.get 1   ; $arr_9
     local.get 4   ; __off_1
     call 2   ; std_core$finish_buffer
-    call 19   ; std_io$println__string
+    call 21   ; std_io$println__string
     return.lit i32.const 0
   end $L1
   local.get 2   ; written
@@ -193,7 +193,7 @@ fn 0 snippet$main () -> i32
   string.const 2   ; "read failed: "
   local.get 0   ; path
   call 1   ; concat_2
-  call 19   ; std_io$println__string
+  call 21   ; std_io$println__string
   return.lit i32.const 1
 end
 
@@ -658,140 +658,15 @@ end
 
 fn 13 std_io$last_io_error (string) -> ref
   local e i32
-  local kind u8
-  local if_res i32
-  local reason string
+  local $call_3 u8
   call.import 6   ; system_posix$sys_last_errno
-  local.set 1   ; e
-  i32.const 0
-  local.set 2   ; kind
+  local.tee 1   ; e
+  call 18   ; std_io$errno_kind
+  local.set 2   ; $call_3
+  local.get 0   ; arg 0
+  local.get 2   ; $call_3
   local.get 1   ; e
-  i32.const 2
-  i32.eq
-  if $L0 void
-    i32.const 1
-    local.set 2   ; kind
-  end $L0
-  local.get 1   ; e
-  i32.const 1
-  i32.eq
-  if $L1 void
-    i32.const 2
-    local.set 2   ; kind
-  end $L1
-  local.get 1   ; e
-  i32.const 13
-  i32.eq
-  if $L2 void
-    i32.const 2
-    local.set 2   ; kind
-  end $L2
-  local.get 1   ; e
-  i32.const 4
-  i32.eq
-  if $L3 void
-    i32.const 3
-    local.set 2   ; kind
-  end $L3
-  local.get 1   ; e
-  i32.const 17
-  i32.eq
-  if $L4 void
-    i32.const 4
-    local.set 2   ; kind
-  end $L4
-  local.get 1   ; e
-  i32.const 20
-  i32.eq
-  if $L5 void
-    i32.const 5
-    local.set 2   ; kind
-  end $L5
-  local.get 1   ; e
-  i32.const 21
-  i32.eq
-  if $L6 void
-    i32.const 6
-    local.set 2   ; kind
-  end $L6
-  i32.const 1
-  i32.const 2
-  i32.eq
-  if $L7 void
-    i32.const 35
-    local.set 3   ; if_res
-  else
-    i32.const 11
-    local.set 3   ; if_res
-  end $L7
-  local.get 1   ; e
-  local.get 3   ; if_res
-  i32.eq
-  if $L8 void
-    i32.const 7
-    local.set 2   ; kind
-  end $L8
-  local.get 1   ; e
-  i32.const 32
-  i32.eq
-  if $L9 void
-    i32.const 8
-    local.set 2   ; kind
-  end $L9
-  local.get 1   ; e
-  i32.const 28
-  i32.eq
-  if $L10 void
-    i32.const 9
-    local.set 2   ; kind
-  end $L10
-  local.get 1   ; e
-  i32.const 22
-  i32.eq
-  if $L11 void
-    i32.const 10
-    local.set 2   ; kind
-  end $L11
-  i32.const 1
-  i32.const 2
-  i32.eq
-  if $L12 void
-    i32.const 66
-    local.set 3   ; if_res
-  else
-    i32.const 39
-    local.set 3   ; if_res
-  end $L12
-  local.get 1   ; e
-  local.get 3   ; if_res
-  i32.eq
-  if $L13 void
-    i32.const 11
-    local.set 2   ; kind
-  end $L13
-  local.get 1   ; e
-  i32.const 9
-  i32.eq
-  if $L14 void
-    i32.const 12
-    local.set 2   ; kind
-  end $L14
-  local.get 2   ; kind
-  call 17   ; std_io$describe_io_error_kind
-  local.tee 4   ; reason
-  string.const 19   ; ""
-  string.eq
-  if $L15 void
-    local.get 0   ; arg 0
-    local.get 2   ; kind
-    local.get 1   ; e
-    struct.new 10   ; std_io$IOError
-    return
-  end $L15
-  local.get 4   ; reason
-  local.get 2   ; kind
-  local.get 1   ; e
-  struct.new 10   ; std_io$IOError
+  call 17   ; std_io$classified_error
   return
 end
 
@@ -927,14 +802,128 @@ fn 16 std_io$without_trailing_sep (string) -> string
   return
 end
 
-fn 17 std_io$describe_io_error_kind (u8) -> string
+fn 17 std_io$classified_error (string,u8,i32) -> ref
+  local.get 1   ; arg 1
+  local.get 0   ; arg 0
+  call 19   ; std_io$describe_io_error_kind
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  struct.new 10   ; std_io$IOError
+  return
+end
+
+fn 18 std_io$errno_kind (i32) -> u8
+  local if_res i32
+  local.get 0   ; arg 0
+  i32.const 2
+  i32.eq
+  if $L0 void
+    return.lit i32.const 1
+  end $L0
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.eq
+  if $L1 void
+    return.lit i32.const 2
+  end $L1
+  local.get 0   ; arg 0
+  i32.const 13
+  i32.eq
+  if $L2 void
+    return.lit i32.const 2
+  end $L2
+  local.get 0   ; arg 0
+  i32.const 4
+  i32.eq
+  if $L3 void
+    return.lit i32.const 3
+  end $L3
+  local.get 0   ; arg 0
+  i32.const 17
+  i32.eq
+  if $L4 void
+    return.lit i32.const 4
+  end $L4
+  local.get 0   ; arg 0
+  i32.const 20
+  i32.eq
+  if $L5 void
+    return.lit i32.const 5
+  end $L5
+  local.get 0   ; arg 0
+  i32.const 21
+  i32.eq
+  if $L6 void
+    return.lit i32.const 6
+  end $L6
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L7 void
+    i32.const 35
+    local.set 1   ; if_res
+  else
+    i32.const 11
+    local.set 1   ; if_res
+  end $L7
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L8 void
+    return.lit i32.const 7
+  end $L8
+  local.get 0   ; arg 0
+  i32.const 32
+  i32.eq
+  if $L9 void
+    return.lit i32.const 8
+  end $L9
+  local.get 0   ; arg 0
+  i32.const 28
+  i32.eq
+  if $L10 void
+    return.lit i32.const 9
+  end $L10
+  local.get 0   ; arg 0
+  i32.const 22
+  i32.eq
+  if $L11 void
+    return.lit i32.const 10
+  end $L11
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L12 void
+    i32.const 66
+    local.set 1   ; if_res
+  else
+    i32.const 39
+    local.set 1   ; if_res
+  end $L12
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L13 void
+    return.lit i32.const 11
+  end $L13
+  local.get 0   ; arg 0
+  i32.const 9
+  i32.eq
+  if $L14 void
+  else
+    return.lit i32.const 0
+  end $L14
+  return.lit i32.const 12
+end
+
+fn 19 std_io$describe_io_error_kind (u8,string) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
   i32.eq
   if $L0 void
     string.const 21   ; "file not found"
-    local.tee 1   ; if_res
+    local.tee 2   ; if_res
     return
   end $L0
   local.get 0   ; arg 0
@@ -942,77 +931,77 @@ fn 17 std_io$describe_io_error_kind (u8) -> string
   i32.eq
   if $L1 void
     string.const 22   ; "permission denied"
-    local.set 1   ; if_res
+    local.set 2   ; if_res
   else
     local.get 0   ; arg 0
     i32.const 3
     i32.eq
     if $L2 void
       string.const 23   ; "interrupted"
-      local.set 1   ; if_res
+      local.set 2   ; if_res
     else
       local.get 0   ; arg 0
       i32.const 4
       i32.eq
       if $L3 void
         string.const 24   ; "already exists"
-        local.set 1   ; if_res
+        local.set 2   ; if_res
       else
         local.get 0   ; arg 0
         i32.const 5
         i32.eq
         if $L4 void
           string.const 25   ; "not a directory"
-          local.set 1   ; if_res
+          local.set 2   ; if_res
         else
           local.get 0   ; arg 0
           i32.const 6
           i32.eq
           if $L5 void
             string.const 26   ; "is a directory"
-            local.set 1   ; if_res
+            local.set 2   ; if_res
           else
             local.get 0   ; arg 0
             i32.const 7
             i32.eq
             if $L6 void
               string.const 27   ; "would block"
-              local.set 1   ; if_res
+              local.set 2   ; if_res
             else
               local.get 0   ; arg 0
               i32.const 8
               i32.eq
               if $L7 void
                 string.const 28   ; "broken pipe"
-                local.set 1   ; if_res
+                local.set 2   ; if_res
               else
                 local.get 0   ; arg 0
                 i32.const 9
                 i32.eq
                 if $L8 void
                   string.const 29   ; "no space left on device"
-                  local.set 1   ; if_res
+                  local.set 2   ; if_res
                 else
                   local.get 0   ; arg 0
                   i32.const 10
                   i32.eq
                   if $L9 void
                     string.const 30   ; "invalid argument"
-                    local.set 1   ; if_res
+                    local.set 2   ; if_res
                   else
                     local.get 0   ; arg 0
                     i32.const 11
                     i32.eq
                     if $L10 void
                       string.const 31   ; "directory not empty"
-                      local.set 1   ; if_res
+                      local.set 2   ; if_res
                     else
                       local.get 0   ; arg 0
                       i32.const 12
                       i32.eq
                       if $L11 void
                         string.const 32   ; "bad file descriptor"
-                        local.set 1   ; if_res
+                        local.set 2   ; if_res
                       else
                         local.get 0   ; arg 0
                         i32.const 0
@@ -1021,8 +1010,8 @@ fn 17 std_io$describe_io_error_kind (u8) -> string
                         else
                           unreachable
                         end $L12
-                        string.const 19   ; ""
-                        local.set 1   ; if_res
+                        local.get 1   ; arg 1
+                        local.set 2   ; if_res
                       end $L11
                     end $L10
                   end $L9
@@ -1034,17 +1023,17 @@ fn 17 std_io$describe_io_error_kind (u8) -> string
       end $L3
     end $L2
   end $L1
-  local.get 1   ; if_res
+  local.get 2   ; if_res
   return
 end
 
-fn 18 std_io$IOError$std_core$Error$message (ref) -> string
+fn 20 std_io$IOError$std_core$Error$message (ref) -> string
   local.field 0 10 0   ; arg 0 std_io$IOError.msg
   ref.cast 2   ; string
   return
 end
 
-fn 19 std_io$println__string (string) -> void
+fn 21 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 33   ; "\n"

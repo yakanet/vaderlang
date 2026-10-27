@@ -706,21 +706,26 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 - [ ] **Common-field access on unions (methods**) extend to UFCS calls (`e.method()` valid when every variant has a callable `method`). Invasive: overload resolution × variant set.
 - [ ] **Common-field access on unions (nullable receivers**) `(T | null).f` follows the gate today (`null` lacks the field → T3009). Decide whether to special-case optional chaining; `??` already covers the common case.
 - [ ] **AST node id boilerplate**: re-audited 2026-05-15 ; deferred. ~11 self-host fields carrying `id: UNASSIGNED_NODE_ID`. All three resolution shapes (decorator, mixin, marker) need new compiler infrastructure that's bigger than the 128 lines it would save. Revisit if decorator infra lands for other reasons.
-- [ ] **A bare identifier in a `match` pattern BINDS, it does not compare** (noted 2026-09-05).
+- [ ] **A constant cannot be a `match` pattern** (noted 2026-09-05, re-checked 2026-10-27).
   ```
+  P :: import "system/posix"
   K: i32: 7
-  match 99 {
-      K -> "matched K"      // taken, for every value
-      _ -> "fell through"
+  match e {
+      K         -> "K"        // P1037: a match pattern cannot bind a name
+      P.ENOENT  -> "missing"  // P1037 on `P`, then P1002 at the `.`, then T3028
+      _         -> "other"
   }
-  → matched K
   ```
-  `K` is a binding pattern that shadows the constant, so the arm is irrefutable and every later arm is dead. It compiles clean. The only hint is `W0007 K is never used`, which does not appear at all once the constant has another user, which is exactly the case for a table of named platform codes.
-  Found writing `std/io::last_io_error`, where a `match` over `ENOENT` / `EACCES` / `EISDIR` classified all three as the first arm. The codes were right and the classification silently was not; both bodies are `if` chains now, with the reason written beside them.
-  Rust hit the same shape and answered with a lint (`bindings_with_variant_name`, deny-by-default) plus the convention that a const pattern is a PATH. Options here, roughly in order of cost:
-  - warn when a binding pattern's name resolves to a module-level constant in scope: the narrow, high-value case, and what actually bit;
-  - require a leading `.` or a qualified path for a value pattern, making a bare name unambiguously a binding (a syntax change, SPEC §4 *Pattern matching*);
-  - leave it, and rely on `_` never being reached being caught by T3013, which it is NOT here, since the first arm covers everything.
+  Since ADR 0101 an arm binds no name, so a bare name in an arm has no other reading left than the value it names: it should compare with that constant, as a literal does, and so should a constant reached through a namespace alias (`P.ENOENT`). Today both are rejected, and the second one with a cascade of three diagnostics, the first of which suggests `match P :: ...`.
+  Where it bit: `std/io` classifies a platform error code against named constants (`ENOENT`, `ERROR_FILE_NOT_FOUND`, ...), whose values differ between platforms and must never be written as literals. `errno_kind` and `win32_error_kind` are `if` chains for that reason, and become a `match` once this lands.
+  What it takes:
+  - the parser keeps a name or a field path in pattern position, instead of P1037;
+  - the resolver binds it, and it must resolve to a module constant: a local, a fn or a type is an error;
+  - the typecheck checks the constant's type against the scrutinee's;
+  - lowering compares with `==`;
+  - SPEC *Pattern matching* says it.
+
+  To decide with it: a struct pattern still binds its fields (`is Point { x: 0, y }`), so `is IOError { code: ENOENT }` would bind a name where a top-level `ENOENT ->` compares, the old trap moved into fields. Either accept the asymmetry or keep only the shorthand `{ y }` binding, so that `field: NAME` always compares. Coverage needs more: a named arm counts no value toward exhaustiveness or W0014 until the typecheck reads the constants it folds (`EAGAIN` depends on `VADER_OS`), so `_` stays required at first.
 
 #### Type-first design: remaining layers
 

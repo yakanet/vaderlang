@@ -57,15 +57,12 @@ export IOError :: struct {
 
 IOError implements Error -> self.msg
 
-/// A short human-readable phrase for `kind`, or `""` for `.Other`.
+/// A short human-readable phrase for `kind`, `fallback` for `.Other`.
 ///
-/// This is what makes `IOError.msg` accurate rather than vague: the caller
-/// supplies a fallback for the case the platform gave no code, and the reason
-/// itself comes from the classification.
-///
-/// @param kind  the classification to describe.
-/// @return      e.g. `"file not found"` ; `""` when there is nothing to add.
-export describe_io_error_kind :: fn(kind: IOErrorKind) -> string = match kind {
+/// @param kind      the classification to describe.
+/// @param fallback  the phrase of a failure `kind` does not classify.
+/// @return          e.g. `"file not found"`.
+describe_io_error_kind :: fn(kind: IOErrorKind, fallback: string) -> string = match kind {
     .NotFound          -> "file not found"
     .PermissionDenied  -> "permission denied"
     .Interrupted       -> "interrupted"
@@ -78,7 +75,7 @@ export describe_io_error_kind :: fn(kind: IOErrorKind) -> string = match kind {
     .InvalidInput      -> "invalid argument"
     .DirectoryNotEmpty -> "directory not empty"
     .BadHandle         -> "bad file descriptor"
-    .Other             -> ""
+    .Other             -> fallback
 }
 
 /// The failure the LAST system call reported, wrapped as an `IOError`.
@@ -92,53 +89,59 @@ export describe_io_error_kind :: fn(kind: IOErrorKind) -> string = match kind {
 ///             library does not classify. A recognised code names itself.
 /// @return     the reason, its portable classification, and the raw code.
 @target
-export last_io_error :: fn(msg: string) -> IOError
+last_io_error :: fn(msg: string) -> IOError
 
 @target(.Linux, .Darwin)
 last_io_error :: fn(msg: string) -> IOError {
     e :: sys_last_errno()
-    // An `if` chain, NOT a `match`: a bare identifier in a pattern is a BINDING,
-    // so `match e { ENOENT -> ... }` binds `e` to the name `ENOENT` and takes the
-    // first arm for every value. It compiles, and the only hint is a W0007 on a
-    // constant that has other users anyway.
-    kind := IOErrorKind.Other
-    if e == ENOENT    { kind = .NotFound }
-    if e == EPERM     { kind = .PermissionDenied }
-    if e == EACCES    { kind = .PermissionDenied }
-    if e == EINTR     { kind = .Interrupted }
-    if e == EEXIST    { kind = .AlreadyExists }
-    if e == ENOTDIR   { kind = .NotADirectory }
-    if e == EISDIR    { kind = .IsADirectory }
-    if e == EAGAIN    { kind = .WouldBlock }
-    if e == EPIPE     { kind = .BrokenPipe }
-    if e == ENOSPC    { kind = .NoSpace }
-    if e == EINVAL    { kind = .InvalidInput }
-    if e == ENOTEMPTY { kind = .DirectoryNotEmpty }
-    if e == EBADF     { kind = .BadHandle }
-    reason :: describe_io_error_kind(kind)
-    return IOError {
-        .msg = if reason == "" { msg } else { reason }, .kind = kind, .code = e,
-    }
+    return classified_error(msg, errno_kind(e), e)
 }
 
 @target(.Windows)
 last_io_error :: fn(msg: string) -> IOError {
     e :: get_last_error()
-    // An `if` chain for the same reason as the POSIX body above.
-    kind := IOErrorKind.Other
-    if e == ERROR_FILE_NOT_FOUND { kind = .NotFound }
-    if e == ERROR_PATH_NOT_FOUND { kind = .NotFound }
-    if e == ERROR_ACCESS_DENIED  { kind = .PermissionDenied }
-    if e == ERROR_INVALID_HANDLE { kind = .BadHandle }
-    if e == ERROR_FILE_EXISTS    { kind = .AlreadyExists }
-    if e == ERROR_ALREADY_EXISTS { kind = .AlreadyExists }
-    if e == ERROR_BROKEN_PIPE    { kind = .BrokenPipe }
-    if e == ERROR_DISK_FULL      { kind = .NoSpace }
-    if e == ERROR_DIR_NOT_EMPTY  { kind = .DirectoryNotEmpty }
-    reason :: describe_io_error_kind(kind)
-    return IOError {
-        .msg = if reason == "" { msg } else { reason }, .kind = kind, .code = i32(e),
-    }
+    return classified_error(msg, win32_error_kind(e), i32(e))
+}
+
+// The error of the platform code `code`, which `kind` classifies; `msg` names
+// it when `kind` does not.
+classified_error :: fn(msg: string, kind: IOErrorKind, code: i32) = IOError {
+    .msg = describe_io_error_kind(kind, msg),
+    .kind = kind,
+    .code = code,
+}
+
+// The classification of the POSIX code `e`. An `if` chain, not a `match`: an arm
+// takes a literal, never a named constant, and a code is a platform value.
+errno_kind :: fn(e: i32) -> IOErrorKind {
+    if e == ENOENT    { return .NotFound }
+    if e == EPERM     { return .PermissionDenied }
+    if e == EACCES    { return .PermissionDenied }
+    if e == EINTR     { return .Interrupted }
+    if e == EEXIST    { return .AlreadyExists }
+    if e == ENOTDIR   { return .NotADirectory }
+    if e == EISDIR    { return .IsADirectory }
+    if e == EAGAIN    { return .WouldBlock }
+    if e == EPIPE     { return .BrokenPipe }
+    if e == ENOSPC    { return .NoSpace }
+    if e == EINVAL    { return .InvalidInput }
+    if e == ENOTEMPTY { return .DirectoryNotEmpty }
+    if e == EBADF     { return .BadHandle }
+    return .Other
+}
+
+// The classification of the Win32 code `e`, an `if` chain as `errno_kind` is.
+win32_error_kind :: fn(e: u32) -> IOErrorKind {
+    if e == ERROR_FILE_NOT_FOUND { return .NotFound }
+    if e == ERROR_PATH_NOT_FOUND { return .NotFound }
+    if e == ERROR_ACCESS_DENIED  { return .PermissionDenied }
+    if e == ERROR_INVALID_HANDLE { return .BadHandle }
+    if e == ERROR_FILE_EXISTS    { return .AlreadyExists }
+    if e == ERROR_ALREADY_EXISTS { return .AlreadyExists }
+    if e == ERROR_BROKEN_PIPE    { return .BrokenPipe }
+    if e == ERROR_DISK_FULL      { return .NoSpace }
+    if e == ERROR_DIR_NOT_EMPTY  { return .DirectoryNotEmpty }
+    return .Other
 }
 
 /// A standard output stream. Used by the `print` / `println` / `eprint` /

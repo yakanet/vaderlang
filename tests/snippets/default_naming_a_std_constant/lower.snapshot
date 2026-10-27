@@ -82,7 +82,9 @@
     struct std.core.Range<i64>  // std_core$Range__i64
   std/io
     fn __defer_std_io_0
+    fn std.io.classified_error  // std_io$classified_error
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
+    fn std.io.errno_kind  // std_io$errno_kind
     fn std.io.last_io_error  // std_io$last_io_error
     fn std.io.println<string>  // std_io$println__string
     fn std.io.read_file_bytes  // std_io$read_file_bytes

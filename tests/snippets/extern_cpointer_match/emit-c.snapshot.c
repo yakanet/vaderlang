@@ -96,7 +96,9 @@ static vader_box_t std_io$write_file_bytes(vader_string_t l0, void* l1);
 static void* std_io$last_io_error(vader_string_t l0);
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static vader_string_t std_io$without_trailing_sep(vader_string_t l0);
-static vader_string_t std_io$describe_io_error_kind(uint8_t l0);
+static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2);
+static uint8_t std_io$errno_kind(int32_t l0);
+static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l1);
 static void std_io$println__string(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
@@ -436,83 +438,18 @@ static vader_box_t std_io$write_file_bytes(vader_string_t l0, void* l1) {
 }
 
 static void* std_io$last_io_error(vader_string_t l0) {
-    int32_t l1, l3;
+    int32_t l1;
     uint8_t l2;
-    vader_string_t l4 = 0;
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
-    vader_string_t* gc_atom_roots[2] = { &l0, &l4 };
+    vader_string_t* gc_atom_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l1 = vader_host_system_posix$sys_last_errno();
-    l2 = (uint8_t) 0;
-    if (l1 == INT32_C(2)) {
-        l2 = (uint8_t) 1;
-    }
-    if (l1 == INT32_C(1)) {
-        l2 = (uint8_t) 2;
-    }
-    if (l1 == INT32_C(13)) {
-        l2 = (uint8_t) 2;
-    }
-    if (l1 == INT32_C(4)) {
-        l2 = (uint8_t) 3;
-    }
-    if (l1 == INT32_C(17)) {
-        l2 = (uint8_t) 4;
-    }
-    if (l1 == INT32_C(20)) {
-        l2 = (uint8_t) 5;
-    }
-    if (l1 == INT32_C(21)) {
-        l2 = (uint8_t) 6;
-    }
-    if (INT32_C(1) == INT32_C(2)) {
-        l3 = INT32_C(35);
-    } else {
-        l3 = INT32_C(11);
-    }
-    if (l1 == l3) {
-        l2 = (uint8_t) 7;
-    }
-    if (l1 == INT32_C(32)) {
-        l2 = (uint8_t) 8;
-    }
-    if (l1 == INT32_C(28)) {
-        l2 = (uint8_t) 9;
-    }
-    if (l1 == INT32_C(22)) {
-        l2 = (uint8_t) 10;
-    }
-    if (INT32_C(1) == INT32_C(2)) {
-        l3 = INT32_C(66);
-    } else {
-        l3 = INT32_C(39);
-    }
-    if (l1 == l3) {
-        l2 = (uint8_t) 11;
-    }
-    if (l1 == INT32_C(9)) {
-        l2 = (uint8_t) 12;
-    }
-    l4 = std_io$describe_io_error_kind(l2);
-    if (l4 == 0u) {
-        vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-        vader_obj_header_init(_a0_obj, 11u);
-        _a0_obj->f_msg = l0;
-        _a0_obj->f_kind = l2;
-        _a0_obj->f_code = l1;
-        t0 = (void*) _a0_obj;
-        { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    }
-    vader_struct_std_io$IOError_t* _a1_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-    vader_obj_header_init(_a1_obj, 11u);
-    _a1_obj->f_msg = l4;
-    _a1_obj->f_kind = l2;
-    _a1_obj->f_code = l1;
-    t0 = (void*) _a1_obj;
+    l2 = std_io$errno_kind(l1);
+    t0 = std_io$classified_error(l0, l2, l1);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -559,41 +496,114 @@ static vader_string_t std_io$without_trailing_sep(vader_string_t l0) {
     return l0;
 }
 
-static vader_string_t std_io$describe_io_error_kind(uint8_t l0) {
-    vader_string_t l1;
+static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2) {
+    vader_string_t t0 = 0;
+    void* t1 = NULL;
+    void** gc_raw_roots[1] = { &t1 };
+    vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+    t0 = std_io$describe_io_error_kind(l1, l0);
+    vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
+    vader_obj_header_init(_a0_obj, 11u);
+    _a0_obj->f_msg = t0;
+    _a0_obj->f_kind = l1;
+    _a0_obj->f_code = l2;
+    t1 = (void*) _a0_obj;
+    { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static uint8_t std_io$errno_kind(int32_t l0) {
+    int32_t l1;
+    if (l0 == INT32_C(2)) {
+        return (uint8_t) 1;
+    }
     if (l0 == INT32_C(1)) {
-        l1 = 18u;
-        return l1;
+        return (uint8_t) 2;
+    }
+    if (l0 == INT32_C(13)) {
+        return (uint8_t) 2;
+    }
+    if (l0 == INT32_C(4)) {
+        return (uint8_t) 3;
+    }
+    if (l0 == INT32_C(17)) {
+        return (uint8_t) 4;
+    }
+    if (l0 == INT32_C(20)) {
+        return (uint8_t) 5;
+    }
+    if (l0 == INT32_C(21)) {
+        return (uint8_t) 6;
+    }
+    if (INT32_C(1) == INT32_C(2)) {
+        l1 = INT32_C(35);
+    } else {
+        l1 = INT32_C(11);
+    }
+    if (l0 == l1) {
+        return (uint8_t) 7;
+    }
+    if (l0 == INT32_C(32)) {
+        return (uint8_t) 8;
+    }
+    if (l0 == INT32_C(28)) {
+        return (uint8_t) 9;
+    }
+    if (l0 == INT32_C(22)) {
+        return (uint8_t) 10;
+    }
+    if (INT32_C(1) == INT32_C(2)) {
+        l1 = INT32_C(66);
+    } else {
+        l1 = INT32_C(39);
+    }
+    if (l0 == l1) {
+        return (uint8_t) 11;
+    }
+    if (!(l0 == INT32_C(9))) {
+        return (uint8_t) 0;
+    }
+    return (uint8_t) 12;
+}
+
+static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l1) {
+    vader_string_t l2;
+    if (l0 == INT32_C(1)) {
+        l2 = 18u;
+        return l2;
     }
     if (l0 == INT32_C(2)) {
-        l1 = 19u;
+        l2 = 19u;
     } else if (l0 == INT32_C(3)) {
-        l1 = 20u;
+        l2 = 20u;
     } else if (l0 == INT32_C(4)) {
-        l1 = 21u;
+        l2 = 21u;
     } else if (l0 == INT32_C(5)) {
-        l1 = 22u;
+        l2 = 22u;
     } else if (l0 == INT32_C(6)) {
-        l1 = 23u;
+        l2 = 23u;
     } else if (l0 == INT32_C(7)) {
-        l1 = 24u;
+        l2 = 24u;
     } else if (l0 == INT32_C(8)) {
-        l1 = 25u;
+        l2 = 25u;
     } else if (l0 == INT32_C(9)) {
-        l1 = 26u;
+        l2 = 26u;
     } else if (l0 == INT32_C(10)) {
-        l1 = 27u;
+        l2 = 27u;
     } else if (l0 == INT32_C(11)) {
-        l1 = 28u;
+        l2 = 28u;
     } else if (l0 == INT32_C(12)) {
-        l1 = 29u;
+        l2 = 29u;
     } else {
         if (!(l0 == INT32_C(0))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 0u;
+        l2 = l1;
     }
-    return l1;
+    return l2;
 }
 
 static void std_io$println__string(vader_string_t l0) {
