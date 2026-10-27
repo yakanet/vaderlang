@@ -184,7 +184,7 @@ export first_in_files :: fn(
             continue
         }
         uri :: path_to_uri(file)
-        index :: build_index(uri, src, state.position_encoding)
+        index :: state.index_for(uri) ?? build_index(uri, src, state.position_encoding)
         found :: query(index) ?? continue
         return ExternalHit {
             .uri    = uri,

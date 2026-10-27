@@ -14,7 +14,6 @@ import "std/sort"
 import "toolchain/span"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
-import "vader/front/parser"
 AST :: import "toolchain/ast"
 
 /// Resolve `textDocument/selectionRange`.
@@ -24,15 +23,12 @@ AST :: import "toolchain/ast"
 /// @return        a `SelectionRange[]`, one per position ; `JsonNull` for a
 ///                document the server does not hold.
 export handle_selection_range :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    uri :: position_uri(params)
-    idx :: state.index_for(uri) ?? return JsonNull {}
-    path :: uri_to_path(uri)
-    decls :: parse_source(idx.source, path).program.decls
+    idx :: state.index_for(position_uri(params)) ?? return JsonNull {}
     positions :: get_field(params, "positions")
     out: JsonValue[]: []
     if positions is JsonArray {
         for p in positions.items {
-            chain :: selection_chain(idx, decls, get_number(p, "line"), get_number(p, "character"))
+            chain :: selection_chain(idx, get_number(p, "line"), get_number(p, "character"))
             out.push(selection_json(chain, idx.line_index))
         }
     }
@@ -41,14 +37,14 @@ export handle_selection_range :: fn(state: ServerState, params: JsonValue) -> Js
 
 // The ranges containing the 0-based LSP position, smallest first, each strictly
 // larger than the one before.
-selection_chain :: fn(idx: DocIndex, decls: AST.Decl[], line: i32, character: i32) -> Span[] {
+selection_chain :: fn(idx: DocIndex, line: i32, character: i32) -> Span[] {
     spans: Span[]: []
     word :: idx.span_at(line, character)
     if word != null {
         spans.push(word)
     }
     column :: lsp_span_column(idx.line_index, line, character)
-    spans.push_all(enclosing_spans(decls, line + 1, column))
+    spans.push_all(enclosing_spans(idx.program.decls, line + 1, column))
     offset :: li_offset(idx.line_index, line, character)
     for d in idx.decls {
         holds :: offset >= d.full_span.start.offset && offset < d.full_span.end.offset

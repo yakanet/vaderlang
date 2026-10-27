@@ -226,6 +226,11 @@ Parser :: struct {
     // `consume_closing_angle` returns it without touching `pos`. Lets
     // `Box<Box<T>>` close two angle levels with the single `Shr` token.
     shr_pending_half: Token | null = null
+    // The half of a split `>>` consumed last, which `peek_at(-1)` gives while
+    // `pos == split_at`: the token array stays as the lexer gave it, since
+    // `ParsedSource.tokens` hands it on.
+    split_half: Token | null = null
+    split_at: i32 = -1
     // Synthetic top-level decls a desugaring produces: the `NAME :: @comptime <expr>`
     // sugar becomes a `__comptime_NAME` fn. `parse_program` flushes these into the
     // decl list after each parsed decl.
@@ -255,6 +260,10 @@ peek :: fn(p: Parser) -> Token {
 }
 
 peek_at :: fn(p: Parser, offset: i32) -> Token {
+    split :: p.split_half
+    if offset == -1 && split != null && p.pos == p.split_at {
+        return split
+    }
     n :: i32(p.tokens.len())
     i :: p.pos + offset
     if i < 0 { return p.tokens[0] }
@@ -322,19 +331,19 @@ check_closing_angle :: fn(p: Parser) -> bool {
 /// Span invariant : a split `>>` yields TWO single-`>` tokens whose spans are
 /// disjoint halves of the source `>>` (first `>` = `[start, start+1)`, second
 /// `>` = `[start+1, end)`). Callers anchor a generic's end span on
-/// `peek_at(-1)` (the array slot at `pos-1`) so on each split the consumed
-/// half is written into that slot. Without this, a nested `Iter<i32>` inside
+/// `peek_at(-1)`, so on each split the consumed half becomes what it gives
+/// (`split_half`). Without this, a nested `Iter<i32>` inside
 /// `Into<Iter<i32>>` would inherit the whole-`>>` span and `fmt`'s verbatim
 /// source-slice would emit the extra `>` (audit F3).
 consume_closing_angle :: fn(p: Parser) -> Token {
     pending :: p.shr_pending_half
     if pending != null {
         // Second half of an already-split `>>`. The first half was consumed by
-        // the inner generic and left in `tokens[pos-1]` ; overwrite that slot
-        // with the second half so THIS generic's `peek_at(-1)` anchor reports
-        // the second `>`'s span (the first half is no longer needed).
+        // the inner generic ; THIS generic's `peek_at(-1)` anchor reports the
+        // second `>`'s span (the first half is no longer needed).
         p.shr_pending_half = null
-        if p.pos > 0 { p.tokens[p.pos - 1] = pending }
+        p.split_half = pending
+        p.split_at = p.pos
         return pending
     }
     cur :: p.peek()
@@ -361,11 +370,12 @@ consume_closing_angle :: fn(p: Parser) -> Token {
             .span  = Span { .start = mid, .end = cur.span.end },
             .value = null,
         }
-        // Overwrite the `Shr` slot with the first half so `peek_at(-1)` anchors
-        // on the FIRST `>`, and stash the second half for the enclosing close.
-        p.tokens[p.pos] = first_half
+        // `peek_at(-1)` anchors on the FIRST `>`, and the second half waits for
+        // the enclosing close.
         p.shr_pending_half = second_half
         if p.pos < i32(p.tokens.len()) - 1 { p.pos = p.pos + 1 }
+        p.split_half = first_half
+        p.split_at = p.pos
         return first_half
     }
     return cur
@@ -4208,11 +4218,18 @@ is_literal_start :: fn(t: Token) -> bool {
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/iter"
 import "std/testing"
 
 // Parse+lex diagnostic count for a source: a syntax-only regression probe
 // (no resolver / typecheck), so unresolved names in the fixture don't count.
 parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader").errors.len())
+
+@test
+test_parsed_tokens_keep_a_shift_that_closes_two_generics :: fn() -> void {
+    tokens :: parse_source("m :: Box<Box<i32>> {}\n", "test.vader").tokens
+    assert(tokens.any_match(t -> t.kind == .Shr), "the `>>` is still one token")
+}
 
 @test test_deep_block_nesting_is_guarded :: fn() -> void {
     // parser-3 : pathologically deep block nesting must trip the P1029 depth

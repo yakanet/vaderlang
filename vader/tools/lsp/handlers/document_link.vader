@@ -7,18 +7,14 @@
 // the loader's order. An import no root holds simply gets no link.
 //
 // The link range covers the path text *between* the quotes. It is recovered by
-// re-parsing the document and scanning each `import` decl's source span for the
-// opening quote: `ImportDecl` carries the path text + statement span but not a
-// dedicated path-string span.
+// scanning each `import` decl's source span for the opening quote: `ImportDecl`
+// carries the path text + statement span but not a dedicated path-string span.
 
 module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
-import "std/io"
-import "vader/support/diagnostics"
 import "toolchain/ast"
-import "vader/front/parser"
 import "vader/front/resolver"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
@@ -33,14 +29,11 @@ import "toolchain/span"
 export handle_document_link :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     idx :: state.index_for(uri) ?? return JsonArray { .items = [] }
-    // The index keeps the source but not the AST ; re-parse (lexer + parser
-    // only, no resolve) to walk the import decls. documentLink isn't hot.
-    parsed :: parse_source(idx.source, uri)
     links: JsonValue[]: []
     // Once, not per import: finding the roots walks up to `vader.json`, reads it
     // and scans the document's folder.
     roots :: document_roots(state, uri) ?? return JsonArray { .items = [] }
-    for d in parsed.program.decls {
+    for d in idx.program.decls {
         if d is ImportDecl {
             link :: import_link(state, d, idx.source, roots.paths, idx.line_index)
             if link != null { links.push(link) }
@@ -107,6 +100,7 @@ path_string_range :: fn(imp: ImportDecl, source: string, li: LineIndex) -> SpanR
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "vader/front/parser"
 
 @test
 test_path_range_covers_quoted_path :: fn() -> void {

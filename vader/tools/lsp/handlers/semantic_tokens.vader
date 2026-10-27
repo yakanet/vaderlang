@@ -35,36 +35,25 @@ AST :: import "toolchain/ast"
 /// @param params  request params : `{ textDocument: { uri } }`.
 /// @return        `{ data: [...] }` or `null`.
 export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    uri :: position_uri(params)
-    if uri.byte_len() == 0 {
+    idx :: state.index_for(position_uri(params)) ?? return JsonNull {}
+    if idx.source.byte_len() == 0 {
         return JsonNull {}
     }
-    source :: state.source_for(uri)
-    match source {
-        is null -> { return JsonNull {} }
-        is string -> {
-            if source.byte_len() == 0 { return JsonNull {} }
-            data :: produce_tokens(source, uri, new_line_index(source, state.position_encoding))
-            result :: MutableMap<string, JsonValue> {}
-            result["data"] = data
-            return JsonObject { .entries = result }
-        }
-    }
+    result :: MutableMap<string, JsonValue> {}
+    result["data"] = encode_delta(document_tokens(idx))
+    return JsonObject { .entries = result }
 }
 
 // ---- producer -------------------------------------------------------------
 
-produce_tokens :: fn(source: string, uri: string, li: LineIndex) -> JsonValue =
-    encode_delta(document_tokens(source, uri, li))
-
-// Every token of `source`, from all three producers, with its column and length
-// in the encoding of `li`, in document order.
-document_tokens :: fn(source: string, uri: string, li: LineIndex) -> RawToken[] {
+// Every token of the document `idx` holds, from all three producers, with its
+// column and length in the encoding of its line index, in document order.
+document_tokens :: fn(idx: DocIndex) -> RawToken[] {
     tokens: RawToken[]: []
-    collect_token_kinds(source, uri, tokens)
-    collect_comment_kinds(source, tokens)
-    collect_ast_idents(li, uri, tokens)
-    reencode_columns(tokens, li)
+    collect_token_kinds(idx.tokens, tokens)
+    collect_comment_kinds(idx.source, tokens)
+    collect_ast_idents(idx, tokens)
+    reencode_columns(tokens, idx.line_index)
     return in_document_order(tokens)
 }
 
@@ -81,8 +70,7 @@ reencode_columns :: fn(out: RawToken[], li: LineIndex) -> void {
 
 // ---- lexer tokens → semantic tokens --------------------------------------
 
-collect_token_kinds :: fn(source: string, uri: string, out: RawToken[]) -> void {
-    lexed :: tokenize(source, uri).tokens
+collect_token_kinds :: fn(lexed: Token[], out: RawToken[]) -> void {
     for i in 0..<lexed.len() {
         token_type :: semantic_type_at(lexed, i) ?? continue
         push_span(out, lexed[i].span, token_type)
@@ -262,11 +250,11 @@ encode_delta :: fn(tokens: RawToken[]) -> JsonValue {
 import "std/iter"
 import "std/testing"
 
-// The tokens `produce_tokens` encodes, so tests can inspect classifications +
+// The tokens `handle_semantic_tokens_full` encodes, so tests can inspect classifications +
 // overlaps. The colocated tests assert codepoint-equivalent columns, so index in
 // utf-16 (BMP codepoint == 1 utf-16 unit).
 build_sorted_for_test :: fn(source: string, uri: string) -> RawToken[] =
-    document_tokens(source, uri, new_line_index(source, .Utf16))
+    document_tokens(build_index(uri, source, .Utf16))
 
 // The first documentation-modifier token of `kind` on `line`, `null` if none.
 // Test helper for doc-comment tag positioning.
@@ -427,18 +415,17 @@ token_type_at :: fn(toks: RawToken[], offset: i64) -> TokenType | null {
 test_bang_is_in_paint_as_keyword :: fn() -> void {
     // `!is` / `!in` : the leading `!` paints as a keyword (not an operator) so
     // the negated operator colours as one unit: mirrors the TextMate grammar.
-    is_toks: RawToken[]: []
-    collect_token_kinds("x !is y\n", "t.vader", is_toks)
-    assert(token_type_at(is_toks, 2) == TokenType.Keyword, "the `!` of `!is` is a keyword")
-
-    in_toks: RawToken[]: []
-    collect_token_kinds("x !in y\n", "t.vader", in_toks)
-    assert(token_type_at(in_toks, 2) == TokenType.Keyword, "the `!` of `!in` is a keyword")
-
+    assert(lexer_kind_at("x !is y\n", 2) == TokenType.Keyword, "the `!` of `!is` is a keyword")
+    assert(lexer_kind_at("x !in y\n", 2) == TokenType.Keyword, "the `!` of `!in` is a keyword")
     // A bare `!` (logical not) still classifies as an operator.
-    not_toks: RawToken[]: []
-    collect_token_kinds("!x\n", "t.vader", not_toks)
-    assert(token_type_at(not_toks, 0) == TokenType.Operator, "a bare `!` is an operator")
+    assert(lexer_kind_at("!x\n", 0) == TokenType.Operator, "a bare `!` is an operator")
+}
+
+// The type the lexer-driven pass gives the token at `offset` of `src`.
+lexer_kind_at :: fn(src: string, offset: i64) -> TokenType | null {
+    out: RawToken[]: []
+    collect_token_kinds(tokenize(src, "t.vader").tokens, out)
+    return token_type_at(out, offset)
 }
 
 @test

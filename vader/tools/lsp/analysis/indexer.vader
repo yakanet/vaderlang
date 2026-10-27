@@ -30,7 +30,6 @@ import "std/string"
 import "toolchain/ast"
 import "vader/front/parser"
 import "vader/front/lexer"
-import "vader/support/diagnostics"
 import "vader/tools/fmt"
 import "vader/tools/lsp/protocol"
 import "toolchain/span"
@@ -104,6 +103,9 @@ export DocIndex :: struct {
     module:  string
     source:  string
     tokens:  Token[]
+    /// The document's tree, `///` blocks attached: what a handler walks instead
+    /// of parsing `source` again.
+    program: Program
     decls:   DeclEntry[]
     /// The file's renames: `import "p" { x as y }` binds `local` `y` to `p`'s
     /// `imported_name` `x`.
@@ -166,6 +168,7 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
         .module         = module_name_of(parsed.program),
         .source         = source,
         .tokens         = parsed.tokens,
+        .program        = parsed.program,
         .decls          = entries,
         .imports        = imports,
         .namespace_aliases = namespace_aliases,
