@@ -11,11 +11,6 @@ import "system/darwin"
 import "system/posix"
 import "system/windows"
 
-/// Raised by every fallible operation in this module: the concrete
-/// error member of each `T | IOError` return (`read_file_bytes`,
-/// `write_file_bytes`, `read_line`, `read_stdin`, `read_dir` and the
-/// string wrappers). Narrow with `is IOError` ; widen to `Error` for a
-/// trait-typed slot.
 /// What went wrong, classified so a caller can branch on it without
 /// transcribing platform numbers.
 ///
@@ -43,6 +38,9 @@ export IOErrorKind :: enum(u8) {
     BadHandle
 }
 
+/// Raised by every fallible operation in this module: the concrete error member
+/// of each `T | IOError` return. Narrow with `is IOError` ; widen to `Error` for
+/// a trait-typed slot.
 export IOError :: struct {
     /// Short human-readable diagnostic ("file not found", "EOF", ...).
     msg: string
@@ -825,6 +823,60 @@ modification_time :: fn(path: string) -> i64 | IOError {
 // The 100 ns ticks a `FILETIME` counts from 1601-01-01 to the Unix epoch.
 FILETIME_UNIX_EPOCH_TICKS: i64: 116_444_736_000_000_000
 
+/// `path` as the filesystem resolves it: absolute, `/`-separated, every symbolic
+/// link followed and every `.` and `..` gone. Two spellings of one file give one
+/// answer (`/tmp` and `/private/tmp` under macOS), which a lexical normalization
+/// (`std/path`) cannot promise.
+///
+/// @param path  an existing file or directory.
+/// @error       `IOError` when `path` cannot be resolved: `NotFound` when it
+///              does not exist.
+@target
+export real_path :: fn(path: string) -> string | IOError
+
+@target(.Linux, .Darwin)
+real_path :: fn(path: string) -> string | IOError {
+    // `PATH_MAX` is 1024 on Darwin and 4096 on Linux.
+    resolved: u8[]: [0] * 4096
+    if sys_realpath(path, resolved) == null {
+        return last_io_error("cannot resolve path")
+    }
+    return up_to_nul(resolved)
+}
+
+@target(.Windows)
+real_path :: fn(path: string) -> string | IOError {
+    // A handle that asks for no access, only to name the file.
+    h :: create_file_w(to_wide(path), 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                       null, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, null)
+    if i64(h) == INVALID_HANDLE {
+        return last_io_error("cannot resolve path")
+    }
+    // Runs once a `return` has computed its value: `last_io_error` reads the
+    // last-error slot before `CloseHandle` overwrites it.
+    defer close_handle(h)
+    // The longest path Windows names, in UTF-16 units, and its NUL.
+    buf: u16[]: [0] * 32768
+    n :: get_final_path_name_by_handle_w(h, buf, u32(buf.len()), VOLUME_NAME_DOS)
+    if n == 0 {
+        return last_io_error("cannot resolve path")
+    }
+    return without_verbatim_prefix(to_slash(from_wide(buf, i32(n))))
+}
+
+// A path `GetFinalPathNameByHandleW` wrote, `/`-separated, without its verbatim
+// prefix: `//?/C:/x` is `C:/x`, `//?/UNC/host/share/x` is `//host/share/x`.
+// `byte_slice` stops at the end of a shorter path.
+without_verbatim_prefix :: fn(p: string) -> string {
+    if p.byte_slice(0, 8) == "//?/UNC/" {
+        return "//" + p.byte_slice(8, p.byte_len())
+    }
+    if p.byte_slice(0, 4) == "//?/" {
+        return p.byte_slice(4, p.byte_len())
+    }
+    return p
+}
+
 /// List the immediate entries of `path` in OS-provided order. Excludes
 /// `.` and `..`. Names are relative: join against `path` (e.g. via
 /// `std/path`) for full paths.
@@ -922,12 +974,12 @@ current_executable_location :: fn() -> string {
         return "."
     }
     // What Darwin hands back may be relative or carry symlinks: `argv[0]` as
-    // the kernel saw it. `realpath` is what makes it usable as a sidecar anchor.
-    resolved: u8[]: [0] * 4096
-    if sys_realpath(up_to_nul(raw), resolved) == null {
+    // the kernel saw it. Resolving it is what makes it usable as a sidecar anchor.
+    resolved :: real_path(up_to_nul(raw))
+    if resolved is IOError {
         return "."
     }
-    return to_slash(up_to_nul(resolved))
+    return resolved
 }
 
 @target(.Windows)
@@ -1160,6 +1212,35 @@ import "std/testing"
     }
 }
 
+@test test_real_path_gives_two_spellings_of_a_file_one_answer :: fn() -> void {
+    file :: "${temp_dir()}/vader_real_path_probe"
+    wrote :: write_file_string(file, "x")
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    direct :: real_path(file)
+    detour :: real_path("${temp_dir()}/../${last_name(temp_dir())}/./vader_real_path_probe")
+    if direct is IOError || detour is IOError {
+        assert(false, "both spellings resolve")
+    } else {
+        assert_eq(detour, direct)
+    }
+}
+
+@test test_real_path_resolves_a_directory :: fn() -> void {
+    dir :: real_path(temp_dir())
+    assert(dir is string && is_dir(dir), "the temp dir resolves to a directory")
+}
+
+@test test_real_path_of_a_missing_path :: fn() -> void {
+    missing :: real_path("${temp_dir()}/vader_real_path_absent")
+    if missing is IOError {
+        assert_eq(missing.kind, .NotFound)
+    } else {
+        assert(false, "a missing path does not resolve")
+    }
+}
+
 @test test_a_failed_read_carries_why :: fn() -> void {
     // Every `fopen` failure used to answer "file not found", whatever the
     // reason. A missing path is the one classification every platform agrees
@@ -1265,4 +1346,15 @@ null_device :: fn() -> string {
         return "NUL"
     }
     return "/dev/null"
+}
+
+// The last name of the `/`-separated `path`.
+last_name :: fn(path: string) -> string {
+    cut: i64 = 0
+    for i in 0..<path.byte_len() {
+        if path.byte_at(i) == '/' {
+            cut = i + 1
+        }
+    }
+    return path.byte_slice(cut, path.byte_len())
 }

@@ -7,7 +7,7 @@
 // `left_out` holds a `json` module, which the toolchain's own `json` shadows.
 
 import { test, expect, afterAll } from "bun:test";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { ensureCliBuilt, spawnCapture, MEDIUM_BUILD, TOOLCHAIN_ENV } from "./cli-bin.ts";
@@ -105,6 +105,32 @@ test("doc names a module another folder shadows, and leaves it out", async () =>
   expect(existsSync(join(dir, "build", "doc", "stamp"))).toBe(false);
   const index = JSON.parse(readFileSync(join(dir, "build", "doc", "index.json"), "utf8"));
   expect(index.modules.map((m: { path: string }) => m.path)).toEqual(["apps/app"]);
+}, MEDIUM_BUILD);
+
+// The working directory comes back from the system with its links resolved, a
+// path on the command line keeps them: both name the same modules, none
+// shadowed by itself. Windows grants a link only to a privileged user.
+test.skipIf(process.platform === "win32")("doc reads a path through a symbolic link as the folder it leads to", async () => {
+  const dir = stage("shapes");
+  const links = mkdtempSync(join(tmpdir(), "vader-doc-link-"));
+  staged.push(links);
+  symlinkSync(dir, join(links, "project"));
+  const r = await spawnCapture(["doc", join(links, "project", "shapes")], { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: MEDIUM_BUILD });
+  expect(r.stderr).toBe("");
+  expect(r.exit).toBe(0);
+  const index = JSON.parse(readFileSync(join(dir, "build", "doc", "index.json"), "utf8"));
+  expect(index.modules.map((m: { path: string }) => m.path)).toEqual(["shapes/geometry", "shapes/text"]);
+}, MEDIUM_BUILD);
+
+// A link inside the scope reaches a folder a second time, under another name.
+test.skipIf(process.platform === "win32")("doc documents once a folder a symbolic link reaches twice", async () => {
+  const dir = stage("shapes");
+  symlinkSync(join(dir, "shapes", "geometry"), join(dir, "shapes", "again"));
+  const r = await docShapes(dir);
+  expect(r.stderr).toBe("");
+  expect(r.exit).toBe(0);
+  const index = JSON.parse(readFileSync(join(dir, "build", "doc", "index.json"), "utf8"));
+  expect(index.modules.map((m: { path: string }) => m.path)).toEqual(["shapes/geometry", "shapes/text"]);
 }, MEDIUM_BUILD);
 
 // The stamp holds what the data was written from: the files the load read. A

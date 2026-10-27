@@ -11,6 +11,7 @@
 module "vader/tools/doc"
 
 import "std/collections"
+import "std/io"
 import "std/iter"
 import "std/path"
 import "std/sort"
@@ -101,7 +102,8 @@ export DocMember :: struct {
 ///
 /// A module of the scope is left out when the load did not reach its folder:
 /// no search root of the project holds it, or another folder declaring the same
-/// module comes first.
+/// module comes first. A folder the scope reaches twice, through a symbolic link,
+/// is documented once.
 ///
 /// @param checked  the load and the typecheck of the scope (`check_scope`).
 /// @param scope    the modules to document (`doc_scope`).
@@ -111,6 +113,7 @@ export index_modules :: fn(checked: DocCheck, scope: DiscoveredModule[], base: s
     loaded :: module_index_by_name(checked.project)
     modules: DocModule[]: []
     left_out: string[]: []
+    documented :: MutableSet<string> {}
     for wanted in scope {
         folder :: display_path(wanted.folder, base)
         found :: loaded[wanted.name]
@@ -120,7 +123,7 @@ export index_modules :: fn(checked: DocCheck, scope: DiscoveredModule[], base: s
             left_out.push(
                 "`${wanted.name}` (`${folder}`) is shadowed by the module of `${display_path(found.module.id, base)}`",
             )
-        } else {
+        } else if documented.add(found.module.id) {
             modules.push(index_module(checked, found, base))
         }
     }
@@ -400,8 +403,17 @@ shown_type :: fn(t: Ty.Type) -> DocSegment[] {
     return type_segments(t)
 }
 
-// Whether `a` and `b` name the same folder, however each is spelled.
-same_folder :: fn(a: string, b: string) -> bool = normalized_path(a) == normalized_path(b)
+// Whether `a` and `b` name the same folder, however each is spelled, a symbolic
+// link included: the working directory comes back resolved, a path from the
+// command line does not.
+same_folder :: fn(a: string, b: string) -> bool {
+    if normalized_path(a) == normalized_path(b) {
+        return true
+    }
+    real_a :: real_path(a)
+    real_b :: real_path(b)
+    return real_a is string && real_b is string && real_a == real_b
+}
 
 // `path` relative to the absolute folder `base` when it lies under it, absolute
 // otherwise.

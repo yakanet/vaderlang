@@ -212,6 +212,9 @@ export FILE_SHARE_READ: u32 : 0x1
 /// See `FILE_SHARE_READ`.
 export FILE_SHARE_WRITE: u32 : 0x2
 
+/// See `FILE_SHARE_READ`: let a rename or a delete in too.
+export FILE_SHARE_DELETE: u32 : 0x4
+
 /// `dwCreationDisposition`: truncate an existing file, create it otherwise.
 export CREATE_ALWAYS: u32 : 2
 
@@ -220,6 +223,9 @@ export OPEN_EXISTING: u32 : 3
 
 /// `dwFlagsAndAttributes`: no special semantics.
 export FILE_ATTRIBUTE_NORMAL: u32 : 0x80
+
+/// `dwFlagsAndAttributes`: open a directory as well as a file.
+export FILE_FLAG_BACKUP_SEMANTICS: u32 : 0x0200_0000
 
 /// `CreateFileW`. Returns `INVALID_HANDLE_VALUE` on failure: test it with
 /// `i64(h) == INVALID_HANDLE`, never against null.
@@ -542,6 +548,21 @@ export FILE_TYPE_DISK: u32 : 0x0001
 /// @param size  receives the size in bytes; a one-element array so it reads back.
 @extern(KERNEL32, "GetFileSizeEx")
 export get_file_size_ex :: fn(h: Handle, @c_out size: i64[]) -> bool
+
+/// `GetFinalPathNameByHandleW`. Writes the path of the file `h` names, links
+/// followed and NUL-terminated, into `buf`.
+///
+/// @param size   `buf`'s capacity in UTF-16 UNITS, not bytes.
+/// @param flags  `VOLUME_NAME_DOS` for a path that starts with a drive letter,
+///               behind the `\\?\` prefix.
+/// @return       UTF-16 units written, excluding the NUL; 0 on failure, more
+///               than `size` (the capacity needed) when `buf` is too small.
+@extern(KERNEL32, "GetFinalPathNameByHandleW")
+export get_final_path_name_by_handle_w :: fn(h: Handle, @c_out buf: u16[], size: u32,
+                                             flags: u32) -> u32
+
+/// See `get_final_path_name_by_handle_w`: a volume named by its drive letter.
+export VOLUME_NAME_DOS: u32 : 0x0
 
 /// `CloseHandle`. False on failure, which a caller that is done with the file
 /// has nothing to do about.

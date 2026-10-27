@@ -26,5 +26,5 @@
   expr 19:13    IdentExpr      :: string
   expr 19:5     CallExpr       :: void
   expr 19:5     IdentExpr      :: fn(T) -> void
-  expr 740:62   IdentExpr      :: i64
+  expr 738:62   IdentExpr      :: i64
   expr 9:13     StringLitExpr  :: string
