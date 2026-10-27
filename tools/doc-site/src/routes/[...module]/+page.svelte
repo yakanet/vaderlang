@@ -67,11 +67,13 @@
 		gap: var(--s6);
 		justify-content: start;
 	}
+	/* One column that never grows past the page: an `auto` track would take the
+	   width of the longest code line, and the page would scroll sideways. */
 	.content {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: var(--s6);
 		align-content: start;
-		min-width: 0;
 	}
 	.mod-title {
 		margin: 0 0 var(--s2);
@@ -98,8 +100,10 @@
 		color: var(--muted);
 		margin-top: var(--s3);
 	}
+	/* A path holds no space to wrap at: it breaks where it must. */
 	.meta code {
 		color: var(--fg);
+		overflow-wrap: anywhere;
 	}
 	.group > h2 {
 		font-size: var(--step-2);
@@ -124,6 +128,7 @@
 		margin: 0 0 var(--s4);
 		padding: 0;
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: 2px;
 	}
 	.toc a {

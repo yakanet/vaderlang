@@ -135,6 +135,7 @@
 		margin: 0;
 		padding: 0;
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: 1px;
 	}
 	.side ul ul {
@@ -176,8 +177,14 @@
 		color: var(--muted);
 	}
 	@media (max-width: 760px) {
+		/* The header wraps, and scrolls away with the page: kept in place, it
+		   would hide the title a link lands on. Nothing is left to clear. */
 		.site-head {
 			flex-wrap: wrap;
+			position: static;
+		}
+		:global(:root) {
+			--head-h: 0rem;
 		}
 		.menu-btn {
 			display: inline-block;
@@ -190,8 +197,6 @@
 			position: fixed;
 			z-index: 4;
 			inset: 0 auto 0 0;
-			top: 0;
-			height: 100vh;
 			width: min(18rem, 85%);
 			background: var(--bg);
 			box-shadow: 12px 0 30px -18px rgba(0, 0, 0, 0.5);

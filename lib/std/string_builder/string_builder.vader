@@ -1,5 +1,12 @@
 // std/string_builder: efficient string construction over a list of parts.
 //
+// ```
+// sb :: StringBuilder {}
+// sb.append("Hello")
+// sb.append_char('!')
+// sb.to_string()   // "Hello!"
+// ```
+//
 // Accumulates string references in a `string[]` : each `append` is an O(1)
 // reference push, no byte copy. The bytes are moved exactly once, in bulk, at
 // `to_string` : one `Buffer` sized to the total byte length, each part copied
@@ -14,12 +21,6 @@
 // the impl registry. `bytes` /
 // `bytes_to_string` / `utf8_encode` are likewise ambient std/core primitives. So
 // the builder itself imports nothing; only its tests import `std/testing`.
-//
-// Usage:
-//   sb := StringBuilder {}
-//   sb.append("Hello")
-//   sb.append_char('!')
-//   result := sb.to_string()  // "Hello!"
 
 module "std/string_builder"
 

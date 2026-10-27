@@ -14,11 +14,12 @@
 // indistinguishable from one meant for the program.
 //
 // Flag forms recognised, all equivalent per kind:
-//   --name / -n            bool flag, sets `name → "true"`.
-//   --name=v / -n=v        string flag, inline value.
-//   --name v / -n v        string flag, spaced value.
-//   --                     closes the option zone.
-//   <anything else>        closes the option zone, and is the first positional.
+//
+// - `--name` / `-n`: a bool flag, sets `name → "true"`.
+// - `--name=v` / `-n=v`: a string flag, its value inline.
+// - `--name v` / `-n v`: a string flag, its value spaced.
+// - `--`: closes the option zone.
+// - anything else: closes the option zone, and is the first positional.
 //
 // Combined short flags (`-abc` for `-a -b -c`) are deliberately unsupported:
 // they only apply to bool flags, of which a CLI this size has a handful, and

@@ -1,5 +1,13 @@
 // std/collections: hash-based mutable collections.
 //
+// ```
+// m :: MutableMap<string, i32> {}
+// m["answer"] = 42
+//
+// s :: MutableSet<i32> {}
+// s.add(10)
+// ```
+//
 // Java-inspired API : struct-literal construction + UFCS methods. Method
 // names like `put` / `get` / `len` / `is_empty` are deliberately shared
 // across the two collections; UFCS dispatch picks the right overload by
@@ -8,14 +16,6 @@
 // Sequence collections live in the language : `[T]` arrays support `push`,
 // `len`, indexed access, mutation, and `for x in arr`: no `MutableList`
 // wrapper is needed at MVP.
-//
-// Construction examples :
-//
-//   m :: MutableMap<string, i32> {}
-//   m["answer"] = 42
-//
-//   s :: MutableSet<i32> {}
-//   s.add(10)
 //
 // `MutableMap` is a COMPACT (open-addressed) hash map : dense parallel
 // `ekeys` / `evals` arrays in insertion order, plus a sparse `i32` index

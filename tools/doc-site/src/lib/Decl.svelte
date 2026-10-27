@@ -156,9 +156,16 @@
 		padding-top: var(--s5);
 		margin-top: var(--s5);
 	}
+	/* Single-column stacks, kept to the page's width as `.content` is. */
+	.decl,
+	.form,
+	.fields,
+	.generated {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+	}
 	.decl,
 	.form {
-		display: grid;
 		gap: var(--s3);
 	}
 	/* What a link lands on is the row that carries its `id`: the title of a
@@ -202,7 +209,6 @@
 		margin-top: var(--s2);
 	}
 	.fields {
-		display: grid;
 		gap: var(--s2);
 	}
 	h4 {
@@ -215,11 +221,10 @@
 	}
 	.ptable td {
 		padding: var(--s2) var(--s3) var(--s2) 0;
-		border-top: var(--hair) solid var(--line);
 		vertical-align: top;
 	}
-	.ptable tr:first-child td {
-		border-top: 0;
+	.ptable tr + tr {
+		border-top: var(--hair) solid var(--line);
 	}
 	.ptable td.nm {
 		font-family: var(--font-code);
@@ -283,7 +288,6 @@
 		background: var(--derived-wash);
 		border-radius: var(--r2);
 		padding: var(--s3) var(--s4);
-		display: grid;
 		gap: var(--s2);
 	}
 	.generated > p {
@@ -292,7 +296,7 @@
 		color: var(--derived);
 		font-weight: 700;
 	}
-	.generated .ptable td {
+	.generated .ptable tr {
 		border-top-color: color-mix(in srgb, var(--derived) 25%, transparent);
 	}
 	.returns {
@@ -335,6 +339,23 @@
 	@media (max-width: 560px) {
 		.members {
 			grid-template-columns: minmax(0, 1fr);
+		}
+		/* A parameter stacks: its name and type, then what its vaderdoc says. */
+		.ptable,
+		.ptable tbody {
+			display: block;
+		}
+		.ptable tr {
+			display: flex;
+			flex-wrap: wrap;
+			column-gap: var(--s3);
+			padding: var(--s2) 0;
+		}
+		.ptable td {
+			padding: 0;
+		}
+		.ptable td:nth-child(3) {
+			flex-basis: 100%;
 		}
 	}
 </style>
