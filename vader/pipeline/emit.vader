@@ -470,6 +470,7 @@ export link_native :: fn(
     res :: spawn(argv)
     if res is ProcessError {
         eprintln("vader build: ${res.message()}")
+        eprint(res.stderr)
         eprintln("(generated C kept at ${c_file})")
         return 1
     }

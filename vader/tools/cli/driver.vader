@@ -490,22 +490,29 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
         return 1
     }
     if outcome is ProcessError {
-        eprintln("vader ${command}: cannot run the build driver: ${outcome.message()}")
+        // A driver ended by a signal may have written why first: a panic does.
+        relay_driver_output(request, outcome.stdout, outcome.stderr)
+        eprintln("vader ${command}: ${outcome.message()}")
         return 1
     }
     if outcome is ProcessResult {
-        // A driver run to describe or prepare the project works for another
-        // command, whose stdout carries that command's own output (`vader info
-        // --json`, `vader dump`): what the driver prints goes to stderr.
-        if request.mode == .Describe || request.mode == .Prepare {
-            eprint(outcome.stdout)
-        } else {
-            print(outcome.stdout)
-        }
-        eprint(outcome.stderr)
+        relay_driver_output(request, outcome.stdout, outcome.stderr)
         return outcome.exit
     }
     return 1
+}
+
+// Pass on what the driver printed. A driver run to describe or prepare the
+// project works for another command, whose stdout carries that command's own
+// output (`vader info --json`, `vader dump`): what the driver prints goes to
+// stderr.
+relay_driver_output :: fn(request: DriverRequest, stdout: string, stderr: string) -> void {
+    if request.mode == .Describe || request.mode == .Prepare {
+        eprint(stdout)
+    } else {
+        print(stdout)
+    }
+    eprint(stderr)
 }
 
 /// Whether the project `root`'s driver is compiled as it stands, from its

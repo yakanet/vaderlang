@@ -755,6 +755,31 @@ test.concurrent("the language server reads the search roots a driver declares", 
   });
 }, HEAVY_BUILD);
 
+test.concurrent("a driver that panics still says why", async () => {
+  // REASON: the driver is a child process, and a panic ends it, by a signal on
+  // POSIX. What it wrote before dying is the only clue the user gets, so it has
+  // to reach them. Not a fixture: a fixture pins the exit code and the whole of
+  // stderr, and both differ between platforms ; the message does not.
+  const dir = mkdtempSync(`${tmpdir()}/vader-driver-panics-`);
+  staged.push(dir);
+  mkdirSync(join(dir, "src"));
+  writeFileSync(join(dir, "build.vader"), [
+    'module "build"', "", 'import "std/abort"', 'import "toolchain/build"', "",
+    "build :: fn(args: string[]) -> i32 {",
+    "    ctx :: new_build_context(args)",
+    '    ctx.add_entry("app", "src/main.vader")',
+    "    if ctx.mode() == .Build {",
+    '        panic("the house rules file is missing")',
+    "    }",
+    "    return ctx.emit_native()",
+    "}", "",
+  ].join("\n"));
+  writeFileSync(join(dir, "src/main.vader"), 'module "src"\n\nmain :: fn() -> i32 {\n    return 0\n}\n');
+  const r = await run(["build"], { cwd: dir, env: TOOLCHAIN_ENV });
+  expect(r.stderr).toContain("the house rules file is missing");
+  expect(r.exit).not.toBe(0);
+}, HEAVY_BUILD);
+
 test.concurrent("a named file bypasses the driver, and says so", async () => {
   // REASON: not a driven build, the CLI is given a file, which is the path
   // `bootstrap/build.sh` takes to compile the compiler, so it has to win. But

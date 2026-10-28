@@ -40,6 +40,12 @@ SIGNALED :: -2
 /// `ProcessResult.exit`).
 export ProcessError :: struct {
     msg: string
+    /// What the child wrote to stdout before a signal ended it ; empty when it
+    /// never ran.
+    stdout: string = ""
+    /// What the child wrote to stderr before a signal ended it (a panic's
+    /// message, say) ; empty when it never ran.
+    stderr: string = ""
 }
 
 ProcessError implements Error {
@@ -758,7 +764,11 @@ export spawn_finished :: fn(handle: i64, program: string) -> ProcessResult | Pro
     out :: spawn_take_stdout(handle)
     err :: spawn_take_stderr(handle)
     if code == SIGNALED {
-        return ProcessError { .msg = "spawn: \"${program}\" terminated by signal" }
+        return ProcessError {
+            .msg = "spawn: \"${program}\" terminated by signal",
+            .stdout = out,
+            .stderr = err,
+        }
     }
     return ProcessResult { .exit = code, .stdout = out, .stderr = err }
 }

@@ -78,7 +78,8 @@ export build_ffi_adapters :: fn(
     argv.push(library)
     compiled :: spawn(argv)
     if compiled is ProcessError {
-        return AdapterBuildError { .message = "need a C compiler, and `${cc}` cannot be started: ${compiled.message()}" }
+        why :: "${compiled.message()}\n${compiled.stderr}".trim()
+        return AdapterBuildError { .message = "need a C compiler, and `${cc}` did not run: ${why}" }
     }
     if compiled.exit != 0 {
         _ :: remove_file(library)

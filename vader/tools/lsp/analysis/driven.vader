@@ -142,7 +142,7 @@ await_build :: fn(self: ServerState, root: string, known: DrivenProject) -> void
 // reports none.
 description_of :: fn(finished: ProcessResult | ProcessError) -> string[] | string {
     if finished is ProcessError {
-        return finished.msg
+        return "${finished.msg}\n${finished.stderr}".trim()
     }
     if finished.exit != 0 {
         return finished.stderr.trim()

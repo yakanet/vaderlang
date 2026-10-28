@@ -76,6 +76,7 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     for r in results {
         if r is ProcessError {
             eprintln("vader build: ${r.message()}")
+            eprint(r.stderr)
             eprintln("(generated C kept in ${folder_of(work)})")
             return 1
         } else if r is ProcessResult {
@@ -96,6 +97,7 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     )
     if lres is ProcessError {
         eprintln("vader build: ${lres.message()}")
+        eprint(lres.stderr)
         return 1
     }
     if lres.exit != 0 {
