@@ -1,39 +1,39 @@
 #include "bootstrap.split.h"
 
-vader_string_t std_target_Arch_std_core_Display_to_string(uint8_t l0) {
+vader_string_t std_target$Arch$std_core$Display$to_string(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 2943u;
+        l1 = 3054u;
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 1495u;
+        l1 = 1561u;
     } else {
         if (!(l0 == INT32_C(2))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 2915u;
+        l1 = 3026u;
     }
     return l1;
 }
 
-vader_string_t std_target_Os_std_core_Display_to_string(uint8_t l0) {
+vader_string_t std_target$Os$std_core$Display$to_string(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 2924u;
+        l1 = 3034u;
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 2179u;
+        l1 = 2275u;
     } else if (l0 == INT32_C(2)) {
-        l1 = 1737u;
+        l1 = 1817u;
     } else if (l0 == INT32_C(3)) {
-        l1 = 2914u;
+        l1 = 3025u;
     } else {
         if (!(l0 == INT32_C(4))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 1584u;
+        l1 = 1653u;
     }
     return l1;
 }
