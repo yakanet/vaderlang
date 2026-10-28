@@ -98,8 +98,8 @@ trait_implementations :: fn(state: ServerState, params: JsonValue) -> JsonValue 
         owner :: owning_trait(target) ?? return JsonNull {}
         for impl in (TypeWalk { .target = owner }).impls_of() {
             for m in impl.members {
-                // A default the trait supplied, cloned into the block : the
-                // block wrote no body of its own.
+                // A member declared for the impl from its trait (an inherited
+                // default, an intrinsic stub) : the block wrote none of its own.
                 if m.name == target.decl.name && !m.materialized {
                     out.push(span_location(owner, m.name_span))
                 }

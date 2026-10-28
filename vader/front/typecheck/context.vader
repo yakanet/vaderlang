@@ -59,28 +59,6 @@ export FnContext :: struct {
     /// The contract of the `@ensures` fn whose body this is (`hold_to_ensures`) :
     /// each return and the end of the body are held to it.
     ensures: GuardContract | null = null
-    /// The type a trait's default body was cloned for, which `Self` became there ;
-    /// null in any other body. A lambda carries its enclosing fn's.
-    clone_for: Type | null = null
-}
-
-// Whether a type test on a value of type `tested_value` is one on `Self` in a
-// default body cloned for an impl : the impl settles it, so it is neither an
-// impossible test nor a narrowing to `never`.
-settled_by_clone :: fn(typed: TypedProgram, tested_value: Type) -> bool {
-    ctx :: typed.current_fn_ctx ?? return false
-    clone_for :: ctx.clone_for ?? return false
-    return equals_type(tested_value, clone_for)
-}
-
-// `narrowed`, unless it is the `never` a test on `Self` settled by the impl leaves
-// (`settled_by_clone`) : the code it would type is dead, the lowering drops it,
-// and there the value keeps `static_ty`.
-narrowed_in_clone :: fn(typed: TypedProgram, static_ty: Type, narrowed: Type) -> Type {
-    if narrowed is NeverType && settled_by_clone(typed, static_ty) {
-        return static_ty
-    }
-    return narrowed
 }
 
 new_fn_context :: fn(return_type: Type) -> FnContext {

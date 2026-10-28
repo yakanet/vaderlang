@@ -17,8 +17,8 @@ import "vader/support/diagnostics"
 
 /// Fill every impl of `project` with the members its trait implies, before the
 /// resolver walks a body: the stubs of an `@intrinsic` impl, the method a short
-/// impl (`Type implements Trait -> expr`) stands for, and a clone of each default
-/// method the impl does not override. Works across modules, so
+/// impl (`Type implements Trait -> expr`) stands for, and a declaration of each
+/// default method the impl inherits (`FnDecl.inherits`). Works across modules, so
 /// `Foo implements Display -> "..."` finds `Display` in `std/core`.
 ///
 /// @param project     the loaded project ; its impls are filled in place.
@@ -95,12 +95,8 @@ materialize_file_impl_members :: fn(
         // slot. Without the rename, both required methods would be
         // flagged missing instead of just the unprovided one.
         materialize_sam_members(decl, trait_decl, loaded.node_id_factory)
-        // Default-bodied trait methods get cloned into the impl
-        // (body + signature substituted). Bodies carry the
-        // materialised-span marker + IDs minted from the project's
-        // factory so cloned nodes contribute distinct expr_types
-        // entries in the typecheck dump (rendered as
-        // `undefined:undefined`).
+        // A default method the impl does not write is declared for it, its
+        // signature substituted ; the body stays the trait's.
         materialize_default_members(decl, trait_decl, loaded.node_id_factory)
     }
 }
@@ -130,7 +126,7 @@ check_short_impl_arity :: fn(
             // Mark the synthetic body as already-typechecked so the
             // walker skips it: otherwise T3020 / R2006 on `self` cascade
             // out of a body the user can't fix without restructuring the
-            // impl. Same `materialized` flag default-method clones use.
+            // impl. The walkers skip a member both `sam_synthetic` and `materialized`.
             impl_.members[i].materialized = true
         }
     }

@@ -315,11 +315,8 @@ export TypedProgram :: struct {
     /// The upstream resolver's output for this module.
     resolved: ResolvedModule
 
-    /// Type of every value-position expression. Keyed by `Expr.id`
-    /// (minted by `assign_node_ids` at parse time, re-minted on cloned
-    /// nodes inside materialised trait default-method bodies). Lets the
-    /// dump emit multiple entries for cloned nodes that share the same
-    /// source span.
+    /// Type of every value-position expression. Keyed by `Expr.id`, minted
+    /// by `assign_node_ids` at parse time.
     expr_types: MutableMap<i64, Type>
 
     /// Target type of every implicit `.into()` coercion, keyed by the
@@ -488,12 +485,6 @@ export TypedProgram :: struct {
     /// `TypedProgram` covers a whole module: two files of one module may import
     /// different modules, or the same one under different modifier lists, and
     /// neither may lend its names to the other.
-    ///
-    /// Read it through `imported_overloads_table_in` and friends, never by
-    /// indexing: each table is registered under TWO keys (the file's path and
-    /// the `<clone>:` form a materialised trait-default body carries) so the
-    /// map holds two entries per file, both pointing at the same table. Counting
-    /// its entries does not count the module's files.
     imported_fn_overloads: MutableMap<string, MutableMap<string, FnCandidate[]>>
 
     /// `FieldExpr.id → original first-param type` for every
@@ -598,7 +589,7 @@ export TypedProgram :: struct {
     current_fn_ctx: FnContext | null
 
     /// `AST.id → Span` reverse lookup for the typed-ast dump's `line:col`
-    /// rendering (or `undefined:undefined` for materialised spans). Populated
+    /// rendering (or `undefined:undefined` for a node it did not record). Populated
     /// alongside `expr_kinds`, and, like it, only when `dump_types` is set
     /// (see below) ; `expr_types` always populates, these two do not.
     node_spans: MutableMap<i64, Span>

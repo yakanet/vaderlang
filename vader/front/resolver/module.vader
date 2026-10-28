@@ -62,14 +62,10 @@ export DRIVER_ENTRY :: "build"
 export GENERATED_ROOT_DIR :: "build/generated"
 
 /// A loaded source file in a module: raw text plus its parsed AST.
-/// `id_factory` is the post-parse factory state for this file, threaded
-/// to `LoadedModule` so cloned default-method bodies inserted by
-/// `materialize.vader` mint IDs in the same namespace as parse-time IDs.
 export SourceFile :: struct {
     path: string
     content: string
     program: Program
-    id_factory: NodeIdFactory
 }
 
 /// Concatenate every file's top-level decls of a (possibly multi-file) module

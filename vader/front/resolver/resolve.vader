@@ -126,10 +126,9 @@ export ResolvedProject :: struct {
 export resolve_module :: fn(program: Program, module_path: string, factory: SymbolFactory) -> ResolvedModule {
     collected :: collect_module_no_index(program, module_path, factory)
     file :: SourceFile {
-        .path       = program.file,
-        .content    = "",
-        .program    = program,
-        .id_factory = new_node_id_factory(),
+        .path = program.file,
+        .content = "",
+        .program = program,
     }
     return resolve_module_files(
         [file],

@@ -2,8 +2,7 @@
 //
 // Every AST node declares `id: i64 = UNASSIGNED_NODE_ID` so downstream
 // passes can key side-tables (`expr_types`, `expr_kinds`, …) on a stable
-// integer rather than on stringified spans (which collide when materialise
-// clones default-method bodies into impl members).
+// integer rather than on spans, which synthesised nodes share.
 //
 // Vader has no reflection, so this walker enumerates every variant of
 // `Decl`, `Expr`, `Stmt`, `Pattern`, `LetBinding`, `ImportBinding`,
@@ -12,8 +11,8 @@
 module "vader/front/parser"
 
 /// Mints a unique `i64` id per call. One factory serves the whole project
-/// (`load_project_with_overlay`), and what `materialize.vader` clones or
-/// synthesises draws from it too, so no two nodes of a project share an id.
+/// (`load_project_with_overlay`), and what `materialize.vader` synthesises
+/// draws from it too, so no two nodes of a project share an id.
 export NodeIdFactory :: struct { next: i64 }
 
 /// Build a fresh factory. IDs start at 1: `0` is reserved for
@@ -41,14 +40,6 @@ export assign_program_ids :: fn(p: Program, f: NodeIdFactory) -> void {
     for d in p.decls {
         walk_decl(d, f)
     }
-}
-
-/// Re-entrant entry for cloned blocks (used by
-/// `vader/front/resolver/materialize.vader` after substituting default-method
-/// bodies into an impl). Same factory the project's parse used, so cloned
-/// IDs don't collide with pre-existing ones.
-export assign_block_ids :: fn(b: BlockExpr, f: NodeIdFactory) -> void {
-    walk_block(b, f)
 }
 
 // ---- declaration walkers --------------------------------------------------

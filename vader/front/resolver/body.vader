@@ -404,8 +404,7 @@ walk_member_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
 
 // A fn body, in the scope of the file it was written in : a `@target` body
 // grafted from a sibling file sees that file's imports, not the declaration's.
-// A body whose spans name no file of the module (a trait default cloned into an
-// impl, stamped `<clone>:<impl file>`) belongs to the file being walked.
+// A body whose span names no file of the module belongs to the file being walked.
 walk_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
     written_in :: self.file_scopes[body.span.start.file]
     if written_in == null {
@@ -523,9 +522,8 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
     }
     // Skip only SAM short-impl synthetics: their body is the user's
     // expression and their params never got minted, so walking would
-    // cascade R2006 on `self`. Default-method clones are also
-    // `materialized` but carry proper substituted params, so the
-    // resolver must walk them to bind `self` and resolve `self.next()`.
+    // cascade R2006 on `self`. An inherited member is `materialized` too,
+    // and walked: its substituted signature names types to resolve.
     for m in d.members {
         if m.materialized && m.sam_synthetic { continue }
         self.walk_fn_decl(m)

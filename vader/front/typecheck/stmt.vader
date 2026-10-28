@@ -184,7 +184,6 @@ check_fn_body :: fn(
         .is_generator = is_generator,
         .yield_type = yield_type,
         .is_async = is_async,
-        .clone_for = cloned_for(fn_decl, typed),
     }
     prev :: typed.current_fn_ctx
     typed.current_fn_ctx = ctx
@@ -1402,15 +1401,7 @@ push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram, stack: PushedNarro
         }
     }
     narrowing :: detect_is_narrow_for_block(cond, typed) ?? return
-    stack.push(
-        push_one_narrow(
-            typed,
-            narrowing.sym_id,
-            narrowing.field_key,
-            narrowing.static_ty,
-            narrowing.else_ty,
-        ),
-    )
+    stack.push(push_one_narrow(typed, narrowing.sym_id, narrowing.field_key, narrowing.else_ty))
 }
 
 then_is_divergent :: fn(b: AST.BlockExpr, typed: TypedProgram) -> bool {
@@ -1683,15 +1674,6 @@ is_known_non_iterable :: fn(t: Type) -> bool {
         return t.name != "string"
     }
     return true
-}
-
-// The type a trait's default body was cloned for : its receiver's, as the impl
-// declared it. Null for any other fn, and for a default member with no `self`.
-cloned_for :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type | null {
-    if !fn_decl.materialized || !has_self_param(fn_decl) {
-        return null
-    }
-    return typed.param_types[fn_decl.params[0].span.hash()]
 }
 
 lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {

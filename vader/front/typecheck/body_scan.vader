@@ -76,12 +76,15 @@ export BodyShape :: struct {
 }
 
 // A declaration the lowering synthesises carries no node id, so it is scanned on
-// every request rather than remembered under an id it shares with the others.
+// every request rather than remembered under an id it shares with the others. An
+// inherited member awaits and yields as the default body it runs, remembered once
+// for every impl.
 body_shape :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> BodyShape {
-    if fn_decl.id == AST.UNASSIGNED_NODE_ID {
-        return scan_body(fn_decl)
+    source :: fn_decl.inherits ?? fn_decl
+    if source.id == AST.UNASSIGNED_NODE_ID {
+        return scan_body(source)
     }
-    return typed.body_shapes[fn_decl.id] ?? remember_body_shape(typed, fn_decl)
+    return typed.body_shapes[source.id] ?? remember_body_shape(typed, source)
 }
 
 remember_body_shape :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> BodyShape {
@@ -92,9 +95,7 @@ remember_body_shape :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> BodyShape
 
 // One walk answers both questions: the answer is on the probe.
 scan_body :: fn(fn_decl: AST.FnDecl) -> BodyShape {
-    // An inherited member awaits and yields as the default body it runs.
-    source :: fn_decl.inherits ?? fn_decl
-    body :: source.body ?? return BodyShape {}
+    body :: fn_decl.body ?? return BodyShape {}
     probe :: BodyProbe { .kind = .Shape }
     AST.inspect(body, (n) -> probe_step(n, probe))
     return BodyShape { .awaits = probe.awaits, .yields = probe.yields }

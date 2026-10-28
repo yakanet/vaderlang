@@ -1764,21 +1764,12 @@ populate_imported_fn_overloads :: fn(
 }
 
 // The table `file` reads its imported overloads from, created on first use.
-//
-// Registered under the file's own path AND under the `<clone>:` form a
-// materialised trait-default body carries (`front/resolver/substitute_body.vader`):
-// such a body has no file of its own, and the names it may use are the ones its
-// impl's file can see. Maps hold references, so the alias costs one entry.
 file_overload_table :: fn(
     typed: TypedProgram,
     file: string,
 ) -> MutableMap<string, FnCandidate[]> = typed.imported_fn_overloads.get_or_put_with(
     file,
-    fn() {
-        table :: MutableMap<string, FnCandidate[]> {}
-        typed.imported_fn_overloads["${CLONE_FILE_PREFIX}${file}"] = table
-        return table
-    },
+    () -> MutableMap<string, FnCandidate[]> {},
 )
 
 // `import "p" { foo as bar }`: dispatch `bar` via UFCS on its declared first
@@ -2436,6 +2427,9 @@ walk_default_bodies :: fn(
     diags: Diagnostic[],
     mode: WalkMode,
 ) -> void {
+    if !d.members.any_match((m) -> m.body != null) {
+        return
+    }
     trait_sym :: symbol_declared_at(typed.resolved, d.name_span) ?? return
     self_sym :: typed.resolved.trait_self_params[trait_sym.id] ?? return
     self_param :: TypeParamType { .symbol = self_sym }
@@ -2449,8 +2443,8 @@ walk_default_bodies :: fn(
     typed.default_body_params = MutableSet<i32> {}
 }
 
-// `Self` and the type parameters of `d`, which each impl binds in its copy of a
-// default body.
+// `Self` and the type parameters of `d`, which each impl that inherits a default
+// body binds.
 default_body_param_ids :: fn(
     d: AST.TraitDecl,
     self_sym: Symbol,
@@ -2481,6 +2475,9 @@ member_diags :: fn(m: AST.FnDecl, diags: Diagnostic[]) -> Diagnostic[] {
 // parameters erase nothing (`default_body_params`), so its tests are read again
 // with the types the impl binds them to, as the impl's own member would be.
 check_inherited_tests :: fn(impl_: AST.ImplDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    if !impl_.members.any_match((m) -> m.inherits != null) {
+        return
+    }
     trait_sym :: impl_trait_symbol(impl_, typed.resolved) ?? return
     owner :: typed.trait_decl_owners[trait_sym.id] ?? typed.resolved
     for_ty :: type_from_expr(impl_.for_type, typed.resolved, [])
@@ -2515,9 +2512,6 @@ walk_fn_body :: fn(
     mode: WalkMode,
 ) -> void {
     // SAM short-impl synthetics carry no real body to type ; skip them.
-    // Default-method clones are also `materialized` but DO need typing:
-    // the resolver bound their `self`, and their body's expr_types feed
-    // the lowerer (otherwise every node lands on `:?`).
     if fd.materialized && fd.sam_synthetic                 { return }
     // Return-only mode (the `settle_external_expr_bodied_returns` passes + the
     // import-loop / entry throwaway re-walks). Their sole job is to settle
@@ -2588,8 +2582,8 @@ check_impl_members :: fn(
 // (its arguments, then the defaults) with `Self` read as `for_ty` : the same number of
 // parameters, each of the same type, and the same return type. The vtable slot and
 // the direct call both assume this shape. A generic trait method is held to its arity
-// alone, its own type parameters being the impl's to name. A SAM member and a
-// default-method clone copy the trait's signature.
+// alone, its own type parameters being the impl's to name. A SAM member and an
+// inherited member copy the trait's signature.
 check_member_signature :: fn(
     member: AST.FnDecl,
     trait_method: AST.FnDecl,
@@ -2761,9 +2755,8 @@ param_type :: fn(
     }
     // Substitute `Self` → `for_ty` so an explicit `Self`-typed param (e.g.
     // `Comparable.compare(self, other: Self)`) records the concrete carrier:
-    // otherwise the impl method's type keeps `other: Self`, and a default-
-    // method clone calling it with its own `other` (already substituted to
-    // `for_ty`) mismatches `expected Self, got <for_ty>`.
+    // otherwise the impl method's type keeps `other: Self`, and a caller
+    // passing a `for_ty` value mismatches `expected Self, got <for_ty>`.
     return type_with_self(p.ty, for_ty, typed.resolved, diags)
 }
 

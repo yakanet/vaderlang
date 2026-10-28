@@ -73,9 +73,9 @@ export empty_loaded_project :: fn() -> LoadedProject {
 
 /// One module after parse + collect (top-level symbols minted but
 /// body-walker / typecheck haven't run yet). `node_id_factory` is
-/// shared with `materialize.vader` so cloned default-method bodies
-/// inserted into this module's impls get IDs that don't collide
-/// with the IDs minted at parse time.
+/// shared with `materialize.vader` so the members it declares in this
+/// module's impls get IDs that don't collide with the IDs minted at
+/// parse time.
 export LoadedModule :: struct {
     module:          Module
     collected:       CollectedModule
@@ -533,9 +533,8 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
             .files        = sources,
         },
         .collected       = collected,
-        // Same project-global factory every module's parse used (each
-        // `SourceFile.id_factory` is `node_factory`) ; carried here so
-        // materialised clones mint past the project-global max.
+        // Same project-global factory every module's parse used ; carried here
+        // so materialised members mint past the project-global max.
         .node_id_factory = ctx.node_factory,
     }
 }
@@ -556,14 +555,9 @@ read_with_overlay :: fn(overlay: MutableMap<string, string>, path: string) -> st
 
 parse_module_files :: fn(ctx: LoadState, paths: string[]) -> SourceFile[] {
     // ONE factory threaded across the WHOLE project, so AST node ids are
-    // globally unique, not just module-unique. Per-module factories (each
-    // restarting at 1) overlapped, and the side-tables keyed by raw node id
-    // (`expr_types` / `expr_kinds` / `node_spans`) then collided whenever one
-    // module's typecheck recorded a FOREIGN node, e.g. a trait's
-    // default-method clones, materialised via `node_id_factory` and typed
-    // into a consumer module (the `expand_tilde` return-array
-    // miscompile). A global factory makes that collision impossible (mirrors
-    // globally-unique Symbol ids).
+    // globally unique, not just module-unique: the side-tables keyed by raw
+    // node id (`expr_types` / `expr_kinds` / `node_spans`) may record a node of
+    // another module, as Symbol ids are globally unique.
     out: SourceFile[]: []
     for path in paths {
         content :: read_with_overlay(ctx.overlay, path)
@@ -573,10 +567,9 @@ parse_module_files :: fn(ctx: LoadState, paths: string[]) -> SourceFile[] {
         program :: with_displayable_impls(parsed.program)
         assign_program_ids(program, ctx.node_factory)
         out.push(SourceFile {
-            .path       = path,
-            .content    = content,
-            .program    = program,
-            .id_factory = ctx.node_factory,
+            .path = path,
+            .content = content,
+            .program = program,
         })
     }
     return out

@@ -36,7 +36,7 @@ infer_binary :: fn(
     left := check_expr(e.left, left_ctx, typed, diags)
     if e.op == .Is {
         rhs_ty :: type_operand(e.right, typed, diags)
-        check_is_overlap(e, left, rhs_ty, typed, diags)
+        check_is_overlap(e.right.span, left, rhs_ty, diags)
         check_is_test_target(rhs_ty, e.right.span, typed, diags)
         return TY_BOOL
     }
@@ -770,12 +770,12 @@ check_equality :: fn(
     // operand so a free-literal compare like `x == 0` (FreeInt vs i32, which
     // don't structurally overlap) is not flagged.
     if is_null_type(right) {
-        check_is_overlap(e, left, right, typed, diags)
+        check_is_overlap(e.right.span, left, right, diags)
         record_site(typed, e, .Operator, null_equality_callee(left))
         return TY_BOOL
     }
     if is_null_type(left) {
-        check_is_overlap(e, right, left, typed, diags)
+        check_is_overlap(e.right.span, right, left, diags)
         record_site(typed, e, .Operator, null_equality_callee(right))
         return TY_BOOL
     }
@@ -1091,8 +1091,8 @@ check_is_test_target :: fn(tested: Type, span: Span, typed: TypedProgram, diags:
 }
 
 // T3087 when the generic struct instance `variant` has a type argument that
-// erases. True when reported. A parameter each impl's copy of a default body binds
-// (`default_body_params`) does not.
+// erases. True when reported. A parameter of the trait in its default body
+// (`default_body_params`) does not: each impl binds it, and reads the test again.
 refuses_shared_argument :: fn(
     variant: StructType,
     span: Span,
@@ -1151,23 +1151,20 @@ is_shared_type_argument :: fn(t: Type) -> bool =
 /// `x`'s static type. We surface the error for tests against `null`
 /// on non-nullable scrutinees and against variants not present in a
 /// union scrutinee. UnresolvedType / TypeParam / TypeMeta etc. opt out
-/// (we can't soundly know without more info), and so does a test on `Self` in
-/// a default body cloned for an impl, which the impl settles.
+/// (we can't soundly know without more info).
 check_is_overlap :: fn(
-    e: AST.BinaryExpr,
+    span: Span,
     scrut: Type,
     tested: Type,
-    typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    if !is_overlap_checkable(scrut)   { return }
-    if !is_overlap_checkable(tested)  { return }
-    if may_overlap(scrut, tested)     { return }
-    if settled_by_clone(typed, scrut) { return }
+    if !is_overlap_checkable(scrut)  { return }
+    if !is_overlap_checkable(tested) { return }
+    if may_overlap(scrut, tested)    { return }
     diags.push(
         typecheck_error(
             .UnreachableIsTest,
-            e.right.span,
+            span,
             "`${display_type(tested)}` is never a value of `${display_type(scrut)}`",
         ),
     )

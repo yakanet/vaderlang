@@ -15,16 +15,12 @@ import "toolchain/span"
 
 // ---- Public entry ---------------------------------------------------------
 
-/// What parsing a file gives: its program, the tokens it was read from, the
-/// lexer's and the parser's diagnostics, and the node-id factory past the program.
+/// What parsing a file gives: its program, the tokens it was read from, and the
+/// lexer's and the parser's diagnostics.
 export ParsedSource :: struct {
-    program:    Program
-    tokens:     Token[]
-    errors:     Diagnostic[]
-    /// Carries the factory state after the post-parse ID walk so
-    /// downstream cloners (e.g. `materialize.vader`) can mint
-    /// non-colliding IDs in the same namespace.
-    id_factory: NodeIdFactory
+    program: Program
+    tokens:  Token[]
+    errors:  Diagnostic[]
 }
 
 export parse_source :: fn(source: string, file: string) -> ParsedSource =
@@ -52,15 +48,12 @@ parse_lexed :: fn(l: LexedSource) -> ParsedSource {
     }
     program :: parse_program(p)
     // Mint stable IDs for every node: downstream side-tables key on
-    // `node.id` rather than on stringified spans (which collide when
-    // materialise clones default-method bodies). See `assign_ids.vader`.
-    id_factory :: new_node_id_factory()
-    assign_program_ids(program, id_factory)
+    // `node.id` rather than on spans. See `assign_ids.vader`.
+    assign_program_ids(program, new_node_id_factory())
     return ParsedSource {
-        .program    = program,
-        .tokens     = l.tokens,
-        .errors     = p.errors,
-        .id_factory = id_factory,
+        .program = program,
+        .tokens = l.tokens,
+        .errors = p.errors,
     }
 }
 

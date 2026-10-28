@@ -9,8 +9,7 @@
 //   - `Self` → impl's `for_type`
 //   - trait type-param names → impl's `trait_args[i]`
 //
-// Returns fresh nodes: the input TypeExpr is untouched. Block-body
-// substitution lives in `substitute_body.vader`.
+// Returns fresh nodes: the input TypeExpr is untouched.
 
 module "vader/front/resolver"
 

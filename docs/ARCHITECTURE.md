@@ -52,8 +52,11 @@ Before the type checker, the loader keeps one body per `@target` group
 (`vader/front/resolver/target_select.vader`), so a body for another target is never
 type-checked, and the resolver fills each impl from its trait
 (`vader/front/resolver/impl_members.vader`): the method a short impl stands for,
-plus a clone of each default method it does not override, with `Self` and the
-trait's parameters substituted.
+plus a declaration of each default method it inherits, its signature read with
+`Self` and the trait's parameters substituted. The default body itself stays in
+the trait: the type checker checks it once there, `Self` a type parameter bounded
+by the trait, and the lowerer reads it for each impl as it reads a generic
+function for each instance (`vader/lower/inherited.vader`).
 
 A project's `build.vader` drives the same pipeline through `toolchain/build`
 (`lib/toolchain/build/drive.vader`): per generation round the front end runs once,

@@ -29,6 +29,35 @@ import "vader/front/parser"
 AST :: import "toolchain/ast"
 import "toolchain/span"
 
+/// Deterministic span allocator for one impl's materialised members: created once
+/// per impl, then threaded through every member it declares. Their name and
+/// parameter spans key the typecheck's tables (`impl_method_decl_types` on the
+/// name span), so they differ from impl to impl and stay the same from one compile
+/// to the next (ADR 0012).
+///
+/// `base_line` is the impl's source `line * 1024 + column`, `counter` the index
+/// of the next span, across the impl's members, and `file` the impl's source file
+/// behind a `<materialized>:` prefix, since `Span.hash` folds in `start.file`.
+StampCtx :: struct { base_line: i32, counter: i32, file: string }
+
+/// The span allocator of `impl_`, anchored at its trait name.
+impl_stamp :: fn(impl_: AST.ImplDecl) -> StampCtx {
+    at :: impl_.trait_name_span.start
+    return StampCtx {
+        .base_line = at.line * 1024 + at.column,
+        .counter = 0,
+        .file = "<materialized>:${at.file}",
+    }
+}
+
+/// The next span of `stamp`.
+next_member_span :: fn(stamp: StampCtx) -> Span {
+    col :: stamp.counter
+    stamp.counter += 1
+    pos :: Position { .file = stamp.file, .offset = 0, .line = stamp.base_line, .column = col }
+    return Span { .start = pos, .end = pos }
+}
+
 /// `@intrinsic impl ... {}` carries an empty body : fill it with one
 /// stub FnDecl per trait method so downstream phases see the impl's
 /// full surface. No-op when the impl already has members.
@@ -43,16 +72,13 @@ export materialize_intrinsic_members :: fn(
     if !is_intrinsic(impl_.decorators) { return }
     if impl_.members.len() > 0 { return }
     subst :: build_subst(impl_, trait_)
-    // One `StampCtx` per impl, so each member's name_span is unique per
-    // (impl, method) : `impl_method_decl_types` is name-span-keyed, and a shared
-    // span collapses a multi-method trait's return types onto the last method's.
-    // See docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
-    impl_pos :: impl_.trait_name_span.start
-    stamp :: StampCtx { .base_line = impl_pos.line * 1024 + impl_pos.column, .counter = 0, .file = "${CLONE_FILE_PREFIX}${impl_pos.file}" }
+    stamp :: impl_stamp(impl_)
     for method in trait_.members {
         decorators :: intrinsic_decorator(impl_.span)
-        name_span :: next_clone_span(stamp)
-        impl_.members.push(synth_signature(method, name_span, subst, decorators, factory.mint()))
+        name_span :: next_member_span(stamp)
+        params :: substitute_params(method.params, subst)
+        id :: factory.mint()
+        impl_.members.push(synth_signature(method, name_span, params, subst, decorators, id))
     }
 }
 
@@ -74,16 +100,7 @@ export materialize_default_members :: fn(
     }
     provided :: provided_names(impl_.members)
     subst :: build_subst(impl_, trait_)
-    // One deterministic span allocator per impl, threaded through every member
-    // below : the typecheck keys an inherited member's signature on its name and
-    // parameter spans, which must differ from impl to impl and from one compile to
-    // the next. See docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
-    impl_pos :: impl_.trait_name_span.start
-    stamp :: StampCtx {
-        .base_line = impl_pos.line * 1024 + impl_pos.column,
-        .counter = 0,
-        .file = "${CLONE_FILE_PREFIX}${impl_pos.file}",
-    }
+    stamp :: impl_stamp(impl_)
     for method in trait_.members {
         if method.body == null || method.name in provided {
             continue
@@ -92,35 +109,21 @@ export materialize_default_members :: fn(
     }
 }
 
-// The name span is unique per (impl, method) : `impl_method_decl_types` is
-// name-span-keyed.
-synth_inherited :: fn(method: AST.FnDecl, subst: Subst, stamp: StampCtx, id: i64) -> AST.FnDecl =
-    AST.FnDecl {
-        .span = method.span,
-        .id = id,
-        .name = method.name,
-        .name_span = next_clone_span(stamp),
-        .visibility = .Public,
-        .type_params = [],
-        .params = substitute_params_stamped(method.params, subst, stamp),
-        .return_type = substitute_opt_type(method.return_type, subst),
-        .body = null,
-        .decorators = [],
-        .sam_synthetic = false,
-        .is_expression_bodied = method.is_expression_bodied,
-        .materialized = true,
-        .doc = method.doc,
-        .inherits = method,
-    }
+synth_inherited :: fn(method: AST.FnDecl, subst: Subst, stamp: StampCtx, id: i64) -> AST.FnDecl {
+    name_span :: next_member_span(stamp)
+    params :: substitute_params_stamped(method.params, subst, stamp)
+    signature :: synth_signature(method, name_span, params, subst, [], id)
+    return AST.FnDecl { ...signature, .inherits = method }
+}
 
-/// Substitute params, anchoring each at a deterministic `<clone>` span from
-/// `stamp`, the impl's : an inherited member's params are keyed per impl.
+/// Substitute params, anchoring each at the next span of `stamp`, the impl's : an
+/// inherited member's params are keyed per impl.
 substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: StampCtx) -> AST.FnParam[] {
     out: AST.FnParam[]: []
     for p in params {
         out.push(AST.FnParam {
             ...p,
-            .span = next_clone_span(stamp),
+            .span = next_member_span(stamp),
             .name_span = empty_span(),
             .id = AST.UNASSIGNED_NODE_ID,
             .ty = substitute_opt_type(p.ty, subst),
@@ -129,11 +132,11 @@ substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: Stam
     return out
 }
 
-/// Mint a fresh, globally-unique synthetic span for a materialised clone's
-/// non-self param (or body node). `line = 0` keeps it clear of any real
-/// source span (real spans are 1-based) ; the minted factory id rides in
-/// `column` so each call yields a distinct `Span.hash()`.
-synth_clone_span :: fn(factory: NodeIdFactory) -> Span {
+/// Mint a fresh, globally-unique synthetic span for a SAM member's non-self
+/// param. `line = 0` keeps it clear of any real source span (real spans are
+/// 1-based) ; the minted factory id rides in `column` so each call yields a
+/// distinct `Span.hash()`.
+synth_param_span :: fn(factory: NodeIdFactory) -> Span {
     pos :: Position { .file = "", .offset = 0, .line = 0, .column = i32(factory.mint()) }
     return Span { .start = pos, .end = pos }
 }
@@ -148,7 +151,7 @@ substitute_params_disambiguated :: fn(
 ) -> AST.FnParam[] {
     out: AST.FnParam[]: []
     for p in params {
-        span :: if p.name == "self" { self_span } else { synth_clone_span(factory) }
+        span :: if p.name == "self" { self_span } else { synth_param_span(factory) }
         out.push(AST.FnParam {
             ...p,
             .span = span,
@@ -254,7 +257,12 @@ build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
 }
 
 synth_signature :: fn(
-    method: AST.FnDecl, name_span: Span, subst: Subst, decorators: AST.Decorator[], id: i64,
+    method: AST.FnDecl,
+    name_span: Span,
+    params: AST.FnParam[],
+    subst: Subst,
+    decorators: AST.Decorator[],
+    id: i64,
 ) -> AST.FnDecl {
     return AST.FnDecl {
         .span = method.span,
@@ -263,7 +271,7 @@ synth_signature :: fn(
         .name_span = name_span,
         .visibility = .Public,
         .type_params = [],
-        .params = substitute_params(method.params, subst),
+        .params = params,
         .return_type = substitute_opt_type(method.return_type, subst),
         .body = null,
         .decorators = decorators,
@@ -391,7 +399,7 @@ Square implements Shape {
     assert_eq(impl_decl.members.len(), 2)
     twice :: impl_decl.members[1]
     assert_eq(twice.name, "twice")
-    assert(twice.id != AST.UNASSIGNED_NODE_ID, "the clone has an id")
+    assert(twice.id != AST.UNASSIGNED_NODE_ID, "the inherited member has an id")
 }
 
 find_trait :: fn(decls: AST.Decl[], name: string) -> AST.TraitDecl | null {

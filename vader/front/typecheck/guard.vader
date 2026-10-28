@@ -690,7 +690,7 @@ push_ensured_call :: fn(call: AST.CallExpr, typed: TypedProgram, pushed: PushedN
         if n.field_key != "" || n.sym_id in typed.resolved.closure_rebound {
             continue
         }
-        pushed.push(push_one_narrow(typed, n.sym_id, n.field_key, n.static_ty, n.then_ty))
+        pushed.push(push_one_narrow(typed, n.sym_id, n.field_key, n.then_ty))
     }
 }
 
@@ -752,7 +752,7 @@ push_guard_call :: fn(call: AST.CallExpr, truth: bool, typed: TypedProgram, push
     narrowings :: guard_narrowings(call, typed) ?? return
     for n in narrowings {
         side :: side_of(truth, n.then_ty, n.else_ty)
-        pushed.push(push_one_narrow(typed, n.sym_id, n.field_key, n.static_ty, side))
+        pushed.push(push_one_narrow(typed, n.sym_id, n.field_key, side))
     }
 }
 

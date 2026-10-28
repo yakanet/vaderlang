@@ -417,18 +417,12 @@ export FnParam :: struct {
     /// The name alone, where `span` covers the whole slot, decorators, a variadic
     /// `...`, the type and the default included : what a rename rewrites. `span`
     /// stays the parameter's identity, the key of the side tables.
-    ///
-    /// REQUIRED, like `decorators` and for the same reason.
     name_span:     Span
     // Optional in lambdas.
     ty:            TypeExpr | null
     default_value: Expr | null
     variadic:      bool
     /// Decorators written before the parameter (`@c_pointer tv: TimeVal`).
-    ///
-    /// REQUIRED, with no default, deliberately: `front/resolver/substitute_body.vader`
-    /// rebuilds a `FnParam` field by field, and a defaulted field is dropped
-    /// there in silence.
     decorators:    Decorator[]
 }
 
@@ -705,10 +699,9 @@ export AssignStmt :: struct {
 /// The operator of a compound assignment `lhs op= rhs`, or null for a plain one.
 ///
 /// `target` and `value.left` are one node, so they carry one span ; a
-/// hand-written `a = a + 1` reads an `a` of its own, at another position: in a
-/// cloned body too, where every node gets a column of its own. A pass that
-/// evaluates `lhs`'s operands once, or prints the `op=` back, keys on this, and a
-/// pass that clones an assignment keeps the two sides one node.
+/// hand-written `a = a + 1` reads an `a` of its own, at another position. A pass
+/// that evaluates `lhs`'s operands once, or prints the `op=` back, keys on this,
+/// and a pass that copies an assignment keeps the two sides one node.
 /// @param s  the assignment.
 /// @return   the arithmetic operator the `op=` spells, or null.
 export compound_assign_op :: fn(s: AssignStmt) -> BinaryOp | null {

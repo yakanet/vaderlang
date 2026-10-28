@@ -28,7 +28,6 @@ import "std/string"
 import "std/string_builder"
 import "toolchain/span"
 import "vader/core/symbol"
-import "vader/front/resolver"
 import "vader/core/types"
 import "vader/support/text"
 
@@ -140,8 +139,7 @@ build_expr_lines :: fn(typed: TypedProgram) -> string[] {
 }
 
 // Look up the node's span via `node_spans` and render its start as
-// `line:col`. Materialised cloned bodies have trait-source spans:
-// the dump renders them at the trait method's source position.
+// `line:col`.
 start_loc_for_id :: fn(typed: TypedProgram, id: i64) -> string {
     s :: typed.node_spans[id] ?? return "undefined:undefined"
     return "${s.start.line}:${s.start.column}"
@@ -253,20 +251,15 @@ comes_first :: fn(a: DumpedSite, b: DumpedSite) -> bool {
     return i64(a.role) < i64(b.role)
 }
 
-// A call inside a materialised default method sits at a synthetic span, the same
-// for every run but meaningless to a reader: it shows as `clone`.
-site_position :: fn(span: Span) -> string {
-    if span.start.file.starts_with(CLONE_FILE_PREFIX) {
-        return "clone"
-    }
-    return "${to_path(span.start.file).filename()}:${span.start.line}:${span.start.column}"
-}
+site_position :: fn(span: Span) -> string =
+    "${to_path(span.start.file).filename()}:${span.start.line}:${span.start.column}"
 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
 import "toolchain/ast"
 import "vader/front/parser"
+import "vader/front/resolver"
 import "vader/support/diagnostics"
 
 // A single typed module, always in scope (its own display path).

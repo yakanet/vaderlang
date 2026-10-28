@@ -906,11 +906,10 @@ drain_pending :: fn(ctx: FnEmitCfg, target_blk: BlockId, is_loop: bool, opener_p
 
 /// Build a per-op source position from a lowered node's span. Returns
 /// `null` for any compiler-minted span with no real source origin
-/// (`has_source_position` : `<synthetic>` / `<materialized>` / blank file /
-/// non-positive line): defer thunks, closure env, generator state machines,
-/// materialised trait bodies. The c-emit then skips a bogus `#line` and the
-/// VM debug hook treats them as non-stop points (the enclosing real line
-/// stays in effect via the previous op's position).
+/// (`has_source_position` : `<synthetic>` / blank file / non-positive line):
+/// defer thunks, closure env, generator state machines. The c-emit then skips
+/// a bogus `#line` and the VM debug hook treats them as non-stop points (the
+/// enclosing real line stays in effect via the previous op's position).
 ///
 /// @param span  the lowered node's source span.
 /// @return      a 1-based `DebugPos`, or `null` for non-source spans.

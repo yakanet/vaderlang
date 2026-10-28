@@ -86,11 +86,6 @@ Span implements Display -> "${self.start.line}:${self.start.column}-${self.end.l
 /// origin (test fixtures, intrinsic stubs, lowering-synthesised nodes).
 export SYNTHETIC_FILE :: "<synthetic>"
 
-/// Sentinel file name on spans that belong to AST nodes cloned from a
-/// trait's default-method body into an implementing struct's impl.
-/// The typecheck dump renders these spans as `undefined:undefined`.
-export MATERIALIZED_FILE :: "<materialized>"
-
 /// Synthetic `Span` for AST nodes minted by the compiler (test fixtures,
 /// materialised trait methods, intrinsic stubs). Points to a dummy 1:1
 /// position so renderers and span-keyed side-tables stay happy.
@@ -116,10 +111,9 @@ export file_head_span :: fn(path: string) -> Span {
 
 /// True when `s` points at a real source location worth surfacing to a user:
 /// a concrete file with a 1-based line. False for every compiler-minted
-/// marker : the `<synthetic>` sentinel (`empty_span`), the `<materialized>`
-/// marker (`materialized_span`, line 0), a blank file (`empty_span(file)`
-/// with no file), or any non-positive line. Callers gate per-op `#line` /
-/// `DebugPos` emission on this so no bogus `#line 0 "<materialized>"` reaches
+/// marker : the `<synthetic>` sentinel (`empty_span`), a blank file
+/// (`empty_span(file)` with no file), or any non-positive line. Callers gate
+/// per-op `#line` / `DebugPos` emission on this so no bogus `#line 0` reaches
 /// the C output or the debugger.
 ///
 /// @param s  the span to judge.
@@ -127,7 +121,6 @@ export file_head_span :: fn(path: string) -> Span {
 export has_source_position :: fn(s: Span) -> bool {
     if s.start.file == "" { return false }
     if s.start.file == SYNTHETIC_FILE { return false }
-    if s.start.file == MATERIALIZED_FILE { return false }
     return s.start.line > 0
 }
 
@@ -151,11 +144,6 @@ import "std/testing"
     s :: file_head_span("src/main.vader")
     assert(has_source_position(s), "a file-head span is real")
     assert_eq(s.start.file, "src/main.vader")
-}
-
-@test test_materialized_file_is_not_a_source_position :: fn() -> void {
-    at :: Position { .file = MATERIALIZED_FILE, .offset = 0, .line = 1, .column = 1 }
-    assert(!has_source_position(Span { .start = at, .end = at }), "cloned bodies name no source")
 }
 
 @test test_span_equality_distinguishes_the_end :: fn() -> void {

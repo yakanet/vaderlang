@@ -1,11 +1,7 @@
-// Regression for CR-f : a default trait-method body is CLONED into each impl
-// with `Self` / type-params substituted. The clone walker (substitute_expr_full)
-// used to pass StructLit / Cast / StringLit-interp / SeqLit / … through
-// unchanged: leaving them referencing the trait's own (aliased) AST, which
-// `assign_block_ids` then re-id'd IN PLACE, corrupting every other impl's copy
-// (and skipping Self/T substitution). Exercises one default per value-variant
-// across two impls, plus one taking `other: Self`, whose `other` each clone types
-// at its own carrier ; exit 0 iff every clone was independent and correct.
+// A trait's default bodies run for two impls: one default per value form (struct
+// literal, cast, interpolated string, array literal), plus one taking
+// `other: Self`, which each impl reads at its own type. Exit 0 iff every result
+// is the impl's own.
 
 module "snippet"
 

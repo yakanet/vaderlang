@@ -75,7 +75,6 @@ infer_lambda :: fn(
     enclosing :: typed.current_fn_ctx
     if enclosing is FnContext {
         ctx.fn_id = enclosing.fn_id
-        ctx.clone_for = enclosing.clone_for
     }
     // Mirror `check_fn_body`: push the lambda's ctx onto the global
     // stack so nested `if` / `match` arms (which `check_return` reaches

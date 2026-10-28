@@ -83,8 +83,8 @@ collect_from_decl :: fn(d: AST.Decl, ctx: HintCtx, out: JsonValue[]) -> void {
         }
         is AST.ImplDecl -> {
             for m in d.members {
-                // A trait default copied into the impl carries the trait's body
-                // under synthetic spans that point nowhere in this file.
+                // A member declared for the impl from its trait was not written
+                // here : its spans point nowhere in this file.
                 if m.materialized {
                     continue
                 }

@@ -262,7 +262,7 @@ push_cond_narrows_into :: fn(
     }
     leaf :: detect_is_narrow(cond, typed, diags) ?? return
     side_ty :: side_of(truth, leaf.then_ty, leaf.else_ty)
-    pushed.push(push_one_narrow(typed, leaf.sym_id, leaf.field_key, leaf.static_ty, side_ty))
+    pushed.push(push_one_narrow(typed, leaf.sym_id, leaf.field_key, side_ty))
 }
 
 // A true `||` narrows only when every operand tests the SAME slot : then to the
@@ -279,25 +279,22 @@ push_or_true :: fn(cond: AST.Expr, typed: TypedProgram, pushed: PushedNarrow[]) 
         }
         tys.push(positive_of(n))
     }
-    first :: leaves[0]
-    matched :: union_of_paths(tys)
-    pushed.push(push_one_narrow(typed, first.sym_id, first.field_key, first.static_ty, matched))
+    pushed.push(push_one_narrow(typed, leaves[0].sym_id, leaves[0].field_key, union_of_paths(tys)))
 }
 
-// Narrow one slot, of type `static_ty`, to `narrowed`, returning the record that
-// unwinds it. A `field_key` of `""` addresses the binding itself, anything else a
-// field chain under it.
+// Narrow one slot to `ty`, returning the record that unwinds it. A `field_key` of
+// `""` addresses the binding itself, anything else a field chain under it.
 push_one_narrow :: fn(
     typed: TypedProgram,
     sym_id: i32,
     field_key: string,
-    static_ty: Type,
-    narrowed: Type,
+    ty: Type,
 ) -> PushedNarrow {
-    ty :: narrowed_in_clone(typed, static_ty, narrowed)
     if field_key == "" {
         return PushedNarrow {
-            .sym_id = sym_id, .field_key = "", .prev = push_narrow(typed, sym_id, ty),
+            .sym_id = sym_id,
+            .field_key = field_key,
+            .prev = push_narrow(typed, sym_id, ty),
         }
     }
     return PushedNarrow {
