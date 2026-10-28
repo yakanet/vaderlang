@@ -39,12 +39,12 @@ impl 16 std_core$Async
 impl 19 std_core$Async
 vtable std_core$Async.resume 3 2
 vtable std_core$Async.resume 7 4
-vtable std_core$Async.resume 16 12
-vtable std_core$Async.resume 19 17
+vtable std_core$Async.resume 16 13
+vtable std_core$Async.resume 19 18
 vtable std_core$Async.cancel 3 3
 vtable std_core$Async.cancel 7 5
-vtable std_core$Async.cancel 16 13
-vtable std_core$Async.cancel 19 18
+vtable std_core$Async.cancel 16 14
+vtable std_core$Async.cancel 19 19
 export main 1
 
 fn 0 snippet$mk (i32) -> any
@@ -82,7 +82,7 @@ fn 1 snippet$main () -> i32
   i32.const 8
   struct.new 7   ; __asyncstate_snippet_1
   ref.cast 2   ; ref std_core$Async
-  call 15   ; std_async$run_async_main
+  call 16   ; std_async$run_async_main
   return
 end
 
@@ -162,7 +162,7 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         local.field 0 3 0   ; arg 0 __asyncstate_snippet_0.s0
         ref.cast 1   ; i32
         i32.to_i64
-        call 14   ; std_async$sleep
+        call 15   ; std_async$sleep
         local.set 3   ; $cast_33
         local.get 0   ; arg 0
         local.get 3   ; $cast_33
@@ -307,7 +307,7 @@ fn 4 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
           local.get 6   ; __buf_4
           local.get 7   ; __off_5
           call 7   ; std_core$finish_buffer
-          call 11   ; std_io$println__string
+          call 12   ; std_io$println__string
           local.field 0 7 4   ; arg 0 __asyncstate_snippet_1.s4
           ref.cast 11   ; i64
           i64.const 1
@@ -404,7 +404,7 @@ fn 4 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                 local.get 16   ; $call_70
                 local.get 17   ; $call_72
                 array.new 21 3   ; ref std_core$Async[]
-                call 20   ; std_async$join_all__i32
+                call 21   ; std_async$join_all__i32
                 local.set 18   ; $cast_75
                 local.get 0   ; arg 0
                 local.get 18   ; $cast_75
@@ -597,60 +597,70 @@ end
 fn 9 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 10   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
+      local.get 5   ; $len_9
       array.slice 15   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 10   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 11   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 10 std_io$write_bytes (u8,ref,i64) -> i32
+fn 10 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 11 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -670,7 +680,7 @@ fn 10 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 11 std_io$println__string (string) -> void
+fn 12 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 0   ; "\n"
@@ -682,7 +692,7 @@ fn 11 std_io$println__string (string) -> void
   return
 end
 
-fn 12 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
+fn 13 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
   local n i64
   local now i64
   local next i64
@@ -763,7 +773,7 @@ fn 12 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
       local.set 12   ; $idx_30
       local.get 3   ; next
       local.get 12   ; $idx_30
-      call 16   ; std_async$earlier
+      call 17   ; std_async$earlier
       local.set 3   ; next
       local.get 4   ; i
       i64.const 1
@@ -828,7 +838,7 @@ fn 12 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
   return
 end
 
-fn 13 std_async$JoinAll$std_core$Async$cancel__i32 (ref) -> void
+fn 14 std_async$JoinAll$std_core$Async$cancel__i32 (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -857,7 +867,7 @@ fn 13 std_async$JoinAll$std_core$Async$cancel__i32 (ref) -> void
   return
 end
 
-fn 14 std_async$sleep (i64) -> any
+fn 15 std_async$sleep (i64) -> any
   local.get 0   ; arg 0
   i64.const 0
   bool.const false
@@ -865,13 +875,13 @@ fn 14 std_async$sleep (i64) -> any
   return
 end
 
-fn 15 std_async$run_async_main (any) -> i32
+fn 16 std_async$run_async_main (any) -> i32
   local.get 0   ; arg 0
-  call 19   ; std_async$block_on__i32
+  call 20   ; std_async$block_on__i32
   return
 end
 
-fn 16 std_async$earlier (i64,i64) -> i64
+fn 17 std_async$earlier (i64,i64) -> i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i64.lt
@@ -883,7 +893,7 @@ fn 16 std_async$earlier (i64,i64) -> i64
   return
 end
 
-fn 17 std_async$Sleep$std_core$Async$resume (ref) -> any
+fn 18 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 19 2   ; arg 0 std_async$Sleep.armed
@@ -927,11 +937,11 @@ fn 17 std_async$Sleep$std_core$Async$resume (ref) -> any
   return.lit null.const
 end
 
-fn 18 std_async$Sleep$std_core$Async$cancel (ref) -> void
+fn 19 std_async$Sleep$std_core$Async$cancel (ref) -> void
   return
 end
 
-fn 19 std_async$block_on__i32 (any) -> i32
+fn 20 std_async$block_on__i32 (any) -> i32
   local r any
   loop $L0 void
     local.get 0   ; arg 0
@@ -956,13 +966,13 @@ fn 19 std_async$block_on__i32 (any) -> i32
   return
 end
 
-fn 20 std_async$join_all__i32 (ref) -> any
+fn 21 std_async$join_all__i32 (ref) -> any
   local.get 0   ; arg 0
-  call 21   ; std_async$new_join_all__i32
+  call 22   ; std_async$new_join_all__i32
   return
 end
 
-fn 21 std_async$new_join_all__i32 (ref) -> ref
+fn 22 std_async$new_join_all__i32 (ref) -> ref
   local $arr_1 ref
   local $arr_3 ref
   local $len_4 i64

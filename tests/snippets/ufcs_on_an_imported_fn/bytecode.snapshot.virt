@@ -97,7 +97,7 @@ fn 0 snippet$main () -> i32
     string.const 2   ; "setup failed: "
     local.get 2   ; $field_10
     call 1   ; concat_2
-    call 25   ; std_io$println__string
+    call 26   ; std_io$println__string
     return.lit i32.const 1
   end $L0
   local.get 0   ; path
@@ -133,7 +133,7 @@ fn 0 snippet$main () -> i32
     local.get 3   ; __buf_0
     local.get 4   ; __off_1
     call 3   ; std_core$finish_buffer
-    call 25   ; std_io$println__string
+    call 26   ; std_io$println__string
   end $L1
   local.get 0   ; path
   i64.const 4
@@ -149,7 +149,7 @@ fn 0 snippet$main () -> i32
     string.const 5   ; "bound 4:   "
     local.get 2   ; $field_10
     call 1   ; concat_2
-    call 25   ; std_io$println__string
+    call 26   ; std_io$println__string
   end $L2
   local.get 0   ; path
   i64.const 4
@@ -165,7 +165,7 @@ fn 0 snippet$main () -> i32
     string.const 6   ; "named 4:   "
     local.get 2   ; $field_10
     call 1   ; concat_2
-    call 25   ; std_io$println__string
+    call 26   ; std_io$println__string
   end $L3
   local.get 0   ; path
   call 12   ; std_io$remove_file
@@ -180,7 +180,7 @@ fn 0 snippet$main () -> i32
     string.const 7   ; "cleanup failed: "
     local.get 0   ; path
     call 1   ; concat_2
-    call 25   ; std_io$println__string
+    call 26   ; std_io$println__string
     return.lit i32.const 0
   end $L4
   return.lit i32.const 0
@@ -825,56 +825,62 @@ end
 fn 13 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 19   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 5   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
+      local.get 5   ; $len_9
       array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 19   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 20   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
@@ -898,7 +904,7 @@ fn 14 std_io$temp_dir_of (any) -> string
   if $L1 void
   else
     local.get 1   ; e
-    call 20   ; std_io$without_trailing_sep
+    call 21   ; std_io$without_trailing_sep
     return
   end $L1
   return.lit string.const 11   ; "/tmp"
@@ -1108,7 +1114,7 @@ fn 16 std_io$read_file_bytes (string,i64) -> any
     local.get 2   ; f
     call.import 9   ; system_posix$sys_stream_size
     local.get 1   ; arg 1
-    call 21   ; std_io$whole_buffer
+    call 22   ; std_io$whole_buffer
     local.tee 3   ; __coalesce_0
     type_check 0   ; null
     if $L7 void
@@ -1188,16 +1194,20 @@ fn 18 std_io$last_io_error (string) -> ref
   local $call_3 u8
   call.import 8   ; system_posix$sys_last_errno
   local.tee 1   ; e
-  call 23   ; std_io$errno_kind
+  call 24   ; std_io$errno_kind
   local.set 2   ; $call_3
   local.get 0   ; arg 0
   local.get 2   ; $call_3
   local.get 1   ; e
-  call 22   ; std_io$classified_error
+  call 23   ; std_io$classified_error
   return
 end
 
-fn 19 std_io$write_bytes (u8,ref,i64) -> i32
+fn 19 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 20 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -1217,7 +1227,7 @@ fn 19 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 20 std_io$without_trailing_sep (string) -> string
+fn 21 std_io$without_trailing_sep (string) -> string
   local trailing i64
   local i i64
   local __for_hi_0 i64
@@ -1294,7 +1304,7 @@ fn 20 std_io$without_trailing_sep (string) -> string
   return
 end
 
-fn 21 std_io$whole_buffer (i64,i64) -> any
+fn 22 std_io$whole_buffer (i64,i64) -> any
   local $arr_9 ref
   local $add_checked_11 i64
   local.get 0   ; arg 0
@@ -1329,17 +1339,17 @@ fn 21 std_io$whole_buffer (i64,i64) -> any
   return.lit null.const
 end
 
-fn 22 std_io$classified_error (string,u8,i32) -> ref
+fn 23 std_io$classified_error (string,u8,i32) -> ref
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  call 24   ; std_io$describe_io_error_kind
+  call 25   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 11   ; std_io$IOError
   return
 end
 
-fn 23 std_io$errno_kind (i32) -> u8
+fn 24 std_io$errno_kind (i32) -> u8
   local if_res i32
   local.get 0   ; arg 0
   i32.const 2
@@ -1443,7 +1453,7 @@ fn 23 std_io$errno_kind (i32) -> u8
   return.lit i32.const 12
 end
 
-fn 24 std_io$describe_io_error_kind (u8,string) -> string
+fn 25 std_io$describe_io_error_kind (u8,string) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
@@ -1554,7 +1564,7 @@ fn 24 std_io$describe_io_error_kind (u8,string) -> string
   return
 end
 
-fn 25 std_io$println__string (string) -> void
+fn 26 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 33   ; "\n"

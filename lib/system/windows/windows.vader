@@ -525,14 +525,18 @@ export get_console_mode :: fn(h: Handle, @c_out mode: u32[]) -> bool
 @extern(KERNEL32, "SetConsoleMode")
 export set_console_mode :: fn(h: Handle, mode: u32) -> bool
 
-/// `GetConsoleOutputCP`: the code page the console decodes written bytes with,
-/// 0 when the process has no console.
-@extern(KERNEL32, "GetConsoleOutputCP")
-export get_console_output_cp :: fn() -> u32
-
-/// `SetConsoleOutputCP`. False when the console refuses the code page.
-@extern(KERNEL32, "SetConsoleOutputCP")
-export set_console_output_cp :: fn(code_page: u32) -> bool
+/// `WriteConsoleW`: UTF-16 text to a console, which renders it whatever its code
+/// page. False on failure, and on a handle that is not a console.
+///
+/// @param h         a console output handle.
+/// @param text      the UTF-16 units to write.
+/// @param count     how many of them.
+/// @param written   scratch the callee fills with the units written; unread.
+/// @param reserved  always null.
+/// @return          whether the write succeeded.
+@extern(KERNEL32, "WriteConsoleW")
+export write_console_w :: fn(h: Handle, text: u16[], count: u32,
+                             @c_out written: u32[], reserved: CPointer | null) -> bool
 
 /// `ReadFile`. False on failure; a synchronous read returning true with `read`
 /// short of `count` has reached end of file.

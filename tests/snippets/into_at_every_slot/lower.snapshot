@@ -271,6 +271,7 @@
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
   std/string
     fn std.string.is_white_byte  // std_string$is_white_byte
     fn std.string.trim  // std_string$trim

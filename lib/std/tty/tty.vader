@@ -80,6 +80,18 @@ probe_tty :: fn(stream: Stream) -> bool {
     return set_console_mode(h, mode[0] | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
 }
 
+/// True when text beyond ASCII written to `stream` renders as such, so it may
+/// draw with box and shape glyphs. A POSIX terminal is taken as UTF-8. On
+/// Windows only a console renders it, `print` writing to one as text; a
+/// redirected stream gets bytes whose reader may decode them otherwise.
+///
+/// @param stream  the stream that will be written to.
+@target
+export renders_unicode :: fn(stream: Stream = .Stdout) -> bool = true
+
+@target(.Windows)
+renders_unicode :: fn(stream: Stream) -> bool = is_tty(stream)
+
 /// True when ANSI color should be emitted: either standard stream is a terminal
 /// and `NO_COLOR` is unset or empty. Per the NO_COLOR convention, a non-empty
 /// `NO_COLOR` value disables color regardless of its content.

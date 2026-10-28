@@ -43,7 +43,7 @@ vtable std_core$Iterator.next 6 4
 vtable std_core$Iterator.next 9 6
 vtable std_core$Iterator.next 13 8
 vtable std_core$Iterator.next 14 10
-vtable std_core$Iterator.next 22 23
+vtable std_core$Iterator.next 22 24
 export main 3
 
 fn 0 snippet$Deck$std_core$Into$into (ref) -> any
@@ -125,11 +125,11 @@ fn 3 snippet$main () -> i32
   struct.new 1   ; snippet$Deck
   call 0   ; snippet$Deck$std_core$Into$into
   call 1   ; snippet$total
-  call 20   ; std_io$println__i32
+  call 21   ; std_io$println__i32
   string.const 0   ; "héllo"
-  call 22   ; std_string$string$std_core$Into$into
+  call 23   ; std_string$string$std_core$Into$into
   call 2   ; snippet$codepoint_sum
-  call 21   ; std_io$println__u32
+  call 22   ; std_io$println__u32
   return.lit i32.const 0
 end
 
@@ -1089,60 +1089,70 @@ end
 fn 18 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 19   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 2   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
+      local.get 5   ; $len_9
       array.slice 20   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 19   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 20   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 19 std_io$write_bytes (u8,ref,i64) -> i32
+fn 19 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 20 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -1162,7 +1172,7 @@ fn 19 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 20 std_io$println__i32 (i32) -> void
+fn 21 std_io$println__i32 (i32) -> void
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 i64
@@ -1195,7 +1205,7 @@ fn 20 std_io$println__i32 (i32) -> void
   return
 end
 
-fn 21 std_io$println__u32 (u32) -> void
+fn 22 std_io$println__u32 (u32) -> void
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 u64
@@ -1228,7 +1238,7 @@ fn 21 std_io$println__u32 (u32) -> void
   return
 end
 
-fn 22 std_string$string$std_core$Into$into (string) -> any
+fn 23 std_string$string$std_core$Into$into (string) -> any
   local $k_3 ref
   null.const
   local.set 1   ; $k_3
@@ -1243,7 +1253,7 @@ fn 22 std_string$string$std_core$Into$into (string) -> any
   return
 end
 
-fn 23 std_string$__gen_state_std_string_0$Iterator$next (ref) -> ref
+fn 24 std_string$__gen_state_std_string_0$Iterator$next (ref) -> ref
   local $field_8 i64
   local $call_10 i64
   local $add_checked_35 i64

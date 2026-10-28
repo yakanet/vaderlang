@@ -49,12 +49,12 @@ export main 0
 fn 0 snippet$main () -> i32
   local __scrut_0 any
   string.const 0   ; "42"
-  call 26   ; std_string$parse_int
+  call 27   ; std_string$parse_int
   local.tee 0   ; __scrut_0
   type_check 1   ; i32
   if $L0 void
     string.const 1   ; "int ok"
-    call 25   ; std_io$println__string
+    call 26   ; std_io$println__string
   else
     local.get 0   ; __scrut_0
     type_check 19   ; std_string$ParseError
@@ -63,15 +63,15 @@ fn 0 snippet$main () -> i32
       unreachable
     end $L1
     string.const 2   ; "int err"
-    call 25   ; std_io$println__string
+    call 26   ; std_io$println__string
   end $L0
   string.const 3   ; "nope"
-  call 26   ; std_string$parse_int
+  call 27   ; std_string$parse_int
   local.tee 0   ; __scrut_0
   type_check 1   ; i32
   if $L2 void
     string.const 1   ; "int ok"
-    call 25   ; std_io$println__string
+    call 26   ; std_io$println__string
   else
     local.get 0   ; __scrut_0
     type_check 19   ; std_string$ParseError
@@ -80,15 +80,15 @@ fn 0 snippet$main () -> i32
       unreachable
     end $L3
     string.const 2   ; "int err"
-    call 25   ; std_io$println__string
+    call 26   ; std_io$println__string
   end $L2
   string.const 4   ; "3.14"
-  call 27   ; std_string$parse_float
+  call 28   ; std_string$parse_float
   local.tee 0   ; __scrut_0
   type_check 7   ; f64
   if $L4 void
     string.const 5   ; "float ok"
-    call 25   ; std_io$println__string
+    call 26   ; std_io$println__string
   else
     local.get 0   ; __scrut_0
     type_check 19   ; std_string$ParseError
@@ -97,15 +97,15 @@ fn 0 snippet$main () -> i32
       unreachable
     end $L5
     string.const 6   ; "float err"
-    call 25   ; std_io$println__string
+    call 26   ; std_io$println__string
   end $L4
   string.const 3   ; "nope"
-  call 27   ; std_string$parse_float
+  call 28   ; std_string$parse_float
   local.tee 0   ; __scrut_0
   type_check 7   ; f64
   if $L6 void
     string.const 5   ; "float ok"
-    call 25   ; std_io$println__string
+    call 26   ; std_io$println__string
     return.lit i32.const 0
   end $L6
   local.get 0   ; __scrut_0
@@ -115,7 +115,7 @@ fn 0 snippet$main () -> i32
     unreachable
   end $L7
   string.const 6   ; "float err"
-  call 25   ; std_io$println__string
+  call 26   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -2368,60 +2368,70 @@ end
 fn 23 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 24   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 2   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
+      local.get 5   ; $len_9
       array.slice 16   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 24   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 25   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 24 std_io$write_bytes (u8,ref,i64) -> i32
+fn 24 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 25 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -2441,7 +2451,7 @@ fn 24 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 25 std_io$println__string (string) -> void
+fn 26 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 7   ; "\n"
@@ -2453,7 +2463,7 @@ fn 25 std_io$println__string (string) -> void
   return
 end
 
-fn 26 std_string$parse_int (string) -> any
+fn 27 std_string$parse_int (string) -> any
   local n i64
   local i i64
   local neg bool
@@ -2581,7 +2591,7 @@ fn 26 std_string$parse_int (string) -> any
   return
 end
 
-fn 27 std_string$parse_float (string) -> any
+fn 28 std_string$parse_float (string) -> any
   local __coalesce_0 any
   local.get 0   ; arg 0
   call 3   ; std_core$parse_f64

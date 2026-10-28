@@ -38,39 +38,39 @@ fn 0 snippet$main () -> i32
   local.tee 0   ; b
   i32.const 5
   call 1   ; snippet$Box$Conv$conv__i32
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   local.get 0   ; b
   string.const 0   ; "x"
   call 2   ; snippet$Box$Conv$conv__string
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   local.get 0   ; b
   i64.const 5
   call 3   ; snippet$Box$Conv$conv__i64
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   bool.const true
   call 4   ; snippet$Box$Conv$make__bool
   struct.get 2 0   ; snippet$Box.v
   ref.cast 1   ; i32
-  call 16   ; std_io$println__i32
+  call 17   ; std_io$println__i32
   local.get 0   ; b
   call 9   ; snippet$through_bound__snippet_Box
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   array.new 8 0   ; string[]
   struct.new 6   ; snippet$Bag__string
   i32.const 5
   call 5   ; snippet$Bag$Conv$conv__string__i32
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   i32.const 1
   i32.const 2
   array.new 7 2   ; i32[]
   bool.const true
   call 6   ; snippet$$array$Conv$conv__i32__bool
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   string.const 1   ; "a"
   array.new 8 1   ; string[]
   f64.const 1.5 4609434218613702656
   call 7   ; snippet$$array$Conv$conv__string__f64
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -586,60 +586,70 @@ end
 fn 14 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 15   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
+      local.get 5   ; $len_9
       array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 15   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 16   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 15 std_io$write_bytes (u8,ref,i64) -> i32
+fn 15 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 16 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -659,7 +669,7 @@ fn 15 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 16 std_io$println__i32 (i32) -> void
+fn 17 std_io$println__i32 (i32) -> void
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 i64
@@ -692,7 +702,7 @@ fn 16 std_io$println__i32 (i32) -> void
   return
 end
 
-fn 17 std_io$println__string (string) -> void
+fn 18 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 9   ; "\n"

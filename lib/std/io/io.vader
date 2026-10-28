@@ -184,19 +184,71 @@ write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
 
 @target(.Windows)
 write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
-    which :: if out == .Stdout { STD_OUTPUT_HANDLE } else { STD_ERROR_HANDLE }
     // A synchronous `WriteFile` writes everything or fails, so the count it
-    // reports adds nothing, but it READS BACK now, so a future caller that
-    // cares has it. Short writes belong to the overlapped path, unused here.
+    // reports adds nothing; it reads back all the same, for a caller that cares.
+    // Short writes belong to the overlapped path, unused here.
     written: u32[]: [0]
-    if write_file(get_std_handle(which), buf, u32(count), written, null) {
+    if write_file(std_handle(out), buf, u32(count), written, null) {
         return i32(count)
     }
     return -1
 }
 
-// Sole I/O write primitive: appends raw UTF-8 bytes to `out`, over
-// `write_bytes` above.
+/// Write `msg` to `out` as text, when `out` takes text rather than bytes.
+///
+/// Only a Windows console does, for text beyond ASCII: it decodes bytes with its
+/// code page, which is not UTF-8 by default, and renders UTF-16 whatever the
+/// page.
+///
+/// @return  whether `out` took `msg` as text; false for a stream that takes its
+///          UTF-8 bytes as they are.
+@target
+write_text :: fn(out: Stream, msg: string) -> bool = false
+
+@target(.Windows)
+write_text :: fn(out: Stream, msg: string) -> bool {
+    // ASCII reads the same in every code page: its bytes go out as they are.
+    if msg.is_ascii() || !is_console(out) {
+        return false
+    }
+    size :: msg.byte_len()
+    // No more UTF-16 units than UTF-8 bytes. An empty `msg` converts to nothing,
+    // which Win32 reports as a failure, and writes nothing either way.
+    units: u16[]: [0] * size
+    n :: multi_byte_to_wide_char(CP_UTF8, 0, msg, i32(size), units, i32(size))
+    if n > 0 {
+        written: u32[]: [0]
+        write_console_w(std_handle(out), units, u32(n), written, null)
+    }
+    return true
+}
+
+// The Win32 handle of `out`.
+std_handle :: fn(out: Stream) -> Handle = match out {
+    .Stdout -> get_std_handle(STD_OUTPUT_HANDLE)
+    .Stderr -> get_std_handle(STD_ERROR_HANDLE)
+}
+
+// Whether `out` is a console, probed once per stream as `std/tty` probes its
+// own: `GetConsoleMode` fails on anything else.
+is_console :: fn(out: Stream) -> bool = match out {
+    .Stdout -> stdout_is_console()
+    .Stderr -> stderr_is_console()
+}
+
+@singleton
+stdout_is_console :: fn() -> bool = has_console_mode(.Stdout)
+
+@singleton
+stderr_is_console :: fn() -> bool = has_console_mode(.Stderr)
+
+has_console_mode :: fn(out: Stream) -> bool {
+    mode: u32[]: [0]
+    return get_console_mode(std_handle(out), mode)
+}
+
+// Sole I/O write primitive: appends `msg` to `out`, as text where the stream
+// takes text (`write_text`), else as raw UTF-8 bytes over `write_bytes` above.
 //
 // `msg.bytes()` is a borrowed view over the interned bytes, so the loop lends
 // them straight to the callee: no copy, and nothing to free.
@@ -204,6 +256,9 @@ write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
 // A short write is retried; a failure is silent, which is the contract the
 // `fwrite` + `fflush` host it replaces already had.
 write :: fn(out: Stream, msg: string) -> void {
+    if write_text(out, msg) {
+        return
+    }
     buf :: msg.bytes()
     sent: i64 = 0
     for {

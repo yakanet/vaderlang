@@ -48,7 +48,7 @@ static const struct { vader_obj_header_t header; size_t capacity; size_t length;
     { { 6u, 0u, { .obj = (void*) (struct vader_struct_snippet$Cfg_t*) &vader_data_0_e0 } } },
 };
 static const vader_array_t vader_data_0 = {
-    { 12u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
+    { 13u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; int32_t slots[2]; } vader_data_1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 2u, 7u, { 0u, 0u, 0u },
@@ -68,6 +68,7 @@ static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
 static void std_io$write(uint8_t l0, vader_string_t l1);
+static bool std_io$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io$println__string(vader_string_t l0);
 
@@ -75,7 +76,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[14] = {
+const vader_type_info_t vader_type_info_table[15] = {
     [1] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
@@ -93,27 +94,28 @@ const vader_type_info_t vader_type_info_table[14] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Cfg_t), .slot_size = 8,
     },
     [7] = { .slot_size = 1 },
-    [8] = { .slot_size = 8 },
-    [9] = {
+    [8] = { .slot_size = 1 },
+    [9] = { .slot_size = 8 },
+    [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [10] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
-    },
-    [12] = {
+    [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [13] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
+    [14] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___Tuple_Array_i32_Array_i32__40b28492_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Array_i32_Array_i32__40b28492_t, f__0), offsetof(vader_struct___Tuple_Array_i32_Array_i32__40b28492_t, f__1) },
         .ref_count = 2,
     },
 };
-const size_t vader_type_info_count = 14;
+const size_t vader_type_info_count = 15;
 
 /* Headers named by `@c_header`: they own the prototypes below. */
 #include <unistd.h>
@@ -123,7 +125,7 @@ static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 10u, 7u);
+    return (void*) vader_string_bytes_view(a0, 11u, 8u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -334,12 +336,17 @@ static void std_io$write(uint8_t l0, vader_string_t l1) {
     void* l6 = NULL;
     int64_t l3, l4, l5, l7, l9;
     int32_t l8;
+    bool t0;
     void** gc_raw_roots[2] = { &l2, &l6 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
+    t0 = std_io$write_text(l0, l1);
+    if (t0) {
+        { vader_gc_top = gc_frame.prev; return; }
+    }
     l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
@@ -360,6 +367,10 @@ static void std_io$write(uint8_t l0, vader_string_t l1) {
         break;
     }
     { vader_gc_top = gc_frame.prev; return; }
+}
+
+static bool std_io$write_text(uint8_t l0, vader_string_t l1) {
+    return false;
 }
 
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2) {

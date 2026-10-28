@@ -12,13 +12,14 @@ type 9 struct __method_env_snippet_7 { receiver:1 }
 type 10 struct __method_env_snippet_9 { receiver:1 }
 type 11 struct __method_env_snippet_11 { receiver:3 }
 type 12 struct snippet$Handler { render:4 }
-type 13 scalar u8
-type 14 scalar i64
-type 15 struct std_core$Buffer {  }
-type 16 array 2
-type 17 array 13
-type 18 scalar void
-type 19 array 3
+type 13 scalar bool
+type 14 scalar u8
+type 15 scalar i64
+type 16 struct std_core$Buffer {  }
+type 17 array 2
+type 18 array 14
+type 19 scalar void
+type 20 array 3
 string 0 "("
 string 1 ", "
 string 2 ")"
@@ -34,11 +35,11 @@ string 11 "/"
 string 12 "["
 string 13 "]"
 string 14 "\n"
-import 0 byte_len std_core$byte_len result_type=14 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=17 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=3,17,14 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 15 std_core$ByteAccess
-impl 16 std_core$Display
+import 0 byte_len std_core$byte_len result_type=15 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=18 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=3,18,15 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 16 std_core$ByteAccess
+impl 17 std_core$Display
 export main 4
 
 fn 0 snippet$label (ref) -> string
@@ -155,7 +156,7 @@ fn 4 snippet$main () -> i32
   string.const 4   ; "kept "
   local.get 2   ; $call_10
   call 13   ; concat_2
-  call 21   ; std_io$println__string
+  call 22   ; std_io$println__string
   local.get 0   ; p
   struct.new 8   ; __method_env_snippet_5
   make_closure 7 4   ; __method_snippet_4 fn
@@ -164,7 +165,7 @@ fn 4 snippet$main () -> i32
   string.const 5   ; "argument "
   local.get 2   ; $call_10
   call 13   ; concat_2
-  call 21   ; std_io$println__string
+  call 22   ; std_io$println__string
   local.get 0   ; p
   call 3   ; snippet$scaler
   local.set 1   ; show
@@ -177,7 +178,7 @@ fn 4 snippet$main () -> i32
   string.const 6   ; "returned "
   local.get 2   ; $call_10
   call 13   ; concat_2
-  call 21   ; std_io$println__string
+  call 22   ; std_io$println__string
   local.get 0   ; p
   struct.new 9   ; __method_env_snippet_7
   make_closure 8 4   ; __method_snippet_6 fn
@@ -189,15 +190,15 @@ fn 4 snippet$main () -> i32
   string.const 7   ; "field "
   local.get 2   ; $call_10
   call 13   ; concat_2
-  call 21   ; std_io$println__string
+  call 22   ; std_io$println__string
   i32.const 1
   i32.const 2
-  array.new 19 2   ; i32[]
+  array.new 20 2   ; i32[]
   local.set 1   ; show
   local.get 0   ; p
   struct.new 10   ; __method_env_snippet_9
   local.set 0   ; p
-  array.new 16 0   ; string[]
+  array.new 17 0   ; string[]
   local.set 3   ; $arr_40
   local.get 1   ; show
   array.len
@@ -241,7 +242,7 @@ fn 4 snippet$main () -> i32
   string.const 8   ; "mapped "
   local.get 2   ; $call_10
   call 13   ; concat_2
-  call 21   ; std_io$println__string
+  call 22   ; std_io$println__string
   i32.const 5
   struct.new 11   ; __method_env_snippet_11
   string.const 10   ; "a"
@@ -250,7 +251,7 @@ fn 4 snippet$main () -> i32
   string.const 9   ; "generic "
   local.get 2   ; $call_10
   call 13   ; concat_2
-  call 21   ; std_io$println__string
+  call 22   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -548,7 +549,7 @@ fn 17 std_core$$array$Display$to_string__string (ref) -> string
   local __for_i_2 i64
   local part string
   local $call_17 i64
-  array.new 16 0   ; string[]
+  array.new 17 0   ; string[]
   local.set 1   ; $arr_1
   local.get 0   ; arg 0
   array.len
@@ -572,7 +573,7 @@ fn 17 std_core$$array$Display$to_string__string (ref) -> string
     if $L1 void
       local.get 3   ; __for_arr_0
       local.get 5   ; __for_i_2
-      array.get 16   ; string[]
+      array.get 17   ; string[]
       ref.cast 2   ; string
       call 18   ; std_core$string$Display$to_string
       local.tee 6   ; part
@@ -640,7 +641,7 @@ fn 17 std_core$$array$Display$to_string__string (ref) -> string
       end $L5
       local.get 1   ; $arr_1
       local.get 4   ; __for_len_1
-      array.get 16   ; string[]
+      array.get 17   ; string[]
       ref.cast 2   ; string
       local.set 6   ; part
       local.get 3   ; __for_arr_0
@@ -674,60 +675,70 @@ end
 fn 19 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 20   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
-      array.slice 17   ; u8[]
+      local.get 5   ; $len_9
+      array.slice 18   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 20   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 21   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 20 std_io$write_bytes (u8,ref,i64) -> i32
+fn 20 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 21 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -747,7 +758,7 @@ fn 20 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 21 std_io$println__string (string) -> void
+fn 22 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 14   ; "\n"

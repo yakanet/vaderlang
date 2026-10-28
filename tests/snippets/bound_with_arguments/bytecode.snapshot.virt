@@ -52,16 +52,16 @@ impl 14 std_core$ByteAccess
 vtable std_core$Add.add 1 0
 vtable std_core$Add.add 2 1
 vtable std_core$Add.add 3 2
-vtable std_core$Add.add 19 45
-vtable std_core$Add.add 20 46
-vtable std_core$Add.add 5 47
-vtable std_core$Add.add 7 48
-vtable std_core$Add.add 13 49
-vtable std_core$Add.add 21 50
-vtable std_core$Add.add 22 51
-vtable std_core$Add.add 10 52
-vtable std_core$Add.add 23 53
-vtable std_core$Add.add 9 54
+vtable std_core$Add.add 19 46
+vtable std_core$Add.add 20 47
+vtable std_core$Add.add 5 48
+vtable std_core$Add.add 7 49
+vtable std_core$Add.add 13 50
+vtable std_core$Add.add 21 51
+vtable std_core$Add.add 22 52
+vtable std_core$Add.add 10 53
+vtable std_core$Add.add 23 54
+vtable std_core$Add.add 9 55
 vtable std_core$Add.add 11 22
 export main 4
 
@@ -183,7 +183,7 @@ fn 4 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   call 17   ; std_core$finish_buffer
-  call 44   ; std_io$println__string
+  call 45   ; std_io$println__string
   i64.const 7
   struct.new 1   ; snippet$Money
   local.set 2   ; __buf_1
@@ -226,7 +226,7 @@ fn 4 snippet$main () -> i32
   local.get 5   ; __buf_3
   local.get 1   ; $call_7
   call 17   ; std_core$finish_buffer
-  call 44   ; std_io$println__string
+  call 45   ; std_io$println__string
   i64.const 34
   buffer.new
   local.set 2   ; __buf_1
@@ -252,7 +252,7 @@ fn 4 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   call 17   ; std_core$finish_buffer
-  call 44   ; std_io$println__string
+  call 45   ; std_io$println__string
   i64.const 31
   buffer.new
   local.set 2   ; __buf_1
@@ -278,7 +278,7 @@ fn 4 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   call 17   ; std_core$finish_buffer
-  call 44   ; std_io$println__string
+  call 45   ; std_io$println__string
   i64.const 35
   buffer.new
   local.set 2   ; __buf_1
@@ -304,7 +304,7 @@ fn 4 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   call 17   ; std_core$finish_buffer
-  call 44   ; std_io$println__string
+  call 45   ; std_io$println__string
   i64.const 27
   buffer.new
   local.set 2   ; __buf_1
@@ -334,7 +334,7 @@ fn 4 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   call 17   ; std_core$finish_buffer
-  call 44   ; std_io$println__string
+  call 45   ; std_io$println__string
   i64.const 34
   buffer.new
   local.set 2   ; __buf_1
@@ -358,7 +358,7 @@ fn 4 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   call 17   ; std_core$finish_buffer
-  call 44   ; std_io$println__string
+  call 45   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -2222,60 +2222,70 @@ end
 fn 42 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 43   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
+      local.get 5   ; $len_9
       array.slice 17   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 43   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 44   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 43 std_io$write_bytes (u8,ref,i64) -> i32
+fn 43 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 44 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -2295,7 +2305,7 @@ fn 43 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 44 std_io$println__string (string) -> void
+fn 45 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 13   ; "\n"
@@ -2307,70 +2317,70 @@ fn 44 std_io$println__string (string) -> void
   return
 end
 
-fn 45 std_core$i8$Add$add_vt (i8,i8) -> i8
+fn 46 std_core$i8$Add$add_vt (i8,i8) -> i8
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i8.checked_add
   return
 end
 
-fn 46 std_core$i16$Add$add_vt (i16,i16) -> i16
+fn 47 std_core$i16$Add$add_vt (i16,i16) -> i16
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i16.checked_add
   return
 end
 
-fn 47 std_core$i32$Add$add_vt (i32,i32) -> i32
+fn 48 std_core$i32$Add$add_vt (i32,i32) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i32.checked_add
   return
 end
 
-fn 48 std_core$i64$Add$add_vt (i64,i64) -> i64
+fn 49 std_core$i64$Add$add_vt (i64,i64) -> i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i64.checked_add
   return
 end
 
-fn 49 std_core$u8$Add$add_vt (u8,u8) -> u8
+fn 50 std_core$u8$Add$add_vt (u8,u8) -> u8
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   u8.checked_add
   return
 end
 
-fn 50 std_core$u16$Add$add_vt (u16,u16) -> u16
+fn 51 std_core$u16$Add$add_vt (u16,u16) -> u16
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   u16.checked_add
   return
 end
 
-fn 51 std_core$u32$Add$add_vt (u32,u32) -> u32
+fn 52 std_core$u32$Add$add_vt (u32,u32) -> u32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   u32.checked_add
   return
 end
 
-fn 52 std_core$u64$Add$add_vt (u64,u64) -> u64
+fn 53 std_core$u64$Add$add_vt (u64,u64) -> u64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   u64.checked_add
   return
 end
 
-fn 53 std_core$f32$Add$add_vt (f32,f32) -> f32
+fn 54 std_core$f32$Add$add_vt (f32,f32) -> f32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   f64.add
   return
 end
 
-fn 54 std_core$f64$Add$add_vt (f64,f64) -> f64
+fn 55 std_core$f64$Add$add_vt (f64,f64) -> f64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   f64.add

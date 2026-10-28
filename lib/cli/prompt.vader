@@ -22,14 +22,12 @@
 //   * **The terminal is always restored.** `take_terminal` is paired with a
 //     deferred `give_terminal_back`, which covers the normal return and a panic
 //     alike (the runtime runs pending defers before aborting). Ctrl-C is a BYTE
-//     here, not a signal, so it unwinds through the same path. A console switched
-//     to UTF-8 to draw is switched back as soon as the drawing is done, so its
-//     code page outlives no prompt.
+//     here, not a signal, so it unwinds through the same path.
 //   * **Each prompt starts with an empty key queue.** Keys typed before a
 //     question appears are dropped rather than answering it: a burst read by one
 //     widget does not carry into the next. That is deliberate for a prompt: an
 //     answer should be given to a question the user has actually seen.
-//   * **Glyphs only where they render.** A terminal that renders UTF-8 gets box
+//   * **Glyphs only where they render.** A terminal that renders Unicode gets box
 //     and shape glyphs, anything else ASCII: a mangled glyph is a worse default
 //     than a plain one. Every line is cut to the terminal's width, since a frame
 //     is erased by its count of lines.
@@ -154,9 +152,9 @@ ASCII_GLYPHS :: Glyphs {
 // The columns a line of the rail takes before its content: a glyph, two spaces.
 RAIL: i32: 3
 
-// The glyphs for a terminal that renders UTF-8 or not.
-glyphs_for :: fn(unicode: bool) -> Glyphs {
-    if unicode {
+// The glyphs `stream` renders.
+glyphs_on :: fn(stream: Stream) -> Glyphs {
+    if TTY.renders_unicode(stream) {
         return UNICODE_GLYPHS
     }
     return ASCII_GLYPHS
@@ -177,8 +175,7 @@ glyphs_for :: fn(unicode: bool) -> Glyphs {
 ///       outro("created ${name}")
 ///   }
 export intro :: fn(title: string) -> void {
-    g :: glyphs_for(TTY.utf8_output_begin())
-    defer TTY.utf8_output_end()
+    g :: glyphs_on(.Stdout)
     println("${TTY.gray(g.start)}  ${TTY.bold(title)}")
 }
 
@@ -188,8 +185,7 @@ export intro :: fn(title: string) -> void {
 /// @param title  the step, as a folded question would read.
 /// @param lines  shown under it, one per rail line.
 export note :: fn(title: string, lines: string[]) -> void {
-    g :: glyphs_for(TTY.utf8_output_begin())
-    defer TTY.utf8_output_end()
+    g :: glyphs_on(.Stdout)
     println(TTY.gray(g.bar))
     println(on_rail(TTY.green(g.done), title))
     for line in lines {
@@ -201,8 +197,7 @@ export note :: fn(title: string, lines: string[]) -> void {
 ///
 /// @param message  the last line, beside the rail's end.
 export outro :: fn(message: string) -> void {
-    g :: glyphs_for(TTY.utf8_output_begin())
-    defer TTY.utf8_output_end()
+    g :: glyphs_on(.Stdout)
     println(TTY.gray(g.bar))
     println(on_rail(TTY.gray(g.end), message))
 }
@@ -211,8 +206,7 @@ export outro :: fn(message: string) -> void {
 ///
 /// @param message  the reason, in red beside the rail's end.
 export cancel :: fn(message: string) -> void {
-    g :: glyphs_for(TTY.utf8_output_begin())
-    defer TTY.utf8_output_end()
+    g :: glyphs_on(.Stderr)
     eprintln(TTY.gray(g.bar))
     eprintln(on_rail(TTY.red(g.end), TTY.red(message)))
 }
@@ -238,22 +232,21 @@ next_press :: fn(reader: KeyReader) -> KeyPress | PromptError {
     return press
 }
 
-// Put the terminal in the state a prompt draws in: raw, rendering UTF-8 when it
-// can, its own cursor hidden since a frame draws its own. Null, with nothing
-// changed, when there is no terminal. Pair with a deferred `give_terminal_back`.
+// Put the terminal in the state a prompt draws in: raw, its own cursor hidden
+// since a frame draws its own, and answer the glyphs it renders. Null, with
+// nothing changed, when there is no terminal. Pair with a deferred
+// `give_terminal_back`.
 take_terminal :: fn() -> Glyphs | null {
     if !TTY.raw_mode_begin() {
         return null
     }
-    unicode :: TTY.utf8_output_begin()
     print("\u{1B}[?25l")
-    return glyphs_for(unicode)
+    return glyphs_on(.Stdout)
 }
 
 // Undo `take_terminal`, in the reverse order.
 give_terminal_back :: fn() -> void {
     print("\u{1B}[?25h")
-    TTY.utf8_output_end()
     TTY.raw_mode_end()
 }
 

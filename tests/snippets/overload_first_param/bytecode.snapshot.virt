@@ -93,16 +93,16 @@ fn 2 snippet$main () -> i32
   local.set 1   ; b
   local.get 0   ; a
   call 0   ; snippet$describe
-  call 30   ; std_io$println__string
+  call 31   ; std_io$println__string
   local.get 1   ; b
   call 1   ; snippet$describe_1
-  call 30   ; std_io$println__string
+  call 31   ; std_io$println__string
   local.get 0   ; a
   call 0   ; snippet$describe
-  call 30   ; std_io$println__string
+  call 31   ; std_io$println__string
   local.get 1   ; b
   call 1   ; snippet$describe_1
-  call 30   ; std_io$println__string
+  call 31   ; std_io$println__string
   i64.const 36
   buffer.new
   local.set 0   ; a
@@ -115,7 +115,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   i32.const 3
   i32.const 5
-  call 31   ; std_math$min_2
+  call 32   ; std_math$min_2
   i32.to_i64
   local.set 3   ; $cast_20
   local.get 0   ; a
@@ -126,16 +126,16 @@ fn 2 snippet$main () -> i32
   local.get 0   ; a
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 30   ; std_io$println__string
+  call 31   ; std_io$println__string
   f64.const 3.5 4615063718147915776
   f64.const 5.0 4617315517961601024
-  call 32   ; std_math$min
+  call 33   ; std_math$min
   call 8   ; std_core$f64$Display$to_string
   local.set 4   ; $call_27
   string.const 4   ; "min(3.5, 5.0) = "
   local.get 4   ; $call_27
   call 3   ; concat_2
-  call 30   ; std_io$println__string
+  call 31   ; std_io$println__string
   i64.const 36
   buffer.new
   local.set 0   ; a
@@ -148,7 +148,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   i32.const -2
   i32.const 8
-  call 33   ; std_math$max_2
+  call 34   ; std_math$max_2
   i32.to_i64
   local.set 3   ; $cast_20
   local.get 0   ; a
@@ -159,7 +159,7 @@ fn 2 snippet$main () -> i32
   local.get 0   ; a
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 30   ; std_io$println__string
+  call 31   ; std_io$println__string
   i64.const 36
   buffer.new
   local.set 0   ; a
@@ -171,7 +171,7 @@ fn 2 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const -7
-  call 34   ; std_math$abs_1
+  call 35   ; std_math$abs_1
   i32.to_i64
   local.set 3   ; $cast_20
   local.get 0   ; a
@@ -182,15 +182,15 @@ fn 2 snippet$main () -> i32
   local.get 0   ; a
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 30   ; std_io$println__string
+  call 31   ; std_io$println__string
   f64.const -7.5 13843502304583483392
-  call 35   ; std_math$abs
+  call 36   ; std_math$abs
   call 8   ; std_core$f64$Display$to_string
   local.set 4   ; $call_27
   string.const 7   ; "abs(-7.5)     = "
   local.get 4   ; $call_27
   call 3   ; concat_2
-  call 30   ; std_io$println__string
+  call 31   ; std_io$println__string
   i64.const 44
   buffer.new
   local.set 0   ; a
@@ -204,7 +204,7 @@ fn 2 snippet$main () -> i32
   i32.const 15
   i32.const 0
   i32.const 10
-  call 36   ; std_math$clamp_2
+  call 37   ; std_math$clamp_2
   i32.to_i64
   local.set 3   ; $cast_20
   local.get 0   ; a
@@ -215,17 +215,17 @@ fn 2 snippet$main () -> i32
   local.get 0   ; a
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 30   ; std_io$println__string
+  call 31   ; std_io$println__string
   f64.const 1.5 4609434218613702656
   f64.const 0.0 0
   f64.const 1.0 4607182418800017408
-  call 37   ; std_math$clamp
+  call 38   ; std_math$clamp
   call 8   ; std_core$f64$Display$to_string
   local.set 4   ; $call_27
   string.const 9   ; "clamp(1.5, 0.0, 1.0)  = "
   local.get 4   ; $call_27
   call 3   ; concat_2
-  call 30   ; std_io$println__string
+  call 31   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -1998,60 +1998,70 @@ end
 fn 28 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 29   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
+      local.get 5   ; $len_9
       array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 29   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 30   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 29 std_io$write_bytes (u8,ref,i64) -> i32
+fn 29 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 30 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -2071,7 +2081,7 @@ fn 29 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 30 std_io$println__string (string) -> void
+fn 31 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 15   ; "\n"
@@ -2083,7 +2093,7 @@ fn 30 std_io$println__string (string) -> void
   return
 end
 
-fn 31 std_math$min_2 (i32,i32) -> i32
+fn 32 std_math$min_2 (i32,i32) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i32.lt
@@ -2095,7 +2105,7 @@ fn 31 std_math$min_2 (i32,i32) -> i32
   return
 end
 
-fn 32 std_math$min (f64,f64) -> f64
+fn 33 std_math$min (f64,f64) -> f64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   f64.lt
@@ -2107,7 +2117,7 @@ fn 32 std_math$min (f64,f64) -> f64
   return
 end
 
-fn 33 std_math$max_2 (i32,i32) -> i32
+fn 34 std_math$max_2 (i32,i32) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i32.gt
@@ -2119,7 +2129,7 @@ fn 33 std_math$max_2 (i32,i32) -> i32
   return
 end
 
-fn 34 std_math$abs_1 (i32) -> i32
+fn 35 std_math$abs_1 (i32) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.lt
@@ -2132,7 +2142,7 @@ fn 34 std_math$abs_1 (i32) -> i32
   return
 end
 
-fn 35 std_math$abs (f64) -> f64
+fn 36 std_math$abs (f64) -> f64
   local.get 0   ; arg 0
   f64.const 0.0 0
   f64.lt
@@ -2145,25 +2155,25 @@ fn 35 std_math$abs (f64) -> f64
   return
 end
 
-fn 36 std_math$clamp_2 (i32,i32,i32) -> i32
+fn 37 std_math$clamp_2 (i32,i32,i32) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 33   ; std_math$max_2
+  call 34   ; std_math$max_2
   local.get 2   ; arg 2
-  call 31   ; std_math$min_2
+  call 32   ; std_math$min_2
   return
 end
 
-fn 37 std_math$clamp (f64,f64,f64) -> f64
+fn 38 std_math$clamp (f64,f64,f64) -> f64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 38   ; std_math$max
+  call 39   ; std_math$max
   local.get 2   ; arg 2
-  call 32   ; std_math$min
+  call 33   ; std_math$min
   return
 end
 
-fn 38 std_math$max (f64,f64) -> f64
+fn 39 std_math$max (f64,f64) -> f64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   f64.gt

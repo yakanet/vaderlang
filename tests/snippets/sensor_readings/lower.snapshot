@@ -162,6 +162,7 @@
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
   std/math
     fn std.math.min  // std_math$min_2
   system/posix

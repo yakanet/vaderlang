@@ -81,6 +81,7 @@ static uint32_t std_core$next_scalar(uint32_t l0);
 static vader_string_t std_core$char$Display$to_string(uint32_t l0);
 static void* std_core$utf8_encode(uint32_t l0);
 static void std_io$write(uint8_t l0, vader_string_t l1);
+static bool std_io$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io$println__string(vader_string_t l0);
 
@@ -784,12 +785,17 @@ static void std_io$write(uint8_t l0, vader_string_t l1) {
     void* l6 = NULL;
     int64_t l3, l4, l5, l7, l9;
     int32_t l8;
+    bool t0;
     void** gc_raw_roots[2] = { &l2, &l6 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
+    t0 = std_io$write_text(l0, l1);
+    if (t0) {
+        { vader_gc_top = gc_frame.prev; return; }
+    }
     l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
@@ -810,6 +816,10 @@ static void std_io$write(uint8_t l0, vader_string_t l1) {
         break;
     }
     { vader_gc_top = gc_frame.prev; return; }
+}
+
+static bool std_io$write_text(uint8_t l0, vader_string_t l1) {
+    return false;
 }
 
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2) {

@@ -180,6 +180,7 @@
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
   std/iter
     fn std.iter.filter<[i32, i64]>  // std_iter$filter___i32__i64_
     fn std.iter.indexed<i32>  // std_iter$indexed__i32

@@ -81,17 +81,17 @@ fn 2 snippet$main () -> i32
   i64.const 1
   array.new 5 2   ; i64[]
   call 4   ; snippet$total__i64
-  call 44   ; std_io$println__i64
+  call 45   ; std_io$println__i64
   f64.const 1.5 4609434218613702656
   f64.const 2.25 4612248968380809216
   array.new 3 2   ; f64[]
   call 3   ; snippet$total__f64
-  call 42   ; std_io$println__f64
+  call 43   ; std_io$println__f64
   string.const 0   ; "ab"
   string.const 1   ; "cd"
   array.new 8 2   ; string[]
   call 6   ; snippet$total__string
-  call 45   ; std_io$println__string
+  call 46   ; std_io$println__string
   i32.const 2
   struct.new 1   ; snippet$V
   local.set 0   ; $struct_15
@@ -104,13 +104,13 @@ fn 2 snippet$main () -> i32
   call 5   ; snippet$total__snippet_V
   struct.get 1 0   ; snippet$V.x
   ref.cast 2   ; i32
-  call 43   ; std_io$println__i32
+  call 44   ; std_io$println__i32
   i32.const 3
   i32.const 9
   i32.const 4
   array.new 10 3   ; i32[]
   call 7   ; snippet$largest__i32
-  call 43   ; std_io$println__i32
+  call 44   ; std_io$println__i32
   i32.const 7
   struct.new 1   ; snippet$V
   local.set 0   ; $struct_15
@@ -123,31 +123,31 @@ fn 2 snippet$main () -> i32
   call 8   ; snippet$largest__snippet_V
   struct.get 1 0   ; snippet$V.x
   ref.cast 2   ; i32
-  call 43   ; std_io$println__i32
+  call 44   ; std_io$println__i32
   string.const 2   ; "a"
   string.const 3   ; "b"
   string.const 2   ; "a"
   array.new 8 3   ; string[]
   string.const 2   ; "a"
   call 9   ; snippet$count_of__string
-  call 43   ; std_io$println__i32
+  call 44   ; std_io$println__i32
   i32.const 4
   i32.const 5
   array.new 10 2   ; i32[]
   i32.const 5
   call 10   ; snippet$holds__i32__
-  call 41   ; std_io$println__bool
+  call 42   ; std_io$println__bool
   i32.const 4
   i32.const 5
   array.new 10 2   ; i32[]
   i32.const 6
   call 10   ; snippet$holds__i32__
-  call 41   ; std_io$println__bool
+  call 42   ; std_io$println__bool
   i32.const 7
   retag 2   ; i32
   i32.const 7
   call 11   ; snippet$matches__i32
-  call 41   ; std_io$println__bool
+  call 42   ; std_io$println__bool
   return.lit i32.const 0
 end
 
@@ -2298,60 +2298,70 @@ end
 fn 39 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 40   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
+      local.get 5   ; $len_9
       array.slice 18   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 40   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 41   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 40 std_io$write_bytes (u8,ref,i64) -> i32
+fn 40 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 41 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -2371,7 +2381,7 @@ fn 40 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 41 std_io$println__bool (bool) -> void
+fn 42 std_io$println__bool (bool) -> void
   local __buf_0 ref
   local __off_1 i64
   local $call_10 string
@@ -2400,7 +2410,7 @@ fn 41 std_io$println__bool (bool) -> void
   return
 end
 
-fn 42 std_io$println__f64 (f64) -> void
+fn 43 std_io$println__f64 (f64) -> void
   local $call_4 string
   local.get 0   ; arg 0
   call 19   ; std_core$f64$Display$to_string
@@ -2413,7 +2423,7 @@ fn 42 std_io$println__f64 (f64) -> void
   return
 end
 
-fn 43 std_io$println__i32 (i32) -> void
+fn 44 std_io$println__i32 (i32) -> void
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 i64
@@ -2446,7 +2456,7 @@ fn 43 std_io$println__i32 (i32) -> void
   return
 end
 
-fn 44 std_io$println__i64 (i64) -> void
+fn 45 std_io$println__i64 (i64) -> void
   local __buf_0 ref
   local __off_1 i64
   local $call_10 string
@@ -2475,7 +2485,7 @@ fn 44 std_io$println__i64 (i64) -> void
   return
 end
 
-fn 45 std_io$println__string (string) -> void
+fn 46 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 11   ; "\n"

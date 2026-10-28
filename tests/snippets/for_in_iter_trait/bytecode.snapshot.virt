@@ -38,13 +38,13 @@ fn 1 snippet$count_ls (string) -> i64
   local $call_elem_18 char
   local $call_elem_19 u8
   local.get 0   ; arg 0
-  call 12   ; std_string$chars
+  call 13   ; std_string$chars
   local.set 1   ; __fuse_iter_0
   i64.const 0
   local.set 2   ; total
   loop $L0 void
     local.get 1   ; __fuse_iter_0
-    call 13   ; std_string$StringChars$std_core$Iterator$next$v
+    call 14   ; std_string$StringChars$std_core$Iterator$next$v
     local.set 4   ; $call_elem_19
     local.set 3   ; $call_elem_18
     local.get 4   ; $call_elem_19
@@ -150,7 +150,7 @@ fn 2 snippet$main () -> i32
   local.get 2   ; __fuse_arr_1
   local.get 4   ; __fuse_len_0
   call 4   ; std_core$finish_buffer
-  call 11   ; std_io$println__string
+  call 12   ; std_io$println__string
   i64.const 33
   buffer.new
   local.set 2   ; __fuse_arr_1
@@ -172,7 +172,7 @@ fn 2 snippet$main () -> i32
   local.get 2   ; __fuse_arr_1
   local.get 4   ; __fuse_len_0
   call 4   ; std_core$finish_buffer
-  call 11   ; std_io$println__string
+  call 12   ; std_io$println__string
   string.const 2   ; "hello, world!"
   call 1   ; snippet$count_ls
   local.set 4   ; __fuse_len_0
@@ -194,7 +194,7 @@ fn 2 snippet$main () -> i32
   local.get 2   ; __fuse_arr_1
   local.get 5   ; __fuse_i_1
   call 4   ; std_core$finish_buffer
-  call 11   ; std_io$println__string
+  call 12   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -659,60 +659,70 @@ end
 fn 9 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 10   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 2   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
+      local.get 5   ; $len_9
       array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 10   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 11   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 10 std_io$write_bytes (u8,ref,i64) -> i32
+fn 10 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 11 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -732,7 +742,7 @@ fn 10 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 11 std_io$println__string (string) -> void
+fn 12 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 4   ; "\n"
@@ -744,14 +754,14 @@ fn 11 std_io$println__string (string) -> void
   return
 end
 
-fn 12 std_string$chars (string) -> ref
+fn 13 std_string$chars (string) -> ref
   local.get 0   ; arg 0
   i64.const 0
   struct.new 11   ; std_string$StringChars
   return
 end
 
-fn 13 std_string$StringChars$std_core$Iterator$next$v (ref) -> (char,u8)
+fn 14 std_string$StringChars$std_core$Iterator$next$v (ref) -> (char,u8)
   local i i64
   local $call_4 i64
   local b u8

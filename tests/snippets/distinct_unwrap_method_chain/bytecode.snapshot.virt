@@ -43,7 +43,7 @@ export main 7
 
 fn 0 snippet$inline_trim (string) -> string
   local.get 0   ; arg 0
-  call 19   ; std_string$trim
+  call 20   ; std_string$trim
   return
 end
 
@@ -57,25 +57,25 @@ fn 1 snippet$shout (string) -> string
   local.get 1   ; $cast_1
   local.get 2   ; $fn_ref_2
   string.const 0   ; "A"
-  call 20   ; std_string$replace_chars_where
+  call 21   ; std_string$replace_chars_where
   return
 end
 
 fn 2 snippet$bound (string) -> string
   local.get 0   ; arg 0
-  call 19   ; std_string$trim
+  call 20   ; std_string$trim
   return
 end
 
 fn 3 snippet$freefn (string) -> string
   local.get 0   ; arg 0
-  call 19   ; std_string$trim
+  call 20   ; std_string$trim
   return
 end
 
 fn 4 snippet$identity (string) -> string
   local.get 0   ; arg 0
-  call 19   ; std_string$trim
+  call 20   ; std_string$trim
   return
 end
 
@@ -99,49 +99,49 @@ fn 7 snippet$main () -> i32
   string.const 1   ; "inline="
   local.get 0   ; $call_3
   call 9   ; concat_2
-  call 18   ; std_io$println__string
+  call 19   ; std_io$println__string
   string.const 4   ; "banana"
   call 1   ; snippet$shout
   local.set 0   ; $call_3
   string.const 3   ; "shout="
   local.get 0   ; $call_3
   call 9   ; concat_2
-  call 18   ; std_io$println__string
+  call 19   ; std_io$println__string
   string.const 6   ; "  ho  "
   call 2   ; snippet$bound
   local.set 0   ; $call_3
   string.const 5   ; "bound="
   local.get 0   ; $call_3
   call 9   ; concat_2
-  call 18   ; std_io$println__string
+  call 19   ; std_io$println__string
   string.const 8   ; "  he  "
   call 3   ; snippet$freefn
   local.set 0   ; $call_3
   string.const 7   ; "freefn="
   local.get 0   ; $call_3
   call 9   ; concat_2
-  call 18   ; std_io$println__string
+  call 19   ; std_io$println__string
   string.const 10   ; "  hu  "
   call 4   ; snippet$identity
   local.set 0   ; $call_3
   string.const 9   ; "identity="
   local.get 0   ; $call_3
   call 9   ; concat_2
-  call 18   ; std_io$println__string
+  call 19   ; std_io$println__string
   i64.const 42
   call 5   ; snippet$backed_int
   local.set 0   ; $call_3
   string.const 11   ; "int="
   local.get 0   ; $call_3
   call 9   ; concat_2
-  call 18   ; std_io$println__string
+  call 19   ; std_io$println__string
   bool.const true
   call 6   ; snippet$backed_bool
   local.set 0   ; $call_3
   string.const 12   ; "bool="
   local.get 0   ; $call_3
   call 9   ; concat_2
-  call 18   ; std_io$println__string
+  call 19   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -769,60 +769,70 @@ end
 fn 16 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 17   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 4   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
+      local.get 5   ; $len_9
       array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 17   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 18   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 17 std_io$write_bytes (u8,ref,i64) -> i32
+fn 17 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 18 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -842,7 +852,7 @@ fn 17 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 18 std_io$println__string (string) -> void
+fn 19 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 16   ; "\n"
@@ -854,7 +864,7 @@ fn 18 std_io$println__string (string) -> void
   return
 end
 
-fn 19 std_string$trim (string) -> string
+fn 20 std_string$trim (string) -> string
   local n i64
   local lo i64
   local $sub_checked_13 i64
@@ -872,7 +882,7 @@ fn 19 std_string$trim (string) -> string
         local.get 0   ; arg 0
         local.get 2   ; lo
         call.import 1   ; std_core$byte_at
-        call 21   ; std_string$is_white_byte
+        call 22   ; std_string$is_white_byte
         if $L3 void
         else
           br $L0
@@ -898,7 +908,7 @@ fn 19 std_string$trim (string) -> string
         local.get 0   ; arg 0
         local.get 3   ; $sub_checked_13
         call.import 1   ; std_core$byte_at
-        call 21   ; std_string$is_white_byte
+        call 22   ; std_string$is_white_byte
         if $L7 void
         else
           br $L4
@@ -918,7 +928,7 @@ fn 19 std_string$trim (string) -> string
   return
 end
 
-fn 20 std_string$replace_chars_where (string,ref,string) -> string
+fn 21 std_string$replace_chars_where (string,ref,string) -> string
   local sb ref
   local self string
   local i i64
@@ -965,11 +975,11 @@ fn 20 std_string$replace_chars_where (string,ref,string) -> string
         if $L3 void
           local.get 3   ; sb
           local.get 2   ; arg 2
-          call 22   ; std_string__builder$append
+          call 23   ; std_string__builder$append
         else
           local.get 3   ; sb
           local.get 8   ; c
-          call 23   ; std_string__builder$append_char
+          call 24   ; std_string__builder$append_char
         end $L3
         br $L0
       end $L2
@@ -1015,21 +1025,21 @@ fn 20 std_string$replace_chars_where (string,ref,string) -> string
       if $L7 void
         local.get 3   ; sb
         local.get 2   ; arg 2
-        call 22   ; std_string__builder$append
+        call 23   ; std_string__builder$append
       else
         local.get 3   ; sb
         local.get 11   ; c
-        call 23   ; std_string__builder$append_char
+        call 24   ; std_string__builder$append_char
       end $L7
       br $L0
     end $L1
   end $L0
   local.get 3   ; sb
-  call 24   ; std_string__builder$StringBuilder$std_core$Display$to_string
+  call 25   ; std_string__builder$StringBuilder$std_core$Display$to_string
   return
 end
 
-fn 21 std_string$is_white_byte (u8) -> bool
+fn 22 std_string$is_white_byte (u8) -> bool
   local or_res bool
   local.get 0   ; arg 0
   i32.const 32
@@ -1063,14 +1073,14 @@ fn 21 std_string$is_white_byte (u8) -> bool
   return
 end
 
-fn 22 std_string__builder$append (ref,string) -> void
+fn 23 std_string__builder$append (ref,string) -> void
   local.field 0 12 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.get 1   ; arg 1
   array.push 1   ; string
   return
 end
 
-fn 23 std_string__builder$append_char (ref,char) -> void
+fn 24 std_string__builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
   local.field 0 12 0   ; arg 0 std_string__builder$StringBuilder.parts
@@ -1085,7 +1095,7 @@ fn 23 std_string__builder$append_char (ref,char) -> void
   return
 end
 
-fn 24 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> string
+fn 25 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> string
   local n i64
   local buf ref
   local off i64
@@ -1113,7 +1123,7 @@ fn 24 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> stri
     return
   end $L1
   local.get 0   ; arg 0
-  call 25   ; std_string__builder$byte_len
+  call 26   ; std_string__builder$byte_len
   local.tee 1   ; n
   buffer.new
   local.set 2   ; buf
@@ -1159,7 +1169,7 @@ fn 24 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> stri
   return
 end
 
-fn 25 std_string__builder$byte_len (ref) -> i64
+fn 26 std_string__builder$byte_len (ref) -> i64
   local total i64
   local __for_arr_0 ref
   local __for_len_1 i64

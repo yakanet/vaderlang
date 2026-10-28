@@ -187,6 +187,7 @@
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
   std/string_builder
     fn std.string_builder.StringBuilder.to_string  // std_string__builder$StringBuilder$std_core$Display$to_string
     fn std.string_builder.append  // std_string__builder$append

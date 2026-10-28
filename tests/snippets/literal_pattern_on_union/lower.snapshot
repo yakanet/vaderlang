@@ -198,6 +198,7 @@
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
   std/string
     fn std.string.to_lower  // std_string$to_lower
     fn std.string.to_lower_cp  // std_string$to_lower_cp

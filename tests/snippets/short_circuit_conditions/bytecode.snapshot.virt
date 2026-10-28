@@ -41,7 +41,7 @@ export main 5
 fn 0 snippet$trace (ref,string,bool) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 14   ; std_string__builder$append
+  call 15   ; std_string__builder$append
   local.get 2   ; arg 2
   return
 end
@@ -75,11 +75,11 @@ fn 1 snippet$shapes (bool,bool,bool) -> string
   if $L1 void
     local.get 3   ; sb
     string.const 2   ; "T1 "
-    call 14   ; std_string__builder$append
+    call 15   ; std_string__builder$append
   else
     local.get 3   ; sb
     string.const 3   ; "F1 "
-    call 14   ; std_string__builder$append
+    call 15   ; std_string__builder$append
   end $L1
   local.get 3   ; sb
   string.const 0   ; "a"
@@ -100,7 +100,7 @@ fn 1 snippet$shapes (bool,bool,bool) -> string
   else
     local.get 3   ; sb
     string.const 4   ; "T2 "
-    call 14   ; std_string__builder$append
+    call 15   ; std_string__builder$append
   end $L3
   local.get 3   ; sb
   string.const 0   ; "a"
@@ -133,11 +133,11 @@ fn 1 snippet$shapes (bool,bool,bool) -> string
   if $L6 void
     local.get 3   ; sb
     string.const 6   ; "T3 "
-    call 14   ; std_string__builder$append
+    call 15   ; std_string__builder$append
   else
     local.get 3   ; sb
     string.const 7   ; "F3 "
-    call 14   ; std_string__builder$append
+    call 15   ; std_string__builder$append
   end $L6
   local.get 3   ; sb
   string.const 0   ; "a"
@@ -201,7 +201,7 @@ fn 1 snippet$shapes (bool,bool,bool) -> string
   local.set 10   ; $call_59
   local.get 3   ; sb
   local.get 10   ; $call_59
-  call 14   ; std_string__builder$append
+  call 15   ; std_string__builder$append
   local.get 3   ; sb
   string.const 0   ; "a"
   local.get 0   ; arg 0
@@ -209,9 +209,9 @@ fn 1 snippet$shapes (bool,bool,bool) -> string
   if $L10 void
     local.get 3   ; sb
     string.const 10   ; "T5 "
-    call 14   ; std_string__builder$append
+    call 15   ; std_string__builder$append
     local.get 3   ; sb
-    call 15   ; std_string__builder$StringBuilder$std_core$Display$to_string
+    call 16   ; std_string__builder$StringBuilder$std_core$Display$to_string
     return
   end $L10
   local.get 3   ; sb
@@ -232,14 +232,14 @@ fn 1 snippet$shapes (bool,bool,bool) -> string
   if $L12 void
     local.get 3   ; sb
     string.const 11   ; "T6 "
-    call 14   ; std_string__builder$append
+    call 15   ; std_string__builder$append
   else
     local.get 3   ; sb
     string.const 12   ; "F6 "
-    call 14   ; std_string__builder$append
+    call 15   ; std_string__builder$append
   end $L12
   local.get 3   ; sb
-  call 15   ; std_string__builder$StringBuilder$std_core$Display$to_string
+  call 16   ; std_string__builder$StringBuilder$std_core$Display$to_string
   return
 end
 
@@ -465,7 +465,7 @@ fn 5 snippet$main () -> i32
               local.get 14   ; __buf_10
               local.get 15   ; __off_11
               call 7   ; std_core$finish_buffer
-              call 13   ; std_io$println__string
+              call 14   ; std_io$println__string
               local.get 10   ; __for_i_8
               i64.const 1
               i64.add
@@ -542,7 +542,7 @@ fn 5 snippet$main () -> i32
   local.get 4   ; __for_arr_3
   local.get 1   ; __for_len_1
   call 7   ; std_core$finish_buffer
-  call 13   ; std_io$println__string
+  call 14   ; std_io$println__string
   i64.const 104
   buffer.new
   local.set 0   ; __for_arr_0
@@ -625,7 +625,7 @@ fn 5 snippet$main () -> i32
   local.get 0   ; __for_arr_0
   local.get 1   ; __for_len_1
   call 7   ; std_core$finish_buffer
-  call 13   ; std_io$println__string
+  call 14   ; std_io$println__string
   i64.const 83
   buffer.new
   local.set 0   ; __for_arr_0
@@ -691,7 +691,7 @@ fn 5 snippet$main () -> i32
   local.get 0   ; __for_arr_0
   local.get 1   ; __for_len_1
   call 7   ; std_core$finish_buffer
-  call 13   ; std_io$println__string
+  call 14   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -880,60 +880,70 @@ end
 fn 11 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 12   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
+      local.get 5   ; $len_9
       array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 12   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 13   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 12 std_io$write_bytes (u8,ref,i64) -> i32
+fn 12 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 13 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -953,7 +963,7 @@ fn 12 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 13 std_io$println__string (string) -> void
+fn 14 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 16   ; "\n"
@@ -965,14 +975,14 @@ fn 13 std_io$println__string (string) -> void
   return
 end
 
-fn 14 std_string__builder$append (ref,string) -> void
+fn 15 std_string__builder$append (ref,string) -> void
   local.field 0 1 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.get 1   ; arg 1
   array.push 2   ; string
   return
 end
 
-fn 15 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> string
+fn 16 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> string
   local n i64
   local buf ref
   local off i64
@@ -1000,7 +1010,7 @@ fn 15 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> stri
     return
   end $L1
   local.get 0   ; arg 0
-  call 16   ; std_string__builder$byte_len
+  call 17   ; std_string__builder$byte_len
   local.tee 1   ; n
   buffer.new
   local.set 2   ; buf
@@ -1046,7 +1056,7 @@ fn 15 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> stri
   return
 end
 
-fn 16 std_string__builder$byte_len (ref) -> i64
+fn 17 std_string__builder$byte_len (ref) -> i64
   local total i64
   local __for_arr_0 ref
   local __for_len_1 i64

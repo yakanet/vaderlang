@@ -89,6 +89,7 @@
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
     fn std.io.write_file_bytes  // std_io$write_file_bytes
+    fn std.io.write_text  // std_io$write_text
     struct __defer_env_std_io_1
     struct std.io.IOError  // std_io$IOError
   system/posix

@@ -88,12 +88,12 @@ impl 39 std_core$Iterator
 vtable std_core$Iterator.next 6 7
 vtable std_core$Iterator.next 9 9
 vtable std_core$Iterator.next 13 15
-vtable std_core$Iterator.next 18 19
-vtable std_core$Iterator.next 22 20
-vtable std_core$Iterator.next 27 21
-vtable std_core$Iterator.next 31 22
-vtable std_core$Iterator.next 35 23
-vtable std_core$Iterator.next 39 24
+vtable std_core$Iterator.next 18 20
+vtable std_core$Iterator.next 22 21
+vtable std_core$Iterator.next 27 22
+vtable std_core$Iterator.next 31 23
+vtable std_core$Iterator.next 35 24
+vtable std_core$Iterator.next 39 25
 export main 4
 
 fn 0 snippet$triple (i32) -> i32
@@ -265,7 +265,7 @@ fn 4 snippet$main () -> i32
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   call 10   ; std_core$finish_buffer
-  call 18   ; std_io$println__string
+  call 19   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -762,60 +762,70 @@ end
 fn 16 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 17   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
+      local.get 5   ; $len_9
       array.slice 14   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 17   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 18   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 17 std_io$write_bytes (u8,ref,i64) -> i32
+fn 17 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 18 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -835,7 +845,7 @@ fn 17 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 18 std_io$println__string (string) -> void
+fn 19 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 4   ; "\n"
@@ -847,7 +857,7 @@ fn 18 std_io$println__string (string) -> void
   return
 end
 
-fn 19 std_collections$__gen_state_std_collections_0$Iterator$next (ref) -> ref
+fn 20 std_collections$__gen_state_std_collections_0$Iterator$next (ref) -> ref
   local $field_12 i64
   local $field_13 i64
   local $add_22 i64
@@ -1011,7 +1021,7 @@ fn 19 std_collections$__gen_state_std_collections_0$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 20 std_collections$__gen_state_std_collections_1$Iterator$next (ref) -> ref
+fn 21 std_collections$__gen_state_std_collections_1$Iterator$next (ref) -> ref
   local $field_12 i64
   local $field_13 i64
   local $add_22 i64
@@ -1174,7 +1184,7 @@ fn 20 std_collections$__gen_state_std_collections_1$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 21 std_collections$__gen_state_std_collections_2$Iterator$next (ref) -> ref
+fn 22 std_collections$__gen_state_std_collections_2$Iterator$next (ref) -> ref
   local $field_12 i64
   local $field_13 i64
   local $add_22 i64
@@ -1338,7 +1348,7 @@ fn 21 std_collections$__gen_state_std_collections_2$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 22 std_collections$__gen_state_std_collections_3$Iterator$next (ref) -> ref
+fn 23 std_collections$__gen_state_std_collections_3$Iterator$next (ref) -> ref
   local $field_12 i64
   local $field_13 i64
   local $add_22 i64
@@ -1502,7 +1512,7 @@ fn 22 std_collections$__gen_state_std_collections_3$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 23 std_collections$__gen_state_std_collections_4$Iterator$next (ref) -> ref
+fn 24 std_collections$__gen_state_std_collections_4$Iterator$next (ref) -> ref
   local $field_12 i64
   local $field_13 i64
   local $add_22 i64
@@ -1666,7 +1676,7 @@ fn 23 std_collections$__gen_state_std_collections_4$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 24 std_collections$__gen_state_std_collections_5$Iterator$next (ref) -> ref
+fn 25 std_collections$__gen_state_std_collections_5$Iterator$next (ref) -> ref
   local $field_12 i64
   local $field_13 i64
   local $add_22 i64

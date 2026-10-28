@@ -14,12 +14,13 @@ type 11 struct snippet$Holder { items:8 }
 type 12 struct snippet$Row { cells:8 }
 type 13 array 2
 type 14 ref _
-type 15 scalar u8
-type 16 struct std_core$Buffer {  }
-type 17 array 15
-type 18 array 12
-type 19 array 10
-type 20 struct $Cell_i64_2ae1af19 { value:1 }
+type 15 scalar bool
+type 16 scalar u8
+type 17 struct std_core$Buffer {  }
+type 18 array 16
+type 19 array 12
+type 20 array 10
+type 21 struct $Cell_i64_2ae1af19 { value:1 }
 string 0 "index "
 string 1 "pick"
 string 2 "at "
@@ -41,13 +42,13 @@ string 17 "default method = "
 string 18 "written out = "
 string 19 "\n"
 import 0 byte_len std_core$byte_len result_type=1 param_types=10 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=17 param_types=10 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=1 param_types=4,17,1 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes std_core$bytes result_type=18 param_types=10 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=1 param_types=4,18,1 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 3 std_core$Index
 impl 3 std_core$IndexSet
 impl 6 std_core$Index
 impl 7 snippet$Stepper
-impl 16 std_core$ByteAccess
+impl 17 std_core$ByteAccess
 export main 7
 
 fn 0 snippet$slot (i64) -> i64
@@ -71,14 +72,14 @@ fn 0 snippet$slot (i64) -> i64
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 12   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   local.get 0   ; arg 0
   return
 end
 
 fn 1 snippet$pick (ref) -> ref
   string.const 1   ; "pick"
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   local.get 0   ; arg 0
   return
 end
@@ -119,7 +120,7 @@ fn 4 snippet$Shelf$std_core$Index$at (ref,i64) -> ref
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   call 12   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   local.field 0 6 0   ; arg 0 snippet$Shelf.items
   local.get 1   ; arg 1
   array.get 13   ; snippet$Counter[]
@@ -238,7 +239,7 @@ fn 7 snippet$main () -> i32
   local.get 3   ; __buf_1
   local.get 1   ; __place_operand_0
   call 12   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   i32.const 1
   i32.const 2
   array.new 8 2   ; i32[]
@@ -297,7 +298,7 @@ fn 7 snippet$main () -> i32
   local.get 5   ; $field_43
   local.get 1   ; __place_operand_0
   call 12   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   i32.const 0
   i32.const 0
   array.new 8 2   ; i32[]
@@ -310,7 +311,7 @@ fn 7 snippet$main () -> i32
   local.set 5   ; $field_43
   local.get 3   ; __buf_1
   local.get 5   ; $field_43
-  array.new 18 2   ; snippet$Row[]
+  array.new 19 2   ; snippet$Row[]
   local.set 3   ; __buf_1
   i64.const 1
   call 0   ; snippet$slot
@@ -320,7 +321,7 @@ fn 7 snippet$main () -> i32
   local.set 4   ; $cast_20
   local.get 3   ; __buf_1
   local.get 1   ; __place_operand_0
-  array.get 18   ; snippet$Row[]
+  array.get 19   ; snippet$Row[]
   local.set 5   ; $field_43
   local.field 5 12 0   ; $field_43 snippet$Row.cells
   local.set 6   ; $field_85
@@ -347,7 +348,7 @@ fn 7 snippet$main () -> i32
   local.set 1   ; __place_operand_0
   local.get 3   ; __buf_1
   i32.const 1
-  array.get 18   ; snippet$Row[]
+  array.get 19   ; snippet$Row[]
   struct.get 12 0   ; snippet$Row.cells
   i32.const 0
   load_slot_i32
@@ -361,7 +362,7 @@ fn 7 snippet$main () -> i32
   local.get 5   ; $field_43
   local.get 1   ; __place_operand_0
   call 12   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   i32.const 1
   struct.new 2   ; snippet$Counter
   local.set 3   ; __buf_1
@@ -413,7 +414,7 @@ fn 7 snippet$main () -> i32
   local.get 5   ; $field_43
   local.get 1   ; __place_operand_0
   call 12   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   i32.const 0
   struct.new 2   ; snippet$Counter
   local.tee 3   ; __buf_1
@@ -449,17 +450,17 @@ fn 7 snippet$main () -> i32
   local.get 5   ; $field_43
   local.get 1   ; __place_operand_0
   call 12   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   string.const 9   ; "a"
   string.const 10   ; "b"
-  array.new 19 2   ; string[]
+  array.new 20 2   ; string[]
   local.set 3   ; __buf_1
   i64.const 1
   call 0   ; snippet$slot
   local.set 1   ; __place_operand_0
   local.get 3   ; __buf_1
   local.get 1   ; __place_operand_0
-  array.get 19   ; string[]
+  array.get 20   ; string[]
   ref.cast 10   ; string
   string.const 11   ; "!"
   call 10   ; concat_2
@@ -467,15 +468,15 @@ fn 7 snippet$main () -> i32
   local.get 3   ; __buf_1
   local.get 1   ; __place_operand_0
   local.get 7   ; $call_162
-  array.set 19   ; string[]
+  array.set 20   ; string[]
   local.get 3   ; __buf_1
   i32.const 0
-  array.get 19   ; string[]
+  array.get 20   ; string[]
   ref.cast 10   ; string
   local.set 7   ; $call_162
   local.get 3   ; __buf_1
   i32.const 1
-  array.get 19   ; string[]
+  array.get 20   ; string[]
   ref.cast 10   ; string
   local.set 8   ; $idx_168
   string.const 12   ; "words = "
@@ -483,7 +484,7 @@ fn 7 snippet$main () -> i32
   string.const 4   ; " "
   local.get 8   ; $idx_168
   call 11   ; concat_4
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   i32.const 1
   i32.const 2
   i32.const 3
@@ -526,7 +527,7 @@ fn 7 snippet$main () -> i32
   local.get 5   ; $field_43
   local.get 1   ; __place_operand_0
   call 12   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   local.get 3   ; __buf_1
   i64.const 0
   call 9   ; snippet$bump_nth__snippet_Cell
@@ -553,13 +554,13 @@ fn 7 snippet$main () -> i32
   local.get 5   ; $field_43
   local.get 1   ; __place_operand_0
   call 12   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   i64.const 0
-  struct.new 20   ; $Cell_i64_2ae1af19
+  struct.new 21   ; $Cell_i64_2ae1af19
   local.tee 9   ; k
   struct.new 9   ; __lambda_env_snippet_1
   local.set 3   ; __buf_1
-  local.field 9 20 0   ; k $Cell_i64_2ae1af19.value
+  local.field 9 21 0   ; k $Cell_i64_2ae1af19.value
   local.set 1   ; __place_operand_0
   local.get 0   ; a
   local.get 1   ; __place_operand_0
@@ -616,7 +617,7 @@ fn 7 snippet$main () -> i32
   string.const 16   ; " k="
   call 13   ; std_core$write_string_at
   local.set 1   ; __place_operand_0
-  local.field 9 20 0   ; k $Cell_i64_2ae1af19.value
+  local.field 9 21 0   ; k $Cell_i64_2ae1af19.value
   local.set 4   ; $cast_20
   local.get 3   ; __buf_1
   local.get 1   ; __place_operand_0
@@ -626,7 +627,7 @@ fn 7 snippet$main () -> i32
   local.get 3   ; __buf_1
   local.get 1   ; __place_operand_0
   call 12   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   struct.new 7   ; snippet$Two
   local.get 0   ; a
   call 6   ; snippet$Two$Stepper$advance
@@ -653,7 +654,7 @@ fn 7 snippet$main () -> i32
   local.get 3   ; __buf_1
   local.get 1   ; __place_operand_0
   call 12   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   i64.const 2
   call 0   ; snippet$slot
   local.set 1   ; __place_operand_0
@@ -693,14 +694,14 @@ fn 7 snippet$main () -> i32
   local.get 3   ; __buf_1
   local.get 1   ; __place_operand_0
   call 12   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 18   ; std_io$println__string
   return.lit i32.const 0
 end
 
 fn 8 __lambda_snippet_0 (ref) -> i32
   local.field 0 9 0   ; arg 0 __lambda_env_snippet_1.cap_0
   i64.const 2
-  struct.set 20 0   ; $Cell_i64_2ae1af19.value
+  struct.set 21 0   ; $Cell_i64_2ae1af19.value
   return.lit i32.const 1
 end
 
@@ -944,60 +945,70 @@ end
 fn 15 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
-  local $len_6 i64
-  local $len_8 i64
+  local $len_7 i64
+  local $len_9 i64
   local chunk ref
-  local $len_11 i64
+  local $len_12 i64
   local n i32
-  local $cast_16 i64
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 16   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; buf
     array.len
-    local.set 4   ; $len_6
+    local.set 4   ; $len_7
     local.get 3   ; sent
-    local.get 4   ; $len_6
+    local.get 4   ; $len_7
     i64.ge
-    if $L1 void
+    if $L2 void
     else
       local.get 2   ; buf
       array.len
-      local.set 5   ; $len_8
+      local.set 5   ; $len_9
       local.get 2   ; buf
       local.get 3   ; sent
-      local.get 5   ; $len_8
-      array.slice 17   ; u8[]
+      local.get 5   ; $len_9
+      array.slice 18   ; u8[]
       local.tee 6   ; chunk
       array.len
-      local.set 7   ; $len_11
+      local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
-      local.get 7   ; $len_11
-      call 16   ; std_io$write_bytes
+      local.get 7   ; $len_12
+      call 17   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L2 void
+      if $L3 void
         return
-      end $L2
+      end $L3
       local.get 8   ; n
       i32.to_i64
-      local.set 9   ; $cast_16
+      local.set 9   ; $cast_17
       local.get 3   ; sent
-      local.get 9   ; $cast_16
+      local.get 9   ; $cast_17
       i64.checked_add
       local.set 3   ; sent
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   return
 end
 
-fn 16 std_io$write_bytes (u8,ref,i64) -> i32
+fn 16 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 17 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -1017,7 +1028,7 @@ fn 16 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 17 std_io$println__string (string) -> void
+fn 18 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 19   ; "\n"

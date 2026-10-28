@@ -175,6 +175,7 @@
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
   std/iter
     fn std.iter.map<i32, string>  // std_iter$map__i32__string
     fn std.iter.map<string, i64>  // std_iter$map__string__i64

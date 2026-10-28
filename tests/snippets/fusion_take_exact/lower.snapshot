@@ -370,6 +370,7 @@
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
   std/iter
     fn std.iter.flat_map<i32, i32>  // std_iter$flat_map__i32__i32
     fn std.iter.map<i32, i32>  // std_iter$map__i32__i32

@@ -270,6 +270,7 @@
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
   std/string
     fn std.string.StringChars.next  // std_string$StringChars$std_core$Iterator$next
     fn std.string.chars  // std_string$chars
