@@ -1,0 +1,8 @@
+# stderr
+vader build: wrote <project>/build/driver/driver
+vader build: wrote <project>/build/debug-<host>/app (split: <n> objects compiled in parallel)
+
+# Diagnostics
+[build.vader:1:1] error[H6014] a generated module is never written: no round followed the emission of `gen/late`
+# exit
+1

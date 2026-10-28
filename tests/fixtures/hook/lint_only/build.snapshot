@@ -1,0 +1,7 @@
+# stderr
+vader build: wrote <project>/build/driver/driver
+
+# Diagnostics
+[src/main.vader:4:1] error[H6004] build driver reported a problem: struct `badlyNamed` should be PascalCase
+# exit
+1

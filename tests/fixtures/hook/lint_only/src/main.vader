@@ -1,0 +1,9 @@
+module "src"
+
+// Breaks the lint's rule, so its report is what fails the build.
+badlyNamed :: struct { x: i32 }
+
+main :: fn() -> i32 {
+    a :: badlyNamed { .x = 1 }
+    return a.x - 1
+}

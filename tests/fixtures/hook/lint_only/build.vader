@@ -1,0 +1,27 @@
+// A driver that only lints: it leaves the loop at `BeforeEmit`, which writes
+// nothing, and returns 0. Its report still prints when `build` returns, and
+// fails the build.
+
+module "build"
+
+import "std/string"
+import "toolchain/build"
+AST :: import "toolchain/ast"
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_entry("app", "src/main.vader")
+    for msg in ctx.messages() {
+        if msg is TypecheckedMessage && msg.module_name == "src" {
+            for d in msg.declarations {
+                if d is AST.StructDecl && d.name[0..<1].to_upper() != d.name[0..<1] {
+                    ctx.report(d.name_span, "struct `${d.name}` should be PascalCase")
+                }
+            }
+        }
+        if msg is PhaseMessage && msg.phase == .BeforeEmit {
+            break
+        }
+    }
+    return 0
+}

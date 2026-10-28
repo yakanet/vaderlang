@@ -135,6 +135,40 @@ outcome :: fn(ctx: BuildContext, code: i32) -> i32 {
     return code
 }
 
+/// The exit code of a driver whose `build` returned `code`, once every context
+/// it made has printed what it still holds.
+///
+/// The entry `vader build` writes beside `build.vader` calls it; a driver does
+/// not. It is what prints the reports, and fails the build on an error among
+/// them, when the driver left `messages()` before its end or reported once the
+/// build was over.
+///
+/// @param code  what `build` returned.
+/// @return      `code`, or 1 when a context holds an error.
+/// @error       H6014 for a context whose stream ran its rounds and still holds
+///              generated modules: emitted after the last `BeforeEmit`, or
+///              before the driver left the loop there, no round wrote them.
+export finish_driver :: fn(code: i32) -> i32 {
+    result := code
+    for ctx in driver_contexts().contexts {
+        result = finished_context(ctx, result)
+    }
+    return result
+}
+
+// What the driver's exit does for one context: report the modules no round
+// wrote, print what is left, and fail on an error. A build that failed already
+// says why its modules are missing.
+finished_context :: fn(ctx: BuildContext, code: i32) -> i32 {
+    if ctx.entered_rounds && ctx.pending.len() > 0 && !any_error_diag(ctx.diagnostics) {
+        names :: ctx.pending.map((g) -> g.name).distinct().collect()
+        detail :: "no round followed the emission of `${join_strings(names, "`, `")}`"
+        ctx.diagnostics.push(hook_error(.NoRoundAfterGeneration, driver_span(ctx), detail))
+    }
+    ctx.flush_reports()
+    return outcome(ctx, code)
+}
+
 // The build itself, which `messages` tells the plugins about.
 pipeline_messages :: fn(ctx: BuildContext) -> Iterator<Message> {
     // An error already on the context means it holds less than the driver
@@ -198,6 +232,7 @@ pipeline_messages :: fn(ctx: BuildContext) -> Iterator<Message> {
         yield CompleteMessage { .code = 1 }
         return
     }
+    ctx.entered_rounds = true
     writes_binaries :: writes_outputs && output.emit == "executable"
     project :: output.project_root
     // The loader reads the driver's roots where it reads a manifest's.
@@ -464,6 +499,7 @@ drain :: fn(ctx: BuildContext) -> i32 {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "toolchain/span"
 
 @test test_messages_with_an_unknown_entry_reports_h6009 :: fn() -> void {
     ctx :: new_build_context(["driver", "/tmp/proj", "", "--entry=tool"])
@@ -506,4 +542,34 @@ import "std/testing"
     reports :: ctx.reports_of()
     assert_eq(reports.len(), 1)
     assert_eq(reports[0].code.id, "H6005")
+}
+
+@test test_a_module_no_round_wrote_is_reported_h6014 :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.entered_rounds = true
+    ctx.emit_module("gen/late", "late :: fn() -> i32 = 1")
+    ctx.emit_module("gen/late", "late :: fn() -> i32 = 2")
+    assert_eq(finished_context(ctx, 0), 1)
+    reports :: ctx.reports_of()
+    assert_eq(reports.len(), 1)
+    assert_eq(reports[0].code.id, "H6014")
+    assert_eq(reports[0].detail, "no round followed the emission of `gen/late`")
+}
+
+@test test_a_stream_that_compiles_nothing_leaves_its_modules_unreported :: fn() -> void {
+    // A description, or a run waiting for the user to pick an entry: the stream
+    // ends before its rounds by design, so what the driver emitted is not late.
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.request.mode = .Describe
+    ctx.add_entry("app", "src/main.vader")
+    ctx.emit_module("gen/early", "early :: fn() -> i32 = 1")
+    for _ in ctx.messages() {}
+    assert_eq(finished_context(ctx, 0), 0)
+    assert_eq(ctx.reports_of().len(), 0)
+}
+
+@test test_the_driver_exit_fails_on_a_report_the_stream_never_saw :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.report(empty_span(), "made once the build was over")
+    assert_eq(finished_context(ctx, 0), 1)
 }

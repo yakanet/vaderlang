@@ -1,0 +1,22 @@
+// A plugin that generates a module once the build is over: no round follows to
+// write it, so the driver's exit reports it and fails the build, although the
+// program itself built.
+
+module "build"
+
+import "toolchain/build"
+
+Late :: struct {}
+
+Late implements BuildPlugin {
+    on_complete :: fn(self, ctx: BuildContext, code: i32) -> void {
+        ctx.emit_module("gen/late", "export late :: fn() -> i32 = 1")
+    }
+}
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_entry("app", "src/main.vader")
+    ctx.use(Late {})
+    return ctx.emit_native()
+}

@@ -3118,7 +3118,7 @@ A driver describes in code what a `vader.json` declares:
 
 An entry or an asset that breaks its rule is an error. When the driver starts draining `ctx.messages()` with an error already reported, one of its own reports included, nothing is described or compiled: the stream yields only a `CompleteMessage` of code 1.
 
-The end of the stream prints the diagnostics of the build, the driver's reports included, and an error among them makes the build's code 1. A driver that leaves the loop before the end, or reports once the build is over, prints them with `ctx.flush_reports()`.
+The end of the stream prints the diagnostics of the build, the driver's reports included, and an error among them makes the build's code 1. What a driver reports once the build is over, or when it leaves the loop before the end, prints when `build` returns, and fails the build the same way.
 
 #### What the command decides
 
@@ -3200,6 +3200,7 @@ main :: fn() -> i32 {
 - `name` is a new module that the project imports, or an existing one, which the file joins (*Generated modules*, above).
 - The program is then checked again and the generated declarations come back through the stream, so generation can be transitive; each declaration is still delivered once per build.
 - Generation stops at a fixed point, a round that writes nothing new. A driver whose output never settles is an error.
+- A generated module that no round writes is an error: one emitted after the last `Phase.BeforeEmit`, or before the driver leaves the loop there.
 - A failure of the driver contract is a build-driver diagnostic (`docs/TOOLING.md` *Diagnostics*). A driver reports the violations of its own rules through `ctx.report`.
 
 ---

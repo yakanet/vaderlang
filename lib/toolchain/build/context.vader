@@ -91,6 +91,12 @@ export BuildContext :: struct {
     /// runs before the first round, so this set is authoritative for this run.
     @internal
     generated:      string[] = []
+    /// True once a stream reached its generation rounds, so a module still
+    /// pending at the driver's exit is one no round wrote. A stream that
+    /// compiles nothing (a description, a run waiting for its entry, a refused
+    /// configuration) leaves it false.
+    @internal
+    entered_rounds: bool = false
     /// Entries, in the order `add_entry` added them. Read by the driver loop,
     /// never written directly: the order is what makes a build reproducible,
     /// so it stays behind `add_entry`.
@@ -105,7 +111,7 @@ export BuildContext :: struct {
     @internal
     description_file: string = DRIVER_FILENAME
     /// Diagnostics of the build and the driver's own reports. The end of the
-    /// stream prints them, `flush_reports` before it.
+    /// stream prints them, and the driver's exit what is left.
     @internal
     diagnostics:    Diagnostic[] = []
     /// How many of `diagnostics` are printed already, so none prints twice.
@@ -146,8 +152,20 @@ export new_build_context :: fn(args: string[]) -> BuildContext {
     // its C runtime and a `$VADER_HOME/…` root included. Empty when the driver
     // was run by hand, which leaves that probe as it is.
     register_toolchain_root(request.toolchain_root)
-    return new_build_context_from(request)
+    ctx :: new_build_context_from(request)
+    driver_contexts().contexts.push(ctx)
+    return ctx
 }
+
+// The contexts of this driver process, so its exit prints what each one still
+// holds (`finish_driver`). Only `new_build_context` registers: the CLI builds a
+// `vader.json` project in its own process, which may be a long-lived server.
+DriverContexts :: struct {
+    contexts: BuildContext[] = []
+}
+
+@singleton
+driver_contexts :: fn() -> DriverContexts = DriverContexts {}
 
 // A context for a request already in hand: `new_build_context` reads it from
 // `args`, `build_from_manifest` receives it from the CLI.
@@ -266,8 +284,8 @@ export add_asset :: fn(ctx: BuildContext, asset: string) -> void {
 
 /// Report a problem from the driver, anchored in the user's source.
 ///
-/// Accumulates; the end of the stream prints, and an error among the reports
-/// makes the build's code 1. The driver describes the problem and the
+/// Accumulates; the end of the stream or the driver's exit prints, and an error
+/// among the reports makes the build's code 1. The driver describes the problem and the
 /// registry owns the code (`H6004`): a project's lint rules should never have
 /// to allocate diagnostic ids, and every driver report stays greppable under one
 /// code.
@@ -285,27 +303,20 @@ export report :: fn(ctx: BuildContext, span: Span, message: string) -> void {
 
 /// Reports accumulated so far, in order.
 ///
-/// @return the driver's diagnostics. The end of the stream, or `flush_reports`,
-///         puts them on the wire.
+/// @return the driver's diagnostics. The end of the stream and the driver's exit
+///         put them on the wire.
 export reports_of :: fn(ctx: BuildContext) -> Diagnostic[] = ctx.diagnostics
 
-/// Print the reports not printed yet, in the compiler's own diagnostic format.
-///
-/// The end of `messages()` prints them on its own, so a driver calls this only
-/// when it leaves the loop before the end, reports once the build is over, or
-/// wants its reports seen sooner. Each prints once; a call sorts what it prints
-/// by file and position and drops its duplicates, which is what makes a driven
-/// build's output reproducible.
-///
-/// @param ctx  the context holding the reports.
-/// @return     true when at least one report was printed.
-export flush_reports :: fn(ctx: BuildContext) -> bool {
+// Print the reports not printed yet, in the compiler's own diagnostic format: at
+// the end of `messages()`, and at the driver's exit (`finish_driver`). Each prints
+// once; a call sorts what it prints by file and position and drops its
+// duplicates, which is what makes a driven build's output reproducible.
+flush_reports :: fn(ctx: BuildContext) -> void {
     if ctx.printed == ctx.diagnostics.len() {
-        return false
+        return
     }
     eprintln(dump_diagnostics_with_file(ctx.diagnostics[ctx.printed..<ctx.diagnostics.len()]))
     ctx.printed = ctx.diagnostics.len()
-    return true
 }
 
 // ---- tests ----------------------------------------------------------------
