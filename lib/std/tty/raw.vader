@@ -184,81 +184,21 @@ columns :: fn() -> i32 {
 /// a BURST rather than a byte is what makes a lone `Escape` distinguishable from
 /// the start of an arrow sequence: the arrow's three bytes arrive in one call,
 /// `Escape` alone arrives as one byte. No timing is involved, and it behaves the
-/// same on POSIX and on a Windows console.
-///
-/// ⚠️ Reads the raw descriptor, not the buffered stream, never mix it with
-/// `std/io::read_stdin` on the same input.
+/// same on POSIX and on a Windows console, whose keys arrive as the UTF-8 of
+/// what was typed whatever its code page.
 ///
 /// @param max  ceiling on the bytes returned; values above 64 are clamped.
 /// @return     the bytes read, never empty, since a successful read yields at
 ///             least one byte, or `null` at end of input, on a read failure,
 ///             and on a target with no terminal.
-@target
-export read_keys :: fn(max: i32) -> string | null {
-    // No terminal to read from: `wasi-wasm32` and `browser-wasm32`. Same answer
-    // as end of input, which every caller already handles.
-    return null
-}
+export read_keys :: fn(max: i32) -> string | null = read_available_or_null(i64(clamp_keys(max)))
 
-/// Bytes to read at most, whatever the caller asked for. A key press is a few
-/// bytes (an arrow is three) and the ceiling keeps the stack buffer bounded.
+/// Bytes returned at most, whatever the caller asked for. A key press is a few
+/// bytes (an arrow is three); more is a paste, handed over in pieces.
 KEYS_MAX: i32 : 64
 
-/// Attempts before giving up on a read that returns nothing.
-///
-/// The C original retried on `EINTR` alone, which needs `errno`. It cannot fire
-/// here: the runtime installs no signal handler, and `SIGWINCH`'s default
-/// disposition is to be ignored, which does not interrupt a blocking `read`. A
-/// bounded retry covers a handler a program installed itself without spinning on
-/// a real error.
-READ_ATTEMPTS :: 3
-
-@target(.Linux, .Darwin)
-read_keys :: fn(max: i32) -> string | null {
-    n :: clamp_keys(max)
-    if n == 0 {
-        return null
-    }
-    buf: u8[]: [0] * i64(n)
-    for 0..<READ_ATTEMPTS {
-        got :: sys_read(0, buf, i64(n))
-        if got > 0 {
-            return buf[0..<got].bytes_to_string()
-        }
-        if got == 0 {
-            return null
-        }
-    }
-    return null
-}
-
-@target(.Windows)
-read_keys :: fn(max: i32) -> string | null {
-    n :: clamp_keys(max)
-    if n == 0 {
-        return null
-    }
-    h :: get_std_handle(STD_INPUT_HANDLE)
-    if i64(h) == INVALID_HANDLE {
-        return null
-    }
-    buf: u8[]: [0] * i64(n)
-    got: u32[]: [0]
-    if !read_file(h, buf, u32(n), got, null) {
-        return null
-    }
-    // A synchronous read returning true with zero bytes has reached end of file.
-    if got[0] == 0 {
-        return null
-    }
-    return buf[0..<i64(got[0])].bytes_to_string()
-}
-
-/// The read size: the caller's ask, floored at 0 and capped at `KEYS_MAX`.
+/// The read size: the caller's ask, capped at `KEYS_MAX`.
 clamp_keys :: fn(max: i32) -> i32 {
-    if max <= 0 {
-        return 0
-    }
     if max > KEYS_MAX {
         return KEYS_MAX
     }

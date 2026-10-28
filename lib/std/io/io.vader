@@ -80,7 +80,7 @@ describe_io_error_kind :: fn(kind: IOErrorKind, fallback: string) -> string = ma
 
 /// The failure the LAST system call reported, wrapped as an `IOError`.
 ///
-/// ⚠️ Call it immediately after the failing call. It reads the platform's
+/// Call it immediately after the failing call. It reads the platform's
 /// last-error slot (`errno` on POSIX, `GetLastError` on Windows) and any
 /// intervening system call may have replaced it. In particular, do not close a
 /// handle first: `fclose` and `CloseHandle` both overwrite it.
@@ -237,14 +237,17 @@ is_console :: fn(out: Stream) -> bool = match out {
 }
 
 @singleton
-stdout_is_console :: fn() -> bool = has_console_mode(.Stdout)
+stdout_is_console :: fn() -> bool = has_console_mode(std_handle(.Stdout))
 
 @singleton
-stderr_is_console :: fn() -> bool = has_console_mode(.Stderr)
+stderr_is_console :: fn() -> bool = has_console_mode(std_handle(.Stderr))
 
-has_console_mode :: fn(out: Stream) -> bool {
+@singleton
+stdin_is_console :: fn() -> bool = has_console_mode(get_std_handle(STD_INPUT_HANDLE))
+
+has_console_mode :: fn(h: Handle) -> bool {
     mode: u32[]: [0]
-    return get_console_mode(std_handle(out), mode)
+    return get_console_mode(h, mode)
 }
 
 // Sole I/O write primitive: appends `msg` to `out`, as text where the stream
@@ -306,7 +309,7 @@ export read_line :: fn() -> string | IOError {
     // One byte at a time: stdin is a stream, and reading ahead of the newline
     // would consume input the next caller expects to still be there.
     for _ in 0..<MAX_LINE {
-        b :: read_stdin(1)
+        b :: read_ready(1)
         if b is IOError {
             // EOF with something already read is a final line without its
             // newline, which is a line; EOF with nothing is the error.
@@ -315,7 +318,7 @@ export read_line :: fn() -> string | IOError {
             }
             return b
         }
-        if b.byte_len() == 0 || b.byte_at(0) == '\n' {
+        if b[0] == '\n' {
             // A CRLF peer: drop the CR that TERMINATED the line, not every CR
             // in it: an interior `\r` is data, and silently eating it corrupts
             // any line-oriented payload that carries one.
@@ -324,7 +327,7 @@ export read_line :: fn() -> string | IOError {
             }
             return out.bytes_to_string()
         }
-        out.push(b.byte_at(0))
+        out.push(b[0])
     }
     return IOError { .msg = "line too long" }
 }
@@ -333,84 +336,200 @@ export read_line :: fn() -> string | IOError {
 /// spin forever.
 MAX_LINE: i64 : 1024 * 1024
 
-/// Read EXACTLY `n` bytes from stdin into a fresh UTF-8 string. Loops
-/// until `n` bytes are accumulated ; EOF before `n` is an error. Forces
-/// stdin into binary mode on Windows so `\r\n` survives the read:
-/// required by length-prefixed transports (LSP, MCP, custom RPC).
+/// Read EXACTLY `n` bytes from stdin into a fresh UTF-8 string. Loops until `n`
+/// bytes are accumulated; end of input before `n` is an error. The bytes come as
+/// they are, `\r\n` included: required by length-prefixed transports (LSP, MCP,
+/// custom RPC).
 /// @param n     number of bytes to consume.
 /// @return      a string of exactly `n` bytes (interpreted as UTF-8).
-/// @error       `IOError` on EOF, partial read, or stream error.
-/// The fallback covers the targets with no backend that could run this:
+/// @error       `IOError` on end of input, a failed read, or a target with no
+///              stdin.
+export read_stdin :: fn(n: i64) -> string | IOError {
+    out: u8[]: [] * n
+    for out.len() < n {
+        chunk :: read_ready(read_size(n - out.len()))
+        if chunk is IOError {
+            return chunk
+        }
+        out.push_all(chunk)
+    }
+    return out.bytes_to_string()
+}
+
+// What one read asks for of the `missing` bytes: a read buffer is that large,
+// whatever then arrives.
+read_size :: fn(missing: i64) -> i64 {
+    if missing > READ_CHUNK {
+        return READ_CHUNK
+    }
+    return missing
+}
+
+/// Read what stdin has ready: block until at least one byte has arrived, then
+/// return what has, up to `max` bytes. Unlike `read_stdin`, it waits for no
+/// count, which is what reading keys as they are pressed needs.
+///
+/// @param max  ceiling on the bytes returned.
+/// @return     at least one byte, or null at end of input, on a failed read,
+///             when `max` is not positive, and on a target with no stdin.
+export read_available_or_null :: fn(max: i64) -> string | null {
+    if max <= 0 {
+        return null
+    }
+    bytes :: read_ready(max)
+    if bytes is IOError {
+        return null
+    }
+    return bytes.bytes_to_string()
+}
+
+/// Up to `max` bytes of stdin, at least one: what a single read returns.
+///
+/// On a Windows console they are the UTF-8 of what was typed, read as text
+/// whatever the code page; what a read brings past `max` waits for the next.
+///
+/// @param max  ceiling on the bytes returned, positive.
+/// @error      `IOError` on end of input or a failed read.
+/// The general body covers the targets with no backend that could run this:
 /// `wasi-wasm32` and `browser-wasm32`. Reporting failure is what every caller
 /// already handles, and it is what `write_bytes` does on the same targets.
 @target
-export read_stdin :: fn(n: i64) -> string | IOError {
+read_ready :: fn(max: i64) -> u8[] | IOError {
     return IOError { .msg = "stdin is not available on this target" }
 }
 
+/// Attempts before giving up on a read that fails. A signal handler a program
+/// installed can interrupt a blocking read, which is then worth retrying; the
+/// bound keeps a real error from spinning.
+READ_ATTEMPTS :: 3
+
 @target(.Linux, .Darwin)
-read_stdin :: fn(n: i64) -> string | IOError {
-    if n == 0 {
-        return ""
-    }
-    buf: u8[]: [0] * n
-    got: i64 = 0
+read_ready :: fn(max: i64) -> u8[] | IOError {
+    buf: u8[]: [0] * max
     // `read` hands over what has ARRIVED, not what was asked: a pipe delivers
     // in bursts, so a short return is normal and only `0` means end of file.
-    for _ in 0..<n {
-        if got >= n {
-            break
+    for 0..<READ_ATTEMPTS {
+        got :: sys_read(0, buf, max)
+        if got > 0 {
+            return buf[0..<got]
         }
-        slice: u8[]: [0] * (n - got)
-        r :: sys_read(0, slice, n - got)
-        if r < 0 {
-            return IOError { .msg = "stdin read failed" }
+        if got == 0 {
+            return END_OF_INPUT
         }
-        if r == 0 {
-            return IOError { .msg = "unexpected end of input" }
-        }
-        for i in 0..<r {
-            buf[got + i] = slice[i]
-        }
-        got = got + r
     }
-    return buf.bytes_to_string()
+    return last_io_error("stdin read failed")
 }
 
 @target(.Windows)
-read_stdin :: fn(n: i64) -> string | IOError {
-    if n == 0 {
-        return ""
-    }
+read_ready :: fn(max: i64) -> u8[] | IOError {
     h :: get_std_handle(STD_INPUT_HANDLE)
-    buf: u8[]: [0] * n
-    got: i64 = 0
-    for _ in 0..<n {
-        if got >= n {
-            break
-        }
-        slice: u8[]: [0] * (n - got)
-        read: u32[]: [0]
-        if !read_file(h, slice, u32(n - got), read, null) {
-            return IOError { .msg = "stdin read failed" }
-        }
-        r :: i64(read[0])
-        if r == 0 {
-            return IOError { .msg = "unexpected end of input" }
-        }
-        for i in 0..<r {
-            buf[got + i] = slice[i]
-        }
-        got = got + r
+    if stdin_is_console() {
+        return read_console(h, max)
     }
-    return buf.bytes_to_string()
+    buf: u8[]: [0] * max
+    got: u32[]: [0]
+    if !read_file(h, buf, u32(max), got, null) {
+        return last_io_error("stdin read failed")
+    }
+    // A synchronous read returning true with zero bytes has reached end of file.
+    if got[0] == 0 {
+        return END_OF_INPUT
+    }
+    return buf[0..<i64(got[0])]
 }
+
+/// What a read at the end of stdin answers.
+END_OF_INPUT :: IOError { .msg = "end of input" }
+
+// ---- what a console has typed ---------------------------------------------
+
+/// What console reads brought past what was asked: the UTF-8 left to hand out,
+/// and a high surrogate whose low half the next read brings.
+TypedText :: struct {
+    bytes: u8[] = []
+    at: i64 = 0
+    /// The high surrogate held back, 0 when none.
+    high: u16 = 0
+}
+
+@singleton
+typed_text :: fn() -> TypedText = TypedText {}
+
+// Units a console read asks for at most.
+CONSOLE_READ_UNITS: i64 : 256
+
+// Ctrl-Z, which ends the input when typed at the start of a line.
+CTRL_Z: u16 : 0x1A
+
+// Up to `max` bytes of what was typed at the console `h`, reading when none is
+// left over.
+read_console :: fn(h: Handle, max: i64) -> u8[] | IOError {
+    typed :: typed_text()
+    for typed.at >= typed.bytes.len() {
+        read :: read_console_text(h, typed)
+        if read is IOError {
+            return read
+        }
+    }
+    return typed.hand_out(max)
+}
+
+// Up to `max` of the bytes `typed` holds, which it then no longer holds.
+hand_out :: fn(typed: TypedText, max: i64) -> u8[] {
+    end := typed.at + max
+    if end > typed.bytes.len() {
+        end = typed.bytes.len()
+    }
+    out :: typed.bytes[typed.at..<end]
+    typed.at = end
+    return out
+}
+
+// Read what the console `h` holds into `typed`, as UTF-8. End of input is a
+// read that brings nothing, or a Ctrl-Z at the start of a line, as `ReadFile`
+// reads it from a console.
+read_console_text :: fn(h: Handle, typed: TypedText) -> null | IOError {
+    units: u16[]: [0] * CONSOLE_READ_UNITS
+    got: u32[]: [0]
+    if !read_console_w(h, units, u32(CONSOLE_READ_UNITS), got, null) {
+        return last_io_error("stdin read failed")
+    }
+    n :: i64(got[0])
+    if n == 0 || units[0] == CTRL_Z && reads_lines(h) {
+        return END_OF_INPUT
+    }
+    text: u16[]: []
+    if typed.high != 0 {
+        text.push(typed.high)
+        typed.high = 0
+    }
+    text.push_all(units[0..<n])
+    // A high surrogate makes a character only with the next read's first unit.
+    last :: text[text.len() - 1]
+    if is_high_surrogate(last) {
+        typed.high = last
+        text.remove_last()
+    }
+    typed.bytes = wide_to_utf8(text, i32(text.len()))
+    typed.at = 0
+    return null
+}
+
+// Whether the console `h` hands over whole lines, Ctrl-Z then meaning the end.
+reads_lines :: fn(h: Handle) -> bool {
+    mode: u32[]: [0]
+    return get_console_mode(h, mode) && (mode[0] & ENABLE_LINE_INPUT) != 0
+}
+
+// Whether `unit` is the first half of a surrogate pair. `std/string` has its
+// own, and stays out of what every program touching `std/io` compiles.
+is_high_surrogate :: fn(unit: u16) -> bool = unit >= 0xD800 && unit <= 0xDBFF
 
 /// True iff stdin has data ready within `timeout_ms` (`0` = non-blocking
 /// probe). Lets a length-prefixed server detect a quiescent input window,
-/// e.g. drain a burst of notifications, then do expensive work once. `read_stdin`
-/// goes straight to the descriptor, so there is no stdio buffer left to lag
-/// behind what this reports. A closed peer (pipe hangup)
+/// e.g. drain a burst of notifications, then do expensive work once. A pipe is
+/// read straight from its descriptor, so no buffer lags behind what this
+/// reports; a console reports ready. A closed peer (pipe hangup)
 /// reports ready so the next read observes EOF rather than spinning.
 /// @param timeout_ms  max wait in milliseconds ; `0` polls without blocking.
 /// @return            `true` if a subsequent `read_stdin` won't block on the
@@ -1186,17 +1305,21 @@ to_wide :: fn(s: string) -> u16[] {
 ///
 /// @param units  how many units to read, EXCLUDING any NUL, which is what
 ///               every Win32 length already reports.
-from_wide :: fn(w: u16[], units: i32) -> string {
+from_wide :: fn(w: u16[], units: i32) -> string = wide_to_utf8(w, units).bytes_to_string()
+
+/// `units` UTF-16 units as UTF-8 bytes; empty when the conversion fails, and
+/// for no units at all.
+wide_to_utf8 :: fn(w: u16[], units: i32) -> u8[] {
     empty: u8[]: []
     n :: wide_char_to_multi_byte(CP_UTF8, 0, w, units, empty, 0, null, null)
     if n <= 0 {
-        return ""
+        return []
     }
     out: u8[]: [0] * i64(n)
     if wide_char_to_multi_byte(CP_UTF8, 0, w, units, out, n, null, null) <= 0 {
-        return ""
+        return []
     }
-    return out.bytes_to_string()
+    return out
 }
 
 // `\\` to `/`. Local rather than `std/path::to_posix` on purpose: importing
@@ -1234,6 +1357,23 @@ without_trailing_sep :: fn(p: string) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test test_typed_text_hands_out_what_was_asked_and_keeps_the_rest :: fn() -> void {
+    // `h\u{e9}!` in UTF-8: the accent takes two bytes, which two reads may split.
+    typed :: TypedText { .bytes = [0x68, 0xC3, 0xA9, 0x21] }
+    first :: typed.hand_out(2)
+    assert_eq(first.len(), 2)
+    assert_eq(first[1], 0xC3)
+    assert_eq(typed.hand_out(8).len(), 2)
+    assert_eq(typed.hand_out(8).len(), 0)
+}
+
+@test test_only_the_first_half_of_a_pair_waits_for_the_next_read :: fn() -> void {
+    // U+1F600 is the pair D83D DE00.
+    assert(is_high_surrogate(0xD83D), "the first half waits")
+    assert(!is_high_surrogate(0xDE00), "the second half completes it")
+    assert(!is_high_surrogate(0x61), "a character on its own does not wait")
+}
 
 @test test_temp_dir_falls_back_when_the_variable_is_empty :: fn() -> void {
     assert_eq(temp_dir_of(null), "/tmp")

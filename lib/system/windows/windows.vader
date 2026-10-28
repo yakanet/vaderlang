@@ -538,6 +538,19 @@ export set_console_mode :: fn(h: Handle, mode: u32) -> bool
 export write_console_w :: fn(h: Handle, text: u16[], count: u32,
                              @c_out written: u32[], reserved: CPointer | null) -> bool
 
+/// `ReadConsoleW`: what was typed at a console, as UTF-16 whatever its code
+/// page. False on failure, and on a handle that is not a console.
+///
+/// @param h        a console input handle.
+/// @param text     receives the UTF-16 units.
+/// @param count    `text`'s capacity in units.
+/// @param read     receives how many units were read.
+/// @param control  always null: no early wake-up on a control character.
+/// @return         whether the read succeeded.
+@extern(KERNEL32, "ReadConsoleW")
+export read_console_w :: fn(h: Handle, @c_out text: u16[], count: u32,
+                            @c_out read: u32[], control: CPointer | null) -> bool
+
 /// `ReadFile`. False on failure; a synchronous read returning true with `read`
 /// short of `count` has reached end of file.
 ///
