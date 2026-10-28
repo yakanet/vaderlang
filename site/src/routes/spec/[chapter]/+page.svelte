@@ -1,5 +1,6 @@
 <script>
 	import { chapter_href, chapter_label } from '#lib/links.js';
+	import Outline from '#lib/Outline.svelte';
 
 	let { data } = $props();
 
@@ -44,13 +45,7 @@
 		<article class="doc">
 			<h1>{chapter_label(data)}</h1>
 			{#if data.outline.length > 1}
-				<nav class="outline" aria-label="On this page">
-					<ul>
-						{#each data.outline as heading (heading.id)}
-							<li><a href="#{heading.id}">{heading.title}</a></li>
-						{/each}
-					</ul>
-				</nav>
+				<Outline headings={data.outline} />
 			{/if}
 			{@html data.html}
 		</article>
@@ -116,23 +111,6 @@
 		border-radius: var(--r2);
 		padding: var(--s1) var(--s3);
 		margin-bottom: var(--s4);
-	}
-	.outline {
-		margin: 0 0 var(--s6);
-		padding: var(--s3) var(--s4);
-		background: var(--sunken);
-		border: var(--hair) solid var(--line);
-		border-radius: var(--r2);
-		font-size: var(--step--1);
-	}
-	.outline ul {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-		columns: 2 14rem;
-	}
-	.outline a {
-		text-decoration: none;
 	}
 	.pager {
 		display: flex;

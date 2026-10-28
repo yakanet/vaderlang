@@ -100,3 +100,104 @@ jobs:
       - uses: actions/checkout@v6
       - name: verify.sh (stage1 == stage2, reproducible)
         run: bash bootstrap/verify.sh
+
+  # On a `v*` tag, the toolchain as a download: one self-contained bundle per
+  # platform, which `release` attaches to the GitHub Release of the tag. The
+  # archive names carry no version, so `releases/latest/download/<name>` always
+  # reaches the newest one; the site's download page links there. A manual run
+  # builds the bundles as artifacts, without a release.
+  dist:
+    name: Bundle (${{ matrix.platform }})
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    strategy:
+      matrix:
+        include:
+          - { platform: darwin-arm64, runner: macos-latest }
+          # The oldest supported image: the binary needs the glibc it was linked against.
+          - { platform: linux-x64, runner: ubuntu-22.04 }
+          - { platform: windows-x64, runner: windows-latest }
+    runs-on: ${{ matrix.runner }}
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '13.0'
+    steps:
+      - uses: actions/checkout@v6
+      # Before any build: a release is named after the version the binary reports.
+      - name: Check that the tag is the version
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          version=$(sed -n 's/^export CLI_VERSION :: "\(.*\)"$/\1/p' vader/tools/cli/spec.vader)
+          test "v$version" = "$GITHUB_REF_NAME" || { echo "the tag is $GITHUB_REF_NAME, CLI_VERSION is $version"; exit 1; }
+      - name: Build the bundle
+        if: runner.os != 'Windows'
+        run: bash bootstrap/build.sh --dist
+      - name: Set up clang targeting MinGW
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: pwsh -NoProfile -File tools/ci/mingw-clang.ps1
+      - name: Build the bundle (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: pwsh bootstrap/build.ps1 -Dist
+      # Away from the checkout, the bundle must find everything beside itself.
+      - name: Run and build hello world with the bundle
+        if: runner.os != 'Windows'
+        run: |
+          vader="$PWD/dist/vader-${{ matrix.platform }}/vader"
+          "$vader" --version
+          mkdir "$RUNNER_TEMP/hello" && cp examples/hello/hello.vader "$RUNNER_TEMP/hello/"
+          cd "$RUNNER_TEMP/hello"
+          "$vader" run hello.vader
+          "$vader" build --out=hello hello.vader && ./hello
+      - name: Run and build hello world with the bundle (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $vader = Join-Path $PWD 'dist\vader-${{ matrix.platform }}\vader.exe'
+          & $vader --version
+          $hello = Join-Path $env:RUNNER_TEMP 'hello'
+          New-Item -ItemType Directory $hello | Out-Null
+          Copy-Item examples\hello\hello.vader $hello
+          Set-Location $hello
+          & $vader run hello.vader
+          if ($LASTEXITCODE -ne 0) { throw 'vader run failed' }
+          & $vader build --out=hello.exe hello.vader
+          if ($LASTEXITCODE -ne 0) { throw 'vader build failed' }
+          .\hello.exe
+      - name: Archive
+        if: runner.os != 'Windows'
+        run: tar -czf vader-${{ matrix.platform }}.tar.gz -C dist vader-${{ matrix.platform }}
+      - name: Archive (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path dist\vader-${{ matrix.platform }} -DestinationPath vader-${{ matrix.platform }}.zip
+      - uses: actions/upload-artifact@v7
+        with:
+          name: vader-${{ matrix.platform }}
+          path: vader-${{ matrix.platform }}.*
+          if-no-files-found: error
+
+  # The release of a tag, once every check above has passed on it. The site is
+  # published again from `main` after it: its download page names the latest
+  # release. A release made with this job's token triggers no workflow by
+  # itself; a dispatch does.
+  release:
+    name: Publish the release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [typecheck, test-posix, test-windows, fixed-point, dist]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: archives
+          merge-multiple: true
+      - name: Create the release
+        run: gh release create "$GITHUB_REF_NAME" archives/* --verify-tag --generate-notes --title "Vader $GITHUB_REF_NAME"
+      - name: Publish the site again
+        run: gh workflow run docs.yml --ref main

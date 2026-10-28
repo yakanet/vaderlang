@@ -3,7 +3,7 @@
 # Vader
 
 [![CI](https://github.com/yakanet/vaderlang/actions/workflows/build.yml/badge.svg)](https://github.com/yakanet/vaderlang/actions/workflows/build.yml)
-[![Documentation](https://img.shields.io/badge/docs-specification%20%26%20API-047857)](https://github.broutin.dev/vaderlang/)
+[![Documentation](https://img.shields.io/badge/docs-specification%20%26%20API-047857)](https://vaderlang.broutin.dev/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 ![Status](https://img.shields.io/badge/status-experimental-orange)
 ![Self-hosted](https://img.shields.io/badge/compiler-self--hosted-brightgreen)
@@ -33,7 +33,7 @@ area :: fn(s: Shape) -> f64 = match s {
 }
 
 main :: fn() -> i32 {
-    shapes: Shape[] = [
+    shapes: Shape[]: [
         Circle { .radius = 2.0 },
         Rect { .w = 3.0, .h = 4.0 },
     ]
@@ -73,6 +73,8 @@ Grab a [prebuilt release](#install) (or [build from the C seed](#build-from-sour
 
 ```vader
 // examples/hello/hello.vader
+module "main"
+
 import "std/io"
 
 main :: fn() -> i32 {
@@ -94,7 +96,7 @@ Inspect any compilation stage with [`vader dump`](#dump-stages), or emit textual
 
 ## Install
 
-**Coming soon**: prebuilt binaries for macOS arm64 (Apple Silicon), Linux x64, and Windows x64 (Explorer-extractable .zip; Windows 10+ ships tar natively).
+Each release publishes prebuilt archives for macOS arm64 (Apple Silicon), Linux x64 and Windows x64, listed on the [download page](https://vaderlang.broutin.dev/download/) with how to install them. Until the first release, [build from source](#build-from-source).
 <!---
 Prebuilt archives ship the `vader` binary alongside the stdlib, the C runtime, and the Vader sources it loads at runtime. Extract anywhere, then run `vader` directly (or add the folder to your `PATH`).
 
@@ -282,7 +284,7 @@ The live, item-by-item roadmap is in [`TODO.md`](./TODO.md). High-level mileston
 
 ## Further reading
 
-- [The site](https://github.broutin.dev/vaderlang/): the specification, one page per chapter, and the API reference of every module of the library and of the compiler, written by `vader doc`
+- [The site](https://vaderlang.broutin.dev/): the specification, one page per chapter, and the API reference of every module of the library and of the compiler, written by `vader doc`
 - [`SPEC.md`](./SPEC.md): the language specification
 - [`docs/TOOLING.md`](./docs/TOOLING.md): the `vader` command, the test runner, the debugger and the language server
 - [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md): how the compiler is built

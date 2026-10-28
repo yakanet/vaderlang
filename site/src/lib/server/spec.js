@@ -10,12 +10,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { Marked } from 'marked';
-import { chapter_href, heading_href } from '../links.js';
-import { code_html, escape_html } from './highlight.js';
+import { chapter_href, GITHUB, heading_href } from '../links.js';
+import { escape_html } from './highlight.js';
+import { assign_heading_ids, code_renderers, heading_html, heading_id, plain, slugify } from './markdown.js';
 import { REPO } from './repo.js';
 
 /**
- * @typedef {{ id: string, title: string, depth: number }} Heading
+ * @typedef {import('./markdown.js').Heading} Heading
  * @typedef {{
  *   number: string, title: string, slug: string,
  *   tokens: import('marked').Token[], headings: Heading[], html: string
@@ -23,28 +24,12 @@ import { REPO } from './repo.js';
  */
 
 // Where the files of the repository are read online.
-const SOURCE_URL = process.env.SITE_SOURCE_URL ?? 'https://github.com/yakanet/vaderlang/blob/main/';
+const SOURCE_URL = process.env.SITE_SOURCE_URL ?? `${GITHUB}/blob/main/`;
 const SPEC = path.join(REPO, 'SPEC.md');
 
 const CHAPTER = /^(?:(\d+)\. )?(.+)$/;
 // A title may hold code, whose `*` does not end it.
 const REFERENCE = /^§(\d+)(?: \*((?:`[^`]*`|[^*`])+)\*)?/;
-
-/**
- * A title as a reader sees it, the marks of its Markdown left out.
- * @param {string} text
- */
-const plain = (text) => text.replaceAll('`', '').replaceAll('*', '').trim();
-
-/**
- * The id a heading takes: its plain text in lower case, words joined by `-`.
- * @param {string} text
- */
-const slugify = (text) =>
-	plain(text)
-		.toLowerCase()
-		.replace(/[^\p{L}\p{N}]+/gu, '-')
-		.replace(/^-|-$/g, '');
 
 /** @type {import('marked').TokenizerAndRendererExtension} */
 const reference = {
@@ -77,21 +62,11 @@ const reference = {
 const markdown = new Marked({
 	extensions: [reference],
 	renderer: {
+		// The chapter's title is the page's `h1`: its sections start at `h2`.
 		heading(token) {
-			const id = /** @type {{ id?: string }} */ (token).id ?? slugify(token.text);
-			const inner = this.parser.parseInline(token.tokens);
-			// The chapter's title is the page's `h1`: its sections start at `h2`.
-			const level = token.depth - 1;
-			const self = `<a class="self" href="#${id}" aria-label="Link to this section">#</a>`;
-			return `<h${level} id="${id}">${inner}${self}</h${level}>\n`;
+			return heading_html(this.parser.parseInline(token.tokens), token.depth - 1, heading_id(token));
 		},
-		html: ({ text }) => escape_html(text),
-		codespan: ({ text }) => `<code class="ic">${escape_html(text)}</code>`,
-		code: ({ text, lang }) => {
-			let html = escape_html(text);
-			if (lang === 'vader') html = code_html(text);
-			return `<pre class="code"><code>${html}</code></pre>\n`;
-		}
+		...code_renderers
 	}
 });
 
@@ -105,7 +80,7 @@ for (const token of tokens) {
 	if (token.type === 'heading' && token.depth === 1) continue;
 	if (token.type === 'heading' && token.depth === 2) {
 		const [, number = '', title] = /** @type {RegExpExecArray} */ (CHAPTER.exec(token.text));
-		const slug = slugify(number ? `${number} ${title}` : title);
+		const slug = slugify(`${number} ${title}`);
 		chapters.push({ number, title, slug, tokens: [], headings: [], html: '' });
 		continue;
 	}
@@ -114,20 +89,8 @@ for (const token of tokens) {
 	else intro.push(token);
 }
 
-// Each heading of a chapter takes an id unique in it, on its token for the renderer.
-for (const chapter of chapters) {
-	const seen = new Map();
-	for (const token of chapter.tokens) {
-		if (token.type !== 'heading') continue;
-		const base = slugify(token.text);
-		const count = (seen.get(base) ?? 0) + 1;
-		seen.set(base, count);
-		let id = base;
-		if (count > 1) id = `${base}-${count}`;
-		/** @type {{ id?: string }} */ (token).id = id;
-		chapter.headings.push({ id, title: plain(token.text), depth: token.depth });
-	}
-}
+// Each heading of a chapter takes an id unique in it.
+for (const chapter of chapters) chapter.headings = assign_heading_ids(chapter.tokens);
 
 const BY_NUMBER = new Map(chapters.filter((c) => c.number).map((c) => [c.number, c]));
 
@@ -205,8 +168,21 @@ export function chapter_page(slug) {
 	};
 }
 
-/** Every chapter and every heading, as the search box reads them. */
-export const search_entries = chapters.flatMap((c) => [
-	{ title: c.title, chapter: c.number, slug: c.slug, id: '' },
-	...c.headings.map((h) => ({ title: h.title, chapter: c.number, slug: c.slug, id: h.id }))
-]);
+/**
+ * Where the search shows a chapter's entries come from: `§N`, or the title of a
+ * chapter without a number.
+ * @param {Chapter} chapter
+ */
+function search_label(chapter) {
+	if (chapter.number === '') return chapter.title;
+	return `§${chapter.number}`;
+}
+
+/** Every chapter and every heading, as the search reads them. */
+export const search_entries = chapters.flatMap((c) => {
+	const where = search_label(c);
+	return [
+		{ title: c.title, where, href: chapter_href(c.slug) },
+		...c.headings.map((h) => ({ title: h.title, where, href: heading_href(c.slug, h.id) }))
+	];
+});

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { content_html, content_sections, showcase } from '#lib/server/content.js';
 
 // Where the API references were built (`SITE_API_DIR`), each in its own folder.
 const API_DIR = process.env.SITE_API_DIR;
@@ -16,4 +17,9 @@ function stats_of(site) {
 	return `${modules} modules \u00b7 ${exports} exports`;
 }
 
-export const load = () => ({ stats: { lib: stats_of('lib'), vader: stats_of('vader') } });
+export const load = () => ({
+	stats: { lib: stats_of('lib'), vader: stats_of('vader') },
+	showcase: showcase(),
+	why: content_sections('why.md'),
+	toolchain: content_html('toolchain.md')
+});

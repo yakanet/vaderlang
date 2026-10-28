@@ -24,6 +24,7 @@
 	--s7: 3rem;
 	--r1: 3px;
 	--r2: 6px;
+	--r3: 10px;
 	--hair: 1px;
 	/* The height of the sticky header, which an anchor must clear. */
 	--head-h: 3.1rem;
@@ -39,6 +40,8 @@
 	--accent: light-dark(#047857, #4cc79a);
 	--accent-ink: light-dark(#065f46, #7fdcb8);
 	--accent-wash: light-dark(#e2f0ea, #133126);
+	/* Text on a surface filled with the accent. */
+	--on-accent: light-dark(#ffffff, #0e1412);
 
 	--tk-k: light-dark(#a0360f, #f2a27e);
 	--tk-t: light-dark(#0b4f9c, #8cc8f2);
@@ -199,16 +202,18 @@ h3 {
 	margin: 0 0 var(--s4);
 }
 
-.doc ul,
-.doc ol {
+/* The lists of the prose; a list in a nav (an outline) lays itself out. */
+.doc :is(ul, ol):not(nav *) {
 	padding-left: 1.3rem;
 }
 
-.doc li + li {
+.doc :is(ul, ol):not(nav *) > li + li {
 	margin-top: var(--s1);
 }
 
-.doc blockquote {
+/* A note set apart from the text. */
+.doc blockquote,
+.callout {
 	padding: var(--s2) var(--s4);
 	border-left: 3px solid var(--accent);
 	background: var(--sunken);
@@ -242,4 +247,92 @@ h3 {
 	html {
 		scroll-behavior: smooth;
 	}
+}
+
+/* A page of the site, centred, `--page-w` wide. */
+.page {
+	width: 100%;
+	max-width: var(--page-w, 52rem);
+	margin: 0 auto;
+	padding: var(--s6) var(--s4) var(--s7);
+}
+
+.page > h1 {
+	font-size: var(--step-3);
+	line-height: 1.15;
+	margin: 0 0 var(--s3);
+}
+
+/* A link drawn as a button; `.primary` fills it with the accent. */
+.button {
+	display: inline-block;
+	padding: var(--s2) var(--s5);
+	border-radius: var(--r2);
+	border: var(--hair) solid var(--line);
+	background: var(--surface);
+	color: var(--fg);
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.button:hover {
+	border-color: var(--accent);
+	color: var(--fg);
+}
+
+.button.primary {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: var(--on-accent);
+}
+
+.button.primary:hover {
+	background: var(--accent-ink);
+	border-color: var(--accent-ink);
+	color: var(--on-accent);
+}
+
+/* What a program prints. */
+.output {
+	margin: 0;
+	padding: var(--s3) var(--s4);
+	overflow-x: auto;
+	font-size: 0.8125rem;
+	line-height: 1.35;
+	color: var(--accent-ink);
+}
+
+/* A framed box; a `.card` is one its title's link covers whole. */
+.box,
+.card {
+	padding: var(--s4) var(--s5);
+	background: var(--surface);
+	border: var(--hair) solid var(--line);
+	border-radius: var(--r3);
+}
+
+.card {
+	position: relative;
+}
+
+.card:hover,
+.card:focus-within {
+	border-color: var(--accent);
+}
+
+.card :is(h2, h3) a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.card :is(h2, h3) a::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: var(--r3);
+}
+
+.card p {
+	margin: 0;
+	color: var(--muted);
 }

@@ -3,11 +3,38 @@
 
 import { resolve } from '$app/paths';
 
+/** The repository of the language. */
+export const GITHUB = 'https://github.com/yakanet/vaderlang';
+
 // The site is built with `trailingSlash: 'always'`: a link without the slash
 // costs a redirect on every full page load.
 
-/** The index of the specification. */
-export const spec_href = () => resolve('/spec') + '/';
+/**
+ * A path written from the root of the site (`/download/#linux`), under the base
+ * path the site is served from.
+ * @param {string} path
+ */
+export const site_href = (path) => `${resolve('/')}${path.slice(1)}`;
+
+/**
+ * A page of the site at its root, `download` for `/download/`.
+ * @param {string} name
+ */
+export const page_href = (name) => site_href(`/${name}/`);
+
+/**
+ * The API references `vader doc` writes, published beside this site under
+ * these names: other builds, which a link reaches with `rel="external"`.
+ */
+export const API_SITES = ['lib', 'vader'];
+
+/** The sections of the site the header lists, by the name of their page. */
+export const SECTIONS = [
+	{ name: 'start', label: 'Get started' },
+	{ name: 'learn', label: 'Learn' },
+	{ name: 'examples', label: 'Examples' },
+	{ name: 'spec', label: 'Specification' }
+];
 
 /** @param {string} slug */
 export const chapter_href = (slug) => resolve('/spec/[chapter]', { chapter: slug }) + '/';
@@ -20,13 +47,6 @@ export function heading_href(slug, id) {
 	if (id === '') return chapter_href(slug);
 	return `${chapter_href(slug)}#${id}`;
 }
-
-/**
- * One of the API references `vader doc` writes, published beside this site: an
- * other build, which a link reaches with `rel="external"`.
- * @param {'lib' | 'vader'} site
- */
-export const api_href = (site) => `${resolve('/')}${site}/`;
 
 /**
  * How a chapter is named in a list: its number, then its title.

@@ -1,6 +1,6 @@
 <script>
-	import { asset } from '$app/paths';
-	import { api_href, spec_href } from '#lib/links.js';
+	import { GITHUB, page_href } from '#lib/links.js';
+	import Showcase from '#lib/Showcase.svelte';
 
 	let { data } = $props();
 </script>
@@ -9,117 +9,177 @@
 	<title>Vader</title>
 	<meta
 		name="description"
-		content="Vader, a strongly typed language that compiles itself: its specification, and the API reference of its library and compiler."
+		content="Vader, a general-purpose language with type inference, compiled to native code by a compiler written in Vader."
 	/>
 </svelte:head>
 
-<main class="home">
-	<header class="hero">
-		<img src={asset('favicon.svg')} width="72" height="72" alt="" />
-		<h1>Vader</h1>
-		<p class="lede">
-			A strongly typed, general-purpose language with type inference, compiled to native code by
-			a compiler written in Vader.
-		</p>
-	</header>
-
-	<div class="cards">
-		<section class="card">
-			<h2><a href={spec_href()}>Specification</a></h2>
-			<p>
-				The language, chapter by chapter: its types, functions, control flow, modules, decorators
-				and compile-time execution.
+<main class="page home">
+	<section class="hero">
+		<div class="pitch">
+			<h1>Vader</h1>
+			<p class="tagline">The discipline of static typing, the ergonomics of a script.</p>
+			<p class="lede">
+				A general-purpose language with type inference, compiled to native code by a compiler
+				written in Vader.
 			</p>
-		</section>
-
-		<section class="card">
-			<h2><a href={api_href('lib')} rel="external">Library</a></h2>
-			<p>
-				The standard library and the packages beside it: I/O, strings, collections, iterators,
-				JSON, the build contract.
+			<div class="actions">
+				<a class="button primary" href={page_href('download')}>Download</a>
+				<a class="button" href={page_href('start')}>Get started</a>
+				<a class="github" href={GITHUB}>GitHub</a>
+			</div>
+			<p class="callout status">
+				An experiment: the compiler compiles itself and runs the examples on both back ends, the
+				VM and native code. The language still changes from one version to the next.
 			</p>
-			<div class="stats">{data.stats.lib}</div>
-		</section>
+		</div>
+		<Showcase examples={data.showcase} />
+	</section>
 
-		<section class="card">
-			<h2><a href={api_href('vader')} rel="external">Compiler</a></h2>
-			<p>
-				The self-hosted compiler: its lexer and parser, the type checker, lowering, the back ends,
-				and the tools around it.
-			</p>
-			<div class="stats">{data.stats.vader}</div>
-		</section>
-	</div>
+	<section aria-labelledby="why">
+		<h2 id="why">Why Vader</h2>
+		<div class="grid tiles">
+			{#each data.why as tile (tile.id)}
+				<div class="box">
+					<h3>{tile.title}</h3>
+					{@html tile.html}
+				</div>
+			{/each}
+		</div>
+	</section>
+
+	<section class="toolchain" aria-labelledby="toolchain">
+		<h2 id="toolchain">One command for everything</h2>
+		{@html data.toolchain}
+	</section>
+
+	<section aria-labelledby="read-on">
+		<h2 id="read-on">Read on</h2>
+		<div class="grid">
+			<section class="card">
+				<h3><a href={page_href('spec')}>Specification</a></h3>
+				<p>
+					The language, chapter by chapter: its types, functions, control flow, modules, decorators
+					and compile-time execution.
+				</p>
+			</section>
+			<section class="card">
+				<h3><a href={page_href('lib')} rel="external">Library</a></h3>
+				<p>
+					The standard library and the packages beside it: I/O, strings, collections, iterators,
+					JSON, the build contract.
+				</p>
+				<div class="stats">{data.stats.lib}</div>
+			</section>
+			<section class="card">
+				<h3><a href={page_href('vader')} rel="external">Compiler</a></h3>
+				<p>
+					The self-hosted compiler: its lexer and parser, the type checker, lowering, the back ends,
+					and the tools around it.
+				</p>
+				<div class="stats">{data.stats.vader}</div>
+			</section>
+		</div>
+	</section>
 </main>
 
 <style>
 	.home {
-		width: 100%;
-		max-width: 64rem;
-		margin: 0 auto;
-		padding: clamp(3rem, 10vh, 6rem) var(--s4) var(--s7);
+		--page-w: 76rem;
 	}
 	.hero {
 		display: grid;
-		justify-items: center;
-		text-align: center;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+		gap: var(--s6);
+		align-items: start;
+	}
+	.pitch {
+		display: grid;
 		gap: var(--s4);
-		margin-bottom: var(--s7);
+		align-content: start;
+		padding-top: var(--s5);
 	}
 	h1 {
 		margin: 0;
-		font-size: clamp(2.25rem, 6vw, 3.25rem);
-		line-height: 1.05;
+		font-size: clamp(2.5rem, 6vw, 3.75rem);
+		line-height: 1;
 		letter-spacing: -0.02em;
+	}
+	.tagline {
+		margin: 0;
+		font-size: var(--step-2);
+		line-height: 1.25;
+		font-weight: 700;
+		text-wrap: balance;
 	}
 	.lede {
 		margin: 0;
-		max-width: 38rem;
 		color: var(--muted);
 		font-size: var(--step-1);
 	}
-	.cards {
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--s3);
+		margin-top: var(--s2);
+	}
+	.github {
+		margin-left: var(--s2);
+	}
+	.status {
+		margin: var(--s3) 0 0;
+		font-size: var(--step--1);
+		color: var(--muted);
+	}
+	.home > section + section {
+		margin-top: var(--s7);
+	}
+	h2 {
+		font-size: var(--step-2);
+		margin: 0 0 var(--s4);
+	}
+	h3 {
+		margin: 0 0 var(--s2);
+		font-size: var(--step-1);
+	}
+	.grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-		gap: var(--s5);
+		gap: var(--s4);
 	}
-	.card {
-		position: relative;
-		display: grid;
-		gap: var(--s3);
-		align-content: start;
-		padding: var(--s5);
-		background: var(--surface);
-		border: var(--hair) solid var(--line);
-		border-radius: 10px;
+	.tiles {
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
 	}
-	.card:hover,
-	.card:focus-within {
-		border-color: var(--accent);
-	}
-	.card h2 {
-		margin: 0;
-		font-size: var(--step-2);
-	}
-	/* The whole card follows its title's link. */
-	.card h2 a {
-		color: inherit;
-		text-decoration: none;
-	}
-	.card h2 a::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		border-radius: 10px;
-	}
-	.card p {
+	.tiles :global(p) {
 		margin: 0;
 		color: var(--muted);
 	}
+	.toolchain :global(ul) {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+		gap: var(--s2) var(--s6);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.toolchain :global(li) {
+		color: var(--muted);
+	}
+	.toolchain :global(li .ic:first-child) {
+		color: var(--fg);
+	}
 	.stats {
+		margin-top: var(--s3);
 		font-family: var(--font-code);
 		font-size: var(--step--1);
 		color: var(--accent-ink);
-		min-height: 1.3em;
+	}
+	@media (max-width: 900px) {
+		.hero {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.pitch {
+			padding-top: 0;
+		}
 	}
 </style>

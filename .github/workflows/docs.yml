@@ -5,7 +5,8 @@ name: Docs
 # `vader doc -o` builds. Built on every pull request so that a site that no
 # longer builds shows before the merge, and published to GitHub Pages from
 # `main`. Pages takes "GitHub Actions" as its source in the repository's
-# settings.
+# settings. The release job of `CI` runs it again on `main` once a release is
+# published, for the download page names the latest release.
 #
 # A workflow of its own, not a job of `CI`: that one cancels a superseded run,
 # which would stop a deployment halfway.
@@ -14,6 +15,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: docs-${{ github.ref }}
@@ -35,11 +37,12 @@ jobs:
       - name: Build Vader CLI from the C seed
         run: bash bootstrap/build.sh
       - id: pages
-        if: github.event_name == 'push'
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v6
       - name: Build the sites
         env:
           BASE: ${{ steps.pages.outputs.base_path }}
+          GITHUB_TOKEN: ${{ github.token }}
           VADER_DOC_SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
         run: |
           BASE_PATH="$BASE/lib" VADER_DOC_TITLE="Library" ./build/vader doc -o _site/lib lib
@@ -49,14 +52,14 @@ jobs:
           for api in lib vader; do
             test -e "_site/$api/index.html" || { echo "the site links to $api/, which was not built"; exit 1; }
           done
-      - if: github.event_name == 'push'
+      - if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
   deploy:
     name: Publish to GitHub Pages
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     permissions:
