@@ -2057,6 +2057,15 @@ A default body is checked once, in the trait, for every type that will implement
 - an operation on a type parameter needs its bound, as in a generic function: `a + b` on two `T` needs `T: Add`;
 - a test on `Self` or on a type parameter (`self is Square`, `x is Box<T>`) is answered for each impl, by the type it implements the trait for.
 
+A default with an expression body may leave out its return type, as a function may (§4 *Type inference*): its expression gives it, to the trait and to every impl. The compiler warns when the trait is exported, since its public type would then change with the body.
+
+```vader
+Shape :: trait {
+    area  :: fn(self) -> f64
+    twice :: fn(self) = self.area() * 2.0   // returns f64
+}
+```
+
 In the standard library, `Async` has one default method: `cancel`, which does nothing.
 
 #### Operator overloading

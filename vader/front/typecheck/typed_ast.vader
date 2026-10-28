@@ -217,6 +217,13 @@ export ImplMethod :: struct {
     /// `T[]`) : its member types are substituted at each receiver, and its bounds
     /// checked there.
     generic:      bool = false
+    /// The type the impl is written for, in the frame of `ty` : what `Self` reads
+    /// as when the member's return is read again from its trait (`settled_member`).
+    for_type:     Type = TY_UNRESOLVED
+    /// The trait's default whose return the member takes, when the member writes
+    /// none and the default leaves its own to its body : read again at each lookup
+    /// (`settled_members`), since it settles after the impl tables are filled.
+    return_of:    AST.FnDecl | null = null
 }
 
 /// The impls of a whole project, as every module's typecheck reads them: one set,
@@ -305,6 +312,11 @@ export ImplTables :: struct {
     /// Distinct from `index_target_types` (which records the nullable
     /// `Index` *read* result `V | null`, not the write value `V`).
     index_set_value_types: MutableMap<string, Type> = MutableMap<string, Type> {}
+
+    /// What a default method that leaves out its return type returns, as its body
+    /// gives it once checked in its trait, `Self` read as `Self` ; keyed by the trait
+    /// member's node id. Read through `trait_member_type`, by every module.
+    default_returns: MutableMap<i64, Type> = MutableMap<i64, Type> {}
 }
 
 /// Per-module typechecker output. Every span-keyed side-table uses the

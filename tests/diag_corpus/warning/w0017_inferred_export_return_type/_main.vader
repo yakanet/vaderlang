@@ -2,7 +2,8 @@
 //
 // Its public type would then change with its body. Only an expression body can
 // leave the type out, and only an `export` is public, so a private helper, a
-// written `->`, a block body and a `@no_return` function stay quiet.
+// written `->`, a block body and a `@no_return` function stay quiet. A default of
+// an exported trait warns too ; one of a private trait stays quiet.
 
 module "snippet"
 
@@ -26,7 +27,27 @@ export greet :: fn(name: string) {
     println("hello ${name}")
 }
 
+// A default of an exported trait, expression body, no `->`: warns.
+export Sized :: trait {
+    size :: fn(self) -> i32
+    twice :: fn(self) = self.size() * 2
+}
+
+// The same default in a private trait: quiet.
+Counted :: trait {
+    count :: fn(self) -> i32
+    twice :: fn(self) = self.count() * 2
+}
+
+Bag :: struct {
+    n: i32
+}
+
+Bag implements Counted {
+    count :: fn(self) -> i32 = self.n
+}
+
 main :: fn() -> i32 {
     greet("w")
-    return double(1) + triple(1) + halve(4) - 5
+    return double(1) + triple(1) + halve(4) + Bag { .n = 1 }.twice() - 7
 }

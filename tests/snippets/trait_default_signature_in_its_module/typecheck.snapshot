@@ -1,0 +1,50 @@
+# Typecheck
+
+## tests/snippets/trait_default_signature_in_its_module
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Square               :: Square
+  expr 17:31    BinaryExpr     :: i32
+  expr 17:31    FieldExpr      :: i32
+  expr 17:31    IdentExpr      :: Square
+  expr 17:43    FieldExpr      :: i32
+  expr 17:43    IdentExpr      :: Square
+  expr 21:10    StructLitExpr  :: Square
+  expr 22:10    CallExpr       :: Factor
+  expr 22:10    FieldExpr      :: fn() -> Factor
+  expr 22:10    IdentExpr      :: Square
+  expr 23:13    StringLitExpr  :: string
+  expr 23:21    FieldExpr      :: i32
+  expr 23:21    IdentExpr      :: Factor
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 24:13    StringLitExpr  :: string
+  expr 24:23    CallExpr       :: i32
+  expr 24:23    FieldExpr      :: fn(Factor) -> i32
+  expr 24:23    IdentExpr      :: Square
+  expr 24:32    IdentExpr      :: Factor
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 25:19    CallExpr       :: i32
+  expr 25:19    FieldExpr      :: fn() -> i32
+  expr 25:19    IdentExpr      :: Square
+  expr 26:13    StringLitExpr  :: string
+  expr 26:23    IdentExpr      :: i32
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/trait_default_signature_in_its_module/shapes
+  TraitDecl      Shape                :: Shape
+  expr 11:26    BinaryExpr     :: i32
+  expr 11:26    CallExpr       :: i32
+  expr 11:26    FieldExpr      :: fn() -> i32
+  expr 11:26    IdentExpr      :: Self
+  expr 8:45     BinaryExpr     :: i32
+  expr 8:45     CallExpr       :: i32
+  expr 8:45     FieldExpr      :: fn() -> i32
+  expr 8:45     IdentExpr      :: Self
+  expr 8:59     FieldExpr      :: i32
+  expr 8:59     IdentExpr      :: Factor
+  expr 9:34     StructLitExpr  :: Factor
+  expr 9:48     CallExpr       :: i32
+  expr 9:48     FieldExpr      :: fn() -> i32
+  expr 9:48     IdentExpr      :: Self

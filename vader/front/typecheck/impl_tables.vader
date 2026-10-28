@@ -7,6 +7,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
+import "std/iter"
 import "std/string"
 AST :: import "toolchain/ast"
 import "vader/core/symbol"
@@ -114,7 +115,11 @@ impl_side_list :: fn(
 /// @param typed   a module of the project, whose impl tables it reads.
 /// @param t       the receiver.
 /// @param suffix  `"::<member>"`.
-export impl_candidates :: fn(typed: TypedProgram, t: Type, suffix: string) -> ImplMethod[] {
+export impl_candidates :: fn(typed: TypedProgram, t: Type, suffix: string) -> ImplMethod[] =
+    settled_members(registered_candidates(typed, t, suffix), typed)
+
+// The candidates as the impl tables registered them.
+registered_candidates :: fn(typed: TypedProgram, t: Type, suffix: string) -> ImplMethod[] {
     // A member access on a value of a union (an AST node, a `Type`) asks here
     // first : with no impl for such a target, its key is not worth building.
     if !typed.impl_tables.has_structural_target && is_structural(t) {
@@ -135,6 +140,35 @@ export impl_candidates :: fn(typed: TypedProgram, t: Type, suffix: string) -> Im
 }
 
 NO_IMPL_METHODS: ImplMethod[]: []
+
+/// `members` as they stand now : one that takes its return from its trait's default
+/// (`ImplMethod.return_of`) reads it again, since the default settles after the impl
+/// tables were filled.
+///
+/// @param members  entries of the impl tables.
+/// @param typed    a module of the project.
+settled_members :: fn(members: ImplMethod[], typed: TypedProgram) -> ImplMethod[] {
+    if !members.any_match((m) -> m.return_of != null) {
+        return members
+    }
+    return members.map((m) -> settled_member(m, typed)).collect()
+}
+
+// `m` with the return its trait's default gives, read at the impl's arguments with
+// `Self` read as the impl's type ; as registered while the default is unsettled.
+settled_member :: fn(m: ImplMethod, typed: TypedProgram) -> ImplMethod {
+    source :: m.return_of ?? return m
+    trait_sym :: m.trait_symbol ?? return m
+    ty :: m.ty
+    if ty !is FnType {
+        return m
+    }
+    inferred :: typed.impl_tables.default_returns[source.id] ?? return m
+    trait_decl :: typed.trait_decls[trait_sym.id] ?? return m
+    bound :: substitute_type_params(inferred, trait_decl.type_params, m.trait_args, typed)
+    settled :: FnType { ...ty, .return_type = substitute_self(bound, m.for_type) }
+    return ImplMethod { ...m, .ty = settled }
+}
 
 /// The members `t`'s impls provide, by name, as a member access on `t` finds
 /// them : those of an impl on `t` itself first, then its base's. A name keeps the
@@ -166,7 +200,7 @@ add_members_under :: fn(
         rest :: key.byte_slice(prefix.byte_len(), key.byte_len())
         name :: rest.split("::")[0]
         if name !in out {
-            out[name] = methods[0]
+            out[name] = settled_member(methods[0], typed)
         }
     }
 }

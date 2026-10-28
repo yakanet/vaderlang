@@ -520,12 +520,14 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
         self.idents[d.trait_name_span.hash()] = trait_sym
         self.check_wildcard_ambiguity(d.trait_name, d.trait_name_span, trait_sym)
     }
-    // Skip only SAM short-impl synthetics: their body is the user's
-    // expression and their params never got minted, so walking would
-    // cascade R2006 on `self`. An inherited member is `materialized` too,
-    // and walked: its substituted signature names types to resolve.
+    // Two members are skipped. A SAM short-impl synthetic: its body is the
+    // user's expression and its params never got minted, so walking would
+    // cascade R2006 on `self`. An inherited member: its signature is its
+    // trait's, typed in the trait's module, and read here its types would see
+    // the imports of the impl's file.
     for m in d.members {
         if m.materialized && m.sam_synthetic { continue }
+        if m.inherits != null                { continue }
         self.walk_fn_decl(m)
     }
     self.scope.pop()

@@ -1,0 +1,56 @@
+// A default that leaves out its return type returns what its expression gives,
+// to every reader: a call on the impl, through a bound, on a trait value, from
+// another default of the trait, and a static call. A return of `Self` reads as the
+// impl's type. An impl member that overrides such a default without writing a
+// return takes the default's. A generic default keeps its own type parameter.
+
+module "snippet"
+
+import "std/io"
+
+Shape :: trait {
+    area :: fn(self) -> i32
+    twice :: fn(self) = self.area() * 2
+    thrice :: fn(self) -> i32 = self.twice() + self.area()
+    me :: fn(self) = self
+    unit :: fn() = 1
+    pick :: fn<U>(self, x: U) -> U = x
+}
+
+Square :: struct {
+    side: i32
+}
+
+Square implements Shape {
+    area :: fn(self) -> i32 = self.side * self.side
+}
+
+Strip :: struct {
+    length: i32
+}
+
+Strip implements Shape {
+    area :: fn(self) -> i32 = self.length
+    twice :: fn(self) = self.length * 10
+}
+
+through_bound :: fn<T: Shape>(x: T) -> i32 = x.twice()
+
+through_value :: fn(x: Shape) -> i32 = x.twice()
+
+main :: fn() -> i32 {
+    q :: Square { .side = 3 }
+    direct: i32: q.twice()
+    println("direct ${direct}")
+    println("bound ${through_bound(q)}")
+    println("value ${through_value(q)}")
+    println("thrice ${q.thrice()}")
+    println("me ${q.me().side}")
+    one: i32: Square.unit()
+    println("static ${one}")
+    word: string: q.pick("a")
+    println("pick ${word} ${q.pick(2)}")
+    overridden: i32: Strip { .length = 4 }.twice()
+    println("override ${overridden}")
+    return 0
+}

@@ -1,0 +1,6 @@
+module "snippet/units"
+
+/// A scale factor.
+export Factor :: struct {
+    n: i32
+}

@@ -1,0 +1,28 @@
+// An inherited member's signature is its trait's, read in the trait's module: an
+// impl in a file that does not import `snippet/units` still inherits defaults
+// whose signatures name `Factor`, and the impl's callers read their types. A
+// default of another module that leaves out its return type is read with the
+// type its body gives.
+
+module "snippet"
+
+import "std/io"
+import "snippet/shapes"
+
+Square :: struct {
+    side: i32
+}
+
+Square implements Shape {
+    area :: fn(self) -> i32 = self.side * self.side
+}
+
+main :: fn() -> i32 {
+    q :: Square { .side = 3 }
+    u :: q.unit()
+    println("unit ${u.n}")
+    println("scaled ${q.scaled(u)}")
+    doubled: i32: q.double()
+    println("double ${doubled}")
+    return 0
+}

@@ -908,9 +908,12 @@ record_impl_members :: fn(
     trait_decl :: owner.trait_decls[trait_sym.id]
     is_into :: trait_key == core_trait_key(TRAIT_INTO) && trait_args.len() == 1
     side :: impl_side_key(for_ty)
+    trait_type :: TraitType { .symbol = trait_sym, .args = written }
+    generic :: type_contains_type_param(for_ty)
+    for_type :: substitute_map(for_ty, as_struct)
     for m in decl.members {
         trait_method :: lookup_trait_method(trait_decl, m.name)
-        written_ty :: ufcs_method_type(decl, m, for_ty, trait_method, owner, diags)
+        written_ty :: ufcs_method_type(decl, m, for_ty, trait_method, trait_type, owner, diags)
         entry :: ImplMethod {
             .ty = in_struct_frame(written_ty, as_struct),
             .decl = m,
@@ -918,7 +921,9 @@ record_impl_members :: fn(
             .trait_key = trait_key,
             .trait_args = trait_args,
             .trait_symbol = trait_sym,
-            .generic = type_contains_type_param(for_ty),
+            .generic = generic,
+            .for_type = for_type,
+            .return_of = default_giving_return(m, trait_method),
         }
         add_impl_method(tables, "${impl_type_key(for_ty)}::${m.name}", entry)
         // And under its side key : the base, which every instance of a generic impl
@@ -939,6 +944,15 @@ record_impl_members :: fn(
             }
         }
     }
+}
+
+// The default of the trait whose return `m` takes : `m` writes none, and the
+// default leaves its own to its body. Null otherwise.
+default_giving_return :: fn(m: AST.FnDecl, trait_method: AST.FnDecl | null) -> AST.FnDecl | null {
+    if m.return_type != null || trait_method == null || !needs_return_inference(trait_method) {
+        return null
+    }
+    return trait_method
 }
 
 // Adds `entry` to the members `key` offers, once : a plain type's own key is its
@@ -1290,23 +1304,21 @@ record_struct_trait_args :: fn(
 // (which fns a re-walk must still walk).
 needs_return_inference :: fn(fd: AST.FnDecl) = fd.is_expression_bodied && fd.return_type is null
 
-has_expr_bodied_fn :: fn(decls: AST.Decl[]) -> bool {
-    for d in decls {
-        if d is AST.FnDecl {
-            if needs_return_inference(d) {
-                return true
-            }
-        }
-        if d is AST.ImplDecl {
-            for m in d.members {
-                if needs_return_inference(m) {
-                    return true
-                }
-            }
-        }
-    }
-    return false
+has_expr_bodied_fn :: fn(decls: AST.Decl[]) -> bool = decls.any_match(holds_inferred_return)
+
+// Whether `d` is, or declares, a function whose expression body gives its return:
+// a fn, an impl member, or a trait's default.
+// @partial: no other declaration holds a function.
+holds_inferred_return :: fn(d: AST.Decl) -> bool = @partial match d {
+    is AST.FnDecl    -> needs_return_inference(d)
+    is AST.ImplDecl  -> d.members.any_match(infers_its_return)
+    is AST.TraitDecl -> d.members.any_match(infers_its_return)
+    _                -> false
 }
+
+// A member whose own body gives its return : not one declared for an impl from its
+// trait, which keeps the trait member's expression form and has no body.
+infers_its_return :: fn(m: AST.FnDecl) = m.body != null && needs_return_inference(m)
 
 // Clear per-expression tables so the second pass can re-populate
 // them with the now-settled fn return types: an entry the settle walk
@@ -2164,8 +2176,10 @@ lookup_external_type :: fn(
 // W0017: an exported function whose expression body decides its return type,
 // which then follows every edit of the body. Allocates nothing, unlike the warning
 // it gates, which runs on a hit only.
-leaves_export_return_to_inference :: fn(fd: AST.FnDecl) -> bool =
-    fd.visibility == .Public && needs_return_inference(fd) && !fd.comptime_synthetic
+//
+// `visibility` is the function's own, or for a trait's default, the trait's.
+leaves_export_return_to_inference :: fn(fd: AST.FnDecl, visibility: AST.Visibility) -> bool =
+    visibility == .Public && needs_return_inference(fd) && !fd.comptime_synthetic
 
 // Warn about `fd`, naming the type to write. A `never` return has no spelling to
 // write (a `@no_return` function), and an unresolved one already draws T3034.
@@ -2225,7 +2239,7 @@ walk_bodies :: fn(
         match decl {
             is AST.FnDecl        -> {
                 walk_fn_body(decl, typed, diags, mode)
-                if mode == .Full && leaves_export_return_to_inference(decl) {
+                if mode == .Full && leaves_export_return_to_inference(decl, decl.visibility) {
                     warn_inferred_export_return(decl, typed, diags)
                 }
             }
@@ -2369,16 +2383,24 @@ declare_and_check_impl :: fn(
         }
     }
     trait_decl :: typed.trait_decls[trait_sym.id]
+    // Resolved again by `record_impl_members`, which reports what fails.
+    args :: written_type_args(id.trait_args, typed.resolved, [])
+    trait_type :: TraitType { .symbol = trait_sym, .args = args }
     for m in id.members {
+        if m.inherits != null {
+            declare_inherited_member(m, trait_type, for_ty, typed)
+            continue
+        }
         declare_impl_method_for_trait(
             m,
             for_ty,
             lookup_trait_method(trait_decl, m.name),
+            trait_type,
             typed,
             m.member_diags(diags),
         )
     }
-    check_impl_members(id, trait_sym, for_ty, typed, diags)
+    check_impl_members(id, trait_type, for_ty, typed, diags)
 }
 
 // An impl's own type parameters, as the parameters of the struct it is written
@@ -2436,11 +2458,31 @@ walk_default_bodies :: fn(
     typed.default_body_params = default_body_param_ids(d, self_sym, typed)
     for m in d.members {
         if m.body != null {
-            declare_impl_method_for_trait(m, self_param, m, typed, diags)
+            declare_impl_method_for_trait(m, self_param, m, null, typed, diags)
             walk_fn_body(m, typed, diags, mode)
+            record_default_return(m, self_sym, typed)
+            if mode == .Full && leaves_export_return_to_inference(m, d.visibility) {
+                warn_inferred_export_return(m, typed, diags)
+            }
         }
     }
     typed.default_body_params = MutableSet<i32> {}
+}
+
+// The return a default body gives when its member leaves it out, for every reader
+// of the trait (`trait_member_type`), in every module : with `Self` written back
+// for the trait's own parameter `self_sym`, as a signature writes it.
+record_default_return :: fn(m: AST.FnDecl, self_sym: Symbol, typed: TypedProgram) -> void {
+    if !needs_return_inference(m) {
+        return
+    }
+    checked :: declared_type_at(typed, m.name_span)
+    if checked !is FnType || checked.return_type is UnresolvedType {
+        return
+    }
+    as_written :: MutableMap<i32, Type> {}
+    as_written[self_sym.id] = TY_SELF
+    typed.impl_tables.default_returns[m.id] = substitute_map(checked.return_type, as_written)
 }
 
 // `Self` and the type parameters of `d`, which each impl that inherits a default
@@ -2460,9 +2502,57 @@ default_body_param_ids :: fn(
     return out
 }
 
+// An inherited member has its trait member's type, read in the trait's module at the
+// impl's trait arguments, `Self` read as `for_ty` : its signature names what the
+// trait's file imports, which the impl's file need not.
+declare_inherited_member :: fn(
+    m: AST.FnDecl,
+    trait_type: TraitType,
+    for_ty: Type,
+    typed: TypedProgram,
+) -> void {
+    rest :: inherited_signature(m, trait_type, for_ty, typed) ?? return
+    params: Type[]: []
+    if receiver_count(m) > 0 {
+        params.push(for_ty)
+    }
+    params.push_all(rest.params)
+    record_member_signature(m, params, rest.return_type, typed)
+}
+
+// The type of the member `m` inherits, its receiver dropped : the trait member's,
+// at the impl's trait arguments, `Self` read as `for_ty`.
+inherited_signature :: fn(
+    m: AST.FnDecl,
+    trait_type: TraitType,
+    for_ty: Type,
+    typed: TypedProgram,
+) -> FnType | null {
+    found :: try_trait_method(trait_type, m.name, typed, for_ty)
+    if found is FnType {
+        return found
+    }
+    return null
+}
+
+// Where an impl member's signature lives : each parameter's type by its span, and
+// the whole by the member's name span, since an impl member has no symbol. The
+// member's parameters are `params`, one for one.
+record_member_signature :: fn(
+    fd: AST.FnDecl,
+    params: Type[],
+    ret: Type,
+    typed: TypedProgram,
+) -> void {
+    for i in 0..<params.len() {
+        typed.param_types[fd.params[i].span.hash()] = params[i]
+    }
+    typed.impl_method_decl_types[fd.name_span.hash()] = mk_fn(params, ret)
+}
+
 // Where a member of an impl reports its declaration. A member declared for the impl
-// from its trait (`materialized`: an inherited one, an intrinsic stub) reports
-// nothing : its signature is the trait's, checked there.
+// from its trait (`materialized`) reports nothing : its signature is the trait's,
+// checked there.
 member_diags :: fn(m: AST.FnDecl, diags: Diagnostic[]) -> Diagnostic[] {
     if m.materialized {
         return []
@@ -2539,15 +2629,12 @@ walk_fn_body :: fn(
 // form names none of its own ; R2016 reports a trait it cannot fill.
 check_impl_members :: fn(
     id: AST.ImplDecl,
-    trait_sym: Symbol,
+    trait_type: TraitType,
     for_ty: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    trait_decl :: typed.trait_decls[trait_sym.id] ?? return
-    // Resolved again by `record_impl_members`, which reports what fails.
-    trait_args :: written_type_args(id.trait_args, typed.resolved, [])
-    trait_type :: TraitType { .symbol = trait_sym, .args = trait_args }
+    trait_decl :: typed.trait_decls[trait_type.symbol.id] ?? return
     for member in id.members {
         trait_method :: lookup_trait_method(trait_decl, member.name)
         if trait_method != null {
@@ -2582,8 +2669,8 @@ check_impl_members :: fn(
 // (its arguments, then the defaults) with `Self` read as `for_ty` : the same number of
 // parameters, each of the same type, and the same return type. The vtable slot and
 // the direct call both assume this shape. A generic trait method is held to its arity
-// alone, its own type parameters being the impl's to name. A SAM member and an
-// inherited member copy the trait's signature.
+// alone, its own type parameters being the impl's to name. A member declared from the
+// trait (a SAM member, an intrinsic stub, an inherited member) has its signature.
 check_member_signature :: fn(
     member: AST.FnDecl,
     trait_method: AST.FnDecl,
@@ -2660,20 +2747,32 @@ impl_has_method :: fn(id: AST.ImplDecl, name: string) -> bool {
 /// @param for_ty        the impl block's for-type, substituted into each param.
 /// @param trait_method  the matching trait signature, when the impl is for a
 ///                      trait ; supplies the return type the member elides.
+/// @param trait_type    the trait as the impl implements it : an inherited member
+///                      reads its type there (`inherited_signature`).
 /// @return              the receiver-dropped fn type stored in `impl_methods`.
 ufcs_method_type :: fn(
     impl_: AST.ImplDecl,
     fd: AST.FnDecl,
     for_ty: Type,
     trait_method: AST.FnDecl | null,
+    trait_type: TraitType | null,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> FnType {
+    if fd.inherits != null && trait_type != null {
+        // Quantified over the impl's parameters, then the trait member's own.
+        of_impl :: impl_type_params_of(impl_, typed.resolved)
+        inherited :: inherited_signature(fd, trait_type, for_ty, typed)
+        if inherited == null {
+            return mk_fn([], TY_UNRESOLVED, of_impl)
+        }
+        return FnType { ...inherited, .type_params = of_impl + inherited.type_params }
+    }
     rest: Type[]: []
     for i in receiver_count(fd)..<fd.params.len() {
         rest.push(param_type(fd.params[i], for_ty, typed, diags))
     }
-    ret :: declare_impl_return(fd, for_ty, trait_method, typed, diags)
+    ret :: declare_impl_return(fd, for_ty, trait_method, trait_type, typed, diags)
     return mk_fn(rest, ret, impl_member_quantifier(impl_, fd, typed.resolved))
 }
 
@@ -2700,40 +2799,46 @@ impl_member_quantifier :: fn(
 /// @param for_ty        the impl block's for-type: what `self` resolves to.
 /// @param trait_method  the matching trait signature, when the impl is for a
 ///                      trait ; supplies the return type the member elides.
+/// @param trait_type    the trait as the impl implements it ; null for a default
+///                      body checked in its own trait.
 declare_impl_method_for_trait :: fn(
     fd: AST.FnDecl,
     for_ty: Type,
     trait_method: AST.FnDecl | null,
+    trait_type: TraitType | null,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
     params: Type[]: []
     for p in fd.params {
-        pt :: param_type(p, for_ty, typed, diags)
-        typed.param_types[p.span.hash()] = pt
-        params.push(pt)
+        params.push(param_type(p, for_ty, typed, diags))
     }
-    ret :: declare_impl_return(fd, for_ty, trait_method, typed, diags)
-    // Impl methods aren't in `resolved.symbols` (they're members of
-    // an ImplDecl, not top-level names): use the dedicated span-keyed
-    // table.
-    typed.impl_method_decl_types[fd.name_span.hash()] = mk_fn(params, ret)
+    ret :: declare_impl_return(fd, for_ty, trait_method, trait_type, typed, diags)
+    record_member_signature(fd, params, ret, typed)
 }
 
 declare_impl_return :: fn(
     fd: AST.FnDecl,
     for_ty: Type,
     trait_method: AST.FnDecl | null,
+    trait_type: TraitType | null,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
     // An unannotated member takes the trait method's return type, with `Self`
     // substituted to `for_ty`: `Direction implements Turnable { turn_left :: fn(self) = … }`
-    // picks up `-> Self` from `Turnable.turn_left`.
+    // picks up `-> Self` from `Turnable.turn_left`. A default that leaves its own to
+    // its body gives it once settled ; until then the member's body gives its own.
     if fd.return_type == null && trait_method !is null {
         written :: trait_method.return_type
         if written !is null {
             return type_with_self(written, for_ty, typed.resolved, diags)
+        }
+        if trait_type != null {
+            from_trait :: try_trait_method(trait_type, fd.name, typed, for_ty)
+            if from_trait is FnType && from_trait.return_type !is UnresolvedType {
+                return from_trait.return_type
+            }
         }
     }
     // A written `-> Self` names `for_ty` too.

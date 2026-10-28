@@ -1,0 +1,12 @@
+module "snippet/shapes"
+
+import "snippet/units"
+
+/// A shape whose defaults name a type of `snippet/units`.
+export Shape :: trait {
+    area :: fn(self) -> i32
+    scaled :: fn(self, by: Factor) -> i32 = self.area() * by.n
+    unit :: fn(self) -> Factor = Factor { .n = self.area() }
+    // Leaves its return to its body: W0017, and every module reads `i32`.
+    double :: fn(self) = self.area() * 2
+}

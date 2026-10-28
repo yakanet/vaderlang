@@ -206,7 +206,7 @@ receiver_impl_members :: fn(key_ty: Type, field: string, typed: TypedProgram) ->
         return own
     }
     found :: typed.impl_tables.impl_methods["[]${suffix}"] ?? return own
-    return found
+    return settled_members(found, typed)
 }
 
 /// The member `chosen` a call `e` reaches on `target_ty`, typed for that receiver and
@@ -1675,9 +1675,23 @@ trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram) -> Fn
     }
     return mk_fn(
         params,
-        opt_or_void(m.return_type, owner_resolved, []),
+        trait_member_return(m, owner_resolved, typed),
         quantifier_of(m.type_params, owner_resolved),
     )
+}
+
+// What `m` returns : the type it writes, or for a default that leaves it to its
+// expression, the one its body gave when the trait was checked ; unresolved until
+// then (`record_default_return`).
+trait_member_return :: fn(
+    m: AST.FnDecl,
+    owner_resolved: ResolvedModule,
+    typed: TypedProgram,
+) -> Type {
+    if !needs_return_inference(m) {
+        return opt_or_void(m.return_type, owner_resolved, [])
+    }
+    return typed.impl_tables.default_returns[m.id] ?? TY_UNRESOLVED
 }
 
 // A written type with `Self` read as `self_ty`.
