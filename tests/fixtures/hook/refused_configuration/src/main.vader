@@ -1,0 +1,8 @@
+module "src"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    println("should not be built")
+    return 0
+}

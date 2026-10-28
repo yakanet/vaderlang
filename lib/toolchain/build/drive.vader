@@ -69,7 +69,8 @@ AST :: import "toolchain/ast"
 /// or to `--out` for its one entry, copies the assets beside them, and stops at
 /// the first entry that fails. Every mode writes the generated modules.
 ///
-/// @param ctx  the configured context. Without an entry the stream yields only
+/// @param ctx  the configured context. Without an entry, or when it already
+///             holds an error, the stream yields only a failed
 ///             `CompleteMessage`.
 /// @return     a lazy stream of messages, in pipeline order.
 /// @error      H6003 when the driver added no entry ; H6009 when `--entry`
@@ -78,6 +79,12 @@ AST :: import "toolchain/ast"
 ///             when a generated module cannot be written. All land on
 ///             `ctx.diagnostics`.
 export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
+    // An error already on the context means it holds less than the driver
+    // wrote: what is left is neither described nor compiled.
+    if any_error_diag(ctx.diagnostics) {
+        yield CompleteMessage { .code = 1 }
+        return
+    }
     // Configuration is read ONCE, here. Mutating `ctx.cc` / `ctx.target` / …
     // after the first pull is therefore ignored uniformly, rather than honoured
     // for entries not yet reached: a stream cannot re-read what it already
@@ -429,4 +436,16 @@ import "std/testing"
     reports :: ctx.reports_of()
     assert_eq(reports.len(), 1)
     assert_eq(reports[0].code.id, "H6003")
+}
+
+@test test_messages_after_a_refused_entry_compiles_nothing :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.add_entry("app", "src/main.vader")
+    ctx.add_entry("App", "src/main.vader")
+    // The entry that was accepted is not compiled either: its front end would
+    // add a report of its own, the file not being there.
+    assert_eq(ctx.emit_native(), 1)
+    reports :: ctx.reports_of()
+    assert_eq(reports.len(), 1)
+    assert_eq(reports[0].code.id, "H6005")
 }

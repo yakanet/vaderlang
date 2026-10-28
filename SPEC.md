@@ -3118,6 +3118,8 @@ A driver describes in code what a `vader.json` declares:
 - `ctx.add_asset(path)` adds a file or folder to copy beside the binaries, as `assets` does;
 - module search roots go in `ctx.include_paths`, and are resolved and ranked as `includePaths` are.
 
+An entry or an asset that breaks its rule is an error. When the driver starts draining `ctx.messages()` with an error already reported, one of its own reports included, nothing is described or compiled: the stream yields only a `CompleteMessage` of code 1.
+
 A driver prints the diagnostics of its build, its own reports included, with `ctx.flush_reports()`.
 
 #### What the command decides

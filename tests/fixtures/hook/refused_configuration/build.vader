@@ -1,0 +1,16 @@
+// A driver whose configuration was refused: its second entry takes a name the
+// first already has (H6005). The build must stop there AND fail: building the
+// entry that was accepted would exit 0 on a project that is not the one written.
+
+module "build"
+
+import "toolchain/build"
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_entry("app", "src/main.vader")
+    ctx.add_entry("App", "src/main.vader")
+    code :: ctx.emit_native()
+    _ :: ctx.flush_reports()
+    return code
+}
