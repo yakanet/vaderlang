@@ -1523,17 +1523,20 @@ static vader_box_t snippet$plus_five(vader_box_t l0) {
 
 static vader_string_t snippet$plus_one(vader_box_t l0) {
     vader_box_t l1 = vader_box_null();
-    vader_string_t t0 = 0;
+    void* t0 = NULL;
+    vader_string_t t1 = 0;
     vader_box_t* gc_roots[2] = { &l0, &l1 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
+    void** gc_raw_roots[1] = { &t0 };
+    vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l1 = vader_vt_std_core$Add$add(l0, vader_box_i32(6u, INT32_C(1)));
     if (l1.tag == 22u) {
-        t0 = snippet$Money$std_core$Display$to_string(l1.payload.obj);
-        { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+        t0 = l1.payload.obj;
+        t1 = snippet$Money$std_core$Display$to_string(t0);
+        { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return 8u; }
 }

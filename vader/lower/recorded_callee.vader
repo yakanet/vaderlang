@@ -143,7 +143,7 @@ dispatch_trait :: fn(callee: Callee | null, receiver: Type) -> string | null {
     if callee is TraitMember {
         return callee.trait_key
     }
-    if callee is BoundMember && dispatches_at_run_time(receiver) {
+    if callee is BoundMember && has_run_time_tag(receiver) {
         return callee.trait_key
     }
     return null
@@ -156,15 +156,11 @@ bound_target :: fn(
     callee: BoundMember,
     receiver: Type,
 ) -> RecordedTarget | null {
-    if dispatches_at_run_time(receiver) {
+    if has_run_time_tag(receiver) {
         return RecordedVirtual { .trait_key = callee.trait_key }
     }
     return settled_bound_member(ctx, callee, receiver)
 }
-
-// Whether a value of type `t` picks its impl by its tag : an erased or still open
-// type parameter, a trait value, a union.
-dispatches_at_run_time :: fn(t: Type) -> bool = t is AnyType | TypeParamType | TraitType | UnionType
 
 // The member of the bound's trait `receiver` implements : the impl at the bound's
 // trait arguments when several impls of the trait cover it.

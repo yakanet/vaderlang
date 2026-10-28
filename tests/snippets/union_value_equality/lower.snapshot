@@ -143,7 +143,7 @@
       @vcall(std.core.Equals.equals, self.value, other.value)
   }
   snippet.same_opt<Point> :: fn(a: Any | null, b: Any) -> bool {  // snippet$same_opt__snippet_Point
-      (!(a is null)) && @vcall(std.core.Equals.equals, Any(a), b)
+      (!(a is null)) && @vcall(std.core.Equals.equals, Any(a), Any(b))
   }
   snippet.same_pair<Point> :: fn(a: [Any, i32], b: [Any, i32]) -> bool {  // snippet$same_pair__snippet_Point
       @vcall(std.core.Equals.equals, a._0, b._0) && (a._1 == b._1)

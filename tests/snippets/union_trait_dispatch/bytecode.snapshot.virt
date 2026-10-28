@@ -485,6 +485,7 @@ fn 20 snippet$plus_one (any) -> string
   type_check 22   ; snippet$Money
   if $L0 void
     local.get 1   ; sum
+    ref.cast 22   ; snippet$Money
     call 18   ; snippet$Money$std_core$Display$to_string
     return
   end $L0

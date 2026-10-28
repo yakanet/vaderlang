@@ -1,0 +1,86 @@
+module "snippet"
+
+import "std/io"
+
+// A value held in a box, a trait value or an erased `T`, narrowed by `is` to one
+// type or to another trait. The slot holds the box, so a narrowed read goes
+// through a cast, as it does for a union: a struct then reads its fields, a
+// scalar its payload. The same holds for a capture and for a `match` arm, a
+// destructuring one included.
+
+Shape :: trait {
+    area :: fn(self) -> i32
+}
+
+Square :: struct { side: i32 }
+
+Square implements Shape {
+    area :: fn(self) -> i32 = self.side * self.side
+}
+
+Circle :: struct { radius: i32 }
+
+i32 implements Shape {
+    area :: fn(self) -> i32 = self
+}
+
+f64 implements Shape {
+    area :: fn(self) -> i32 = 0
+}
+
+Named :: trait {
+    name :: fn(self) -> string
+}
+
+Square implements Named {
+    name :: fn(self) -> string = "square"
+}
+
+describe :: fn(s: Shape) -> string {
+    if s is i32 {
+        return "int ${s + 1}"
+    }
+    if s is f64 {
+        return "float ${s * 2.0}"
+    }
+    if s is Square {
+        return "square of side ${s.side}"
+    }
+    return "?"
+}
+
+measure :: fn(s: Shape) -> i32 = match s {
+    is Square { side: 1 } -> -1
+    is Square { side }    -> side * 4
+    is i32                -> s
+    _                     -> 0
+}
+
+later :: fn(s: Shape) -> fn() -> string {
+    if s is Square {
+        return () -> "later ${s.side}"
+    }
+    return () -> "later ?"
+}
+
+side_of :: fn<T>(x: T) -> i32 {
+    if x is Square {
+        return x.side * 10
+    }
+    return 0
+}
+
+main :: fn() -> i32 {
+    shapes: Shape[]: [Square { .side = 3 }, Square { .side = 1 }, 41, 1.5]
+    for s in shapes {
+        println(describe(s))
+        println(measure(s))
+        println(later(s)())
+        if s is Named {
+            println(s.name())
+        }
+    }
+    println(side_of(Square { .side = 3 }))
+    println(side_of(Circle { .radius = 3 }))
+    return 0
+}

@@ -95,7 +95,7 @@
   }
   snippet.plus_one :: fn(a: Add<i32>) -> string {  // snippet$plus_one
       sum: Add<i32> = @vcall(std.core.Add.add, a, 1)
-      return if sum is Money { snippet.Money.to_string(sum) } else { "?" } :string
+      return if sum is Money { snippet.Money.to_string(Money(sum)) } else { "?" } :string
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<string>(concat_5(std.core.f64.to_string(snippet.area_of(Sq { .s = 2.0 })), " ", std.core.f64.to_string(snippet.area_of(Circle { .r = 1.0 })), " ", std.core.f64.to_string(snippet.area_of([1.0] :f64[]))))

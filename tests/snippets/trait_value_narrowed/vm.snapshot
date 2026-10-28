@@ -1,0 +1,19 @@
+# stdout
+square of side 3
+12
+later 3
+square
+square of side 1
+-1
+later 1
+square
+int 42
+41
+later ?
+float 3.0
+0
+later ?
+30
+0
+# exit
+0

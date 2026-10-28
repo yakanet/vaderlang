@@ -385,10 +385,12 @@ walk_pattern_bindings :: fn(
     }
 }
 
-// Only a union target needs the narrowing cast ; any other shape is already
-// its concrete self and passes through. Single-case `if`, not `match` + `_`.
+// Only a target held in a box needs the narrowing cast ; any other shape is
+// already its concrete self and passes through.
 narrow_target :: fn(target: LoweredExpr, target_type: Type, inner_type: Type, span: Span) -> LoweredExpr {
-    if target_type is UnionType { return LoweredCast { .span = span, .type = inner_type, .value = target } }
+    if has_run_time_tag(target_type) {
+        return LoweredCast { .span = span, .type = inner_type, .value = target }
+    }
     return target
 }
 

@@ -279,10 +279,10 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // ident to the original const symbol via aliasing.
             folded :: fold_const_symbol(ctx, symbol, type, ident.span)
             if folded != null { return folded }
-            // A narrowed use : the slot stores the declared union (e.g.
-            // `Error | string`) and the typed-AST narrows this use to a variant
-            // (e.g. `string`) : emit a `LoweredCast` so the dump and the runtime
-            // read the slot as it is stored. An integer narrowed to a range held in
+            // A narrowed use : the slot stores the declared box (a union such as
+            // `Error | string`, a trait value, an erased `T`) and the typed-AST
+            // narrows this use to one type (e.g. `string`) : emit a `LoweredCast` so
+            // the dump and the runtime read the slot as it is stored. An integer narrowed to a range held in
             // another integer is the CFG's to read (`midir/storage.vader`).
             stored :: stored_read_type(declared_type_of_symbol(ctx, symbol), type)
             if stored != null {
@@ -613,7 +613,7 @@ read_type_or_declared :: fn(type: Type, declared: Type) -> Type {
 //
 // `lower_cell_init` built the cell at the binding's DECLARED type, so that is the
 // type it has to be read at. Naming the cell after a NARROWED use instead reads a
-// union box's tag word as if it were the payload: a wrong scalar, or a wild
+// box's tag word as if it were the payload: a wrong scalar, or a wild
 // pointer once the use is a field access. The narrowing is then a cast over the
 // value, exactly as an uncaptured slot does in `lower_ident`.
 cell_value :: fn(
@@ -645,17 +645,23 @@ declared_integer :: fn(declared: Type | null) -> Type | null {
 }
 
 // The type a slot holding `declared` is read at when a use the typer gave
-// `use_type` cannot read it as that : a union at its declared type, so the read
-// sees its box. Null when the use reads it as `use_type`, which shares its layout.
+// `use_type` cannot read it as that : a box at its declared type, so the read
+// sees the box. Null when the use reads it as `use_type`, which shares its layout.
 stored_read_type :: fn(declared: Type | null, use_type: Type) -> Type | null {
-    if declared is UnionType && !equals_type(declared, use_type) {
-        return declared
+    known :: declared ?? return null
+    if has_run_time_tag(known) && !equals_type(known, use_type) {
+        return known
     }
     return null
 }
 
+// Whether a value of type `t` is held in a box carrying its tag : an erased or
+// still open type parameter, a trait value, a union. Such a value picks its impl
+// by that tag, and a use narrowed to one type reads it through a cast.
+has_run_time_tag :: fn(t: Type) -> bool = t is AnyType | TypeParamType | TraitType | UnionType
+
 // `value`, read at `stored`, as the use of type `use_type` sees it : a cast to the
-// variant a narrowed use names, none for a slot read as the use (`stored` null).
+// type a narrowed use names, none for a slot read as the use (`stored` null).
 as_use :: fn(span: Span, value: LoweredExpr, stored: Type | null, use_type: Type) -> LoweredExpr {
     if stored == null {
         return value
