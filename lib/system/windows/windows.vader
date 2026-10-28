@@ -551,6 +551,11 @@ export write_console_w :: fn(h: Handle, text: u16[], count: u32,
 export read_console_w :: fn(h: Handle, @c_out text: u16[], count: u32,
                             @c_out read: u32[], control: CPointer | null) -> bool
 
+/// `FlushConsoleInputBuffer`: drop what was typed at the console `h` and not
+/// read yet. False on failure.
+@extern(KERNEL32, "FlushConsoleInputBuffer")
+export flush_console_input_buffer :: fn(h: Handle) -> bool
+
 /// `ReadFile`. False on failure; a synchronous read returning true with `read`
 /// short of `count` has reached end of file.
 ///

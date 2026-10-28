@@ -121,6 +121,10 @@ raw_mode_begin :: fn() -> bool {
     if !set_console_mode(h, raw) {
         return false
     }
+    // Keys typed before raw mode, like those left unread when it ends, were not
+    // meant for the reader that comes next: dropped, as `TCSAFLUSH` drops them on
+    // POSIX.
+    flush_console_input_buffer(h)
     state.active = true
     return true
 }
@@ -134,6 +138,7 @@ raw_mode_end :: fn() -> void {
     h :: get_std_handle(STD_INPUT_HANDLE)
     if i64(h) != INVALID_HANDLE {
         set_console_mode(h, state.console_mode)
+        flush_console_input_buffer(h)
     }
     state.active = false
 }
