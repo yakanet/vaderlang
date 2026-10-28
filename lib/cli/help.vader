@@ -173,14 +173,7 @@ flag_description :: fn(spec: FlagSpec) -> string =
 // (actions, flags, enumerated values): they only differed in how the label was
 // built, which the caller now does.
 column_of :: fn(labels: string[]) -> i64 {
-    widest: i64 = 0
-    for l in labels {
-        len :: l.len()
-        if len > widest {
-            widest = len
-        }
-    }
-    want :: widest + 2
+    want :: widest(labels) + 2
     if want < MIN_DESCRIPTION_COLUMN {
         return MIN_DESCRIPTION_COLUMN
     }

@@ -200,7 +200,7 @@ doc_lines :: fn(ctx: TextCtx, doc: DocSections | null) -> string[] {
         width :: widest(doc.params.map((p: DocParam) -> p.name).collect())
         hang :: INDENT + "  " + " ".repeat(width) + "  "
         for p in doc.params {
-            text :: painted_paragraphs(ctx, wrapped(p.text, WRAP_WIDTH - hang.len()))
+            text :: painted_paragraphs(ctx, p.text.wrap_words(WRAP_WIDTH - hang.len()))
             name :: painted(ctx, .Name, p.name) + " ".repeat(width - p.name.len())
             tags.push("${INDENT}  ${name}  ${text[0]}")
             tags.push_all(behind(hang, text[1..<text.len()]))
@@ -228,10 +228,6 @@ INDENT :: "    "
 behind :: fn(indent: string, lines: string[]) -> string[] =
     lines.map((line: string) -> indent + line).collect()
 
-// The width of the widest of `texts`, in codepoints, as `pad_end` counts.
-widest :: fn(texts: string[]) -> i64 =
-    texts.map((t: string) -> t.len()).fold(0, (w: i64, n: i64) -> max(w, n))
-
 // `title`, then each of `texts` wrapped under it; nothing without texts.
 section :: fn(ctx: TextCtx, title: string, texts: string[]) -> string[] {
     if texts.len() == 0 {
@@ -239,32 +235,9 @@ section :: fn(ctx: TextCtx, title: string, texts: string[]) -> string[] {
     }
     lines: string[]: [INDENT + painted(ctx, .Label, title)]
     for text in texts {
-        cut :: wrapped(text, WRAP_WIDTH - INDENT.len() - 2)
+        cut :: text.wrap_words(WRAP_WIDTH - INDENT.len() - 2)
         lines.push_all(behind(INDENT + "  ", painted_paragraphs(ctx, cut)))
     }
-    return lines
-}
-
-// `text` cut at its spaces into lines of at most `width` codepoints. A word
-// longer than a line has a line of its own.
-wrapped :: fn(text: string, width: i64) -> string[] {
-    lines: string[]: []
-    line := ""
-    for word in text.split(" ") {
-        if word == "" {
-            continue
-        }
-        if line != "" && line.len() + 1 + word.len() > width {
-            lines.push(line)
-            line = ""
-        }
-        if line == "" {
-            line = word
-        } else {
-            line = "${line} ${word}"
-        }
-    }
-    lines.push(line)
     return lines
 }
 
@@ -298,7 +271,7 @@ plain_ctx :: fn() -> TextCtx = TextCtx {
 
 @test
 test_search_text_wraps_at_its_spaces :: fn() -> void {
-    lines :: wrapped("word ".repeat(30).trim(), 76)
+    lines :: "word ".repeat(30).trim().wrap_words(76)
     assert_eq(lines.len(), 2)
     assert(lines[0].len() <= 76, "the first line fits")
 }

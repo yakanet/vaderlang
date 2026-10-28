@@ -1,34 +1,44 @@
-// lib/cli/prompt: interactive prompts (a list, checkboxes, a yes/no, a line).
+// lib/cli/prompt: interactive prompts (a list, checkboxes, a yes/no, a line),
+// drawn as the steps of one session.
 //
 // The terminal half of `keys.vader`. Everything here that can be tested without
 // a terminal is a separate function that takes a state and returns a string:
 // the frames are rendered by `render_*` and pinned by unit tests; only the loops
 // need a keyboard.
 //
-// Three rules run through all four widgets:
+// A session opens with `intro`, which starts the rail every step hangs from, and
+// closes with `outro` or `cancel`. Each prompt is one step: drawn active while it
+// waits, then folded to its question and its answer, which stay on screen. The
+// rail between steps is grey; a step's own lines take the colour of its state,
+// cyan while it waits and yellow when its answer is refused.
+//
+// Four rules run through all the widgets:
 //
 //   * **No terminal, no prompt.** When stdin is not interactive the prompt
 //     REFUSES rather than reading a line or silently taking a default. A script
 //     must never wait on input that will not come, and a caller that gets
 //     `.NoTerminal` back is expected to name the flag to pass instead: the
 //     library cannot know it, the command can.
-//   * **The terminal is always restored.** `raw_mode_begin` is paired with a
-//     `defer`, which covers the normal return and a panic alike (the runtime runs
-//     pending defers before aborting). Ctrl-C is a BYTE here, not a signal, so it
-//     unwinds through the same path.
+//   * **The terminal is always restored.** `take_terminal` is paired with a
+//     deferred `give_terminal_back`, which covers the normal return and a panic
+//     alike (the runtime runs pending defers before aborting). Ctrl-C is a BYTE
+//     here, not a signal, so it unwinds through the same path. A console switched
+//     to UTF-8 to draw is switched back as soon as the drawing is done, so its
+//     code page outlives no prompt.
 //   * **Each prompt starts with an empty key queue.** Keys typed before a
 //     question appears are dropped rather than answering it: a burst read by one
 //     widget does not carry into the next. That is deliberate for a prompt: an
 //     answer should be given to a question the user has actually seen.
-//   * **ASCII only in the frames.** A pointer is `>`, a checked box is `[x]`.
-//     Not every Windows console is on a UTF-8 code page, and a mangled glyph is a
-//     worse default than a plain one.
+//   * **Glyphs only where they render.** A terminal that renders UTF-8 gets box
+//     and shape glyphs, anything else ASCII: a mangled glyph is a worse default
+//     than a plain one. Every line is cut to the terminal's width, since a frame
+//     is erased by its count of lines.
 
 module "cli"
 
 import "std/io"
+import "std/iter"
 import "std/string"
-import "std/string_builder"
 TTY :: import "std/tty"
 
 // ---- results --------------------------------------------------------------
@@ -64,13 +74,156 @@ input_closed :: fn() = PromptError {
     .message = "input ended before an answer",
 }
 
-// ---- the terminal session -------------------------------------------------
+/// One option of a `select` or a `multiselect`.
+export Choice :: struct {
+    /// What the option is called, and what the folded step shows once chosen.
+    label: string
+    /// A few words beside the label, in grey; none when empty.
+    hint: string = ""
+}
+
+// ---- glyphs ---------------------------------------------------------------
+
+// The characters a frame is drawn with.
+Glyphs :: struct {
+    /// Opens the session's rail.
+    start: string
+    /// The rail itself.
+    bar: string
+    /// Closes a step's frame, or the session.
+    end: string
+    /// A step waiting for its answer.
+    active: string
+    /// A step answered.
+    done: string
+    /// A step left without an answer.
+    stopped: string
+    /// A step whose answer was refused.
+    refused: string
+    chosen: string
+    unchosen: string
+    checked: string
+    unchecked: string
+    /// Points at the checkbox Space toggles.
+    pointer: string
+    /// The keys that move through a list, as the hint names them.
+    up_down: string
+    /// The keys that switch a yes/no.
+    left_right: string
+    /// Marks the end of a line cut to fit.
+    cut: string
+}
+
+// Box and shape glyphs, written as escapes so the source stays ASCII.
+UNICODE_GLYPHS :: Glyphs {
+    .start = "\u{250C}",
+    .bar = "\u{2502}",
+    .end = "\u{2514}",
+    .active = "\u{25C6}",
+    .done = "\u{25C7}",
+    .stopped = "\u{25A0}",
+    .refused = "\u{25B2}",
+    .chosen = "\u{25CF}",
+    .unchosen = "\u{25CB}",
+    .checked = "\u{25FC}",
+    .unchecked = "\u{25FB}",
+    .pointer = "\u{276F}",
+    .up_down = "\u{2191}/\u{2193}",
+    .left_right = "\u{2190}/\u{2192}",
+    .cut = "\u{2026}",
+}
+
+ASCII_GLYPHS :: Glyphs {
+    .start = "+",
+    .bar = "|",
+    .end = "+",
+    .active = "*",
+    .done = "o",
+    .stopped = "x",
+    .refused = "!",
+    .chosen = "(*)",
+    .unchosen = "( )",
+    .checked = "[x]",
+    .unchecked = "[ ]",
+    .pointer = ">",
+    .up_down = "up/down",
+    .left_right = "left/right",
+    .cut = "...",
+}
+
+// The columns a line of the rail takes before its content: a glyph, two spaces.
+RAIL: i32: 3
+
+// The glyphs for a terminal that renders UTF-8 or not.
+glyphs_for :: fn(unicode: bool) -> Glyphs {
+    if unicode {
+        return UNICODE_GLYPHS
+    }
+    return ASCII_GLYPHS
+}
+
+// ---- the rail -------------------------------------------------------------
+
+/// Open a session of prompts under `title`: the top of the rail every later step
+/// hangs from. Close it with `outro` or `cancel`.
+///
+/// @param title  what the session is about, shown in bold at its top.
+/// @example
+///   intro("vader new")
+///   name :: text("Project name?", "demo")
+///   if name is PromptError {
+///       cancel("no project was made")
+///   } else {
+///       outro("created ${name}")
+///   }
+export intro :: fn(title: string) -> void {
+    g :: glyphs_for(TTY.utf8_output_begin())
+    defer TTY.utf8_output_end()
+    println("${TTY.gray(g.start)}  ${TTY.bold(title)}")
+}
+
+/// Put an answered step of `title` on the rail, with `lines` under it: what a
+/// command did once the prompts were answered.
+///
+/// @param title  the step, as a folded question would read.
+/// @param lines  shown under it, one per rail line.
+export note :: fn(title: string, lines: string[]) -> void {
+    g :: glyphs_for(TTY.utf8_output_begin())
+    defer TTY.utf8_output_end()
+    println(TTY.gray(g.bar))
+    println(on_rail(TTY.green(g.done), title))
+    for line in lines {
+        println(on_rail(TTY.gray(g.bar), line))
+    }
+}
+
+/// Close the session on `message`: what to do next, say.
+///
+/// @param message  the last line, beside the rail's end.
+export outro :: fn(message: string) -> void {
+    g :: glyphs_for(TTY.utf8_output_begin())
+    defer TTY.utf8_output_end()
+    println(TTY.gray(g.bar))
+    println(on_rail(TTY.gray(g.end), message))
+}
+
+/// Close the session on why nothing was done, on the error output.
+///
+/// @param message  the reason, in red beside the rail's end.
+export cancel :: fn(message: string) -> void {
+    g :: glyphs_for(TTY.utf8_output_begin())
+    defer TTY.utf8_output_end()
+    eprintln(TTY.gray(g.bar))
+    eprintln(on_rail(TTY.red(g.end), TTY.red(message)))
+}
+
+// ---- the terminal ---------------------------------------------------------
 
 // A burst can hold several presses (typing fast, or a paste), so they queue here
 // rather than being dropped: reading one key must not discard the rest.
 KeyReader :: struct {
     pending: KeyPress[] = []
-    at:      i64 = 0
+    at: i64 = 0
 }
 
 // The next press, reading a fresh burst when the queue is empty.
@@ -85,40 +238,205 @@ next_press :: fn(reader: KeyReader) -> KeyPress | PromptError {
     return press
 }
 
-// ---- drawing --------------------------------------------------------------
-
-// Erase the frame just drawn: back to column 1, up `lines` lines, then clear
-// everything below. One escape per repaint rather than one per line.
-erase :: fn(lines: i32) -> void {
-    if lines <= 0 {
-        return
+// Put the terminal in the state a prompt draws in: raw, rendering UTF-8 when it
+// can, its own cursor hidden since a frame draws its own. Null, with nothing
+// changed, when there is no terminal. Pair with a deferred `give_terminal_back`.
+take_terminal :: fn() -> Glyphs | null {
+    if !TTY.raw_mode_begin() {
+        return null
     }
-    print("\r\u{1B}[${lines}A\u{1B}[0J")
+    unicode :: TTY.utf8_output_begin()
+    print("\u{1B}[?25l")
+    return glyphs_for(unicode)
+}
+
+// Undo `take_terminal`, in the reverse order.
+give_terminal_back :: fn() -> void {
+    print("\u{1B}[?25h")
+    TTY.utf8_output_end()
+    TTY.raw_mode_end()
 }
 
 // Width to render inside, leaving a column so a full-width line does not wrap on
-// its own. 80 when the terminal will not say.
+// its own. 80 columns when the terminal will not say.
 render_width :: fn() -> i32 {
     reported :: TTY.columns()
-    width :: if reported <= 0 { 80 } else { reported }
-    return width - 1
+    if reported <= 0 {
+        return 79
+    }
+    return reported - 1
 }
 
-/// Cut `s` to `width` columns, marking the cut with `…` so a truncated option
-/// does not read as a complete one.
+/// Cut `s` to `width` columns, marking the cut so a truncated option does not
+/// read as a complete one.
 ///
 /// @param s      the line to fit.
-/// @param width  columns available; a width under 2 returns `s` unchanged, since
-///               there is no room to mark anything.
-/// @return       `s`, or its first `width - 1` characters plus `…`.
-export fit :: fn(s: string, width: i32) -> string {
-    if width < 2 {
+/// @param width  columns available; when the mark alone does not fit, `s` comes
+///               back unchanged, since there is no room to mark anything.
+/// @param cut    the mark, which takes the place of the last columns kept.
+/// @return       `s`, or as much of it as fits before `cut`.
+export fit :: fn(s: string, width: i32, cut: string = "...") -> string {
+    if s.len() <= i64(width) || i64(width) <= cut.len() {
         return s
     }
-    if s.len() <= i64(width) {
+    return s[0..<i64(width) - cut.len()] + cut
+}
+
+// `s` cut to its last columns behind `cut`, as `fit` cuts its first: a line being
+// typed shows its end, where the typing goes.
+fit_end :: fn(s: string, width: i32, cut: string) -> string {
+    if s.len() <= i64(width) || i64(width) <= cut.len() {
         return s
     }
-    return s[0..<i64(width - 1)] + "…"
+    return cut + s[s.len() - (i64(width) - cut.len())..<s.len()]
+}
+
+// ---- a step ---------------------------------------------------------------
+
+// One prompt on the terminal: its question, the glyphs it draws with, the keys
+// queued for it, and its last frame, which the next one replaces.
+Step :: struct {
+    question: string
+    glyphs: Glyphs
+    reader: KeyReader = KeyReader {}
+    /// Lines the frame on screen takes: what the next draw erases.
+    drawn: i32 = 0
+    shown: string = ""
+}
+
+// Replace the frame on screen with `frame`, in one write so no blank shows
+// between the two; nothing when it is the frame on screen already.
+draw :: fn(step: Step, frame: string) -> void {
+    if frame == step.shown {
+        return
+    }
+    TTY.raw_print("${erasure(step.drawn)}${frame}")
+    step.drawn = i32(frame.split("\n").len())
+    step.shown = frame
+}
+
+// What erases the `lines` lines just drawn: back to column 1, up, then clear
+// everything below.
+erasure :: fn(lines: i32) -> string {
+    if lines <= 0 {
+        return ""
+    }
+    return "\r\u{1B}[${lines}A\u{1B}[0J"
+}
+
+// Draw `frame`, then wait for a key. Escape, Ctrl-C and the end of input stop the
+// step, folded with the reason, and come back as the error.
+wait_key :: fn(step: Step, frame: string) -> KeyPress | PromptError {
+    step.draw(frame)
+    press :: next_press(step.reader)
+    if press is PromptError {
+        step.stopped(press.message)
+        return press
+    }
+    if press.key == .Escape || press.key == .Interrupt {
+        stop :: cancelled()
+        step.stopped(stop.message)
+        return stop
+    }
+    return press
+}
+
+// Fold the step to its question and `answer`, as it stays on screen.
+answered :: fn(step: Step, answer: string) -> void {
+    g :: step.glyphs
+    step.draw(render_settled(TTY.green(g.done), step.question, answer, render_width(), g))
+}
+
+// Fold the step to its question and why it has no answer.
+stopped :: fn(step: Step, why: string) -> void {
+    g :: step.glyphs
+    step.draw(render_settled(TTY.red(g.stopped), step.question, why, render_width(), g))
+}
+
+// ---- frames ---------------------------------------------------------------
+
+// A line of the rail: its glyph, already painted, then `content`.
+on_rail :: fn(glyph: string, content: string) -> string = "${glyph}  ${content}"
+
+// The question of a step, fitted after its glyph.
+question_line :: fn(glyph: string, question: string, width: i32, g: Glyphs) -> string =
+    on_rail(glyph, fit(question, width - RAIL, g.cut))
+
+// The last row of a waiting step: the keys it answers to, in grey.
+keys_row :: fn(keys: string, width: i32, g: Glyphs) -> string =
+    TTY.gray(fit(keys, width - RAIL, g.cut))
+
+// The rail painted while a step waits, and while its answer is refused.
+waiting :: fn(s: string) -> string = TTY.cyan(s)
+
+refusing :: fn(s: string) -> string = TTY.yellow(s)
+
+// A step's frame: the grey rail from the step before, the question beside
+// `glyph`, then `rows` on the step's own rail, painted with `tint`, the last row
+// beside its end. Every row is fitted by its caller.
+render_step :: fn(
+    tint: fn(string) -> string,
+    glyph: string,
+    question: string,
+    rows: string[],
+    width: i32,
+    g: Glyphs,
+) -> string {
+    lines: string[]: [TTY.gray(g.bar), question_line(tint(glyph), question, width, g)]
+    for i in 0..<rows.len() - 1 {
+        lines.push(on_rail(tint(g.bar), rows[i]))
+    }
+    lines.push(on_rail(tint(g.end), rows[rows.len() - 1]))
+    return lines.join("\n")
+}
+
+/// Fold a step to its question and `answer`, the way it stays on screen. Pure.
+///
+/// @param glyph     the step's glyph, painted: answered, or stopped.
+/// @param question  the step's question.
+/// @param answer    what was answered, or why nothing was.
+/// @param width     columns to fit each line into.
+/// @param g         the glyphs to draw with.
+/// @return          the folded step, newline-separated.
+render_settled :: fn(glyph: string, question: string, answer: string, width: i32, g: Glyphs) -> string {
+    lines :: [
+        TTY.gray(g.bar),
+        question_line(glyph, question, width, g),
+        on_rail(TTY.gray(g.bar), TTY.gray(fit(answer, width - RAIL, g.cut))),
+    ]
+    return lines.join("\n")
+}
+
+// One option row: its marker, `marker_width` columns once unpainted, its label
+// padded to `label_width`, then its hint in grey, as much as fits.
+option_row :: fn(
+    marker: string,
+    marker_width: i64,
+    choice: Choice,
+    label_width: i64,
+    width: i32,
+    g: Glyphs,
+) -> string {
+    room :: i64(width - RAIL) - marker_width - 1
+    label :: fit(choice.label, i32(room), g.cut)
+    hint_room :: room - label_width - 2
+    if choice.hint == "" || hint_room < 2 {
+        return "${marker} ${label}"
+    }
+    hint :: TTY.gray(fit(choice.hint, i32(hint_room), g.cut))
+    return "${marker} ${label.pad_end(label_width, ' ')}  ${hint}"
+}
+
+// The widest label of `choices`, which their hints align after.
+label_width_of :: fn(choices: Choice[]) -> i64 =
+    widest(choices.map((c: Choice) -> c.label).collect())
+
+// The marker of a radio option.
+radio :: fn(on: bool, g: Glyphs) -> string {
+    if on {
+        return TTY.green(g.chosen)
+    }
+    return TTY.gray(g.unchosen)
 }
 
 // ---- select ---------------------------------------------------------------
@@ -127,57 +445,56 @@ export fit :: fn(s: string, width: i32) -> string {
 /// terminal.
 ///
 /// @param question  the line above the list.
-/// @param options   what to choose between.
-/// @param cursor    index currently under the pointer.
+/// @param choices   what to choose between.
+/// @param cursor    index of the option chosen if Enter is pressed now.
 /// @param width     columns to fit each line into.
+/// @param g         the glyphs to draw with.
 /// @return          the frame, newline-separated, with no trailing newline.
-export render_select :: fn(
-    question: string, options: string[], cursor: i64, width: i32,
+render_select :: fn(
+    question: string,
+    choices: Choice[],
+    cursor: i64,
+    width: i32,
+    g: Glyphs,
 ) -> string {
-    lines: string[]: [fit("? ${question}  (up/down, Enter to choose, Esc to cancel)", width)]
-    for i in 0..<options.len() {
-        marker :: if i == cursor { ">" } else { " " }
-        lines.push(fit("${marker} ${options[i]}", width))
+    label_width :: label_width_of(choices)
+    rows: string[]: []
+    for i in 0..<choices.len() {
+        marker :: radio(i == cursor, g)
+        rows.push(option_row(marker, g.chosen.len(), choices[i], label_width, width, g))
     }
-    return lines.join("\n")
+    rows.push(keys_row("${g.up_down} to move, Enter to choose, Esc to cancel", width, g))
+    return render_step(waiting, g.active, question, rows, width, g)
 }
 
-/// Ask the user to pick one of `options`.
+/// Ask the user to pick one of `choices`; the first is chosen until the user
+/// moves.
 ///
 /// @param question  shown above the list.
-/// @param options   at least one; an empty list is a caller mistake and returns
+/// @param choices   at least one; an empty list is a caller mistake and returns
 ///                  `.NoTerminal` rather than drawing an empty frame.
-/// @return          the chosen INDEX into `options`.
+/// @return          the chosen INDEX into `choices`.
 /// @error           `.NoTerminal` when stdin is not interactive: name the flag
 ///                  to pass instead; `.Cancelled` on Escape or Ctrl-C;
 ///                  `.InputClosed` when input ends first.
-export select :: fn(question: string, options: string[]) -> i64 | PromptError {
-    if options.len() == 0 {
+export select :: fn(question: string, choices: Choice[]) -> i64 | PromptError {
+    if choices.len() == 0 {
         return no_terminal(question)
     }
-    if !TTY.raw_mode_begin() {
-        return no_terminal(question)
-    }
-    defer TTY.raw_mode_end()
-    reader :: KeyReader {}
+    g :: take_terminal() ?? return no_terminal(question)
+    defer give_terminal_back()
+    step :: Step { .question = question, .glyphs = g }
     cursor: i64 = 0
-    drawn := 0
     for {
-        erase(drawn)
-        frame :: render_select(question, options, cursor, render_width())
-        TTY.raw_print(frame)
-        drawn = i32(options.len()) + 1
-        press :: next_press(reader)
+        press :: step.wait_key(render_select(question, choices, cursor, render_width(), g))
         if press is PromptError {
             return press
         }
         if press.key == .Enter {
+            step.answered(choices[cursor].label)
             return cursor
         }
-        if press.key == .Escape || press.key == .Interrupt {
-            return cancelled()
-        }
-        cursor = moved(cursor, options.len(), press.key)
+        cursor = moved(cursor, choices.len(), press.key)
     }
 }
 
@@ -199,57 +516,76 @@ export moved :: fn(cursor: i64, count: i64, key: Key) -> i64 = @partial match ke
 
 // ---- multiselect ----------------------------------------------------------
 
-/// Render one frame of a checkbox list. Pure.
-///
-/// @param checked  one flag per option, same length as `options`.
-export render_multiselect :: fn(
-    question: string, options: string[], checked: bool[], cursor: i64, width: i32,
-) -> string {
-    header :: "? ${question}  (Space to toggle, Enter to confirm, Esc to cancel)"
-    lines: string[]: [fit(header, width)]
-    for i in 0..<options.len() {
-        marker :: if i == cursor { ">" } else { " " }
-        box :: if checked[i] { "[x]" } else { "[ ]" }
-        lines.push(fit("${marker} ${box} ${options[i]}", width))
+// The marker of a checkbox option: the pointer when under it, then the box.
+checkbox :: fn(on: bool, under: bool, g: Glyphs) -> string {
+    pointer :: pointer_at(under, g)
+    if on {
+        return "${pointer} ${TTY.green(g.checked)}"
     }
-    return lines.join("\n")
+    return "${pointer} ${TTY.gray(g.unchecked)}"
 }
 
-/// Ask the user to check any number of `options`.
+// The pointer, or as many spaces, so the boxes stay in one column.
+pointer_at :: fn(under: bool, g: Glyphs) -> string {
+    if under {
+        return TTY.cyan(g.pointer)
+    }
+    return " ".repeat(g.pointer.len())
+}
+
+/// Render one frame of a checkbox list. Pure.
+///
+/// @param checked  one flag per option, same length as `choices`.
+/// @param cursor   index of the option Space toggles.
+render_multiselect :: fn(
+    question: string,
+    choices: Choice[],
+    checked: bool[],
+    cursor: i64,
+    width: i32,
+    g: Glyphs,
+) -> string {
+    label_width :: label_width_of(choices)
+    marker_width :: g.pointer.len() + 1 + g.checked.len()
+    rows: string[]: []
+    for i in 0..<choices.len() {
+        marker :: checkbox(checked[i], i == cursor, g)
+        rows.push(option_row(marker, marker_width, choices[i], label_width, width, g))
+    }
+    keys :: "${g.up_down} to move, Space to toggle, Enter to confirm, Esc to cancel"
+    rows.push(keys_row(keys, width, g))
+    return render_step(waiting, g.active, question, rows, width, g)
+}
+
+/// Ask the user to check any number of `choices`.
 ///
 /// @return the indices checked, in order; empty when none were.
 /// @error  as `select`.
-export multiselect :: fn(question: string, options: string[]) -> i64[] | PromptError {
-    if options.len() == 0 {
+export multiselect :: fn(question: string, choices: Choice[]) -> i64[] | PromptError {
+    if choices.len() == 0 {
         return no_terminal(question)
     }
-    if !TTY.raw_mode_begin() {
-        return no_terminal(question)
-    }
-    defer TTY.raw_mode_end()
-    reader :: KeyReader {}
-    checked: bool[]: [false] * options.len()
+    g :: take_terminal() ?? return no_terminal(question)
+    defer give_terminal_back()
+    step :: Step { .question = question, .glyphs = g }
+    checked: bool[]: [false] * choices.len()
     cursor: i64 = 0
-    drawn := 0
     for {
-        erase(drawn)
-        TTY.raw_print(render_multiselect(question, options, checked, cursor, render_width()))
-        drawn = i32(options.len()) + 1
-        press :: next_press(reader)
+        frame :: render_multiselect(question, choices, checked, cursor, render_width(), g)
+        press :: step.wait_key(frame)
         if press is PromptError {
             return press
         }
         if press.key == .Enter {
-            return checked_indices(checked)
-        }
-        if press.key == .Escape || press.key == .Interrupt {
-            return cancelled()
+            indices :: checked_indices(checked)
+            step.answered(checked_labels(choices, indices))
+            return indices
         }
         if press.key == .Space {
             checked[cursor] = !checked[cursor]
             continue
         }
-        cursor = moved(cursor, options.len(), press.key)
+        cursor = moved(cursor, choices.len(), press.key)
     }
 }
 
@@ -264,48 +600,67 @@ export checked_indices :: fn(checked: bool[]) -> i64[] {
     return out
 }
 
-// ---- confirm --------------------------------------------------------------
-
-/// Render a yes/no question, showing which answer Enter takes. Pure.
-export render_confirm :: fn(question: string, default_yes: bool, width: i32) -> string {
-    hint :: if default_yes { "[Y/n]" } else { "[y/N]" }
-    return fit("? ${question} ${hint} ", width)
+// The labels of the options at `indices`, as the folded step reads them back.
+checked_labels :: fn(choices: Choice[], indices: i64[]) -> string {
+    if indices.len() == 0 {
+        return "none"
+    }
+    return indices.map((i: i64) -> choices[i].label).collect().join(", ")
 }
 
-/// Ask a yes/no question. Enter takes `default_yes`.
+// ---- confirm --------------------------------------------------------------
+
+/// Render a yes/no question with the answer Enter takes now. Pure.
+///
+/// @param yes  whether Enter answers yes.
+render_confirm :: fn(question: string, yes: bool, width: i32, g: Glyphs) -> string {
+    rows :: [
+        "${radio(yes, g)} Yes / ${radio(!yes, g)} No",
+        keys_row("${g.left_right} or y/n to pick, Enter to choose, Esc to cancel", width, g),
+    ]
+    return render_step(waiting, g.active, question, rows, width, g)
+}
+
+/// Ask a yes/no question. Enter takes `default_yes` until the user switches it.
 ///
 /// @error `.NoTerminal` when stdin is not interactive: the caller should use
 ///        its flag's own default; `.Cancelled` on Escape or Ctrl-C.
 export confirm :: fn(question: string, default_yes: bool) -> bool | PromptError {
-    if !TTY.raw_mode_begin() {
-        return no_terminal(question)
-    }
-    defer TTY.raw_mode_end()
-    reader :: KeyReader {}
-    print(render_confirm(question, default_yes, render_width()))
+    g :: take_terminal() ?? return no_terminal(question)
+    defer give_terminal_back()
+    step :: Step { .question = question, .glyphs = g }
+    yes := default_yes
     for {
-        press :: next_press(reader)
+        press :: step.wait_key(render_confirm(question, yes, render_width(), g))
         if press is PromptError {
-            TTY.raw_print("")
             return press
         }
-        answer :: confirm_answer(press, default_yes)
+        answer :: confirm_answer(press, yes)
         if answer is bool {
-            TTY.raw_print(if answer { "yes" } else { "no" })
+            step.answered(yes_or_no(answer))
             return answer
         }
-        if press.key == .Escape || press.key == .Interrupt {
-            TTY.raw_print("")
-            return cancelled()
+        if press.key == .Left || press.key == .Right || press.key == .Tab {
+            yes = !yes
         }
     }
 }
 
+// An answer as the folded step reads it back.
+yes_or_no :: fn(yes: bool) -> string {
+    if yes {
+        return "Yes"
+    }
+    return "No"
+}
+
 /// How one press answers a yes/no, or null when it decides nothing. Pure, so the
 /// accepted spellings are pinned by a test rather than by trying them.
-export confirm_answer :: fn(press: KeyPress, default_yes: bool) -> bool | null {
+///
+/// @param current  the answer Enter takes.
+export confirm_answer :: fn(press: KeyPress, current: bool) -> bool | null {
     if press.key == .Enter {
-        return default_yes
+        return current
     }
     if press.key != .Char {
         return null
@@ -322,10 +677,52 @@ export confirm_answer :: fn(press: KeyPress, default_yes: bool) -> bool | null {
 
 // ---- text -----------------------------------------------------------------
 
+// Every answer is fine: the check of a `text` that refuses nothing.
+any_answer :: fn(answer: string) -> string | null = null
+
+// Where the typing goes: an inverted cell, or `_` when the terminal is not
+// coloured, the real cursor being hidden.
+caret :: fn() -> string {
+    if TTY.should_colorize() {
+        return TTY.reverse(" ")
+    }
+    return "_"
+}
+
+// The input row: the end of the typing then the caret, or the caret then the
+// default in grey while nothing is typed.
+input_row :: fn(typed: string, default_value: string, width: i32, g: Glyphs) -> string {
+    room :: width - RAIL - 1
+    if typed != "" || default_value == "" {
+        return "${fit_end(typed, room, g.cut)}${caret()}"
+    }
+    return "${caret()}${TTY.gray(fit(default_value, room, g.cut))}"
+}
+
 /// Render a line-input prompt with what has been typed so far. Pure.
-export render_text :: fn(question: string, typed: string, default_value: string, width: i32) -> string {
-    shown :: if typed == "" && default_value != "" { "(${default_value})" } else { typed }
-    return fit("? ${question} ${shown}", width)
+///
+/// @param typed          the line so far.
+/// @param default_value  shown in grey while the line is empty.
+/// @param problem        why the last answer was refused, "" when none was.
+render_text :: fn(
+    question: string,
+    typed: string,
+    default_value: string,
+    problem: string,
+    width: i32,
+    g: Glyphs,
+) -> string {
+    input :: input_row(typed, default_value, width, g)
+    if problem == "" {
+        rows :: [input, keys_row("Enter to confirm, Esc to cancel", width, g)]
+        return render_step(waiting, g.active, question, rows, width, g)
+    }
+    // The reason is the one line a user must read in full: wrapped, not cut.
+    rows: string[]: [input]
+    for line in problem.wrap_words(i64(width - RAIL)) {
+        rows.push(TTY.yellow(fit(line, width - RAIL, g.cut)))
+    }
+    return render_step(refusing, g.refused, question, rows, width, g)
 }
 
 /// Ask for one line of text.
@@ -336,43 +733,56 @@ export render_text :: fn(question: string, typed: string, default_value: string,
 /// into one.
 ///
 /// @param default_value  returned when the user presses Enter on an empty line;
-///                       shown in parentheses while the line is empty.
+///                       shown in grey while the line is empty.
+/// @param check          why an answer is refused, null when it is taken. A
+///                       refused answer stays to be corrected, the reason under
+///                       it until the line changes.
 /// @error                as `confirm`.
-export text :: fn(question: string, default_value: string) -> string | PromptError {
-    if !TTY.raw_mode_begin() {
-        return no_terminal(question)
-    }
-    defer TTY.raw_mode_end()
-    reader :: KeyReader {}
+export text :: fn(
+    question: string,
+    default_value: string,
+    check: fn(string) -> string | null = any_answer,
+) -> string | PromptError {
+    g :: take_terminal() ?? return no_terminal(question)
+    defer give_terminal_back()
+    step :: Step { .question = question, .glyphs = g }
     typed := ""
+    problem := ""
     for {
-        print("\r\u{1B}[0K")
-        print(render_text(question, typed, default_value, render_width()))
-        press :: next_press(reader)
+        frame :: render_text(question, typed, default_value, problem, render_width(), g)
+        press :: step.wait_key(frame)
         if press is PromptError {
-            TTY.raw_print("")
             return press
         }
         if press.key == .Enter {
-            TTY.raw_print("")
-            return if typed == "" { default_value } else { typed }
-        }
-        if press.key == .Escape || press.key == .Interrupt {
-            TTY.raw_print("")
-            return cancelled()
+            answer :: entered(typed, default_value)
+            refusal :: check(answer)
+            if refusal == null {
+                step.answered(answer)
+                return answer
+            }
+            problem = refusal
+            continue
         }
         if press.key == .Backspace {
             typed = drop_last(typed)
-            continue
-        }
-        if press.key == .Space {
+        } else if press.key == .Space {
             typed = typed + " "
+        } else if press.key == .Char {
+            typed = typed + press.text
+        } else {
             continue
         }
-        if press.key == .Char {
-            typed = typed + press.text
-        }
+        problem = ""
     }
+}
+
+// The answer Enter gives: the line, or the default when it is empty.
+entered :: fn(typed: string, default_value: string) -> string {
+    if typed == "" {
+        return default_value
+    }
+    return typed
 }
 
 /// Drop the last CHARACTER of `s`, not its last byte, so backspacing over a
@@ -389,19 +799,60 @@ export drop_last :: fn(s: string) -> string {
 
 import "std/testing"
 
-@test test_select_frame_points_at_the_cursor :: fn() -> void {
-    frame :: render_select("Pick one", ["alpha", "beta"], 1, 80)
-    lines :: frame.split("\n")
-    assert_eq(lines.len(), 3)
-    assert(lines[1].starts_with("  alpha"), "an unselected row has no pointer")
-    assert(lines[2].starts_with("> beta"), "the cursor row does")
+// The lines of `frame` as a reader sees them, whether or not the tests run on a
+// terminal that colours them.
+lines_of :: fn(frame: string) -> string[] = TTY.without_escapes(frame).split("\n")
+
+CHOICES :: [Choice { .label = "alpha", .hint = "the first" }, Choice { .label = "be" }]
+
+@test test_select_frame_marks_the_option_under_the_cursor :: fn() -> void {
+    lines :: lines_of(render_select("Pick one", CHOICES, 1, 80, ASCII_GLYPHS))
+    assert_eq(lines.len(), 5)
+    assert_eq(lines[0], "|")
+    assert_eq(lines[1], "*  Pick one")
+    assert_eq(lines[2], "|  ( ) alpha  the first")
+    assert_eq(lines[3], "|  (*) be")
+    assert_eq(lines[4], "+  up/down to move, Enter to choose, Esc to cancel")
 }
 
-@test test_multiselect_frame_shows_boxes :: fn() -> void {
-    frame :: render_multiselect("Pick some", ["a", "b"], [true, false], 0, 80)
-    lines :: frame.split("\n")
-    assert("[x] a" in lines[1], "a checked option is marked")
-    assert("[ ] b" in lines[2], "an unchecked one is not")
+@test test_select_frame_draws_unicode_glyphs :: fn() -> void {
+    lines :: lines_of(render_select("Pick one", CHOICES, 0, 80, UNICODE_GLYPHS))
+    assert_eq(lines[1], "\u{25C6}  Pick one")
+    assert_eq(lines[2], "\u{2502}  \u{25CF} alpha  the first")
+}
+
+@test test_select_frame_cuts_a_hint_that_does_not_fit :: fn() -> void {
+    lines :: lines_of(render_select("Q", CHOICES, 0, 20, ASCII_GLYPHS))
+    assert_eq(lines[2], "|  (*) alpha  the...")
+}
+
+@test test_frame_lines_all_fit_the_width :: fn() -> void {
+    long :: [Choice { .label = "a-label-much-wider-than-the-terminal" }]
+    question :: "A question wider than the terminal"
+    for line in lines_of(render_select(question, long, 0, 20, ASCII_GLYPHS)) {
+        assert(line.len() <= 20, "`${line}` fits")
+    }
+    path :: "a/path/much/wider/than/the/terminal"
+    typed :: lines_of(render_text("Q", path, "", "", 20, ASCII_GLYPHS))
+    assert_eq(typed[2], "|  .../the/terminal_")
+}
+
+@test test_settled_step_keeps_the_question_and_the_answer :: fn() -> void {
+    lines :: lines_of(render_settled("o", "Pick one", "be", 80, ASCII_GLYPHS))
+    assert_eq(lines.len(), 3)
+    assert_eq(lines[1], "o  Pick one")
+    assert_eq(lines[2], "|  be")
+}
+
+@test test_multiselect_frame_points_at_the_cursor :: fn() -> void {
+    lines :: lines_of(render_multiselect("Pick some", CHOICES, [true, false], 1, 80, ASCII_GLYPHS))
+    assert_eq(lines[2], "|    [x] alpha  the first")
+    assert_eq(lines[3], "|  > [ ] be")
+}
+
+@test test_checked_labels_reads_the_answer_back :: fn() -> void {
+    assert_eq(checked_labels(CHOICES, [0, 1]), "alpha, be")
+    assert_eq(checked_labels(CHOICES, []), "none")
 }
 
 @test test_cursor_wraps_at_both_ends :: fn() -> void {
@@ -426,31 +877,48 @@ import "std/testing"
     other :: KeyPress { .key = .Char, .text = "q" }
     assert(confirm_answer(yes, false) == true, "Y answers yes whatever the default")
     assert(confirm_answer(no, true) == false, "n answers no")
-    assert(confirm_answer(enter, true) == true, "Enter takes the default")
+    assert(confirm_answer(enter, true) == true, "Enter takes the current answer")
     assert(confirm_answer(enter, false) == false, "either way")
     assert(confirm_answer(other, true) == null, "an unrelated key decides nothing")
 }
 
-@test test_confirm_frame_shows_the_default :: fn() -> void {
-    assert("[Y/n]" in render_confirm("Sure", true, 80), "the default is capitalised")
-    assert("[y/N]" in render_confirm("Sure", false, 80), "and it follows the argument")
+@test test_confirm_frame_marks_the_current_answer :: fn() -> void {
+    assert_eq(lines_of(render_confirm("Sure?", true, 80, ASCII_GLYPHS))[2], "|  (*) Yes / ( ) No")
+    assert_eq(lines_of(render_confirm("Sure?", false, 80, ASCII_GLYPHS))[2], "|  ( ) Yes / (*) No")
 }
 
 @test test_text_frame_shows_the_default_until_typing :: fn() -> void {
-    assert("(demo)" in render_text("Name", "", "demo", 80), "an empty line shows the default")
-    assert(!("(demo)" in render_text("Name", "x", "demo", 80)), "typing replaces it")
+    empty :: lines_of(render_text("Name", "", "demo", "", 80, ASCII_GLYPHS))
+    typed :: lines_of(render_text("Name", "x", "demo", "", 80, ASCII_GLYPHS))
+    assert_eq(empty[2], "|  _demo")
+    assert_eq(typed[2], "|  x_")
+}
+
+@test test_text_frame_wraps_the_reason_an_answer_was_refused :: fn() -> void {
+    reason :: "a reason too long for one line"
+    lines :: lines_of(render_text("Name", "x", "", reason, 20, ASCII_GLYPHS))
+    assert_eq(lines.len(), 5)
+    assert_eq(lines[1], "!  Name")
+    assert_eq(lines[3], "|  a reason too long")
+    assert_eq(lines[4], "+  for one line")
 }
 
 @test test_backspace_removes_a_whole_character :: fn() -> void {
     // Dropping a BYTE would leave half a codepoint behind.
-    assert_eq(drop_last("héllo"), "héll")
-    assert_eq(drop_last("é"), "")
+    assert_eq(drop_last("h\u{e9}llo"), "h\u{e9}ll")
+    assert_eq(drop_last("\u{e9}"), "")
     assert_eq(drop_last(""), "")
 }
 
 @test test_fit_marks_what_it_cut :: fn() -> void {
-    assert_eq(fit("abcdef", 4), "abc…")
+    assert_eq(fit("abcdefgh", 6), "abc...")
+    assert_eq(fit("abcdef", 4, "\u{2026}"), "abc\u{2026}")
     assert_eq(fit("abc", 10), "abc")
-    // No room to mark anything: better untouched than a bare ellipsis.
-    assert_eq(fit("abcdef", 1), "abcdef")
+    // No room to mark anything: better untouched than a bare mark.
+    assert_eq(fit("abcdef", 3), "abcdef")
+}
+
+@test test_fit_end_keeps_the_end :: fn() -> void {
+    assert_eq(fit_end("abcdefgh", 6, "..."), "...fgh")
+    assert_eq(fit_end("abc", 6, "..."), "abc")
 }

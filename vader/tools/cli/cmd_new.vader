@@ -80,43 +80,68 @@ cmd_new :: fn(args: string[]) -> i32 {
     }
     // EVERY question first, then the writes. Asking after the files exist would
     // leave a half-made project behind a cancellation.
-    typed :: if parsed.positionals.len() == 0 { "" } else { parsed.positionals[0] }
-    chosen :: choose_target(typed)
+    asking :: TTY.is_tty()
+    if asking {
+        intro("vader new ${CLI_VERSION}")
+    }
+    chosen :: choose_target(parsed.action_file().as_string())
     if chosen is PromptError {
-        eprintln("vader new: ${chosen.message}")
-        return 1
+        return refuse(asking, unanswered(chosen))
+    }
+    // Checked before the other questions: a name typed on the command line that
+    // cannot take the project should not wait for two more answers to be refused.
+    target :: resolve_target(chosen)
+    if target is ScaffoldError {
+        return refuse(asking, target.msg)
     }
     setup :: choose_build(parsed)
     if setup is PromptError {
-        eprintln("vader new: ${setup.message}")
-        return 1
+        return refuse(asking, unanswered(setup))
     }
     wants_git :: choose_git(parsed)
     if wants_git is PromptError {
-        eprintln("vader new: ${wants_git.message}")
-        return 1
-    }
-    target :: resolve_target(chosen)
-    if target is ScaffoldError {
-        eprintln("vader new: ${target.msg}")
-        return 1
+        return refuse(asking, unanswered(wants_git))
     }
     written :: scaffold(target, setup)
     if written is ScaffoldError {
-        eprintln("vader new: ${written.msg}")
-        return 1
+        return refuse(asking, written.msg)
     }
-    git_initialised := false
+    complaint := ""
     if wants_git {
-        complaint :: init_git(target.dir)
-        if complaint == null {
-            git_initialised = true
-        } else {
-            eprintln(complaint)
-        }
+        complaint = init_git(target.dir) ?? ""
     }
-    println(report(target, setup, git_initialised))
+    git_initialised :: wants_git && complaint == ""
+    if asking {
+        note(report_heading(target), report_files(setup, git_initialised))
+        outro("next: ${next_commands(target, setup).join(", then ")}")
+    } else {
+        println(report(target, setup, git_initialised))
+    }
+    // After the report, so the warning is the last thing read rather than buried
+    // above the list of files.
+    if complaint != "" {
+        eprintln(complaint)
+    }
     return 0
+}
+
+// Say why no project was made, closing the session when one is open, and fail.
+refuse :: fn(asking: bool, why: string) -> i32 {
+    if asking {
+        cancel(why)
+    } else {
+        eprintln("vader new: ${why}")
+    }
+    return 1
+}
+
+// Why no project was made when a question went unanswered. The step on screen
+// already shows why it stopped, unless it could not be drawn at all.
+unanswered :: fn(e: PromptError) -> string {
+    if e.reason == .NoTerminal {
+        return e.message
+    }
+    return "no project was made"
 }
 
 // ---- asking ---------------------------------------------------------------
@@ -127,8 +152,8 @@ cmd_new :: fn(args: string[]) -> i32 {
 // spawn through a pipe and never see a question.
 
 // What to scaffold. A name on the command line settles it; without one, a
-// terminal is asked and a pipe keeps the documented default of filling the
-// working directory.
+// terminal is asked, Enter taking the working directory, and a pipe keeps the
+// documented default of filling it.
 choose_target :: fn(typed: string) -> string | PromptError {
     if typed != "" {
         return typed
@@ -136,24 +161,18 @@ choose_target :: fn(typed: string) -> string | PromptError {
     if !TTY.is_tty() {
         return IN_PLACE
     }
-    mode :: select(
-        "What should `vader new` do?",
-        ["Create a new directory", "Initialise this directory"],
-    )
-    if mode is PromptError {
-        return mode
+    question :: "Where should the project be created? (Enter for this folder)"
+    return text(question, IN_PLACE, target_problem)
+}
+
+// Why the folder answered cannot take the project, null when it can: the
+// question is asked again instead of failing once every other is answered.
+target_problem :: fn(answer: string) -> string | null {
+    target :: resolve_target(answer)
+    if target is ScaffoldError {
+        return target.msg
     }
-    if mode == 1 {
-        return IN_PLACE
-    }
-    name :: text("Project name", "")
-    if name is PromptError {
-        return name
-    }
-    if name == "" {
-        return PromptError { .reason = .Cancelled, .message = "a project name is required" }
-    }
-    return name
+    return null
 }
 
 // Which build shape to scaffold. `--build` settles it; without the flag a
@@ -166,7 +185,7 @@ choose_build :: fn(parsed: ParsedArgs) -> BuildSetup | PromptError {
     if !TTY.is_tty() {
         return .Manifest
     }
-    picked :: select("How should this project build?", build_setup_labels())
+    picked :: select("How should this project build?", build_choices())
     if picked is PromptError {
         return picked
     }
@@ -174,11 +193,9 @@ choose_build :: fn(parsed: ParsedArgs) -> BuildSetup | PromptError {
 }
 
 // The prompt's options, rendered FROM the flag's declared values rather than
-// restated beside them. The first cut wrote its own three strings, in a
-// different order and different words: drift that was already visible in the
-// same diff, and would have grown with a fourth shape.
-build_setup_labels :: fn() -> string[] =
-    NEW_BUILD_SETUPS.map((v) -> "${v.name}: ${v.help}").collect()
+// restated beside them, so that a shape and its flag cannot drift apart.
+build_choices :: fn() -> Choice[] =
+    NEW_BUILD_SETUPS.map((v) -> Choice { .label = v.name, .hint = v.help }).collect()
 
 // The flag's value, and the prompt's answer: both arrive as a name from
 // `NEW_BUILD_SETUPS`, so one function decodes both. `std/cli` has already
@@ -239,7 +256,7 @@ resolve_target :: fn(raw: string) -> NewProject | ScaffoldError {
     if raw.starts_with("-") {
         return ScaffoldError { .msg = "`${raw}` looks like a flag, not a project name" }
     }
-        // The project, and its one entry, take the folder's name.
+    // The project, and its one entry, take the folder's name.
     name :: project_name(raw)
     problem :: entry_name_problem(name)
     if problem != null {
@@ -404,28 +421,55 @@ init_git :: fn(dir: string) -> string | null {
 // teaching command rather than three `write_file_string` calls.
 report :: fn(project: NewProject, setup: BuildSetup, git_initialised: bool) -> string {
     out :: StringBuilder {}
-    if project.in_place {
-        out.append("vader new: initialised ${project.name} here\n")
-    } else {
-        out.append("vader new: wrote ${project.dir}/\n")
-    }
-    if setup == .Manifest {
-        out.append("  ${MANIFEST_FILENAME}      declares the program; `vader build` writes it to build/\n")
-    }
-    if setup == .Driver {
-        out.append("  ${DRIVER_FILENAME}     drives the build; run it with a bare `vader build`\n")
-    }
-    out.append("  ${SOURCE_DIR}/${ENTRY_FILENAME}  module \"${SOURCE_DIR}\", holding `main`\n")
-    out.append("  .gitignore      build/ (every artefact lands there)\n")
-    if git_initialised {
-        out.append("  .git            a git repository was initialised here\n")
+    out.append("vader new: ${report_heading(project)}\n")
+    for line in report_files(setup, git_initialised) {
+        out.append("  ${line}\n")
     }
     out.append("\n")
-    if !project.in_place {
-        out.append("  cd ${project.dir}\n")
+    for command in next_commands(project, setup) {
+        out.append("  ${command}\n")
     }
-    out.append("  ${first_command(setup)}\n")
     return out.to_string()
+}
+
+// Where the project went.
+report_heading :: fn(project: NewProject) -> string {
+    if project.in_place {
+        return "initialised ${project.name} here"
+    }
+    return "wrote ${project.dir}/"
+}
+
+// One line per file written, with what it is for.
+report_files :: fn(setup: BuildSetup, git_initialised: bool) -> string[] {
+    lines: string[]: []
+    if setup == .Manifest {
+        purpose :: "declares the program; `vader build` writes it to build/"
+        lines.push(file_line(MANIFEST_FILENAME, purpose))
+    }
+    if setup == .Driver {
+        lines.push(file_line(DRIVER_FILENAME, "drives the build; run it with a bare `vader build`"))
+    }
+    entry :: "${SOURCE_DIR}/${ENTRY_FILENAME}"
+    lines.push(file_line(entry, "module \"${SOURCE_DIR}\", holding `main`"))
+    lines.push(file_line(".gitignore", "build/ (every artefact lands there)"))
+    if git_initialised {
+        lines.push(file_line(".git", "a git repository was initialised here"))
+    }
+    return lines
+}
+
+// A file written, then what it is for, in a column the longest name leaves.
+file_line :: fn(file: string, purpose: string) -> string = "${file.pad_end(16, ' ')}${purpose}"
+
+// What to type next, one command each.
+next_commands :: fn(project: NewProject, setup: BuildSetup) -> string[] {
+    commands: string[]: []
+    if !project.in_place {
+        commands.push("cd ${project.dir}")
+    }
+    commands.push(first_command(setup))
+    return commands
 }
 
 // What to type first in a new project: build it when something describes its

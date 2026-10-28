@@ -22,6 +22,7 @@ module "std/tty"
 
 import "std/env"
 import "std/io"
+import "std/string_builder"
 import "system/posix"
 import "system/windows"
 
@@ -108,6 +109,32 @@ paint :: fn(code: string, s: string) -> string {
     return escape(on, code) + s + escape(on, "0")
 }
 
+/// `s` without the colour escapes the helpers here wrap text in, `ESC [`, a code
+/// and `m`: the text a reader sees, to measure or to compare.
+///
+/// @param s  painted text.
+/// @example
+///   without_escapes("\u{1B}[31mred\u{1B}[0m")   // "red"
+export without_escapes :: fn(s: string) -> string {
+    out :: StringBuilder {}
+    i: i64 = 0
+    for i < s.byte_len() {
+        if s.byte_at(i) == 0x1B {
+            for i < s.byte_len() && s.byte_at(i) != 'm' {
+                i += 1
+            }
+            i += 1
+            continue
+        }
+        start :: i
+        for i < s.byte_len() && s.byte_at(i) != 0x1B {
+            i += 1
+        }
+        out.append(s.byte_slice(start, i))
+    }
+    return out.to_string()
+}
+
 /// Wrap `s` in an arbitrary SGR sequence `code` (e.g. "1;31") when coloring is
 /// enabled, else return `s` unchanged. Escape hatch for combinations the named
 /// helpers don't cover; prefer the named helpers for the common cases.
@@ -171,6 +198,11 @@ export bright_white :: fn(s: string) -> string = paint("97", s)
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test
+test_without_escapes_keeps_the_text :: fn() -> void {
+    assert_eq(without_escapes("\u{1B}[31mred\u{1B}[0m and \u{1B}[1mbold\u{1B}[0m"), "red and bold")
+}
 
 @test
 test_esc_enabled :: fn() -> void {

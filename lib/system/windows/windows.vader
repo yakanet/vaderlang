@@ -525,6 +525,15 @@ export get_console_mode :: fn(h: Handle, @c_out mode: u32[]) -> bool
 @extern(KERNEL32, "SetConsoleMode")
 export set_console_mode :: fn(h: Handle, mode: u32) -> bool
 
+/// `GetConsoleOutputCP`: the code page the console decodes written bytes with,
+/// 0 when the process has no console.
+@extern(KERNEL32, "GetConsoleOutputCP")
+export get_console_output_cp :: fn() -> u32
+
+/// `SetConsoleOutputCP`. False when the console refuses the code page.
+@extern(KERNEL32, "SetConsoleOutputCP")
+export set_console_output_cp :: fn(code_page: u32) -> bool
+
 /// `ReadFile`. False on failure; a synchronous read returning true with `read`
 /// short of `count` has reached end of file.
 ///

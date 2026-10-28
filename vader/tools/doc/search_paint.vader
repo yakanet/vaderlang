@@ -234,28 +234,10 @@ test_search_paint_keeps_unpaired_backticks :: fn() -> void {
 @test
 test_search_paint_keeps_the_text_of_a_line_of_code :: fn() -> void {
     line :: "export f :: fn(c: char) -> bool = c == '\"' && \"a\\\"b\" != \"\"  // done"
-    assert_eq(without_escapes(painted_code(colored_ctx(), line, "f")), line)
+    assert_eq(TTY.without_escapes(painted_code(colored_ctx(), line, "f")), line)
 }
 
 @test
 test_search_paint_ends_a_character_at_its_quote :: fn() -> void {
     assert_eq(quoted_end("b == '\"' && x", 5), 8)
-}
-
-// `s` without its colour escapes, `ESC [`, digits, `m`.
-without_escapes :: fn(s: string) -> string {
-    out: string[]: []
-    i: i64 = 0
-    for i < s.byte_len() {
-        if s.byte_at(i) == 0x1B {
-            for i < s.byte_len() && s.byte_at(i) != 'm' {
-                i += 1
-            }
-            i += 1
-        } else {
-            out.push(s.byte_slice(i, i + 1))
-            i += 1
-        }
-    }
-    return out.join("")
 }

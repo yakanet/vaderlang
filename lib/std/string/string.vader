@@ -496,6 +496,51 @@ export pad_end :: fn(s: string, width: i64, fill: char) -> string {
     return sb.to_string()
 }
 
+/// The most codepoints any of `texts` holds, as `pad_end` counts: the width a
+/// column of them takes.
+///
+/// @param texts  the column's entries.
+/// @return       0 for no entries.
+/// @example
+///   widest(["a", "abc", "ab"])   // 3
+export widest :: fn(texts: string[]) -> i64 {
+    width: i64 = 0
+    for t in texts {
+        if t.len() > width {
+            width = t.len()
+        }
+    }
+    return width
+}
+
+/// Cut `text` at its spaces into lines of at most `width` codepoints. A word
+/// longer than a line has a line of its own, and runs of spaces count as one.
+///
+/// @param text   the text to wrap, on one line.
+/// @param width  the most codepoints a line holds.
+/// @return       the lines, at least one, `""` for an empty text.
+/// @example
+///   "the quick brown fox".wrap_words(9)   // ["the quick", "brown fox"]
+export wrap_words :: fn(text: string, width: i64) -> string[] {
+    lines: string[]: []
+    line := ""
+    for word in text.split(" ") {
+        if word == "" {
+            continue
+        }
+        if line == "" {
+            line = word
+        } else if line.len() + 1 + word.len() > width {
+            lines.push(line)
+            line = word
+        } else {
+            line = "${line} ${word}"
+        }
+    }
+    lines.push(line)
+    return lines
+}
+
 // Char classification (`is_white_char`/`is_digit`/`is_alpha`/`is_alnum`) moved
 // to `std/char`: `fn(char) -> bool` predicates belong with char classification,
 // not the codepoint-string API. Callers `import "std/char"`.
@@ -628,6 +673,18 @@ export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
 // ---------------------------------------------------------------------- tests
 
 import "std/testing"
+
+@test test_widest_measures_codepoints :: fn() -> void {
+    assert_eq(widest(["a", "h\u{e9}llo", "ab"]), 5)
+    assert_eq(widest([]), 0)
+}
+
+@test test_wrap_words_cuts_at_spaces :: fn() -> void {
+    assert_eq("the quick brown fox".wrap_words(9).join("|"), "the quick|brown fox")
+    assert_eq("a  b".wrap_words(80).join("|"), "a b")
+    assert_eq("unbreakable".wrap_words(4).join("|"), "unbreakable")
+    assert_eq("".wrap_words(4).join("|"), "")
+}
 
 @test test_byte_len :: fn() -> void {
     assert_eq(byte_len(""), 0)
