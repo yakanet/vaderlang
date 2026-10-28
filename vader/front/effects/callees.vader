@@ -92,7 +92,7 @@ index_functions :: fn(
                     is AST.FnDecl     -> { index.register(d, typed) }
                     is AST.ImplDecl   -> {
                         for member in d.members {
-                            index.register(member, typed)
+                            index.register_member(member, d, typed, modules)
                         }
                     }
                     is AST.ConstDecl  -> {
@@ -126,6 +126,38 @@ register_defaults :: fn(index: CalleeIndex, decl: AST.StructDecl, typed: TypedPr
         value :: field.default ?? continue
         index.defaults.push(Initialiser { .value = value, .typed = typed })
     }
+}
+
+// Make `member` of `impl_` a node: one the impl inherits from its trait runs the
+// trait's default body, read in the trait's module.
+register_member :: fn(
+    index: CalleeIndex,
+    member: AST.FnDecl,
+    impl_: AST.ImplDecl,
+    typed: TypedProgram,
+    modules: MutableMap<string, TypedProgram>,
+) -> void {
+    inherited :: index.inherited_function(member, impl_, modules)
+    if inherited == null {
+        index.register(member, typed)
+        return
+    }
+    index.nodes[member.id] = i32(index.functions.len())
+    index.functions.push(inherited)
+}
+
+// The trait's default body `member` runs, in the trait's module ; null for a
+// member the impl writes.
+inherited_function :: fn(
+    index: CalleeIndex,
+    member: AST.FnDecl,
+    impl_: AST.ImplDecl,
+    modules: MutableMap<string, TypedProgram>,
+) -> Function | null {
+    inherited :: member.inherits ?? return null
+    entry :: index.impls.entry_of(impl_) ?? return null
+    owner :: modules[entry.trait_symbol.module] ?? return null
+    return Function { .decl = inherited, .typed = owner }
 }
 
 // Make `decl` a node when it has a body, else note what it does.
@@ -237,8 +269,8 @@ target_of_decl :: fn(index: CalleeIndex, decl: AST.FnDecl) -> CallTarget {
     return index.bodyless[decl.id] ?? AnyCallee {}
 }
 
-// The member `member` of every impl of the trait `trait_key`. An impl that lacks it
-// runs the trait's default, which the index does not hold: it may do anything.
+// The member `member` of every impl of the trait `trait_key`, an inherited one
+// included. An impl that lacks it is one in error: it may do anything.
 member_targets :: fn(index: CalleeIndex, trait_key: string, member: string) -> CallTarget[] {
     key :: "${trait_key}.${member}"
     cached :: index.members[key]

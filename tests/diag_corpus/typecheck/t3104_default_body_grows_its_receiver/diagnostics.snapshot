@@ -1,0 +1,1 @@
+[13:16] error[T3104] a generic recursion cannot grow its type argument: this call passes `Self` on as `Self[]` to `depth`, and the calls lead back here : each instance would ask for a larger one

@@ -367,8 +367,9 @@ export ImportName :: struct {
 ///
 /// Four flags mark functions the user did not write. `sam_synthetic` is a
 /// single-abstract-method lambda the parser desugared into an impl member;
-/// `materialized` a trait default-method body cloned into an implementing type;
-/// `comptime_synthetic` a declaration the comptime engine produced. And
+/// `materialized` a member declared for an impl from its trait (one it inherits,
+/// `inherits`, or an intrinsic stub); `comptime_synthetic` a declaration the
+/// comptime engine produced. And
 /// `is_expression_bodied` distinguishes `f :: fn() = expr` from a braced body,
 /// which the formatter needs and a generator emitting source should preserve.
 ///
@@ -387,11 +388,9 @@ export FnDecl :: struct {
     decorators:            Decorator[]
     sam_synthetic:         bool
     is_expression_bodied:  bool
-    /// `true` when this FnDecl was synthesised by `materialize_default_members`,
-    /// i.e. cloned from a trait default body into an impl. The body's
-    /// spans point at the trait's source, so re-typechecking the clone
-    /// emits duplicate diagnostics at unhelpful spans. Walkers skip such
-    /// methods (the trait itself already type-checked the body once).
+    /// `true` when this FnDecl was declared for an impl from its trait rather than
+    /// written in it : a member the impl inherits (`inherits`), or a stub of an
+    /// `@intrinsic` impl.
     materialized:          bool
     /// `true` when this FnDecl is the `__comptime_NAME` helper the parser
     /// synthesises for the `NAME :: @comptime <expr>` const sugar (see
@@ -404,6 +403,10 @@ export FnDecl :: struct {
     /// Drives the formatter's Dart-style layout: present -> one param per line.
     trailing_comma:        bool = false
     doc:                   DocComment | null = null
+    /// For a member an impl inherits from its trait, the trait's member whose default
+    /// body it runs: the body was checked once in the trait, and is lowered for each
+    /// impl from there. Null for any other function.
+    inherits:              FnDecl | null = null
 }
 
 /// One parameter of a function, lambda or trait method.

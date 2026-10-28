@@ -35,58 +35,10 @@
   expr 27:45    FieldExpr      :: fn() -> i32
   expr 27:45    IdentExpr      :: T
   expr 32:34    StringLitExpr  :: string
-  expr 35855:1  StringLitExpr  :: string
-  expr 35855:10 IdentExpr      :: Pt
-  expr 35855:14 CallExpr       :: i32
-  expr 35855:15 IdentExpr      :: fn(T) -> i32
-  expr 35855:17 IdentExpr      :: Pt
-  expr 35855:25 IdentExpr      :: Pt
-  expr 35855:29 LambdaExpr     :: fn(Pt) -> i32
-  expr 35855:3  CallExpr       :: string
-  expr 35855:33 BinaryExpr     :: i32
-  expr 35855:34 CallExpr       :: i32
-  expr 35855:35 FieldExpr      :: fn() -> i32
-  expr 35855:36 IdentExpr      :: Pt
-  expr 35855:39 CallExpr       :: i32
-  expr 35855:4  FieldExpr      :: fn() -> string
-  expr 35855:40 IdentExpr      :: fn(Pt) -> i32
-  expr 35855:42 IdentExpr      :: Pt
-  expr 35855:46 CallExpr       :: i32
-  expr 35855:47 FieldExpr      :: fn() -> i32
-  expr 35855:48 CallExpr       :: Pt
-  expr 35855:49 FieldExpr      :: fn() -> Pt
-  expr 35855:5  IdentExpr      :: Pt
-  expr 35855:50 IdentExpr      :: Pt
-  expr 35855:8  CallExpr       :: i32
-  expr 35855:9  FieldExpr      :: fn() -> i32
   expr 36:30    FieldExpr      :: i32
   expr 36:30    IdentExpr      :: Pt
   expr 37:26    StructLitExpr  :: Pt
   expr 41:34    StringLitExpr  :: string
-  expr 45072:1  StringLitExpr  :: string
-  expr 45072:10 IdentExpr      :: i32
-  expr 45072:14 CallExpr       :: i32
-  expr 45072:15 IdentExpr      :: fn(T) -> i32
-  expr 45072:17 IdentExpr      :: i32
-  expr 45072:25 IdentExpr      :: i32
-  expr 45072:29 LambdaExpr     :: fn(i32) -> i32
-  expr 45072:3  CallExpr       :: string
-  expr 45072:33 BinaryExpr     :: i32
-  expr 45072:34 CallExpr       :: i32
-  expr 45072:35 FieldExpr      :: fn() -> i32
-  expr 45072:36 IdentExpr      :: i32
-  expr 45072:39 CallExpr       :: i32
-  expr 45072:4  FieldExpr      :: fn() -> string
-  expr 45072:40 IdentExpr      :: fn(i32) -> i32
-  expr 45072:42 IdentExpr      :: i32
-  expr 45072:46 CallExpr       :: i32
-  expr 45072:47 FieldExpr      :: fn() -> i32
-  expr 45072:48 CallExpr       :: i32
-  expr 45072:49 FieldExpr      :: fn() -> i32
-  expr 45072:5  IdentExpr      :: i32
-  expr 45072:50 IdentExpr      :: type
-  expr 45072:8  CallExpr       :: i32
-  expr 45072:9  FieldExpr      :: fn() -> i32
   expr 45:30    IdentExpr      :: i32
   expr 50:10    StructLitExpr  :: Pt
   expr 51:13    StringLitExpr  :: string

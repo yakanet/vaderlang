@@ -11,25 +11,7 @@
   expr 12:33    CallExpr       :: Self
   expr 12:33    FieldExpr      :: fn() -> Self
   expr 12:33    IdentExpr      :: Self
-  expr 21520:1  CallExpr       :: i32
-  expr 21520:2  FieldExpr      :: fn() -> i32
-  expr 21520:3  IdentExpr      :: type
-  expr 21520:6  CallExpr       :: i32
-  expr 21520:7  FieldExpr      :: fn() -> i32
-  expr 21520:8  IdentExpr      :: type
-  expr 25618:1  CallExpr       :: Point
-  expr 25618:2  FieldExpr      :: fn() -> Point
-  expr 25618:3  IdentExpr      :: Point
-  expr 25618:6  CallExpr       :: Point
-  expr 25618:7  FieldExpr      :: fn() -> Point
-  expr 25618:8  IdentExpr      :: Point
   expr 26:31    StructLitExpr  :: Point
-  expr 29712:1  CallExpr       :: Day
-  expr 29712:2  FieldExpr      :: fn() -> Day
-  expr 29712:3  IdentExpr      :: Day
-  expr 29712:6  CallExpr       :: Day
-  expr 29712:7  FieldExpr      :: fn() -> Day
-  expr 29712:8  IdentExpr      :: Day
   expr 30:29    DotVariantExpr :: Day
   expr 34:10    StructLitExpr  :: Point
   expr 35:13    StringLitExpr  :: string

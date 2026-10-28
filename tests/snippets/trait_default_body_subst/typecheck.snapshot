@@ -36,68 +36,8 @@
   expr 22:60    CallExpr       :: i32
   expr 22:60    FieldExpr      :: fn() -> i32
   expr 22:60    IdentExpr      :: Self
-  expr 28686:1  StructLitExpr  :: Box
-  expr 28686:13 BinaryExpr     :: i64
-  expr 28686:14 CallExpr       :: i64
-  expr 28686:15 IdentExpr      :: type
-  expr 28686:17 CallExpr       :: i32
-  expr 28686:18 FieldExpr      :: fn() -> i32
-  expr 28686:19 IdentExpr      :: A
-  expr 28686:24 StringLitExpr  :: string
-  expr 28686:27 CallExpr       :: i32
-  expr 28686:28 FieldExpr      :: fn() -> i32
-  expr 28686:29 IdentExpr      :: A
-  expr 28686:33 SeqLitExpr     :: i32[]
-  expr 28686:34 CallExpr       :: i32
-  expr 28686:35 FieldExpr      :: fn() -> i32
-  expr 28686:36 IdentExpr      :: A
-  expr 28686:37 BinaryExpr     :: i32
-  expr 28686:38 CallExpr       :: i32
-  expr 28686:39 FieldExpr      :: fn() -> i32
-  expr 28686:40 IdentExpr      :: A
-  expr 28686:45 BinaryExpr     :: bool
-  expr 28686:46 CallExpr       :: i32
-  expr 28686:47 FieldExpr      :: fn() -> i32
-  expr 28686:48 IdentExpr      :: A
-  expr 28686:49 CallExpr       :: i32
-  expr 28686:5  BinaryExpr     :: i32
-  expr 28686:50 FieldExpr      :: fn() -> i32
-  expr 28686:51 IdentExpr      :: A
-  expr 28686:6  CallExpr       :: i32
-  expr 28686:7  FieldExpr      :: fn() -> i32
-  expr 28686:8  IdentExpr      :: A
   expr 28:49    FieldExpr      :: i32
   expr 28:49    IdentExpr      :: A
-  expr 29710:1  StructLitExpr  :: Box
-  expr 29710:13 BinaryExpr     :: i64
-  expr 29710:14 CallExpr       :: i64
-  expr 29710:15 IdentExpr      :: type
-  expr 29710:17 CallExpr       :: i32
-  expr 29710:18 FieldExpr      :: fn() -> i32
-  expr 29710:19 IdentExpr      :: B
-  expr 29710:24 StringLitExpr  :: string
-  expr 29710:27 CallExpr       :: i32
-  expr 29710:28 FieldExpr      :: fn() -> i32
-  expr 29710:29 IdentExpr      :: B
-  expr 29710:33 SeqLitExpr     :: i32[]
-  expr 29710:34 CallExpr       :: i32
-  expr 29710:35 FieldExpr      :: fn() -> i32
-  expr 29710:36 IdentExpr      :: B
-  expr 29710:37 BinaryExpr     :: i32
-  expr 29710:38 CallExpr       :: i32
-  expr 29710:39 FieldExpr      :: fn() -> i32
-  expr 29710:40 IdentExpr      :: B
-  expr 29710:45 BinaryExpr     :: bool
-  expr 29710:46 CallExpr       :: i32
-  expr 29710:47 FieldExpr      :: fn() -> i32
-  expr 29710:48 IdentExpr      :: B
-  expr 29710:49 CallExpr       :: i32
-  expr 29710:5  BinaryExpr     :: i32
-  expr 29710:50 FieldExpr      :: fn() -> i32
-  expr 29710:51 IdentExpr      :: B
-  expr 29710:6  CallExpr       :: i32
-  expr 29710:7  FieldExpr      :: fn() -> i32
-  expr 29710:8  IdentExpr      :: B
   expr 29:49    FieldExpr      :: i32
   expr 29:49    IdentExpr      :: B
   expr 32:10    StructLitExpr  :: A

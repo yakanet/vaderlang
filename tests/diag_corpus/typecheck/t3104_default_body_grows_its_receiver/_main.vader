@@ -1,0 +1,28 @@
+// A default body inherited by an array impl, calling itself on `[self]`: each
+// instance would ask for a larger one. Reported once, in the trait's body.
+module "snippet"
+
+import "std/io"
+
+Depth :: trait {
+    base :: fn(self) -> i32
+    depth :: fn(self, n: i32) -> i32 {
+        if n == 0 {
+            return self.base()
+        }
+        return [self].depth(n - 1) + 1
+    }
+}
+
+T[] implements<T> Depth {
+    base :: fn(self) -> i32 = 10
+}
+
+i32 implements Depth {
+    base :: fn(self) -> i32 = self
+}
+
+main :: fn() -> i32 {
+    println("${5.depth(3)}")
+    return 0
+}

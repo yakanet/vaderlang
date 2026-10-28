@@ -1,0 +1,32 @@
+module "snippet"
+
+import "std/io"
+
+// A member an array impl inherits from its trait's default body, called on a
+// union that holds an array: the array variant dispatches to the inherited member
+// as to one the impl writes.
+
+Sized :: trait {
+    size :: fn(self) -> i32
+    describe :: fn(self) -> string = "size ${self.size()}"
+}
+
+A :: struct { n: i32 }
+
+A implements Sized {
+    size :: fn(self) -> i32 = self.n
+}
+
+T[] implements<T> Sized {
+    size :: fn(self) -> i32 = i32(self.len())
+}
+
+show :: fn(x: A | i32[]) -> string = x.describe()
+
+main :: fn() -> i32 {
+    println(show(A { .n = 3 }))
+    println(show([1, 2, 3, 4]))
+    xs :: [5, 6]
+    println(xs.describe())
+    return 0
+}

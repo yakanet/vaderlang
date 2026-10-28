@@ -31,8 +31,6 @@ ensureCliBuilt();
 const SITES = join(import.meta.dir, "fixtures", "callee", "sites.vader");
 
 const EXPECTED = [
-  "clone call fn area",
-  "clone call fn area",
   "sites.vader:12:31 operator builtin",
   "sites.vader:23:32 call bound sites$Shape.area",
   "sites.vader:55:62 operator builtin",
@@ -132,7 +130,7 @@ const EXPECTED = [
   "sites.vader:342:67 display virtual std_core$Display.to_string",
   "sites.vader:346:9 into fn into",
   "sites.vader:350:77 into fn into",
-  "sites: 101, unsettled: 0",
+  "sites: 99, unsettled: 0",
 ];
 
 test("the typecheck settles what each site of the fixture invokes", async () => {

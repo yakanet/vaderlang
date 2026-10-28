@@ -287,16 +287,8 @@
   expr 75:46    IdentExpr      :: f64
   expr 75:54    IdentExpr      :: f64
   expr 79:37    StructLitExpr  :: Vec2
-  expr 83985:1  StringLitExpr  :: string
-  expr 83985:4  CallExpr       :: string
-  expr 83985:5  FieldExpr      :: fn() -> string
-  expr 83985:6  IdentExpr      :: Vec2
   expr 83:33    StringLitExpr  :: string
   expr 87:33    StringLitExpr  :: string
-  expr 88081:1  StringLitExpr  :: string
-  expr 88081:4  CallExpr       :: string
-  expr 88081:5  FieldExpr      :: fn() -> string
-  expr 88081:6  IdentExpr      :: Vec2
   expr 90:51    CallExpr       :: string
   expr 90:51    FieldExpr      :: fn() -> string
   expr 90:51    IdentExpr      :: T

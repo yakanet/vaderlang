@@ -11,34 +11,10 @@
   expr 12:50    IdentExpr      :: Self
   expr 12:59    IdentExpr      :: Rhs
   expr 12:69    IntrinsicCallExpr :: string
-  expr 18454:1  StringLitExpr  :: string
-  expr 18454:10 IntrinsicCallExpr :: string
-  expr 18454:3  CallExpr       :: string
-  expr 18454:4  FieldExpr      :: fn(T) -> string
-  expr 18454:5  IdentExpr      :: Box<T>
-  expr 18454:7  IdentExpr      :: T
   expr 19:43    StringLitExpr  :: string
   expr 19:50    IntrinsicCallExpr :: string
-  expr 22550:1  StringLitExpr  :: string
-  expr 22550:10 IntrinsicCallExpr :: string
-  expr 22550:3  CallExpr       :: string
-  expr 22550:4  FieldExpr      :: fn(Box<T>) -> string
-  expr 22550:5  IdentExpr      :: Box<T>
-  expr 22550:7  IdentExpr      :: Box<T>
   expr 23:48    StringLitExpr  :: string
-  expr 26641:1  StringLitExpr  :: string
-  expr 26641:10 IntrinsicCallExpr :: string
-  expr 26641:3  CallExpr       :: string
-  expr 26641:4  FieldExpr      :: fn(i32) -> string
-  expr 26641:5  IdentExpr      :: Pair
-  expr 26641:7  IdentExpr      :: i32
   expr 27:45    StringLitExpr  :: string
-  expr 30737:1  StringLitExpr  :: string
-  expr 30737:10 IntrinsicCallExpr :: string
-  expr 30737:3  CallExpr       :: string
-  expr 30737:4  FieldExpr      :: fn(Pair) -> string
-  expr 30737:5  IdentExpr      :: Pair
-  expr 30737:7  IdentExpr      :: Pair
   expr 31:46    StringLitExpr  :: string
   expr 35:10    StructLitExpr  :: Box<i32>
   expr 36:13    CallExpr       :: string

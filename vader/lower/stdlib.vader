@@ -164,8 +164,9 @@ surface_array_impl_members :: fn(
     for member in impl_decl.members {
         // A bodyless `@intrinsic` member (`T[] implements ArrayOps`) has no body to
         // lower: the lowerer emits the dedicated array op at the call site. Skip it
-        // here so surfacing doesn't try to lower a null body.
-        if member.body == null {
+        // here so surfacing doesn't try to lower a null body. An inherited member
+        // lowers from its trait's default body.
+        if member.body == null && member.inherits == null {
             continue
         }
         for [mangled, reached] in project_ctx.array_member_uses {

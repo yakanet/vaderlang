@@ -92,7 +92,9 @@ remember_body_shape :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> BodyShape
 
 // One walk answers both questions: the answer is on the probe.
 scan_body :: fn(fn_decl: AST.FnDecl) -> BodyShape {
-    body :: fn_decl.body ?? return BodyShape {}
+    // An inherited member awaits and yields as the default body it runs.
+    source :: fn_decl.inherits ?? fn_decl
+    body :: source.body ?? return BodyShape {}
     probe :: BodyProbe { .kind = .Shape }
     AST.inspect(body, (n) -> probe_step(n, probe))
     return BodyShape { .awaits = probe.awaits, .yields = probe.yields }

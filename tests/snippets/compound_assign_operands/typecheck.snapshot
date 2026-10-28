@@ -138,14 +138,6 @@
   expr 72:9     BinaryExpr     :: i32
   expr 72:9     IdentExpr      :: i32[]
   expr 72:9     IndexExpr      :: i32
-  expr 79888:10 IdentExpr      :: i32[]
-  expr 79888:11 CallExpr       :: i64
-  expr 79888:12 IdentExpr      :: fn(i64) -> i64
-  expr 79888:15 CallExpr       :: i32
-  expr 79888:16 FieldExpr      :: fn() -> i32
-  expr 79888:17 IdentExpr      :: Two
-  expr 79888:8  BinaryExpr     :: i32
-  expr 79888:9  IndexExpr      :: i32
   expr 83:15    SeqLitExpr     :: i32[]
   expr 84:5     BinaryExpr     :: i32
   expr 84:5     IdentExpr      :: i32[]

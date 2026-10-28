@@ -243,13 +243,29 @@ settle_impl_member :: fn(
 
 // Note what the array receiver `target` gives the impl's parameters at the member
 // access `e`, when its element names a type parameter : an instance asked for
-// there, as at a call. A bodyless member calls nothing back, so it closes no cycle.
+// there, as at a call. A member the impl inherits runs its trait's default body,
+// `Self` bound to the receiver. A bodyless member calls nothing back, so it closes
+// no cycle.
 note_receiver_instance :: fn(
     e: AST.FieldExpr, chosen: ImplMethod, target: Type, typed: TypedProgram,
 ) -> void {
     member :: chosen.decl ?? return
     arr :: array_backing(target) ?? return
-    if member.body == null || !type_contains_type_param(arr.element) {
+    if !type_contains_type_param(arr.element) {
+        return
+    }
+    inherited :: member.inherits
+    trait_sym :: chosen.trait_symbol
+    if inherited != null && trait_sym != null {
+        bindings :: trait_param_bindings(trait_sym, [], target, typed)
+        typed.call_sites.receiver_instances[e.id] = DirectFn {
+            .decl = inherited,
+            .bindings = bindings,
+        }
+        note_instantiation_site(typed, e.id, e.span)
+        return
+    }
+    if member.body == null {
         return
     }
     typed.call_sites.receiver_instances[e.id] = DirectFn {

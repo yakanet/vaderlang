@@ -2253,11 +2253,10 @@ walk_bodies :: fn(
                 typed.enclosing_impl = decl.span.hash()
                 typed.enclosing_impl_params = impl_param_ids(decl, typed)
                 for m in decl.members {
-                    if m.materialized {
-                        walk_default_copy(m, decl, typed, diags, mode)
-                    } else {
-                        walk_fn_body(m, typed, diags, mode)
-                    }
+                    walk_fn_body(m, typed, diags, mode)
+                }
+                if mode == .Full {
+                    check_inherited_tests(decl, typed, diags)
                 }
                 typed.enclosing_impl = 0
                 typed.enclosing_impl_params = MutableSet<i32> {}
@@ -2467,8 +2466,9 @@ default_body_param_ids :: fn(
     return out
 }
 
-// Where a member of an impl reports its declaration. A default body's copy reports
-// nothing : the check of the body in its trait reports once.
+// Where a member of an impl reports its declaration. A member declared for the impl
+// from its trait (`materialized`: an inherited one, an intrinsic stub) reports
+// nothing : its signature is the trait's, checked there.
 member_diags :: fn(m: AST.FnDecl, diags: Diagnostic[]) -> Diagnostic[] {
     if m.materialized {
         return []
@@ -2476,26 +2476,36 @@ member_diags :: fn(m: AST.FnDecl, diags: Diagnostic[]) -> Diagnostic[] {
     return diags
 }
 
-// A default body's copy in `impl_`, still checked for the types its lowering reads.
-// What it would report, the check of the body in its trait reports once, except
-// T3087 : only the copy sees the types the impl binds the trait's parameters to,
-// and whether their instances share one body. Reported at the impl, the copy having
-// no source of its own.
-walk_default_copy :: fn(
-    m: AST.FnDecl,
-    impl_: AST.ImplDecl,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    mode: WalkMode,
-) -> void {
-    seen: Diagnostic[]: []
-    walk_fn_body(m, typed, seen, mode)
-    shared_instance :: CodeInfo(TypecheckCode.IsTestOnSharedInstance).id
-    for d in seen {
-        if d.code.id == shared_instance {
-            diags.push(Diagnostic { ...d, .primary = impl_.trait_name_span })
+// T3087 at `impl_` for a type test of a default body it inherits that its instances
+// cannot tell apart: the body was checked once in its trait, where the trait's
+// parameters erase nothing (`default_body_params`), so its tests are read again
+// with the types the impl binds them to, as the impl's own member would be.
+check_inherited_tests :: fn(impl_: AST.ImplDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    trait_sym :: impl_trait_symbol(impl_, typed.resolved) ?? return
+    owner :: typed.trait_decl_owners[trait_sym.id] ?? typed.resolved
+    for_ty :: type_from_expr(impl_.for_type, typed.resolved, [])
+    args :: registered_trait_args(impl_, trait_sym, for_ty, typed.resolved, typed)
+    bindings :: trait_param_bindings(trait_sym, args, for_ty, typed)
+    for m in impl_.members {
+        inherited :: m.inherits ?? continue
+        body :: inherited.body ?? continue
+        tested: AST.TypeExpr[]: []
+        AST.inspect(body, (n) -> collect_tested_type(n, tested))
+        for t in tested {
+            read :: substitute_map(type_from_expr(t, owner, []), bindings)
+            check_is_test_target(read, impl_.trait_name_span, typed, diags)
         }
     }
+}
+
+// Note the type `n` tests a value against, an `is` test's or a pattern's.
+collect_tested_type :: fn(n: AST.Node, tested: AST.TypeExpr[]) -> AST.Walk {
+    if n is AST.BinaryExpr && n.op == .Is {
+        tested.push(n.right)
+    } else if n is AST.IsPattern {
+        tested.push(n.ty)
+    }
+    return .Descend
 }
 
 walk_fn_body :: fn(

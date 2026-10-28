@@ -14,12 +14,6 @@
   expr 16:24    IdentExpr      :: Self
   expr 17:16    BinaryExpr     :: i32
   expr 17:16    IdentExpr      :: i32
-  expr 30742:10 IdentExpr      :: i32
-  expr 30742:4  AwaitExpr      :: i32
-  expr 30742:5  CallExpr       :: Async<i32>
-  expr 30742:6  FieldExpr      :: fn() -> Async<i32>
-  expr 30742:7  IdentExpr      :: Box<T>
-  expr 30742:9  BinaryExpr     :: i32
   expr 32:15    CallExpr       :: Async<null>
   expr 32:15    IdentExpr      :: fn(i64) -> Async<null>
   expr 32:9     AwaitExpr      :: null

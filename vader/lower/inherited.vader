@@ -60,9 +60,8 @@ MemberSource :: struct {
 }
 
 // What `member` lowers from: its own body, or the default body of its trait it
-// inherits, `Self` bound to `self_type` and the trait's parameters to the impl's
-// trait arguments, its trait's defaults included (`implemented_trait_args`). An
-// intrinsic stub stands for the host's member, not for the default.
+// inherits (`FnDecl.inherits`), read under what the impl binds the trait's
+// parameters to (`trait_param_bindings`).
 member_source :: fn(
     project: LowerProjectCtx,
     member: AST.FnDecl,
@@ -76,17 +75,11 @@ member_source :: fn(
         .typed = typed,
         .subst = subst,
     }
-    if !member.materialized || AST.decorators_have(member.decorators, "intrinsic") {
-        return own
-    }
+    inherited :: member.inherits ?? return own
     trait_sym :: impl_entry.trait_symbol
     owner :: project.typed.modules[trait_sym.module] ?? return own
-    trait_decl :: owner.trait_decls[trait_sym.id] ?? return own
-    inherited :: default_member(trait_decl, member.name) ?? return own
-    self_param :: owner.resolved.trait_self_params[trait_sym.id] ?? return own
     trait_args :: impl_entry.trait_args.map((t: Type) -> substitute(t, subst)).collect()
-    bindings :: type_param_bindings(trait_decl.type_params, trait_args, owner)
-    bindings[self_param.id] = self_type
+    bindings :: trait_param_bindings(trait_sym, trait_args, self_type, owner)
     read :: merge_subst(subst, substitution_of(bindings))
     read.self_type = self_type
     return MemberSource {
@@ -94,14 +87,4 @@ member_source :: fn(
         .typed = owner,
         .subst = read,
     }
-}
-
-// The member `name` of `trait_decl` when it carries a default body.
-default_member :: fn(trait_decl: AST.TraitDecl, name: string) -> AST.FnDecl | null {
-    for m in trait_decl.members {
-        if m.name == name && m.body != null {
-            return m
-        }
-    }
-    return null
 }

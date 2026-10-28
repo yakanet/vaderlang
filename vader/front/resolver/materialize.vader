@@ -6,10 +6,10 @@
 //   1. `materialize_intrinsic_members`: @intrinsic impl with an empty
 //      body : push one stub FnDecl per trait method, signature only.
 //   2. `materialize_default_members`: trait methods with a default
-//      body : inject for any name the impl didn't override. Clones the
-//      default body via `substitute_block_materialized` and assigns it
-//      to the synthesised `FnDecl.body` ; signature substitution runs
-//      end-to-end.
+//      body : inject a declaration without a body for any name the impl
+//      didn't override, its signature substituted. The body stays the
+//      trait's, checked once there and lowered for each impl from there
+//      (`vader/lower/inherited.vader`).
 //   3. `materialize_sam_members`: single-abstract-method sugar
 //      (`Foo implements Trait -> expr`) : fill name/params/return_type
 //      on the parser-fabricated synthetic FnDecl(s) from the trait's
@@ -56,75 +56,65 @@ export materialize_intrinsic_members :: fn(
     }
 }
 
-/// Trait default methods → inject deep-cloned copies into impls that
-/// didn't override the method. Clones bodies via
-/// `substitute_block_materialized` so cloned nodes carry the
-/// materialised-span marker (rendered as `undefined:undefined` in the
-/// typecheck dump). `assign_block_ids` gives the clone's nodes fresh ids from
-/// the project's factory, and the member takes one of its own from it, so both
-/// have slots of their own in the id-keyed tables.
+/// Add to `impl_` a declaration without a body of each default method it does not
+/// write, its signature read for the impl and `inherits` naming the trait's member.
+/// Each takes an id of its own from the project's factory, so it has slots of its
+/// own in the id-keyed tables.
 ///
 /// @param impl_    the impl to complete.
 /// @param trait_   the trait it implements.
 /// @param factory  the project's node-id factory.
 export materialize_default_members :: fn(
-    impl_: AST.ImplDecl, trait_: AST.TraitDecl, factory: NodeIdFactory,
+    impl_: AST.ImplDecl,
+    trait_: AST.TraitDecl,
+    factory: NodeIdFactory,
 ) -> void {
-    if !any_has_body(trait_.members) { return }
+    if !any_has_body(trait_.members) {
+        return
+    }
     provided :: provided_names(impl_.members)
     subst :: build_subst(impl_, trait_)
     // One deterministic span allocator per impl, threaded through every member
-    // clone below. The spans must be derived from the SOURCE position and a
-    // traversal counter (never from a node id) or the two materialisation
-    // generations disagree on the span-keyed `idents` keys. See
-    // docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
+    // below : the typecheck keys an inherited member's signature on its name and
+    // parameter spans, which must differ from impl to impl and from one compile to
+    // the next. See docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
     impl_pos :: impl_.trait_name_span.start
-    stamp :: StampCtx { .base_line = impl_pos.line * 1024 + impl_pos.column, .counter = 0, .file = "${CLONE_FILE_PREFIX}${impl_pos.file}" }
+    stamp :: StampCtx {
+        .base_line = impl_pos.line * 1024 + impl_pos.column,
+        .counter = 0,
+        .file = "${CLONE_FILE_PREFIX}${impl_pos.file}",
+    }
     for method in trait_.members {
-        body :: method.body
-        match body {
-            is null          -> {}     // not a default method
-            is AST.BlockExpr -> {
-                if method.name in provided { continue }
-                no_decorators: AST.Decorator[]: []
-                cloned :: substitute_block_materialized(body, subst, factory, stamp)
-                id :: factory.mint()
-                impl_.members.push(synth_with_body(method, subst, no_decorators, cloned, stamp, id))
-            }
+        if method.body == null || method.name in provided {
+            continue
         }
+        impl_.members.push(synth_inherited(method, subst, stamp, factory.mint()))
     }
 }
 
-synth_with_body :: fn(
-    method: AST.FnDecl, subst: Subst,
-    decorators: AST.Decorator[], body: AST.BlockExpr, stamp: StampCtx, id: i64,
-) -> AST.FnDecl {
-    return AST.FnDecl {
+// The name span is unique per (impl, method) : `impl_method_decl_types` is
+// name-span-keyed.
+synth_inherited :: fn(method: AST.FnDecl, subst: Subst, stamp: StampCtx, id: i64) -> AST.FnDecl =
+    AST.FnDecl {
         .span = method.span,
         .id = id,
         .name = method.name,
-        // Unique per (impl, method) : `impl_method_decl_types` is name-span-keyed.
         .name_span = next_clone_span(stamp),
         .visibility = .Public,
         .type_params = [],
-        // EVERY param, `self` included, draws from the SAME `StampCtx` as the
-        // body : `build_impl_member_params` (lower) looks the param Symbol up in
-        // the span-keyed `idents`, so param and body must agree on the span. See
-        // docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
         .params = substitute_params_stamped(method.params, subst, stamp),
         .return_type = substitute_opt_type(method.return_type, subst),
-        .body = body,
-        .decorators = decorators,
+        .body = null,
+        .decorators = [],
         .sam_synthetic = false,
         .is_expression_bodied = method.is_expression_bodied,
         .materialized = true,
         .doc = method.doc,
+        .inherits = method,
     }
-}
 
 /// Substitute params, anchoring each at a deterministic `<clone>` span from
-/// `stamp` (shared with the cloned body). Used for default-method clones so
-/// the param Symbols agree with the body's span-keyed `idents` entries.
+/// `stamp`, the impl's : an inherited member's params are keyed per impl.
 substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: StampCtx) -> AST.FnParam[] {
     out: AST.FnParam[]: []
     for p in params {

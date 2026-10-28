@@ -162,6 +162,29 @@ export implemented_trait_args :: fn(
     return out
 }
 
+/// What an impl binds the parameters of its trait to, `Self` included: what a
+/// default body the impl inherits reads them as, in its check (T3087) as in its
+/// lowering.
+///
+/// @param trait_sym  the impl's trait.
+/// @param args       the impl's trait arguments, its trait's defaults included
+///                   (`implemented_trait_args`).
+/// @param self_type  the type the impl is written for, or an instance of it.
+/// @param typed      a typed program once the traits are declared.
+export trait_param_bindings :: fn(
+    trait_sym: Symbol,
+    args: Type[],
+    self_type: Type,
+    typed: TypedProgram,
+) -> MutableMap<i32, Type> {
+    decl :: typed.trait_decls[trait_sym.id] ?? return MutableMap<i32, Type> {}
+    bindings :: type_param_bindings(decl.type_params, args, typed)
+    owner :: typed.trait_decl_owners[trait_sym.id] ?? typed.resolved
+    self_param :: owner.trait_self_params[trait_sym.id] ?? return bindings
+    bindings[self_param.id] = self_type
+    return bindings
+}
+
 /// The trait `decl` implements: the symbol its name binds to in the impl's
 /// own module, an import followed to the declaration it names. Null when the
 /// name binds to nothing there, or to something that is not a trait.
