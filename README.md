@@ -3,7 +3,7 @@
 # Vader
 
 [![CI](https://github.com/yakanet/vaderlang/actions/workflows/build.yml/badge.svg)](https://github.com/yakanet/vaderlang/actions/workflows/build.yml)
-[![API reference](https://img.shields.io/badge/docs-API%20reference-047857)](https://github.broutin.dev/vaderlang/)
+[![Documentation](https://img.shields.io/badge/docs-specification%20%26%20API-047857)](https://github.broutin.dev/vaderlang/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 ![Status](https://img.shields.io/badge/status-experimental-orange)
 ![Self-hosted](https://img.shields.io/badge/compiler-self--hosted-brightgreen)
@@ -282,7 +282,7 @@ The live, item-by-item roadmap is in [`TODO.md`](./TODO.md). High-level mileston
 
 ## Further reading
 
-- [API reference](https://github.broutin.dev/vaderlang/): every module of the library and of the compiler, written by `vader doc`
+- [The site](https://github.broutin.dev/vaderlang/): the specification, one page per chapter, and the API reference of every module of the library and of the compiler, written by `vader doc`
 - [`SPEC.md`](./SPEC.md): the language specification
 - [`docs/TOOLING.md`](./docs/TOOLING.md): the `vader` command, the test runner, the debugger and the language server
 - [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md): how the compiler is built
