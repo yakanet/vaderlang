@@ -219,15 +219,22 @@ driver_span :: fn(ctx: BuildContext) -> Span =
 /// @param ctx   the context being configured.
 /// @param name  what the binary is called, and what `--entry` selects it by.
 /// @param path  the entry `.vader` file, relative to `project_root`.
-/// @error       H6005 when an entry already has that name, since the two
-///              binaries would overwrite each other.
+/// @error       H6012 when `name` cannot name a binary on every platform
+///              (`entry_name_problem`).
+/// @error       H6005 when an entry already has that name, in any case, since
+///              the two binaries would be one file where case is ignored.
 export add_entry :: fn(ctx: BuildContext, name: string, path: string) -> void {
-    for entry in ctx.entries {
-        if entry.name == name {
-            ctx.diagnostics.push(hook_error(.DuplicateEntryName, driver_span(ctx),
-                "`${name}` names `${entry.path}` already, and now `${path}`"))
-            return
-        }
+    problem :: entry_name_problem(name)
+    if problem != null {
+        detail :: "`${name}` ${problem}"
+        ctx.diagnostics.push(hook_error(.InvalidEntryName, driver_span(ctx), detail))
+        return
+    }
+    same :: entry_named(ctx.entries, name)
+    if same != null {
+        ctx.diagnostics.push(hook_error(.DuplicateEntryName, driver_span(ctx),
+            "`${same.name}` names `${same.path}` already, and now `${name}` names `${path}`"))
+        return
     }
     ctx.entries.push(ManifestEntry { .name = name, .path = path })
 }
@@ -331,6 +338,21 @@ import "std/testing"
     ctx.add_entry("app", "b.vader")
     assert_eq(ctx.entries.len(), 1)
     assert_eq(ctx.reports_of()[0].code.id, "H6005")
+}
+
+@test test_add_entry_refuses_a_name_that_differs_only_in_case :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.add_entry("App", "a.vader")
+    ctx.add_entry("app", "b.vader")
+    assert_eq(ctx.entries.len(), 1)
+    assert_eq(ctx.reports_of()[0].code.id, "H6005")
+}
+
+@test test_add_entry_refuses_a_name_that_cannot_name_a_binary :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.add_entry("../../x", "a.vader")
+    assert_eq(ctx.entries.len(), 0)
+    assert_eq(ctx.reports_of()[0].code.id, "H6012")
 }
 
 @test test_add_asset_refuses_a_path_outside_the_project :: fn() -> void {

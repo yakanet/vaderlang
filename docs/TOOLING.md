@@ -19,7 +19,7 @@ Each action has a section below, except `test` (*Tests*), `dap` (*Debugging*) an
 
 ### `vader new`
 
-`vader new name` creates the folder `name` with `src/main.vader`, a `.gitignore` and what `--build` picks: a `vader.json` (`manifest`, the default), a `build.vader` (`driver`) or nothing, for a single program (`none`). Without a name, it fills the working directory.
+`vader new name` creates the folder `name` with `src/main.vader`, a `.gitignore` and what `--build` picks: a `vader.json` (`manifest`, the default), a `build.vader` (`driver`) or nothing, for a single program (`none`). Without a name, it fills the working directory. The project and its program take the folder's name, so a folder whose name cannot name a binary (SPEC §11 *Configuration: `vader.json`*) is refused.
 
 `--git` also runs `git init`. On a terminal, `vader new` asks for what the command line leaves out; `--git=false` declines without a question.
 

@@ -239,6 +239,13 @@ resolve_target :: fn(raw: string) -> NewProject | ScaffoldError {
     if raw.starts_with("-") {
         return ScaffoldError { .msg = "`${raw}` looks like a flag, not a project name" }
     }
+        // The project, and its one entry, take the folder's name.
+    name :: project_name(raw)
+    problem :: entry_name_problem(name)
+    if problem != null {
+        named :: "the project takes its folder's name, `${name}`"
+        return ScaffoldError { .msg = "${named}, which ${problem}" }
+    }
     if raw == IN_PLACE {
         if exists(join_path(IN_PLACE, MANIFEST_FILENAME)) {
             return ScaffoldError {
@@ -246,7 +253,9 @@ resolve_target :: fn(raw: string) -> NewProject | ScaffoldError {
             }
         }
         return NewProject {
-            .dir = IN_PLACE, .name = directory_name(current_working_directory()), .in_place = true,
+            .dir = IN_PLACE,
+            .name = name,
+            .in_place = true,
         }
     }
     if exists(raw) {
@@ -262,7 +271,19 @@ resolve_target :: fn(raw: string) -> NewProject | ScaffoldError {
             return ScaffoldError { .msg = "`${raw}` exists and is not empty: ${hint}" }
         }
     }
-    return NewProject { .dir = raw, .name = directory_name(raw), .in_place = false }
+    return NewProject {
+        .dir = raw,
+        .name = name,
+        .in_place = false,
+    }
+}
+
+// The name a project takes: its folder's, the working directory's in place.
+project_name :: fn(raw: string) -> string {
+    if raw == IN_PLACE {
+        return directory_name(current_working_directory())
+    }
+    return directory_name(raw)
 }
 
 /// Last segment of a path, whatever separator wrote it: the project's name.
@@ -271,7 +292,7 @@ resolve_target :: fn(raw: string) -> NewProject | ScaffoldError {
 /// name the user TYPED can carry either, so it is normalised here rather than
 /// assumed.
 directory_name :: fn(path: string) -> string {
-    name :: path.to_posix().to_path().filename()
+    name :: path.to_posix().to_path().normalize().filename()
     if name == "" {
         return path
     }
@@ -433,13 +454,8 @@ import "std/testing"
     assert("\"assets\": []" in manifest, "and so is the asset list")
 }
 
-@test test_entry_escapes_the_project_name :: fn() -> void {
-    entry :: render_entry("my \"app\"")
-    assert("println(\"hello from my \\\"app\\\"\")" in entry, "the greeting escapes a quote")
-}
-
-@test test_manifest_escapes_the_project_name :: fn() -> void {
-    assert_eq(parse_manifest(render_manifest("my \"app\"")).name, "my \"app\"")
+@test test_new_refuses_a_folder_whose_name_cannot_name_a_binary :: fn() -> void {
+    assert(resolve_target("my app") is ScaffoldError, "a space cannot name a binary")
 }
 
 @test test_the_reader_accepts_the_scaffolded_manifest :: fn() -> void {
@@ -465,6 +481,7 @@ import "std/testing"
 @test test_directory_name_takes_the_last_segment :: fn() -> void {
     assert_eq(directory_name("tmp/my-app"), "my-app")
     assert_eq(directory_name("my-app"), "my-app")
+    assert_eq(directory_name("my-app/"), "my-app")
 }
 
 @test test_report_names_the_next_command :: fn() -> void {

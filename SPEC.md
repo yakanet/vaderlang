@@ -3018,6 +3018,8 @@ A project is a folder described by its `vader.json` or by its `build.vader` (*Pr
 
 The paths of `entries` and `assets` are relative to the project root. An asset path that is absolute, or that leaves the project through `..`, is an error, and so is any other key, or a key of the wrong shape.
 
+An entry's name is its binary's file name, so it must be one on every platform: ASCII letters, digits, `_` and `-`, not starting with `-`, and none of the names Windows reserves for a device (`con`, `prn`, `aux`, `nul`, `com0` to `com9`, `lpt0` to `lpt9`), whatever its case. Any other name is an error, and so are two names that differ only in case: a file system that ignores case gives them one binary.
+
 #### Include paths
 
 ```vader
@@ -3112,7 +3114,7 @@ build :: fn(args: string[]) -> i32 {
 
 A driver describes in code what a `vader.json` declares:
 
-- `ctx.add_entry(name, path)` adds a program, as a key of `entries` does;
+- `ctx.add_entry(name, path)` adds a program, as a key of `entries` does, its name under the same rule;
 - `ctx.add_asset(path)` adds a file or folder to copy beside the binaries, as `assets` does;
 - module search roots go in `ctx.include_paths`, and are resolved and ranked as `includePaths` are.
 

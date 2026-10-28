@@ -10,6 +10,7 @@ import "std/collections"
 import "std/io"
 import "std/path"
 import "std/string"
+import "vader/support/text"
 
 // Every key a `vader.json` may hold; `name` and `version` drive nothing.
 // `test_the_editor_schema_describes_exactly_the_manifest_keys` holds the schema
@@ -98,7 +99,14 @@ export parse_manifest :: fn(text: string) -> Manifest {
     entries :: parsed.entries["entries"]
     if entries is JsonObject {
         for [name, path] in entries.entries {
-            if path is JsonString {
+            problem :: entry_name_problem(name)
+            same :: entry_named(manifest.entries, name)
+            if problem != null {
+                manifest.problems.push("entry `${name}` ${problem}")
+            } else if same != null {
+                both :: "entries `${same.name}` and `${name}`"
+                manifest.problems.push("${both} name one binary where case is ignored")
+            } else if path is JsonString {
                 manifest.entries.push(ManifestEntry { .name = name, .path = path.value })
             } else {
                 manifest.problems.push("entry `${name}` is not the path of its entry file")
@@ -191,6 +199,67 @@ string_array :: fn(strings: string[]) -> JsonValue {
     return JsonArray { .items = items }
 }
 
+/// Why `name` cannot name an entry, whose binary bears it, on every platform: a
+/// project builds the same wherever it is checked out, and for whichever target.
+///
+/// A name holds ASCII letters, digits, `_` and `-`, does not start with `-`,
+/// which would read as an option, and is none of the names Windows reserves for
+/// a device (`con`, `nul`, `com1`...), whatever its case.
+///
+/// @param name  the entry's name, as the project declares it.
+/// @return      why, worded to follow the name, or null when it can name a
+///              binary.
+export entry_name_problem :: fn(name: string) -> string | null {
+    if !is_portable_name(name) {
+        return "cannot name a binary: use ASCII letters, digits, `_` and `-`, not starting with `-`"
+    }
+    if is_windows_device_name(name) {
+        return "cannot name a binary: Windows reserves it for a device"
+    }
+    return null
+}
+
+/// The entry of `entries` whose binary would be the file of one named `name`:
+/// the same name, in any case, since a file system may ignore it.
+///
+/// @param entries  the entries declared so far.
+/// @param name     the name of the next one.
+export entry_named :: fn(entries: ManifestEntry[], name: string) -> ManifestEntry | null {
+    lower :: name.to_lower()
+    for entry in entries {
+        if entry.name.to_lower() == lower {
+            return entry
+        }
+    }
+    return null
+}
+
+// Whether `name` holds only bytes every platform accepts in a file name, and
+// none a command line mistakes for an option.
+is_portable_name :: fn(name: string) -> bool {
+    if name == "" || name.starts_with("-") {
+        return false
+    }
+    for b in name.bytes() {
+        if !is_ident_byte(b) && b != '-' {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether Windows reserves `name` for a device, whatever its case: `con`, `prn`,
+// `aux`, `nul`, and `com` or `lpt` with one digit. No file bears one, with an
+// extension or without.
+is_windows_device_name :: fn(name: string) -> bool {
+    lower :: name.to_lower()
+    if lower in ["con", "prn", "aux", "nul"] {
+        return true
+    }
+    numbered :: lower.byte_len() == 4 && (lower.starts_with("com") || lower.starts_with("lpt"))
+    return numbered && lower.byte_at(3) in '0'..='9'
+}
+
 /// What is wrong with an asset of a project, which a build copies beside its
 /// binaries under the same relative path.
 ///
@@ -250,6 +319,41 @@ test_read_manifest_reports_a_malformed_entry :: fn() -> void {
 }
 
 @test
+test_read_manifest_reports_an_entry_that_cannot_name_a_binary :: fn() -> void {
+    m :: parse_manifest("{\"entries\": {\"../../x\": \"main.vader\"}}")
+    assert_eq(m.entries.len(), 0)
+    assert_eq(m.problems.len(), 1)
+}
+
+@test
+test_read_manifest_reports_two_entries_that_differ_only_in_case :: fn() -> void {
+    m :: parse_manifest("{\"entries\": {\"App\": \"a.vader\", \"app\": \"b.vader\"}}")
+    assert_eq(m.entries.len(), 1)
+    assert_eq(m.problems.len(), 1)
+}
+
+@test
+test_entry_name_takes_letters_digits_underscore_and_dash :: fn() -> void {
+    for name in ["app", "my-app", "tool_2", "A1", "console", "com10"] {
+        assert(entry_name_problem(name) == null, "`${name}` names a binary")
+    }
+}
+
+@test
+test_entry_name_refuses_any_other_byte :: fn() -> void {
+    for name in ["../../x", "a/b", "a\\b", "my app", "caf\u{e9}", "a.b", "", "-x"] {
+        assert(entry_name_problem(name) != null, "`${name}` does not name a binary")
+    }
+}
+
+@test
+test_entry_name_refuses_a_windows_device :: fn() -> void {
+    for name in ["nul", "CON", "com1", "Lpt9"] {
+        assert(entry_name_problem(name) != null, "Windows reserves `${name}`")
+    }
+}
+
+@test
 test_read_manifest_reports_an_unknown_key :: fn() -> void {
     m :: parse_manifest("{\"entries\": {\"app\": \"main.vader\"}, \"asset\": [\"a.png\"]}")
     assert_eq(m.entries.len(), 1)
@@ -289,7 +393,7 @@ test_read_manifest_missing_is_empty :: fn() -> void {
 @test
 test_a_written_manifest_reads_back_as_the_same_project :: fn() -> void {
     written :: Manifest {
-        .name = "game",
+        .name = "my \"game\"",
         .version = "1.2.0",
         .include_paths = ["vendor"],
         .entries = [ManifestEntry { .name = "app", .path = "src/main.vader" }],
@@ -297,7 +401,7 @@ test_a_written_manifest_reads_back_as_the_same_project :: fn() -> void {
     }
     read :: parse_manifest(stringify_manifest(written))
     assert_eq(read.problems.len(), 0)
-    assert_eq(read.name, "game")
+    assert_eq(read.name, "my \"game\"")
     assert_eq(read.version, "1.2.0")
     assert_eq(read.include_paths.join(","), "vendor")
     assert_eq(read.entries.len(), 1)

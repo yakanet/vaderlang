@@ -58,7 +58,8 @@ export project_output_dir :: fn(dir: string, release: bool, target: Target | nul
 /// a `.exe`: its name, in `project_output_dir`.
 ///
 /// @param dir      the project folder.
-/// @param name     the entry's name.
+/// @param name     the entry's name, one `entry_name_problem` accepts: it is
+///                 joined as a file name.
 /// @param release  whether the build is optimised.
 /// @param target   the platform built for, the host when null.
 export project_entry_stem :: fn(

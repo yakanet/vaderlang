@@ -284,6 +284,7 @@ export HookCode :: enum(CodeInfo) {
     UnknownEntry               { .id = "H6009", .message = "the build names no such entry" },
     AssetOutsideProject        { .id = "H6010", .message = "asset outside the project" },
     OutputForSeveralEntries    { .id = "H6011", .message = "one output for several entries" },
+    InvalidEntryName           { .id = "H6012", .message = "invalid entry name" },
 }
 
 /// IR self-check codes, emitted by the cross-pass verifiers
