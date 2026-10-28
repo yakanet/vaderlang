@@ -3167,6 +3167,7 @@ build :: fn(args: string[]) -> i32 {
 ```
 
 - A plugin reports and generates as a driver does.
+- A library can ship a plugin: `ctx.use(JsonDerive { .modules = ["app"] })`, from `json/derive`, gives each struct of `app` a `to_json`.
 - Plugins are read when the stream starts, like the rest of the configuration.
 - In `.Describe` mode the stream builds nothing, and the plugins hear nothing.
 - Starting a build from inside a plugin is an error.

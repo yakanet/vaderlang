@@ -1,0 +1,170 @@
+// json/derive: a build plugin writing a JSON serialiser for each struct.
+//
+// The code joins the struct's own module, which is what lets it name the type: a
+// module of its own would have to import the struct's module, which imports it back.
+
+module "json/derive"
+
+import "std/string_builder"
+import "toolchain/build"
+AST :: import "toolchain/ast"
+
+/// A build plugin giving every struct of `modules` a JSON serialiser: a
+/// `to_json_value(v)` building a `JsonValue`, and a `to_json(v)` writing its text.
+///
+/// The functions are overloads on the struct type, generated into the struct's
+/// own module. The mapping reads each field's type as written: a number, a
+/// `string`, a `bool`, a struct of the same module (through its own overload), or
+/// an array of one of them. Any other field is reported, and left out.
+///
+/// @example
+///   # import "toolchain/build"
+///   # ctx :: new_build_context(["driver", "."])
+///   ctx.use(JsonDerive { .modules = ["app"] })
+export JsonDerive :: struct {
+    /// The modules whose structs get a serialiser, by declared name.
+    modules: string[]
+}
+
+JsonDerive implements BuildPlugin {
+    on_module :: fn(self, ctx: BuildContext, msg: TypecheckedMessage) -> void {
+        if msg.module_name in self.modules {
+            derive_module(ctx, msg)
+        }
+    }
+}
+
+NUMERIC_TYPES :: ["i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "f32", "f64"]
+
+// The alias the generated file reaches `json` through. A file's alias shares the
+// module's names, so it must be one no hand-written declaration takes.
+JSON_ALIAS :: "DerivedJson"
+
+// The struct names are collected before any is written, so a field whose type is
+// a sibling struct is recognised as one however the file orders them.
+derive_module :: fn(ctx: BuildContext, msg: TypecheckedMessage) -> void {
+    structs: AST.StructDecl[]: []
+    names: string[]: []
+    for d in msg.declarations {
+        if d is AST.StructDecl {
+            structs.push(d)
+            names.push(d.name)
+        }
+    }
+    if structs.len() == 0 {
+        return
+    }
+    out :: StringBuilder {}
+    out.append("import \"std/collections\"\n")
+    out.append("${JSON_ALIAS} :: import \"json\"\n")
+    for s in structs {
+        write_struct(ctx, out, s, names)
+    }
+    ctx.emit_module(msg.module_name, out.to_string())
+}
+
+write_struct :: fn(
+    ctx: BuildContext,
+    out: StringBuilder,
+    s: AST.StructDecl,
+    siblings: string[],
+) -> void {
+    out.append("\n/// Generated from `${s.name}` by `json/derive`.\n")
+    out.append("to_json_value :: fn(v: ${s.name}) -> ${JSON_ALIAS}.JsonValue {\n")
+    out.append("    entries :: MutableMap<string, ${JSON_ALIAS}.JsonValue> {}\n")
+    for f in s.fields {
+        write_field(ctx, out, f, siblings)
+    }
+    out.append("    return ${JSON_ALIAS}.JsonObject { .entries = entries }\n")
+    out.append("}\n")
+    out.append("\n/// JSON text for a `${s.name}`.\n")
+    out.append(
+        "to_json :: fn(v: ${s.name}) -> string = ${JSON_ALIAS}.stringify(to_json_value(v))\n",
+    )
+}
+
+// The statements that put one field into `entries`. A field whose type has no JSON
+// mapping is reported against the field, so the user sees which one.
+write_field :: fn(ctx: BuildContext, out: StringBuilder, f: AST.StructField, siblings: string[]) -> void {
+    access :: "v.${f.name}"
+    scalar :: value_expression(f.ty, access, siblings)
+    if scalar != null {
+        out.append("    entries[\"${f.name}\"] = ${scalar}\n")
+        return
+    }
+    array :: f.ty
+    if array is AST.ArrayTypeExpr {
+        element :: value_expression(array.element, "element", siblings)
+        if element != null {
+            items :: "items_${f.name}"
+            out.append("    ${items}: ${JSON_ALIAS}.JsonValue[]: []\n")
+            out.append("    for element in ${access} {\n")
+            out.append("        ${items}.push(${element})\n")
+            out.append("    }\n")
+            out.append(
+                "    entries[\"${f.name}\"] = ${JSON_ALIAS}.JsonArray { .items = ${items} }\n",
+            )
+            return
+        }
+    }
+    ctx.report(f.span, "field `${f.name}` has no JSON mapping: skipped by the derived serialiser")
+}
+
+// The `JsonValue` expression for a value of type `ty` read at `access`, or null when
+// there is none. A number goes through `f64`, which is what `JsonNumber` carries;
+// `stringify` prints an integral one without a decimal point. A struct is one of
+// `siblings` only: any other name would not compile in the generated code.
+value_expression :: fn(ty: AST.TypeExpr, access: string, siblings: string[]) -> string | null {
+    if ty !is AST.IdentExpr {
+        return null
+    }
+    if ty.name in NUMERIC_TYPES {
+        return "${JSON_ALIAS}.JsonNumber { .value = f64(${access}) }"
+    }
+    if ty.name == "string" {
+        return "${JSON_ALIAS}.JsonString { .value = ${access} }"
+    }
+    if ty.name == "bool" {
+        return "${JSON_ALIAS}.JsonBool { .value = ${access} }"
+    }
+    if ty.name in siblings {
+        return "to_json_value(${access})"
+    }
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/span"
+
+named_type :: fn(name: string) -> AST.TypeExpr = AST.IdentExpr {
+    .span = empty_span(),
+    .name = name,
+    .implicit_dot = false,
+    .is_type_param_intro = false,
+}
+
+field_of :: fn(name: string, ty: AST.TypeExpr) -> AST.StructField = AST.StructField {
+    .span = empty_span(),
+    .name = name,
+    .ty = ty,
+    .visibility = .Public,
+    .default = null,
+}
+
+@test
+test_value_expression_reaches_a_struct_of_the_module_only :: fn() -> void {
+    assert_eq(value_expression(named_type("Address"), "x", ["Address"]) ?? "", "to_json_value(x)")
+    assert(value_expression(named_type("Address"), "x", []) == null, "another module's struct")
+}
+
+@test
+test_write_field_reports_an_unmapped_field :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    out :: StringBuilder {}
+    write_field(ctx, out, field_of("when", named_type("Instant")), [])
+    assert_eq(out.to_string(), "")
+    assert_eq(ctx.reports_of().len(), 1)
+    assert_eq(ctx.reports_of()[0].code.id, "H6004")
+}
