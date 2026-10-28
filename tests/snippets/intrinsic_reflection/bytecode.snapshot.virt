@@ -454,12 +454,8 @@ fn 0 snippet$main () -> i32
   local.get 1   ; __off_1
   call 4   ; std_core$finish_buffer
   call 11   ; std_io$println__string
-  bool.const true
-  if $L3 void
-    string.const 31   ; "satisfies in a condition: i32 Add taken"
-    call 11   ; std_io$println__string
-    return.lit i32.const 0
-  end $L3
+  string.const 31   ; "satisfies in a condition: i32 Add taken"
+  call 11   ; std_io$println__string
   return.lit i32.const 0
 end
 

@@ -1,0 +1,88 @@
+module "snippet"
+
+import "std/io"
+
+// A generic body that tests its `T` keeps a concrete instance per scalar type.
+// There, `x is Square` on an `i32` is settled before the program runs: the code
+// it guards reads `x` as a `Square` it never is, so it is not compiled at all. The
+// same holds for a guard that returns, a `match` arm, either side of `&&` and
+// `||`, a loop condition and a value `if`. A struct argument keeps the shared
+// instance, whose test runs.
+
+Square :: struct { side: i32 }
+
+Circle :: struct { radius: i32 }
+
+int_of :: fn<T>(x: T) -> i32 {
+    if x is i32 {
+        return x + 1
+    }
+    if x is Square {
+        return x.side * 10
+    }
+    return 0
+}
+
+side_or_zero :: fn<T>(x: T) -> i32 {
+    if x !is Square {
+        return 0
+    }
+    return x.side
+}
+
+measure :: fn<T>(x: T) -> i32 = match x {
+    is Square { side: 1 } -> -1
+    is Square { side }    -> side * 4
+    is f64                -> 2
+    _                     -> 0
+}
+
+is_big_square :: fn<T>(x: T) -> bool = x is Square && x.side > 2
+
+label :: fn<T>(x: T) -> string = if x is string { "text ${x}" } else { "other" }
+
+side_if_positive :: fn<T>(x: T, n: i32) -> i32 {
+    if n > 0 && x is Square {
+        return x.side
+    }
+    return -1
+}
+
+side_unless_negative :: fn<T>(x: T, n: i32) -> i32 {
+    if n < 0 || x !is Square {
+        return 0
+    }
+    return x.side
+}
+
+side_in_loop :: fn<T>(x: T) -> i32 {
+    total := 0
+    for x is Square {
+        total += x.side
+        break
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    println(int_of(41))
+    println(int_of(2.5))
+    println(int_of("s"))
+    println(int_of(Square { .side = 3 }))
+    println(side_or_zero(7))
+    println(side_or_zero(Square { .side = 5 }))
+    println(measure(1.5))
+    println(measure(Square { .side = 1 }))
+    println(measure(Circle { .radius = 2 }))
+    println(is_big_square(9))
+    println(is_big_square(Square { .side = 3 }))
+    println(label("s"))
+    println(label(4))
+    println(side_if_positive(5, 1))
+    println(side_if_positive(Square { .side = 6 }, 1))
+    println(side_unless_negative(5, 1))
+    println(side_unless_negative(Square { .side = 7 }, 1))
+    println(side_in_loop(5))
+    println(side_in_loop(Square { .side = 8 }))
+    return 0
+}

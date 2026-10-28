@@ -57,17 +57,23 @@ lower_block :: fn(
             // create `out` at the trip count. See `vader/lower/optimise/push_reserve.vader`.
             reserve_push_tail(stmts)
         }
+        // What follows a statement that leaves the block never runs, and may read
+        // a name narrowed by a test settled before the program runs : it is not
+        // lowered.
+        if last_stmt_diverges(stmts) {
+            break
+        }
     }
+    last_diverges :: last_stmt_diverges(stmts)
     trailing_base :: ctx.pending_awaits.len()
-    raw_trailing :: lower_trailing(ctx, block.trailing, is_fn_root)
+    raw_trailing :: lower_trailing(ctx, block.trailing, is_fn_root, last_diverges)
     drain_pending_from(ctx, stmts, trailing_base)
     defer_count :: ctx.blocks[entry_depth].defers.len()
+    trailing := raw_trailing
     // Skip the block-fall-through pop_exec when control flow has
     // already exited (return / break / continue). The `drain_*`
     // helpers at those sites already emitted the proper drain count,
     // so a trailing pop_exec here would be dead code.
-    last_diverges :: stmts.len() > 0 && stmt_diverges(stmts[stmts.len() - 1])
-    trailing := raw_trailing
     if defer_count > 0 && !last_diverges {
         span :: if raw_trailing == null { block.span } else { raw_trailing.span }
         drain :: LoweredDeferPopExec { .span = span, .count = i32(defer_count) }
@@ -86,13 +92,20 @@ lower_block :: fn(
     }
 }
 
-// The trailing value of a fn's own body is what the fn returns.
+last_stmt_diverges :: fn(stmts: LoweredStmt[]) -> bool =
+    stmts.len() > 0 && stmt_diverges(stmts[stmts.len() - 1])
+
+// The trailing value of a fn's own body is what the fn returns. None when a
+// statement before it left the block (`left_before`): it never runs.
 lower_trailing :: fn(
     ctx: FnLowerCtx,
     trailing: Expr | null,
     is_fn_root: bool,
+    left_before: bool,
 ) -> LoweredExpr | null {
-    if trailing == null { return null }
+    if trailing == null || left_before {
+        return null
+    }
     if is_fn_root {
         return lower_for_slot(ctx, trailing, ctx.return_type, trailing.span)
     }
@@ -404,7 +417,8 @@ evaluate_then_drain :: fn(
 
 // True when `s` will exit its enclosing block (control flow never
 // reaches a subsequent stmt). Used to suppress block-fall-through
-// emissions after a divergent stmt (return / break / continue).
+// emissions after a divergent stmt (return / break / continue), and to stop
+// lowering the statements after it.
 stmt_diverges :: fn(s: LoweredStmt) -> bool {
     if s is LoweredReturn   { return true }
     if s is LoweredBreak    { return true }
@@ -520,6 +534,13 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
             // A loop condition re-evaluates each iteration ; an `await` there
             // can't be hoisted before the loop (would run once). v1: diagnose.
             guard_no_pending_await(ctx, cond_base, while_for.cond.span)
+            // A condition settled false runs once and the body never : the body
+            // is not lowered, since it may read a name narrowed to a type the
+            // value never has.
+            known :: settled_bool(cond)
+            if known is bool && !known {
+                return LoweredExprStmt { .span = for_stmt.span, .expr = cond }
+            }
             body :: lower_block(ctx, for_stmt.body, false, for_stmt.id)
             return LoweredLoop {
                 .span = for_stmt.span, .label = instance_label(ctx, for_stmt.label),

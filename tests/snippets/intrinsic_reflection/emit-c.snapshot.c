@@ -264,10 +264,7 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_bool(l0, l1, true);
     t0 = std_core$finish_buffer(l0, l1);
     std_io$println__string(t0);
-    if (true) {
-        std_io$println__string(32u);
-        { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-    }
+    std_io$println__string(32u);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 

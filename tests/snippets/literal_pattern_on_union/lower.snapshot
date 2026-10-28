@@ -30,9 +30,9 @@
   }
   snippet.held :: fn(h: Holder) -> string {  // snippet$held
       {
-          if (h is Holder) && (h.v == i64(5)) {
+          if h.v == i64(5) {
               "holds five"
-          } else if (h is Holder) && (h.v == "a") {
+          } else if h.v == "a" {
               "holds a"
           } else {
               "holds other"
@@ -41,12 +41,12 @@
   }
   snippet.measured :: fn(h: Measure) -> string {  // snippet$measured
       {
-          if (h is Measure) && ((h.m is f64) && (f64(h.m) == 0.0)) { "measures zero" } else { "measures other" } :string
+          if (h.m is f64) && (f64(h.m) == 0.0) { "measures zero" } else { "measures other" } :string
       } :string
   }
   snippet.boxed :: fn(b: Boxed<i64>) -> string {  // snippet$boxed
       {
-          if (b is Boxed<i64>) && (b.v == i64(5)) { "boxes five" } else { "boxes other" } :string
+          if b.v == i64(5) { "boxes five" } else { "boxes other" } :string
       } :string
   }
   snippet.named :: fn(n: Path) -> string {  // snippet$named

@@ -260,9 +260,6 @@
                       v: i32 = xs[i]
                       fused = fused + 1
                       break $leave88
-                      v: i32 = ys[i]
-                      fused = fused + 1
-                      break $leave88
                   } @step {
                       i = i +% i64(1)
                   }

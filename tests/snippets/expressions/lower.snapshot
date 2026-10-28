@@ -8,7 +8,7 @@
       a: i32 = 1 + (2 * 3)
       b: i32 = (1 + 2) * 3
       c: i32 = (-a) + b
-      d: bool = ((!true) && false) || true
+      d: bool = true
       e: Range<i32> = Range<i32> {
           .start = 0,
           .end = 10,

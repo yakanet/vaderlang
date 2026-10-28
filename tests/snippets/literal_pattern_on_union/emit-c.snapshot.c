@@ -245,22 +245,11 @@ static vader_string_t snippet$describe_float(vader_box_t l0) {
 
 static vader_string_t snippet$held(void* l0) {
     vader_string_t l1;
-    bool l2;
-    if (((vader_obj_header_t*) l0)->type_index == 7u) {
-        l2 = vader_box_eq(((vader_struct_snippet$Holder_t*) l0)->f_v, vader_box_i64(4u, INT64_C(5)));
-    } else {
-        l2 = false;
-    }
-    if (l2) {
+    if (vader_box_eq(((vader_struct_snippet$Holder_t*) l0)->f_v, vader_box_i64(4u, INT64_C(5)))) {
         l1 = 6u;
         return l1;
     }
-    if (((vader_obj_header_t*) l0)->type_index == 7u) {
-        l2 = vader_box_eq(((vader_struct_snippet$Holder_t*) l0)->f_v, vader_box_string(1u, 2u));
-    } else {
-        l2 = false;
-    }
-    if (l2) {
+    if (vader_box_eq(((vader_struct_snippet$Holder_t*) l0)->f_v, vader_box_string(1u, 2u))) {
         l1 = 7u;
     } else {
         l1 = 8u;
@@ -271,13 +260,9 @@ static vader_string_t snippet$held(void* l0) {
 static vader_string_t snippet$measured(void* l0) {
     bool l1;
     double t0;
-    if (((vader_obj_header_t*) l0)->type_index == 8u) {
-        if ((((vader_struct_snippet$Measure_t*) l0)->f_m.tag == 6u)) {
-            t0 = ((double) ((vader_struct_snippet$Measure_t*) l0)->f_m.payload.f);
-            l1 = t0 == 0.0;
-        } else {
-            l1 = false;
-        }
+    if ((((vader_struct_snippet$Measure_t*) l0)->f_m.tag == 6u)) {
+        t0 = ((double) ((vader_struct_snippet$Measure_t*) l0)->f_m.payload.f);
+        l1 = t0 == 0.0;
     } else {
         l1 = false;
     }
@@ -288,13 +273,7 @@ static vader_string_t snippet$measured(void* l0) {
 }
 
 static vader_string_t snippet$boxed(void* l0) {
-    bool l1;
-    if (((vader_obj_header_t*) l0)->type_index == 9u) {
-        l1 = vader_box_eq(((vader_struct_snippet$Boxed__i64_t*) l0)->f_v, vader_box_i64(4u, INT64_C(5)));
-    } else {
-        l1 = false;
-    }
-    if (l1) {
+    if (vader_box_eq(((vader_struct_snippet$Boxed__i64_t*) l0)->f_v, vader_box_i64(4u, INT64_C(5)))) {
         return 11u;
     }
     return 12u;

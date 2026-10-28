@@ -97,15 +97,15 @@ static int32_t snippet$add(int32_t l0, int32_t l1) {
 }
 
 static vader_string_t snippet$demo(void) {
-    int32_t l0, l1, l2, l5, l6, l7, l8;
-    bool l3;
-    void* l4 = NULL;
-    void* l9 = NULL;
-    int64_t l10, l11;
+    int32_t l0, l1, l2, l4, l5, l6, l7;
+    void* l3 = NULL;
+    void* l8 = NULL;
+    int64_t l9, l10;
+    bool l11;
     int32_t t0;
     void* t1 = NULL;
     vader_string_t t2 = 0;
-    void** gc_raw_roots[3] = { &l4, &l9, &t1 };
+    void** gc_raw_roots[3] = { &l3, &l8, &t1 };
     vader_string_t* gc_atom_roots[1] = { &t2 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
@@ -116,16 +116,6 @@ static vader_string_t snippet$demo(void) {
     l1 = vader_chk_mul(i32, INT32_C(3), INT32_C(3));
     t0 = vader_chk_neg(i32, l0);
     l2 = vader_chk_add(i32, t0, l1);
-    if (false) {
-        l3 = false;
-    } else {
-        l3 = false;
-    }
-    if (l3) {
-        l3 = true;
-    } else {
-        l3 = true;
-    }
     vader_struct_std_core$Range__i32_t* _a0_obj = (vader_struct_std_core$Range__i32_t*) vader_gc_alloc(sizeof(vader_struct_std_core$Range__i32_t));
     vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_start = INT32_C(0);
@@ -133,7 +123,7 @@ static vader_string_t snippet$demo(void) {
     _a0_obj->f_inclusive = false;
     _a0_obj->f_done = false;
     _a0_obj->f_cursor = INT32_C(0);
-    l4 = (void*) _a0_obj;
+    l3 = (void*) _a0_obj;
     vader_array_t* _a1_arr = vader_array_new(10u, 3u, 7u, 1u);
     ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int32_t) INT32_C(2);
@@ -142,45 +132,45 @@ static vader_string_t snippet$demo(void) {
     vader_array_t* _a2_slotarr = ((vader_array_t*) t1);
     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT32_C(0))
-    l5 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(0)];
-    l6 = snippet$add(INT32_C(1), INT32_C(2));
-    l7 = snippet$add(INT32_C(10), INT32_C(20));
+    l4 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(0)];
+    l5 = snippet$add(INT32_C(1), INT32_C(2));
+    l6 = snippet$add(INT32_C(10), INT32_C(20));
     if (true) {
-        l8 = INT32_C(1);
+        l7 = INT32_C(1);
     } else {
-        l8 = INT32_C(2);
+        l7 = INT32_C(2);
     }
-    l9 = (void*) vader_buffer_new((size_t) INT64_C(164));
-    l10 = INT64_C(0);
-    l11 = ((int64_t) (int32_t) l0);
-    l10 = std_core$write_int(l9, l10, l11);
-    l10 = std_core$write_string_at(l9, l10, 1u);
-    l11 = ((int64_t) (int32_t) l1);
-    l10 = std_core$write_int(l9, l10, l11);
-    l10 = std_core$write_string_at(l9, l10, 1u);
-    l11 = ((int64_t) (int32_t) l2);
-    l10 = std_core$write_int(l9, l10, l11);
-    l10 = std_core$write_string_at(l9, l10, 1u);
-    l10 = std_core$write_bool(l9, l10, l3);
-    l10 = std_core$write_string_at(l9, l10, 1u);
-    l3 = std_core$Range$Contains$contains__i32(l4, INT32_C(9));
-    l10 = std_core$write_bool(l9, l10, l3);
-    l10 = std_core$write_string_at(l9, l10, 1u);
-    l3 = std_core$Range$Contains$contains__i32(l4, INT32_C(10));
-    l10 = std_core$write_bool(l9, l10, l3);
-    l10 = std_core$write_string_at(l9, l10, 1u);
-    l11 = ((int64_t) (int32_t) l5);
-    l10 = std_core$write_int(l9, l10, l11);
-    l10 = std_core$write_string_at(l9, l10, 1u);
-    l11 = ((int64_t) (int32_t) l6);
-    l10 = std_core$write_int(l9, l10, l11);
-    l10 = std_core$write_string_at(l9, l10, 1u);
-    l11 = ((int64_t) (int32_t) l7);
-    l10 = std_core$write_int(l9, l10, l11);
-    l10 = std_core$write_string_at(l9, l10, 1u);
-    l11 = ((int64_t) (int32_t) l8);
-    l10 = std_core$write_int(l9, l10, l11);
-    t2 = std_core$finish_buffer(l9, l10);
+    l8 = (void*) vader_buffer_new((size_t) INT64_C(164));
+    l9 = INT64_C(0);
+    l10 = ((int64_t) (int32_t) l0);
+    l9 = std_core$write_int(l8, l9, l10);
+    l9 = std_core$write_string_at(l8, l9, 1u);
+    l10 = ((int64_t) (int32_t) l1);
+    l9 = std_core$write_int(l8, l9, l10);
+    l9 = std_core$write_string_at(l8, l9, 1u);
+    l10 = ((int64_t) (int32_t) l2);
+    l9 = std_core$write_int(l8, l9, l10);
+    l9 = std_core$write_string_at(l8, l9, 1u);
+    l9 = std_core$write_bool(l8, l9, true);
+    l9 = std_core$write_string_at(l8, l9, 1u);
+    l11 = std_core$Range$Contains$contains__i32(l3, INT32_C(9));
+    l9 = std_core$write_bool(l8, l9, l11);
+    l9 = std_core$write_string_at(l8, l9, 1u);
+    l11 = std_core$Range$Contains$contains__i32(l3, INT32_C(10));
+    l9 = std_core$write_bool(l8, l9, l11);
+    l9 = std_core$write_string_at(l8, l9, 1u);
+    l10 = ((int64_t) (int32_t) l4);
+    l9 = std_core$write_int(l8, l9, l10);
+    l9 = std_core$write_string_at(l8, l9, 1u);
+    l10 = ((int64_t) (int32_t) l5);
+    l9 = std_core$write_int(l8, l9, l10);
+    l9 = std_core$write_string_at(l8, l9, 1u);
+    l10 = ((int64_t) (int32_t) l6);
+    l9 = std_core$write_int(l8, l9, l10);
+    l9 = std_core$write_string_at(l8, l9, 1u);
+    l10 = ((int64_t) (int32_t) l7);
+    l9 = std_core$write_int(l8, l9, l10);
+    t2 = std_core$finish_buffer(l8, l9);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

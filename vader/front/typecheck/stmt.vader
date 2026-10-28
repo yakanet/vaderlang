@@ -1478,7 +1478,15 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
             } else {
                 narrow_for_field(typed, inner.field_key, inner.static_ty)
             }
-            return BlockNarrow { ...inner, .else_ty = subtract_type(current, inner.else_ty) }
+            positive :: subtract_type(current, inner.else_ty)
+            // Subtracting from an opaque `T` removes nothing, so the complement is
+            // `T` and nothing would be left: what the test matched holds instead, as
+            // the `else` of `if x !is S` sees it.
+            if positive is NeverType {
+                matched :: detect_is_narrow(cond.operand, typed, diag_sink_stmt()) ?? return null
+                return BlockNarrow { ...inner, .else_ty = matched.then_ty }
+            }
+            return BlockNarrow { ...inner, .else_ty = positive }
         }
     }
     if cond !is AST.BinaryExpr {

@@ -215,15 +215,14 @@ fn 1 snippet$main () -> i32
   local __for_i_2 i64
   local v i32
   local p ref
-  local and_res bool
   local __p_5 string
-  local $call_24 i64
+  local $call_21 i64
   local __buf_6 ref
   local __off_7 i64
-  local $cast_32 i64
+  local $cast_29 i64
   local __buf_3 ref
   local __off_4 i64
-  local $cast_45 i64
+  local $cast_42 i64
   i32.const 10
   i32.const 99
   array.new 15 2   ; i32[]
@@ -243,88 +242,80 @@ fn 1 snippet$main () -> i32
       local.tee 3   ; v
       string.const 7   ; "bob"
       struct.new_stack 6   ; snippet$P
-      local.tee 4   ; p
-      type_check 6   ; snippet$P
+      local.set 4   ; p
+      local.field 4 6 0   ; p snippet$P.x
+      ref.cast 5   ; i32
+      i32.const 10
+      i32.eq
       if $L2 void
-        local.field 4 6 0   ; p snippet$P.x
-        ref.cast 5   ; i32
-        i32.const 10
-        i32.eq
-        local.set 5   ; and_res
-      else
-        bool.const false
-        local.set 5   ; and_res
-      end $L2
-      local.get 5   ; and_res
-      if $L3 void
         local.field 4 6 1   ; p snippet$P.name
         ref.cast 4   ; string
-        local.tee 6   ; __p_5
+        local.tee 5   ; __p_5
         call.import 0   ; std_core$byte_len
-        local.set 7   ; $call_24
+        local.set 6   ; $call_21
         i64.const 44
-        local.get 7   ; $call_24
+        local.get 6   ; $call_21
         i64.add
         buffer.new
-        local.set 8   ; __buf_6
+        local.set 7   ; __buf_6
         i64.const 0
-        local.set 9   ; __off_7
-        local.get 8   ; __buf_6
-        local.get 9   ; __off_7
+        local.set 8   ; __off_7
+        local.get 7   ; __buf_6
+        local.get 8   ; __off_7
         string.const 8   ; "x="
         call 4   ; std_core$write_string_at
-        local.set 9   ; __off_7
+        local.set 8   ; __off_7
         local.get 3   ; v
         i32.to_i64
-        local.set 10   ; $cast_32
-        local.get 8   ; __buf_6
-        local.get 9   ; __off_7
-        local.get 10   ; $cast_32
+        local.set 9   ; $cast_29
+        local.get 7   ; __buf_6
+        local.get 8   ; __off_7
+        local.get 9   ; $cast_29
         call 5   ; std_core$write_int
-        local.set 9   ; __off_7
-        local.get 8   ; __buf_6
-        local.get 9   ; __off_7
+        local.set 8   ; __off_7
+        local.get 7   ; __buf_6
+        local.get 8   ; __off_7
         string.const 9   ; " -> matched ten, name="
         call 4   ; std_core$write_string_at
-        local.set 9   ; __off_7
-        local.get 8   ; __buf_6
-        local.get 9   ; __off_7
-        local.get 6   ; __p_5
+        local.set 8   ; __off_7
+        local.get 7   ; __buf_6
+        local.get 8   ; __off_7
+        local.get 5   ; __p_5
         call 4   ; std_core$write_string_at
-        local.set 9   ; __off_7
-        local.get 8   ; __buf_6
-        local.get 9   ; __off_7
+        local.set 8   ; __off_7
+        local.get 7   ; __buf_6
+        local.get 8   ; __off_7
         call 3   ; std_core$finish_buffer
         call 10   ; std_io$println__string
       else
         i64.const 38
         buffer.new
-        local.set 11   ; __buf_3
+        local.set 10   ; __buf_3
         i64.const 0
-        local.set 12   ; __off_4
-        local.get 11   ; __buf_3
-        local.get 12   ; __off_4
+        local.set 11   ; __off_4
+        local.get 10   ; __buf_3
+        local.get 11   ; __off_4
         string.const 8   ; "x="
         call 4   ; std_core$write_string_at
-        local.set 12   ; __off_4
+        local.set 11   ; __off_4
         local.get 3   ; v
         i32.to_i64
-        local.set 13   ; $cast_45
-        local.get 11   ; __buf_3
-        local.get 12   ; __off_4
-        local.get 13   ; $cast_45
+        local.set 12   ; $cast_42
+        local.get 10   ; __buf_3
+        local.get 11   ; __off_4
+        local.get 12   ; $cast_42
         call 5   ; std_core$write_int
-        local.set 12   ; __off_4
-        local.get 11   ; __buf_3
-        local.get 12   ; __off_4
+        local.set 11   ; __off_4
+        local.get 10   ; __buf_3
+        local.get 11   ; __off_4
         string.const 10   ; " -> fell through"
         call 4   ; std_core$write_string_at
-        local.set 12   ; __off_4
-        local.get 11   ; __buf_3
-        local.get 12   ; __off_4
+        local.set 11   ; __off_4
+        local.get 10   ; __buf_3
+        local.get 11   ; __off_4
         call 3   ; std_core$finish_buffer
         call 10   ; std_io$println__string
-      end $L3
+      end $L2
       local.get 2   ; __for_i_2
       i64.const 1
       i64.add

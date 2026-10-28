@@ -127,6 +127,15 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         is UnaryExpr -> {
             borrowed :: borrowed_range(ctx, expr)
             operand :: lower_expr(ctx, expr.operand)
+            // A settled operand stays settled (`x !is T` on a type test known
+            // before the program runs), which `if` and `&&` read to drop the
+            // dead side.
+            if expr.op == .Not {
+                known :: settled_bool(operand)
+                if known != null {
+                    return settled_as(operand, !known)
+                }
+            }
             lowered :: LoweredUnary {
                 .span = expr.span,
                 .type = produced_type(borrowed, type),
@@ -655,10 +664,29 @@ stored_read_type :: fn(declared: Type | null, use_type: Type) -> Type | null {
     return null
 }
 
-// Whether a value of type `t` is held in a box carrying its tag : an erased or
-// still open type parameter, a trait value, a union. Such a value picks its impl
-// by that tag, and a use narrowed to one type reads it through a cast.
-has_run_time_tag :: fn(t: Type) -> bool = t is AnyType | TypeParamType | TraitType | UnionType
+// How a value of a type is held, as a type test and a narrowed read see it.
+TypeHolding :: enum {
+    /// In a box carrying its tag : an erased or still open type parameter, a
+    /// trait value, a union.
+    Boxed,
+    /// As exactly that type, its tag telling nothing more.
+    Exact,
+    /// Not settled : `Self`, an inference variable, a literal's free type.
+    Unsettled,
+}
+
+holding_of :: fn(t: Type) -> TypeHolding = match t {
+    is AnyType | TypeParamType | TraitType | UnionType -> .Boxed
+    is PrimitiveType | StructType | EnumType | DistinctType | RangeType -> .Exact
+    is ArrayType | FnType | TupleType -> .Exact
+    is SelfType | InferVar | TypeMetaType | UnresolvedType | NeverType -> .Unsettled
+    is FreeIntType | FreeFloatType | FreeCharType -> .Unsettled
+}
+
+// Whether a value of type `t` is held in a box carrying its tag. Such a value
+// picks its impl by that tag, and a use narrowed to one type reads it through a
+// cast.
+has_run_time_tag :: fn(t: Type) -> bool = holding_of(t) == .Boxed
 
 // `value`, read at `stored`, as the use of type `use_type` sees it : a cast to the
 // type a narrowed use names, none for a slot read as the use (`stored` null).
@@ -742,6 +770,10 @@ coalesce_diverge_block :: fn(ctx: FnLowerCtx, s: Stmt, result: Type) -> LoweredB
 
 lower_if :: fn(ctx: FnLowerCtx, if_expr: IfExpr, type: Type) -> LoweredExpr {
     cond :: lower_expr(ctx, if_expr.cond)
+    known :: settled_bool(cond)
+    if known != null {
+        return prepend_stmts_to_block(effects_of(cond), taken_branch(ctx, if_expr, known, type))
+    }
     then_block :: lower_block(ctx, if_expr.then_block, false, null)
     else_block :: lower_if_else(ctx, if_expr.else_branch)
     // Else-less `if` : the body's value is unobservable (the typechecker
@@ -762,6 +794,21 @@ lower_if :: fn(ctx: FnLowerCtx, if_expr: IfExpr, type: Type) -> LoweredExpr {
         .then_block = then_block,
         .else_block = else_block,
     }
+}
+
+// The branch of `if_expr` a condition known before the program runs takes (a
+// settled type test, a folded constant), as a block. The other one is not
+// lowered : it may read a name narrowed to a type the value never has.
+taken_branch :: fn(ctx: FnLowerCtx, if_expr: IfExpr, holds: bool, type: Type) -> LoweredBlock {
+    if holds {
+        then_block :: lower_block(ctx, if_expr.then_block, false, null)
+        if if_expr.else_branch == null {
+            return voidify_block(then_block)
+        }
+        return LoweredBlock { ...then_block, .type = type }
+    }
+    else_block :: lower_if_else(ctx, if_expr.else_branch) ?? return mk_void_block([], if_expr.span)
+    return LoweredBlock { ...else_block, .type = type }
 }
 
 // ---- async ANF : lift a value whose statements await -----------------------

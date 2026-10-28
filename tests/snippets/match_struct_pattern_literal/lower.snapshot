@@ -51,7 +51,7 @@
               v: i32 = __for_arr_0[__for_i_2]
               p: P = P { .x = v, .name = "bob" }
               {
-                  if (p is P) && (p.x == 10) {
+                  if p.x == 10 {
                       name: string = p.name
                       std.io.println<string>({
                           __p_5: string = name

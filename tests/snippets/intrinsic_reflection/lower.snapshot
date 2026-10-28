@@ -135,7 +135,7 @@
           __off_17 = std.core.write_bool(__buf_16, __off_17, hash_int)
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
-      if true {
+      {
           std.io.println<string>("satisfies in a condition: i32 Add taken")
       }
       return 0

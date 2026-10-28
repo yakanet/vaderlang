@@ -93,29 +93,17 @@ static int32_t snippet$classify(int32_t l0) {
 }
 
 static int32_t snippet$sign(int32_t l0) {
-    int32_t l1, l2;
-    bool l3;
-    l1 = l0;
-    if (true) {
-        l3 = (l0 > INT32_C(0));
+    int32_t l1;
+    if ((l0 > INT32_C(0))) {
+        l1 = INT32_C(1);
+        return l1;
+    }
+    if ((l0 < INT32_C(0))) {
+        l1 = INT32_C(-1);
     } else {
-        l3 = false;
+        l1 = INT32_C(0);
     }
-    if (l3) {
-        l2 = INT32_C(1);
-        return l2;
-    }
-    if (true) {
-        l3 = (l0 < INT32_C(0));
-    } else {
-        l3 = false;
-    }
-    if (l3) {
-        l2 = INT32_C(-1);
-    } else {
-        l2 = INT32_C(0);
-    }
-    return l2;
+    return l1;
 }
 
 static int32_t snippet$main(void) {

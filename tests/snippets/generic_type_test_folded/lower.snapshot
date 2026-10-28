@@ -1,0 +1,183 @@
+# Lower
+
+## snippet
+  snippet.Square :: struct { side: i32 }  // snippet$Square
+  snippet.Circle :: struct { radius: i32 }  // snippet$Circle
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.io.println<i32>(snippet.int_of<i32>(41))
+      std.io.println<i32>(snippet.int_of<f64>(2.5))
+      std.io.println<i32>(snippet.int_of<string>("s"))
+      std.io.println<i32>(snippet.int_of<Square>(Square { .side = 3 }))
+      std.io.println<i32>(snippet.side_or_zero<i32>(7))
+      std.io.println<i32>(snippet.side_or_zero<Square>(Square { .side = 5 }))
+      std.io.println<i32>(snippet.measure<f64>(1.5))
+      std.io.println<i32>(snippet.measure<Circle>(Square { .side = 1 }))
+      std.io.println<i32>(snippet.measure<Circle>(Circle { .radius = 2 }))
+      std.io.println<bool>(snippet.is_big_square<i32>(9))
+      std.io.println<bool>(snippet.is_big_square<Square>(Square { .side = 3 }))
+      std.io.println<string>(snippet.label<string>("s"))
+      std.io.println<string>(snippet.label<i32>(4))
+      std.io.println<i32>(snippet.side_if_positive<i32>(5, 1))
+      std.io.println<i32>(snippet.side_if_positive<Square>(Square { .side = 6 }, 1))
+      std.io.println<i32>(snippet.side_unless_negative<i32>(5, 1))
+      std.io.println<i32>(snippet.side_unless_negative<Square>(Square { .side = 7 }, 1))
+      std.io.println<i32>(snippet.side_in_loop<i32>(5))
+      std.io.println<i32>(snippet.side_in_loop<Square>(Square { .side = 8 }))
+      return 0
+  }
+  snippet.side_in_loop<i32> :: fn(x: i32) -> i32 {  // snippet$side_in_loop__i32
+      total: i32 = 0
+      false
+      return total
+  }
+  snippet.side_in_loop<Square> :: fn(x: Any) -> i32 {  // snippet$side_in_loop__snippet_Square
+      total: i32 = 0
+      for x is Square {
+          total = total + Square(x).side
+          break
+      }
+      return total
+  }
+  snippet.int_of<f64> :: fn(x: f64) -> i32 {  // snippet$int_of__f64
+      {}
+      {}
+      return 0
+  }
+  snippet.int_of<i32> :: fn(x: i32) -> i32 {  // snippet$int_of__i32
+      {
+          return x + 1
+      }
+  }
+  snippet.int_of<Square> :: fn(x: Any) -> i32 {  // snippet$int_of__snippet_Square
+      if x is i32 {
+          return i32(x) + 1
+      }
+      if x is Square {
+          return Square(x).side * 10
+      }
+      return 0
+  }
+  snippet.int_of<string> :: fn(x: string) -> i32 {  // snippet$int_of__string
+      {}
+      {}
+      return 0
+  }
+  snippet.side_or_zero<i32> :: fn(x: i32) -> i32 {  // snippet$side_or_zero__i32
+      {
+          return 0
+      }
+  }
+  snippet.side_or_zero<Square> :: fn(x: Any) -> i32 {  // snippet$side_or_zero__snippet_Square
+      if !(x is Square) {
+          return 0
+      }
+      return Square(x).side
+  }
+  snippet.measure<f64> :: fn(x: f64) -> i32 {  // snippet$measure__f64
+      {
+          2
+      } :i32
+  }
+  snippet.measure<Circle> :: fn(x: Any) -> i32 {  // snippet$measure__snippet_Circle
+      {
+          if (x is Square) && (Square(x).side == 1) {
+              -1
+          } else if x is Square {
+              side: i32 = Square(x).side
+              side * 4
+          } else if x is f64 {
+              2
+          } else {
+              0
+          } :i32
+      } :i32
+  }
+  snippet.is_big_square<i32> :: fn(x: i32) -> bool {  // snippet$is_big_square__i32
+      false
+  }
+  snippet.is_big_square<Square> :: fn(x: Any) -> bool {  // snippet$is_big_square__snippet_Square
+      (x is Square) && (Square(x).side > 2)
+  }
+  snippet.label<i32> :: fn(x: i32) -> string {  // snippet$label__i32
+      {
+          "other"
+      } :string
+  }
+  snippet.label<string> :: fn(x: string) -> string {  // snippet$label__string
+      {
+          concat_2("text ", x)
+      } :string
+  }
+  snippet.side_if_positive<i32> :: fn(x: i32, n: i32) -> i32 {  // snippet$side_if_positive__i32
+      {
+          (n > 0) && false
+      }
+      return -1
+  }
+  snippet.side_if_positive<Square> :: fn(x: Any, n: i32) -> i32 {  // snippet$side_if_positive__snippet_Square
+      if (n > 0) && (x is Square) {
+          return Square(x).side
+      }
+      return -1
+  }
+  snippet.side_unless_negative<i32> :: fn(x: i32, n: i32) -> i32 {  // snippet$side_unless_negative__i32
+      {
+          (n < 0) || true
+          return 0
+      }
+  }
+  snippet.side_unless_negative<Square> :: fn(x: Any, n: i32) -> i32 {  // snippet$side_unless_negative__snippet_Square
+      if (n < 0) || (!(x is Square)) {
+          return 0
+      }
+      return Square(x).side
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
+  std/io
+    fn std.io.println<bool>  // std_io$println__bool
+    fn std.io.println<i32>  // std_io$println__i32
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

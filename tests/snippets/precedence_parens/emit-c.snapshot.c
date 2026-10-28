@@ -26,7 +26,7 @@ const vader_type_info_t vader_type_info_table[4] = {
 const size_t vader_type_info_count = 4;
 
 static int32_t snippet$main(void) {
-    int32_t l0, l1, l2;
+    int32_t l0, l1;
     void* t0 = NULL;
     bool t1;
     int32_t t2, t3;
@@ -50,15 +50,8 @@ static int32_t snippet$main(void) {
     } else {
         l0 = INT32_C(0);
     }
-    if (true) {
-        l2 = INT32_C(4);
-        t2 = vader_chk_add(i32, l1, l0);
-        t3 = vader_chk_add(i32, t2, l2);
-        { int32_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
-    }
-    l2 = INT32_C(0);
     t2 = vader_chk_add(i32, l1, l0);
-    t3 = vader_chk_add(i32, t2, l2);
+    t3 = vader_chk_add(i32, t2, INT32_C(4));
     { int32_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

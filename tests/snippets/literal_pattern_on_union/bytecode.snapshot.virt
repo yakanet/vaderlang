@@ -118,86 +118,39 @@ end
 
 fn 3 snippet$held (ref) -> string
   local if_res string
-  local and_res bool
-  local.get 0   ; arg 0
-  type_check 7   ; snippet$Holder
+  local.field 0 7 0   ; arg 0 snippet$Holder.v
+  i64.const 5
+  retag 4   ; i64
+  ref.eq
   if $L0 void
-    local.field 0 7 0   ; arg 0 snippet$Holder.v
-    i64.const 5
-    retag 4   ; i64
-    ref.eq
-    local.set 2   ; and_res
-  else
-    bool.const false
-    local.set 2   ; and_res
-  end $L0
-  local.get 2   ; and_res
-  if $L1 void
     string.const 5   ; "holds five"
     local.tee 1   ; if_res
     return
-  end $L1
-  local.get 0   ; arg 0
-  type_check 7   ; snippet$Holder
-  if $L2 void
-    local.field 0 7 0   ; arg 0 snippet$Holder.v
-    string.const 1   ; "a"
-    retag 1   ; string
-    ref.eq
-    local.set 2   ; and_res
-  else
-    bool.const false
-    local.set 2   ; and_res
-  end $L2
-  local.get 2   ; and_res
-  if $L3 void
+  end $L0
+  local.field 0 7 0   ; arg 0 snippet$Holder.v
+  string.const 1   ; "a"
+  retag 1   ; string
+  ref.eq
+  if $L1 void
     string.const 6   ; "holds a"
     local.set 1   ; if_res
   else
     string.const 7   ; "holds other"
     local.set 1   ; if_res
-  end $L3
+  end $L1
   local.get 1   ; if_res
   return
 end
 
 fn 4 snippet$measured (ref) -> string
   local and_res bool
-  local.get 0   ; arg 0
-  type_check 8   ; snippet$Measure
+  local.field 0 8 0   ; arg 0 snippet$Measure.m
+  type_check 6   ; f64
   if $L0 void
     local.field 0 8 0   ; arg 0 snippet$Measure.m
-    type_check 6   ; f64
-    if $L1 void
-      local.field 0 8 0   ; arg 0 snippet$Measure.m
-      ref.cast 6   ; f64
-      f64.const 0.0 0
-      f64.eq
-      local.set 1   ; and_res
-    else
-      bool.const false
-      local.set 1   ; and_res
-    end $L1
-  else
-    bool.const false
-    local.set 1   ; and_res
-  end $L0
-  local.get 1   ; and_res
-  if $L2 void
-    return.lit string.const 8   ; "measures zero"
-  end $L2
-  return.lit string.const 9   ; "measures other"
-end
-
-fn 5 snippet$boxed (ref) -> string
-  local and_res bool
-  local.get 0   ; arg 0
-  type_check 9   ; snippet$Boxed__i64
-  if $L0 void
-    local.field 0 9 0   ; arg 0 snippet$Boxed__i64.v
-    i64.const 5
-    retag 4   ; i64
-    ref.eq
+    ref.cast 6   ; f64
+    f64.const 0.0 0
+    f64.eq
     local.set 1   ; and_res
   else
     bool.const false
@@ -205,8 +158,19 @@ fn 5 snippet$boxed (ref) -> string
   end $L0
   local.get 1   ; and_res
   if $L1 void
-    return.lit string.const 10   ; "boxes five"
+    return.lit string.const 8   ; "measures zero"
   end $L1
+  return.lit string.const 9   ; "measures other"
+end
+
+fn 5 snippet$boxed (ref) -> string
+  local.field 0 9 0   ; arg 0 snippet$Boxed__i64.v
+  i64.const 5
+  retag 4   ; i64
+  ref.eq
+  if $L0 void
+    return.lit string.const 10   ; "boxes five"
+  end $L0
   return.lit string.const 11   ; "boxes other"
 end
 

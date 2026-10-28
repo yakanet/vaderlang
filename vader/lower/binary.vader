@@ -79,6 +79,59 @@ trait_test_type :: fn(ctx: FnLowerCtx, scrutinee: Type, check: Type) -> Type {
     return union_of(admitted)
 }
 
+// `value is check` : a literal when the answer is known before the program runs,
+// the run-time tag test otherwise. Only a read is folded, since dropping it
+// loses nothing.
+folded_type_check :: fn(ctx: FnLowerCtx, value: LoweredExpr, check: Type, span: Span) -> LoweredExpr {
+    if is_effect_free_read(value) {
+        known :: static_type_test(ctx, value.type, check)
+        if known != null {
+            return LoweredBoolLit {
+                .span = span,
+                .type = TY_BOOL,
+                .value = known,
+            }
+        }
+    }
+    return type_check(value, trait_test_type(ctx, value.type, check), span)
+}
+
+// What `is check` answers on a value of type `held` before the program runs, or
+// null when the run-time tag decides. A value whose type carries no tag is exactly
+// that type, which the concrete instance of a generic body that tests its `T`
+// makes common : the test is settled there, and the code it guards reads the
+// value at a type it never has.
+static_type_test :: fn(ctx: FnLowerCtx, held: Type, check: Type) -> bool | null {
+    if holding_of(held) == .Exact {
+        return holds_type(ctx, held, check)
+    }
+    return null
+}
+
+// Whether a value of the tagless type `held` passes `is check` ; null while
+// `check` is still open.
+holds_type :: fn(ctx: FnLowerCtx, held: Type, check: Type) -> bool | null = match check {
+    is UnionType -> holds_some_variant(ctx, held, check.variants)
+    is TraitType -> trait_test_admits(held, check, ctx.typed)
+    is AnyType -> true
+    // A tag names the struct, not its type arguments.
+    is StructType -> held is StructType && held.symbol.id == check.symbol.id
+    is PrimitiveType | EnumType | DistinctType | RangeType -> equals_type(held, check)
+    is ArrayType | FnType | TupleType | NeverType -> equals_type(held, check)
+    is TypeParamType | SelfType | InferVar | TypeMetaType | UnresolvedType -> null
+    is FreeIntType | FreeFloatType | FreeCharType -> null
+}
+
+holds_some_variant :: fn(ctx: FnLowerCtx, held: Type, variants: Type[]) -> bool | null {
+    for variant in variants {
+        answer :: holds_type(ctx, held, variant) ?? return null
+        if answer {
+            return true
+        }
+    }
+    return false
+}
+
 // The scalar types a value held as a trait or as `any` may have : the machine
 // integers and every primitive with a value (`void` and `null` hold none).
 held_scalars :: fn() -> Type[] {
@@ -95,8 +148,9 @@ held_scalars :: fn() -> Type[] {
 }
 
 lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr {
-    // `expr is T` lowers to a runtime tag check ; the RHS is a type
-    // expression, not a value.
+    // `expr is T` lowers to a tag check, or to its answer when that is known before
+    // the program runs (`folded_type_check`) ; the RHS is a type expression, not a
+    // value.
     if binary.op == .Is {
         observe_no_call(ctx, binary, .Operator, "type check")
         // The check must see the operand's FULL (declared union) box so it
@@ -108,12 +162,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         // check runs on the union value (the operand stays at the union
         // type here).
         value :: strip_narrowing_cast(lower_expr(ctx, binary.left))
-        return LoweredTypeCheck {
-            .span = binary.span,
-            .type = TY_BOOL,
-            .value = value,
-            .check_type = trait_test_type(ctx, value.type, ctx.types.expr_type(binary.right)),
-        }
+        return folded_type_check(ctx, value, ctx.types.expr_type(binary.right), binary.span)
     }
     if binary.op == .In || binary.op == .NotIn {
         // `x in T`, a type on the right : a bounds test, which calls nothing.
@@ -203,18 +252,8 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         return lower_concat_chain(ctx, operands, binary.span)
     }
     observe_built_in_operator(ctx, binary)
-    if ctx.in_async && (binary.op == .And || binary.op == .Or) {
-        // Short-circuit : the RHS runs only when the LHS permits. An `await` in
-        // it can't hoist before the statement (would run unconditionally). v1
-        // diagnoses (M5009) via `guard_no_pending_await` after lowering the RHS.
-        left :: lower_expr(ctx, binary.left)
-        rhs_base :: ctx.pending_awaits.len()
-        right :: lower_expr(ctx, binary.right)
-        guard_no_pending_await(ctx, rhs_base, binary.right.span)
-        return LoweredBinary {
-            .span = binary.span, .type = type, .op = lower_binary_op(binary.op),
-            .left = left, .right = right,
-        }
+    if binary.op == .And || binary.op == .Or {
+        return lower_logical(ctx, binary, type)
     }
     left :: lower_expr(ctx, binary.left)
     mark :: ctx.pending_awaits.len()
@@ -226,6 +265,77 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         .left = bind_one_before_hoisted(ctx, left, mark),
         .right = right,
     }
+}
+
+// `a && b` / `a || b`. A side known before the program runs (a settled type test,
+// a folded constant) settles the operator or leaves it the other side. What it
+// settles stays settled, so the `if` it guards does not lower its dead branch : it
+// may read a name narrowed to a type the value never has. A settled left side
+// leaves the right one unlowered when it is dead.
+lower_logical :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr {
+    // What settles the operator : `false` for `&&`, `true` for `||`.
+    settling :: binary.op == .Or
+    left :: lower_expr(ctx, binary.left)
+    left_known :: settled_bool(left)
+    if left_known != null {
+        if left_known == settling {
+            return left
+        }
+        return with_prelude(effects_of(left), lower_expr(ctx, binary.right), binary.span)
+    }
+    right_seen :: logical_right(ctx, binary, left, type)
+    right_known :: settled_bool(right_seen.right)
+    if right_known == null {
+        return right_seen.whole
+    }
+    // `a && true` is `a` ; a right side that runs something only once `a` let it
+    // keeps the operator.
+    pure_right :: effects_of(right_seen.right).len() == 0
+    if right_known != settling {
+        if pure_right {
+            return left
+        }
+        return right_seen.whole
+    }
+    // Settled whatever `left` was : the operator still runs, for its effects.
+    if pure_right && is_effect_free_read(left) {
+        return settled_as(right_seen.right, settling)
+    }
+    ran :: LoweredExprStmt { .span = binary.span, .expr = right_seen.whole }
+    return settled_as(mk_void_block([ran], binary.span), settling)
+}
+
+// The right side of a logical operator whose left one is not settled, and the
+// whole operator over both.
+LogicalRight :: struct {
+    right: LoweredExpr
+    whole: LoweredExpr
+}
+
+logical_right :: fn(ctx: FnLowerCtx, binary: BinaryExpr, left: LoweredExpr, type: Type) -> LogicalRight {
+    if ctx.in_async {
+        // Short-circuit : the RHS runs only when the LHS permits. An `await` in
+        // it can't hoist before the statement (would run unconditionally). v1
+        // diagnoses (M5009) via `guard_no_pending_await` after lowering the RHS.
+        rhs_base :: ctx.pending_awaits.len()
+        right :: lower_expr(ctx, binary.right)
+        guard_no_pending_await(ctx, rhs_base, binary.right.span)
+        whole :: LoweredBinary {
+            .span = binary.span, .type = type, .op = lower_binary_op(binary.op),
+            .left = left, .right = right,
+        }
+        return LogicalRight { .right = right, .whole = whole }
+    }
+    mark :: ctx.pending_awaits.len()
+    right :: lower_expr(ctx, binary.right)
+    whole :: LoweredBinary {
+        .span = binary.span,
+        .type = type,
+        .op = lower_binary_op(binary.op),
+        .left = bind_one_before_hoisted(ctx, left, mark),
+        .right = right,
+    }
+    return LogicalRight { .right = right, .whole = whole }
 }
 
 // `x in lo..=hi` / `x in lo..<hi` over a literal range, `x` a scalar (a primitive,

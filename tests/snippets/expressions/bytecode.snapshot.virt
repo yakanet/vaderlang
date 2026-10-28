@@ -33,7 +33,6 @@ fn 1 snippet$demo () -> string
   local $mul_checked_3 i32
   local b i32
   local c i32
-  local d bool
   local e ref
   local f i32
   local h i32
@@ -41,7 +40,8 @@ fn 1 snippet$demo () -> string
   local j i32
   local __buf_0 ref
   local __off_1 i64
-  local $cast_56 i64
+  local $cast_50 i64
+  local $call_66 bool
   i32.const 6
   local.set 0   ; $mul_checked_3
   i32.const 1
@@ -57,183 +57,167 @@ fn 1 snippet$demo () -> string
   local.get 1   ; b
   i32.checked_add
   local.set 2   ; c
-  bool.const false
-  if $L0 void
-    bool.const false
-    local.set 3   ; d
-  else
-    bool.const false
-    local.set 3   ; d
-  end $L0
-  local.get 3   ; d
-  if $L1 void
-    bool.const true
-    local.set 3   ; d
-  else
-    bool.const true
-    local.set 3   ; d
-  end $L1
   i32.const 0
   i32.const 10
   bool.const false
   bool.const false
   i32.const 0
   struct.new 3   ; std_core$Range__i32
-  local.set 4   ; e
+  local.set 3   ; e
   i32.const 1
   i32.const 2
   i32.const 3
   array.new 10 3   ; i32[]
   i32.const 0
   load_slot_i32
-  local.set 5   ; f
+  local.set 4   ; f
   i32.const 1
   i32.const 2
   call 0   ; snippet$add
-  local.set 6   ; h
+  local.set 5   ; h
   i32.const 10
   i32.const 20
   call 0   ; snippet$add
-  local.set 7   ; i
+  local.set 6   ; i
   bool.const true
-  if $L2 void
+  if $L0 void
     i32.const 1
-    local.set 8   ; j
+    local.set 7   ; j
   else
     i32.const 2
-    local.set 8   ; j
-  end $L2
+    local.set 7   ; j
+  end $L0
   i64.const 164
   buffer.new
-  local.set 9   ; __buf_0
+  local.set 8   ; __buf_0
   i64.const 0
-  local.set 10   ; __off_1
+  local.set 9   ; __off_1
   local.get 0   ; $mul_checked_3
   i32.to_i64
-  local.set 11   ; $cast_56
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
-  local.get 11   ; $cast_56
+  local.set 10   ; $cast_50
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
+  local.get 10   ; $cast_50
   call 7   ; std_core$write_int
-  local.set 10   ; __off_1
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
+  local.set 9   ; __off_1
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
   string.const 0   ; " "
   call 6   ; std_core$write_string_at
-  local.set 10   ; __off_1
+  local.set 9   ; __off_1
   local.get 1   ; b
   i32.to_i64
-  local.set 11   ; $cast_56
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
-  local.get 11   ; $cast_56
+  local.set 10   ; $cast_50
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
+  local.get 10   ; $cast_50
   call 7   ; std_core$write_int
-  local.set 10   ; __off_1
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
+  local.set 9   ; __off_1
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
   string.const 0   ; " "
   call 6   ; std_core$write_string_at
-  local.set 10   ; __off_1
+  local.set 9   ; __off_1
   local.get 2   ; c
   i32.to_i64
-  local.set 11   ; $cast_56
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
-  local.get 11   ; $cast_56
+  local.set 10   ; $cast_50
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
+  local.get 10   ; $cast_50
   call 7   ; std_core$write_int
-  local.set 10   ; __off_1
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
+  local.set 9   ; __off_1
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
   string.const 0   ; " "
   call 6   ; std_core$write_string_at
-  local.set 10   ; __off_1
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
-  local.get 3   ; d
+  local.set 9   ; __off_1
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
+  bool.const true
   call 8   ; std_core$write_bool
-  local.set 10   ; __off_1
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
+  local.set 9   ; __off_1
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
   string.const 0   ; " "
   call 6   ; std_core$write_string_at
-  local.set 10   ; __off_1
-  local.get 4   ; e
+  local.set 9   ; __off_1
+  local.get 3   ; e
   i32.const 9
   call 4   ; std_core$Range$Contains$contains__i32
-  local.set 3   ; d
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
-  local.get 3   ; d
+  local.set 11   ; $call_66
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
+  local.get 11   ; $call_66
   call 8   ; std_core$write_bool
-  local.set 10   ; __off_1
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
+  local.set 9   ; __off_1
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
   string.const 0   ; " "
   call 6   ; std_core$write_string_at
-  local.set 10   ; __off_1
-  local.get 4   ; e
+  local.set 9   ; __off_1
+  local.get 3   ; e
   i32.const 10
   call 4   ; std_core$Range$Contains$contains__i32
-  local.set 3   ; d
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
-  local.get 3   ; d
+  local.set 11   ; $call_66
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
+  local.get 11   ; $call_66
   call 8   ; std_core$write_bool
-  local.set 10   ; __off_1
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
+  local.set 9   ; __off_1
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
   string.const 0   ; " "
   call 6   ; std_core$write_string_at
-  local.set 10   ; __off_1
-  local.get 5   ; f
+  local.set 9   ; __off_1
+  local.get 4   ; f
   i32.to_i64
-  local.set 11   ; $cast_56
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
-  local.get 11   ; $cast_56
+  local.set 10   ; $cast_50
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
+  local.get 10   ; $cast_50
   call 7   ; std_core$write_int
-  local.set 10   ; __off_1
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
+  local.set 9   ; __off_1
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
   string.const 0   ; " "
   call 6   ; std_core$write_string_at
-  local.set 10   ; __off_1
-  local.get 6   ; h
+  local.set 9   ; __off_1
+  local.get 5   ; h
   i32.to_i64
-  local.set 11   ; $cast_56
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
-  local.get 11   ; $cast_56
+  local.set 10   ; $cast_50
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
+  local.get 10   ; $cast_50
   call 7   ; std_core$write_int
-  local.set 10   ; __off_1
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
+  local.set 9   ; __off_1
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
   string.const 0   ; " "
   call 6   ; std_core$write_string_at
-  local.set 10   ; __off_1
-  local.get 7   ; i
+  local.set 9   ; __off_1
+  local.get 6   ; i
   i32.to_i64
-  local.set 11   ; $cast_56
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
-  local.get 11   ; $cast_56
+  local.set 10   ; $cast_50
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
+  local.get 10   ; $cast_50
   call 7   ; std_core$write_int
-  local.set 10   ; __off_1
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
+  local.set 9   ; __off_1
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
   string.const 0   ; " "
   call 6   ; std_core$write_string_at
-  local.set 10   ; __off_1
-  local.get 8   ; j
+  local.set 9   ; __off_1
+  local.get 7   ; j
   i32.to_i64
-  local.set 11   ; $cast_56
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
-  local.get 11   ; $cast_56
+  local.set 10   ; $cast_50
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
+  local.get 10   ; $cast_50
   call 7   ; std_core$write_int
-  local.set 10   ; __off_1
-  local.get 9   ; __buf_0
-  local.get 10   ; __off_1
+  local.set 9   ; __off_1
+  local.get 8   ; __buf_0
+  local.get 9   ; __off_1
   call 5   ; std_core$finish_buffer
   return
 end

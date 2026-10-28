@@ -267,7 +267,8 @@ block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
 }
 
 /// Combine a list of boolean expressions with short-circuit OR. Empty
-/// input degrades to `false` ; a single element returns itself.
+/// input degrades to `false` ; a single element returns itself ; a literal part
+/// is folded (`chain_all`).
 /// @param span   span attached to every synthesised binary node.
 /// @param parts  individual boolean expressions.
 /// @return       the OR-chained expression.
@@ -275,21 +276,39 @@ or_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr = chain_all(span, 
 
 /// Combine a list of boolean expressions with short-circuit AND, left to
 /// right: a later part is only evaluated once every earlier one held. Empty
-/// input degrades to `true` ; a single element returns itself.
+/// input degrades to `true` ; a single element returns itself ; a literal part
+/// is folded (`chain_all`).
 /// @param span   span attached to every synthesised binary node.
 /// @param parts  individual boolean expressions.
 /// @return       the AND-chained expression.
 and_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr = chain_all(span, parts, .And)
 
+// A literal part that settles nothing (`true` in an AND) is dropped ; one that
+// settles the chain ends it, the parts after it never running.
 chain_all :: fn(span: Span, parts: LoweredExpr[], op: LoweredBinaryOp) -> LoweredExpr {
-    if parts.len() == 0 {
-        return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = op == .And }
+    neutral :: op == .And
+    kept: LoweredExpr[]: []
+    for part in parts {
+        if part is LoweredBoolLit {
+            if part.value == neutral {
+                continue
+            }
+            kept.push(part)
+            break
+        }
+        kept.push(part)
     }
-    accumulator: LoweredExpr = parts[0]
-    for i in 1..<parts.len() {
+    if kept.len() == 0 {
+        return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = neutral }
+    }
+    accumulator: LoweredExpr = kept[0]
+    for i in 1..<kept.len() {
         accumulator = LoweredBinary {
-            .span = span, .type = TY_BOOL, .op = op,
-            .left = accumulator, .right = parts[i],
+            .span = span,
+            .type = TY_BOOL,
+            .op = op,
+            .left = accumulator,
+            .right = kept[i],
         }
     }
     return accumulator
@@ -521,7 +540,43 @@ is_effect_free_read :: fn(value: LoweredExpr) -> bool = @partial match value {
     is LoweredUnionField  -> is_effect_free_read(value.target)
     is LoweredCellGet     -> is_effect_free_read(value.target)
     is LoweredArrayLen    -> is_effect_free_read(value.target)
+    // The cast a narrowed read takes, out of a box.
+    is LoweredCast        -> has_run_time_tag(value.value.type) && is_effect_free_read(value.value)
     _                     -> is_stable_operand(value)
+}
+
+// The value a boolean expression has before the program runs, or null : a
+// literal, or a block whose statements run for their effects and whose value is
+// one.
+settled_bool :: fn(e: LoweredExpr) -> bool | null {
+    if e is LoweredBoolLit {
+        return e.value
+    }
+    if e is LoweredBlock {
+        trailing :: e.trailing
+        if trailing is LoweredBoolLit {
+            return trailing.value
+        }
+    }
+    return null
+}
+
+// `e`, settled to `value` : its effects, if any, then the literal.
+settled_as :: fn(e: LoweredExpr, value: bool) -> LoweredExpr {
+    literal :: LoweredBoolLit {
+        .span = e.span,
+        .type = TY_BOOL,
+        .value = value,
+    }
+    return with_prelude(effects_of(e), literal, e.span)
+}
+
+// The statements a settled block runs before its value ; none for anything else.
+effects_of :: fn(e: LoweredExpr) -> LoweredStmt[] {
+    if e is LoweredBlock {
+        return e.stmts
+    }
+    return []
 }
 
 // Whether `first` and `second`, evaluated in either order, give the same values:
