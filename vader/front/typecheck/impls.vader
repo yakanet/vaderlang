@@ -89,9 +89,14 @@ export ImplRegistry :: struct {
 ///
 /// @param program_decls  one module's declarations.
 /// @param resolved       that module.
-build_impl_registry :: fn(program_decls: Decl[], resolved: ResolvedModule) -> ImplRegistry {
+/// @param typed          that module typed, when it is: see `collect_impls`.
+build_impl_registry :: fn(
+    program_decls: Decl[],
+    resolved: ResolvedModule,
+    typed: TypedProgram | null = null,
+) -> ImplRegistry {
     reg :: ImplRegistry {}
-    reg.collect_impls(program_decls, resolved)
+    reg.collect_impls(program_decls, resolved, typed)
     return reg
 }
 
@@ -100,12 +105,61 @@ build_impl_registry :: fn(program_decls: Decl[], resolved: ResolvedModule) -> Im
 ///
 /// @param decls     one module's declarations.
 /// @param resolved  the module that declares them: it resolves each impl.
-export collect_impls :: fn(self: ImplRegistry, decls: Decl[], resolved: ResolvedModule) -> void {
+/// @param typed     that module typed, once the traits are declared: an impl's
+///                  trait arguments then include those it leaves to the trait's
+///                  defaults (`implemented_trait_args`). Null records the written
+///                  ones alone.
+export collect_impls :: fn(
+    self: ImplRegistry,
+    decls: Decl[],
+    resolved: ResolvedModule,
+    typed: TypedProgram | null = null,
+) -> void {
     for d in decls {
         if d is ImplDecl {
-            self.collect_impl(d, resolved)
+            self.collect_impl(d, resolved, typed)
         }
     }
+}
+
+// The trait arguments the registry records for `impl_` : with the defaults it leaves
+// to its trait once the traits are declared (`typed`).
+registered_trait_args :: fn(
+    impl_: ImplDecl,
+    trait_sym: Symbol,
+    for_type: Type,
+    resolved: ResolvedModule,
+    typed: TypedProgram | null,
+) -> Type[] {
+    written :: written_type_args(impl_.trait_args, resolved, [])
+    if typed == null {
+        return written
+    }
+    return implemented_trait_args(written, trait_sym, for_type, typed)
+}
+
+/// The trait arguments an impl gives its trait, the ones it leaves to the trait's
+/// defaults included, `Self` read as the impl's type: `Pair implements Mix` is
+/// `Mix<Pair>` when `Mix :: trait<Rhs = Self>`.
+///
+/// @param written    the arguments the impl writes.
+/// @param trait_sym  its trait.
+/// @param for_type   the type the impl is written for.
+/// @param typed      a typed program once the traits are declared.
+export implemented_trait_args :: fn(
+    written: Type[],
+    trait_sym: Symbol,
+    for_type: Type,
+    typed: TypedProgram,
+) -> Type[] {
+    decl :: typed.trait_decls[trait_sym.id] ?? return written
+    owner :: typed.trait_decl_owners[trait_sym.id] ?? typed.resolved
+    padded :: pad_trait_default_args(written, decl.type_params, owner)
+    out: Type[]: []
+    for t in padded {
+        out.push(substitute_self(t, for_type))
+    }
+    return out
 }
 
 /// The trait `decl` implements: the symbol its name binds to in the impl's
@@ -120,7 +174,12 @@ impl_trait_symbol :: fn(decl: ImplDecl, resolved: ResolvedModule) -> Symbol | nu
     return if target.kind == .Trait { target } else { null }
 }
 
-collect_impl :: fn(self: ImplRegistry, impl_: ImplDecl, resolved: ResolvedModule) -> void {
+collect_impl :: fn(
+    self: ImplRegistry,
+    impl_: ImplDecl,
+    resolved: ResolvedModule,
+    typed: TypedProgram | null,
+) -> void {
     trait_sym :: impl_trait_symbol(impl_, resolved) ?? return
     scratch: Diagnostic[]: []
     for_type :: type_from_expr(impl_.for_type, resolved, scratch)
@@ -146,7 +205,7 @@ collect_impl :: fn(self: ImplRegistry, impl_: ImplDecl, resolved: ResolvedModule
         .for_type        = for_type,
         .target          = target,
         .instance        = instance,
-        .trait_args      = written_type_args(impl_.trait_args, resolved, scratch),
+        .trait_args      = registered_trait_args(impl_, trait_sym, for_type, resolved, typed),
         .overload_suffix = if earlier == 0 { "" } else { "$${earlier}" },
     }
     push_entry(self.by_target, "${target}::${trait_key}", entry)
@@ -313,8 +372,10 @@ export impl_at_args :: fn(
     if covering.len() < 2 {
         return null
     }
+    // A generic impl's arguments read at the receiver: `Box<T> implements<T> Mix<T>`
+    // is `Mix<i32>` at `Box<i32>`, not any `Mix`.
     for entry in covering {
-        if may_coincide_each(entry.trait_args, args) {
+        if may_coincide_each(trait_args_at(entry, receiver), args) {
             return entry
         }
     }

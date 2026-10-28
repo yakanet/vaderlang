@@ -42,9 +42,9 @@ ensure_closure_analysis :: fn(project: LowerProjectCtx, typed: TypedProgram) -> 
     analyze_module(project, loaded, typed)
 }
 
-// Per-module walker. Walks every top-level AST.FnDecl + AST.ImplDecl member
-// body, plus the values written outside any fn, ConstDecl values and struct field
-// defaults (`analyze_value`).
+// Per-module walker. Walks every top-level AST.FnDecl body, every AST.ImplDecl
+// member body and every default body of an AST.TraitDecl, plus the values written
+// outside any fn, ConstDecl values and struct field defaults (`analyze_value`).
 analyze_module :: fn(project: LowerProjectCtx, loaded: LoadedModule, typed: TypedProgram) -> void {
     analysis :: project.closures
     symbol_index :: ensure_local_symbol_index(project, typed.resolved)
@@ -56,10 +56,12 @@ analyze_module :: fn(project: LowerProjectCtx, loaded: LoadedModule, typed: Type
                     analyze_fn_body(decl, body, typed, symbol_index, analysis)
                 }
                 is AST.ImplDecl -> {
-                    for member in decl.members {
-                        body :: member.body ?? continue
-                        analyze_fn_body(member, body, typed, symbol_index, analysis)
-                    }
+                    analyze_members(decl.members, typed, symbol_index, analysis)
+                }
+                // A default body is lowered once per impl inheriting it, from the
+                // trait (`inherited.vader`).
+                is AST.TraitDecl -> {
+                    analyze_members(decl.members, typed, symbol_index, analysis)
                 }
                 is AST.ConstDecl -> { analyze_value(decl.value, typed, symbol_index, analysis) }
                 is AST.StructDecl -> {
@@ -68,12 +70,21 @@ analyze_module :: fn(project: LowerProjectCtx, loaded: LoadedModule, typed: Type
                         analyze_value(value, typed, symbol_index, analysis)
                     }
                 }
-                // A `TraitDecl` default body IS a body: `materialize.vader`
-                // has already cloned it into `impl_.members`, walked above.
-                is AST.ImportDecl | AST.EnumDecl | AST.TraitDecl
-                 | AST.TypeAliasDecl | AST.AssertDecl -> {}
+                is AST.ImportDecl | AST.EnumDecl | AST.TypeAliasDecl | AST.AssertDecl -> {}
             }
         }
+    }
+}
+
+analyze_members :: fn(
+    members: AST.FnDecl[],
+    typed: TypedProgram,
+    symbol_index: MutableMap<u64, Symbol>,
+    analysis: ClosureAnalysis,
+) -> void {
+    for member in members {
+        body :: member.body ?? continue
+        analyze_fn_body(member, body, typed, symbol_index, analysis)
     }
 }
 

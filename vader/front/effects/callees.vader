@@ -86,7 +86,7 @@ index_functions :: fn(
     for [id, loaded] in project.modules {
         typed :: modules[id] ?? continue
         for file in loaded.module.files {
-            index.impls.collect_impls(file.program.decls, typed.resolved)
+            index.impls.collect_impls(file.program.decls, typed.resolved, typed)
             for d in file.program.decls {
                 match d {
                     is AST.FnDecl     -> { index.register(d, typed) }

@@ -39,9 +39,9 @@ export check_module :: fn(
     resolved: ResolvedModule,
     diags: Diagnostic[],
 ) -> CheckResult {
-    impls :: build_impl_registry(program.decls, resolved)
     typed :: new_typed_program(resolved)
     declare_module(program.decls, resolved, typed, diags)
+    impls :: build_impl_registry(program.decls, resolved, typed)
     register_module_impls(program.decls, typed, diags)
     return CheckResult {
         .typed = typed,

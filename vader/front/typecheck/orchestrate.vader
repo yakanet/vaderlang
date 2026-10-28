@@ -329,7 +329,11 @@ check_project_modules :: fn(
     for d in entry_typed.resolved.diags {
         diags.push(d)
     }
-    impls :: build_impl_registry(concat_file_decls(entry_loaded.module.files), entry_typed.resolved)
+    impls :: build_impl_registry(
+        concat_file_decls(entry_loaded.module.files),
+        entry_typed.resolved,
+        entry_typed,
+    )
     // Every directly-imported non-stdlib module gets its own `## <path>`
     // section in the dump.
     others: TypedProgram[]: collect_direct_imports(entry_loaded, project, per_module)
@@ -894,7 +898,10 @@ record_impl_members :: fn(
     // With the default a slot's arguments take, so the impl's instance compares
     // with the slots that ask for it (`implements_trait_instance`).
     written :: written_type_args(decl.trait_args, owner.resolved, diags)
-    trait_args :: substitute_each_map(written, as_struct)
+    trait_args :: substitute_each_map(
+        implemented_trait_args(written, trait_sym, for_ty, owner),
+        as_struct,
+    )
     tables :: owner.impl_tables
     index_impl_metadata(tables, for_ty, trait_key, trait_args)
     record_struct_trait_args(tables, for_ty, trait_key, trait_args)

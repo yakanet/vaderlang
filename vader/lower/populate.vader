@@ -36,6 +36,10 @@ populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
 populate_impls :: fn(loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx) -> void {
     for [module_id, module_typed] in typed.modules {
         module_loaded :: loaded.modules[module_id] ?? continue
-        project_ctx.impls.collect_impls(module_decls(module_loaded), module_typed.resolved)
+        project_ctx.impls.collect_impls(
+            module_decls(module_loaded),
+            module_typed.resolved,
+            module_typed,
+        )
     }
 }

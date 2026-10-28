@@ -1,0 +1,42 @@
+module "snippet"
+
+import "std/io"
+
+// A trait whose parameter defaults to `Self`, implemented twice on one type: once
+// at an explicit argument, once at the default. A default body calling a member
+// of the trait reaches the impl at its own argument, the defaulted one included,
+// on a plain type as on each instance of a generic one.
+
+Mix :: trait<Rhs = Self> {
+    mix :: fn(self, other: Rhs) -> string
+    twice :: fn(self, other: Rhs) -> string = "${self.mix(other)}:${@type_name(Rhs)}"
+}
+
+Box :: struct<T> { v: T }
+Pair :: struct { p: i32 }
+
+Box<T> implements<T> Mix<T> {
+    mix :: fn(self, other: T) -> string = "arg ${@type_name(T)}"
+}
+
+Box<T> implements<T> Mix {
+    mix :: fn(self, other: Box<T>) -> string = "self"
+}
+
+Pair implements Mix<i32> {
+    mix :: fn(self, other: i32) -> string = "pair i32"
+}
+
+Pair implements Mix {
+    mix :: fn(self, other: Pair) -> string = "pair self"
+}
+
+main :: fn() -> i32 {
+    b :: Box<i32> { .v = 1 }
+    println(b.twice(Box<i32> { .v = 2 }))
+    println(b.twice(3))
+    p :: Pair { .p = 1 }
+    println(p.twice(p))
+    println(p.twice(3))
+    return 0
+}

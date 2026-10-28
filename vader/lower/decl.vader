@@ -65,12 +65,9 @@ lower_impl_member_list :: fn(
         if !claim_impl_member(project_ctx, mangled) {
             continue
         }
-        subst :: new_substitution()
-        types :: make_entry_types(typed, subst)
-        params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
-        return_type :: return_type_of(member, types)
         entry :: synth_impl_entry(member, typed, mangled, impl_entry.trait_key)
-        out.push(lowered_fn_of(member, typed, project_ctx, entry, subst, params, return_type))
+        subst :: new_substitution()
+        out.push(lower_impl_member(project_ctx, member, typed, impl_entry, self_type, subst, entry))
     }
     return out
 }

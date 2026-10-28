@@ -1,0 +1,107 @@
+// vader/lower/inherited: the body an impl member lowers from.
+//
+// A member the impl writes lowers from its own body. A member the impl inherits
+// from its trait's default body lowers from that body, in the trait: it was checked
+// once there, `Self` read as the trait's own type parameter (`trait_self_params`),
+// and each impl reads it with `Self` bound to its type and the trait's parameters
+// to its trait arguments, as an instance of a generic fn reads its body.
+
+module "vader/lower"
+
+import "std/collections"
+import "std/iter"
+AST :: import "toolchain/ast"
+import "vader/core/mono"
+import "vader/core/types"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+import "vader/lower/ir"
+
+/// Lower `member` of the impl `impl_entry` for `self_type`, from its own body or
+/// from the default body of its trait it inherits.
+///
+/// @param project     the project being lowered.
+/// @param member      a member of the impl.
+/// @param typed       the impl's module.
+/// @param impl_entry  the impl.
+/// @param self_type   the type the member is lowered for, an instance's included.
+/// @param subst       the impl instance's own bindings ; empty for a non-generic impl.
+/// @param entry       the function's entry: its mangle and its vtable slot.
+lower_impl_member :: fn(
+    project: LowerProjectCtx,
+    member: AST.FnDecl,
+    typed: TypedProgram,
+    impl_entry: ImplEntry,
+    self_type: Type,
+    subst: Substitution,
+    entry: MonoEntry,
+) -> LoweredFnDecl {
+    source :: member_source(project, member, typed, impl_entry, self_type, subst)
+    types :: make_entry_types(source.typed, source.subst)
+    params :: build_impl_member_params(source.decl, self_type, types, source.typed, project)
+    return_type :: return_type_of(source.decl, types)
+    return lowered_fn_of(
+        source.decl,
+        source.typed,
+        project,
+        entry,
+        source.subst,
+        params,
+        return_type,
+    )
+}
+
+// What an impl member lowers from: the declaration whose parameters and body it
+// reads, the typed program that typed them, and the bindings it reads them under.
+MemberSource :: struct {
+    decl: AST.FnDecl
+    typed: TypedProgram
+    subst: Substitution
+}
+
+// What `member` lowers from: its own body, or the default body of its trait it
+// inherits, `Self` bound to `self_type` and the trait's parameters to the impl's
+// trait arguments, its trait's defaults included (`implemented_trait_args`). An
+// intrinsic stub stands for the host's member, not for the default.
+member_source :: fn(
+    project: LowerProjectCtx,
+    member: AST.FnDecl,
+    typed: TypedProgram,
+    impl_entry: ImplEntry,
+    self_type: Type,
+    subst: Substitution,
+) -> MemberSource {
+    own :: MemberSource {
+        .decl = member,
+        .typed = typed,
+        .subst = subst,
+    }
+    if !member.materialized || AST.decorators_have(member.decorators, "intrinsic") {
+        return own
+    }
+    trait_sym :: impl_entry.trait_symbol
+    owner :: project.typed.modules[trait_sym.module] ?? return own
+    trait_decl :: owner.trait_decls[trait_sym.id] ?? return own
+    inherited :: default_member(trait_decl, member.name) ?? return own
+    self_param :: owner.resolved.trait_self_params[trait_sym.id] ?? return own
+    trait_args :: impl_entry.trait_args.map((t: Type) -> substitute(t, subst)).collect()
+    bindings :: type_param_bindings(trait_decl.type_params, trait_args, owner)
+    bindings[self_param.id] = self_type
+    read :: merge_subst(subst, substitution_of(bindings))
+    read.self_type = self_type
+    return MemberSource {
+        .decl = inherited,
+        .typed = owner,
+        .subst = read,
+    }
+}
+
+// The member `name` of `trait_decl` when it carries a default body.
+default_member :: fn(trait_decl: AST.TraitDecl, name: string) -> AST.FnDecl | null {
+    for m in trait_decl.members {
+        if m.name == name && m.body != null {
+            return m
+        }
+    }
+    return null
+}

@@ -115,8 +115,8 @@ materialize_one_instance :: fn(
         // (2) For every generic impl whose for_type targets the
         // same struct symbol, materialize each member, including
         // stdlib structs (`Range<i32>`, `MutableMap<…>`). Impl
-        // members: `Range.next`, the trait defaults cloned into
-        // the impl: need a real body to dispatch through ;
+        // members: `Range.next`, the trait defaults the impl
+        // inherits: need a real function to dispatch through ;
         // skipping stdlib here dropped them onto the defensive
         // `Return` arm in the CFG emit. Whole-program DCE
         // (`prune_unreachable_fns`) culls anything the user never
@@ -475,7 +475,6 @@ materialize_impl_for_instance :: fn(
     // Then what tells it from another impl of the trait on that base
     // (`Wrapper<MonType> implements Into<Label>` beside `Into<Tag>`).
     suffix :: "${instance_suffix}${impl_entry.overload_suffix}"
-    types :: make_entry_types(impl_typed, subst)
     impl_key_prefix :: impl_decl.span.hash()
     impl_trait :: impl_entry.trait_key
     for member in impl_decl.members {
@@ -490,8 +489,6 @@ materialize_impl_for_instance :: fn(
         if !project_ctx.materialized_impl_keys.add(dedupe_key) {
             continue
         }
-        params :: build_impl_member_params(member, self_type, types, impl_typed, project_ctx)
-        return_type :: return_type_of(member, types)
         // Mangle + emit under the IMPL's owning module (`impl_typed`), NOT the
         // instantiation context (`owner_typed`). A generic-impl member referenced
         // from another module (e.g. `Range<T>`'s `Iterator::next`, reached from any
@@ -521,7 +518,15 @@ materialize_impl_for_instance :: fn(
             .vtable_slot    = member_vtable_slot(impl_trait, member),
         }
         synth_start :: project_ctx.synth_decls.len()
-        decl :: lowered_fn_of(member, impl_typed, project_ctx, entry, subst, params, return_type)
+        decl :: lower_impl_member(
+            project_ctx,
+            member,
+            impl_typed,
+            impl_entry,
+            self_type,
+            subst,
+            entry,
+        )
         push_to_module(project, impl_typed.resolved.path, decl)
         // Drain lambdas/defers lifted from this member's body into the same
         // module, right after the member (post-module materialisation site).
