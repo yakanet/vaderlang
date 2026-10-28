@@ -1,0 +1,148 @@
+# Typecheck
+
+## tests/snippets/trait_default_body_tests_self
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Probe                :: Probe
+  StructDecl     Square               :: Square
+  expr 43027:10 IdentExpr      :: Square
+  expr 43027:13 IfExpr         :: void
+  expr 43027:14 BinaryExpr     :: bool
+  expr 43027:15 IdentExpr      :: Square
+  expr 43027:16 IdentExpr      :: i32
+  expr 43027:19 BinaryExpr     :: i32
+  expr 43027:2  IfExpr         :: void
+  expr 43027:20 IdentExpr      :: i32
+  expr 43027:23 CallExpr       :: i32
+  expr 43027:24 FieldExpr      :: fn() -> i32
+  expr 43027:25 IdentExpr      :: Square
+  expr 43027:29 MatchExpr      :: string
+  expr 43027:3  BinaryExpr     :: bool
+  expr 43027:30 IdentExpr      :: Square
+  expr 43027:33 StringLitExpr  :: string
+  expr 43027:37 StringLitExpr  :: string
+  expr 43027:4  IdentExpr      :: Square
+  expr 43027:40 StringLitExpr  :: string
+  expr 43027:46 IfExpr         :: void
+  expr 43027:47 UnaryExpr      :: bool
+  expr 43027:48 BinaryExpr     :: bool
+  expr 43027:49 IdentExpr      :: Square
+  expr 43027:5  IdentExpr      :: Square
+  expr 43027:50 IdentExpr      :: Square
+  expr 43027:55 FieldExpr      :: i32
+  expr 43027:56 IdentExpr      :: Square
+  expr 43027:63 IdentExpr      :: Square
+  expr 43027:65 BinaryExpr     :: bool
+  expr 43027:66 IdentExpr      :: Square
+  expr 43027:67 IdentExpr      :: i32
+  expr 43027:71 BinaryExpr     :: bool
+  expr 43027:72 IdentExpr      :: Square
+  expr 43027:73 IdentExpr      :: Square
+  expr 43027:78 BinaryExpr     :: bool
+  expr 43027:79 IdentExpr      :: Square
+  expr 43027:8  BinaryExpr     :: i32
+  expr 43027:9  FieldExpr      :: i32
+  expr 47120:10 IdentExpr      :: Square
+  expr 47120:13 IfExpr         :: void
+  expr 47120:14 BinaryExpr     :: bool
+  expr 47120:15 IdentExpr      :: i32
+  expr 47120:16 IdentExpr      :: i32
+  expr 47120:19 BinaryExpr     :: i32
+  expr 47120:2  IfExpr         :: void
+  expr 47120:20 IdentExpr      :: i32
+  expr 47120:23 CallExpr       :: i32
+  expr 47120:24 FieldExpr      :: fn() -> i32
+  expr 47120:25 IdentExpr      :: i32
+  expr 47120:29 MatchExpr      :: string
+  expr 47120:3  BinaryExpr     :: bool
+  expr 47120:30 IdentExpr      :: i32
+  expr 47120:33 StringLitExpr  :: string
+  expr 47120:37 StringLitExpr  :: string
+  expr 47120:4  IdentExpr      :: i32
+  expr 47120:40 StringLitExpr  :: string
+  expr 47120:46 IfExpr         :: void
+  expr 47120:47 UnaryExpr      :: bool
+  expr 47120:48 BinaryExpr     :: bool
+  expr 47120:49 IdentExpr      :: i32
+  expr 47120:5  IdentExpr      :: Square
+  expr 47120:50 IdentExpr      :: Square
+  expr 47120:55 FieldExpr      :: i32
+  expr 47120:56 IdentExpr      :: Square
+  expr 47120:63 IdentExpr      :: i32
+  expr 47120:65 BinaryExpr     :: bool
+  expr 47120:66 IdentExpr      :: i32
+  expr 47120:67 IdentExpr      :: i32
+  expr 47120:71 BinaryExpr     :: bool
+  expr 47120:72 IdentExpr      :: i32
+  expr 47120:73 IdentExpr      :: Square
+  expr 47120:78 BinaryExpr     :: bool
+  expr 47120:79 IdentExpr      :: i32
+  expr 47120:8  BinaryExpr     :: i32
+  expr 47120:9  FieldExpr      :: i32
+  expr 51216:10 IdentExpr      :: Square
+  expr 51216:13 IfExpr         :: void
+  expr 51216:14 BinaryExpr     :: bool
+  expr 51216:15 IdentExpr      :: f64
+  expr 51216:16 IdentExpr      :: i32
+  expr 51216:19 BinaryExpr     :: i32
+  expr 51216:2  IfExpr         :: void
+  expr 51216:20 IdentExpr      :: i32
+  expr 51216:23 CallExpr       :: i32
+  expr 51216:24 FieldExpr      :: fn() -> i32
+  expr 51216:25 IdentExpr      :: f64
+  expr 51216:29 MatchExpr      :: string
+  expr 51216:3  BinaryExpr     :: bool
+  expr 51216:30 IdentExpr      :: f64
+  expr 51216:33 StringLitExpr  :: string
+  expr 51216:37 StringLitExpr  :: string
+  expr 51216:4  IdentExpr      :: f64
+  expr 51216:40 StringLitExpr  :: string
+  expr 51216:46 IfExpr         :: void
+  expr 51216:47 UnaryExpr      :: bool
+  expr 51216:48 BinaryExpr     :: bool
+  expr 51216:49 IdentExpr      :: f64
+  expr 51216:5  IdentExpr      :: Square
+  expr 51216:50 IdentExpr      :: Square
+  expr 51216:55 FieldExpr      :: i32
+  expr 51216:56 IdentExpr      :: Square
+  expr 51216:63 IdentExpr      :: f64
+  expr 51216:65 BinaryExpr     :: bool
+  expr 51216:66 IdentExpr      :: f64
+  expr 51216:67 IdentExpr      :: i32
+  expr 51216:71 BinaryExpr     :: bool
+  expr 51216:72 IdentExpr      :: f64
+  expr 51216:73 IdentExpr      :: Square
+  expr 51216:78 BinaryExpr     :: bool
+  expr 51216:79 IdentExpr      :: f64
+  expr 51216:8  BinaryExpr     :: i32
+  expr 51216:9  FieldExpr      :: i32
+  expr 55:22    SeqLitExpr     :: Probe[]
+  expr 55:23    StructLitExpr  :: Square
+  expr 56:14    IdentExpr      :: Probe[]
+  expr 57:17    StringLitExpr  :: string
+  expr 57:20    CallExpr       :: i32
+  expr 57:20    FieldExpr      :: fn() -> i32
+  expr 57:20    IdentExpr      :: Probe
+  expr 57:36    CallExpr       :: string
+  expr 57:36    FieldExpr      :: fn() -> string
+  expr 57:36    IdentExpr      :: Probe
+  expr 57:48    CallExpr       :: i32
+  expr 57:48    FieldExpr      :: fn() -> i32
+  expr 57:48    IdentExpr      :: Probe
+  expr 57:63    CallExpr       :: bool
+  expr 57:63    FieldExpr      :: fn() -> bool
+  expr 57:63    IdentExpr      :: Probe
+  expr 57:78    CallExpr       :: bool
+  expr 57:78    FieldExpr      :: fn() -> bool
+  expr 57:78    IdentExpr      :: Probe
+  expr 57:9     CallExpr       :: void
+  expr 57:9     IdentExpr      :: fn(T) -> void
+  expr 59:13    CallExpr       :: bool
+  expr 59:13    FieldExpr      :: fn(Square) -> bool
+  expr 59:13    StructLitExpr  :: Square
+  expr 59:44    StructLitExpr  :: Square
+  expr 59:5     CallExpr       :: void
+  expr 59:5     IdentExpr      :: fn(T) -> void
+  expr 60:13    CallExpr       :: bool
+  expr 60:13    FieldExpr      :: fn(i32) -> bool
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(T) -> void

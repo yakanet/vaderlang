@@ -69,12 +69,13 @@ infer_lambda :: fn(
     }
     expected_ret :: pick_return(e.return_type, expected_fn, typed.resolved, diags)
     ctx_return :: pick_ctx_return(expected_ret)
-    ctx :: new_fn_context(ctx_return, null)
+    ctx :: new_fn_context(ctx_return)
     // A lambda is lowered inside each instance of its enclosing fn, so what keeps
     // those instances concrete from the lambda body is the enclosing fn's to keep.
     enclosing :: typed.current_fn_ctx
     if enclosing is FnContext {
         ctx.fn_id = enclosing.fn_id
+        ctx.clone_for = enclosing.clone_for
     }
     // Mirror `check_fn_body`: push the lambda's ctx onto the global
     // stack so nested `if` / `match` arms (which `check_return` reaches

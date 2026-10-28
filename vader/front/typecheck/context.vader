@@ -18,9 +18,6 @@ import "vader/core/types"
 export FnContext :: struct {
     /// Type the body must return. `void` for fns without a `-> T` clause.
     return_type: Type
-    /// `Self` substitution when type-checking a method inside an impl
-    /// block. `null` outside trait/impl context.
-    self_type: Type | null
     /// Loop depth: `break` / `continue` legal only when > 0.
     loop_depth: i32
     /// AST node id of the fn whose body is being checked. Lets deep
@@ -62,12 +59,33 @@ export FnContext :: struct {
     /// The contract of the `@ensures` fn whose body this is (`hold_to_ensures`) :
     /// each return and the end of the body are held to it.
     ensures: GuardContract | null = null
+    /// The type a trait's default body was cloned for, which `Self` became there ;
+    /// null in any other body. A lambda carries its enclosing fn's.
+    clone_for: Type | null = null
 }
 
-new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnContext {
+// Whether a type test on a value of type `tested_value` is one on `Self` in a
+// default body cloned for an impl : the impl settles it, so it is neither an
+// impossible test nor a narrowing to `never`.
+settled_by_clone :: fn(typed: TypedProgram, tested_value: Type) -> bool {
+    ctx :: typed.current_fn_ctx ?? return false
+    clone_for :: ctx.clone_for ?? return false
+    return equals_type(tested_value, clone_for)
+}
+
+// `narrowed`, unless it is the `never` a test on `Self` settled by the impl leaves
+// (`settled_by_clone`) : the code it would type is dead, the lowering drops it,
+// and there the value keeps `static_ty`.
+narrowed_in_clone :: fn(typed: TypedProgram, static_ty: Type, narrowed: Type) -> Type {
+    if narrowed is NeverType && settled_by_clone(typed, static_ty) {
+        return static_ty
+    }
+    return narrowed
+}
+
+new_fn_context :: fn(return_type: Type) -> FnContext {
     return FnContext {
         .return_type = return_type,
-        .self_type = self_type,
         .loop_depth = 0,
     }
 }
@@ -88,21 +106,7 @@ import "std/testing"
 
 @test
 test_new_fn_context_holds_return_type :: fn() -> void {
-    ctx :: new_fn_context(TY_I32, null)
+    ctx :: new_fn_context(TY_I32)
     assert(equals_type(ctx.return_type, TY_I32), "the return type is i32")
     assert_eq(ctx.loop_depth, 0)
-    if ctx.self_type !is null {
-        assert(false, "self_type should start null")
-    }
-}
-
-@test
-test_new_fn_context_records_self :: fn() -> void {
-    self_t: Type: TY_STRING
-    ctx :: new_fn_context(TY_NEVER, self_t)
-    match self_type :: ctx.self_type {
-        is null           -> { assert(false, "self_type should be set") }
-        is .PrimitiveType -> { assert_eq(self_type.name, "string") }
-        _                 -> { assert(false, "expected string self_type") }
-    }
 }

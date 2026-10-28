@@ -1,0 +1,62 @@
+module "snippet"
+
+import "std/io"
+
+// A trait's default body that tests `Self`. It is compiled once per impl, where
+// `Self` is that impl's type and each test is settled: one that can never match
+// there, or that always does, is no mistake in the body, and the code it rules
+// out is not compiled. A value of such a type is never `null` either.
+
+Square :: struct { side: i32 }
+
+Probe :: trait {
+    tag :: fn(self) -> i32
+    describe :: fn(self) -> i32 {
+        if self is Square {
+            return self.side * 10
+        }
+        if self is i32 {
+            return self + 1
+        }
+        return self.tag()
+    }
+    kind :: fn(self) -> string = match self {
+        is Square -> "square"
+        is i32    -> "int"
+        _         -> "other"
+    }
+    guarded :: fn(self) -> i32 {
+        if self !is Square {
+            return 0
+        }
+        return self.side
+    }
+    aliased :: fn(self) -> bool {
+        me :: self
+        return me is i32
+    }
+    same_kind :: fn(self, other: Self) -> bool = other is Square
+    absent :: fn(self) -> bool = self == null
+}
+
+Square implements Probe {
+    tag :: fn(self) -> i32 = 7
+}
+
+i32 implements Probe {
+    tag :: fn(self) -> i32 = 8
+}
+
+f64 implements Probe {
+    tag :: fn(self) -> i32 = 9
+}
+
+main :: fn() -> i32 {
+    probes: Probe[]: [Square { .side = 3 }, 41, 1.5]
+    for p in probes {
+        println("${p.describe()} ${p.kind()} ${p.guarded()} ${p.aliased()} ${p.absent()}")
+    }
+    println(Square { .side = 1 }.same_kind(Square { .side = 2 }))
+    println(4.same_kind(5))
+    return 0
+}

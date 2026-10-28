@@ -1,0 +1,8 @@
+# stdout
+30 square 3 false false
+42 int 0 true false
+9 other 0 false false
+true
+false
+# exit
+0

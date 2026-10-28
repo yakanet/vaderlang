@@ -1,0 +1,188 @@
+# Lower
+
+## snippet
+  snippet.Square :: struct { side: i32 }  // snippet$Square
+  snippet.Square.tag :: fn(self: Square) -> i32 {  // snippet$Square$Probe$tag
+      7
+  }
+  snippet.Square.describe :: fn(self: Square) -> i32 {  // snippet$Square$Probe$describe
+      {
+          return self.side * 10
+      }
+  }
+  snippet.Square.kind :: fn(self: Square) -> string {  // snippet$Square$Probe$kind
+      {
+          "square"
+      } :string
+  }
+  snippet.Square.guarded :: fn(self: Square) -> i32 {  // snippet$Square$Probe$guarded
+      {}
+      return self.side
+  }
+  snippet.Square.aliased :: fn(self: Square) -> bool {  // snippet$Square$Probe$aliased
+      me: Square = self
+      return false
+  }
+  snippet.Square.same_kind :: fn(self: Square, other: Square) -> bool {  // snippet$Square$Probe$same_kind
+      true
+  }
+  snippet.Square.absent :: fn(self: Square) -> bool {  // snippet$Square$Probe$absent
+      false
+  }
+  snippet.i32.tag :: fn(self: i32) -> i32 {  // snippet$i32$Probe$tag
+      8
+  }
+  snippet.i32.describe :: fn(self: i32) -> i32 {  // snippet$i32$Probe$describe
+      {}
+      {
+          return self + 1
+      }
+  }
+  snippet.i32.kind :: fn(self: i32) -> string {  // snippet$i32$Probe$kind
+      {
+          "int"
+      } :string
+  }
+  snippet.i32.guarded :: fn(self: i32) -> i32 {  // snippet$i32$Probe$guarded
+      {
+          return 0
+      }
+  }
+  snippet.i32.aliased :: fn(self: i32) -> bool {  // snippet$i32$Probe$aliased
+      me: i32 = self
+      return true
+  }
+  snippet.i32.same_kind :: fn(self: i32, other: i32) -> bool {  // snippet$i32$Probe$same_kind
+      false
+  }
+  snippet.i32.absent :: fn(self: i32) -> bool {  // snippet$i32$Probe$absent
+      false
+  }
+  snippet.f64.tag :: fn(self: f64) -> i32 {  // snippet$f64$Probe$tag
+      9
+  }
+  snippet.f64.describe :: fn(self: f64) -> i32 {  // snippet$f64$Probe$describe
+      {}
+      {}
+      return snippet.f64.tag(self)
+  }
+  snippet.f64.kind :: fn(self: f64) -> string {  // snippet$f64$Probe$kind
+      {
+          "other"
+      } :string
+  }
+  snippet.f64.guarded :: fn(self: f64) -> i32 {  // snippet$f64$Probe$guarded
+      {
+          return 0
+      }
+  }
+  snippet.f64.aliased :: fn(self: f64) -> bool {  // snippet$f64$Probe$aliased
+      me: f64 = self
+      return false
+  }
+  snippet.f64.same_kind :: fn(self: f64, other: f64) -> bool {  // snippet$f64$Probe$same_kind
+      false
+  }
+  snippet.f64.absent :: fn(self: f64) -> bool {  // snippet$f64$Probe$absent
+      false
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      probes: Probe[] = [Square { .side = 3 }, 41, 1.5] :Probe[]
+      {
+          __for_arr_0: Probe[] = probes
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
+          for __for_i_2 < __for_len_1 {
+              p: Probe = __for_arr_0[__for_i_2]
+              std.io.println<string>({
+                  __p_3: string = @vcall(snippet.Probe.kind, p)
+                  __buf_4: Buffer = std.core.new_byte_buffer(i64(54) +% std.core.byte_len(__p_3))
+                  __off_5: i64 = 0
+                  __off_5 = std.core.write_int(__buf_4, __off_5, @vcall(snippet.Probe.describe, p))
+                  __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+                  __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
+                  __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+                  __off_5 = std.core.write_int(__buf_4, __off_5, @vcall(snippet.Probe.guarded, p))
+                  __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+                  __off_5 = std.core.write_bool(__buf_4, __off_5, @vcall(snippet.Probe.aliased, p))
+                  __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+                  __off_5 = std.core.write_bool(__buf_4, __off_5, @vcall(snippet.Probe.absent, p))
+                  std.core.finish_buffer(__buf_4, __off_5)
+              } :string)
+          } @step {
+              __for_i_2 = __for_i_2 +% i64(1)
+          }
+      }
+      std.io.println<bool>(snippet.Square.same_kind(Square { .side = 1 }, Square { .side = 2 }))
+      std.io.println<bool>(snippet.i32.same_kind(4, 5))
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable snippet.Probe.absent for Square  snippet.Square.absent  // snippet$Square$Probe$absent
+  vtable snippet.Probe.absent for f64  snippet.f64.absent  // snippet$f64$Probe$absent
+  vtable snippet.Probe.absent for i32  snippet.i32.absent  // snippet$i32$Probe$absent
+  vtable snippet.Probe.aliased for Square  snippet.Square.aliased  // snippet$Square$Probe$aliased
+  vtable snippet.Probe.aliased for f64  snippet.f64.aliased  // snippet$f64$Probe$aliased
+  vtable snippet.Probe.aliased for i32  snippet.i32.aliased  // snippet$i32$Probe$aliased
+  vtable snippet.Probe.describe for Square  snippet.Square.describe  // snippet$Square$Probe$describe
+  vtable snippet.Probe.describe for f64  snippet.f64.describe  // snippet$f64$Probe$describe
+  vtable snippet.Probe.describe for i32  snippet.i32.describe  // snippet$i32$Probe$describe
+  vtable snippet.Probe.guarded for Square  snippet.Square.guarded  // snippet$Square$Probe$guarded
+  vtable snippet.Probe.guarded for f64  snippet.f64.guarded  // snippet$f64$Probe$guarded
+  vtable snippet.Probe.guarded for i32  snippet.i32.guarded  // snippet$i32$Probe$guarded
+  vtable snippet.Probe.kind for Square  snippet.Square.kind  // snippet$Square$Probe$kind
+  vtable snippet.Probe.kind for f64  snippet.f64.kind  // snippet$f64$Probe$kind
+  vtable snippet.Probe.kind for i32  snippet.i32.kind  // snippet$i32$Probe$kind
+  vtable snippet.Probe.same_kind for Square  snippet.Square.same_kind  // snippet$Square$Probe$same_kind
+  vtable snippet.Probe.same_kind for f64  snippet.f64.same_kind  // snippet$f64$Probe$same_kind
+  vtable snippet.Probe.same_kind for i32  snippet.i32.same_kind  // snippet$i32$Probe$same_kind
+  vtable snippet.Probe.tag for Square  snippet.Square.tag  // snippet$Square$Probe$tag
+  vtable snippet.Probe.tag for f64  snippet.f64.tag  // snippet$f64$Probe$tag
+  vtable snippet.Probe.tag for i32  snippet.i32.tag  // snippet$i32$Probe$tag
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
+  std/io
+    fn std.io.println<bool>  // std_io$println__bool
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

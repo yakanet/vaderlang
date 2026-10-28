@@ -615,24 +615,40 @@ op_trait_method :: fn(op: BinaryOp) -> OpTraitInfo | null {
 }
 
 try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | null {
-    union_operand: Expr | null = null
-    if is_null_lit(binary.left) && is_union_with_null(ctx.types.expr_type(binary.right)) {
-        union_operand = binary.right
+    operand :: null_compared_operand(binary) ?? return null
+    operand_type :: ctx.types.expr_type(operand)
+    if is_union_with_null(operand_type) {
+        check :: type_check(lower_expr(ctx, operand), TY_NULL, binary.span)
+        return maybe_negate(check, binary.op == .Neq, binary.span)
     }
-    if is_null_lit(binary.right) && is_union_with_null(ctx.types.expr_type(binary.left)) {
-        union_operand = binary.left
+    // A value held as exactly its type is never null, which the concrete instance
+    // of a generic body makes common : the answer is known before the program
+    // runs, and the operand still runs for its effects.
+    if holding_of(operand_type) == .Exact && !is_null_type(operand_type) {
+        value :: lower_expr(ctx, operand)
+        answer :: LoweredBoolLit {
+            .span = binary.span,
+            .type = TY_BOOL,
+            .value = binary.op == .Neq,
+        }
+        if is_effect_free_read(value) {
+            return answer
+        }
+        ran :: LoweredExprStmt { .span = binary.span, .expr = value }
+        return with_prelude([ran], answer, binary.span)
     }
-    if union_operand is null { return null }
-    check :: LoweredTypeCheck {
-        .span = binary.span, .type = TY_BOOL,
-        .value = lower_expr(ctx, union_operand),
-        .check_type = TY_NULL,
+    return null
+}
+
+// The operand `binary` compares to a `null` literal ; null when neither side is one.
+null_compared_operand :: fn(binary: BinaryExpr) -> Expr | null {
+    if is_null_lit(binary.left) {
+        return binary.right
     }
-    if binary.op == .Eq { return check }
-    return LoweredUnary {
-        .span = binary.span, .type = TY_BOOL,
-        .op = .Not, .operand = check,
+    if is_null_lit(binary.right) {
+        return binary.left
     }
+    return null
 }
 
 is_null_lit :: fn(e: Expr) -> bool {

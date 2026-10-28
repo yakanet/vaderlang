@@ -92,7 +92,11 @@ infer_match :: fn(
     // other scrutinee REQUIRES a wildcard (T3013 says so in as many words), and an
     // `is P` over it subtracts the whole of `P` here, so on those W0014 would
     // flag the arm T3013 just demanded.
-    closed_scrutinee :: scrut_ty is UnionType || scrut_ty is EnumType || whole != null
+    // Arms testing `Self` in a default body cloned for an impl : the impl settles
+    // them, so one that can never match, or that an earlier one covers, is no
+    // mistake.
+    settled :: settled_by_clone(typed, scrut_ty)
+    closed_scrutinee :: !settled && (scrut_ty is UnionType || scrut_ty is EnumType || whole != null)
     for arm in e.arms {
         // W0014, nothing is left for this arm to match: a wildcard, or arms
         // that together consumed the scrutinee, came before it. T3013 asks the
@@ -116,7 +120,8 @@ infer_match :: fn(
         prev_arm: NarrowSlot | null = null
         if scrut_sym_id != -1 {
             if arm_narrow !is null {
-                prev_arm = push_narrow(typed, scrut_sym_id, arm_narrow)
+                arm_type :: narrowed_in_clone(typed, scrut_ty, arm_narrow)
+                prev_arm = push_narrow(typed, scrut_sym_id, arm_type)
             }
         }
         prev_field: NarrowSlot | null = null
@@ -165,7 +170,7 @@ infer_match :: fn(
             is AST.IsPattern          -> {
                 matched :: pattern_type_of(pattern.ty, typed, scratch_diags())
                 check_is_test_target(matched, pattern.span, typed, diags)
-                if is_overlap_checkable(scrut_ty) && is_overlap_checkable(matched) {
+                if !settled && is_overlap_checkable(scrut_ty) && is_overlap_checkable(matched) {
                     if !types_overlap(scrut_ty, matched) {
                         diags.push(
                             typecheck_error(
@@ -285,7 +290,18 @@ infer_match :: fn(
     // T3013: non-exhaustive match. `@partial` / `@unreachable` opt out
     // (the latter asserts the uncovered variants trap rather than degrade).
     if !has_wildcard && !e.partial && !e.unreachable && e.arms.len() > 0 {
-        if scrut_ty is UnionType {
+        if settled {
+            // The impl's type, one arm or none covering it.
+            if !is_never(remaining) {
+                diags.push(
+                    typecheck_error(
+                        .NonExhaustiveMatch,
+                        e.span,
+                        "no arm matches `${display_type(scrut_ty)}`, the impl's `Self`",
+                    ),
+                )
+            }
+        } else if scrut_ty is UnionType {
             if !is_never(remaining) {
                 diags.push(typecheck_error(
                     .NonExhaustiveMatch,
@@ -333,7 +349,9 @@ infer_match :: fn(
     result_ty :: join_branch_types(bodies, arm_types, typed, diags)
     // `has_wildcard` is only set by a wildcard arm, so it already
     // implies ≥ 1 arm: no explicit arm-count guard needed.
-    if has_wildcard && !e.partial && !e.unreachable && !is_void(result_ty) {
+    // A `_` over `Self` in a default body is what the body needs, whichever impl
+    // it was cloned for.
+    if has_wildcard && !settled && !e.partial && !e.unreachable && !is_void(result_ty) {
         if scrut_ty is UnionType || scrut_ty is EnumType {
             diags.push(
                 warning(

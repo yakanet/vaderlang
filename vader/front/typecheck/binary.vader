@@ -36,7 +36,7 @@ infer_binary :: fn(
     left := check_expr(e.left, left_ctx, typed, diags)
     if e.op == .Is {
         rhs_ty :: type_operand(e.right, typed, diags)
-        check_is_overlap(e, left, rhs_ty, diags)
+        check_is_overlap(e, left, rhs_ty, typed, diags)
         check_is_test_target(rhs_ty, e.right.span, typed, diags)
         return TY_BOOL
     }
@@ -770,12 +770,12 @@ check_equality :: fn(
     // operand so a free-literal compare like `x == 0` (FreeInt vs i32, which
     // don't structurally overlap) is not flagged.
     if is_null_type(right) {
-        check_is_overlap(e, left, right, diags)
+        check_is_overlap(e, left, right, typed, diags)
         record_site(typed, e, .Operator, null_equality_callee(left))
         return TY_BOOL
     }
     if is_null_type(left) {
-        check_is_overlap(e, right, left, diags)
+        check_is_overlap(e, right, left, typed, diags)
         record_site(typed, e, .Operator, null_equality_callee(right))
         return TY_BOOL
     }
@@ -1142,16 +1142,19 @@ is_shared_type_argument :: fn(t: Type) -> bool =
 /// `x`'s static type. We surface the error for tests against `null`
 /// on non-nullable scrutinees and against variants not present in a
 /// union scrutinee. UnresolvedType / TypeParam / TypeMeta etc. opt out
-/// (we can't soundly know without more info).
+/// (we can't soundly know without more info), and so does a test on `Self` in
+/// a default body cloned for an impl, which the impl settles.
 check_is_overlap :: fn(
     e: AST.BinaryExpr,
     scrut: Type,
     tested: Type,
+    typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    if !is_overlap_checkable(scrut)  { return }
-    if !is_overlap_checkable(tested) { return }
-    if types_overlap(scrut, tested)  { return }
+    if !is_overlap_checkable(scrut)   { return }
+    if !is_overlap_checkable(tested)  { return }
+    if types_overlap(scrut, tested)   { return }
+    if settled_by_clone(typed, scrut) { return }
     diags.push(
         typecheck_error(
             .UnreachableIsTest,
