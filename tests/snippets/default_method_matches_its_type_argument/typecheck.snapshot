@@ -7,10 +7,10 @@
   TraitDecl      Probe                :: Probe<T>
   StructDecl     Strings              :: Strings
   expr 22545:1  MatchExpr      :: string
-  expr 22545:12 StringLitExpr  :: string
-  expr 22545:14 CallExpr       :: string
-  expr 22545:15 FieldExpr      :: fn() -> string
-  expr 22545:16 IdentExpr      :: Ints
+  expr 22545:13 StringLitExpr  :: string
+  expr 22545:15 CallExpr       :: string
+  expr 22545:16 FieldExpr      :: fn() -> string
+  expr 22545:17 IdentExpr      :: Ints
   expr 22545:2  IdentExpr      :: Box<i32> | Box<string>
   expr 22545:5  StringLitExpr  :: string
   expr 22545:7  CallExpr       :: string
@@ -18,10 +18,10 @@
   expr 22545:9  IdentExpr      :: Ints
   expr 23:34    StringLitExpr  :: string
   expr 26644:1  MatchExpr      :: string
-  expr 26644:12 StringLitExpr  :: string
-  expr 26644:14 CallExpr       :: string
-  expr 26644:15 FieldExpr      :: fn() -> string
-  expr 26644:16 IdentExpr      :: Strings
+  expr 26644:13 StringLitExpr  :: string
+  expr 26644:15 CallExpr       :: string
+  expr 26644:16 FieldExpr      :: fn() -> string
+  expr 26644:17 IdentExpr      :: Strings
   expr 26644:2  IdentExpr      :: Box<i32> | Box<string>
   expr 26644:5  StringLitExpr  :: string
   expr 26644:7  CallExpr       :: string

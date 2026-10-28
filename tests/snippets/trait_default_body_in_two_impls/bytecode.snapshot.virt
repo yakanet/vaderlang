@@ -1,0 +1,1530 @@
+module _main
+type 0 scalar null
+type 1 struct snippet$Square { side:2 }
+type 2 scalar i32
+type 3 union 2,1
+type 4 array 5
+type 5 array 2
+type 6 scalar string
+type 7 ref std_core$Iterator
+type 8 struct snippet$Circle { radius:2 }
+type 9 union 2,0
+type 10 struct __defer_env_snippet_1 { cap_0:6,cap_1:1 }
+type 11 scalar void
+type 12 struct snippet$__gen_state_snippet_2 { s0:1,s1:2,s2:2,state:2 }
+type 13 struct __Tuple_i32_u8_99ae0d29 { _0:2,_1:14 }
+type 14 scalar u8
+type 15 struct __defer_env_snippet_4 { cap_0:6,cap_1:8 }
+type 16 struct snippet$__gen_state_snippet_5 { s0:8,s1:2,s2:2,state:2 }
+type 17 struct std_core$Range__i32 { start:2,end:2,inclusive:18,done:18,cursor:2 }
+type 18 scalar bool
+type 19 struct std_core$Range__i64 { start:20,end:20,inclusive:18,done:18,cursor:20 }
+type 20 scalar i64
+type 21 struct __Tuple_i64_u8_87057322 { _0:20,_1:14 }
+type 22 struct std_core$Buffer {  }
+type 23 array 14
+type 24 fn () -> 11
+string 0 " "
+string 1 "square"
+string 2 "circle"
+string 3 "square "
+string 4 "circle "
+string 5 "leave "
+string 6 "\n"
+import 0 byte_len std_core$byte_len result_type=20 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=23 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=20 param_types=2,23,20 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 1 snippet$Shape
+impl 8 snippet$Shape
+impl 12 std_core$Iterator
+impl 16 std_core$Iterator
+impl 17 std_core$Contains
+impl 17 std_core$Iterator
+impl 19 std_core$Contains
+impl 19 std_core$Iterator
+impl 22 std_core$ByteAccess
+vtable std_core$Iterator.next 12 15
+vtable std_core$Iterator.next 16 17
+vtable std_core$Iterator.next 17 20
+vtable std_core$Iterator.next 19 22
+export main 13
+
+fn 0 snippet$Square$Shape$size (ref) -> i32
+  local.field 0 1 0   ; arg 0 snippet$Square.side
+  ref.cast 2   ; i32
+  return
+end
+
+fn 1 snippet$Square$Shape$side_of (ref,any) -> i32
+  local if_res i32
+  local and_res bool
+  local side i32
+  local $call_15 i32
+  local.get 1   ; arg 1
+  type_check 1   ; snippet$Square
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 1   ; snippet$Square
+    struct.get 1 0   ; snippet$Square.side
+    ref.cast 2   ; i32
+    i32.const 1
+    i32.eq
+    local.set 3   ; and_res
+  else
+    bool.const false
+    local.set 3   ; and_res
+  end $L0
+  local.get 3   ; and_res
+  if $L1 void
+    i32.const -1
+    local.tee 2   ; if_res
+    return
+  end $L1
+  local.get 1   ; arg 1
+  type_check 1   ; snippet$Square
+  if $L2 void
+    local.get 1   ; arg 1
+    ref.cast 1   ; snippet$Square
+    struct.get 1 0   ; snippet$Square.side
+    ref.cast 2   ; i32
+    local.set 4   ; side
+    local.get 0   ; arg 0
+    call 0   ; snippet$Square$Shape$size
+    local.set 5   ; $call_15
+    local.get 4   ; side
+    local.get 5   ; $call_15
+    i32.checked_mul
+    local.set 2   ; if_res
+  else
+    local.get 1   ; arg 1
+    type_check 2   ; i32
+    if $L3 void
+    else
+      unreachable
+    end $L3
+    local.get 1   ; arg 1
+    ref.cast 2   ; i32
+    local.set 2   ; if_res
+  end $L2
+  local.get 2   ; if_res
+  return
+end
+
+fn 2 snippet$Square$Shape$total (ref,ref) -> i32
+  local acc i32
+  local __for_arr_1 ref
+  local __for_len_2 i64
+  local __for_i_3 i64
+  local __for_elem_4 ref
+  local x i32
+  local i i32
+  local $call_18 i32
+  local $add_checked_20 i32
+  i32.const 0
+  local.set 2   ; acc
+  local.get 1   ; arg 1
+  local.tee 3   ; __for_arr_1
+  array.len
+  local.set 4   ; __for_len_2
+  i64.const 0
+  local.set 5   ; __for_i_3
+  loop $L0 void
+    local.get 5   ; __for_i_3
+    local.get 4   ; __for_len_2
+    i64.lt
+    if $L1 void
+      local.get 3   ; __for_arr_1
+      local.get 5   ; __for_i_3
+      array.get 4   ; i32[][]
+      local.tee 6   ; __for_elem_4
+      i64.const 0
+      load_slot_i32
+      local.set 7   ; x
+      local.get 6   ; __for_elem_4
+      i64.const 1
+      load_slot_i32
+      local.set 8   ; i
+      local.get 0   ; arg 0
+      call 0   ; snippet$Square$Shape$size
+      local.set 9   ; $call_18
+      local.get 7   ; x
+      local.get 9   ; $call_18
+      i32.checked_mul
+      local.get 8   ; i
+      i32.checked_add
+      local.set 10   ; $add_checked_20
+      local.get 2   ; acc
+      local.get 10   ; $add_checked_20
+      i32.checked_add
+      local.set 2   ; acc
+      local.get 5   ; __for_i_3
+      i64.const 1
+      i64.add
+      local.set 5   ; __for_i_3
+      br $L0
+    end $L1
+  end $L0
+  local.get 2   ; acc
+  return
+end
+
+fn 3 snippet$Square$Shape$pick (ref,i32) -> i32
+  local __coalesce_0 any
+  local.get 0   ; arg 0
+  call 0   ; snippet$Square$Shape$size
+  local.get 1   ; arg 1
+  i32.checked_sub
+  call 12   ; snippet$positive
+  local.tee 2   ; __coalesce_0
+  type_check 0   ; null
+  if $L0 void
+    local.get 1   ; arg 1
+    return
+  end $L0
+  local.get 2   ; __coalesce_0
+  ref.cast 2   ; i32
+  return
+end
+
+fn 4 snippet$Square$Shape$traced (ref,string) -> i32
+  local __result_1 i32
+  local.get 1   ; arg 1
+  local.get 0   ; arg 0
+  struct.new 10   ; __defer_env_snippet_1
+  make_closure 14 24   ; __defer_snippet_0 fn
+  defer.push
+  local.get 0   ; arg 0
+  call 0   ; snippet$Square$Shape$size
+  local.set 2   ; __result_1
+  defer.pop_exec 1
+  local.get 2   ; __result_1
+  return
+end
+
+fn 5 snippet$Square$Shape$multiples (ref,i32) -> any
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.const 0
+  i32.const 5
+  struct.new 12   ; snippet$__gen_state_snippet_2
+  return
+end
+
+fn 6 snippet$Circle$Shape$size (ref) -> i32
+  local.field 0 8 0   ; arg 0 snippet$Circle.radius
+  ref.cast 2   ; i32
+  i32.const 10
+  i32.checked_mul
+  return
+end
+
+fn 7 snippet$Circle$Shape$side_of (ref,any) -> i32
+  local if_res i32
+  local and_res bool
+  local side i32
+  local $call_15 i32
+  local.get 1   ; arg 1
+  type_check 1   ; snippet$Square
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 1   ; snippet$Square
+    struct.get 1 0   ; snippet$Square.side
+    ref.cast 2   ; i32
+    i32.const 1
+    i32.eq
+    local.set 3   ; and_res
+  else
+    bool.const false
+    local.set 3   ; and_res
+  end $L0
+  local.get 3   ; and_res
+  if $L1 void
+    i32.const -1
+    local.tee 2   ; if_res
+    return
+  end $L1
+  local.get 1   ; arg 1
+  type_check 1   ; snippet$Square
+  if $L2 void
+    local.get 1   ; arg 1
+    ref.cast 1   ; snippet$Square
+    struct.get 1 0   ; snippet$Square.side
+    ref.cast 2   ; i32
+    local.set 4   ; side
+    local.get 0   ; arg 0
+    call 6   ; snippet$Circle$Shape$size
+    local.set 5   ; $call_15
+    local.get 4   ; side
+    local.get 5   ; $call_15
+    i32.checked_mul
+    local.set 2   ; if_res
+  else
+    local.get 1   ; arg 1
+    type_check 2   ; i32
+    if $L3 void
+    else
+      unreachable
+    end $L3
+    local.get 1   ; arg 1
+    ref.cast 2   ; i32
+    local.set 2   ; if_res
+  end $L2
+  local.get 2   ; if_res
+  return
+end
+
+fn 8 snippet$Circle$Shape$total (ref,ref) -> i32
+  local acc i32
+  local __for_arr_1 ref
+  local __for_len_2 i64
+  local __for_i_3 i64
+  local __for_elem_4 ref
+  local x i32
+  local i i32
+  local $call_18 i32
+  local $add_checked_20 i32
+  i32.const 0
+  local.set 2   ; acc
+  local.get 1   ; arg 1
+  local.tee 3   ; __for_arr_1
+  array.len
+  local.set 4   ; __for_len_2
+  i64.const 0
+  local.set 5   ; __for_i_3
+  loop $L0 void
+    local.get 5   ; __for_i_3
+    local.get 4   ; __for_len_2
+    i64.lt
+    if $L1 void
+      local.get 3   ; __for_arr_1
+      local.get 5   ; __for_i_3
+      array.get 4   ; i32[][]
+      local.tee 6   ; __for_elem_4
+      i64.const 0
+      load_slot_i32
+      local.set 7   ; x
+      local.get 6   ; __for_elem_4
+      i64.const 1
+      load_slot_i32
+      local.set 8   ; i
+      local.get 0   ; arg 0
+      call 6   ; snippet$Circle$Shape$size
+      local.set 9   ; $call_18
+      local.get 7   ; x
+      local.get 9   ; $call_18
+      i32.checked_mul
+      local.get 8   ; i
+      i32.checked_add
+      local.set 10   ; $add_checked_20
+      local.get 2   ; acc
+      local.get 10   ; $add_checked_20
+      i32.checked_add
+      local.set 2   ; acc
+      local.get 5   ; __for_i_3
+      i64.const 1
+      i64.add
+      local.set 5   ; __for_i_3
+      br $L0
+    end $L1
+  end $L0
+  local.get 2   ; acc
+  return
+end
+
+fn 9 snippet$Circle$Shape$pick (ref,i32) -> i32
+  local __coalesce_0 any
+  local.get 0   ; arg 0
+  call 6   ; snippet$Circle$Shape$size
+  local.get 1   ; arg 1
+  i32.checked_sub
+  call 12   ; snippet$positive
+  local.tee 2   ; __coalesce_0
+  type_check 0   ; null
+  if $L0 void
+    local.get 1   ; arg 1
+    return
+  end $L0
+  local.get 2   ; __coalesce_0
+  ref.cast 2   ; i32
+  return
+end
+
+fn 10 snippet$Circle$Shape$traced (ref,string) -> i32
+  local __result_1 i32
+  local.get 1   ; arg 1
+  local.get 0   ; arg 0
+  struct.new 15   ; __defer_env_snippet_4
+  make_closure 16 24   ; __defer_snippet_3 fn
+  defer.push
+  local.get 0   ; arg 0
+  call 6   ; snippet$Circle$Shape$size
+  local.set 2   ; __result_1
+  defer.pop_exec 1
+  local.get 2   ; __result_1
+  return
+end
+
+fn 11 snippet$Circle$Shape$multiples (ref,i32) -> any
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.const 0
+  i32.const 5
+  struct.new 16   ; snippet$__gen_state_snippet_5
+  return
+end
+
+fn 12 snippet$positive (i32) -> any
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.gt
+  if $L0 void
+    local.get 0   ; arg 0
+    retag 2   ; i32
+    return
+  end $L0
+  return.lit null.const
+end
+
+fn 13 snippet$main () -> i32
+  local s ref
+  local c ref
+  local __buf_0 ref
+  local __off_1 i64
+  local $struct_12 ref
+  local $cast_14 i64
+  local $arr_64 ref
+  local __iter_10 any
+  local m i32
+  i32.const 2
+  struct.new 1   ; snippet$Square
+  local.set 0   ; s
+  i32.const 3
+  struct.new 8   ; snippet$Circle
+  local.set 1   ; c
+  i64.const 62
+  buffer.new
+  local.set 2   ; __buf_0
+  i64.const 0
+  local.set 3   ; __off_1
+  i32.const 1
+  struct.new 1   ; snippet$Square
+  local.set 4   ; $struct_12
+  local.get 0   ; s
+  local.get 4   ; $struct_12
+  call 1   ; snippet$Square$Shape$side_of
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 0   ; " "
+  call 24   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  i32.const 4
+  struct.new 1   ; snippet$Square
+  local.set 4   ; $struct_12
+  local.get 0   ; s
+  local.get 4   ; $struct_12
+  call 1   ; snippet$Square$Shape$side_of
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 0   ; " "
+  call 24   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.get 0   ; s
+  i32.const 7
+  retag 2   ; i32
+  call 1   ; snippet$Square$Shape$side_of
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  call 23   ; std_core$finish_buffer
+  call 29   ; std_io$println__string
+  i64.const 62
+  buffer.new
+  local.set 2   ; __buf_0
+  i64.const 0
+  local.set 3   ; __off_1
+  i32.const 1
+  struct.new 1   ; snippet$Square
+  local.set 4   ; $struct_12
+  local.get 1   ; c
+  local.get 4   ; $struct_12
+  call 7   ; snippet$Circle$Shape$side_of
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 0   ; " "
+  call 24   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  i32.const 4
+  struct.new 1   ; snippet$Square
+  local.set 4   ; $struct_12
+  local.get 1   ; c
+  local.get 4   ; $struct_12
+  call 7   ; snippet$Circle$Shape$side_of
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 0   ; " "
+  call 24   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.get 1   ; c
+  i32.const 7
+  retag 2   ; i32
+  call 7   ; snippet$Circle$Shape$side_of
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  call 23   ; std_core$finish_buffer
+  call 29   ; std_io$println__string
+  i64.const 41
+  buffer.new
+  local.set 2   ; __buf_0
+  i64.const 0
+  local.set 3   ; __off_1
+  i32.const 1
+  i32.const 10
+  array.new 5 2   ; i32[]
+  local.set 4   ; $struct_12
+  i32.const 2
+  i32.const 20
+  array.new 5 2   ; i32[]
+  local.set 6   ; $arr_64
+  local.get 4   ; $struct_12
+  local.get 6   ; $arr_64
+  array.new 4 2   ; i32[][]
+  local.set 4   ; $struct_12
+  local.get 0   ; s
+  local.get 4   ; $struct_12
+  call 2   ; snippet$Square$Shape$total
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 0   ; " "
+  call 24   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  i32.const 1
+  i32.const 10
+  array.new 5 2   ; i32[]
+  local.set 4   ; $struct_12
+  i32.const 2
+  i32.const 20
+  array.new 5 2   ; i32[]
+  local.set 6   ; $arr_64
+  local.get 4   ; $struct_12
+  local.get 6   ; $arr_64
+  array.new 4 2   ; i32[][]
+  local.set 4   ; $struct_12
+  local.get 1   ; c
+  local.get 4   ; $struct_12
+  call 8   ; snippet$Circle$Shape$total
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  call 23   ; std_core$finish_buffer
+  call 29   ; std_io$println__string
+  i64.const 83
+  buffer.new
+  local.set 2   ; __buf_0
+  i64.const 0
+  local.set 3   ; __off_1
+  local.get 0   ; s
+  i32.const 1
+  call 3   ; snippet$Square$Shape$pick
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 0   ; " "
+  call 24   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.get 0   ; s
+  i32.const 5
+  call 3   ; snippet$Square$Shape$pick
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 0   ; " "
+  call 24   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.get 1   ; c
+  i32.const 1
+  call 9   ; snippet$Circle$Shape$pick
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 0   ; " "
+  call 24   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.get 1   ; c
+  i32.const 50
+  call 9   ; snippet$Circle$Shape$pick
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  call 23   ; std_core$finish_buffer
+  call 29   ; std_io$println__string
+  i64.const 41
+  buffer.new
+  local.set 2   ; __buf_0
+  i64.const 0
+  local.set 3   ; __off_1
+  local.get 0   ; s
+  string.const 1   ; "square"
+  call 4   ; snippet$Square$Shape$traced
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 0   ; " "
+  call 24   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.get 1   ; c
+  string.const 2   ; "circle"
+  call 10   ; snippet$Circle$Shape$traced
+  i32.to_i64
+  local.set 5   ; $cast_14
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_14
+  call 25   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  call 23   ; std_core$finish_buffer
+  call 29   ; std_io$println__string
+  local.get 0   ; s
+  i32.const 3
+  call 5   ; snippet$Square$Shape$multiples
+  local.set 7   ; __iter_10
+  loop $L0 void
+    local.get 7   ; __iter_10
+    virtual.call 1 std_core$Iterator.next -> ref
+    local.set 0   ; s
+    local.field 0 13 1   ; s __Tuple_i32_u8_99ae0d29._1
+    i32.const 1
+    i32.eq
+    if $L1 void
+    else
+      local.field 0 13 0   ; s __Tuple_i32_u8_99ae0d29._0
+      ref.cast 2   ; i32
+      local.set 8   ; m
+      i64.const 27
+      buffer.new
+      local.set 2   ; __buf_0
+      i64.const 0
+      local.set 3   ; __off_1
+      local.get 2   ; __buf_0
+      local.get 3   ; __off_1
+      string.const 3   ; "square "
+      call 24   ; std_core$write_string_at
+      local.set 3   ; __off_1
+      local.get 8   ; m
+      i32.to_i64
+      local.set 5   ; $cast_14
+      local.get 2   ; __buf_0
+      local.get 3   ; __off_1
+      local.get 5   ; $cast_14
+      call 25   ; std_core$write_int
+      local.set 3   ; __off_1
+      local.get 2   ; __buf_0
+      local.get 3   ; __off_1
+      call 23   ; std_core$finish_buffer
+      call 29   ; std_io$println__string
+      br $L0
+    end $L1
+  end $L0
+  local.get 1   ; c
+  i32.const 2
+  call 11   ; snippet$Circle$Shape$multiples
+  local.set 7   ; __iter_10
+  loop $L2 void
+    local.get 7   ; __iter_10
+    virtual.call 1 std_core$Iterator.next -> ref
+    local.set 0   ; s
+    local.field 0 13 1   ; s __Tuple_i32_u8_99ae0d29._1
+    i32.const 1
+    i32.eq
+    if $L3 void
+    else
+      local.field 0 13 0   ; s __Tuple_i32_u8_99ae0d29._0
+      ref.cast 2   ; i32
+      local.set 8   ; m
+      i64.const 27
+      buffer.new
+      local.set 1   ; c
+      i64.const 0
+      local.set 3   ; __off_1
+      local.get 1   ; c
+      local.get 3   ; __off_1
+      string.const 4   ; "circle "
+      call 24   ; std_core$write_string_at
+      local.set 3   ; __off_1
+      local.get 8   ; m
+      i32.to_i64
+      local.set 5   ; $cast_14
+      local.get 1   ; c
+      local.get 3   ; __off_1
+      local.get 5   ; $cast_14
+      call 25   ; std_core$write_int
+      local.set 3   ; __off_1
+      local.get 1   ; c
+      local.get 3   ; __off_1
+      call 23   ; std_core$finish_buffer
+      call 29   ; std_io$println__string
+      br $L2
+    end $L3
+  end $L2
+  return.lit i32.const 0
+end
+
+fn 14 __defer_snippet_0 (ref) -> void
+  local __p_0 string
+  local $call_4 i64
+  local __buf_1 ref
+  local $cast_17 i64
+  local.field 0 10 0   ; arg 0 __defer_env_snippet_1.cap_0
+  ref.cast 6   ; string
+  local.tee 1   ; __p_0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; $call_4
+  i64.const 27
+  local.get 2   ; $call_4
+  i64.add
+  buffer.new
+  local.set 3   ; __buf_1
+  i64.const 0
+  local.set 2   ; $call_4
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_4
+  string.const 5   ; "leave "
+  call 24   ; std_core$write_string_at
+  local.set 2   ; $call_4
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_4
+  local.get 1   ; __p_0
+  call 24   ; std_core$write_string_at
+  local.set 2   ; $call_4
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_4
+  string.const 0   ; " "
+  call 24   ; std_core$write_string_at
+  local.set 2   ; $call_4
+  local.field 0 10 1   ; arg 0 __defer_env_snippet_1.cap_1
+  call 0   ; snippet$Square$Shape$size
+  i32.to_i64
+  local.set 4   ; $cast_17
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_4
+  local.get 4   ; $cast_17
+  call 25   ; std_core$write_int
+  local.set 2   ; $call_4
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_4
+  call 23   ; std_core$finish_buffer
+  call 29   ; std_io$println__string
+  return
+end
+
+fn 15 snippet$__gen_state_snippet_2$Iterator$next (ref) -> ref
+  local $field_12 i32
+  local $field_13 i32
+  local $add_22 i32
+  local $field_28 i32
+  local $call_30 i32
+  loop $L0 void
+    local.field 0 12 3   ; arg 0 snippet$__gen_state_snippet_2.state
+    ref.cast 2   ; i32
+    i32.const 0
+    i32.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      i32.const -1
+      struct.set 12 3   ; snippet$__gen_state_snippet_2.state
+      br $L0
+    end $L1
+    local.field 0 12 3   ; arg 0 snippet$__gen_state_snippet_2.state
+    ref.cast 2   ; i32
+    i32.const 1
+    i32.eq
+    if $L2 void
+      local.get 0   ; arg 0
+      i32.const 0
+      struct.set 12 3   ; snippet$__gen_state_snippet_2.state
+    else
+      local.field 0 12 3   ; arg 0 snippet$__gen_state_snippet_2.state
+      ref.cast 2   ; i32
+      i32.const 2
+      i32.eq
+      if $L3 void
+        local.field 0 12 2   ; arg 0 snippet$__gen_state_snippet_2.s2
+        ref.cast 2   ; i32
+        local.set 1   ; $field_12
+        local.field 0 12 1   ; arg 0 snippet$__gen_state_snippet_2.s1
+        ref.cast 2   ; i32
+        local.set 2   ; $field_13
+        local.get 1   ; $field_12
+        local.get 2   ; $field_13
+        i32.lt
+        if $L4 void
+          local.get 0   ; arg 0
+          i32.const 4
+          struct.set 12 3   ; snippet$__gen_state_snippet_2.state
+        else
+          local.get 0   ; arg 0
+          i32.const 1
+          struct.set 12 3   ; snippet$__gen_state_snippet_2.state
+        end $L4
+      else
+        local.field 0 12 3   ; arg 0 snippet$__gen_state_snippet_2.state
+        ref.cast 2   ; i32
+        i32.const 3
+        i32.eq
+        if $L5 void
+          local.field 0 12 2   ; arg 0 snippet$__gen_state_snippet_2.s2
+          ref.cast 2   ; i32
+          i32.const 1
+          i32.add
+          local.set 3   ; $add_22
+          local.get 0   ; arg 0
+          local.get 3   ; $add_22
+          struct.set 12 2   ; snippet$__gen_state_snippet_2.s2
+          local.get 0   ; arg 0
+          i32.const 2
+          struct.set 12 3   ; snippet$__gen_state_snippet_2.state
+        else
+          local.field 0 12 3   ; arg 0 snippet$__gen_state_snippet_2.state
+          ref.cast 2   ; i32
+          i32.const 4
+          i32.eq
+          if $L6 void
+            local.get 0   ; arg 0
+            i32.const 3
+            struct.set 12 3   ; snippet$__gen_state_snippet_2.state
+            local.field 0 12 2   ; arg 0 snippet$__gen_state_snippet_2.s2
+            ref.cast 2   ; i32
+            local.set 4   ; $field_28
+            local.field 0 12 0   ; arg 0 snippet$__gen_state_snippet_2.s0
+            call 0   ; snippet$Square$Shape$size
+            local.set 5   ; $call_30
+            local.get 4   ; $field_28
+            local.get 5   ; $call_30
+            i32.checked_mul
+            i32.const 0
+            struct.new 13   ; __Tuple_i32_u8_99ae0d29
+            return
+          end $L6
+          local.field 0 12 3   ; arg 0 snippet$__gen_state_snippet_2.state
+          ref.cast 2   ; i32
+          i32.const 5
+          i32.eq
+          if $L7 void
+          else
+            i32.const 0
+            i32.const 1
+            struct.new 13   ; __Tuple_i32_u8_99ae0d29
+            return
+          end $L7
+          local.get 0   ; arg 0
+          i32.const 0
+          struct.set 12 2   ; snippet$__gen_state_snippet_2.s2
+          local.get 0   ; arg 0
+          i32.const 2
+          struct.set 12 3   ; snippet$__gen_state_snippet_2.state
+        end $L5
+      end $L3
+    end $L2
+    br $L0
+  end $L0
+end
+
+fn 16 __defer_snippet_3 (ref) -> void
+  local __p_0 string
+  local $call_4 i64
+  local __buf_1 ref
+  local $cast_17 i64
+  local.field 0 15 0   ; arg 0 __defer_env_snippet_4.cap_0
+  ref.cast 6   ; string
+  local.tee 1   ; __p_0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; $call_4
+  i64.const 27
+  local.get 2   ; $call_4
+  i64.add
+  buffer.new
+  local.set 3   ; __buf_1
+  i64.const 0
+  local.set 2   ; $call_4
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_4
+  string.const 5   ; "leave "
+  call 24   ; std_core$write_string_at
+  local.set 2   ; $call_4
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_4
+  local.get 1   ; __p_0
+  call 24   ; std_core$write_string_at
+  local.set 2   ; $call_4
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_4
+  string.const 0   ; " "
+  call 24   ; std_core$write_string_at
+  local.set 2   ; $call_4
+  local.field 0 15 1   ; arg 0 __defer_env_snippet_4.cap_1
+  call 6   ; snippet$Circle$Shape$size
+  i32.to_i64
+  local.set 4   ; $cast_17
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_4
+  local.get 4   ; $cast_17
+  call 25   ; std_core$write_int
+  local.set 2   ; $call_4
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_4
+  call 23   ; std_core$finish_buffer
+  call 29   ; std_io$println__string
+  return
+end
+
+fn 17 snippet$__gen_state_snippet_5$Iterator$next (ref) -> ref
+  local $field_12 i32
+  local $field_13 i32
+  local $add_22 i32
+  local $field_28 i32
+  local $call_30 i32
+  loop $L0 void
+    local.field 0 16 3   ; arg 0 snippet$__gen_state_snippet_5.state
+    ref.cast 2   ; i32
+    i32.const 0
+    i32.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      i32.const -1
+      struct.set 16 3   ; snippet$__gen_state_snippet_5.state
+      br $L0
+    end $L1
+    local.field 0 16 3   ; arg 0 snippet$__gen_state_snippet_5.state
+    ref.cast 2   ; i32
+    i32.const 1
+    i32.eq
+    if $L2 void
+      local.get 0   ; arg 0
+      i32.const 0
+      struct.set 16 3   ; snippet$__gen_state_snippet_5.state
+    else
+      local.field 0 16 3   ; arg 0 snippet$__gen_state_snippet_5.state
+      ref.cast 2   ; i32
+      i32.const 2
+      i32.eq
+      if $L3 void
+        local.field 0 16 2   ; arg 0 snippet$__gen_state_snippet_5.s2
+        ref.cast 2   ; i32
+        local.set 1   ; $field_12
+        local.field 0 16 1   ; arg 0 snippet$__gen_state_snippet_5.s1
+        ref.cast 2   ; i32
+        local.set 2   ; $field_13
+        local.get 1   ; $field_12
+        local.get 2   ; $field_13
+        i32.lt
+        if $L4 void
+          local.get 0   ; arg 0
+          i32.const 4
+          struct.set 16 3   ; snippet$__gen_state_snippet_5.state
+        else
+          local.get 0   ; arg 0
+          i32.const 1
+          struct.set 16 3   ; snippet$__gen_state_snippet_5.state
+        end $L4
+      else
+        local.field 0 16 3   ; arg 0 snippet$__gen_state_snippet_5.state
+        ref.cast 2   ; i32
+        i32.const 3
+        i32.eq
+        if $L5 void
+          local.field 0 16 2   ; arg 0 snippet$__gen_state_snippet_5.s2
+          ref.cast 2   ; i32
+          i32.const 1
+          i32.add
+          local.set 3   ; $add_22
+          local.get 0   ; arg 0
+          local.get 3   ; $add_22
+          struct.set 16 2   ; snippet$__gen_state_snippet_5.s2
+          local.get 0   ; arg 0
+          i32.const 2
+          struct.set 16 3   ; snippet$__gen_state_snippet_5.state
+        else
+          local.field 0 16 3   ; arg 0 snippet$__gen_state_snippet_5.state
+          ref.cast 2   ; i32
+          i32.const 4
+          i32.eq
+          if $L6 void
+            local.get 0   ; arg 0
+            i32.const 3
+            struct.set 16 3   ; snippet$__gen_state_snippet_5.state
+            local.field 0 16 2   ; arg 0 snippet$__gen_state_snippet_5.s2
+            ref.cast 2   ; i32
+            local.set 4   ; $field_28
+            local.field 0 16 0   ; arg 0 snippet$__gen_state_snippet_5.s0
+            call 6   ; snippet$Circle$Shape$size
+            local.set 5   ; $call_30
+            local.get 4   ; $field_28
+            local.get 5   ; $call_30
+            i32.checked_mul
+            i32.const 0
+            struct.new 13   ; __Tuple_i32_u8_99ae0d29
+            return
+          end $L6
+          local.field 0 16 3   ; arg 0 snippet$__gen_state_snippet_5.state
+          ref.cast 2   ; i32
+          i32.const 5
+          i32.eq
+          if $L7 void
+          else
+            i32.const 0
+            i32.const 1
+            struct.new 13   ; __Tuple_i32_u8_99ae0d29
+            return
+          end $L7
+          local.get 0   ; arg 0
+          i32.const 0
+          struct.set 16 2   ; snippet$__gen_state_snippet_5.s2
+          local.get 0   ; arg 0
+          i32.const 2
+          struct.set 16 3   ; snippet$__gen_state_snippet_5.state
+        end $L5
+      end $L3
+    end $L2
+    br $L0
+  end $L0
+end
+
+fn 18 concat_2 (string,string) -> string
+  local c0 i64
+  local $call_4 i64
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  buffer.new
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  buffer_to_string
+  return
+end
+
+fn 19 std_core$i32$Step$step (i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.checked_add
+  return
+end
+
+fn 20 std_core$Range$Iterator$next__i32 (ref) -> ref
+  local over bool
+  local $field_5 i32
+  local $field_6 i32
+  local $k_24 u8
+  local.field 0 17 2   ; arg 0 std_core$Range__i32.inclusive
+  ref.cast 18   ; bool
+  if $L0 void
+    local.field 0 17 3   ; arg 0 std_core$Range__i32.done
+    ref.cast 18   ; bool
+    if $L1 void
+      bool.const true
+      local.set 1   ; over
+    else
+      local.field 0 17 4   ; arg 0 std_core$Range__i32.cursor
+      ref.cast 2   ; i32
+      local.set 2   ; $field_5
+      local.field 0 17 1   ; arg 0 std_core$Range__i32.end
+      ref.cast 2   ; i32
+      local.set 3   ; $field_6
+      local.get 2   ; $field_5
+      local.get 3   ; $field_6
+      i32.gt
+      local.set 1   ; over
+    end $L1
+  else
+    local.field 0 17 4   ; arg 0 std_core$Range__i32.cursor
+    ref.cast 2   ; i32
+    local.set 2   ; $field_5
+    local.field 0 17 1   ; arg 0 std_core$Range__i32.end
+    ref.cast 2   ; i32
+    local.set 3   ; $field_6
+    local.get 2   ; $field_5
+    local.get 3   ; $field_6
+    i32.ge
+    local.set 1   ; over
+  end $L0
+  local.get 1   ; over
+  if $L2 void
+    local.field 0 17 4   ; arg 0 std_core$Range__i32.cursor
+    ref.cast 2   ; i32
+    i32.const 1
+    struct.new 13   ; __Tuple_i32_u8_99ae0d29
+    return
+  end $L2
+  local.field 0 17 4   ; arg 0 std_core$Range__i32.cursor
+  ref.cast 2   ; i32
+  local.set 2   ; $field_5
+  local.field 0 17 2   ; arg 0 std_core$Range__i32.inclusive
+  ref.cast 18   ; bool
+  if $L3 void
+    local.field 0 17 1   ; arg 0 std_core$Range__i32.end
+    ref.cast 2   ; i32
+    local.set 3   ; $field_6
+    local.get 2   ; $field_5
+    local.get 3   ; $field_6
+    i32.ge
+    local.set 1   ; over
+  else
+    bool.const false
+    local.set 1   ; over
+  end $L3
+  local.get 1   ; over
+  if $L4 void
+    local.get 0   ; arg 0
+    bool.const true
+    struct.set 17 3   ; std_core$Range__i32.done
+    i32.const 0
+    local.set 4   ; $k_24
+    local.get 2   ; $field_5
+    local.get 4   ; $k_24
+    struct.new 13   ; __Tuple_i32_u8_99ae0d29
+    return
+  end $L4
+  local.field 0 17 4   ; arg 0 std_core$Range__i32.cursor
+  ref.cast 2   ; i32
+  call 19   ; std_core$i32$Step$step
+  local.set 3   ; $field_6
+  local.get 0   ; arg 0
+  local.get 3   ; $field_6
+  struct.set 17 4   ; std_core$Range__i32.cursor
+  i32.const 0
+  local.set 4   ; $k_24
+  local.get 2   ; $field_5
+  local.get 4   ; $k_24
+  struct.new 13   ; __Tuple_i32_u8_99ae0d29
+  return
+end
+
+fn 21 std_core$i64$Step$step (i64) -> i64
+  local.get 0   ; arg 0
+  i64.const 1
+  i64.checked_add
+  return
+end
+
+fn 22 std_core$Range$Iterator$next__i64 (ref) -> ref
+  local over bool
+  local $field_5 i64
+  local $field_6 i64
+  local $k_24 u8
+  local.field 0 19 2   ; arg 0 std_core$Range__i64.inclusive
+  ref.cast 18   ; bool
+  if $L0 void
+    local.field 0 19 3   ; arg 0 std_core$Range__i64.done
+    ref.cast 18   ; bool
+    if $L1 void
+      bool.const true
+      local.set 1   ; over
+    else
+      local.field 0 19 4   ; arg 0 std_core$Range__i64.cursor
+      ref.cast 20   ; i64
+      local.set 2   ; $field_5
+      local.field 0 19 1   ; arg 0 std_core$Range__i64.end
+      ref.cast 20   ; i64
+      local.set 3   ; $field_6
+      local.get 2   ; $field_5
+      local.get 3   ; $field_6
+      i64.gt
+      local.set 1   ; over
+    end $L1
+  else
+    local.field 0 19 4   ; arg 0 std_core$Range__i64.cursor
+    ref.cast 20   ; i64
+    local.set 2   ; $field_5
+    local.field 0 19 1   ; arg 0 std_core$Range__i64.end
+    ref.cast 20   ; i64
+    local.set 3   ; $field_6
+    local.get 2   ; $field_5
+    local.get 3   ; $field_6
+    i64.ge
+    local.set 1   ; over
+  end $L0
+  local.get 1   ; over
+  if $L2 void
+    local.field 0 19 4   ; arg 0 std_core$Range__i64.cursor
+    ref.cast 20   ; i64
+    i32.const 1
+    struct.new 21   ; __Tuple_i64_u8_87057322
+    return
+  end $L2
+  local.field 0 19 4   ; arg 0 std_core$Range__i64.cursor
+  ref.cast 20   ; i64
+  local.set 2   ; $field_5
+  local.field 0 19 2   ; arg 0 std_core$Range__i64.inclusive
+  ref.cast 18   ; bool
+  if $L3 void
+    local.field 0 19 1   ; arg 0 std_core$Range__i64.end
+    ref.cast 20   ; i64
+    local.set 3   ; $field_6
+    local.get 2   ; $field_5
+    local.get 3   ; $field_6
+    i64.ge
+    local.set 1   ; over
+  else
+    bool.const false
+    local.set 1   ; over
+  end $L3
+  local.get 1   ; over
+  if $L4 void
+    local.get 0   ; arg 0
+    bool.const true
+    struct.set 19 3   ; std_core$Range__i64.done
+    i32.const 0
+    local.set 4   ; $k_24
+    local.get 2   ; $field_5
+    local.get 4   ; $k_24
+    struct.new 21   ; __Tuple_i64_u8_87057322
+    return
+  end $L4
+  local.field 0 19 4   ; arg 0 std_core$Range__i64.cursor
+  ref.cast 20   ; i64
+  call 21   ; std_core$i64$Step$step
+  local.set 3   ; $field_6
+  local.get 0   ; arg 0
+  local.get 3   ; $field_6
+  struct.set 19 4   ; std_core$Range__i64.cursor
+  i32.const 0
+  local.set 4   ; $k_24
+  local.get 2   ; $field_5
+  local.get 4   ; $k_24
+  struct.new 21   ; __Tuple_i64_u8_87057322
+  return
+end
+
+fn 23 std_core$finish_buffer (ref,i64) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  buffer_to_string
+  return
+end
+
+fn 24 std_core$write_string_at (ref,i64,string) -> i64
+  local $call_3 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  buffer_write_string
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_3
+  local.get 1   ; arg 1
+  local.get 3   ; $call_3
+  i64.checked_add
+  return
+end
+
+fn 25 std_core$write_int (ref,i64,i64) -> i64
+  local neg bool
+  local ndigits i64
+  local m i64
+  local $cast_36 u8
+  local $add_checked_37 u8
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.eq
+  if $L0 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 48
+    store_u8
+    local.get 1   ; arg 1
+    i64.const 1
+    i64.checked_add
+    return
+  end $L0
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.lt
+  local.set 3   ; neg
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.gt
+  if $L1 void
+    local.get 2   ; arg 2
+    i64.checked_neg
+    local.set 2   ; arg 2
+  end $L1
+  i64.const 0
+  local.set 4   ; ndigits
+  local.get 2   ; arg 2
+  local.set 5   ; m
+  loop $L2 void
+    local.get 5   ; m
+    i64.const 0
+    i64.ne
+    if $L3 void
+      local.get 4   ; ndigits
+      i64.const 1
+      i64.checked_add
+      local.set 4   ; ndigits
+      local.get 5   ; m
+      i64.const 10
+      i64.div
+      local.set 5   ; m
+      br $L2
+    end $L3
+  end $L2
+  local.get 3   ; neg
+  if $L4 void
+    local.get 4   ; ndigits
+    i64.const 1
+    i64.checked_add
+    local.set 5   ; m
+  else
+    local.get 4   ; ndigits
+    local.set 5   ; m
+  end $L4
+  local.get 1   ; arg 1
+  local.get 5   ; m
+  i64.checked_add
+  local.set 4   ; ndigits
+  loop $L5 void
+    local.get 2   ; arg 2
+    i64.const 0
+    i64.ne
+    if $L6 void
+      local.get 4   ; ndigits
+      i64.const 1
+      i64.checked_sub
+      local.set 4   ; ndigits
+      local.get 2   ; arg 2
+      i64.const 10
+      i64.rem
+      i64.checked_neg
+      i64.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 6   ; $cast_36
+      i32.const 48
+      local.get 6   ; $cast_36
+      u8.checked_add
+      local.set 7   ; $add_checked_37
+      local.get 0   ; arg 0
+      local.get 4   ; ndigits
+      local.get 7   ; $add_checked_37
+      store_u8
+      local.get 2   ; arg 2
+      i64.const 10
+      i64.div
+      local.set 2   ; arg 2
+      br $L5
+    end $L6
+  end $L5
+  local.get 3   ; neg
+  if $L7 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 45
+    store_u8
+    local.get 1   ; arg 1
+    local.get 5   ; m
+    i64.checked_add
+    return
+  end $L7
+  local.get 1   ; arg 1
+  local.get 5   ; m
+  i64.checked_add
+  return
+end
+
+fn 26 std_io$write (u8,string) -> void
+  local buf ref
+  local sent i64
+  local $len_7 i64
+  local $len_9 i64
+  local chunk ref
+  local $len_12 i64
+  local n i32
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 27   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
+  local.get 1   ; arg 1
+  call.import 1   ; std_core$bytes
+  local.set 2   ; buf
+  i64.const 0
+  local.set 3   ; sent
+  loop $L1 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_7
+    local.get 3   ; sent
+    local.get 4   ; $len_7
+    i64.ge
+    if $L2 void
+    else
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_9
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_9
+      array.slice 23   ; u8[]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_12
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_12
+      call 28   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_17
+      local.get 3   ; sent
+      local.get 9   ; $cast_17
+      i64.checked_add
+      local.set 3   ; sent
+      br $L1
+    end $L2
+  end $L1
+  return
+end
+
+fn 27 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 28 std_io$write_bytes (u8,ref,i64) -> i32
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    i64.to_i32
+    return
+  end $L0
+  i32.const 2
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 2   ; system_posix$sys_write
+  i64.to_i32
+  return
+end
+
+fn 29 std_io$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 6   ; "\n"
+  call 18   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 26   ; std_io$write
+  return
+end

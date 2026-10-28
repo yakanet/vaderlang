@@ -1,0 +1,64 @@
+module "snippet"
+
+import "std/io"
+
+// A trait's default body inherited by two impls. Each impl compiles its own copy,
+// so every name the body binds is a local of that copy: a struct pattern's field,
+// a destructured loop variable, a name read on the left of `??`, under `defer`,
+// or by `yield`.
+
+Square :: struct { side: i32 }
+Circle :: struct { radius: i32 }
+
+Shape :: trait {
+    size :: fn(self) -> i32
+    side_of :: fn(self, v: Square | i32) -> i32 = match v {
+        is Square { side: 1 } -> -1
+        is Square { side }    -> side * self.size()
+        is i32                -> v
+    }
+    total :: fn(self, pairs: i32[][]) -> i32 {
+        acc := 0
+        for [x, i] in pairs {
+            acc += x * self.size() + i
+        }
+        return acc
+    }
+    pick :: fn(self, d: i32) -> i32 = positive(self.size() - d) ?? d
+    traced :: fn(self, label: string) -> i32 {
+        defer println("leave ${label} ${self.size()}")
+        return self.size()
+    }
+    multiples :: fn(self, n: i32) -> Iterator<i32> {
+        for i in 0..<n {
+            yield i * self.size()
+        }
+    }
+}
+
+Square implements Shape {
+    size :: fn(self) -> i32 = self.side
+}
+
+Circle implements Shape {
+    size :: fn(self) -> i32 = self.radius * 10
+}
+
+positive :: fn(n: i32) -> i32 | null = if n > 0 { n } else { null }
+
+main :: fn() -> i32 {
+    s :: Square { .side = 2 }
+    c :: Circle { .radius = 3 }
+    println("${s.side_of(Square { .side = 1 })} ${s.side_of(Square { .side = 4 })} ${s.side_of(7)}")
+    println("${c.side_of(Square { .side = 1 })} ${c.side_of(Square { .side = 4 })} ${c.side_of(7)}")
+    println("${s.total([[1, 10], [2, 20]])} ${c.total([[1, 10], [2, 20]])}")
+    println("${s.pick(1)} ${s.pick(5)} ${c.pick(1)} ${c.pick(50)}")
+    println("${s.traced("square")} ${c.traced("circle")}")
+    for m in s.multiples(3) {
+        println("square ${m}")
+    }
+    for m in c.multiples(2) {
+        println("circle ${m}")
+    }
+    return 0
+}

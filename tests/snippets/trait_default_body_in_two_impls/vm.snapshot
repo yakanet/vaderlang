@@ -1,0 +1,15 @@
+# stdout
+-1 8 7
+-1 120 7
+36 120
+1 5 29 50
+leave square 2
+leave circle 30
+2 30
+square 0
+square 2
+square 4
+circle 0
+circle 30
+# exit
+0

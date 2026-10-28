@@ -7,10 +7,11 @@
 // body must be cloned and its `T` references rewritten to the impl's trait
 // arg (e.g. `i32` for an impl of `Trait<i32>`).
 //
-// SCOPE : sketch. Not all variants are handled: TODOs mark the gaps.
-// Calling `substitute_block` on a body that uses an unsupported variant
-// returns the original sub-tree unchanged (the walker is total but not
-// total-cloning, so partial coverage doesn't trap).
+// Each impl's copy shares no node with the trait's body nor with another copy:
+// the copy is given ids and spans of its own in place (`assign_block_ids`,
+// `stamp_block_spans`), and a binding's span keys its local symbol. The clone
+// walkers and the stamp walkers are exhaustive, so a new node kind is handled in
+// both or the build fails.
 //
 // WIRED VIA : `materialize_default_members` (materialize.vader), which
 // `vader/front/typecheck/orchestrate.vader` calls once per impl × default-bodied
@@ -42,9 +43,10 @@ export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
 // Substitute inside a `??` fallback, preserving its concrete shape : break /
 // continue carry no substitutable expression ; return substitutes its value.
 substitute_coalesce_fallback :: fn(f: AST.CoalesceFallback, subst: Subst) -> AST.CoalesceFallback = match f {
-    is AST.ReturnStmt -> AST.ReturnStmt { .span = f.span, .value = subst_opt_expr(f.value, subst) }
-    is AST.BreakStmt | AST.ContinueStmt -> f
-    is AST.Expr -> substitute_expr_full(f, subst)
+    is AST.ReturnStmt   -> AST.ReturnStmt { .span = f.span, .value = subst_opt_expr(f.value, subst) }
+    is AST.BreakStmt    -> AST.BreakStmt { ...f, .id = AST.UNASSIGNED_NODE_ID }
+    is AST.ContinueStmt -> AST.ContinueStmt { ...f, .id = AST.UNASSIGNED_NODE_ID }
+    is AST.Expr         -> substitute_expr_full(f, subst)
 }
 
 subst_opt_expr :: fn(v: AST.Expr | null, subst: Subst) -> AST.Expr | null {
@@ -69,8 +71,12 @@ subst_opt_expr :: fn(v: AST.Expr | null, subst: Subst) -> AST.Expr | null {
 /// @return       a fresh tree sharing no node with `e`.
 export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
     match e {
-        // Leaves : reuse the original. No TypeParam refs possible.
-        is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr -> { return e }
+        // Leaves : nothing to substitute, copied whole under an id of their own.
+        is AST.IntLitExpr   -> { return AST.IntLitExpr { ...e, .id = AST.UNASSIGNED_NODE_ID } }
+        is AST.FloatLitExpr -> { return AST.FloatLitExpr { ...e, .id = AST.UNASSIGNED_NODE_ID } }
+        is AST.BoolLitExpr  -> { return AST.BoolLitExpr { ...e, .id = AST.UNASSIGNED_NODE_ID } }
+        is AST.NullLitExpr  -> { return AST.NullLitExpr { ...e, .id = AST.UNASSIGNED_NODE_ID } }
+        is AST.CharLitExpr  -> { return AST.CharLitExpr { ...e, .id = AST.UNASSIGNED_NODE_ID } }
 
         is AST.NullCoalesceExpr -> {
             return AST.NullCoalesceExpr {
@@ -318,10 +324,8 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
 
 /// Clone a Stmt, recursing into child Exprs. Fields are listed, not spread,
 /// see `substitute_expr_full`.
-// @partial: sketch coverage, the TODO'd DeferStmt passes through unchanged until
-// the walker is completed.
 export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
-    @partial match s {
+    match s {
         is AST.LetStmt               -> {
             new_ty: AST.TypeExpr | null = null
             if s.ty !is null {
@@ -394,7 +398,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
                 }
                 is AST.InFor       -> {
                     new_form = AST.InFor {
-                        .loop_var = form.loop_var,
+                        .loop_var = clone_loop_var(form.loop_var),
                         .iter = substitute_expr_full(form.iter, subst),
                     }
                 }
@@ -408,11 +412,35 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
                 .is_comptime = s.is_comptime,
             }
         }
-        is AST.BreakStmt             -> { return s } // no children
-        is AST.ContinueStmt          -> { return s }
-        // TODO : DeferStmt. Falls through unchanged for the sketch.
-        _                            -> { return s }
+        is AST.YieldStmt             -> {
+            return AST.YieldStmt {
+                .span = s.span,
+                .id = AST.UNASSIGNED_NODE_ID,
+                .value = substitute_expr_full(s.value, subst),
+            }
+        }
+        is AST.DeferStmt             -> {
+            return AST.DeferStmt {
+                .span = s.span,
+                .id = AST.UNASSIGNED_NODE_ID,
+                .body = substitute_defer_body(s.body, subst),
+            }
+        }
+        is AST.BreakStmt             -> { return AST.BreakStmt { ...s, .id = AST.UNASSIGNED_NODE_ID } }
+        is AST.ContinueStmt          -> { return AST.ContinueStmt { ...s, .id = AST.UNASSIGNED_NODE_ID } }
     }
+}
+
+substitute_defer_body :: fn(b: AST.DeferBody, subst: Subst) -> AST.DeferBody = match b {
+    is AST.DeferStmtBody  -> AST.DeferStmtBody { .stmt = substitute_stmt(b.stmt, subst) }
+    is AST.DeferBlockBody -> AST.DeferBlockBody { .block = substitute_block(b.block, subst) }
+}
+
+// A destructuring loop variable binds like a `let` : see `clone_let_binding`.
+clone_loop_var :: fn(v: AST.LoopVar) -> AST.LoopVar = match v {
+    is AST.NamedVar       -> AST.NamedVar { ...v }
+    is AST.DestructureVar -> AST.DestructureVar { .pattern = clone_let_binding(v.pattern) }
+    is AST.DiscardVar     -> AST.DiscardVar {}
 }
 
 // The clone of an assignment's value. A compound assignment's `value.left` IS its
@@ -434,16 +462,16 @@ clone_assign_value :: fn(s: AST.AssignStmt, target: AST.Expr, subst: Subst) -> A
     return substitute_expr_full(s.value, subst)
 }
 
-/// Clone a `let` binding so a materialised body owns it (the resolver keys
-/// the local Symbol on `binding.name_span` ; sharing the trait node would
-/// collide across impls/generations). Spans are carried over and re-stamped
-/// by `stamp_binding_spans`.
 // A `match` header's binding, cloned as a declaration's is.
 clone_header_binding :: fn(b: AST.SimpleBinding | null) -> AST.SimpleBinding | null {
     present :: b ?? return null
     return AST.SimpleBinding { ...present, .id = AST.UNASSIGNED_NODE_ID }
 }
 
+/// Clone a `let` binding so a materialised body owns it (the resolver keys
+/// the local Symbol on `binding.name_span` ; sharing the trait node would
+/// collide across impls/generations). Spans are carried over and re-stamped
+/// by `stamp_binding_spans`.
 clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding {
     match b {
         is AST.SimpleBinding -> {
@@ -463,28 +491,84 @@ clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding {
     }
 }
 
-/// Clone a Pattern, substituting TypeExprs inside `is T` patterns.
-// @partial: sketch coverage, the TODO'd patterns (StructPattern,
-// LiteralPattern, EnumVariantPattern) and the childless WildcardPattern pass
-// through unchanged.
-export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
-    @partial match p {
-        is AST.IsPattern -> {
-            new_inner: AST.Pattern | null = null
-            if p.inner !is null {
-                new_inner = substitute_pattern(p.inner, subst)
-            }
-            return AST.IsPattern {
-                .span = p.span, .id = AST.UNASSIGNED_NODE_ID,
-                .ty = substitute_type_expr(p.ty, subst),
-                .inner = new_inner,
-            }
-        }
-        // TODO : StructPattern, LiteralPattern, EnumVariantPattern.
-        // WildcardPattern has no children: pass through.
-        _ -> { return p }
+/// Clone a Pattern, substituting the types it names and the values it compares to.
+///
+/// Rebuilds with children list their fields, see `substitute_expr_full`.
+///
+/// @param p      the pattern to clone.
+/// @param subst  the substitution the clone applies to the types it names.
+export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern = match p {
+    is AST.IsPattern          -> AST.IsPattern {
+        .span = p.span,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .ty = substitute_type_expr(p.ty, subst),
+        .inner = substitute_inner_pattern(p.inner, subst),
     }
+    is AST.StructPattern      -> AST.StructPattern {
+        .span = p.span,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .fields = substitute_pattern_fields(p.fields, subst),
+    }
+    is AST.LiteralPattern     -> AST.LiteralPattern {
+        .span = p.span,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .value = substitute_expr_full(p.value, subst),
+    }
+    is AST.RangePattern       -> AST.RangePattern {
+        .span = p.span,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .inclusive = p.inclusive,
+        .lower = substitute_expr_full(p.lower, subst),
+        .upper = substitute_expr_full(p.upper, subst),
+    }
+    is AST.OrPattern          -> AST.OrPattern {
+        .span = p.span,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .patterns = substitute_patterns(p.patterns, subst),
+    }
+    is AST.WildcardPattern    -> AST.WildcardPattern { ...p, .id = AST.UNASSIGNED_NODE_ID }
+    is AST.EnumVariantPattern -> AST.EnumVariantPattern { ...p, .id = AST.UNASSIGNED_NODE_ID }
 }
+
+substitute_patterns :: fn(patterns: AST.Pattern[], subst: Subst) -> AST.Pattern[] {
+    out: AST.Pattern[]: []
+    for p in patterns {
+        out.push(substitute_pattern(p, subst))
+    }
+    return out
+}
+
+substitute_inner_pattern :: fn(p: AST.Pattern | null, subst: Subst) -> AST.Pattern | null {
+    inner :: p ?? return null
+    return substitute_pattern(inner, subst)
+}
+
+substitute_pattern_fields :: fn(
+    fields: AST.StructPatternField[],
+    subst: Subst,
+) -> AST.StructPatternField[] {
+    out: AST.StructPatternField[]: []
+    for f in fields {
+        out.push(
+            AST.StructPatternField {
+                .span = f.span,
+                .id = AST.UNASSIGNED_NODE_ID,
+                .name = f.name,
+                .name_span = f.name_span,
+                .value = substitute_field_value(f.value, subst),
+            },
+        )
+    }
+    return out
+}
+
+substitute_field_value :: fn(v: AST.PatternFieldValue, subst: Subst) -> AST.PatternFieldValue =
+    match v {
+        is AST.PatternBinding -> AST.PatternBinding { ...v, .id = AST.UNASSIGNED_NODE_ID }
+        is AST.PatternLiteral -> AST.PatternLiteral {
+            .value = substitute_expr_full(v.value, subst),
+        }
+    }
 
 // ---- materialised-body wrapper -------------------------------------------
 
@@ -598,7 +682,19 @@ stamp_stmt_spans :: fn(s: AST.Stmt, stamp: StampCtx) -> void {
             }
             stamp_block_spans(s.body, stamp)
         }
-        _                            -> {}
+        is AST.YieldStmt             -> {
+            s.span = next_clone_span(stamp)
+            stamp_expr_spans(s.value, stamp)
+        }
+        is AST.DeferStmt             -> {
+            s.span = next_clone_span(stamp)
+            match body :: s.body {
+                is AST.DeferStmtBody  -> { stamp_stmt_spans(body.stmt, stamp) }
+                is AST.DeferBlockBody -> { stamp_block_spans(body.block, stamp) }
+            }
+        }
+        is AST.BreakStmt             -> { s.span = next_clone_span(stamp) }
+        is AST.ContinueStmt          -> { s.span = next_clone_span(stamp) }
     }
 }
 
@@ -739,7 +835,42 @@ stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
             }
             stamp_block_spans(e.body, stamp)
         }
-        _ -> {}
+        is AST.NullCoalesceExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.left, stamp)
+            match fallback :: e.fallback {
+                is AST.ReturnStmt   -> {
+                    fallback.span = next_clone_span(stamp)
+                    if fallback.value !is null {
+                        stamp_expr_spans(fallback.value, stamp)
+                    }
+                }
+                is AST.BreakStmt    -> { fallback.span = next_clone_span(stamp) }
+                is AST.ContinueStmt -> { fallback.span = next_clone_span(stamp) }
+                is AST.Expr         -> { stamp_expr_spans(fallback, stamp) }
+            }
+        }
+        // The callee stays shared with the trait (`substitute_type_expr` keeps it),
+        // and names one declaration in every copy.
+        is AST.GenericInstExpr -> {
+            e.span = next_clone_span(stamp)
+            for t in e.type_args {
+                stamp_expr_spans(t, stamp)
+            }
+        }
+        is AST.FnTypeExpr -> {
+            e.span = next_clone_span(stamp)
+            for t in e.params {
+                stamp_expr_spans(t, stamp)
+            }
+            if e.return_type !is null {
+                stamp_expr_spans(e.return_type, stamp)
+            }
+        }
+        is AST.ArrayTypeExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.element, stamp)
+        }
     }
 }
 
@@ -763,13 +894,46 @@ stamp_binding_spans :: fn(b: AST.LetBinding, stamp: StampCtx) -> void {
 
 stamp_pattern_spans :: fn(p: AST.Pattern, stamp: StampCtx) -> void {
     match p {
-        is AST.IsPattern -> {
+        is AST.IsPattern          -> {
             p.span = next_clone_span(stamp)
             if p.inner !is null {
                 stamp_pattern_spans(p.inner, stamp)
             }
         }
-        _ -> {}
+        is AST.StructPattern      -> {
+            p.span = next_clone_span(stamp)
+            for f in p.fields {
+                stamp_pattern_field_spans(f, stamp)
+            }
+        }
+        is AST.LiteralPattern     -> {
+            p.span = next_clone_span(stamp)
+            stamp_expr_spans(p.value, stamp)
+        }
+        is AST.RangePattern       -> {
+            p.span = next_clone_span(stamp)
+            stamp_expr_spans(p.lower, stamp)
+            stamp_expr_spans(p.upper, stamp)
+        }
+        is AST.OrPattern          -> {
+            p.span = next_clone_span(stamp)
+            for sub in p.patterns {
+                stamp_pattern_spans(sub, stamp)
+            }
+        }
+        is AST.WildcardPattern    -> { p.span = next_clone_span(stamp) }
+        is AST.EnumVariantPattern -> { p.span = next_clone_span(stamp) }
+    }
+}
+
+// A field's binding takes the field's own name span : the resolver keys the
+// local symbol on the field's, the typecheck and the lowering read the binding's.
+stamp_pattern_field_spans :: fn(f: AST.StructPatternField, stamp: StampCtx) -> void {
+    f.span = next_clone_span(stamp)
+    f.name_span = next_clone_span(stamp)
+    match value :: f.value {
+        is AST.PatternBinding -> { value.span = f.name_span }
+        is AST.PatternLiteral -> { stamp_expr_spans(value.value, stamp) }
     }
 }
 
