@@ -25,6 +25,10 @@ export CalleeIndex :: struct {
     functions: Function[] = []
     /// Declaration id → node, for each function with a body.
     nodes: MutableMap<i64, i32> = MutableMap<i64, i32> {}
+    /// A trait default's declaration id → the node every impl inheriting it runs.
+    /// Apart from `nodes`: a declaration naming the trait's member itself may reach
+    /// any impl's override, so `target_of_decl` must not find the default there.
+    default_nodes: MutableMap<i64, i32> = MutableMap<i64, i32> {}
     /// Declaration id → what a bodyless function does.
     bodyless: MutableMap<i64, CallTarget> = MutableMap<i64, CallTarget> {}
     /// The declarations of the intrinsics that hand back a frozen view
@@ -129,7 +133,7 @@ register_defaults :: fn(index: CalleeIndex, decl: AST.StructDecl, typed: TypedPr
 }
 
 // Make `member` of `impl_` a node: one the impl inherits from its trait runs the
-// trait's default body, read in the trait's module.
+// trait's default body, read in the trait's module, one node for every impl.
 register_member :: fn(
     index: CalleeIndex,
     member: AST.FnDecl,
@@ -142,8 +146,20 @@ register_member :: fn(
         index.register(member, typed)
         return
     }
-    index.nodes[member.id] = i32(index.functions.len())
-    index.functions.push(inherited)
+    shared :: index.default_nodes[inherited.decl.id]
+    if shared != null {
+        index.nodes[member.id] = shared
+        return
+    }
+    node :: index.add_node(inherited)
+    index.default_nodes[inherited.decl.id] = node
+    index.nodes[member.id] = node
+}
+
+// Add `f` to the nodes ; its node.
+add_node :: fn(index: CalleeIndex, f: Function) -> i32 {
+    index.functions.push(f)
+    return i32(index.functions.len() - 1)
 }
 
 // The trait's default body `member` runs, in the trait's module ; null for a
@@ -163,8 +179,7 @@ inherited_function :: fn(
 // Make `decl` a node when it has a body, else note what it does.
 register :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> void {
     if decl.body != null {
-        index.nodes[decl.id] = i32(index.functions.len())
-        index.functions.push(Function { .decl = decl, .typed = typed })
+        index.nodes[decl.id] = index.add_node(Function { .decl = decl, .typed = typed })
         return
     }
     index.bodyless[decl.id] = index.bodyless_target(decl, typed)
@@ -273,7 +288,8 @@ target_of_decl :: fn(index: CalleeIndex, decl: AST.FnDecl) -> CallTarget {
 }
 
 // The member `member` of every impl of the trait `trait_key`, an inherited one
-// included. An impl that lacks it is one in error: it may do anything.
+// included, once per node : the impls inheriting one default share it. An impl
+// that lacks it is one in error: it may do anything.
 member_targets :: fn(index: CalleeIndex, trait_key: string, member: string) -> CallTarget[] {
     key :: "${trait_key}.${member}"
     cached :: index.members[key]
@@ -281,6 +297,7 @@ member_targets :: fn(index: CalleeIndex, trait_key: string, member: string) -> C
         return cached
     }
     out: CallTarget[]: []
+    reached :: MutableSet<i32> {}
     for entry in index.impls.all {
         if entry.trait_key != trait_key {
             continue
@@ -288,9 +305,13 @@ member_targets :: fn(index: CalleeIndex, trait_key: string, member: string) -> C
         decl :: entry.decl.members.find((m) -> m.name == member)
         if decl == null {
             out.push(AnyCallee {})
-        } else {
-            out.push(index.target_of_decl(decl))
+            continue
         }
+        target :: index.target_of_decl(decl)
+        if target is CalleeNode && !reached.add(target.node) {
+            continue
+        }
+        out.push(target)
     }
     index.members[key] = out
     return out

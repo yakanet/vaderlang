@@ -69,5 +69,5 @@ among them.
   call reaches. A member declared for an impl from its trait is written
   nowhere: its name and an inherited member's parameters take a span that names
   no source.
-- Find-references does not yet link a call of an inherited member to the
-  default body.
+- An editor reaches the default from a call of an inherited member: its
+  references, its definition, its hover.

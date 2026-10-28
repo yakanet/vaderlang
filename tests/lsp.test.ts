@@ -2095,15 +2095,19 @@ test("lsp: an alias of a generic fn keeps its own name", async () => {
   expect(named.filter((k) => k === key(positionOf(src, "id, 1")))).toHaveLength(1);
 }, { timeout: MEDIUM_BUILD });
 
-// A trait default is copied into each impl that inherits it; the copy has no
-// source of its own, so nothing in it is a reference. The default's own body,
-// checked in its trait, is one.
-const DEFAULT_COPY_SOURCE = `module "lsptest"
+// Two impls inherit a trait default without a body of their own: the default's
+// body, checked in its trait, holds the references, once, and a call of an
+// inherited member reaches the default, not a namesake of another trait.
+const INHERITED_DEFAULT_SOURCE = `module "lsptest"
 
 V :: struct { x: i32 }
 
 V implements Add {
     add :: fn(self, other: V) -> V = V { .x = self.x + other.x }
+}
+
+Tripler :: trait {
+    twice :: fn(self) -> V
 }
 
 Doubler :: trait {
@@ -2117,22 +2121,39 @@ W implements Doubler {
     get :: fn(self) -> V = self.v
 }
 
-main :: fn() -> i32 = W { .v = V { .x = 1 } }.twice().x
+X :: struct { v: V }
+
+X implements Doubler {
+    get :: fn(self) -> V = self.v
+}
+
+main :: fn() -> i32 = W { .v = V { .x = 1 } }.twice().x + X { .v = V { .x = 2 } }.twice().x
 `;
 
-test("lsp: a trait default copied into an impl is no reference", async () => {
-  const src = DEFAULT_COPY_SOURCE;
+test("lsp: an inherited default is reached in its trait", async () => {
+  const src = INHERITED_DEFAULT_SOURCE;
+  const defaultDecl = positionOf(src, "twice :: fn(self) -> V =");
+  const firstCall = positionOf(src, "twice().x + X");
+  const secondCall = positionOf(src, "2 } }.twice()", 6);
   const results = await driveLsp(src, [
     { method: "textDocument/references", position: positionOf(src, "add :: fn") },
+    { method: "textDocument/references", position: defaultDecl },
+    { method: "textDocument/definition", position: firstCall },
   ]);
   const sites = results[0]!.result as Location[];
   // The declaration, and the `+` written in the trait's body, at the start of its
-  // expression: not one per copy.
+  // expression: not one per impl.
   expect(starts(sites)).toEqual([
     key(positionOf(src, "self.get() + self.get()")),
     key(positionOf(src, "add :: fn")),
   ]);
   expect(sites[0]!.uri.endsWith("lsp-test.vader")).toBe(true);
+  // The default's declaration, and the call of each impl's inherited member.
+  expect(starts(results[1]!.result as Location[])).toEqual(
+    [key(defaultDecl), key(firstCall), key(secondCall)].sort(),
+  );
+  // The call's definition is `Doubler`'s default, not `Tripler`'s namesake.
+  expect((results[2]!.result as Location).range.start).toEqual(defaultDecl);
 }, { timeout: MEDIUM_BUILD });
 
 // A `match` header's binding is declared by its NAME token.

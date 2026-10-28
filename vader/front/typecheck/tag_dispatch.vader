@@ -12,6 +12,7 @@ module "vader/front/typecheck"
 
 import "std/iter"
 import "std/string"
+AST :: import "toolchain/ast"
 import "toolchain/span"
 import "vader/core/symbol"
 import "vader/core/types"
@@ -189,7 +190,7 @@ array_members_have_bodies :: fn(
         }
         for m in trait_members(typed, v, trait_key, method) {
             decl :: m.decl ?? return false
-            if decl.body == null && decl.inherits == null {
+            if AST.body_source(decl).body == null {
                 return false
             }
         }

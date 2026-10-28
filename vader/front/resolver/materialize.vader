@@ -42,10 +42,10 @@ unplaced_span :: fn() -> Span {
 /// stub FnDecl per trait method so downstream phases see the impl's
 /// full surface. No-op when the impl already has members.
 ///
-/// @param impl_decl    the `@intrinsic` impl to fill.
-/// @param trait_decl   the trait it implements.
-/// @param factory  the project's node-id factory : each stub takes a
-///                 declaration id of its own from it.
+/// @param impl_decl   the `@intrinsic` impl to fill.
+/// @param trait_decl  the trait it implements.
+/// @param factory     the project's node-id factory : each stub takes a
+///                    declaration id of its own from it.
 export materialize_intrinsic_members :: fn(
     impl_decl: AST.ImplDecl,
     trait_decl: AST.TraitDecl,
@@ -58,7 +58,8 @@ export materialize_intrinsic_members :: fn(
         decorators :: intrinsic_decorator(impl_decl.span)
         params :: substitute_params(method.params, subst)
         id :: factory.mint()
-        impl_decl.members.push(synth_signature(method, unplaced_span(), params, subst, decorators, id))
+        stub :: synth_signature(method, unplaced_span(), params, subst, decorators, id)
+        impl_decl.members.push(stub)
     }
 }
 
@@ -67,9 +68,9 @@ export materialize_intrinsic_members :: fn(
 /// Each takes an id of its own from the project's factory, so it has slots of its
 /// own in the id-keyed tables.
 ///
-/// @param impl_decl    the impl to complete.
-/// @param trait_decl   the trait it implements.
-/// @param factory  the project's node-id factory.
+/// @param impl_decl   the impl to complete.
+/// @param trait_decl  the trait it implements.
+/// @param factory     the project's node-id factory.
 export materialize_default_members :: fn(
     impl_decl: AST.ImplDecl,
     trait_decl: AST.TraitDecl,

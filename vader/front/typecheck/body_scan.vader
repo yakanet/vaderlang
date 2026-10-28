@@ -80,7 +80,7 @@ export BodyShape :: struct {
 // inherited member awaits and yields as the default body it runs, remembered once
 // for every impl.
 body_shape :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> BodyShape {
-    source :: fn_decl.inherits ?? fn_decl
+    source :: AST.body_source(fn_decl)
     if source.id == AST.UNASSIGNED_NODE_ID {
         return scan_body(source)
     }

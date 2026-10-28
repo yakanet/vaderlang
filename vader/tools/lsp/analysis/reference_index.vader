@@ -296,13 +296,15 @@ RecordedFns :: struct {
 }
 
 // The fns the typecheck recorded in `typed`, by node : one pass over the record's
-// tables rather than a lookup per role at every node. A member materialised from a
-// trait default has no source of its own.
+// tables rather than a lookup per role at every node. A member inherited from a
+// trait default refers to the default ; any other member materialised from its
+// trait (an intrinsic stub) has no source of its own.
 recorded_fns :: fn(typed: TypedProgram) -> MutableMap<i64, RecordedFns> {
     out :: MutableMap<i64, RecordedFns> {}
     for role in all_roles() {
         for [id, callee] in sites_of(typed.call_sites, role) {
-            for decl in named_decls(callee) {
+            for named in named_decls(callee) {
+                decl :: AST.body_source(named)
                 if decl.materialized {
                     continue
                 }

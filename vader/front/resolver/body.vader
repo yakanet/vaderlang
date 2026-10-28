@@ -404,7 +404,9 @@ walk_member_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
 
 // A fn body, in the scope of the file it was written in : a `@target` body
 // grafted from a sibling file sees that file's imports, not the declaration's.
-// A body whose span names no file of the module belongs to the file being walked.
+// A body whose span names no file of the module belongs to the file being walked:
+// the `Display` of an `@displayable` enum, parsed under a file name of its own
+// (`<displayable>:`, see `displayable.vader`) and appended to the enum's file.
 walk_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
     written_in :: self.file_scopes[body.span.start.file]
     if written_in == null {

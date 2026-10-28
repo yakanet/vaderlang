@@ -409,6 +409,14 @@ export FnDecl :: struct {
     inherits:              FnDecl | null = null
 }
 
+/// The declaration whose body `fd` runs: for a member an impl inherits, the
+/// trait's member (`inherits`), whose default body it is ; `fd` itself otherwise.
+/// A reader of a member's body goes through it, or sees an inherited member as
+/// bodyless.
+///
+/// @param fd  a function declaration.
+export body_source :: fn(fd: FnDecl) -> FnDecl = fd.inherits ?? fd
+
 /// One parameter of a function, lambda or trait method.
 export FnParam :: struct {
     span:          Span

@@ -168,7 +168,8 @@ chosen_member :: fn(
     }
     free :: chosen_decl(typed, e.id)
     decl :: if free != null { free } else { chosen_impl_decl(typed, e.id) ?? return null }
-    at :: decl.name_span.start
+    // A member an impl inherits is written nowhere : its trait's default is.
+    at :: AST.body_source(decl).name_span.start
     src :: state.source_for_path(at.file)
     if src.byte_len() == 0 {
         return null
