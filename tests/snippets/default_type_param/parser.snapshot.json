@@ -229,7 +229,10 @@
         "typeParams": [
           {
             "name": "Step",
-            "bound": null,
+            "bound": {
+              "kind": "IdentExpr",
+              "name": "Add"
+            },
             "isComptimeValue": false
           }
         ],
@@ -270,7 +273,7 @@
             ],
             "returnType": {
               "kind": "IdentExpr",
-              "name": "i32"
+              "name": "Step"
             },
             "body": {
               "kind": "BlockExpr",

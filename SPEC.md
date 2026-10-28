@@ -2051,6 +2051,12 @@ Square implements Shape -> self.side * self.side
 // Square gets `describe` from the trait.
 ```
 
+A default body is checked once, in the trait, for every type that will implement it. `Self` is then any implementing type, and a type parameter of the trait has only its bounds:
+
+- an error in the body is reported once, at the body, even when no type implements the trait;
+- an operation on a type parameter needs its bound, as in a generic function: `a + b` on two `T` needs `T: Add`;
+- a test on `Self` or on a type parameter (`self is Square`, `x is Box<T>`) is answered for each impl, by the type it implements the trait for.
+
 In the standard library, `Async` has one default method: `cancel`, which does nothing.
 
 #### Operator overloading

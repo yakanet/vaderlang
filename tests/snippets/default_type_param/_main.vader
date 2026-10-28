@@ -3,8 +3,9 @@
 // When an impl supplies fewer trait-args than the trait has params, the
 // trailing params fill from their `= Default`. Covers a `Self` default
 // (resolves to the impl's for-type) and a concrete default (`i32`). Both
-// traits carry a default-bodied method whose synthesized signature uses
-// the defaulted param, so the value only typechecks if the default fired.
+// traits carry a default-bodied method whose signature uses the defaulted
+// param, so the value only typechecks if the default fired. A default body
+// is checked against the trait's bounds: adding two `Step` needs `Add`.
 
 module "default_type_param"
 
@@ -21,9 +22,9 @@ N implements Adder {
     add_to :: fn(self, other: N) -> i32 = self.v + other.v
 }
 
-Counter :: trait<Step = i32> {
+Counter :: trait<Step: Add = i32> {
     current :: fn(self) -> Step
-    bumped :: fn(self) -> i32 = self.current() + self.current()
+    bumped :: fn(self) -> Step = self.current() + self.current()
 }
 
 Tick :: struct { c: i32 }

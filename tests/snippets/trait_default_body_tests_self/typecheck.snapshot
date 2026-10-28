@@ -4,6 +4,43 @@
   FnDecl         main                 :: fn() -> i32
   TraitDecl      Probe                :: Probe
   StructDecl     Square               :: Square
+  expr 15:12    BinaryExpr     :: bool
+  expr 15:12    IdentExpr      :: Self
+  expr 15:20    IdentExpr      :: Square
+  expr 15:9     IfExpr         :: void
+  expr 16:20    BinaryExpr     :: i32
+  expr 16:20    FieldExpr      :: i32
+  expr 16:20    IdentExpr      :: Square
+  expr 18:12    BinaryExpr     :: bool
+  expr 18:12    IdentExpr      :: Self
+  expr 18:20    IdentExpr      :: i32
+  expr 18:9     IfExpr         :: void
+  expr 19:20    BinaryExpr     :: i32
+  expr 19:20    IdentExpr      :: i32
+  expr 21:16    CallExpr       :: i32
+  expr 21:16    FieldExpr      :: fn() -> i32
+  expr 21:16    IdentExpr      :: Self
+  expr 23:34    MatchExpr      :: string
+  expr 23:40    IdentExpr      :: Self
+  expr 24:22    StringLitExpr  :: string
+  expr 25:22    StringLitExpr  :: string
+  expr 26:22    StringLitExpr  :: string
+  expr 29:12    BinaryExpr     :: bool
+  expr 29:12    IdentExpr      :: Self
+  expr 29:17    UnaryExpr      :: bool
+  expr 29:21    IdentExpr      :: Square
+  expr 29:9     IfExpr         :: void
+  expr 32:16    FieldExpr      :: i32
+  expr 32:16    IdentExpr      :: Square
+  expr 35:15    IdentExpr      :: Self
+  expr 36:16    BinaryExpr     :: bool
+  expr 36:16    IdentExpr      :: Self
+  expr 36:22    IdentExpr      :: i32
+  expr 38:50    BinaryExpr     :: bool
+  expr 38:50    IdentExpr      :: Self
+  expr 38:59    IdentExpr      :: Square
+  expr 39:34    BinaryExpr     :: bool
+  expr 39:34    IdentExpr      :: Self
   expr 43027:10 IdentExpr      :: Square
   expr 43027:13 IfExpr         :: void
   expr 43027:14 BinaryExpr     :: bool

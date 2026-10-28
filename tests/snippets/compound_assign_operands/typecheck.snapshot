@@ -130,6 +130,14 @@
   expr 63:16    IdentExpr      :: Shelf
   expr 63:16    IndexExpr      :: Counter
   expr 63:27    IdentExpr      :: i64
+  expr 72:12    CallExpr       :: i64
+  expr 72:12    IdentExpr      :: fn(i64) -> i64
+  expr 72:24    CallExpr       :: i32
+  expr 72:24    FieldExpr      :: fn() -> i32
+  expr 72:24    IdentExpr      :: Self
+  expr 72:9     BinaryExpr     :: i32
+  expr 72:9     IdentExpr      :: i32[]
+  expr 72:9     IndexExpr      :: i32
   expr 79888:10 IdentExpr      :: i32[]
   expr 79888:11 CallExpr       :: i64
   expr 79888:12 IdentExpr      :: fn(i64) -> i64

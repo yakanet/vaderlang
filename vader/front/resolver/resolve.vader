@@ -86,6 +86,10 @@ export ResolvedModule :: struct {
     /// `field.vader` so `x.method()` on a bounded TypeParam can
     /// dispatch to the trait's declared method.
     type_param_bounds: MutableMap<i32, Expr>
+    /// `trait_self_params[trait_sym.id]` is the type parameter `Self` stands for in
+    /// that trait's default bodies, bounded by the trait itself. A default body is
+    /// checked once against it, as the body of a `fn<Self: Trait>` would be.
+    trait_self_params: MutableMap<i32, Symbol> = MutableMap<i32, Symbol> {}
     /// R-code diagnostics emitted during body resolution.
     /// Forwarded to the typecheck CLI's `# Diagnostics` block.
     diags: Diagnostic[]
@@ -191,6 +195,7 @@ export resolve_module_files :: fn(
         .alias_types      = MutableMap<i32, Type> {},
         .alias_params     = MutableMap<i32, TypeParamType[]> {},
         .type_param_bounds = resolved.type_param_bounds,
+        .trait_self_params = resolved.trait_self_params,
         .diags            = resolved.diags,
         .deprecated_messages = MutableMap<i32, string> {},
         .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> {},

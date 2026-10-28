@@ -6,6 +6,36 @@
   StructDecl     Box                  :: Box
   FnDecl         main                 :: fn() -> i32
   TraitDecl      Widget               :: Widget
+  expr 18:35    StructLitExpr  :: Box
+  expr 18:46    BinaryExpr     :: i32
+  expr 18:46    CallExpr       :: i32
+  expr 18:46    FieldExpr      :: fn() -> i32
+  expr 18:46    IdentExpr      :: Self
+  expr 19:35    BinaryExpr     :: i64
+  expr 19:35    CallExpr       :: i64
+  expr 19:35    IdentExpr      :: type
+  expr 19:39    CallExpr       :: i32
+  expr 19:39    FieldExpr      :: fn() -> i32
+  expr 19:39    IdentExpr      :: Self
+  expr 20:35    StringLitExpr  :: string
+  expr 20:40    CallExpr       :: i32
+  expr 20:40    FieldExpr      :: fn() -> i32
+  expr 20:40    IdentExpr      :: Self
+  expr 21:35    SeqLitExpr     :: i32[]
+  expr 21:36    CallExpr       :: i32
+  expr 21:36    FieldExpr      :: fn() -> i32
+  expr 21:36    IdentExpr      :: Self
+  expr 21:49    BinaryExpr     :: i32
+  expr 21:49    CallExpr       :: i32
+  expr 21:49    FieldExpr      :: fn() -> i32
+  expr 21:49    IdentExpr      :: Self
+  expr 22:46    BinaryExpr     :: bool
+  expr 22:46    CallExpr       :: i32
+  expr 22:46    FieldExpr      :: fn() -> i32
+  expr 22:46    IdentExpr      :: Self
+  expr 22:60    CallExpr       :: i32
+  expr 22:60    FieldExpr      :: fn() -> i32
+  expr 22:60    IdentExpr      :: Self
   expr 28686:1  StructLitExpr  :: Box
   expr 28686:13 BinaryExpr     :: i64
   expr 28686:14 CallExpr       :: i64

@@ -6,6 +6,51 @@
   FnDecl         positive             :: fn(i32) -> i32 | null
   TraitDecl      Shape                :: Shape
   StructDecl     Square               :: Square
+  expr 15:51    MatchExpr      :: i32
+  expr 15:57    IdentExpr      :: i32 | Square
+  expr 17:34    BinaryExpr     :: i32
+  expr 17:34    IdentExpr      :: i32
+  expr 17:41    CallExpr       :: i32
+  expr 17:41    FieldExpr      :: fn() -> i32
+  expr 17:41    IdentExpr      :: Self
+  expr 18:34    IdentExpr      :: i32
+  expr 22:23    IdentExpr      :: i32[][]
+  expr 23:13    BinaryExpr     :: i32
+  expr 23:13    IdentExpr      :: i32
+  expr 23:20    BinaryExpr     :: i32
+  expr 23:20    BinaryExpr     :: i32
+  expr 23:20    IdentExpr      :: i32
+  expr 23:24    CallExpr       :: i32
+  expr 23:24    FieldExpr      :: fn() -> i32
+  expr 23:24    IdentExpr      :: Self
+  expr 23:38    IdentExpr      :: i32
+  expr 25:16    IdentExpr      :: i32
+  expr 27:39    CallExpr       :: i32 | null
+  expr 27:39    IdentExpr      :: fn(i32) -> i32 | null
+  expr 27:39    NullCoalesceExpr :: i32
+  expr 27:48    BinaryExpr     :: i32
+  expr 27:48    CallExpr       :: i32
+  expr 27:48    FieldExpr      :: fn() -> i32
+  expr 27:48    IdentExpr      :: Self
+  expr 27:62    IdentExpr      :: i32
+  expr 27:68    IdentExpr      :: i32
+  expr 29:15    CallExpr       :: void
+  expr 29:15    IdentExpr      :: fn(T) -> void
+  expr 29:23    StringLitExpr  :: string
+  expr 29:32    IdentExpr      :: string
+  expr 29:41    CallExpr       :: i32
+  expr 29:41    FieldExpr      :: fn() -> i32
+  expr 29:41    IdentExpr      :: Self
+  expr 30:16    CallExpr       :: i32
+  expr 30:16    FieldExpr      :: fn() -> i32
+  expr 30:16    IdentExpr      :: Self
+  expr 33:18    RangeExpr      :: Range<i32>
+  expr 33:22    IdentExpr      :: i32
+  expr 34:19    BinaryExpr     :: i32
+  expr 34:19    IdentExpr      :: i32
+  expr 34:23    CallExpr       :: i32
+  expr 34:23    FieldExpr      :: fn() -> i32
+  expr 34:23    IdentExpr      :: Self
   expr 39955:1  MatchExpr      :: i32
   expr 39955:100 IdentExpr      :: i32
   expr 39955:101 CallExpr       :: i32

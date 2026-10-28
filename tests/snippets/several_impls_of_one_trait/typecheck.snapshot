@@ -279,6 +279,10 @@
   expr 62:47    BinaryExpr     :: bool
   expr 62:47    IdentExpr      :: string
   expr 62:52    StringLitExpr  :: string
+  expr 71:38    StringLitExpr  :: string
+  expr 71:42    CallExpr       :: string
+  expr 71:42    FieldExpr      :: fn() -> string
+  expr 71:42    IdentExpr      :: Self
   expr 75:34    StructLitExpr  :: Vec2
   expr 75:46    IdentExpr      :: f64
   expr 75:54    IdentExpr      :: f64

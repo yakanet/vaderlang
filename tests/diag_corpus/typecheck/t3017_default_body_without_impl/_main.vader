@@ -1,0 +1,13 @@
+// A default body is checked in its trait, against the trait's bounds: adding two
+// `Step` needs `Step: Add`. Reported once, at the body, though no type implements
+// the trait.
+module "snippet"
+
+export Counter :: trait<Step> {
+    current :: fn(self) -> Step
+    doubled :: fn(self) -> Step = self.current() + self.current()
+}
+
+main :: fn() -> i32 {
+    return 0
+}

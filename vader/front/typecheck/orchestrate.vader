@@ -1189,23 +1189,35 @@ names_trait :: fn(traits: TraitType[], t: TraitType) -> bool {
 }
 
 // The bound of every type parameter `resolved` declares, by its symbol id. The
-// bound table has no names : `idents` is what carries a type parameter's.
+// bound table has no names : `idents` is what carries a type parameter's, and
+// `trait_self_params` a trait's `Self`, which a default body need not write.
 record_type_param_bounds :: fn(
     resolved: ResolvedModule,
     out: MutableMap<i32, TypeParamBound>,
 ) -> void {
     for [_, sym] in resolved.idents {
-        if sym.kind != .TypeParam || out[sym.id] != null {
-            continue
-        }
-        bound :: resolved.type_param_bounds[sym.id] ?? continue
-        traits: TraitType[]: []
-        collect_bound_trait_types(bound, resolved, traits)
-        out[sym.id] = TypeParamBound {
-            .name = sym.name,
-            .traits = traits,
-            .integer = bound_names_int(bound, resolved),
-        }
+        record_type_param_bound(sym, resolved, out)
+    }
+    for [_, sym] in resolved.trait_self_params {
+        record_type_param_bound(sym, resolved, out)
+    }
+}
+
+record_type_param_bound :: fn(
+    sym: Symbol,
+    resolved: ResolvedModule,
+    out: MutableMap<i32, TypeParamBound>,
+) -> void {
+    if sym.kind != .TypeParam || out[sym.id] != null {
+        return
+    }
+    bound :: resolved.type_param_bounds[sym.id] ?? return
+    traits: TraitType[]: []
+    collect_bound_trait_types(bound, resolved, traits)
+    out[sym.id] = TypeParamBound {
+        .name = sym.name,
+        .traits = traits,
+        .integer = bound_names_int(bound, resolved),
     }
 }
 
@@ -2234,15 +2246,21 @@ walk_bodies :: fn(
                 typed.enclosing_impl = decl.span.hash()
                 typed.enclosing_impl_params = impl_param_ids(decl, typed)
                 for m in decl.members {
-                    walk_fn_body(m, typed, diags, mode)
+                    if m.materialized {
+                        walk_default_copy(m, decl, typed, diags, mode)
+                    } else {
+                        walk_fn_body(m, typed, diags, mode)
+                    }
                 }
                 typed.enclosing_impl = 0
                 typed.enclosing_impl_params = MutableSet<i32> {}
             }
             is AST.EnumDecl      -> { check_variant_data(decl, typed, diags) }
+            is AST.TraitDecl     -> {
+                walk_default_bodies(decl, typed, diags, mode)
+            }
             // Body-less decl kinds: nothing to walk. Listed explicitly (not
             // `_`) so a new Decl variant trips T3013 and forces a decision.
-            is AST.TraitDecl     -> {}
             is AST.TypeAliasDecl -> {}
             is AST.ImportDecl    -> {}
         }
@@ -2355,7 +2373,13 @@ declare_and_check_impl :: fn(
     }
     trait_decl :: typed.trait_decls[trait_sym.id]
     for m in id.members {
-        declare_impl_method_for_trait(m, for_ty, lookup_trait_method(trait_decl, m.name), typed, diags)
+        declare_impl_method_for_trait(
+            m,
+            for_ty,
+            lookup_trait_method(trait_decl, m.name),
+            typed,
+            m.member_diags(diags),
+        )
     }
     check_impl_members(id, trait_sym, for_ty, typed, diags)
 }
@@ -2395,6 +2419,76 @@ renamed_param :: fn(tp: TypeParamType, as_struct: MutableMap<i32, Type>) -> Type
         return to
     }
     return tp
+}
+
+// The default bodies of `d`, each checked once in the trait, `Self` read as the
+// trait's own type parameter (`trait_self_params`) : the body of a
+// `fn<Self: Trait>`, valid for every impl the trait will have.
+walk_default_bodies :: fn(
+    d: AST.TraitDecl,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    mode: WalkMode,
+) -> void {
+    trait_sym :: symbol_declared_at(typed.resolved, d.name_span) ?? return
+    self_sym :: typed.resolved.trait_self_params[trait_sym.id] ?? return
+    self_param :: TypeParamType { .symbol = self_sym }
+    typed.default_body_params = default_body_param_ids(d, self_sym, typed)
+    for m in d.members {
+        if m.body != null {
+            declare_impl_method_for_trait(m, self_param, m, typed, diags)
+            walk_fn_body(m, typed, diags, mode)
+        }
+    }
+    typed.default_body_params = MutableSet<i32> {}
+}
+
+// `Self` and the type parameters of `d`, which each impl binds in its copy of a
+// default body.
+default_body_param_ids :: fn(
+    d: AST.TraitDecl,
+    self_sym: Symbol,
+    typed: TypedProgram,
+) -> MutableSet<i32> {
+    out :: MutableSet<i32> {}
+    out.add(self_sym.id)
+    for t in declared_type_args(d.type_params, typed) ?? [] {
+        if t is TypeParamType {
+            out.add(t.symbol.id)
+        }
+    }
+    return out
+}
+
+// Where a member of an impl reports its declaration. A default body's copy reports
+// nothing : the check of the body in its trait reports once.
+member_diags :: fn(m: AST.FnDecl, diags: Diagnostic[]) -> Diagnostic[] {
+    if m.materialized {
+        return []
+    }
+    return diags
+}
+
+// A default body's copy in `impl_`, still checked for the types its lowering reads.
+// What it would report, the check of the body in its trait reports once, except
+// T3087 : only the copy sees the types the impl binds the trait's parameters to,
+// and whether their instances share one body. Reported at the impl, the copy having
+// no source of its own.
+walk_default_copy :: fn(
+    m: AST.FnDecl,
+    impl_: AST.ImplDecl,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    mode: WalkMode,
+) -> void {
+    seen: Diagnostic[]: []
+    walk_fn_body(m, typed, seen, mode)
+    shared_instance :: CodeInfo(TypecheckCode.IsTestOnSharedInstance).id
+    for d in seen {
+        if d.code.id == shared_instance {
+            diags.push(Diagnostic { ...d, .primary = impl_.trait_name_span })
+        }
+    }
 }
 
 walk_fn_body :: fn(

@@ -171,7 +171,7 @@ infer_match :: fn(
                 matched :: pattern_type_of(pattern.ty, typed, scratch_diags())
                 check_is_test_target(matched, pattern.span, typed, diags)
                 if !settled && is_overlap_checkable(scrut_ty) && is_overlap_checkable(matched) {
-                    if !types_overlap(scrut_ty, matched) {
+                    if !may_overlap(scrut_ty, matched) {
                         diags.push(
                             typecheck_error(
                                 .UnreachableIsTest,

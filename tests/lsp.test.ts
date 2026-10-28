@@ -2096,7 +2096,8 @@ test("lsp: an alias of a generic fn keeps its own name", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 // A trait default is copied into each impl that inherits it; the copy has no
-// source of its own, so nothing in it is a reference.
+// source of its own, so nothing in it is a reference. The default's own body,
+// checked in its trait, is one.
 const DEFAULT_COPY_SOURCE = `module "lsptest"
 
 V :: struct { x: i32 }
@@ -2125,9 +2126,12 @@ test("lsp: a trait default copied into an impl is no reference", async () => {
     { method: "textDocument/references", position: positionOf(src, "add :: fn") },
   ]);
   const sites = results[0]!.result as Location[];
-  // The trait's own body is typechecked through its copies only, so its `+` has
-  // no record of its own: the declaration is the one site.
-  expect(starts(sites)).toEqual([key(positionOf(src, "add :: fn"))]);
+  // The declaration, and the `+` written in the trait's body, at the start of its
+  // expression: not one per copy.
+  expect(starts(sites)).toEqual([
+    key(positionOf(src, "self.get() + self.get()")),
+    key(positionOf(src, "add :: fn")),
+  ]);
   expect(sites[0]!.uri.endsWith("lsp-test.vader")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 

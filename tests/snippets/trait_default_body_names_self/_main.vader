@@ -1,0 +1,54 @@
+module "snippet"
+
+import "std/io"
+
+// A trait's default body is checked once, in the trait, where `Self` is any type
+// implementing it: a type bounded by the trait and by the traits it requires. The
+// body may call a member of a required trait, hand `self` to a fn bounded by the
+// trait, name `Self` in a local, a lambda or a static call.
+
+Named :: trait {
+    name :: fn(self) -> string
+}
+
+Probe :: trait: Named {
+    tag  :: fn(self) -> i32
+    make :: fn() -> Self
+    label :: fn(self) -> string = "${self.name()} ${self.tag()}"
+    passed :: fn(self) -> i32 = plus_hundred(self)
+    kept :: fn(self) -> i32 {
+        me: Self: self
+        twice :: (s: Self) -> s.tag() * 2
+        return twice(me)
+    }
+    fresh :: fn(self) -> i32 = Self.make().tag()
+}
+
+plus_hundred :: fn<T: Probe>(x: T) -> i32 = x.tag() + 100
+
+Pt :: struct { x: i32 }
+
+Pt implements Named {
+    name :: fn(self) -> string = "pt"
+}
+
+Pt implements Probe {
+    tag :: fn(self) -> i32 = self.x
+    make :: fn() -> Pt = Pt { .x = 40 }
+}
+
+i32 implements Named {
+    name :: fn(self) -> string = "int"
+}
+
+i32 implements Probe {
+    tag :: fn(self) -> i32 = self
+    make :: fn() -> i32 = 7
+}
+
+main :: fn() -> i32 {
+    p :: Pt { .x = 2 }
+    println("${p.label()} ${p.passed()} ${p.kept()} ${p.fresh()}")
+    println("${5.label()} ${5.passed()} ${5.kept()} ${5.fresh()}")
+    return 0
+}

@@ -5,6 +5,12 @@
   TraitDecl      Floor                :: Floor
   FnDecl         main                 :: fn() -> i32
   StructDecl     Point                :: Point
+  expr 11:29    CallExpr       :: Self
+  expr 11:29    FieldExpr      :: fn() -> Self
+  expr 11:29    IdentExpr      :: Self
+  expr 12:33    CallExpr       :: Self
+  expr 12:33    FieldExpr      :: fn() -> Self
+  expr 12:33    IdentExpr      :: Self
   expr 21520:1  CallExpr       :: i32
   expr 21520:2  FieldExpr      :: fn() -> i32
   expr 21520:3  IdentExpr      :: type

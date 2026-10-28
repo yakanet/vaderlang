@@ -75,6 +75,8 @@ export ResolvedFile :: struct {
     /// an explicit `T: Trait` clause. Lets downstream consumers
     /// dispatch trait methods on bounded type parameters.
     type_param_bounds: MutableMap<i32, AST.Expr>
+    /// Each trait's `Self` as its default bodies read it, by the trait's symbol id.
+    trait_self_params: MutableMap<i32, Symbol>
     /// R-code diagnostics emitted during body resolution
     /// (unresolved ident, reserved name, …).
     diags: Diagnostic[]
@@ -138,6 +140,7 @@ export resolve_module_programs :: fn(
         .loop_rebinds = state.loop_rebinds,
         .closure_rebound = state.closure_rebound,
         .type_param_bounds = state.type_param_bounds,
+        .trait_self_params = state.trait_self_params,
         .diags = state.diags,
     }
 }
@@ -164,6 +167,9 @@ ResolveState :: struct {
     /// lambda : a name bound below it is declared outside. Null outside any lambda.
     lambda_frame:     i32 | null = null
     closure_rebound:  MutableSet<i32> = MutableSet<i32> {}
+    trait_self_params: MutableMap<i32, Symbol> = MutableMap<i32, Symbol> {}
+    /// The `Self` of the trait whose members are being walked ; null elsewhere.
+    trait_self:       Symbol | null = null
     diags:            Diagnostic[]
     scope:            Scope
     module_path:      string
@@ -376,8 +382,23 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
     self.walk_opt_expr(d.return_type)
     match b :: d.body {
         is null          -> {}
-        is AST.BlockExpr -> { self.walk_body(b) }
+        is AST.BlockExpr -> { self.walk_member_body(b) }
     }
+    self.scope.pop()
+}
+
+// A trait's default body reads `Self` as the trait's own type parameter ; its
+// signature keeps the builtin `Self`, which each reader of a trait signature
+// substitutes.
+walk_member_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
+    trait_self :: self.trait_self
+    if trait_self == null {
+        self.walk_body(body)
+        return
+    }
+    self.scope.push()
+    self.scope.bind("Self", trait_self)
+    self.walk_body(body)
     self.scope.pop()
 }
 
@@ -421,8 +442,60 @@ walk_trait_decl :: fn(self: ResolveState, d: AST.TraitDecl) -> void {
         detail :: "`${d.name}` (a trait requires traits, joined by `&`)"
         self.diags.push(resolver_error(.UnionInBound, union.span, detail))
     }
+    self.trait_self = self.declare_trait_self(d)
     for m in d.members { self.walk_fn_decl(m) }
+    self.trait_self = null
     self.scope.pop()
+}
+
+// The type parameter `Self` stands for in the default bodies of `d`, bounded by `d`
+// at its own parameters and by the traits `d` requires (`Self: Shape<T> & Named`).
+// Its bound names the trait at the trait's name, which `idents` then resolves. Null
+// when the trait has no symbol.
+declare_trait_self :: fn(self: ResolveState, d: AST.TraitDecl) -> Symbol | null {
+    trait_sym :: self.scope.lookup(d.name) ?? return null
+    if trait_sym.kind != .Trait {
+        return null
+    }
+    sym :: self.mint_local(.TypeParam, "Self", d.name_span)
+    self.idents[d.name_span.hash()] = trait_sym
+    self.type_param_bounds[sym.id] = trait_self_bound(d)
+    self.trait_self_params[trait_sym.id] = sym
+    return sym
+}
+
+trait_self_bound :: fn(d: AST.TraitDecl) -> AST.Expr {
+    own :: trait_at_its_params(d)
+    required :: d.requires ?? return own
+    return AST.BinaryExpr {
+        .span = d.name_span,
+        .op = .BitAnd,
+        .left = own,
+        .right = required,
+    }
+}
+
+trait_at_its_params :: fn(d: AST.TraitDecl) -> AST.Expr {
+    name :: plain_ident(d.name_span, d.name)
+    if d.type_params.len() == 0 {
+        return name
+    }
+    args: AST.TypeExpr[]: []
+    for tp in d.type_params {
+        args.push(plain_ident(tp.span, tp.name))
+    }
+    return AST.GenericInstExpr {
+        .span = d.name_span,
+        .callee = name,
+        .type_args = args,
+    }
+}
+
+plain_ident :: fn(span: Span, name: string) -> AST.Expr = AST.IdentExpr {
+    .span = span,
+    .name = name,
+    .implicit_dot = false,
+    .is_type_param_intro = false,
 }
 
 walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {

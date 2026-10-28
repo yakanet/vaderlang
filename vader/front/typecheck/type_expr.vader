@@ -173,13 +173,17 @@ report_namespace_miss :: fn(
 }
 
 lower_ident :: fn(e: AST.IdentExpr, resolved: ResolvedModule) -> Type {
+    bound :: resolved.idents[e.span.hash()]
+    // A default body's `Self` is its trait's type parameter (`trait_self_params`).
+    if e.name == "Self" && bound != null && bound.kind == .TypeParam {
+        return mk_type_param(bound)
+    }
     // Builtin name takes precedence: even when the resolver also bound the
     // ident (e.g. user-shadowed `string` would still resolve to the primitive).
     builtin :: primitive_from_name(e.name)
     if builtin !is null {
         return builtin
     }
-    bound :: resolved.idents[e.span.hash()]
     if !(bound is null) { return resolve_named_type(bound, resolved) }
     return TY_UNRESOLVED
 }

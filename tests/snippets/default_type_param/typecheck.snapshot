@@ -6,42 +6,58 @@
   FnDecl         main                 :: fn() -> i32
   StructDecl     N                    :: N
   StructDecl     Tick                 :: Tick
-  expr 20494:1  BinaryExpr     :: i32
-  expr 20494:11 IdentExpr      :: N
-  expr 20494:2  CallExpr       :: i32
-  expr 20494:3  FieldExpr      :: fn(N) -> i32
-  expr 20494:4  IdentExpr      :: N
-  expr 20494:6  IdentExpr      :: N
-  expr 20494:7  CallExpr       :: i32
-  expr 20494:8  FieldExpr      :: fn(N) -> i32
-  expr 20494:9  IdentExpr      :: N
-  expr 21:43    BinaryExpr     :: i32
-  expr 21:43    FieldExpr      :: i32
-  expr 21:43    IdentExpr      :: N
-  expr 21:52    FieldExpr      :: i32
-  expr 21:52    IdentExpr      :: N
-  expr 31761:1  BinaryExpr     :: i32
-  expr 31761:2  CallExpr       :: i32
-  expr 31761:3  FieldExpr      :: fn() -> i32
-  expr 31761:4  IdentExpr      :: Tick
-  expr 31761:5  CallExpr       :: i32
-  expr 31761:6  FieldExpr      :: fn() -> i32
-  expr 31761:7  IdentExpr      :: Tick
-  expr 32:34    FieldExpr      :: i32
-  expr 32:34    IdentExpr      :: Tick
-  expr 36:10    StructLitExpr  :: N
+  expr 16:44    BinaryExpr     :: i32
+  expr 16:44    CallExpr       :: i32
+  expr 16:44    FieldExpr      :: fn(Rhs) -> i32
+  expr 16:44    IdentExpr      :: Self
+  expr 16:56    IdentExpr      :: Rhs
+  expr 16:65    CallExpr       :: i32
+  expr 16:65    FieldExpr      :: fn(Rhs) -> i32
+  expr 16:65    IdentExpr      :: Self
+  expr 16:77    IdentExpr      :: Rhs
+  expr 21518:1  BinaryExpr     :: i32
+  expr 21518:11 IdentExpr      :: N
+  expr 21518:2  CallExpr       :: i32
+  expr 21518:3  FieldExpr      :: fn(N) -> i32
+  expr 21518:4  IdentExpr      :: N
+  expr 21518:6  IdentExpr      :: N
+  expr 21518:7  CallExpr       :: i32
+  expr 21518:8  FieldExpr      :: fn(N) -> i32
+  expr 21518:9  IdentExpr      :: N
+  expr 22:43    BinaryExpr     :: i32
+  expr 22:43    FieldExpr      :: i32
+  expr 22:43    IdentExpr      :: N
+  expr 22:52    FieldExpr      :: i32
+  expr 22:52    IdentExpr      :: N
+  expr 27:34    BinaryExpr     :: Step
+  expr 27:34    CallExpr       :: Step
+  expr 27:34    FieldExpr      :: fn() -> Step
+  expr 27:34    IdentExpr      :: Self
+  expr 27:51    CallExpr       :: Step
+  expr 27:51    FieldExpr      :: fn() -> Step
+  expr 27:51    IdentExpr      :: Self
+  expr 32785:1  BinaryExpr     :: i32
+  expr 32785:2  CallExpr       :: i32
+  expr 32785:3  FieldExpr      :: fn() -> i32
+  expr 32785:4  IdentExpr      :: Tick
+  expr 32785:5  CallExpr       :: i32
+  expr 32785:6  FieldExpr      :: fn() -> i32
+  expr 32785:7  IdentExpr      :: Tick
+  expr 33:34    FieldExpr      :: i32
+  expr 33:34    IdentExpr      :: Tick
   expr 37:10    StructLitExpr  :: N
-  expr 38:13    StringLitExpr  :: string
-  expr 38:16    CallExpr       :: i32
-  expr 38:16    FieldExpr      :: fn(N) -> i32
-  expr 38:16    IdentExpr      :: N
-  expr 38:24    IdentExpr      :: N
-  expr 38:5     CallExpr       :: void
-  expr 38:5     IdentExpr      :: fn(T) -> void
-  expr 40:10    StructLitExpr  :: Tick
-  expr 41:13    StringLitExpr  :: string
-  expr 41:16    CallExpr       :: i32
-  expr 41:16    FieldExpr      :: fn() -> i32
-  expr 41:16    IdentExpr      :: Tick
-  expr 41:5     CallExpr       :: void
-  expr 41:5     IdentExpr      :: fn(T) -> void
+  expr 38:10    StructLitExpr  :: N
+  expr 39:13    StringLitExpr  :: string
+  expr 39:16    CallExpr       :: i32
+  expr 39:16    FieldExpr      :: fn(N) -> i32
+  expr 39:16    IdentExpr      :: N
+  expr 39:24    IdentExpr      :: N
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 41:10    StructLitExpr  :: Tick
+  expr 42:13    StringLitExpr  :: string
+  expr 42:16    CallExpr       :: i32
+  expr 42:16    FieldExpr      :: fn() -> i32
+  expr 42:16    IdentExpr      :: Tick
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void

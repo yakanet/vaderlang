@@ -568,6 +568,10 @@ export TypedProgram :: struct {
     /// The symbol ids of the type parameters of the impl whose member bodies are
     /// being walked : what such a body shares between the impl's instances.
     enclosing_impl_params: MutableSet<i32> = MutableSet<i32> {}
+    /// The symbol ids of `Self` and of the trait's type parameters while a default
+    /// body is checked in its trait : each impl's copy of the body names the types
+    /// it binds them to, so none of them erases there.
+    default_body_params: MutableSet<i32> = MutableSet<i32> {}
     /// The calls in a generic impl's members that hand the impl's type parameters
     /// on, by node id : an impl's instances share such a body, so the callee must
     /// not observe them (T3087).

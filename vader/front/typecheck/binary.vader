@@ -1078,7 +1078,7 @@ check_is_test_target :: fn(tested: Type, span: Span, typed: TypedProgram, diags:
     observes := false
     for variant in union_variants(tested) ?? [tested] {
         if variant is StructType {
-            if refuses_shared_argument(variant, span, diags) {
+            if refuses_shared_argument(variant, span, typed, diags) {
                 return
             }
         } else if type_contains_type_param(variant) {
@@ -1091,10 +1091,16 @@ check_is_test_target :: fn(tested: Type, span: Span, typed: TypedProgram, diags:
 }
 
 // T3087 when the generic struct instance `variant` has a type argument that
-// erases. True when reported.
-refuses_shared_argument :: fn(variant: StructType, span: Span, diags: Diagnostic[]) -> bool {
+// erases. True when reported. A parameter each impl's copy of a default body binds
+// (`default_body_params`) does not.
+refuses_shared_argument :: fn(
+    variant: StructType,
+    span: Span,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> bool {
     for arg in variant.args {
-        if is_shared_type_argument(arg) {
+        if is_shared_type_argument(arg) && !bound_per_impl(arg, typed) {
             instance :: display_type(variant)
             argument :: display_type(arg)
             diags.push(typecheck_error(
@@ -1106,6 +1112,9 @@ refuses_shared_argument :: fn(variant: StructType, span: Span, diags: Diagnostic
     }
     return false
 }
+
+bound_per_impl :: fn(t: Type, typed: TypedProgram) -> bool =
+    t is TypeParamType && t.symbol.id in typed.default_body_params
 
 // Mark the fn whose body tests `tested`, a type parameter, as observing it ; T3087
 // inside an impl member, for a parameter of the impl. A member's own parameter is
@@ -1153,7 +1162,7 @@ check_is_overlap :: fn(
 ) -> void {
     if !is_overlap_checkable(scrut)   { return }
     if !is_overlap_checkable(tested)  { return }
-    if types_overlap(scrut, tested)   { return }
+    if may_overlap(scrut, tested)     { return }
     if settled_by_clone(typed, scrut) { return }
     diags.push(
         typecheck_error(
@@ -1162,6 +1171,24 @@ check_is_overlap :: fn(
             "`${display_type(tested)}` is never a value of `${display_type(scrut)}`",
         ),
     )
+}
+
+// Whether a value of `scrut` may be a `tested` : they share a variant, or `tested`
+// names a type parameter that some binding turns into one of `scrut`'s variants
+// (`Box<T>` meets `Box<i32>`).
+may_overlap :: fn(scrut: Type, tested: Type) -> bool {
+    if types_overlap(scrut, tested) {
+        return true
+    }
+    if !type_contains_type_param(tested) {
+        return false
+    }
+    for variant in union_variants(scrut) ?? [scrut] {
+        if may_coincide(tested, variant) {
+            return true
+        }
+    }
+    return false
 }
 
 // Traits can be satisfied by any struct with a matching impl,
