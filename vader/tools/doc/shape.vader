@@ -76,7 +76,7 @@ unwritten_return :: fn(ctx: FileContext, fd: FnDecl) -> DocSegment[] {
         return []
     }
     typed :: ctx.typed ?? return []
-    t :: Tc.declared_type_at(typed, fd.name_span)
+    t :: Tc.declared_fn_type(typed, fd)
     if t is Ty.FnType {
         return shown_type(t.return_type)
     }

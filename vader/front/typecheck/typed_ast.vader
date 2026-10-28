@@ -20,16 +20,27 @@ import "vader/front/resolver"
 import "vader/support/diagnostics"
 
 /// The type declared at `name_span`: the `decl_types` entry of the symbol
-/// declared there, or for an impl member, which has no symbol of its own, its
-/// entry in `impl_method_decl_types`.
+/// declared there. A function is asked by its declaration (`declared_fn_type`),
+/// since an impl member has no symbol.
 ///
 /// @param typed      the module declaring it.
 /// @param name_span  the declaration's name span.
-/// @return           null when neither table holds it.
+/// @return           null when no symbol is declared there.
 export declared_type_at :: fn(typed: TypedProgram, name_span: Span) -> Type | null {
-    sym :: symbol_declared_at(typed.resolved, name_span)
+    sym :: symbol_declared_at(typed.resolved, name_span) ?? return null
+    return typed.decl_types[sym.id]
+}
+
+/// The type declared for the function `fd`: its symbol's, or for an impl member,
+/// which has no symbol of its own, its entry in `impl_method_decl_types`.
+///
+/// @param typed  the module declaring it.
+/// @param fd     a fn declaration, top-level or a member.
+/// @return       null when neither table holds it.
+export declared_fn_type :: fn(typed: TypedProgram, fd: AST.FnDecl) -> Type | null {
+    sym :: symbol_declared_at(typed.resolved, fd.name_span)
     if sym == null {
-        return typed.impl_method_decl_types[name_span.hash()]
+        return typed.impl_method_decl_types[fd.id]
     }
     return typed.decl_types[sym.id]
 }
@@ -370,14 +381,11 @@ export TypedProgram :: struct {
     /// `LoadedProject`.
     decl_types: MutableMap<i32, Type>
 
-    /// Impl-method types, keyed by the method's `name_span` via
-    /// `Span.hash()`. Impl methods don't have a resolver `Symbol`
-    /// (they live as members of an `ImplDecl` block, not as
-    /// top-level names) so they can't share the `Symbol.id`
-    /// keying used by `decl_types`. Per-file uniqueness is enough
-    /// because an `impl` block lives in one file ; cross-file
-    /// collisions don't apply.
-    impl_method_decl_types: MutableMap<u64, Type>
+    /// The type of every impl member, and of every trait member with a default
+    /// body, keyed by the member's node id: a member has no resolver `Symbol`, and
+    /// one declared for an impl from its trait is written nowhere, so its span
+    /// keys nothing.
+    impl_method_decl_types: MutableMap<i64, Type>
 
     /// Type of every fn / lambda parameter, keyed by `FnParam.span`
     /// via `Span.hash()`.
@@ -809,7 +817,7 @@ new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .local_types     = MutableMap<u64, Type> {},
     .empty_array_inits = MutableMap<u64, i64> {},
     .decl_types      = MutableMap<i32, Type> {},
-    .impl_method_decl_types = MutableMap<u64, Type> {},
+    .impl_method_decl_types = MutableMap<i64, Type> {},
     .param_types     = MutableMap<u64, Type> {},
     .type_expr_types = MutableMap<u64, Type> {},
     .struct_decls    = MutableMap<i32, AST.StructDecl> {},

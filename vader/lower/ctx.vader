@@ -79,8 +79,9 @@ new_closure_analysis :: fn() -> ClosureAnalysis {
 ArrayMemberUse :: struct {
     /// The array's element : the member is materialised with `T → element`.
     element:     Type
-    /// The span of the member the call chose: the body the mangle names.
-    member_span: Span
+    /// The node id of the member the call chose: the body the mangle names. Two
+    /// impls inheriting one default share its span.
+    member_id:   i64
 }
 
 /// Inputs every lowering pass reads. Built once at `lower_project`

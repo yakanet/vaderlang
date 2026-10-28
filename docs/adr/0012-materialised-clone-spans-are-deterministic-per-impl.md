@@ -5,10 +5,11 @@
 Accepted (2026-09-01). Implemented across `vader/front/resolver/materialize.vader` and
 `vader/front/resolver/substitute_body.vader`.
 
-**Superseded in part by
+**Superseded by
 [0114](0114-a-default-body-is-checked-once-in-its-trait.md) (2026-10-28)**: no
-default body is copied any more; the allocator anchors only the signature of a
-member an impl inherits.
+default body is copied any more, and the type of an impl member is keyed by its
+node id, so a member declared from its trait needs no span of its own: it is
+written nowhere.
 
 ## Context
 

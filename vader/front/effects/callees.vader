@@ -178,15 +178,18 @@ bodyless_target :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram)
         return KnownEffects { .params = decl.params.map(foreign_effects).collect() }
     }
     key :: index.intrinsic_key(decl, typed)
+    // By its node id : an `@intrinsic` stub shares its parameters' spans with the
+    // other impls of its trait.
+    signature :: declared_fn_type(typed, decl)
     if makes_frozen_view(key) {
         index.frozen_views.add(decl.id)
-        index.view = returned_array(declared_type_at(typed, decl.name_span))
+        index.view = returned_array(signature)
     }
     known :: intrinsic_effects(index.paths, key)
     if known != null {
         return KnownEffects { .params = known }
     }
-    if decl.params.all_match((p) -> !holds_references(typed.param_types[p.span.hash()])) {
+    if signature is FnType && !signature.params.any_match((t: Type) -> holds_references(t)) {
         return KnownEffects { .params = decl.params.map((_) -> none()).collect() }
     }
     index.unknown.push(key)

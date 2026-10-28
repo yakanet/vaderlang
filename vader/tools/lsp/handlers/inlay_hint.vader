@@ -364,7 +364,7 @@ emit_fn_return_hints :: fn(d: AST.FnDecl, ctx: HintCtx, out: JsonValue[]) -> voi
         return
     }
     body :: d.body ?? return
-    declared :: declared_type_at(ctx.typed, d.name_span) ?? return
+    declared :: declared_fn_type(ctx.typed, d) ?? return
     if declared !is FnType {
         return
     }

@@ -57,7 +57,7 @@ fn_signature :: fn(owner: TypedProgram, callee: Symbol) -> FnType | null =
 /// @param decl   one of its members.
 /// @return       null when the typecheck recorded no signature.
 impl_member_signature :: fn(owner: TypedProgram, decl: FnDecl) -> FnType | null =
-    recorded_signature(owner.impl_method_decl_types[decl.name_span.hash()])
+    recorded_signature(owner.impl_method_decl_types[decl.id])
 
 // `t`, a signature the typecheck recorded ; null for no signature.
 recorded_signature :: fn(t: Type | null) -> FnType | null {
@@ -236,6 +236,15 @@ declared_field_type :: fn(typed: TypedProgram, struct_symbol: Symbol, name: stri
 /// @return           unresolved when nothing is declared there.
 declared_type :: fn(self: EntryTypes, name_span: Span) -> Type =
     apply_or_unresolved(self, declared_type_at(self.typed, name_span))
+
+/// The type declared for the function `fn_decl` (`declared_fn_type`), through the
+/// entry's substitution.
+///
+/// @param self     the entry being lowered.
+/// @param fn_decl  a fn declaration, top-level or a member.
+/// @return         unresolved when nothing is declared for it.
+declared_type_of_fn :: fn(self: EntryTypes, fn_decl: FnDecl) -> Type =
+    apply_or_unresolved(self, declared_fn_type(self.typed, fn_decl))
 
 
 // ---- tests ----------------------------------------------------------------

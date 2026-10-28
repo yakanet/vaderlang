@@ -1,0 +1,27 @@
+// Two array impls of a generic trait inherit one default: each call reaches the
+// default read at its own impl's arguments, whichever impl is declared first.
+
+module "snippet"
+
+import "std/io"
+
+Tag :: trait<T: Display> {
+    raw :: fn(self) -> T
+    label :: fn(self, x: T) -> string = "${self.raw()}:${x}"
+}
+
+i32[] implements Tag<i32> {
+    raw :: fn(self) -> i32 = i32(self.len())
+}
+
+string[] implements Tag<string> {
+    raw :: fn(self) -> string = "s${self.len()}"
+}
+
+main :: fn() -> i32 {
+    counts: i32[]: [1, 2, 3]
+    words: string[]: ["p", "q"]
+    println(counts.label(40))
+    println(words.label("zz"))
+    return 0
+}

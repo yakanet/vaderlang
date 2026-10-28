@@ -29,32 +29,12 @@ import "vader/front/parser"
 AST :: import "toolchain/ast"
 import "toolchain/span"
 
-/// Deterministic span allocator for one impl's materialised members: created once
-/// per impl, then threaded through every member it declares. Their name and
-/// parameter spans key the typecheck's tables (`impl_method_decl_types` on the
-/// name span), so they differ from impl to impl and stay the same from one compile
-/// to the next (ADR 0012).
-///
-/// `base_line` is the impl's source `line * 1024 + column`, `counter` the index
-/// of the next span, across the impl's members, and `file` the impl's source file
-/// behind a `<materialized>:` prefix, since `Span.hash` folds in `start.file`.
-StampCtx :: struct { base_line: i32, counter: i32, file: string }
-
-/// The span allocator of `impl_`, anchored at its trait name.
-impl_stamp :: fn(impl_: AST.ImplDecl) -> StampCtx {
-    at :: impl_.trait_name_span.start
-    return StampCtx {
-        .base_line = at.line * 1024 + at.column,
-        .counter = 0,
-        .file = "<materialized>:${at.file}",
-    }
-}
-
-/// The next span of `stamp`.
-next_member_span :: fn(stamp: StampCtx) -> Span {
-    col :: stamp.counter
-    stamp.counter += 1
-    pos :: Position { .file = stamp.file, .offset = 0, .line = stamp.base_line, .column = col }
+/// Where a member declared for an impl from its trait is written: nowhere. Its name,
+/// and an inherited member's parameters, take this span, which names no source
+/// (`has_source_position`) and is zero-wide, so an editor places nothing on it. The
+/// typecheck keys a member by its node id, never by this span.
+unplaced_span :: fn() -> Span {
+    pos :: Position { .file = SYNTHETIC_FILE, .offset = 0, .line = 0, .column = 0 }
     return Span { .start = pos, .end = pos }
 }
 
@@ -62,23 +42,23 @@ next_member_span :: fn(stamp: StampCtx) -> Span {
 /// stub FnDecl per trait method so downstream phases see the impl's
 /// full surface. No-op when the impl already has members.
 ///
-/// @param impl_    the `@intrinsic` impl to fill.
-/// @param trait_   the trait it implements.
+/// @param impl_decl    the `@intrinsic` impl to fill.
+/// @param trait_decl   the trait it implements.
 /// @param factory  the project's node-id factory : each stub takes a
 ///                 declaration id of its own from it.
 export materialize_intrinsic_members :: fn(
-    impl_: AST.ImplDecl, trait_: AST.TraitDecl, factory: NodeIdFactory,
+    impl_decl: AST.ImplDecl,
+    trait_decl: AST.TraitDecl,
+    factory: NodeIdFactory,
 ) -> void {
-    if !is_intrinsic(impl_.decorators) { return }
-    if impl_.members.len() > 0 { return }
-    subst :: build_subst(impl_, trait_)
-    stamp :: impl_stamp(impl_)
-    for method in trait_.members {
-        decorators :: intrinsic_decorator(impl_.span)
-        name_span :: next_member_span(stamp)
+    if !is_intrinsic(impl_decl.decorators) { return }
+    if impl_decl.members.len() > 0 { return }
+    subst :: build_subst(impl_decl, trait_decl)
+    for method in trait_decl.members {
+        decorators :: intrinsic_decorator(impl_decl.span)
         params :: substitute_params(method.params, subst)
         id :: factory.mint()
-        impl_.members.push(synth_signature(method, name_span, params, subst, decorators, id))
+        impl_decl.members.push(synth_signature(method, unplaced_span(), params, subst, decorators, id))
     }
 }
 
@@ -87,49 +67,40 @@ export materialize_intrinsic_members :: fn(
 /// Each takes an id of its own from the project's factory, so it has slots of its
 /// own in the id-keyed tables.
 ///
-/// @param impl_    the impl to complete.
-/// @param trait_   the trait it implements.
+/// @param impl_decl    the impl to complete.
+/// @param trait_decl   the trait it implements.
 /// @param factory  the project's node-id factory.
 export materialize_default_members :: fn(
-    impl_: AST.ImplDecl,
-    trait_: AST.TraitDecl,
+    impl_decl: AST.ImplDecl,
+    trait_decl: AST.TraitDecl,
     factory: NodeIdFactory,
 ) -> void {
-    if !any_has_body(trait_.members) {
+    if !any_has_body(trait_decl.members) {
         return
     }
-    provided :: provided_names(impl_.members)
-    subst :: build_subst(impl_, trait_)
-    stamp :: impl_stamp(impl_)
-    for method in trait_.members {
+    provided :: provided_names(impl_decl.members)
+    subst :: build_subst(impl_decl, trait_decl)
+    for method in trait_decl.members {
         if method.body == null || method.name in provided {
             continue
         }
-        impl_.members.push(synth_inherited(method, subst, stamp, factory.mint()))
+        impl_decl.members.push(synth_inherited(method, subst, factory.mint()))
     }
 }
 
-synth_inherited :: fn(method: AST.FnDecl, subst: Subst, stamp: StampCtx, id: i64) -> AST.FnDecl {
-    name_span :: next_member_span(stamp)
-    params :: substitute_params_stamped(method.params, subst, stamp)
-    signature :: synth_signature(method, name_span, params, subst, [], id)
+// The member an impl inherits : typed from the trait's (`declare_inherited_member`),
+// its signature substituted only to be shown.
+synth_inherited :: fn(method: AST.FnDecl, subst: Subst, id: i64) -> AST.FnDecl {
+    params :: method.params.map((p) -> unplaced_param(p, subst)).collect()
+    signature :: synth_signature(method, unplaced_span(), params, subst, [], id)
     return AST.FnDecl { ...signature, .inherits = method }
 }
 
-/// Substitute params, anchoring each at the next span of `stamp`, the impl's : an
-/// inherited member's params are keyed per impl.
-substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: StampCtx) -> AST.FnParam[] {
-    out: AST.FnParam[]: []
-    for p in params {
-        out.push(AST.FnParam {
-            ...p,
-            .span = next_member_span(stamp),
-            .name_span = empty_span(),
-            .id = AST.UNASSIGNED_NODE_ID,
-            .ty = substitute_opt_type(p.ty, subst),
-        })
-    }
-    return out
+// `p` as `substitute_param` reads it, written nowhere.
+unplaced_param :: fn(p: AST.FnParam, subst: Subst) -> AST.FnParam = AST.FnParam {
+    ...substitute_param(p, subst),
+    .span = unplaced_span(),
+    .name_span = unplaced_span(),
 }
 
 /// Mint a fresh, globally-unique synthetic span for a SAM member's non-self
@@ -147,17 +118,18 @@ synth_param_span :: fn(factory: NodeIdFactory) -> Span {
 /// other: Self)`) doesn't collide `other` across sibling impls in the
 /// span-keyed `param_types` table.
 substitute_params_disambiguated :: fn(
-    params: AST.FnParam[], subst: Subst, self_span: Span, factory: NodeIdFactory,
+    params: AST.FnParam[],
+    subst: Subst,
+    self_span: Span,
+    factory: NodeIdFactory,
 ) -> AST.FnParam[] {
     out: AST.FnParam[]: []
     for p in params {
         span :: if p.name == "self" { self_span } else { synth_param_span(factory) }
         out.push(AST.FnParam {
-            ...p,
+            ...substitute_param(p, subst),
             .span = span,
-            .name_span = empty_span(),
-            .id = AST.UNASSIGNED_NODE_ID,
-            .ty = substitute_opt_type(p.ty, subst),
+            .name_span = unplaced_span(),
         })
     }
     return out
@@ -170,19 +142,23 @@ substitute_params_disambiguated :: fn(
 /// member in place. SAM shape-mismatch diagnostics (R2016) aren't
 /// emitted here: `check_short_impl_arity` (orchestrate.vader) fires
 /// them before this runs.
-export materialize_sam_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl, factory: NodeIdFactory) -> void {
-    syn_count :: count_sam_synthetics(impl_.members)
+export materialize_sam_members :: fn(
+    impl_decl: AST.ImplDecl,
+    trait_decl: AST.TraitDecl,
+    factory: NodeIdFactory
+) -> void {
+    syn_count :: count_sam_synthetics(impl_decl.members)
     if syn_count == 0 { return }
-    required :: required_methods(trait_.members)
+    required :: required_methods(trait_decl.members)
     if required.is_empty() { return }
     // Pick the first required method as the SAM target. When the trait
     // has >1 required method, R2016 already fired ; renaming under the
     // first one still lets the T3036 "missing method" loop find at
     // least the SAM-named method instead of flagging both as missing.
     method :: required[0]
-    subst :: build_subst(impl_, trait_)
-    for i in 0..<impl_.members.len() {
-        m :: impl_.members[i]
+    subst :: build_subst(impl_decl, trait_decl)
+    for i in 0..<impl_decl.members.len() {
+        m :: impl_decl.members[i]
         if !m.sam_synthetic { continue }
         m.name = method.name
         // `self` re-anchors at the synthetic member's own span (unique per
@@ -282,16 +258,15 @@ synth_signature :: fn(
     }
 }
 
-substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam[] {
-    out: AST.FnParam[]: []
-    for p in params {
-        out.push(AST.FnParam {
-            ...p,
-            .id = AST.UNASSIGNED_NODE_ID,
-            .ty = substitute_opt_type(p.ty, subst),
-        })
-    }
-    return out
+substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam[] =
+    params.map((p) -> substitute_param(p, subst)).collect()
+
+// `p` with `Self` and the trait's parameters substituted, as a member declared for
+// an impl reads it.
+substitute_param :: fn(p: AST.FnParam, subst: Subst) -> AST.FnParam = AST.FnParam {
+    ...p,
+    .id = AST.UNASSIGNED_NODE_ID,
+    .ty = substitute_opt_type(p.ty, subst),
 }
 
 substitute_opt_type :: fn(t: AST.TypeExpr | null, subst: Subst) -> AST.TypeExpr | null {
@@ -400,13 +375,13 @@ Square implements Shape {
     twice :: impl_decl.members[1]
     assert_eq(twice.name, "twice")
     assert(twice.id != AST.UNASSIGNED_NODE_ID, "the inherited member has an id")
+    assert(!has_source_position(twice.name_span), "the inherited member is written nowhere")
 }
 
 find_trait :: fn(decls: AST.Decl[], name: string) -> AST.TraitDecl | null {
     for d in decls {
-        match d {
-            is AST.TraitDecl -> { if d.name == name { return d } }
-            _ -> {}
+        if d is AST.TraitDecl && d.name == name {
+            return d
         }
     }
     return null
@@ -414,9 +389,8 @@ find_trait :: fn(decls: AST.Decl[], name: string) -> AST.TraitDecl | null {
 
 find_impl :: fn(decls: AST.Decl[]) -> AST.ImplDecl | null {
     for d in decls {
-        match d {
-            is AST.ImplDecl -> { return d }
-            _ -> {}
+        if d is AST.ImplDecl {
+            return d
         }
     }
     return null

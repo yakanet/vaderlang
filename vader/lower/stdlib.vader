@@ -170,7 +170,7 @@ surface_array_impl_members :: fn(
             continue
         }
         for [mangled, reached] in project_ctx.array_member_uses {
-            if reached.member_span != member.span { continue }
+            if reached.member_id != member.id { continue }
             // Dedupe against re-entrant drain-loop passes.
             dedupe_key :: "arr_member::${mangled}"
             if !project_ctx.materialized_impl_keys.add(dedupe_key) {

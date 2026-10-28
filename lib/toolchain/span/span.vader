@@ -87,8 +87,8 @@ Span implements Display -> "${self.start.line}:${self.start.column}-${self.end.l
 export SYNTHETIC_FILE :: "<synthetic>"
 
 /// Synthetic `Span` for AST nodes minted by the compiler (test fixtures,
-/// materialised trait methods, intrinsic stubs). Points to a dummy 1:1
-/// position so renderers and span-keyed side-tables stay happy.
+/// generated declarations). Points to a dummy 1:1 position so renderers and
+/// span-keyed side-tables stay happy.
 export empty_span :: fn() -> Span {
     return Span {
         .start = Position { .file = SYNTHETIC_FILE, .offset = 0, .line = 1, .column = 1 },

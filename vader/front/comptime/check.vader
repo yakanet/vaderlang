@@ -72,7 +72,7 @@ harvest_instances :: fn(typed: TypedProject, entry: string) -> GenericInstance[]
             observe(registry, t)
         }
         // Impl-method types live in `impl_methods` (mangled-name keyed, read
-        // below) and `impl_method_decl_types` (span-keyed), not `decl_types`
+        // below) and `impl_method_decl_types` (node-id keyed), not `decl_types`
         // (Symbol.id-keyed: impl methods aren't in `resolved.symbols`).
         for [_, t] in module_typed.impl_method_decl_types {
             observe(registry, t)

@@ -1,0 +1,34 @@
+# Typecheck
+
+## tests/snippets/array_impls_inherit_one_default
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Tag                  :: Tag<T>
+  expr 10:41    StringLitExpr  :: string
+  expr 10:44    CallExpr       :: T
+  expr 10:44    FieldExpr      :: fn() -> T
+  expr 10:44    IdentExpr      :: Self
+  expr 10:58    IdentExpr      :: T
+  expr 14:30    CallExpr       :: i32
+  expr 14:30    IdentExpr      :: type
+  expr 14:34    CallExpr       :: i64
+  expr 14:34    FieldExpr      :: fn() -> i64
+  expr 14:34    IdentExpr      :: i32[]
+  expr 18:33    StringLitExpr  :: string
+  expr 18:37    CallExpr       :: i64
+  expr 18:37    FieldExpr      :: fn() -> i64
+  expr 18:37    IdentExpr      :: string[]
+  expr 22:20    SeqLitExpr     :: i32[]
+  expr 23:22    SeqLitExpr     :: string[]
+  expr 23:23    StringLitExpr  :: string
+  expr 23:28    StringLitExpr  :: string
+  expr 24:13    CallExpr       :: string
+  expr 24:13    FieldExpr      :: fn(i32) -> string
+  expr 24:13    IdentExpr      :: i32[]
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 25:13    CallExpr       :: string
+  expr 25:13    FieldExpr      :: fn(string) -> string
+  expr 25:13    IdentExpr      :: string[]
+  expr 25:25    StringLitExpr  :: string
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void

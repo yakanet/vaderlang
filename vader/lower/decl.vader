@@ -76,50 +76,44 @@ build_impl_member_params :: fn(
     member: FnDecl, self_type: Type, types: EntryTypes,
     typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> LoweredParam[] {
+    signature :: types.declared_type_of_fn(member)
     params: LoweredParam[]: []
-    for ast_param in member.params {
+    for i in 0..<member.params.len() {
+        ast_param :: member.params[i]
         // `self` may have no use-sites inside the body (`-> "point"`),
         // in which case `resolved.idents` doesn't surface the symbol.
         // Fall back to a synthesised symbol carrying the param's name
         // so the dump renders the signature correctly.
         symbol_or_null :: lookup_local_symbol(project_ctx, typed.resolved, ast_param.span)
         symbol :: synth_param_or(symbol_or_null, ast_param.name, typed)
-        // The lone `self` param carries an absent TypeExpr ; substitute the
-        // impl's `for_type` so downstream phases see the concrete receiver
-        // type rather than `Self`.
-        param_type :: if ast_param.name == "self" {
-            self_type
-        } else {
-            impl_member_param_type(ast_param, types, typed)
-        }
         params.push(LoweredParam {
-            .name = ast_param.name, .symbol = symbol, .type = param_type,
+            .name = ast_param.name,
+            .symbol = symbol,
+            .type = impl_member_param_type(ast_param, i, self_type, signature, types),
         })
     }
     return params
 }
 
-// Resolve a surfaced impl member's non-self param type. `@intrinsic`
-// synthetic members (e.g. primitive `Equals::equals`'s `other: Self`) bake
-// the impl substitution into the param's AST type expr but inherit the
-// TRAIT method's param span ; every primitive implementor shares it, so the
-// span-keyed `param_types` table collapses to a single last-writer-wins
-// entry (all primitive `equals` wrappers came out `(prim, string)`). When
-// the substituted type expr resolves structurally to a PRIMITIVE, a machine
-// integer included, that is authoritative : take it. Every other param keeps
-// the span/subst-keyed `EntryTypes` path (generic-impl members still carry a
-// type-param at the AST level and need the entry substitution), so this
-// narrows strictly to the primitive-intrinsic collision.
-impl_member_param_type :: fn(ast_param: FnParam, types: EntryTypes, typed: TypedProgram) -> Type {
-    pty :: ast_param.ty ?? return types.param_type(ast_param)
-    scratch: Diagnostic[]: []
-    direct :: type_from_expr(pty, typed.resolved, scratch)
-    if primitive_name(direct) != "" {
-        return direct
+// The type of the impl member's `i`-th parameter `p`. The lone `self` carries no
+// written type : it is the receiver the member is lowered for, not `Self`. Another
+// reads the member's signature, keyed by its node id: an `@intrinsic` stub shares
+// its parameters' spans with every other impl of its trait.
+impl_member_param_type :: fn(
+    p: FnParam,
+    i: i64,
+    self_type: Type,
+    signature: Type,
+    types: EntryTypes,
+) -> Type {
+    if p.name == "self" {
+        return self_type
     }
-    return types.param_type(ast_param)
+    if signature is FnType && i < signature.params.len() {
+        return signature.params[i]
+    }
+    return types.param_type(p)
 }
-
 
 synth_param_or :: fn(symbol_or_null: Symbol | null, name: string, typed: TypedProgram) -> Symbol {
     match symbol_or_null {
@@ -399,7 +393,7 @@ lookup_comptime_value :: fn(
 // back to `void` when the decl-type lookup misses (the fn was rejected
 // upstream: cascading diagnostics already surfaced).
 return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
-    decl_type :: types.declared_type(fn_decl.name_span)
+    decl_type :: types.declared_type_of_fn(fn_decl)
     if decl_type is FnType {
         return decl_type.return_type
     }

@@ -2188,7 +2188,7 @@ warn_inferred_export_return :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    fn_type :: declared_type_at(typed, fd.name_span)
+    fn_type :: declared_fn_type(typed, fd)
     if fn_type !is FnType {
         return
     }
@@ -2476,7 +2476,7 @@ record_default_return :: fn(m: AST.FnDecl, self_sym: Symbol, typed: TypedProgram
     if !needs_return_inference(m) {
         return
     }
-    checked :: declared_type_at(typed, m.name_span)
+    checked :: declared_fn_type(typed, m)
     if checked !is FnType || checked.return_type is UnresolvedType {
         return
     }
@@ -2517,7 +2517,8 @@ declare_inherited_member :: fn(
         params.push(for_ty)
     }
     params.push_all(rest.params)
-    record_member_signature(m, params, rest.return_type, typed)
+    // Its parameters are written nowhere : the signature alone holds their types.
+    typed.impl_method_decl_types[m.id] = mk_fn(params, rest.return_type)
 }
 
 // The type of the member `m` inherits, its receiver dropped : the trait member's,
@@ -2535,20 +2536,6 @@ inherited_signature :: fn(
     return null
 }
 
-// Where an impl member's signature lives : each parameter's type by its span, and
-// the whole by the member's name span, since an impl member has no symbol. The
-// member's parameters are `params`, one for one.
-record_member_signature :: fn(
-    fd: AST.FnDecl,
-    params: Type[],
-    ret: Type,
-    typed: TypedProgram,
-) -> void {
-    for i in 0..<params.len() {
-        typed.param_types[fd.params[i].span.hash()] = params[i]
-    }
-    typed.impl_method_decl_types[fd.name_span.hash()] = mk_fn(params, ret)
-}
 
 // Where a member of an impl reports its declaration. A member declared for the impl
 // from its trait (`materialized`) reports nothing : its signature is the trait's,
@@ -2692,7 +2679,7 @@ check_member_signature :: fn(
         return
     }
     want :: try_trait_method(trait_type, member.name, typed, for_ty) ?? return
-    got :: typed.impl_method_decl_types[member.name_span.hash()]
+    got :: typed.impl_method_decl_types[member.id]
     if want !is FnType || got !is FnType {
         return
     }
@@ -2792,7 +2779,7 @@ impl_member_quantifier :: fn(
 /// Pre-walk an impl method's signature so `self` resolves to the impl block's
 /// for-type and the rest of the params take their annotated types. Results land
 /// in `param_types` (per-param, span-keyed) and `impl_method_decl_types` (the
-/// whole `FnType`, keyed by the member's `name_span`: impl members are not in
+/// whole `FnType`, keyed by the member's node id: impl members are not in
 /// `resolved.symbols`), so `infer_ident` / `check_fn_body` see concrete types.
 ///
 /// @param fd            the impl member.
@@ -2811,10 +2798,13 @@ declare_impl_method_for_trait :: fn(
 ) -> void {
     params: Type[]: []
     for p in fd.params {
-        params.push(param_type(p, for_ty, typed, diags))
+        pt :: param_type(p, for_ty, typed, diags)
+        typed.param_types[p.span.hash()] = pt
+        params.push(pt)
     }
     ret :: declare_impl_return(fd, for_ty, trait_method, trait_type, typed, diags)
-    record_member_signature(fd, params, ret, typed)
+    // An impl member has no symbol : its signature is keyed by its node id.
+    typed.impl_method_decl_types[fd.id] = mk_fn(params, ret)
 }
 
 declare_impl_return :: fn(

@@ -4,8 +4,8 @@
 // file before node ids are assigned, so every later pass meets an ordinary
 // `E implements Display` and the generated code goes through the checks a
 // written one does. It is parsed under a file name of its own per enum, which
-// keeps each of its spans unique: the span-keyed tables (`idents`,
-// `impl_method_decl_types`) must never see two nodes on one span.
+// keeps each of its spans unique: a span-keyed table (`idents`, `param_types`)
+// must never see two nodes on one span.
 
 module "vader/front/resolver"
 

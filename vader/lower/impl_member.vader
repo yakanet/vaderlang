@@ -223,7 +223,7 @@ build_ufcs_member :: fn(
     if target_type is ArrayType {
         ctx.project.array_member_uses[mangled] = ArrayMemberUse {
             .element = target_type.element,
-            .member_span = member.span,
+            .member_id = member.id,
         }
     }
     // Generic-struct receiver (`MutableMap<Any, bool>`) : the regular

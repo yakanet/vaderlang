@@ -265,11 +265,10 @@ recursion_detail :: fn(fn_decl: AST.FnDecl) -> string {
 patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) -> void {
     sym :: symbol_declared_at(typed.resolved, fn_decl.name_span)
     if sym == null {
-        // An impl member has no symbol: its type is keyed by its name span.
-        sp_key :: fn_decl.name_span.hash()
-        cur :: typed.impl_method_decl_types[sp_key]
+        // An impl member has no symbol: its type is keyed by its node id.
+        cur :: typed.impl_method_decl_types[fn_decl.id]
         if cur is FnType {
-            typed.impl_method_decl_types[sp_key] = FnType { ...cur, .return_type = ret }
+            typed.impl_method_decl_types[fn_decl.id] = FnType { ...cur, .return_type = ret }
         }
         return
     }
@@ -1677,7 +1676,7 @@ is_known_non_iterable :: fn(t: Type) -> bool {
 }
 
 lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
-    decl_ty :: declared_type_at(typed, fn_decl.name_span)
+    decl_ty :: declared_fn_type(typed, fn_decl)
     if decl_ty is FnType {
         return decl_ty.return_type
     }

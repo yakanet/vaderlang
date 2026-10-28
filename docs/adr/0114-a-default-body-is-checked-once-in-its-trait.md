@@ -2,10 +2,10 @@
 
 ## Status
 
-Accepted (2026-10-28). Supersedes in part
+Accepted (2026-10-28). Supersedes
 [0012](0012-materialised-clone-spans-are-deterministic-per-impl.md): no body is
-copied any more, and the per-impl span allocator only anchors the signature of a
-member an impl inherits.
+copied any more, and a member declared from its trait is identified by its node
+id, not by a span.
 
 ## Context
 
@@ -61,5 +61,13 @@ among them.
 - Every reader of a body reaches it through `inherits`: the effects index, the
   async and generator scan, the impls of arrays. One that reads `body` alone sees
   an inherited member as bodyless.
+- An inherited member is typed from its trait's member, read in the trait's
+  module: its signature names what the trait's file imports. A default with an
+  expression body may leave out its return type; every reader takes the one its
+  body gives, recorded once per trait member.
+- An impl member is identified by its node id: its type, and the array impl a
+  call reaches. A member declared for an impl from its trait is written
+  nowhere: its name and an inherited member's parameters take a span that names
+  no source.
 - Find-references does not yet link a call of an inherited member to the
   default body.
