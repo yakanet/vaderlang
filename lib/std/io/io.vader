@@ -370,17 +370,30 @@ read_size :: fn(missing: i64) -> i64 {
 /// count, which is what reading keys as they are pressed needs.
 ///
 /// @param max  ceiling on the bytes returned.
-/// @return     at least one byte, or null at end of input, on a failed read,
-///             when `max` is not positive, and on a target with no stdin.
-export read_available_or_null :: fn(max: i64) -> string | null {
+/// @return     at least one byte.
+/// @error      `IOError` at end of input, on a failed read, on a target with no
+///             stdin, and `.InvalidInput` when `max` is not positive.
+export read_available :: fn(max: i64) -> string | IOError {
     if max <= 0 {
-        return null
+        return IOError { .msg = "`max` is not positive: ${max}", .kind = .InvalidInput }
     }
     bytes :: read_ready(max)
     if bytes is IOError {
-        return null
+        return bytes
     }
     return bytes.bytes_to_string()
+}
+
+/// `read_available` with null in place of its error, for a caller that only
+/// tells a read from its absence.
+///
+/// @param max  ceiling on the bytes returned.
+export read_available_or_null :: fn(max: i64) -> string | null {
+    read :: read_available(max)
+    if read is IOError {
+        return null
+    }
+    return read
 }
 
 /// Up to `max` bytes of stdin, at least one: what a single read returns.
@@ -1357,6 +1370,12 @@ without_trailing_sep :: fn(p: string) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test test_reading_nothing_is_refused_without_touching_stdin :: fn() -> void {
+    refused :: read_available(0)
+    assert(refused is IOError && refused.kind == .InvalidInput, "no room is an invalid input")
+    assert(read_available_or_null(0) == null, "and the twin answers null")
+}
 
 @test test_typed_text_hands_out_what_was_asked_and_keeps_the_rest :: fn() -> void {
     // `h\u{e9}!` in UTF-8: the accent takes two bytes, which two reads may split.
