@@ -16,7 +16,8 @@
 //
 // This file is the CONTRACT: what a driver fills in, and what it reads back.
 // Draining the stream is `drive.vader`; writing generated modules is
-// `generate.vader`; the driver a `vader.json` stands for is `manifest.vader`.
+// `generate.vader`; what a driver plugs into its build is `plugin.vader`; the
+// driver a `vader.json` stands for is `manifest.vader`.
 // They share this module, so nothing crosses a boundary.
 //
 // `build` is a reserved name in `build.vader`, the way `main` is in a program:
@@ -103,10 +104,16 @@ export BuildContext :: struct {
     /// driver's behaviour is anchored at.
     @internal
     description_file: string = DRIVER_FILENAME
-    /// Diagnostics of the build and the driver's own reports. `flush_reports`
-    /// prints them.
+    /// Diagnostics of the build and the driver's own reports. The end of the
+    /// stream prints them, `flush_reports` before it.
     @internal
     diagnostics:    Diagnostic[] = []
+    /// How many of `diagnostics` are printed already, so none prints twice.
+    @internal
+    printed:        i64 = 0
+    /// The plugins `use` received, in that order (`plugin.vader`).
+    @internal
+    plugins:        BuildPlugin[] = []
 }
 
 /// Where generated modules land, relative to the project root.
@@ -259,7 +266,8 @@ export add_asset :: fn(ctx: BuildContext, asset: string) -> void {
 
 /// Report a problem from the driver, anchored in the user's source.
 ///
-/// Accumulates; `flush_reports` prints. The driver describes the problem and the
+/// Accumulates; the end of the stream prints, and an error among the reports
+/// makes the build's code 1. The driver describes the problem and the
 /// registry owns the code (`H6004`): a project's lint rules should never have
 /// to allocate diagnostic ids, and every driver report stays greppable under one
 /// code.
@@ -277,25 +285,26 @@ export report :: fn(ctx: BuildContext, span: Span, message: string) -> void {
 
 /// Reports accumulated so far, in order.
 ///
-/// @return the driver's diagnostics. Inspect them to decide an exit status;
-///         `flush_reports` is what puts them on the wire.
+/// @return the driver's diagnostics. The end of the stream, or `flush_reports`,
+///         puts them on the wire.
 export reports_of :: fn(ctx: BuildContext) -> Diagnostic[] = ctx.diagnostics
 
-/// Print every accumulated report, in the compiler's own diagnostic format.
+/// Print the reports not printed yet, in the compiler's own diagnostic format.
 ///
-/// A driver has to call this: under this model the driver IS the process, so
-/// there is no host left to drain the reports for it. They print once, sorted
-/// by file and position and without duplicates, which is what makes a driven
+/// The end of `messages()` prints them on its own, so a driver calls this only
+/// when it leaves the loop before the end, reports once the build is over, or
+/// wants its reports seen sooner. Each prints once; a call sorts what it prints
+/// by file and position and drops its duplicates, which is what makes a driven
 /// build's output reproducible.
 ///
 /// @param ctx  the context holding the reports.
-/// @return     true when at least one report was printed, so a driver can pick
-///             its exit status without counting them itself.
+/// @return     true when at least one report was printed.
 export flush_reports :: fn(ctx: BuildContext) -> bool {
-    if ctx.diagnostics.len() == 0 {
+    if ctx.printed == ctx.diagnostics.len() {
         return false
     }
-    eprintln(dump_diagnostics_with_file(ctx.diagnostics))
+    eprintln(dump_diagnostics_with_file(ctx.diagnostics[ctx.printed..<ctx.diagnostics.len()]))
+    ctx.printed = ctx.diagnostics.len()
     return true
 }
 

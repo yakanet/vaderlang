@@ -14,6 +14,5 @@ build :: fn(args: string[]) -> i32 {
             exit = msg.code
         }
     }
-    _ :: ctx.flush_reports()
     return exit
 }

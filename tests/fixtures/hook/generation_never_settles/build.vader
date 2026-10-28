@@ -8,23 +8,28 @@
 
 module "build"
 
-import "std/io"
 import "toolchain/build"
+
+// A plugin, so the rounds it counts live in its own field.
+Ticker :: struct {
+    rounds: i32 = 0
+}
+
+Ticker implements BuildPlugin {
+    on_phase :: fn(self, ctx: BuildContext, phase: Phase) -> void {
+        if phase == .Typechecked {
+            self.rounds += 1
+            ctx.emit_module(
+                "gen/tick",
+                "export tick_${self.rounds} :: fn() -> i32 = ${self.rounds}",
+            )
+        }
+    }
+}
 
 build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
     ctx.add_entry("app", "src/main.vader")
-    rounds := 0
-    for msg in ctx.messages() {
-        if msg is PhaseMessage {
-            if msg.phase == .Typechecked {
-                rounds += 1
-                ctx.emit_module("gen/tick", "export tick_${rounds} :: fn() -> i32 = ${rounds}")
-            }
-        }
-    }
-    if ctx.flush_reports() {
-        return 1
-    }
-    return 0
+    ctx.use(Ticker {})
+    return ctx.emit_native()
 }

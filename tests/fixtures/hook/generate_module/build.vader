@@ -64,9 +64,6 @@ build :: fn(args: string[]) -> i32 {
 
     println("driver: ${rounds} round(s), ${ctx.generated_files_of().len()} generated file(s)")
     println("driver: struct seen ${points}x, generated decls back ${generated_decls}")
-    if ctx.flush_reports() {
-        return 1
-    }
     return exit
 }
 

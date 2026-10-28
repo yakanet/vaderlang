@@ -570,7 +570,7 @@ import "std/testing"
     assert("module \"build\"" in src, "the driver declares `module \"build\"`")
     assert("build :: fn(args: string[]) -> i32" in src, "with the reserved shape")
     assert("add_entry(\"demo\", \"src/main.vader\")" in src, "and adds the entry, named after the project")
-    assert("flush_reports()" in src, "and prints what the build reported")
+    assert("return ctx.emit_native()" in src, "and returns what the build answered")
 }
 
 @test test_build_flag_beats_the_question :: fn() -> void {

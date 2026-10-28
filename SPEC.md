@@ -3104,9 +3104,7 @@ import "toolchain/build"
 build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
     ctx.add_entry("myapp", "src/main.vader")
-    code :: ctx.emit_native()
-    _ :: ctx.flush_reports()
-    return code
+    return ctx.emit_native()
 }
 ```
 
@@ -3120,7 +3118,7 @@ A driver describes in code what a `vader.json` declares:
 
 An entry or an asset that breaks its rule is an error. When the driver starts draining `ctx.messages()` with an error already reported, one of its own reports included, nothing is described or compiled: the stream yields only a `CompleteMessage` of code 1.
 
-A driver prints the diagnostics of its build, its own reports included, with `ctx.flush_reports()`.
+The end of the stream prints the diagnostics of the build, the driver's reports included, and an error among them makes the build's code 1. A driver that leaves the loop before the end, or reports once the build is over, prints them with `ctx.flush_reports()`.
 
 #### What the command decides
 
@@ -3129,6 +3127,49 @@ What the command asked reaches the driver in `args`, and the driver does not cha
 #### The message stream
 
 A driver reaches the compiler through `toolchain/build`, and names AST types through `toolchain/ast`. Draining `ctx.messages()` is the build: it yields each module's typed declarations, then the phase boundaries, and last a `CompleteMessage` whose `code` is the build's exit code. `Phase.BeforeEmit` is the last point where leaving the loop writes nothing, which is how a driver that only lints declines to build.
+
+#### Plugins
+
+A plugin is a type that implements `BuildPlugin`. `ctx.use(p)` plugs it into the build: it hears each message of the stream, in the order the plugins were plugged, before the driver's own loop does. Its members do nothing unless it overrides them:
+
+- `on_module(ctx, msg)` receives the typed declarations of one module;
+- `on_phase(ctx, phase)` receives a phase boundary;
+- `on_complete(ctx, code)` receives the end of the build, where a report still fails it.
+
+```vader
+module "build"
+
+import "std/string"
+import "toolchain/build"
+AST :: import "toolchain/ast"
+
+StructNames :: struct {}
+
+StructNames implements BuildPlugin {
+    on_module :: fn(self, ctx: BuildContext, msg: TypecheckedMessage) -> void {
+        if msg.module_name != "app" {
+            return
+        }
+        for d in msg.declarations {
+            if d is AST.StructDecl && d.name[0..<1].to_upper() != d.name[0..<1] {
+                ctx.report(d.name_span, "struct `${d.name}` should be PascalCase")
+            }
+        }
+    }
+}
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_entry("myapp", "src/main.vader")
+    ctx.use(StructNames {})
+    return ctx.emit_native()    // 1 when a struct breaks the rule
+}
+```
+
+- A plugin reports and generates as a driver does.
+- Plugins are read when the stream starts, like the rest of the configuration.
+- In `.Describe` mode the stream builds nothing, and the plugins hear nothing.
+- Starting a build from inside a plugin is an error.
 
 #### Generating code
 

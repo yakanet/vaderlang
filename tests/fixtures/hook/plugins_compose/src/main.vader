@@ -1,0 +1,12 @@
+module "src"
+
+import "std/io"
+
+// Breaks the lint's rule, so its report is what fails the build.
+badlyNamed :: struct { x: i32 }
+
+main :: fn() -> i32 {
+    a :: badlyNamed { .x = 1 }
+    println("hello ${a.x}")
+    return 0
+}

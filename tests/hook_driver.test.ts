@@ -696,7 +696,6 @@ test.concurrent("the language server reads the search roots a driver declares", 
       "    if code == 0 && ctx.mode() == .Build {",
       '        println("packaged")',
       "    }",
-      "    _ :: ctx.flush_reports()",
       "    return code",
       "}", "",
     ].join("\n"));

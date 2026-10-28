@@ -1,0 +1,126 @@
+// toolchain/build/plugin: what a driver plugs into its build.
+//
+// A plugin is a type implementing `BuildPlugin`. `ctx.use(p)` hands it every
+// message `messages()` yields (`drive.vader`), in the order `use` received the
+// plugins and before the driver's own loop sees the message. Several plugins
+// thus compose in one build without their bodies merged by hand, and a plugin
+// ships as a library type.
+//
+// A plugin observes, emits (`emit_module`) and reports (`report`). The shape of
+// the build, its entries, target and output, is the driver's.
+//
+// A shipped plugin lives in a module of its own: importing `toolchain/build`
+// links the compiler, which a program importing only the library must not drag.
+
+module "toolchain/build"
+
+/// Behaviour plugged into a build, told each message of the stream in order.
+/// Every member does nothing unless the plugin overrides it.
+export BuildPlugin :: trait {
+    /// The declarations of one module, each delivered once per entry.
+    on_module :: fn(self, ctx: BuildContext, msg: TypecheckedMessage) -> void {}
+    /// The pipeline crossed `phase`.
+    on_phase :: fn(self, ctx: BuildContext, phase: Phase) -> void {}
+    /// The build is over with `code`. A report made here still fails it.
+    on_complete :: fn(self, ctx: BuildContext, code: i32) -> void {}
+}
+
+/// Plug `plugin` into the build, after the plugins plugged before it.
+///
+/// Read when the stream starts, as the rest of the configuration is: a plugin
+/// plugged once `messages()` has been pulled waits for the next build.
+///
+/// @param ctx     the context being configured.
+/// @param plugin  the behaviour to plug.
+export use :: fn(ctx: BuildContext, plugin: BuildPlugin) -> void {
+    ctx.plugins.push(plugin)
+}
+
+// Whether a plugin is running in this process. A build started then would run
+// inside the one telling it, whichever context it builds.
+PluginDispatch :: struct {
+    running: bool = false
+}
+
+@singleton
+plugin_dispatch :: fn() -> PluginDispatch = PluginDispatch {}
+
+// Hand `msg` to each of `plugins`, in order. A plugin starting a build from here
+// is refused (`messages`): that build would run inside this one.
+tell_plugins :: fn(ctx: BuildContext, plugins: BuildPlugin[], msg: Message) -> void {
+    dispatch :: plugin_dispatch()
+    dispatch.running = true
+    for plugin in plugins {
+        match msg {
+            is TypecheckedMessage -> plugin.on_module(ctx, msg)
+            is PhaseMessage       -> plugin.on_phase(ctx, msg.phase)
+            is CompleteMessage    -> plugin.on_complete(ctx, msg.code)
+        }
+    }
+    dispatch.running = false
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// Writes down what it is told, after a name, so a test reads the order.
+Recorder :: struct {
+    name: string
+    log: string[]
+}
+
+Recorder implements BuildPlugin {
+    on_phase :: fn(self, ctx: BuildContext, phase: Phase) -> void {
+        self.log.push("${self.name} ${display_phase(phase)}")
+    }
+    on_complete :: fn(self, ctx: BuildContext, code: i32) -> void {
+        self.log.push("${self.name} complete ${code}")
+    }
+}
+
+// Starts a build of its own, on a context of its own, once the build it is
+// plugged into is over, and keeps what that build reported.
+Nested :: struct {
+    reported: string[]
+}
+
+Nested implements BuildPlugin {
+    on_complete :: fn(self, ctx: BuildContext, code: i32) -> void {
+        inner :: new_build_context(["driver", "/tmp/proj"])
+        inner.emit_native()
+        for d in inner.reports_of() {
+            self.reported.push(d.code.id)
+        }
+    }
+}
+
+@test test_plugins_hear_the_stream_in_the_order_they_were_plugged :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    log: string[]: []
+    ctx.use(Recorder { .name = "a", .log = log })
+    ctx.use(Recorder { .name = "b", .log = log })
+    // No entry: the stream is its end alone, which both plugins hear.
+    for _ in ctx.messages() {}
+    assert_eq(log.len(), 2)
+    assert_eq(log[0], "a complete 1")
+    assert_eq(log[1], "b complete 1")
+}
+
+@test test_a_build_started_from_a_plugin_is_refused :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    reported: string[]: []
+    ctx.use(Nested { .reported = reported })
+    ctx.emit_native()
+    assert_eq(reported.len(), 1)
+    assert_eq(reported[0], "H6013")
+}
+
+@test test_a_description_tells_the_plugins_nothing :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.request.mode = .Describe
+    log: string[]: []
+    ctx.use(Recorder { .name = "a", .log = log })
+    for _ in ctx.messages() {}
+    assert_eq(log.len(), 0)
+}

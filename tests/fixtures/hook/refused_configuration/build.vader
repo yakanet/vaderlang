@@ -10,7 +10,5 @@ build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
     ctx.add_entry("app", "src/main.vader")
     ctx.add_entry("App", "src/main.vader")
-    code :: ctx.emit_native()
-    _ :: ctx.flush_reports()
-    return code
+    return ctx.emit_native()
 }

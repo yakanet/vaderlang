@@ -1,0 +1,57 @@
+// Two plugins plugged into one build, with no loop of the driver's own: a lint
+// and a census. Each hears every message, in the order they were plugged, and
+// the lint's report fails the build without the driver checking for it.
+
+module "build"
+
+import "std/io"
+import "std/string"
+import "toolchain/build"
+AST :: import "toolchain/ast"
+
+// The struct names of the project, which a house rule wants in PascalCase.
+StructNames :: struct {}
+
+StructNames implements BuildPlugin {
+    on_module :: fn(self, ctx: BuildContext, msg: TypecheckedMessage) -> void {
+        if msg.module_name != "src" {
+            return
+        }
+        for d in msg.declarations {
+            if d is AST.StructDecl {
+                first :: d.name[0..<1]
+                if first.to_upper() != first {
+                    ctx.report(d.name_span, "struct `${d.name}` should be PascalCase")
+                }
+            }
+        }
+    }
+}
+
+// What the build went through, told once it is over.
+Census :: struct {
+    modules: i32 = 0
+    phases: i32 = 0
+}
+
+Census implements BuildPlugin {
+    on_module :: fn(self, ctx: BuildContext, msg: TypecheckedMessage) -> void {
+        if msg.module_name == "src" {
+            self.modules += 1
+        }
+    }
+    on_phase :: fn(self, ctx: BuildContext, phase: Phase) -> void {
+        self.phases += 1
+    }
+    on_complete :: fn(self, ctx: BuildContext, code: i32) -> void {
+        println("census: ${self.modules} project module(s), ${self.phases} phase(s), code ${code}")
+    }
+}
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_entry("hello", "src/main.vader")
+    ctx.use(StructNames {})
+    ctx.use(Census {})
+    return ctx.emit_native()
+}

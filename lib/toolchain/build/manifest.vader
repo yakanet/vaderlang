@@ -34,7 +34,5 @@ export build_from_manifest :: fn(request: DriverRequest, manifest: Manifest) -> 
     for asset in manifest.assets {
         ctx.add_asset(asset)
     }
-    code :: ctx.emit_native()
-    _ :: ctx.flush_reports()
-    return code
+    return ctx.emit_native()
 }

@@ -18,7 +18,8 @@
 //
 // `emit_native` / `emit_c` are shortcuts that drain this, not a second
 // implementation, so a driver that observes sees exactly the build a driver that
-// does not observe gets.
+// does not observe gets. The plugins a driver plugs (`plugin.vader`) hear each
+// message before its loop does.
 
 module "toolchain/build"
 
@@ -69,6 +70,11 @@ AST :: import "toolchain/ast"
 /// or to `--out` for its one entry, copies the assets beside them, and stops at
 /// the first entry that fails. Every mode writes the generated modules.
 ///
+/// The plugins `use` received hear each message first, in that order (see
+/// `BuildPlugin`). The end of the stream prints the diagnostics not printed yet,
+/// the driver's reports among them, and an error among them makes the build's
+/// code 1 even when every entry built.
+///
 /// @param ctx  the configured context. Without an entry, or when it already
 ///             holds an error, the stream yields only a failed
 ///             `CompleteMessage`.
@@ -76,9 +82,61 @@ AST :: import "toolchain/ast"
 /// @error      H6003 when the driver added no entry ; H6009 when `--entry`
 ///             names none of them ; H6011 when `--out` names one output for
 ///             several entries ; H6006 when generation never settles ; H6008
-///             when a generated module cannot be written. All land on
-///             `ctx.diagnostics`.
+///             when a generated module cannot be written ; H6013 when a plugin
+///             pulls it. All land on `ctx.diagnostics`.
 export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
+    // A build started by a plugin would run inside the one telling it, and
+    // deliver and emit everything a second time.
+    if plugin_dispatch().running {
+        detail :: "`messages()`, `emit_native` and `emit_c` start a build, refused in a plugin"
+        ctx.diagnostics.push(hook_error(.BuildInsidePlugin, driver_span(ctx), detail))
+        yield CompleteMessage { .code = 1 }
+        return
+    }
+    plugins :: plugins_told(ctx)
+    // One `yield` for the whole stream: a driver's loop body is copied at each.
+    for msg in pipeline_messages(ctx) {
+        yield relayed(ctx, plugins, msg)
+    }
+}
+
+// The plugins `messages` tells, read once as the rest of the configuration is. A
+// description builds nothing, so it tells none.
+plugins_told :: fn(ctx: BuildContext) -> BuildPlugin[] {
+    if ctx.mode() == .Describe {
+        return []
+    }
+    return ctx.plugins.clone()
+}
+
+// `msg` once the plugins heard it, the end of the stream as `finished` settles it.
+relayed :: fn(ctx: BuildContext, plugins: BuildPlugin[], msg: Message) -> Message {
+    if msg is CompleteMessage {
+        return finished(ctx, plugins, msg.code)
+    }
+    tell_plugins(ctx, plugins, msg)
+    return msg
+}
+
+// The message that ends the stream. The plugins hear the outcome, the reports
+// not printed yet are printed, and a reported error fails the build whatever the
+// pipeline answered, one a plugin made on hearing the end included.
+finished :: fn(ctx: BuildContext, plugins: BuildPlugin[], code: i32) -> CompleteMessage {
+    tell_plugins(ctx, plugins, CompleteMessage { .code = outcome(ctx, code) })
+    ctx.flush_reports()
+    return CompleteMessage { .code = outcome(ctx, code) }
+}
+
+// `code`, or 1 once the build holds an error.
+outcome :: fn(ctx: BuildContext, code: i32) -> i32 {
+    if any_error_diag(ctx.diagnostics) {
+        return 1
+    }
+    return code
+}
+
+// The build itself, which `messages` tells the plugins about.
+pipeline_messages :: fn(ctx: BuildContext) -> Iterator<Message> {
     // An error already on the context means it holds less than the driver
     // wrote: what is left is neither described nor compiled.
     if any_error_diag(ctx.diagnostics) {
@@ -363,13 +421,13 @@ output_request :: fn(ctx: BuildContext) -> BuildRequest = BuildRequest {
 /// entry is compiled to `build/<profile>-<target>/<name>` under the project, or
 /// to `--out` when one entry is built.
 ///
-/// Front-end and lowering diagnostics are **accumulated onto the context**, not
-/// printed, so they interleave with the driver's own reports in the order they
-/// happened and `flush_reports` prints them all at once.
+/// Front-end and lowering diagnostics are **accumulated onto the context**, so
+/// they interleave with the driver's own reports in the order they happened, and
+/// the end of the stream prints them all at once.
 ///
 /// @param ctx  the configured context ; add entries with `add_entry`.
-/// @return     0 when every entry built, 1 as soon as one failed. A driver
-///             normally returns this from `build`.
+/// @return     0 when every entry built and nothing reported an error, 1
+///             otherwise. A driver normally returns this from `build`.
 export emit_native :: fn(ctx: BuildContext) -> i32 {
     ctx.target = .Native
     return drain(ctx)

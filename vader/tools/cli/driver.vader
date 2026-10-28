@@ -289,8 +289,9 @@ render_driver :: fn(manifest: Manifest) -> string {
     out.append("//\n")
     out.append("// `vader build`, `check` and `run` given this folder compile this file and run\n")
     out.append("// `build`. Draining `ctx.messages()` IS the build, and `emit_native` is the\n")
-    out.append("// shortcut that drains it: walk the messages yourself to lint or generate,\n")
-    out.append("// calling `ctx.report(span, msg)` and then `ctx.flush_reports()`.\n")
+    out.append("// shortcut that drains it. To lint or generate, plug a `BuildPlugin` with\n")
+    out.append("// `ctx.use`, or walk the messages yourself; a `ctx.report(span, msg)` fails\n")
+    out.append("// the build.\n")
     out.append("//\n")
     out.append("// `vader check`, `run` and `info` run this file without building: a step after\n")
     out.append("// the build (install, package) checks `ctx.mode() == .Build` first.\n")
@@ -313,9 +314,7 @@ render_driver :: fn(manifest: Manifest) -> string {
     for asset in manifest.assets {
         out.append("    ctx.add_asset(${string_literal(asset)})\n")
     }
-    out.append("    code :: ctx.emit_native()\n")
-    out.append("    _ :: ctx.flush_reports()\n")
-    out.append("    return code\n")
+    out.append("    return ctx.emit_native()\n")
     out.append("}\n")
     return out.to_string()
 }
