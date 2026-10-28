@@ -159,7 +159,7 @@ fn 4 snippet$main () -> i32
   i32.const 3
   struct.new 8   ; __asyncstate_snippet_4
   ref.cast 3   ; ref std_core$Async
-  virtual.call 1 std_core$Async.resume
+  virtual.call 1 std_core$Async.resume -> any
   local.tee 0   ; $k_1
   type_check 7   ; std_core$Suspended
   if $L0 void
@@ -367,7 +367,7 @@ fn 8 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 5 39   ; arg 0 __asyncstate_snippet_3.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 8   ; __resumed_25
         type_check 7   ; std_core$Suspended
         if $L5 void
@@ -523,7 +523,7 @@ fn 8 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
             i32.eq
             if $L10 void
               local.field 0 5 39   ; arg 0 __asyncstate_snippet_3.awaited
-              virtual.call 1 std_core$Async.resume
+              virtual.call 1 std_core$Async.resume -> any
               local.tee 29   ; __resumed_26
               type_check 7   ; std_core$Suspended
               if $L11 void
@@ -683,7 +683,7 @@ fn 8 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
                   i32.eq
                   if $L16 void
                     local.field 0 5 39   ; arg 0 __asyncstate_snippet_3.awaited
-                    virtual.call 1 std_core$Async.resume
+                    virtual.call 1 std_core$Async.resume -> any
                     local.tee 51   ; __resumed_27
                     type_check 7   ; std_core$Suspended
                     if $L17 void
@@ -868,7 +868,7 @@ fn 8 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
                         i32.eq
                         if $L24 void
                           local.field 0 5 39   ; arg 0 __asyncstate_snippet_3.awaited
-                          virtual.call 1 std_core$Async.resume
+                          virtual.call 1 std_core$Async.resume -> any
                           local.tee 75   ; __resumed_28
                           type_check 7   ; std_core$Suspended
                           if $L25 void
@@ -1017,7 +1017,7 @@ fn 8 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
                               i32.eq
                               if $L30 void
                                 local.field 0 5 39   ; arg 0 __asyncstate_snippet_3.awaited
-                                virtual.call 1 std_core$Async.resume
+                                virtual.call 1 std_core$Async.resume -> any
                                 local.tee 95   ; __resumed_29
                                 type_check 7   ; std_core$Suspended
                                 if $L31 void
@@ -1126,7 +1126,7 @@ fn 9 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
     i32.eq
     if $L3 void
       local.field 0 8 1   ; arg 0 __asyncstate_snippet_4.awaited
-      virtual.call 1 std_core$Async.resume
+      virtual.call 1 std_core$Async.resume -> any
       local.tee 1   ; __resumed_2
       type_check 7   ; std_core$Suspended
       if $L4 void

@@ -119,7 +119,7 @@ fn 5 snippet$main () -> i32
   i32.const 7
   struct.new 11   ; __asyncstate_snippet_2
   ref.cast 3   ; ref std_core$Async
-  virtual.call 1 std_core$Async.resume
+  virtual.call 1 std_core$Async.resume -> any
   local.tee 0   ; $k_2
   type_check 7   ; std_core$Suspended
   if $L0 void
@@ -208,7 +208,7 @@ fn 6 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       i32.eq
       if $L5 void
         local.field 0 5 7   ; arg 0 __asyncstate_snippet_0.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 5   ; __resumed_5
         type_check 7   ; std_core$Suspended
         if $L6 void
@@ -272,7 +272,7 @@ fn 6 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
             i32.eq
             if $L10 void
               local.field 0 5 7   ; arg 0 __asyncstate_snippet_0.awaited
-              virtual.call 1 std_core$Async.resume
+              virtual.call 1 std_core$Async.resume -> any
               local.tee 10   ; __resumed_6
               type_check 7   ; std_core$Suspended
               if $L11 void
@@ -407,7 +407,7 @@ fn 7 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
     i32.eq
     if $L3 void
       local.field 0 8 4   ; arg 0 __asyncstate_snippet_1.awaited
-      virtual.call 1 std_core$Async.resume
+      virtual.call 1 std_core$Async.resume -> any
       local.tee 11   ; __resumed_4
       type_check 7   ; std_core$Suspended
       if $L4 void
@@ -501,7 +501,7 @@ fn 8 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 11 2   ; arg 0 __asyncstate_snippet_2.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 1   ; __resumed_5
         type_check 7   ; std_core$Suspended
         if $L5 void
@@ -567,7 +567,7 @@ fn 8 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
             i32.eq
             if $L8 void
               local.field 0 11 2   ; arg 0 __asyncstate_snippet_2.awaited
-              virtual.call 1 std_core$Async.resume
+              virtual.call 1 std_core$Async.resume -> any
               local.tee 7   ; __resumed_6
               type_check 7   ; std_core$Suspended
               if $L9 void

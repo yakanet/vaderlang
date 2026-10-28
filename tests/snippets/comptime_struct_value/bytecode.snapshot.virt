@@ -91,7 +91,7 @@ export main 1
 
 fn 0 snippet$show (any) -> string
   local.get 0   ; arg 0
-  virtual.call 1 std_core$Display.to_string
+  virtual.call 1 std_core$Display.to_string -> string
   return
 end
 

@@ -84,7 +84,7 @@ fn 2 snippet$total (ref) -> i32
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
       array.get 4   ; ref snippet$Shape[]
-      virtual.call 1 snippet$Shape.area
+      virtual.call 1 snippet$Shape.area -> i32
       local.set 5   ; $vcall_11
       local.get 1   ; sum
       local.get 5   ; $vcall_11

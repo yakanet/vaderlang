@@ -306,7 +306,7 @@ fn 3 snippet$main () -> i32
   local.set 2   ; self
   loop $L3 void
     local.get 10   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; other
     local.field 3 17 1   ; other __Tuple_Tuple_i32_i32_u8_5cdd0c36._1
     i32.const 1
@@ -418,7 +418,7 @@ fn 3 snippet$main () -> i32
   local.set 6   ; $len_20
   loop $L9 void
     local.get 10   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; other
     local.field 3 17 1   ; other __Tuple_Tuple_i32_i32_u8_5cdd0c36._1
     i32.const 1

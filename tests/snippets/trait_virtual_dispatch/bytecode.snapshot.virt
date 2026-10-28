@@ -50,7 +50,7 @@ end
 
 fn 2 snippet$report (any) -> string
   local.get 0   ; arg 0
-  virtual.call 1 std_core$Error.message
+  virtual.call 1 std_core$Error.message -> string
   return
 end
 

@@ -97,7 +97,7 @@ fn 0 snippet$main () -> i32
   type_check 17   ; ref std_core$Error
   if $L0 void
     local.get 2   ; written
-    virtual.call 1 std_core$Error.message
+    virtual.call 1 std_core$Error.message -> string
     local.set 3   ; $vcall_15
     string.const 1   ; "write failed: "
     local.get 3   ; $vcall_15
@@ -188,7 +188,7 @@ fn 0 snippet$main () -> i32
     return.lit i32.const 0
   end $L1
   local.get 2   ; written
-  virtual.call 1 std_core$Error.message
+  virtual.call 1 std_core$Error.message -> string
   local.set 0   ; path
   string.const 2   ; "read failed: "
   local.get 0   ; path

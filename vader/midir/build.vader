@@ -1021,7 +1021,7 @@ build_args :: fn(fn_ctx: FnCtx, args: LoweredExpr[], params: Type[]) -> LocalId[
 build_virtual_call :: fn(fn_ctx: FnCtx, e: LoweredVirtualCall) -> LocalId | null {
     receiver :: build_expr(fn_ctx, e.receiver) ?? return null
     args :: build_args(fn_ctx, e.args, e.param_types) ?? return null
-    dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "vcall", e.type) }
+    dst :: if is_void(e.type) || e.type is NeverType { null } else { fresh_tmp(fn_ctx, "vcall", e.type) }
     emit(fn_ctx, InstrVirtualCall {
         .dst = dst, .trait_name = e.trait_name, .method = e.method,
         .receiver = receiver, .args = args, .type = e.type, .span = e.span,

@@ -122,7 +122,7 @@ fn 2 snippet$sum_tripled_hi (any) -> i32
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; __step_1
     local.field 3 7 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -160,7 +160,7 @@ fn 3 snippet$drain (any) -> ref
   local.set 1   ; out
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; __step_1
     local.field 3 7 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
     i32.const 1

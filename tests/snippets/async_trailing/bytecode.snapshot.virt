@@ -68,7 +68,7 @@ end
 fn 4 snippet$drive (any) -> i32
   local r any
   local.get 0   ; arg 0
-  virtual.call 1 std_core$Async.resume
+  virtual.call 1 std_core$Async.resume -> any
   local.tee 1   ; r
   type_check 5   ; std_core$Suspended
   if $L0 void
@@ -167,7 +167,7 @@ fn 6 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
     i32.eq
     if $L3 void
       local.field 0 3 1   ; arg 0 __asyncstate_snippet_0.awaited
-      virtual.call 1 std_core$Async.resume
+      virtual.call 1 std_core$Async.resume -> any
       local.tee 1   ; __resumed_2
       type_check 5   ; std_core$Suspended
       if $L4 void
@@ -256,7 +256,7 @@ fn 7 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
     i32.eq
     if $L3 void
       local.field 0 6 2   ; arg 0 __asyncstate_snippet_1.awaited
-      virtual.call 1 std_core$Async.resume
+      virtual.call 1 std_core$Async.resume -> any
       local.tee 3   ; __resumed_3
       type_check 5   ; std_core$Suspended
       if $L4 void
@@ -294,7 +294,7 @@ fn 7 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         i32.eq
         if $L6 void
           local.field 0 6 2   ; arg 0 __asyncstate_snippet_1.awaited
-          virtual.call 1 std_core$Async.resume
+          virtual.call 1 std_core$Async.resume -> any
           local.tee 6   ; __resumed_4
           type_check 5   ; std_core$Suspended
           if $L7 void

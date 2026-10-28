@@ -262,7 +262,7 @@ fn 4 snippet$main () -> i32
   local.set 6   ; __off_3
   local.get 8   ; e2
   local.get 3   ; __coalesce_0
-  virtual.call 2 std_core$Equals.equals
+  virtual.call 2 std_core$Equals.equals -> bool
   local.set 7   ; $call_42
   local.get 0   ; $arr_0
   local.get 6   ; __off_3
@@ -276,7 +276,7 @@ fn 4 snippet$main () -> i32
   local.set 6   ; __off_3
   local.get 8   ; e2
   local.get 3   ; __coalesce_0
-  virtual.call 2 std_core$Equals.equals
+  virtual.call 2 std_core$Equals.equals -> bool
   bool.not
   local.set 7   ; $call_42
   local.get 0   ; $arr_0
@@ -941,7 +941,7 @@ fn 40 std_collections$rehash__Any__string (ref,i64) -> void
       local.field 0 24 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
       local.get 4   ; e
       array.get 28   ; ref[]
-      virtual.call 1 std_core$Hash.hash
+      virtual.call 1 std_core$Hash.hash -> u64
       local.tee 6   ; perturb
       local.get 3   ; if_res
       call 38   ; std_collections$first_slot
@@ -1055,7 +1055,7 @@ fn 42 std_collections$put__Any__string (ref,any,string) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    virtual.call 1 std_core$Hash.hash
+    virtual.call 1 std_core$Hash.hash -> u64
     local.set 5   ; perturb
     local.field 0 24 3   ; arg 0 std_collections$MutableMap__Any__string.mask
     ref.cast 9   ; i64
@@ -1096,7 +1096,7 @@ fn 42 std_collections$put__Any__string (ref,any,string) -> bool
           local.set 9   ; $idx_30
           local.get 1   ; arg 1
           local.get 9   ; $idx_30
-          virtual.call 2 std_core$Equals.equals
+          virtual.call 2 std_core$Equals.equals -> bool
           if $L5 void
             local.field 0 24 1   ; arg 0 std_collections$MutableMap__Any__string.evals
             local.get 8   ; ei
@@ -1228,7 +1228,7 @@ fn 43 std_collections$get__Any__string (ref,any) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  virtual.call 1 std_core$Hash.hash
+  virtual.call 1 std_core$Hash.hash -> u64
   local.set 2   ; perturb
   local.field 0 24 3   ; arg 0 std_collections$MutableMap__Any__string.mask
   ref.cast 9   ; i64
@@ -1261,7 +1261,7 @@ fn 43 std_collections$get__Any__string (ref,any) -> any
         local.set 6   ; $idx_25
         local.get 1   ; arg 1
         local.get 6   ; $idx_25
-        virtual.call 2 std_core$Equals.equals
+        virtual.call 2 std_core$Equals.equals -> bool
         if $L4 void
           local.field 0 24 1   ; arg 0 std_collections$MutableMap__Any__string.evals
           local.get 5   ; ei

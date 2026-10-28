@@ -109,7 +109,7 @@ fn 0 snippet$walk (any) -> i32
   local.set 1   ; sum
   loop $L0 void
     local.get 0   ; arg 0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 2   ; __tup_0
     local.field 2 7 0   ; __tup_0 __Tuple_i32_u8_99ae0d29._0
     ref.cast 2   ; i32
@@ -151,7 +151,7 @@ fn 2 snippet$Tally$Adder$add_all (ref,any) -> i32
   local.set 3   ; __iter_0
   loop $L0 void
     local.get 3   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 4   ; __step_1
     local.field 4 7 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -319,7 +319,7 @@ fn 3 snippet$main () -> i32
   end $L0
   loop $L2 void
     local.get 1   ; typed_iter
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 10   ; __fuse_arr_2
     local.field 10 7 1   ; __fuse_arr_2 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -383,7 +383,7 @@ fn 3 snippet$main () -> i32
   end $L4
   loop $L6 void
     local.get 1   ; typed_iter
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 8   ; ys
     local.field 8 7 1   ; ys __Tuple_i32_u8_99ae0d29._1
     i32.const 1

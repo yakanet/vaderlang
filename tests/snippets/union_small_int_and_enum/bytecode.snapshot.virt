@@ -352,7 +352,7 @@ fn 6 snippet$main (ref) -> i32
   i32.const 14
   retag 3   ; u8
   local.get 2   ; local
-  virtual.call 2 snippet$Shower.shown
+  virtual.call 2 snippet$Shower.shown -> string
   call 45   ; std_io$println__string
   string.const 7   ; "x"
   retag 2   ; string
@@ -1016,7 +1016,7 @@ fn 37 std_collections$rehash__string___u8__bool (ref,i64) -> void
       local.field 0 27 0   ; arg 0 std_collections$MutableMap__string___u8__bool.ekeys
       local.get 4   ; e
       array.get 30   ; union[]
-      virtual.call 1 std_core$Hash.hash
+      virtual.call 1 std_core$Hash.hash -> u64
       local.tee 6   ; perturb
       local.get 3   ; if_res
       call 35   ; std_collections$first_slot
@@ -1130,7 +1130,7 @@ fn 39 std_collections$put__string___u8__bool (ref,any,bool) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    virtual.call 1 std_core$Hash.hash
+    virtual.call 1 std_core$Hash.hash -> u64
     local.set 5   ; perturb
     local.field 0 27 3   ; arg 0 std_collections$MutableMap__string___u8__bool.mask
     ref.cast 16   ; i64
@@ -1171,7 +1171,7 @@ fn 39 std_collections$put__string___u8__bool (ref,any,bool) -> bool
           local.set 9   ; $idx_30
           local.get 1   ; arg 1
           local.get 9   ; $idx_30
-          virtual.call 2 std_core$Equals.equals
+          virtual.call 2 std_core$Equals.equals -> bool
           if $L5 void
             local.field 0 27 1   ; arg 0 std_collections$MutableMap__string___u8__bool.evals
             local.get 8   ; ei

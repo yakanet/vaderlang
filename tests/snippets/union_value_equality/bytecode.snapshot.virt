@@ -1112,7 +1112,7 @@ fn 4 snippet$Box$std_core$Equals$equals__Any (ref,ref) -> bool
   local.set 2   ; $field_2
   local.field 1 6 0   ; arg 1 snippet$Box__Any.value
   local.get 2   ; $field_2
-  virtual.call 2 std_core$Equals.equals
+  virtual.call 2 std_core$Equals.equals -> bool
   return
 end
 
@@ -1126,7 +1126,7 @@ fn 5 snippet$same_opt__snippet_Point (any,any) -> bool
     local.set 2   ; $cast_5
     local.get 1   ; arg 1
     local.get 2   ; $cast_5
-    virtual.call 2 std_core$Equals.equals
+    virtual.call 2 std_core$Equals.equals -> bool
     return
   end $L0
   return.lit bool.const false
@@ -1140,7 +1140,7 @@ fn 6 snippet$same_pair__snippet_Point (ref,ref) -> bool
   local.set 2   ; $field_2
   local.field 1 9 0   ; arg 1 __Tuple_Any_i32_ad92e87f._0
   local.get 2   ; $field_2
-  virtual.call 2 std_core$Equals.equals
+  virtual.call 2 std_core$Equals.equals -> bool
   if $L0 void
     local.field 0 9 1   ; arg 0 __Tuple_Any_i32_ad92e87f._1
     ref.cast 5   ; i32

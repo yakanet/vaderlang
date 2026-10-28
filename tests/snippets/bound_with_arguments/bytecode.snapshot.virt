@@ -387,7 +387,7 @@ end
 fn 7 snippet$twice__Any (any) -> any
   local.get 0   ; arg 0
   local.get 0   ; arg 0
-  virtual.call 2 std_core$Add.add
+  virtual.call 2 std_core$Add.add -> any
   return
 end
 

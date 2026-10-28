@@ -265,7 +265,7 @@ fn 8 snippet$total (any) -> i64
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; __step_1
     local.field 3 17 1   ; __step_1 __Tuple_i64_u8_87057322._1
     i32.const 1
@@ -294,7 +294,7 @@ fn 9 snippet$first_over (i64,any) -> i64
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; __step_1
     local.field 3 17 1   ; __step_1 __Tuple_i64_u8_87057322._1
     i32.const 1
@@ -325,7 +325,7 @@ fn 10 snippet$print_until_stop (any) -> void
   local.set 1   ; __iter_0
   loop $L0 void
     local.get 1   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 2   ; __step_1
     local.field 2 30 1   ; __step_1 __Tuple_string_u8_b910c566._1
     i32.const 1
@@ -368,7 +368,7 @@ fn 11 snippet$pair_sum (any) -> (i32,i32)
   local.set 3   ; __iter_1
   loop $L0 void
     local.get 3   ; __iter_1
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 4   ; __step_2
     local.field 4 53 1   ; __step_2 __Tuple_Tuple_i32_i32_u8_5cdd0c36._1
     i32.const 1
@@ -418,7 +418,7 @@ fn 12 snippet$weigh_1 (i64,any) -> i64
   local.set 3   ; __iter_0
   loop $L0 void
     local.get 3   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 4   ; __step_1
     local.field 4 17 1   ; __step_1 __Tuple_i64_u8_87057322._1
     i32.const 1
@@ -452,7 +452,7 @@ fn 13 snippet$drained_twice (any) -> i32
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; __step_1
     local.field 3 14 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -473,7 +473,7 @@ fn 13 snippet$drained_twice (any) -> i32
   local.set 2   ; __iter_0
   loop $L2 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; __step_1
     local.field 3 14 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -2983,7 +2983,7 @@ fn 53 std_iter$collect__snippet_Point (any) -> ref
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; __step_1
     local.field 3 85 1   ; __step_1 __Tuple_Struct_snippet_Point_u8_3d579548._1
     i32.const 1
@@ -3013,7 +3013,7 @@ fn 54 std_iter$fold__i64__i64 (any,i64,ref) -> i64
   local.set 4   ; __iter_0
   loop $L0 void
     local.get 4   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 5   ; __step_1
     local.field 5 17 1   ; __step_1 __Tuple_i64_u8_87057322._1
     i32.const 1
@@ -3048,7 +3048,7 @@ fn 55 std_iter$sum__i32 (any) -> i32
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; __step_1
     local.field 3 14 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -3077,7 +3077,7 @@ fn 56 std_iter$find__snippet_Point (any,ref) -> any
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; __step_1
     local.field 3 28 1   ; __step_1 __Tuple_Any_u8_d7d23c9c._1
     i32.const 1
@@ -3272,7 +3272,7 @@ fn 58 std_iter$__genstate_filter$Iterator$next (ref) -> ref
                         i32.eq
                         if $L15 void
                           local.field 0 35 2   ; arg 0 std_iter$__genstate_filter.s2
-                          virtual.call 1 std_core$Iterator.next
+                          virtual.call 1 std_core$Iterator.next -> ref
                           local.set 3   ; $vcall_67
                           local.get 0   ; arg 0
                           local.get 3   ; $vcall_67
@@ -3490,7 +3490,7 @@ fn 60 std_iter$__gen_state_std_iter_1$Iterator$next (ref) -> ref
                         i32.eq
                         if $L15 void
                           local.field 0 37 2   ; arg 0 std_iter$__gen_state_std_iter_1.s2
-                          virtual.call 1 std_core$Iterator.next
+                          virtual.call 1 std_core$Iterator.next -> ref
                           local.set 3   ; $vcall_67
                           local.get 0   ; arg 0
                           local.get 3   ; $vcall_67
@@ -3681,7 +3681,7 @@ fn 62 std_iter$__gen_state_std_iter_3$Iterator$next (ref) -> ref
                     i32.eq
                     if $L12 void
                       local.field 0 39 2   ; arg 0 std_iter$__gen_state_std_iter_3.s2
-                      virtual.call 1 std_core$Iterator.next
+                      virtual.call 1 std_core$Iterator.next -> ref
                       local.set 3   ; $vcall_57
                       local.get 0   ; arg 0
                       local.get 3   ; $vcall_57
@@ -3871,7 +3871,7 @@ fn 64 std_iter$__gen_state_std_iter_4$Iterator$next (ref) -> ref
                     i32.eq
                     if $L12 void
                       local.field 0 41 2   ; arg 0 std_iter$__gen_state_std_iter_4.s2
-                      virtual.call 1 std_core$Iterator.next
+                      virtual.call 1 std_core$Iterator.next -> ref
                       local.set 3   ; $vcall_57
                       local.get 0   ; arg 0
                       local.get 3   ; $vcall_57
@@ -4059,7 +4059,7 @@ fn 66 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
                     i32.eq
                     if $L12 void
                       local.field 0 43 2   ; arg 0 std_iter$__gen_state_std_iter_0.s2
-                      virtual.call 1 std_core$Iterator.next
+                      virtual.call 1 std_core$Iterator.next -> ref
                       local.set 3   ; $vcall_57
                       local.get 0   ; arg 0
                       local.get 3   ; $vcall_57
@@ -4247,7 +4247,7 @@ fn 68 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> ref
                     i32.eq
                     if $L12 void
                       local.field 0 45 2   ; arg 0 std_iter$__gen_state_std_iter_2.s2
-                      virtual.call 1 std_core$Iterator.next
+                      virtual.call 1 std_core$Iterator.next -> ref
                       local.set 3   ; $vcall_57
                       local.get 0   ; arg 0
                       local.get 3   ; $vcall_57

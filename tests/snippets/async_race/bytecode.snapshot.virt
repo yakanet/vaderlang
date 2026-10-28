@@ -191,7 +191,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
           i32.eq
           if $L6 void
             local.field 0 7 4   ; arg 0 __asyncstate_snippet_2.awaited
-            virtual.call 1 std_core$Async.resume
+            virtual.call 1 std_core$Async.resume -> any
             local.tee 6   ; __resumed_3
             type_check 9   ; std_core$Suspended
             if $L7 void
@@ -269,7 +269,7 @@ fn 4 snippet$__asyncstate_snippet_2$Async$cancel (ref) -> void
   if $L0 void
   else
     local.field 0 7 4   ; arg 0 __asyncstate_snippet_2.awaited
-    virtual.call 1 std_core$Async.cancel
+    virtual.call 1 std_core$Async.cancel -> void
   end $L0
   loop $L1 void
     local.field 0 7 3   ; arg 0 __asyncstate_snippet_2.__defers
@@ -371,7 +371,7 @@ fn 5 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 10 2   ; arg 0 __asyncstate_snippet_3.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 3   ; __resumed_2
         type_check 9   ; std_core$Suspended
         if $L5 void
@@ -437,7 +437,7 @@ fn 6 snippet$__asyncstate_snippet_3$Async$cancel (ref) -> void
     return
   end $L0
   local.field 0 10 2   ; arg 0 __asyncstate_snippet_3.awaited
-  virtual.call 1 std_core$Async.cancel
+  virtual.call 1 std_core$Async.cancel -> void
   i32.const -1
   local.set 1   ; $k_4
   local.get 0   ; arg 0
@@ -606,7 +606,7 @@ fn 12 std_async$Race$std_core$Async$resume__string (ref) -> any
         local.field 0 19 0   ; arg 0 std_async$Race__string.children
         local.get 4   ; i
         array.get 24   ; ref std_core$Async[]
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 5   ; r
         type_check 9   ; std_core$Suspended
         if $L3 void
@@ -636,7 +636,7 @@ fn 12 std_async$Race$std_core$Async$resume__string (ref) -> any
                 local.field 0 19 0   ; arg 0 std_async$Race__string.children
                 local.get 8   ; j
                 array.get 24   ; ref std_core$Async[]
-                virtual.call 1 std_core$Async.cancel
+                virtual.call 1 std_core$Async.cancel -> void
               end $L6
               local.get 8   ; j
               i64.const 1
@@ -689,7 +689,7 @@ fn 13 std_async$Race$std_core$Async$cancel__string (ref) -> void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
       array.get 24   ; ref std_core$Async[]
-      virtual.call 1 std_core$Async.cancel
+      virtual.call 1 std_core$Async.cancel -> void
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add
@@ -778,7 +778,7 @@ fn 19 std_async$block_on__i32 (any) -> i32
   local r any
   loop $L0 void
     local.get 0   ; arg 0
-    virtual.call 1 std_core$Async.resume
+    virtual.call 1 std_core$Async.resume -> any
     local.tee 1   ; r
     type_check 9   ; std_core$Suspended
     if $L1 void

@@ -1223,7 +1223,7 @@ fn 15 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
           i32.eq
           if $L8 void
             local.field 0 13 4   ; arg 0 __asyncstate_snippet_0.awaited
-            virtual.call 1 std_core$Async.resume
+            virtual.call 1 std_core$Async.resume -> any
             local.tee 9   ; __resumed_3
             type_check 15   ; std_core$Suspended
             if $L9 void
@@ -1455,7 +1455,7 @@ fn 16 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
             i32.eq
             if $L11 void
               local.field 0 16 9   ; arg 0 __asyncstate_snippet_1.awaited
-              virtual.call 1 std_core$Async.resume
+              virtual.call 1 std_core$Async.resume -> any
               local.tee 9   ; __resumed_6
               type_check 15   ; std_core$Suspended
               if $L12 void
@@ -1664,7 +1664,7 @@ fn 17 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 17 24   ; arg 0 __asyncstate_snippet_2.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 5   ; __resumed_27
         type_check 15   ; std_core$Suspended
         if $L5 void
@@ -1746,7 +1746,7 @@ fn 17 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
             i32.eq
             if $L8 void
               local.field 0 17 24   ; arg 0 __asyncstate_snippet_2.awaited
-              virtual.call 1 std_core$Async.resume
+              virtual.call 1 std_core$Async.resume -> any
               local.tee 12   ; __resumed_28
               type_check 15   ; std_core$Suspended
               if $L9 void
@@ -1888,7 +1888,7 @@ fn 17 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                               i32.eq
                               if $L19 void
                                 local.field 0 17 17   ; arg 0 __asyncstate_snippet_2.s17
-                                virtual.call 1 std_core$Iterator.next
+                                virtual.call 1 std_core$Iterator.next -> ref
                                 local.set 19   ; $vcall_131
                                 local.get 0   ; arg 0
                                 local.get 19   ; $vcall_131
@@ -2035,7 +2035,7 @@ fn 17 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                   i32.eq
                                                   if $L30 void
                                                     local.field 0 17 13   ; arg 0 __asyncstate_snippet_2.s13
-                                                    virtual.call 1 std_core$Iterator.next
+                                                    virtual.call 1 std_core$Iterator.next -> ref
                                                     local.set 26   ; $vcall_194
                                                     local.get 0   ; arg 0
                                                     local.get 26   ; $vcall_194
@@ -2182,7 +2182,7 @@ fn 17 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                       i32.eq
                                                                       if $L41 void
                                                                         local.field 0 17 9   ; arg 0 __asyncstate_snippet_2.s9
-                                                                        virtual.call 1 std_core$Iterator.next
+                                                                        virtual.call 1 std_core$Iterator.next -> ref
                                                                         local.set 33   ; $vcall_257
                                                                         local.get 0   ; arg 0
                                                                         local.get 33   ; $vcall_257
@@ -2329,7 +2329,7 @@ fn 17 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                                           i32.eq
                                                                                           if $L52 void
                                                                                             local.field 0 17 5   ; arg 0 __asyncstate_snippet_2.s5
-                                                                                            virtual.call 1 std_core$Iterator.next
+                                                                                            virtual.call 1 std_core$Iterator.next -> ref
                                                                                             local.set 40   ; $vcall_320
                                                                                             local.get 0   ; arg 0
                                                                                             local.get 40   ; $vcall_320
@@ -2476,7 +2476,7 @@ fn 17 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                                                               i32.eq
                                                                                                               if $L63 void
                                                                                                                 local.field 0 17 1   ; arg 0 __asyncstate_snippet_2.s1
-                                                                                                                virtual.call 1 std_core$Iterator.next
+                                                                                                                virtual.call 1 std_core$Iterator.next -> ref
                                                                                                                 local.set 47   ; $vcall_383
                                                                                                                 local.get 0   ; arg 0
                                                                                                                 local.get 47   ; $vcall_383
@@ -2996,7 +2996,7 @@ fn 29 std_async$block_on__i32 (any) -> i32
   local r any
   loop $L0 void
     local.get 0   ; arg 0
-    virtual.call 1 std_core$Async.resume
+    virtual.call 1 std_core$Async.resume -> any
     local.tee 1   ; r
     type_check 15   ; std_core$Suspended
     if $L1 void

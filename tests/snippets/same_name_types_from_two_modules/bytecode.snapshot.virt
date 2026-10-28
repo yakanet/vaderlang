@@ -75,7 +75,7 @@ end
 
 fn 2 snippet$show (any) -> string
   local.get 0   ; arg 0
-  virtual.call 1 snippet$Describe.describe
+  virtual.call 1 snippet$Describe.describe -> string
   return
 end
 

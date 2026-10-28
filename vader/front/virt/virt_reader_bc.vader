@@ -1032,31 +1032,10 @@ parse_signature_bc :: fn(line: string, types: BcType[]) -> BcSignature {
             param_types.push(class_tag_of(types, v))
         }
     }
-    result := ValType.Void
-    arrow :: line.index_of('>', 0)
-    results: ValType[]: []
+    results :: results_after_arrow(line)
     result_types: i32[]: []
-    if arrow >= 0 {
-        rtext :: line.byte_slice(arrow + 1, line.byte_len()).trim()
-        // `-> i32` is one result and `-> (i32,i32)` several: the same split the
-        // writer makes, so a single-value signature round-trips through the
-        // format it has always used.
-        if rtext.starts_with("(") && rtext.ends_with(")") {
-            inner :: rtext[1..<rtext.len() - 1]
-            for r in inner.split(",") {
-                v :: vt_or_void(r.trim())
-                results.push(v)
-                result_types.push(class_tag_of(types, v))
-            }
-        } else {
-            result = vt_or_void(rtext)
-        }
-    }
-    if results.len() == 0 {
-        // No parenthesised list, so the header named one result, or none, which
-        // the representation spells as a single `Void` entry.
-        results.push(result)
-        result_types.push(class_tag_of(types, result))
+    for r in results {
+        result_types.push(class_tag_of(types, r))
     }
     return BcSignature {
         .params      = params,
@@ -1065,6 +1044,30 @@ parse_signature_bc :: fn(line: string, types: BcType[]) -> BcSignature {
         .result_types = result_types,
         .param_names = [],
     }
+}
+
+// The results a line declares after its `->`; a single `Void` without one, as
+// the representation spells a call that leaves nothing.
+results_after_arrow :: fn(line: string) -> ValType[] {
+    arrow :: line.index_of('>', 0)
+    if arrow < 0 {
+        return [.Void]
+    }
+    return results_written(line.byte_slice(arrow + 1, line.byte_len()))
+}
+
+// Results as the writer spells them: one bare (`i32`), several in parentheses
+// (`(i32,i32)`).
+results_written :: fn(text: string) -> ValType[] {
+    rtext :: text.trim()
+    if rtext.starts_with("(") && rtext.ends_with(")") {
+        results: ValType[]: []
+        for r in rtext[1..<rtext.len() - 1].split(",") {
+            results.push(vt_or_void(r.trim()))
+        }
+        return results
+    }
+    return [vt_or_void(rtext)]
 }
 
 parse_local_decl_bc :: fn(cleaned: string) -> BcLocal {

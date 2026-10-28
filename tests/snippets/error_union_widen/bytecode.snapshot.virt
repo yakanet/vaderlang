@@ -126,7 +126,7 @@ fn 5 snippet$main () -> i32
   type_check 6   ; ref std_core$Error
   if $L0 void
     local.get 1   ; e
-    virtual.call 1 std_core$Error.message
+    virtual.call 1 std_core$Error.message -> string
     local.set 2   ; $vcall_7
     string.const 4   ; "err "
     local.get 2   ; $vcall_7

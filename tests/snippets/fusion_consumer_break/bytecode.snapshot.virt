@@ -561,7 +561,7 @@ fn 5 snippet$flat_map_break () -> void
   block $L5 void
     loop $L6 void
       local.get 8   ; $call_38
-      virtual.call 1 std_core$Iterator.next
+      virtual.call 1 std_core$Iterator.next -> ref
       local.set 1   ; __fuse_arr_0
       local.field 1 8 1   ; __fuse_arr_0 __Tuple_i32_u8_99ae0d29._1
       i32.const 1
@@ -721,7 +721,7 @@ fn 6 snippet$flat_map_take_calls () -> void
   local.set 11   ; __iter_4
   loop $L6 void
     local.get 11   ; __iter_4
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     struct.get 8 1   ; __Tuple_i32_u8_99ae0d29._1
     i32.const 1
     i32.eq
@@ -820,7 +820,7 @@ fn 8 snippet$two_yields_break () -> void
   local.get 1   ; xs
   local.get 4   ; $arr_26
   call 7   ; snippet$pairs
-  virtual.call 1 std_core$Iterator.next
+  virtual.call 1 std_core$Iterator.next -> ref
   struct.get 8 1   ; __Tuple_i32_u8_99ae0d29._1
   i32.const 1
   i32.eq
@@ -948,7 +948,7 @@ fn 10 snippet$tail_yield_break () -> void
   string.const 6   ; ""
   local.set 5   ; $call_16
   call 9   ; snippet$loop_then_tail
-  virtual.call 1 std_core$Iterator.next
+  virtual.call 1 std_core$Iterator.next -> ref
   local.set 2   ; __buf_0
   local.field 2 8 1   ; __buf_0 __Tuple_i32_u8_99ae0d29._1
   i32.const 1
@@ -1127,7 +1127,7 @@ fn 12 snippet$generator_of_generator () -> void
   block $L5 void
     loop $L6 void
       local.get 8   ; __iter_2
-      virtual.call 1 std_core$Iterator.next
+      virtual.call 1 std_core$Iterator.next -> ref
       local.set 2   ; __buf_0
       local.field 2 8 1   ; __buf_0 __Tuple_i32_u8_99ae0d29._1
       i32.const 1
@@ -1272,7 +1272,7 @@ fn 13 snippet$chain_break () -> void
   block $L5 void
     loop $L6 void
       local.get 6   ; $call_41
-      virtual.call 1 std_core$Iterator.next
+      virtual.call 1 std_core$Iterator.next -> ref
       local.set 1   ; __fuse_arr_0
       local.field 1 8 1   ; __fuse_arr_0 __Tuple_i32_u8_99ae0d29._1
       i32.const 1
@@ -1482,7 +1482,7 @@ fn 14 snippet$chain_break_by_name () -> void
   block $L9 void
     loop $L10 void
       local.get 10   ; $call_67
-      virtual.call 1 std_core$Iterator.next
+      virtual.call 1 std_core$Iterator.next -> ref
       local.set 1   ; __fuse_arr_3
       local.field 1 8 1   ; __fuse_arr_3 __Tuple_i32_u8_99ae0d29._1
       i32.const 1
@@ -1743,7 +1743,7 @@ fn 15 snippet$nested_break_outer () -> void
   block $L9 void
     loop $L10 void
       local.get 19   ; $call_77
-      virtual.call 1 std_core$Iterator.next
+      virtual.call 1 std_core$Iterator.next -> ref
       local.set 1   ; __fuse_arr_5
       local.field 1 8 1   ; __fuse_arr_5 __Tuple_i32_u8_99ae0d29._1
       i32.const 1
@@ -1763,7 +1763,7 @@ fn 15 snippet$nested_break_outer () -> void
         local.set 20   ; __iter_10
         loop $L12 void
           local.get 20   ; __iter_10
-          virtual.call 1 std_core$Iterator.next
+          virtual.call 1 std_core$Iterator.next -> ref
           local.set 4   ; __for_arr_0
           local.field 4 8 1   ; __for_arr_0 __Tuple_i32_u8_99ae0d29._1
           i32.const 1
@@ -1953,7 +1953,7 @@ fn 16 snippet$generator_break_by_name () -> void
   block $L7 void
     loop $L8 void
       local.get 11   ; __iter_3
-      virtual.call 1 std_core$Iterator.next
+      virtual.call 1 std_core$Iterator.next -> ref
       local.set 1   ; xs
       local.field 1 8 1   ; xs __Tuple_i32_u8_99ae0d29._1
       i32.const 1
@@ -3394,7 +3394,7 @@ fn 40 std_iter$__gen_state_std_iter_1$Iterator$next (ref) -> ref
                     i32.eq
                     if $L12 void
                       local.field 0 22 5   ; arg 0 std_iter$__gen_state_std_iter_1.s5
-                      virtual.call 1 std_core$Iterator.next
+                      virtual.call 1 std_core$Iterator.next -> ref
                       local.set 2   ; $vcall_55
                       local.get 0   ; arg 0
                       local.get 2   ; $vcall_55
@@ -3526,7 +3526,7 @@ fn 40 std_iter$__gen_state_std_iter_1$Iterator$next (ref) -> ref
                                         i32.eq
                                         if $L24 void
                                           local.field 0 22 2   ; arg 0 std_iter$__gen_state_std_iter_1.s2
-                                          virtual.call 1 std_core$Iterator.next
+                                          virtual.call 1 std_core$Iterator.next -> ref
                                           local.set 5   ; $vcall_112
                                           local.get 0   ; arg 0
                                           local.get 5   ; $vcall_112
@@ -3834,7 +3834,7 @@ fn 42 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
                               i32.eq
                               if $L18 void
                                 local.field 0 24 2   ; arg 0 std_iter$__gen_state_std_iter_0.s2
-                                virtual.call 1 std_core$Iterator.next
+                                virtual.call 1 std_core$Iterator.next -> ref
                                 local.set 11   ; $vcall_91
                                 local.get 0   ; arg 0
                                 local.get 11   ; $vcall_91
@@ -3888,7 +3888,7 @@ fn 43 std_iter$find__i32 (any,ref) -> any
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; __step_1
     local.field 3 8 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -4117,7 +4117,7 @@ fn 45 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> ref
                             i32.eq
                             if $L17 void
                               local.field 0 27 3   ; arg 0 std_iter$__gen_state_std_iter_2.s3
-                              virtual.call 1 std_core$Iterator.next
+                              virtual.call 1 std_core$Iterator.next -> ref
                               local.set 5   ; $vcall_78
                               local.get 0   ; arg 0
                               local.get 5   ; $vcall_78

@@ -22,7 +22,6 @@
 module "vader/vm"
 
 import "std/abort"
-import "std/collections"
 import "std/math"
 import "std/string_builder"
 bc :: import "vader/core/bytecode"
@@ -97,8 +96,6 @@ TagContext :: struct {
     module:          bc.BytecodeModule
     /// Tags of each type-table entry (`type_tags`).
     type_tags:       u8[]
-    /// Results of the implementations behind each vtable key.
-    virtual_results: MutableMap<string, bc.ValType[]>
 }
 
 new_tag_context :: fn(module: bc.BytecodeModule) -> TagContext {
@@ -106,20 +103,7 @@ new_tag_context :: fn(module: bc.BytecodeModule) -> TagContext {
     for i in 0..<module.types.len() {
         types.push(type_tags(module.types, i32(i), 0))
     }
-    virtual_results :: MutableMap<string, bc.ValType[]> {}
-    for row in module.vtables {
-        if !(row.key in virtual_results) {
-            sig :: virtual_signature(module, row.key)
-            if sig != null {
-                virtual_results[row.key] = sig.results
-            }
-        }
-    }
-    return TagContext {
-        .module          = module,
-        .type_tags       = types,
-        .virtual_results = virtual_results,
-    }
+    return TagContext { .module = module, .type_tags = types }
 }
 
 // The tags a value of type `types[index]` is carried with. A value boxed into an
@@ -369,7 +353,9 @@ transfer :: fn(
 }
 
 // What a call leaves (possibly several values) or `null` for any other op. A
-// vtable key with no row is served by the host, which leaves one value.
+// virtual call leaves what it declares, not what one implementation behind its
+// key returns: implementations of a `Self`-returning member return each its own
+// class.
 call_results :: fn(ctx: TagContext, op: bc.Op) -> bc.ValType[] | null {
     module :: ctx.module
     if op is bc.Call {
@@ -379,7 +365,7 @@ call_results :: fn(ctx: TagContext, op: bc.Op) -> bc.ValType[] | null {
         return module.imports[op.index].signature.results
     }
     if op is bc.VirtualCall {
-        return ctx.virtual_results[op.vtable_key] ?? [.Any]
+        return op.results
     }
     return null
 }

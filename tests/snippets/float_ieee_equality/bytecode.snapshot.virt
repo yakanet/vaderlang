@@ -534,7 +534,7 @@ fn 1 snippet$main () -> i32
   f64.const 0.0 0
   retag 2   ; f64
   local.get 2   ; u
-  virtual.call 2 std_core$Equals.equals
+  virtual.call 2 std_core$Equals.equals -> bool
   local.set 7   ; and_res
   local.get 5   ; __buf_0
   local.get 6   ; __off_1

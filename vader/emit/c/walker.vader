@@ -1577,13 +1577,22 @@ emit_call_indirect :: fn(s: FnState, op: Bc.CallIndirect) -> void {
 /// `virtual.call`: trait-method dispatch. Pop the receiver (top of stack),
 /// then the tail args below it (source order), box everything to the erased
 /// ABI, and call the per-key dispatcher (`vader_vt_<key>`, emitted in
-/// `dispatch.vader`) which switches on `recv.tag`. The Vader op carries no
-/// result-type index, so there is no erasure-boundary repack here: a
-/// following `ref.cast` / `convert` handles any per-tag reshape.
+/// `dispatch.vader`) which switches on `recv.tag`. The op carries its result
+/// classes but no result-type index, so there is no erasure-boundary repack
+/// here: a following `ref.cast` / `convert` handles any per-tag reshape.
 emit_virtual_call :: fn(s: FnState, op: Bc.VirtualCall) -> void {
     row :: find_vtable_row(s.ctx, op.vtable_key)
     if row == null {
+        // Nothing implements the trait, so no receiver ever reaches this call. It
+        // still takes its operands and leaves what it declares, or the paths
+        // through it would not agree on the stack.
+        for _ in 0..<op.parameter_count {
+            drop_top(s)
+        }
         unreachable(s, "no vtable for ${op.vtable_key}")
+        if bc_results_arity(op.results) == 1 {
+            push_temporary(s, new_temporary(s, op.results[0]), op.results[0])
+        }
         return
     }
     // Receiver is on top, popped first ; the tail args sit below in source

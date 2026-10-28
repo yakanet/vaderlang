@@ -55,7 +55,7 @@ end
 
 fn 1 snippet$show_a (any) -> string
   local.get 0   ; arg 0
-  virtual.call 1 snippet_tr__a$Describe.describe
+  virtual.call 1 snippet_tr__a$Describe.describe -> string
   return
 end
 
@@ -103,7 +103,7 @@ end
 
 fn 4 snippet$show_b (any) -> string
   local.get 0   ; arg 0
-  virtual.call 1 snippet_tr__b$Describe.describe
+  virtual.call 1 snippet_tr__b$Describe.describe -> string
   return
 end
 

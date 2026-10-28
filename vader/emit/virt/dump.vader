@@ -481,17 +481,20 @@ write_signature :: fn(sb: StringBuilder, signature: BcSignature) -> void {
         sb.append(val_type_name(signature.params[i]))
     }
     sb.append(") -> ")
-    // One result keeps the bare `-> i32` the format has always written, so a
-    // single-value signature dumps and re-reads exactly as before; several are
-    // parenthesised, which is also how WASM spells a multi-value result.
-    if signature.results.len() == 1 {
-        sb.append(val_type_name(signature.results[0]))
+    write_results(sb, signature.results)
+}
+
+// One result bare (`i32`), several in parentheses (`(i32,i32)`), as WASM spells
+// a multi-value result.
+write_results :: fn(sb: StringBuilder, results: ValType[]) -> void {
+    if results.len() == 1 {
+        sb.append(val_type_name(results[0]))
         return
     }
     sb.append_char('(')
-    for i in 0..<signature.results.len() {
+    for i in 0..<results.len() {
         if i > 0 { sb.append(",") }
-        sb.append(val_type_name(signature.results[i]))
+        sb.append(val_type_name(results[i]))
     }
     sb.append_char(')')
 }
@@ -785,7 +788,10 @@ write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> 
         is Call                     -> printed(out, refs, "call", [refer(.Function, op.function_index)])
         is CallImport               -> printed(out, refs, "call.import", [refer(.Import, op.index)])
         is CallIndirect             -> printed(out, refs, "call.indirect", [refer(.Type, op.type_id)])
-        is VirtualCall              -> out.append("virtual.call ${op.parameter_count} ${op.vtable_key}")
+        is VirtualCall              -> {
+            out.append("virtual.call ${op.parameter_count} ${op.vtable_key} -> ")
+            write_results(out, op.results)
+        }
         is FnRef                    -> printed(out, refs, "fn.ref", [refer(.Function, op.function_index), refer(.Type, op.type_id)])
         is FnAddr                   -> printed(out, refs, "fn.addr", [refer(.Function, op.function_index)])
         is CheckedArith             -> out.append("${val_type_name(op.kind)}.checked_${checked_op_name(op.op)}")

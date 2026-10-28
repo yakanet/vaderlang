@@ -562,7 +562,7 @@ fn 6 snippet$headed () -> void
     end $L5
   end $L4
   local.get 7   ; __consumed_2
-  virtual.call 1 std_core$Display.to_string
+  virtual.call 1 std_core$Display.to_string -> string
   local.set 8   ; $vcall_74
   string.const 7   ; "found "
   local.get 8   ; $vcall_74

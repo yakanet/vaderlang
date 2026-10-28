@@ -111,7 +111,7 @@ end
 
 fn 1 snippet$show (any) -> string
   local.get 0   ; arg 0
-  virtual.call 1 snippet$Poke.poke
+  virtual.call 1 snippet$Poke.poke -> string
   return
 end
 
@@ -121,7 +121,7 @@ fn 2 snippet$render (any) -> string
   if $L0 void
   else
     local.get 0   ; arg 0
-    virtual.call 1 std_core$Display.to_string
+    virtual.call 1 std_core$Display.to_string -> string
     return
   end $L0
   return.lit string.const 1   ; "none"
@@ -151,23 +151,23 @@ fn 4 snippet$main () -> i32
   call 65   ; std_io$println__string
   string.const 2   ; "w"
   struct.new 1   ; snippet$Word
-  virtual.call 1 snippet$Poke.poke
+  virtual.call 1 snippet$Poke.poke -> string
   call 65   ; std_io$println__string
   string.const 3   ; "a"
   string.const 4   ; "b"
   array.new 6 2   ; string[]
-  virtual.call 1 snippet$Poke.poke
+  virtual.call 1 snippet$Poke.poke -> string
   call 65   ; std_io$println__string
   bool.const true
   array.new 11 1   ; bool[]
   struct.new 17   ; snippet$Holder
   struct.get 17 0   ; snippet$Holder.item
-  virtual.call 1 snippet$Poke.poke
+  virtual.call 1 snippet$Poke.poke -> string
   call 65   ; std_io$println__string
   string.const 5   ; "x"
   array.new 6 1   ; string[]
   call 3   ; snippet$as_poke
-  virtual.call 1 snippet$Poke.poke
+  virtual.call 1 snippet$Poke.poke -> string
   call 65   ; std_io$println__string
   string.const 6   ; "u"
   string.const 7   ; "v"
@@ -197,7 +197,7 @@ fn 4 snippet$main () -> i32
       local.get 0   ; $arr_32
       local.get 3   ; __for_i_2
       array.get 33   ; ref snippet$Poke[]
-      virtual.call 1 snippet$Poke.poke
+      virtual.call 1 snippet$Poke.poke -> string
       call 65   ; std_io$println__string
       local.get 3   ; __for_i_2
       i64.const 1
@@ -210,7 +210,7 @@ fn 4 snippet$main () -> i32
   char.const 100
   char.const 101
   array.new 15 3   ; char[]
-  virtual.call 1 snippet$Poke.poke
+  virtual.call 1 snippet$Poke.poke -> string
   local.tee 4   ; __p_3
   call.import 0   ; std_core$byte_len
   local.set 2   ; __for_len_1

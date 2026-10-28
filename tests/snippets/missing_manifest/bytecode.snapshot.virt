@@ -101,7 +101,7 @@ fn 1 snippet$catch_all (string) -> string
   end $L0
   local.get 1   ; r
   ref.cast 10   ; std_io$IOError
-  virtual.call 1 std_core$Error.message
+  virtual.call 1 std_core$Error.message -> string
   local.set 2   ; $vcall_8
   string.const 4   ; "caught by trait: "
   local.get 2   ; $vcall_8

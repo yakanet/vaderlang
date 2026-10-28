@@ -145,8 +145,17 @@ export bc_single_result_type :: fn(sig: BcSignature) -> i32 {
 /// Zero for a void return: the representation spells that as a single
 /// `ValType.Void` entry rather than the empty arrays, so
 /// asking `results.len()` directly would count one value where none is pushed.
-export bc_result_arity :: fn(sig: BcSignature) -> i64 =
-    if sig.results.len() == 1 && sig.results[0] == .Void { 0 } else { sig.results.len() }
+export bc_result_arity :: fn(sig: BcSignature) -> i64 = bc_results_arity(sig.results)
+
+/// `bc_result_arity` for results spelled outside a signature, a `VirtualCall`'s.
+///
+/// @param results  one `Void` entry for nothing, else one entry per value.
+export bc_results_arity :: fn(results: ValType[]) -> i64 {
+    if results.len() == 1 && results[0] == .Void {
+        return 0
+    }
+    return results.len()
+}
 
 /// One declared local: name + stack-erased `ValType`. The C-emit
 /// re-derives the underlying `BcType` from the fn's signature when it

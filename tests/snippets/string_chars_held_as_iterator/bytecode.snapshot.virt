@@ -50,7 +50,7 @@ fn 0 snippet$main () -> i32
   local.set 0   ; count
   loop $L0 void
     local.get 1   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     struct.get 6 1   ; __Tuple_char_u8_37971378._1
     i32.const 1
     i32.eq

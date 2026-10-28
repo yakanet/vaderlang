@@ -79,7 +79,7 @@ fn 2 snippet$main () -> i32
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
       array.get 11   ; ref snippet$Shape[]
-      virtual.call 1 snippet$Shape.area
+      virtual.call 1 snippet$Shape.area -> i32
       local.set 4   ; $vcall_11
       local.get 0   ; total
       local.get 4   ; $vcall_11

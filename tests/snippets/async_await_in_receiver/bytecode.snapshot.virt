@@ -86,7 +86,7 @@ fn 3 snippet$main () -> i32
   i32.const 13
   struct.new 5   ; __asyncstate_snippet_0
   ref.cast 18   ; ref std_core$Async
-  virtual.call 1 std_core$Async.resume
+  virtual.call 1 std_core$Async.resume -> any
   local.tee 4   ; $k_4
   type_check 7   ; std_core$Suspended
   if $L0 void
@@ -180,7 +180,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 5 4   ; arg 0 __asyncstate_snippet_0.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 4   ; __resumed_13
         type_check 7   ; std_core$Suspended
         if $L5 void
@@ -246,7 +246,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
             i32.eq
             if $L8 void
               local.field 0 5 4   ; arg 0 __asyncstate_snippet_0.awaited
-              virtual.call 1 std_core$Async.resume
+              virtual.call 1 std_core$Async.resume -> any
               local.tee 10   ; __resumed_14
               type_check 7   ; std_core$Suspended
               if $L9 void
@@ -316,7 +316,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                   i32.eq
                   if $L12 void
                     local.field 0 5 4   ; arg 0 __asyncstate_snippet_0.awaited
-                    virtual.call 1 std_core$Async.resume
+                    virtual.call 1 std_core$Async.resume -> any
                     local.tee 16   ; __resumed_15
                     type_check 7   ; std_core$Suspended
                     if $L13 void
@@ -382,7 +382,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                         i32.eq
                         if $L16 void
                           local.field 0 5 4   ; arg 0 __asyncstate_snippet_0.awaited
-                          virtual.call 1 std_core$Async.resume
+                          virtual.call 1 std_core$Async.resume -> any
                           local.tee 22   ; __resumed_16
                           type_check 7   ; std_core$Suspended
                           if $L17 void

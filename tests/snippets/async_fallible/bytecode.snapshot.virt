@@ -58,7 +58,7 @@ fn 2 snippet$report (any) -> void
   local __off_1 i64
   local $cast_18 i64
   local.get 0   ; arg 0
-  virtual.call 1 std_core$Async.resume
+  virtual.call 1 std_core$Async.resume -> any
   local.tee 1   ; r
   type_check 9   ; std_core$Suspended
   if $L0 void
@@ -169,7 +169,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 6 3   ; arg 0 __asyncstate_snippet_0.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 2   ; __resumed_2
         type_check 9   ; std_core$Suspended
         if $L5 void

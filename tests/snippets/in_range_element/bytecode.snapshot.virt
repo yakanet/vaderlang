@@ -243,7 +243,7 @@ fn 8 snippet$has_big_value (any) -> bool
   i64.const 4000000000
   retag 1   ; i64
   local.get 0   ; arg 0
-  virtual.call 2 std_core$Contains.contains
+  virtual.call 2 std_core$Contains.contains -> bool
   return
 end
 

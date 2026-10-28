@@ -117,7 +117,7 @@ fn 3 snippet$main () -> i32
   local $call_4 string
   call 1   ; snippet$waiter
   local.tee 0   ; w
-  virtual.call 1 std_core$Async.resume
+  virtual.call 1 std_core$Async.resume -> any
   call 2   ; snippet$tag
   local.set 1   ; $call_4
   string.const 3   ; "1: "
@@ -125,7 +125,7 @@ fn 3 snippet$main () -> i32
   call 5   ; concat_2
   call 12   ; std_io$println__string
   local.get 0   ; w
-  virtual.call 1 std_core$Async.resume
+  virtual.call 1 std_core$Async.resume -> any
   call 2   ; snippet$tag
   local.set 1   ; $call_4
   string.const 4   ; "2: "
@@ -133,7 +133,7 @@ fn 3 snippet$main () -> i32
   call 5   ; concat_2
   call 12   ; std_io$println__string
   local.get 0   ; w
-  virtual.call 1 std_core$Async.resume
+  virtual.call 1 std_core$Async.resume -> any
   call 2   ; snippet$tag
   local.set 1   ; $call_4
   string.const 5   ; "3: "
@@ -196,7 +196,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 8 3   ; arg 0 __asyncstate_snippet_0.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 2   ; __resumed_2
         type_check 4   ; std_core$Suspended
         if $L5 void

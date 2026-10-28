@@ -1,0 +1,27 @@
+// A call through a trait that nothing implements: no receiver ever reaches it,
+// yet the call has to balance the operand stack like any other, whether it
+// returns nothing or a value.
+
+module "main"
+
+import "std/io"
+
+Listener :: trait {
+    heard :: fn(self, n: i32) -> void {}
+    weight :: fn(self) -> i32 = 1
+}
+
+tell :: fn(listeners: Listener[], n: i32) -> i32 {
+    total := 0
+    for l in listeners {
+        l.heard(n)
+        total += l.weight()
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    nobody: Listener[]: []
+    println("total ${tell(nobody, 3)}")
+    return 0
+}

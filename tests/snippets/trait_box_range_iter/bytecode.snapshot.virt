@@ -88,7 +88,7 @@ fn 3 snippet$count__i32 (any) -> i32
     local.get 2   ; cont
     if $L1 void
       local.get 0   ; arg 0
-      virtual.call 1 std_core$Iterator.next
+      virtual.call 1 std_core$Iterator.next -> ref
       struct.get 8 1   ; __Tuple_i32_u8_99ae0d29._1
       i32.const 1
       i32.eq
@@ -110,13 +110,13 @@ end
 
 fn 4 snippet$invoke__i32 (any) -> i32
   local.get 0   ; arg 0
-  virtual.call 1 snippet$Greeter.greet
+  virtual.call 1 snippet$Greeter.greet -> i32
   return
 end
 
 fn 5 snippet$twice__i32 (any) -> i32
   local.get 0   ; arg 0
-  virtual.call 1 snippet$Doubler.doubled
+  virtual.call 1 snippet$Doubler.doubled -> i32
   return
 end
 

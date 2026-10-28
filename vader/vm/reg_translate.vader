@@ -266,7 +266,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             }
         }
         is bc.VirtualCall -> {
-            results :: virtual_result_arity(module, op.vtable_key)
+            results :: bc.bc_results_arity(op.results)
             if results > 1 {
                 return false
             }

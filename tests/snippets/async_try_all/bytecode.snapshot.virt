@@ -227,7 +227,7 @@ fn 3 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
           i32.eq
           if $L8 void
             local.field 0 7 4   ; arg 0 __asyncstate_snippet_0.awaited
-            virtual.call 1 std_core$Async.resume
+            virtual.call 1 std_core$Async.resume -> any
             local.tee 1   ; __resumed_2
             type_check 9   ; std_core$Suspended
             if $L9 void
@@ -286,7 +286,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$cancel (ref) -> void
     return
   end $L0
   local.field 0 7 4   ; arg 0 __asyncstate_snippet_0.awaited
-  virtual.call 1 std_core$Async.cancel
+  virtual.call 1 std_core$Async.cancel -> void
   i32.const -1
   local.set 1   ; $k_4
   local.get 0   ; arg 0
@@ -351,7 +351,7 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
     i32.eq
     if $L3 void
       local.field 0 11 3   ; arg 0 __asyncstate_snippet_1.s3
-      virtual.call 1 std_core$Error.message
+      virtual.call 1 std_core$Error.message -> string
       local.set 1   ; $vcall_16
       string.const 1   ; "unexpected: "
       local.get 1   ; $vcall_16
@@ -562,7 +562,7 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                             i32.eq
                             if $L18 void
                               local.field 0 11 8   ; arg 0 __asyncstate_snippet_1.awaited
-                              virtual.call 1 std_core$Async.resume
+                              virtual.call 1 std_core$Async.resume -> any
                               local.tee 14   ; __resumed_8
                               type_check 9   ; std_core$Suspended
                               if $L19 void
@@ -612,7 +612,7 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                                 i32.eq
                                 if $L21 void
                                   local.field 0 11 1   ; arg 0 __asyncstate_snippet_1.s1
-                                  virtual.call 1 std_core$Error.message
+                                  virtual.call 1 std_core$Error.message -> string
                                   local.set 19   ; $vcall_129
                                   string.const 6   ; "failed: "
                                   local.get 19   ; $vcall_129
@@ -659,7 +659,7 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                                       i32.eq
                                       if $L25 void
                                         local.field 0 11 8   ; arg 0 __asyncstate_snippet_1.awaited
-                                        virtual.call 1 std_core$Async.resume
+                                        virtual.call 1 std_core$Async.resume -> any
                                         local.tee 21   ; __resumed_9
                                         type_check 9   ; std_core$Suspended
                                         if $L26 void
@@ -748,7 +748,7 @@ fn 6 snippet$__asyncstate_snippet_1$Async$cancel (ref) -> void
     return
   end $L0
   local.field 0 11 8   ; arg 0 __asyncstate_snippet_1.awaited
-  virtual.call 1 std_core$Async.cancel
+  virtual.call 1 std_core$Async.cancel -> void
   i32.const -1
   local.set 1   ; $k_4
   local.get 0   ; arg 0
@@ -1110,7 +1110,7 @@ fn 17 std_async$JoinAll$std_core$Async$resume__Any (ref) -> any
         local.field 0 26 0   ; arg 0 std_async$JoinAll__Any.children
         local.get 4   ; i
         array.get 33   ; ref std_core$Async[]
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 5   ; r
         type_check 9   ; std_core$Suspended
         if $L3 void
@@ -1237,7 +1237,7 @@ fn 18 std_async$JoinAll$std_core$Async$cancel__Any (ref) -> void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
       array.get 33   ; ref std_core$Async[]
-      virtual.call 1 std_core$Async.cancel
+      virtual.call 1 std_core$Async.cancel -> void
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add
@@ -1326,7 +1326,7 @@ fn 24 std_async$block_on__i32 (any) -> i32
   local r any
   loop $L0 void
     local.get 0   ; arg 0
-    virtual.call 1 std_core$Async.resume
+    virtual.call 1 std_core$Async.resume -> any
     local.tee 1   ; r
     type_check 9   ; std_core$Suspended
     if $L1 void

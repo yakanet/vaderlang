@@ -62,7 +62,7 @@ export main 2
 
 fn 0 snippet$show (any) -> string
   local.get 0   ; arg 0
-  virtual.call 1 snippet$Poke.poke
+  virtual.call 1 snippet$Poke.poke -> string
   return
 end
 
@@ -74,7 +74,7 @@ fn 1 snippet$fancy_or_plain (any) -> string
     return.lit string.const 0   ; "plain"
   end $L0
   local.get 0   ; arg 0
-  virtual.call 1 snippet$Fancy.fancy
+  virtual.call 1 snippet$Fancy.fancy -> string
   return
 end
 

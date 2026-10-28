@@ -276,7 +276,16 @@ export CallIndirect :: struct { type_id: i32 }
 /// invokes the resolved fn with `[receiver, ...args]`. `parameter_count`
 /// includes the receiver, so the executor pops `parameter_count - 1`
 /// user args plus the receiver itself.
-export VirtualCall :: struct { parameter_count: i32, vtable_key: string }
+///
+/// `results` is what the call leaves, spelled as a signature's (one `Void`
+/// entry for nothing, see `BcSignature`). It is the call's own, not read off an
+/// implementation: a trait nothing implements has no vtable row to read it from,
+/// and its calls must still balance the stack they can never run on.
+export VirtualCall :: struct {
+    parameter_count: i32
+    vtable_key: string
+    results: ValType[]
+}
 
 /// Allocate a struct of type `type_id`. Pops `field_count` values (in
 /// field-declaration order) from the value stack and wraps them in a

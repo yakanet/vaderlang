@@ -174,7 +174,7 @@ fn 1 snippet$main () -> i32
   local.set 8   ; gsum
   loop $L3 void
     local.get 6   ; x
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; __for_arr_0
     local.field 3 4 1   ; __for_arr_0 __Tuple_Union_i32_null_u8_9381f7b1._1
     i32.const 1

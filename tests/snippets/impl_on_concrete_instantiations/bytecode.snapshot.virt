@@ -185,7 +185,7 @@ end
 fn 4 snippet$Wrap$std_core$Display$to_string__Any (ref) -> string
   local $vcall_3 string
   local.field 0 6 0   ; arg 0 snippet$Wrap__Any.inner
-  virtual.call 1 std_core$Display.to_string
+  virtual.call 1 std_core$Display.to_string -> string
   local.set 1   ; $vcall_3
   string.const 7   ; "wrap "
   local.get 1   ; $vcall_3

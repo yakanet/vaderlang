@@ -329,7 +329,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; __buf_0
   i32.const 1
   array.get 28   ; ref std_core$Display[]
-  virtual.call 1 std_core$Display.to_string
+  virtual.call 1 std_core$Display.to_string -> string
   local.tee 7   ; __p_6
   call.import 0   ; std_core$byte_len
   local.set 1   ; __off_1

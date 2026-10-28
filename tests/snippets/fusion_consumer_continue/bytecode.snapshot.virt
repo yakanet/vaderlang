@@ -278,7 +278,7 @@ fn 0 snippet$indexed_continue () -> void
   local.set 10   ; __iter_8
   loop $L3 void
     local.get 10   ; __iter_8
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 1   ; __fuse_arr_3
     local.field 1 23 1   ; __fuse_arr_3 __Tuple_Tuple_i32_i64_u8_1ef34e19._1
     i32.const 1
@@ -413,7 +413,7 @@ fn 1 snippet$take_continue () -> void
   local.set 7   ; __iter_3
   loop $L5 void
     local.get 7   ; __iter_3
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 1   ; __fuse_arr_0
     local.field 1 8 1   ; __fuse_arr_0 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -586,7 +586,7 @@ fn 3 snippet$two_yields_continue () -> void
   local.set 12   ; __iter_2
   loop $L4 void
     local.get 12   ; __iter_2
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 3   ; __buf_0
     local.field 3 8 1   ; __buf_0 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -834,7 +834,7 @@ fn 5 snippet$loopless_generator_continue () -> void
       local.set 20   ; __iter_2
       loop $L7 void
         local.get 20   ; __iter_2
-        virtual.call 1 std_core$Iterator.next
+        virtual.call 1 std_core$Iterator.next -> ref
         local.set 3   ; __buf_0
         local.field 3 8 1   ; __buf_0 __Tuple_i32_u8_99ae0d29._1
         i32.const 1
@@ -987,7 +987,7 @@ fn 6 snippet$take_continue_outer () -> void
   local.set 8   ; __iter_6
   loop $L5 void
     local.get 8   ; __iter_6
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     struct.get 8 1   ; __Tuple_i32_u8_99ae0d29._1
     i32.const 1
     i32.eq
@@ -1111,7 +1111,7 @@ fn 7 snippet$chars_indexed_continue () -> void
   local.set 6   ; __iter_5
   loop $L3 void
     local.get 6   ; __iter_5
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 1   ; __fuse_iter_1
     local.field 1 42 1   ; __fuse_iter_1 __Tuple_Tuple_char_i64_u8_6fef3d65._1
     i32.const 1
@@ -1330,7 +1330,7 @@ fn 10 snippet$stage_continue_over_take () -> void
   local.set 12   ; __iter_5
   loop $L5 void
     local.get 12   ; __iter_5
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 1   ; __fuse_arr_2
     local.field 1 8 1   ; __fuse_arr_2 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -1504,7 +1504,7 @@ fn 12 snippet$coalesce_continue () -> void
   local.set 8   ; __coalesce_1
   loop $L3 void
     local.get 8   ; __coalesce_1
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 1   ; __fuse_arr_4
     local.field 1 23 1   ; __fuse_arr_4 __Tuple_Tuple_i32_i64_u8_1ef34e19._1
     i32.const 1
@@ -1659,7 +1659,7 @@ fn 13 snippet$flat_map_continue () -> void
   local.set 8   ; $call_37
   loop $L5 void
     local.get 8   ; $call_37
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 1   ; __fuse_arr_0
     local.field 1 8 1   ; __fuse_arr_0 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -1825,7 +1825,7 @@ fn 14 snippet$chain_continue () -> void
   local.set 6   ; $call_45
   loop $L6 void
     local.get 6   ; $call_45
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 1   ; __fuse_arr_0
     local.field 1 8 1   ; __fuse_arr_0 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -2064,7 +2064,7 @@ fn 15 snippet$chain_continue_by_name () -> void
   local.set 11   ; $call_73
   loop $L14 void
     local.get 11   ; $call_73
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 1   ; __fuse_arr_3
     local.field 1 8 1   ; __fuse_arr_3 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -2568,7 +2568,7 @@ fn 21 snippet$__genstate_drop_odd$Iterator$next (ref) -> ref
                           i32.eq
                           if $L16 void
                             local.field 0 11 1   ; arg 0 snippet$__genstate_drop_odd.s1
-                            virtual.call 1 std_core$Iterator.next
+                            virtual.call 1 std_core$Iterator.next -> ref
                             local.set 2   ; $vcall_73
                             local.get 0   ; arg 0
                             local.get 2   ; $vcall_73
@@ -2790,7 +2790,7 @@ fn 22 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                     i32.eq
                     if $L13 void
                       local.field 0 12 11   ; arg 0 __asyncstate_snippet_0.awaited
-                      virtual.call 1 std_core$Async.resume
+                      virtual.call 1 std_core$Async.resume -> any
                       local.tee 8   ; __resumed_7
                       type_check 14   ; std_core$Suspended
                       if $L14 void
@@ -3086,7 +3086,7 @@ fn 23 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                         i32.eq
                         if $L14 void
                           local.field 0 15 9   ; arg 0 __asyncstate_snippet_1.awaited
-                          virtual.call 1 std_core$Async.resume
+                          virtual.call 1 std_core$Async.resume -> any
                           local.tee 4   ; __resumed_6
                           type_check 14   ; std_core$Suspended
                           if $L15 void
@@ -3173,7 +3173,7 @@ fn 23 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                                 i32.eq
                                 if $L20 void
                                   local.field 0 15 3   ; arg 0 __asyncstate_snippet_1.s3
-                                  virtual.call 1 std_core$Iterator.next
+                                  virtual.call 1 std_core$Iterator.next -> ref
                                   local.set 10   ; $vcall_99
                                   local.get 0   ; arg 0
                                   local.get 10   ; $vcall_99
@@ -3333,7 +3333,7 @@ fn 24 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 16 4   ; arg 0 __asyncstate_snippet_2.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 6   ; __resumed_5
         type_check 14   ; std_core$Suspended
         if $L5 void
@@ -3391,7 +3391,7 @@ fn 24 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
             i32.eq
             if $L8 void
               local.field 0 16 4   ; arg 0 __asyncstate_snippet_2.awaited
-              virtual.call 1 std_core$Async.resume
+              virtual.call 1 std_core$Async.resume -> any
               local.tee 10   ; __resumed_6
               type_check 14   ; std_core$Suspended
               if $L9 void
@@ -4499,7 +4499,7 @@ fn 45 std_async$block_on__i32 (any) -> i32
   local r any
   loop $L0 void
     local.get 0   ; arg 0
-    virtual.call 1 std_core$Async.resume
+    virtual.call 1 std_core$Async.resume -> any
     local.tee 1   ; r
     type_check 14   ; std_core$Suspended
     if $L1 void
@@ -4771,7 +4771,7 @@ fn 51 std_iter$__gen_state_std_iter_4$Iterator$next (ref) -> ref
                     i32.eq
                     if $L12 void
                       local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.s5
-                      virtual.call 1 std_core$Iterator.next
+                      virtual.call 1 std_core$Iterator.next -> ref
                       local.set 2   ; $vcall_55
                       local.get 0   ; arg 0
                       local.get 2   ; $vcall_55
@@ -4903,7 +4903,7 @@ fn 51 std_iter$__gen_state_std_iter_4$Iterator$next (ref) -> ref
                                         i32.eq
                                         if $L24 void
                                           local.field 0 38 2   ; arg 0 std_iter$__gen_state_std_iter_4.s2
-                                          virtual.call 1 std_core$Iterator.next
+                                          virtual.call 1 std_core$Iterator.next -> ref
                                           local.set 5   ; $vcall_112
                                           local.get 0   ; arg 0
                                           local.get 5   ; $vcall_112
@@ -5117,7 +5117,7 @@ fn 53 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> ref
                     i32.eq
                     if $L12 void
                       local.field 0 41 2   ; arg 0 std_iter$__gen_state_std_iter_2.s2
-                      virtual.call 1 std_core$Iterator.next
+                      virtual.call 1 std_core$Iterator.next -> ref
                       local.set 5   ; $vcall_60
                       local.get 0   ; arg 0
                       local.get 5   ; $vcall_60
@@ -5333,7 +5333,7 @@ fn 55 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
                     i32.eq
                     if $L12 void
                       local.field 0 44 2   ; arg 0 std_iter$__gen_state_std_iter_0.s2
-                      virtual.call 1 std_core$Iterator.next
+                      virtual.call 1 std_core$Iterator.next -> ref
                       local.set 5   ; $vcall_60
                       local.get 0   ; arg 0
                       local.get 5   ; $vcall_60
@@ -5646,7 +5646,7 @@ fn 57 std_iter$__gen_state_std_iter_3$Iterator$next (ref) -> ref
                               i32.eq
                               if $L18 void
                                 local.field 0 46 2   ; arg 0 std_iter$__gen_state_std_iter_3.s2
-                                virtual.call 1 std_core$Iterator.next
+                                virtual.call 1 std_core$Iterator.next -> ref
                                 local.set 11   ; $vcall_91
                                 local.get 0   ; arg 0
                                 local.get 11   ; $vcall_91
@@ -5896,7 +5896,7 @@ fn 59 std_iter$__gen_state_std_iter_1$Iterator$next (ref) -> ref
                             i32.eq
                             if $L17 void
                               local.field 0 47 3   ; arg 0 std_iter$__gen_state_std_iter_1.s3
-                              virtual.call 1 std_core$Iterator.next
+                              virtual.call 1 std_core$Iterator.next -> ref
                               local.set 5   ; $vcall_78
                               local.get 0   ; arg 0
                               local.get 5   ; $vcall_78

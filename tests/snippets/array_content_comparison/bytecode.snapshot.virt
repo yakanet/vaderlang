@@ -651,7 +651,7 @@ fn 11 std_core$content_equals__snippet_Point (ref,ref) -> bool
       local.get 2   ; $len_2
       array.get 12   ; ref[]
       local.get 4   ; $idx_11
-      virtual.call 2 std_core$Equals.equals
+      virtual.call 2 std_core$Equals.equals -> bool
       if $L3 void
       else
         return.lit bool.const false

@@ -1,0 +1,24 @@
+# Typecheck
+
+## tests/snippets/trait_nothing_implements
+  TraitDecl      Listener             :: Listener
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         tell                 :: fn(Listener[], i32) -> i32
+  expr 16:14    IdentExpr      :: Listener[]
+  expr 17:17    IdentExpr      :: i32
+  expr 17:9     CallExpr       :: void
+  expr 17:9     FieldExpr      :: fn(i32) -> void
+  expr 17:9     IdentExpr      :: Listener
+  expr 18:18    CallExpr       :: i32
+  expr 18:18    FieldExpr      :: fn() -> i32
+  expr 18:18    IdentExpr      :: Listener
+  expr 18:9     BinaryExpr     :: i32
+  expr 18:9     IdentExpr      :: i32
+  expr 20:12    IdentExpr      :: i32
+  expr 24:25    SeqLitExpr     :: Listener[]
+  expr 25:13    StringLitExpr  :: string
+  expr 25:22    CallExpr       :: i32
+  expr 25:22    IdentExpr      :: fn(Listener[], i32) -> i32
+  expr 25:27    IdentExpr      :: Listener[]
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void

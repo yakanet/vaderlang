@@ -185,7 +185,7 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
             if op.parameter_count < 0 {
                 null
             } else {
-                effect(i64(op.parameter_count), virtual_result_arity(module, op.vtable_key))
+                effect(i64(op.parameter_count), bc.bc_results_arity(op.results))
             }
         }
         is bc.FnRef  -> indexed_effect(op.function_index, module.functions.len(), 0, 1)
@@ -268,26 +268,6 @@ returns_void :: fn(module: bc.BytecodeModule, type_index: i32) -> bool {
     }
     t :: module.types[type_index]
     return t is bc.BcScalar && t.val == .Void
-}
-
-// A key with no row is served by a host impl, which always leaves one value.
-virtual_result_arity :: fn(module: bc.BytecodeModule, key: string) -> i64 {
-    sig :: virtual_signature(module, key) ?? return 1
-    return bc.bc_result_arity(sig)
-}
-
-// Every implementation behind one vtable key shares its signature, so the first
-// entry answers for all ; `null` when no row names one.
-virtual_signature :: fn(module: bc.BytecodeModule, key: string) -> bc.BcSignature | null {
-    for row in module.vtables {
-        if row.key == key && row.entries.len() > 0 {
-            at :: row.entries[0].fn_index
-            if in_range(at, module.functions.len()) {
-                return module.functions[at].signature
-            }
-        }
-    }
-    return null
 }
 
 struct_new_effect :: fn(module: bc.BytecodeModule, type_id: i32) -> StackEffect | null {

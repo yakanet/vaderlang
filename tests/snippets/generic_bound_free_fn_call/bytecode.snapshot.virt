@@ -116,7 +116,7 @@ end
 fn 1 snippet$show (any) -> string
   local $vcall_2 string
   local.get 0   ; arg 0
-  virtual.call 1 std_core$Display.to_string
+  virtual.call 1 std_core$Display.to_string -> string
   local.set 1   ; $vcall_2
   string.const 2   ; "<"
   local.get 1   ; $vcall_2

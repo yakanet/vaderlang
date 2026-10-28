@@ -55,19 +55,19 @@ end
 
 fn 3 snippet$via_slash (any) -> string
   local.get 0   ; arg 0
-  virtual.call 1 snippet_kit_tags$Tag.tag
+  virtual.call 1 snippet_kit_tags$Tag.tag -> string
   return
 end
 
 fn 4 snippet$via_underscore (any) -> string
   local.get 0   ; arg 0
-  virtual.call 1 snippet_kit__tags$Tag.tag
+  virtual.call 1 snippet_kit__tags$Tag.tag -> string
   return
 end
 
 fn 5 snippet$via_kit (any) -> string
   local.get 0   ; arg 0
-  virtual.call 1 snippet_kit$tags_Tag.tag
+  virtual.call 1 snippet_kit$tags_Tag.tag -> string
   return
 end
 

@@ -252,7 +252,7 @@ end
 fn 2 snippet$Box$std_core$Display$to_string (ref) -> string
   local $vcall_3 string
   local.field 0 4 0   ; arg 0 snippet$Box.value
-  virtual.call 1 std_core$Display.to_string
+  virtual.call 1 std_core$Display.to_string -> string
   local.set 1   ; $vcall_3
   string.const 7   ; "Box "
   local.get 1   ; $vcall_3
@@ -263,7 +263,7 @@ end
 fn 3 snippet$show__snippet_Box (any) -> string
   local $vcall_2 string
   local.get 0   ; arg 0
-  virtual.call 1 std_core$Display.to_string
+  virtual.call 1 std_core$Display.to_string -> string
   local.set 1   ; $vcall_2
   string.const 8   ; "<"
   local.get 1   ; $vcall_2

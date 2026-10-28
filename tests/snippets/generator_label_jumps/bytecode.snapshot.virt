@@ -63,7 +63,7 @@ fn 2 snippet$main () -> i32
   local.set 0   ; __iter_0
   loop $L0 void
     local.get 0   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 1   ; __step_1
     local.field 1 4 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -102,7 +102,7 @@ fn 2 snippet$main () -> i32
   local.set 0   ; __iter_0
   loop $L2 void
     local.get 0   ; __iter_0
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 1   ; __step_1
     local.field 1 4 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
     i32.const 1

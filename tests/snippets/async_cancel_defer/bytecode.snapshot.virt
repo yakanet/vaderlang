@@ -93,10 +93,10 @@ fn 4 snippet$main () -> i32
   local o any
   call 3   ; snippet$outer
   local.tee 0   ; o
-  virtual.call 1 std_core$Async.resume
+  virtual.call 1 std_core$Async.resume -> any
   drop
   local.get 0   ; o
-  virtual.call 1 std_core$Async.cancel
+  virtual.call 1 std_core$Async.cancel -> void
   string.const 1   ; "done"
   call 15   ; std_io$println__string
   return.lit i32.const 0
@@ -212,7 +212,7 @@ fn 6 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
           i32.eq
           if $L6 void
             local.field 0 8 4   ; arg 0 __asyncstate_snippet_2.awaited
-            virtual.call 1 std_core$Async.resume
+            virtual.call 1 std_core$Async.resume -> any
             local.tee 7   ; __resumed_3
             type_check 4   ; std_core$Suspended
             if $L7 void
@@ -291,7 +291,7 @@ fn 7 snippet$__asyncstate_snippet_2$Async$cancel (ref) -> void
   if $L0 void
   else
     local.field 0 8 4   ; arg 0 __asyncstate_snippet_2.awaited
-    virtual.call 1 std_core$Async.cancel
+    virtual.call 1 std_core$Async.cancel -> void
   end $L0
   loop $L1 void
     local.field 0 8 3   ; arg 0 __asyncstate_snippet_2.__defers
@@ -443,7 +443,7 @@ fn 9 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
           i32.eq
           if $L6 void
             local.field 0 10 3   ; arg 0 __asyncstate_snippet_5.awaited
-            virtual.call 1 std_core$Async.resume
+            virtual.call 1 std_core$Async.resume -> any
             local.tee 7   ; __resumed_3
             type_check 4   ; std_core$Suspended
             if $L7 void
@@ -517,7 +517,7 @@ fn 10 snippet$__asyncstate_snippet_5$Async$cancel (ref) -> void
   if $L0 void
   else
     local.field 0 10 3   ; arg 0 __asyncstate_snippet_5.awaited
-    virtual.call 1 std_core$Async.cancel
+    virtual.call 1 std_core$Async.cancel -> void
   end $L0
   loop $L1 void
     local.field 0 10 2   ; arg 0 __asyncstate_snippet_5.__defers

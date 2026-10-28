@@ -314,12 +314,12 @@ fn 9 snippet_zoo$describe (any) -> i32
   local $mul_checked_3 i32
   local $vcall_4 i32
   local.get 0   ; arg 0
-  virtual.call 1 snippet_zoo$Animal.kind
+  virtual.call 1 snippet_zoo$Animal.kind -> i32
   i32.const 10
   i32.checked_mul
   local.set 1   ; $mul_checked_3
   local.get 0   ; arg 0
-  virtual.call 1 snippet_zoo$Animal.legs
+  virtual.call 1 snippet_zoo$Animal.legs -> i32
   local.set 2   ; $vcall_4
   local.get 1   ; $mul_checked_3
   local.get 2   ; $vcall_4

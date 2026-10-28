@@ -236,7 +236,7 @@ fn 4 snippet$shown (any) -> string
     return.lit string.const 1   ; "point"
   end $L0
   local.get 0   ; arg 0
-  virtual.call 1 std_core$Display.to_string
+  virtual.call 1 std_core$Display.to_string -> string
   return
 end
 
@@ -295,7 +295,7 @@ fn 7 snippet$displayed (any) -> string
     return
   end $L0
   local.get 0   ; arg 0
-  virtual.call 1 std_core$Display.to_string
+  virtual.call 1 std_core$Display.to_string -> string
   return
 end
 

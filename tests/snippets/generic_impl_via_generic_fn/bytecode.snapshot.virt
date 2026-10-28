@@ -35,7 +35,7 @@ fn 0 snippet$main () -> i32
   i32.const 4
   struct.new 2   ; __asyncstate_snippet_0
   ref.cast 7   ; ref std_core$Async
-  virtual.call 1 std_core$Async.resume
+  virtual.call 1 std_core$Async.resume -> any
   local.tee 0   ; $k_2
   type_check 4   ; std_core$Suspended
   if $L0 void
@@ -118,7 +118,7 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 2 2   ; arg 0 __asyncstate_snippet_0.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 5   ; __resumed_4
         type_check 4   ; std_core$Suspended
         if $L5 void

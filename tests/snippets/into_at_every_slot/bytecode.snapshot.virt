@@ -169,7 +169,7 @@ fn 6 snippet$through_trait (any,ref) -> string
   local.get 1   ; arg 1
   call 0   ; snippet$Celsius$std_core$Into$into
   local.get 0   ; arg 0
-  virtual.call 2 snippet$Shower.show
+  virtual.call 2 snippet$Shower.show -> string
   return
 end
 

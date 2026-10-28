@@ -50,7 +50,7 @@ end
 fn 2 snippet$drive (any) -> i32
   local r any
   local.get 0   ; arg 0
-  virtual.call 1 std_core$Async.resume
+  virtual.call 1 std_core$Async.resume -> any
   local.tee 1   ; r
   type_check 6   ; std_core$Suspended
   if $L0 void
@@ -169,7 +169,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 4 3   ; arg 0 __asyncstate_snippet_0.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 2   ; __resumed_2
         type_check 6   ; std_core$Suspended
         if $L5 void

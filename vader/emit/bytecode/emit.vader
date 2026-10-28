@@ -1147,7 +1147,12 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
             emit_get(ctx, ins.receiver, ins.span)
         }
         emit_retag_into(ctx, ins.receiver, true, ins.span)
-        push_emit(ctx, VirtualCall { .vtable_key = vtable_key(ins.trait_name, ins.method), .parameter_count = i32(ins.args.len() + 1) }, ins.span)
+        call :: VirtualCall {
+            .vtable_key = vtable_key(ins.trait_name, ins.method),
+            .parameter_count = i32(ins.args.len() + 1),
+            .results = [val_type_of_type(ins.type)],
+        }
+        push_emit(ctx, call, ins.span)
         emit_result_if_any(ctx, pos, ins.dst, ins.span)
         return
     }

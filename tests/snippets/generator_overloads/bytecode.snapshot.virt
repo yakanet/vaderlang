@@ -281,7 +281,7 @@ fn 2 snippet$main () -> i32
   local.set 11   ; halves
   loop $L6 void
     local.get 12   ; __iter_2
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 13   ; __step_3
     local.field 13 9 1   ; __step_3 __Tuple_string_u8_b910c566._1
     i32.const 1
@@ -302,7 +302,7 @@ fn 2 snippet$main () -> i32
   local.set 12   ; __iter_2
   loop $L8 void
     local.get 12   ; __iter_2
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 2   ; __buf_0
     local.field 2 6 1   ; __buf_0 __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -341,7 +341,7 @@ fn 2 snippet$main () -> i32
   local.set 12   ; __iter_2
   loop $L10 void
     local.get 12   ; __iter_2
-    virtual.call 1 std_core$Iterator.next
+    virtual.call 1 std_core$Iterator.next -> ref
     local.set 2   ; __buf_0
     local.field 2 24 1   ; __buf_0 __Tuple_f64_u8_c1a5f9fe._1
     i32.const 1

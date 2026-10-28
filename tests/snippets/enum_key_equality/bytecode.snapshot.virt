@@ -113,7 +113,7 @@ export main 2
 fn 0 snippet$same_through_trait (any,any) -> bool
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  virtual.call 2 std_core$Equals.equals
+  virtual.call 2 std_core$Equals.equals -> bool
   return
 end
 
@@ -121,7 +121,7 @@ fn 1 snippet$has_blue (any) -> bool
   i32.const 2
   retag 5   ; u8
   local.get 0   ; arg 0
-  virtual.call 2 std_core$Contains.contains
+  virtual.call 2 std_core$Contains.contains -> bool
   return
 end
 

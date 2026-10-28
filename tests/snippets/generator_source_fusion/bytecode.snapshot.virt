@@ -874,7 +874,7 @@ fn 10 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                 i32.eq
                 if $L9 void
                   local.field 0 12 9   ; arg 0 __asyncstate_snippet_0.awaited
-                  virtual.call 1 std_core$Async.resume
+                  virtual.call 1 std_core$Async.resume -> any
                   local.tee 9   ; __resumed_3
                   type_check 14   ; std_core$Suspended
                   if $L10 void
@@ -1270,7 +1270,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 15 21   ; arg 0 __asyncstate_snippet_2.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 7   ; __resumed_22
         type_check 14   ; std_core$Suspended
         if $L5 void
@@ -1417,7 +1417,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
             local.set 24   ; out
             loop $L12 void
               local.get 25   ; __iter_0
-              virtual.call 1 std_core$Iterator.next
+              virtual.call 1 std_core$Iterator.next -> ref
               local.set 26   ; __step_1
               local.field 26 34 1   ; __step_1 __Tuple_Array_i32_u8_0f73abee._1
               i32.const 1
@@ -1987,7 +1987,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                           local.set 55   ; out
                                                                           loop $L58 void
                                                                             local.get 56   ; __iter_0
-                                                                            virtual.call 1 std_core$Iterator.next
+                                                                            virtual.call 1 std_core$Iterator.next -> ref
                                                                             local.set 57   ; __step_1
                                                                             local.field 57 9 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
                                                                             i32.const 1
@@ -2081,7 +2081,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                           local.set 68   ; total
                                                                           loop $L63 void
                                                                             local.get 69   ; __iter_0
-                                                                            virtual.call 1 std_core$Iterator.next
+                                                                            virtual.call 1 std_core$Iterator.next -> ref
                                                                             local.set 70   ; __step_1
                                                                             local.field 70 9 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
                                                                             i32.const 1
@@ -2703,7 +2703,7 @@ fn 24 std_async$block_on__i32 (any) -> i32
   local r any
   loop $L0 void
     local.get 0   ; arg 0
-    virtual.call 1 std_core$Async.resume
+    virtual.call 1 std_core$Async.resume -> any
     local.tee 1   ; r
     type_check 14   ; std_core$Suspended
     if $L1 void

@@ -170,7 +170,7 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 5 3   ; arg 0 __asyncstate_snippet_0.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 6   ; __resumed_5
         type_check 7   ; std_core$Suspended
         if $L5 void
@@ -242,7 +242,7 @@ fn 3 snippet$__asyncstate_snippet_0$Async$cancel (ref) -> void
     return
   end $L0
   local.field 0 5 3   ; arg 0 __asyncstate_snippet_0.awaited
-  virtual.call 1 std_core$Async.cancel
+  virtual.call 1 std_core$Async.cancel -> void
   i32.const -1
   local.set 1   ; $k_4
   local.get 0   ; arg 0
@@ -296,7 +296,7 @@ fn 4 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
       i32.eq
       if $L4 void
         local.field 0 9 1   ; arg 0 __asyncstate_snippet_1.awaited
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 1   ; __resumed_2
         type_check 7   ; std_core$Suspended
         if $L5 void
@@ -367,7 +367,7 @@ fn 5 snippet$__asyncstate_snippet_1$Async$cancel (ref) -> void
     return
   end $L0
   local.field 0 9 1   ; arg 0 __asyncstate_snippet_1.awaited
-  virtual.call 1 std_core$Async.cancel
+  virtual.call 1 std_core$Async.cancel -> void
   i32.const -1
   local.set 1   ; $k_4
   local.get 0   ; arg 0
@@ -675,7 +675,7 @@ fn 14 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
         local.field 0 16 0   ; arg 0 std_async$JoinAll__i32.children
         local.get 4   ; i
         array.get 21   ; ref std_core$Async[]
-        virtual.call 1 std_core$Async.resume
+        virtual.call 1 std_core$Async.resume -> any
         local.tee 5   ; r
         type_check 7   ; std_core$Suspended
         if $L3 void
@@ -803,7 +803,7 @@ fn 15 std_async$JoinAll$std_core$Async$cancel__i32 (ref) -> void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
       array.get 21   ; ref std_core$Async[]
-      virtual.call 1 std_core$Async.cancel
+      virtual.call 1 std_core$Async.cancel -> void
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add
@@ -892,7 +892,7 @@ fn 21 std_async$block_on__i32 (any) -> i32
   local r any
   loop $L0 void
     local.get 0   ; arg 0
-    virtual.call 1 std_core$Async.resume
+    virtual.call 1 std_core$Async.resume -> any
     local.tee 1   ; r
     type_check 7   ; std_core$Suspended
     if $L1 void

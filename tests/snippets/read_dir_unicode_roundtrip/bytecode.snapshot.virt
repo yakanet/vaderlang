@@ -110,7 +110,7 @@ fn 0 snippet$main () -> i32
   type_check 20   ; ref std_core$Error
   if $L0 void
     local.get 3   ; written
-    virtual.call 1 std_core$Error.message
+    virtual.call 1 std_core$Error.message -> string
     local.set 4   ; $vcall_14
     string.const 2   ; "write failed: "
     local.get 4   ; $vcall_14

@@ -104,7 +104,7 @@ fn 2 snippet$main () -> i32
       i64.const 0
       local.set 5   ; __off_4
       local.get 4   ; s
-      virtual.call 1 snippet$Shape.area
+      virtual.call 1 snippet$Shape.area -> i32
       i32.to_i64
       local.set 6   ; $cast_26
       local.get 1   ; $struct_5

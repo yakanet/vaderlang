@@ -61,7 +61,7 @@ export main 1
 fn 0 snippet$order (any,any) -> i32
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  virtual.call 2 std_core$Comparable.compare
+  virtual.call 2 std_core$Comparable.compare -> i32
   return
 end
 

@@ -666,21 +666,32 @@ parse_call_indirect :: fn(line: string) -> Op | null {
     return CallIndirect { .type_id = parsed }
 }
 
-/// Parse `virtual.call PARAM_COUNT VTABLE_KEY`: the vtable key is the
-/// remainder of the line (it contains a `.`, never a space).
+/// Parse `virtual.call PARAM_COUNT VTABLE_KEY -> RESULTS`: the vtable key runs
+/// up to the arrow (it contains a `.`, never a space), the results are written
+/// as a signature's.
 ///
 /// @param line  the .virt line (comment-stripped).
-/// @return      `VirtualCall { parameter_count, vtable_key }`, or `null`
-///              on malformed input.
+/// @return      `VirtualCall { parameter_count, vtable_key, results }`, or
+///              `null` on malformed input, a missing arrow included.
 parse_virtual_call :: fn(line: string) -> Op | null {
-    rest :: line.trim_prefix("virtual.call ").trim()
-    space :: rest.index_of(' ', 0)
-    if space < 0 { return null }
-    pc_text :: rest.byte_slice(0, space).trim()
-    parsed_pc :: parse_int_in_base(pc_text, 10)
-    if parsed_pc is ParseError { return null }
-    key :: rest.byte_slice(space + 1, rest.byte_len()).trim()
-    return VirtualCall { .parameter_count = i32(parsed_pc), .vtable_key = key }
+    halves :: line.trim_prefix("virtual.call ").trim().split(" -> ")
+    if halves.len() != 2 {
+        return null
+    }
+    head :: halves[0]
+    space :: head.index_of(' ', 0)
+    if space < 0 {
+        return null
+    }
+    parsed_pc :: parse_int_in_base(head.byte_slice(0, space).trim(), 10)
+    if parsed_pc is ParseError {
+        return null
+    }
+    return VirtualCall {
+        .parameter_count = i32(parsed_pc),
+        .vtable_key = head.byte_slice(space + 1, head.byte_len()).trim(),
+        .results = results_written(halves[1]),
+    }
 }
 
 /// Parse `fn.ref FN_INDEX TYPE_ID`: the TYPE_ID operand is parsed
