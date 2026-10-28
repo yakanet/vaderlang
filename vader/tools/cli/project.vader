@@ -214,7 +214,10 @@ described_project :: fn(
             + "does it drain `ctx.messages()`?")
         return null
     }
-    return project
+    // The driver checks what it is given, so a problem here is in the file it
+    // wrote, not in the `build.vader` the user can fix.
+    source :: "the description `${join_path(dir, DRIVER_FILENAME)}` wrote"
+    return without_problems(command, source, project)
 }
 
 // The project `vader test` and `vader doctor` take: `dir`, the folder they run
@@ -228,14 +231,16 @@ project_at :: fn(dir: string) -> string | null {
 
 // The `vader.json` of the project `dir`, or null after saying what it gets
 // wrong: `command` refuses a manifest with problems.
-checked_manifest :: fn(command: string, dir: string) -> Manifest | null {
-    manifest :: read_manifest(dir)
-    if manifest.problems.len() == 0 {
-        return manifest
+checked_manifest :: fn(command: string, dir: string) -> Manifest | null =
+    without_problems(command, "`${join_path(dir, MANIFEST_FILENAME)}`", read_manifest(dir))
+
+// `project`, or null after saying, under `source`, what it gets wrong.
+without_problems :: fn(command: string, source: string, project: Manifest) -> Manifest | null {
+    if project.problems.len() == 0 {
+        return project
     }
-    path :: join_path(dir, MANIFEST_FILENAME)
-    for problem in manifest.problems {
-        eprintln("vader ${command}: `${path}`: ${problem}")
+    for problem in project.problems {
+        eprintln("vader ${command}: ${source}: ${problem}")
     }
     return null
 }
