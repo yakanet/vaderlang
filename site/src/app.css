@@ -61,8 +61,30 @@
 	color-scheme: dark;
 }
 
-* {
+/* A short reset: the browser's margins go, and each rule below sets the
+   spacing it wants; a control takes the font of the page. */
+*,
+*::before,
+*::after {
 	box-sizing: border-box;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+pre,
+blockquote {
+	margin: 0;
+}
+
+button,
+input {
+	font: inherit;
 }
 
 html {
@@ -70,7 +92,6 @@ html {
 }
 
 body {
-	margin: 0;
 	background: var(--bg);
 	color: var(--fg);
 	font-family: var(--font-text);
@@ -194,17 +215,13 @@ h3 {
 	opacity: 1;
 }
 
-.doc p,
-.doc ul,
-.doc ol,
-.doc pre,
-.doc table,
-.doc blockquote {
+.doc :is(p, pre, table, blockquote) {
 	margin: 0 0 var(--s4);
 }
 
 /* The lists of the prose; a list in a nav (an outline) lays itself out. */
 .doc :is(ul, ol):not(nav *) {
+	margin: 0 0 var(--s4);
 	padding-left: 1.3rem;
 }
 
@@ -295,7 +312,6 @@ h3 {
 
 /* What a program prints. */
 .output {
-	margin: 0;
 	padding: var(--s3) var(--s4);
 	overflow-x: auto;
 	font-size: 0.8125rem;
@@ -334,6 +350,5 @@ h3 {
 }
 
 .card p {
-	margin: 0;
 	color: var(--muted);
 }

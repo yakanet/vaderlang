@@ -79,7 +79,6 @@
 	}
 	.side ol {
 		list-style: none;
-		margin: 0;
 		padding: 0;
 	}
 	.side a {
@@ -103,7 +102,6 @@
 	}
 	.menu-btn {
 		display: none;
-		font: inherit;
 		font-size: var(--step--1);
 		background: var(--surface);
 		color: var(--fg);

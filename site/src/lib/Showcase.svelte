@@ -23,9 +23,6 @@
 		font-size: var(--step--1);
 		color: var(--muted);
 	}
-	.caption :global(p) {
-		margin: 0;
-	}
 	.program {
 		margin: var(--s3) var(--s4);
 		max-height: 26rem;

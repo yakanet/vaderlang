@@ -61,7 +61,6 @@
 		margin-top: var(--s5);
 	}
 	.code {
-		margin: 0;
 		border: 0;
 		border-radius: 0;
 	}

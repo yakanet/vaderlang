@@ -23,7 +23,6 @@
 		font-size: var(--step--1);
 	}
 	ul {
-		margin: 0;
 		padding: 0;
 		list-style: none;
 		columns: 2 14rem;

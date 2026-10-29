@@ -38,7 +38,6 @@
 		flex: none;
 	}
 	button {
-		font: inherit;
 		font-size: var(--step--1);
 		background: var(--surface);
 		color: var(--muted);

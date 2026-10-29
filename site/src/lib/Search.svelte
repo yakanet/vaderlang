@@ -163,7 +163,6 @@
 		flex: 1;
 		max-width: 22rem;
 		min-width: 7rem;
-		font: inherit;
 		font-size: var(--step--1);
 		color: var(--muted);
 		background: var(--bg);
@@ -201,7 +200,6 @@
 	}
 	input {
 		width: 100%;
-		font: inherit;
 		color: var(--fg);
 		background: var(--sunken);
 		border: var(--hair) solid var(--line);
@@ -220,7 +218,6 @@
 		width: 100%;
 		gap: var(--s3);
 		justify-content: space-between;
-		font: inherit;
 		font-size: var(--step--1);
 		text-align: left;
 		color: var(--fg);

@@ -99,20 +99,17 @@
 		padding-top: var(--s5);
 	}
 	h1 {
-		margin: 0;
 		font-size: clamp(2.5rem, 6vw, 3.75rem);
 		line-height: 1;
 		letter-spacing: -0.02em;
 	}
 	.tagline {
-		margin: 0;
 		font-size: var(--step-2);
 		line-height: 1.25;
 		font-weight: 700;
 		text-wrap: balance;
 	}
 	.lede {
-		margin: 0;
 		color: var(--muted);
 		font-size: var(--step-1);
 	}
@@ -151,14 +148,12 @@
 		grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
 	}
 	.tiles :global(p) {
-		margin: 0;
 		color: var(--muted);
 	}
 	.toolchain :global(ul) {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
 		gap: var(--s2) var(--s6);
-		margin: 0;
 		padding: 0;
 		list-style: none;
 	}

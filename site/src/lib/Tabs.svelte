@@ -68,7 +68,6 @@
 		background: var(--sunken);
 	}
 	button {
-		font: inherit;
 		font-size: var(--step--1);
 		white-space: nowrap;
 		color: var(--muted);
