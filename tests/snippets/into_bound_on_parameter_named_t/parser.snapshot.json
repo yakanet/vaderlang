@@ -144,8 +144,7 @@
                   "name": "Label"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -201,8 +200,7 @@
                   "name": "Label"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

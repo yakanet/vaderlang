@@ -349,7 +349,6 @@ ident :: fn(name: string) -> IdentExpr = IdentExpr {
     .span = empty_span(),
     .name = name,
     .implicit_dot = false,
-    .is_type_param_intro = false,
 }
 
 // The names of the identifiers `inspect` reaches under `n`, in visiting order ;

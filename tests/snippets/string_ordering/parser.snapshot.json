@@ -32,8 +32,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Comparable"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

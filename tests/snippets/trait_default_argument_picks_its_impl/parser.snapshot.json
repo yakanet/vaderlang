@@ -21,8 +21,7 @@
         "typeParams": [
           {
             "name": "Rhs",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "requires": null,
@@ -145,8 +144,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "fields": [
@@ -185,8 +183,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "forType": {
@@ -273,8 +270,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "forType": {

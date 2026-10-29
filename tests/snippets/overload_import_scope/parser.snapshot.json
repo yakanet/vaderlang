@@ -105,8 +105,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Display"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

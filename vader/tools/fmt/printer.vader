@@ -1751,7 +1751,6 @@ emit_string_lit :: fn(self: Printer, x: p.StringLitExpr) -> void {
 
 emit_ident :: fn(self: Printer, x: p.IdentExpr) -> void {
     if x.implicit_dot { self.write(".") }
-    if x.is_type_param_intro { self.write("$") }
     self.write_name(x.name, x.span)
 }
 

@@ -16,8 +16,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Add"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -73,8 +72,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Add"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

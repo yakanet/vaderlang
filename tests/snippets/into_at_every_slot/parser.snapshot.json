@@ -339,8 +339,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "params": [
@@ -653,8 +652,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Shower"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

@@ -531,8 +531,6 @@ write_type_params :: fn(sb: StringBuilder, tps: TypeParam[], level: i32) -> void
         sb.write_string(tp.name)
         sb.entry(false, level + 2, "bound")
         sb.write_optional_type(tp.bound, level + 2)
-        sb.entry(false, level + 2, "isComptimeValue")
-        sb.write_bool(tp.is_comptime_value)
         sb.close_obj(level + 1)
     }
     sb.close_arr(level)
@@ -799,14 +797,10 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.kind_entry(level + 1, "IdentExpr")
             sb.entry(false, level + 1, "name")
             sb.write_string(e.name)
-            // Both flags are emitted only when set (optional fields are
+            // The flag is emitted only when set (optional fields are
             // omitted when unset).
             if e.implicit_dot {
                 sb.entry(false, level + 1, "implicitDot")
-                sb.append("true")
-            }
-            if e.is_type_param_intro {
-                sb.entry(false, level + 1, "isTypeParamIntro")
                 sb.append("true")
             }
             sb.close_obj(level)

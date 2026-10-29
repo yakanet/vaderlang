@@ -348,8 +348,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Shape"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -563,8 +562,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "A"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [],
@@ -601,8 +599,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "B"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [],

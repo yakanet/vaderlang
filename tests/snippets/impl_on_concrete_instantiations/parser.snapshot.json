@@ -21,8 +21,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "fields": [
@@ -246,8 +245,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "fields": [
@@ -271,8 +269,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Display"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "forType": {

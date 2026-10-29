@@ -212,8 +212,7 @@
                   "name": "i32"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -281,8 +280,7 @@
                   "name": "i32"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

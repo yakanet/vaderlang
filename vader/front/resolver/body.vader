@@ -321,12 +321,8 @@ declare_type_param :: fn(self: ResolveState, tp: AST.TypeParam) -> Symbol {
 
 // R2042 on a union in `tp`'s bound : a `null` member belongs where `T` is used, not
 // on the bound. Returns the bound to record: the union's other member when `null`
-// is all it adds, so the body is checked against what was meant. A comptime value
-// parameter's `:` gives its type, not a bound.
+// is all it adds, so the body is checked against what was meant.
 checked_bound :: fn(self: ResolveState, tp: AST.TypeParam, bound: AST.Expr) -> AST.Expr {
-    if tp.is_comptime_value {
-        return bound
-    }
     union :: union_in_bound(bound) ?? return bound
     variants :: AST.collect_bitor_variants(union)
     others: AST.Expr[]: []
@@ -503,7 +499,6 @@ plain_ident :: fn(span: Span, name: string) -> AST.Expr = AST.IdentExpr {
     .span = span,
     .name = name,
     .implicit_dot = false,
-    .is_type_param_intro = false,
 }
 
 walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {

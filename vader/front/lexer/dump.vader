@@ -167,7 +167,6 @@ export kind_name :: fn(k: TokenKind) -> string = match k {
     .Arrow     -> "arrow"
     .FatArrow  -> "fat_arrow"
     .At        -> "at"
-    .Dollar    -> "dollar"
 
     .LParen   -> "lparen"
     .RParen   -> "rparen"

@@ -21,13 +21,11 @@
         "typeParams": [
           {
             "name": "K",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           },
           {
             "name": "V",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "fields": [

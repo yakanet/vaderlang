@@ -21,8 +21,7 @@
         "typeParams": [
           {
             "name": "V",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "requires": null,
@@ -57,8 +56,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "fields": [
@@ -79,8 +77,7 @@
         "typeParams": [
           {
             "name": "U",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "forType": {
@@ -146,13 +143,11 @@
         "typeParams": [
           {
             "name": "A",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           },
           {
             "name": "B",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "fields": [
@@ -184,8 +179,7 @@
         "typeParams": [
           {
             "name": "X",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "requires": null,
@@ -218,13 +212,11 @@
         "typeParams": [
           {
             "name": "R",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           },
           {
             "name": "L",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "forType": {
@@ -386,13 +378,11 @@
         "typeParams": [
           {
             "name": "R",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           },
           {
             "name": "L",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "forType": {

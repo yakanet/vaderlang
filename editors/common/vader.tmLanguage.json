@@ -251,11 +251,6 @@
           "match": "\\b(bool|u8|u16|u32|u64|i8|i16|i32|i64|f32|f64|char|string|void)\\b"
         },
         {
-          "comment": "Generic type parameter: $T",
-          "name": "variable.parameter.type.vader",
-          "match": "\\$[A-Za-z_][A-Za-z0-9_]*"
-        },
-        {
           "comment": "Type names (UpperCamelCase identifiers)",
           "name": "entity.name.type.vader",
           "match": "\\b[A-Z][A-Za-z0-9_]*\\b"

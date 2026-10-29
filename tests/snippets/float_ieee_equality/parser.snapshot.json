@@ -24,8 +24,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Equals"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

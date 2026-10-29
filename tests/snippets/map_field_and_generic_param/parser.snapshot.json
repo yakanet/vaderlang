@@ -71,13 +71,11 @@
                 "kind": "IdentExpr",
                 "name": "Equals"
               }
-            },
-            "isComptimeValue": false
+            }
           },
           {
             "name": "V",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "params": [

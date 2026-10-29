@@ -21,8 +21,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "aliased": {
@@ -45,13 +44,11 @@
         "typeParams": [
           {
             "name": "A",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           },
           {
             "name": "B",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "aliased": {

@@ -1172,11 +1172,8 @@ parse_named_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
 parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> FnDecl {
     p.reject_c_decorators(decorators, "a function")
     p.advance()  // `fn`
-    // Angle type-params `fn<T: Bound>(...)` are merged with the legacy
-    // dollar-prefixed introductions collected from the value-arg types.
-    angle_params :: p.parse_angle_type_params()
+    type_params :: p.parse_angle_type_params()
     sig :: p.parse_fn_signature_params()
-    type_params :: merge_type_params(angle_params, sig.type_params)
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     tail :: p.parse_fn_body_tail()
@@ -1243,9 +1240,8 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
     name_tok :: p.advance()  // ident
     p.advance()              // `::`
     p.advance()              // `fn`
-    angle_params :: p.parse_angle_type_params()
+    type_params :: p.parse_angle_type_params()
     sig :: p.parse_fn_signature_params()
-    type_params :: merge_type_params(angle_params, sig.type_params)
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     tail :: p.parse_fn_body_tail()
@@ -1269,7 +1265,6 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
 
 FnSignature :: struct {
     params:         FnParam[]
-    type_params:    TypeParam[]
     trailing_comma: bool = false
 }
 
@@ -1283,8 +1278,7 @@ CommaList :: struct<T> {
 }
 
 parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
-    type_params: TypeParam[]: []
-    params:      FnParam[] : []
+    params: FnParam[]: []
     trailing := false
     p.expect(.LParen, "`(` after function name")
     p.skip_newlines()
@@ -1337,10 +1331,6 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
                 default_value = p.parse_expr(0)
             }
 
-            // Legacy dollar-prefixed types are auto-promoted to type
-            // parameters (the canonical surface is `fn<T>(...)`).
-            collect_type_params(ty, type_params)
-
             params.push(FnParam {
                 .span          = p.span_of(start_tok, p.peek_at(-1)),
                 .name          = param_name_tok.text,
@@ -1353,13 +1343,13 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
         }
     }
     p.expect(.RParen, "`)` to close parameter list")
-    return FnSignature { .params = params, .type_params = type_params, .trailing_comma = trailing }
+    return FnSignature { .params = params, .trailing_comma = trailing }
 }
 
 parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> StructDecl {
     p.reject_free_fn_decorators(decorators, "a struct", "")
     p.advance()  // `struct`
-    type_params :: p.parse_struct_type_param_list()
+    type_params :: p.parse_angle_type_params()
     p.expect(.LBrace, "`{` to open struct body")
     p.skip_newlines()
     fields: StructField[]: []
@@ -1412,69 +1402,9 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
     }
 }
 
-parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
-    // `<T>` canonical type-params first. The `($T, $N: i32)` paren form
-    // is reserved for comptime-value heads (the angle list has no
-    // type-ascription slot today): kept until comptime-value params get
-    // their own unified surface.
-    if p.check(.Lt) { return p.parse_angle_type_params() }
-    if p.match_kind(.LParen) == null { return [] }
-    out: TypeParam[]: []
-    p.skip_newlines()
-    for !p.check(.RParen) && !p.check(.Eof) {
-        // Each iteration parses one (possibly $-prefixed) type-param; every one
-        // after the first must be led by a `,`.
-        if out.len() > 0 {
-            if p.match_kind(.Comma) == null { break }
-            p.skip_newlines()
-            if p.check(.RParen) { break }
-        }
-
-        has_dollar :: p.match_kind(.Dollar) != null
-        start :: p.peek()
-        name :: p.expect(.Ident, "type parameter name")
-        bound: TypeExpr | null = null
-        if p.match_kind(.Colon) != null { bound = p.parse_type() }
-
-            if !has_dollar {
-                hint :: if bound == null {
-                    "`${name.text}` must be written `\$${name.text}`"
-                } else {
-                    "`${name.text}` must be prefixed with `\$`"
-                }
-                p.error(.TypeParamMustBePrefixedWithDollar, p.span_of(start, p.peek_at(-1)), hint)
-            } else {
-                // `: type` bound is redundant: drop it after diagnosing.
-                bnd :: bound
-                match bnd {
-                    is null      -> {}
-                    is IdentExpr -> {
-                        if bnd.name == "type" {
-                            p.error(.TypeBoundRedundant, p.span_of(start, p.peek_at(-1)),
-                                "`${name.text}` is already a type parameter")
-                            bound = null
-                        }
-                    }
-                    _            -> {}
-                }
-            }
-            is_comptime_value :: bound != null
-        out.push(TypeParam {
-            .span              = p.span_of(start, p.peek_at(-1)),
-            .name              = name.text,
-            .bound             = bound,
-            .is_comptime_value = is_comptime_value,
-        })
-    }
-    p.expect(.RParen, "`)` to close type parameter list")
-    return out
-}
-
 // Angle type-param list `<T, U: Bound, ...>`. Each entry is `name` or
 // `name: bound` ; the bound parses as a type expression so trait bounds
-// (`<T: Hash & Eq>`) work via the same parser. Always returns
-// non-comptime-value entries: comptime-value params keep the paren
-// form `(N: i32)`.
+// (`<T: Hash & Eq>`) work via the same parser.
 parse_angle_type_params :: fn(p: Parser) -> TypeParam[] {
     if !p.check(.Lt) { return [] }
     p.advance()  // `<`
@@ -1503,11 +1433,10 @@ parse_angle_type_params :: fn(p: Parser) -> TypeParam[] {
             default_ty = p.parse_type()
         }
         out.push(TypeParam {
-            .span              = p.span_of(start, p.peek_at(-1)),
-            .name              = name.text,
-            .bound             = bound,
-            .default           = default_ty,
-            .is_comptime_value = false,
+            .span    = p.span_of(start, p.peek_at(-1)),
+            .name    = name.text,
+            .bound   = bound,
+            .default = default_ty,
         })
     }
     if p.check_closing_angle() { p.consume_closing_angle() }
@@ -1515,33 +1444,11 @@ parse_angle_type_params :: fn(p: Parser) -> TypeParam[] {
     return out
 }
 
-// Combine angle-declared type-params with inline introductions
-// collected from the value-arg types (legacy dollar-prefixed form).
-// The angle list takes precedence: a name already declared explicitly
-// is not re-added from the inline list.
-merge_type_params :: fn(angle: TypeParam[], inlined: TypeParam[]) -> TypeParam[] {
-    if angle.len() == 0 { return inlined }
-    if inlined.len() == 0   { return angle }
-    merged: TypeParam[]: []
-    for angle_param in angle { merged.push(angle_param) }
-    for inline_param in inlined {
-        already_present := false
-        for existing in merged {
-            if existing.name == inline_param.name {
-                already_present = true
-                break
-            }
-        }
-        if !already_present { merged.push(inline_param) }
-    }
-    return merged
-}
-
 parse_trait_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> TraitDecl {
     p.reject_free_fn_decorators(decorators, "a trait", "")
     p.reject_c_decorators(decorators, "a trait")
     p.advance()  // `trait`
-    type_params :: p.parse_struct_type_param_list()
+    type_params :: p.parse_angle_type_params()
     // Trait composition. Two forms :
     //   `Foo :: trait<T> = A & B`            (alias, no own methods)
     //   `Foo :: trait<T> : A & B { ... }`    (composes A & B + own methods)
@@ -1894,15 +1801,11 @@ parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Vis
 
 // ---- Type expressions -----------------------------------------------------
 
-// Build a plain `IdentExpr` with both flag fields off: most call sites
-// don't need the implicit-dot or type-param-intro variants.
-ident_expr :: fn(span: Span, name: string) -> IdentExpr {
-    return IdentExpr {
-        .span                = span,
-        .name                = name,
-        .implicit_dot        = false,
-        .is_type_param_intro = false,
-    }
+// Build a plain `IdentExpr`, not the leading-dot spelling.
+ident_expr :: fn(span: Span, name: string) = IdentExpr {
+    .span         = span,
+    .name         = name,
+    .implicit_dot = false,
 }
 
 parse_type :: fn(p: Parser) -> TypeExpr {
@@ -2036,16 +1939,6 @@ parse_type_postfix :: fn(p: Parser) -> TypeExpr {
 
 parse_type_primary :: fn(p: Parser) -> TypeExpr {
     t :: p.peek()
-    if t.kind == .Dollar {
-        p.advance()
-        name :: p.expect(.Ident, "type parameter name after `\$`")
-        return IdentExpr {
-            .span                = p.span_of(t, name),
-            .name                = name.text,
-            .implicit_dot        = false,
-            .is_type_param_intro = true,
-        }
-    }
     if t.kind == .KwFn {
         return p.parse_fn_type()
     }
@@ -2217,56 +2110,6 @@ parse_type_list_until_angle :: fn(p: Parser) -> TypeExpr[] {
     if p.check_closing_angle() { p.consume_closing_angle() }
     else { p.expect(.Gt, "`>` to close generic argument list") }
     return out
-}
-
-// Walk a type expression and collect any inline type-param introductions
-// (the legacy dollar-prefixed form). Only the `Expr` variants the parser
-// actually produces in type position need to be traversed. Accepts `null`
-// so call sites with optional type-bearing slots can dispatch directly
-// without an outer match.
-collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]) -> void {
-    // Other TypeExpr variants are no-ops here. This MUST stay a plain
-    // `match … _ -> {}`, NOT `@partial` : `parse_type` does produce variants
-    // beyond the listed set on real input (the self-compile hits them), so a
-    // `@partial` trapping fallback would abort instead of no-op.
-    match t {
-        is null -> {}
-        is IdentExpr -> {
-            if !t.is_type_param_intro { return }
-            // Dedupe by name.
-            seen := false
-            for tp in out {
-                if tp.name == t.name {
-                    seen = true
-                    break
-                }
-            }
-            if !seen {
-                out.push(TypeParam {
-                    .span              = t.span,
-                    .name              = t.name,
-                    .bound             = null,
-                    .is_comptime_value = false,
-                })
-            }
-        }
-        is BinaryExpr -> {
-            collect_type_params(t.left, out)
-            collect_type_params(t.right, out)
-        }
-        is FnTypeExpr -> {
-            for pp in t.params { collect_type_params(pp, out) }
-            collect_type_params(t.return_type, out)
-        }
-        is ArrayTypeExpr  -> { collect_type_params(t.element, out) }
-        is SeqLitExpr     -> {
-            for e in t.elements { collect_type_params(e, out) }
-        }
-        is GenericInstExpr -> {
-            for a in t.type_args { collect_type_params(a, out) }
-        }
-        _ -> {}
-    }
 }
 
 // ---- Statements / blocks --------------------------------------------------
@@ -2900,7 +2743,6 @@ infix_for :: fn(k: TokenKind) = match k {
     .Arrow        -> no_infix()
     .FatArrow     -> no_infix()
     .At           -> no_infix()
-    .Dollar       -> no_infix()
     .LParen       -> no_infix()
     .RParen       -> no_infix()
     .LBracket     -> no_infix()
@@ -2995,7 +2837,6 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .Arrow        -> -1
     .FatArrow     -> -1
     .At           -> -1
-    .Dollar       -> -1
     .RParen       -> -1
     .RBracket     -> -1
     .LBrace       -> -1
@@ -4053,10 +3894,9 @@ parse_pattern :: fn(p: Parser) -> Pattern {
             dot_tok :: p.advance()
             v_tok :: p.expect(.Ident, "variant name after `.`")
             IdentExpr {
-                .span                = p.span_of(dot_tok, v_tok),
-                .name                = v_tok.text,
-                .implicit_dot        = true,
-                .is_type_param_intro = false,
+                .span         = p.span_of(dot_tok, v_tok),
+                .name         = v_tok.text,
+                .implicit_dot = true,
             }
         } else {
             p.parse_type()

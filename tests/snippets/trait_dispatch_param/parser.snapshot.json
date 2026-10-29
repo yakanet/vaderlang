@@ -16,8 +16,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Hash"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

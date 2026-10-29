@@ -21,8 +21,7 @@
         "typeParams": [
           {
             "name": "Rhs",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "requires": null,
@@ -232,8 +231,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Add"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "requires": null,

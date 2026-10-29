@@ -214,7 +214,9 @@ lower_data_table :: fn(
         literal :: StructLitExpr {
             .span      = v.span,
             .type_name = IdentExpr {
-                .span = v.span, .name = data.symbol.name, .implicit_dot = false, .is_type_param_intro = false,
+                .span         = v.span,
+                .name         = data.symbol.name,
+                .implicit_dot = false,
             },
             .items     = v.data ?? [],
         }

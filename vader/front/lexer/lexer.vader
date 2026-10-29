@@ -929,7 +929,6 @@ try_lex_operator :: fn(l: Lexer) -> bool {
     if c == '!' { return l.emit_and_advance(.Bang, "!") }
     if c == '=' { return l.emit_and_advance(.Assign, "=") }
     if c == '@' { return l.emit_and_advance(.At, "@") }
-    if c == '$' { return l.emit_and_advance(.Dollar, "$") }
     if c == ':' { return l.emit_and_advance(.Colon, ":") }
     if c == ',' { return l.emit_and_advance(.Comma, ",") }
     if c == '.' { return l.emit_and_advance(.Dot, ".") }

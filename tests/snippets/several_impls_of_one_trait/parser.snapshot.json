@@ -268,8 +268,7 @@
                   "name": "f64"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -851,8 +850,7 @@
         "typeParams": [
           {
             "name": "From",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "requires": null,
@@ -890,8 +888,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "requires": null,
@@ -1232,8 +1229,7 @@
                   "name": "i32"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -1289,8 +1285,7 @@
                   "name": "string"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -1534,8 +1529,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "fields": [
@@ -1558,8 +1552,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "requires": null,
@@ -1604,8 +1597,7 @@
                   "name": "f64"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "forType": {
@@ -1719,8 +1711,7 @@
                   "name": "string"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "forType": {
@@ -1801,8 +1792,7 @@
                   "name": "string"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [],
@@ -2584,8 +2574,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "fields": [
@@ -2606,8 +2595,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "forType": {
@@ -2694,8 +2682,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "forType": {

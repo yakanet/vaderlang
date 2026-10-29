@@ -346,8 +346,7 @@
                   "name": "T"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -403,8 +402,7 @@
                   "name": "T"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -453,8 +451,7 @@
         "typeParams": [
           {
             "name": "E",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "requires": null,
@@ -598,8 +595,7 @@
                   "name": "T"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -670,8 +666,7 @@
         "typeParams": [
           {
             "name": "E",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "requires": null,
@@ -805,8 +800,7 @@
                   "name": "T"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

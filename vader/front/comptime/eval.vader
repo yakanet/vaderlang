@@ -86,7 +86,12 @@ import "toolchain/span"
 
 @test test_evaluate_unsupported_emits_c4001 :: fn() -> void {
     // `CallExpr` falls through to vm_required.
-    callee :: AST.IdentExpr { .span = empty_span(), .id = 0, .name = "f", .implicit_dot = false, .is_type_param_intro = false }
+    callee :: AST.IdentExpr {
+        .span = empty_span(),
+        .id = 0,
+        .name = "f",
+        .implicit_dot = false,
+    }
     expr :: AST.CallExpr { .span = empty_span(), .id = 0, .callee = callee, .args = [] }
     context :: empty_context()
     result :: evaluate_expr(expr, context)

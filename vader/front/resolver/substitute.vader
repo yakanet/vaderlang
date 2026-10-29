@@ -223,7 +223,6 @@ make_ident :: fn(name: string) -> AST.IdentExpr {
         .id = AST.UNASSIGNED_NODE_ID,
         .name = name,
         .implicit_dot = false,
-        .is_type_param_intro = false,
     }
 }
 

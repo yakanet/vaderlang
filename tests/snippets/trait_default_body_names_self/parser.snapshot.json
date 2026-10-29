@@ -357,8 +357,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Probe"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

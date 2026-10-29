@@ -21,8 +21,7 @@
         "typeParams": [
           {
             "name": "U",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "params": [],
@@ -84,8 +83,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "fields": [
@@ -109,8 +107,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "forType": {
@@ -201,8 +198,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "params": [
@@ -334,8 +330,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "params": [

@@ -147,8 +147,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "fields": [
@@ -169,8 +168,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "forType": {
@@ -366,8 +364,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "forType": {
@@ -561,8 +558,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "forType": {
@@ -675,8 +671,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Poke"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -731,8 +726,7 @@
                 "kind": "IdentExpr",
                 "name": "Tag"
               }
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -803,8 +797,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "params": [
@@ -871,8 +864,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "params": [
@@ -934,8 +926,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "params": [

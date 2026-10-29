@@ -78,8 +78,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Int"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -204,8 +203,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Int"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -329,8 +327,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Int"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -386,8 +383,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Int"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -510,8 +506,7 @@
                 "kind": "IdentExpr",
                 "name": "Display"
               }
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -592,8 +587,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Int"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

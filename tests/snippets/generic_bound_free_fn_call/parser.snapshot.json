@@ -192,8 +192,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "params": [
@@ -296,8 +295,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Display"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -349,8 +347,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Display"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -389,8 +386,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Display"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -447,8 +443,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Display"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -495,8 +490,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Display"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -565,8 +559,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Display"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -625,8 +618,7 @@
                   "name": "i32"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -682,8 +674,7 @@
                   "name": "i32"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -744,8 +735,7 @@
                   "name": "i32"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

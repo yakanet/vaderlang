@@ -24,8 +24,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Display"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -119,8 +118,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Display"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -164,8 +162,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "params": [
@@ -218,8 +215,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "params": [

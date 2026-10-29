@@ -149,8 +149,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Add"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -277,8 +276,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Comparable"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -394,8 +392,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Equals"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -530,8 +527,7 @@
                   "name": "i32"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -587,8 +583,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Equals"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

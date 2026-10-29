@@ -142,7 +142,6 @@ named_type :: fn(name: string) -> AST.TypeExpr = AST.IdentExpr {
     .span = empty_span(),
     .name = name,
     .implicit_dot = false,
-    .is_type_param_intro = false,
 }
 
 field_of :: fn(name: string, ty: AST.TypeExpr) -> AST.StructField = AST.StructField {

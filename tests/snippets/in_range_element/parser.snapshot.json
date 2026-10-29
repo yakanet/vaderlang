@@ -653,8 +653,7 @@
                   "name": "i64"
                 }
               ]
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

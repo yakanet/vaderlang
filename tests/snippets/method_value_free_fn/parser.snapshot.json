@@ -210,16 +210,14 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Display"
-            },
-            "isComptimeValue": false
+            }
           },
           {
             "name": "U",
             "bound": {
               "kind": "IdentExpr",
               "name": "Display"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

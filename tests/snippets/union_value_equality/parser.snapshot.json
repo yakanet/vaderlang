@@ -189,8 +189,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "fields": [
@@ -214,8 +213,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Equals"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "forType": {
@@ -350,8 +348,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Equals"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [
@@ -415,8 +412,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Equals"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

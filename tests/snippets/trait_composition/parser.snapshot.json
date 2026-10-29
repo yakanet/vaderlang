@@ -21,8 +21,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "requires": {
@@ -60,8 +59,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "requires": {
@@ -110,8 +108,7 @@
         "typeParams": [
           {
             "name": "T",
-            "bound": null,
-            "isComptimeValue": false
+            "bound": null
           }
         ],
         "requires": {
@@ -344,8 +341,7 @@
             "bound": {
               "kind": "IdentExpr",
               "name": "Hashable"
-            },
-            "isComptimeValue": false
+            }
           }
         ],
         "params": [

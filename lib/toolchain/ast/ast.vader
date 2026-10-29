@@ -151,23 +151,19 @@ export ModuleDecl :: struct {
 
 // ---- Generics / Decorators ------------------------------------------------
 
-/// One entry of a `[T: Bound = Default]` list.
-///
-/// `is_comptime_value` marks a parameter that carries a VALUE rather than a type
-/// (`[N: i64]`), which the comptime engine substitutes.
+/// One entry of a `<T: Bound = Default>` list.
 export TypeParam :: struct {
-    span:               Span
-    id:                 i64 = UNASSIGNED_NODE_ID
-    name:               string
-    bound:              TypeExpr | null
+    span:    Span
+    id:      i64 = UNASSIGNED_NODE_ID
+    name:    string
+    bound:   TypeExpr | null
     /// Default type for this parameter, from `<T = Default>`. Honored when an
     /// impl supplies fewer trait-args than the trait declares: the trailing
     /// params fill from their defaults at impl materialization
     /// (`front/resolver/materialize.vader::build_subst`). Defaults on struct / fn /
     /// alias params parse but are not yet filled at their use sites (those
     /// instantiations error rather than default). `null` = no default.
-    default:            TypeExpr | null = null
-    is_comptime_value:  bool
+    default: TypeExpr | null = null
 }
 
 /// An `@name` or `@name(args)` above a declaration.
@@ -937,17 +933,13 @@ export string_literal_text :: fn(e: Expr) -> string | null {
 /// A bare name, in value or type position.
 ///
 /// `implicit_dot` marks the leading-dot spelling (`.Variant`), where resolution
-/// defers to the surrounding context. `is_type_param_intro` marks a dollar-prefixed
-/// name introducing a type parameter rather than referring to one.
-///
-/// Both are plain `bool`s defaulting to `false`, and the dumper emits their JSON
-/// keys (`implicitDot` / `isTypeParamIntro`) only when `true`.
+/// defers to the surrounding context. The dumper emits its JSON key
+/// (`implicitDot`) only when `true`.
 export IdentExpr :: struct {
-    span:                Span
-    id:                  i64 = UNASSIGNED_NODE_ID
-    name:                string
-    implicit_dot:        bool
-    is_type_param_intro: bool
+    span:         Span
+    id:           i64 = UNASSIGNED_NODE_ID
+    name:         string
+    implicit_dot: bool
 }
 
 /// A call, `callee(args)`.

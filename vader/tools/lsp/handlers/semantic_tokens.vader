@@ -128,7 +128,7 @@ classify_token :: fn(t: Token) -> TokenType | null = match t.kind {
     // delimit a real expression, not literal text.
     //
     // Punctuation / brackets / layout / `@` / `$` / `...` carry no token.
-    .Ident | .Eof | .Newline | .DotDotDot | .At | .Dollar
+    .Ident | .Eof | .Newline | .DotDotDot | .At
         | .CharLit | .StringBegin | .StringPart | .StringEnd
         | .LParen | .RParen | .LBracket | .RBracket | .LBrace | .RBrace
         | .Comma | .Dot | .Colon -> null
