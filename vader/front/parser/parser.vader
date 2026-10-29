@@ -2108,9 +2108,9 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     if t.kind == .Ident {
         name :: p.advance()
         head: Expr = ident_expr(name.span, name.text)
-        // Qualified namespace : `module.Type`, applies when the leading
-        // ident is an `import "X" as alias` (or destructured-namespace)
-        // binding. The resolver follows the chain to the exported type in
+        // Qualified namespace : `Alias.Type`, applies when the leading
+        // ident is a namespace alias (`Alias :: import "X"`). The resolver
+        // follows the chain to the exported type in
         // the target module. Built as a `FieldExpr` so the existing
         // field-resolution machinery (which already handles `module.value`
         // for call expressions) serves type-position lookups too.

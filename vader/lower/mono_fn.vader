@@ -284,7 +284,7 @@ build_fn_instance_decl :: fn(
 // instance (the `Mono` flavor) so a `T = i32` instance builds an I32-kind array
 // instead of the erased BOXED kind. Deliberately narrow: a non-bare element
 // (`[T, U][]`, `Pair<T, U>[]`) is BOXED-kind regardless, so leaving it erased is
-// sound: its reads route through the legacy runtime-dispatched op.
+// sound: its reads route through the runtime-dispatched op.
 returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
     rt :: fn_decl.return_type ?? return false
     if rt is ArrayTypeExpr {

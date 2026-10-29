@@ -29,16 +29,6 @@ import "toolchain/span"
 
 // ---- smallest typed expression at a position ------------------------------
 
-/// Walk every fn body in `decls` looking for the smallest expression whose
-/// span contains `(line, col)` AND has a `typed.expr_types` entry. Returns the
-/// matching `AST.Expr`, or `null` on miss. Smallest match wins so hovering on
-/// `x` in `f(x + y)` returns `x`, not the whole `f(...)` call.
-///
-/// @param decls  the file's top-level declarations to descend.
-/// @param line   1-based cursor line.
-/// @param col    1-based cursor column.
-/// @param typed  the typed program (a node only matches if it carries a type).
-/// @return       the innermost typed expression at the cursor, or `null`.
 /// A document's typed view at a cursor : its file's declarations, its typed
 /// program, and the cursor as the AST counts positions (1-based).
 export TypedCursor :: struct {
@@ -74,6 +64,16 @@ export typed_cursor :: fn(state: ServerState, file_path: string, line: i32, char
 export expr_under :: fn(cursor: TypedCursor) -> AST.Expr | null =
     find_expr_at(cursor.decls, cursor.line, cursor.column, cursor.typed)
 
+/// Walk every fn body in `decls` looking for the smallest expression whose
+/// span contains `(line, col)` AND has a `typed.expr_types` entry. Returns the
+/// matching `AST.Expr`, or `null` on miss. Smallest match wins so hovering on
+/// `x` in `f(x + y)` returns `x`, not the whole `f(...)` call.
+///
+/// @param decls  the file's top-level declarations to descend.
+/// @param line   1-based cursor line.
+/// @param col    1-based cursor column.
+/// @param typed  the typed program (a node only matches if it carries a type).
+/// @return       the innermost typed expression at the cursor, or `null`.
 export find_expr_at :: fn(
     decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram,
 ) -> AST.Expr | null = find_expr_with_mode(decls, line, col, .SmallestContaining, typed)

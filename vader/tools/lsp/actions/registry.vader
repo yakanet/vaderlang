@@ -2,7 +2,7 @@
 //
 // A code action is a cursor-driven source refactoring (`textDocument/codeAction`
 // → the editor lightbulb). Each action is a plain record carrying a predicate
-// and an edit producer ; `ALL_ACTIONS` is the central registration table. The
+// and an edit producer ; `all_actions()` is the central registration table. The
 // handler (`handlers/code_action`) finds the AST node under the cursor and calls
 // `run_actions`, which returns one `ActionResult` per applicable action.
 //

@@ -194,7 +194,7 @@ cycle_names :: fn(start: i64, depth: i64, path: i64[], id: i64, nodes: Nodes) ->
 ///
 /// @param names  the constants in the order each reads the next, the first one
 ///               again at the end.
-export display_cycle :: fn(names: string[]) -> string = names.join(" → ")
+export display_cycle :: fn(names: string[]) -> string = names.join(" -> ")
 
 // ---- expression walker ---------------------------------------------------
 

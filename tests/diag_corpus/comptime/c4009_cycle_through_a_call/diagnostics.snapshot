@@ -1,1 +1,1 @@
-[9:8] error[C4009] comptime evaluation depends on itself: A → B → A
+[9:8] error[C4009] comptime evaluation depends on itself: A -> B -> A

@@ -7,9 +7,9 @@
 // fuzzy filtering, so we return the full candidate set rather than matching the
 // typed prefix ourselves.
 //
-// Member completion after `.` (struct fields + UFCS methods, resolved through
-// the typed cache) is not wired yet. Until it lands the
-// provider declares no `.` trigger, so it fires on identifier typing only.
+// Tier 2 : member completion after `.`, the receiver's struct fields and the
+// methods of the impls on its type, resolved through the typed cache. The
+// provider declares `.` as a trigger character for it.
 
 module "vader/tools/lsp/handlers"
 

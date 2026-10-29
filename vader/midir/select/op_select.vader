@@ -292,11 +292,11 @@ slot_width_for :: fn(elem: ValType) -> SlotWidth | null = match elem {
 /// Pick the typed store op for an array element of stack class `elem`
 /// (Array-over-Buffer): the native-width store, no write barrier needed since
 /// no reference is written. `null` means "no typed store for this element": the
-/// caller falls back to the legacy runtime-dispatched `ArraySet`.
+/// caller falls back to the runtime-dispatched `ArraySet`.
 ///
 /// Declines on three groups, and each has its reason:
 ///   - `.Boxed` (ref / string / `Any`): an erased `Any[]` struct field may hold a
-///     concrete-kind array at runtime, so only the kind-dispatched legacy op is
+///     concrete-kind array at runtime, so only the kind-dispatched op is
 ///     sound.
 ///   - `.U8`: read-only `u8[]` byte views are borrowed (`buf == NULL`,
 ///     atom-backed), which a raw slot op can't address.
@@ -319,7 +319,7 @@ export slot_store_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null {
 }
 
 /// Symmetric typed LOAD op: same classification and the same declines as
-/// `slot_store_op_for`, `null` falling back to the legacy `ArrayGet`.
+/// `slot_store_op_for`, `null` falling back to the runtime-dispatched `ArrayGet`.
 ///
 /// @param elem  the array's concrete element value class (the static read type).
 /// @return      the typed load op, or `null` to fall back to `ArrayGet`.

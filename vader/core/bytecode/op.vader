@@ -1,9 +1,8 @@
 // vader/core/bytecode/op: the bytecode op set (the instruction format).
 //
 // One variant per supported op kind, plus the `ConstOp` sub-union and the
-// `ConvertTarget` enum. The union grows sprint by sprint in lock-step with the
-// acceptance snippets (docs/SELFHOST_VM.md). Control-flow ops (`If`, `Else`,
-// `End`, `Branch`, `BranchIf`) carry no operand here: their target pc lives in
+// `ConvertTarget` enum. Control-flow ops (`If`, `Else`, `End`, `Branch`,
+// `BranchIf`) carry no operand here: their target pc lives in
 // `BcFunction.jump_table[pc]` (`module.vader`).
 //
 // The instruction format lives in `vader/core/bytecode` ; the emitter, the VM's
@@ -14,9 +13,9 @@
 module "vader/core/bytecode"
 
 /// The full op set understood by the Vader-side VM. Each variant is
-/// pure data: the executor's `match` arms in `exec.vader` carry the
-/// semantics. New ops are appended after `Unreachable` (never reshaped),
-/// so the existing pattern-match arms keep compiling across sprints.
+/// pure data: the VM (`vader/vm/`) and the C emitter carry the semantics.
+/// New ops are appended after `Unreachable` (never reshaped), so the existing
+/// pattern-match arms keep compiling.
 ///
 /// `Unreachable` is deliberately the FIRST variant (tag 0) : a zeroed /
 /// uninitialised op decodes to a trap rather than to a valid instruction,
@@ -193,12 +192,12 @@ export LocalSet :: struct { slot: i32 }
 export LocalTee :: struct { slot: i32 }
 /// Push `module.strings[index]` onto the value stack.
 export StringConst :: struct { index: i32 }
-/// Push the singleton `NullVal` (the runtime `null`). Sprint 5a addition.
+/// Push the singleton `NullVal` (the runtime `null`).
 export NullConst :: struct {}
-/// Push a `BoolVal(value)`. Sprint 5a addition.
+/// Push a `BoolVal(value)`.
 export BoolConst :: struct { value: bool }
 /// Push a `CharVal(value)`. The codepoint is parsed from the .virt
-/// as a base-10 integer (u32 range) and stored as a `char`. Sprint 5a.
+/// as a base-10 integer (u32 range) and stored as a `char`.
 export CharConst :: struct { value: char }
 /// Invoke a host-side import (e.g. `println`): `index` keys into `module.imports`.
 export CallImport :: struct { index: i32 }
@@ -463,7 +462,6 @@ export convert_target_of :: fn(v: ValType) -> ConvertTarget | null = match v {
 /// Pop one value and push a `BoolVal` indicating whether its runtime
 /// type matches `module.types[type_id]`. Recurses through `UnionType`
 /// variants. Drives `match` arm dispatch and `if x is T` narrowing.
-/// Sprint 5b addition.
 export TypeCheck :: struct { type_id: i32 }
 
 /// Push a `TypeVal { type_id }`: the runtime reification of a `type`
@@ -632,15 +630,15 @@ export U32Le  :: struct {}
 export U32Gt  :: struct {}
 /// Unsigned 32-bit ≥. See `U32Lt`.
 export U32Ge  :: struct {}
-/// Pop two bools ; push `BoolVal` (equal). Sprint 5a addition.
+/// Pop two bools ; push `BoolVal` (equal).
 export BoolEq :: struct {}
-/// Pop two bools ; push `BoolVal` (not equal). Sprint 5a addition.
+/// Pop two bools ; push `BoolVal` (not equal).
 export BoolNe :: struct {}
-/// Pop two bools ; push `BoolVal` (logical AND). Sprint 5a addition.
+/// Pop two bools ; push `BoolVal` (logical AND).
 export BoolAnd :: struct {}
-/// Pop two bools ; push `BoolVal` (logical OR). Sprint 5a addition.
+/// Pop two bools ; push `BoolVal` (logical OR).
 export BoolOr :: struct {}
-/// Pop one bool ; push `BoolVal` (logical NOT). Sprint 5a addition.
+/// Pop one bool ; push `BoolVal` (logical NOT).
 export BoolNot :: struct {}
 /// Pop two strings (left, right) ; push `BoolVal` for byte-equality.
 export StringEq :: struct {}
@@ -657,8 +655,8 @@ export StringCompare :: struct {}
 export RefEq :: struct {}
 /// Pop two references ; push `BoolVal` for identity inequality. See `RefEq`.
 export RefNe :: struct {}
-/// Pop and discard the top of the value stack. Sprint 5a addition:
-/// emitted by the lowerer when a value is computed but never read
+/// Pop and discard the top of the value stack.
+/// Emitted by the lowerer when a value is computed but never read
 /// (e.g. an expression-statement whose result is unused).
 export Drop :: struct {}
 /// Marker: the executor just bumps pc. Opens a forward-jumping scope.

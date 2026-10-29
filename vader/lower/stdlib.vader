@@ -58,15 +58,18 @@ surface_referenced_intrinsic_externs :: fn(
     }
 }
 
-/// Surface a stdlib impl's BODYLESS members (referenced by a concrete call)
-/// as bodyless `LoweredFnDecl`s (extern signatures). They flow through
-/// `make_extern_decl` → CFG import so a concrete `recv.method()` call on an
-/// intrinsic impl (e.g. `string implements Display { to_string }`) resolves
-/// to a `CallImport` the Vader VM dispatches via `host.vader`. Mangle
+/// Lower the members of a stdlib impl that a concrete call referenced, plus
+/// every member of an impl whose trait is dispatched virtually (see the gate
+/// below). Members nothing reaches are left out: lowering every stdlib body up
+/// front is what the stdlib skip avoids.
+///
+/// A bodyless member becomes a bodyless `LoweredFnDecl` (an extern signature):
+/// it flows through `make_extern_decl` to a CFG import, so a concrete
+/// `recv.method()` call on an intrinsic impl (`string implements Display {
+/// to_string }`) resolves to a `CallImport` the Vader VM dispatches via
+/// `host.vader`. A member with a body is lowered as a real fn. The mangle
 /// matches `find_impl_member_for`'s call-site mangle (both via the impl's
-/// owning module). With-body members are skipped: surfacing them as
-/// externs would lose their behaviour, and lowering their bodies up front
-/// is the thing the stdlib-skip is meant to avoid.
+/// owning module).
 surface_stdlib_impl_externs :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> LoweredDecl[] {

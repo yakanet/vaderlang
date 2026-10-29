@@ -553,10 +553,6 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
     }
 }
 
-/// Unroll a `@comptime for x in <arr> { body }` at lower time.
-/// Returns a synthetic block whose stmts are the body lowered once
-/// per iter element, with the loop-var symbol bound to the per-iter
-/// literal via `comptime_bindings`.
 // Reject a `@comptime for` the lowerer can't unroll : surface the reason as a
 // compile-time diagnostic (M5010), so it fails the build rather than trapping at
 // runtime, and return a defensive `unreachable` (never executed, the build errors).
@@ -568,6 +564,10 @@ comptime_for_reject :: fn(ctx: FnLowerCtx, span: Span, reason: string) -> Lowere
     }
 }
 
+/// Unroll a `@comptime for x in <arr> { body }` at lower time.
+/// Returns a synthetic block whose stmts are the body lowered once
+/// per iter element, with the loop-var symbol bound to the per-iter
+/// literal via `comptime_bindings`.
 lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) -> LoweredStmt {
     span :: for_stmt.span
     if in_form.loop_var is DestructureVar {

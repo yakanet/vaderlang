@@ -3,7 +3,7 @@
 // Output : a `# AST\n` header, then 2-space-indented JSON. Spans are stripped
 // (they're noisy and span numbers shift across tiny edits) ; ints land as quoted
 // decimal strings with a trailing `n` so the dump stays stable across the full
-// integer range. The helpers below walk every variant explicitly: no reflection.
+// integer range. The helpers below walk every variant explicitly.
 
 module "vader/front/parser"
 

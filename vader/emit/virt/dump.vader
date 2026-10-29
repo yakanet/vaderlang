@@ -709,12 +709,11 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
     write_op_refs(out, refs, op)
 }
 
-// The single canonical op→text table, behind `dump_bytecode` and `write_op`.
+// The single canonical op-to-text table, behind `dump_bytecode` and `write_op`.
 // A STATEMENT match, not a value-returning one : a value match desugars to
-// nested if-expressions whose
-// per-arm result is teed up through an `if_res` chain, which makes a 128-arm
-// exhaustive match compile ~3.5x larger. Appending in place sidesteps that
-// entirely while staying exhaustive (a new op with no arm trips T3013: no `_`
+// nested if-expressions whose per-arm result is teed up through an `if_res`
+// chain, which compiles a match this wide several times larger. Appending in
+// place stays exhaustive all the same (a new op with no arm trips T3013: no `_`
 // wildcard).
 //
 // An op whose operands are table indices prints them through `printed`, which

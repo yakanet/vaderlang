@@ -671,6 +671,9 @@ PendingBranch :: struct {
 /// Per-fn structurer state.
 FnEmitCfg :: struct {
     fn_: CFGFunction
+    /// Arg/result type pins for this function's calls: the SAME array that's
+    /// stored under this fn's index in `project.pinned_types_by_fn`, cached
+    /// here so the per-call emit appends to it without a per-op map lookup.
     pinned_types_bucket: i32[]
     slot: BcFunction
     project: EmitterCtx
@@ -678,6 +681,10 @@ FnEmitCfg :: struct {
     local_to_slot: i32[]
     scopes: ScopeFrame[]
     pending: PendingBranch[]
+    /// Stack-pass-through hints, see `scheduler.vader`. Queried by
+    /// emit_get / emit_set / TermReturn to elide the local.set + local.get
+    /// pair when an instruction's single-use result flows directly to the
+    /// next consumer.
     hints: ScheduleHints
     /// When false, the two push helpers store `null` in `slot.debug` instead
     /// of building a `DebugPos` per op, see `EmitOptions.want_debug`. Only
@@ -685,9 +692,6 @@ FnEmitCfg :: struct {
     /// self-compile-release path leaves it off and skips the per-op alloc.
     want_debug: bool
 }
-/// Arg/result type pins for this function's calls: the SAME array that's
-/// stored under this fn's index in `project.pinned_types_by_fn`, cached
-/// here so the per-call emit appends to it without a per-op map lookup.
 
 // Recursively intern every string leaf of a baked aggregate value into the
 // module string table, so the comptime atom table covers them (the native
@@ -735,11 +739,6 @@ collect_baked_symbols :: fn(v: BcDataValue, out: MutableSet<i32>) -> void {
         }
     }
 }
-
-/// Stack-pass-through hints, see `scheduler.vader`. Queried by
-/// emit_get / emit_set / TermReturn to elide the local.set + local.get
-/// pair when an instruction's single-use result flows directly to the
-/// next consumer.
 
 emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, string_index_map: i32[], want_debug: bool) -> void {
     slot :: ctx.functions[fn_idx]
@@ -1255,7 +1254,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // round-trip, no runtime element-kind switch).
         // The array constructors are force-concrete, so a concrete `i32[]` value is
         // I32-kind at runtime → the typed read is sound. Boxed / ref / `Any` / `u8`
-        // elements stay on the legacy runtime-dispatched `ArrayGet`.
+        // elements stay on the runtime-dispatched `ArrayGet`.
         load_op :: slot_load_op_for(array_element_val_type(target_type), ins.bounds_safe)
         if load_op is null {
             push_emit(ctx, ArrayGet { .type_id = type_index, .bounds_safe = ins.bounds_safe }, ins.span)
@@ -1717,8 +1716,8 @@ pushed_element_type :: fn(target: Type, value: Type) -> Type {
     return array.element
 }
 
-// Element value class of an array type, or `Any` for a non-array (which keeps
-// it off the typed slot ops: `slot_*_op_for(Any)` is null → legacy op).
+// Element value class of an array type, or `Any` for a non-array: `slot_*_op_for(Any)`
+// is null, which keeps it on the runtime-dispatched op.
 // Keying the typed slot op on the array's own element type (not a possibly-narrowed
 // read-site result type) is what makes it sound : the runtime kind tracks the
 // array's element type, set at construction.

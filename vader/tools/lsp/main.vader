@@ -1,7 +1,7 @@
 // vader/tools/lsp/main: LSP event loop.
 //
 // Reads JSON-RPC frames from stdin in a loop, dispatches on `method`, writes
-// responses to stdout. The dispatch `match` below is the authoritative method
+// responses to stdout. The `if` chain in `dispatch` is the authoritative method
 // list: it is not restated here, because it grows. Anything it does not name is
 // answered with a JSON-RPC `MethodNotFound` so the client degrades gracefully.
 //

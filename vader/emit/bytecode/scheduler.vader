@@ -1,11 +1,10 @@
 // vader/emit/bytecode/scheduler: stack-pass-through hints.
 //
-// Recognises CFG patterns where an
-// instruction's result is consumed immediately by its single successor's
-// first operand, and hints the bytecode emitter to leave the value on
-// the operand stack instead of round-tripping through a named local.
-// Closes most of the 3-address overhead the converter introduces vs
-// the legacy stack-based emit path.
+// Recognises CFG patterns where an instruction's result is consumed immediately
+// by its single successor's first operand, and hints the bytecode emitter to
+// leave the value on the operand stack instead of round-tripping through a
+// named local: the 3-address CFG would otherwise store and reload every
+// intermediate.
 //
 // Conditions for elision (per block, intra-block only) :
 //   - `cur.dst` is single-use in the whole function (use-count = 1).

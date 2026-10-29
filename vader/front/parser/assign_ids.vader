@@ -1,12 +1,12 @@
 // vader/front/parser/assign_ids: post-parse walker assigning unique IDs.
 //
 // Every AST node declares `id: i64 = UNASSIGNED_NODE_ID` so downstream
-// passes can key side-tables (`expr_types`, `expr_kinds`, …) on a stable
+// passes can key side-tables (`expr_types`, `expr_kinds`, ...) on a stable
 // integer rather than on spans, which synthesised nodes share.
 //
-// Vader has no reflection, so this walker enumerates every variant of
-// `Decl`, `Expr`, `Stmt`, `Pattern`, `LetBinding`, `ImportBinding`,
-// `StringLitPart`, etc. explicitly.
+// This walker enumerates every variant of `Decl`, `Expr`, `Stmt`, `Pattern`,
+// `LetBinding`, `ImportBinding`, `StringLitPart`, etc. explicitly: a node kind
+// it does not visit keeps `UNASSIGNED_NODE_ID`.
 
 module "vader/front/parser"
 

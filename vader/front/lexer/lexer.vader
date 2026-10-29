@@ -596,7 +596,7 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
     }
     if hex_len == 0 || hex_len > 6 {
         l.push_error(.InvalidUnicodeCodepointEscape, l.error_span(esc_start),
-            "codepoint escape must have 1–6 hex digits")
+            "codepoint escape must have 1-6 hex digits")
         return 0
     }
     cp: u32 = 0

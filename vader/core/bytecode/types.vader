@@ -477,12 +477,6 @@ export BcField :: struct {
     type_index: i32
 }
 
-/// Concrete struct, post-monomorphization. Field order is significant
-/// (matches the .virt encoding and the C struct layout). `symbol_id`
-/// is `-1` when unknown ; distinct monomorphisations of the same
-/// generic source decl share a `symbol_id`, which C-emit uses to find
-/// a struct's all-`Any` counterpart for the erasure boundary
-/// conversion.
 /// Mangled type-table name of the `std/io` `IOError` struct: the identity a
 /// host-fabricated io error carries, so `is IOError` narrows and `Error.message`
 /// dispatches on it.
@@ -547,6 +541,12 @@ export union_layout_struct :: fn(types: BcType[], union_index: i32) -> i32 | nul
     return first
 }
 
+/// Concrete struct, post-monomorphization. Field order is significant
+/// (matches the .virt encoding and the C struct layout). `symbol_id`
+/// is `-1` when unknown ; distinct monomorphisations of the same
+/// generic source decl share a `symbol_id`, which C-emit uses to find
+/// a struct's all-`Any` counterpart for the erasure boundary
+/// conversion.
 export BcStruct :: struct {
     name: string
     fields: BcField[]

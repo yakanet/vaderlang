@@ -310,11 +310,6 @@ tuple_or_array_element_type :: fn(
     }
 }
 
-
-// Build the leaf-read for a destructure : `[index]` for arrays, else a field
-// access: `_<index>` for a tuple, or the named field from `field_names` when
-// the value coerces through `Into<[...]>` (reading the impl's `self.<field>`
-// names, not `._0` / `._1`).
 /// The composite a `[...]` pattern reads through: a tuple- or array-backed
 /// distinct newtype (`Coord :: [i32, i32]`, `BigInt :: u32[]`) answers its
 /// backing, everything else answers itself. The read expression keeps the
@@ -327,6 +322,10 @@ destructure_backing :: fn(t: Type) -> Type {
     return t
 }
 
+// Build the leaf-read for a destructure : `[index]` for arrays, else a field
+// access: `_<index>` for a tuple, or the named field from `field_names` when
+// the value coerces through `Into<[...]>` (reading the impl's `self.<field>`
+// names, not `._0` / `._1`).
 build_leaf_access :: fn(
     target: LoweredExpr, target_type: Type, elem_type: Type, span: Span, index: i64,
     field_names: string[] | null,

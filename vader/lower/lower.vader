@@ -34,7 +34,7 @@ import "vader/core/symbol"
 /// @param loaded     the loaded project (for source decls per module).
 /// @param typed      the typed project (for side-tables).
 /// @param evaluated  the comptime engine's output.
-/// @param diags      diagnostics emitted by the lowerer (L5xxx codes).
+/// @param diags      diagnostics emitted by the lowerer (M5xxx codes).
 /// @return           the lowered project ready for downstream phases.
 export lower_project :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject, diags: Diagnostic[],

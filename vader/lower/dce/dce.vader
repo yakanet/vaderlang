@@ -256,13 +256,14 @@ entry_survives :: fn(
     return reachable_sym[e.fn_symbol.id] != null
 }
 
-/// Generic-fn instances share their generic's symbol id, so they're
-/// keyed / marked / checked by mangle ; everything else by symbol id.
-/// The three sites that branch on this (index, mark, survive) must agree
-/// or DCE-survival ⟺ emit-resolvable silently breaks.
 /// Mark a root fn reachable under the key its decl is indexed by: symbol id when
 /// it carries a symbol, mangle otherwise. Same split as the indexing above and as
 /// the emitter's reservation; keep the three in step.
+///
+/// Generic-fn instances share their generic's symbol id, so they are keyed,
+/// marked and checked by mangle ; everything else by symbol id. When the index,
+/// the mark and the survival check disagree, a fn can survive DCE that emit
+/// cannot resolve, or the reverse, with no error.
 mark_reachable :: fn(fn_decl: LoweredFnDecl, reachable_sym: MutableMap<i32, bool>, reachable_mangle: MutableMap<string, bool>) -> void {
     sym :: fn_decl.origin.symbol
     if sym is Symbol {
