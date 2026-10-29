@@ -306,42 +306,25 @@ lower_module :: fn(
 }
 
 /// Per-decl dispatcher returning every LoweredDecl this source decl
-/// expands to. Most decls yield 0 or 1 ; ImplDecl yields one entry
-/// per member so impl methods land inline (right after the impl) in
-/// the dump.
+/// expands to. An ImplDecl yields one entry per member, so impl methods land
+/// inline (right after the impl) in the dump ; a FnDecl, StructDecl or
+/// ConstDecl yields at most one ; every other kind yields none, since it
+/// produces no runtime slot.
 lower_decl_list :: fn(
     decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
-) -> LoweredDecl[] {
-    if decl is ImplDecl {
-        return lower_impl_member_list(decl, typed, project_ctx, diags)
-    }
-    out: LoweredDecl[]: []
-    result :: lower_decl(decl, typed, project_ctx, diags)
-    if !(result is null) { out.push(result) }
-    return out
+) -> LoweredDecl[] = match decl {
+    is ImplDecl   -> lower_impl_member_list(decl, typed, project_ctx, diags)
+    is FnDecl     -> zero_or_one(lower_fn_decl(decl, typed, project_ctx, diags))
+    is StructDecl -> zero_or_one(lower_struct_decl(decl, typed, project_ctx, diags))
+    is ConstDecl  -> zero_or_one(lower_const_decl(decl, typed, project_ctx, diags))
+    is EnumDecl | TraitDecl | TypeAliasDecl | ImportDecl | AssertDecl -> []
 }
 
-// Per-decl dispatcher. Routes FnDecl / StructDecl / ConstDecl through
-// the matching phase-2 stub ; ImplDecl drains into per-member fn-decl
-// entries appended to `project_ctx.synth_decls` so the module driver
-// picks them up alongside the regular decls. Every other decl kind
-// (Enum, Trait, TypeAlias, Import, Assert) returns null: they don't
-// produce runtime slots.
-lower_decl :: fn(
-    decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
-) -> LoweredDecl | null {
-    // Only Fn/Struct/Const/Impl produce runtime slots; every other decl kind
-    // (Enum, Trait, TypeAlias, Import, Assert) lowers to null.
-    match decl {
-        is FnDecl     -> { return lower_fn_decl(decl, typed, project_ctx, diags) }
-        is StructDecl -> { return lower_struct_decl(decl, typed, project_ctx, diags) }
-        is ConstDecl  -> { return lower_const_decl(decl, typed, project_ctx, diags) }
-        is ImplDecl   -> {
-            lower_impl_members(decl, typed, project_ctx, diags)
-            return null
-        }
-        is EnumDecl | TraitDecl | TypeAliasDecl | ImportDecl | AssertDecl -> { return null }
+zero_or_one :: fn(d: LoweredDecl | null) -> LoweredDecl[] {
+    if d == null {
+        return []
     }
+    return [d]
 }
 
 

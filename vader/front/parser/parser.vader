@@ -1320,17 +1320,15 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
                 is_variadic = true
             }
 
-            param_name_tok: Token = empty_token()
-            has_name := false
-            if p.check(.KwSelf) || p.check(.Ident) {
-                param_name_tok = p.advance()
-                has_name = true
-            } else {
+            if !p.check(.KwSelf) && !p.check(.Ident) {
                 t :: p.peek()
                 p.error(.ExpectedToken, t.span, "expected parameter name (got ${describe_token(t)})")
-                for !p.check(.Comma) && !p.check(.RParen) && !p.check(.Eof) { p.advance() }
+                for !p.check(.Comma) && !p.check(.RParen) && !p.check(.Eof) {
+                    p.advance()
+                }
                 continue
             }
+            param_name_tok :: p.advance()
 
             ty: TypeExpr | null = null
             if p.match_kind(.Colon) != null {
@@ -1360,8 +1358,6 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
     p.expect(.RParen, "`)` to close parameter list")
     return FnSignature { .params = params, .type_params = type_params, .trailing_comma = trailing }
 }
-
-empty_token :: fn() = make_token(.Eof, "", empty_file_span(""))
 
 parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> StructDecl {
     p.reject_free_fn_decorators(decorators, "a struct", "")

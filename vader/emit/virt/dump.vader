@@ -530,38 +530,14 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
     // label that OWNS it, see the `Branch` case.
     stack_end_pc:    i32[]   : []
     sp: i64 = 0
-    // Pending Branch/BranchIf whose target scope hasn't closed yet
-    // (block / if / else falls through to its End). Drained when the
-    // matching End is seen ; `branch_target_label[pc]` carries the
-    // resolved label string.
-    pending_pc:    i32[]   : []
-    pending_label: string[]: []
-    psp: i64 = 0
-    // pc → resolved label string (filled lazily for Branch/BranchIf).
-    branch_target_label: string[]: []
-    n :: body.len()
-    for init_label in 0..<n { branch_target_label.push("") }
 
     next_label: i32 = 0
     depth: i32 = 1
-    for pc in 0..<n {
+    for pc in 0..<body.len() {
         op :: body[pc]
         if op is End {
             depth = depth - 1
             label :: stack_labels[sp - 1]
-            // Resolve any pending branches whose target scope is this
-            // one: they branch to the End's label.
-            new_psp: i64 = 0
-            for j in 0..<psp {
-                if pending_label[j] == label {
-                    branch_target_label[pending_pc[j]] = label
-                } else {
-                    pending_pc[new_psp]    = pending_pc[j]
-                    pending_label[new_psp] = pending_label[j]
-                    new_psp = new_psp + 1
-                }
-            }
-            psp = new_psp
             sp = sp - 1
             write_indent(sb, depth)
             sb.append("end ${label}\n")
@@ -609,26 +585,8 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
             continue
         }
         if op is Branch || op is BranchIf {
-            target_pc :: jump_table[pc]
-            // Loop target : `opener_pc + 1` of some loop on the stack.
-            target_label :: find_loop_label_local(stack_labels, stack_opener_pc, stack_is_loop, sp, target_pc)
-            resolved := target_label
-            if target_label == "" {
-                // Block / if / else : defer to the matching End.
-                fallback :: non_loop_label_for_target(
-                    stack_labels, stack_end_pc, stack_is_loop, sp, target_pc)
-                if fallback != "" {
-                    if psp == pending_pc.len() {
-                        pending_pc.push(i32(pc))
-                        pending_label.push(fallback)
-                    } else {
-                        pending_pc[psp]    = i32(pc)
-                        pending_label[psp] = fallback
-                    }
-                    psp = psp + 1
-                    resolved = fallback
-                }
-            }
+            resolved :: branch_label_for_target(
+                stack_labels, stack_opener_pc, stack_end_pc, stack_is_loop, sp, jump_table[pc])
             write_indent(sb, depth)
             if op is BranchIf { sb.append("br_if ${resolved}\n") }
             else              { sb.append("br ${resolved}\n") }
@@ -677,31 +635,32 @@ matching_end_pc :: fn(body: Op[], opener_pc: i64) -> i32 {
     return -1
 }
 
-// The label of the open non-loop scope a `br` to `target_pc` belongs to:
-// the one whose `End` sits immediately before it.
+// The label of the open scope a `br` to `target_pc` belongs to: a loop whose
+// opener sits immediately before the target, else the non-loop scope whose
+// `End` sits immediately before it.
 //
 // Guessing the INNERMOST non-loop scope instead is wrong as soon as a branch
 // skips past one, and it round-trips a `.virt` into a different program : the
 // reader resolves the label it reads, so the jump lands inside a scope the
 // branch meant to leave.
-non_loop_label_for_target :: fn(
-    labels: string[], end_pc: i32[], is_loop: bool[], sp: i64, target_pc: i32,
+branch_label_for_target :: fn(
+    labels: string[], opener_pc: i32[], end_pc: i32[], is_loop: bool[], sp: i64, target_pc: i32,
 ) -> string {
-    i: i32 = i32(sp) - 1
-    for i >= 0 {
-        u :: i64(i)
-        if !is_loop[u] && end_pc[u] + 1 == target_pc { return labels[u] }
-        i -= 1
+    loop_label :: scope_label_before(labels, opener_pc, is_loop, true, sp, target_pc)
+    if loop_label != "" {
+        return loop_label
     }
-    return ""
+    return scope_label_before(labels, end_pc, is_loop, false, sp, target_pc)
 }
 
-find_loop_label_local :: fn(
-    labels: string[], opener_pc: i32[], is_loop: bool[], sp: i64, target_pc: i32,
+// The label of the innermost open scope of the `want_loop` kind whose anchor
+// pc sits immediately before `target_pc`, or "" when none does.
+scope_label_before :: fn(
+    labels: string[], anchor_pc: i32[], is_loop: bool[], want_loop: bool, sp: i64, target_pc: i32,
 ) -> string {
-    i: i32 = i32(sp) - 1
+    i: i64 = sp - 1
     for i >= 0 {
-        if is_loop[i] && opener_pc[i] + 1 == target_pc {
+        if is_loop[i] == want_loop && anchor_pc[i] + 1 == target_pc {
             return labels[i]
         }
         i -= 1

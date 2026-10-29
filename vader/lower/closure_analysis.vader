@@ -101,7 +101,6 @@ analyze_fn_body :: fn(
         .typed = typed,
         .symbol_index = symbol_index,
         .analysis = analysis,
-        .empty_captures = [],
     }
     walk_body(body, scope, null, null, ctx)
 }
@@ -122,20 +121,16 @@ analyze_value :: fn(
         .typed = typed,
         .symbol_index = symbol_index,
         .analysis = analysis,
-        .empty_captures = [],
     }
     walk_expr(value, empty_scope(), null, null, ctx)
 }
 
 WalkCtx :: struct {
-    typed:           TypedProgram
+    typed:        TypedProgram
     // Cache built once by `analyze_module` ; covers every defined_at in
     // `typed.resolved`. Lookups go through `lookup_symbol_by_span`.
-    symbol_index:    MutableMap<u64, Symbol>
-    analysis:        ClosureAnalysis
-    // Sentinel for nodes that don't carry captures: re-used so we
-    // don't allocate per-stmt.
-    empty_captures:  Capture[]
+    symbol_index: MutableMap<u64, Symbol>
+    analysis:     ClosureAnalysis
 }
 
 // Build the owned-scope (param ids) for a function or lambda. Both

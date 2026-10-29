@@ -17,22 +17,6 @@ import "vader/front/resolver"
 import "vader/core/symbol"
 import "toolchain/span"
 
-// Each `T implements Trait { method ... }` member surfaces as a fn
-// decl with mangled name `<module>$<for-type>$<trait-segment>$<method>`.
-// `self` is the first parameter ; its type comes from the impl's
-// `for_type`. The lifted fns are appended to `project_ctx.synth_decls`
-// so the module driver drains them in the right order.
-lower_impl_members :: fn(
-    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
-) -> void {
-    // Back-compat shape : keep the void-returning entry but route
-    // through the inline emit + push results to `synth_decls` so any
-    // caller still relying on the old "drains at module end" path
-    // keeps working. Modern call sites prefer `lower_impl_member_list`.
-    members :: lower_impl_member_list(impl_decl, typed, project_ctx, diags)
-    for m in members { project_ctx.synth_decls.push(m) }
-}
-
 // Claim the single emission of the impl member `mangled`, or of an instance of one
 // (`member_instance`); false when another path already lowered it. Every path that lowers such a member claims it
 // here first, or the function ends up with two bodies in one slot downstream.
@@ -40,10 +24,11 @@ claim_impl_member :: fn(project_ctx: LowerProjectCtx, mangled: string) -> bool =
     project_ctx.materialized_impl_keys.add("impl_member::${mangled}")
 
 /// Return the lowered fn-decl for each member of `impl_decl`, in
-/// source order. Yielding the list (instead of pushing to
-/// `project_ctx.synth_decls`) lets the caller interleave the members
-/// right after the impl's source position, emitting each member
-/// individually.
+/// source order, so the caller places the members right after the impl.
+///
+/// A member of `T implements Trait { method ... }` is mangled
+/// `<module>$<for-type>$<trait-segment>$<method>`. `self` is its first
+/// parameter, typed by the impl's `for_type`.
 lower_impl_member_list :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl[] {

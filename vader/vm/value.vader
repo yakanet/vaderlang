@@ -305,7 +305,7 @@ export read_obj :: fn(v: Value, at_pc: i32, label: string) -> ObjVal | Trap {
 
 /// Short diagnostic rendering of an `ObjVal`, never dumps the payload,
 /// just the shape. Used by the `Display` impl and trap messages.
-export describe_obj :: fn(o: ObjVal) -> string = "<obj#${o.handle} type=${o.type_id} bytes=${o.bytes.len()} slots=${o.slots.len()}>"
+describe_obj :: fn(o: ObjVal) -> string = "<obj#${o.handle} type=${o.type_id} bytes=${o.bytes.len()} slots=${o.slots.len()}>"
 
 /// True iff `a` is a view onto a buffer it doesn't own: `elements` is
 /// shared with another `ArrayVal`. Used by `array.push` to decide
@@ -400,7 +400,7 @@ export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
 /// Match a value against a `ref Trait` type. `is Error` also accepts an
 /// `ErrorVal`, `ref _` (empty trait name) accepts any heap variant, and a named
 /// trait resolves through the impl table.
-export ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> bool {
+ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> bool {
     if trait_name == core_trait_key(TRAIT_ERROR) && v is ErrorVal {
         return true
     }
@@ -427,7 +427,7 @@ export ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> b
 /// writer emits one entry per implTable pair regardless of whether the
 /// method bodies are reachable. Falls back to scanning `state.bc.vtables`
 /// for legacy modules whose .virt predates the directive.
-export trait_implemented_by :: fn(state: VmState, trait_name: string, type_id: i32) -> bool {
+trait_implemented_by :: fn(state: VmState, trait_name: string, type_id: i32) -> bool {
     for i in 0..<state.bc.impl_table.len() {
         if state.bc.impl_table[i].type_index == type_id && state.bc.impl_table[i].trait_name == trait_name {
             return true
@@ -461,7 +461,7 @@ export receiver_type_id_of :: fn(state: VmState, v: Value) -> i32 {
 /// Find the `BcScalar` entry in `state.bc.types` whose value class matches
 /// `v`'s runtime tag. Used by `receiver_type_id_of` to dispatch trait
 /// methods implemented on primitives (e.g. `i32 implements Doubler`).
-export primitive_type_id :: fn(state: VmState, v: Value) -> i32 {
+primitive_type_id :: fn(state: VmState, v: Value) -> i32 {
     tag :: describe_value_tag(v)
     for i in 0..<state.bc.types.len() {
         match p :: state.bc.types[i] {
@@ -540,26 +540,7 @@ export class_matches :: fn(v: Value, val: bc.ValType) -> bool {
 /// Width-suffixed integer classes that have no dedicated `Value` variant:
 /// they ride in `I32Val` or `I64Val` (see `class_matches`). `i32` has
 /// its own `I32Val` tag (caught by the direct check) so it's excluded here.
-export is_integer_alias :: fn(val: bc.ValType) -> bool = match val {
-    .I8    -> true
-    .I16   -> true
-    .I64   -> true
-    .U8    -> true
-    .U16   -> true
-    .U32   -> true
-    .U64   -> true
-    .I32   -> false
-    .F32   -> false
-    .F64   -> false
-    .Bool  -> false
-    .Char  -> false
-    .String -> false
-    .Null  -> false
-    .Void  -> false
-    .Pointer -> false
-    .Ref   -> false
-    .Any   -> false
-}
+is_integer_alias :: fn(val: bc.ValType) = bc.is_integer_val(val) && val != .I32
 
 /// Match a value against a union's set of variant type ids by recursing
 /// through `type_matches` on each.
