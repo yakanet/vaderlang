@@ -18,8 +18,8 @@ import "vader/support/integer"
 ///
 /// Answers NO for a `to` that is a trait, even when `from` implements it: this
 /// module sees types only, never the impl registry. Trait widening is therefore
-/// somebody else's question: `receiver_fits_first_param`
-/// (`vader/front/typecheck/field.vader`) asks it through `try_trait_widen`
+/// somebody else's question: `accepts_argument`
+/// (`vader/front/typecheck/widening.vader`) asks it through `try_trait_widen`
 /// (`vader/front/typecheck/coerce.vader`), which does have the registry.
 ///
 /// @param from  the type of the value.

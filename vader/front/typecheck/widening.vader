@@ -47,15 +47,19 @@ widening_depth :: fn(from: Type, to: Type, typed: TypedProgram) -> i32 | null {
 }
 
 /// Whether an argument of type `from` may fill a parameter of type `to`: as it
-/// is, or by widening an array (`widening_depth`). What picks a callee among
-/// overloads and candidate methods ; the check of the chosen call records the
-/// widening.
+/// is, by widening an array (`widening_depth`), or through a trait it implements
+/// or its bound names, an array into an `Iterator` included. What picks a callee
+/// among overloads, UFCS candidates and impl members, so the three agree ; the
+/// check of the chosen call records the conversion.
 ///
 /// @param from   the argument's type.
-/// @param to     the parameter's type.
+/// @param to     the parameter's type, its type parameters erased.
 /// @param typed  the module checking the call.
 accepts_argument :: fn(from: Type, to: Type, typed: TypedProgram) -> bool =
-    is_assignable(from, to) || widening_depth(from, to, typed) != null
+    is_assignable(from, to)
+        || widening_depth(from, to, typed) != null
+        || try_trait_widen(from, to, typed)
+        || try_array_to_iter(from, to)
 
 // `widening_depth` into the array `slot`.
 array_widening_depth :: fn(from: ArrayType, slot: ArrayType, typed: TypedProgram) -> i32 | null {

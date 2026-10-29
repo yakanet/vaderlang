@@ -1,0 +1,12 @@
+# stdout
+5 100 6 1
+5 3 4
+meters 3
+display 2 ft
+display true
+6 6
+display or null
+display or null
+3 / 1 and 5 ft
+# exit
+0

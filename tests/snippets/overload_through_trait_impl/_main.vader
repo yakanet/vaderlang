@@ -1,0 +1,56 @@
+// An argument picks the overload whose parameter is a trait it implements,
+// whatever the declaration order: a range reaches `Iterator<T>` past an array
+// overload declared first, or past a `string` one, and an array reaches it too.
+// Its own type still wins over the trait, and the trait over a bare `T`, a union
+// naming the trait included. A free call, a method call and an impl member pick
+// alike.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+tally :: fn<T>(arr: T[]) -> i32 = 100
+tally :: fn<T>(it: Iterator<T>) -> i32 = 5
+
+other :: fn(s: string) -> i32 = 1
+other :: fn<T>(it: Iterator<T>) -> i32 = 6
+
+Meters :: struct { v: i32 }
+Meters implements Display {
+    to_string :: fn(self) -> string = "${self.v} m"
+}
+
+shown :: fn<T>(x: T) -> string = "any"
+shown :: fn(d: Display) -> string = "display ${d}"
+shown :: fn(m: Meters) -> string = "meters ${m.v}"
+
+Feet :: struct { v: i32 }
+Feet implements Display {
+    to_string :: fn(self) -> string = "${self.v} ft"
+}
+
+maybe_shown :: fn<T>(x: T) -> string = "any"
+maybe_shown :: fn(d: Display | null) -> string = "display or null"
+
+V :: struct { x: i32 }
+V implements Add<i32, i32> {
+    add :: fn(self, other: i32) -> i32 = self.x + other
+}
+V implements Add<Display, string> {
+    add :: fn(self, other: Display) -> string = "${self.x} and ${other}"
+}
+
+main :: fn() -> i32 {
+    r :: 0..<5
+    println("${tally(0..<5)} ${tally([1, 2])} ${other(r)} ${other("s")}")
+    println("${count(0..<5)} ${(0..<3).count()} ${count([1, 2, 3, 4])}")
+    println(shown(Meters { .v = 3 }))
+    println(shown(Feet { .v = 2 }))
+    println(shown(true))
+    println("${other([1, 2])} ${[1, 2].other()}")
+    println(maybe_shown(Feet { .v = 4 }))
+    println(Feet { .v = 4 }.maybe_shown())
+    v :: V { .x = 1 }
+    println("${v.add(2)} / ${v.add(Feet { .v = 5 })}")
+    return 0
+}

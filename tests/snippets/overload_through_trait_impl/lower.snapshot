@@ -1,0 +1,337 @@
+# Lower
+
+## snippet
+  snippet.other :: fn(s: string) -> i32 {  // snippet$other
+      1
+  }
+  snippet.Meters :: struct { v: i32 }  // snippet$Meters
+  snippet.Meters.to_string :: fn(self: Meters) -> string {  // snippet$Meters$std_core$Display$to_string
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(22))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, self.v)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " m")
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet$shown_1 :: fn(d: Display) -> string {
+      concat_2("display ", @vcall(std.core.Display.to_string, d))
+  }
+  snippet$shown_2 :: fn(m: Meters) -> string {
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(27))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "meters ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, m.v)
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.Feet :: struct { v: i32 }  // snippet$Feet
+  snippet.Feet.to_string :: fn(self: Feet) -> string {  // snippet$Feet$std_core$Display$to_string
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, self.v)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ft")
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.maybe_shown :: fn(d: Display | null) -> string {  // snippet$maybe_shown_1
+      "display or null"
+  }
+  snippet.V :: struct { x: i32 }  // snippet$V
+  snippet$V$std_core$Add$add :: fn(self: V, other: i32) -> i32 {
+      self.x + other
+  }
+  snippet$V$std_core$Add$add$1 :: fn(self: V, other: Display) -> string {
+      {
+          __p_0: i32 = self.x
+          __p_1: string = @vcall(std.core.Display.to_string, other)
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(25) +% std.core.byte_len(__p_1))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " and ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      r: Range<i32> = Range<i32> {
+          .start = 0,
+          .end = 5,
+          .inclusive = false,
+          .done = false,
+          .cursor = 0,
+      }
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(83))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet$tally__i32(Range<i32> {
+              .start = 0,
+              .end = 5,
+              .inclusive = false,
+              .done = false,
+              .cursor = 0,
+          }))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet$tally__i32_1([1, 2] :i32[]))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.other<i32>(r))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.other("s"))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(62))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_int(__buf_4, __off_5, {
+              total: i64 = 0
+              {
+                  _: i32 = 0
+                  for _ < 5 {
+                      total = total + i64(1)
+                  } @step {
+                      _ = _ +% 1
+                  }
+              }
+              total
+          } :i64)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, {
+              total: i64 = 0
+              {
+                  _: i32 = 0
+                  for _ < 3 {
+                      total = total + i64(1)
+                  } @step {
+                      _ = _ +% 1
+                  }
+              }
+              total
+          } :i64)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, std.iter.count<i32>([1, 2, 3, 4] :i32[]))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      std.io.println<string>(snippet$shown_2(Meters { .v = 3 }))
+      std.io.println<string>(snippet$shown_1(Feet { .v = 2 }))
+      std.io.println<string>(snippet$shown_1(true))
+      std.io.println<string>({
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(41))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.other<i32>(std.core.i32[].into([1, 2] :i32[])))
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.other<i32>(std.core.i32[].into([1, 2] :i32[])))
+          std.core.finish_buffer(__buf_6, __off_7)
+      } :string)
+      std.io.println<string>(snippet.maybe_shown(Feet { .v = 4 }))
+      std.io.println<string>(snippet.maybe_shown(Feet { .v = 4 }))
+      v: V = V { .x = 1 }
+      std.io.println<string>({
+          __p_8: i32 = snippet$V$std_core$Add$add(v, 2)
+          __p_9: string = snippet$V$std_core$Add$add$1(v, Feet { .v = 5 })
+          __buf_10: Buffer = std.core.new_byte_buffer(i64(23) +% std.core.byte_len(__p_9))
+          __off_11: i64 = 0
+          __off_11 = std.core.write_int(__buf_10, __off_11, __p_8)
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, " / ")
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, __p_9)
+          std.core.finish_buffer(__buf_10, __off_11)
+      } :string)
+      return 0
+  }
+  snippet$tally__i32_1 :: fn(arr: i32[]) -> i32 {
+      100
+  }
+  snippet$tally__i32 :: fn(it: Iterator<i32>) -> i32 {
+      5
+  }
+  snippet.other<i32> :: fn(it: Iterator<i32>) -> i32 {  // snippet$other__i32
+      6
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable std.core.Add.add for V  snippet$V$std_core$Add$add
+  vtable std.core.Add.add for V  snippet$V$std_core$Add$add$1
+  vtable std.core.Display.to_string for Feet  snippet.Feet.to_string  // snippet$Feet$std_core$Display$to_string
+  vtable std.core.Display.to_string for Meters  snippet.Meters.to_string  // snippet$Meters$std_core$Display$to_string
+
+## lowered in dependencies
+  std/collections
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core$Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core$Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core$Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core$Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core$Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core$Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
+    fn std.collections.MutableMap<string, i64>.at  // std_collections$MutableMap$std_core$Index$at__string__i64
+    fn std.collections.MutableMap<string, i64>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i64
+    fn std.collections.MutableMap<string, i64>.into  // std_collections$MutableMap$std_core$Into$into__string__i64
+    fn std.collections.MutableMap<string, i64>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i64
+    fn std.collections.MutableMap<string, string[]>.at  // std_collections$MutableMap$std_core$Index$at__string__string__
+    fn std.collections.MutableMap<string, string[]>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__string__
+    fn std.collections.MutableMap<string, string[]>.into  // std_collections$MutableMap$std_core$Into$into__string__string__
+    fn std.collections.MutableMap<string, string[]>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__string__
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core$Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core$Into$into__i32
+    fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
+    fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
+    fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
+    fn std.collections.contains_key<string, i64>  // std_collections$contains_key__string__i64
+    fn std.collections.contains_key<string, string[]>  // std_collections$contains_key__string__string__
+    fn std.collections.first_slot  // std_collections$first_slot
+    fn std.collections.get<i32, bool>  // std_collections$get__i32__bool
+    fn std.collections.get<i32, i32>  // std_collections$get__i32__i32
+    fn std.collections.get<string, i32>  // std_collections$get__string__i32
+    fn std.collections.get<string, i64>  // std_collections$get__string__i64
+    fn std.collections.get<string, string[]>  // std_collections$get__string__string__
+    fn std.collections.grow_index<i32, bool>  // std_collections$grow_index__i32__bool
+    fn std.collections.grow_index<i32, i32>  // std_collections$grow_index__i32__i32
+    fn std.collections.grow_index<string, i32>  // std_collections$grow_index__string__i32
+    fn std.collections.grow_index<string, i64>  // std_collections$grow_index__string__i64
+    fn std.collections.grow_index<string, string[]>  // std_collections$grow_index__string__string__
+    fn std.collections.next_slot  // std_collections$next_slot
+    fn std.collections.put<i32, bool>  // std_collections$put__i32__bool
+    fn std.collections.put<i32, i32>  // std_collections$put__i32__i32
+    fn std.collections.put<string, i32>  // std_collections$put__string__i32
+    fn std.collections.put<string, i64>  // std_collections$put__string__i64
+    fn std.collections.put<string, string[]>  // std_collections$put__string__string__
+    fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
+    fn std.collections.rehash<i32, i32>  // std_collections$rehash__i32__i32
+    fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
+    fn std.collections.rehash<string, i64>  // std_collections$rehash__string__i64
+    fn std.collections.rehash<string, string[]>  // std_collections$rehash__string__string__
+    fn std_collections$__gen_state_std_collections_0$Iterator$next
+    fn std_collections$__gen_state_std_collections_1$Iterator$next
+    fn std_collections$__gen_state_std_collections_2$Iterator$next
+    fn std_collections$__gen_state_std_collections_3$Iterator$next
+    fn std_collections$__gen_state_std_collections_4$Iterator$next
+    fn std_collections$__gen_state_std_collections_5$Iterator$next
+    struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
+    struct std.collections.MutableMap<Any, Any[]>  // std_collections$MutableMap__Any__Any_arr
+    struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
+    struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
+    struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
+    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
+    struct std.collections.MutableMap<string, i64>  // std_collections$MutableMap__string__i64
+    struct std.collections.MutableMap<string, string[]>  // std_collections$MutableMap__string__string__
+    struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
+    struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32
+    struct std_collections$__gen_state_std_collections_0
+    struct std_collections$__gen_state_std_collections_1
+    struct std_collections$__gen_state_std_collections_2
+    struct std_collections$__gen_state_std_collections_3
+    struct std_collections$__gen_state_std_collections_4
+    struct std_collections$__gen_state_std_collections_5
+  std/core
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
+    const FLOAT_POW5_INV_SPLIT: u64[]  data pool #2
+    const FLOAT_POW5_SPLIT: u64[]  data pool #3
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.array_iter<i32>  // std_core$array_iter__i32
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.b2u32  // std_core$b2u32
+    fn std.core.bool.to_string  // std_core$bool$Display$to_string
+    fn std.core.char.to_string  // std_core$char$Display$to_string
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.f2d  // std_core$f2d
+    fn std.core.f32.to_bits  // std_core$f32$Float32Bits$to_bits
+    fn std.core.f32.to_string  // std_core$f32$Display$to_string
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f32  // std_core$format_f32
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.format_signed  // std_core$format_signed
+    fn std.core.format_unsigned  // std_core$format_unsigned
+    fn std.core.i16.to_string  // std_core$i16$Display$to_string
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.hash  // std_core$i32$Hash$hash
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.i32[].into  // std_core$$array$Into$into__i32
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.i64.to_string  // std_core$i64$Display$to_string
+    fn std.core.i8.to_string  // std_core$i8$Display$to_string
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_pow5_div_pow2  // std_core$mul_pow5_div_pow2
+    fn std.core.mul_pow5_inv_div_pow2  // std_core$mul_pow5_inv_div_pow2
+    fn std.core.mul_shift_32  // std_core$mul_shift_32
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_2_32  // std_core$multiple_of_power_of_2_32
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.multiple_of_power_of_5_32  // std_core$multiple_of_power_of_5_32
+    fn std.core.null.to_string  // std_core$null$Display$to_string
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5_factor_32  // std_core$pow5_factor_32
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.string.to_string  // std_core$string$Display$to_string
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.u16.to_string  // std_core$u16$Display$to_string
+    fn std.core.u32.to_string  // std_core$u32$Display$to_string
+    fn std.core.u64.to_string  // std_core$u64$Display$to_string
+    fn std.core.u8.to_string  // std_core$u8$Display$to_string
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.utf8_encode  // std_core$utf8_encode
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
+    fn std_core$__gen_state_std_core_0$Iterator$next
+    fn std_core$i32$Equals$equals$guard
+    fn std_core$string$Equals$equals$guard
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Dec64  // std_core$Dec64
+    struct std.core.FloatDec32  // std_core$FloatDec32
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
+    struct std_core$__gen_state_std_core_0
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
+  std/iter
+    fn std.iter.count<i32>  // std_iter$count__i32
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

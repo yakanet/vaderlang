@@ -694,7 +694,7 @@ try_free_fn_ufcs_dispatch :: fn(
     // `.into()` the lowerer synthesizes at `lower/ufcs.vader`, whatever the element : the
     // dispatch already accepted the receiver. Record it on the receiver expr so the
     // LSP surfaces the `.into()` hint here too. The receiver decision goes through
-    // `receiver_fits_first_param`, not `try_into`, so without this `arr.method()`
+    // `accepts_argument`, not `try_into`, so without this `arr.method()`
     // would miss the hint that `method(arr)` gets. Trait widening isn't an
     // `.into()`, so (as in `try_into`) it's excluded : only the array→iterator
     // blanket records.
@@ -702,7 +702,7 @@ try_free_fn_ufcs_dispatch :: fn(
         note_into(typed, e.target, target_ty, first_param)
     }
     // Matched by shape, the receiver may have widened an array as an argument does
-    // (`receiver_fits_first_param`). A parameter naming the callee's type parameters
+    // (`accepts_argument`). A parameter naming the callee's type parameters
     // waits for the call, which binds them.
     if target_ty is ArrayType && !type_contains_type_param(first_param) {
         fits_by_widening(typed, e.target, target_ty, first_param)
@@ -1736,7 +1736,7 @@ try_free_fn_ufcs_with_first :: fn(
         curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
         // The call's argument count is not known at the field: no arity rank, and
         // overloads of different arity are not reported as rivals.
-        rank :: overload_rank(target_ty, ft.params[0], false)
+        rank :: overload_rank(target_ty, ft.params[0], false, typed)
         same_arity :: best != null && best.winner.ty.params.len() == ft.params.len()
         if rank > best_rank {
             best = UfcsResult { .curried = curried, .winner = candidate }
@@ -1812,7 +1812,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
     // of stdlib fns), since `try_free_fn_ufcs_with_first` calls this
     // for every overload in the bucket on every UFCS site.
     if !type_contains_type_param(ft.params[0]) {
-        if !receiver_fits_first_param(target_ty, ft.params[0], typed) {
+        if !accepts_argument(target_ty, ft.params[0], typed) {
             return null
         }
         return mk_fn_drop_self(ft)
@@ -1823,32 +1823,10 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
     // `i32`/`f64` instead of `{integer}`/`{float}`.
     default_free_bindings(bindings)
     fitted_first :: substitute_map(ft.params[0], bindings)
-    if !receiver_fits_first_param(target_ty, fitted_first, typed) {
+    if !accepts_argument(target_ty, erase_type_params(fitted_first), typed) {
         return null
     }
     return mk_fn_drop_self(substitute_fn_map(ft, bindings))
-}
-
-// A receiver fits a UFCS first-param when (a) it is assignable to the param with
-// the param's type parameters erased: nothing has bound them yet, so a bare `T`
-// fits anything, or (b) the param is a trait the receiver implements.
-// Trait widening here covers user `T implements Trait` impls AND
-// `Array<T> implements Iterator<T>` (which is hardcoded via `try_array_to_iter`
-// because adding it to `is_assignable` bloats c-emit).
-receiver_fits_first_param :: fn(target_ty: Type, first: Type, typed: TypedProgram) -> bool {
-    pattern :: erase_type_params(first)
-    if accepts_argument(target_ty, pattern, typed) {
-        return true
-    }
-    if first is TraitType {
-        if try_trait_widen(target_ty, pattern, typed) {
-            return true
-        }
-        if try_array_to_iter(target_ty, pattern) {
-            return true
-        }
-    }
-    return false
 }
 
 // Parse `0`, `1`, … from a tuple `.N` field name. Returns -1 when

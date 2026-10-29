@@ -56,8 +56,7 @@ pick_overload :: fn(
     }
     arg0_ty :: check_expr(c.args[0].value, null, typed, [])
     // Among candidates whose first param accepts arg0, pick the one with the
-    // highest `overload_rank`. Eligibility is unchanged : only the
-    // `is_assignable` gate below. Ties keep the first declared, unless
+    // highest `overload_rank`. Ties keep the first declared, unless
     // `is_level_rival` says the order is all that separates them.
     best: FnCandidate | null = null
     rival: FnCandidate | null = null
@@ -67,14 +66,10 @@ pick_overload :: fn(
         if ft.params.len() == 0 {
             continue
         }
-        // A type parameter argument fits through its bound (`it: I` with
-        // `I: Iterator<i32>` against `Iterator<T>`).
-        pattern :: erase_type_params(ft.params[0])
-        fits_bound :: arg0_ty is TypeParamType && try_trait_widen(arg0_ty, pattern, typed)
-        if !accepts_argument(arg0_ty, pattern, typed) && !fits_bound {
+        if !accepts_argument(arg0_ty, erase_type_params(ft.params[0]), typed) {
             continue
         }
-        rank :: overload_rank(arg0_ty, ft.params[0], ft.params.len() == c.args.len())
+        rank :: overload_rank(arg0_ty, ft.params[0], ft.params.len() == c.args.len(), typed)
         if rank > best_rank {
             best = candidate
             best_rank = rank
@@ -226,7 +221,7 @@ pick_by_first_arg :: fn(sigs: Type[], arg: Type, arity: i64, typed: TypedProgram
         if !accepts_argument(arg, erase_type_params(sig.params[0]), typed) {
             continue
         }
-        rank :: overload_rank(arg, sig.params[0], sig.params.len() == arity)
+        rank :: overload_rank(arg, sig.params[0], sig.params.len() == arity, typed)
         if rank > best_rank {
             pick = ArgPick { .best = i }
             best_rank = rank
@@ -244,11 +239,11 @@ pick_by_first_arg :: fn(sigs: Type[], arg: Type, arity: i64, typed: TypedProgram
 // `size(a = 1)`), then, for a free literal, the param that is its default type:
 // the rule a literal follows into a union (`union_literal_member`), so `abs(-5)`
 // reaches the `i32` overload whatever the declaration order.
-overload_rank :: fn(arg0: Type, param0: Type, exact_arity: bool) -> i32 {
+overload_rank :: fn(arg0: Type, param0: Type, exact_arity: bool, typed: TypedProgram) -> i32 {
     arity: i32: if exact_arity { 2 } else { 0 }
     is_default :: is_free_numeric(arg0) && equals_type(default_if_free(arg0), param0)
     literal_default: i32: if is_default { 1 } else { 0 }
-    fit :: overload_specificity(arg0, param0) * (OWN_TYPE_CLOSENESS + 1)
+    fit :: overload_specificity(arg0, param0, typed) * (OWN_TYPE_CLOSENESS + 1)
         + integer_closeness(arg0, param0)
     return fit * 4 + arity + literal_default
 }
@@ -336,15 +331,18 @@ disambiguation_hint :: fn(arg0: Type) -> string {
     return "narrow it with `if`/`match` first"
 }
 
-/// Specificity of `param0` for a receiver `arg0` : the count of `arg0`'s (union)
-/// variants that match a CONCRETE (non-type-param) variant of `param0`. A bare `T`
-/// scores 0 ; each union member pinned to a concrete receiver variant scores 1, so
-/// `T | Boom` ranks above `T | null` for an `i32 | Boom` receiver.
+/// Specificity of `param0` for a receiver `arg0` that it accepts : `CONCRETE_FIT`
+/// for each of `arg0`'s (union) variants that match a CONCRETE (non-type-param)
+/// variant of `param0`, so `T | Boom` ranks above `T | null` for an `i32 | Boom`
+/// receiver. A bare `T` scores 0, and a trait the receiver fits through an impl or
+/// a bound `TRAIT_FIT`: it says more than a bare `T`, less than the receiver's own
+/// type.
 ///
 /// @param arg0    the receiver's, or the first argument's, type.
 /// @param param0  a candidate's declared first parameter.
+/// @param typed   the module checking the call, whose impls a trait variant needs.
 /// @return        the score ; the highest wins.
-overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
+overload_specificity :: fn(arg0: Type, param0: Type, typed: TypedProgram) -> i32 {
     if param0 is TypeParamType {
         return 0
     }
@@ -352,23 +350,44 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         arg_vars :: union_variants(arg0) ?? [arg0]
         score: i32 = 0
         for av in arg_vars {
-            for pv in param0.variants {
-                if pv is TypeParamType {
-                    continue
-                }
-                if is_assignable(av, erase_type_params(pv)) {
-                    score = score + 1
-                    break
-                }
-            }
+            score = score + variant_specificity(av, param0.variants, typed)
         }
         return score
     }
-    if is_assignable(arg0, erase_type_params(param0)) {
-        return 1
+    erased :: erase_type_params(param0)
+    if is_assignable(arg0, erased) {
+        return CONCRETE_FIT
+    }
+    if erased is TraitType {
+        return TRAIT_FIT
     }
     return 0
 }
+
+// The best `overload_specificity` the variants of a union parameter offer one
+// variant `av` of the argument : a variant it fits as it is, else a trait it
+// implements.
+variant_specificity :: fn(av: Type, variants: Type[], typed: TypedProgram) -> i32 {
+    best: i32 = 0
+    for pv in variants {
+        if pv is TypeParamType {
+            continue
+        }
+        pattern :: erase_type_params(pv)
+        if is_assignable(av, pattern) {
+            return CONCRETE_FIT
+        }
+        if pattern is TraitType && try_trait_widen(av, pattern, typed) {
+            best = TRAIT_FIT
+        }
+    }
+    return best
+}
+
+// The `overload_specificity` of a parameter the argument fits as it is, and of a
+// trait it fits through an impl or a bound.
+CONCRETE_FIT: i32: 2
+TRAIT_FIT: i32: 1
 
 // Record a chosen overload : patch the callee IdentExpr's type to the picked
 // signature, which the lowering types the callee and prepares the arguments

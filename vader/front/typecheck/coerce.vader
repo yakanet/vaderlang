@@ -118,17 +118,15 @@ try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
     if got is TypeParamType {
         return bound_widens_into(got, expected, typed)
     }
-    trait_key :: trait_key_of(expected.symbol)
+    if !implements_trait_instance(got, expected, typed) {
+        return false
+    }
     // A trait value dispatches by the trait alone : it cannot tell several impls of
     // it apart (`mismatch_diagnostic` says so, T3097), nor reach the impl of a
     // distinct boxed as its backing (T3118).
-    if implements_more_than_once(got, trait_key, typed) {
-        return false
-    }
-    if dispatches_as_backing(got, trait_key, typed) {
-        return false
-    }
-    return implements_trait_instance(got, expected, typed)
+    trait_key :: trait_key_of(expected.symbol)
+    return !implements_more_than_once(got, trait_key, typed)
+        && !dispatches_as_backing(got, trait_key, typed)
 }
 
 /// Whether `t` is a distinct over a heap object (a struct, an array, a tuple, a fn)
