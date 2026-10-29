@@ -638,7 +638,7 @@ expand_hyphen :: fn(lo: PartialVersion, hi: PartialVersion) -> RangeTerm[] {
 
 // Parse a primitive comparator with a leading operator (`>=`, `<=`,
 // `>`, `<`, `=`). The version following the op must be complete
-// (M.N.P): partials with primitives aren't supported in MVP.
+// (M.N.P): partials with primitives aren't supported.
 parse_comparator_token :: fn(op: TermOp, rest: string) -> RangeTerm[] | ParseError {
     if rest.is_empty() {
         return ParseError { .msg = "primitive comparator missing version" }

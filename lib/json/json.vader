@@ -5,9 +5,9 @@
 // propagated by an explicit `if e is JsonError { return e }` narrowing guard.
 // `stringify` writes a value back, compact or indented.
 //
-// Numbers are stored as `f64` for MVP: fine for the compiler's use cases
+// Numbers are stored as `f64`: fine for the compiler's use cases
 // (manifests, diagnostics) but loses precision past 2^53. Cf. TODO.md `std/json`
-// v2 for the post-MVP compile-time-generated parser à la kotlinx-serialization.
+// v2 for generated serialisers à la kotlinx-serialization.
 
 module "json"
 
@@ -21,7 +21,7 @@ import "std/numbers"
 
 /// Tagged union covering every JSON shape (`null`, `true`/`false`, numbers,
 /// strings, arrays, objects). Discriminated via `is JsonString` etc. in
-/// `match`. Numbers carry an `f64` ; precision past 2^53 is lost (MVP
+/// `match`. Numbers carry an `f64` ; precision past 2^53 is lost (a known
 /// limitation).
 export JsonValue :: JsonString | JsonNumber | JsonBool | JsonNull | JsonArray | JsonObject
 

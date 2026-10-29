@@ -1,6 +1,6 @@
 // regex: Thompson NFA regex engine.
 //
-// MVP scope :
+// Scope :
 //   * Literal bytes, `.`, escapes (`\n` / `\t` / `\r` / `\\` / `\.` …).
 //   * Char classes : `[abc]`, `[^abc]`, `[a-z]` plus the `\d` / `\D` /
 //     `\w` / `\W` / `\s` / `\S` shorthands (ASCII-only).
@@ -9,7 +9,7 @@
 //   * Groups `(…)`: every group captures, addressable by index 1..N.
 //   * Anchors `^`, `$` (whole-input, not multiline).
 //
-// Hors-scope (post-MVP) : non-greedy `*?`, named groups `(?<x>…)`,
+// Not supported : non-greedy `*?`, named groups `(?<x>…)`,
 // backrefs `\1`, lookaround `(?=…)` / `(?!…)`, Unicode properties.
 //
 // Algorithm : Thompson VM (Cox, "Regular Expression Matching: the

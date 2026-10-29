@@ -14,7 +14,7 @@
 // `run_attached` is the other shape: the child shares this process's standard
 // streams instead of having them captured, and the call blocks until it exits.
 //
-// Native-only in MVP: the child primitives sit on `posix_spawn` + pipes (POSIX)
+// Native-only: the child primitives sit on `posix_spawn` + pipes (POSIX)
 // and `CreateProcessA` + pipes (Windows). WASM has no spawn equivalent.
 
 module "std/process"

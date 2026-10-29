@@ -1,9 +1,9 @@
 // vader/core/symbol: symbol table primitives.
 //
 // Symbols are minted by the resolver as
-// it walks the AST and consumed by every later phase. The MVP carries the
-// kind, name, visibility and the source span ; the AST-decl back-reference
-// is deferred until typecheck/lower needs it.
+// it walks the AST and consumed by every later phase. A symbol carries its
+// kind, name, module, visibility and source span ; it holds no
+// back-reference to its AST declaration.
 
 module "vader/core/symbol"
 

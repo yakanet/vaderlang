@@ -1,6 +1,6 @@
 // std/io: synchronous blocking I/O.
 //
-// MVP scope: stdin/stdout/stderr, file read/write, existence check.
+// Scope: standard streams, files, directories and the working directory.
 // No async, no networking, no streaming primitives.
 
 module "std/io"

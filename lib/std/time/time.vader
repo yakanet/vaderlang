@@ -248,7 +248,7 @@ civil_from_days :: fn(z: i64) -> [i64, i64, i64] {
 /// digits (no truncation).
 ///
 /// Sub-millisecond nanosecond detail is intentionally dropped: the
-/// MVP host clock only provides millisecond resolution for the wall
+/// host clock only provides millisecond resolution for the wall
 /// clock, and emitting trailing zero-noise would mislead the reader.
 export format_iso8601 :: fn(self: Instant) -> string {
     total_ms :: i64(self) / 1_000_000

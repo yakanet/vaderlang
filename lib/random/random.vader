@@ -14,8 +14,8 @@
 // read for the seed when `new_rng` is given none.
 //
 // NOT suitable for cryptography: the output is reversible from any
-// 256 consecutive u64s. For a cryptographic PRNG plug `std/crypto`
-// (post-MVP).
+// 256 consecutive u64s. There is no cryptographic PRNG yet: `crypto`
+// only hashes.
 
 module "random"
 

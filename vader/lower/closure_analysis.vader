@@ -394,7 +394,7 @@ walk_expr :: fn(
         is AST.CastExpr -> { walk_expr(expr.value, scope, out_captures, out_seen, ctx) }
         is AST.GenericInstExpr -> { walk_expr(expr.callee, scope, out_captures, out_seen, ctx) }
         is AST.IntrinsicCallExpr -> {
-            // MVP : walk every arg. Type-shaped args could be skipped,
+            // Walk every arg. Type-shaped args could be skipped,
             // but closure analysis is conservative: walking every arg
             // over-approximates but doesn't miss any real captures.
             for arg in expr.args { walk_expr(arg, scope, out_captures, out_seen, ctx) }

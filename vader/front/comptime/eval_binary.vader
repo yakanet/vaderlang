@@ -1,7 +1,7 @@
 // vader/front/comptime/eval_binary: binary + unary operator evaluation.
 //
 // Per-operator dispatch over `BinaryOp` / `UnaryOp` for the operand
-// shapes the tree-walk MVP supports (Int, Float, Bool, String for `+`
+// shapes the tree-walk supports (Int, Float, Bool, String for `+`
 // concat). Type mismatches surface as `C4007` ; the operators the VM
 // would otherwise handle (`Is`, `In`, `NotIn`) fall back to `C4001`.
 

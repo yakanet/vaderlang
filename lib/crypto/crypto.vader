@@ -1,6 +1,6 @@
 // crypto: hashing & digest functions (SHA-256, MD5).
 //
-// MVP scope : SHA-256 and MD5, for content fingerprinting and integrity
+// Scope : SHA-256 and MD5, for content fingerprinting and integrity
 // checking. SHA-256 is a real cryptographic hash and reproduces
 // `shasum -a 256` ; MD5 is kept for legacy interop only: it is
 // collision-broken, so never rely on it where collision resistance matters.
@@ -16,8 +16,8 @@
 //
 // Both algorithms run in O(n) over the input length and use only
 // fixed-size scratch ; safe for streaming-sized inputs once a
-// chunked API lands (`Sha256.update(bytes)` / `.finalize()`:
-// post-MVP).
+// chunked API lands (`Sha256.update(bytes)` /
+// `.finalize()`).
 
 module "crypto"
 

@@ -1,7 +1,7 @@
 // std/path: filesystem path manipulation.
 //
 // Paths are immutable string-backed values. Every operation returns a fresh
-// Path rather than mutating. POSIX-style `/` separator only in MVP: Windows
+// Path rather than mutating. POSIX-style `/` separator only: Windows
 // support deferred (will replace the constant with a runtime-determined value).
 
 module "std/path"
@@ -11,7 +11,7 @@ import "std/string" {
 }
 import "std/string_builder"
 
-/// Path separator codepoint. POSIX-only in MVP (`/`).
+/// Path separator codepoint. POSIX-only (`/`).
 export SEP :: '/'
 /// Path separator as a string: useful for direct concatenation.
 export SEP_STR :: "/"

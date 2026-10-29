@@ -43,7 +43,7 @@ evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
         return vm_required(expr.span, "a value converted through an `Into`")
     }
     context.depth = context.depth + 1
-    // @partial: the tree-walk MVP evaluates a subset of Expr kinds; every other
+    // @partial: the tree-walk evaluates a subset of Expr kinds; every other
     // variant is intentionally routed to `vm_required`.
     result :: @partial match expr {
         is AST.IntLitExpr        -> evaluate_int_lit(expr, context)
@@ -85,7 +85,7 @@ import "toolchain/span"
 }
 
 @test test_evaluate_unsupported_emits_c4001 :: fn() -> void {
-    // `CallExpr` falls through to vm_required at this MVP.
+    // `CallExpr` falls through to vm_required.
     callee :: AST.IdentExpr { .span = empty_span(), .id = 0, .name = "f", .implicit_dot = false, .is_type_param_intro = false }
     expr :: AST.CallExpr { .span = empty_span(), .id = 0, .callee = callee, .args = [] }
     context :: empty_context()

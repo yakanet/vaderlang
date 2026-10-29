@@ -15,7 +15,7 @@
 //
 // Sequence collections live in the language : `[T]` arrays support `push`,
 // `len`, indexed access, mutation, and `for x in arr`: no `MutableList`
-// wrapper is needed at MVP.
+// wrapper is needed.
 //
 // `MutableMap` is a COMPACT (open-addressed) hash map : dense parallel
 // `ekeys` / `evals` arrays in insertion order, plus a sparse `i32` index

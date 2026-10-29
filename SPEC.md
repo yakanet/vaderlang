@@ -3,7 +3,7 @@
 > **Status**: Draft, pre-1.0
 > **Author**: Mathieu BROUTIN
 
-This document describes the Vader language: its syntax, type system, execution model and MVP standard library. The compiler is written in Vader and compiles itself: its internals are described in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md), how it is rebuilt from a C seed in [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md), and the `vader` command in [`docs/TOOLING.md`](./docs/TOOLING.md).
+This document describes the Vader language: its syntax, type system, execution model and standard library. The compiler is written in Vader and compiles itself: its internals are described in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md), how it is rebuilt from a C seed in [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md), and the `vader` command in [`docs/TOOLING.md`](./docs/TOOLING.md).
 
 ---
 
@@ -133,7 +133,7 @@ Every exported function of the standard library has a doc block in this form.
 
 ### Identifiers
 
-`[a-zA-Z_][a-zA-Z0-9_]*`, case-sensitive. Identifiers are ASCII only in the MVP.
+`[a-zA-Z_][a-zA-Z0-9_]*`, case-sensitive. Identifiers are ASCII only.
 
 ### Reserved keywords
 
@@ -4012,7 +4012,7 @@ Continuation-passing coroutines are planned.
 
 ### Native threads
 
-Native threads are planned after the MVP, in `std/thread`, whose import will be a compile-time error on the WebAssembly targets.
+Native threads are planned in `std/thread`; importing it will be a compile-time error on the WebAssembly targets.
 
 ---
 

@@ -2,9 +2,9 @@
 
 Implementation roadmap for the Vader compiler and standard library, derived from `SPEC.md`:
 
-- **Phase 1**: MVP compiler in TypeScript, plus stdlib in Vader (closed; its open items now live in Priority and Phase 3).
+- **Phase 1**: first compiler in TypeScript, plus stdlib in Vader (closed; its open items now live in Priority and Phase 3).
 - **Phase 2**: Self-hosting (port the compiler to Vader).
-- **Phase 3**: Post-MVP language features and tooling.
+- **Phase 3**: language features and tooling beyond self-hosting.
 
 Open (`[ ]`) and in-progress (`[~]`) items keep the full context needed to act on them. An item that closes moves to `docs/HISTORY.md` with its write-up: nothing here is `[x]`.
 
@@ -69,7 +69,7 @@ Open (`[ ]`) and in-progress (`[~]`) items keep the full context needed to act o
   - **Value-type structs**: small immutable never-trait-boxed structs passed by register instead of heap-boxed. Shares the same immutability fact; see the §3.5 "Value-type structs" item for its open trade-offs (`@value` vs auto-detect, `is Trait` interaction, multi-register ABI).
   The first concrete interning win: `mk_primitive` singletons (`vader/core/types/types.vader`, 17 primitive names incl. `null`): is a safe MANUAL instance (never `==`-compared, 17 bounded values); doing it generically is this chantier. **When generic `@intern` lands, REVERT that manual interning**: replace the hand-rolled `mk_primitive` singleton table with `@intern` on `PrimitiveType`, so there's one mechanism, the manual table would otherwise duplicate (and could conflict with) the generic pass's content-keyed construction. Architecture-level → explore-before-commit + review. Related §3.5 items: escape (stack-alloc), value-structs, self-host typecheck working-set.
 
-- [~] **`vader fmt` MVP** (first pass 2026-05-11): written in Vader under `vader/tools/fmt/`, exercises the self-host parser end-to-end. Idempotency + parse round-trip green on the stdlib ; byte-for-byte no-op pending on three stylistic gaps : (a) `::` column alignment in decl groups, (b) per-line grouping inside multi-line imports, (c) cap at 1 blank line between decls vs the stdlib's occasional double-blank. Tests : `tests/formatter*.test.ts` (gated `RUN_FMT_TESTS=1`). Open : column alignment decision, hand-curated snapshot scenarios, growing `NO_OP_FILES`.
+- [~] **`vader fmt`, first version** (first pass 2026-05-11): written in Vader under `vader/tools/fmt/`, exercises the self-host parser end-to-end. Idempotency + parse round-trip green on the stdlib ; byte-for-byte no-op pending on three stylistic gaps : (a) `::` column alignment in decl groups, (b) per-line grouping inside multi-line imports, (c) cap at 1 blank line between decls vs the stdlib's occasional double-blank. Tests : `tests/formatter*.test.ts` (gated `RUN_FMT_TESTS=1`). Open : column alignment decision, hand-curated snapshot scenarios, growing `NO_OP_FILES`.
   - **Shipped 2026-07-18 (`fb2b10960`): control-flow block expansion.** A statement-position `if` / `for` / `while` body always renders multi-line (no inline `if cond { return x }`) ; a run of ≥2 aligned `if <cond> { <stmt> }` (lookup table) stays inline with `{`-column alignment ; value-position `if` (`x :: if c { a } else { b }`) stays inline. `BlockLayout` enum in `printer.vader`. Wired into the LSP (`textDocument/formatting`).
   - **Blocker for a clean-tree mass-reformat, formatter over-collapses.** Running `vader fmt` on the whole tree is a ~36k-line delta today, but MOST of it is pre-existing aggressiveness UNRELATED to the block-expansion change: the formatter collapses hand-wrapped multi-line **struct literals / fn signatures / array literals** into a single line **even when that line exceeds the 100-col soft-wrap** (`MAX_LINE`). The codebase deliberately avoids `fmt` because of this. Fix : make the collapse-to-one-line paths (struct-lit, fn signature, seq-lit) *length-aware*, keep the multi-line layout when the collapsed form would exceed `MAX_LINE`. Once fixed, a whole-tree reformat becomes reviewable + the tree can be made `fmt`-clean.
   - Define formatting rules: write up the canonical layout as a design-freeze doc (the layout already ships in `style.vader`; this tracks the written spec).
@@ -425,7 +425,7 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 
 ---
 
-## Phase 3: Post-MVP
+## Phase 3: Beyond self-hosting
 
 ### 3.1 Concurrency: partial
 - [ ] **Open structured concurrency: `scope` / `spawn` / `spawn_detached`.** Kept out of the shipped v1 (`all`, `try_all`, `race`, `join_any`, `timeout`, cancellation). Related accepted debt: a timer whose task was cancelled stays in the heap until it fires (`lib/std/async/async.vader`).
@@ -689,7 +689,7 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 
 - [ ] **An inverted range pattern draws no warning** (surfaced 2026-07-24 reviewing range-patterns). `'z'..='a'` (lower > upper) lowers to a statically never-true `>= 'z' && <= 'a'` with no warning; Rust warns. Cheap constant-fold check (both bounds are required literals), but a new warning code, listed in SPEC §4 *Pattern matching*.
 - [ ] `@derive(Eq, Display)` to auto-generate trivial impls.
-- [ ] **Function overloading by full signature** (post-MVP elevation of receiver-only overloading): pick the candidate whose *all* parameter types match. Generalises the resolver's overload table + typechecker's call resolution.
+- [ ] **Function overloading by full signature** (the generalisation of receiver-only overloading): pick the candidate whose *all* parameter types match. Generalises the resolver's overload table + typechecker's call resolution.
 - [~] **Generator functions (`@generator` + `yield`), lazy element-by-element iteration.** **Phases 0-4 LANDED 2026-07-01**, the feature is functionally complete for v1 (non-generic / concrete-element generators). Surface (`yield` keyword + `YieldStmt` + `@generator`), typecheck (T3056–T3061), and the state-machine lowering (`vader/lower/generator.vader`: spill params+locals into a synthesized `g$State`, route refs to `self.<field>`, block-split the body into a `loop { if state==k … }` `Iterator::next`) all run correctly on **both backends** for straight-line yields, single + nested loops, break/continue across a yield, yield-in-if/match, and struct element types. Feature snippets `generator_{basic,nested,filter,break,struct_elem}` + LSP `YieldStmt` arms. `verify.sh` green throughout, suite 2493/0. **Remaining (`[~]` → Phase 5, DEFERRED):** dogfood on hot self-compile paths, generic generators (blocked on the pre-existing erased-generic vtable gap), and fusion/caller-monomorphization: all gated on Couche 4 of the stream-fusion item below (the erased `next()` is a per-element virtual call). Below is the original design note.
   ```
   @generator
@@ -776,7 +776,7 @@ Architectural prerequisite for full mono → comptime migration. Built bottom-up
 
 ### 3.10 WASM target
 
-Moved out of MVP (was §1.10). C backend already covers native deployment.
+Moved out of phase 1 (was §1.10). C backend already covers native deployment.
 
 - [ ] Bytecode → WASM binary (minimal wasm encoder or vendor binaryen-js).
 - [ ] WASM GC types for structs + arrays.

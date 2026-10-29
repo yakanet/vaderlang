@@ -218,7 +218,7 @@ vader dump -s typed-ast      examples/hello/hello.vader   # same, via the alias
 | `--emit=executable` | A native executable **plus** the intermediate C source (`<out>.c`)  | Default. Invokes `cc` (auto-detected). Runtime lives at `runtime/c/`. The `.c` is kept so it can be inspected/profiled. |
 | `--emit=c`      | Just the generated C source                                         | Drive the C compiler yourself, or stash the C as a snapshot.                                                         |
 | `--emit=bytecode-text` | Textual `.virt` bytecode                                          | Round-trippable: `vader run program.virt` re-executes without re-parsing.                                            |
-| `--target=browser-wasm32` | *(not yet implemented)*                                     | Direct WebAssembly emission with the WASM GC proposal. A `.wasm` module is `--emit=executable` for a wasm platform, not an artefact kind of its own. Deferred to post-MVP. |
+| `--target=browser-wasm32` | *(not yet implemented)*                                     | Direct WebAssembly emission with the WASM GC proposal. A `.wasm` module is `--emit=executable` for a wasm platform, not an artefact kind of its own. Planned, not started. |
 
 ```sh
 vader build --emit=executable --out=/tmp/foo foo.vader            # native binary + foo.c
@@ -278,9 +278,9 @@ The live, item-by-item roadmap is in [`TODO.md`](./TODO.md). High-level mileston
 | Phase | Goal | Status |
 |-------|------|--------|
 | **0: Bootstrap** | Project scaffold, test runner, CLI stub | ✓ done |
-| **1: MVP** | Full TypeScript pipeline: lexer → … → midir CFG → bytecode VM (`vader run`) + C emitter with a precise Cheney GC (`vader build`). Traits, tuples, typed enums, `@comptime`, `vader test`, `vader fmt`, and `std/` (io / string / math / collections / iter / sort / json / path / process / runtime / testing) all landed. | shipped |
+| **1: First compiler** | Full TypeScript pipeline: lexer → … → midir CFG → bytecode VM (`vader run`) + C emitter with a precise Cheney GC (`vader build`). Traits, tuples, typed enums, `@comptime`, `vader test`, `vader fmt`, and `std/` (io / string / math / collections / iter / sort / json / path / process / runtime / testing) all landed. | shipped |
 | **2: Self-hosting** | Port the compiler to Vader and reach the fixed point (the Vader-built compiler reproduces its own generated C byte-for-byte). The full pipeline is self-hosted, a committed C seed rebuilds the toolchain from a stock C compiler, and the legacy TypeScript `src/` has been retired. | ✓ done |
-| **3: Post-MVP** | WASM emitter (bytecode → WASM with GC types), concurrency, networking, richer editor support, multi-platform CI. | pending |
+| **3: Beyond self-hosting** | WASM emitter (bytecode → WASM with GC types), concurrency, networking, richer editor support, multi-platform CI. | pending |
 
 ## Further reading
 

@@ -311,7 +311,7 @@ export repeat :: fn(s: string, n: i64) -> string {
 export contains_char :: fn(s: string, c: char) -> bool = s.index_of(c, 0) >= 0
 
 /// Strip leading and trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`,
-/// `'\r'`). Unicode whitespace is not recognised in MVP.
+/// `'\r'`). Unicode whitespace is not recognised.
 export trim :: fn(s: string) -> string {
     n :: s.byte_len()
     lo: i64 = 0

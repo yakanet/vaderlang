@@ -252,7 +252,7 @@ emit_let_leaf :: fn(
     match leaf {
         is WildcardBinding -> {}
         is RestBinding -> {
-            // Rest binding inside a tuple destructure : MVP emits an
+            // Rest binding inside a tuple destructure : this emits an
             // unreachable so the dump shape stays well-formed. A full
             // implementation routes through `emit_array_destructure` (an
             // index-loop that fills a fresh array).
@@ -280,7 +280,7 @@ emit_let_leaf :: fn(
 
 // Fallback `SimpleBinding`-shaped span carrier for nested-tuple leaf
 // type lookup (we read the binding's `local_types` entry by its
-// `name_span` which doesn't exist for tuples ; in MVP just return
+// `name_span` which doesn't exist for tuples ; just return
 // TY_UNRESOLVED via the placeholder shape).
 simple_placeholder :: fn(nested: TupleBinding) -> SimpleBinding {
     return SimpleBinding {
