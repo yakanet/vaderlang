@@ -12,6 +12,20 @@
 	let menu_open = $state(false);
 	let current = $derived(/** @type {string} */ (page.data.path ?? ''));
 
+	// Where the logo leads: the site the reference is part of, which another build
+	// serves, or the reference's first page.
+	function home_href() {
+		if (data.home === '') return resolve('/');
+		return data.home;
+	}
+
+	// The prerenderer follows a link without `rel="external"`, and fails on one
+	// outside the reference's base path.
+	function home_rel() {
+		if (data.home === '') return undefined;
+		return 'external';
+	}
+
 	// `aria-current` for the link to the module `path`: on the page of that one.
 	/** @param {string} path */
 	function current_marker(path) {
@@ -28,12 +42,15 @@
 		aria-controls="side"
 		onclick={() => (menu_open = !menu_open)}>Modules</button
 	>
-	<a class="logo" href={resolve('/')}>
-		<svg viewBox="0 0 16 16" aria-hidden="true"
-			><path d="M1 1 L4 1 L8 8 L12 1 L15 1 L8 15 Z" fill="var(--logo)" /></svg
-		>
-		Vader <span class="title">{data.title}</span>
-	</a>
+	<span class="brand">
+		<a class="logo" href={home_href()} rel={home_rel()}>
+			<svg viewBox="0 0 16 16" aria-hidden="true"
+				><path d="M1 1 L4 1 L8 8 L12 1 L15 1 L8 15 Z" fill="var(--logo)" /></svg
+			>
+			Vader
+		</a>
+		<a class="title" href={resolve('/')}>{data.title}</a>
+	</span>
 	<Search />
 	<ThemeSwitch />
 </header>
@@ -81,6 +98,7 @@
 		position: sticky;
 		top: 0;
 		z-index: 5;
+		min-height: var(--head-h);
 		display: flex;
 		align-items: center;
 		gap: var(--s4);
@@ -89,6 +107,12 @@
 		background: var(--surface);
 		min-width: 0;
 	}
+	.brand {
+		display: flex;
+		align-items: center;
+		gap: var(--s2);
+		white-space: nowrap;
+	}
 	.logo {
 		display: flex;
 		align-items: center;
@@ -96,15 +120,14 @@
 		font-weight: 700;
 		color: var(--fg);
 		text-decoration: none;
-		white-space: nowrap;
 	}
 	.logo svg {
 		width: 20px;
 		height: 20px;
 	}
 	.title {
-		font-weight: 400;
 		color: var(--muted);
+		text-decoration: none;
 	}
 	.menu-btn {
 		display: none;

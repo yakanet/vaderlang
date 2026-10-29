@@ -31,7 +31,6 @@ export const API_SITES = ['lib', 'vader'];
 /** The sections of the site the header lists, by the name of their page. */
 export const SECTIONS = [
 	{ name: 'start', label: 'Get started' },
-	{ name: 'learn', label: 'Learn' },
 	{ name: 'examples', label: 'Examples' },
 	{ name: 'spec', label: 'Specification' }
 ];

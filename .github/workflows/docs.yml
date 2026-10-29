@@ -45,9 +45,10 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           VADER_DOC_SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
         run: |
+          export VADER_DOC_HOME_URL="$BASE/"
           BASE_PATH="$BASE/lib" VADER_DOC_TITLE="Library" ./build/vader doc -o _site/lib lib
           BASE_PATH="$BASE/vader" VADER_DOC_TITLE="Compiler" ./build/vader doc -o _site/vader vader
-          (cd site && npm ci --no-audit --no-fund --prefer-offline && BASE_PATH="$BASE" SITE_SOURCE_URL="$VADER_DOC_SOURCE_URL" SITE_API_DIR=../_site npm run build)
+          (cd site && npm ci --no-audit --no-fund --prefer-offline && npm run check && BASE_PATH="$BASE" SITE_SOURCE_URL="$VADER_DOC_SOURCE_URL" SITE_API_DIR=../_site npm run build)
           cp -R site/build/. _site/
           for api in lib vader; do
             test -e "_site/$api/index.html" || { echo "the site links to $api/, which was not built"; exit 1; }

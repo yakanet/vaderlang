@@ -1,4 +1,4 @@
-import { index, site_title } from '#lib/server/data.js';
+import { home_url, index, site_title } from '#lib/server/data.js';
 
 /**
  * What the side bar shows of the module `path` under `head`: the rest of its
@@ -18,6 +18,7 @@ export const load = () => {
 	const tree = Map.groupBy(index.modules, (m) => m.path.split('/')[0]);
 	return {
 		title: site_title,
+		home: home_url,
 		tree: [...tree].map(([head, modules]) => ({
 			head,
 			modules: modules.map((m) => ({ path: m.path, label: label_of(m.path, head) }))

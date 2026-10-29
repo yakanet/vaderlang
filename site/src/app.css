@@ -26,8 +26,9 @@
 	--r2: 6px;
 	--r3: 10px;
 	--hair: 1px;
-	/* The height of the sticky header, which an anchor must clear. */
-	--head-h: 3.1rem;
+	/* The height of the sticky header, which an anchor and the side bars must
+	   clear. */
+	--head-h: 3.5rem;
 
 	color-scheme: light dark;
 	--logo: #047857;

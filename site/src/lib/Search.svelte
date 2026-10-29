@@ -166,10 +166,10 @@
 		font: inherit;
 		font-size: var(--step--1);
 		color: var(--muted);
-		background: var(--sunken);
+		background: var(--bg);
 		border: var(--hair) solid var(--line);
 		border-radius: var(--r2);
-		padding: var(--s1) var(--s3);
+		padding: var(--s2) var(--s3);
 		cursor: pointer;
 	}
 	.trigger:hover {

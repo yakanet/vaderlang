@@ -13,7 +13,7 @@
 	// link is relative while the server renders, so it is resolved first.
 	/** @param {string} name */
 	function section_marker(name) {
-		const section = new URL(page_href(name), page.url).pathname;
+		const section = new URL(page_href(name), page.url.href).pathname;
 		if (!page.url.pathname.startsWith(section)) return undefined;
 		return 'page';
 	}
@@ -52,6 +52,7 @@
 		position: sticky;
 		top: 0;
 		z-index: 5;
+		min-height: var(--head-h);
 		display: flex;
 		align-items: center;
 		gap: var(--s4);

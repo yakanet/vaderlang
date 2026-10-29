@@ -61,7 +61,7 @@ SITE_STAMP_FILE :: ".vader-doc.stamp"
 
 // The variables of the environment a build reads besides the folders: what
 // changes the site, so its stamp counts them.
-SITE_SETTINGS: string[]: ["BASE_PATH", "VADER_DOC_TITLE", "VADER_DOC_SOURCE_URL"]
+SITE_SETTINGS: string[]: ["BASE_PATH", "VADER_DOC_TITLE", "VADER_DOC_SOURCE_URL", "VADER_DOC_HOME_URL"]
 
 // Build the site of the data under `data_dir` into `out_dir`, the copy's own
 // `build/` when it is null: copy the template into the user's cache, install its

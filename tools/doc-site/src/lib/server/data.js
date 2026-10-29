@@ -47,3 +47,7 @@ export const read_module = (module_path) => read_json(`modules/${module_path}.js
 // is shown as text.
 export const site_title = process.env.VADER_DOC_TITLE ?? 'API reference';
 export const source_url = process.env.VADER_DOC_SOURCE_URL ?? '';
+
+// The page the logo leads to, when the reference is part of a larger site; ""
+// leaves it on the reference's own first page.
+export const home_url = process.env.VADER_DOC_HOME_URL ?? '';

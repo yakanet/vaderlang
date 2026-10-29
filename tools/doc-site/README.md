@@ -12,6 +12,7 @@ build with these variables:
 | `VADER_DOC_OUT` | the folder the site is written to | `build` |
 | `VADER_DOC_TITLE` | the title of the site | `API reference` |
 | `VADER_DOC_SOURCE_URL` | the prefix a file of the data is appended to, to read it online | places as text |
+| `VADER_DOC_HOME_URL` | the page the logo leads to, when the reference is part of a larger site | the reference's first page |
 | `BASE_PATH` | the path the site is served under (`/repo`) | `/` |
 
 To work on it from a checkout, with the data of the repository's `lib/`:
