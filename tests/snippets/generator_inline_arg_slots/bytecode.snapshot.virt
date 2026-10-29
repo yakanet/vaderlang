@@ -291,25 +291,29 @@ fn 0 snippet$main () -> i32
     local.get 4   ; __off_1
     i64.lt
     if $L6 void
+      local.get 1   ; __step_1
+      local.get 5   ; $cast_24
+      load_slot_i32
+      drop
       local.get 0   ; __iter_0
       type_check 0   ; null
       if $L7 void
         i64.const 27
         buffer.new
-        local.set 1   ; __step_1
+        local.set 3   ; __buf_0
         i64.const 0
         local.set 9   ; $call_71
-        local.get 1   ; __step_1
+        local.get 3   ; __buf_0
         local.get 9   ; $call_71
         string.const 5   ; "offset "
         call 9   ; std_core$write_string_at
         local.set 9   ; $call_71
-        local.get 1   ; __step_1
+        local.get 3   ; __buf_0
         local.get 9   ; $call_71
         i64.const 0
         call 10   ; std_core$write_int
         local.set 9   ; $call_71
-        local.get 1   ; __step_1
+        local.get 3   ; __buf_0
         local.get 9   ; $call_71
         call 8   ; std_core$finish_buffer
         call 20   ; std_io$println__string
@@ -321,20 +325,20 @@ fn 0 snippet$main () -> i32
         local.set 11   ; __off_5
         i64.const 27
         buffer.new
-        local.set 3   ; __buf_0
+        local.set 10   ; __buf_4
         i64.const 0
         local.set 12   ; $cast_79
-        local.get 3   ; __buf_0
+        local.get 10   ; __buf_4
         local.get 12   ; $cast_79
         string.const 5   ; "offset "
         call 9   ; std_core$write_string_at
         local.set 12   ; $cast_79
-        local.get 3   ; __buf_0
+        local.get 10   ; __buf_4
         local.get 12   ; $cast_79
         local.get 11   ; __off_5
         call 10   ; std_core$write_int
         local.set 12   ; $cast_79
-        local.get 3   ; __buf_0
+        local.get 10   ; __buf_4
         local.get 12   ; $cast_79
         call 8   ; std_core$finish_buffer
         call 20   ; std_io$println__string

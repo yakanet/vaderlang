@@ -261,6 +261,7 @@ fn 0 snippet$main () -> i32
   call 9   ; std_io$println__string
   string.const 14   ; ""
   call.import 1   ; std_core$bytes
+  local.tee 1   ; __for_arr_0
   array.len
   local.set 2   ; __for_len_1
   i64.const 0
@@ -270,6 +271,11 @@ fn 0 snippet$main () -> i32
     local.get 2   ; __for_len_1
     i64.lt
     if $L5 void
+      local.get 1   ; __for_arr_0
+      local.get 3   ; __for_i_2
+      array.get 8   ; u8[]
+      ref.cast 4   ; u8
+      drop
       string.const 15   ; "never"
       call 9   ; std_io$println__string
       local.get 3   ; __for_i_2

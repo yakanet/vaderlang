@@ -1061,6 +1061,10 @@ fn 10 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   loop $L19 void
     local.get 5   ; __more_turns_0
     if $L20 void
+      local.get 4   ; i
+      local.get 4   ; i
+      i32.checked_mul
+      drop
       local.get 3   ; total
       i64.const 1
       i64.checked_add

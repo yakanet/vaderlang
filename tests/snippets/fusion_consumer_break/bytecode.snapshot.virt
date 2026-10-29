@@ -630,6 +630,7 @@ fn 6 snippet$flat_map_take_calls () -> void
   local i i64
   local __fuse_len_2 i64
   local __fuse_i_3 i64
+  local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
   local fused i32
@@ -672,15 +673,20 @@ fn 6 snippet$flat_map_take_calls () -> void
           retag 1   ; i32
           local.get 3   ; f
           call.indirect 23   ; fn
+          local.tee 8   ; __for_arr_0
           array.len
-          local.set 8   ; __for_len_1
+          local.set 9   ; __for_len_1
           i64.const 0
-          local.set 9   ; __for_i_2
+          local.set 10   ; __for_i_2
           loop $L4 void
-            local.get 9   ; __for_i_2
-            local.get 8   ; __for_len_1
+            local.get 10   ; __for_i_2
+            local.get 9   ; __for_len_1
             i64.lt
             if $L5 void
+              local.get 8   ; __for_arr_0
+              local.get 10   ; __for_i_2
+              load_slot_i32
+              drop
               local.get 5   ; i
               i64.const 1
               i64.checked_add
@@ -688,10 +694,10 @@ fn 6 snippet$flat_map_take_calls () -> void
               local.get 4   ; n
               i64.ge
               br_if $L1
-              local.get 9   ; __for_i_2
+              local.get 10   ; __for_i_2
               i64.const 1
               i64.add
-              local.set 9   ; __for_i_2
+              local.set 10   ; __for_i_2
               br $L4
             end $L5
           end $L4
@@ -705,7 +711,7 @@ fn 6 snippet$flat_map_take_calls () -> void
     end $L1
   end $L0
   local.field 0 57 0   ; calls $Cell_i32_2af2b319.value
-  local.set 10   ; fused
+  local.set 11   ; fused
   local.get 0   ; calls
   i32.const 0
   struct.set 57 0   ; $Cell_i32_2af2b319.value
@@ -718,9 +724,9 @@ fn 6 snippet$flat_map_take_calls () -> void
   call 41   ; std_iter$flat_map__i32__i32
   i64.const 1
   call 44   ; std_iter$take__i32
-  local.set 11   ; __iter_4
+  local.set 12   ; __iter_4
   loop $L6 void
-    local.get 11   ; __iter_4
+    local.get 12   ; __iter_4
     virtual.call 1 std_core$Iterator.next -> ref
     struct.get 8 1   ; __Tuple_i32_u8_99ae0d29._1
     i32.const 1
@@ -740,7 +746,7 @@ fn 6 snippet$flat_map_take_calls () -> void
   string.const 4   ; "flat_map.take(1), calls: "
   call 30   ; std_core$write_string_at
   local.set 4   ; n
-  local.get 10   ; fused
+  local.get 11   ; fused
   i32.to_i64
   local.set 5   ; i
   local.get 1   ; counted
@@ -781,10 +787,10 @@ end
 fn 8 snippet$two_yields_break () -> void
   local fused i32
   local xs ref
+  local i i64
   local __for_hi_0 i64
   local lazy i32
   local $arr_26 ref
-  local $cast_46 i64
   i32.const 0
   local.set 0   ; fused
   i32.const 1
@@ -795,20 +801,26 @@ fn 8 snippet$two_yields_break () -> void
   drop
   i32.const 4
   drop
+  i64.const 0
+  local.set 2   ; i
   local.get 1   ; xs
   array.len
-  local.set 2   ; __for_hi_0
-  i64.const 0
-  local.get 2   ; __for_hi_0
+  local.set 3   ; __for_hi_0
+  local.get 2   ; i
+  local.get 3   ; __for_hi_0
   i64.lt
   if $L0 void
+    local.get 1   ; xs
+    local.get 2   ; i
+    load_slot_i32
+    drop
     local.get 0   ; fused
     i32.const 1
     i32.checked_add
     local.set 0   ; fused
   end $L0
   i32.const 0
-  local.set 3   ; lazy
+  local.set 4   ; lazy
   i32.const 1
   i32.const 2
   array.new 2 2   ; i32[]
@@ -816,9 +828,9 @@ fn 8 snippet$two_yields_break () -> void
   i32.const 3
   i32.const 4
   array.new 2 2   ; i32[]
-  local.set 4   ; $arr_26
+  local.set 5   ; $arr_26
   local.get 1   ; xs
-  local.get 4   ; $arr_26
+  local.get 5   ; $arr_26
   call 7   ; snippet$pairs
   virtual.call 1 std_core$Iterator.next -> ref
   struct.get 8 1   ; __Tuple_i32_u8_99ae0d29._1
@@ -826,44 +838,44 @@ fn 8 snippet$two_yields_break () -> void
   i32.eq
   if $L1 void
   else
-    local.get 3   ; lazy
+    local.get 4   ; lazy
     i32.const 1
     i32.checked_add
-    local.set 3   ; lazy
+    local.set 4   ; lazy
   end $L1
   i64.const 71
   buffer.new
   local.set 1   ; xs
   i64.const 0
-  local.set 2   ; __for_hi_0
+  local.set 2   ; i
   local.get 1   ; xs
-  local.get 2   ; __for_hi_0
+  local.get 2   ; i
   string.const 5   ; "two yields + break, visits: "
   call 30   ; std_core$write_string_at
-  local.set 2   ; __for_hi_0
+  local.set 2   ; i
   local.get 0   ; fused
   i32.to_i64
-  local.set 5   ; $cast_46
+  local.set 3   ; __for_hi_0
   local.get 1   ; xs
-  local.get 2   ; __for_hi_0
-  local.get 5   ; $cast_46
+  local.get 2   ; i
+  local.get 3   ; __for_hi_0
   call 31   ; std_core$write_int
-  local.set 2   ; __for_hi_0
+  local.set 2   ; i
   local.get 1   ; xs
-  local.get 2   ; __for_hi_0
+  local.get 2   ; i
   string.const 1   ; " | "
   call 30   ; std_core$write_string_at
-  local.set 2   ; __for_hi_0
-  local.get 3   ; lazy
+  local.set 2   ; i
+  local.get 4   ; lazy
   i32.to_i64
-  local.set 5   ; $cast_46
+  local.set 3   ; __for_hi_0
   local.get 1   ; xs
-  local.get 2   ; __for_hi_0
-  local.get 5   ; $cast_46
+  local.get 2   ; i
+  local.get 3   ; __for_hi_0
   call 31   ; std_core$write_int
-  local.set 2   ; __for_hi_0
+  local.set 2   ; i
   local.get 1   ; xs
-  local.get 2   ; __for_hi_0
+  local.get 2   ; i
   call 29   ; std_core$finish_buffer
   call 38   ; std_io$println__string
   return
@@ -1839,9 +1851,11 @@ fn 16 snippet$generator_break_by_name () -> void
   local i i64
   local __for_hi_0 i64
   local v i32
+  local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
   local v i32
+  local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
   local __iter_3 any
@@ -1873,15 +1887,20 @@ fn 16 snippet$generator_break_by_name () -> void
         i32.const 0
         i32.const 1
         array.new 2 2   ; i32[]
+        local.tee 6   ; __for_arr_0
         array.len
-        local.set 6   ; __for_len_1
+        local.set 7   ; __for_len_1
         i64.const 0
-        local.set 7   ; __for_i_2
+        local.set 8   ; __for_i_2
         loop $L3 void
-          local.get 7   ; __for_i_2
-          local.get 6   ; __for_len_1
+          local.get 8   ; __for_i_2
+          local.get 7   ; __for_len_1
           i64.lt
           if $L4 void
+            local.get 6   ; __for_arr_0
+            local.get 8   ; __for_i_2
+            load_slot_i32
+            drop
             local.get 5   ; v
             i32.const 3
             i32.eq
@@ -1890,30 +1909,35 @@ fn 16 snippet$generator_break_by_name () -> void
             i32.const 1
             i32.checked_add
             local.set 0   ; fused
-            local.get 7   ; __for_i_2
+            local.get 8   ; __for_i_2
             i64.const 1
             i64.add
-            local.set 7   ; __for_i_2
+            local.set 8   ; __for_i_2
             br $L3
           end $L4
         end $L3
         local.get 2   ; ys
         local.get 3   ; i
         load_slot_i32
-        local.set 8   ; v
+        local.set 9   ; v
         i32.const 0
         i32.const 1
         array.new 2 2   ; i32[]
+        local.tee 10   ; __for_arr_0
         array.len
-        local.set 9   ; __for_len_1
+        local.set 11   ; __for_len_1
         i64.const 0
-        local.set 10   ; __for_i_2
+        local.set 12   ; __for_i_2
         loop $L5 void
-          local.get 10   ; __for_i_2
-          local.get 9   ; __for_len_1
+          local.get 12   ; __for_i_2
+          local.get 11   ; __for_len_1
           i64.lt
           if $L6 void
-            local.get 8   ; v
+            local.get 10   ; __for_arr_0
+            local.get 12   ; __for_i_2
+            load_slot_i32
+            drop
+            local.get 9   ; v
             i32.const 3
             i32.eq
             br_if $L0
@@ -1921,10 +1945,10 @@ fn 16 snippet$generator_break_by_name () -> void
             i32.const 1
             i32.checked_add
             local.set 0   ; fused
-            local.get 10   ; __for_i_2
+            local.get 12   ; __for_i_2
             i64.const 1
             i64.add
-            local.set 10   ; __for_i_2
+            local.set 12   ; __for_i_2
             br $L5
           end $L6
         end $L5
@@ -1949,10 +1973,10 @@ fn 16 snippet$generator_break_by_name () -> void
   local.get 1   ; xs
   local.get 2   ; ys
   call 7   ; snippet$pairs
-  local.set 11   ; __iter_3
+  local.set 13   ; __iter_3
   block $L7 void
     loop $L8 void
-      local.get 11   ; __iter_3
+      local.get 13   ; __iter_3
       virtual.call 1 std_core$Iterator.next -> ref
       local.set 1   ; xs
       local.field 1 8 1   ; xs __Tuple_i32_u8_99ae0d29._1
@@ -1962,10 +1986,11 @@ fn 16 snippet$generator_break_by_name () -> void
       else
         local.field 1 8 0   ; xs __Tuple_i32_u8_99ae0d29._0
         ref.cast 1   ; i32
-        local.set 8   ; v
+        local.set 9   ; v
         i32.const 0
         i32.const 1
         array.new 2 2   ; i32[]
+        local.tee 2   ; ys
         array.len
         local.set 3   ; i
         i64.const 0
@@ -1975,7 +2000,11 @@ fn 16 snippet$generator_break_by_name () -> void
           local.get 3   ; i
           i64.lt
           if $L11 void
-            local.get 8   ; v
+            local.get 2   ; ys
+            local.get 4   ; __for_hi_0
+            load_slot_i32
+            drop
+            local.get 9   ; v
             i32.const 3
             i32.eq
             br_if $L7

@@ -1,0 +1,6 @@
+# stdout
+before
+# stderr
+vader: trap: load_slot index 5 out of bounds (len=3)
+# exit
+134

@@ -1247,6 +1247,7 @@ static vader_box_t snippet$__asyncstate_snippet_0$Async$resume(void* l0) {
     l4 = INT32_C(1);
     l5 = (l4 <= l2);
     while (l5) {
+        t0 = vader_chk_mul(i32, l4, l4);
         l3 = vader_chk_add(i64, l3, INT64_C(1));
         l5 = (l4 < l2);
         l4 = (l4 + INT32_C(1));

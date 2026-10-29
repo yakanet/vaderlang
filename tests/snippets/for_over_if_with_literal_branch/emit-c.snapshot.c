@@ -102,9 +102,10 @@ static int32_t snippet$count(void* l0, vader_box_t l1, bool l2) {
     int32_t l3;
     void* l4 = NULL;
     int64_t l5, l6;
-    vader_box_t* gc_roots[1] = { &l1 };
+    vader_box_t t0 = vader_box_null();
+    vader_box_t* gc_roots[2] = { &l1, &t0 };
     void** gc_raw_roots[2] = { &l0, &l4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l3 = INT32_C(0);
     if (l2) {
@@ -117,6 +118,10 @@ static int32_t snippet$count(void* l0, vader_box_t l1, bool l2) {
     l5 = ((vader_array_t*) l4)->length;
     l6 = INT64_C(0);
     while ((l6 < l5)) {
+        vader_array_t* _a1_slotarr = ((vader_array_t*) l4);
+        VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l6)
+        t0 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l6);
         l3 = vader_chk_add(i32, l3, INT32_C(1));
         l6 = (l6 + INT64_C(1));
     }

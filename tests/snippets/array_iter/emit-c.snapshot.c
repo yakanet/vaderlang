@@ -77,6 +77,7 @@ static int32_t snippet$main(void) {
     void* l1 = NULL;
     int64_t l2, l3;
     vader_string_t t0 = 0;
+    int32_t t1;
     void** gc_raw_roots[1] = { &l1 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = {
@@ -113,6 +114,10 @@ static int32_t snippet$main(void) {
     l2 = ((vader_array_t*) l1)->length;
     l3 = INT64_C(0);
     while ((l3 < l2)) {
+        vader_array_t* _a3_slotarr = ((vader_array_t*) l1);
+        VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l3)
+        t1 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l3];
         l0 = vader_chk_add(i32, l0, INT32_C(1));
         l3 = (l3 + INT64_C(1));
     }

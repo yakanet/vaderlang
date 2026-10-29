@@ -93,6 +93,10 @@ fn 0 snippet$main () -> i32
     local.get 2   ; __for_len_1
     i64.lt
     if $L3 void
+      local.get 1   ; __for_arr_0
+      local.get 3   ; __for_i_2
+      load_slot_i32
+      drop
       local.get 0   ; sum
       i32.const 1
       i32.checked_add

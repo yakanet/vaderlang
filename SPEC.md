@@ -67,6 +67,8 @@ The program stops, in every build mode, when:
 
 An integer `+`, `-`, `*` or unary `-` that overflows also stops the program, except in a release build, where it wraps (§4 *Integer overflow*).
 
+A check runs whether or not its value is used: `xs[i]` or `a / b` written as a statement still stops the program.
+
 There is no null check at run time: narrowing settles nullability at compile time.
 
 ---
@@ -2706,7 +2708,7 @@ Without a variable, `for <expr> { body }` depends on the type of `<expr>`. A `bo
 
 The variable of a `for x in ...` is a constant binding, bound anew at each turn, and so is each name of `for [k, v] in ...`. Assigning it is an error; modifying the value it designates, as `x.push(y)` does, is allowed. The condition form binds nothing: in `for i > 0 { i -= 1 }`, `i` is an ordinary local.
 
-What a loop iterates over is evaluated once, before the first element. A range evaluates `lo`, then `hi`, when it is built, so `for i in 0..<n { n = 5 }` runs as many times as `n` held on entry. A lazy chain evaluates its source, then the argument of each combinator, then that of the terminal, once each, even when the source is empty: `xs.map(f()).filter(p()).any_match(q())` evaluates `xs`, `f()`, `p()`, then `q()`.
+What a loop iterates over is evaluated once, before the first element. A range evaluates `lo`, then `hi`, when it is built, so `for i in 0..<n { n = 5 }` runs as many times as `n` held on entry. An array has its length read then: an element the body pushes is not visited, and a turn past the end of an array the body shortened stops the program, whether the loop names its element or not. A lazy chain evaluates its source, then the argument of each combinator, then that of the terminal, once each, even when the source is empty: `xs.map(f()).filter(p()).any_match(q())` evaluates `xs`, `f()`, `p()`, then `q()`.
 
 `for x in expr` accepts four kinds of `expr`:
 

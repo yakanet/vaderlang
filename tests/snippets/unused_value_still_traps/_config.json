@@ -1,0 +1,5 @@
+{
+  "native": {
+    "skip": "native words an array index out of bounds differently (`array index out of bounds`, no index or length)"
+  }
+}

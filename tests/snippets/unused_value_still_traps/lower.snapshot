@@ -1,0 +1,87 @@
+# Lower
+
+## snippet
+  snippet.case_of :: fn(argv: string[]) -> string {  // snippet$case_of
+      if @array.len(argv) > i64(1) {
+          return argv[1]
+      }
+      return "index"
+  }
+  snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
+      some: i32 = i32(@array.len(argv))
+      zero: i32 = some >> 4
+      xs: i32[] = [1, 2, 3] :i32[]
+      case: string = snippet.case_of(argv)
+      std.io.println<string>("before")
+      if case == "index" {
+          xs[some + 4]
+      }
+      if case == "divide" {
+          some / zero
+      }
+      if case == "remainder" {
+          some % zero
+      }
+      if case == "add" {
+          2147483647 + some
+      }
+      if case == "negate" {
+          -(-2147483648 + zero)
+      }
+      if case == "loop" {
+          {
+              __for_arr_0: i32[] = xs
+              __for_len_1: i64 = @array.len(__for_arr_0)
+              __for_i_2: i64 = 0
+              for __for_i_2 < __for_len_1 {
+                  _: i32 = __for_arr_0[__for_i_2]
+                  @array.remove_last(xs)
+              } @step {
+                  __for_i_2 = __for_i_2 +% i64(1)
+              }
+          }
+      }
+      std.io.println<string>("after")
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.three_way  // std_core$three_way
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

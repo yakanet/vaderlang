@@ -596,8 +596,12 @@ fn 0 snippet$main () -> i32
     local.get 5   ; __fuse_len_2
     i64.lt
     if $L31 void
+      local.get 3   ; __fuse_arr_0
+      local.get 6   ; __fuse_i_3
+      load_slot_i32
+      drop
       local.get 0   ; a
-      local.tee 3   ; __fuse_arr_0
+      local.tee 4   ; __fuse_arr_1
       array.len
       local.set 8   ; __for_len_46
       i64.const 0
@@ -608,7 +612,7 @@ fn 0 snippet$main () -> i32
           local.get 8   ; __for_len_46
           i64.lt
           if $L34 void
-            local.get 3   ; __fuse_arr_0
+            local.get 4   ; __fuse_arr_1
             local.get 9   ; __for_i_47
             load_slot_i32
             local.tee 7   ; x
@@ -644,8 +648,12 @@ fn 0 snippet$main () -> i32
     local.get 5   ; __fuse_len_2
     i64.lt
     if $L36 void
+      local.get 1   ; b
+      local.get 6   ; __fuse_i_3
+      load_slot_i32
+      drop
       local.get 0   ; a
-      local.tee 1   ; b
+      local.tee 3   ; __fuse_arr_0
       array.len
       local.set 8   ; __for_len_46
       i64.const 0
@@ -656,7 +664,7 @@ fn 0 snippet$main () -> i32
           local.get 8   ; __for_len_46
           i64.lt
           if $L39 void
-            local.get 1   ; b
+            local.get 3   ; __fuse_arr_0
             local.get 9   ; __for_i_47
             load_slot_i32
             local.tee 7   ; x

@@ -110,14 +110,10 @@ fold_moves_in_block :: fn(
 
 // ---- Pass 1, compact_locals -----------------------------------------------
 
-// Drop unreferenced locals and renumber the survivors.
-//
-// Walks every instruction + terminator collecting referenced locals.
-// Params + side-effecting dsts always count (the slot must exist for
-// `local.set` to land even when the value goes unread). Builds a new
-// `locals[]` containing only referenced entries, renumbers every read
-// + write to the compact index space. Pure instructions whose dst
-// renumbered to -1 (unused) drop entirely.
+// Whether `ins` runs even when nothing reads its result: it has an effect,
+// or it may stop the program, which an unread `xs[i]` must still do.
+must_run :: fn(ins: Instruction) -> bool =
+    instruction_has_side_effect(ins) || instruction_may_trap(ins)
 
 // Flag the local `l` as read in `referenced`, one flag per local.
 mark_referenced :: fn(referenced: bool[], l: LocalId) -> void {
@@ -126,6 +122,14 @@ mark_referenced :: fn(referenced: bool[], l: LocalId) -> void {
     }
 }
 
+// Drop unreferenced locals and renumber the survivors.
+//
+// Walks every instruction + terminator collecting referenced locals.
+// Params + the dsts of instructions that must run always count (the slot
+// must exist for `local.set` to land even when the value goes unread).
+// Builds a new `locals[]` containing only referenced entries, renumbers
+// every read + write to the compact index space. Any other instruction
+// whose dst renumbered to -1 (unused) drops entirely.
 compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     n :: f.locals.len()
     referenced: bool[]: [false] * n
@@ -138,8 +142,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     for b in f.blocks {
         for ins in b.instructions {
             for_each_read_local(ins, keep)
-            // Side-effecting dst must keep its slot.
-            if instruction_has_side_effect(ins) {
+            if must_run(ins) {
                 multi :: multi_dsts(ins)
                 if multi != null {
                     for l in multi {
@@ -187,7 +190,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
             d :: dst_of(ins)
             if d is LocalId {
                 if i64(d) in 0..<remap.len() && remap[i64(d)] < 0 {
-                    if !instruction_has_side_effect(ins) { continue }
+                    if !must_run(ins) { continue }
                 }
             }
             out.push(remap_instr(ins, remap))

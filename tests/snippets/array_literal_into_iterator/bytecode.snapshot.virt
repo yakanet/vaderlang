@@ -283,6 +283,10 @@ fn 2 snippet$main () -> i32
     local.get 5   ; $cast_17
     i64.lt
     if $L7 void
+      local.get 6   ; __fuse_arr_4
+      local.get 7   ; __fuse_len_0
+      load_slot_i32
+      drop
       local.get 0   ; n
       i32.const 1
       i32.checked_add
@@ -322,6 +326,11 @@ fn 2 snippet$main () -> i32
     local.get 5   ; $cast_17
     i64.lt
     if $L9 void
+      local.get 6   ; __fuse_arr_4
+      local.get 7   ; __fuse_len_0
+      array.get 16   ; string[]
+      ref.cast 5   ; string
+      drop
       local.get 0   ; n
       i32.const 1
       i32.checked_add

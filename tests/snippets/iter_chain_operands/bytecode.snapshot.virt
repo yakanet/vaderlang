@@ -565,6 +565,10 @@ fn 5 snippet$main () -> i32
         local.get 13   ; __fuse_len_0
         i64.lt
         if $L23 void
+          local.get 2   ; __buf_2
+          local.get 14   ; __fuse_i_1
+          load_slot_i32
+          drop
           local.get 9   ; __fuse_i_1
           i64.const 1
           i64.checked_add

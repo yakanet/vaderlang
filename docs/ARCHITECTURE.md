@@ -209,7 +209,9 @@ each:
 
 1. `value_return/`: a function returning a small tuple, or an `S | null` built at
    every `return`, hands back the elements as separate values;
-2. `optimise/`: folds moves and drops the locals nothing reads;
+2. `optimise/`: folds moves and drops the locals nothing reads, but not an
+   instruction with an effect or one that may stop the program
+   ([ADR 0117](adr/0117-a-run-time-check-runs-whether-or-not-its-value-is-read.md));
 3. `optimise/`, escape analysis: in a native build, a struct that cannot outlive its
    function is placed on the stack;
 4. `optimise/`: a repeated read of an array element within a block becomes a copy;

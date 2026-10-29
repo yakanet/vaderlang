@@ -1,0 +1,36 @@
+// A run-time check runs even when nothing reads the value it guards: each case
+// computes a value nobody reads, and stops the program. The case is named on the
+// command line, `index` when none is; `tests/unused_value_traps.test.ts` runs the
+// others, on both backends. The values that must not fold come from `argv`.
+module "snippet"
+
+import "std/io"
+
+case_of :: fn(argv: string[]) -> string {
+    if argv.len() > 1 {
+        return argv[1]
+    }
+    return "index"
+}
+
+main :: fn(argv: string[]) -> i32 {
+    some :: i32(argv.len())
+    // 0, and not a constant.
+    zero :: some >> 4
+    xs :: [1, 2, 3]
+    case :: case_of(argv)
+    println("before")
+    if case == "index"     { xs[some + 4] }
+    if case == "divide"    { some / zero }
+    if case == "remainder" { some % zero }
+    if case == "add"       { 2_147_483_647 + some }
+    if case == "negate"    { -(-2_147_483_648 + zero) }
+    // The length is read once: the third turn reads past the end.
+    if case == "loop" {
+        for _ in xs {
+            xs.remove_last()
+        }
+    }
+    println("after")
+    return 0
+}

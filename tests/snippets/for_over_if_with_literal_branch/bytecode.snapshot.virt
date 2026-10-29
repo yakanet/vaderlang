@@ -46,6 +46,10 @@ fn 0 snippet$count (ref,any,bool) -> i32
     local.get 5   ; __for_len_1
     i64.lt
     if $L2 void
+      local.get 4   ; __for_arr_0
+      local.get 6   ; __for_i_2
+      array.get 8   ; union[]
+      drop
       local.get 3   ; total
       i32.const 1
       i32.checked_add

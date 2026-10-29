@@ -1265,18 +1265,20 @@ static void snippet$loopless_generator_continue(void) {
 }
 
 static void snippet$take_continue_outer(void) {
-    int32_t l0, l7;
+    int32_t l0, l9;
     void* l1 = NULL;
-    int64_t l2, l3, l4, l5, l6;
-    vader_box_t l8 = vader_box_null();
-    void* t0 = NULL;
-    vader_box_t t1 = vader_box_null();
-    vader_string_t t2 = 0;
-    vader_box_t* gc_roots[2] = { &l8, &t1 };
-    void** gc_raw_roots[2] = { &l1, &t0 };
-    vader_string_t* gc_atom_roots[1] = { &t2 };
+    void* l6 = NULL;
+    int64_t l2, l3, l4, l5, l7, l8;
+    vader_box_t l10 = vader_box_null();
+    int32_t t0;
+    void* t1 = NULL;
+    vader_box_t t2 = vader_box_null();
+    vader_string_t t3 = 0;
+    vader_box_t* gc_roots[2] = { &l10, &t2 };
+    void** gc_raw_roots[3] = { &l1, &l6, &t1 };
+    vader_string_t* gc_atom_roots[1] = { &t3 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l0 = INT32_C(0);
@@ -1292,12 +1294,21 @@ static void snippet$take_continue_outer(void) {
         l4 = ((vader_array_t*) l1)->length;
         l5 = INT64_C(0);
         while ((l5 < l4)) {
-            vader_array_t* _a1_arr = vader_array_new(4u, 2u, 7u, 3u);
-            ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int32_t) INT32_C(8);
-            ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int32_t) INT32_C(7);
-            t0 = (void*) _a1_arr;
-            l6 = ((vader_array_t*) t0)->length;
-            if ((INT64_C(0) < l6)) {
+            vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
+            VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
+            t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l5];
+            vader_array_t* _a2_arr = vader_array_new(4u, 2u, 7u, 3u);
+            ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = (int32_t) INT32_C(8);
+            ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (int32_t) INT32_C(7);
+            l6 = (void*) _a2_arr;
+            l7 = ((vader_array_t*) l6)->length;
+            l8 = INT64_C(0);
+            if ((l8 < l7)) {
+                vader_array_t* _a3_slotarr = ((vader_array_t*) l6);
+                VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l8)
+                t0 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l8];
                 l0 = vader_chk_add(i32, l0, INT32_C(1));
             }
             l3 = vader_chk_add(i64, l3, INT64_C(1));
@@ -1305,27 +1316,32 @@ static void snippet$take_continue_outer(void) {
             l5 = (l5 + INT64_C(1));
         }
     }
-    l7 = INT32_C(0);
-    vader_array_t* _a2_arr = vader_array_new(4u, 4u, 7u, 3u);
-    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 3u] = (int32_t) INT32_C(4);
-    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 2u] = (int32_t) INT32_C(3);
-    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = (int32_t) INT32_C(2);
-    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (int32_t) INT32_C(1);
-    t0 = (void*) _a2_arr;
-    t1 = std_core$$array$Into$into__i32(t0);
-    l8 = std_iter$take__i32(t1, INT64_C(2));
+    l9 = INT32_C(0);
+    vader_array_t* _a4_arr = vader_array_new(4u, 4u, 7u, 3u);
+    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 3u] = (int32_t) INT32_C(4);
+    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 2u] = (int32_t) INT32_C(3);
+    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 1u] = (int32_t) INT32_C(2);
+    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = (int32_t) INT32_C(1);
+    t1 = (void*) _a4_arr;
+    t2 = std_core$$array$Into$into__i32(t1);
+    l10 = std_iter$take__i32(t2, INT64_C(2));
     for (;;) {
-        t1 = vader_vt_std_core$Iterator$next(l8);
-        if (!(((vader_struct___Tuple_i32_u8_99ae0d29_t*) t1.payload.obj)->f__1 == INT32_C(1))) {
-            vader_array_t* _a3_arr = vader_array_new(4u, 2u, 7u, 3u);
-            ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 1u] = (int32_t) INT32_C(8);
-            ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = (int32_t) INT32_C(7);
-            t0 = (void*) _a3_arr;
-            l2 = ((vader_array_t*) t0)->length;
-            if (!((INT64_C(0) < l2))) {
+        t2 = vader_vt_std_core$Iterator$next(l10);
+        if (!(((vader_struct___Tuple_i32_u8_99ae0d29_t*) t2.payload.obj)->f__1 == INT32_C(1))) {
+            vader_array_t* _a5_arr = vader_array_new(4u, 2u, 7u, 3u);
+            ((int32_t*) _a5_arr->buf->slots)[_a5_arr->offset + 1u] = (int32_t) INT32_C(8);
+            ((int32_t*) _a5_arr->buf->slots)[_a5_arr->offset + 0u] = (int32_t) INT32_C(7);
+            l1 = (void*) _a5_arr;
+            l2 = ((vader_array_t*) l1)->length;
+            l3 = INT64_C(0);
+            if (!((l3 < l2))) {
                 continue;
             }
-            l7 = vader_chk_add(i32, l7, INT32_C(1));
+            vader_array_t* _a6_slotarr = ((vader_array_t*) l1);
+            VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a6_slotarr, l3)
+            t0 = ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l3];
+            l9 = vader_chk_add(i32, l9, INT32_C(1));
             continue;
         }
         break;
@@ -1336,10 +1352,10 @@ static void snippet$take_continue_outer(void) {
     l3 = ((int64_t) (int32_t) l0);
     l2 = std_core$write_int(l1, l2, l3);
     l2 = std_core$write_string_at(l1, l2, 5u);
-    l3 = ((int64_t) (int32_t) l7);
+    l3 = ((int64_t) (int32_t) l9);
     l2 = std_core$write_int(l1, l2, l3);
-    t2 = std_core$finish_buffer(l1, l2);
-    std_io$println__string(t2);
+    t3 = std_core$finish_buffer(l1, l2);
+    std_io$println__string(t3);
     { vader_gc_top = gc_frame.prev; return; }
 }
 

@@ -6,13 +6,16 @@
 // `for_each_read_in_terminator`) thread a closure that gets called on
 // every LocalId read. `dst_of` returns the single LocalId written by
 // an instruction (or null for pure side-effecting ops + zero-result
-// calls). `instruction_has_side_effect` keeps DCE from dropping ops
-// whose dst is unread but whose execution observably mutates state.
+// calls). `instruction_has_side_effect` and `instruction_may_trap` keep DCE
+// from dropping ops whose dst is unread but whose execution mutates state or
+// may stop the program.
 
 module "vader/midir"
 
 import "std/collections"
 import "std/iter"
+import "vader/core/bytecode"
+import "vader/midir/select"
 
 // ---- successor / predecessor edges ---------------------------------------
 
@@ -61,6 +64,36 @@ export instruction_runs_code :: fn(ins: Instruction) -> bool = match ins {
     is InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet -> false
     is InstrCellSet | InstrMakeClosure | InstrMove | InstrDeferPush -> false
     is InstrGlobalGet | InstrGlobalSet -> false
+}
+
+/// True when executing the instruction may stop the program (SPEC §2 *Run-time
+/// checks*): an index not proven in range, an integer division or remainder, an
+/// integer `+`, `-`, `*` or negation checked for overflow, a call. DCE keeps it
+/// even when its result goes unread: the check still has to run. Whether an
+/// operation traps follows the class instruction selection gives its type
+/// (`midir/select`).
+export instruction_may_trap :: fn(ins: Instruction) -> bool = match ins {
+    is InstrArrayGet -> !ins.bounds_safe
+    is InstrArraySet -> !ins.bounds_safe
+    is InstrBinOp -> binary_may_trap(ins)
+    is InstrUnOp -> ins.op == .Neg && is_integer_val(val_type_of_type(ins.type))
+    is InstrCall | InstrCallIndirect | InstrVirtualCall | InstrIntrinsic | InstrDeferPopExec -> true
+    // A slice clamps its bounds.
+    is InstrArraySlice -> false
+    is InstrConst | InstrFnRef | InstrFnAddr | InstrFieldGet | InstrFieldSet -> false
+    is InstrArrayLen | InstrArrayPush | InstrUnionFieldGet | InstrUnionFieldSet -> false
+    is InstrStructNew | InstrArrayNew | InstrDataConst | InstrTypeCheck | InstrTypeConst -> false
+    is InstrCast | InstrCellNew | InstrCellGet | InstrCellSet | InstrMakeClosure -> false
+    is InstrMove | InstrDeferPush | InstrGlobalGet | InstrGlobalSet -> false
+}
+
+// A division or remainder on anything but a float (a zero divisor), or a
+// checked `+`, `-`, `*` on an integer (an overflow).
+binary_may_trap :: fn(ins: InstrBinOp) -> bool = match ins.op {
+    .Div | .Mod -> !is_float_val(val_type_of_type(ins.type))
+    .AddChecked | .SubChecked | .MulChecked -> is_integer_val(val_type_of_type(ins.type))
+    .Add | .Sub | .Mul | .Shl | .Shr | .BitAnd | .BitOr | .BitXor -> false
+    .And | .Or | .Eq | .Neq | .Lt | .Lte | .Gt | .Gte -> false
 }
 
 // ---- operand walks --------------------------------------------------------

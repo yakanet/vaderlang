@@ -329,14 +329,18 @@ static int32_t snippet$main(void) {
     l5 = ((vader_array_t*) l3)->length;
     l6 = INT64_C(0);
     while ((l6 < l5)) {
-        l3 = l0;
-        l8 = ((vader_array_t*) l3)->length;
+        vader_array_t* _a13_slotarr = ((vader_array_t*) l3);
+        VADER_ARRAY_RESOLVE_BUF(_a13_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a13_slotarr, l6)
+        t1 = ((int32_t*) _a13_slotarr->buf->slots)[_a13_slotarr->offset + (size_t) l6];
+        l4 = l0;
+        l8 = ((vader_array_t*) l4)->length;
         l9 = INT64_C(0);
         while ((l9 < l8)) {
-            vader_array_t* _a13_slotarr = ((vader_array_t*) l3);
-            VADER_ARRAY_RESOLVE_BUF(_a13_slotarr)
-            VADER_ARRAY_CHECK_INDEX(_a13_slotarr, l9)
-            l7 = ((int32_t*) _a13_slotarr->buf->slots)[_a13_slotarr->offset + (size_t) l9];
+            vader_array_t* _a14_slotarr = ((vader_array_t*) l4);
+            VADER_ARRAY_RESOLVE_BUF(_a14_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a14_slotarr, l9)
+            l7 = ((int32_t*) _a14_slotarr->buf->slots)[_a14_slotarr->offset + (size_t) l9];
             if (l7 == INT32_C(2)) break;
             l2 = vader_chk_add(i32, l2, l7);
             l9 = (l9 + INT64_C(1));
@@ -346,14 +350,18 @@ static int32_t snippet$main(void) {
     l5 = ((vader_array_t*) l1)->length;
     l6 = INT64_C(0);
     while ((l6 < l5)) {
-        l1 = l0;
-        l8 = ((vader_array_t*) l1)->length;
+        vader_array_t* _a15_slotarr = ((vader_array_t*) l1);
+        VADER_ARRAY_RESOLVE_BUF(_a15_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a15_slotarr, l6)
+        t1 = ((int32_t*) _a15_slotarr->buf->slots)[_a15_slotarr->offset + (size_t) l6];
+        l3 = l0;
+        l8 = ((vader_array_t*) l3)->length;
         l9 = INT64_C(0);
         while ((l9 < l8)) {
-            vader_array_t* _a14_slotarr = ((vader_array_t*) l1);
-            VADER_ARRAY_RESOLVE_BUF(_a14_slotarr)
-            VADER_ARRAY_CHECK_INDEX(_a14_slotarr, l9)
-            l7 = ((int32_t*) _a14_slotarr->buf->slots)[_a14_slotarr->offset + (size_t) l9];
+            vader_array_t* _a16_slotarr = ((vader_array_t*) l3);
+            VADER_ARRAY_RESOLVE_BUF(_a16_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a16_slotarr, l9)
+            l7 = ((int32_t*) _a16_slotarr->buf->slots)[_a16_slotarr->offset + (size_t) l9];
             if (l7 == INT32_C(2)) break;
             l2 = vader_chk_add(i32, l2, l7);
             l9 = (l9 + INT64_C(1));
