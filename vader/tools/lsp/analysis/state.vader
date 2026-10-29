@@ -17,6 +17,7 @@ import "vader/support/diagnostics"
 import "vader/tools/lsp/protocol"
 import "std/io"
 
+Fx :: import "vader/front/effects"
 Virt :: import "vader/front/virt"
 
 /// Cached load+typecheck of one project, keyed by the entry file path it was
@@ -30,6 +31,9 @@ export ProjectCache :: struct {
     entry_path: string
     project:    LoadedProject
     result:     CheckResult
+    /// The effect summary of the project, which a build evaluates its constants
+    /// with (`evaluate_checked`).
+    effects:    Fx.EffectSummary
     diags:      Diagnostic[]
     /// Module-name → `LoadedModule` map (`module_index_by_name`), built once per
     /// cache entry so per-request consumers (wildcard completion) don't rebuild
@@ -301,7 +305,8 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
     // but never the dump-only expr_kinds / node_spans tables.
     fc :: check_with_modules(self, file_path, [])
     entry :: ProjectCache {
-        .entry_path = file_path, .project = fc.project, .result = fc.result, .diags = fc.diags,
+        .entry_path = file_path, .project = fc.project, .result = fc.result, .effects = fc.effects,
+        .diags = fc.diags,
         .module_name_index = module_index_by_name(fc.project),
     }
     self.cache_prev = self.cache

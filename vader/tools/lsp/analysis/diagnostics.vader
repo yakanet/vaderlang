@@ -1,7 +1,7 @@
 // vader/tools/lsp/analysis/diagnostics: `textDocument/publishDiagnostics` push.
 //
-// Runs the typechecker on a document and pushes the resulting
-// `Diagnostic[]` to the client as a server-initiated notification.
+// Runs the typechecker and the comptime tree-walk on a document and pushes the
+// resulting `Diagnostic[]` to the client as a server-initiated notification.
 // Wired from `state.vader` on `didOpen` / `didChange` ; cleared on
 // `didClose` by pushing an empty array.
 //
@@ -19,10 +19,11 @@ import "json"
 import "vader/support/diagnostics"
 import "vader/front/resolver"
 import "vader/front/dead_code"
+import "vader/pipeline/check"
 import "vader/tools/lsp/protocol"
 
-/// Type-check the file at `uri` and push the resulting diagnostics to
-/// the client. Non-file URIs and empty docs short-circuit to an empty
+/// Type-check the file at `uri`, evaluate its constants, and push the resulting
+/// diagnostics to the client. Non-file URIs and empty docs short-circuit to an empty
 /// array: the client clears any stale squiggles either way.
 export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void {
     file_path :: uri_to_path(uri)
@@ -38,13 +39,15 @@ export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void
         return
     }
     cached :: typed_project_for(self, file_path)
-    // Merge the typecheck diagnostics (W0007 etc.) with the opt-in project-wide
-    // lints the LSP surfaces but `vader build` never runs (W0012 unused-export).
-    // The lint walks the already-loaded project graph (no reload) and
+    // What a build reports before it lowers (the typecheck with W0007, the comptime
+    // tree-walk), then the opt-in project-wide lints the LSP surfaces but
+    // `vader build` never runs (W0012 unused-export). The lint walks the already-loaded project graph (no reload) and
     // `publish`'s per-file filter scopes its findings to the open document, so
     // the analysis stays project-wide while the display is per-file, as W0007.
     diags: Diagnostic[]: []
     diags.push_all(cached.diags)
+    checked :: CheckedProject { .result = cached.result, .effects = cached.effects }
+    evaluate_checked(cached.project, checked, diags)
     diags.push_all(unused_export_diags(cached.project))
     publish(self, uri, diags)
 }

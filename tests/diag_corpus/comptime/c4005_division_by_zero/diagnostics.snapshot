@@ -1,1 +1,1 @@
-[8:16] error[C4005] comptime division by zero: /
+[6:16] error[C4005] comptime division by zero: /

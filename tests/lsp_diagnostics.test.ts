@@ -1,9 +1,10 @@
-// LSP diagnostics end-to-end: verifies the server pushes the dead-code lints,
-// W0007 (a private declaration) and the opt-in project-wide `unused-export`
-// (W0012), as `textDocument/publishDiagnostics` on didOpen, scoped to the open
-// document by the per-file filter, and faded. Kept separate
-// from lsp.test.ts (which drives request/response queries) because these assert
-// on server-INITIATED notifications, which that harness discards.
+// LSP diagnostics end-to-end: verifies the server pushes, as
+// `textDocument/publishDiagnostics` on didOpen, the dead-code lints W0007 (a
+// private declaration) and the opt-in project-wide `unused-export` (W0012),
+// scoped to the open document by the per-file filter and faded, and what the
+// comptime tree-walk reports. Kept separate from lsp.test.ts (which drives
+// request/response queries) because these assert on server-INITIATED
+// notifications, which that harness discards.
 
 import { test, expect } from "bun:test";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
@@ -93,6 +94,21 @@ test("LSP surfaces W0007 (dead code) on an unused private fn, faded", async () =
   expect(w0007[0]!.message).toContain("helper");
   expect(w0007[0]!.severity).toBe(2);        // Warning
   expect(w0007[0]!.tags).toEqual([1]);       // Unnecessary → rendered faded
+}, MEDIUM_BUILD);
+
+test("LSP surfaces a comptime division by zero (C4005) and a cycle (C4009)", async () => {
+  const source = [
+    `module "snippet"`,
+    `@comptime`,
+    `export BOOM :: 10 / 0`,
+    `@comptime`,
+    `export A: i32: B + 1`,
+    `@comptime`,
+    `export B: i32: A + 1`,
+    ``,
+  ].join("\n");
+  const codes = (await diagnosticsFor(source)).map(d => d.code).filter(c => c.startsWith("C"));
+  expect(codes.sort()).toEqual(["C4005", "C4009"]);
 }, MEDIUM_BUILD);
 
 test("LSP publishes each diagnostic once, as the CLI prints it", async () => {

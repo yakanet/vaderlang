@@ -1,7 +1,5 @@
-// @comptime division by zero: TS emits C4005 ("comptime division by
-// zero"). Vader's codes.vader renumbered this to C4007, so the
-// diag-parity surface flips this snippet from C4005 (TS-only) to
-// C4007 (Vader-only).
+// C4005: an integer division by zero in a `@comptime` value is an error, as
+// it would stop the run.
 module "snippet"
 
 @comptime

@@ -60,7 +60,6 @@ export prepare_evaluated_project_with :: fn(
     Prof.prof_begin(.Typecheck)
     checked :: check_project(loaded, typecheck_diags, false)
     resolver_diags :: collect_body_diags(checked.result)
-    typed :: assemble_typed_project(checked)
     Prof.prof_end(.Typecheck)
     comptime_diags: Diagnostic[]: []
     Prof.prof_begin(.Comptime)
@@ -73,7 +72,7 @@ export prepare_evaluated_project_with :: fn(
     // front-end-errored program (a single prelude `@comptime` like std/core's
     // parse-float table would otherwise ICE every errored user compile). A
     // program with front-end errors never reaches codegen, so nothing to bake.
-    evaluated :: evaluate_project(loaded, typed, comptime_diags)
+    evaluated :: evaluate_checked(loaded, checked, comptime_diags)
     Prof.prof_end(.Comptime)
     // Only bake when the project is error-free: front end AND comptime. The
     // VM-backed baking stages the WHOLE project to bytecode ; on a front-end-
@@ -89,7 +88,7 @@ export prepare_evaluated_project_with :: fn(
     }
     return EvaluatedPipeline {
         .loaded          = loaded,
-        .typed           = typed,
+        .typed           = evaluated.typed,
         .evaluated       = evaluated,
         .resolver_diags  = resolver_diags,
         .typecheck_diags = typecheck_diags,
