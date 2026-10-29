@@ -16,14 +16,14 @@ type 13 scalar string
 type 14 ref std_core$Async
 type 15 ref std_core$Async
 type 16 array 6
-type 17 scalar bool
+type 17 struct std_core$Buffer {  }
 type 18 scalar u8
-type 19 struct std_core$Buffer {  }
+type 19 scalar bool
 type 20 array 18
 type 21 struct std_async$JoinAll__i64 { children:25,results:16,slot:16,wake_at:16 }
 type 22 union 16,4
 type 23 ref std_core$Async
-type 24 struct std_async$Sleep { ms:6,deadline:6,armed:17 }
+type 24 struct std_async$Sleep { ms:6,deadline:6,armed:19 }
 type 25 array 7
 type 26 ref std_core$Async
 string 0 " "
@@ -42,7 +42,7 @@ import 6 extern write system_posix$sys_write header=<unistd.h> result_type=6 par
 impl 2 std_core$Async
 impl 9 std_core$Async
 impl 11 std_core$Async
-impl 19 std_core$ByteAccess
+impl 17 std_core$ByteAccess
 impl 21 std_core$Async
 impl 24 std_core$Async
 vtable std_core$Async.resume 2 1
@@ -884,7 +884,7 @@ fn 19 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 24 2   ; arg 0 std_async$Sleep.armed
-  ref.cast 17   ; bool
+  ref.cast 19   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0

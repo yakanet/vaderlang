@@ -930,11 +930,11 @@ const vader_type_info_t vader_type_info_table[24] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [8] = { .slot_size = 8 },
-    [9] = {
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [9] = { .slot_size = 8 },
     [10] = { .slot_size = 8 },
     [11] = { .slot_size = 1 },
     [12] = { .slot_size = 2 },
@@ -2885,7 +2885,7 @@ static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
         case 11u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));
         case 12u: return std_core$i16$Display$to_string(((int16_t) recv.payload.i));
         case 6u: return std_core$i32$Display$to_string(((int32_t) recv.payload.i));
-        case 8u: return std_core$i64$Display$to_string(((int64_t) recv.payload.i));
+        case 9u: return std_core$i64$Display$to_string(((int64_t) recv.payload.i));
         case 1u: return std_core$u8$Display$to_string(((uint8_t) recv.payload.i));
         case 13u: return std_core$u16$Display$to_string(((uint16_t) recv.payload.i));
         case 14u: return std_core$u32$Display$to_string(((uint32_t) recv.payload.i));

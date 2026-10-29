@@ -1,0 +1,31 @@
+// A generic struct with a trait impl, built for `f64` only by a function the
+// program never calls and for `string` only by a test.
+
+module "snippet/shapes"
+
+/// A figure with an area.
+export Shape :: trait {
+    /// Area in square units.
+    area :: fn(self) -> f64
+}
+
+/// One value of any type.
+export Box :: struct<T> {
+    value: T
+}
+
+Box<T> implements<T> Shape {
+    area :: fn(self) -> f64 = 2.0
+}
+
+/// The area of a box of `f64`, which nothing calls.
+export unused_area :: fn() -> f64 = Box<f64> { .value = 1.5 }.area()
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_box_area :: fn() -> void {
+    assert_eq(Box<string> { .value = "a" }.area(), 2.0)
+}

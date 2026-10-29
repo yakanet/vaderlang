@@ -65,8 +65,7 @@ export prepare_evaluated_project_with :: fn(
     Prof.prof_begin(.Comptime)
     // The tree-walk `evaluate_project` always runs : it does the `@comptime`
     // dependency ordering (source of the C4009 cycle diagnostic), folds
-    // tree-walkable `@comptime` decls, harvests the generic instances the
-    // lowerer needs (e.g. `concat_N`), and force-loads std/core. Only the
+    // tree-walkable `@comptime` decls, and force-loads std/core. Only the
     // VM-backed baking is gated on front-end errors: it emits the WHOLE project
     // to bytecode and runs it, which ICEs on the unresolved / malformed IR of a
     // front-end-errored program (a single prelude `@comptime` like std/core's

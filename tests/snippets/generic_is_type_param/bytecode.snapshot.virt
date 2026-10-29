@@ -8,10 +8,10 @@ type 5 struct snippet$Square { s:1 }
 type 6 scalar bool
 type 7 array 5
 type 8 scalar string
-type 9 scalar u8
+type 9 struct std_core$Buffer {  }
 type 10 scalar i64
-type 11 struct std_core$Buffer {  }
-type 12 array 9
+type 11 scalar u8
+type 12 array 11
 type 13 scalar void
 string 0 " "
 string 1 "yes"
@@ -22,7 +22,7 @@ string 5 "\n"
 import 0 byte_len std_core$byte_len result_type=10 param_types=8 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=12 param_types=8 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,12,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 11 std_core$ByteAccess
+impl 9 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32

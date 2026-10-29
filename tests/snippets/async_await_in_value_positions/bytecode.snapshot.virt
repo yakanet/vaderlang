@@ -20,9 +20,9 @@ type 17 union 1,0
 type 18 ref std_core$Async
 type 19 struct std_core$Buffer {  }
 type 20 scalar i64
-type 21 scalar bool
-type 22 scalar u8
-type 23 array 22
+type 21 scalar u8
+type 22 scalar bool
+type 23 array 21
 string 0 ""
 string 1 "doubled: "
 string 2 "\n"

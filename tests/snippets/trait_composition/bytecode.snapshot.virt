@@ -5,10 +5,10 @@ type 2 scalar u64
 type 3 scalar bool
 type 4 scalar i32
 type 5 scalar string
-type 6 scalar u8
+type 6 struct std_core$Buffer {  }
 type 7 scalar i64
-type 8 struct std_core$Buffer {  }
-type 9 array 6
+type 8 scalar u8
+type 9 array 8
 type 10 scalar void
 string 0 "fingerprint "
 string 1 "\n"
@@ -18,7 +18,7 @@ import 2 extern write system_posix$sys_write header=<unistd.h> result_type=7 par
 impl 1 std_core$Hash
 impl 1 snippet$Hashable
 impl 1 std_core$Equals
-impl 8 std_core$ByteAccess
+impl 6 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$Tag$Hashable$fingerprint (ref) -> u64

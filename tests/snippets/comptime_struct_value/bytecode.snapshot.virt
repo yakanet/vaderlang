@@ -14,8 +14,8 @@ type 11 scalar u64
 type 12 struct snippet$Slot { hour:13,note:2 }
 type 13 union 0,7
 type 14 scalar i64
-type 15 scalar bool
-type 16 struct std_core$Buffer {  }
+type 15 struct std_core$Buffer {  }
+type 16 scalar bool
 type 17 scalar i8
 type 18 scalar i16
 type 19 scalar u16
@@ -44,8 +44,8 @@ string 9 "box("
 string 10 ")"
 string 11 "true"
 string 12 "false"
-string 13 "0"
-string 14 "null"
+string 13 "null"
+string 14 "0"
 string 15 "nan"
 string 16 "-inf"
 string 17 "inf"
@@ -70,23 +70,23 @@ import 2 bytes std_core$bytes result_type=9 param_types=2 param_c_out= param_by_
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=3,9,14 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 4 std_core$Display
 impl 5 std_core$Display
-impl 16 std_core$ByteAccess
+impl 15 std_core$ByteAccess
 vtable std_core$Display.to_string 4 2
 vtable std_core$Display.to_string 5 3
-vtable std_core$Display.to_string 14 6
-vtable std_core$Display.to_string 2 7
-vtable std_core$Display.to_string 17 14
-vtable std_core$Display.to_string 18 15
-vtable std_core$Display.to_string 3 16
-vtable std_core$Display.to_string 7 17
-vtable std_core$Display.to_string 19 18
-vtable std_core$Display.to_string 20 19
-vtable std_core$Display.to_string 11 20
-vtable std_core$Display.to_string 15 21
-vtable std_core$Display.to_string 21 22
-vtable std_core$Display.to_string 0 23
-vtable std_core$Display.to_string 22 24
-vtable std_core$Display.to_string 23 25
+vtable std_core$Display.to_string 17 11
+vtable std_core$Display.to_string 18 12
+vtable std_core$Display.to_string 3 13
+vtable std_core$Display.to_string 14 14
+vtable std_core$Display.to_string 7 15
+vtable std_core$Display.to_string 19 16
+vtable std_core$Display.to_string 20 17
+vtable std_core$Display.to_string 11 18
+vtable std_core$Display.to_string 16 19
+vtable std_core$Display.to_string 21 20
+vtable std_core$Display.to_string 2 21
+vtable std_core$Display.to_string 0 22
+vtable std_core$Display.to_string 22 23
+vtable std_core$Display.to_string 23 24
 export main 1
 
 fn 0 snippet$show (any) -> string
@@ -122,17 +122,17 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   string.const 0   ; "card "
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 1   ; $call_7
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   local.get 0   ; __p_0
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 1   ; $call_7
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   string.const 1   ; " "
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 1   ; $call_7
   data.const 0 29   ; pool[0] snippet$Card[]
   i64.const 0
@@ -145,12 +145,12 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   local.get 3   ; $eq_24
-  call 12   ; std_core$write_bool
+  call 10   ; std_core$write_bool
   local.set 1   ; $call_7
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   string.const 1   ; " "
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 1   ; $call_7
   data.const 0 29   ; pool[0] snippet$Card[]
   i64.const 0
@@ -164,12 +164,12 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   local.get 4   ; $cast_34
-  call 11   ; std_core$write_unsigned
+  call 9   ; std_core$write_unsigned
   local.set 1   ; $call_7
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   string.const 1   ; " "
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 1   ; $call_7
   data.const 0 29   ; pool[0] snippet$Card[]
   i64.const 0
@@ -180,11 +180,11 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   local.get 4   ; $cast_34
-  call 11   ; std_core$write_unsigned
+  call 9   ; std_core$write_unsigned
   local.set 1   ; $call_7
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
-  call 8   ; std_core$finish_buffer
+  call 6   ; std_core$finish_buffer
   call 59   ; std_io$println__string
   data.const 0 29   ; pool[0] snippet$Card[]
   i64.const 0
@@ -216,7 +216,7 @@ fn 1 snippet$main () -> i32
     local.get 2   ; __buf_1
     local.get 1   ; $call_7
     string.const 3   ; "square "
-    call 9   ; std_core$write_string_at
+    call 7   ; std_core$write_string_at
     local.set 1   ; $call_7
     i64.const 5000000000
     struct.new_stack 4   ; snippet$Box__i64
@@ -226,11 +226,11 @@ fn 1 snippet$main () -> i32
     local.get 2   ; __buf_1
     local.get 1   ; $call_7
     local.get 5   ; $field_67
-    call 10   ; std_core$write_int
+    call 8   ; std_core$write_int
     local.set 1   ; $call_7
     local.get 2   ; __buf_1
     local.get 1   ; $call_7
-    call 8   ; std_core$finish_buffer
+    call 6   ; std_core$finish_buffer
     call 59   ; std_io$println__string
   end $L1
   data.const 1 30   ; pool[1] snippet$Label[]
@@ -254,27 +254,27 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 5   ; $field_67
   string.const 4   ; "labels "
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 5   ; $field_67
   local.get 2   ; __buf_1
   local.get 5   ; $field_67
   local.get 1   ; $call_7
-  call 10   ; std_core$write_int
+  call 8   ; std_core$write_int
   local.set 5   ; $field_67
   local.get 2   ; __buf_1
   local.get 5   ; $field_67
   string.const 1   ; " "
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 5   ; $field_67
   local.get 2   ; __buf_1
   local.get 5   ; $field_67
   local.get 0   ; __p_0
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 5   ; $field_67
   local.get 2   ; __buf_1
   local.get 5   ; $field_67
   string.const 1   ; " "
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 5   ; $field_67
   data.const 1 30   ; pool[1] snippet$Label[]
   i32.const 0
@@ -286,11 +286,11 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 5   ; $field_67
   local.get 3   ; $eq_24
-  call 12   ; std_core$write_bool
+  call 10   ; std_core$write_bool
   local.set 5   ; $field_67
   local.get 2   ; __buf_1
   local.get 5   ; $field_67
-  call 8   ; std_core$finish_buffer
+  call 6   ; std_core$finish_buffer
   call 59   ; std_io$println__string
   string.const 5   ; "012"
   struct.new 5   ; snippet$Box__string
@@ -327,7 +327,7 @@ fn 1 snippet$main () -> i32
     local.get 2   ; __buf_1
     local.get 1   ; $call_7
     string.const 6   ; "slot "
-    call 9   ; std_core$write_string_at
+    call 7   ; std_core$write_string_at
     local.set 1   ; $call_7
     local.get 6   ; __p_9
     u8.to_i64
@@ -335,21 +335,21 @@ fn 1 snippet$main () -> i32
     local.get 2   ; __buf_1
     local.get 1   ; $call_7
     local.get 4   ; $cast_34
-    call 11   ; std_core$write_unsigned
+    call 9   ; std_core$write_unsigned
     local.set 1   ; $call_7
     local.get 2   ; __buf_1
     local.get 1   ; $call_7
     string.const 1   ; " "
-    call 9   ; std_core$write_string_at
+    call 7   ; std_core$write_string_at
     local.set 1   ; $call_7
     local.get 2   ; __buf_1
     local.get 1   ; $call_7
     local.get 0   ; __p_0
-    call 9   ; std_core$write_string_at
+    call 7   ; std_core$write_string_at
     local.set 1   ; $call_7
     local.get 2   ; __buf_1
     local.get 1   ; $call_7
-    call 8   ; std_core$finish_buffer
+    call 6   ; std_core$finish_buffer
     call 59   ; std_io$println__string
   end $L2
   string.const 7   ; "six"
@@ -366,7 +366,7 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   string.const 8   ; "pair "
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 1   ; $call_7
   i32.const 6
   i32.to_i64
@@ -374,21 +374,21 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   local.get 5   ; $field_67
-  call 10   ; std_core$write_int
+  call 8   ; std_core$write_int
   local.set 1   ; $call_7
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   string.const 1   ; " "
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 1   ; $call_7
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
   local.get 0   ; __p_0
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 1   ; $call_7
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
-  call 8   ; std_core$finish_buffer
+  call 6   ; std_core$finish_buffer
   call 59   ; std_io$println__string
   return.lit i32.const 0
 end
@@ -405,7 +405,7 @@ fn 2 snippet$Box$std_core$Display$to_string__i64 (ref) -> string
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 9   ; "box("
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 4 0   ; arg 0 snippet$Box__i64.item
   ref.cast 14   ; i64
@@ -413,16 +413,16 @@ fn 2 snippet$Box$std_core$Display$to_string__i64 (ref) -> string
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $field_8
-  call 10   ; std_core$write_int
+  call 8   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 10   ; ")"
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 8   ; std_core$finish_buffer
+  call 6   ; std_core$finish_buffer
   return
 end
 
@@ -508,25 +508,14 @@ fn 5 concat_3 (string,string,string) -> string
   return
 end
 
-fn 6 std_core$i64$Display$to_string (i64) -> string
-  local.get 0   ; arg 0
-  call 13   ; std_core$format_signed
-  return
-end
-
-fn 7 std_core$string$Display$to_string (string) -> string
-  local.get 0   ; arg 0
-  return
-end
-
-fn 8 std_core$finish_buffer (ref,i64) -> string
+fn 6 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 9 std_core$write_string_at (ref,i64,string) -> i64
+fn 7 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -541,7 +530,7 @@ fn 9 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 10 std_core$write_int (ref,i64,i64) -> i64
+fn 8 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -655,7 +644,7 @@ fn 10 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 11 std_core$write_unsigned (ref,i64,u64) -> i64
+fn 9 std_core$write_unsigned (ref,i64,u64) -> i64
   local ndigits i64
   local m u64
   local i i64
@@ -735,24 +724,114 @@ fn 11 std_core$write_unsigned (ref,i64,u64) -> i64
   return
 end
 
-fn 12 std_core$write_bool (ref,i64,bool) -> i64
+fn 10 std_core$write_bool (ref,i64,bool) -> i64
   local.get 2   ; arg 2
   if $L0 void
   else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     string.const 12   ; "false"
-    call 9   ; std_core$write_string_at
+    call 7   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   string.const 11   ; "true"
-  call 9   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   return
 end
 
-fn 13 std_core$format_signed (i64) -> string
+fn 11 std_core$i8$Display$to_string (i8) -> string
+  local.get 0   ; arg 0
+  i8.to_i64
+  call 25   ; std_core$format_signed
+  return
+end
+
+fn 12 std_core$i16$Display$to_string (i16) -> string
+  local.get 0   ; arg 0
+  i16.to_i64
+  call 25   ; std_core$format_signed
+  return
+end
+
+fn 13 std_core$i32$Display$to_string (i32) -> string
+  local.get 0   ; arg 0
+  i32.to_i64
+  call 25   ; std_core$format_signed
+  return
+end
+
+fn 14 std_core$i64$Display$to_string (i64) -> string
+  local.get 0   ; arg 0
+  call 25   ; std_core$format_signed
+  return
+end
+
+fn 15 std_core$u8$Display$to_string (u8) -> string
+  local.get 0   ; arg 0
+  u8.to_i64
+  call 26   ; std_core$format_unsigned
+  return
+end
+
+fn 16 std_core$u16$Display$to_string (u16) -> string
+  local.get 0   ; arg 0
+  u16.to_i64
+  call 26   ; std_core$format_unsigned
+  return
+end
+
+fn 17 std_core$u32$Display$to_string (u32) -> string
+  local.get 0   ; arg 0
+  u32.to_i64
+  call 26   ; std_core$format_unsigned
+  return
+end
+
+fn 18 std_core$u64$Display$to_string (u64) -> string
+  local.get 0   ; arg 0
+  call 26   ; std_core$format_unsigned
+  return
+end
+
+fn 19 std_core$bool$Display$to_string (bool) -> string
+  local.get 0   ; arg 0
+  if $L0 void
+    return.lit string.const 11   ; "true"
+  end $L0
+  return.lit string.const 12   ; "false"
+end
+
+fn 20 std_core$char$Display$to_string (char) -> string
+  local.get 0   ; arg 0
+  call 27   ; std_core$utf8_encode
+  call.import 1   ; std_core$bytes_to_string
+  return
+end
+
+fn 21 std_core$string$Display$to_string (string) -> string
+  local.get 0   ; arg 0
+  return
+end
+
+fn 22 std_core$null$Display$to_string (null) -> string
+  return.lit string.const 13   ; "null"
+end
+
+fn 23 std_core$f32$Display$to_string (f32) -> string
+  local.get 0   ; arg 0
+  call 28   ; std_core$format_f32
+  return
+end
+
+fn 24 std_core$f64$Display$to_string (f64) -> string
+  local.get 0   ; arg 0
+  call 29   ; std_core$format_f64
+  return
+end
+
+fn 25 std_core$format_signed (i64) -> string
   local neg bool
   local ndigits i64
   local m i64
@@ -763,7 +842,7 @@ fn 13 std_core$format_signed (i64) -> string
   i64.const 0
   i64.eq
   if $L0 void
-    return.lit string.const 13   ; "0"
+    return.lit string.const 14   ; "0"
   end $L0
   local.get 0   ; arg 0
   i64.const 0
@@ -861,85 +940,6 @@ fn 13 std_core$format_signed (i64) -> string
   return
 end
 
-fn 14 std_core$i8$Display$to_string (i8) -> string
-  local.get 0   ; arg 0
-  i8.to_i64
-  call 13   ; std_core$format_signed
-  return
-end
-
-fn 15 std_core$i16$Display$to_string (i16) -> string
-  local.get 0   ; arg 0
-  i16.to_i64
-  call 13   ; std_core$format_signed
-  return
-end
-
-fn 16 std_core$i32$Display$to_string (i32) -> string
-  local.get 0   ; arg 0
-  i32.to_i64
-  call 13   ; std_core$format_signed
-  return
-end
-
-fn 17 std_core$u8$Display$to_string (u8) -> string
-  local.get 0   ; arg 0
-  u8.to_i64
-  call 26   ; std_core$format_unsigned
-  return
-end
-
-fn 18 std_core$u16$Display$to_string (u16) -> string
-  local.get 0   ; arg 0
-  u16.to_i64
-  call 26   ; std_core$format_unsigned
-  return
-end
-
-fn 19 std_core$u32$Display$to_string (u32) -> string
-  local.get 0   ; arg 0
-  u32.to_i64
-  call 26   ; std_core$format_unsigned
-  return
-end
-
-fn 20 std_core$u64$Display$to_string (u64) -> string
-  local.get 0   ; arg 0
-  call 26   ; std_core$format_unsigned
-  return
-end
-
-fn 21 std_core$bool$Display$to_string (bool) -> string
-  local.get 0   ; arg 0
-  if $L0 void
-    return.lit string.const 11   ; "true"
-  end $L0
-  return.lit string.const 12   ; "false"
-end
-
-fn 22 std_core$char$Display$to_string (char) -> string
-  local.get 0   ; arg 0
-  call 27   ; std_core$utf8_encode
-  call.import 1   ; std_core$bytes_to_string
-  return
-end
-
-fn 23 std_core$null$Display$to_string (null) -> string
-  return.lit string.const 14   ; "null"
-end
-
-fn 24 std_core$f32$Display$to_string (f32) -> string
-  local.get 0   ; arg 0
-  call 28   ; std_core$format_f32
-  return
-end
-
-fn 25 std_core$f64$Display$to_string (f64) -> string
-  local.get 0   ; arg 0
-  call 29   ; std_core$format_f64
-  return
-end
-
 fn 26 std_core$format_unsigned (u64) -> string
   local ndigits i64
   local m u64
@@ -951,7 +951,7 @@ fn 26 std_core$format_unsigned (u64) -> string
   i64.const 0
   i64.eq
   if $L0 void
-    return.lit string.const 13   ; "0"
+    return.lit string.const 14   ; "0"
   end $L0
   i64.const 0
   local.set 1   ; ndigits
@@ -2877,7 +2877,7 @@ fn 41 std_core$write_decimal (ref,i64,u64,i32) -> i64
     local.get 0   ; arg 0
     local.get 6   ; $add_checked_14
     local.get 11   ; $cast_62
-    call 11   ; std_core$write_unsigned
+    call 9   ; std_core$write_unsigned
     return
   end $L8
   local.get 4   ; k
@@ -2886,7 +2886,7 @@ fn 41 std_core$write_decimal (ref,i64,u64,i32) -> i64
   local.get 0   ; arg 0
   local.get 6   ; $add_checked_14
   local.get 11   ; $cast_62
-  call 11   ; std_core$write_unsigned
+  call 9   ; std_core$write_unsigned
   return
 end
 

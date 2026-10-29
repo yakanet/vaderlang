@@ -348,15 +348,15 @@ LowerProjectCtx :: struct {
     /// keys off this table instead.
     array_member_uses: MutableMap<string, ArrayMemberUse>
 
-    /// Erased generic-struct impl-member receivers (`MutableMap<Any, bool>`)
-    /// discovered by `find_impl_member_for`: their instance never reaches
-    /// `evaluated.instances` (erasure artifacts, not source-level). Drained
+    /// Generic struct instances a literal builds or a call reaches an impl member
+    /// of (`queue_generic_impl_receiver`), args stripped of distincts. Drained
     /// inside the `drain_generic_fn_instances` fixpoint so the impl
     /// bodies' transitive free-fn harvests stay on the same cursor. Struct
     /// analogue of `array_member_uses`.
-    pending_generic_impl_recv: GenericInstance[]
-    /// Receiver keys already queued, so each erased instance is queued once
-    /// (bounds the queue + avoids redundant per-receiver module scans).
+    pending_generic_impl_recv: StructType[]
+    /// Receiver keys already queued, so each instance is queued once per
+    /// erased shape (bounds the queue + avoids redundant per-receiver module
+    /// scans).
     seen_generic_impl_recv: MutableSet<string>
 
     /// Resumable state for the generic-fn-instance materialiser, split into a

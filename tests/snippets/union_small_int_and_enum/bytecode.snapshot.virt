@@ -13,23 +13,23 @@ type 10 struct __lambda_env_snippet_1 { cap_0:13 }
 type 11 scalar void
 type 12 struct snippet$Holder { b:1 }
 type 13 ref _
-type 14 scalar u64
-type 15 scalar bool
-type 16 scalar i64
-type 17 struct std_core$Buffer {  }
-type 18 scalar i8
-type 19 scalar i16
-type 20 scalar u16
-type 21 scalar char
-type 22 ref _
+type 14 struct std_core$Buffer {  }
+type 15 scalar i64
+type 16 scalar u64
+type 17 scalar i8
+type 18 scalar i16
+type 19 scalar u16
+type 20 scalar char
+type 21 ref _
+type 22 scalar bool
 type 23 scalar f32
 type 24 scalar f64
 type 25 array 3
-type 26 struct std_collections$MutableSet__string___u8 { inner:27 }
-type 27 struct std_collections$MutableMap__string___u8__bool { ekeys:30,evals:29,index:28,mask:16,grow_at:16,size:16,tombs:16 }
-type 28 array 7
-type 29 array 15
-type 30 array 1
+type 26 struct std_collections$MutableMap__string___u8__bool { ekeys:28,evals:29,index:30,mask:15,grow_at:15,size:15,tombs:15 }
+type 27 struct std_collections$MutableSet__string___u8 { inner:26 }
+type 28 array 1
+type 29 array 22
+type 30 array 7
 type 31 struct $Cell_Union_string_u8__d0f53381 { value:1 }
 type 32 array 6
 string 0 "u8 "
@@ -43,42 +43,42 @@ string 7 "x"
 string 8 "\n"
 string 9 "alias u8 "
 string 10 "alias text"
-import 0 byte_len std_core$byte_len result_type=16 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$byte_len result_type=15 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=25 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 hash std_core$string$Hash$hash result_type=14 param_types=2 param_c_out= param_by_address= (string) -> u64
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=7,25,16 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 hash std_core$string$Hash$hash result_type=16 param_types=2 param_c_out= param_by_address= (string) -> u64
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=7,25,15 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 8 snippet$Shower
-impl 17 std_core$ByteAccess
+impl 14 std_core$ByteAccess
+impl 26 std_core$Index
+impl 26 std_core$IndexSet
 impl 26 std_core$Contains
 impl 26 std_core$Into
-impl 27 std_core$Index
-impl 27 std_core$IndexSet
 impl 27 std_core$Contains
 impl 27 std_core$Into
 vtable snippet$Shower.shown 8 5
-vtable std_core$Hash.hash 7 9
-vtable std_core$Hash.hash 2 47
+vtable std_core$Hash.hash 17 13
 vtable std_core$Hash.hash 18 14
-vtable std_core$Hash.hash 19 15
-vtable std_core$Hash.hash 16 16
+vtable std_core$Hash.hash 7 15
+vtable std_core$Hash.hash 15 16
 vtable std_core$Hash.hash 3 17
-vtable std_core$Hash.hash 20 18
+vtable std_core$Hash.hash 19 18
 vtable std_core$Hash.hash 5 19
-vtable std_core$Hash.hash 14 20
-vtable std_core$Hash.hash 21 21
-vtable std_core$Equals.equals 7 22
-vtable std_core$Equals.equals 2 23
-vtable std_core$Equals.equals 18 24
-vtable std_core$Equals.equals 19 25
-vtable std_core$Equals.equals 16 26
-vtable std_core$Equals.equals 3 27
-vtable std_core$Equals.equals 20 28
-vtable std_core$Equals.equals 5 29
-vtable std_core$Equals.equals 14 30
-vtable std_core$Equals.equals 23 31
-vtable std_core$Equals.equals 24 32
-vtable std_core$Equals.equals 15 33
-vtable std_core$Equals.equals 21 34
+vtable std_core$Hash.hash 16 20
+vtable std_core$Hash.hash 20 21
+vtable std_core$Hash.hash 2 47
+vtable std_core$Equals.equals 17 22
+vtable std_core$Equals.equals 18 23
+vtable std_core$Equals.equals 7 24
+vtable std_core$Equals.equals 15 25
+vtable std_core$Equals.equals 3 26
+vtable std_core$Equals.equals 19 27
+vtable std_core$Equals.equals 5 28
+vtable std_core$Equals.equals 16 29
+vtable std_core$Equals.equals 23 30
+vtable std_core$Equals.equals 24 31
+vtable std_core$Equals.equals 22 32
+vtable std_core$Equals.equals 20 33
+vtable std_core$Equals.equals 2 34
 export main 6
 
 fn 0 snippet$show_byte (any) -> string
@@ -96,7 +96,7 @@ fn 0 snippet$show_byte (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     string.const 0   ; "u8 "
-    call 11   ; std_core$write_string_at
+    call 10   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
     ref.cast 3   ; u8
@@ -105,11 +105,11 @@ fn 0 snippet$show_byte (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     local.get 3   ; $cast_11
-    call 13   ; std_core$write_unsigned
+    call 12   ; std_core$write_unsigned
     local.set 2   ; __off_1
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
-    call 10   ; std_core$finish_buffer
+    call 9   ; std_core$finish_buffer
     return
   end $L0
   return.lit string.const 1   ; "text"
@@ -130,7 +130,7 @@ fn 1 snippet$show_word (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     string.const 2   ; "u32 "
-    call 11   ; std_core$write_string_at
+    call 10   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
     ref.cast 5   ; u32
@@ -139,11 +139,11 @@ fn 1 snippet$show_word (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     local.get 3   ; $cast_11
-    call 13   ; std_core$write_unsigned
+    call 12   ; std_core$write_unsigned
     local.set 2   ; __off_1
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
-    call 10   ; std_core$finish_buffer
+    call 9   ; std_core$finish_buffer
     return
   end $L0
   return.lit string.const 1   ; "text"
@@ -164,7 +164,7 @@ fn 2 snippet$show_cell (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     string.const 3   ; "color "
-    call 11   ; std_core$write_string_at
+    call 10   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
     ref.cast 3   ; u8
@@ -174,11 +174,11 @@ fn 2 snippet$show_cell (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     local.get 3   ; $cast_12
-    call 12   ; std_core$write_int
+    call 11   ; std_core$write_int
     local.set 2   ; __off_1
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
-    call 10   ; std_core$finish_buffer
+    call 9   ; std_core$finish_buffer
     return
   end $L0
   return.lit string.const 1   ; "text"
@@ -265,11 +265,11 @@ fn 6 snippet$main (ref) -> i32
   local.tee 2   ; local
   call 0   ; snippet$show_byte
   call 45   ; std_io$println__string
-  array.new 30 0   ; union[]
+  array.new 28 0   ; union[]
   local.set 1   ; h
   array.new 29 0   ; bool[]
   local.set 3   ; $arr_30
-  array.new 28 0   ; i32[]
+  array.new 30 0   ; i32[]
   local.set 4   ; $arr_31
   local.get 1   ; h
   local.get 3   ; $arr_30
@@ -278,8 +278,8 @@ fn 6 snippet$main (ref) -> i32
   i64.const 0
   i64.const 0
   i64.const 0
-  struct.new 27   ; std_collections$MutableMap__string___u8__bool
-  struct.new 26   ; std_collections$MutableSet__string___u8
+  struct.new 26   ; std_collections$MutableMap__string___u8__bool
+  struct.new 27   ; std_collections$MutableSet__string___u8
   local.tee 1   ; h
   local.get 2   ; local
   call 40   ; std_collections$add__string___u8
@@ -296,7 +296,7 @@ fn 6 snippet$main (ref) -> i32
   local.get 3   ; $arr_30
   local.get 5   ; __off_1
   string.const 6   ; "seen "
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 5   ; __off_1
   local.get 1   ; h
   call 41   ; std_collections$len__string___u8
@@ -304,11 +304,11 @@ fn 6 snippet$main (ref) -> i32
   local.get 3   ; $arr_30
   local.get 5   ; __off_1
   local.get 6   ; $call_48
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 5   ; __off_1
   local.get 3   ; $arr_30
   local.get 5   ; __off_1
-  call 10   ; std_core$finish_buffer
+  call 9   ; std_core$finish_buffer
   call 45   ; std_io$println__string
   i32.const 12
   retag 3   ; u8
@@ -453,20 +453,14 @@ fn 8 concat_2 (string,string) -> string
   return
 end
 
-fn 9 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; arg 0
-  i32.to_i64
-  return
-end
-
-fn 10 std_core$finish_buffer (ref,i64) -> string
+fn 9 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 11 std_core$write_string_at (ref,i64,string) -> i64
+fn 10 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -481,7 +475,7 @@ fn 11 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 12 std_core$write_int (ref,i64,i64) -> i64
+fn 11 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -595,7 +589,7 @@ fn 12 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 13 std_core$write_unsigned (ref,i64,u64) -> i64
+fn 12 std_core$write_unsigned (ref,i64,u64) -> i64
   local ndigits i64
   local m u64
   local i i64
@@ -675,15 +669,21 @@ fn 13 std_core$write_unsigned (ref,i64,u64) -> i64
   return
 end
 
-fn 14 std_core$i8$Hash$hash (i8) -> u64
+fn 13 std_core$i8$Hash$hash (i8) -> u64
   local.get 0   ; arg 0
   i8.to_i64
   return
 end
 
-fn 15 std_core$i16$Hash$hash (i16) -> u64
+fn 14 std_core$i16$Hash$hash (i16) -> u64
   local.get 0   ; arg 0
   i16.to_i64
+  return
+end
+
+fn 15 std_core$i32$Hash$hash (i32) -> u64
+  local.get 0   ; arg 0
+  i32.to_i64
   return
 end
 
@@ -722,7 +722,39 @@ fn 21 std_core$char$Hash$hash (char) -> u64
   return
 end
 
-fn 22 std_core$i32$Equals$equals$guard (i32,any) -> bool
+fn 22 std_core$i8$Equals$equals$guard (i8,any) -> bool
+  local $cast_4 i8
+  local.get 1   ; arg 1
+  type_check 17   ; i8
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 17   ; i8
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i32.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 23 std_core$i16$Equals$equals$guard (i16,any) -> bool
+  local $cast_4 i16
+  local.get 1   ; arg 1
+  type_check 18   ; i16
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 18   ; i16
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i32.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 24 std_core$i32$Equals$equals$guard (i32,any) -> bool
   local $cast_4 i32
   local.get 1   ; arg 1
   type_check 7   ; i32
@@ -738,61 +770,13 @@ fn 22 std_core$i32$Equals$equals$guard (i32,any) -> bool
   return.lit bool.const false
 end
 
-fn 23 std_core$string$Equals$equals$guard (string,any) -> bool
-  local $cast_4 string
-  local.get 1   ; arg 1
-  type_check 2   ; string
-  if $L0 void
-    local.get 1   ; arg 1
-    ref.cast 2   ; string
-    local.set 2   ; $cast_4
-    local.get 0   ; arg 0
-    local.get 2   ; $cast_4
-    string.eq
-    return
-  end $L0
-  return.lit bool.const false
-end
-
-fn 24 std_core$i8$Equals$equals$guard (i8,any) -> bool
-  local $cast_4 i8
-  local.get 1   ; arg 1
-  type_check 18   ; i8
-  if $L0 void
-    local.get 1   ; arg 1
-    ref.cast 18   ; i8
-    local.set 2   ; $cast_4
-    local.get 0   ; arg 0
-    local.get 2   ; $cast_4
-    i32.eq
-    return
-  end $L0
-  return.lit bool.const false
-end
-
-fn 25 std_core$i16$Equals$equals$guard (i16,any) -> bool
-  local $cast_4 i16
-  local.get 1   ; arg 1
-  type_check 19   ; i16
-  if $L0 void
-    local.get 1   ; arg 1
-    ref.cast 19   ; i16
-    local.set 2   ; $cast_4
-    local.get 0   ; arg 0
-    local.get 2   ; $cast_4
-    i32.eq
-    return
-  end $L0
-  return.lit bool.const false
-end
-
-fn 26 std_core$i64$Equals$equals$guard (i64,any) -> bool
+fn 25 std_core$i64$Equals$equals$guard (i64,any) -> bool
   local $cast_4 i64
   local.get 1   ; arg 1
-  type_check 16   ; i64
+  type_check 15   ; i64
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 16   ; i64
+    ref.cast 15   ; i64
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -802,7 +786,7 @@ fn 26 std_core$i64$Equals$equals$guard (i64,any) -> bool
   return.lit bool.const false
 end
 
-fn 27 std_core$u8$Equals$equals$guard (u8,any) -> bool
+fn 26 std_core$u8$Equals$equals$guard (u8,any) -> bool
   local $cast_4 u8
   local.get 1   ; arg 1
   type_check 3   ; u8
@@ -818,13 +802,13 @@ fn 27 std_core$u8$Equals$equals$guard (u8,any) -> bool
   return.lit bool.const false
 end
 
-fn 28 std_core$u16$Equals$equals$guard (u16,any) -> bool
+fn 27 std_core$u16$Equals$equals$guard (u16,any) -> bool
   local $cast_4 u16
   local.get 1   ; arg 1
-  type_check 20   ; u16
+  type_check 19   ; u16
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 20   ; u16
+    ref.cast 19   ; u16
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -834,7 +818,7 @@ fn 28 std_core$u16$Equals$equals$guard (u16,any) -> bool
   return.lit bool.const false
 end
 
-fn 29 std_core$u32$Equals$equals$guard (u32,any) -> bool
+fn 28 std_core$u32$Equals$equals$guard (u32,any) -> bool
   local $cast_4 u32
   local.get 1   ; arg 1
   type_check 5   ; u32
@@ -850,13 +834,13 @@ fn 29 std_core$u32$Equals$equals$guard (u32,any) -> bool
   return.lit bool.const false
 end
 
-fn 30 std_core$u64$Equals$equals$guard (u64,any) -> bool
+fn 29 std_core$u64$Equals$equals$guard (u64,any) -> bool
   local $cast_4 u64
   local.get 1   ; arg 1
-  type_check 14   ; u64
+  type_check 16   ; u64
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 14   ; u64
+    ref.cast 16   ; u64
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -866,7 +850,7 @@ fn 30 std_core$u64$Equals$equals$guard (u64,any) -> bool
   return.lit bool.const false
 end
 
-fn 31 std_core$f32$Equals$equals$guard (f32,any) -> bool
+fn 30 std_core$f32$Equals$equals$guard (f32,any) -> bool
   local $cast_4 f32
   local.get 1   ; arg 1
   type_check 23   ; f32
@@ -882,7 +866,7 @@ fn 31 std_core$f32$Equals$equals$guard (f32,any) -> bool
   return.lit bool.const false
 end
 
-fn 32 std_core$f64$Equals$equals$guard (f64,any) -> bool
+fn 31 std_core$f64$Equals$equals$guard (f64,any) -> bool
   local $cast_4 f64
   local.get 1   ; arg 1
   type_check 24   ; f64
@@ -898,13 +882,13 @@ fn 32 std_core$f64$Equals$equals$guard (f64,any) -> bool
   return.lit bool.const false
 end
 
-fn 33 std_core$bool$Equals$equals$guard (bool,any) -> bool
+fn 32 std_core$bool$Equals$equals$guard (bool,any) -> bool
   local $cast_4 bool
   local.get 1   ; arg 1
-  type_check 15   ; bool
+  type_check 22   ; bool
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 15   ; bool
+    ref.cast 22   ; bool
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -914,17 +898,33 @@ fn 33 std_core$bool$Equals$equals$guard (bool,any) -> bool
   return.lit bool.const false
 end
 
-fn 34 std_core$char$Equals$equals$guard (char,any) -> bool
+fn 33 std_core$char$Equals$equals$guard (char,any) -> bool
   local $cast_4 char
   local.get 1   ; arg 1
-  type_check 21   ; char
+  type_check 20   ; char
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 21   ; char
+    ref.cast 20   ; char
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
     i32.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 34 std_core$string$Equals$equals$guard (string,any) -> bool
+  local $cast_4 string
+  local.get 1   ; arg 1
+  type_check 2   ; string
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 2   ; string
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    string.eq
     return
   end $L0
   return.lit bool.const false
@@ -966,7 +966,7 @@ fn 37 std_collections$rehash__string___u8__bool (ref,i64) -> void
   local perturb u64
   local s i64
   local $cast_37 i32
-  array.new 28 0   ; i32[]
+  array.new 30 0   ; i32[]
   local.set 2   ; $arr_2
   i64.const 0
   local.get 1   ; arg 1
@@ -1005,17 +1005,17 @@ fn 37 std_collections$rehash__string___u8__bool (ref,i64) -> void
   local.set 3   ; if_res
   i64.const 0
   local.set 4   ; e
-  local.field 0 27 5   ; arg 0 std_collections$MutableMap__string___u8__bool.size
-  ref.cast 16   ; i64
+  local.field 0 26 5   ; arg 0 std_collections$MutableMap__string___u8__bool.size
+  ref.cast 15   ; i64
   local.set 5   ; __for_hi_1
   loop $L3 void
     local.get 4   ; e
     local.get 5   ; __for_hi_1
     i64.lt
     if $L4 void
-      local.field 0 27 0   ; arg 0 std_collections$MutableMap__string___u8__bool.ekeys
+      local.field 0 26 0   ; arg 0 std_collections$MutableMap__string___u8__bool.ekeys
       local.get 4   ; e
-      array.get 30   ; union[]
+      array.get 28   ; union[]
       virtual.call 1 std_core$Hash.hash -> u64
       local.tee 6   ; perturb
       local.get 3   ; if_res
@@ -1058,10 +1058,10 @@ fn 37 std_collections$rehash__string___u8__bool (ref,i64) -> void
   end $L3
   local.get 0   ; arg 0
   local.get 2   ; $arr_2
-  struct.set 27 2   ; std_collections$MutableMap__string___u8__bool.index
+  struct.set 26 2   ; std_collections$MutableMap__string___u8__bool.index
   local.get 0   ; arg 0
   local.get 3   ; if_res
-  struct.set 27 3   ; std_collections$MutableMap__string___u8__bool.mask
+  struct.set 26 3   ; std_collections$MutableMap__string___u8__bool.mask
   local.get 1   ; arg 1
   i64.const 4
   i64.div
@@ -1070,10 +1070,10 @@ fn 37 std_collections$rehash__string___u8__bool (ref,i64) -> void
   local.set 3   ; if_res
   local.get 0   ; arg 0
   local.get 3   ; if_res
-  struct.set 27 4   ; std_collections$MutableMap__string___u8__bool.grow_at
+  struct.set 26 4   ; std_collections$MutableMap__string___u8__bool.grow_at
   local.get 0   ; arg 0
   i64.const 0
-  struct.set 27 6   ; std_collections$MutableMap__string___u8__bool.tombs
+  struct.set 26 6   ; std_collections$MutableMap__string___u8__bool.tombs
   return
 end
 
@@ -1084,8 +1084,8 @@ fn 38 std_collections$grow_index__string___u8__bool (ref) -> void
   i64.const 16
   local.set 1   ; new_count
   loop $L0 void
-    local.field 0 27 5   ; arg 0 std_collections$MutableMap__string___u8__bool.size
-    ref.cast 16   ; i64
+    local.field 0 26 5   ; arg 0 std_collections$MutableMap__string___u8__bool.size
+    ref.cast 15   ; i64
     i64.const 4
     i64.checked_mul
     local.set 2   ; $mul_checked_5
@@ -1124,7 +1124,7 @@ fn 39 std_collections$put__string___u8__bool (ref,any,bool) -> bool
   local.set 3   ; first_tomb
   i64.const -1
   local.set 4   ; empty
-  local.field 0 27 2   ; arg 0 std_collections$MutableMap__string___u8__bool.index
+  local.field 0 26 2   ; arg 0 std_collections$MutableMap__string___u8__bool.index
   array.len
   i64.const 0
   i64.gt
@@ -1132,15 +1132,15 @@ fn 39 std_collections$put__string___u8__bool (ref,any,bool) -> bool
     local.get 1   ; arg 1
     virtual.call 1 std_core$Hash.hash -> u64
     local.set 5   ; perturb
-    local.field 0 27 3   ; arg 0 std_collections$MutableMap__string___u8__bool.mask
-    ref.cast 16   ; i64
+    local.field 0 26 3   ; arg 0 std_collections$MutableMap__string___u8__bool.mask
+    ref.cast 15   ; i64
     local.set 6   ; $field_13
     local.get 5   ; perturb
     local.get 6   ; $field_13
     call 35   ; std_collections$first_slot
     local.set 6   ; $field_13
     loop $L1 void
-      local.field 0 27 2   ; arg 0 std_collections$MutableMap__string___u8__bool.index
+      local.field 0 26 2   ; arg 0 std_collections$MutableMap__string___u8__bool.index
       local.get 6   ; $field_13
       load_slot_i32
       local.tee 7   ; slot
@@ -1165,15 +1165,15 @@ fn 39 std_collections$put__string___u8__bool (ref,any,bool) -> bool
           i64.const 1
           i64.checked_sub
           local.set 8   ; ei
-          local.field 0 27 0   ; arg 0 std_collections$MutableMap__string___u8__bool.ekeys
+          local.field 0 26 0   ; arg 0 std_collections$MutableMap__string___u8__bool.ekeys
           local.get 8   ; ei
-          array.get 30   ; union[]
+          array.get 28   ; union[]
           local.set 9   ; $idx_30
           local.get 1   ; arg 1
           local.get 9   ; $idx_30
           virtual.call 2 std_core$Equals.equals -> bool
           if $L5 void
-            local.field 0 27 1   ; arg 0 std_collections$MutableMap__string___u8__bool.evals
+            local.field 0 26 1   ; arg 0 std_collections$MutableMap__string___u8__bool.evals
             local.get 8   ; ei
             local.get 2   ; arg 2
             array.set 29   ; bool[]
@@ -1184,8 +1184,8 @@ fn 39 std_collections$put__string___u8__bool (ref,any,bool) -> bool
         i64.const 5
         u64.shr
         local.set 5   ; perturb
-        local.field 0 27 3   ; arg 0 std_collections$MutableMap__string___u8__bool.mask
-        ref.cast 16   ; i64
+        local.field 0 26 3   ; arg 0 std_collections$MutableMap__string___u8__bool.mask
+        ref.cast 15   ; i64
         local.set 10   ; $field_36
         local.get 6   ; $field_13
         local.get 5   ; perturb
@@ -1198,31 +1198,31 @@ fn 39 std_collections$put__string___u8__bool (ref,any,bool) -> bool
     local.get 6   ; $field_13
     local.set 4   ; empty
   end $L0
-  local.field 0 27 5   ; arg 0 std_collections$MutableMap__string___u8__bool.size
-  ref.cast 16   ; i64
+  local.field 0 26 5   ; arg 0 std_collections$MutableMap__string___u8__bool.size
+  ref.cast 15   ; i64
   local.set 6   ; $field_13
-  local.field 0 27 0   ; arg 0 std_collections$MutableMap__string___u8__bool.ekeys
+  local.field 0 26 0   ; arg 0 std_collections$MutableMap__string___u8__bool.ekeys
   array.len
   local.set 8   ; ei
   local.get 6   ; $field_13
   local.get 8   ; ei
   i64.lt
   if $L6 void
-    local.field 0 27 0   ; arg 0 std_collections$MutableMap__string___u8__bool.ekeys
+    local.field 0 26 0   ; arg 0 std_collections$MutableMap__string___u8__bool.ekeys
     local.get 6   ; $field_13
     local.get 1   ; arg 1
-    array.set 30   ; union[]
-    local.field 0 27 1   ; arg 0 std_collections$MutableMap__string___u8__bool.evals
+    array.set 28   ; union[]
+    local.field 0 26 1   ; arg 0 std_collections$MutableMap__string___u8__bool.evals
     local.get 6   ; $field_13
     local.get 2   ; arg 2
     array.set 29   ; bool[]
   else
-    local.field 0 27 0   ; arg 0 std_collections$MutableMap__string___u8__bool.ekeys
+    local.field 0 26 0   ; arg 0 std_collections$MutableMap__string___u8__bool.ekeys
     local.get 1   ; arg 1
     array.push 1   ; union
-    local.field 0 27 1   ; arg 0 std_collections$MutableMap__string___u8__bool.evals
+    local.field 0 26 1   ; arg 0 std_collections$MutableMap__string___u8__bool.evals
     local.get 2   ; arg 2
-    array.push 15   ; bool
+    array.push 22   ; bool
   end $L6
   local.get 6   ; $field_13
   i64.const 1
@@ -1230,16 +1230,16 @@ fn 39 std_collections$put__string___u8__bool (ref,any,bool) -> bool
   local.set 8   ; ei
   local.get 0   ; arg 0
   local.get 8   ; ei
-  struct.set 27 5   ; std_collections$MutableMap__string___u8__bool.size
-  local.field 0 27 6   ; arg 0 std_collections$MutableMap__string___u8__bool.tombs
-  ref.cast 16   ; i64
+  struct.set 26 5   ; std_collections$MutableMap__string___u8__bool.size
+  local.field 0 26 6   ; arg 0 std_collections$MutableMap__string___u8__bool.tombs
+  ref.cast 15   ; i64
   local.set 8   ; ei
   local.get 6   ; $field_13
   local.get 8   ; ei
   i64.checked_add
   local.set 8   ; ei
-  local.field 0 27 4   ; arg 0 std_collections$MutableMap__string___u8__bool.grow_at
-  ref.cast 16   ; i64
+  local.field 0 26 4   ; arg 0 std_collections$MutableMap__string___u8__bool.grow_at
+  ref.cast 15   ; i64
   local.set 10   ; $field_36
   local.get 8   ; ei
   local.get 10   ; $field_36
@@ -1253,15 +1253,15 @@ fn 39 std_collections$put__string___u8__bool (ref,any,bool) -> bool
   i64.const 0
   i64.ge
   if $L8 void
-    local.field 0 27 6   ; arg 0 std_collections$MutableMap__string___u8__bool.tombs
-    ref.cast 16   ; i64
+    local.field 0 26 6   ; arg 0 std_collections$MutableMap__string___u8__bool.tombs
+    ref.cast 15   ; i64
     i64.const 1
     i64.checked_sub
     local.set 8   ; ei
     local.get 0   ; arg 0
     local.get 8   ; ei
-    struct.set 27 6   ; std_collections$MutableMap__string___u8__bool.tombs
-    local.field 0 27 2   ; arg 0 std_collections$MutableMap__string___u8__bool.index
+    struct.set 26 6   ; std_collections$MutableMap__string___u8__bool.tombs
+    local.field 0 26 2   ; arg 0 std_collections$MutableMap__string___u8__bool.index
     local.set 11   ; $field_58
     local.get 6   ; $field_13
     i64.const 1
@@ -1273,7 +1273,7 @@ fn 39 std_collections$put__string___u8__bool (ref,any,bool) -> bool
     local.get 7   ; slot
     store_slot_i32
   else
-    local.field 0 27 2   ; arg 0 std_collections$MutableMap__string___u8__bool.index
+    local.field 0 26 2   ; arg 0 std_collections$MutableMap__string___u8__bool.index
     local.set 11   ; $field_58
     local.get 6   ; $field_13
     i64.const 1
@@ -1289,7 +1289,7 @@ fn 39 std_collections$put__string___u8__bool (ref,any,bool) -> bool
 end
 
 fn 40 std_collections$add__string___u8 (ref,any) -> bool
-  local.field 0 26 0   ; arg 0 std_collections$MutableSet__string___u8.inner
+  local.field 0 27 0   ; arg 0 std_collections$MutableSet__string___u8.inner
   local.get 1   ; arg 1
   bool.const true
   call 39   ; std_collections$put__string___u8__bool
@@ -1297,9 +1297,9 @@ fn 40 std_collections$add__string___u8 (ref,any) -> bool
 end
 
 fn 41 std_collections$len__string___u8 (ref) -> i64
-  local.field 0 26 0   ; arg 0 std_collections$MutableSet__string___u8.inner
-  struct.get 27 5   ; std_collections$MutableMap__string___u8__bool.size
-  ref.cast 16   ; i64
+  local.field 0 27 0   ; arg 0 std_collections$MutableSet__string___u8.inner
+  struct.get 26 5   ; std_collections$MutableMap__string___u8__bool.size
+  ref.cast 15   ; i64
   return
 end
 
@@ -1416,7 +1416,7 @@ fn 46 snippet_bytes$describe (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     string.const 9   ; "alias u8 "
-    call 11   ; std_core$write_string_at
+    call 10   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
     ref.cast 3   ; u8
@@ -1425,11 +1425,11 @@ fn 46 snippet_bytes$describe (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     local.get 3   ; $cast_11
-    call 13   ; std_core$write_unsigned
+    call 12   ; std_core$write_unsigned
     local.set 2   ; __off_1
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
-    call 10   ; std_core$finish_buffer
+    call 9   ; std_core$finish_buffer
     return
   end $L0
   return.lit string.const 10   ; "alias text"

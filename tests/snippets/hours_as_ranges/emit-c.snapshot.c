@@ -106,12 +106,12 @@ const vader_type_info_t vader_type_info_table[14] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_1_t),
         .slot_size = 8,
     },
-    [10] = { .slot_size = 8 },
-    [11] = { .slot_size = 8 },
-    [12] = {
+    [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [11] = { .slot_size = 8 },
+    [12] = { .slot_size = 8 },
 };
 const size_t vader_type_info_count = 14;
 

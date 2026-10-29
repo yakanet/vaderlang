@@ -16,10 +16,10 @@ type 13 union 2,10
 type 14 struct snippet$Ready__i32 { v:2 }
 type 15 scalar string
 type 16 ref std_core$Async
-type 17 scalar u8
+type 17 struct std_core$Buffer {  }
 type 18 scalar i64
-type 19 struct std_core$Buffer {  }
-type 20 array 17
+type 19 scalar u8
+type 20 array 19
 type 21 array 2
 string 0 "tally="
 string 1 "\n"
@@ -29,7 +29,7 @@ import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 pa
 impl 8 std_core$Async
 impl 12 std_core$Async
 impl 14 std_core$Async
-impl 19 std_core$ByteAccess
+impl 17 std_core$ByteAccess
 vtable std_core$Async.resume 8 10
 vtable std_core$Async.resume 12 12
 vtable std_core$Async.resume 14 13

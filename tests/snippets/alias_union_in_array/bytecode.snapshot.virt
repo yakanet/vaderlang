@@ -7,20 +7,20 @@ type 4 struct snippet_types$Dog { name:6 }
 type 5 scalar void
 type 6 scalar string
 type 7 scalar i32
-type 8 scalar bool
-type 9 scalar u8
-type 10 scalar i64
-type 11 struct std_core$Buffer {  }
-type 12 array 9
+type 8 scalar i64
+type 9 struct std_core$Buffer {  }
+type 10 scalar u8
+type 11 scalar bool
+type 12 array 10
 string 0 "cat "
 string 1 "dog "
 string 2 "Whiskers"
 string 3 "Rex"
 string 4 "\n"
-import 0 byte_len std_core$byte_len result_type=10 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=12 param_types=6 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=7,12,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 11 std_core$ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=7,12,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 9 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$push_pet (ref,any) -> void

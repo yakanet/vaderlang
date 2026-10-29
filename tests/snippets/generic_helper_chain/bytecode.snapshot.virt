@@ -7,19 +7,19 @@ type 4 struct snippet$Box__string { value:2 }
 type 5 struct snippet$Box__snippet_Box_i32_ { value:7 }
 type 6 struct snippet$Box__snippet_Box_string_ { value:4 }
 type 7 ref _
-type 8 struct snippet$Box__snippet$Box_Any { value:7 }
-type 9 scalar bool
-type 10 scalar u8
-type 11 scalar i64
-type 12 struct std_core$Buffer {  }
-type 13 array 10
+type 8 struct snippet$Box__snippet_Box_Any_ { value:7 }
+type 9 struct std_core$Buffer {  }
+type 10 scalar i64
+type 11 scalar u8
+type 12 scalar bool
+type 13 array 11
 type 14 scalar void
 string 0 "ok"
 string 1 "\n"
-import 0 byte_len std_core$byte_len result_type=11 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$byte_len result_type=10 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=13 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=1,13,11 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 12 std_core$ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,13,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 9 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -87,7 +87,7 @@ end
 fn 5 snippet$outer__i32 (i32) -> ref
   local.get 0   ; arg 0
   call 3   ; snippet$middle__i32
-  struct.new 8   ; snippet$Box__snippet$Box_Any
+  struct.new 8   ; snippet$Box__snippet_Box_Any_
   return
 end
 

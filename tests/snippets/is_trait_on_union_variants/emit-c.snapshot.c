@@ -965,11 +965,11 @@ const vader_type_info_t vader_type_info_table[44] = {
     },
     [17] = { .slot_size = 16 },
     [18] = { .slot_size = 16 },
-    [19] = { .slot_size = 8 },
-    [20] = {
+    [19] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [20] = { .slot_size = 8 },
     [21] = { .slot_size = 1 },
     [22] = { .slot_size = 2 },
     [23] = { .slot_size = 2 },
@@ -1153,7 +1153,7 @@ static vader_string_t snippet$shown_points(vader_box_t l0) {
 }
 
 static vader_string_t snippet$open(vader_box_t l0) {
-    if (!((l0.tag == 2u || l0.tag == 25u || ((l0.tag == 35u) || (l0.tag == 1u) || (l0.tag == 3u)) || (l0.tag == 26u || l0.tag == 27u) || (l0.tag == 26u || l0.tag == 27u) || l0.tag == 22u || l0.tag == 7u || l0.tag == 19u || l0.tag == 21u || l0.tag == 9u || l0.tag == 23u || l0.tag == 24u || l0.tag == 4u || l0.tag == 6u))) {
+    if (!((l0.tag == 2u || l0.tag == 25u || ((l0.tag == 35u) || (l0.tag == 1u) || (l0.tag == 3u)) || (l0.tag == 26u || l0.tag == 27u) || (l0.tag == 26u || l0.tag == 27u) || l0.tag == 22u || l0.tag == 7u || l0.tag == 20u || l0.tag == 21u || l0.tag == 9u || l0.tag == 23u || l0.tag == 24u || l0.tag == 4u || l0.tag == 6u))) {
         return 8u;
     }
     return 1u;
@@ -1172,7 +1172,7 @@ static vader_string_t snippet$displayed(vader_box_t l0) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (!((l0.tag == 2u || l0.tag == 25u || ((l0.tag == 18u) || (l0.tag == 14u)) || (l0.tag == 26u || l0.tag == 27u) || (l0.tag == 26u || l0.tag == 27u) || l0.tag == 22u || l0.tag == 7u || l0.tag == 19u || l0.tag == 21u || l0.tag == 9u || l0.tag == 23u || l0.tag == 24u || l0.tag == 4u || l0.tag == 6u))) {
+    if (!((l0.tag == 2u || l0.tag == 25u || ((l0.tag == 18u) || (l0.tag == 14u)) || (l0.tag == 26u || l0.tag == 27u) || (l0.tag == 26u || l0.tag == 27u) || l0.tag == 22u || l0.tag == 7u || l0.tag == 20u || l0.tag == 21u || l0.tag == 9u || l0.tag == 23u || l0.tag == 24u || l0.tag == 4u || l0.tag == 6u))) {
         l1 = (void*) vader_buffer_new((size_t) INT64_C(26));
         l2 = INT64_C(0);
         l2 = std_core$write_string_at(l1, l2, 3u);
@@ -2991,7 +2991,7 @@ static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
         case 21u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));
         case 22u: return std_core$i16$Display$to_string(((int16_t) recv.payload.i));
         case 7u: return std_core$i32$Display$to_string(((int32_t) recv.payload.i));
-        case 19u: return std_core$i64$Display$to_string(((int64_t) recv.payload.i));
+        case 20u: return std_core$i64$Display$to_string(((int64_t) recv.payload.i));
         case 6u: return std_core$u8$Display$to_string(((uint8_t) recv.payload.i));
         case 23u: return std_core$u16$Display$to_string(((uint16_t) recv.payload.i));
         case 24u: return std_core$u32$Display$to_string(((uint32_t) recv.payload.i));

@@ -43,6 +43,15 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     fields_mark :: ctx.pending_awaits.len()
     fields :: build_struct_lit_fields(ctx, type, provided, lit, spread_sym)
     hoist_prelude_before(ctx, spread_stmts, fields_mark)
+    return with_prelude(spread_stmts, new_struct_lit(ctx, type, fields, lit.span), lit.span)
+}
+
+// The literal of a value of struct `type`. Every literal of a declared struct is
+// built here: its construction is noted (`note_construction`) and its tag erased
+// (`erase_generic_struct_tag`), both from the concrete `type`.
+new_struct_lit :: fn(
+    ctx: FnLowerCtx, type: Type, fields: LoweredStructLitField[], span: Span,
+) -> LoweredStructLit {
     note_construction(ctx, type)
     // Reconcile the box's runtime type-index with the trait-impl vtable's receiver
     // key. `materialize_impl_for_instance` registers a generic impl's vtable row
@@ -55,29 +64,20 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     // Primitive args stay concrete (`Ready<i32>` unchanged) so their devirtualised
     // dispatch is preserved.
     box_type :: erase_generic_struct_tag(ctx, type)
-    struct_lit :: LoweredStructLit { .span = lit.span, .type = box_type, .fields = fields }
-    return with_prelude(spread_stmts, struct_lit, lit.span)
+    return LoweredStructLit {
+        .span = span,
+        .type = box_type,
+        .fields = fields,
+    }
 }
 
 // Record that `type` is constructed: its generic instance for the impl fixpoint,
 // its symbol for the vtable members of a stdlib struct.
+//
+// A value whose generic instance is not queued has no impl members, and a virtual
+// call on it (`for`, `collect`, `count` dispatching `next`) misses its vtable row
+// at run time.
 note_construction :: fn(ctx: FnLowerCtx, type: Type) -> void {
-    // Erased generic struct instance (`FilterIterator<Any>`, constructed inside
-    // an erased generic fn body where T→Any) : the comptime instance harvest
-    // only observes the CONCRETE call-site instance (`FilterIterator<i32>`), so
-    // the erased struct's trait impls (`Iterator.next__Any`) are never
-    // materialised. Yet because the fn body is erased, EVERY call constructs
-    // THIS erased tag at runtime, and `collect` / `count` / `for-in` virtually
-    // dispatch `next` on it → `vtable miss / no impl for type N`. Queue the
-    // erased instance so the joint fixpoint materialises its impl members
-    // (self = this erased struct type), giving the vtable its missing row.
-    // Queue EVERY generic-struct instance (any non-empty type args), not just
-    // fully-erased (all-`Any`) ones : a CONCRETE instance built only inside a
-    // generic-fn-instance body (`Box<i32>` from `fn viagen<T>() = Box<T>{…}`)
-    // is NOT covered by the comptime harvest: the harvest only ever saw the
-    // source-level `Box<T>` (a type-param arg, which the materialiser rejects).
-    // Deduped by `seen_generic_impl_recv` here + `materialized_impl_keys` in the
-    // materialiser, so re-queuing a harvest-covered instance is a harmless no-op.
     // `struct_backing` unwraps a struct-backed distinct newtype (`Color :: Rgb`)
     // so the construction still registers against the backing struct symbol.
     st_backing :: struct_backing(type)
@@ -338,7 +338,7 @@ build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLi
             },
         )
     }
-    return LoweredStructLit { .span = span, .type = type, .fields = ordered }
+    return new_struct_lit(ctx, type, ordered, span)
 }
 
 // Linear lookup of a provided field by name: synthesised core structs have

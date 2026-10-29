@@ -5,8 +5,8 @@ type 2 scalar i64
 type 3 fn (1) -> 4
 type 4 scalar i32
 type 5 scalar string
-type 6 scalar bool
-type 7 struct std_core$Buffer {  }
+type 6 struct std_core$Buffer {  }
+type 7 scalar bool
 type 8 array 1
 type 9 scalar void
 type 10 struct snippet_status$StatusInfo { reason:5 }
@@ -26,7 +26,7 @@ import 2 bytes std_core$bytes result_type=8 param_types=5 param_c_out= param_by_
 import 3 extern abs snippet_status$abs_status$extern_import header=<stdlib.h> result_type=4 param_types=4 param_c_out= param_by_address= (i32) -> i32
 import 4 extern srand snippet_status$seed_with$extern_import header=<stdlib.h> result_type=9 param_types=4 param_c_out= param_by_address= (i32) -> void
 import 5 extern write system_posix$sys_write header=<unistd.h> result_type=2 param_types=4,8,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 7 std_core$ByteAccess
+impl 6 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$labs_step (u8) -> i64

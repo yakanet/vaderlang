@@ -5,14 +5,14 @@
 #include <string.h>
 
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
-typedef struct vader_struct_std_collections$MutableMap__string__i32_t vader_struct_std_collections$MutableMap__string__i32_t;
-typedef struct vader_struct_std_collections$MutableSet__string_t vader_struct_std_collections$MutableSet__string_t;
 typedef struct vader_struct_std_collections$MutableMap__string__bool_t vader_struct_std_collections$MutableMap__string__bool_t;
+typedef struct vader_struct_std_collections$MutableSet__string_t vader_struct_std_collections$MutableSet__string_t;
+typedef struct vader_struct_std_collections$MutableMap__string__i32_t vader_struct_std_collections$MutableMap__string__i32_t;
 
 struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
 };
-struct vader_struct_std_collections$MutableMap__string__i32_t {
+struct vader_struct_std_collections$MutableMap__string__bool_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -26,7 +26,7 @@ struct vader_struct_std_collections$MutableSet__string_t {
     vader_obj_header_t header;
     void* f_inner;
 };
-struct vader_struct_std_collections$MutableMap__string__bool_t {
+struct vader_struct_std_collections$MutableMap__string__i32_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -65,10 +65,10 @@ static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
 static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static bool std_collections$MutableMap$std_core$Contains$contains__string__bool(void* l0, vader_string_t l1);
+static bool std_collections$MutableSet$std_core$Contains$contains__string(void* l0, vader_string_t l1);
 static vader_box_t std_collections$MutableMap$std_core$Index$at__string__i32(void* l0, vader_string_t l1);
 static void std_collections$MutableMap$std_core$IndexSet$set_at__string__i32(void* l0, vader_string_t l1, int32_t l2);
-static bool std_collections$MutableSet$std_core$Contains$contains__string(void* l0, vader_string_t l1);
-static bool std_collections$MutableMap$std_core$Contains$contains__string__bool(void* l0, vader_string_t l1);
 static int64_t std_collections$first_slot(uint64_t l0, int64_t l1);
 static int64_t std_collections$next_slot(int64_t l0, uint64_t l1, int64_t l2);
 static void std_collections$rehash__string__bool(void* l0, int64_t l1);
@@ -94,22 +94,29 @@ static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf)
 const vader_type_info_t vader_type_info_table[17] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 8 },
-    [4] = { .slot_size = 1 },
-    [5] = { .slot_size = 1 },
-    [6] = { .slot_size = 8 },
-    [7] = {
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [8] = {
+    [4] = { .slot_size = 8 },
+    [5] = { .slot_size = 1 },
+    [6] = { .slot_size = 1 },
+    [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [10] = { .slot_size = 16 },
+    [9] = { .slot_size = 8 },
+    [10] = {
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct_std_collections$MutableMap__string__bool_t), .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$MutableMap__string__bool_t, f_ekeys), offsetof(vader_struct_std_collections$MutableMap__string__bool_t, f_evals), offsetof(vader_struct_std_collections$MutableMap__string__bool_t, f_index) },
+        .ref_count = 3,
+    },
     [11] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct_std_collections$MutableSet__string_t), .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$MutableSet__string_t, f_inner) },
+        .ref_count = 1,
     },
     [12] = {
         .kind = VADER_TYPE_KIND_STRUCT,
@@ -117,17 +124,10 @@ const vader_type_info_t vader_type_info_table[17] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$MutableMap__string__i32_t, f_ekeys), offsetof(vader_struct_std_collections$MutableMap__string__i32_t, f_evals), offsetof(vader_struct_std_collections$MutableMap__string__i32_t, f_index) },
         .ref_count = 3,
     },
-    [13] = {
-        .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections$MutableSet__string_t), .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$MutableSet__string_t, f_inner) },
-        .ref_count = 1,
-    },
+    [13] = { .slot_size = 16 },
     [14] = {
-        .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections$MutableMap__string__bool_t), .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$MutableMap__string__bool_t, f_ekeys), offsetof(vader_struct_std_collections$MutableMap__string__bool_t, f_evals), offsetof(vader_struct_std_collections$MutableMap__string__bool_t, f_index) },
-        .ref_count = 3,
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [15] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -152,7 +152,7 @@ static uint8_t vader_host_std_core$byte_at(vader_string_t a0, int64_t a1) {
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 8u, 5u);
+    return (void*) vader_string_bytes_view(a0, 7u, 6u);
 }
 
 static uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
@@ -197,14 +197,14 @@ static int32_t snippet$main(void) {
         vader_gc_top, 2u, 6u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(11u, 0u, 0u, 2u);
+    vader_array_t* _a0_arr = vader_array_new(14u, 0u, 0u, 2u);
     l0 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(16u, 0u, 12u, 4u);
+    vader_array_t* _a1_arr = vader_array_new(15u, 0u, 12u, 5u);
     l1 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(15u, 0u, 7u, 1u);
+    vader_array_t* _a2_arr = vader_array_new(16u, 0u, 7u, 1u);
     l2 = (void*) _a2_arr;
     vader_struct_std_collections$MutableMap__string__bool_t* _a3_obj = (vader_struct_std_collections$MutableMap__string__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$MutableMap__string__bool_t));
-    vader_obj_header_init(_a3_obj, 14u);
+    vader_obj_header_init(_a3_obj, 10u);
     _a3_obj->f_ekeys = l0;
     _a3_obj->f_evals = l1;
     _a3_obj->f_index = l2;
@@ -214,7 +214,7 @@ static int32_t snippet$main(void) {
     _a3_obj->f_tombs = INT64_C(0);
     t0 = (void*) _a3_obj;
     vader_struct_std_collections$MutableSet__string_t* _a4_obj = (vader_struct_std_collections$MutableSet__string_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$MutableSet__string_t));
-    vader_obj_header_init(_a4_obj, 13u);
+    vader_obj_header_init(_a4_obj, 11u);
     _a4_obj->f_inner = t0;
     l0 = (void*) _a4_obj;
     l3 = INT32_C(0);
@@ -228,11 +228,11 @@ static int32_t snippet$main(void) {
         std_collections$add__string(l0, l6);
         l3 = (l3 + INT32_C(1));
     }
-    vader_array_t* _a5_arr = vader_array_new(11u, 0u, 0u, 2u);
+    vader_array_t* _a5_arr = vader_array_new(14u, 0u, 0u, 2u);
     l1 = (void*) _a5_arr;
-    vader_array_t* _a6_arr = vader_array_new(15u, 0u, 7u, 1u);
+    vader_array_t* _a6_arr = vader_array_new(16u, 0u, 7u, 1u);
     l2 = (void*) _a6_arr;
-    vader_array_t* _a7_arr = vader_array_new(15u, 0u, 7u, 1u);
+    vader_array_t* _a7_arr = vader_array_new(16u, 0u, 7u, 1u);
     l7 = (void*) _a7_arr;
     vader_struct_std_collections$MutableMap__string__i32_t* _a8_obj = (vader_struct_std_collections$MutableMap__string__i32_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$MutableMap__string__i32_t));
     vader_obj_header_init(_a8_obj, 12u);
@@ -247,7 +247,7 @@ static int32_t snippet$main(void) {
     l3 = INT32_C(0);
     l8 = INT32_C(0);
     while ((l8 < INT32_C(40))) {
-        vader_array_t* _a9_arr = vader_array_new(11u, 0u, 0u, 2u);
+        vader_array_t* _a9_arr = vader_array_new(14u, 0u, 0u, 2u);
         t0 = (void*) _a9_arr;
         vader_array_t* _a10_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(100));
         l2 = (void*) _a10_arr;
@@ -408,6 +408,18 @@ static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2) {
     return t0;
 }
 
+static bool std_collections$MutableMap$std_core$Contains$contains__string__bool(void* l0, vader_string_t l1) {
+    bool t0;
+    t0 = std_collections$contains_key__string__bool(l0, l1);
+    return t0;
+}
+
+static bool std_collections$MutableSet$std_core$Contains$contains__string(void* l0, vader_string_t l1) {
+    bool t0;
+    t0 = std_collections$MutableMap$std_core$Contains$contains__string__bool(((vader_struct_std_collections$MutableSet__string_t*) l0)->f_inner, l1);
+    return t0;
+}
+
 static vader_box_t std_collections$MutableMap$std_core$Index$at__string__i32(void* l0, vader_string_t l1) {
     vader_box_t t0;
     t0 = std_collections$get__string__i32(l0, l1);
@@ -417,18 +429,6 @@ static vader_box_t std_collections$MutableMap$std_core$Index$at__string__i32(voi
 static void std_collections$MutableMap$std_core$IndexSet$set_at__string__i32(void* l0, vader_string_t l1, int32_t l2) {
     std_collections$put__string__i32(l0, l1, l2);
     return;
-}
-
-static bool std_collections$MutableSet$std_core$Contains$contains__string(void* l0, vader_string_t l1) {
-    bool t0;
-    t0 = std_collections$MutableMap$std_core$Contains$contains__string__bool(((vader_struct_std_collections$MutableSet__string_t*) l0)->f_inner, l1);
-    return t0;
-}
-
-static bool std_collections$MutableMap$std_core$Contains$contains__string__bool(void* l0, vader_string_t l1) {
-    bool t0;
-    t0 = std_collections$contains_key__string__bool(l0, l1);
-    return t0;
 }
 
 static int64_t std_collections$first_slot(uint64_t l0, int64_t l1) {
@@ -458,7 +458,7 @@ static void std_collections$rehash__string__bool(void* l0, int64_t l1) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(15u, 0u, 7u, 1u);
+    vader_array_t* _a0_arr = vader_array_new(16u, 0u, 7u, 1u);
     l2 = (void*) _a0_arr;
     if ((INT64_C(0) < l1)) {
         l3 = l1;
@@ -554,7 +554,7 @@ static void std_collections$rehash__string__i32(void* l0, int64_t l1) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(15u, 0u, 7u, 1u);
+    vader_array_t* _a0_arr = vader_array_new(16u, 0u, 7u, 1u);
     l2 = (void*) _a0_arr;
     if ((INT64_C(0) < l1)) {
         l3 = l1;

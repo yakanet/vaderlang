@@ -6,9 +6,9 @@ type 3 scalar i64
 type 4 scalar void
 type 5 struct snippet$Grid { w:2 }
 type 6 scalar string
-type 7 scalar bool
+type 7 struct std_core$Buffer {  }
 type 8 scalar u8
-type 9 struct std_core$Buffer {  }
+type 9 scalar bool
 type 10 array 8
 string 0 "set_at "
 string 1 " "
@@ -24,7 +24,7 @@ import 2 extern write system_posix$sys_write header=<unistd.h> result_type=3 par
 impl 1 std_core$Index
 impl 1 std_core$IndexSet
 impl 5 std_core$Index
-impl 9 std_core$ByteAccess
+impl 7 std_core$ByteAccess
 export main 4
 
 fn 0 snippet$Offset$std_core$Index$at (ref,i64) -> i32

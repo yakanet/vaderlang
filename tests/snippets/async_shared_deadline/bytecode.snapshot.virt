@@ -10,17 +10,17 @@ type 7 struct __asyncstate_snippet_0 { s0:0,s1:0,awaited:10,state:3 }
 type 8 scalar string
 type 9 scalar i64
 type 10 ref std_core$Async
-type 11 scalar bool
+type 11 struct std_core$Buffer {  }
 type 12 scalar u8
-type 13 struct std_core$Buffer {  }
+type 13 scalar bool
 type 14 array 12
-type 15 ref _
-type 16 struct std_async$JoinAll__i32 { children:22,results:18,slot:24,wake_at:24 }
-type 17 union 18,4
-type 18 array 3
-type 19 ref std_core$Async
-type 20 struct std_async$Sleep { ms:9,deadline:9,armed:11 }
-type 21 union 0,4
+type 15 struct std_async$JoinAll__i32 { children:22,results:17,slot:24,wake_at:24 }
+type 16 union 17,4
+type 17 array 3
+type 18 ref std_core$Async
+type 19 struct std_async$Sleep { ms:9,deadline:9,armed:13 }
+type 20 union 0,4
+type 21 ref _
 type 22 array 6
 type 23 ref std_core$Async
 type 24 array 9
@@ -36,17 +36,17 @@ import 5 panic std_abort$panic result_type=5 param_types=8 param_c_out= param_by
 import 6 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=3,14,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 1 std_core$Async
 impl 7 std_core$Async
-impl 13 std_core$ByteAccess
-impl 16 std_core$Async
-impl 20 std_core$Async
+impl 11 std_core$ByteAccess
+impl 15 std_core$Async
+impl 19 std_core$Async
 vtable std_core$Async.resume 1 0
 vtable std_core$Async.resume 7 4
-vtable std_core$Async.resume 16 10
-vtable std_core$Async.resume 20 14
+vtable std_core$Async.resume 15 10
+vtable std_core$Async.resume 19 14
 vtable std_core$Async.cancel 1 1
 vtable std_core$Async.cancel 7 5
-vtable std_core$Async.cancel 16 11
-vtable std_core$Async.cancel 20 15
+vtable std_core$Async.cancel 15 11
+vtable std_core$Async.cancel 19 15
 export main 3
 
 fn 0 snippet$Probe$std_core$Async$resume (ref) -> any
@@ -502,7 +502,7 @@ fn 10 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
   local $field_25 ref
   local $cast_26 i32
   local $idx_30 i64
-  local.field 0 16 0   ; arg 0 std_async$JoinAll__i32.children
+  local.field 0 15 0   ; arg 0 std_async$JoinAll__i32.children
   array.len
   local.set 1   ; n
   call.import 2   ; std_runtime$sched_now
@@ -516,20 +516,20 @@ fn 10 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
     local.get 1   ; n
     i64.lt
     if $L1 void
-      local.field 0 16 3   ; arg 0 std_async$JoinAll__i32.wake_at
+      local.field 0 15 3   ; arg 0 std_async$JoinAll__i32.wake_at
       local.get 4   ; i
       load_slot_i64
       local.get 2   ; now
       i64.le
       if $L2 void
-        local.field 0 16 0   ; arg 0 std_async$JoinAll__i32.children
+        local.field 0 15 0   ; arg 0 std_async$JoinAll__i32.children
         local.get 4   ; i
         array.get 22   ; ref std_core$Async[]
         virtual.call 1 std_core$Async.resume -> any
         local.tee 5   ; r
         type_check 4   ; std_core$Suspended
         if $L3 void
-          local.field 0 16 3   ; arg 0 std_async$JoinAll__i32.wake_at
+          local.field 0 15 3   ; arg 0 std_async$JoinAll__i32.wake_at
           local.set 6   ; $field_19
           local.get 5   ; r
           ref.cast 4   ; std_core$Suspended
@@ -541,16 +541,16 @@ fn 10 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
           local.get 7   ; $field_21
           store_slot_i64
         else
-          local.field 0 16 2   ; arg 0 std_async$JoinAll__i32.slot
+          local.field 0 15 2   ; arg 0 std_async$JoinAll__i32.slot
           local.set 8   ; $field_22
-          local.field 0 16 1   ; arg 0 std_async$JoinAll__i32.results
+          local.field 0 15 1   ; arg 0 std_async$JoinAll__i32.results
           array.len
           local.set 9   ; $len_24
           local.get 8   ; $field_22
           local.get 4   ; i
           local.get 9   ; $len_24
           store_slot_i64
-          local.field 0 16 1   ; arg 0 std_async$JoinAll__i32.results
+          local.field 0 15 1   ; arg 0 std_async$JoinAll__i32.results
           local.set 10   ; $field_25
           local.get 5   ; r
           ref.cast 3   ; i32
@@ -558,13 +558,13 @@ fn 10 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
           local.get 10   ; $field_25
           local.get 11   ; $cast_26
           array.push 3   ; i32
-          local.field 0 16 3   ; arg 0 std_async$JoinAll__i32.wake_at
+          local.field 0 15 3   ; arg 0 std_async$JoinAll__i32.wake_at
           local.get 4   ; i
           i64.const 9223372036854775807
           store_slot_i64
         end $L3
       end $L2
-      local.field 0 16 3   ; arg 0 std_async$JoinAll__i32.wake_at
+      local.field 0 15 3   ; arg 0 std_async$JoinAll__i32.wake_at
       local.get 4   ; i
       load_slot_i64
       local.set 12   ; $idx_30
@@ -579,7 +579,7 @@ fn 10 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
       br $L0
     end $L1
   end $L0
-  local.field 0 16 1   ; arg 0 std_async$JoinAll__i32.results
+  local.field 0 15 1   ; arg 0 std_async$JoinAll__i32.results
   array.len
   local.get 1   ; n
   i64.ne
@@ -588,7 +588,7 @@ fn 10 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
     struct.new 4   ; std_core$Suspended
     return
   end $L4
-  array.new 18 0   ; i32[]
+  array.new 17 0   ; i32[]
   local.set 6   ; $field_19
   i64.const 0
   local.get 1   ; n
@@ -611,9 +611,9 @@ fn 10 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
     local.get 1   ; n
     i64.lt
     if $L7 void
-      local.field 0 16 1   ; arg 0 std_async$JoinAll__i32.results
+      local.field 0 15 1   ; arg 0 std_async$JoinAll__i32.results
       local.set 8   ; $field_22
-      local.field 0 16 2   ; arg 0 std_async$JoinAll__i32.slot
+      local.field 0 15 2   ; arg 0 std_async$JoinAll__i32.slot
       local.get 2   ; now
       load_slot_i64
       local.set 3   ; next
@@ -639,7 +639,7 @@ fn 11 std_async$JoinAll$std_core$Async$cancel__i32 (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
-  local.field 0 16 0   ; arg 0 std_async$JoinAll__i32.children
+  local.field 0 15 0   ; arg 0 std_async$JoinAll__i32.children
   local.tee 1   ; __for_arr_0
   array.len
   local.set 2   ; __for_len_1
@@ -668,7 +668,7 @@ fn 12 std_async$sleep (i64) -> any
   local.get 0   ; arg 0
   i64.const 0
   bool.const false
-  struct.new 20   ; std_async$Sleep
+  struct.new 19   ; std_async$Sleep
   return
 end
 
@@ -687,16 +687,16 @@ end
 fn 14 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
-  local.field 0 20 2   ; arg 0 std_async$Sleep.armed
-  ref.cast 11   ; bool
+  local.field 0 19 2   ; arg 0 std_async$Sleep.armed
+  ref.cast 13   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0
     bool.const true
-    struct.set 20 2   ; std_async$Sleep.armed
+    struct.set 19 2   ; std_async$Sleep.armed
     call.import 2   ; std_runtime$sched_now
     local.set 1   ; $call_3
-    local.field 0 20 0   ; arg 0 std_async$Sleep.ms
+    local.field 0 19 0   ; arg 0 std_async$Sleep.ms
     ref.cast 9   ; i64
     local.set 2   ; $field_4
     local.get 1   ; $call_3
@@ -705,14 +705,14 @@ fn 14 std_async$Sleep$std_core$Async$resume (ref) -> any
     local.set 1   ; $call_3
     local.get 0   ; arg 0
     local.get 1   ; $call_3
-    struct.set 20 1   ; std_async$Sleep.deadline
-    local.field 0 20 1   ; arg 0 std_async$Sleep.deadline
+    struct.set 19 1   ; std_async$Sleep.deadline
+    local.field 0 19 1   ; arg 0 std_async$Sleep.deadline
     ref.cast 9   ; i64
     call.import 3   ; std_runtime$sched_arm
   end $L0
   call.import 2   ; std_runtime$sched_now
   local.set 1   ; $call_3
-  local.field 0 20 1   ; arg 0 std_async$Sleep.deadline
+  local.field 0 19 1   ; arg 0 std_async$Sleep.deadline
   ref.cast 9   ; i64
   local.set 2   ; $field_4
   local.get 1   ; $call_3
@@ -720,7 +720,7 @@ fn 14 std_async$Sleep$std_core$Async$resume (ref) -> any
   i64.ge
   if $L1 void
   else
-    local.field 0 20 1   ; arg 0 std_async$Sleep.deadline
+    local.field 0 19 1   ; arg 0 std_async$Sleep.deadline
     ref.cast 9   ; i64
     struct.new 4   ; std_core$Suspended
     return
@@ -767,7 +767,7 @@ fn 18 std_async$new_join_all__i32 (ref) -> ref
   local $arr_3 ref
   local $len_4 i64
   local $arr_7 ref
-  array.new 18 0   ; i32[]
+  array.new 17 0   ; i32[]
   local.set 1   ; $arr_1
   i64.const -1
   array.new 24 1   ; i64[]
@@ -793,7 +793,7 @@ fn 18 std_async$new_join_all__i32 (ref) -> ref
   local.get 1   ; $arr_1
   local.get 2   ; $arr_3
   local.get 4   ; $arr_7
-  struct.new 16   ; std_async$JoinAll__i32
+  struct.new 15   ; std_async$JoinAll__i32
   return
 end
 

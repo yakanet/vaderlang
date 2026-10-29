@@ -14,9 +14,9 @@
 //
 // An array impl's member runs one instance per element type, so a receiver built
 // inside it (`[self].depth(…)`) is an edge like a call. A generic struct's impl
-// member is not : it runs once per instance the program writes and once for every
-// other (`materialize_representatives`), so `Box<T[]>` built inside `Box<T>`'s impl
-// asks for no new instance and adds no edge. A member reached through a bound
+// member is not : it runs once per primitive shape of its arguments, every
+// reference argument erased, so `Box<T[]>` built inside `Box<T>`'s impl reaches
+// no new body and adds no edge. A member reached through a bound
 // (`x.depth()` with `x: X`, `X: Depth`) records nothing yet.
 
 module "vader/front/typecheck"

@@ -12,10 +12,10 @@ type 9 struct snippet$Boxed__i64 { v:3 }
 type 10 union 0,11,1
 type 11 struct snippet$Point { x:12 }
 type 12 scalar i32
-type 13 scalar char
+type 13 struct std_core$Buffer {  }
 type 14 scalar u8
-type 15 struct std_core$Buffer {  }
-type 16 scalar u32
+type 15 scalar u32
+type 16 scalar char
 type 17 array 14
 type 18 scalar void
 type 19 struct std_string__builder$StringBuilder { parts:20 }
@@ -50,7 +50,7 @@ import 1 byte_at std_core$byte_at result_type=14 param_types=1,4 param_c_out= pa
 import 2 bytes_to_string std_core$bytes_to_string result_type=1 param_types=17 param_c_out= param_by_address= (ref) -> string
 import 3 bytes std_core$bytes result_type=17 param_types=1 param_c_out= param_by_address= (string) -> ref
 import 4 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=12,17,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 15 std_core$ByteAccess
+impl 13 std_core$ByteAccess
 impl 19 std_core$Display
 export main 8
 

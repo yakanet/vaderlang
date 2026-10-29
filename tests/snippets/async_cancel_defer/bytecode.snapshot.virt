@@ -3,7 +3,7 @@ type 0 scalar null
 type 1 struct snippet$Never {  }
 type 2 union 3,4
 type 3 scalar i32
-type 4 struct std_core$Suspended { wake_at:17 }
+type 4 struct std_core$Suspended { wake_at:15 }
 type 5 scalar void
 type 6 ref std_core$Async
 type 7 struct __defer_env_snippet_1 {  }
@@ -14,11 +14,11 @@ type 11 scalar string
 type 12 array 13
 type 13 fn () -> 5
 type 14 ref std_core$Async
-type 15 scalar bool
-type 16 scalar u8
-type 17 scalar i64
-type 18 struct std_core$Buffer {  }
-type 19 array 16
+type 15 scalar i64
+type 16 struct std_core$Buffer {  }
+type 17 scalar u8
+type 18 scalar bool
+type 19 array 17
 string 0 "never cancelled"
 string 1 "done"
 string 2 "inner cleanup"
@@ -26,13 +26,13 @@ string 3 "inner body (unreached)"
 string 4 "outer cleanup"
 string 5 "outer body (unreached)"
 string 6 "\n"
-import 0 byte_len std_core$byte_len result_type=17 param_types=11 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$byte_len result_type=15 param_types=11 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=19 param_types=11 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=3,19,17 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=3,19,15 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 1 std_core$Async
 impl 8 std_core$Async
 impl 10 std_core$Async
-impl 18 std_core$ByteAccess
+impl 16 std_core$ByteAccess
 vtable std_core$Async.resume 1 0
 vtable std_core$Async.resume 8 6
 vtable std_core$Async.resume 10 9

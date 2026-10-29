@@ -6,9 +6,9 @@
 
 typedef struct vader_struct_snippet$Wrapper__snippet_MonType_t vader_struct_snippet$Wrapper__snippet_MonType_t;
 typedef struct vader_struct_snippet$Wrapper__snippet_Other_t vader_struct_snippet$Wrapper__snippet_Other_t;
-typedef struct vader_struct_snippet$Wrapper__i32_t vader_struct_snippet$Wrapper__i32_t;
-typedef struct vader_struct_snippet$Wrapper__string_t vader_struct_snippet$Wrapper__string_t;
 typedef struct vader_struct_snippet$Wrapper__Any_t vader_struct_snippet$Wrapper__Any_t;
+typedef struct vader_struct_snippet$Wrapper__string_t vader_struct_snippet$Wrapper__string_t;
+typedef struct vader_struct_snippet$Wrapper__i32_t vader_struct_snippet$Wrapper__i32_t;
 typedef struct vader_struct_snippet$MonType_t vader_struct_snippet$MonType_t;
 typedef struct vader_struct_snippet$Other_t vader_struct_snippet$Other_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
@@ -21,17 +21,17 @@ struct vader_struct_snippet$Wrapper__snippet_Other_t {
     vader_obj_header_t header;
     vader_box_t f_inner;
 };
-struct vader_struct_snippet$Wrapper__i32_t {
+struct vader_struct_snippet$Wrapper__Any_t {
     vader_obj_header_t header;
-    int32_t f_inner;
+    vader_box_t f_inner;
 };
 struct vader_struct_snippet$Wrapper__string_t {
     vader_obj_header_t header;
     vader_string_t f_inner;
 };
-struct vader_struct_snippet$Wrapper__Any_t {
+struct vader_struct_snippet$Wrapper__i32_t {
     vader_obj_header_t header;
-    vader_box_t f_inner;
+    int32_t f_inner;
 };
 struct vader_struct_snippet$MonType_t {
     vader_obj_header_t header;
@@ -51,11 +51,11 @@ static const char vader_atom_blob[] =
     "o" "\0"
     " " "\0"
     "s" "\0"
-    "int " "\0"
-    "tag" "\0"
-    "generic" "\0"
     "mon " "\0"
+    "tag" "\0"
     "fancy " "\0"
+    "generic" "\0"
+    "int " "\0"
     "mons " "\0"
     "array " "\0"
     "/" "\0"
@@ -68,9 +68,9 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10] },
     { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[12] },
     { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[28] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41] },
     { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54] },
@@ -82,13 +82,13 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 static vader_string_t snippet$show(vader_box_t l0);
 static vader_string_t snippet$fancy_or_plain(vader_box_t l0);
 static int32_t snippet$main(void);
-static vader_string_t snippet$Wrapper$Poke$poke__i32$2(void* l0);
-static vader_string_t snippet$Wrapper$Tag$tag__i32(void* l0);
-static vader_string_t snippet$Wrapper$Poke$poke__string(void* l0);
 static vader_string_t snippet$Wrapper$Poke$poke__snippet_MonType$1(void* l0);
 static vader_string_t snippet$Wrapper$Tag$tag__snippet_MonType(void* l0);
 static vader_string_t snippet$Wrapper$Fancy$fancy__snippet_MonType(void* l0);
 static vader_string_t snippet$Wrapper$Poke$poke__Any(void* l0);
+static vader_string_t snippet$Wrapper$Poke$poke__string(void* l0);
+static vader_string_t snippet$Wrapper$Poke$poke__i32$2(void* l0);
+static vader_string_t snippet$Wrapper$Tag$tag__i32(void* l0);
 static vader_string_t snippet$$array$Poke$poke__snippet_MonType(void* l0);
 static vader_string_t snippet$$array$Poke$poke__snippet_Other$1(void* l0);
 static void* snippet$wrap__Any(vader_box_t l0);
@@ -140,8 +140,10 @@ const vader_type_info_t vader_type_info_table[22] = {
     },
     [6] = { .slot_size = 4 },
     [7] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Wrapper__i32_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Wrapper__Any_t),
         .slot_size = 8,
+        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Wrapper__Any_t, f_inner) },
+        .ptr_count = 1,
     },
     [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Wrapper__string_t),
@@ -150,10 +152,8 @@ const vader_type_info_t vader_type_info_table[22] = {
         .string_count = 1,
     },
     [9] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Wrapper__Any_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Wrapper__i32_t),
         .slot_size = 8,
-        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Wrapper__Any_t, f_inner) },
-        .ptr_count = 1,
     },
     [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -174,13 +174,13 @@ const vader_type_info_t vader_type_info_table[22] = {
         .string_count = 1,
     },
     [14] = { .slot_size = 16 },
-    [15] = { .slot_size = 1 },
-    [16] = { .slot_size = 1 },
-    [17] = { .slot_size = 8 },
-    [18] = {
+    [15] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [16] = { .slot_size = 8 },
+    [17] = { .slot_size = 1 },
+    [18] = { .slot_size = 1 },
     [19] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
@@ -197,7 +197,7 @@ static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 19u, 16u);
+    return (void*) vader_string_bytes_view(a0, 19u, 17u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -321,35 +321,6 @@ static int32_t snippet$main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static vader_string_t snippet$Wrapper$Poke$poke__i32$2(void* l0) {
-    void* l1 = NULL;
-    int64_t l2, l3;
-    int32_t t0;
-    vader_string_t t1 = 0;
-    void** gc_raw_roots[2] = { &l0, &l1 };
-    vader_string_t* gc_atom_roots[1] = { &t1 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-    l1 = (void*) vader_buffer_new((size_t) INT64_C(24));
-    l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 5u);
-    t0 = (((vader_obj_header_t*) l0)->type_index == 5u ? ((int32_t) ((vader_struct_snippet$Wrapper__snippet_Other_t*) l0)->f_inner.payload.i) : (((vader_obj_header_t*) l0)->type_index == 9u ? ((int32_t) ((vader_struct_snippet$Wrapper__Any_t*) l0)->f_inner.payload.i) : ((vader_struct_snippet$Wrapper__i32_t*) l0)->f_inner));
-    l3 = ((int64_t) (int32_t) t0);
-    l2 = std_core$write_int(l1, l2, l3);
-    t1 = std_core$finish_buffer(l1, l2);
-    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static vader_string_t snippet$Wrapper$Tag$tag__i32(void* l0) {
-    return 6u;
-}
-
-static vader_string_t snippet$Wrapper$Poke$poke__string(void* l0) {
-    return 7u;
-}
-
 static vader_string_t snippet$Wrapper$Poke$poke__snippet_MonType$1(void* l0) {
     void* l1 = NULL;
     int64_t l2, l3;
@@ -363,8 +334,8 @@ static vader_string_t snippet$Wrapper$Poke$poke__snippet_MonType$1(void* l0) {
     vader_gc_top = &gc_frame;
     l1 = (void*) vader_buffer_new((size_t) INT64_C(24));
     l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 8u);
-    t0 = ((vader_struct_snippet$MonType_t*) (((vader_obj_header_t*) l0)->type_index == 5u ? ((vader_struct_snippet$Wrapper__snippet_Other_t*) l0)->f_inner.payload.obj : (((vader_obj_header_t*) l0)->type_index == 9u ? ((vader_struct_snippet$Wrapper__Any_t*) l0)->f_inner.payload.obj : ((vader_struct_snippet$Wrapper__snippet_MonType_t*) l0)->f_inner)))->f_n;
+    l2 = std_core$write_string_at(l1, l2, 5u);
+    t0 = ((vader_struct_snippet$MonType_t*) (((vader_obj_header_t*) l0)->type_index == 5u ? ((vader_struct_snippet$Wrapper__snippet_Other_t*) l0)->f_inner.payload.obj : (((vader_obj_header_t*) l0)->type_index == 7u ? ((vader_struct_snippet$Wrapper__Any_t*) l0)->f_inner.payload.obj : ((vader_struct_snippet$Wrapper__snippet_MonType_t*) l0)->f_inner)))->f_n;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l1, l2, l3);
     t1 = std_core$finish_buffer(l1, l2);
@@ -388,8 +359,8 @@ static vader_string_t snippet$Wrapper$Fancy$fancy__snippet_MonType(void* l0) {
     vader_gc_top = &gc_frame;
     l1 = (void*) vader_buffer_new((size_t) INT64_C(26));
     l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 9u);
-    t0 = ((vader_struct_snippet$MonType_t*) (((vader_obj_header_t*) l0)->type_index == 5u ? ((vader_struct_snippet$Wrapper__snippet_Other_t*) l0)->f_inner.payload.obj : (((vader_obj_header_t*) l0)->type_index == 9u ? ((vader_struct_snippet$Wrapper__Any_t*) l0)->f_inner.payload.obj : ((vader_struct_snippet$Wrapper__snippet_MonType_t*) l0)->f_inner)))->f_n;
+    l2 = std_core$write_string_at(l1, l2, 7u);
+    t0 = ((vader_struct_snippet$MonType_t*) (((vader_obj_header_t*) l0)->type_index == 5u ? ((vader_struct_snippet$Wrapper__snippet_Other_t*) l0)->f_inner.payload.obj : (((vader_obj_header_t*) l0)->type_index == 7u ? ((vader_struct_snippet$Wrapper__Any_t*) l0)->f_inner.payload.obj : ((vader_struct_snippet$Wrapper__snippet_MonType_t*) l0)->f_inner)))->f_n;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l1, l2, l3);
     t1 = std_core$finish_buffer(l1, l2);
@@ -397,7 +368,36 @@ static vader_string_t snippet$Wrapper$Fancy$fancy__snippet_MonType(void* l0) {
 }
 
 static vader_string_t snippet$Wrapper$Poke$poke__Any(void* l0) {
-    return 7u;
+    return 8u;
+}
+
+static vader_string_t snippet$Wrapper$Poke$poke__string(void* l0) {
+    return 8u;
+}
+
+static vader_string_t snippet$Wrapper$Poke$poke__i32$2(void* l0) {
+    void* l1 = NULL;
+    int64_t l2, l3;
+    int32_t t0;
+    vader_string_t t1 = 0;
+    void** gc_raw_roots[2] = { &l0, &l1 };
+    vader_string_t* gc_atom_roots[1] = { &t1 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+    l1 = (void*) vader_buffer_new((size_t) INT64_C(24));
+    l2 = INT64_C(0);
+    l2 = std_core$write_string_at(l1, l2, 9u);
+    t0 = (((vader_obj_header_t*) l0)->type_index == 5u ? ((int32_t) ((vader_struct_snippet$Wrapper__snippet_Other_t*) l0)->f_inner.payload.i) : (((vader_obj_header_t*) l0)->type_index == 7u ? ((int32_t) ((vader_struct_snippet$Wrapper__Any_t*) l0)->f_inner.payload.i) : ((vader_struct_snippet$Wrapper__i32_t*) l0)->f_inner));
+    l3 = ((int64_t) (int32_t) t0);
+    l2 = std_core$write_int(l1, l2, l3);
+    t1 = std_core$finish_buffer(l1, l2);
+    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static vader_string_t snippet$Wrapper$Tag$tag__i32(void* l0) {
+    return 6u;
 }
 
 static vader_string_t snippet$$array$Poke$poke__snippet_MonType(void* l0) {
@@ -445,7 +445,7 @@ static void* snippet$wrap__Any(vader_box_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Wrapper__Any_t* _a0_obj = (vader_struct_snippet$Wrapper__Any_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Wrapper__Any_t));
-    vader_obj_header_init(_a0_obj, 9u);
+    vader_obj_header_init(_a0_obj, 7u);
     _a0_obj->f_inner = l0;
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -457,7 +457,7 @@ static void* snippet$wrap__i32(int32_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Wrapper__i32_t* _a0_obj = (vader_struct_snippet$Wrapper__i32_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Wrapper__i32_t));
-    vader_obj_header_init(_a0_obj, 7u);
+    vader_obj_header_init(_a0_obj, 9u);
     _a0_obj->f_inner = l0;
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -868,10 +868,10 @@ static void std_io$println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static vader_string_t vader_vt_snippet$Poke$poke(vader_box_t recv) {
     switch (recv.tag) {
-        case 7u: return snippet$Wrapper$Poke$poke__i32$2(recv.payload.obj);
-        case 8u: return snippet$Wrapper$Poke$poke__string(recv.payload.obj);
         case 4u: return snippet$Wrapper$Poke$poke__snippet_MonType$1(recv.payload.obj);
-        case 9u: return snippet$Wrapper$Poke$poke__Any(recv.payload.obj);
+        case 7u: return snippet$Wrapper$Poke$poke__Any(recv.payload.obj);
+        case 8u: return snippet$Wrapper$Poke$poke__string(recv.payload.obj);
+        case 9u: return snippet$Wrapper$Poke$poke__i32$2(recv.payload.obj);
         case 10u: return snippet$$array$Poke$poke__snippet_MonType(recv.payload.obj);
         case 12u: return snippet$$array$Poke$poke__snippet_Other$1(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet$Poke.poke");

@@ -13,8 +13,8 @@ typedef struct vader_struct_snippet$Tag_t vader_struct_snippet$Tag_t;
 typedef struct vader_struct_snippet$Sheet_t vader_struct_snippet$Sheet_t;
 typedef struct vader_struct_snippet$Rec_t vader_struct_snippet$Rec_t;
 typedef struct vader_struct_snippet$Counter_t vader_struct_snippet$Counter_t;
-typedef struct vader_struct_snippet$Wrap__snippet_Vec2_t vader_struct_snippet$Wrap__snippet_Vec2_t;
 typedef struct vader_struct_snippet$Pile__i32_t vader_struct_snippet$Pile__i32_t;
+typedef struct vader_struct_snippet$Wrap__snippet_Vec2_t vader_struct_snippet$Wrap__snippet_Vec2_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 typedef struct vader_struct_std_core$Dec64_t vader_struct_std_core$Dec64_t;
 typedef struct vader_struct___Tuple_u64_u64_u64_2d035edd_t vader_struct___Tuple_u64_u64_u64_2d035edd_t;
@@ -61,13 +61,13 @@ struct vader_struct_snippet$Counter_t {
     vader_obj_header_t header;
     int32_t f_n;
 };
-struct vader_struct_snippet$Wrap__snippet_Vec2_t {
-    vader_obj_header_t header;
-    void* f_inner;
-};
 struct vader_struct_snippet$Pile__i32_t {
     vader_obj_header_t header;
     int32_t f_top;
+};
+struct vader_struct_snippet$Wrap__snippet_Vec2_t {
+    vader_obj_header_t header;
+    void* f_inner;
 };
 struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
@@ -857,10 +857,10 @@ static void snippet$Sheet$std_core$IndexSet$set_at(void* l0, int32_t l1, int32_t
 static vader_string_t snippet$Sheet$std_core$Index$at$1(void* l0, vader_string_t l1);
 static void snippet$Counter$std_core$Iterator$next$v(void* l0, int32_t* __o0, uint8_t* __o1);
 static int32_t snippet$main(void);
-static void* snippet$Wrap$Scale$scaled__snippet_Vec2(void* l0);
-static vader_string_t snippet$Wrap$Show$show__snippet_Vec2(void* l0);
 static void* snippet$Pile$std_core$Add$add__i32(void* l0, void* l1);
 static void* snippet$Pile$std_core$Add$add__i32$1(void* l0, double l1);
+static void* snippet$Wrap$Scale$scaled__snippet_Vec2(void* l0);
+static vader_string_t snippet$Wrap$Show$show__snippet_Vec2(void* l0);
 static void* snippet$built__snippet_Vec2(void);
 static void* snippet$twice__snippet_Vec2(void* l0);
 static vader_string_t snippet$say_int__snippet_Vec2(void* l0);
@@ -948,14 +948,14 @@ const vader_type_info_t vader_type_info_table[27] = {
     },
     [15] = { .slot_size = 1 },
     [16] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Pile__i32_t),
+        .slot_size = 8,
+    },
+    [17] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Wrap__snippet_Vec2_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Wrap__snippet_Vec2_t, f_inner) },
         .ref_count = 1,
-    },
-    [17] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Pile__i32_t),
-        .slot_size = 8,
     },
     [18] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -965,11 +965,11 @@ const vader_type_info_t vader_type_info_table[27] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [20] = { .slot_size = 8 },
-    [21] = {
+    [20] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [21] = { .slot_size = 8 },
     [22] = { .slot_size = 8 },
     [23] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Dec64_t),
@@ -1370,11 +1370,11 @@ static int32_t snippet$main(void) {
     t1 = std_core$finish_buffer(l1, l10);
     std_io$println__string(t1);
     vader_struct_snippet$Pile__i32_t* _a6_obj = (vader_struct_snippet$Pile__i32_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Pile__i32_t));
-    vader_obj_header_init(_a6_obj, 17u);
+    vader_obj_header_init(_a6_obj, 16u);
     _a6_obj->f_top = INT32_C(1);
     l1 = (void*) _a6_obj;
     vader_struct_snippet$Pile__i32_t* _a7_obj = (vader_struct_snippet$Pile__i32_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Pile__i32_t));
-    vader_obj_header_init(_a7_obj, 17u);
+    vader_obj_header_init(_a7_obj, 16u);
     _a7_obj->f_top = INT32_C(9);
     l2 = (void*) _a7_obj;
     l3 = (void*) vader_buffer_new((size_t) INT64_C(41));
@@ -1391,7 +1391,7 @@ static int32_t snippet$main(void) {
     t1 = std_core$finish_buffer(l3, l10);
     std_io$println__string(t1);
     vader_struct_snippet$Wrap__snippet_Vec2_t* _a8_obj = (vader_struct_snippet$Wrap__snippet_Vec2_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Wrap__snippet_Vec2_t));
-    vader_obj_header_init(_a8_obj, 16u);
+    vader_obj_header_init(_a8_obj, 17u);
     _a8_obj->f_inner = l0;
     l0 = (void*) _a8_obj;
     l1 = snippet$built__snippet_Vec2();
@@ -1479,6 +1479,14 @@ static int32_t snippet$main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
+static void* snippet$Pile$std_core$Add$add__i32(void* l0, void* l1) {
+    return l1;
+}
+
+static void* snippet$Pile$std_core$Add$add__i32$1(void* l0, double l1) {
+    return l0;
+}
+
 static void* snippet$Wrap$Scale$scaled__snippet_Vec2(void* l0) {
     void* t0;
     t0 = snippet$Vec2$std_core$Mul$mul(((vader_struct_snippet$Wrap__snippet_Vec2_t*) l0)->f_inner, 2.0);
@@ -1489,14 +1497,6 @@ static vader_string_t snippet$Wrap$Show$show__snippet_Vec2(void* l0) {
     vader_string_t t0;
     t0 = snippet$Vec2$Describe$tag$1(((vader_struct_snippet$Wrap__snippet_Vec2_t*) l0)->f_inner);
     return t0;
-}
-
-static void* snippet$Pile$std_core$Add$add__i32(void* l0, void* l1) {
-    return l1;
-}
-
-static void* snippet$Pile$std_core$Add$add__i32$1(void* l0, double l1) {
-    return l0;
 }
 
 static void* snippet$built__snippet_Vec2(void) {

@@ -2,21 +2,21 @@ module _main
 type 0 scalar null
 type 1 scalar i32
 type 2 scalar string
-type 3 scalar bool
-type 4 scalar u8
-type 5 scalar i64
-type 6 struct std_core$Buffer {  }
-type 7 scalar u64
-type 8 array 4
+type 3 struct std_core$Buffer {  }
+type 4 scalar i64
+type 5 scalar u64
+type 6 scalar bool
+type 7 array 8
+type 8 scalar u8
 type 9 scalar void
 string 0 "true"
 string 1 "false"
 string 2 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=8 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=1,8,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 6 std_core$ByteAccess
-impl 8 std_core$Contains
+import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 3 std_core$ByteAccess
+impl 7 std_core$Contains
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -146,7 +146,7 @@ fn 0 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 8 3   ; u8[]
+  array.new 7 3   ; u8[]
   local.set 2   ; __buf_0
   i64.const 5
   buffer.new
@@ -352,8 +352,8 @@ fn 6 std_core$$array$Contains$contains__u8 (ref,u8) -> bool
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 8   ; u8[]
-      ref.cast 4   ; u8
+      array.get 7   ; u8[]
+      ref.cast 8   ; u8
       local.get 1   ; arg 1
       i32.eq
       if $L2 void
@@ -404,7 +404,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 8   ; u8[]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

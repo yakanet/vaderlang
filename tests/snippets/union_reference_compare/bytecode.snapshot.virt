@@ -5,11 +5,11 @@ type 2 union 3,0,4
 type 3 struct snippet$Circle { r:1 }
 type 4 struct snippet$Square { side:1 }
 type 5 scalar string
-type 6 scalar bool
-type 7 scalar u8
-type 8 scalar i64
-type 9 struct std_core$Buffer {  }
-type 10 array 7
+type 6 struct std_core$Buffer {  }
+type 7 scalar i64
+type 8 scalar bool
+type 9 scalar u8
+type 10 array 9
 type 11 scalar void
 type 12 array 3
 string 0 "const === const: "
@@ -20,10 +20,10 @@ string 4 "true"
 string 5 "false"
 string 6 "\n"
 data 0 structs 3 1 1 i32 01000000
-import 0 byte_len std_core$byte_len result_type=8 param_types=5 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=10 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=1,10,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 9 std_core$ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=7 param_types=1,10,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 6 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$pick (i32) -> any

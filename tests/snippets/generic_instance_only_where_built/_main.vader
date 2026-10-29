@@ -1,0 +1,15 @@
+// A generic struct instance reaches the program only where code the program
+// runs builds it: `Box<i32>` here. The `Box<f64>` of an imported function
+// nothing calls, and the `Box<string>` of an imported module's test, leave no
+// struct and no `area` member in the lowered program.
+// Expected: prints "2.0", exits 0.
+
+module "snippet"
+
+import "snippet/shapes"
+import "std/io"
+
+main :: fn() -> i32 {
+    println("${Box<i32> { .value = 7 }.area()}")
+    return 0
+}

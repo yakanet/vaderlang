@@ -5,11 +5,11 @@ type 2 scalar string
 type 3 scalar u64
 type 4 scalar pointer
 type 5 scalar void
-type 6 scalar bool
-type 7 scalar u8
-type 8 scalar i64
-type 9 struct std_core$Buffer {  }
-type 10 array 7
+type 6 struct std_core$Buffer {  }
+type 7 scalar i64
+type 8 scalar bool
+type 9 scalar u8
+type 10 array 9
 string 0 "live="
 string 1 "readings_agree="
 string 2 "true"
@@ -17,10 +17,10 @@ string 3 "false"
 string 4 "\n"
 import 0 extern malloc snippet$c_malloc header=<stdlib.h> result_type=4 param_types=3 param_c_out= param_by_address= (u64) -> pointer
 import 1 extern free snippet$c_free header=<stdlib.h> result_type=5 param_types=4 param_c_out= param_by_address= (pointer) -> void
-import 2 byte_len std_core$byte_len result_type=8 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 2 byte_len std_core$byte_len result_type=7 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 3 bytes std_core$bytes result_type=10 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=1,10,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 9 std_core$ByteAccess
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=7 param_types=1,10,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 6 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -44,12 +44,12 @@ fn 0 snippet$main () -> i32
   call 3   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 0   ; p
-  ref.cast 8   ; i64
+  ref.cast 7   ; i64
   i64.const 0
   i64.ne
   if $L0 void
     local.get 0   ; p
-    ref.cast 8   ; i64
+    ref.cast 7   ; i64
     i64.const -1
     i64.ne
     local.set 3   ; and_res
@@ -80,7 +80,7 @@ fn 0 snippet$main () -> i32
   ref.cast 3   ; u64
   local.set 4   ; $cast_27
   local.get 0   ; p
-  ref.cast 8   ; i64
+  ref.cast 7   ; i64
   i64.to_i64
   local.set 5   ; $cast_29
   local.get 4   ; $cast_27

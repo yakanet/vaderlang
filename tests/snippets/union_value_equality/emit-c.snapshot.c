@@ -135,14 +135,14 @@ const vader_type_info_t vader_type_info_table[26] = {
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Box__snippet_Point_t, f_value) },
         .ptr_count = 1,
     },
-    [12] = { .slot_size = 1 },
-    [13] = { .slot_size = 8 },
-    [14] = {
+    [12] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [15] = { .slot_size = 1 },
-    [16] = { .slot_size = 2 },
+    [13] = { .slot_size = 8 },
+    [14] = { .slot_size = 1 },
+    [15] = { .slot_size = 2 },
+    [16] = { .slot_size = 1 },
     [17] = { .slot_size = 2 },
     [18] = { .slot_size = 4 },
     [19] = { .slot_size = 8 },
@@ -170,7 +170,7 @@ static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 23u, 12u);
+    return (void*) vader_string_bytes_view(a0, 23u, 16u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -552,13 +552,13 @@ static int32_t snippet$main(void) {
     l8 = std_core$write_bool(l7, l8, l9);
     t1 = std_core$finish_buffer(l7, l8);
     std_io$println__string(t1);
-    l3 = vader_box_i32(12u, INT32_C(0));
+    l3 = vader_box_i32(16u, INT32_C(0));
     l7 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l8 = INT64_C(0);
-    l9 = vader_box_eq(l3, vader_box_i32(12u, INT32_C(0)));
+    l9 = vader_box_eq(l3, vader_box_i32(16u, INT32_C(0)));
     l8 = std_core$write_bool(l7, l8, l9);
     l8 = std_core$write_string_at(l7, l8, 2u);
-    l9 = vader_box_eq(l3, vader_box_i32(12u, INT32_C(1)));
+    l9 = vader_box_eq(l3, vader_box_i32(16u, INT32_C(1)));
     l8 = std_core$write_bool(l7, l8, l9);
     t1 = std_core$finish_buffer(l7, l8);
     std_io$println__string(t1);
@@ -787,7 +787,7 @@ static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2) {
 
 static bool std_core$i8$Equals$equals$guard(int8_t l0, vader_box_t l1) {
     int8_t l2;
-    if (l1.tag == 15u) {
+    if (l1.tag == 14u) {
         l2 = ((int8_t) l1.payload.i);
         return l0 == l2;
     }
@@ -796,7 +796,7 @@ static bool std_core$i8$Equals$equals$guard(int8_t l0, vader_box_t l1) {
 
 static bool std_core$i16$Equals$equals$guard(int16_t l0, vader_box_t l1) {
     int16_t l2;
-    if (l1.tag == 16u) {
+    if (l1.tag == 15u) {
         l2 = ((int16_t) l1.payload.i);
         return l0 == l2;
     }
@@ -823,7 +823,7 @@ static bool std_core$i64$Equals$equals$guard(int64_t l0, vader_box_t l1) {
 
 static bool std_core$u8$Equals$equals$guard(uint8_t l0, vader_box_t l1) {
     uint8_t l2;
-    if (l1.tag == 12u) {
+    if (l1.tag == 16u) {
         l2 = ((uint8_t) l1.payload.i);
         return l0 == l2;
     }
@@ -973,11 +973,11 @@ static bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0) {
         case 6u: return snippet$Box$std_core$Equals$equals__Any(recv.payload.obj, a0.payload.obj);
         case 1u: return snippet$Point$std_core$Equals$equals$guard(recv.payload.obj, a0);
         case 3u: return snippet$Label$std_core$Equals$equals$guard(recv.payload.obj, a0);
-        case 15u: return std_core$i8$Equals$equals$guard(((int8_t) recv.payload.i), a0);
-        case 16u: return std_core$i16$Equals$equals$guard(((int16_t) recv.payload.i), a0);
+        case 14u: return std_core$i8$Equals$equals$guard(((int8_t) recv.payload.i), a0);
+        case 15u: return std_core$i16$Equals$equals$guard(((int16_t) recv.payload.i), a0);
         case 5u: return std_core$i32$Equals$equals$guard(((int32_t) recv.payload.i), a0);
         case 13u: return std_core$i64$Equals$equals$guard(((int64_t) recv.payload.i), a0);
-        case 12u: return std_core$u8$Equals$equals$guard(((uint8_t) recv.payload.i), a0);
+        case 16u: return std_core$u8$Equals$equals$guard(((uint8_t) recv.payload.i), a0);
         case 17u: return std_core$u16$Equals$equals$guard(((uint16_t) recv.payload.i), a0);
         case 18u: return std_core$u32$Equals$equals$guard(((uint32_t) recv.payload.i), a0);
         case 19u: return std_core$u64$Equals$equals$guard(((uint64_t) recv.payload.i), a0);

@@ -102,12 +102,12 @@ static int32_t snippet$main(void);
 static int32_t __lambda_snippet_0(void* l0, int32_t l1);
 static bool __lambda_snippet_2(void* l0, int32_t l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static int32_t std_core$i32$Step$step(int32_t l0);
 static void std_core$Range$Iterator$next__i32$v(void* l0, int32_t* __o0, uint8_t* __o1);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
 static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static int32_t std_core$i32$Step$step(int32_t l0);
 static void std_io$write(uint8_t l0, vader_string_t l1);
 static bool std_io$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
@@ -723,12 +723,6 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int32_t std_core$i32$Step$step(int32_t l0) {
-    int32_t t0;
-    t0 = vader_chk_add(i32, l0, INT32_C(1));
-    return t0;
-}
-
 static void std_core$Range$Iterator$next__i32$v(void* l0, int32_t* __o0, uint8_t* __o1) {
     bool l1;
     int32_t l2, l3;
@@ -849,6 +843,12 @@ static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2) {
         return t0;
     }
     t0 = std_core$write_string_at(l0, l1, 26u);
+    return t0;
+}
+
+static int32_t std_core$i32$Step$step(int32_t l0) {
+    int32_t t0;
+    t0 = vader_chk_add(i32, l0, INT32_C(1));
     return t0;
 }
 

@@ -54,9 +54,9 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 static int32_t snippet$main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static uint64_t std_core$i32$Hash$hash(int32_t l0);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static uint64_t std_core$i32$Hash$hash(int32_t l0);
 static void std_io$write(uint8_t l0, vader_string_t l1);
 static bool std_io$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
@@ -78,25 +78,25 @@ static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf)
 const vader_type_info_t vader_type_info_table[19] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 8 },
-    [4] = { .slot_size = 1 },
-    [5] = { .slot_size = 1 },
-    [6] = { .slot_size = 8 },
-    [7] = {
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [4] = { .slot_size = 8 },
+    [5] = { .slot_size = 8 },
+    [6] = { .slot_size = 1 },
+    [7] = { .slot_size = 1 },
     [8] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [10] = { .slot_size = 16 },
-    [11] = {
+    [10] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections$MutableMap__i32__Any_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$MutableMap__i32__Any_t, f_ekeys), offsetof(vader_struct_std_collections$MutableMap__i32__Any_t, f_evals), offsetof(vader_struct_std_collections$MutableMap__i32__Any_t, f_index) },
         .ref_count = 3,
     },
+    [11] = { .slot_size = 16 },
     [12] = { .slot_size = 16 },
     [13] = {
         .kind = VADER_TYPE_KIND_STRUCT,
@@ -135,7 +135,7 @@ static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 8u, 5u);
+    return (void*) vader_string_bytes_view(a0, 8u, 6u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -164,12 +164,12 @@ static int32_t snippet$main(void) {
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(14u, 0u, 7u, 1u);
     l0 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(15u, 0u, 0u, 10u);
+    vader_array_t* _a1_arr = vader_array_new(15u, 0u, 0u, 12u);
     l1 = (void*) _a1_arr;
     vader_array_t* _a2_arr = vader_array_new(14u, 0u, 7u, 1u);
     l2 = (void*) _a2_arr;
     vader_struct_std_collections$MutableMap__i32__Any_t* _a3_obj = (vader_struct_std_collections$MutableMap__i32__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$MutableMap__i32__Any_t));
-    vader_obj_header_init(_a3_obj, 11u);
+    vader_obj_header_init(_a3_obj, 10u);
     _a3_obj->f_ekeys = l0;
     _a3_obj->f_evals = l1;
     _a3_obj->f_index = l2;
@@ -233,10 +233,6 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static uint64_t std_core$i32$Hash$hash(int32_t l0) {
-    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
-}
-
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1) {
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
@@ -294,6 +290,10 @@ static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2) {
     }
     t0 = vader_chk_add(i64, l1, l5);
     return t0;
+}
+
+static uint64_t std_core$i32$Hash$hash(int32_t l0) {
+    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
 }
 
 static void std_io$write(uint8_t l0, vader_string_t l1) {

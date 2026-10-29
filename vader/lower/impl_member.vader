@@ -59,20 +59,18 @@ build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: 
 // Queue a generic-struct instance for impl-member materialisation : its members
 // (re)materialise via `drain_generic_fn_instances` and land in the vtable so a
 // virtual `recv.method()` resolves at emit. Deduped per receiver via
-// `seen_generic_impl_recv`. Shared by the erased-receiver path
-// (`build_ufcs_member`) and a generic struct literal.
+// `seen_generic_impl_recv`. Called for every construction (`note_construction`)
+// and every impl-member call (`build_ufcs_member`).
 queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
     // Distinct→backing on the receiver's args before keying/queuing: the
-    // queued instance must match the registry's raw backing instance, not a
-    // separate distinct one. Distinct ends at the lowering boundary.
+    // queued instance must be the raw backing instance, not a separate
+    // distinct one. Distinct ends at the lowering boundary.
     mono_args :: strip_distinct_each(recv.args)
     recv_key :: "#${recv.symbol.id}${mixed_any_suffix(ctx.project.impls, mono_args)}"
     if !ctx.project.seen_generic_impl_recv.add(recv_key) {
         return
     }
-    ctx.project.pending_generic_impl_recv.push(GenericInstance {
-        .symbol = recv.symbol, .args = mono_args, .display_key = recv_key,
-    })
+    ctx.project.pending_generic_impl_recv.push(StructType { .symbol = recv.symbol, .args = mono_args })
 }
 
 // `is Trait` membership rows are now seeded from the frontend's
@@ -226,12 +224,10 @@ build_ufcs_member :: fn(
             .member_id = member.id,
         }
     }
-    // Generic-struct receiver (`MutableMap<Any, bool>`) : the regular
-    // materialiser only covers instances in `evaluated.instances`, so an ERASED
-    // receiver reached only from a deduped erased free-fn body (`add`'s `value
-    // in self.inner`) never gets its impl members. Queue it for
-    // `drain_generic_fn_instances` to materialise (struct analogue of
-    // `array_member_uses`).
+    // Generic-struct receiver (`MutableMap<Any, bool>`, reached from a deduped
+    // erased free-fn body as `add`'s `value in self.inner`) : queue it for
+    // `drain_generic_fn_instances` to materialise its impl members (struct
+    // analogue of `array_member_uses`).
     if target_type is StructType {
         if entry.is_generic { queue_generic_impl_receiver(ctx, target_type) }
     }

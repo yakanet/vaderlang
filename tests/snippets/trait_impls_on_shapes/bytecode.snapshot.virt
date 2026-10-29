@@ -13,10 +13,10 @@ type 10 struct __Tuple_Struct_snippet_mod_a_Point_i32_cd8ba072 { _0:11,_1:2 }
 type 11 struct snippet_mod__a$Point { x:2 }
 type 12 struct __Tuple_Struct_snippet_mod_b_Point_i32_c9416dd8 { _0:13,_1:2 }
 type 13 struct snippet_mod__b$Point { label:3 }
-type 14 scalar u8
+type 14 struct std_core$Buffer {  }
 type 15 scalar i64
-type 16 struct std_core$Buffer {  }
-type 17 array 14
+type 16 scalar u8
+type 17 array 16
 type 18 scalar void
 string 0 "ints "
 string 1 "strings "
@@ -39,7 +39,7 @@ impl 1 snippet$Shout
 impl 4 snippet$Shout
 impl 10 snippet$Shout
 impl 12 snippet$Shout
-impl 16 std_core$ByteAccess
+impl 14 std_core$ByteAccess
 export main 9
 
 fn 0 snippet$_i32__i32_$Shout$shout (ref) -> string

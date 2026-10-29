@@ -9,8 +9,8 @@ type 6 scalar string
 type 7 union 8,0
 type 8 scalar char
 type 9 union 1,0
-type 10 scalar bool
-type 11 struct std_core$Buffer {  }
+type 10 struct std_core$Buffer {  }
+type 11 scalar bool
 type 12 array 3
 type 13 scalar void
 string 0 " "
@@ -19,7 +19,7 @@ string 2 "\n"
 import 0 byte_len std_core$byte_len result_type=1 param_types=6 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=12 param_types=6 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=1 param_types=2,12,1 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 11 std_core$ByteAccess
+impl 10 std_core$ByteAccess
 export main 7
 
 fn 0 snippet$wide (i64) -> i32

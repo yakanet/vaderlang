@@ -3,9 +3,9 @@ type 0 scalar null
 type 1 scalar u8
 type 2 scalar string
 type 3 scalar i32
-type 4 scalar bool
-type 5 scalar i64
-type 6 struct std_core$Buffer {  }
+type 4 scalar i64
+type 5 struct std_core$Buffer {  }
+type 6 scalar bool
 type 7 array 1
 type 8 scalar void
 string 0 "N"
@@ -19,10 +19,10 @@ string 7 "println value: "
 string 8 "println variant: "
 string 9 "println other binding: "
 string 10 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=3,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 6 std_core$ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=3,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 5 std_core$ByteAccess
 export main 3
 
 fn 0 snippet$Direction$Turnable$turn_left (u8) -> u8

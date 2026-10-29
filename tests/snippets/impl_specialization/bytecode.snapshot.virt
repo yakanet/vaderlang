@@ -6,58 +6,58 @@ type 3 union 4,5
 type 4 struct snippet$Wrapper__snippet_MonType { inner:11 }
 type 5 struct snippet$Wrapper__snippet_Other { inner:14 }
 type 6 scalar i32
-type 7 struct snippet$Wrapper__i32 { inner:6 }
+type 7 struct snippet$Wrapper__Any { inner:14 }
 type 8 struct snippet$Wrapper__string { inner:2 }
-type 9 struct snippet$Wrapper__Any { inner:14 }
+type 9 struct snippet$Wrapper__i32 { inner:6 }
 type 10 array 11
 type 11 struct snippet$MonType { n:6 }
 type 12 array 13
 type 13 struct snippet$Other { s:2 }
 type 14 ref _
-type 15 scalar bool
-type 16 scalar u8
-type 17 scalar i64
-type 18 struct std_core$Buffer {  }
-type 19 array 16
+type 15 struct std_core$Buffer {  }
+type 16 scalar i64
+type 17 scalar u8
+type 18 scalar bool
+type 19 array 17
 type 20 scalar void
 type 21 ref snippet$Fancy
 string 0 "plain"
 string 1 "o"
 string 2 " "
 string 3 "s"
-string 4 "int "
+string 4 "mon "
 string 5 "tag"
-string 6 "generic"
-string 7 "mon "
-string 8 "fancy "
+string 6 "fancy "
+string 7 "generic"
+string 8 "int "
 string 9 "mons "
 string 10 "array "
 string 11 "/"
 string 12 "\n"
-import 0 byte_len std_core$byte_len result_type=17 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$byte_len result_type=16 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=19 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=6,19,17 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=6,19,16 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 4 snippet$Poke
+impl 4 snippet$Tag
+impl 4 snippet$Fancy
 impl 7 snippet$Poke
 impl 7 snippet$Tag
 impl 8 snippet$Poke
 impl 8 snippet$Tag
-impl 4 snippet$Poke
-impl 4 snippet$Tag
-impl 4 snippet$Fancy
 impl 9 snippet$Poke
 impl 9 snippet$Tag
 impl 10 snippet$Poke
 impl 12 snippet$Poke
-impl 18 std_core$ByteAccess
+impl 15 std_core$ByteAccess
 impl 5 snippet$Poke
 impl 5 snippet$Tag
-vtable snippet$Poke.poke 7 3
-vtable snippet$Poke.poke 8 5
-vtable snippet$Poke.poke 4 6
-vtable snippet$Poke.poke 9 9
+vtable snippet$Poke.poke 4 3
+vtable snippet$Poke.poke 7 6
+vtable snippet$Poke.poke 8 7
+vtable snippet$Poke.poke 9 8
 vtable snippet$Poke.poke 10 10
 vtable snippet$Poke.poke 12 11
-vtable snippet$Fancy.fancy 4 8
+vtable snippet$Fancy.fancy 4 5
 export main 2
 
 fn 0 snippet$show (any) -> string
@@ -98,19 +98,19 @@ fn 2 snippet$main () -> i32
   local.get 0   ; m
   struct.new 4   ; snippet$Wrapper__snippet_MonType
   local.tee 2   ; wm
-  call 6   ; snippet$Wrapper$Poke$poke__snippet_MonType$1
+  call 3   ; snippet$Wrapper$Poke$poke__snippet_MonType$1
   local.set 3   ; $call_8
   local.get 1   ; o
   call 12   ; snippet$wrap__Any
-  call 9   ; snippet$Wrapper$Poke$poke__Any
+  call 6   ; snippet$Wrapper$Poke$poke__Any
   local.set 4   ; $call_11
   i32.const 3
   call 13   ; snippet$wrap__i32
-  call 3   ; snippet$Wrapper$Poke$poke__i32$2
+  call 8   ; snippet$Wrapper$Poke$poke__i32$2
   local.set 5   ; $call_15
   string.const 3   ; "s"
   call 15   ; snippet$wrap__string
-  call 5   ; snippet$Wrapper$Poke$poke__string
+  call 7   ; snippet$Wrapper$Poke$poke__string
   local.set 6   ; $call_19
   local.get 3   ; $call_8
   string.const 2   ; " "
@@ -237,7 +237,79 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 snippet$Wrapper$Poke$poke__i32$2 (ref) -> string
+fn 3 snippet$Wrapper$Poke$poke__snippet_MonType$1 (ref) -> string
+  local __buf_0 ref
+  local __off_1 i64
+  local $cast_10 i64
+  i64.const 24
+  buffer.new
+  local.set 1   ; __buf_0
+  i64.const 0
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  string.const 4   ; "mon "
+  call 32   ; std_core$write_string_at
+  local.set 2   ; __off_1
+  local.field 0 4 0   ; arg 0 snippet$Wrapper__snippet_MonType.inner
+  struct.get 11 0   ; snippet$MonType.n
+  ref.cast 6   ; i32
+  i32.to_i64
+  local.set 3   ; $cast_10
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_10
+  call 33   ; std_core$write_int
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  call 31   ; std_core$finish_buffer
+  return
+end
+
+fn 4 snippet$Wrapper$Tag$tag__snippet_MonType (ref) -> string
+  return.lit string.const 5   ; "tag"
+end
+
+fn 5 snippet$Wrapper$Fancy$fancy__snippet_MonType (ref) -> string
+  local __buf_0 ref
+  local __off_1 i64
+  local $cast_10 i64
+  i64.const 26
+  buffer.new
+  local.set 1   ; __buf_0
+  i64.const 0
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  string.const 6   ; "fancy "
+  call 32   ; std_core$write_string_at
+  local.set 2   ; __off_1
+  local.field 0 4 0   ; arg 0 snippet$Wrapper__snippet_MonType.inner
+  struct.get 11 0   ; snippet$MonType.n
+  ref.cast 6   ; i32
+  i32.to_i64
+  local.set 3   ; $cast_10
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_10
+  call 33   ; std_core$write_int
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  call 31   ; std_core$finish_buffer
+  return
+end
+
+fn 6 snippet$Wrapper$Poke$poke__Any (ref) -> string
+  return.lit string.const 7   ; "generic"
+end
+
+fn 7 snippet$Wrapper$Poke$poke__string (ref) -> string
+  return.lit string.const 7   ; "generic"
+end
+
+fn 8 snippet$Wrapper$Poke$poke__i32$2 (ref) -> string
   local __buf_0 ref
   local __off_1 i64
   local $cast_9 i64
@@ -248,10 +320,10 @@ fn 3 snippet$Wrapper$Poke$poke__i32$2 (ref) -> string
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  string.const 4   ; "int "
+  string.const 8   ; "int "
   call 32   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 7 0   ; arg 0 snippet$Wrapper__i32.inner
+  local.field 0 9 0   ; arg 0 snippet$Wrapper__i32.inner
   ref.cast 6   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
@@ -266,80 +338,8 @@ fn 3 snippet$Wrapper$Poke$poke__i32$2 (ref) -> string
   return
 end
 
-fn 4 snippet$Wrapper$Tag$tag__i32 (ref) -> string
+fn 9 snippet$Wrapper$Tag$tag__i32 (ref) -> string
   return.lit string.const 5   ; "tag"
-end
-
-fn 5 snippet$Wrapper$Poke$poke__string (ref) -> string
-  return.lit string.const 6   ; "generic"
-end
-
-fn 6 snippet$Wrapper$Poke$poke__snippet_MonType$1 (ref) -> string
-  local __buf_0 ref
-  local __off_1 i64
-  local $cast_10 i64
-  i64.const 24
-  buffer.new
-  local.set 1   ; __buf_0
-  i64.const 0
-  local.set 2   ; __off_1
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  string.const 7   ; "mon "
-  call 32   ; std_core$write_string_at
-  local.set 2   ; __off_1
-  local.field 0 4 0   ; arg 0 snippet$Wrapper__snippet_MonType.inner
-  struct.get 11 0   ; snippet$MonType.n
-  ref.cast 6   ; i32
-  i32.to_i64
-  local.set 3   ; $cast_10
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  local.get 3   ; $cast_10
-  call 33   ; std_core$write_int
-  local.set 2   ; __off_1
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  call 31   ; std_core$finish_buffer
-  return
-end
-
-fn 7 snippet$Wrapper$Tag$tag__snippet_MonType (ref) -> string
-  return.lit string.const 5   ; "tag"
-end
-
-fn 8 snippet$Wrapper$Fancy$fancy__snippet_MonType (ref) -> string
-  local __buf_0 ref
-  local __off_1 i64
-  local $cast_10 i64
-  i64.const 26
-  buffer.new
-  local.set 1   ; __buf_0
-  i64.const 0
-  local.set 2   ; __off_1
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  string.const 8   ; "fancy "
-  call 32   ; std_core$write_string_at
-  local.set 2   ; __off_1
-  local.field 0 4 0   ; arg 0 snippet$Wrapper__snippet_MonType.inner
-  struct.get 11 0   ; snippet$MonType.n
-  ref.cast 6   ; i32
-  i32.to_i64
-  local.set 3   ; $cast_10
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  local.get 3   ; $cast_10
-  call 33   ; std_core$write_int
-  local.set 2   ; __off_1
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  call 31   ; std_core$finish_buffer
-  return
-end
-
-fn 9 snippet$Wrapper$Poke$poke__Any (ref) -> string
-  return.lit string.const 6   ; "generic"
 end
 
 fn 10 snippet$$array$Poke$poke__snippet_MonType (ref) -> string
@@ -400,13 +400,13 @@ end
 
 fn 12 snippet$wrap__Any (any) -> ref
   local.get 0   ; arg 0
-  struct.new 9   ; snippet$Wrapper__Any
+  struct.new 7   ; snippet$Wrapper__Any
   return
 end
 
 fn 13 snippet$wrap__i32 (i32) -> ref
   local.get 0   ; arg 0
-  struct.new 7   ; snippet$Wrapper__i32
+  struct.new 9   ; snippet$Wrapper__i32
   return
 end
 
@@ -471,13 +471,13 @@ end
 
 fn 23 snippet$bounded__snippet_Wrapper_snippet_MonType_ (ref) -> string
   local.get 0   ; arg 0
-  call 6   ; snippet$Wrapper$Poke$poke__snippet_MonType$1
+  call 3   ; snippet$Wrapper$Poke$poke__snippet_MonType$1
   return
 end
 
 fn 24 snippet$bounded__snippet_Wrapper_snippet_Other_ (ref) -> string
   local.get 0   ; arg 0
-  call 9   ; snippet$Wrapper$Poke$poke__Any
+  call 6   ; snippet$Wrapper$Poke$poke__Any
   return
 end
 
@@ -485,10 +485,10 @@ fn 25 snippet$both__snippet_Wrapper_i32_ (ref) -> string
   local $call_1 string
   local $call_3 string
   local.get 0   ; arg 0
-  call 3   ; snippet$Wrapper$Poke$poke__i32$2
+  call 8   ; snippet$Wrapper$Poke$poke__i32$2
   local.set 1   ; $call_1
   local.get 0   ; arg 0
-  call 4   ; snippet$Wrapper$Tag$tag__i32
+  call 9   ; snippet$Wrapper$Tag$tag__i32
   local.set 2   ; $call_3
   local.get 1   ; $call_1
   string.const 11   ; "/"
@@ -501,10 +501,10 @@ fn 26 snippet$both__snippet_Wrapper_snippet_MonType_ (ref) -> string
   local $call_1 string
   local $call_3 string
   local.get 0   ; arg 0
-  call 6   ; snippet$Wrapper$Poke$poke__snippet_MonType$1
+  call 3   ; snippet$Wrapper$Poke$poke__snippet_MonType$1
   local.set 1   ; $call_1
   local.get 0   ; arg 0
-  call 7   ; snippet$Wrapper$Tag$tag__snippet_MonType
+  call 4   ; snippet$Wrapper$Tag$tag__snippet_MonType
   local.set 2   ; $call_3
   local.get 1   ; $call_1
   string.const 11   ; "/"

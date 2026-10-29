@@ -52,12 +52,12 @@ const vader_type_info_t vader_type_info_table[10] = {
     [3] = { .slot_size = 1 },
     [4] = { .slot_size = 8 },
     [5] = { .slot_size = 4 },
-    [6] = { .slot_size = 1 },
-    [7] = { .slot_size = 8 },
-    [8] = {
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [7] = { .slot_size = 8 },
+    [8] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 10;
 

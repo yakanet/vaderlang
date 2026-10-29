@@ -249,10 +249,10 @@ const vader_type_info_t vader_type_info_table[29] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_semver$Version_t, f_prerelease), offsetof(vader_struct_semver$Version_t, f_build) },
         .string_count = 2,
     },
-    [4] = { .slot_size = 4 },
-    [5] = { .slot_size = 1 },
-    [6] = { .slot_size = 1 },
-    [7] = { .slot_size = 8 },
+    [4] = { .slot_size = 1 },
+    [5] = { .slot_size = 8 },
+    [6] = { .slot_size = 4 },
+    [7] = { .slot_size = 1 },
     [8] = { .slot_size = 4 },
     [9] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
@@ -340,7 +340,7 @@ static vader_string_t vader_host_std_core$byte_slice(vader_string_t a0, int64_t 
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 10u, 6u);
+    return (void*) vader_string_bytes_view(a0, 10u, 4u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {

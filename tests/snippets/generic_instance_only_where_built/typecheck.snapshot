@@ -1,0 +1,25 @@
+# Typecheck
+
+## tests/snippets/generic_instance_only_where_built
+  FnDecl         main                 :: fn() -> i32
+  expr 13:13    StringLitExpr  :: string
+  expr 13:16    CallExpr       :: f64
+  expr 13:16    FieldExpr      :: fn() -> f64
+  expr 13:16    StructLitExpr  :: Box<i32>
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/generic_instance_only_where_built/shapes
+  StructDecl     Box                  :: Box<T>
+  TraitDecl      Shape                :: Shape
+  FnDecl         test_box_area        :: fn() -> void
+  FnDecl         unused_area          :: fn() -> f64
+  expr 22:37    CallExpr       :: f64
+  expr 22:37    FieldExpr      :: fn() -> f64
+  expr 22:37    StructLitExpr  :: Box<f64>
+  expr 30:15    CallExpr       :: f64
+  expr 30:15    FieldExpr      :: fn() -> f64
+  expr 30:15    StructLitExpr  :: Box<string>
+  expr 30:38    StringLitExpr  :: string
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T, T) -> void

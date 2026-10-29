@@ -10,9 +10,6 @@ typedef struct vader_struct_snippet$__genstate_stepped_t vader_struct_snippet$__
 typedef struct vader_struct___Tuple_i32_u8_99ae0d29_t vader_struct___Tuple_i32_u8_99ae0d29_t;
 typedef struct vader_struct___lambda_env_snippet_5_t vader_struct___lambda_env_snippet_5_t;
 typedef struct vader_struct___lambda_env_snippet_8_t vader_struct___lambda_env_snippet_8_t;
-typedef struct vader_struct_std_core$Range__i32_t vader_struct_std_core$Range__i32_t;
-typedef struct vader_struct_std_core$Range__i64_t vader_struct_std_core$Range__i64_t;
-typedef struct vader_struct___Tuple_i64_u8_87057322_t vader_struct___Tuple_i64_u8_87057322_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 typedef struct vader_struct_$Cell_i32_2af2b319_t vader_struct_$Cell_i32_2af2b319_t;
 
@@ -43,27 +40,6 @@ struct vader_struct___lambda_env_snippet_5_t {
 struct vader_struct___lambda_env_snippet_8_t {
     vader_obj_header_t header;
     vader_box_t f_cap_0;
-};
-struct vader_struct_std_core$Range__i32_t {
-    vader_obj_header_t header;
-    int32_t f_start;
-    int32_t f_end;
-    bool f_inclusive;
-    bool f_done;
-    int32_t f_cursor;
-};
-struct vader_struct_std_core$Range__i64_t {
-    vader_obj_header_t header;
-    int64_t f_start;
-    int64_t f_end;
-    bool f_inclusive;
-    bool f_done;
-    int64_t f_cursor;
-};
-struct vader_struct___Tuple_i64_u8_87057322_t {
-    vader_obj_header_t header;
-    int64_t f__0;
-    uint8_t f__1;
 };
 struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
@@ -101,10 +77,6 @@ static void __lambda_snippet_4(void* l0);
 static int32_t __lambda_snippet_7(void* l0);
 static int32_t __lambda_snippet_6(int32_t l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static int32_t std_core$i32$Step$step(int32_t l0);
-static void* std_core$Range$Iterator$next__i32(void* l0);
-static int64_t std_core$i64$Step$step(int64_t l0);
-static void* std_core$Range$Iterator$next__i64(void* l0);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
@@ -123,7 +95,7 @@ static vader_box_t vader_fn_lift___lambda_snippet_2(void* env, vader_box_t a0) {
 static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[23] = {
+const vader_type_info_t vader_type_info_table[20] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 16 },
     [3] = {
@@ -170,34 +142,22 @@ const vader_type_info_t vader_type_info_table[23] = {
         .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
     },
     [14] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Range__i32_t),
-        .slot_size = 8,
-    },
-    [15] = { .slot_size = 1 },
-    [16] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Range__i64_t),
-        .slot_size = 8,
-    },
-    [17] = { .slot_size = 8 },
-    [18] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_i64_u8_87057322_t),
-        .slot_size = 8,
-    },
-    [19] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [20] = {
+    [15] = { .slot_size = 8 },
+    [16] = { .slot_size = 1 },
+    [17] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [21] = {
+    [18] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_$Cell_i32_2af2b319_t),
         .slot_size = 8,
     },
-    [22] = { .slot_size = 16 },
+    [19] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 23;
+const size_t vader_type_info_count = 20;
 
 /* Headers named by `@c_header`: they own the prototypes below. */
 #include <unistd.h>
@@ -207,7 +167,7 @@ static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 20u, 7u);
+    return (void*) vader_string_bytes_view(a0, 17u, 7u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -216,7 +176,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static void* vader_vt_std_core$Iterator$next(vader_box_t recv);
 
 static int32_t snippet$reads_later(int32_t l0) {
     vader_box_t l1 = vader_box_null();
@@ -229,7 +189,7 @@ static int32_t snippet$reads_later(int32_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_$Cell_i32_2af2b319_t* _a0_obj = (vader_struct_$Cell_i32_2af2b319_t*) vader_gc_alloc(sizeof(vader_struct_$Cell_i32_2af2b319_t));
-    vader_obj_header_init(_a0_obj, 21u);
+    vader_obj_header_init(_a0_obj, 18u);
     _a0_obj->f_value = l0;
     t0 = (void*) _a0_obj;
     l1 = vader_ref_box(t0);
@@ -252,7 +212,7 @@ static vader_box_t snippet$stepped(int32_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_$Cell_i32_2af2b319_t* _a0_obj = (vader_struct_$Cell_i32_2af2b319_t*) vader_gc_alloc(sizeof(vader_struct_$Cell_i32_2af2b319_t));
-    vader_obj_header_init(_a0_obj, 21u);
+    vader_obj_header_init(_a0_obj, 18u);
     _a0_obj->f_value = l0;
     t0 = (void*) _a0_obj;
     l1 = vader_ref_box(t0);
@@ -276,12 +236,11 @@ static int32_t snippet$main(void) {
     int32_t t0;
     vader_string_t t1 = 0;
     void* t2 = NULL;
-    vader_box_t t3 = vader_box_null();
-    vader_box_t* gc_roots[2] = { &l3, &t3 };
+    vader_box_t* gc_roots[1] = { &l3 };
     void** gc_raw_roots[3] = { &l0, &l5, &t2 };
     vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l0 = (void*) vader_buffer_new((size_t) INT64_C(26));
@@ -293,7 +252,7 @@ static int32_t snippet$main(void) {
     t1 = std_core$finish_buffer(l0, l1);
     std_io$println__string(t1);
     vader_struct_$Cell_i32_2af2b319_t* _a0_obj = (vader_struct_$Cell_i32_2af2b319_t*) vader_gc_alloc(sizeof(vader_struct_$Cell_i32_2af2b319_t));
-    vader_obj_header_init(_a0_obj, 21u);
+    vader_obj_header_init(_a0_obj, 18u);
     _a0_obj->f_value = INT32_C(0);
     t2 = (void*) _a0_obj;
     l3 = vader_ref_box(t2);
@@ -320,8 +279,7 @@ static int32_t snippet$main(void) {
     std_io$println__string(t1);
     l3 = snippet$stepped(INT32_C(1));
     for (;;) {
-        t3 = vader_vt_std_core$Iterator$next(l3);
-        l0 = t3.payload.obj;
+        l0 = vader_vt_std_core$Iterator$next(l3);
         if (!(((vader_struct___Tuple_i32_u8_99ae0d29_t*) l0)->f__1 == INT32_C(1))) {
             l4 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l0)->f__0;
             l5 = (void*) vader_buffer_new((size_t) INT64_C(30));
@@ -465,7 +423,7 @@ static int32_t __lambda_snippet_6(int32_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_$Cell_i32_2af2b319_t* _a0_obj = (vader_struct_$Cell_i32_2af2b319_t*) vader_gc_alloc(sizeof(vader_struct_$Cell_i32_2af2b319_t));
-    vader_obj_header_init(_a0_obj, 21u);
+    vader_obj_header_init(_a0_obj, 18u);
     _a0_obj->f_value = l0;
     t0 = (void*) _a0_obj;
     l1 = vader_ref_box(t0);
@@ -497,146 +455,6 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) l2, l1);
     t0 = vader_buffer_intern_string((vader_buffer_t*) l4, (size_t) l3);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static int32_t std_core$i32$Step$step(int32_t l0) {
-    int32_t t0;
-    t0 = vader_chk_add(i32, l0, INT32_C(1));
-    return t0;
-}
-
-static void* std_core$Range$Iterator$next__i32(void* l0) {
-    bool l1;
-    int32_t l2, l3;
-    uint8_t l4;
-    bool t0;
-    int32_t t1;
-    void* t2 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    t0 = ((vader_struct_std_core$Range__i32_t*) l0)->f_inclusive;
-    if (t0) {
-        t0 = ((vader_struct_std_core$Range__i32_t*) l0)->f_done;
-        if (t0) {
-            l1 = true;
-        } else {
-            l2 = ((vader_struct_std_core$Range__i32_t*) l0)->f_cursor;
-            l3 = ((vader_struct_std_core$Range__i32_t*) l0)->f_end;
-            l1 = (l2 > l3);
-        }
-    } else {
-        l2 = ((vader_struct_std_core$Range__i32_t*) l0)->f_cursor;
-        l3 = ((vader_struct_std_core$Range__i32_t*) l0)->f_end;
-        l1 = (l2 >= l3);
-    }
-    if (l1) {
-        t1 = ((vader_struct_std_core$Range__i32_t*) l0)->f_cursor;
-        vader_struct___Tuple_i32_u8_99ae0d29_t* _a0_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
-        vader_obj_header_init(_a0_obj, 6u);
-        _a0_obj->f__0 = t1;
-        _a0_obj->f__1 = (uint8_t) 1;
-        t2 = (void*) _a0_obj;
-        { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-    }
-    l2 = ((vader_struct_std_core$Range__i32_t*) l0)->f_cursor;
-    t0 = ((vader_struct_std_core$Range__i32_t*) l0)->f_inclusive;
-    if (t0) {
-        l3 = ((vader_struct_std_core$Range__i32_t*) l0)->f_end;
-        l1 = (l2 >= l3);
-    } else {
-        l1 = false;
-    }
-    if (l1) {
-        ((vader_struct_std_core$Range__i32_t*) l0)->f_done = true;
-        l4 = (uint8_t) 0;
-        vader_struct___Tuple_i32_u8_99ae0d29_t* _a1_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
-        vader_obj_header_init(_a1_obj, 6u);
-        _a1_obj->f__0 = l2;
-        _a1_obj->f__1 = l4;
-        t2 = (void*) _a1_obj;
-        { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-    }
-    t1 = ((vader_struct_std_core$Range__i32_t*) l0)->f_cursor;
-    l3 = std_core$i32$Step$step(t1);
-    ((vader_struct_std_core$Range__i32_t*) l0)->f_cursor = l3;
-    l4 = (uint8_t) 0;
-    vader_struct___Tuple_i32_u8_99ae0d29_t* _a2_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
-    vader_obj_header_init(_a2_obj, 6u);
-    _a2_obj->f__0 = l2;
-    _a2_obj->f__1 = l4;
-    t2 = (void*) _a2_obj;
-    { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static int64_t std_core$i64$Step$step(int64_t l0) {
-    int64_t t0;
-    t0 = vader_chk_add(i64, l0, INT64_C(1));
-    return t0;
-}
-
-static void* std_core$Range$Iterator$next__i64(void* l0) {
-    bool l1;
-    int64_t l2, l3;
-    uint8_t l4;
-    bool t0;
-    int64_t t1;
-    void* t2 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    t0 = ((vader_struct_std_core$Range__i64_t*) l0)->f_inclusive;
-    if (t0) {
-        t0 = ((vader_struct_std_core$Range__i64_t*) l0)->f_done;
-        if (t0) {
-            l1 = true;
-        } else {
-            l2 = ((vader_struct_std_core$Range__i64_t*) l0)->f_cursor;
-            l3 = ((vader_struct_std_core$Range__i64_t*) l0)->f_end;
-            l1 = (l2 > l3);
-        }
-    } else {
-        l2 = ((vader_struct_std_core$Range__i64_t*) l0)->f_cursor;
-        l3 = ((vader_struct_std_core$Range__i64_t*) l0)->f_end;
-        l1 = (l2 >= l3);
-    }
-    if (l1) {
-        t1 = ((vader_struct_std_core$Range__i64_t*) l0)->f_cursor;
-        vader_struct___Tuple_i64_u8_87057322_t* _a0_obj = (vader_struct___Tuple_i64_u8_87057322_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i64_u8_87057322_t));
-        vader_obj_header_init(_a0_obj, 18u);
-        _a0_obj->f__0 = t1;
-        _a0_obj->f__1 = (uint8_t) 1;
-        t2 = (void*) _a0_obj;
-        { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-    }
-    l2 = ((vader_struct_std_core$Range__i64_t*) l0)->f_cursor;
-    t0 = ((vader_struct_std_core$Range__i64_t*) l0)->f_inclusive;
-    if (t0) {
-        l3 = ((vader_struct_std_core$Range__i64_t*) l0)->f_end;
-        l1 = (l2 >= l3);
-    } else {
-        l1 = false;
-    }
-    if (l1) {
-        ((vader_struct_std_core$Range__i64_t*) l0)->f_done = true;
-        l4 = (uint8_t) 0;
-        vader_struct___Tuple_i64_u8_87057322_t* _a1_obj = (vader_struct___Tuple_i64_u8_87057322_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i64_u8_87057322_t));
-        vader_obj_header_init(_a1_obj, 18u);
-        _a1_obj->f__0 = l2;
-        _a1_obj->f__1 = l4;
-        t2 = (void*) _a1_obj;
-        { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-    }
-    t1 = ((vader_struct_std_core$Range__i64_t*) l0)->f_cursor;
-    l3 = std_core$i64$Step$step(t1);
-    ((vader_struct_std_core$Range__i64_t*) l0)->f_cursor = l3;
-    l4 = (uint8_t) 0;
-    vader_struct___Tuple_i64_u8_87057322_t* _a2_obj = (vader_struct___Tuple_i64_u8_87057322_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i64_u8_87057322_t));
-    vader_obj_header_init(_a2_obj, 18u);
-    _a2_obj->f__0 = l2;
-    _a2_obj->f__1 = l4;
-    t2 = (void*) _a2_obj;
-    { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1) {
@@ -773,11 +591,9 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static void* vader_vt_std_core$Iterator$next(vader_box_t recv) {
     switch (recv.tag) {
-        case 5u: return vader_ref_box(snippet$__genstate_stepped$Iterator$next(recv.payload.obj));
-        case 14u: return vader_ref_box(std_core$Range$Iterator$next__i32(recv.payload.obj));
-        case 16u: return vader_ref_box(std_core$Range$Iterator$next__i64(recv.payload.obj));
+        case 5u: return snippet$__genstate_stepped$Iterator$next(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Iterator.next");
     }
     vader_unreachable("vtable miss in std_core$Iterator.next");

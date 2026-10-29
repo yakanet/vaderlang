@@ -1,9 +1,8 @@
 // vader/front/comptime/evaluated_ast: output shapes of the comptime engine.
 //
-// The comptime pass reads a
-// `TypedProject` and produces an `EvaluatedProject` carrying one
-// `EvaluatedProgram` per module plus the generic instances it names
-// and the host-side side-tables (file contents). Downstream consumers (lowerer, bytecode emit) read
+// The comptime pass reads a `TypedProject` and produces an `EvaluatedProject`
+// carrying one `EvaluatedProgram` per module and the host-side side-tables
+// (file contents). Downstream consumers (lowerer, bytecode emit) read
 // `EvaluatedProject` directly, never `TypedProject` for comptime data.
 
 module "vader/front/comptime"
@@ -83,8 +82,8 @@ export AssertCheck :: struct {
     verdict: AssertVerdict
 }
 
-/// Project-wide comptime output. Carries the per-module slices and the
-/// harvested generic-instance set.
+/// Project-wide comptime output: the per-module slices and the side-tables the
+/// later passes read.
 export EvaluatedProject :: struct {
     /// Owning typed project: the source of every module the comptime
     /// pass evaluated.
@@ -93,12 +92,6 @@ export EvaluatedProject :: struct {
     /// Per-module `EvaluatedProgram`, keyed by canonical module path
     /// (matches `TypedProject.modules` keying).
     modules: MutableMap<string, EvaluatedProgram>
-
-    /// Sorted list of every generic instantiation seen in the typed AST
-    /// (Struct/Trait with non-empty args), from which `lower/mono_struct.vader`
-    /// materialises each concrete struct instance. Sorted by `display_key`
-    /// so ordering is deterministic across runs.
-    instances: GenericInstance[]
 
     /// `@comptime` decls the tree-walk deferred to the VM. Populated by
     /// `evaluate_project` ; consumed by the `pipeline/comptime_vm` pass, which bakes
@@ -130,7 +123,6 @@ export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
     return EvaluatedProject {
         .typed       = typed,
         .modules     = MutableMap<string, EvaluatedProgram> {},
-        .instances   = [],
         .vm_required = [],
     }
 }

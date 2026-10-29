@@ -2,8 +2,7 @@
 //
 // Drives the tree-walk evaluator over every module's `@comptime const`
 // decls in topological order, accumulating values into
-// `EvaluatedProgram.comptime_decls` keyed by Symbol id, and harvests the
-// concrete generic-instance set (`instances`) the lowerer materialises.
+// `EvaluatedProgram.comptime_decls` keyed by Symbol id.
 
 module "vader/front/comptime"
 
@@ -15,8 +14,8 @@ import "vader/front/resolver"
 import "vader/front/typecheck"
 AST :: import "toolchain/ast"
 
-/// Evaluate every `@comptime` decl across the project's typed view,
-/// harvest the generic-instance set, and return the cross-module evaluated AST.
+/// Evaluate every `@comptime` decl across the project's typed view and return
+/// the cross-module evaluated AST.
 /// Takes both `LoadedProject` (for the source decls) and `TypedProject`
 /// (for the typed view) because the resolver doesn't carry decls onto
 /// `ResolvedModule` ; later passes always re-derive from the loaded
@@ -42,53 +41,7 @@ export evaluate_project :: fn(
         project.modules[module_id] = program
     }
     evaluate_extern_libraries(typed, project, diags)
-    // `instances` is the concrete generic-instance set the lowerer's
-    // struct path materialises (`lower/mono_struct.vader`). The lowerer is the
-    // authoritative monomorphizer: there is no separate comptime mono pass.
-    project.instances = harvest_instances(typed, loaded.entry)
     return project
-}
-
-// Walk every typed module's expr / decl / param / local type tables
-// and register each generic instance. The for-in / Into / fn-call passes
-// are not handled yet (those land alongside the
-// lowerer port when their downstream consumers exist).
-harvest_instances :: fn(typed: TypedProject, entry: string) -> GenericInstance[] {
-    registry :: InstanceRegistry {}
-    for [_, module_typed] in typed.modules {
-        for [_, t] in module_typed.decl_types {
-            observe(registry, t)
-        }
-        for [_, t] in module_typed.expr_types {
-            observe(registry, t)
-        }
-        for [_, t] in module_typed.local_types {
-            observe(registry, t)
-        }
-        for [_, t] in module_typed.param_types {
-            observe(registry, t)
-        }
-        for [_, t] in module_typed.type_expr_types {
-            observe(registry, t)
-        }
-        // Impl-method types live in `impl_methods` (mangled-name keyed, read
-        // below) and `impl_method_decl_types` (node-id keyed), not `decl_types`
-        // (Symbol.id-keyed: impl methods aren't in `resolved.symbols`).
-        for [_, t] in module_typed.impl_method_decl_types {
-            observe(registry, t)
-        }
-    }
-    // Every module reads the same impl tables : their members are observed once,
-    // through the entry's.
-    entry_typed :: typed.modules[entry]
-    if entry_typed != null {
-        for [_, members] in entry_typed.impl_tables.impl_methods {
-            for im in members {
-                observe(registry, im.ty)
-            }
-        }
-    }
-    return sorted_instances(registry)
 }
 
 // Concatenate the decls of EVERY file in the module (a module may span several

@@ -20,10 +20,10 @@ type 17 ref _
 type 18 ref std_core$Async
 type 19 array 20
 type 20 fn () -> 3
-type 21 scalar u8
+type 21 struct std_core$Buffer {  }
 type 22 scalar i64
-type 23 struct std_core$Buffer {  }
-type 24 array 21
+type 23 scalar u8
+type 24 array 23
 type 25 ref std_core$Async
 type 26 struct std_async$Sleep { ms:22,deadline:22,armed:4 }
 type 27 union 0,13
@@ -52,7 +52,7 @@ import 6 extern write system_posix$sys_write header=<unistd.h> result_type=22 pa
 impl 11 std_core$Async
 impl 15 std_core$Async
 impl 16 std_core$Async
-impl 23 std_core$ByteAccess
+impl 21 std_core$ByteAccess
 impl 26 std_core$Async
 vtable std_core$Async.resume 11 14
 vtable std_core$Async.resume 15 16

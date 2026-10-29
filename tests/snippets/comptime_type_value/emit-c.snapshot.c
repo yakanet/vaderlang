@@ -36,13 +36,13 @@ const vader_type_info_t vader_type_info_table[11] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 16 },
     [4] = { .slot_size = 4 },
-    [5] = { .slot_size = 1 },
-    [6] = { .slot_size = 1 },
-    [7] = { .slot_size = 8 },
-    [8] = {
+    [5] = { .slot_size = 8 },
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [7] = { .slot_size = 1 },
+    [8] = { .slot_size = 1 },
     [9] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
@@ -59,7 +59,7 @@ static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 9u, 6u);
+    return (void*) vader_string_bytes_view(a0, 9u, 7u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -71,7 +71,7 @@ static int32_t snippet$main(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
     snippet$accept_type(vader_box_obj(0u, (void*)(uintptr_t)1u));
-    snippet$accept_type(vader_box_obj(0u, (void*)(uintptr_t)7u));
+    snippet$accept_type(vader_box_obj(0u, (void*)(uintptr_t)5u));
     snippet$accept_type(vader_box_obj(0u, (void*)(uintptr_t)10u));
     snippet$accept_type(vader_box_obj(0u, (void*)(uintptr_t)4u));
     std_io$println__string(1u);

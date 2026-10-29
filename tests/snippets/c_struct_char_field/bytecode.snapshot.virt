@@ -6,10 +6,10 @@ type 3 struct snippet$Pair as "div_t" { quot:6,rem:1 }
 type 4 scalar i64
 type 5 scalar pointer
 type 6 scalar char
-type 7 scalar bool
-type 8 scalar u8
-type 9 struct std_core$Buffer {  }
-type 10 array 8
+type 7 struct std_core$Buffer {  }
+type 8 scalar bool
+type 9 array 10
+type 10 scalar u8
 type 11 scalar void
 string 0 "before quot="
 string 1 " rem="
@@ -19,10 +19,10 @@ string 4 "false"
 string 5 "\n"
 import 0 extern memset snippet$zero_pair header=<stdlib.h> result_type=5 param_types=3,1,4 param_c_out=1,0,0 param_by_address=1,0,0 (ref,i32,i64) -> pointer
 import 1 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=10 param_c_out= param_by_address= (ref) -> string
-import 3 bytes std_core$bytes result_type=10 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=1,10,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 9 std_core$ByteAccess
+import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=9 param_c_out= param_by_address= (ref) -> string
+import 3 bytes std_core$bytes result_type=9 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=1,9,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 7 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -327,10 +327,10 @@ fn 7 std_core$utf8_encode (char) -> ref
     u32.to_i32
     i32.const 255
     i32.bitand
-    array.new 10 1   ; u8[]
+    array.new 9 1   ; u8[]
     return
   end $L0
-  array.new 10 0   ; u8[]
+  array.new 9 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 2048
@@ -349,7 +349,7 @@ fn 7 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 10   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
@@ -363,7 +363,7 @@ fn 7 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 10   ; u8
     local.get 2   ; out
     return
   end $L1
@@ -384,7 +384,7 @@ fn 7 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 10   ; u8
     local.get 1   ; cp
     i32.const 6
     u32.shr
@@ -400,7 +400,7 @@ fn 7 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 10   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
@@ -414,7 +414,7 @@ fn 7 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 10   ; u8
   else
     local.get 1   ; cp
     i32.const 18
@@ -429,7 +429,7 @@ fn 7 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 10   ; u8
     local.get 1   ; cp
     i32.const 12
     u32.shr
@@ -445,7 +445,7 @@ fn 7 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 10   ; u8
     local.get 1   ; cp
     i32.const 6
     u32.shr
@@ -461,7 +461,7 @@ fn 7 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 10   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
@@ -475,7 +475,7 @@ fn 7 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 10   ; u8
   end $L2
   local.get 2   ; out
   return
@@ -516,7 +516,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 10   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

@@ -12,11 +12,11 @@ type 9 struct snippet$Block { span:2 }
 type 10 union 9,0
 type 11 struct snippet$Inner { flag:12 }
 type 12 union 2,0
-type 13 scalar bool
-type 14 scalar u8
-type 15 scalar i64
-type 16 struct std_core$Buffer {  }
-type 17 array 14
+type 13 struct std_core$Buffer {  }
+type 14 scalar i64
+type 15 scalar u8
+type 16 scalar bool
+type 17 array 15
 string 0 "not null: count="
 string 1 "not null: empty"
 string 2 "guard == null: "
@@ -31,10 +31,10 @@ string 10 "not is null: "
 string 11 "nested match: "
 string 12 "nested guard: "
 string 13 "\n"
-import 0 byte_len std_core$byte_len result_type=15 param_types=7 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$byte_len result_type=14 param_types=7 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=17 param_types=7 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=2,17,15 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 16 std_core$ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=2,17,14 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 13 std_core$ByteAccess
 export main 8
 
 fn 0 snippet$count (ref) -> i32

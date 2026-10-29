@@ -461,8 +461,7 @@ baked_struct :: fn(ctx: FnLowerCtx, v: StructValue, span: Span) -> LoweredExpr {
             .value = comptime_value_to_lowered(ctx, value, laid_out_unions(field_type), span),
         })
     }
-    note_construction(ctx, v.type)
-    return build_core_struct_lit(ctx, erase_generic_struct_tag(ctx, v.type), fields, span)
+    return build_core_struct_lit(ctx, v.type, fields, span)
 }
 
 // A baked tuple of type `v.type`, backed by `tuple`, its elements in position

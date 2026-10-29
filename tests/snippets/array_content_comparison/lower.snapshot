@@ -83,24 +83,15 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
-    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
-    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.contains_all<i32>  // std_core$contains_all__i32
     fn std.core.content_equals<Point>  // std_core$content_equals__snippet_Point
     fn std.core.content_equals<f64>  // std_core$content_equals__f64
     fn std.core.content_equals<i32>  // std_core$content_equals__i32
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.first_unmatched<i32>  // std_core$first_unmatched__i32
-    fn std.core.i32.compare  // std_core$i32$Comparable$compare
-    fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.i32[].contains  // std_core$$array$Contains$contains__i32
-    fn std.core.i64.compare  // std_core$i64$Comparable$compare
-    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.is_disjoint<i32>  // std_core$is_disjoint__i32
     fn std.core.is_permutation_of<i32>  // std_core$is_permutation_of__i32
-    fn std.core.three_way  // std_core$three_way
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -119,9 +110,6 @@
     fn std_core$u64$Equals$equals$guard
     fn std_core$u8$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
-    struct std.core.Range<Any>  // std_core$Range__Any
-    struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<i64>  // std_core$Range__i64
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

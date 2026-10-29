@@ -8,9 +8,9 @@ type 5 scalar string
 type 6 array 2
 type 7 scalar bool
 type 8 struct snippet$B { b:2 }
-type 9 scalar u8
-type 10 struct std_core$Buffer {  }
-type 11 array 9
+type 9 struct std_core$Buffer {  }
+type 10 scalar u8
+type 11 array 10
 type 12 scalar void
 string 0 "w:"
 string 1 "w:1"
@@ -23,7 +23,7 @@ import 1 bytes std_core$bytes result_type=11 param_types=5 param_c_out= param_by
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=2,11,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 1 snippet$Widget
 impl 8 snippet$Widget
-impl 10 std_core$ByteAccess
+impl 9 std_core$ByteAccess
 export main 12
 
 fn 0 snippet$A$Widget$base (ref) -> i32

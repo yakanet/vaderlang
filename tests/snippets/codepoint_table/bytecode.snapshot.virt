@@ -7,10 +7,10 @@ type 4 scalar char
 type 5 scalar u32
 type 6 struct snippet$Boxed { code:3 }
 type 7 scalar i32
-type 8 scalar u64
-type 9 struct std_core$Range__char { start:4,end:4,inclusive:10,done:10,cursor:4 }
-type 10 scalar bool
-type 11 struct std_core$Buffer {  }
+type 8 struct std_core$Range__char { start:4,end:4,inclusive:9,done:9,cursor:4 }
+type 9 scalar bool
+type 10 struct std_core$Buffer {  }
+type 11 scalar u64
 type 12 array 3
 type 13 scalar void
 type 14 array 2
@@ -35,9 +35,9 @@ import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=12 p
 import 2 bytes std_core$bytes result_type=12 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=1 param_types=7,12,1 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 6 std_core$Into
-impl 9 std_core$Contains
-impl 9 std_core$Iterator
-impl 11 std_core$ByteAccess
+impl 8 std_core$Contains
+impl 8 std_core$Iterator
+impl 10 std_core$ByteAccess
 impl 16 std_core$Display
 export main 5
 
@@ -89,16 +89,16 @@ fn 0 snippet$describe (i64) -> string
     local.get 3   ; __buf_0
     local.get 4   ; __off_1
     local.get 0   ; arg 0
-    call 13   ; std_core$write_int
+    call 12   ; std_core$write_int
     local.set 4   ; __off_1
     local.get 3   ; __buf_0
     local.get 4   ; __off_1
     string.const 1   ; " is no scalar value"
-    call 12   ; std_core$write_string_at
+    call 11   ; std_core$write_string_at
     local.set 4   ; __off_1
     local.get 3   ; __buf_0
     local.get 4   ; __off_1
-    call 11   ; std_core$finish_buffer
+    call 10   ; std_core$finish_buffer
     return
   end $L3
   i64.const 38
@@ -109,16 +109,16 @@ fn 0 snippet$describe (i64) -> string
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   local.get 0   ; arg 0
-  call 13   ; std_core$write_int
+  call 12   ; std_core$write_int
   local.set 4   ; __off_1
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   string.const 0   ; " is a scalar value"
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 4   ; __off_1
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
-  call 11   ; std_core$finish_buffer
+  call 10   ; std_core$finish_buffer
   return
 end
 
@@ -177,11 +177,11 @@ fn 3 snippet$walk_codes (char) -> string
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $cast_7
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 11   ; std_core$finish_buffer
+  call 10   ; std_core$finish_buffer
   return
 end
 
@@ -217,7 +217,7 @@ fn 5 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 2   ; "first "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 1   ; __off_1
   char.const 0
   char.to_i32
@@ -226,12 +226,12 @@ fn 5 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_9
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 3   ; ", last "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 1   ; __off_1
   char.const 1114111
   char.to_i32
@@ -240,11 +240,11 @@ fn 5 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_9
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 11   ; std_core$finish_buffer
+  call 10   ; std_core$finish_buffer
   call 22   ; std_io$println__string
   i32.const -1
   i32.const 0
@@ -280,15 +280,15 @@ fn 5 snippet$main () -> i32
   end $L0
   i32.const 72
   call 1   ; snippet$from_byte
-  call 16   ; std_core$char$Display$to_string
+  call 14   ; std_core$char$Display$to_string
   local.set 4   ; $call_41
   i32.const 105
   call 2   ; snippet$from_unit
-  call 16   ; std_core$char$Display$to_string
+  call 14   ; std_core$char$Display$to_string
   local.set 5   ; $call_44
   i32.const 128512
   call 2   ; snippet$from_unit
-  call 16   ; std_core$char$Display$to_string
+  call 14   ; std_core$char$Display$to_string
   local.set 6   ; $call_47
   local.get 4   ; $call_41
   local.get 5   ; $call_44
@@ -349,14 +349,14 @@ fn 5 snippet$main () -> i32
   end $L5
   local.get 7   ; code
   u32.to_char
-  call 16   ; std_core$char$Display$to_string
+  call 14   ; std_core$char$Display$to_string
   local.set 4   ; $call_41
   local.get 10   ; glyph
-  call 16   ; std_core$char$Display$to_string
+  call 14   ; std_core$char$Display$to_string
   local.set 5   ; $call_44
   local.get 0   ; __buf_0
   call 4   ; snippet$Boxed$std_core$Into$into
-  call 16   ; std_core$char$Display$to_string
+  call 14   ; std_core$char$Display$to_string
   local.set 6   ; $call_47
   local.get 4   ; $call_41
   call.import 0   ; std_core$byte_len
@@ -385,32 +385,32 @@ fn 5 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 4   ; $call_41
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 4   ; " "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 5   ; $call_44
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 4   ; " "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 6   ; $call_47
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 5   ; " gap "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 1   ; __off_1
   char.const 97
   char.const 65
@@ -420,11 +420,11 @@ fn 5 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 3   ; __for_i_4
-  call 13   ; std_core$write_int
+  call 12   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 11   ; std_core$finish_buffer
+  call 10   ; std_core$finish_buffer
   call 22   ; std_io$println__string
   array.new 14 0   ; string[]
   local.set 0   ; __buf_0
@@ -473,11 +473,11 @@ fn 5 snippet$main () -> i32
   bool.const false
   bool.const false
   char.const 55294
-  struct.new 9   ; std_core$Range__char
+  struct.new 8   ; std_core$Range__char
   local.set 12   ; __iter_11
   loop $L11 void
     local.get 12   ; __iter_11
-    call 10   ; std_core$Range$Iterator$next__char$v
+    call 9   ; std_core$Range$Iterator$next__char$v
     local.set 15   ; $call_elem_232
     local.set 14   ; $k_194
     local.get 15   ; $call_elem_232
@@ -502,7 +502,7 @@ fn 5 snippet$main () -> i32
   local.get 4   ; $call_41
   call 8   ; concat_2
   call 22   ; std_io$println__string
-  call 17   ; std_core$u32$Zero$zero
+  call 16   ; std_core$u32$Zero$zero
   local.set 8   ; __in_range_5
   char.const 55294
   local.set 10   ; glyph
@@ -545,7 +545,7 @@ fn 5 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 8   ; "fused: "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 1   ; __off_1
   local.get 7   ; code
   u32.to_i64
@@ -553,11 +553,11 @@ fn 5 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_9
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 11   ; std_core$finish_buffer
+  call 10   ; std_core$finish_buffer
   call 22   ; std_io$println__string
   char.const 57344
   local.set 10   ; glyph
@@ -646,7 +646,7 @@ fn 5 snippet$main () -> i32
     i32.le
     if $L24 void
       local.get 10   ; glyph
-      call 16   ; std_core$char$Display$to_string
+      call 14   ; std_core$char$Display$to_string
       local.set 4   ; $call_41
       local.get 0   ; __buf_0
       local.get 4   ; $call_41
@@ -671,7 +671,7 @@ fn 5 snippet$main () -> i32
   i32.const 55357
   i32.const 56832
   call 24   ; std_string$combine_surrogates
-  call 16   ; std_core$char$Display$to_string
+  call 14   ; std_core$char$Display$to_string
   local.set 4   ; $call_41
   string.const 12   ; "pair: "
   local.get 4   ; $call_41
@@ -756,30 +756,24 @@ fn 8 concat_2 (string,string) -> string
   return
 end
 
-fn 9 std_core$char$Step$step (char) -> char
-  local.get 0   ; arg 0
-  call 15   ; std_core$next_scalar
-  return
-end
-
-fn 10 std_core$Range$Iterator$next__char$v (ref) -> (char,u8)
+fn 9 std_core$Range$Iterator$next__char$v (ref) -> (char,u8)
   local over bool
   local $field_5 char
   local $field_6 char
   local $k_24 u8
-  local.field 0 9 2   ; arg 0 std_core$Range__char.inclusive
-  ref.cast 10   ; bool
+  local.field 0 8 2   ; arg 0 std_core$Range__char.inclusive
+  ref.cast 9   ; bool
   if $L0 void
-    local.field 0 9 3   ; arg 0 std_core$Range__char.done
-    ref.cast 10   ; bool
+    local.field 0 8 3   ; arg 0 std_core$Range__char.done
+    ref.cast 9   ; bool
     if $L1 void
       bool.const true
       local.set 1   ; over
     else
-      local.field 0 9 4   ; arg 0 std_core$Range__char.cursor
+      local.field 0 8 4   ; arg 0 std_core$Range__char.cursor
       ref.cast 4   ; char
       local.set 2   ; $field_5
-      local.field 0 9 1   ; arg 0 std_core$Range__char.end
+      local.field 0 8 1   ; arg 0 std_core$Range__char.end
       ref.cast 4   ; char
       local.set 3   ; $field_6
       local.get 2   ; $field_5
@@ -788,10 +782,10 @@ fn 10 std_core$Range$Iterator$next__char$v (ref) -> (char,u8)
       local.set 1   ; over
     end $L1
   else
-    local.field 0 9 4   ; arg 0 std_core$Range__char.cursor
+    local.field 0 8 4   ; arg 0 std_core$Range__char.cursor
     ref.cast 4   ; char
     local.set 2   ; $field_5
-    local.field 0 9 1   ; arg 0 std_core$Range__char.end
+    local.field 0 8 1   ; arg 0 std_core$Range__char.end
     ref.cast 4   ; char
     local.set 3   ; $field_6
     local.get 2   ; $field_5
@@ -801,18 +795,18 @@ fn 10 std_core$Range$Iterator$next__char$v (ref) -> (char,u8)
   end $L0
   local.get 1   ; over
   if $L2 void
-    local.field 0 9 4   ; arg 0 std_core$Range__char.cursor
+    local.field 0 8 4   ; arg 0 std_core$Range__char.cursor
     ref.cast 4   ; char
     i32.const 1
     return
   end $L2
-  local.field 0 9 4   ; arg 0 std_core$Range__char.cursor
+  local.field 0 8 4   ; arg 0 std_core$Range__char.cursor
   ref.cast 4   ; char
   local.set 2   ; $field_5
-  local.field 0 9 2   ; arg 0 std_core$Range__char.inclusive
-  ref.cast 10   ; bool
+  local.field 0 8 2   ; arg 0 std_core$Range__char.inclusive
+  ref.cast 9   ; bool
   if $L3 void
-    local.field 0 9 1   ; arg 0 std_core$Range__char.end
+    local.field 0 8 1   ; arg 0 std_core$Range__char.end
     ref.cast 4   ; char
     local.set 3   ; $field_6
     local.get 2   ; $field_5
@@ -827,20 +821,20 @@ fn 10 std_core$Range$Iterator$next__char$v (ref) -> (char,u8)
   if $L4 void
     local.get 0   ; arg 0
     bool.const true
-    struct.set 9 3   ; std_core$Range__char.done
+    struct.set 8 3   ; std_core$Range__char.done
     i32.const 0
     local.set 4   ; $k_24
     local.get 2   ; $field_5
     local.get 4   ; $k_24
     return
   end $L4
-  local.field 0 9 4   ; arg 0 std_core$Range__char.cursor
+  local.field 0 8 4   ; arg 0 std_core$Range__char.cursor
   ref.cast 4   ; char
-  call 9   ; std_core$char$Step$step
+  call 15   ; std_core$char$Step$step
   local.set 3   ; $field_6
   local.get 0   ; arg 0
   local.get 3   ; $field_6
-  struct.set 9 4   ; std_core$Range__char.cursor
+  struct.set 8 4   ; std_core$Range__char.cursor
   i32.const 0
   local.set 4   ; $k_24
   local.get 2   ; $field_5
@@ -848,14 +842,14 @@ fn 10 std_core$Range$Iterator$next__char$v (ref) -> (char,u8)
   return
 end
 
-fn 11 std_core$finish_buffer (ref,i64) -> string
+fn 10 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 12 std_core$write_string_at (ref,i64,string) -> i64
+fn 11 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -870,7 +864,7 @@ fn 12 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 13 std_core$write_int (ref,i64,i64) -> i64
+fn 12 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -984,7 +978,7 @@ fn 13 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 14 std_core$write_unsigned (ref,i64,u64) -> i64
+fn 13 std_core$write_unsigned (ref,i64,u64) -> i64
   local ndigits i64
   local m u64
   local i i64
@@ -1064,62 +1058,24 @@ fn 14 std_core$write_unsigned (ref,i64,u64) -> i64
   return
 end
 
-fn 15 std_core$next_scalar (char) -> char
-  local __in_range_0 u32
-  local or_res bool
+fn 14 std_core$char$Display$to_string (char) -> string
   local.get 0   ; arg 0
-  char.const 55295
-  i32.eq
-  if $L0 void
-    return.lit char.const 57344
-  end $L0
-  local.get 0   ; arg 0
-  char.to_i32
-  i32.const 1
-  u32.checked_add
-  local.tee 1   ; __in_range_0
-  i32.const 55295
-  u32.gt
-  if $L1 void
-    local.get 1   ; __in_range_0
-    i32.const 57344
-    u32.lt
-    if $L2 void
-      bool.const true
-      local.set 2   ; or_res
-    else
-      local.get 1   ; __in_range_0
-      i32.const 1114111
-      u32.gt
-      local.set 2   ; or_res
-    end $L2
-    local.get 2   ; or_res
-    if $L3 void
-      unreachable
-    else
-      local.get 1   ; __in_range_0
-      u32.to_char
-      return
-    end $L3
-  else
-    local.get 1   ; __in_range_0
-    u32.to_char
-    return
-  end $L1
-end
-
-fn 16 std_core$char$Display$to_string (char) -> string
-  local.get 0   ; arg 0
-  call 18   ; std_core$utf8_encode
+  call 17   ; std_core$utf8_encode
   call.import 1   ; std_core$bytes_to_string
   return
 end
 
-fn 17 std_core$u32$Zero$zero () -> u32
+fn 15 std_core$char$Step$step (char) -> char
+  local.get 0   ; arg 0
+  call 18   ; std_core$next_scalar
+  return
+end
+
+fn 16 std_core$u32$Zero$zero () -> u32
   return.lit i32.const 0
 end
 
-fn 18 std_core$utf8_encode (char) -> ref
+fn 17 std_core$utf8_encode (char) -> ref
   local cp u32
   local out ref
   local $shr_13 u32
@@ -1286,6 +1242,50 @@ fn 18 std_core$utf8_encode (char) -> ref
   end $L2
   local.get 2   ; out
   return
+end
+
+fn 18 std_core$next_scalar (char) -> char
+  local __in_range_0 u32
+  local or_res bool
+  local.get 0   ; arg 0
+  char.const 55295
+  i32.eq
+  if $L0 void
+    return.lit char.const 57344
+  end $L0
+  local.get 0   ; arg 0
+  char.to_i32
+  i32.const 1
+  u32.checked_add
+  local.tee 1   ; __in_range_0
+  i32.const 55295
+  u32.gt
+  if $L1 void
+    local.get 1   ; __in_range_0
+    i32.const 57344
+    u32.lt
+    if $L2 void
+      bool.const true
+      local.set 2   ; or_res
+    else
+      local.get 1   ; __in_range_0
+      i32.const 1114111
+      u32.gt
+      local.set 2   ; or_res
+    end $L2
+    local.get 2   ; or_res
+    if $L3 void
+      unreachable
+    else
+      local.get 1   ; __in_range_0
+      u32.to_char
+      return
+    end $L3
+  else
+    local.get 1   ; __in_range_0
+    u32.to_char
+    return
+  end $L1
 end
 
 fn 19 std_io$write (u8,string) -> void

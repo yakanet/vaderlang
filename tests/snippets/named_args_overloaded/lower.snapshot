@@ -77,10 +77,6 @@
     fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
-    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
-    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
     fn std.core.b2u32  // std_core$b2u32
@@ -99,11 +95,7 @@
     fn std.core.format_signed  // std_core$format_signed
     fn std.core.format_unsigned  // std_core$format_unsigned
     fn std.core.i16.to_string  // std_core$i16$Display$to_string
-    fn std.core.i32.compare  // std_core$i32$Comparable$compare
-    fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.i32.to_string  // std_core$i32$Display$to_string
-    fn std.core.i64.compare  // std_core$i64$Comparable$compare
-    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.i64.to_string  // std_core$i64$Display$to_string
     fn std.core.i8.to_string  // std_core$i8$Display$to_string
     fn std.core.insert_point  // std_core$insert_point
@@ -124,7 +116,6 @@
     fn std.core.render  // std_core$render
     fn std.core.shiftright128  // std_core$shiftright128
     fn std.core.string.to_string  // std_core$string$Display$to_string
-    fn std.core.three_way  // std_core$three_way
     fn std.core.u16.to_string  // std_core$u16$Display$to_string
     fn std.core.u32.to_string  // std_core$u32$Display$to_string
     fn std.core.u64.to_string  // std_core$u64$Display$to_string
@@ -141,9 +132,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.FloatDec32  // std_core$FloatDec32
-    struct std.core.Range<Any>  // std_core$Range__Any
-    struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<i64>  // std_core$Range__i64
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

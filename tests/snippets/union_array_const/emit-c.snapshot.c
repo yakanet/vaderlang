@@ -145,7 +145,7 @@ static const vader_array_t vader_data_3 = {
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_4_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 25u, 0u, { 0u, 0u, 0u },
-    { { 13u, 0u, { .i = (int64_t) (int64_t) UINT64_C(5000000000) } }, { 3u, 0u, { .s = 22u } } },
+    { { 14u, 0u, { .i = (int64_t) (int64_t) UINT64_C(5000000000) } }, { 3u, 0u, { .s = 22u } } },
 };
 static const vader_array_t vader_data_4 = {
     { 24u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_4_buf,
@@ -936,11 +936,11 @@ const vader_type_info_t vader_type_info_table[29] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Holder_t, f_label) },
         .string_count = 1,
     },
-    [13] = { .slot_size = 8 },
-    [14] = {
+    [13] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [14] = { .slot_size = 8 },
     [15] = { .slot_size = 8 },
     [16] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -1185,7 +1185,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l2)
         l3 = vader_array_box_slots(_a4_slotarr->buf)[_a4_slotarr->offset + (size_t) l2];
-        if (l3.tag == 13u) {
+        if (l3.tag == 14u) {
             l5 = (void*) vader_buffer_new((size_t) INT64_C(24));
             l6 = INT64_C(0);
             l6 = std_core$write_string_at(l5, l6, 7u);

@@ -773,7 +773,7 @@ export contains_distinct :: fn(t: Type) -> bool {
 /// boxes and lays out exactly as its backing primitive, so the backend must
 /// never see one inside a monomorphisation instance key. Applied to type-args
 /// at every instance-registration source (`lower/generic_call.vader`, `lower/ufcs.vader`,
-/// `instances.add`, the direct `GenericInstance` builders) so `MutableMap<BlockId>`
+/// `queue_generic_impl_receiver`, `materialize_shape`) so `MutableMap<BlockId>`
 /// IS `MutableMap<i32>` for the whole lowerer / comptime / emit pipeline: one
 /// raw instance, no separate erased instance to collide with the genuine one.
 /// Nominal distinctness is a typechecker-only concept; it ends here, at the

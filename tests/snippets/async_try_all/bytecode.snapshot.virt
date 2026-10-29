@@ -17,17 +17,17 @@ type 14 union 15,17
 type 15 array 16
 type 16 union 6,1
 type 17 ref std_core$Error
-type 18 scalar u8
-type 19 struct std_core$Buffer {  }
-type 20 array 18
-type 21 ref _
-type 22 struct std_async$TryJoinAll__i32__Any { inner:37 }
-type 23 union 24,17,9
-type 24 array 25
-type 25 union 21,6
+type 18 struct std_core$Buffer {  }
+type 19 scalar u8
+type 20 array 19
+type 21 struct std_async$TryJoinAll__i32__Any { inner:37 }
+type 22 union 23,17,9
+type 23 array 24
+type 24 union 25,6
+type 25 ref _
 type 26 struct std_async$JoinAll__Any { children:33,results:28,slot:38,wake_at:38 }
 type 27 union 28,9
-type 28 array 21
+type 28 array 25
 type 29 ref std_core$Async
 type 30 ref std_core$Async
 type 31 struct std_async$Sleep { ms:3,deadline:3,armed:4 }
@@ -40,7 +40,7 @@ type 37 struct std_async$JoinAll__Any___i32 { children:33,results:28,slot:38,wak
 type 38 array 3
 type 39 array 5
 type 40 ref std_core$Async
-type 41 union 24,9
+type 41 union 23,9
 string 0 "down: "
 string 1 "unexpected: "
 string 2 "?"
@@ -61,20 +61,20 @@ import 6 panic std_abort$panic result_type=10 param_types=2 param_c_out= param_b
 impl 1 std_core$Error
 impl 7 std_core$Async
 impl 11 std_core$Async
-impl 19 std_core$ByteAccess
-impl 22 std_core$Async
+impl 18 std_core$ByteAccess
+impl 21 std_core$Async
 impl 26 std_core$Async
 impl 31 std_core$Async
 impl 37 std_core$Async
 vtable std_core$Error.message 1 0
 vtable std_core$Async.resume 7 3
 vtable std_core$Async.resume 11 5
-vtable std_core$Async.resume 22 15
+vtable std_core$Async.resume 21 15
 vtable std_core$Async.resume 26 17
 vtable std_core$Async.resume 31 22
 vtable std_core$Async.cancel 7 4
 vtable std_core$Async.cancel 11 6
-vtable std_core$Async.cancel 22 16
+vtable std_core$Async.cancel 21 16
 vtable std_core$Async.cancel 26 18
 vtable std_core$Async.cancel 31 23
 export main 2
@@ -1026,7 +1026,7 @@ fn 15 std_async$TryJoinAll$std_core$Async$resume__i32__Any (ref) -> any
   local __for_len_1 i64
   local __for_i_2 i64
   local v any
-  local.field 0 22 0   ; arg 0 std_async$TryJoinAll__i32__Any.inner
+  local.field 0 21 0   ; arg 0 std_async$TryJoinAll__i32__Any.inner
   call 17   ; std_async$JoinAll$std_core$Async$resume__Any
   local.tee 1   ; r
   type_check 9   ; std_core$Suspended
@@ -1036,7 +1036,7 @@ fn 15 std_async$TryJoinAll$std_core$Async$resume__i32__Any (ref) -> any
     return
   end $L0
   local.get 1   ; r
-  ref.cast 24   ; union[]
+  ref.cast 23   ; union[]
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1049,7 +1049,7 @@ fn 15 std_async$TryJoinAll$std_core$Async$resume__i32__Any (ref) -> any
     if $L2 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 24   ; union[]
+      array.get 23   ; union[]
       local.tee 5   ; v
       type_check 17   ; ref std_core$Error
       if $L3 void
@@ -1064,12 +1064,12 @@ fn 15 std_async$TryJoinAll$std_core$Async$resume__i32__Any (ref) -> any
     end $L2
   end $L1
   local.get 1   ; r
-  ref.cast 24   ; union[]
+  ref.cast 23   ; union[]
   return
 end
 
 fn 16 std_async$TryJoinAll$std_core$Async$cancel__i32__Any (ref) -> void
-  local.field 0 22 0   ; arg 0 std_async$TryJoinAll__i32__Any.inner
+  local.field 0 21 0   ; arg 0 std_async$TryJoinAll__i32__Any.inner
   call 18   ; std_async$JoinAll$std_core$Async$cancel__Any
   return
 end
@@ -1141,7 +1141,7 @@ fn 17 std_async$JoinAll$std_core$Async$resume__Any (ref) -> any
           local.set 11   ; $cast_26
           local.get 10   ; $field_25
           local.get 11   ; $cast_26
-          array.push 21   ; ref
+          array.push 25   ; ref
           local.field 0 26 3   ; arg 0 std_async$JoinAll__Any.wake_at
           local.get 4   ; i
           i64.const 9223372036854775807
@@ -1207,7 +1207,7 @@ fn 17 std_async$JoinAll$std_core$Async$resume__Any (ref) -> any
       local.set 5   ; r
       local.get 6   ; $field_19
       local.get 5   ; r
-      array.push 21 6   ; ref $field_19
+      array.push 25 6   ; ref $field_19
       local.get 2   ; now
       i64.const 1
       i64.add
@@ -1385,6 +1385,6 @@ end
 fn 26 std_async$try_join_all__i32__Any (ref) -> any
   local.get 0   ; arg 0
   call 25   ; std_async$new_join_all__Any___i32
-  struct.new 22   ; std_async$TryJoinAll__i32__Any
+  struct.new 21   ; std_async$TryJoinAll__i32__Any
   return
 end

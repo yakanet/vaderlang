@@ -158,12 +158,6 @@ lower_project_impl :: fn(
         lowered_module :: lower_module(module_id, display_path, module_typed, decls, project_ctx, diags)
         project.modules[module_id] = lowered_module
     }
-    // After per-module lowering, materialise generic-struct instances +
-    // their matching generic-impl members. Each `evaluated.instances`
-    // entry yields a `StructDecl<Concrete>` + per-impl `__T` member fns.
-    if !is_staging {
-        materialize_concrete_struct_instances(loaded, typed, project_ctx, project, diags)
-    }
     // Generic-fn instances + non-generic stdlib free fns are MUTUALLY
     // recursive : a generic instance body calls stdlib fns (harvested into
     // `nongeneric_imported_order`), and a harvested stdlib body calls generic
@@ -184,7 +178,7 @@ lower_project_impl :: fn(
     prev_total: i64 = 0
     draining := true
     for draining {
-        drain_generic_fn_instances(loaded, typed, project_ctx, project, diags)
+        drain_generic_fn_instances(typed, project_ctx, project, diags)
         materialize_nongeneric_imported_fns(typed, project_ctx, project, diags)
         materialize_nongeneric_imported_consts(typed, project_ctx, project, diags)
         materialize_enum_tables(typed, project_ctx, project)
@@ -203,15 +197,12 @@ lower_project_impl :: fn(
     // INVARIANT : anything that can register a generic fn instance or harvest a
     // non-generic stdlib fn MUST run inside the loop above: the flush is
     // one-shot, so a post-flush registration is stranded (the bug this closes).
-    // `materialize_representatives` / `close_over_field_shapes` below only push
-    // struct decls (no body lowering), so they register nothing: keep it that way.
+    // `close_over_field_shapes` below only pushes struct decls (no body
+    // lowering), so it registers nothing: keep it that way.
     flush_generic_fn_instances(project_ctx, project)
-    // Representative "any-args" structs come AFTER fn instances so the
-    // emission order stays stable (`tests/snippets/generic_angle_decl` pins it).
-    materialize_representatives(typed, project_ctx, project)
     // Transitively materialise generic-struct shapes referenced by the
-    // fields of the structs emitted above (concrete + representative),
-    // e.g. `MutableSet<i32>`'s erased `inner: MutableMap<Any, bool>`:
+    // types of the decls emitted above, e.g. `MutableSet<i32>`'s erased
+    // `inner: MutableMap<Any, bool>`:
     // otherwise the bytecode interner mints an orphan `ref` for them.
     close_over_field_shapes(typed, project_ctx, project)
     // Place the project-global synthesised decls (`concat_N`, field-default

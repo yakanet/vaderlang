@@ -7,19 +7,19 @@ type 4 scalar i32
 type 5 scalar bool
 type 6 struct snippet$Holder { v:7 }
 type 7 union 2,0
-type 8 scalar u8
+type 8 struct std_core$Buffer {  }
 type 9 scalar i64
-type 10 struct std_core$Buffer {  }
-type 11 array 1
-type 12 scalar i8
-type 13 ref _
-type 14 scalar i16
+type 10 array 1
+type 11 scalar i8
+type 12 ref _
+type 13 scalar i16
+type 14 scalar u8
 type 15 scalar u16
 type 16 scalar u32
 type 17 scalar u64
 type 18 scalar f32
 type 19 scalar char
-type 20 array 8
+type 20 array 14
 type 21 scalar void
 string 0 "zero"
 string 1 "other"
@@ -37,13 +37,13 @@ string 12 "\n"
 import 0 byte_len std_core$byte_len result_type=9 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=20 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=4,20,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 10 std_core$ByteAccess
-impl 11 std_core$Contains
-vtable std_core$Equals.equals 12 10
-vtable std_core$Equals.equals 14 11
+impl 8 std_core$ByteAccess
+impl 10 std_core$Contains
+vtable std_core$Equals.equals 11 10
+vtable std_core$Equals.equals 13 11
 vtable std_core$Equals.equals 4 12
 vtable std_core$Equals.equals 9 13
-vtable std_core$Equals.equals 8 14
+vtable std_core$Equals.equals 14 14
 vtable std_core$Equals.equals 15 15
 vtable std_core$Equals.equals 16 16
 vtable std_core$Equals.equals 17 17
@@ -401,7 +401,7 @@ fn 1 snippet$main () -> i32
   call 6   ; std_core$finish_buffer
   call 26   ; std_io$println__string
   local.get 3   ; w
-  array.new 11 1   ; union[]
+  array.new 10 1   ; union[]
   local.set 5   ; __buf_0
   i64.const 22
   buffer.new
@@ -428,7 +428,7 @@ fn 1 snippet$main () -> i32
   call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 4   ; n
-  array.new 11 1   ; union[]
+  array.new 10 1   ; union[]
   local.get 4   ; n
   call 9   ; std_core$$array$Contains$contains__f64___string
   local.set 7   ; and_res
@@ -845,7 +845,7 @@ fn 9 std_core$$array$Contains$contains__f64___string (ref,any) -> bool
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 11   ; union[]
+      array.get 10   ; union[]
       local.tee 5   ; item
       type_check 2   ; f64
       if $L2 void
@@ -899,10 +899,10 @@ end
 fn 10 std_core$i8$Equals$equals$guard (i8,any) -> bool
   local $cast_4 i8
   local.get 1   ; arg 1
-  type_check 12   ; i8
+  type_check 11   ; i8
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 12   ; i8
+    ref.cast 11   ; i8
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -915,10 +915,10 @@ end
 fn 11 std_core$i16$Equals$equals$guard (i16,any) -> bool
   local $cast_4 i16
   local.get 1   ; arg 1
-  type_check 14   ; i16
+  type_check 13   ; i16
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 14   ; i16
+    ref.cast 13   ; i16
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -963,10 +963,10 @@ end
 fn 14 std_core$u8$Equals$equals$guard (u8,any) -> bool
   local $cast_4 u8
   local.get 1   ; arg 1
-  type_check 8   ; u8
+  type_check 14   ; u8
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 8   ; u8
+    ref.cast 14   ; u8
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4

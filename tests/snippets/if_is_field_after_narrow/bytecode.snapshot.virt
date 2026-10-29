@@ -7,21 +7,21 @@ type 4 struct snippet$StructVal { type_id:5,fields:7 }
 type 5 scalar i32
 type 6 scalar string
 type 7 array 5
-type 8 scalar bool
-type 9 scalar u8
-type 10 scalar i64
-type 11 struct std_core$Buffer {  }
-type 12 array 9
+type 8 struct std_core$Buffer {  }
+type 9 scalar i64
+type 10 scalar u8
+type 11 scalar bool
+type 12 array 10
 type 13 scalar void
 string 0 "type_id(s)="
 string 1 "type_id(a)="
 string 2 "type_id(i)="
 string 3 "first(a)="
 string 4 "\n"
-import 0 byte_len std_core$byte_len result_type=10 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$byte_len result_type=9 param_types=6 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=12 param_types=6 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=5,12,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 11 std_core$ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=5,12,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 8 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$type_id_of (any) -> i32

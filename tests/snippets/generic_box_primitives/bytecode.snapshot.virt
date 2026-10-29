@@ -17,19 +17,19 @@ type 14 struct snippet$Box__u8 { v:15 }
 type 15 scalar u8
 type 16 struct snippet$Box__f64 { v:17 }
 type 17 scalar f64
-type 18 struct snippet$Box__i32 { v:1 }
-type 19 struct snippet$Box__u16 { v:20 }
-type 20 scalar u16
-type 21 struct snippet$Box__u64 { v:22 }
-type 22 scalar u64
+type 18 struct snippet$Box__u16 { v:19 }
+type 19 scalar u16
+type 20 struct snippet$Box__u64 { v:21 }
+type 21 scalar u64
+type 22 struct snippet$Box__i32 { v:1 }
 type 23 struct std_core$Buffer {  }
 type 24 array 15
 type 25 scalar u32
 type 26 struct std_core$FloatDec32 { mantissa:25,exp:1 }
-type 27 struct std_core$Dec64 { mantissa:22,exp:1 }
-type 28 struct __Tuple_u64_u64_u64_2d035edd { _0:22,_1:22,_2:22 }
+type 27 struct std_core$Dec64 { mantissa:21,exp:1 }
+type 28 struct __Tuple_u64_u64_u64_2d035edd { _0:21,_1:21,_2:21 }
 type 29 scalar void
-type 30 array 22
+type 30 array 21
 string 0 "hi"
 string 1 "u8="
 string 2 " bool="
@@ -107,16 +107,16 @@ fn 0 snippet$main () -> i32
   struct.new 8   ; snippet$Box__i16
   local.set 5   ; bi16
   i32.const 50000
-  struct.new_stack 19   ; snippet$Box__u16
+  struct.new_stack 18   ; snippet$Box__u16
   local.set 6   ; bu16
   i64.const 9000000000
   struct.new 10   ; snippet$Box__i64
   local.set 7   ; bi64
   i64.const 42
-  struct.new_stack 21   ; snippet$Box__u64
+  struct.new_stack 20   ; snippet$Box__u64
   local.set 8   ; bu64
   i32.const -7
-  struct.new_stack 18   ; snippet$Box__i32
+  struct.new_stack 22   ; snippet$Box__i32
   local.set 9   ; bi32
   string.const 0   ; "hi"
   struct.new 12   ; snippet$Box__string
@@ -223,16 +223,16 @@ fn 0 snippet$main () -> i32
   local.field 5 8 0   ; bi16 snippet$Box__i16.v
   ref.cast 9   ; i16
   local.set 19   ; __p_7
-  local.field 6 19 0   ; bu16 snippet$Box__u16.v
-  ref.cast 20   ; u16
+  local.field 6 18 0   ; bu16 snippet$Box__u16.v
+  ref.cast 19   ; u16
   local.set 20   ; __p_8
   local.field 7 10 0   ; bi64 snippet$Box__i64.v
   ref.cast 11   ; i64
   local.set 16   ; $call_47
-  local.field 8 21 0   ; bu64 snippet$Box__u64.v
-  ref.cast 22   ; u64
+  local.field 8 20 0   ; bu64 snippet$Box__u64.v
+  ref.cast 21   ; u64
   local.set 18   ; $cast_59
-  local.field 9 18 0   ; bi32 snippet$Box__i32.v
+  local.field 9 22 0   ; bi32 snippet$Box__i32.v
   ref.cast 1   ; i32
   local.set 21   ; __p_11
   local.field 10 12 0   ; bs snippet$Box__string.v
@@ -1074,7 +1074,7 @@ fn 19 std_core$format_f64 (f64) -> string
   call 22   ; std_core$d2d
   local.set 4   ; d
   local.field 4 27 0   ; d std_core$Dec64.mantissa
-  ref.cast 22   ; u64
+  ref.cast 21   ; u64
   local.set 1   ; bits
   local.field 4 27 1   ; d std_core$Dec64.exp
   ref.cast 1   ; i32
@@ -1903,13 +1903,13 @@ fn 22 std_core$d2d (u64,u64) -> ref
     call 34   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
     local.field 17 28 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
-    ref.cast 22   ; u64
+    ref.cast 21   ; u64
     local.set 8   ; vr
     local.field 17 28 1   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._1
-    ref.cast 22   ; u64
+    ref.cast 21   ; u64
     local.set 9   ; vp
     local.field 17 28 2   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._2
-    ref.cast 22   ; u64
+    ref.cast 21   ; u64
     local.set 10   ; vm
     local.get 13   ; $call_57
     i32.const 21
@@ -2017,13 +2017,13 @@ fn 22 std_core$d2d (u64,u64) -> ref
     call 34   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
     local.field 17 28 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
-    ref.cast 22   ; u64
+    ref.cast 21   ; u64
     local.set 8   ; vr
     local.field 17 28 1   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._1
-    ref.cast 22   ; u64
+    ref.cast 21   ; u64
     local.set 9   ; vp
     local.field 17 28 2   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._2
-    ref.cast 22   ; u64
+    ref.cast 21   ; u64
     local.set 10   ; vm
     local.get 13   ; $call_57
     i32.const 1

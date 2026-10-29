@@ -16,9 +16,9 @@ type 13 struct std_core$Suspended { wake_at:2 }
 type 14 struct __asyncstate_snippet_1 { s0:7,s1:7,s2:5,s3:5,awaited:16,state:1 }
 type 15 union 1,13
 type 16 ref std_core$Async
-type 17 scalar u8
-type 18 struct std_core$Buffer {  }
-type 19 array 17
+type 17 struct std_core$Buffer {  }
+type 18 scalar u8
+type 19 array 18
 type 20 ref std_core$Async
 type 21 ref std_core$Async
 type 22 struct std_async$Sleep { ms:2,deadline:2,armed:3 }
@@ -51,7 +51,7 @@ import 5 panic std_abort$panic result_type=6 param_types=4 param_c_out= param_by
 import 6 extern write system_posix$sys_write header=<unistd.h> result_type=2 param_types=1,19,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 11 std_core$Async
 impl 14 std_core$Async
-impl 18 std_core$ByteAccess
+impl 17 std_core$ByteAccess
 impl 22 std_core$Async
 vtable std_core$Async.resume 11 13
 vtable std_core$Async.resume 14 14

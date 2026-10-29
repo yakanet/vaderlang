@@ -2,21 +2,21 @@ module _main
 type 0 scalar null
 type 1 scalar i32
 type 2 scalar string
-type 3 scalar bool
-type 4 scalar u8
-type 5 scalar i64
-type 6 struct std_core$Buffer {  }
-type 7 array 4
+type 3 struct std_core$Buffer {  }
+type 4 scalar i64
+type 5 scalar u8
+type 6 scalar bool
+type 7 array 5
 type 8 scalar void
-type 9 struct snippet_shapes$Node { name:2,id:5 }
+type 9 struct snippet_shapes$Node { name:2,id:4 }
 string 0 "x"
 string 1 "name="
 string 2 " id="
 string 3 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=1,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 6 std_core$ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 3 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -57,7 +57,7 @@ fn 0 snippet$main () -> i32
   call 3   ; std_core$write_string_at
   local.set 2   ; $call_7
   local.field 0 9 1   ; n snippet_shapes$Node.id
-  ref.cast 5   ; i64
+  ref.cast 4   ; i64
   local.set 4   ; $field_18
   local.get 3   ; __buf_1
   local.get 2   ; $call_7
@@ -69,7 +69,7 @@ fn 0 snippet$main () -> i32
   call 2   ; std_core$finish_buffer
   call 8   ; std_io$println__string
   local.field 0 9 1   ; n snippet_shapes$Node.id
-  ref.cast 5   ; i64
+  ref.cast 4   ; i64
   i64.to_i32
   return
 end

@@ -4,8 +4,8 @@ type 1 scalar i32
 type 2 scalar string
 type 3 scalar u8
 type 4 scalar i64
-type 5 scalar bool
-type 6 struct std_core$Buffer {  }
+type 5 struct std_core$Buffer {  }
+type 6 scalar bool
 type 7 array 3
 type 8 scalar void
 string 0 " "
@@ -15,7 +15,7 @@ import 1 extern labs snippet$labs_wide header=<stdlib.h> result_type=4 param_typ
 import 2 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 3 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 4 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 6 std_core$ByteAccess
+impl 5 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32

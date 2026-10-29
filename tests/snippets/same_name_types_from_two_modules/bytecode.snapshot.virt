@@ -11,10 +11,10 @@ type 8 union 1,3
 type 9 scalar bool
 type 10 struct snippet$Box__snippet_shapes__a_Point { v:6 }
 type 11 struct snippet$Box__snippet_shapes__b_Point { v:6 }
-type 12 scalar u8
+type 12 struct std_core$Buffer {  }
 type 13 scalar i64
-type 14 struct std_core$Buffer {  }
-type 15 array 12
+type 14 scalar u8
+type 15 array 14
 type 16 scalar void
 string 0 "a point at "
 string 1 "a point named "
@@ -28,7 +28,7 @@ import 1 bytes std_core$bytes result_type=15 param_types=2 param_c_out= param_by
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=5,15,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 1 snippet$Describe
 impl 3 snippet$Describe
-impl 14 std_core$ByteAccess
+impl 12 std_core$ByteAccess
 vtable snippet$Describe.describe 1 0
 vtable snippet$Describe.describe 3 1
 export main 3

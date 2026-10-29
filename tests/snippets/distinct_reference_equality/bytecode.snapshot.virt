@@ -5,10 +5,10 @@ type 2 scalar bool
 type 3 array 4
 type 4 scalar i32
 type 5 scalar string
-type 6 scalar u8
+type 6 struct std_core$Buffer {  }
 type 7 scalar i64
-type 8 struct std_core$Buffer {  }
-type 9 array 6
+type 8 scalar u8
+type 9 array 8
 type 10 scalar void
 type 11 array 5
 string 0 " "
@@ -24,7 +24,7 @@ import 1 bytes std_core$bytes result_type=9 param_types=5 param_c_out= param_by_
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=7 param_types=4,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 3 std_core$Equals
 impl 1 std_core$Equals
-impl 8 std_core$ByteAccess
+impl 6 std_core$ByteAccess
 impl 3 std_core$Display
 export main 2
 

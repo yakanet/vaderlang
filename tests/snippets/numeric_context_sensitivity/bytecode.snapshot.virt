@@ -5,9 +5,9 @@ type 2 scalar u64
 type 3 scalar string
 type 4 struct snippet$Counter { n:2,delta:5 }
 type 5 scalar i64
-type 6 scalar bool
+type 6 struct std_core$Buffer {  }
 type 7 scalar u8
-type 8 struct std_core$Buffer {  }
+type 8 scalar bool
 type 9 array 7
 type 10 scalar void
 type 11 array 1
@@ -25,7 +25,7 @@ string 10 "\n"
 import 0 byte_len std_core$byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=9 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=1,9,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 8 std_core$ByteAccess
+impl 6 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32

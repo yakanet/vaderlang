@@ -4,17 +4,17 @@ type 1 ref std_core$Async
 type 2 scalar i32
 type 3 struct __asyncstate_snippet_0 { s0:0,s1:0,awaited:7,state:2 }
 type 4 union 2,5
-type 5 struct std_core$Suspended { wake_at:10 }
+type 5 struct std_core$Suspended { wake_at:9 }
 type 6 scalar string
 type 7 ref std_core$Async
-type 8 scalar bool
-type 9 scalar u8
-type 10 scalar i64
-type 11 struct std_core$Buffer {  }
-type 12 array 9
+type 8 struct std_core$Buffer {  }
+type 9 scalar i64
+type 10 scalar u8
+type 11 scalar bool
+type 12 array 10
 type 13 scalar void
 type 14 ref std_core$Async
-type 15 struct std_async$Sleep { ms:10,deadline:10,armed:8 }
+type 15 struct std_async$Sleep { ms:9,deadline:9,armed:11 }
 type 16 union 0,5
 string 0 "exit code = "
 string 1 "woke at 5"
@@ -22,15 +22,15 @@ string 2 "woke at 2"
 string 3 "start"
 string 4 "\n"
 string 5 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 byte_len std_core$byte_len result_type=10 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$byte_len result_type=9 param_types=6 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=12 param_types=6 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=2,12,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 sched_now std_runtime$sched_now result_type=10 () -> i64
-import 4 sched_arm std_runtime$sched_arm result_type=13 param_types=10 param_c_out= param_by_address= (i64) -> void
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=2,12,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 sched_now std_runtime$sched_now result_type=9 () -> i64
+import 4 sched_arm std_runtime$sched_arm result_type=13 param_types=9 param_c_out= param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=2 () -> i32
 import 6 panic std_abort$panic result_type=13 param_types=6 param_c_out= param_by_address= (string) -> void
 impl 3 std_core$Async
-impl 11 std_core$ByteAccess
+impl 8 std_core$ByteAccess
 impl 15 std_core$Async
 vtable std_core$Async.resume 3 2
 vtable std_core$Async.resume 15 13
@@ -517,7 +517,7 @@ fn 13 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 15 2   ; arg 0 std_async$Sleep.armed
-  ref.cast 8   ; bool
+  ref.cast 11   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0
@@ -526,7 +526,7 @@ fn 13 std_async$Sleep$std_core$Async$resume (ref) -> any
     call.import 3   ; std_runtime$sched_now
     local.set 1   ; $call_3
     local.field 0 15 0   ; arg 0 std_async$Sleep.ms
-    ref.cast 10   ; i64
+    ref.cast 9   ; i64
     local.set 2   ; $field_4
     local.get 1   ; $call_3
     local.get 2   ; $field_4
@@ -536,13 +536,13 @@ fn 13 std_async$Sleep$std_core$Async$resume (ref) -> any
     local.get 1   ; $call_3
     struct.set 15 1   ; std_async$Sleep.deadline
     local.field 0 15 1   ; arg 0 std_async$Sleep.deadline
-    ref.cast 10   ; i64
+    ref.cast 9   ; i64
     call.import 4   ; std_runtime$sched_arm
   end $L0
   call.import 3   ; std_runtime$sched_now
   local.set 1   ; $call_3
   local.field 0 15 1   ; arg 0 std_async$Sleep.deadline
-  ref.cast 10   ; i64
+  ref.cast 9   ; i64
   local.set 2   ; $field_4
   local.get 1   ; $call_3
   local.get 2   ; $field_4
@@ -550,7 +550,7 @@ fn 13 std_async$Sleep$std_core$Async$resume (ref) -> any
   if $L1 void
   else
     local.field 0 15 1   ; arg 0 std_async$Sleep.deadline
-    ref.cast 10   ; i64
+    ref.cast 9   ; i64
     struct.new 5   ; std_core$Suspended
     return
   end $L1

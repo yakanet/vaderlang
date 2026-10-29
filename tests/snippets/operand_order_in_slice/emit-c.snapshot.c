@@ -72,11 +72,11 @@ static void* snippet$pool(vader_string_t l0);
 static void* snippet$window(vader_string_t l0);
 static int32_t snippet$main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static uint64_t std_core$i32$Hash$hash(int32_t l0);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
 static bool std_core$$array$Contains$contains__i32(void* l0, int32_t l1);
+static uint64_t std_core$i32$Hash$hash(int32_t l0);
 static bool std_collections$MutableMap$std_core$Contains$contains__i32__bool(void* l0, int32_t l1);
 static bool std_collections$MutableSet$std_core$Contains$contains__i32(void* l0, int32_t l1);
 static int64_t std_collections$first_slot(uint64_t l0, int64_t l1);
@@ -109,11 +109,11 @@ const vader_type_info_t vader_type_info_table[15] = {
     [5] = { .slot_size = 8 },
     [6] = { .slot_size = 1 },
     [7] = { .slot_size = 1 },
-    [8] = { .slot_size = 8 },
-    [9] = {
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [9] = { .slot_size = 8 },
     [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
@@ -306,10 +306,6 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static uint64_t std_core$i32$Hash$hash(int32_t l0) {
-    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
-}
-
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1) {
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
@@ -396,6 +392,10 @@ static bool std_core$$array$Contains$contains__i32(void* l0, int32_t l1) {
         l4 = (l4 + INT64_C(1));
     }
     return false;
+}
+
+static uint64_t std_core$i32$Hash$hash(int32_t l0) {
+    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
 }
 
 static bool std_collections$MutableMap$std_core$Contains$contains__i32__bool(void* l0, int32_t l1) {

@@ -4,14 +4,14 @@ type 1 scalar i32
 type 2 scalar string
 type 3 union 4,0
 type 4 scalar pointer
-type 5 scalar bool
-type 6 scalar u8
-type 7 scalar i64
-type 8 struct std_core$Buffer {  }
-type 9 array 6
+type 5 scalar i64
+type 6 struct std_core$Buffer {  }
+type 7 scalar u8
+type 8 scalar bool
+type 9 array 7
 type 10 scalar void
 type 11 union 12,0
-type 12 struct std_io$IOError { msg:2,kind:6,code:1 }
+type 12 struct std_io$IOError { msg:2,kind:7,code:1 }
 type 13 union 0,2
 string 0 "/vader_cpointer_probe"
 string 1 "x"
@@ -46,18 +46,18 @@ string 29 "bad file descriptor"
 string 30 "\n"
 import 0 extern fopen snippet$c_fopen header=<stdio.h> result_type=3 param_types=2,2 param_c_out= param_by_address= (string,string) -> any
 import 1 extern fclose snippet$c_fclose header=<stdio.h> result_type=1 param_types=4 param_c_out= param_by_address= (pointer) -> i32
-import 2 byte_len std_core$byte_len result_type=7 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 3 byte_at std_core$byte_at result_type=6 param_types=2,7 param_c_out= param_by_address= (string,i64) -> u8
-import 4 byte_slice std_core$byte_slice result_type=2 param_types=2,7,7 param_c_out= param_by_address= (string,i64,i64) -> string
+import 2 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 3 byte_at std_core$byte_at result_type=7 param_types=2,5 param_c_out= param_by_address= (string,i64) -> u8
+import 4 byte_slice std_core$byte_slice result_type=2 param_types=2,5,5 param_c_out= param_by_address= (string,i64,i64) -> string
 import 5 bytes std_core$bytes result_type=9 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 6 extern getenv std_env$get_env header=<stdlib.h> result_type=13 param_types=2 param_c_out= param_by_address= (string) -> any
-import 7 extern write system_posix$sys_write header=<unistd.h> result_type=7 param_types=1,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 7 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=1,9,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 8 extern vader_last_errno system_posix$sys_last_errno result_type=1 () -> i32
 import 9 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=3 param_types=2,2 param_c_out= param_by_address= (string,string) -> any
 import 10 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=4 param_c_out= param_by_address= (pointer) -> i32
-import 11 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=7 param_types=9,7,7,4 param_c_out= param_by_address= (ref,i64,i64,pointer) -> i64
+import 11 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=9,5,5,4 param_c_out= param_by_address= (ref,i64,i64,pointer) -> i64
 import 12 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
-impl 8 std_core$ByteAccess
+impl 6 std_core$ByteAccess
 impl 12 std_core$Error
 export main 0
 

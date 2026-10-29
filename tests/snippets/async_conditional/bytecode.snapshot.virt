@@ -10,10 +10,10 @@ type 7 struct snippet$Ready__i32 { v:3 }
 type 8 scalar void
 type 9 scalar string
 type 10 ref std_core$Async
-type 11 scalar u8
+type 11 struct std_core$Buffer {  }
 type 12 scalar i64
-type 13 struct std_core$Buffer {  }
-type 14 array 11
+type 13 scalar u8
+type 14 array 13
 string 0 "true -> "
 string 1 "false -> "
 string 2 "awaited"
@@ -23,7 +23,7 @@ import 1 bytes std_core$bytes result_type=14 param_types=9 param_c_out= param_by
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=3,14,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 4 std_core$Async
 impl 7 std_core$Async
-impl 13 std_core$ByteAccess
+impl 11 std_core$ByteAccess
 vtable std_core$Async.resume 4 4
 vtable std_core$Async.resume 7 5
 export main 3

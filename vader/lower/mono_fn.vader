@@ -30,8 +30,7 @@ import "toolchain/span"
 /// pulled in by the harvested `std/json::write_object` body). The sort +
 /// erasure-dedup + push happens once in `flush_generic_fn_instances`.
 drain_generic_fn_instances :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
-    project: LoweredProject, diags: Diagnostic[],
+    typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     // Transitive monomorphisation : lowering an instance body can register
     // *new* instances (`outer<T>` calling `inner<T>`), appending to
@@ -57,29 +56,19 @@ drain_generic_fn_instances :: fn(
             key :: fn_instance_key(inst)
             if project_ctx.generic_processed[key] != null { continue }
             project_ctx.generic_processed[key] = true
-            // The comptime harvest (`harvest_instances`) does not observe
-            // generic fn calls today ; the lowerer's own probe is
-            // authoritative, so we don't gate on the mono table.
             built :: build_fn_instance_decl(inst, key, typed, project_ctx, diags)
             match built {
                 is null -> {}
                 is PendingFnInstance -> { project_ctx.generic_collected.push(built) }
             }
         }
-        // Materialise each queued erased generic-struct instance's impl members
-        // (`MutableMap<Any, bool>.Contains.contains__Any__bool`). Its instance
-        // never reaches `evaluated.instances`, so the regular worklist skips it,
-        // but a deduped erased free-fn body still calls into it. Reuses the
-        // concrete-instance materialiser ; deduped against the worklist via
-        // `materialized_impl_keys`.
+        // Materialise each queued generic-struct instance's struct decl and impl
+        // members (`MutableMap<Any, bool>.Contains.contains__Any__bool`), deduped
+        // via `materialized_impl_keys`.
         for ri < project_ctx.pending_generic_impl_recv.len() {
             recv :: project_ctx.pending_generic_impl_recv[ri]
             ri += 1
-            owner_typed :: typed.modules[recv.symbol.module]
-            if owner_typed is TypedProgram {
-                materialize_impl_members_for(
-                    recv, owner_typed, project_ctx, project, loaded, typed, diags)
-            }
+            materialize_impl_members_for(recv, typed, project_ctx, project)
         }
         for mi < project_ctx.member_instances.len() {
             inst :: project_ctx.member_instances[mi]

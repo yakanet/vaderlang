@@ -29,7 +29,7 @@ flowchart TD
 | Parser | `vader/front/parser/` | AST |
 | Resolver | `vader/front/resolver/` | names bound to declarations, imports collected |
 | Type checker | `vader/front/typecheck/` | types, narrowing, trait resolution |
-| Comptime | `vader/front/comptime/`, `vader/pipeline/comptime_vm/` | `@comptime` values, generic struct instances |
+| Comptime | `vader/front/comptime/`, `vader/pipeline/comptime_vm/` | `@comptime` values |
 | Lowerer | `vader/lower/` | lowered AST (`vader/lower/ir/`), generic instances materialised |
 | Dead-code elimination | `vader/lower/dce/` | unreachable functions removed |
 | Mid-IR | `vader/midir/` | CFG, escape analysis, range analysis |
@@ -115,11 +115,12 @@ free of the clock and the environment, or the fixed-point check fails
 
 ## Monomorphization
 
-The comptime pass records the generic struct instances the typed program names. The
-lowerer materialises them, then discovers each generic function instance while
-lowering its callers, until no new instance appears. The type checker has already
-rejected a recursion whose type argument would grow forever
-(`vader/front/typecheck/growing_recursion.vader`).
+The lowerer discovers each instance while lowering the code that needs it: a
+generic function instance at its call, a generic struct instance where a literal
+builds it or a call reaches one of its impl members. Lowering an instance can
+discover others, until no new one appears; code never lowered asks for none. The
+type checker has already rejected a recursion whose type argument would grow
+forever (`vader/front/typecheck/growing_recursion.vader`).
 
 After lowering, every `Struct<args>` names an emitted declaration and every generic
 call its instance: no later stage sees an unbound type parameter.

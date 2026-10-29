@@ -14,9 +14,9 @@ type 11 struct snippet$Holder { items:8 }
 type 12 struct snippet$Row { cells:8 }
 type 13 array 2
 type 14 ref _
-type 15 scalar bool
+type 15 struct std_core$Buffer {  }
 type 16 scalar u8
-type 17 struct std_core$Buffer {  }
+type 17 scalar bool
 type 18 array 16
 type 19 array 12
 type 20 array 10
@@ -48,7 +48,7 @@ impl 3 std_core$Index
 impl 3 std_core$IndexSet
 impl 6 std_core$Index
 impl 7 snippet$Stepper
-impl 17 std_core$ByteAccess
+impl 15 std_core$ByteAccess
 export main 7
 
 fn 0 snippet$slot (i64) -> i64

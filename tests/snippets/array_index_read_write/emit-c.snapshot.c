@@ -58,13 +58,13 @@ static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf)
 const vader_type_info_t vader_type_info_table[14] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 1 },
-    [4] = { .slot_size = 1 },
-    [5] = { .slot_size = 8 },
-    [6] = {
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [4] = { .slot_size = 8 },
+    [5] = { .slot_size = 1 },
+    [6] = { .slot_size = 1 },
     [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
@@ -97,7 +97,7 @@ static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 4u);
+    return (void*) vader_string_bytes_view(a0, 7u, 6u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -164,7 +164,7 @@ static int32_t snippet$main(void) {
     l4 = std_core$write_int(l3, l4, l5);
     t1 = std_core$finish_buffer(l3, l4);
     std_io$println__string(t1);
-    vader_array_t* _a5_arr = vader_array_new(10u, 3u, 8u, 5u);
+    vader_array_t* _a5_arr = vader_array_new(10u, 3u, 8u, 4u);
     ((int64_t*) _a5_arr->buf->slots)[_a5_arr->offset + 2u] = (int64_t) INT64_C(30);
     ((int64_t*) _a5_arr->buf->slots)[_a5_arr->offset + 1u] = (int64_t) INT64_C(20);
     ((int64_t*) _a5_arr->buf->slots)[_a5_arr->offset + 0u] = (int64_t) INT64_C(10);

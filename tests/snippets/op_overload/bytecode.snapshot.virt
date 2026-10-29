@@ -5,10 +5,10 @@ type 2 struct snippet$Money { amount:4 }
 type 3 scalar bool
 type 4 scalar i32
 type 5 scalar string
-type 6 scalar u8
+type 6 struct std_core$Buffer {  }
 type 7 scalar i64
-type 8 struct std_core$Buffer {  }
-type 9 array 6
+type 8 scalar u8
+type 9 array 8
 type 10 scalar void
 string 0 "arith: s=("
 string 1 ","
@@ -40,7 +40,7 @@ impl 1 std_core$Div
 impl 1 std_core$Rem
 impl 2 std_core$Comparable
 impl 2 std_core$Equals
-impl 8 std_core$ByteAccess
+impl 6 std_core$ByteAccess
 export main 7
 
 fn 0 snippet$Vec$std_core$Add$add (ref,ref) -> ref
@@ -219,7 +219,7 @@ fn 6 snippet$Money$std_core$Comparable$compare (ref,ref) -> i32
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
-  call 9   ; std_core$i32$Comparable$compare
+  call 13   ; std_core$i32$Comparable$compare
   return
 end
 
@@ -270,7 +270,7 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 0   ; "arith: s=("
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 2 1 0   ; s snippet$Vec.x
   ref.cast 4   ; i32
@@ -279,12 +279,12 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 1   ; ","
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 2 1 1   ; s snippet$Vec.y
   ref.cast 4   ; i32
@@ -293,12 +293,12 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 2   ; ") d=("
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 3 1 0   ; d snippet$Vec.x
   ref.cast 4   ; i32
@@ -307,12 +307,12 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 1   ; ","
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 3 1 1   ; d snippet$Vec.y
   ref.cast 4   ; i32
@@ -321,12 +321,12 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 3   ; ") m=("
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 4 1 0   ; m snippet$Vec.x
   ref.cast 4   ; i32
@@ -335,12 +335,12 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 1   ; ","
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 4 1 1   ; m snippet$Vec.y
   ref.cast 4   ; i32
@@ -349,12 +349,12 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 4   ; ") q=("
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 5 1 0   ; q snippet$Vec.x
   ref.cast 4   ; i32
@@ -363,12 +363,12 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 1   ; ","
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 5 1 1   ; q snippet$Vec.y
   ref.cast 4   ; i32
@@ -377,12 +377,12 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 5   ; ") r=("
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 0 1 0   ; a snippet$Vec.x
   ref.cast 4   ; i32
@@ -391,12 +391,12 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 1   ; ","
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 0 1 1   ; a snippet$Vec.y
   ref.cast 4   ; i32
@@ -405,16 +405,16 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 6   ; ")"
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
-  call 10   ; std_core$finish_buffer
+  call 9   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   i32.const 5
   local.tee 8   ; n
@@ -441,7 +441,7 @@ fn 7 snippet$main () -> i32
   local.get 0   ; a
   local.get 6   ; __off_1
   string.const 7   ; "compound primitive: n="
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 8   ; n
   i32.to_i64
@@ -449,11 +449,11 @@ fn 7 snippet$main () -> i32
   local.get 0   ; a
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
-  call 10   ; std_core$finish_buffer
+  call 9   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   i32.const 1
   i32.const 2
@@ -507,7 +507,7 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 8   ; "compound struct: v=("
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 0 1 0   ; a snippet$Vec.x
   ref.cast 4   ; i32
@@ -516,12 +516,12 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 1   ; ","
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 0 1 1   ; a snippet$Vec.y
   ref.cast 4   ; i32
@@ -530,16 +530,16 @@ fn 7 snippet$main () -> i32
   local.get 1   ; b
   local.get 6   ; __off_1
   local.get 7   ; $cast_26
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
   string.const 6   ; ")"
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 1   ; b
   local.get 6   ; __off_1
-  call 10   ; std_core$finish_buffer
+  call 9   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   i32.const 100
   struct.new 2   ; snippet$Money
@@ -558,7 +558,7 @@ fn 7 snippet$main () -> i32
   local.get 3   ; d
   local.get 6   ; __off_1
   string.const 9   ; "equals: x==y "
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 1   ; b
@@ -567,12 +567,12 @@ fn 7 snippet$main () -> i32
   local.get 3   ; d
   local.get 6   ; __off_1
   local.get 9   ; $call_156
-  call 13   ; std_core$write_bool
+  call 12   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 3   ; d
   local.get 6   ; __off_1
   string.const 10   ; "  x!=z "
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 2   ; s
@@ -582,12 +582,12 @@ fn 7 snippet$main () -> i32
   local.get 3   ; d
   local.get 6   ; __off_1
   local.get 9   ; $call_156
-  call 13   ; std_core$write_bool
+  call 12   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 3   ; d
   local.get 6   ; __off_1
   string.const 11   ; "  x==z "
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 2   ; s
@@ -596,11 +596,11 @@ fn 7 snippet$main () -> i32
   local.get 3   ; d
   local.get 6   ; __off_1
   local.get 9   ; $call_156
-  call 13   ; std_core$write_bool
+  call 12   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 3   ; d
   local.get 6   ; __off_1
-  call 10   ; std_core$finish_buffer
+  call 9   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   i64.const 64
   buffer.new
@@ -610,7 +610,7 @@ fn 7 snippet$main () -> i32
   local.get 3   ; d
   local.get 6   ; __off_1
   string.const 12   ; "compare: x<z "
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 2   ; s
@@ -621,12 +621,12 @@ fn 7 snippet$main () -> i32
   local.get 3   ; d
   local.get 6   ; __off_1
   local.get 9   ; $call_156
-  call 13   ; std_core$write_bool
+  call 12   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 3   ; d
   local.get 6   ; __off_1
   string.const 13   ; "  z>x "
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 2   ; s
   local.get 0   ; a
@@ -637,12 +637,12 @@ fn 7 snippet$main () -> i32
   local.get 3   ; d
   local.get 6   ; __off_1
   local.get 9   ; $call_156
-  call 13   ; std_core$write_bool
+  call 12   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 3   ; d
   local.get 6   ; __off_1
   string.const 14   ; "  x>=y "
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 1   ; b
@@ -653,12 +653,12 @@ fn 7 snippet$main () -> i32
   local.get 3   ; d
   local.get 6   ; __off_1
   local.get 9   ; $call_156
-  call 13   ; std_core$write_bool
+  call 12   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 3   ; d
   local.get 6   ; __off_1
   string.const 15   ; "  z<=z "
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 2   ; s
   local.get 2   ; s
@@ -669,12 +669,12 @@ fn 7 snippet$main () -> i32
   local.get 3   ; d
   local.get 6   ; __off_1
   local.get 9   ; $call_156
-  call 13   ; std_core$write_bool
+  call 12   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 3   ; d
   local.get 6   ; __off_1
   string.const 16   ; "  z<x "
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 2   ; s
   local.get 0   ; a
@@ -685,11 +685,11 @@ fn 7 snippet$main () -> i32
   local.get 3   ; d
   local.get 6   ; __off_1
   local.get 9   ; $call_156
-  call 13   ; std_core$write_bool
+  call 12   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 3   ; d
   local.get 6   ; __off_1
-  call 10   ; std_core$finish_buffer
+  call 9   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   return.lit i32.const 0
 end
@@ -723,31 +723,14 @@ fn 8 concat_2 (string,string) -> string
   return
 end
 
-fn 9 std_core$i32$Comparable$compare (i32,i32) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 14   ; std_core$three_way
-  return
-end
-
-fn 10 std_core$finish_buffer (ref,i64) -> string
+fn 9 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 11 std_core$write_string_at (ref,i64,string) -> i64
+fn 10 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -762,7 +745,7 @@ fn 11 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 12 std_core$write_int (ref,i64,i64) -> i64
+fn 11 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -876,20 +859,37 @@ fn 12 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 13 std_core$write_bool (ref,i64,bool) -> i64
+fn 12 std_core$write_bool (ref,i64,bool) -> i64
   local.get 2   ; arg 2
   if $L0 void
   else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     string.const 18   ; "false"
-    call 11   ; std_core$write_string_at
+    call 10   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   string.const 17   ; "true"
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
+  return
+end
+
+fn 13 std_core$i32$Comparable$compare (i32,i32) -> i32
+  local $lt_2 bool
+  local $gt_3 bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.lt
+  local.set 2   ; $lt_2
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.gt
+  local.set 3   ; $gt_3
+  local.get 2   ; $lt_2
+  local.get 3   ; $gt_3
+  call 14   ; std_core$three_way
   return
 end
 

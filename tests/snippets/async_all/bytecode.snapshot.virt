@@ -11,14 +11,14 @@ type 8 scalar string
 type 9 ref std_core$Async
 type 10 array 1
 type 11 scalar i64
-type 12 scalar bool
+type 12 struct std_core$Buffer {  }
 type 13 scalar u8
-type 14 struct std_core$Buffer {  }
+type 14 scalar bool
 type 15 array 13
 type 16 struct std_async$JoinAll__i32 { children:21,results:10,slot:23,wake_at:23 }
 type 17 union 10,5
 type 18 ref std_core$Async
-type 19 struct std_async$Sleep { ms:11,deadline:11,armed:12 }
+type 19 struct std_async$Sleep { ms:11,deadline:11,armed:14 }
 type 20 union 0,5
 type 21 array 2
 type 22 ref std_core$Async
@@ -34,7 +34,7 @@ import 5 sched_park std_runtime$sched_park result_type=1 () -> i32
 import 6 panic std_abort$panic result_type=6 param_types=8 param_c_out= param_by_address= (string) -> void
 impl 3 std_core$Async
 impl 7 std_core$Async
-impl 14 std_core$ByteAccess
+impl 12 std_core$ByteAccess
 impl 16 std_core$Async
 impl 19 std_core$Async
 vtable std_core$Async.resume 3 2
@@ -897,7 +897,7 @@ fn 18 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 19 2   ; arg 0 std_async$Sleep.armed
-  ref.cast 12   ; bool
+  ref.cast 14   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0

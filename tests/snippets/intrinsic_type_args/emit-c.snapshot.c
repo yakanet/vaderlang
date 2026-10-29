@@ -38,13 +38,13 @@ static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf)
 const vader_type_info_t vader_type_info_table[11] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 8 },
-    [4] = { .slot_size = 1 },
-    [5] = { .slot_size = 1 },
-    [6] = {
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [4] = { .slot_size = 8 },
+    [5] = { .slot_size = 1 },
+    [6] = { .slot_size = 1 },
     [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
@@ -87,7 +87,7 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     l0 = vader_box_obj(0u, (void*)(uintptr_t)2u);
-    l1 = vader_box_obj(0u, (void*)(uintptr_t)3u);
+    l1 = vader_box_obj(0u, (void*)(uintptr_t)4u);
     vader_array_t* _a0_arr = vader_array_new(9u, 2u, 0u, 10u);
     vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 1u] = l1;
     vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 0u] = l0;

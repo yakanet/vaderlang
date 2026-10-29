@@ -5,9 +5,9 @@ type 2 array 3
 type 3 scalar u8
 type 4 scalar u64
 type 5 scalar string
-type 6 scalar bool
+type 6 struct std_core$Buffer {  }
 type 7 scalar i64
-type 8 struct std_core$Buffer {  }
+type 8 scalar bool
 type 9 scalar void
 string 0 "vader-byte-view-payload-"
 string 1 "byte-view GC corruption after major cycles"
@@ -17,7 +17,7 @@ import 0 byte_len std_core$byte_len result_type=7 param_types=5 param_c_out= par
 import 1 bytes std_core$bytes result_type=2 param_types=5 param_c_out= param_by_address= (string) -> ref
 import 2 collect std_runtime$collect result_type=9 () -> void
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=7 param_types=1,2,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 8 std_core$ByteAccess
+impl 6 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$view_of (i32) -> ref

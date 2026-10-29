@@ -166,78 +166,6 @@
   vtable std.core.Display.to_string for P  snippet.P.to_string  // snippet$P$std_core$Display$to_string
 
 ## lowered in dependencies
-  std/collections
-    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core$Index$at__i32__bool
-    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__bool
-    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core$Into$into__i32__bool
-    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__bool
-    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core$Index$at__i32__i32
-    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__i32
-    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core$Into$into__i32__i32
-    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__i32
-    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core$Index$at__string__i32
-    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i32
-    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core$Into$into__string__i32
-    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
-    fn std.collections.MutableMap<string, i64>.at  // std_collections$MutableMap$std_core$Index$at__string__i64
-    fn std.collections.MutableMap<string, i64>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i64
-    fn std.collections.MutableMap<string, i64>.into  // std_collections$MutableMap$std_core$Into$into__string__i64
-    fn std.collections.MutableMap<string, i64>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i64
-    fn std.collections.MutableMap<string, string[]>.at  // std_collections$MutableMap$std_core$Index$at__string__string__
-    fn std.collections.MutableMap<string, string[]>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__string__
-    fn std.collections.MutableMap<string, string[]>.into  // std_collections$MutableMap$std_core$Into$into__string__string__
-    fn std.collections.MutableMap<string, string[]>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__string__
-    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core$Contains$contains__i32
-    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core$Into$into__i32
-    fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
-    fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
-    fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
-    fn std.collections.contains_key<string, i64>  // std_collections$contains_key__string__i64
-    fn std.collections.contains_key<string, string[]>  // std_collections$contains_key__string__string__
-    fn std.collections.first_slot  // std_collections$first_slot
-    fn std.collections.get<i32, bool>  // std_collections$get__i32__bool
-    fn std.collections.get<i32, i32>  // std_collections$get__i32__i32
-    fn std.collections.get<string, i32>  // std_collections$get__string__i32
-    fn std.collections.get<string, i64>  // std_collections$get__string__i64
-    fn std.collections.get<string, string[]>  // std_collections$get__string__string__
-    fn std.collections.grow_index<i32, bool>  // std_collections$grow_index__i32__bool
-    fn std.collections.grow_index<i32, i32>  // std_collections$grow_index__i32__i32
-    fn std.collections.grow_index<string, i32>  // std_collections$grow_index__string__i32
-    fn std.collections.grow_index<string, i64>  // std_collections$grow_index__string__i64
-    fn std.collections.grow_index<string, string[]>  // std_collections$grow_index__string__string__
-    fn std.collections.next_slot  // std_collections$next_slot
-    fn std.collections.put<i32, bool>  // std_collections$put__i32__bool
-    fn std.collections.put<i32, i32>  // std_collections$put__i32__i32
-    fn std.collections.put<string, i32>  // std_collections$put__string__i32
-    fn std.collections.put<string, i64>  // std_collections$put__string__i64
-    fn std.collections.put<string, string[]>  // std_collections$put__string__string__
-    fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
-    fn std.collections.rehash<i32, i32>  // std_collections$rehash__i32__i32
-    fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
-    fn std.collections.rehash<string, i64>  // std_collections$rehash__string__i64
-    fn std.collections.rehash<string, string[]>  // std_collections$rehash__string__string__
-    fn std_collections$__gen_state_std_collections_0$Iterator$next
-    fn std_collections$__gen_state_std_collections_1$Iterator$next
-    fn std_collections$__gen_state_std_collections_2$Iterator$next
-    fn std_collections$__gen_state_std_collections_3$Iterator$next
-    fn std_collections$__gen_state_std_collections_4$Iterator$next
-    fn std_collections$__gen_state_std_collections_5$Iterator$next
-    struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
-    struct std.collections.MutableMap<Any, Any[]>  // std_collections$MutableMap__Any__Any_arr
-    struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
-    struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
-    struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
-    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
-    struct std.collections.MutableMap<string, i64>  // std_collections$MutableMap__string__i64
-    struct std.collections.MutableMap<string, string[]>  // std_collections$MutableMap__string__string__
-    struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
-    struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32
-    struct std_collections$__gen_state_std_collections_0
-    struct std_collections$__gen_state_std_collections_1
-    struct std_collections$__gen_state_std_collections_2
-    struct std_collections$__gen_state_std_collections_3
-    struct std_collections$__gen_state_std_collections_4
-    struct std_collections$__gen_state_std_collections_5
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -249,8 +177,6 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
-    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
     fn std.core.b2u32  // std_core$b2u32
@@ -269,12 +195,8 @@
     fn std.core.format_signed  // std_core$format_signed
     fn std.core.format_unsigned  // std_core$format_unsigned
     fn std.core.i16.to_string  // std_core$i16$Display$to_string
-    fn std.core.i32.compare  // std_core$i32$Comparable$compare
-    fn std.core.i32.hash  // std_core$i32$Hash$hash
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.i32.to_string  // std_core$i32$Display$to_string
-    fn std.core.i64.compare  // std_core$i64$Comparable$compare
-    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.i64.to_string  // std_core$i64$Display$to_string
     fn std.core.i8.to_string  // std_core$i8$Display$to_string
     fn std.core.insert_point  // std_core$insert_point
@@ -294,9 +216,7 @@
     fn std.core.pow5bits  // std_core$pow5bits
     fn std.core.render  // std_core$render
     fn std.core.shiftright128  // std_core$shiftright128
-    fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.string.to_string  // std_core$string$Display$to_string
-    fn std.core.three_way  // std_core$three_way
     fn std.core.u16.to_string  // std_core$u16$Display$to_string
     fn std.core.u32.to_string  // std_core$u32$Display$to_string
     fn std.core.u64.to_string  // std_core$u64$Display$to_string
@@ -310,15 +230,11 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std.core.write_zeros  // std_core$write_zeros
-    fn std_core$i32$Equals$equals$guard
     fn std_core$i32$Zero$zero
-    fn std_core$string$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.FloatDec32  // std_core$FloatDec32
-    struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<i64>  // std_core$Range__i64
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

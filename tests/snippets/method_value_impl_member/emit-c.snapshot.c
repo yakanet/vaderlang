@@ -847,11 +847,11 @@ const vader_type_info_t vader_type_info_table[19] = {
     },
     [9] = { .slot_size = 1 },
     [10] = { .slot_size = 1 },
-    [11] = { .slot_size = 8 },
-    [12] = {
+    [11] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [12] = { .slot_size = 8 },
     [13] = { .slot_size = 8 },
     [14] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Dec64_t),

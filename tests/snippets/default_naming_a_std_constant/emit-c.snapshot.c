@@ -150,14 +150,14 @@ const vader_type_info_t vader_type_info_table[21] = {
         .string_count = 1,
     },
     [4] = { .slot_size = 4 },
-    [5] = { .slot_size = 1 },
-    [6] = { .slot_size = 1 },
-    [7] = { .slot_size = 8 },
-    [8] = {
+    [5] = { .slot_size = 8 },
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [9] = { .slot_size = 4 },
+    [7] = { .slot_size = 1 },
+    [8] = { .slot_size = 4 },
+    [9] = { .slot_size = 1 },
     [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
@@ -216,7 +216,7 @@ static vader_string_t vader_host_std_core$bytes_to_string(void* a0) {
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 10u, 6u);
+    return (void*) vader_string_bytes_view(a0, 10u, 7u);
 }
 
 static vader_box_t vader_host_std_env$get_env(vader_string_t a0) {
@@ -858,9 +858,9 @@ static vader_box_t std_io$read_file_bytes(vader_string_t l0, int64_t l1) {
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;
     vader_defer_push(vader_ref_box(t0));
-    vader_array_t* _a2_arr = vader_array_new(10u, 0u, 1u, 6u);
+    vader_array_t* _a2_arr = vader_array_new(10u, 0u, 1u, 7u);
     l4 = (void*) _a2_arr;
-    vader_array_t* _a3_arr = vader_array_new(10u, 1u, 1u, 6u);
+    vader_array_t* _a3_arr = vader_array_new(10u, 1u, 1u, 7u);
     ((uint8_t*) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = (uint8_t) INT32_C(0);
     t0 = (void*) _a3_arr;
     vader_array_t* _a4_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(65536));
@@ -1075,7 +1075,7 @@ static vader_box_t std_io$whole_buffer(int64_t l0, int64_t l1) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
     if (!((l0 >= INT64_C(4294967295)))) {
-        vader_array_t* _a0_arr = vader_array_new(10u, 1u, 1u, 6u);
+        vader_array_t* _a0_arr = vader_array_new(10u, 1u, 1u, 7u);
         ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (uint8_t) INT32_C(0);
         l2 = (void*) _a0_arr;
         l3 = vader_chk_add(i64, l0, INT64_C(1));

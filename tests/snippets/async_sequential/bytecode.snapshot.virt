@@ -14,9 +14,9 @@ type 11 struct snippet$Ready__string { v:6 }
 type 12 struct std_core$Buffer {  }
 type 13 scalar i64
 type 14 ref std_core$Async
-type 15 scalar bool
-type 16 scalar u8
-type 17 array 16
+type 15 scalar u8
+type 16 scalar bool
+type 17 array 15
 string 0 "hi"
 string 1 ""
 string 2 "parked?!"
