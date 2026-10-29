@@ -54,8 +54,7 @@ drain_generic_fn_instances :: fn(
             inst :: project_ctx.fn_instances_order[i]
             i += 1
             key :: fn_instance_key(inst)
-            if project_ctx.generic_processed[key] != null { continue }
-            project_ctx.generic_processed[key] = true
+            if !project_ctx.generic_processed.add(key) { continue }
             built :: build_fn_instance_decl(inst, key, typed, project_ctx, diags)
             match built {
                 is null -> {}
@@ -114,13 +113,12 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredP
     // `origin.symbol` (set in `build_fn_instance_decl`), so the body-emit
     // pass indexes them by mangle: exactly like materialised impl members.
     sorted_pending :: sort(project_ctx.generic_collected, pending_fn_instance_less)
-    emitted_fns :: MutableMap<i32, bool> {}
+    emitted_fns :: MutableSet<i32> {}
     for p in sorted_pending {
         // Erasure-dedup gate : dispatching instances always emit ;
         // non-dispatching ones collapse to the first per symbol id.
-        if !p.dispatches {
-            if emitted_fns[p.fn_symbol_id] != null { continue }
-            emitted_fns[p.fn_symbol_id] = true
+        if !p.dispatches && !emitted_fns.add(p.fn_symbol_id) {
+            continue
         }
         push_to_module(project, p.module_id, p.decl)
         // Drain this instance's own lambda/defer window (skipped for the

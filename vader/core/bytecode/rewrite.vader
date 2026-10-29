@@ -14,8 +14,7 @@ module "vader/core/bytecode"
 /// @param old_to_new  the new PC of each old one, `< 0` for a removed op.
 /// @param new_len     the rewritten body's length.
 export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: i64) -> i32[] {
-    new_jt: i32[]: []
-    for p in 0..<new_len { new_jt.push(-1) }
+    new_jt: i32[]: [-1] * new_len
     old_n :: old_jt.len()
     i: i64 = 0
     for i < old_n {

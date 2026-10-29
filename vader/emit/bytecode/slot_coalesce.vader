@@ -51,12 +51,8 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
     body_len :: body.len()
 
     // Pass 1: per-slot first/last touch.
-    ranges: SlotRange[]: []
-    has_range: bool[]: []
-    for s in 0..<total_slots {
-        ranges.push(SlotRange { .first = -1, .last = -1 })
-        has_range.push(false)
-    }
+    ranges :: filled(total_slots, () -> SlotRange { .first = -1, .last = -1 })
+    has_range: bool[]: [false] * total_slots
     for i in 0..<body_len {
         slot :: slot_touched(body[i])
         if slot >= 0 {
@@ -90,10 +86,7 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
     // Pass 2: assign each non-param slot to a compatible physical
     // slot. Same-ValType only ; first non-overlapping wins.
     new_locals: BcLocal[]: []
-    remap: i32[]: []
-    for rem_init in 0..<total_slots {
-        remap.push(-1)
-    }
+    remap: i32[]: [-1] * total_slots
     for pp in 0..<param_count {
         remap[pp] = i32(pp)
     }

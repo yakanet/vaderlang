@@ -273,12 +273,8 @@ emit_internal_forward_decls :: fn(ctx: EmitCtx, bucket: i32[], printer: CPrinter
 /// @return               flags parallel to `m.functions`.
 internal_fn_flags :: fn(m: BytecodeModule, buckets: i32[][], entry_mangled: string) -> bool[] {
     n :: m.functions.len()
-    unit_of: i32[]: []
-    external: bool[]: []
-    for i in 0..<n {
-        unit_of.push(-1)
-        external.push(false)
-    }
+    unit_of: i32[]: [-1] * n
+    external: bool[]: [false] * n
     for u in 0..<buckets.len() {
         for idx in buckets[u] {
             unit_of[idx] = i32(u)

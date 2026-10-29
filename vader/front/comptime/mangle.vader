@@ -29,19 +29,15 @@ export mangle_type_arg :: fn(t: Type) -> string =
 /// @param seen        registry of names already taken.
 /// @param candidate   the preferred name ; returned as-is when free.
 /// @return            a fresh name (either `candidate` or `candidate_N`).
-export uniq :: fn(seen: MutableMap<string, bool>, candidate: string) -> string {
-    existing :: seen[candidate]
-    if existing == null {
-        seen[candidate] = true
+export uniq :: fn(seen: MutableSet<string>, candidate: string) -> string {
+    if seen.add(candidate) {
         return candidate
     }
     // collision: find the next free `candidate_N`.
     i: i32 = 1
     for i < 1_000_000 {     // hard-stop for malformed input
         fresh :: "${candidate}_${i}"
-        taken :: seen[fresh]
-        if taken == null {
-            seen[fresh] = true
+        if seen.add(fresh) {
             return fresh
         }
         i += 1
@@ -55,16 +51,16 @@ export uniq :: fn(seen: MutableMap<string, bool>, candidate: string) -> string {
 import "std/testing"
 
 @test test_uniq_returns_candidate_when_free :: fn() -> void {
-    seen :: MutableMap<string, bool> {}
+    seen :: MutableSet<string> {}
     assert_eq(uniq(seen, "foo"), "foo")
     // Subsequent registration should reflect the addition.
     assert_eq(uniq(seen, "foo"), "foo_1")
 }
 
 @test test_uniq_skips_already_taken_suffixes :: fn() -> void {
-    seen :: MutableMap<string, bool> {}
-    seen["foo"] = true
-    seen["foo_1"] = true
+    seen :: MutableSet<string> {}
+    seen.add("foo")
+    seen.add("foo_1")
     assert_eq(uniq(seen, "foo"), "foo_2")
 }
 

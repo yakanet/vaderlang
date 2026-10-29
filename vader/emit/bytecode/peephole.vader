@@ -40,8 +40,7 @@ export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
     n :: body.len()
     out: Op[]: []
     out_len: i64 = 0
-    old_to_new: i32[]: []
-    for p in 0..<n { old_to_new.push(-1) }
+    old_to_new: i32[]: [-1] * n
     i: i64 = 0
     for i < n {
         op :: body[i]
@@ -180,8 +179,7 @@ export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
     n :: body.len()
     out: Op[]: []
     out_len: i64 = 0
-    old_to_new: i32[]: []
-    for pp in 0..<n { old_to_new.push(-1) }
+    old_to_new: i32[]: [-1] * n
     for i in 0..<n {
         op :: body[i]
         folded :: try_fold_arith(op, out, out_len)
@@ -270,14 +268,9 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
     // `get ; set` pairs, no tees yet, so `tee_count` is 0 here: the
     // discriminant that actually fires is `set_count`.)
     total_slots :: function.signature.params.len() + function.locals.len()
-    set_count: i32[]: []
-    get_count: i32[]: []
-    tee_count: i32[]: []
-    for 0..<total_slots {
-        set_count.push(0)
-        get_count.push(0)
-        tee_count.push(0)
-    }
+    set_count: i32[]: [0] * total_slots
+    get_count: i32[]: [0] * total_slots
+    tee_count: i32[]: [0] * total_slots
     for op in body {
         if op is LocalSet { set_count[op.slot] += 1 }
         if op is LocalGet { get_count[op.slot] += 1 }
@@ -296,8 +289,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
     out: Op[]: []
     out_len: i64 = 0
     // Per-old-PC : new PC in `out` (or -1 when the op was dropped).
-    old_to_new: i32[]: []
-    for p in 0..<n { old_to_new.push(-1) }
+    old_to_new: i32[]: [-1] * n
     i: i64 = 0
     for i < n {
         op :: body[i]
@@ -437,18 +429,11 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
 
     // Per-slot stats : how many sets / gets / tees ; index of the (only)
     // set + (only) get when there's exactly one of each.
-    set_count: i32[]: []
-    get_count: i32[]: []
-    tee_count: i32[]: []
-    set_idx:   i32[]: []
-    get_idx:   i32[]: []
-    for s in 0..<total_slots {
-        set_count.push(0)
-        get_count.push(0)
-        tee_count.push(0)
-        set_idx.push(-1)
-        get_idx.push(-1)
-    }
+    set_count: i32[]: [0] * total_slots
+    get_count: i32[]: [0] * total_slots
+    tee_count: i32[]: [0] * total_slots
+    set_idx:   i32[]: [-1] * total_slots
+    get_idx:   i32[]: [-1] * total_slots
     body :: function.body
     n :: body.len()
     for i in 0..<n {
@@ -505,8 +490,7 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
     // Rewrite the body : skip deleted indices, replace `local.get` sites.
     new_body: Op[]: []
     new_debug: (DebugPos | null)[]: []
-    old_to_new: i32[]: []
-    for pp in 0..<n { old_to_new.push(-1) }
+    old_to_new: i32[]: [-1] * n
     j: i64 = 0
     for j < n {
         if to_delete_set[i32(j)] is bool {
@@ -574,10 +558,7 @@ const_fills_slot :: fn(cv: ConstOp, slot: ValType) -> bool {
 export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     param_count :: function.signature.params.len()
     total_slots :: param_count + function.locals.len()
-    reads: i32[]: []
-    for s in 0..<total_slots {
-        reads.push(0)
-    }
+    reads: i32[]: [0] * total_slots
     // Count slot reads: `local.get` plus the fused composite
     // `local.field` (emit/bytecode/emit.vader::try_fuse_local_field).
     for op in function.body {
@@ -589,10 +570,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
         }
     }
     // Mark dead = non-param local slots with zero reads.
-    dead: bool[]: []
-    for j in 0..<total_slots {
-        dead.push(false)
-    }
+    dead: bool[]: [false] * total_slots
     has_dead := false
     for k in param_count..<total_slots {
         if reads[k] == 0 {
@@ -603,10 +581,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     if !has_dead { return function }
 
     // Build slot remap : surviving slots stay dense from 0 upward.
-    remap: i32[]: []
-    for n in 0..<total_slots {
-        remap.push(-1)
-    }
+    remap: i32[]: [-1] * total_slots
     next: i32 = 0
     for p in 0..<total_slots {
         if !dead[p] {
@@ -620,8 +595,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     // map so jump_table indices remap. Other ops keep a 1:1 mapping.
     out: Op[]: []
     body_len :: function.body.len()
-    old_to_new_pc: i32[]: []
-    for init_pc in 0..<body_len { old_to_new_pc.push(-1) }
+    old_to_new_pc: i32[]: [-1] * body_len
     pc: i64 = 0
     for pc < body_len {
         op :: function.body[pc]

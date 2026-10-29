@@ -41,8 +41,8 @@ import "vader/lower/ir"
 export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> LoweredProject {
     by_sym_id :: MutableMap<i32, LoweredDecl> {}
     by_mangle :: MutableMap<string, LoweredDecl> {}
-    reachable_sym :: MutableMap<i32, bool> {}
-    reachable_mangle :: MutableMap<string, bool> {}
+    reachable_sym :: MutableSet<i32> {}
+    reachable_mangle :: MutableSet<string> {}
     worklist: LoweredDecl[]: []
     // Struct symbols reachable code holds a value of (`visit_value`).
     built :: MutableSet<i32> {}
@@ -118,8 +118,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     // corrupts under GC) so it survives and its body, the const value: is walked.
     for w in chain(lp.const_fn_wrap.values(), lp.const_fresh_wrap.values()) {
         accessor :: by_sym_id[w.fn_symbol.id]
-        if accessor != null && reachable_sym[w.fn_symbol.id] == null {
-            reachable_sym[w.fn_symbol.id] = true
+        if accessor != null && reachable_sym.add(w.fn_symbol.id) {
             worklist.push(accessor)
         }
     }
@@ -133,7 +132,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     }
 
     pending_virtual: string[]: []
-    pending_seen :: MutableMap<string, bool> {}
+    pending_seen :: MutableSet<string> {}
 
     // Const accessors are seeded as roots above, so a `LoweredIdent` referencing
     // a fn-wrapped const need not mark anything here (its by-id lookup misses:
@@ -141,24 +140,21 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     visit_fn :: fn(id: i32, name: string) -> void {
         inst :: by_mangle[name]
         if inst != null {
-            if reachable_mangle[name] == null {
-                reachable_mangle[name] = true
+            if reachable_mangle.add(name) {
                 worklist.push(inst)
             }
             return
         }
         named :: by_sym_id[id]
         if named != null {
-            if reachable_sym[id] == null {
-                reachable_sym[id] = true
+            if reachable_sym.add(id) {
                 worklist.push(named)
             }
         }
     }
     visit_virtual :: fn(trait_name: string, method: string) -> void {
         key :: "${trait_name}|${method}"
-        if pending_seen[key] == null {
-            pending_seen[key] = true
+        if pending_seen.add(key) {
             pending_virtual.push(key)
         }
     }
@@ -247,13 +243,13 @@ receiver_is_built :: fn(t: Type, built: MutableSet<i32>) -> bool {
 entry_survives :: fn(
     e: LoweredVtableEntry,
     by_mangle: MutableMap<string, LoweredDecl>,
-    reachable_sym: MutableMap<i32, bool>,
-    reachable_mangle: MutableMap<string, bool>,
+    reachable_sym: MutableSet<i32>,
+    reachable_mangle: MutableSet<string>,
 ) -> bool {
     if by_mangle[e.fn_symbol.name] != null {
-        return reachable_mangle[e.fn_symbol.name] != null
+        return e.fn_symbol.name in reachable_mangle
     }
-    return reachable_sym[e.fn_symbol.id] != null
+    return e.fn_symbol.id in reachable_sym
 }
 
 /// Mark a root fn reachable under the key its decl is indexed by: symbol id when
@@ -264,24 +260,28 @@ entry_survives :: fn(
 /// marked and checked by mangle ; everything else by symbol id. When the index,
 /// the mark and the survival check disagree, a fn can survive DCE that emit
 /// cannot resolve, or the reverse, with no error.
-mark_reachable :: fn(fn_decl: LoweredFnDecl, reachable_sym: MutableMap<i32, bool>, reachable_mangle: MutableMap<string, bool>) -> void {
+mark_reachable :: fn(
+    fn_decl: LoweredFnDecl, reachable_sym: MutableSet<i32>, reachable_mangle: MutableSet<string>,
+) -> void {
     sym :: fn_decl.origin.symbol
     if sym is Symbol {
-        reachable_sym[sym.id] = true
+        reachable_sym.add(sym.id)
     } else {
-        reachable_mangle[fn_decl.mangled] = true
+        reachable_mangle.add(fn_decl.mangled)
     }
 }
 
 /// True when the decl survives the prune: a fn when it was reached, under the
 /// key it is indexed by. Structs and consts always survive.
-fn_survives :: fn(d: LoweredDecl, reachable_sym: MutableMap<i32, bool>, reachable_mangle: MutableMap<string, bool>) -> bool {
+fn_survives :: fn(
+    d: LoweredDecl, reachable_sym: MutableSet<i32>, reachable_mangle: MutableSet<string>,
+) -> bool {
     if d is LoweredFnDecl {
         sym :: d.origin.symbol
         if sym is Symbol {
-            return reachable_sym[sym.id] != null
+            return sym.id in reachable_sym
         }
-        return reachable_mangle[d.mangled] != null
+        return d.mangled in reachable_mangle
     }
     return true
 }

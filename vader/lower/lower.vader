@@ -351,7 +351,7 @@ seed_eager_module :: fn(project_ctx: LowerProjectCtx, module_loaded: LoadedModul
             }
         } else if d is ConstDecl {
             sym :: module_loaded.collected.symbols[d.name] ?? continue
-            project_ctx.nongeneric_imported_consts[sym.id] = true
+            project_ctx.nongeneric_imported_consts.add(sym.id)
         }
     }
 }
@@ -361,7 +361,7 @@ seed_eager_module :: fn(project_ctx: LowerProjectCtx, module_loaded: LoadedModul
 // its declaration : the module's `symbols` keeps one overload per name.
 seed_fn_seen :: fn(project_ctx: LowerProjectCtx, d: FnDecl) -> void {
     sym :: project_ctx.fn_symbols[d.id] ?? return
-    project_ctx.nongeneric_imported_fns[sym.id] = true
+    project_ctx.nongeneric_imported_fns.add(sym.id)
 }
 
 module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {

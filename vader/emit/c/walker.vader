@@ -1655,12 +1655,8 @@ FnValueUsage :: struct {
 /// `make_closure` (need a lift wrapper). Indices are parallel to `fns`.
 scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
     n :: fns.len()
-    fn_ref_type: i32[]: []
-    is_closure: bool[]: []
-    for _ in 0..<n {
-        fn_ref_type.push(-1)
-        is_closure.push(false)
-    }
+    fn_ref_type: i32[]: [-1] * n
+    is_closure: bool[]: [false] * n
     any := false
     for f in fns {
         for op in f.body {

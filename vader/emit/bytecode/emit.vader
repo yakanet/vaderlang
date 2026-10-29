@@ -83,10 +83,8 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
         // lands on a real op rather than an unbound host import ; genuine host
         // shims (`string`'s `Hash`) forward via `call.import`.
         body :: build_intrinsic_wrapper_body(imp, import_index)
-        debug: (DebugPos | null)[]: []
-        for _d in 0..<body.len() { debug.push(null) }
-        jump_table: i32[]: []
-        for _j in 0..<body.len() { jump_table.push(-1) }
+        debug: (DebugPos | null)[]: [null] * body.len()
+        jump_table: i32[]: [-1] * body.len()
         no_locals: BcLocal[]: []
         fn_index :: i32(ctx.functions.len())
         ctx.functions.push(BcFunction { .name = "${imp.mangled_name}_vt", .is_main = false, .signature = imp.signature, .locals = no_locals, .body = body, .debug = debug, .jump_table = jump_table })

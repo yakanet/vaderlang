@@ -99,7 +99,7 @@ populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
     }
     for id in nodes.order {
         record :: nodes.by_id[id] ?? continue
-        deps_seen :: MutableMap<i64, bool> {}
+        deps_seen :: MutableSet<i64> {}
         // A const the parser gave a `__comptime_` helper calls it ; what it reads
         // is the value it was written with, which the helper holds.
         written :: record.decl.comptime_body ?? record.decl.value
@@ -108,61 +108,57 @@ populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
     }
 }
 
-// DFS topological sort with three-colour marking. Grey hit → cycle.
-// The path is tracked by a fixed-capacity `path` array + a `depth`
-// cursor: recursion-safe "push / pop" without an `Array.truncate` helper
-// (stdlib lacks one). `path[0..depth]` is the active DFS stack at any
-// point ; positions beyond `depth` are stale but never read.
+// DFS topological sort with three-colour marking: a grey hit is a cycle.
+// `path` is the active DFS stack, from the root to the node being visited.
 topo_sort :: fn(nodes: Nodes) -> ComptimeOrder {
     order: AST.ConstDecl[]: []
     diags: Diagnostic[]: []
     color :: MutableMap<i64, i32> {}
-    cyclic :: MutableMap<i64, bool> {}
+    cyclic :: MutableSet<i64> {}
     for id in nodes.order { color[id] = 0 }
     path: i64[]: []
-    for id in nodes.order { visit(id, nodes, color, cyclic, path, 0, order, diags) }
+    for id in nodes.order { visit(id, nodes, color, cyclic, path, order, diags) }
     return ComptimeOrder { .order = order, .cycle_diags = diags }
 }
 
-// `depth` is the logical top of `path`: index where the current
-// frame's id lives once written. `path` is grown on first use and
-// reused across siblings. Colour : 0 white, 1 grey, 2 black.
+// Colour : 0 white, 1 grey, 2 black.
 visit :: fn(
     id: i64, nodes: Nodes,
     color: MutableMap<i64, i32>,
-    cyclic: MutableMap<i64, bool>,
-    path: i64[], depth: i64,
+    cyclic: MutableSet<i64>,
+    path: i64[],
     order: AST.ConstDecl[],
     diags: Diagnostic[],
 ) -> void {
     c :: color[id] ?? return
     if c == 2 { return }
     if c == 1 {
-        emit_cycle(id, path, depth, nodes, cyclic, diags)
+        emit_cycle(id, path, nodes, cyclic, diags)
         return
     }
     color[id] = 1
-    if depth < path.len() { path[depth] = id } else { path.push(id) }
+    path.push(id)
     record :: nodes.by_id[id]
     if !(record is null) {
         for dependency_id in record.dependency_ids {
-            visit(dependency_id, nodes, color, cyclic, path, depth + 1, order, diags)
+            visit(dependency_id, nodes, color, cyclic, path, order, diags)
         }
     }
+    path.remove_last()
     color[id] = 2
-    if cyclic[id] is null {
-        rec_again :: nodes.by_id[id]
-        if !(rec_again is null) { order.push(rec_again.decl) }
+    if id !in cyclic && record != null {
+        order.push(record.decl)
     }
 }
 
 emit_cycle :: fn(
-    id: i64, path: i64[], depth: i64, nodes: Nodes,
-    cyclic: MutableMap<i64, bool>, diags: Diagnostic[],
+    id: i64, path: i64[], nodes: Nodes,
+    cyclic: MutableSet<i64>, diags: Diagnostic[],
 ) -> void {
-    // `path[0..depth]` is the current DFS path. Find `id`'s first
-    // occurrence in that prefix: every node from there onward is part
-    // of the cycle, plus `id` itself closing the loop.
+    // `path` is the current DFS path. Find `id`'s first occurrence in it:
+    // every node from there onward is part of the cycle, plus `id` itself
+    // closing the loop.
+    depth :: path.len()
     start: i64 = depth
     for i in 0..<depth {
         if path[i] == id {
@@ -170,18 +166,18 @@ emit_cycle :: fn(
             break
         }
     }
-    names :: cycle_names(start, depth, path, id, nodes)
+    names :: cycle_names(start, path, id, nodes)
     record :: nodes.by_id[id]
     if !(record is null) {
         diags.push(comptime_error(.DependencyCycle, record.decl.span, names))
     }
-    for i in start..<depth { cyclic[path[i]] = true }
-    cyclic[id] = true
+    for i in start..<depth { cyclic.add(path[i]) }
+    cyclic.add(id)
 }
 
-cycle_names :: fn(start: i64, depth: i64, path: i64[], id: i64, nodes: Nodes) -> string {
+cycle_names :: fn(start: i64, path: i64[], id: i64, nodes: Nodes) -> string {
     parts: string[]: []
-    for i in start..<depth {
+    for i in start..<path.len() {
         record :: nodes.by_id[path[i]] ?? continue
         parts.push(record.decl.name)
     }
@@ -204,15 +200,14 @@ export display_cycle :: fn(names: string[]) -> string = names.join(" -> ")
 // subtrees counts once).
 collect_expr_deps :: fn(
     e: AST.Expr, typed: TypedProgram, nodes: Nodes,
-    seen: MutableMap<i64, bool>, record: NodeRecord,
+    seen: MutableSet<i64>, record: NodeRecord,
 ) -> void {
     match e {
         is AST.IdentExpr -> {
             symbol :: typed.resolved.idents[e.span.hash()] ?? return
             if symbol.kind != .Const { return }
             dependency_id :: nodes.by_symbol[symbol.id] ?? return
-            if seen[dependency_id] is bool { return }
-            seen[dependency_id] = true
+            if !seen.add(dependency_id) { return }
             record.dependency_ids.push(dependency_id)
         }
         is AST.CallExpr -> {
@@ -287,7 +282,7 @@ collect_expr_deps :: fn(
 
 collect_block_deps :: fn(
     b: AST.BlockExpr, typed: TypedProgram, nodes: Nodes,
-    seen: MutableMap<i64, bool>, record: NodeRecord,
+    seen: MutableSet<i64>, record: NodeRecord,
 ) -> void {
     for s in b.stmts { collect_stmt_deps(s, typed, nodes, seen, record) }
     if b.trailing !is null {
@@ -297,7 +292,7 @@ collect_block_deps :: fn(
 
 collect_stmt_deps :: fn(
     s: AST.Stmt, typed: TypedProgram, nodes: Nodes,
-    seen: MutableMap<i64, bool>, record: NodeRecord,
+    seen: MutableSet<i64>, record: NodeRecord,
 ) -> void {
     match s {
         is AST.LetStmt    -> { collect_expr_deps(s.value, typed, nodes, seen, record) }

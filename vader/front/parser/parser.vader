@@ -2295,56 +2295,31 @@ parse_block :: fn(p: Parser) -> BlockExpr {
         return BlockExpr { .span = p.span_of(lb, p.peek_at(-1)), .stmts = [], .trailing = null }
     }
     p.skip_newlines()
-    raw: Stmt[]: []
-    trailing: Expr | null = null
+    stmts: Stmt[]: []
     for !p.check(.RBrace) && !p.check(.Eof) {
         s_opt :: p.parse_stmt()
         match s_opt {
             is null                  -> {}
-            is LetStmt               -> { raw.push(s_opt) }
-            is AssignStmt            -> { raw.push(s_opt) }
-            is DestructureAssignStmt -> { raw.push(s_opt) }
-            is ExprStmt              -> { raw.push(s_opt) }
-            is ReturnStmt            -> { raw.push(s_opt) }
-            is YieldStmt             -> { raw.push(s_opt) }
-            is ForStmt               -> { raw.push(s_opt) }
-            is BreakStmt             -> { raw.push(s_opt) }
-            is ContinueStmt          -> { raw.push(s_opt) }
-            is DeferStmt             -> { raw.push(s_opt) }
+            is LetStmt               -> { stmts.push(s_opt) }
+            is AssignStmt            -> { stmts.push(s_opt) }
+            is DestructureAssignStmt -> { stmts.push(s_opt) }
+            is ExprStmt              -> { stmts.push(s_opt) }
+            is ReturnStmt            -> { stmts.push(s_opt) }
+            is YieldStmt             -> { stmts.push(s_opt) }
+            is ForStmt               -> { stmts.push(s_opt) }
+            is BreakStmt             -> { stmts.push(s_opt) }
+            is ContinueStmt          -> { stmts.push(s_opt) }
+            is DeferStmt             -> { stmts.push(s_opt) }
         }
         p.skip_newlines()
     }
-    // Promote a trailing ExprStmt into the block's implicit return value
-    // by rebuilding `stmts` without the last element (no `pop` on arrays).
-    stmts: Stmt[]: []
-    n :: raw.len()
-    last_is_expr := false
-    last_expr: Expr | null = null
-    if n > 0 {
-        last :: raw[n - 1]
-        match last {
-            is ExprStmt              -> {
-                last_is_expr = true
-                last_expr = last.expr
-            }
-            is LetStmt               -> {}
-            is AssignStmt            -> {}
-            is DestructureAssignStmt -> {}
-            is ReturnStmt            -> {}
-            is YieldStmt             -> {}
-            is ForStmt               -> {}
-            is BreakStmt             -> {}
-            is ContinueStmt          -> {}
-            is DeferStmt             -> {}
-        }
-    }
-    keep :: if last_is_expr { n - 1 } else { n }
-    for i in 0..<keep {
-        stmts.push(raw[i])
-    }
-    if last_is_expr {
-        if last_expr !is null {
-            trailing = last_expr
+    // Promote a trailing ExprStmt into the block's implicit return value.
+    trailing: Expr | null = null
+    if stmts.len() > 0 {
+        last :: stmts[stmts.len() - 1]
+        if last is ExprStmt {
+            stmts.remove_last()
+            trailing = last.expr
         }
     }
     rb :: p.expect(.RBrace, "`}` to close block")
