@@ -4,7 +4,9 @@
 // A link to a page of the site is written from its root (`/download/`) and takes
 // the base path the site is served under. One to an API reference carries
 // `rel="external"`, which the prerenderer does not follow; one to another page
-// is followed, and the build fails on a page that does not exist.
+// is followed, and the build fails on a page that does not exist. A reference
+// to the specification, `§N` or `§N *Title*`, links to that chapter or heading,
+// and one that names nothing stops the build.
 //
 // Every Vader block of the content runs in `tests/site_content.test.ts`, and the
 // `text` block right after one is what it prints.
@@ -16,6 +18,7 @@ import { API_SITES, page_href, site_href } from '../links.js';
 import { escape_html } from './highlight.js';
 import { assign_heading_ids, code_body, code_renderers, heading_html, heading_id, plain } from './markdown.js';
 import { REPO } from './repo.js';
+import { reference, resolve_references } from './spec.js';
 
 /** @typedef {import('marked').Token} Token */
 /** @typedef {import('marked').Tokens.Heading} Heading */
@@ -36,6 +39,7 @@ function link_html_attributes(href) {
 }
 
 const markdown = new Marked({
+	extensions: [reference],
 	renderer: {
 		heading(token) {
 			return heading_html(this.parser.parseInline(token.tokens), token.depth, heading_id(token));
@@ -48,7 +52,12 @@ const markdown = new Marked({
 });
 
 /** @param {string} name  a file under `site/content/`. */
-const tokens_of = (name) => markdown.lexer(fs.readFileSync(path.join(CONTENT, name), 'utf8'));
+function tokens_of(name) {
+	const tokens = markdown.lexer(fs.readFileSync(path.join(CONTENT, name), 'utf8'));
+	const broken = resolve_references(tokens);
+	if (broken.length > 0) throw new Error(`${name} cites what SPEC.md lacks: ${broken.join(', ')}`);
+	return tokens;
+}
 
 /** @param {Token[]} tokens */
 const html_of = (tokens) => /** @type {string} */ (markdown.parser(tokens));

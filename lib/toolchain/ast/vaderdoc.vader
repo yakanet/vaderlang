@@ -256,7 +256,8 @@ doc_param :: fn(payload: string) -> DocParam {
 }
 
 // Whether the example line `line` is hidden: a lone `#`, or `# ` and code, past
-// its indentation.
+// its indentation. The site's tour reads its examples by the same rule
+// (`site/src/lib/server/hidden_lines.js`).
 is_hidden_example_line :: fn(line: string) -> bool {
     rest :: line.left_trim()
     return rest == "#" || rest.starts_with("# ")

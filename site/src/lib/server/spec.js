@@ -3,14 +3,17 @@
 //
 // A cross-reference, `§N` or `§N *Title*`, becomes a link to the chapter, or to
 // the heading of that title in it ; a title may stop at its colon (`*Identity*` for
-// "Identity: `===` and `!==`"). A link to a file of the repository leads to its
-// source. One that names nothing stops the build: `tests/spec_references.test.ts`
-// checks the citations of the whole repository, this the links the site writes.
+// "Identity: `===` and `!==`"). The other pages of the site cite the specification
+// the same way (`reference`, `resolve_references`). A link to a file of the
+// repository leads to its source. One that names nothing stops the build:
+// `tests/spec_references.test.ts` checks the citations of the whole repository,
+// this the links the site writes.
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { Marked } from 'marked';
 import { chapter_href, GITHUB, heading_href } from '../links.js';
+import { chapter_set } from './chapters.js';
 import { escape_html } from './highlight.js';
 import { assign_heading_ids, code_renderers, heading_html, heading_id, plain, slugify } from './markdown.js';
 import { REPO } from './repo.js';
@@ -31,8 +34,12 @@ const CHAPTER = /^(?:(\d+)\. )?(.+)$/;
 // A title may hold code, whose `*` does not end it.
 const REFERENCE = /^§(\d+)(?: \*((?:`[^`]*`|[^*`])+)\*)?/;
 
-/** @type {import('marked').TokenizerAndRendererExtension} */
-const reference = {
+/**
+ * A reference to the specification, `§N` or `§N *Title*`: a link whose `href`
+ * `resolve_references` sets.
+ * @type {import('marked').TokenizerAndRendererExtension}
+ */
+export const reference = {
 	name: 'reference',
 	level: 'inline',
 	start(src) {
@@ -112,6 +119,23 @@ function target_of(number, title) {
 }
 
 /**
+ * Points each reference of `tokens` at its chapter or heading, and returns those
+ * that name nothing, as written.
+ * @param {import('marked').Token[]} tokens
+ */
+export function resolve_references(tokens) {
+	/** @type {string[]} */
+	const broken = [];
+	markdown.walkTokens(tokens, (token) => {
+		if (token.type !== 'reference') return;
+		const href = target_of(token.number, token.title);
+		if (href === null) broken.push(token.raw);
+		else token.href = href;
+	});
+	return broken;
+}
+
+/**
  * Where the link `href` of the specification leads on the site: a file of the
  * repository, relative to the specification, to its source ; null for one that
  * does not exist.
@@ -124,17 +148,12 @@ function site_href(href) {
 	return SOURCE_URL + path.relative(REPO, file).split(path.sep).join('/');
 }
 
-/** @type {string[]} */
-const broken = [];
+const broken = resolve_references(tokens);
 markdown.walkTokens(tokens, (token) => {
-	if (token.type === 'reference') {
-		token.href = target_of(token.number, token.title) ?? '';
-		if (token.href === '') broken.push(token.raw);
-	} else if (token.type === 'link') {
-		const href = site_href(token.href);
-		if (href === null) broken.push(token.href);
-		token.href = href ?? token.href;
-	}
+	if (token.type !== 'link') return;
+	const href = site_href(token.href);
+	if (href === null) broken.push(token.href);
+	else token.href = href;
 });
 if (broken.length > 0) {
 	throw new Error(`SPEC.md names what it lacks: ${[...new Set(broken)].join(', ')}`);
@@ -144,45 +163,22 @@ for (const chapter of chapters) {
 	chapter.html = /** @type {string} */ (markdown.parser(chapter.tokens));
 }
 
-/** The chapters, in order, as the side bar and the index list them. */
-export const chapter_list = chapters.map(({ number, title, slug }) => ({ number, title, slug }));
-
 /** What the specification says before its first chapter. */
 export const introduction = /** @type {string} */ (markdown.parser(intro));
 
 /**
- * The page of the chapter `slug` ; null for a slug no chapter has.
- * @param {string} slug
- */
-export function chapter_page(slug) {
-	const index = chapters.findIndex((c) => c.slug === slug);
-	if (index < 0) return null;
-	const chapter = chapters[index];
-	return {
-		number: chapter.number,
-		title: chapter.title,
-		html: chapter.html,
-		outline: chapter.headings.filter((h) => h.depth === 3),
-		previous: chapter_list[index - 1] ?? null,
-		next: chapter_list[index + 1] ?? null
-	};
-}
-
-/**
  * Where the search shows a chapter's entries come from: `§N`, or the title of a
  * chapter without a number.
- * @param {Chapter} chapter
+ * @param {{ number: string, title: string }} chapter
  */
 function search_label(chapter) {
 	if (chapter.number === '') return chapter.title;
 	return `§${chapter.number}`;
 }
 
-/** Every chapter and every heading, as the search reads them. */
-export const search_entries = chapters.flatMap((c) => {
-	const where = search_label(c);
-	return [
-		{ title: c.title, where, href: chapter_href(c.slug) },
-		...c.headings.map((h) => ({ title: h.title, where, href: heading_href(c.slug, h.id) }))
-	];
-});
+/** The chapters of the specification, as its pages and the search show them. */
+export const spec_chapters = chapter_set(
+	chapters.map((c) => ({ ...c, outline: c.headings.filter((h) => h.depth === 3) })),
+	chapter_href,
+	search_label
+);

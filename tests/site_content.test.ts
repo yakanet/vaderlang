@@ -3,7 +3,9 @@
 //
 // The pages of `site/content/` are Markdown. Each ```vader block is a whole
 // program, run here on the VM; a ```text block right after one, with nothing but
-// blank lines between them, is its output, compared exactly. The examples
+// blank lines between them, is its output, compared exactly. A line of the
+// program that opens with `# ` (or a lone `#`) is compiled but not shown, as in
+// vaderdoc's `@example`: the site's own rule decides (`hidden_lines.js`). The examples
 // of the repository have their own test (`examples_run.test.ts`), whose
 // snapshots the site shows.
 
@@ -11,6 +13,7 @@ import { expect, test } from "bun:test";
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { compiled_code } from "../site/src/lib/server/hidden_lines.js";
 import { ensureCliBuilt, runCli } from "./cli-bin.ts";
 
 ensureCliBuilt();
@@ -85,7 +88,7 @@ for (const program of found) {
     const dir = mkdtempSync(join(tmpdir(), "vader-site-"));
     try {
       const file = join(dir, "main.vader");
-      writeFileSync(file, program.source + "\n");
+      writeFileSync(file, compiled_code(program.source) + "\n");
       const r = await runCli(["run", file]);
       expect(r.stderr).toBe("");
       expect(r.exit).toBe(0);

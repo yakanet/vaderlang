@@ -2,8 +2,9 @@
 // inference*`, `§4 *Representation*, *Range types*`, and inside SPEC, a section of
 // the same chapter as `(*Title*, below)` or `(*Title*, above)`. A title may stop at
 // its colon: `*Identity*` cites "Identity: `===` and `!==`". Renaming a heading
-// must update its citations: the compiler never reads them, and the site only
-// links the ones in SPEC. This scan checks every one against the headings.
+// must update its citations: the compiler never reads them, and the site's build
+// checks only the ones it renders. This scan checks every one against the
+// headings.
 //
 // History keeps the titles that were current when it was written, so
 // `docs/HISTORY.md` and the ADRs are not scanned, nor the generated seed.
@@ -13,7 +14,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dir, "..");
-const ROOTS = ["vader", "lib", "docs", "tests"];
+const ROOTS = ["vader", "lib", "docs", "tests", "site/content"];
 const TOP_LEVEL_FILES = ["SPEC.md", "TODO.md", "README.md"];
 const SKIPPED = new Set(["docs/HISTORY.md", "docs/adr", "tests/snippets", "tests/diag_corpus"]);
 const SCANNED_EXTENSION = /\.(vader|ts|md)$/;

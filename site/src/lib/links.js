@@ -31,12 +31,19 @@ export const API_SITES = ['lib', 'vader'];
 /** The sections of the site the header lists, by the name of their page. */
 export const SECTIONS = [
 	{ name: 'start', label: 'Get started' },
+	{ name: 'learn', label: 'Learn' },
 	{ name: 'examples', label: 'Examples' },
 	{ name: 'spec', label: 'Specification' }
 ];
 
 /** @param {string} slug */
 export const chapter_href = (slug) => resolve('/spec/[chapter]', { chapter: slug }) + '/';
+
+/**
+ * A chapter of the tour of the language.
+ * @param {string} slug
+ */
+export const learn_href = (slug) => resolve('/learn/[chapter]', { chapter: slug }) + '/';
 
 /**
  * @param {string} slug

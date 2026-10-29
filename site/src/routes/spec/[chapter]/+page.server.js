@@ -1,11 +1,7 @@
 import { error } from '@sveltejs/kit';
-import { chapter_list, chapter_page } from '#lib/server/spec.js';
+import { spec_chapters } from '#lib/server/spec.js';
 
-export const entries = () => chapter_list.map((c) => ({ chapter: c.slug }));
+export const entries = () => spec_chapters.slugs.map((chapter) => ({ chapter }));
 
 /** @param {{ params: { chapter: string } }} event */
-export const load = ({ params }) => {
-	const page = chapter_page(params.chapter);
-	if (!page) error(404, `no chapter ${params.chapter}`);
-	return { ...page, slug: params.chapter };
-};
+export const load = ({ params }) => spec_chapters.page(params.chapter) ?? error(404, `no chapter ${params.chapter}`);

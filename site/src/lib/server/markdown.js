@@ -1,7 +1,8 @@
 // What every Markdown page of the site renders the same way: the ids of its
-// headings, its code (Vader highlighted, the rest escaped), and the raw HTML it
-// may hold, shown as text.
+// headings, its code (Vader highlighted, without the lines that only set an
+// example up; the rest escaped), and the raw HTML it may hold, shown as text.
 
+import { shown_code } from './hidden_lines.js';
 import { code_html, escape_html } from './highlight.js';
 
 /**
@@ -81,6 +82,6 @@ export const code_renderers = {
  * @param {string | undefined} lang
  */
 export function code_body(text, lang) {
-	if (lang === 'vader') return code_html(text);
+	if (lang === 'vader') return code_html(shown_code(text));
 	return escape_html(text);
 }
