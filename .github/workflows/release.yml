@@ -10,8 +10,6 @@ on:
         description: 'patch, minor, major, or the exact version (X.Y.Z)'
         required: true
         default: patch
-  release:
-    types: [published]
 
 concurrency:
   group: release
@@ -22,7 +20,6 @@ permissions:
 jobs:
   prepare:
     name: Prepare the release commit
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-26.04
     permissions:
       contents: write
@@ -145,16 +142,3 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - run: gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/release/v${{ needs.prepare.outputs.version }}" || true
-
-  # The CI publishes the site from `main` only, so the run that renames the
-  # download page's release is dispatched there.
-  test-main:
-    name: Test main and publish the site
-    if: github.event_name == 'release'
-    runs-on: ubuntu-26.04
-    permissions:
-      actions: write
-    env:
-      GH_TOKEN: ${{ github.token }}
-    steps:
-      - run: gh workflow run build.yml --ref main --repo "$GITHUB_REPOSITORY"

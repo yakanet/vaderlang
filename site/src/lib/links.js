@@ -3,8 +3,15 @@
 
 import { resolve } from '$app/paths';
 
+/** The repository of the language, `owner/name` on GitHub. */
+const REPOSITORY = 'yakanet/vaderlang';
+
 /** The repository of the language. */
-export const GITHUB = 'https://github.com/yakanet/vaderlang';
+export const GITHUB = `https://github.com/${REPOSITORY}`;
+
+/** The latest published release, on GitHub and through its API. */
+export const LATEST_RELEASE = `${GITHUB}/releases/latest`;
+export const LATEST_RELEASE_API = `https://api.github.com/repos/${REPOSITORY}/releases/latest`;
 
 // The site is built with `trailingSlash: 'always'`: a link without the slash
 // costs a redirect on every full page load.

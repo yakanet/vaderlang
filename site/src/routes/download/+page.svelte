@@ -1,5 +1,5 @@
 <script>
-	import { GITHUB } from '#lib/links.js';
+	import { GITHUB, LATEST_RELEASE, LATEST_RELEASE_API } from '#lib/links.js';
 	import Tabs from '#lib/Tabs.svelte';
 
 	let { data } = $props();
@@ -11,18 +11,13 @@
 
 <main class="page">
 	<h1>Download Vader</h1>
-	{#if data.release}
-		<p class="release">
-			{data.release.version}, released {data.release.date}:
-			<a href={data.release.notes}>what changed</a>.
-		</p>
-	{:else}
-		<p class="callout release">
-			There is no release yet: the first one is on its way. Until then, build Vader from source
-			with a C compiler, <a href="#build-from-source">below</a>, or follow the
-			<a href="{GITHUB}/releases">releases</a> on GitHub.
-		</p>
-	{/if}
+	<p class="release">
+		<span data-latest-release={LATEST_RELEASE_API} hidden>
+			<span data-release="name"></span>, released <time data-release="date"></time>:
+		</span>
+		<a href={LATEST_RELEASE}>Release notes</a> &middot;
+		<a href="{GITHUB}/releases">all releases</a> on GitHub.
+	</p>
 
 	<div class="platforms">
 		<Tabs
@@ -34,9 +29,7 @@
 			{#snippet panel(/** @type {number} */ i)}
 				{@const platform = data.platforms[i]}
 				<div class="install doc">
-					{#if data.release}
-						<a class="button primary" href={platform.href}>Download {platform.archive}</a>
-					{/if}
+					<a class="button primary" href={platform.href}>Download {platform.archive}</a>
 					{@html platform.install}
 				</div>
 			{/snippet}
@@ -52,9 +45,6 @@
 	.release {
 		margin: 0 0 var(--s5);
 		color: var(--muted);
-	}
-	.callout.release {
-		color: var(--fg);
 	}
 	.platforms {
 		margin-bottom: var(--s6);

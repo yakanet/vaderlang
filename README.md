@@ -271,7 +271,7 @@ Snapshot tests live under `tests/snippets/<name>/` (a `_main.vader` + one `*.sna
 
 ### Releasing
 
-A release starts from the Actions tab: run the **Release** workflow with `patch`, `minor`, `major` or an exact version (the first one names `0.1.0`). It needs a green CI on the head of `main`, writes the version into `vader/support/version/VERSION` in a commit of its own, builds the three bundles, moves `main` onto that commit, tags it, and leaves a draft release with the archives and notes grouped from the commit subjects. Review the draft in the Releases tab and publish it: the CI then runs on `main` again and republishes the site. Pull before the next push, since `main` gained the release commit ([ADR 0116](./docs/adr/0116-a-release-is-made-from-the-actions-tab.md)).
+A release starts from the Actions tab: run the **Release** workflow with `patch`, `minor`, `major` or an exact version (the first one names `0.1.0`). It needs a green CI on the head of `main`, writes the version into `vader/support/version/VERSION` in a commit of its own, builds the three bundles, moves `main` onto that commit, tags it, and leaves a draft release with the archives and notes grouped from the commit subjects. Review the draft in the Releases tab and publish it: the download page's buttons reach it at once. Pull before the next push, since `main` gained the release commit ([ADR 0116](./docs/adr/0116-a-release-is-made-from-the-actions-tab.md)).
 
 ---
 

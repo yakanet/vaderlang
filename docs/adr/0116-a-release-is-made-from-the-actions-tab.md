@@ -41,15 +41,20 @@ server.
      by conventional-commit type (`tools/ci/release-notes.sh`).
 - The release commit is not tested again: it changes only the version file.
   The bundle action checks, on every build, that the binary reports the version
-  of that file. Publishing the draft starts a CI run on `main`, which tests the
-  commit and publishes the site, whose download page names the release: the
-  site is published from `main` only.
+  of that file.
+- Publishing the draft runs nothing. The download page links
+  `releases/latest/download/<name>`, which GitHub resolves to the latest
+  published release, and asks GitHub's API in the browser for its name and
+  date: the site does not depend on releases when it is built.
 
 ## Consequences
 
 - A release takes about the time of the bundles, not a full CI run.
 - `main` gains a commit made by the CI: pull before the next push. If `main`
   moved during the release, the push is refused and nothing is published.
+- A push made with the workflow's token starts no run, so the release commit
+  gets no CI run of its own: the next release waits for a push, which a new
+  release needs anyway, or for a run started from the Actions tab.
 - The first release names its version (`0.1.0`): a keyword bumps the latest
   `vX.Y.Z` tag, and there is none yet. Its notes are written by hand in the
   draft.

@@ -1,8 +1,8 @@
 // @ts-check
 // What the pages do in the browser. The site is rendered at build time and ships
 // no framework: the components render the markup, its text and its first state,
-// and this script only changes that state (`hidden`, `aria-*`, values) or clones
-// what a component rendered. Each part is wired from the markup that carries it,
+// and this script only changes that state (`hidden`, `aria-*`, values), fills in
+// the values it fetches, or clones what a component rendered. Each part is wired from the markup that carries it,
 // so a page without that markup skips the part.
 
 /**
@@ -218,6 +218,26 @@ function wire_search(dialog) {
 	window.addEventListener('pagehide', () => dialog.close());
 }
 
+// ---- latest release ---------------------------------------------------------
+
+// The name and date of the latest release, from GitHub's API. The slot stays
+// hidden when the API does not answer.
+/** @param {Element} slot */
+async function wire_latest_release(slot) {
+	try {
+		const response = await fetch(slot.getAttribute('data-latest-release') ?? '');
+		if (!response.ok) return;
+		const release = await response.json();
+		const name = /** @type {HTMLElement} */ (slot.querySelector('[data-release="name"]'));
+		const date = /** @type {HTMLTimeElement} */ (slot.querySelector('[data-release="date"]'));
+		const day = release.published_at.slice(0, 10);
+		name.textContent = release.tag_name;
+		date.dateTime = day;
+		date.textContent = day;
+		slot.removeAttribute('hidden');
+	} catch {}
+}
+
 // ---- chapter menu -----------------------------------------------------------
 
 // On a narrow screen, the chapters of the specification hide behind a button;
@@ -234,3 +254,4 @@ document.querySelectorAll('[role="tablist"]').forEach(wire_tabs);
 const search_dialog = document.querySelector('dialog[data-search]');
 if (search_dialog instanceof HTMLDialogElement) wire_search(search_dialog);
 document.querySelectorAll('[data-menu-toggle]').forEach(wire_menu);
+document.querySelectorAll('[data-latest-release]').forEach(wire_latest_release);

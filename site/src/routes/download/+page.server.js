@@ -1,7 +1,7 @@
 import { content_parts } from '#lib/server/content.js';
-import { latest_release, PLATFORMS } from '#lib/server/release.js';
+import { PLATFORMS } from '#lib/server/platforms.js';
 
-export const load = async () => {
+export const load = () => {
 	const { parts, rest } = content_parts(
 		'download.md',
 		PLATFORMS.map((p) => p.section)
@@ -11,5 +11,5 @@ export const load = async () => {
 		if (install === undefined) throw new Error(`download.md has no section for ${platform.os}`);
 		return { ...platform, install };
 	});
-	return { release: await latest_release(), platforms, rest };
+	return { platforms, rest };
 };

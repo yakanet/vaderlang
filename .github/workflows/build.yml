@@ -111,7 +111,6 @@ jobs:
       - name: Build the sites
         env:
           BASE: ${{ steps.pages.outputs.base_path }}
-          GITHUB_TOKEN: ${{ github.token }}
           VADER_DOC_SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
         run: |
           export VADER_DOC_HOME_URL="$BASE/"
