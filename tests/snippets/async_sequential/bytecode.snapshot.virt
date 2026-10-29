@@ -3,20 +3,20 @@ type 0 scalar null
 type 1 ref std_core$Async
 type 2 ref std_core$Async
 type 3 scalar i32
-type 4 struct __asyncstate_snippet_0 { s0:3,s1:3,s2:6,s3:6,s4:6,s5:12,s6:13,awaited:14,state:3 }
+type 4 struct __asyncstate_snippet_0 { s0:3,s1:3,s2:6,s3:6,s4:6,s5:11,s6:12,awaited:13,state:3 }
 type 5 union 6,7
 type 6 scalar string
-type 7 struct std_core$Suspended { wake_at:13 }
+type 7 struct std_core$Suspended { wake_at:12 }
 type 8 struct snippet$Ready__i32 { v:3 }
 type 9 union 3,7
-type 10 scalar void
-type 11 struct snippet$Ready__string { v:6 }
-type 12 struct std_core$Buffer {  }
-type 13 scalar i64
-type 14 ref std_core$Async
-type 15 scalar u8
-type 16 scalar bool
-type 17 array 15
+type 10 struct snippet$Ready__string { v:6 }
+type 11 struct std_core$Buffer {  }
+type 12 scalar i64
+type 13 ref std_core$Async
+type 14 scalar u8
+type 15 scalar bool
+type 16 array 14
+type 17 scalar void
 string 0 "hi"
 string 1 ""
 string 2 "parked?!"
@@ -25,16 +25,16 @@ string 4 "after-done = Suspended"
 string 5 "after-done = "
 string 6 ":"
 string 7 "\n"
-import 0 byte_len std_core$byte_len result_type=13 param_types=6 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=17 param_types=6 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=3,17,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 byte_len std_core$byte_len result_type=12 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=16 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=3,16,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 4 std_core$Async
 impl 8 std_core$Async
-impl 11 std_core$Async
-impl 12 std_core$ByteAccess
+impl 10 std_core$Async
+impl 11 std_core$ByteAccess
 vtable std_core$Async.resume 4 4
 vtable std_core$Async.resume 8 5
-vtable std_core$Async.resume 11 6
+vtable std_core$Async.resume 10 6
 export main 3
 
 fn 0 snippet$make_num () -> any
@@ -45,7 +45,7 @@ end
 
 fn 1 snippet$make_str () -> any
   string.const 0   ; "hi"
-  struct.new 11   ; snippet$Ready__string
+  struct.new 10   ; snippet$Ready__string
   return
 end
 
@@ -177,7 +177,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       local.field 0 4 5   ; arg 0 __asyncstate_snippet_0.s5
       local.set 4   ; $field_16
       local.field 0 4 6   ; arg 0 __asyncstate_snippet_0.s6
-      ref.cast 13   ; i64
+      ref.cast 12   ; i64
       local.set 5   ; $field_17
       local.field 0 4 4   ; arg 0 __asyncstate_snippet_0.s4
       ref.cast 6   ; string
@@ -193,7 +193,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       local.field 0 4 5   ; arg 0 __asyncstate_snippet_0.s5
       local.set 8   ; $field_20
       local.field 0 4 6   ; arg 0 __asyncstate_snippet_0.s6
-      ref.cast 13   ; i64
+      ref.cast 12   ; i64
       local.set 9   ; $field_21
       local.get 8   ; $field_20
       local.get 9   ; $field_21
@@ -206,7 +206,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       local.field 0 4 5   ; arg 0 __asyncstate_snippet_0.s5
       local.set 11   ; $field_24
       local.field 0 4 6   ; arg 0 __asyncstate_snippet_0.s6
-      ref.cast 13   ; i64
+      ref.cast 12   ; i64
       local.set 12   ; $field_25
       local.field 0 4 1   ; arg 0 __asyncstate_snippet_0.s1
       ref.cast 3   ; i32
@@ -223,7 +223,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       local.field 0 4 5   ; arg 0 __asyncstate_snippet_0.s5
       local.set 15   ; $field_29
       local.field 0 4 6   ; arg 0 __asyncstate_snippet_0.s6
-      ref.cast 13   ; i64
+      ref.cast 12   ; i64
       local.set 16   ; $field_30
       local.get 15   ; $field_29
       local.get 16   ; $field_30
@@ -358,7 +358,7 @@ fn 5 snippet$Ready$std_core$Async$resume__i32 (ref) -> any
 end
 
 fn 6 snippet$Ready$std_core$Async$resume__string (ref) -> any
-  local.field 0 11 0   ; arg 0 snippet$Ready__string.v
+  local.field 0 10 0   ; arg 0 snippet$Ready__string.v
   ref.cast 6   ; string
   retag 6   ; string
   return
@@ -564,7 +564,7 @@ fn 11 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 17   ; u8[]
+      array.slice 16   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

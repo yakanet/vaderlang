@@ -3,10 +3,13 @@
 // `prune_unreachable_fns` walks the call graph from the program roots
 // (main, `@export` / `@extern`, optionally `@test`, plus every fn when
 // the project has no `main`) and drops `LoweredFnDecl`s that nothing
-// transitively references. Structs and consts are preserved verbatim:
-// this pass only prunes the fn call graph. The backends (bytecode / C /
-// wasm) all consume the resulting `LoweredProject`, so pruning here is
-// shared rather than per-emitter.
+// transitively references. A virtual call reaches the impl fn of a
+// receiver only when reachable code holds a value of that receiver's
+// struct: one a literal builds, a call returns, a constant holds or a root
+// receives. The vtable keeps the entries whose fn survives. Structs and
+// consts are preserved verbatim. The backends (bytecode / C / wasm) all consume the
+// resulting `LoweredProject`, so pruning here is shared rather than
+// per-emitter.
 //
 // Generic-fn instances share their generic's symbol id (Vader mono does
 // not allocate a fresh id per instance : `instance_symbol` reuses
@@ -25,6 +28,7 @@ import "std/collections"
 import "std/iter"
 import "toolchain/ast"
 import "vader/core/symbol"
+import "vader/core/types"
 import "vader/lower/ir"
 
 /// Drop functions unreachable from the program roots, returning a new
@@ -40,6 +44,17 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     reachable_sym :: MutableMap<i32, bool> {}
     reachable_mangle :: MutableMap<string, bool> {}
     worklist: LoweredDecl[]: []
+    // Struct symbols reachable code holds a value of (`visit_value`).
+    built :: MutableSet<i32> {}
+    // Every struct a type names counts, not only the outer one: a value can come
+    // back nested in an array or a field, built where no literal is seen (by the
+    // host, say).
+    note_built :: fn(t: Type) -> void {
+        st :: struct_backing(t)
+        if st != null {
+            built.add(st.symbol.id)
+        }
+    }
 
     has_main :: project_has_main(lp)
 
@@ -74,22 +89,17 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
                     // synthetic NULL-symbol origin: their only identity is the
                     // mangle, so index them by mangle.
                     by_mangle[d.mangled] = d
-                    // They also survive verbatim (`fn_survives`) → they WILL be
-                    // emitted, so seed them as roots to walk their bodies. Else a
-                    // callee reached only from an unwalked survivor (the non-
-                    // dispatching `rehash`, called from the dispatching
-                    // `put__i32__bool` alone) is pruned while the emitted call
-                    // survives → an unresolved-callee panic at emit. Keeps the header invariant
-                    // "DCE-survival ⟺ emit-resolvable". (Collapsed sibling
-                    // suffixes resolve via emit's symbol-id fallback.)
-                    if reachable_mangle[d.mangled] == null {
-                        reachable_mangle[d.mangled] = true
-                        worklist.push(d)
-                    }
                 }
                 if is_fn_root(d, is_entry, has_main, keep_tests) {
                     mark_reachable(d, reachable_sym, reachable_mangle)
                     worklist.push(d)
+                    // A root with a body is called from outside the program,
+                    // which builds the arguments it receives.
+                    if d.body != null {
+                        for param in d.params {
+                            for_each_type(param.type, note_built)
+                        }
+                    }
                 }
             } else if d is LoweredConstDecl {
                 // Const initializers always survive ; walk their bodies so
@@ -114,12 +124,12 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
         }
     }
 
-    // Index impl fns by `"trait|method"` once so the virtual-call drain
+    // Index vtable entries by `"trait|method"` once so the virtual-call drain
     // is an O(1) bucket lookup, not an O(vtable) rescan per outer pass.
-    impls_by_vtable_key :: MutableMap<string, Symbol[]> {}
+    impls_by_vtable_key :: MutableMap<string, LoweredVtableEntry[]> {}
     for e in lp.vtable_entries {
         key :: "${e.trait_name}|${e.method_name}"
-        impls_by_vtable_key.get_or_put_with(key, () -> []).push(e.fn_symbol)
+        impls_by_vtable_key.get_or_put_with(key, () -> []).push(e)
     }
 
     pending_virtual: string[]: []
@@ -152,11 +162,26 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
             pending_virtual.push(key)
         }
     }
+    visit_value :: fn(t: Type) -> void {
+        for_each_type(t, note_built)
+    }
+
+    // `inline_consts` moved these consts out of the decls, where the worklist
+    // never meets them: their values are walked here.
+    for value in lp.const_inline.values() {
+        for_each_lowered_ref_in_expr(value, visit_fn, visit_virtual, visit_value)
+    }
+    for entry in lp.data_pool {
+        if entry is AggregateDataPoolEntry {
+            for_each_lowered_ref_in_expr(entry.literal, visit_fn, visit_virtual, visit_value)
+        }
+    }
 
     // Reachability fixpoint : drain the worklist (each decl's body adds
-    // its callees), then re-process pending virtual calls: a virtual
-    // call's impl fns count once the (trait, method) pair is seen. The
-    // outer loop repeats until a virtual drain adds nothing new. `cursor`
+    // its callees and the structs it holds values of), then re-process
+    // pending virtual calls: an impl fn counts once its (trait, method) pair
+    // is seen and a value of its receiver is held. The outer loop repeats
+    // until a virtual drain adds nothing new. `cursor`
     // is NOT reset across passes : the worklist only grows, so a stable
     // cursor walks each decl exactly once. `for i in 0..<n` can't replace
     // the inner loop: it would snapshot the bound and miss appends.
@@ -165,13 +190,17 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
         for cursor < worklist.len() {
             d :: worklist[cursor]
             cursor += 1
-            for_each_lowered_ref(d, visit_fn, visit_virtual)
+            for_each_lowered_ref(d, visit_fn, visit_virtual, visit_value)
         }
         before :: worklist.len()
         for key in pending_virtual {
             bucket :: impls_by_vtable_key[key]
             if bucket != null {
-                for fn_symbol in bucket { visit_fn(fn_symbol.id, fn_symbol.name) }
+                for e in bucket {
+                    if receiver_is_built(e.struct_type, built) {
+                        visit_fn(e.fn_symbol.id, e.fn_symbol.name)
+                    }
+                }
             }
         }
         if worklist.len() == before { break }
@@ -190,7 +219,41 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
             .decls = kept,
         }
     }
-    return LoweredProject { ...lp, .modules = out_modules }
+    vtable_entries: LoweredVtableEntry[]: []
+    for e in lp.vtable_entries {
+        if entry_survives(e, by_mangle, reachable_sym, reachable_mangle) {
+            vtable_entries.push(e)
+        }
+    }
+    return LoweredProject {
+        ...lp,
+        .modules = out_modules,
+        .vtable_entries = vtable_entries,
+    }
+}
+
+// True when a virtual call can land on a receiver of type `t`: reachable code
+// holds a value of its struct. A receiver that is not a struct (a primitive, an
+// enum, an array) is always taken. The test is per struct symbol: one instance
+// of a generic struct built keeps the impls of all its instances.
+receiver_is_built :: fn(t: Type, built: MutableSet<i32>) -> bool {
+    st :: struct_backing(t) ?? return true
+    return st.symbol.id in built
+}
+
+// True when the fn of vtable entry `e` survives, looked up under the key
+// `visit_fn` marks it by: its mangle when a decl is indexed so, its symbol id
+// otherwise.
+entry_survives :: fn(
+    e: LoweredVtableEntry,
+    by_mangle: MutableMap<string, LoweredDecl>,
+    reachable_sym: MutableMap<i32, bool>,
+    reachable_mangle: MutableMap<string, bool>,
+) -> bool {
+    if by_mangle[e.fn_symbol.name] != null {
+        return reachable_mangle[e.fn_symbol.name] != null
+    }
+    return reachable_sym[e.fn_symbol.id] != null
 }
 
 /// Generic-fn instances share their generic's symbol id, so they're
@@ -209,16 +272,15 @@ mark_reachable :: fn(fn_decl: LoweredFnDecl, reachable_sym: MutableMap<i32, bool
     }
 }
 
-/// True when the fn decl survives the prune. Structs / consts always
-/// survive (handled by the caller) ; null-symbol fns (impl members ship
-/// as separate entries) are kept verbatim.
+/// True when the decl survives the prune: a fn when it was reached, under the
+/// key it is indexed by. Structs and consts always survive.
 fn_survives :: fn(d: LoweredDecl, reachable_sym: MutableMap<i32, bool>, reachable_mangle: MutableMap<string, bool>) -> bool {
     if d is LoweredFnDecl {
         sym :: d.origin.symbol
         if sym is Symbol {
             return reachable_sym[sym.id] != null
         }
-        return true
+        return reachable_mangle[d.mangled] != null
     }
     return true
 }

@@ -1,11 +1,11 @@
 module _main
 type 0 scalar null
-type 1 struct snippet$Timeout { seconds:2 }
-type 2 scalar i32
-type 3 struct snippet$Refused { port:2 }
-type 4 union 3,5,1
-type 5 scalar string
-type 6 union 5,1
+type 1 union 2,3,4
+type 2 struct snippet$Refused { port:5 }
+type 3 scalar string
+type 4 struct snippet$Timeout { seconds:5 }
+type 5 scalar i32
+type 6 union 3,4
 type 7 struct std_core$Buffer {  }
 type 8 scalar i64
 type 9 scalar u8
@@ -15,12 +15,12 @@ type 12 scalar void
 type 13 ref snippet$Err
 string 0 "closed"
 string 1 "\n"
-import 0 byte_len std_core$byte_len result_type=8 param_types=5 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=11 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=2,11,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 1 snippet$Err
-impl 3 snippet$Err
+import 0 byte_len std_core$byte_len result_type=8 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=11 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=5,11,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 7 std_core$ByteAccess
+impl 2 snippet$Err
+impl 4 snippet$Err
 export main 2
 
 fn 0 snippet$classify (any) -> i32
@@ -32,7 +32,7 @@ fn 0 snippet$classify (any) -> i32
     local.set 1   ; or_res
   else
     local.get 0   ; arg 0
-    type_check 5   ; string
+    type_check 3   ; string
     local.set 1   ; or_res
   end $L0
   local.get 1   ; or_res
@@ -41,24 +41,24 @@ fn 0 snippet$classify (any) -> i32
     return.lit i32.const -1
   end $L1
   local.get 0   ; arg 0
-  type_check 1   ; snippet$Timeout
+  type_check 4   ; snippet$Timeout
   if $L2 void
     local.get 0   ; arg 0
-    ref.cast 1   ; snippet$Timeout
-    struct.get 1 0   ; snippet$Timeout.seconds
-    ref.cast 2   ; i32
+    ref.cast 4   ; snippet$Timeout
+    struct.get 4 0   ; snippet$Timeout.seconds
+    ref.cast 5   ; i32
     return
   end $L2
   local.get 0   ; arg 0
-  type_check 3   ; snippet$Refused
+  type_check 2   ; snippet$Refused
   if $L3 void
   else
     return.lit i32.const 0
   end $L3
   local.get 0   ; arg 0
-  ref.cast 3   ; snippet$Refused
-  struct.get 3 0   ; snippet$Refused.port
-  ref.cast 2   ; i32
+  ref.cast 2   ; snippet$Refused
+  struct.get 2 0   ; snippet$Refused.port
+  ref.cast 5   ; i32
   return
 end
 
@@ -69,7 +69,7 @@ fn 1 snippet$remainder (any) -> i32
     return.lit i32.const 1
   end $L0
   local.get 0   ; arg 0
-  type_check 5   ; string
+  type_check 3   ; string
   if $L1 void
   else
     return.lit i32.const 2
@@ -87,7 +87,7 @@ fn 2 snippet$main () -> i32
   i64.const 0
   local.set 1   ; __off_1
   i32.const 30
-  struct.new 1   ; snippet$Timeout
+  struct.new 4   ; snippet$Timeout
   call 0   ; snippet$classify
   i32.to_i64
   local.set 2   ; $cast_8
@@ -106,7 +106,7 @@ fn 2 snippet$main () -> i32
   i64.const 0
   local.set 1   ; __off_1
   i32.const 8080
-  struct.new 3   ; snippet$Refused
+  struct.new 2   ; snippet$Refused
   call 0   ; snippet$classify
   i32.to_i64
   local.set 2   ; $cast_8
@@ -125,7 +125,7 @@ fn 2 snippet$main () -> i32
   i64.const 0
   local.set 1   ; __off_1
   string.const 0   ; "closed"
-  retag 5   ; string
+  retag 3   ; string
   call 0   ; snippet$classify
   i32.to_i64
   local.set 2   ; $cast_8
@@ -144,7 +144,7 @@ fn 2 snippet$main () -> i32
   i64.const 0
   local.set 1   ; __off_1
   string.const 0   ; "closed"
-  retag 5   ; string
+  retag 3   ; string
   call 1   ; snippet$remainder
   i32.to_i64
   local.set 2   ; $cast_8

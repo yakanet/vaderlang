@@ -1,0 +1,48 @@
+// A virtual call keeps the impl members of the receivers a value of which the
+// program builds: `Square` here. `Box<f64>`, built only by a function nothing
+// calls, and `Circle`, never built, leave no `area` member and no vtable row,
+// though `describe` dispatches `area` on every `Shape`.
+// Expected: prints "9.0", exits 0.
+
+module "snippet"
+
+import "std/io"
+
+Shape :: trait {
+    area :: fn(self) -> f64
+}
+
+Box :: struct<T> {
+    value: T
+}
+
+Box<T> implements<T> Shape {
+    area :: fn(self) -> f64 = 2.0
+}
+
+Square :: struct {
+    side: f64
+}
+
+Square implements Shape {
+    area :: fn(self) -> f64 = self.side * self.side
+}
+
+Circle :: struct {
+    radius: f64
+}
+
+Circle implements Shape {
+    area :: fn(self) -> f64 = 3.0 * self.radius * self.radius
+}
+
+// Kept uncalled: its `Box<f64>` must not reach the program.
+@allow_unused
+unused_area :: fn() -> f64 = Box<f64> { .value = 1.5 }.area()
+
+describe :: fn(s: Shape) -> f64 = s.area()
+
+main :: fn() -> i32 {
+    println("${describe(Square { .side = 3.0 })}")
+    return 0
+}

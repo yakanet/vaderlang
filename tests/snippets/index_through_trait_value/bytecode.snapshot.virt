@@ -43,10 +43,10 @@ impl 1 std_core$IndexSet
 impl 11 std_core$ByteAccess
 impl 8 std_core$Index
 impl 8 std_core$IndexSet
-impl 8 std_core$Contains
-impl 8 std_core$Into
 impl 9 std_core$Index
 impl 9 std_core$IndexSet
+impl 8 std_core$Contains
+impl 8 std_core$Into
 impl 9 std_core$Contains
 impl 9 std_core$Into
 impl 15 std_core$Contains

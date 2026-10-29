@@ -41,11 +41,11 @@ import 2 extern write system_posix$sys_write header=<unistd.h> result_type=1 par
 impl 5 std_core$Contains
 impl 6 std_core$Contains
 impl 11 std_core$Contains
-impl 11 std_core$Iterator
 impl 12 std_core$ByteAccess
 impl 13 std_core$Contains
 impl 10 std_core$Contains
 impl 14 std_core$Contains
+impl 11 std_core$Iterator
 vtable std_core$Contains.contains 5 6
 vtable std_core$Contains.contains 6 7
 vtable std_core$Contains.contains 11 13

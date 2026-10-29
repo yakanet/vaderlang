@@ -39,8 +39,8 @@ impl 1 std_core$Mul
 impl 1 std_core$Div
 impl 1 std_core$Rem
 impl 2 std_core$Comparable
-impl 2 std_core$Equals
 impl 6 std_core$ByteAccess
+impl 2 std_core$Equals
 export main 7
 
 fn 0 snippet$Vec$std_core$Add$add (ref,ref) -> ref

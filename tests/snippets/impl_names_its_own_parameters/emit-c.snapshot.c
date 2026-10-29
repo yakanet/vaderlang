@@ -38,7 +38,6 @@ static const char vader_atom_blob[] =
     " " "\0"
     "one" "\0"
     "box of i32" "\0"
-    "box of string" "\0"
     "i32 then string" "\0"
     "string then i32" "\0"
     "\n" "\0";
@@ -48,13 +47,12 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[5] },
     { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7] },
     { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[11] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 8u
+#define VADER_COMPTIME_ATOM_COUNT 7u
 
 static int32_t snippet$main(void);
 static int32_t snippet$Box$Getter$get__i32(void* l0);
@@ -230,11 +228,11 @@ static void* snippet$Pair$Swap$swapped__i32__string(void* l0) {
 }
 
 static vader_string_t snippet$Pair$Labelled$label__i32__string(void* l0) {
-    return 6u;
+    return 5u;
 }
 
 static vader_string_t snippet$Pair$Labelled$label__string__i32(void* l0) {
-    return 7u;
+    return 6u;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
@@ -385,7 +383,7 @@ static void std_io$println__string(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l1 = concat_2(l0, 8u);
+    l1 = concat_2(l0, 7u);
     std_io$write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }

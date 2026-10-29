@@ -26,13 +26,13 @@ import 2 bytes std_core$bytes result_type=14 param_types=6 param_c_out= param_by
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=2,14,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 1 std_core$Contains
 impl 1 std_core$Iterator
-impl 3 std_core$Contains
 impl 3 std_core$Iterator
-impl 4 std_core$Contains
 impl 4 std_core$Iterator
-impl 5 std_core$Contains
 impl 5 std_core$Iterator
 impl 12 std_core$ByteAccess
+impl 3 std_core$Contains
+impl 4 std_core$Contains
+impl 5 std_core$Contains
 export main 4
 
 fn 0 snippet$turns (ref) -> i32

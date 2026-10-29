@@ -4,17 +4,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_snippet$Timeout_t vader_struct_snippet$Timeout_t;
 typedef struct vader_struct_snippet$Refused_t vader_struct_snippet$Refused_t;
+typedef struct vader_struct_snippet$Timeout_t vader_struct_snippet$Timeout_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 
-struct vader_struct_snippet$Timeout_t {
-    vader_obj_header_t header;
-    int32_t f_seconds;
-};
 struct vader_struct_snippet$Refused_t {
     vader_obj_header_t header;
     int32_t f_port;
+};
+struct vader_struct_snippet$Timeout_t {
+    vader_obj_header_t header;
+    int32_t f_seconds;
 };
 struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
@@ -46,16 +46,16 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[14] = {
-    [1] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Timeout_t),
-        .slot_size = 8,
-    },
-    [2] = { .slot_size = 4 },
-    [3] = {
+    [1] = { .slot_size = 16 },
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Refused_t),
         .slot_size = 8,
     },
-    [4] = { .slot_size = 16 },
+    [3] = { .slot_size = 4 },
+    [4] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Timeout_t),
+        .slot_size = 8,
+    },
     [5] = { .slot_size = 4 },
     [6] = { .slot_size = 16 },
     [7] = {
@@ -93,20 +93,20 @@ static int32_t snippet$classify(vader_box_t l0) {
     bool l1;
     void* t0;
     int32_t t1;
-    if ((l0.tag == 13u) || (l0.tag == 1u) || (l0.tag == 3u)) {
+    if ((l0.tag == 13u) || (l0.tag == 2u) || (l0.tag == 4u)) {
         l1 = true;
     } else {
-        l1 = l0.tag == 5u;
+        l1 = l0.tag == 3u;
     }
     if (!(l1)) {
         return INT32_C(-1);
     }
-    if (l0.tag == 1u) {
+    if (l0.tag == 4u) {
         t0 = l0.payload.obj;
         t1 = ((vader_struct_snippet$Timeout_t*) t0)->f_seconds;
         return t1;
     }
-    if (!(l0.tag == 3u)) {
+    if (!(l0.tag == 2u)) {
         return INT32_C(0);
     }
     t0 = l0.payload.obj;
@@ -115,10 +115,10 @@ static int32_t snippet$classify(vader_box_t l0) {
 }
 
 static int32_t snippet$remainder(vader_box_t l0) {
-    if ((l0.tag == 13u) || (l0.tag == 1u) || (l0.tag == 3u)) {
+    if ((l0.tag == 13u) || (l0.tag == 2u) || (l0.tag == 4u)) {
         return INT32_C(1);
     }
-    if (!(l0.tag == 5u)) {
+    if (!(l0.tag == 3u)) {
         return INT32_C(2);
     }
     return INT32_C(1);
@@ -139,7 +139,7 @@ static int32_t snippet$main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l1 = INT64_C(0);
     vader_struct_snippet$Timeout_t* _a0_obj = (vader_struct_snippet$Timeout_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Timeout_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 4u);
     _a0_obj->f_seconds = INT32_C(30);
     t0 = (void*) _a0_obj;
     t1 = snippet$classify(vader_ref_box(t0));
@@ -150,7 +150,7 @@ static int32_t snippet$main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l1 = INT64_C(0);
     vader_struct_snippet$Refused_t* _a1_obj = (vader_struct_snippet$Refused_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Refused_t));
-    vader_obj_header_init(_a1_obj, 3u);
+    vader_obj_header_init(_a1_obj, 2u);
     _a1_obj->f_port = INT32_C(8080);
     t0 = (void*) _a1_obj;
     t1 = snippet$classify(vader_ref_box(t0));
@@ -160,14 +160,14 @@ static int32_t snippet$main(void) {
     std_io$println__string(t2);
     l0 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l1 = INT64_C(0);
-    t1 = snippet$classify(vader_box_string(5u, 1u));
+    t1 = snippet$classify(vader_box_string(3u, 1u));
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core$write_int(l0, l1, l2);
     t2 = std_core$finish_buffer(l0, l1);
     std_io$println__string(t2);
     l0 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l1 = INT64_C(0);
-    t1 = snippet$remainder(vader_box_string(5u, 1u));
+    t1 = snippet$remainder(vader_box_string(3u, 1u));
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core$write_int(l0, l1, l2);
     t2 = std_core$finish_buffer(l0, l1);

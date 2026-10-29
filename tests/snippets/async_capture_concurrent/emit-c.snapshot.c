@@ -81,9 +81,7 @@ static vader_box_t snippet$worker(int32_t l0, int32_t l1);
 static int32_t snippet$main(void);
 static void __lambda_snippet_0(void* l0);
 static vader_box_t snippet$__asyncstate_snippet_2$Async$resume(void* l0);
-static void snippet$__asyncstate_snippet_2$Async$cancel(void* l0);
 static vader_box_t snippet$__asyncstate_snippet_3$Async$resume(void* l0);
-static void snippet$__asyncstate_snippet_3$Async$cancel(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
@@ -92,12 +90,10 @@ static bool std_io$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io$println__string(vader_string_t l0);
 static vader_box_t std_async$JoinAll$std_core$Async$resume__i32(void* l0);
-static void std_async$JoinAll$std_core$Async$cancel__i32(void* l0);
 static vader_box_t std_async$sleep(int64_t l0);
 static int32_t std_async$run_async_main(vader_box_t l0);
 static int64_t std_async$earlier(int64_t l0, int64_t l1);
 static vader_box_t std_async$Sleep$std_core$Async$resume(void* l0);
-static void std_async$Sleep$std_core$Async$cancel(void* l0);
 static int32_t std_async$block_on__i32(vader_box_t l0);
 static vader_box_t std_async$join_all__i32(void* l0);
 static void* std_async$new_join_all__i32(void* l0);
@@ -227,7 +223,6 @@ static void vader_host_std_abort$panic(vader_string_t a0) {
 
 /* vtable forwards */
 static vader_box_t vader_vt_std_core$Async$resume(vader_box_t recv);
-static void vader_vt_std_core$Async$cancel(vader_box_t recv);
 
 static vader_box_t snippet$worker(int32_t l0, int32_t l1) {
     vader_box_t l2 = vader_box_null(), l4 = vader_box_null();
@@ -411,22 +406,6 @@ static vader_box_t snippet$__asyncstate_snippet_2$Async$resume(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static void snippet$__asyncstate_snippet_2$Async$cancel(void* l0) {
-    int32_t l1;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    if (((vader_struct___asyncstate_snippet_2_t*) l0)->f_awaited.tag == 0u) {
-        l1 = INT32_C(-1);
-        ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = l1;
-        { vader_gc_top = gc_frame.prev; return; }
-    }
-    vader_vt_std_core$Async$cancel(((vader_struct___asyncstate_snippet_2_t*) l0)->f_awaited);
-    l1 = INT32_C(-1);
-    ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = l1;
-    { vader_gc_top = gc_frame.prev; return; }
-}
-
 static vader_box_t snippet$__asyncstate_snippet_3$Async$resume(void* l0) {
     int64_t l1, l2, l4, l7, l8, l9, l11;
     void* l3 = NULL;
@@ -549,22 +528,6 @@ static vader_box_t snippet$__asyncstate_snippet_3$Async$resume(void* l0) {
         continue;
     }
     vader_gc_top = gc_frame.prev;
-}
-
-static void snippet$__asyncstate_snippet_3$Async$cancel(void* l0) {
-    int32_t l1;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    if (((vader_struct___asyncstate_snippet_3_t*) l0)->f_awaited.tag == 0u) {
-        l1 = INT32_C(-1);
-        ((vader_struct___asyncstate_snippet_3_t*) l0)->f_state = l1;
-        { vader_gc_top = gc_frame.prev; return; }
-    }
-    vader_vt_std_core$Async$cancel(((vader_struct___asyncstate_snippet_3_t*) l0)->f_awaited);
-    l1 = INT32_C(-1);
-    ((vader_struct___asyncstate_snippet_3_t*) l0)->f_state = l1;
-    { vader_gc_top = gc_frame.prev; return; }
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
@@ -830,28 +793,6 @@ static vader_box_t std_async$JoinAll$std_core$Async$resume__i32(void* l0) {
     { vader_box_t __vret = vader_ref_box(l6); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void std_async$JoinAll$std_core$Async$cancel__i32(void* l0) {
-    void* l1 = NULL;
-    int64_t l2, l3;
-    vader_box_t t0 = vader_box_null();
-    vader_box_t* gc_roots[1] = { &t0 };
-    void** gc_raw_roots[2] = { &l0, &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    l1 = ((vader_struct_std_async$JoinAll__i32_t*) l0)->f_children;
-    l2 = ((vader_array_t*) l1)->length;
-    l3 = INT64_C(0);
-    while ((l3 < l2)) {
-        vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
-        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
-        t0 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l3);
-        vader_vt_std_core$Async$cancel(t0);
-        l3 = (l3 + INT64_C(1));
-    }
-    { vader_gc_top = gc_frame.prev; return; }
-}
-
 static vader_box_t std_async$sleep(int64_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
@@ -908,10 +849,6 @@ static vader_box_t std_async$Sleep$std_core$Async$resume(void* l0) {
         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
-}
-
-static void std_async$Sleep$std_core$Async$cancel(void* l0) {
-    return;
 }
 
 static int32_t std_async$block_on__i32(vader_box_t l0) {
@@ -985,16 +922,6 @@ static vader_box_t vader_vt_std_core$Async$resume(vader_box_t recv) {
         default: vader_unreachable("vtable miss in std_core$Async.resume");
     }
     vader_unreachable("vtable miss in std_core$Async.resume");
-}
-
-static void vader_vt_std_core$Async$cancel(vader_box_t recv) {
-    switch (recv.tag) {
-        case 5u: snippet$__asyncstate_snippet_2$Async$cancel(recv.payload.obj); return;
-        case 8u: snippet$__asyncstate_snippet_3$Async$cancel(recv.payload.obj); return;
-        case 19u: std_async$JoinAll$std_core$Async$cancel__i32(recv.payload.obj); return;
-        case 22u: std_async$Sleep$std_core$Async$cancel(recv.payload.obj); return;
-        default: vader_unreachable("vtable miss in std_core$Async.cancel");
-    }
 }
 
 int main(int argc, char** argv) {

@@ -207,8 +207,11 @@ the lowerer's own route.
 DCE drops the functions unreachable from the roots, keeping structs and constants.
 The roots are `main`, every function with `@export` or `@extern` or without a body,
 the `@test` functions in a test build, and every function of the entry module when
-the program has no `main`. A call through a vtable keeps every impl member that can
-fill that slot.
+the program has no `main`. An impl member is no root: a call through a vtable keeps
+the members that fill that slot for a struct reachable code holds a value of (one a
+literal builds, a call returns, a constant holds or a root receives), and a receiver
+that is not a struct always counts. The vtable keeps the entries whose function
+survives.
 
 ## Mid-IR (CFG)
 

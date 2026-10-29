@@ -22,8 +22,6 @@ struct vader_struct_std_core$Buffer_t {
 
 /* Compile-time atom table. */
 static const char vader_atom_blob[] =
-    "a:" "\0"
-    "b:" "\0"
     "was-error" "\0"
     "hello" "\0"
     "err " "\0"
@@ -32,28 +30,21 @@ static const char vader_atom_blob[] =
     "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[3] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[6] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[22] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 8u
+#define VADER_COMPTIME_ATOM_COUNT 6u
 
-static vader_string_t snippet$A$std_core$Error$message(void* l0);
-static vader_string_t snippet$B$std_core$Error$message(void* l0);
 static vader_box_t snippet$widen(vader_box_t l0);
 static vader_string_t snippet$only_string(vader_string_t l0);
 static vader_string_t snippet$tail_string(vader_box_t l0);
 static int32_t snippet$main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
 static void std_io$write(uint8_t l0, vader_string_t l1);
 static bool std_io$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
@@ -64,23 +55,23 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[15] = {
-    [1] = {
+    [1] = { .slot_size = 16 },
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$A_t), .slot_size = 8,
     },
-    [2] = { .slot_size = 4 },
-    [3] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$B_t), .slot_size = 8,
-    },
+    [3] = { .slot_size = 4 },
     [4] = { .slot_size = 16 },
     [5] = { .slot_size = 16 },
     [6] = { .slot_size = 16 },
-    [7] = { .slot_size = 16 },
+    [7] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$B_t), .slot_size = 8,
+    },
     [8] = { .slot_size = 4 },
-    [9] = {
+    [9] = { .slot_size = 8 },
+    [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [10] = { .slot_size = 8 },
     [11] = { .slot_size = 1 },
     [12] = { .slot_size = 1 },
     [13] = {
@@ -106,51 +97,6 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
     return write(a0, s1.ptr, a2);
 }
 
-/* vtable forwards */
-static vader_string_t vader_vt_std_core$Error$message(vader_box_t recv);
-
-static vader_string_t snippet$A$std_core$Error$message(void* l0) {
-    void* l1 = NULL;
-    int64_t l2, l3;
-    int32_t t0;
-    vader_string_t t1 = 0;
-    void** gc_raw_roots[2] = { &l0, &l1 };
-    vader_string_t* gc_atom_roots[1] = { &t1 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-    l1 = (void*) vader_buffer_new((size_t) INT64_C(22));
-    l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 1u);
-    t0 = ((vader_struct_snippet$A_t*) l0)->f_a;
-    l3 = ((int64_t) (int32_t) t0);
-    l2 = std_core$write_int(l1, l2, l3);
-    t1 = std_core$finish_buffer(l1, l2);
-    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static vader_string_t snippet$B$std_core$Error$message(void* l0) {
-    void* l1 = NULL;
-    int64_t l2, l3;
-    int32_t t0;
-    vader_string_t t1 = 0;
-    void** gc_raw_roots[2] = { &l0, &l1 };
-    vader_string_t* gc_atom_roots[1] = { &t1 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-    l1 = (void*) vader_buffer_new((size_t) INT64_C(22));
-    l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 2u);
-    t0 = ((vader_struct_snippet$B_t*) l0)->f_b;
-    l3 = ((int64_t) (int32_t) t0);
-    l2 = std_core$write_int(l1, l2, l3);
-    t1 = std_core$finish_buffer(l1, l2);
-    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
 static vader_box_t snippet$widen(vader_box_t l0) {
     return l0;
 }
@@ -161,12 +107,12 @@ static vader_string_t snippet$only_string(vader_string_t l0) {
 
 static vader_string_t snippet$tail_string(vader_box_t l0) {
     vader_string_t t0, t1;
-    if (!((l0.tag == 6u) || (l0.tag == 1u) || (l0.tag == 3u))) {
+    if (!((l0.tag == 5u) || (l0.tag == 2u) || (l0.tag == 7u))) {
         t0 = l0.payload.s;
         t1 = snippet$only_string(t0);
         return t1;
     }
-    return 3u;
+    return 1u;
 }
 
 static int32_t snippet$main(void) {
@@ -179,21 +125,22 @@ static int32_t snippet$main(void) {
         vader_gc_top, 2u, 0u, gc_roots, NULL, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l0 = snippet$widen(vader_box_string(2u, 4u));
+    l0 = snippet$widen(vader_box_string(3u, 2u));
     l1 = l0;
-    if ((l0.tag == 6u) || (l0.tag == 1u) || (l0.tag == 3u)) {
-        l2 = vader_vt_std_core$Error$message(l1);
-        t0 = concat_2(5u, l2);
+    if ((l0.tag == 5u) || (l0.tag == 2u) || (l0.tag == 7u)) {
+        vader_unreachable("no vtable for std_core$Error.message");
+        l2 = t0;
+        t0 = concat_2(3u, l2);
         std_io$println__string(t0);
     } else {
-        if (!(l0.tag == 2u)) {
+        if (!(l0.tag == 3u)) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
         l2 = l1.payload.s;
-        t0 = concat_2(6u, l2);
+        t0 = concat_2(4u, l2);
         std_io$println__string(t0);
     }
-    t0 = snippet$tail_string(vader_box_string(2u, 7u));
+    t0 = snippet$tail_string(vader_box_string(3u, 5u));
     std_io$println__string(t0);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
@@ -216,74 +163,6 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) l2, l1);
     t0 = vader_buffer_intern_string((vader_buffer_t*) l4, (size_t) l3);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-    t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2) {
-    int64_t l3;
-    int64_t t0;
-    vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-    l3 = vader_host_std_core$byte_len(l2);
-    t0 = vader_chk_add(i64, l1, l3);
-    return t0;
-}
-
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2) {
-    bool l3;
-    int64_t l4, l5;
-    uint8_t l6, l7;
-    int64_t t0, t1;
-    int32_t t2;
-    if (l2 == INT64_C(0)) {
-        vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
-        t0 = vader_chk_add(i64, l1, INT64_C(1));
-        return t0;
-    }
-    l3 = (l2 < INT64_C(0));
-    if ((l2 > INT64_C(0))) {
-        l2 = vader_chk_neg(i64, l2);
-    }
-    l4 = INT64_C(0);
-    l5 = l2;
-    while (l5 != INT64_C(0)) {
-        l4 = vader_chk_add(i64, l4, INT64_C(1));
-        l5 = vader_div_i64(l5, INT64_C(10));
-    }
-    if (l3) {
-        l5 = vader_chk_add(i64, l4, INT64_C(1));
-    } else {
-        l5 = l4;
-    }
-    l4 = vader_chk_add(i64, l1, l5);
-    while (l2 != INT64_C(0)) {
-        l4 = vader_chk_sub(i64, l4, INT64_C(1));
-        t0 = vader_mod_i64(l2, INT64_C(10));
-        t1 = vader_chk_neg(i64, t0);
-        t2 = (((int32_t) (int64_t) t1) & INT32_C(255));
-        l6 = (uint8_t) (int32_t) t2;
-        t2 = vader_chk_add(u8, INT32_C(48), l6);
-        l7 = (uint8_t) (int32_t) t2;
-        vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) l7);
-        l2 = vader_div_i64(l2, INT64_C(10));
-    }
-    if (l3) {
-        vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(45));
-        t0 = vader_chk_add(i64, l1, l5);
-        return t0;
-    }
-    t0 = vader_chk_add(i64, l1, l5);
-    return t0;
 }
 
 static void std_io$write(uint8_t l0, vader_string_t l1) {
@@ -346,19 +225,9 @@ static void std_io$println__string(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l1 = concat_2(l0, 8u);
+    l1 = concat_2(l0, 6u);
     std_io$write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
-}
-
-/* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Error$message(vader_box_t recv) {
-    switch (recv.tag) {
-        case 1u: return snippet$A$std_core$Error$message(recv.payload.obj);
-        case 3u: return snippet$B$std_core$Error$message(recv.payload.obj);
-        default: vader_unreachable("vtable miss in std_core$Error.message");
-    }
-    vader_unreachable("vtable miss in std_core$Error.message");
 }
 
 int main(int argc, char** argv) {

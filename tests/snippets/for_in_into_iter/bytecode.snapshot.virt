@@ -30,8 +30,8 @@ import 2 bytes std_core$bytes result_type=9 param_types=2 param_c_out= param_by_
 import 3 hash std_core$string$Hash$hash result_type=8 param_types=2 param_c_out= param_by_address= (string) -> u64
 import 4 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=1,9,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 3 std_core$ByteAccess
-impl 11 std_core$Index
 impl 11 std_core$IndexSet
+impl 11 std_core$Index
 impl 11 std_core$Contains
 impl 11 std_core$Into
 impl 12 std_core$Index

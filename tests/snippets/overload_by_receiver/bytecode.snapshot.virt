@@ -1,23 +1,22 @@
 module _main
 type 0 scalar null
-type 1 struct snippet$Boom {  }
-type 2 scalar string
-type 3 scalar bool
-type 4 union 5,0
-type 5 scalar i32
-type 6 union 1,5
+type 1 scalar bool
+type 2 union 3,0
+type 3 scalar i32
+type 4 union 5,3
+type 5 struct snippet$Boom {  }
+type 6 scalar string
 type 7 struct std_core$Buffer {  }
 type 8 scalar i64
 type 9 scalar u8
 type 10 array 9
 type 11 scalar void
-string 0 "boom"
-string 1 "\n"
-import 0 byte_len std_core$byte_len result_type=8 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=10 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=5,10,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 1 std_core$Error
+string 0 "\n"
+import 0 byte_len std_core$byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=10 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=3,10,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 7 std_core$ByteAccess
+impl 5 std_core$Error
 export main 2
 
 fn 0 snippet$maybe (bool) -> any
@@ -27,7 +26,7 @@ fn 0 snippet$maybe (bool) -> any
     return.lit null.const
   end $L0
   i32.const 7
-  retag 5   ; i32
+  retag 3   ; i32
   return
 end
 
@@ -35,11 +34,11 @@ fn 1 snippet$risky (bool) -> any
   local.get 0   ; arg 0
   if $L0 void
   else
-    struct.new 1   ; snippet$Boom
+    struct.new 5   ; snippet$Boom
     return
   end $L0
   i32.const 42
-  retag 5   ; i32
+  retag 3   ; i32
   return
 end
 
@@ -136,7 +135,7 @@ fn 3 snippet$pick__i32 (any,i32) -> i32
   if $L0 void
   else
     local.get 0   ; arg 0
-    ref.cast 5   ; i32
+    ref.cast 3   ; i32
     return
   end $L0
   local.get 1   ; arg 1
@@ -145,11 +144,11 @@ end
 
 fn 4 snippet$pick__i32_1 (any,i32) -> i32
   local.get 0   ; arg 0
-  type_check 1   ; snippet$Boom
+  type_check 5   ; snippet$Boom
   if $L0 void
   else
     local.get 0   ; arg 0
-    ref.cast 5   ; i32
+    ref.cast 3   ; i32
     return
   end $L0
   local.get 1   ; arg 1
@@ -395,7 +394,7 @@ end
 fn 11 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 1   ; "\n"
+  string.const 0   ; "\n"
   call 5   ; concat_2
   local.set 1   ; $call_3
   i32.const 0

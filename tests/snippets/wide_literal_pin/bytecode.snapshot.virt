@@ -26,10 +26,10 @@ import 2 extern write system_posix$sys_write header=<unistd.h> result_type=4 par
 impl 6 std_core$ByteAccess
 impl 12 std_core$Index
 impl 12 std_core$IndexSet
-impl 12 std_core$Contains
-impl 12 std_core$Into
 impl 13 std_core$Index
 impl 13 std_core$IndexSet
+impl 12 std_core$Contains
+impl 12 std_core$Into
 impl 13 std_core$Contains
 impl 13 std_core$Into
 export main 2

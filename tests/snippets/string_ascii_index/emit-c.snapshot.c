@@ -4,10 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_std_core$Range__i64_t vader_struct_std_core$Range__i64_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
+typedef struct vader_struct_std_core$Range__i64_t vader_struct_std_core$Range__i64_t;
 typedef struct vader_struct_std_string__builder$StringBuilder_t vader_struct_std_string__builder$StringBuilder_t;
 
+struct vader_struct_std_core$Buffer_t {
+    vader_obj_header_t header;
+};
 struct vader_struct_std_core$Range__i64_t {
     vader_obj_header_t header;
     int64_t f_start;
@@ -15,9 +18,6 @@ struct vader_struct_std_core$Range__i64_t {
     bool f_inclusive;
     bool f_done;
     int64_t f_cursor;
-};
-struct vader_struct_std_core$Buffer_t {
-    vader_obj_header_t header;
 };
 struct vader_struct_std_string__builder$StringBuilder_t {
     vader_obj_header_t header;
@@ -126,19 +126,19 @@ static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf)
 const vader_type_info_t vader_type_info_table[14] = {
     [1] = { .slot_size = 4 },
     [3] = { .slot_size = 4 },
-    [4] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Range__i64_t),
-        .slot_size = 8,
-    },
-    [5] = { .slot_size = 8 },
-    [6] = { .slot_size = 1 },
-    [7] = { .slot_size = 1 },
-    [8] = {
+    [4] = { .slot_size = 8 },
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [6] = { .slot_size = 1 },
+    [7] = { .slot_size = 1 },
+    [8] = { .slot_size = 4 },
     [9] = { .slot_size = 4 },
-    [10] = { .slot_size = 4 },
+    [10] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Range__i64_t),
+        .slot_size = 8,
+    },
     [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
@@ -337,7 +337,7 @@ static int32_t snippet$main(void) {
     t2 = std_core$string$Index$at(l0, INT64_C(4));
     l1 = std_core$char$Display$to_string(t2);
     vader_struct_std_core$Range__i64_t* _a5_obj = (vader_struct_std_core$Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core$Range__i64_t));
-    vader_obj_header_init(_a5_obj, 4u);
+    vader_obj_header_init(_a5_obj, 10u);
     _a5_obj->f_start = INT64_C(4);
     _a5_obj->f_end = INT64_C(9);
     _a5_obj->f_inclusive = false;
@@ -346,7 +346,7 @@ static int32_t snippet$main(void) {
     l3 = (void*) _a5_obj;
     l16 = std_core$string$Index$at$1(l0, l3);
     vader_struct_std_core$Range__i64_t* _a6_obj = (vader_struct_std_core$Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core$Range__i64_t));
-    vader_obj_header_init(_a6_obj, 4u);
+    vader_obj_header_init(_a6_obj, 10u);
     _a6_obj->f_start = INT64_C(16);
     _a6_obj->f_end = INT64_C(99);
     _a6_obj->f_inclusive = false;
@@ -355,7 +355,7 @@ static int32_t snippet$main(void) {
     l3 = (void*) _a6_obj;
     l20 = std_core$string$Index$at$1(l0, l3);
     vader_struct_std_core$Range__i64_t* _a7_obj = (vader_struct_std_core$Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core$Range__i64_t));
-    vader_obj_header_init(_a7_obj, 4u);
+    vader_obj_header_init(_a7_obj, 10u);
     _a7_obj->f_start = INT64_C(10);
     _a7_obj->f_end = INT64_C(14);
     _a7_obj->f_inclusive = true;
@@ -364,7 +364,7 @@ static int32_t snippet$main(void) {
     l3 = (void*) _a7_obj;
     l24 = std_core$string$Index$at$1(l0, l3);
     vader_struct_std_core$Range__i64_t* _a8_obj = (vader_struct_std_core$Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core$Range__i64_t));
-    vader_obj_header_init(_a8_obj, 4u);
+    vader_obj_header_init(_a8_obj, 10u);
     _a8_obj->f_start = INT64_C(9);
     _a8_obj->f_end = INT64_C(4);
     _a8_obj->f_inclusive = false;
@@ -378,7 +378,7 @@ static int32_t snippet$main(void) {
     t2 = std_core$string$Index$at(l0, INT64_C(2));
     l1 = std_core$char$Display$to_string(t2);
     vader_struct_std_core$Range__i64_t* _a9_obj = (vader_struct_std_core$Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core$Range__i64_t));
-    vader_obj_header_init(_a9_obj, 4u);
+    vader_obj_header_init(_a9_obj, 10u);
     _a9_obj->f_start = INT64_C(4);
     _a9_obj->f_end = INT64_C(9);
     _a9_obj->f_inclusive = false;
@@ -387,7 +387,7 @@ static int32_t snippet$main(void) {
     l3 = (void*) _a9_obj;
     l16 = std_core$string$Index$at$1(l0, l3);
     vader_struct_std_core$Range__i64_t* _a10_obj = (vader_struct_std_core$Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core$Range__i64_t));
-    vader_obj_header_init(_a10_obj, 4u);
+    vader_obj_header_init(_a10_obj, 10u);
     _a10_obj->f_start = INT64_C(7);
     _a10_obj->f_end = INT64_C(99);
     _a10_obj->f_inclusive = false;

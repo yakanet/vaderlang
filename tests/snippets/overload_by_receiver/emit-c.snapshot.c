@@ -15,14 +15,13 @@ struct vader_struct_std_core$Buffer_t {
 };
 
 /* Compile-time atom table. */
-static const char vader_atom_blob[] = "boom" "\0" "\n" "\0";
+static const char vader_atom_blob[] = "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[5] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 2u
+#define VADER_COMPTIME_ATOM_COUNT 1u
 
 static vader_box_t snippet$maybe(bool l0);
 static vader_box_t snippet$risky(bool l0);
@@ -42,14 +41,14 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[12] = {
-    [1] = {
+    [1] = { .slot_size = 1 },
+    [2] = { .slot_size = 16 },
+    [3] = { .slot_size = 4 },
+    [4] = { .slot_size = 16 },
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Boom_t), .slot_size = 8,
     },
-    [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 1 },
-    [4] = { .slot_size = 16 },
-    [5] = { .slot_size = 4 },
-    [6] = { .slot_size = 16 },
+    [6] = { .slot_size = 4 },
     [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
@@ -83,7 +82,7 @@ static vader_box_t snippet$maybe(bool l0) {
     if (!(l0)) {
         return vader_box_obj(0u, NULL);
     }
-    return vader_box_i32(5u, INT32_C(7));
+    return vader_box_i32(3u, INT32_C(7));
 }
 
 static vader_box_t snippet$risky(bool l0) {
@@ -93,11 +92,11 @@ static vader_box_t snippet$risky(bool l0) {
     vader_gc_top = &gc_frame;
     if (!(l0)) {
         vader_struct_snippet$Boom_t* _a0_obj = (vader_struct_snippet$Boom_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Boom_t));
-        vader_obj_header_init(_a0_obj, 1u);
+        vader_obj_header_init(_a0_obj, 5u);
         t0 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_box_t __vret = vader_box_i32(5u, INT32_C(42)); vader_gc_top = gc_frame.prev; return __vret; }
+    { vader_box_t __vret = vader_box_i32(3u, INT32_C(42)); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int32_t snippet$main(void) {
@@ -159,7 +158,7 @@ static int32_t snippet$pick__i32(vader_box_t l0, int32_t l1) {
 
 static int32_t snippet$pick__i32_1(vader_box_t l0, int32_t l1) {
     int32_t t0;
-    if (!(l0.tag == 1u)) {
+    if (!(l0.tag == 5u)) {
         t0 = ((int32_t) l0.payload.i);
         return t0;
     }
@@ -305,7 +304,7 @@ static void std_io$println__string(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l1 = concat_2(l0, 2u);
+    l1 = concat_2(l0, 1u);
     std_io$write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }

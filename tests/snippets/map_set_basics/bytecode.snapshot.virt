@@ -73,16 +73,16 @@ impl 5 std_core$ByteAccess
 impl 11 std_core$Index
 impl 11 std_core$IndexSet
 impl 11 std_core$Contains
-impl 11 std_core$Into
 impl 12 std_core$Index
 impl 12 std_core$IndexSet
 impl 12 std_core$Contains
+impl 13 std_core$Contains
+impl 14 std_core$Contains
+impl 11 std_core$Into
 impl 12 std_core$Into
 impl 13 std_core$Index
 impl 13 std_core$IndexSet
-impl 13 std_core$Contains
 impl 13 std_core$Into
-impl 14 std_core$Contains
 impl 14 std_core$Into
 export main 1
 

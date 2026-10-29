@@ -4,9 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_std_core$Range__i32_t vader_struct_std_core$Range__i32_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
+typedef struct vader_struct_std_core$Range__i32_t vader_struct_std_core$Range__i32_t;
 
+struct vader_struct_std_core$Buffer_t {
+    vader_obj_header_t header;
+};
 struct vader_struct_std_core$Range__i32_t {
     vader_obj_header_t header;
     int32_t f_start;
@@ -14,9 +17,6 @@ struct vader_struct_std_core$Range__i32_t {
     bool f_inclusive;
     bool f_done;
     int32_t f_cursor;
-};
-struct vader_struct_std_core$Buffer_t {
-    vader_obj_header_t header;
 };
 
 /* Compile-time atom table. */
@@ -59,19 +59,19 @@ const vader_type_info_t vader_type_info_table[11] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 4 },
     [3] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Range__i32_t),
-        .slot_size = 8,
-    },
-    [4] = { .slot_size = 1 },
-    [5] = { .slot_size = 1 },
-    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [7] = { .slot_size = 8 },
-    [8] = {
+    [4] = { .slot_size = 8 },
+    [5] = { .slot_size = 1 },
+    [6] = { .slot_size = 1 },
+    [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
+    [9] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Range__i32_t),
+        .slot_size = 8,
     },
     [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -88,7 +88,7 @@ static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 8u, 5u);
+    return (void*) vader_string_bytes_view(a0, 7u, 5u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -172,7 +172,7 @@ static int32_t snippet$main(void) {
         l4 = (l4 + INT64_C(1));
     }
     vader_struct_std_core$Range__i32_t* _a6_obj = &_a5_storage;
-    vader_obj_header_init(_a6_obj, 3u);
+    vader_obj_header_init(_a6_obj, 9u);
     _a6_obj->f_start = INT32_C(2);
     _a6_obj->f_end = INT32_C(5);
     _a6_obj->f_inclusive = false;

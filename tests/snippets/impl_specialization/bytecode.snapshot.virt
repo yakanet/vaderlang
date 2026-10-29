@@ -41,9 +41,7 @@ impl 4 snippet$Poke
 impl 4 snippet$Tag
 impl 4 snippet$Fancy
 impl 7 snippet$Poke
-impl 7 snippet$Tag
 impl 8 snippet$Poke
-impl 8 snippet$Tag
 impl 9 snippet$Poke
 impl 9 snippet$Tag
 impl 10 snippet$Poke
@@ -51,6 +49,8 @@ impl 12 snippet$Poke
 impl 15 std_core$ByteAccess
 impl 5 snippet$Poke
 impl 5 snippet$Tag
+impl 7 snippet$Tag
+impl 8 snippet$Tag
 vtable snippet$Poke.poke 4 3
 vtable snippet$Poke.poke 7 6
 vtable snippet$Poke.poke 8 7

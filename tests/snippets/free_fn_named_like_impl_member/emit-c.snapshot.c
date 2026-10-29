@@ -784,11 +784,11 @@ const vader_type_info_t vader_type_info_table[17] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Sq_t), .slot_size = 8,
     },
     [2] = { .slot_size = 8 },
-    [3] = {
+    [3] = { .slot_size = 16 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Circle_t),
         .slot_size = 8,
     },
-    [4] = { .slot_size = 16 },
     [5] = { .slot_size = 4 },
     [6] = { .slot_size = 4 },
     [7] = { .slot_size = 8 },
@@ -871,13 +871,13 @@ static int32_t snippet$main(void) {
     t1 = snippet$go(vader_ref_box(t0));
     l0 = std_core$f64$Display$to_string(t1);
     vader_struct_snippet$Circle_t* _a1_obj = (vader_struct_snippet$Circle_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Circle_t));
-    vader_obj_header_init(_a1_obj, 3u);
+    vader_obj_header_init(_a1_obj, 4u);
     _a1_obj->f_r = 1.0;
     t0 = (void*) _a1_obj;
     t1 = snippet$go(vader_ref_box(t0));
     l1 = std_core$f64$Display$to_string(t1);
     vader_struct_snippet$Circle_t* _a2_obj = (vader_struct_snippet$Circle_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Circle_t));
-    vader_obj_header_init(_a2_obj, 3u);
+    vader_obj_header_init(_a2_obj, 4u);
     _a2_obj->f_r = 1.0;
     t0 = (void*) _a2_obj;
     t1 = snippet$area(vader_ref_box(t0));

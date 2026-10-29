@@ -105,21 +105,21 @@ const vader_type_info_t vader_type_info_table[18] = {
         .slot_size = 8,
     },
     [9] = { .slot_size = 16 },
-    [11] = {
+    [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Ready__string_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Ready__string_t, f_v) },
         .string_count = 1,
     },
-    [12] = {
+    [11] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [13] = { .slot_size = 8 },
-    [14] = { .slot_size = 16 },
+    [12] = { .slot_size = 8 },
+    [13] = { .slot_size = 16 },
+    [14] = { .slot_size = 1 },
     [15] = { .slot_size = 1 },
-    [16] = { .slot_size = 1 },
-    [17] = {
+    [16] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
@@ -134,7 +134,7 @@ static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 17u, 15u);
+    return (void*) vader_string_bytes_view(a0, 16u, 14u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -163,7 +163,7 @@ static vader_box_t snippet$make_str(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Ready__string_t* _a0_obj = (vader_struct_snippet$Ready__string_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Ready__string_t));
-    vader_obj_header_init(_a0_obj, 11u);
+    vader_obj_header_init(_a0_obj, 10u);
     _a0_obj->f_v = 1u;
     t0 = (void*) _a0_obj;
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
@@ -517,7 +517,7 @@ static vader_box_t vader_vt_std_core$Async$resume(vader_box_t recv) {
     switch (recv.tag) {
         case 4u: return snippet$__asyncstate_snippet_0$Async$resume(recv.payload.obj);
         case 8u: return snippet$Ready$std_core$Async$resume__i32(recv.payload.obj);
-        case 11u: return snippet$Ready$std_core$Async$resume__string(recv.payload.obj);
+        case 10u: return snippet$Ready$std_core$Async$resume__string(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Async.resume");
     }
     vader_unreachable("vtable miss in std_core$Async.resume");

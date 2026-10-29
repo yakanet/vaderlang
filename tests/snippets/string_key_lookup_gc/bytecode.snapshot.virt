@@ -31,14 +31,14 @@ import 4 collect std_runtime$collect result_type=8 () -> void
 import 5 collections std_runtime$collections result_type=1 () -> i32
 import 6 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 3 std_core$ByteAccess
-impl 10 std_core$Index
-impl 10 std_core$IndexSet
 impl 10 std_core$Contains
-impl 10 std_core$Into
 impl 11 std_core$Contains
-impl 11 std_core$Into
 impl 12 std_core$Index
 impl 12 std_core$IndexSet
+impl 10 std_core$Index
+impl 10 std_core$IndexSet
+impl 10 std_core$Into
+impl 11 std_core$Into
 impl 12 std_core$Contains
 impl 12 std_core$Into
 export main 0

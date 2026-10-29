@@ -140,16 +140,16 @@ impl 16 std_core$Mul
 impl 16 std_core$Div
 impl 6 std_core$ByteAccess
 impl 31 std_core$Display
-impl 47 std_core$Index
 impl 47 std_core$IndexSet
-impl 47 std_core$Contains
-impl 47 std_core$Into
 impl 24 std_core$Error
 impl 41 std_core$Index
 impl 41 std_core$IndexSet
 impl 41 std_core$Contains
 impl 41 std_core$Into
 impl 45 std_core$Error
+impl 47 std_core$Index
+impl 47 std_core$Contains
+impl 47 std_core$Into
 export main 1
 
 fn 0 snippet$show (string,string) -> void

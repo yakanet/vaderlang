@@ -3,17 +3,17 @@ type 0 scalar null
 type 1 scalar string
 type 2 scalar i32
 type 3 array 2
-type 4 struct std_core$Range__i64 { start:5,end:5,inclusive:6,done:6,cursor:5 }
-type 5 scalar i64
-type 6 scalar bool
-type 7 scalar u8
-type 8 struct std_core$Buffer {  }
-type 9 scalar u64
-type 10 array 7
+type 4 struct std_core$Range__i64 { start:6,end:6,inclusive:7,done:7,cursor:6 }
+type 5 struct std_core$Buffer {  }
+type 6 scalar i64
+type 7 scalar bool
+type 8 scalar u64
+type 9 scalar u8
+type 10 array 9
 type 11 scalar void
-type 12 struct std_collections$MutableMap__i32__bool { ekeys:3,evals:14,index:3,mask:5,grow_at:5,size:5,tombs:5 }
+type 12 struct std_collections$MutableMap__i32__bool { ekeys:3,evals:14,index:3,mask:6,grow_at:6,size:6,tombs:6 }
 type 13 struct std_collections$MutableSet__i32 { inner:12 }
-type 14 array 6
+type 14 array 7
 string 0 "x"
 string 1 "coll"
 string 2 "in: yes"
@@ -26,18 +26,18 @@ string 8 "target"
 string 9 "range"
 string 10 "slice: "
 string 11 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=1 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$byte_len result_type=6 param_types=1 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=10 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=2,10,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=6 param_types=2,10,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 5 std_core$ByteAccess
+impl 3 std_core$Contains
+impl 12 std_core$Contains
+impl 13 std_core$Contains
 impl 4 std_core$Contains
 impl 4 std_core$Iterator
-impl 8 std_core$ByteAccess
-impl 3 std_core$Contains
 impl 12 std_core$Index
 impl 12 std_core$IndexSet
-impl 12 std_core$Contains
 impl 12 std_core$Into
-impl 13 std_core$Contains
 impl 13 std_core$Into
 export main 3
 
@@ -158,13 +158,13 @@ fn 3 snippet$main () -> i32
   call 2   ; snippet$window
   local.set 4   ; $arr_23
   local.field 4 4 0   ; $arr_23 std_core$Range__i64.start
-  ref.cast 5   ; i64
+  ref.cast 6   ; i64
   local.set 5   ; $field_47
   local.field 4 4 1   ; $arr_23 std_core$Range__i64.end
-  ref.cast 5   ; i64
+  ref.cast 6   ; i64
   local.set 6   ; $field_48
   local.field 4 4 2   ; $arr_23 std_core$Range__i64.inclusive
-  ref.cast 6   ; bool
+  ref.cast 7   ; bool
   if $L3 void
     i64.const 1
     local.set 7   ; if_res
@@ -500,7 +500,7 @@ fn 14 std_collections$rehash__i32__bool (ref,i64) -> void
   i64.const 0
   local.set 4   ; e
   local.field 0 12 5   ; arg 0 std_collections$MutableMap__i32__bool.size
-  ref.cast 5   ; i64
+  ref.cast 6   ; i64
   local.set 5   ; __for_hi_1
   loop $L3 void
     local.get 4   ; e
@@ -579,7 +579,7 @@ fn 15 std_collections$grow_index__i32__bool (ref) -> void
   local.set 1   ; new_count
   loop $L0 void
     local.field 0 12 5   ; arg 0 std_collections$MutableMap__i32__bool.size
-    ref.cast 5   ; i64
+    ref.cast 6   ; i64
     i64.const 4
     i64.checked_mul
     local.set 2   ; $mul_checked_5
@@ -626,7 +626,7 @@ fn 16 std_collections$put__i32__bool (ref,i32,bool) -> bool
     call 9   ; std_core$i32$Hash$hash
     local.set 5   ; perturb
     local.field 0 12 3   ; arg 0 std_collections$MutableMap__i32__bool.mask
-    ref.cast 5   ; i64
+    ref.cast 6   ; i64
     local.set 6   ; $field_13
     local.get 5   ; perturb
     local.get 6   ; $field_13
@@ -676,7 +676,7 @@ fn 16 std_collections$put__i32__bool (ref,i32,bool) -> bool
         u64.shr
         local.set 5   ; perturb
         local.field 0 12 3   ; arg 0 std_collections$MutableMap__i32__bool.mask
-        ref.cast 5   ; i64
+        ref.cast 6   ; i64
         local.set 9   ; $field_36
         local.get 6   ; $field_13
         local.get 5   ; perturb
@@ -690,7 +690,7 @@ fn 16 std_collections$put__i32__bool (ref,i32,bool) -> bool
     local.set 4   ; empty
   end $L0
   local.field 0 12 5   ; arg 0 std_collections$MutableMap__i32__bool.size
-  ref.cast 5   ; i64
+  ref.cast 6   ; i64
   local.set 6   ; $field_13
   local.field 0 12 0   ; arg 0 std_collections$MutableMap__i32__bool.ekeys
   array.len
@@ -713,7 +713,7 @@ fn 16 std_collections$put__i32__bool (ref,i32,bool) -> bool
     array.push 2   ; i32
     local.field 0 12 1   ; arg 0 std_collections$MutableMap__i32__bool.evals
     local.get 2   ; arg 2
-    array.push 6   ; bool
+    array.push 7   ; bool
   end $L6
   local.get 6   ; $field_13
   i64.const 1
@@ -723,14 +723,14 @@ fn 16 std_collections$put__i32__bool (ref,i32,bool) -> bool
   local.get 8   ; ei
   struct.set 12 5   ; std_collections$MutableMap__i32__bool.size
   local.field 0 12 6   ; arg 0 std_collections$MutableMap__i32__bool.tombs
-  ref.cast 5   ; i64
+  ref.cast 6   ; i64
   local.set 8   ; ei
   local.get 6   ; $field_13
   local.get 8   ; ei
   i64.checked_add
   local.set 8   ; ei
   local.field 0 12 4   ; arg 0 std_collections$MutableMap__i32__bool.grow_at
-  ref.cast 5   ; i64
+  ref.cast 6   ; i64
   local.set 9   ; $field_36
   local.get 8   ; ei
   local.get 9   ; $field_36
@@ -745,7 +745,7 @@ fn 16 std_collections$put__i32__bool (ref,i32,bool) -> bool
   i64.ge
   if $L8 void
     local.field 0 12 6   ; arg 0 std_collections$MutableMap__i32__bool.tombs
-    ref.cast 5   ; i64
+    ref.cast 6   ; i64
     i64.const 1
     i64.checked_sub
     local.set 8   ; ei
@@ -796,7 +796,7 @@ fn 17 std_collections$contains_key__i32__bool (ref,i32) -> bool
   call 9   ; std_core$i32$Hash$hash
   local.set 2   ; perturb
   local.field 0 12 3   ; arg 0 std_collections$MutableMap__i32__bool.mask
-  ref.cast 5   ; i64
+  ref.cast 6   ; i64
   local.set 3   ; $field_9
   local.get 2   ; perturb
   local.get 3   ; $field_9
@@ -834,7 +834,7 @@ fn 17 std_collections$contains_key__i32__bool (ref,i32) -> bool
       u64.shr
       local.set 2   ; perturb
       local.field 0 12 3   ; arg 0 std_collections$MutableMap__i32__bool.mask
-      ref.cast 5   ; i64
+      ref.cast 6   ; i64
       local.set 6   ; $field_30
       local.get 3   ; $field_9
       local.get 2   ; perturb
