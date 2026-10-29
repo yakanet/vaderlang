@@ -1,31 +1,12 @@
 <script>
-	// The system's theme unless the reader picks one, kept in the browser for
-	// the next pages (`app.html` applies it before the first paint).
+	// The system's theme unless the reader picks one: `app.html` applies the
+	// choice before the first paint, `site.js` switches it.
 	const CHOICES = ['system', 'light', 'dark'];
-	const KEY = 'vader-doc-theme';
-
-	let choice = $state('system');
-
-	// What `app.html` applied before the first paint.
-	$effect(() => {
-		choice = document.documentElement.dataset.theme ?? 'system';
-	});
-
-	/** @param {string} next */
-	function pick(next) {
-		choice = next;
-		const root = document.documentElement;
-		if (next === 'system') delete root.dataset.theme;
-		else root.dataset.theme = next;
-		try {
-			localStorage.setItem(KEY, next);
-		} catch {}
-	}
 </script>
 
 <div class="seg" role="group" aria-label="Theme">
 	{#each CHOICES as c (c)}
-		<button type="button" aria-pressed={choice === c} onclick={() => pick(c)}>{c}</button>
+		<button type="button" aria-pressed={c === 'system'} data-theme-choice={c}>{c}</button>
 	{/each}
 </div>
 

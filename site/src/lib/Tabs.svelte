@@ -1,53 +1,45 @@
 <script>
-	// Panels behind a row of tabs, in one frame, one visible at a time. Only the
-	// selected tab is in the tab order; the arrow keys move between them.
+	// Panels behind a row of tabs, in one frame, the first one open. `site.js`
+	// switches them, and opens the one a `hashes` entry or a `platforms` entry
+	// names.
 
 	/**
 	 * @type {{
 	 *   labels: string[],
 	 *   label: string,
-	 *   selected?: number,
+	 *   hashes?: string[],
+	 *   platforms?: string[],
 	 *   panel: import('svelte').Snippet<[number]>
 	 * }}
 	 */
-	let { labels, label, selected = $bindable(0), panel } = $props();
+	let { labels, label, hashes = [], platforms = [], panel } = $props();
 
 	const id = $props.id();
 
 	/** @param {number} i */
 	function tab_index(i) {
-		if (i === selected) return 0;
+		if (i === 0) return 0;
 		return -1;
-	}
-
-	/** @param {KeyboardEvent} event */
-	function on_key(event) {
-		let next = selected;
-		if (event.key === 'ArrowRight') next = (selected + 1) % labels.length;
-		if (event.key === 'ArrowLeft') next = (selected - 1 + labels.length) % labels.length;
-		if (next === selected) return;
-		event.preventDefault();
-		selected = next;
-		document.getElementById(`${id}-tab-${next}`)?.focus();
 	}
 </script>
 
 <div class="tabbed">
-	<div class="tabs" role="tablist" aria-label={label} tabindex="-1" onkeydown={on_key}>
+	<div class="tabs" role="tablist" aria-label={label}>
 		{#each labels as text, i (text)}
 			<button
 				id="{id}-tab-{i}"
 				type="button"
 				role="tab"
-				aria-selected={i === selected}
+				aria-selected={i === 0}
 				aria-controls="{id}-panel-{i}"
 				tabindex={tab_index(i)}
-				onclick={() => (selected = i)}>{text}</button
+				data-hash={hashes[i]}
+				data-platform={platforms[i]}>{text}</button
 			>
 		{/each}
 	</div>
 	{#each labels as text, i (text)}
-		<div id="{id}-panel-{i}" role="tabpanel" aria-labelledby="{id}-tab-{i}" hidden={i !== selected}>
+		<div id="{id}-panel-{i}" role="tabpanel" aria-labelledby="{id}-tab-{i}" hidden={i !== 0}>
 			{@render panel(i)}
 		</div>
 	{/each}

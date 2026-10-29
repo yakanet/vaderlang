@@ -1,25 +1,8 @@
 <script>
-	import { afterNavigate } from '$app/navigation';
 	import { GITHUB } from '#lib/links.js';
-	import { client_platform } from '#lib/platform.js';
 	import Tabs from '#lib/Tabs.svelte';
 
 	let { data } = $props();
-
-	let selected = $state(0);
-
-	// A link to a platform's section (`#linux`) opens its tab, from another page
-	// or from this one; otherwise the visitor's own platform is open.
-	afterNavigate(({ type }) => {
-		const named = data.platforms.findIndex((p) => `#${p.section}` === location.hash);
-		if (named >= 0) {
-			selected = named;
-			return;
-		}
-		if (type !== 'enter') return;
-		const detected = data.platforms.findIndex((p) => p.id === client_platform());
-		if (detected >= 0) selected = detected;
-	});
 </script>
 
 <svelte:head>
@@ -42,7 +25,12 @@
 	{/if}
 
 	<div class="platforms">
-		<Tabs labels={data.platforms.map((p) => p.os)} label="Platforms" bind:selected>
+		<Tabs
+			labels={data.platforms.map((p) => p.os)}
+			label="Platforms"
+			hashes={data.platforms.map((p) => p.section)}
+			platforms={data.platforms.map((p) => p.id)}
+		>
 			{#snippet panel(/** @type {number} */ i)}
 				{@const platform = data.platforms[i]}
 				<div class="install doc">

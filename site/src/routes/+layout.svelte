@@ -5,19 +5,22 @@
 	import { page } from '$app/state';
 	import { GITHUB, page_href, SECTIONS } from '#lib/links.js';
 	import Search from '#lib/Search.svelte';
+	import site_js from '#lib/site.js?url';
 	import ThemeSwitch from '#lib/ThemeSwitch.svelte';
 
 	let { children } = $props();
 
-	// `aria-current` for the link to the section `name`: on one of its pages. A
-	// link is relative while the server renders, so it is resolved first.
+	// `aria-current` for the link to the section `name`: on one of its pages.
 	/** @param {string} name */
 	function section_marker(name) {
-		const section = new URL(page_href(name), page.url.href).pathname;
-		if (!page.url.pathname.startsWith(section)) return undefined;
+		if (!page.url.pathname.startsWith(page_href(name))) return undefined;
 		return 'page';
 	}
 </script>
+
+<svelte:head>
+	<script type="module" src={site_js}></script>
+</svelte:head>
 
 <header class="site-head">
 	<a class="logo" href={resolve('/')}>

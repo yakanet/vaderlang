@@ -4,8 +4,6 @@
 
 	let { data } = $props();
 
-	let menu_open = $state(false);
-
 	// `aria-current` for the link to the chapter `slug`: on its page.
 	/** @param {string} slug */
 	function current_marker(slug) {
@@ -19,15 +17,12 @@
 </svelte:head>
 
 <div class="chapter">
-	<nav id="chapters" class="side" class:open={menu_open} aria-label="Chapters">
-		<!-- A chapter weighs its whole text: fetched on a tap, not on each hover. -->
-		<ol data-sveltekit-preload-data="tap">
+	<nav id="chapters" class="side" aria-label="Chapters">
+		<ol>
 			{#each data.chapters as chapter (chapter.slug)}
 				<li>
-					<a
-						href={chapter_href(chapter.slug)}
-						aria-current={current_marker(chapter.slug)}
-						onclick={() => (menu_open = false)}>{chapter_label(chapter)}</a
+					<a href={chapter_href(chapter.slug)} aria-current={current_marker(chapter.slug)}
+						>{chapter_label(chapter)}</a
 					>
 				</li>
 			{/each}
@@ -35,12 +30,8 @@
 	</nav>
 
 	<main class="main">
-		<button
-			class="menu-btn"
-			type="button"
-			aria-expanded={menu_open}
-			aria-controls="chapters"
-			onclick={() => (menu_open = !menu_open)}>Chapters</button
+		<button class="menu-btn" type="button" aria-expanded="false" aria-controls="chapters" data-menu-toggle
+			>Chapters</button
 		>
 		<article class="doc">
 			<h1>{chapter_label(data)}</h1>
@@ -138,7 +129,8 @@
 			background: var(--bg);
 			box-shadow: 12px 0 30px -18px rgba(0, 0, 0, 0.5);
 		}
-		.side.open {
+		/* `site.js` flips the button. */
+		.chapter:has(.menu-btn:global([aria-expanded='true'])) .side {
 			display: block;
 		}
 		.main {

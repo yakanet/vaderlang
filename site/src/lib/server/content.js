@@ -2,9 +2,9 @@
 // `site/content/`, and the examples of the repository.
 //
 // A link to a page of the site is written from its root (`/download/`) and takes
-// the base path the site is served under. One to an API reference leaves the
-// site's router (`rel="external"`); one to another page is followed by the
-// prerenderer, which fails on a page that does not exist.
+// the base path the site is served under. One to an API reference carries
+// `rel="external"`, which the prerenderer does not follow; one to another page
+// is followed, and the build fails on a page that does not exist.
 //
 // Every Vader block of the content runs in `tests/site_content.test.ts`, and the
 // `text` block right after one is what it prints.
