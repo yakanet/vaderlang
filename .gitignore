@@ -30,47 +30,6 @@ coverage/
 !.vscode/extensions.json
 .idea/
 
-# Bench artifacts: native binaries + generated C/Go/class from `bench/run.ts`.
-# Every workload lives in `bench/<name>/` with all its language sources
-# colocated (`<name>.vader`, `.ts`, `.go`, `.java`) ; the compiled outputs land
-# alongside as `bench/<name>/<name>` (Vader binary), `.c` (transient C),
-# `<name>_go` (Go binary) and `<name>.class` (Java, incl. nested `$X.class`).
-bench/*/*.c
-bench/*/*.o
-bench/*/*.h
-bench/*/*_go
-bench/*/*.class
-bench/binary_trees/binary_trees
-bench/iter_chain/iter_chain
-bench/mandelbrot/mandelbrot
-bench/map_iter/map_iter
-bench/primes/primes
-bench/string_builder/string_builder
-bench/arr_rw/arr_rw
-bench/arr_set/arr_set
-bench/arr_map/arr_map
-bench/arr_collect/arr_collect
-bench/arr_push/arr_push
-bench/str_concat/str_concat
-bench/interp/interp
-bench/hashmap/hashmap
-bench/ackermann/ackermann
-bench/wordcount/wordcount
-bench/quicksort/quicksort
-bench/wordfreq/wordfreq
-bench/shapes/shapes
-bench/tree_eval/tree_eval
-bench/matmul/matmul
-bench/closures/closures
-bench/fmt_float/fmt_float
-bench/async_await/async_await
-bench/parse_float/parse_float
-bench/sort_by/sort_by
-bench/split_join/split_join
-bench/plb2_nqueen/plb2_nqueen
-bench/plb2_matmul/plb2_matmul
-bench/plb2_sudoku/plb2_sudoku
-bench/plb2_bedcov/plb2_bedcov
 *.dSYM/
 
 ## POCs
