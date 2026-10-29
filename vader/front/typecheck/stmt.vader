@@ -1093,15 +1093,14 @@ check_for :: fn(
             }
         }
     }
-    // W0010, a label on a for-in loop is redundant : it already has an iteration
-    // variable to target it by (`break <var>`). A label is only needed for a
-    // `while` / infinite loop, which has no variable.
+    // W0010 : a loop with an iteration variable is targeted by it (`break <var>`),
+    // so a label on it is redundant.
     if s.label != null && binding != null {
         diags.push(
             warning(
                 .PreferLoopVariableOverLabel,
                 s.span,
-                "target this loop by its variable `${binding}` instead of a label",
+                "target it by its variable `${binding}`",
             ),
         )
     }

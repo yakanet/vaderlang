@@ -1,1 +1,1 @@
-[3:11] warning[W0010] prefer targeting this loop by its iteration variable over a label ; a label is only needed for a `while` / infinite loop that has no variable: target this loop by its variable `i` instead of a label
+[3:11] warning[W0010] label on a loop that has an iteration variable: target it by its variable `i`

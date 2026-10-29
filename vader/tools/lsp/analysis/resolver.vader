@@ -64,9 +64,9 @@ export resolve :: fn(
     prelude :: find_in_module(state, roots.paths, PRELUDE_MODULE, name, true)
     if prelude != null { return prelude }
     // A wildcard import binds no `ImportEntry`: search each wildcard-imported
-    // module for an export of this name. First hit wins ; a name two of them
-    // export is an R2031 compile error anyway, so any provider is acceptable for
-    // goto / hover.
+    // module for an export of this name. First hit wins : a type or a constant
+    // two of them export is an R2031 compile error anyway, and an overloaded
+    // function lands on the first module's.
     for path in idx.wildcards.paths {
         if idx.wildcards.drops(path, name) {
             continue

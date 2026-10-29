@@ -1,0 +1,16 @@
+// Two wildcard imports each export an `area`, on different types : the two
+// overload, and a bare call picks one by its argument as the method form does,
+// with that one's defaults and parameter names.
+module "snippet"
+
+import "snippet/circle"
+import "snippet/square"
+import "std/io"
+
+main :: fn() -> i32 {
+    println("${area(Square { .side = 2.0 })}")
+    println("${area(Circle { .radius = 1.0 })}")
+    println("${area(Square { .side = 2.0 }, scale = 2.0)}")
+    println("${Circle { .radius = 2.0 }.area()}")
+    return 0
+}

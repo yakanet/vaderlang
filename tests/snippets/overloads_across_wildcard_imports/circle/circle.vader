@@ -1,0 +1,7 @@
+module "snippet/circle"
+
+/// A circle by its radius.
+export Circle :: struct { radius: f64 }
+
+/// The area of `c`, `pi` rounded to 3 unless given.
+export area :: fn(c: Circle, pi: f64 = 3.0) -> f64 = pi * c.radius * c.radius

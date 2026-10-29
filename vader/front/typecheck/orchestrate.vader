@@ -1882,7 +1882,7 @@ push_module_exported_fns :: fn(
 // signature that its own module pushed, or that it shadows : the prelude's always
 // wins, and a renamed import (bound under a name other than its own) shadows the
 // wildcards. One of another module stays beside it, so a call both answer is
-// ambiguous (T3032), as the bare call is R2031.
+// ambiguous (T3032).
 push_overload :: fn(table: MutableMap<string, FnCandidate[]>, name: string, ft: FnCandidate) -> void {
     shadows :: ft.symbol.module_name == "std/core" || ft.symbol.name != name
     bucket :: table.get_or_put_with(name, () -> [])

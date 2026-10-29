@@ -298,10 +298,9 @@ is_level_rival :: fn(best: FnCandidate, other: FnCandidate) -> bool =
 is_rival :: fn(best: FnCandidate, other: FnCandidate, typed: TypedProgram) -> bool =
     is_level_rival(best, other) || is_import_rival(best, other, typed)
 
-// Two overloads two imported modules declare : the bare call is R2031, and the
-// method form resolves as the bare call does (SPEC §UFCS). A declaration of the
-// calling module comes first among candidates and wins the tie, and the prelude is
-// never a rival.
+// Two overloads two imported modules declare : the call cannot tell them apart. A
+// declaration of the calling module comes first among candidates and wins the tie,
+// and the prelude is never a rival.
 is_import_rival :: fn(best: FnCandidate, other: FnCandidate, typed: TypedProgram) -> bool =
     best.symbol.module != other.symbol.module
         && best.symbol.module != typed.resolved.path
@@ -309,7 +308,7 @@ is_import_rival :: fn(best: FnCandidate, other: FnCandidate, typed: TypedProgram
         && other.symbol.module_name != "std/core"
 
 // T3032 for two overloads ranked level : two of one module differ by type, two of
-// imported modules clash as their bare use would (R2031).
+// imported modules name both modules and the ways to pick one.
 ambiguity_error :: fn(
     name: string, arg0: Type, first: FnCandidate, other: FnCandidate, span: Span,
 ) -> Diagnostic {
@@ -557,16 +556,21 @@ call_needs_arg_normalisation :: fn(c: AST.CallExpr, callee_ty: FnType) -> bool {
 // Find the declared parameters that line up positionally with `callee_ty`'s
 // params, so `normalize_call_args` can reorder named args + fill defaults.
 // Covers every call shape that carries param names :
+//   - overloaded name : the decl `pick_overload` chose, imported or not ;
 //   - direct call : the resolved symbol's decl (arity must match) ;
-//   - overloaded name : the bucket candidate whose signature is the one
-//     `pick_overload` chose ;
 //   - UFCS free-fn method (`x.m(args)`) : the method's decl minus its `self`
 //     param, which lines up with the curried callee type.
-// Returns null when no decl is reachable (fn-values, imported overloads,
-// impl-block methods): those stay positional.
+// Returns null when no decl is reachable (fn-values, impl-block methods): those
+// stay positional.
 callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
     callee :: c.callee
     if callee is AST.IdentExpr {
+        // The resolver binds an overloaded name to one of its declarations,
+        // which need not be the one the call runs.
+        chosen :: chosen_decl(typed, callee.id)
+        if chosen is AST.FnDecl {
+            return chosen.params
+        }
         sym :: typed.resolved.idents[callee.span.hash()]
         // Params of the resolved declaration, but matching ARITY is not enough to
         // trust them. On an overloaded name the resolver binds the ident to the
@@ -742,8 +746,8 @@ type_call :: fn(
     // a name or whose arity differs need this: a purely-positional full-arity
     // call skips the decl lookup entirely (the common path). `callee_param_decls`
     // returns the declared params (arity-aligned with the picked callee type)
-    // for direct / overloaded / UFCS calls ; fn-values + imported overloads
-    // have no decl and stay positional.
+    // for direct / overloaded / UFCS calls ; fn-values have no decl and stay
+    // positional.
     normalised := false
     if call_needs_arg_normalisation(c, callee_ty) {
         decl_params :: callee_param_decls(c, callee_ty, typed)

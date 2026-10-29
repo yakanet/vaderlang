@@ -1,0 +1,1 @@
+[9:10] error[R2031] name is exported by several wildcard-imported modules: `area` is exported by snippet/circle, snippet/square ; qualify it through a namespace import (`Ns :: import "..."`, then `Ns.area`) or drop one with `{ area as _ }`

@@ -2546,7 +2546,7 @@ Every kind of callee can be taken as a value: a free function, an impl member, t
 A free function is a candidate for `a.f(...)` when the receiver fits its first parameter in one of these ways:
 
 - the receiver's type is assignable to the parameter's type, where a type parameter stands for any type: `m.size()` on a `MutableMap<string, i32>` reaches `size :: fn<K, V>(self: MutableMap<K, V>)`;
-- the parameter is a trait the receiver implements: `s.chars().filter(p)` reaches `filter :: fn<T>(self: Iterator<T>, ...)`, and an array fits an `Iterator<T>` parameter;
+- the parameter is a trait the receiver implements: `s.chars().filter(p)` reaches `filter :: fn<T>(self: Iterator<T>, ...)`. An array fits an `Iterator<T>` parameter here too, through its own conversion (§15 *Iteration*);
 - when no function fits by those two rules, an `Into` impl converts the receiver to the parameter's type (§4 *Type coercion via `Into`*): with `Celsius implements Into<Label>`, `c.shout()` calls `shout :: fn(l: Label)`.
 
 On a union receiver, the first parameter may be the union itself. A field only some variants have is an error (§4 *Common-field access*), even when a function of that name exists. The most specific candidate wins (*Function overloading*, below).
@@ -2617,7 +2617,7 @@ If two candidates of one module are still tied after these ranks, the call is an
 
 In a generic body, a call is resolved once, against the type parameters. A first argument typed by `T`, or by a type that mentions it (`T[]`), reaches only the candidates whose first parameter accepts `T` itself, never an overload on a concrete type, and every instance runs the candidate chosen. With `describe :: fn<T: Display>(self: T)` and `describe :: fn(self: i32)`, `show :: fn<T: Display>(v: T) -> string = v.describe()` runs the generic one for `show(1)`. Behaviour that must differ by type goes through a trait bound (§4 *Specialization: the instance wins*).
 
-A function of the module and an imported function of the same name overload each other, and the local one wins a tie: `"".is_empty()` reaches the `is_empty` of `std/string`, and `b.is_empty()` a local `is_empty :: fn(self: Box) -> bool`.
+A function of the module and an imported function of the same name overload each other, and the local one wins a tie: `"".is_empty()` reaches the `is_empty` of `std/string`, and `b.is_empty()` a local `is_empty :: fn(self: Box) -> bool`. Two functions that two wildcard imports bring overload each other too.
 
 ### Visibility
 
@@ -2713,7 +2713,7 @@ What a loop iterates over is evaluated once, before the first element. A range e
 
 ### Targeting an outer loop: `break <var>` / `continue <var>`
 
-A bare `break` or `continue` acts on the innermost loop. `break <name>` and `continue <name>` act on the nearest enclosing loop whose iteration variable, or label (below), is `<name>`. Any other name is an error, the name of a local included.
+A bare `break` or `continue` acts on the innermost loop. `break <name>` and `continue <name>` act on the nearest enclosing loop whose iteration variable, or label (below), is `<name>`. The names of a destructuring loop (`for [k, v] in ...`) are not targets. Any other name is an error, the name of a local included.
 
 ```vader
 for row in grid {
@@ -2724,7 +2724,7 @@ for row in grid {
 }
 ```
 
-Only a loop without a variable takes a label: a `name:` prefix on a condition loop (`for <cond>`) or on an infinite loop (`for {}`).
+A loop with no variable to target takes a label, a `name:` prefix: a condition loop (`for <cond>`), an infinite loop (`for {}`), a destructuring loop, or one whose variable is `_`.
 
 ```vader
 scan: for !done {
@@ -2734,7 +2734,7 @@ scan: for !done {
 }
 ```
 
-The compiler warns about a label on a `for ... in` loop: target that loop by its variable instead.
+The compiler warns about a label on a loop that has an iteration variable: target that loop by its variable instead.
 
 ### `defer`
 
@@ -2965,7 +2965,8 @@ import "app/paint" { area }             // error: the wildcard already brings `a
 
 - The string of an `import` is a module name, resolved against the search roots (*Include paths*, below).
 - Imports are file-scoped: each file of a module declares its own, and sees none of its siblings'.
-- A name that two wildcard imports export is an error only where it is used unqualified, and the error names every module that provides it. A declaration of the module or a rename binding of that name shadows the wildcards, and a name the prelude or a builtin provides always refers to that one. A namespace import, a rename or an exclusion settles an ambiguity.
+- A type or a constant that two wildcard imports export is an error only where it is used unqualified, and the error names every module that provides it. A declaration of the module or a rename binding of that name shadows the wildcards, and a name the prelude or a builtin provides always refers to that one. A namespace import, a rename or an exclusion settles an ambiguity.
+- Functions of one name overload instead, across wildcard imports and with the module's own (§6 *Function overloading*). Named without being called, a function that two wildcard imports export is still an error.
 - A rename or a namespace alias cannot take the name of a type or constant the module declares, in any of its files. It can take a function's: the module's function keeps the unqualified name, and the imported one stays reachable by UFCS (§6 *Function overloading*); with the same signature, the two are a redefinition, an error. Either error is reported on the import. Two files of a module may import the same name.
 - There are no re-exports: a module publishes only what it declares. A module that fronts another wraps each binding it republishes.
 

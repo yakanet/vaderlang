@@ -7,9 +7,7 @@
 // in Vader, they compile as any other arithmetic. `*` and `/` take a vector,
 // component by component, or an `f32` that scales; `==` is exact, as on two
 // `f32`; `Zero` lets `vectors.sum()` add them up. No trait dispatches unary
-// minus, hence `negate`. The names avoid those `std/math` exports (`lerp`,
-// `clamp`, `min`, `max`, `abs`) and `std/path`'s `normalize`: a program that
-// imports one of them beside `raylib` would find the call ambiguous (R2031).
+// minus, hence `negate`.
 
 module "raylib"
 

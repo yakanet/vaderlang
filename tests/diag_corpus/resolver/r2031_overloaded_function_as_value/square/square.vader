@@ -1,0 +1,7 @@
+module "snippet/square"
+
+/// A square by its side.
+export Square :: struct { side: f64 }
+
+/// The area of `s`, times `scale`.
+export area :: fn(s: Square, scale: f64 = 1.0) -> f64 = scale * s.side * s.side

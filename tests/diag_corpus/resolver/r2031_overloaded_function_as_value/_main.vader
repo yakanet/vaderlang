@@ -1,0 +1,11 @@
+// Two wildcard imports each export an `area` : a call picks one by its argument,
+// but a reference that is not called has nothing to pick by, and is ambiguous.
+module "snippet"
+
+import "snippet/circle"
+import "snippet/square"
+
+export measure :: fn(c: Circle) -> f64 {
+    f :: area
+    return f(c, 3.0)
+}

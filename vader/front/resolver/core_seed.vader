@@ -133,7 +133,8 @@ export wildcard_exposes :: fn(sym: Symbol, dropped: string[] | null) -> bool {
 /// never ambiguous. Consumed by the body-walker, which fires R2031 only when an
 /// unqualified reference actually resolves to one of these ambiguous names.
 export wildcard_ambiguities :: fn(
-    name_index: MutableMap<string, LoadedModule>, wildcard_paths: string[],
+    name_index: MutableMap<string, LoadedModule>,
+    wildcard_paths: string[],
     excludes: MutableMap<string, string[]>,
     base: MutableMap<string, Symbol>,
 ) -> MutableMap<string, string[]> {
@@ -154,11 +155,7 @@ export wildcard_ambiguities :: fn(
             // doesn't fire on a reference that unambiguously resolves to the core.
             if base[sym.name] != null { continue }
             lst :: providers.get_or_put_with(sym.name, () -> [])
-            seen := false
-            for p in lst {
-                if p == path { seen = true }
-            }
-            if !seen {
+            if path !in lst {
                 lst.push(path)
             }
         }
@@ -168,6 +165,38 @@ export wildcard_ambiguities :: fn(
         if mods.len() >= 2 { out[name] = mods }
     }
     return out
+}
+
+/// The clashes of `ambiguous` between functions only. Those overload: a call
+/// picks one by its arguments (T3032 when none wins), while a reference that is
+/// not called has nothing to pick by and stays R2031.
+///
+/// @param name_index  every loaded module by its declared name.
+/// @param ambiguous   the clashes `wildcard_ambiguities` reports.
+function_clashes :: fn(
+    name_index: MutableMap<string, LoadedModule>, ambiguous: MutableMap<string, string[]>,
+) -> MutableSet<string> {
+    out :: MutableSet<string> {}
+    for [name, mods] in ambiguous {
+        if exports_only_functions(name_index, mods, name) {
+            out.add(name)
+        }
+    }
+    return out
+}
+
+// True when every module of `mods` exports `name` as a function.
+exports_only_functions :: fn(
+    name_index: MutableMap<string, LoadedModule>, mods: string[], name: string,
+) -> bool {
+    for path in mods {
+        target :: name_index[path] ?? continue
+        sym :: target.collected.symbols[name] ?? continue
+        if sym.kind != .Fn {
+            return false
+        }
+    }
+    return true
 }
 
 /// Index every loaded module by its declared name (`module "..."`) for O(1)

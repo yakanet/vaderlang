@@ -29,8 +29,11 @@ import "toolchain/span"
 /// What one file of a module sees at its top level : its root scope, and the
 /// names two of its wildcard imports both export (R2031).
 export FileScope :: struct {
-    root:      MutableMap<string, Symbol>
-    ambiguous: MutableMap<string, string[]>
+    root:       MutableMap<string, Symbol>
+    ambiguous:  MutableMap<string, string[]>
+    /// The names of `ambiguous` only functions provide, which a call resolves
+    /// by overload.
+    overloaded: MutableSet<string> = MutableSet<string> {}
 }
 
 /// Why a local may not be rebound (T3041).
@@ -178,6 +181,8 @@ ResolveState :: struct {
     /// (`name -> modules`). Consulted by `walk_expr` to fire R2031 on an
     /// unqualified reference that resolves to one of them.
     ambiguous:        MutableMap<string, string[]>
+    /// The names of `ambiguous` only functions provide: no R2031 on a call.
+    overloaded:       MutableSet<string> = MutableSet<string> {}
     /// Every file of the module → its scope.
     file_scopes:      MutableMap<string, FileScope>
 }
@@ -186,10 +191,12 @@ ResolveState :: struct {
 // replaces.
 enter_file :: fn(self: ResolveState, scope: FileScope) -> FileScope {
     previous :: FileScope {
-        .root      = self.scope.swap_root(scope.root),
-        .ambiguous = self.ambiguous,
+        .root       = self.scope.swap_root(scope.root),
+        .ambiguous  = self.ambiguous,
+        .overloaded = self.overloaded,
     }
     self.ambiguous = scope.ambiguous
+    self.overloaded = scope.overloaded
     return previous
 }
 
@@ -850,26 +857,35 @@ check_wildcard_ambiguity :: fn(self: ResolveState, name: string, span: Span, s: 
     self.diags.push(resolver_error(.AmbiguousWildcardImport, span, wildcard_clash_detail(name, mods)))
 }
 
+// Bind `e` to the symbol its name designates. `called` when `e` is the callee
+// of a call: a name only functions of several wildcard imports provide is then
+// an overload, which the call's arguments resolve.
+walk_ident :: fn(self: ResolveState, e: AST.IdentExpr, called: bool) -> void {
+    v :: self.scope.lookup(e.name)
+    // R2006: the root scope must carry the core prelude (`build_core_seed`,
+    // folded in by `file_root_scope`) ; otherwise bare references to `Range`,
+    // `Display`, `Iterator`, ... would over-fire here.
+    if v == null {
+        self.diags.push(resolver_error(.UnresolvedIdent, e.span, "`${e.name}`"))
+        return
+    }
+    self.idents[e.span.hash()] = v
+    if called && e.name in self.overloaded {
+        return
+    }
+    self.check_wildcard_ambiguity(e.name, e.span, v)
+}
+
 walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
     match e {
-        is AST.IdentExpr -> {
-            v :: self.scope.lookup(e.name)
-            match v {
-                is Symbol -> {
-                    self.idents[e.span.hash()] = v
-                    self.check_wildcard_ambiguity(e.name, e.span, v)
-                }
-                // R2006: the root scope must carry the core prelude
-                // (`build_core_seed`, folded in by `file_root_scope`) ;
-                // otherwise bare references to `Range`, `Display`,
-                // `Iterator`, … would over-fire here.
-                is null   -> {
-                    self.diags.push(resolver_error(.UnresolvedIdent, e.span, "`${e.name}`"))
-                }
-            }
-        }
+        is AST.IdentExpr -> { self.walk_ident(e, false) }
         is AST.CallExpr -> {
-            self.walk_expr(e.callee)
+            callee :: e.callee
+            if callee is AST.IdentExpr {
+                self.walk_ident(callee, true)
+            } else {
+                self.walk_expr(callee)
+            }
             for t in e.type_args { self.walk_expr(t) }
             for a in e.args { self.walk_expr(a.value) }
         }

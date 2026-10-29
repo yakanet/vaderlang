@@ -166,9 +166,11 @@ export resolve_module_files :: fn(
     clashes: Diagnostic[]: []
     for file in files {
         imports :: file_imports(collected, file.program.file)
+        ambiguous :: wildcard_ambiguities(name_index, imports.paths, imports.excludes, core_seed)
         scopes[file.program.file] = FileScope {
-            .root      = file_root_scope(builtins, collected, imports, name_index, core_seed),
-            .ambiguous = wildcard_ambiguities(name_index, imports.paths, imports.excludes, core_seed),
+            .root       = file_root_scope(builtins, collected, imports, name_index, core_seed),
+            .ambiguous  = ambiguous,
+            .overloaded = function_clashes(name_index, ambiguous),
         }
         programs.push(file.program)
         for [_, binding] in imports.bindings {

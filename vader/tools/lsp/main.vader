@@ -16,9 +16,10 @@
 module "vader/tools/lsp"
 
 // `parse as _`: this file needs `FlagSpec` to declare `LSP_FLAGS`, but its frame
-// loop calls `std/json::parse`. Both modules export a `parse`, so dropping
-// `std/cli`'s keeps the JSON one unqualified (R2031 otherwise). The argv parse
-// itself happens in `main_entry.vader` and in the CLI, not here.
+// loop calls `std/json::parse`. The two `parse` overload by their arguments, but
+// the bootstrap seed compiles this file and reports the pair as R2031: keep the
+// exclusion until the seed knows overloads across wildcard imports. The argv
+// parse itself happens in `main_entry.vader` and in the CLI, not here.
 import "cli" { parse as _ }
 import "std/io"
 import "json"
