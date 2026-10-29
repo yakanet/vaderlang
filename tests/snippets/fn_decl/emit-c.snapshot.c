@@ -83,34 +83,34 @@ static vader_string_t snippet$greet(vader_string_t l0, vader_string_t l1) {
 }
 
 static int32_t snippet$main(void) {
-    vader_string_t l0 = 0;
+    int32_t l0;
     vader_string_t l1 = 0;
-    int64_t l2, l3;
-    void* l4 = NULL;
-    int32_t t0;
-    vader_string_t t1 = 0;
-    void** gc_raw_roots[1] = { &l4 };
-    vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t1 };
+    vader_string_t l2 = 0;
+    int64_t l3, l4;
+    void* l5 = NULL;
+    vader_string_t t0 = 0;
+    void** gc_raw_roots[1] = { &l5 };
+    vader_string_t* gc_atom_roots[3] = { &l1, &l2, &t0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l0 = snippet$greet(1u, 2u);
-    l1 = snippet$greet(1u, 3u);
-    l2 = vader_host_std_core$byte_len(l0);
+    l0 = snippet$add(INT32_C(2), INT32_C(3));
+    l1 = snippet$greet(1u, 2u);
+    l2 = snippet$greet(1u, 3u);
     l3 = vader_host_std_core$byte_len(l1);
-    l2 = (l2 + l3);
-    l4 = (void*) vader_buffer_new((size_t) (INT64_C(22) + l2));
-    l2 = INT64_C(0);
-    t0 = snippet$add(INT32_C(2), INT32_C(3));
-    l3 = ((int64_t) (int32_t) t0);
-    l2 = std_core$write_int(l4, l2, l3);
-    l2 = std_core$write_string_at(l4, l2, 4u);
-    l2 = std_core$write_string_at(l4, l2, l0);
-    l2 = std_core$write_string_at(l4, l2, 4u);
-    l2 = std_core$write_string_at(l4, l2, l1);
-    t1 = std_core$finish_buffer(l4, l2);
-    std_io$println__string(t1);
+    l4 = vader_host_std_core$byte_len(l2);
+    l3 = (l3 + l4);
+    l5 = (void*) vader_buffer_new((size_t) (INT64_C(22) + l3));
+    l3 = INT64_C(0);
+    l4 = ((int64_t) (int32_t) l0);
+    l3 = std_core$write_int(l5, l3, l4);
+    l3 = std_core$write_string_at(l5, l3, 4u);
+    l3 = std_core$write_string_at(l5, l3, l1);
+    l3 = std_core$write_string_at(l5, l3, 4u);
+    l3 = std_core$write_string_at(l5, l3, l2);
+    t0 = std_core$finish_buffer(l5, l3);
+    std_io$println__string(t0);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 

@@ -1340,16 +1340,16 @@ static int32_t snippet$main(void) {
         l13 = (l13 + l14);
         l3 = (l3 + INT64_C(1));
     }
+    l2 = ((vader_array_t*) l1)->length;
     l7 = std_core$f64$Display$to_string(l13);
-    l2 = vader_host_std_core$byte_len(l7);
-    l0 = (void*) vader_buffer_new((size_t) (INT64_C(44) + l2));
-    l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l0, l2, 14u);
-    l3 = ((vader_array_t*) l1)->length;
-    l2 = std_core$write_int(l0, l2, l3);
-    l2 = std_core$write_string_at(l0, l2, 15u);
-    l2 = std_core$write_string_at(l0, l2, l7);
-    t1 = std_core$finish_buffer(l0, l2);
+    l3 = vader_host_std_core$byte_len(l7);
+    l0 = (void*) vader_buffer_new((size_t) (INT64_C(44) + l3));
+    l3 = INT64_C(0);
+    l3 = std_core$write_string_at(l0, l3, 14u);
+    l3 = std_core$write_int(l0, l3, l2);
+    l3 = std_core$write_string_at(l0, l3, 15u);
+    l3 = std_core$write_string_at(l0, l3, l7);
+    t1 = std_core$finish_buffer(l0, l3);
     std_io$println__string(t1);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }

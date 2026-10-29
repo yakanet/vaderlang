@@ -1483,13 +1483,14 @@ static vader_string_t images_ppm$PpmError$std_core$Error$message(void* l0) {
 
 static vader_string_t images_ppm$Ppm$std_core$Display$to_string(void* l0) {
     vader_string_t l1 = 0;
-    int64_t l2, l5;
-    void* l3 = NULL;
-    uint64_t l4;
+    uint32_t l2, l3, l4;
+    int64_t l5, l6;
+    void* l7 = NULL;
+    uint64_t l8;
     uint32_t t0;
     int64_t t1;
     vader_string_t t2 = 0;
-    void** gc_raw_roots[2] = { &l0, &l3 };
+    void** gc_raw_roots[2] = { &l0, &l7 };
     vader_string_t* gc_atom_roots[2] = { &l1, &t2 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
@@ -1502,31 +1503,31 @@ static vader_string_t images_ppm$Ppm$std_core$Display$to_string(void* l0) {
     } else {
         l1 = 46u;
     }
-    l2 = vader_host_std_core$byte_len(l1);
-    l3 = (void*) vader_buffer_new((size_t) (INT64_C(104) + l2));
-    l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l3, l2, 47u);
-    t0 = ((vader_struct_images_ppm$Ppm_t*) l0)->f_width;
-    t1 = ((int64_t) (uint32_t) t0);
-    l4 = (uint64_t) (int64_t) t1;
-    l2 = std_core$write_unsigned(l3, l2, l4);
-    l2 = std_core$write_string_at(l3, l2, 48u);
-    t0 = ((vader_struct_images_ppm$Ppm_t*) l0)->f_height;
-    t1 = ((int64_t) (uint32_t) t0);
-    l4 = (uint64_t) (int64_t) t1;
-    l2 = std_core$write_unsigned(l3, l2, l4);
-    l2 = std_core$write_string_at(l3, l2, 49u);
-    t0 = ((vader_struct_images_ppm$Ppm_t*) l0)->f_maxval;
-    t1 = ((int64_t) (uint32_t) t0);
-    l4 = (uint64_t) (int64_t) t1;
-    l2 = std_core$write_unsigned(l3, l2, l4);
-    l2 = std_core$write_string_at(l3, l2, 50u);
+    l2 = ((vader_struct_images_ppm$Ppm_t*) l0)->f_width;
+    l3 = ((vader_struct_images_ppm$Ppm_t*) l0)->f_height;
+    l4 = ((vader_struct_images_ppm$Ppm_t*) l0)->f_maxval;
     l5 = ((vader_array_t*) ((vader_struct_images_ppm$Ppm_t*) l0)->f_pixels)->length;
-    l2 = std_core$write_int(l3, l2, l5);
-    l2 = std_core$write_string_at(l3, l2, 51u);
-    l2 = std_core$write_string_at(l3, l2, l1);
-    l2 = std_core$write_string_at(l3, l2, 52u);
-    t2 = std_core$finish_buffer(l3, l2);
+    l6 = vader_host_std_core$byte_len(l1);
+    l7 = (void*) vader_buffer_new((size_t) (INT64_C(104) + l6));
+    l6 = INT64_C(0);
+    l6 = std_core$write_string_at(l7, l6, 47u);
+    t1 = ((int64_t) (uint32_t) l2);
+    l8 = (uint64_t) (int64_t) t1;
+    l6 = std_core$write_unsigned(l7, l6, l8);
+    l6 = std_core$write_string_at(l7, l6, 48u);
+    t1 = ((int64_t) (uint32_t) l3);
+    l8 = (uint64_t) (int64_t) t1;
+    l6 = std_core$write_unsigned(l7, l6, l8);
+    l6 = std_core$write_string_at(l7, l6, 49u);
+    t1 = ((int64_t) (uint32_t) l4);
+    l8 = (uint64_t) (int64_t) t1;
+    l6 = std_core$write_unsigned(l7, l6, l8);
+    l6 = std_core$write_string_at(l7, l6, 50u);
+    l6 = std_core$write_int(l7, l6, l5);
+    l6 = std_core$write_string_at(l7, l6, 51u);
+    l6 = std_core$write_string_at(l7, l6, l1);
+    l6 = std_core$write_string_at(l7, l6, 52u);
+    t2 = std_core$finish_buffer(l7, l6);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

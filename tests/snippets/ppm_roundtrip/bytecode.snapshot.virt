@@ -2063,10 +2063,13 @@ end
 
 fn 31 images_ppm$Ppm$std_core$Display$to_string (ref) -> string
   local depth string
-  local $call_10 i64
-  local __buf_1 ref
-  local $cast_19 u64
-  local $len_34 i64
+  local __p_0 u32
+  local __p_1 u32
+  local __p_2 u32
+  local __p_3 i64
+  local $call_19 i64
+  local __buf_5 ref
+  local $cast_27 u64
   local.field 0 17 2   ; arg 0 images_ppm$Ppm.maxval
   ref.cast 21   ; u32
   call 25   ; images_ppm$bytes_per_sample
@@ -2079,88 +2082,94 @@ fn 31 images_ppm$Ppm$std_core$Display$to_string (ref) -> string
     string.const 46   ; "16-bit"
     local.set 1   ; depth
   end $L0
-  local.get 1   ; depth
-  call.import 0   ; std_core$byte_len
-  local.set 2   ; $call_10
-  i64.const 104
-  local.get 2   ; $call_10
-  i64.add
-  buffer.new
-  local.set 3   ; __buf_1
-  i64.const 0
-  local.set 2   ; $call_10
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_10
-  string.const 47   ; "Ppm "
-  call 4   ; std_core$write_string_at
-  local.set 2   ; $call_10
   local.field 0 17 0   ; arg 0 images_ppm$Ppm.width
   ref.cast 21   ; u32
-  u32.to_i64
-  local.set 4   ; $cast_19
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_10
-  local.get 4   ; $cast_19
-  call 6   ; std_core$write_unsigned
-  local.set 2   ; $call_10
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_10
-  string.const 48   ; "x"
-  call 4   ; std_core$write_string_at
-  local.set 2   ; $call_10
+  local.set 2   ; __p_0
   local.field 0 17 1   ; arg 0 images_ppm$Ppm.height
   ref.cast 21   ; u32
-  u32.to_i64
-  local.set 4   ; $cast_19
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_10
-  local.get 4   ; $cast_19
-  call 6   ; std_core$write_unsigned
-  local.set 2   ; $call_10
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_10
-  string.const 49   ; " maxval="
-  call 4   ; std_core$write_string_at
-  local.set 2   ; $call_10
+  local.set 3   ; __p_1
   local.field 0 17 2   ; arg 0 images_ppm$Ppm.maxval
   ref.cast 21   ; u32
-  u32.to_i64
-  local.set 4   ; $cast_19
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_10
-  local.get 4   ; $cast_19
-  call 6   ; std_core$write_unsigned
-  local.set 2   ; $call_10
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_10
-  string.const 50   ; " ("
-  call 4   ; std_core$write_string_at
-  local.set 2   ; $call_10
+  local.set 4   ; __p_2
   local.field 0 17 3   ; arg 0 images_ppm$Ppm.pixels
   array.len
-  local.set 5   ; $len_34
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_10
-  local.get 5   ; $len_34
+  local.set 5   ; __p_3
+  local.get 1   ; depth
+  call.import 0   ; std_core$byte_len
+  local.set 6   ; $call_19
+  i64.const 104
+  local.get 6   ; $call_19
+  i64.add
+  buffer.new
+  local.set 7   ; __buf_5
+  i64.const 0
+  local.set 6   ; $call_19
+  local.get 7   ; __buf_5
+  local.get 6   ; $call_19
+  string.const 47   ; "Ppm "
+  call 4   ; std_core$write_string_at
+  local.set 6   ; $call_19
+  local.get 2   ; __p_0
+  u32.to_i64
+  local.set 8   ; $cast_27
+  local.get 7   ; __buf_5
+  local.get 6   ; $call_19
+  local.get 8   ; $cast_27
+  call 6   ; std_core$write_unsigned
+  local.set 6   ; $call_19
+  local.get 7   ; __buf_5
+  local.get 6   ; $call_19
+  string.const 48   ; "x"
+  call 4   ; std_core$write_string_at
+  local.set 6   ; $call_19
+  local.get 3   ; __p_1
+  u32.to_i64
+  local.set 8   ; $cast_27
+  local.get 7   ; __buf_5
+  local.get 6   ; $call_19
+  local.get 8   ; $cast_27
+  call 6   ; std_core$write_unsigned
+  local.set 6   ; $call_19
+  local.get 7   ; __buf_5
+  local.get 6   ; $call_19
+  string.const 49   ; " maxval="
+  call 4   ; std_core$write_string_at
+  local.set 6   ; $call_19
+  local.get 4   ; __p_2
+  u32.to_i64
+  local.set 8   ; $cast_27
+  local.get 7   ; __buf_5
+  local.get 6   ; $call_19
+  local.get 8   ; $cast_27
+  call 6   ; std_core$write_unsigned
+  local.set 6   ; $call_19
+  local.get 7   ; __buf_5
+  local.get 6   ; $call_19
+  string.const 50   ; " ("
+  call 4   ; std_core$write_string_at
+  local.set 6   ; $call_19
+  local.get 7   ; __buf_5
+  local.get 6   ; $call_19
+  local.get 5   ; __p_3
   call 5   ; std_core$write_int
-  local.set 2   ; $call_10
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_10
+  local.set 6   ; $call_19
+  local.get 7   ; __buf_5
+  local.get 6   ; $call_19
   string.const 51   ; " bytes, "
   call 4   ; std_core$write_string_at
-  local.set 2   ; $call_10
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_10
+  local.set 6   ; $call_19
+  local.get 7   ; __buf_5
+  local.get 6   ; $call_19
   local.get 1   ; depth
   call 4   ; std_core$write_string_at
-  local.set 2   ; $call_10
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_10
+  local.set 6   ; $call_19
+  local.get 7   ; __buf_5
+  local.get 6   ; $call_19
   string.const 52   ; ")"
   call 4   ; std_core$write_string_at
-  local.set 2   ; $call_10
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_10
+  local.set 6   ; $call_19
+  local.get 7   ; __buf_5
+  local.get 6   ; $call_19
   call 3   ; std_core$finish_buffer
   return
 end

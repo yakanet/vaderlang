@@ -57,25 +57,26 @@
       shades: Color[] = [Color(7), Color(9)] :Color[]
       boxed: Box<Direction> = Box<Direction> { .value = Direction(1) }
       std.io.println<string>({
-          __p_10: string = snippet.Box<Direction>.to_string(boxed)
-          __buf_11: Buffer = std.core.new_byte_buffer(i64(6) +% std.core.byte_len(__p_10))
-          __off_12: i64 = 0
-          __off_12 = std.core.write_bool(__buf_11, __off_12, std.core.content_equals<Color>(shades, [Color(7), Color(9)] :Color[]))
-          __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
-          __off_12 = std.core.write_string_at(__buf_11, __off_12, __p_10)
-          std.core.finish_buffer(__buf_11, __off_12)
+          __p_10: bool = std.core.content_equals<Color>(shades, [Color(7), Color(9)] :Color[])
+          __p_11: string = snippet.Box<Direction>.to_string(boxed)
+          __buf_12: Buffer = std.core.new_byte_buffer(i64(6) +% std.core.byte_len(__p_11))
+          __off_13: i64 = 0
+          __off_13 = std.core.write_bool(__buf_12, __off_13, __p_10)
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, __p_11)
+          std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       tinted: Box<Color> = Box<Color> { .value = Color(9) }
       shown: Display[] = [boxed, tinted] :Display[]
       held: Box<Color> | Box<Direction> = boxed
       std.io.println<string>({
-          __p_13: string = @vcall(std.core.Display.to_string, shown[1])
-          __buf_14: Buffer = std.core.new_byte_buffer(i64(6) +% std.core.byte_len(__p_13))
-          __off_15: i64 = 0
-          __off_15 = std.core.write_string_at(__buf_14, __off_15, __p_13)
-          __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
-          __off_15 = std.core.write_bool(__buf_14, __off_15, held is Box<Color>)
-          std.core.finish_buffer(__buf_14, __off_15)
+          __p_14: string = @vcall(std.core.Display.to_string, shown[1])
+          __buf_15: Buffer = std.core.new_byte_buffer(i64(6) +% std.core.byte_len(__p_14))
+          __off_16: i64 = 0
+          __off_16 = std.core.write_string_at(__buf_15, __off_16, __p_14)
+          __off_16 = std.core.write_string_at(__buf_15, __off_16, " ")
+          __off_16 = std.core.write_bool(__buf_15, __off_16, held is Box<Color>)
+          std.core.finish_buffer(__buf_15, __off_16)
       } :string)
       return 0
   }

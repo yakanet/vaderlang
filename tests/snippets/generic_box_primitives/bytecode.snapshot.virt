@@ -75,13 +75,19 @@ fn 0 snippet$main () -> i32
   local bu64 ref
   local bi32 ref
   local bs ref
-  local __p_0 string
-  local __p_1 string
+  local __p_0 u8
+  local __p_1 bool
   local __p_2 string
-  local $call_43 i64
-  local $call_44 i64
-  local $cast_56 u64
-  local $field_60 bool
+  local __p_3 string
+  local __p_4 string
+  local $call_47 i64
+  local $call_48 i64
+  local $cast_59 u64
+  local __p_7 i16
+  local __p_8 u16
+  local __p_11 i32
+  local $cast_95 i64
+  local $cast_99 u64
   i32.const 200
   struct.new 14   ; snippet$Box__u8
   local.set 0   ; bu8
@@ -115,318 +121,330 @@ fn 0 snippet$main () -> i32
   string.const 0   ; "hi"
   struct.new 12   ; snippet$Box__string
   local.set 10   ; bs
+  local.field 0 14 0   ; bu8 snippet$Box__u8.v
+  ref.cast 15   ; u8
+  local.set 11   ; __p_0
+  local.field 1 2 0   ; bb snippet$Box__bool.v
+  ref.cast 3   ; bool
+  local.set 12   ; __p_1
   local.field 2 4 0   ; bc snippet$Box__char.v
   ref.cast 5   ; char
   call 14   ; std_core$char$Display$to_string
-  local.set 11   ; __p_0
+  local.set 13   ; __p_2
   local.field 3 6 0   ; bf32 snippet$Box__f32.v
   ref.cast 7   ; f32
   call 15   ; std_core$f32$Display$to_string
-  local.set 12   ; __p_1
+  local.set 14   ; __p_3
   local.field 4 16 0   ; bf64 snippet$Box__f64.v
   ref.cast 17   ; f64
   call 16   ; std_core$f64$Display$to_string
-  local.set 13   ; __p_2
-  local.get 11   ; __p_0
-  call.import 0   ; std_core$byte_len
-  local.set 14   ; $call_43
-  local.get 12   ; __p_1
-  call.import 0   ; std_core$byte_len
-  local.set 15   ; $call_44
-  local.get 14   ; $call_43
-  local.get 15   ; $call_44
-  i64.add
-  local.set 14   ; $call_43
+  local.set 15   ; __p_4
   local.get 13   ; __p_2
   call.import 0   ; std_core$byte_len
-  local.set 15   ; $call_44
-  local.get 14   ; $call_43
-  local.get 15   ; $call_44
+  local.set 16   ; $call_47
+  local.get 14   ; __p_3
+  call.import 0   ; std_core$byte_len
+  local.set 17   ; $call_48
+  local.get 16   ; $call_47
+  local.get 17   ; $call_48
   i64.add
-  local.set 14   ; $call_43
+  local.set 16   ; $call_47
+  local.get 15   ; __p_4
+  call.import 0   ; std_core$byte_len
+  local.set 17   ; $call_48
+  local.get 16   ; $call_47
+  local.get 17   ; $call_48
+  i64.add
+  local.set 16   ; $call_47
   i64.const 50
-  local.get 14   ; $call_43
+  local.get 16   ; $call_47
   i64.add
   buffer.new
   local.set 4   ; bf64
   i64.const 0
-  local.set 14   ; $call_43
+  local.set 16   ; $call_47
   local.get 4   ; bf64
-  local.get 14   ; $call_43
+  local.get 16   ; $call_47
   string.const 1   ; "u8="
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.field 0 14 0   ; bu8 snippet$Box__u8.v
-  ref.cast 15   ; u8
+  local.set 16   ; $call_47
+  local.get 11   ; __p_0
   u8.to_i64
-  local.set 16   ; $cast_56
+  local.set 18   ; $cast_59
   local.get 4   ; bf64
-  local.get 14   ; $call_43
-  local.get 16   ; $cast_56
+  local.get 16   ; $call_47
+  local.get 18   ; $cast_59
   call 12   ; std_core$write_unsigned
-  local.set 14   ; $call_43
+  local.set 16   ; $call_47
   local.get 4   ; bf64
-  local.get 14   ; $call_43
+  local.get 16   ; $call_47
   string.const 2   ; " bool="
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.field 1 2 0   ; bb snippet$Box__bool.v
-  ref.cast 3   ; bool
-  local.set 17   ; $field_60
+  local.set 16   ; $call_47
   local.get 4   ; bf64
-  local.get 14   ; $call_43
-  local.get 17   ; $field_60
+  local.get 16   ; $call_47
+  local.get 12   ; __p_1
   call 13   ; std_core$write_bool
-  local.set 14   ; $call_43
+  local.set 16   ; $call_47
   local.get 4   ; bf64
-  local.get 14   ; $call_43
+  local.get 16   ; $call_47
   string.const 3   ; " char="
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
+  local.set 16   ; $call_47
   local.get 4   ; bf64
-  local.get 14   ; $call_43
-  local.get 11   ; __p_0
-  call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.get 4   ; bf64
-  local.get 14   ; $call_43
-  string.const 4   ; " f32="
-  call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.get 4   ; bf64
-  local.get 14   ; $call_43
-  local.get 12   ; __p_1
-  call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.get 4   ; bf64
-  local.get 14   ; $call_43
-  string.const 5   ; " f64="
-  call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.get 4   ; bf64
-  local.get 14   ; $call_43
+  local.get 16   ; $call_47
   local.get 13   ; __p_2
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
+  local.set 16   ; $call_47
   local.get 4   ; bf64
-  local.get 14   ; $call_43
+  local.get 16   ; $call_47
+  string.const 4   ; " f32="
+  call 10   ; std_core$write_string_at
+  local.set 16   ; $call_47
+  local.get 4   ; bf64
+  local.get 16   ; $call_47
+  local.get 14   ; __p_3
+  call 10   ; std_core$write_string_at
+  local.set 16   ; $call_47
+  local.get 4   ; bf64
+  local.get 16   ; $call_47
+  string.const 5   ; " f64="
+  call 10   ; std_core$write_string_at
+  local.set 16   ; $call_47
+  local.get 4   ; bf64
+  local.get 16   ; $call_47
+  local.get 15   ; __p_4
+  call 10   ; std_core$write_string_at
+  local.set 16   ; $call_47
+  local.get 4   ; bf64
+  local.get 16   ; $call_47
   call 9   ; std_core$finish_buffer
   call 49   ; std_io$println__string
+  local.field 5 8 0   ; bi16 snippet$Box__i16.v
+  ref.cast 9   ; i16
+  local.set 19   ; __p_7
+  local.field 6 19 0   ; bu16 snippet$Box__u16.v
+  ref.cast 20   ; u16
+  local.set 20   ; __p_8
+  local.field 7 10 0   ; bi64 snippet$Box__i64.v
+  ref.cast 11   ; i64
+  local.set 16   ; $call_47
+  local.field 8 21 0   ; bu64 snippet$Box__u64.v
+  ref.cast 22   ; u64
+  local.set 18   ; $cast_59
+  local.field 9 18 0   ; bi32 snippet$Box__i32.v
+  ref.cast 1   ; i32
+  local.set 21   ; __p_11
   local.field 10 12 0   ; bs snippet$Box__string.v
   ref.cast 13   ; string
-  local.tee 11   ; __p_0
+  local.tee 13   ; __p_2
   call.import 0   ; std_core$byte_len
-  local.set 14   ; $call_43
+  local.set 17   ; $call_48
   i64.const 129
-  local.get 14   ; $call_43
+  local.get 17   ; $call_48
   i64.add
   buffer.new
   local.set 4   ; bf64
   i64.const 0
-  local.set 14   ; $call_43
+  local.set 17   ; $call_48
   local.get 4   ; bf64
-  local.get 14   ; $call_43
+  local.get 17   ; $call_48
   string.const 6   ; "i16="
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.field 5 8 0   ; bi16 snippet$Box__i16.v
-  ref.cast 9   ; i16
+  local.set 17   ; $call_48
+  local.get 19   ; __p_7
   i16.to_i64
-  local.set 15   ; $call_44
+  local.set 22   ; $cast_95
   local.get 4   ; bf64
-  local.get 14   ; $call_43
-  local.get 15   ; $call_44
+  local.get 17   ; $call_48
+  local.get 22   ; $cast_95
   call 11   ; std_core$write_int
-  local.set 14   ; $call_43
+  local.set 17   ; $call_48
   local.get 4   ; bf64
-  local.get 14   ; $call_43
+  local.get 17   ; $call_48
   string.const 7   ; " u16="
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.field 6 19 0   ; bu16 snippet$Box__u16.v
-  ref.cast 20   ; u16
+  local.set 17   ; $call_48
+  local.get 20   ; __p_8
   u16.to_i64
-  local.set 16   ; $cast_56
+  local.set 23   ; $cast_99
   local.get 4   ; bf64
-  local.get 14   ; $call_43
-  local.get 16   ; $cast_56
+  local.get 17   ; $call_48
+  local.get 23   ; $cast_99
   call 12   ; std_core$write_unsigned
-  local.set 14   ; $call_43
+  local.set 17   ; $call_48
   local.get 4   ; bf64
-  local.get 14   ; $call_43
+  local.get 17   ; $call_48
   string.const 8   ; " i64="
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.field 7 10 0   ; bi64 snippet$Box__i64.v
-  ref.cast 11   ; i64
-  local.set 15   ; $call_44
+  local.set 17   ; $call_48
   local.get 4   ; bf64
-  local.get 14   ; $call_43
-  local.get 15   ; $call_44
+  local.get 17   ; $call_48
+  local.get 16   ; $call_47
   call 11   ; std_core$write_int
-  local.set 14   ; $call_43
+  local.set 17   ; $call_48
   local.get 4   ; bf64
-  local.get 14   ; $call_43
+  local.get 17   ; $call_48
   string.const 9   ; " u64="
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.field 8 21 0   ; bu64 snippet$Box__u64.v
-  ref.cast 22   ; u64
-  local.set 16   ; $cast_56
+  local.set 17   ; $call_48
   local.get 4   ; bf64
-  local.get 14   ; $call_43
-  local.get 16   ; $cast_56
+  local.get 17   ; $call_48
+  local.get 18   ; $cast_59
   call 12   ; std_core$write_unsigned
-  local.set 14   ; $call_43
+  local.set 17   ; $call_48
   local.get 4   ; bf64
-  local.get 14   ; $call_43
+  local.get 17   ; $call_48
   string.const 10   ; " i32="
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.field 9 18 0   ; bi32 snippet$Box__i32.v
-  ref.cast 1   ; i32
+  local.set 17   ; $call_48
+  local.get 21   ; __p_11
   i32.to_i64
-  local.set 15   ; $call_44
+  local.set 16   ; $call_47
   local.get 4   ; bf64
-  local.get 14   ; $call_43
-  local.get 15   ; $call_44
+  local.get 17   ; $call_48
+  local.get 16   ; $call_47
   call 11   ; std_core$write_int
-  local.set 14   ; $call_43
+  local.set 17   ; $call_48
   local.get 4   ; bf64
-  local.get 14   ; $call_43
+  local.get 17   ; $call_48
   string.const 11   ; " str="
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
+  local.set 17   ; $call_48
   local.get 4   ; bf64
-  local.get 14   ; $call_43
-  local.get 11   ; __p_0
+  local.get 17   ; $call_48
+  local.get 13   ; __p_2
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
+  local.set 17   ; $call_48
   local.get 4   ; bf64
-  local.get 14   ; $call_43
+  local.get 17   ; $call_48
   call 9   ; std_core$finish_buffer
   call 49   ; std_io$println__string
+  local.get 0   ; bu8
+  call 7   ; snippet$unwrap__u8
+  local.set 11   ; __p_0
+  local.get 1   ; bb
+  call 1   ; snippet$unwrap__bool
+  local.set 12   ; __p_1
   local.get 2   ; bc
   call 2   ; snippet$unwrap__char
   call 14   ; std_core$char$Display$to_string
-  local.set 11   ; __p_0
+  local.set 13   ; __p_2
   local.get 3   ; bf32
   call 3   ; snippet$unwrap__f32
   call 15   ; std_core$f32$Display$to_string
-  local.set 12   ; __p_1
-  local.get 10   ; bs
-  call 6   ; snippet$unwrap__string
-  local.set 13   ; __p_2
-  local.get 11   ; __p_0
-  call.import 0   ; std_core$byte_len
-  local.set 14   ; $call_43
-  local.get 12   ; __p_1
-  call.import 0   ; std_core$byte_len
-  local.set 15   ; $call_44
-  local.get 14   ; $call_43
-  local.get 15   ; $call_44
-  i64.add
-  local.set 14   ; $call_43
-  local.get 13   ; __p_2
-  call.import 0   ; std_core$byte_len
-  local.set 15   ; $call_44
-  local.get 14   ; $call_43
-  local.get 15   ; $call_44
-  i64.add
-  local.set 14   ; $call_43
-  i64.const 75
-  local.get 14   ; $call_43
-  i64.add
-  buffer.new
-  local.set 2   ; bc
-  i64.const 0
-  local.set 14   ; $call_43
-  local.get 2   ; bc
-  local.get 14   ; $call_43
-  string.const 12   ; "via="
-  call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.get 0   ; bu8
-  call 7   ; snippet$unwrap__u8
-  u8.to_i64
-  local.set 16   ; $cast_56
-  local.get 2   ; bc
-  local.get 14   ; $call_43
-  local.get 16   ; $cast_56
-  call 12   ; std_core$write_unsigned
-  local.set 14   ; $call_43
-  local.get 2   ; bc
-  local.get 14   ; $call_43
-  string.const 13   ; ","
-  call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.get 1   ; bb
-  call 1   ; snippet$unwrap__bool
-  local.set 17   ; $field_60
-  local.get 2   ; bc
-  local.get 14   ; $call_43
-  local.get 17   ; $field_60
-  call 13   ; std_core$write_bool
-  local.set 14   ; $call_43
-  local.get 2   ; bc
-  local.get 14   ; $call_43
-  string.const 13   ; ","
-  call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.get 2   ; bc
-  local.get 14   ; $call_43
-  local.get 11   ; __p_0
-  call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.get 2   ; bc
-  local.get 14   ; $call_43
-  string.const 13   ; ","
-  call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.get 2   ; bc
-  local.get 14   ; $call_43
-  local.get 12   ; __p_1
-  call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.get 2   ; bc
-  local.get 14   ; $call_43
-  string.const 13   ; ","
-  call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
+  local.set 14   ; __p_3
   local.get 5   ; bi16
   call 4   ; snippet$unwrap__i16
-  i16.to_i64
-  local.set 15   ; $call_44
-  local.get 2   ; bc
-  local.get 14   ; $call_43
-  local.get 15   ; $call_44
-  call 11   ; std_core$write_int
-  local.set 14   ; $call_43
-  local.get 2   ; bc
-  local.get 14   ; $call_43
-  string.const 13   ; ","
-  call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
+  local.set 19   ; __p_7
   local.get 7   ; bi64
   call 5   ; snippet$unwrap__i64
-  local.set 15   ; $call_44
-  local.get 2   ; bc
-  local.get 14   ; $call_43
-  local.get 15   ; $call_44
-  call 11   ; std_core$write_int
-  local.set 14   ; $call_43
-  local.get 2   ; bc
-  local.get 14   ; $call_43
+  local.set 16   ; $call_47
+  local.get 10   ; bs
+  call 6   ; snippet$unwrap__string
+  local.set 15   ; __p_4
+  local.get 13   ; __p_2
+  call.import 0   ; std_core$byte_len
+  local.set 17   ; $call_48
+  local.get 14   ; __p_3
+  call.import 0   ; std_core$byte_len
+  local.set 22   ; $cast_95
+  local.get 17   ; $call_48
+  local.get 22   ; $cast_95
+  i64.add
+  local.set 17   ; $call_48
+  local.get 15   ; __p_4
+  call.import 0   ; std_core$byte_len
+  local.set 22   ; $cast_95
+  local.get 17   ; $call_48
+  local.get 22   ; $cast_95
+  i64.add
+  local.set 17   ; $call_48
+  i64.const 75
+  local.get 17   ; $call_48
+  i64.add
+  buffer.new
+  local.set 0   ; bu8
+  i64.const 0
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
+  string.const 12   ; "via="
+  call 10   ; std_core$write_string_at
+  local.set 17   ; $call_48
+  local.get 11   ; __p_0
+  u8.to_i64
+  local.set 18   ; $cast_59
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
+  local.get 18   ; $cast_59
+  call 12   ; std_core$write_unsigned
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
   string.const 13   ; ","
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.get 2   ; bc
-  local.get 14   ; $call_43
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
+  local.get 12   ; __p_1
+  call 13   ; std_core$write_bool
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
+  string.const 13   ; ","
+  call 10   ; std_core$write_string_at
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
   local.get 13   ; __p_2
   call 10   ; std_core$write_string_at
-  local.set 14   ; $call_43
-  local.get 2   ; bc
-  local.get 14   ; $call_43
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
+  string.const 13   ; ","
+  call 10   ; std_core$write_string_at
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
+  local.get 14   ; __p_3
+  call 10   ; std_core$write_string_at
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
+  string.const 13   ; ","
+  call 10   ; std_core$write_string_at
+  local.set 17   ; $call_48
+  local.get 19   ; __p_7
+  i16.to_i64
+  local.set 22   ; $cast_95
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
+  local.get 22   ; $cast_95
+  call 11   ; std_core$write_int
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
+  string.const 13   ; ","
+  call 10   ; std_core$write_string_at
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
+  local.get 16   ; $call_47
+  call 11   ; std_core$write_int
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
+  string.const 13   ; ","
+  call 10   ; std_core$write_string_at
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
+  local.get 15   ; __p_4
+  call 10   ; std_core$write_string_at
+  local.set 17   ; $call_48
+  local.get 0   ; bu8
+  local.get 17   ; $call_48
   call 9   ; std_core$finish_buffer
   call 49   ; std_io$println__string
   return.lit i32.const 0

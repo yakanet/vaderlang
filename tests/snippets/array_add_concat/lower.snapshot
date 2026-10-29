@@ -57,21 +57,23 @@
       } :string)
       both: Item[] = std.core.Item[].add(@fresh(snippet.LEFT), @fresh(snippet.RIGHT))
       std.io.println<string>({
-          __p_8: string = both[0].name
-          __p_9: string = both[1].name
-          __buf_10: Buffer = std.core.new_byte_buffer(i64(72) +% (std.core.byte_len(__p_8) +% std.core.byte_len(__p_9)))
-          __off_11: i64 = 0
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, "structs=")
-          __off_11 = std.core.write_int(__buf_10, __off_11, @array.len(both))
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, __p_8)
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, "/")
-          __off_11 = std.core.write_int(__buf_10, __off_11, @array.len(both[0].inner))
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, __p_9)
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, "/")
-          __off_11 = std.core.write_int(__buf_10, __off_11, @array.len(both[1].inner))
-          std.core.finish_buffer(__buf_10, __off_11)
+          __p_8: i64 = @array.len(both)
+          __p_9: string = both[0].name
+          __p_10: i64 = @array.len(both[0].inner)
+          __p_11: string = both[1].name
+          __buf_12: Buffer = std.core.new_byte_buffer(i64(72) +% (std.core.byte_len(__p_9) +% std.core.byte_len(__p_11)))
+          __off_13: i64 = 0
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, "structs=")
+          __off_13 = std.core.write_int(__buf_12, __off_13, __p_8)
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, __p_9)
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, "/")
+          __off_13 = std.core.write_int(__buf_12, __off_13, __p_10)
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, __p_11)
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, "/")
+          __off_13 = std.core.write_int(__buf_12, __off_13, @array.len(both[1].inner))
+          std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       return 0
   }

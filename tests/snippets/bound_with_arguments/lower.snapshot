@@ -21,61 +21,63 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       five: u64 = 5
       std.io.println<string>({
-          __p_0: string = std.core.f64.to_string(snippet.twice<f64>(2.5))
-          __buf_1: Buffer = std.core.new_byte_buffer(i64(54) +% std.core.byte_len(__p_0))
-          __off_2: i64 = 0
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, "primitives: ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, snippet.twice<i32>(3))
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_unsigned(__buf_1, __off_2, snippet.twice<u64>(five))
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
-          std.core.finish_buffer(__buf_1, __off_2)
+          __p_0: i32 = snippet.twice<i32>(3)
+          __p_1: u64 = snippet.twice<u64>(five)
+          __p_2: string = std.core.f64.to_string(snippet.twice<f64>(2.5))
+          __buf_3: Buffer = std.core.new_byte_buffer(i64(54) +% std.core.byte_len(__p_2))
+          __off_4: i64 = 0
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, "primitives: ")
+          __off_4 = std.core.write_int(__buf_3, __off_4, __p_0)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_unsigned(__buf_3, __off_4, __p_1)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_2)
+          std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       kept: Money = Money { .cents = i64(7) }
       std.io.println<string>({
-          __buf_3: Buffer = std.core.new_byte_buffer(i64(55))
-          __off_4: i64 = 0
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, "written impl: ")
-          __off_4 = std.core.write_int(__buf_3, __off_4, snippet.twice<Money>(Money { .cents = i64(3) }).cents)
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_int(__buf_3, __off_4, snippet.twice<Money>(kept).cents)
-          std.core.finish_buffer(__buf_3, __off_4)
-      } :string)
-      std.io.println<string>({
-          __buf_5: Buffer = std.core.new_byte_buffer(i64(34))
+          __buf_5: Buffer = std.core.new_byte_buffer(i64(55))
           __off_6: i64 = 0
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, "default impl: ")
-          __off_6 = std.core.write_int(__buf_5, __off_6, snippet.twice<Points>(Points { .n = 4 }).n)
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, "written impl: ")
+          __off_6 = std.core.write_int(__buf_5, __off_6, snippet.twice<Money>(Money { .cents = i64(3) }).cents)
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+          __off_6 = std.core.write_int(__buf_5, __off_6, snippet.twice<Money>(kept).cents)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       std.io.println<string>({
-          __buf_7: Buffer = std.core.new_byte_buffer(i64(31))
+          __buf_7: Buffer = std.core.new_byte_buffer(i64(34))
           __off_8: i64 = 0
-          __off_8 = std.core.write_string_at(__buf_7, __off_8, "self impl: ")
-          __off_8 = std.core.write_int(__buf_7, __off_8, snippet.twice<Grams>(Grams { .g = 6 }).g)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, "default impl: ")
+          __off_8 = std.core.write_int(__buf_7, __off_8, snippet.twice<Points>(Points { .n = 4 }).n)
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       std.io.println<string>({
-          __buf_9: Buffer = std.core.new_byte_buffer(i64(35))
+          __buf_9: Buffer = std.core.new_byte_buffer(i64(31))
           __off_10: i64 = 0
-          __off_10 = std.core.write_string_at(__buf_9, __off_10, "partial bound: ")
-          __off_10 = std.core.write_int(__buf_9, __off_10, snippet.relay<Points>(Points { .n = 5 }).n)
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, "self impl: ")
+          __off_10 = std.core.write_int(__buf_9, __off_10, snippet.twice<Grams>(Grams { .g = 6 }).g)
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       std.io.println<string>({
-          __buf_11: Buffer = std.core.new_byte_buffer(i64(27))
+          __buf_11: Buffer = std.core.new_byte_buffer(i64(35))
           __off_12: i64 = 0
-          __off_12 = std.core.write_string_at(__buf_11, __off_12, "array: ")
-          __off_12 = std.core.write_int(__buf_11, __off_12, snippet.both<Money[]>([Money { .cents = i64(1) }, Money { .cents = i64(2) }] :Money[]))
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, "partial bound: ")
+          __off_12 = std.core.write_int(__buf_11, __off_12, snippet.relay<Points>(Points { .n = 5 }).n)
           std.core.finish_buffer(__buf_11, __off_12)
       } :string)
       std.io.println<string>({
-          __buf_13: Buffer = std.core.new_byte_buffer(i64(34))
+          __buf_13: Buffer = std.core.new_byte_buffer(i64(27))
           __off_14: i64 = 0
-          __off_14 = std.core.write_string_at(__buf_13, __off_14, "writing impl: ")
-          __off_14 = std.core.write_int(__buf_13, __off_14, snippet.feed<Cfg>(Cfg { .n = 1 }))
+          __off_14 = std.core.write_string_at(__buf_13, __off_14, "array: ")
+          __off_14 = std.core.write_int(__buf_13, __off_14, snippet.both<Money[]>([Money { .cents = i64(1) }, Money { .cents = i64(2) }] :Money[]))
           std.core.finish_buffer(__buf_13, __off_14)
+      } :string)
+      std.io.println<string>({
+          __buf_15: Buffer = std.core.new_byte_buffer(i64(34))
+          __off_16: i64 = 0
+          __off_16 = std.core.write_string_at(__buf_15, __off_16, "writing impl: ")
+          __off_16 = std.core.write_int(__buf_15, __off_16, snippet.feed<Cfg>(Cfg { .n = 1 }))
+          std.core.finish_buffer(__buf_15, __off_16)
       } :string)
       return 0
   }

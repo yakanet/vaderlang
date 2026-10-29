@@ -206,7 +206,8 @@ classify_kind :: fn(t: Type) -> WriterKind {
 // it never grows ; `off` threads through the offset-returning `write_*`
 // primitives, interned once. A purely text + `${string}` / `${Display}`
 // interpolation has no digit to format, so it stays on the leaner all-string
-// `concat_N` path (`lower_concat_chain`). Each part is lowered once.
+// `concat_N` path (`lower_concat_chain`). Each part is lowered once, and runs in
+// source order.
 lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     string_type :: TY_STRING
     span :: expr.span
@@ -233,7 +234,9 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
                     kinds.push(.Str)
                 } else {
                     k :: classify_kind(strip_distinct(shown))
-                    if k == .Signed || k == .Unsigned || k == .Bool { has_direct = true }
+                    if writes_directly(k) {
+                        has_direct = true
+                    }
                     observe_no_call(ctx, part.expr, .Display, "writer")
                     values.push(inner)
                     kinds.push(k)
@@ -272,36 +275,27 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     write_kinds: WriterKind[]: []
     const_bytes: i64 = 0
     runtime_size: LoweredExpr | null = null
+    last_bound :: last_bound_part(kinds)
     for i in 0..<values.len() {
         v :: values[i]
         k :: kinds[i]
-        if k == .Signed {
-            const_bytes = const_bytes + INTEGER_TEXT_BYTES
-            write_values.push(v)
-            write_kinds.push(.Signed)
-        } else if k == .Unsigned {
-            const_bytes = const_bytes + INTEGER_TEXT_BYTES
-            write_values.push(v)
-            write_kinds.push(.Unsigned)
-        } else if k == .Bool {
-            const_bytes = const_bytes + 5
-            write_values.push(v)
-            write_kinds.push(.Bool)
+        if writes_directly(k) {
+            const_bytes = const_bytes + written_bound(k)
+            // The writes run after every part bound ahead of the buffer : a part
+            // that precedes one of them in the source is bound ahead of it too.
+            written := v
+            if i < last_bound {
+                written = bind_unless_stable(ctx, v, "p", span, stmts)
+            }
+            write_values.push(written)
+            write_kinds.push(k)
         } else if k == .Text {
             if v is LoweredStringLit { const_bytes = const_bytes + v.value.byte_len() }
             write_values.push(v)
             write_kinds.push(.Str)
         } else {
             // A string: bind to a tmp, add a runtime `byte_len` size term.
-            tmp_sym :: fresh_synthetic_symbol(ctx, "p")
-            stmts.push(LoweredLet {
-                .span = span,
-                .name = tmp_sym.name,
-                .symbol = tmp_sym,
-                .type = string_type,
-                .value = v,
-            })
-            tmp_ref :: synth_ident(tmp_sym, string_type, span)
+            tmp_ref :: bind_to_local(ctx, v, string_type, "p", span, stmts)
             blen_call :: mk_lowered_call(blen_sym, [tmp_ref], TY_I64, span)
             if runtime_size == null { runtime_size = blen_call } else {
                 runtime_size = LoweredBinary { .span = span, .type = TY_I64, .op = .Add, .left = runtime_size, .right = blen_call }
@@ -342,6 +336,31 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
         .span = span, .type = string_type, .stmts = stmts,
         .trailing = mk_lowered_call(finish_sym, [synth_ident(buf_sym, buffer_type, span), synth_ident(off_sym, TY_I64, span)], string_type, span),
     }
+}
+
+// Whether a part of kind `k` writes its own bytes (`write_int`, `write_bool`)
+// instead of a string's.
+writes_directly :: fn(k: WriterKind) = k == .Signed || k == .Unsigned || k == .Bool
+
+// The index of the last part bound to a local ahead of the buffer (a string, a
+// `${Display}`), 0 when there is none : no part precedes it then.
+last_bound_part :: fn(kinds: WriterKind[]) -> i64 {
+    last: i64 = 0
+    for i in 0..<kinds.len() {
+        if kinds[i] == .Str || kinds[i] == .Display {
+            last = i
+        }
+    }
+    return last
+}
+
+// The most bytes a part written straight in takes : an integer's longest text, or
+// `false`.
+written_bound :: fn(k: WriterKind) -> i64 {
+    if k == .Bool {
+        return 5
+    }
+    return INTEGER_TEXT_BYTES
 }
 
 // The writer of an integer of `values` : the signed one where a value may be

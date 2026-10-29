@@ -30,13 +30,14 @@
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
-          __p_4: string = snippet.status.HttpStatus$data[i64(HttpStatus(2))].reason
-          __buf_5: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_4))
-          __off_6: i64 = 0
-          __off_6 = std.core.write_int(__buf_5, __off_6, snippet.apply(snippet.status.abs_status, HttpStatus(2)))
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
-          std.core.finish_buffer(__buf_5, __off_6)
+          __p_4: i32 = snippet.apply(snippet.status.abs_status, HttpStatus(2))
+          __p_5: string = snippet.status.HttpStatus$data[i64(HttpStatus(2))].reason
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_5))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_int(__buf_6, __off_7, __p_4)
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
+          std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       snippet.status.seed_with(HttpStatus(1))
       return 0

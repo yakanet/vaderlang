@@ -187,11 +187,11 @@ fn 4 snippet$main () -> i32
   local $arr_2 ref
   local __off_1 i64
   local $cast_16 i64
-  local __p_5 string
   local __p_6 string
-  local __coalesce_9 any
+  local __p_7 string
+  local $call_69 i64
+  local __coalesce_10 any
   local if_res i32
-  local $cast_105 i64
   array.new 10 0   ; string[]
   local.set 0   ; $arr_0
   array.new 28 0   ; i32[]
@@ -302,62 +302,62 @@ fn 4 snippet$main () -> i32
   i32.const 6
   call 0   ; snippet$Log$std_core$IndexSet$set_at
   local.field 0 1 0   ; $arr_0 snippet$Log.lines
+  array.len
+  local.set 3   ; __off_1
+  local.field 0 1 0   ; $arr_0 snippet$Log.lines
   i32.const 0
   array.get 10   ; string[]
   ref.cast 2   ; string
-  local.set 5   ; __p_5
+  local.set 5   ; __p_6
   local.field 0 1 0   ; $arr_0 snippet$Log.lines
   i32.const 3
   array.get 10   ; string[]
   ref.cast 2   ; string
-  local.set 6   ; __p_6
-  local.get 5   ; __p_5
-  call.import 0   ; std_core$byte_len
-  local.set 3   ; __off_1
-  local.get 6   ; __p_6
+  local.set 6   ; __p_7
+  local.get 5   ; __p_6
   call.import 0   ; std_core$byte_len
   local.set 4   ; $cast_16
-  local.get 3   ; __off_1
+  local.get 6   ; __p_7
+  call.import 0   ; std_core$byte_len
+  local.set 7   ; $call_69
   local.get 4   ; $cast_16
+  local.get 7   ; $call_69
   i64.add
-  local.set 3   ; __off_1
+  local.set 4   ; $cast_16
   i64.const 22
-  local.get 3   ; __off_1
+  local.get 4   ; $cast_16
   i64.add
   buffer.new
-  local.set 1   ; $arr_1
+  local.set 0   ; $arr_0
   i64.const 0
-  local.set 3   ; __off_1
-  local.field 0 1 0   ; $arr_0 snippet$Log.lines
-  array.len
   local.set 4   ; $cast_16
-  local.get 1   ; $arr_1
-  local.get 3   ; __off_1
+  local.get 0   ; $arr_0
   local.get 4   ; $cast_16
+  local.get 3   ; __off_1
   call 12   ; std_core$write_int
-  local.set 3   ; __off_1
-  local.get 1   ; $arr_1
-  local.get 3   ; __off_1
+  local.set 4   ; $cast_16
+  local.get 0   ; $arr_0
+  local.get 4   ; $cast_16
   string.const 3   ; " "
   call 11   ; std_core$write_string_at
-  local.set 3   ; __off_1
-  local.get 1   ; $arr_1
-  local.get 3   ; __off_1
-  local.get 5   ; __p_5
+  local.set 4   ; $cast_16
+  local.get 0   ; $arr_0
+  local.get 4   ; $cast_16
+  local.get 5   ; __p_6
   call 11   ; std_core$write_string_at
-  local.set 3   ; __off_1
-  local.get 1   ; $arr_1
-  local.get 3   ; __off_1
+  local.set 4   ; $cast_16
+  local.get 0   ; $arr_0
+  local.get 4   ; $cast_16
   string.const 3   ; " "
   call 11   ; std_core$write_string_at
-  local.set 3   ; __off_1
-  local.get 1   ; $arr_1
-  local.get 3   ; __off_1
-  local.get 6   ; __p_6
+  local.set 4   ; $cast_16
+  local.get 0   ; $arr_0
+  local.get 4   ; $cast_16
+  local.get 6   ; __p_7
   call 11   ; std_core$write_string_at
-  local.set 3   ; __off_1
-  local.get 1   ; $arr_1
-  local.get 3   ; __off_1
+  local.set 4   ; $cast_16
+  local.get 0   ; $arr_0
+  local.get 4   ; $cast_16
   call 10   ; std_core$finish_buffer
   call 62   ; std_io$println__string
   array.new 30 0   ; i64[]
@@ -388,22 +388,22 @@ fn 4 snippet$main () -> i32
   local.get 0   ; $arr_0
   local.get 3   ; __off_1
   call 24   ; std_collections$MutableMap$std_core$Index$at__i64__i32
-  local.tee 7   ; __coalesce_9
+  local.tee 8   ; __coalesce_10
   type_check 0   ; null
   if $L0 void
     i32.const -1
-    local.set 8   ; if_res
+    local.set 9   ; if_res
   else
-    local.get 7   ; __coalesce_9
+    local.get 8   ; __coalesce_10
     ref.cast 3   ; i32
-    local.set 8   ; if_res
+    local.set 9   ; if_res
   end $L0
-  local.get 8   ; if_res
+  local.get 9   ; if_res
   i32.to_i64
-  local.set 9   ; $cast_105
+  local.set 7   ; $call_69
   local.get 1   ; $arr_1
   local.get 4   ; $cast_16
-  local.get 9   ; $cast_105
+  local.get 7   ; $call_69
   call 12   ; std_core$write_int
   local.set 4   ; $cast_16
   local.get 1   ; $arr_1
@@ -418,17 +418,17 @@ fn 4 snippet$main () -> i32
   local.get 0   ; $arr_0
   local.get 3   ; __off_1
   call 24   ; std_collections$MutableMap$std_core$Index$at__i64__i32
-  local.tee 7   ; __coalesce_9
+  local.tee 8   ; __coalesce_10
   type_check 0   ; null
   if $L1 void
     i32.const -1
-    local.set 8   ; if_res
+    local.set 9   ; if_res
   else
-    local.get 7   ; __coalesce_9
+    local.get 8   ; __coalesce_10
     ref.cast 3   ; i32
-    local.set 8   ; if_res
+    local.set 9   ; if_res
   end $L1
-  local.get 8   ; if_res
+  local.get 9   ; if_res
   i32.to_i64
   local.set 3   ; __off_1
   local.get 1   ; $arr_1

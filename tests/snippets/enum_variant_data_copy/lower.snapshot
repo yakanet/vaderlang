@@ -20,19 +20,23 @@
       }
       h.info.code = 7
       std.io.println<string>({
-          __p_2: string = info.reason
-          __buf_3: Buffer = std.core.new_byte_buffer(i64(84) +% std.core.byte_len(__p_2))
-          __off_4: i64 = 0
-          __off_4 = std.core.write_int(__buf_3, __off_4, info.code)
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_int(__buf_3, __off_4, h.info.code)
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_int(__buf_3, __off_4, snippet.HttpStatus$data[i64(s)].code)
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_int(__buf_3, __off_4, snippet.HttpStatus$data[i64(s)].code)
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_2)
-          std.core.finish_buffer(__buf_3, __off_4)
+          __p_2: i32 = info.code
+          __p_3: i32 = h.info.code
+          __p_4: i32 = snippet.HttpStatus$data[i64(s)].code
+          __p_5: i32 = snippet.HttpStatus$data[i64(s)].code
+          __p_6: string = info.reason
+          __buf_7: Buffer = std.core.new_byte_buffer(i64(84) +% std.core.byte_len(__p_6))
+          __off_8: i64 = 0
+          __off_8 = std.core.write_int(__buf_7, __off_8, __p_2)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
+          __off_8 = std.core.write_int(__buf_7, __off_8, __p_3)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
+          __off_8 = std.core.write_int(__buf_7, __off_8, __p_4)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
+          __off_8 = std.core.write_int(__buf_7, __off_8, __p_5)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, __p_6)
+          std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       return 0
   }

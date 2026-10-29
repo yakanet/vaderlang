@@ -1,0 +1,34 @@
+// The parts of an interpolation run left to right, whatever their type: an
+// integer or a `bool` written straight into the buffer runs before a string
+// part that follows it. Each `say_*` prints when it runs.
+module "snippet"
+
+import "std/io"
+
+say_int :: fn(n: i32) -> i32 {
+    println("  int ${n}")
+    return n
+}
+
+say_bool :: fn(b: bool) -> bool {
+    println("  bool ${b}")
+    return b
+}
+
+say_str :: fn(s: string) -> string {
+    println("  str ${s}")
+    return s
+}
+
+main :: fn() -> i32 {
+    println("${say_int(1)} ${say_str("b")} ${say_bool(true)} ${say_str("d")} ${say_int(5)}")
+
+    // A captured local a later part rebinds is read where it stands.
+    n := 1
+    bump :: fn() -> string {
+        n = 2
+        return "bumped"
+    }
+    println("${n} ${bump()} ${n}")
+    return 0
+}

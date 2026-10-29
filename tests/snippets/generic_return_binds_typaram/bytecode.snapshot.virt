@@ -27,7 +27,7 @@ fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 i64
   local $len_14 i64
-  local __p_2 string
+  local __p_3 string
   call 1   ; snippet$empty_of__i32
   local.tee 0   ; numbers
   i32.const 7
@@ -92,44 +92,44 @@ fn 0 snippet$main () -> i32
   call 4   ; std_core$finish_buffer
   call 10   ; std_io$println__string
   local.get 1   ; words
+  array.len
+  local.set 3   ; __off_1
+  local.get 1   ; words
   i32.const 0
   array.get 3   ; string[]
   ref.cast 4   ; string
-  local.tee 5   ; __p_2
+  local.tee 5   ; __p_3
   call.import 0   ; std_core$byte_len
-  local.set 3   ; __off_1
+  local.set 4   ; $len_14
   i64.const 28
-  local.get 3   ; __off_1
+  local.get 4   ; $len_14
   i64.add
   buffer.new
   local.set 0   ; numbers
   i64.const 0
-  local.set 3   ; __off_1
-  local.get 0   ; numbers
-  local.get 3   ; __off_1
-  string.const 3   ; "string "
-  call 5   ; std_core$write_string_at
-  local.set 3   ; __off_1
-  local.get 1   ; words
-  array.len
   local.set 4   ; $len_14
   local.get 0   ; numbers
-  local.get 3   ; __off_1
   local.get 4   ; $len_14
-  call 6   ; std_core$write_int
-  local.set 3   ; __off_1
+  string.const 3   ; "string "
+  call 5   ; std_core$write_string_at
+  local.set 4   ; $len_14
   local.get 0   ; numbers
+  local.get 4   ; $len_14
   local.get 3   ; __off_1
+  call 6   ; std_core$write_int
+  local.set 4   ; $len_14
+  local.get 0   ; numbers
+  local.get 4   ; $len_14
   string.const 2   ; " "
   call 5   ; std_core$write_string_at
-  local.set 3   ; __off_1
+  local.set 4   ; $len_14
   local.get 0   ; numbers
-  local.get 3   ; __off_1
-  local.get 5   ; __p_2
+  local.get 4   ; $len_14
+  local.get 5   ; __p_3
   call 5   ; std_core$write_string_at
-  local.set 3   ; __off_1
+  local.set 4   ; $len_14
   local.get 0   ; numbers
-  local.get 3   ; __off_1
+  local.get 4   ; $len_14
   call 4   ; std_core$finish_buffer
   call 10   ; std_io$println__string
   return.lit i32.const 0

@@ -141,42 +141,44 @@
           } :string)
       }
       std.io.println<string>({
-          __p_5: string = snippet.LABELS[1].text
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(34) +% std.core.byte_len(__p_5))
-          __off_7: i64 = 0
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, "labels ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, @array.len(snippet.LABELS))
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.LABELS[0].hue == Color(1))
-          std.core.finish_buffer(__buf_6, __off_7)
+          __p_5: i64 = @array.len(snippet.LABELS)
+          __p_6: string = snippet.LABELS[1].text
+          __buf_7: Buffer = std.core.new_byte_buffer(i64(34) +% std.core.byte_len(__p_6))
+          __off_8: i64 = 0
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, "labels ")
+          __off_8 = std.core.write_int(__buf_7, __off_8, __p_5)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, __p_6)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
+          __off_8 = std.core.write_bool(__buf_7, __off_8, snippet.LABELS[0].hue == Color(1))
+          std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       std.io.println<string>(snippet.show(snippet.WORD_BOX))
       if !(snippet.SLOT.hour is null) {
           std.io.println<string>({
-              __p_8: string = snippet.SLOT.note
-              __buf_9: Buffer = std.core.new_byte_buffer(i64(26) +% std.core.byte_len(__p_8))
-              __off_10: i64 = 0
-              __off_10 = std.core.write_string_at(__buf_9, __off_10, "slot ")
-              __off_10 = std.core.write_unsigned(__buf_9, __off_10, snippet.SLOT.hour)
-              __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
-              __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_8)
-              std.core.finish_buffer(__buf_9, __off_10)
+              __p_9: Hour = snippet.SLOT.hour
+              __p_10: string = snippet.SLOT.note
+              __buf_11: Buffer = std.core.new_byte_buffer(i64(26) +% std.core.byte_len(__p_10))
+              __off_12: i64 = 0
+              __off_12 = std.core.write_string_at(__buf_11, __off_12, "slot ")
+              __off_12 = std.core.write_unsigned(__buf_11, __off_12, __p_9)
+              __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
+              __off_12 = std.core.write_string_at(__buf_11, __off_12, __p_10)
+              std.core.finish_buffer(__buf_11, __off_12)
           } :string)
       }
-      __tup_11: [i32, string] = snippet.PAIR
-      sum: i32 = __tup_11._0
-      word: string = __tup_11._1
+      __tup_13: [i32, string] = snippet.PAIR
+      sum: i32 = __tup_13._0
+      word: string = __tup_13._1
       std.io.println<string>({
-          __p_12: string = word
-          __buf_13: Buffer = std.core.new_byte_buffer(i64(26) +% std.core.byte_len(__p_12))
-          __off_14: i64 = 0
-          __off_14 = std.core.write_string_at(__buf_13, __off_14, "pair ")
-          __off_14 = std.core.write_int(__buf_13, __off_14, sum)
-          __off_14 = std.core.write_string_at(__buf_13, __off_14, " ")
-          __off_14 = std.core.write_string_at(__buf_13, __off_14, __p_12)
-          std.core.finish_buffer(__buf_13, __off_14)
+          __p_14: string = word
+          __buf_15: Buffer = std.core.new_byte_buffer(i64(26) +% std.core.byte_len(__p_14))
+          __off_16: i64 = 0
+          __off_16 = std.core.write_string_at(__buf_15, __off_16, "pair ")
+          __off_16 = std.core.write_int(__buf_15, __off_16, sum)
+          __off_16 = std.core.write_string_at(__buf_15, __off_16, " ")
+          __off_16 = std.core.write_string_at(__buf_15, __off_16, __p_14)
+          std.core.finish_buffer(__buf_15, __off_16)
       } :string)
       return 0
   }

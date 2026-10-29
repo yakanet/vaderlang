@@ -273,83 +273,83 @@ fn 3 snippet$show__snippet_Box (any) -> string
 end
 
 fn 4 snippet$listed__f64 (ref) -> string
-  local __p_0 string
-  local $call_4 i64
-  local __buf_1 ref
-  local $len_10 i64
-  local.get 0   ; arg 0
-  call 19   ; std_core$$array$Display$to_string__f64
-  local.tee 1   ; __p_0
-  call.import 0   ; std_core$byte_len
-  local.set 2   ; $call_4
-  i64.const 22
-  local.get 2   ; $call_4
-  i64.add
-  buffer.new
-  local.set 3   ; __buf_1
-  i64.const 0
-  local.set 2   ; $call_4
+  local __p_0 i64
+  local __p_1 string
+  local $call_6 i64
+  local __buf_2 ref
   local.get 0   ; arg 0
   array.len
-  local.set 4   ; $len_10
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_4
-  local.get 4   ; $len_10
+  local.set 1   ; __p_0
+  local.get 0   ; arg 0
+  call 19   ; std_core$$array$Display$to_string__f64
+  local.tee 2   ; __p_1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_6
+  i64.const 22
+  local.get 3   ; $call_6
+  i64.add
+  buffer.new
+  local.set 4   ; __buf_2
+  i64.const 0
+  local.set 3   ; $call_6
+  local.get 4   ; __buf_2
+  local.get 3   ; $call_6
+  local.get 1   ; __p_0
   call 11   ; std_core$write_int
-  local.set 2   ; $call_4
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_4
+  local.set 3   ; $call_6
+  local.get 4   ; __buf_2
+  local.get 3   ; $call_6
   string.const 10   ; ": "
   call 10   ; std_core$write_string_at
-  local.set 2   ; $call_4
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_4
-  local.get 1   ; __p_0
+  local.set 3   ; $call_6
+  local.get 4   ; __buf_2
+  local.get 3   ; $call_6
+  local.get 2   ; __p_1
   call 10   ; std_core$write_string_at
-  local.set 2   ; $call_4
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_4
+  local.set 3   ; $call_6
+  local.get 4   ; __buf_2
+  local.get 3   ; $call_6
   call 9   ; std_core$finish_buffer
   return
 end
 
 fn 5 snippet$listed__string (ref) -> string
-  local __p_0 string
-  local $call_4 i64
-  local __buf_1 ref
-  local $len_10 i64
-  local.get 0   ; arg 0
-  call 14   ; std_core$$array$Display$to_string__string
-  local.tee 1   ; __p_0
-  call.import 0   ; std_core$byte_len
-  local.set 2   ; $call_4
-  i64.const 22
-  local.get 2   ; $call_4
-  i64.add
-  buffer.new
-  local.set 3   ; __buf_1
-  i64.const 0
-  local.set 2   ; $call_4
+  local __p_0 i64
+  local __p_1 string
+  local $call_6 i64
+  local __buf_2 ref
   local.get 0   ; arg 0
   array.len
-  local.set 4   ; $len_10
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_4
-  local.get 4   ; $len_10
+  local.set 1   ; __p_0
+  local.get 0   ; arg 0
+  call 14   ; std_core$$array$Display$to_string__string
+  local.tee 2   ; __p_1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_6
+  i64.const 22
+  local.get 3   ; $call_6
+  i64.add
+  buffer.new
+  local.set 4   ; __buf_2
+  i64.const 0
+  local.set 3   ; $call_6
+  local.get 4   ; __buf_2
+  local.get 3   ; $call_6
+  local.get 1   ; __p_0
   call 11   ; std_core$write_int
-  local.set 2   ; $call_4
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_4
+  local.set 3   ; $call_6
+  local.get 4   ; __buf_2
+  local.get 3   ; $call_6
   string.const 10   ; ": "
   call 10   ; std_core$write_string_at
-  local.set 2   ; $call_4
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_4
-  local.get 1   ; __p_0
+  local.set 3   ; $call_6
+  local.get 4   ; __buf_2
+  local.get 3   ; $call_6
+  local.get 2   ; __p_1
   call 10   ; std_core$write_string_at
-  local.set 2   ; $call_4
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_4
+  local.set 3   ; $call_6
+  local.get 4   ; __buf_2
+  local.get 3   ; $call_6
   call 9   ; std_core$finish_buffer
   return
 end

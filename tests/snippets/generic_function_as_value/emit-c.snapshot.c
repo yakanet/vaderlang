@@ -155,14 +155,15 @@ static vader_string_t snippet$apply(void* l0, int32_t l1) {
 static int32_t snippet$main(void) {
     void* l0 = NULL;
     int64_t l1, l2;
-    vader_string_t l3 = 0;
+    int32_t l3;
+    vader_string_t l4 = 0;
     void* t0 = NULL;
     vader_string_t t1 = 0;
     double t2;
     int32_t t3;
     bool t4;
     void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_string_t* gc_atom_roots[2] = { &l3, &t1 };
+    vader_string_t* gc_atom_roots[2] = { &l4, &t1 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
@@ -195,15 +196,15 @@ static int32_t snippet$main(void) {
     t0 = (void*) &vader_fn_static_snippet$name_of__i32;
     t1 = snippet$apply(t0, INT32_C(3));
     std_io$println__string(t1);
-    l3 = snippet$id__string(1u);
-    l1 = vader_host_std_core$byte_len(l3);
+    l3 = snippet$id__i32(INT32_C(3));
+    l4 = snippet$id__string(1u);
+    l1 = vader_host_std_core$byte_len(l4);
     l0 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l1));
     l1 = INT64_C(0);
-    t3 = snippet$id__i32(INT32_C(3));
-    l2 = ((int64_t) (int32_t) t3);
+    l2 = ((int64_t) (int32_t) l3);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 2u);
-    l1 = std_core$write_string_at(l0, l1, l3);
+    l1 = std_core$write_string_at(l0, l1, l4);
     t1 = std_core$finish_buffer(l0, l1);
     std_io$println__string(t1);
     t4 = __lambda_snippet_0();

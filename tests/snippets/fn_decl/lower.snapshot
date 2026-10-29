@@ -10,16 +10,17 @@
   snippet.host_log :: fn(level: i32, msg: string) -> void  // snippet$host_log
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<string>({
-          __p_0: string = snippet.greet("Ada", "Hello")
-          __p_1: string = snippet.greet("Ada", "Hi")
-          __buf_2: Buffer = std.core.new_byte_buffer(i64(22) +% (std.core.byte_len(__p_0) +% std.core.byte_len(__p_1)))
-          __off_3: i64 = 0
-          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.add(2, 3))
-          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_0)
-          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
-          std.core.finish_buffer(__buf_2, __off_3)
+          __p_0: i32 = snippet.add(2, 3)
+          __p_1: string = snippet.greet("Ada", "Hello")
+          __p_2: string = snippet.greet("Ada", "Hi")
+          __buf_3: Buffer = std.core.new_byte_buffer(i64(22) +% (std.core.byte_len(__p_1) +% std.core.byte_len(__p_2)))
+          __off_4: i64 = 0
+          __off_4 = std.core.write_int(__buf_3, __off_4, __p_0)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_1)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_2)
+          std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       return 0
   }

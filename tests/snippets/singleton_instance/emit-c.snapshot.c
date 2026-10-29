@@ -324,7 +324,7 @@ static void snippet$bump(void) {
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;
-    int64_t l1, l5;
+    int64_t l1, l5, l6;
     bool l2;
     int32_t l3;
     vader_string_t l4 = 0;
@@ -356,26 +356,26 @@ static int32_t snippet$main(void) {
     t1 = ((vader_struct_snippet$Counter_t*) l0)->f_n;
     l3 = vader_chk_add(i32, t1, INT32_C(5));
     ((vader_struct_snippet$Counter_t*) l0)->f_n = l3;
+    t2 = snippet$counter();
+    l3 = ((vader_struct_snippet$Counter_t*) t2)->f_n;
+    t2 = snippet$log();
+    l1 = ((vader_array_t*) t2)->length;
     t2 = snippet$log();
     vader_array_t* _a0_slotarr = ((vader_array_t*) t2);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(1))
     t3 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) INT32_C(1)];
     l4 = t3.payload.s;
-    l1 = vader_host_std_core$byte_len(l4);
-    l0 = (void*) vader_buffer_new((size_t) (INT64_C(42) + l1));
-    l1 = INT64_C(0);
-    t2 = snippet$counter();
-    t1 = ((vader_struct_snippet$Counter_t*) t2)->f_n;
-    l5 = ((int64_t) (int32_t) t1);
-    l1 = std_core$write_int(l0, l1, l5);
-    l1 = std_core$write_string_at(l0, l1, 2u);
-    t2 = snippet$log();
-    l5 = ((vader_array_t*) t2)->length;
-    l1 = std_core$write_int(l0, l1, l5);
-    l1 = std_core$write_string_at(l0, l1, 2u);
-    l1 = std_core$write_string_at(l0, l1, l4);
-    t0 = std_core$finish_buffer(l0, l1);
+    l5 = vader_host_std_core$byte_len(l4);
+    l0 = (void*) vader_buffer_new((size_t) (INT64_C(42) + l5));
+    l5 = INT64_C(0);
+    l6 = ((int64_t) (int32_t) l3);
+    l5 = std_core$write_int(l0, l5, l6);
+    l5 = std_core$write_string_at(l0, l5, 2u);
+    l5 = std_core$write_int(l0, l5, l1);
+    l5 = std_core$write_string_at(l0, l5, 2u);
+    l5 = std_core$write_string_at(l0, l5, l4);
+    t0 = std_core$finish_buffer(l0, l5);
     std_io$println__string(t0);
     l0 = (void*) vader_buffer_new((size_t) INT64_C(41));
     l1 = INT64_C(0);

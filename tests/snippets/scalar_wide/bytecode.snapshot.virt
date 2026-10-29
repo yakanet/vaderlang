@@ -237,7 +237,7 @@ fn 24 snippet$main () -> i32
   local $cast_87 u64
   local __p_14 string
   local __p_15 string
-  local __p_16 string
+  local __p_17 string
   i64.const 5000000000
   local.set 0   ; big
   i64.const 62
@@ -520,10 +520,14 @@ fn 24 snippet$main () -> i32
   call 15   ; snippet$f_div
   call 32   ; std_core$f64$Display$to_string
   local.set 7   ; __p_15
+  f64.const -0.5 13826050856027422720
+  f64.const 0.0 0
+  call 16   ; snippet$f_lt
+  local.set 4   ; $call_39
   f64.const 2.5 4612811918334230528
   call 17   ; snippet$f_neg
   call 32   ; std_core$f64$Display$to_string
-  local.set 8   ; __p_16
+  local.set 8   ; __p_17
   local.get 6   ; __p_14
   call.import 0   ; std_core$byte_len
   local.set 0   ; big
@@ -534,7 +538,7 @@ fn 24 snippet$main () -> i32
   local.get 2   ; __off_1
   i64.add
   local.set 0   ; big
-  local.get 8   ; __p_16
+  local.get 8   ; __p_17
   call.import 0   ; std_core$byte_len
   local.set 2   ; __off_1
   local.get 0   ; big
@@ -568,10 +572,6 @@ fn 24 snippet$main () -> i32
   string.const 0   ; " "
   call 27   ; std_core$write_string_at
   local.set 0   ; big
-  f64.const -0.5 13826050856027422720
-  f64.const 0.0 0
-  call 16   ; snippet$f_lt
-  local.set 4   ; $call_39
   local.get 1   ; __buf_0
   local.get 0   ; big
   local.get 4   ; $call_39
@@ -584,73 +584,73 @@ fn 24 snippet$main () -> i32
   local.set 0   ; big
   local.get 1   ; __buf_0
   local.get 0   ; big
-  local.get 8   ; __p_16
+  local.get 8   ; __p_17
   call 27   ; std_core$write_string_at
   local.set 0   ; big
   local.get 1   ; __buf_0
   local.get 0   ; big
   call 26   ; std_core$finish_buffer
   call 56   ; std_io$println__string
+  bool.const true
+  call 18   ; snippet$b_not
+  local.set 4   ; $call_39
+  i32.const -7
+  call 19   ; snippet$to_long
+  local.set 0   ; big
   i32.const 65
   call 20   ; snippet$to_chr
   call 31   ; std_core$char$Display$to_string
   local.tee 6   ; __p_14
   call.import 0   ; std_core$byte_len
-  local.set 0   ; big
+  local.set 2   ; __off_1
   i64.const 48
-  local.get 0   ; big
+  local.get 2   ; __off_1
   i64.add
   buffer.new
   local.set 1   ; __buf_0
   i64.const 0
-  local.set 0   ; big
-  bool.const true
-  call 18   ; snippet$b_not
-  local.set 4   ; $call_39
-  local.get 1   ; __buf_0
-  local.get 0   ; big
-  local.get 4   ; $call_39
-  call 30   ; std_core$write_bool
-  local.set 0   ; big
-  local.get 1   ; __buf_0
-  local.get 0   ; big
-  string.const 0   ; " "
-  call 27   ; std_core$write_string_at
-  local.set 0   ; big
-  i32.const -7
-  call 19   ; snippet$to_long
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
-  local.get 0   ; big
   local.get 2   ; __off_1
-  call 28   ; std_core$write_int
-  local.set 0   ; big
+  local.get 4   ; $call_39
+  call 30   ; std_core$write_bool
+  local.set 2   ; __off_1
   local.get 1   ; __buf_0
-  local.get 0   ; big
+  local.get 2   ; __off_1
   string.const 0   ; " "
   call 27   ; std_core$write_string_at
-  local.set 0   ; big
+  local.set 2   ; __off_1
   local.get 1   ; __buf_0
+  local.get 2   ; __off_1
   local.get 0   ; big
+  call 28   ; std_core$write_int
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  string.const 0   ; " "
+  call 27   ; std_core$write_string_at
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
   local.get 6   ; __p_14
   call 27   ; std_core$write_string_at
-  local.set 0   ; big
+  local.set 2   ; __off_1
   local.get 1   ; __buf_0
-  local.get 0   ; big
+  local.get 2   ; __off_1
   string.const 0   ; " "
   call 27   ; std_core$write_string_at
-  local.set 0   ; big
+  local.set 2   ; __off_1
   char.const 122
   call 21   ; snippet$from_chr
   i32.to_i64
-  local.set 2   ; __off_1
-  local.get 1   ; __buf_0
-  local.get 0   ; big
-  local.get 2   ; __off_1
-  call 28   ; std_core$write_int
   local.set 0   ; big
   local.get 1   ; __buf_0
+  local.get 2   ; __off_1
   local.get 0   ; big
+  call 28   ; std_core$write_int
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
   call 26   ; std_core$finish_buffer
   call 56   ; std_io$println__string
   return.lit i32.const 0

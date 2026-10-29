@@ -113,13 +113,14 @@
       l: Log = Log { .lines = [] :string[] }
       snippet.put(l)
       std.io.println<string>({
-          __p_0: string = l.lines[1]
-          __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_0))
-          __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, std.collections.len<string, i32>(m))
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
-          std.core.finish_buffer(__buf_1, __off_2)
+          __p_0: i64 = std.collections.len<string, i32>(m)
+          __p_1: string = l.lines[1]
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_1))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       t: Tally = Tally {
           .counts = MutableMap<string, i32> {
@@ -134,26 +135,26 @@
       }
       c: Cell = Cell { .cells = [5] :i32[] }
       std.io.println<string>({
-          __buf_3: Buffer = std.core.new_byte_buffer(i64(41))
-          __off_4: i64 = 0
-          __off_4 = std.core.write_int(__buf_3, __off_4, snippet.bump(t))
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_int(__buf_3, __off_4, snippet.bump(c))
-          std.core.finish_buffer(__buf_3, __off_4)
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(41))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.bump(t))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.bump(c))
+          std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       xs: i64[] = [i64(4), i64(8)] :i64[]
       odd: Odd = Odd { .n = i64(0) }
       std.io.println<string>({
-          __buf_5: Buffer = std.core.new_byte_buffer(i64(23))
-          __off_6: i64 = 0
-          __off_6 = std.core.write_bool(__buf_5, __off_6, snippet.holds(xs, i64(8)))
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
-          __off_6 = std.core.write_bool(__buf_5, __off_6, snippet.holds(odd, i64(5)))
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
-          __off_6 = std.core.write_bool(__buf_5, __off_6, snippet.lacks(xs, i64(5)))
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
-          __off_6 = std.core.write_bool(__buf_5, __off_6, snippet.holds_value(odd, i64(4)))
-          std.core.finish_buffer(__buf_5, __off_6)
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(23))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.holds(xs, i64(8)))
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.holds(odd, i64(5)))
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.lacks(xs, i64(5)))
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.holds_value(odd, i64(4)))
+          std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>(concat_5(@vcall(std.core.Display.to_string, snippet.plus_five(1)), " ", @vcall(std.core.Display.to_string, snippet.plus_five(Money { .c = 1 })), " ", snippet.plus_one(Money { .c = 2 })))
       return 0

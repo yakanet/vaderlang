@@ -26,13 +26,14 @@
       std.io.println<string>(snippet.pair<i64, string>(i64(1), "s"))
       std.io.println<string>(snippet.apply(snippet.name_of<i32>, 3))
       std.io.println<string>({
-          __p_3: string = snippet.id<string>("s")
-          __buf_4: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_3))
-          __off_5: i64 = 0
-          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.id<i32>(3))
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
-          std.core.finish_buffer(__buf_4, __off_5)
+          __p_3: i32 = snippet.id<i32>(3)
+          __p_4: string = snippet.id<string>("s")
+          __buf_5: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_4))
+          __off_6: i64 = 0
+          __off_6 = std.core.write_int(__buf_5, __off_6, __p_3)
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
+          std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       later: fn() -> bool = __lambda_snippet_0
       std.io.println<bool>(__lambda_snippet_0())

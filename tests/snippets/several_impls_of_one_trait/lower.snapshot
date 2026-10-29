@@ -102,24 +102,25 @@
       snippet$Grid$std_core$IndexSet$set_at(g, 1, 20)
       snippet$Grid$std_core$IndexSet$set_at$1(g, "k", "v")
       std.io.println<string>({
-          __p_0: string = snippet$Grid$std_core$Index$at$1(g, "x")
-          __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_0))
-          __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, snippet$Grid$std_core$Index$at(g, 1))
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
-          std.core.finish_buffer(__buf_1, __off_2)
+          __p_0: i32 = snippet$Grid$std_core$Index$at(g, 1)
+          __p_1: string = snippet$Grid$std_core$Index$at$1(g, "x")
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_1))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       bag: Bag = Bag { .n = 3 }
       std.io.println<string>({
-          __buf_3: Buffer = std.core.new_byte_buffer(i64(17))
-          __off_4: i64 = 0
-          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet$Bag$std_core$Contains$contains(bag, 3))
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet$Bag$std_core$Contains$contains(bag, 4))
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet$Bag$std_core$Contains$contains$1(bag, "bag"))
-          std.core.finish_buffer(__buf_3, __off_4)
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(17))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet$Bag$std_core$Contains$contains(bag, 3))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet$Bag$std_core$Contains$contains(bag, 4))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet$Bag$std_core$Contains$contains$1(bag, "bag"))
+          std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       m: Vec2 = snippet$Vec2$Make$make(1.5)
       n: Vec2 = snippet$Vec2$Make$make$1("s")
@@ -128,23 +129,24 @@
       t: Tag = snippet$Mon$std_core$Into$into$1(mon)
       l: Label = snippet$Mon$std_core$Into$into(mon)
       std.io.println<string>({
-          __p_5: string = l.s
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_5))
-          __off_7: i64 = 0
-          __off_7 = std.core.write_int(__buf_6, __off_7, t.n)
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
-          std.core.finish_buffer(__buf_6, __off_7)
+          __p_6: i32 = t.n
+          __p_7: string = l.s
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_7))
+          __off_9: i64 = 0
+          __off_9 = std.core.write_int(__buf_8, __off_9, __p_6)
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_7)
+          std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       p: Pile<i32> = Pile<i32> { .top = 1 }
       q: Pile<i32> = Pile<i32> { .top = 9 }
       std.io.println<string>({
-          __buf_8: Buffer = std.core.new_byte_buffer(i64(41))
-          __off_9: i64 = 0
-          __off_9 = std.core.write_int(__buf_8, __off_9, snippet$Pile$std_core$Add$add__i32(p, q).top)
-          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, snippet$Pile$std_core$Add$add__i32$1(p, 1.0).top)
-          std.core.finish_buffer(__buf_8, __off_9)
+          __buf_10: Buffer = std.core.new_byte_buffer(i64(41))
+          __off_11: i64 = 0
+          __off_11 = std.core.write_int(__buf_10, __off_11, snippet$Pile$std_core$Add$add__i32(p, q).top)
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
+          __off_11 = std.core.write_int(__buf_10, __off_11, snippet$Pile$std_core$Add$add__i32$1(p, 1.0).top)
+          std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       w: Wrap<Vec2> = Wrap<Vec2> { .inner = v }
       built_vec: Vec2 = snippet.built<Vec2>()
@@ -152,13 +154,14 @@
       sheet: Sheet = Sheet { .cells = [1, 2, 3] :i32[] }
       snippet.Sheet.set_at(sheet, 1, 20)
       std.io.println<string>({
-          __p_10: string = snippet$Sheet$std_core$Index$at$1(sheet, "q")
-          __buf_11: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_10))
-          __off_12: i64 = 0
-          __off_12 = std.core.write_int(__buf_11, __off_12, snippet$Sheet$std_core$Index$at(sheet, 1))
-          __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
-          __off_12 = std.core.write_string_at(__buf_11, __off_12, __p_10)
-          std.core.finish_buffer(__buf_11, __off_12)
+          __p_12: i32 = snippet$Sheet$std_core$Index$at(sheet, 1)
+          __p_13: string = snippet$Sheet$std_core$Index$at$1(sheet, "q")
+          __buf_14: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_13))
+          __off_15: i64 = 0
+          __off_15 = std.core.write_int(__buf_14, __off_15, __p_12)
+          __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
+          __off_15 = std.core.write_string_at(__buf_14, __off_15, __p_13)
+          std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       r: Rec = Rec {
           .a = 1,
@@ -167,41 +170,41 @@
           .t = "y",
           .u = "z",
       }
-      __tup_13: Rec = r
-      x: string = __tup_13.s
-      y: string = __tup_13.t
-      z: string = __tup_13.u
-      __tup_14: Rec = r
-      i: i32 = __tup_14.a
-      j: i32 = __tup_14.b
+      __tup_16: Rec = r
+      x: string = __tup_16.s
+      y: string = __tup_16.t
+      z: string = __tup_16.u
+      __tup_17: Rec = r
+      i: i32 = __tup_17.a
+      j: i32 = __tup_17.b
       std.io.println<string>({
-          __p_15: string = x
-          __p_16: string = y
-          __p_17: string = z
-          __buf_18: Buffer = std.core.new_byte_buffer(i64(21) +% ((std.core.byte_len(__p_15) +% std.core.byte_len(__p_16)) +% std.core.byte_len(__p_17)))
-          __off_19: i64 = 0
-          __off_19 = std.core.write_string_at(__buf_18, __off_19, __p_15)
-          __off_19 = std.core.write_string_at(__buf_18, __off_19, __p_16)
-          __off_19 = std.core.write_string_at(__buf_18, __off_19, __p_17)
-          __off_19 = std.core.write_string_at(__buf_18, __off_19, " ")
-          __off_19 = std.core.write_int(__buf_18, __off_19, i + j)
-          std.core.finish_buffer(__buf_18, __off_19)
+          __p_18: string = x
+          __p_19: string = y
+          __p_20: string = z
+          __buf_21: Buffer = std.core.new_byte_buffer(i64(21) +% ((std.core.byte_len(__p_18) +% std.core.byte_len(__p_19)) +% std.core.byte_len(__p_20)))
+          __off_22: i64 = 0
+          __off_22 = std.core.write_string_at(__buf_21, __off_22, __p_18)
+          __off_22 = std.core.write_string_at(__buf_21, __off_22, __p_19)
+          __off_22 = std.core.write_string_at(__buf_21, __off_22, __p_20)
+          __off_22 = std.core.write_string_at(__buf_21, __off_22, " ")
+          __off_22 = std.core.write_int(__buf_21, __off_22, i + j)
+          std.core.finish_buffer(__buf_21, __off_22)
       } :string)
       counter: Counter = Counter { .n = 0 }
       {
-          __iter_20: Counter = counter
+          __iter_23: Counter = counter
           for {
-              __step_21: [i32, Continuation] = snippet.Counter.next(__iter_20)
-              if __step_21._1 == Continuation(1) {
+              __step_24: [i32, Continuation] = snippet.Counter.next(__iter_23)
+              if __step_24._1 == Continuation(1) {
                   break
               } else {
-                  k: i32 = __step_21._0
+                  k: i32 = __step_24._0
                   std.io.println<string>({
-                      __buf_22: Buffer = std.core.new_byte_buffer(i64(26))
-                      __off_23: i64 = 0
-                      __off_23 = std.core.write_string_at(__buf_22, __off_23, "count ")
-                      __off_23 = std.core.write_int(__buf_22, __off_23, k + 1)
-                      std.core.finish_buffer(__buf_22, __off_23)
+                      __buf_25: Buffer = std.core.new_byte_buffer(i64(26))
+                      __off_26: i64 = 0
+                      __off_26 = std.core.write_string_at(__buf_25, __off_26, "count ")
+                      __off_26 = std.core.write_int(__buf_25, __off_26, k + 1)
+                      std.core.finish_buffer(__buf_25, __off_26)
                   } :string)
               }
           }

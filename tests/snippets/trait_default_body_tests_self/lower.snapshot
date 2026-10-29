@@ -95,19 +95,20 @@
           for __for_i_2 < __for_len_1 {
               p: Probe = __for_arr_0[__for_i_2]
               std.io.println<string>({
-                  __p_3: string = @vcall(snippet.Probe.kind, p)
-                  __buf_4: Buffer = std.core.new_byte_buffer(i64(54) +% std.core.byte_len(__p_3))
-                  __off_5: i64 = 0
-                  __off_5 = std.core.write_int(__buf_4, __off_5, @vcall(snippet.Probe.describe, p))
-                  __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-                  __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
-                  __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-                  __off_5 = std.core.write_int(__buf_4, __off_5, @vcall(snippet.Probe.guarded, p))
-                  __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-                  __off_5 = std.core.write_bool(__buf_4, __off_5, @vcall(snippet.Probe.aliased, p))
-                  __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-                  __off_5 = std.core.write_bool(__buf_4, __off_5, @vcall(snippet.Probe.absent, p))
-                  std.core.finish_buffer(__buf_4, __off_5)
+                  __p_3: i32 = @vcall(snippet.Probe.describe, p)
+                  __p_4: string = @vcall(snippet.Probe.kind, p)
+                  __buf_5: Buffer = std.core.new_byte_buffer(i64(54) +% std.core.byte_len(__p_4))
+                  __off_6: i64 = 0
+                  __off_6 = std.core.write_int(__buf_5, __off_6, __p_3)
+                  __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+                  __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
+                  __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+                  __off_6 = std.core.write_int(__buf_5, __off_6, @vcall(snippet.Probe.guarded, p))
+                  __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+                  __off_6 = std.core.write_bool(__buf_5, __off_6, @vcall(snippet.Probe.aliased, p))
+                  __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+                  __off_6 = std.core.write_bool(__buf_5, __off_6, @vcall(snippet.Probe.absent, p))
+                  std.core.finish_buffer(__buf_5, __off_6)
               } :string)
           } @step {
               __for_i_2 = __for_i_2 +% i64(1)

@@ -28,27 +28,28 @@
           out
       }
       std.io.println<string>({
-          __p_2: string = ks[1][0]
-          __p_3: string = ks[1][1]
-          __buf_4: Buffer = std.core.new_byte_buffer(i64(29) +% (std.core.byte_len(__p_2) +% std.core.byte_len(__p_3)))
-          __off_5: i64 = 0
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, "named: ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, @array.len(ks))
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_2)
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
-          std.core.finish_buffer(__buf_4, __off_5)
+          __p_2: i64 = @array.len(ks)
+          __p_3: string = ks[1][0]
+          __p_4: string = ks[1][1]
+          __buf_5: Buffer = std.core.new_byte_buffer(i64(29) +% (std.core.byte_len(__p_3) +% std.core.byte_len(__p_4)))
+          __off_6: i64 = 0
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, "named: ")
+          __off_6 = std.core.write_int(__buf_5, __off_6, __p_2)
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_3)
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
+          std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       ls: string[][] = {
-          __fuse_arr_6: Rec[] = rs
+          __fuse_arr_7: Rec[] = rs
           f: fn(Rec) -> string[] = __lambda_snippet_0
-          out: string[][] = @array.repeat([] :string[][], @array.len(__fuse_arr_6))
+          out: string[][] = @array.repeat([] :string[][], @array.len(__fuse_arr_7))
           {
-              __fuse_len_0: i64 = @array.len(__fuse_arr_6)
+              __fuse_len_0: i64 = @array.len(__fuse_arr_7)
               __fuse_i_1: i64 = 0
               for __fuse_i_1 < __fuse_len_0 {
-                  x: Rec = __fuse_arr_6[__fuse_i_1]
+                  x: Rec = __fuse_arr_7[__fuse_i_1]
                   x: string[] = __lambda_snippet_0(x)
                   @array.push(out, x)
               } @step {
@@ -58,24 +59,25 @@
           out
       }
       std.io.println<string>({
-          __p_8: string = ls[0][1]
-          __buf_9: Buffer = std.core.new_byte_buffer(i64(29) +% std.core.byte_len(__p_8))
-          __off_10: i64 = 0
-          __off_10 = std.core.write_string_at(__buf_9, __off_10, "lambda: ")
-          __off_10 = std.core.write_int(__buf_9, __off_10, @array.len(ls))
-          __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
-          __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_8)
-          std.core.finish_buffer(__buf_9, __off_10)
+          __p_9: i64 = @array.len(ls)
+          __p_10: string = ls[0][1]
+          __buf_11: Buffer = std.core.new_byte_buffer(i64(29) +% std.core.byte_len(__p_10))
+          __off_12: i64 = 0
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, "lambda: ")
+          __off_12 = std.core.write_int(__buf_11, __off_12, __p_9)
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, __p_10)
+          std.core.finish_buffer(__buf_11, __off_12)
       } :string)
       ss: Rec[] = {
-          __fuse_arr_11: Rec[] = rs
+          __fuse_arr_13: Rec[] = rs
           f: fn(Rec) -> Rec = snippet.same
-          out: Rec[] = @array.repeat([] :Rec[], @array.len(__fuse_arr_11))
+          out: Rec[] = @array.repeat([] :Rec[], @array.len(__fuse_arr_13))
           {
-              __fuse_len_0: i64 = @array.len(__fuse_arr_11)
+              __fuse_len_0: i64 = @array.len(__fuse_arr_13)
               __fuse_i_1: i64 = 0
               for __fuse_i_1 < __fuse_len_0 {
-                  x: Rec = __fuse_arr_11[__fuse_i_1]
+                  x: Rec = __fuse_arr_13[__fuse_i_1]
                   x: Rec = snippet.same(x)
                   @array.push_cached(out, x)
               } @step {

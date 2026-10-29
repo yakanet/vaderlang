@@ -18,41 +18,44 @@
   snippet.Bag<string> :: struct { items: string[] }  // snippet$Bag__string
   snippet$Box$Conv$conv__i32 :: fn(self: Box, x: i32) -> string {
       {
-          __p_0: string = "i32"
-          __buf_1: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_0))
-          __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, self.v)
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(4))
-          std.core.finish_buffer(__buf_1, __off_2)
+          __p_0: i32 = self.v
+          __p_1: string = "i32"
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_1))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(4))
+          std.core.finish_buffer(__buf_2, __off_3)
       } :string
   }
   snippet$Box$Conv$conv__string :: fn(self: Box, x: string) -> string {
       {
-          __p_0: string = "string"
-          __buf_1: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_0))
-          __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, self.v)
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(4))
-          std.core.finish_buffer(__buf_1, __off_2)
+          __p_0: i32 = self.v
+          __p_1: string = "string"
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_1))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(4))
+          std.core.finish_buffer(__buf_2, __off_3)
       } :string
   }
   snippet$Box$Conv$conv__i64 :: fn(self: Box, x: i64) -> string {
       {
-          __p_0: string = "i64"
-          __buf_1: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_0))
-          __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, self.v)
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(8))
-          std.core.finish_buffer(__buf_1, __off_2)
+          __p_0: i32 = self.v
+          __p_1: string = "i64"
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_1))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(8))
+          std.core.finish_buffer(__buf_2, __off_3)
       } :string
   }
   snippet$Box$Conv$make__bool :: fn(v: bool) -> Box {
@@ -91,15 +94,16 @@
   }
   snippet$Box$Conv$conv__f64 :: fn(self: Box, x: f64) -> string {
       {
-          __p_0: string = "f64"
-          __buf_1: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_0))
-          __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, self.v)
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(8))
-          std.core.finish_buffer(__buf_1, __off_2)
+          __p_0: i32 = self.v
+          __p_1: string = "f64"
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_1))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(8))
+          std.core.finish_buffer(__buf_2, __off_3)
       } :string
   }
   snippet.through_bound<Box> :: fn(t: Box) -> string {  // snippet$through_bound__snippet_Box

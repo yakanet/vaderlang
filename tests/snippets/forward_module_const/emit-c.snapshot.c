@@ -197,10 +197,10 @@ static int32_t snippet$main(void) {
     vader_string_t l0 = 0;
     vader_string_t l1 = 0;
     vader_string_t l2 = 0;
-    int64_t l3, l4;
-    void* l5 = NULL;
+    int64_t l3, l4, l5;
+    void* l6 = NULL;
     vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l5 };
+    void** gc_raw_roots[1] = { &l6 };
     vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &t0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
@@ -211,25 +211,25 @@ static int32_t snippet$main(void) {
     l2 = snippet$kind(8u);
     t0 = concat_5(l0, 6u, l1, 6u, l2);
     std_io$println__string(t0);
+    l3 = snippet$count_numeric();
     l0 = snippet$first_name();
     l1 = snippet$joined();
     l2 = snippet$limit_text();
-    l3 = vader_host_std_core$byte_len(l0);
-    l4 = vader_host_std_core$byte_len(l1);
-    l3 = (l3 + l4);
-    l4 = vader_host_std_core$byte_len(l2);
-    l3 = (l3 + l4);
-    l5 = (void*) vader_buffer_new((size_t) (INT64_C(23) + l3));
-    l3 = INT64_C(0);
-    l4 = snippet$count_numeric();
-    l3 = std_core$write_int(l5, l3, l4);
-    l3 = std_core$write_string_at(l5, l3, 6u);
-    l3 = std_core$write_string_at(l5, l3, l0);
-    l3 = std_core$write_string_at(l5, l3, 6u);
-    l3 = std_core$write_string_at(l5, l3, l1);
-    l3 = std_core$write_string_at(l5, l3, 6u);
-    l3 = std_core$write_string_at(l5, l3, l2);
-    t0 = std_core$finish_buffer(l5, l3);
+    l4 = vader_host_std_core$byte_len(l0);
+    l5 = vader_host_std_core$byte_len(l1);
+    l4 = (l4 + l5);
+    l5 = vader_host_std_core$byte_len(l2);
+    l4 = (l4 + l5);
+    l6 = (void*) vader_buffer_new((size_t) (INT64_C(23) + l4));
+    l4 = INT64_C(0);
+    l4 = std_core$write_int(l6, l4, l3);
+    l4 = std_core$write_string_at(l6, l4, 6u);
+    l4 = std_core$write_string_at(l6, l4, l0);
+    l4 = std_core$write_string_at(l6, l4, 6u);
+    l4 = std_core$write_string_at(l6, l4, l1);
+    l4 = std_core$write_string_at(l6, l4, 6u);
+    l4 = std_core$write_string_at(l6, l4, l2);
+    t0 = std_core$finish_buffer(l6, l4);
     std_io$println__string(t0);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }

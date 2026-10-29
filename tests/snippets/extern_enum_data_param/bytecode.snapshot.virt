@@ -50,7 +50,8 @@ fn 2 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 i64
-  local __p_4 string
+  local __p_4 i32
+  local __p_5 string
   i64.const 62
   buffer.new
   local.set 0   ; __buf_0
@@ -140,6 +141,10 @@ fn 2 snippet$main () -> i32
   local.get 1   ; __off_1
   call 4   ; std_core$finish_buffer
   call 12   ; std_io$println__string
+  fn.ref 7 3   ; snippet_status$abs_status fn
+  i32.const 2
+  call 1   ; snippet$apply
+  local.set 3   ; __p_4
   data.const 0 12   ; pool[0] snippet_status$StatusInfo[]
   local.set 0   ; __buf_0
   i32.const 2
@@ -150,7 +155,7 @@ fn 2 snippet$main () -> i32
   array.get 12   ; snippet_status$StatusInfo[]
   struct.get 10 0   ; snippet_status$StatusInfo.reason
   ref.cast 5   ; string
-  local.tee 3   ; __p_4
+  local.tee 4   ; __p_5
   call.import 1   ; std_core$byte_len
   local.set 1   ; __off_1
   i64.const 21
@@ -160,9 +165,7 @@ fn 2 snippet$main () -> i32
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
-  fn.ref 7 3   ; snippet_status$abs_status fn
-  i32.const 2
-  call 1   ; snippet$apply
+  local.get 3   ; __p_4
   i32.to_i64
   local.set 2   ; $cast_7
   local.get 0   ; __buf_0
@@ -177,7 +180,7 @@ fn 2 snippet$main () -> i32
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 3   ; __p_4
+  local.get 4   ; __p_5
   call 5   ; std_core$write_string_at
   local.set 1   ; __off_1
   local.get 0   ; __buf_0

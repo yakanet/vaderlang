@@ -70,8 +70,9 @@ fn 1 snippet$main () -> i32
   local __off_1 i64
   local $len_17 i64
   local $call_54 string
-  local __p_5 string
-  local $mul_checked_121 i32
+  local __p_6 string
+  local $call_67 i64
+  local $mul_checked_122 i32
   array.new 1 0   ; i32[]
   i64.const 9
   array.repeat
@@ -203,6 +204,9 @@ fn 1 snippet$main () -> i32
     end $L3
   end $L2
   local.get 0   ; numbers
+  array.len
+  local.set 3   ; __off_1
+  local.get 0   ; numbers
   i32.const 0
   array.get 10   ; string[]
   ref.cast 3   ; string
@@ -211,59 +215,56 @@ fn 1 snippet$main () -> i32
   i32.const 8
   array.get 10   ; string[]
   ref.cast 3   ; string
-  local.set 6   ; __p_5
+  local.set 6   ; __p_6
   local.get 5   ; $call_54
   call.import 0   ; std_core$byte_len
-  local.set 3   ; __off_1
-  local.get 6   ; __p_5
-  call.import 0   ; std_core$byte_len
   local.set 4   ; $len_17
-  local.get 3   ; __off_1
+  local.get 6   ; __p_6
+  call.import 0   ; std_core$byte_len
+  local.set 7   ; $call_67
   local.get 4   ; $len_17
+  local.get 7   ; $call_67
   i64.add
-  local.set 3   ; __off_1
+  local.set 4   ; $len_17
   i64.const 44
-  local.get 3   ; __off_1
+  local.get 4   ; $len_17
   i64.add
   buffer.new
-  local.set 2   ; __buf_0
+  local.set 0   ; numbers
   i64.const 0
-  local.set 3   ; __off_1
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
+  local.set 4   ; $len_17
+  local.get 0   ; numbers
+  local.get 4   ; $len_17
   string.const 5   ; "string len="
   call 4   ; std_core$write_string_at
-  local.set 3   ; __off_1
-  local.get 0   ; numbers
-  array.len
   local.set 4   ; $len_17
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
+  local.get 0   ; numbers
   local.get 4   ; $len_17
-  call 5   ; std_core$write_int
-  local.set 3   ; __off_1
-  local.get 2   ; __buf_0
   local.get 3   ; __off_1
+  call 5   ; std_core$write_int
+  local.set 4   ; $len_17
+  local.get 0   ; numbers
+  local.get 4   ; $len_17
   string.const 1   ; " first="
   call 4   ; std_core$write_string_at
-  local.set 3   ; __off_1
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
+  local.set 4   ; $len_17
+  local.get 0   ; numbers
+  local.get 4   ; $len_17
   local.get 5   ; $call_54
   call 4   ; std_core$write_string_at
-  local.set 3   ; __off_1
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
+  local.set 4   ; $len_17
+  local.get 0   ; numbers
+  local.get 4   ; $len_17
   string.const 2   ; " last="
   call 4   ; std_core$write_string_at
-  local.set 3   ; __off_1
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
-  local.get 6   ; __p_5
+  local.set 4   ; $len_17
+  local.get 0   ; numbers
+  local.get 4   ; $len_17
+  local.get 6   ; __p_6
   call 4   ; std_core$write_string_at
-  local.set 3   ; __off_1
-  local.get 2   ; __buf_0
-  local.get 3   ; __off_1
+  local.set 4   ; $len_17
+  local.get 0   ; numbers
+  local.get 4   ; $len_17
   call 3   ; std_core$finish_buffer
   call 9   ; std_io$println__string
   array.new 1 0   ; i32[]
@@ -348,9 +349,9 @@ fn 1 snippet$main () -> i32
       local.get 1   ; i
       i32.const 2
       i32.checked_mul
-      local.set 7   ; $mul_checked_121
+      local.set 8   ; $mul_checked_122
       local.get 0   ; numbers
-      local.get 7   ; $mul_checked_121
+      local.get 8   ; $mul_checked_122
       array.push 2 0   ; i32 numbers
       local.get 1   ; i
       i32.const 1

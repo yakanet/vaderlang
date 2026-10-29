@@ -41,50 +41,51 @@
       std.io.println<string>("")
       rate: i64 = 50
       std.io.println<string>({
-          __p_4: string = snippet.Discount.to_string({
+          __p_4: bool = ((rate == i64(0)) || (rate == i64(50))) || (rate == i64(100))
+          __p_5: string = snippet.Discount.to_string({
               if !(((rate == i64(0)) || (rate == i64(50))) || (rate == i64(100))) {
                   @unreachable("value out of range: no value of `Discount`")
               }
               Discount(rate)
           } :Discount)
-          __buf_5: Buffer = std.core.new_byte_buffer(i64(12) +% std.core.byte_len(__p_4))
-          __off_6: i64 = 0
-          __off_6 = std.core.write_bool(__buf_5, __off_6, ((rate == i64(0)) || (rate == i64(50))) || (rate == i64(100)))
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
-          __off_6 = std.core.write_bool(__buf_5, __off_6, false)
-          std.core.finish_buffer(__buf_5, __off_6)
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(12) +% std.core.byte_len(__p_5))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_bool(__buf_6, __off_7, __p_4)
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, false)
+          std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       hours: i32 = 0
       {
-          __for_v_7: u8 = 9
-          for __for_v_7 <= u8(18) {
-              h: Opening = __for_v_7
+          __for_v_8: u8 = 9
+          for __for_v_8 <= u8(18) {
+              h: Opening = __for_v_8
               hours = hours + h
           } @step {
-              __for_v_7 = __for_v_7 +% u8(1)
+              __for_v_8 = __for_v_8 +% u8(1)
           }
       }
       bytes: i32 = 0
       {
-          __for_v_8: u8 = 0
-          __more_turns_9: bool = __for_v_8 <= u8(255)
-          for __more_turns_9 {
-              b: u8 = __for_v_8
+          __for_v_9: u8 = 0
+          __more_turns_10: bool = __for_v_9 <= u8(255)
+          for __more_turns_10 {
+              b: u8 = __for_v_9
               bytes = bytes + 1
           } @step {
-              __more_turns_9 = __for_v_8 < u8(255)
-              __for_v_8 = __for_v_8 +% u8(1)
+              __more_turns_10 = __for_v_9 < u8(255)
+              __for_v_9 = __for_v_9 +% u8(1)
           }
       }
       std.io.println<string>({
-          __buf_10: Buffer = std.core.new_byte_buffer(i64(41))
-          __off_11: i64 = 0
-          __off_11 = std.core.write_int(__buf_10, __off_11, hours)
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, bytes)
-          std.core.finish_buffer(__buf_10, __off_11)
+          __buf_11: Buffer = std.core.new_byte_buffer(i64(41))
+          __off_12: i64 = 0
+          __off_12 = std.core.write_int(__buf_11, __off_12, hours)
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
+          __off_12 = std.core.write_int(__buf_11, __off_12, bytes)
+          std.core.finish_buffer(__buf_11, __off_12)
       } :string)
       return 0
   }

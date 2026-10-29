@@ -846,7 +846,7 @@ static vader_string_t snippet$sign(int32_t l0) {
 }
 
 static int32_t snippet$main(void) {
-    int32_t l0, l8;
+    int32_t l0, l8, l9, l10, l11;
     vader_string_t l1 = 0;
     vader_string_t l2 = 0;
     vader_string_t l3 = 0;
@@ -890,28 +890,28 @@ static int32_t snippet$main(void) {
     l5 = std_core$write_string_at(l7, l5, l4);
     t0 = std_core$finish_buffer(l7, l5);
     std_io$println__string(t0);
+    l8 = vader_chk_neg(i32, INT32_C(5));
+    l9 = vader_chk_neg(i32, INT32_C(7));
+    l10 = vader_chk_sub(i32, l0, INT32_C(5));
+    l0 = vader_chk_sub(i32, l0, INT32_C(-5));
+    l11 = vader_chk_neg(i32, INT32_C(-5));
     l1 = std_core$f64$Display$to_string(-(5.0));
     l5 = vader_host_std_core$byte_len(l1);
     l7 = (void*) vader_buffer_new((size_t) (INT64_C(147) + l5));
     l5 = INT64_C(0);
-    t1 = vader_chk_neg(i32, INT32_C(5));
-    l6 = ((int64_t) (int32_t) t1);
+    l6 = ((int64_t) (int32_t) l8);
     l5 = std_core$write_int(l7, l5, l6);
     l5 = std_core$write_string_at(l7, l5, 4u);
-    t1 = vader_chk_neg(i32, INT32_C(7));
-    l6 = ((int64_t) (int32_t) t1);
+    l6 = ((int64_t) (int32_t) l9);
     l5 = std_core$write_int(l7, l5, l6);
     l5 = std_core$write_string_at(l7, l5, 4u);
-    t1 = vader_chk_sub(i32, l0, INT32_C(5));
-    l6 = ((int64_t) (int32_t) t1);
+    l6 = ((int64_t) (int32_t) l10);
     l5 = std_core$write_int(l7, l5, l6);
     l5 = std_core$write_string_at(l7, l5, 4u);
-    t1 = vader_chk_sub(i32, l0, INT32_C(-5));
-    l6 = ((int64_t) (int32_t) t1);
+    l6 = ((int64_t) (int32_t) l0);
     l5 = std_core$write_int(l7, l5, l6);
     l5 = std_core$write_string_at(l7, l5, 4u);
-    t1 = vader_chk_neg(i32, INT32_C(-5));
-    l6 = ((int64_t) (int32_t) t1);
+    l6 = ((int64_t) (int32_t) l11);
     l5 = std_core$write_int(l7, l5, l6);
     l5 = std_core$write_string_at(l7, l5, 4u);
     l5 = std_core$write_string_at(l7, l5, l1);
@@ -932,6 +932,14 @@ static int32_t snippet$main(void) {
         l0 = vader_chk_add(i32, l0, l8);
         l8 = (l8 + INT32_C(1));
     }
+    vader_array_t* _a0_arr = vader_array_new(13u, 2u, 7u, 1u);
+    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(-2);
+    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(-1);
+    t3 = (void*) _a0_arr;
+    vader_array_t* _a1_slotarr = ((vader_array_t*) t3);
+    VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+    VADER_ARRAY_CHECK_INDEX(_a1_slotarr, INT32_C(1))
+    l8 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) INT32_C(1)];
     l1 = snippet$sign(INT32_C(-1));
     l2 = snippet$sign(INT32_C(-2));
     l5 = vader_host_std_core$byte_len(l1);
@@ -942,15 +950,7 @@ static int32_t snippet$main(void) {
     l6 = ((int64_t) (int32_t) l0);
     l5 = std_core$write_int(l7, l5, l6);
     l5 = std_core$write_string_at(l7, l5, 4u);
-    vader_array_t* _a0_arr = vader_array_new(13u, 2u, 7u, 1u);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(-2);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(-1);
-    t3 = (void*) _a0_arr;
-    vader_array_t* _a1_slotarr = ((vader_array_t*) t3);
-    VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-    VADER_ARRAY_CHECK_INDEX(_a1_slotarr, INT32_C(1))
-    t1 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) INT32_C(1)];
-    l6 = ((int64_t) (int32_t) t1);
+    l6 = ((int64_t) (int32_t) l8);
     l5 = std_core$write_int(l7, l5, l6);
     l5 = std_core$write_string_at(l7, l5, 4u);
     l5 = std_core$write_string_at(l7, l5, l1);

@@ -112,9 +112,10 @@ fn 5 snippet$main () -> i32
   local $call_1 string
   local $call_4 string
   local $call_7 string
-  local $call_16 i64
-  local $call_17 i64
-  local __buf_3 ref
+  local __p_0 i64
+  local $call_18 i64
+  local $call_19 i64
+  local __buf_4 ref
   string.const 5   ; "i32"
   call 0   ; snippet$kind
   local.set 0   ; $call_1
@@ -131,6 +132,8 @@ fn 5 snippet$main () -> i32
   local.get 2   ; $call_7
   call 7   ; concat_5
   call 18   ; std_io$println__string
+  call 1   ; snippet$count_numeric
+  local.set 3   ; __p_0
   call 2   ; snippet$first_name
   local.set 0   ; $call_1
   call 3   ; snippet$joined
@@ -139,67 +142,65 @@ fn 5 snippet$main () -> i32
   local.set 2   ; $call_7
   local.get 0   ; $call_1
   call.import 0   ; std_core$byte_len
-  local.set 3   ; $call_16
+  local.set 4   ; $call_18
   local.get 1   ; $call_4
   call.import 0   ; std_core$byte_len
-  local.set 4   ; $call_17
-  local.get 3   ; $call_16
-  local.get 4   ; $call_17
+  local.set 5   ; $call_19
+  local.get 4   ; $call_18
+  local.get 5   ; $call_19
   i64.add
-  local.set 3   ; $call_16
+  local.set 4   ; $call_18
   local.get 2   ; $call_7
   call.import 0   ; std_core$byte_len
-  local.set 4   ; $call_17
-  local.get 3   ; $call_16
-  local.get 4   ; $call_17
+  local.set 5   ; $call_19
+  local.get 4   ; $call_18
+  local.get 5   ; $call_19
   i64.add
-  local.set 3   ; $call_16
+  local.set 4   ; $call_18
   i64.const 23
-  local.get 3   ; $call_16
+  local.get 4   ; $call_18
   i64.add
   buffer.new
-  local.set 5   ; __buf_3
+  local.set 6   ; __buf_4
   i64.const 0
-  local.set 3   ; $call_16
-  call 1   ; snippet$count_numeric
-  local.set 4   ; $call_17
-  local.get 5   ; __buf_3
-  local.get 3   ; $call_16
-  local.get 4   ; $call_17
+  local.set 4   ; $call_18
+  local.get 6   ; __buf_4
+  local.get 4   ; $call_18
+  local.get 3   ; __p_0
   call 11   ; std_core$write_int
-  local.set 3   ; $call_16
-  local.get 5   ; __buf_3
-  local.get 3   ; $call_16
+  local.set 4   ; $call_18
+  local.get 6   ; __buf_4
+  local.get 4   ; $call_18
   string.const 6   ; " "
   call 10   ; std_core$write_string_at
-  local.set 3   ; $call_16
-  local.get 5   ; __buf_3
-  local.get 3   ; $call_16
+  local.set 4   ; $call_18
+  local.get 6   ; __buf_4
+  local.get 4   ; $call_18
   local.get 0   ; $call_1
   call 10   ; std_core$write_string_at
-  local.set 3   ; $call_16
-  local.get 5   ; __buf_3
-  local.get 3   ; $call_16
+  local.set 4   ; $call_18
+  local.get 6   ; __buf_4
+  local.get 4   ; $call_18
   string.const 6   ; " "
   call 10   ; std_core$write_string_at
-  local.set 3   ; $call_16
-  local.get 5   ; __buf_3
-  local.get 3   ; $call_16
+  local.set 4   ; $call_18
+  local.get 6   ; __buf_4
+  local.get 4   ; $call_18
   local.get 1   ; $call_4
   call 10   ; std_core$write_string_at
-  local.set 3   ; $call_16
-  local.get 5   ; __buf_3
-  local.get 3   ; $call_16
+  local.set 4   ; $call_18
+  local.get 6   ; __buf_4
+  local.get 4   ; $call_18
   string.const 6   ; " "
   call 10   ; std_core$write_string_at
-  local.set 3   ; $call_16
-  local.get 5   ; __buf_3
-  local.get 3   ; $call_16
+  local.set 4   ; $call_18
+  local.get 6   ; __buf_4
+  local.get 4   ; $call_18
   local.get 2   ; $call_7
   call 10   ; std_core$write_string_at
-  local.set 3   ; $call_16
-  local.get 5   ; __buf_3
-  local.get 3   ; $call_16
+  local.set 4   ; $call_18
+  local.get 6   ; __buf_4
+  local.get 4   ; $call_18
   call 9   ; std_core$finish_buffer
   call 18   ; std_io$println__string
   return.lit i32.const 0

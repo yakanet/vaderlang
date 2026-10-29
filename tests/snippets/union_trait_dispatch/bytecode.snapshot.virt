@@ -499,9 +499,9 @@ fn 21 snippet$main () -> i32
   local $arr_21 ref
   local $arr_22 ref
   local $arr_23 ref
-  local $call_38 i64
-  local $call_44 i64
-  local $call_91 bool
+  local __p_0 i64
+  local $call_40 i64
+  local $call_92 bool
   f64.const 2.0 4611686018427387904
   struct.new 1   ; snippet$Sq
   call 2   ; snippet$area_of
@@ -557,40 +557,40 @@ fn 21 snippet$main () -> i32
   struct.new 9   ; snippet$Log
   local.tee 4   ; $arr_22
   call 7   ; snippet$put
+  local.get 3   ; $arr_21
+  call 131   ; std_collections$len__string__i32
+  local.set 6   ; __p_0
   local.field 4 9 0   ; $arr_22 snippet$Log.lines
   i32.const 1
   array.get 25   ; string[]
   ref.cast 7   ; string
   local.tee 0   ; $call_3
   call.import 0   ; std_core$byte_len
-  local.set 6   ; $call_38
+  local.set 7   ; $call_40
   i64.const 21
-  local.get 6   ; $call_38
+  local.get 7   ; $call_40
   i64.add
   buffer.new
-  local.set 4   ; $arr_22
+  local.set 3   ; $arr_21
   i64.const 0
-  local.set 6   ; $call_38
+  local.set 7   ; $call_40
   local.get 3   ; $arr_21
-  call 131   ; std_collections$len__string__i32
-  local.set 7   ; $call_44
-  local.get 4   ; $arr_22
-  local.get 6   ; $call_38
-  local.get 7   ; $call_44
+  local.get 7   ; $call_40
+  local.get 6   ; __p_0
   call 31   ; std_core$write_int
-  local.set 6   ; $call_38
-  local.get 4   ; $arr_22
-  local.get 6   ; $call_38
+  local.set 7   ; $call_40
+  local.get 3   ; $arr_21
+  local.get 7   ; $call_40
   string.const 8   ; " "
   call 30   ; std_core$write_string_at
-  local.set 6   ; $call_38
-  local.get 4   ; $arr_22
-  local.get 6   ; $call_38
+  local.set 7   ; $call_40
+  local.get 3   ; $arr_21
+  local.get 7   ; $call_40
   local.get 0   ; $call_3
   call 30   ; std_core$write_string_at
-  local.set 6   ; $call_38
-  local.get 4   ; $arr_22
-  local.get 6   ; $call_38
+  local.set 7   ; $call_40
+  local.get 3   ; $arr_21
+  local.get 7   ; $call_40
   call 29   ; std_core$finish_buffer
   call 135   ; std_io$println__string
   array.new 25 0   ; string[]
@@ -617,32 +617,32 @@ fn 21 snippet$main () -> i32
   buffer.new
   local.set 5   ; $arr_23
   i64.const 0
-  local.set 6   ; $call_38
+  local.set 6   ; __p_0
   local.get 3   ; $arr_21
   call 12   ; snippet$bump
   i32.to_i64
-  local.set 7   ; $call_44
+  local.set 7   ; $call_40
   local.get 5   ; $arr_23
-  local.get 6   ; $call_38
-  local.get 7   ; $call_44
+  local.get 6   ; __p_0
+  local.get 7   ; $call_40
   call 31   ; std_core$write_int
-  local.set 6   ; $call_38
+  local.set 6   ; __p_0
   local.get 5   ; $arr_23
-  local.get 6   ; $call_38
+  local.get 6   ; __p_0
   string.const 8   ; " "
   call 30   ; std_core$write_string_at
-  local.set 6   ; $call_38
+  local.set 6   ; __p_0
   local.get 4   ; $arr_22
   call 12   ; snippet$bump
   i32.to_i64
-  local.set 7   ; $call_44
+  local.set 7   ; $call_40
   local.get 5   ; $arr_23
-  local.get 6   ; $call_38
-  local.get 7   ; $call_44
+  local.get 6   ; __p_0
+  local.get 7   ; $call_40
   call 31   ; std_core$write_int
-  local.set 6   ; $call_38
+  local.set 6   ; __p_0
   local.get 5   ; $arr_23
-  local.get 6   ; $call_38
+  local.get 6   ; __p_0
   call 29   ; std_core$finish_buffer
   call 135   ; std_io$println__string
   i64.const 4
@@ -656,60 +656,60 @@ fn 21 snippet$main () -> i32
   buffer.new
   local.set 5   ; $arr_23
   i64.const 0
-  local.set 6   ; $call_38
+  local.set 6   ; __p_0
   local.get 3   ; $arr_21
   i64.const 8
   call 14   ; snippet$holds
-  local.set 8   ; $call_91
+  local.set 8   ; $call_92
   local.get 5   ; $arr_23
-  local.get 6   ; $call_38
-  local.get 8   ; $call_91
+  local.get 6   ; __p_0
+  local.get 8   ; $call_92
   call 33   ; std_core$write_bool
-  local.set 6   ; $call_38
+  local.set 6   ; __p_0
   local.get 5   ; $arr_23
-  local.get 6   ; $call_38
+  local.get 6   ; __p_0
   string.const 8   ; " "
   call 30   ; std_core$write_string_at
-  local.set 6   ; $call_38
+  local.set 6   ; __p_0
   local.get 4   ; $arr_22
   i64.const 5
   call 14   ; snippet$holds
-  local.set 8   ; $call_91
+  local.set 8   ; $call_92
   local.get 5   ; $arr_23
-  local.get 6   ; $call_38
-  local.get 8   ; $call_91
+  local.get 6   ; __p_0
+  local.get 8   ; $call_92
   call 33   ; std_core$write_bool
-  local.set 6   ; $call_38
+  local.set 6   ; __p_0
   local.get 5   ; $arr_23
-  local.get 6   ; $call_38
+  local.get 6   ; __p_0
   string.const 8   ; " "
   call 30   ; std_core$write_string_at
-  local.set 6   ; $call_38
+  local.set 6   ; __p_0
   local.get 3   ; $arr_21
   i64.const 5
   call 15   ; snippet$lacks
-  local.set 8   ; $call_91
+  local.set 8   ; $call_92
   local.get 5   ; $arr_23
-  local.get 6   ; $call_38
-  local.get 8   ; $call_91
+  local.get 6   ; __p_0
+  local.get 8   ; $call_92
   call 33   ; std_core$write_bool
-  local.set 6   ; $call_38
+  local.set 6   ; __p_0
   local.get 5   ; $arr_23
-  local.get 6   ; $call_38
+  local.get 6   ; __p_0
   string.const 8   ; " "
   call 30   ; std_core$write_string_at
-  local.set 6   ; $call_38
+  local.set 6   ; __p_0
   local.get 4   ; $arr_22
   i64.const 4
   call 16   ; snippet$holds_value
-  local.set 8   ; $call_91
+  local.set 8   ; $call_92
   local.get 5   ; $arr_23
-  local.get 6   ; $call_38
-  local.get 8   ; $call_91
+  local.get 6   ; __p_0
+  local.get 8   ; $call_92
   call 33   ; std_core$write_bool
-  local.set 6   ; $call_38
+  local.set 6   ; __p_0
   local.get 5   ; $arr_23
-  local.get 6   ; $call_38
+  local.get 6   ; __p_0
   call 29   ; std_core$finish_buffer
   call 135   ; std_io$println__string
   i32.const 1

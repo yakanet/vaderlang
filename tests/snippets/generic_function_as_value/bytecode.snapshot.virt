@@ -42,7 +42,8 @@ fn 1 snippet$main () -> i32
   local __fuse_arr_0 ref
   local __fuse_len_1 i64
   local __fuse_i_2 i64
-  local __p_3 string
+  local __p_3 i32
+  local __p_4 string
   fn.ref 7 1   ; snippet$name_of__i32 fn
   i32.const 5
   call 0   ; snippet$apply
@@ -88,9 +89,12 @@ fn 1 snippet$main () -> i32
   i32.const 3
   call 0   ; snippet$apply
   call 21   ; std_io$println__string
+  i32.const 3
+  call 4   ; snippet$id__i32
+  local.set 3   ; __p_3
   string.const 0   ; "s"
   call 5   ; snippet$id__string
-  local.tee 3   ; __p_3
+  local.tee 4   ; __p_4
   call.import 0   ; std_core$byte_len
   local.set 1   ; __fuse_len_1
   i64.const 21
@@ -100,8 +104,7 @@ fn 1 snippet$main () -> i32
   local.set 0   ; __fuse_arr_0
   i64.const 0
   local.set 1   ; __fuse_len_1
-  i32.const 3
-  call 4   ; snippet$id__i32
+  local.get 3   ; __p_3
   i32.to_i64
   local.set 2   ; __fuse_i_2
   local.get 0   ; __fuse_arr_0
@@ -116,7 +119,7 @@ fn 1 snippet$main () -> i32
   local.set 1   ; __fuse_len_1
   local.get 0   ; __fuse_arr_0
   local.get 1   ; __fuse_len_1
-  local.get 3   ; __p_3
+  local.get 4   ; __p_4
   call 13   ; std_core$write_string_at
   local.set 1   ; __fuse_len_1
   local.get 0   ; __fuse_arr_0

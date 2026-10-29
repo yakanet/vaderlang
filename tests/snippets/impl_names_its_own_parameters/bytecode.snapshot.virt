@@ -36,96 +36,101 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local b ref
-  local __p_0 string
-  local $call_9 i64
-  local __buf_1 ref
-  local $cast_16 i64
+  local s ref
+  local __p_0 i32
+  local __p_1 string
+  local $call_11 i64
+  local $cast_17 i64
   local q ref
-  local __buf_4 ref
+  local __buf_5 ref
   i32.const 42
   struct.new 2   ; snippet$Box__i32
   local.set 0   ; b
   string.const 0   ; "text"
   struct.new 4   ; snippet$Box__string
-  call 3   ; snippet$Box$Getter$get__string
-  local.tee 1   ; __p_0
-  call.import 0   ; std_core$byte_len
-  local.set 2   ; $call_9
-  i64.const 21
-  local.get 2   ; $call_9
-  i64.add
-  buffer.new
-  local.set 3   ; __buf_1
-  i64.const 0
-  local.set 2   ; $call_9
+  local.set 1   ; s
   local.get 0   ; b
   call 1   ; snippet$Box$Getter$get__i32
+  local.set 2   ; __p_0
+  local.get 1   ; s
+  call 3   ; snippet$Box$Getter$get__string
+  local.tee 3   ; __p_1
+  call.import 0   ; std_core$byte_len
+  local.set 4   ; $call_11
+  i64.const 21
+  local.get 4   ; $call_11
+  i64.add
+  buffer.new
+  local.set 1   ; s
+  i64.const 0
+  local.set 4   ; $call_11
+  local.get 2   ; __p_0
   i32.to_i64
-  local.set 4   ; $cast_16
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_9
-  local.get 4   ; $cast_16
+  local.set 5   ; $cast_17
+  local.get 1   ; s
+  local.get 4   ; $call_11
+  local.get 5   ; $cast_17
   call 10   ; std_core$write_int
-  local.set 2   ; $call_9
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_9
+  local.set 4   ; $call_11
+  local.get 1   ; s
+  local.get 4   ; $call_11
   string.const 1   ; " "
   call 9   ; std_core$write_string_at
-  local.set 2   ; $call_9
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_9
-  local.get 1   ; __p_0
+  local.set 4   ; $call_11
+  local.get 1   ; s
+  local.get 4   ; $call_11
+  local.get 3   ; __p_1
   call 9   ; std_core$write_string_at
-  local.set 2   ; $call_9
-  local.get 3   ; __buf_1
-  local.get 2   ; $call_9
+  local.set 4   ; $call_11
+  local.get 1   ; s
+  local.get 4   ; $call_11
   call 8   ; std_core$finish_buffer
   call 14   ; std_io$println__string
   i32.const 1
   string.const 2   ; "one"
   struct.new 5   ; snippet$Pair__i32__string
-  local.tee 3   ; __buf_1
+  local.tee 1   ; s
   call 4   ; snippet$Pair$Swap$swapped__i32__string
-  local.set 5   ; q
-  local.field 5 6 0   ; q snippet$Pair__string__i32.first
+  local.set 6   ; q
+  local.field 6 6 0   ; q snippet$Pair__string__i32.first
   ref.cast 3   ; string
-  local.tee 1   ; __p_0
+  local.tee 3   ; __p_1
   call.import 0   ; std_core$byte_len
-  local.set 2   ; $call_9
+  local.set 4   ; $call_11
   i64.const 21
-  local.get 2   ; $call_9
+  local.get 4   ; $call_11
   i64.add
   buffer.new
-  local.set 6   ; __buf_4
+  local.set 7   ; __buf_5
   i64.const 0
-  local.set 2   ; $call_9
-  local.get 6   ; __buf_4
-  local.get 2   ; $call_9
-  local.get 1   ; __p_0
+  local.set 4   ; $call_11
+  local.get 7   ; __buf_5
+  local.get 4   ; $call_11
+  local.get 3   ; __p_1
   call 9   ; std_core$write_string_at
-  local.set 2   ; $call_9
-  local.get 6   ; __buf_4
-  local.get 2   ; $call_9
+  local.set 4   ; $call_11
+  local.get 7   ; __buf_5
+  local.get 4   ; $call_11
   string.const 1   ; " "
   call 9   ; std_core$write_string_at
-  local.set 2   ; $call_9
-  local.field 5 6 1   ; q snippet$Pair__string__i32.second
+  local.set 4   ; $call_11
+  local.field 6 6 1   ; q snippet$Pair__string__i32.second
   ref.cast 1   ; i32
   i32.to_i64
-  local.set 4   ; $cast_16
-  local.get 6   ; __buf_4
-  local.get 2   ; $call_9
-  local.get 4   ; $cast_16
+  local.set 5   ; $cast_17
+  local.get 7   ; __buf_5
+  local.get 4   ; $call_11
+  local.get 5   ; $cast_17
   call 10   ; std_core$write_int
-  local.set 2   ; $call_9
-  local.get 6   ; __buf_4
-  local.get 2   ; $call_9
+  local.set 4   ; $call_11
+  local.get 7   ; __buf_5
+  local.get 4   ; $call_11
   call 8   ; std_core$finish_buffer
   call 14   ; std_io$println__string
-  local.get 3   ; __buf_1
+  local.get 1   ; s
   call 5   ; snippet$Pair$Labelled$label__i32__string
   call 14   ; std_io$println__string
-  local.get 5   ; q
+  local.get 6   ; q
   call 6   ; snippet$Pair$Labelled$label__string__i32
   call 14   ; std_io$println__string
   local.get 0   ; b

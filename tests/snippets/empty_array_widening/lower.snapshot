@@ -55,17 +55,18 @@
           }
       }
       std.io.println<string>({
-          __p_4: string = names[0]
-          __p_5: string = names[8]
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(44) +% (std.core.byte_len(__p_4) +% std.core.byte_len(__p_5)))
-          __off_7: i64 = 0
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, "string len=")
-          __off_7 = std.core.write_int(__buf_6, __off_7, @array.len(names))
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, " first=")
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_4)
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, " last=")
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
-          std.core.finish_buffer(__buf_6, __off_7)
+          __p_4: i64 = @array.len(names)
+          __p_5: string = names[0]
+          __p_6: string = names[8]
+          __buf_7: Buffer = std.core.new_byte_buffer(i64(44) +% (std.core.byte_len(__p_5) +% std.core.byte_len(__p_6)))
+          __off_8: i64 = 0
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, "string len=")
+          __off_8 = std.core.write_int(__buf_7, __off_8, __p_4)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, " first=")
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, __p_5)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, " last=")
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, __p_6)
+          std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       direct: i32[] = [] :i32[]
       @array.push(direct, 1)
@@ -74,15 +75,15 @@
       @array.push(direct, 4)
       @array.push(direct, 5)
       std.io.println<string>({
-          __buf_8: Buffer = std.core.new_byte_buffer(i64(84))
-          __off_9: i64 = 0
-          __off_9 = std.core.write_string_at(__buf_8, __off_9, "direct len=")
-          __off_9 = std.core.write_int(__buf_8, __off_9, @array.len(direct))
-          __off_9 = std.core.write_string_at(__buf_8, __off_9, " first=")
-          __off_9 = std.core.write_int(__buf_8, __off_9, direct[0])
-          __off_9 = std.core.write_string_at(__buf_8, __off_9, " last=")
-          __off_9 = std.core.write_int(__buf_8, __off_9, direct[4])
-          std.core.finish_buffer(__buf_8, __off_9)
+          __buf_9: Buffer = std.core.new_byte_buffer(i64(84))
+          __off_10: i64 = 0
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, "direct len=")
+          __off_10 = std.core.write_int(__buf_9, __off_10, @array.len(direct))
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, " first=")
+          __off_10 = std.core.write_int(__buf_9, __off_10, direct[0])
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, " last=")
+          __off_10 = std.core.write_int(__buf_9, __off_10, direct[4])
+          std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       annotated: i32[] = @array.repeat([] :i32[], i64(9))
       {
@@ -94,15 +95,15 @@
           }
       }
       std.io.println<string>({
-          __buf_10: Buffer = std.core.new_byte_buffer(i64(82))
-          __off_11: i64 = 0
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, "annot  len=")
-          __off_11 = std.core.write_int(__buf_10, __off_11, @array.len(annotated))
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, " last=")
-          __off_11 = std.core.write_int(__buf_10, __off_11, annotated[8])
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, " sum=")
-          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.sum_of(annotated))
-          std.core.finish_buffer(__buf_10, __off_11)
+          __buf_11: Buffer = std.core.new_byte_buffer(i64(82))
+          __off_12: i64 = 0
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, "annot  len=")
+          __off_12 = std.core.write_int(__buf_11, __off_12, @array.len(annotated))
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, " last=")
+          __off_12 = std.core.write_int(__buf_11, __off_12, annotated[8])
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, " sum=")
+          __off_12 = std.core.write_int(__buf_11, __off_12, snippet.sum_of(annotated))
+          std.core.finish_buffer(__buf_11, __off_12)
       } :string)
       return 0
   }

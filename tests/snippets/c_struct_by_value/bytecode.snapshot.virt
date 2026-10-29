@@ -460,43 +460,43 @@ fn 0 snippet$main () -> i32
       br $L3
     end $L4
   end $L3
+  local.get 1   ; __buf_0
+  array.len
+  local.set 2   ; __off_1
   local.get 13   ; total
   call 9   ; std_core$f64$Display$to_string
   local.tee 7   ; $call_67
   call.import 8   ; std_core$byte_len
-  local.set 2   ; __off_1
+  local.set 3   ; $cast_12
   i64.const 44
-  local.get 2   ; __off_1
+  local.get 3   ; $cast_12
   i64.add
   buffer.new
   local.set 0   ; d
   i64.const 0
-  local.set 2   ; __off_1
-  local.get 0   ; d
-  local.get 2   ; __off_1
-  string.const 13   ; "kept "
-  call 5   ; std_core$write_string_at
-  local.set 2   ; __off_1
-  local.get 1   ; __buf_0
-  array.len
   local.set 3   ; $cast_12
   local.get 0   ; d
-  local.get 2   ; __off_1
   local.get 3   ; $cast_12
-  call 6   ; std_core$write_int
-  local.set 2   ; __off_1
+  string.const 13   ; "kept "
+  call 5   ; std_core$write_string_at
+  local.set 3   ; $cast_12
   local.get 0   ; d
+  local.get 3   ; $cast_12
   local.get 2   ; __off_1
+  call 6   ; std_core$write_int
+  local.set 3   ; $cast_12
+  local.get 0   ; d
+  local.get 3   ; $cast_12
   string.const 14   ; " boxes, total area "
   call 5   ; std_core$write_string_at
-  local.set 2   ; __off_1
+  local.set 3   ; $cast_12
   local.get 0   ; d
-  local.get 2   ; __off_1
+  local.get 3   ; $cast_12
   local.get 7   ; $call_67
   call 5   ; std_core$write_string_at
-  local.set 2   ; __off_1
+  local.set 3   ; $cast_12
   local.get 0   ; d
-  local.get 2   ; __off_1
+  local.get 3   ; $cast_12
   call 4   ; std_core$finish_buffer
   call 41   ; std_io$println__string
   return.lit i32.const 0

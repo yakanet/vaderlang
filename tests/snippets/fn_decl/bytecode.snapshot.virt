@@ -32,68 +32,71 @@ fn 1 snippet$greet (string,string) -> string
 end
 
 fn 2 snippet$main () -> i32
-  local __p_0 string
+  local __p_0 i32
   local __p_1 string
-  local $call_9 i64
-  local $call_10 i64
-  local __buf_2 ref
-  string.const 0   ; "Ada"
-  string.const 1   ; "Hello"
-  call 1   ; snippet$greet
-  local.set 0   ; __p_0
-  string.const 0   ; "Ada"
-  string.const 2   ; "Hi"
-  call 1   ; snippet$greet
-  local.set 1   ; __p_1
-  local.get 0   ; __p_0
-  call.import 0   ; std_core$byte_len
-  local.set 2   ; $call_9
-  local.get 1   ; __p_1
-  call.import 0   ; std_core$byte_len
-  local.set 3   ; $call_10
-  local.get 2   ; $call_9
-  local.get 3   ; $call_10
-  i64.add
-  local.set 2   ; $call_9
-  i64.const 22
-  local.get 2   ; $call_9
-  i64.add
-  buffer.new
-  local.set 4   ; __buf_2
-  i64.const 0
-  local.set 2   ; $call_9
+  local __p_2 string
+  local $call_13 i64
+  local $call_14 i64
+  local __buf_3 ref
   i32.const 2
   i32.const 3
   call 0   ; snippet$add
-  i32.to_i64
-  local.set 3   ; $call_10
-  local.get 4   ; __buf_2
-  local.get 2   ; $call_9
-  local.get 3   ; $call_10
-  call 6   ; std_core$write_int
-  local.set 2   ; $call_9
-  local.get 4   ; __buf_2
-  local.get 2   ; $call_9
-  string.const 3   ; " "
-  call 5   ; std_core$write_string_at
-  local.set 2   ; $call_9
-  local.get 4   ; __buf_2
-  local.get 2   ; $call_9
+  local.set 0   ; __p_0
+  string.const 0   ; "Ada"
+  string.const 1   ; "Hello"
+  call 1   ; snippet$greet
+  local.set 1   ; __p_1
+  string.const 0   ; "Ada"
+  string.const 2   ; "Hi"
+  call 1   ; snippet$greet
+  local.set 2   ; __p_2
+  local.get 1   ; __p_1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_13
+  local.get 2   ; __p_2
+  call.import 0   ; std_core$byte_len
+  local.set 4   ; $call_14
+  local.get 3   ; $call_13
+  local.get 4   ; $call_14
+  i64.add
+  local.set 3   ; $call_13
+  i64.const 22
+  local.get 3   ; $call_13
+  i64.add
+  buffer.new
+  local.set 5   ; __buf_3
+  i64.const 0
+  local.set 3   ; $call_13
   local.get 0   ; __p_0
-  call 5   ; std_core$write_string_at
-  local.set 2   ; $call_9
-  local.get 4   ; __buf_2
-  local.get 2   ; $call_9
+  i32.to_i64
+  local.set 4   ; $call_14
+  local.get 5   ; __buf_3
+  local.get 3   ; $call_13
+  local.get 4   ; $call_14
+  call 6   ; std_core$write_int
+  local.set 3   ; $call_13
+  local.get 5   ; __buf_3
+  local.get 3   ; $call_13
   string.const 3   ; " "
   call 5   ; std_core$write_string_at
-  local.set 2   ; $call_9
-  local.get 4   ; __buf_2
-  local.get 2   ; $call_9
+  local.set 3   ; $call_13
+  local.get 5   ; __buf_3
+  local.get 3   ; $call_13
   local.get 1   ; __p_1
   call 5   ; std_core$write_string_at
-  local.set 2   ; $call_9
-  local.get 4   ; __buf_2
-  local.get 2   ; $call_9
+  local.set 3   ; $call_13
+  local.get 5   ; __buf_3
+  local.get 3   ; $call_13
+  string.const 3   ; " "
+  call 5   ; std_core$write_string_at
+  local.set 3   ; $call_13
+  local.get 5   ; __buf_3
+  local.get 3   ; $call_13
+  local.get 2   ; __p_2
+  call 5   ; std_core$write_string_at
+  local.set 3   ; $call_13
+  local.get 5   ; __buf_3
+  local.get 3   ; $call_13
   call 4   ; std_core$finish_buffer
   call 10   ; std_io$println__string
   return.lit i32.const 0

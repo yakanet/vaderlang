@@ -123,240 +123,243 @@ fn 3 snippet$Cfg$Sink$put (ref,ref) -> i32
 end
 
 fn 4 snippet$main () -> i32
-  local __p_0 string
-  local $call_7 i64
-  local __buf_1 ref
-  local $cast_17 i64
-  local $call_21 u64
+  local __p_0 i32
+  local __p_1 u64
+  local __p_2 string
+  local $call_12 i64
   local __buf_3 ref
-  local $struct_100 ref
+  local $cast_20 i64
+  local __buf_5 ref
+  local $struct_102 ref
+  i32.const 3
+  call 9   ; snippet$twice__i32
+  local.set 0   ; __p_0
+  i64.const 5
+  call 13   ; snippet$twice__u64
+  local.set 1   ; __p_1
   f64.const 2.5 4612811918334230528
   call 8   ; snippet$twice__f64
   call 21   ; std_core$f64$Display$to_string
-  local.tee 0   ; __p_0
+  local.tee 2   ; __p_2
   call.import 0   ; std_core$byte_len
-  local.set 1   ; $call_7
+  local.set 3   ; $call_12
   i64.const 54
-  local.get 1   ; $call_7
+  local.get 3   ; $call_12
   i64.add
   buffer.new
-  local.set 2   ; __buf_1
+  local.set 4   ; __buf_3
   i64.const 0
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
   string.const 0   ; "primitives: "
   call 18   ; std_core$write_string_at
-  local.set 1   ; $call_7
-  i32.const 3
-  call 9   ; snippet$twice__i32
-  i32.to_i64
-  local.set 3   ; $cast_17
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
-  local.get 3   ; $cast_17
-  call 19   ; std_core$write_int
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
-  string.const 1   ; " "
-  call 18   ; std_core$write_string_at
-  local.set 1   ; $call_7
-  i64.const 5
-  call 13   ; snippet$twice__u64
-  local.set 4   ; $call_21
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
-  local.get 4   ; $call_21
-  call 20   ; std_core$write_unsigned
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
-  string.const 1   ; " "
-  call 18   ; std_core$write_string_at
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
   local.get 0   ; __p_0
+  i32.to_i64
+  local.set 5   ; $cast_20
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
+  local.get 5   ; $cast_20
+  call 19   ; std_core$write_int
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
+  string.const 1   ; " "
   call 18   ; std_core$write_string_at
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
+  local.get 1   ; __p_1
+  call 20   ; std_core$write_unsigned
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
+  string.const 1   ; " "
+  call 18   ; std_core$write_string_at
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
+  local.get 2   ; __p_2
+  call 18   ; std_core$write_string_at
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
   call 17   ; std_core$finish_buffer
   call 45   ; std_io$println__string
   i64.const 7
   struct.new 1   ; snippet$Money
-  local.set 2   ; __buf_1
+  local.set 4   ; __buf_3
   i64.const 55
   buffer.new
-  local.set 5   ; __buf_3
+  local.set 6   ; __buf_5
   i64.const 0
-  local.set 1   ; $call_7
-  local.get 5   ; __buf_3
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 6   ; __buf_5
+  local.get 3   ; $call_12
   string.const 2   ; "written impl: "
   call 18   ; std_core$write_string_at
-  local.set 1   ; $call_7
+  local.set 3   ; $call_12
   i64.const 3
   struct.new 1   ; snippet$Money
   call 11   ; snippet$twice__snippet_Money
   struct.get 1 0   ; snippet$Money.cents
   ref.cast 7   ; i64
-  local.set 3   ; $cast_17
-  local.get 5   ; __buf_3
-  local.get 1   ; $call_7
-  local.get 3   ; $cast_17
+  local.set 5   ; $cast_20
+  local.get 6   ; __buf_5
+  local.get 3   ; $call_12
+  local.get 5   ; $cast_20
   call 19   ; std_core$write_int
-  local.set 1   ; $call_7
-  local.get 5   ; __buf_3
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 6   ; __buf_5
+  local.get 3   ; $call_12
   string.const 1   ; " "
   call 18   ; std_core$write_string_at
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
   call 11   ; snippet$twice__snippet_Money
   struct.get 1 0   ; snippet$Money.cents
   ref.cast 7   ; i64
-  local.set 3   ; $cast_17
-  local.get 5   ; __buf_3
-  local.get 1   ; $call_7
-  local.get 3   ; $cast_17
+  local.set 5   ; $cast_20
+  local.get 6   ; __buf_5
+  local.get 3   ; $call_12
+  local.get 5   ; $cast_20
   call 19   ; std_core$write_int
-  local.set 1   ; $call_7
-  local.get 5   ; __buf_3
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 6   ; __buf_5
+  local.get 3   ; $call_12
   call 17   ; std_core$finish_buffer
   call 45   ; std_io$println__string
   i64.const 34
   buffer.new
-  local.set 2   ; __buf_1
+  local.set 4   ; __buf_3
   i64.const 0
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
   string.const 3   ; "default impl: "
   call 18   ; std_core$write_string_at
-  local.set 1   ; $call_7
+  local.set 3   ; $call_12
   i32.const 4
   struct.new 2   ; snippet$Points
   call 12   ; snippet$twice__snippet_Points
   struct.get 2 0   ; snippet$Points.n
   ref.cast 5   ; i32
   i32.to_i64
-  local.set 3   ; $cast_17
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
-  local.get 3   ; $cast_17
+  local.set 5   ; $cast_20
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
+  local.get 5   ; $cast_20
   call 19   ; std_core$write_int
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
   call 17   ; std_core$finish_buffer
   call 45   ; std_io$println__string
   i64.const 31
   buffer.new
-  local.set 2   ; __buf_1
+  local.set 4   ; __buf_3
   i64.const 0
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
   string.const 4   ; "self impl: "
   call 18   ; std_core$write_string_at
-  local.set 1   ; $call_7
+  local.set 3   ; $call_12
   i32.const 6
   struct.new 3   ; snippet$Grams
   call 10   ; snippet$twice__snippet_Grams
   struct.get 3 0   ; snippet$Grams.g
   ref.cast 5   ; i32
   i32.to_i64
-  local.set 3   ; $cast_17
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
-  local.get 3   ; $cast_17
+  local.set 5   ; $cast_20
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
+  local.get 5   ; $cast_20
   call 19   ; std_core$write_int
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
   call 17   ; std_core$finish_buffer
   call 45   ; std_io$println__string
   i64.const 35
   buffer.new
-  local.set 2   ; __buf_1
+  local.set 4   ; __buf_3
   i64.const 0
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
   string.const 5   ; "partial bound: "
   call 18   ; std_core$write_string_at
-  local.set 1   ; $call_7
+  local.set 3   ; $call_12
   i32.const 5
   struct.new 2   ; snippet$Points
   call 14   ; snippet$relay__snippet_Points
   struct.get 2 0   ; snippet$Points.n
   ref.cast 5   ; i32
   i32.to_i64
-  local.set 3   ; $cast_17
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
-  local.get 3   ; $cast_17
+  local.set 5   ; $cast_20
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
+  local.get 5   ; $cast_20
   call 19   ; std_core$write_int
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
   call 17   ; std_core$finish_buffer
   call 45   ; std_io$println__string
   i64.const 27
   buffer.new
-  local.set 2   ; __buf_1
+  local.set 4   ; __buf_3
   i64.const 0
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
   string.const 6   ; "array: "
   call 18   ; std_core$write_string_at
-  local.set 1   ; $call_7
+  local.set 3   ; $call_12
   i64.const 1
   struct.new 1   ; snippet$Money
-  local.set 5   ; __buf_3
+  local.set 6   ; __buf_5
   i64.const 2
   struct.new 1   ; snippet$Money
-  local.set 6   ; $struct_100
-  local.get 5   ; __buf_3
-  local.get 6   ; $struct_100
+  local.set 7   ; $struct_102
+  local.get 6   ; __buf_5
+  local.get 7   ; $struct_102
   array.new 6 2   ; snippet$Money[]
   call 15   ; snippet$both__snippet_Money__
-  local.set 3   ; $cast_17
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
-  local.get 3   ; $cast_17
+  local.set 5   ; $cast_20
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
+  local.get 5   ; $cast_20
   call 19   ; std_core$write_int
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
   call 17   ; std_core$finish_buffer
   call 45   ; std_io$println__string
   i64.const 34
   buffer.new
-  local.set 2   ; __buf_1
+  local.set 4   ; __buf_3
   i64.const 0
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
   string.const 7   ; "writing impl: "
   call 18   ; std_core$write_string_at
-  local.set 1   ; $call_7
+  local.set 3   ; $call_12
   i32.const 1
   struct.new 4   ; snippet$Cfg
   call 6   ; snippet$feed__snippet_Cfg
   i32.to_i64
-  local.set 3   ; $cast_17
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
-  local.get 3   ; $cast_17
+  local.set 5   ; $cast_20
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
+  local.get 5   ; $cast_20
   call 19   ; std_core$write_int
-  local.set 1   ; $call_7
-  local.get 2   ; __buf_1
-  local.get 1   ; $call_7
+  local.set 3   ; $call_12
+  local.get 4   ; __buf_3
+  local.get 3   ; $call_12
   call 17   ; std_core$finish_buffer
   call 45   ; std_io$println__string
   return.lit i32.const 0

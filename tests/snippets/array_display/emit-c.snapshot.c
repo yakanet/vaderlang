@@ -1180,48 +1180,48 @@ static vader_string_t snippet$show__snippet_Box(vader_box_t l0) {
 }
 
 static vader_string_t snippet$listed__f64(void* l0) {
-    vader_string_t l1 = 0;
-    int64_t l2, l4;
-    void* l3 = NULL;
+    int64_t l1, l3;
+    vader_string_t l2 = 0;
+    void* l4 = NULL;
     vader_string_t t0 = 0;
-    void** gc_raw_roots[2] = { &l0, &l3 };
-    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
+    void** gc_raw_roots[2] = { &l0, &l4 };
+    vader_string_t* gc_atom_roots[2] = { &l2, &t0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = std_core$$array$Display$to_string__f64(l0);
-    l2 = vader_host_std_core$byte_len(l1);
-    l3 = (void*) vader_buffer_new((size_t) (INT64_C(22) + l2));
-    l2 = INT64_C(0);
-    l4 = ((vader_array_t*) l0)->length;
-    l2 = std_core$write_int(l3, l2, l4);
-    l2 = std_core$write_string_at(l3, l2, 11u);
-    l2 = std_core$write_string_at(l3, l2, l1);
-    t0 = std_core$finish_buffer(l3, l2);
+    l1 = ((vader_array_t*) l0)->length;
+    l2 = std_core$$array$Display$to_string__f64(l0);
+    l3 = vader_host_std_core$byte_len(l2);
+    l4 = (void*) vader_buffer_new((size_t) (INT64_C(22) + l3));
+    l3 = INT64_C(0);
+    l3 = std_core$write_int(l4, l3, l1);
+    l3 = std_core$write_string_at(l4, l3, 11u);
+    l3 = std_core$write_string_at(l4, l3, l2);
+    t0 = std_core$finish_buffer(l4, l3);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t snippet$listed__string(void* l0) {
-    vader_string_t l1 = 0;
-    int64_t l2, l4;
-    void* l3 = NULL;
+    int64_t l1, l3;
+    vader_string_t l2 = 0;
+    void* l4 = NULL;
     vader_string_t t0 = 0;
-    void** gc_raw_roots[2] = { &l0, &l3 };
-    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
+    void** gc_raw_roots[2] = { &l0, &l4 };
+    vader_string_t* gc_atom_roots[2] = { &l2, &t0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = std_core$$array$Display$to_string__string(l0);
-    l2 = vader_host_std_core$byte_len(l1);
-    l3 = (void*) vader_buffer_new((size_t) (INT64_C(22) + l2));
-    l2 = INT64_C(0);
-    l4 = ((vader_array_t*) l0)->length;
-    l2 = std_core$write_int(l3, l2, l4);
-    l2 = std_core$write_string_at(l3, l2, 11u);
-    l2 = std_core$write_string_at(l3, l2, l1);
-    t0 = std_core$finish_buffer(l3, l2);
+    l1 = ((vader_array_t*) l0)->length;
+    l2 = std_core$$array$Display$to_string__string(l0);
+    l3 = vader_host_std_core$byte_len(l2);
+    l4 = (void*) vader_buffer_new((size_t) (INT64_C(22) + l3));
+    l3 = INT64_C(0);
+    l3 = std_core$write_int(l4, l3, l1);
+    l3 = std_core$write_string_at(l4, l3, 11u);
+    l3 = std_core$write_string_at(l4, l3, l2);
+    t0 = std_core$finish_buffer(l4, l3);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

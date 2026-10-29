@@ -62,16 +62,17 @@
           snippet.Log.set_at(l, "q", __destr_el_4)
       }
       std.io.println<string>({
-          __p_5: string = l.lines[0]
-          __p_6: string = l.lines[3]
-          __buf_7: Buffer = std.core.new_byte_buffer(i64(22) +% (std.core.byte_len(__p_5) +% std.core.byte_len(__p_6)))
-          __off_8: i64 = 0
-          __off_8 = std.core.write_int(__buf_7, __off_8, @array.len(l.lines))
-          __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
-          __off_8 = std.core.write_string_at(__buf_7, __off_8, __p_5)
-          __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
-          __off_8 = std.core.write_string_at(__buf_7, __off_8, __p_6)
-          std.core.finish_buffer(__buf_7, __off_8)
+          __p_5: i64 = @array.len(l.lines)
+          __p_6: string = l.lines[0]
+          __p_7: string = l.lines[3]
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(22) +% (std.core.byte_len(__p_6) +% std.core.byte_len(__p_7)))
+          __off_9: i64 = 0
+          __off_9 = std.core.write_int(__buf_8, __off_9, __p_5)
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_6)
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_7)
+          std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       wide: MutableMap<i64, i32> = MutableMap<i64, i32> {
           .ekeys = [] :i64[],
@@ -86,20 +87,20 @@
       snippet.put_wider<MutableMap<i64, i32>>(wide)
       k: i64 = 9000000000
       std.io.println<string>({
-          __buf_11: Buffer = std.core.new_byte_buffer(i64(62))
-          __off_12: i64 = 0
-          __off_12 = std.core.write_int(__buf_11, __off_12, {
-              __coalesce_9: i32 | null = std.collections.MutableMap<i64, i32>.at(wide, k)
-              if __coalesce_9 is null { -1 } else { i32(__coalesce_9) } :i32
-          } :i32)
-          __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
-          __off_12 = std.core.write_int(__buf_11, __off_12, {
-              __coalesce_10: i32 | null = std.collections.MutableMap<i64, i32>.at(wide, k + i64(1))
+          __buf_12: Buffer = std.core.new_byte_buffer(i64(62))
+          __off_13: i64 = 0
+          __off_13 = std.core.write_int(__buf_12, __off_13, {
+              __coalesce_10: i32 | null = std.collections.MutableMap<i64, i32>.at(wide, k)
               if __coalesce_10 is null { -1 } else { i32(__coalesce_10) } :i32
           } :i32)
-          __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
-          __off_12 = std.core.write_int(__buf_11, __off_12, std.collections.len<i64, i32>(wide))
-          std.core.finish_buffer(__buf_11, __off_12)
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
+          __off_13 = std.core.write_int(__buf_12, __off_13, {
+              __coalesce_11: i32 | null = std.collections.MutableMap<i64, i32>.at(wide, k + i64(1))
+              if __coalesce_11 is null { -1 } else { i32(__coalesce_11) } :i32
+          } :i32)
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
+          __off_13 = std.core.write_int(__buf_12, __off_13, std.collections.len<i64, i32>(wide))
+          std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       return 0
   }

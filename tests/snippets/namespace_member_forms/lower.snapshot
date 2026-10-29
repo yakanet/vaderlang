@@ -20,40 +20,41 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       b: Budget = snippet.mk()
       std.io.println<string>({
-          __p_0: string = b.label
-          __buf_1: Buffer = std.core.new_byte_buffer(i64(53) +% std.core.byte_len(__p_0))
-          __off_2: i64 = 0
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, "const in literal: retries=")
-          __off_2 = std.core.write_int(__buf_1, __off_2, b.retries)
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " label=")
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
-          std.core.finish_buffer(__buf_1, __off_2)
+          __p_0: i64 = b.retries
+          __p_1: string = b.label
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(53) +% std.core.byte_len(__p_1))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "const in literal: retries=")
+          __off_3 = std.core.write_int(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " label=")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
-          __buf_3: Buffer = std.core.new_byte_buffer(i64(38))
-          __off_4: i64 = 0
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, "variant cast:     ")
-          __off_4 = std.core.write_int(__buf_3, __off_4, snippet.green_code())
-          std.core.finish_buffer(__buf_3, __off_4)
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(38))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "variant cast:     ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.green_code())
+          std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.io.println<string>(concat_2("variant argument: ", snippet.name_of(Color(2))))
       m: Meters = Meters(5)
       back: i32 = i32(m)
       std.io.println<string>({
-          __buf_5: Buffer = std.core.new_byte_buffer(i64(38))
-          __off_6: i64 = 0
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, "distinct cast:    ")
-          __off_6 = std.core.write_int(__buf_5, __off_6, back)
-          std.core.finish_buffer(__buf_5, __off_6)
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(38))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, "distinct cast:    ")
+          __off_7 = std.core.write_int(__buf_6, __off_7, back)
+          std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       f: fn(i32) -> i32 = snippet.helper.triple
       r: i32 = snippet.helper.triple(back)
       std.io.println<string>({
-          __buf_7: Buffer = std.core.new_byte_buffer(i64(38))
-          __off_8: i64 = 0
-          __off_8 = std.core.write_string_at(__buf_7, __off_8, "fn value:         ")
-          __off_8 = std.core.write_int(__buf_7, __off_8, r)
-          std.core.finish_buffer(__buf_7, __off_8)
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(38))
+          __off_9: i64 = 0
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, "fn value:         ")
+          __off_9 = std.core.write_int(__buf_8, __off_9, r)
+          std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       return i32(i64(3))
   }

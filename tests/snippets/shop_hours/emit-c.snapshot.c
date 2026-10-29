@@ -203,17 +203,6 @@ static int32_t snippet$main(void* l0) {
     }
     std_io$println__string(0u);
     l5 = INT64_C(50);
-    if (!(l5 == INT64_C(0))) {
-        if (!(l5 == INT64_C(50))) {
-            if (!(l5 == INT64_C(100))) {
-                vader_unreachable("value out of range: no value of `Discount`");
-            }
-        }
-    }
-    l1 = snippet$Discount$std_core$Display$to_string((uint8_t) (int32_t) (((int32_t) (int64_t) l5) & INT32_C(255)));
-    l6 = vader_host_std_core$byte_len(l1);
-    l4 = (void*) vader_buffer_new((size_t) (INT64_C(12) + l6));
-    l6 = INT64_C(0);
     if (l5 == INT64_C(0)) {
         l7 = true;
     } else {
@@ -224,12 +213,23 @@ static int32_t snippet$main(void* l0) {
     } else {
         l7 = l5 == INT64_C(100);
     }
-    l6 = std_core$write_bool(l4, l6, l7);
-    l6 = std_core$write_string_at(l4, l6, 6u);
-    l6 = std_core$write_string_at(l4, l6, l1);
-    l6 = std_core$write_string_at(l4, l6, 6u);
-    l6 = std_core$write_bool(l4, l6, false);
-    t0 = std_core$finish_buffer(l4, l6);
+    if (!(l5 == INT64_C(0))) {
+        if (!(l5 == INT64_C(50))) {
+            if (!(l5 == INT64_C(100))) {
+                vader_unreachable("value out of range: no value of `Discount`");
+            }
+        }
+    }
+    l1 = snippet$Discount$std_core$Display$to_string((uint8_t) (int32_t) (((int32_t) (int64_t) l5) & INT32_C(255)));
+    l5 = vader_host_std_core$byte_len(l1);
+    l4 = (void*) vader_buffer_new((size_t) (INT64_C(12) + l5));
+    l5 = INT64_C(0);
+    l5 = std_core$write_bool(l4, l5, l7);
+    l5 = std_core$write_string_at(l4, l5, 6u);
+    l5 = std_core$write_string_at(l4, l5, l1);
+    l5 = std_core$write_string_at(l4, l5, 6u);
+    l5 = std_core$write_bool(l4, l5, false);
+    t0 = std_core$finish_buffer(l4, l5);
     std_io$println__string(t0);
     l8 = INT32_C(0);
     l3 = (uint8_t) 9;

@@ -1042,7 +1042,6 @@ static int32_t snippet$main(void) {
     void* l0 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
-    void* l10 = NULL;
     int64_t l1, l2;
     uint8_t l3;
     bool l4;
@@ -1052,10 +1051,10 @@ static int32_t snippet$main(void) {
     vader_string_t t0 = 0;
     vader_box_t t1 = vader_box_null();
     vader_box_t* gc_roots[2] = { &l8, &t1 };
-    void** gc_raw_roots[4] = { &l0, &l5, &l6, &l10 };
+    void** gc_raw_roots[3] = { &l0, &l5, &l6 };
     vader_string_t* gc_atom_roots[3] = { &l7, &l9, &t0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+        vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l0 = (void*) vader_buffer_new((size_t) INT64_C(62));
@@ -1133,19 +1132,19 @@ static int32_t snippet$main(void) {
     vader_obj_header_init(_a5_obj, 5u);
     _a5_obj->f_value = (uint8_t) 1;
     l5 = (void*) _a5_obj;
-    l7 = snippet$Box$std_core$Display$to_string__snippet_Direction(l5);
-    l1 = vader_host_std_core$byte_len(l7);
-    l6 = (void*) vader_buffer_new((size_t) (INT64_C(6) + l1));
-    l1 = INT64_C(0);
     vader_array_t* _a6_arr = vader_array_new(17u, 2u, 1u, 2u);
     ((uint8_t*) _a6_arr->buf->slots)[_a6_arr->offset + 1u] = (uint8_t) INT32_C(9);
     ((uint8_t*) _a6_arr->buf->slots)[_a6_arr->offset + 0u] = (uint8_t) INT32_C(7);
-    l10 = (void*) _a6_arr;
-    l4 = std_core$content_equals__snippet_Color(l0, l10);
-    l1 = std_core$write_bool(l6, l1, l4);
-    l1 = std_core$write_string_at(l6, l1, 1u);
-    l1 = std_core$write_string_at(l6, l1, l7);
-    t0 = std_core$finish_buffer(l6, l1);
+    l6 = (void*) _a6_arr;
+    l4 = std_core$content_equals__snippet_Color(l0, l6);
+    l7 = snippet$Box$std_core$Display$to_string__snippet_Direction(l5);
+    l1 = vader_host_std_core$byte_len(l7);
+    l0 = (void*) vader_buffer_new((size_t) (INT64_C(6) + l1));
+    l1 = INT64_C(0);
+    l1 = std_core$write_bool(l0, l1, l4);
+    l1 = std_core$write_string_at(l0, l1, 1u);
+    l1 = std_core$write_string_at(l0, l1, l7);
+    t0 = std_core$finish_buffer(l0, l1);
     std_io$println__string(t0);
     vader_struct_snippet$Box__snippet_Color_t* _a7_obj = (vader_struct_snippet$Box__snippet_Color_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box__snippet_Color_t));
     vader_obj_header_init(_a7_obj, 4u);

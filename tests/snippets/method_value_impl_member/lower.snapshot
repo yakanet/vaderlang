@@ -25,24 +25,25 @@
       plus_int: __method_env_snippet_3 = __method_env_snippet_3 { .receiver = p }
       plus_float: __method_env_snippet_5 = __method_env_snippet_5 { .receiver = p }
       std.io.println<string>({
-          __p_5: string = std.core.f64.to_string(__method_snippet_4(plus_float, 1.5))
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(29) +% std.core.byte_len(__p_5))
-          __off_7: i64 = 0
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, "by slot ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, __method_snippet_2(plus_int, 3))
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
-          std.core.finish_buffer(__buf_6, __off_7)
+          __p_5: i32 = __method_snippet_2(plus_int, 3)
+          __p_6: string = std.core.f64.to_string(__method_snippet_4(plus_float, 1.5))
+          __buf_7: Buffer = std.core.new_byte_buffer(i64(29) +% std.core.byte_len(__p_6))
+          __off_8: i64 = 0
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, "by slot ")
+          __off_8 = std.core.write_int(__buf_7, __off_8, __p_5)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, __p_6)
+          std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       is_green: __method_env_snippet_7 = __method_env_snippet_7 { .receiver = Color(1) }
       std.io.println<string>({
-          __buf_10: Buffer = std.core.new_byte_buffer(i64(16))
-          __off_11: i64 = 0
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, "enum ")
-          __off_11 = std.core.write_bool(__buf_10, __off_11, __method_snippet_6(is_green, Color(1)))
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-          __off_11 = std.core.write_bool(__buf_10, __off_11, __method_snippet_6(is_green, Color(0)))
-          std.core.finish_buffer(__buf_10, __off_11)
+          __buf_11: Buffer = std.core.new_byte_buffer(i64(16))
+          __off_12: i64 = 0
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, "enum ")
+          __off_12 = std.core.write_bool(__buf_11, __off_12, __method_snippet_6(is_green, Color(1)))
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
+          __off_12 = std.core.write_bool(__buf_11, __off_12, __method_snippet_6(is_green, Color(0)))
+          std.core.finish_buffer(__buf_11, __off_12)
       } :string)
       return 0
   }
@@ -59,8 +60,8 @@
       snippet$Point$std_core$Add$add$1(__env_3.receiver, __arg_4)
   }
   __method_env_snippet_7 :: struct { receiver: Color }
-  __method_snippet_6 :: fn(__env_8: __method_env_snippet_7, __arg_9: Color) -> bool {
-      __env_8.receiver == __arg_9
+  __method_snippet_6 :: fn(__env_9: __method_env_snippet_7, __arg_10: Color) -> bool {
+      __env_9.receiver == __arg_10
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)

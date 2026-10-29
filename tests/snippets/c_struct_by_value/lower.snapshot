@@ -100,14 +100,15 @@
           }
       }
       std.io.println<string>({
-          __p_11: string = std.core.f64.to_string(total)
-          __buf_12: Buffer = std.core.new_byte_buffer(i64(44) +% std.core.byte_len(__p_11))
-          __off_13: i64 = 0
-          __off_13 = std.core.write_string_at(__buf_12, __off_13, "kept ")
-          __off_13 = std.core.write_int(__buf_12, __off_13, @array.len(kept))
-          __off_13 = std.core.write_string_at(__buf_12, __off_13, " boxes, total area ")
-          __off_13 = std.core.write_string_at(__buf_12, __off_13, __p_11)
-          std.core.finish_buffer(__buf_12, __off_13)
+          __p_11: i64 = @array.len(kept)
+          __p_12: string = std.core.f64.to_string(total)
+          __buf_13: Buffer = std.core.new_byte_buffer(i64(44) +% std.core.byte_len(__p_12))
+          __off_14: i64 = 0
+          __off_14 = std.core.write_string_at(__buf_13, __off_14, "kept ")
+          __off_14 = std.core.write_int(__buf_13, __off_14, __p_11)
+          __off_14 = std.core.write_string_at(__buf_13, __off_14, " boxes, total area ")
+          __off_14 = std.core.write_string_at(__buf_13, __off_14, __p_12)
+          std.core.finish_buffer(__buf_13, __off_14)
       } :string)
       return 0
   }

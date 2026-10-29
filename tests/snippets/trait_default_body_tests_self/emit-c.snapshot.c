@@ -204,18 +204,19 @@ static bool snippet$f64$Probe$absent(double l0) {
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;
-    void* l6 = NULL;
-    int64_t l1, l2, l5, l7, l8, l9;
+    void* l7 = NULL;
+    int64_t l1, l2, l6, l8, l9, l10;
     vader_box_t l3 = vader_box_null();
-    vader_string_t l4 = 0;
-    bool l10, l11;
+    int32_t l4;
+    vader_string_t l5 = 0;
+    bool l11, l12;
     void* t0 = NULL;
     int32_t t1;
     vader_string_t t2 = 0;
     bool t3;
     vader_box_t* gc_roots[1] = { &l3 };
-    void** gc_raw_roots[3] = { &l0, &l6, &t0 };
-    vader_string_t* gc_atom_roots[2] = { &l4, &t2 };
+    void** gc_raw_roots[3] = { &l0, &l7, &t0 };
+    vader_string_t* gc_atom_roots[2] = { &l5, &t2 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
@@ -236,26 +237,26 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l2)
         l3 = vader_array_ref_load_box(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l2);
-        l4 = vader_vt_snippet$Probe$kind(l3);
-        l5 = vader_host_std_core$byte_len(l4);
-        l6 = (void*) vader_buffer_new((size_t) (INT64_C(54) + l5));
-        l7 = INT64_C(0);
-        t1 = vader_vt_snippet$Probe$describe(l3);
-        l8 = ((int64_t) (int32_t) t1);
-        l7 = std_core$write_int(l6, l7, l8);
-        l7 = std_core$write_string_at(l6, l7, 4u);
-        l7 = std_core$write_string_at(l6, l7, l4);
-        l7 = std_core$write_string_at(l6, l7, 4u);
+        l4 = vader_vt_snippet$Probe$describe(l3);
+        l5 = vader_vt_snippet$Probe$kind(l3);
+        l6 = vader_host_std_core$byte_len(l5);
+        l7 = (void*) vader_buffer_new((size_t) (INT64_C(54) + l6));
+        l8 = INT64_C(0);
+        l9 = ((int64_t) (int32_t) l4);
+        l8 = std_core$write_int(l7, l8, l9);
+        l8 = std_core$write_string_at(l7, l8, 4u);
+        l8 = std_core$write_string_at(l7, l8, l5);
+        l8 = std_core$write_string_at(l7, l8, 4u);
         t1 = vader_vt_snippet$Probe$guarded(l3);
-        l9 = ((int64_t) (int32_t) t1);
-        l7 = std_core$write_int(l6, l7, l9);
-        l7 = std_core$write_string_at(l6, l7, 4u);
-        l10 = vader_vt_snippet$Probe$aliased(l3);
-        l7 = std_core$write_bool(l6, l7, l10);
-        l7 = std_core$write_string_at(l6, l7, 4u);
-        l11 = vader_vt_snippet$Probe$absent(l3);
-        l7 = std_core$write_bool(l6, l7, l11);
-        t2 = std_core$finish_buffer(l6, l7);
+        l10 = ((int64_t) (int32_t) t1);
+        l8 = std_core$write_int(l7, l8, l10);
+        l8 = std_core$write_string_at(l7, l8, 4u);
+        l11 = vader_vt_snippet$Probe$aliased(l3);
+        l8 = std_core$write_bool(l7, l8, l11);
+        l8 = std_core$write_string_at(l7, l8, 4u);
+        l12 = vader_vt_snippet$Probe$absent(l3);
+        l8 = std_core$write_bool(l7, l8, l12);
+        t2 = std_core$finish_buffer(l7, l8);
         std_io$println__string(t2);
         l2 = (l2 + INT64_C(1));
     }
@@ -266,8 +267,8 @@ static int32_t snippet$main(void) {
     vader_struct_snippet$Square_t* _a4_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
     vader_obj_header_init(_a4_obj, 1u);
     _a4_obj->f_side = INT32_C(2);
-    l6 = (void*) _a4_obj;
-    t3 = snippet$Square$Probe$same_kind(l0, l6);
+    l7 = (void*) _a4_obj;
+    t3 = snippet$Square$Probe$same_kind(l0, l7);
     std_io$println__bool(t3);
     t3 = snippet$i32$Probe$same_kind(INT32_C(4), INT32_C(5));
     std_io$println__bool(t3);

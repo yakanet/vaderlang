@@ -121,23 +121,25 @@
           __place_operand_2.n = __place_operand_2.n + 5
       }
       std.io.println<string>({
-          __p_3: string = snippet.log()[1]
-          __buf_4: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_3))
-          __off_5: i64 = 0
-          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.counter().n)
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, @array.len(snippet.log()))
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
-          std.core.finish_buffer(__buf_4, __off_5)
+          __p_3: i32 = snippet.counter().n
+          __p_4: i64 = @array.len(snippet.log())
+          __p_5: string = snippet.log()[1]
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_5))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_int(__buf_6, __off_7, __p_3)
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_int(__buf_6, __off_7, __p_4)
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
+          std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(41))
-          __off_7: i64 = 0
-          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.start().n)
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.DEFAULT.n)
-          std.core.finish_buffer(__buf_6, __off_7)
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(41))
+          __off_9: i64 = 0
+          __off_9 = std.core.write_int(__buf_8, __off_9, snippet.start().n)
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_int(__buf_8, __off_9, snippet.DEFAULT.n)
+          std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.io.println<string>(snippet.greeting())
       return 0

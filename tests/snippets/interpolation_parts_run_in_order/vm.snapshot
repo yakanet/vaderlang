@@ -1,0 +1,10 @@
+# stdout
+  int 1
+  str b
+  bool true
+  str d
+  int 5
+1 b true d 5
+1 bumped 2
+# exit
+0

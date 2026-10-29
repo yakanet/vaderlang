@@ -20,32 +20,34 @@
       a: Box<Point> = Box<Any> { .v = snippet.shapes_a.make() }
       b: Box<Point> = Box<Any> { .v = snippet.shapes_b.make() }
       std.io.println<string>({
-          __p_0: string = b.v.name
-          __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_0))
-          __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, a.v.x)
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
-          std.core.finish_buffer(__buf_1, __off_2)
+          __p_0: i32 = a.v.x
+          __p_1: string = b.v.name
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_1))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       c: Box<Point> = snippet.wrap<Point>(snippet.shapes_a.make())
       d: Box<Point> = snippet.wrap<Point>(snippet.shapes_b.make())
       std.io.println<string>({
-          __p_3: string = d.v.name
-          __buf_4: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_3))
-          __off_5: i64 = 0
-          __off_5 = std.core.write_int(__buf_4, __off_5, c.v.x)
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
-          std.core.finish_buffer(__buf_4, __off_5)
+          __p_4: i32 = c.v.x
+          __p_5: string = d.v.name
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_5))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_int(__buf_6, __off_7, __p_4)
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
+          std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(11))
-          __off_7: i64 = 0
-          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet$holds__snippet_shapes__a_Point(snippet.shapes_a.make(), snippet.shapes_b.make()))
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet$holds__snippet_shapes__b_Point(snippet.shapes_b.make(), snippet.shapes_b.make()))
-          std.core.finish_buffer(__buf_6, __off_7)
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(11))
+          __off_9: i64 = 0
+          __off_9 = std.core.write_bool(__buf_8, __off_9, snippet$holds__snippet_shapes__a_Point(snippet.shapes_a.make(), snippet.shapes_b.make()))
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_bool(__buf_8, __off_9, snippet$holds__snippet_shapes__b_Point(snippet.shapes_b.make(), snippet.shapes_b.make()))
+          std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.io.println<string>(snippet.show(snippet.shapes_a.make()))
       std.io.println<string>(snippet.show(snippet.shapes_b.make()))

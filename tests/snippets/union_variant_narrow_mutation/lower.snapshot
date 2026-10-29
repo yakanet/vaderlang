@@ -41,25 +41,27 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
-          __p_2: string = words[2]
-          __buf_3: Buffer = std.core.new_byte_buffer(i64(53) +% std.core.byte_len(__p_2))
-          __off_4: i64 = 0
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, "elems=")
-          __off_4 = std.core.write_int(__buf_3, __off_4, nums[2])
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, ",")
-          __off_4 = std.core.write_int(__buf_3, __off_4, nums[3])
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, " last=")
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_2)
-          std.core.finish_buffer(__buf_3, __off_4)
+          __p_2: i32 = nums[2]
+          __p_3: i32 = nums[3]
+          __p_4: string = words[2]
+          __buf_5: Buffer = std.core.new_byte_buffer(i64(53) +% std.core.byte_len(__p_4))
+          __off_6: i64 = 0
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, "elems=")
+          __off_6 = std.core.write_int(__buf_5, __off_6, __p_2)
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, ",")
+          __off_6 = std.core.write_int(__buf_5, __off_6, __p_3)
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " last=")
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
+          std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       std.io.println<string>({
-          __buf_5: Buffer = std.core.new_byte_buffer(i64(53))
-          __off_6: i64 = 0
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, "total=")
-          __off_6 = std.core.write_int(__buf_5, __off_6, snippet.total(nums))
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, " count=")
-          __off_6 = std.core.write_int(__buf_5, __off_6, snippet.total(words))
-          std.core.finish_buffer(__buf_5, __off_6)
+          __buf_7: Buffer = std.core.new_byte_buffer(i64(53))
+          __off_8: i64 = 0
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, "total=")
+          __off_8 = std.core.write_int(__buf_7, __off_8, snippet.total(nums))
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, " count=")
+          __off_8 = std.core.write_int(__buf_7, __off_8, snippet.total(words))
+          std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       return 0
   }

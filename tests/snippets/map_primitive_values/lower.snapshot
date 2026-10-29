@@ -18,14 +18,15 @@
           std.io.println<string>("u8 x: missing")
       } else {
           std.io.println<string>({
-              __p_0: string = @vcall(std.core.Display.to_string, std.collections.MutableMap<string, u8>.at(mu8, "y"))
-              __buf_1: Buffer = std.core.new_byte_buffer(i64(28) +% std.core.byte_len(__p_0))
-              __off_2: i64 = 0
-              __off_2 = std.core.write_string_at(__buf_1, __off_2, "u8 x=")
-              __off_2 = std.core.write_unsigned(__buf_1, __off_2, u8(vx))
-              __off_2 = std.core.write_string_at(__buf_1, __off_2, " y=")
-              __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
-              std.core.finish_buffer(__buf_1, __off_2)
+              __p_0: u8 = u8(vx)
+              __p_1: string = @vcall(std.core.Display.to_string, std.collections.MutableMap<string, u8>.at(mu8, "y"))
+              __buf_2: Buffer = std.core.new_byte_buffer(i64(28) +% std.core.byte_len(__p_1))
+              __off_3: i64 = 0
+              __off_3 = std.core.write_string_at(__buf_2, __off_3, "u8 x=")
+              __off_3 = std.core.write_unsigned(__buf_2, __off_3, __p_0)
+              __off_3 = std.core.write_string_at(__buf_2, __off_3, " y=")
+              __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+              std.core.finish_buffer(__buf_2, __off_3)
           } :string)
       }
       mbool: MutableMap<string, bool> = MutableMap<string, bool> {
@@ -45,13 +46,13 @@
           std.io.println<string>("bool: missing")
       } else {
           std.io.println<string>({
-              __buf_3: Buffer = std.core.new_byte_buffer(i64(20))
-              __off_4: i64 = 0
-              __off_4 = std.core.write_string_at(__buf_3, __off_4, "bool t=")
-              __off_4 = std.core.write_bool(__buf_3, __off_4, bool(vt))
-              __off_4 = std.core.write_string_at(__buf_3, __off_4, " f=")
-              __off_4 = std.core.write_bool(__buf_3, __off_4, bool(vf))
-              std.core.finish_buffer(__buf_3, __off_4)
+              __buf_4: Buffer = std.core.new_byte_buffer(i64(20))
+              __off_5: i64 = 0
+              __off_5 = std.core.write_string_at(__buf_4, __off_5, "bool t=")
+              __off_5 = std.core.write_bool(__buf_4, __off_5, bool(vt))
+              __off_5 = std.core.write_string_at(__buf_4, __off_5, " f=")
+              __off_5 = std.core.write_bool(__buf_4, __off_5, bool(vf))
+              std.core.finish_buffer(__buf_4, __off_5)
           } :string)
       }
       mchar: MutableMap<string, char> = MutableMap<string, char> {
@@ -118,11 +119,11 @@
           std.io.println<string>("i16: missing")
       } else {
           std.io.println<string>({
-              __buf_5: Buffer = std.core.new_byte_buffer(i64(28))
-              __off_6: i64 = 0
-              __off_6 = std.core.write_string_at(__buf_5, __off_6, "i16 neg=")
-              __off_6 = std.core.write_int(__buf_5, __off_6, i16(vn))
-              std.core.finish_buffer(__buf_5, __off_6)
+              __buf_6: Buffer = std.core.new_byte_buffer(i64(28))
+              __off_7: i64 = 0
+              __off_7 = std.core.write_string_at(__buf_6, __off_7, "i16 neg=")
+              __off_7 = std.core.write_int(__buf_6, __off_7, i16(vn))
+              std.core.finish_buffer(__buf_6, __off_7)
           } :string)
       }
       mu16: MutableMap<string, u16> = MutableMap<string, u16> {
@@ -140,11 +141,11 @@
           std.io.println<string>("u16: missing")
       } else {
           std.io.println<string>({
-              __buf_7: Buffer = std.core.new_byte_buffer(i64(28))
-              __off_8: i64 = 0
-              __off_8 = std.core.write_string_at(__buf_7, __off_8, "u16 big=")
-              __off_8 = std.core.write_unsigned(__buf_7, __off_8, u16(vb))
-              std.core.finish_buffer(__buf_7, __off_8)
+              __buf_8: Buffer = std.core.new_byte_buffer(i64(28))
+              __off_9: i64 = 0
+              __off_9 = std.core.write_string_at(__buf_8, __off_9, "u16 big=")
+              __off_9 = std.core.write_unsigned(__buf_8, __off_9, u16(vb))
+              std.core.finish_buffer(__buf_8, __off_9)
           } :string)
       }
       mi64: MutableMap<string, i64> = MutableMap<string, i64> {
@@ -163,11 +164,11 @@
           std.io.println<string>("i64: missing")
       } else {
           std.io.println<string>({
-              __buf_9: Buffer = std.core.new_byte_buffer(i64(29))
-              __off_10: i64 = 0
-              __off_10 = std.core.write_string_at(__buf_9, __off_10, "i64 huge=")
-              __off_10 = std.core.write_int(__buf_9, __off_10, i64(vh))
-              std.core.finish_buffer(__buf_9, __off_10)
+              __buf_10: Buffer = std.core.new_byte_buffer(i64(29))
+              __off_11: i64 = 0
+              __off_11 = std.core.write_string_at(__buf_10, __off_11, "i64 huge=")
+              __off_11 = std.core.write_int(__buf_10, __off_11, i64(vh))
+              std.core.finish_buffer(__buf_10, __off_11)
           } :string)
       }
       miss: null | u8 = std.collections.MutableMap<string, u8>.at(mu8, "absent")
@@ -175,11 +176,11 @@
           std.io.println<string>("miss: ok")
       } else {
           std.io.println<string>({
-              __buf_11: Buffer = std.core.new_byte_buffer(i64(32))
-              __off_12: i64 = 0
-              __off_12 = std.core.write_string_at(__buf_11, __off_12, "miss: WRONG ")
-              __off_12 = std.core.write_unsigned(__buf_11, __off_12, u8(miss))
-              std.core.finish_buffer(__buf_11, __off_12)
+              __buf_12: Buffer = std.core.new_byte_buffer(i64(32))
+              __off_13: i64 = 0
+              __off_13 = std.core.write_string_at(__buf_12, __off_13, "miss: WRONG ")
+              __off_13 = std.core.write_unsigned(__buf_12, __off_13, u8(miss))
+              std.core.finish_buffer(__buf_12, __off_13)
           } :string)
       }
       return 0

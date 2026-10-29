@@ -129,14 +129,15 @@ fn 18 snippet$main () -> i32
   local __for_len_1 i64
   local __for_i_2 i64
   local p any
-  local __p_3 string
-  local $call_17 i64
-  local __buf_4 ref
-  local __off_5 i64
-  local $cast_24 i64
-  local $cast_32 i64
-  local $vcall_36 bool
-  local $vcall_40 bool
+  local __p_3 i32
+  local __p_4 string
+  local $call_19 i64
+  local __buf_5 ref
+  local __off_6 i64
+  local $cast_25 i64
+  local $cast_33 i64
+  local $vcall_37 bool
+  local $vcall_41 bool
   i32.const 3
   struct.new 1   ; snippet$Square
   i32.const 41
@@ -158,78 +159,80 @@ fn 18 snippet$main () -> i32
       local.get 2   ; __for_i_2
       array.get 11   ; ref snippet$Probe[]
       local.tee 3   ; p
+      virtual.call 1 snippet$Probe.describe -> i32
+      local.set 4   ; __p_3
+      local.get 3   ; p
       virtual.call 1 snippet$Probe.kind -> string
-      local.tee 4   ; __p_3
+      local.tee 5   ; __p_4
       call.import 0   ; std_core$byte_len
-      local.set 5   ; $call_17
+      local.set 6   ; $call_19
       i64.const 54
-      local.get 5   ; $call_17
+      local.get 6   ; $call_19
       i64.add
       buffer.new
-      local.set 6   ; __buf_4
+      local.set 7   ; __buf_5
       i64.const 0
-      local.set 7   ; __off_5
-      local.get 3   ; p
-      virtual.call 1 snippet$Probe.describe -> i32
-      i32.to_i64
-      local.set 8   ; $cast_24
-      local.get 6   ; __buf_4
-      local.get 7   ; __off_5
-      local.get 8   ; $cast_24
-      call 22   ; std_core$write_int
-      local.set 7   ; __off_5
-      local.get 6   ; __buf_4
-      local.get 7   ; __off_5
-      string.const 3   ; " "
-      call 21   ; std_core$write_string_at
-      local.set 7   ; __off_5
-      local.get 6   ; __buf_4
-      local.get 7   ; __off_5
+      local.set 8   ; __off_6
       local.get 4   ; __p_3
-      call 21   ; std_core$write_string_at
-      local.set 7   ; __off_5
-      local.get 6   ; __buf_4
-      local.get 7   ; __off_5
+      i32.to_i64
+      local.set 9   ; $cast_25
+      local.get 7   ; __buf_5
+      local.get 8   ; __off_6
+      local.get 9   ; $cast_25
+      call 22   ; std_core$write_int
+      local.set 8   ; __off_6
+      local.get 7   ; __buf_5
+      local.get 8   ; __off_6
       string.const 3   ; " "
       call 21   ; std_core$write_string_at
-      local.set 7   ; __off_5
+      local.set 8   ; __off_6
+      local.get 7   ; __buf_5
+      local.get 8   ; __off_6
+      local.get 5   ; __p_4
+      call 21   ; std_core$write_string_at
+      local.set 8   ; __off_6
+      local.get 7   ; __buf_5
+      local.get 8   ; __off_6
+      string.const 3   ; " "
+      call 21   ; std_core$write_string_at
+      local.set 8   ; __off_6
       local.get 3   ; p
       virtual.call 1 snippet$Probe.guarded -> i32
       i32.to_i64
-      local.set 9   ; $cast_32
-      local.get 6   ; __buf_4
-      local.get 7   ; __off_5
-      local.get 9   ; $cast_32
+      local.set 10   ; $cast_33
+      local.get 7   ; __buf_5
+      local.get 8   ; __off_6
+      local.get 10   ; $cast_33
       call 22   ; std_core$write_int
-      local.set 7   ; __off_5
-      local.get 6   ; __buf_4
-      local.get 7   ; __off_5
+      local.set 8   ; __off_6
+      local.get 7   ; __buf_5
+      local.get 8   ; __off_6
       string.const 3   ; " "
       call 21   ; std_core$write_string_at
-      local.set 7   ; __off_5
+      local.set 8   ; __off_6
       local.get 3   ; p
       virtual.call 1 snippet$Probe.aliased -> bool
-      local.set 10   ; $vcall_36
-      local.get 6   ; __buf_4
-      local.get 7   ; __off_5
-      local.get 10   ; $vcall_36
+      local.set 11   ; $vcall_37
+      local.get 7   ; __buf_5
+      local.get 8   ; __off_6
+      local.get 11   ; $vcall_37
       call 23   ; std_core$write_bool
-      local.set 7   ; __off_5
-      local.get 6   ; __buf_4
-      local.get 7   ; __off_5
+      local.set 8   ; __off_6
+      local.get 7   ; __buf_5
+      local.get 8   ; __off_6
       string.const 3   ; " "
       call 21   ; std_core$write_string_at
-      local.set 7   ; __off_5
+      local.set 8   ; __off_6
       local.get 3   ; p
       virtual.call 1 snippet$Probe.absent -> bool
-      local.set 11   ; $vcall_40
-      local.get 6   ; __buf_4
-      local.get 7   ; __off_5
-      local.get 11   ; $vcall_40
+      local.set 12   ; $vcall_41
+      local.get 7   ; __buf_5
+      local.get 8   ; __off_6
+      local.get 12   ; $vcall_41
       call 23   ; std_core$write_bool
-      local.set 7   ; __off_5
-      local.get 6   ; __buf_4
-      local.get 7   ; __off_5
+      local.set 8   ; __off_6
+      local.get 7   ; __buf_5
+      local.get 8   ; __off_6
       call 20   ; std_core$finish_buffer
       call 28   ; std_io$println__string
       local.get 2   ; __for_i_2
@@ -244,9 +247,9 @@ fn 18 snippet$main () -> i32
   local.set 0   ; __for_arr_0
   i32.const 2
   struct.new 1   ; snippet$Square
-  local.set 6   ; __buf_4
+  local.set 7   ; __buf_5
   local.get 0   ; __for_arr_0
-  local.get 6   ; __buf_4
+  local.get 7   ; __buf_5
   call 4   ; snippet$Square$Probe$same_kind
   call 27   ; std_io$println__bool
   i32.const 4

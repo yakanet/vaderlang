@@ -192,12 +192,13 @@ static int32_t snippet$apply(void* l0, uint8_t l1) {
 static int32_t snippet$main(void) {
     void* l0 = NULL;
     int64_t l1, l2;
-    vader_string_t l3 = 0;
+    int32_t l3;
+    vader_string_t l4 = 0;
     int32_t t0;
     vader_string_t t1 = 0;
     void* t2 = NULL;
     void** gc_raw_roots[2] = { &l0, &t2 };
-    vader_string_t* gc_atom_roots[2] = { &l3, &t1 };
+    vader_string_t* gc_atom_roots[2] = { &l4, &t1 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
@@ -229,22 +230,22 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_int(l0, l1, l2);
     t1 = std_core$finish_buffer(l0, l1);
     std_io$println__string(t1);
+    t2 = (void*) &vader_fn_static_snippet_status$abs_status;
+    l3 = snippet$apply(t2, (uint8_t) 2);
     l0 = (void*) &vader_data_0;
     l1 = ((int64_t) (uint32_t) INT32_C(2));
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l1)
     t2 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l1);
-    l3 = ((vader_struct_snippet_status$StatusInfo_t*) t2)->f_reason;
-    l1 = vader_host_std_core$byte_len(l3);
+    l4 = ((vader_struct_snippet_status$StatusInfo_t*) t2)->f_reason;
+    l1 = vader_host_std_core$byte_len(l4);
     l0 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l1));
     l1 = INT64_C(0);
-    t2 = (void*) &vader_fn_static_snippet_status$abs_status;
-    t0 = snippet$apply(t2, (uint8_t) 2);
-    l2 = ((int64_t) (int32_t) t0);
+    l2 = ((int64_t) (int32_t) l3);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    l1 = std_core$write_string_at(l0, l1, l3);
+    l1 = std_core$write_string_at(l0, l1, l4);
     t1 = std_core$finish_buffer(l0, l1);
     std_io$println__string(t1);
     snippet_status$seed_with((uint8_t) 1);
