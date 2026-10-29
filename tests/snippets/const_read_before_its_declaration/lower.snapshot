@@ -2,12 +2,14 @@
 
 ## snippet
   storage
-    const BUILT: Inner[]  inline
+    const BUILT: Inner[]  accessor __const_snippet$BUILT
     const INNERS: Inner[]  inline
-    const MADE: Inner  inline
+    const MADE: Inner  accessor __const_snippet$MADE
     const MADE_LIST: Inner[]  inline
     const ONE: Inner  data pool #0, element 0
     const TOTAL: i32  inline
+    global #0 i32  MADE.state
+    global #1 i32  BUILT.state
   snippet.Inner :: struct { n: i32 }  // snippet$Inner
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<string>({
@@ -30,11 +32,27 @@
   snippet.INNERS: Inner[]: [snippet.ONE] :Inner[]  // snippet$INNERS
   snippet.TOTAL: i32: snippet.ONE.n + 1  // snippet$TOTAL
   snippet.MADE_LIST: Inner[]: [snippet.MADE] :Inner[]  // snippet$MADE_LIST
-  snippet.MADE: Inner: snippet.make(4)  // snippet$MADE
+  __const_snippet$MADE :: fn() -> Inner {
+      if @global(0) == 1 {
+          @unreachable("constant `MADE` read while its value is computed")
+      }
+      @global(0) = 1
+      value: Inner = snippet.make(4)
+      @global(0) = 0
+      value
+  }
   snippet.make :: fn(n: i32) -> Inner {  // snippet$make
       Inner { .n = n }
   }
-  snippet.BUILT: Inner[]: snippet.build()  // snippet$BUILT
+  __const_snippet$BUILT :: fn() -> Inner[] {
+      if @global(1) == 1 {
+          @unreachable("constant `BUILT` read while its value is computed")
+      }
+      @global(1) = 1
+      value: Inner[] = snippet.build()
+      @global(1) = 0
+      value
+  }
   snippet.build :: fn() -> Inner[] {  // snippet$build
       [Inner { .n = 9 }] :Inner[]
   }

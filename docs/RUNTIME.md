@@ -305,8 +305,9 @@ trait call looks up the receiver's type index in the module's vtable rows.
 
 ## Globals and constants
 
-A program's only global slots are those the compiler adds for `@singleton`: a
-state and the instance it built, per singleton. Natively each is a C global,
+A program's only global slots are those the compiler adds: for `@singleton`, a
+state and the instance it built, per singleton; for a constant whose value calls a
+function, whether that value is being computed. Natively each is a C global,
 zero-initialised, rooted by a frame `main` installs (*Memory*); on the VM they
 are an array of `Value`.
 
@@ -318,8 +319,12 @@ A module constant has no storage at run time:
   heap, which the collector treats as immortal; on the VM, a value
   built once when the module loads. A struct is baked as a one-element array, and
   only when the constant is declared at the struct's own type;
-- a large array the compiler cannot bake becomes a function, `__const_<name>`,
-  that builds it;
+- a value that calls a function becomes a function, `__const_<name>`, that
+  builds it and stops the program if the constant is read again before it
+  returns, which only a function the value calls can do
+  ([ADR 0119](adr/0119-a-constant-read-while-its-value-is-computed-stops-the-program.md));
+- a large array the compiler cannot bake becomes such a function too, without the
+  stop;
 - anything else is rebuilt where it is read.
 
 Every read of a baked constant shares that one value, except a read whose value a

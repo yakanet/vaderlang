@@ -5,11 +5,13 @@
     const FROM_LIB: i32  inline
     const LIMIT: i32  inline
     const ROOT: i32  inline
-    const SPARE: i32  inline
-    const SPARE_ROOT: i32  inline
+    const SPARE: i32  accessor __const_snippet$SPARE
+    const SPARE_ROOT: i32  accessor __const_snippet$SPARE_ROOT
     const SUM: i32  inline
     const TALLY: i32  inline
     const TWICE: i32  inline
+    global #0 i32  SPARE_ROOT.state
+    global #1 i32  SPARE.state
   snippet.root_of_fifty :: fn() -> i32 {  // snippet$root_of_fifty
       r: i32 = 0
       {
@@ -54,11 +56,27 @@
   }
   snippet.LIMIT: i32: 70  // snippet$LIMIT
   snippet.TALLY: i32: 5  // snippet$TALLY
-  snippet.SPARE_ROOT: i32: snippet.count_to_ten()  // snippet$SPARE_ROOT
+  __const_snippet$SPARE_ROOT :: fn() -> i32 {
+      if @global(0) == 1 {
+          @unreachable("constant `SPARE_ROOT` read while its value is computed")
+      }
+      @global(0) = 1
+      value: i32 = snippet.count_to_ten()
+      @global(0) = 0
+      value
+  }
   snippet.__comptime_SPARE :: fn() -> i32 {  // snippet$__comptime_SPARE
       snippet.SPARE_ROOT + 1
   }
-  snippet.SPARE: i32: snippet.__comptime_SPARE()  // snippet$SPARE
+  __const_snippet$SPARE :: fn() -> i32 {
+      if @global(1) == 1 {
+          @unreachable("constant `SPARE` read while its value is computed")
+      }
+      @global(1) = 1
+      value: i32 = snippet.__comptime_SPARE()
+      @global(1) = 0
+      value
+  }
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(83))

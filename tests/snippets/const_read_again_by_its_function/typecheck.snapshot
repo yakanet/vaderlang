@@ -1,0 +1,42 @@
+# Typecheck
+
+## tests/snippets/const_read_again_by_its_function
+  FnDecl         build                :: fn(bool) -> i32
+  ConstDecl      CACHED               :: i32
+  ConstDecl      LOOP                 :: i32
+  FnDecl         main                 :: fn(string[]) -> i32
+  FnDecl         next                 :: fn() -> i32
+  expr 10:11    CallExpr       :: i32
+  expr 10:11    IdentExpr      :: fn(bool) -> i32
+  expr 13:5     IfExpr         :: void
+  expr 13:8     IdentExpr      :: bool
+  expr 14:16    IdentExpr      :: i32
+  expr 19:9     CallExpr       :: i32
+  expr 19:9     IdentExpr      :: fn() -> i32
+  expr 21:23    BinaryExpr     :: i32
+  expr 21:23    IdentExpr      :: i32
+  expr 25:14    RangeExpr      :: Range<i32>
+  expr 26:18    IdentExpr      :: i32
+  expr 26:9     BinaryExpr     :: i32
+  expr 26:9     IdentExpr      :: i32
+  expr 28:13    StringLitExpr  :: string
+  expr 28:16    IdentExpr      :: i32
+  expr 28:26    CallExpr       :: i32
+  expr 28:26    IdentExpr      :: fn(bool) -> i32
+  expr 28:41    IdentExpr      :: i32
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 29:26    BinaryExpr     :: bool
+  expr 29:26    IdentExpr      :: string[]
+  expr 29:26    IndexExpr      :: string
+  expr 29:37    StringLitExpr  :: string
+  expr 29:5     IfExpr         :: void
+  expr 29:8     BinaryExpr     :: bool
+  expr 29:8     BinaryExpr     :: bool
+  expr 29:8     CallExpr       :: i64
+  expr 29:8     FieldExpr      :: fn() -> i64
+  expr 29:8     IdentExpr      :: string[]
+  expr 30:17    StringLitExpr  :: string
+  expr 30:20    IdentExpr      :: i32
+  expr 30:9     CallExpr       :: void
+  expr 30:9     IdentExpr      :: fn(T) -> void

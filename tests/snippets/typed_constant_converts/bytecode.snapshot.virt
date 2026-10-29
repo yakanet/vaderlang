@@ -15,12 +15,14 @@ string 1 "<"
 string 2 ">"
 string 3 "from a file"
 string 4 "\n"
+global 0 4 ROOM.state
+global 1 4 NOTE.state
 import 0 byte_len std_core$byte_len result_type=6 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=9 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=6 param_types=4,9,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 1 std_core$Into
 impl 5 std_core$ByteAccess
-export main 2
+export main 4
 
 fn 0 snippet$Celsius$std_core$Into$into (ref) -> ref
   local __buf_0 ref
@@ -38,16 +40,16 @@ fn 0 snippet$Celsius$std_core$Into$into (ref) -> ref
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $cast_7
-  call 7   ; std_core$write_int
+  call 9   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 0   ; " C"
-  call 6   ; std_core$write_string_at
+  call 8   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 5   ; std_core$finish_buffer
+  call 7   ; std_core$finish_buffer
   struct.new 2   ; snippet$Label
   return
 end
@@ -56,27 +58,65 @@ fn 1 snippet$string$std_core$Into$into (string) -> ref
   string.const 1   ; "<"
   local.get 0   ; arg 0
   string.const 2   ; ">"
-  call 3   ; concat_3
+  call 5   ; concat_3
   struct.new 2   ; snippet$Label
   return
 end
 
-fn 2 snippet$main () -> i32
-  i32.const 21
-  struct.new 1   ; snippet$Celsius
-  call 0   ; snippet$Celsius$std_core$Into$into
+fn 2 __const_snippet$ROOM () -> ref
+  local value ref
+  global.get 0   ; ROOM.state
+  i32.const 1
+  i32.eq
+  if $L0 void
+  else
+    i32.const 1
+    global.set 0   ; ROOM.state
+    i32.const 21
+    struct.new 1   ; snippet$Celsius
+    call 0   ; snippet$Celsius$std_core$Into$into
+    local.set 0   ; value
+    i32.const 0
+    global.set 0   ; ROOM.state
+    local.get 0   ; value
+    return
+  end $L0
+  unreachable
+end
+
+fn 3 __const_snippet$NOTE () -> ref
+  local value ref
+  global.get 1   ; NOTE.state
+  i32.const 1
+  i32.eq
+  if $L0 void
+  else
+    i32.const 1
+    global.set 1   ; NOTE.state
+    string.const 3   ; "from a file"
+    call 1   ; snippet$string$std_core$Into$into
+    local.set 0   ; value
+    i32.const 0
+    global.set 1   ; NOTE.state
+    local.get 0   ; value
+    return
+  end $L0
+  unreachable
+end
+
+fn 4 snippet$main () -> i32
+  call 2   ; __const_snippet$ROOM
   struct.get 2 0   ; snippet$Label.text
   ref.cast 3   ; string
-  call 11   ; std_io$println__string
-  string.const 3   ; "from a file"
-  call 1   ; snippet$string$std_core$Into$into
+  call 13   ; std_io$println__string
+  call 3   ; __const_snippet$NOTE
   struct.get 2 0   ; snippet$Label.text
   ref.cast 3   ; string
-  call 11   ; std_io$println__string
+  call 13   ; std_io$println__string
   return.lit i32.const 0
 end
 
-fn 3 concat_3 (string,string,string) -> string
+fn 5 concat_3 (string,string,string) -> string
   local c0 i64
   local $call_5 i64
   local $call_8 i64
@@ -117,7 +157,7 @@ fn 3 concat_3 (string,string,string) -> string
   return
 end
 
-fn 4 concat_2 (string,string) -> string
+fn 6 concat_2 (string,string) -> string
   local c0 i64
   local $call_4 i64
   local buf ref
@@ -146,14 +186,14 @@ fn 4 concat_2 (string,string) -> string
   return
 end
 
-fn 5 std_core$finish_buffer (ref,i64) -> string
+fn 7 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 6 std_core$write_string_at (ref,i64,string) -> i64
+fn 8 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -168,7 +208,7 @@ fn 6 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 7 std_core$write_int (ref,i64,i64) -> i64
+fn 9 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -282,7 +322,7 @@ fn 7 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 8 std_io$write (u8,string) -> void
+fn 10 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -293,7 +333,7 @@ fn 8 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 9   ; std_io$write_text
+  call 11   ; std_io$write_text
   if $L0 void
     return
   end $L0
@@ -324,7 +364,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 10   ; std_io$write_bytes
+      call 12   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -344,11 +384,11 @@ fn 8 std_io$write (u8,string) -> void
   return
 end
 
-fn 9 std_io$write_text (u8,string) -> bool
+fn 11 std_io$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 10 std_io$write_bytes (u8,ref,i64) -> i32
+fn 12 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -368,14 +408,14 @@ fn 10 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 11 std_io$println__string (string) -> void
+fn 13 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 4   ; "\n"
-  call 4   ; concat_2
+  call 6   ; concat_2
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 8   ; std_io$write
+  call 10   ; std_io$write
   return
 end

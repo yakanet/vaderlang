@@ -2,7 +2,8 @@
 
 ## snippet
   storage
-    const FOUND: null | Point  inline
+    const FOUND: null | Point  accessor __const_snippet$FOUND
+    global #0 i32  FOUND.state
   snippet.Point :: struct { x: i32, y: i32 }  // snippet$Point
   snippet.first_on_diagonal :: fn() -> null | Point {  // snippet$first_on_diagonal
       {
@@ -17,7 +18,15 @@
       }
       return null
   }
-  snippet.FOUND: null | Point: snippet.first_on_diagonal()  // snippet$FOUND
+  __const_snippet$FOUND :: fn() -> null | Point {
+      if @global(0) == 1 {
+          @unreachable("constant `FOUND` read while its value is computed")
+      }
+      @global(0) = 1
+      value: null | Point = snippet.first_on_diagonal()
+      @global(0) = 0
+      value
+  }
   snippet.main :: fn() -> i32 {  // snippet$main
       if !(snippet.FOUND is null) {
           std.io.println<string>({

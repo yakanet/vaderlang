@@ -1,0 +1,59 @@
+// vader/lower/global_slot: the global slots the lowering adds to a program.
+//
+// A program has no global variable of its own: a module keeps its state in a
+// `@singleton`. The lowering adds slots for two mechanisms that must remember
+// something across calls: a singleton's state and instance (`singleton.vader`),
+// and whether the value of a guarded constant is being computed
+// (`inline_consts.vader`). Both read the state slot through the helpers below.
+
+module "vader/lower"
+
+import "toolchain/span"
+import "vader/core/types"
+import "vader/lower/ir"
+
+// The states of a state slot, which starts at `IDLE`.
+IDLE: i64: 0
+STARTED: i64: 1
+
+// Add a global slot of the program, owned by the module `module`, named `name`, of
+// type `type`, and read it.
+new_global :: fn(
+    project_ctx: LowerProjectCtx, module: string, name: string, type: Type, span: Span,
+) -> LoweredGlobalGet {
+    slot :: project_ctx.globals.len()
+    project_ctx.globals.push(GlobalSlot {
+        .name = name,
+        .type = type,
+        .module = module,
+    })
+    return LoweredGlobalGet {
+        .span = span,
+        .type = type,
+        .slot = slot,
+    }
+}
+
+set_global :: fn(slot: LoweredGlobalGet, value: LoweredExpr) -> LoweredStmt = LoweredGlobalSet {
+    .span  = slot.span,
+    .slot  = slot.slot,
+    .value = value,
+}
+
+state_value :: fn(span: Span, value: i64) -> LoweredExpr = LoweredIntLit {
+    .span  = span,
+    .type  = TY_I32,
+    .value = value,
+}
+
+// `if state == value { body }`.
+when_state :: fn(state: LoweredGlobalGet, value: i64, body: LoweredStmt) -> LoweredStmt {
+    branch :: LoweredIf {
+        .span       = state.span,
+        .type       = TY_VOID,
+        .cond       = equals_primop(state, state_value(state.span, value), state.span),
+        .then_block = mk_void_block([body], state.span),
+        .else_block = null,
+    }
+    return LoweredExprStmt { .span = state.span, .expr = branch }
+}

@@ -33,8 +33,17 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 5u
 
+/* Comptime data pool: read-only arrays in `.rodata`.
+ * Out-of-arena pointers are immortal to the GC (it never copies /
+ * relocates them), so `data.const` boxes a zero-copy view. */
+static int32_t vader_global_0 = 0u;
+static int32_t vader_global_1 = 0u;
+static vader_gc_frame_t vader_global_frame = { NULL, 0u, 0u, NULL, NULL, 0u, NULL };
+
 static void* snippet$Celsius$std_core$Into$into(void* l0);
 static void* snippet$string$std_core$Into$into(vader_string_t l0);
+static void* __const_snippet$ROOM(void);
+static void* __const_snippet$NOTE(void);
 static int32_t snippet$main(void);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
@@ -136,26 +145,60 @@ static void* snippet$string$std_core$Into$into(vader_string_t l0) {
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static void* __const_snippet$ROOM(void) {
+    void* l0 = NULL;
+    int32_t t0;
+    void* t1 = NULL;
+    void** gc_raw_roots[2] = { &l0, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = vader_global_0;
+    if (!(t0 == INT32_C(1))) {
+        vader_global_0 = INT32_C(1);
+        vader_struct_snippet$Celsius_t* _a0_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
+        vader_obj_header_init(_a0_obj, 1u);
+        _a0_obj->f_degrees = INT32_C(21);
+        t1 = (void*) _a0_obj;
+        l0 = snippet$Celsius$std_core$Into$into(t1);
+        vader_global_0 = INT32_C(0);
+        { void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
+    }
+    vader_unreachable("constant `ROOM` read while its value is computed");
+    vader_gc_top = gc_frame.prev;
+}
+
+static void* __const_snippet$NOTE(void) {
+    void* l0 = NULL;
+    int32_t t0;
+    void** gc_raw_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = vader_global_1;
+    if (!(t0 == INT32_C(1))) {
+        vader_global_1 = INT32_C(1);
+        l0 = snippet$string$std_core$Into$into(4u);
+        vader_global_1 = INT32_C(0);
+        { void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
+    }
+    vader_unreachable("constant `NOTE` read while its value is computed");
+    vader_gc_top = gc_frame.prev;
+}
+
 static int32_t snippet$main(void) {
     void* t0 = NULL;
-    void* t1 = NULL;
-    vader_string_t t2 = 0;
-    void** gc_raw_roots[2] = { &t0, &t1 };
-    vader_string_t* gc_atom_roots[1] = { &t2 };
+    vader_string_t t1 = 0;
+    void** gc_raw_roots[1] = { &t0 };
+    vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_struct_snippet$Celsius_t* _a0_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a0_obj, 1u);
-    _a0_obj->f_degrees = INT32_C(21);
-    t0 = (void*) _a0_obj;
-    t1 = snippet$Celsius$std_core$Into$into(t0);
-    t2 = ((vader_struct_snippet$Label_t*) t1)->f_text;
-    std_io$println__string(t2);
-    t0 = snippet$string$std_core$Into$into(4u);
-    t2 = ((vader_struct_snippet$Label_t*) t0)->f_text;
-    std_io$println__string(t2);
+    t0 = __const_snippet$ROOM();
+    t1 = ((vader_struct_snippet$Label_t*) t0)->f_text;
+    std_io$println__string(t1);
+    t0 = __const_snippet$NOTE();
+    t1 = ((vader_struct_snippet$Label_t*) t0)->f_text;
+    std_io$println__string(t1);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -337,6 +380,7 @@ static void std_io$println__string(vader_string_t l0) {
 
 int main(int argc, char** argv) {
     vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+    vader_gc_top = &vader_global_frame;
     atexit(vader_atom_shutdown);
     atexit(vader_gc_shutdown);
     (void) argc;

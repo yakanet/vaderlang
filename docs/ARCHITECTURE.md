@@ -197,6 +197,10 @@ the lowerer's own route.
   parameters, its locals and the state to resume at, which `Iterator.next`
   (`vader/lower/generator.vader`) or `Async.resume` (`vader/lower/async.vader`)
   resumes.
+- **Module constants**: `vader/lower/inline_consts.vader` gives each its storage
+  ([`RUNTIME.md`](RUNTIME.md) *Globals and constants*); the lowering the comptime
+  VM runs guards none, since that VM refuses global slots
+  ([ADR 0119](adr/0119-a-constant-read-while-its-value-is-computed-stops-the-program.md)).
 - **Reflection**: the reflection intrinsics (`@size_of`, `@type_name`, ...) fold to
   literals on a type known at lowering (in a generic body, the instance's types),
   and `@fields(T)` to an array literal of `Field` (`vader/lower/intrinsic.vader`).

@@ -5,7 +5,7 @@
     const EITHER: bool  inline
     const GUARDED: bool  inline
     const NAMED: string  inline
-    const NAMED_PLAIN: string  inline
+    const NAMED_PLAIN: string  accessor __const_snippet$NAMED_PLAIN
     const PICKED: string  inline
     const PICKED_PLAIN: string  inline
     const SAME: bool  inline
@@ -13,6 +13,7 @@
     const TOP: string  inline
     const ZERO: i32  inline
     const ZEROS: i32[]  data pool #0
+    global #0 i32  NAMED_PLAIN.state
   snippet$pick :: fn(x: i32) -> string {
       "int"
   }
@@ -35,7 +36,15 @@
       snippet.name_of<i32>(1)
   }
   snippet.NAMED: string: "i32"  // snippet$NAMED
-  snippet.NAMED_PLAIN: string: snippet.name_of<i32>(1)  // snippet$NAMED_PLAIN
+  __const_snippet$NAMED_PLAIN :: fn() -> string {
+      if @global(0) == 1 {
+          @unreachable("constant `NAMED_PLAIN` read while its value is computed")
+      }
+      @global(0) = 1
+      value: string = snippet.name_of<i32>(1)
+      @global(0) = 0
+      value
+  }
   snippet.__comptime_GUARDED :: fn() -> bool {  // snippet$__comptime_GUARDED
       (0 != 0) && ((10 / 0) > 1)
   }

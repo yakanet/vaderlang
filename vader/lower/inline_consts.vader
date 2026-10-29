@@ -13,6 +13,12 @@
 //     and read back via a `data.const` op, so the value exists in one place
 //     instead of being rebuilt. A use that reads the constant fresh calls an
 //     accessor that builds it again (`const_fresh_wrap`).
+//   - guarded : a value that runs code (`expr_runs_code`) is built by an accessor
+//     `__const_<name>` that stops the program when the constant is read while its
+//     value is computed, by a function the value calls. A global slot of the
+//     program holds whether it is. Not in the lowering the comptime VM runs, which
+//     refuses global slots: there a cycle is a run past its frame limit, which its
+//     driver reports (ADR 0118).
 //   - fn-wrap : an array literal of `FN_WRAP_MIN_ELEMENTS`+ elements (struct /
 //     string elements that the data pool can't hold, e.g. `INTRINSICS`). The
 //     const decl is REPLACED IN PLACE by a synthetic 0-arg accessor fn
@@ -54,7 +60,8 @@ FN_WRAP_MIN_ELEMENTS: i64: 4
 ///                     the one pool every synthetic decl draws from, so no two
 ///                     synthetic decls share an id. Resolver-minted ids are
 ///                     positive, so the negative synthetic range never touches them.
-inline_consts :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) -> void {
+/// @param guards       whether a constant whose value runs code is guarded.
+inline_consts :: fn(project: LoweredProject, project_ctx: LowerProjectCtx, guards: bool) -> void {
     for module_id in project.modules.keys() {
         m :: project.modules[module_id] ?? continue
         new_decls: LoweredDecl[]: []
@@ -63,7 +70,7 @@ inline_consts :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) -> vo
             if d is LoweredConstDecl {
                 sym :: d.origin.symbol
                 if sym is Symbol {
-                    storage :: store_const(project, project_ctx, d, sym, new_decls)
+                    storage :: store_const(project, project_ctx, d, sym, guards, new_decls)
                     project.const_routes.push(ConstRoute {
                         .symbol = sym,
                         .type = d.type,
@@ -94,6 +101,7 @@ store_const :: fn(
     project_ctx: LowerProjectCtx,
     d: LoweredConstDecl,
     sym: Symbol,
+    guards: bool,
     decls: LoweredDecl[],
 ) -> ConstStorage {
     // Data-pool bucket : a bakeable array or struct literal is materialised once
@@ -106,32 +114,85 @@ store_const :: fn(
         // A use that must not share the pooled value calls an accessor that
         // builds it again.
         if sym.id in project_ctx.typed.fresh.constants {
-            pooled.rebuilt_by = add_accessor(project_ctx, d, sym, decls, project.const_fresh_wrap)
+            pooled.rebuilt_by = add_accessor(
+                project_ctx, d, sym, value_block(d), decls, project.const_fresh_wrap,
+            )
         }
         return pooled
     }
+    if guards && expr_runs_code(d.value) {
+        body :: guarded_value(project_ctx, d, sym)
+        accessor :: add_accessor(project_ctx, d, sym, body, decls, project.const_fn_wrap)
+        return AccessorConst { .accessor = accessor }
+    }
     if should_fn_wrap(d.value) {
-        accessor :: add_accessor(project_ctx, d, sym, decls, project.const_fn_wrap)
+        accessor :: add_accessor(project_ctx, d, sym, value_block(d), decls, project.const_fn_wrap)
         return AccessorConst { .accessor = accessor }
     }
     project.const_inline[sym.id] = d.value
     return InlineConst {}
 }
 
-// Mint the accessor that builds `d`, register it in `wraps` and append it to
-// `decls` ; its mangled name.
+// Mint the accessor that builds `d` with `body`, register it in `wraps` and append
+// it to `decls` ; its mangled name.
 add_accessor :: fn(
     project_ctx: LowerProjectCtx,
     d: LoweredConstDecl,
     sym: Symbol,
+    body: LoweredBlock,
     decls: LoweredDecl[],
     wraps: MutableMap<i32, ConstFnWrap>,
 ) -> string {
     fn_symbol :: const_accessor_symbol(sym, next_project_synthetic_id(project_ctx))
     wraps[sym.id] = ConstFnWrap { .fn_symbol = fn_symbol, .call_type = d.type }
-    accessor :: synthesize_const_fn(d, fn_symbol)
+    accessor :: synthesize_const_fn(d, fn_symbol, body)
     decls.push(accessor)
     return accessor.mangled
+}
+
+// The accessor body of a constant whose value runs code: the value, computed while a
+// global slot says so, and a stop when the constant is read again meanwhile.
+//
+//     if state == STARTED { trap: read while its value is computed }
+//     state = STARTED
+//     value :: <the value>
+//     state = IDLE
+//     value
+guarded_value :: fn(project_ctx: LowerProjectCtx, d: LoweredConstDecl, sym: Symbol) -> LoweredBlock {
+    span :: d.value.span
+    state :: new_global(project_ctx, sym.module, "${sym.name}.state", TY_I32, span)
+    reentered :: LoweredUnreachable {
+        .span   = span,
+        .type   = TY_VOID,
+        .reason = "constant `${sym.name}` read while its value is computed",
+    }
+    value :: synthetic_symbol(next_project_synthetic_id(project_ctx), .Local, "value")
+    stmts: LoweredStmt[]: [
+        when_state(state, STARTED, LoweredExprStmt { .span = span, .expr = reentered }),
+        set_global(state, state_value(span, STARTED)),
+        LoweredLet {
+            .span   = span,
+            .name   = value.name,
+            .symbol = value,
+            .type   = d.type,
+            .value  = d.value,
+        },
+        set_global(state, state_value(span, IDLE)),
+    ]
+    return LoweredBlock {
+        .span     = span,
+        .type     = d.type,
+        .stmts    = stmts,
+        .trailing = LoweredIdent { .span = span, .type = d.type, .symbol = value },
+    }
+}
+
+// The accessor body of a constant that only builds its value.
+value_block :: fn(d: LoweredConstDecl) -> LoweredBlock = LoweredBlock {
+    .span     = d.value.span,
+    .type     = d.type,
+    .stmts    = [],
+    .trailing = d.value,
 }
 
 // `d` in the data pool : an array literal as an entry, a struct literal as the
@@ -367,11 +428,10 @@ const_accessor_symbol :: fn(orig_sym: Symbol, synth_id: i32) -> Symbol = Symbol 
     .defined_at = orig_sym.defined_at,
 }
 
-// Build the synthetic 0-arg accessor fn for a fn-wrapped const : the body is a
-// block whose trailing expression is the const's value, and the origin reuses
-// the const's MonoEntry with the symbol swapped for the `fn_symbol` built by
+// Build the synthetic 0-arg accessor fn of a const, of body `body`: the origin
+// reuses the const's MonoEntry with the symbol swapped for the `fn_symbol` built by
 // `const_accessor_symbol`.
-synthesize_const_fn :: fn(cd: LoweredConstDecl, fn_symbol: Symbol) -> LoweredFnDecl {
+synthesize_const_fn :: fn(cd: LoweredConstDecl, fn_symbol: Symbol, body: LoweredBlock) -> LoweredFnDecl {
     synth_entry :: MonoEntry {
         .id             = cd.origin.id,
         .is_main        = false,
@@ -382,18 +442,12 @@ synthesize_const_fn :: fn(cd: LoweredConstDecl, fn_symbol: Symbol) -> LoweredFnD
         .type_arguments = cd.origin.type_arguments,
         .module         = cd.origin.module,
     }
-    no_stmts: LoweredStmt[]: []
     no_params: LoweredParam[]: []
     return LoweredFnDecl {
         .mangled     = "__const_${cd.mangled}",
         .params      = no_params,
         .return_type = cd.type,
-        .body        = LoweredBlock {
-            .span     = cd.value.span,
-            .type     = cd.type,
-            .stmts    = no_stmts,
-            .trailing = cd.value,
-        },
-        .origin = synth_entry,
+        .body        = body,
+        .origin      = synth_entry,
     }
 }

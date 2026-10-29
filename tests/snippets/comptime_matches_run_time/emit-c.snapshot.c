@@ -68,10 +68,13 @@ static const struct { vader_obj_header_t header; size_t capacity; size_t length;
 static const vader_array_t vader_data_0 = {
     { 8u, 0u, 0u, 0u, NULL }, 4u, 4u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
+static int32_t vader_global_0 = 0u;
+static vader_gc_frame_t vader_global_frame = { NULL, 0u, 0u, NULL, NULL, 0u, NULL };
 
 static vader_string_t snippet$pick(int32_t l0);
 static vader_string_t snippet$pick_1(vader_string_t l0);
 static bool snippet$same(vader_box_t l0, vader_box_t l1);
+static vader_string_t __const_snippet$NAMED_PLAIN(void);
 static int32_t snippet$main(void);
 static vader_string_t snippet$Color$std_core$Display$to_string(uint8_t l0);
 static vader_string_t snippet$name_of__i32(int32_t l0);
@@ -147,6 +150,19 @@ static bool snippet$same(vader_box_t l0, vader_box_t l1) {
     return vader_box_eq(l0, l1);
 }
 
+static vader_string_t __const_snippet$NAMED_PLAIN(void) {
+    vader_string_t l0;
+    int32_t t0;
+    t0 = vader_global_0;
+    if (!(t0 == INT32_C(1))) {
+        vader_global_0 = INT32_C(1);
+        l0 = snippet$name_of__i32(INT32_C(1));
+        vader_global_0 = INT32_C(0);
+        return l0;
+    }
+    vader_unreachable("constant `NAMED_PLAIN` read while its value is computed");
+}
+
 static int32_t snippet$main(void) {
     int32_t l0;
     vader_string_t l1 = 0;
@@ -168,7 +184,7 @@ static int32_t snippet$main(void) {
     l2 = snippet$pick(INT32_C(1));
     t0 = concat_4(3u, l1, 5u, l2);
     std_io$println__string(t0);
-    l1 = snippet$name_of__i32(INT32_C(1));
+    l1 = __const_snippet$NAMED_PLAIN();
     l2 = snippet$name_of__i32(INT32_C(1));
     t0 = concat_4(6u, l1, 7u, l2);
     std_io$println__string(t0);
@@ -570,6 +586,7 @@ static void std_io$println__string(vader_string_t l0) {
 
 int main(int argc, char** argv) {
     vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+    vader_gc_top = &vader_global_frame;
     atexit(vader_atom_shutdown);
     atexit(vader_gc_shutdown);
     (void) argc;

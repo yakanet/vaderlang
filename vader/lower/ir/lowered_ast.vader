@@ -34,7 +34,7 @@ export LoweredVtableEntry :: struct {
 export GlobalSlot :: struct {
     name: string
     type: Type
-    /// The module whose singleton owns the slot.
+    /// The module whose singleton, or guarded constant, owns the slot.
     module: string
 }
 

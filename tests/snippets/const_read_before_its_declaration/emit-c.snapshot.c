@@ -39,9 +39,14 @@ static const struct { vader_obj_header_t header; size_t capacity; size_t length;
 static const vader_array_t vader_data_0 = {
     { 3u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
+static int32_t vader_global_0 = 0u;
+static int32_t vader_global_1 = 0u;
+static vader_gc_frame_t vader_global_frame = { NULL, 0u, 0u, NULL, NULL, 0u, NULL };
 
 static int32_t snippet$main(void);
+static void* __const_snippet$MADE(void);
 static void* snippet$make(int32_t l0);
+static void* __const_snippet$BUILT(void);
 static void* snippet$build(void);
 static void snippet$Inner$Visit$visit(void* l0, void* l1);
 static void __lambda_snippet_0(void* l0);
@@ -154,12 +159,12 @@ static int32_t snippet$main(void) {
     l2 = ((int64_t) (int32_t) t2);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$make(INT32_C(4));
+    t0 = __const_snippet$MADE();
     t1 = ((vader_struct_snippet$Inner_t*) t0)->f_n;
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$make(INT32_C(4));
+    t0 = __const_snippet$MADE();
     vader_array_t* _a4_arr = vader_array_new(3u, 1u, 13u, 2u);
     ((void**) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = t0;
     t0 = (void*) _a4_arr;
@@ -171,7 +176,7 @@ static int32_t snippet$main(void) {
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$build();
+    t0 = __const_snippet$BUILT();
     vader_array_t* _a6_slotarr = ((vader_array_t*) t0);
     VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a6_slotarr, INT32_C(0))
@@ -190,6 +195,23 @@ static int32_t snippet$main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
+static void* __const_snippet$MADE(void) {
+    void* l0 = NULL;
+    int32_t t0;
+    void** gc_raw_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = vader_global_0;
+    if (!(t0 == INT32_C(1))) {
+        vader_global_0 = INT32_C(1);
+        l0 = snippet$make(INT32_C(4));
+        vader_global_0 = INT32_C(0);
+        { void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
+    }
+    vader_unreachable("constant `MADE` read while its value is computed");
+    vader_gc_top = gc_frame.prev;
+}
+
 static void* snippet$make(int32_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
@@ -200,6 +222,23 @@ static void* snippet$make(int32_t l0) {
     _a0_obj->f_n = l0;
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static void* __const_snippet$BUILT(void) {
+    void* l0 = NULL;
+    int32_t t0;
+    void** gc_raw_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = vader_global_1;
+    if (!(t0 == INT32_C(1))) {
+        vader_global_1 = INT32_C(1);
+        l0 = snippet$build();
+        vader_global_1 = INT32_C(0);
+        { void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
+    }
+    vader_unreachable("constant `BUILT` read while its value is computed");
+    vader_gc_top = gc_frame.prev;
 }
 
 static void* snippet$build(void) {
@@ -403,6 +442,7 @@ static void std_io$println__string(vader_string_t l0) {
 
 int main(int argc, char** argv) {
     vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+    vader_gc_top = &vader_global_frame;
     atexit(vader_atom_shutdown);
     atexit(vader_gc_shutdown);
     (void) argc;

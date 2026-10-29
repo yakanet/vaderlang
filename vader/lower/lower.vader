@@ -223,7 +223,6 @@ lower_project_impl :: fn(
     // directives never land in the .virt: the runtime falls back to
     // mangle-keyed dispatch.
     project.vtable_entries = collect_vtable_entries(project)
-    project.globals = project_ctx.globals
     // Devirtualize calls through a fn-value local (`let f = named_fn ; … f(x) …`) to
     // direct calls to the concrete fn: kills the erased-fn-value indirect+boxed
     // dispatch (the `.map(f).filter(p)` iterator-fusion regression). The direct
@@ -236,7 +235,9 @@ lower_project_impl :: fn(
     // the SAME live `next_synthetic_id` counter (via `project_ctx`) so they
     // never collide with a lowering-synthetic fn-decl id (lambda / defer /
     // `concat_N`). See `inline_consts.vader`.
-    inline_consts(project, project_ctx)
+    inline_consts(project, project_ctx, !is_staging)
+    // After `inline_consts`, which adds a slot per constant it guards.
+    project.globals = project_ctx.globals
     // Mark the pushes whose loop can keep the array's state in locals. See
     // `vader/lower/optimise/push_cache.vader`.
     push_cache_tag(project)

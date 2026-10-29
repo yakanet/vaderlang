@@ -1,0 +1,100 @@
+# Lower
+
+## snippet
+  storage
+    const CACHED: i32  accessor __const_snippet$CACHED
+    const LOOP: i32  accessor __const_snippet$LOOP
+    global #0 i32  CACHED.state
+    global #1 i32  LOOP.state
+  __const_snippet$CACHED :: fn() -> i32 {
+      if @global(0) == 1 {
+          @unreachable("constant `CACHED` read while its value is computed")
+      }
+      @global(0) = 1
+      value: i32 = snippet.build(false)
+      @global(0) = 0
+      value
+  }
+  snippet.build :: fn(use_cache: bool) -> i32 {  // snippet$build
+      if use_cache {
+          return snippet.CACHED
+      }
+      return 42
+  }
+  __const_snippet$LOOP :: fn() -> i32 {
+      if @global(1) == 1 {
+          @unreachable("constant `LOOP` read while its value is computed")
+      }
+      @global(1) = 1
+      value: i32 = snippet.next()
+      @global(1) = 0
+      value
+  }
+  snippet.next :: fn() -> i32 {  // snippet$next
+      snippet.LOOP + 1
+  }
+  snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
+      total: i32 = 0
+      {
+          _: i32 = 0
+          for _ < 3 {
+              total = total + snippet.CACHED
+          } @step {
+              _ = _ +% 1
+          }
+      }
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(62))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.CACHED)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.build(true))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, total)
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      if (@array.len(argv) > i64(1)) && (argv[1] == "cycle") {
+          std.io.println<string>({
+              __buf_2: Buffer = std.core.new_byte_buffer(i64(20))
+              __off_3: i64 = 0
+              __off_3 = std.core.write_int(__buf_2, __off_3, snippet.LOOP)
+              std.core.finish_buffer(__buf_2, __off_3)
+          } :string)
+      }
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

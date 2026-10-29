@@ -30,8 +30,8 @@ import "vader/lower/ir"
 
 AST :: import "toolchain/ast"
 
-// The states a singleton goes through ; a global slot starts at zero.
-STARTED: i64: 1
+// Past `STARTED` (`global_slot.vader`), the state of a singleton whose instance is
+// built.
 READY: i64: 2
 
 /// Lower the `@singleton` function `fn_decl`: its body into a synthesised init, and
@@ -65,7 +65,7 @@ lower_singleton :: fn(
     project_ctx.synth_decls.push(init_decl)
     instance_type :: init_decl.return_type
     span :: fn_decl.span
-    state :: new_global(ctx, "${fn_decl.name}.state", TY_I32, span)
+    state :: new_global(ctx.project, ctx.typed.resolved.path, "${fn_decl.name}.state", TY_I32, span)
     instance :: instance_slot(ctx, fn_decl.name, instance_type, span)
     reentered :: LoweredUnreachable {
         .span   = span,
@@ -103,22 +103,6 @@ built_instance :: fn(
     return mk_lowered_call(instance_symbol(share, mangled), [frame], type, span)
 }
 
-// Add a global slot of the singleton `ctx` lowers, named `name`, of type `type`,
-// and read it.
-new_global :: fn(ctx: FnLowerCtx, name: string, type: Type, span: Span) -> LoweredGlobalGet {
-    slot :: ctx.project.globals.len()
-    ctx.project.globals.push(GlobalSlot {
-        .name = name,
-        .type = type,
-        .module = ctx.typed.resolved.path,
-    })
-    return LoweredGlobalGet {
-        .span = span,
-        .type = type,
-        .slot = slot,
-    }
-}
-
 // The slot keeping the instance of singleton `name`, or null when it has none to
 // keep: it returns `void`, or never returns.
 instance_slot :: fn(
@@ -127,13 +111,7 @@ instance_slot :: fn(
     if is_void(type) || type is NeverType {
         return null
     }
-    return new_global(ctx, "${name}.instance", type, span)
-}
-
-set_global :: fn(slot: LoweredGlobalGet, value: LoweredExpr) -> LoweredStmt = LoweredGlobalSet {
-    .span  = slot.span,
-    .slot  = slot.slot,
-    .value = value,
+    return new_global(ctx.project, ctx.typed.resolved.path, "${name}.instance", type, span)
 }
 
 // `instance = built`, or just `built` when there is no instance to keep.
@@ -144,22 +122,4 @@ keep_instance :: fn(
         return LoweredExprStmt { .span = span, .expr = built }
     }
     return set_global(instance, built)
-}
-
-state_value :: fn(span: Span, value: i64) -> LoweredExpr = LoweredIntLit {
-    .span  = span,
-    .type  = TY_I32,
-    .value = value,
-}
-
-// `if state == value { body }`.
-when_state :: fn(state: LoweredGlobalGet, value: i64, body: LoweredStmt) -> LoweredStmt {
-    branch :: LoweredIf {
-        .span       = state.span,
-        .type       = TY_VOID,
-        .cond       = equals_primop(state, state_value(state.span, value), state.span),
-        .then_block = mk_void_block([body], state.span),
-        .else_block = null,
-    }
-    return LoweredExprStmt { .span = state.span, .expr = branch }
 }

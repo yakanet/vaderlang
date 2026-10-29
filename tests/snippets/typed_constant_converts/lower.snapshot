@@ -2,9 +2,11 @@
 
 ## snippet
   storage
-    const NOTE: Label  inline
+    const NOTE: Label  accessor __const_snippet$NOTE
     const NOTE_TEXT: string  inline
-    const ROOM: Label  inline
+    const ROOM: Label  accessor __const_snippet$ROOM
+    global #0 i32  ROOM.state
+    global #1 i32  NOTE.state
   snippet.Label :: struct { text: string }  // snippet$Label
   snippet.Celsius :: struct { degrees: i32 }  // snippet$Celsius
   snippet.Celsius.into :: fn(self: Celsius) -> Label {  // snippet$Celsius$std_core$Into$into
@@ -21,7 +23,15 @@
   snippet.string.into :: fn(self: string) -> Label {  // snippet$string$std_core$Into$into
       Label { .text = concat_3("<", self, ">") }
   }
-  snippet.ROOM: Label: snippet.Celsius.into(Celsius { .degrees = 21 })  // snippet$ROOM
+  __const_snippet$ROOM :: fn() -> Label {
+      if @global(0) == 1 {
+          @unreachable("constant `ROOM` read while its value is computed")
+      }
+      @global(0) = 1
+      value: Label = snippet.Celsius.into(Celsius { .degrees = 21 })
+      @global(0) = 0
+      value
+  }
   snippet.__comptime_NOTE_TEXT :: fn() -> string {  // snippet$__comptime_NOTE_TEXT
       read: IOError | string = std.io.read_file_string("note.txt", i64(16777216))
       if read is IOError {
@@ -30,7 +40,15 @@
       string(read)
   }
   snippet.NOTE_TEXT: string: "from a file"  // snippet$NOTE_TEXT
-  snippet.NOTE: Label: snippet.string.into("from a file")  // snippet$NOTE
+  __const_snippet$NOTE :: fn() -> Label {
+      if @global(1) == 1 {
+          @unreachable("constant `NOTE` read while its value is computed")
+      }
+      @global(1) = 1
+      value: Label = snippet.string.into("from a file")
+      @global(1) = 0
+      value
+  }
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<string>(snippet.ROOM.text)
       std.io.println<string>(snippet.NOTE.text)

@@ -1,0 +1,33 @@
+// A constant whose value calls a function is built by an accessor at each read,
+// which stops the program when that function reads the constant again. `CACHED`
+// reads itself on a branch its own computation does not take, which runs. With
+// `cycle` on the command line the program reads `LOOP`, whose function reads it
+// again: `tests/const_read_again.test.ts` runs that case on both backends.
+module "snippet"
+
+import "std/io"
+
+CACHED :: build(false)
+
+build :: fn(use_cache: bool) -> i32 {
+    if use_cache {
+        return CACHED
+    }
+    return 42
+}
+
+LOOP :: next()
+
+next :: fn() -> i32 = LOOP + 1
+
+main :: fn(argv: string[]) -> i32 {
+    total := 0
+    for _ in 0..<3 {
+        total += CACHED
+    }
+    println("${CACHED} ${build(true)} ${total}")
+    if argv.len() > 1 && argv[1] == "cycle" {
+        println("${LOOP}")
+    }
+    return 0
+}

@@ -1,0 +1,101 @@
+// vader/lower/ir/runs_code: whether evaluating a piece of the lowered IR runs code.
+//
+// The question `inline_consts` (`vader/lower/inline_consts.vader`) asks of a module
+// constant's value: only code can read the constant again while its value is
+// computed, so only a value that runs code needs the guard against that.
+
+module "vader/lower/ir"
+
+import "std/iter"
+
+/// Whether evaluating `e` runs code: a call, direct, virtual or through a value,
+/// or the deferred blocks a scope exit pops. A lambda's body is a function of its
+/// own, so building the closure runs none of it; an intrinsic runs no Vader code.
+///
+/// @param e  the expression.
+export expr_runs_code :: fn(e: LoweredExpr) -> bool = match e {
+    is LoweredCall | LoweredVirtualCall -> true
+    is LoweredFieldAccess | LoweredUnionField | LoweredCellGet | LoweredArrayLen ->
+        expr_runs_code(e.target)
+    is LoweredCast | LoweredTypeCheck | LoweredCellNew -> expr_runs_code(e.value)
+    is LoweredUnary         -> expr_runs_code(e.operand)
+    is LoweredMakeClosure   -> expr_runs_code(e.env)
+    is LoweredBlock         -> block_runs_code(e)
+    is LoweredIndex         -> expr_runs_code(e.target) || expr_runs_code(e.index)
+    is LoweredBinary        -> expr_runs_code(e.left) || expr_runs_code(e.right)
+    is LoweredArrayPush     -> expr_runs_code(e.target) || expr_runs_code(e.value)
+    is LoweredArraySlice    ->
+        expr_runs_code(e.target) || expr_runs_code(e.lo) || expr_runs_code(e.hi)
+    is LoweredIntrinsicCall -> exprs_run_code(e.args)
+    is LoweredArrayLit      -> exprs_run_code(e.elements)
+    is LoweredStructLit     -> e.fields.any_match((f) -> expr_runs_code(f.value))
+    is LoweredIf            ->
+        expr_runs_code(e.cond)
+            || block_runs_code(e.then_block)
+            || (e.else_block != null && block_runs_code(e.else_block))
+    is LoweredIdent | LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit
+        | LoweredCharLit | LoweredStringLit | LoweredDataConst | LoweredTypeConst
+        | LoweredUnreachable | LoweredGlobalGet -> false
+}
+
+exprs_run_code :: fn(items: LoweredExpr[]) -> bool = items.any_match(expr_runs_code)
+
+opt_expr_runs_code :: fn(e: LoweredExpr | null) -> bool {
+    if e == null {
+        return false
+    }
+    return expr_runs_code(e)
+}
+
+block_runs_code :: fn(b: LoweredBlock) -> bool =
+    b.stmts.any_match(stmt_runs_code) || opt_expr_runs_code(b.trailing)
+
+stmt_runs_code :: fn(st: LoweredStmt) -> bool = match st {
+    is LoweredAwait | LoweredDeferPopExec -> true
+    is LoweredAssign | LoweredCellSet -> expr_runs_code(st.target) || expr_runs_code(st.value)
+    is LoweredLet           -> expr_runs_code(st.value)
+    is LoweredGlobalSet     -> expr_runs_code(st.value)
+    is LoweredYield         -> expr_runs_code(st.value)
+    is LoweredExprStmt      -> expr_runs_code(st.expr)
+    is LoweredReturn        -> opt_expr_runs_code(st.value)
+    is LoweredDeferPush     -> expr_runs_code(st.thunk)
+    is LoweredLabelledBlock -> block_runs_code(st.body)
+    is LoweredLoop          ->
+        opt_expr_runs_code(st.cond)
+            || block_runs_code(st.body)
+            || block_runs_code(loop_step_block(st))
+    is LoweredBreak | LoweredContinue -> false
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/span"
+import "vader/core/types"
+
+runs_code_test_call :: fn() -> LoweredExpr = mk_lowered_call(
+    synthetic_symbol(1, .Fn, "f"), [], TY_I32, empty_span(),
+)
+
+@test test_runs_code_a_call :: fn() -> void {
+    assert(expr_runs_code(runs_code_test_call()), "a call runs its callee")
+}
+
+@test test_runs_code_a_call_in_a_struct_field :: fn() -> void {
+    literal :: LoweredStructLit {
+        .span   = empty_span(),
+        .type   = TY_I32,
+        .fields = [LoweredStructLitField { .name = "x", .value = runs_code_test_call() }],
+    }
+    assert(expr_runs_code(literal), "a field's value is evaluated with the literal")
+}
+
+@test test_runs_code_not_a_closure :: fn() -> void {
+    closure :: LoweredMakeClosure {
+        .span      = empty_span(),
+        .type      = TY_I32,
+        .fn_symbol = synthetic_symbol(2, .Fn, "lambda"),
+        .env       = LoweredNullLit { .span = empty_span(), .type = TY_I32 },
+    }
+    assert(!expr_runs_code(closure), "building a closure runs none of its body")
+}
