@@ -2383,33 +2383,33 @@ log :: fn(message: string) {
 add_one :: fn(x: i32) -> i32 = x + 1
 ```
 
-`return` may appear anywhere in a body, and a body that ends on an expression of the return type returns its value.
+`return` may appear anywhere in a body. A body that ends on an expression of the return type returns that value.
 
-**Every path must produce the declared value.** In a function with a return type, these are errors:
+In a function with a return type, every path must produce a value of that type. Two cases are errors:
 
-- reaching the closing brace with no trailing expression, without diverging: `f :: fn() -> i32 { n :: 1 }`;
-- a trailing expression of the wrong type: `fn(c: bool) -> i32 { if c { return 7 } }` ends on an `if` with no value.
+- the body reaches its closing brace without a trailing expression and without diverging: `f :: fn() -> i32 { n :: 1 }`;
+- the trailing expression has the wrong type: `fn(c: bool) -> i32 { if c { return 7 } }` ends on an `if` with no value.
 
-A body **diverges** when its last statement is a `return`, a `break`, a `continue`, a call to a `@no_return` function (`panic`, `todo`), or a loop no `break` leaves: `fn() -> i32 { for { ... } }` is valid. A lambda has the same obligation when its result type is promised, by an annotation or by its slot.
+A body **diverges** when its last statement is a `return`, a `break`, a `continue`, a call to a `@no_return` function (`panic`, `todo`), or a loop that no `break` leaves, so `fn() -> i32 { for { ... } }` is valid. The same rule applies to a lambda whose result type is set by an annotation or by its slot.
 
-**A function that returns nothing** omits the arrow or writes `-> void` (`void` is reserved, §3 *Reserved keywords*), as does a function type: `fn()` is `fn() -> void`. Its last expression, like that of a lambda in a slot that returns nothing, is evaluated and its value discarded: `remember :: fn(seen: MutableSet<string>, s: string) { seen.add(s) }` compiles although `add` returns a `bool`. A `return v` with a value is an error there.
+A function that returns nothing omits the arrow or writes `-> void` (`void` is reserved, §3 *Reserved keywords*). A function type follows the same rule: `fn()` is `fn() -> void`. The last expression of such a function, or of a lambda in a slot that returns nothing, is evaluated and its value discarded: `remember :: fn(seen: MutableSet<string>, s: string) { seen.add(s) }` compiles although `add` returns a `bool`. A `return` with a value is an error there.
 
 ### `main` entry point
 
-The program starts at the top-level function `main`, which has one of two signatures; any other is an error:
+The program starts at the top-level function `main`. It has one of two signatures, and any other is an error:
 
 ```vader
 main :: fn() -> i32                 // ignore argv
 main :: fn(argv: string[]) -> i32   // receive process args
 ```
 
-- `argv[0]` is implementation-defined (the script path under `vader run`, the binary path natively); the user's arguments start at `argv[1]`.
-- The returned `i32` is the process exit status, `0` reporting success. The operating system decides how much the parent sees: on Linux and macOS, the low 8 bits (`300` reads as `44`).
-- A program that stops (§2 *Run-time checks*, `panic`) never exits with status 0.
+- `argv[0]` is implementation-defined: the script path under `vader run`, the binary path natively. The user's arguments start at `argv[1]`.
+- The returned `i32` is the process exit status, and `0` reports success. The operating system decides how much of it the parent sees: on Linux and macOS, the low 8 bits (`300` reads as `44`).
+- A program that stops, on a run-time check (§2 *Run-time checks*), a `panic` or otherwise, never exits with status 0.
 
 ### Default parameter values
 
-A parameter may have a default value, which a call that leaves it out receives:
+A parameter may declare a default value, used when a call leaves the parameter out:
 
 ```vader
 greet :: fn(name: string, prefix: string = "Hello") -> string {
@@ -2423,10 +2423,10 @@ greet("Eve", prefix = "Hello")    // "Hello, Eve" (named parameter)
 
 ### Named arguments at call site
 
-An argument may name its parameter, `f(a = 1, b = 2)`, in a bare call as through UFCS. Named arguments may come in any order, and arguments are evaluated as written: `f(b = g(), a = h())` calls `g` first. These are errors:
+An argument may name its parameter, `f(a = 1, b = 2)`, in a bare call and through UFCS alike. Named arguments may come in any order. Arguments are evaluated in the order they are written, so `f(b = g(), a = h())` calls `g` first. These are errors:
 
 - a positional argument after a named one;
-- a name that is no parameter of the function, or names one a positional argument filled;
+- a name that is not a parameter of the function, or that names a parameter a positional argument already filled;
 - a parameter without a default value that no argument fills.
 
 ### Variadics
@@ -2468,7 +2468,7 @@ items.map(x -> {
 })
 ```
 
-**The `->` form has no return-type slot.** Its return type comes from the slot it fills (a parameter, a field, a typed declaration) or from its body. To write it, use an anonymous function literal `fn(params) -> R { body }`, which stands wherever a value is expected and means the same, or a named function:
+The `->` form has no place for a return type: the type comes from the slot the lambda fills (a parameter, a field, a typed declaration) or from its body. To write the return type, use an anonymous function literal `fn(params) -> R { body }`, which is allowed wherever a value is expected and means the same thing, or a named function:
 
 ```vader
 inc :: fn(x: i32) -> i32 { x + 1 }
@@ -2477,7 +2477,7 @@ items.map(inc)
 
 A named function may be declared at the top level or inside a function body. Its parameter and return types follow §4 *Type inference*; a recursive function with an expression body must write its return type.
 
-**A closure captures by reference**: an assignment to a captured variable, inside or outside the closure, is visible on both sides.
+A closure captures variables by reference. An assignment to a captured variable, inside or outside the closure, is visible on both sides:
 
 ```vader
 n := 0
@@ -2489,7 +2489,7 @@ get()                      // 1
 
 ### Function values
 
-A function type `fn(T1, T2, ...) -> R` is a type like any other. A function name used outside an immediate call is a function value, and a lambda fills a function-typed slot as it is:
+A function type `fn(T1, T2, ...) -> R` is an ordinary type. A function name that is not immediately called is a function value, and a lambda fills a function-typed slot directly:
 
 ```vader
 add :: fn(a: i32, b: i32) -> i32 { return a + b }
@@ -2521,11 +2521,11 @@ plus(2, 3)
 2.plus(3)
 ```
 
-`a.f(b)` is `f(a, b)`: Vader has no methods, and any free function can be called this way on its first argument.
+`a.f(b)` is `f(a, b)`. Vader has no methods: any free function can be called this way on its first argument.
 
-**A field comes first.** When the struct of `a` declares a field `f`, or every variant of its union reads `f` the same way (§4 *Common-field access*), `a.f` reads that field, whatever functions are declared. `a.f(b)` then calls the field when it holds a function, and the functions named `f` otherwise.
+When the struct of `a` declares a field `f`, or every variant of its union reads `f` the same way (§4 *Common-field access*), `a.f` reads that field even if functions named `f` exist. `a.f(b)` then calls the field if it holds a function, and otherwise the functions named `f`.
 
-**A method taken as a value.** Outside a call, `a.f` is `f` with `a` bound, a function of its other parameters. `a` is evaluated once, where the value is taken.
+Outside a call, `a.f` is a function value: `f` with `a` bound as its first argument, taking the other parameters. `a` is evaluated once, when the value is taken:
 
 ```vader
 show :: p.label                // fn() -> string
@@ -2543,17 +2543,17 @@ Every kind of callee can be taken as a value: a free function, an impl member, t
 - A generic free function is instantiated where it is taken, the receiver binding what its first parameter names and the slot the rest. A type parameter left unbound is an error.
 - A static member cannot be taken as a value.
 
-**Which functions a receiver reaches.** A free function is a candidate for `a.f(...)` when the receiver fits its first parameter:
+A free function is a candidate for `a.f(...)` when the receiver fits its first parameter in one of these ways:
 
-- the receiver's type is assignable to it, a type parameter there standing for any type: `m.size()` on a `MutableMap<string, i32>` reaches `size :: fn<K, V>(self: MutableMap<K, V>)`;
-- or it is a trait the receiver implements: `s.chars().filter(p)` reaches `filter :: fn<T>(self: Iterator<T>, ...)`. An array fits an `Iterator<T>` parameter;
-- or, when nothing fits by those two rules, an `Into` impl converts the receiver to it (§4 *Type coercion via `Into`*): with `Celsius implements Into<Label>`, `c.shout()` calls `shout :: fn(l: Label)`.
+- the receiver's type is assignable to the parameter's type, where a type parameter stands for any type: `m.size()` on a `MutableMap<string, i32>` reaches `size :: fn<K, V>(self: MutableMap<K, V>)`;
+- the parameter is a trait the receiver implements: `s.chars().filter(p)` reaches `filter :: fn<T>(self: Iterator<T>, ...)`, and an array fits an `Iterator<T>` parameter;
+- when no function fits by those two rules, an `Into` impl converts the receiver to the parameter's type (§4 *Type coercion via `Into`*): with `Celsius implements Into<Label>`, `c.shout()` calls `shout :: fn(l: Label)`.
 
 On a union receiver, the first parameter may be the union itself. A field only some variants have is an error (§4 *Common-field access*), even when a function of that name exists. The most specific candidate wins (*Function overloading*, below).
 
 #### Import requirement
 
-`x.foo()` resolves exactly as `foo(x)`: against the functions of the calling module, of the modules its file imports and of the prelude `std/core` (§11 *Prelude*), and nowhere else.
+`x.foo()` resolves the same way as `foo(x)`: its candidates are the functions of the calling module, of the modules its file imports and of the prelude `std/core` (§11 *Prelude*), and no others.
 
 ```vader
 // file: app/geo/geo.vader
@@ -2587,7 +2587,7 @@ frame :: fn() -> f64 = P.area(square())   // 12.0
 broken :: fn() -> f64 = square().area()   // error: `area` is in scope only as `P.area`
 ```
 
-**Ambiguity.** Two wildcard imports offering a `foo` the receiver fits equally make both call forms ambiguous.
+When two wildcard imports each offer a `foo` that fits the receiver equally well, both `x.foo()` and `foo(x)` are ambiguous.
 
 #### Function overloading
 
@@ -2604,20 +2604,20 @@ m.size()            // resolves to the MutableMap version
 These are errors:
 
 - two functions of one module with the same name and parameter types: a redefinition, reported at the declaration even when nothing calls them. A module spans every file of its folder, so two single-file programs in one folder, each with its own `main`, are a redefinition too;
-- a call to two candidates with the same first parameter and the same number of parameters, although both declarations are accepted.
+- a call that reaches two candidates with the same first parameter type and the same number of parameters; declaring both is not an error.
 
-**Resolution.** Among the candidates whose first parameter accepts the first argument, the most specific wins:
+Among the candidates whose first parameter accepts the first argument, the most specific candidate wins. These ranks decide, in order:
 
 1. A parameter naming a concrete member of the argument's union beats a bare `T`: for an `i32 | Boom` argument, `T | Boom` beats `T | null`. A concrete overload beats a type-parameter receiver (`fn<T>(self: T)`) where it applies.
 2. For an integer argument, its own type, then the narrowest integer type that holds it: `min(b, b)` on a `u8` takes the `i32` overload over the `i64` one.
 3. On a direct call, the candidate whose number of parameters matches. Through UFCS this rank does not apply, and candidates with different numbers of parameters are never ambiguous with each other.
 4. For a free literal, the candidate whose parameter is the literal's default type (§4 *Default integer*): `abs(-5)` reaches the `i32` overload whatever the declaration order.
 
-Two candidates of one module still level after these ranks make the call an error: `x.or(-1)` on `x: i32 | Error | null` fits `or(x: T | null, d: T)` and `or(x: T | Error, d: T)` alike. Narrow `x` first.
+If two candidates of one module are still tied after these ranks, the call is an error: `x.or(-1)` on `x: i32 | Error | null` fits `or(x: T | null, d: T)` and `or(x: T | Error, d: T)` equally. Narrow `x` first.
 
-**In a generic body, a call is resolved against the type parameters, once.** A first argument typed by `T`, or by a type that mentions it (`T[]`), reaches only the candidates whose first parameter accepts `T` itself, never an overload on a concrete type, and every instance runs the candidate chosen. With `describe :: fn<T: Display>(self: T)` and `describe :: fn(self: i32)`, `show :: fn<T: Display>(v: T) -> string = v.describe()` runs the generic one for `show(1)`. Behaviour that differs by type goes through a trait bound (§4 *Specialization: the instance wins*).
+In a generic body, a call is resolved once, against the type parameters. A first argument typed by `T`, or by a type that mentions it (`T[]`), reaches only the candidates whose first parameter accepts `T` itself, never an overload on a concrete type, and every instance runs the candidate chosen. With `describe :: fn<T: Display>(self: T)` and `describe :: fn(self: i32)`, `show :: fn<T: Display>(v: T) -> string = v.describe()` runs the generic one for `show(1)`. Behaviour that must differ by type goes through a trait bound (§4 *Specialization: the instance wins*).
 
-**A function of the module and an imported function of the same name** overload each other, the local one winning a tie: `"".is_empty()` reaches `std/string`'s, `b.is_empty()` a local `is_empty :: fn(self: Box) -> bool`.
+A function of the module and an imported function of the same name overload each other, and the local one wins a tie: `"".is_empty()` reaches the `is_empty` of `std/string`, and `b.is_empty()` a local `is_empty :: fn(self: Box) -> bool`.
 
 ### Visibility
 
