@@ -40,6 +40,10 @@ intrinsic_integer_bound :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeCont
     if expr.args.len() != 1 { return REPORTED_BY_TYPECHECK }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "${expr.name}: argument is not a type") }
+    // Its value is a variant, which the VM builds.
+    if arg_type is EnumType {
+        return vm_required(expr.span, "@${expr.name} of an enum")
+    }
     values :: type_bounds(arg_type)
     if values == null {
         return arg_error(expr, "${expr.name}: `${display_type(arg_type)}` has no bounds")

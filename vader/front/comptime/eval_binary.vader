@@ -10,19 +10,27 @@ module "vader/front/comptime"
 AST :: import "toolchain/ast"
 import "toolchain/span"
 import "vader/core/types"
+import "vader/front/typecheck"
 import "vader/support/diagnostics"
 import "vader/support/integer"
 
-/// Evaluate a `BinaryExpr`. Recurses into both operands ; combines
-/// per `op`. Short-circuits on operand failure (the operand's error
-/// propagates up). `Is` / `In` / `NotIn` need the typechecker's
-/// narrowing tables: fall back to C4001.
+/// Evaluate a `BinaryExpr`. Recurses into the operands, the right one only
+/// when `&&` or `||` needs it, and combines per `op`; an operand's error
+/// propagates up. `Is` / `In` / `NotIn` need the typechecker's narrowing
+/// tables, and an arithmetic operator the typecheck recorded as a call of a
+/// trait impl runs that impl: both fall back to C4001, for the VM.
 /// @param expr     the binary expression node.
 /// @param context  the evaluator context.
 /// @return         the combined value or a diagnostic.
 evaluate_binary_expr :: fn(expr: AST.BinaryExpr, context: ComptimeContext) -> EvalResult {
+    if runs_an_impl(expr, context) {
+        return vm_required(expr.span, "operator implemented by a type")
+    }
     left_result :: evaluate_expr(expr.left, context)
     left :: left_result.value ?? return left_result
+    if settles_alone(expr.op, left) {
+        return ok(left)
+    }
     right_result :: evaluate_expr(expr.right, context)
     right :: right_result.value ?? return right_result
     // Width of the node's resolved type: the type `+`, `-` and `*` are checked
@@ -41,13 +49,52 @@ evaluate_binary_expr :: fn(expr: AST.BinaryExpr, context: ComptimeContext) -> Ev
     // `==` on a union compares by variant : two values of different kinds are
     // unequal, two `null`s equal ; `compare` answers two values of one kind.
     if expr.op == .Eq || expr.op == .Neq {
+        union_operand :: has_union_operand(context, expr)
+        if union_operand && numbers_of_two_types(left, right_value) {
+            return vm_required(expr.span, "numbers of two types under a union")
+        }
         apart :: !same_kind(left, right_value)
-        if (apart || left is NullValue) && has_union_operand(context, expr) {
+        if (apart || left is NullValue) && union_operand {
             return ok(bool_value(apart == (expr.op == .Neq)))
         }
     }
     combined :: combine_binary(expr, left, right_value, rname)
     return normalize_int_result(combined, rname)
+}
+
+// Whether `left` alone gives the value of `left && right` or `left || right`, as
+// at run time, where the right operand is then not evaluated.
+settles_alone :: fn(op: AST.BinaryOp, left: ComptimeValue) -> bool =
+    left is BoolValue && (op == .And && !left.value || op == .Or && left.value)
+
+// Whether the typecheck recorded the arithmetic operator `expr` as a call of a
+// trait impl (`T[] implements Mul<i64>`): its value is that call's.
+runs_an_impl :: fn(expr: AST.BinaryExpr, context: ComptimeContext) -> bool {
+    if !is_arithmetic(expr.op) {
+        return false
+    }
+    recorded :: sites_of(context.typed.call_sites, .Operator)[expr.id]
+    return recorded is DirectFn | BoundMember | TraitMember | EachOf
+}
+
+// The arithmetic operators, which a trait impl may define.
+is_arithmetic :: fn(op: AST.BinaryOp) -> bool = match op {
+    .Add | .Sub | .Mul | .Div | .Mod -> true
+    .Shl | .Shr | .BitAnd | .BitOr | .BitXor | .AddWrap | .SubWrap | .MulWrap -> false
+    .And | .Or | .Eq | .Neq | .Lt | .Lte | .Gt | .Gte -> false
+    .Is | .In | .NotIn | .Same | .NotSame -> false
+}
+
+// Whether `left` and `right` are numbers of two types, or of a type left unknown:
+// a union tells its variants apart before it compares their values.
+numbers_of_two_types :: fn(left: ComptimeValue, right: ComptimeValue) -> bool {
+    if left is IntValue && right is IntValue {
+        return left.type_name == "" || left.type_name != right.type_name
+    }
+    if left is FloatValue && right is FloatValue {
+        return left.type_name == "" || left.type_name != right.type_name
+    }
+    return false
 }
 
 // `+`, `-` or `*` on two integers, checked at the width it folds at: an overflow

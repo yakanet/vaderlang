@@ -1,0 +1,176 @@
+# Lower
+
+## snippet
+  storage
+    const EITHER: bool  inline
+    const GUARDED: bool  inline
+    const NAMED: string  inline
+    const NAMED_PLAIN: string  inline
+    const PICKED: string  inline
+    const PICKED_PLAIN: string  inline
+    const SAME: bool  inline
+    const SHOWN: string  inline
+    const TOP: string  inline
+    const ZERO: i32  inline
+    const ZEROS: i32[]  data pool #0
+  snippet$pick :: fn(x: i32) -> string {
+      "int"
+  }
+  snippet$pick_1 :: fn(x: string) -> string {
+      "str"
+  }
+  snippet.same :: fn(a: i32 | i64, b: i32 | i64) -> bool {  // snippet$same
+      a == b
+  }
+  snippet.__comptime_ZERO :: fn() -> i32 {  // snippet$__comptime_ZERO
+      0
+  }
+  snippet.ZERO: i32: 0  // snippet$ZERO
+  snippet.__comptime_PICKED :: fn() -> string {  // snippet$__comptime_PICKED
+      snippet$pick_1("ab")
+  }
+  snippet.PICKED: string: "str"  // snippet$PICKED
+  snippet.PICKED_PLAIN: string: "int"  // snippet$PICKED_PLAIN
+  snippet.__comptime_NAMED :: fn() -> string {  // snippet$__comptime_NAMED
+      snippet.name_of<i32>(1)
+  }
+  snippet.NAMED: string: "i32"  // snippet$NAMED
+  snippet.NAMED_PLAIN: string: snippet.name_of<i32>(1)  // snippet$NAMED_PLAIN
+  snippet.__comptime_GUARDED :: fn() -> bool {  // snippet$__comptime_GUARDED
+      (0 != 0) && ((10 / 0) > 1)
+  }
+  snippet.GUARDED: bool: false  // snippet$GUARDED
+  snippet.__comptime_EITHER :: fn() -> bool {  // snippet$__comptime_EITHER
+      (0 == 0) || ((10 / 0) > 1)
+  }
+  snippet.EITHER: bool: true  // snippet$EITHER
+  snippet.__comptime_SHOWN :: fn() -> string {  // snippet$__comptime_SHOWN
+      std.core.i32[].to_string([1, 2] :i32[])
+  }
+  snippet.SHOWN: string: "[1, 2]"  // snippet$SHOWN
+  snippet.__comptime_ZEROS :: fn() -> i32[] {  // snippet$__comptime_ZEROS
+      @array.repeat([0] :i32[], 4)
+  }
+  snippet.__comptime_TOP :: fn() -> string {  // snippet$__comptime_TOP
+      snippet.Color.to_string(Color(2))
+  }
+  snippet.TOP: string: "Blue"  // snippet$TOP
+  snippet.__comptime_SAME :: fn() -> bool {  // snippet$__comptime_SAME
+      snippet.same(i32(1), i64(1))
+  }
+  snippet.SAME: bool: false  // snippet$SAME
+  snippet.main :: fn() -> i32 {  // snippet$main
+      zero: i32 = 0
+      std.io.println<string>(concat_4("str int | ", snippet$pick_1("ab"), " ", snippet$pick(1)))
+      std.io.println<string>(concat_4("i32 ", snippet.NAMED_PLAIN, " | ", snippet.name_of<i32>(1)))
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_bool(__buf_0, __off_1, false)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, true)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " | ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, (zero != 0) && ((10 / zero) > 1))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, (zero == 0) || ((10 / zero) > 1))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.io.println<string>(concat_2("[1, 2] | ", std.core.i32[].to_string([1, 2] :i32[])))
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(43))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, @array.len(snippet.ZEROS))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " | ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, @array.len(@array.repeat([0] :i32[], 4)))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      std.io.println<string>(concat_2("Blue | ", snippet.Color.to_string(Color(2))))
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(13))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_bool(__buf_4, __off_5, false)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " | ")
+          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet.same(i32(1), i64(1)))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      return 0
+  }
+  snippet.Color.to_string :: fn(self: Color) -> string {  // snippet$Color$std_core$Display$to_string
+      {
+          if self == Color(0) {
+              "Red"
+          } else if self == Color(1) {
+              "Green"
+          } else if self == Color(2) {
+              "Blue"
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  snippet.name_of<i32> :: fn(x: i32) -> string {  // snippet$name_of__i32
+      "i32"
+  }
+  concat_4 :: fn(p0: string, p1: string, p2: string, p3: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      c3: i64 = c2 +% std.core.byte_len(p3)
+      buf: Buffer = std.core.new_byte_buffer(c3)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.intern_string(buf, c3)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable std.core.Display.to_string for Color  snippet.Color.to_string  // snippet$Color$std_core$Display$to_string
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_signed  // std_core$format_signed
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.i32[].to_string  // std_core$$array$Display$to_string__i32
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

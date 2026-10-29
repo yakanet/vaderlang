@@ -87,7 +87,11 @@ A tree-walking interpreter (`vader/front/comptime/`) evaluates expressions and c
 to functions whose body is a single `return <expr>` or trailing expression. A
 declaration it cannot evaluate (a loop, a statement body, local mutation) runs as
 bytecode on the embedded VM (`vader/pipeline/comptime_vm`), and its result becomes
-a comptime value.
+a comptime value. The interpreter decides nothing the type checker settled: a call
+runs the function recorded at the site (`call_sites`), `&&` and `||` evaluate their
+right operand only when the left one leaves the result open, and what it would
+evaluate otherwise than the run time goes to the VM (a generic call, an operator a
+type implements, the `Display` of an array or a struct).
 
 The parser wraps every `@comptime` value other than a call without arguments in a
 function without parameters, which the constant calls: the comptime VM runs such

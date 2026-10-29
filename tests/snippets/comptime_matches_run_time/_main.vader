@@ -1,0 +1,47 @@
+// Each constant folds to what the same expression gives at run time, printed
+// beside it: the overload the type checker picked, a generic function, `&&` and
+// `||` leaving their right operand unevaluated, an array interpolated, an
+// operator a type implements, `@max` of an enum, `==` between two variants of a
+// union.
+module "snippet"
+
+import "std/io"
+
+pick :: fn(x: i32) -> string = "int"
+
+pick :: fn(x: string) -> string = "str"
+
+name_of :: fn<T>(x: T) -> string = @type_name(T)
+
+same :: fn(a: i32 | i64, b: i32 | i64) -> bool = a == b
+
+@displayable
+Color :: enum {
+    Red,
+    Green,
+    Blue,
+}
+
+ZERO :: @comptime 0
+PICKED :: @comptime pick("ab")
+PICKED_PLAIN :: pick(1)
+NAMED :: @comptime name_of(1)
+NAMED_PLAIN :: name_of(1)
+GUARDED :: @comptime ZERO != 0 && 10 / ZERO > 1
+EITHER :: @comptime ZERO == 0 || 10 / ZERO > 1
+SHOWN :: @comptime "${[1, 2]}"
+ZEROS :: @comptime [0] * 4
+TOP :: @comptime "${@max(Color)}"
+SAME :: @comptime same(i32(1), i64(1))
+
+main :: fn() -> i32 {
+    zero :: 0
+    println("${PICKED} ${PICKED_PLAIN} | ${pick("ab")} ${pick(1)}")
+    println("${NAMED} ${NAMED_PLAIN} | ${name_of(1)}")
+    println("${GUARDED} ${EITHER} | ${zero != 0 && 10 / zero > 1} ${zero == 0 || 10 / zero > 1}")
+    println("${SHOWN} | ${[1, 2]}")
+    println("${ZEROS.len()} | ${([0] * 4).len()}")
+    println("${TOP} | ${@max(Color)}")
+    println("${SAME} | ${same(i32(1), i64(1))}")
+    return 0
+}

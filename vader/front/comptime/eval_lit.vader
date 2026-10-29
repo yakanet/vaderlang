@@ -67,6 +67,10 @@ evaluate_string_lit :: fn(
                     sb.append(interp_value(text))
                     continue
                 }
+                // Rendered by their `Display` impl, which the VM runs.
+                if value is ArrayValue | StructValue {
+                    return vm_required(part.expr.span, "array or struct interpolated")
+                }
                 sb.append(interp_value(value))
             }
         }
@@ -89,12 +93,10 @@ interp_value :: fn(v: ComptimeValue) -> string = match v {
     is CharValue   -> "${char(v.value)}"
     is NullValue   -> "null"
     is VoidValue   -> ""
-    is ArrayValue  -> display_value(v)
-    is StructValue -> display_value(v)
     is TypeValue   -> display_value(v)
-    // `evaluate_string_lit` renders an enum through its `Display` impl before
-    // this; the arm completes the match.
-    is EnumValue   -> display_value(v)
+    // `evaluate_string_lit` renders an enum through its `Display` impl and sends
+    // an array or a struct to the VM before this; the arm completes the match.
+    is ArrayValue | StructValue | EnumValue -> display_value(v)
 }
 
 // ---- tests ----------------------------------------------------------------
