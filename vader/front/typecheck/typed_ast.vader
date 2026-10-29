@@ -459,13 +459,13 @@ export TypedProgram :: struct {
     /// `mod.foo` accesses can resolve to the export's concrete type.
     namespace_exports: MutableMap<string, MutableMap<string, Type>>
 
-    /// Declared parameters of exported FN members, per namespace :
-    /// `module_id → fn_name → params`. Populated alongside
-    /// `namespace_exports` for every `name :: import "p"` binding, but only
-    /// for fn members. Consumed by `call.vader::callee_param_decls` so a
-    /// namespace-qualified call (`mod.foo(...)`) can reorder named args and
-    /// fill omitted defaults from each param's `default_value`.
-    namespace_export_decls: MutableMap<string, MutableMap<string, AST.FnDecl>>
+    /// Exported FN members per namespace, every overload in declaration order :
+    /// `module_id → fn_name → candidates`. Populated alongside
+    /// `namespace_exports` for every `name :: import "p"` binding. A
+    /// namespace-qualified call (`mod.foo(...)`) picks among them as a bare call
+    /// does (`call.vader::pick_overload`), then reorders named args and fills
+    /// omitted defaults from the declaration it picked.
+    namespace_fn_overloads: MutableMap<string, MutableMap<string, FnCandidate[]>>
 
     /// `std/core` exported symbols indexed by name. Populated by
     /// the orchestrator after loading core, consumed by passes that
@@ -829,7 +829,7 @@ new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .import_targets  = null,
     .external_types  = MutableMap<i32, Type> {},
     .namespace_exports = MutableMap<string, MutableMap<string, Type>> {},
-    .namespace_export_decls = MutableMap<string, MutableMap<string, AST.FnDecl>> {},
+    .namespace_fn_overloads = MutableMap<string, MutableMap<string, FnCandidate[]>> {},
     .range_symbol    = null,
     .field_symbol    = null,
     .async_symbol    = null,

@@ -1000,17 +1000,11 @@ report_namespace_alias_method :: fn(
 ) -> bool {
     targets :: typed.import_targets ?? return false
     for [sym_id, mod_id] in targets.namespace_targets {
-        exports :: typed.namespace_exports[mod_id] ?? continue
-        ft :: exports[e.field] ?? continue
-        if ft !is FnType {
-            continue
-        }
-        if ft.params.len() == 0 {
-            continue
-        }
+        exports :: typed.namespace_fn_overloads[mod_id] ?? continue
+        overloads :: exports[e.field] ?? continue
         // Same receiver test the UFCS dispatch itself runs: an alias exporting
         // an unrelated `f(i32)` explains nothing about `recv.f()`.
-        if try_curry_receiver(ft, target_ty, typed) == null {
+        if !takes_receiver(overloads, target_ty, typed) {
             continue
         }
         alias :: import_binding_by_id(sym_id, typed) ?? continue
@@ -1025,6 +1019,17 @@ report_namespace_alias_method :: fn(
             ),
         )
         return true
+    }
+    return false
+}
+
+// Whether one of `overloads` takes `receiver` as its first argument, as the UFCS
+// dispatch tests it.
+takes_receiver :: fn(overloads: FnCandidate[], receiver: Type, typed: TypedProgram) -> bool {
+    for candidate in overloads {
+        if try_curry_receiver(candidate.ty, receiver, typed) != null {
+            return true
+        }
     }
     return false
 }
@@ -1886,7 +1891,7 @@ try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram, diags: Diagnost
 
 // Resolve a `mod.field` FieldExpr's base to the imported module id, or null
 // when the base isn't a namespace import binding. Shared by `try_namespace_field`
-// (value type) and `call.vader::namespace_member_params` (decl params).
+// (value type) and `call.vader`'s namespace calls (overloads, decl params).
 namespace_call_mod_id :: fn(e: AST.FieldExpr, typed: TypedProgram) = namespace_base_mod_id(
     e.target,
     typed,

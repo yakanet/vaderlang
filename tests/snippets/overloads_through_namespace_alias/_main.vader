@@ -1,0 +1,18 @@
+// A call through a namespace alias picks among the member's overloads by its
+// argument, as a bare call does, and takes the picked one's defaults and
+// parameter names.
+module "snippet"
+
+import "std/io"
+M :: import "std/math"
+S :: import "snippet/shapes"
+
+main :: fn() -> i32 {
+    println("${M.max(3, 8)}")
+    println("${M.max(3.5, 8.25)}")
+    println("${M.abs(-5)}")
+    println("${S.area(S.Square { .side = 2.0 })}")
+    println("${S.area(S.Circle { .radius = 1.0 })}")
+    println("${S.area(S.Square { .side = 2.0 }, scale = 2.0)}")
+    return 0
+}

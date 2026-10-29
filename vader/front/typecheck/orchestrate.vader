@@ -449,24 +449,24 @@ populate_from :: fn(
             mod_id,
             () -> build_namespace_exports(mod_id, project, per_module),
         )
-        entry_typed.namespace_export_decls.get_or_put_with(
+        entry_typed.namespace_fn_overloads.get_or_put_with(
             mod_id,
-            () -> build_namespace_export_decls(mod_id, project, per_module),
+            () -> namespace_fn_overloads_of(mod_id, entry_typed, per_module),
         )
-        publish_namespace_defaults(mod_id, entry_typed, per_module)
     }
 }
 
-// `P.f()` fills an omitted argument from `f`'s default as a wildcard call does,
-// so the default's resolutions travel the same way (`import_defaults.vader`).
-publish_namespace_defaults :: fn(
+// The exported fns of `mod_id` by name, every overload : what a namespace-qualified
+// call `P.f(...)` picks among, as a wildcard import's table is for `f(...)`. Built
+// the same way, so `P.f()` also fills an omitted argument from the picked
+// overload's default (`import_defaults.vader`).
+namespace_fn_overloads_of :: fn(
     mod_id: string, into: TypedProgram, per_module: MutableMap<string, TypedProgram>,
-) -> void {
-    from :: per_module[mod_id] ?? return
-    decls :: into.namespace_export_decls[mod_id] ?? return
-    for [_, fd] in decls {
-        publish_default_resolutions(from, into, fd)
-    }
+) -> MutableMap<string, FnCandidate[]> {
+    table :: MutableMap<string, FnCandidate[]> {}
+    from :: per_module[mod_id] ?? return table
+    push_module_exported_fns(from, into, table, [])
+    return table
 }
 
 // ---- trait coherence ------------------------------------------------------
@@ -2012,38 +2012,6 @@ build_namespace_exports :: fn(
         aliased :: typed.resolved.alias_types[sym.id]
         if aliased !is null {
             out[name] = aliased
-        }
-    }
-    return out
-}
-
-// Declared params of `mod_id`'s exported FN members, by name. Parallels
-// `build_namespace_exports` (which carries only the Type) so a namespace-
-// qualified call `mod.foo(...)` can reach each param's `default_value` for
-// named-arg reordering + default filling (see `call.vader::callee_param_decls`).
-//
-// First-overload-only: `collected.symbols` is keyed by name with first-decl-wins
-// (collect.vader), and `pick_overload` bails for non-IdentExpr callees, so a
-// namespace-qualified call never overload-resolves: only the first overload's
-// params are reachable here. To support overloaded namespace calls this map
-// would need to become bucket-valued and selection move into
-// `namespace_member_params`, mirroring `overload_params_matching`.
-build_namespace_export_decls :: fn(
-    mod_id: string,
-    project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
-) -> MutableMap<string, AST.FnDecl> {
-    out :: MutableMap<string, AST.FnDecl> {}
-    loaded :: project.modules[mod_id] ?? return out
-    typed :: per_module[mod_id] ?? return out
-    for [name, sym] in loaded.collected.symbols {
-        // Exported members only, see `build_namespace_exports`.
-        if sym.visibility == .Private {
-            continue
-        }
-        decl :: typed.fn_decls[sym.id]
-        if decl is AST.FnDecl {
-            out[name] = decl
         }
     }
     return out

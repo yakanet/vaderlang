@@ -1,0 +1,57 @@
+# Typecheck
+
+## tests/snippets/overloads_through_namespace_alias
+  FnDecl         main                 :: fn() -> i32
+  expr 11:13    StringLitExpr  :: string
+  expr 11:16    CallExpr       :: i32
+  expr 11:16    FieldExpr      :: fn(i32, i32) -> i32
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(T) -> void
+  expr 12:13    StringLitExpr  :: string
+  expr 12:16    CallExpr       :: f64
+  expr 12:16    FieldExpr      :: fn(f64, f64) -> f64
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(T) -> void
+  expr 13:13    StringLitExpr  :: string
+  expr 13:16    CallExpr       :: i32
+  expr 13:16    FieldExpr      :: fn(i32) -> i32
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(T) -> void
+  expr 14:13    StringLitExpr  :: string
+  expr 14:16    CallExpr       :: f64
+  expr 14:16    FieldExpr      :: fn(Square, f64) -> f64
+  expr 14:23    StructLitExpr  :: Square
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 15:13    StringLitExpr  :: string
+  expr 15:16    CallExpr       :: f64
+  expr 15:16    FieldExpr      :: fn(Circle, f64) -> f64
+  expr 15:23    StructLitExpr  :: Circle
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 16:13    StringLitExpr  :: string
+  expr 16:16    CallExpr       :: f64
+  expr 16:16    FieldExpr      :: fn(Square, f64) -> f64
+  expr 16:23    StructLitExpr  :: Square
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/overloads_through_namespace_alias/shapes
+  FnDecl         area                 :: fn(Circle, f64) -> f64
+  FnDecl         area                 :: fn(Square, f64) -> f64
+  StructDecl     Circle               :: Circle
+  StructDecl     Square               :: Square
+  expr 10:54    BinaryExpr     :: f64
+  expr 10:54    BinaryExpr     :: f64
+  expr 10:54    IdentExpr      :: f64
+  expr 10:59    FieldExpr      :: f64
+  expr 10:59    IdentExpr      :: Circle
+  expr 10:70    FieldExpr      :: f64
+  expr 10:70    IdentExpr      :: Circle
+  expr 13:57    BinaryExpr     :: f64
+  expr 13:57    BinaryExpr     :: f64
+  expr 13:57    IdentExpr      :: f64
+  expr 13:65    FieldExpr      :: f64
+  expr 13:65    IdentExpr      :: Square
+  expr 13:74    FieldExpr      :: f64
+  expr 13:74    IdentExpr      :: Square

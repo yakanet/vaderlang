@@ -31,58 +31,24 @@ import "vader/core/types"
 import "vader/core/symbol"
 import "toolchain/span"
 
-// True when the callee names a free fn with 2+ overloads: the only shape where
-// an argument's enum prefix is load-bearing. Mirrors `pick_overload`'s own gate,
-// which is where the candidates come from.
-callee_has_overloads :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
-    if c.callee !is AST.IdentExpr {
-        return false
-    }
-    name :: c.callee.name
-    return collect_overload_candidates(name, c.callee.span.start.file, typed).len() >= 2
-}
+// Whether a callee with these `candidates` names a fn with 2+ overloads: the only
+// shape where an argument's enum prefix is load-bearing, and where `pick_overload`
+// picks.
+has_overloads :: fn(candidates: FnCandidate[] | null) = candidates != null && candidates.len() >= 2
 
-// Inspect the callee : when it's a bare ident whose `fn_overloads`
-// bucket has 2+ entries, pre-walk arg[0] and pick the overload whose
-// first param accepts it. Falls back to the initial type when no
-// overload bucket exists or none match.
+// Inspect the callee : when it names a fn with 2+ overloads (`candidates`, from
+// `overload_candidates`), a bare name or a namespace member (`M.max`), pre-walk
+// arg[0] and pick the overload whose first param accepts it. Falls back to the
+// initial type when there is nothing to pick or none match.
 pick_overload :: fn(
     c: AST.CallExpr,
+    candidates: FnCandidate[] | null,
     initial: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
     callee :: c.callee
-    if callee !is AST.IdentExpr {
-        return initial
-    }
-    // A call through a LOCAL binding (param / local / pattern binding) invokes a
-    // fn-VALUE that SHADOWS any same-named free-fn overloads. It must not be
-    // overload-resolved, and crucially its callee type must NOT be patched
-    // with a global overload's signature : `compare(a, b)` over a
-    // `compare: fn(T, T) -> bool` PARAM would otherwise pick up an imported
-    // free `compare` overload and overwrite `expr_types[callee]` with that
-    // foreign fn-type (seen self-hosting : std/sort's comparator call picking
-    // up vader_comptime's `compare`, breaking the later `call.indirect`). Only
-    // a bare free-fn reference (Fn kind) carries overloads worth resolving.
-    callee_sym :: typed.resolved.idents[callee.span.hash()]
-    if callee_sym is Symbol {
-        match callee_sym.kind {
-            .Param   -> {
-                return initial
-            }
-            .Local   -> {
-                return initial
-            }
-            .Binding -> {
-                return initial
-            }
-            _        -> {}
-        }
-    }
-    name :: callee.name
-    candidates :: collect_overload_candidates(name, callee.span.start.file, typed)
-    if candidates.len() < 2 {
+    if candidates == null || candidates.len() < 2 {
         return initial
     }
     if c.args.len() == 0 {
@@ -121,9 +87,39 @@ pick_overload :: fn(
         return initial
     }
     if rival != null {
-        diags.push(ambiguity_error(callee.name, arg0_ty, best, rival, callee.span))
+        diags.push(ambiguity_error(callee_name(callee), arg0_ty, best, rival, callee.span))
     }
     return commit_overload_pick(best, c, typed)
+}
+
+// The overloads a call through `callee` picks among : those of a bare fn name in
+// scope, or those a namespace alias reaches (`M.max`). Null for any other callee,
+// a method call included.
+overload_candidates :: fn(callee: AST.Expr, typed: TypedProgram) -> FnCandidate[] | null {
+    if callee is AST.FieldExpr {
+        return namespace_overloads(callee, typed)
+    }
+    if callee !is AST.IdentExpr {
+        return null
+    }
+    // A local binding (param / local / pattern binding) holds a fn VALUE that
+    // shadows the free fns of its name : its call is not overload-resolved, and
+    // its callee type must not take an overload's signature, which would break the
+    // indirect call.
+    callee_sym :: typed.resolved.idents[callee.span.hash()]
+    if callee_sym is Symbol && (callee_sym.kind == .Param || callee_sym.kind == .Local || callee_sym.kind == .Binding) {
+        return null
+    }
+    return collect_overload_candidates(callee.name, callee.span.start.file, typed)
+}
+
+// The exported fns named `e.field` of the module the namespace alias `e.target`
+// stands for, every overload, the first declared first ; null when `e` is no
+// namespace member.
+namespace_overloads :: fn(e: AST.FieldExpr, typed: TypedProgram) -> FnCandidate[] | null {
+    mod_id :: namespace_call_mod_id(e, typed) ?? return null
+    by_name :: typed.namespace_fn_overloads[mod_id] ?? return null
+    return by_name[e.field]
 }
 
 // A callee several impls of one trait offer (`v.add(…)` with `Add<f64>` beside
@@ -605,6 +601,13 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
         return arity_match
     }
     if callee is AST.FieldExpr {
+        // A namespace member call (`mod.foo(...)`) : the declared params, so named
+        // args + defaults fill, same as the IdentExpr path above. Tested before
+        // the UFCS pick below, which also reads `chosen_decl` and would drop a
+        // real first param as the receiver.
+        if namespace_call_mod_id(callee, typed) != null {
+            return namespace_member_params(callee, callee_ty, typed)
+        }
         // Genuine UFCS dispatch (the dispatched fn's own first param was stashed
         // when the FieldExpr was typed) curries away `self`.
         // The pick itself, when the dispatch could keep it: its params minus the
@@ -615,28 +618,31 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
         if chosen is AST.FnDecl {
             return ufcs_tail_params(chosen)
         }
-        // Otherwise a namespace member call (`mod.foo(...)`) : reach the
-        // export's declared params so named args + defaults fill, same as the
-        // IdentExpr path above.
-        return namespace_member_params(callee, callee_ty, typed)
     }
     return null
 }
 
-// Declared params of a namespace-qualified callee `mod.foo`. Mirrors
-// `field.vader::try_namespace_field`'s base→module resolution but reads the
-// decl table populated by `build_namespace_export_decls`. Returns null
-// unless `fe` is a namespace member fn call whose arity matches `callee_ty`
-// (a mismatch stays positional rather than mis-filling).
+// Declared params of a namespace-qualified callee `mod.foo` : those of the
+// overload `pick_overload` chose, else of its first declaration. Null unless
+// they line up with `callee_ty` (a mismatch stays positional rather than
+// mis-filling).
 namespace_member_params :: fn(fe: AST.FieldExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
-    mod_id :: namespace_call_mod_id(fe, typed) ?? return null
-    by_name :: typed.namespace_export_decls[mod_id] ?? return null
-    fd :: by_name[fe.field] ?? return null
+    fd :: picked_namespace_decl(fe, typed) ?? return null
     ps :: fd.params
     if ps.len() != callee_ty.params.len() {
         return null
     }
     return ps
+}
+
+// The declaration of the namespace member `e` that `pick_overload` chose, else
+// the one its name designates.
+picked_namespace_decl :: fn(e: AST.FieldExpr, typed: TypedProgram) -> AST.FnDecl | null {
+    chosen :: chosen_decl(typed, e.id)
+    if chosen != null {
+        return chosen
+    }
+    return lookup_callee_fn_decl(e, typed)
 }
 
 // Scan the local overload bucket for the candidate whose fn-type the
@@ -716,7 +722,9 @@ type_call :: fn(
     // overload whose first param accepts the first arg. A member several impls
     // of one trait offer is picked the same way.
     member_ty :: pick_member_overload(c, initial_callee_ty, expected, typed, diags)
-    callee_ty :: ufcs_generic_signature(c.callee, pick_overload(c, member_ty, typed, diags), typed)
+    candidates :: overload_candidates(c.callee, typed)
+    picked :: pick_overload(c, candidates, member_ty, typed, diags)
+    callee_ty :: ufcs_generic_signature(c.callee, picked, typed)
     // `T(x)` cast-style call : treat the call as a conversion and return the target
     // type. Folded before reaching the not-callable arm.
     if converts_by_name(c, callee_ty, typed) {
@@ -784,7 +792,7 @@ type_call :: fn(
     }
     // See `TypedProgram.overloaded_arg_depth`. Raised around the ARGUMENTS only:
     // the callee was typed above, and the loop below has no early return.
-    overloaded :: callee_has_overloads(c, typed)
+    overloaded :: has_overloads(candidates)
     if overloaded {
         typed.overloaded_arg_depth = typed.overloaded_arg_depth + 1
     }
@@ -1284,9 +1292,9 @@ export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST
     // refused T3080, and a call whose CALLEE wore that shape skipped the check
     // entirely and reached `midir/build`'s panic.
     if callee is AST.FieldExpr {
-        mod_id :: namespace_call_mod_id(callee, typed) ?? return null
-        by_name :: typed.namespace_export_decls[mod_id] ?? return null
-        return by_name[callee.field]
+        // The first declared overload : a bucket is never empty.
+        overloads :: namespace_overloads(callee, typed) ?? return null
+        return overloads[0].decl
     }
     if callee !is AST.IdentExpr {
         return null
