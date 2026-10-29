@@ -233,6 +233,7 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i
 /// `head == "…"` chain below covers the rest. Between them the two arms must
 /// cover every op `emit/virt/dump.vader::write_op` can emit: a gap there reaches
 /// `parse_virt_bc` as a `VirtParseError` on a dump the compiler itself produced.
+/// `test_every_op_round_trips` reads back one op of every variant.
 ///
 /// @param cleaned  the .virt line (comment-stripped).
 /// @param head     the line's pre-computed head token (see `head_of`).
@@ -910,52 +911,208 @@ parse_global_set :: fn(line: string) -> Op | null {
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/collections"
 import "std/string_builder"
 import "std/testing"
 import "vader/emit/virt"
+
+// `op` as `write_op`, the canonical mnemonic writer, prints it.
+written :: fn(op: Op) -> string {
+    sb :: StringBuilder {}
+    write_op(sb, op)
+    return "${sb}"
+}
 
 /// Round-trip an op through `write_op` (the canonical mnemonic writer,
 /// `emit/virt/dump.vader`) and `parse_op_line`, returning the re-serialised text. A parse
 /// miss returns a sentinel so the asserting test fails with the offending
 /// mnemonic rather than a bare `null`.
 roundtrip_op_text :: fn(op: Op) -> string {
-    sb :: StringBuilder {}
-    write_op(sb, op)
-    text :: "${sb}"
+    text :: written(op)
     parsed :: parse_op_line(text, head_of(text)) ?? return "PARSE-FAIL: ${text}"
-    sb2 :: StringBuilder {}
-    write_op(sb2, parsed)
-    return "${sb2}"
+    return written(parsed)
 }
 
-@test test_memory_opcode_roundtrip :: fn() -> void {
-    // The Target ABI memory opcodes. `buffer.new` carries no operand
-    // immediate ; the rest are operand-free. Each must survive write_op →
-    // parse_op_line → write_op unchanged: proving parse ≠ null and that the
-    // op (and its immediate) is preserved, so a synthetic op stream keeps its
-    // pc indices. Includes the width-typed array slot family.
-    assert_eq(roundtrip_op_text(BufferNew {}),  "buffer.new")
-    assert_eq(roundtrip_op_text(LoadU8 {}),     "load_u8")
-    assert_eq(roundtrip_op_text(LoadI32 {}),    "load_i32")
-    assert_eq(roundtrip_op_text(LoadI64 {}),    "load_i64")
-    assert_eq(roundtrip_op_text(LoadF64 {}),    "load_f64")
-    assert_eq(roundtrip_op_text(StoreU8 {}),    "store_u8")
-    assert_eq(roundtrip_op_text(StoreI32 {}),   "store_i32")
-    assert_eq(roundtrip_op_text(StoreI64 {}),   "store_i64")
-    assert_eq(roundtrip_op_text(StoreF64 {}),   "store_f64")
-    assert_eq(roundtrip_op_text(LoadSlotI32 {}),   "load_slot_i32")
-    assert_eq(roundtrip_op_text(LoadSlotI64 {}),   "load_slot_i64")
-    assert_eq(roundtrip_op_text(LoadSlotF64 {}),   "load_slot_f64")
-    assert_eq(roundtrip_op_text(StoreSlotI32 {}),  "store_slot_i32")
-    assert_eq(roundtrip_op_text(StoreSlotI64 {}),  "store_slot_i64")
-    assert_eq(roundtrip_op_text(StoreSlotF64 {}),  "store_slot_f64")
-    assert_eq(roundtrip_op_text(MemoryCopy {}), "memory_copy")
-    assert_eq(roundtrip_op_text(BufferToString {}), "buffer_to_string")
-    assert_eq(roundtrip_op_text(BufferWriteString {}), "buffer_write_string")
-    assert_eq(roundtrip_op_text(F64ToBits {}),  "f64_to_bits")
-    assert_eq(roundtrip_op_text(BitsToF64 {}),  "bits_to_f64")
-    assert_eq(roundtrip_op_text(F32ToBits {}),  "f32_to_bits")
-    assert_eq(roundtrip_op_text(BitsToF32 {}),  "bits_to_f32")
+// One op of every variant, in the order `Op` lists them, each operand set to a
+// value its writer prints. A new op fails `test_every_op_round_trips` on the
+// count until it has its entry here.
+one_of_each_op :: fn() -> Op[] = [
+    Unreachable { .reason = "test" },
+    I32Const { .value = -7 },
+    LocalGet { .slot = 1 },
+    LocalSet { .slot = 2 },
+    LocalTee { .slot = 3 },
+    StringConst { .index = 4 },
+    NullConst {},
+    BoolConst { .value = true },
+    CharConst { .value = 'a' },
+    F64Const { .value = 2.5 },
+    I64Const { .value = 9_000_000_000 },
+    CallImport { .index = 5 },
+    Call { .function_index = 6 },
+    FnRef { .function_index = 7, .type_id = 8 },
+    MakeClosure { .function_index = 9, .env_type_id = 10 },
+    CallIndirect { .type_id = 11 },
+    VirtualCall {
+        .parameter_count = 1,
+        .vtable_key = "Display.to_string",
+        .results = [.String],
+    },
+    StructNew { .type_id = 12, .stack = false },
+    StructGet { .type_id = 13, .field_index = 1 },
+    StructSet {
+        .type_id = 14,
+        .field_index = 2,
+        .stack = false,
+    },
+    LocalField {
+        .slot = 1,
+        .type_id = 15,
+        .field_index = 0,
+    },
+    UnionFieldGet { .type_id = 16, .field_index = 1 },
+    UnionFieldSet { .type_id = 17, .field_index = 1 },
+    ArrayNew { .type_id = 18, .length = 3 },
+    ArrayPush { .type_id = 19, .cache_slot = 4 },
+    ArrayGet { .type_id = 20 },
+    ArraySet { .type_id = 21 },
+    ArrayLen {},
+    ArraySlice { .type_id = 22 },
+    DataConst { .pool_index = 2, .type_id = 23 },
+    GlobalGet { .index = 1 },
+    GlobalSet { .index = 2 },
+    RefCast { .type_id = 24 },
+    Retag { .type_id = 25 },
+    Convert { .from_name = "u8", .target = .I64 },
+    TypeCheck { .type_id = 26 },
+    TypeConst { .type_id = 27 },
+    DeferPush {},
+    DeferPopExec { .count = 2 },
+    SizeOfType {},
+    I32Add {},
+    I32Sub {},
+    I32Mul {},
+    I32Div {},
+    I32Mod {},
+    I32Eq {},
+    I32Ne {},
+    I32Lt {},
+    I32Le {},
+    I32Gt {},
+    I32Ge {},
+    I32Neg {},
+    I32BitNot {},
+    I32BitAnd {},
+    I32BitOr {},
+    I32BitXor {},
+    I32Shl {},
+    I32Shr {},
+    I32ShrU {},
+    U32Div {},
+    U32Mod {},
+    U32Lt {},
+    U32Le {},
+    U32Gt {},
+    U32Ge {},
+    I64Add {},
+    I64Sub {},
+    I64Mul {},
+    I64Div {},
+    I64Mod {},
+    I64Neg {},
+    I64Eq {},
+    I64Ne {},
+    I64Lt {},
+    I64Le {},
+    I64Gt {},
+    I64Ge {},
+    U64Div {},
+    U64Mod {},
+    U64Lt {},
+    U64Le {},
+    U64Gt {},
+    U64Ge {},
+    I64Shl {},
+    I64Shr {},
+    I64ShrU {},
+    I64BitAnd {},
+    I64BitOr {},
+    I64BitXor {},
+    I64BitNot {},
+    F64Add {},
+    F64Sub {},
+    F64Mul {},
+    F64Div {},
+    F64Neg {},
+    F64Eq {},
+    F64Ne {},
+    F64Lt {},
+    F64Le {},
+    F64Gt {},
+    F64Ge {},
+    BoolEq {},
+    BoolNe {},
+    BoolAnd {},
+    BoolOr {},
+    BoolNot {},
+    StringEq {},
+    StringNe {},
+    StringCompare {},
+    RefEq {},
+    RefNe {},
+    Drop {},
+    Block {},
+    Loop {},
+    If {},
+    Else {},
+    End {},
+    Branch {},
+    BranchIf {},
+    Return {},
+    ReturnLit { .value = I32Const { .value = 1 } },
+    BufferNew {},
+    LoadU8 {},
+    LoadI32 {},
+    LoadI64 {},
+    LoadF64 {},
+    StoreU8 {},
+    StoreI32 {},
+    StoreI64 {},
+    StoreF64 {},
+    LoadSlotI32 {},
+    LoadSlotI64 {},
+    LoadSlotF64 {},
+    StoreSlotI32 {},
+    StoreSlotI64 {},
+    StoreSlotF64 {},
+    MemoryCopy {},
+    BufferToString {},
+    BufferWriteString {},
+    F64ToBits {},
+    BitsToF64 {},
+    F32ToBits {},
+    BitsToF32 {},
+    ArrayRepeat {},
+    ArrayPushAll {},
+    ArrayCopy {},
+    ArrayRemoveLast {},
+    ArrayClear {},
+    FnAddr { .function_index = 28 },
+    CheckedArith { .kind = .U16, .op = .Mul },
+    CheckedNeg { .kind = .I64 },
+]
+
+@test test_every_op_round_trips :: fn() -> void {
+    ops :: one_of_each_op()
+    assert_eq(ops.len(), @variant_count(Op))
+    heads :: MutableSet<string> {}
+    for op in ops {
+        text :: written(op)
+        head :: head_of(text)
+        assert_eq(roundtrip_op_text(op), text)
+        assert(op_doc(head) != null, "`${head}` has an entry in ops.md")
+        assert(heads.add(head), "`${head}` is written by one sample only")
+    }
 }
 
 @test test_f64_const_non_finite_roundtrip :: fn() -> void {
