@@ -15,6 +15,7 @@ import "vader/core/bytecode"
 TTY :: import "std/tty"
 import "toolchain/ast"
 import "vader/pipeline"
+import "vader/support/version"
 
 // Every invocation is `vader <action> <options>`: the action comes first and
 // owns the whole tail. There is no global option zone ahead of it: the old
@@ -57,7 +58,7 @@ main :: fn(argv: string[]) -> i32 {
 
 // `vader version`: the version, on standard output.
 print_version :: fn() -> i32 {
-    println(CLI_VERSION)
+    println(VADER_VERSION)
     return 0
 }
 

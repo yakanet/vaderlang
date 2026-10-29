@@ -12,6 +12,7 @@ import "json"
 import "std/collections"
 import "std/env"
 import "vader/front/resolver"
+import "vader/support/version"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
 
@@ -44,7 +45,7 @@ export handle_initialize :: fn(state: ServerState, params: JsonValue) -> JsonVal
 
     server_info :: MutableMap<string, JsonValue> {}
     server_info["name"]    = JsonString { .value = "vader-lsp" }
-    server_info["version"] = JsonString { .value = "0.1.0" }
+    server_info["version"] = JsonString { .value = VADER_VERSION }
 
     result :: MutableMap<string, JsonValue> {}
     result["capabilities"] = capabilities

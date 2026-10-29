@@ -9,13 +9,14 @@ module "vader/tools/cli"
 
 import "std/io"
 import "cli"
+import "vader/support/version"
 
 // `vader help` prints the overview ; `vader help <action>` prints one action in
 // full: a view the old single help string couldn't give, and the reason it grew
 // to carry every flag of every action.
 cmd_help :: fn(args: string[]) -> i32 {
     if args.len() == 0 {
-        print(render_help("vader", CLI_VERSION, TAGLINE, COMMANDS, COMMON_FLAGS))
+        print(render_help("vader", VADER_VERSION, TAGLINE, COMMANDS, COMMON_FLAGS))
         return 0
     }
     name :: args[0]

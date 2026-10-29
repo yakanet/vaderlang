@@ -269,6 +269,10 @@ Measured: a full bootstrap in the guest runs in **~80 s** on an M-series Mac (6 
 
 Snapshot tests live under `tests/snippets/<name>/` (a `_main.vader` + one `*.snapshot` per stage); set `UPDATE_SNAPSHOTS=1` to regenerate, then `git diff` to review. Contributor conventions: the AST is never mutated (each phase produces side-tables keyed by node identity), every phase emits `Diagnostic`s rather than throwing (codes namespaced `L0`/`P1`/`R2`/`T3`/`C4`/`M5`/`H6`/`I7`/`W0`), and a single midir backbone feeds the VM, the C emitter, and the future WASM emitter. The architecture is documented in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
+### Releasing
+
+A release starts from the Actions tab: run the **Release** workflow with `patch`, `minor`, `major` or an exact version (the first one names `0.1.0`). It needs a green CI on the head of `main`, writes the version into `vader/support/version/VERSION` in a commit of its own, builds the three bundles, moves `main` onto that commit, tags it, and leaves a draft release with the archives and notes grouped from the commit subjects. Review the draft in the Releases tab and publish it: the CI then runs on `main` again and republishes the site. Pull before the next push, since `main` gained the release commit ([ADR 0116](./docs/adr/0116-a-release-is-made-from-the-actions-tab.md)).
+
 ---
 
 ## Roadmap

@@ -1,0 +1,160 @@
+name: Release
+
+# A release is made from the Actions tab, on a head of `main` whose CI is green
+# (ADR 0116).
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'patch, minor, major, or the exact version (X.Y.Z)'
+        required: true
+        default: patch
+  release:
+    types: [published]
+
+concurrency:
+  group: release
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    name: Prepare the release commit
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - id: head
+        name: Require a green CI on the head of main
+        run: |
+          head="$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)"
+          verdict="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow build.yml --commit "$head" --limit 1 --json status,conclusion --jq '.[0] | "\(.status) \(.conclusion)"')"
+          if [ "$verdict" != "completed success" ]; then
+            echo "::error::the CI of $head is '${verdict:-absent}': wait for it to pass, or run it from the Actions tab"
+            exit 1
+          fi
+          echo "sha=$head" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.head.outputs.sha }}
+          fetch-depth: 0
+          filter: blob:none
+      - id: version
+        name: Choose the version
+        env:
+          ASKED: ${{ inputs.version }}
+        run: |
+          version="$(bash tools/ci/release-version.sh "$ASKED")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      # The bundle jobs check the commit out, so it must be on the remote; a
+      # branch left by a failed release of the same version is overwritten.
+      - id: commit
+        name: Commit the version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [ "$(cat vader/support/version/VERSION)" != "$VERSION" ]; then
+            printf '%s\n' "$VERSION" > vader/support/version/VERSION
+            git -c user.name='github-actions[bot]' \
+                -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+                commit -q -m "chore(release): v$VERSION" -- vader/support/version/VERSION
+          fi
+          git push --force origin "HEAD:refs/heads/release/v$VERSION"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  # The fixed point was checked on the green head; the release commit only
+  # changes the version.
+  bundles:
+    name: ${{ matrix.platform }}
+    needs: prepare
+    strategy:
+      matrix:
+        include:
+          - { platform: linux-x64, runner: ubuntu-26.04 }
+          - { platform: windows-x64, runner: windows-latest }
+          - { platform: darwin-arm64, runner: macos-latest }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+      - uses: ./.github/actions/bundle
+        with:
+          platform: ${{ matrix.platform }}
+          fixed-point: 'false'
+
+  publish:
+    name: Tag and draft the release
+    needs: [prepare, bundles]
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          fetch-depth: 0
+          filter: blob:none
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: vader-*
+          path: archives
+          merge-multiple: true
+      # One atomic push, never forced: `main` only moves forward onto the
+      # release commit, and nothing moves when it has gone on meanwhile. Each
+      # step below can run again after a failure.
+      - name: Move main onto the release commit and tag it
+        run: |
+          tagged="$(git rev-parse -q --verify "refs/tags/v$VERSION^{commit}" || true)"
+          if [ -z "$tagged" ]; then
+            git tag "v$VERSION"
+            git push --atomic origin HEAD:refs/heads/main "refs/tags/v$VERSION" ":refs/heads/release/v$VERSION"
+          elif [ "$tagged" != "$(git rev-parse HEAD)" ]; then
+            echo "::error::v$VERSION already tags $tagged"
+            exit 1
+          fi
+      - name: Draft the release
+        run: |
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release upload "v$VERSION" archives/* --clobber
+          else
+            bash tools/ci/release-notes.sh "v$VERSION" > notes.md
+            gh release create "v$VERSION" archives/* --draft --verify-tag --title "Vader v$VERSION" --notes-file notes.md
+          fi
+
+  cleanup:
+    name: Drop the release branch
+    needs: [prepare, bundles, publish]
+    if: always() && needs.prepare.result == 'success' && needs.publish.result != 'success'
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - run: gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/release/v${{ needs.prepare.outputs.version }}" || true
+
+  # The CI publishes the site from `main` only, so the run that renames the
+  # download page's release is dispatched there.
+  test-main:
+    name: Test main and publish the site
+    if: github.event_name == 'release'
+    runs-on: ubuntu-26.04
+    permissions:
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - run: gh workflow run build.yml --ref main --repo "$GITHUB_REPOSITORY"

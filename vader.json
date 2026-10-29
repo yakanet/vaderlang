@@ -1,6 +1,5 @@
 {
   "name": "vader",
-  "version": "0.1.0",
   "entries": {
     "vader": "vader/tools/cli/main.vader"
   },

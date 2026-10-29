@@ -1,0 +1,19 @@
+// vader/support/version: the toolchain's version number.
+//
+// The number lives in the `VERSION` file beside this source, read when the
+// compiler is built: the release workflow rewrites that file.
+
+module "vader/support/version"
+
+import "std/abort"
+import "std/io"
+import "std/string"
+
+/// The toolchain's version, as `vader --version` prints it.
+export VADER_VERSION :: @comptime {
+    read :: read_file_string("VERSION")
+    if read is IOError {
+        panic("cannot read `vader/support/version/VERSION`: ${read.message()}")
+    }
+    return read.trim()
+}

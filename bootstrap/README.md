@@ -19,7 +19,6 @@ On Windows, `bootstrap\build.ps1` does the same: see [`README.md`](../README.md)
 | File | Role |
 |---|---|
 | `seed/` | the seed: the units every target shares, and under `<os>-<arch>/` those that differ |
-| `VERSION` | the commit the seed was emitted from |
 | `build.sh`, `build.ps1` | the three-stage build |
 | `verify.sh` | the fixed-point check |
 | `seed.sh` | `check` and `regenerate` |

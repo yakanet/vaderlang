@@ -1,6 +1,5 @@
 {
   "name": "vader",
-  "version": "0.1.0",
   "description": "Vader compiler and standard library",
   "type": "module",
   "scripts": {

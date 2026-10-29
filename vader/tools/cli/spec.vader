@@ -18,10 +18,6 @@ Lsp :: import "vader/tools/lsp"
 /// One-line description of the program, for the help's title line.
 export TAGLINE :: "the Vader compiler"
 
-/// The version `vader --version` prints. `bootstrap/seed.sh` reads it off this
-/// line to stamp `bootstrap/VERSION`, so it stays a one-line string literal.
-export CLI_VERSION :: "0.1.0"
-
 /// Flags every action accepts, parsed with the action's own.
 ///
 /// `--diagnostics`, `--allow-env` and `--no-bytecode-opt` are reserved: parsed,

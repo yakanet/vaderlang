@@ -14,11 +14,6 @@ on:
         description: 'VADER_TEST_GATE, concurrent driver builds in hook_driver (empty = 4)'
         required: false
         default: ''
-      # A published release changes what the download page names, nothing else.
-      site_only:
-        description: 'Only build and publish the site'
-        type: boolean
-        default: false
   push:
     branches: [main]
   pull_request:
@@ -35,8 +30,7 @@ jobs:
   # place that needs `bun install`: the test steps run zero-dep.
   typecheck:
     name: Typecheck harness
-    if: ${{ !inputs.site_only }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
@@ -56,7 +50,6 @@ jobs:
   # suite runs once the compiler exists, even when a later bundle step failed.
   platforms:
     name: ${{ matrix.platform }}
-    if: ${{ !inputs.site_only }}
     strategy:
       fail-fast: false
       matrix:
@@ -65,8 +58,6 @@ jobs:
           - { platform: windows-x64, runner: windows-latest }
           - { platform: darwin-arm64, runner: macos-latest }
     runs-on: ${{ matrix.runner }}
-    env:
-      MACOSX_DEPLOYMENT_TARGET: '13.0'
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/bundle
@@ -92,8 +83,7 @@ jobs:
   site:
     name: Build the site
     needs: [typecheck, platforms]
-    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       PUBLISH: ${{ github.ref == 'refs/heads/main' }}
     outputs:
@@ -108,20 +98,13 @@ jobs:
             tools/doc-site/package-lock.json
             site/package-lock.json
       - uses: actions/download-artifact@v8
-        if: ${{ !inputs.site_only }}
         with:
           name: vader-linux-x64
           path: ${{ runner.temp }}/bundle
       - name: Take the compiler of the Linux bundle
-        if: ${{ !inputs.site_only }}
         run: |
           mkdir -p build
           tar -xzf "$RUNNER_TEMP/bundle/vader-linux-x64.tar.gz" -C build --strip-components=1 vader-linux-x64/vader
-      # Not the release's archive: `lib/` on `main` may already need a newer
-      # compiler than the one it holds.
-      - name: Build Vader CLI from the C seed
-        if: ${{ inputs.site_only }}
-        run: bash bootstrap/build.sh
       - id: pages
         if: env.PUBLISH == 'true'
         uses: actions/configure-pages@v6
@@ -159,7 +142,7 @@ jobs:
     name: Publish to GitHub Pages
     needs: site
     if: ${{ needs.site.outputs.current == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # One deployment at a time, never cut short.
     concurrency:
       group: pages

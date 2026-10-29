@@ -36,7 +36,9 @@ comes out byte for byte the same for all three and is stored once:
 | `bootstrap/seed/bootstrap-<module>.c` | a unit shared by every target |
 | `bootstrap/seed/bootstrap.split.h` | the header every unit includes |
 | `bootstrap/seed/<os>-<arch>/` | the units the targets disagree on (the globals among them), and `bootstrap.imports.h` |
-| `bootstrap/VERSION` | the commit the seed was emitted from (`vader_source_sha`, its age), the compiler version, the date, the binary that emitted it |
+
+Where a seed comes from is in git: `git log -1 -- bootstrap/seed` names the
+commit that bumped it, and its parent is the tree the seed was emitted from.
 
 `@target` selects by operating system, never by architecture, so one
 architecture per OS is enough: a host without a seed of its own (Linux on arm64,
@@ -178,7 +180,7 @@ before the commit:
 ```sh
 bootstrap/seed.sh regenerate
 bun run build:cli && bun run test
-git add bootstrap/seed bootstrap/VERSION
+git add bootstrap/seed
 git commit -m 'chore(bootstrap): bump seed'
 ```
 
@@ -187,15 +189,14 @@ on `PATH`, through `vader build --release --emit=c --seed-targets`, which writes
 every target against one atom table (*The seed*, above), and:
 
 - refuses to run when a tracked file under `vader/`, `lib/` or `runtime/c/` has
-  uncommitted changes, since `VERSION` records `HEAD` and the seed embeds the
-  standard library it was compiled with (a new file not yet added escapes the
-  check);
+  uncommitted changes, since a seed must be the emission of a commit, standard
+  library included (a new file not yet added escapes the check);
 - first builds the tree with that binary, into `build/vader`, when a `.vader`
   source is newer than the binary, so that the seed carries the tree's code
   generator. This is also the way out when the committed seed no longer
   bootstraps: `build.sh` cannot produce a compiler then, but the last
   `build/vader` usually still compiles the tree;
-- leaves the seed and `VERSION` alone when the new seed is byte-identical to the
+- leaves the seed alone when the new seed is byte-identical to the
   committed one;
 - refuses to write a seed that contains a NUL byte, the mark of a string
   collected while still in use ([ADR 0005](adr/0005-the-seed-refuses-nul-bytes.md)).

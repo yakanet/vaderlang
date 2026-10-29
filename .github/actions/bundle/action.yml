@@ -8,6 +8,10 @@ inputs:
   platform:
     description: 'The bundle to build: darwin-arm64, linux-x64 or windows-x64'
     required: true
+  fixed-point:
+    description: 'Also check the fixed point on Linux'
+    required: false
+    default: 'true'
 
 runs:
   using: composite
@@ -15,12 +19,18 @@ runs:
     # The fixed point runs on every push (ADR 0006), on the stages this build
     # leaves: `verify.sh` passes `--dist` on to `build.sh`.
     - name: Build the bundle and check the fixed point
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && inputs.fixed-point == 'true'
       shell: bash
       run: bash bootstrap/verify.sh --dist
     - name: Build the bundle
+      if: runner.os == 'Linux' && inputs.fixed-point != 'true'
+      shell: bash
+      run: bash bootstrap/build.sh --dist
+    - name: Build the bundle
       if: runner.os == 'macOS'
       shell: bash
+      env:
+        MACOSX_DEPLOYMENT_TARGET: '13.0'
       run: bash bootstrap/build.sh --dist
     # The image's LLVM, aimed at the image's MinGW sysroot, in place of MinGW's
     # own gcc (ADR 0021). Exports `CC` to the steps below.
@@ -44,6 +54,20 @@ runs:
         echo "build/vader needs $needed"
         if [ "$(printf '%s\n' "$needed" "$floor" | sort -V | tail -1)" != "$floor" ]; then
           objdump -T build/vader | grep -wF "$needed" >&2
+          exit 1
+        fi
+
+    - name: Check the version the bundle reports
+      shell: bash
+      run: |
+        vader="dist/vader-${{ inputs.platform }}/vader"
+        if [ -f "$vader.exe" ]; then
+          vader="$vader.exe"
+        fi
+        expected="$(tr -d '\r' < vader/support/version/VERSION)"
+        reported="$("$vader" --version | tr -d '\r')"
+        if [ "$reported" != "$expected" ]; then
+          echo "::error::the bundle reports $reported, vader/support/version/VERSION says $expected"
           exit 1
         fi
 

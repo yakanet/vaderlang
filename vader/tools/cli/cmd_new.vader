@@ -31,6 +31,7 @@ import "std/string"
 import "std/string_builder"
 TTY :: import "std/tty"
 import "vader/front/resolver"
+import "vader/support/version"
 
 /// What describes a new project's build. Three exclusive shapes, not three
 /// layers: a driver supersedes the manifest as the build's description rather
@@ -82,7 +83,7 @@ cmd_new :: fn(args: string[]) -> i32 {
     // leave a half-made project behind a cancellation.
     asking :: TTY.is_tty()
     if asking {
-        intro("vader new ${CLI_VERSION}")
+        intro("vader new ${VADER_VERSION}")
     }
     chosen :: choose_target(parsed.action_file().as_string())
     if chosen is PromptError {

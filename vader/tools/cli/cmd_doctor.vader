@@ -29,6 +29,7 @@ TTY :: import "std/tty"
 import "vader/pipeline"
 import "vader/front/resolver"
 import "std/collections"
+import "vader/support/version"
 
 // ---- the report -----------------------------------------------------------
 
@@ -146,12 +147,12 @@ check_compiler :: fn() -> Check {
     if location == "." {
         return check_warn(
             "compiler",
-            "vader ${CLI_VERSION}, but the OS would not say where this binary is",
+            "vader ${VADER_VERSION}, but the OS would not say where this binary is",
             "`current_executable_location` fell back to `.`, so every check that "
                 + "probes beside the binary is really probing the working directory",
         )
     }
-    return check_ok("compiler", "vader ${CLI_VERSION}", location)
+    return check_ok("compiler", "vader ${VADER_VERSION}", location)
 }
 
 // The one dependency the user must supply. Resolving the path is half the check

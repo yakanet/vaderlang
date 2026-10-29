@@ -75,7 +75,7 @@ seed_missing_dirs() {
 
 # What the verdict reads at HEAD, beyond the seed's sources: the seed itself, the
 # two scripts that run, and the snippet `verify.sh` emits in debug mode. Anything
-# else under `bootstrap/` (README, build.ps1, VERSION) cannot change the verdict.
+# else under `bootstrap/` (README, build.ps1) cannot change the verdict.
 VIABILITY_EXTRA_PATHS="bootstrap/seed bootstrap/build.sh bootstrap/verify.sh tests/snippets/return_42"
 
 # The git object ids of every path the verdict depends on, at HEAD. Two commits
@@ -181,10 +181,10 @@ cmd_regenerate() {
         exit 1
     fi
 
-    # Require a clean working tree across ALL of them so the recorded SHA is
-    # meaningful: the emission reads the working tree, and VERSION records HEAD, so
-    # an uncommitted edit anywhere in the seed's sources makes the two disagree.
-    # vader/ alone was not enough: the seed embeds the stdlib it was compiled with.
+    # Require a clean working tree across ALL of them: the emission reads the
+    # working tree, so an uncommitted edit anywhere in the seed's sources gives a
+    # seed that no commit holds. vader/ alone was not enough: the seed embeds the
+    # stdlib it was compiled with.
     if ! git diff-index --quiet HEAD -- $SEED_SOURCE_DIRS; then
         echo "error: $SEED_SOURCE_DIRS has uncommitted changes, commit first" >&2
         exit 1
@@ -224,7 +224,7 @@ cmd_regenerate() {
     # `@target` reaches the closure.
     if diff -r -q build/seed.new bootstrap/seed >/dev/null 2>&1; then
         rm -rf build/seed.new
-        echo "seed already byte-identical: nothing to commit (VERSION left alone)."
+        echo "seed already byte-identical: nothing to commit."
         exit 0
     fi
 
@@ -262,13 +262,6 @@ cmd_regenerate() {
     rm -rf bootstrap/seed
     mv build/seed.new bootstrap/seed
 
-    cat > bootstrap/VERSION <<META
-vader_source_sha: $(git rev-parse HEAD)
-vader_version:    $(grep -E '^export CLI_VERSION' vader/tools/cli/spec.vader | head -1 | sed -E 's/.*"([^"]*)".*/\1/')
-regenerated_at:   $(date -u +%Y-%m-%dT%H:%M:%SZ)
-generator:        $VADER
-META
-
     shared=$(find bootstrap/seed -maxdepth 1 -name '*.c' | wc -l | tr -d ' ')
     per_target=$(find bootstrap/seed -mindepth 2 -name '*.c' 2>/dev/null | wc -l | tr -d ' ')
     echo "seed regenerated ($(du -sh bootstrap/seed | cut -f1), ${shared} shared unit(s), ${per_target} per-target)."
@@ -278,7 +271,7 @@ META
     echo "builds everything, so it changes the binary under test:"
     echo "  bun run build:cli && bun run test"
     echo "then commit the bump separately:"
-    echo "  git add bootstrap/seed bootstrap/VERSION"
+    echo "  git add bootstrap/seed"
     echo "  git commit -m 'chore(bootstrap): bump seed'"
 }
 
