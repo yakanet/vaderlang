@@ -397,17 +397,8 @@ report_uncovered :: fn(
     }
 }
 
-is_host_bound :: fn(fd: AST.FnDecl) -> bool {
-    for d in fd.decorators {
-        if d.name == "intrinsic" {
-            return true
-        }
-        if d.name == "extern" {
-            return true
-        }
-    }
-    return false
-}
+is_host_bound :: fn(fd: AST.FnDecl) =
+    AST.decorators_have(fd.decorators, "intrinsic") || AST.decorators_have(fd.decorators, "extern")
 
 // `file:line` of a span, for a diagnostic that points at a SECOND location. The
 // diagnostic's own span names the offending declaration; this names the one it

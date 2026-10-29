@@ -160,7 +160,7 @@ find_tests :: fn(lp: LoweredProject) -> DiscoveredTest[] {
                 }
                 ast :: d.origin.decl
                 if ast is FnDecl {
-                    if has_test_decorator(ast) {
+                    if decorators_have(ast.decorators, "test") {
                         out.push(DiscoveredTest {
                             .mangled = d.mangled,
                             .display = ast.name,
@@ -171,15 +171,6 @@ find_tests :: fn(lp: LoweredProject) -> DiscoveredTest[] {
         }
     }
     return out
-}
-
-has_test_decorator :: fn(ast: FnDecl) -> bool {
-    for dec in ast.decorators {
-        if dec.name == "test" {
-            return true
-        }
-    }
-    return false
 }
 
 /// Recursively collect every `.vader` file under `target` (or `target` itself

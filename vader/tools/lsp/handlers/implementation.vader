@@ -147,7 +147,7 @@ target_group_name_at :: fn(
         sf :: source_file_for_path(lm.module.files, file_path) ?? continue
         for d in sf.program.decls {
             if d is AST.FnDecl {
-                if !has_target_decorator(d.decorators) {
+                if !AST.decorators_have(d.decorators, "target") {
                     continue
                 }
                 if span_contains(d.name_span, line, col) {
@@ -161,21 +161,8 @@ target_group_name_at :: fn(
 
 // How many OS selectors a `@target` carries: 0 for the bare form (THE
 // declaration), more for a body. Returns 0 when there is no `@target` at all:
-// callers pair it with `has_target_decorator`, which separates the two cases.
+// callers pair it with `AST.decorators_have`, which separates the two cases.
 target_selector_count :: fn(decorators: AST.Decorator[]) -> i64 {
-    for d in decorators {
-        if d.name == "target" {
-            return d.args.len()
-        }
-    }
-    return 0
-}
-
-has_target_decorator :: fn(decorators: AST.Decorator[]) -> bool {
-    for d in decorators {
-        if d.name == "target" {
-            return true
-        }
-    }
-    return false
+    target :: AST.find_decorator(decorators, "target") ?? return 0
+    return target.args.len()
 }

@@ -1033,10 +1033,7 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
 
     // `@intrinsic Type implements Trait` (no body): resolver synthesises
     // body-less members from the trait's methods.
-    is_intrinsic := false
-    for deco in decorators {
-        if deco.name == "intrinsic" { is_intrinsic = true }
-    }
+    is_intrinsic :: decorators_have(decorators, "intrinsic")
 
     members: FnDecl[]: []
     end_tok: Token = trait_tok

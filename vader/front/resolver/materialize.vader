@@ -51,7 +51,7 @@ export materialize_intrinsic_members :: fn(
     trait_decl: AST.TraitDecl,
     factory: NodeIdFactory,
 ) -> void {
-    if !is_intrinsic(impl_decl.decorators) { return }
+    if !AST.decorators_have(impl_decl.decorators, "intrinsic") { return }
     if impl_decl.members.len() > 0 { return }
     subst :: build_subst(impl_decl, trait_decl)
     for method in trait_decl.members {
@@ -172,13 +172,6 @@ export materialize_sam_members :: fn(
 }
 
 // ---- helpers --------------------------------------------------------------
-
-is_intrinsic :: fn(decs: AST.Decorator[]) -> bool {
-    for d in decs {
-        if d.name == "intrinsic" { return true }
-    }
-    return false
-}
 
 any_has_body :: fn(members: AST.FnDecl[]) -> bool {
     for m in members {

@@ -69,7 +69,7 @@ collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
     }
     for decl in program_decls {
         if decl is AST.ConstDecl {
-            if !has_comptime_decorator(decl) {
+            if !AST.decorators_have(decl.decorators, "comptime") {
                 continue
             }
             empty_deps: i64[]: []
@@ -78,13 +78,6 @@ collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
         }
     }
     return nodes
-}
-
-has_comptime_decorator :: fn(decl: AST.ConstDecl) -> bool {
-    for d in decl.decorators {
-        if d.name == "comptime" { return true }
-    }
-    return false
 }
 
 // Second pass : fill `by_symbol` once every node is registered, then walk

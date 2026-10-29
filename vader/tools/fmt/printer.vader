@@ -1011,11 +1011,9 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
         // `@intrinsic Type implements Trait` (no body) is a valid form
         // for host-provided impls. Skip the empty `{}` so we round-trip
         // the source layout exactly.
-        is_intrinsic := false
-        for deco in d.decorators {
-            if deco.name == "intrinsic" { is_intrinsic = true }
+        if p.decorators_have(d.decorators, "intrinsic") {
+            return
         }
-        if is_intrinsic { return }
         self.write(" {}")
         return
     }

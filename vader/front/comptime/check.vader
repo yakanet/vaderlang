@@ -103,7 +103,7 @@ evaluate_module_decls :: fn(
     // swallowed: these decls don't promise comptime evaluability.
     for decl in decls {
         if decl is AST.ConstDecl {
-            if has_comptime_decorator(decl) {
+            if AST.decorators_have(decl.decorators, "comptime") {
                 continue
             }
             symbol :: symbol_declared_at(typed.resolved, decl.name_span) ?? continue

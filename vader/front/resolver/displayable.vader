@@ -27,7 +27,7 @@ export with_displayable_impls :: fn(program: AST.Program) -> AST.Program {
     generated: AST.Decl[]: []
     for d in program.decls {
         if d is AST.EnumDecl {
-            decorator :: d.decorators.find((x) -> x.name == "displayable") ?? continue
+            decorator :: AST.find_decorator(d.decorators, "displayable") ?? continue
             generated.push(displayable_impl(d, decorator, program.file))
         }
     }

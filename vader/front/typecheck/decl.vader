@@ -220,7 +220,7 @@ declare_fn :: fn(
     if decl.name == "main" {
         check_main_signature(decl, params, return_type, diags)
     }
-    if has_extern_decorator(decl.decorators) {
+    if AST.decorators_have(decl.decorators, "extern") {
         validate_extern(decl, params, return_type, typed, diags)
     } else {
         // `validate_extern` checks them for an `@extern`; every other fn has to
@@ -233,7 +233,7 @@ declare_fn :: fn(
     // returns a null body → `call.import`). Host-ness must be *declared* :
     // `@intrinsic` for a stdlib host binding, `@extern` for a foreign C symbol.
     // Without either, the import is unbound and traps at runtime, so require
-    // the annotation here. Impl members (`impl_is_intrinsic`) and trait-method
+    // the annotation here. Impl members and trait-method
     // signatures go through other declarers and never reach `declare_fn`.
     //
     // A `@target` declaration is exempt: bodyless here means the group had no
@@ -241,9 +241,9 @@ declare_fn :: fn(
     // R2041: naming the target and what the group DOES cover. Emitting this too
     // would answer the same question a second time with the opposite advice
     // ("make it `@intrinsic`"), which is the wrong fix for a coverage hole.
-    if decl.body == null && !has_intrinsic_decorator(decl.decorators) && !has_extern_decorator(
-        decl.decorators,
-    ) && !has_target_decorator(decl.decorators) {
+    if decl.body == null && !AST.decorators_have(decl.decorators, "intrinsic")
+        && !AST.decorators_have(decl.decorators, "extern")
+        && !AST.decorators_have(decl.decorators, "target") {
         diags.push(
             typecheck_error(
                 .BodylessFnMustBeIntrinsic,
@@ -299,15 +299,6 @@ singleton_shape_fault :: fn(decl: AST.FnDecl, typed: TypedProgram) -> string | n
         return "has no body"
     }
     return null
-}
-
-has_target_decorator :: fn(decorators: AST.Decorator[]) -> bool {
-    for d in decorators {
-        if d.name == "target" {
-            return true
-        }
-    }
-    return false
 }
 
 // ---- T3052 : private type in a public interface ---------------------------
@@ -889,31 +880,9 @@ return_type_span :: fn(decl: AST.FnDecl) -> Span {
     return decl.span
 }
 
-has_extern_decorator :: fn(decs: AST.Decorator[]) -> bool {
-    for d in decs {
-        if d.name == "extern" {
-            return true
-        }
-    }
-    return false
-}
-
-has_intrinsic_decorator :: fn(decs: AST.Decorator[]) -> bool {
-    for d in decs {
-        if d.name == "intrinsic" {
-            return true
-        }
-    }
-    return false
-}
-
 extern_decorator_args :: fn(decs: AST.Decorator[]) -> AST.Expr[] {
-    for d in decs {
-        if d.name == "extern" {
-            return d.args
-        }
-    }
-    return []
+    d :: AST.find_decorator(decs, "extern") ?? return []
+    return d.args
 }
 
 /// C-ABI type whitelist. Primitives and `string`; a distinct type over one; two

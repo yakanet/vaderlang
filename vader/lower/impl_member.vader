@@ -115,7 +115,7 @@ resolve_impl_member :: fn(
     for entry in covering_first(candidates, target_type) {
         decl :: entry.decl
         m :: select_member(entry, name) ?? continue
-        if !impl_is_intrinsic(decl) {
+        if !decorators_have(decl.decorators, "intrinsic") {
             return member_or_instance(ctx, target_type, m, entry, own_args)
         }
         // An `@intrinsic` fallback is bodyless → never an inlineable identity.
@@ -396,16 +396,6 @@ member_or_instance :: fn(
         return member_instance(ctx, target, m, entry, own_args ?? [])
     }
     return build_ufcs_member(ctx, target, m, entry, is_identity_member(m))
-}
-
-/// True when an `@intrinsic` impl. Lets a user impl shadow the builtin in
-/// `find_impl_member_for`. (Mirrors `vader/front/resolver/materialize.vader::is_intrinsic`,
-/// kept local to avoid a resolver→lower import.)
-impl_is_intrinsic :: fn(decl: ImplDecl) -> bool {
-    for d in decl.decorators {
-        if d.name == "intrinsic" { return true }
-    }
-    return false
 }
 
 // The name of an impl member : the impl's module, its target segment, its trait

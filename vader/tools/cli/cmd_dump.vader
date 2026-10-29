@@ -544,14 +544,7 @@ render_baked_value :: fn(e: Expr) -> string {
 // declaration as belonging to a group is that it once carried `@target`, which
 // after merging is only visible on the ones that did NOT merge. So report on the
 // declarations the selection produced, not on the decorator.
-selected_by_target :: fn(fd: FnDecl) -> bool {
-    for d in fd.decorators {
-        if d.name == "target" {
-            return true
-        }
-    }
-    return false
-}
+selected_by_target :: fn(fd: FnDecl) = decorators_have(fd.decorators, "target")
 
 run_dced_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
