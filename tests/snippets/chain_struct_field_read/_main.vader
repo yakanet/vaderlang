@@ -5,7 +5,7 @@
 // call solving (see `vader/core/types/unify.vader`, the `TraitType` / `ArrayType`
 // case). When it wasn't, `chain(a, b)` / `a.map(f)` / `a.filter(p)` over `Rec[]`
 // left the element typed as the bare `T`, so a field read (`r.value`) failed with
-// T3008, or, when a target type masked it, corrupted the erased-layout array
+// T3009, or, when a target type masked it, corrupted the erased-layout array
 // at runtime (SIGSEGV in the diagnostics renderer). All three
 // combinators are bound WITHOUT a type annotation here, the shape that regressed.
 

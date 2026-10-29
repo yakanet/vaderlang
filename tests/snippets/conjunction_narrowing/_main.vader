@@ -1,7 +1,7 @@
 // conjunction_narrowing: `is T` narrows the scrutinee across a `&&`.
 //
 // Regression for B.4: flow narrowing didn't cross `&&` at typecheck, so
-// `if shape is Circle && shape.radius > 0` failed with T3008 (`shape` stayed
+// `if shape is Circle && shape.radius > 0` failed with T3009 (`shape` stayed
 // `Circle | Square` in the `&&` right operand AND in the then-block ; only the
 // VM limped through at runtime). Fixed by flowing each operand's narrowing
 // into the conjunction's right operand (vader/front/typecheck/binary.vader) and into

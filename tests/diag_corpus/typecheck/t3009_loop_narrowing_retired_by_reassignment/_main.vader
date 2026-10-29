@@ -1,6 +1,6 @@
 // A loop condition narrows the body until a write retires the narrowing. The
 // walk moves `cursor` to the next node, which may be `null`, then reads a field
-// of it: T3008, `cursor` being `Node | null` again.
+// of it: T3009, `cursor` being `Node | null` again.
 
 module "snippet"
 

@@ -668,7 +668,7 @@ bind_struct_pattern :: fn(
         raw :: resolved_field_type(st.symbol.id, decl, field.name, typed, scratch_diags())
         if raw == null {
             diags.push(typecheck_error(
-                .FieldDoesNotExist, field.name_span,
+                .MemberDoesNotExist, field.name_span,
                 "`${field.name}` on ${display_type(scrut)}"))
             continue
         }

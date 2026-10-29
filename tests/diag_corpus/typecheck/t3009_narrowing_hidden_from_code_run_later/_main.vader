@@ -3,7 +3,7 @@
 // can falsify in between: a binding no assignment rebinds keeps its narrowing,
 // while a rebound binding and a field chain lose theirs. A `defer` body runs at
 // the exit of its block, so what it writes or calls retires the narrowings the
-// code after that block reads. T3008 at each such read.
+// code after that block reads. T3009 at each such read.
 
 module "snippet"
 

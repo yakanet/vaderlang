@@ -2,7 +2,7 @@
 // may write any object it reaches, so it retires every field narrowing, and the
 // local narrowings a lambda rebinds. A loop's next iteration runs after its body,
 // so a narrowing made before the loop retires for what the body may write. A
-// field write may go through an alias. T3008 at each read of the stale field.
+// field write may go through an alias. T3009 at each read of the stale field.
 module "snippet"
 
 Circle :: struct {

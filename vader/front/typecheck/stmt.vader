@@ -1408,7 +1408,7 @@ then_is_divergent :: fn(b: AST.BlockExpr, typed: TypedProgram) -> bool {
     // not a statement, so `b.stmts` is empty. Honor a `never`-typed trailing
     // expr as divergent, mirroring the `is_divergent_stmt` ExprStmt arm ;
     // otherwise the complement narrowing is dropped and the guarded binding
-    // keeps its union type (T3008 on the post-guard use).
+    // keeps its union type (T3009 on the post-guard use).
     if b.trailing !is null {
         if typed.expr_types[b.trailing.id] is NeverType {
             return true

@@ -1,0 +1,3 @@
+[18:52] error[T3120] a field does not read the same in every variant of the union: `.label` of `Back | Front` (`Back` declares it at 0, `Front` at 1); narrow with `if`/`match` first
+[23:49] error[T3120] a field does not read the same in every variant of the union: `.age` of `Kitten | Puppy` (it is `i32` in `Kitten`, `i64` in `Puppy`); narrow with `if`/`match` first
+[28:57] error[T3120] a field does not read the same in every variant of the union: `.name` of `Narrow | Wide` (field 0, before it, is `u8` in `Narrow` and `i64` in `Wide`); narrow with `if`/`match` first

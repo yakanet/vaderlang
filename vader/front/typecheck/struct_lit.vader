@@ -136,7 +136,7 @@ check_field :: fn(
     }
     got :: check_expr(f.value, expected, typed, diags)
     if expected is null {
-        diags.push(typecheck_error(.FieldDoesNotExist, f.name_span,
+        diags.push(typecheck_error(.MemberDoesNotExist, f.name_span,
             "`${f.name}` on ${display_type(st)}"))
         return
     }

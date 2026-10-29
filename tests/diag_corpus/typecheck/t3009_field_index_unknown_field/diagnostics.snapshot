@@ -1,1 +1,1 @@
-[13:36] error[T3009] field does not exist on this type: `z` on `Point`
+[13:36] error[T3009] member does not exist on this type: `z` on `Point`

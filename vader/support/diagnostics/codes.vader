@@ -53,7 +53,7 @@ export TypecheckCode :: enum(CodeInfo) {
     TraitNotSatisfied            { .id = "T3006", .message = "trait not satisfied" },
     NotCallable                  { .id = "T3007", .message = "expression is not callable" },
     NotIndexable                 { .id = "T3008", .message = "expression is not indexable" },
-    FieldDoesNotExist            { .id = "T3009", .message = "field does not exist on this type" },
+    MemberDoesNotExist           { .id = "T3009", .message = "member does not exist on this type" },
     InvalidCast                  { .id = "T3010", .message = "invalid cast" },
     NonExhaustiveMatch           { .id = "T3013", .message = "non-exhaustive match" },
     UnreachableMatchArm          { .id = "T3014", .message = "unreachable match arm" },
@@ -145,6 +145,7 @@ export TypecheckCode :: enum(CodeInfo) {
     UnboundImplParameter            { .id = "T3117", .message = "an impl parameter does not appear in the type the impl is for" },
     DistinctTraitValueLosesImpl     { .id = "T3118", .message = "a distinct over a heap object cannot be a value of a trait it implements" },
     ConstantCallsSingleton          { .id = "T3119", .message = "a module constant cannot call a singleton" },
+    UnionFieldReadsApart            { .id = "T3120", .message = "a field does not read the same in every variant of the union" },
 }
 
 // Parser-pass codes.

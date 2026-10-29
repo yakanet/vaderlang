@@ -238,7 +238,7 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
                 sel :: target_selectors(d.decorators)
                 // Two statements, not `sel == null || sel.is_bare`: narrowing
                 // crosses `&&` but NOT `||` (TODO), so the second operand would
-                // still see `Os[] | null` and fail with T3008.
+                // still see `Os[] | null` and fail with T3009.
                 if sel == null {
                     continue
                 }

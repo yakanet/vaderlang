@@ -1,5 +1,5 @@
 // A type parameter has only the members its bounds declare: an unbounded `T`
-// has none, and `T: Display & Equals` has no `bump`. T3008 says which.
+// has none, and `T: Display & Equals` has no `bump`. T3009 says which.
 
 module "snippet"
 

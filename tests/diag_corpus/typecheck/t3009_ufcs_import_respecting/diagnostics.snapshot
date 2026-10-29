@@ -1,2 +1,2 @@
-[14:10] error[T3008] expression is not indexable: `.map` on non-struct type i32[]
+[14:10] error[T3009] member does not exist on this type: `.map` on non-struct type i32[]
 [14:17] error[T3024] function signature must be fully annotated: lambda parameter `n` cannot be inferred

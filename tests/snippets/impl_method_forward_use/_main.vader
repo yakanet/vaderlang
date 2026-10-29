@@ -3,7 +3,7 @@
 // Regression guard for B.6: `walk_bodies` registered impl-member metadata
 // lazily in its main pass, in file (merge) order, so a fn body that called a
 // trait method whose `impl` block was declared LATER in the file failed
-// typecheck with T3008 (`.m on non-struct`). It surfaced when `std/core` was a
+// typecheck with T3009 (`.m on non-struct`). It surfaced when `std/core` was a
 // `vader test` entry: `f2s.vader`'s `format_f32` calls `x.to_bits()` before
 // `primitives.vader`'s `@intrinsic f32 implements Float32Bits` (a sibling file
 // merged after the caller). Fixed by seeding ALL impl metadata in

@@ -1,6 +1,0 @@
-[27:16] error[T3008] expression is not indexable: `.r` on non-struct type Circle | Square
-[34:16] error[T3008] expression is not indexable: `.r` on non-struct type Circle | Square
-[48:16] error[T3008] expression is not indexable: `.r` on non-struct type Circle | Square
-[57:22] error[T3008] expression is not indexable: `.r` on non-struct type Circle | Square
-[69:22] error[T3008] expression is not indexable: `.r` on non-struct type Circle | Square
-[83:16] error[T3008] expression is not indexable: `.r` on non-struct type Circle | Square

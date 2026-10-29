@@ -1,6 +1,0 @@
-[24:26] error[T3008] expression is not indexable: `.value` on non-struct type Node | null
-[32:23] error[T3008] expression is not indexable: `.value` on non-struct type Node | null
-[41:22] error[T3008] expression is not indexable: `.value` on non-struct type Node | null
-[62:12] error[T3008] expression is not indexable: `.value` on non-struct type Node | null
-[72:12] error[T3008] expression is not indexable: `.value` on non-struct type Node | null
-[86:12] error[T3008] expression is not indexable: `.value` on non-struct type Node | null

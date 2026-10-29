@@ -142,7 +142,7 @@ pc_scan_stmt :: fn(ctx: PurityCtx, st: LoweredStmt, live: i32[]) -> void {
         is LoweredLabelledBlock -> { pc_scan_block(ctx, st.body, live) }
         is LoweredReturn    -> {
             // `.value` sits at a different offset per variant, so these cannot be
-            // collapsed into one or-pattern arm (T3008).
+            // collapsed into one or-pattern arm (T3120).
 
             v :: st.value
             if v != null {

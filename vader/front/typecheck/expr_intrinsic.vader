@@ -152,7 +152,7 @@ check_field_index :: fn(
     if field_position(decl, name) >= 0 {
         return
     }
-    diags.push(typecheck_error(.FieldDoesNotExist, e.args[1].span,
+    diags.push(typecheck_error(.MemberDoesNotExist, e.args[1].span,
         "`${name}` on `${display_type(owner)}`"))
 }
 

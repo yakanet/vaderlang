@@ -1,1 +1,1 @@
-[9:12] error[T3009] field does not exist on this type: `Red` on Color (a variant is named on the enum type)
+[9:12] error[T3009] member does not exist on this type: `Red` on Color (a variant is named on the enum type)

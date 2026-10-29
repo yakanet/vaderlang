@@ -1,7 +1,7 @@
 // `u.field` on a union of structs reads the field WITHOUT narrowing, at the
 // offset the first variant gives it. That is only sound while every variant
 // places the field at the same offset: the same position, and the same type for
-// it and for every field before it. Each disagreement is a T3008 naming the
+// it and for every field before it. Each disagreement is a T3120 naming the
 // first difference: the position (`label_of`), the field's own type (`age_of`),
 // or the type of a field before it (`wide_name_of`). The agreeing case
 // (`name_of`) passes.

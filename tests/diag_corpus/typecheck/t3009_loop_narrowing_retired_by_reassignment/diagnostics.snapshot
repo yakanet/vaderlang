@@ -1,0 +1,1 @@
+[16:16] error[T3009] member does not exist on this type: `.value` on non-struct type Node | null

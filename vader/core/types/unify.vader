@@ -91,7 +91,7 @@ export unify_type_param :: fn(
                 // the blanket `T[] -> Iterator<T>` `into` coercion. That coercion
                 // is applied later (`try_into`), but the element type must be
                 // unified with `T` *here* or the type param stays unbound: the
-                // callee then infers `Iterator<T>` (T3008 downstream) and the
+                // callee then infers `Iterator<T>` (T3009 downstream) and the
                 // generic body is never specialised. Bind `T = element`.
                 is ArrayType -> {
                     element :: core_trait_arg(param_type, TRAIT_ITERATOR)
