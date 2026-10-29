@@ -2326,16 +2326,16 @@ Binding it to a name, storing it in a field or an element, returning it or handi
 TABLE :: [1, 2, 3]
 
 fill :: fn(buf: i32[], value: i32, n: i32) -> void {
-    for _ in 0..<n {
+    for 0..<n {
         buf.push(value)
     }
 }
 
 refill :: fn(buf: i32[]) -> void = fill(buf, 0, 4)
 
-fill(TABLE, 1, 2)           // error: `fill` modifies it (`buf` grows)
-refill(TABLE)               // error: `refill` modifies it through `fill`
-fill(TABLE.clone(), 1, 2)   // OK: a copy
+TABLE.fill(1, 2)           // error: `fill` modifies it (`buf` grows)
+TABLE.refill()             // error: `refill` modifies it through `fill`
+TABLE.clone().fill(1, 2)   // OK: a copy
 ```
 
 A view of a string's bytes (§4 *Strings*) is the string's own bytes, never copied implicitly. It may be read, lent to a function that only reads it, and returned. Writing it, lending it to a function that modifies it, keeping it (in a field, an element or a module constant's value) or handing it to code the compiler cannot follow (a function value) is an error.
