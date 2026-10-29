@@ -7,6 +7,7 @@
 //   - Array<T>         → array, every element checked against T
 //   - Union(...)       → pick a Tuple variant whose arity matches,
 //                        otherwise the first Array variant ; recurse
+//   - Iterator<E>      -> array of E, which the slot converts
 //   - no expected      → default-if-free each element, then array
 //                        when they unify (single post-dedup type),
 //                        tuple otherwise.
@@ -34,14 +35,19 @@ infer_seq_lit :: fn(
             return infer_seq_lit(e, picked, typed, diags)
         }
     }
-    // @partial: only a tuple- or array-shaped expectation drives contextual
-    // disambiguation; for every other (or absent) slot type we infer freely.
+    // @partial: only a tuple-, array- or `Iterator`-shaped expectation drives
+    // contextual disambiguation; for every other (or absent) slot type we infer
+    // freely.
     @partial match expected {
         is TupleType -> {
             return infer_against_tuple(e, expected, typed, diags)
         }
         is ArrayType -> {
             return infer_against_array(e, expected, typed, diags)
+        }
+        is TraitType -> {
+            element :: iterator_slot_element(expected) ?? return infer_no_expected(e, typed, diags)
+            return infer_against_array(e, ArrayType { .element = element }, typed, diags)
         }
         is DistinctType -> {
             // Composite-backed distinct newtype (`f: BigInt = [1]`,
@@ -159,6 +165,17 @@ infer_against_array :: fn(
         return arr
     }
     return mk_array(actual)
+}
+
+// The element `E` of an `Iterator<E>` slot : an array literal reaches it as an
+// `E[]`, so its elements, an empty literal's included, take `E`, a type parameter
+// as a `T[]` slot's. Null for any other trait, and for an erased element.
+iterator_slot_element :: fn(slot: TraitType) -> Type | null {
+    element :: core_trait_arg(slot, TRAIT_ITERATOR) ?? return null
+    if element is UnresolvedType {
+        return null
+    }
+    return element
 }
 
 infer_no_expected :: fn(e: AST.SeqLitExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {

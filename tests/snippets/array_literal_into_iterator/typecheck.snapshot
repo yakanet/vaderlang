@@ -1,0 +1,62 @@
+# Typecheck
+
+## tests/snippets/array_literal_into_iterator
+  FnDecl         count_it             :: fn(Iterator<T>) -> i32
+  FnDecl         empty                :: fn() -> Iterator<i32>
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         nothing              :: fn(T) -> Iterator<T>
+  FnDecl         total                :: fn(Iterator<i64>) -> i64
+  expr 10:41    SeqLitExpr     :: T[]
+  expr 14:14    IdentExpr      :: Iterator<T>
+  expr 15:13    BinaryExpr     :: i32
+  expr 15:13    IdentExpr      :: i32
+  expr 15:9     IdentExpr      :: i32
+  expr 17:12    IdentExpr      :: i32
+  expr 22:14    IdentExpr      :: Iterator<i64>
+  expr 23:15    BinaryExpr     :: i64
+  expr 23:15    IdentExpr      :: i64
+  expr 23:21    IdentExpr      :: i64
+  expr 23:9     IdentExpr      :: i64
+  expr 25:12    IdentExpr      :: i64
+  expr 30:14    CallExpr       :: Iterator<i32>
+  expr 30:14    IdentExpr      :: fn() -> Iterator<i32>
+  expr 31:13    BinaryExpr     :: i32
+  expr 31:13    IdentExpr      :: i32
+  expr 31:17    IdentExpr      :: i32
+  expr 31:9     IdentExpr      :: i32
+  expr 33:13    StringLitExpr  :: string
+  expr 33:16    IdentExpr      :: i32
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
+  expr 34:13    StringLitExpr  :: string
+  expr 34:16    CallExpr       :: i64
+  expr 34:16    IdentExpr      :: fn(Iterator<i64>) -> i64
+  expr 34:22    SeqLitExpr     :: i64[]
+  expr 34:29    CallExpr       :: i64
+  expr 34:29    IdentExpr      :: fn(Iterator<i64>) -> i64
+  expr 34:35    SeqLitExpr     :: i64[]
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(T) -> void
+  expr 35:26    SeqLitExpr     :: i64[]
+  expr 36:13    StringLitExpr  :: string
+  expr 36:16    CallExpr       :: i64
+  expr 36:16    IdentExpr      :: fn(Iterator<i64>) -> i64
+  expr 36:22    IdentExpr      :: Iterator<i64>
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 37:13    StringLitExpr  :: string
+  expr 37:16    CallExpr       :: i32
+  expr 37:16    IdentExpr      :: fn(Iterator<T>) -> i32
+  expr 37:25    CallExpr       :: Iterator<string>
+  expr 37:25    IdentExpr      :: fn(T) -> Iterator<T>
+  expr 37:33    StringLitExpr  :: string
+  expr 37:42    CallExpr       :: i32
+  expr 37:42    IdentExpr      :: fn(Iterator<T>) -> i32
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 37:51    SeqLitExpr     :: i32[]
+  expr 37:62    CallExpr       :: i32
+  expr 37:62    IdentExpr      :: fn(Iterator<T>) -> i32
+  expr 37:71    SeqLitExpr     :: string[]
+  expr 37:72    StringLitExpr  :: string
+  expr 8:34     SeqLitExpr     :: i32[]

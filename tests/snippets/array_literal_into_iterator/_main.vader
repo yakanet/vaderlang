@@ -1,0 +1,39 @@
+// An array literal in an `Iterator<E>` slot is an `E[]` the slot converts: an
+// empty one included, which nothing else gives an element type, and its
+// elements take `E` (`[1, 2]` into an `Iterator<i64>`), a generic `E` too.
+module "snippet"
+
+import "std/io"
+
+empty :: fn() -> Iterator<i32> = []
+
+nothing :: fn<T>(x: T) -> Iterator<T> = []
+
+count_it :: fn<T>(it: Iterator<T>) -> i32 {
+    n := 0
+    for _ in it {
+        n = n + 1
+    }
+    return n
+}
+
+total :: fn(it: Iterator<i64>) -> i64 {
+    sum: i64 = 0
+    for x in it {
+        sum = sum + x
+    }
+    return sum
+}
+
+main :: fn() -> i32 {
+    n := 0
+    for x in empty() {
+        n = n + x
+    }
+    println("${n}")
+    println("${total([])} ${total([1, 2, 3])}")
+    wide: Iterator<i64>: [4_000_000_000, 5]
+    println("${total(wide)}")
+    println("${count_it(nothing("a"))} ${count_it([1, 2])} ${count_it(["x"])}")
+    return 0
+}
