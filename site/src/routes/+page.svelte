@@ -56,10 +56,16 @@
 		<h2 id="read-on">Read on</h2>
 		<div class="grid">
 			<section class="card">
-				<h3><a href={page_href('spec')}>Specification</a></h3>
+				<h3><a href={page_href('learn')}>Learn</a></h3>
 				<p>
-					The language, chapter by chapter: its types, functions, control flow, modules, decorators
-					and compile-time execution.
+					The language one construct at a time, each shown by a short program and what it prints.
+				</p>
+			</section>
+			<section class="card">
+				<h3><a href={page_href('spec')}>Language reference</a></h3>
+				<p>
+					The rules of the language, chapter by chapter: its types, functions, control flow, modules,
+					decorators and compile-time execution.
 				</p>
 			</section>
 			<section class="card">

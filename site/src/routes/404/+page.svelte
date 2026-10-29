@@ -11,6 +11,6 @@
 	<h1>Not found</h1>
 	<p>
 		No page of the site is at this address. Start from the <a href={resolve('/')}>home page</a>, the
-		<a href={page_href('spec')}>specification</a>, or search with the button above.
+		<a href={page_href('spec')}>language reference</a>, or search with the button above.
 	</p>
 </main>

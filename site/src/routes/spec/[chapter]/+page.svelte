@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.title} &middot; Vader specification</title>
+	<title>{data.title} &middot; {data.set_title}</title>
 </svelte:head>
 
 <ChapterPage {...data} />

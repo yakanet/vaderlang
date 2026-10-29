@@ -83,8 +83,12 @@ const tokens = markdown.lexer(fs.readFileSync(SPEC, 'utf8'));
 const intro = [];
 /** @type {Chapter[]} */
 const chapters = [];
+let title = '';
 for (const token of tokens) {
-	if (token.type === 'heading' && token.depth === 1) continue;
+	if (token.type === 'heading' && token.depth === 1) {
+		title = plain(token.text);
+		continue;
+	}
 	if (token.type === 'heading' && token.depth === 2) {
 		const [, number = '', title] = /** @type {RegExpExecArray} */ (CHAPTER.exec(token.text));
 		const slug = slugify(`${number} ${title}`);
@@ -162,6 +166,9 @@ if (broken.length > 0) {
 for (const chapter of chapters) {
 	chapter.html = /** @type {string} */ (markdown.parser(chapter.tokens));
 }
+
+/** The title of the specification, its `#` heading. */
+export const spec_title = title;
 
 /** What the specification says before its first chapter. */
 export const introduction = /** @type {string} */ (markdown.parser(intro));

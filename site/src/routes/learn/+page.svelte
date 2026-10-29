@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.introduction.title} &middot; Vader</title>
+	<title>{data.introduction.title}</title>
 </svelte:head>
 
 <ChapterIndex title={data.introduction.title} introduction={data.introduction.html} chapters={data.chapters} />

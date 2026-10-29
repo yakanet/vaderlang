@@ -1,9 +1,9 @@
-# Vader Language Specification
+# Vader Language Reference
 
 > **Status**: Draft, pre-1.0
 > **Author**: Mathieu BROUTIN
 
-This document describes the Vader language: its syntax, type system, execution model and MVP standard library. The compiler is written in Vader and compiles itself; its internals are described in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+This document describes the Vader language: its syntax, type system, execution model and MVP standard library. The compiler is written in Vader and compiles itself: its internals are described in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md), how it is rebuilt from a C seed in [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md), and the `vader` command in [`docs/TOOLING.md`](./docs/TOOLING.md).
 
 ---
 
@@ -32,6 +32,13 @@ Vader is a general-purpose application language, strongly typed with type infere
 - **Compile-time errors over run-time errors**: string interpolation, for instance, is type-checked at compile time.
 - **Rich diagnostics**: every phase reports structured diagnostics (`docs/TOOLING.md` *Diagnostics*), keeps going after an error when it can, and writes messages that read well in a terminal and in an editor.
 - **Evolvability**: the pipeline is easy to extend, and every intermediate representation can be dumped.
+
+### Vader 1.0, the bootstrap edition
+
+The 1.0 edition is the set of features the compiler needs to compile itself ([`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md)). It has not been declared yet; until then, the language changes without deprecation. From 1.0 on:
+
+- v1.x: backward-compatible changes (new features, optimisations);
+- v2.0: breaking changes, a new edition and a new bootstrap.
 
 ---
 
@@ -1806,7 +1813,7 @@ A generic recursion may not grow its type argument. On a cycle of calls, passing
 - a call to itself at a fixed type (`fixed(n, n - 1)` inside `fixed<T>`);
 - in the impl of a generic struct, a call on a larger instance of it (a `Box<T[]>` inside the impl of `Box<T>`).
 
-An argument is matched against a signature's free type parameters when choosing an overload or the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>`), and on the fields of a generic struct literal without type arguments (`Box { .value = [4, 5] }`). A free literal binds no type parameter: write `Box<i32> { .value = 0 }`, not `Box { .value = 0 }`.
+An argument is matched against a signature's free type parameters when choosing an overload or the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>`). A free literal binds no type parameter: write `Box<i32> { .value = 0 }`, not `Box { .value = 0 }`.
 
 A static function belongs to a trait (*Static members*), never to a type alone: there are no inherent associated functions. A factory outside a trait is a free function (`new_rng(42)` in `random`); a struct is built by its literal (`MutableMap<K, V> {}`).
 
@@ -4090,200 +4097,6 @@ A WebAssembly backend is planned. The `wasi-wasm32` and `browser-wasm32` targets
 
 ---
 
-## 18. Tooling
-
-The `vader` command and its actions, the test runner, the debugger, the language server and the format of diagnostics are described in [`docs/TOOLING.md`](./docs/TOOLING.md).
-
----
-
-## 19. Self-hosting Strategy
-
-The compiler is written in Vader and compiles itself. Its stages, and how it is rebuilt from a C seed, are described in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) and [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md).
-
-### Vader 1.0, the bootstrap edition
-
-The 1.0 edition is the set of features the compiler needs to compile itself. It has not been declared yet; until then, the language changes without deprecation. From 1.0 on:
-
-- v1.x: backward-compatible changes (new features, optimisations);
-- v2.0: breaking changes, a new edition and a new bootstrap.
-
----
-
-## 20. Examples
-
-### Hello World
-
-```vader
-module "main"
-
-import "std/io"
-
-main :: fn() -> i32 {
-    println("Hello, World!")
-    return 0
-}
-```
-
-### Fibonacci
-
-```vader
-module "main"
-
-import "std/io"
-
-fib :: fn(n: i32) -> u64 {
-    if n < 2 {
-        return u64(n)
-    }
-    return fib(n - 1) + fib(n - 2)
-}
-
-main :: fn() -> i32 {
-    for i in 0..<10 {
-        println("fib(${i}) = ${fib(i)}")
-    }
-    return 0
-}
-```
-
-### Array build + iterate
-
-```vader
-module "main"
-
-import "std/io"
-
-main :: fn() -> i32 {
-    list: i32[]: []
-    for i in 0..<5 {
-        list.push(i * i)
-    }
-    for x in list {
-        println("$x")
-    }
-    return 0
-}
-```
-
-### Trait + impl
-
-```vader
-module "main"
-
-import "std/io"
-
-Describe :: trait {
-    describe :: fn(self) -> string
-}
-
-Point :: struct {
-    x: i32
-    y: i32
-}
-
-Point implements Describe {
-    describe :: fn(self) -> string {
-        return "(${self.x}, ${self.y})"
-    }
-}
-
-main :: fn() -> i32 {
-    p :: Point { .x = 1, .y = 2 }
-    println(p.describe())
-    return 0
-}
-```
-
-### Pattern matching + errors
-
-```vader
-module "main"
-
-import "std/io"
-import "std/string"
-
-read_count :: fn(path: string) -> i32 | Error {
-    raw :: read_file_string(path)      // read_file_string → string | IOError
-    if raw is Error {
-        return raw
-    }
-    return parse_int(trim(raw))        // parse_int → i32 | ParseError; both widen to Error
-}
-
-main :: fn() -> i32 {
-    match result :: read_count("count.txt") {
-        is i32   -> println("Count: ${result}")
-        is Error -> println("Error: ${result.message()}")
-    }
-    return 0
-}
-```
-
-### `@comptime`
-
-```vader
-module "main"
-
-import "std/io"
-
-squares :: fn() -> u32[] {
-    result: u32[]: []
-    for i in 0..<10 {
-        result.push(u32(i * i))
-    }
-    return result
-}
-
-@comptime
-SQUARES :: squares()
-
-main :: fn() -> i32 {
-    for s in SQUARES {
-        println("${s}")
-    }
-    return 0
-}
-```
-
-### `@extern`: calling JS from WASM *(planned, §17)*
-
-On WebAssembly (§13 *Future WASM target*), an `@extern` without a library imports from the module `"env"`: the declaration below will import `alert` from `env`, as `(import "env" "alert" (func ...))`. A `string` parameter will cross as two `i32`, a pointer into the linear memory and a length, and the JavaScript side reads the bytes there.
-
-```vader
-@extern("alert")
-js_alert :: fn(msg: string) -> void
-
-@export("greet")
-greet :: fn() -> void {
-    js_alert("Hello from Vader!")
-}
-
-main :: fn() -> i32 {
-    return 0
-}
-```
-
-The HTML and JavaScript side:
-```html
-<script>
-const memory = new WebAssembly.Memory({ initial: 256 });
-const decoder = new TextDecoder("utf-8");
-const imports = {
-    env: {
-        alert: (ptr, len) => {
-            const buf = new Uint8Array(memory.buffer, ptr, len);
-            window.alert(decoder.decode(buf));
-        }
-    }
-};
-WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance }) => {
-    instance.exports.greet();
-});
-</script>
-```
-
----
-
 ## Appendices
 
 ### A. Deferred decisions / topics to revisit
@@ -4303,4 +4116,4 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 - **Comptime**: compile-time execution, Vader code run during the build (§14).
 - **SAM**: Single Abstract Method. A trait with exactly one required method, whose impl may be written as its body alone (`Foo implements Trait -> expr`) instead of the full `name :: fn(...) { ... }` declaration.
 - **VM**: the Vader virtual machine, which runs the bytecode for `vader run` and `vader test` (§2).
-- **Bootstrap**: compiling the Vader compiler with itself (§19).
+- **Bootstrap**: compiling the Vader compiler with itself ([`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md)).

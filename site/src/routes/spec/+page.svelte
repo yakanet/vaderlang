@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>Vader specification</title>
+	<title>{data.title}</title>
 </svelte:head>
 
-<ChapterIndex title="Vader Language Specification" introduction={data.introduction} chapters={data.chapters} />
+<ChapterIndex title={data.title} introduction={data.introduction} chapters={data.chapters} />

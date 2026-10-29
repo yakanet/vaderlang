@@ -1,8 +1,8 @@
 # The site of the language
 
-The SvelteKit project behind the published site: a home page and the
-specification, one prerendered page per chapter of `SPEC.md`, with a search
-over its headings. The API references `vader doc` writes are other builds,
+The SvelteKit project behind the published site: a home page, a tour of the
+language (`content/learn/`), and its reference, one prerendered page per chapter
+of `SPEC.md`, with a search over their headings. The API references `vader doc` writes are other builds,
 published beside it under `lib/` and `vader/` (`.github/workflows/docs.yml`).
 
 A cross-reference of the specification, `§N` or `§N *Title*`, becomes a link

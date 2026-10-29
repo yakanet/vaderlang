@@ -33,7 +33,7 @@ export const SECTIONS = [
 	{ name: 'start', label: 'Get started' },
 	{ name: 'learn', label: 'Learn' },
 	{ name: 'examples', label: 'Examples' },
-	{ name: 'spec', label: 'Specification' }
+	{ name: 'spec', label: 'Reference' }
 ];
 
 /** @param {string} slug */

@@ -2,6 +2,6 @@
 - `vader build`: compiles a program to a native binary, through C.
 - `vader test`: runs the `@test` functions of a project.
 - `vader fmt`: formats the sources; it has no configuration.
-- `vader doc`: writes the API reference of a project, as a site like the Library reference.
+- `vader doc`: writes the API reference of a project, as a site like the [Library](/lib/).
 - `vader new`: starts a project.
 - `vader lsp` and `vader dap`: the language server and the debugger that the VS Code and IntelliJ extensions run.
