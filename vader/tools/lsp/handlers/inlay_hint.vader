@@ -386,8 +386,8 @@ collect_from_let_value :: fn(s: AST.LetStmt, ctx: HintCtx, out: JsonValue[]) -> 
 }
 
 /// Emit the hints of a lambda written without a return type. Its return type
-/// goes in front of the `->` of the arrow form, or on the `{` of the `fn(...)`
-/// form, which has none.
+/// goes in front of the `->` of the arrow form, in front of the `=` of
+/// `fn(...) = expr`, or on the `{` of the block form.
 ///
 /// @param e            the lambda.
 /// @param show_return  false when a hint nearby already shows the return type.
@@ -411,7 +411,8 @@ emit_lambda_return_hints :: fn(
         emit_discarded_hint(e.body, ctx, out)
     } else if show_return && carries_value(returned) {
         start :: e.body.span.start
-        anchor :: anchor_before_token(ctx.li, ctx.content, start, "->") ?? anchor_at(ctx.li, start)
+        anchor :: anchor_before_token(ctx.li, ctx.content, start, "->")
+            ?? fn_return_anchor(ctx, start, e.is_expression_bodied)
         emit_return_type_hint(returned, anchor, out)
     }
 }

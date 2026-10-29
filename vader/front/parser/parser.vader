@@ -1182,7 +1182,7 @@ parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, 
     type_params :: merge_type_params(angle_params, sig.type_params)
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
-    tail :: p.parse_fn_body_tail(return_type)
+    tail :: p.parse_fn_body_tail()
     return FnDecl {
         .span                 = p.span_of(name_tok, p.peek_at(-1)),
         .name                 = name_tok.text,
@@ -1205,7 +1205,7 @@ FnBodyTail :: struct {
     is_expression_bodied: bool
 }
 
-parse_fn_body_tail :: fn(p: Parser, return_type: TypeExpr | null) -> FnBodyTail {
+parse_fn_body_tail :: fn(p: Parser) -> FnBodyTail {
     if p.check(.Assign) {
         p.advance()  // `=`
         expr :: p.parse_expr(0)
@@ -1251,7 +1251,7 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
     type_params :: merge_type_params(angle_params, sig.type_params)
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
-    tail :: p.parse_fn_body_tail(return_type)
+    tail :: p.parse_fn_body_tail()
     return FnDecl {
         .span                 = p.span_of(name_tok, p.peek_at(-1)),
         .name                 = name_tok.text,
@@ -4029,13 +4029,16 @@ parse_lambda :: fn(p: Parser) -> LambdaExpr {
     sig :: p.parse_fn_signature_params()
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
-    body :: p.parse_block()
+    // A missing body is reported by `parse_block`.
+    tail :: p.parse_fn_body_tail()
+    body :: tail.body ?? p.parse_block()
     return LambdaExpr {
         .span        = Span { .start = start.span.start, .end = body.span.end },
         .params      = sig.params,
         .return_type = return_type,
         .body        = body,
         .trailing_comma = sig.trailing_comma,
+        .is_expression_bodied = tail.is_expression_bodied,
     }
 }
 

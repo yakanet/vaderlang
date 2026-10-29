@@ -929,6 +929,10 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.write_optional_type(e.return_type, level + 1)
             sb.entry(false, level + 1, "body")
             sb.write_block_expr(e.body, level + 1)
+            if e.is_expression_bodied {
+                sb.entry(false, level + 1, "isExpressionBodied")
+                sb.write_bool(true)
+            }
             sb.close_obj(level)
         }
         is StructLitExpr -> {

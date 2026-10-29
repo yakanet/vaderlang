@@ -1171,6 +1171,9 @@ export LambdaExpr :: struct {
     body:        BlockExpr
     /// True when the source wrote a trailing comma after the last parameter.
     trailing_comma: bool = false
+    /// True when the source wrote the body as `= expr` (`fn(x: i32) -> i32 = x * 2`):
+    /// `body` holds that expression as its trailing value, as a function's does.
+    is_expression_bodied: bool = false
 }
 
 /// A struct literal, `Point { .x = 1 }`.

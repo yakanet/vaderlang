@@ -1,0 +1,16 @@
+// A function declared inside a body takes an expression body `= expr`, as a
+// top-level one does, with or without its return type, and so does a function
+// literal passed as an argument.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+main :: fn() -> i32 {
+    double :: fn(y: i32) -> i32 = y * 2
+    halve :: fn(y: i32) = y / 2
+    println("${double(21)} ${halve(9)}")
+    total :: [1, 2, 3].map(fn(x: i32) -> i32 = x * 10).sum()
+    println("${total}")
+    return 0
+}

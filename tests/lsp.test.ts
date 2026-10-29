@@ -680,7 +680,7 @@ main :: fn() -> i32 {
     t.remember()
     t.quiet()
     each((x: i32) -> t.bump(x))
-    return apply((x: i32) -> x * 3, next(twice(Square { .s = 3 }.area())))
+    return apply((x: i32) -> x * 3, next(twice(Square { .s = 3 }.area()))) + apply(fn(x: i32) = x * 4, 1)
 }
 `;
 
@@ -701,12 +701,14 @@ test("lsp: inlay hints show implicit return types and discarded values", async (
   const returns = hints.filter((h) => h.label.startsWith("-> "));
   const discards = hints.filter((h) => h.label.startsWith("(discarded "));
 
-  // `area` on its `{`, `twice` before its `=`, the lambda argument before its `->`.
+  // `area` on its `{`, `twice` before its `=`, the lambda arguments before their
+  // `->` and `=`.
   expect(returns.map((h) => [h.label, key(h.position)]).sort()).toEqual(
     [
       ["-> i32", key(positionOf(src, "{ self.s * self.s }"))],
       ["-> i32", key(positionOf(src, "= x * 2"))],
       ["-> i32", key(positionOf(src, "-> x * 3"))],
+      ["-> i32", key(positionOf(src, "= x * 4"))],
     ].sort(),
   );
   expect(returns.every((h) => h.paddingRight && !h.paddingLeft)).toBe(true);

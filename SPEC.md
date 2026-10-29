@@ -2475,7 +2475,7 @@ items.map(x -> {
 })
 ```
 
-The `->` form has no place for a return type: the type comes from the slot the lambda fills (a parameter, a field, a typed declaration) or from its body. To write the return type, use an anonymous function literal `fn(params) -> R { body }`, which is allowed wherever a value is expected and means the same thing, or a named function:
+The `->` form has no place for a return type: the type comes from the slot the lambda fills (a parameter, a field, a typed declaration) or from its body. To write the return type, use an anonymous function literal `fn(params) -> R { body }` or `fn(params) -> R = expr`, which is allowed wherever a value is expected and means the same thing, or a named function:
 
 ```vader
 inc :: fn(x: i32) -> i32 { x + 1 }

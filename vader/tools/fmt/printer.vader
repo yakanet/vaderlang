@@ -634,21 +634,26 @@ emit_fn_decl :: fn(self: Printer, d: p.FnDecl) -> void {
     self.emit_type_params(d.type_params)
     self.emit_fn_params(d.params, d.trailing_comma)
     self.emit_type_expr_with_prefix(" -> ", d.return_type)
-    if d.is_expression_bodied {
+    self.emit_fn_body(d.body, d.is_expression_bodied)
+}
+
+// The body of a function or a function literal, as written : ` = expr`, or a
+// block. An expression body is normalised to a `BlockExpr` with empty stmts and
+// a trailing expr, re-emitted alone.
+emit_fn_body :: fn(self: Printer, body: p.BlockExpr | null, is_expression_bodied: bool) -> void {
+    if is_expression_bodied {
         self.write(" =")
-        // Expression-bodied : body is normalised to BlockExpr with empty
-        // stmts + trailing expr. Re-emit the trailing expr alone.
-        match b :: d.body {
+        match b :: body {
             is null        -> self.write(" /* missing body */")
             is p.BlockExpr -> self.emit_expression_body(b.trailing)
         }
-    } else {
-        match b :: d.body {
-            is null -> {}    // signature-only (@intrinsic / @extern)
-            is p.BlockExpr -> {
-                self.write(" ")
-                self.emit_block_expr(b)
-            }
+        return
+    }
+    match b :: body {
+        is null -> {}    // signature-only (@intrinsic / @extern)
+        is p.BlockExpr -> {
+            self.write(" ")
+            self.emit_block_expr(b)
         }
     }
 }
@@ -2405,14 +2410,16 @@ has_no_final_else :: fn(x: p.IfExpr) -> bool {
 emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
     // Arrow form (`(p) -> expr` or `x -> expr`) and `fn(p) { expr }`
     // both parse into a `LambdaExpr` whose body is a `BlockExpr` with
-    // no stmts and a single trailing expression: the AST loses the
+    // no stmts and a single trailing expression: the AST loses that
     // surface form. The arrow form only accepts an inferred return
     // type, so emit it when there's no explicit `return_type` and the
     // body collapses to one expression. Higher-order callsites
     // (`filter(xs, (x) -> x > 0)`) thus round-trip cleanly instead of
-    // bloating to a block. Block-bodied lambdas and any lambda with an
-    // explicit return type keep the `fn(p) -> T { ... }` form.
-    if x.return_type is null && x.body.stmts.len() == 0 && !(x.body.trailing is null) {
+    // bloating to a block. `fn(p) = expr` is recorded
+    // (`is_expression_bodied`) and kept ; block-bodied lambdas and any
+    // lambda with an explicit return type keep the `fn(p) -> T { ... }` form.
+    if !x.is_expression_bodied && x.return_type is null && x.body.stmts.len() == 0
+        && x.body.trailing != null {
         self.emit_fn_params(x.params, x.trailing_comma)
         self.write(" -> ")
         self.emit_expr(x.body.trailing)
@@ -2421,8 +2428,7 @@ emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
     self.write("fn")
     self.emit_fn_params(x.params, x.trailing_comma)
     self.emit_type_expr_with_prefix(" -> ", x.return_type)
-    self.write(" ")
-    self.emit_block_expr(x.body)
+    self.emit_fn_body(x.body, x.is_expression_bodied)
 }
 
 // ---- aggregates ----

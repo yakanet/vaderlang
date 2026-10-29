@@ -74,6 +74,19 @@ async function astDump(path: string): Promise<string> {
 // ---------------------------------------------------------------------------
 const REGRESSIONS: { name: string; source: string }[] = [
   {
+    // A function literal written \`= expr\` comes back as such, not as a block or
+    // an arrow lambda.
+    name: "expression_bodied_fn_literal",
+    source: `module "reg/expression_bodied_fn_literal"
+
+outer :: fn(n: i32) -> i32 {
+    double :: fn(y: i32) -> i32 = y * 2
+    halve :: fn(y: i32) = y / 2
+    return double(n) + halve(n)
+}
+`,
+  },
+  {
     // Operands the TYPE postfix `[]` must keep parenthesised: a fn type most
     // visibly, since its result extends right and `(fn(i64) -> i64)[]` would
     // come back as a fn RETURNING an array.
