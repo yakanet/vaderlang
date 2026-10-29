@@ -3575,8 +3575,6 @@ An enum with a written width (§4 *Representation*) crosses as its variant's int
 - an enum whose width is inferred;
 - an `@extern` that takes both an enum with variant data and a callback.
 
-Further pointer types, with an `unsafe` block, are deferred (Appendix A).
-
 ### Callbacks
 
 A parameter of function type is a C callback: C receives the function's address and calls it with its signature's types.
@@ -4103,7 +4101,6 @@ A WebAssembly backend is planned. The `wasi-wasm32` and `browser-wasm32` targets
 
 ### A. Deferred decisions / topics to revisit
 
-- An `unsafe` facility for low-level FFI.
 - An explicit allocator API (arenas, buffers) for performance-critical code.
 - Automatic string marshalling between WebAssembly and JavaScript.
 - Continuation-passing coroutines.
