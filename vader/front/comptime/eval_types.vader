@@ -3,6 +3,7 @@
 module "vader/front/comptime"
 
 import "std/collections"
+import "vader/core/symbol"
 import "vader/support/diagnostics"
 import "vader/front/parser"
 import "vader/front/typecheck"
@@ -35,8 +36,9 @@ ProjectConstants :: struct {
     typed:   TypedProject
     /// The constants already evaluated, by symbol id.
     values:  MutableMap<i32, ComptimeValue> = MutableMap<i32, ComptimeValue> {}
-    /// The constants being evaluated, to stop a constant that reads itself.
-    pending: MutableSet<i32> = MutableSet<i32> {}
+    /// The constants being evaluated, the outermost first: one read again while
+    /// it is evaluated depends on itself.
+    evaluating: Symbol[] = []
 }
 
 /// Result of evaluating one expression. Three states :

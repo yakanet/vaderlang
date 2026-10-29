@@ -14,6 +14,7 @@ import "toolchain/span"
 import "vader/core/symbol"
 import "vader/front/typecheck"
 import "vader/core/types"
+import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
 
 /// Evaluate one of the forms only an evaluation reaching the project reads;
@@ -191,6 +192,22 @@ display_enum :: fn(value: EnumValue, part: AST.Expr, context: ComptimeContext) -
     return result
 }
 
+// The names of the constants from the one `symbol` names up to the last being
+// evaluated, then `symbol` again ; null when `symbol` is not being evaluated.
+cycle_closed_by :: fn(evaluating: Symbol[], symbol: Symbol) -> string[] | null {
+    names: string[]: []
+    for s in evaluating {
+        if names.len() > 0 || s.id == symbol.id {
+            names.push(s.name)
+        }
+    }
+    if names.len() == 0 {
+        return null
+    }
+    names.push(symbol.name)
+    return names
+}
+
 /// A module-level constant of the project, evaluated in its own module on its
 /// first read and kept for the next ones; null when `symbol` is no such constant
 /// or the context reaches no project.
@@ -210,11 +227,13 @@ evaluate_project_const :: fn(
     }
     owner_context :: declaring_context(symbol.module, context) ?? return null
     declaration :: owner_context.typed.const_decls[symbol.id] ?? return null
-    if !project.pending.add(symbol.id) {
-        return vm_required(span, "constant that reads itself")
+    cycle :: cycle_closed_by(project.evaluating, symbol)
+    if cycle != null {
+        return fail(comptime_error(.DependencyCycle, declaration.span, display_cycle(cycle)))
     }
+    project.evaluating.push(symbol)
     result :: evaluate_expr(declaration.value, owner_context)
-    project.pending.remove(symbol.id)
+    project.evaluating.remove_last()
     if result.value != null {
         project.values[symbol.id] = result.value
     }

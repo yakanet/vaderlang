@@ -180,6 +180,7 @@ build_vm_required :: fn(decl: AST.ConstDecl, symbol: Symbol, typed: TypedProgram
                 if decl_type != null && callee is DirectFn {
                     return VmRequiredDecl {
                         .symbol_id      = symbol.id,
+                        .name           = decl.name,
                         .module_id      = module_id,
                         .callee_decl_id = callee.decl.id,
                         .decl_type      = decl_type,

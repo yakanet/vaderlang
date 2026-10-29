@@ -1,0 +1,8 @@
+// C4009: a `@comptime` constant whose value calls a function that reads the
+// constant depends on itself, though its own value never names it.
+module "snippet"
+
+@comptime
+export A: i32: next()
+
+next :: fn() -> i32 = A + 1

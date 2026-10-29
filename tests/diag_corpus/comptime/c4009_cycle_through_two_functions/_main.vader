@@ -1,0 +1,13 @@
+// C4009: two `@comptime` constants whose values call functions that read the
+// other constant form a cycle, reported once with its path.
+module "snippet"
+
+@comptime
+export A: i32: first()
+
+@comptime
+export B: i32: second()
+
+first :: fn() -> i32 = B + 1
+
+second :: fn() -> i32 = A + 1

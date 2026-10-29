@@ -111,7 +111,7 @@ move_register :: fn(m: RegMachine, to: i64, from: i64) -> void {
 reg_run :: fn(
     state: VmState, code: RegModule, entry_index: i32, host_argv: string[], capture: Value[] | null,
     is_comptime: bool, debug: DebugController | null,
-) -> VmResult {
+) -> VmResult | StackOverflow {
     entry_function :: state.bc.functions[entry_index]
     args :: build_main_args(entry_function, host_argv, state.string_array_type_id)
     if args is Trap {
@@ -141,10 +141,26 @@ reg_run :: fn(
     }
     outcome :: reg_call(state, code, m, entry_index, 0, 0, 0, is_comptime)
     if outcome is Trap {
+        if is_overflow_trap_message(outcome.message) {
+            // Read before `unwind`, whose deferred blocks run over these frames.
+            frames :: frame_names(m)
+            unwind(state, code, m, is_comptime)
+            return StackOverflow { .trap = outcome, .frames = frames }
+        }
         unwind(state, code, m, is_comptime)
         return outcome
     }
     return finish_run(m, bc.bc_result_arity(entry_function.signature) == 1, capture)
+}
+
+// The functions of the frames `m` records, outermost first: its call stack when
+// a call has just overflowed it, every record then being a live frame.
+frame_names :: fn(m: RegMachine) -> string[] {
+    names: string[]: [] * m.frame_code.len()
+    for f in m.frame_code {
+        names.push(f.name)
+    }
+    return names
 }
 
 // Run function `entry`, its arguments in the registers from `window`, as the frame

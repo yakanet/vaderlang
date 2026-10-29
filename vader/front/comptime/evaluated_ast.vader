@@ -26,6 +26,8 @@ import "toolchain/span"
 export VmRequiredDecl :: struct {
     /// Symbol id of the comptime const, where the bridged value is injected.
     symbol_id:   i32
+    /// The const's name, as the path of a C4009 prints it.
+    name:        string
     /// Canonical module path owning the const (keys `EvaluatedProject.modules`
     /// / `TypedProject.modules`). Used to mangle the callee + locate the program.
     module_id:   string

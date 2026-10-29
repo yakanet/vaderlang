@@ -494,8 +494,13 @@ export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
 /// @param mangled  the target fn's mangled name. Must take no arguments.
 /// @return         `ValueOk { value }` carrying the return value, or `Trap`
 ///                 (no such fn, or a VM-level error during the run).
-export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult =
-    run_for_value(state, mangled, false)
+export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
+    outcome :: run_for_value(state, mangled, false)
+    if outcome is StackOverflow {
+        return outcome.trap
+    }
+    return outcome
+}
 
 /// Evaluate a `@comptime` value: `exec_fn_value` under the build's rules. A run
 /// past `COMPTIME_STEP_BUDGET` steps traps instead of hanging the build, and so
@@ -504,25 +509,32 @@ export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult =
 ///
 /// @param state    the prepared VM state.
 /// @param mangled  the fn computing the value. Must take no arguments.
-/// @return         `ValueOk { value }` carrying the value, or `Trap` (no such
-///                 fn, the budget, a refused host, a global slot, or a
-///                 VM-level error).
-export exec_comptime_value :: fn(state: VmState, mangled: string) -> ValueResult =
+/// @return         `ValueOk { value }` carrying the value, `StackOverflow` for
+///                 a call past `MAX_FRAME_DEPTH`, or `Trap` (no such fn, the
+///                 budget, a refused host, a global slot, or a VM-level error).
+export exec_comptime_value :: fn(state: VmState, mangled: string) -> ValueResult | StackOverflow =
     run_for_value(state, mangled, true)
+
+/// A run stopped by a call past `MAX_FRAME_DEPTH`.
+export StackOverflow :: struct {
+    trap: Trap
+    /// The functions on the call stack, outermost first.
+    frames: string[]
+}
 
 // Run the no-arg fn named `mangled`, publishing its return value into a 1-cell
 // capture box threaded through `exec_entry`. The box is a live local across the
 // run, so it (and the captured value once written) stays a GC root through any
 // collection inside the loop.
-run_for_value :: fn(state: VmState, mangled: string, is_comptime: bool) -> ValueResult {
+run_for_value :: fn(state: VmState, mangled: string, is_comptime: bool) -> ValueResult | StackOverflow {
     idx :: entry_named(state, mangled)
     if idx is Trap {
         return idx
     }
     no_args: string[]: []
     capture: Value[]: [zero_value()]
-    outcome :: exec_entry(state, idx, no_args, capture, is_comptime, null)
-    if outcome is Trap {
+    outcome :: run_entry(state, idx, no_args, capture, is_comptime, null)
+    if outcome is Trap | StackOverflow {
         return outcome
     }
     return ValueOk { .value = capture[0] }
@@ -612,6 +624,18 @@ export exec_entry :: fn(
     state: VmState, entry_index: i32, host_argv: string[], capture: Value[] | null, is_comptime: bool,
     debug: DebugController | null,
 ) -> VmResult {
+    outcome :: run_entry(state, entry_index, host_argv, capture, is_comptime, debug)
+    if outcome is StackOverflow {
+        return outcome.trap
+    }
+    return outcome
+}
+
+// `exec_entry`, a call past `MAX_FRAME_DEPTH` keeping the call stack.
+run_entry :: fn(
+    state: VmState, entry_index: i32, host_argv: string[], capture: Value[] | null, is_comptime: bool,
+    debug: DebugController | null,
+) -> VmResult | StackOverflow {
     if entry_index < 0 || i64(entry_index) >= state.bc.functions.len() {
         return Trap { .message = "no entry function (index=${entry_index})" }
     }
@@ -877,8 +901,13 @@ budget_trap :: fn(budget: i64) = Trap {
 
 // The trap of a call past `MAX_FRAME_DEPTH`.
 overflow_trap :: fn(name: string) = Trap {
-    .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${name}'",
+    .message = "${OVERFLOW_MARKER} (depth > ${MAX_FRAME_DEPTH}) at function '${name}'",
 }
+
+OVERFLOW_MARKER :: "call stack overflow"
+
+// Whether `message` is the one of `overflow_trap`.
+is_overflow_trap_message :: fn(message: string) -> bool = message.starts_with(OVERFLOW_MARKER)
 
 // The import `dispatch_import` serves a host-provided impl on a primitive through
 // (`string implements Hash`): it has no vtable row. Only the name, the arity and

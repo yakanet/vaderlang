@@ -8,6 +8,7 @@
 module "vader/front/comptime"
 
 import "std/collections"
+import "std/string"
 import "vader/support/diagnostics"
 import "vader/front/resolver"
 import "vader/front/typecheck"
@@ -186,13 +187,14 @@ cycle_names :: fn(start: i64, depth: i64, path: i64[], id: i64, nodes: Nodes) ->
     }
     rec_tail :: nodes.by_id[id]
     if !(rec_tail is null) { parts.push(rec_tail.decl.name) }
-    sb := ""
-    for i in 0..<parts.len() {
-        if i > 0 { sb = "${sb} → " }
-        sb = "${sb}${parts[i]}"
-    }
-    return sb
+    return display_cycle(parts)
 }
+
+/// The constants of a dependency cycle as C4009 names them.
+///
+/// @param names  the constants in the order each reads the next, the first one
+///               again at the end.
+export display_cycle :: fn(names: string[]) -> string = names.join(" → ")
 
 // ---- expression walker ---------------------------------------------------
 

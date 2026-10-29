@@ -136,11 +136,17 @@ evaluate_layer :: fn(
         ready = waiting
         waiting = []
     }
+    by_callee :: MutableMap<string, Ct.VmRequiredDecl> {}
+    for s in staged {
+        by_callee[s.callee] = s.decl
+    }
     failed: string[]: []
     for s in ready {
-        if !bake_decl(state, s.callee, s.decl, home, evaluated, diags) {
-            failed.push(s.callee)
+        // A const of a cycle already reported is not run again.
+        if s.callee in failed {
+            continue
         }
+        failed.push_all(bake_decl(state, s.callee, s.decl, home, evaluated, by_callee, diags))
     }
     // A decl that reads one whose run failed is dropped, its error already
     // reported.
@@ -154,15 +160,18 @@ evaluate_layer :: fn(
 }
 
 // Run the callee `mangle` of `vr` in the folder of the file declaring it, and
-// inject the value; false after reporting why there is none.
+// inject the value. Returns the callees left without a value, after reporting
+// why: none on success, `mangle` and those of the cycle the run was caught in.
+// `by_callee` holds the decls of the layer, by the mangle of their callee.
 bake_decl :: fn(
     state: Vm.VmState,
     mangle: string,
     vr: Ct.VmRequiredDecl,
     home: string,
     evaluated: Ct.EvaluatedProject,
+    by_callee: MutableMap<string, Ct.VmRequiredDecl>,
     diags: Diagnostic[],
-) -> bool {
+) -> string[] {
     // A `@comptime` value is evaluated in the folder of the file declaring it,
     // so a relative path it reads names a file beside that file, wherever the
     // compiler was started.
@@ -170,6 +179,15 @@ bake_decl :: fn(
     outcome :: Vm.exec_comptime_value(state, mangle)
     if switched {
         leave_source_folder(home)
+    }
+    if outcome is Vm.StackOverflow {
+        cycle :: reentered_callees(outcome.frames, by_callee)
+        if cycle != null {
+            report_cycle(cycle, by_callee, diags)
+            return [mangle] + cycle
+        }
+        diags.push(comptime_error(.EvaluationPanic, vr.span, outcome.trap.message))
+        return [mangle]
     }
     if outcome is Vm.Trap {
         // A host a comptime evaluation may not call is refused by
@@ -182,25 +200,59 @@ bake_decl :: fn(
         } else {
             diags.push(comptime_error(.EvaluationPanic, vr.span, outcome.message))
         }
-        return false
+        return [mangle]
     }
-    if outcome is Vm.ValueOk {
-        program :: evaluated.typed.modules[vr.module_id]
-        if program == null {
-            diags.push(
-                comptime_error(.CannotEvaluate, vr.span, "the module declaring it is not typed"),
-            )
-            return false
-        }
-        ctx :: BakeScope { .layouts = state.bc.types, .program = program }
-        bridged :: value_to_comptime(ctx, outcome.value, vr.decl_type, vr.span)
-        if bridged is Diagnostic {
-            diags.push(bridged)
-            return false
-        }
-        inject(evaluated, vr, bridged)
+    program :: evaluated.typed.modules[vr.module_id]
+    if program == null {
+        diags.push(comptime_error(.CannotEvaluate, vr.span, "the module declaring it is not typed"))
+        return [mangle]
     }
-    return true
+    ctx :: BakeScope { .layouts = state.bc.types, .program = program }
+    bridged :: value_to_comptime(ctx, outcome.value, vr.decl_type, vr.span)
+    if bridged is Diagnostic {
+        diags.push(bridged)
+        return [mangle]
+    }
+    inject(evaluated, vr, bridged)
+    return []
+}
+
+// The callees of pending decls a run that overflowed its call stack `frames` was
+// caught in: a read of a pending decl runs its callee, so one that runs again
+// below itself is a decl that depends on itself. From the outermost frame running
+// such a callee to the next frame running it, the callees of `by_callee` in
+// between ; null when no such callee runs twice.
+reentered_callees :: fn(
+    frames: string[],
+    by_callee: MutableMap<string, Ct.VmRequiredDecl>,
+) -> string[] | null {
+    first_frame :: MutableMap<string, i64> {}
+    for k in 0..<frames.len() {
+        if frames[k] !in by_callee {
+            continue
+        }
+        start :: first_frame[frames[k]]
+        if start != null {
+            return frames[start..=k].filter((f) -> f in by_callee).collect()
+        }
+        first_frame[frames[k]] = k
+    }
+    return null
+}
+
+// Report the dependency cycle the callees `cycle` form, at the decl of the first.
+report_cycle :: fn(
+    cycle: string[],
+    by_callee: MutableMap<string, Ct.VmRequiredDecl>,
+    diags: Diagnostic[],
+) -> void {
+    head :: by_callee[cycle[0]] ?? return
+    names: string[]: []
+    for callee in cycle {
+        decl :: by_callee[callee] ?? continue
+        names.push(decl.name)
+    }
+    diags.push(comptime_error(.DependencyCycle, head.span, Ct.display_cycle(names)))
 }
 
 // Make the folder of `file` the working directory, and say whether it changed.

@@ -93,6 +93,12 @@ right operand only when the left one leaves the result open, and what it would
 evaluate otherwise than the run time goes to the VM (a generic call, an operator a
 type implements, the `Display` of an array or a struct).
 
+A constant whose value reads itself through a function it calls recurses on the
+VM until its call stack overflows: the driver finds, in the stack the VM returns
+with the overflow, the function of a pending constant running again below itself,
+and reports the cycle
+([ADR 0118](adr/0118-a-comptime-cycle-through-a-function-is-found-at-the-overflow.md)).
+
 The parser wraps every `@comptime` value other than a call without arguments in a
 function without parameters, which the constant calls: the comptime VM runs such
 calls.

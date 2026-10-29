@@ -1,0 +1,12 @@
+// C4009: a `CLibrary` constant whose value calls a function that reads the
+// constant depends on itself.
+module "snippet"
+
+import "std/ffi"
+
+LIB: CLibrary: CLibrary { .name = library_name() }
+
+library_name :: fn() -> string = LIB.header
+
+@extern(LIB, "abs")
+export c_abs :: fn(x: i32) -> i32

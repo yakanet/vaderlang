@@ -2287,7 +2287,7 @@ At module level, only the immutable forms declare; module state lives in a `@sin
 
 The top level is not ordered. A constant or a function may read a module constant declared below it: `INNERS :: [ONE]` above `ONE :: Inner { .n = 7 }` is an `Inner[]`.
 
-- A constant whose value reads itself, directly or through others (`A :: B + 1`, `B :: A + 1`), is an error. A `@comptime` constant in the cycle reports it when evaluated.
+- A constant whose value reads itself, directly or through others (`A :: B + 1`, `B :: A + 1`), is an error. A `@comptime` constant in the cycle reports it when evaluated, also when the read sits in a function its value calls.
 - A read inside a lambda waits until the lambda runs, so an annotated constant may name itself there; an unannotated one may not.
 
 ```vader
