@@ -50,7 +50,11 @@ reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx) -> void {
     // Always index by mangle too: impl members & other synth fns set
     // `origin.symbol = null`, so without the mangle index the body-emit
     // pass can't find the reserved slot and the fn ships with an empty
-    // body.
+    // body. A mangle names one fn: a second slot under it would be lost to
+    // every lookup by mangle, and defined twice in C.
+    if cfg_fn.mangled != "" && ctx.function_index_by_mangle[cfg_fn.mangled] != null {
+        panic("emit/bytecode/emit: two functions are mangled `${cfg_fn.mangled}`")
+    }
     ctx.function_index_by_mangle[cfg_fn.mangled] = function_index
 }
 
