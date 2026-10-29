@@ -44,7 +44,7 @@ export ValType :: enum(u8) {
 /// Inverse of `parse_val_type`.
 ///
 /// @param v  the value class to render.
-/// @return   the source-level spelling (`"i32"`, `"string"`, `"any"`, …).
+/// @return   the source-level spelling (`"i32"`, `"string"`, `"any"`, ...).
 export val_type_name :: fn(v: ValType) -> string = match v {
     .I8 -> "i8"
     .I16 -> "i16"
@@ -69,80 +69,47 @@ export val_type_name :: fn(v: ValType) -> string = match v {
 /// Parse a source-level type name back into a `ValType`. Returns `null`
 /// when the spelling isn't a recognised value-type name (caller decides
 /// whether that's a hard error or a bypass for a user-defined struct).
-/// Or-patterns aren't supported yet, so the switch is spelled out via
-/// an if-cascade rather than a per-literal `match` arm.
 ///
-/// @param name  the source-level spelling (`"i32"`, `"string"`, …).
+/// @param name  the source-level spelling (`"i32"`, `"string"`, ...).
 /// @return      the matching `ValType` variant, or `null` when the
 ///              name isn't a recognised primitive / reference shape.
-export parse_val_type :: fn(name: string) -> ValType | null {
-    if name == "i8" { return .I8 }
-    if name == "i16" { return .I16 }
-    if name == "i32" { return .I32 }
-    if name == "i64" { return .I64 }
-    if name == "u8" { return .U8 }
-    if name == "u16" { return .U16 }
-    if name == "u32" { return .U32 }
-    if name == "u64" { return .U64 }
-    if name == "f32" { return .F32 }
-    if name == "f64" { return .F64 }
-    if name == "bool" { return .Bool }
-    if name == "char" { return .Char }
-    if name == "string" { return .String }
-    if name == "null" { return .Null }
-    if name == "void" { return .Void }
-    if name == "pointer" { return .Pointer }
-    if name == "ref" { return .Ref }
-    if name == "any" { return .Any }
-    return null
+export parse_val_type :: fn(name: string) -> ValType | null = match name {
+    "i8"      -> .I8
+    "i16"     -> .I16
+    "i32"     -> .I32
+    "i64"     -> .I64
+    "u8"      -> .U8
+    "u16"     -> .U16
+    "u32"     -> .U32
+    "u64"     -> .U64
+    "f32"     -> .F32
+    "f64"     -> .F64
+    "bool"    -> .Bool
+    "char"    -> .Char
+    "string"  -> .String
+    "null"    -> .Null
+    "void"    -> .Void
+    "pointer" -> .Pointer
+    "ref"     -> .Ref
+    "any"     -> .Any
+    _         -> null
 }
 
 /// True when the val-type is an integer (any width, signed or unsigned).
 /// @param v  the value class to classify.
 /// @return   `true` for `i8`..`i64` and `u8`..`u64`.
 export is_integer_val :: fn(v: ValType) -> bool = match v {
-    .I8 -> true
-    .I16 -> true
-    .I32 -> true
-    .I64 -> true
-    .U8 -> true
-    .U16 -> true
-    .U32 -> true
-    .U64 -> true
-    .F32 -> false
-    .F64 -> false
-    .Bool -> false
-    .Char -> false
-    .String -> false
-    .Null -> false
-    .Void -> false
-    .Pointer -> false
-    .Ref -> false
-    .Any -> false
+    .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64 -> true
+    .F32 | .F64 | .Bool | .Char | .String | .Null | .Void | .Pointer | .Ref | .Any -> false
 }
 
 /// True when the val-type is an IEEE 754 float.
 /// @param v  the value class to classify.
 /// @return   `true` for `f32` / `f64`.
 export is_float_val :: fn(v: ValType) -> bool = match v {
-    .F32 -> true
-    .F64 -> true
-    .I8 -> false
-    .I16 -> false
-    .I32 -> false
-    .I64 -> false
-    .U8 -> false
-    .U16 -> false
-    .U32 -> false
-    .U64 -> false
-    .Bool -> false
-    .Char -> false
-    .String -> false
-    .Null -> false
-    .Void -> false
-    .Pointer -> false
-    .Ref -> false
-    .Any -> false
+    .F32 | .F64 -> true
+    .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64
+        | .Bool | .Char | .String | .Null | .Void | .Pointer | .Ref | .Any -> false
 }
 
 /// True when the val-type is a 64-bit-wide integer slot. Used by the
@@ -152,58 +119,27 @@ export is_float_val :: fn(v: ValType) -> bool = match v {
 /// shape returns false.
 ///
 /// @param v  the value class to classify.
-/// @return   `true` for the four 64-bit integer widths, false otherwise.
+/// @return   `true` for `i64` and `u64`, false otherwise.
 export is_64_bit_int_val :: fn(v: ValType) -> bool = match v {
-    .I64   -> true
-    .U64   -> true
-    .I8    -> false
-    .I16   -> false
-    .I32   -> false
-    .U8    -> false
-    .U16   -> false
-    .U32   -> false
-    .F32   -> false
-    .F64   -> false
-    .Bool  -> false
-    .Char  -> false
-    .String -> false
-    .Null  -> false
-    .Void  -> false
-    .Pointer -> false
-    .Ref   -> false
-    .Any   -> false
+    .I64 | .U64 -> true
+    .I8 | .I16 | .I32 | .U8 | .U16 | .U32 | .F32 | .F64
+        | .Bool | .Char | .String | .Null | .Void | .Pointer | .Ref | .Any -> false
 }
 
-/// True when the val-type is one of the 64-bit-wide unsigned integer
-/// widths. Consumed by `midir/select/op_select.vader` to route `div`
-/// / `mod` / comparison ops onto the `U64X` op family instead of the
-/// sign-aware `I64X` family: sign-aware ops would mis-handle u64
-/// values with the high bit set (e.g. SHA-256 round constants).
+/// True when the val-type is `u64`. Consumed by `midir/select/op_select.vader`
+/// to route `div` / `mod` / comparison ops onto the `U64X` op family instead
+/// of the sign-aware `I64X` family: sign-aware ops would mis-handle u64 values
+/// with the high bit set (e.g. SHA-256 round constants).
 ///
 /// @param v  the value class to classify.
 /// @return   `true` for `u64`, `false` otherwise.
 export is_u64_class :: fn(v: ValType) -> bool = match v {
-    .U64   -> true
-    .I8 -> false
-    .I16 -> false
-    .I32 -> false
-    .I64 -> false
-    .U8 -> false
-    .U16 -> false
-    .U32 -> false
-    .F32 -> false
-    .F64 -> false
-    .Bool -> false
-    .Char -> false
-    .String -> false
-    .Null -> false
-    .Void -> false
-    .Pointer -> false
-    .Ref -> false
-    .Any -> false
+    .U64 -> true
+    .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .F32 | .F64
+        | .Bool | .Char | .String | .Null | .Void | .Pointer | .Ref | .Any -> false
 }
 
-/// True when the val-type is one of the narrow (≤ 32-bit) unsigned
+/// True when the val-type is one of the narrow (<= 32-bit) unsigned
 /// integer widths. Companion to `is_u64_class` ; together they cover
 /// the entire unsigned int spectrum so the bytecode emit routes to
 /// the right `U32X` / `U64X` op family.
@@ -211,24 +147,9 @@ export is_u64_class :: fn(v: ValType) -> bool = match v {
 /// @param v  the value class to classify.
 /// @return   `true` for `u8` / `u16` / `u32`, `false` otherwise.
 export is_u32_class :: fn(v: ValType) -> bool = match v {
-    .U8  -> true
-    .U16 -> true
-    .U32 -> true
-    .I8 -> false
-    .I16 -> false
-    .I32 -> false
-    .I64 -> false
-    .U64 -> false
-    .F32 -> false
-    .F64 -> false
-    .Bool -> false
-    .Char -> false
-    .String -> false
-    .Null -> false
-    .Void -> false
-    .Pointer -> false
-    .Ref -> false
-    .Any -> false
+    .U8 | .U16 | .U32 -> true
+    .I8 | .I16 | .I32 | .I64 | .U64 | .F32 | .F64
+        | .Bool | .Char | .String | .Null | .Void | .Pointer | .Ref | .Any -> false
 }
 
 /// True when the val-type is any unsigned integer width (narrow or
@@ -253,23 +174,8 @@ export is_narrow_valtype :: fn(v: ValType) -> bool = v == .U8 || v == .I8 || v =
 /// @return   `true` for `ValType.String`, `false` otherwise.
 export is_string_val :: fn(v: ValType) -> bool = match v {
     .String -> true
-    .I8 -> false
-    .I16 -> false
-    .I32 -> false
-    .I64 -> false
-    .U8 -> false
-    .U16 -> false
-    .U32 -> false
-    .U64 -> false
-    .F32 -> false
-    .F64 -> false
-    .Bool -> false
-    .Char -> false
-    .Null -> false
-    .Void -> false
-    .Pointer -> false
-    .Ref -> false
-    .Any -> false
+    .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64 | .F32 | .F64
+        | .Bool | .Char | .Null | .Void | .Pointer | .Ref | .Any -> false
 }
 
 // ---- Native-runtime element-storage discriminator -------------------------
@@ -278,7 +184,7 @@ export is_string_val :: fn(v: ValType) -> bool = match v {
 /// bytecode emitter computes one of these per array type and threads it
 /// to the runtime so primitive arrays store raw values instead of boxed
 /// slots. `Boxed` is the catch-all for non-primitive elements (string,
-/// struct, array, ref, fn, union…) which live in `vader_box_t` slots.
+/// struct, array, ref, fn, union, ...) which live in `vader_box_t` slots.
 export ArrayKind :: enum(u8) {
     Boxed,
     U8, U16, U32, U64,
@@ -336,10 +242,10 @@ export array_kind_element_size :: fn(k: ArrayKind) -> i32 = match k {
 }
 
 /// Canonical `.virt` name for a data-pool `ArrayKind`. Inverse of
-/// `array_kind_from_name`. The single source for the `data N <kind> …` decl
+/// `array_kind_from_name`. The single source for the `data N <kind> ...` decl
 /// emitted by `emit/virt/dump.vader` and parsed by `front/virt/virt_reader_bc.vader`.
 /// @param k  the storage discriminator (never `Boxed` in a data pool).
-/// @return   the lowercase primitive name (`"u8"` … `"f64"`, `"char"`, `"bool"`).
+/// @return   the lowercase primitive name (`"u8"` to `"f64"`, `"char"`, `"bool"`).
 export array_kind_name :: fn(k: ArrayKind) -> string = match k {
     .U8   -> "u8"
     .I8   -> "i8"
@@ -359,7 +265,7 @@ export array_kind_name :: fn(k: ArrayKind) -> string = match k {
 
 /// `ArrayKind` for a primitive element type name. Inverse of `array_kind_name`.
 /// Used by the data-pool producer (`midir`) and the `.virt`
-/// reader. Non-primitive / unknown names → `Boxed` (callers only feed
+/// reader. Non-primitive / unknown names give `Boxed` (callers only feed
 /// primitive element names).
 /// @param name  the element type name.
 /// @return      the matching storage discriminator.
@@ -421,7 +327,7 @@ export BcAggregateData :: struct {
 /// A single recursive baked value: the element of a `BcAggregateData` or a field
 /// of a `BcValStruct` / element of a `BcValArray`. Type identity is carried by KEY
 /// (struct `symbol_id`, element type name) and resolved to a type-index at each
-/// backend from `module.types`: the type table doesn't exist at the lower→CFG
+/// backend from `module.types`: the type table doesn't exist at the lower->CFG
 /// boundary where these are built.
 export BcDataValue :: BcValPrim | BcValStr | BcValStruct | BcValArray
 
