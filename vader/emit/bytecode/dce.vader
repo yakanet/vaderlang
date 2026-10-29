@@ -163,35 +163,41 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // but must survive to be run by name).
     for i in 0..<n {
         f :: ctx.functions[i]
-        if f.is_main { reachable[i32(i)] = true }
-        if f.name in keep_mangles { reachable[i32(i)] = true }
+        if f.is_main {
+            reachable[i32(i)] = true
+        }
+        if f.name in keep_mangles {
+            reachable[i32(i)] = true
+        }
     }
-    for e in ctx.exports { reachable[e.fn_index] = true }
-    for vt in vtable_roots { if vt >= 0 && vt < i32(n) { reachable[vt] = true } }
+    for e in ctx.exports {
+        if i64(e.fn_index) in 0..<n {
+            reachable[e.fn_index] = true
+        }
+    }
+    for vt in vtable_roots {
+        if i64(vt) in 0..<n {
+            reachable[vt] = true
+        }
+    }
 
     // Worklist over reachable fns ; pick up callees via call/fn.ref/
     // make_closure. Iterate to fixpoint: a vtable-rooted fn may
     // call other fns.
-    work: i32[] = []
-    for [k, _] in reachable { work.push(k) }
-    for work.len() > 0 {
-        idx :: work[work.len() - 1]
-        // pop
-        new_work: i32[]: []
-        for w in 0..<work.len() - 1 {
-            new_work.push(work[w])
-        }
-        work = new_work
-        if i64(idx) !in 0..<n { continue }
-        fn_ :: ctx.functions[idx]
-        for op in fn_.body {
-            callee: i32 = -1
-            if op is Call { callee = op.function_index }
-            if op is FnRef { callee = op.function_index }
-            if op is FnAddr { callee = op.function_index }
-            if op is MakeClosure { callee = op.function_index }
-            if callee < 0 { continue }
-            if reachable[callee] is bool { continue }
+    work :: reachable.keys()
+    // `work` grows while it is walked, so the bound is read on every turn.
+    cursor: i64 = 0
+    for cursor < work.len() {
+        idx :: work[cursor]
+        cursor += 1
+        for op in ctx.functions[idx].body {
+            if op !is Call | FnRef | FnAddr | MakeClosure {
+                continue
+            }
+            callee :: op.function_index
+            if reachable[callee] is bool {
+                continue
+            }
             reachable[callee] = true
             work.push(callee)
         }
@@ -199,7 +205,9 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
 
     // Nothing to drop: every fn is reached, or there is no root at all (a comptime
     // or library-only emit context, which keeps every body).
-    if reachable.is_empty() || reachable.len() == n { return }
+    if reachable.is_empty() || reachable.len() == n {
+        return
+    }
 
     // Remap : kept fns stay dense from 0 ; a dropped fn maps to -1.
     kept: BcFunction[]: []
