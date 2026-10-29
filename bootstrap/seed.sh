@@ -10,7 +10,7 @@
 # reseed is due only when the seed stops working. See docs/BOOTSTRAP.md.
 #
 # `check` OWNS the viability question; .githooks/pre-push defers to it. `verify.sh`
-# is what answers it (the same gate the CI `fixed-point` job runs) so a seed that
+# is what answers it (the same gate the CI's Linux job runs) so a seed that
 # builds the tree but breaks the fixed point is not viable either.
 #
 # NEITHER answers whether the compiler is CORRECT. `verify.sh` compares stage1 to

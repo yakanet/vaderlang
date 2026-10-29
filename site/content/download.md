@@ -12,7 +12,7 @@ The binary is not signed: `xattr` lifts the quarantine macOS puts on a downloade
 
 ## Linux
 
-For x86-64, with glibc 2.35 or later (Ubuntu 22.04, Debian 12 and later).
+For x86-64, with glibc 2.34 or later (Ubuntu 22.04, Debian 12, RHEL 9 and later).
 
 ```sh
 tar -xzf vader-linux-x64.tar.gz

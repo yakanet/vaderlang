@@ -33,7 +33,9 @@ if [ -z "$CC_ABS" ]; then
   # compiler says nothing about the seed.
   exit 2
 fi
-STAGE0_CFLAGS="${STAGE0_CFLAGS:--O1} -fwrapv"
+# `-std=c11` as for stage1: a compiler that defaults to C23 (GCC 15) would
+# otherwise compile the seed in a dialect nothing tests.
+STAGE0_CFLAGS="${STAGE0_CFLAGS:--O1} -std=c11 -fwrapv"
 runtime="runtime/c/vader_runtime.c"
 
 # Arena sizing is RAM-proportional (runtime/c/vader_runtime.c::vader_gc_init:

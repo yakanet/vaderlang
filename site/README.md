@@ -3,7 +3,7 @@
 The SvelteKit project behind the published site: a home page, a tour of the
 language (`content/learn/`), and its reference, one prerendered page per chapter
 of `SPEC.md`, with a search over their headings. The API references `vader doc` writes are other builds,
-published beside it under `lib/` and `vader/` (`.github/workflows/docs.yml`).
+published beside it under `lib/` and `vader/` (the `site` job of `.github/workflows/build.yml`).
 
 A cross-reference of the specification, `§N` or `§N *Title*`, becomes a link
 to that chapter or to the heading of that title in it, and a link to a file of

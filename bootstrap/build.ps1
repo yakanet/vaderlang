@@ -29,7 +29,7 @@ Set-Location (Split-Path -Parent $PSScriptRoot)
 $ccCmd = Get-Command $CC -ErrorAction SilentlyContinue
 if ($null -eq $ccCmd) { throw "C compiler '$CC' not found on PATH (use -CC ...)" }
 $ccAbs = $ccCmd.Source
-$stage0cflags = @($(if ($env:STAGE0_CFLAGS) { $env:STAGE0_CFLAGS } else { '-O1' }), '-fwrapv')
+$stage0cflags = @($(if ($env:STAGE0_CFLAGS) { $env:STAGE0_CFLAGS } else { '-O1' }), '-std=c11', '-fwrapv')
 $ccJobs = if ($env:CC_JOBS -match '^[1-9][0-9]*$') { [int]$env:CC_JOBS } else { [Environment]::ProcessorCount }
 $runtime = "runtime\c\vader_runtime.c"
 

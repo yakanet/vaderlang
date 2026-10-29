@@ -23,13 +23,12 @@
 #define VADER_H
 
 /* glibc gates POSIX clocks (`clock_gettime`, which emitted code reaches through
- * `@c_header("<time.h>")`) and GNU pthread extensions (`pthread_getattr_np`)
- * behind feature-test macros.
- * Under `-std=c11` ISO mode neither is exposed by default. Define
- * `_GNU_SOURCE` before any system include so the runtime compiles cleanly
- * on Linux ; Darwin / BSD expose these APIs unconditionally so the macro
- * is a no-op there. */
-#if defined(__linux__) && !defined(_GNU_SOURCE)
+ * `@c_header("<time.h>")`) and GNU extensions behind feature-test macros.
+ * Under `-std=c11` ISO mode none is exposed by default. Define `_GNU_SOURCE`
+ * before any system include so emitted code reaches all of them on Linux ;
+ * Darwin / BSD expose these APIs unconditionally so the macro is a no-op there.
+ * The runtime sets `_DEFAULT_SOURCE` first instead (vader_runtime.c). */
+#if defined(__linux__) && !defined(_GNU_SOURCE) && !defined(_DEFAULT_SOURCE)
 #  define _GNU_SOURCE
 #endif
 

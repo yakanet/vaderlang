@@ -1,0 +1,93 @@
+name: Bundle the toolchain
+description: >-
+  Build the compiler from the C seed (checking the fixed point on Linux),
+  assemble the self-contained bundle, run hello world with it away from the
+  checkout, and upload its archive.
+
+inputs:
+  platform:
+    description: 'The bundle to build: darwin-arm64, linux-x64 or windows-x64'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # The fixed point runs on every push (ADR 0006), on the stages this build
+    # leaves: `verify.sh` passes `--dist` on to `build.sh`.
+    - name: Build the bundle and check the fixed point
+      if: runner.os == 'Linux'
+      shell: bash
+      run: bash bootstrap/verify.sh --dist
+    - name: Build the bundle
+      if: runner.os == 'macOS'
+      shell: bash
+      run: bash bootstrap/build.sh --dist
+    # The image's LLVM, aimed at the image's MinGW sysroot, in place of MinGW's
+    # own gcc (ADR 0021). Exports `CC` to the steps below.
+    - name: Set up clang targeting MinGW
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: pwsh -NoProfile -File tools/ci/mingw-clang.ps1
+    - name: Build the bundle
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: pwsh bootstrap/build.ps1 -Dist
+
+    # A Linux binary needs the newest glibc symbol version it calls, whatever
+    # the glibc it was linked on: 2.34 keeps Ubuntu 22.04, Debian 12 and RHEL 9.
+    - name: Check the glibc the binary needs
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        floor=GLIBC_2.34
+        needed=$(objdump -T build/vader | grep -o 'GLIBC_[0-9.]*' | sort -uV | tail -1)
+        echo "build/vader needs $needed"
+        if [ "$(printf '%s\n' "$needed" "$floor" | sort -V | tail -1)" != "$floor" ]; then
+          objdump -T build/vader | grep -wF "$needed" >&2
+          exit 1
+        fi
+
+    # Away from the checkout, the bundle must find everything beside itself.
+    - name: Run and build hello world with the bundle
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        vader="$PWD/dist/vader-${{ inputs.platform }}/vader"
+        "$vader" --version
+        mkdir "$RUNNER_TEMP/hello" && cp examples/hello/hello.vader "$RUNNER_TEMP/hello/"
+        cd "$RUNNER_TEMP/hello"
+        "$vader" run hello.vader
+        "$vader" build --out=hello hello.vader && ./hello
+    - name: Run and build hello world with the bundle
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $vader = Join-Path $PWD 'dist\vader-${{ inputs.platform }}\vader.exe'
+        & $vader --version
+        $hello = Join-Path $env:RUNNER_TEMP 'hello'
+        New-Item -ItemType Directory $hello | Out-Null
+        Copy-Item examples\hello\hello.vader $hello
+        Set-Location $hello
+        & $vader run hello.vader
+        if ($LASTEXITCODE -ne 0) { throw 'vader run failed' }
+        & $vader build --out=hello.exe hello.vader
+        if ($LASTEXITCODE -ne 0) { throw 'vader build failed' }
+        .\hello.exe
+
+    # The archive names carry no version, so `releases/latest/download/<name>`
+    # always reaches the newest one; the site's download page links there.
+    - name: Archive
+      if: runner.os != 'Windows'
+      shell: bash
+      run: tar -czf vader-${{ inputs.platform }}.tar.gz -C dist vader-${{ inputs.platform }}
+    - name: Archive
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: Compress-Archive -Path dist\vader-${{ inputs.platform }} -DestinationPath vader-${{ inputs.platform }}.zip
+    - uses: actions/upload-artifact@v7
+      with:
+        name: vader-${{ inputs.platform }}
+        path: vader-${{ inputs.platform }}.*
+        if-no-files-found: error
+        retention-days: 7
+        compression-level: 0

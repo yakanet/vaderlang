@@ -355,7 +355,7 @@ test("doc --search finds what a file gained since the last search", async () => 
 }, MEDIUM_BUILD);
 
 // `vader doc -o` and `--open`: building the site itself needs Node.js and its
-// packages, so the workflow `docs` of the CI runs it; these pin what is refused
+// packages, so the `site` job of the CI runs it; these pin what is refused
 // before.
 
 test("doc -o refuses a folder no site wrote, before it writes any data", async () => {

@@ -96,7 +96,8 @@ next to itself, so the bundle runs from any directory.
 
 ## The fixed point
 
-`bootstrap/verify.sh` runs `build.sh`, then checks:
+`bootstrap/verify.sh` runs `build.sh` (its arguments go there: `--dist`
+also assembles the bundle), then checks:
 
 - **(a)** stage2 compiles `main.vader` again, in release, and the C must be the
   C stage1 wrote for it, unit for unit (`diff -r`). stage1 and stage2 differ only
@@ -120,11 +121,12 @@ A fixed point is not a proof of correctness: a compiler that miscompiles itself
 the same way at every stage passes it. The test suite is the check of
 correctness.
 
-The CI runs `verify.sh` on every push to `main` and every pull request, in the
-`fixed-point` job ([ADR 0006](adr/0006-the-fixed-point-gate-runs-on-every-push.md)). That job
-installs nothing besides the checkout, so it is also the check that a clone with
-only a C compiler still builds. The test jobs bootstrap from the seed too before
-running the suite.
+The CI runs `verify.sh --dist` on every push to `main` and every pull request:
+it is the build step of its Linux job
+([ADR 0006](adr/0006-the-fixed-point-gate-runs-on-every-push.md)). That build
+runs before Bun or any package is set up, so it is also the check that a clone
+with only a C compiler still builds. Each target builds the compiler once and
+tests that build ([ADR 0115](adr/0115-the-ci-builds-each-target-once.md)).
 
 ## When to regenerate the seed
 

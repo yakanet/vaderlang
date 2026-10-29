@@ -1,34 +1,41 @@
 name: CI
 
+# One pass per target: the compiler is built once from the C seed, bundled,
+# then tested in the same job (ADR 0115). The site is built from the Linux
+# bundle once every target is green, and published from `main`. Pages takes
+# "GitHub Actions" as its source in the repository's settings.
+
 on:
-  # `gate` exists to MEASURE, not to configure. A driven build costs 21 s alone on
-  # a Windows runner and 139-272 s inside the suite ; how many run at once is the
-  # last untested cause (TODO.md, "CI review"). Empty on every push and PR, which
-  # leaves the default of 4, see `tests/hook_driver.test.ts::gateSize`.
   workflow_dispatch:
     inputs:
+      # Measurement only (TODO.md, "CI review"): empty leaves the default of 4,
+      # see `tests/hook_driver.test.ts::gateSize`.
       gate:
         description: 'VADER_TEST_GATE, concurrent driver builds in hook_driver (empty = 4)'
         required: false
         default: ''
+      # A published release changes what the download page names, nothing else.
+      site_only:
+        description: 'Only build and publish the site'
+        type: boolean
+        default: false
   push:
     branches: [main]
-    tags: ['v*']
   pull_request:
 
-# Cancel superseded runs on the same ref, except for tags, where the build
-# usually feeds a release and shouldn't be aborted by a follow-up push.
+# Every push to `main` gets a run of its own, so each commit gets its fixed
+# point and its suites; a new push to a pull request cancels the previous run.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # Type-check the only first-party TypeScript left in the repo root: the Bun
-  # test runner and the benchmark programs (tests/ + bench/). The compiler
-  # itself is Vader now (§2.8); this job guards the surviving harness. It is the
-  # one place that needs `bun install`: the test jobs run zero-dep.
+  # test runner and the benchmark programs (tests/ + bench/). It is the one
+  # place that needs `bun install`: the test steps run zero-dep.
   typecheck:
     name: Typecheck harness
+    if: ${{ !inputs.site_only }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -44,160 +51,125 @@ jobs:
       - name: Typecheck (tsc --noEmit over tests/ + bench/)
         run: bun run typecheck
 
-  # Should test for posix-system. In a future we will separate Linux build & MacOS build
-  test-posix:
-    name: Test (Posix)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.13
-      - name: Build Vader CLI from the C seed
-        run: bash bootstrap/build.sh
-      - name: Install X11's development package (raylib links -lX11)
-        run: sudo apt-get update && sudo apt-get install -y libx11-dev
-      - name: Test
-        env:
-          VADER_TEST_GATE: ${{ inputs.gate }}
-        run: bun run test --only-failures
-
-  # Real Windows build + test : a regression guard for the Windows-specific
-  # surface (CRLF stdio, path separators, the runtime).
-  test-windows:
-    name: Test (Windows)
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.13
-      # The image's LLVM, aimed at the image's MinGW sysroot, in place of MinGW's
-      # own gcc (ADR 0021). Exports `CC` to the steps below.
-      - name: Set up clang targeting MinGW
-        shell: pwsh
-        run: pwsh -NoProfile -File tools/ci/mingw-clang.ps1
-      - name: Build Vader CLI from the C seed (Windows)
-        shell: pwsh
-        run: pwsh bootstrap/build.ps1
-      - name: Test
-        env:
-          VADER_TEST_GATE: ${{ inputs.gate }}
-        run: bun run test --only-failures
-
-  # Fixed-point check: build the toolchain from the committed seed, confirm stage1
-  # and stage2 emit identical C for main.vader (release AND debug), and that two
-  # split builds are byte-identical. Bun-free. Runs on every push and PR (ADR 0006).
-  #
-  # It is also the seed's viability gate: the same `verify.sh` the pre-push hook
-  # runs through `bootstrap/seed.sh check`. A seed that cannot build the tree fails
-  # the test jobs too; what only this job sees is a fixed-point or
-  # reproducibility break. See docs/BOOTSTRAP.md.
-  fixed-point:
-    name: Fixed-point verification
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: verify.sh (stage1 == stage2, reproducible)
-        run: bash bootstrap/verify.sh
-
-  # On a `v*` tag, the toolchain as a download: one self-contained bundle per
-  # platform, which `release` attaches to the GitHub Release of the tag. The
-  # archive names carry no version, so `releases/latest/download/<name>` always
-  # reaches the newest one; the site's download page links there. A manual run
-  # builds the bundles as artifacts, without a release.
-  dist:
-    name: Bundle (${{ matrix.platform }})
-    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+  # The bundle step stays first, before Bun or any package: it is also the
+  # check that a clone with only a C compiler builds (docs/BOOTSTRAP.md). The
+  # suite runs once the compiler exists, even when a later bundle step failed.
+  platforms:
+    name: ${{ matrix.platform }}
+    if: ${{ !inputs.site_only }}
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - { platform: darwin-arm64, runner: macos-latest }
-          # The oldest supported image: the binary needs the glibc it was linked against.
-          - { platform: linux-x64, runner: ubuntu-22.04 }
+          - { platform: linux-x64, runner: ubuntu-26.04 }
           - { platform: windows-x64, runner: windows-latest }
+          - { platform: darwin-arm64, runner: macos-latest }
     runs-on: ${{ matrix.runner }}
     env:
       MACOSX_DEPLOYMENT_TARGET: '13.0'
     steps:
       - uses: actions/checkout@v6
-      # Before any build: a release is named after the version the binary reports.
-      - name: Check that the tag is the version
-        if: github.ref_type == 'tag'
-        shell: bash
-        run: |
-          version=$(sed -n 's/^export CLI_VERSION :: "\(.*\)"$/\1/p' vader/tools/cli/spec.vader)
-          test "v$version" = "$GITHUB_REF_NAME" || { echo "the tag is $GITHUB_REF_NAME, CLI_VERSION is $version"; exit 1; }
-      - name: Build the bundle
-        if: runner.os != 'Windows'
-        run: bash bootstrap/build.sh --dist
-      - name: Set up clang targeting MinGW
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: pwsh -NoProfile -File tools/ci/mingw-clang.ps1
-      - name: Build the bundle (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: pwsh bootstrap/build.ps1 -Dist
-      # Away from the checkout, the bundle must find everything beside itself.
-      - name: Run and build hello world with the bundle
-        if: runner.os != 'Windows'
-        run: |
-          vader="$PWD/dist/vader-${{ matrix.platform }}/vader"
-          "$vader" --version
-          mkdir "$RUNNER_TEMP/hello" && cp examples/hello/hello.vader "$RUNNER_TEMP/hello/"
-          cd "$RUNNER_TEMP/hello"
-          "$vader" run hello.vader
-          "$vader" build --out=hello hello.vader && ./hello
-      - name: Run and build hello world with the bundle (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $vader = Join-Path $PWD 'dist\vader-${{ matrix.platform }}\vader.exe'
-          & $vader --version
-          $hello = Join-Path $env:RUNNER_TEMP 'hello'
-          New-Item -ItemType Directory $hello | Out-Null
-          Copy-Item examples\hello\hello.vader $hello
-          Set-Location $hello
-          & $vader run hello.vader
-          if ($LASTEXITCODE -ne 0) { throw 'vader run failed' }
-          & $vader build --out=hello.exe hello.vader
-          if ($LASTEXITCODE -ne 0) { throw 'vader build failed' }
-          .\hello.exe
-      - name: Archive
-        if: runner.os != 'Windows'
-        run: tar -czf vader-${{ matrix.platform }}.tar.gz -C dist vader-${{ matrix.platform }}
-      - name: Archive (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: Compress-Archive -Path dist\vader-${{ matrix.platform }} -DestinationPath vader-${{ matrix.platform }}.zip
-      - uses: actions/upload-artifact@v7
+      - uses: ./.github/actions/bundle
         with:
-          name: vader-${{ matrix.platform }}
-          path: vader-${{ matrix.platform }}.*
-          if-no-files-found: error
+          platform: ${{ matrix.platform }}
+      - uses: oven-sh/setup-bun@v2
+        if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
+        with:
+          bun-version: 1.3.13
+      - name: Install X11's development package (raylib links -lX11)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: sudo apt-get update && sudo apt-get install -y libx11-dev
+      - name: Test
+        if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
+        env:
+          VADER_TEST_GATE: ${{ inputs.gate }}
+        run: bun run test --only-failures
 
-  # The release of a tag, once every check above has passed on it. The site is
-  # published again from `main` after it: its download page names the latest
-  # release. A release made with this job's token triggers no workflow by
-  # itself; a dispatch does.
-  release:
-    name: Publish the release
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: [typecheck, test-posix, test-windows, fixed-point, dist]
+  # The site of the language (`site/`), with the API reference of the library
+  # (`lib/`) and of the compiler (`vader/`) beside it, two sites `vader doc -o`
+  # builds. Built on every pull request so that a site that no longer builds
+  # shows before the merge.
+  site:
+    name: Build the site
+    needs: [typecheck, platforms]
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: write
     env:
-      GH_TOKEN: ${{ github.token }}
-      GH_REPO: ${{ github.repository }}
+      PUBLISH: ${{ github.ref == 'refs/heads/main' }}
+    outputs:
+      current: ${{ steps.head.outputs.current }}
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
         with:
-          path: archives
-          merge-multiple: true
-      - name: Create the release
-        run: gh release create "$GITHUB_REF_NAME" archives/* --verify-tag --generate-notes --title "Vader $GITHUB_REF_NAME"
-      - name: Publish the site again
-        run: gh workflow run docs.yml --ref main
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            tools/doc-site/package-lock.json
+            site/package-lock.json
+      - uses: actions/download-artifact@v8
+        if: ${{ !inputs.site_only }}
+        with:
+          name: vader-linux-x64
+          path: ${{ runner.temp }}/bundle
+      - name: Take the compiler of the Linux bundle
+        if: ${{ !inputs.site_only }}
+        run: |
+          mkdir -p build
+          tar -xzf "$RUNNER_TEMP/bundle/vader-linux-x64.tar.gz" -C build --strip-components=1 vader-linux-x64/vader
+      # Not the release's archive: `lib/` on `main` may already need a newer
+      # compiler than the one it holds.
+      - name: Build Vader CLI from the C seed
+        if: ${{ inputs.site_only }}
+        run: bash bootstrap/build.sh
+      - id: pages
+        if: env.PUBLISH == 'true'
+        uses: actions/configure-pages@v6
+      - name: Build the sites
+        env:
+          BASE: ${{ steps.pages.outputs.base_path }}
+          GITHUB_TOKEN: ${{ github.token }}
+          VADER_DOC_SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
+        run: |
+          export VADER_DOC_HOME_URL="$BASE/"
+          BASE_PATH="$BASE/lib" VADER_DOC_TITLE="Library" ./build/vader doc -o _site/lib lib
+          BASE_PATH="$BASE/vader" VADER_DOC_TITLE="Compiler" ./build/vader doc -o _site/vader vader
+          (cd site && npm ci --no-audit --no-fund --prefer-offline && npm run check && BASE_PATH="$BASE" SITE_SOURCE_URL="$VADER_DOC_SOURCE_URL" SITE_API_DIR=../_site npm run build)
+          cp -R site/build/. _site/
+          for api in lib vader; do
+            test -e "_site/$api/index.html" || { echo "the site links to $api/, which was not built"; exit 1; }
+          done
+      # Runs of `main` overlap, and one of an older commit can finish last:
+      # only the run of the head publishes.
+      - id: head
+        name: Is this commit still the head of main?
+        if: env.PUBLISH == 'true'
+        run: |
+          if [ "$(git ls-remote origin refs/heads/main | cut -f1)" = "$GITHUB_SHA" ]; then
+            echo current=true >> "$GITHUB_OUTPUT"
+          else
+            echo "main has moved past $GITHUB_SHA: the run of its head publishes the site"
+          fi
+      - if: steps.head.outputs.current == 'true'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: site
+    if: ${{ needs.site.outputs.current == 'true' }}
+    runs-on: ubuntu-latest
+    # One deployment at a time, never cut short.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

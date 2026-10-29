@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (2026-08-30), implemented in `0a45ee489`.
+Accepted (2026-08-30), implemented in `0a45ee489`. Amended by ADR 0115: the
+gate is now a step of the CI's Linux job, on the stages that job built.
 
 ## Context
 

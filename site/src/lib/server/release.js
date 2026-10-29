@@ -1,6 +1,6 @@
 // The latest release of Vader, read from GitHub when the site is built: the
-// download page names it, and says so when there is none yet. The release job
-// of the CI publishes the site again once a release is out.
+// download page names it, and says so when there is none yet. Once a release
+// is out, a `site_only` run of the CI builds and publishes the site again.
 
 import { GITHUB } from '../links.js';
 import { slugify } from './markdown.js';

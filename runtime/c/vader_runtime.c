@@ -14,6 +14,15 @@
  * consumed as additional roots by minor.
  */
 
+/* POSIX and glibc's default extras, not `_GNU_SOURCE` (which vader.h sets for
+ * emitted code): it also turns on glibc's C23 bindings, under which glibc 2.38
+ * and later resolve `strtoul`, `strtoull` and `fscanf` to `__isoc23_*` symbols,
+ * and a binary calling those needs glibc 2.38 to start. The one GNU function
+ * the runtime calls is declared by hand in the platform block below. */
+#if defined(__linux__) && !defined(_DEFAULT_SOURCE)
+#  define _DEFAULT_SOURCE
+#endif
+
 #include "vader.h"
 
 #include <ctype.h>
@@ -46,6 +55,9 @@
 #  if defined(__APPLE__)
 #    include <mach-o/dyld.h> /* _NSGetExecutablePath */
 #    include <mach/mach.h>   /* task_info: current RSS for the profiler */
+#  endif
+#  if defined(__linux__)
+int pthread_getattr_np(pthread_t thread, pthread_attr_t* attr);
 #  endif
 extern char** environ;
 #endif

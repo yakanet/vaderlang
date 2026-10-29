@@ -3,12 +3,13 @@
 # stage2 (vader) emit identical C for main.vader, that the build reproduces, and
 # that the tree's bootstrap entry writes that same C.
 # Described in docs/BOOTSTRAP.md. It is also the seed's
-# viability gate: `bootstrap/seed.sh check` (the pre-push hook) and the CI
-# `fixed-point` job both run it. Honours $CC.
+# viability gate: `bootstrap/seed.sh check` (the pre-push hook) and the CI's
+# Linux job both run it. Honours $CC. Its arguments go to build.sh: `--dist`
+# also assembles the bundle, from the stages it then checks.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-./bootstrap/build.sh
+./bootstrap/build.sh "$@"
 
 # (a) fixed point : stage1 and stage2 must emit identical C for main.vader.
 #
