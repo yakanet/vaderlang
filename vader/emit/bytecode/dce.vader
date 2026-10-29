@@ -222,23 +222,24 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     }
 
     // Rewrite fn-index references in surviving bodies.
-    for fn_ in kept {
-        for bj in 0..<fn_.body.len() {
-            op :: fn_.body[bj]
-            if op is Call {
-                fn_.body[bj] = Call { .function_index = remap[op.function_index] }
-            }
-            if op is FnRef {
-                fn_.body[bj] = FnRef { .function_index = remap[op.function_index], .type_id = op.type_id }
-            }
-            if op is FnAddr {
-                fn_.body[bj] = FnAddr { .function_index = remap[op.function_index] }
-            }
-            if op is MakeClosure {
-                fn_.body[bj] = MakeClosure {
+    for function in kept {
+        for [op, idx] in function.body.indexed() {
+            function.body[idx] = @partial match op {
+                is Call         ->  Call {
                     .function_index = remap[op.function_index],
-                    .env_type_id    = op.env_type_id,
                 }
+                is FnRef        -> FnRef {
+                    ...op,
+                    .function_index = remap[op.function_index],
+                }
+                is FnAddr       -> FnAddr {
+                    .function_index = remap[op.function_index],
+                }
+                is MakeClosure  -> MakeClosure {
+                    ...op,
+                    .function_index = remap[op.function_index],
+                }
+                _ -> op
             }
         }
     }
