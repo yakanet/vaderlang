@@ -3,7 +3,7 @@
 // Each is a range of `Int` whose bounds are those of an 8-, 16-, 32- or 64-bit
 // integer: a range of those bounds, named or not, is that integer, stored at its
 // width, and its arithmetic is closed and checked rather than computed over the
-// integers (SPEC, Range types, *Machine integers*). The compiler knows the same
+// integers (SPEC §4 *Range types*). The compiler knows the same
 // bounds from its table of machine integers (`MACHINE_INTEGERS` in
 // `vader/support/integer`), where it gives a type of its own such as the `i32` of a bare
 // integer literal: the two must agree.

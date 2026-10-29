@@ -11,7 +11,7 @@ This document describes the Vader language: its syntax, type system, execution m
 
 ### Mission
 
-Vader is a **general-purpose application language**, **strongly typed with type inference**, **portable** (Linux, macOS, Windows, WebAssembly), designed to remain **simple to learn** while allowing performant programs through a transparent compilation pipeline.
+Vader is a general-purpose application language, strongly typed with type inference, and portable (Linux, macOS, Windows, WebAssembly). It is designed to stay simple to learn while allowing performant programs through a transparent compilation pipeline.
 
 ### Tagline
 
@@ -19,7 +19,7 @@ Vader is a **general-purpose application language**, **strongly typed with type 
 
 ### Explicit non-goals
 
-- **No OOP**: no inheritance, no classes, no methods. UFCS (`a.f(b)` ≡ `f(a, b)`) gives the method-call syntax.
+- **No OOP**: no inheritance, no classes, no methods. UFCS (`a.f(b)` is `f(a, b)`) gives the method-call syntax.
 - **No visible pointers**: no pointer arithmetic, and memory layout is opaque.
 - **No implicit `null`**: a nullable value has an explicit union type, `T | null`.
 - **No exceptions**: errors are values, returned in a union with the success type.
@@ -43,8 +43,8 @@ A program is compiled as a whole. Every module is parsed, resolved and type-chec
 
 The compiled program runs in one of two ways:
 
-- **on the Vader virtual machine**: `vader run` and `vader test`;
-- **as a native binary**, through generated C and the system C compiler: `vader build`.
+- on the Vader virtual machine, with `vader run` and `vader test`;
+- as a native binary, through generated C and the system C compiler, with `vader build`.
 
 A WebAssembly target is planned (§17). The command line is described in `docs/TOOLING.md`.
 
@@ -404,11 +404,11 @@ label(n)                   // `n` is an `Hour` here
 
 A narrowing lasts as long as nothing can have changed what it tested. An assignment to the narrowed name or field ends it, unless the new value still fits (*Assignment*, above). It also ends:
 
-- **after a call**, for every field narrowing (`a.s`, `self.items`) and for each local that some lambda assigns, since a call can write any object it reaches. Writing through a user `IndexSet` (`m[k] = v`), `await` and `yield` count as calls. A conversion `T(x)` does not.
-- **inside a loop**, for what an earlier iteration can have changed: field narrowings, and locals the body assigns. The iterable of `for x in e` is evaluated once, before the loop, and keeps the narrowing.
-- **after a field assignment** through any path (`b.s = v`, `xs[i].s = v`), for every narrowing through a field of that name: `b` may be the same object as `a`.
-- **after a call in the right operand** of `&&` (or of `||`, on its false side), for what the left operand narrowed: in the rest of the condition and in the branch.
-- **in code that runs later than written** (a lambda body, a `defer` body), which keeps only the narrowings of bindings that are never reassigned. Under `for c != null { ... c = c.next }`, `defer println(c.value)` is an error.
+- after a call, for every field narrowing (`a.s`, `self.items`) and for each local that some lambda assigns, since a call can write any object it reaches. Writing through a user `IndexSet` (`m[k] = v`), `await` and `yield` count as calls. A conversion `T(x)` does not.
+- inside a loop, for what an earlier iteration can have changed: field narrowings, and locals the body assigns. The iterable of `for x in e` is evaluated once, before the loop, and keeps the narrowing.
+- after a field assignment through any path (`b.s = v`, `xs[i].s = v`), for every narrowing through a field of that name: `b` may be the same object as `a`.
+- after a call in the right operand of `&&` (or of `||`, on its false side), for what the left operand narrowed: in the rest of the condition and in the branch.
+- in code that runs later than written (a lambda body, a `defer` body), which keeps only the narrowings of bindings that are never reassigned. Under `for c != null { ... c = c.next }`, `defer println(c.value)` is an error.
 
 The narrowing of a local that nothing else assigns survives all of these. To keep a narrowing across a call, bind the field to a local first:
 
@@ -434,11 +434,11 @@ Trailing commas are allowed in every comma-separated list: function arguments, f
 
 A newline ends a statement, except in these five cases, where it is ignored:
 
-1. **Inside an open `(` or `[`**, and inside a `${...}` interpolation. Inside a `{ }` block, newlines still separate statements, even when the block is inside brackets (the body of a lambda passed as an argument).
-2. **After an operator that still needs its operand**: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `===`, `!==`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `+%`, `-%`, `*%`, `??`, `..<`, `..=`, and the spread `...`. A newline after `!` is not ignored.
-3. **After a comma.**
-4. **After a token that needs a right-hand side**: `=`, `:`, `->`, `::`, `:=`, and the compound assignments `+=` `-=` `*=` `/=` `%=` `+%=` `-%=` `*%=`.
-5. **Before an operator with no prefix form.** When the next line starts with `+`, `*`, `/`, `%`, `+%`, `-%`, `*%`, `^`, `??`, `==`, `!=`, `===`, `!==`, `<`, `<=`, `<<`, `>`, `>=`, `>>`, `&&`, `||`, `&` or `|`, it continues the previous expression, in a `{ }` block too. Comment lines in between are skipped. A compound assignment (`+=`, `*=`, ...) does not continue the previous line, nor do `-`, `~`, `!` and `.`, which can start an expression.
+1. Inside an open `(` or `[`, and inside a `${...}` interpolation. Inside a `{ }` block, newlines still separate statements, even when the block is inside brackets (the body of a lambda passed as an argument).
+2. After an operator that still needs its operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `===`, `!==`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `+%`, `-%`, `*%`, `??`, `..<`, `..=`, and the spread `...`. A newline after `!` is not ignored.
+3. After a comma.
+4. After a token that needs a right-hand side: `=`, `:`, `->`, `::`, `:=`, and the compound assignments `+=` `-=` `*=` `/=` `%=` `+%=` `-%=` `*%=`.
+5. Before an operator with no prefix form. When the next line starts with `+`, `*`, `/`, `%`, `+%`, `-%`, `*%`, `^`, `??`, `==`, `!=`, `===`, `!==`, `<`, `<=`, `<<`, `>`, `>=`, `>>`, `&&`, `||`, `&` or `|`, it continues the previous expression, in a `{ }` block too. Comment lines in between are skipped. A compound assignment (`+=`, `*=`, ...) does not continue the previous line, nor do `-`, `~`, `!` and `.`, which can start an expression.
 
 There is no backslash continuation: a `\` at the end of a line is a lexical error. To break a long expression, use parentheses or break before or after a binary operator.
 
@@ -559,17 +559,17 @@ Mixed   :: i32 | string   // transparent alias (union)
 
 A distinct type is held exactly as its backing type at run time.
 
-- **Conversions are explicit** both ways and change nothing at run time: `Celsius(x)` wraps an `f64`, `f64(c)` unwraps it. An implicit one is an error.
-- **Structural operations forward to the backing**, while trait impls stay nominal (`BigInt implements Mul<u32>` does not collide with the array repeat, `T[] implements Mul<i64>`):
+- Conversions are explicit both ways and change nothing at run time: `Celsius(x)` wraps an `f64` and `f64(c)` unwraps it. An implicit one is an error.
+- Structural operations forward to the backing, while trait impls stay nominal (`BigInt implements Mul<u32>` does not collide with the array repeat, `T[] implements Mul<i64>`):
   - array: indexing, the built-in array functions (`.len()`, `.push()`, ...), `for x in n`, and the conversion of a `[...]` literal;
   - struct: field access `c.r` and construction `Color { ... }`, with the backing's fields;
   - tuple: positional access `p.0`, construction from `[a, b]`, and destructuring `[a, b] :: p`.
-- **A distinct over an object is not a value of a trait it implements.** Passing a distinct over a struct, an array, a tuple or a function where its trait is expected (a `Color` for a `Display`) is an error, as an array element or into a union too. Its own impls are reached by a direct call (`c.to_string()`).
-- **Arithmetic uses the distinct's own impl first, then its backing's**: `Instant implements Add<Duration>` drives `i + d`, while `+`, `-`, `*`, `/` and `%` on a `Meters :: i64` with no impl of its own are those of `i64`. A literal beside it is then a value of the backing: `m + -1` is an `i64` sum, and `c + -1` with `Code :: u32` is an error, as on a `u32`.
-- **An impl for another operand is not bypassed**: a distinct that defines the operator for another right operand is not computed on the backing, so `instant + 5` is an error.
-- **A distinct combines only with itself and its backing.** Any operator, `==` included, between two distinct types that are not one another's backing is an error: `Meters + Seconds`, although both are `i64`. A `Km :: Meters` combines with `Meters`. Against its backing, a distinct compares and computes as that backing (`path == ""`, `d < i64(3)`), or through its own impl (`Equals`, `Comparable`, operators) when it defines one.
-- **`@comptime Name :: <type>` is the exception**: it declares a transparent alias, usable at compile time (`@size_of(Name)`), never a newtype.
-- **Reflection follows the backing**: `@size_of`, `@align_of` and `@type_kind` of a distinct give those of its backing.
+- A distinct over an object is not a value of a trait it implements: passing a distinct over a struct, an array, a tuple or a function where its trait is expected (a `Color` for a `Display`) is an error, as an array element or into a union too. Its own impls are reached by a direct call (`c.to_string()`).
+- Arithmetic uses the distinct's own impl first, then its backing's: `Instant implements Add<Duration>` drives `i + d`, while `+`, `-`, `*`, `/` and `%` on a `Meters :: i64` with no impl of its own are those of `i64`. A literal beside it is then a value of the backing: `m + -1` is an `i64` sum, and `c + -1` with `Code :: u32` is an error, as on a `u32`.
+- A distinct that defines the operator for another right operand does not fall back to its backing: `instant + 5` is an error.
+- A distinct combines only with itself and its backing. Any operator, `==` included, between two distinct types that are not one another's backing is an error: `Meters + Seconds`, although both are `i64`. A `Km :: Meters` combines with `Meters`. Against its backing, a distinct compares and computes as that backing (`path == ""`, `d < i64(3)`), or through its own impl (`Equals`, `Comparable`, operators) when it defines one.
+- `@comptime Name :: <type>` is the exception: it declares a transparent alias, usable at compile time (`@size_of(Name)`), never a newtype.
+- Reflection follows the backing: `@size_of`, `@align_of` and `@type_kind` of a distinct give those of its backing.
 
 ### Default integer
 
@@ -600,7 +600,7 @@ pick(5)                          // 5 is an i32, the default
 v: u8 | i16 | string: 5          // error: u8 or i16; write u8(5)
 ```
 
-A literal into a **union** takes the default of its family (`i32`, `f64`, or `char` for a char literal) when the union has it, otherwise the union's only member of that family.
+A literal into a union takes the default of its family (`i32`, `f64`, or `char` for a char literal) when the union has it, otherwise the union's only member of that family.
 
 ### Implicit numeric coercion
 
@@ -619,7 +619,7 @@ describe :: fn(x: i64) -> string = "i64"
 describe(b)                      // "i32": the tightest parameter wins
 ```
 
-**An integer type goes into any integer type that holds all its values**, with no conversion written. This holds in every slot (an argument, a return value, a field, an initializer, an assignment, an array or tuple element) and into a union through such a member.
+An integer type goes into any integer type that holds all its values, with no conversion written. This holds in every slot (an argument, a return value, a field, an initializer, an assignment, an array or tuple element) and into a union through such a member.
 
 An operation or comparison between two integer types is computed in the type that holds the other; when neither holds the other, it is an error. Where paths join (the branches of a value `if` or `match`), the same rule applies.
 
@@ -666,10 +666,10 @@ zero :: fn<T>(x: T) -> T = 0            // error: T is not a numeric context
 
 A free literal takes the type of the slot it lands in, with no conversion at run time. The type comes from:
 
-- **the slot**: a typed declaration, a field default, a call argument, a struct literal field, a `return` under a declared return type, an index (the key type of the `Index` impl), and the other operand of a comparison or arithmetic operation when it has a concrete numeric type;
-- **the outer slot, through unary `-` and `~`**;
-- **a generic call**: the type substituted once the type parameters are inferred, in a plain call, a generic UFCS call and a call through a namespace import;
-- **the other branch of an `if`** when that one has a concrete numeric type.
+- the slot: a typed declaration, a field default, a call argument, a struct literal field, a `return` under a declared return type, an index (the key type of the `Index` impl), and the other operand of a comparison or arithmetic operation when it has a concrete numeric type;
+- the outer slot, through unary `-` and `~`;
+- a generic call: the type substituted once the type parameters are inferred, in a plain call, a generic UFCS call and a call through a namespace import;
+- the other branch of an `if`, when that one has a concrete numeric type.
 
 ### Type coercion via `Into`
 
@@ -681,7 +681,7 @@ Into :: trait<Target> {
 }
 ```
 
-**Sites of implicit coercion**
+#### Sites of implicit coercion
 
 - A call argument, when the parameter is annotated.
 - A `return v`, or a block's trailing expression, under a declared return type.
@@ -689,24 +689,24 @@ Into :: trait<Target> {
 - A struct literal field whose declared type differs from the value's.
 - The receiver of `a.f(...)`, when no function takes `a` as it is (§6 *UFCS (Uniform Function Call Syntax)*).
 
-**Explicit form**
+#### Explicit form
 
 In `Target(value)`, a numeric or `char` target is a cast (`u32(x)`, `i64(c)`); any other target, or a numeric target given a non-numeric value, calls `into`.
 
-**Rules**
+#### Rules
 
-- **The target is a struct, an enum, a primitive or a trait**, never a union or a type parameter. For a trait target, `Into` applies only when the type does not implement the trait (`T[]` into `Iterator<T>`).
-- **No identity**: `T implements Into<T>` is an error at the impl.
-- **No chains**: a conversion calls one `into`, so `S` into `U` and `U` into `T` do not take an `S` into a `T`.
-- **One impl per `(Source, Target)`**: a second is an error.
-- **Overload resolution comes first**: `Into` is considered only when no overload matches as is.
+- The target is a struct, an enum, a primitive or a trait, never a union or a type parameter. For a trait target, `Into` applies only when the type does not implement the trait (`T[]` into `Iterator<T>`).
+- `T implements Into<T>` is an error at the impl.
+- A conversion calls one `into`: `S` into `U` and `U` into `T` do not take an `S` into a `T`.
+- A second impl for the same `(Source, Target)` is an error.
+- Overload resolution comes first: `Into` is considered only when no overload matches as is.
 
-**Built-in coercions**
+#### Built-in coercions
 
 - `T[]` into `Iterator<T>`, through `T[] implements<T> Into<Iterator<T>>` (`std/core`).
 - `T` into `string` when `T: Display`, by its `to_string`, through `T implements<T: Display> Into<string>`. Interpolation (`"${value}"`) renders through `Display` without `Into`.
 
-**Resolution order at a coercion site**
+#### Resolution order at a coercion site
 
 1. `S` is assignable to `T` (a subtype, a trait `S` implements, a free literal taking its type): nothing converts.
 2. Otherwise, an impl `S implements Into<T>`, under the rules above.
@@ -726,7 +726,7 @@ LIMIT: u8: 250
 LATER :: LIMIT + 10              // computed at run time: stops the program, or 4 in a release build
 ```
 
-An integer `+`, `-`, `*` or unary `-` whose result leaves its type, at that type's own bounds, **stops the program**, except in a **release** build, where it wraps, in two's complement at the type's width (`docs/TOOLING.md` *`vader build`*).
+An integer `+`, `-`, `*` or unary `-` whose result leaves its type, at that type's own bounds, stops the program, except in a release build, where it wraps, in two's complement at the type's width (`docs/TOOLING.md` *`vader build`*).
 
 An overflow in a constant the compiler folds is a compile error.
 
@@ -753,13 +753,13 @@ Clock :: struct {
 - `Name :: Int in ...` is a transparent name for the range; `Slot :: Hour` declares a distinct type (*Distinct types*).
 - In value position, `r :: 0..=23` is a `Range<i32>` value, not a type.
 
-**Machine integers.** Each machine integer is the range of its values (`u8` is `Int in 0..=255`), and a range with the same bounds is that integer: `Octet :: Int in 0..=255` is a `u8` shown under its name, with the closed and checked arithmetic of a `u8` (*Integer overflow*).
+Each machine integer is the range of its values (`u8` is `Int in 0..=255`), and a range with the same bounds is that integer: `Octet :: Int in 0..=255` is a `u8` shown under its name, with the closed and checked arithmetic of a `u8` (*Integer overflow*).
 
-**Representation.** A range is stored, in a field or an array alike, in the narrowest integer that holds it, unsigned when it has no negative value: `Hour` is a `u8`, `Offset` an `i8`. Its `Display`, `Equals` and `Hash` are that integer's.
+A range is stored, in a field or an array alike, in the narrowest integer that holds it, unsigned when it has no negative value: `Hour` is a `u8`, `Offset` an `i8`. Its `Display`, `Equals` and `Hash` are that integer's.
 
-**Literals.** A literal stored in a range must be one of its values, wherever it goes: `h: Hour = 30` is an error, and so is `30 ->` in a `match` on an `Hour`.
+A literal stored in a range must be one of its values, wherever it goes: `h: Hour = 30` is an error, and so is `30 ->` in a `match` on an `Hour`.
 
-**Widening.** A range goes where an integer type that holds all its values goes (*Implicit numeric coercion*, above). Through a function type or a union, it widens only to the integer it is stored in: a `fn() -> Hour` is a `fn() -> u8`.
+A range widens to any integer type that holds all its values (*Implicit numeric coercion*, above). Through a function type or a union, it widens only to the integer it is stored in: a `fn() -> Hour` is a `fn() -> u8`.
 
 ```vader
 next_hour :: fn(h: Hour) -> Hour = (h + 1) % 24   // h + 1 is a 1..=24
@@ -779,22 +779,22 @@ parse_hour :: fn(n: i64) -> Hour | null {
 }
 ```
 
-**Operations.** Arithmetic on ranges is computed over the integers, and its type is the interval of its possible results.
+Arithmetic on ranges is computed over the integers, and its type is the interval of its possible results.
 
 - Storing a result in a narrower range is an error: `next: Hour = h + 1` and `h += 1` are rejected.
 - A local takes the type of its first value: after `next := h + 1`, `next = next % 24` is an error, since `0` is outside `1..=24`. Annotate it (`next: i32 = h + 1`).
 - A primitive operand absorbs a range that fits in it: `h * x` with `x: i32` is an `i32`.
 - A bitwise operation needs a machine integer: `h & 1` is an error, `u8(h) & 1` is not.
 
-**Narrowing.** A comparison narrows a range where it holds, as `is` narrows a union (§3 *Type tests and narrowing*).
+A comparison narrows a range where it holds, as `is` narrows a union (§3 *Type tests and narrowing*).
 
-**Bounds.** `@min(T)` and `@max(T)` are the bounds of an integer type (`@max(Hour)` is `23`). `x in T` tests an integer against them and, where it holds, narrows `x` to `T`, a primitive `x` too, with no check that could stop the program. `in`, `@min` and `@max` also take `char` and an enum without variant data; on any other type they are errors.
+`@min(T)` and `@max(T)` are the bounds of an integer type (`@max(Hour)` is `23`). `x in T` tests an integer against them and, where it holds, narrows `x` to `T`, a primitive `x` too, with no check that could stop the program. `in`, `@min` and `@max` also take `char` and an enum without variant data; on any other type they are errors.
 
-**Conversion.** `Hour(x)` converts an integer into the range and stops the program, in every build, when `x` lies outside it. A literal outside the range, a float, and a source that holds none of its values are errors. A distinct over a range converts as the range does, and back (`Hour(s)`) with nothing to check.
+`Hour(x)` converts an integer into the range and stops the program, in every build, when `x` lies outside it. A literal outside the range, a float, and a source that holds none of its values are errors. A distinct over a range converts as the range does, and back (`Hour(s)`) with nothing to check.
 
-**In a generic function.** A `T` bound to a range is checked as `Hour(x)` checks it wherever a call or an operator gives one back: `fn<T: Add>(a: T, b: T) -> T = a + b` stops at `Hour` values 20 and 10. Inside a type argument a range is read as its integer (a `Box<Hour>` is a `Box<u8>`), except as an array element (`Hour[]` binds `T` to `Hour`).
+In a generic function, a `T` bound to a range is checked as `Hour(x)` checks it wherever a call or an operator gives one back: `fn<T: Add>(a: T, b: T) -> T = a + b` stops at `Hour` values 20 and 10. There, inside a type argument, a range is read as its integer (a `Box<Hour>` is a `Box<u8>`), except as an array element (`Hour[]` binds `T` to `Hour`).
 
-**Generic over integers.** `fn<T: Int>` takes any integer type within `i64`, range or primitive, alone or beside traits (`T: Int & Display`). In the body, `@min(T)`, `@max(T)`, `x in T` and `T(x)` work as on a range type, and a value of `T` computes as an `i64`. A computed value becomes a `T` again through `x in T` or `T(x)`:
+A function generic over integers declares `T: Int`, which takes any integer type within `i64`, range or primitive, alone or beside traits (`T: Int & Display`). In the body, `@min(T)`, `@max(T)`, `x in T` and `T(x)` work as on a range type, and a value of `T` computes as an `i64`. A computed value becomes a `T` again through `x in T` or `T(x)`:
 
 ```
 clamp_to :: fn<T: Int>(n: i64) -> T {
@@ -851,7 +851,7 @@ greeting.byte_at(1)               // 195, the first byte of é
 - `s[i]` is the code point at index `i`, an `i64` or a free literal; an index past the last code point stops the program. `s[lo..<hi]` and `s[lo..=hi]` give the code points of the range: bounds past the end are clamped, and a range that ends before it starts gives `""`. Both reach index `i` in O(i). On an ASCII string (`s.is_ascii()`), `s.len()` and `s[i]` take constant time.
 - `for c in s` walks the code points in place (`string implements Into<Iterator<char>>`), and `s.chars()` gives them as an iterator value. The byte loop is `for i in 0..<s.byte_len() { b :: s.byte_at(i) }`.
 - `s.bytes()` is frozen (§5 *Frozen values*): writing it, lending it to a function that modifies it, or keeping it in a field is an error. `s.byte_at(i)`, `s.byte_slice(lo, hi)` and `s.codepoint_at_byte(i)` (the code point that starts at a byte offset, and its length in bytes) read the string in place.
-- **Malformed UTF-8.** Nothing validates a string's bytes (`bytes_to_string`, `read_file_string`, a `byte_slice` that cuts a code point). Every walk over code points reads a malformed run as one `U+FFFD`: the longest prefix of a well-formed sequence, at least one byte, overlong forms, surrogates and code points past U+10FFFF included. So `s.len()`, `for c in s` and `s[i]` always agree, and a `char`, which never holds such a value, always encodes to UTF-8 that decodes back. The compiler reads source files the same way (§3 *Source encoding*).
+- Nothing validates a string's bytes (`bytes_to_string`, `read_file_string`, a `byte_slice` that cuts a code point). Every walk over code points reads a malformed run as one `U+FFFD`: the longest prefix of a well-formed sequence, at least one byte, overlong forms, surrogates and code points past U+10FFFF included. So `s.len()`, `for c in s` and `s[i]` always agree, and a `char`, which never holds such a value, always encodes to UTF-8 that decodes back. The compiler reads source files the same way (§3 *Source encoding*).
 
 ### Arrays
 
@@ -873,7 +873,7 @@ xs[2..<99]                // [30, 40]: the bounds are clamped
 ```
 
 - `T[]` is an array whose length is known at run time; `i32[][]` is an array of `i32` arrays.
-- **Slicing**: `arr[r]` takes a range of any integer type; its bounds, read as `i64`, are clamped at 0 too, and `arr[r].clone()` gives an independent copy.
+- `arr[r]`, for a range `r` of any integer type, is a slice of `arr`; its bounds, read as `i64`, are clamped at 0 too, and `arr[r].clone()` gives an independent copy.
 
 ```vader
 a: i32 | string[]: 5             // an i32, or an array of strings
@@ -886,7 +886,7 @@ Postfix `[]` binds tighter than `|`, and parentheses group. An array type may be
 
 An array's element type is **invariant** wherever the array is bound, stored or returned: an `i32[]` into a `(i32 | string)[]` local is an error, at the declaration as at a reassignment.
 
-An **argument** may widen its element, at any depth: a `Circle[]` passes for a `(Circle | null)[]` parameter, or for a `Shape[]` one when `Circle implements Shape`. The callee's body decides, with no annotation: it may read the array, remove elements, and keep or return an element, but not replace an element, grow the array, keep it past the call, return it, or hand it to a function value. Through a method, a trait or a bound, every function the call may run is checked. Otherwise the argument is an error naming what the callee does:
+Passed as an argument, an array may widen its element, at any depth: a `Circle[]` passes for a `(Circle | null)[]` parameter, or for a `Shape[]` one when `Circle implements Shape`. The callee's body decides, with no annotation: it may read the array, remove elements, and keep or return an element, but not replace an element, grow the array, keep it past the call, return it, or hand it to a function value. Through a method, a trait or a bound, every function the call may run is checked. Otherwise the argument is an error naming what the callee does:
 
 ```vader
 total :: fn(shapes: Shape[]) -> f64 { ... }      // reads only
@@ -906,7 +906,7 @@ The parameter's element must also take the argument's elements as they are store
 
 A distinct type is in the group of its backing. A reference element takes a reference or a mixed argument element, a mixed element only a mixed one, and a scalar element only its own type: `string[]` passes for `(string | null)[]`, but `i32[]` for `(i32 | string)[]` and `Circle[]` for `(Circle | string)[]` are errors.
 
-A fresh **literal** is built with the slot's element type, so `xs: (i32 | string)[] = [1, 2, 3]` compiles.
+A fresh literal is built with the slot's element type, so `xs: (i32 | string)[] = [1, 2, 3]` compiles.
 
 #### Array constants
 
@@ -924,7 +924,7 @@ bump :: fn(i: i64) -> void { counts()[i] += 1 }   // persists across calls
 
 `DIGITS.clone()` is a fresh array that can be written.
 
-**How a type is printed.** As written (`i32[]`, `Box<Cfg>`), and `@type_name` gives the same text.
+A type is printed as written (`i32[]`, `Box<Cfg>`), and `@type_name` gives the same text.
 
 #### Repeat / preallocate: `[lhs] * n`
 
@@ -944,7 +944,7 @@ for x in src { buf.push(x) }   // no reallocation up to 1024 elements
 
 - `([] * n)[0]` stops the program: the reserved room becomes readable only as `push` and `push_all` grow the length. `[v] * n` gives `n` readable elements.
 - The element type comes from the left side, or from the slot when the left side is empty or a free literal (`[] * n` or `[0] * n` into an annotated `T[]`).
-- The left side is evaluated **once**, so a **reference** element is shared by every slot: after `rows :: [[]] * 3`, `rows[0].push(x)` grows all three. The compiler warns when that element is freshly allocated (an array or struct literal, a constructor call). `filled(n, make)` (`std/core`, in the prelude) calls `make` once per slot, in order, and `filled_indexed(n, make)` passes it each slot's index:
+- The left side is evaluated once, so a reference element is shared by every slot: after `rows :: [[]] * 3`, `rows[0].push(x)` grows all three. The compiler warns when that element is freshly allocated (an array or struct literal, a constructor call). `filled(n, make)` (`std/core`, in the prelude) calls `make` once per slot, in order, and `filled_indexed(n, make)` passes it each slot's index:
 
 ```vader
 rows: i32[][]: filled(3, () -> [])            // 3 distinct arrays
@@ -991,13 +991,13 @@ println(pair.0)      // 42
 println(pair.1)      // answer
 ```
 
-- **Field access**: `t.0`, `t.1`, ..., numbered in source order.
-- **Elements are read-only**: `t.0 = x`, `t.0 += 1` and a destructuring target `[t.0, n] = ...` are errors, through a distinct over a tuple too. A struct held in an element can still be written (`t.0.x = 5`).
-- **A `[...]` literal is an array or a tuple by context**: without an annotation, `[1, 2, 3]` (one element type) is an array and `[1, "x"]` a tuple; with one, the annotation decides (`p: [i32, string] = [1, "x"]`).
-- **Tuples are not arrays**: `[i32, i32]` is not assignable to `i32[]`.
-- **Element types are invariant**: `[i32, i32]` does not pass as `[i32 | string, i32]`, but a fresh literal is built with the slot's element types (`p: [i32 | string, i32]: [1, 2]`).
-- **`==` compares the elements, not the references**, each as it would alone (a struct through its `Equals`, a union by variant, a bounded type parameter through `Equals`), and `!=` is its negation. A distinct type over a tuple compares through its backing unless it implements `Equals` itself.
-- **A tuple is only as comparable as its elements**: `==` is an error when an element has no working `==` (an array, a struct without `Equals`, a function or trait value, a type parameter whose bound does not name `Equals`), and the error names that element's type. The operands must have the same type, nested tuples included: `[i32, string] == [string, i32]` is an error.
+- `t.0`, `t.1`, ... access the elements, numbered in source order.
+- Elements are read-only: `t.0 = x`, `t.0 += 1` and a destructuring target `[t.0, n] = ...` are errors, through a distinct over a tuple too. A struct held in an element can still be written (`t.0.x = 5`).
+- A `[...]` literal is an array or a tuple by context: without an annotation, `[1, 2, 3]` (one element type) is an array and `[1, "x"]` a tuple; with one, the annotation decides (`p: [i32, string] = [1, "x"]`).
+- A tuple is not an array: `[i32, i32]` is not assignable to `i32[]`.
+- Element types are invariant: `[i32, i32]` does not pass as `[i32 | string, i32]`, but a fresh literal is built with the slot's element types (`p: [i32 | string, i32]: [1, 2]`).
+- `==` compares the elements, not the references, each as it would alone (a struct through its `Equals`, a union by variant, a bounded type parameter through `Equals`), and `!=` is its negation. A distinct type over a tuple compares through its backing unless it implements `Equals` itself.
+- A tuple is only as comparable as its elements: `==` is an error when an element has no working `==` (an array, a struct without `Equals`, a function or trait value, a type parameter whose bound does not name `Equals`), and the error names that element's type. The operands must have the same type, nested tuples included: `[i32, string] == [string, i32]` is an error.
 
 ### Destructuring
 
@@ -1024,7 +1024,7 @@ match found :: lookup(key) {
 
 #### Array sources
 
-A `[...]` pattern also destructures an **array**, whose length is not checked against the pattern: elements past it are dropped, and a missing one stops the program (an index out of bounds).
+A `[...]` pattern also destructures an array, whose length is not checked against the pattern: elements past it are dropped, and a missing one stops the program (an index out of bounds).
 
 ```vader
 parts :: "a-b-c".split("-")
@@ -1048,7 +1048,7 @@ arr :: [10, 20, 30, 40, 50]
 
 #### Destructuring via `Into<[...]>`
 
-A `[...]` pattern destructures a value that is **neither a tuple nor an array** when its type implements `Into<[...]>` with a tuple of the pattern's arity, each name taking the matching element with its type. Without such an impl, it is an error.
+A `[...]` pattern destructures a value that is neither a tuple nor an array when its type implements `Into<[...]>` with a tuple of the pattern's arity, each name taking the matching element with its type. Without such an impl, it is an error.
 
 ```vader
 [n, s] :: p                            // p implements Into<[i32, string]>: n is an i32, s a string
@@ -1066,9 +1066,9 @@ b := 2
 [cfg.width, sizes[0]] = dimensions()   // fields and indices are targets too
 ```
 
-**Every element is read before any is written**, the source being evaluated once: this makes the swap work.
+Every element is read before any is written, which makes the swap work; the source is evaluated once.
 
-`_` skips an element: nothing is read or written for it, but it counts toward a tuple's arity. A trailing `...place` writes a **fresh array** of the elements the other targets left, built while the elements are read.
+`_` skips an element: nothing is read or written for it, but it counts toward a tuple's arity. A trailing `...place` writes a fresh array of the elements the other targets left, built while the elements are read.
 
 ```vader
 [_, name] = lookup(id)                 // lookup runs once, its first element is dropped
@@ -1393,13 +1393,13 @@ info :: StatusInfo(s)                       // a copy of the whole value
 
 A lone header argument is the width when it is an integer type or a distinct type over one, and the data when it is a struct. Any other argument is an error: `enum(string)`, `enum(string, i32)`.
 
-- **Blocks.** Each block is checked as a literal of the data struct, its errors reported on the variant. A variant may omit its block when every field has a default. A block on an enum without data is an error.
-- **Only values.** The data holds scalars, strings and enums; a field that holds a reference (a struct, an array) is an error.
-- **Constants.** Every value in the data must be computable at compile time.
-- **Values.** Each variant also has an integer value, written after its block (`Ok { ... } = 200`) and numbered as in any enum (*Variant indices*, above). A written width bounds the values.
-- **Reading.** `v.field` reads a field of `v`'s data, and `Info(v)` the whole value. The data is frozen, as a module constant is (§5 *Frozen values*): writing it or lending it to a function that modifies it is an error, and a name bound to it holds a copy. `HttpStatus.code` stays a variant lookup.
-- **Size.** A value takes the narrowest unsigned integer that can number the variants, whatever width the header writes.
-- **Conversions.** `i32(s)` gives the written value, and so does an `@extern` parameter of the enum, through a function value too (§13 *Allowed signature types*). Interpolating renders through `Display`, never the written value.
+- Each block is checked as a literal of the data struct, its errors reported on the variant. A variant may omit its block when every field has a default. A block on an enum without data is an error.
+- The data holds only scalars, strings and enums; a field that holds a reference (a struct, an array) is an error.
+- Every value in the data must be computable at compile time.
+- Each variant also has an integer value, written after its block (`Ok { ... } = 200`) and numbered as in any enum (*Variant indices*, above). A written width bounds the values.
+- `v.field` reads a field of `v`'s data, and `Info(v)` the whole value. The data is frozen, as a module constant is (§5 *Frozen values*): writing it or lending it to a function that modifies it is an error, and a name bound to it holds a copy. `HttpStatus.code` stays a variant lookup.
+- An enum value is stored in the narrowest unsigned integer that can number the variants, whatever width the header writes.
+- `i32(s)` gives the written value, and so does an `@extern` parameter of the enum, through a function value too (§13 *Allowed signature types*). Interpolating renders through `Display`, never the written value.
 
 #### `Display`
 
@@ -1584,8 +1584,8 @@ Only the fields of a struct pattern bind names. The following are errors:
 
 Each arm narrows the scrutinee (a name, a field chain or the header name) to what its pattern matched.
 
-- **Through the wildcard.** After `is X` arms that constrain no field, the `_` arm sees what the arms above left: after `is null ->`, a `Pet | null` is a `Pet`.
-- **Literal and range arms** narrow an integer scrutinee to their values, as `if h in 1..=11` would. An or-pattern narrows to the range that holds its alternatives, and `_` to the values left when they form one interval. A `char` and a distinct type are not narrowed to a range.
+- After `is X` arms that constrain no field, the `_` arm sees what those arms left: after `is null ->`, a `Pet | null` is a `Pet`.
+- Literal and range arms narrow an integer scrutinee to their values, as `if h in 1..=11` would. An or-pattern narrows to the range that holds its alternatives, and `_` to the values left when they form one interval. A `char` and a distinct type are not narrowed to a range.
 
 #### Exhaustiveness
 
@@ -1738,15 +1738,15 @@ Type parameters are declared `<T>` (never `[T]` or `(T)`) at the declaration sit
 
 A type parameter may declare a **default** after its bound: `<Rhs: Numeric = Self>`. Trailing arguments an impl or a bound leaves out take their defaults, a `Self` default being the implementing or receiver type: `i32 implements Add` and `T: Add` both read `Add<Rhs = Self, Out = Self>` as `Add<Self, Self>`. A default on a struct, function or type-alias parameter is accepted but not applied: with `Pair :: struct<A, B = i32>`, `Pair<string>` is an error.
 
-**Disambiguation rule (expression position).** After a name (`f`, or the member in `x.f`, `M.f`), a `<` opens a type argument list when a matching `>` on the line is followed by `(`, `{`, `.name` (`Bag<f64>.make(1)`), or what ends a value: a `,`, a closing bracket, the end of the line (`f :: id<i32>`, `apply(name_of<i32>, 5)`). Otherwise the `<` is a comparison (`assert(v < 20, "msg")`). In `Box<Box<T>>`, `>>` closes both levels.
+In expression position, after a name (`f`, or the member in `x.f`, `M.f`), a `<` opens a type argument list when a matching `>` on the line is followed by `(`, `{`, `.name` (`Bag<f64>.make(1)`), or what ends a value: a `,`, a closing bracket, the end of the line (`f :: id<i32>`, `apply(name_of<i32>, 5)`). Otherwise the `<` is a comparison (`assert(v < 20, "msg")`). In `Box<Box<T>>`, `>>` closes both levels.
 
-**Explicit type arguments.** A call writes them after the callee's name, in any call form (`f<i64>(x)`, `x.f<i64>(y)`, `M.f<i64>(y)`), and they fix the callee's parameters in declaration order.
+A call writes explicit type arguments after the callee's name, in any call form (`f<i64>(x)`, `x.f<i64>(y)`, `M.f<i64>(y)`), and they fix the callee's parameters in declaration order.
 
 - Fewer than declared leaves the rest inferred (`pair<i64>(5, "x")` fixes `A` and infers `B`); more, or any on a function that takes none, is an error.
 - A static member takes its type's arguments on the type and its own after its name: `Bag<f64>.make<i64>(1)`, or `Bag.make<i64>(1)` with those of `Bag` inferred.
 - A generic type written with type arguments in a struct literal, as the owner of a static member or as a conversion target (`Box<i64>(x)`) writes all of them: with `Pair :: struct<A, B>`, `Pair<i32> { ... }` and `Pair<f64>.make(1)` are errors.
 
-**Generic functions** and **structs**:
+Generic functions and structs:
 
 ```vader
 map :: fn<T, U>(items: T[], f: fn(T) -> U) -> U[] {
@@ -1763,7 +1763,7 @@ List :: struct<T> {
 }
 ```
 
-**Constraints.** A bound follows the parameter after `:` and names traits, or `Int` (§4 *Range types*), joined by `&` and all required. A union is an error as a bound, as in a trait's composition: `null` goes where the parameter is used, `fn<T: Bump>(x: T | null)`, never `fn<T: Bump | null>(x: T)`.
+A bound follows the parameter after `:` and names traits, or `Int` (§4 *Range types*), joined by `&` and all required. A union is an error as a bound, as in a trait's composition: `null` goes where the parameter is used, `fn<T: Bump>(x: T | null)`, never `fn<T: Bump | null>(x: T)`.
 
 ```vader
 put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) {
@@ -1771,13 +1771,13 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) {
 }
 ```
 
-**Bound enforcement and trait-method dispatch on type parameters.**
+A type parameter's bound applies in the generic body and at every call:
 
 - In a generic body, a method call or an operator on a value typed by a type parameter resolves through its bound: `key.hash()` under `K: Hash`, `a < b` under `T: Comparable` (*Operator overloading*).
 - At every call, wherever the callee is declared and however it is called (through UFCS, the receiver alone may bind the parameter: `m.println()`), each type argument must implement every trait of its parameter's bound, at the bound's arguments: a `string[]` (`Contains<string>`) does not meet `C: Contains<i32>`.
 - A type argument that is itself a type parameter meets a bound its own bound names.
 
-**Type parameters are opaque in their body.** A generic body knows nothing of `T` beyond its bound: only a `T` fits a slot typed `T`, and a `T` fits only a slot that names it (`T`, `T | null`). Each of these is an error:
+Type parameters are opaque in their body. A generic body knows nothing of `T` beyond its bound: only a `T` fits a slot typed `T`, and a `T` fits only a slot that names it (`T`, `T | null`). Each of these is an error:
 
 ```vader
 widen :: fn<T>(x: T) -> i64 {
@@ -1800,7 +1800,7 @@ So is a free literal as a `T` argument or operand: `pick(x, 0)` with `pick` taki
 
 The body of a generic function or impl binds none of its own type parameters at a call: `keep("s")` on a local `keep :: (y: T) -> ...` is an error, as is `t.visit((y: Inner) -> ...)` under `T: Visit`. A callee's own parameters are still bound (`g :: identity`), and in a type's impl a receiver or the type name binds the impl's parameters to the instance it names (`other.put(4)` on a `Box<i32>`, `Bag.make(5)`).
 
-**A generic recursion may not grow its type argument.** On a cycle of calls, passing a type parameter on inside a larger type is an error: `wrap<T>` calling `wrap([x, x], n - 1)`, `ping<A>` calling `pong([a], n)` when `pong` calls `ping`, `[self].depth(n - 1)` in an impl on `T[]`. These are accepted:
+A generic recursion may not grow its type argument. On a cycle of calls, passing a type parameter on inside a larger type is an error: `wrap<T>` calling `wrap([x, x], n - 1)`, `ping<A>` calling `pong([a], n)` when `pong` calls `ping`, `[self].depth(n - 1)` in an impl on `T[]`. These are accepted:
 
 - passing the parameters on unchanged (`count_down(x, n - 1)`);
 - a call to itself at a fixed type (`fixed(n, n - 1)` inside `fixed<T>`);
@@ -1808,7 +1808,7 @@ The body of a generic function or impl binds none of its own type parameters at 
 
 An argument is matched against a signature's free type parameters when choosing an overload or the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>`), and on the fields of a generic struct literal without type arguments (`Box { .value = [4, 5] }`). A free literal binds no type parameter: write `Box<i32> { .value = 0 }`, not `Box { .value = 0 }`.
 
-**No inherent "associated functions"**: a static function belongs to a trait (*Static members*), never to a type alone. A factory outside a trait is a free function (`new_rng(42)` in `random`); a struct is built by its literal (`MutableMap<K, V> {}`).
+A static function belongs to a trait (*Static members*), never to a type alone: there are no inherent associated functions. A factory outside a trait is a free function (`new_rng(42)` in `random`); a struct is built by its literal (`MutableMap<K, V> {}`).
 
 The primitive impls are listed in §15 *`std/core`*.
 
@@ -1834,10 +1834,10 @@ print_it :: fn<T: Display>(x: T) {
 
 - **Declaration**: `Name :: trait { ... }`.
 - **Implementation**: `T implements Trait { ... }`, in three forms (*Single-method trait sugar (SAM)*). `T` and `Trait` resolve like any other name, and the impl belongs to the declarations they name: of two modules' `Foo` types, or `Animal` traits, an impl of one says nothing of the other.
-- An impl defines its trait's members and nothing else (*No inherent "associated functions"*), each with its trait method's parameters and return type, `Self` read as the impl's type and the trait's parameters as the impl's arguments (defaults: *Generics*). Any other member or signature is an error.
+- An impl defines its trait's members and nothing else, each with its trait method's parameters and return type, `Self` read as the impl's type and the trait's parameters as the impl's arguments, their defaults filled in (*Generics*, above). Any other member or signature is an error.
 - **`self` and `Self`**: in a trait or an impl, a first parameter named `self` has the type `Self` with no annotation, and `Self` is the implementing type (`Foo` in `Foo implements Trait { ... }`, a written `-> Self` included). Elsewhere, `Self` is an error.
 
-**A union calls the members of a trait all its variants implement**: `u.area()` on `u: Sq | Circle`, like `k in u`, `u + 5` or `u[k] = v`, dispatches by the value's run-time type, as on a trait value. Each trait argument must be one type for all the variants, or each variant itself (`Out = Self`, read as the union: `a + 5` on `a: i32 | Money` is an `i32 | Money`).
+A union calls the members of a trait all its variants implement: `u.area()` on `u: Sq | Circle`, like `k in u`, `u + 5` or `u[k] = v`, dispatches by the value's run-time type, as on a trait value. Each trait argument must be one type for all the variants, or each variant itself (`Out = Self`, read as the union: `a + 5` on `a: i32 | Money` is an `i32 | Money`).
 
 These are errors (narrow the union first):
 
@@ -1971,15 +1971,15 @@ T[] implements<T>          Into<Iterator<T>> { /* ... */ }
 T   implements<T: Display> Into<string>      { /* ... */ }
 ```
 
-**Every parameter the list declares appears in the for-type**: `T[] implements<T, U> Tagged<T, U>` and `Box<T> implements<T, U> Add<U>` are errors.
+Every parameter the list declares appears in the for-type: `T[] implements<T, U> Tagged<T, U>` and `Box<T> implements<T, U> Add<U>` are errors.
 
-**A bounded impl holds only for the arguments its bounds admit.** With `Box<T> implements<T: Display> Display`, `Box<Point>` has no `Display` while `Point` has none: interpolating it, or passing it to a `T: Display` parameter, is an error naming the unmet bound.
+A bounded impl holds only for the arguments its bounds admit. With `Box<T> implements<T: Display> Display`, `Box<Point>` has no `Display` while `Point` has none: interpolating it, or passing it to a `T: Display` parameter, is an error naming the unmet bound.
 
 - An argument meets a bound as at a call (*Generics*); a union, when every variant does; a distinct type, through its own impl or its backing's. An array does not meet a `Display` bound there.
 - A member of a bounded impl is reached only through an instance its bounds admit, in every form: with `Wrapper<T> implements<T: Bump> Poke`, `w.poke()` on a `Wrapper<Plain>` is an error, as are `for`, `w[i]`, `w[i] = v` and an operator through such an impl.
 - An `is Trait` test still matches by the type's base, whatever the bounds.
 
-**A struct's bounds hold at its literal.** With `Wrapper :: struct<T: Bump>`, `Wrapper<X> { ... }` is an error when `X` does not meet the bound; a type written elsewhere (`w: Wrapper<Plain>`) is not checked. An impl borrowing the struct's parameters (`Wrapper<T> implements Poke`) holds only for what the struct admits.
+A struct's bounds hold at its literal. With `Wrapper :: struct<T: Bump>`, `Wrapper<X> { ... }` is an error when `X` does not meet the bound; a type written elsewhere (`w: Wrapper<Plain>`) is not checked. An impl borrowing the struct's parameters (`Wrapper<T> implements Poke`) holds only for what the struct admits.
 
 A generic function states the bounds it relies on: `fn<K>(m: MutableMap<K, V>)` indexing `m` is an error without `K: Hash & Equals`. A generic struct literal without type arguments (`Box { .value = p }`) is typed `Box`, and its bounds are not checked.
 
@@ -2109,7 +2109,7 @@ twice(3)                           // 6: the built-in +
 twice("ab")                        // "abab": through string implements Add
 ```
 
-Resolution rule for **arithmetic** operators (`+ - * / %`):
+Resolution rule for arithmetic operators (`+ - * / %`):
 
 1. Two primitive numeric operands use the built-in operator.
 2. `string + string` concatenates, as `a.add(b)` and a `T: Add` bound do through `string implements Add`.
@@ -2118,7 +2118,7 @@ Resolution rule for **arithmetic** operators (`+ - * / %`):
 5. A value of the operator's trait (`a: Add<i32>`) or a union of its implementors dispatches as its method form does (*Traits*), and so does `in` on `Contains`, with the union's errors: `a < b` on two `Comparable` values is an error.
 6. Any other operands are an error.
 
-Resolution rule for **ordering** (`< <= > >=`):
+Resolution rule for ordering (`< <= > >=`):
 
 1. Primitive numerics and `char` use the built-in comparison, a float by IEEE 754 (every comparison with `nan` is false). A distinct type orders as its backing (*Distinct types*). `string` orders through its `Comparable` impl, by bytes: code-point order, a proper prefix first.
 2. Two struct operands call `Comparable`. A type parameter bounded by `Comparable` dispatches as in arithmetic rule 4.
@@ -2155,7 +2155,7 @@ r[0..<2]                // [9, 2]: a Range slices the backing
 
 ### Nullability
 
-No implicit `null`. To express absence, use a union:
+There is no implicit `null`. A value that may be absent has a union type:
 
 ```vader
 find_user :: fn(id: u32) -> User | null {
@@ -2200,11 +2200,11 @@ Meters(5) == Seconds(5)         // error: two distinct types, though both are ov
 | Array | An error: use a named comparison (below), or `===` for identity. |
 | Trait value, function value | An error: narrow it first (`if d is Point`). |
 
-- **Type parameters.** This holds when the parameter is a union variant too (`T | null == T`); only `x == null` needs no bound. `x in xs` needs the bound too: `T[]` implements `Contains<T>` only for `T: Equals`.
-- **Union operands.** A union compares with another union or one of its members when the two sides share a variant, and each variant but `null` needs an `==` (the error names it).
-- **Operands of different types.** Two integer types neither of which holds the other are an error (§4 *Implicit numeric coercion*). A distinct type compares with its own backing on either side (`"" == path` with `Path :: string`).
+- For a type parameter, this holds when the parameter is a union variant too (`T | null == T`); only `x == null` needs no bound. `x in xs` needs the bound too: `T[]` implements `Contains<T>` only for `T: Equals`.
+- A union compares with another union or one of its members when the two sides share a variant, and each variant but `null` needs an `==` (the error names it).
+- Comparing two integer types neither of which holds the other is an error (§4 *Implicit numeric coercion*). A distinct type compares with its own backing on either side (`"" == path` with `Path :: string`).
 
-**Arrays.** `std/core` names the comparisons of arrays, for a `T: Equals` element:
+For arrays of a `T: Equals` element, `std/core` names the comparisons:
 
 ```vader
 a :: [1, 2, 2]
@@ -2270,16 +2270,16 @@ k :: 0          // immutable
 k = 1           // error: cannot reassign immutable binding
 ```
 
-Only a mutable local, a parameter or a name a pattern binds may be rebound. Never a declaration, even renamed by an import or reached through a namespace (`P.SEP = 'x'`), a `for ... in` variable (§7 *`for` (universal loop)*) or a `match` header name (§4 *Pattern matching*).
+Only a mutable local, a parameter or a name a pattern binds may be rebound. A declaration cannot be rebound, even renamed by an import or reached through a namespace (`P.SEP = 'x'`), and neither can a `for ... in` variable (§7 *`for` (universal loop)*) or a `match` header name (§4 *Pattern matching*).
 
-The compiler warns about a mutable local never rebound: only an assignment to the bare name rebinds it, a compound one included, not `x.f = 1` or `x[0] = 1`. A destructuring `:=` draws no warning when one of its names is rebound.
+The compiler warns about a mutable local never rebound: only an assignment to the bare name rebinds it, compound assignments included; `x.f = 1` and `x[0] = 1` do not. A destructuring `:=` draws no warning when one of its names is rebound.
 
 At module level, only the immutable forms declare; module state lives in a `@singleton` (§12 *`@singleton`*).
 
-**The top level is not ordered.** A constant or a function may read a module constant declared below it: `INNERS :: [ONE]` above `ONE :: Inner { .n = 7 }` is an `Inner[]`.
+The top level is not ordered. A constant or a function may read a module constant declared below it: `INNERS :: [ONE]` above `ONE :: Inner { .n = 7 }` is an `Inner[]`.
 
 - A constant whose value reads itself, directly or through others (`A :: B + 1`, `B :: A + 1`), is an error. A `@comptime` constant in the cycle reports it when evaluated.
-- A read inside a lambda waits until the lambda runs, so an annotated constant may name itself there, an unannotated one may not.
+- A read inside a lambda waits until the lambda runs, so an annotated constant may name itself there; an unannotated one may not.
 
 ```vader
 fact: fn(i32) -> i32 : (n: i32) -> if n <= 1 { 1 } else { n * fact(n - 1) }
@@ -2290,7 +2290,7 @@ fact: fn(i32) -> i32 : (n: i32) -> if n <= 1 { 1 } else { n * fact(n - 1) }
 - **The binding.** `::` forbids rebinding the name, `:=` allows it (*Binding forms*, above). An assignment targets a name, a field or an element; any other target (`get() = 3`, `xs.len() = 5`, `Direction.North = .South`) is an error.
 - **The referent.** A value may be modified through any name that reaches it: a parameter, a local, a field, an element. No signature says whether a function modifies what it is lent (*What a function does with what it is lent*, below).
 
-Only two kinds of value are **frozen**, which the compiler forbids modifying in place: the value of a **module constant**, at every level, and a **view of a string's bytes** (`s.bytes()`).
+Only two kinds of value are **frozen**, which the compiler forbids modifying in place: the value of a module constant, at every level, and a view of a string's bytes (`s.bytes()`).
 
 ```vader
 CONFIG :: Config { .retries = 3 }
@@ -2308,12 +2308,12 @@ main :: fn() -> i32 {
 
 ### Frozen values
 
-**A module constant** cannot be modified, at any depth. These are errors:
+A module constant cannot be modified, at any depth. These are errors:
 
 - a write through it, directly or down a path (`CONFIG.retries = 5`, `TABLE[0].n = 1`, `[PAIR[1], y] = ...`);
 - lending it to a function that modifies it, directly or down the calls it hands it to. A call through a trait, a bound or method syntax is judged by every function it may run.
 
-Binding it to a name, storing it in a field or an element, returning it or handing it to a function value makes a **copy** the program owns. A write to such a copy, or to a copy of variant data, that the body never reads nor keeps draws a warning: `c.n = 0` in `for c in TABLE { ... }` changes nothing. A write below the name is no read of it, and a name that may hold another value (a parameter, a branch, a rebinding) draws none.
+Binding it to a name, storing it in a field or an element, returning it or handing it to a function value makes a copy the program owns. A write to such a copy, or to a copy of variant data, that the body never reads nor keeps draws a warning: `c.n = 0` in `for c in TABLE { ... }` changes nothing. A write below the name is no read of it, and a name that may hold another value (a parameter, a branch, a rebinding) draws none.
 
 ```vader
 TABLE :: [1, 2, 3]
@@ -2331,7 +2331,7 @@ refill(TABLE)               // error: `refill` modifies it through `fill`
 fill(TABLE.clone(), 1, 2)   // OK: a copy
 ```
 
-**A view of a string's bytes** (§4 *Strings*) is the string's own bytes, never copied implicitly. It may be read, lent to a function that only reads it, and returned. Writing it, lending it to a function that modifies it, keeping it (in a field, an element or a module constant's value) or handing it to code the compiler cannot follow (a function value) is an error.
+A view of a string's bytes (§4 *Strings*) is the string's own bytes, never copied implicitly. It may be read, lent to a function that only reads it, and returned. Writing it, lending it to a function that modifies it, keeping it (in a field, an element or a module constant's value) or handing it to code the compiler cannot follow (a function value) is an error.
 
 Only the view itself counts: a byte read from it is a value, and so is a name narrowed to a type no byte array is (`r: u8[] | Failure` in `if r is Failure { failures.push(r) }`). `.clone()` makes a copy the program owns. The result of a function that returns a view is a view, as that of `bytes()` is.
 
@@ -2357,7 +2357,7 @@ A type says nothing about what may be written: a `!` after a type is a syntax er
 
 ### Scoping
 
-Scopes are lexical (a function, a block), and a local is visible from its declaration on. A local may shadow an outer local or a parameter in a sub-block, or a name declared earlier in its own block, and the compiler warns.
+Scopes are lexical (a function, a block), and a local is visible from its declaration on. A local may shadow an outer local or a parameter in a sub-block, or a name declared earlier in its own block; the compiler warns when it does.
 
 ---
 
@@ -2695,11 +2695,11 @@ for 0..<GENERATIONS {
 }
 ```
 
-With no variable, `for <expr> { body }` loops while `<expr>` holds when it is a `bool`, and is `for _ in <expr>` when it is iterable (an array, an `Iterator<T>`, a `Range`, ...). Any other type is an error.
+Without a variable, `for <expr> { body }` depends on the type of `<expr>`. A `bool` makes it loop while the expression holds; an iterable value (an array, an `Iterator<T>`, a `Range`, ...) makes it `for _ in <expr>`. Any other type is an error.
 
-**The variable of a `for x in ...` is a constant binding**, bound anew at each turn, as is each name of `for [k, v] in ...`: assigning it is an error, modifying what it designates (`x.push(y)`) is not. The condition form binds nothing: in `for i > 0 { i -= 1 }`, `i` is an ordinary local.
+The variable of a `for x in ...` is a constant binding, bound anew at each turn, and so is each name of `for [k, v] in ...`. Assigning it is an error; modifying the value it designates, as `x.push(y)` does, is allowed. The condition form binds nothing: in `for i > 0 { i -= 1 }`, `i` is an ordinary local.
 
-**What a loop iterates is evaluated once, before the first element.** A range evaluates `lo`, then `hi`, when it is built: `for i in 0..<n { n = 5 }` runs as many times as `n` held on entry. A lazy chain evaluates its source, each combinator's argument, then the terminal's, once each and on an empty source too: `xs.map(f()).filter(p()).any_match(q())` evaluates `xs`, `f()`, `p()`, then `q()`.
+What a loop iterates over is evaluated once, before the first element. A range evaluates `lo`, then `hi`, when it is built, so `for i in 0..<n { n = 5 }` runs as many times as `n` held on entry. A lazy chain evaluates its source, then the argument of each combinator, then that of the terminal, once each, even when the source is empty: `xs.map(f()).filter(p()).any_match(q())` evaluates `xs`, `f()`, `p()`, then `q()`.
 
 `for x in expr` accepts four kinds of `expr`:
 
@@ -2713,7 +2713,7 @@ With no variable, `for <expr> { body }` loops while `<expr>` holds when it is a 
 
 ### Targeting an outer loop: `break <var>` / `continue <var>`
 
-A bare `break` or `continue` acts on the innermost loop. `break <name>` and `continue <name>` act on the nearest enclosing loop whose iteration variable, or label (below), is `<name>`; any other name, a local included, is an error.
+A bare `break` or `continue` acts on the innermost loop. `break <name>` and `continue <name>` act on the nearest enclosing loop whose iteration variable, or label (below), is `<name>`. Any other name is an error, the name of a local included.
 
 ```vader
 for row in grid {
@@ -2724,7 +2724,7 @@ for row in grid {
 }
 ```
 
-**Labels: only for a loop with no variable.** A `name:` prefix labels a condition loop (`for <cond>`) or an infinite loop (`for {}`):
+Only a loop without a variable takes a label: a `name:` prefix on a condition loop (`for <cond>`) or on an infinite loop (`for {}`).
 
 ```vader
 scan: for !done {
@@ -2734,7 +2734,7 @@ scan: for !done {
 }
 ```
 
-The compiler warns about a label on a `for ... in` loop: use its variable.
+The compiler warns about a label on a `for ... in` loop: target that loop by its variable instead.
 
 ### `defer`
 
@@ -2757,9 +2757,9 @@ process :: fn(path: string) -> string | Error {
 }
 ```
 
-A `return`, like the trailing value of a block, computes its value before the defers run: a defer that writes a local the value reads does not change it.
+A `return`, like the trailing value of a block, computes its value before the defers run, so a defer that writes to a local the value reads does not change the value.
 
-A `defer` body cannot `return`, `yield`, `await`, or `break` or `continue` a loop it is not inside; a lambda written there returns from the lambda. `defer` in a generator is an error.
+A `defer` body cannot `return`, `yield` or `await`, nor `break` or `continue` a loop it is not inside; a `return` in a lambda written there returns from that lambda. A `defer` in a generator is an error.
 
 When the program stops (a `panic`, a failed run-time check, `unreachable`), the pending defers of every frame run, innermost first, before the process ends. A stop inside a deferred body ends the program at once, without running the defers still pending. There is no `recover`.
 
@@ -2781,9 +2781,9 @@ Each backend provides the collector. A native binary carries its own, described 
 
 ### Storage semantics
 
-- **Primitives** (`i32`, `f64`, `bool`, ...) are values, copied on assignment.
-- **`string`** is an immutable value, copied on assignment. Copies share their content.
-- **Structs and arrays** live on the heap and are reached through implicit references. A function a struct or an array is passed to reaches the caller's value, and can modify it unless it is frozen (§5 *Frozen values*).
+- Primitives (`i32`, `f64`, `bool`, ...) are values, copied on assignment.
+- A `string` is an immutable value, copied on assignment. Copies share their content.
+- Structs and arrays live on the heap and are reached through implicit references. A function a struct or an array is passed to reaches the caller's value, and can modify it unless it is frozen (§5 *Frozen values*).
 
 ### No visible pointers
 
@@ -2965,9 +2965,9 @@ import "app/paint" { area }             // error: the wildcard already brings `a
 
 - The string of an `import` is a module name, resolved against the search roots (*Include paths*, below).
 - Imports are file-scoped: each file of a module declares its own, and sees none of its siblings'.
-- **Wildcard ambiguity.** A name two wildcard imports export is an error only where it is used unqualified, and the error names every module that provides it. A declaration of the module or a rename binding of that name shadows the wildcards, and a name the prelude or a builtin provides always refers to that one. A namespace import, a rename or an exclusion settles an ambiguity.
-- **A binding against a declaration.** A rename or a namespace alias cannot take the name of a type or constant the module declares, in any of its files. It can take a function's: the module's function keeps the unqualified name, and the imported one stays reachable by UFCS (§6 *Function overloading*); with the same signature, the two are a redefinition, an error. Either error is reported on the import. Two files of a module may import the same name.
-- **No re-exports.** A module publishes only what it declares. A module that fronts another wraps each binding it republishes.
+- A name that two wildcard imports export is an error only where it is used unqualified, and the error names every module that provides it. A declaration of the module or a rename binding of that name shadows the wildcards, and a name the prelude or a builtin provides always refers to that one. A namespace import, a rename or an exclusion settles an ambiguity.
+- A rename or a namespace alias cannot take the name of a type or constant the module declares, in any of its files. It can take a function's: the module's function keeps the unqualified name, and the imported one stays reachable by UFCS (§6 *Function overloading*); with the same signature, the two are a redefinition, an error. Either error is reported on the import. Two files of a module may import the same name.
+- There are no re-exports: a module publishes only what it declares. A module that fronts another wraps each binding it republishes.
 
 **Details.**
 
@@ -3101,7 +3101,7 @@ Nothing else appears at the top level: code with an effect lives in a function b
 
 ### Generated modules
 
-A module's files live in one folder: the first root that provides it wins (*Include paths*). The exception is the generated modules of a project, which its driver writes (*Generating code*, below): a generated file does not shadow a module that an earlier root provides, it is added to it.
+A module's files live in one folder: the first root that provides it wins (*Include paths*). The exception is the generated modules of a project, which its driver writes (*Generating code*, below): a generated file joins a module that an earlier root provides instead of shadowing it.
 
 A driver's `ctx.emit_module("app", ...)` can therefore extend the project's own `app`. The generated file becomes one more file of the module: it sees the module's declarations, and they see its own, with no `import` either way. The module's identity remains its primary folder.
 
@@ -3277,8 +3277,8 @@ The condition must evaluate to `true` at compile time; otherwise the build fails
 
 Both lift the exhaustiveness check on a `match`.
 
-- **`@partial`** is for "everything else does X". Pair it with a `_` arm; the compiler then does not warn about that wildcard.
-- **`@unreachable`** is for "the other cases cannot happen". The arms handle the possible cases explicitly, with no `_` arm, and a value that reaches no arm stops the program (`reached unreachable`).
+- `@partial` is for "everything else does X". Pair it with a `_` arm; the compiler then does not warn about that wildcard.
+- `@unreachable` is for "the other cases cannot happen". The arms handle the possible cases explicitly, with no `_` arm, and a value that reaches no arm stops the program (`reached unreachable`).
 
 The two cannot be combined.
 
@@ -3313,7 +3313,7 @@ log().push("x")            // every later `log()` sees "x"
 
 ### `@allow_unused`
 
-Exempts a private declaration from the dead-code warning. Use it for deliberate dead code: an API not wired yet, a helper kept for symmetry, a decoy in a test fixture. The declaration counts as reachable, and so does everything it uses.
+`@allow_unused` exempts a private declaration from the dead-code warning. Use it for deliberate dead code: an API not wired yet, a helper kept for symmetry, a decoy in a test fixture. The declaration counts as reachable, and so does everything it uses.
 
 ---
 
@@ -3554,13 +3554,13 @@ The shapes below cross too, only in the direction given. Any other type in an `@
 | An enum with a written width | The integer value of its variant | Argument only |
 | A function type | The address of a named function | Argument only |
 
-**Strings.** A `string` argument reaches C as a NUL-terminated UTF-8 `const char*`, valid for the call only: nothing reports a callee that keeps it. A `string` result is copied before the arguments are released, so one pointing into an argument (`strstr`) reads correctly. Vader never frees the pointer C returns: right for one the library owns (`getenv`), a leak for one the caller should free. A `NULL` result is `""`, or `null` for a `string | null` result, telling "absent" from "empty" (`getenv`).
+A `string` argument reaches C as a NUL-terminated UTF-8 `const char*`, valid for the call only: nothing reports a callee that keeps it. A `string` result is copied before the arguments are released, so one pointing into an argument (`strstr`) reads correctly. Vader never frees the pointer C returns, which is right for one the library owns (`getenv`) and a leak for one the caller should free. A `NULL` `string` result is `""`, or `null` for a `string | null` result, telling "absent" from "empty" (`getenv`).
 
-**Foreign pointers.** `CPointer` (§4 *Primitive types*) is an address C hands out: a program receives it, passes it back and compares it, but cannot read through it or build one. `Handle :: CPointer`, a distinct type, names a kind of handle. `CPointer | null` narrows on `NULL` alone: a sentinel that is not `NULL` (`INVALID_HANDLE_VALUE`, `MAP_FAILED`, both `-1`) is tested through `i64(p)` or `u64(p)`, which hold an address on every target. Converting a `CPointer` to a narrower integer or a float, or an integer to a `CPointer`, is an error.
+`CPointer` (§4 *Primitive types*) is an address C hands out: a program receives it, passes it back and compares it, but cannot read through it or build one. `Handle :: CPointer`, a distinct type, names a kind of handle. `CPointer | null` narrows on `NULL` alone: a sentinel that is not `NULL` (`INVALID_HANDLE_VALUE`, `MAP_FAILED`, both `-1`) is tested through `i64(p)` or `u64(p)`, which hold an address on every target. Converting a `CPointer` to a narrower integer or a float, or an integer to a `CPointer`, is an error.
 
-**Arrays.** An array crosses as a pointer to its first element; a length the callee wants is a parameter of its own.
+An array crosses as a pointer to its first element; a length the callee wants is a parameter of its own.
 
-**Enums.** An enum with a written width (§4 *Representation*) crosses as its variant's integer at that width; an enum with variant data crosses as the value written after its `=` (§4 *Variant data*). The following are errors:
+An enum with a written width (§4 *Representation*) crosses as its variant's integer at that width; an enum with variant data crosses as the value written after its `=` (§4 *Variant data*). The following are errors:
 
 - an enum whose width is inferred;
 - an `@extern` that takes both an enum with variant data and a callback.
@@ -3656,7 +3656,7 @@ TABLE :: build_lookup_table()
 
 The call runs during compilation, and `TABLE` is a constant computed once. The value is a scalar, a string, an array, a struct or a tuple, nested at will; a function value, a map, a set, or a value depending on itself (directly or through other constants) is an error.
 
-**Inline form.** `@comptime` also prefixes the right-hand side of a constant:
+In its inline form, `@comptime` prefixes the right-hand side of a constant:
 
 ```vader
 TABLE :: @comptime {
@@ -3673,7 +3673,7 @@ SQUARES: u32[]: @comptime { ... }
 
 A block runs as a function body, where `return` or a trailing expression gives the value. The typed form `NAME: T: @comptime <expr>` gives the value the type `T`.
 
-**Decorator form.** `@comptime` above `NAME :: <expr>` computes what `NAME :: @comptime <expr>` does, unless `<expr>` has the shape of a type (a name, `Mod.T`, `Box<T>`, `T[]`, `A | B`, `[A, B]`, a function type, `Int in 0..=23`). Such an `<expr>` runs no function body:
+In its decorator form, `@comptime` above `NAME :: <expr>` computes what `NAME :: @comptime <expr>` does, unless `<expr>` has the shape of a type (a name, `Mod.T`, `Box<T>`, `T[]`, `A | B`, `[A, B]`, a function type, `Int in 0..=23`). Such an `<expr>` runs no function body:
 
 - naming a type, the declaration is a type alias (§4 *Distinct types*);
 - naming a value, such as a constant, it is folded and cannot read a constant computed by running code (a loop, a statement body), which the inline form can.
@@ -3963,9 +3963,9 @@ main :: fn() -> i32 {
 
 `await` is an error in a nested lambda, a `defer` body and, for now, the right operand of `&&`, `||` or `??`, a loop condition or a `match` guard.
 
-**Evaluation order.** Operands evaluate left to right even when a later one awaits: in `f(a(), await b())`, `a()` runs first. An assignment evaluates its target's operands (receiver, index), then its value; a compound assignment `place op= e` reads `place` only at the write.
+Operands evaluate left to right even when a later one awaits: in `f(a(), await b())`, `a()` runs first. An assignment evaluates its target's operands (receiver, index), then its value; a compound assignment `place op= e` reads `place` only at the write.
 
-**`defer`** works in an async function: its pending defers, those registered before an `await` included, run in reverse order when it completes or is cancelled.
+`defer` works in an async function: the function's pending defers, those registered before an `await` included, run in reverse order when the function completes or is cancelled.
 
 #### Running async code
 
@@ -4014,8 +4014,8 @@ Native threads are planned after the MVP, in `std/thread`, whose import will be 
 
 A build is made for a **target**, an operating system and an architecture written `<os>-<arch>` (`--target=darwin-arm64`), by default the machine the compiler runs on.
 
-- The **OS** selects code: `@target` chooses the body of a function by OS.
-- The **architecture** selects no code (no `@target` on it), and sets values such as the pointer width.
+- The OS selects code: `@target` chooses the body of a function by OS.
+- The architecture selects no code (no `@target` on it), and sets values such as the pointer width.
 
 `Os` has the variants `Windows`, `Linux`, `Darwin`, `Wasi` and `Browser`; `Arch` has `X86_64`, `Arm64` and `Wasm32`. WebAssembly is an architecture, on which two OSes run: `Wasi` has a POSIX-shaped filesystem, `Browser` has none.
 
