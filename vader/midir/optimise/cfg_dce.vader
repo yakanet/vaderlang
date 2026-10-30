@@ -369,8 +369,14 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction = match ins {
         .pool_index = ins.pool_index,
         .type = ins.type,
     }
-    is InstrGlobalGet     -> InstrGlobalGet { ...ins, .dst = remap_local(m, ins.dst) }
-    is InstrGlobalSet     -> InstrGlobalSet { ...ins, .value = remap_local(m, ins.value) }
+    is InstrGlobalGet     -> InstrGlobalGet {
+        ...ins,
+        .dst = remap_local(m, ins.dst),
+    }
+    is InstrGlobalSet     -> InstrGlobalSet {
+        ...ins,
+        .value = remap_local(m, ins.value),
+    }
     is InstrTypeCheck     -> InstrTypeCheck {
         .span = ins.span,
         .dst = remap_local(m, ins.dst),
