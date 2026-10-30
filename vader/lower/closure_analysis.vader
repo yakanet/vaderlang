@@ -63,7 +63,9 @@ analyze_module :: fn(project: LowerProjectCtx, loaded: LoadedModule, typed: Type
                 is AST.TraitDecl -> {
                     analyze_members(decl.members, typed, symbol_index, analysis)
                 }
-                is AST.ConstDecl -> { analyze_value(decl.value, typed, symbol_index, analysis) }
+                is AST.ConstDecl -> {
+                    analyze_value(decl.value, typed, symbol_index, analysis)
+                }
                 is AST.StructDecl -> {
                     for field in decl.fields {
                         value :: field.default ?? continue
@@ -93,8 +95,11 @@ analyze_members :: fn(
 // lambda to collect into). Nested lambdas inside the body get their
 // captures recorded via post-order recursion.
 analyze_fn_body :: fn(
-    fn_decl: AST.FnDecl, body: AST.BlockExpr, typed: TypedProgram,
-    symbol_index: MutableMap<u64, Symbol>, analysis: ClosureAnalysis,
+    fn_decl: AST.FnDecl,
+    body: AST.BlockExpr,
+    typed: TypedProgram,
+    symbol_index: MutableMap<u64, Symbol>,
+    analysis: ClosureAnalysis,
 ) -> void {
     scope :: collect_owned_scope_for_params(fn_decl.params, symbol_index)
     ctx :: WalkCtx {
@@ -114,8 +119,10 @@ analyze_fn_body :: fn(
 // Walked with an EMPTY owned scope (no params) at top level (out_captures =
 // null): nested lambdas record their own captures.
 analyze_value :: fn(
-    value: AST.Expr, typed: TypedProgram,
-    symbol_index: MutableMap<u64, Symbol>, analysis: ClosureAnalysis,
+    value: AST.Expr,
+    typed: TypedProgram,
+    symbol_index: MutableMap<u64, Symbol>,
+    analysis: ClosureAnalysis,
 ) -> void {
     ctx :: WalkCtx {
         .typed = typed,
@@ -126,23 +133,28 @@ analyze_value :: fn(
 }
 
 WalkCtx :: struct {
-    typed:        TypedProgram
+    typed: TypedProgram
     // Cache built once by `analyze_module` ; covers every defined_at in
     // `typed.resolved`. Lookups go through `lookup_symbol_by_span`.
     symbol_index: MutableMap<u64, Symbol>
-    analysis:     ClosureAnalysis
+    analysis: ClosureAnalysis
 }
 
 // Build the owned-scope (param ids) for a function or lambda. Both
 // callers feed `FnParam[]`: `FnDecl.params` and `LambdaExpr.params`
 // share the same element type, so this single helper covers both.
-collect_owned_scope_for_params :: fn(params: AST.FnParam[], symbol_index: MutableMap<u64, Symbol>) -> MutableSet<i32> {
+collect_owned_scope_for_params :: fn(
+    params: AST.FnParam[],
+    symbol_index: MutableMap<u64, Symbol>,
+) -> MutableSet<i32> {
     scope :: empty_scope()
     for ast_param in params {
         symbol :: lookup_symbol_by_span(symbol_index, ast_param.span)
         match symbol {
-            is null -> {}
-            is Symbol -> { scope.add(symbol.id) }
+            is null   -> {}
+            is Symbol -> {
+                scope.add(symbol.id)
+            }
         }
     }
     return scope
@@ -165,18 +177,26 @@ lookup_symbol_by_span :: fn(symbol_index: MutableMap<u64, Symbol>, span: Span) -
 // (post-order) and then folded into the enclosing lambda's set.
 
 walk_body :: fn(
-    body: AST.BlockExpr, scope: MutableSet<i32>,
-    out_captures: Capture[] | null, out_seen: MutableSet<i32> | null, ctx: WalkCtx,
+    body: AST.BlockExpr,
+    scope: MutableSet<i32>,
+    out_captures: Capture[] | null,
+    out_seen: MutableSet<i32> | null,
+    ctx: WalkCtx,
 ) -> void {
-    for stmt in body.stmts { walk_stmt(stmt, scope, out_captures, out_seen, ctx) }
+    for stmt in body.stmts {
+        walk_stmt(stmt, scope, out_captures, out_seen, ctx)
+    }
     if body.trailing !is null {
         walk_expr(body.trailing, scope, out_captures, out_seen, ctx)
     }
 }
 
 walk_stmt :: fn(
-    stmt: AST.Stmt, scope: MutableSet<i32>,
-    out_captures: Capture[] | null, out_seen: MutableSet<i32> | null, ctx: WalkCtx,
+    stmt: AST.Stmt,
+    scope: MutableSet<i32>,
+    out_captures: Capture[] | null,
+    out_seen: MutableSet<i32> | null,
+    ctx: WalkCtx,
 ) -> void {
     match stmt {
         is AST.LetStmt               -> {
@@ -185,7 +205,7 @@ walk_stmt :: fn(
         }
         is AST.AssignStmt            -> {
             walk_expr(stmt.target, scope, out_captures, out_seen, ctx)
-            walk_expr(stmt.value,  scope, out_captures, out_seen, ctx)
+            walk_expr(stmt.value, scope, out_captures, out_seen, ctx)
         }
         is AST.DestructureAssignStmt -> {
             for place in AST.assign_places(stmt) {
@@ -224,8 +244,12 @@ walk_stmt :: fn(
             defer_captures: Capture[]: []
             defer_seen :: MutableSet<i32> {}
             match deferred :: stmt.body {
-                is AST.DeferStmtBody -> { walk_stmt(deferred.stmt, defer_scope, defer_captures, defer_seen, ctx) }
-                is AST.DeferBlockBody -> { walk_body(deferred.block, defer_scope, defer_captures, defer_seen, ctx) }
+                is AST.DeferStmtBody  -> {
+                    walk_stmt(deferred.stmt, defer_scope, defer_captures, defer_seen, ctx)
+                }
+                is AST.DeferBlockBody -> {
+                    walk_body(deferred.block, defer_scope, defer_captures, defer_seen, ctx)
+                }
             }
             ctx.analysis.defer_captures[capture_key(ctx.typed.resolved.path, stmt.id)] = defer_captures
             // Bubble each captured symbol into the parent's lists so
@@ -236,7 +260,9 @@ walk_stmt :: fn(
             if out_captures != null {
                 if out_seen != null {
                     for cap in defer_captures {
-                        if cap.symbol.id in scope { continue }
+                        if cap.symbol.id in scope {
+                            continue
+                        }
                         add_capture_value(cap, out_captures, out_seen)
                     }
                 }
@@ -249,8 +275,11 @@ walk_stmt :: fn(
 }
 
 walk_for :: fn(
-    for_stmt: AST.ForStmt, scope: MutableSet<i32>,
-    out_captures: Capture[] | null, out_seen: MutableSet<i32> | null, ctx: WalkCtx,
+    for_stmt: AST.ForStmt,
+    scope: MutableSet<i32>,
+    out_captures: Capture[] | null,
+    out_seen: MutableSet<i32> | null,
+    ctx: WalkCtx,
 ) -> void {
     match wf :: for_stmt.form {
         is AST.InfiniteFor -> {}
@@ -261,13 +290,15 @@ walk_for :: fn(
                 is AST.NamedVar       -> {
                     binding :: lookup_symbol_by_span(ctx.symbol_index, loop_var.span)
                     match binding {
-                        is null -> {}
+                        is null   -> {}
                         is Symbol -> { scope.add(binding.id) }
                     }
                 }
                 // `for [k, v] in …` : each leaf is a loop-scoped local a body
                 // closure may capture (reuses the shared let-binding walker).
-                is AST.DestructureVar -> { add_local_to_scope(loop_var.pattern, scope, ctx.symbol_index) }
+                is AST.DestructureVar -> {
+                    add_local_to_scope(loop_var.pattern, scope, ctx.symbol_index)
+                }
                 is AST.DiscardVar     -> {}
             }
         }
@@ -276,49 +307,58 @@ walk_for :: fn(
 }
 
 walk_expr :: fn(
-    expr: AST.Expr, scope: MutableSet<i32>,
-    out_captures: Capture[] | null, out_seen: MutableSet<i32> | null, ctx: WalkCtx,
+    expr: AST.Expr,
+    scope: MutableSet<i32>,
+    out_captures: Capture[] | null,
+    out_seen: MutableSet<i32> | null,
+    ctx: WalkCtx,
 ) -> void {
     match expr {
-        is AST.IntLitExpr -> {}
-        is AST.FloatLitExpr -> {}
-        is AST.BoolLitExpr -> {}
-        is AST.NullLitExpr -> {}
-        is AST.CharLitExpr -> {}
-        is AST.DotVariantExpr -> {}
-        is AST.NullCoalesceExpr -> {
+        is AST.IntLitExpr        -> {}
+        is AST.FloatLitExpr      -> {}
+        is AST.BoolLitExpr       -> {}
+        is AST.NullLitExpr       -> {}
+        is AST.CharLitExpr       -> {}
+        is AST.DotVariantExpr    -> {}
+        is AST.NullCoalesceExpr  -> {
             walk_expr(expr.left, scope, out_captures, out_seen, ctx)
             inner :: AST.coalesce_fallback_expr(expr.fallback)
-            if inner != null { walk_expr(inner, scope, out_captures, out_seen, ctx) }
+            if inner != null {
+                walk_expr(inner, scope, out_captures, out_seen, ctx)
+            }
         }
-        is AST.FnTypeExpr -> {}
-        is AST.ArrayTypeExpr -> {}
-        is AST.IdentExpr -> { record_ident_capture(expr, scope, out_captures, out_seen, ctx) }
-        is AST.StringLitExpr -> {
+        is AST.FnTypeExpr        -> {}
+        is AST.ArrayTypeExpr     -> {}
+        is AST.IdentExpr         -> {
+            record_ident_capture(expr, scope, out_captures, out_seen, ctx)
+        }
+        is AST.StringLitExpr     -> {
             for part in expr.parts {
                 match part {
                     is AST.StringLitInterp -> {
                         walk_expr(part.expr, scope, out_captures, out_seen, ctx)
                     }
-                    _ -> {}
+                    _                      -> {}
                 }
             }
         }
-        is AST.CallExpr -> {
+        is AST.CallExpr          -> {
             walk_expr(expr.callee, scope, out_captures, out_seen, ctx)
-            for arg in expr.args { walk_expr(arg.value, scope, out_captures, out_seen, ctx) }
+            for arg in expr.args {
+                walk_expr(arg.value, scope, out_captures, out_seen, ctx)
+            }
         }
-        is AST.FieldExpr -> { walk_expr(expr.target, scope, out_captures, out_seen, ctx) }
-        is AST.IndexExpr -> {
+        is AST.FieldExpr         -> { walk_expr(expr.target, scope, out_captures, out_seen, ctx) }
+        is AST.IndexExpr         -> {
             walk_expr(expr.target, scope, out_captures, out_seen, ctx)
-            walk_expr(expr.index,  scope, out_captures, out_seen, ctx)
+            walk_expr(expr.index, scope, out_captures, out_seen, ctx)
         }
-        is AST.UnaryExpr -> { walk_expr(expr.operand, scope, out_captures, out_seen, ctx) }
-        is AST.BinaryExpr -> {
-            walk_expr(expr.left,  scope, out_captures, out_seen, ctx)
+        is AST.UnaryExpr         -> { walk_expr(expr.operand, scope, out_captures, out_seen, ctx) }
+        is AST.BinaryExpr        -> {
+            walk_expr(expr.left, scope, out_captures, out_seen, ctx)
             walk_expr(expr.right, scope, out_captures, out_seen, ctx)
         }
-        is AST.IfExpr -> {
+        is AST.IfExpr            -> {
             walk_expr(expr.cond, scope, out_captures, out_seen, ctx)
             walk_body(expr.then_block, scope, out_captures, out_seen, ctx)
             match eif :: expr.else_branch {
@@ -331,7 +371,7 @@ walk_expr :: fn(
                 }
             }
         }
-        is AST.MatchExpr -> {
+        is AST.MatchExpr         -> {
             walk_expr(expr.scrutinee, scope, out_captures, out_seen, ctx)
             // `match x :: e` binds ONE name around every arm, minted at the `x`
             // token (`front/resolver/body.vader::walk_match`). Without this the name
@@ -356,17 +396,21 @@ walk_expr :: fn(
                     walk_expr(arm.guard, scope, out_captures, out_seen, ctx)
                 }
                 walk_expr(arm.body, scope, out_captures, out_seen, ctx)
-                for id in added { scope.remove(id) }
+                for id in added {
+                    scope.remove(id)
+                }
             }
-            for id in match_added { scope.remove(id) }
+            for id in match_added {
+                scope.remove(id)
+            }
         }
-        is AST.BlockExpr -> {
+        is AST.BlockExpr         -> {
             walk_body(expr, scope, out_captures, out_seen, ctx)
         }
-        is AST.LambdaExpr -> {
+        is AST.LambdaExpr        -> {
             process_lambda(expr, scope, out_captures, out_seen, ctx)
         }
-        is AST.StructLitExpr -> {
+        is AST.StructLitExpr     -> {
             for item in expr.items {
                 match item {
                     is AST.StructLitField  -> {
@@ -378,37 +422,44 @@ walk_expr :: fn(
                 }
             }
         }
-        is AST.SeqLitExpr -> {
-            for element in expr.elements { walk_expr(element, scope, out_captures, out_seen, ctx) }
+        is AST.SeqLitExpr        -> {
+            for element in expr.elements {
+                walk_expr(element, scope, out_captures, out_seen, ctx)
+            }
         }
-        is AST.RangeExpr -> {
+        is AST.RangeExpr         -> {
             walk_expr(expr.lower, scope, out_captures, out_seen, ctx)
             walk_expr(expr.upper, scope, out_captures, out_seen, ctx)
         }
-        is AST.AwaitExpr -> { walk_expr(expr.inner, scope, out_captures, out_seen, ctx) }
-        is AST.CastExpr -> { walk_expr(expr.value, scope, out_captures, out_seen, ctx) }
-        is AST.GenericInstExpr -> { walk_expr(expr.callee, scope, out_captures, out_seen, ctx) }
+        is AST.AwaitExpr         -> { walk_expr(expr.inner, scope, out_captures, out_seen, ctx) }
+        is AST.CastExpr          -> { walk_expr(expr.value, scope, out_captures, out_seen, ctx) }
+        is AST.GenericInstExpr   -> { walk_expr(expr.callee, scope, out_captures, out_seen, ctx) }
         is AST.IntrinsicCallExpr -> {
             // Walk every arg. Type-shaped args could be skipped,
             // but closure analysis is conservative: walking every arg
             // over-approximates but doesn't miss any real captures.
-            for arg in expr.args { walk_expr(arg, scope, out_captures, out_seen, ctx) }
+            for arg in expr.args {
+                walk_expr(arg, scope, out_captures, out_seen, ctx)
+            }
         }
     }
 }
 
 record_ident_capture :: fn(
-    ident: AST.IdentExpr, scope: MutableSet<i32>,
-    out_captures: Capture[] | null, out_seen: MutableSet<i32> | null, ctx: WalkCtx,
+    ident: AST.IdentExpr,
+    scope: MutableSet<i32>,
+    out_captures: Capture[] | null,
+    out_seen: MutableSet<i32> | null,
+    ctx: WalkCtx,
 ) -> void {
     if out_captures is null { return }
-    if out_seen is null { return }
+    if out_seen is null     { return }
     symbol :: ctx.typed.resolved.idents[ident.span.hash()]
     match symbol {
-        is null -> {}
+        is null   -> {}
         is Symbol -> {
             if !is_capturable(symbol) { return }
-            if symbol.id in scope { return }
+            if symbol.id in scope     { return }
             // An alias of a generic fn has no slot : each use names the fn.
             if ctx.typed.fn_aliases[symbol.id] != null {
                 return
@@ -421,20 +472,31 @@ record_ident_capture :: fn(
 is_capturable :: fn(symbol: Symbol) = is_local_binding(symbol.kind)
 
 add_capture :: fn(
-    symbol: Symbol, ident: AST.IdentExpr,
-    captures: Capture[], seen: MutableSet<i32>, typed: TypedProgram,
+    symbol: Symbol,
+    ident: AST.IdentExpr,
+    captures: Capture[],
+    seen: MutableSet<i32>,
+    typed: TypedProgram,
 ) -> void {
-    if !seen.add(symbol.id) { return }
-    captures.push(Capture {
-        .symbol = symbol,
-        .type   = laid_out_unions(type_of_captured_symbol(symbol, ident, typed)),
-    })
+    if !seen.add(symbol.id) {
+        return
+    }
+    captures.push(
+        Capture {
+            .symbol = symbol,
+            .type = laid_out_unions(type_of_captured_symbol(symbol, ident, typed)),
+        },
+    )
 }
 
 add_capture_value :: fn(
-    capture: Capture, captures: Capture[], seen: MutableSet<i32>,
+    capture: Capture,
+    captures: Capture[],
+    seen: MutableSet<i32>,
 ) -> void {
-    if !seen.add(capture.symbol.id) { return }
+    if !seen.add(capture.symbol.id) {
+        return
+    }
     captures.push(capture)
 }
 
@@ -446,41 +508,53 @@ type_of_captured_symbol :: fn(symbol: Symbol, ident: AST.IdentExpr, typed: Typed
         is Span -> {
             if symbol.kind == .Param {
                 t :: typed.param_types[defined.hash()]
-                if !(t is null) { return t }
+                if t !is null {
+                    return t
+                }
             } else if symbol.kind == .Local || symbol.kind == .Binding {
                 t :: typed.local_types[defined.hash()]
-                if !(t is null) { return t }
+                if t !is null {
+                    return t
+                }
             }
         }
         is null -> {}
     }
     fallback :: typed.expr_types[ident.id]
-    if !(fallback is null) { return fallback }
+    if fallback !is null {
+        return fallback
+    }
     return TY_UNRESOLVED
 }
 
 // ---------------------------------------------------------------- helpers
 
 // Add every leaf binding name from a `AST.LetBinding` tree into the scope.
-add_local_to_scope :: fn(binding: AST.LetBinding, scope: MutableSet<i32>, symbol_index: MutableMap<u64, Symbol>) -> void {
+add_local_to_scope :: fn(
+    binding: AST.LetBinding,
+    scope: MutableSet<i32>,
+    symbol_index: MutableMap<u64, Symbol>,
+) -> void {
     match binding {
-        is AST.SimpleBinding -> {
+        is AST.SimpleBinding   -> {
             symbol :: lookup_symbol_by_span(symbol_index, binding.name_span)
             match symbol {
-                is null -> {}
+                is null   -> {}
                 is Symbol -> { scope.add(symbol.id) }
             }
         }
-        is AST.TupleBinding -> {
-            for leaf in binding.elements { add_local_to_scope(leaf, scope, symbol_index) }
+        is AST.TupleBinding    -> {
+            for leaf in binding.elements {
+                add_local_to_scope(leaf, scope, symbol_index)
+            }
         }
         is AST.WildcardBinding -> {}
-        is AST.RestBinding -> {
+        is AST.RestBinding     -> {
             // The resolver keys a rest binding's Symbol on `.span` (not
             // `.name_span` like a simple binding, see resolver `bind_let_binding`).
             symbol :: lookup_symbol_by_span(symbol_index, binding.span)
             match symbol {
-                is null -> {}
+                is null   -> {}
                 is Symbol -> { scope.add(symbol.id) }
             }
         }
@@ -490,7 +564,10 @@ add_local_to_scope :: fn(binding: AST.LetBinding, scope: MutableSet<i32>, symbol
 /// Put the symbol the resolver minted at `span` into `scope`, recording it in
 /// `added` when it is new so the caller drops exactly what it introduced.
 add_symbol_at :: fn(
-    span: Span, scope: MutableSet<i32>, symbol_index: MutableMap<u64, Symbol>, added: i32[],
+    span: Span,
+    scope: MutableSet<i32>,
+    symbol_index: MutableMap<u64, Symbol>,
+    added: i32[],
 ) -> void {
     symbol :: lookup_symbol_by_span(symbol_index, span) ?? return
     if scope.add(symbol.id) {
@@ -499,27 +576,32 @@ add_symbol_at :: fn(
 }
 
 walk_pattern_for_bindings :: fn(
-    pattern: AST.Pattern, scope: MutableSet<i32>, symbol_index: MutableMap<u64, Symbol>, added: i32[],
+    pattern: AST.Pattern,
+    scope: MutableSet<i32>,
+    symbol_index: MutableMap<u64, Symbol>,
+    added: i32[],
 ) -> void {
     match pattern {
-        is AST.IsPattern -> {
+        is AST.IsPattern          -> {
             if pattern.inner !is null {
                 walk_pattern_for_bindings(pattern.inner, scope, symbol_index, added)
             }
         }
-        is AST.StructPattern -> {
+        is AST.StructPattern      -> {
             for field in pattern.fields {
                 if field.value is AST.PatternBinding {
                     add_symbol_at(field.value.span, scope, symbol_index, added)
                 }
             }
         }
-        is AST.WildcardPattern -> {}
+        is AST.WildcardPattern    -> {}
         is AST.EnumVariantPattern -> {}
-        is AST.LiteralPattern -> {}
-        is AST.RangePattern -> {}
-        is AST.OrPattern -> {
-            for sub in pattern.patterns { walk_pattern_for_bindings(sub, scope, symbol_index, added) }
+        is AST.LiteralPattern     -> {}
+        is AST.RangePattern       -> {}
+        is AST.OrPattern          -> {
+            for sub in pattern.patterns {
+                walk_pattern_for_bindings(sub, scope, symbol_index, added)
+            }
         }
     }
 }
@@ -536,26 +618,28 @@ note_cell_capture :: fn(ctx: WalkCtx, capture: Capture) -> void {
 // ---------------------------------------------------------------- lambdas
 
 process_lambda :: fn(
-    lambda: AST.LambdaExpr, outer_scope: MutableSet<i32>,
-    outer_captures: Capture[] | null, outer_seen: MutableSet<i32> | null, ctx: WalkCtx,
+    lambda: AST.LambdaExpr,
+    outer_scope: MutableSet<i32>,
+    outer_captures: Capture[] | null,
+    outer_seen: MutableSet<i32> | null,
+    ctx: WalkCtx,
 ) -> void {
     own_scope :: collect_owned_scope_for_params(lambda.params, ctx.symbol_index)
     captures: Capture[]: []
     seen :: empty_scope()
     walk_body(lambda.body, own_scope, captures, seen, ctx)
-
     for capture in captures {
         note_cell_capture(ctx, capture)
     }
     ctx.analysis.lambda_captures[capture_key(ctx.typed.resolved.path, lambda.id)] = captures
-
     // Fold this lambda's captures into the enclosing lambda's, skipping
     // any symbol already defined in the enclosing scope (i.e. shared).
     if outer_captures is null { return }
-    if outer_seen is null { return }
+    if outer_seen is null     { return }
     for capture in captures {
-        if capture.symbol.id in outer_scope { continue }
+        if capture.symbol.id in outer_scope {
+            continue
+        }
         add_capture_value(capture, outer_captures, outer_seen)
     }
 }
-
