@@ -58,12 +58,12 @@ export NullValue :: struct {}
 /// The result of a `void`-returning fn ; a unit value.
 export VoidValue :: struct {}
 
-/// A `T[]` literal evaluated at comptime. `element_type_name` matches
-/// what the type-checker resolved for the element slot ; lets the dump
-/// distinguish `i32[]` from `i64[]` even when both are empty.
+/// A `T[]` literal evaluated at comptime.
 export ArrayValue :: struct {
-    elements:          ComptimeValue[]
-    element_type_name: string
+    elements: ComptimeValue[]
+    /// The array type the value is an instance of ; a constant declared at a
+    /// union bakes the variant it holds.
+    type:     Type
 }
 
 /// A `T { .a = ..., .b = ... }` literal, or a tuple with its elements as `_0`,
@@ -247,7 +247,7 @@ test_display_int_past_i64_unsigned :: fn() -> void {
 
 @test test_display_array :: fn() -> void {
     elements: ComptimeValue[]: [int_val(1), int_val(2), int_val(3)]
-    array_value :: ArrayValue { .elements = elements, .element_type_name = "i32" }
+    array_value :: ArrayValue { .elements = elements, .type = mk_array(TY_I32) }
     assert_eq(display_value(array_value), "[1_i32, 2_i32, 3_i32]")
 }
 
@@ -255,7 +255,7 @@ test_display_int_past_i64_unsigned :: fn() -> void {
     // Arrays longer than ARRAY_DISPLAY_CAP show the first 8 + the total length.
     elements: ComptimeValue[]: []
     for i in 0..<20 { elements.push(int_val(i64(i))) }
-    array_value :: ArrayValue { .elements = elements, .element_type_name = "i32" }
+    array_value :: ArrayValue { .elements = elements, .type = mk_array(TY_I32) }
     assert_eq(
         display_value(array_value),
         "[0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, ... 20 elements]",

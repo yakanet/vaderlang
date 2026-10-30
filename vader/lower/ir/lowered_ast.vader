@@ -70,14 +70,14 @@ export ConstRoute :: struct {
 /// pre-materialised `ArrayVal` in the VM): a primitive-element array, a string
 /// array, or an aggregate (struct elements, and a lone struct as the single
 /// element of one). References become `LoweredDataConst` nodes carrying the pool
-/// index. `midir::convert_data_pool` lowers each into the matching `BcDataEntry`
-/// variant at the CFG boundary. Produced by
+/// index. The bytecode emitter's `convert_data_pool` lowers each into the
+/// matching `BcDataEntry` variant. Produced by
 /// `inline_consts::try_data_pool` and `try_pool_struct`.
 export DataPoolEntry :: PrimDataPoolEntry | StrDataPoolEntry | AggregateDataPoolEntry
 
 /// A pooled array of primitive elements. Carries raw bit patterns as `i64`
-/// (the natural width's low bits ; signed view): `midir` reinterprets per
-/// `element_type_name` into a `BcPrimData { items: u64[] }`.
+/// (the natural width's low bits ; signed view): the bytecode emitter
+/// reinterprets them per `element_type_name` into a `BcPrimData { items: u64[] }`.
 export PrimDataPoolEntry :: struct {
     element_type_name: string
     items: i64[]
@@ -91,13 +91,43 @@ export StrDataPoolEntry :: struct {
 }
 
 /// A pooled aggregate `T[]`: struct / tuple / nested-array elements.
-/// Carries the raw array literal ; `midir::convert_data_pool` recursively lowers
-/// it to a `BcAggregateData` (resolving struct symbol-ids + element kinds). The
-/// `LoweredExpr` tree IS the recursive value: no doubled lower-side type. The
-/// producer's `is_bakeable` gate guarantees every node is a constant literal.
+/// Carries the raw array literal ; the bytecode emitter's `convert_data_pool`
+/// recursively lowers it to a `BcAggregateData`. The `LoweredExpr` tree IS the
+/// recursive value: no doubled lower-side type. The producer's `is_bakeable`
+/// gate guarantees every node is a constant literal.
 export AggregateDataPoolEntry :: struct {
-    element_type_name: string
     literal: LoweredArrayLit
+}
+
+/// The raw bit pattern a pooled primitive literal is stored as, or null when `el`
+/// is no primitive literal.
+///
+/// Floats are reinterpreted via `to_bits()` at the element's natural width (`f32`
+/// keeps the low 32 bits), matching `vm/data_pool::value_from_bits`.
+///
+/// @param el            the element literal.
+/// @param element_name  the element type's representation name: `"f32"` narrows a
+///                      float.
+export data_item_bits :: fn(el: LoweredExpr, element_name: string) -> i64 | null {
+    if el is LoweredIntLit {
+        return el.value
+    }
+    if el is LoweredCharLit {
+        return i64(el.value)
+    }
+    if el is LoweredBoolLit {
+        if el.value {
+            return 1
+        }
+        return 0
+    }
+    if el is LoweredFloatLit {
+        if element_name == "f32" {
+            return i64(u64(f32(el.value).to_bits()))
+        }
+        return i64(el.value.to_bits())
+    }
+    return null
 }
 
 /// A module-level const routed to a synthetic 0-arg accessor fn by the

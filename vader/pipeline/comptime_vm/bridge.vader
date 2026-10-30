@@ -60,9 +60,9 @@ value_to_comptime :: fn(
     is Vm.NullVal   -> Ct.VAL_NULL
     is Vm.ArrayVal  -> array_to_comptime(ctx, value, ty, span)
     is Vm.StructVal -> struct_to_comptime(ctx, value, ty, span)
-    is Vm.FnVal     -> unsupported(span, "function reference")
-    is Vm.TypeVal   -> unsupported(span, "type value")
-    is Vm.ObjVal    -> unsupported(span, "heap object (set / map)")
+    is Vm.FnVal     -> unsupported(span, "a function reference")
+    is Vm.TypeVal   -> unsupported(span, "a type value")
+    is Vm.ObjVal    -> unsupported(span, "a heap object (set / map)")
 }
 
 // Build an `IntValue` of the integer type `type_name`, wrapped to its width : the
@@ -84,22 +84,42 @@ prim_name :: fn(ty: Type, fallback: string) -> string {
     return name
 }
 
-// Recurse a VM array into an `ArrayValue`, naming each element from the
-// resolved element type. Honours the array's view bounds (`offset` / `length`).
+// A VM array as an `ArrayValue` of the array type `ty` names for it, each element
+// bridged at that type's element. Honours the array's view bounds (`offset` /
+// `length`).
 array_to_comptime :: fn(
     ctx: BakeScope,
     array: Vm.ArrayVal,
     ty: Type,
     span: Span,
 ) -> Ct.ComptimeValue | Diagnostic {
-    elem_ty :: array_element_type(ty)
+    array_type :: array_instance_type(ty) ?? return unsupported(span, "an array")
     elements: Ct.ComptimeValue[]: []
     for i in 0..<array.length {
-        bridged :: value_to_comptime(ctx, Vm.element_at(array, array.offset + i), elem_ty, span)
-        if bridged is Diagnostic { return bridged }
+        element :: Vm.element_at(array, array.offset + i)
+        bridged :: value_to_comptime(ctx, element, array_type.element, span)
+        if bridged is Diagnostic {
+            return bridged
+        }
         elements.push(bridged)
     }
-    return Ct.ArrayValue { .elements = elements, .element_type_name = display_type(elem_ty) }
+    return Ct.ArrayValue { .elements = elements, .type = array_type }
+}
+
+// The array type among `ty`, or among its variants when it is a union: `ty` itself
+// (a distinct's backing) for an array slot, the one array variant of an
+// `u8[] | null`. Null when none is (a trait slot names no array type) or several
+// are, the runtime value telling neither apart.
+array_instance_type :: fn(ty: Type) -> ArrayType | null {
+    found: ArrayType | null = null
+    for candidate in union_variants(ty) ?? [ty] {
+        array_type :: array_backing(candidate) ?? continue
+        if found != null {
+            return null
+        }
+        found = array_type
+    }
+    return found
 }
 
 // A VM struct as a `StructValue` of the struct or tuple `ty` names for it: `ty`
@@ -111,9 +131,9 @@ struct_to_comptime :: fn(
     ty: Type,
     span: Span,
 ) -> Ct.ComptimeValue | Diagnostic {
-    layout :: struct_at(ctx.layouts, value.type_id) ?? return unsupported(span, "struct")
+    layout :: struct_at(ctx.layouts, value.type_id) ?? return unsupported(span, "a struct")
     arity :: value.fields.len()
-    instance :: instance_type(ty, layout, arity) ?? return unsupported(span, "struct")
+    instance :: instance_type(ty, layout, arity) ?? return unsupported(span, "a struct")
     fields :: MutableMap<string, Ct.ComptimeValue> {}
     for i in 0..<arity {
         [name, field_ty] :: field_at(instance, layout, i, ctx.program)
@@ -163,15 +183,13 @@ lays_out_as :: fn(t: Type, layout: BcStruct, arity: i64) -> bool {
     return layout.symbol_id < 0 && tuple.elements.len() == arity
 }
 
-// Element type of an array type ; falls back to `ty` itself for a non-array
-// (defensive: a well-typed array result always carries an `ArrayType`).
-array_element_type :: fn(ty: Type) -> Type {
-    if ty is ArrayType { return ty.element }
-    return ty
-}
-
+// `what` names the value with its article: `a struct`, `an array`.
 unsupported :: fn(span: Span, what: string) -> Diagnostic =
-    comptime_error(.CannotEvaluate, span, "comptime VM produced a ${what} value, which cannot yet be baked into a comptime constant")
+    comptime_error(
+        .CannotEvaluate,
+        span,
+        "comptime VM produced ${what} value, which cannot yet be baked into a comptime constant",
+    )
 
 // ---- tests ----------------------------------------------------------------
 
@@ -240,6 +258,31 @@ test_bridge_struct_the_type_does_not_name :: fn() -> void {
     value :: Vm.StructVal { .type_id = 0, .fields = fields }
     scope :: test_scope([test_layout(test_point_symbol().id, ["x", "y"])])
     assert_eq(display_bridged_in(scope, value, TY_I32, empty_span()), "<diag>")
+}
+
+@test
+test_bridge_array_takes_its_union_variant :: fn() -> void {
+    elements: Vm.Value[]: [Vm.I32Val(1), Vm.I32Val(200)]
+    value :: Vm.ArrayVal {
+        .type_id = 0,
+        .elements = elements,
+        .offset = 0,
+        .length = 2,
+    }
+    ty :: mk_union([mk_array(mk_primitive("u8")), TY_NULL])
+    assert_eq(display_bridged(value, ty, empty_span()), "[1_u8, 200_u8]")
+}
+
+@test
+test_bridge_array_the_type_does_not_name :: fn() -> void {
+    elements: Vm.Value[]: [Vm.I32Val(1)]
+    value :: Vm.ArrayVal {
+        .type_id = 0,
+        .elements = elements,
+        .offset = 0,
+        .length = 1,
+    }
+    assert_eq(display_bridged(value, TY_I32, empty_span()), "<diag>")
 }
 
 @test test_bridge_scalars :: fn() -> void {

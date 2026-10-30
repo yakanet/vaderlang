@@ -890,33 +890,28 @@ parse_quoted_strings :: fn(s: string) -> string[] {
     return out
 }
 
-// Parse the `agg` payload `<elemname> <count> <value>…` into a `BcAggregateData`.
-// Values are count-prefixed (no paren balancing), see `emit/virt::write_data_value`.
+// Parse the `agg` payload `<count> <value>…` into a `BcAggregateData`. Values
+// are count-prefixed (no paren balancing), see `emit/virt::write_data_value`.
 // `strings` resolves any `strref <i>` leaf back to its pooled value.
 parse_agg_decl :: fn(payload: string, strings: string[]) -> BcAggregateData {
     tokens :: tokenize_agg(payload)
-    if tokens.len() < 2 {
-        return BcAggregateData { .element_type_name = "", .elements = [] }
+    if tokens.len() < 1 {
+        return BcAggregateData { .elements = [] }
     }
-    element_type_name :: tokens[0]
-    count :: token_to_int(tokens[1])
-    pos: i32[]: [2]
+    count :: token_to_int(tokens[0])
+    pos: i32[]: [1]
     elements: BcDataValue[]: []
     for _ in 0..<count { elements.push(parse_data_value(tokens, pos, strings)) }
-    return BcAggregateData { .element_type_name = element_type_name, .elements = elements }
+    return BcAggregateData { .elements = elements }
 }
 
 // Parse the compact homogeneous-struct form `<symid> <nfields> <count> <field>…`
 // (the dumper's `structs` header). Every element is a `BcValStruct` with the
 // hoisted `symid` ; its `nfields` field values are read flat from the stream.
-// The reconstructed aggregate's top-level `element_type_name` is left "": it is
-// informational only (both the VM's `bc_value_to_vm` and c-emit resolve struct
-// identity from each element's `symbol_id`, never the aggregate name ; only a
-// nested `BcValArray.element_type_name` is read).
 parse_structs_decl :: fn(payload: string, strings: string[]) -> BcAggregateData {
     tokens :: tokenize_agg(payload)
     if tokens.len() < 3 {
-        return BcAggregateData { .element_type_name = "", .elements = [] }
+        return BcAggregateData { .elements = [] }
     }
     symbol_id :: token_to_int(tokens[0])
     nfields :: token_to_int(tokens[1])
@@ -928,7 +923,7 @@ parse_structs_decl :: fn(payload: string, strings: string[]) -> BcAggregateData 
         for _ in 0..<nfields { fields.push(parse_data_value(tokens, pos, strings)) }
         elements.push(BcValStruct { .symbol_id = symbol_id, .fields = fields })
     }
-    return BcAggregateData { .element_type_name = "", .elements = elements }
+    return BcAggregateData { .elements = elements }
 }
 
 // Recursive descent over the token stream (`pos` is a 1-element mutable cursor).
@@ -949,11 +944,11 @@ parse_data_value :: fn(tokens: string[], pos: i32[], strings: string[]) -> BcDat
         return BcValStruct { .symbol_id = symbol_id, .fields = fields }
     }
     if tag == "array" {
-        element_type_name :: take_token(tokens, pos)
+        type_id :: token_to_int(take_token(tokens, pos))
         n :: token_to_int(take_token(tokens, pos))
         elems: BcDataValue[]: []
         for _ in 0..<n { elems.push(parse_data_value(tokens, pos, strings)) }
-        return BcValArray { .element_type_name = element_type_name, .elements = elems }
+        return BcValArray { .type_id = type_id, .elements = elems }
     }
     // Fall-through : a primitive leaf `<kind> <hex>` ; `tag` is the kind name.
     kind :: array_kind_from_name(tag)

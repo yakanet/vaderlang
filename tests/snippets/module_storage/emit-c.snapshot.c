@@ -176,21 +176,21 @@ static const vader_array_t vader_data_6 = {
     { 7u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_6_buf,
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[1]; } vader_data_7_e0_f1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 1u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 13u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(1) },
 };
 static const vader_array_t vader_data_7_e0_f1 = {
-    { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_7_e0_f1_buf,
+    { 12u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_7_e0_f1_buf,
 };
 static const struct vader_struct_snippet$Rule_t vader_data_7_e0 = {
     { 11u, 0u, 0u, 0u, NULL }, 37u, (void*) (vader_array_t*) &vader_data_7_e0_f1, 38u,
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[2]; } vader_data_7_e1_f1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 1u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 13u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1) },
 };
 static const vader_array_t vader_data_7_e1_f1 = {
-    { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_7_e1_f1_buf,
+    { 12u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_7_e1_f1_buf,
 };
 static const struct vader_struct_snippet$Rule_t vader_data_7_e1 = {
     { 11u, 0u, 0u, 0u, NULL }, 39u, (void*) (vader_array_t*) &vader_data_7_e1_f1, 40u,

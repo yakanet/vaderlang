@@ -293,13 +293,18 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
 
 /// Reachability-based prune on the type table. Roots : every type
 /// referenced by a live fn signature, fn body op (struct/array/etc.
-/// ops carry a type_id), import signature, or impl-table key.
-/// Composite types (struct, union, array, fn) transitively root
-/// their inner type indices.
+/// ops carry a type_id), import signature, global, impl-table key, or
+/// baked value of the data pool. Composite types (struct, union, array,
+/// fn) transitively root their inner type indices.
 ///
 /// Vader's BcRef doesn't carry a type-id reference (just trait_name) so
 /// its reach-walk is a no-op.
-export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
+///
+/// @param ctx        the emit context ; its table and every index it holds
+///                   are rewritten.
+/// @param data_pool  the entries some `data.const` still reads.
+/// @return           `data_pool`, its type indices renumbered with the table.
+export prune_unused_types :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> BcDataEntry[] {
     reachable :: MutableSet<i32> {}
     reachable.add(0)   // null slot is load-bearing for the runtime
 
@@ -328,9 +333,10 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
     for [_, pins] in ctx.pinned_types_by_fn {
         for p in pins { roots.push(p) }
     }
+    roots.push_all(data_pool_type_roots(ctx, data_pool))
     for r in roots { visit_type(r, ctx, reachable) }
 
-    if reachable.len() == ctx.types.len() { return }
+    if reachable.len() == ctx.types.len() { return data_pool }
 
     // Build remap table : surviving slots dense from 0.
     n :: ctx.types.len()
@@ -370,6 +376,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
     }
     ctx.imports = new_imports
     ctx.globals = remap_globals(ctx.globals, remap)
+    return remap_data_pool(data_pool, remap)
 }
 
 /// `globals` with each slot's type index translated through `remap`.

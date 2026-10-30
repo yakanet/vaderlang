@@ -126,11 +126,11 @@ static const struct vader_struct_snippet$Label_t vader_data_0_e0_f0 = {
     { 6u, 0u, 0u, 0u, NULL }, 22u, (uint8_t) UINT64_C(2),
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint8_t slots[3]; } vader_data_0_e0_f1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, 1u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 7u, 1u, { 0u, 0u, 0u },
     { (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(100), (uint8_t) UINT64_C(200) },
 };
 static const vader_array_t vader_data_0_e0_f1 = {
-    { 0u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_0_e0_f1_buf,
+    { 9u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_0_e0_f1_buf,
 };
 static const struct vader_struct_snippet$Card_t vader_data_0_e0 = {
     { 8u, 0u, 0u, 0u, NULL }, (void*) (struct vader_struct_snippet$Label_t*) &vader_data_0_e0_f0,

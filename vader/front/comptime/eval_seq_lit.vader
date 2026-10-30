@@ -33,7 +33,5 @@ evaluate_seq_lit :: fn(expr: AST.SeqLitExpr, context: ComptimeContext) -> EvalRe
         }
         return ok(StructValue { .type = inferred, .fields = fields })
     }
-    element_type_name: string = ""
-    if inferred is ArrayType { element_type_name = display_type(inferred.element) }
-    return ok(ArrayValue { .elements = elements, .element_type_name = element_type_name })
+    return ok(ArrayValue { .elements = elements, .type = inferred })
 }

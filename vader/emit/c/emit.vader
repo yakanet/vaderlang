@@ -735,16 +735,7 @@ emit_agg_data_entry :: fn(
 ) -> void {
     slots: CExpression[]: []
     for k in 0..<ad.elements.len() {
-        slots.push(
-            box_slot(
-                ctx,
-                items,
-                ad.elements[k],
-                "${array.name}_e${k}",
-                array.element_tag,
-                atom_of,
-            ),
-        )
+        slots.push(box_slot(ctx, items, ad.elements[k], "${array.name}_e${k}", atom_of))
     }
     push_pool_array(items, array, "vader_box_t", .Boxed, slots)
 }
@@ -810,18 +801,17 @@ emit_nested_array :: fn(
     // The storage kind comes from the elements, prim leaves at the width they are
     // stored in.
     kind :: element_storage_kind(a.elements)
-    element_tag :: type_index_for_name(ctx.module.types, a.element_type_name)
     array :: PoolArray {
         .name = name,
         .storage = global_storage(ctx.split),
-        .type_id = array_type_index_for_element(ctx.module.types, element_tag),
-        .element_tag = element_tag,
+        .type_id = a.type_id,
+        .element_tag = array_element_tag(ctx.module.types, a.type_id),
     }
     slots: CExpression[]: []
     for k in 0..<a.elements.len() {
         element :: a.elements[k]
         if kind == .Boxed {
-            slots.push(box_slot(ctx, items, element, "${name}_x${k}", element_tag, atom_of))
+            slots.push(box_slot(ctx, items, element, "${name}_x${k}", atom_of))
         } else if element is BcValPrim {
             slots.push(data_slot(kind, element.bits))
         }
@@ -847,7 +837,7 @@ struct_field_init :: fn(
     // a raw `void*`.
     field_val :: val_type_of_bc_type(ctx.module.types[field_tid])
     if field_val == .Any {
-        return box_slot(ctx, items, v, name, field_tid, atom_of)
+        return box_slot(ctx, items, v, name, atom_of)
     }
     if v is BcValPrim { return data_slot(v.kind, v.bits) }
     if v is BcValStr { return unsigned(i64(atom_for(atom_of, v.value))) }
@@ -860,13 +850,12 @@ struct_field_init :: fn(
 // One `vader_box_t` slot for a boxed-array element, tagged with the element's own
 // type as a box built at run time is: the member of a union it is, not the union:
 // a string boxes its atom in `.s`, a number its value, a struct / nested array a
-// pointer to its static in `.obj`. `tag` is the nested array's.
+// pointer to its static in `.obj`.
 box_slot :: fn(
     ctx: EmitCtx,
     items: CTopLevel[],
     v: BcDataValue,
     name: string,
-    tag: i32,
     atom_of: MutableMap<string,
     i32>,
 ) -> CExpression {
@@ -877,8 +866,15 @@ box_slot :: fn(
     if v is BcValPrim {
         return boxed_scalar(scalar_tag(types, v.kind), v.kind, v.bits)
     }
-    own :: if v is BcValStruct { type_id_for_struct_symbol(types, v.symbol_id) } else { tag }
-    return boxed_object(own, emit_data_value(ctx, items, v, name, atom_of))
+    return boxed_object(baked_object_tag(types, v), emit_data_value(ctx, items, v, name, atom_of))
+}
+
+// Type-table index a baked struct or nested array carries as its header tag.
+baked_object_tag :: fn(types: BcType[], v: BcValStruct | BcValArray) -> i32 {
+    if v is BcValArray {
+        return v.type_id
+    }
+    return type_id_for_struct_symbol(types, v.symbol_id)
 }
 
 // Type-table index of the scalar a baked number of `kind` is, or 0.
@@ -940,28 +936,6 @@ type_id_for_struct_symbol :: fn(types: BcType[], symbol_id: i32) -> i32 {
         panic("c_emit: baked struct symbol_id ${symbol_id} not in the module type table")
     }
     return index
-}
-
-// Type-table index of a `BcStruct` by display name, or 0 (nested-array element).
-type_index_for_name :: fn(types: BcType[], name: string) -> i32 {
-    for i in 0..<types.len() {
-        s :: types[i]
-        if s is BcStruct {
-            if s.name == name { return i32(i) }
-        }
-    }
-    return 0
-}
-
-// Type-table index of the `BcArray` whose element is `elem_index`, or 0.
-array_type_index_for_element :: fn(types: BcType[], elem_index: i32) -> i32 {
-    for i in 0..<types.len() {
-        ar :: types[i]
-        if ar is BcArray {
-            if ar.element == elem_index { return i32(i) }
-        }
-    }
-    return 0
 }
 
 // One primitive-element `.rodata` buffer + array header. Concrete-typed slots so

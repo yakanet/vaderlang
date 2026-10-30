@@ -1,0 +1,170 @@
+// vader/emit/bytecode/data_pool: the data pool, from the literals `lower` baked to
+// the `BcDataEntry`s both backends materialise.
+//
+// A baked nested array names its type by an index in the table this emitter
+// builds, so the conversion runs here rather than at the CFG boundary. Every
+// index a baked value holds is then kept and renumbered with the rest of the
+// table: by `prune_unused_types` (dce.vader), and by `rebase_types`
+// (retype.vader) when several targets share one table.
+
+module "vader/emit/bytecode"
+
+import "std/abort"
+import "std/collections"
+import "std/iter"
+import "vader/core/bytecode"
+import "vader/core/types"
+import "vader/lower/ir"
+
+/// Convert the project's data pool into bytecode entries, interning on the way
+/// every string a value holds and the type of every nested array.
+///
+/// The strings go into the module string table so the comptime atom table
+/// covers them: the native backend reads each value's atom there, and the
+/// `.virt` dump names a string leaf by its table index.
+///
+/// @param ctx      the emit context the strings and types are interned into.
+/// @param entries  the data pool `lower/inline_consts` registered.
+/// @return         one entry per lowered entry, in the same order.
+convert_data_pool :: fn(ctx: EmitterCtx, entries: DataPoolEntry[]) -> BcDataEntry[] {
+    out: BcDataEntry[]: []
+    for e in entries {
+        match e {
+            is StrDataPoolEntry       -> {
+                for v in e.values {
+                    intern_string(v, ctx)
+                }
+                out.push(BcStrData { .values = e.values })
+            }
+            is PrimDataPoolEntry      -> {
+                // The runtime reads each element at its natural width, in the low
+                // bits.
+                items: u64[]: []
+                for v in e.items {
+                    items.push(u64(v))
+                }
+                out.push(
+                    BcPrimData {
+                        .kind = array_kind_from_name(e.element_type_name),
+                        .items = items,
+                    },
+                )
+            }
+            is AggregateDataPoolEntry -> {
+                elements: BcDataValue[]: []
+                for el in e.literal.elements {
+                    elements.push(baked_value(ctx, el))
+                }
+                out.push(BcAggregateData { .elements = elements })
+            }
+        }
+    }
+    return out
+}
+
+// One constant literal as a baked value. `lower/inline_consts::is_bakeable_array`
+// only routes the shapes handled here, so the tail meets a primitive leaf.
+baked_value :: fn(ctx: EmitterCtx, el: LoweredExpr) -> BcDataValue {
+    if el is LoweredStringLit {
+        intern_string(el.value, ctx)
+        return BcValStr { .value = el.value }
+    }
+    if el is LoweredStructLit {
+        fields: BcDataValue[]: []
+        for f in el.fields {
+            fields.push(baked_value(ctx, f.value))
+        }
+        return BcValStruct { .symbol_id = struct_symbol_id(el.type), .fields = fields }
+    }
+    if el is LoweredArrayLit {
+        elements: BcDataValue[]: []
+        for e in el.elements {
+            elements.push(baked_value(ctx, e))
+        }
+        return BcValArray { .type_id = intern_type(el.type, ctx), .elements = elements }
+    }
+    name :: representation_name(el.type)
+    bits :: data_item_bits(el, name)
+        ?? panic("emit/bytecode: `baked_value` met a leaf `is_bakeable_array` does not admit")
+    return BcValPrim { .kind = array_kind_from_name(name), .bits = u64(bits) }
+}
+
+// `symbol_id` of a named struct type (the producer rejects non-`StructType`s).
+struct_symbol_id :: fn(t: Type) -> i32 {
+    if t is StructType {
+        return t.symbol.id
+    }
+    return -1
+}
+
+/// Every type a baked value names, for the type prune to keep: a struct by the
+/// symbol id it is keyed on, a nested array by its own index.
+///
+/// The `data.const` that reads an entry roots only the entry's own array type,
+/// and that may be no more than a `ref` (`SHAPES: Shape[]` types under a trait).
+///
+/// @param ctx        the emit context, whose type table resolves the symbol ids.
+/// @param data_pool  the entries some `data.const` still reads.
+data_pool_type_roots :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> i32[] {
+    roots: i32[]: []
+    symbol_ids :: MutableSet<i32> {}
+    for entry in data_pool {
+        if entry is BcAggregateData {
+            for v in entry.elements {
+                collect_baked_types(v, roots, symbol_ids)
+            }
+        }
+    }
+    for symbol_id in symbol_ids {
+        index :: struct_symbol_type_index(ctx.types, symbol_id)
+        if index >= 0 {
+            roots.push(index)
+        }
+    }
+    return roots
+}
+
+// The nested array indices go straight into `arrays` ; the struct symbol ids are
+// gathered first, each one costing a scan of the type table to resolve.
+collect_baked_types :: fn(v: BcDataValue, arrays: i32[], symbol_ids: MutableSet<i32>) -> void {
+    if v is BcValStruct {
+        symbol_ids.add(v.symbol_id)
+        for f in v.fields {
+            collect_baked_types(f, arrays, symbol_ids)
+        }
+    } else if v is BcValArray {
+        arrays.push(v.type_id)
+        for e in v.elements {
+            collect_baked_types(e, arrays, symbol_ids)
+        }
+    }
+}
+
+/// `data_pool` with the type index of every nested array translated through
+/// `remap`.
+///
+/// @param data_pool  the module's data pool.
+/// @param remap      old type index -> new one.
+remap_data_pool :: fn(data_pool: BcDataEntry[], remap: i32[]) -> BcDataEntry[] =
+    data_pool.map((entry) -> remap_data_entry(entry, remap)).collect()
+
+remap_data_entry :: fn(entry: BcDataEntry, remap: i32[]) -> BcDataEntry {
+    if entry is BcAggregateData {
+        return BcAggregateData { .elements = remap_data_values(entry.elements, remap) }
+    }
+    return entry
+}
+
+remap_data_values :: fn(values: BcDataValue[], remap: i32[]) -> BcDataValue[] =
+    values.map((v) -> remap_data_value(v, remap)).collect()
+
+// Names both fields of `BcValArray` rather than spreading it: each one is
+// renumbered, so a field added later has to be decided here.
+remap_data_value :: fn(v: BcDataValue, remap: i32[]) -> BcDataValue = match v {
+    is BcValStruct          -> BcValStruct { ...v, .fields = remap_data_values(v.fields, remap) }
+    is BcValArray           -> BcValArray {
+        .type_id = remap_idx(remap, v.type_id),
+        .elements = remap_data_values(v.elements, remap),
+    }
+    is BcValPrim | BcValStr -> v
+}

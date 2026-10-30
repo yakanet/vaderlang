@@ -207,97 +207,11 @@ export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]) -> CFGPr
         .modules         = modules,
         .vtable_entries  = lp.vtable_entries,
         .strings         = ctx.strings,
-        .data_pool       = convert_data_pool(lp.data_pool),
+        .data_pool       = lp.data_pool,
         .globals         = lp.globals,
         .trait_membership = lp.trait_membership,
     }
 }
-
-import "vader/core/bytecode"
-
-// Convert each lower-side `DataPoolEntry` into its bytecode `BcDataEntry`
-// variant, at the lower→CFG boundary.
-// Primitive arrays reinterpret their `i64` bits as `u64` (`u64(i64)`: the
-// runtime reads each element at its natural width, low bits) ; string arrays
-// carry their values through to `midir::emit`, which interns them ; aggregate
-// arrays recurse over the carried literal into a `BcAggregateData`.
-convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
-    out: BcDataEntry[]: []
-    for e in entries {
-        match e {
-            is StrDataPoolEntry -> { out.push(BcStrData { .values = e.values }) }
-            is PrimDataPoolEntry -> {
-                items: u64[]: []
-                for v in e.items { items.push(u64(v)) }
-                out.push(BcPrimData {
-                    .kind  = array_kind_from_name(e.element_type_name),
-                    .items = items,
-                })
-            }
-            is AggregateDataPoolEntry -> {
-                elements: BcDataValue[]: []
-                for el in e.literal.elements { elements.push(lowered_to_bc_value(el)) }
-                out.push(BcAggregateData {
-                    .element_type_name = e.element_type_name,
-                    .elements          = elements,
-                })
-            }
-        }
-    }
-    return out
-}
-
-// Recursively lower one constant literal into a baked `BcDataValue`. Mirrors
-// `lower/inline_consts::is_bakeable_value`: the producer only routes shapes this
-// handles, so an unexpected node is an internal error (a primitive leaf falls
-// through to the `BcValPrim` tail). Struct identity is carried by `symbol_id`
-// (resolved to a type-index at each backend) ; arrays/leaves by element kind name.
-lowered_to_bc_value :: fn(el: LoweredExpr) -> BcDataValue {
-    if el is LoweredStringLit { return BcValStr { .value = el.value } }
-    if el is LoweredStructLit {
-        fields: BcDataValue[]: []
-        for f in el.fields { fields.push(lowered_to_bc_value(f.value)) }
-        return BcValStruct { .symbol_id = struct_symbol_id(el.type), .fields = fields }
-    }
-    if el is LoweredArrayLit {
-        elements: BcDataValue[]: []
-        for e in el.elements { elements.push(lowered_to_bc_value(e)) }
-        return BcValArray { .element_type_name = array_element_name(el.type), .elements = elements }
-    }
-    name :: representation_name(el.type)
-    return BcValPrim { .kind = array_kind_from_name(name), .bits = bc_value_bits(el, name) }
-}
-
-// `symbol_id` of a named struct type (the producer rejects non-`StructType`s).
-struct_symbol_id :: fn(t: Type) -> i32 {
-    if t is StructType { return t.symbol.id }
-    return -1
-}
-
-// Element type name of an array type, as the backend reads it
-// (`representation_name`), for the runtime element kind.
-array_element_name :: fn(t: Type) -> string {
-    if t is ArrayType { return representation_name(t.element) }
-    return ""
-}
-
-// Raw `u64` bit pattern of a primitive leaf: int/char/bool verbatim, floats
-// reinterpreted via `to_bits` at the element's natural width. Mirrors
-// `inline_consts::data_item_bits`.
-bc_value_bits :: fn(el: LoweredExpr, name: string) -> u64 {
-    if el is LoweredIntLit  { return u64(el.value) }
-    if el is LoweredCharLit { return u64(el.value) }
-    if el is LoweredBoolLit { return if el.value { 1 } else { 0 } }
-    if el is LoweredFloatLit {
-        if name == "f32" { return u64(f32(el.value).to_bits()) }
-        return el.value.to_bits()
-    }
-    // Unreachable : the producer's `is_bakeable_value` only admits int/char/bool/
-    // float leaves here (string/struct/array are handled before this tail). A hit
-    // means the gate and this converter drifted out of sync.
-    panic("midir: lowered_to_bc_value reached a non-primitive leaf (is_bakeable/converter drift)")
-}
-
 
 // ---- Function-level conversion --------------------------------------------
 

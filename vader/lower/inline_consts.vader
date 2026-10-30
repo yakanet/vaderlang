@@ -329,14 +329,15 @@ render_data_pool_entry :: fn(lit: LoweredArrayLit, element_name: string) -> Data
     }
     // Aggregate (struct / nested-array elements) : bakeable only when every leaf
     // is a constant literal and every struct is a named, non-generic struct (its
-    // symbol-id keys the baked value ; `midir` recurses over the same literal).
+    // symbol-id keys the baked value ; the bytecode emitter recurses over the same
+    // literal).
     if is_bakeable_array(lit) {
-        return AggregateDataPoolEntry { .element_type_name = element_name, .literal = lit }
+        return AggregateDataPoolEntry { .literal = lit }
     }
     return null
 }
 
-// Recursive bakeability gate. Mirrors `midir/build::lowered_to_bc_value` exactly :
+// Recursive bakeability gate. Mirrors `emit/bytecode::baked_value` exactly :
 // a node accepted here must be convertible there. Conservative: anything not a
 // constant literal / named-struct / array falls through to fn-wrap.
 is_bakeable_array :: fn(lit: LoweredArrayLit) -> bool {
@@ -394,20 +395,6 @@ render_data_items :: fn(lit: LoweredArrayLit, element_name: string) -> i64[] | n
         out.push(bits)
     }
     return out
-}
-
-// Raw `i64` bit pattern of a poolable primitive literal, or null otherwise.
-// Floats are reinterpreted via `to_bits()` at the element's natural width
-// (`f32` keeps the low 32 bits), matching `vm/data_pool::value_from_bits`.
-data_item_bits :: fn(el: LoweredExpr, element_name: string) -> i64 | null {
-    if el is LoweredIntLit  { return el.value }
-    if el is LoweredCharLit { return i64(el.value) }
-    if el is LoweredBoolLit { return if el.value { 1 } else { 0 } }
-    if el is LoweredFloatLit {
-        if element_name == "f32" { return i64(u64(f32(el.value).to_bits())) }
-        return i64(el.value.to_bits())
-    }
-    return null
 }
 
 // The accessor fn's symbol, carrying a FRESH synthetic id (`synth_id`, always

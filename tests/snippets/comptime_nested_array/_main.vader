@@ -1,0 +1,82 @@
+// A `@comptime` value holding an array, in a struct field or as the element of an
+// array, bakes that array at its own type: read through a trait value or a union,
+// it is the array it was built as. A field declared at a union holding an array
+// bakes the union's array variant, its elements at that variant's width.
+module "snippet"
+
+import "std/io"
+
+Card :: struct {
+    weights: u8[]
+    rows: i32[][]
+    either: u8[] | string | null
+}
+
+build_card :: fn() -> Card {
+    weights: u8[]: []
+    rows: i32[][]: []
+    for i in 0..<3 {
+        weights.push(u8(i * 100))
+        rows.push([i, i * 10])
+    }
+    return Card {
+        .weights = weights,
+        .rows = rows,
+        .either = weights,
+    }
+}
+
+build_grid :: fn() -> string[][] {
+    out: string[][]: []
+    for i in 0..<2 {
+        out.push(["a${i}", "b${i}"])
+    }
+    return out
+}
+
+build_mixed :: fn() -> (i32[] | string)[] {
+    out: (i32[] | string)[]: []
+    for i in 0..<2 {
+        out.push([i, i + 1])
+        out.push("s${i}")
+    }
+    return out
+}
+
+@comptime
+CARD :: build_card()
+
+@comptime
+GRID :: build_grid()
+
+@comptime
+MIXED :: build_mixed()
+
+show :: fn(d: Display) -> string = d.to_string()
+
+kind :: fn(v: u8[] | string | null) -> string {
+    if v == null {
+        return "null"
+    }
+    if v is string {
+        return "string"
+    }
+    return "array ${v.len()}"
+}
+
+main :: fn() -> i32 {
+    println(show(CARD.weights))
+    println(kind(CARD.weights))
+    println("rows ${CARD.rows.len()} ${show(CARD.rows[2])}")
+    println(kind(CARD.either))
+    println(show(CARD.either))
+    println("grid ${GRID.len()} ${show(GRID[1])}")
+    for m in MIXED {
+        if m is string {
+            println(m)
+        } else {
+            println(show(m))
+        }
+    }
+    return 0
+}

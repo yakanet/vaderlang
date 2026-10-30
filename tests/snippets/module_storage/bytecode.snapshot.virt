@@ -67,7 +67,7 @@ data 3 f32 hex"0000803e0000003f"
 data 4 str "a\\b" "x"
 data 5 structs 8 2 2 strref 34 i32 01000000 strref 35 i32 02000000
 data 6 structs 8 2 1 strref 36 i32 00000000
-data 7 structs 11 3 2 strref 37 array u8 1 u8 01 strref 38 strref 39 array u8 2 u8 00 u8 01 strref 40
+data 7 structs 11 3 2 strref 37 array 12 1 u8 01 strref 38 strref 39 array 12 2 u8 00 u8 01 strref 40
 global 0 2 counts.state
 global 1 1 counts.instance
 global 2 2 slots.state

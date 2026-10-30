@@ -317,18 +317,14 @@ export BcStrData :: struct {
 /// elements aren't uniformly flat primitives / strings. `elements` are recursive
 /// `BcDataValue`s (each itself a struct, array, string, or primitive). Stored as
 /// a Boxed slot buffer at runtime (each element a `vader_box_t` pointing at its
-/// own materialised object). `element_type_name` is the array element type's
-/// display name (for the runtime element tag).
+/// own materialised object). The array's own type is the one its `data.const`
+/// names.
 export BcAggregateData :: struct {
-    element_type_name: string
     elements: BcDataValue[]
 }
 
 /// A single recursive baked value: the element of a `BcAggregateData` or a field
-/// of a `BcValStruct` / element of a `BcValArray`. Type identity is carried by KEY
-/// (struct `symbol_id`, element type name) and resolved to a type-index at each
-/// backend from `module.types`: the type table doesn't exist at the lower->CFG
-/// boundary where these are built.
+/// of a `BcValStruct` / element of a `BcValArray`.
 export BcDataValue :: BcValPrim | BcValStr | BcValStruct | BcValArray
 
 /// A primitive leaf: a raw `u64` bit pattern at the element's natural width.
@@ -351,10 +347,13 @@ export BcValStruct :: struct {
     fields: BcDataValue[]
 }
 
-/// A nested array value. `element_type_name` gives the element kind ; `elements`
-/// are the recursive element values.
+/// A nested array value: the field of a baked struct, or the element of a baked
+/// array.
 export BcValArray :: struct {
-    element_type_name: string
+    /// The array type's own index in `module.types` (`u8[]`, not `u8`): its
+    /// static carries it as its header tag, which is what a read through an
+    /// erased slot (a union, a trait value) dispatches on.
+    type_id: i32
     elements: BcDataValue[]
 }
 

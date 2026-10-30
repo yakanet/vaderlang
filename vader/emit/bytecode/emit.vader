@@ -357,17 +357,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // Pre-translate CFG string indices into bytecode pool indices.
     string_index_map: i32[]: []
     for s in cfg.strings { string_index_map.push(intern_string(s, ctx)) }
-    // Intern each pooled read-only `string[]`'s values into the module string table
-    // so the comptime atom table (built from `module.strings`) covers them: the
-    // native backend resolves each value's atom there, and the `.virt` dump
-    // references them by table index. Side-effect only ; the entry keeps values.
-    for data_entry in cfg.data_pool {
-        if data_entry is BcStrData {
-            for v in data_entry.values { intern_string(v, ctx) }
-        } else if data_entry is BcAggregateData {
-            for v in data_entry.elements { intern_data_value_strings(v, ctx) }
-        }
-    }
+    data_pool := convert_data_pool(ctx, cfg.data_pool)
     for slot in cfg.globals {
         ctx.globals.push(BcGlobal { .name = slot.name, .type_id = intern_type(slot.type, ctx) })
     }
@@ -392,7 +382,6 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             }
         }
     }
-    data_pool := cfg.data_pool
     // Pass 3: bytecode peephole + DCE, gated by `opts.optimize`.
     if opts.optimize {
         for i in 0..<ctx.functions.len() {
@@ -484,8 +473,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         prune_unused_imports(ctx)
         data_pool = prune_unused_data(ctx, data_pool)
         prune_unused_globals(ctx)
-        pin_baked_struct_types(data_pool, ctx)
-        prune_unused_types(ctx)
+        data_pool = prune_unused_types(ctx, data_pool)
         // The table is final from here. Anything downstream that needs a type
         // must LOOK IT UP; minting one now produces a slot the prune can no
         // longer see. `intern_type` enforces it rather than trusting comments.
@@ -689,53 +677,6 @@ FnEmitCfg :: struct {
     /// the non-release c-emit consumes the table, so the VM / comptime /
     /// self-compile-release path leaves it off and skips the per-op alloc.
     want_debug: bool
-}
-
-// Recursively intern every string leaf of a baked aggregate value into the
-// module string table, so the comptime atom table covers them (the native
-// backend reads each value's atom there). Side-effect only.
-intern_data_value_strings :: fn(v: BcDataValue, ctx: EmitterCtx) -> void {
-    if v is BcValStr {
-        intern_string(v.value, ctx)
-    } else if v is BcValStruct {
-        for f in v.fields { intern_data_value_strings(f, ctx) }
-    } else if v is BcValArray {
-        for e in v.elements { intern_data_value_strings(e, ctx) }
-    }
-}
-
-// A baked struct names its type by symbol id alone, and the `data.const` that reads
-// its entry may root no more than a `ref` (`SHAPES: Shape[]` types under a trait) :
-// pin each one, or `prune_unused_types` would drop the type c_emit takes the
-// static's C struct and header tag from.
-pin_baked_struct_types :: fn(data_pool: BcDataEntry[], ctx: EmitterCtx) -> void {
-    symbol_ids :: MutableSet<i32> {}
-    for entry in data_pool {
-        if entry is BcAggregateData {
-            for v in entry.elements {
-                collect_baked_symbols(v, symbol_ids)
-            }
-        }
-    }
-    for symbol_id in symbol_ids {
-        index :: struct_symbol_type_index(ctx.types, symbol_id)
-        if index >= 0 {
-            ctx.pinned_types.push(index)
-        }
-    }
-}
-
-collect_baked_symbols :: fn(v: BcDataValue, out: MutableSet<i32>) -> void {
-    if v is BcValStruct {
-        out.add(v.symbol_id)
-        for f in v.fields {
-            collect_baked_symbols(f, out)
-        }
-    } else if v is BcValArray {
-        for e in v.elements {
-            collect_baked_symbols(e, out)
-        }
-    }
 }
 
 emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, string_index_map: i32[], want_debug: bool) -> void {

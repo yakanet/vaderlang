@@ -33,8 +33,8 @@ reduce_data_pool :: fn(entries: BcDataEntry[], types: BcType[], type_ids: i32[])
 }
 
 // Materialise one recursive baked value into a VM `Value`. Struct identity is
-// resolved from `symbol_id` against the module type table ; nested arrays carry
-// type_id 0 (the VM is loosely typed: field access reads positionally).
+// resolved from `symbol_id` against the module type table ; a nested array
+// carries its own type_id, which a trait value or a union dispatches on.
 bc_value_to_vm :: fn(v: BcDataValue, types: BcType[]) -> Value {
     if v is BcValStr { return StringVal(v.value) }
     if v is BcValPrim { return value_from_bits(v.kind, v.bits) }
@@ -46,7 +46,7 @@ bc_value_to_vm :: fn(v: BcDataValue, types: BcType[]) -> Value {
     if v is BcValArray {
         elems: Value[]: []
         for e in v.elements { elems.push(bc_value_to_vm(e, types)) }
-        return ArrayVal { .type_id = 0, .elements = elems, .offset = 0, .length = elems.len() }
+        return ArrayVal { .type_id = v.type_id, .elements = elems, .offset = 0, .length = elems.len() }
     }
     return I32Val(0)
 }

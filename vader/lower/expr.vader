@@ -431,12 +431,13 @@ comptime_value_to_lowered :: fn(
         is NullValue   -> { return LoweredNullLit { .span = span, .type = TY_NULL } }
         is VoidValue   -> { return LoweredUnreachable { .span = span, .type = type_hint, .reason = "comptime void value" } }
         is ArrayValue  -> {
-            element_type :: array_element_type(type_hint)
+            array_type :: baked_array_type(v, type_hint)
+            element_type :: array_element_type(array_type)
             elements: LoweredExpr[]: []
             for e in v.elements {
                 elements.push(comptime_value_to_lowered(ctx, e, element_type, span))
             }
-            return LoweredArrayLit { .span = span, .type = type_hint, .elements = elements }
+            return LoweredArrayLit { .span = span, .type = array_type, .elements = elements }
         }
         is StructValue -> { return baked_struct(ctx, v, span) }
         is TypeValue -> { return LoweredUnreachable { .span = span, .type = type_hint, .reason = "comptime type-value lowering deferred" } }
@@ -499,6 +500,15 @@ scalar_type :: fn(type_name: string, family: Type, hint: Type) -> Type {
     }
     settled :: union_literal_member(family, hint) ?? return own
     return settled
+}
+
+// The type a baked array is laid out at: its slot's when the slot is an array, the
+// value's own otherwise (a union or a trait slot holding an array).
+baked_array_type :: fn(v: ArrayValue, slot: Type) -> Type {
+    if array_backing(slot) != null {
+        return slot
+    }
+    return v.type
 }
 
 // Element type of an array, a distinct one included, or `unresolved` when `t`

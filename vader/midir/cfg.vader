@@ -16,7 +16,6 @@ import "vader/core/mono"
 import "vader/support/diagnostics"
 import "vader/core/types"
 import "vader/core/symbol"
-import "vader/core/bytecode"
 import "vader/lower/ir"
 import "toolchain/span"
 import "std/collections"
@@ -607,10 +606,11 @@ export CFGProject :: struct {
     /// LoweredStringLit here ; ConstString stores the index. The
     /// emitter reuses this pool verbatim as `BcModule.strings`.
     strings: string[]
-    /// Mirrors LoweredProject.dataPool: carried verbatim into
-    /// `BytecodeModule.dataPool`. InstrDataConst references entries by
-    /// index.
-    data_pool: BcDataEntry[]
+    /// Mirrors `LoweredProject.data_pool`, carried verbatim: the bytecode
+    /// emitter converts it, since a baked nested array names its type by an
+    /// index in the table that emitter builds. InstrDataConst references
+    /// entries by index.
+    data_pool: DataPoolEntry[]
     /// Mirrors `LoweredProject.globals`: the type of each global slot.
     globals: GlobalSlot[]
     /// `Symbol.id → trait names`: frontend trait membership carried verbatim
