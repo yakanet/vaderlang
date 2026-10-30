@@ -37,199 +37,113 @@ import "toolchain/span"
 /// array response, never a null.
 export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    if uri == "" { return JsonArray { .items = [] } }
+    if uri == "" {
+        return JsonArray { .items = [] }
+    }
     file_path :: uri_to_path(uri)
-    if file_path == "" { return JsonArray { .items = [] } }
-
+    if file_path == "" {
+        return JsonArray { .items = [] }
+    }
     cached :: typed_project_for(state, file_path)
     project :: cached.project
     result :: cached.result
     entry :: project.modules[project.entry] ?? return JsonArray { .items = [] }
     sf :: source_file_for_path(entry.module.files, file_path) ?? return JsonArray { .items = [] }
-
     hints: JsonValue[]: []
     ctx :: HintCtx {
-        .typed   = result.typed,
+        .typed = result.typed,
         .content = sf.content,
-        .li      = new_line_index(sf.content, state.position_encoding),
+        .li = new_line_index(sf.content, state.position_encoding),
     }
     for decl in sf.program.decls {
-        collect_from_decl(decl, ctx, hints)
+        collect_hints(decl, ctx, hints)
     }
     return JsonArray { .items = hints }
 }
 
-// What the walkers need at every level : the typed side-tables the hints read
+// What the visitor needs at each node : the typed side-tables the hints read
 // from, the file text, which `emit_operator_hint` and the return-type hints scan
 // for the real binding operator or separator rather than assuming a canonical
 // spacing, and the line index that turns a byte offset into a `character` in the
 // negotiated encoding.
 HintCtx :: struct {
-    typed:   TypedProgram
+    typed: TypedProgram
     content: string
-    li:      LineIndex
+    li: LineIndex
 }
 
-// ---- AST walkers ---------------------------------------------------------
+// ---- the walk -------------------------------------------------------------
 
-collect_from_decl :: fn(d: AST.Decl, ctx: HintCtx, out: JsonValue[]) -> void {
-    match d {
-        is AST.FnDecl -> {
-            emit_fn_return_hints(d, ctx, out)
-            match b :: d.body {
-                is null          -> {}
-                is AST.BlockExpr -> { collect_from_block(b, ctx, out) }
-            }
-        }
-        is AST.ImplDecl -> {
-            for m in d.members {
-                // A member declared for the impl from its trait was not written
-                // here : its spans point nowhere in this file.
-                if m.materialized {
-                    continue
-                }
-                emit_fn_return_hints(m, ctx, out)
-                match b :: m.body {
-                    is null          -> {}
-                    is AST.BlockExpr -> { collect_from_block(b, ctx, out) }
-                }
-            }
-        }
-        is AST.ConstDecl -> {
-            // Skip when the user already annotated the type.
-            if d.ty is null {
-                emit_const_hint(d, ctx, out)
-            }
-        }
-        is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
-         | AST.TypeAliasDecl | AST.AssertDecl -> {}
+collect_hints :: fn(n: AST.Node, ctx: HintCtx, out: JsonValue[]) -> void {
+    AST.inspect(n, (m) -> hint_step(m, ctx, out))
+}
+
+// Exhaustive, so a new node kind gets a decision here.
+hint_step :: fn(n: AST.Node, ctx: HintCtx, out: JsonValue[]) -> AST.Walk = match n {
+    is AST.FnDecl -> fn_hints(n, ctx, out)
+    is AST.ConstDecl -> const_hints(n, ctx, out)
+    is AST.LetStmt -> let_hints(n, ctx, out)
+    is AST.LambdaExpr -> lambda_hints(n, ctx, out)
+    // Any value may carry an implicit `.into()`.
+    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr
+        | AST.StringLitExpr | AST.IdentExpr | AST.DotVariantExpr | AST.CallExpr | AST.FieldExpr
+        | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.NullCoalesceExpr | AST.IfExpr
+        | AST.MatchExpr | AST.BlockExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr
+        | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.AwaitExpr
+        | AST.FnTypeExpr | AST.ArrayTypeExpr -> expr_hints(n, ctx, out)
+    is AST.ExprStmt | AST.ReturnStmt | AST.YieldStmt | AST.AssignStmt
+        | AST.DestructureAssignStmt | AST.ForStmt | AST.BreakStmt | AST.ContinueStmt
+        | AST.DeferStmt | AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
+        | AST.ImplDecl | AST.TypeAliasDecl | AST.AssertDecl | AST.Pattern -> .Descend
+}
+
+fn_hints :: fn(d: AST.FnDecl, ctx: HintCtx, out: JsonValue[]) -> AST.Walk {
+    // A member declared for the impl from its trait was not written here: its
+    // spans point nowhere in this file.
+    if d.materialized {
+        return .Skip
     }
+    emit_fn_return_hints(d, ctx, out)
+    return .Descend
 }
 
-collect_from_block :: fn(b: AST.BlockExpr, ctx: HintCtx, out: JsonValue[]) -> void {
-    for s in b.stmts { collect_from_stmt(s, ctx, out) }
-    if b.trailing !is null {
-        collect_from_expr(b.trailing, ctx, out)
+const_hints :: fn(cd: AST.ConstDecl, ctx: HintCtx, out: JsonValue[]) -> AST.Walk {
+    if cd.ty != null {
+        return .Descend
     }
+    emit_const_hint(cd, ctx, out)
+    return bound_value_hints(cd.value, ctx, out)
 }
 
-collect_from_stmt :: fn(s: AST.Stmt, ctx: HintCtx, out: JsonValue[]) -> void {
-    match s {
-        is AST.LetStmt               -> {
-            // Skip when the user already annotated the binding type.
-            match s.ty {
-                is null -> { emit_let_hint(s, ctx, out) }
-                _       -> {}
-            }
-            collect_from_let_value(s, ctx, out)
-        }
-        is AST.ExprStmt              -> { collect_from_expr(s.expr, ctx, out) }
-        is AST.ReturnStmt            -> {
-            if s.value !is null {
-                collect_from_expr(s.value, ctx, out)
-            }
-        }
-        is AST.YieldStmt             -> { collect_from_expr(s.value, ctx, out) }
-        is AST.AssignStmt            -> {
-            collect_from_expr(s.target, ctx, out)
-            collect_from_expr(s.value, ctx, out)
-        }
-        is AST.DestructureAssignStmt -> {
-            for place in AST.assign_places(s) {
-                collect_from_expr(place, ctx, out)
-            }
-            collect_from_expr(s.value, ctx, out)
-        }
-        is AST.ForStmt               -> {
-            match w :: s.form {
-                is AST.WhileFor    -> { collect_from_expr(w.cond, ctx, out) }
-                is AST.InFor       -> { collect_from_expr(w.iter, ctx, out) }
-                is AST.InfiniteFor -> {}
-            }
-            collect_from_block(s.body, ctx, out)
-        }
-        is AST.BreakStmt             -> {}
-        is AST.ContinueStmt          -> {}
-        is AST.DeferStmt             -> {
-            match dsb :: s.body {
-                is AST.DeferStmtBody  -> { collect_from_stmt(dsb.stmt, ctx, out) }
-                is AST.DeferBlockBody -> { collect_from_block(dsb.block, ctx, out) }
-            }
-        }
+let_hints :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]) -> AST.Walk {
+    if ls.ty != null {
+        return .Descend
     }
+    emit_let_hint(ls, ctx, out)
+    return bound_value_hints(ls.value, ctx, out)
 }
 
-collect_from_expr :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> void {
-    // Surface an implicit `.into()` coercion carried on this value, if any.
+// A lambda bound without an annotation shows its whole type, return included, in
+// the binding's hint: its own return hint would repeat it. Its discarded value, if
+// any, is still marked.
+bound_value_hints :: fn(value: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> AST.Walk {
+    if value !is AST.LambdaExpr {
+        return .Descend
+    }
+    emit_lambda_return_hints(value, false, ctx, out)
+    collect_hints(value.body, ctx, out)
+    return .Skip
+}
+
+lambda_hints :: fn(e: AST.LambdaExpr, ctx: HintCtx, out: JsonValue[]) -> AST.Walk {
     check_into_hint(e, ctx, out)
-    // Recurse into every child expression : nested coercions (a coerced arg
-    // inside `f(g(arr))`) and nested `let`/`const` type hints inside
-    // block-bearing exprs both need the full walk.
-    match e {
-        is AST.CallExpr -> {
-            collect_from_expr(e.callee, ctx, out)
-            for a in e.args { collect_from_expr(a.value, ctx, out) }
-        }
-        is AST.FieldExpr -> { collect_from_expr(e.target, ctx, out) }
-        is AST.IndexExpr -> {
-            collect_from_expr(e.target, ctx, out)
-            collect_from_expr(e.index, ctx, out)
-        }
-        is AST.UnaryExpr -> { collect_from_expr(e.operand, ctx, out) }
-        is AST.BinaryExpr -> {
-            collect_from_expr(e.left, ctx, out)
-            collect_from_expr(e.right, ctx, out)
-        }
-        is AST.BlockExpr -> { collect_from_block(e, ctx, out) }
-        is AST.IfExpr -> {
-            collect_from_expr(e.cond, ctx, out)
-            collect_from_block(e.then_block, ctx, out)
-            match ei :: e.else_branch {
-                is null            -> {}
-                is AST.IfElseIf    -> { collect_from_expr(ei.branch, ctx, out) }
-                is AST.IfElseBlock -> { collect_from_block(ei.block, ctx, out) }
-            }
-        }
-        is AST.MatchExpr -> {
-            collect_from_expr(e.scrutinee, ctx, out)
-            for arm in e.arms {
-                if arm.guard != null { collect_from_expr(arm.guard, ctx, out) }
-                collect_from_expr(arm.body, ctx, out)
-            }
-        }
-        is AST.LambdaExpr -> {
-            emit_lambda_return_hints(e, true, ctx, out)
-            collect_from_block(e.body, ctx, out)
-        }
-        is AST.StructLitExpr -> {
-            for item in e.items {
-                match item {
-                    is AST.StructLitField  -> { collect_from_expr(item.value, ctx, out) }
-                    is AST.StructLitSpread -> { collect_from_expr(item.expr, ctx, out) }
-                }
-            }
-        }
-        is AST.SeqLitExpr -> {
-            for el in e.elements { collect_from_expr(el, ctx, out) }
-        }
-        is AST.RangeExpr -> {
-            collect_from_expr(e.lower, ctx, out)
-            collect_from_expr(e.upper, ctx, out)
-        }
-        is AST.AwaitExpr -> { collect_from_expr(e.inner, ctx, out) }
-        is AST.CastExpr -> { collect_from_expr(e.value, ctx, out) }
-        is AST.GenericInstExpr -> { collect_from_expr(e.callee, ctx, out) }
-        is AST.IntrinsicCallExpr -> {
-            for a in e.args { collect_from_expr(a, ctx, out) }
-        }
-        is AST.StringLitExpr -> {
-            for part in e.parts {
-                if part is AST.StringLitInterp { collect_from_expr(part.expr, ctx, out) }
-            }
-        }
-        // Leaves : literals, idents, dot-variants, type-position exprs.
-        _ -> {}
-    }
+    emit_lambda_return_hints(e, true, ctx, out)
+    return .Descend
+}
+
+expr_hints :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> AST.Walk {
+    check_into_hint(e, ctx, out)
+    return .Descend
 }
 
 /// Emit a ghost `.into()` hint when `e`'s value is implicitly coerced via
@@ -237,7 +151,9 @@ collect_from_expr :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> void {
 /// `Expr.id`). Anchors at the exclusive end of the value, so the zero-padding
 /// label reads as `value.into()`.
 check_into_hint :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> void {
-    if ctx.typed.into_coercions[e.id] is null { return }
+    if ctx.typed.into_coercions[e.id] is null {
+        return
+    }
     line :: e.span.end.line - 1
     out.push(build_hint(line, li_character(ctx.li, line, e.span.end.offset), ".into()", .None))
 }
@@ -246,7 +162,7 @@ check_into_hint :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> void {
 
 /// Where a type hint must be inserted, 0-based as the LSP wants it.
 HintAnchor :: struct {
-    line:      i32
+    line: i32
     character: i32
 }
 
@@ -275,7 +191,10 @@ HintAnchor :: struct {
 ///                    is found in range, so a surprising span degrades the
 ///                    placement instead of dropping the hint.
 operator_hint_anchor :: fn(
-    li: LineIndex, content: string, name_span: Span, value_span: Span,
+    li: LineIndex,
+    content: string,
+    name_span: Span,
+    value_span: Span,
 ) -> HintAnchor {
     limit :: value_span.start.offset
     line: i32 = name_span.end.line - 1
@@ -298,7 +217,8 @@ operator_hint_anchor :: fn(
                 next :: content.byte_at(off + 1)
                 if next == ':' || next == '=' {
                     return HintAnchor {
-                        .line = line, .character = li_character(li, line, off + 1),
+                        .line = line,
+                        .character = li_character(li, line, off + 1),
                     }
                 }
             }
@@ -318,7 +238,11 @@ operator_hint_anchor :: fn(
 /// `name :u8: value` (`::`) or `name :u8= value` (`:=`): the type sits between
 /// the operator's two characters. See `operator_hint_anchor` for the placement.
 emit_operator_hint :: fn(
-    ctx: HintCtx, name_span: Span, value_span: Span, label: string, out: JsonValue[],
+    ctx: HintCtx,
+    name_span: Span,
+    value_span: Span,
+    label: string,
+    out: JsonValue[],
 ) -> void {
     anchor :: operator_hint_anchor(ctx.li, ctx.content, name_span, value_span)
     out.push(build_hint(anchor.line, anchor.character, label, .None))
@@ -350,7 +274,7 @@ emit_let_hint :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]) -> void {
 emit_const_hint :: fn(cd: AST.ConstDecl, ctx: HintCtx, out: JsonValue[]) -> void {
     ty :: declared_type_at(ctx.typed, cd.name_span) ?? return
     if ty is UnresolvedType { return }
-    if ty is TypeMetaType { return }
+    if ty is TypeMetaType   { return }
     emit_operator_hint(ctx, cd.name_span, cd.value.span, display_type(ty), out)
 }
 
@@ -370,19 +294,6 @@ emit_fn_return_hints :: fn(d: AST.FnDecl, ctx: HintCtx, out: JsonValue[]) -> voi
     }
     anchor :: fn_return_anchor(ctx, body.span.start, d.is_expression_bodied)
     emit_return_hints(declared.return_type, body, anchor, ctx, out)
-}
-
-// A lambda bound without an annotation shows its whole type, return included, in
-// the let hint: its own return hint would repeat it. Its discarded value, if any,
-// is still marked.
-collect_from_let_value :: fn(s: AST.LetStmt, ctx: HintCtx, out: JsonValue[]) -> void {
-    value :: s.value
-    if s.ty == null && value is AST.LambdaExpr {
-        emit_lambda_return_hints(value, false, ctx, out)
-        collect_from_block(value.body, ctx, out)
-        return
-    }
-    collect_from_expr(value, ctx, out)
 }
 
 /// Emit the hints of a lambda written without a return type. Its return type
@@ -420,7 +331,11 @@ emit_lambda_return_hints :: fn(
 /// A body that returns nothing gets its discarded last value marked; any other
 /// gets its return type at `anchor`.
 emit_return_hints :: fn(
-    returned: Type, body: AST.BlockExpr, anchor: HintAnchor, ctx: HintCtx, out: JsonValue[],
+    returned: Type,
+    body: AST.BlockExpr,
+    anchor: HintAnchor,
+    ctx: HintCtx,
+    out: JsonValue[],
 ) -> void {
     if is_void(returned) {
         emit_discarded_hint(body, ctx, out)
@@ -506,22 +421,21 @@ is_layout_byte :: fn(b: u8) -> bool = b == ' ' || b == '\t' || b == '\n' || b ==
 /// hugs both neighbours, a return type stands before its separator, a discard
 /// note after its value.
 HintPadding :: enum {
-    None
-    Left
-    Right
+    None,
+    Left,
+    Right,
 }
 
 build_hint :: fn(line: i32, character: i32, label: string, padding: HintPadding) -> JsonValue {
     position :: MutableMap<string, JsonValue> {}
-    position["line"]      = JsonNumber { .value = f64(line) }
+    position["line"] = JsonNumber { .value = f64(line) }
     position["character"] = JsonNumber { .value = f64(character) }
-
     hint :: MutableMap<string, JsonValue> {}
-    hint["position"]     = JsonObject { .entries = position }
-    hint["label"]        = JsonString { .value = label }
+    hint["position"] = JsonObject { .entries = position }
+    hint["label"] = JsonString { .value = label }
     // InlayHintKind.Type = 1 (LSP §3.17.21).
-    hint["kind"]         = JsonNumber { .value = 1.0 }
-    hint["paddingLeft"]  = JsonBool { .value = padding == .Left }
+    hint["kind"] = JsonNumber { .value = 1.0 }
+    hint["paddingLeft"] = JsonBool { .value = padding == .Left }
     hint["paddingRight"] = JsonBool { .value = padding == .Right }
     return JsonObject { .entries = hint }
 }
@@ -613,7 +527,6 @@ test_anchor_never_emits_a_negative_character :: fn() -> void {
     assert_eq(a.line, 1)
     assert_eq(a.character, 0)
 }
-
 
 // `anchor_before_token` steps back from the body over layout only, so the anchor
 // lands ON the separator, even when it closes the previous line.

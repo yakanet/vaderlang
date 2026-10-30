@@ -723,6 +723,38 @@ test("lsp: inlay hints show implicit return types and discarded values", async (
   expect(discards.every((h) => h.paddingLeft && !h.paddingRight)).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
+// The hints reach every expression: a lambda inside a `??` fallback gets its
+// return hint. A lambda bound to a constant without an annotation gets none,
+// as under a `let`: the constant's hint already shows its whole type.
+const NESTED_RETURN_HINT_SOURCE = `module "demo"
+
+apply :: fn(f: fn(i32) -> i32, x: i32) -> i32 = f(x)
+
+maybe :: fn() -> i32 | null = null
+
+inc :: (x: i32) -> x + 1
+
+main :: fn() -> i32 {
+    return maybe() ?? apply((x: i32) -> x * 5, inc(1))
+}
+`;
+
+test("lsp: inlay hints reach a lambda in a fallback, not one bound to a constant", async () => {
+  const src = NESTED_RETURN_HINT_SOURCE;
+  const results = await driveLsp(src, [
+    {
+      method: "textDocument/inlayHint",
+      range: { start: { line: 0, character: 0 }, end: { line: src.split("\n").length, character: 0 } },
+    },
+  ]);
+  const hints = results[0]!.result as { label: string; position: PositionT }[];
+  const returns = hints.filter((h) => h.label.startsWith("-> "));
+  expect(returns.map((h) => [h.label, key(h.position)])).toEqual([
+    ["-> i32", key(positionOf(src, "-> x * 5"))],
+  ]);
+  expect(hints.some((h) => h.label === "fn(i32) -> i32")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
 test("lsp: completion shows a local's inferred type as detail", async () => {
   // Line 13 = `    return n`: inside main's body, so `n` and `b` are visible.
   const results = await driveLsp(LOCAL_TYPE_SOURCE, [
