@@ -264,7 +264,7 @@ void* vader_support_integer$interval(int64_t l0, int64_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_vader_support_integer$Interval_t* _a0_obj = (vader_struct_vader_support_integer$Interval_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_integer$Interval_t));
-    vader_obj_header_init(_a0_obj, 1403u);
+    vader_obj_header_init(_a0_obj, 1413u);
     _a0_obj->f_lo = l0;
     _a0_obj->f_hi = l1;
     _a0_obj->f_lo_open = false;
@@ -380,7 +380,7 @@ void* vader_support_integer$interval_from_ends(vader_box_t l0, vader_box_t l1) {
     l5 = l0.tag == 0u;
     l6 = l1.tag == 0u;
     vader_struct_vader_support_integer$Interval_t* _a0_obj = (vader_struct_vader_support_integer$Interval_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_integer$Interval_t));
-    vader_obj_header_init(_a0_obj, 1403u);
+    vader_obj_header_init(_a0_obj, 1413u);
     _a0_obj->f_lo = l3;
     _a0_obj->f_hi = l4;
     _a0_obj->f_lo_open = l5;
@@ -414,7 +414,7 @@ void* vader_support_integer$interval_join(void* l0, void* l1) {
     l6 = ((vader_struct_vader_support_integer$Interval_t*) l2)->f_hi_open;
     l7 = ((vader_struct_vader_support_integer$Interval_t*) l2)->f_hi_past;
     vader_struct_vader_support_integer$Interval_t* _a0_obj = (vader_struct_vader_support_integer$Interval_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_integer$Interval_t));
-    vader_obj_header_init(_a0_obj, 1403u);
+    vader_obj_header_init(_a0_obj, 1413u);
     _a0_obj->f_lo = l3;
     _a0_obj->f_hi = l4;
     _a0_obj->f_lo_open = l5;
@@ -452,7 +452,7 @@ vader_box_t vader_support_integer$interval_meet(void* l0, void* l1) {
     l6 = ((vader_struct_vader_support_integer$Interval_t*) l4)->f_hi_open;
     l7 = ((vader_struct_vader_support_integer$Interval_t*) l4)->f_hi_past;
     vader_struct_vader_support_integer$Interval_t* _a0_obj = (vader_struct_vader_support_integer$Interval_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_integer$Interval_t));
-    vader_obj_header_init(_a0_obj, 1403u);
+    vader_obj_header_init(_a0_obj, 1413u);
     _a0_obj->f_lo = l2;
     _a0_obj->f_hi = l3;
     _a0_obj->f_lo_open = l5;
@@ -616,7 +616,7 @@ void* vader_support_integer$interval_remove(void* l0, void* l1) {
     void** gc_raw_roots[8] = { &l0, &l1, &l2, &l3, &l6, &l12, &l17, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 8u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(218u, 0u, 13u, 1403u);
+    vader_array_t* _a0_arr = vader_array_new(217u, 0u, 13u, 1413u);
     l2 = (void*) _a0_arr;
     l3 = l0;
     l4 = ((vader_array_t*) l3)->length;
@@ -697,7 +697,7 @@ void* vader_support_integer$interval_up_to(int64_t l0, uint64_t l1) {
         t0 = vader_chk_sub(u64, l1, l2);
         l2 = (uint64_t) (int64_t) t0;
         vader_struct_vader_support_integer$Interval_t* _a0_obj = (vader_struct_vader_support_integer$Interval_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_integer$Interval_t));
-        vader_obj_header_init(_a0_obj, 1403u);
+        vader_obj_header_init(_a0_obj, 1413u);
         _a0_obj->f_lo = l0;
         _a0_obj->f_hi = INT64_C(9223372036854775807);
         _a0_obj->f_lo_open = false;

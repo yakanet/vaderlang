@@ -838,23 +838,6 @@ void* std_sort$sort__vader_core_symbol_Symbol(void* l0, void* l1) {
     { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-void* std_sort$sort__vader_front_comptime_GenericInstance(void* l0, void* l1) {
-    int64_t l2;
-    void* l3 = NULL;
-    void* l4 = NULL;
-    void** gc_raw_roots[4] = { &l0, &l1, &l3, &l4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    l2 = ((vader_array_t*) l0)->length;
-    l3 = std_iter$clone__vader_front_comptime_GenericInstance(l0);
-    if (!((l2 < INT64_C(2)))) {
-        l4 = std_iter$clone__vader_front_comptime_GenericInstance(l0);
-        std_sort$merge_sort_range__Any(l3, l4, INT64_C(0), l2, l1);
-        { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
-    }
-    { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
 void* std_sort$sort__vader_lower_PendingFnInstance(void* l0, void* l1) {
     int64_t l2;
     void* l3 = NULL;

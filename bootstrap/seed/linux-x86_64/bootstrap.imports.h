@@ -36,7 +36,7 @@ static inline vader_string_t vader_host_std_core$bytes_to_string(void* a0) {
 }
 
 static inline void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 24u, 340u);
+    return (void*) vader_string_bytes_view(a0, 25u, 340u);
 }
 
 static inline uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {

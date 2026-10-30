@@ -1,9 +1,10 @@
 #include "bootstrap.split.h"
 
+static void* vader_pipeline_check$assemble_typed_project(void* l0);
 static void vader_pipeline_check$lint_dead_code(void* l0, void* l1);
 static void vader_pipeline_check$lint_module(void* l0, void* l1);
 
-void* vader_pipeline_check$assemble_typed_project(void* l0) {
+static void* vader_pipeline_check$assemble_typed_project(void* l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     void* l3 = NULL;
@@ -84,10 +85,21 @@ void* vader_pipeline_check$check_project(void* l0, void* l1, bool l2) {
     l5 = vader_front_effects$frozen_diagnostics(l4);
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l5);
     vader_struct_vader_pipeline_check$CheckedProject_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckedProject_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckedProject_t));
-    vader_obj_header_init(_a0_obj, 1396u);
+    vader_obj_header_init(_a0_obj, 1406u);
     _a0_obj->f_result = l3;
     _a0_obj->f_effects = l4;
     t0 = (void*) _a0_obj;
+    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+void* vader_pipeline_check$evaluate_checked(void* l0, void* l1, void* l2) {
+    void* l3 = NULL;
+    void* t0 = NULL;
+    void** gc_raw_roots[5] = { &l0, &l1, &l2, &l3, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    l3 = vader_pipeline_check$assemble_typed_project(l1);
+    t0 = vader_front_comptime$evaluate_project(l0, l3, l2);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
