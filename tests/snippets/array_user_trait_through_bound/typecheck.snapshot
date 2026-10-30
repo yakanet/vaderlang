@@ -1,0 +1,49 @@
+# Typecheck
+
+## tests/snippets/array_user_trait_through_bound
+  FnDecl         drop_all             :: fn(T[]) -> void
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         pop                  :: fn(T) -> i32 | null
+  TraitDecl      Popper               :: Popper
+  FnDecl         reset                :: fn(T) -> void
+  TraitDecl      Resettable           :: Resettable
+  expr 14:17    StringLitExpr  :: string
+  expr 14:9     CallExpr       :: void
+  expr 14:9     IdentExpr      :: fn(T) -> void
+  expr 27:5     CallExpr       :: void
+  expr 27:5     FieldExpr      :: fn() -> void
+  expr 27:5     IdentExpr      :: T
+  expr 30:44    CallExpr       :: i32 | null
+  expr 30:44    FieldExpr      :: fn() -> i32 | null
+  expr 30:44    IdentExpr      :: T
+  expr 33:5     CallExpr       :: void
+  expr 33:5     FieldExpr      :: fn() -> void
+  expr 33:5     IdentExpr      :: T[]
+  expr 37:16    SeqLitExpr     :: i32[]
+  expr 38:11    IdentExpr      :: i32[]
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    StringLitExpr  :: string
+  expr 39:28    CallExpr       :: i64
+  expr 39:28    FieldExpr      :: fn() -> i64
+  expr 39:28    IdentExpr      :: i32[]
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 40:13    StringLitExpr  :: string
+  expr 40:20    CallExpr       :: i32 | null
+  expr 40:20    IdentExpr      :: fn(T) -> i32 | null
+  expr 40:24    IdentExpr      :: i32[]
+  expr 40:36    CallExpr       :: i64
+  expr 40:36    FieldExpr      :: fn() -> i64
+  expr 40:36    IdentExpr      :: i32[]
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 41:14    IdentExpr      :: i32[]
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(T[]) -> void
+  expr 42:13    StringLitExpr  :: string
+  expr 42:31    CallExpr       :: i64
+  expr 42:31    FieldExpr      :: fn() -> i64
+  expr 42:31    IdentExpr      :: i32[]
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void

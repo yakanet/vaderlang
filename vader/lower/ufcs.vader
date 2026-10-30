@@ -106,7 +106,7 @@ method_target :: fn(
     }
     surface :: ctx.types.expr_type(field.target)
     array_op :: array_target(surface, field.field, arity)
-    if array_op != null {
+    if array_op != null && names_array_member(ctx, callee) {
         return array_op
     }
     // A trait value dispatches on its tag ; a combinator its trait does not declare
@@ -137,6 +137,25 @@ array_target :: fn(surface: Type, name: string, arity: i64) -> ArrayOpTarget | n
     array :: array_backing(surface) ?? return null
     op :: array_op_of(name, arity) ?? return null
     return ArrayOpTarget { .op = op, .element = array.element }
+}
+
+// True when `callee` records a member of `ArrayOps`, which an array operation
+// serves. A member of another trait can share its name (a `clear` of a trait
+// implemented for `i32[]`): the member the typecheck chose runs.
+names_array_member :: fn(ctx: FnLowerCtx, callee: Callee | null) -> bool =
+    member_trait_key(ctx, callee) == core_trait_key(@type_name(ArrayOps))
+
+// The trait of the member `callee` records : an impl member's, or the bound's it is
+// reached through ; null for a free fn and a site with no record.
+member_trait_key :: fn(ctx: FnLowerCtx, callee: Callee | null) -> string | null {
+    if callee is DirectFn {
+        entry :: ctx.project.impls.member_entry(callee.decl) ?? return null
+        return entry.trait_key
+    }
+    if callee is BoundMember {
+        return callee.trait_key
+    }
+    return null
 }
 
 // The trait a receiver of type `receiver` dispatches `field` through at run time :

@@ -1,0 +1,44 @@
+// A trait of the program implemented for an array, whose members share their names
+// with the array's own operations (`clear`, `remove_last`): a generic reaching them
+// through its bound runs the impl's member, and a generic over `T[]` the array's.
+module "snippet"
+
+import "std/io"
+
+Resettable :: trait {
+    clear :: fn(self) -> void
+}
+
+i32[] implements Resettable {
+    clear :: fn(self) -> void {
+        println("custom clear")
+    }
+}
+
+Popper :: trait {
+    remove_last :: fn(self) -> i32 | null
+}
+
+i32[] implements Popper {
+    remove_last :: fn(self) -> i32 | null = 77
+}
+
+reset :: fn<T: Resettable>(x: T) -> void {
+    x.clear()
+}
+
+pop :: fn<T: Popper>(x: T) -> i32 | null = x.remove_last()
+
+drop_all :: fn<T>(xs: T[]) -> void {
+    xs.clear()
+}
+
+main :: fn() -> i32 {
+    xs: i32[]: [1, 2, 3]
+    reset(xs)
+    println("after reset ${xs.len()}")
+    println("pop ${pop(xs)} then ${xs.len()}")
+    drop_all(xs)
+    println("after drop_all ${xs.len()}")
+    return 0
+}
