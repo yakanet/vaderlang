@@ -66,11 +66,11 @@ export DeclKind :: enum(u8) {
 /// `null` for file-wide visibility (top-level decls) and `Span` for
 /// intra-file bindings.
 export DeclEntry :: struct {
-    name:       string
-    kind:       DeclKind
-    name_span:  Span
-    full_span:  Span
-    signature:  string
+    name: string
+    kind: DeclKind
+    name_span: Span
+    full_span: Span
+    signature: string
     scope_span: Span | null
     /// The type this member belongs to: the struct for a field, the trait or
     /// the impl's for-type for a method. Empty for anything that is not a
@@ -79,18 +79,18 @@ export DeclEntry :: struct {
     /// It is what makes `form.cond` land on `WhileFor.cond` rather than on
     /// whichever struct declares a `cond` first: the receiver's TYPE is known
     /// (the editor hovers it), so the owner is the half that was missing.
-    owner:      string = ""
+    owner: string = ""
     /// True when this top-level decl is `export`ed. Lets the cross-file resolver
     /// restrict a WILDCARD lookup to a module's public surface: a bare
     /// `import "p"` exposes only p's exports, so goto-def must not land on p's
     /// private decls. Always false for locals / params (never module-visible).
-    exported:   bool
+    exported: bool
     /// The declaration itself, which the hover renders ; null for a binding
     /// (a parameter, a local), whose `signature` says all there is.
-    node:       DeclNode | null = null
+    node: DeclNode | null = null
     /// True for a fn with type parameters of its own or of the trait or impl
     /// it belongs to : a call binds them, and the hover shows to what.
-    generic:    bool = false
+    generic: bool = false
 }
 
 /// What a `DeclEntry` declares : a declaration, or a member of one.
@@ -98,15 +98,15 @@ export DeclNode :: Decl | StructField | EnumVariant
 
 /// Per-document index, rebuilt on every didOpen / didChange.
 export DocIndex :: struct {
-    uri:     string
+    uri: string
     /// The `module "…"` the document opens with ; "" when it has none.
-    module:  string
-    source:  string
-    tokens:  Token[]
+    module: string
+    source: string
+    tokens: Token[]
     /// The document's tree, `///` blocks attached: what a handler walks instead
     /// of parsing `source` again.
     program: Program
-    decls:   DeclEntry[]
+    decls: DeclEntry[]
     /// The file's renames: `import "p" { x as y }` binds `local` `y` to `p`'s
     /// `imported_name` `x`.
     imports: Rs.ImportInfo[]
@@ -137,7 +137,7 @@ export DocIndex :: struct {
 /// loop whose iteration variable or label is `<name>`.
 export LoopJump :: struct {
     /// The whole `break` / `continue <name>` statement span (the click target).
-    jump_span:   Span
+    jump_span: Span
     /// The targeted `for` loop's span (goto lands at its start).
     target_span: Span
 }
@@ -164,17 +164,17 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
         }
     }
     return DocIndex {
-        .uri            = uri,
-        .module         = module_name_of(parsed.program),
-        .source         = source,
-        .tokens         = parsed.tokens,
-        .program        = parsed.program,
-        .decls          = entries,
-        .imports        = imports,
+        .uri = uri,
+        .module = module_name_of(parsed.program),
+        .source = source,
+        .tokens = parsed.tokens,
+        .program = parsed.program,
+        .decls = entries,
+        .imports = imports,
         .namespace_aliases = namespace_aliases,
-        .wildcards      = collected.files[0],
-        .loop_jumps     = collect_loop_jumps(parsed.program.decls),
-        .line_index     = new_line_index(source, encoding),
+        .wildcards = collected.files[0],
+        .loop_jumps = collect_loop_jumps(parsed.program.decls),
+        .line_index = new_line_index(source, encoding),
     }
 }
 
@@ -194,7 +194,9 @@ LjFrame :: struct { span: Span, binding: string | null, label: string | null }
 /// (outside any loop, or a name matching nothing) are simply not recorded.
 collect_loop_jumps :: fn(decls: Decl[]) -> LoopJump[] {
     out: LoopJump[]: []
-    for d in decls { lj_decl(d, out) }
+    for d in decls {
+        lj_decl(d, out)
+    }
     return out
 }
 
@@ -202,7 +204,7 @@ lj_decl :: fn(d: Decl, out: LoopJump[]) -> void {
     match d {
         is FnDecl    -> { lj_fn_body(d.body, out) }
         is ImplDecl  -> { for m in d.members { lj_fn_body(m.body, out) } }
-        is TraitDecl -> { for m in d.members  { lj_fn_body(m.body, out) } }
+        is TraitDecl -> { for m in d.members { lj_fn_body(m.body, out) } }
         _            -> {}
     }
 }
@@ -215,9 +217,13 @@ lj_fn_body :: fn(body: BlockExpr | null, out: LoopJump[]) -> void {
 }
 
 lj_block :: fn(b: BlockExpr, stack: LjFrame[], out: LoopJump[]) -> void {
-    for s in b.stmts { lj_stmt(s, stack, out) }
+    for s in b.stmts {
+        lj_stmt(s, stack, out)
+    }
     t :: b.trailing
-    if t != null { lj_expr(t, stack, out) }
+    if t != null {
+        lj_expr(t, stack, out)
+    }
 }
 
 lj_stmt :: fn(s: Stmt, stack: LjFrame[], out: LoopJump[]) -> void {
@@ -235,7 +241,9 @@ lj_stmt :: fn(s: Stmt, stack: LjFrame[], out: LoopJump[]) -> void {
         is DestructureAssignStmt -> { lj_expr(s.value, stack, out) }
         is ReturnStmt            -> {
             rv :: s.value
-            if rv != null { lj_expr(rv, stack, out) }
+            if rv != null {
+                lj_expr(rv, stack, out)
+            }
         }
         is YieldStmt             -> { lj_expr(s.value, stack, out) }
         is DeferStmt             -> {
@@ -262,7 +270,7 @@ lj_expr :: fn(e: Expr, stack: LjFrame[], out: LoopJump[]) -> void {
             }
         }
         is MatchExpr -> { for arm in e.arms { lj_expr(arm.body, stack, out) } }
-        _ -> {}
+        _            -> {}
     }
 }
 
@@ -274,7 +282,9 @@ lj_for_binding :: fn(f: ForStmt) -> string | null {
     if i is InFor {
         nv :: i.loop_var
         if nv is NamedVar {
-            if nv.name != "_" { return nv.name }
+            if nv.name != "_" {
+                return nv.name
+            }
         }
     }
     return null
@@ -282,14 +292,16 @@ lj_for_binding :: fn(f: ForStmt) -> string | null {
 
 lj_record :: fn(jump_span: Span, label: string | null, stack: LjFrame[], out: LoopJump[]) -> void {
     target :: lj_resolve(stack, label)
-    if target != null { out.push(LoopJump { .jump_span = jump_span, .target_span = target.span }) }
+    if target != null {
+        out.push(LoopJump { .jump_span = jump_span, .target_span = target.span })
+    }
 }
 
 // Bare jump → innermost loop ; labeled jump → nearest enclosing loop matching
 // by iteration variable or label (innermost-first). Null when unresolved.
 lj_resolve :: fn(stack: LjFrame[], label: string | null) -> LjFrame | null {
     n :: stack.len()
-    if n == 0 { return null }
+    if n == 0        { return null }
     if label == null { return stack[n - 1] }
     name :: label
     i := n
@@ -297,9 +309,13 @@ lj_resolve :: fn(stack: LjFrame[], label: string | null) -> LjFrame | null {
         i = i - 1
         frame :: stack[i]
         fb :: frame.binding
-        if fb != null && fb == name { return frame }
+        if fb != null && fb == name {
+            return frame
+        }
         fl :: frame.label
-        if fl != null && fl == name { return frame }
+        if fl != null && fl == name {
+            return frame
+        }
     }
     return null
 }
@@ -322,7 +338,9 @@ export loop_jump_at :: fn(idx: DocIndex, line: i32, character: i32) -> Span | nu
 export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | null {
     offset :: li_offset(idx.line_index, line, character)
     name :: token_name_at(idx.tokens, offset)
-    if name.byte_len() == 0 { return null }
+    if name.byte_len() == 0 {
+        return null
+    }
     declared :: binding_declared_at(idx.decls, name, offset)
     if declared != null {
         return declared
@@ -424,7 +442,9 @@ export find_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
             continue
         }
         if d.scope_span is null {
-            if d.name == name { return d }
+            if d.name == name {
+                return d
+            }
         }
     }
     return null
@@ -439,7 +459,9 @@ export find_exported_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | 
             continue
         }
         if d.scope_span is null && d.exported {
-            if d.name == name { return d }
+            if d.name == name {
+                return d
+            }
         }
     }
     return null
@@ -525,7 +547,9 @@ export find_member :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
 /// Find the rename that binds `name` in this file. Returns null on miss.
 export find_import :: fn(idx: DocIndex, name: string) -> Rs.ImportInfo | null {
     for i in idx.imports {
-        if i.local == name { return i }
+        if i.local == name {
+            return i
+        }
     }
     return null
 }
@@ -534,19 +558,33 @@ export find_import :: fn(idx: DocIndex, name: string) -> Rs.ImportInfo | null {
 
 collect_decl :: fn(d: Decl, source: string, entries: DeclEntry[]) -> void {
     match d {
-        is FnDecl -> {
+        is FnDecl        -> {
             // `__comptime_NAME` synthetic fns (from the `NAME :: @comptime …`
             // desugar, parser.vader::desugar_comptime_const) are compiler-internal:
             // the user's symbol is the CONST, indexed separately below, so they
             // are not outline symbols. Still walk the body so goto-def works on
             // locals inside the block.
             if !d.comptime_synthetic {
-                entries.push(top_entry(d.name, .Fn, d.name_span, d.span, d, d.visibility == .Public, source, "", d.type_params.len() > 0))
+                entries.push(
+                    top_entry(
+                        d.name,
+                        .Fn,
+                        d.name_span,
+                        d.span,
+                        d,
+                        d.visibility == .Public,
+                        source,
+                        "",
+                        d.type_params.len() > 0,
+                    ),
+                )
             }
             ix_walk_fn_body(d, source, entries)
         }
-        is StructDecl -> {
-            entries.push(top_entry(d.name, .Struct, d.name_span, d.span, d, d.visibility == .Public, source))
+        is StructDecl    -> {
+            entries.push(
+                top_entry(d.name, .Struct, d.name_span, d.span, d, d.visibility == .Public, source),
+            )
             // Fields too, for the same reason trait members are indexed just
             // below: `img.pixels` is a reference to one, and without an entry
             // goto-def has nothing to land on. Recorded at top level (no
@@ -559,27 +597,65 @@ collect_decl :: fn(d: Decl, source: string, entries: DeclEntry[]) -> void {
                 entries.push(top_entry(f.name, .Field, f.span, f.span, f, false, source, d.name))
             }
         }
-        is EnumDecl -> {
-            entries.push(top_entry(d.name, .Enum, d.name_span, d.span, d, d.visibility == .Public, source))
+        is EnumDecl      -> {
+            entries.push(
+                top_entry(d.name, .Enum, d.name_span, d.span, d, d.visibility == .Public, source),
+            )
             for v in d.variants {
-                entries.push(top_entry(v.name, .EnumVariant, v.span, v.span, v, false, source, d.name))
+                entries.push(
+                    top_entry(v.name, .EnumVariant, v.span, v.span, v, false, source, d.name),
+                )
             }
         }
-        is TraitDecl -> {
-            entries.push(top_entry(d.name, .Trait, d.name_span, d.span, d, d.visibility == .Public, source))
+        is TraitDecl     -> {
+            entries.push(
+                top_entry(d.name, .Trait, d.name_span, d.span, d, d.visibility == .Public, source),
+            )
             // Trait members are fn decls: index their names too so
             // goto-def on a method-name reference can land somewhere.
             for m in d.members {
-                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m, false, source, d.name, d.type_params.len() + m.type_params.len() > 0))
+                entries.push(
+                    top_entry(
+                        m.name,
+                        .Fn,
+                        m.name_span,
+                        m.span,
+                        m,
+                        false,
+                        source,
+                        d.name,
+                        d.type_params.len() + m.type_params.len() > 0,
+                    ),
+                )
             }
         }
         is TypeAliasDecl -> {
-            entries.push(top_entry(d.name, .TypeAlias, d.name_span, d.span, d, d.visibility == .Public, source))
+            entries.push(
+                top_entry(
+                    d.name,
+                    .TypeAlias,
+                    d.name_span,
+                    d.span,
+                    d,
+                    d.visibility == .Public,
+                    source,
+                ),
+            )
         }
-        is ConstDecl -> {
-            entries.push(top_entry(d.name, const_kind(d), d.name_span, d.span, d, d.visibility == .Public, source))
+        is ConstDecl     -> {
+            entries.push(
+                top_entry(
+                    d.name,
+                    const_kind(d),
+                    d.name_span,
+                    d.span,
+                    d,
+                    d.visibility == .Public,
+                    source,
+                ),
+            )
         }
-        is ImplDecl -> {
+        is ImplDecl      -> {
             // Impl members are fn decls on the target type. They
             // contribute method names (for UFCS goto-def) and their
             // own params + body bindings.
@@ -597,35 +673,53 @@ collect_decl :: fn(d: Decl, source: string, entries: DeclEntry[]) -> void {
                     // yields a name: a generic instantiation has no single one,
                     // and an empty owner degrades to the name-based lookup
                     // rather than pointing somewhere wrong.
-                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m, false, source, impl_owner_name(d.for_type), d.type_params.len() + m.type_params.len() > 0))
+                    entries.push(
+                        top_entry(
+                            m.name,
+                            .Fn,
+                            m.name_span,
+                            m.span,
+                            m,
+                            false,
+                            source,
+                            impl_owner_name(d.for_type),
+                            d.type_params.len() + m.type_params.len() > 0,
+                        ),
+                    )
                 }
                 ix_walk_fn_body(m, source, entries)
             }
         }
-        is ImportDecl -> {}
-        is AssertDecl -> {}
+        is ImportDecl    -> {}
+        is AssertDecl    -> {}
     }
 }
 
 top_entry :: fn(
-    name: string, kind: DeclKind, name_span: Span, full_span: Span, node: DeclNode,
-    exported: bool, source: string,
-    // The declaring type, for a member. Empty for everything else, see
-    // `DeclEntry.owner`.
+    name: string,
+    kind: DeclKind,
+    name_span: Span,
+    full_span: Span,
+    node: DeclNode,
+    exported: bool,
+    source: string,
     owner: string = "",
     generic: bool = false,
 ) -> DeclEntry {
+    // The declaring type, for a member. Empty for everything else, see
+    // `DeclEntry.owner`.
+
     return DeclEntry {
-        .name       = name,
-        .kind       = kind,
-        .name_span  = name_span,
-        .full_span  = full_span,
-        .signature  = node_head(source, node),
+        .name = name,
+        .kind = kind,
+        .name_span = name_span,
+        .full_span = full_span,
+        .signature = node_head(source, node),
         .scope_span = null,
-        .owner      = owner,
-        .exported   = exported,
-        .node       = node,
-        .generic    = generic,
+        .owner = owner,
+        .exported = exported,
+        .node = node,
+        .generic = generic,
     }
 }
 
@@ -662,16 +756,20 @@ const_kind :: fn(d: ConstDecl) -> DeclKind {
 }
 
 binding_entry :: fn(
-    name: string, kind: DeclKind, name_span: Span, scope: Span, signature: string,
+    name: string,
+    kind: DeclKind,
+    name_span: Span,
+    scope: Span,
+    signature: string,
 ) -> DeclEntry {
     return DeclEntry {
-        .name       = name,
-        .kind       = kind,
-        .name_span  = name_span,
-        .full_span  = name_span,
-        .signature  = signature,
+        .name = name,
+        .kind = kind,
+        .name_span = name_span,
+        .full_span = name_span,
+        .signature = signature,
         .scope_span = scope,
-        .exported   = false,
+        .exported = false,
     }
 }
 
@@ -745,19 +843,22 @@ ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry
 }
 
 collect_let_binding :: fn(
-    b: LetBinding, scope: Span, source: string, type_hint: string,
+    b: LetBinding,
+    scope: Span,
+    source: string,
+    type_hint: string,
     entries: DeclEntry[],
 ) -> void {
     match b {
-        is SimpleBinding -> {
+        is SimpleBinding   -> {
             sig :: local_sig(b.name, type_hint, b.span.start.offset, scope.end.offset, source)
             entries.push(binding_entry(b.name, .Local, b.name_span, scope, sig))
         }
-        is RestBinding -> {
+        is RestBinding     -> {
             sig :: local_sig(b.name, type_hint, b.span.start.offset, scope.end.offset, source)
             entries.push(binding_entry(b.name, .Local, b.name_span, scope, sig))
         }
-        is TupleBinding -> {
+        is TupleBinding    -> {
             // Destructuring : we can't decompose a single annotation/
             // literal-suffix into per-element types without the
             // typechecker, so every element gets the fallback source
@@ -776,8 +877,11 @@ collect_let_binding :: fn(
 // fn-parameter signature. Otherwise fall back to slicing the source
 // line for `<name> := <expr>`: readable, just less precise.
 local_sig :: fn(
-    name: string, type_hint: string,
-    decl_start: i64, scope_end: i64, source: string,
+    name: string,
+    type_hint: string,
+    decl_start: i64,
+    scope_end: i64,
+    source: string,
 ) -> string {
     if type_hint.byte_len() > 0 {
         return name + ": " + type_hint
@@ -788,7 +892,9 @@ local_sig :: fn(
 // Best-effort type hint for a `LetStmt` without consulting the typechecker :
 // an explicit annotation `let a: T = …` slices `T` from the AST ; otherwise
 // `""` and the caller falls back to a source slice that includes the expression.
-local_type_hint :: fn(l: LetStmt, source: string) = if l.ty != null { type_expr_slice(l.ty, source) } else { "" }
+local_type_hint :: fn(l: LetStmt, source: string) = if l.ty != null {
+    type_expr_slice(l.ty, source)
+} else { "" }
 
 // Slice the source for a `TypeExpr` reference. The parser tags every
 // node with `span`, so a verbatim re-slice keeps annotations like
@@ -808,7 +914,9 @@ ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
                     entries.push(binding_entry(nv.name, .ForIn, nv.span, f.body.span, sig))
                 }
                 // `for [k, v] in …` : index each leaf as a body-scoped local.
-                is DestructureVar -> { collect_let_binding(nv.pattern, f.body.span, source, "", entries) }
+                is DestructureVar -> {
+                    collect_let_binding(nv.pattern, f.body.span, source, "", entries)
+                }
                 is DiscardVar     -> {}
             }
             ix_walk_expr(w.iter, source, entries)
@@ -826,7 +934,9 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
         is NullCoalesceExpr -> {
             ix_walk_expr(e.left, source, entries)
             inner :: coalesce_fallback_expr(e.fallback)
-            if inner != null { ix_walk_expr(inner, source, entries) }
+            if inner != null {
+                ix_walk_expr(inner, source, entries)
+            }
         }
         is IfExpr -> {
             ix_walk_expr(e.cond, source, entries)
@@ -861,7 +971,9 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
         }
         is CallExpr -> {
             ix_walk_expr(e.callee, source, entries)
-            for a in e.args { ix_walk_expr(a.value, source, entries) }
+            for a in e.args {
+                ix_walk_expr(a.value, source, entries)
+            }
         }
         is FieldExpr -> { ix_walk_expr(e.target, source, entries) }
         is IndexExpr -> {
@@ -876,13 +988,19 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
         is StructLitExpr -> {
             for it in e.items {
                 match it {
-                    is StructLitField -> { ix_walk_expr(it.value, source, entries) }
-                    is StructLitSpread -> { ix_walk_expr(it.expr, source, entries) }
+                    is StructLitField  -> {
+                        ix_walk_expr(it.value, source, entries)
+                    }
+                    is StructLitSpread -> {
+                        ix_walk_expr(it.expr, source, entries)
+                    }
                 }
             }
         }
         is SeqLitExpr -> {
-            for elt in e.elements { ix_walk_expr(elt, source, entries) }
+            for elt in e.elements {
+                ix_walk_expr(elt, source, entries)
+            }
         }
         is RangeExpr -> {
             ix_walk_expr(e.lower, source, entries)
@@ -892,18 +1010,22 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
         is CastExpr -> { ix_walk_expr(e.value, source, entries) }
         is GenericInstExpr -> { ix_walk_expr(e.callee, source, entries) }
         is IntrinsicCallExpr -> {
-            for a in e.args { ix_walk_expr(a, source, entries) }
+            for a in e.args {
+                ix_walk_expr(a, source, entries)
+            }
         }
         is StringLitExpr -> {
             for p in e.parts {
                 match p {
-                    is StringLitText -> {}
-                    is StringLitInterp -> { ix_walk_expr(p.expr, source, entries) }
+                    is StringLitText   -> {}
+                    is StringLitInterp -> {
+                        ix_walk_expr(p.expr, source, entries)
+                    }
                 }
             }
         }
         is IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr
-         | IdentExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr -> {}
+            | IdentExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr -> {}
     }
 }
 
@@ -918,7 +1040,9 @@ slice_to_eol :: fn(source: string, start: i64, upper: i64) -> string {
     cursor: i64 = start
     for cursor < up {
         b :: source.byte_at(cursor)
-        if b == '\n' { break }
+        if b == '\n' {
+            break
+        }
         cursor = cursor + 1
     }
     return source.byte_slice(start, cursor).trim()
@@ -955,7 +1079,7 @@ export param_tag_spans :: fn(source: string, path: string, d: DeclEntry, name: s
         column :: i32(at - line_start_offset(source, at)) + 1
         start :: Position {
             ...line.span.start,
-            .file   = path,
+            .file = path,
             .offset = at,
             .column = column,
         }
@@ -987,7 +1111,9 @@ param_tag_offset :: fn(line: DocCommentLine, name: string) -> i64 {
 
 token_name_at :: fn(tokens: Token[], offset: i64) -> string {
     for t in tokens {
-        if t.kind != .Ident { continue }
+        if t.kind != .Ident {
+            continue
+        }
         if t.span.start.offset <= offset && offset < t.span.end.offset {
             return t.text
         }
@@ -997,7 +1123,9 @@ token_name_at :: fn(tokens: Token[], offset: i64) -> string {
 
 token_span_at :: fn(tokens: Token[], offset: i64) -> Span | null {
     for t in tokens {
-        if t.kind != .Ident { continue }
+        if t.kind != .Ident {
+            continue
+        }
         if t.span.start.offset <= offset && offset < t.span.end.offset {
             return t.span
         }
@@ -1040,7 +1168,9 @@ lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: i64) -> DeclEnt
         }
         i = i + 1
     }
-    if !has_best { return null }
+    if !has_best {
+        return null
+    }
     return decls[best_idx]
 }
 
