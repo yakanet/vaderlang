@@ -23,6 +23,7 @@
 module "vader/midir"
 
 import "std/collections"
+import "std/iter"
 import "toolchain/span"
 import "vader/support/diagnostics"
 import "vader/support/integer"
@@ -105,34 +106,34 @@ export verify_cfg :: fn(project: CFGProject, after: string, diags: Diagnostic[])
 }
 
 verify_cfg_function :: fn(
-    fn_: CFGFunction, resolution: CfgResolution, after: string, diags: Diagnostic[],
+    function: CFGFunction, resolution: CfgResolution, after: string, diags: Diagnostic[],
 ) -> void {
-    where :: "after `${after}`, in `${fn_.mangled}`"
+    where :: "after `${after}`, in `${function.mangled}`"
 
     // I7008: the entry is block 0 by convention (`cfg.vader:27`), and the
     // structurer's dominator walk starts there unconditionally.
-    if fn_.entry != 0 {
-        diags.push(internal_error(.EntryBlockNotZero, fn_span(fn_),
-            "${where}: entry is bb${fn_.entry}"))
+    if function.entry != 0 {
+        diags.push(internal_error(.EntryBlockNotZero, fn_span(function),
+            "${where}: entry is bb${function.entry}"))
     }
 
     // Block ids first, and reachability only when they hold : `walk_rpo`
     // indexes `blocks` by id without a bounds check, so running it on a CFG
     // with a dangling successor crashes the verifier instead of reporting it.
-    ids_ok :: verify_block_ids(fn_, where, diags)
+    ids_ok :: verify_block_ids(function, where, diags)
     // Reads are only checked where they can run. An unreachable block is NOT
     // a break: `build_cfg_project` mints dead join blocks by design when every
     // arm of a match returns, and the structurer never visits them. When the
     // ids are broken there is no sound walk, so every block is treated as live.
-    reachable :: if ids_ok { reachable_blocks(fn_) } else { all_blocks(fn_) }
+    reachable :: if ids_ok { reachable_blocks(function) } else { all_blocks(function) }
     reported :: diags.len()
-    verify_locals(fn_, reachable, where, diags)
+    verify_locals(function, reachable, where, diags)
     // The storage check reads each local's type : only once every local id holds.
     locals_ok :: diags.len() == reported
-    verify_fn_references(fn_, resolution, reachable, where, diags)
-    verify_return_arity(fn_, reachable, where, diags)
+    verify_fn_references(function, resolution, reachable, where, diags)
+    verify_return_arity(function, reachable, where, diags)
     if locals_ok {
-        verify_storage(fn_, resolution, reachable, where, diags)
+        verify_storage(function, resolution, reachable, where, diags)
     }
 }
 
@@ -144,26 +145,26 @@ verify_cfg_function :: fn(
 // slot, would otherwise reach the emitter, which reads an operation's width off
 // one operand and passes a store through as it is.
 verify_storage :: fn(
-    fn_: CFGFunction,
+    function: CFGFunction,
     resolution: CfgResolution,
     reachable: MutableSet<BlockId>,
     where: string,
     diags: Diagnostic[],
 ) -> void {
     check :: StorageCheck {
-        .fn_ = fn_,
+        .function = function,
         .slots = resolution.slots,
         .where = where,
         .diags = diags,
     }
     // A free literal's type has no integer to hold it : the lowering defaults it.
-    for l in fn_.locals {
+    for l in function.locals {
         if free_member(l.type) != null {
             detail :: "${where}: the local `${l.name}` has the free type `${display_type(l.type)}`"
-            diags.push(internal_error(.StorageMismatch, fn_span(fn_), detail))
+            diags.push(internal_error(.StorageMismatch, fn_span(function), detail))
         }
     }
-    for b in fn_.blocks {
+    for b in function.blocks {
         if !reachable.contains(b.id) {
             continue
         }
@@ -179,7 +180,7 @@ verify_storage :: fn(
 
 // What a storage check reads and reports against.
 StorageCheck :: struct {
-    fn_: CFGFunction
+    function: CFGFunction
     slots: SlotTypes
     where: string
     diags: Diagnostic[]
@@ -246,13 +247,13 @@ check_instruction_storage :: fn(check: StorageCheck, ins: Instruction) -> void {
 // The values a return hands back, against the function's result or, scalarised,
 // its elements.
 check_return_storage :: fn(check: StorageCheck, t: TermReturn) -> void {
-    results :: check.fn_.scalarised_results
+    results :: check.function.scalarised_results
     if results.len() > 1 {
         check_values(check, t.values, results, t.span)
         return
     }
     if t.values.len() == 1 {
-        check_slot(check, t.values[0], check.fn_.return_type, t.span)
+        check_slot(check, t.values[0], check.function.return_type, t.span)
     }
 }
 
@@ -312,7 +313,7 @@ check_same_integer :: fn(
     check.diags.push(internal_error(.StorageMismatch, span, detail))
 }
 
-local_type :: fn(check: StorageCheck, l: LocalId) -> Type = check.fn_.locals[i64(l)].type
+local_type :: fn(check: StorageCheck, l: LocalId) -> Type = check.function.locals[i64(l)].type
 
 // The name of the integer a value of type `t` is held in ; the type itself for none.
 stored_name :: fn(t: Type) -> string {
@@ -330,18 +331,18 @@ stored_name :: fn(t: Type) -> string {
 // body from the terminator, and the mismatch surfaces as a stack-depth ICE in a
 // different function, or not at all.
 verify_return_arity :: fn(
-    fn_: CFGFunction, reachable: MutableSet<BlockId>, where: string, diags: Diagnostic[],
+    function: CFGFunction, reachable: MutableSet<BlockId>, where: string, diags: Diagnostic[],
 ) -> void {
     // A scalarised fn hands back its elements ; every other fn hands back one
     // value, or none when it returns void.
-    expected :: if fn_.scalarised_results.len() > 1 {
-        fn_.scalarised_results.len()
-    } else if is_void(fn_.return_type) {
+    expected :: if function.scalarised_results.len() > 1 {
+        function.scalarised_results.len()
+    } else if is_void(function.return_type) {
         0
     } else {
         1
     }
-    for b in fn_.blocks {
+    for b in function.blocks {
         if !reachable.contains(b.id) {
             continue
         }
@@ -358,7 +359,7 @@ verify_return_arity :: fn(
         // A `void` fn whose last statement is a `@no_return` call returns that
         // call's result, typed `never`. Nothing is produced and no backend reads
         // it: the terminator just names the divergent value.
-        if returns_only_never(fn_, t.values) {
+        if returns_only_never(function, t.values) {
             continue
         }
         diags.push(internal_error(.ReturnArityMismatch, t.span,
@@ -372,20 +373,19 @@ verify_return_arity :: fn(
 // block's `id` must equal its index : `predecessors_of` and the emitter both
 // index `blocks` by id, so a mismatch silently reads the wrong block.
 // Returns false when any id is broken, which disables the reachability walk.
-verify_block_ids :: fn(fn_: CFGFunction, where: string, diags: Diagnostic[]) -> bool {
-    block_count :: i32(fn_.blocks.len())
+verify_block_ids :: fn(function: CFGFunction, where: string, diags: Diagnostic[]) -> bool {
+    block_count :: i32(function.blocks.len())
     ok: bool = true
-    for i in 0..<fn_.blocks.len() {
-        b :: fn_.blocks[i]
+    for [b, i] in function.blocks.indexed() {
         if b.id != i32(i) {
             diags.push(internal_error(.BlockIdOutOfRange, b.span,
                 "${where}: block at index ${i32(i)} carries id bb${b.id}"))
             ok = false
         }
-        for succ in successors_of(b) {
-            if i32(succ) >= 0 && i32(succ) < block_count { continue }
+        for successor in successors_of(b) {
+            if i32(successor) >= 0 && i32(successor) < block_count { continue }
             diags.push(internal_error(.BlockIdOutOfRange, b.span,
-                "${where}: bb${b.id} branches to bb${succ}, but the fn has ${block_count} blocks"))
+                "${where}: bb${b.id} branches to bb${successor}, but the fn has ${block_count} blocks"))
             ok = false
         }
     }
@@ -401,14 +401,16 @@ verify_block_ids :: fn(fn_: CFGFunction, where: string, diags: Diagnostic[]) -> 
 // itself one of the things a broken pass can violate. A cheap check that never
 // false-positives beats a precise one that fires on its own broken input.
 verify_locals :: fn(
-    fn_: CFGFunction, reachable: MutableSet<BlockId>, where: string, diags: Diagnostic[],
+    function: CFGFunction, reachable: MutableSet<BlockId>, where: string, diags: Diagnostic[],
 ) -> void {
-    local_count :: i32(fn_.locals.len())
+    local_count :: i32(function.locals.len())
     written :: MutableSet<LocalId> {}
     // Params are written by the implicit entry store the translator emits
     // (`cfg.vader::CFGParam.local`), which may carry no instruction of its own.
-    for p in fn_.params { written.add(p.local) }
-    for b in fn_.blocks {
+    for p in function.params {
+        written.add(p.local)
+    }
+    for b in function.blocks {
         for ins in b.instructions {
             multi :: multi_dsts(ins)
             if multi != null {
@@ -436,10 +438,10 @@ verify_locals :: fn(
         if written.contains(id) { return }
         if !unwritten.add(id)   { return }
         diags.push(internal_error(.LocalReadNeverWritten, sp,
-            "${where}: local ${id} `${fn_.locals[i32(id)].name}` is read by ${site} but never written"))
+            "${where}: local ${id} `${function.locals[i32(id)].name}` is read by ${site} but never written"))
     }
 
-    for b in fn_.blocks {
+    for b in function.blocks {
         if !reachable.contains(b.id) { continue }
         for ins in b.instructions {
             for_each_read_local(ins, (l: LocalId) -> { report(l, ins.span, "bb${b.id}") })
@@ -459,15 +461,19 @@ verify_locals :: fn(
 // reference in a dead block never resolves and never breaks the emit. The
 // file header explains why the call chain and the fn-as-value chain differ.
 verify_fn_references :: fn(
-    fn_: CFGFunction, resolution: CfgResolution, reachable: MutableSet<BlockId>,
+    function: CFGFunction, resolution: CfgResolution, reachable: MutableSet<BlockId>,
     where: string, diags: Diagnostic[],
 ) -> void {
-    for b in fn_.blocks {
-        if !reachable.contains(b.id) { continue }
+    for b in function.blocks {
+        if !reachable.contains(b.id) {
+            continue
+        }
         for ins in b.instructions {
             match ins {
                 is InstrCall -> {
-                    if callee_resolves(resolution, ins.callee) { continue }
+                    if callee_resolves(resolution, ins.callee) {
+                        continue
+                    }
                     diags.push(internal_error(.UnresolvedFnReference, ins.span,
                         "${where}: call to `${ins.callee.name}` (symbol ${ins.callee.id}) matches no emitted fn and no import"))
                 }
@@ -476,7 +482,9 @@ verify_fn_references :: fn(
                 // straight off the union, and the fn-as-value rule keeps one
                 // site rather than three copies to hold in step.
                 is InstrFnRef | InstrFnAddr | InstrMakeClosure -> {
-                    if function_called(resolution.slots.callees, ins.fn_symbol) != null { continue }
+                    if function_called(resolution.slots.callees, ins.fn_symbol) != null {
+                        continue
+                    }
                     diags.push(internal_error(.UnresolvedFnReference, ins.span,
                         "${where}: ${fn_value_kind(ins)} `${ins.fn_symbol.name}` (symbol ${ins.fn_symbol.id}) was never materialised"))
                 }
@@ -489,20 +497,26 @@ verify_fn_references :: fn(
 // ---- helpers --------------------------------------------------------------
 
 // Blocks the entry can reach, via the shared RPO walk.
-reachable_blocks :: fn(fn_: CFGFunction) -> MutableSet<BlockId> {
+reachable_blocks :: fn(function: CFGFunction) -> MutableSet<BlockId> {
     out :: MutableSet<BlockId> {}
     // `walk_rpo` reads `visited[entry]` before testing anything, so an empty
     // block list would index past the end.
-    if fn_.blocks.len() == 0 { return out }
-    for b in reverse_postorder(fn_) { out.add(b) }
+    if function.blocks.len() == 0 {
+        return out
+    }
+    for b in reverse_postorder(function) {
+        out.add(b)
+    }
     return out
 }
 
 // Every block, for the degraded path where a broken id makes the RPO walk
 // unsound. Checking a read in a block that may be dead beats skipping it.
-all_blocks :: fn(fn_: CFGFunction) -> MutableSet<BlockId> {
+all_blocks :: fn(function: CFGFunction) -> MutableSet<BlockId> {
     out :: MutableSet<BlockId> {}
-    for b in fn_.blocks { out.add(b.id) }
+    for b in function.blocks {
+        out.add(b.id)
+    }
     return out
 }
 
@@ -517,12 +531,12 @@ fn_value_kind :: fn(ins: InstrFnRef | InstrFnAddr | InstrMakeClosure) = match in
 
 // Whether every value the terminator names is `never`: the result of a
 // divergent call, which produces nothing to hand back.
-returns_only_never :: fn(fn_: CFGFunction, values: LocalId[]) -> bool {
+returns_only_never :: fn(function: CFGFunction, values: LocalId[]) -> bool {
     for v in values {
-        if i64(v) !in 0..<fn_.locals.len() {
+        if i64(v) !in 0..<function.locals.len() {
             return false
         }
-        if fn_.locals[i64(v)].type !is NeverType {
+        if function.locals[i64(v)].type !is NeverType {
             return false
         }
     }
