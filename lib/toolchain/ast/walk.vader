@@ -36,8 +36,14 @@ export Walk :: enum {
 /// binding, a field name) is for the visitor to read on the node
 /// that carries it.
 ///
+/// `leave` closes every node `visit` opened: it runs after the node's children,
+/// or right away when `visit` answered `Skip`, so a scope pushed on the way in is
+/// always popped on the way out. `Stop` ends the walk with no further call.
+///
 /// @param n      the root.
 /// @param visit  called on every node reached ; its answer steers the walk.
+/// @param leave  called on every node `visit` answered `Descend` or `Skip`,
+///               once its children are walked.
 /// @return       true when the visitor answered `Stop`.
 /// @example
 ///   names: string[]: []
@@ -47,109 +53,134 @@ export Walk :: enum {
 ///       }
 ///       return .Descend
 ///   })
-export inspect :: fn(n: Node, visit: fn(Node) -> Walk) -> bool {
+export inspect :: fn(
+    n: Node,
+    visit: fn(Node) -> Walk,
+    leave: fn(Node) -> void = ignore_node,
+) -> bool {
     answer :: visit(n)
-    if answer != .Descend {
-        return answer == .Stop
+    if answer == .Stop {
+        return true
     }
-    // No `_ ->`: it would let a new node kind hide its children from every walk.
-    return match n {
-        is IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr -> false
-        is StringLitExpr -> inspect_parts(n.parts, visit)
-        is IdentExpr | DotVariantExpr -> false
-        is CallExpr -> inspect_call(n, visit)
-        is FieldExpr -> inspect(n.target, visit)
-        is IndexExpr -> inspect(n.target, visit) || inspect(n.index, visit)
-        is UnaryExpr -> inspect(n.operand, visit)
-        is BinaryExpr -> inspect(n.left, visit) || inspect(n.right, visit)
-        is NullCoalesceExpr -> inspect(n.left, visit) || inspect(n.fallback, visit)
-        is IfExpr -> inspect_if(n, visit)
-        is MatchExpr -> inspect(n.scrutinee, visit) || inspect_arms(n.arms, visit)
-        is BlockExpr -> inspect_stmts(n.stmts, visit) || inspect_maybe(n.trailing, visit)
-        is LambdaExpr -> inspect_lambda(n, visit)
-        is StructLitExpr -> inspect(n.type_name, visit) || inspect_items(n.items, visit)
-        is SeqLitExpr -> inspect_exprs(n.elements, visit)
-        is RangeExpr -> inspect(n.lower, visit) || inspect(n.upper, visit)
-        is CastExpr -> inspect(n.value, visit) || inspect(n.target, visit)
-        is GenericInstExpr -> inspect(n.callee, visit) || inspect_exprs(n.type_args, visit)
-        is IntrinsicCallExpr -> inspect_exprs(n.args, visit)
-        is FnTypeExpr -> inspect_exprs(n.params, visit) || inspect_maybe(n.return_type, visit)
-        is ArrayTypeExpr -> inspect(n.element, visit)
-        is AwaitExpr -> inspect(n.inner, visit)
-        is LetStmt -> inspect_maybe(n.ty, visit) || inspect(n.value, visit)
-        is AssignStmt -> inspect_assign(n, visit)
-        is DestructureAssignStmt -> inspect_targets(n.targets, visit) || inspect(n.value, visit)
-        is ExprStmt -> inspect(n.expr, visit)
-        is ReturnStmt -> inspect_maybe(n.value, visit)
-        is YieldStmt -> inspect(n.value, visit)
-        is ForStmt -> inspect_form(n.form, visit) || inspect(n.body, visit)
-        is BreakStmt | ContinueStmt -> false
-        is DeferStmt -> inspect_defer(n.body, visit)
-        is IsPattern -> inspect(n.ty, visit) || inspect_maybe(n.inner, visit)
-        is StructPattern -> inspect_pattern_fields(n.fields, visit)
-        is WildcardPattern | EnumVariantPattern -> false
-        is LiteralPattern -> inspect(n.value, visit)
-        is RangePattern -> inspect(n.lower, visit) || inspect(n.upper, visit)
-        is OrPattern -> inspect_patterns(n.patterns, visit)
-        is ImportDecl -> inspect_decorators(n.decorators, visit)
-        is FnDecl -> inspect_fn(n, visit)
-        is StructDecl -> inspect_struct(n, visit)
-        is EnumDecl -> inspect_enum(n, visit)
-        is TraitDecl -> inspect_trait(n, visit)
-        is ImplDecl -> inspect_impl(n, visit)
-        is TypeAliasDecl -> inspect_alias(n, visit)
-        is ConstDecl -> inspect_const(n, visit)
-        is AssertDecl -> inspect_decorators(n.decorators, visit) || inspect(n.condition, visit)
+    if answer == .Descend {
+        // No `_ ->`: it would let a new node kind hide its children from every walk.
+        stopped :: match n {
+            is IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr -> false
+            is StringLitExpr -> inspect_parts(n.parts, visit, leave)
+            is IdentExpr | DotVariantExpr -> false
+            is CallExpr -> inspect_call(n, visit, leave)
+            is FieldExpr -> inspect(n.target, visit, leave)
+            is IndexExpr -> inspect(n.target, visit, leave) || inspect(n.index, visit, leave)
+            is UnaryExpr -> inspect(n.operand, visit, leave)
+            is BinaryExpr -> inspect(n.left, visit, leave) || inspect(n.right, visit, leave)
+            is NullCoalesceExpr -> inspect(n.left, visit, leave)
+                || inspect(n.fallback, visit, leave)
+            is IfExpr -> inspect_if(n, visit, leave)
+            is MatchExpr -> inspect(n.scrutinee, visit, leave) || inspect_arms(n.arms, visit, leave)
+            is BlockExpr -> inspect_stmts(n.stmts, visit, leave)
+                || inspect_maybe(n.trailing, visit, leave)
+            is LambdaExpr -> inspect_lambda(n, visit, leave)
+            is StructLitExpr -> inspect(n.type_name, visit, leave)
+                || inspect_items(n.items, visit, leave)
+            is SeqLitExpr -> inspect_exprs(n.elements, visit, leave)
+            is RangeExpr -> inspect(n.lower, visit, leave) || inspect(n.upper, visit, leave)
+            is CastExpr -> inspect(n.value, visit, leave) || inspect(n.target, visit, leave)
+            is GenericInstExpr -> inspect(n.callee, visit, leave)
+                || inspect_exprs(n.type_args, visit, leave)
+            is IntrinsicCallExpr -> inspect_exprs(n.args, visit, leave)
+            is FnTypeExpr -> inspect_exprs(n.params, visit, leave)
+                || inspect_maybe(n.return_type, visit, leave)
+            is ArrayTypeExpr -> inspect(n.element, visit, leave)
+            is AwaitExpr -> inspect(n.inner, visit, leave)
+            is LetStmt -> inspect_maybe(n.ty, visit, leave) || inspect(n.value, visit, leave)
+            is AssignStmt -> inspect_assign(n, visit, leave)
+            is DestructureAssignStmt -> inspect_targets(n.targets, visit, leave)
+                || inspect(n.value, visit, leave)
+            is ExprStmt -> inspect(n.expr, visit, leave)
+            is ReturnStmt -> inspect_maybe(n.value, visit, leave)
+            is YieldStmt -> inspect(n.value, visit, leave)
+            is ForStmt -> inspect_form(n.form, visit, leave) || inspect(n.body, visit, leave)
+            is BreakStmt | ContinueStmt -> false
+            is DeferStmt -> inspect_defer(n.body, visit, leave)
+            is IsPattern -> inspect(n.ty, visit, leave) || inspect_maybe(n.inner, visit, leave)
+            is StructPattern -> inspect_pattern_fields(n.fields, visit, leave)
+            is WildcardPattern | EnumVariantPattern -> false
+            is LiteralPattern -> inspect(n.value, visit, leave)
+            is RangePattern -> inspect(n.lower, visit, leave) || inspect(n.upper, visit, leave)
+            is OrPattern -> inspect_patterns(n.patterns, visit, leave)
+            is ImportDecl -> inspect_decorators(n.decorators, visit, leave)
+            is FnDecl -> inspect_fn(n, visit, leave)
+            is StructDecl -> inspect_struct(n, visit, leave)
+            is EnumDecl -> inspect_enum(n, visit, leave)
+            is TraitDecl -> inspect_trait(n, visit, leave)
+            is ImplDecl -> inspect_impl(n, visit, leave)
+            is TypeAliasDecl -> inspect_alias(n, visit, leave)
+            is ConstDecl -> inspect_const(n, visit, leave)
+            is AssertDecl -> inspect_decorators(n.decorators, visit, leave)
+                || inspect(n.condition, visit, leave)
+        }
+        if stopped {
+            return true
+        }
     }
+    leave(n)
+    return false
 }
 
-inspect_maybe :: fn(n: Node | null, visit: fn(Node) -> Walk) -> bool {
+// The default `leave`: a walk that only looks on the way in.
+ignore_node :: fn(n: Node) -> void {}
+
+inspect_maybe :: fn(n: Node | null, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
     present :: n ?? return false
-    return inspect(present, visit)
+    return inspect(present, visit, leave)
 }
 
 // ---- expressions ----------------------------------------------------------
 
-inspect_call :: fn(c: CallExpr, visit: fn(Node) -> Walk) -> bool {
-    if inspect(c.callee, visit) || inspect_exprs(c.type_args, visit) {
+inspect_call :: fn(c: CallExpr, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
+    if inspect(c.callee, visit, leave) || inspect_exprs(c.type_args, visit, leave) {
         return true
     }
     for a in c.args {
-        if inspect(a.value, visit) {
+        if inspect(a.value, visit, leave) {
             return true
         }
     }
     return false
 }
 
-inspect_if :: fn(i: IfExpr, visit: fn(Node) -> Walk) -> bool {
-    if inspect(i.cond, visit) || inspect(i.then_block, visit) {
+inspect_if :: fn(i: IfExpr, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
+    if inspect(i.cond, visit, leave) || inspect(i.then_block, visit, leave) {
         return true
     }
     return match tail :: i.else_branch {
         is null        -> false
-        is IfElseIf    -> inspect(tail.branch, visit)
-        is IfElseBlock -> inspect(tail.block, visit)
+        is IfElseIf    -> inspect(tail.branch, visit, leave)
+        is IfElseBlock -> inspect(tail.block, visit, leave)
     }
 }
 
-inspect_arms :: fn(arms: MatchArm[], visit: fn(Node) -> Walk) -> bool {
+inspect_arms :: fn(arms: MatchArm[], visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
     for arm in arms {
-        if inspect(arm.pattern, visit) || inspect_maybe(arm.guard, visit)
-            || inspect(arm.body, visit) {
+        if inspect(arm.pattern, visit, leave) || inspect_maybe(arm.guard, visit, leave)
+            || inspect(arm.body, visit, leave) {
             return true
         }
     }
     return false
 }
 
-inspect_lambda :: fn(l: LambdaExpr, visit: fn(Node) -> Walk) -> bool =
-    inspect_params(l.params, visit) || inspect_maybe(l.return_type, visit)
-        || inspect(l.body, visit)
+inspect_lambda :: fn(l: LambdaExpr, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool =
+    inspect_params(l.params, visit, leave) || inspect_maybe(l.return_type, visit, leave)
+        || inspect(l.body, visit, leave)
 
-inspect_items :: fn(items: StructLitItem[], visit: fn(Node) -> Walk) -> bool {
+inspect_items :: fn(
+    items: StructLitItem[],
+    visit: fn(Node) -> Walk,
+    leave: fn(Node) -> void,
+) -> bool {
     for item in items {
-        if inspect(struct_item_value(item), visit) {
+        if inspect(struct_item_value(item), visit, leave) {
             return true
         }
     }
@@ -161,18 +192,22 @@ struct_item_value :: fn(item: StructLitItem) -> Expr = match item {
     is StructLitSpread -> item.expr
 }
 
-inspect_parts :: fn(parts: StringLitPart[], visit: fn(Node) -> Walk) -> bool {
+inspect_parts :: fn(
+    parts: StringLitPart[],
+    visit: fn(Node) -> Walk,
+    leave: fn(Node) -> void,
+) -> bool {
     for part in parts {
-        if part is StringLitInterp && inspect(part.expr, visit) {
+        if part is StringLitInterp && inspect(part.expr, visit, leave) {
             return true
         }
     }
     return false
 }
 
-inspect_exprs :: fn(es: Expr[], visit: fn(Node) -> Walk) -> bool {
+inspect_exprs :: fn(es: Expr[], visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
     for e in es {
-        if inspect(e, visit) {
+        if inspect(e, visit, leave) {
             return true
         }
     }
@@ -183,18 +218,22 @@ inspect_exprs :: fn(es: Expr[], visit: fn(Node) -> Walk) -> bool {
 
 // The place of `x op= y` is `value.left`, one node : visiting `target` too would
 // hand the visitor the same node twice.
-inspect_assign :: fn(s: AssignStmt, visit: fn(Node) -> Walk) -> bool {
+inspect_assign :: fn(s: AssignStmt, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
     if compound_assign_op(s) != null {
-        return inspect(s.value, visit)
+        return inspect(s.value, visit, leave)
     }
-    return inspect(s.target, visit) || inspect(s.value, visit)
+    return inspect(s.target, visit, leave) || inspect(s.value, visit, leave)
 }
 
-inspect_targets :: fn(targets: AssignTarget[], visit: fn(Node) -> Walk) -> bool {
+inspect_targets :: fn(
+    targets: AssignTarget[],
+    visit: fn(Node) -> Walk,
+    leave: fn(Node) -> void,
+) -> bool {
     for t in targets {
         match t {
             is PlaceTarget | RestTarget -> {
-                if inspect(t.place, visit) {
+                if inspect(t.place, visit, leave) {
                     return true
                 }
             }
@@ -204,20 +243,28 @@ inspect_targets :: fn(targets: AssignTarget[], visit: fn(Node) -> Walk) -> bool 
     return false
 }
 
-inspect_form :: fn(form: ForForm, visit: fn(Node) -> Walk) -> bool = match form {
-    is InFor       -> inspect(form.iter, visit)
-    is WhileFor    -> inspect(form.cond, visit)
+inspect_form :: fn(
+    form: ForForm,
+    visit: fn(Node) -> Walk,
+    leave: fn(Node) -> void,
+) -> bool = match form {
+    is InFor       -> inspect(form.iter, visit, leave)
+    is WhileFor    -> inspect(form.cond, visit, leave)
     is InfiniteFor -> false
 }
 
-inspect_defer :: fn(body: DeferBody, visit: fn(Node) -> Walk) -> bool = match body {
-    is DeferStmtBody  -> inspect(body.stmt, visit)
-    is DeferBlockBody -> inspect(body.block, visit)
+inspect_defer :: fn(
+    body: DeferBody,
+    visit: fn(Node) -> Walk,
+    leave: fn(Node) -> void,
+) -> bool = match body {
+    is DeferStmtBody  -> inspect(body.stmt, visit, leave)
+    is DeferBlockBody -> inspect(body.block, visit, leave)
 }
 
-inspect_stmts :: fn(ss: Stmt[], visit: fn(Node) -> Walk) -> bool {
+inspect_stmts :: fn(ss: Stmt[], visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
     for s in ss {
-        if inspect(s, visit) {
+        if inspect(s, visit, leave) {
             return true
         }
     }
@@ -226,19 +273,23 @@ inspect_stmts :: fn(ss: Stmt[], visit: fn(Node) -> Walk) -> bool {
 
 // ---- patterns -------------------------------------------------------------
 
-inspect_pattern_fields :: fn(fields: StructPatternField[], visit: fn(Node) -> Walk) -> bool {
+inspect_pattern_fields :: fn(
+    fields: StructPatternField[],
+    visit: fn(Node) -> Walk,
+    leave: fn(Node) -> void,
+) -> bool {
     for f in fields {
         value :: f.value
-        if value is PatternLiteral && inspect(value.value, visit) {
+        if value is PatternLiteral && inspect(value.value, visit, leave) {
             return true
         }
     }
     return false
 }
 
-inspect_patterns :: fn(ps: Pattern[], visit: fn(Node) -> Walk) -> bool {
+inspect_patterns :: fn(ps: Pattern[], visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
     for p in ps {
-        if inspect(p, visit) {
+        if inspect(p, visit, leave) {
             return true
         }
     }
@@ -247,52 +298,61 @@ inspect_patterns :: fn(ps: Pattern[], visit: fn(Node) -> Walk) -> bool {
 
 // ---- declarations ---------------------------------------------------------
 
-inspect_fn :: fn(f: FnDecl, visit: fn(Node) -> Walk) -> bool =
-    inspect_decorators(f.decorators, visit) || inspect_type_params(f.type_params, visit)
-        || inspect_params(f.params, visit) || inspect_maybe(f.return_type, visit)
-        || inspect_maybe(f.body, visit)
+inspect_fn :: fn(f: FnDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool =
+    inspect_decorators(f.decorators, visit, leave)
+        || inspect_type_params(f.type_params, visit, leave)
+        || inspect_params(f.params, visit, leave)
+        || inspect_maybe(f.return_type, visit, leave)
+        || inspect_maybe(f.body, visit, leave)
 
-inspect_struct :: fn(s: StructDecl, visit: fn(Node) -> Walk) -> bool {
-    if inspect_decorators(s.decorators, visit) || inspect_type_params(s.type_params, visit) {
+inspect_struct :: fn(s: StructDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
+    if inspect_decorators(s.decorators, visit, leave)
+        || inspect_type_params(s.type_params, visit, leave) {
         return true
     }
     for field in s.fields {
-        if inspect(field.ty, visit) || inspect_maybe(field.default, visit) {
+        if inspect(field.ty, visit, leave)
+            || inspect_maybe(field.default, visit, leave) {
             return true
         }
     }
     return false
 }
 
-inspect_enum :: fn(e: EnumDecl, visit: fn(Node) -> Walk) -> bool {
-    if inspect_decorators(e.decorators, visit) || inspect_exprs(e.header, visit) {
+inspect_enum :: fn(e: EnumDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
+    if inspect_decorators(e.decorators, visit, leave) || inspect_exprs(e.header, visit, leave) {
         return true
     }
     for v in e.variants {
         data :: v.data ?? continue
-        if inspect_items(data, visit) {
+        if inspect_items(data, visit, leave) {
             return true
         }
     }
     return false
 }
 
-inspect_trait :: fn(t: TraitDecl, visit: fn(Node) -> Walk) -> bool =
-    inspect_decorators(t.decorators, visit) || inspect_type_params(t.type_params, visit)
-        || inspect_maybe(t.requires, visit) || inspect_fns(t.members, visit)
+inspect_trait :: fn(t: TraitDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool =
+    inspect_decorators(t.decorators, visit, leave)
+        || inspect_type_params(t.type_params, visit, leave)
+        || inspect_maybe(t.requires, visit, leave)
+        || inspect_fns(t.members, visit, leave)
 
-inspect_impl :: fn(i: ImplDecl, visit: fn(Node) -> Walk) -> bool =
-    inspect_decorators(i.decorators, visit) || inspect_type_params(i.type_params, visit)
-        || inspect(i.for_type, visit) || inspect_exprs(i.trait_args, visit)
-        || inspect_fns(i.members, visit)
+inspect_impl :: fn(i: ImplDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool =
+    inspect_decorators(i.decorators, visit, leave)
+        || inspect_type_params(i.type_params, visit, leave)
+        || inspect(i.for_type, visit, leave)
+        || inspect_exprs(i.trait_args, visit, leave)
+        || inspect_fns(i.members, visit, leave)
 
-inspect_alias :: fn(a: TypeAliasDecl, visit: fn(Node) -> Walk) -> bool =
-    inspect_decorators(a.decorators, visit) || inspect_type_params(a.type_params, visit)
-        || inspect(a.aliased, visit)
+inspect_alias :: fn(a: TypeAliasDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool =
+    inspect_decorators(a.decorators, visit, leave)
+        || inspect_type_params(a.type_params, visit, leave)
+        || inspect(a.aliased, visit, leave)
 
-inspect_const :: fn(c: ConstDecl, visit: fn(Node) -> Walk) -> bool =
-    inspect_decorators(c.decorators, visit) || inspect_maybe(own_const_type(c), visit)
-        || inspect(c.value, visit)
+inspect_const :: fn(c: ConstDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool =
+    inspect_decorators(c.decorators, visit, leave) || inspect_maybe(own_const_type(c), visit, leave)
+        || inspect(c.value, visit, leave)
 
 // A `@comptime` const's type is its helper fn's return type, one node.
 own_const_type :: fn(c: ConstDecl) -> TypeExpr | null {
@@ -302,37 +362,47 @@ own_const_type :: fn(c: ConstDecl) -> TypeExpr | null {
     return c.ty
 }
 
-inspect_fns :: fn(fs: FnDecl[], visit: fn(Node) -> Walk) -> bool {
+inspect_fns :: fn(fs: FnDecl[], visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
     for f in fs {
-        if inspect(f, visit) {
+        if inspect(f, visit, leave) {
             return true
         }
     }
     return false
 }
 
-inspect_params :: fn(ps: FnParam[], visit: fn(Node) -> Walk) -> bool {
+inspect_params :: fn(ps: FnParam[], visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
     for p in ps {
-        if inspect_decorators(p.decorators, visit) || inspect_maybe(p.ty, visit)
-            || inspect_maybe(p.default_value, visit) {
+        if inspect_decorators(p.decorators, visit, leave)
+            || inspect_maybe(p.ty, visit, leave)
+            || inspect_maybe(p.default_value, visit, leave) {
             return true
         }
     }
     return false
 }
 
-inspect_type_params :: fn(ps: TypeParam[], visit: fn(Node) -> Walk) -> bool {
+inspect_type_params :: fn(
+    ps: TypeParam[],
+    visit: fn(Node) -> Walk,
+    leave: fn(Node) -> void,
+) -> bool {
     for p in ps {
-        if inspect_maybe(p.bound, visit) || inspect_maybe(p.default, visit) {
+        if inspect_maybe(p.bound, visit, leave)
+            || inspect_maybe(p.default, visit, leave) {
             return true
         }
     }
     return false
 }
 
-inspect_decorators :: fn(ds: Decorator[], visit: fn(Node) -> Walk) -> bool {
+inspect_decorators :: fn(
+    ds: Decorator[],
+    visit: fn(Node) -> Walk,
+    leave: fn(Node) -> void,
+) -> bool {
     for d in ds {
-        if inspect_exprs(d.args, visit) {
+        if inspect_exprs(d.args, visit, leave) {
             return true
         }
     }
@@ -373,6 +443,13 @@ record_ident :: fn(n: Node, out: string[], skip_lambdas: bool, stop_at: string) 
         }
     }
     return .Descend
+}
+
+sum_of :: fn(left: Expr, right: Expr) -> BinaryExpr = BinaryExpr {
+    .span = empty_span(),
+    .op = .Add,
+    .left = left,
+    .right = right,
 }
 
 empty_block :: fn(trailing: Expr) -> BlockExpr = BlockExpr {
@@ -429,17 +506,7 @@ test_inspect_enters_a_lambda_unless_skipped :: fn() -> void {
 
 @test
 test_inspect_stop_ends_the_walk :: fn() -> void {
-    sum :: BinaryExpr {
-        .span = empty_span(),
-        .op = .Add,
-        .left = BinaryExpr {
-            .span = empty_span(),
-            .op = .Mul,
-            .left = ident("a"),
-            .right = ident("b"),
-        },
-        .right = ident("c"),
-    }
+    sum :: sum_of(sum_of(ident("a"), ident("b")), ident("c"))
     out: string[]: []
     assert(inspect(sum, (n) -> record_ident(n, out, false, "b")), "the walk reports its stop")
     assert_eq(out.join(" "), "a b")
@@ -451,12 +518,45 @@ test_inspect_visits_a_compound_assignment_place_once :: fn() -> void {
     assign :: AssignStmt {
         .span = empty_span(),
         .target = place,
-        .value = BinaryExpr {
-            .span = empty_span(),
-            .op = .Add,
-            .left = place,
-            .right = ident("step"),
-        },
+        .value = sum_of(place, ident("step")),
     }
     assert_eq(idents_reached(assign, false).join(" "), "total step")
+}
+
+// The order `leave` closes the nodes under `n`: identifiers by name, a binary
+// expression as `op`, a lambda as `fn` ; `visit` skips lambdas and stops on
+// `stop_at`. `record_ident` only steers the walk here: what it records is
+// dropped.
+nodes_left :: fn(n: Node, stop_at: string) -> string {
+    out: string[]: []
+    inspect(
+        n,
+        (m) -> record_ident(m, [], true, stop_at),
+        (m) -> out.push(left_name(m)),
+    )
+    return out.join(" ")
+}
+
+// @partial: the trees these tests build hold nothing else.
+left_name :: fn(n: Node) -> string = @partial match n {
+    is IdentExpr  -> n.name
+    is BinaryExpr -> "op"
+    is LambdaExpr -> "fn"
+    _             -> "?"
+}
+
+@test
+test_inspect_leaves_children_before_their_parent :: fn() -> void {
+    assert_eq(nodes_left(sum_of(ident("a"), ident("b")), ""), "a b op")
+}
+
+@test
+test_inspect_leaves_a_skipped_node :: fn() -> void {
+    sum :: sum_of(lambda_of(ident("Param"), ident("inner")), ident("b"))
+    assert_eq(nodes_left(sum, ""), "fn b op")
+}
+
+@test
+test_inspect_stop_leaves_nothing_more :: fn() -> void {
+    assert_eq(nodes_left(sum_of(ident("a"), ident("b")), "b"), "a")
 }
