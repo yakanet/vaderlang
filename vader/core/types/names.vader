@@ -304,13 +304,6 @@ export async_result_arg :: fn(result: Type) -> Type = if is_void(result) { TY_NU
 
 /// Names of stdlib core structs the compiler refers to by symbol.
 export STRUCT_RANGE          :: @type_name(Range)
-
-/// `std/core::Continuation` and its variants, for a std/core whose
-/// `Iterator.next` pairs its element with one (`[T, Continuation]`). Spelled out:
-/// `@type_name` needs the enum, which this tree's std/core does not declare.
-export ENUM_CONTINUATION     :: "Continuation"
-export CONTINUATION_STOP     :: "Stop"
-export CONTINUATION_CONTINUE :: "Continue"
 export STRUCT_SUSPENDED      :: @type_name(Suspended)
 export STRUCT_FIELD          :: @type_name(Field)
 

@@ -14,11 +14,11 @@
 //
 // ACROSS BLOCKS: a block starts from what holds on EVERY way in, the
 // intersection of its predecessors' end states. One predecessor hands its state
-// over whole, which is the `for x in it` shape (the step is rebuilt and its `_1`
-// tested in one block, `_0` read in the single-entry block the test branches
-// to); several hand over what they agree on, which is the shape where a pair is
-// built before an `if` and read after the join, and where the whole rebuild
-// (and the function's GC frame with it) falls away.
+// over whole, which is the shape of a tuple rebuilt and its `_1` tested in one
+// block, `_0` read in the single-entry block the test branches to; several hand
+// over what they agree on, which is the shape where a pair is built before an
+// `if` and read after the join, and where the whole rebuild (and the function's
+// GC frame with it) falls away.
 //
 // Deliberately NOT cleared on a side-effecting instruction, unlike
 // `array_load_forward`: only a tuple's construction is recorded, and a tuple's

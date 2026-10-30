@@ -150,8 +150,7 @@ local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
 /// Those are shared: a generic combinator's `for x in self` over an
 /// `Iterator<T>` param records the declared `T` ONCE, for every instance that
 /// will ever be lowered. Reading it raw hands `T` to whatever builds the step
-/// type, and midir then looks for a field on a `[T, Continuation]` no instance
-/// ever materialised.
+/// type, and midir then meets a `T | Stop` no instance ever materialised.
 ///
 /// Null means "ask your own fallback", and covers three cases: no entry, an
 /// entry the typer left unresolved, and a type param that outlived the

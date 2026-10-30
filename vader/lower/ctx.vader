@@ -139,10 +139,6 @@ LowerProjectCtx :: struct {
     /// `name -> Symbol` from `std/core` (cached once at construction
     /// so trait / struct lookups don't re-walk the module map).
     core_symbols:        MutableMap<string, Symbol>
-    /// Resolved `EnumType`s for `core_symbols` entries of enum kind. Separate
-    /// because resolving one means finding the module that TYPED it, and the
-    /// answer is project-global, see `find_core_enum`.
-    core_enum_types:     MutableMap<string, Type>
 
     /// Global `symbol_id -> ComptimeValue` index over every loaded
     /// module's `evaluated.modules[*].comptime_decls`. Populated once
@@ -424,7 +420,6 @@ new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, 
         .typed               = typed,
         .impls               = ImplRegistry {},
         .core_symbols        = MutableMap<string, Symbol> {},
-        .core_enum_types     = MutableMap<string, Type> {},
         .comptime_value_by_symbol_id = MutableMap<i32, ComptimeValue> {},
         .local_symbol_indices = MutableMap<string, MutableMap<u64, Symbol>> {},
         .closures            = new_closure_analysis(),

@@ -9,7 +9,7 @@
 //      (v1: spill-all) + a `state: i32` resume discriminant;
 //   2. a synthesized `<module>$<State>$Iterator$next` fn whose body is the
 //      resumable state machine `loop { if self.state == 0 { … } else if … }`
-//      (no `LoweredMatch` node → an `i32` if-chain), returning `[T, Continuation]`;
+//      (no `LoweredMatch` node → an `i32` if-chain), returning `T | Stop`;
 //   3. the rewritten `g` body: `return g$State { <params>, .state = 0 }`.
 //
 // The state struct + next fn are pushed to `project.synth_decls`, drained by

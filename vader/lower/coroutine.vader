@@ -19,7 +19,7 @@ import "vader/lower/ir"
 // ---- sentinel -------------------------------------------------------------
 
 /// Reserved resume value: once `self.state == DONE_STATE` the state machine is
-/// finished: a generator's `next()` hands back `Continuation.Stop` forever, an
+/// finished: a generator's `next()` hands back `STOP` forever, an
 /// `async fn`'s `resume` the `null` done-marker. The if-chain's trailing `else`
 /// catches both.
 DONE_STATE :: -1
@@ -151,14 +151,6 @@ gb_state_eq :: fn(gb: GenBuild, n: i64) -> LoweredExpr =
         .right = LoweredIntLit { .span = gb.span, .type = TY_I32, .value = n },
     }
 
-// `return <step carrying e>`.
-gb_yield_return :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredStmt {
-    shape :: gb.step ?? return LoweredReturn { .span = gb.span, .value = e }
-    return LoweredReturn {
-        .span = gb.span, .value = step_of_value(shape, e, gb.span, gb.fn_ctx),
-    }
-}
-
 // `return <done step>`.
 gb_done_return :: fn(gb: GenBuild) -> LoweredStmt {
     shape :: gb.step ?? return LoweredReturn {
@@ -166,7 +158,7 @@ gb_done_return :: fn(gb: GenBuild) -> LoweredStmt {
         .value = LoweredNullLit { .span = gb.span, .type = TY_NULL },
     }
     return LoweredReturn {
-        .span = gb.span, .value = step_of_done(shape, gb.span, gb.fn_ctx),
+        .span = gb.span, .value = step_of_done(gb.fn_ctx, shape, gb.span),
     }
 }
 
@@ -323,10 +315,11 @@ gb_compile_block :: fn(gb: GenBuild, block: LoweredBlock, cont: i64) -> i64 =
 // Compile a control-flow stmt with continuation `cont`. Returns entry state.
 gb_compile_ctrl :: fn(gb: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
     if s is LoweredYield {
-        // Reaching the yield: record the resume state (`cont`), emit the value.
+        // Reaching the yield: record the resume state (`cont`), return the value,
+        // which is its own iterator step.
         return gb_new_state(gb, [
             gb_set_state(gb, cont),
-            gb_yield_return(gb, gb_retarget_expr(gb, s.value)),
+            LoweredReturn { .span = gb.span, .value = gb_retarget_expr(gb, s.value) },
         ])
     }
     if s is LoweredAwait {

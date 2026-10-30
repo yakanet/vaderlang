@@ -5,11 +5,8 @@
 // same three things: the type `next` returns, the test for "the iteration is
 // over", and the element it carries. This file owns them.
 //
-// std/core declares one of two shapes, told apart by whether it declares
-// `Continuation`:
-// - the pair `[T, Continuation]`: the element, then whether the iteration goes
-//   on. The element beside `Stop` is meaningless and nothing here reads it.
-// - the union `T | Stop`: the element, or the `Stop` that ends the iteration.
+// A step is `T | Stop`: the element, or the `Stop` that ends the iteration. A
+// yielded element is therefore its own step, with nothing to build around it.
 
 module "vader/lower"
 
@@ -20,45 +17,31 @@ import "vader/lower/ir"
 
 /// How this project's `Iterator<T>.next` hands a step back.
 StepShape :: struct {
-    /// The type `next` returns: `[T, Continuation]` or `T | Stop`.
+    /// The type `next` returns: `T | Stop`.
     type: Type
     /// `T`: the element a step carries.
     element: Type
-    /// What says the iteration is over: the `Continuation` enum on the pair shape,
-    /// the `Stop` struct and its constant on the union shape.
-    end: Type | StopEnd
-}
-
-/// What ends an iteration on the union shape.
-StopEnd :: struct {
     /// The `Stop` struct.
-    type: Type
+    stop: Type
     /// `std/core::STOP`: a synthesised `next` returns it, so its end allocates
     /// nothing and its body needs no GC frame for it.
-    value: Symbol
+    stop_value: Symbol
 }
 
 /// Resolve the step shape for an iterator over `element`.
 ///
 /// @param ctx      the fn-body context.
 /// @param element  the iterator's element type.
-/// @return         the shape, or null when std/core declares neither
-///                 `Continuation` nor `Stop` (std/core not loaded).
+/// @return         the shape, or null when std/core declares no `Stop`
+///                 (std/core not loaded).
 resolve_step_shape :: fn(ctx: FnLowerCtx, element: Type) -> StepShape | null {
-    cont :: find_core_enum(ctx, ENUM_CONTINUATION)
-    if cont != null {
-        return StepShape {
-            .type = iterator_step_type(element, cont),
-            .element = element,
-            .end = cont,
-        }
-    }
     stop :: find_core_type(ctx, STRUCT_STOP, []) ?? return null
-    value :: lookup_core_symbol(ctx, CONST_STOP) ?? return null
+    stop_value :: lookup_core_symbol(ctx, CONST_STOP) ?? return null
     return StepShape {
         .type = union_of([element, stop]),
         .element = element,
-        .end = StopEnd { .type = stop, .value = value },
+        .stop = stop,
+        .stop_value = stop_value,
     }
 }
 
@@ -70,31 +53,9 @@ resolve_step_shape :: fn(ctx: FnLowerCtx, element: Type) -> StepShape | null {
 /// @param shape  the resolved step shape.
 /// @param step   an expression naming the step: normally a `LoweredIdent`.
 /// @param span   the source span to attribute the test to.
-/// @param ctx    the fn-body context, for the pair shape's variant lookup.
 /// @return       a `bool`-typed expression.
-step_is_done :: fn(
-    shape: StepShape,
-    step: LoweredExpr,
-    span: Span,
-    ctx: FnLowerCtx,
-) -> LoweredExpr {
-    end :: shape.end
-    if end is StopEnd {
-        return type_check(step, end.type, span)
-    }
-    return LoweredBinary {
-        .span = span,
-        .type = TY_BOOL,
-        .op = .Eq,
-        .left = LoweredFieldAccess {
-            .span = span,
-            .type = end,
-            .target = step,
-            .field = "_1",
-        },
-        .right = enum_variant_literal(end, CONTINUATION_STOP, span, ctx),
-    }
-}
+step_is_done :: fn(shape: StepShape, step: LoweredExpr, span: Span) -> LoweredExpr =
+    type_check(step, shape.stop, span)
 
 /// The element `step` carries, read where `step_is_done` said it is not over.
 ///
@@ -102,86 +63,25 @@ step_is_done :: fn(
 /// @param step   an expression naming the step.
 /// @param span   the source span to attribute the read to.
 /// @return       an `element`-typed expression.
-step_value :: fn(shape: StepShape, step: LoweredExpr, span: Span) -> LoweredExpr {
-    if shape.end is StopEnd {
-        return LoweredCast {
-            .span = span,
-            .type = shape.element,
-            .value = step,
-        }
-    }
-    return LoweredFieldAccess {
-        .span = span,
-        .type = shape.element,
-        .target = step,
-        .field = "_0",
-    }
-}
-
-/// The step a generator returns when it yields `value`.
-///
-/// @param shape  the resolved step shape.
-/// @param value  the yielded element.
-/// @param span   the source span.
-/// @param ctx    the fn-body context.
-/// @return       a `shape.type`-typed expression.
-step_of_value :: fn(
-    shape: StepShape,
-    value: LoweredExpr,
-    span: Span,
-    ctx: FnLowerCtx,
-) -> LoweredExpr {
-    end :: shape.end
-    if end is StopEnd {
-        return value
-    }
-    return step_pair(shape, end, value, CONTINUATION_CONTINUE, span, ctx)
-}
-
-/// The step a generator returns when it is done.
-///
-/// The union shape returns `STOP`, never a fresh `Stop {}`: an allocation on that
-/// cold path would give `next` a GC frame on every call.
-///
-/// On the pair shape the element beside `Stop` is never read, and a generator
-/// has no `T` of its own to hand over, so it pairs the type's zero. That is
-/// expressible HERE and not in source: a ref slot takes NULL whatever `T`
-/// promises.
-///
-/// @param shape  the resolved step shape.
-/// @param span   the source span.
-/// @param ctx    the fn-body context.
-/// @return       a `shape.type`-typed expression.
-step_of_done :: fn(shape: StepShape, span: Span, ctx: FnLowerCtx) -> LoweredExpr {
-    end :: shape.end
-    if end is StopEnd {
-        register_nongeneric_imported_const(ctx, end.value)
-        return LoweredIdent {
-            .span = span,
-            .type = end.type,
-            .symbol = end.value,
-        }
-    }
-    return step_pair(shape, end, zero_value_lit(span, shape.element), CONTINUATION_STOP, span, ctx)
-}
-
-// `[value, Continuation.<variant>]`, `cont` being the `Continuation` enum. A tuple
-// lowers to the `_0` / `_1` struct layout (mirrors `lower_seq_lit`).
-step_pair :: fn(
-    shape: StepShape,
-    cont: Type,
-    value: LoweredExpr,
-    variant: string,
-    span: Span,
-    ctx: FnLowerCtx,
-) -> LoweredExpr = LoweredStructLit {
+step_value :: fn(shape: StepShape, step: LoweredExpr, span: Span) -> LoweredExpr = LoweredCast {
     .span = span,
-    .type = shape.type,
-    .fields = [
-        LoweredStructLitField { .name = "_0", .value = value },
-        LoweredStructLitField {
-            .name = "_1",
-            .value = enum_variant_literal(cont, variant, span, ctx),
-        },
-    ],
+    .type = shape.element,
+    .value = step,
+}
+
+/// The step a generator returns when it is done: `STOP`, never a fresh
+/// `Stop {}`, since an allocation on that cold path would give `next` a GC frame
+/// on every call.
+///
+/// @param ctx    the fn-body context, which records the imported constant.
+/// @param shape  the resolved step shape.
+/// @param span   the source span.
+/// @return       a `Stop`-typed expression.
+step_of_done :: fn(ctx: FnLowerCtx, shape: StepShape, span: Span) -> LoweredExpr {
+    register_nongeneric_imported_const(ctx, shape.stop_value)
+    return LoweredIdent {
+        .span = span,
+        .type = shape.stop,
+        .symbol = shape.stop_value,
+    }
 }

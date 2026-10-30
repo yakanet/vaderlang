@@ -7,8 +7,8 @@ import "vader/front/resolver"
 import "vader/front/typecheck"
 
 // Populate `core_symbols` from std/core's resolved view so the lowerer can
-// resolve `Range`, `Continuation`, `Iterator`, `Display`, `Error`,
-// … without re-walking the project per call.
+// resolve `Range`, `Stop`, `Iterator`, `Display`, `Error`,
+// ... without re-walking the project per call.
 populate_core_symbols :: fn(loaded: LoadedProject, project_ctx: LowerProjectCtx) -> void {
     // Source std/core's exports directly from the core module (one seed) rather
     // than from per-module `resolved.core_symbols` copies (removed). This is the

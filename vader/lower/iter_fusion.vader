@@ -1,7 +1,7 @@
 // vader/lower/iter_fusion: stream-fusion of lazy iterator chains.
 //
 // Turns `for x in (0..<n).map(f).filter(p)` into a single flat counter loop (no
-// iterator struct, no `next()`, no step pair). The entry `try_lower_chain_fusion`
+// iterator struct, no `next()`, no step). The entry `try_lower_chain_fusion`
 // is called first from `lower_for_in`; a `null` result falls through to the other
 // fast paths. Shared loop-building helpers (`bind_loop_var`, `cmp_op_for_inclusive`,
 // `is_integer_type`, `resolve_loop_binding`) stay in `for_in.vader`: same
@@ -480,7 +480,7 @@ emit_fused_opaque_iter :: fn(
         .type = step_type, .value = step_call,
     }
     step_ref :: LoweredIdent { .span = span, .type = step_type, .symbol = step_symbol }
-    is_done :: step_is_done(shape, step_ref, span, ctx)
+    is_done :: step_is_done(shape, step_ref, span)
     value_access :: step_value(shape, step_ref, span)
     bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, value_access, element_type, span)
 
@@ -561,7 +561,7 @@ emit_fused_range :: fn(
 }
 
 // Emit the fused loop at an `Array` bottom: a direct index loop
-// over the concrete source array: no iterator object, no `next()`, no step pair.
+// over the concrete source array: no iterator object, no `next()`, no step.
 // The body is `template.user_body` (already map/filter-wrapped by the recursion),
 // with the array element bound to the chain's source binding. `continue` is made
 // increment-safe exactly like the non-fused raw-array path.
