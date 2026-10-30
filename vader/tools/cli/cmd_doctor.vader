@@ -64,8 +64,9 @@ check_fail :: fn(name: string, summary: string, detail: string) = Check {
 
 // ---- the command ----------------------------------------------------------
 
-/// `vader doctor`: report whether the toolchain and the current project are in
-/// a state that can build.
+/// `vader doctor`: report whether the toolchain and the environment can build.
+///
+/// The project of the working directory is `vader info`'s.
 ///
 /// Takes no positional argument: it inspects the environment, not a file. The
 /// checks run in the order they are reported, and every one of them is cheap:
@@ -94,15 +95,10 @@ cmd_doctor :: fn(args: string[]) -> i32 {
 
 // Every check, in report order.
 //
-// The two lookups every check would otherwise redo are done once here. That is
-// not for the syscalls, it is so the report cannot contradict itself: one
-// manifest lookup decides both what the manifest check reports and where the
-// generated tree is anchored, and one executable-location query is both what the
-// probes used and what the "looked under …" messages name. The project is the
-// folder the command runs in, as for `vader build` with no argument.
+// The executable location is asked once, so the report cannot contradict itself:
+// it is both what the probes used and what the "looked under ..." messages name.
 collect_checks :: fn(cc: string) -> Check[] {
     cwd :: current_working_directory()
-    manifest_root :: project_at(cwd)
     exe_dir :: current_executable_location().dir_of()
     // `$VADER_HOME` as set, and what it resolves to: asked once, because THREE
     // checks report on it and a report that contradicts itself about which probe
@@ -116,8 +112,6 @@ collect_checks :: fn(cc: string) -> Check[] {
         check_library_root(exe_dir, home_lib),
         check_compiler_sources(cwd, exe_dir),
         check_runtime_headers(),
-        check_manifest(manifest_root),
-        check_generated_tree(manifest_root),
     ]
     out.push_all(check_environment())
     return out
@@ -308,82 +302,6 @@ check_runtime_headers :: fn() -> Check {
 // Header proving a candidate directory is the C runtime: the same marker
 // `pipeline::runtime_c_root` probes for.
 RUNTIME_HEADER :: "vader.h"
-
-// Whether this directory is a project at all, and whether the roots its
-// manifest declares exist. A missing `vader.json` is not an error, and it is
-// reported rather than passed over: without one, `vader build` here has
-// nothing to build.
-check_manifest :: fn(root: string | null) -> Check {
-    if root == null {
-        return check_ok(
-            "manifest",
-            "none here: a file builds on its own, this folder does not",
-            "add a `${MANIFEST_FILENAME}` with `entries` (see `vader new`) to build the folder",
-        )
-    }
-    path :: join_path(root, MANIFEST_FILENAME)
-    manifest :: read_manifest(root)
-    if manifest.problems.len() > 0 {
-        return check_fail(
-            "manifest",
-            "malformed: a command given this folder refuses it",
-            "${path}: ${manifest.problems.join("; ")}",
-        )
-    }
-    if manifest.include_paths.len() == 0 {
-        return check_ok("manifest", "found, declaring no extra search root", path)
-    }
-    parts: string[]: []
-    missing := 0
-    bundled :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
-    for p in manifest.include_paths {
-        dir :: manifest_root(root, p, bundled)
-        if !is_dir(dir) {
-            missing += 1
-            parts.push("${p} (missing)")
-            continue
-        }
-        parts.push("${p} (${origin_label(origin_of_root(dir))})")
-    }
-    rendered :: parts.join(", ")
-    detail :: "${path} (includePaths: ${rendered})"
-    if missing > 0 {
-        return check_warn("manifest", "an `includePaths` entry does not exist", detail)
-    }
-    return check_ok("manifest", "found", detail)
-}
-
-// How a root's origin reads in the report. The marker decides it, never the
-// spelling, which is the whole point of showing it.
-origin_label :: fn(origin: ModuleOrigin) =
-    if origin == .Toolchain { "toolchain" } else { "project" }
-
-// A driver writes its generated modules under the project root, and a tree that
-// cannot be written to fails mid-build with an IO error rather than a diagnostic.
-// Only checked when one already exists: probing otherwise would mean creating a
-// directory the user did not ask for.
-check_generated_tree :: fn(manifest_root: string | null) -> Check {
-    // The LOADER's own answer, not a second derivation of it: `generated_root_for`
-    // is what resolution will consult, and it returns "" when there is no tree.
-    root :: generated_root_for(manifest_root)
-    if root == "" {
-        return check_ok("generated-tree", "none: nothing has been generated here", "")
-    }
-    probe :: join_path(root, ".vader-doctor-probe")
-    written :: write_file_string(probe, "")
-    if written is IOError {
-        return check_fail(
-            "generated-tree",
-            "not writable: a driven build cannot emit",
-            "${probe}: ${written.message()}",
-        )
-    }
-    removed :: remove_file(probe)
-    if removed is IOError {
-        return check_warn("generated-tree", "writable, but the probe file stayed behind", probe)
-    }
-    return check_ok("generated-tree", "writable", root)
-}
 
 // ---- probes ---------------------------------------------------------------
 

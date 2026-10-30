@@ -44,7 +44,7 @@ EnvToggle :: struct {
 ENV_TOGGLES: EnvToggle[]: [
     EnvToggle {
         .name = "VADER_GC_STRESS", .status = .Warn,
-        .effect = "every allocation collects, 100×–10000× slower",
+        .effect = "every allocation collects, 100 to 10000 times slower",
     },
     EnvToggle {
         .name = "VADER_GC_STRESS_MAJOR", .status = .Warn,
@@ -63,6 +63,10 @@ ENV_TOGGLES: EnvToggle[]: [
         .effect = "every minor fills the young space it abandons with 0xA5",
     },
     EnvToggle {
+        .name = "VADER_GC_NO_CSTACK_SCAN", .status = .Warn,
+        .effect = "the collector skips its conservative stack scan and can free live objects",
+    },
+    EnvToggle {
         .name = "VADER_ASYNC_VIRTUAL_CLOCK", .status = .Warn,
         .effect = "async runs on a virtual clock: timers do not wait",
     },
@@ -70,6 +74,10 @@ ENV_TOGGLES: EnvToggle[]: [
         .name = "VADER_ALLOC_SITES", .status = .Warn,
         .effect = "per-site alloc profiling, INERT unless the runtime was built "
             + "with -DVADER_PROFILE_ALLOC_SITES",
+    },
+    EnvToggle {
+        .name = "VADER_ALLOC_BY_TYPE", .status = .Ok,
+        .effect = "allocations by type at exit",
     },
     EnvToggle { .name = "VADER_GC_PROFILE",   .status = .Ok, .effect = "GC stats at exit" },
     EnvToggle { .name = "VADER_GC_HISTOGRAM", .status = .Ok, .effect = "old live-set histogram" },

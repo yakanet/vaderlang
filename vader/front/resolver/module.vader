@@ -239,6 +239,14 @@ export absolute_path :: fn(path: string) -> string {
     return join_path(current_working_directory(), path)
 }
 
+/// `path` absolute and normalized, `\` read as `/`: one spelling for a file,
+/// whatever the loader or the command line wrote.
+///
+/// @param path  a `/`- or `\`-separated path, relative to the working directory
+///              or absolute.
+export normalized_path :: fn(path: string) -> string =
+    absolute_path(path.to_posix()).to_path().normalize().as_string()
+
 /// Whether `path` is absolute: it starts with `/`, or with a drive letter.
 ///
 /// @param path  a `/`-separated path.
@@ -392,6 +400,11 @@ export DRIVER_CONTRACT_MODULE :: "toolchain/build"
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test
+test_normalized_path_reads_backslashes_as_slashes :: fn() -> void {
+    assert_eq(normalized_path(r"C:\Temp\doc\.\shapes"), "C:/Temp/doc/shapes")
+}
 
 @test
 test_a_registered_toolchain_root_provides_its_sidecars :: fn() -> void {

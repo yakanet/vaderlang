@@ -136,7 +136,8 @@ test("info describes a project folder and builds nothing", async () => {
   const text = await vader(["info", dir]);
   expect(text.exit).toBe(0);
   expect(text.stdout).toContain("(vader.json)");
-  expect(text.stdout).toContain("entry    tool → tool.vader");
+  expect(text.stdout).toContain(`entry    tool -> ${join(dir, "tool.vader")}\n`);
+  expect(text.stdout).toContain(`asset    data -> ${join(dir, "data")}\n`);
 
   const json = await vader(["info", "--json", dir]);
   expect(json.exit).toBe(0);
@@ -145,6 +146,8 @@ test("info describes a project folder and builds nothing", async () => {
   expect(described.entries).toEqual({ app: "src/main.vader", tool: "tool.vader" });
   expect(described.assets).toEqual(["data"]);
   expect(described.includePaths).toEqual([]);
+  expect(described.resolved.entries).toContainEqual({ name: "tool", path: join(dir, "tool.vader"), status: "found" });
+  expect(described.resolved.output.release).toBe(join(dir, "build", `release-${HOST_TARGET}`));
   expect(existsSync(join(dir, "build"))).toBe(false);
 
   const file = await vader(["info", join(dir, "tool.vader")]);

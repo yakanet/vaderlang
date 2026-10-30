@@ -271,21 +271,3 @@ normalized_root :: fn(root: string) -> string {
     }
     return normalized_path(root)
 }
-
-/// `path` absolute and normalized, `\` read as `/`: one spelling for a file,
-/// whatever the loader or the command line wrote. The data names its files from
-/// a folder spelled this way.
-///
-/// @param path  a `/`- or `\`-separated path, relative to the working directory
-///              or absolute.
-export normalized_path :: fn(path: string) -> string =
-    absolute_path(path.to_posix()).to_path().normalize().as_string()
-
-// ---- tests ----------------------------------------------------------------
-
-import "std/testing"
-
-@test
-test_normalized_path_reads_backslashes_as_slashes :: fn() -> void {
-    assert_eq(normalized_path(r"C:\Temp\doc\.\shapes"), "C:/Temp/doc/shapes")
-}

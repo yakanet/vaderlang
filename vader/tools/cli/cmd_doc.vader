@@ -146,8 +146,8 @@ search_data :: fn(parsed: ParsedArgs, project: EntryInProject | null, home: stri
     shown :: Doc.search_doc(
         dirs,
         query,
-        Doc.normalized_path(home),
-        Doc.normalized_path("."),
+        normalized_path(home),
+        normalized_path("."),
         colored,
     )
     print(shown.text)
@@ -237,7 +237,7 @@ refresh_data :: fn(inputs: Doc.DocInputs, home: string, out_dir: string) -> Refr
     if errors.len() > 0 {
         problems.push(errors.dump_diagnostics_with_file())
     }
-    documented :: Doc.index_modules(checked, inputs.scope, Doc.normalized_path(home))
+    documented :: Doc.index_modules(checked, inputs.scope, normalized_path(home))
     problems.push_all(left_out_lines(documented.left_out))
     if documented.modules.len() == 0 {
         problems.push(

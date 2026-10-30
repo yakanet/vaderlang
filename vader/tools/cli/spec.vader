@@ -507,7 +507,7 @@ export COMMANDS: CommandSpec[]: [
     },
     CommandSpec {
         .name = "doctor",
-        .summary = "Check the toolchain and the project here",
+        .summary = "Check the toolchain and the environment",
         .usage = "",
         .flags = DOCTOR_FLAGS,
         .tail = .None,

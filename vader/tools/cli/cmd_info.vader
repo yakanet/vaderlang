@@ -48,6 +48,7 @@ cmd_info :: fn(args: string[]) -> i32 {
 ProjectInfo :: struct {
     /// The file that describes it, its `build.vader` or its `vader.json`.
     described_by: string
+    /// Absolute when `project_info` builds it.
     root:         string
     /// What it declares, in the shape of a `vader.json`.
     manifest:     Manifest
@@ -69,7 +70,7 @@ project_info :: fn(dir: string, may_compile: bool) -> ProjectInfo | i32 {
     }
     return ProjectInfo {
         .described_by = described_by,
-        .root = dir,
+        .root = normalized_path(dir),
         .manifest = manifest,
     }
 }
@@ -91,36 +92,86 @@ declared_project :: fn(dir: string, described_by: string, may_compile: bool) -> 
     return described
 }
 
-// The report a reader takes in: one labelled line per fact, each search root
-// with the folder it resolves to.
+// The report a reader takes in: one labelled line per fact, each path with the
+// absolute one it resolves to.
 render_info_text :: fn(info: ProjectInfo) -> string {
+    resolution :: resolve_paths(info)
     out :: StringBuilder {}
     out.append("project  ${info.root} (${info.described_by})\n")
-    for entry in info.manifest.entries {
-        out.append("entry    ${entry.name} → ${entry.path}\n")
+    for entry in resolution.entries {
+        out.append("entry    ${entry.declared} -> ${entry.path}${text_mark(entry)}\n")
     }
-    if info.manifest.entries.len() == 0 {
+    if resolution.entries.len() == 0 {
         out.append("entry    none\n")
     }
-    bundled :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
-    for root in info.manifest.include_paths {
-        out.append("root     ${root} → ${manifest_root(info.root, root, bundled)}\n")
+    for root in resolution.roots {
+        out.append("root     ${root.declared} -> ${root.path}${text_mark(root)}\n")
     }
-    for asset in info.manifest.assets {
-        out.append("asset    ${asset}\n")
+    for asset in resolution.assets {
+        out.append("asset    ${asset.declared} -> ${asset.path}${text_mark(asset)}\n")
     }
-    out.append("output   ${project_output_dir(info.root, false, null)} (debug)")
+    out.append("output   ${resolution.debug_output} (debug)\n")
+    out.append("output   ${resolution.release_output} (release)")
     return out.to_string()
 }
 
+// What follows a resolved path in the text report: `(missing)`, the origin of a
+// search root, or nothing.
+text_mark :: fn(p: ResolvedPath) -> string {
+    if !p.found         { return " (missing)" }
+    if p.origin != null { return " (${p.origin})" }
+    return ""
+}
+
 // The report a tool reads: the project in the shape of a `vader.json`, with
-// `kind` (`manifest` or `driver`) and `root`.
+// `kind` (`manifest` or `driver`), `root`, and where its paths lead under
+// `resolved`.
 render_info_json :: fn(info: ProjectInfo) -> string {
     report :: MutableMap<string, Json.JsonValue> {}
     report["kind"] = Json.JsonString { .value = kind_of(info) }
     report["root"] = Json.JsonString { .value = info.root }
     write_manifest_json(report, info.manifest)
+    report["resolved"] = resolution_json(resolve_paths(info))
     return Json.stringify(Json.JsonObject { .entries = report }, 2)
+}
+
+// The `resolved` of the JSON report: `entries` by name, `roots` and `assets` by
+// the path as declared, each with its absolute `path` and its `status`, `found`
+// or `missing`, a found root with its `origin`; and the `output` folder of each
+// profile.
+resolution_json :: fn(resolution: Resolution) -> Json.JsonValue {
+    output :: MutableMap<string, Json.JsonValue> {}
+    output["debug"] = Json.JsonString { .value = resolution.debug_output }
+    output["release"] = Json.JsonString { .value = resolution.release_output }
+    out :: MutableMap<string, Json.JsonValue> {}
+    out["entries"] = paths_json(resolution.entries, "name")
+    out["roots"] = paths_json(resolution.roots, "declared")
+    out["assets"] = paths_json(resolution.assets, "declared")
+    out["output"] = Json.JsonObject { .entries = output }
+    return Json.JsonObject { .entries = out }
+}
+
+// `paths` as a JSON array, what the project writes for each under `label`.
+paths_json :: fn(paths: ResolvedPath[], label: string) -> Json.JsonValue {
+    items: Json.JsonValue[]: []
+    for p in paths {
+        item :: MutableMap<string, Json.JsonValue> {}
+        item[label] = Json.JsonString { .value = p.declared }
+        item["path"] = Json.JsonString { .value = p.path }
+        item["status"] = Json.JsonString { .value = status_of(p) }
+        if p.origin != null {
+            item["origin"] = Json.JsonString { .value = p.origin }
+        }
+        items.push(Json.JsonObject { .entries = item })
+    }
+    return Json.JsonArray { .items = items }
+}
+
+status_of :: fn(p: ResolvedPath) -> string {
+    if p.found {
+        return "found"
+    }
+    return "missing"
 }
 
 // `driver` or `manifest`, the `kind` of `vader info --json`.
@@ -129,6 +180,78 @@ kind_of :: fn(info: ProjectInfo) -> string {
         return "driver"
     }
     return "manifest"
+}
+
+// ---- where the paths lead -------------------------------------------------
+
+// A path the project declares, resolved against its folder.
+ResolvedPath :: struct {
+    /// What the project writes: an entry's name, a search root or an asset.
+    declared: string
+    /// Absolute, without `.` or `..`.
+    path:     string
+    found:    bool
+    /// A found search root's `toolchain` or `project`: whose modules it serves,
+    /// which the library marker decides, never the spelling.
+    origin:   string | null = null
+}
+
+// Where the paths of a project lead: the text and the JSON report read the same.
+Resolution :: struct {
+    entries:        ResolvedPath[]
+    roots:          ResolvedPath[]
+    assets:         ResolvedPath[]
+    debug_output:   string
+    release_output: string
+}
+
+resolve_paths :: fn(info: ProjectInfo) -> Resolution {
+    entries: ResolvedPath[]: []
+    for entry in info.manifest.entries {
+        entries.push(resolved(entry.name, join_path(info.root, entry.path)))
+    }
+    bundled :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
+    roots: ResolvedPath[]: []
+    for root in info.manifest.include_paths {
+        roots.push(resolved_root(root, manifest_root(info.root, root, bundled)))
+    }
+    assets: ResolvedPath[]: []
+    for asset in info.manifest.assets {
+        assets.push(resolved(asset, join_path(info.root, asset)))
+    }
+    return Resolution {
+        .entries = entries,
+        .roots = roots,
+        .assets = assets,
+        .debug_output = project_output_dir(info.root, false, null),
+        .release_output = project_output_dir(info.root, true, null),
+    }
+}
+
+// What the project writes as `declared`, at `path`.
+resolved :: fn(declared: string, path: string) -> ResolvedPath {
+    full :: normalized_path(path)
+    return ResolvedPath {
+        .declared = declared,
+        .path = full,
+        .found = exists(full),
+    }
+}
+
+// The search root the project writes as `declared`, at `dir`.
+resolved_root :: fn(declared: string, dir: string) -> ResolvedPath {
+    root :: resolved(declared, dir)
+    if !is_dir(root.path) {
+        return ResolvedPath { ...root, .found = false }
+    }
+    return ResolvedPath { ...root, .origin = origin_label(origin_of_root(root.path)) }
+}
+
+origin_label :: fn(origin: ModuleOrigin) -> string {
+    if origin == .Toolchain {
+        return "toolchain"
+    }
+    return "project"
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -151,7 +274,7 @@ test_info_json_carries_the_project_in_the_shape_of_a_manifest :: fn() -> void {
         assert(false, "the report is a JSON object")
         return
     }
-    assert_eq(parsed.entries.keys().join(","), "kind,root,includePaths,entries,assets")
+    assert_eq(parsed.entries.keys().join(","), "kind,root,includePaths,entries,assets,resolved")
     kind :: parsed.entries["kind"]
     assert(kind is Json.JsonString && kind.value == "driver", "a driven project says so")
 }
@@ -168,7 +291,10 @@ test_info_json_of_a_manifest_carries_its_name_and_version :: fn() -> void {
         assert(false, "the report is a JSON object")
         return
     }
-    assert_eq(parsed.entries.keys().join(","), "kind,root,name,version,includePaths,entries,assets")
+    assert_eq(
+        parsed.entries.keys().join(","),
+        "kind,root,name,version,includePaths,entries,assets,resolved",
+    )
 }
 
 @test
@@ -179,6 +305,28 @@ test_info_text_names_the_file_that_describes_the_project :: fn() -> void {
         .manifest = Manifest {},
     }
     assert("project  game (vader.json)" in render_info_text(info), "the description file is named")
+}
+
+@test
+test_info_text_marks_a_missing_root :: fn() -> void {
+    info :: ProjectInfo {
+        .described_by = MANIFEST_FILENAME,
+        .root = "game",
+        .manifest = Manifest { .include_paths = ["no/such/folder"] },
+    }
+    assert("no/such/folder (missing)" in render_info_text(info), "a missing root is marked")
+}
+
+@test
+test_info_json_marks_a_missing_root :: fn() -> void {
+    info :: ProjectInfo {
+        .described_by = MANIFEST_FILENAME,
+        .root = "game",
+        .manifest = Manifest { .include_paths = ["no/such/folder"] },
+    }
+    report :: render_info_json(info)
+    assert("\"status\": \"missing\"" in report, "a missing root is marked")
+    assert(!("\"origin\"" in report), "a missing root has no origin")
 }
 
 @test
