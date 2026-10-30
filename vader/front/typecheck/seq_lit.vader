@@ -39,13 +39,13 @@ infer_seq_lit :: fn(
     // contextual disambiguation; for every other (or absent) slot type we infer
     // freely.
     @partial match expected {
-        is TupleType -> {
+        is TupleType    -> {
             return infer_against_tuple(e, expected, typed, diags)
         }
-        is ArrayType -> {
+        is ArrayType    -> {
             return infer_against_array(e, expected, typed, diags)
         }
-        is TraitType -> {
+        is TraitType    -> {
             element :: iterator_slot_element(expected) ?? return infer_no_expected(e, typed, diags)
             return infer_against_array(e, ArrayType { .element = element }, typed, diags)
         }
@@ -67,7 +67,7 @@ infer_seq_lit :: fn(
             }
             return infer_no_expected(e, typed, diags)
         }
-        _ -> {
+        _               -> {
             return infer_no_expected(e, typed, diags)
         }
     }
@@ -257,20 +257,17 @@ expect_seq :: fn(src: string) -> ExpectedSeq {
     diags: Diagnostic[]: []
     result :: check_module(parsed.program, rm, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
-    match last {
-        is AST.FnDecl -> {
-            match b :: last.body {
-                is null          -> {}
-                is AST.BlockExpr -> {
-                    hit :: AST.find_expr(b, (e) -> e is AST.SeqLitExpr)
-                    if hit is AST.SeqLitExpr { return ExpectedSeq {
-                        .typed = result.typed,
-                        .sl = hit,
-                    } }
+    if last is AST.FnDecl {
+        b :: last.body
+        if b is AST.BlockExpr {
+            hit :: AST.find_expr(b, (e) -> e is AST.SeqLitExpr)
+            if hit is AST.SeqLitExpr {
+                return ExpectedSeq {
+                    .typed = result.typed,
+                    .sl = hit,
                 }
             }
         }
-        _ -> {}
     }
     assert(false, "expected a SeqLitExpr in: ${src}")
     return ExpectedSeq { .typed = result.typed, .sl = synthetic_seq() }
