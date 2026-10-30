@@ -383,22 +383,6 @@ export BcField :: struct {
     type_index: i32
 }
 
-/// Mangled type-table name of the `std/io` `IOError` struct: the identity a
-/// host-fabricated io error carries, so `is IOError` narrows and `Error.message`
-/// dispatches on it.
-export MANGLED_IO_ERROR :: r"std_io$IOError"
-
-/// Index of the `BcStruct` named `name` in `types`, or `-1` when absent.
-export struct_type_index :: fn(types: BcType[], name: string) -> i32 {
-    for i in 0..<types.len() {
-        t :: types[i]
-        if t is BcStruct {
-            if t.name == name { return i32(i) }
-        }
-    }
-    return -1
-}
-
 /// Index of the `BcStruct` declared by `symbol_id` in `types`, or `-1` when absent.
 /// The first match : the instances of a generic struct share one symbol id, and a
 /// baked value must name the same slot in every backend.

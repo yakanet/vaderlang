@@ -35,8 +35,6 @@ export VmState :: struct {
     string_array_type_id: i32
     /// The `u8[]` ArrayType index: stamped onto the array `bytes` materialises.
     u8_array_type_id: i32
-    /// The `std/io$IOError` struct index: stamped onto host io error values.
-    io_error_type_id: i32
     /// `fn name -> index`, so `exec_fn` / `exec_fn_value` resolve an entry by
     /// one lookup instead of a linear string-compare scan. The comptime pass
     /// resolves one entry per staged decl, which made that scan O(decls x fns).
@@ -127,7 +125,6 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
         .main_index           = bc.main_function_index(bc_mod.functions),
         .string_array_type_id = find_string_array_type_id(bc_mod.types),
         .u8_array_type_id     = find_u8_array_type_id(bc_mod.types),
-        .io_error_type_id     = find_io_error_type_id(bc_mod.types),
         .fn_index_by_name     = by_name,
         .import_ids           = import_ids,
         .reg                  = reg,

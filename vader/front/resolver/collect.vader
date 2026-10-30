@@ -133,9 +133,9 @@ check_import_form_conflict :: fn(decls: Decl[], diags: Diagnostic[]) -> void {
     }
 }
 
-/// Mono-file convenience : pre-strict-mode callers that don't have a
-/// module index. Skips import-path resolution (R2001 / R2024 / R2025 /
-/// R2028) and duplicate-binding emission ; still mints symbols.
+/// Collect one file on its own, with no module index: the LSP's per-file views
+/// and `resolve_module` use it. Skips import-path resolution (R2001 / R2024 /
+/// R2025 / R2028) and duplicate-binding emission ; still mints symbols.
 export collect_module_no_index :: fn(
     program: Program, module_path: string, factory: SymbolFactory,
 ) -> CollectedModule {

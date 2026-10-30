@@ -594,14 +594,14 @@ test_tags_reject_a_null_into_arithmetic_without_a_cast :: fn() -> void {
 
 @test
 test_tags_reject_i32_arithmetic_on_a_float :: fn() -> void {
-    body :: "  f64.const 1.5\n  i32.const 1\n  i32.add\n  return\n"
+    body :: "  f64.const 1.5 4609434218613702656\n  i32.const 1\n  i32.add\n  return\n"
     assert("may meet f64" in tag_rejection("", body), "an f64 into i32.add")
 }
 
 @test
 test_tags_merge_both_arms_of_an_if :: fn() -> void {
     body :: "  i32.const 1\n  local.set 0\n  bool.const true\n" + r"  if $L0 void" + "\n" +
-        "    f64.const 2.0\n    drop\n" + r"  end $L0" + "\n" +
+        "    f64.const 2.0 4611686018427387904\n    drop\n" + r"  end $L0" + "\n" +
         "  local.get 0\n  i32.const 1\n  i32.add\n  return\n"
     assert_eq(tag_rejection("  local x i32\n", body), "")
 }

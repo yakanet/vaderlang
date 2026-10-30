@@ -451,11 +451,9 @@ write_vtable_rows :: fn(sb: StringBuilder, vtables: VtableRow[]) -> void {
 
 // Emit `export main <index>` for the entry function, identified by its
 // mangled name (`<entry-module>$main`). The textual `.virt` carries no
-// `is_main` flag, so `parse_virt_bc` recovers the entry from this
-// directive: without it, it falls back to "first `$main`-suffixed fn",
-// which is emission-order-dependent and picks the wrong module's `main`
-// when several modules declare one (e.g. `vader_tools_lsp$main` before
-// `vader_tools_cli$main`). `entry_mangled == ""` (no known entry) emits nothing.
+// `is_main` flag, so `parse_virt_bc` recovers the entry from this directive
+// alone: a module without it has no entry. `entry_mangled == ""` (no known
+// entry) emits nothing.
 write_entry_main :: fn(sb: StringBuilder, functions: BcFunction[], entry_mangled: string) -> void {
     if entry_mangled == "" { return }
     entry_idx: i32 = -1

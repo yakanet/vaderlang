@@ -604,8 +604,8 @@ parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> Op | null {
 /// Non-finite values dump with NO bit column, a bare abstract word `inf` /
 /// `-inf` / `nan` (see `emit/virt::f64_const_operands`), because ±inf are unique,
 /// every NaN is one value, and a NaN's raw bits aren't architecturally stable.
-/// Each word maps straight back to its canonical bit pattern here. Legacy
-/// single-token `f64.const N.M` finite lines fall back to the decimal parser.
+/// Each word maps straight back to its canonical bit pattern here. A finite
+/// value with no bit column is malformed.
 ///
 /// @param line  the comment-stripped op line.
 /// @return      `F64Const { value }` on success, `null` on malformed input.
@@ -620,12 +620,14 @@ parse_f64_const :: fn(line: string) -> Op | null {
     if rest == "-inf" { return F64Const { .value = neg_inf.from_bits() } }
     if rest == "nan"  { return F64Const { .value = quiet_nan.from_bits() } }
     sp :: last_index_of_space(rest)
-    if sp >= 0 {
-        bits :: parse_uint_in_base(rest.byte_slice(i64(sp) + 1, rest.byte_len()), 10)
-        if bits is u64 { return F64Const { .value = bits.from_bits() } }
+    if sp < 0 {
+        return null
     }
-    parsed :: parse_f64(rest) ?? return null
-    return F64Const { .value = parsed }
+    bits :: parse_uint_in_base(rest.byte_slice(i64(sp) + 1, rest.byte_len()), 10)
+    if bits is ParseError {
+        return null
+    }
+    return F64Const { .value = bits.from_bits() }
 }
 
 parse_string_const :: fn(line: string) -> Op | null {

@@ -20,7 +20,6 @@ module "vader/core/bytecode"
 
 import "std/abort"
 import "std/ffi"
-import "std/string"
 
 
 /// One Vader function body, post-lowering.
@@ -372,27 +371,13 @@ export main_function_name :: fn(module: BytecodeModule) -> string {
     return module.functions[index].name
 }
 
-/// Flag the entry function `is_main`: the one at `declared`, or, when nothing
-/// declared one (`-1`), the first whose name ends with `$main`. A module with
-/// neither keeps no entry.
+/// Flag the entry function `is_main`: the one at `declared`. A module that
+/// declared none (`-1`) keeps no entry.
 ///
 /// @param functions  the module's function table.
 /// @param declared   the entry index the source named, `-1` when it named none.
 export mark_main_function :: fn(functions: BcFunction[], declared: i32) -> void {
-    index :: entry_or_main_suffix(functions, declared)
-    if index >= 0 && i64(index) < functions.len() {
-        functions[index].is_main = true
+    if declared >= 0 && i64(declared) < functions.len() {
+        functions[declared].is_main = true
     }
-}
-
-// `declared` when it names a function, else the first `$main`-suffixed one,
-// else -1.
-entry_or_main_suffix :: fn(functions: BcFunction[], declared: i32) -> i32 {
-    if declared >= 0 {
-        return declared
-    }
-    for i in 0..<functions.len() {
-        if functions[i].name.ends_with(r"$main") { return i32(i) }
-    }
-    return -1
 }

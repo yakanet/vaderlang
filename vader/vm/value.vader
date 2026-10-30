@@ -16,7 +16,6 @@ module "vader/vm"
 import "std/string"
 import "std/string_builder"
 import "vader/core/bytecode"
-import "vader/core/types"
 bc :: import "vader/core/bytecode"
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -97,13 +96,6 @@ export find_string_array_type_id :: fn(types: bc.BcType[]) -> i32 {
     return 0
 }
 
-/// Type-table index of the `std/io$IOError` struct, or `-1` when absent.
-/// Host io arms stamp their error values with it so `is IOError` narrows
-/// and `Error.message` dispatches ; `-1` (io never imported) falls back
-/// to the legacy tag-only `ErrorVal`.
-export find_io_error_type_id :: fn(types: bc.BcType[]) -> i32 =
-    bc.struct_type_index(types, bc.MANGLED_IO_ERROR)
-
 /// Locate the module's `u8[]` `ArrayType` index: the tag a host-produced
 /// `bytes()` array must carry so `is u8[]` narrows. Sibling of
 /// `find_string_array_type_id`. Returns 0 when no `u8` scalar or no
@@ -148,7 +140,6 @@ export describe_value_tag :: fn(v: Value) -> string = match v {
     is NullVal    -> "null"
     is BoolVal    -> "bool"
     is CharVal    -> "char"
-    is ErrorVal   -> "error"
     is TypeVal    -> "type"
     is ObjVal     -> "object"
 }
@@ -372,7 +363,7 @@ export value_ref_eq :: fn(a: Value, b: Value) -> bool = match a {
 }
 
 // The values the VM allocates, each an object with an identity.
-HeapVal :: StructVal | ArrayVal | FnVal | ErrorVal | TypeVal | ObjVal
+HeapVal :: StructVal | ArrayVal | FnVal | TypeVal | ObjVal
 
 /// Type-check : does `v`'s runtime tag match `state.bc.types[type_id]` ?
 /// Returns `false` for `BcFn` (placeholder until ref/trait dispatch lands).
@@ -397,13 +388,9 @@ export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
     }
 }
 
-/// Match a value against a `ref Trait` type. `is Error` also accepts an
-/// `ErrorVal`, `ref _` (empty trait name) accepts any heap variant, and a named
-/// trait resolves through the impl table.
+/// Match a value against a `ref Trait` type. `ref _` (empty trait name)
+/// accepts any heap variant, and a named trait resolves through the impl table.
 ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> bool {
-    if trait_name == core_trait_key(TRAIT_ERROR) && v is ErrorVal {
-        return true
-    }
     if trait_name == "" {
         // @partial: `ref _` accepts any heap variant; primitives/null → false.
         return @partial match v {
@@ -421,24 +408,14 @@ ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> bool {
     }
 }
 
-/// True iff `type_id` is registered as an implementer of `trait_name`.
-/// Consults `state.bc.impl_table` first (populated from `impl TYPE_ID TRAIT`
-/// directives in the .virt): that source survives DCE because the
-/// writer emits one entry per implTable pair regardless of whether the
-/// method bodies are reachable. Falls back to scanning `state.bc.vtables`
-/// for legacy modules whose .virt predates the directive.
+/// True iff `type_id` is registered as an implementer of `trait_name` in
+/// `state.bc.impl_table`, the table the native `is Trait` reads too. It
+/// survives DCE: the emitter writes one row per implemented pair whether or
+/// not the method bodies are reachable.
 trait_implemented_by :: fn(state: VmState, trait_name: string, type_id: i32) -> bool {
     for i in 0..<state.bc.impl_table.len() {
         if state.bc.impl_table[i].type_index == type_id && state.bc.impl_table[i].trait_name == trait_name {
             return true
-        }
-    }
-    prefix :: "${trait_name}."
-    for j in 0..<state.bc.vtables.len() {
-        if state.bc.vtables[j].key.starts_with(prefix) {
-            for k in 0..<state.bc.vtables[j].entries.len() {
-                if state.bc.vtables[j].entries[k].receiver_type_index == type_id { return true }
-            }
         }
     }
     return false
@@ -596,7 +573,6 @@ export Value :: I32Val
        | NullVal
        | BoolVal
        | CharVal
-       | ErrorVal
        | TypeVal
        | ObjVal
 
@@ -665,14 +641,6 @@ export FnVal :: struct {
 /// way to discriminate. Sprint 5a addition.
 export NullVal :: struct {}
 
-/// Error value: the Vader runtime sentinel for a failed fallible call.
-/// Carries a short diagnostic. Matches against any `is Error` pattern
-/// (where `Error` is the stdlib trait every concrete error implements).
-/// Host imports for `parse_int` / `parse_float` / `read_file` / `write_file`
-/// produce one of these on failure ; the user-side `match … { is Error -> … }`
-/// or `?` propagation pick it up.
-export ErrorVal :: struct { message: string }
-
 /// Runtime reification of a `type` value: pushed by `type.const N`,
 /// `type_id` keys `Module.types`.
 export TypeVal :: struct { type_id: i32 }
@@ -733,10 +701,6 @@ CharVal implements Display {
     to_string :: fn(self) -> string = "${char(self)}"
 }
 
-ErrorVal implements Display {
-    to_string :: fn(self) -> string = "<error: ${self.message}>"
-}
-
 TypeVal implements Display {
     to_string :: fn(self) -> string = "<type ${self.type_id}>"
 }
@@ -794,7 +758,6 @@ export display_value :: fn(v: Value) -> string = match v {
     is NullVal -> v.to_string()
     is BoolVal -> v.to_string()
     is CharVal -> v.to_string()
-    is ErrorVal -> v.to_string()
     is TypeVal -> v.to_string()
     is ObjVal -> v.to_string()
 }

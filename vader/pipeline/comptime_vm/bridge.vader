@@ -62,7 +62,6 @@ value_to_comptime :: fn(
     is Vm.StructVal -> struct_to_comptime(ctx, value, ty, span)
     is Vm.FnVal     -> unsupported(span, "function reference")
     is Vm.TypeVal   -> unsupported(span, "type value")
-    is Vm.ErrorVal  -> unsupported(span, "error value")
     is Vm.ObjVal    -> unsupported(span, "heap object (set / map)")
 }
 

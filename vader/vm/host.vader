@@ -90,10 +90,6 @@ hosted_frame_call :: fn(
 /// @param u8_array_type_id  the module's `u8[]` ArrayType index (see
 ///                  `find_u8_array_type_id`), stamped onto the array `bytes`
 ///                  materialises so it narrows to `is u8[]`.
-/// @param io_error_type_id  the `std/io$IOError` struct's type index (see
-///                  `find_io_error_type_id`), stamped onto fabricated io
-///                  error values by `mk_io_error` ; `-1` when io was never
-///                  imported.
 /// @param types     the module type table: an `@extern` lending an array needs
 ///                  its element width, which only the type table spells.
 /// @param is_comptime  true when this dispatch runs inside a `@comptime`
@@ -111,7 +107,7 @@ hosted_frame_call :: fn(
 ///                  `is_comptime` and `comptime_refusal` gives a reason:
 ///                  `pipeline/comptime_vm` routes it to `C4016` rather than the
 ///                  generic `C4002`.
-export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, gc_state: i64[], sched_state: i64[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId, adapter: i64) -> HostCallResult {
+export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, gc_state: i64[], sched_state: i64[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId, adapter: i64) -> HostCallResult {
     // ---- compiler-internal `@extern` hosts ---------------------------------
     //
     // `@extern` is EXEMPT from the emit-time wiring check (`emit/bytecode/emit.vader` :

@@ -132,8 +132,8 @@ export parse_virt_bc :: fn(source: string) -> BytecodeModule | VirtParseError {
 /// Module-level directives (`module` / `type` / `string` / `data` / `import` /
 /// `impl` / `vtable` / `export`) populate the module pools ; each `fn …` opens
 /// a body where ops + the jump table are wired by the shared
-/// `wire_control_flow`. The entry fn is taken from `export main N` (falling
-/// back to the `$main`-suffix heuristic) and flagged `is_main`.
+/// `wire_control_flow`. The entry fn is taken from `export main N` and
+/// flagged `is_main` ; a dump without the directive has no entry.
 ///
 /// @param source  the full `.virt` text (UTF-8).
 /// @return        the reconstructed module with its op lines, or the first line

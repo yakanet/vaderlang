@@ -153,7 +153,6 @@ export primitive_size :: fn(name: string) -> i64 {
 /// plain string constants so cross-module symbol lookup goes through
 /// resolved imports rather than a privileged registry.
 export TRAIT_DISPLAY    :: @type_name(Display)
-export TRAIT_ERROR      :: @type_name(Error)
 export TRAIT_EQUALS     :: @type_name(Equals)
 export TRAIT_COMPARABLE :: @type_name(Comparable)
 export TRAIT_ADD        :: @type_name(Add)
