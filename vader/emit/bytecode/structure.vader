@@ -32,6 +32,7 @@ module "vader/emit/bytecode"
 
 import "std/abort"
 import "std/collections"
+import "std/iter"
 import "toolchain/span"
 import "vader/core/bytecode" {
     VtableEntry as _,
@@ -332,7 +333,7 @@ open_blocks :: fn(ctx: FnEmitCfg, ys: BlockId[], next: BlockId) -> BlockId {
         y :: ys[ys.len() - 1 - i]
         cf_block(ctx, ctx.fn_.blocks[i32(y)].span, y)
     }
-    return if ys.len() > 0 { ys[0] } else { next }
+    return ys.first_or_null() ?? next
 }
 
 // Close the `block`s `open_blocks` opened for `ys`, each block in `ys` emitted

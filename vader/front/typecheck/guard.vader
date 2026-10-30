@@ -24,6 +24,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
+import "std/iter"
 import "toolchain/span"
 import "vader/support/diagnostics"
 import "vader/core/types"
@@ -739,10 +740,7 @@ callee_guard_facts :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardFact[] |
 /// @param call  a call in a condition, already checked.
 guard_narrowing :: fn(call: AST.CallExpr, typed: TypedProgram) -> IsNarrow | null {
     narrowings :: guard_narrowings(call, typed) ?? return null
-    if narrowings.len() == 0 {
-        return null
-    }
-    return narrowings[0]
+    return narrowings.first_or_null()
 }
 
 /// Push what a call to a guard narrows where it evaluated to `truth`.

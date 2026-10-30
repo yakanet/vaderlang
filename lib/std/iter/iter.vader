@@ -55,6 +55,16 @@ export count :: fn<T>(it: Iterator<T>) -> i64 {
     return total
 }
 
+/// The first element of `arr`, or `null` when it is empty: O(1).
+///
+/// @param arr  source array.
+export first_or_null :: fn<T>(arr: T[]) -> T | null {
+    if arr.len() == 0 {
+        return null
+    }
+    return arr[0]
+}
+
 /// The last element of `arr`, or `null` when it is empty: O(1).
 ///
 /// @param arr  source array.
@@ -442,6 +452,12 @@ import "std/testing"
     assert_eq(xs.last() ?? -1, 6)
     empty: i32[]: []
     assert_eq(empty.last() ?? -1, -1)
+}
+
+@test test_first_or_null_of_an_array :: fn() -> void {
+    assert_eq([4, 5, 6].first_or_null() ?? -1, 4)
+    empty: i32[]: []
+    assert_eq(empty.first_or_null() ?? -1, -1)
 }
 
 @test test_is_empty_iterator :: fn() -> void {
