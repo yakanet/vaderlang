@@ -64,7 +64,7 @@ void* vader_core_symbol$make(void* l0, uint8_t l1, vader_string_t l2, vader_stri
     l8 = vader_chk_add(i32, l7, INT32_C(1));
     ((vader_struct_vader_core_symbol$SymbolFactory_t*) l0)->f_next = l8;
     vader_struct_vader_core_symbol$Symbol_t* _a0_obj = (vader_struct_vader_core_symbol$Symbol_t*) vader_gc_alloc(sizeof(vader_struct_vader_core_symbol$Symbol_t));
-    vader_obj_header_init(_a0_obj, 900u);
+    vader_obj_header_init(_a0_obj, 1015u);
     _a0_obj->f_id = l7;
     _a0_obj->f_kind = l1;
     _a0_obj->f_name = l2;

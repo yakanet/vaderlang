@@ -47,7 +47,7 @@ vader_string_t std_string__builder$StringBuilder$std_core$Display$to_string(void
 }
 
 void std_string__builder$append(void* l0, vader_string_t l1) {
-    vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string__builder$StringBuilder_t*) l0)->f_parts, vader_box_string(335u, l1));
+    vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string__builder$StringBuilder_t*) l0)->f_parts, vader_box_string(447u, l1));
     return;
 }
 
@@ -64,7 +64,7 @@ void std_string__builder$append_char(void* l0, uint32_t l1) {
     l2 = ((vader_struct_std_string__builder$StringBuilder_t*) l0)->f_parts;
     t0 = std_core$utf8_encode(l1);
     l3 = vader_host_std_core$bytes_to_string(t0);
-    vader_array_push_scalar((vader_array_t*) l2, vader_box_string(335u, l3));
+    vader_array_push_scalar((vader_array_t*) l2, vader_box_string(447u, l3));
     { vader_gc_top = gc_frame.prev; return; }
 }
 

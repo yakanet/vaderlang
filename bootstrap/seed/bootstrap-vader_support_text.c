@@ -58,7 +58,7 @@ bool vader_support_text$module_in_scope(vader_string_t l0, void* l1) {
         if (l0 == l5) {
             { vader_gc_top = gc_frame.prev; return true; }
         }
-        l6 = concat_2(l5, 440u);
+        l6 = concat_2(l5, 441u);
         t1 = std_string$starts_with(l0, l6);
         if (t1) {
             { vader_gc_top = gc_frame.prev; return true; }
@@ -82,10 +82,10 @@ vader_string_t vader_support_text$sanitise_ident(vader_string_t l0) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(22u, 0u, 0u, 335u);
+    vader_array_t* _a0_arr = vader_array_new(22u, 0u, 0u, 447u);
     t0 = (void*) _a0_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a1_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-    vader_obj_header_init(_a1_obj, 626u);
+    vader_obj_header_init(_a1_obj, 741u);
     _a1_obj->f_parts = t0;
     l1 = (void*) _a1_obj;
     l2 = vader_host_std_core$byte_len(l0);

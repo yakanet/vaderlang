@@ -15,13 +15,13 @@ bool vader_support_opt__report$env_flag_set(vader_string_t l0) {
     }
     l1 = l2.payload.s;
     if (l1 != 0u) {
-        { bool __vret = l1 != 452u; vader_gc_top = gc_frame.prev; return __vret; }
+        { bool __vret = l1 != 453u; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return false; }
 }
 
 bool vader_support_opt__report$opt_report_enabled(void) {
     bool t0;
-    t0 = vader_support_opt__report$env_flag_set(935u);
+    t0 = vader_support_opt__report$env_flag_set(934u);
     return t0;
 }
