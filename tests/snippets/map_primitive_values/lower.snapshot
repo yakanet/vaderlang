@@ -307,10 +307,11 @@
     struct std_collections$__gen_state_std_collections_6
     struct std_collections$__gen_state_std_collections_7
   std/core
-    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
-    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
-    const FLOAT_POW5_INV_SPLIT: u64[]  data pool #2
-    const FLOAT_POW5_SPLIT: u64[]  data pool #3
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #1
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #2
+    const FLOAT_POW5_INV_SPLIT: u64[]  data pool #3
+    const FLOAT_POW5_SPLIT: u64[]  data pool #4
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -371,6 +372,7 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.FloatDec32  // std_core$FloatDec32
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

@@ -3,7 +3,7 @@
 // Layout :
 //   1. Trait declarations (Display, Equals, Comparable, Hash, Clone,
 //      arithmetic, indexing, containment, iteration, error)
-//   2. Core type definitions and their impls (Continuation, Range) + the
+//   2. Core type definitions and their impls (Stop, Range) + the
 //      blanket array / Display→string impls
 //
 // The primitive-type impls (Display, Equals, Hash, Comparable, Step,
@@ -170,30 +170,22 @@ export Contains :: trait<T> {
     contains :: fn(self, value: T) -> bool
 }
 
-/// How one iterator step ended, see `Iterator.next`.
-export Continuation :: enum(u8) {
-    /// The step produced a value.
-    Continue,
-    /// The iteration is over; the value beside this one means nothing.
-    Stop,
-}
+/// What `Iterator.next` returns once the iteration is over.
+export Stop :: struct {}
+
+/// The value an iterator returns at its end. Return it rather than a fresh
+/// `Stop {}`, which allocates.
+export STOP :: Stop {}
 
 /// Pull-based iterator. The lowerer dispatches `for x in iter` through
 /// the impl table: users never call `next` directly. What consumes one
 /// (`count`, `last`, `collect`, `find`...) is a free function over
 /// `Iterator<T>` in `std/iter`, a `for` over its argument.
 ///
-/// `next()` hands back the element and whether the iteration goes on. A PAIR
-/// rather than a wrapper around a nullable: the pair crosses the call in
-/// registers instead of through the heap, and it makes `T = U | null`
-/// unremarkable: `Continuation` says whether there is an element, so a `null`
-/// ELEMENT is just an element.
-///
-/// The element beside `Continuation.Stop` is INDETERMINATE. An implementation
-/// hands over whatever `T` it has rather than manufacturing one, and no consumer
-/// may read it before testing the `Continuation`.
+/// `next()` hands back the next element, or `STOP` once there is none. A `null`
+/// element is just an element: `T = U | null` returns `U | null | Stop`.
 export Iterator :: trait<T> {
-    next :: fn(self) -> [T, Continuation]
+    next :: fn(self) -> T | Stop
 }
 
 /// Base trait for every error type usable in `T | Error` returns. Any struct
@@ -210,9 +202,8 @@ export Error :: trait {
 
 /// Sentinel returned by `Async.resume` when the coroutine suspended (it awaited
 /// something not yet ready) rather than completing. `T | Suspended` stays
-/// unambiguous because `Suspended` is a distinct nominal type, where
-/// `Iterator.next` carries the same information BESIDE the element instead, in
-/// its `Continuation`.
+/// unambiguous because `Suspended` is a distinct nominal type, as `Stop` is for
+/// `Iterator.next`.
 export Suspended :: struct {
     /// The scheduler time (`sched_now`, in ms) before which resuming again cannot
     /// make progress: a driver holding several awaitables re-drives this one only
@@ -286,43 +277,36 @@ Range<T> implements<T: Comparable & Step> Contains<T> {
 }
 
 Range<T> implements<T: Comparable & Step> Iterator<T> {
-    next :: fn(self) -> [T, Continuation] {
-        over :: if (self.inclusive) { self.done || self.cursor > self.end }
-                else                 { self.cursor >= self.end }
-        // The cursor doubles as the stop filler: it is a `T` already at hand, so
-        // nothing has to be manufactured for a type that only promises ordering.
-        if (over) { return [self.cursor, .Stop] }
-        v :: self.cursor
-        if (self.inclusive && v >= self.end) {
-            self.done = true
-        } else {
-            self.cursor = self.cursor.step()
+    // One comparison per step: the bound is tested again only at the end. The
+    // last value of an inclusive range sets `done` rather than stepping, which
+    // could overflow at the type's greatest value.
+    next :: fn(self) -> T | Stop {
+        if self.done {
+            return STOP
         }
-        return [v, .Continue]
-    }
-}
-
-/// Iterate a `T[]`. `for x in arr` has its own fast path and never comes here;
-/// this is what an array COERCED to `Iterator<T>` becomes.
-///
-/// A generator rather than a hand-written impl, and that is forced rather than
-/// chosen: `next` must pair its element with a `Continuation`, and on `Stop`
-/// there is no `T` to pair: an empty array holds none, and `T` promises nothing
-/// that would build one. A generator's `next` is synthesised by the lowerer,
-/// which pairs the type's zero; a ref slot takes NULL whatever `T` says, and
-/// that is expressible there and not here.
-export array_iter :: fn<T>(arr: T[]) -> Iterator<T> {
-    for i in 0..<arr.len() {
-        yield arr[i]
+        v :: self.cursor
+        if v >= self.end {
+            if !self.inclusive || v > self.end {
+                return STOP
+            }
+            self.done = true
+            return v
+        }
+        self.cursor = v.step()
+        return v
     }
 }
 
 // Blanket Into impls live here so the orphan rule passes: Into is owned
 // by std/core, the source shapes (`T[]`, bounded `T`) aren't.
 
+// What an array COERCED to `Iterator<T>` becomes. `for x in arr` has its own fast
+// path and never comes here.
 T[] implements<T> Into<Iterator<T>> {
     into :: fn(self) -> Iterator<T> {
-        return array_iter(self)
+        for i in 0..<self.len() {
+            yield self[i]
+        }
     }
 }
 

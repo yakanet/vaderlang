@@ -1966,13 +1966,13 @@ An impl declares its own type parameters after `implements`, bounded as on a fun
 ```vader
 // Borrowing T from the struct head: no list after `implements`.
 Countdown<T> implements Iterator<T> {
-    next :: fn(self) -> [T, Continuation] { /* ... */ }
+    next :: fn(self) -> T | Stop { /* ... */ }
 }
 
 // Bounded blanket impl: Range<T> coerces into an Iterator when T
 // satisfies both Comparable and Step.
 Range<T> implements<T: Comparable & Step> Iterator<T> {
-    next :: fn(self) -> [T, Continuation] { /* ... */ }
+    next :: fn(self) -> T | Stop { /* ... */ }
 }
 
 // Blanket on a structural source (any array, any Display-bound type).
@@ -2010,7 +2010,7 @@ The composition is an `&`-chain in type position, with the precedence of a type 
 
 #### Method dispatch on trait values
 
-A call on a receiver typed by a trait runs the impl of the value's run-time type, primitive and enum impls included. The receiver's trait arguments are substituted into the method's signature: with `it: Iterator<i32>`, `it.next()` returns `[i32, Continuation]`.
+A call on a receiver typed by a trait runs the impl of the value's run-time type, primitive and enum impls included. The receiver's trait arguments are substituted into the method's signature: with `it: Iterator<i32>`, `it.next()` returns `i32 | Stop`.
 
 ```vader
 report :: fn(e: Error) -> string {
@@ -2039,7 +2039,7 @@ Point implements Hash {
 
 // Classic form: required for traits with two or more methods.
 Countdown<T> implements Iterator<T> {
-    next :: fn(self) -> [T, Continuation] { ... }
+    next :: fn(self) -> T | Stop { ... }
 }
 ```
 
@@ -3818,7 +3818,7 @@ p :: Point { .x = 1, .y = 2 }
 | `a[i]`, `a[i] = v` | `Index<I, T>`, `IndexSet<I, T>` | §4 *Operator overloading* |
 | `x in c`, `x !in c` | `Contains<T>` | §3 *Membership: `in`* |
 | `lo..<hi`, `lo..=hi` | `Range<T>` | *Ranges*, below |
-| `for x in e` | `Iterator<T>`, `Into<Iterator<T>>` | §7 *`for` (universal loop)* |
+| `for x in e` | `Iterator<T>`, `Stop`, `Into<Iterator<T>>` | §7 *`for` (universal loop)* |
 | `"${x}"` | `Display` | §9 *`Display` trait* |
 | a conversion, implicit or `T(x)` | `Into<Target>` | §4 *Type coercion via `Into`* |
 | `T \| Error` | `Error` | §10 *`Error` trait* |
@@ -3833,7 +3833,7 @@ It also declares:
 - `Zero` and `One`, the additive and multiplicative identities, two static members (§4 *Static members*).
 - `FloatBits`, `BitsFloat`, `Float32Bits` and `Bits32Float`, the bits of a float (§4 *Float bit patterns*).
 - `ArrayOps<T>`, the built-in methods of arrays: `len`, `push`, `push_all`, `copy_to`, `remove_last` and `clear` (§4 *Mutation methods*).
-- `Continuation`, the result of an iterator step (*Iteration*, below).
+- `Stop` and its value `STOP`, what an iterator returns at its end (*Iteration*, below).
 - Functions on arrays: `filled` and `filled_indexed` (§4 *Repeat / preallocate: `[lhs] * n`*), `content_equals`, `is_permutation_of`, `contains_all` and `is_disjoint` (§4 *Equality*).
 - Functions on strings: `len`, `byte_len`, `byte_at`, `byte_slice`, `is_ascii`, `codepoint_at_byte`, `bytes` and `bytes_to_string` (§4 *Strings*).
 
@@ -3887,16 +3887,17 @@ Contains :: trait<T> {
 ### Iteration
 
 ```vader
-Continuation :: enum(u8) { Continue, Stop }
+Stop :: struct {}
+STOP :: Stop {}
 
 Iterator :: trait<T> {
-    next :: fn(self) -> [T, Continuation]
+    next :: fn(self) -> T | Stop
 }
 ```
 
-`next` returns the next element and whether there was one. Since `Continuation` carries the second part, an iterator over a nullable type yields `null` as an ordinary element.
+`next` returns the next element, or `STOP` once there is none. Only `Stop` ends the iteration, so an iterator over a nullable type yields `null` as an ordinary element.
 
-- When `next` returns `Stop`, the element beside it means nothing, and no consumer may read it (`for x in it` never does). An implementation returns any `T` it has at hand. One that has none can be written as a generator (*Generators*, below).
+- An element type that can hold `Stop` (`Iterator<Stop>`, `Iterator<A | Stop>`) is an error: `next` could no longer say the iteration is over. In a generic function, the error is at the use that gives the type parameter such a type.
 - `next` changes the state of the iterator. Advancing a frozen iterator, such as a module constant, is an error (§5 *Frozen values*).
 - An implementation provides `next` and nothing else. What consumes an iterator (`count`, `last`, `collect`, ...) is a free function over `Iterator<T>`, called with the method syntax: `it.count()`. `std/iter` provides the lazy combinators (`map`, `filter`, `take`, ...) and the terminals (`collect`, `fold`, `sum`, ...).
 - There is no `Iterable` trait. A type that can be iterated implements `Into<Iterator<T>>` (§7 *`for` (universal loop)*).

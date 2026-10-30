@@ -6,11 +6,11 @@
       {
           __iter_0: Iterator<i32> = it
           for {
-              __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == Continuation(1) {
+              __step_1: i32 | Stop = @vcall(std.core.Iterator.next, __iter_0)
+              if __step_1 is Stop {
                   break
               } else {
-                  x: i32 = __step_1._0
+                  x: i32 = i32(__step_1)
                   total = total + x
               }
           }
@@ -27,11 +27,11 @@
           total: i64 = 0
           {
               for {
-                  __fuse_step_0: [char, Continuation] = std.string.StringChars.next(__fuse_iter_0)
-                  if __fuse_step_0._1 == Continuation(1) {
+                  __fuse_step_0: char | Stop = std.string.StringChars.next(__fuse_iter_0)
+                  if __fuse_step_0 is Stop {
                       break
                   } else {
-                      x: char = __fuse_step_0._0
+                      x: char = char(__fuse_step_0)
                       if snippet.is_l(x) {
                           _: char = x
                           total = total + i64(1)
@@ -105,6 +105,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -116,6 +117,7 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

@@ -6,11 +6,11 @@
       {
           __iter_0: Range<u8> = r
           for {
-              __step_1: [u8, Continuation] = std.core.Range<u8>.next(__iter_0)
-              if __step_1._1 == Continuation(1) {
+              __step_1: Stop | u8 = std.core.Range<u8>.next(__iter_0)
+              if __step_1 is Stop {
                   break
               } else {
-                  b: u8 = __step_1._0
+                  b: u8 = u8(__step_1)
                   n = n + 1
               }
           }
@@ -22,11 +22,11 @@
       {
           __iter_0: Range<i8> = r
           for {
-              __step_1: [i8, Continuation] = std.core.Range<i8>.next(__iter_0)
-              if __step_1._1 == Continuation(1) {
+              __step_1: i8 | Stop = std.core.Range<i8>.next(__iter_0)
+              if __step_1 is Stop {
                   break
               } else {
-                  b: i8 = __step_1._0
+                  b: i8 = i8(__step_1)
                   n = n + 1
               }
           }
@@ -38,11 +38,11 @@
       {
           __iter_0: Range<u64> = r
           for {
-              __step_1: [u64, Continuation] = std.core.Range<u64>.next(__iter_0)
-              if __step_1._1 == Continuation(1) {
+              __step_1: Stop | u64 = std.core.Range<u64>.next(__iter_0)
+              if __step_1 is Stop {
                   break
               } else {
-                  v: u64 = __step_1._0
+                  v: u64 = u64(__step_1)
                   n = n + 1
               }
           }
@@ -54,11 +54,11 @@
       {
           __iter_0: Range<char> = r
           for {
-              __step_1: [char, Continuation] = std.core.Range<char>.next(__iter_0)
-              if __step_1._1 == Continuation(1) {
+              __step_1: char | Stop = std.core.Range<char>.next(__iter_0)
+              if __step_1 is Stop {
                   break
               } else {
-                  c: char = __step_1._0
+                  c: char = char(__step_1)
                   out = concat_2(out, std.core.char.to_string(c))
               }
           }
@@ -157,6 +157,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -185,6 +186,7 @@
     struct std.core.Range<i8>  // std_core$Range__i8
     struct std.core.Range<u64>  // std_core$Range__u64
     struct std.core.Range<u8>  // std_core$Range__u8
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

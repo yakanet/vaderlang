@@ -39,11 +39,11 @@
               {
                   __iter_0: Iterator<i32> = self
                   for {
-                      __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-                      if __step_1._1 == Continuation(1) {
+                      __step_1: i32 | Stop = @vcall(std.core.Iterator.next, __iter_0)
+                      if __step_1 is Stop {
                           break
                       } else {
-                          x: i32 = __step_1._0
+                          x: i32 = i32(__step_1)
                           @array.push(chunk, x)
                           if @array.len(chunk) == size {
                               c: i32[] = chunk
@@ -63,11 +63,11 @@
       {
           __iter_8: Iterator<i32[]> = chunks
           for {
-              __step_9: [i32[], Continuation] = @vcall(std.core.Iterator.next, __iter_8)
-              if __step_9._1 == Continuation(1) {
+              __step_9: i32[] | Stop = @vcall(std.core.Iterator.next, __iter_8)
+              if __step_9 is Stop {
                   break
               } else {
-                  c: i32[] = __step_9._0
+                  c: i32[] = i32[](__step_9)
                   std.io.println<string>(concat_2("lazy chunk ", std.core.i32[].to_string(c)))
               }
           }
@@ -107,11 +107,11 @@
       {
           __iter_15: Iterator<string> = words
           for {
-              __step_16: [string, Continuation] = @vcall(std.core.Iterator.next, __iter_15)
-              if __step_16._1 == Continuation(1) {
+              __step_16: Stop | string = @vcall(std.core.Iterator.next, __iter_15)
+              if __step_16 is Stop {
                   break
               } else {
-                  w: string = __step_16._0
+                  w: string = string(__step_16)
                   std.io.println<string>(concat_2("lazy distinct ", w))
               }
           }
@@ -141,11 +141,11 @@
       {
           __iter_22: Iterator<i32> = present
           for {
-              __step_23: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_22)
-              if __step_23._1 == Continuation(1) {
+              __step_23: i32 | Stop = @vcall(std.core.Iterator.next, __iter_22)
+              if __step_23 is Stop {
                   break
               } else {
-                  x: i32 = __step_23._0
+                  x: i32 = i32(__step_23)
                   std.io.println<string>({
                       __buf_24: Buffer = std.core.new_byte_buffer(i64(34))
                       __off_25: i64 = 0
@@ -208,13 +208,11 @@
     struct std_collections$__gen_state_std_collections_2
     struct std_collections$__gen_state_std_collections_3
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.(i32 | null)[].into  // std_core$$array$Into$into__i32___null
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.array_iter<i32 | null>  // std_core$array_iter__i32___null
-    fn std.core.array_iter<i32>  // std_core$array_iter__i32
-    fn std.core.array_iter<string>  // std_core$array_iter__string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.format_signed  // std_core$format_signed
     fn std.core.i32.hash  // std_core$i32$Hash$hash
@@ -227,13 +225,14 @@
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
-    fn std_core$$genstate_array_iter$Iterator$next
     fn std_core$__gen_state_std_core_0$Iterator$next
     fn std_core$__gen_state_std_core_1$Iterator$next
+    fn std_core$__gen_state_std_core_2$Iterator$next
     struct std.core.Buffer  // std_core$Buffer
-    struct std_core$$genstate_array_iter
+    struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
     struct std_core$__gen_state_std_core_1
+    struct std_core$__gen_state_std_core_2
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

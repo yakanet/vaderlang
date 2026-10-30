@@ -4,20 +4,23 @@ type 1 scalar i32
 type 2 ref std_core$Iterator
 type 3 struct __lambda_env_snippet_1 { cap_0:1 }
 type 4 struct snippet$$genstate_gen { s0:1,s1:1,s2:8,s3:1,state:1 }
-type 5 struct __Tuple_i32_u8_99ae0d29 { _0:1,_1:6 }
-type 6 scalar u8
+type 5 union 1,6
+type 6 struct std_core$Stop {  }
 type 7 scalar string
 type 8 fn (1) -> 1
 type 9 struct std_core$Buffer {  }
 type 10 scalar i64
-type 11 scalar bool
-type 12 array 6
-type 13 scalar void
-type 14 ref $genstate_gen
+type 11 scalar u8
+type 12 scalar bool
+type 13 array 11
+type 14 scalar void
+type 15 ref $genstate_gen
+type 16 array 6
 string 0 "\n"
+data 0 structs 6 0 1
 import 0 byte_len std_core$byte_len result_type=10 param_types=7 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=12 param_types=7 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,12,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes std_core$bytes result_type=13 param_types=7 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,13,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 4 std_core$Iterator
 impl 9 std_core$ByteAccess
 vtable std_core$Iterator.next 4 3
@@ -39,10 +42,11 @@ end
 fn 1 snippet$main () -> i32
   local total i32
   local __iter_0 any
-  local __step_1 ref
+  local __step_1 any
   local v i32
+  local __buf_2 ref
   local __off_3 i64
-  local $cast_19 i64
+  local $cast_17 i64
   i32.const 1
   call 0   ; snippet$gen
   local.set 1   ; __iter_0
@@ -50,14 +54,12 @@ fn 1 snippet$main () -> i32
   local.set 0   ; total
   loop $L0 void
     local.get 1   ; __iter_0
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 2   ; __step_1
-    local.field 2 5 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 2   ; __step_1
+    type_check 6   ; std_core$Stop
     if $L1 void
     else
-      local.field 2 5 0   ; __step_1 __Tuple_i32_u8_99ae0d29._0
+      local.get 2   ; __step_1
       ref.cast 1   ; i32
       local.set 3   ; v
       local.get 0   ; total
@@ -69,19 +71,19 @@ fn 1 snippet$main () -> i32
   end $L0
   i64.const 20
   buffer.new
-  local.set 2   ; __step_1
+  local.set 4   ; __buf_2
   i64.const 0
-  local.set 4   ; __off_3
+  local.set 5   ; __off_3
   local.get 0   ; total
   i32.to_i64
-  local.set 5   ; $cast_19
-  local.get 2   ; __step_1
-  local.get 4   ; __off_3
-  local.get 5   ; $cast_19
+  local.set 6   ; $cast_17
+  local.get 4   ; __buf_2
+  local.get 5   ; __off_3
+  local.get 6   ; $cast_17
   call 6   ; std_core$write_int
-  local.set 4   ; __off_3
-  local.get 2   ; __step_1
-  local.get 4   ; __off_3
+  local.set 5   ; __off_3
+  local.get 4   ; __buf_2
+  local.get 5   ; __off_3
   call 5   ; std_core$finish_buffer
   call 10   ; std_io$println__string
   return.lit i32.const 0
@@ -98,11 +100,11 @@ fn 2 __lambda_snippet_0 (ref,i32) -> i32
   return
 end
 
-fn 3 snippet$$genstate_gen$Iterator$next (ref) -> ref
+fn 3 snippet$$genstate_gen$Iterator$next (ref) -> any
   local $add_22 i32
   local $field_28 ref
-  local $mul_checked_43 i32
-  local $closure_46 ref
+  local $mul_checked_41 i32
+  local $closure_44 ref
   loop $L0 void
     local.field 0 4 4   ; arg 0 snippet$$genstate_gen.state
     ref.cast 1   ; i32
@@ -174,8 +176,7 @@ fn 3 snippet$$genstate_gen$Iterator$next (ref) -> ref
             retag 1   ; i32
             local.get 2   ; $field_28
             call.indirect 8   ; fn
-            i32.const 0
-            struct.new 5   ; __Tuple_i32_u8_99ae0d29
+            retag 1   ; i32
             return
           end $L6
           local.field 0 4 4   ; arg 0 snippet$$genstate_gen.state
@@ -196,26 +197,26 @@ fn 3 snippet$$genstate_gen$Iterator$next (ref) -> ref
             i32.eq
             if $L8 void
             else
-              i32.const 0
-              i32.const 1
-              struct.new 5   ; __Tuple_i32_u8_99ae0d29
+              data.const 0 16   ; pool[0] std_core$Stop[]
+              i64.const 0
+              array.get 16   ; std_core$Stop[]
               return
             end $L8
             local.field 0 4 0   ; arg 0 snippet$$genstate_gen.s0
             ref.cast 1   ; i32
             i32.const 10
             i32.checked_mul
-            local.set 3   ; $mul_checked_43
+            local.set 3   ; $mul_checked_41
             local.get 0   ; arg 0
-            local.get 3   ; $mul_checked_43
+            local.get 3   ; $mul_checked_41
             struct.set 4 1   ; snippet$$genstate_gen.s1
             local.field 0 4 1   ; arg 0 snippet$$genstate_gen.s1
             ref.cast 1   ; i32
             struct.new 3   ; __lambda_env_snippet_1
             make_closure 2 8   ; __lambda_snippet_0 fn
-            local.set 4   ; $closure_46
+            local.set 4   ; $closure_44
             local.get 0   ; arg 0
-            local.get 4   ; $closure_46
+            local.get 4   ; $closure_44
             struct.set 4 2   ; snippet$$genstate_gen.s2
             local.get 0   ; arg 0
             i32.const 5
@@ -413,7 +414,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 12   ; u8[]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

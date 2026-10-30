@@ -5,13 +5,11 @@
       sum: i32 = 0
       cont: bool = true
       for cont {
-          __tup_0: [i32, Continuation] = @vcall(std.core.Iterator.next, it)
-          v: i32 = __tup_0._0
-          c: Continuation = __tup_0._1
-          if c == Continuation(1) {
+          v: i32 | Stop = @vcall(std.core.Iterator.next, it)
+          if v is Stop {
               cont = false
           } else {
-              sum = sum + v
+              sum = sum + i32(v)
           }
       }
       return sum
@@ -36,21 +34,21 @@
       return 0
   }
   snippet.Repeat<i32> :: struct { value: i32, remaining: i32 }  // snippet$Repeat__i32
-  snippet.Repeat<i32>.next :: fn(self: Repeat<i32>) -> [i32, Continuation] {  // snippet$Repeat$std_core$Iterator$next__i32
+  snippet.Repeat<i32>.next :: fn(self: Repeat<i32>) -> i32 | Stop {  // snippet$Repeat$std_core$Iterator$next__i32
       if self.remaining <= 0 {
-          return [self.value, Continuation(1)] :[i32, Continuation]
+          return std.core.STOP
       }
       v: i32 = self.value
       self.remaining = self.remaining - 1
-      return [v, Continuation(0)] :[i32, Continuation]
+      return v
   }
   snippet.Once<i32> :: struct { value: i32, yielded: bool }  // snippet$Once__i32
-  snippet.Once<i32>.next :: fn(self: Once<i32>) -> [i32, Continuation] {  // snippet$Once$std_core$Iterator$next__i32
+  snippet.Once<i32>.next :: fn(self: Once<i32>) -> i32 | Stop {  // snippet$Once$std_core$Iterator$next__i32
       if self.yielded {
-          return [self.value, Continuation(1)] :[i32, Continuation]
+          return std.core.STOP
       }
       self.yielded = true
-      return [self.value, Continuation(0)] :[i32, Continuation]
+      return self.value
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
@@ -65,6 +63,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -74,6 +73,7 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

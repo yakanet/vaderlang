@@ -67,6 +67,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -89,6 +90,7 @@
     fn std_core$string$Index$at$1
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<i64>  // std_core$Range__i64
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<i64>  // std_io$println__i64
     fn std.io.println<u32>  // std_io$println__u32

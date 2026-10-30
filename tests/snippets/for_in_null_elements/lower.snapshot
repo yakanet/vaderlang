@@ -43,11 +43,11 @@
       {
           __iter_5: Iterator<i32 | null> = it
           for {
-              __step_6: [i32 | null, Continuation] = @vcall(std.core.Iterator.next, __iter_5)
-              if __step_6._1 == Continuation(1) {
+              __step_6: i32 | null | Stop = @vcall(std.core.Iterator.next, __iter_5)
+              if __step_6 is Stop {
                   break
               } else {
-                  y: i32 | null = __step_6._0
+                  y: i32 | null = (i32 | null)(__step_6)
                   gseen = gseen + 1
                   if y is null {
                       gnulls = gnulls + 1
@@ -71,27 +71,27 @@
       return (seen * 10) + nulls
   }
   snippet$$genstate_maybe :: struct { state: i32 }
-  snippet$$genstate_maybe$Iterator$next :: fn(self: $genstate_maybe) -> [i32 | null, Continuation] {
+  snippet$$genstate_maybe$Iterator$next :: fn(self: $genstate_maybe) -> i32 | null | Stop {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
           } else if __self_0.state == 1 {
               __self_0.state = 0
-              return [5, Continuation(0)] :[i32 | null, Continuation]
+              return 5
           } else if __self_0.state == 2 {
               __self_0.state = 1
-              return [null, Continuation(0)] :[i32 | null, Continuation]
+              return null
           } else if __self_0.state == 3 {
               __self_0.state = 2
-              return [3, Continuation(0)] :[i32 | null, Continuation]
+              return 3
           } else if __self_0.state == 4 {
               __self_0.state = 3
-              return [null, Continuation(0)] :[i32 | null, Continuation]
+              return null
           } else if __self_0.state == 5 {
               __self_0.state = 4
-              return [1, Continuation(0)] :[i32 | null, Continuation]
+              return 1
           } else {
-              return [null, Continuation(1)] :[i32 | null, Continuation]
+              return std.core.STOP
           }
       }
   }
@@ -107,6 +107,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -116,6 +117,7 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

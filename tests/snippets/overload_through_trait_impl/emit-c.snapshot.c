@@ -926,7 +926,6 @@ static int64_t std_core$insert_point(void* l0, int64_t l1, int32_t l2, int32_t l
 static void std_core$umul128(uint64_t l0, uint64_t l1, uint64_t* __o0, uint64_t* __o1);
 static uint64_t std_core$shiftright128(uint64_t l0, uint64_t l1, uint64_t l2);
 static int32_t std_core$pow5_factor(uint64_t l0);
-static vader_box_t std_core$array_iter__i32(void* l0);
 static void std_io$write(uint8_t l0, vader_string_t l1);
 static bool std_io$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
@@ -937,7 +936,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[32] = {
+const vader_type_info_t vader_type_info_table[31] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 4 },
     [3] = {
@@ -1003,9 +1002,8 @@ const vader_type_info_t vader_type_info_table[32] = {
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [30] = { .slot_size = 16 },
-    [31] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 32;
+const size_t vader_type_info_count = 31;
 
 /* Headers named by `@c_header`: they own the prototypes below. */
 #include <unistd.h>
@@ -1435,9 +1433,18 @@ static int64_t std_core$write_unsigned(void* l0, int64_t l1, uint64_t l2) {
 }
 
 static vader_box_t std_core$$array$Into$into__i32(void* l0) {
-    vader_box_t t0;
-    t0 = std_core$array_iter__i32(l0);
-    return t0;
+    void* t0 = NULL;
+    void** gc_raw_roots[2] = { &l0, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    vader_struct_std_core$__gen_state_std_core_0_t* _a0_obj = (vader_struct_std_core$__gen_state_std_core_0_t*) vader_gc_alloc(sizeof(vader_struct_std_core$__gen_state_std_core_0_t));
+    vader_obj_header_init(_a0_obj, 28u);
+    _a0_obj->f_s0 = l0;
+    _a0_obj->f_s1 = INT64_C(0);
+    _a0_obj->f_s2 = INT64_C(0);
+    _a0_obj->f_state = INT32_C(5);
+    t0 = (void*) _a0_obj;
+    { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t std_core$i8$Display$to_string(int8_t l0) {
@@ -2816,21 +2823,6 @@ static int32_t std_core$pow5_factor(uint64_t l0) {
         break;
     }
     return l2;
-}
-
-static vader_box_t std_core$array_iter__i32(void* l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    vader_struct_std_core$__gen_state_std_core_0_t* _a0_obj = (vader_struct_std_core$__gen_state_std_core_0_t*) vader_gc_alloc(sizeof(vader_struct_std_core$__gen_state_std_core_0_t));
-    vader_obj_header_init(_a0_obj, 28u);
-    _a0_obj->f_s0 = l0;
-    _a0_obj->f_s1 = INT64_C(0);
-    _a0_obj->f_s2 = INT64_C(0);
-    _a0_obj->f_state = INT32_C(5);
-    t0 = (void*) _a0_obj;
-    { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void std_io$write(uint8_t l0, vader_string_t l1) {

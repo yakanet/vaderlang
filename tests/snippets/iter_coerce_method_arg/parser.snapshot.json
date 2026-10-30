@@ -80,17 +80,8 @@
                     "kind": "LetStmt",
                     "mutable": false,
                     "binding": {
-                      "kind": "TupleBinding",
-                      "elements": [
-                        {
-                          "kind": "SimpleBinding",
-                          "name": "v"
-                        },
-                        {
-                          "kind": "SimpleBinding",
-                          "name": "c"
-                        }
-                      ]
+                      "kind": "SimpleBinding",
+                      "name": "v"
                     },
                     "type": null,
                     "value": {
@@ -112,14 +103,14 @@
                       "kind": "IfExpr",
                       "cond": {
                         "kind": "BinaryExpr",
-                        "op": "eq",
+                        "op": "is",
                         "left": {
                           "kind": "IdentExpr",
-                          "name": "c"
+                          "name": "v"
                         },
                         "right": {
-                          "kind": "DotVariantExpr",
-                          "variant": "Stop"
+                          "kind": "IdentExpr",
+                          "name": "Stop"
                         }
                       },
                       "then": {

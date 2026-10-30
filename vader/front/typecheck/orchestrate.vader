@@ -909,6 +909,9 @@ record_impl_members :: fn(
     is_into :: trait_key == core_trait_key(TRAIT_INTO) && trait_args.len() == 1
     side :: impl_side_key(for_ty)
     trait_type :: TraitType { .symbol = trait_sym, .args = written }
+    if written.len() == 1 {
+        reject_iterator_of_stop(trait_type, decl.trait_args[0].span, diags)
+    }
     generic :: type_contains_type_param(for_ty)
     for_type :: substitute_map(for_ty, as_struct)
     for m in decl.members {

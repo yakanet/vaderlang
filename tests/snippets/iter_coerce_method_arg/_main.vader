@@ -1,6 +1,6 @@
 // Implicit `T[]` → `Iterator<T>` coercion, through the blanket
-// `T[] implements<T> Into<Iterator<T>>` in `std/core`, whose `into` hands back
-// the `array_iter` generator. Without it, each slot below is a T3001.
+// `T[] implements<T> Into<Iterator<T>>` in `std/core`, whose `into` is a
+// generator over the array. Without it, each slot below is a T3001.
 // - three slot kinds: a call argument, a `let` with an explicit type
 //   annotation, and a `return` from a fn typed `Iterator<T>`;
 // - an argument of a method call, in both UFCS shapes: a free fn reached as
@@ -20,8 +20,8 @@ import "std/iter"
 walk :: fn(it: Iterator<i32>) -> i32 {
     sum := 0
     for {
-        [v, c] :: it.next()
-        if c == .Stop {
+        v :: it.next()
+        if v is Stop {
             return sum
         }
         sum += v

@@ -13,8 +13,8 @@ count :: fn<T>(it: Iterator<T>) -> i32 {
     n := 0
     cont := true
     for cont {
-        [_, c] :: it.next()
-        if c == .Stop {
+        step :: it.next()
+        if step is Stop {
             cont = false
         } else {
             n = n + 1

@@ -18,32 +18,32 @@ type 15 array 10
 type 16 ref std_core$Iterator
 type 17 array 11
 type 18 struct std_core$__gen_state_std_core_0 { s0:14,s1:2,s2:2,state:1 }
-type 19 struct __Tuple_i32_u8_99ae0d29 { _0:1,_1:20 }
-type 20 scalar u8
-type 21 array 22
-type 22 ref _
-type 23 ref std_core$Iterator
-type 24 struct std_core$$genstate_array_iter { s0:21,s1:2,s2:2,state:1 }
-type 25 struct __Tuple_Any_u8_d7d23c9c { _0:22,_1:20 }
-type 26 struct std_core$__gen_state_std_core_1 { s0:17,s1:2,s2:2,state:1 }
-type 27 struct __Tuple_string_u8_b910c566 { _0:11,_1:20 }
-type 28 array 20
-type 29 fn (2,2) -> 2
-type 30 fn (22) -> 3
-type 31 union 22,0
-type 32 struct std_iter$$genstate_filter { s0:23,s1:30,s2:23,s3:25,s4:22,state:1 }
-type 33 fn (1) -> 3
-type 34 struct std_iter$__gen_state_std_iter_1 { s0:9,s1:33,s2:9,s3:19,s4:1,state:1 }
-type 35 fn (1) -> 22
-type 36 struct std_iter$__gen_state_std_iter_3 { s0:9,s1:35,s2:9,s3:19,s4:1,state:1 }
-type 37 fn (1) -> 1
-type 38 struct std_iter$__gen_state_std_iter_4 { s0:9,s1:37,s2:9,s3:19,s4:1,state:1 }
-type 39 fn (1) -> 2
-type 40 struct std_iter$__gen_state_std_iter_0 { s0:9,s1:39,s2:9,s3:19,s4:1,state:1 }
-type 41 struct __Tuple_i64_u8_87057322 { _0:2,_1:20 }
-type 42 fn (11) -> 11
-type 43 struct std_iter$__gen_state_std_iter_2 { s0:6,s1:42,s2:6,s3:27,s4:11,state:1 }
-type 44 struct __Tuple_Tuple_i32_i32_u8_5cdd0c36 { _0:4,_1:20 }
+type 19 union 1,20
+type 20 struct std_core$Stop {  }
+type 21 struct std_core$__gen_state_std_core_1 { s0:15,s1:2,s2:2,state:1 }
+type 22 union 10,20
+type 23 struct std_core$__gen_state_std_core_2 { s0:17,s1:2,s2:2,state:1 }
+type 24 union 20,11
+type 25 scalar u8
+type 26 array 25
+type 27 fn (2,2) -> 2
+type 28 ref std_core$Iterator
+type 29 fn (30) -> 3
+type 30 ref _
+type 31 union 30,0
+type 32 struct std_iter$$genstate_filter { s0:28,s1:29,s2:28,s3:33,s4:30,state:1 }
+type 33 union 30,20
+type 34 fn (1) -> 3
+type 35 struct std_iter$__gen_state_std_iter_1 { s0:9,s1:34,s2:9,s3:19,s4:1,state:1 }
+type 36 fn (1) -> 30
+type 37 struct std_iter$__gen_state_std_iter_3 { s0:9,s1:36,s2:9,s3:19,s4:1,state:1 }
+type 38 fn (1) -> 1
+type 39 struct std_iter$__gen_state_std_iter_4 { s0:9,s1:38,s2:9,s3:19,s4:1,state:1 }
+type 40 fn (1) -> 2
+type 41 struct std_iter$__gen_state_std_iter_0 { s0:9,s1:40,s2:9,s3:19,s4:1,state:1 }
+type 42 union 2,20
+type 43 fn (11) -> 11
+type 44 struct std_iter$__gen_state_std_iter_2 { s0:6,s1:43,s2:6,s3:24,s4:11,state:1 }
 type 45 ref std_core$Iterator
 type 46 ref $genstate_map
 type 47 ref $genstate_filter
@@ -56,10 +56,7 @@ type 53 ref $genstate_map
 type 54 fn (4) -> 3
 type 55 ref $genstate_filter
 type 56 ref $genstate_map
-type 57 ref $genstate_array_iter
-type 58 ref $genstate_array_iter
-type 59 ref $genstate_array_iter
-type 60 struct __Tuple_Struct_snippet_Point_u8_3d579548 { _0:10,_1:20 }
+type 57 array 20
 string 0 "stop"
 string 1 " "
 string 2 ""
@@ -84,31 +81,32 @@ string 20 "array fold "
 string 21 "range sum "
 string 22 "find_map "
 string 23 "\n"
+data 0 structs 20 0 1
 import 0 byte_len std_core$byte_len result_type=2 param_types=11 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=28 param_types=11 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=2 param_types=1,28,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes std_core$bytes result_type=26 param_types=11 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=2 param_types=1,26,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 13 std_core$ByteAccess
 impl 14 std_core$Into
 impl 15 std_core$Into
 impl 17 std_core$Into
 impl 18 std_core$Iterator
-impl 24 std_core$Iterator
-impl 26 std_core$Iterator
+impl 21 std_core$Iterator
+impl 23 std_core$Iterator
 impl 32 std_core$Iterator
-impl 34 std_core$Iterator
-impl 36 std_core$Iterator
-impl 38 std_core$Iterator
-impl 40 std_core$Iterator
-impl 43 std_core$Iterator
-vtable std_core$Iterator.next 18 39
-vtable std_core$Iterator.next 24 41
-vtable std_core$Iterator.next 26 43
-vtable std_core$Iterator.next 32 54
-vtable std_core$Iterator.next 34 56
-vtable std_core$Iterator.next 36 58
-vtable std_core$Iterator.next 38 60
-vtable std_core$Iterator.next 40 62
-vtable std_core$Iterator.next 43 64
+impl 35 std_core$Iterator
+impl 37 std_core$Iterator
+impl 39 std_core$Iterator
+impl 41 std_core$Iterator
+impl 44 std_core$Iterator
+vtable std_core$Iterator.next 18 38
+vtable std_core$Iterator.next 21 39
+vtable std_core$Iterator.next 23 40
+vtable std_core$Iterator.next 32 51
+vtable std_core$Iterator.next 35 53
+vtable std_core$Iterator.next 37 55
+vtable std_core$Iterator.next 39 57
+vtable std_core$Iterator.next 41 59
+vtable std_core$Iterator.next 44 61
 export main 14
 
 fn 0 snippet$square (i32) -> i64
@@ -192,7 +190,7 @@ end
 fn 8 snippet$total (any) -> i64
   local s i64
   local __iter_0 any
-  local __step_1 ref
+  local __step_1 any
   local x i64
   i64.const 0
   local.set 1   ; s
@@ -200,14 +198,12 @@ fn 8 snippet$total (any) -> i64
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 3   ; __step_1
-    local.field 3 41 1   ; __step_1 __Tuple_i64_u8_87057322._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 3   ; __step_1
+    type_check 20   ; std_core$Stop
     if $L1 void
     else
-      local.field 3 41 0   ; __step_1 __Tuple_i64_u8_87057322._0
+      local.get 3   ; __step_1
       ref.cast 2   ; i64
       local.set 4   ; x
       local.get 1   ; s
@@ -223,20 +219,18 @@ end
 
 fn 9 snippet$first_over (i64,any) -> i64
   local __iter_0 any
-  local __step_1 ref
+  local __step_1 any
   local x i64
   local.get 1   ; arg 1
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 3   ; __step_1
-    local.field 3 41 1   ; __step_1 __Tuple_i64_u8_87057322._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 3   ; __step_1
+    type_check 20   ; std_core$Stop
     if $L1 void
     else
-      local.field 3 41 0   ; __step_1 __Tuple_i64_u8_87057322._0
+      local.get 3   ; __step_1
       ref.cast 2   ; i64
       local.tee 4   ; x
       local.get 0   ; arg 0
@@ -254,20 +248,18 @@ end
 
 fn 10 snippet$print_until_stop (any) -> void
   local __iter_0 any
-  local __step_1 ref
+  local __step_1 any
   local s string
   local.get 0   ; arg 0
   local.set 1   ; __iter_0
   loop $L0 void
     local.get 1   ; __iter_0
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 2   ; __step_1
-    local.field 2 27 1   ; __step_1 __Tuple_string_u8_b910c566._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 2   ; __step_1
+    type_check 20   ; std_core$Stop
     if $L1 void
     else
-      local.field 2 27 0   ; __step_1 __Tuple_string_u8_b910c566._0
+      local.get 2   ; __step_1
       ref.cast 11   ; string
       local.tee 3   ; s
       string.const 0   ; "stop"
@@ -278,12 +270,12 @@ fn 10 snippet$print_until_stop (any) -> void
       local.get 3   ; s
       string.const 1   ; " "
       call 29   ; concat_2
-      call 47   ; std_io$print__string
+      call 44   ; std_io$print__string
       br $L0
     end $L1
   end $L0
   string.const 2   ; ""
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   return
 end
 
@@ -291,7 +283,7 @@ fn 11 snippet$pair_sum (any) -> (i32,i32)
   local a i32
   local b i32
   local __iter_1 any
-  local __step_2 ref
+  local __step_2 any
   local __for_elem_3 ref
   local x i32
   local y i32
@@ -303,14 +295,13 @@ fn 11 snippet$pair_sum (any) -> (i32,i32)
   local.set 3   ; __iter_1
   loop $L0 void
     local.get 3   ; __iter_1
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 4   ; __step_2
-    local.field 4 44 1   ; __step_2 __Tuple_Tuple_i32_i32_u8_5cdd0c36._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 4   ; __step_2
+    type_check 20   ; std_core$Stop
     if $L1 void
     else
-      local.field 4 44 0   ; __step_2 __Tuple_Tuple_i32_i32_u8_5cdd0c36._0
+      local.get 4   ; __step_2
+      ref.cast 4   ; __Tuple_i32_i32_3103e027
       local.set 5   ; __for_elem_3
       local.field 5 4 0   ; __for_elem_3 __Tuple_i32_i32_3103e027._0
       ref.cast 1   ; i32
@@ -345,28 +336,26 @@ end
 fn 12 snippet$weigh_1 (i64,any) -> i64
   local n i64
   local __iter_0 any
-  local __step_1 ref
-  local $mul_checked_12 i64
+  local __step_1 any
+  local $mul_checked_10 i64
   i64.const 0
   local.set 2   ; n
   local.get 1   ; arg 1
   local.set 3   ; __iter_0
   loop $L0 void
     local.get 3   ; __iter_0
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 4   ; __step_1
-    local.field 4 41 1   ; __step_1 __Tuple_i64_u8_87057322._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 4   ; __step_1
+    type_check 20   ; std_core$Stop
     if $L1 void
     else
-      local.field 4 41 0   ; __step_1 __Tuple_i64_u8_87057322._0
+      local.get 4   ; __step_1
       ref.cast 2   ; i64
       local.get 0   ; arg 0
       i64.checked_mul
-      local.set 5   ; $mul_checked_12
+      local.set 5   ; $mul_checked_10
       local.get 2   ; n
-      local.get 5   ; $mul_checked_12
+      local.get 5   ; $mul_checked_10
       i64.checked_add
       local.set 2   ; n
       br $L0
@@ -379,7 +368,7 @@ end
 fn 13 snippet$drained_twice (any) -> i32
   local n i32
   local __iter_0 any
-  local __step_1 ref
+  local __step_1 any
   local x i32
   i32.const 0
   local.set 1   ; n
@@ -387,14 +376,12 @@ fn 13 snippet$drained_twice (any) -> i32
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 3   ; __step_1
-    local.field 3 19 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 3   ; __step_1
+    type_check 20   ; std_core$Stop
     if $L1 void
     else
-      local.field 3 19 0   ; __step_1 __Tuple_i32_u8_99ae0d29._0
+      local.get 3   ; __step_1
       ref.cast 1   ; i32
       local.set 4   ; x
       local.get 1   ; n
@@ -408,14 +395,12 @@ fn 13 snippet$drained_twice (any) -> i32
   local.set 2   ; __iter_0
   loop $L2 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 3   ; __step_1
-    local.field 3 19 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 3   ; __step_1
+    type_check 20   ; std_core$Stop
     if $L3 void
     else
-      local.field 3 19 0   ; __step_1 __Tuple_i32_u8_99ae0d29._0
+      local.get 3   ; __step_1
       ref.cast 1   ; i32
       i32.const 100
       i32.checked_mul
@@ -517,11 +502,11 @@ fn 14 snippet$main () -> i32
   local.get 0   ; a
   call 33   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
-  fn.ref 0 39   ; snippet$square fn
+  fn.ref 0 40   ; snippet$square fn
   local.set 3   ; $arr_14
   local.get 7   ; $call_29
   local.get 3   ; $arr_14
-  call 61   ; std_iter$map__i32__i64
+  call 58   ; std_iter$map__i32__i64
   local.set 3   ; $arr_14
   i64.const 46
   buffer.new
@@ -573,12 +558,12 @@ fn 14 snippet$main () -> i32
   string.const 1   ; " "
   call 31   ; std_core$write_string_at
   local.set 4   ; $len_15
-  fn.ref 1 29   ; snippet$add fn
+  fn.ref 1 27   ; snippet$add fn
   local.set 8   ; __fuse_arr_2
   local.get 3   ; $arr_14
   i64.const 0
   local.get 8   ; __fuse_arr_2
-  call 50   ; std_iter$fold__i64__i64
+  call 47   ; std_iter$fold__i64__i64
   local.set 5   ; __fuse_i_1
   local.get 6   ; x
   local.get 4   ; $len_15
@@ -588,15 +573,15 @@ fn 14 snippet$main () -> i32
   local.get 6   ; x
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   local.get 0   ; a
   call 33   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
-  fn.ref 2 33   ; snippet$odd fn
+  fn.ref 2 34   ; snippet$odd fn
   local.set 3   ; $arr_14
   local.get 7   ; $call_29
   local.get 3   ; $arr_14
-  call 55   ; std_iter$filter__i32
+  call 52   ; std_iter$filter__i32
   local.set 3   ; $arr_14
   i64.const 45
   buffer.new
@@ -656,7 +641,7 @@ fn 14 snippet$main () -> i32
   call 31   ; std_core$write_string_at
   local.set 4   ; $len_15
   local.get 3   ; $arr_14
-  call 51   ; std_iter$sum__i32
+  call 48   ; std_iter$sum__i32
   i32.to_i64
   local.set 5   ; __fuse_i_1
   local.get 6   ; x
@@ -667,15 +652,15 @@ fn 14 snippet$main () -> i32
   local.get 6   ; x
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   local.get 0   ; a
   call 33   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
-  fn.ref 0 39   ; snippet$square fn
+  fn.ref 0 40   ; snippet$square fn
   local.set 3   ; $arr_14
   local.get 7   ; $call_29
   local.get 3   ; $arr_14
-  call 61   ; std_iter$map__i32__i64
+  call 58   ; std_iter$map__i32__i64
   local.set 3   ; $arr_14
   i64.const 46
   buffer.new
@@ -738,15 +723,15 @@ fn 14 snippet$main () -> i32
   local.get 6   ; x
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   local.get 0   ; a
   call 33   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
-  fn.ref 0 39   ; snippet$square fn
+  fn.ref 0 40   ; snippet$square fn
   local.set 3   ; $arr_14
   local.get 7   ; $call_29
   local.get 3   ; $arr_14
-  call 61   ; std_iter$map__i32__i64
+  call 58   ; std_iter$map__i32__i64
   local.set 3   ; $arr_14
   i64.const 47
   buffer.new
@@ -817,15 +802,15 @@ fn 14 snippet$main () -> i32
   local.get 6   ; x
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   local.get 0   ; a
   call 33   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
-  fn.ref 0 39   ; snippet$square fn
+  fn.ref 0 40   ; snippet$square fn
   local.set 3   ; $arr_14
   local.get 7   ; $call_29
   local.get 3   ; $arr_14
-  call 61   ; std_iter$map__i32__i64
+  call 58   ; std_iter$map__i32__i64
   local.set 3   ; $arr_14
   i64.const 46
   buffer.new
@@ -896,7 +881,7 @@ fn 14 snippet$main () -> i32
   local.get 6   ; x
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   local.get 2   ; pts
   call 34   ; std_core$$array$Into$into__snippet_Point
   local.set 7   ; $call_29
@@ -904,7 +889,7 @@ fn 14 snippet$main () -> i32
   local.set 3   ; $arr_14
   local.get 7   ; $call_29
   local.get 3   ; $arr_14
-  call 53   ; std_iter$filter___i32__i32_
+  call 50   ; std_iter$filter___i32__i32_
   local.set 3   ; $arr_14
   local.get 2   ; pts
   local.set 6   ; x
@@ -989,7 +974,7 @@ fn 14 snippet$main () -> i32
   local.set 8   ; __fuse_arr_2
   local.get 3   ; $arr_14
   local.get 8   ; __fuse_arr_2
-  call 52   ; std_iter$find__snippet_Point
+  call 49   ; std_iter$find__snippet_Point
   local.tee 7   ; $call_29
   type_check 0   ; null
   if $L25 void
@@ -1014,7 +999,7 @@ fn 14 snippet$main () -> i32
   local.get 6   ; x
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   local.get 2   ; pts
   call 34   ; std_core$$array$Into$into__snippet_Point
   local.set 7   ; $call_29
@@ -1022,7 +1007,7 @@ fn 14 snippet$main () -> i32
   local.set 3   ; $arr_14
   local.get 7   ; $call_29
   local.get 3   ; $arr_14
-  call 53   ; std_iter$filter___i32__i32_
+  call 50   ; std_iter$filter___i32__i32_
   local.set 3   ; $arr_14
   i64.const 56
   buffer.new
@@ -1079,7 +1064,7 @@ fn 14 snippet$main () -> i32
   call 31   ; std_core$write_string_at
   local.set 4   ; $len_15
   local.get 3   ; $arr_14
-  call 49   ; std_iter$collect__snippet_Point
+  call 46   ; std_iter$collect__snippet_Point
   array.len
   local.set 5   ; __fuse_i_1
   local.get 6   ; x
@@ -1090,7 +1075,7 @@ fn 14 snippet$main () -> i32
   local.get 6   ; x
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   string.const 10   ; "a"
   string.const 11   ; "b"
   string.const 0   ; "stop"
@@ -1098,11 +1083,11 @@ fn 14 snippet$main () -> i32
   array.new 17 4   ; string[]
   call 35   ; std_core$$array$Into$into__string
   local.set 7   ; $call_29
-  fn.ref 22 42   ; __lambda_snippet_7 fn
+  fn.ref 22 43   ; __lambda_snippet_7 fn
   local.set 2   ; pts
   local.get 7   ; $call_29
   local.get 2   ; pts
-  call 63   ; std_iter$map__string__string
+  call 60   ; std_iter$map__string__string
   local.set 2   ; pts
   string.const 10   ; "a"
   string.const 11   ; "b"
@@ -1132,7 +1117,7 @@ fn 14 snippet$main () -> i32
         local.get 17   ; s
         string.const 1   ; " "
         call 29   ; concat_2
-        call 47   ; std_io$print__string
+        call 44   ; std_io$print__string
         local.get 5   ; __fuse_i_1
         i64.const 1
         i64.add
@@ -1141,7 +1126,7 @@ fn 14 snippet$main () -> i32
       end $L31
     end $L30
     string.const 2   ; ""
-    call 48   ; std_io$println__string
+    call 45   ; std_io$println__string
   end $L29
   local.get 2   ; pts
   call 10   ; snippet$print_until_stop
@@ -1171,7 +1156,7 @@ fn 14 snippet$main () -> i32
         local.get 17   ; s
         string.const 1   ; " "
         call 29   ; concat_2
-        call 47   ; std_io$print__string
+        call 44   ; std_io$print__string
         local.get 5   ; __fuse_i_1
         i64.const 1
         i64.add
@@ -1180,7 +1165,7 @@ fn 14 snippet$main () -> i32
       end $L34
     end $L33
     string.const 2   ; ""
-    call 48   ; std_io$println__string
+    call 45   ; std_io$println__string
   end $L32
   local.get 0   ; a
   call 33   ; std_core$$array$Into$into__i32
@@ -1189,7 +1174,7 @@ fn 14 snippet$main () -> i32
   local.set 2   ; pts
   local.get 7   ; $call_29
   local.get 2   ; pts
-  call 57   ; std_iter$map__i32__Any
+  call 54   ; std_iter$map__i32__Any
   local.set 2   ; pts
   local.get 0   ; a
   local.set 6   ; x
@@ -1316,7 +1301,7 @@ fn 14 snippet$main () -> i32
   local.get 2   ; pts
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   local.get 0   ; a
   call 33   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
@@ -1324,7 +1309,7 @@ fn 14 snippet$main () -> i32
   local.set 2   ; pts
   local.get 7   ; $call_29
   local.get 2   ; pts
-  call 57   ; std_iter$map__i32__Any
+  call 54   ; std_iter$map__i32__Any
   local.set 2   ; pts
   local.get 0   ; a
   local.set 6   ; x
@@ -1451,7 +1436,7 @@ fn 14 snippet$main () -> i32
   local.get 2   ; pts
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   local.get 0   ; a
   call 33   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
@@ -1459,13 +1444,13 @@ fn 14 snippet$main () -> i32
   local.set 2   ; pts
   local.get 7   ; $call_29
   local.get 2   ; pts
-  call 57   ; std_iter$map__i32__Any
+  call 54   ; std_iter$map__i32__Any
   local.set 2   ; pts
   fn.ref 7 54   ; snippet$big_pair fn
   local.set 3   ; $arr_14
   local.get 2   ; pts
   local.get 3   ; $arr_14
-  call 53   ; std_iter$filter___i32__i32_
+  call 50   ; std_iter$filter___i32__i32_
   local.set 2   ; pts
   local.get 0   ; a
   local.set 6   ; x
@@ -1599,15 +1584,15 @@ fn 14 snippet$main () -> i32
   local.get 2   ; pts
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   local.get 0   ; a
   call 33   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
-  fn.ref 0 39   ; snippet$square fn
+  fn.ref 0 40   ; snippet$square fn
   local.set 2   ; pts
   local.get 7   ; $call_29
   local.get 2   ; pts
-  call 61   ; std_iter$map__i32__i64
+  call 58   ; std_iter$map__i32__i64
   local.set 2   ; pts
   i64.const 71
   buffer.new
@@ -1713,7 +1698,7 @@ fn 14 snippet$main () -> i32
   local.get 3   ; $arr_14
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   i64.const 26
   buffer.new
   local.set 2   ; pts
@@ -1727,11 +1712,11 @@ fn 14 snippet$main () -> i32
   local.get 0   ; a
   call 33   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_29
-  fn.ref 25 37   ; __lambda_snippet_10 fn
+  fn.ref 25 38   ; __lambda_snippet_10 fn
   local.set 3   ; $arr_14
   local.get 7   ; $call_29
   local.get 3   ; $arr_14
-  call 59   ; std_iter$map__i32__i32
+  call 56   ; std_iter$map__i32__i32
   call 13   ; snippet$drained_twice
   i32.to_i64
   local.set 5   ; __fuse_i_1
@@ -1743,7 +1728,7 @@ fn 14 snippet$main () -> i32
   local.get 2   ; pts
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   i64.const 31
   buffer.new
   local.set 2   ; pts
@@ -1791,7 +1776,7 @@ fn 14 snippet$main () -> i32
   local.get 2   ; pts
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   i64.const 30
   buffer.new
   local.set 2   ; pts
@@ -1836,7 +1821,7 @@ fn 14 snippet$main () -> i32
   local.get 2   ; pts
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   i64.const 29
   buffer.new
   local.set 2   ; pts
@@ -1905,7 +1890,7 @@ fn 14 snippet$main () -> i32
   local.get 2   ; pts
   local.get 4   ; $len_15
   call 30   ; std_core$finish_buffer
-  call 48   ; std_io$println__string
+  call 45   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -2196,19 +2181,28 @@ end
 
 fn 33 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
-  call 38   ; std_core$array_iter__i32
+  i64.const 0
+  i64.const 0
+  i32.const 5
+  struct.new 18   ; std_core$__gen_state_std_core_0
   return
 end
 
 fn 34 std_core$$array$Into$into__snippet_Point (ref) -> any
   local.get 0   ; arg 0
-  call 40   ; std_core$array_iter__snippet_Point
+  i64.const 0
+  i64.const 0
+  i32.const 5
+  struct.new 21   ; std_core$__gen_state_std_core_1
   return
 end
 
 fn 35 std_core$$array$Into$into__string (ref) -> any
   local.get 0   ; arg 0
-  call 42   ; std_core$array_iter__string
+  i64.const 0
+  i64.const 0
+  i32.const 5
+  struct.new 23   ; std_core$__gen_state_std_core_2
   return
 end
 
@@ -2221,22 +2215,13 @@ fn 37 std_core$i32$Zero$zero () -> i32
   return.lit i32.const 0
 end
 
-fn 38 std_core$array_iter__i32 (ref) -> any
-  local.get 0   ; arg 0
-  i64.const 0
-  i64.const 0
-  i32.const 5
-  struct.new 18   ; std_core$__gen_state_std_core_0
-  return
-end
-
-fn 39 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
+fn 38 std_core$__gen_state_std_core_0$Iterator$next (ref) -> any
   local $field_12 i64
   local $field_13 i64
   local $add_22 i64
   local $field_28 ref
   local $field_29 i64
-  local $len_38 i64
+  local $len_36 i64
   loop $L0 void
     local.field 0 18 3   ; arg 0 std_core$__gen_state_std_core_0.state
     ref.cast 1   ; i32
@@ -2314,8 +2299,7 @@ fn 39 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
             local.get 4   ; $field_28
             local.get 5   ; $field_29
             load_slot_i32
-            i32.const 0
-            struct.new 19   ; __Tuple_i32_u8_99ae0d29
+            retag 1   ; i32
             return
           end $L6
           local.field 0 18 3   ; arg 0 std_core$__gen_state_std_core_0.state
@@ -2324,9 +2308,9 @@ fn 39 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
           i32.eq
           if $L7 void
           else
-            i32.const 0
-            i32.const 1
-            struct.new 19   ; __Tuple_i32_u8_99ae0d29
+            data.const 0 57   ; pool[0] std_core$Stop[]
+            i64.const 0
+            array.get 57   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
@@ -2334,9 +2318,9 @@ fn 39 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
           struct.set 18 1   ; std_core$__gen_state_std_core_0.s1
           local.field 0 18 0   ; arg 0 std_core$__gen_state_std_core_0.s0
           array.len
-          local.set 6   ; $len_38
+          local.set 6   ; $len_36
           local.get 0   ; arg 0
-          local.get 6   ; $len_38
+          local.get 6   ; $len_36
           struct.set 18 2   ; std_core$__gen_state_std_core_0.s2
           local.get 0   ; arg 0
           i32.const 2
@@ -2348,52 +2332,42 @@ fn 39 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 40 std_core$array_iter__snippet_Point (ref) -> any
-  local.get 0   ; arg 0
-  i64.const 0
-  i64.const 0
-  i32.const 5
-  struct.new 24   ; std_core$$genstate_array_iter
-  return
-end
-
-fn 41 std_core$$genstate_array_iter$Iterator$next (ref) -> ref
+fn 39 std_core$__gen_state_std_core_1$Iterator$next (ref) -> any
   local $field_12 i64
   local $field_13 i64
   local $add_22 i64
   local $field_28 ref
   local $field_29 i64
-  local $len_38 i64
-  local $k_40 any
+  local $len_36 i64
   loop $L0 void
-    local.field 0 24 3   ; arg 0 std_core$$genstate_array_iter.state
+    local.field 0 21 3   ; arg 0 std_core$__gen_state_std_core_1.state
     ref.cast 1   ; i32
     i32.const 0
     i32.eq
     if $L1 void
       local.get 0   ; arg 0
       i32.const -1
-      struct.set 24 3   ; std_core$$genstate_array_iter.state
+      struct.set 21 3   ; std_core$__gen_state_std_core_1.state
       br $L0
     end $L1
-    local.field 0 24 3   ; arg 0 std_core$$genstate_array_iter.state
+    local.field 0 21 3   ; arg 0 std_core$__gen_state_std_core_1.state
     ref.cast 1   ; i32
     i32.const 1
     i32.eq
     if $L2 void
       local.get 0   ; arg 0
       i32.const 0
-      struct.set 24 3   ; std_core$$genstate_array_iter.state
+      struct.set 21 3   ; std_core$__gen_state_std_core_1.state
     else
-      local.field 0 24 3   ; arg 0 std_core$$genstate_array_iter.state
+      local.field 0 21 3   ; arg 0 std_core$__gen_state_std_core_1.state
       ref.cast 1   ; i32
       i32.const 2
       i32.eq
       if $L3 void
-        local.field 0 24 1   ; arg 0 std_core$$genstate_array_iter.s1
+        local.field 0 21 1   ; arg 0 std_core$__gen_state_std_core_1.s1
         ref.cast 2   ; i64
         local.set 1   ; $field_12
-        local.field 0 24 2   ; arg 0 std_core$$genstate_array_iter.s2
+        local.field 0 21 2   ; arg 0 std_core$__gen_state_std_core_1.s2
         ref.cast 2   ; i64
         local.set 2   ; $field_13
         local.get 1   ; $field_12
@@ -2402,75 +2376,71 @@ fn 41 std_core$$genstate_array_iter$Iterator$next (ref) -> ref
         if $L4 void
           local.get 0   ; arg 0
           i32.const 4
-          struct.set 24 3   ; std_core$$genstate_array_iter.state
+          struct.set 21 3   ; std_core$__gen_state_std_core_1.state
         else
           local.get 0   ; arg 0
           i32.const 1
-          struct.set 24 3   ; std_core$$genstate_array_iter.state
+          struct.set 21 3   ; std_core$__gen_state_std_core_1.state
         end $L4
       else
-        local.field 0 24 3   ; arg 0 std_core$$genstate_array_iter.state
+        local.field 0 21 3   ; arg 0 std_core$__gen_state_std_core_1.state
         ref.cast 1   ; i32
         i32.const 3
         i32.eq
         if $L5 void
-          local.field 0 24 1   ; arg 0 std_core$$genstate_array_iter.s1
+          local.field 0 21 1   ; arg 0 std_core$__gen_state_std_core_1.s1
           ref.cast 2   ; i64
           i64.const 1
           i64.add
           local.set 3   ; $add_22
           local.get 0   ; arg 0
           local.get 3   ; $add_22
-          struct.set 24 1   ; std_core$$genstate_array_iter.s1
+          struct.set 21 1   ; std_core$__gen_state_std_core_1.s1
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 24 3   ; std_core$$genstate_array_iter.state
+          struct.set 21 3   ; std_core$__gen_state_std_core_1.state
         else
-          local.field 0 24 3   ; arg 0 std_core$$genstate_array_iter.state
+          local.field 0 21 3   ; arg 0 std_core$__gen_state_std_core_1.state
           ref.cast 1   ; i32
           i32.const 4
           i32.eq
           if $L6 void
             local.get 0   ; arg 0
             i32.const 3
-            struct.set 24 3   ; std_core$$genstate_array_iter.state
-            local.field 0 24 0   ; arg 0 std_core$$genstate_array_iter.s0
+            struct.set 21 3   ; std_core$__gen_state_std_core_1.state
+            local.field 0 21 0   ; arg 0 std_core$__gen_state_std_core_1.s0
             local.set 4   ; $field_28
-            local.field 0 24 1   ; arg 0 std_core$$genstate_array_iter.s1
+            local.field 0 21 1   ; arg 0 std_core$__gen_state_std_core_1.s1
             ref.cast 2   ; i64
             local.set 5   ; $field_29
             local.get 4   ; $field_28
             local.get 5   ; $field_29
-            array.get 21   ; ref[]
-            i32.const 0
-            struct.new 25   ; __Tuple_Any_u8_d7d23c9c
+            array.get 15   ; snippet$Point[]
             return
           end $L6
-          local.field 0 24 3   ; arg 0 std_core$$genstate_array_iter.state
+          local.field 0 21 3   ; arg 0 std_core$__gen_state_std_core_1.state
           ref.cast 1   ; i32
           i32.const 5
           i32.eq
           if $L7 void
           else
-            null.const
-            local.set 7   ; $k_40
-            local.get 7   ; $k_40
-            i32.const 1
-            struct.new 25   ; __Tuple_Any_u8_d7d23c9c
+            data.const 0 57   ; pool[0] std_core$Stop[]
+            i64.const 0
+            array.get 57   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
           i64.const 0
-          struct.set 24 1   ; std_core$$genstate_array_iter.s1
-          local.field 0 24 0   ; arg 0 std_core$$genstate_array_iter.s0
+          struct.set 21 1   ; std_core$__gen_state_std_core_1.s1
+          local.field 0 21 0   ; arg 0 std_core$__gen_state_std_core_1.s0
           array.len
-          local.set 6   ; $len_38
+          local.set 6   ; $len_36
           local.get 0   ; arg 0
-          local.get 6   ; $len_38
-          struct.set 24 2   ; std_core$$genstate_array_iter.s2
+          local.get 6   ; $len_36
+          struct.set 21 2   ; std_core$__gen_state_std_core_1.s2
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 24 3   ; std_core$$genstate_array_iter.state
+          struct.set 21 3   ; std_core$__gen_state_std_core_1.state
         end $L5
       end $L3
     end $L2
@@ -2478,51 +2448,42 @@ fn 41 std_core$$genstate_array_iter$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 42 std_core$array_iter__string (ref) -> any
-  local.get 0   ; arg 0
-  i64.const 0
-  i64.const 0
-  i32.const 5
-  struct.new 26   ; std_core$__gen_state_std_core_1
-  return
-end
-
-fn 43 std_core$__gen_state_std_core_1$Iterator$next (ref) -> ref
+fn 40 std_core$__gen_state_std_core_2$Iterator$next (ref) -> any
   local $field_12 i64
   local $field_13 i64
   local $add_22 i64
   local $field_28 ref
   local $field_29 i64
-  local $len_38 i64
+  local $len_36 i64
   loop $L0 void
-    local.field 0 26 3   ; arg 0 std_core$__gen_state_std_core_1.state
+    local.field 0 23 3   ; arg 0 std_core$__gen_state_std_core_2.state
     ref.cast 1   ; i32
     i32.const 0
     i32.eq
     if $L1 void
       local.get 0   ; arg 0
       i32.const -1
-      struct.set 26 3   ; std_core$__gen_state_std_core_1.state
+      struct.set 23 3   ; std_core$__gen_state_std_core_2.state
       br $L0
     end $L1
-    local.field 0 26 3   ; arg 0 std_core$__gen_state_std_core_1.state
+    local.field 0 23 3   ; arg 0 std_core$__gen_state_std_core_2.state
     ref.cast 1   ; i32
     i32.const 1
     i32.eq
     if $L2 void
       local.get 0   ; arg 0
       i32.const 0
-      struct.set 26 3   ; std_core$__gen_state_std_core_1.state
+      struct.set 23 3   ; std_core$__gen_state_std_core_2.state
     else
-      local.field 0 26 3   ; arg 0 std_core$__gen_state_std_core_1.state
+      local.field 0 23 3   ; arg 0 std_core$__gen_state_std_core_2.state
       ref.cast 1   ; i32
       i32.const 2
       i32.eq
       if $L3 void
-        local.field 0 26 1   ; arg 0 std_core$__gen_state_std_core_1.s1
+        local.field 0 23 1   ; arg 0 std_core$__gen_state_std_core_2.s1
         ref.cast 2   ; i64
         local.set 1   ; $field_12
-        local.field 0 26 2   ; arg 0 std_core$__gen_state_std_core_1.s2
+        local.field 0 23 2   ; arg 0 std_core$__gen_state_std_core_2.s2
         ref.cast 2   ; i64
         local.set 2   ; $field_13
         local.get 1   ; $field_12
@@ -2531,74 +2492,73 @@ fn 43 std_core$__gen_state_std_core_1$Iterator$next (ref) -> ref
         if $L4 void
           local.get 0   ; arg 0
           i32.const 4
-          struct.set 26 3   ; std_core$__gen_state_std_core_1.state
+          struct.set 23 3   ; std_core$__gen_state_std_core_2.state
         else
           local.get 0   ; arg 0
           i32.const 1
-          struct.set 26 3   ; std_core$__gen_state_std_core_1.state
+          struct.set 23 3   ; std_core$__gen_state_std_core_2.state
         end $L4
       else
-        local.field 0 26 3   ; arg 0 std_core$__gen_state_std_core_1.state
+        local.field 0 23 3   ; arg 0 std_core$__gen_state_std_core_2.state
         ref.cast 1   ; i32
         i32.const 3
         i32.eq
         if $L5 void
-          local.field 0 26 1   ; arg 0 std_core$__gen_state_std_core_1.s1
+          local.field 0 23 1   ; arg 0 std_core$__gen_state_std_core_2.s1
           ref.cast 2   ; i64
           i64.const 1
           i64.add
           local.set 3   ; $add_22
           local.get 0   ; arg 0
           local.get 3   ; $add_22
-          struct.set 26 1   ; std_core$__gen_state_std_core_1.s1
+          struct.set 23 1   ; std_core$__gen_state_std_core_2.s1
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 26 3   ; std_core$__gen_state_std_core_1.state
+          struct.set 23 3   ; std_core$__gen_state_std_core_2.state
         else
-          local.field 0 26 3   ; arg 0 std_core$__gen_state_std_core_1.state
+          local.field 0 23 3   ; arg 0 std_core$__gen_state_std_core_2.state
           ref.cast 1   ; i32
           i32.const 4
           i32.eq
           if $L6 void
             local.get 0   ; arg 0
             i32.const 3
-            struct.set 26 3   ; std_core$__gen_state_std_core_1.state
-            local.field 0 26 0   ; arg 0 std_core$__gen_state_std_core_1.s0
+            struct.set 23 3   ; std_core$__gen_state_std_core_2.state
+            local.field 0 23 0   ; arg 0 std_core$__gen_state_std_core_2.s0
             local.set 4   ; $field_28
-            local.field 0 26 1   ; arg 0 std_core$__gen_state_std_core_1.s1
+            local.field 0 23 1   ; arg 0 std_core$__gen_state_std_core_2.s1
             ref.cast 2   ; i64
             local.set 5   ; $field_29
             local.get 4   ; $field_28
             local.get 5   ; $field_29
             array.get 17   ; string[]
             ref.cast 11   ; string
-            i32.const 0
-            struct.new 27   ; __Tuple_string_u8_b910c566
+            retag 11   ; string
             return
           end $L6
-          local.field 0 26 3   ; arg 0 std_core$__gen_state_std_core_1.state
+          local.field 0 23 3   ; arg 0 std_core$__gen_state_std_core_2.state
           ref.cast 1   ; i32
           i32.const 5
           i32.eq
           if $L7 void
           else
-            string.const 2   ; ""
-            i32.const 1
-            struct.new 27   ; __Tuple_string_u8_b910c566
+            data.const 0 57   ; pool[0] std_core$Stop[]
+            i64.const 0
+            array.get 57   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
           i64.const 0
-          struct.set 26 1   ; std_core$__gen_state_std_core_1.s1
-          local.field 0 26 0   ; arg 0 std_core$__gen_state_std_core_1.s0
+          struct.set 23 1   ; std_core$__gen_state_std_core_2.s1
+          local.field 0 23 0   ; arg 0 std_core$__gen_state_std_core_2.s0
           array.len
-          local.set 6   ; $len_38
+          local.set 6   ; $len_36
           local.get 0   ; arg 0
-          local.get 6   ; $len_38
-          struct.set 26 2   ; std_core$__gen_state_std_core_1.s2
+          local.get 6   ; $len_36
+          struct.set 23 2   ; std_core$__gen_state_std_core_2.s2
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 26 3   ; std_core$__gen_state_std_core_1.state
+          struct.set 23 3   ; std_core$__gen_state_std_core_2.state
         end $L5
       end $L3
     end $L2
@@ -2606,7 +2566,7 @@ fn 43 std_core$__gen_state_std_core_1$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 44 std_io$write (u8,string) -> void
+fn 41 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -2617,7 +2577,7 @@ fn 44 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 45   ; std_io$write_text
+  call 42   ; std_io$write_text
   if $L0 void
     return
   end $L0
@@ -2641,14 +2601,14 @@ fn 44 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 28   ; u8[]
+      array.slice 26   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 46   ; std_io$write_bytes
+      call 43   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -2668,11 +2628,11 @@ fn 44 std_io$write (u8,string) -> void
   return
 end
 
-fn 45 std_io$write_text (u8,string) -> bool
+fn 42 std_io$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 46 std_io$write_bytes (u8,ref,i64) -> i32
+fn 43 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -2692,18 +2652,18 @@ fn 46 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 47 std_io$print__string (string) -> void
+fn 44 std_io$print__string (string) -> void
   local $call_2 string
   local.get 0   ; arg 0
   call 36   ; std_core$string$Display$to_string
   local.set 1   ; $call_2
   i32.const 0
   local.get 1   ; $call_2
-  call 44   ; std_io$write
+  call 41   ; std_io$write
   return
 end
 
-fn 48 std_io$println__string (string) -> void
+fn 45 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 23   ; "\n"
@@ -2711,14 +2671,14 @@ fn 48 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 44   ; std_io$write
+  call 41   ; std_io$write
   return
 end
 
-fn 49 std_iter$collect__snippet_Point (any) -> ref
+fn 46 std_iter$collect__snippet_Point (any) -> ref
   local out ref
   local __iter_0 any
-  local __step_1 ref
+  local __step_1 any
   local x ref
   array.new 15 0   ; snippet$Point[]
   local.set 1   ; out
@@ -2726,14 +2686,13 @@ fn 49 std_iter$collect__snippet_Point (any) -> ref
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 3   ; __step_1
-    local.field 3 60 1   ; __step_1 __Tuple_Struct_snippet_Point_u8_3d579548._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 3   ; __step_1
+    type_check 20   ; std_core$Stop
     if $L1 void
     else
-      local.field 3 60 0   ; __step_1 __Tuple_Struct_snippet_Point_u8_3d579548._0
+      local.get 3   ; __step_1
+      ref.cast 10   ; snippet$Point
       local.set 4   ; x
       local.get 1   ; out
       local.get 4   ; x
@@ -2745,10 +2704,10 @@ fn 49 std_iter$collect__snippet_Point (any) -> ref
   return
 end
 
-fn 50 std_iter$fold__i64__i64 (any,i64,ref) -> i64
+fn 47 std_iter$fold__i64__i64 (any,i64,ref) -> i64
   local acc i64
   local __iter_0 any
-  local __step_1 ref
+  local __step_1 any
   local x i64
   local.get 1   ; arg 1
   local.set 3   ; acc
@@ -2756,14 +2715,12 @@ fn 50 std_iter$fold__i64__i64 (any,i64,ref) -> i64
   local.set 4   ; __iter_0
   loop $L0 void
     local.get 4   ; __iter_0
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 5   ; __step_1
-    local.field 5 41 1   ; __step_1 __Tuple_i64_u8_87057322._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 5   ; __step_1
+    type_check 20   ; std_core$Stop
     if $L1 void
     else
-      local.field 5 41 0   ; __step_1 __Tuple_i64_u8_87057322._0
+      local.get 5   ; __step_1
       ref.cast 2   ; i64
       local.set 6   ; x
       local.get 3   ; acc
@@ -2771,7 +2728,7 @@ fn 50 std_iter$fold__i64__i64 (any,i64,ref) -> i64
       local.get 6   ; x
       retag 2   ; i64
       local.get 2   ; arg 2
-      call.indirect 29   ; fn
+      call.indirect 27   ; fn
       local.set 3   ; acc
       br $L0
     end $L1
@@ -2780,10 +2737,10 @@ fn 50 std_iter$fold__i64__i64 (any,i64,ref) -> i64
   return
 end
 
-fn 51 std_iter$sum__i32 (any) -> i32
+fn 48 std_iter$sum__i32 (any) -> i32
   local s i32
   local __iter_0 any
-  local __step_1 ref
+  local __step_1 any
   local x i32
   call 37   ; std_core$i32$Zero$zero
   local.set 1   ; s
@@ -2791,14 +2748,12 @@ fn 51 std_iter$sum__i32 (any) -> i32
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 3   ; __step_1
-    local.field 3 19 1   ; __step_1 __Tuple_i32_u8_99ae0d29._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 3   ; __step_1
+    type_check 20   ; std_core$Stop
     if $L1 void
     else
-      local.field 3 19 0   ; __step_1 __Tuple_i32_u8_99ae0d29._0
+      local.get 3   ; __step_1
       ref.cast 1   ; i32
       local.set 4   ; x
       local.get 1   ; s
@@ -2812,25 +2767,23 @@ fn 51 std_iter$sum__i32 (any) -> i32
   return
 end
 
-fn 52 std_iter$find__snippet_Point (any,ref) -> any
+fn 49 std_iter$find__snippet_Point (any,ref) -> any
   local __iter_0 any
-  local __step_1 ref
+  local __step_1 any
   local x any
   local.get 0   ; arg 0
   local.set 2   ; __iter_0
   loop $L0 void
     local.get 2   ; __iter_0
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 3   ; __step_1
-    local.field 3 25 1   ; __step_1 __Tuple_Any_u8_d7d23c9c._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 3   ; __step_1
+    type_check 20   ; std_core$Stop
     if $L1 void
     else
-      local.field 3 25 0   ; __step_1 __Tuple_Any_u8_d7d23c9c._0
+      local.get 3   ; __step_1
       local.tee 4   ; x
       local.get 1   ; arg 1
-      call.indirect 30   ; fn
+      call.indirect 29   ; fn
       if $L2 void
       else
         br $L0
@@ -2842,9 +2795,9 @@ fn 52 std_iter$find__snippet_Point (any,ref) -> any
   return.lit null.const
 end
 
-fn 53 std_iter$filter___i32__i32_ (any,ref) -> any
+fn 50 std_iter$filter___i32__i32_ (any,ref) -> any
   local $k_2 any
-  local $k_3 ref
+  local $k_3 any
   local $k_4 any
   null.const
   local.set 2   ; $k_2
@@ -2862,12 +2815,11 @@ fn 53 std_iter$filter___i32__i32_ (any,ref) -> any
   return
 end
 
-fn 54 std_iter$$genstate_filter$Iterator$next (ref) -> ref
-  local $field_43 ref
-  local $field_52 any
-  local $vcall_67 ref
-  local $field_72 any
-  local $k_74 any
+fn 51 std_iter$$genstate_filter$Iterator$next (ref) -> any
+  local $field_41 ref
+  local $cast_50 any
+  local $vcall_63 any
+  local $field_68 any
   loop $L0 void
     local.field 0 32 5   ; arg 0 std_iter$$genstate_filter.state
     ref.cast 1   ; i32
@@ -2951,8 +2903,6 @@ fn 54 std_iter$$genstate_filter$Iterator$next (ref) -> ref
                     i32.const 7
                     struct.set 32 5   ; std_iter$$genstate_filter.state
                     local.field 0 32 4   ; arg 0 std_iter$$genstate_filter.s4
-                    i32.const 0
-                    struct.new 25   ; __Tuple_Any_u8_d7d23c9c
                     return
                   end $L9
                   local.field 0 32 5   ; arg 0 std_iter$$genstate_filter.state
@@ -2961,10 +2911,10 @@ fn 54 std_iter$$genstate_filter$Iterator$next (ref) -> ref
                   i32.eq
                   if $L10 void
                     local.field 0 32 1   ; arg 0 std_iter$$genstate_filter.s1
-                    local.set 1   ; $field_43
+                    local.set 1   ; $field_41
                     local.field 0 32 4   ; arg 0 std_iter$$genstate_filter.s4
-                    local.get 1   ; $field_43
-                    call.indirect 30   ; fn
+                    local.get 1   ; $field_41
+                    call.indirect 29   ; fn
                     if $L11 void
                       local.get 0   ; arg 0
                       i32.const 8
@@ -2981,10 +2931,9 @@ fn 54 std_iter$$genstate_filter$Iterator$next (ref) -> ref
                     i32.eq
                     if $L12 void
                       local.field 0 32 3   ; arg 0 std_iter$$genstate_filter.s3
-                      struct.get 25 0   ; __Tuple_Any_u8_d7d23c9c._0
-                      local.set 2   ; $field_52
+                      local.set 2   ; $cast_50
                       local.get 0   ; arg 0
-                      local.get 2   ; $field_52
+                      local.get 2   ; $cast_50
                       struct.set 32 4   ; std_iter$$genstate_filter.s4
                       local.get 0   ; arg 0
                       i32.const 9
@@ -2996,9 +2945,7 @@ fn 54 std_iter$$genstate_filter$Iterator$next (ref) -> ref
                       i32.eq
                       if $L13 void
                         local.field 0 32 3   ; arg 0 std_iter$$genstate_filter.s3
-                        struct.get 25 1   ; __Tuple_Any_u8_d7d23c9c._1
-                        i32.const 1
-                        i32.eq
+                        type_check 20   ; std_core$Stop
                         if $L14 void
                           local.get 0   ; arg 0
                           i32.const 5
@@ -3015,10 +2962,10 @@ fn 54 std_iter$$genstate_filter$Iterator$next (ref) -> ref
                         i32.eq
                         if $L15 void
                           local.field 0 32 2   ; arg 0 std_iter$$genstate_filter.s2
-                          virtual.call 1 std_core$Iterator.next -> ref
-                          local.set 3   ; $vcall_67
+                          virtual.call 1 std_core$Iterator.next -> any
+                          local.set 3   ; $vcall_63
                           local.get 0   ; arg 0
-                          local.get 3   ; $vcall_67
+                          local.get 3   ; $vcall_63
                           struct.set 32 3   ; std_iter$$genstate_filter.s3
                           local.get 0   ; arg 0
                           i32.const 11
@@ -3030,17 +2977,15 @@ fn 54 std_iter$$genstate_filter$Iterator$next (ref) -> ref
                           i32.eq
                           if $L16 void
                           else
-                            null.const
-                            local.set 5   ; $k_74
-                            local.get 5   ; $k_74
-                            i32.const 1
-                            struct.new 25   ; __Tuple_Any_u8_d7d23c9c
+                            data.const 0 57   ; pool[0] std_core$Stop[]
+                            i64.const 0
+                            array.get 57   ; std_core$Stop[]
                             return
                           end $L16
                           local.field 0 32 0   ; arg 0 std_iter$$genstate_filter.s0
-                          local.set 4   ; $field_72
+                          local.set 4   ; $field_68
                           local.get 0   ; arg 0
-                          local.get 4   ; $field_72
+                          local.get 4   ; $field_68
                           struct.set 32 2   ; std_iter$$genstate_filter.s2
                           local.get 0   ; arg 0
                           i32.const 2
@@ -3060,9 +3005,9 @@ fn 54 std_iter$$genstate_filter$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 55 std_iter$filter__i32 (any,ref) -> any
+fn 52 std_iter$filter__i32 (any,ref) -> any
   local $k_2 any
-  local $k_3 ref
+  local $k_3 any
   null.const
   local.set 2   ; $k_2
   null.const
@@ -3073,194 +3018,190 @@ fn 55 std_iter$filter__i32 (any,ref) -> any
   local.get 3   ; $k_3
   i32.const 0
   i32.const 13
-  struct.new 34   ; std_iter$__gen_state_std_iter_1
+  struct.new 35   ; std_iter$__gen_state_std_iter_1
   return
 end
 
-fn 56 std_iter$__gen_state_std_iter_1$Iterator$next (ref) -> ref
-  local $field_43 ref
-  local $field_52 i32
-  local $vcall_67 ref
-  local $field_72 any
+fn 53 std_iter$__gen_state_std_iter_1$Iterator$next (ref) -> any
+  local $field_41 ref
+  local $cast_50 i32
+  local $vcall_63 any
+  local $field_68 any
   loop $L0 void
-    local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+    local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
     ref.cast 1   ; i32
     i32.const 0
     i32.eq
     if $L1 void
       local.get 0   ; arg 0
       i32.const -1
-      struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+      struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
       br $L0
     end $L1
-    local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+    local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
     ref.cast 1   ; i32
     i32.const 1
     i32.eq
     if $L2 void
       local.get 0   ; arg 0
       i32.const 0
-      struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+      struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
     else
-      local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+      local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
       ref.cast 1   ; i32
       i32.const 2
       i32.eq
       if $L3 void
         local.get 0   ; arg 0
         i32.const 12
-        struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+        struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
       else
-        local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+        local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
         ref.cast 1   ; i32
         i32.const 3
         i32.eq
         if $L4 void
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+          struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
         else
-          local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+          local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
           ref.cast 1   ; i32
           i32.const 4
           i32.eq
           if $L5 void
             local.get 0   ; arg 0
             i32.const 3
-            struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+            struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
           else
-            local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+            local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
             ref.cast 1   ; i32
             i32.const 5
             i32.eq
             if $L6 void
               local.get 0   ; arg 0
               i32.const 1
-              struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+              struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
             else
-              local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+              local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
               ref.cast 1   ; i32
               i32.const 6
               i32.eq
               if $L7 void
                 local.get 0   ; arg 0
                 i32.const 3
-                struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+                struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
               else
-                local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+                local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
                 ref.cast 1   ; i32
                 i32.const 7
                 i32.eq
                 if $L8 void
                   local.get 0   ; arg 0
                   i32.const 6
-                  struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+                  struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
                 else
-                  local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+                  local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
                   ref.cast 1   ; i32
                   i32.const 8
                   i32.eq
                   if $L9 void
                     local.get 0   ; arg 0
                     i32.const 7
-                    struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
-                    local.field 0 34 4   ; arg 0 std_iter$__gen_state_std_iter_1.s4
+                    struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
+                    local.field 0 35 4   ; arg 0 std_iter$__gen_state_std_iter_1.s4
                     ref.cast 1   ; i32
-                    i32.const 0
-                    struct.new 19   ; __Tuple_i32_u8_99ae0d29
+                    retag 1   ; i32
                     return
                   end $L9
-                  local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+                  local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
                   ref.cast 1   ; i32
                   i32.const 9
                   i32.eq
                   if $L10 void
-                    local.field 0 34 1   ; arg 0 std_iter$__gen_state_std_iter_1.s1
-                    local.set 1   ; $field_43
-                    local.field 0 34 4   ; arg 0 std_iter$__gen_state_std_iter_1.s4
+                    local.field 0 35 1   ; arg 0 std_iter$__gen_state_std_iter_1.s1
+                    local.set 1   ; $field_41
+                    local.field 0 35 4   ; arg 0 std_iter$__gen_state_std_iter_1.s4
                     ref.cast 1   ; i32
                     retag 1   ; i32
-                    local.get 1   ; $field_43
-                    call.indirect 33   ; fn
+                    local.get 1   ; $field_41
+                    call.indirect 34   ; fn
                     if $L11 void
                       local.get 0   ; arg 0
                       i32.const 8
-                      struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+                      struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
                     else
                       local.get 0   ; arg 0
                       i32.const 6
-                      struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+                      struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
                     end $L11
                   else
-                    local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+                    local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
                     ref.cast 1   ; i32
                     i32.const 10
                     i32.eq
                     if $L12 void
-                      local.field 0 34 3   ; arg 0 std_iter$__gen_state_std_iter_1.s3
-                      struct.get 19 0   ; __Tuple_i32_u8_99ae0d29._0
+                      local.field 0 35 3   ; arg 0 std_iter$__gen_state_std_iter_1.s3
                       ref.cast 1   ; i32
-                      local.set 2   ; $field_52
+                      local.set 2   ; $cast_50
                       local.get 0   ; arg 0
-                      local.get 2   ; $field_52
-                      struct.set 34 4   ; std_iter$__gen_state_std_iter_1.s4
+                      local.get 2   ; $cast_50
+                      struct.set 35 4   ; std_iter$__gen_state_std_iter_1.s4
                       local.get 0   ; arg 0
                       i32.const 9
-                      struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+                      struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
                     else
-                      local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+                      local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
                       ref.cast 1   ; i32
                       i32.const 11
                       i32.eq
                       if $L13 void
-                        local.field 0 34 3   ; arg 0 std_iter$__gen_state_std_iter_1.s3
-                        struct.get 19 1   ; __Tuple_i32_u8_99ae0d29._1
-                        i32.const 1
-                        i32.eq
+                        local.field 0 35 3   ; arg 0 std_iter$__gen_state_std_iter_1.s3
+                        type_check 20   ; std_core$Stop
                         if $L14 void
                           local.get 0   ; arg 0
                           i32.const 5
-                          struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+                          struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
                         else
                           local.get 0   ; arg 0
                           i32.const 10
-                          struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+                          struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
                         end $L14
                       else
-                        local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+                        local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
                         ref.cast 1   ; i32
                         i32.const 12
                         i32.eq
                         if $L15 void
-                          local.field 0 34 2   ; arg 0 std_iter$__gen_state_std_iter_1.s2
-                          virtual.call 1 std_core$Iterator.next -> ref
-                          local.set 3   ; $vcall_67
+                          local.field 0 35 2   ; arg 0 std_iter$__gen_state_std_iter_1.s2
+                          virtual.call 1 std_core$Iterator.next -> any
+                          local.set 3   ; $vcall_63
                           local.get 0   ; arg 0
-                          local.get 3   ; $vcall_67
-                          struct.set 34 3   ; std_iter$__gen_state_std_iter_1.s3
+                          local.get 3   ; $vcall_63
+                          struct.set 35 3   ; std_iter$__gen_state_std_iter_1.s3
                           local.get 0   ; arg 0
                           i32.const 11
-                          struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+                          struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
                         else
-                          local.field 0 34 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
+                          local.field 0 35 5   ; arg 0 std_iter$__gen_state_std_iter_1.state
                           ref.cast 1   ; i32
                           i32.const 13
                           i32.eq
                           if $L16 void
                           else
-                            i32.const 0
-                            i32.const 1
-                            struct.new 19   ; __Tuple_i32_u8_99ae0d29
+                            data.const 0 57   ; pool[0] std_core$Stop[]
+                            i64.const 0
+                            array.get 57   ; std_core$Stop[]
                             return
                           end $L16
-                          local.field 0 34 0   ; arg 0 std_iter$__gen_state_std_iter_1.s0
-                          local.set 4   ; $field_72
+                          local.field 0 35 0   ; arg 0 std_iter$__gen_state_std_iter_1.s0
+                          local.set 4   ; $field_68
                           local.get 0   ; arg 0
-                          local.get 4   ; $field_72
-                          struct.set 34 2   ; std_iter$__gen_state_std_iter_1.s2
+                          local.get 4   ; $field_68
+                          struct.set 35 2   ; std_iter$__gen_state_std_iter_1.s2
                           local.get 0   ; arg 0
                           i32.const 2
-                          struct.set 34 5   ; std_iter$__gen_state_std_iter_1.state
+                          struct.set 35 5   ; std_iter$__gen_state_std_iter_1.state
                         end $L15
                       end $L13
                     end $L12
@@ -3276,9 +3217,9 @@ fn 56 std_iter$__gen_state_std_iter_1$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 57 std_iter$map__i32__Any (any,ref) -> any
+fn 54 std_iter$map__i32__Any (any,ref) -> any
   local $k_2 any
-  local $k_3 ref
+  local $k_3 any
   null.const
   local.set 2   ; $k_2
   null.const
@@ -3289,547 +3230,163 @@ fn 57 std_iter$map__i32__Any (any,ref) -> any
   local.get 3   ; $k_3
   i32.const 0
   i32.const 11
-  struct.new 36   ; std_iter$__gen_state_std_iter_3
+  struct.new 37   ; std_iter$__gen_state_std_iter_3
   return
 end
 
-fn 58 std_iter$__gen_state_std_iter_3$Iterator$next (ref) -> ref
+fn 55 std_iter$__gen_state_std_iter_3$Iterator$next (ref) -> any
   local $field_33 ref
-  local $field_42 i32
-  local $vcall_57 ref
-  local $field_62 any
-  local $k_64 any
+  local $cast_40 i32
+  local $vcall_53 any
+  local $field_58 any
   loop $L0 void
-    local.field 0 36 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
+    local.field 0 37 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
     ref.cast 1   ; i32
     i32.const 0
     i32.eq
     if $L1 void
       local.get 0   ; arg 0
       i32.const -1
-      struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
+      struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
       br $L0
     end $L1
-    local.field 0 36 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
+    local.field 0 37 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
     ref.cast 1   ; i32
     i32.const 1
     i32.eq
     if $L2 void
       local.get 0   ; arg 0
       i32.const 0
-      struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
+      struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
     else
-      local.field 0 36 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
+      local.field 0 37 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
       ref.cast 1   ; i32
       i32.const 2
       i32.eq
       if $L3 void
         local.get 0   ; arg 0
         i32.const 10
-        struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
+        struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
       else
-        local.field 0 36 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
+        local.field 0 37 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
         ref.cast 1   ; i32
         i32.const 3
         i32.eq
         if $L4 void
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
+          struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
         else
-          local.field 0 36 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
+          local.field 0 37 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
           ref.cast 1   ; i32
           i32.const 4
           i32.eq
           if $L5 void
             local.get 0   ; arg 0
             i32.const 3
-            struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
+            struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
           else
-            local.field 0 36 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
+            local.field 0 37 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
             ref.cast 1   ; i32
             i32.const 5
             i32.eq
             if $L6 void
               local.get 0   ; arg 0
               i32.const 1
-              struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
+              struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
             else
-              local.field 0 36 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
+              local.field 0 37 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
               ref.cast 1   ; i32
               i32.const 6
               i32.eq
               if $L7 void
                 local.get 0   ; arg 0
                 i32.const 3
-                struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
+                struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
               else
-                local.field 0 36 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
+                local.field 0 37 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
                 ref.cast 1   ; i32
                 i32.const 7
                 i32.eq
                 if $L8 void
                   local.get 0   ; arg 0
                   i32.const 6
-                  struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
-                  local.field 0 36 1   ; arg 0 std_iter$__gen_state_std_iter_3.s1
+                  struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
+                  local.field 0 37 1   ; arg 0 std_iter$__gen_state_std_iter_3.s1
                   local.set 1   ; $field_33
-                  local.field 0 36 4   ; arg 0 std_iter$__gen_state_std_iter_3.s4
+                  local.field 0 37 4   ; arg 0 std_iter$__gen_state_std_iter_3.s4
                   ref.cast 1   ; i32
                   retag 1   ; i32
                   local.get 1   ; $field_33
-                  call.indirect 35   ; fn
-                  i32.const 0
-                  struct.new 25   ; __Tuple_Any_u8_d7d23c9c
+                  call.indirect 36   ; fn
                   return
                 end $L8
-                local.field 0 36 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
+                local.field 0 37 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
                 ref.cast 1   ; i32
                 i32.const 8
                 i32.eq
                 if $L9 void
-                  local.field 0 36 3   ; arg 0 std_iter$__gen_state_std_iter_3.s3
-                  struct.get 19 0   ; __Tuple_i32_u8_99ae0d29._0
+                  local.field 0 37 3   ; arg 0 std_iter$__gen_state_std_iter_3.s3
                   ref.cast 1   ; i32
-                  local.set 2   ; $field_42
+                  local.set 2   ; $cast_40
                   local.get 0   ; arg 0
-                  local.get 2   ; $field_42
-                  struct.set 36 4   ; std_iter$__gen_state_std_iter_3.s4
+                  local.get 2   ; $cast_40
+                  struct.set 37 4   ; std_iter$__gen_state_std_iter_3.s4
                   local.get 0   ; arg 0
                   i32.const 7
-                  struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
+                  struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
                 else
-                  local.field 0 36 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
+                  local.field 0 37 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
                   ref.cast 1   ; i32
                   i32.const 9
                   i32.eq
                   if $L10 void
-                    local.field 0 36 3   ; arg 0 std_iter$__gen_state_std_iter_3.s3
-                    struct.get 19 1   ; __Tuple_i32_u8_99ae0d29._1
-                    i32.const 1
-                    i32.eq
+                    local.field 0 37 3   ; arg 0 std_iter$__gen_state_std_iter_3.s3
+                    type_check 20   ; std_core$Stop
                     if $L11 void
                       local.get 0   ; arg 0
                       i32.const 5
-                      struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
+                      struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
                     else
                       local.get 0   ; arg 0
                       i32.const 8
-                      struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
+                      struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
                     end $L11
                   else
-                    local.field 0 36 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
+                    local.field 0 37 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
                     ref.cast 1   ; i32
                     i32.const 10
                     i32.eq
                     if $L12 void
-                      local.field 0 36 2   ; arg 0 std_iter$__gen_state_std_iter_3.s2
-                      virtual.call 1 std_core$Iterator.next -> ref
-                      local.set 3   ; $vcall_57
+                      local.field 0 37 2   ; arg 0 std_iter$__gen_state_std_iter_3.s2
+                      virtual.call 1 std_core$Iterator.next -> any
+                      local.set 3   ; $vcall_53
                       local.get 0   ; arg 0
-                      local.get 3   ; $vcall_57
-                      struct.set 36 3   ; std_iter$__gen_state_std_iter_3.s3
+                      local.get 3   ; $vcall_53
+                      struct.set 37 3   ; std_iter$__gen_state_std_iter_3.s3
                       local.get 0   ; arg 0
                       i32.const 9
-                      struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
+                      struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
                     else
-                      local.field 0 36 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
+                      local.field 0 37 5   ; arg 0 std_iter$__gen_state_std_iter_3.state
                       ref.cast 1   ; i32
                       i32.const 11
                       i32.eq
                       if $L13 void
                       else
-                        null.const
-                        local.set 5   ; $k_64
-                        local.get 5   ; $k_64
-                        i32.const 1
-                        struct.new 25   ; __Tuple_Any_u8_d7d23c9c
-                        return
-                      end $L13
-                      local.field 0 36 0   ; arg 0 std_iter$__gen_state_std_iter_3.s0
-                      local.set 4   ; $field_62
-                      local.get 0   ; arg 0
-                      local.get 4   ; $field_62
-                      struct.set 36 2   ; std_iter$__gen_state_std_iter_3.s2
-                      local.get 0   ; arg 0
-                      i32.const 2
-                      struct.set 36 5   ; std_iter$__gen_state_std_iter_3.state
-                    end $L12
-                  end $L10
-                end $L9
-              end $L7
-            end $L6
-          end $L5
-        end $L4
-      end $L3
-    end $L2
-    br $L0
-  end $L0
-end
-
-fn 59 std_iter$map__i32__i32 (any,ref) -> any
-  local $k_2 any
-  local $k_3 ref
-  null.const
-  local.set 2   ; $k_2
-  null.const
-  local.set 3   ; $k_3
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  local.get 2   ; $k_2
-  local.get 3   ; $k_3
-  i32.const 0
-  i32.const 11
-  struct.new 38   ; std_iter$__gen_state_std_iter_4
-  return
-end
-
-fn 60 std_iter$__gen_state_std_iter_4$Iterator$next (ref) -> ref
-  local $field_33 ref
-  local $field_42 i32
-  local $vcall_57 ref
-  local $field_62 any
-  loop $L0 void
-    local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
-    ref.cast 1   ; i32
-    i32.const 0
-    i32.eq
-    if $L1 void
-      local.get 0   ; arg 0
-      i32.const -1
-      struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-      br $L0
-    end $L1
-    local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
-    ref.cast 1   ; i32
-    i32.const 1
-    i32.eq
-    if $L2 void
-      local.get 0   ; arg 0
-      i32.const 0
-      struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-    else
-      local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
-      ref.cast 1   ; i32
-      i32.const 2
-      i32.eq
-      if $L3 void
-        local.get 0   ; arg 0
-        i32.const 10
-        struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-      else
-        local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
-        ref.cast 1   ; i32
-        i32.const 3
-        i32.eq
-        if $L4 void
-          local.get 0   ; arg 0
-          i32.const 2
-          struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-        else
-          local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
-          ref.cast 1   ; i32
-          i32.const 4
-          i32.eq
-          if $L5 void
-            local.get 0   ; arg 0
-            i32.const 3
-            struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-          else
-            local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
-            ref.cast 1   ; i32
-            i32.const 5
-            i32.eq
-            if $L6 void
-              local.get 0   ; arg 0
-              i32.const 1
-              struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-            else
-              local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
-              ref.cast 1   ; i32
-              i32.const 6
-              i32.eq
-              if $L7 void
-                local.get 0   ; arg 0
-                i32.const 3
-                struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-              else
-                local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
-                ref.cast 1   ; i32
-                i32.const 7
-                i32.eq
-                if $L8 void
-                  local.get 0   ; arg 0
-                  i32.const 6
-                  struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-                  local.field 0 38 1   ; arg 0 std_iter$__gen_state_std_iter_4.s1
-                  local.set 1   ; $field_33
-                  local.field 0 38 4   ; arg 0 std_iter$__gen_state_std_iter_4.s4
-                  ref.cast 1   ; i32
-                  retag 1   ; i32
-                  local.get 1   ; $field_33
-                  call.indirect 37   ; fn
-                  i32.const 0
-                  struct.new 19   ; __Tuple_i32_u8_99ae0d29
-                  return
-                end $L8
-                local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
-                ref.cast 1   ; i32
-                i32.const 8
-                i32.eq
-                if $L9 void
-                  local.field 0 38 3   ; arg 0 std_iter$__gen_state_std_iter_4.s3
-                  struct.get 19 0   ; __Tuple_i32_u8_99ae0d29._0
-                  ref.cast 1   ; i32
-                  local.set 2   ; $field_42
-                  local.get 0   ; arg 0
-                  local.get 2   ; $field_42
-                  struct.set 38 4   ; std_iter$__gen_state_std_iter_4.s4
-                  local.get 0   ; arg 0
-                  i32.const 7
-                  struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-                else
-                  local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
-                  ref.cast 1   ; i32
-                  i32.const 9
-                  i32.eq
-                  if $L10 void
-                    local.field 0 38 3   ; arg 0 std_iter$__gen_state_std_iter_4.s3
-                    struct.get 19 1   ; __Tuple_i32_u8_99ae0d29._1
-                    i32.const 1
-                    i32.eq
-                    if $L11 void
-                      local.get 0   ; arg 0
-                      i32.const 5
-                      struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-                    else
-                      local.get 0   ; arg 0
-                      i32.const 8
-                      struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-                    end $L11
-                  else
-                    local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
-                    ref.cast 1   ; i32
-                    i32.const 10
-                    i32.eq
-                    if $L12 void
-                      local.field 0 38 2   ; arg 0 std_iter$__gen_state_std_iter_4.s2
-                      virtual.call 1 std_core$Iterator.next -> ref
-                      local.set 3   ; $vcall_57
-                      local.get 0   ; arg 0
-                      local.get 3   ; $vcall_57
-                      struct.set 38 3   ; std_iter$__gen_state_std_iter_4.s3
-                      local.get 0   ; arg 0
-                      i32.const 9
-                      struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-                    else
-                      local.field 0 38 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
-                      ref.cast 1   ; i32
-                      i32.const 11
-                      i32.eq
-                      if $L13 void
-                      else
-                        i32.const 0
-                        i32.const 1
-                        struct.new 19   ; __Tuple_i32_u8_99ae0d29
-                        return
-                      end $L13
-                      local.field 0 38 0   ; arg 0 std_iter$__gen_state_std_iter_4.s0
-                      local.set 4   ; $field_62
-                      local.get 0   ; arg 0
-                      local.get 4   ; $field_62
-                      struct.set 38 2   ; std_iter$__gen_state_std_iter_4.s2
-                      local.get 0   ; arg 0
-                      i32.const 2
-                      struct.set 38 5   ; std_iter$__gen_state_std_iter_4.state
-                    end $L12
-                  end $L10
-                end $L9
-              end $L7
-            end $L6
-          end $L5
-        end $L4
-      end $L3
-    end $L2
-    br $L0
-  end $L0
-end
-
-fn 61 std_iter$map__i32__i64 (any,ref) -> any
-  local $k_2 any
-  local $k_3 ref
-  null.const
-  local.set 2   ; $k_2
-  null.const
-  local.set 3   ; $k_3
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  local.get 2   ; $k_2
-  local.get 3   ; $k_3
-  i32.const 0
-  i32.const 11
-  struct.new 40   ; std_iter$__gen_state_std_iter_0
-  return
-end
-
-fn 62 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
-  local $field_33 ref
-  local $field_42 i32
-  local $vcall_57 ref
-  local $field_62 any
-  loop $L0 void
-    local.field 0 40 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
-    ref.cast 1   ; i32
-    i32.const 0
-    i32.eq
-    if $L1 void
-      local.get 0   ; arg 0
-      i32.const -1
-      struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
-      br $L0
-    end $L1
-    local.field 0 40 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
-    ref.cast 1   ; i32
-    i32.const 1
-    i32.eq
-    if $L2 void
-      local.get 0   ; arg 0
-      i32.const 0
-      struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
-    else
-      local.field 0 40 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
-      ref.cast 1   ; i32
-      i32.const 2
-      i32.eq
-      if $L3 void
-        local.get 0   ; arg 0
-        i32.const 10
-        struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
-      else
-        local.field 0 40 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
-        ref.cast 1   ; i32
-        i32.const 3
-        i32.eq
-        if $L4 void
-          local.get 0   ; arg 0
-          i32.const 2
-          struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
-        else
-          local.field 0 40 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
-          ref.cast 1   ; i32
-          i32.const 4
-          i32.eq
-          if $L5 void
-            local.get 0   ; arg 0
-            i32.const 3
-            struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
-          else
-            local.field 0 40 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
-            ref.cast 1   ; i32
-            i32.const 5
-            i32.eq
-            if $L6 void
-              local.get 0   ; arg 0
-              i32.const 1
-              struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
-            else
-              local.field 0 40 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
-              ref.cast 1   ; i32
-              i32.const 6
-              i32.eq
-              if $L7 void
-                local.get 0   ; arg 0
-                i32.const 3
-                struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
-              else
-                local.field 0 40 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
-                ref.cast 1   ; i32
-                i32.const 7
-                i32.eq
-                if $L8 void
-                  local.get 0   ; arg 0
-                  i32.const 6
-                  struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
-                  local.field 0 40 1   ; arg 0 std_iter$__gen_state_std_iter_0.s1
-                  local.set 1   ; $field_33
-                  local.field 0 40 4   ; arg 0 std_iter$__gen_state_std_iter_0.s4
-                  ref.cast 1   ; i32
-                  retag 1   ; i32
-                  local.get 1   ; $field_33
-                  call.indirect 39   ; fn
-                  i32.const 0
-                  struct.new 41   ; __Tuple_i64_u8_87057322
-                  return
-                end $L8
-                local.field 0 40 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
-                ref.cast 1   ; i32
-                i32.const 8
-                i32.eq
-                if $L9 void
-                  local.field 0 40 3   ; arg 0 std_iter$__gen_state_std_iter_0.s3
-                  struct.get 19 0   ; __Tuple_i32_u8_99ae0d29._0
-                  ref.cast 1   ; i32
-                  local.set 2   ; $field_42
-                  local.get 0   ; arg 0
-                  local.get 2   ; $field_42
-                  struct.set 40 4   ; std_iter$__gen_state_std_iter_0.s4
-                  local.get 0   ; arg 0
-                  i32.const 7
-                  struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
-                else
-                  local.field 0 40 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
-                  ref.cast 1   ; i32
-                  i32.const 9
-                  i32.eq
-                  if $L10 void
-                    local.field 0 40 3   ; arg 0 std_iter$__gen_state_std_iter_0.s3
-                    struct.get 19 1   ; __Tuple_i32_u8_99ae0d29._1
-                    i32.const 1
-                    i32.eq
-                    if $L11 void
-                      local.get 0   ; arg 0
-                      i32.const 5
-                      struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
-                    else
-                      local.get 0   ; arg 0
-                      i32.const 8
-                      struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
-                    end $L11
-                  else
-                    local.field 0 40 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
-                    ref.cast 1   ; i32
-                    i32.const 10
-                    i32.eq
-                    if $L12 void
-                      local.field 0 40 2   ; arg 0 std_iter$__gen_state_std_iter_0.s2
-                      virtual.call 1 std_core$Iterator.next -> ref
-                      local.set 3   ; $vcall_57
-                      local.get 0   ; arg 0
-                      local.get 3   ; $vcall_57
-                      struct.set 40 3   ; std_iter$__gen_state_std_iter_0.s3
-                      local.get 0   ; arg 0
-                      i32.const 9
-                      struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
-                    else
-                      local.field 0 40 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
-                      ref.cast 1   ; i32
-                      i32.const 11
-                      i32.eq
-                      if $L13 void
-                      else
+                        data.const 0 57   ; pool[0] std_core$Stop[]
                         i64.const 0
-                        i32.const 1
-                        struct.new 41   ; __Tuple_i64_u8_87057322
+                        array.get 57   ; std_core$Stop[]
                         return
                       end $L13
-                      local.field 0 40 0   ; arg 0 std_iter$__gen_state_std_iter_0.s0
-                      local.set 4   ; $field_62
+                      local.field 0 37 0   ; arg 0 std_iter$__gen_state_std_iter_3.s0
+                      local.set 4   ; $field_58
                       local.get 0   ; arg 0
-                      local.get 4   ; $field_62
-                      struct.set 40 2   ; std_iter$__gen_state_std_iter_0.s2
+                      local.get 4   ; $field_58
+                      struct.set 37 2   ; std_iter$__gen_state_std_iter_3.s2
                       local.get 0   ; arg 0
                       i32.const 2
-                      struct.set 40 5   ; std_iter$__gen_state_std_iter_0.state
+                      struct.set 37 5   ; std_iter$__gen_state_std_iter_3.state
                     end $L12
                   end $L10
                 end $L9
@@ -3843,9 +3400,377 @@ fn 62 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 63 std_iter$map__string__string (any,ref) -> any
+fn 56 std_iter$map__i32__i32 (any,ref) -> any
   local $k_2 any
-  local $k_3 ref
+  local $k_3 any
+  null.const
+  local.set 2   ; $k_2
+  null.const
+  local.set 3   ; $k_3
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; $k_2
+  local.get 3   ; $k_3
+  i32.const 0
+  i32.const 11
+  struct.new 39   ; std_iter$__gen_state_std_iter_4
+  return
+end
+
+fn 57 std_iter$__gen_state_std_iter_4$Iterator$next (ref) -> any
+  local $field_33 ref
+  local $cast_40 i32
+  local $vcall_53 any
+  local $field_58 any
+  loop $L0 void
+    local.field 0 39 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
+    ref.cast 1   ; i32
+    i32.const 0
+    i32.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      i32.const -1
+      struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+      br $L0
+    end $L1
+    local.field 0 39 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
+    ref.cast 1   ; i32
+    i32.const 1
+    i32.eq
+    if $L2 void
+      local.get 0   ; arg 0
+      i32.const 0
+      struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+    else
+      local.field 0 39 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
+      ref.cast 1   ; i32
+      i32.const 2
+      i32.eq
+      if $L3 void
+        local.get 0   ; arg 0
+        i32.const 10
+        struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+      else
+        local.field 0 39 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
+        ref.cast 1   ; i32
+        i32.const 3
+        i32.eq
+        if $L4 void
+          local.get 0   ; arg 0
+          i32.const 2
+          struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+        else
+          local.field 0 39 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
+          ref.cast 1   ; i32
+          i32.const 4
+          i32.eq
+          if $L5 void
+            local.get 0   ; arg 0
+            i32.const 3
+            struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+          else
+            local.field 0 39 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
+            ref.cast 1   ; i32
+            i32.const 5
+            i32.eq
+            if $L6 void
+              local.get 0   ; arg 0
+              i32.const 1
+              struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+            else
+              local.field 0 39 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
+              ref.cast 1   ; i32
+              i32.const 6
+              i32.eq
+              if $L7 void
+                local.get 0   ; arg 0
+                i32.const 3
+                struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+              else
+                local.field 0 39 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
+                ref.cast 1   ; i32
+                i32.const 7
+                i32.eq
+                if $L8 void
+                  local.get 0   ; arg 0
+                  i32.const 6
+                  struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+                  local.field 0 39 1   ; arg 0 std_iter$__gen_state_std_iter_4.s1
+                  local.set 1   ; $field_33
+                  local.field 0 39 4   ; arg 0 std_iter$__gen_state_std_iter_4.s4
+                  ref.cast 1   ; i32
+                  retag 1   ; i32
+                  local.get 1   ; $field_33
+                  call.indirect 38   ; fn
+                  retag 1   ; i32
+                  return
+                end $L8
+                local.field 0 39 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
+                ref.cast 1   ; i32
+                i32.const 8
+                i32.eq
+                if $L9 void
+                  local.field 0 39 3   ; arg 0 std_iter$__gen_state_std_iter_4.s3
+                  ref.cast 1   ; i32
+                  local.set 2   ; $cast_40
+                  local.get 0   ; arg 0
+                  local.get 2   ; $cast_40
+                  struct.set 39 4   ; std_iter$__gen_state_std_iter_4.s4
+                  local.get 0   ; arg 0
+                  i32.const 7
+                  struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+                else
+                  local.field 0 39 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
+                  ref.cast 1   ; i32
+                  i32.const 9
+                  i32.eq
+                  if $L10 void
+                    local.field 0 39 3   ; arg 0 std_iter$__gen_state_std_iter_4.s3
+                    type_check 20   ; std_core$Stop
+                    if $L11 void
+                      local.get 0   ; arg 0
+                      i32.const 5
+                      struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+                    else
+                      local.get 0   ; arg 0
+                      i32.const 8
+                      struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+                    end $L11
+                  else
+                    local.field 0 39 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
+                    ref.cast 1   ; i32
+                    i32.const 10
+                    i32.eq
+                    if $L12 void
+                      local.field 0 39 2   ; arg 0 std_iter$__gen_state_std_iter_4.s2
+                      virtual.call 1 std_core$Iterator.next -> any
+                      local.set 3   ; $vcall_53
+                      local.get 0   ; arg 0
+                      local.get 3   ; $vcall_53
+                      struct.set 39 3   ; std_iter$__gen_state_std_iter_4.s3
+                      local.get 0   ; arg 0
+                      i32.const 9
+                      struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+                    else
+                      local.field 0 39 5   ; arg 0 std_iter$__gen_state_std_iter_4.state
+                      ref.cast 1   ; i32
+                      i32.const 11
+                      i32.eq
+                      if $L13 void
+                      else
+                        data.const 0 57   ; pool[0] std_core$Stop[]
+                        i64.const 0
+                        array.get 57   ; std_core$Stop[]
+                        return
+                      end $L13
+                      local.field 0 39 0   ; arg 0 std_iter$__gen_state_std_iter_4.s0
+                      local.set 4   ; $field_58
+                      local.get 0   ; arg 0
+                      local.get 4   ; $field_58
+                      struct.set 39 2   ; std_iter$__gen_state_std_iter_4.s2
+                      local.get 0   ; arg 0
+                      i32.const 2
+                      struct.set 39 5   ; std_iter$__gen_state_std_iter_4.state
+                    end $L12
+                  end $L10
+                end $L9
+              end $L7
+            end $L6
+          end $L5
+        end $L4
+      end $L3
+    end $L2
+    br $L0
+  end $L0
+end
+
+fn 58 std_iter$map__i32__i64 (any,ref) -> any
+  local $k_2 any
+  local $k_3 any
+  null.const
+  local.set 2   ; $k_2
+  null.const
+  local.set 3   ; $k_3
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; $k_2
+  local.get 3   ; $k_3
+  i32.const 0
+  i32.const 11
+  struct.new 41   ; std_iter$__gen_state_std_iter_0
+  return
+end
+
+fn 59 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
+  local $field_33 ref
+  local $cast_40 i32
+  local $vcall_53 any
+  local $field_58 any
+  loop $L0 void
+    local.field 0 41 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
+    ref.cast 1   ; i32
+    i32.const 0
+    i32.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      i32.const -1
+      struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+      br $L0
+    end $L1
+    local.field 0 41 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
+    ref.cast 1   ; i32
+    i32.const 1
+    i32.eq
+    if $L2 void
+      local.get 0   ; arg 0
+      i32.const 0
+      struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+    else
+      local.field 0 41 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
+      ref.cast 1   ; i32
+      i32.const 2
+      i32.eq
+      if $L3 void
+        local.get 0   ; arg 0
+        i32.const 10
+        struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+      else
+        local.field 0 41 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
+        ref.cast 1   ; i32
+        i32.const 3
+        i32.eq
+        if $L4 void
+          local.get 0   ; arg 0
+          i32.const 2
+          struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+        else
+          local.field 0 41 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
+          ref.cast 1   ; i32
+          i32.const 4
+          i32.eq
+          if $L5 void
+            local.get 0   ; arg 0
+            i32.const 3
+            struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+          else
+            local.field 0 41 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
+            ref.cast 1   ; i32
+            i32.const 5
+            i32.eq
+            if $L6 void
+              local.get 0   ; arg 0
+              i32.const 1
+              struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+            else
+              local.field 0 41 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
+              ref.cast 1   ; i32
+              i32.const 6
+              i32.eq
+              if $L7 void
+                local.get 0   ; arg 0
+                i32.const 3
+                struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+              else
+                local.field 0 41 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
+                ref.cast 1   ; i32
+                i32.const 7
+                i32.eq
+                if $L8 void
+                  local.get 0   ; arg 0
+                  i32.const 6
+                  struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+                  local.field 0 41 1   ; arg 0 std_iter$__gen_state_std_iter_0.s1
+                  local.set 1   ; $field_33
+                  local.field 0 41 4   ; arg 0 std_iter$__gen_state_std_iter_0.s4
+                  ref.cast 1   ; i32
+                  retag 1   ; i32
+                  local.get 1   ; $field_33
+                  call.indirect 40   ; fn
+                  retag 2   ; i64
+                  return
+                end $L8
+                local.field 0 41 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
+                ref.cast 1   ; i32
+                i32.const 8
+                i32.eq
+                if $L9 void
+                  local.field 0 41 3   ; arg 0 std_iter$__gen_state_std_iter_0.s3
+                  ref.cast 1   ; i32
+                  local.set 2   ; $cast_40
+                  local.get 0   ; arg 0
+                  local.get 2   ; $cast_40
+                  struct.set 41 4   ; std_iter$__gen_state_std_iter_0.s4
+                  local.get 0   ; arg 0
+                  i32.const 7
+                  struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+                else
+                  local.field 0 41 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
+                  ref.cast 1   ; i32
+                  i32.const 9
+                  i32.eq
+                  if $L10 void
+                    local.field 0 41 3   ; arg 0 std_iter$__gen_state_std_iter_0.s3
+                    type_check 20   ; std_core$Stop
+                    if $L11 void
+                      local.get 0   ; arg 0
+                      i32.const 5
+                      struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+                    else
+                      local.get 0   ; arg 0
+                      i32.const 8
+                      struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+                    end $L11
+                  else
+                    local.field 0 41 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
+                    ref.cast 1   ; i32
+                    i32.const 10
+                    i32.eq
+                    if $L12 void
+                      local.field 0 41 2   ; arg 0 std_iter$__gen_state_std_iter_0.s2
+                      virtual.call 1 std_core$Iterator.next -> any
+                      local.set 3   ; $vcall_53
+                      local.get 0   ; arg 0
+                      local.get 3   ; $vcall_53
+                      struct.set 41 3   ; std_iter$__gen_state_std_iter_0.s3
+                      local.get 0   ; arg 0
+                      i32.const 9
+                      struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+                    else
+                      local.field 0 41 5   ; arg 0 std_iter$__gen_state_std_iter_0.state
+                      ref.cast 1   ; i32
+                      i32.const 11
+                      i32.eq
+                      if $L13 void
+                      else
+                        data.const 0 57   ; pool[0] std_core$Stop[]
+                        i64.const 0
+                        array.get 57   ; std_core$Stop[]
+                        return
+                      end $L13
+                      local.field 0 41 0   ; arg 0 std_iter$__gen_state_std_iter_0.s0
+                      local.set 4   ; $field_58
+                      local.get 0   ; arg 0
+                      local.get 4   ; $field_58
+                      struct.set 41 2   ; std_iter$__gen_state_std_iter_0.s2
+                      local.get 0   ; arg 0
+                      i32.const 2
+                      struct.set 41 5   ; std_iter$__gen_state_std_iter_0.state
+                    end $L12
+                  end $L10
+                end $L9
+              end $L7
+            end $L6
+          end $L5
+        end $L4
+      end $L3
+    end $L2
+    br $L0
+  end $L0
+end
+
+fn 60 std_iter$map__string__string (any,ref) -> any
+  local $k_2 any
+  local $k_3 any
   null.const
   local.set 2   ; $k_2
   null.const
@@ -3856,168 +3781,164 @@ fn 63 std_iter$map__string__string (any,ref) -> any
   local.get 3   ; $k_3
   string.const 2   ; ""
   i32.const 11
-  struct.new 43   ; std_iter$__gen_state_std_iter_2
+  struct.new 44   ; std_iter$__gen_state_std_iter_2
   return
 end
 
-fn 64 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> ref
+fn 61 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> any
   local $field_33 ref
-  local $field_42 string
-  local $vcall_57 ref
-  local $field_62 any
+  local $cast_40 string
+  local $vcall_53 any
+  local $field_58 any
   loop $L0 void
-    local.field 0 43 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
+    local.field 0 44 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
     ref.cast 1   ; i32
     i32.const 0
     i32.eq
     if $L1 void
       local.get 0   ; arg 0
       i32.const -1
-      struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
+      struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
       br $L0
     end $L1
-    local.field 0 43 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
+    local.field 0 44 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
     ref.cast 1   ; i32
     i32.const 1
     i32.eq
     if $L2 void
       local.get 0   ; arg 0
       i32.const 0
-      struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
+      struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
     else
-      local.field 0 43 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
+      local.field 0 44 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
       ref.cast 1   ; i32
       i32.const 2
       i32.eq
       if $L3 void
         local.get 0   ; arg 0
         i32.const 10
-        struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
+        struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
       else
-        local.field 0 43 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
+        local.field 0 44 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
         ref.cast 1   ; i32
         i32.const 3
         i32.eq
         if $L4 void
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
+          struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
         else
-          local.field 0 43 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
+          local.field 0 44 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
           ref.cast 1   ; i32
           i32.const 4
           i32.eq
           if $L5 void
             local.get 0   ; arg 0
             i32.const 3
-            struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
+            struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
           else
-            local.field 0 43 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
+            local.field 0 44 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
             ref.cast 1   ; i32
             i32.const 5
             i32.eq
             if $L6 void
               local.get 0   ; arg 0
               i32.const 1
-              struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
+              struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
             else
-              local.field 0 43 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
+              local.field 0 44 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
               ref.cast 1   ; i32
               i32.const 6
               i32.eq
               if $L7 void
                 local.get 0   ; arg 0
                 i32.const 3
-                struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
+                struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
               else
-                local.field 0 43 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
+                local.field 0 44 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
                 ref.cast 1   ; i32
                 i32.const 7
                 i32.eq
                 if $L8 void
                   local.get 0   ; arg 0
                   i32.const 6
-                  struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
-                  local.field 0 43 1   ; arg 0 std_iter$__gen_state_std_iter_2.s1
+                  struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
+                  local.field 0 44 1   ; arg 0 std_iter$__gen_state_std_iter_2.s1
                   local.set 1   ; $field_33
-                  local.field 0 43 4   ; arg 0 std_iter$__gen_state_std_iter_2.s4
+                  local.field 0 44 4   ; arg 0 std_iter$__gen_state_std_iter_2.s4
                   ref.cast 11   ; string
                   retag 11   ; string
                   local.get 1   ; $field_33
-                  call.indirect 42   ; fn
-                  i32.const 0
-                  struct.new 27   ; __Tuple_string_u8_b910c566
+                  call.indirect 43   ; fn
+                  retag 11   ; string
                   return
                 end $L8
-                local.field 0 43 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
+                local.field 0 44 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
                 ref.cast 1   ; i32
                 i32.const 8
                 i32.eq
                 if $L9 void
-                  local.field 0 43 3   ; arg 0 std_iter$__gen_state_std_iter_2.s3
-                  struct.get 27 0   ; __Tuple_string_u8_b910c566._0
+                  local.field 0 44 3   ; arg 0 std_iter$__gen_state_std_iter_2.s3
                   ref.cast 11   ; string
-                  local.set 2   ; $field_42
+                  local.set 2   ; $cast_40
                   local.get 0   ; arg 0
-                  local.get 2   ; $field_42
-                  struct.set 43 4   ; std_iter$__gen_state_std_iter_2.s4
+                  local.get 2   ; $cast_40
+                  struct.set 44 4   ; std_iter$__gen_state_std_iter_2.s4
                   local.get 0   ; arg 0
                   i32.const 7
-                  struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
+                  struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
                 else
-                  local.field 0 43 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
+                  local.field 0 44 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
                   ref.cast 1   ; i32
                   i32.const 9
                   i32.eq
                   if $L10 void
-                    local.field 0 43 3   ; arg 0 std_iter$__gen_state_std_iter_2.s3
-                    struct.get 27 1   ; __Tuple_string_u8_b910c566._1
-                    i32.const 1
-                    i32.eq
+                    local.field 0 44 3   ; arg 0 std_iter$__gen_state_std_iter_2.s3
+                    type_check 20   ; std_core$Stop
                     if $L11 void
                       local.get 0   ; arg 0
                       i32.const 5
-                      struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
+                      struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
                     else
                       local.get 0   ; arg 0
                       i32.const 8
-                      struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
+                      struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
                     end $L11
                   else
-                    local.field 0 43 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
+                    local.field 0 44 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
                     ref.cast 1   ; i32
                     i32.const 10
                     i32.eq
                     if $L12 void
-                      local.field 0 43 2   ; arg 0 std_iter$__gen_state_std_iter_2.s2
-                      virtual.call 1 std_core$Iterator.next -> ref
-                      local.set 3   ; $vcall_57
+                      local.field 0 44 2   ; arg 0 std_iter$__gen_state_std_iter_2.s2
+                      virtual.call 1 std_core$Iterator.next -> any
+                      local.set 3   ; $vcall_53
                       local.get 0   ; arg 0
-                      local.get 3   ; $vcall_57
-                      struct.set 43 3   ; std_iter$__gen_state_std_iter_2.s3
+                      local.get 3   ; $vcall_53
+                      struct.set 44 3   ; std_iter$__gen_state_std_iter_2.s3
                       local.get 0   ; arg 0
                       i32.const 9
-                      struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
+                      struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
                     else
-                      local.field 0 43 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
+                      local.field 0 44 5   ; arg 0 std_iter$__gen_state_std_iter_2.state
                       ref.cast 1   ; i32
                       i32.const 11
                       i32.eq
                       if $L13 void
                       else
-                        string.const 2   ; ""
-                        i32.const 1
-                        struct.new 27   ; __Tuple_string_u8_b910c566
+                        data.const 0 57   ; pool[0] std_core$Stop[]
+                        i64.const 0
+                        array.get 57   ; std_core$Stop[]
                         return
                       end $L13
-                      local.field 0 43 0   ; arg 0 std_iter$__gen_state_std_iter_2.s0
-                      local.set 4   ; $field_62
+                      local.field 0 44 0   ; arg 0 std_iter$__gen_state_std_iter_2.s0
+                      local.set 4   ; $field_58
                       local.get 0   ; arg 0
-                      local.get 4   ; $field_62
-                      struct.set 43 2   ; std_iter$__gen_state_std_iter_2.s2
+                      local.get 4   ; $field_58
+                      struct.set 44 2   ; std_iter$__gen_state_std_iter_2.s2
                       local.get 0   ; arg 0
                       i32.const 2
-                      struct.set 43 5   ; std_iter$__gen_state_std_iter_2.state
+                      struct.set 44 5   ; std_iter$__gen_state_std_iter_2.state
                     end $L12
                   end $L10
                 end $L9

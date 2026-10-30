@@ -146,6 +146,7 @@ type_generic_call :: fn(
     }
     repin_free_ufcs_receiver_at_instance(c, bindings, typed, diags)
     check_typeparam_bounds(c.span, callee_name(c.callee), bindings, typed, diags)
+    reject_iterators_of_stop_in(recorded, c.span, diags)
     return recorded.return_type
 }
 

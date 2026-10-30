@@ -32,7 +32,7 @@ try_into :: fn(got: Type, expected: Type, typed: TypedProgram, value: AST.Expr) 
     if try_trait_widen(got, expected, typed) {
         return true
     }
-    // `T[] → Iterator<T>` : lowerer materialises the `array_iter` generator
+    // `T[] → Iterator<T>` : lowerer materialises the array's `into` generator
     // at the call site. Lives in `try_into`, not `is_assignable` : the
     // conversion is recorded on `value` (`note_into`), which a check over
     // types alone never sees.

@@ -73,11 +73,11 @@
       {
           __iter_2: Iterator<string> = words
           for {
-              __step_3: [string, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-              if __step_3._1 == Continuation(1) {
+              __step_3: Stop | string = @vcall(std.core.Iterator.next, __iter_2)
+              if __step_3 is Stop {
                   break
               } else {
-                  w: string = __step_3._0
+                  w: string = string(__step_3)
                   std.io.println<string>(concat_2("lazy ", w))
               }
           }
@@ -85,11 +85,11 @@
       {
           __iter_4: Iterator<i32> = numbers
           for {
-              __step_5: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_4)
-              if __step_5._1 == Continuation(1) {
+              __step_5: i32 | Stop = @vcall(std.core.Iterator.next, __iter_4)
+              if __step_5 is Stop {
                   break
               } else {
-                  x: i32 = __step_5._0
+                  x: i32 = i32(__step_5)
                   std.io.println<string>({
                       __buf_6: Buffer = std.core.new_byte_buffer(i64(25))
                       __off_7: i64 = 0
@@ -103,11 +103,11 @@
       {
           __iter_8: Iterator<f64> = halves
           for {
-              __step_9: [f64, Continuation] = @vcall(std.core.Iterator.next, __iter_8)
-              if __step_9._1 == Continuation(1) {
+              __step_9: f64 | Stop = @vcall(std.core.Iterator.next, __iter_8)
+              if __step_9 is Stop {
                   break
               } else {
-                  h: f64 = __step_9._0
+                  h: f64 = f64(__step_9)
                   std.io.println<string>(concat_2("lazy ", std.core.f64.to_string(h)))
               }
           }
@@ -194,7 +194,7 @@
       return 0
   }
   snippet$$genstate_upto :: struct { s0: i32, s1: i32, state: i32 }
-  snippet$$genstate_upto$Iterator$next :: fn(self: $genstate_upto) -> [i32, Continuation] {
+  snippet$$genstate_upto$Iterator$next :: fn(self: $genstate_upto) -> i32 | Stop {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -211,17 +211,17 @@
               __self_0.state = 2
           } else if __self_0.state == 4 {
               __self_0.state = 3
-              return [__self_0.s1, Continuation(0)] :[i32, Continuation]
+              return __self_0.s1
           } else if __self_0.state == 5 {
               __self_0.s1 = 0
               __self_0.state = 2
           } else {
-              return [0, Continuation(1)] :[i32, Continuation]
+              return std.core.STOP
           }
       }
   }
   snippet$$genstate_upto_1 :: struct { s0: string, s1: i64, s2: i64, s3: string, s4: Buffer, s5: i64, state: i32 }
-  snippet$$genstate_upto_1$Iterator$next :: fn(self: $genstate_upto_1) -> [string, Continuation] {
+  snippet$$genstate_upto_1$Iterator$next :: fn(self: $genstate_upto_1) -> Stop | string {
       dispatch$: for {
           if __self_4.state == 0 {
               __self_4.state = -1
@@ -238,20 +238,20 @@
               __self_4.state = 2
           } else if __self_4.state == 4 {
               __self_4.state = 3
-              return [{
+              return {
                   __self_4.s3 = __self_4.s0
                   __self_4.s4 = std.core.new_byte_buffer(i64(20) +% std.core.byte_len(__self_4.s3))
                   __self_4.s5 = 0
                   __self_4.s5 = std.core.write_string_at(__self_4.s4, __self_4.s5, __self_4.s3)
                   __self_4.s5 = std.core.write_int(__self_4.s4, __self_4.s5, __self_4.s1)
                   std.core.finish_buffer(__self_4.s4, __self_4.s5)
-              } :string, Continuation(0)] :[string, Continuation]
+              } :string
           } else if __self_4.state == 5 {
               __self_4.s1 = 0
               __self_4.s2 = std.core.byte_len(__self_4.s0)
               __self_4.state = 2
           } else {
-              return ["", Continuation(1)] :[string, Continuation]
+              return std.core.STOP
           }
       }
   }
@@ -281,7 +281,7 @@
       }
   }
   snippet_halves$$genstate_upto :: struct { s0: f64, s1: f64, state: i32 }
-  snippet_halves$$genstate_upto$Iterator$next :: fn(self: $genstate_upto) -> [f64, Continuation] {
+  snippet_halves$$genstate_upto$Iterator$next :: fn(self: $genstate_upto) -> f64 | Stop {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -296,12 +296,12 @@
               __self_0.state = 1
           } else if __self_0.state == 3 {
               __self_0.state = 2
-              return [__self_0.s1, Continuation(0)] :[f64, Continuation]
+              return __self_0.s1
           } else if __self_0.state == 4 {
               __self_0.s1 = 0.5
               __self_0.state = 1
           } else {
-              return [0.0, Continuation(1)] :[f64, Continuation]
+              return std.core.STOP
           }
       }
   }
@@ -309,8 +309,9 @@
 
 ## lowered in dependencies
   std/core
-    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
-    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #1
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #2
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -343,6 +344,7 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

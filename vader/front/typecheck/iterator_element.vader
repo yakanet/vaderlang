@@ -1,0 +1,73 @@
+// vader/front/typecheck/iterator_element: an iterator whose element can hold
+// `Stop`.
+//
+// `Iterator.next` returns `T | Stop`, so a `T` that can hold `Stop` would end the
+// iteration at the first such element, in silence. T3121 rejects it where the
+// element turns concrete: a written `Iterator<X>` (type_expr.vader), an impl's
+// header (orchestrate.vader), the instance a generic function takes at a call
+// (call_infer.vader) or as a value (fn_value.vader), and a `for` over a struct
+// (stmt.vader). A type parameter passes: its instance is checked where it gets one.
+
+module "vader/front/typecheck"
+
+import "toolchain/span"
+import "vader/core/types"
+import "vader/support/diagnostics"
+
+// T3121 for each `Iterator` over a `Stop` that the instance `t` of a generic
+// function returns or takes.
+reject_iterators_of_stop_in :: fn(t: Type, span: Span, diags: Diagnostic[]) -> void {
+    if t !is FnType {
+        return
+    }
+    reject_iterator_of_stop(t.return_type, span, diags)
+    for p in t.params {
+        reject_iterator_of_stop(p, span, diags)
+    }
+}
+
+// T3121 when `t` is an `Iterator<X>` whose `X` can hold `Stop`.
+reject_iterator_of_stop :: fn(t: Type, span: Span, diags: Diagnostic[]) -> void {
+    element :: core_trait_arg(t, TRAIT_ITERATOR) ?? return
+    reject_stop_element(element, span, diags)
+}
+
+// T3121 when the element type of an iterator can hold `Stop`.
+reject_stop_element :: fn(element: Type, span: Span, diags: Diagnostic[]) -> void {
+    if holds_stop(element) {
+        diags.push(
+            typecheck_error(.IteratorElementHoldsStop, span, "`Iterator<${display_type(element)}>`"),
+        )
+    }
+}
+
+// Whether a value of `t` can be `Stop`: `Stop` itself, a union with it, a distinct
+// over either.
+holds_stop :: fn(t: Type) -> bool {
+    stripped :: strip_distinct(t)
+    for v in union_variants(stripped) ?? [stripped] {
+        if v is StructType && is_core_struct(v, STRUCT_STOP) {
+            return true
+        }
+    }
+    return false
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/core/symbol"
+
+stop_for_test :: fn() -> Type =
+    mk_struct(
+        SymbolFactory {}.make(.Struct, STRUCT_STOP, "std/core", "std/core", .Public, null),
+        [],
+    )
+
+@test
+test_holds_stop_through_a_union :: fn() -> void {
+    assert(holds_stop(stop_for_test()), "Stop")
+    assert(holds_stop(mk_union([TY_I32, stop_for_test()])), "i32 | Stop")
+    assert(!holds_stop(mk_union([TY_I32, TY_NULL])), "i32 | null")
+    assert(!holds_stop(TY_I32), "i32")
+}

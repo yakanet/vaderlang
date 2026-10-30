@@ -146,6 +146,7 @@ export TypecheckCode :: enum(CodeInfo) {
     DistinctTraitValueLosesImpl     { .id = "T3118", .message = "a distinct over a heap object cannot be a value of a trait it implements" },
     ConstantCallsSingleton          { .id = "T3119", .message = "a module constant cannot call a singleton" },
     UnionFieldReadsApart            { .id = "T3120", .message = "a field does not read the same in every variant of the union" },
+    IteratorElementHoldsStop        { .id = "T3121", .message = "an iterator's element cannot hold `Stop`" },
 }
 
 // Parser-pass codes.

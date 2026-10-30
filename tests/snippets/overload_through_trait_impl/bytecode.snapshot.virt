@@ -30,7 +30,6 @@ type 27 struct std_core$Range__i32 { start:2,end:2,inclusive:18,done:18,cursor:2
 type 28 struct std_core$__gen_state_std_core_0 { s0:8,s1:11,s2:11,state:2 }
 type 29 array 12
 type 30 ref std_core$Iterator
-type 31 ref $genstate_array_iter
 string 0 " m"
 string 1 "display "
 string 2 "meters "
@@ -322,7 +321,7 @@ fn 8 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 13   ; std_core$finish_buffer
-  call 67   ; std_io$println__string
+  call 66   ; std_io$println__string
   i64.const 62
   buffer.new
   local.set 0   ; r
@@ -393,7 +392,7 @@ fn 8 snippet$main () -> i32
   i32.const 3
   i32.const 4
   array.new 8 4   ; i32[]
-  call 68   ; std_iter$count__i32
+  call 67   ; std_iter$count__i32
   local.set 3   ; $cast_19
   local.get 0   ; r
   local.get 2   ; __off_1
@@ -403,19 +402,19 @@ fn 8 snippet$main () -> i32
   local.get 0   ; r
   local.get 2   ; __off_1
   call 13   ; std_core$finish_buffer
-  call 67   ; std_io$println__string
+  call 66   ; std_io$println__string
   i32.const 3
   struct.new 3   ; snippet$Meters
   call 3   ; snippet$shown_2
-  call 67   ; std_io$println__string
+  call 66   ; std_io$println__string
   i32.const 2
   struct.new 5   ; snippet$Feet
   call 2   ; snippet$shown_1
-  call 67   ; std_io$println__string
+  call 66   ; std_io$println__string
   bool.const true
   retag 18   ; bool
   call 2   ; snippet$shown_1
-  call 67   ; std_io$println__string
+  call 66   ; std_io$println__string
   i64.const 41
   buffer.new
   local.set 0   ; r
@@ -453,15 +452,15 @@ fn 8 snippet$main () -> i32
   local.get 0   ; r
   local.get 2   ; __off_1
   call 13   ; std_core$finish_buffer
-  call 67   ; std_io$println__string
+  call 66   ; std_io$println__string
   i32.const 4
   struct.new 5   ; snippet$Feet
   call 5   ; snippet$maybe_shown_1
-  call 67   ; std_io$println__string
+  call 66   ; std_io$println__string
   i32.const 4
   struct.new 5   ; snippet$Feet
   call 5   ; snippet$maybe_shown_1
-  call 67   ; std_io$println__string
+  call 66   ; std_io$println__string
   i32.const 1
   struct.new 7   ; snippet$V
   local.tee 0   ; r
@@ -505,7 +504,7 @@ fn 8 snippet$main () -> i32
   local.get 0   ; r
   local.get 2   ; __off_1
   call 13   ; std_core$finish_buffer
-  call 67   ; std_io$println__string
+  call 66   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -768,7 +767,10 @@ end
 
 fn 17 std_core$$array$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
-  call 63   ; std_core$array_iter__i32
+  i64.const 0
+  i64.const 0
+  i32.const 5
+  struct.new 28   ; std_core$__gen_state_std_core_0
   return
 end
 
@@ -3529,16 +3531,7 @@ fn 62 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 63 std_core$array_iter__i32 (ref) -> any
-  local.get 0   ; arg 0
-  i64.const 0
-  i64.const 0
-  i32.const 5
-  struct.new 28   ; std_core$__gen_state_std_core_0
-  return
-end
-
-fn 64 std_io$write (u8,string) -> void
+fn 63 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -3549,7 +3542,7 @@ fn 64 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 65   ; std_io$write_text
+  call 64   ; std_io$write_text
   if $L0 void
     return
   end $L0
@@ -3580,7 +3573,7 @@ fn 64 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 66   ; std_io$write_bytes
+      call 65   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -3600,11 +3593,11 @@ fn 64 std_io$write (u8,string) -> void
   return
 end
 
-fn 65 std_io$write_text (u8,string) -> bool
+fn 64 std_io$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 66 std_io$write_bytes (u8,ref,i64) -> i32
+fn 65 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -3624,7 +3617,7 @@ fn 66 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 67 std_io$println__string (string) -> void
+fn 66 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 18   ; "\n"
@@ -3632,11 +3625,11 @@ fn 67 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 64   ; std_io$write
+  call 63   ; std_io$write
   return
 end
 
-fn 68 std_iter$count__i32 (ref) -> i64
+fn 67 std_iter$count__i32 (ref) -> i64
   local.get 0   ; arg 0
   array.len
   return

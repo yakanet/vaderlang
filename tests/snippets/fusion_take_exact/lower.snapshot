@@ -34,11 +34,11 @@
       {
           __iter_4: Iterator<i32> = it
           for {
-              __step_5: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_4)
-              if __step_5._1 == Continuation(1) {
+              __step_5: i32 | Stop = @vcall(std.core.Iterator.next, __iter_4)
+              if __step_5 is Stop {
                   break
               } else {
-                  _: i32 = __step_5._0
+                  _: i32 = i32(__step_5)
               }
           }
       }
@@ -107,11 +107,11 @@
       {
           __iter_5: Iterator<i32> = it
           for {
-              __step_6: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_5)
-              if __step_6._1 == Continuation(1) {
+              __step_6: i32 | Stop = @vcall(std.core.Iterator.next, __iter_5)
+              if __step_6 is Stop {
                   break
               } else {
-                  v: i32 = __step_6._0
+                  v: i32 = i32(__step_6)
                   lazy = concat_2(lazy, {
                       __buf_7: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_8: i64 = 0
@@ -177,11 +177,11 @@
       {
           __iter_2: Iterator<i32> = it
           for {
-              __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-              if __step_3._1 == Continuation(1) {
+              __step_3: i32 | Stop = @vcall(std.core.Iterator.next, __iter_2)
+              if __step_3 is Stop {
                   break
               } else {
-                  v: i32 = __step_3._0
+                  v: i32 = i32(__step_3)
                   std.io.println<string>({
                       __buf_4: Buffer = std.core.new_byte_buffer(i64(26))
                       __off_5: i64 = 0
@@ -206,7 +206,7 @@
       return x
   }
   snippet$$genstate_produced :: struct { s0: i32, s1: i32, state: i32 }
-  snippet$$genstate_produced$Iterator$next :: fn(self: $genstate_produced) -> [i32, Continuation] {
+  snippet$$genstate_produced$Iterator$next :: fn(self: $genstate_produced) -> i32 | Stop {
       dispatch$: for {
           if __self_2.state == 0 {
               __self_2.state = -1
@@ -223,7 +223,7 @@
               __self_2.state = 2
           } else if __self_2.state == 4 {
               __self_2.state = 3
-              return [__self_2.s1, Continuation(0)] :[i32, Continuation]
+              return __self_2.s1
           } else if __self_2.state == 5 {
               std.io.println<string>({
                   __buf_0: Buffer = std.core.new_byte_buffer(i64(30))
@@ -237,7 +237,7 @@
               __self_2.s1 = 0
               __self_2.state = 2
           } else {
-              return [0, Continuation(1)] :[i32, Continuation]
+              return std.core.STOP
           }
       }
   }
@@ -265,10 +265,10 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.array_iter<i32>  // std_core$array_iter__i32
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32[].into  // std_core$$array$Into$into__i32
     fn std.core.write_bool  // std_core$write_bool
@@ -277,6 +277,7 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std_core$__gen_state_std_core_0$Iterator$next
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
   std/io
     fn std.io.println<string>  // std_io$println__string

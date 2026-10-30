@@ -67,15 +67,12 @@
   expr 176:12   FieldExpr      :: i32
   expr 176:12   IdentExpr      :: Counter
   expr 176:9    IfExpr         :: void
-  expr 177:20   SeqLitExpr     :: [i32, Continuation]
-  expr 177:24   DotVariantExpr :: Continuation
+  expr 177:20   IdentExpr      :: Stop
   expr 179:9    BinaryExpr     :: i32
   expr 179:9    FieldExpr      :: i32
   expr 179:9    IdentExpr      :: Counter
-  expr 180:16   SeqLitExpr     :: [i32, Continuation]
-  expr 180:17   FieldExpr      :: i32
-  expr 180:17   IdentExpr      :: Counter
-  expr 180:25   DotVariantExpr :: Continuation
+  expr 180:16   FieldExpr      :: i32
+  expr 180:16   IdentExpr      :: Counter
   expr 185:44   CallExpr       :: Iterator<string>
   expr 185:44   FieldExpr      :: fn() -> Iterator<string>
   expr 185:44   SeqLitExpr     :: string[]

@@ -8,15 +8,12 @@
   expr 15:12    FieldExpr      :: i32
   expr 15:12    IdentExpr      :: __genstate_count
   expr 15:9     IfExpr         :: void
-  expr 16:20    SeqLitExpr     :: [i32, Continuation]
-  expr 16:24    DotVariantExpr :: Continuation
+  expr 16:20    IdentExpr      :: Stop
   expr 18:9     BinaryExpr     :: i32
   expr 18:9     FieldExpr      :: i32
   expr 18:9     IdentExpr      :: __genstate_count
-  expr 19:16    SeqLitExpr     :: [i32, Continuation]
-  expr 19:17    FieldExpr      :: i32
-  expr 19:17    IdentExpr      :: __genstate_count
-  expr 19:25    DotVariantExpr :: Continuation
+  expr 19:16    FieldExpr      :: i32
+  expr 19:16    IdentExpr      :: __genstate_count
   expr 29:14    StructLitExpr  :: __genstate_count
   expr 30:14    IdentExpr      :: __genstate_count
   expr 31:15    StringLitExpr  :: string

@@ -1,0 +1,5 @@
+[10:24] error[T3121] an iterator's element cannot hold `Stop`: `Iterator<i32 | Stop>`
+[14:27] error[T3121] an iterator's element cannot hold `Stop`: `Iterator<Stop>`
+[44:5] error[T3121] an iterator's element cannot hold `Stop`: `Iterator<Stop>`
+[45:13] error[T3121] an iterator's element cannot hold `Stop`: `Iterator<Stop>`
+[48:14] error[T3121] an iterator's element cannot hold `Stop`: `Iterator<i32 | Stop>`

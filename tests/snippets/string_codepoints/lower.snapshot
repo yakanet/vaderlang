@@ -5,11 +5,11 @@
       {
           __iter_0: StringChars = std.string.chars("vader")
           for {
-              __step_1: [char, Continuation] = std.string.StringChars.next(__iter_0)
-              if __step_1._1 == Continuation(1) {
+              __step_1: char | Stop = std.string.StringChars.next(__iter_0)
+              if __step_1 is Stop {
                   break
               } else {
-                  c: char = __step_1._0
+                  c: char = char(__step_1)
                   std.io.println<string>(concat_2("chars ascii: ", std.core.char.to_string(c)))
               }
           }
@@ -17,11 +17,11 @@
       {
           __iter_2: StringChars = std.string.chars("你好嗎？")
           for {
-              __step_3: [char, Continuation] = std.string.StringChars.next(__iter_2)
-              if __step_3._1 == Continuation(1) {
+              __step_3: char | Stop = std.string.StringChars.next(__iter_2)
+              if __step_3 is Stop {
                   break
               } else {
-                  c: char = __step_3._0
+                  c: char = char(__step_3)
                   std.io.println<string>(concat_2("chars cjk:   ", std.core.char.to_string(c)))
               }
           }
@@ -30,11 +30,11 @@
       {
           __iter_4: StringChars = std.string.chars("héllo")
           for {
-              __step_5: [char, Continuation] = std.string.StringChars.next(__iter_4)
-              if __step_5._1 == Continuation(1) {
+              __step_5: char | Stop = std.string.StringChars.next(__iter_4)
+              if __step_5 is Stop {
                   break
               } else {
-                  c: char = __step_5._0
+                  c: char = char(__step_5)
                   n = n + 1
               }
           }
@@ -51,11 +51,11 @@
       {
           __iter_8: StringChars = std.string.chars("")
           for {
-              __step_9: [char, Continuation] = std.string.StringChars.next(__iter_8)
-              if __step_9._1 == Continuation(1) {
+              __step_9: char | Stop = std.string.StringChars.next(__iter_8)
+              if __step_9 is Stop {
                   break
               } else {
-                  c: char = __step_9._0
+                  c: char = char(__step_9)
                   std.io.println<string>("chars empty: never")
               }
           }
@@ -229,6 +229,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -252,6 +253,7 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<i64>  // std_core$Range__i64
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

@@ -1,0 +1,29 @@
+// A range walked through `Iterator<T>` runs `Range.next`, not the counted loop a
+// range written in a `for` becomes. This pins its bounds: exclusive and
+// inclusive, a single value, empty ranges either way round, and an inclusive
+// range ending at its type's greatest value, which stops without stepping past
+// it.
+
+module "snippet"
+
+import "std/io"
+
+listed :: fn<T: Display>(it: Iterator<T>) -> string {
+    out := ""
+    for x in it {
+        out = out + "${x} "
+    }
+    return "[${out}]"
+}
+
+main :: fn() -> i32 {
+    println(listed(0..<5))
+    println(listed(0..=4))
+    println(listed(3..=3))
+    println(listed(3..<3))
+    println(listed(4..=3))
+    println(listed(5..<3))
+    top: u8: 253
+    println(listed(top..=255))
+    return 0
+}

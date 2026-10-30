@@ -181,9 +181,10 @@ the lowerer's own route.
   (`a < b` becomes `compare(a, b) < 0`). `==` on a tuple or a union, which have no
   `Equals` impl, compares part by part (`vader/lower/value_eq.vader`).
 - **`for`**: a fused chain, a range written in place or an array becomes a plain
-  loop (`vader/lower/for_in.vader`); any other loop calls `next()` until
-  `Continuation.Stop`, after the recorded `into()` for a value that only converts
-  into an iterator.
+  loop (`vader/lower/for_in.vader`); any other loop calls `next()` until it
+  returns `Stop`, after the recorded `into()` for a value that only converts into
+  an iterator. The step's shape lives in `vader/lower/iterator_step.vader`
+  ([ADR 0120](adr/0120-an-iterator-step-returns-its-element-or-stop.md)).
 - **Iterator fusion**: a `for` over a chain of generator calls
   (`(0..<n).map(f).filter(p)`) becomes one loop, with no iterator object and no
   intermediate array (`vader/lower/iter_fusion.vader`). A generator's role comes

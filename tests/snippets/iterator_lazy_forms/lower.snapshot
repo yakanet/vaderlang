@@ -229,11 +229,11 @@
       {
           __iter_1: Iterator<[i32, i64]> = pairs
           for {
-              __step_2: [[i32, i64], Continuation] = @vcall(std.core.Iterator.next, __iter_1)
-              if __step_2._1 == Continuation(1) {
+              __step_2: [i32, i64] | Stop = @vcall(std.core.Iterator.next, __iter_1)
+              if __step_2 is Stop {
                   break
               } else {
-                  __for_elem_3: [i32, i64] = __step_2._0
+                  __for_elem_3: [i32, i64] = ([i32, i64])(__step_2)
                   x: i32 = __for_elem_3._0
                   i: i64 = __for_elem_3._1
                   std.io.println<string>({
@@ -252,11 +252,11 @@
       {
           __iter_7: Iterator<[i32, i32]> = zipped
           for {
-              __step_8: [[i32, i32], Continuation] = @vcall(std.core.Iterator.next, __iter_7)
-              if __step_8._1 == Continuation(1) {
+              __step_8: [i32, i32] | Stop = @vcall(std.core.Iterator.next, __iter_7)
+              if __step_8 is Stop {
                   break
               } else {
-                  __for_elem_9: [i32, i32] = __step_8._0
+                  __for_elem_9: [i32, i32] = ([i32, i32])(__step_8)
                   a: i32 = __for_elem_9._0
                   b: i32 = __for_elem_9._1
                   std.io.println<string>({
@@ -275,11 +275,11 @@
       {
           __iter_12: Iterator<i32> = windows
           for {
-              __step_13: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_12)
-              if __step_13._1 == Continuation(1) {
+              __step_13: i32 | Stop = @vcall(std.core.Iterator.next, __iter_12)
+              if __step_13 is Stop {
                   break
               } else {
-                  v: i32 = __step_13._0
+                  v: i32 = i32(__step_13)
                   std.io.println<string>({
                       __buf_14: Buffer = std.core.new_byte_buffer(i64(32))
                       __off_15: i64 = 0
@@ -299,11 +299,11 @@
       {
           __iter_0: Iterator<i32> = ay
           for {
-              __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == Continuation(1) {
+              __step_1: i32 | Stop = @vcall(std.core.Iterator.next, __iter_0)
+              if __step_1 is Stop {
                   break
               } else {
-                  v: i32 = __step_1._0
+                  v: i32 = i32(__step_1)
                   s = concat_2(s, {
                       __buf_2: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_3: i64 = 0
@@ -320,11 +320,11 @@
       {
           __iter_4: Iterator<i32> = rl
           for {
-              __step_5: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_4)
-              if __step_5._1 == Continuation(1) {
+              __step_5: i32 | Stop = @vcall(std.core.Iterator.next, __iter_4)
+              if __step_5 is Stop {
                   break
               } else {
-                  v: i32 = __step_5._0
+                  v: i32 = i32(__step_5)
                   r = concat_2(r, {
                       __buf_6: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_7: i64 = 0
@@ -339,7 +339,7 @@
       return 0
   }
   snippet$$genstate_upto :: struct { s0: i32, s1: i32, state: i32 }
-  snippet$$genstate_upto$Iterator$next :: fn(self: $genstate_upto) -> [i32, Continuation] {
+  snippet$$genstate_upto$Iterator$next :: fn(self: $genstate_upto) -> i32 | Stop {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -356,17 +356,17 @@
               __self_0.state = 2
           } else if __self_0.state == 4 {
               __self_0.state = 3
-              return [__self_0.s1, Continuation(0)] :[i32, Continuation]
+              return __self_0.s1
           } else if __self_0.state == 5 {
               __self_0.s1 = 0
               __self_0.state = 2
           } else {
-              return [0, Continuation(1)] :[i32, Continuation]
+              return std.core.STOP
           }
       }
   }
   snippet$$genstate_after_yield :: struct { s0: i32, s1: i32, s2: i32, state: i32 }
-  snippet$$genstate_after_yield$Iterator$next :: fn(self: $genstate_after_yield) -> [i32, Continuation] {
+  snippet$$genstate_after_yield$Iterator$next :: fn(self: $genstate_after_yield) -> i32 | Stop {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -385,7 +385,7 @@
               __self_0.state = 3
           } else if __self_0.state == 5 {
               __self_0.state = 4
-              return [__self_0.s2 + 100, Continuation(0)] :[i32, Continuation]
+              return __self_0.s2 + 100
           } else if __self_0.state == 6 {
               __self_0.s2 = __self_0.s1 * 2
               __self_0.state = 5
@@ -397,17 +397,17 @@
               }
           } else if __self_0.state == 8 {
               __self_0.state = 7
-              return [__self_0.s1, Continuation(0)] :[i32, Continuation]
+              return __self_0.s1
           } else if __self_0.state == 9 {
               __self_0.s1 = 0
               __self_0.state = 2
           } else {
-              return [0, Continuation(1)] :[i32, Continuation]
+              return std.core.STOP
           }
       }
   }
   snippet$$genstate_relay :: struct { s0: i32[], s1: i32[], s2: fn(i32) -> i32, s3: fn(i32) -> i32, s4: i64, s5: i64, s6: i32, s7: i32, s8: i32, s9: i32[], s10: fn(i32) -> i32, s11: fn(i32) -> i32, s12: i64, s13: i64, s14: i32, s15: i32, s16: i32, state: i32 }
-  snippet$$genstate_relay$Iterator$next :: fn(self: $genstate_relay) -> [i32, Continuation] {
+  snippet$$genstate_relay$Iterator$next :: fn(self: $genstate_relay) -> i32 | Stop {
       dispatch$: for {
           if __self_6.state == 0 {
               __self_6.state = -1
@@ -439,7 +439,7 @@
               __self_6.state = 4
           } else if __self_6.state == 9 {
               __self_6.state = 8
-              return [__self_6.s16 * 100, Continuation(0)] :[i32, Continuation]
+              return __self_6.s16 * 100
           } else if __self_6.state == 10 {
               if __self_6.s16 > __self_6.s8 {
                   __self_6.state = 9
@@ -460,7 +460,7 @@
               __self_6.state = 5
           } else if __self_6.state == 13 {
               __self_6.state = 12
-              return [__self_6.s8, Continuation(0)] :[i32, Continuation]
+              return __self_6.s8
           } else if __self_6.state == 14 {
               __self_6.s6 = __self_6.s1[__self_6.s5]
               __self_6.s7 = __self_6.s2(__self_6.s6)
@@ -474,7 +474,7 @@
               __self_6.s5 = 0
               __self_6.state = 2
           } else {
-              return [0, Continuation(1)] :[i32, Continuation]
+              return std.core.STOP
           }
       }
   }
@@ -492,10 +492,10 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.array_iter<i32>  // std_core$array_iter__i32
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32[].into  // std_core$$array$Into$into__i32
     fn std.core.write_bool  // std_core$write_bool
@@ -504,6 +504,7 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std_core$__gen_state_std_core_0$Iterator$next
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
   std/io
     fn std.io.println<string>  // std_io$println__string

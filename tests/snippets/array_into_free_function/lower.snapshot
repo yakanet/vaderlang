@@ -2,12 +2,12 @@
 
 ## snippet
   snippet.Reversed :: struct { items: i32[], pos: i32 }  // snippet$Reversed
-  snippet.Reversed.next :: fn(self: Reversed) -> [i32, Continuation] {  // snippet$Reversed$std_core$Iterator$next
+  snippet.Reversed.next :: fn(self: Reversed) -> i32 | Stop {  // snippet$Reversed$std_core$Iterator$next
       if self.pos >= @array.len(self.items) {
-          return [0, Continuation(1)] :[i32, Continuation]
+          return std.core.STOP
       }
       self.pos = self.pos + 1
-      return [self.items[@array.len(self.items) - self.pos], Continuation(0)] :[i32, Continuation]
+      return self.items[@array.len(self.items) - self.pos]
   }
   snippet.into :: fn(xs: i32[]) -> Reversed {  // snippet$into
       Reversed { .items = xs, .pos = 0 }
@@ -18,11 +18,11 @@
       {
           __iter_0: Reversed = snippet.into(xs)
           for {
-              __step_1: [i32, Continuation] = snippet.Reversed.next(__iter_0)
-              if __step_1._1 == Continuation(1) {
+              __step_1: i32 | Stop = snippet.Reversed.next(__iter_0)
+              if __step_1 is Stop {
                   break
               } else {
-                  x: i32 = __step_1._0
+                  x: i32 = i32(__step_1)
                   @array.push_cached(walked, x)
               }
           }
@@ -34,11 +34,11 @@
           out: i32[] = [] :i32[]
           {
               for {
-                  __fuse_step_0: [i32, Continuation] = snippet.Reversed.next(__fuse_iter_2)
-                  if __fuse_step_0._1 == Continuation(1) {
+                  __fuse_step_0: i32 | Stop = snippet.Reversed.next(__fuse_iter_2)
+                  if __fuse_step_0 is Stop {
                       break
                   } else {
-                      x: i32 = __fuse_step_0._0
+                      x: i32 = i32(__fuse_step_0)
                       x: i32 = __lambda_snippet_0(x)
                       @array.push(out, x)
                   }
@@ -84,6 +84,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -95,6 +96,7 @@
     fn std.core.string[].to_string  // std_core$$array$Display$to_string__string
     fn std.core.write_string_at  // std_core$write_string_at
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

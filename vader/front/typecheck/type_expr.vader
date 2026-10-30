@@ -210,9 +210,22 @@ substitute_alias_args :: fn(t: Type, params: TypeParamType[], args: Type[]) -> T
     return substitute_map(t, bindings)
 }
 
-// `target` instantiated with `args` : an alias's body with its parameters
-// substituted, any other type built from its symbol.
-instantiate_named :: fn(target: Symbol, args: Type[], resolved: ResolvedModule) -> Type {
+// `target` instantiated with `args`, written at `span` : an alias's body with its
+// parameters substituted, any other type built from its symbol. T3121 when the
+// instance is an `Iterator` over a `Stop`.
+instantiate_named :: fn(
+    target: Symbol,
+    args: Type[],
+    span: Span,
+    resolved: ResolvedModule,
+    diags: Diagnostic[],
+) -> Type {
+    instance :: instance_of_named(target, args, resolved)
+    reject_iterator_of_stop(instance, span, diags)
+    return instance
+}
+
+instance_of_named :: fn(target: Symbol, args: Type[], resolved: ResolvedModule) -> Type {
     aliased :: resolved.alias_types[target.id] ?? return type_from_symbol(target, args)
     params :: resolved.alias_params[target.id] ?? return aliased
     return substitute_alias_args(aliased, params, args)
@@ -237,7 +250,7 @@ lower_call_in_type_position :: fn(
     for a in e.args { args.push(type_from_expr(a.value, resolved, diags)) }
     if e.callee is AST.IdentExpr {
         target :: lookup_type_name(e.callee, resolved) ?? return TY_UNRESOLVED
-        return instantiate_named(target, args, resolved)
+        return instantiate_named(target, args, e.span, resolved, diags)
     }
     return TY_UNRESOLVED
 }
@@ -259,7 +272,7 @@ lower_generic_inst :: fn(
     args :: written_type_args(e.type_args, resolved, diags)
     if e.callee is AST.IdentExpr {
         target :: lookup_type_name(e.callee, resolved) ?? return TY_UNRESOLVED
-        return instantiate_named(target, args, resolved)
+        return instantiate_named(target, args, e.span, resolved, diags)
     }
     return TY_UNRESOLVED
 }

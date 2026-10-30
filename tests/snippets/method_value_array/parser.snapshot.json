@@ -69,17 +69,16 @@
               }
             ],
             "returnType": {
-              "kind": "SeqLitExpr",
-              "elements": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                },
-                {
-                  "kind": "IdentExpr",
-                  "name": "Continuation"
-                }
-              ]
+              "kind": "BinaryExpr",
+              "op": "bitor",
+              "left": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "Stop"
+              }
             },
             "body": {
               "kind": "BlockExpr",
@@ -110,17 +109,8 @@
                         {
                           "kind": "ReturnStmt",
                           "value": {
-                            "kind": "SeqLitExpr",
-                            "elements": [
-                              {
-                                "kind": "IntLitExpr",
-                                "value": "0n"
-                              },
-                              {
-                                "kind": "DotVariantExpr",
-                                "variant": "Stop"
-                              }
-                            ]
+                            "kind": "IdentExpr",
+                            "name": "STOP"
                           }
                         }
                       ],
@@ -176,17 +166,8 @@
                 {
                   "kind": "ReturnStmt",
                   "value": {
-                    "kind": "SeqLitExpr",
-                    "elements": [
-                      {
-                        "kind": "IdentExpr",
-                        "name": "v"
-                      },
-                      {
-                        "kind": "DotVariantExpr",
-                        "variant": "Continue"
-                      }
-                    ]
+                    "kind": "IdentExpr",
+                    "name": "v"
                   }
                 }
               ],

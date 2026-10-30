@@ -28,11 +28,11 @@
               {
                   __iter_0: Iterator<i32> = snippet.countdown(n - 1)
                   for {
-                      __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-                      if __step_1._1 == Continuation(1) {
+                      __step_1: i32 | Stop = @vcall(std.core.Iterator.next, __iter_0)
+                      if __step_1 is Stop {
                           break
                       } else {
-                          x: i32 = __step_1._0
+                          x: i32 = i32(__step_1)
                           v: i32 = x
                           fused = concat_2(fused, {
                               __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
@@ -51,11 +51,11 @@
       {
           __iter_2: Iterator<i32> = it
           for {
-              __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-              if __step_3._1 == Continuation(1) {
+              __step_3: i32 | Stop = @vcall(std.core.Iterator.next, __iter_2)
+              if __step_3 is Stop {
                   break
               } else {
-                  v: i32 = __step_3._0
+                  v: i32 = i32(__step_3)
                   lazy = concat_2(lazy, {
                       __buf_4: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_5: i64 = 0
@@ -69,8 +69,8 @@
       std.io.println<string>(concat_4("countdown(3):", fused, " |", lazy))
       return 0
   }
-  snippet$$genstate_countdown :: struct { s0: i32, s1: i32, s2: i32, s3: Iterator<i32>, s4: [i32, Continuation], s5: i32, state: i32 }
-  snippet$$genstate_countdown$Iterator$next :: fn(self: $genstate_countdown) -> [i32, Continuation] {
+  snippet$$genstate_countdown :: struct { s0: i32, s1: i32, s2: i32, s3: Iterator<i32>, s4: i32 | Stop, s5: i32, state: i32 }
+  snippet$$genstate_countdown$Iterator$next :: fn(self: $genstate_countdown) -> i32 | Stop {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -94,13 +94,13 @@
               __self_0.state = 6
           } else if __self_0.state == 10 {
               __self_0.state = 9
-              return [__self_0.s2, Continuation(0)] :[i32, Continuation]
+              return __self_0.s2
           } else if __self_0.state == 11 {
-              __self_0.s5 = __self_0.s4._0
+              __self_0.s5 = i32(__self_0.s4)
               __self_0.s2 = __self_0.s5
               __self_0.state = 10
           } else if __self_0.state == 12 {
-              if __self_0.s4._1 == Continuation(1) {
+              if __self_0.s4 is Stop {
                   __self_0.state = 8
               } else {
                   __self_0.state = 11
@@ -113,7 +113,7 @@
               __self_0.state = 5
           } else if __self_0.state == 15 {
               __self_0.state = 14
-              return [__self_0.s2, Continuation(0)] :[i32, Continuation]
+              return __self_0.s2
           } else if __self_0.state == 16 {
               __self_0.s2 = __self_0.s1
               __self_0.state = 15
@@ -128,7 +128,7 @@
               __self_0.state = 17
           } else if __self_0.state == 19 {
               __self_0.state = 18
-              return [__self_0.s0, Continuation(0)] :[i32, Continuation]
+              return __self_0.s0
           } else if __self_0.state == 20 {
               if __self_0.s0 > 0 {
                   __self_0.state = 19
@@ -136,7 +136,7 @@
                   __self_0.state = 0
               }
           } else {
-              return [0, Continuation(1)] :[i32, Continuation]
+              return std.core.STOP
           }
       }
   }
@@ -164,6 +164,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -173,6 +174,7 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

@@ -1130,6 +1130,11 @@ in_for_element :: fn(
     iter_ty :: check_expr(w.iter, null, typed, diags)
     retire_narrowings_entering_loop(s, typed)
     elem :: for_in_element(iter_ty, typed)
+    // A generic impl (`Wrapper<T> implements<T> Iterator<T>`) gives a struct's
+    // element here ; an iterable of any other kind wrote its own.
+    if iter_ty is StructType {
+        reject_stop_element(elem, w.iter.span, diags)
+    }
     // A `for` reaches `Iterator`, or the `Into` toward one, without its
     // argument (T3097).
     several :: several_iterators_trait(iter_ty, typed)

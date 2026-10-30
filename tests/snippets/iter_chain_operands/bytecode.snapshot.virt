@@ -10,10 +10,13 @@ type 7 scalar bool
 type 8 struct __lambda_env_snippet_1 { cap_0:3 }
 type 9 struct __lambda_env_snippet_3 { cap_0:3 }
 type 10 struct std_core$Range__i32 { start:3,end:3,inclusive:7,done:7,cursor:3 }
-type 11 scalar u8
-type 12 struct std_core$Buffer {  }
-type 13 array 11
-type 14 scalar void
+type 11 union 3,12
+type 12 struct std_core$Stop {  }
+type 13 struct std_core$Buffer {  }
+type 14 scalar u8
+type 15 array 14
+type 16 scalar void
+type 17 array 12
 string 0 "source "
 string 1 "bound "
 string 2 "limit "
@@ -42,11 +45,12 @@ string 24 "in = "
 string 25 "true"
 string 26 "false"
 string 27 "\n"
+data 0 structs 12 0 1
 import 0 byte_len std_core$byte_len result_type=4 param_types=1 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=13 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=3,13,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes std_core$bytes result_type=15 param_types=1 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=3,15,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 10 std_core$Iterator
-impl 12 std_core$ByteAccess
+impl 13 std_core$ByteAccess
 impl 10 std_core$Contains
 export main 5
 
@@ -176,7 +180,6 @@ fn 5 snippet$main () -> i32
   local __fuse_i_1 i64
   local x i32
   local __in_hi_59 i32
-  local $call_elem_457 u8
   i32.const 1
   i32.const 2
   i32.const 3
@@ -894,15 +897,13 @@ fn 5 snippet$main () -> i32
   local.set 0   ; xs
   loop $L36 void
     local.get 0   ; xs
-    call 9   ; std_core$Range$Iterator$next__i32$v
-    local.set 17   ; $call_elem_457
-    local.set 16   ; __in_hi_59
-    local.get 17   ; $call_elem_457
-    i32.const 1
-    i32.eq
+    call 9   ; std_core$Range$Iterator$next__i32
+    local.tee 10   ; __coalesce_8
+    type_check 12   ; std_core$Stop
     if $L37 void
     else
-      local.get 16   ; __in_hi_59
+      local.get 10   ; __coalesce_8
+      ref.cast 3   ; i32
       local.set 11   ; x
       i64.const 36
       buffer.new
@@ -1102,89 +1103,61 @@ fn 8 concat_2 (string,string) -> string
   return
 end
 
-fn 9 std_core$Range$Iterator$next__i32$v (ref) -> (i32,u8)
-  local over bool
-  local $field_5 i32
-  local $field_6 i32
-  local $k_24 u8
-  local.field 0 10 2   ; arg 0 std_core$Range__i32.inclusive
+fn 9 std_core$Range$Iterator$next__i32 (ref) -> any
+  local v i32
+  local $field_7 i32
+  local $call_16 i32
+  local.field 0 10 3   ; arg 0 std_core$Range__i32.done
   ref.cast 7   ; bool
   if $L0 void
-    local.field 0 10 3   ; arg 0 std_core$Range__i32.done
-    ref.cast 7   ; bool
-    if $L1 void
-      bool.const true
-      local.set 1   ; over
-    else
-      local.field 0 10 4   ; arg 0 std_core$Range__i32.cursor
-      ref.cast 3   ; i32
-      local.set 2   ; $field_5
-      local.field 0 10 1   ; arg 0 std_core$Range__i32.end
-      ref.cast 3   ; i32
-      local.set 3   ; $field_6
-      local.get 2   ; $field_5
-      local.get 3   ; $field_6
-      i32.gt
-      local.set 1   ; over
-    end $L1
-  else
-    local.field 0 10 4   ; arg 0 std_core$Range__i32.cursor
-    ref.cast 3   ; i32
-    local.set 2   ; $field_5
-    local.field 0 10 1   ; arg 0 std_core$Range__i32.end
-    ref.cast 3   ; i32
-    local.set 3   ; $field_6
-    local.get 2   ; $field_5
-    local.get 3   ; $field_6
-    i32.ge
-    local.set 1   ; over
-  end $L0
-  local.get 1   ; over
-  if $L2 void
-    local.field 0 10 4   ; arg 0 std_core$Range__i32.cursor
-    ref.cast 3   ; i32
-    i32.const 1
+    data.const 0 17   ; pool[0] std_core$Stop[]
+    i64.const 0
+    array.get 17   ; std_core$Stop[]
     return
-  end $L2
+  end $L0
   local.field 0 10 4   ; arg 0 std_core$Range__i32.cursor
   ref.cast 3   ; i32
-  local.set 2   ; $field_5
+  local.set 1   ; v
+  local.field 0 10 1   ; arg 0 std_core$Range__i32.end
+  ref.cast 3   ; i32
+  local.set 2   ; $field_7
+  local.get 1   ; v
+  local.get 2   ; $field_7
+  i32.ge
+  if $L1 void
+  else
+    local.get 1   ; v
+    call 14   ; std_core$i32$Step$step
+    local.set 3   ; $call_16
+    local.get 0   ; arg 0
+    local.get 3   ; $call_16
+    struct.set 10 4   ; std_core$Range__i32.cursor
+    local.get 1   ; v
+    retag 3   ; i32
+    return
+  end $L1
   local.field 0 10 2   ; arg 0 std_core$Range__i32.inclusive
   ref.cast 7   ; bool
-  if $L3 void
+  if $L2 void
     local.field 0 10 1   ; arg 0 std_core$Range__i32.end
     ref.cast 3   ; i32
-    local.set 3   ; $field_6
-    local.get 2   ; $field_5
-    local.get 3   ; $field_6
-    i32.ge
-    local.set 1   ; over
-  else
-    bool.const false
-    local.set 1   ; over
-  end $L3
-  local.get 1   ; over
-  if $L4 void
-    local.get 0   ; arg 0
-    bool.const true
-    struct.set 10 3   ; std_core$Range__i32.done
-    i32.const 0
-    local.set 4   ; $k_24
-    local.get 2   ; $field_5
-    local.get 4   ; $k_24
-    return
-  end $L4
-  local.field 0 10 4   ; arg 0 std_core$Range__i32.cursor
-  ref.cast 3   ; i32
-  call 14   ; std_core$i32$Step$step
-  local.set 3   ; $field_6
-  local.get 0   ; arg 0
-  local.get 3   ; $field_6
-  struct.set 10 4   ; std_core$Range__i32.cursor
-  i32.const 0
-  local.set 4   ; $k_24
-  local.get 2   ; $field_5
-  local.get 4   ; $k_24
+    local.set 2   ; $field_7
+    local.get 1   ; v
+    local.get 2   ; $field_7
+    i32.gt
+    if $L3 void
+    else
+      local.get 0   ; arg 0
+      bool.const true
+      struct.set 10 3   ; std_core$Range__i32.done
+      local.get 1   ; v
+      retag 3   ; i32
+      return
+    end $L3
+  end $L2
+  data.const 0 17   ; pool[0] std_core$Stop[]
+  i64.const 0
+  array.get 17   ; std_core$Stop[]
   return
 end
 
@@ -1383,7 +1356,7 @@ fn 15 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 13   ; u8[]
+      array.slice 15   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

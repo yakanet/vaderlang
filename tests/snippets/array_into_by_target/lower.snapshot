@@ -20,11 +20,11 @@
       {
           __iter_0: Iterator<Mon> = it
           for {
-              __step_1: [Mon, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == Continuation(1) {
+              __step_1: Mon | Stop = @vcall(std.core.Iterator.next, __iter_0)
+              if __step_1 is Stop {
                   break
               } else {
-                  m: Mon = __step_1._0
+                  m: Mon = Mon(__step_1)
                   n = n + m.v
               }
           }
@@ -89,7 +89,7 @@
       return 0
   }
   snippet$$genstate_labels :: struct { s0: Mon[], s1: Mon[], s2: i64, s3: i64, s4: Mon, state: i32 }
-  snippet$$genstate_labels$Iterator$next :: fn(self: $genstate_labels) -> [Label, Continuation] {
+  snippet$$genstate_labels$Iterator$next :: fn(self: $genstate_labels) -> Label | Stop {
       dispatch$: for {
           if __self_5.state == 0 {
               __self_5.state = -1
@@ -106,7 +106,7 @@
               __self_5.state = 2
           } else if __self_5.state == 4 {
               __self_5.state = 3
-              return [Label {
+              return Label {
                   .s = {
                       __buf_3: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_4: i64 = 0
@@ -114,7 +114,7 @@
                       __off_4 = std.core.write_int(__buf_3, __off_4, __self_5.s4.v)
                       std.core.finish_buffer(__buf_3, __off_4)
                   } :string,
-              }, Continuation(0)] :[Label, Continuation]
+              }
           } else if __self_5.state == 5 {
               __self_5.s4 = __self_5.s1[__self_5.s3]
               __self_5.state = 4
@@ -124,7 +124,7 @@
               __self_5.s3 = 0
               __self_5.state = 2
           } else {
-              return [null, Continuation(1)] :[Label, Continuation]
+              return std.core.STOP
           }
       }
   }
@@ -152,11 +152,11 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #1, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Mon[].into  // std_core$$array$Into$into__snippet_Mon
-    fn std.core.array_iter<Mon>  // std_core$array_iter__snippet_Mon
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
@@ -164,6 +164,7 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std_core$__gen_state_std_core_0$Iterator$next
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
   std/io
     fn std.io.println<string>  // std_io$println__string

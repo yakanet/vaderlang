@@ -12,23 +12,20 @@
   expr 16:24    FieldExpr      :: i32[]
   expr 16:24    IdentExpr      :: Reversed
   expr 16:9     IfExpr         :: void
-  expr 17:20    SeqLitExpr     :: [i32, Continuation]
-  expr 17:24    DotVariantExpr :: Continuation
+  expr 17:20    IdentExpr      :: Stop
   expr 19:9     BinaryExpr     :: i32
   expr 19:9     FieldExpr      :: i32
   expr 19:9     IdentExpr      :: Reversed
-  expr 20:16    SeqLitExpr     :: [i32, Continuation]
-  expr 20:17    FieldExpr      :: i32[]
-  expr 20:17    IdentExpr      :: Reversed
-  expr 20:17    IndexExpr      :: i32
-  expr 20:28    BinaryExpr     :: i64
-  expr 20:28    CallExpr       :: i64
-  expr 20:28    FieldExpr      :: fn() -> i64
-  expr 20:28    FieldExpr      :: i32[]
-  expr 20:28    IdentExpr      :: Reversed
-  expr 20:47    FieldExpr      :: i32
-  expr 20:47    IdentExpr      :: Reversed
-  expr 20:58    DotVariantExpr :: Continuation
+  expr 20:16    FieldExpr      :: i32[]
+  expr 20:16    IdentExpr      :: Reversed
+  expr 20:16    IndexExpr      :: i32
+  expr 20:27    BinaryExpr     :: i64
+  expr 20:27    CallExpr       :: i64
+  expr 20:27    FieldExpr      :: fn() -> i64
+  expr 20:27    FieldExpr      :: i32[]
+  expr 20:27    IdentExpr      :: Reversed
+  expr 20:46    FieldExpr      :: i32
+  expr 20:46    IdentExpr      :: Reversed
   expr 24:37    StructLitExpr  :: Reversed
   expr 24:57    IdentExpr      :: i32[]
   expr 27:11    SeqLitExpr     :: i32[]

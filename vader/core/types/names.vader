@@ -305,9 +305,9 @@ export async_result_arg :: fn(result: Type) -> Type = if is_void(result) { TY_NU
 /// Names of stdlib core structs the compiler refers to by symbol.
 export STRUCT_RANGE          :: @type_name(Range)
 
-/// `std/core::Continuation` and its variants: what an `Iterator.next` pairs its
-/// element with. The lowerer builds the comparison, so the spellings live beside
-/// the type.
+/// `std/core::Continuation` and its variants, for a std/core whose
+/// `Iterator.next` pairs its element with one (`[T, Continuation]`). Spelled out:
+/// `@type_name` needs the enum, which this tree's std/core does not declare.
 export ENUM_CONTINUATION     :: "Continuation"
 export CONTINUATION_STOP     :: "Stop"
 export CONTINUATION_CONTINUE :: "Continue"
@@ -316,10 +316,7 @@ export STRUCT_FIELD          :: @type_name(Field)
 
 /// `std/core::Stop`, what an `Iterator.next` returns once the iteration is over,
 /// and `STOP`, the one value of it a synthesised `next` returns.
-///
-/// `Stop` and `Continuation` are spelled out rather than taken by `@type_name`:
-/// std/core declares one of the two, and the compiler builds against either.
-export STRUCT_STOP :: "Stop"
+export STRUCT_STOP :: @type_name(Stop)
 export CONST_STOP  :: "STOP"
 
 /// Method names the compiler dispatches by, paired with the `TRAIT_*` above

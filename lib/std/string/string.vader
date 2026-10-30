@@ -74,21 +74,19 @@ StringChars implements Iterator<char> {
     // multi-byte case is left to `decode_tail`, and the length is read with
     // `byte_len()` rather than cached in a field, so the bounds checks of the
     // continuation bytes fold away.
-    next :: fn(self) -> [char, Continuation] {
+    next :: fn(self) -> char | Stop {
         i :: self.cursor
         if i >= self.s.byte_len() {
-            // The element beside `Stop` is never read; `char` is concrete here,
-            // so any one does.
-            return [' ', .Stop]
+            return STOP
         }
         b :: self.s.byte_at(i)
         if b < 0x80 {
             self.cursor = i + 1
-            return [char(b), .Continue]
+            return char(b)
         }
         [code, width] :: decode_tail(self.s, b, i)
         self.cursor = i + width
-        return [char(code), .Continue]
+        return char(code)
     }
 }
 

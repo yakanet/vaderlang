@@ -3,27 +3,30 @@ type 0 scalar null
 type 1 ref std_core$Iterator
 type 2 scalar i32
 type 3 struct snippet$$genstate_maybe { state:2 }
-type 4 struct __Tuple_Union_i32_null_u8_9381f7b1 { _0:5,_1:6 }
-type 5 union 2,0
-type 6 scalar u8
-type 7 scalar string
-type 8 struct std_core$Buffer {  }
-type 9 scalar i64
+type 4 union 2,0,5
+type 5 struct std_core$Stop {  }
+type 6 scalar string
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
+type 9 scalar u8
 type 10 scalar bool
-type 11 array 6
+type 11 array 9
 type 12 scalar void
-type 13 array 5
-type 14 ref $genstate_maybe
+type 13 array 14
+type 14 union 2,0
+type 15 ref $genstate_maybe
+type 16 array 5
 string 0 "array  seen="
 string 1 " nulls="
 string 2 " sum="
 string 3 "gen    seen="
 string 4 "\n"
-import 0 byte_len std_core$byte_len result_type=9 param_types=7 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=11 param_types=7 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=2,11,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+data 0 structs 5 0 1
+import 0 byte_len std_core$byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=11 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=2,11,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 3 std_core$Iterator
-impl 8 std_core$ByteAccess
+impl 7 std_core$ByteAccess
 vtable std_core$Iterator.next 3 2
 export main 1
 
@@ -43,8 +46,9 @@ fn 1 snippet$main () -> i32
   local x any
   local $cast_28 i32
   local gsum i32
+  local __step_6 any
   local y any
-  local $cast_71 i32
+  local $cast_69 i32
   i32.const 1
   retag 2   ; i32
   null.const
@@ -164,20 +168,18 @@ fn 1 snippet$main () -> i32
   local.set 8   ; gsum
   loop $L3 void
     local.get 6   ; x
-    virtual.call 1 std_core$Iterator.next -> ref
-    local.set 3   ; __for_arr_0
-    local.field 3 4 1   ; __for_arr_0 __Tuple_Union_i32_null_u8_9381f7b1._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 9   ; __step_6
+    type_check 5   ; std_core$Stop
     if $L4 void
     else
-      local.field 3 4 0   ; __for_arr_0 __Tuple_Union_i32_null_u8_9381f7b1._0
-      local.set 9   ; y
+      local.get 9   ; __step_6
+      local.set 10   ; y
       local.get 2   ; sum
       i32.const 1
       i32.checked_add
       local.set 2   ; sum
-      local.get 9   ; y
+      local.get 10   ; y
       type_check 0   ; null
       if $L5 void
         local.get 7   ; $cast_28
@@ -186,11 +188,11 @@ fn 1 snippet$main () -> i32
         local.set 7   ; $cast_28
         br $L3
       end $L5
-      local.get 9   ; y
+      local.get 10   ; y
       ref.cast 2   ; i32
-      local.set 10   ; $cast_71
+      local.set 11   ; $cast_69
       local.get 8   ; gsum
-      local.get 10   ; $cast_71
+      local.get 11   ; $cast_69
       i32.checked_add
       local.set 8   ; gsum
       br $L3
@@ -252,8 +254,7 @@ fn 1 snippet$main () -> i32
   return
 end
 
-fn 2 snippet$$genstate_maybe$Iterator$next (ref) -> ref
-  local $k_40 any
+fn 2 snippet$$genstate_maybe$Iterator$next (ref) -> any
   loop $L0 void
     local.field 0 3 0   ; arg 0 snippet$$genstate_maybe.state
     ref.cast 2   ; i32
@@ -276,8 +277,6 @@ fn 2 snippet$$genstate_maybe$Iterator$next (ref) -> ref
     struct.set 3 0   ; snippet$$genstate_maybe.state
     i32.const 5
     retag 2   ; i32
-    i32.const 0
-    struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
     return
   end $L2
   local.field 0 3 0   ; arg 0 snippet$$genstate_maybe.state
@@ -288,10 +287,7 @@ fn 2 snippet$$genstate_maybe$Iterator$next (ref) -> ref
     local.get 0   ; arg 0
     i32.const 1
     struct.set 3 0   ; snippet$$genstate_maybe.state
-    null.const
-    i32.const 0
-    struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
-    return
+    return.lit null.const
   end $L3
   local.field 0 3 0   ; arg 0 snippet$$genstate_maybe.state
   ref.cast 2   ; i32
@@ -303,8 +299,6 @@ fn 2 snippet$$genstate_maybe$Iterator$next (ref) -> ref
     struct.set 3 0   ; snippet$$genstate_maybe.state
     i32.const 3
     retag 2   ; i32
-    i32.const 0
-    struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
     return
   end $L4
   local.field 0 3 0   ; arg 0 snippet$$genstate_maybe.state
@@ -315,10 +309,7 @@ fn 2 snippet$$genstate_maybe$Iterator$next (ref) -> ref
     local.get 0   ; arg 0
     i32.const 3
     struct.set 3 0   ; snippet$$genstate_maybe.state
-    null.const
-    i32.const 0
-    struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
-    return
+    return.lit null.const
   end $L5
   local.field 0 3 0   ; arg 0 snippet$$genstate_maybe.state
   ref.cast 2   ; i32
@@ -326,11 +317,9 @@ fn 2 snippet$$genstate_maybe$Iterator$next (ref) -> ref
   i32.eq
   if $L6 void
   else
-    null.const
-    local.set 1   ; $k_40
-    local.get 1   ; $k_40
-    i32.const 1
-    struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
+    data.const 0 16   ; pool[0] std_core$Stop[]
+    i64.const 0
+    array.get 16   ; std_core$Stop[]
     return
   end $L6
   local.get 0   ; arg 0
@@ -338,8 +327,6 @@ fn 2 snippet$$genstate_maybe$Iterator$next (ref) -> ref
   struct.set 3 0   ; snippet$$genstate_maybe.state
   i32.const 1
   retag 2   ; i32
-  i32.const 0
-  struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
   return
 end
 

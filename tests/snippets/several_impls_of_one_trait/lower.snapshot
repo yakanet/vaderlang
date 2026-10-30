@@ -81,12 +81,12 @@
       [self.s, self.t, self.u] :[string, string, string]
   }
   snippet.Counter :: struct { n: i32 }  // snippet$Counter
-  snippet.Counter.next :: fn(self: Counter) -> [i32, Continuation] {  // snippet$Counter$std_core$Iterator$next
+  snippet.Counter.next :: fn(self: Counter) -> i32 | Stop {  // snippet$Counter$std_core$Iterator$next
       if self.n >= 2 {
-          return [0, Continuation(1)] :[i32, Continuation]
+          return std.core.STOP
       }
       self.n = self.n + 1
-      return [self.n, Continuation(0)] :[i32, Continuation]
+      return self.n
   }
   snippet.Counter.into :: fn(self: Counter) -> Iterator<string> {  // snippet$Counter$std_core$Into$into
       std.core.string[].into(["a", "b"] :string[])
@@ -194,11 +194,11 @@
       {
           __iter_23: Counter = counter
           for {
-              __step_24: [i32, Continuation] = snippet.Counter.next(__iter_23)
-              if __step_24._1 == Continuation(1) {
+              __step_24: i32 | Stop = snippet.Counter.next(__iter_23)
+              if __step_24 is Stop {
                   break
               } else {
-                  k: i32 = __step_24._0
+                  k: i32 = i32(__step_24)
                   std.io.println<string>({
                       __buf_25: Buffer = std.core.new_byte_buffer(i64(26))
                       __off_26: i64 = 0
@@ -315,13 +315,13 @@
 
 ## lowered in dependencies
   std/core
-    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
-    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #1
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #2
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.array_iter<string>  // std_core$array_iter__string
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
     fn std.core.d2d  // std_core$d2d
@@ -352,6 +352,7 @@
     fn std_core$__gen_state_std_core_0$Iterator$next
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
+    struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
   std/io
     fn std.io.println<string>  // std_io$println__string

@@ -84,17 +84,16 @@
               }
             ],
             "returnType": {
-              "kind": "SeqLitExpr",
-              "elements": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                },
-                {
-                  "kind": "IdentExpr",
-                  "name": "Continuation"
-                }
-              ]
+              "kind": "BinaryExpr",
+              "op": "bitor",
+              "left": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "Stop"
+              }
             },
             "body": {
               "kind": "BlockExpr",
@@ -137,17 +136,8 @@
                         {
                           "kind": "ReturnStmt",
                           "value": {
-                            "kind": "SeqLitExpr",
-                            "elements": [
-                              {
-                                "kind": "IntLitExpr",
-                                "value": "0n"
-                              },
-                              {
-                                "kind": "DotVariantExpr",
-                                "variant": "Stop"
-                              }
-                            ]
+                            "kind": "IdentExpr",
+                            "name": "STOP"
                           }
                         }
                       ],
@@ -186,52 +176,43 @@
                 {
                   "kind": "ReturnStmt",
                   "value": {
-                    "kind": "SeqLitExpr",
-                    "elements": [
-                      {
-                        "kind": "IndexExpr",
-                        "target": {
+                    "kind": "IndexExpr",
+                    "target": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "self"
+                      },
+                      "field": "items"
+                    },
+                    "index": {
+                      "kind": "BinaryExpr",
+                      "op": "sub",
+                      "left": {
+                        "kind": "CallExpr",
+                        "callee": {
                           "kind": "FieldExpr",
                           "target": {
-                            "kind": "IdentExpr",
-                            "name": "self"
-                          },
-                          "field": "items"
-                        },
-                        "index": {
-                          "kind": "BinaryExpr",
-                          "op": "sub",
-                          "left": {
-                            "kind": "CallExpr",
-                            "callee": {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "FieldExpr",
-                                "target": {
-                                  "kind": "IdentExpr",
-                                  "name": "self"
-                                },
-                                "field": "items"
-                              },
-                              "field": "len"
-                            },
-                            "args": []
-                          },
-                          "right": {
                             "kind": "FieldExpr",
                             "target": {
                               "kind": "IdentExpr",
                               "name": "self"
                             },
-                            "field": "pos"
-                          }
-                        }
+                            "field": "items"
+                          },
+                          "field": "len"
+                        },
+                        "args": []
                       },
-                      {
-                        "kind": "DotVariantExpr",
-                        "variant": "Continue"
+                      "right": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "self"
+                        },
+                        "field": "pos"
                       }
-                    ]
+                    }
                   }
                 }
               ],

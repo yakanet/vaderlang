@@ -1,0 +1,52 @@
+// `Iterator.next` returns `T | Stop`, so an element that can hold `Stop` would end
+// the iteration at the first such element. Each site where the element turns
+// concrete is a T3121: a written type (`drain`), an impl's header (`Stops`), the
+// instance a generic function takes at a call (`relay(Stops {})`) or as a value
+// (`relay<Stop>`), and a `for` over a struct whose generic impl yields one
+// (`Wrapper<Stop | i32>`). An `Iterator<T>` over a type parameter (`relay`) and
+// an array of `Stop` (`first_of`) pass.
+module "snippet"
+
+export drain :: fn(it: Iterator<i32 | Stop>) -> i32 = 0
+
+export Stops :: struct {}
+
+Stops implements Iterator<Stop> {
+    next :: fn(self) -> Stop = STOP
+}
+
+export relay :: fn<T>(it: Iterator<T>) -> Iterator<T> = it
+
+export first_of :: fn(xs: Stop[]) -> i32 {
+    n := 0
+    for x in xs {
+        n += 1
+    }
+    return n
+}
+
+export Wrapper :: struct<T> {
+    value: T
+    done: bool
+}
+
+Wrapper<T> implements<T> Iterator<T> {
+    next :: fn(self) -> T | Stop {
+        if self.done {
+            return STOP
+        }
+        self.done = true
+        return self.value
+    }
+}
+
+main :: fn() -> i32 {
+    relay(Stops {})
+    pass :: relay<Stop>
+    w :: Wrapper<Stop | i32> { .value = 1, .done = false }
+    n := first_of([STOP])
+    for x in w {
+        n += 1
+    }
+    return n
+}

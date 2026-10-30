@@ -342,11 +342,11 @@
       {
           __iter_48: Range<i32> = r
           for {
-              __step_49: [i32, Continuation] = std.core.Range<i32>.next(__iter_48)
-              if __step_49._1 == Continuation(1) {
+              __step_49: i32 | Stop = std.core.Range<i32>.next(__iter_48)
+              if __step_49 is Stop {
                   break
               } else {
-                  i: i32 = __step_49._0
+                  i: i32 = i32(__step_49)
                   std.io.println<string>({
                       __buf_50: Buffer = std.core.new_byte_buffer(i64(36))
                       __off_51: i64 = 0
@@ -422,6 +422,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -435,6 +436,7 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

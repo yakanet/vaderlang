@@ -84,17 +84,16 @@
               }
             ],
             "returnType": {
-              "kind": "SeqLitExpr",
-              "elements": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "T"
-                },
-                {
-                  "kind": "IdentExpr",
-                  "name": "Continuation"
-                }
-              ]
+              "kind": "BinaryExpr",
+              "op": "bitor",
+              "left": {
+                "kind": "IdentExpr",
+                "name": "T"
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "Stop"
+              }
             },
             "body": {
               "kind": "BlockExpr",
@@ -125,21 +124,8 @@
                         {
                           "kind": "ReturnStmt",
                           "value": {
-                            "kind": "SeqLitExpr",
-                            "elements": [
-                              {
-                                "kind": "FieldExpr",
-                                "target": {
-                                  "kind": "IdentExpr",
-                                  "name": "self"
-                                },
-                                "field": "value"
-                              },
-                              {
-                                "kind": "DotVariantExpr",
-                                "variant": "Stop"
-                              }
-                            ]
+                            "kind": "IdentExpr",
+                            "name": "STOP"
                           }
                         }
                       ],
@@ -195,17 +181,8 @@
                 {
                   "kind": "ReturnStmt",
                   "value": {
-                    "kind": "SeqLitExpr",
-                    "elements": [
-                      {
-                        "kind": "IdentExpr",
-                        "name": "v"
-                      },
-                      {
-                        "kind": "DotVariantExpr",
-                        "variant": "Continue"
-                      }
-                    ]
+                    "kind": "IdentExpr",
+                    "name": "v"
                   }
                 }
               ],
@@ -286,17 +263,16 @@
               }
             ],
             "returnType": {
-              "kind": "SeqLitExpr",
-              "elements": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "T"
-                },
-                {
-                  "kind": "IdentExpr",
-                  "name": "Continuation"
-                }
-              ]
+              "kind": "BinaryExpr",
+              "op": "bitor",
+              "left": {
+                "kind": "IdentExpr",
+                "name": "T"
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "Stop"
+              }
             },
             "body": {
               "kind": "BlockExpr",
@@ -319,21 +295,8 @@
                         {
                           "kind": "ReturnStmt",
                           "value": {
-                            "kind": "SeqLitExpr",
-                            "elements": [
-                              {
-                                "kind": "FieldExpr",
-                                "target": {
-                                  "kind": "IdentExpr",
-                                  "name": "self"
-                                },
-                                "field": "value"
-                              },
-                              {
-                                "kind": "DotVariantExpr",
-                                "variant": "Stop"
-                              }
-                            ]
+                            "kind": "IdentExpr",
+                            "name": "STOP"
                           }
                         }
                       ],
@@ -360,21 +323,12 @@
                 {
                   "kind": "ReturnStmt",
                   "value": {
-                    "kind": "SeqLitExpr",
-                    "elements": [
-                      {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "self"
-                        },
-                        "field": "value"
-                      },
-                      {
-                        "kind": "DotVariantExpr",
-                        "variant": "Continue"
-                      }
-                    ]
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "self"
+                    },
+                    "field": "value"
                   }
                 }
               ],
@@ -460,17 +414,8 @@
                     "kind": "LetStmt",
                     "mutable": false,
                     "binding": {
-                      "kind": "TupleBinding",
-                      "elements": [
-                        {
-                          "kind": "SimpleBinding",
-                          "name": "v"
-                        },
-                        {
-                          "kind": "SimpleBinding",
-                          "name": "c"
-                        }
-                      ]
+                      "kind": "SimpleBinding",
+                      "name": "v"
                     },
                     "type": null,
                     "value": {
@@ -491,14 +436,14 @@
                   "kind": "IfExpr",
                   "cond": {
                     "kind": "BinaryExpr",
-                    "op": "eq",
+                    "op": "is",
                     "left": {
                       "kind": "IdentExpr",
-                      "name": "c"
+                      "name": "v"
                     },
                     "right": {
-                      "kind": "DotVariantExpr",
-                      "variant": "Stop"
+                      "kind": "IdentExpr",
+                      "name": "Stop"
                     }
                   },
                   "then": {

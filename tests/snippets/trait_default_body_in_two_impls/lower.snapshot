@@ -172,11 +172,11 @@
       {
           __iter_10: Iterator<i32> = snippet.Square.multiples(s, 3)
           for {
-              __step_11: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_10)
-              if __step_11._1 == Continuation(1) {
+              __step_11: i32 | Stop = @vcall(std.core.Iterator.next, __iter_10)
+              if __step_11 is Stop {
                   break
               } else {
-                  m: i32 = __step_11._0
+                  m: i32 = i32(__step_11)
                   std.io.println<string>({
                       __buf_12: Buffer = std.core.new_byte_buffer(i64(27))
                       __off_13: i64 = 0
@@ -190,11 +190,11 @@
       {
           __iter_14: Iterator<i32> = snippet.Circle.multiples(c, 2)
           for {
-              __step_15: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_14)
-              if __step_15._1 == Continuation(1) {
+              __step_15: i32 | Stop = @vcall(std.core.Iterator.next, __iter_14)
+              if __step_15 is Stop {
                   break
               } else {
-                  m: i32 = __step_15._0
+                  m: i32 = i32(__step_15)
                   std.io.println<string>({
                       __buf_16: Buffer = std.core.new_byte_buffer(i64(27))
                       __off_17: i64 = 0
@@ -221,7 +221,7 @@
       } :string)
   }
   snippet$__gen_state_snippet_2 :: struct { s0: Square, s1: i32, s2: i32, state: i32 }
-  snippet$__gen_state_snippet_2$Iterator$next :: fn(self: __gen_state_snippet_2) -> [i32, Continuation] {
+  snippet$__gen_state_snippet_2$Iterator$next :: fn(self: __gen_state_snippet_2) -> i32 | Stop {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -238,12 +238,12 @@
               __self_0.state = 2
           } else if __self_0.state == 4 {
               __self_0.state = 3
-              return [__self_0.s2 * snippet.Square.size(__self_0.s0), Continuation(0)] :[i32, Continuation]
+              return __self_0.s2 * snippet.Square.size(__self_0.s0)
           } else if __self_0.state == 5 {
               __self_0.s2 = 0
               __self_0.state = 2
           } else {
-              return [0, Continuation(1)] :[i32, Continuation]
+              return std.core.STOP
           }
       }
   }
@@ -261,7 +261,7 @@
       } :string)
   }
   snippet$__gen_state_snippet_5 :: struct { s0: Circle, s1: i32, s2: i32, state: i32 }
-  snippet$__gen_state_snippet_5$Iterator$next :: fn(self: __gen_state_snippet_5) -> [i32, Continuation] {
+  snippet$__gen_state_snippet_5$Iterator$next :: fn(self: __gen_state_snippet_5) -> i32 | Stop {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -278,12 +278,12 @@
               __self_0.state = 2
           } else if __self_0.state == 4 {
               __self_0.state = 3
-              return [__self_0.s2 * snippet.Circle.size(__self_0.s0), Continuation(0)] :[i32, Continuation]
+              return __self_0.s2 * snippet.Circle.size(__self_0.s0)
           } else if __self_0.state == 5 {
               __self_0.s2 = 0
               __self_0.state = 2
           } else {
-              return [0, Continuation(1)] :[i32, Continuation]
+              return std.core.STOP
           }
       }
   }
@@ -312,6 +312,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -321,6 +322,7 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

@@ -1,0 +1,50 @@
+# Typecheck
+
+## tests/snippets/range_iterator_bounds
+  FnDecl         listed               :: fn(Iterator<T>) -> string
+  FnDecl         main                 :: fn() -> i32
+  expr 12:12    StringLitExpr  :: string
+  expr 13:14    IdentExpr      :: Iterator<T>
+  expr 14:15    BinaryExpr     :: string
+  expr 14:15    IdentExpr      :: string
+  expr 14:21    StringLitExpr  :: string
+  expr 14:24    IdentExpr      :: T
+  expr 14:9     IdentExpr      :: string
+  expr 16:12    StringLitExpr  :: string
+  expr 16:16    IdentExpr      :: string
+  expr 20:13    CallExpr       :: string
+  expr 20:13    IdentExpr      :: fn(Iterator<T>) -> string
+  expr 20:20    RangeExpr      :: Range<i32>
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:13    CallExpr       :: string
+  expr 21:13    IdentExpr      :: fn(Iterator<T>) -> string
+  expr 21:20    RangeExpr      :: Range<i32>
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 22:13    CallExpr       :: string
+  expr 22:13    IdentExpr      :: fn(Iterator<T>) -> string
+  expr 22:20    RangeExpr      :: Range<i32>
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 23:13    CallExpr       :: string
+  expr 23:13    IdentExpr      :: fn(Iterator<T>) -> string
+  expr 23:20    RangeExpr      :: Range<i32>
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 24:13    CallExpr       :: string
+  expr 24:13    IdentExpr      :: fn(Iterator<T>) -> string
+  expr 24:20    RangeExpr      :: Range<i32>
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 25:13    CallExpr       :: string
+  expr 25:13    IdentExpr      :: fn(Iterator<T>) -> string
+  expr 25:20    RangeExpr      :: Range<i32>
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 27:13    CallExpr       :: string
+  expr 27:13    IdentExpr      :: fn(Iterator<T>) -> string
+  expr 27:20    IdentExpr      :: u8
+  expr 27:20    RangeExpr      :: Range<u8>
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void

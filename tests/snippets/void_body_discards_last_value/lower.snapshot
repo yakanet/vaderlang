@@ -39,11 +39,11 @@
       {
           __iter_0: Iterator<i32> = it
           for {
-              __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == Continuation(1) {
+              __step_1: i32 | Stop = @vcall(std.core.Iterator.next, __iter_0)
+              if __step_1 is Stop {
                   break
               } else {
-                  x: i32 = __step_1._0
+                  x: i32 = i32(__step_1)
                   t.n = t.n + x
               }
           }
@@ -211,6 +211,7 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
     struct std.core.Suspended  // std_core$Suspended
   std/io
     fn std.io.println<string>  // std_io$println__string

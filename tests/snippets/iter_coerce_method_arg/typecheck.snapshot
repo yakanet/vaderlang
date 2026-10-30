@@ -7,12 +7,12 @@
   FnDecl         sum_both             :: fn(Iterator<i32>, Iterator<i32>) -> i32
   StructDecl     Tally                :: Tally
   FnDecl         walk                 :: fn(Iterator<i32>) -> i32
-  expr 23:19    CallExpr       :: [i32, Continuation]
-  expr 23:19    FieldExpr      :: fn() -> [i32, Continuation]
-  expr 23:19    IdentExpr      :: Iterator<i32>
+  expr 23:14    CallExpr       :: i32 | Stop
+  expr 23:14    FieldExpr      :: fn() -> i32 | Stop
+  expr 23:14    IdentExpr      :: Iterator<i32>
   expr 24:12    BinaryExpr     :: bool
-  expr 24:12    IdentExpr      :: Continuation
-  expr 24:17    DotVariantExpr :: Continuation
+  expr 24:12    IdentExpr      :: i32 | Stop
+  expr 24:17    IdentExpr      :: Stop
   expr 24:9     IfExpr         :: void
   expr 25:20    IdentExpr      :: i32
   expr 27:16    IdentExpr      :: i32

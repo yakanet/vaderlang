@@ -2,13 +2,13 @@
 
 ## snippet
   snippet.Countdown :: struct { remaining: i32 }  // snippet$Countdown
-  snippet.Countdown.next :: fn(self: Countdown) -> [i32, Continuation] {  // snippet$Countdown$std_core$Iterator$next
+  snippet.Countdown.next :: fn(self: Countdown) -> i32 | Stop {  // snippet$Countdown$std_core$Iterator$next
       if self.remaining <= 0 {
-          return [0, Continuation(1)] :[i32, Continuation]
+          return std.core.STOP
       }
       v: i32 = self.remaining
       self.remaining = self.remaining - 1
-      return [v, Continuation(0)] :[i32, Continuation]
+      return v
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<i64>({
@@ -82,11 +82,11 @@
           total: i64 = 0
           {
               for {
-                  __fuse_step_0: [i32, Continuation] = snippet.Countdown.next(__fuse_iter_5)
-                  if __fuse_step_0._1 == Continuation(1) {
+                  __fuse_step_0: i32 | Stop = snippet.Countdown.next(__fuse_iter_5)
+                  if __fuse_step_0 is Stop {
                       break
                   } else {
-                      _: i32 = __fuse_step_0._0
+                      _: i32 = i32(__fuse_step_0)
                       total = total + i64(1)
                   }
               }
@@ -107,6 +107,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -116,6 +117,7 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<bool>  // std_io$println__bool
     fn std.io.println<i32>  // std_io$println__i32

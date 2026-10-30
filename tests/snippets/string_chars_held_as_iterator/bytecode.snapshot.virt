@@ -9,18 +9,21 @@ type 6 scalar u32
 type 7 scalar bool
 type 8 array 5
 type 9 scalar void
-type 10 struct std_string$StringChars { s:2,cursor:4 }
-type 11 struct __Tuple_char_u8_37971378 { _0:12,_1:5 }
-type 12 scalar char
+type 10 struct std_core$Stop {  }
+type 11 struct std_string$StringChars { s:2,cursor:4 }
+type 12 union 13,10
+type 13 scalar char
+type 14 array 10
 string 0 "héllo"
 string 1 "\n"
+data 0 structs 10 0 1
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 byte_at std_core$byte_at result_type=5 param_types=2,4 param_c_out= param_by_address= (string,i64) -> u8
 import 2 bytes std_core$bytes result_type=8 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=1,8,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 3 std_core$ByteAccess
-impl 10 std_core$Iterator
-vtable std_core$Iterator.next 10 11
+impl 11 std_core$Iterator
+vtable std_core$Iterator.next 11 11
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -28,7 +31,7 @@ fn 0 snippet$main () -> i32
   local __iter_0 any
   local __buf_2 ref
   local __off_3 i64
-  local $cast_20 i64
+  local $cast_18 i64
   string.const 0   ; "héllo"
   call 10   ; std_string$chars
   local.set 1   ; __iter_0
@@ -36,10 +39,8 @@ fn 0 snippet$main () -> i32
   local.set 0   ; count
   loop $L0 void
     local.get 1   ; __iter_0
-    virtual.call 1 std_core$Iterator.next -> ref
-    struct.get 11 1   ; __Tuple_char_u8_37971378._1
-    i32.const 1
-    i32.eq
+    virtual.call 1 std_core$Iterator.next -> any
+    type_check 10   ; std_core$Stop
     if $L1 void
     else
       local.get 0   ; count
@@ -56,10 +57,10 @@ fn 0 snippet$main () -> i32
   local.set 3   ; __off_3
   local.get 0   ; count
   i32.to_i64
-  local.set 4   ; $cast_20
+  local.set 4   ; $cast_18
   local.get 2   ; __buf_2
   local.get 3   ; __off_3
-  local.get 4   ; $cast_20
+  local.get 4   ; $cast_18
   call 3   ; std_core$write_int
   local.set 3   ; __off_3
   local.get 2   ; __buf_2
@@ -613,21 +614,21 @@ end
 fn 10 std_string$chars (string) -> ref
   local.get 0   ; arg 0
   i64.const 0
-  struct.new 10   ; std_string$StringChars
+  struct.new 11   ; std_string$StringChars
   return
 end
 
-fn 11 std_string$StringChars$std_core$Iterator$next (ref) -> ref
+fn 11 std_string$StringChars$std_core$Iterator$next (ref) -> any
   local i i64
   local $call_4 i64
   local b u8
   local code u32
   local or_res bool
-  local $call_elem_39 i64
-  local.field 0 10 1   ; arg 0 std_string$StringChars.cursor
+  local $call_elem_35 i64
+  local.field 0 11 1   ; arg 0 std_string$StringChars.cursor
   ref.cast 4   ; i64
   local.set 1   ; i
-  local.field 0 10 0   ; arg 0 std_string$StringChars.s
+  local.field 0 11 0   ; arg 0 std_string$StringChars.s
   ref.cast 2   ; string
   call.import 0   ; std_core$byte_len
   local.set 2   ; $call_4
@@ -635,12 +636,12 @@ fn 11 std_string$StringChars$std_core$Iterator$next (ref) -> ref
   local.get 2   ; $call_4
   i64.ge
   if $L0 void
-    char.const 32
-    i32.const 1
-    struct.new 11   ; __Tuple_char_u8_37971378
+    data.const 0 14   ; pool[0] std_core$Stop[]
+    i64.const 0
+    array.get 14   ; std_core$Stop[]
     return
   end $L0
-  local.field 0 10 0   ; arg 0 std_string$StringChars.s
+  local.field 0 11 0   ; arg 0 std_string$StringChars.s
   ref.cast 2   ; string
   local.get 1   ; i
   call.import 1   ; std_core$byte_at
@@ -654,21 +655,20 @@ fn 11 std_string$StringChars$std_core$Iterator$next (ref) -> ref
     local.set 2   ; $call_4
     local.get 0   ; arg 0
     local.get 2   ; $call_4
-    struct.set 10 1   ; std_string$StringChars.cursor
+    struct.set 11 1   ; std_string$StringChars.cursor
     local.get 3   ; b
     u8.to_char
-    i32.const 0
-    struct.new 11   ; __Tuple_char_u8_37971378
+    retag 13   ; char
     return
   end $L1
-  local.field 0 10 0   ; arg 0 std_string$StringChars.s
+  local.field 0 11 0   ; arg 0 std_string$StringChars.s
   ref.cast 2   ; string
   local.get 3   ; b
   local.get 1   ; i
   call 4   ; std_core$decode_tail
-  local.set 6   ; $call_elem_39
+  local.set 6   ; $call_elem_35
   local.set 4   ; code
-  local.get 6   ; $call_elem_39
+  local.get 6   ; $call_elem_35
   local.set 2   ; $call_4
   local.get 1   ; i
   local.get 2   ; $call_4
@@ -676,7 +676,7 @@ fn 11 std_string$StringChars$std_core$Iterator$next (ref) -> ref
   local.set 1   ; i
   local.get 0   ; arg 0
   local.get 1   ; i
-  struct.set 10 1   ; std_string$StringChars.cursor
+  struct.set 11 1   ; std_string$StringChars.cursor
   local.get 4   ; code
   i32.const 55295
   u32.gt
@@ -696,11 +696,16 @@ fn 11 std_string$StringChars$std_core$Iterator$next (ref) -> ref
     local.get 5   ; or_res
     if $L4 void
       unreachable
+    else
+      local.get 4   ; code
+      u32.to_char
+      retag 13   ; char
+      return
     end $L4
+  else
+    local.get 4   ; code
+    u32.to_char
+    retag 13   ; char
+    return
   end $L2
-  local.get 4   ; code
-  u32.to_char
-  i32.const 0
-  struct.new 11   ; __Tuple_char_u8_37971378
-  return
 end

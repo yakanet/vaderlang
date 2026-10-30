@@ -28,7 +28,8 @@ function functionsOf(dump: string): [string, string[]][] {
   let current: string[] | null = null;
   let inModule = false;
   for (const line of dump.split("\n")) {
-    if (line.startsWith("## ")) {
+    // A section (`# frozen`) ends the module's functions as a module header does.
+    if (line.startsWith("#")) {
       inModule = line === "## summaries";
       current = null;
       continue;

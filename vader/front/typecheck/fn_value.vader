@@ -234,6 +234,8 @@ settle_instances :: fn(role: CallRole, typed: TypedProgram, diags: Diagnostic[])
             continue
         }
         check_typeparam_bounds(span, callee.decl.name, bindings, typed, diags)
+        instance :: typed.expr_types[id] ?? continue
+        reject_iterators_of_stop_in(zonk(instance, typed.infer_solutions), span, diags)
     }
 }
 

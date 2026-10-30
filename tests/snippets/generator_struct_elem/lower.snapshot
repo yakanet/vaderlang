@@ -52,7 +52,7 @@
       return 0
   }
   snippet$$genstate_concat_decls :: struct { s0: FileMod[], s1: FileMod[], s2: i64, s3: i64, s4: FileMod, s5: Decl[], s6: i64, s7: i64, s8: Decl, state: i32 }
-  snippet$$genstate_concat_decls$Iterator$next :: fn(self: $genstate_concat_decls) -> [Decl, Continuation] {
+  snippet$$genstate_concat_decls$Iterator$next :: fn(self: $genstate_concat_decls) -> Decl | Stop {
       dispatch$: for {
           if __self_6.state == 0 {
               __self_6.state = -1
@@ -80,7 +80,7 @@
               __self_6.state = 5
           } else if __self_6.state == 7 {
               __self_6.state = 6
-              return [__self_6.s8, Continuation(0)] :[Decl, Continuation]
+              return __self_6.s8
           } else if __self_6.state == 8 {
               __self_6.s8 = __self_6.s5[__self_6.s7]
               __self_6.state = 7
@@ -98,7 +98,7 @@
               __self_6.s3 = 0
               __self_6.state = 2
           } else {
-              return [null, Continuation(1)] :[Decl, Continuation]
+              return std.core.STOP
           }
       }
   }
@@ -114,6 +114,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -123,6 +124,7 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

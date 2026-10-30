@@ -103,9 +103,10 @@
     struct std.collections.MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>  // std_collections$MutableMap__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString
     struct std_collections$__gen_state_std_collections_0
   std/core
-    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #1
-    const DOUBLE_POW5_SPLIT: u64[]  data pool #2
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #2
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #3
     const POW5_128: u64[]  data pool #0
+    const STOP: Stop  data pool #1, element 0
     fn std.core.BigInt.div  // std_core$BigInt$Div$div
     fn std.core.BigInt.mul  // std_core$BigInt$Mul$mul
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
@@ -166,6 +167,7 @@
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.DecimalParts  // std_core$DecimalParts
     struct std.core.SlowParts  // std_core$SlowParts
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

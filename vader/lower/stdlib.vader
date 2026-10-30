@@ -144,7 +144,7 @@ vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx) ->
 /// keyed by the call-site mangle (`project_ctx.array_member_uses`) ; here we lower the
 /// member body with a CONCRETE substitution `T → element` (so e.g. `contains`'s
 /// `==` devirtualises to the element's primitive comparison, and `into`'s
-/// `array_iter` generator boxes into the concrete `Iterator<element>` the value
+/// generator boxes into the concrete `Iterator<element>` the value
 /// slot dispatches on).
 ///
 /// The table mixes every referenced array-impl member, so each member only claims

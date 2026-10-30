@@ -41,11 +41,11 @@
       {
           __iter_0: Iterator<Mon> = it
           for {
-              __step_1: [Mon, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == Continuation(1) {
+              __step_1: Mon | Stop = @vcall(std.core.Iterator.next, __iter_0)
+              if __step_1 is Stop {
                   break
               } else {
-                  m: Mon = __step_1._0
+                  m: Mon = Mon(__step_1)
                   n = n + m.v
               }
           }
@@ -57,11 +57,11 @@
       {
           __iter_0: Iterator<Label> = it
           for {
-              __step_1: [Label, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == Continuation(1) {
+              __step_1: Label | Stop = @vcall(std.core.Iterator.next, __iter_0)
+              if __step_1 is Stop {
                   break
               } else {
-                  l: Label = __step_1._0
+                  l: Label = Label(__step_1)
                   out = concat_3(out, l.s, " ")
               }
           }
@@ -84,11 +84,11 @@
           {
               __iter_0: Iterator<Pt> = self
               for {
-                  __step_1: [Pt, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-                  if __step_1._1 == Continuation(1) {
+                  __step_1: Pt | Stop = @vcall(std.core.Iterator.next, __iter_0)
+                  if __step_1 is Stop {
                       break
                   } else {
-                      x: Pt = __step_1._0
+                      x: Pt = Pt(__step_1)
                       x: i32 = __lambda_snippet_0(x)
                       sum = sum + x
                   }
@@ -104,7 +104,7 @@
       return 0
   }
   snippet$$genstate_scaled :: struct { s0: Mon[], s1: Mon[], s2: i64, s3: i64, s4: Mon, state: i32 }
-  snippet$$genstate_scaled$Iterator$next :: fn(self: $genstate_scaled) -> [Mon, Continuation] {
+  snippet$$genstate_scaled$Iterator$next :: fn(self: $genstate_scaled) -> Mon | Stop {
       dispatch$: for {
           if __self_3.state == 0 {
               __self_3.state = -1
@@ -121,7 +121,7 @@
               __self_3.state = 2
           } else if __self_3.state == 4 {
               __self_3.state = 3
-              return [Mon { .v = __self_3.s4.v * 100 }, Continuation(0)] :[Mon, Continuation]
+              return Mon { .v = __self_3.s4.v * 100 }
           } else if __self_3.state == 5 {
               __self_3.s4 = __self_3.s1[__self_3.s3]
               __self_3.state = 4
@@ -131,12 +131,12 @@
               __self_3.s3 = 0
               __self_3.state = 2
           } else {
-              return [null, Continuation(1)] :[Mon, Continuation]
+              return std.core.STOP
           }
       }
   }
   snippet$$genstate_labels :: struct { s0: Mon[], s1: Mon[], s2: i64, s3: i64, s4: Mon, state: i32 }
-  snippet$$genstate_labels$Iterator$next :: fn(self: $genstate_labels) -> [Label, Continuation] {
+  snippet$$genstate_labels$Iterator$next :: fn(self: $genstate_labels) -> Label | Stop {
       dispatch$: for {
           if __self_5.state == 0 {
               __self_5.state = -1
@@ -153,7 +153,7 @@
               __self_5.state = 2
           } else if __self_5.state == 4 {
               __self_5.state = 3
-              return [Label {
+              return Label {
                   .s = {
                       __buf_3: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_4: i64 = 0
@@ -161,7 +161,7 @@
                       __off_4 = std.core.write_int(__buf_3, __off_4, __self_5.s4.v)
                       std.core.finish_buffer(__buf_3, __off_4)
                   } :string,
-              }, Continuation(0)] :[Label, Continuation]
+              }
           } else if __self_5.state == 5 {
               __self_5.s4 = __self_5.s1[__self_5.s3]
               __self_5.state = 4
@@ -171,12 +171,12 @@
               __self_5.s3 = 0
               __self_5.state = 2
           } else {
-              return [null, Continuation(1)] :[Label, Continuation]
+              return std.core.STOP
           }
       }
   }
   snippet$$genstate_shifted :: struct { s0: Pt[], s1: Pt[], s2: i64, s3: i64, s4: Pt, state: i32 }
-  snippet$$genstate_shifted$Iterator$next :: fn(self: $genstate_shifted) -> [Pt, Continuation] {
+  snippet$$genstate_shifted$Iterator$next :: fn(self: $genstate_shifted) -> Pt | Stop {
       dispatch$: for {
           if __self_3.state == 0 {
               __self_3.state = -1
@@ -193,7 +193,7 @@
               __self_3.state = 2
           } else if __self_3.state == 4 {
               __self_3.state = 3
-              return [Pt { .x = __self_3.s4.x + 1000 }, Continuation(0)] :[Pt, Continuation]
+              return Pt { .x = __self_3.s4.x + 1000 }
           } else if __self_3.state == 5 {
               __self_3.s4 = __self_3.s1[__self_3.s3]
               __self_3.state = 4
@@ -203,7 +203,7 @@
               __self_3.s3 = 0
               __self_3.state = 2
           } else {
-              return [null, Continuation(1)] :[Pt, Continuation]
+              return std.core.STOP
           }
       }
   }
@@ -246,6 +246,7 @@
 
 ## lowered in dependencies
   std/core
+    const STOP: Stop  data pool #1, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
@@ -255,6 +256,7 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write
