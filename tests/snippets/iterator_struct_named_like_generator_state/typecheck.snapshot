@@ -8,7 +8,7 @@
   expr 15:12    FieldExpr      :: i32
   expr 15:12    IdentExpr      :: __genstate_count
   expr 15:9     IfExpr         :: void
-  expr 16:20    IdentExpr      :: Stop
+  expr 16:20    StructLitExpr  :: Stop
   expr 18:9     BinaryExpr     :: i32
   expr 18:9     FieldExpr      :: i32
   expr 18:9     IdentExpr      :: __genstate_count

@@ -7,11 +7,11 @@ Pair :: struct {
 }
 
 Pair implements Iterator<i32> {
-    next :: fn(self) -> i32 | Stop = STOP
+    next :: fn(self) -> i32 | Stop = Stop {}
 }
 
 Pair implements Iterator<string> {
-    next :: fn(self) -> string | Stop = STOP
+    next :: fn(self) -> string | Stop = Stop {}
 }
 
 main :: fn() -> i32 {

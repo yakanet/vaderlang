@@ -3834,7 +3834,7 @@ It also declares:
 - `Zero` and `One`, the additive and multiplicative identities, two static members (§4 *Static members*).
 - `FloatBits`, `BitsFloat`, `Float32Bits` and `Bits32Float`, the bits of a float (§4 *Float bit patterns*).
 - `ArrayOps<T>`, the built-in methods of arrays: `len`, `push`, `push_all`, `copy_to`, `remove_last` and `clear` (§4 *Mutation methods*).
-- `Stop` and its value `STOP`, what an iterator returns at its end (*Iteration*, below).
+- `Stop`, what an iterator returns at its end (*Iteration*, below).
 - Functions on arrays: `filled` and `filled_indexed` (§4 *Repeat / preallocate: `[lhs] * n`*), `content_equals`, `is_permutation_of`, `contains_all` and `is_disjoint` (§4 *Equality*).
 - Functions on strings: `len`, `byte_len`, `byte_at`, `byte_slice`, `is_ascii`, `codepoint_at_byte`, `bytes` and `bytes_to_string` (§4 *Strings*).
 
@@ -3889,14 +3889,13 @@ Contains :: trait<T> {
 
 ```vader
 Stop :: struct {}
-STOP :: Stop {}
 
 Iterator :: trait<T> {
     next :: fn(self) -> T | Stop
 }
 ```
 
-`next` returns the next element, or `STOP` once there is none. Only `Stop` ends the iteration, so an iterator over a nullable type yields `null` as an ordinary element.
+`next` returns the next element, or `Stop {}` once there is none. Only `Stop` ends the iteration, so an iterator over a nullable type yields `null` as an ordinary element.
 
 - An element type that can hold `Stop` (`Iterator<Stop>`, `Iterator<A | Stop>`) is an error: `next` could no longer say the iteration is over. In a generic function, the error is at the use that gives the type parameter such a type.
 - `next` changes the state of the iterator. Advancing a frozen iterator, such as a module constant, is an error (§5 *Frozen values*).

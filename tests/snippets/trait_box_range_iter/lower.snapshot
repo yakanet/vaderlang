@@ -45,7 +45,6 @@
 
 ## lowered in dependencies
   std/core
-    const STOP: Stop  data pool #0, element 0
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
     fn std.core.i32.step  // std_core$i32$Step$step

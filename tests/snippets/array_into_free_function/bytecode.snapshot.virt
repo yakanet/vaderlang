@@ -120,7 +120,7 @@ fn 2 snippet$main () -> i32
       local.set 4   ; x
       local.get 1   ; walked
       local.get 4   ; x
-      array.push 3 1   ; i32 walked
+      array.push 3   ; i32
       br $L0
     end $L1
   end $L0

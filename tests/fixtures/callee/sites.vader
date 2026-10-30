@@ -128,7 +128,7 @@ export Countdown :: struct {
 Countdown implements Iterator<i32> {
     next :: fn(self) -> i32 | Stop {
         if self.n == 0 {
-            return STOP
+            return Stop {}
         }
         self.n = self.n -% 1
         return self.n

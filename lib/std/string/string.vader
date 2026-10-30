@@ -77,7 +77,7 @@ StringChars implements Iterator<char> {
     next :: fn(self) -> char | Stop {
         i :: self.cursor
         if i >= self.s.byte_len() {
-            return STOP
+            return Stop {}
         }
         b :: self.s.byte_at(i)
         if b < 0x80 {

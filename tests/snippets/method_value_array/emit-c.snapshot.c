@@ -71,14 +71,6 @@ static const struct { vader_obj_header_t header; size_t capacity; size_t length;
 static const vader_array_t vader_data_0 = {
     { 19u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
-static const struct vader_struct_std_core$Stop_t vader_data_1_e0 = { { 4u, 0u, 0u, 0u, NULL } };
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 4u, 0u, { 0u, 0u, 0u },
-    { { 4u, 0u, { .obj = (void*) (struct vader_struct_std_core$Stop_t*) &vader_data_1_e0 } } },
-};
-static const vader_array_t vader_data_1 = {
-    { 19u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
-};
 
 static vader_box_t snippet$Countdown$std_core$Iterator$next(void* l0);
 static int32_t snippet$main(void);
@@ -459,7 +451,7 @@ static vader_box_t std_core$__gen_state_std_core_0$Iterator$next(void* l0) {
                     }
                     t0 = ((vader_struct_std_core$__gen_state_std_core_0_t*) l0)->f_state;
                     if (!(t0 == INT32_C(5))) {
-                        t2 = (void*) &vader_data_1;
+                        t2 = (void*) &vader_data_0;
                         vader_array_t* _a1_slotarr = ((vader_array_t*) t2);
                         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                         t2 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) INT64_C(0));

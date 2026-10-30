@@ -745,7 +745,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 }
 
 static vader_box_t std_core$Range$Iterator$next__i32(void* l0) {
-    int32_t l1, l2, l3;
+    int32_t l1, l2, l4;
+    bool l3;
     bool t0;
     void* t1;
     t0 = ((vader_struct_std_core$Range__i32_t*) l0)->f_done;
@@ -759,17 +760,20 @@ static vader_box_t std_core$Range$Iterator$next__i32(void* l0) {
     l1 = ((vader_struct_std_core$Range__i32_t*) l0)->f_cursor;
     l2 = ((vader_struct_std_core$Range__i32_t*) l0)->f_end;
     if (!((l1 >= l2))) {
-        l3 = std_core$i32$Step$step(l1);
-        ((vader_struct_std_core$Range__i32_t*) l0)->f_cursor = l3;
+        l4 = std_core$i32$Step$step(l1);
+        ((vader_struct_std_core$Range__i32_t*) l0)->f_cursor = l4;
         return vader_box_i32(3u, l1);
     }
     t0 = ((vader_struct_std_core$Range__i32_t*) l0)->f_inclusive;
-    if (t0) {
+    if (!(t0)) {
+        l3 = true;
+    } else {
         l2 = ((vader_struct_std_core$Range__i32_t*) l0)->f_end;
-        if (!((l1 > l2))) {
-            ((vader_struct_std_core$Range__i32_t*) l0)->f_done = true;
-            return vader_box_i32(3u, l1);
-        }
+        l3 = (l1 > l2);
+    }
+    if (!(l3)) {
+        ((vader_struct_std_core$Range__i32_t*) l0)->f_done = true;
+        return vader_box_i32(3u, l1);
     }
     t1 = (void*) &vader_data_0;
     vader_array_t* _a1_slotarr = ((vader_array_t*) t1);

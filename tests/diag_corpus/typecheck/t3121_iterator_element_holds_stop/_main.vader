@@ -12,7 +12,7 @@ export drain :: fn(it: Iterator<i32 | Stop>) -> i32 = 0
 export Stops :: struct {}
 
 Stops implements Iterator<Stop> {
-    next :: fn(self) -> Stop = STOP
+    next :: fn(self) -> Stop = Stop {}
 }
 
 export relay :: fn<T>(it: Iterator<T>) -> Iterator<T> = it
@@ -33,7 +33,7 @@ export Wrapper :: struct<T> {
 Wrapper<T> implements<T> Iterator<T> {
     next :: fn(self) -> T | Stop {
         if self.done {
-            return STOP
+            return Stop {}
         }
         self.done = true
         return self.value
@@ -44,7 +44,7 @@ main :: fn() -> i32 {
     relay(Stops {})
     pass :: relay<Stop>
     w :: Wrapper<Stop | i32> { .value = 1, .done = false }
-    n := first_of([STOP])
+    n := first_of([Stop {}])
     for x in w {
         n += 1
     }

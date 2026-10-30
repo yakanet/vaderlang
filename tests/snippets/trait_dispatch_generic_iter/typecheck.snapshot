@@ -9,7 +9,7 @@
   expr 18:12    FieldExpr      :: i32
   expr 18:12    IdentExpr      :: Repeat<T>
   expr 18:9     IfExpr         :: void
-  expr 19:20    IdentExpr      :: Stop
+  expr 19:20    StructLitExpr  :: Stop
   expr 21:14    FieldExpr      :: T
   expr 21:14    IdentExpr      :: Repeat<T>
   expr 22:26    BinaryExpr     :: i32
@@ -21,7 +21,7 @@
   expr 34:12    FieldExpr      :: bool
   expr 34:12    IdentExpr      :: Once<T>
   expr 34:9     IfExpr         :: void
-  expr 35:20    IdentExpr      :: Stop
+  expr 35:20    StructLitExpr  :: Stop
   expr 37:9     FieldExpr      :: bool
   expr 37:9     IdentExpr      :: Once<T>
   expr 38:16    FieldExpr      :: T

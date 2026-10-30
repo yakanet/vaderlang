@@ -16,7 +16,7 @@ export Repeat :: struct<T> {
 Repeat<T> implements Iterator<T> {
     next :: fn(self) -> T | Stop {
         if self.remaining <= 0 {
-            return STOP
+            return Stop {}
         }
         v :: self.value
         self.remaining = self.remaining - 1
@@ -32,7 +32,7 @@ export Once :: struct<T> {
 Once<T> implements Iterator<T> {
     next :: fn(self) -> T | Stop {
         if self.yielded {
-            return STOP
+            return Stop {}
         }
         self.yielded = true
         return self.value

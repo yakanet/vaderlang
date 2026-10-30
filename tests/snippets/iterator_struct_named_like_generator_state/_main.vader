@@ -13,7 +13,7 @@ __genstate_count :: struct {
 __genstate_count implements Iterator<i32> {
     next :: fn(self) -> i32 | Stop {
         if self.i >= 3 {
-            return STOP
+            return Stop {}
         }
         self.i += 1
         return self.i

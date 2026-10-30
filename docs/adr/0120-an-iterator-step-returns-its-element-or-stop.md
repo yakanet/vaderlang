@@ -4,6 +4,11 @@
 
 Accepted (2026-10-30).
 
+**Amended by [0121](0121-a-struct-with-no-field-is-shared-unless-compared-by-identity.md)
+(2026-10-31)**: every literal of a struct with no field reads one shared object,
+so `return Stop {}` allocates nothing. `STOP` is gone from `std/core`, and a
+generator's synthesised `next` returns `Stop {}`.
+
 ## Context
 
 `Iterator.next` returned a pair, `[T, Continuation]`: the element, then whether

@@ -27,7 +27,7 @@
   snippet.Repeat<i32> :: struct { value: i32, remaining: i32 }  // snippet$Repeat__i32
   snippet.Repeat<i32>.next :: fn(self: Repeat<i32>) -> i32 | Stop {  // snippet$Repeat$std_core$Iterator$next__i32
       if self.remaining <= 0 {
-          return std.core.STOP
+          return Stop {}
       }
       v: i32 = self.value
       self.remaining = self.remaining - 1
@@ -45,7 +45,6 @@
 
 ## lowered in dependencies
   std/core
-    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string

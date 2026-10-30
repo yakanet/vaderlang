@@ -14,7 +14,7 @@ Reversed :: struct {
 Reversed implements Iterator<i32> {
     next :: fn(self) -> i32 | Stop {
         if self.pos >= self.items.len() {
-            return STOP
+            return Stop {}
         }
         self.pos += 1
         return self.items[self.items.len() - self.pos]

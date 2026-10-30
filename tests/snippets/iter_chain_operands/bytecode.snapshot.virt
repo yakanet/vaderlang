@@ -1106,7 +1106,8 @@ end
 fn 9 std_core$Range$Iterator$next__i32 (ref) -> any
   local v i32
   local $field_7 i32
-  local $call_16 i32
+  local or_res bool
+  local $call_19 i32
   local.field 0 10 3   ; arg 0 std_core$Range__i32.done
   ref.cast 7   ; bool
   if $L0 void
@@ -1128,9 +1129,9 @@ fn 9 std_core$Range$Iterator$next__i32 (ref) -> any
   else
     local.get 1   ; v
     call 14   ; std_core$i32$Step$step
-    local.set 3   ; $call_16
+    local.set 4   ; $call_19
     local.get 0   ; arg 0
-    local.get 3   ; $call_16
+    local.get 4   ; $call_19
     struct.set 10 4   ; std_core$Range__i32.cursor
     local.get 1   ; v
     retag 3   ; i32
@@ -1138,23 +1139,29 @@ fn 9 std_core$Range$Iterator$next__i32 (ref) -> any
   end $L1
   local.field 0 10 2   ; arg 0 std_core$Range__i32.inclusive
   ref.cast 7   ; bool
+  bool.not
   if $L2 void
+    bool.const true
+    local.set 3   ; or_res
+  else
     local.field 0 10 1   ; arg 0 std_core$Range__i32.end
     ref.cast 3   ; i32
     local.set 2   ; $field_7
     local.get 1   ; v
     local.get 2   ; $field_7
     i32.gt
-    if $L3 void
-    else
-      local.get 0   ; arg 0
-      bool.const true
-      struct.set 10 3   ; std_core$Range__i32.done
-      local.get 1   ; v
-      retag 3   ; i32
-      return
-    end $L3
+    local.set 3   ; or_res
   end $L2
+  local.get 3   ; or_res
+  if $L3 void
+  else
+    local.get 0   ; arg 0
+    bool.const true
+    struct.set 10 3   ; std_core$Range__i32.done
+    local.get 1   ; v
+    retag 3   ; i32
+    return
+  end $L3
   data.const 0 17   ; pool[0] std_core$Stop[]
   i64.const 0
   array.get 17   ; std_core$Stop[]

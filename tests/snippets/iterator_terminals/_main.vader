@@ -12,7 +12,7 @@ Countdown :: struct { remaining: i32 }
 Countdown implements Iterator<i32> {
     next :: fn(self) -> i32 | Stop {
         if self.remaining <= 0 {
-            return STOP
+            return Stop {}
         }
         v :: self.remaining
         self.remaining = self.remaining - 1

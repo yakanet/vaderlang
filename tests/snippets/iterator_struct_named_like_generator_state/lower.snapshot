@@ -4,7 +4,7 @@
   snippet.__genstate_count :: struct { i: i32 }  // snippet$__genstate_count
   snippet.__genstate_count.next :: fn(self: __genstate_count) -> i32 | Stop {  // snippet$__genstate_count$std_core$Iterator$next
       if self.i >= 3 {
-          return std.core.STOP
+          return Stop {}
       }
       self.i = self.i + 1
       return self.i
@@ -106,7 +106,6 @@
 
 ## lowered in dependencies
   std/core
-    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string

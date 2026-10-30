@@ -54,3 +54,4 @@ Set aside:
   again, in every module. The warning names the place.
 - A generic struct with no field still allocates: the data pool keys a baked
   struct by its declaration, not by its instance.
+- `STOP` leaves `std/core`: an iterator ends with `return Stop {}` (0120).

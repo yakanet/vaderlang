@@ -7,7 +7,7 @@
   expr 14:12    FieldExpr      :: i32
   expr 14:12    IdentExpr      :: Countdown
   expr 14:9     IfExpr         :: void
-  expr 15:20    IdentExpr      :: Stop
+  expr 15:20    StructLitExpr  :: Stop
   expr 17:14    FieldExpr      :: i32
   expr 17:14    IdentExpr      :: Countdown
   expr 18:26    BinaryExpr     :: i32

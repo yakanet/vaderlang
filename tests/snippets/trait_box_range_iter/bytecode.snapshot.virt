@@ -15,9 +15,8 @@ type 12 scalar bool
 type 13 ref std_core$Iterator
 type 14 array 1
 type 15 array 8
-data 0 structs 8 0 1
-data 1 structs 1 0 1
-data 2 structs 8 0 1
+data 0 structs 1 0 1
+data 1 structs 8 0 1
 impl 1 snippet$Greeter
 impl 6 std_core$Iterator
 impl 9 std_core$Into
@@ -60,7 +59,7 @@ fn 2 snippet$main () -> i32
   call 7   ; std_core$$array$Into$into__i32
   call 3   ; snippet$count__i32
   local.set 1   ; b
-  data.const 1 14   ; pool[1] snippet$Hello[]
+  data.const 0 14   ; pool[0] snippet$Hello[]
   i64.const 0
   array.get 14   ; snippet$Hello[]
   call 4   ; snippet$invoke__i32
@@ -122,11 +121,12 @@ end
 fn 6 std_core$Range$Iterator$next__i32 (ref) -> any
   local v i32
   local $field_7 i32
-  local $call_16 i32
+  local or_res bool
+  local $call_19 i32
   local.field 0 6 3   ; arg 0 std_core$Range__i32.done
   ref.cast 12   ; bool
   if $L0 void
-    data.const 0 15   ; pool[0] std_core$Stop[]
+    data.const 1 15   ; pool[1] std_core$Stop[]
     i64.const 0
     array.get 15   ; std_core$Stop[]
     return
@@ -144,9 +144,9 @@ fn 6 std_core$Range$Iterator$next__i32 (ref) -> any
   else
     local.get 1   ; v
     call 8   ; std_core$i32$Step$step
-    local.set 3   ; $call_16
+    local.set 4   ; $call_19
     local.get 0   ; arg 0
-    local.get 3   ; $call_16
+    local.get 4   ; $call_19
     struct.set 6 4   ; std_core$Range__i32.cursor
     local.get 1   ; v
     retag 2   ; i32
@@ -154,24 +154,30 @@ fn 6 std_core$Range$Iterator$next__i32 (ref) -> any
   end $L1
   local.field 0 6 2   ; arg 0 std_core$Range__i32.inclusive
   ref.cast 12   ; bool
+  bool.not
   if $L2 void
+    bool.const true
+    local.set 3   ; or_res
+  else
     local.field 0 6 1   ; arg 0 std_core$Range__i32.end
     ref.cast 2   ; i32
     local.set 2   ; $field_7
     local.get 1   ; v
     local.get 2   ; $field_7
     i32.gt
-    if $L3 void
-    else
-      local.get 0   ; arg 0
-      bool.const true
-      struct.set 6 3   ; std_core$Range__i32.done
-      local.get 1   ; v
-      retag 2   ; i32
-      return
-    end $L3
+    local.set 3   ; or_res
   end $L2
-  data.const 0 15   ; pool[0] std_core$Stop[]
+  local.get 3   ; or_res
+  if $L3 void
+  else
+    local.get 0   ; arg 0
+    bool.const true
+    struct.set 6 3   ; std_core$Range__i32.done
+    local.get 1   ; v
+    retag 2   ; i32
+    return
+  end $L3
+  data.const 1 15   ; pool[1] std_core$Stop[]
   i64.const 0
   array.get 15   ; std_core$Stop[]
   return
@@ -286,7 +292,7 @@ fn 9 std_core$__gen_state_std_core_0$Iterator$next (ref) -> any
           i32.eq
           if $L7 void
           else
-            data.const 2 15   ; pool[2] std_core$Stop[]
+            data.const 1 15   ; pool[1] std_core$Stop[]
             i64.const 0
             array.get 15   ; std_core$Stop[]
             return

@@ -4,7 +4,7 @@
   snippet.Reversed :: struct { items: i32[], pos: i32 }  // snippet$Reversed
   snippet.Reversed.next :: fn(self: Reversed) -> i32 | Stop {  // snippet$Reversed$std_core$Iterator$next
       if self.pos >= @array.len(self.items) {
-          return std.core.STOP
+          return Stop {}
       }
       self.pos = self.pos + 1
       return self.items[@array.len(self.items) - self.pos]
@@ -23,7 +23,7 @@
                   break
               } else {
                   x: i32 = i32(__step_1)
-                  @array.push_cached(walked, x)
+                  @array.push(walked, x)
               }
           }
       }
@@ -84,7 +84,6 @@
 
 ## lowered in dependencies
   std/core
-    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string

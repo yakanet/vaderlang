@@ -67,7 +67,7 @@
   expr 176:12   FieldExpr      :: i32
   expr 176:12   IdentExpr      :: Counter
   expr 176:9    IfExpr         :: void
-  expr 177:20   IdentExpr      :: Stop
+  expr 177:20   StructLitExpr  :: Stop
   expr 179:9    BinaryExpr     :: i32
   expr 179:9    FieldExpr      :: i32
   expr 179:9    IdentExpr      :: Counter

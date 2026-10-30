@@ -34,7 +34,7 @@ Wrapper<T> implements<T: Bump> Poke {
 }
 
 Wrapper<T> implements<T: Bump> Iterator<i32> {
-    next :: fn(self) -> i32 | Stop = STOP
+    next :: fn(self) -> i32 | Stop = Stop {}
 }
 
 Wrapper<T> implements<T: Bump> Index<i32, i32> {

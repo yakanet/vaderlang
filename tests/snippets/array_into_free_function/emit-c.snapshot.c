@@ -204,33 +204,12 @@ static int32_t snippet$main(void) {
     vader_array_t* _a1_arr = vader_array_new(5u, 0u, 7u, 3u);
     l1 = (void*) _a1_arr;
     l2 = snippet$into(l0);
-    vader_array_t* _pc10_hdr = (vader_array_t*) l1;
-    size_t _pc10_len = _pc10_hdr->length;
-    size_t _pc10_cap = (_pc10_hdr->offset == 0 && !vader_array_is_borrowed(_pc10_hdr) && _pc10_hdr->length >= _pc10_hdr->buf->length) ? _pc10_hdr->capacity : (size_t) 0;
-    void* _pc10_slots = _pc10_hdr->buf->slots;
     for (;;) {
         l3 = snippet$Reversed$std_core$Iterator$next(l2);
         if (!(l3.tag == 4u)) {
             l4 = ((int32_t) l3.payload.i);
-            if (VADER_LIKELY(_pc10_len < _pc10_cap)) {
-                ((int32_t*) _pc10_slots)[_pc10_len] = (int32_t) (l4);
-                _pc10_len += 1;
-            } else {
-                _pc10_hdr->length = _pc10_len;
-                if (_pc10_hdr->buf->length < _pc10_len) {
-                    _pc10_hdr->buf->length = _pc10_len;
-                }
-                vader_array_push_i32((vader_array_t*) l1, l4);
-                _pc10_hdr = (vader_array_t*) l1;
-                _pc10_len = _pc10_hdr->length;
-                _pc10_cap = (_pc10_hdr->offset == 0 && !vader_array_is_borrowed(_pc10_hdr) && _pc10_hdr->length >= _pc10_hdr->buf->length) ? _pc10_hdr->capacity : (size_t) 0;
-                _pc10_slots = _pc10_hdr->buf->slots;
-            }
+            vader_array_push_i32((vader_array_t*) l1, l4);
             continue;
-        }
-        _pc10_hdr->length = _pc10_len;
-        if (_pc10_hdr->buf->length < _pc10_len) {
-            _pc10_hdr->buf->length = _pc10_len;
         }
         break;
     }

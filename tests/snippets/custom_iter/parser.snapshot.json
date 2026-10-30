@@ -101,8 +101,12 @@
                         {
                           "kind": "ReturnStmt",
                           "value": {
-                            "kind": "IdentExpr",
-                            "name": "STOP"
+                            "kind": "StructLitExpr",
+                            "typeName": {
+                              "kind": "IdentExpr",
+                              "name": "Stop"
+                            },
+                            "items": []
                           }
                         }
                       ],

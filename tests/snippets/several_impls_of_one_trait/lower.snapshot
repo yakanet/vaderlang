@@ -83,7 +83,7 @@
   snippet.Counter :: struct { n: i32 }  // snippet$Counter
   snippet.Counter.next :: fn(self: Counter) -> i32 | Stop {  // snippet$Counter$std_core$Iterator$next
       if self.n >= 2 {
-          return std.core.STOP
+          return Stop {}
       }
       self.n = self.n + 1
       return self.n
@@ -315,9 +315,8 @@
 
 ## lowered in dependencies
   std/core
-    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #1
-    const DOUBLE_POW5_SPLIT: u64[]  data pool #2
-    const STOP: Stop  data pool #0, element 0
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8

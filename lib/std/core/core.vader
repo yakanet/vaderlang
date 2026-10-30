@@ -173,16 +173,12 @@ export Contains :: trait<T> {
 /// What `Iterator.next` returns once the iteration is over.
 export Stop :: struct {}
 
-/// The value an iterator returns at its end. Return it rather than a fresh
-/// `Stop {}`, which allocates.
-export STOP :: Stop {}
-
 /// Pull-based iterator. The lowerer dispatches `for x in iter` through
 /// the impl table: users never call `next` directly. What consumes one
 /// (`count`, `last`, `collect`, `find`...) is a free function over
 /// `Iterator<T>` in `std/iter`, a `for` over its argument.
 ///
-/// `next()` hands back the next element, or `STOP` once there is none. A `null`
+/// `next()` hands back the next element, or `Stop {}` once there is none. A `null`
 /// element is just an element: `T = U | null` returns `U | null | Stop`.
 export Iterator :: trait<T> {
     next :: fn(self) -> T | Stop
@@ -282,12 +278,12 @@ Range<T> implements<T: Comparable & Step> Iterator<T> {
     // could overflow at the type's greatest value.
     next :: fn(self) -> T | Stop {
         if self.done {
-            return STOP
+            return Stop {}
         }
         v :: self.cursor
         if v >= self.end {
             if !self.inclusive || v > self.end {
-                return STOP
+                return Stop {}
             }
             self.done = true
             return v
@@ -318,7 +314,9 @@ T[] implements<T> Into<Iterator<T>> {
 T[] implements<T: Equals> Contains<T> {
     contains :: fn(self, value: T) -> bool {
         for item in self {
-            if item == value { return true }
+            if item == value {
+                return true
+            }
         }
         return false
     }
@@ -338,7 +336,7 @@ T[] implements<T: Equals> Contains<T> {
 T[] implements<T> Mul<i64> {
     mul :: fn(self, other: i64) -> T[] {
         out: T[]: []
-        for _ in 0..<other { out.push_all(self) }
+        for 0..<other { out.push_all(self) }
         return out
     }
 }
