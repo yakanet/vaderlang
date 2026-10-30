@@ -33,7 +33,7 @@
   expr 40:13    StringLitExpr  :: string
   expr 40:5     CallExpr       :: void
   expr 40:5     IdentExpr      :: fn(T) -> void
-  expr 41:15    CallExpr       :: __genstate_map<i32>
+  expr 41:15    CallExpr       :: $genstate_map<i32>
   expr 41:15    CallExpr       :: i32
   expr 41:15    CallExpr       :: i32
   expr 41:15    FieldExpr      :: fn() -> i32
@@ -55,7 +55,7 @@
   expr 43:13    StringLitExpr  :: string
   expr 43:5     CallExpr       :: void
   expr 43:5     IdentExpr      :: fn(T) -> void
-  expr 44:14    CallExpr       :: __genstate_take<i32>
+  expr 44:14    CallExpr       :: $genstate_take<i32>
   expr 44:14    CallExpr       :: i32
   expr 44:14    CallExpr       :: i32[]
   expr 44:14    FieldExpr      :: fn() -> i32
@@ -93,8 +93,8 @@
   expr 49:13    StringLitExpr  :: string
   expr 49:5     CallExpr       :: void
   expr 49:5     IdentExpr      :: fn(T) -> void
-  expr 50:16    CallExpr       :: __genstate_map<i32>
-  expr 50:16    CallExpr       :: __genstate_span_of<i32>
+  expr 50:16    CallExpr       :: $genstate_map<i32>
+  expr 50:16    CallExpr       :: $genstate_span_of<i32>
   expr 50:16    CallExpr       :: i32
   expr 50:16    FieldExpr      :: fn() -> i32
   expr 50:16    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>

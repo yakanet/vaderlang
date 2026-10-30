@@ -20,10 +20,10 @@ import "vader/core/types"
 import "std/collections"
 import "std/string"
 
-// The `<fn>$State` naming convention: one source of truth shared by the symbol
-// mint (`gen_state_symbol`) and the lower-side recognition
-// (`is_gen_state_struct`).
-GEN_STATE_PREFIX :: "__genstate_"
+// The name prefix of a generator's state struct, shared by the symbol mint
+// (`gen_state_symbol`) and the recognition (`is_gen_state_struct`). No identifier
+// holds a `$`, so no declared struct takes such a name.
+GEN_STATE_PREFIX :: "\$genstate_"
 
 // Reserved synthetic-id range for generator state structs: a large negative
 // offset distinct from the lowerer's small-magnitude `next_synthetic_id` pool
@@ -53,12 +53,12 @@ gen_state_symbol :: fn(fn_id: i32, decl: AST.FnDecl, owner: TypedProgram) -> Sym
     }
 }
 
-/// True when `t` is a `generator`'s synthetic `<fn>$State` iterator struct.
-/// Recognises by the `gen_state_symbol` name (not user-derived).
-export is_gen_state_struct :: fn(t: Type) -> bool {
-    if t is StructType { return starts_with(t.symbol.name, GEN_STATE_PREFIX) }
-    return false
-}
+/// True when `t` is the state struct of a `generator`, the iterator its call
+/// returns.
+///
+/// @param t  the type to test.
+export is_gen_state_struct :: fn(t: Type) -> bool =
+    t is StructType && starts_with(t.symbol.name, GEN_STATE_PREFIX)
 
 /// One `generator` declaration's state struct and what it yields.
 export GeneratorState :: struct {

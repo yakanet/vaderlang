@@ -18,7 +18,7 @@ type 15 struct std_core$__gen_state_std_core_0 { s0:12,s1:6,s2:6,state:3 }
 type 16 scalar bool
 type 17 array 4
 type 18 ref std_core$Iterator
-type 19 ref __genstate_array_iter
+type 19 ref $genstate_array_iter
 string 0 "len "
 string 1 "sum "
 string 2 " "

@@ -14,8 +14,8 @@
   expr 17:44    CallExpr       :: i64
   expr 17:44    IdentExpr      :: type
   expr 17:48    IdentExpr      :: i32
-  expr 21:15    CallExpr       :: __genstate_filter<i32>
-  expr 21:15    CallExpr       :: __genstate_map<i64>
+  expr 21:15    CallExpr       :: $genstate_filter<i32>
+  expr 21:15    CallExpr       :: $genstate_map<i64>
   expr 21:15    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 21:15    FieldExpr      :: fn(fn(i32) -> i64) -> Iterator<i64>
   expr 21:15    RangeExpr      :: Range<i32>

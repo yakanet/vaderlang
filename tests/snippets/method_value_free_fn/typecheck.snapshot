@@ -70,8 +70,8 @@
   expr 33:22    IdentExpr      :: Handler
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(T) -> void
-  expr 34:13    CallExpr       :: __genstate_map<Point>
-  expr 34:13    CallExpr       :: __genstate_map<string>
+  expr 34:13    CallExpr       :: $genstate_map<Point>
+  expr 34:13    CallExpr       :: $genstate_map<string>
   expr 34:13    CallExpr       :: string[]
   expr 34:13    FieldExpr      :: fn() -> string[]
   expr 34:13    FieldExpr      :: fn(fn(Point) -> string) -> Iterator<string>

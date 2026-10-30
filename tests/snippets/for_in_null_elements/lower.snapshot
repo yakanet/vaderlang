@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.maybe :: fn() -> Iterator<i32 | null> {  // snippet$maybe
-      return __genstate_maybe { .state = 5 }
+      return $genstate_maybe { .state = 5 }
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       xs: (i32 | null)[] = [1, null, 3, null, 5] :(i32 | null)[]
@@ -36,7 +36,7 @@
           __off_4 = std.core.write_int(__buf_3, __off_4, sum)
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
-      it: __genstate_maybe<i32 | null> = snippet.maybe()
+      it: $genstate_maybe<i32 | null> = snippet.maybe()
       gseen: i32 = 0
       gnulls: i32 = 0
       gsum: i32 = 0
@@ -70,8 +70,8 @@
       } :string)
       return (seen * 10) + nulls
   }
-  snippet$__genstate_maybe :: struct { state: i32 }
-  snippet$__genstate_maybe$Iterator$next :: fn(self: __genstate_maybe) -> [i32 | null, Continuation] {
+  snippet$$genstate_maybe :: struct { state: i32 }
+  snippet$$genstate_maybe$Iterator$next :: fn(self: $genstate_maybe) -> [i32 | null, Continuation] {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -103,7 +103,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Iterator.next for __genstate_maybe  snippet$__genstate_maybe$Iterator$next
+  vtable std.core.Iterator.next for $genstate_maybe  snippet$$genstate_maybe$Iterator$next
 
 ## lowered in dependencies
   std/core

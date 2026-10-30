@@ -46,7 +46,7 @@
   expr 121:5    CallExpr       :: void
   expr 121:5    IdentExpr      :: fn(string, i64[]) -> void
   expr 122:10   StringLitExpr  :: string
-  expr 122:21   CallExpr       :: __genstate_map<i64>
+  expr 122:21   CallExpr       :: $genstate_map<i64>
   expr 122:21   CallExpr       :: i64[]
   expr 122:21   FieldExpr      :: fn() -> i64[]
   expr 122:21   FieldExpr      :: fn(fn(i32) -> i64) -> Iterator<i64>
@@ -55,7 +55,7 @@
   expr 122:5    CallExpr       :: void
   expr 122:5    IdentExpr      :: fn(string, i64[]) -> void
   expr 123:10   StringLitExpr  :: string
-  expr 123:28   CallExpr       :: __genstate_map<i64>
+  expr 123:28   CallExpr       :: $genstate_map<i64>
   expr 123:28   CallExpr       :: i64[]
   expr 123:28   FieldExpr      :: fn() -> i64[]
   expr 123:28   FieldExpr      :: fn(fn(i32) -> i64) -> Iterator<i64>

@@ -1,0 +1,42 @@
+// A struct of the program named like the state the compiler builds for a
+// `generator` iterates as any other iterator: that state's name holds a `$`, which
+// no declared name can.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+__genstate_count :: struct {
+    i: i32
+}
+
+__genstate_count implements Iterator<i32> {
+    next :: fn(self) -> [i32, Continuation] {
+        if self.i >= 3 {
+            return [0, .Stop]
+        }
+        self.i += 1
+        return [self.i, .Continue]
+    }
+}
+
+count :: fn() -> Iterator<i32> {
+    yield 1
+    yield 2
+}
+
+main :: fn() -> i32 {
+    named :: __genstate_count { .i = 0 }
+    for v in named {
+        print("${v} ")
+    }
+    println("")
+    again :: __genstate_count { .i = 0 }
+    println("${again.map(x -> x * 10).collect()}")
+    escaping :: count()
+    for v in escaping {
+        print("${v} ")
+    }
+    println("")
+    return 0
+}

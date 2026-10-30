@@ -3,7 +3,7 @@
 // holds while that local stays a state machine: a pass that fused through the
 // local would make both halves agree on the wrong answer, and the snippets would
 // pin nothing without a single snapshot line saying so. So every lazy local must
-// survive lowering as a local holding a `__genstate_` value; a local fused
+// survive lowering as a local holding a `$genstate_` value; a local fused
 // through vanishes from the lowered form, so the check counts them.
 //
 // The lazy locals are the ones the snippets name `it`, `outer` and `inner`. An
@@ -16,7 +16,7 @@ import { join } from "node:path";
 import { CLI_FAILED_PREFIX, listSnippets } from "./snapshot.ts";
 
 const SOURCE_LAZY = /^\s*(it|outer|inner) ::/gm;
-const LOWERED_LAZY = /^\s*(it|outer|inner): __genstate_/gm;
+const LOWERED_LAZY = /^\s*(it|outer|inner): \$genstate_/gm;
 
 test("the lazy half of every fusion diagnostic stays a state machine", () => {
   const problems: string[] = [];

@@ -160,7 +160,7 @@ BodyTemplate :: struct {
 // array bottom, e.g. `chars()` → `StringChars` under `.filter(p)`. Iterate it
 // via its own `next()` (a static call for a concrete struct, see
 // `build_step_call`), so the combinator + terminal fuse over it instead of
-// declining. Excludes `generator` state structs (`__genstate_*`): a combinator
+// declining. Excludes `generator` state structs (`$genstate_*`): a combinator
 // over one fuses through ITS source instead (`try_descend_gen_combinator`), and
 // stepping the state itself would keep the state machine fusion removes. Returns
 // null for non-iterator structs / non-structs.

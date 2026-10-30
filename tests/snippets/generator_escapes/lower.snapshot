@@ -2,14 +2,14 @@
 
 ## snippet
   snippet.count_up :: fn(n: i32) -> Iterator<i32> {  // snippet$count_up
-      return __genstate_count_up {
+      return $genstate_count_up {
           .s0 = n,
           .s1 = 0,
           .state = 5,
       }
   }
   snippet.pairs :: fn(xs: i32[], ys: i32[]) -> Iterator<i32> {  // snippet$pairs
-      return __genstate_pairs {
+      return $genstate_pairs {
           .s0 = xs,
           .s1 = ys,
           .s2 = null,
@@ -24,7 +24,7 @@
       }
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      it: __genstate_count_up<i32> = snippet.count_up(4)
+      it: $genstate_count_up<i32> = snippet.count_up(4)
       {
           __iter_0: Iterator<i32> = it
           for {
@@ -43,7 +43,7 @@
               }
           }
       }
-      p: __genstate_pairs<i32> = snippet.pairs([1, 2] :i32[], [10, 20] :i32[])
+      p: $genstate_pairs<i32> = snippet.pairs([1, 2] :i32[], [10, 20] :i32[])
       {
           __iter_4: Iterator<i32> = p
           for {
@@ -64,8 +64,8 @@
       }
       return 0
   }
-  snippet$__genstate_count_up :: struct { s0: i32, s1: i32, state: i32 }
-  snippet$__genstate_count_up$Iterator$next :: fn(self: __genstate_count_up) -> [i32, Continuation] {
+  snippet$$genstate_count_up :: struct { s0: i32, s1: i32, state: i32 }
+  snippet$$genstate_count_up$Iterator$next :: fn(self: $genstate_count_up) -> [i32, Continuation] {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -91,8 +91,8 @@
           }
       }
   }
-  snippet$__genstate_pairs :: struct { s0: i32[], s1: i32[], s2: i32[], s3: i64, s4: i64, s5: i32, s6: i32[], s7: i64, s8: i64, s9: i32, state: i32 }
-  snippet$__genstate_pairs$Iterator$next :: fn(self: __genstate_pairs) -> [i32, Continuation] {
+  snippet$$genstate_pairs :: struct { s0: i32[], s1: i32[], s2: i32[], s3: i64, s4: i64, s5: i32, s6: i32[], s7: i64, s8: i64, s9: i32, state: i32 }
+  snippet$$genstate_pairs$Iterator$next :: fn(self: $genstate_pairs) -> [i32, Continuation] {
       dispatch$: for {
           if __self_6.state == 0 {
               __self_6.state = -1
@@ -150,8 +150,8 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Iterator.next for __genstate_count_up  snippet$__genstate_count_up$Iterator$next
-  vtable std.core.Iterator.next for __genstate_pairs  snippet$__genstate_pairs$Iterator$next
+  vtable std.core.Iterator.next for $genstate_count_up  snippet$$genstate_count_up$Iterator$next
+  vtable std.core.Iterator.next for $genstate_pairs  snippet$$genstate_pairs$Iterator$next
 
 ## lowered in dependencies
   std/core

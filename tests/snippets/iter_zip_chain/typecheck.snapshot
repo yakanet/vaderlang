@@ -23,7 +23,7 @@
   expr 18:24    StringLitExpr  :: string
   expr 18:29    StringLitExpr  :: string
   expr 19:13    SeqLitExpr     :: i32[]
-  expr 20:19    CallExpr       :: __genstate_zip<[string, i32]>
+  expr 20:19    CallExpr       :: $genstate_zip<[string, i32]>
   expr 20:19    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
   expr 20:23    IdentExpr      :: string[]
   expr 20:29    IdentExpr      :: i32[]
@@ -34,7 +34,7 @@
   expr 21:9     IdentExpr      :: fn(T) -> void
   expr 25:13    SeqLitExpr     :: i32[]
   expr 26:13    SeqLitExpr     :: i32[]
-  expr 27:14    CallExpr       :: __genstate_chain<i32>
+  expr 27:14    CallExpr       :: $genstate_chain<i32>
   expr 27:14    IdentExpr      :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
   expr 27:20    IdentExpr      :: i32[]
   expr 27:26    IdentExpr      :: i32[]
@@ -46,7 +46,7 @@
   expr 32:16    StringLitExpr  :: string
   expr 32:25    StringLitExpr  :: string
   expr 32:35    StringLitExpr  :: string
-  expr 33:19    CallExpr       :: __genstate_indexed<[string, i64]>
+  expr 33:19    CallExpr       :: $genstate_indexed<[string, i64]>
   expr 33:19    FieldExpr      :: fn() -> Iterator<[string, i64]>
   expr 33:19    IdentExpr      :: string[]
   expr 34:17    StringLitExpr  :: string
@@ -54,7 +54,7 @@
   expr 34:26    IdentExpr      :: string
   expr 34:9     CallExpr       :: void
   expr 34:9     IdentExpr      :: fn(T) -> void
-  expr 38:15    CallExpr       :: __genstate_flat_map<i32>
+  expr 38:15    CallExpr       :: $genstate_flat_map<i32>
   expr 38:15    IdentExpr      :: fn(Iterator<T>, fn(T) -> U[]) -> Iterator<U>
   expr 38:24    SeqLitExpr     :: i32[]
   expr 38:35    LambdaExpr     :: fn(i32) -> i32[]
@@ -62,7 +62,7 @@
   expr 38:48    IdentExpr      :: i32
   expr 38:51    BinaryExpr     :: i32
   expr 38:51    IdentExpr      :: i32
-  expr 39:14    IdentExpr      :: __genstate_flat_map<i32>
+  expr 39:14    IdentExpr      :: $genstate_flat_map<i32>
   expr 40:17    StringLitExpr  :: string
   expr 40:22    IdentExpr      :: i32
   expr 40:9     CallExpr       :: void

@@ -1,0 +1,50 @@
+# Typecheck
+
+## tests/snippets/iterator_struct_named_like_generator_state
+  StructDecl     __genstate_count     :: __genstate_count
+  FnDecl         count                :: fn() -> Iterator<i32>
+  FnDecl         main                 :: fn() -> i32
+  expr 15:12    BinaryExpr     :: bool
+  expr 15:12    FieldExpr      :: i32
+  expr 15:12    IdentExpr      :: __genstate_count
+  expr 15:9     IfExpr         :: void
+  expr 16:20    SeqLitExpr     :: [i32, Continuation]
+  expr 16:24    DotVariantExpr :: Continuation
+  expr 18:9     BinaryExpr     :: i32
+  expr 18:9     FieldExpr      :: i32
+  expr 18:9     IdentExpr      :: __genstate_count
+  expr 19:16    SeqLitExpr     :: [i32, Continuation]
+  expr 19:17    FieldExpr      :: i32
+  expr 19:17    IdentExpr      :: __genstate_count
+  expr 19:25    DotVariantExpr :: Continuation
+  expr 29:14    StructLitExpr  :: __genstate_count
+  expr 30:14    IdentExpr      :: __genstate_count
+  expr 31:15    StringLitExpr  :: string
+  expr 31:18    IdentExpr      :: i32
+  expr 31:9     CallExpr       :: void
+  expr 31:9     IdentExpr      :: fn(T) -> void
+  expr 33:13    StringLitExpr  :: string
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
+  expr 34:14    StructLitExpr  :: __genstate_count
+  expr 35:13    StringLitExpr  :: string
+  expr 35:16    CallExpr       :: $genstate_map<i32>
+  expr 35:16    CallExpr       :: i32[]
+  expr 35:16    FieldExpr      :: fn() -> i32[]
+  expr 35:16    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
+  expr 35:16    IdentExpr      :: __genstate_count
+  expr 35:26    LambdaExpr     :: fn(i32) -> i32
+  expr 35:31    BinaryExpr     :: i32
+  expr 35:31    IdentExpr      :: i32
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 36:17    CallExpr       :: $genstate_count<i32>
+  expr 36:17    IdentExpr      :: fn() -> Iterator<i32>
+  expr 37:14    IdentExpr      :: $genstate_count<i32>
+  expr 38:15    StringLitExpr  :: string
+  expr 38:18    IdentExpr      :: i32
+  expr 38:9     CallExpr       :: void
+  expr 38:9     IdentExpr      :: fn(T) -> void
+  expr 40:13    StringLitExpr  :: string
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void

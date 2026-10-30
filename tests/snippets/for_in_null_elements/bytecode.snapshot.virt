@@ -2,7 +2,7 @@ module _main
 type 0 scalar null
 type 1 ref std_core$Iterator
 type 2 scalar i32
-type 3 struct snippet$__genstate_maybe { state:2 }
+type 3 struct snippet$$genstate_maybe { state:2 }
 type 4 struct __Tuple_Union_i32_null_u8_9381f7b1 { _0:5,_1:6 }
 type 5 union 2,0
 type 6 scalar u8
@@ -13,7 +13,7 @@ type 10 scalar bool
 type 11 array 6
 type 12 scalar void
 type 13 array 5
-type 14 ref __genstate_maybe
+type 14 ref $genstate_maybe
 string 0 "array  seen="
 string 1 " nulls="
 string 2 " sum="
@@ -29,7 +29,7 @@ export main 1
 
 fn 0 snippet$maybe () -> any
   i32.const 5
-  struct.new 3   ; snippet$__genstate_maybe
+  struct.new 3   ; snippet$$genstate_maybe
   return
 end
 
@@ -252,75 +252,75 @@ fn 1 snippet$main () -> i32
   return
 end
 
-fn 2 snippet$__genstate_maybe$Iterator$next (ref) -> ref
+fn 2 snippet$$genstate_maybe$Iterator$next (ref) -> ref
   local $k_40 any
   loop $L0 void
-    local.field 0 3 0   ; arg 0 snippet$__genstate_maybe.state
+    local.field 0 3 0   ; arg 0 snippet$$genstate_maybe.state
     ref.cast 2   ; i32
     i32.const 0
     i32.eq
     if $L1 void
       local.get 0   ; arg 0
       i32.const -1
-      struct.set 3 0   ; snippet$__genstate_maybe.state
+      struct.set 3 0   ; snippet$$genstate_maybe.state
       br $L0
     end $L1
   end $L0
-  local.field 0 3 0   ; arg 0 snippet$__genstate_maybe.state
+  local.field 0 3 0   ; arg 0 snippet$$genstate_maybe.state
   ref.cast 2   ; i32
   i32.const 1
   i32.eq
   if $L2 void
     local.get 0   ; arg 0
     i32.const 0
-    struct.set 3 0   ; snippet$__genstate_maybe.state
+    struct.set 3 0   ; snippet$$genstate_maybe.state
     i32.const 5
     retag 2   ; i32
     i32.const 0
     struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
     return
   end $L2
-  local.field 0 3 0   ; arg 0 snippet$__genstate_maybe.state
+  local.field 0 3 0   ; arg 0 snippet$$genstate_maybe.state
   ref.cast 2   ; i32
   i32.const 2
   i32.eq
   if $L3 void
     local.get 0   ; arg 0
     i32.const 1
-    struct.set 3 0   ; snippet$__genstate_maybe.state
+    struct.set 3 0   ; snippet$$genstate_maybe.state
     null.const
     i32.const 0
     struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
     return
   end $L3
-  local.field 0 3 0   ; arg 0 snippet$__genstate_maybe.state
+  local.field 0 3 0   ; arg 0 snippet$$genstate_maybe.state
   ref.cast 2   ; i32
   i32.const 3
   i32.eq
   if $L4 void
     local.get 0   ; arg 0
     i32.const 2
-    struct.set 3 0   ; snippet$__genstate_maybe.state
+    struct.set 3 0   ; snippet$$genstate_maybe.state
     i32.const 3
     retag 2   ; i32
     i32.const 0
     struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
     return
   end $L4
-  local.field 0 3 0   ; arg 0 snippet$__genstate_maybe.state
+  local.field 0 3 0   ; arg 0 snippet$$genstate_maybe.state
   ref.cast 2   ; i32
   i32.const 4
   i32.eq
   if $L5 void
     local.get 0   ; arg 0
     i32.const 3
-    struct.set 3 0   ; snippet$__genstate_maybe.state
+    struct.set 3 0   ; snippet$$genstate_maybe.state
     null.const
     i32.const 0
     struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
     return
   end $L5
-  local.field 0 3 0   ; arg 0 snippet$__genstate_maybe.state
+  local.field 0 3 0   ; arg 0 snippet$$genstate_maybe.state
   ref.cast 2   ; i32
   i32.const 5
   i32.eq
@@ -335,7 +335,7 @@ fn 2 snippet$__genstate_maybe$Iterator$next (ref) -> ref
   end $L6
   local.get 0   ; arg 0
   i32.const 4
-  struct.set 3 0   ; snippet$__genstate_maybe.state
+  struct.set 3 0   ; snippet$$genstate_maybe.state
   i32.const 1
   retag 2   ; i32
   i32.const 0

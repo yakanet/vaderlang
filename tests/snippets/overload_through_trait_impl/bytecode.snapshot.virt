@@ -30,7 +30,7 @@ type 27 struct std_core$Range__i32 { start:2,end:2,inclusive:18,done:18,cursor:2
 type 28 struct std_core$__gen_state_std_core_0 { s0:8,s1:11,s2:11,state:2 }
 type 29 array 12
 type 30 ref std_core$Iterator
-type 31 ref __genstate_array_iter
+type 31 ref $genstate_array_iter
 string 0 " m"
 string 1 "display "
 string 2 "meters "

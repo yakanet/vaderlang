@@ -19,7 +19,7 @@
   FnDecl         scaled               :: fn(Iterator<i32>, i32) -> Iterator<i32>
   ConstDecl      Tree                 :: type
   FnDecl         with_rest            :: fn() -> i32
-  expr 102:14   CallExpr       :: __genstate_scaled<i32>
+  expr 102:14   CallExpr       :: $genstate_scaled<i32>
   expr 102:14   FieldExpr      :: fn(i32) -> Iterator<i32>
   expr 102:14   SeqLitExpr     :: i32[]
   expr 103:18   IdentExpr      :: i32
@@ -28,10 +28,10 @@
   expr 105:12   IdentExpr      :: i32
   expr 10:33    SeqLitExpr     :: [i32, string]
   expr 10:37    StringLitExpr  :: string
-  expr 111:11   CallExpr       :: __genstate_indexed<[i32, i64]>
+  expr 111:11   CallExpr       :: $genstate_indexed<[i32, i64]>
   expr 111:11   FieldExpr      :: fn() -> Iterator<[i32, i64]>
   expr 111:11   SeqLitExpr     :: i32[]
-  expr 112:19   IdentExpr      :: __genstate_indexed<[i32, i64]>
+  expr 112:19   IdentExpr      :: $genstate_indexed<[i32, i64]>
   expr 113:14   LambdaExpr     :: fn() -> i32
   expr 113:20   BinaryExpr     :: i32
   expr 113:20   IdentExpr      :: i32
@@ -124,7 +124,7 @@
   expr 41:9     BinaryExpr     :: i32
   expr 41:9     IdentExpr      :: i32
   expr 43:12    IdentExpr      :: i32
-  expr 48:19    CallExpr       :: __genstate_indexed<[i32, i64]>
+  expr 48:19    CallExpr       :: $genstate_indexed<[i32, i64]>
   expr 48:19    FieldExpr      :: fn() -> Iterator<[i32, i64]>
   expr 48:19    SeqLitExpr     :: i32[]
   expr 49:14    LambdaExpr     :: fn() -> i32
@@ -179,7 +179,7 @@
   expr 81:15    CallExpr       :: i32
   expr 81:15    IdentExpr      :: fn(i32) -> i32
   expr 81:19    IdentExpr      :: i32
-  expr 87:14    CallExpr       :: __genstate_offset<i32>
+  expr 87:14    CallExpr       :: $genstate_offset<i32>
   expr 87:14    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 88:18    IdentExpr      :: i32
   expr 88:9     BinaryExpr     :: i32

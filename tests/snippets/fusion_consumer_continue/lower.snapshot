@@ -31,7 +31,7 @@
           }
       }
       lazy: string = ""
-      it: __genstate_indexed<[i32, i64]> = std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30, 40] :i32[]))
+      it: $genstate_indexed<[i32, i64]> = std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30, 40] :i32[]))
       {
           __iter_8: Iterator<[i32, i64]> = it
           for {
@@ -88,7 +88,7 @@
           }
       }
       lazy: i32 = 0
-      it: __genstate_take<i32> = std.iter.take<i32>(std.core.i32[].into([1, 2, 3, 4] :i32[]), i64(2))
+      it: $genstate_take<i32> = std.iter.take<i32>(std.core.i32[].into([1, 2, 3, 4] :i32[]), i64(2))
       {
           __iter_3: Iterator<i32> = it
           for {
@@ -115,7 +115,7 @@
       } :string)
   }
   snippet.twice_per_round :: fn() -> Iterator<i32> {  // snippet$twice_per_round
-      return __genstate_twice_per_round { .s0 = 0, .state = 6 }
+      return $genstate_twice_per_round { .s0 = 0, .state = 6 }
   }
   snippet.two_yields_continue :: fn() -> void {  // snippet$two_yields_continue
       fused: string = ""
@@ -155,7 +155,7 @@
           }
       }
       lazy: string = ""
-      it: __genstate_twice_per_round<i32> = snippet.twice_per_round()
+      it: $genstate_twice_per_round<i32> = snippet.twice_per_round()
       {
           __iter_2: Iterator<i32> = it
           for {
@@ -180,7 +180,7 @@
       std.io.println<string>(concat_4("two yields + continue:", fused, " |", lazy))
   }
   snippet.three :: fn() -> Iterator<i32> {  // snippet$three
-      return __genstate_three { .state = 3 }
+      return $genstate_three { .state = 3 }
   }
   snippet.loopless_generator_continue :: fn() -> void {  // snippet$loopless_generator_continue
       fused: string = ""
@@ -242,7 +242,7 @@
       {
           k: i32 = 0
           for k < 2 {
-              it: __genstate_three<i32> = snippet.three()
+              it: $genstate_three<i32> = snippet.three()
               {
                   __iter_2: Iterator<i32> = it
                   for {
@@ -311,7 +311,7 @@
           }
       }
       lazy: i32 = 0
-      it: __genstate_take<i32> = std.iter.take<i32>(std.core.i32[].into([1, 2, 3, 4] :i32[]), i64(2))
+      it: $genstate_take<i32> = std.iter.take<i32>(std.core.i32[].into([1, 2, 3, 4] :i32[]), i64(2))
       {
           __iter_6: Iterator<i32> = it
           y: for {
@@ -370,7 +370,7 @@
           }
       }
       lazy: i32 = 0
-      it: __genstate_indexed<[char, i64]> = std.iter.indexed<char>(std.string.chars("fused"))
+      it: $genstate_indexed<[char, i64]> = std.iter.indexed<char>(std.string.chars("fused"))
       {
           __iter_5: Iterator<[char, i64]> = it
           for {
@@ -402,7 +402,7 @@
       [10 * x, (10 * x) + 1] :i32[]
   }
   snippet.drop_odd :: fn(self: Iterator<i32>) -> Iterator<i32> {  // snippet$drop_odd
-      return __genstate_drop_odd {
+      return $genstate_drop_odd {
           .s0 = self,
           .s1 = null,
           .s2 = null,
@@ -448,7 +448,7 @@
           }
       }
       lazy: string = ""
-      it: __genstate_drop_odd<i32> = snippet.drop_odd(std.iter.take<i32>(std.core.i32[].into([1, 2, 3, 4, 5, 6] :i32[]), i64(3)))
+      it: $genstate_drop_odd<i32> = snippet.drop_odd(std.iter.take<i32>(std.core.i32[].into([1, 2, 3, 4, 5, 6] :i32[]), i64(3)))
       {
           __iter_5: Iterator<i32> = it
           for {
@@ -510,7 +510,7 @@
           }
       }
       lazy: string = ""
-      it: __genstate_indexed<[i32, i64]> = std.iter.indexed<i32>(std.core.i32[].into([1, 2, 3, 4] :i32[]))
+      it: $genstate_indexed<[i32, i64]> = std.iter.indexed<i32>(std.core.i32[].into([1, 2, 3, 4] :i32[]))
       {
           __iter_9: Iterator<[i32, i64]> = it
           for {
@@ -575,7 +575,7 @@
           }
       }
       lazy: i32 = 0
-      it: __genstate_flat_map<i32> = std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2] :i32[]), snippet.spread)
+      it: $genstate_flat_map<i32> = std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2] :i32[]), snippet.spread)
       {
           __iter_3: Iterator<i32> = it
           for {
@@ -632,7 +632,7 @@
           }
       }
       lazy: i32 = 0
-      it: __genstate_chain<i32> = std.iter.chain<i32>(std.core.i32[].into([1, 2] :i32[]), std.core.i32[].into([3, 4] :i32[]))
+      it: $genstate_chain<i32> = std.iter.chain<i32>(std.core.i32[].into([1, 2] :i32[]), std.core.i32[].into([3, 4] :i32[]))
       {
           __iter_6: Iterator<i32> = it
           for {
@@ -713,7 +713,7 @@
           }
       }
       lazy: i32 = 0
-      it: __genstate_chain<i32> = std.iter.chain<i32>(std.core.i32[].into([1, 2] :i32[]), std.core.i32[].into([3, 4] :i32[]))
+      it: $genstate_chain<i32> = std.iter.chain<i32>(std.core.i32[].into([1, 2] :i32[]), std.core.i32[].into([3, 4] :i32[]))
       {
           __iter_9: Iterator<i32> = it
           x: for {
@@ -791,8 +791,8 @@
           .state = 8,
       }))
   }
-  snippet$__genstate_twice_per_round :: struct { s0: i32, state: i32 }
-  snippet$__genstate_twice_per_round$Iterator$next :: fn(self: __genstate_twice_per_round) -> [i32, Continuation] {
+  snippet$$genstate_twice_per_round :: struct { s0: i32, state: i32 }
+  snippet$$genstate_twice_per_round$Iterator$next :: fn(self: $genstate_twice_per_round) -> [i32, Continuation] {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -821,8 +821,8 @@
           }
       }
   }
-  snippet$__genstate_three :: struct { state: i32 }
-  snippet$__genstate_three$Iterator$next :: fn(self: __genstate_three) -> [i32, Continuation] {
+  snippet$$genstate_three :: struct { state: i32 }
+  snippet$$genstate_three$Iterator$next :: fn(self: $genstate_three) -> [i32, Continuation] {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -840,8 +840,8 @@
           }
       }
   }
-  snippet$__genstate_drop_odd :: struct { s0: Iterator<i32>, s1: Iterator<i32>, s2: [i32, Continuation], s3: i32, state: i32 }
-  snippet$__genstate_drop_odd$Iterator$next :: fn(self: __genstate_drop_odd) -> [i32, Continuation] {
+  snippet$$genstate_drop_odd :: struct { s0: Iterator<i32>, s1: Iterator<i32>, s2: [i32, Continuation], s3: i32, state: i32 }
+  snippet$$genstate_drop_odd$Iterator$next :: fn(self: $genstate_drop_odd) -> [i32, Continuation] {
       dispatch$: for {
           if __self_2.state == 0 {
               __self_2.state = -1
@@ -963,7 +963,7 @@
       }
       __self_6.state = -1
   }
-  __asyncstate_snippet_1 :: struct { s0: i32[], s1: i32, s2: __genstate_indexed<[i32, i64]>, s3: Iterator<[i32, i64]>, s4: [[i32, i64], Continuation], s5: [i32, i64], s6: i32, s7: i64, s8: null, awaited: Async<Any>, state: i32 }
+  __asyncstate_snippet_1 :: struct { s0: i32[], s1: i32, s2: $genstate_indexed<[i32, i64]>, s3: Iterator<[i32, i64]>, s4: [[i32, i64], Continuation], s5: [i32, i64], s6: i32, s7: i64, s8: null, awaited: Async<Any>, state: i32 }
   snippet$__asyncstate_snippet_1$Async$resume :: fn(self: __asyncstate_snippet_1) -> i32 | Suspended {
       dispatch$: for {
           if __self_5.state == 0 {
@@ -1135,9 +1135,9 @@
   vtable std.core.Async.resume for __asyncstate_snippet_0  snippet$__asyncstate_snippet_0$Async$resume
   vtable std.core.Async.resume for __asyncstate_snippet_1  snippet$__asyncstate_snippet_1$Async$resume
   vtable std.core.Async.resume for __asyncstate_snippet_2  snippet$__asyncstate_snippet_2$Async$resume
-  vtable std.core.Iterator.next for __genstate_drop_odd  snippet$__genstate_drop_odd$Iterator$next
-  vtable std.core.Iterator.next for __genstate_three  snippet$__genstate_three$Iterator$next
-  vtable std.core.Iterator.next for __genstate_twice_per_round  snippet$__genstate_twice_per_round$Iterator$next
+  vtable std.core.Iterator.next for $genstate_drop_odd  snippet$$genstate_drop_odd$Iterator$next
+  vtable std.core.Iterator.next for $genstate_three  snippet$$genstate_three$Iterator$next
+  vtable std.core.Iterator.next for $genstate_twice_per_round  snippet$$genstate_twice_per_round$Iterator$next
 
 ## lowered in dependencies
   std/async

@@ -52,9 +52,9 @@
   expr 48:29    IdentExpr      :: fn(i32) -> i32
   expr 48:5     CallExpr       :: void
   expr 48:5     IdentExpr      :: fn(T) -> void
-  expr 52:11    CallExpr       :: __genstate_stepped<i32>
+  expr 52:11    CallExpr       :: $genstate_stepped<i32>
   expr 52:11    IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 53:14    IdentExpr      :: __genstate_stepped<i32>
+  expr 53:14    IdentExpr      :: $genstate_stepped<i32>
   expr 54:17    StringLitExpr  :: string
   expr 54:30    IdentExpr      :: i32
   expr 54:9     CallExpr       :: void

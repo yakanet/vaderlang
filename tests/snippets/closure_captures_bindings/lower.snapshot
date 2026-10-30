@@ -92,7 +92,7 @@
       return 0
   }
   snippet.offset :: fn(k: i32) -> Iterator<i32> {  // snippet$offset
-      return __genstate_offset {
+      return $genstate_offset {
           .s0 = k,
           .s1 = null,
           .s2 = 0,
@@ -117,7 +117,7 @@
       return total
   }
   snippet.scaled :: fn(it: Iterator<i32>, k: i32) -> Iterator<i32> {  // snippet$scaled
-      return __genstate_scaled {
+      return $genstate_scaled {
           .s0 = it,
           .s1 = k,
           .s2 = null,
@@ -147,7 +147,7 @@
   }
   snippet.over_lazy_indexed :: fn() -> i32 {  // snippet$over_lazy_indexed
       total: i32 = 0
-      it: __genstate_indexed<[i32, i64]> = std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30] :i32[]))
+      it: $genstate_indexed<[i32, i64]> = std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30] :i32[]))
       {
           __iter_1: Iterator<[i32, i64]> = it
           for {
@@ -272,8 +272,8 @@
   __lambda_snippet_14 :: fn(__env_0: __lambda_env_snippet_15, x: i32) -> i32 {
       x + __env_0.cap_0
   }
-  snippet$__genstate_offset :: struct { s0: i32, s1: fn(i32) -> i32, s2: i32, state: i32 }
-  snippet$__genstate_offset$Iterator$next :: fn(self: __genstate_offset) -> [i32, Continuation] {
+  snippet$$genstate_offset :: struct { s0: i32, s1: fn(i32) -> i32, s2: i32, state: i32 }
+  snippet$$genstate_offset$Iterator$next :: fn(self: $genstate_offset) -> [i32, Continuation] {
       dispatch$: for {
           if __self_1.state == 0 {
               __self_1.state = -1
@@ -310,8 +310,8 @@
   __lambda_snippet_18 :: fn(__env_0: __lambda_env_snippet_19, x: i32) -> i32 {
       x * __env_0.cap_0
   }
-  snippet$__genstate_scaled :: struct { s0: Iterator<i32>, s1: i32, s2: fn(i32) -> i32, s3: Iterator<i32>, s4: [i32, Continuation], s5: i32, state: i32 }
-  snippet$__genstate_scaled$Iterator$next :: fn(self: __genstate_scaled) -> [i32, Continuation] {
+  snippet$$genstate_scaled :: struct { s0: Iterator<i32>, s1: i32, s2: fn(i32) -> i32, s3: Iterator<i32>, s4: [i32, Continuation], s5: i32, state: i32 }
+  snippet$$genstate_scaled$Iterator$next :: fn(self: $genstate_scaled) -> [i32, Continuation] {
       dispatch$: for {
           if __self_3.state == 0 {
               __self_3.state = -1
@@ -369,8 +369,8 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Iterator.next for __genstate_offset  snippet$__genstate_offset$Iterator$next
-  vtable std.core.Iterator.next for __genstate_scaled  snippet$__genstate_scaled$Iterator$next
+  vtable std.core.Iterator.next for $genstate_offset  snippet$$genstate_offset$Iterator$next
+  vtable std.core.Iterator.next for $genstate_scaled  snippet$$genstate_scaled$Iterator$next
 
 ## lowered in dependencies
   std/core

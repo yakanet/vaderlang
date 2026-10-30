@@ -30,7 +30,7 @@
       }
       fused: i32 = @cell(pulls)
       @cell(pulls) = 0
-      it: __genstate_take<i32> = std.iter.take<i32>(std.iter.map<i32, i32>(std.core.i32[].into([1, 2, 3, 4] :i32[]), counted), n)
+      it: $genstate_take<i32> = std.iter.take<i32>(std.iter.map<i32, i32>(std.core.i32[].into([1, 2, 3, 4] :i32[]), counted), n)
       {
           __iter_4: Iterator<i32> = it
           for {
@@ -103,7 +103,7 @@
           }
       }
       lazy: string = ""
-      it: __genstate_take<i32> = std.iter.take<i32>(std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2] :i32[]), snippet.spread), i64(4))
+      it: $genstate_take<i32> = std.iter.take<i32>(std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2] :i32[]), snippet.spread), i64(4))
       {
           __iter_5: Iterator<i32> = it
           for {
@@ -125,7 +125,7 @@
       std.io.println<string>(concat_4("flat_map.take(4):", fused, " |", lazy))
   }
   snippet.produced :: fn(n: i32) -> Iterator<i32> {  // snippet$produced
-      return __genstate_produced {
+      return $genstate_produced {
           .s0 = n,
           .s1 = 0,
           .state = 6,
@@ -173,7 +173,7 @@
           }
       }
       std.io.println<string>("generator.take(2), lazy:")
-      it: __genstate_take<i32> = std.iter.take<i32>(snippet.produced(5), i64(2))
+      it: $genstate_take<i32> = std.iter.take<i32>(snippet.produced(5), i64(2))
       {
           __iter_2: Iterator<i32> = it
           for {
@@ -205,8 +205,8 @@
       @cell(__env_0.cap_0) = @cell(__env_0.cap_0) + 1
       return x
   }
-  snippet$__genstate_produced :: struct { s0: i32, s1: i32, state: i32 }
-  snippet$__genstate_produced$Iterator$next :: fn(self: __genstate_produced) -> [i32, Continuation] {
+  snippet$$genstate_produced :: struct { s0: i32, s1: i32, state: i32 }
+  snippet$$genstate_produced$Iterator$next :: fn(self: $genstate_produced) -> [i32, Continuation] {
       dispatch$: for {
           if __self_2.state == 0 {
               __self_2.state = -1
@@ -261,7 +261,7 @@
       std.core.Buffer.write_string(buf, c2, p3)
       std.core.Buffer.intern_string(buf, c3)
   }
-  vtable std.core.Iterator.next for __genstate_produced  snippet$__genstate_produced$Iterator$next
+  vtable std.core.Iterator.next for $genstate_produced  snippet$$genstate_produced$Iterator$next
 
 ## lowered in dependencies
   std/core

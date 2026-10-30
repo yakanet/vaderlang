@@ -13,7 +13,7 @@ type 10 array 9
 type 11 ref std_core$Iterator
 type 12 struct std_iter$__gen_state_std_iter_0 { s0:5,s1:5,s2:8,s3:8,state:2 }
 type 13 struct __Tuple_Tuple_i32_i32_u8_5cdd0c36 { _0:1,_1:9 }
-type 14 ref __genstate_zip
+type 14 ref $genstate_zip
 string 0 ":"
 string 1 " "
 string 2 "map fused"

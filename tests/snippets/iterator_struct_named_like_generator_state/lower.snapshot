@@ -1,0 +1,137 @@
+# Lower
+
+## snippet
+  snippet.__genstate_count :: struct { i: i32 }  // snippet$__genstate_count
+  snippet.__genstate_count.next :: fn(self: __genstate_count) -> [i32, Continuation] {  // snippet$__genstate_count$std_core$Iterator$next
+      if self.i >= 3 {
+          return [0, Continuation(1)] :[i32, Continuation]
+      }
+      self.i = self.i + 1
+      return [self.i, Continuation(0)] :[i32, Continuation]
+  }
+  snippet.count :: fn() -> Iterator<i32> {  // snippet$count
+      return $genstate_count { .state = 2 }
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      named: __genstate_count = __genstate_count { .i = 0 }
+      {
+          __iter_0: __genstate_count = named
+          for {
+              __step_1: [i32, Continuation] = snippet.__genstate_count.next(__iter_0)
+              if __step_1._1 == Continuation(1) {
+                  break
+              } else {
+                  v: i32 = __step_1._0
+                  std.io.print<string>({
+                      __buf_2: Buffer = std.core.new_byte_buffer(i64(21))
+                      __off_3: i64 = 0
+                      __off_3 = std.core.write_int(__buf_2, __off_3, v)
+                      __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+                      std.core.finish_buffer(__buf_2, __off_3)
+                  } :string)
+              }
+          }
+      }
+      std.io.println<string>("")
+      again: __genstate_count = __genstate_count { .i = 0 }
+      std.io.println<string>(std.core.i32[].to_string({
+          __fuse_iter_4: __genstate_count = again
+          f: fn(i32) -> i32 = __lambda_snippet_0
+          out: i32[] = [] :i32[]
+          {
+              for {
+                  __fuse_step_0: [i32, Continuation] = snippet.__genstate_count.next(__fuse_iter_4)
+                  if __fuse_step_0._1 == Continuation(1) {
+                      break
+                  } else {
+                      x: i32 = __fuse_step_0._0
+                      x: i32 = __lambda_snippet_0(x)
+                      @array.push(out, x)
+                  }
+              }
+          }
+          out
+      } :i32[]))
+      escaping: $genstate_count<i32> = snippet.count()
+      {
+          __iter_6: Iterator<i32> = escaping
+          for {
+              __step_7: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_6)
+              if __step_7._1 == Continuation(1) {
+                  break
+              } else {
+                  v: i32 = __step_7._0
+                  std.io.print<string>({
+                      __buf_8: Buffer = std.core.new_byte_buffer(i64(21))
+                      __off_9: i64 = 0
+                      __off_9 = std.core.write_int(__buf_8, __off_9, v)
+                      __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+                      std.core.finish_buffer(__buf_8, __off_9)
+                  } :string)
+              }
+          }
+      }
+      std.io.println<string>("")
+      return 0
+  }
+  snippet$$genstate_count :: struct { state: i32 }
+  snippet$$genstate_count$Iterator$next :: fn(self: $genstate_count) -> [i32, Continuation] {
+      dispatch$: for {
+          if __self_0.state == 0 {
+              __self_0.state = -1
+          } else if __self_0.state == 1 {
+              __self_0.state = 0
+              return [2, Continuation(0)] :[i32, Continuation]
+          } else if __self_0.state == 2 {
+              __self_0.state = 1
+              return [1, Continuation(0)] :[i32, Continuation]
+          } else {
+              return [0, Continuation(1)] :[i32, Continuation]
+          }
+      }
+  }
+  __lambda_snippet_0 :: fn(x: i32) -> i32 {
+      x * 10
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable std.core.Iterator.next for $genstate_count  snippet$$genstate_count$Iterator$next
+  vtable std.core.Iterator.next for __genstate_count  snippet.__genstate_count.next  // snippet$__genstate_count$std_core$Iterator$next
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_signed  // std_core$format_signed
+    fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.i32[].to_string  // std_core$$array$Display$to_string__i32
+    fn std.core.string.to_string  // std_core$string$Display$to_string
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std.io.print<string>  // std_io$print__string
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

@@ -12,7 +12,7 @@ type 9 struct __Tuple_i32_u8_99ae0d29 { _0:1,_1:10 }
 type 10 scalar u8
 type 11 array 10
 type 12 scalar void
-type 13 ref __genstate_array_iter
+type 13 ref $genstate_array_iter
 string 0 "sum="
 string 1 " drain="
 string 2 " d0="

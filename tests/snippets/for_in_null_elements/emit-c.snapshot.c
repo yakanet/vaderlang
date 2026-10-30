@@ -4,11 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_snippet$__genstate_maybe_t vader_struct_snippet$__genstate_maybe_t;
+typedef struct vader_struct_snippet$$genstate_maybe_t vader_struct_snippet$$genstate_maybe_t;
 typedef struct vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 
-struct vader_struct_snippet$__genstate_maybe_t {
+struct vader_struct_snippet$$genstate_maybe_t {
     vader_obj_header_t header;
     int32_t f_state;
 };
@@ -41,7 +41,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 static vader_box_t snippet$maybe(void);
 static int32_t snippet$main(void);
-static void* snippet$__genstate_maybe$Iterator$next(void* l0);
+static void* snippet$$genstate_maybe$Iterator$next(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
@@ -59,7 +59,7 @@ const vader_type_info_t vader_type_info_table[15] = {
     [1] = { .slot_size = 16 },
     [2] = { .slot_size = 4 },
     [3] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$__genstate_maybe_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$$genstate_maybe_t),
         .slot_size = 8,
     },
     [4] = {
@@ -113,7 +113,7 @@ static vader_box_t snippet$maybe(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_struct_snippet$__genstate_maybe_t* _a0_obj = (vader_struct_snippet$__genstate_maybe_t*) vader_gc_alloc(sizeof(vader_struct_snippet$__genstate_maybe_t));
+    vader_struct_snippet$$genstate_maybe_t* _a0_obj = (vader_struct_snippet$$genstate_maybe_t*) vader_gc_alloc(sizeof(vader_struct_snippet$$genstate_maybe_t));
     vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_state = INT32_C(5);
     t0 = (void*) _a0_obj;
@@ -211,7 +211,7 @@ static int32_t snippet$main(void) {
     { int32_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet$__genstate_maybe$Iterator$next(void* l0) {
+static void* snippet$$genstate_maybe$Iterator$next(void* l0) {
     vader_box_t l1 = vader_box_null();
     int32_t t0;
     void* t1 = NULL;
@@ -220,16 +220,16 @@ static void* snippet$__genstate_maybe$Iterator$next(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     for (;;) {
-        t0 = ((vader_struct_snippet$__genstate_maybe_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet$$genstate_maybe_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
-            ((vader_struct_snippet$__genstate_maybe_t*) l0)->f_state = INT32_C(-1);
+            ((vader_struct_snippet$$genstate_maybe_t*) l0)->f_state = INT32_C(-1);
             continue;
         }
         break;
     }
-    t0 = ((vader_struct_snippet$__genstate_maybe_t*) l0)->f_state;
+    t0 = ((vader_struct_snippet$$genstate_maybe_t*) l0)->f_state;
     if (t0 == INT32_C(1)) {
-        ((vader_struct_snippet$__genstate_maybe_t*) l0)->f_state = INT32_C(0);
+        ((vader_struct_snippet$$genstate_maybe_t*) l0)->f_state = INT32_C(0);
         vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t* _a0_obj = (vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t));
         vader_obj_header_init(_a0_obj, 4u);
         _a0_obj->f__0 = vader_box_i32(2u, INT32_C(5));
@@ -237,9 +237,9 @@ static void* snippet$__genstate_maybe$Iterator$next(void* l0) {
         t1 = (void*) _a0_obj;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = ((vader_struct_snippet$__genstate_maybe_t*) l0)->f_state;
+    t0 = ((vader_struct_snippet$$genstate_maybe_t*) l0)->f_state;
     if (t0 == INT32_C(2)) {
-        ((vader_struct_snippet$__genstate_maybe_t*) l0)->f_state = INT32_C(1);
+        ((vader_struct_snippet$$genstate_maybe_t*) l0)->f_state = INT32_C(1);
         vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t* _a1_obj = (vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t));
         vader_obj_header_init(_a1_obj, 4u);
         _a1_obj->f__0 = vader_box_obj(0u, NULL);
@@ -247,9 +247,9 @@ static void* snippet$__genstate_maybe$Iterator$next(void* l0) {
         t1 = (void*) _a1_obj;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = ((vader_struct_snippet$__genstate_maybe_t*) l0)->f_state;
+    t0 = ((vader_struct_snippet$$genstate_maybe_t*) l0)->f_state;
     if (t0 == INT32_C(3)) {
-        ((vader_struct_snippet$__genstate_maybe_t*) l0)->f_state = INT32_C(2);
+        ((vader_struct_snippet$$genstate_maybe_t*) l0)->f_state = INT32_C(2);
         vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t* _a2_obj = (vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t));
         vader_obj_header_init(_a2_obj, 4u);
         _a2_obj->f__0 = vader_box_i32(2u, INT32_C(3));
@@ -257,9 +257,9 @@ static void* snippet$__genstate_maybe$Iterator$next(void* l0) {
         t1 = (void*) _a2_obj;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = ((vader_struct_snippet$__genstate_maybe_t*) l0)->f_state;
+    t0 = ((vader_struct_snippet$$genstate_maybe_t*) l0)->f_state;
     if (t0 == INT32_C(4)) {
-        ((vader_struct_snippet$__genstate_maybe_t*) l0)->f_state = INT32_C(3);
+        ((vader_struct_snippet$$genstate_maybe_t*) l0)->f_state = INT32_C(3);
         vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t* _a3_obj = (vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t));
         vader_obj_header_init(_a3_obj, 4u);
         _a3_obj->f__0 = vader_box_obj(0u, NULL);
@@ -267,7 +267,7 @@ static void* snippet$__genstate_maybe$Iterator$next(void* l0) {
         t1 = (void*) _a3_obj;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = ((vader_struct_snippet$__genstate_maybe_t*) l0)->f_state;
+    t0 = ((vader_struct_snippet$$genstate_maybe_t*) l0)->f_state;
     if (!(t0 == INT32_C(5))) {
         l1 = vader_box_obj(0u, NULL);
         vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t* _a4_obj = (vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t));
@@ -277,7 +277,7 @@ static void* snippet$__genstate_maybe$Iterator$next(void* l0) {
         t1 = (void*) _a4_obj;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    ((vader_struct_snippet$__genstate_maybe_t*) l0)->f_state = INT32_C(4);
+    ((vader_struct_snippet$$genstate_maybe_t*) l0)->f_state = INT32_C(4);
     vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t* _a5_obj = (vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Union_i32_null_u8_9381f7b1_t));
     vader_obj_header_init(_a5_obj, 4u);
     _a5_obj->f__0 = vader_box_i32(2u, INT32_C(1));
@@ -442,7 +442,7 @@ static void std_io$println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static void* vader_vt_std_core$Iterator$next(vader_box_t recv) {
     switch (recv.tag) {
-        case 3u: return snippet$__genstate_maybe$Iterator$next(recv.payload.obj);
+        case 3u: return snippet$$genstate_maybe$Iterator$next(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Iterator.next");
     }
     vader_unreachable("vtable miss in std_core$Iterator.next");

@@ -14,7 +14,7 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       lazy: string = ""
-      it: __genstate_map<i64> = std.iter.map<string, i64>(std.iter.map<i32, string>(std.core.i32[].into([1, 22, 333] :i32[]), snippet.to_text), snippet.text_len)
+      it: $genstate_map<i64> = std.iter.map<string, i64>(std.iter.map<i32, string>(std.core.i32[].into([1, 22, 333] :i32[]), snippet.to_text), snippet.text_len)
       {
           __iter_0: Iterator<i64> = it
           for {

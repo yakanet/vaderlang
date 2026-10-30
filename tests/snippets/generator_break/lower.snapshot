@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.positives_until_big :: fn(xs: i32[]) -> Iterator<i32> {  // snippet$positives_until_big
-      return __genstate_positives_until_big {
+      return $genstate_positives_until_big {
           .s0 = xs,
           .s1 = null,
           .s2 = i64(0),
@@ -37,8 +37,8 @@
       }
       return 0
   }
-  snippet$__genstate_positives_until_big :: struct { s0: i32[], s1: i32[], s2: i64, s3: i64, s4: i32, state: i32 }
-  snippet$__genstate_positives_until_big$Iterator$next :: fn(self: __genstate_positives_until_big) -> [i32, Continuation] {
+  snippet$$genstate_positives_until_big :: struct { s0: i32[], s1: i32[], s2: i64, s3: i64, s4: i32, state: i32 }
+  snippet$$genstate_positives_until_big$Iterator$next :: fn(self: $genstate_positives_until_big) -> [i32, Continuation] {
       dispatch$: for {
           if __self_3.state == 0 {
               __self_3.state = -1
@@ -98,7 +98,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Iterator.next for __genstate_positives_until_big  snippet$__genstate_positives_until_big$Iterator$next
+  vtable std.core.Iterator.next for $genstate_positives_until_big  snippet$$genstate_positives_until_big$Iterator$next
 
 ## lowered in dependencies
   std/core

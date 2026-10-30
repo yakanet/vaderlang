@@ -59,7 +59,7 @@
               }
           }
       }
-      chunks: __genstate_chunked<i32[]> = std.iter.chunked<i32>(std.core.i32[].into([1, 2, 3, 4, 5, 6] :i32[]), i64(4))
+      chunks: $genstate_chunked<i32[]> = std.iter.chunked<i32>(std.core.i32[].into([1, 2, 3, 4, 5, 6] :i32[]), i64(4))
       {
           __iter_8: Iterator<i32[]> = chunks
           for {
@@ -103,7 +103,7 @@
               __fuse_i_14 = __fuse_i_14 +% i64(1)
           }
       }
-      words: __genstate_distinct<string> = std.iter.distinct<string>(std.core.string[].into(["to", "be", "or", "not", "to", "be"] :string[]))
+      words: $genstate_distinct<string> = std.iter.distinct<string>(std.core.string[].into(["to", "be", "or", "not", "to", "be"] :string[]))
       {
           __iter_15: Iterator<string> = words
           for {
@@ -137,7 +137,7 @@
               __fuse_i_21 = __fuse_i_21 +% i64(1)
           }
       }
-      present: __genstate_filter_not_null<i32> = std.iter.filter_not_null<i32>(std.core.(i32 | null)[].into(maybe))
+      present: $genstate_filter_not_null<i32> = std.iter.filter_not_null<i32>(std.core.(i32 | null)[].into(maybe))
       {
           __iter_22: Iterator<i32> = present
           for {
@@ -227,13 +227,13 @@
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$$genstate_array_iter$Iterator$next
     fn std_core$__gen_state_std_core_0$Iterator$next
     fn std_core$__gen_state_std_core_1$Iterator$next
-    fn std_core$__genstate_array_iter$Iterator$next
     struct std.core.Buffer  // std_core$Buffer
+    struct std_core$$genstate_array_iter
     struct std_core$__gen_state_std_core_0
     struct std_core$__gen_state_std_core_1
-    struct std_core$__genstate_array_iter
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

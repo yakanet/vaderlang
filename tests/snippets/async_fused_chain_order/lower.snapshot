@@ -14,7 +14,7 @@
       return [1, 2, 3] :i32[]
   }
   snippet.span_of :: fn(from: i32, to: i32) -> Iterator<i32> {  // snippet$span_of
-      return __genstate_span_of {
+      return $genstate_span_of {
           .s0 = from,
           .s1 = to,
           .s2 = 0,
@@ -77,8 +77,8 @@
       }
       return i32(__root_3)
   }
-  snippet$__genstate_span_of :: struct { s0: i32, s1: i32, s2: i32, state: i32 }
-  snippet$__genstate_span_of$Iterator$next :: fn(self: __genstate_span_of) -> [i32, Continuation] {
+  snippet$$genstate_span_of :: struct { s0: i32, s1: i32, s2: i32, state: i32 }
+  snippet$$genstate_span_of$Iterator$next :: fn(self: $genstate_span_of) -> [i32, Continuation] {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -381,7 +381,7 @@
   vtable std.core.Async.resume for Ready<i32>  snippet.Ready<i32>.resume  // snippet$Ready$std_core$Async$resume__i32
   vtable std.core.Async.resume for __asyncstate_snippet_3  snippet$__asyncstate_snippet_3$Async$resume
   vtable std.core.Async.resume for __asyncstate_snippet_4  snippet$__asyncstate_snippet_4$Async$resume
-  vtable std.core.Iterator.next for __genstate_span_of  snippet$__genstate_span_of$Iterator$next
+  vtable std.core.Iterator.next for $genstate_span_of  snippet$$genstate_span_of$Iterator$next
 
 ## lowered in dependencies
   std/core

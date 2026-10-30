@@ -16,8 +16,8 @@ type 13 fn (3) -> 3
 type 14 struct std_iter$__gen_state_std_iter_0 { s0:1,s1:13,s2:1,s3:15,s4:3,state:3 }
 type 15 struct __Tuple_i32_u8_99ae0d29 { _0:3,_1:9 }
 type 16 ref std_core$Iterator
-type 17 ref __genstate_map
-type 18 ref __genstate_array_iter
+type 17 ref $genstate_map
+type 18 ref $genstate_array_iter
 string 0 "true"
 string 1 "false"
 string 2 "\n"

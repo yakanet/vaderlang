@@ -32,7 +32,7 @@
       } :Label
   }
   snippet.labels :: fn() -> Iterator<Label> {  // snippet$labels
-      return __genstate_labels { .state = 1 }
+      return $genstate_labels { .state = 1 }
   }
   snippet.returned :: fn(c: Celsius) -> Label {  // snippet$returned
       snippet$Celsius$std_core$Into$into(c)
@@ -104,8 +104,8 @@
       std.io.println<string>(concat_3("lambda [", snippet.apply(__lambda_snippet_0, Celsius { .v = 12 }).text, "]"))
       return 0
   }
-  snippet$__genstate_labels :: struct { state: i32 }
-  snippet$__genstate_labels$Iterator$next :: fn(self: __genstate_labels) -> [Label, Continuation] {
+  snippet$$genstate_labels :: struct { state: i32 }
+  snippet$$genstate_labels$Iterator$next :: fn(self: $genstate_labels) -> [Label, Continuation] {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -147,7 +147,7 @@
   vtable snippet.Shower.show for Box  snippet.Box.show  // snippet$Box$Shower$show
   vtable std.core.Into.into for Celsius  snippet$Celsius$std_core$Into$into
   vtable std.core.Into.into for Celsius  snippet$Celsius$std_core$Into$into$1
-  vtable std.core.Iterator.next for __genstate_labels  snippet$__genstate_labels$Iterator$next
+  vtable std.core.Iterator.next for $genstate_labels  snippet$$genstate_labels$Iterator$next
 
 ## lowered in dependencies
   std/collections

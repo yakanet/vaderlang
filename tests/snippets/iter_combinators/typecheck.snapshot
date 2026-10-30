@@ -2,7 +2,7 @@
 
 ## tests/snippets/iter_combinators
   FnDecl         main                 :: fn() -> i32
-  expr 10:16    CallExpr       :: __genstate_map<i32>
+  expr 10:16    CallExpr       :: $genstate_map<i32>
   expr 10:16    CallExpr       :: i32[]
   expr 10:16    FieldExpr      :: fn() -> i32[]
   expr 10:16    IdentExpr      :: fn(Iterator<T>, fn(T) -> U) -> Iterator<U>
@@ -14,7 +14,7 @@
   expr 11:11    CallExpr       :: i32
   expr 11:11    IdentExpr      :: fn(Iterator<T>) -> T
   expr 11:15    IdentExpr      :: i32[]
-  expr 14:14    CallExpr       :: __genstate_filter<i32>
+  expr 14:14    CallExpr       :: $genstate_filter<i32>
   expr 14:14    CallExpr       :: i32[]
   expr 14:14    FieldExpr      :: fn() -> i32[]
   expr 14:14    IdentExpr      :: fn(Iterator<T>, fn(T) -> bool) -> Iterator<T>

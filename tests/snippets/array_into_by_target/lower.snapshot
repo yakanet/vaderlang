@@ -6,7 +6,7 @@
   snippet.Mon :: struct { v: i32 }  // snippet$Mon
   snippet.Label :: struct { s: string }  // snippet$Label
   snippet.labels :: fn(xs: Mon[]) -> Iterator<Label> {  // snippet$labels
-      return __genstate_labels {
+      return $genstate_labels {
           .s0 = xs,
           .s1 = null,
           .s2 = i64(0),
@@ -88,8 +88,8 @@
       std.io.println<string>(snippet.Mon[].into(snippet.LIST).s)
       return 0
   }
-  snippet$__genstate_labels :: struct { s0: Mon[], s1: Mon[], s2: i64, s3: i64, s4: Mon, state: i32 }
-  snippet$__genstate_labels$Iterator$next :: fn(self: __genstate_labels) -> [Label, Continuation] {
+  snippet$$genstate_labels :: struct { s0: Mon[], s1: Mon[], s2: i64, s3: i64, s4: Mon, state: i32 }
+  snippet$$genstate_labels$Iterator$next :: fn(self: $genstate_labels) -> [Label, Continuation] {
       dispatch$: for {
           if __self_5.state == 0 {
               __self_5.state = -1
@@ -148,7 +148,7 @@
       std.core.Buffer.intern_string(buf, c1)
   }
   vtable std.core.Into.into for Mon[]  snippet.Mon[].into  // snippet$$array$std_core$Into$into__snippet_Mon
-  vtable std.core.Iterator.next for __genstate_labels  snippet$__genstate_labels$Iterator$next
+  vtable std.core.Iterator.next for $genstate_labels  snippet$$genstate_labels$Iterator$next
 
 ## lowered in dependencies
   std/core

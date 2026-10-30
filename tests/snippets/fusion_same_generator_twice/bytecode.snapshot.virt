@@ -4,12 +4,12 @@ type 1 scalar i32
 type 2 scalar bool
 type 3 ref std_core$Iterator
 type 4 scalar void
-type 5 struct snippet$__genstate_scale { s0:3,s1:1,s2:3,s3:6,s4:1,state:1 }
+type 5 struct snippet$$genstate_scale { s0:3,s1:1,s2:3,s3:6,s4:1,state:1 }
 type 6 struct __Tuple_i32_u8_99ae0d29 { _0:1,_1:7 }
 type 7 scalar u8
-type 8 struct snippet$__genstate_upto { s0:1,s1:1,state:1 }
+type 8 struct snippet$$genstate_upto { s0:1,s1:1,state:1 }
 type 9 scalar char
-type 10 struct snippet$__genstate_grid { s0:1,s1:1,state:1 }
+type 10 struct snippet$$genstate_grid { s0:1,s1:1,state:1 }
 type 11 scalar string
 type 12 struct std_core$Buffer {  }
 type 13 scalar i64
@@ -30,16 +30,16 @@ type 27 struct std_iter$__gen_state_std_iter_2 { s0:3,s1:13,s2:13,s3:3,s4:6,s5:1
 type 28 struct std_iter$__gen_state_std_iter_3 { s0:3,s1:13,s2:13,s3:3,s4:6,s5:1,state:1 }
 type 29 struct std_string$StringChars { s:11,cursor:13 }
 type 30 ref std_core$Iterator
-type 31 ref __genstate_map
-type 32 ref __genstate_filter
-type 33 ref __genstate_take
-type 34 ref __genstate_skip
-type 35 ref __genstate_chain
-type 36 ref __genstate_scale
-type 37 ref __genstate_upto
-type 38 ref __genstate_filter
-type 39 ref __genstate_grid
-type 40 ref __genstate_array_iter
+type 31 ref $genstate_map
+type 32 ref $genstate_filter
+type 33 ref $genstate_take
+type 34 ref $genstate_skip
+type 35 ref $genstate_chain
+type 36 ref $genstate_scale
+type 37 ref $genstate_upto
+type 38 ref $genstate_filter
+type 39 ref $genstate_grid
+type 40 ref $genstate_array_iter
 string 0 ""
 string 1 " "
 string 2 "map.map:"
@@ -135,7 +135,7 @@ fn 4 snippet$scale (any,i32) -> any
   local.get 3   ; $k_3
   i32.const 0
   i32.const 11
-  struct.new 5   ; snippet$__genstate_scale
+  struct.new 5   ; snippet$$genstate_scale
   return
 end
 
@@ -143,7 +143,7 @@ fn 5 snippet$upto (i32) -> any
   local.get 0   ; arg 0
   i32.const 0
   i32.const 5
-  struct.new 8   ; snippet$__genstate_upto
+  struct.new 8   ; snippet$$genstate_upto
   return
 end
 
@@ -1551,7 +1551,7 @@ fn 17 snippet$grid () -> any
   i32.const 0
   i32.const 0
   i32.const 12
-  struct.new 10   ; snippet$__genstate_grid
+  struct.new 10   ; snippet$$genstate_grid
   return
 end
 
@@ -1809,89 +1809,89 @@ fn 19 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 20 snippet$__genstate_scale$Iterator$next (ref) -> ref
+fn 20 snippet$$genstate_scale$Iterator$next (ref) -> ref
   local $field_33 i32
   local $field_34 i32
   local $field_42 i32
   local $vcall_57 ref
   local $field_62 any
   loop $L0 void
-    local.field 0 5 5   ; arg 0 snippet$__genstate_scale.state
+    local.field 0 5 5   ; arg 0 snippet$$genstate_scale.state
     ref.cast 1   ; i32
     i32.const 0
     i32.eq
     if $L1 void
       local.get 0   ; arg 0
       i32.const -1
-      struct.set 5 5   ; snippet$__genstate_scale.state
+      struct.set 5 5   ; snippet$$genstate_scale.state
       br $L0
     end $L1
-    local.field 0 5 5   ; arg 0 snippet$__genstate_scale.state
+    local.field 0 5 5   ; arg 0 snippet$$genstate_scale.state
     ref.cast 1   ; i32
     i32.const 1
     i32.eq
     if $L2 void
       local.get 0   ; arg 0
       i32.const 0
-      struct.set 5 5   ; snippet$__genstate_scale.state
+      struct.set 5 5   ; snippet$$genstate_scale.state
     else
-      local.field 0 5 5   ; arg 0 snippet$__genstate_scale.state
+      local.field 0 5 5   ; arg 0 snippet$$genstate_scale.state
       ref.cast 1   ; i32
       i32.const 2
       i32.eq
       if $L3 void
         local.get 0   ; arg 0
         i32.const 10
-        struct.set 5 5   ; snippet$__genstate_scale.state
+        struct.set 5 5   ; snippet$$genstate_scale.state
       else
-        local.field 0 5 5   ; arg 0 snippet$__genstate_scale.state
+        local.field 0 5 5   ; arg 0 snippet$$genstate_scale.state
         ref.cast 1   ; i32
         i32.const 3
         i32.eq
         if $L4 void
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 5 5   ; snippet$__genstate_scale.state
+          struct.set 5 5   ; snippet$$genstate_scale.state
         else
-          local.field 0 5 5   ; arg 0 snippet$__genstate_scale.state
+          local.field 0 5 5   ; arg 0 snippet$$genstate_scale.state
           ref.cast 1   ; i32
           i32.const 4
           i32.eq
           if $L5 void
             local.get 0   ; arg 0
             i32.const 3
-            struct.set 5 5   ; snippet$__genstate_scale.state
+            struct.set 5 5   ; snippet$$genstate_scale.state
           else
-            local.field 0 5 5   ; arg 0 snippet$__genstate_scale.state
+            local.field 0 5 5   ; arg 0 snippet$$genstate_scale.state
             ref.cast 1   ; i32
             i32.const 5
             i32.eq
             if $L6 void
               local.get 0   ; arg 0
               i32.const 1
-              struct.set 5 5   ; snippet$__genstate_scale.state
+              struct.set 5 5   ; snippet$$genstate_scale.state
             else
-              local.field 0 5 5   ; arg 0 snippet$__genstate_scale.state
+              local.field 0 5 5   ; arg 0 snippet$$genstate_scale.state
               ref.cast 1   ; i32
               i32.const 6
               i32.eq
               if $L7 void
                 local.get 0   ; arg 0
                 i32.const 3
-                struct.set 5 5   ; snippet$__genstate_scale.state
+                struct.set 5 5   ; snippet$$genstate_scale.state
               else
-                local.field 0 5 5   ; arg 0 snippet$__genstate_scale.state
+                local.field 0 5 5   ; arg 0 snippet$$genstate_scale.state
                 ref.cast 1   ; i32
                 i32.const 7
                 i32.eq
                 if $L8 void
                   local.get 0   ; arg 0
                   i32.const 6
-                  struct.set 5 5   ; snippet$__genstate_scale.state
-                  local.field 0 5 4   ; arg 0 snippet$__genstate_scale.s4
+                  struct.set 5 5   ; snippet$$genstate_scale.state
+                  local.field 0 5 4   ; arg 0 snippet$$genstate_scale.s4
                   ref.cast 1   ; i32
                   local.set 1   ; $field_33
-                  local.field 0 5 1   ; arg 0 snippet$__genstate_scale.s1
+                  local.field 0 5 1   ; arg 0 snippet$$genstate_scale.s1
                   ref.cast 1   ; i32
                   local.set 2   ; $field_34
                   local.get 1   ; $field_33
@@ -1901,57 +1901,57 @@ fn 20 snippet$__genstate_scale$Iterator$next (ref) -> ref
                   struct.new 6   ; __Tuple_i32_u8_99ae0d29
                   return
                 end $L8
-                local.field 0 5 5   ; arg 0 snippet$__genstate_scale.state
+                local.field 0 5 5   ; arg 0 snippet$$genstate_scale.state
                 ref.cast 1   ; i32
                 i32.const 8
                 i32.eq
                 if $L9 void
-                  local.field 0 5 3   ; arg 0 snippet$__genstate_scale.s3
+                  local.field 0 5 3   ; arg 0 snippet$$genstate_scale.s3
                   struct.get 6 0   ; __Tuple_i32_u8_99ae0d29._0
                   ref.cast 1   ; i32
                   local.set 3   ; $field_42
                   local.get 0   ; arg 0
                   local.get 3   ; $field_42
-                  struct.set 5 4   ; snippet$__genstate_scale.s4
+                  struct.set 5 4   ; snippet$$genstate_scale.s4
                   local.get 0   ; arg 0
                   i32.const 7
-                  struct.set 5 5   ; snippet$__genstate_scale.state
+                  struct.set 5 5   ; snippet$$genstate_scale.state
                 else
-                  local.field 0 5 5   ; arg 0 snippet$__genstate_scale.state
+                  local.field 0 5 5   ; arg 0 snippet$$genstate_scale.state
                   ref.cast 1   ; i32
                   i32.const 9
                   i32.eq
                   if $L10 void
-                    local.field 0 5 3   ; arg 0 snippet$__genstate_scale.s3
+                    local.field 0 5 3   ; arg 0 snippet$$genstate_scale.s3
                     struct.get 6 1   ; __Tuple_i32_u8_99ae0d29._1
                     i32.const 1
                     i32.eq
                     if $L11 void
                       local.get 0   ; arg 0
                       i32.const 5
-                      struct.set 5 5   ; snippet$__genstate_scale.state
+                      struct.set 5 5   ; snippet$$genstate_scale.state
                     else
                       local.get 0   ; arg 0
                       i32.const 8
-                      struct.set 5 5   ; snippet$__genstate_scale.state
+                      struct.set 5 5   ; snippet$$genstate_scale.state
                     end $L11
                   else
-                    local.field 0 5 5   ; arg 0 snippet$__genstate_scale.state
+                    local.field 0 5 5   ; arg 0 snippet$$genstate_scale.state
                     ref.cast 1   ; i32
                     i32.const 10
                     i32.eq
                     if $L12 void
-                      local.field 0 5 2   ; arg 0 snippet$__genstate_scale.s2
+                      local.field 0 5 2   ; arg 0 snippet$$genstate_scale.s2
                       virtual.call 1 std_core$Iterator.next -> ref
                       local.set 4   ; $vcall_57
                       local.get 0   ; arg 0
                       local.get 4   ; $vcall_57
-                      struct.set 5 3   ; snippet$__genstate_scale.s3
+                      struct.set 5 3   ; snippet$$genstate_scale.s3
                       local.get 0   ; arg 0
                       i32.const 9
-                      struct.set 5 5   ; snippet$__genstate_scale.state
+                      struct.set 5 5   ; snippet$$genstate_scale.state
                     else
-                      local.field 0 5 5   ; arg 0 snippet$__genstate_scale.state
+                      local.field 0 5 5   ; arg 0 snippet$$genstate_scale.state
                       ref.cast 1   ; i32
                       i32.const 11
                       i32.eq
@@ -1962,14 +1962,14 @@ fn 20 snippet$__genstate_scale$Iterator$next (ref) -> ref
                         struct.new 6   ; __Tuple_i32_u8_99ae0d29
                         return
                       end $L13
-                      local.field 0 5 0   ; arg 0 snippet$__genstate_scale.s0
+                      local.field 0 5 0   ; arg 0 snippet$$genstate_scale.s0
                       local.set 5   ; $field_62
                       local.get 0   ; arg 0
                       local.get 5   ; $field_62
-                      struct.set 5 2   ; snippet$__genstate_scale.s2
+                      struct.set 5 2   ; snippet$$genstate_scale.s2
                       local.get 0   ; arg 0
                       i32.const 2
-                      struct.set 5 5   ; snippet$__genstate_scale.state
+                      struct.set 5 5   ; snippet$$genstate_scale.state
                     end $L12
                   end $L10
                 end $L9
@@ -1983,39 +1983,39 @@ fn 20 snippet$__genstate_scale$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 21 snippet$__genstate_upto$Iterator$next (ref) -> ref
+fn 21 snippet$$genstate_upto$Iterator$next (ref) -> ref
   local $field_12 i32
   local $field_13 i32
   local $add_22 i32
   loop $L0 void
-    local.field 0 8 2   ; arg 0 snippet$__genstate_upto.state
+    local.field 0 8 2   ; arg 0 snippet$$genstate_upto.state
     ref.cast 1   ; i32
     i32.const 0
     i32.eq
     if $L1 void
       local.get 0   ; arg 0
       i32.const -1
-      struct.set 8 2   ; snippet$__genstate_upto.state
+      struct.set 8 2   ; snippet$$genstate_upto.state
       br $L0
     end $L1
-    local.field 0 8 2   ; arg 0 snippet$__genstate_upto.state
+    local.field 0 8 2   ; arg 0 snippet$$genstate_upto.state
     ref.cast 1   ; i32
     i32.const 1
     i32.eq
     if $L2 void
       local.get 0   ; arg 0
       i32.const 0
-      struct.set 8 2   ; snippet$__genstate_upto.state
+      struct.set 8 2   ; snippet$$genstate_upto.state
     else
-      local.field 0 8 2   ; arg 0 snippet$__genstate_upto.state
+      local.field 0 8 2   ; arg 0 snippet$$genstate_upto.state
       ref.cast 1   ; i32
       i32.const 2
       i32.eq
       if $L3 void
-        local.field 0 8 1   ; arg 0 snippet$__genstate_upto.s1
+        local.field 0 8 1   ; arg 0 snippet$$genstate_upto.s1
         ref.cast 1   ; i32
         local.set 1   ; $field_12
-        local.field 0 8 0   ; arg 0 snippet$__genstate_upto.s0
+        local.field 0 8 0   ; arg 0 snippet$$genstate_upto.s0
         ref.cast 1   ; i32
         local.set 2   ; $field_13
         local.get 1   ; $field_12
@@ -2024,45 +2024,45 @@ fn 21 snippet$__genstate_upto$Iterator$next (ref) -> ref
         if $L4 void
           local.get 0   ; arg 0
           i32.const 4
-          struct.set 8 2   ; snippet$__genstate_upto.state
+          struct.set 8 2   ; snippet$$genstate_upto.state
         else
           local.get 0   ; arg 0
           i32.const 1
-          struct.set 8 2   ; snippet$__genstate_upto.state
+          struct.set 8 2   ; snippet$$genstate_upto.state
         end $L4
       else
-        local.field 0 8 2   ; arg 0 snippet$__genstate_upto.state
+        local.field 0 8 2   ; arg 0 snippet$$genstate_upto.state
         ref.cast 1   ; i32
         i32.const 3
         i32.eq
         if $L5 void
-          local.field 0 8 1   ; arg 0 snippet$__genstate_upto.s1
+          local.field 0 8 1   ; arg 0 snippet$$genstate_upto.s1
           ref.cast 1   ; i32
           i32.const 1
           i32.add
           local.set 3   ; $add_22
           local.get 0   ; arg 0
           local.get 3   ; $add_22
-          struct.set 8 1   ; snippet$__genstate_upto.s1
+          struct.set 8 1   ; snippet$$genstate_upto.s1
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 8 2   ; snippet$__genstate_upto.state
+          struct.set 8 2   ; snippet$$genstate_upto.state
         else
-          local.field 0 8 2   ; arg 0 snippet$__genstate_upto.state
+          local.field 0 8 2   ; arg 0 snippet$$genstate_upto.state
           ref.cast 1   ; i32
           i32.const 4
           i32.eq
           if $L6 void
             local.get 0   ; arg 0
             i32.const 3
-            struct.set 8 2   ; snippet$__genstate_upto.state
-            local.field 0 8 1   ; arg 0 snippet$__genstate_upto.s1
+            struct.set 8 2   ; snippet$$genstate_upto.state
+            local.field 0 8 1   ; arg 0 snippet$$genstate_upto.s1
             ref.cast 1   ; i32
             i32.const 0
             struct.new 6   ; __Tuple_i32_u8_99ae0d29
             return
           end $L6
-          local.field 0 8 2   ; arg 0 snippet$__genstate_upto.state
+          local.field 0 8 2   ; arg 0 snippet$$genstate_upto.state
           ref.cast 1   ; i32
           i32.const 5
           i32.eq
@@ -2075,10 +2075,10 @@ fn 21 snippet$__genstate_upto$Iterator$next (ref) -> ref
           end $L7
           local.get 0   ; arg 0
           i32.const 0
-          struct.set 8 1   ; snippet$__genstate_upto.s1
+          struct.set 8 1   ; snippet$$genstate_upto.s1
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 8 2   ; snippet$__genstate_upto.state
+          struct.set 8 2   ; snippet$$genstate_upto.state
         end $L5
       end $L3
     end $L2
@@ -2114,163 +2114,163 @@ fn 25 __lambda_snippet_3 (char) -> bool
   return
 end
 
-fn 26 snippet$__genstate_grid$Iterator$next (ref) -> ref
+fn 26 snippet$$genstate_grid$Iterator$next (ref) -> ref
   local $add_22 i32
   local $add_41 i32
   local $mul_checked_65 i32
   local $field_66 i32
   loop $L0 void
-    local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+    local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
     ref.cast 1   ; i32
     i32.const 0
     i32.eq
     if $L1 void
       local.get 0   ; arg 0
       i32.const -1
-      struct.set 10 2   ; snippet$__genstate_grid.state
+      struct.set 10 2   ; snippet$$genstate_grid.state
       br $L0
     end $L1
-    local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+    local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
     ref.cast 1   ; i32
     i32.const 1
     i32.eq
     if $L2 void
       local.get 0   ; arg 0
       i32.const 0
-      struct.set 10 2   ; snippet$__genstate_grid.state
+      struct.set 10 2   ; snippet$$genstate_grid.state
     else
-      local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+      local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
       ref.cast 1   ; i32
       i32.const 2
       i32.eq
       if $L3 void
-        local.field 0 10 0   ; arg 0 snippet$__genstate_grid.s0
+        local.field 0 10 0   ; arg 0 snippet$$genstate_grid.s0
         ref.cast 1   ; i32
         i32.const 3
         i32.lt
         if $L4 void
           local.get 0   ; arg 0
           i32.const 11
-          struct.set 10 2   ; snippet$__genstate_grid.state
+          struct.set 10 2   ; snippet$$genstate_grid.state
         else
           local.get 0   ; arg 0
           i32.const 1
-          struct.set 10 2   ; snippet$__genstate_grid.state
+          struct.set 10 2   ; snippet$$genstate_grid.state
         end $L4
       else
-        local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+        local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
         ref.cast 1   ; i32
         i32.const 3
         i32.eq
         if $L5 void
-          local.field 0 10 0   ; arg 0 snippet$__genstate_grid.s0
+          local.field 0 10 0   ; arg 0 snippet$$genstate_grid.s0
           ref.cast 1   ; i32
           i32.const 1
           i32.add
           local.set 1   ; $add_22
           local.get 0   ; arg 0
           local.get 1   ; $add_22
-          struct.set 10 0   ; snippet$__genstate_grid.s0
+          struct.set 10 0   ; snippet$$genstate_grid.s0
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 10 2   ; snippet$__genstate_grid.state
+          struct.set 10 2   ; snippet$$genstate_grid.state
         else
-          local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+          local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
           ref.cast 1   ; i32
           i32.const 4
           i32.eq
           if $L6 void
             local.get 0   ; arg 0
             i32.const 3
-            struct.set 10 2   ; snippet$__genstate_grid.state
+            struct.set 10 2   ; snippet$$genstate_grid.state
           else
-            local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+            local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
             ref.cast 1   ; i32
             i32.const 5
             i32.eq
             if $L7 void
-              local.field 0 10 1   ; arg 0 snippet$__genstate_grid.s1
+              local.field 0 10 1   ; arg 0 snippet$$genstate_grid.s1
               ref.cast 1   ; i32
               i32.const 3
               i32.lt
               if $L8 void
                 local.get 0   ; arg 0
                 i32.const 10
-                struct.set 10 2   ; snippet$__genstate_grid.state
+                struct.set 10 2   ; snippet$$genstate_grid.state
               else
                 local.get 0   ; arg 0
                 i32.const 4
-                struct.set 10 2   ; snippet$__genstate_grid.state
+                struct.set 10 2   ; snippet$$genstate_grid.state
               end $L8
             else
-              local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+              local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
               ref.cast 1   ; i32
               i32.const 6
               i32.eq
               if $L9 void
-                local.field 0 10 1   ; arg 0 snippet$__genstate_grid.s1
+                local.field 0 10 1   ; arg 0 snippet$$genstate_grid.s1
                 ref.cast 1   ; i32
                 i32.const 1
                 i32.add
                 local.set 2   ; $add_41
                 local.get 0   ; arg 0
                 local.get 2   ; $add_41
-                struct.set 10 1   ; snippet$__genstate_grid.s1
+                struct.set 10 1   ; snippet$$genstate_grid.s1
                 local.get 0   ; arg 0
                 i32.const 5
-                struct.set 10 2   ; snippet$__genstate_grid.state
+                struct.set 10 2   ; snippet$$genstate_grid.state
               else
-                local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+                local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
                 ref.cast 1   ; i32
                 i32.const 7
                 i32.eq
                 if $L10 void
                   local.get 0   ; arg 0
                   i32.const 6
-                  struct.set 10 2   ; snippet$__genstate_grid.state
+                  struct.set 10 2   ; snippet$$genstate_grid.state
                 else
-                  local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+                  local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
                   ref.cast 1   ; i32
                   i32.const 8
                   i32.eq
                   if $L11 void
                     local.get 0   ; arg 0
                     i32.const 1
-                    struct.set 10 2   ; snippet$__genstate_grid.state
+                    struct.set 10 2   ; snippet$$genstate_grid.state
                   else
-                    local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+                    local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
                     ref.cast 1   ; i32
                     i32.const 9
                     i32.eq
                     if $L12 void
-                      local.field 0 10 1   ; arg 0 snippet$__genstate_grid.s1
+                      local.field 0 10 1   ; arg 0 snippet$$genstate_grid.s1
                       ref.cast 1   ; i32
                       i32.const 2
                       i32.eq
                       if $L13 void
                         local.get 0   ; arg 0
                         i32.const 8
-                        struct.set 10 2   ; snippet$__genstate_grid.state
+                        struct.set 10 2   ; snippet$$genstate_grid.state
                       else
                         local.get 0   ; arg 0
                         i32.const 6
-                        struct.set 10 2   ; snippet$__genstate_grid.state
+                        struct.set 10 2   ; snippet$$genstate_grid.state
                       end $L13
                     else
-                      local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+                      local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
                       ref.cast 1   ; i32
                       i32.const 10
                       i32.eq
                       if $L14 void
                         local.get 0   ; arg 0
                         i32.const 9
-                        struct.set 10 2   ; snippet$__genstate_grid.state
-                        local.field 0 10 0   ; arg 0 snippet$__genstate_grid.s0
+                        struct.set 10 2   ; snippet$$genstate_grid.state
+                        local.field 0 10 0   ; arg 0 snippet$$genstate_grid.s0
                         ref.cast 1   ; i32
                         i32.const 10
                         i32.checked_mul
                         local.set 3   ; $mul_checked_65
-                        local.field 0 10 1   ; arg 0 snippet$__genstate_grid.s1
+                        local.field 0 10 1   ; arg 0 snippet$$genstate_grid.s1
                         ref.cast 1   ; i32
                         local.set 4   ; $field_66
                         local.get 3   ; $mul_checked_65
@@ -2280,19 +2280,19 @@ fn 26 snippet$__genstate_grid$Iterator$next (ref) -> ref
                         struct.new 6   ; __Tuple_i32_u8_99ae0d29
                         return
                       end $L14
-                      local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+                      local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
                       ref.cast 1   ; i32
                       i32.const 11
                       i32.eq
                       if $L15 void
                         local.get 0   ; arg 0
                         i32.const 0
-                        struct.set 10 1   ; snippet$__genstate_grid.s1
+                        struct.set 10 1   ; snippet$$genstate_grid.s1
                         local.get 0   ; arg 0
                         i32.const 5
-                        struct.set 10 2   ; snippet$__genstate_grid.state
+                        struct.set 10 2   ; snippet$$genstate_grid.state
                       else
-                        local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
+                        local.field 0 10 2   ; arg 0 snippet$$genstate_grid.state
                         ref.cast 1   ; i32
                         i32.const 12
                         i32.eq
@@ -2305,10 +2305,10 @@ fn 26 snippet$__genstate_grid$Iterator$next (ref) -> ref
                         end $L16
                         local.get 0   ; arg 0
                         i32.const 0
-                        struct.set 10 0   ; snippet$__genstate_grid.s0
+                        struct.set 10 0   ; snippet$$genstate_grid.s0
                         local.get 0   ; arg 0
                         i32.const 2
-                        struct.set 10 2   ; snippet$__genstate_grid.state
+                        struct.set 10 2   ; snippet$$genstate_grid.state
                       end $L15
                     end $L12
                   end $L11

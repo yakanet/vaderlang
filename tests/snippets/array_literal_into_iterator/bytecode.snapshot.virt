@@ -20,9 +20,9 @@ type 17 struct __Tuple_string_u8_b910c566 { _0:5,_1:13 }
 type 18 scalar bool
 type 19 array 13
 type 20 scalar void
-type 21 ref __genstate_array_iter
-type 22 ref __genstate_array_iter
-type 23 ref __genstate_array_iter
+type 21 ref $genstate_array_iter
+type 22 ref $genstate_array_iter
+type 23 ref $genstate_array_iter
 string 0 " "
 string 1 "a"
 string 2 "x"

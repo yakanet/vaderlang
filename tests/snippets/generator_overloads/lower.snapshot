@@ -2,14 +2,14 @@
 
 ## snippet
   snippet$upto :: fn(n: i32) -> Iterator<i32> {
-      return __genstate_upto {
+      return $genstate_upto {
           .s0 = n,
           .s1 = 0,
           .state = 5,
       }
   }
   snippet$upto_1 :: fn(s: string) -> Iterator<string> {
-      return __genstate_upto_1 {
+      return $genstate_upto_1 {
           .s0 = s,
           .s1 = i64(0),
           .s2 = i64(0),
@@ -67,9 +67,9 @@
               x = x + 0.5
           }
       }
-      words: __genstate_upto_1<string> = snippet$upto_1("xyz")
-      numbers: __genstate_upto<i32> = snippet$upto(3)
-      halves: __genstate_upto<f64> = snippet.halves.upto(1.5)
+      words: $genstate_upto_1<string> = snippet$upto_1("xyz")
+      numbers: $genstate_upto<i32> = snippet$upto(3)
+      halves: $genstate_upto<f64> = snippet.halves.upto(1.5)
       {
           __iter_2: Iterator<string> = words
           for {
@@ -193,8 +193,8 @@
       }
       return 0
   }
-  snippet$__genstate_upto :: struct { s0: i32, s1: i32, state: i32 }
-  snippet$__genstate_upto$Iterator$next :: fn(self: __genstate_upto) -> [i32, Continuation] {
+  snippet$$genstate_upto :: struct { s0: i32, s1: i32, state: i32 }
+  snippet$$genstate_upto$Iterator$next :: fn(self: $genstate_upto) -> [i32, Continuation] {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -220,8 +220,8 @@
           }
       }
   }
-  snippet$__genstate_upto_1 :: struct { s0: string, s1: i64, s2: i64, s3: string, s4: Buffer, s5: i64, state: i32 }
-  snippet$__genstate_upto_1$Iterator$next :: fn(self: __genstate_upto_1) -> [string, Continuation] {
+  snippet$$genstate_upto_1 :: struct { s0: string, s1: i64, s2: i64, s3: string, s4: Buffer, s5: i64, state: i32 }
+  snippet$$genstate_upto_1$Iterator$next :: fn(self: $genstate_upto_1) -> [string, Continuation] {
       dispatch$: for {
           if __self_4.state == 0 {
               __self_4.state = -1
@@ -269,19 +269,19 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Iterator.next for __genstate_upto  snippet$__genstate_upto$Iterator$next
-  vtable std.core.Iterator.next for __genstate_upto_1  snippet$__genstate_upto_1$Iterator$next
+  vtable std.core.Iterator.next for $genstate_upto  snippet$$genstate_upto$Iterator$next
+  vtable std.core.Iterator.next for $genstate_upto_1  snippet$$genstate_upto_1$Iterator$next
 
 ## snippet/halves
   snippet.halves.upto :: fn(limit: f64) -> Iterator<f64> {  // snippet_halves$upto
-      return __genstate_upto {
+      return $genstate_upto {
           .s0 = limit,
           .s1 = 0.0,
           .state = 4,
       }
   }
-  snippet_halves$__genstate_upto :: struct { s0: f64, s1: f64, state: i32 }
-  snippet_halves$__genstate_upto$Iterator$next :: fn(self: __genstate_upto) -> [f64, Continuation] {
+  snippet_halves$$genstate_upto :: struct { s0: f64, s1: f64, state: i32 }
+  snippet_halves$$genstate_upto$Iterator$next :: fn(self: $genstate_upto) -> [f64, Continuation] {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -305,7 +305,7 @@
           }
       }
   }
-  vtable std.core.Iterator.next for __genstate_upto  snippet_halves$__genstate_upto$Iterator$next
+  vtable std.core.Iterator.next for $genstate_upto  snippet_halves$$genstate_upto$Iterator$next
 
 ## lowered in dependencies
   std/core

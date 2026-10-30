@@ -9,7 +9,7 @@
   expr 12:45    SeqLitExpr     :: i32[]
   expr 16:11    SeqLitExpr     :: i32[]
   expr 17:13    StringLitExpr  :: string
-  expr 17:16    CallExpr       :: __genstate_map<i32>
+  expr 17:16    CallExpr       :: $genstate_map<i32>
   expr 17:16    CallExpr       :: i32
   expr 17:16    FieldExpr      :: fn(fn(i32) -> bool) -> i32
   expr 17:16    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
@@ -25,7 +25,7 @@
   expr 18:13    StringLitExpr  :: string
   expr 18:16    CallExpr       :: i32
   expr 18:16    IdentExpr      :: fn(Iterator<i32>, fn(i32) -> bool) -> i32
-  expr 18:21    CallExpr       :: __genstate_map<i32>
+  expr 18:21    CallExpr       :: $genstate_map<i32>
   expr 18:21    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 18:21    IdentExpr      :: i32[]
   expr 18:28    LambdaExpr     :: fn(i32) -> i32
@@ -37,7 +37,7 @@
   expr 18:60    BinaryExpr     :: bool
   expr 18:60    IdentExpr      :: i32
   expr 19:13    StringLitExpr  :: string
-  expr 19:16    CallExpr       :: __genstate_map<i32>
+  expr 19:16    CallExpr       :: $genstate_map<i32>
   expr 19:16    CallExpr       :: bool
   expr 19:16    FieldExpr      :: fn(fn(i32) -> bool) -> bool
   expr 19:16    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
@@ -51,7 +51,7 @@
   expr 19:64    BinaryExpr     :: bool
   expr 19:64    IdentExpr      :: i32
   expr 20:13    StringLitExpr  :: string
-  expr 20:16    CallExpr       :: __genstate_map<i32>
+  expr 20:16    CallExpr       :: $genstate_map<i32>
   expr 20:16    CallExpr       :: i32[]
   expr 20:16    CallExpr       :: i64
   expr 20:16    FieldExpr      :: fn() -> i32[]
@@ -64,7 +64,7 @@
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(T) -> void
   expr 21:13    StringLitExpr  :: string
-  expr 21:16    CallExpr       :: __genstate_map<i32>
+  expr 21:16    CallExpr       :: $genstate_map<i32>
   expr 21:16    CallExpr       :: i64
   expr 21:16    FieldExpr      :: fn() -> i64
   expr 21:16    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>

@@ -13,7 +13,7 @@ type 10 struct std_core$__gen_state_std_core_0 { s0:9,s1:11,s2:11,state:2 }
 type 11 scalar i64
 type 12 scalar bool
 type 13 ref std_core$Iterator
-type 14 ref __genstate_array_iter
+type 14 ref $genstate_array_iter
 impl 1 snippet$Greeter
 impl 6 std_core$Iterator
 impl 9 std_core$Into

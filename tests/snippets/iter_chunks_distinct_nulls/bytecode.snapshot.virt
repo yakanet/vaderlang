@@ -18,7 +18,7 @@ type 15 scalar u8
 type 16 array 17
 type 17 ref _
 type 18 ref std_core$Iterator
-type 19 struct std_core$__genstate_array_iter { s0:16,s1:4,s2:4,state:1 }
+type 19 struct std_core$$genstate_array_iter { s0:16,s1:4,s2:4,state:1 }
 type 20 struct __Tuple_Any_u8_d7d23c9c { _0:17,_1:15 }
 type 21 struct std_core$__gen_state_std_core_1 { s0:7,s1:4,s2:4,state:1 }
 type 22 struct __Tuple_string_u8_b910c566 { _0:2,_1:15 }
@@ -37,13 +37,13 @@ type 34 struct std_collections$MutableMap__string__bool { ekeys:7,evals:36,index
 type 35 struct std_collections$MutableSet__i32 { inner:33 }
 type 36 array 23
 type 37 ref std_core$Iterator
-type 38 ref __genstate_chunked
-type 39 ref __genstate_distinct
+type 38 ref $genstate_chunked
+type 39 ref $genstate_distinct
 type 40 ref std_core$Iterator
-type 41 ref __genstate_filter_not_null
-type 42 ref __genstate_array_iter
-type 43 ref __genstate_array_iter
-type 44 ref __genstate_array_iter
+type 41 ref $genstate_filter_not_null
+type 42 ref $genstate_array_iter
+type 43 ref $genstate_array_iter
+type 44 ref $genstate_array_iter
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -1061,11 +1061,11 @@ fn 14 std_core$array_iter__i32___null (ref) -> any
   i64.const 0
   i64.const 0
   i32.const 5
-  struct.new 19   ; std_core$__genstate_array_iter
+  struct.new 19   ; std_core$$genstate_array_iter
   return
 end
 
-fn 15 std_core$__genstate_array_iter$Iterator$next (ref) -> ref
+fn 15 std_core$$genstate_array_iter$Iterator$next (ref) -> ref
   local $field_12 i64
   local $field_13 i64
   local $add_22 i64
@@ -1074,34 +1074,34 @@ fn 15 std_core$__genstate_array_iter$Iterator$next (ref) -> ref
   local $len_38 i64
   local $k_40 any
   loop $L0 void
-    local.field 0 19 3   ; arg 0 std_core$__genstate_array_iter.state
+    local.field 0 19 3   ; arg 0 std_core$$genstate_array_iter.state
     ref.cast 1   ; i32
     i32.const 0
     i32.eq
     if $L1 void
       local.get 0   ; arg 0
       i32.const -1
-      struct.set 19 3   ; std_core$__genstate_array_iter.state
+      struct.set 19 3   ; std_core$$genstate_array_iter.state
       br $L0
     end $L1
-    local.field 0 19 3   ; arg 0 std_core$__genstate_array_iter.state
+    local.field 0 19 3   ; arg 0 std_core$$genstate_array_iter.state
     ref.cast 1   ; i32
     i32.const 1
     i32.eq
     if $L2 void
       local.get 0   ; arg 0
       i32.const 0
-      struct.set 19 3   ; std_core$__genstate_array_iter.state
+      struct.set 19 3   ; std_core$$genstate_array_iter.state
     else
-      local.field 0 19 3   ; arg 0 std_core$__genstate_array_iter.state
+      local.field 0 19 3   ; arg 0 std_core$$genstate_array_iter.state
       ref.cast 1   ; i32
       i32.const 2
       i32.eq
       if $L3 void
-        local.field 0 19 1   ; arg 0 std_core$__genstate_array_iter.s1
+        local.field 0 19 1   ; arg 0 std_core$$genstate_array_iter.s1
         ref.cast 4   ; i64
         local.set 1   ; $field_12
-        local.field 0 19 2   ; arg 0 std_core$__genstate_array_iter.s2
+        local.field 0 19 2   ; arg 0 std_core$$genstate_array_iter.s2
         ref.cast 4   ; i64
         local.set 2   ; $field_13
         local.get 1   ; $field_12
@@ -1110,41 +1110,41 @@ fn 15 std_core$__genstate_array_iter$Iterator$next (ref) -> ref
         if $L4 void
           local.get 0   ; arg 0
           i32.const 4
-          struct.set 19 3   ; std_core$__genstate_array_iter.state
+          struct.set 19 3   ; std_core$$genstate_array_iter.state
         else
           local.get 0   ; arg 0
           i32.const 1
-          struct.set 19 3   ; std_core$__genstate_array_iter.state
+          struct.set 19 3   ; std_core$$genstate_array_iter.state
         end $L4
       else
-        local.field 0 19 3   ; arg 0 std_core$__genstate_array_iter.state
+        local.field 0 19 3   ; arg 0 std_core$$genstate_array_iter.state
         ref.cast 1   ; i32
         i32.const 3
         i32.eq
         if $L5 void
-          local.field 0 19 1   ; arg 0 std_core$__genstate_array_iter.s1
+          local.field 0 19 1   ; arg 0 std_core$$genstate_array_iter.s1
           ref.cast 4   ; i64
           i64.const 1
           i64.add
           local.set 3   ; $add_22
           local.get 0   ; arg 0
           local.get 3   ; $add_22
-          struct.set 19 1   ; std_core$__genstate_array_iter.s1
+          struct.set 19 1   ; std_core$$genstate_array_iter.s1
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 19 3   ; std_core$__genstate_array_iter.state
+          struct.set 19 3   ; std_core$$genstate_array_iter.state
         else
-          local.field 0 19 3   ; arg 0 std_core$__genstate_array_iter.state
+          local.field 0 19 3   ; arg 0 std_core$$genstate_array_iter.state
           ref.cast 1   ; i32
           i32.const 4
           i32.eq
           if $L6 void
             local.get 0   ; arg 0
             i32.const 3
-            struct.set 19 3   ; std_core$__genstate_array_iter.state
-            local.field 0 19 0   ; arg 0 std_core$__genstate_array_iter.s0
+            struct.set 19 3   ; std_core$$genstate_array_iter.state
+            local.field 0 19 0   ; arg 0 std_core$$genstate_array_iter.s0
             local.set 4   ; $field_28
-            local.field 0 19 1   ; arg 0 std_core$__genstate_array_iter.s1
+            local.field 0 19 1   ; arg 0 std_core$$genstate_array_iter.s1
             ref.cast 4   ; i64
             local.set 5   ; $field_29
             local.get 4   ; $field_28
@@ -1154,7 +1154,7 @@ fn 15 std_core$__genstate_array_iter$Iterator$next (ref) -> ref
             struct.new 20   ; __Tuple_Any_u8_d7d23c9c
             return
           end $L6
-          local.field 0 19 3   ; arg 0 std_core$__genstate_array_iter.state
+          local.field 0 19 3   ; arg 0 std_core$$genstate_array_iter.state
           ref.cast 1   ; i32
           i32.const 5
           i32.eq
@@ -1169,16 +1169,16 @@ fn 15 std_core$__genstate_array_iter$Iterator$next (ref) -> ref
           end $L7
           local.get 0   ; arg 0
           i64.const 0
-          struct.set 19 1   ; std_core$__genstate_array_iter.s1
-          local.field 0 19 0   ; arg 0 std_core$__genstate_array_iter.s0
+          struct.set 19 1   ; std_core$$genstate_array_iter.s1
+          local.field 0 19 0   ; arg 0 std_core$$genstate_array_iter.s0
           array.len
           local.set 6   ; $len_38
           local.get 0   ; arg 0
           local.get 6   ; $len_38
-          struct.set 19 2   ; std_core$__genstate_array_iter.s2
+          struct.set 19 2   ; std_core$$genstate_array_iter.s2
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 19 3   ; std_core$__genstate_array_iter.state
+          struct.set 19 3   ; std_core$$genstate_array_iter.state
         end $L5
       end $L3
     end $L2

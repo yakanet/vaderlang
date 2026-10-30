@@ -11,8 +11,8 @@
   expr 21:15    SeqLitExpr     :: Rec[]
   expr 21:16    StructLitExpr  :: Rec
   expr 21:30    StringLitExpr  :: string
+  expr 24:15    CallExpr       :: $genstate_chain<Rec>
   expr 24:15    CallExpr       :: Rec[]
-  expr 24:15    CallExpr       :: __genstate_chain<Rec>
   expr 24:15    FieldExpr      :: fn() -> Rec[]
   expr 24:15    IdentExpr      :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
   expr 24:21    IdentExpr      :: Rec[]
@@ -31,8 +31,8 @@
   expr 27:30    IdentExpr      :: Rec
   expr 27:9     CallExpr       :: void
   expr 27:9     IdentExpr      :: fn(T) -> void
+  expr 31:16    CallExpr       :: $genstate_map<Rec>
   expr 31:16    CallExpr       :: Rec[]
-  expr 31:16    CallExpr       :: __genstate_map<Rec>
   expr 31:16    FieldExpr      :: fn() -> Rec[]
   expr 31:16    FieldExpr      :: fn(fn(Rec) -> Rec) -> Iterator<Rec>
   expr 31:16    IdentExpr      :: Rec[]
@@ -51,8 +51,8 @@
   expr 33:33    IdentExpr      :: Rec
   expr 33:9     CallExpr       :: void
   expr 33:9     IdentExpr      :: fn(T) -> void
+  expr 37:13    CallExpr       :: $genstate_filter<Rec>
   expr 37:13    CallExpr       :: Rec[]
-  expr 37:13    CallExpr       :: __genstate_filter<Rec>
   expr 37:13    FieldExpr      :: fn() -> Rec[]
   expr 37:13    FieldExpr      :: fn(fn(Rec) -> bool) -> Iterator<Rec>
   expr 37:13    IdentExpr      :: Rec[]
@@ -68,7 +68,7 @@
   expr 39:35    IdentExpr      :: Rec
   expr 39:9     CallExpr       :: void
   expr 39:9     IdentExpr      :: fn(T) -> void
-  expr 47:14    CallExpr       :: __genstate_chain<Rec>
+  expr 47:14    CallExpr       :: $genstate_chain<Rec>
   expr 47:14    IdentExpr      :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
   expr 47:20    IdentExpr      :: Rec[]
   expr 47:23    IdentExpr      :: Rec[]
@@ -79,7 +79,7 @@
   expr 48:37    IdentExpr      :: Rec
   expr 48:9     CallExpr       :: void
   expr 48:9     IdentExpr      :: fn(T) -> void
-  expr 50:14    CallExpr       :: __genstate_chain<Rec>
+  expr 50:14    CallExpr       :: $genstate_chain<Rec>
   expr 50:14    IdentExpr      :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
   expr 50:25    IdentExpr      :: Rec[]
   expr 50:28    IdentExpr      :: Rec[]

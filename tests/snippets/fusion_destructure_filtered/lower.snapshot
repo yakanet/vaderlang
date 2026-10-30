@@ -8,7 +8,7 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       lazy: string = ""
-      it: __genstate_filter<[i32, i64]> = std.iter.filter<[i32, i64]>(std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30] :i32[])), snippet.not_twenty)
+      it: $genstate_filter<[i32, i64]> = std.iter.filter<[i32, i64]>(std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30] :i32[])), snippet.not_twenty)
       {
           __iter_1: Iterator<[i32, i64]> = it
           for {
@@ -96,10 +96,10 @@
   std/iter
     fn std.iter.filter<[i32, i64]>  // std_iter$filter___i32__i64_
     fn std.iter.indexed<i32>  // std_iter$indexed__i32
+    fn std_iter$$genstate_filter$Iterator$next
     fn std_iter$__gen_state_std_iter_0$Iterator$next
-    fn std_iter$__genstate_filter$Iterator$next
+    struct std_iter$$genstate_filter
     struct std_iter$__gen_state_std_iter_0
-    struct std_iter$__genstate_filter
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

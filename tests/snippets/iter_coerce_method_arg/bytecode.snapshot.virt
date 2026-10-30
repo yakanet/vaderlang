@@ -13,7 +13,7 @@ type 10 scalar u8
 type 11 scalar bool
 type 12 array 10
 type 13 scalar void
-type 14 ref __genstate_array_iter
+type 14 ref $genstate_array_iter
 string 0 "slots: a="
 string 1 " b="
 string 2 " c="

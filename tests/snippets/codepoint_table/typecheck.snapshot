@@ -110,7 +110,7 @@
   expr 67:38    StringLitExpr  :: string
   expr 67:5     CallExpr       :: void
   expr 67:5     IdentExpr      :: fn(T) -> void
-  expr 69:15    CallExpr       :: __genstate_map<u32>
+  expr 69:15    CallExpr       :: $genstate_map<u32>
   expr 69:15    CallExpr       :: u32
   expr 69:15    FieldExpr      :: fn() -> u32
   expr 69:15    FieldExpr      :: fn(fn(char) -> u32) -> Iterator<u32>

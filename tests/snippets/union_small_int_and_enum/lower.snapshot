@@ -49,7 +49,7 @@
       } :string | u8
   }
   snippet.bytes :: fn() -> Iterator<string | u8> {  // snippet$bytes
-      return __genstate_bytes { .state = 2 }
+      return $genstate_bytes { .state = 2 }
   }
   snippet.Holder :: struct { b: string | u8 }  // snippet$Holder
   snippet.Plain :: struct { tag: i32 }  // snippet$Plain
@@ -129,8 +129,8 @@
       }
       return 0
   }
-  snippet$__genstate_bytes :: struct { state: i32 }
-  snippet$__genstate_bytes$Iterator$next :: fn(self: __genstate_bytes) -> [string | u8, Continuation] {
+  snippet$$genstate_bytes :: struct { state: i32 }
+  snippet$$genstate_bytes$Iterator$next :: fn(self: $genstate_bytes) -> [string | u8, Continuation] {
       dispatch$: for {
           if __self_0.state == 0 {
               __self_0.state = -1
@@ -158,7 +158,7 @@
       std.core.Buffer.intern_string(buf, c1)
   }
   vtable snippet.Shower.shown for Plain  snippet.Plain.shown  // snippet$Plain$Shower$shown
-  vtable std.core.Iterator.next for __genstate_bytes  snippet$__genstate_bytes$Iterator$next
+  vtable std.core.Iterator.next for $genstate_bytes  snippet$$genstate_bytes$Iterator$next
 
 ## snippet/bytes
   snippet.bytes.describe :: fn(v: string | u8) -> string {  // snippet_bytes$describe

@@ -4,7 +4,7 @@
   snippet.Decl :: struct { name: string, id: i32 }  // snippet$Decl
   snippet.FileMod :: struct { decls: Decl[] }  // snippet$FileMod
   snippet.concat_decls :: fn(files: FileMod[]) -> Iterator<Decl> {  // snippet$concat_decls
-      return __genstate_concat_decls {
+      return $genstate_concat_decls {
           .s0 = files,
           .s1 = null,
           .s2 = i64(0),
@@ -51,8 +51,8 @@
       }
       return 0
   }
-  snippet$__genstate_concat_decls :: struct { s0: FileMod[], s1: FileMod[], s2: i64, s3: i64, s4: FileMod, s5: Decl[], s6: i64, s7: i64, s8: Decl, state: i32 }
-  snippet$__genstate_concat_decls$Iterator$next :: fn(self: __genstate_concat_decls) -> [Decl, Continuation] {
+  snippet$$genstate_concat_decls :: struct { s0: FileMod[], s1: FileMod[], s2: i64, s3: i64, s4: FileMod, s5: Decl[], s6: i64, s7: i64, s8: Decl, state: i32 }
+  snippet$$genstate_concat_decls$Iterator$next :: fn(self: $genstate_concat_decls) -> [Decl, Continuation] {
       dispatch$: for {
           if __self_6.state == 0 {
               __self_6.state = -1
@@ -110,7 +110,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Iterator.next for __genstate_concat_decls  snippet$__genstate_concat_decls$Iterator$next
+  vtable std.core.Iterator.next for $genstate_concat_decls  snippet$$genstate_concat_decls$Iterator$next
 
 ## lowered in dependencies
   std/core

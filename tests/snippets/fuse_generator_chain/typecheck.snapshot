@@ -14,7 +14,7 @@
   expr 14:24    IdentExpr      :: fn(T) -> bool
   expr 14:29    IdentExpr      :: T
   expr 14:40    IdentExpr      :: T
-  expr 19:14    CallExpr       :: __genstate_my_map<i32>
+  expr 19:14    CallExpr       :: $genstate_my_map<i32>
   expr 19:14    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 19:14    SeqLitExpr     :: i32[]
   expr 19:37    LambdaExpr     :: fn(i32) -> i32
@@ -24,7 +24,7 @@
   expr 19:59    IdentExpr      :: fn(T) -> void
   expr 19:67    StringLitExpr  :: string
   expr 19:72    IdentExpr      :: i32
-  expr 20:14    CallExpr       :: __genstate_my_filter<i32>
+  expr 20:14    CallExpr       :: $genstate_my_filter<i32>
   expr 20:14    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 20:14    SeqLitExpr     :: i32[]
   expr 20:40    LambdaExpr     :: fn(i32) -> bool
@@ -35,9 +35,9 @@
   expr 20:66    IdentExpr      :: fn(T) -> void
   expr 20:74    StringLitExpr  :: string
   expr 20:79    IdentExpr      :: i32
-  expr 22:14    CallExpr       :: __genstate_my_filter<i32>
+  expr 22:14    CallExpr       :: $genstate_my_filter<i32>
   expr 22:14    IdentExpr      :: fn(Iterator<T>, fn(T) -> bool) -> Iterator<T>
-  expr 22:24    CallExpr       :: __genstate_my_map<i32>
+  expr 22:24    CallExpr       :: $genstate_my_map<i32>
   expr 22:24    IdentExpr      :: fn(Iterator<T>, fn(T) -> U) -> Iterator<U>
   expr 22:31    SeqLitExpr     :: i32[]
   expr 22:51    LambdaExpr     :: fn(i32) -> i32

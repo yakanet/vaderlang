@@ -9,8 +9,8 @@
   expr 11:44    BinaryExpr     :: bool
   expr 11:44    BinaryExpr     :: i32
   expr 11:44    IdentExpr      :: i32
-  expr 14:14    CallExpr       :: __genstate_filter<i32>
-  expr 14:14    CallExpr       :: __genstate_map<i32>
+  expr 14:14    CallExpr       :: $genstate_filter<i32>
+  expr 14:14    CallExpr       :: $genstate_map<i32>
   expr 14:14    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 14:14    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 14:14    SeqLitExpr     :: i32[]

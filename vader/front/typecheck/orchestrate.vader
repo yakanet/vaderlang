@@ -266,7 +266,7 @@ check_project_modules :: fn(
     check_fn_redefinitions(project, per_module, diags)
     // Direction A : register each `generator`'s synthetic `<fn>$State implements
     // Iterator<U>` in the shared impl tables, before the full body walks: a chained
-    // combinator's receiver is the prior combinator's concrete `__genstate_<fn>`
+    // combinator's receiver is the prior combinator's concrete `$genstate_<fn>`
     // result, and typing its `self: Iterator<T>` param needs the struct→trait
     // widening this registers. Cross-module (imported std/iter combinators)
     // resolves each generator's element via its owner module.

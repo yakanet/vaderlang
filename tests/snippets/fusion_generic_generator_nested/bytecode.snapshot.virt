@@ -16,8 +16,8 @@ type 13 struct std_core$Buffer {  }
 type 14 scalar bool
 type 15 array 6
 type 16 scalar void
-type 17 ref __genstate_each_then
-type 18 ref __genstate_each_then
+type 17 ref $genstate_each_then
+type 18 ref $genstate_each_then
 string 0 ""
 string 1 "p"
 string 2 "zz"

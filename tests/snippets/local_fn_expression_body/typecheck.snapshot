@@ -15,7 +15,7 @@
   expr 12:30    IdentExpr      :: fn(i32) -> i32
   expr 12:5     CallExpr       :: void
   expr 12:5     IdentExpr      :: fn(T) -> void
-  expr 13:14    CallExpr       :: __genstate_map<i32>
+  expr 13:14    CallExpr       :: $genstate_map<i32>
   expr 13:14    CallExpr       :: i32
   expr 13:14    FieldExpr      :: fn() -> i32
   expr 13:14    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>

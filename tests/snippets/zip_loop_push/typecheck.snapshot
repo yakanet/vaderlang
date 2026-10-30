@@ -5,7 +5,7 @@
   StructDecl     Point                :: Point
   FnDecl         products             :: fn(i32[], i32[]) -> i64[]
   expr 17:17    SeqLitExpr     :: i64[]
-  expr 18:19    CallExpr       :: __genstate_zip<[i32, i32]>
+  expr 18:19    CallExpr       :: $genstate_zip<[i32, i32]>
   expr 18:19    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
   expr 18:23    IdentExpr      :: i32[]
   expr 18:26    IdentExpr      :: i32[]
@@ -42,7 +42,7 @@
   expr 30:9     StructLitExpr  :: Point
   expr 31:9     StructLitExpr  :: Point
   expr 32:9     StructLitExpr  :: Point
-  expr 34:24    CallExpr       :: __genstate_zip<[string, Point]>
+  expr 34:24    CallExpr       :: $genstate_zip<[string, Point]>
   expr 34:24    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
   expr 34:28    IdentExpr      :: string[]
   expr 34:36    IdentExpr      :: Point[]

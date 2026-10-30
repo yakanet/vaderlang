@@ -87,7 +87,7 @@ lower_for_in :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor) -
     iter_lowered :: into_iterator(ctx, in_form.iter, iter_lowered_raw, element_type, span)
     observe_replacement(ctx, in_form.iter, .IterInto, iter_lowered_raw, iter_lowered)
     // Direction A : an escaping `generator` result is typed as its concrete
-    // `__genstate_<fn>` struct so combinator chains resolve at typecheck. When the
+    // `$genstate_<fn>` struct so combinator chains resolve at typecheck. When the
     // for-in DIDN'T fuse (the fusion fast paths above declined), erase it back to
     // `Iterator<element>` for the step loop : the typecheck records the generator
     // itself as what steps it, and the state's synthesised `next` is reached
@@ -271,14 +271,14 @@ iterator_of :: fn(ctx: FnLowerCtx, element: Type) -> Type | null {
 resolve_element_type :: fn(ctx: FnLowerCtx, iter_type: Type, binding_key: u64) -> Type =
     concrete_local_type(ctx.types, binding_key) ?? iterated_element(iter_type, ctx.typed)
 
-// Erase a concrete `__genstate_<fn>` iterator (a `generator`'s Direction-A call
+// Erase a concrete `$genstate_<fn>` iterator (a `generator`'s Direction-A call
 // result) back to the trait `Iterator<element>`, so an un-fused for-in dispatches
 // `next()` virtually through the vtable instead of a devirtualized direct call.
-// Non-`__genstate` types (and `__genstate` with an unresolvable Iterator trait
-// symbol) pass through unchanged.
+// Any other type, and a generator state whose `Iterator` trait symbol does not
+// resolve, passes through unchanged.
 //
 // Invariant this relies on: the generator fn still RETURNS a boxed `Iterator<U>`
-// (its declared return type), so a raw `__genstate` value only ever reaches (a) a
+// (its declared return type), so a raw state value only ever reaches (a) a
 // fusible chain (where it never materialises) or (b) this un-fused for-in. Every
 // other consumer (arg / slot / return) boxes it back to `Iterator` at the
 // `is_assignable` boundary. If a future pass inspects a generator result's

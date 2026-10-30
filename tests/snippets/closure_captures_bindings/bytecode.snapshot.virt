@@ -34,8 +34,8 @@ type 31 struct __Tuple_i32_i64_30f9f427 { _0:2,_1:17 }
 type 32 array 18
 type 33 struct $Cell_i32_2af2b319 { value:2 }
 type 34 ref std_core$Iterator
-type 35 ref __genstate_indexed
-type 36 ref __genstate_array_iter
+type 35 ref $genstate_indexed
+type 36 ref $genstate_array_iter
 string 0 "four"
 string 1 "array "
 string 2 "tuple "

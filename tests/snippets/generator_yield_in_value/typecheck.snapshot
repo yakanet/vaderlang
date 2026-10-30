@@ -20,13 +20,13 @@
   expr 23:19    IdentExpr      :: i32
   expr 23:23    IdentExpr      :: i32
   expr 24:13    IdentExpr      :: i32
-  expr 30:14    CallExpr       :: __genstate_evens<i32>
+  expr 30:14    CallExpr       :: $genstate_evens<i32>
   expr 30:14    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 31:17    StringLitExpr  :: string
   expr 31:20    IdentExpr      :: i32
   expr 31:9     CallExpr       :: void
   expr 31:9     IdentExpr      :: fn(T) -> void
-  expr 33:14    CallExpr       :: __genstate_squares<i32>
+  expr 33:14    CallExpr       :: $genstate_squares<i32>
   expr 33:14    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 34:17    StringLitExpr  :: string
   expr 34:20    IdentExpr      :: i32

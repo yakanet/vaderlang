@@ -16,8 +16,8 @@ type 13 fn (1) -> 2
 type 14 struct std_iter$__gen_state_std_iter_0 { s0:6,s1:13,s2:6,s3:8,s4:1,s5:2,s6:5,s7:5,s8:1,state:1 }
 type 15 array 3
 type 16 ref std_core$Iterator
-type 17 ref __genstate_flat_map
-type 18 ref __genstate_array_iter
+type 17 ref $genstate_flat_map
+type 18 ref $genstate_array_iter
 string 0 "count="
 string 1 "clone[0]="
 string 2 "a"

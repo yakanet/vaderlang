@@ -2,7 +2,7 @@
 
 ## tests/snippets/inlined_generator_captured_counter
   FnDecl         main                 :: fn() -> i32
-  expr 10:14    CallExpr       :: __genstate_ticks<i32>
+  expr 10:14    CallExpr       :: $genstate_ticks<i32>
   expr 10:14    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 11:17    StringLitExpr  :: string
   expr 11:20    IdentExpr      :: i32

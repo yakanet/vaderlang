@@ -357,7 +357,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     arg_slot :: if arg_is_data { combinator_arg_slot(owner, callee_sym, subst_opt) } else { null }
     if arg_is_data && arg_slot == null { return null }
 
-    // Direction A: the call result is the concrete `__genstate_<fn>` struct, not
+    // Direction A: the call result is the concrete `$genstate_<fn>` struct, not
     // `Iterator<U>`: take the yielded element from the registered element.
     output_elem :: genstate_element(ctx.typed, decl, subst_opt) ?? return null
 
