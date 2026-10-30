@@ -266,11 +266,7 @@ bare_array_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 // impl on its own instance (`MonType[] implements Into<Iterator<MonType>>`), as
 // the typecheck recorded it : iterating the raw array would skip it.
 converts_through_own_into :: fn(ctx: FnLowerCtx, array: Type, expr: AST.Expr) -> bool {
-    into :: recorded_callee(ctx, expr, .Into)
-    if into !is DirectFn {
-        return false
-    }
-    entry :: recorded_impl(ctx, into, array) ?? return false
+    entry :: recorded_impl_at(ctx, expr, .Into, array) ?? return false
     return entry.instance
 }
 
@@ -325,42 +321,36 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
     // `arr.into()`: an erased `Iterator<T>` head over a statically-array
     // receiver. The result type is the trait, but the receiver is an array, so
     // fuse over the raw array: `arr.into().map(f).collect()` becomes a flat loop
-    // instead of materialising an iterator.
-    into_arr :: array_from_into_call(ctx, call)
-    if into_arr != null {
-        arr_ty :: ctx.types.expr_type(into_arr)
-        // `arr.into()` resolves by name, to the `into` of an impl on the array's own
-        // instance when there is one : iterating the raw array would skip it.
-        if has_instance_impl(arr_ty, core_trait_key(TRAIT_INTO), ctx.typed) {
-            return null
-        }
-        elem :: if arr_ty is ArrayType { arr_ty.element } else { TY_UNRESOLVED }
-        return mk_array_chain(into_arr, elem, call.span, false)
+    // instead of materialising an iterator. A free fn named `into`, or the `into`
+    // of an impl on the array's own instance, runs code of its own: iterating the
+    // raw array would skip it.
+    source :: receiver_of_call(call) ?? return null
+    array :: ctx.types.expr_type(source)
+    if array !is ArrayType || !runs_array_into(ctx, call, array) {
+        return null
+    }
+    return mk_array_chain(source, array.element, call.span, false)
+}
+
+// The target of a method form, the only argument of a free call taking one.
+receiver_of_call :: fn(call: AST.CallExpr) -> AST.Expr | null {
+    if call.callee is AST.FieldExpr {
+        return call.callee.target
+    }
+    if call.callee is AST.IdentExpr && call.args.len() == 1 {
+        return call.args[0].value
     }
     return null
 }
 
-// The source array of an `arr.into()` (UFCS) / `into(arr)` (direct) call whose
-// receiver is statically an array: else null (a non-array `.into()` head, e.g.
-// `set.into()`, is not a fusible array bottom).
-array_from_into_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | null {
-    // @partial: only a method or a free call names `into` ; any other callee is not
-    // an array head.
-    @partial match fe :: call.callee {
-        is AST.FieldExpr -> {
-            if fe.field != METHOD_INTO { return null }
-            if ctx.types.expr_type(fe.target) is ArrayType { return fe.target }
-            return null
-        }
-        is AST.IdentExpr -> {
-            if fe.name != METHOD_INTO { return null }
-            if call.args.len() != 1 { return null }
-            arg :: call.args[0].value
-            if ctx.types.expr_type(arg) is ArrayType { return arg }
-            return null
-        }
-        _                -> { return null }
-    }
+// True when `call` runs the member of `T[] implements<T> Into<Iterator<T>>`. The
+// `Into<string>` every `Display` value shares is generic too: its own type tells
+// them apart.
+runs_array_into :: fn(ctx: FnLowerCtx, call: AST.CallExpr, array: Type) -> bool {
+    entry :: recorded_impl_at(ctx, call, .Call, array) ?? return false
+    return !entry.instance
+        && entry.for_type is ArrayType
+        && entry.trait_key == core_trait_key(TRAIT_INTO)
 }
 
 chain_element_type :: fn(chain: IterChain) -> Type = match chain.kind {

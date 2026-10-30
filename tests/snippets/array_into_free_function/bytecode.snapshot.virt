@@ -1,0 +1,733 @@
+module _main
+type 0 scalar null
+type 1 struct snippet$Reversed { items:4,pos:2 }
+type 2 scalar i32
+type 3 scalar u8
+type 4 array 2
+type 5 scalar string
+type 6 array 5
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
+type 9 scalar bool
+type 10 array 3
+type 11 scalar void
+string 0 "a"
+string 1 "b"
+string 2 "!"
+string 3 "["
+string 4 ", "
+string 5 "]"
+string 6 "0"
+string 7 "\n"
+import 0 byte_len std_core$byte_len result_type=8 param_types=5 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=10 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=2,10,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 1 std_core$Iterator
+impl 7 std_core$ByteAccess
+impl 4 std_core$Display
+impl 6 std_core$Display
+export main 2
+
+fn 0 snippet$Reversed$std_core$Iterator$next$v (ref) -> (i32,u8)
+  local $cast_2 i64
+  local $len_4 i64
+  local $add_checked_11 i32
+  local $field_12 ref
+  local.field 0 1 1   ; arg 0 snippet$Reversed.pos
+  ref.cast 2   ; i32
+  i32.to_i64
+  local.set 1   ; $cast_2
+  local.field 0 1 0   ; arg 0 snippet$Reversed.items
+  array.len
+  local.set 2   ; $len_4
+  local.get 1   ; $cast_2
+  local.get 2   ; $len_4
+  i64.ge
+  if $L0 void
+  else
+    local.field 0 1 1   ; arg 0 snippet$Reversed.pos
+    ref.cast 2   ; i32
+    i32.const 1
+    i32.checked_add
+    local.set 3   ; $add_checked_11
+    local.get 0   ; arg 0
+    local.get 3   ; $add_checked_11
+    struct.set 1 1   ; snippet$Reversed.pos
+    local.field 0 1 0   ; arg 0 snippet$Reversed.items
+    local.set 4   ; $field_12
+    local.field 0 1 0   ; arg 0 snippet$Reversed.items
+    array.len
+    local.set 1   ; $cast_2
+    local.field 0 1 1   ; arg 0 snippet$Reversed.pos
+    ref.cast 2   ; i32
+    i32.to_i64
+    local.set 2   ; $len_4
+    local.get 1   ; $cast_2
+    local.get 2   ; $len_4
+    i64.checked_sub
+    local.set 1   ; $cast_2
+    local.get 4   ; $field_12
+    local.get 1   ; $cast_2
+    load_slot_i32
+    i32.const 0
+    return
+  end $L0
+  i32.const 0
+  i32.const 1
+  return
+end
+
+fn 1 snippet$into (ref) -> ref
+  local.get 0   ; arg 0
+  i32.const 0
+  struct.new 1   ; snippet$Reversed
+  return
+end
+
+fn 2 snippet$main () -> i32
+  local xs ref
+  local walked ref
+  local __iter_0 ref
+  local x i32
+  local $len_41 i64
+  local __fuse_i_1 i64
+  local x string
+  local $call_elem_57 i32
+  local $call_elem_58 u8
+  i32.const 1
+  i32.const 2
+  i32.const 3
+  array.new 4 3   ; i32[]
+  local.set 0   ; xs
+  array.new 4 0   ; i32[]
+  local.set 1   ; walked
+  local.get 0   ; xs
+  call 1   ; snippet$into
+  local.set 2   ; __iter_0
+  loop $L0 void
+    local.get 2   ; __iter_0
+    call 0   ; snippet$Reversed$std_core$Iterator$next$v
+    local.set 8   ; $call_elem_58
+    local.set 7   ; $call_elem_57
+    local.get 8   ; $call_elem_58
+    i32.const 1
+    i32.eq
+    if $L1 void
+    else
+      local.get 7   ; $call_elem_57
+      local.set 3   ; x
+      local.get 1   ; walked
+      local.get 3   ; x
+      array.push 2 1   ; i32 walked
+      br $L0
+    end $L1
+  end $L0
+  local.get 1   ; walked
+  call 6   ; std_core$$array$Display$to_string__i32
+  call 16   ; std_io$println__string
+  local.get 0   ; xs
+  call 1   ; snippet$into
+  local.set 0   ; xs
+  array.new 4 0   ; i32[]
+  local.set 1   ; walked
+  loop $L2 void
+    local.get 0   ; xs
+    call 0   ; snippet$Reversed$std_core$Iterator$next$v
+    local.set 8   ; $call_elem_58
+    local.set 7   ; $call_elem_57
+    local.get 8   ; $call_elem_58
+    i32.const 1
+    i32.eq
+    if $L3 void
+    else
+      local.get 7   ; $call_elem_57
+      call 3   ; __lambda_snippet_0
+      local.set 3   ; x
+      local.get 1   ; walked
+      local.get 3   ; x
+      array.push 2   ; i32
+      br $L2
+    end $L3
+  end $L2
+  local.get 1   ; walked
+  call 6   ; std_core$$array$Display$to_string__i32
+  call 16   ; std_io$println__string
+  string.const 0   ; "a"
+  string.const 1   ; "b"
+  array.new 6 2   ; string[]
+  local.set 0   ; xs
+  array.new 6 0   ; string[]
+  local.set 1   ; walked
+  local.get 0   ; xs
+  array.len
+  local.set 4   ; $len_41
+  local.get 1   ; walked
+  local.get 4   ; $len_41
+  array.repeat
+  local.set 1   ; walked
+  local.get 0   ; xs
+  array.len
+  local.set 4   ; $len_41
+  i64.const 0
+  local.set 5   ; __fuse_i_1
+  loop $L4 void
+    local.get 5   ; __fuse_i_1
+    local.get 4   ; $len_41
+    i64.lt
+    if $L5 void
+      local.get 0   ; xs
+      local.get 5   ; __fuse_i_1
+      array.get 6   ; string[]
+      ref.cast 5   ; string
+      call 4   ; __lambda_snippet_1
+      local.set 6   ; x
+      local.get 1   ; walked
+      local.get 6   ; x
+      array.push 5   ; string
+      local.get 5   ; __fuse_i_1
+      i64.const 1
+      i64.add
+      local.set 5   ; __fuse_i_1
+      br $L4
+    end $L5
+  end $L4
+  local.get 1   ; walked
+  call 7   ; std_core$$array$Display$to_string__string
+  call 16   ; std_io$println__string
+  return.lit i32.const 0
+end
+
+fn 3 __lambda_snippet_0 (i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 10
+  i32.checked_mul
+  return
+end
+
+fn 4 __lambda_snippet_1 (string) -> string
+  local.get 0   ; arg 0
+  string.const 2   ; "!"
+  call 5   ; concat_2
+  return
+end
+
+fn 5 concat_2 (string,string) -> string
+  local c0 i64
+  local $call_4 i64
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  buffer.new
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  buffer_to_string
+  return
+end
+
+fn 6 std_core$$array$Display$to_string__i32 (ref) -> string
+  local $arr_1 ref
+  local $len_2 i64
+  local __for_arr_0 ref
+  local __for_len_1 i64
+  local __for_i_2 i64
+  local part string
+  local $call_17 i64
+  array.new 6 0   ; string[]
+  local.set 1   ; $arr_1
+  local.get 0   ; arg 0
+  array.len
+  local.set 2   ; $len_2
+  local.get 1   ; $arr_1
+  local.get 2   ; $len_2
+  array.repeat
+  local.set 1   ; $arr_1
+  i64.const 2
+  local.set 2   ; $len_2
+  local.get 0   ; arg 0
+  local.tee 3   ; __for_arr_0
+  array.len
+  local.set 4   ; __for_len_1
+  i64.const 0
+  local.set 5   ; __for_i_2
+  loop $L0 void
+    local.get 5   ; __for_i_2
+    local.get 4   ; __for_len_1
+    i64.lt
+    if $L1 void
+      local.get 3   ; __for_arr_0
+      local.get 5   ; __for_i_2
+      load_slot_i32
+      call 8   ; std_core$i32$Display$to_string
+      local.tee 6   ; part
+      call.import 0   ; std_core$byte_len
+      local.set 7   ; $call_17
+      local.get 2   ; $len_2
+      local.get 7   ; $call_17
+      i64.checked_add
+      local.set 2   ; $len_2
+      local.get 1   ; $arr_1
+      local.get 6   ; part
+      array.push 5   ; string
+      local.get 5   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 5   ; __for_i_2
+      br $L0
+    end $L1
+  end $L0
+  local.get 1   ; $arr_1
+  array.len
+  i64.const 1
+  i64.gt
+  if $L2 void
+    local.get 1   ; $arr_1
+    array.len
+    i64.const 1
+    i64.checked_sub
+    local.set 4   ; __for_len_1
+    i64.const 2
+    local.get 4   ; __for_len_1
+    i64.checked_mul
+    local.set 4   ; __for_len_1
+    local.get 2   ; $len_2
+    local.get 4   ; __for_len_1
+    i64.checked_add
+    local.set 2   ; $len_2
+  end $L2
+  local.get 2   ; $len_2
+  buffer.new
+  local.tee 3   ; __for_arr_0
+  i64.const 0
+  string.const 3   ; "["
+  call 10   ; std_core$write_string_at
+  local.set 2   ; $len_2
+  i64.const 0
+  local.set 4   ; __for_len_1
+  local.get 1   ; $arr_1
+  array.len
+  local.set 5   ; __for_i_2
+  loop $L3 void
+    local.get 4   ; __for_len_1
+    local.get 5   ; __for_i_2
+    i64.lt
+    if $L4 void
+      local.get 4   ; __for_len_1
+      i64.const 0
+      i64.gt
+      if $L5 void
+        local.get 3   ; __for_arr_0
+        local.get 2   ; $len_2
+        string.const 4   ; ", "
+        call 10   ; std_core$write_string_at
+        local.set 2   ; $len_2
+      end $L5
+      local.get 1   ; $arr_1
+      local.get 4   ; __for_len_1
+      array.get 6   ; string[]
+      ref.cast 5   ; string
+      local.set 6   ; part
+      local.get 3   ; __for_arr_0
+      local.get 2   ; $len_2
+      local.get 6   ; part
+      call 10   ; std_core$write_string_at
+      local.set 2   ; $len_2
+      local.get 4   ; __for_len_1
+      i64.const 1
+      i64.add
+      local.set 4   ; __for_len_1
+      br $L3
+    end $L4
+  end $L3
+  local.get 3   ; __for_arr_0
+  local.get 2   ; $len_2
+  string.const 5   ; "]"
+  call 10   ; std_core$write_string_at
+  local.set 2   ; $len_2
+  local.get 3   ; __for_arr_0
+  local.get 2   ; $len_2
+  call 11   ; std_core$finish_buffer
+  return
+end
+
+fn 7 std_core$$array$Display$to_string__string (ref) -> string
+  local $arr_1 ref
+  local $len_2 i64
+  local __for_arr_0 ref
+  local __for_len_1 i64
+  local __for_i_2 i64
+  local part string
+  local $call_17 i64
+  array.new 6 0   ; string[]
+  local.set 1   ; $arr_1
+  local.get 0   ; arg 0
+  array.len
+  local.set 2   ; $len_2
+  local.get 1   ; $arr_1
+  local.get 2   ; $len_2
+  array.repeat
+  local.set 1   ; $arr_1
+  i64.const 2
+  local.set 2   ; $len_2
+  local.get 0   ; arg 0
+  local.tee 3   ; __for_arr_0
+  array.len
+  local.set 4   ; __for_len_1
+  i64.const 0
+  local.set 5   ; __for_i_2
+  loop $L0 void
+    local.get 5   ; __for_i_2
+    local.get 4   ; __for_len_1
+    i64.lt
+    if $L1 void
+      local.get 3   ; __for_arr_0
+      local.get 5   ; __for_i_2
+      array.get 6   ; string[]
+      ref.cast 5   ; string
+      call 9   ; std_core$string$Display$to_string
+      local.tee 6   ; part
+      call.import 0   ; std_core$byte_len
+      local.set 7   ; $call_17
+      local.get 2   ; $len_2
+      local.get 7   ; $call_17
+      i64.checked_add
+      local.set 2   ; $len_2
+      local.get 1   ; $arr_1
+      local.get 6   ; part
+      array.push 5   ; string
+      local.get 5   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 5   ; __for_i_2
+      br $L0
+    end $L1
+  end $L0
+  local.get 1   ; $arr_1
+  array.len
+  i64.const 1
+  i64.gt
+  if $L2 void
+    local.get 1   ; $arr_1
+    array.len
+    i64.const 1
+    i64.checked_sub
+    local.set 4   ; __for_len_1
+    i64.const 2
+    local.get 4   ; __for_len_1
+    i64.checked_mul
+    local.set 4   ; __for_len_1
+    local.get 2   ; $len_2
+    local.get 4   ; __for_len_1
+    i64.checked_add
+    local.set 2   ; $len_2
+  end $L2
+  local.get 2   ; $len_2
+  buffer.new
+  local.tee 3   ; __for_arr_0
+  i64.const 0
+  string.const 3   ; "["
+  call 10   ; std_core$write_string_at
+  local.set 2   ; $len_2
+  i64.const 0
+  local.set 4   ; __for_len_1
+  local.get 1   ; $arr_1
+  array.len
+  local.set 5   ; __for_i_2
+  loop $L3 void
+    local.get 4   ; __for_len_1
+    local.get 5   ; __for_i_2
+    i64.lt
+    if $L4 void
+      local.get 4   ; __for_len_1
+      i64.const 0
+      i64.gt
+      if $L5 void
+        local.get 3   ; __for_arr_0
+        local.get 2   ; $len_2
+        string.const 4   ; ", "
+        call 10   ; std_core$write_string_at
+        local.set 2   ; $len_2
+      end $L5
+      local.get 1   ; $arr_1
+      local.get 4   ; __for_len_1
+      array.get 6   ; string[]
+      ref.cast 5   ; string
+      local.set 6   ; part
+      local.get 3   ; __for_arr_0
+      local.get 2   ; $len_2
+      local.get 6   ; part
+      call 10   ; std_core$write_string_at
+      local.set 2   ; $len_2
+      local.get 4   ; __for_len_1
+      i64.const 1
+      i64.add
+      local.set 4   ; __for_len_1
+      br $L3
+    end $L4
+  end $L3
+  local.get 3   ; __for_arr_0
+  local.get 2   ; $len_2
+  string.const 5   ; "]"
+  call 10   ; std_core$write_string_at
+  local.set 2   ; $len_2
+  local.get 3   ; __for_arr_0
+  local.get 2   ; $len_2
+  call 11   ; std_core$finish_buffer
+  return
+end
+
+fn 8 std_core$i32$Display$to_string (i32) -> string
+  local.get 0   ; arg 0
+  i32.to_i64
+  call 12   ; std_core$format_signed
+  return
+end
+
+fn 9 std_core$string$Display$to_string (string) -> string
+  local.get 0   ; arg 0
+  return
+end
+
+fn 10 std_core$write_string_at (ref,i64,string) -> i64
+  local $call_3 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  buffer_write_string
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_3
+  local.get 1   ; arg 1
+  local.get 3   ; $call_3
+  i64.checked_add
+  return
+end
+
+fn 11 std_core$finish_buffer (ref,i64) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  buffer_to_string
+  return
+end
+
+fn 12 std_core$format_signed (i64) -> string
+  local neg bool
+  local ndigits i64
+  local m i64
+  local buf ref
+  local $cast_33 u8
+  local $add_checked_34 u8
+  local.get 0   ; arg 0
+  i64.const 0
+  i64.eq
+  if $L0 void
+    return.lit string.const 6   ; "0"
+  end $L0
+  local.get 0   ; arg 0
+  i64.const 0
+  i64.lt
+  local.set 1   ; neg
+  local.get 0   ; arg 0
+  i64.const 0
+  i64.gt
+  if $L1 void
+    local.get 0   ; arg 0
+    i64.checked_neg
+    local.set 0   ; arg 0
+  end $L1
+  i64.const 0
+  local.set 2   ; ndigits
+  local.get 0   ; arg 0
+  local.set 3   ; m
+  loop $L2 void
+    local.get 3   ; m
+    i64.const 0
+    i64.ne
+    if $L3 void
+      local.get 2   ; ndigits
+      i64.const 1
+      i64.checked_add
+      local.set 2   ; ndigits
+      local.get 3   ; m
+      i64.const 10
+      i64.div
+      local.set 3   ; m
+      br $L2
+    end $L3
+  end $L2
+  local.get 1   ; neg
+  if $L4 void
+    local.get 2   ; ndigits
+    i64.const 1
+    i64.checked_add
+    local.set 3   ; m
+  else
+    local.get 2   ; ndigits
+    local.set 3   ; m
+  end $L4
+  local.get 3   ; m
+  buffer.new
+  local.set 4   ; buf
+  local.get 3   ; m
+  local.set 2   ; ndigits
+  loop $L5 void
+    local.get 0   ; arg 0
+    i64.const 0
+    i64.ne
+    if $L6 void
+      local.get 2   ; ndigits
+      i64.const 1
+      i64.checked_sub
+      local.set 2   ; ndigits
+      local.get 0   ; arg 0
+      i64.const 10
+      i64.rem
+      i64.checked_neg
+      i64.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 5   ; $cast_33
+      i32.const 48
+      local.get 5   ; $cast_33
+      u8.checked_add
+      local.set 6   ; $add_checked_34
+      local.get 4   ; buf
+      local.get 2   ; ndigits
+      local.get 6   ; $add_checked_34
+      store_u8
+      local.get 0   ; arg 0
+      i64.const 10
+      i64.div
+      local.set 0   ; arg 0
+      br $L5
+    end $L6
+  end $L5
+  local.get 1   ; neg
+  if $L7 void
+    local.get 4   ; buf
+    i64.const 0
+    i32.const 45
+    store_u8
+    local.get 4   ; buf
+    local.get 3   ; m
+    buffer_to_string
+    return
+  end $L7
+  local.get 4   ; buf
+  local.get 3   ; m
+  buffer_to_string
+  return
+end
+
+fn 13 std_io$write (u8,string) -> void
+  local buf ref
+  local sent i64
+  local $len_7 i64
+  local $len_9 i64
+  local chunk ref
+  local $len_12 i64
+  local n i32
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 14   ; std_io$write_text
+  if $L0 void
+    return
+  end $L0
+  local.get 1   ; arg 1
+  call.import 1   ; std_core$bytes
+  local.set 2   ; buf
+  i64.const 0
+  local.set 3   ; sent
+  loop $L1 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_7
+    local.get 3   ; sent
+    local.get 4   ; $len_7
+    i64.ge
+    if $L2 void
+    else
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_9
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_9
+      array.slice 10   ; u8[]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_12
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_12
+      call 15   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_17
+      local.get 3   ; sent
+      local.get 9   ; $cast_17
+      i64.checked_add
+      local.set 3   ; sent
+      br $L1
+    end $L2
+  end $L1
+  return
+end
+
+fn 14 std_io$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 15 std_io$write_bytes (u8,ref,i64) -> i32
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    i64.to_i32
+    return
+  end $L0
+  i32.const 2
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 2   ; system_posix$sys_write
+  i64.to_i32
+  return
+end
+
+fn 16 std_io$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 7   ; "\n"
+  call 5   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 13   ; std_io$write
+  return
+end

@@ -1,0 +1,37 @@
+// A free fn of the program named `into` taking an array runs its own code: a loop
+// over its result, or a chain headed by it, walks what it returns, never the raw
+// array. The `into` every array shares still heads a chain of its own.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+Reversed :: struct {
+    items: i32[]
+    pos:   i32 = 0
+}
+
+Reversed implements Iterator<i32> {
+    next :: fn(self) -> [i32, Continuation] {
+        if self.pos >= self.items.len() {
+            return [0, .Stop]
+        }
+        self.pos += 1
+        return [self.items[self.items.len() - self.pos], .Continue]
+    }
+}
+
+into :: fn(xs: i32[]) -> Reversed = Reversed { .items = xs }
+
+main :: fn() -> i32 {
+    xs :: [1, 2, 3]
+    walked: i32[]: []
+    for x in into(xs) {
+        walked.push(x)
+    }
+    println("${walked}")
+    println("${into(xs).map(x -> x * 10).collect()}")
+    words :: ["a", "b"]
+    println("${words.into().map(w -> "${w}!").collect()}")
+    return 0
+}

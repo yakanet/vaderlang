@@ -116,6 +116,25 @@ recorded_impl :: fn(ctx: FnLowerCtx, callee: DirectFn, receiver: Type) -> ImplEn
     return ctx.project.impls.serving_impl(entry, impl_receiver(entry, receiver))
 }
 
+/// The impl that runs the member recorded at `node` in `role` on `receiver`, as
+/// `recorded_impl` finds it ; null when the record names no member of an impl.
+///
+/// @param node      the site.
+/// @param role      which of the site's records to read.
+/// @param receiver  the receiver's type at this instance.
+recorded_impl_at :: fn(
+    ctx: FnLowerCtx,
+    node: Expr,
+    role: CallRole,
+    receiver: Type,
+) -> ImplEntry | null {
+    callee :: recorded_callee(ctx, node, role)
+    if callee !is DirectFn {
+        return null
+    }
+    return recorded_impl(ctx, callee, receiver)
+}
+
 // The member `callee` names, built for `receiver` ; null for a free fn.
 settled_direct_member :: fn(
     ctx: FnLowerCtx,
