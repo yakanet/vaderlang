@@ -579,7 +579,7 @@ collect_decl :: fn(d: Decl, source: string, entries: DeclEntry[]) -> void {
                     ),
                 )
             }
-            ix_walk_fn_body(d, source, entries)
+            index_fn_body(d, source, entries)
         }
         is StructDecl    -> {
             entries.push(
@@ -687,7 +687,7 @@ collect_decl :: fn(d: Decl, source: string, entries: DeclEntry[]) -> void {
                         ),
                     )
                 }
-                ix_walk_fn_body(m, source, entries)
+                index_fn_body(m, source, entries)
             }
         }
         is ImportDecl    -> {}
@@ -773,73 +773,98 @@ binding_entry :: fn(
     }
 }
 
-// ---- fn body walk : params + locals + for-in -----------------------------
+// ---- local bindings of a fn body ---------------------------------------
 
-ix_walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
-    match body :: f.body {
-        is null      -> {}
-        is BlockExpr -> {
-            scope :: body.span
-            // Params live for the whole body.
-            for p in f.params {
-                sig :: param_signature_slice(p.span, p.name, source)
-                entries.push(binding_entry(p.name, .Param, p.name_span, scope, sig))
-            }
-            ix_walk_block(body, source, entries)
-        }
+index_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
+    body :: f.body ?? return
+    // Params live for the whole body.
+    index_params(f.params, body.span, source, entries)
+    w :: LocalIndex { .source = source, .entries = entries }
+    inspect(body, (n) -> enter_local(n, w), (n) -> leave_local(n, w))
+}
+
+index_params :: fn(ps: FnParam[], scope: Span, source: string, entries: DeclEntry[]) -> void {
+    for p in ps {
+        sig :: param_signature_slice(p.span, p.name, source)
+        entries.push(binding_entry(p.name, .Param, p.name_span, scope, sig))
     }
 }
 
-// `b` is the block being walked. Locals it declares scope from their
-// declaration point to `b.span.end`. Nested blocks (if/match arms,
-// inner BlockExprs) recurse and get their own narrower scope.
-ix_walk_block :: fn(b: BlockExpr, source: string, entries: DeclEntry[]) -> void {
-    for s in b.stmts {
-        ix_walk_stmt(s, b.span, source, entries)
-    }
-    if b.trailing != null {
-        ix_walk_expr(b.trailing, source, entries)
+// The walk over a body. `blocks` holds the spans of the blocks around the
+// current node, innermost last: a local's scope ends with the innermost one.
+LocalIndex :: struct {
+    source: string
+    entries: DeclEntry[]
+    blocks: Span[] = []
+}
+
+enter_local :: fn(n: Node, w: LocalIndex) -> Walk = match n {
+    is BlockExpr -> enter_block(n, w)
+    is LetStmt -> index_let(n, w)
+    is ForStmt -> index_loop_var(n, w)
+    is MatchExpr -> index_match_binding(n, w)
+    is LambdaExpr -> index_lambda_params(n, w)
+    // No binding this index records lives in a type or a pattern.
+    is FnTypeExpr | ArrayTypeExpr | Pattern -> .Skip
+    is Decl | AssignStmt | DestructureAssignStmt | ExprStmt | ReturnStmt | YieldStmt | BreakStmt
+        | ContinueStmt | DeferStmt | IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr
+        | CharLitExpr | StringLitExpr | IdentExpr | DotVariantExpr | CallExpr | FieldExpr
+        | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | StructLitExpr
+        | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr
+        | AwaitExpr -> .Descend
+}
+
+leave_local :: fn(n: Node, w: LocalIndex) -> void {
+    if n is BlockExpr {
+        w.blocks.remove_last()
     }
 }
 
-ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry[]) -> void {
-    match s {
-        is LetStmt               -> {
-            // Local scope : from the let down to the end of the
-            // enclosing block. Anything before the let in the same
-            // block stays unresolved against this name.
-            local_scope :: Span { .start = s.span.start, .end = block_span.end }
-            type_hint :: local_type_hint(s, source)
-            collect_let_binding(s.binding, local_scope, source, type_hint, entries)
-            ix_walk_expr(s.value, source, entries)
-        }
-        is AssignStmt            -> {
-            ix_walk_expr(s.target, source, entries)
-            ix_walk_expr(s.value, source, entries)
-        }
-        is DestructureAssignStmt -> {
-            for place in assign_places(s) {
-                ix_walk_expr(place, source, entries)
-            }
-            ix_walk_expr(s.value, source, entries)
-        }
-        is ExprStmt              -> { ix_walk_expr(s.expr, source, entries) }
-        is ReturnStmt            -> {
-            if s.value != null {
-                ix_walk_expr(s.value, source, entries)
-            }
-        }
-        is YieldStmt             -> { ix_walk_expr(s.value, source, entries) }
-        is ForStmt               -> { ix_walk_for(s, source, entries) }
-        is BreakStmt             -> {}
-        is ContinueStmt          -> {}
-        is DeferStmt             -> {
-            match ds :: s.body {
-                is DeferStmtBody  -> { ix_walk_stmt(ds.stmt, block_span, source, entries) }
-                is DeferBlockBody -> { ix_walk_block(ds.block, source, entries) }
-            }
-        }
+enter_block :: fn(b: BlockExpr, w: LocalIndex) -> Walk {
+    w.blocks.push(b.span)
+    return .Descend
+}
+
+// A local's scope runs from its `let` to the end of the enclosing block:
+// anything before the `let` in the same block stays unresolved against it.
+index_let :: fn(l: LetStmt, w: LocalIndex) -> Walk {
+    scope :: Span { .start = l.span.start, .end = w.blocks[w.blocks.len() - 1].end }
+    collect_let_binding(l.binding, scope, w.source, local_type_hint(l, w.source), w.entries)
+    return .Descend
+}
+
+// A for-in binding's scope is the loop's body block.
+index_loop_var :: fn(f: ForStmt, w: LocalIndex) -> Walk {
+    form :: f.form
+    if form !is InFor {
+        return .Descend
     }
+    match nv :: form.loop_var {
+        is NamedVar       -> {
+            sig :: "for " + nv.name + " in ..."
+            w.entries.push(binding_entry(nv.name, .ForIn, nv.span, f.body.span, sig))
+        }
+        // `for [k, v] in ...` : index each leaf as a body-scoped local.
+        is DestructureVar -> {
+            collect_let_binding(nv.pattern, f.body.span, w.source, "", w.entries)
+        }
+        is DiscardVar     -> {}
+    }
+    return .Descend
+}
+
+// `match y :: e` declares `y` for the whole match.
+index_match_binding :: fn(m: MatchExpr, w: LocalIndex) -> Walk {
+    if m.binding != null {
+        collect_let_binding(m.binding, m.span, w.source, "", w.entries)
+    }
+    return .Descend
+}
+
+// A lambda's params live for its body, as a fn's do.
+index_lambda_params :: fn(l: LambdaExpr, w: LocalIndex) -> Walk {
+    index_params(l.params, l.body.span, w.source, w.entries)
+    return .Descend
 }
 
 collect_let_binding :: fn(
@@ -901,133 +926,6 @@ local_type_hint :: fn(l: LetStmt, source: string) = if l.ty != null {
 // `MyType(i32)` or `T?` intact.
 type_expr_slice :: fn(t: Expr, source: string) =
     source.byte_slice(t.span.start.offset, t.span.end.offset).trim()
-
-ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
-    match w :: f.form {
-        is InfiniteFor -> {}
-        is WhileFor    -> { ix_walk_expr(w.cond, source, entries) }
-        is InFor       -> {
-            // for-in binding scope = the loop's body block.
-            match nv :: w.loop_var {
-                is NamedVar       -> {
-                    sig :: "for " + nv.name + " in ..."
-                    entries.push(binding_entry(nv.name, .ForIn, nv.span, f.body.span, sig))
-                }
-                // `for [k, v] in …` : index each leaf as a body-scoped local.
-                is DestructureVar -> {
-                    collect_let_binding(nv.pattern, f.body.span, source, "", entries)
-                }
-                is DiscardVar     -> {}
-            }
-            ix_walk_expr(w.iter, source, entries)
-        }
-    }
-    ix_walk_block(f.body, source, entries)
-}
-
-// Recurse through expressions to reach nested blocks / matches / ifs /
-// lambdas. Leaf expression variants are no-ops ; container ones recurse
-// into every child that might host a binding.
-ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
-    match e {
-        is BlockExpr -> { ix_walk_block(e, source, entries) }
-        is NullCoalesceExpr -> {
-            ix_walk_expr(e.left, source, entries)
-            inner :: coalesce_fallback_expr(e.fallback)
-            if inner != null {
-                ix_walk_expr(inner, source, entries)
-            }
-        }
-        is IfExpr -> {
-            ix_walk_expr(e.cond, source, entries)
-            ix_walk_block(e.then_block, source, entries)
-            match ei :: e.else_branch {
-                is null        -> {}
-                is IfElseIf    -> { ix_walk_expr(ei.branch, source, entries) }
-                is IfElseBlock -> { ix_walk_block(ei.block, source, entries) }
-            }
-        }
-        is MatchExpr -> {
-            ix_walk_expr(e.scrutinee, source, entries)
-            if e.binding != null {
-                collect_let_binding(e.binding, e.span, source, "", entries)
-            }
-            for arm in e.arms {
-                if arm.guard != null {
-                    ix_walk_expr(arm.guard, source, entries)
-                }
-                ix_walk_expr(arm.body, source, entries)
-            }
-        }
-        is LambdaExpr -> {
-            // Lambdas open a fresh scope ; their params live for the
-            // lambda body just like a fn's params do.
-            scope :: e.body.span
-            for p in e.params {
-                sig :: param_signature_slice(p.span, p.name, source)
-                entries.push(binding_entry(p.name, .Param, p.name_span, scope, sig))
-            }
-            ix_walk_block(e.body, source, entries)
-        }
-        is CallExpr -> {
-            ix_walk_expr(e.callee, source, entries)
-            for a in e.args {
-                ix_walk_expr(a.value, source, entries)
-            }
-        }
-        is FieldExpr -> { ix_walk_expr(e.target, source, entries) }
-        is IndexExpr -> {
-            ix_walk_expr(e.target, source, entries)
-            ix_walk_expr(e.index, source, entries)
-        }
-        is UnaryExpr -> { ix_walk_expr(e.operand, source, entries) }
-        is BinaryExpr -> {
-            ix_walk_expr(e.left, source, entries)
-            ix_walk_expr(e.right, source, entries)
-        }
-        is StructLitExpr -> {
-            for it in e.items {
-                match it {
-                    is StructLitField  -> {
-                        ix_walk_expr(it.value, source, entries)
-                    }
-                    is StructLitSpread -> {
-                        ix_walk_expr(it.expr, source, entries)
-                    }
-                }
-            }
-        }
-        is SeqLitExpr -> {
-            for elt in e.elements {
-                ix_walk_expr(elt, source, entries)
-            }
-        }
-        is RangeExpr -> {
-            ix_walk_expr(e.lower, source, entries)
-            ix_walk_expr(e.upper, source, entries)
-        }
-        is AwaitExpr -> { ix_walk_expr(e.inner, source, entries) }
-        is CastExpr -> { ix_walk_expr(e.value, source, entries) }
-        is GenericInstExpr -> { ix_walk_expr(e.callee, source, entries) }
-        is IntrinsicCallExpr -> {
-            for a in e.args {
-                ix_walk_expr(a, source, entries)
-            }
-        }
-        is StringLitExpr -> {
-            for p in e.parts {
-                match p {
-                    is StringLitText   -> {}
-                    is StringLitInterp -> {
-                        ix_walk_expr(p.expr, source, entries)
-                    }
-                }
-            }
-        }
-        is IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr
-            | IdentExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr -> {}
-    }
-}
 
 // ---- signature helpers ---------------------------------------------------
 
