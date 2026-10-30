@@ -184,6 +184,12 @@ that type, which `@size_of` answers for a type known only at run time.
 **A struct** is the header followed by its fields, in declaration order, each in
 the representation *Values* gives its type.
 
+**A struct with no field** is one object per type, baked in the data pool
+(*Globals and constants*), which every literal of it reads. Two exceptions
+allocate at each literal: a generic struct, and a struct that a `===` or `!==` of
+the program may compare, since it tells two literals apart
+([ADR 0121](adr/0121-a-struct-with-no-field-is-shared-unless-compared-by-identity.md)).
+
 **A tuple** is a struct the compiler declares for its shape, `__Tuple_<shape>`,
 with fields `_0`, `_1`, ... A function returning a small tuple of scalars
 (16 bytes at most), or an `S | null` of a small struct of scalars, may return its

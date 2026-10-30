@@ -40,6 +40,55 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 5u
 
+/* Comptime data pool: read-only arrays in `.rodata`.
+ * Out-of-arena pointers are immortal to the GC (it never copies /
+ * relocates them), so `data.const` boxes a zero-copy view. */
+static const struct vader_struct___defer_env_snippet_1_t vader_data_0_e0 = {
+    { 2u, 0u, 0u, 0u, NULL },
+};
+static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_0_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 2u, 0u, { 0u, 0u, 0u },
+    {
+        {
+            2u, 0u,
+            { .obj = (void*) (struct vader_struct___defer_env_snippet_1_t*) &vader_data_0_e0 },
+        },
+    },
+};
+static const vader_array_t vader_data_0 = {
+    { 12u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
+};
+static const struct vader_struct___defer_env_snippet_3_t vader_data_1_e0 = {
+    { 4u, 0u, 0u, 0u, NULL },
+};
+static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_1_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 4u, 0u, { 0u, 0u, 0u },
+    {
+        {
+            4u, 0u,
+            { .obj = (void*) (struct vader_struct___defer_env_snippet_3_t*) &vader_data_1_e0 },
+        },
+    },
+};
+static const vader_array_t vader_data_1 = {
+    { 14u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
+};
+static const struct vader_struct___defer_env_snippet_5_t vader_data_2_e0 = {
+    { 5u, 0u, 0u, 0u, NULL },
+};
+static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_2_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 5u, 0u, { 0u, 0u, 0u },
+    {
+        {
+            5u, 0u,
+            { .obj = (void*) (struct vader_struct___defer_env_snippet_5_t*) &vader_data_2_e0 },
+        },
+    },
+};
+static const vader_array_t vader_data_2 = {
+    { 15u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
+};
+
 static int32_t snippet$main(void);
 static void __defer_snippet_0(void* l0);
 static void __defer_snippet_2(void* l0);
@@ -70,7 +119,7 @@ static vader_box_t vader_fn_lift___defer_snippet_4(void* env) {
 static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[13] = {
+const vader_type_info_t vader_type_info_table[16] = {
     [1] = { .slot_size = 4 },
     [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_snippet_1_t),
@@ -97,11 +146,23 @@ const vader_type_info_t vader_type_info_table[13] = {
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [12] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
+    [13] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
     },
+    [14] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
+    [15] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
 };
-const size_t vader_type_info_count = 13;
+const size_t vader_type_info_count = 16;
 
 /* Headers named by `@c_header`: they own the prototypes below. */
 #include <unistd.h>
@@ -125,29 +186,32 @@ static int32_t snippet$main(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_struct___defer_env_snippet_1_t* _a0_obj = (vader_struct___defer_env_snippet_1_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_1_t));
-    vader_obj_header_init(_a0_obj, 2u);
-    t0 = (void*) _a0_obj;
+    t0 = (void*) &vader_data_0;
+    vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
+    VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+    t0 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) INT64_C(0));
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 12u);
+    vader_obj_header_init(_a1_closure, 13u);
     _a1_closure->code = (void*) &vader_fn_lift___defer_snippet_0;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;
     vader_defer_push(vader_ref_box(t0));
-    vader_struct___defer_env_snippet_3_t* _a2_obj = (vader_struct___defer_env_snippet_3_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_3_t));
-    vader_obj_header_init(_a2_obj, 4u);
-    t0 = (void*) _a2_obj;
+    t0 = (void*) &vader_data_1;
+    vader_array_t* _a2_slotarr = ((vader_array_t*) t0);
+    VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+    t0 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) INT64_C(0));
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a3_closure, 12u);
+    vader_obj_header_init(_a3_closure, 13u);
     _a3_closure->code = (void*) &vader_fn_lift___defer_snippet_2;
     _a3_closure->env = t0;
     t0 = (void*) _a3_closure;
     vader_defer_push(vader_ref_box(t0));
-    vader_struct___defer_env_snippet_5_t* _a4_obj = (vader_struct___defer_env_snippet_5_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_5_t));
-    vader_obj_header_init(_a4_obj, 5u);
-    t0 = (void*) _a4_obj;
+    t0 = (void*) &vader_data_2;
+    vader_array_t* _a4_slotarr = ((vader_array_t*) t0);
+    VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
+    t0 = vader_array_ref_load_obj(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) INT64_C(0));
     vader_fn_t* _a5_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a5_closure, 12u);
+    vader_obj_header_init(_a5_closure, 13u);
     _a5_closure->code = (void*) &vader_fn_lift___defer_snippet_4;
     _a5_closure->env = t0;
     t0 = (void*) _a5_closure;

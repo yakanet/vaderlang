@@ -27,7 +27,12 @@ type 24 array 23
 type 25 ref std_core$Async
 type 26 struct std_async$Sleep { ms:22,deadline:22,armed:4 }
 type 27 union 0,13
-type 28 struct $Cell_i32_2af2b319 { value:2 }
+type 28 array 6
+type 29 struct $Cell_i32_2af2b319 { value:2 }
+type 30 array 8
+type 31 array 9
+type 32 array 10
+type 33 array 14
 string 0 "work "
 string 1 "note "
 string 2 "call"
@@ -42,6 +47,11 @@ string 10 "defer async"
 string 11 "async"
 string 12 "async deadlock: a task is suspended with nothing left to wake it"
 string 13 "\n"
+data 0 agg 1 struct 6 0
+data 1 agg 1 struct 8 0
+data 2 agg 1 struct 9 0
+data 3 agg 1 struct 10 0
+data 4 agg 1 struct 14 0
 import 0 byte_len std_core$byte_len result_type=22 param_types=1 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=24 param_types=1 param_c_out= param_by_address= (string) -> ref
 import 2 sched_now std_runtime$sched_now result_type=22 () -> i64
@@ -78,7 +88,9 @@ end
 
 fn 2 snippet$returns_a_call () -> i32
   local __result_1 i32
-  struct.new 6   ; __defer_env_snippet_1
+  data.const 0 28   ; pool[0] __defer_env_snippet_1[]
+  i64.const 0
+  array.get 28   ; __defer_env_snippet_1[]
   make_closure 9 20   ; __defer_snippet_0 fn
   defer.push
   string.const 2   ; "call"
@@ -93,12 +105,12 @@ fn 3 snippet$returns_a_local () -> i32
   local n any
   local __result_1 i32
   i32.const 1
-  struct.new 28   ; $Cell_i32_2af2b319
+  struct.new 29   ; $Cell_i32_2af2b319
   local.tee 0   ; n
   struct.new 7   ; __defer_env_snippet_3
   make_closure 10 20   ; __defer_snippet_2 fn
   defer.push
-  local.field 0 28 0   ; n $Cell_i32_2af2b319.value
+  local.field 0 29 0   ; n $Cell_i32_2af2b319.value
   local.set 1   ; __result_1
   defer.pop_exec 1
   local.get 1   ; __result_1
@@ -106,7 +118,9 @@ fn 3 snippet$returns_a_local () -> i32
 end
 
 fn 4 snippet$returns_a_void_call () -> void
-  struct.new 8   ; __defer_env_snippet_5
+  data.const 1 30   ; pool[1] __defer_env_snippet_5[]
+  i64.const 0
+  array.get 30   ; __defer_env_snippet_5[]
   make_closure 11 20   ; __defer_snippet_4 fn
   defer.push
   string.const 3   ; "void"
@@ -117,7 +131,9 @@ end
 
 fn 5 snippet$returns_from_a_nested_block (bool) -> i32
   local __result_2 i32
-  struct.new 9   ; __defer_env_snippet_7
+  data.const 2 31   ; pool[2] __defer_env_snippet_7[]
+  i64.const 0
+  array.get 31   ; __defer_env_snippet_7[]
   make_closure 12 20   ; __defer_snippet_6 fn
   defer.push
   local.get 0   ; arg 0
@@ -126,7 +142,9 @@ fn 5 snippet$returns_from_a_nested_block (bool) -> i32
     defer.pop_exec 1
     return.lit i32.const 0
   end $L0
-  struct.new 10   ; __defer_env_snippet_9
+  data.const 3 32   ; pool[3] __defer_env_snippet_9[]
+  i64.const 0
+  array.get 32   ; __defer_env_snippet_9[]
   make_closure 13 20   ; __defer_snippet_8 fn
   defer.push
   string.const 4   ; "nested"
@@ -187,7 +205,7 @@ end
 fn 10 __defer_snippet_2 (ref) -> void
   local.field 0 7 0   ; arg 0 __defer_env_snippet_3.cap_0
   i32.const 2
-  struct.set 28 0   ; $Cell_i32_2af2b319.value
+  struct.set 29 0   ; $Cell_i32_2af2b319.value
   return
 end
 
@@ -318,7 +336,7 @@ fn 16 snippet$__asyncstate_snippet_13$Async$resume (ref) -> any
   local $cast_39 i32
   local $cast_46 any
   local $field_51 ref
-  local $cast_54 ref
+  local $cast_56 ref
   loop $L0 void
     local.field 0 15 3   ; arg 0 __asyncstate_snippet_13.state
     ref.cast 2   ; i32
@@ -438,12 +456,14 @@ fn 16 snippet$__asyncstate_snippet_13$Async$resume (ref) -> any
             end $L8
             local.field 0 15 1   ; arg 0 __asyncstate_snippet_13.__defers
             local.set 9   ; $field_51
-            struct.new 14   ; __defer_env_snippet_12
+            data.const 4 33   ; pool[4] __defer_env_snippet_12[]
+            i64.const 0
+            array.get 33   ; __defer_env_snippet_12[]
             make_closure 15 20   ; __defer_snippet_11 fn
             ref.cast 20   ; fn
-            local.set 10   ; $cast_54
+            local.set 10   ; $cast_56
             local.get 9   ; $field_51
-            local.get 10   ; $cast_54
+            local.get 10   ; $cast_56
             array.push 20   ; fn
             local.get 0   ; arg 0
             i32.const 5

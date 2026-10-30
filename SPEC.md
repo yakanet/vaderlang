@@ -2255,6 +2255,7 @@ a === label            // error: a Point and a Label are never the same object
 - Only a reference has an identity: a struct, an array, a union of references (`Node | null` included), a distinct type over one of these.
 - `===` on anything else is an error (narrow first, or use `==`): a number, `bool`, `char`, `string`, an enum, a tuple, a function, `null` alone, or a type that may hold one: a value typed by a trait (`i32` implements `Display`), `any`, a type parameter, `Self`.
 - The two operands must be able to hold the same object, sharing a variant other than `null`: `Point | null === Label | null` is an error too.
+- The compiler warns when both operands may hold a struct with no field: such a value carries only its type, which `is` tests.
 - `===` goes through no trait and cannot be overloaded.
 
 ---

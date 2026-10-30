@@ -1,0 +1,1 @@
+[10:54] warning[W0020] identity comparison of a struct with no field: test `Marker` with `is` ; compared by identity, a struct with no field gets an allocation at every literal

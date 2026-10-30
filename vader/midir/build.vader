@@ -59,6 +59,14 @@ ProjectCtx :: struct {
     /// What each struct's fields and each function's parameters are held as
     /// (`storage.vader`).
     slots: SlotTypes
+    /// The program's data pool (`LoweredProject.data_pool`), which holds the one
+    /// object of each shared struct.
+    data_pool: DataPoolEntry[]
+    /// `LoweredProject.identity_compared`: the structs whose literals are not
+    /// shared.
+    identity_compared: MutableSet<i32>
+    /// The pool entry of each shared struct met so far, by symbol id.
+    shared_structs: MutableMap<i32, i64> = MutableMap<i32, i64> {}
 }
 
 new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx {
@@ -95,6 +103,8 @@ new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx {
         .diags            = diags,
         .globals          = lp.globals,
         .slots            = slot_types,
+        .data_pool        = lp.data_pool,
+        .identity_compared = lp.identity_compared,
     }
 }
 
@@ -1026,6 +1036,9 @@ build_unary :: fn(fn_ctx: FnCtx, e: LoweredUnary) -> LocalId | null {
 // the result is then held as its own type's integer.
 build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
     if is_short_circuit_op(e.op) { return build_short_circuit(fn_ctx, e, null) }
+    if e.op == .Eq || e.op == .Neq {
+        check_unshared_identity(fn_ctx.project, e)
+    }
     width :: binary_width(fn_ctx, e)
     lhs :: build_held(fn_ctx, e.left, width) ?? return null
     rhs :: build_held(fn_ctx, e.right, width) ?? return null
@@ -1372,6 +1385,10 @@ only_leaves :: fn(block: LoweredBlock) -> bool {
 }
 
 build_struct_lit :: fn(fn_ctx: FnCtx, e: LoweredStructLit) -> LocalId | null {
+    shared :: shared_object(fn_ctx.project, e)
+    if shared != null {
+        return build_expr(fn_ctx, shared)
+    }
     field_locals: LocalId[]: []
     field_slots :: literal_slots(fn_ctx.project.slots, e.type)
     for i in 0..<e.fields.len() {
@@ -1384,6 +1401,57 @@ build_struct_lit :: fn(fn_ctx: FnCtx, e: LoweredStructLit) -> LocalId | null {
         .stack = false, .span = e.span,
     })
     return dst
+}
+
+// ---- shared structs -------------------------------------------------------
+
+// A struct with no field carries nothing but its type, so its literals are one
+// object, `pool[k][0]`, pooled at the first literal: they allocate nothing and
+// give their function no GC frame. Only identity could tell them apart, so a
+// struct some `===` compares keeps an object per literal
+// (`typecheck/fieldless_identity.vader`). So does a generic one: a pooled struct
+// names its type by symbol, which loses the type arguments.
+
+// The read of the shared object `e` stands for, or null when `e` builds its own.
+shared_object :: fn(ctx: ProjectCtx, e: LoweredStructLit) -> LoweredIndex | null {
+    t :: e.type
+    if t !is StructType {
+        return null
+    }
+    if !is_shared_struct(ctx, t) {
+        return null
+    }
+    fresh :: ctx.data_pool.len()
+    index :: ctx.shared_structs.get_or_put(t.symbol.id, fresh)
+    if index == fresh {
+        ctx.data_pool.push(AggregateDataPoolEntry {
+            .literal = LoweredArrayLit {
+                .span = e.span,
+                .type = mk_array(t),
+                .elements = [e],
+            },
+        })
+    }
+    return mk_pooled_struct_read(t, index, e.span)
+}
+
+is_shared_struct :: fn(ctx: ProjectCtx, t: StructType) -> bool {
+    fields :: ctx.slots.plain_fields[t.symbol.id] ?? return false
+    return fields.len() == 0 && t.symbol.id !in ctx.identity_compared
+}
+
+// `==` or `!=` on two references compares objects, and would hold between two
+// literals of a shared struct. The typecheck notes every struct an identity
+// comparison may see, so one both operands may hold is a compiler bug.
+check_unshared_identity :: fn(ctx: ProjectCtx, e: LoweredBinary) -> void {
+    for st in common_structs(e.left.type, e.right.type) {
+        if is_shared_struct(ctx, st) {
+            panic(
+                "midir/build: a comparison may see the shared object of "
+                    + "`${display_type(st)}`, which `identity_compared` misses",
+            )
+        }
+    }
 }
 
 build_array_lit :: fn(fn_ctx: FnCtx, e: LoweredArrayLit) -> LocalId | null {

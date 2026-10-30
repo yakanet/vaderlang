@@ -21,6 +21,7 @@ type 18 array 16
 type 19 array 12
 type 20 array 10
 type 21 struct $Cell_i64_2ae1af19 { value:1 }
+type 22 array 7
 string 0 "index "
 string 1 "pick"
 string 2 "at "
@@ -41,6 +42,7 @@ string 16 " k="
 string 17 "default method = "
 string 18 "written out = "
 string 19 "\n"
+data 0 structs 7 0 1
 import 0 byte_len std_core$byte_len result_type=1 param_types=10 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=18 param_types=10 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=1 param_types=4,18,1 param_c_out= param_by_address= (i32,ref,i64) -> i64
@@ -628,7 +630,9 @@ fn 7 snippet$main () -> i32
   local.get 1   ; __place_operand_0
   call 12   ; std_core$finish_buffer
   call 18   ; std_io$println__string
-  struct.new 7   ; snippet$Two
+  data.const 0 22   ; pool[0] snippet$Two[]
+  i64.const 0
+  array.get 22   ; snippet$Two[]
   local.get 0   ; a
   call 6   ; snippet$Two$Stepper$advance
   i64.const 37

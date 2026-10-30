@@ -19,6 +19,9 @@ type 16 struct std_core$Buffer {  }
 type 17 scalar u8
 type 18 scalar bool
 type 19 array 17
+type 20 array 7
+type 21 array 1
+type 22 array 9
 string 0 "never cancelled"
 string 1 "done"
 string 2 "inner cleanup"
@@ -26,6 +29,9 @@ string 3 "inner body (unreached)"
 string 4 "outer cleanup"
 string 5 "outer body (unreached)"
 string 6 "\n"
+data 0 agg 1 struct 7 0
+data 1 structs 1 0 1
+data 2 agg 1 struct 9 0
 import 0 byte_len std_core$byte_len result_type=15 param_types=11 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=19 param_types=11 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=3,19,15 param_c_out= param_by_address= (i32,ref,i64) -> i64
@@ -119,8 +125,8 @@ fn 6 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
   local $cast_45 i32
   local $cast_51 any
   local $field_56 ref
-  local $cast_59 ref
-  local $struct_60 ref
+  local $cast_61 ref
+  local $idx_64 ref
   loop $L0 void
     local.field 0 8 5   ; arg 0 __asyncstate_snippet_2.state
     ref.cast 3   ; i32
@@ -256,17 +262,21 @@ fn 6 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
               end $L9
               local.field 0 8 3   ; arg 0 __asyncstate_snippet_2.__defers
               local.set 10   ; $field_56
-              struct.new 7   ; __defer_env_snippet_1
+              data.const 0 20   ; pool[0] __defer_env_snippet_1[]
+              i64.const 0
+              array.get 20   ; __defer_env_snippet_1[]
               make_closure 5 13   ; __defer_snippet_0 fn
               ref.cast 13   ; fn
-              local.set 11   ; $cast_59
+              local.set 11   ; $cast_61
               local.get 10   ; $field_56
-              local.get 11   ; $cast_59
+              local.get 11   ; $cast_61
               array.push 13   ; fn
-              struct.new 1   ; snippet$Never
-              local.set 12   ; $struct_60
+              data.const 1 21   ; pool[1] snippet$Never[]
+              i64.const 0
+              array.get 21   ; snippet$Never[]
+              local.set 12   ; $idx_64
               local.get 0   ; arg 0
-              local.get 12   ; $struct_60
+              local.get 12   ; $idx_64
               struct.set 8 0   ; __asyncstate_snippet_2.s0
               local.get 0   ; arg 0
               i32.const 6
@@ -351,7 +361,7 @@ fn 9 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
   local $cast_45 i32
   local $cast_51 any
   local $field_56 ref
-  local $cast_59 ref
+  local $cast_61 ref
   loop $L0 void
     local.field 0 10 4   ; arg 0 __asyncstate_snippet_5.state
     ref.cast 3   ; i32
@@ -487,12 +497,14 @@ fn 9 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
               end $L9
               local.field 0 10 2   ; arg 0 __asyncstate_snippet_5.__defers
               local.set 10   ; $field_56
-              struct.new 9   ; __defer_env_snippet_4
+              data.const 2 22   ; pool[2] __defer_env_snippet_4[]
+              i64.const 0
+              array.get 22   ; __defer_env_snippet_4[]
               make_closure 8 13   ; __defer_snippet_3 fn
               ref.cast 13   ; fn
-              local.set 11   ; $cast_59
+              local.set 11   ; $cast_61
               local.get 10   ; $field_56
-              local.get 11   ; $cast_59
+              local.get 11   ; $cast_61
               array.push 13   ; fn
               local.get 0   ; arg 0
               i32.const 6

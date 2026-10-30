@@ -23,6 +23,18 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 1u
 
+/* Comptime data pool: read-only arrays in `.rodata`.
+ * Out-of-arena pointers are immortal to the GC (it never copies /
+ * relocates them), so `data.const` boxes a zero-copy view. */
+static const struct vader_struct_snippet$Boom_t vader_data_0_e0 = { { 5u, 0u, 0u, 0u, NULL } };
+static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_0_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 5u, 0u, { 0u, 0u, 0u },
+    { { 5u, 0u, { .obj = (void*) (struct vader_struct_snippet$Boom_t*) &vader_data_0_e0 } } },
+};
+static const vader_array_t vader_data_0 = {
+    { 12u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
+};
+
 static vader_box_t snippet$maybe(bool l0);
 static vader_box_t snippet$risky(bool l0);
 static int32_t snippet$main(void);
@@ -40,7 +52,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[12] = {
+const vader_type_info_t vader_type_info_table[13] = {
     [1] = { .slot_size = 1 },
     [2] = { .slot_size = 16 },
     [3] = { .slot_size = 4 },
@@ -59,8 +71,12 @@ const vader_type_info_t vader_type_info_table[12] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
+    [12] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
 };
-const size_t vader_type_info_count = 12;
+const size_t vader_type_info_count = 13;
 
 /* Headers named by `@c_header`: they own the prototypes below. */
 #include <unistd.h>
@@ -86,17 +102,15 @@ static vader_box_t snippet$maybe(bool l0) {
 }
 
 static vader_box_t snippet$risky(bool l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
     if (!(l0)) {
-        vader_struct_snippet$Boom_t* _a0_obj = (vader_struct_snippet$Boom_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Boom_t));
-        vader_obj_header_init(_a0_obj, 5u);
-        t0 = (void*) _a0_obj;
-        { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
+        t0 = (void*) &vader_data_0;
+        vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        t0 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) INT64_C(0));
+        return vader_ref_box(t0);
     }
-    { vader_box_t __vret = vader_box_i32(3u, INT32_C(42)); vader_gc_top = gc_frame.prev; return __vret; }
+    return vader_box_i32(3u, INT32_C(42));
 }
 
 static int32_t snippet$main(void) {

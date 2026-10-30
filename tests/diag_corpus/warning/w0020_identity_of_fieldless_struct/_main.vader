@@ -1,0 +1,18 @@
+// W0020: `===` may compare a struct with no field, which `is` tests without
+// tying its literals to an object each. The quiet case is a struct with a
+// field, whose identity is the point of the comparison.
+
+module "snippet"
+
+Marker :: struct {}
+Point  :: struct { x: i32 }
+
+marked :: fn(a: Marker | Point, b: Marker) -> bool = a === b
+
+same_point :: fn(a: Point, b: Point) -> bool = a === b
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1 }
+    n :: if marked(Marker {}, Marker {}) { 1 } else { 0 }
+    return n + if same_point(p, p) { 1 } else { 0 }
+}

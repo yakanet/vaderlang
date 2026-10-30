@@ -263,21 +263,7 @@ try_pool_struct :: fn(
     entry :: render_data_pool_entry(wrapped, display_type(cd.type)) ?? return null
     pool_index :: project.data_pool.len()
     project.data_pool.push(entry)
-    project.const_inline[symbol.id] = LoweredIndex {
-        .span        = span,
-        .type        = cd.type,
-        .target      = LoweredDataConst {
-            .span       = span,
-            .type       = pool_type,
-            .pool_index = pool_index,
-        },
-        .index       = LoweredIntLit {
-            .span  = span,
-            .type  = TY_I64,
-            .value = 0,
-        },
-        .bounds_safe = true,
-    }
+    project.const_inline[symbol.id] = mk_pooled_struct_read(cd.type, pool_index, span)
     return PooledConst { .pool_index = pool_index, .element = true }
 }
 

@@ -265,6 +265,7 @@ export WarningCode :: enum(CodeInfo) {
     NeedlessEnumTypePrefix      { .id = "W0016", .message = "the enum name adds nothing here, since the slot already pins it and the bare variant reads the same" },
     InferredExportReturnType    { .id = "W0017", .message = "exported function leaves its return type to inference" },
     WriteToUnreadCopy           { .id = "W0019", .message = "a write into a copy nothing reads" },
+    IdentityOfFieldlessStruct   { .id = "W0020", .message = "identity comparison of a struct with no field" },
 }
 
 /// `H6xxx`: the build driver (`build.vader`) and the hooks it registers.

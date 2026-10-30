@@ -97,6 +97,18 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 20u
 
+/* Comptime data pool: read-only arrays in `.rodata`.
+ * Out-of-arena pointers are immortal to the GC (it never copies /
+ * relocates them), so `data.const` boxes a zero-copy view. */
+static const struct vader_struct_snippet$Two_t vader_data_0_e0 = { { 7u, 0u, 0u, 0u, NULL } };
+static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_0_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 7u, 0u, { 0u, 0u, 0u },
+    { { 7u, 0u, { .obj = (void*) (struct vader_struct_snippet$Two_t*) &vader_data_0_e0 } } },
+};
+static const vader_array_t vader_data_0 = {
+    { 22u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
+};
+
 static int64_t snippet$slot(int64_t l0);
 static void* snippet$pick(void* l0);
 static int32_t snippet$Cell$std_core$Index$at(void* l0, int64_t l1);
@@ -121,7 +133,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[22] = {
+const vader_type_info_t vader_type_info_table[23] = {
     [1] = { .slot_size = 8 },
     [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Counter_t),
@@ -191,8 +203,12 @@ const vader_type_info_t vader_type_info_table[22] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_$Cell_i64_2ae1af19_t),
         .slot_size = 8,
     },
+    [22] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
 };
-const size_t vader_type_info_count = 22;
+const size_t vader_type_info_count = 23;
 
 /* Headers named by `@c_header`: they own the prototypes below. */
 #include <unistd.h>
@@ -592,9 +608,10 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_int(l3, l1, l4);
     t1 = std_core$finish_buffer(l3, l1);
     std_io$println__string(t1);
-    vader_struct_snippet$Two_t* _a38_obj = (vader_struct_snippet$Two_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Two_t));
-    vader_obj_header_init(_a38_obj, 7u);
-    t2 = (void*) _a38_obj;
+    t2 = (void*) &vader_data_0;
+    vader_array_t* _a38_slotarr = ((vader_array_t*) t2);
+    VADER_ARRAY_RESOLVE_BUF(_a38_slotarr)
+    t2 = vader_array_ref_load_obj(_a38_slotarr->buf, _a38_slotarr->offset + (size_t) INT64_C(0));
     snippet$Two$Stepper$advance(t2, l0);
     l3 = (void*) vader_buffer_new((size_t) INT64_C(37));
     l1 = INT64_C(0);

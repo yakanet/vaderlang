@@ -333,6 +333,44 @@ export types_overlap :: fn(a: Type, b: Type) -> bool {
     return equals_type(a, b)
 }
 
+/// The structs both a value of `a` and one of `b` may be, looking through unions
+/// and distinct types. Two instances of one generic struct count as one.
+///
+/// @param a  one type.
+/// @param b  the other.
+export common_structs :: fn(a: Type, b: Type) -> StructType[] {
+    common: StructType[]: []
+    on_a: StructType[]: []
+    collect_structs(a, on_a)
+    if on_a.len() == 0 {
+        return common
+    }
+    on_b: StructType[]: []
+    collect_structs(b, on_b)
+    for st in on_a {
+        if on_b.any_match((other) -> other.symbol.id == st.symbol.id) {
+            common.push(st)
+        }
+    }
+    return common
+}
+
+// Append to `out` the structs a value of `t` may be.
+collect_structs :: fn(t: Type, out: StructType[]) -> void {
+    match t {
+        is StructType -> { out.push(t) }
+        is UnionType -> {
+            for v in t.variants {
+                collect_structs(v, out)
+            }
+        }
+        is DistinctType -> { collect_structs(t.backing, out) }
+        is ArrayType | PrimitiveType | EnumType | RangeType | TupleType | FnType | TraitType
+            | AnyType | TypeParamType | InferVar | SelfType | TypeMetaType | UnresolvedType
+            | NeverType | FreeIntType | FreeFloatType | FreeCharType -> {}
+    }
+}
+
 /// Whether a value of `a` and one of `b` are the same variant to `==` : one type,
 /// or a free literal the other type takes. A union compares a
 /// variant only with its counterpart on the other side.
@@ -453,4 +491,21 @@ test_union_of_orders_same_named_types_by_identity :: fn() -> void {
     one_way :: union_of([first, second])
     other_way :: union_of([second, first])
     assert(equals_type(one_way, other_way), "the order the variants arrive in does not matter")
+}
+
+@test
+test_common_structs_through_union_and_distinct :: fn() -> void {
+    factory :: SymbolFactory {}
+    marker: Type: mk_struct(factory.make(.Struct, "Marker", "m", "m", .Public, null), [])
+    other: Type: mk_struct(factory.make(.Struct, "Other", "m", "m", .Public, null), [])
+    point: Type: mk_struct(factory.make(.Struct, "Point", "m", "m", .Public, null), [])
+    tag :: mk_distinct(factory.make(.TypeAlias, "Tag", "m", "m", .Public, null), other)
+    common :: common_structs(union_of([marker, other, TY_NULL]), union_of([point, tag]))
+    assert_eq(common.len(), 1)
+    assert_eq(common[0].symbol.name, "Other")
+}
+
+@test
+test_common_structs_none_without_a_struct :: fn() -> void {
+    assert_eq(common_structs(TY_I32, TY_I32).len(), 0)
 }

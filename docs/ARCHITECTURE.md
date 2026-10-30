@@ -238,6 +238,13 @@ each:
    release native build, marks the index checks it proves useless for the C emitter
    to drop.
 
+The construction reads every literal of a non-generic struct with no field from
+one data-pool entry per type, unless the struct is in `identity_compared`: the
+structs that both operands of some `===` or `!==` may hold, noted per module by the
+typecheck and gathered by `lower_project`. An identity comparison of a shared
+struct stops the build
+([ADR 0121](adr/0121-a-struct-with-no-field-is-shared-unless-compared-by-identity.md)).
+
 `vader/midir/pipeline/` runs them on every path that emits bytecode; the comptime
 VM skips `value_return/`. Below the passes, `select/` maps types to bytecode value
 types and operations to ops.

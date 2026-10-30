@@ -12,7 +12,11 @@ type 9 scalar i64
 type 10 scalar u8
 type 11 scalar bool
 type 12 array 10
-type 13 fn () -> 2
+type 13 array 3
+type 14 fn () -> 2
+type 15 array 4
+type 16 array 5
+type 17 array 6
 string 0 "value trailing: computed"
 string 1 "void trailing: body"
 string 2 "hi"
@@ -23,6 +27,10 @@ string 6 "value trailing: deferred"
 string 7 "outer cleanup"
 string 8 "inner cleanup"
 string 9 "\n"
+data 0 agg 1 struct 3 0
+data 1 agg 1 struct 4 0
+data 2 agg 1 struct 5 0
+data 3 agg 1 struct 6 0
 import 0 byte_len std_core$byte_len result_type=9 param_types=7 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=12 param_types=7 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=1,12,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
@@ -36,8 +44,10 @@ fn 0 snippet$compute () -> i32
 end
 
 fn 1 snippet$void_trailing () -> void
-  struct.new 3   ; __defer_env_snippet_1
-  make_closure 4 13   ; __defer_snippet_0 fn
+  data.const 0 13   ; pool[0] __defer_env_snippet_1[]
+  i64.const 0
+  array.get 13   ; __defer_env_snippet_1[]
+  make_closure 4 14   ; __defer_snippet_0 fn
   defer.push
   string.const 1   ; "void trailing: body"
   call 15   ; std_io$println__string
@@ -47,8 +57,10 @@ end
 
 fn 2 snippet$value_trailing () -> i32
   local __block_1 i32
-  struct.new 4   ; __defer_env_snippet_3
-  make_closure 5 13   ; __defer_snippet_2 fn
+  data.const 1 15   ; pool[1] __defer_env_snippet_3[]
+  i64.const 0
+  array.get 15   ; __defer_env_snippet_3[]
+  make_closure 5 14   ; __defer_snippet_2 fn
   defer.push
   call 0   ; snippet$compute
   local.set 0   ; __block_1
@@ -60,14 +72,18 @@ end
 fn 3 snippet$main () -> i32
   local __buf_2 ref
   local __off_3 i64
-  local $cast_14 i64
-  struct.new 5   ; __defer_env_snippet_5
-  make_closure 6 13   ; __defer_snippet_4 fn
+  local $cast_18 i64
+  data.const 2 16   ; pool[2] __defer_env_snippet_5[]
+  i64.const 0
+  array.get 16   ; __defer_env_snippet_5[]
+  make_closure 6 14   ; __defer_snippet_4 fn
   defer.push
   string.const 2   ; "hi"
   call 15   ; std_io$println__string
-  struct.new 6   ; __defer_env_snippet_7
-  make_closure 7 13   ; __defer_snippet_6 fn
+  data.const 3 17   ; pool[3] __defer_env_snippet_7[]
+  i64.const 0
+  array.get 17   ; __defer_env_snippet_7[]
+  make_closure 7 14   ; __defer_snippet_6 fn
   defer.push
   string.const 3   ; "nested"
   call 15   ; std_io$println__string
@@ -85,10 +101,10 @@ fn 3 snippet$main () -> i32
   local.set 1   ; __off_3
   call 2   ; snippet$value_trailing
   i32.to_i64
-  local.set 2   ; $cast_14
+  local.set 2   ; $cast_18
   local.get 0   ; __buf_2
   local.get 1   ; __off_3
-  local.get 2   ; $cast_14
+  local.get 2   ; $cast_18
   call 11   ; std_core$write_int
   local.set 1   ; __off_3
   local.get 0   ; __buf_2

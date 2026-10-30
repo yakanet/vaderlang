@@ -1618,6 +1618,14 @@ static const struct { vader_obj_header_t header; size_t capacity; size_t length;
 static const vader_array_t vader_data_2 = {
     { 43u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
 };
+static const struct vader_struct_json$JsonNull_t vader_data_3_e0 = { { 25u, 0u, 0u, 0u, NULL } };
+static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_3_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 25u, 0u, { 0u, 0u, 0u },
+    { { 25u, 0u, { .obj = (void*) (struct vader_struct_json$JsonNull_t*) &vader_data_3_e0 } } },
+};
+static const vader_array_t vader_data_3 = {
+    { 50u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_3_buf,
+};
 
 static void snippet$show(vader_string_t l0, vader_string_t l1);
 static int32_t snippet$main(void);
@@ -1733,7 +1741,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[51] = {
+const vader_type_info_t vader_type_info_table[52] = {
     [1] = { .slot_size = 4 },
     [3] = { .slot_size = 4 },
     [4] = { .slot_size = 16 },
@@ -1883,8 +1891,12 @@ const vader_type_info_t vader_type_info_table[51] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
+    [51] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
 };
-const size_t vader_type_info_count = 51;
+const size_t vader_type_info_count = 52;
 
 /* Headers named by `@c_header`: they own the prototypes below. */
 #include <unistd.h>
@@ -4884,9 +4896,10 @@ static vader_box_t json$parse_null(void* l0) {
         t1 = json$fail(l0, 47u);
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_struct_json$JsonNull_t* _a0_obj = (vader_struct_json$JsonNull_t*) vader_gc_alloc(sizeof(vader_struct_json$JsonNull_t));
-    vader_obj_header_init(_a0_obj, 25u);
-    t1 = (void*) _a0_obj;
+    t1 = (void*) &vader_data_3;
+    vader_array_t* _a0_slotarr = ((vader_array_t*) t1);
+    VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+    t1 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) INT64_C(0));
     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -6134,7 +6147,7 @@ static vader_string_t std_numbers$to_hex(uint64_t l0) {
     if (l0 == INT64_C(0)) {
         { vader_gc_top = gc_frame.prev; return 74u; }
     }
-    vader_array_t* _a0_arr = vader_array_new(50u, 0u, 11u, 9u);
+    vader_array_t* _a0_arr = vader_array_new(51u, 0u, 11u, 9u);
     l1 = (void*) _a0_arr;
     l2 = (uint64_t) 16;
     l3 = l0;

@@ -13,8 +13,10 @@ type 10 struct std_core$__gen_state_std_core_0 { s0:9,s1:11,s2:11,state:2 }
 type 11 scalar i64
 type 12 scalar bool
 type 13 ref std_core$Iterator
-type 14 array 8
+type 14 array 1
+type 15 array 8
 data 0 structs 8 0 1
+data 1 structs 1 0 1
 impl 1 snippet$Greeter
 impl 6 std_core$Iterator
 impl 9 std_core$Into
@@ -57,7 +59,9 @@ fn 2 snippet$main () -> i32
   call 7   ; std_core$$array$Into$into__i32
   call 3   ; snippet$count__i32
   local.set 1   ; b
-  struct.new 1   ; snippet$Hello
+  data.const 1 14   ; pool[1] snippet$Hello[]
+  i64.const 0
+  array.get 14   ; snippet$Hello[]
   call 4   ; snippet$invoke__i32
   local.set 2   ; c
   i32.const 7
@@ -121,9 +125,9 @@ fn 6 std_core$Range$Iterator$next__i32 (ref) -> any
   local.field 0 6 3   ; arg 0 std_core$Range__i32.done
   ref.cast 12   ; bool
   if $L0 void
-    data.const 0 14   ; pool[0] std_core$Stop[]
+    data.const 0 15   ; pool[0] std_core$Stop[]
     i64.const 0
-    array.get 14   ; std_core$Stop[]
+    array.get 15   ; std_core$Stop[]
     return
   end $L0
   local.field 0 6 4   ; arg 0 std_core$Range__i32.cursor
@@ -166,9 +170,9 @@ fn 6 std_core$Range$Iterator$next__i32 (ref) -> any
       return
     end $L3
   end $L2
-  data.const 0 14   ; pool[0] std_core$Stop[]
+  data.const 0 15   ; pool[0] std_core$Stop[]
   i64.const 0
-  array.get 14   ; std_core$Stop[]
+  array.get 15   ; std_core$Stop[]
   return
 end
 
@@ -281,9 +285,9 @@ fn 9 std_core$__gen_state_std_core_0$Iterator$next (ref) -> any
           i32.eq
           if $L7 void
           else
-            data.const 0 14   ; pool[0] std_core$Stop[]
+            data.const 0 15   ; pool[0] std_core$Stop[]
             i64.const 0
-            array.get 14   ; std_core$Stop[]
+            array.get 15   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0

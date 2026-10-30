@@ -1,0 +1,52 @@
+// vader/front/typecheck/fieldless_identity: the structs with no field an identity
+// comparison tells apart.
+//
+// A struct with no field carries nothing but its type, so every literal of a
+// non-generic one is the same shared object (`vader/midir/build.vader::build_struct_lit`).
+// Only `===` and `!==` could see it: a struct that one of them may compare keeps an
+// object per literal. This file notes those structs on the module's `TypedProgram`,
+// which the lowering gathers project-wide, and warns, since `is` tells the type
+// without costing an allocation at every literal.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+import "std/string"
+AST :: import "toolchain/ast"
+import "vader/core/types"
+import "vader/support/diagnostics"
+
+/// Note the structs with no field that both operands of a valid `===` or `!==` may
+/// hold, and warn when there is one.
+///
+/// @param e      the identity comparison.
+/// @param left   the left operand's type.
+/// @param right  the right operand's type.
+/// @param typed  the module's typecheck output ; its `identity_compared` grows.
+/// @param diags  where the warning goes.
+note_fieldless_identity :: fn(
+    e: AST.BinaryExpr,
+    left: Type,
+    right: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    names: string[]: []
+    for st in common_structs(left, right) {
+        if is_shareable_struct(st, typed) {
+            typed.identity_compared.add(st.symbol.id)
+            names.push("`${display_type(st)}`")
+        }
+    }
+    if names.len() > 0 {
+        detail :: "test ${names.join(", ")} with `is` ; compared by identity, a struct "
+            + "with no field gets an allocation at every literal"
+        diags.push(warning(.IdentityOfFieldlessStruct, e.span, detail))
+    }
+}
+
+// A non-generic struct with no field: the CFG construction shares its literals.
+is_shareable_struct :: fn(t: StructType, typed: TypedProgram) -> bool {
+    decl :: typed.struct_decls[t.symbol.id] ?? return false
+    return t.args.len() == 0 && decl.fields.len() == 0
+}

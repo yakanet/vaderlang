@@ -1,0 +1,41 @@
+// A struct with no field carries nothing but its type: every literal of one is
+// the same static object, so a function whose only allocation was such a
+// literal runs without a GC frame (`emit-c`: `next_even` has none). `is` still
+// tells it apart. A struct that some `===` may compare keeps an object per
+// literal, even when the comparison reaches it through an alias of a union.
+
+module "snippet"
+
+import "std/io"
+
+Exhausted :: struct {}
+
+Marker :: struct {}
+Other  :: struct {}
+Either :: Marker | Other
+
+next_even :: fn(n: i32) -> i32 | Exhausted {
+    if n > 6 {
+        return Exhausted {}
+    }
+    return n * 2
+}
+
+same :: fn(x: Either, y: Either) -> bool = x === y
+
+main :: fn() -> i32 {
+    total := 0
+    for i in 0..<10 {
+        step :: next_even(i)
+        if step is Exhausted {
+            break
+        }
+        total += step
+    }
+    println("total: ${total}")
+    a :: Marker {}
+    println("two literals: ${same(Marker {}, Marker {})}")
+    println("one literal: ${same(a, a)}")
+    println("across variants: ${same(Marker {}, Other {})}")
+    return 0
+}

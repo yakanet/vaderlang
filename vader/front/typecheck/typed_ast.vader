@@ -405,6 +405,11 @@ export TypedProgram :: struct {
     /// module's structs, and only `declare_module` may write it.
     struct_decls: MutableMap<i32, AST.StructDecl>
 
+    /// The structs with no field that some `===` or `!==` of this module compares,
+    /// by symbol id. Every other literal of a struct with no field is one shared
+    /// object (`vader/midir/build.vader`), which only identity could tell apart.
+    identity_compared: MutableSet<i32> = MutableSet<i32> {}
+
     /// `TraitDecl` keyed by the symbol's id. Same shape as
     /// `struct_decls` ; consumed by orchestrate's T3036 check. Project-wide and
     /// shared once `cross_publish_trait_decls` runs.

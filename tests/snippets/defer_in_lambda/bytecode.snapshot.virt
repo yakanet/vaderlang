@@ -13,7 +13,8 @@ type 10 scalar i64
 type 11 scalar u8
 type 12 scalar bool
 type 13 array 11
-type 14 fn () -> 3
+type 14 array 2
+type 15 fn () -> 3
 string 0 "captured-x"
 string 1 "--- now panic case ---"
 string 2 "result="
@@ -23,6 +24,7 @@ string 5 "lambda body"
 string 6 "panic defer in lambda saw "
 string 7 "about to boom"
 string 8 "\n"
+data 0 agg 1 struct 2 0
 import 0 byte_len std_core$byte_len result_type=10 param_types=8 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=13 param_types=8 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,13,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
@@ -90,13 +92,15 @@ fn 2 __defer_snippet_4 (ref) -> void
 end
 
 fn 3 __lambda_snippet_0 (ref) -> void
-  struct.new 2   ; __defer_env_snippet_3
-  make_closure 1 14   ; __defer_snippet_2 fn
+  data.const 0 14   ; pool[0] __defer_env_snippet_3[]
+  i64.const 0
+  array.get 14   ; __defer_env_snippet_3[]
+  make_closure 1 15   ; __defer_snippet_2 fn
   defer.push
   local.field 0 5 0   ; arg 0 __lambda_env_snippet_1.cap_0
   ref.cast 8   ; string
   struct.new 4   ; __defer_env_snippet_5
-  make_closure 2 14   ; __defer_snippet_4 fn
+  make_closure 2 15   ; __defer_snippet_4 fn
   defer.push
   string.const 5   ; "lambda body"
   call 13   ; std_io$println__string
@@ -123,7 +127,7 @@ fn 5 __lambda_snippet_6 (ref) -> i32
   local.field 0 7 0   ; arg 0 __lambda_env_snippet_7.cap_0
   ref.cast 8   ; string
   struct.new 6   ; __defer_env_snippet_9
-  make_closure 4 14   ; __defer_snippet_8 fn
+  make_closure 4 15   ; __defer_snippet_8 fn
   defer.push
   string.const 7   ; "about to boom"
   call 13   ; std_io$println__string

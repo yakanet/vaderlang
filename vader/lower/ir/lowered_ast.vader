@@ -178,6 +178,10 @@ export LoweredProject :: struct {
     /// The storage of every module constant, in the order `inline_consts` met
     /// them. Read by the lowered dump.
     const_routes: ConstRoute[] = []
+    /// The structs with no field some `===` or `!==` compares, by symbol id: their
+    /// literals keep an object each, where every other literal of a struct with no
+    /// field is one shared object (`vader/midir/build.vader`).
+    identity_compared: MutableSet<i32> = MutableSet<i32> {}
     /// `Symbol.id → trait_key`s: the frontend's authoritative trait
     /// membership (from `ImplTables.struct_traits_by_sym`), threaded to the
     /// bytecode emitter to seed `is Trait` impl_table rows per interned struct
@@ -858,6 +862,26 @@ export mk_array_repeat :: fn(
         .name = INTRINSIC_ARRAY_REPEAT,
         .args = [source, count],
         .param_types = [type, TY_I64],
+    }
+
+/// The read of a struct baked into the data pool: entry `pool_index` is an array of
+/// `type` holding it alone, so the read is its element 0, which needs no bounds
+/// check.
+///
+/// @param type        the struct's type.
+/// @param pool_index  the data-pool entry.
+/// @param span        the source construct.
+export mk_pooled_struct_read :: fn(type: Type, pool_index: i64, span: Span) -> LoweredIndex =
+    LoweredIndex {
+        .span = span,
+        .type = type,
+        .target = LoweredDataConst {
+            .span = span,
+            .type = mk_array(type),
+            .pool_index = pool_index,
+        },
+        .index = LoweredIntLit { .span = span, .type = TY_I64, .value = 0 },
+        .bounds_safe = true,
     }
 
 /// A block of `stmts` that yields nothing.

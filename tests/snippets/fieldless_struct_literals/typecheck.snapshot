@@ -1,0 +1,59 @@
+# Typecheck
+
+## tests/snippets/fieldless_struct_literals
+  ConstDecl      Either               :: type
+  StructDecl     Exhausted            :: Exhausted
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Marker               :: Marker
+  FnDecl         next_even            :: fn(i32) -> Exhausted | i32
+  StructDecl     Other                :: Other
+  FnDecl         same                 :: fn(Marker | Other, Marker | Other) -> bool
+  expr 18:5     IfExpr         :: void
+  expr 18:8     BinaryExpr     :: bool
+  expr 18:8     IdentExpr      :: i32
+  expr 19:16    StructLitExpr  :: Exhausted
+  expr 21:12    BinaryExpr     :: i32
+  expr 21:12    IdentExpr      :: i32
+  expr 24:44    BinaryExpr     :: bool
+  expr 24:44    IdentExpr      :: Marker | Other
+  expr 24:50    IdentExpr      :: Marker | Other
+  expr 28:14    RangeExpr      :: Range<i32>
+  expr 29:17    CallExpr       :: Exhausted | i32
+  expr 29:17    IdentExpr      :: fn(i32) -> Exhausted | i32
+  expr 29:27    IdentExpr      :: i32
+  expr 30:12    BinaryExpr     :: bool
+  expr 30:12    IdentExpr      :: Exhausted | i32
+  expr 30:20    IdentExpr      :: Exhausted
+  expr 30:9     IfExpr         :: void
+  expr 33:18    IdentExpr      :: i32
+  expr 33:9     BinaryExpr     :: i32
+  expr 33:9     IdentExpr      :: i32
+  expr 35:13    StringLitExpr  :: string
+  expr 35:23    IdentExpr      :: i32
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 36:10    StructLitExpr  :: Marker
+  expr 37:13    StringLitExpr  :: string
+  expr 37:30    CallExpr       :: bool
+  expr 37:30    IdentExpr      :: fn(Marker | Other, Marker | Other) -> bool
+  expr 37:35    StructLitExpr  :: Marker
+  expr 37:46    StructLitExpr  :: Marker
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 38:13    StringLitExpr  :: string
+  expr 38:29    CallExpr       :: bool
+  expr 38:29    IdentExpr      :: fn(Marker | Other, Marker | Other) -> bool
+  expr 38:34    IdentExpr      :: Marker
+  expr 38:37    IdentExpr      :: Marker
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    StringLitExpr  :: string
+  expr 39:33    CallExpr       :: bool
+  expr 39:33    IdentExpr      :: fn(Marker | Other, Marker | Other) -> bool
+  expr 39:38    StructLitExpr  :: Marker
+  expr 39:49    StructLitExpr  :: Other
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+
+# Diagnostics
+[24:44] warning[W0020] identity comparison of a struct with no field: test `Marker`, `Other` with `is` ; compared by identity, a struct with no field gets an allocation at every literal

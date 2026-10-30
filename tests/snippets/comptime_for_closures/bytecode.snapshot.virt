@@ -15,14 +15,20 @@ type 12 scalar i64
 type 13 scalar u8
 type 14 scalar bool
 type 15 array 13
-type 16 fn () -> 3
-type 17 fn (1) -> 1
-type 18 fn () -> 1
+type 16 array 2
+type 17 fn () -> 3
+type 18 array 4
+type 19 array 5
+type 20 fn (1) -> 1
+type 21 fn () -> 1
 string 0 "body "
 string 1 "total "
 string 2 "nested "
 string 3 "deferred "
 string 4 "\n"
+data 0 agg 1 struct 2 0
+data 1 agg 1 struct 4 0
+data 2 agg 1 struct 5 0
 import 0 byte_len std_core$byte_len result_type=12 param_types=10 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=15 param_types=10 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,15,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
@@ -33,10 +39,12 @@ fn 0 snippet$main () -> i32
   local __buf_1 ref
   local __off_2 i64
   local total i32
-  local $cast_51 i64
+  local $cast_57 i64
   local __buf_12 ref
-  struct.new 2   ; __defer_env_snippet_1
-  make_closure 1 16   ; __defer_snippet_0 fn
+  data.const 0 16   ; pool[0] __defer_env_snippet_1[]
+  i64.const 0
+  array.get 16   ; __defer_env_snippet_1[]
+  make_closure 1 17   ; __defer_snippet_0 fn
   defer.push
   i64.const 25
   buffer.new
@@ -58,8 +66,10 @@ fn 0 snippet$main () -> i32
   call 11   ; std_core$finish_buffer
   call 17   ; std_io$println__string
   defer.pop_exec 1
-  struct.new 4   ; __defer_env_snippet_3
-  make_closure 2 16   ; __defer_snippet_2 fn
+  data.const 1 18   ; pool[1] __defer_env_snippet_3[]
+  i64.const 0
+  array.get 18   ; __defer_env_snippet_3[]
+  make_closure 2 17   ; __defer_snippet_2 fn
   defer.push
   i64.const 25
   buffer.new
@@ -81,8 +91,10 @@ fn 0 snippet$main () -> i32
   call 11   ; std_core$finish_buffer
   call 17   ; std_io$println__string
   defer.pop_exec 1
-  struct.new 5   ; __defer_env_snippet_5
-  make_closure 3 16   ; __defer_snippet_4 fn
+  data.const 2 19   ; pool[2] __defer_env_snippet_5[]
+  i64.const 0
+  array.get 19   ; __defer_env_snippet_5[]
+  make_closure 3 17   ; __defer_snippet_4 fn
   defer.push
   i64.const 25
   buffer.new
@@ -106,19 +118,19 @@ fn 0 snippet$main () -> i32
   defer.pop_exec 1
   i32.const 0
   local.set 2   ; total
-  fn.ref 4 17   ; __lambda_snippet_6 fn
+  fn.ref 4 20   ; __lambda_snippet_6 fn
   local.set 0   ; __buf_1
   local.get 2   ; total
   retag 1   ; i32
   local.get 0   ; __buf_1
-  call.indirect 17   ; fn
+  call.indirect 20   ; fn
   local.set 2   ; total
-  fn.ref 5 17   ; __lambda_snippet_7 fn
+  fn.ref 5 20   ; __lambda_snippet_7 fn
   local.set 0   ; __buf_1
   local.get 2   ; total
   retag 1   ; i32
   local.get 0   ; __buf_1
-  call.indirect 17   ; fn
+  call.indirect 20   ; fn
   local.set 2   ; total
   i64.const 26
   buffer.new
@@ -132,10 +144,10 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_2
   local.get 2   ; total
   i32.to_i64
-  local.set 3   ; $cast_51
+  local.set 3   ; $cast_57
   local.get 0   ; __buf_1
   local.get 1   ; __off_2
-  local.get 3   ; $cast_51
+  local.get 3   ; $cast_57
   call 13   ; std_core$write_int
   local.set 1   ; __off_2
   local.get 0   ; __buf_1
@@ -145,7 +157,7 @@ fn 0 snippet$main () -> i32
   i32.const 100
   local.tee 2   ; total
   struct.new 7   ; __lambda_env_snippet_9
-  make_closure 7 18   ; __lambda_snippet_8 fn
+  make_closure 7 21   ; __lambda_snippet_8 fn
   local.set 0   ; __buf_1
   i64.const 27
   buffer.new
@@ -158,12 +170,12 @@ fn 0 snippet$main () -> i32
   call 12   ; std_core$write_string_at
   local.set 1   ; __off_2
   local.get 0   ; __buf_1
-  call.indirect 18   ; fn
+  call.indirect 21   ; fn
   i32.to_i64
-  local.set 3   ; $cast_51
+  local.set 3   ; $cast_57
   local.get 4   ; __buf_12
   local.get 1   ; __off_2
-  local.get 3   ; $cast_51
+  local.get 3   ; $cast_57
   call 13   ; std_core$write_int
   local.set 1   ; __off_2
   local.get 4   ; __buf_12
@@ -172,7 +184,7 @@ fn 0 snippet$main () -> i32
   call 17   ; std_io$println__string
   local.get 2   ; total
   struct.new 9   ; __lambda_env_snippet_13
-  make_closure 9 18   ; __lambda_snippet_12 fn
+  make_closure 9 21   ; __lambda_snippet_12 fn
   local.set 0   ; __buf_1
   i64.const 27
   buffer.new
@@ -185,12 +197,12 @@ fn 0 snippet$main () -> i32
   call 12   ; std_core$write_string_at
   local.set 1   ; __off_2
   local.get 0   ; __buf_1
-  call.indirect 18   ; fn
+  call.indirect 21   ; fn
   i32.to_i64
-  local.set 3   ; $cast_51
+  local.set 3   ; $cast_57
   local.get 4   ; __buf_12
   local.get 1   ; __off_2
-  local.get 3   ; $cast_51
+  local.get 3   ; $cast_57
   call 13   ; std_core$write_int
   local.set 1   ; __off_2
   local.get 4   ; __buf_12

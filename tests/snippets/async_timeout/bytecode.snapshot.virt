@@ -27,7 +27,8 @@ type 24 ref std_core$Async
 type 25 struct std_async$Sleep { ms:17,deadline:17,armed:19 }
 type 26 union 0,8
 type 27 ref std_core$Async
-type 28 ref std_core$Error
+type 28 array 3
+type 29 ref std_core$Error
 string 0 "work cleanup"
 string 1 "done"
 string 2 "timed out: "
@@ -36,6 +37,7 @@ string 4 "\n"
 string 5 "operation timed out after "
 string 6 "ms"
 string 7 "async deadlock: a task is suspended with nothing left to wake it"
+data 0 agg 1 struct 3 0
 import 0 byte_len std_core$byte_len result_type=17 param_types=7 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=20 param_types=7 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=2,20,17 param_c_out= param_by_address= (i32,ref,i64) -> i64
@@ -111,7 +113,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
   local $cast_44 null
   local $cast_51 any
   local $field_56 ref
-  local $cast_59 ref
+  local $cast_61 ref
   loop $L0 void
     local.field 0 5 3   ; arg 0 __asyncstate_snippet_2.state
     ref.cast 2   ; i32
@@ -239,12 +241,14 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
               end $L9
               local.field 0 5 1   ; arg 0 __asyncstate_snippet_2.__defers
               local.set 9   ; $field_56
-              struct.new 3   ; __defer_env_snippet_1
+              data.const 0 28   ; pool[0] __defer_env_snippet_1[]
+              i64.const 0
+              array.get 28   ; __defer_env_snippet_1[]
               make_closure 2 12   ; __defer_snippet_0 fn
               ref.cast 12   ; fn
-              local.set 10   ; $cast_59
+              local.set 10   ; $cast_61
               local.get 9   ; $field_56
-              local.get 10   ; $cast_59
+              local.get 10   ; $cast_61
               array.push 12   ; fn
               local.get 0   ; arg 0
               i32.const 6
@@ -381,7 +385,7 @@ fn 5 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
         i32.eq
         if $L5 void
           local.field 0 9 1   ; arg 0 __asyncstate_snippet_3.s1
-          type_check 28   ; ref std_core$Error
+          type_check 29   ; ref std_core$Error
           if $L6 void
             local.get 0   ; arg 0
             i32.const 2

@@ -83,6 +83,11 @@ lower_project_impl :: fn(
     project :: new_lowered_project()
     project.entry = loaded.entry
     project.libraries = evaluated.libraries
+    for [_, program] in typed.modules {
+        for symbol_id in program.identity_compared {
+            project.identity_compared.add(symbol_id)
+        }
+    }
     // Seed runtime `is Trait` membership from the frontend's id-keyed map, which
     // holds the impls of the whole project. The emitter turns this into
     // `impl_table` rows per interned struct tag (`build_impl_table_from_vtable`).

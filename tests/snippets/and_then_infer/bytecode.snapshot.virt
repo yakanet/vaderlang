@@ -12,7 +12,9 @@ type 9 scalar u8
 type 10 array 9
 type 11 scalar void
 type 12 fn (4) -> 2
+type 13 array 6
 string 0 "\n"
+data 0 structs 6 0 1
 import 0 byte_len std_core$byte_len result_type=8 param_types=5 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=10 param_types=5 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=4,10,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
@@ -24,7 +26,9 @@ fn 0 snippet$fetch (bool) -> any
   local.get 0   ; arg 0
   if $L0 void
   else
-    struct.new 6   ; snippet$Boom
+    data.const 0 13   ; pool[0] snippet$Boom[]
+    i64.const 0
+    array.get 13   ; snippet$Boom[]
     return
   end $L0
   i32.const 20
@@ -46,7 +50,9 @@ fn 1 snippet$halve (i32) -> any
     retag 4   ; i32
     return
   end $L0
-  struct.new 6   ; snippet$Boom
+  data.const 0 13   ; pool[0] snippet$Boom[]
+  i64.const 0
+  array.get 13   ; snippet$Boom[]
   return
 end
 

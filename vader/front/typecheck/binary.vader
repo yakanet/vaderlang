@@ -925,6 +925,8 @@ check_identity :: fn(
                 "`${display_type(left)}` and `${display_type(right)}` are never the same object",
             ),
         )
+    } else {
+        note_fieldless_identity(e, left, right, typed, diags)
     }
     return TY_BOOL
 }
