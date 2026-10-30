@@ -2305,6 +2305,35 @@ test("lsp: the selection grows from the word to its declaration", async () => {
   for (let i = 1; i < chain.length; i++) expect(chain[i]!.length).toBeGreaterThan(chain[i - 1]!.length);
 }, { timeout: MEDIUM_BUILD });
 
+// The cursor finders read every expression a declaration holds: a binding in a
+// lambda passed as an argument, a parameter's default value.
+const WIDE_REACH_SOURCE = `module "lsptest"
+
+apply :: fn(f: fn(i32) -> i32, x: i32) -> i32 = f(x)
+
+scale :: fn(x: i32, factor: i32 = 3 * 2) -> i32 = x * factor
+
+main :: fn() -> i32 = apply((x: i32) -> {
+    doubled :: x * 2
+    doubled + scale(1)
+}, 4)
+`;
+
+test("lsp: hover and selection reach a lambda argument and a parameter default", async () => {
+  const src = WIDE_REACH_SOURCE;
+  const results = await driveLsp(src, [
+    { method: "textDocument/hover", position: positionOf(src, "doubled ::") },
+    { method: "textDocument/selectionRange", position: positionOf(src, "3 * 2") },
+  ]);
+  expect((results[0]!.result as { contents: { value: string } }).contents.value).toBe("```\ndoubled: i32\n```");
+  const chain: string[] = [];
+  for (let r: SelectionRangeT | undefined = (results[1]!.result as SelectionRangeT[])[0]; r; r = r.parent) {
+    chain.push(rangeText(src, r.range));
+  }
+  expect(chain[0]).toBe("3");
+  expect(chain).toContain("3 * 2");
+}, { timeout: MEDIUM_BUILD });
+
 // The source text a possibly multi-line range covers.
 function rangeText(source: string, range: RangeT): string {
   const lines = source.split("\n");
