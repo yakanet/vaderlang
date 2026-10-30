@@ -308,11 +308,19 @@ export STRUCT_RANGE          :: @type_name(Range)
 /// `std/core::Continuation` and its variants: what an `Iterator.next` pairs its
 /// element with. The lowerer builds the comparison, so the spellings live beside
 /// the type.
-export ENUM_CONTINUATION     :: @type_name(Continuation)
+export ENUM_CONTINUATION     :: "Continuation"
 export CONTINUATION_STOP     :: "Stop"
 export CONTINUATION_CONTINUE :: "Continue"
 export STRUCT_SUSPENDED      :: @type_name(Suspended)
 export STRUCT_FIELD          :: @type_name(Field)
+
+/// `std/core::Stop`, what an `Iterator.next` returns once the iteration is over,
+/// and `STOP`, the one value of it a synthesised `next` returns.
+///
+/// `Stop` and `Continuation` are spelled out rather than taken by `@type_name`:
+/// std/core declares one of the two, and the compiler builds against either.
+export STRUCT_STOP :: "Stop"
+export CONST_STOP  :: "STOP"
 
 /// Method names the compiler dispatches by, paired with the `TRAIT_*` above
 /// (`Add::add`, `Comparable::compare`, `Iterator::next`, …). Same rationale as
