@@ -861,13 +861,6 @@ import "vader/front/resolver"
 import "vader/core/symbol"
 import "toolchain/span"
 
-accept_match :: fn(e: AST.Expr) -> AST.Expr | null {
-    if e is AST.MatchExpr {
-        return e
-    }
-    return null
-}
-
 ExpectedMatch :: struct {
     typed: TypedProgram
     m: AST.MatchExpr
@@ -885,7 +878,7 @@ expect_match :: fn(src: string) -> ExpectedMatch {
             match b :: last.body {
                 is null          -> {}
                 is AST.BlockExpr -> {
-                    hit :: find_first_in_block(b, accept_match)
+                    hit :: AST.find_expr(b, (e) -> e is AST.MatchExpr)
                     if hit is AST.MatchExpr { return ExpectedMatch {
                         .typed = result.typed,
                         .m = hit,

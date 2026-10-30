@@ -429,7 +429,6 @@ detect_is_narrow :: fn(
     return null
 }
 
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -437,11 +436,6 @@ import "vader/front/parser"
 import "vader/front/resolver"
 import "vader/core/symbol"
 import "toolchain/span"
-
-accept_if :: fn(e: AST.Expr) -> AST.Expr | null {
-    if e is AST.IfExpr { return e }
-    return null
-}
 
 first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
     parsed :: parse_source(with_integers(src), "t.vader")
@@ -451,7 +445,7 @@ first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
             match b :: last.body {
                 is null          -> {}
                 is AST.BlockExpr -> {
-                    hit :: find_first_in_block(b, accept_if)
+                    hit :: AST.find_expr(b, (e) -> e is AST.IfExpr)
                     if hit is AST.IfExpr { return hit }
                 }
             }
@@ -460,7 +454,6 @@ first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
     }
     return null
 }
-
 
 @test
 test_if_both_branches_int_returns_int :: fn() -> void {

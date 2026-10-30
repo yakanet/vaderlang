@@ -96,7 +96,7 @@ populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
         // A const the parser gave a `__comptime_` helper calls it ; what it reads
         // is the value it was written with, which the helper holds.
         written :: record.decl.comptime_body ?? record.decl.value
-        collect_expr_deps(written, typed, nodes, deps_seen, record)
+        AST.inspect(written, (n) -> dependency_step(n, typed, nodes, deps_seen, record))
         nodes.by_id[id] = record
     }
 }
@@ -185,141 +185,33 @@ cycle_names :: fn(start: i64, path: i64[], id: i64, nodes: Nodes) -> string {
 ///               again at the end.
 export display_cycle :: fn(names: string[]) -> string = names.join(" -> ")
 
-// ---- expression walker ---------------------------------------------------
+// ---- dependencies of a value ----------------------------------------------
 
-// Visit every IdentExpr in `e` ; record a dep edge from `record.decl` to
-// any registered `@comptime const` the ident resolves to. `seen` keeps
-// the dep list duplicate-free (same dep encountered twice in different
-// subtrees counts once).
-collect_expr_deps :: fn(
-    e: AST.Expr, typed: TypedProgram, nodes: Nodes,
+// Walk a value: every identifier in it may name another `@comptime const`.
+dependency_step :: fn(
+    n: AST.Node, typed: TypedProgram, nodes: Nodes,
     seen: MutableSet<i64>, record: NodeRecord,
-) -> void {
-    match e {
-        is AST.IdentExpr -> {
-            symbol :: typed.resolved.idents[e.span.hash()] ?? return
-            if symbol.kind != .Const { return }
-            dependency_id :: nodes.by_symbol[symbol.id] ?? return
-            if !seen.add(dependency_id) { return }
-            record.dependency_ids.push(dependency_id)
-        }
-        is AST.CallExpr -> {
-            collect_expr_deps(e.callee, typed, nodes, seen, record)
-            for a in e.args { collect_expr_deps(a.value, typed, nodes, seen, record) }
-        }
-        is AST.FieldExpr  -> { collect_expr_deps(e.target, typed, nodes, seen, record) }
-        is AST.IndexExpr  -> { collect_expr_deps(e.target, typed, nodes, seen, record) collect_expr_deps(e.index, typed, nodes, seen, record) }
-        is AST.UnaryExpr  -> { collect_expr_deps(e.operand, typed, nodes, seen, record) }
-        is AST.BinaryExpr -> { collect_expr_deps(e.left, typed, nodes, seen, record) collect_expr_deps(e.right, typed, nodes, seen, record) }
-        is AST.IfExpr     -> {
-            collect_expr_deps(e.cond, typed, nodes, seen, record)
-            collect_block_deps(e.then_block, typed, nodes, seen, record)
-            match else_if :: e.else_branch {
-                is null            -> {}
-                is AST.IfElseIf -> { collect_expr_deps(else_if.branch, typed, nodes, seen, record) }
-                is AST.IfElseBlock -> { collect_block_deps(else_if.block, typed, nodes, seen, record) }
-            }
-        }
-        is AST.MatchExpr  -> {
-            collect_expr_deps(e.scrutinee, typed, nodes, seen, record)
-            for arm in e.arms {
-                if arm.guard !is null {
-                    collect_expr_deps(arm.guard, typed, nodes, seen, record)
-                }
-                collect_expr_deps(arm.body, typed, nodes, seen, record)
-            }
-        }
-        is AST.BlockExpr     -> { collect_block_deps(e, typed, nodes, seen, record) }
-        is AST.StructLitExpr -> {
-            collect_expr_deps(e.type_name, typed, nodes, seen, record)
-            for item in e.items {
-                match item {
-                    is AST.StructLitField  -> { collect_expr_deps(item.value, typed, nodes, seen, record) }
-                    is AST.StructLitSpread -> { collect_expr_deps(item.expr, typed, nodes, seen, record) }
-                }
-            }
-        }
-        is AST.SeqLitExpr        -> { for el in e.elements { collect_expr_deps(el, typed, nodes, seen, record) } }
-        is AST.RangeExpr         -> { collect_expr_deps(e.lower, typed, nodes, seen, record) collect_expr_deps(e.upper, typed, nodes, seen, record) }
-        is AST.AwaitExpr         -> { collect_expr_deps(e.inner, typed, nodes, seen, record) }
-        is AST.CastExpr          -> { collect_expr_deps(e.value, typed, nodes, seen, record) }
-        is AST.LambdaExpr        -> { collect_block_deps(e.body, typed, nodes, seen, record) }
-        is AST.IntrinsicCallExpr -> { for a in e.args { collect_expr_deps(a, typed, nodes, seen, record) } }
-        is AST.GenericInstExpr   -> { collect_expr_deps(e.callee, typed, nodes, seen, record) }
-        is AST.StringLitExpr     -> {
-            for p in e.parts {
-                match p {
-                    is AST.StringLitInterp -> { collect_expr_deps(p.expr, typed, nodes, seen, record) }
-                    is AST.StringLitText   -> {}
-                }
-            }
-        }
-        is AST.NullCoalesceExpr -> {
-            collect_expr_deps(e.left, typed, nodes, seen, record)
-            // A `return` / `break` / `continue` fallback carries no expression to
-            // descend into: `coalesce_fallback_expr` yields null for those.
-            fallback :: AST.coalesce_fallback_expr(e.fallback)
-            if fallback != null {
-                collect_expr_deps(fallback, typed, nodes, seen, record)
-            }
-        }
-        // Leaves: no sub-expression can name a `@comptime const`.
-        is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
-         | AST.CharLitExpr | AST.DotVariantExpr -> {}
-        // Type expressions. A type mentions a const only through a generic
-        // argument, and `GenericInstExpr` above already descends into those; the
-        // written form itself contributes no dependency.
-        is AST.FnTypeExpr | AST.ArrayTypeExpr -> {}
+) -> AST.Walk {
+    if n is AST.IdentExpr {
+        add_dependency(n, typed, nodes, seen, record)
     }
+    return .Descend
 }
 
-collect_block_deps :: fn(
-    b: AST.BlockExpr, typed: TypedProgram, nodes: Nodes,
+// Record a dependency edge from `record.decl` to the registered `@comptime
+// const` `ident` resolves to, if any. `seen` keeps the list free of
+// duplicates: a const named in two subtrees counts once.
+add_dependency :: fn(
+    ident: AST.IdentExpr, typed: TypedProgram, nodes: Nodes,
     seen: MutableSet<i64>, record: NodeRecord,
 ) -> void {
-    for s in b.stmts { collect_stmt_deps(s, typed, nodes, seen, record) }
-    if b.trailing !is null {
-        collect_expr_deps(b.trailing, typed, nodes, seen, record)
+    symbol :: typed.resolved.idents[ident.span.hash()] ?? return
+    if symbol.kind != .Const {
+        return
     }
-}
-
-collect_stmt_deps :: fn(
-    s: AST.Stmt, typed: TypedProgram, nodes: Nodes,
-    seen: MutableSet<i64>, record: NodeRecord,
-) -> void {
-    match s {
-        is AST.LetStmt    -> { collect_expr_deps(s.value, typed, nodes, seen, record) }
-        is AST.ExprStmt   -> { collect_expr_deps(s.expr, typed, nodes, seen, record) }
-        is AST.ReturnStmt -> {
-            if s.value !is null {
-                collect_expr_deps(s.value, typed, nodes, seen, record)
-            }
-        }
-        is AST.AssignStmt -> { collect_expr_deps(s.target, typed, nodes, seen, record) collect_expr_deps(s.value, typed, nodes, seen, record) }
-        is AST.DestructureAssignStmt -> {
-            for place in AST.assign_places(s) {
-                collect_expr_deps(place, typed, nodes, seen, record)
-            }
-            collect_expr_deps(s.value, typed, nodes, seen, record)
-        }
-        is AST.ForStmt    -> {
-            match while_for :: s.form {
-                is AST.WhileFor -> { collect_expr_deps(while_for.cond, typed, nodes, seen, record) }
-                is AST.InFor -> { collect_expr_deps(while_for.iter, typed, nodes, seen, record) }
-                // `for { ... }`: no header expression, only the body below.
-                is AST.InfiniteFor -> {}
-            }
-            collect_block_deps(s.body, typed, nodes, seen, record)
-        }
-        is AST.YieldStmt -> { collect_expr_deps(s.value, typed, nodes, seen, record) }
-        is AST.DeferStmt -> {
-            match dsb :: s.body {
-                is AST.DeferStmtBody  -> { collect_stmt_deps(dsb.stmt, typed, nodes, seen, record) }
-                is AST.DeferBlockBody -> { collect_block_deps(dsb.block, typed, nodes, seen, record) }
-            }
-        }
-        // Control transfers carry no expression.
-        is AST.BreakStmt | AST.ContinueStmt -> {}
+    dependency_id :: nodes.by_symbol[symbol.id] ?? return
+    if seen.add(dependency_id) {
+        record.dependency_ids.push(dependency_id)
     }
 }
 

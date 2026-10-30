@@ -1972,13 +1972,6 @@ import "std/testing"
 import "toolchain/span"
 import "vader/front/parser"
 
-accept_field :: fn(e: AST.Expr) -> AST.Expr | null {
-    if e is AST.FieldExpr {
-        return e
-    }
-    return null
-}
-
 FieldFixture :: struct {
     typed: TypedProgram
     field: AST.FieldExpr | null
@@ -1997,7 +1990,7 @@ first_field_in_last_fn :: fn(src: string) -> FieldFixture {
                 return FieldFixture { .typed = result.typed, .field = null }
             }
             is AST.BlockExpr -> {
-                hit :: find_first_in_block(b, accept_field)
+                hit :: AST.find_expr(b, (e) -> e is AST.FieldExpr)
                 field: AST.FieldExpr | null = null
                 if hit is AST.FieldExpr {
                     field = hit

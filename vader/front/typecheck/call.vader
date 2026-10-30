@@ -1400,9 +1400,8 @@ import "std/testing"
 import "vader/front/parser"
 import "vader/front/resolver"
 
-// Parse + resolve + check `src`, then find the first `CallExpr` reached
-// by a depth-first walk of the last decl's body via the shared
-// `find_first_in_block` walker.
+// Parse + resolve + check `src`, then find the first `CallExpr` in the last
+// decl's body.
 first_call_in_last_fn :: fn(src: string) -> CallFixture {
     parsed :: parse_source(with_integers(src), "t.vader")
     factory :: SymbolFactory {}
@@ -1416,7 +1415,7 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture {
                 return CallFixture { .typed = result.typed, .call = null }
             }
             is AST.BlockExpr -> {
-                hit :: find_first_in_block(last.body, accept_call)
+                hit :: AST.find_expr(last.body, (e) -> e is AST.CallExpr)
                 call: AST.CallExpr | null = null
                 if hit is AST.CallExpr {
                     call = hit
@@ -1426,13 +1425,6 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture {
         }
     }
     return CallFixture { .typed = result.typed, .call = null }
-}
-
-accept_call :: fn(e: AST.Expr) -> AST.Expr | null {
-    if e is AST.CallExpr {
-        return e
-    }
-    return null
 }
 
 CallFixture :: struct {

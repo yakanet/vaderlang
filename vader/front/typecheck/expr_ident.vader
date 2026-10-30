@@ -134,8 +134,7 @@ check_test_module :: fn(src: string) -> CheckedSrc {
 }
 
 // Look up the type of the first IdentExpr whose name matches `target`
-// inside the first decl's body. Walks one decl level deep: enough
-// for the test fixtures here.
+// inside the first decl's body.
 infer_ident_in_first_fn :: fn(src: string, target: string) -> string {
     checked :: check_test_module(src)
     f :: first_fn_decl(checked.program.decls) ?? return "<not a FnDecl>"
@@ -148,52 +147,11 @@ infer_ident_in_first_fn :: fn(src: string, target: string) -> string {
     }
 }
 
-// Name-keyed walker: kept local because `find_first_in_block`'s
-// predicate signature `fn(Expr) -> Expr | null` doesn't carry the
-// captured target name. Vader's VM trips on closures capturing
-// string params today ; revisit after that's fixed.
+// The first identifier called `target` under `b`.
 scan_block_for_ident :: fn(b: AST.BlockExpr, target: string) -> AST.IdentExpr | null {
-    for stmt in b.stmts {
-        found :: scan_stmt_for_ident(stmt, target)
-        if found is AST.IdentExpr { return found }
-    }
-    if b.trailing !is null {
-        found :: scan_expr_for_ident(b.trailing, target)
-        if found is AST.IdentExpr { return found }
-    }
-    return null
-}
-
-scan_stmt_for_ident :: fn(s: AST.Stmt, target: string) -> AST.IdentExpr | null {
-    // @partial: test walker, only return / expr statements carry a scannable
-    // expression; let / assign / for / break / continue / defer are skipped.
-    @partial match s {
-        is AST.ReturnStmt -> {
-            if s.value == null { return null }
-            return scan_expr_for_ident(s.value, target)
-        }
-        is AST.ExprStmt -> { return scan_expr_for_ident(s.expr, target) }
-        _ -> { return null }
-    }
-}
-
-scan_expr_for_ident :: fn(e: AST.Expr, target: string) -> AST.IdentExpr | null {
-    match e {
-        is AST.IdentExpr  -> { if e.name == target { return e } }
-        is AST.BinaryExpr -> {
-            l :: scan_expr_for_ident(e.left, target)
-            if l is AST.IdentExpr { return l }
-            return scan_expr_for_ident(e.right, target)
-        }
-        is AST.CallExpr -> {
-            callee :: scan_expr_for_ident(e.callee, target)
-            if callee is AST.IdentExpr { return callee }
-            for a in e.args {
-                hit :: scan_expr_for_ident(a.value, target)
-                if hit is AST.IdentExpr { return hit }
-            }
-        }
-        _ -> {}
+    found :: AST.find_expr(b, (e) -> e is AST.IdentExpr && e.name == target)
+    if found is AST.IdentExpr {
+        return found
     }
     return null
 }

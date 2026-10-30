@@ -164,7 +164,6 @@ check_field :: fn(
     diags.push(mismatch_diagnostic(got, expected, f.span, .TypeMismatch, typed))
 }
 
-
 check_missing_fields :: fn(
     span: Span, st: StructType, decl: AST.StructDecl,
     provided: string[], diags: Diagnostic[],
@@ -192,7 +191,6 @@ check_item_no_expected :: fn(
     return
 }
 
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -200,11 +198,6 @@ import "vader/front/parser"
 import "vader/front/resolver"
 import "vader/core/symbol"
 import "toolchain/span"
-
-accept_struct_lit :: fn(e: AST.Expr) -> AST.Expr | null {
-    if e is AST.StructLitExpr { return e }
-    return null
-}
 
 ExpectedSL :: struct {
     typed: TypedProgram
@@ -223,7 +216,7 @@ expect_struct_lit :: fn(src: string) -> ExpectedSL {
             match b :: last.body {
                 is null          -> {}
                 is AST.BlockExpr -> {
-                    hit :: find_first_in_block(b, accept_struct_lit)
+                    hit :: AST.find_expr(b, (e) -> e is AST.StructLitExpr)
                     if hit is AST.StructLitExpr { return ExpectedSL { .typed = result.typed, .sl = hit } }
                 }
             }
@@ -233,7 +226,6 @@ expect_struct_lit :: fn(src: string) -> ExpectedSL {
     assert(false, "expected a StructLitExpr in: ${src}")
     return ExpectedSL { .typed = result.typed, .sl = synthetic_sl() }
 }
-
 
 synthetic_sl :: fn() -> AST.StructLitExpr {
     sp :: empty_span()

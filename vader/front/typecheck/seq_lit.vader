@@ -194,7 +194,6 @@ infer_no_expected :: fn(e: AST.SeqLitExpr, typed: TypedProgram, diags: Diagnosti
     return mk_array(merged)
 }
 
-
 // ---- helpers -------------------------------------------------------------
 
 walk_elements :: fn(
@@ -246,13 +245,6 @@ import "vader/front/resolver"
 import "vader/core/symbol"
 import "toolchain/span"
 
-accept_seq :: fn(e: AST.Expr) -> AST.Expr | null {
-    if e is AST.SeqLitExpr {
-        return e
-    }
-    return null
-}
-
 ExpectedSeq :: struct {
     typed: TypedProgram
     sl: AST.SeqLitExpr
@@ -270,7 +262,7 @@ expect_seq :: fn(src: string) -> ExpectedSeq {
             match b :: last.body {
                 is null          -> {}
                 is AST.BlockExpr -> {
-                    hit :: find_first_in_block(b, accept_seq)
+                    hit :: AST.find_expr(b, (e) -> e is AST.SeqLitExpr)
                     if hit is AST.SeqLitExpr { return ExpectedSeq {
                         .typed = result.typed,
                         .sl = hit,

@@ -1552,13 +1552,6 @@ import "vader/front/parser"
 import "vader/front/resolver"
 import "toolchain/span"
 
-accept_binary :: fn(e: AST.Expr) -> AST.Expr | null {
-    if e is AST.BinaryExpr {
-        return e
-    }
-    return null
-}
-
 // Locate the BinaryExpr the test cares about. Wraps the shared block
 // walker + parse+resolve+check pipeline. Panics with a clear message
 // if the source doesn't yield a binary expression.
@@ -1574,7 +1567,7 @@ expect_binary :: fn(src: string) -> ExpectedBinary {
             match b :: last.body {
                 is null          -> {}
                 is AST.BlockExpr -> {
-                    hit :: find_first_in_block(b, accept_binary)
+                    hit :: AST.find_expr(b, (e) -> e is AST.BinaryExpr)
                     if hit is AST.BinaryExpr {
                         return ExpectedBinary { .typed = result.typed, .bin = hit }
                     }

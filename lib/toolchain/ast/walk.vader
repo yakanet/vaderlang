@@ -8,6 +8,8 @@
 
 module "toolchain/ast"
 
+import "std/iter"
+
 // ---- the walk -------------------------------------------------------------
 
 /// Any node `inspect` hands its visitor: a declaration, an expression (a type
@@ -129,6 +131,27 @@ export inspect :: fn(
 
 // The default `leave`: a walk that only looks on the way in.
 ignore_node :: fn(n: Node) -> void {}
+
+/// The first expression under `n`, root first, that `accept` takes, or `null`
+/// when none does.
+///
+/// @param n       the root.
+/// @param accept  called on each expression `inspect` reaches, until one passes.
+/// @example
+///   call :: find_expr(decl, (e) -> e is CallExpr)
+export find_expr :: fn(n: Node, accept: fn(Expr) -> bool) -> Expr | null {
+    found: Expr[]: []
+    inspect(n, (m) -> take_first(m, accept, found))
+    return found.first_or_null()
+}
+
+take_first :: fn(n: Node, accept: fn(Expr) -> bool, found: Expr[]) -> Walk {
+    if n is Expr && accept(n) {
+        found.push(n)
+        return .Stop
+    }
+    return .Descend
+}
 
 inspect_maybe :: fn(n: Node | null, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
     present :: n ?? return false
@@ -559,4 +582,17 @@ test_inspect_leaves_a_skipped_node :: fn() -> void {
 @test
 test_inspect_stop_leaves_nothing_more :: fn() -> void {
     assert_eq(nodes_left(sum_of(ident("a"), ident("b")), "b"), "a")
+}
+
+@test
+test_find_expr_returns_the_first_match_in_walk_order :: fn() -> void {
+    tree :: sum_of(lambda_of(ident("Param"), ident("inner")), ident("x"))
+    found :: find_expr(tree, (e) -> e is IdentExpr)
+    assert(found is IdentExpr && found.name == "Param", "a parameter type comes first")
+}
+
+@test
+test_find_expr_without_a_match_is_null :: fn() -> void {
+    found :: find_expr(sum_of(ident("a"), ident("b")), (e) -> e is CastExpr)
+    assert(found == null, "no cast under a sum")
 }
