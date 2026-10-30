@@ -91,6 +91,9 @@ wants_debug :: fn(request: BuildRequest) -> bool =
 marks_proven_bounds :: fn(request: BuildRequest) -> bool =
     request.emit != "bytecode-text" && proves_bounds(request.release)
 
+// The OS the binary is built for: the request's target, the host's without one.
+target_os :: fn(request: BuildRequest) = (request.target ?? host_target()).os
+
 /// What keeps a prepared program from being emitted or run, its diagnostics
 /// aside: a program without `main` has nothing to start at.
 ///
@@ -132,6 +135,7 @@ export emit_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: Build
             resolved.runtime_root,
             quote_include_dir(file),
             native_flags(b.module),
+            target_os(resolved),
         )
     }
     if resolved.emit == "c" {

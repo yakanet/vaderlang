@@ -119,23 +119,7 @@ export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool, jobs: i
     return []
 }
 
-// Compiler + `-std=c11` + optimisation flags: the single source of truth for
-// codegen policy across the mono (`cc_argv`) and split (`cc_compile_argv`)
-// builds, so they can't silently drift. `-falign-functions=64` keeps a hot
-// loop's alignment stable against unrelated code growth: without it, adding a
-// few lines to one runtime fn can shift a hot loop onto a bad 64-byte offset and
-// slow it while its code stays byte-identical.
-
-// Append whitespace-split user `--ldflags` tokens to `argv`: no shell quoting
-// (a path with spaces is a user bug).
-/// Append whitespace-split `--ldflags` tokens to a command line.
-///
-/// No shell quoting: a path with spaces is a user error, not something to guess
-/// at.
-///
-/// @param argv     the command line being built, appended to in place.
-/// @param ldflags  the raw flag string.
-/// Append the math library, and on Linux the flag that keeps it linked.
+/// Append the math library, and for a Linux target the flag that keeps it linked.
 ///
 /// `--as-needed` (the default there) drops a `-l` nothing references, and
 /// nothing DOES reference libm: the compiler reaches `sqrt` and friends only from
@@ -149,8 +133,10 @@ export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool, jobs: i
 /// without it.
 ///
 /// @param argv  the command line being built, appended to in place.
-export push_math_library :: fn(argv: string[]) -> void {
-    if VADER_OS == .Linux {
+/// @param os    the OS the binary is built for, which a cross build does not
+///              share with the compiler's own `VADER_OS`.
+export push_math_library :: fn(argv: string[], os: Os) -> void {
+    if os == .Linux {
         argv.push("-Wl,--no-as-needed")
         // And EXPORT the executable's own symbols, or the interpreter cannot
         // reach them. An `@extern` naming a `runtime/c/` accessor
@@ -350,6 +336,7 @@ export push_include_flags :: fn(argv: string[], rt: string, quote_dir: string) -
 ///                      must pass it: the driver binary lives under the
 ///                      project's `build/`, so the probe would look there.
 /// @param quote_dir     where a quoted `@c_header` resolves (`quote_include_dir`).
+/// @param os            the OS the binary is built for (`push_math_library`).
 export cc_argv :: fn(
     cc: string,
     c_files: string[],
@@ -359,6 +346,7 @@ export cc_argv :: fn(
     runtime_root: string,
     quote_dir: string,
     native: NativeFlags,
+    os: Os,
 ) -> string[] {
     argv: string[]: [cc]
     argv.push_all(cc_opt_flags(release))
@@ -371,7 +359,7 @@ export cc_argv :: fn(
     push_ldflags(argv, ldflags)
     argv.push("-o")
     argv.push(out.as_string())
-    push_math_library(argv)
+    push_math_library(argv, os)
     return argv
 }
 // Write `content` to `path`, surfacing a write failure as exit 1.
@@ -448,6 +436,7 @@ export cc_or_default :: fn(cc: string) -> string {
 /// @param runtime_root  see `cc_argv`.
 /// @param quote_dir     where a quoted `@c_header` resolves (`quote_include_dir`).
 /// @param native        what the C libraries of the program add.
+/// @param os            the OS the binary is built for (`push_math_library`).
 /// @return              0 on success, 1 when the C could not be written or `cc`
 ///                      failed. `cc`'s own stderr is forwarded as-is.
 export link_native :: fn(
@@ -459,6 +448,7 @@ export link_native :: fn(
     runtime_root: string,
     quote_dir: string,
     native: NativeFlags,
+    os: Os,
 ) -> i32 {
     if report_missing_archives(native) {
         return 1
@@ -466,7 +456,7 @@ export link_native :: fn(
     stem :: intermediate_stem(out) ?? return 1
     c_file :: "${stem}.c".to_path()
     c_files :: write_c_units(c_file, c) ?? return 1
-    argv :: cc_argv(cc, c_files, out, release, ldflags, runtime_root, quote_dir, native)
+    argv :: cc_argv(cc, c_files, out, release, ldflags, runtime_root, quote_dir, native, os)
     res :: spawn(argv)
     if res is ProcessError {
         eprintln("vader build: ${res.message()}")

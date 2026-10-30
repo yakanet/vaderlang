@@ -9,6 +9,7 @@ import "std/io"
 import "std/path"
 import "std/process"
 import "std/string"
+import "std/target"
 import "vader/emit/c"
 
 // An executable, split: emit the program as a header + globals TU + one
@@ -22,6 +23,7 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     release :: request.release
     ldflags :: request.ldflags
     native :: native_flags(b.module)
+    os :: target_os(request)
     if report_missing_archives(native) {
         return 1
     }
@@ -93,7 +95,7 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     // The link runs alone, so it may use what the compiles were bounded to.
     link_jobs :: if cc_jobs > 0 { cc_jobs } else { processor_count() }
     lres :: spawn(
-        cc_link_argv(cc, obj_files, out, ldflags, release, flavour, link_jobs, native.links),
+        cc_link_argv(cc, obj_files, out, ldflags, release, flavour, link_jobs, native.links, os),
     )
     if lres is ProcessError {
         eprintln("vader build: ${lres.message()}")
@@ -267,10 +269,10 @@ cc_flavour :: fn(cc: string) -> CcFlavour {
 }
 
 // `cc` linking `objs` into `out`, with the link-time optimisation flags, the
-// native libraries, the user's `ldflags` and the math library.
+// native libraries, the user's `ldflags` and the math library of `os`.
 cc_link_argv :: fn(
     cc: string, objs: string[], out: Path, ldflags: string, release: bool, flavour: CcFlavour,
-    jobs: i32, links: string[],
+    jobs: i32, links: string[], os: Os,
 ) -> string[] {
     argv: string[]: [cc]
     argv.push_all(lto_flags(flavour, release, true, jobs))
@@ -279,6 +281,31 @@ cc_link_argv :: fn(
     push_ldflags(argv, ldflags)
     argv.push("-o")
     argv.push(out.as_string())
-    push_math_library(argv)
+    push_math_library(argv, os)
     return argv
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/support/target"
+
+// The link line of a split build for a target running `os`, with nothing to link.
+link_line_for :: fn(os: Os) -> string[] {
+    request :: BuildRequest { .target = Target { .os = os, .arch = .X86_64 } }
+    return cc_link_argv("cc", [], "a".to_path(), "", false, .Unknown, 1, [], target_os(request))
+}
+
+@test
+test_split_link_exports_symbols_for_a_linux_target :: fn() -> void {
+    line :: link_line_for(.Linux)
+    assert("-rdynamic" in line, "a Linux target exports its symbols, whatever the host")
+    assert("-Wl,--no-as-needed" in line, "a Linux target keeps libm, whatever the host")
+}
+
+@test
+test_split_link_keeps_linux_flags_off_other_targets :: fn() -> void {
+    line :: link_line_for(.Darwin)
+    assert(!("-rdynamic" in line), "a Darwin target takes no -rdynamic, whatever the host")
+    assert(!("-Wl,--no-as-needed" in line), "a Darwin target takes no --no-as-needed")
 }
