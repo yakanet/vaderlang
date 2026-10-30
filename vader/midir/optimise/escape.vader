@@ -1,7 +1,7 @@
 // vader/midir/optimise/escape: intra-procedural escape analysis.
 //
-// For each StructNew / ArrayNew
-// allocation, decides whether the value can escape its fn. Escapes :
+// For each StructNew allocation, decides whether the value can escape its fn.
+// Escapes :
 //   - Returned (Return.value)
 //   - Passed as Call / CallIndirect / VirtualCall arg (no inter-
 //     procedural analysis ; we assume the callee retains a reference)
@@ -9,11 +9,15 @@
 //   - Wrapped in CellNew / written into CellSet (a closure shares a capture
 //     something rebinds through its cell)
 //
-// Pure read-only uses (ArrayLen, TypeCheck, Cast, Move, CondBranch, …)
+// Pure read-only uses (ArrayLen, TypeCheck, Cast, Move, CondBranch, ...)
 // keep the value local. FieldGet / ArrayGet record the result as an
 // alias of the container, so a member read out and escaping drags the
-// container (and its stored allocs) to the heap with it. Allocs with no
-// escaping reachable use are marked `stack: true` for downstream codegen.
+// container (and its stored allocs) to the heap with it. A struct with no
+// escaping reachable use is marked `stack: true` for downstream codegen.
+//
+// An array stays on the heap whatever its uses: the bytecode `array.new` has no
+// stack form. It still takes part in the aliasing, so a struct stored into an
+// escaping array escapes with it.
 
 module "vader/midir/optimise"
 
@@ -36,11 +40,9 @@ export EscapeStats :: struct {
     heap_sites: EscapeSite[] = []
 }
 
-/// One allocation the escape pass could not put on the stack.
+/// One struct allocation the escape pass could not put on the stack.
 export EscapeSite :: struct {
     span: Span
-    /// `struct` or `array`: what was allocated.
-    kind: string
     /// The allocated type, rendered. Says whether a site is a candidate for a
     /// scalarised ABI (a small all-primitive tuple) or structurally cannot be.
     type_name: string
@@ -51,8 +53,8 @@ export AnnotatedProject :: struct {
     stats: EscapeStats
 }
 
-/// Walk every fn in `p`, escape-analyse it, and rewrite StructNew /
-/// ArrayNew / FieldSet with `stack` / `barrierless` flags set.
+/// Walk every fn in `p`, escape-analyse it, and rewrite StructNew / FieldSet
+/// with their `stack` / `barrierless` flags set.
 /// Returns the rewritten project + aggregate stats.
 export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
     total_allocs := 0
@@ -68,30 +70,15 @@ export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
             annotated :: annotate_function(fn_)
             for b in annotated.blocks {
                 for ins in b.instructions {
-                    match ins {
-                        is InstrStructNew -> {
-                            total_allocs = total_allocs + 1
-                            if ins.stack {
-                                stack_promoted = stack_promoted + 1
-                            } else if want_sites {
-                                heap_sites.push(EscapeSite {
-                                    .span = ins.span, .kind = "struct",
-                                    .type_name = display_type(ins.type),
-                                })
-                            }
+                    if ins is InstrStructNew {
+                        total_allocs = total_allocs + 1
+                        if ins.stack {
+                            stack_promoted = stack_promoted + 1
+                        } else if want_sites {
+                            heap_sites.push(
+                                EscapeSite { .span = ins.span, .type_name = display_type(ins.type) },
+                            )
                         }
-                        is InstrArrayNew -> {
-                            total_allocs = total_allocs + 1
-                            if ins.stack {
-                                stack_promoted = stack_promoted + 1
-                            } else if want_sites {
-                                heap_sites.push(EscapeSite {
-                                    .span = ins.span, .kind = "array",
-                                    .type_name = display_type(ins.type),
-                                })
-                            }
-                        }
-                        _ -> {}
                     }
                 }
             }
@@ -103,25 +90,16 @@ export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
 }
 
 annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
-    // Collect alloc-producing locals.
-    alloc_locals :: MutableSet<LocalId> {}
     struct_news: LocalId[]: []
     for b in fn_.blocks {
         for ins in b.instructions {
-            @partial match ins {
-                is InstrStructNew -> {
-                    // @partial: only struct/array allocs seed alloc_locals; other instrs are irrelevant.
-
-                    alloc_locals.add(ins.dst)
-                    struct_news.push(ins.dst)
-                }
-                is InstrArrayNew -> { alloc_locals.add(ins.dst) }
-                _ -> {}
+            if ins is InstrStructNew {
+                struct_news.push(ins.dst)
             }
         }
     }
-    if alloc_locals.is_empty() { return fn_ }
-    res :: compute_escaping(fn_, alloc_locals)
+    if struct_news.len() == 0 { return fn_ }
+    res :: compute_escaping(fn_)
     carried :: compute_carried_across_loop_headers(fn_, res.alias_of)
     // Forward-propagate `barrierless` through Move/Cast. A Move/Cast
     // with any non-stack source stays out: one heap origin requires
@@ -166,10 +144,6 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
         for ins in b.instructions {
             match ins {
                 is InstrStructNew -> {
-                    if !alloc_locals.contains(ins.dst) {
-                        new_instrs.push(ins)
-                        continue
-                    }
                     new_stack :: !res.escaping.contains(ins.dst) && !carried.contains(ins.dst)
                     if new_stack == ins.stack {
                         new_instrs.push(ins)
@@ -177,19 +151,6 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
                     }
                     block_mutated = true
                     new_instrs.push(InstrStructNew { ...ins, .stack = new_stack })
-                }
-                is InstrArrayNew -> {
-                    if !alloc_locals.contains(ins.dst) {
-                        new_instrs.push(ins)
-                        continue
-                    }
-                    new_stack :: !res.escaping.contains(ins.dst) && !carried.contains(ins.dst)
-                    if new_stack == ins.stack {
-                        new_instrs.push(ins)
-                        continue
-                    }
-                    block_mutated = true
-                    new_instrs.push(InstrArrayNew { ...ins, .stack = new_stack })
                 }
                 is InstrFieldSet -> {
                     barrierless :: stack_origin.contains(ins.target)
@@ -268,7 +229,7 @@ EscapeResult :: struct {
     alias_from: MutableMap<LocalId, LocalId[]>
 }
 
-compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> EscapeResult {
+compute_escaping :: fn(fn_: CFGFunction) -> EscapeResult {
     escaping :: MutableSet<LocalId> {}
     alias_of :: MutableMap<LocalId, LocalId[]> {}
     alias_from :: MutableMap<LocalId, LocalId[]> {}
@@ -351,12 +312,11 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
             }
         }
     }
-    // Restrict the escape set to alloc locals only.
-    alloc_escaping :: MutableSet<LocalId> {}
-    for a in alloc_locals {
-        if escaping.contains(a) { alloc_escaping.add(a) }
+    return EscapeResult {
+        .escaping = escaping,
+        .alias_of = alias_of,
+        .alias_from = alias_from,
     }
-    return EscapeResult { .escaping = alloc_escaping, .alias_of = alias_of, .alias_from = alias_from }
 }
 
 // A field / element read only aliases its container when the read value can
@@ -397,7 +357,7 @@ export report_heap_allocations :: fn(stats: EscapeStats) -> void {
     out.append("  heap: ${stats.heap_sites.len()} of ${stats.total_allocs} (stack-promoted: ${stats.stack_promoted})\n\n  sites:\n")
     for site in stats.heap_sites {
         at :: source_position(site.span)
-        out.append("    [${at}] ${site.kind} ${site.type_name} escapes its fn (heap, plus a shadow-stack root)\n")
+        out.append("    [${at}] struct ${site.type_name} escapes its fn (heap, plus a shadow-stack root)\n")
     }
     eprintln(out.to_string())
 }

@@ -470,10 +470,6 @@ export InstrArrayNew :: struct {
     type:     Type
     length:   i32
     elements: LocalId[]
-    /// Set by `optimise/escape.vader` as `InstrStructNew.stack` is, but read by no
-    /// backend: the bytecode `array.new` has no such flag, so every array stays on
-    /// the heap.
-    stack: bool
 }
 
 /// Pre-materialised module-level read-only `T[]` literal. Pool entry built

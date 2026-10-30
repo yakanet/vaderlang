@@ -362,7 +362,6 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction = match ins {
         .type = ins.type,
         .length = ins.length,
         .elements = remap_locals(m, ins.elements),
-        .stack = ins.stack,
     }
     is InstrDataConst     -> InstrDataConst {
         .span = ins.span,

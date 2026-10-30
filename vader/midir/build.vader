@@ -1482,7 +1482,7 @@ build_array_lit :: fn(fn_ctx: FnCtx, e: LoweredArrayLit) -> LocalId | null {
     dst :: fresh_tmp(fn_ctx, "arr", e.type)
     emit(fn_ctx, InstrArrayNew {
         .dst = dst, .type = e.type, .length = i32(e.elements.len()),
-        .elements = elems, .stack = false, .span = e.span,
+        .elements = elems, .span = e.span,
     })
     return dst
 }

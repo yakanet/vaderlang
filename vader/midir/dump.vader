@@ -105,8 +105,7 @@ dump_instr :: fn(ins: Instruction) -> string {
             return "%${ins.dst} = struct_new${tag} ${display_type(ins.type)}(${args})"
         }
         is InstrArrayNew -> {
-            tag :: if ins.stack { "[stack]" } else { "" }
-            return "%${ins.dst} = array_new${tag} ${display_type(ins.type)}[${ins.length}](${dump_args(ins.elements)})"
+            return "%${ins.dst} = array_new ${display_type(ins.type)}[${ins.length}](${dump_args(ins.elements)})"
         }
         is InstrDataConst    -> { return "%${ins.dst} = data_const ${ins.pool_index} :${display_type(ins.type)}" }
         is InstrTypeCheck    -> { return "%${ins.dst} = type_check %${ins.value} is ${display_type(ins.check_type)}" }
