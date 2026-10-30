@@ -588,6 +588,11 @@ reg_call :: fn(
                     return failed
                 }
             }
+            .IsStruct -> {
+                held :: struct_at(m, base + i64(operand_b(w)))
+                matched :: held != null && held.type_id == operand_c(w)
+                set_bool(bits, tags, base, operand_a(w), matched)
+            }
             .GetElement | .LoadSlot -> {
                 if !try_get_element(m, base, operand_a(w), operand_b(w), operand_c(w)) {
                     return element_trap(m, base, operand_b(w), operand_c(w), f, pc, op)
@@ -771,6 +776,18 @@ array_at :: fn(m: RegMachine, at: i64) -> ArrayVal | null {
     if m.tags[at] == .Ref {
         v :: m.refs[at]
         if v is ArrayVal {
+            return v
+        }
+    }
+    return null
+}
+
+// The struct in register `at`, or `null`. A register that held a reference keeps
+// it in `refs` once it holds a scalar: the tag decides.
+struct_at :: fn(m: RegMachine, at: i64) -> StructVal | null {
+    if m.tags[at] == .Ref {
+        v :: m.refs[at]
+        if v is StructVal {
             return v
         }
     }
@@ -1331,6 +1348,11 @@ parse_test_module :: fn(text: string) -> bc.BytecodeModule | null {
     return parsed
 }
 
+// The module of `header`, which ends by opening `fn 0 main` and declaring its
+// locals, then of `body`, the rest of `main`.
+main_module :: fn(header: string[], body: string[]) -> bc.BytecodeModule | null =
+    parse_test_module("${header.join("\n")}\n  ${body.join("\n  ")}\nend\nexport main 0\n")
+
 // The message `module` traps with, or "" when it runs to its end.
 trap_message :: fn(module: bc.BytecodeModule) -> string {
     state :: prepared(module) ?? return ""
@@ -1393,7 +1415,7 @@ string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
             + " param_by_address= (string) -> bool",
         "fn 0 main () -> i32",
     ]
-    return parse_test_module("${header.join("\n")}\n  ${body.join("\n  ")}\nend\nexport main 0\n")
+    return main_module(header, body)
 }
 
 // A module whose `main` returns the byte length of "héllo" plus its byte at `index`.
@@ -1447,6 +1469,63 @@ main_runs :: fn(module: bc.BytecodeModule, op: RegOp) -> bool {
         }
     }
     return false
+}
+
+// A module whose `main` runs `body` with the structs `Marker` (type 1) and `Other`
+// (type 2), its local 0 `any`.
+marker_module :: fn(body: string[]) -> bc.BytecodeModule | null {
+    header :: [
+        "module demo",
+        "type 0 scalar i32",
+        r"type 1 struct demo$Marker {  }",
+        r"type 2 struct demo$Other {  }",
+        "fn 0 main () -> i32",
+        "  local step any",
+    ]
+    return main_module(header, body)
+}
+
+@test
+test_struct_type_check_runs_in_registers :: fn() -> void {
+    // 1 when a `Marker` is a `Marker` and not an `Other`.
+    module :: marker_module([
+        "struct.new 1",
+        "type_check 2",
+        r"if $L0 void",
+        "  i32.const 2",
+        "  return",
+        r"end $L0",
+        "struct.new 1",
+        "type_check 1",
+        r"if $L1 void",
+        "  i32.const 1",
+        "  return",
+        r"end $L1",
+        "i32.const 0",
+        "return",
+    ]) ?? return
+    assert_eq(exec_value(module), 1)
+    assert(main_runs(module, .IsStruct), "`type_check` on a struct runs as `IsStruct`")
+}
+
+@test
+test_struct_type_check_reads_the_tag_of_a_reused_register :: fn() -> void {
+    // The local held a `Marker`, then an `i32`: it no longer holds a struct.
+    module :: marker_module([
+        "struct.new 1",
+        "local.set 0",
+        "i32.const 5",
+        "local.set 0",
+        "local.get 0",
+        "type_check 1",
+        r"if $L0 void",
+        "  i32.const 1",
+        "  return",
+        r"end $L0",
+        "i32.const 0",
+        "return",
+    ]) ?? return
+    assert_eq(exec_value(module), 0)
 }
 
 @test

@@ -158,6 +158,9 @@ RegOp :: enum(i32) {
     // r[a] <- field `c` of the struct in r[b] ; field `c` of the struct in r[a] <- r[b].
     GetField
     SetField
+    // r[a] <- whether r[b] holds a struct of type `c`: `type_check` on a struct
+    // type.
+    IsStruct
     // r[a] <- element r[c] of the array in r[b] ; element r[b] of the array in r[a]
     // <- r[c] ; r[a] <- the length of the array in r[b] ; append r[b] to the array
     // in r[a].

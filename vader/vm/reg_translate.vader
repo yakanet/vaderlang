@@ -179,11 +179,11 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
         t.retarget = t.code.ops.len() - 1
         return true
     }
-    unary :: unary_op(op, ft, pc)
+    unary :: unary_op(module, op, ft, pc)
     if unary != null {
         src :: operand(t, 1)
         dst :: pop_to(t, 1)
-        emit(t, pc, unary, dst, src, 0)
+        emit(t, pc, unary, dst, src, type_operand(op))
         note_checked_kind(t, op)
         push_register(t, dst)
         t.retarget = t.code.ops.len() - 1
@@ -580,9 +580,9 @@ note_checked_kind :: fn(t: Translation, op: bc.Op) -> void {
 }
 
 // The register op of a unary bytecode op, or `null`.
-unary_op :: fn(op: bc.Op, ft: FunctionTags, pc: i64) -> RegOp | null {
+unary_op :: fn(module: bc.BytecodeModule, op: bc.Op, ft: FunctionTags, pc: i64) -> RegOp | null {
     integral :: TAGS_I32 | TAGS_I64 | TAGS_CHAR | TAGS_BOOL
-    // @partial: every other op is not a unary scalar op.
+    // @partial: every other op is not a unary op the registers run.
     return @partial match op {
         is bc.I32Neg -> .NegI32
         is bc.I32BitNot -> .NotI32
@@ -591,6 +591,8 @@ unary_op :: fn(op: bc.Op, ft: FunctionTags, pc: i64) -> RegOp | null {
         is bc.F64Neg -> .NegF64
         is bc.CheckedNeg -> checked_neg_register_op(op.kind)
         is bc.BoolNot -> if tags_within(stack_tags(ft, pc, 1), TAGS_BOOL) { .NotBool } else { null }
+        // The other type tests run on `apply_boxed`.
+        is bc.TypeCheck -> if module.types[op.type_id] is bc.BcStruct { .IsStruct } else { null }
         is bc.Convert -> {
             if !tags_within(stack_tags(ft, pc, 1), integral) {
                 null
@@ -606,6 +608,14 @@ unary_op :: fn(op: bc.Op, ft: FunctionTags, pc: i64) -> RegOp | null {
         }
         _ -> null
     }
+}
+
+// The `c` operand of a unary op: the struct type `IsStruct` tests.
+type_operand :: fn(op: bc.Op) -> i32 {
+    if op is bc.TypeCheck {
+        return op.type_id
+    }
+    return 0
 }
 
 // The widening of an integer to an i64: zero-extended from an unsigned source.
