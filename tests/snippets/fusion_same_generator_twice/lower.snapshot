@@ -754,7 +754,7 @@
               __self_2.s2 = __self_2.s0
               __self_2.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -781,7 +781,7 @@
               __self_0.s1 = 0
               __self_0.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -844,7 +844,7 @@
               __self_0.s0 = 0
               __self_0.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }

@@ -145,7 +145,7 @@
               __self_1.s1 = 0
               __self_1.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -191,7 +191,7 @@
               __self_3.s1 = 0
               __self_3.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -235,7 +235,7 @@
               __self_1.s1 = 0
               __self_1.state = 3
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -267,7 +267,7 @@
                   if __self_1.s3 is null {
                       {
                           __self_1.state = -1
-                          return std.core.STOP
+                          return Stop {}
                       }
                       @unreachable("`??` fallback diverges")
                   } else {
@@ -279,7 +279,7 @@
               __self_1.s1 = 0
               __self_1.state = 3
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -332,7 +332,7 @@
               __self_0.s1 = 0
               __self_0.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -730,7 +730,6 @@
     fn std.async.sleep  // std_async$sleep
     struct std.async.Sleep  // std_async$Sleep
   std/core
-    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string

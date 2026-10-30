@@ -483,7 +483,7 @@
               __self_0.state = 4
           } else if __self_0.state == 6 {
               __self_0.state = -1
-              return std.core.STOP
+              return Stop {}
           } else if __self_0.state == 7 {
               if __self_0.s1 == __self_0.s0 {
                   __self_0.state = 6
@@ -494,7 +494,7 @@
               __self_0.s1 = 0
               __self_0.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -522,7 +522,7 @@
               __self_2.state = 7
           } else if __self_2.state == 9 {
               __self_2.state = -1
-              return std.core.STOP
+              return Stop {}
           } else if __self_2.state == 10 {
               if __self_2.s3 < 0 {
                   __self_2.state = 9
@@ -545,7 +545,7 @@
               __self_2.s1 = __self_2.s0
               __self_2.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -589,7 +589,7 @@
               __self_0.state = 9
           } else if __self_0.state == 11 {
               __self_0.state = -1
-              return std.core.STOP
+              return Stop {}
           } else if __self_0.state == 12 {
               if __self_0.s3 == __self_0.s0 {
                   __self_0.state = 11
@@ -606,7 +606,7 @@
               __self_0.s1 = 0
               __self_0.state = 3
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -656,7 +656,7 @@
               __self_0.s0 = 3
               __self_0.state = 12
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -690,7 +690,7 @@
               __self_0.state = 7
           } else if __self_0.state == 9 {
               __self_0.state = -1
-              return std.core.STOP
+              return Stop {}
           } else if __self_0.state == 10 {
               if __self_0.s2 == __self_0.s0 {
                   __self_0.state = 9
@@ -701,7 +701,7 @@
               __self_0.s2 = 0
               __self_0.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -735,7 +735,7 @@
               __self_0.state = 7
           } else if __self_0.state == 9 {
               __self_0.state = -1
-              return std.core.STOP
+              return Stop {}
           } else if __self_0.state == 10 {
               if __self_0.s0 == 2 {
                   __self_0.state = 9
@@ -746,7 +746,7 @@
               __self_0.s0 = 0
               __self_0.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -779,7 +779,6 @@
 
 ## lowered in dependencies
   std/core
-    const STOP: Stop  data pool #0, element 0
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string

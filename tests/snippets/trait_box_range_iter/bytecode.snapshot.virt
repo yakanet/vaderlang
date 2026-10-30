@@ -17,6 +17,7 @@ type 14 array 1
 type 15 array 8
 data 0 structs 8 0 1
 data 1 structs 1 0 1
+data 2 structs 8 0 1
 impl 1 snippet$Greeter
 impl 6 std_core$Iterator
 impl 9 std_core$Into
@@ -285,7 +286,7 @@ fn 9 std_core$__gen_state_std_core_0$Iterator$next (ref) -> any
           i32.eq
           if $L7 void
           else
-            data.const 0 15   ; pool[0] std_core$Stop[]
+            data.const 2 15   ; pool[2] std_core$Stop[]
             i64.const 0
             array.get 15   ; std_core$Stop[]
             return

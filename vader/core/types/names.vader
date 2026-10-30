@@ -307,10 +307,8 @@ export STRUCT_RANGE          :: @type_name(Range)
 export STRUCT_SUSPENDED      :: @type_name(Suspended)
 export STRUCT_FIELD          :: @type_name(Field)
 
-/// `std/core::Stop`, what an `Iterator.next` returns once the iteration is over,
-/// and `STOP`, the one value of it a synthesised `next` returns.
+/// `std/core::Stop`, what an `Iterator.next` returns once the iteration is over.
 export STRUCT_STOP :: @type_name(Stop)
-export CONST_STOP  :: "STOP"
 
 /// Method names the compiler dispatches by, paired with the `TRAIT_*` above
 /// (`Add::add`, `Comparable::compare`, `Iterator::next`, …). Same rationale as

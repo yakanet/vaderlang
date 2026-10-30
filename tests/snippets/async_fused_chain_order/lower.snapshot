@@ -100,7 +100,7 @@
               __self_0.s2 = __self_0.s0
               __self_0.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }

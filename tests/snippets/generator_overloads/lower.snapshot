@@ -216,7 +216,7 @@
               __self_0.s1 = 0
               __self_0.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -251,7 +251,7 @@
               __self_4.s2 = std.core.byte_len(__self_4.s0)
               __self_4.state = 2
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -301,7 +301,7 @@
               __self_0.s1 = 0.5
               __self_0.state = 1
           } else {
-              return std.core.STOP
+              return Stop {}
           }
       }
   }
@@ -309,9 +309,8 @@
 
 ## lowered in dependencies
   std/core
-    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #1
-    const DOUBLE_POW5_SPLIT: u64[]  data pool #2
-    const STOP: Stop  data pool #0, element 0
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8

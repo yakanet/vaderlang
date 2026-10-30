@@ -108,7 +108,6 @@
     struct std.collections.MutableMap<Label | Point, string>  // std_collections$MutableMap__snippet_Label___snippet_Point__string
     struct std_collections$__gen_state_std_collections_0
   std/core
-    const STOP: Stop  data pool #0, element 0
     fn std.core.(Label | Point)[].contains  // std_core$$array$Contains$contains__snippet_Label___snippet_Point
     fn std.core.(f64 | string)[].contains  // std_core$$array$Contains$contains__f64___string
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string

@@ -11,7 +11,6 @@
 module "vader/lower"
 
 import "toolchain/span"
-import "vader/core/symbol"
 import "vader/core/types"
 import "vader/lower/ir"
 
@@ -23,9 +22,6 @@ StepShape :: struct {
     element: Type
     /// The `Stop` struct.
     stop: Type
-    /// `std/core::STOP`: a synthesised `next` returns it, so its end allocates
-    /// nothing and its body needs no GC frame for it.
-    stop_value: Symbol
 }
 
 /// Resolve the step shape for an iterator over `element`.
@@ -36,12 +32,10 @@ StepShape :: struct {
 ///                 (std/core not loaded).
 resolve_step_shape :: fn(ctx: FnLowerCtx, element: Type) -> StepShape | null {
     stop :: find_core_type(ctx, STRUCT_STOP, []) ?? return null
-    stop_value :: lookup_core_symbol(ctx, CONST_STOP) ?? return null
     return StepShape {
         .type = union_of([element, stop]),
         .element = element,
         .stop = stop,
-        .stop_value = stop_value,
     }
 }
 
@@ -69,19 +63,13 @@ step_value :: fn(shape: StepShape, step: LoweredExpr, span: Span) -> LoweredExpr
     .value = step,
 }
 
-/// The step a generator returns when it is done: `STOP`, never a fresh
-/// `Stop {}`, since an allocation on that cold path would give `next` a GC frame
-/// on every call.
+/// The step a generator returns when it is done: `Stop {}`.
 ///
-/// @param ctx    the fn-body context, which records the imported constant.
 /// @param shape  the resolved step shape.
 /// @param span   the source span.
-/// @return       a `Stop`-typed expression.
-step_of_done :: fn(ctx: FnLowerCtx, shape: StepShape, span: Span) -> LoweredExpr {
-    register_nongeneric_imported_const(ctx, shape.stop_value)
-    return LoweredIdent {
+step_of_done :: fn(shape: StepShape, span: Span) -> LoweredExpr =
+    LoweredStructLit {
         .span = span,
         .type = shape.stop,
-        .symbol = shape.stop_value,
+        .fields = [],
     }
-}

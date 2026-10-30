@@ -19,7 +19,7 @@ import "vader/lower/ir"
 // ---- sentinel -------------------------------------------------------------
 
 /// Reserved resume value: once `self.state == DONE_STATE` the state machine is
-/// finished: a generator's `next()` hands back `STOP` forever, an
+/// finished: a generator's `next()` hands back `Stop {}` forever, an
 /// `async fn`'s `resume` the `null` done-marker. The if-chain's trailing `else`
 /// catches both.
 DONE_STATE :: -1
@@ -157,9 +157,7 @@ gb_done_return :: fn(gb: GenBuild) -> LoweredStmt {
         .span = gb.span,
         .value = LoweredNullLit { .span = gb.span, .type = TY_NULL },
     }
-    return LoweredReturn {
-        .span = gb.span, .value = step_of_done(gb.fn_ctx, shape, gb.span),
-    }
+    return LoweredReturn { .span = gb.span, .value = step_of_done(shape, gb.span) }
 }
 
 // A bare `null` value expression: the done-marker a void `async fn` completes
