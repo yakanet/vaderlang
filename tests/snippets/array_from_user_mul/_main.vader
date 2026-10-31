@@ -1,0 +1,26 @@
+// A `Mul` of the program that yields an array from a struct runs its own member ;
+// `*` on an array, concrete or generic, repeats it.
+module "snippet"
+
+import "std/io"
+
+Vec :: struct {
+    x: i32
+    y: i32
+}
+
+Vec implements Mul<i32, i32[]> {
+    mul :: fn(self, k: i32) -> i32[] = [self.x * k, self.y * k]
+}
+
+repeat_twice :: fn<T>(xs: T[]) -> T[] = xs * 2
+
+main :: fn() -> i32 {
+    v :: Vec { .x = 1, .y = 2 }
+    println("${v * 3}")
+    println("${[7, 9] * 2}")
+    reserved: i32[]: [] * 4
+    println("${reserved.len()}")
+    println("${repeat_twice(["a"])}")
+    return 0
+}

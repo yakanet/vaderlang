@@ -1,0 +1,43 @@
+# Typecheck
+
+## tests/snippets/array_from_user_mul
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         repeat_twice         :: fn(T[]) -> T[]
+  StructDecl     Vec                  :: Vec
+  expr 13:40    SeqLitExpr     :: i32[]
+  expr 13:41    BinaryExpr     :: i32
+  expr 13:41    FieldExpr      :: i32
+  expr 13:41    IdentExpr      :: Vec
+  expr 13:50    IdentExpr      :: i32
+  expr 13:53    BinaryExpr     :: i32
+  expr 13:53    FieldExpr      :: i32
+  expr 13:53    IdentExpr      :: Vec
+  expr 13:62    IdentExpr      :: i32
+  expr 16:41    BinaryExpr     :: T[]
+  expr 16:41    IdentExpr      :: T[]
+  expr 19:10    StructLitExpr  :: Vec
+  expr 20:13    StringLitExpr  :: string
+  expr 20:16    BinaryExpr     :: i32[]
+  expr 20:16    IdentExpr      :: Vec
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:13    StringLitExpr  :: string
+  expr 21:16    BinaryExpr     :: i32[]
+  expr 21:16    SeqLitExpr     :: i32[]
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 22:22    BinaryExpr     :: i32[]
+  expr 22:22    SeqLitExpr     :: i32[]
+  expr 23:13    StringLitExpr  :: string
+  expr 23:16    CallExpr       :: i64
+  expr 23:16    FieldExpr      :: fn() -> i64
+  expr 23:16    IdentExpr      :: i32[]
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 24:13    StringLitExpr  :: string
+  expr 24:16    CallExpr       :: string[]
+  expr 24:16    IdentExpr      :: fn(T[]) -> T[]
+  expr 24:29    SeqLitExpr     :: string[]
+  expr 24:30    StringLitExpr  :: string
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void

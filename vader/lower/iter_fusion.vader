@@ -346,12 +346,8 @@ receiver_of_call :: fn(call: AST.CallExpr) -> AST.Expr | null {
 // True when `call` runs the member of `T[] implements<T> Into<Iterator<T>>`. The
 // `Into<string>` every `Display` value shares is generic too: its own type tells
 // them apart.
-runs_array_into :: fn(ctx: FnLowerCtx, call: AST.CallExpr, array: Type) -> bool {
-    entry :: recorded_impl_at(ctx, call, .Call, array) ?? return false
-    return !entry.instance
-        && entry.for_type is ArrayType
-        && entry.trait_key == core_trait_key(TRAIT_INTO)
-}
+runs_array_into :: fn(ctx: FnLowerCtx, call: AST.CallExpr, array: Type) -> bool =
+    runs_array_blanket_impl(ctx, call, .Call, array, TRAIT_INTO)
 
 chain_element_type :: fn(chain: IterChain) -> Type = match chain.kind {
     .Range | .Array | .OpaqueIter | .GenSource -> chain.element_type

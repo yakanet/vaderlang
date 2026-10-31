@@ -135,6 +135,27 @@ recorded_impl_at :: fn(
     return recorded_impl(ctx, callee, receiver)
 }
 
+/// True when the member recorded at `node` in `role` is that of the impl of
+/// `std/core`'s trait `trait_name` for every array (`T[] implements<T> ...`), not an
+/// impl of the program's on one array instance (`Vec[] implements ...`).
+///
+/// @param node        the site.
+/// @param role        which of the site's records to read.
+/// @param receiver    the receiver's type at this instance.
+/// @param trait_name  the trait's name in `std/core` (`TRAIT_MUL`).
+runs_array_blanket_impl :: fn(
+    ctx: FnLowerCtx,
+    node: Expr,
+    role: CallRole,
+    receiver: Type,
+    trait_name: string,
+) -> bool {
+    entry :: recorded_impl_at(ctx, node, role, receiver) ?? return false
+    return !entry.instance
+        && entry.for_type is ArrayType
+        && entry.trait_key == core_trait_key(trait_name)
+}
+
 // The member `callee` names, built for `receiver` ; null for a free fn.
 settled_direct_member :: fn(
     ctx: FnLowerCtx,

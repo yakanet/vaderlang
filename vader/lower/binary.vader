@@ -221,13 +221,12 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
             return value_rewrite
         }
     }
-    // `[lhs] * n`: array repeat / preallocation. A numeric `*` never yields an
-    // array, so an array result type uniquely marks this case. Lower to the
-    // `array.repeat` intrinsic : args = [source array, count], the count the `i64`
-    // the arrays' `Mul` takes. The runtime reuses the source's type / element
-    // kind / tag, so no static element type is threaded through. `[] * n` (empty
-    // source) reserves n slots, length 0.
-    if binary.op == .Mul && type is ArrayType {
+    // `[lhs] * n`: array repeat / preallocation. Lower to the `array.repeat`
+    // intrinsic : args = [source array, count], the count the `i64` the arrays'
+    // `Mul` takes. The runtime reuses the source's type / element kind / tag, so
+    // no static element type is threaded through. `[] * n` (empty source)
+    // reserves n slots, length 0.
+    if binary.op == .Mul && runs_array_repeat(ctx, binary) {
         observe_no_call(ctx, binary, .Operator, "array.repeat")
         parts :: lower_in_order(ctx, [binary.left, binary.right])
         return mk_array_repeat(parts[0], parts[1], type, binary.span)
@@ -463,6 +462,13 @@ collect_concat_operands :: fn(ctx: FnLowerCtx, e: Expr, out: LoweredExpr[]) -> v
     value :: lower_expr(ctx, e)
     bind_before_hoisted(ctx, out, mark)
     out.push(value)
+}
+
+// True when `binary` runs the member of `T[] implements<T> Mul<i64>`, rather than
+// a `Mul` of the program that yields an array from another receiver.
+runs_array_repeat :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> bool {
+    left :: ctx.types.expr_type(binary.left)
+    return left is ArrayType && runs_array_blanket_impl(ctx, binary, .Operator, left, TRAIT_MUL)
 }
 
 try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr | null {
