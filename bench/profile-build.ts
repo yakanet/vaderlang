@@ -47,13 +47,6 @@ function parseArgs(): Args {
   return { input, vader, cc, gcProfile };
 }
 
-// Arena sizing is RAM-proportional (runtime/c/vader_runtime.c::vader_gc_init),
-// matching bootstrap/build.sh: no manual pin, so the profile reflects the real
-// shipped default. A VADER_GC_* value already in the environment still wins.
-const GC_ENV: Record<string, string> = {};
-if (process.env.VADER_GC_YOUNG_BYTES) GC_ENV.VADER_GC_YOUNG_BYTES = process.env.VADER_GC_YOUNG_BYTES;
-if (process.env.VADER_GC_OLD_BYTES) GC_ENV.VADER_GC_OLD_BYTES = process.env.VADER_GC_OLD_BYTES;
-
 interface TimeStats {
   realSec: number | null;
   userSec: number | null;
@@ -157,7 +150,7 @@ function main(): void {
   console.log(`\n=== Vader self-compile profile ===`);
   console.log(`  binary : ${args.vader}`);
   console.log(`  input  : ${args.input}`);
-  console.log(`  GC     : ${GC_ENV.VADER_GC_OLD_BYTES ? `old=${(+GC_ENV.VADER_GC_OLD_BYTES / 1048576) | 0}MB (override)` : "RAM-proportional (auto)"}\n`);
+  console.log(`  GC     : ${process.env.VADER_GC_OLD_MAX ? `old cap=${(+process.env.VADER_GC_OLD_MAX / 1048576) | 0}MB (override)` : "RAM-proportional (auto)"}\n`);
 
   // --- Stage 1: front-end → C, with the in-compiler per-pass profiler on. ----
   // `build --emit=c --out=-` routes through the fully-instrumented
@@ -165,7 +158,7 @@ function main(): void {
   // real, linkable native C: the same path bootstrap/build.sh takes.
   const emit = runTimed(
     [args.vader, "build", "--emit=c", "--out=-", args.input],
-    { ...GC_ENV, VADER_PROFILE: "1" },
+    { VADER_PROFILE: "1" },
     cPath,
   );
 
@@ -204,7 +197,7 @@ function main(): void {
     console.log("\n=== GC live-set by type (VADER_GC_PROFILE) ===");
     const gc = runTimed(
       [args.vader, "build", "--emit=c", "--out=-", args.input],
-      { ...GC_ENV, VADER_GC_PROFILE: "1" },
+      { VADER_GC_PROFILE: "1" },
       join(tmp, "selfcompile2.c"),
     );
     const gcBlock = extractGcBlock(gc.stderr);

@@ -138,12 +138,9 @@ VADER_NORETURN void vader_panic(vader_string_t msg);
 /* `@extern` ABI helpers: return a NUL-terminated `const char*` view of
  * the atom's bytes. For owner atoms the runtime returns `data` directly
  * (no allocation) ; for slice atoms a heap dup is returned. Caller
- * pairs every `_to_cstr` with a `_cstr_free`: the latter no-ops on
- * owner pointers and frees the dup otherwise. */
+ * pairs every `_to_cstr` with a `vader_cstr_free_for` on the same atom:
+ * it no-ops on owner pointers and frees the dup otherwise. */
 const char*    vader_string_to_cstr(vader_string_t s);
-void           vader_cstr_free(const char* p);
-/* O(1) free for callers that still hold the atom id (the extern shims) ;
- * `vader_cstr_free` without the id must scan the atom table. */
 void           vader_cstr_free_for(vader_string_t s, const char* p);
 
 /* ------------------------------------------------------------------ atom */
@@ -153,7 +150,7 @@ void           vader_cstr_free_for(vader_string_t s, const char* p);
  * `vader_string_t` is its alias ; the struct + API live here. */
 
 /* Reserved atom id : the empty string. Always installed at index 0 by
- * `vader_atom_init` and flagged PERM. Tests can compare directly against
+ * `vader_atom_init_with_comptime` and flagged PERM. Tests can compare directly against
  * this constant rather than interning `""`. */
 #define VADER_ATOM_EMPTY  ((vader_atom_t) 0u)
 
@@ -220,18 +217,16 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len);
 
 /* FFI helper: returns a NUL-terminated `const char*` view of the atom's
  * bytes. Owners return their `data` directly (no allocation). Slices
- * allocate a duplicated NUL-terminated copy ; pair every slice call with
- * `vader_atom_cstr_free`. The owner path returns a stable pointer that
+ * allocate a duplicated NUL-terminated copy ; pair every call with
+ * `vader_cstr_free_for`. The owner path returns a stable pointer that
  * remains valid until the atom is collected. */
 const char* vader_atom_to_cstr(vader_atom_t a);
-void        vader_atom_cstr_free(const char* p);
 
-/* Lifecycle: `vader_atom_init` installs `VADER_ATOM_EMPTY` and prepares
- * an empty dynamic table. `vader_atom_init_with_comptime` additionally
- * copies a codegen-emitted block of compile-time atoms (typically the
+/* Lifecycle: `vader_atom_init_with_comptime` installs `VADER_ATOM_EMPTY`,
+ * then copies a codegen-emitted block of compile-time atoms (typically the
  * module's string literal pool) into the table and rehashes them. The
- * codegen wires the latter into the emitted `main` ; tests / tools that
- * don't care about comptime atoms call the bare `_init`.
+ * emitted `main` calls it first ; a NULL table with a zero count starts
+ * from an empty table.
  *
  * `comptime_table` is a constant array of `count` entries: typically a
  * `.rodata` static emitted at the top of the user `.c`. The runtime
@@ -241,10 +236,8 @@ void        vader_atom_cstr_free(const char* p);
  * emits them as `.rodata` next to the entry array).
  *
  * `vader_atom_shutdown` releases owner buffers allocated *after* init:
- * comptime-supplied buffers are NOT freed (they live in `.rodata`).
- * Intended for tests / tools wanting a clean teardown ; the normal
- * program exit path leaks freely. */
-void vader_atom_init(void);
+ * comptime-supplied buffers are NOT freed (they live in `.rodata`). The
+ * emitted `main` registers it with `atexit`. */
 void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table, vader_u32_t count);
 void vader_atom_shutdown(void);
 
@@ -1057,17 +1050,14 @@ void           vader_array_clear(vader_array_t* a);
  * (no initial size, no 2× to-space, no relocation): untouched pages don't reside
  * on POSIX, and are reserved-not-committed on Windows. Young is a doubled
  * (from+to) malloc'd pair that auto-grows. The `VADER_GC_OLD_MAX` env var
- * overrides the cap (advanced escape hatch); the `*_BYTES` #defines are young
- * fallbacks. Young is NOT RAM-scaled: its 192 MB cap is a per-minor cost cliff,
+ * overrides the cap (advanced escape hatch); `VADER_GC_YOUNG_BYTES` is the young
+ * fallback. Young is NOT RAM-scaled: its 192 MB cap is a per-minor cost cliff,
  * not a memory limit. */
 #ifndef VADER_GC_YOUNG_BYTES
 #define VADER_GC_YOUNG_BYTES (32u * 1024u * 1024u)   /* 32 MB initial young semi-space; auto-grows */
 #endif
 #ifndef VADER_GC_YOUNG_CAP_DEFAULT
 #define VADER_GC_YOUNG_CAP_DEFAULT (192u * 1024u * 1024u) /* default adaptive-young ceiling (per-minor cost cliff) */
-#endif
-#ifndef VADER_GC_OLD_BYTES
-#define VADER_GC_OLD_BYTES   (256u * 1024u * 1024u)  /* only a pre-init `vader_gc_stats_t.arena_size` fallback */
 #endif
 /* RAM-proportional old-reservation sizing policy (see `vader_gc_init`). The old
  * gen is a single lazily-committed reservation == the cap; there is no separate
@@ -1408,8 +1398,6 @@ typedef struct {
  * `vader_run_pending_defers`. */
 void vader_defer_push(vader_box_t closure);
 void vader_defer_pop_exec(uint32_t count);
-
-/* ----------------------------------------------------------------- I/O */
 
 /* ----------------------------------------------------------------- target
  *

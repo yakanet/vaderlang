@@ -33,13 +33,6 @@ $stage0cflags = @($(if ($env:STAGE0_CFLAGS) { $env:STAGE0_CFLAGS } else { '-O1' 
 $ccJobs = if ($env:CC_JOBS -match '^[1-9][0-9]*$') { [int]$env:CC_JOBS } else { [Environment]::ProcessorCount }
 $runtime = "runtime\c\vader_runtime.c"
 
-# Arena sizing is RAM-proportional (runtime\c\vader_runtime.c::vader_gc_init --
-# old init + cap derived from physical RAM, single VADER_GC_RAM_PERCENT knob), so
-# the bootstrap self-compiles at a saner initial size on any machine with no manual
-# override. This used to pin VADER_GC_YOUNG_BYTES / VADER_GC_OLD_BYTES to avoid the
-# default-256-MB-old GC thrash; the RAM model + auto-grow now handle that. Any
-# VADER_GC_* value the caller exports still wins (advanced escape hatch).
-
 function Step($msg) { Write-Host "==> $msg" -ForegroundColor Cyan }
 New-Item -ItemType Directory -Force build | Out-Null
 

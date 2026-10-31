@@ -664,14 +664,13 @@ static char* vader_old_slot_of(void* p) {
 /* Conservative C-stack root scan for the OLD generation's major mark.
  *
  * The precise shadow stack does not root every live OLD pointer at every
- * safepoint (minors never free old, so the c-emit was never required to: a live
- * old ref can sit only in a C local / register). The copying old gen masked this
- * via deferred reuse; the non-moving mark-sweep gen reuses freed slots eagerly,
- * so it must find those refs. We do it conservatively: flush callee-saved
- * registers (setjmp), then walk the C stack word-by-word and MARK every old
- * object any word points at (interior pointers map to their slot). Old objects
- * never move, so a false positive merely retains a dead object: no pinning, no
- * correctness risk. Found objects are gray-pushed so their closure is marked too.
+ * safepoint: a live old ref can sit only in a C local / register. The old gen
+ * reuses freed slots eagerly, so the major must find those refs. We do it
+ * conservatively: flush callee-saved registers (setjmp), then walk the C stack
+ * word-by-word and MARK every old object any word points at (interior pointers
+ * map to their slot). Old objects never move, so a false positive merely
+ * retains a dead object: no pinning, no correctness risk. Found objects are
+ * gray-pushed so their closure is marked too.
  *
  * Young is deliberately NOT scanned conservatively: its rooting is already
  * precise (minors require it) and young objects MOVE, which a conservative
@@ -700,10 +699,6 @@ static void vader_gc_mark_cstack_conservative(void) {
 
 /* ============================================================
  * Atom-based string interning, see `docs/RUNTIME.md`.
- *
- * The intern hash (`vader_atom_hash64`), slice-share (`vader_atom_slice`) and
- * the major-cycle integration (`vader_atom_gc_collect`) all ship; the legacy
- * fat-pointer string machinery is gone.
  *
  * The table is grow-only in indices : atoms minted at runtime can be
  * collected (their bytes freed, slot tombstoned) but the `entries[]`
@@ -761,10 +756,6 @@ static vader_u16_t vader_atom_ascii_flag(const char* data, size_t len);
 static void        vader_atom_bucket_install(vader_atom_t a);
 static void        vader_ensure_stdio_binary(void);
 
-void vader_atom_init(void) {
-    vader_atom_init_with_comptime(NULL, 0u);
-}
-
 void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
                                    vader_u32_t count) {
     /* Program-startup stdio setup : the emitted `main` calls atom-init first,
@@ -798,7 +789,7 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
     }
     vader_atom_entries = (vader_atom_entry_t*)
         malloc(initial_cap * sizeof(vader_atom_entry_t));
-    if (vader_atom_entries == NULL) vader_trap("vader_atom_init: entries malloc failed");
+    if (vader_atom_entries == NULL) vader_trap("vader_atom_init_with_comptime: entries malloc failed");
     g_atoms.capacity = initial_cap;
     g_atoms.count    = 0;
 
@@ -811,7 +802,7 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
         while (want_buckets < target) want_buckets *= 2u;
     }
     g_atoms.buckets = (uint64_t*) calloc(want_buckets, sizeof(uint64_t));
-    if (g_atoms.buckets == NULL) vader_trap("vader_atom_init: buckets calloc failed");
+    if (g_atoms.buckets == NULL) vader_trap("vader_atom_init_with_comptime: buckets calloc failed");
     g_atoms.bucket_capacity = want_buckets;
     g_atoms.bucket_count    = 0;
 
@@ -1173,7 +1164,7 @@ const char* vader_atom_to_cstr(vader_atom_t a) {
         return e->data;     /* owner : NUL-term inline at data[len] */
     }
     /* Slice : duplicate for NUL termination. Caller frees via
-     * `vader_atom_cstr_free`. */
+     * `vader_cstr_free_for`. */
     char* dup = (char*) malloc(e->len + 1u);
     if (dup == NULL) vader_trap("vader_atom_to_cstr: dup malloc failed");
     memcpy(dup, e->data, e->len);
@@ -1181,30 +1172,11 @@ const char* vader_atom_to_cstr(vader_atom_t a) {
     return dup;
 }
 
-/* O(1) variant of `vader_atom_cstr_free` for callers that still hold the
- * atom id : owner atoms hand out their table-owned bytes (nothing to
- * free), slice atoms were dup'd by `_to_cstr`. The id-less form below
- * has to SCAN the table to discriminate: the extern-call shims free one
- * cstr per string arg per FFI call, which makes that scan hot. */
+/* Release what `vader_atom_to_cstr` returned for `s`: owner atoms hand out
+ * their table-owned bytes (nothing to free), slice atoms were dup'd. */
 void vader_cstr_free_for(vader_string_t s, const char* p) {
     if (p == NULL) return;
     if (vader_atom_entries[s].parent == 0) return;  /* owner : table-owned */
-    free((void*) p);
-}
-
-void vader_atom_cstr_free(const char* p) {
-    if (p == NULL) return;
-    /* Distinguish owner-data (stable pointer into the table) from slice
-     * dups (heap-allocated by `_to_cstr`). The owner path returns a
-     * pointer into our own table: we can't `free` it. We detect by
-     * scanning the table, which is O(N) but only matters for FFI
-     * boundaries (cold). A header bit on dup'd buffers would make the test
-     * O(1). */
-    for (vader_u32_t i = 0; i < g_atoms.count; ++i) {
-        if (vader_atom_entries[i].parent == 0 && vader_atom_entries[i].data == p) {
-            return;  /* owner data: owned by table */
-        }
-    }
     free((void*) p);
 }
 
@@ -1267,8 +1239,8 @@ static void vader_atom_mark_box(const vader_box_t* bp) {
  * (`vader_atom_mark` bounds-checks; false positives only retain a small atom).
  * The non-moving old gen reuses freed slots eagerly, so (as for objects) a
  * live atom held only in a C local must be found here or its bytes get reclaimed
- * under a still-live `bytes()` view (the copying gen masked this via deferred
- * reuse). Scanned 4-byte-aligned because a u32 local need not be 8-aligned. */
+ * under a still-live `bytes()` view. Scanned 4-byte-aligned because a u32
+ * local need not be 8-aligned. */
 static void vader_atom_mark_cstack_conservative(void) {
     jmp_buf regs;
     (void) setjmp(regs);
@@ -1566,10 +1538,9 @@ void vader_gc_init(void) {
 
     /* Old: a single non-moving reservation at the cap, lazily committed. Objects
      * are bump-carved into class regions and never move, so there is no to-space
-     * and no grow-time relocation. The reservation size IS the cap (the old
-     * auto-grow ceiling); untouched pages stay uncommitted, so RSS tracks the
-     * live working set, not the reservation. VADER_GC_OLD_BYTES (the old initial
-     * size) is obsolete under lazy commit: only the cap matters now. */
+     * and no grow-time relocation. The reservation size IS the cap; untouched
+     * pages stay uncommitted, so RSS tracks the live working set, not the
+     * reservation. */
     g_old_capacity  = g_old_max_bytes;
     g_old_block     = vader_old_reserve(g_old_capacity);
     if (g_old_block == NULL) vader_trap("vader_gc_init: old-gen reservation failed (out of address space)");
@@ -1724,13 +1695,12 @@ static void vader_young_maybe_grow_adaptive(void) {
 
 /* Reclamation trigger for the non-moving old gen: call after a minor from the
  * allocator (a safe point: not re-entrant into a collect). The slab never
- * compacts and `vader_major_collect`'s old auto-grow is gone, so without this the
- * old footprint would equal the TOTAL promotion volume (dead never swept) instead
- * of the live set: bounded for a one-shot self-compile, but unbounded for a
- * long-running program. Fire a major (which sweeps dead old) once the old
- * footprint has grown past `live_after_last_major × HEADROOM`, never below
- * VADER_GC_OLD_MAJOR_FLOOR (so small programs never major). This mirrors the
- * copying gen's auto-grow cadence but reclaims in place instead of growing. */
+ * compacts, so without this the old footprint would equal the TOTAL promotion
+ * volume (dead never swept) instead of the live set: bounded for a one-shot
+ * self-compile, but unbounded for a long-running program. Fire a major (which
+ * sweeps dead old) once the old footprint has grown past
+ * `live_after_last_major x HEADROOM`, never below VADER_GC_OLD_MAJOR_FLOOR (so
+ * small programs never major). */
 static void vader_old_maybe_major(void) {
     size_t threshold = g_old_live_after_major
         * (size_t) VADER_GC_OLD_HEADROOM_NUM / (size_t) VADER_GC_OLD_HEADROOM_DEN;
@@ -2549,8 +2519,7 @@ vader_i32_t vader_sched_park(void) {
 
 vader_gc_stats_t vader_gc_get_stats(void) {
     vader_gc_stats_t s;
-    /* Old "arena size" now reports the lazily-committed reservation (the cap). */
-    s.arena_size = g_gc_initialized ? g_old_capacity : (size_t) VADER_GC_OLD_BYTES;
+    s.arena_size = g_old_capacity;
     if (g_gc_initialized) {
         /* Allocation high-water, NOT a live count, see `bytes_used`'s note in
          * vader.h for what the two halves mean and why they differ. */
@@ -2790,10 +2759,6 @@ const char* vader_string_to_cstr(vader_string_t s) {
     return vader_atom_to_cstr(s);
 }
 
-void vader_cstr_free(const char* p) {
-    vader_atom_cstr_free(p);
-}
-
 /* ----------------------------------------------------------------- array */
 
 /* `sizeof(vader_array_buf_t) + capacity * element_size(kind)` without silent
@@ -2862,14 +2827,6 @@ static void vader_array_store_slot(vader_array_buf_t* buf, size_t i, vader_box_t
         default: vader_trap("vader_array_store_slot: unknown element kind");
     }
 }
-
-/* vader_array_get / vader_array_set were the out-of-line, element-kind-
- * dispatched accessors the C emitter called for every `arr[i]` / `arr[i] = v`.
- * Both are now open-coded at the c-emit access site over the kept layout (typed
- * slots inline, boxed via `vader_array_box_slots` + the write barrier, u8 via
- * `vader_array_read_u8`), so neither is emitted any more and both are deleted:
- * the Target-ABI Array-accessor retirement. `push` / `slice` / `new` stay (the
- * GC-coupled construction primitives). */
 
 /* From here on a lend may collect, so every shared buffer must be still: the
  * ones sliced before now are promoted, inside a collection that rewrites every

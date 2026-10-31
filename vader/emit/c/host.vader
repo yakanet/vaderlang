@@ -925,12 +925,10 @@ integer_as_address :: fn(value: CExpression) -> CExpression = cast("void*", cast
 /// `string` arg (a `vader_string_t` atom id) to a NUL-terminated
 /// `const char*` via `vader_string_to_cstr` : owner atoms hand out their
 /// bytes with no copy, slice atoms get a heap dup. Every marshalled arg
-/// is paired with `vader_cstr_free_for(atom, cstr)`: the O(1) form that
-/// discriminates owner vs dup from the atom id (the id-less
-/// `vader_cstr_free` has to scan the atom table, hot at one call per
-/// string arg per FFI call). A `string` result is INTERNED before the frees,
-/// not merely captured: the pointer can aim INTO an argument, so holding it
-/// across the free was exactly the use-after-free this claimed to prevent.
+/// is paired with `vader_cstr_free_for(atom, cstr)`, which tells owner from
+/// dup by the atom id. A `string` result is INTERNED before the frees, not
+/// merely captured: the pointer can aim INTO an argument, so holding it across
+/// the free would read freed memory.
 user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     sig :: imp.signature
     call_args: CExpression[]: []

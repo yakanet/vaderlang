@@ -61,16 +61,6 @@ test("broad-parity: gated by RUN_BROAD_PARITY=1", () => {
   expect(modules.length).toBeGreaterThan(0);
 });
 
-// The self-host typechecker legitimately needs more than the default
-// 4MB young / 16MB old GC arena when transitively loading a real folder
-// module (eval_types.vader pulls in ~30K LoC of imports). 16M old → OOM,
-// 32M old → OK on every module tested so far. Bumping young helps the
-// throughput too: minor collects dominate hot paths.
-const BOOTSTRAP_ENV: Record<string, string> = {
-  VADER_GC_YOUNG_BYTES: String(16 * 1024 * 1024),
-  VADER_GC_OLD_BYTES:   String(128 * 1024 * 1024),
-};
-
 // Serial, not `test.concurrent` : each invocation pegs one core for tens of
 // seconds, so launching all ~17 in parallel oversubscribes and pushes every
 // run past the 120s timeout.
@@ -78,7 +68,7 @@ for (const dir of modules) {
   const pivot = pickModulePivot(dir);
   if (pivot === null) continue;
   test(`broad-parity: ${dir}`, async () => {
-    const res = await runCli(["dump", "--stage=typed-ast", pivot], BOOTSTRAP_ENV);
+    const res = await runCli(["dump", "--stage=typed-ast", pivot]);
     if (res.exit !== 0) {
       throw new Error(
         `Vader self-host crashed on ${pivot} (exit ${res.exit}):\n` +
