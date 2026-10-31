@@ -16,7 +16,7 @@ module "vader/tools/fmt"
 
 import "std/io"
 import "std/string"
-import "std/path"
+import "vader/front/resolver"
 import "vader/support/diagnostics"
 
 // Per-file outcome. Typed so call sites can pattern-match instead of
@@ -36,8 +36,9 @@ Mode :: enum(u8) {
     Stdout,
 }
 
-// Recursive `.vader` collector. Skips hidden entries and known build dirs by
-// name so `vader fmt .` doesn't walk vendored / generated trees.
+// Recursive `.vader` collector: `root` when it is a file, else the files of the
+// folders under it that the loader reads, so `vader fmt .` doesn't walk vendored
+// / generated trees.
 collect_files :: fn(root: string, out: string[]) -> void {
     if !exists(root) {
         eprintln("vader fmt: path not found: ${root}")
@@ -49,24 +50,11 @@ collect_files :: fn(root: string, out: string[]) -> void {
         }
         return
     }
-    r :: read_dir(root)
-    match r {
-        is IOError  -> eprintln("vader fmt: cannot read directory: ${root}")
-        is string[] -> {
-            for name in r {
-                if name.starts_with(".") { continue }
-                if name == "node_modules" || name == "target" || name == "dist" || name == "build" {
-                    continue
-                }
-                full :: to_path(root).join(name).as_string()
-                if is_dir(full) {
-                    collect_files(full, out)
-                } else if full.ends_with(".vader") {
-                    out.push(full)
-                }
-            }
+    walk_source_folders(root, fn(_: string, files: string[]) {
+        for f in files {
+            out.push(f)
         }
-    }
+    })
 }
 
 /// Drive the formatter over the resolved file set. Aggregates per-file

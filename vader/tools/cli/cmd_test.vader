@@ -137,9 +137,6 @@ cmd_test :: fn(args: string[]) -> i32 {
     return 1
 }
 
-// Directories never descended into during `@test` discovery.
-SKIP_TEST_DIRS: string[]: ["node_modules", "dist", "build", ".git", "target"]
-
 /// One discovered `@test` fn : its mangled name (the VM entry) + the display
 /// name shown in the report (the fn's source name).
 DiscoveredTest :: struct {
@@ -173,41 +170,21 @@ find_tests :: fn(lp: LoweredProject) -> DiscoveredTest[] {
     return out
 }
 
-/// Recursively collect every `.vader` file under `target` (or `target` itself
-/// when it's a single `.vader` file). Skips `SKIP_TEST_DIRS` + dot-entries.
+/// Every `.vader` file under `target`, in the folders the loader reads, or
+/// `target` itself when it's a single `.vader` file.
 discover_vader_files :: fn(target: Path) -> Path[] {
     out: Path[]: []
     if !exists(target.as_string()) { return out }
     if is_dir(target.as_string()) {
-        walk_test_dir(target, out)
+        walk_source_folders(target.as_string(), fn(_: string, files: string[]) {
+            for f in files {
+                out.push(f.to_path())
+            }
+        })
     } else if target.extension() == "vader" {
         out.push(target)
     }
     return out
-}
-
-walk_test_dir :: fn(dir: Path, out: Path[]) -> void {
-    entries :: read_dir(dir.as_string())
-    if entries is IOError {
-        return
-    }
-    for name in entries {
-        if name.starts_with(".") {
-            continue
-        }
-        if name in SKIP_TEST_DIRS {
-            continue
-        }
-        // `dir / name` is `join`: it handles the separator, unlike the
-        // "${dir}/${name}" this used to build, which doubled the slash on a `dir`
-        // already ending in one.
-        full :: dir / name
-        if is_dir(full.as_string()) {
-            walk_test_dir(full, out)
-        } else if name.ends_with(".vader") {
-            out.push(full)
-        }
-    }
 }
 
 /// The entries `vader test` compiles for `target`. A file named on the command
@@ -323,7 +300,25 @@ is_folder_module :: fn(facts: FileFacts[]) -> bool {
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/sort"
 import "std/testing"
+
+@test
+test_discovery_skips_the_folders_the_loader_skips :: fn() -> void {
+    root :: "${temp_dir()}/vader_test_discovery_probe"
+    for dir in ["build", "node_modules", "lib/build", "lib/target"] {
+        create_dir("${root}/${dir}")
+        write_file_string("${root}/${dir}/probe.vader", "")
+    }
+    found: string[]: []
+    for p in discover_vader_files(root.to_path()) {
+        found.push(p.as_string())
+    }
+    assert_eq(
+        sort(found, compare_ascending).join(" "),
+        "${root}/lib/build/probe.vader ${root}/lib/target/probe.vader",
+    )
+}
 
 @test test_same_declared_module_is_a_folder_module :: fn() -> void {
     facts :: [

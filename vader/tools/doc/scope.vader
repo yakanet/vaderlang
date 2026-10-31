@@ -28,7 +28,7 @@ export doc_scope :: fn(path: string) -> DiscoveredModule[] | string {
     }
     found: DiscoveredModule[]: []
     if is_dir(path) {
-        walk_source_folders(path, (folder: string) -> record_module(folder, found))
+        walk_source_folders(path, (folder: string, _: string[]) -> record_module(folder, found))
     } else {
         record_module(dir_of(path), found)
     }

@@ -50,14 +50,14 @@ export walk_module_folders :: fn(roots: IncludePath[], visit: fn(string, string[
 /// skipping what `walk_module_folders` skips. Parses nothing.
 ///
 /// @param dir    the folder to walk.
-/// @param visit  called with each folder.
-export walk_source_folders :: fn(dir: string, visit: fn(string) -> void) -> void =
+/// @param visit  called with each folder and its `.vader` files.
+export walk_source_folders :: fn(dir: string, visit: fn(string, string[]) -> void) -> void =
     walk_folder(
         dir,
         "",
         0,
         MutableSet<string> {},
-        (folder: string, _: string, _: string[]) -> visit(folder),
+        (folder: string, _: string, files: string[]) -> visit(folder, files),
     )
 
 // Visit the folder `dir`, `rel` under the root of the walk ("" at the root),
