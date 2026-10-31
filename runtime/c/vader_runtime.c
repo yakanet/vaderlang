@@ -2975,47 +2975,52 @@ VADER_PURE VADER_NOINLINE vader_array_buf_t* vader_array_buf_forward(vader_array
     return buf;
 }
 
+/* Give `a` a buffer of its own with room for `need` elements: its elements
+ * copied to the front of a fresh buffer of twice its capacity, at least 4 and
+ * at least `need`. Every append that finds no room comes here, which is also
+ * where every view and every header that shrank over a shared buffer stands
+ * (`vader_array_t`).
+ *
+ * `vader_array_buf_alloc` may collect, once or more (minor, then a major when
+ * the minor doesn't free enough), and a forward does not outlive its collection
+ * (docs/adr/0107). So `a` is boxed and rooted, the GC's scan_box re-updating
+ * `a_box.payload.obj` through every cycle, and comes back reloaded; `keep` is
+ * a box the caller still reads afterwards, rooted the same way. */
+static vader_array_t* vader_array_detach(vader_array_t* a, size_t need, vader_box_t* keep) {
+    uint8_t kind      = a->buf->element_kind;
+    size_t  elem_size = vader_array_element_size(kind);
+    vader_box_t a_box = vader_box_obj(a->header.type_index, a);
+    vader_box_t* roots[2] = { &a_box, keep };
+    vader_gc_frame_t frame = { vader_gc_top, 2u, 0u, roots };
+    vader_gc_top = &frame;
+    size_t cap = a->capacity == 0 ? 4 : a->capacity * 2;
+    if (cap < need) cap = need;
+    vader_array_buf_t* fresh = vader_array_buf_alloc(cap, kind, a->buf->element_tag);
+    a = (vader_array_t*) a_box.payload.obj;
+    vader_array_buf_t* old = a->buf;
+    if (old->header.forward != NULL) {
+        old = vader_array_buf_forward(old);
+    }
+    if (a->length > 0) {
+        memcpy(fresh->slots, old->slots + a->offset * elem_size, a->length * elem_size);
+    }
+    fresh->length = a->length;
+    a->buf      = fresh;
+    a->capacity = cap;
+    a->offset   = 0;
+    /* `a` may be old while `fresh` is young: mark the card holding `a`. */
+    VADER_WRITE_BARRIER(a);
+    vader_gc_top = frame.prev;
+    return a;
+}
+
 void vader_array_push_slow(vader_array_t* a, vader_box_t v) {
     if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
         /* Defensive : T3072 refuses to modify a view of a string's bytes. */
         vader_trap("cannot push to a borrowed `const u8[]` byte view");
     }
-    /* No room left, which is also where every view and every header that shrank
-     * over a shared buffer stands (`vader_array_t`): copy into a buffer of its
-     * own. */
     if (a->length >= a->capacity) {
-        /* `vader_array_buf_alloc` may collect, once or more (minor, then a
-         * major when the minor doesn't free enough), and a forward does not
-         * outlive its collection (docs/adr/0107). Box `a` here and root the box
-         * so the GC's scan_box re-updates `a_box.payload.obj` through every
-         * cycle, then reload `a` from the box afterwards. Same trick for `v`
-         * whose payload may also need forwarding. */
-        uint32_t tag       = a->header.type_index;
-        uint8_t  kind      = a->buf->element_kind;
-        size_t   elem_size = vader_array_element_size(kind);
-        size_t   src_off   = a->offset;
-        vader_box_t a_box; a_box.tag = tag; a_box._pad = 0; a_box.payload.obj = a;
-        vader_box_t* roots[2] = { &a_box, &v };
-        vader_gc_frame_t frame = { vader_gc_top, 2u, 0u, roots };
-        vader_gc_top = &frame;
-        size_t cap = a->capacity == 0 ? 4 : a->capacity * 2;
-        if (cap <= a->length) cap = a->length + 1;
-        vader_array_buf_t* fresh = vader_array_buf_alloc(cap, kind, a->buf->element_tag);
-        a = (vader_array_t*) a_box.payload.obj;
-        vader_array_buf_t* old = a->buf;
-        if (old != NULL && old->header.forward != NULL) {
-            old = vader_array_buf_forward(old);
-        }
-        if (a->length > 0 && old != NULL) {
-            memcpy(fresh->slots, old->slots + src_off * elem_size, a->length * elem_size);
-        }
-        fresh->length = a->length;
-        a->buf      = fresh;
-        a->capacity = cap;
-        a->offset   = 0;
-        /* `a` may be old while `fresh` is young: mark the card holding `a`. */
-        VADER_WRITE_BARRIER(a);
-        vader_gc_top = frame.prev;
+        a = vader_array_detach(a, a->length + 1, &v);
     }
     vader_array_store_slot(a->buf, a->length, v);
     a->length += 1;
@@ -3201,8 +3206,7 @@ static vader_box_t vader_array_src_slot(vader_array_t* src, const uint8_t* src_d
 }
 
 /* `dst.push_all(src)`: append every element of `src` to `dst`, growing `dst`
- * once if needed. Mirrors `vader_array_push_slow`'s grow + rooting (the buf alloc may
- * collect twice, forwarding both arrays and `dst`'s old buf). Handles
+ * once if needed (`vader_array_detach`, which keeps `src` rooted). Handles
  * `push_all(x, x)` : after a grow `src` reads the fresh buf whose head holds the
  * copied originals, and the append range never overlaps the source range. */
 void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
@@ -3216,32 +3220,9 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
     size_t need = dst->length + add;
     if (need < dst->length) vader_trap("vader_array: push_all length overflows size_t");
     if (need > dst->capacity) {
-        uint32_t dtag    = dst->header.type_index;
-        uint8_t  kind    = dst->buf->element_kind;
-        size_t   esz     = vader_array_element_size(kind);
-        uint32_t btag    = dst->buf->element_tag;
-        size_t   src_off = dst->offset;
-        vader_box_t d_box; d_box.tag = dtag; d_box._pad = 0; d_box.payload.obj = dst;
-        vader_box_t s_box; s_box.tag = src->header.type_index; s_box._pad = 0; s_box.payload.obj = src;
-        vader_box_t* roots[2] = { &d_box, &s_box };
-        vader_gc_frame_t frame = { vader_gc_top, 2u, 0u, roots };
-        vader_gc_top = &frame;
-        size_t cap = dst->capacity == 0 ? 4 : dst->capacity * 2;
-        if (cap < need) cap = need;
-        vader_array_buf_t* fresh = vader_array_buf_alloc(cap, kind, btag);
-        dst = (vader_array_t*) d_box.payload.obj;
+        vader_box_t s_box = vader_box_obj(src->header.type_index, src);
+        dst = vader_array_detach(dst, need, &s_box);
         src = (vader_array_t*) s_box.payload.obj;
-        vader_array_buf_t* old = dst->buf;
-        if (old != NULL && old->header.forward != NULL) old = vader_array_buf_forward(old);
-        if (dst->length > 0 && old != NULL) {
-            memcpy(fresh->slots, old->slots + src_off * esz, dst->length * esz);
-        }
-        fresh->length = dst->length;
-        dst->buf      = fresh;
-        dst->capacity = cap;
-        dst->offset   = 0;
-        VADER_WRITE_BARRIER(dst);
-        vader_gc_top = frame.prev;
     }
     /* Append src[0..add) at dst[length..). Recompute the source region after any
      * relocation. No safepoint from here to return, so the pointers are stable. */
