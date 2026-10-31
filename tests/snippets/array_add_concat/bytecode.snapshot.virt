@@ -525,60 +525,50 @@ fn 6 std_core$write_int (ref,i64,i64) -> i64
 end
 
 fn 7 std_core$$array$Add$add__i32 (ref,ref) -> ref
-  local $arr_2 ref
+  local $len_2 i64
   local $len_3 i64
-  local $len_4 i64
-  array.new 8 0   ; i32[]
-  local.set 2   ; $arr_2
+  local out ref
   local.get 0   ; arg 0
   array.len
-  local.set 3   ; $len_3
+  local.set 2   ; $len_2
   local.get 1   ; arg 1
   array.len
-  local.set 4   ; $len_4
+  local.set 3   ; $len_3
+  local.get 2   ; $len_2
   local.get 3   ; $len_3
-  local.get 4   ; $len_4
   i64.checked_add
-  local.set 3   ; $len_3
-  local.get 2   ; $arr_2
-  local.get 3   ; $len_3
-  array.repeat
-  local.tee 2   ; $arr_2
+  array.reserve 8   ; i32[]
+  local.tee 4   ; out
   local.get 0   ; arg 0
   array.push_all
-  local.get 2   ; $arr_2
+  local.get 4   ; out
   local.get 1   ; arg 1
   array.push_all
-  local.get 2   ; $arr_2
+  local.get 4   ; out
   return
 end
 
 fn 8 std_core$$array$Add$add__snippet_Item (ref,ref) -> ref
-  local $arr_2 ref
+  local $len_2 i64
   local $len_3 i64
-  local $len_4 i64
-  array.new 1 0   ; snippet$Item[]
-  local.set 2   ; $arr_2
+  local out ref
   local.get 0   ; arg 0
   array.len
-  local.set 3   ; $len_3
+  local.set 2   ; $len_2
   local.get 1   ; arg 1
   array.len
-  local.set 4   ; $len_4
+  local.set 3   ; $len_3
+  local.get 2   ; $len_2
   local.get 3   ; $len_3
-  local.get 4   ; $len_4
   i64.checked_add
-  local.set 3   ; $len_3
-  local.get 2   ; $arr_2
-  local.get 3   ; $len_3
-  array.repeat
-  local.tee 2   ; $arr_2
+  array.reserve 1   ; snippet$Item[]
+  local.tee 4   ; out
   local.get 0   ; arg 0
   array.push_all
-  local.get 2   ; $arr_2
+  local.get 4   ; out
   local.get 1   ; arg 1
   array.push_all
-  local.get 2   ; $arr_2
+  local.get 4   ; out
   return
 end
 

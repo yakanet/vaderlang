@@ -980,6 +980,10 @@ apply_boxed :: fn(
             outcome :: exec_array_slice(frame, instr)
             if outcome is Trap { return outcome }
         }
+        is bc.ArrayReserve -> {
+            outcome :: exec_array_reserve(frame, instr)
+            if outcome is Trap { return outcome }
+        }
         is bc.ArrayRepeat -> {
             outcome :: exec_array_repeat(frame)
             if outcome is Trap { return outcome }

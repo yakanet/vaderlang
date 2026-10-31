@@ -35,7 +35,7 @@
                   break $exit$i18
               }
               reserve: i64 = if size < i64(1024) { size } else { i64(1024) }
-              chunk: i32[] = @array.repeat([] :i32[], reserve)
+              chunk: i32[] = @array.reserve(reserve)
               {
                   __iter_0: Iterator<i32> = self
                   for {
@@ -48,7 +48,7 @@
                           if @array.len(chunk) == size {
                               c: i32[] = chunk
                               std.io.println<string>(concat_2("chunk ", std.core.i32[].to_string(c)))
-                              chunk = @array.repeat([] :i32[], reserve)
+                              chunk = @array.reserve(reserve)
                           }
                       }
                   }

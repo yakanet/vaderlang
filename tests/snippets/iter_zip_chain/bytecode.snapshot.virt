@@ -814,20 +814,14 @@ fn 11 std_io$println__string (string) -> void
 end
 
 fn 12 std_iter$clone__i32 (ref) -> ref
-  local $arr_1 ref
-  local $len_2 i64
-  array.new 2 0   ; i32[]
-  local.set 1   ; $arr_1
+  local out ref
   local.get 0   ; arg 0
   array.len
-  local.set 2   ; $len_2
-  local.get 1   ; $arr_1
-  local.get 2   ; $len_2
-  array.repeat
-  local.tee 1   ; $arr_1
+  array.reserve 2   ; i32[]
+  local.tee 1   ; out
   local.get 0   ; arg 0
   array.push_all
-  local.get 1   ; $arr_1
+  local.get 1   ; out
   return
 end
 

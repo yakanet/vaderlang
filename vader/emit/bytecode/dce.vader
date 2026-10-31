@@ -427,6 +427,7 @@ export type_index_of :: fn(op: Op) -> i32 = match op {
     is FnRef         -> op.type_id
     is LocalField    -> op.type_id
     is ArraySlice    -> op.type_id
+    is ArrayReserve  -> op.type_id
     is RefCast       -> op.type_id
     is Retag         -> op.type_id
     is DataConst     -> op.type_id
@@ -497,6 +498,7 @@ export remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op = match op {
     is FnRef         -> FnRef { ...op, .type_id = remap_idx(remap, op.type_id) }
     is LocalField    -> LocalField { ...op, .type_id = remap_idx(remap, op.type_id) }
     is ArraySlice    -> ArraySlice { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is ArrayReserve  -> ArrayReserve { ...op, .type_id = remap_idx(remap, op.type_id) }
     is RefCast       -> RefCast { ...op, .type_id = remap_idx(remap, op.type_id) }
     is Retag         -> Retag { ...op, .type_id = remap_idx(remap, op.type_id) }
     is DataConst     -> DataConst { ...op, .type_id = remap_idx(remap, op.type_id) }

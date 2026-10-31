@@ -258,10 +258,9 @@ end
 fn 6 __lambda_snippet_3 () -> ref
   local out ref
   local i i32
-  local $closure_9 ref
-  array.new 5 0   ; fn[]
+  local $closure_8 ref
   i64.const 3
-  array.repeat
+  array.reserve 5   ; fn[]
   local.set 0   ; out
   i32.const 0
   local.set 1   ; i
@@ -273,9 +272,9 @@ fn 6 __lambda_snippet_3 () -> ref
       local.get 1   ; i
       struct.new 4   ; __lambda_env_snippet_5
       make_closure 5 6   ; __lambda_snippet_4 fn
-      local.set 2   ; $closure_9
+      local.set 2   ; $closure_8
       local.get 0   ; out
-      local.get 2   ; $closure_9
+      local.get 2   ; $closure_8
       array.push 6   ; fn
       local.get 1   ; i
       i32.const 1

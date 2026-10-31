@@ -3,7 +3,7 @@
 ## snippet
   snippet.Node :: struct { v: i32 }  // snippet$Node
   snippet.make_nodes :: fn(n: i32) -> Node[] {  // snippet$make_nodes
-      nodes: Node[] = @array.repeat([] :Node[], if 0 < n { n } else { i64(0) } :i64)
+      nodes: Node[] = @array.reserve(if 0 < n { n } else { i64(0) } :i64)
       {
           i: i32 = 0
           for i < n {
@@ -16,7 +16,7 @@
   }
   snippet.collect_and_churn :: fn() -> void {  // snippet$collect_and_churn
       std.runtime.collect()
-      junk: Node[] = @array.repeat([] :Node[], i64(100000))
+      junk: Node[] = @array.reserve(i64(100000))
       {
           _: i32 = 0
           for _ < 100000 {

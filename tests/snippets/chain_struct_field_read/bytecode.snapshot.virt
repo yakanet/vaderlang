@@ -192,15 +192,9 @@ fn 0 snippet$main () -> i32
     end $L5
   end $L4
   local.get 0   ; $struct_2
-  local.set 3   ; __fuse_arr_1
-  array.new 10 0   ; snippet$Rec[]
-  local.set 4   ; out
-  local.get 3   ; __fuse_arr_1
+  local.tee 3   ; __fuse_arr_1
   array.len
-  local.set 5   ; __fuse_len_0
-  local.get 4   ; out
-  local.get 5   ; __fuse_len_0
-  array.repeat
+  array.reserve 10   ; snippet$Rec[]
   local.set 4   ; out
   local.get 3   ; __fuse_arr_1
   array.len

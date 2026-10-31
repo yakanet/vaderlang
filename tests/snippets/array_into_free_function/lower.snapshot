@@ -50,7 +50,7 @@
       std.io.println<string>(std.core.string[].to_string({
           __fuse_arr_4: string[] = words
           f: fn(string) -> string = __lambda_snippet_1
-          out: string[] = @array.repeat([] :string[], @array.len(__fuse_arr_4))
+          out: string[] = @array.reserve(@array.len(__fuse_arr_4))
           {
               __fuse_len_0: i64 = @array.len(__fuse_arr_4)
               __fuse_i_1: i64 = 0

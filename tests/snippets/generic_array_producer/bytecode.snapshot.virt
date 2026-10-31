@@ -111,38 +111,26 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 snippet$dup__i32 (ref) -> ref
-  local $arr_1 ref
-  local $len_2 i64
-  array.new 2 0   ; i32[]
-  local.set 1   ; $arr_1
+  local out ref
   local.get 0   ; arg 0
   array.len
-  local.set 2   ; $len_2
-  local.get 1   ; $arr_1
-  local.get 2   ; $len_2
-  array.repeat
-  local.tee 1   ; $arr_1
+  array.reserve 2   ; i32[]
+  local.tee 1   ; out
   local.get 0   ; arg 0
   array.push_all
-  local.get 1   ; $arr_1
+  local.get 1   ; out
   return
 end
 
 fn 2 snippet$dup__snippet_Tag (ref) -> ref
-  local $arr_1 ref
-  local $len_2 i64
-  array.new 3 0   ; snippet$Tag[]
-  local.set 1   ; $arr_1
+  local out ref
   local.get 0   ; arg 0
   array.len
-  local.set 2   ; $len_2
-  local.get 1   ; $arr_1
-  local.get 2   ; $len_2
-  array.repeat
-  local.tee 1   ; $arr_1
+  array.reserve 3   ; snippet$Tag[]
+  local.tee 1   ; out
   local.get 0   ; arg 0
   array.push_all
-  local.get 1   ; $arr_1
+  local.get 1   ; out
   return
 end
 

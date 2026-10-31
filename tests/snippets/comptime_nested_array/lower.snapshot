@@ -7,8 +7,8 @@
     const MIXED: (i32[] | string)[]  data pool #2
   snippet.Card :: struct { weights: u8[], rows: i32[][], either: null | string | u8[] }  // snippet$Card
   snippet.build_card :: fn() -> Card {  // snippet$build_card
-      weights: u8[] = @array.repeat([] :u8[], i64(3))
-      rows: i32[][] = @array.repeat([] :i32[][], i64(3))
+      weights: u8[] = @array.reserve(i64(3))
+      rows: i32[][] = @array.reserve(i64(3))
       {
           i: i32 = 0
           for i < 3 {
@@ -25,7 +25,7 @@
       }
   }
   snippet.build_grid :: fn() -> string[][] {  // snippet$build_grid
-      out: string[][] = @array.repeat([] :string[][], i64(2))
+      out: string[][] = @array.reserve(i64(2))
       {
           i: i32 = 0
           for i < 2 {
@@ -49,7 +49,7 @@
       return out
   }
   snippet.build_mixed :: fn() -> (i32[] | string)[] {  // snippet$build_mixed
-      out: (i32[] | string)[] = @array.repeat([] :(i32[] | string)[], i64(2))
+      out: (i32[] | string)[] = @array.reserve(i64(2))
       {
           i: i32 = 0
           for i < 2 {

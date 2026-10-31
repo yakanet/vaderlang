@@ -136,8 +136,8 @@ fn 4 snippet$main () -> i32
   local p ref
   local show ref
   local $call_10 string
-  local $arr_40 ref
-  local $len_41 i64
+  local out ref
+  local __fuse_len_0 i64
   local __fuse_i_1 i64
   local x i32
   i32.const 1
@@ -198,23 +198,18 @@ fn 4 snippet$main () -> i32
   local.get 0   ; p
   struct.new 10   ; __method_env_snippet_9
   local.set 0   ; p
-  array.new 15 0   ; string[]
-  local.set 3   ; $arr_40
   local.get 1   ; show
   array.len
-  local.set 4   ; $len_41
-  local.get 3   ; $arr_40
-  local.get 4   ; $len_41
-  array.repeat
-  local.set 3   ; $arr_40
+  array.reserve 15   ; string[]
+  local.set 3   ; out
   local.get 1   ; show
   array.len
-  local.set 4   ; $len_41
+  local.set 4   ; __fuse_len_0
   i64.const 0
   local.set 5   ; __fuse_i_1
   loop $L0 void
     local.get 5   ; __fuse_i_1
-    local.get 4   ; $len_41
+    local.get 4   ; __fuse_len_0
     i64.lt
     if $L1 void
       local.get 1   ; show
@@ -226,7 +221,7 @@ fn 4 snippet$main () -> i32
       call 9   ; __method_snippet_8
       call 0   ; snippet$label
       local.set 2   ; $call_10
-      local.get 3   ; $arr_40
+      local.get 3   ; out
       local.get 2   ; $call_10
       array.push 2   ; string
       local.get 5   ; __fuse_i_1
@@ -236,7 +231,7 @@ fn 4 snippet$main () -> i32
       br $L0
     end $L1
   end $L0
-  local.get 3   ; $arr_40
+  local.get 3   ; out
   call 17   ; std_core$$array$Display$to_string__string
   local.set 2   ; $call_10
   string.const 8   ; "mapped "
@@ -542,24 +537,19 @@ fn 16 std_core$write_int (ref,i64,i64) -> i64
 end
 
 fn 17 std_core$$array$Display$to_string__string (ref) -> string
-  local $arr_1 ref
-  local $len_2 i64
+  local parts ref
+  local size i64
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
   local part string
-  local $call_17 i64
-  array.new 15 0   ; string[]
-  local.set 1   ; $arr_1
+  local $call_16 i64
   local.get 0   ; arg 0
   array.len
-  local.set 2   ; $len_2
-  local.get 1   ; $arr_1
-  local.get 2   ; $len_2
-  array.repeat
-  local.set 1   ; $arr_1
+  array.reserve 15   ; string[]
+  local.set 1   ; parts
   i64.const 2
-  local.set 2   ; $len_2
+  local.set 2   ; size
   local.get 0   ; arg 0
   local.tee 3   ; __for_arr_0
   array.len
@@ -578,12 +568,12 @@ fn 17 std_core$$array$Display$to_string__string (ref) -> string
       call 18   ; std_core$string$Display$to_string
       local.tee 6   ; part
       call.import 0   ; std_core$byte_len
-      local.set 7   ; $call_17
-      local.get 2   ; $len_2
-      local.get 7   ; $call_17
+      local.set 7   ; $call_16
+      local.get 2   ; size
+      local.get 7   ; $call_16
       i64.checked_add
-      local.set 2   ; $len_2
-      local.get 1   ; $arr_1
+      local.set 2   ; size
+      local.get 1   ; parts
       local.get 6   ; part
       array.push 2   ; string
       local.get 5   ; __for_i_2
@@ -593,12 +583,12 @@ fn 17 std_core$$array$Display$to_string__string (ref) -> string
       br $L0
     end $L1
   end $L0
-  local.get 1   ; $arr_1
+  local.get 1   ; parts
   array.len
   i64.const 1
   i64.gt
   if $L2 void
-    local.get 1   ; $arr_1
+    local.get 1   ; parts
     array.len
     i64.const 1
     i64.checked_sub
@@ -607,21 +597,21 @@ fn 17 std_core$$array$Display$to_string__string (ref) -> string
     local.get 4   ; __for_len_1
     i64.checked_mul
     local.set 4   ; __for_len_1
-    local.get 2   ; $len_2
+    local.get 2   ; size
     local.get 4   ; __for_len_1
     i64.checked_add
-    local.set 2   ; $len_2
+    local.set 2   ; size
   end $L2
-  local.get 2   ; $len_2
+  local.get 2   ; size
   buffer.new
   local.tee 3   ; __for_arr_0
   i64.const 0
   string.const 12   ; "["
   call 15   ; std_core$write_string_at
-  local.set 2   ; $len_2
+  local.set 2   ; size
   i64.const 0
   local.set 4   ; __for_len_1
-  local.get 1   ; $arr_1
+  local.get 1   ; parts
   array.len
   local.set 5   ; __for_i_2
   loop $L3 void
@@ -634,21 +624,21 @@ fn 17 std_core$$array$Display$to_string__string (ref) -> string
       i64.gt
       if $L5 void
         local.get 3   ; __for_arr_0
-        local.get 2   ; $len_2
+        local.get 2   ; size
         string.const 1   ; ", "
         call 15   ; std_core$write_string_at
-        local.set 2   ; $len_2
+        local.set 2   ; size
       end $L5
-      local.get 1   ; $arr_1
+      local.get 1   ; parts
       local.get 4   ; __for_len_1
       array.get 15   ; string[]
       ref.cast 2   ; string
       local.set 6   ; part
       local.get 3   ; __for_arr_0
-      local.get 2   ; $len_2
+      local.get 2   ; size
       local.get 6   ; part
       call 15   ; std_core$write_string_at
-      local.set 2   ; $len_2
+      local.set 2   ; size
       local.get 4   ; __for_len_1
       i64.const 1
       i64.add
@@ -657,12 +647,12 @@ fn 17 std_core$$array$Display$to_string__string (ref) -> string
     end $L4
   end $L3
   local.get 3   ; __for_arr_0
-  local.get 2   ; $len_2
+  local.get 2   ; size
   string.const 13   ; "]"
   call 15   ; std_core$write_string_at
-  local.set 2   ; $len_2
+  local.set 2   ; size
   local.get 3   ; __for_arr_0
-  local.get 2   ; $len_2
+  local.get 2   ; size
   call 14   ; std_core$finish_buffer
   return
 end

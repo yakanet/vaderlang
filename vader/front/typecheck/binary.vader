@@ -185,9 +185,10 @@ check_arith :: fn(
     // preallocation) dispatches through the declared `T[] implements<T> Mul<i64>`
     // (std/core) via the trait-impl lookup below: a concrete array matches the
     // blanket through the `"[]"` base key (`impl_base_key`), and the lowerer
-    // devirtualises to the `array.repeat` intrinsic (`lower_binary`). Skip the
-    // numeric path for all three so they reach the lookup ; a missing/mismatched
-    // impl is then a clean error (`instant + instant`, `[…] * <non-i64>`).
+    // devirtualises to the `array.reserve` / `array.repeat` intrinsics
+    // (`lower_binary`). Skip the numeric path for all three so they reach the
+    // lookup ; a missing/mismatched impl is then a clean error (`instant +
+    // instant`, `[…] * <non-i64>`).
     if left !is DistinctType && right !is DistinctType && left !is ArrayType {
         if e.op == .Add && is_string(left) && is_string(right) {
             record_site(typed, e, .Operator, BUILTIN_CALLEE)

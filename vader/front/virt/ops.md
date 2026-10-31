@@ -225,9 +225,11 @@ length and capacity in locals: a hint the native backend uses.
 ### `array.slice <type>`
 Pop `hi`, `lo` and an array; push the elements in `lo..<hi`.
 
+### `array.reserve <type>`
+Pop a count `n`; push a new empty array of the type, with room for `n` elements.
+
 ### `array.repeat`
-Pop a count `n`, then an array; push a new array repeating its elements `n` times:
-`[] * n` keeps the length at 0 and reserves `n` slots.
+Pop a count `n`, then an array; push a new array repeating its elements `n` times.
 
 ### `array.push_all`
 Pop a source array, then a destination; append every element of the source.

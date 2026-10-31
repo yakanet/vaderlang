@@ -876,8 +876,6 @@ fn 12 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
     struct.new 7   ; std_core$Suspended
     return
   end $L4
-  array.new 13 0   ; i32[]
-  local.set 6   ; $field_19
   i64.const 0
   local.get 1   ; n
   i64.lt
@@ -888,9 +886,8 @@ fn 12 std_async$JoinAll$std_core$Async$resume__i32 (ref) -> any
     i64.const 0
     local.set 2   ; now
   end $L5
-  local.get 6   ; $field_19
   local.get 2   ; now
-  array.repeat
+  array.reserve 13   ; i32[]
   local.set 6   ; $field_19
   i64.const 0
   local.set 2   ; now

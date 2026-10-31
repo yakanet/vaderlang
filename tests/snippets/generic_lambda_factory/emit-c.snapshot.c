@@ -230,21 +230,18 @@ static void* snippet$build__i32__(int64_t l0, void* l1) {
     void* l2 = NULL;
     void* l4 = NULL;
     int64_t l3;
-    void* t0 = NULL;
-    vader_box_t t1 = vader_box_null();
-    vader_box_t* gc_roots[1] = { &t1 };
-    void** gc_raw_roots[4] = { &l1, &l2, &l4, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_box_t t0 = vader_box_null();
+    vader_box_t* gc_roots[1] = { &t0 };
+    void** gc_raw_roots[3] = { &l1, &l2, &l4 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(3u, 0u, 13u, 1u);
-    t0 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) l0);
-    l2 = (void*) _a1_arr;
+    vader_array_t* _a0_arr = vader_array_reserve(3u, (int64_t) l0, 13u, 1u);
+    l2 = (void*) _a0_arr;
     l3 = INT64_C(0);
     while ((l3 < l0)) {
-        vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
-        t1 = ((vader_fn_erased_sig_0_t) _a2_fnobj->code)(_a2_fnobj->env);
-        l4 = t1.payload.obj;
+        vader_fn_t* _a1_fnobj = (vader_fn_t*) l1;
+        t0 = ((vader_fn_erased_sig_0_t) _a1_fnobj->code)(_a1_fnobj->env);
+        l4 = t0.payload.obj;
         vader_array_push_ref((vader_array_t*) l2, l4);
         l3 = (l3 + INT64_C(1));
     }

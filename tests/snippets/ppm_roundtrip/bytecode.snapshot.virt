@@ -1372,8 +1372,8 @@ fn 23 images_ppm$encode (ref) -> any
   local header string
   local __buf_4 ref
   local __off_5 i64
-  local $len_79 i64
-  local $call_83 ref
+  local $len_78 i64
+  local $call_82 ref
   local.field 0 17 2   ; arg 0 images_ppm$Ppm.maxval
   ref.cast 21   ; u32
   i32.const 0
@@ -1496,33 +1496,27 @@ fn 23 images_ppm$encode (ref) -> any
     local.get 8   ; __buf_4
     local.get 9   ; __off_5
     call 3   ; std_core$finish_buffer
-    local.set 7   ; header
-    array.new 8 0   ; u8[]
-    local.set 8   ; __buf_4
-    local.get 7   ; header
+    local.tee 7   ; header
     call.import 0   ; std_core$byte_len
     local.set 9   ; __off_5
     local.field 0 17 3   ; arg 0 images_ppm$Ppm.pixels
     array.len
-    local.set 10   ; $len_79
+    local.set 10   ; $len_78
     local.get 9   ; __off_5
-    local.get 10   ; $len_79
+    local.get 10   ; $len_78
     i64.checked_add
-    local.set 9   ; __off_5
-    local.get 8   ; __buf_4
-    local.get 9   ; __off_5
-    array.repeat
+    array.reserve 8   ; u8[]
     local.set 8   ; __buf_4
     local.get 7   ; header
     call.import 3   ; std_core$bytes
-    local.set 11   ; $call_83
+    local.set 11   ; $call_82
     local.get 8   ; __buf_4
-    local.get 11   ; $call_83
+    local.get 11   ; $call_82
     array.push_all
     local.field 0 17 3   ; arg 0 images_ppm$Ppm.pixels
-    local.set 11   ; $call_83
+    local.set 11   ; $call_82
     local.get 8   ; __buf_4
-    local.get 11   ; $call_83
+    local.get 11   ; $call_82
     array.push_all
     local.get 8   ; __buf_4
     return
@@ -1573,10 +1567,10 @@ fn 24 images_ppm$decode (ref) -> any
   local $len_64 i64
   local $cast_82 i64
   local $cast_84 i64
-  local $slice_111 ref
+  local $slice_110 ref
+  local $field_111 u32
   local $field_112 u32
   local $field_113 u32
-  local $field_114 u32
   local.get 0   ; arg 0
   array.len
   i64.const 2
@@ -1771,9 +1765,8 @@ fn 24 images_ppm$decode (ref) -> any
   i64.ne
   if $L10 void
   else
-    array.new 8 0   ; u8[]
     local.get 9   ; $cast_82
-    array.repeat
+    array.reserve 8   ; u8[]
     local.set 6   ; __buf_0
     local.get 0   ; arg 0
     array.len
@@ -1782,22 +1775,22 @@ fn 24 images_ppm$decode (ref) -> any
     local.get 2   ; p0
     local.get 10   ; $cast_84
     array.slice 8   ; u8[]
-    local.set 11   ; $slice_111
+    local.set 11   ; $slice_110
     local.get 6   ; __buf_0
-    local.get 11   ; $slice_111
+    local.get 11   ; $slice_110
     array.push_all
     local.field 3 22 0   ; w images_ppm$ScanInt.value
     ref.cast 21   ; u32
-    local.set 12   ; $field_112
+    local.set 12   ; $field_111
     local.field 4 22 0   ; h images_ppm$ScanInt.value
     ref.cast 21   ; u32
-    local.set 13   ; $field_113
+    local.set 13   ; $field_112
     local.field 5 22 0   ; mv images_ppm$ScanInt.value
     ref.cast 21   ; u32
-    local.set 14   ; $field_114
-    local.get 12   ; $field_112
-    local.get 13   ; $field_113
-    local.get 14   ; $field_114
+    local.set 14   ; $field_113
+    local.get 12   ; $field_111
+    local.get 13   ; $field_112
+    local.get 14   ; $field_113
     local.get 6   ; __buf_0
     struct.new 17   ; images_ppm$Ppm
     return

@@ -52,13 +52,13 @@ fn 2 snippet$main () -> i32
   local $struct_1 ref
   local $struct_3 ref
   local __fuse_arr_0 ref
-  local $arr_10 ref
-  local $len_11 i64
+  local out ref
+  local __fuse_len_0 i64
   local __fuse_i_1 i64
   local x ref
   local __p_3 string
   local __p_4 string
-  local $call_39 i64
+  local $call_38 i64
   string.const 1   ; "a"
   struct.new 1   ; snippet$Rec
   local.set 0   ; $struct_1
@@ -69,24 +69,18 @@ fn 2 snippet$main () -> i32
   local.get 1   ; $struct_3
   array.new 11 2   ; snippet$Rec[]
   local.tee 0   ; $struct_1
-  local.set 2   ; __fuse_arr_0
-  array.new 12 0   ; string[][]
-  local.set 3   ; $arr_10
+  local.tee 2   ; __fuse_arr_0
+  array.len
+  array.reserve 12   ; string[][]
+  local.set 3   ; out
   local.get 2   ; __fuse_arr_0
   array.len
-  local.set 4   ; $len_11
-  local.get 3   ; $arr_10
-  local.get 4   ; $len_11
-  array.repeat
-  local.set 3   ; $arr_10
-  local.get 2   ; __fuse_arr_0
-  array.len
-  local.set 4   ; $len_11
+  local.set 4   ; __fuse_len_0
   i64.const 0
   local.set 5   ; __fuse_i_1
   loop $L0 void
     local.get 5   ; __fuse_i_1
-    local.get 4   ; $len_11
+    local.get 4   ; __fuse_len_0
     i64.lt
     if $L1 void
       local.get 2   ; __fuse_arr_0
@@ -94,7 +88,7 @@ fn 2 snippet$main () -> i32
       array.get 11   ; snippet$Rec[]
       call 0   ; snippet$keys
       local.set 6   ; x
-      local.get 3   ; $arr_10
+      local.get 3   ; out
       local.get 6   ; x
       array.push 2   ; string[]
       local.get 5   ; __fuse_i_1
@@ -104,10 +98,10 @@ fn 2 snippet$main () -> i32
       br $L0
     end $L1
   end $L0
-  local.get 3   ; $arr_10
+  local.get 3   ; out
   local.tee 1   ; $struct_3
   array.len
-  local.set 4   ; $len_11
+  local.set 4   ; __fuse_len_0
   local.get 1   ; $struct_3
   i32.const 1
   array.get 12   ; string[][]
@@ -127,9 +121,9 @@ fn 2 snippet$main () -> i32
   local.set 5   ; __fuse_i_1
   local.get 8   ; __p_4
   call.import 0   ; std_core$byte_len
-  local.set 9   ; $call_39
+  local.set 9   ; $call_38
   local.get 5   ; __fuse_i_1
-  local.get 9   ; $call_39
+  local.get 9   ; $call_38
   i64.add
   local.set 5   ; __fuse_i_1
   i64.const 29
@@ -146,7 +140,7 @@ fn 2 snippet$main () -> i32
   local.set 5   ; __fuse_i_1
   local.get 1   ; $struct_3
   local.get 5   ; __fuse_i_1
-  local.get 4   ; $len_11
+  local.get 4   ; __fuse_len_0
   call 7   ; std_core$write_int
   local.set 5   ; __fuse_i_1
   local.get 1   ; $struct_3
@@ -174,24 +168,18 @@ fn 2 snippet$main () -> i32
   call 5   ; std_core$finish_buffer
   call 11   ; std_io$println__string
   local.get 0   ; $struct_1
-  local.set 2   ; __fuse_arr_0
-  array.new 12 0   ; string[][]
-  local.set 3   ; $arr_10
+  local.tee 2   ; __fuse_arr_0
+  array.len
+  array.reserve 12   ; string[][]
+  local.set 3   ; out
   local.get 2   ; __fuse_arr_0
   array.len
-  local.set 4   ; $len_11
-  local.get 3   ; $arr_10
-  local.get 4   ; $len_11
-  array.repeat
-  local.set 3   ; $arr_10
-  local.get 2   ; __fuse_arr_0
-  array.len
-  local.set 4   ; $len_11
+  local.set 4   ; __fuse_len_0
   i64.const 0
   local.set 5   ; __fuse_i_1
   loop $L2 void
     local.get 5   ; __fuse_i_1
-    local.get 4   ; $len_11
+    local.get 4   ; __fuse_len_0
     i64.lt
     if $L3 void
       local.get 2   ; __fuse_arr_0
@@ -199,7 +187,7 @@ fn 2 snippet$main () -> i32
       array.get 11   ; snippet$Rec[]
       call 3   ; __lambda_snippet_0
       local.set 6   ; x
-      local.get 3   ; $arr_10
+      local.get 3   ; out
       local.get 6   ; x
       array.push 2   ; string[]
       local.get 5   ; __fuse_i_1
@@ -209,10 +197,10 @@ fn 2 snippet$main () -> i32
       br $L2
     end $L3
   end $L2
-  local.get 3   ; $arr_10
+  local.get 3   ; out
   local.tee 1   ; $struct_3
   array.len
-  local.set 4   ; $len_11
+  local.set 4   ; __fuse_len_0
   local.get 1   ; $struct_3
   i32.const 0
   array.get 12   ; string[][]
@@ -236,7 +224,7 @@ fn 2 snippet$main () -> i32
   local.set 5   ; __fuse_i_1
   local.get 1   ; $struct_3
   local.get 5   ; __fuse_i_1
-  local.get 4   ; $len_11
+  local.get 4   ; __fuse_len_0
   call 7   ; std_core$write_int
   local.set 5   ; __fuse_i_1
   local.get 1   ; $struct_3
@@ -253,23 +241,18 @@ fn 2 snippet$main () -> i32
   local.get 5   ; __fuse_i_1
   call 5   ; std_core$finish_buffer
   call 11   ; std_io$println__string
-  array.new 11 0   ; snippet$Rec[]
+  local.get 0   ; $struct_1
+  array.len
+  array.reserve 11   ; snippet$Rec[]
   local.set 1   ; $struct_3
   local.get 0   ; $struct_1
   array.len
-  local.set 4   ; $len_11
-  local.get 1   ; $struct_3
-  local.get 4   ; $len_11
-  array.repeat
-  local.set 1   ; $struct_3
-  local.get 0   ; $struct_1
-  array.len
-  local.set 4   ; $len_11
+  local.set 4   ; __fuse_len_0
   i64.const 0
   local.set 5   ; __fuse_i_1
   loop $L4 void
     local.get 5   ; __fuse_i_1
-    local.get 4   ; $len_11
+    local.get 4   ; __fuse_len_0
     i64.lt
     if $L5 void
       local.get 0   ; $struct_1

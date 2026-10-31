@@ -114,7 +114,8 @@ static int32_t snippet$main(void) {
     void* t0 = NULL;
     vader_string_t t1 = 0;
     int32_t t2;
-    bool t3;
+    int64_t t3;
+    bool t4;
     void** gc_raw_roots[7] = { &l0, &l1, &l2, &l3, &l4, &l7, &t0 };
     vader_string_t* gc_atom_roots[2] = { &l8, &t1 };
     vader_gc_frame_t gc_frame = {
@@ -197,18 +198,16 @@ static int32_t snippet$main(void) {
         l6 = (l6 + INT64_C(1));
     }
     l3 = l0;
-    vader_array_t* _a9_arr = vader_array_new(10u, 0u, 13u, 2u);
+    t3 = ((vader_array_t*) l3)->length;
+    vader_array_t* _a9_arr = vader_array_reserve(10u, (int64_t) t3, 13u, 2u);
     l4 = (void*) _a9_arr;
-    l5 = ((vader_array_t*) l3)->length;
-    vader_array_t* _a10_arr = vader_array_repeat((vader_array_t*) l4, (int64_t) l5);
-    l4 = (void*) _a10_arr;
     l5 = ((vader_array_t*) l3)->length;
     l6 = INT64_C(0);
     while ((l6 < l5)) {
-        vader_array_t* _a11_slotarr = ((vader_array_t*) l3);
-        VADER_ARRAY_RESOLVE_BUF(_a11_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a11_slotarr, l6)
-        t0 = vader_array_ref_load_obj(_a11_slotarr->buf, _a11_slotarr->offset + (size_t) l6);
+        vader_array_t* _a10_slotarr = ((vader_array_t*) l3);
+        VADER_ARRAY_RESOLVE_BUF(_a10_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a10_slotarr, l6)
+        t0 = vader_array_ref_load_obj(_a10_slotarr->buf, _a10_slotarr->offset + (size_t) l6);
         l7 = __lambda_snippet_0(t0);
         vader_array_push_ref((vader_array_t*) l4, l7);
         l6 = (l6 + INT64_C(1));
@@ -217,10 +216,10 @@ static int32_t snippet$main(void) {
     l5 = ((vader_array_t*) l3)->length;
     l6 = INT64_C(0);
     while ((l6 < l5)) {
-        vader_array_t* _a12_slotarr = ((vader_array_t*) l3);
-        VADER_ARRAY_RESOLVE_BUF(_a12_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a12_slotarr, l6)
-        l4 = vader_array_ref_load_obj(_a12_slotarr->buf, _a12_slotarr->offset + (size_t) l6);
+        vader_array_t* _a11_slotarr = ((vader_array_t*) l3);
+        VADER_ARRAY_RESOLVE_BUF(_a11_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a11_slotarr, l6)
+        l4 = vader_array_ref_load_obj(_a11_slotarr->buf, _a11_slotarr->offset + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l4)->f_name;
         l9 = vader_host_std_core$byte_len(l8);
         l7 = (void*) vader_buffer_new((size_t) (INT64_C(24) + l9));
@@ -235,17 +234,17 @@ static int32_t snippet$main(void) {
         std_io$println__string(t1);
         l6 = (l6 + INT64_C(1));
     }
-    vader_array_t* _a13_arr = vader_array_new(10u, 0u, 13u, 2u);
-    l3 = (void*) _a13_arr;
+    vader_array_t* _a12_arr = vader_array_new(10u, 0u, 13u, 2u);
+    l3 = (void*) _a12_arr;
     l5 = ((vader_array_t*) l2)->length;
     l6 = INT64_C(0);
     while ((l6 < l5)) {
-        vader_array_t* _a14_slotarr = ((vader_array_t*) l2);
-        VADER_ARRAY_RESOLVE_BUF(_a14_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a14_slotarr, l6)
-        l4 = vader_array_ref_load_obj(_a14_slotarr->buf, _a14_slotarr->offset + (size_t) l6);
-        t3 = __lambda_snippet_1(l4);
-        if (t3) {
+        vader_array_t* _a13_slotarr = ((vader_array_t*) l2);
+        VADER_ARRAY_RESOLVE_BUF(_a13_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a13_slotarr, l6)
+        l4 = vader_array_ref_load_obj(_a13_slotarr->buf, _a13_slotarr->offset + (size_t) l6);
+        t4 = __lambda_snippet_1(l4);
+        if (t4) {
             l7 = l4;
             vader_array_push_ref((vader_array_t*) l3, l7);
         }
@@ -255,10 +254,10 @@ static int32_t snippet$main(void) {
     l5 = ((vader_array_t*) l2)->length;
     l6 = INT64_C(0);
     while ((l6 < l5)) {
-        vader_array_t* _a15_slotarr = ((vader_array_t*) l2);
-        VADER_ARRAY_RESOLVE_BUF(_a15_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a15_slotarr, l6)
-        l3 = vader_array_ref_load_obj(_a15_slotarr->buf, _a15_slotarr->offset + (size_t) l6);
+        vader_array_t* _a14_slotarr = ((vader_array_t*) l2);
+        VADER_ARRAY_RESOLVE_BUF(_a14_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a14_slotarr, l6)
+        l3 = vader_array_ref_load_obj(_a14_slotarr->buf, _a14_slotarr->offset + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l3)->f_name;
         l9 = vader_host_std_core$byte_len(l8);
         l4 = (void*) vader_buffer_new((size_t) (INT64_C(26) + l9));
@@ -278,10 +277,10 @@ static int32_t snippet$main(void) {
     l5 = ((vader_array_t*) l2)->length;
     l6 = INT64_C(0);
     while ((l6 < l5)) {
-        vader_array_t* _a16_slotarr = ((vader_array_t*) l2);
-        VADER_ARRAY_RESOLVE_BUF(_a16_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a16_slotarr, l6)
-        l4 = vader_array_ref_load_obj(_a16_slotarr->buf, _a16_slotarr->offset + (size_t) l6);
+        vader_array_t* _a15_slotarr = ((vader_array_t*) l2);
+        VADER_ARRAY_RESOLVE_BUF(_a15_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a15_slotarr, l6)
+        l4 = vader_array_ref_load_obj(_a15_slotarr->buf, _a15_slotarr->offset + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l4)->f_name;
         l9 = vader_host_std_core$byte_len(l8);
         l7 = (void*) vader_buffer_new((size_t) (INT64_C(28) + l9));
@@ -299,10 +298,10 @@ static int32_t snippet$main(void) {
     l5 = ((vader_array_t*) l3)->length;
     l6 = INT64_C(0);
     while ((l6 < l5)) {
-        vader_array_t* _a17_slotarr = ((vader_array_t*) l3);
-        VADER_ARRAY_RESOLVE_BUF(_a17_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a17_slotarr, l6)
-        l2 = vader_array_ref_load_obj(_a17_slotarr->buf, _a17_slotarr->offset + (size_t) l6);
+        vader_array_t* _a16_slotarr = ((vader_array_t*) l3);
+        VADER_ARRAY_RESOLVE_BUF(_a16_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a16_slotarr, l6)
+        l2 = vader_array_ref_load_obj(_a16_slotarr->buf, _a16_slotarr->offset + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l2)->f_name;
         l9 = vader_host_std_core$byte_len(l8);
         l4 = (void*) vader_buffer_new((size_t) (INT64_C(28) + l9));
@@ -320,10 +319,10 @@ static int32_t snippet$main(void) {
     l5 = ((vader_array_t*) l0)->length;
     l6 = INT64_C(0);
     while ((l6 < l5)) {
-        vader_array_t* _a18_slotarr = ((vader_array_t*) l0);
-        VADER_ARRAY_RESOLVE_BUF(_a18_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a18_slotarr, l6)
-        l2 = vader_array_ref_load_obj(_a18_slotarr->buf, _a18_slotarr->offset + (size_t) l6);
+        vader_array_t* _a17_slotarr = ((vader_array_t*) l0);
+        VADER_ARRAY_RESOLVE_BUF(_a17_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a17_slotarr, l6)
+        l2 = vader_array_ref_load_obj(_a17_slotarr->buf, _a17_slotarr->offset + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l2)->f_name;
         l9 = vader_host_std_core$byte_len(l8);
         l3 = (void*) vader_buffer_new((size_t) (INT64_C(30) + l9));
@@ -341,10 +340,10 @@ static int32_t snippet$main(void) {
     l5 = ((vader_array_t*) l1)->length;
     l6 = INT64_C(0);
     while ((l6 < l5)) {
-        vader_array_t* _a19_slotarr = ((vader_array_t*) l1);
-        VADER_ARRAY_RESOLVE_BUF(_a19_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a19_slotarr, l6)
-        l0 = vader_array_ref_load_obj(_a19_slotarr->buf, _a19_slotarr->offset + (size_t) l6);
+        vader_array_t* _a18_slotarr = ((vader_array_t*) l1);
+        VADER_ARRAY_RESOLVE_BUF(_a18_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a18_slotarr, l6)
+        l0 = vader_array_ref_load_obj(_a18_slotarr->buf, _a18_slotarr->offset + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l0)->f_name;
         l9 = vader_host_std_core$byte_len(l8);
         l2 = (void*) vader_buffer_new((size_t) (INT64_C(30) + l9));

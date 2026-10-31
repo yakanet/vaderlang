@@ -31,7 +31,7 @@
       std.io.println<string>(out)
   }
   snippet.over_array :: fn(a: i32[]) -> i64[] {  // snippet$over_array
-      out: i64[] = @array.repeat([] :i64[], @array.len(a))
+      out: i64[] = @array.reserve(@array.len(a))
       {
           __for_arr_0: i32[] = a
           __for_len_1: i64 = @array.len(__for_arr_0)
@@ -46,7 +46,7 @@
       return out
   }
   snippet.over_range :: fn(lo: i32, hi: i32) -> i64[] {  // snippet$over_range
-      out: i64[] = @array.repeat([] :i64[], if lo < hi { hi -% lo } else { i64(0) } :i64)
+      out: i64[] = @array.reserve(if lo < hi { hi -% lo } else { i64(0) } :i64)
       {
           i: i32 = lo
           for i < hi {
@@ -58,7 +58,7 @@
       return out
   }
   snippet.over_inclusive :: fn(lo: i32, hi: i32) -> i64[] {  // snippet$over_inclusive
-      out: i64[] = @array.repeat([] :i64[], if lo <= hi { (hi -% lo) +% i64(1) } else { i64(0) } :i64)
+      out: i64[] = @array.reserve(if lo <= hi { (hi -% lo) +% i64(1) } else { i64(0) } :i64)
       {
           i: i32 = lo
           __more_turns_0: bool = i <= hi
@@ -72,7 +72,7 @@
       return out
   }
   snippet.span_count :: fn(lo: i8, hi: i8) -> i64 {  // snippet$span_count
-      out: i8[] = @array.repeat([] :i8[], if lo < hi { hi -% lo } else { i64(0) } :i64)
+      out: i8[] = @array.reserve(if lo < hi { hi -% lo } else { i64(0) } :i64)
       {
           b: i8 = lo
           for b < hi {
@@ -85,7 +85,7 @@
   }
   snippet.Bag :: struct { items: i32[] }  // snippet$Bag
   snippet.over_field :: fn(bag: Bag) -> i64[] {  // snippet$over_field
-      out: i64[] = @array.repeat([] :i64[], @array.len(bag.items))
+      out: i64[] = @array.reserve(@array.len(bag.items))
       {
           __for_arr_0: i32[] = bag.items
           __for_len_1: i64 = @array.len(__for_arr_0)
@@ -100,8 +100,8 @@
       return out
   }
   snippet.split :: fn(a: i32[]) -> i64 {  // snippet$split
-      squares: i64[] = @array.repeat([] :i64[], @array.len(a))
-      doubles: i64[] = @array.repeat([] :i64[], @array.len(a))
+      squares: i64[] = @array.reserve(@array.len(a))
+      doubles: i64[] = @array.reserve(@array.len(a))
       offset: i32 = 100
       {
           __for_arr_0: i32[] = a
@@ -216,7 +216,7 @@
               __self_4.s4 = 0
               __self_4.state = 6
           } else if __self_4.state == 9 {
-              __self_4.s1 = @array.repeat([] :i64[], @array.len(__self_4.s0))
+              __self_4.s1 = @array.reserve(@array.len(__self_4.s0))
               __self_4.state = 8
           } else {
               return Suspended { .wake_at = i64(0) }
@@ -260,7 +260,7 @@
               snippet.show("collect", {
                   __fuse_arr_0: i32[] = __self_8.s0
                   f: fn(i32) -> i64 = snippet.square
-                  out: i64[] = @array.repeat([] :i64[], @array.len(__fuse_arr_0))
+                  out: i64[] = @array.reserve(@array.len(__fuse_arr_0))
                   {
                       __fuse_len_0: i64 = @array.len(__fuse_arr_0)
                       __fuse_i_1: i64 = 0
@@ -276,7 +276,7 @@
               } :i64[])
               snippet.show("collect range", {
                   f: fn(i32) -> i64 = snippet.square
-                  out: i64[] = @array.repeat([] :i64[], i64(4))
+                  out: i64[] = @array.reserve(i64(4))
                   {
                       x: i32 = 0
                       for x < 4 {

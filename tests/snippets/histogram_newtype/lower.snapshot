@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.Histogram.mul :: fn(self: Histogram, k: u32) -> Histogram {  // snippet$Histogram$std_core$Mul$mul
-      out: Histogram = @array.repeat([] :Histogram, @array.len(self))
+      out: Histogram = @array.reserve(@array.len(self))
       {
           i: i64 = 0
           __for_hi_0: i64 = @array.len(self)
@@ -15,7 +15,7 @@
       return out
   }
   snippet.Histogram.div :: fn(self: Histogram, k: u32) -> [Histogram, u32] {  // snippet$Histogram$std_core$Div$div
-      out: Histogram = @array.repeat([] :Histogram, @array.len(self))
+      out: Histogram = @array.reserve(@array.len(self))
       {
           i: i64 = 0
           __for_hi_0: i64 = @array.len(self)

@@ -786,6 +786,7 @@ write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> 
         is ArrayGet                 -> printed(out, refs, "array.get", [refer(.Type, op.type_id)])
         is ArraySet                 -> printed(out, refs, "array.set", [refer(.Type, op.type_id)])
         is ArraySlice               -> printed(out, refs, "array.slice", [refer(.Type, op.type_id)])
+        is ArrayReserve             -> printed(out, refs, "array.reserve", [refer(.Type, op.type_id)])
         is ArrayRepeat              -> out.append("array.repeat")
         is ArrayPushAll             -> out.append("array.push_all")
         is ArrayCopy                -> out.append("array.copy")

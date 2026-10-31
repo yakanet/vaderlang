@@ -73,13 +73,12 @@ fn 2 snippet$main () -> i32
   local word ref
   local __for_len_1 i64
   local __for_i_2 i64
-  local $cast_43 u64
+  local $cast_42 u64
   local element ref
   local returned ref
   local __buf_5 ref
-  array.new 13 0   ; u8[][]
   i64.const 3
-  array.repeat
+  array.reserve 13   ; u8[][]
   local.set 0   ; words
   i32.const 0
   local.set 1   ; index
@@ -159,10 +158,10 @@ fn 2 snippet$main () -> i32
   array.get 5   ; u16[]
   ref.cast 6   ; u16
   u16.to_i64
-  local.set 5   ; $cast_43
+  local.set 5   ; $cast_42
   local.get 2   ; word
   local.get 3   ; __for_len_1
-  local.get 5   ; $cast_43
+  local.get 5   ; $cast_42
   call 8   ; std_core$write_unsigned
   local.set 3   ; __for_len_1
   local.get 2   ; word

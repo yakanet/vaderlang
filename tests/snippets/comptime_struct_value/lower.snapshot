@@ -12,7 +12,7 @@
   snippet.Card :: struct { label: Label, weights: u8[], either: i32 | string, big: u64 }  // snippet$Card
   snippet.Slot :: struct { hour: null | u8, note: string }  // snippet$Slot
   snippet.build_card :: fn() -> Card {  // snippet$build_card
-      weights: u8[] = @array.repeat([] :u8[], i64(3))
+      weights: u8[] = @array.reserve(i64(3))
       {
           i: i32 = 0
           for i < 3 {
@@ -42,7 +42,7 @@
       return null
   }
   snippet.build_labels :: fn() -> Label[] {  // snippet$build_labels
-      out: Label[] = @array.repeat([] :Label[], i64(2))
+      out: Label[] = @array.reserve(i64(2))
       {
           i: i32 = 0
           for i < 2 {

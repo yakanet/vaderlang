@@ -252,10 +252,9 @@ end
 fn 5 snippet$build__i32__ (i64,ref) -> ref
   local out ref
   local __for_discard_0 i64
-  local $call_ind_8 ref
-  array.new 3 0   ; i32[][]
+  local $call_ind_7 ref
   local.get 0   ; arg 0
-  array.repeat
+  array.reserve 3   ; i32[][]
   local.set 2   ; out
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -266,9 +265,9 @@ fn 5 snippet$build__i32__ (i64,ref) -> ref
     if $L1 void
       local.get 1   ; arg 1
       call.indirect 6   ; fn
-      local.set 4   ; $call_ind_8
+      local.set 4   ; $call_ind_7
       local.get 2   ; out
-      local.get 4   ; $call_ind_8
+      local.get 4   ; $call_ind_7
       array.push 1   ; i32[]
       local.get 3   ; __for_discard_0
       i64.const 1

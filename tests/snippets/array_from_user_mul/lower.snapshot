@@ -9,7 +9,7 @@
       v: Vec = Vec { .x = 1, .y = 2 }
       std.io.println<string>(std.core.i32[].to_string(snippet.Vec.mul(v, 3)))
       std.io.println<string>(std.core.i32[].to_string(@array.repeat([7, 9] :i32[], 2)))
-      reserved: i32[] = @array.repeat([] :i32[], 4)
+      reserved: i32[] = @array.reserve(4)
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
           __off_1: i64 = 0

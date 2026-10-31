@@ -13,7 +13,7 @@
       ks: string[][] = {
           __fuse_arr_0: Rec[] = rs
           f: fn(Rec) -> string[] = snippet.keys
-          out: string[][] = @array.repeat([] :string[][], @array.len(__fuse_arr_0))
+          out: string[][] = @array.reserve(@array.len(__fuse_arr_0))
           {
               __fuse_len_0: i64 = @array.len(__fuse_arr_0)
               __fuse_i_1: i64 = 0
@@ -44,7 +44,7 @@
       ls: string[][] = {
           __fuse_arr_7: Rec[] = rs
           f: fn(Rec) -> string[] = __lambda_snippet_0
-          out: string[][] = @array.repeat([] :string[][], @array.len(__fuse_arr_7))
+          out: string[][] = @array.reserve(@array.len(__fuse_arr_7))
           {
               __fuse_len_0: i64 = @array.len(__fuse_arr_7)
               __fuse_i_1: i64 = 0
@@ -72,7 +72,7 @@
       ss: Rec[] = {
           __fuse_arr_13: Rec[] = rs
           f: fn(Rec) -> Rec = snippet.same
-          out: Rec[] = @array.repeat([] :Rec[], @array.len(__fuse_arr_13))
+          out: Rec[] = @array.reserve(@array.len(__fuse_arr_13))
           {
               __fuse_len_0: i64 = @array.len(__fuse_arr_13)
               __fuse_i_1: i64 = 0

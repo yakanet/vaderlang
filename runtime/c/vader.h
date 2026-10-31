@@ -851,6 +851,9 @@ static inline void vader_buffer_write_string(vader_buffer_t* dst, size_t off, va
 }
 
 vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind, uint32_t element_tag);
+/* `[] * n`: an empty array with room for `n` elements, and never less room than
+ * an empty literal has. */
+vader_array_t* vader_array_reserve(uint32_t type_index, int64_t n, uint8_t element_kind, uint32_t element_tag);
 
 /* Walk a buf's forwarding chain to its final address: the single home of that
  * loop. Every buf resolver guards with `buf != NULL && buf->header.forward !=
@@ -1001,10 +1004,9 @@ static inline size_t vader_count_or_zero(int64_t v) {
  * own. Bounds are clamped (lo to `[0,len]`, hi to `[lo,len]`). */
 vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo, int64_t hi);
 
-/* `[lhs] * n`: fresh array repeating `src`'s elements n times. `length =
- * src.length * n`, `capacity = max(length, n)` (so `[] * n` reserves n slots
- * with length 0: the preallocation case). Ref elements are repeated by
- * reference (shallow, evaluate-once). Result reuses `src`'s type / kind / tag. */
+/* `src * n`: fresh array repeating `src`'s elements n times, `length =
+ * src.length * n`. Ref elements are repeated by reference (shallow,
+ * evaluate-once). Result reuses `src`'s type / kind / tag. */
 vader_array_t* vader_array_repeat(vader_array_t* src, int64_t n);
 /* `dst.push_all(src)`: append every element of `src` to `dst` (grows dst). */
 void           vader_array_push_all(vader_array_t* dst, vader_array_t* src);

@@ -25,88 +25,78 @@ impl 6 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$Histogram$std_core$Mul$mul (ref,u32) -> ref
-  local $arr_2 ref
-  local $len_3 i64
+  local out ref
+  local i i64
   local __for_hi_0 i64
-  local $mul_checked_12 u32
-  array.new 1 0   ; u32[]
-  local.set 2   ; $arr_2
+  local $mul_checked_11 u32
   local.get 0   ; arg 0
   array.len
-  local.set 3   ; $len_3
-  local.get 2   ; $arr_2
-  local.get 3   ; $len_3
-  array.repeat
-  local.set 2   ; $arr_2
+  array.reserve 1   ; u32[]
+  local.set 2   ; out
   i64.const 0
-  local.set 3   ; $len_3
+  local.set 3   ; i
   local.get 0   ; arg 0
   array.len
   local.set 4   ; __for_hi_0
   loop $L0 void
-    local.get 3   ; $len_3
+    local.get 3   ; i
     local.get 4   ; __for_hi_0
     i64.lt
     if $L1 void
       local.get 0   ; arg 0
-      local.get 3   ; $len_3
+      local.get 3   ; i
       array.get 1   ; u32[]
       ref.cast 2   ; u32
       local.get 1   ; arg 1
       u32.checked_mul
-      local.set 5   ; $mul_checked_12
-      local.get 2   ; $arr_2
-      local.get 5   ; $mul_checked_12
-      array.push 2 2   ; u32 $arr_2
-      local.get 3   ; $len_3
+      local.set 5   ; $mul_checked_11
+      local.get 2   ; out
+      local.get 5   ; $mul_checked_11
+      array.push 2 2   ; u32 out
+      local.get 3   ; i
       i64.const 1
       i64.add
-      local.set 3   ; $len_3
+      local.set 3   ; i
       br $L0
     end $L1
   end $L0
-  local.get 2   ; $arr_2
+  local.get 2   ; out
   return
 end
 
 fn 1 snippet$Histogram$std_core$Div$div (ref,u32) -> ref
-  local $arr_2 ref
-  local $len_3 i64
+  local out ref
+  local i i64
   local __for_hi_0 i64
-  local $div_12 u32
-  array.new 1 0   ; u32[]
-  local.set 2   ; $arr_2
+  local $div_11 u32
   local.get 0   ; arg 0
   array.len
-  local.set 3   ; $len_3
-  local.get 2   ; $arr_2
-  local.get 3   ; $len_3
-  array.repeat
-  local.set 2   ; $arr_2
+  array.reserve 1   ; u32[]
+  local.set 2   ; out
   i64.const 0
-  local.set 3   ; $len_3
+  local.set 3   ; i
   local.get 0   ; arg 0
   array.len
   local.set 4   ; __for_hi_0
   loop $L0 void
-    local.get 3   ; $len_3
+    local.get 3   ; i
     local.get 4   ; __for_hi_0
     i64.lt
     if $L1 void
       local.get 0   ; arg 0
-      local.get 3   ; $len_3
+      local.get 3   ; i
       array.get 1   ; u32[]
       ref.cast 2   ; u32
       local.get 1   ; arg 1
       u32.div
-      local.set 5   ; $div_12
-      local.get 2   ; $arr_2
-      local.get 5   ; $div_12
-      array.push 2 2   ; u32 $arr_2
-      local.get 3   ; $len_3
+      local.set 5   ; $div_11
+      local.get 2   ; out
+      local.get 5   ; $div_11
+      array.push 2 2   ; u32 out
+      local.get 3   ; i
       i64.const 1
       i64.add
-      local.set 3   ; $len_3
+      local.set 3   ; i
       br $L0
     end $L1
   end $L0
@@ -116,9 +106,9 @@ fn 1 snippet$Histogram$std_core$Div$div (ref,u32) -> ref
   ref.cast 2   ; u32
   local.get 1   ; arg 1
   u32.rem
-  local.set 5   ; $div_12
-  local.get 2   ; $arr_2
-  local.get 5   ; $div_12
+  local.set 5   ; $div_11
+  local.get 2   ; out
+  local.get 5   ; $div_11
   struct.new 3   ; __Tuple_Array_u32_u32_6fc96a7e
   return
 end

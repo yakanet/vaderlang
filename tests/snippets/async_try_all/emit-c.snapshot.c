@@ -913,26 +913,24 @@ static vader_box_t std_async$JoinAll$std_core$Async$resume__Any(void* l0) {
         t2 = (void*) _a6_obj;
         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a7_arr = vader_array_new(28u, 0u, 0u, 25u);
-    l6 = (void*) _a7_arr;
     if ((INT64_C(0) < l1)) {
         l2 = l1;
     } else {
         l2 = INT64_C(0);
     }
-    vader_array_t* _a8_arr = vader_array_repeat((vader_array_t*) l6, (int64_t) l2);
-    l6 = (void*) _a8_arr;
+    vader_array_t* _a7_arr = vader_array_reserve(28u, (int64_t) l2, 0u, 25u);
+    l6 = (void*) _a7_arr;
     l2 = INT64_C(0);
     while ((l2 < l1)) {
         l8 = ((vader_struct_std_async$JoinAll__Any_t*) l0)->f_results;
-        vader_array_t* _a9_slotarr = ((vader_array_t*) ((vader_struct_std_async$JoinAll__Any_t*) l0)->f_slot);
+        vader_array_t* _a8_slotarr = ((vader_array_t*) ((vader_struct_std_async$JoinAll__Any_t*) l0)->f_slot);
+        VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a8_slotarr, l2)
+        l3 = ((int64_t*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l2];
+        vader_array_t* _a9_slotarr = ((vader_array_t*) l8);
         VADER_ARRAY_RESOLVE_BUF(_a9_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a9_slotarr, l2)
-        l3 = ((int64_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) l2];
-        vader_array_t* _a10_slotarr = ((vader_array_t*) l8);
-        VADER_ARRAY_RESOLVE_BUF(_a10_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a10_slotarr, l3)
-        l5 = vader_array_ref_load_box(_a10_slotarr->buf, _a10_slotarr->offset + (size_t) l3);
+        VADER_ARRAY_CHECK_INDEX(_a9_slotarr, l3)
+        l5 = vader_array_ref_load_box(_a9_slotarr->buf, _a9_slotarr->offset + (size_t) l3);
         vader_array_push((vader_array_t*) l6, l5);
         l2 = (l2 + INT64_C(1));
     }

@@ -149,9 +149,14 @@ export assert_host_import_wired :: fn(mangled: string, is_extern: bool) -> void 
 /// the name maps to none. The emitter panics on `null` rather than emit a
 /// function-truncating stub.
 ///
+/// The name says which op, not which type: `ArrayReserve` comes back with no
+/// type index (-1), and the bytecode emitter, which holds the type table, gives
+/// it that of the array the call builds.
+///
 /// @param name  the intrinsic's canonical name (`InstrIntrinsic.name`).
 export intrinsic_op_for_name :: fn(name: string) -> Op | null {
     if name == "size_of.type"      { return SizeOfType {} }
+    if name == "array.reserve"     { return ArrayReserve { .type_id = -1 } }
     if name == "array.repeat"      { return ArrayRepeat {} }
     if name == "array.push_all"    { return ArrayPushAll {} }
     if name == "array.copy"        { return ArrayCopy {} }

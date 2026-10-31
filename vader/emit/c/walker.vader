@@ -194,7 +194,7 @@ drop_bound_for_local :: fn(s: FnState, slot: i32) -> void {
 op_may_collect :: fn(op: Bc.Op, import_may_collect: bool[]) -> bool = match op {
     is Bc.StructNew -> !op.stack
     is Bc.CallImport -> import_may_collect[op.index]
-    is Bc.BufferNew | Bc.ArrayNew | Bc.ArrayPush | Bc.ArrayRepeat | Bc.ArrayPushAll | Bc.ArraySlice | Bc.BufferToString | Bc.MakeClosure | Bc.CallIndirect | Bc.VirtualCall | Bc.FnAddr -> true
+    is Bc.BufferNew | Bc.ArrayNew | Bc.ArrayPush | Bc.ArrayReserve | Bc.ArrayRepeat | Bc.ArrayPushAll | Bc.ArraySlice | Bc.BufferToString | Bc.MakeClosure | Bc.CallIndirect | Bc.VirtualCall | Bc.FnAddr -> true
     is Bc.GlobalGet | Bc.GlobalSet -> false
     is Bc.Unreachable | Bc.I32Const | Bc.LocalGet | Bc.LocalSet | Bc.LocalTee | Bc.StringConst | Bc.NullConst | Bc.BoolConst | Bc.CharConst | Bc.F64Const | Bc.I64Const | Bc.Call | Bc.FnRef | Bc.StructGet | Bc.StructSet | Bc.LocalField | Bc.UnionFieldGet | Bc.UnionFieldSet | Bc.ArrayGet | Bc.ArraySet | Bc.ArrayLen | Bc.DataConst | Bc.RefCast | Bc.Retag | Bc.Convert | Bc.TypeCheck | Bc.TypeConst | Bc.DeferPush | Bc.DeferPopExec | Bc.SizeOfType | Bc.I32Add | Bc.I32Sub | Bc.I32Mul | Bc.I32Div | Bc.I32Mod | Bc.I32Eq | Bc.I32Ne | Bc.I32Lt | Bc.I32Le | Bc.I32Gt | Bc.I32Ge | Bc.I32Neg | Bc.I32BitNot | Bc.I32BitAnd | Bc.I32BitOr | Bc.I32BitXor | Bc.I32Shl | Bc.I32Shr | Bc.I32ShrU | Bc.U32Div | Bc.U32Mod | Bc.U32Lt | Bc.U32Le | Bc.U32Gt | Bc.U32Ge | Bc.I64Add | Bc.I64Sub | Bc.I64Mul | Bc.I64Div | Bc.I64Mod | Bc.I64Neg | Bc.I64Eq | Bc.I64Ne | Bc.I64Lt | Bc.I64Le | Bc.I64Gt | Bc.I64Ge | Bc.U64Div | Bc.U64Mod | Bc.U64Lt | Bc.U64Le | Bc.U64Gt | Bc.U64Ge | Bc.I64Shl | Bc.I64Shr | Bc.I64ShrU | Bc.I64BitAnd | Bc.I64BitOr | Bc.I64BitXor | Bc.I64BitNot | Bc.F64Add | Bc.F64Sub | Bc.F64Mul | Bc.F64Div | Bc.F64Neg | Bc.F64Eq | Bc.F64Ne | Bc.F64Lt | Bc.F64Le | Bc.F64Gt | Bc.F64Ge | Bc.BoolEq | Bc.BoolNe | Bc.BoolAnd | Bc.BoolOr | Bc.BoolNot | Bc.StringEq | Bc.StringNe | Bc.StringCompare | Bc.RefEq | Bc.RefNe | Bc.Drop | Bc.Block | Bc.Loop | Bc.If | Bc.Else | Bc.End | Bc.Branch | Bc.BranchIf | Bc.Return | Bc.ReturnLit | Bc.LoadU8 | Bc.LoadI32 | Bc.LoadI64 | Bc.LoadF64 | Bc.StoreU8 | Bc.StoreI32 | Bc.StoreI64 | Bc.StoreF64 | Bc.LoadSlotI32 | Bc.LoadSlotI64 | Bc.LoadSlotF64 | Bc.StoreSlotI32 | Bc.StoreSlotI64 | Bc.StoreSlotF64 | Bc.MemoryCopy | Bc.BufferWriteString | Bc.F64ToBits | Bc.BitsToF64 | Bc.F32ToBits | Bc.BitsToF32 | Bc.ArrayCopy | Bc.ArrayRemoveLast | Bc.ArrayClear | Bc.CheckedArith | Bc.CheckedNeg -> false
 }
@@ -535,6 +535,7 @@ emit_op :: fn(s: FnState, pc: i32, op: Bc.Op) -> void {
         is Bc.ArrayGet              -> emit_array_get(s, op)
         is Bc.ArraySet              -> emit_array_set(s, op)
         is Bc.ArraySlice            -> emit_array_slice(s, op)
+        is Bc.ArrayReserve          -> emit_array_reserve(s, op)
         is Bc.ArrayRepeat           -> emit_array_repeat(s)
         is Bc.ArrayPushAll          -> emit_array_push_all(s)
         is Bc.ArrayCopy             -> emit_array_copy(s)
@@ -2659,25 +2660,9 @@ emit_global_set :: fn(s: FnState, op: Bc.GlobalSet) -> void {
 /// order.
 emit_array_new :: fn(s: FnState, op: Bc.ArrayNew) -> void {
     types :: s.ctx.module.types
-    elem_tag :: array_element_tag(types, op.type_id)
-    kind :: array_kind_of(types[elem_tag], types)
-    kind_idx :: array_kind_index(kind)
+    kind :: array_kind_of(types[array_element_tag(types, op.type_id)], types)
     n :: op.length
-    arr_buf :: aux(s, "arr")
-    declare(
-        s,
-        "vader_array_t*",
-        arr_buf,
-        call(
-            "vader_array_new",
-            [
-                verbatim("${op.type_id}u"),
-                verbatim("${n}u"),
-                verbatim("${kind_idx}u"),
-                verbatim("${elem_tag}u"),
-            ],
-        ),
-    )
+    arr_buf :: declare_array(s, "vader_array_new", op.type_id, verbatim("${n}u"))
     // Pop top-to-bottom : pop #k fills slot `n-1-k` (distinct indices, so reverse
     // emission is fine). Three strategies keyed on `typed_array_fill_for(kind)` and
     // the kind : a typed raw store for any primitive width (flippable and sub-word
@@ -2919,11 +2904,42 @@ emit_array_slice :: fn(s: FnState, op: Bc.ArraySlice) -> void {
     push_object(s, verbatim(arr_buf))
 }
 
-/// `[lhs] * n`: pop `n` then the source array ; push a fresh array repeating
-/// the source's elements n times (`[] * n` reserves n slots, length 0). The
-/// result is boxed with the runtime array's OWN `header.type_index` (set by the
-/// runtime from the source), so no static element type_id is threaded through
-/// the op. Allocating + GC-coupled, hence a runtime call (not open-coded).
+/// `[] * n`: pop `n` ; push an empty array of `op.type_id` with room for `n`
+/// elements. The element kind and tag are static, as `array.new` has them.
+emit_array_reserve :: fn(s: FnState, op: Bc.ArrayReserve) -> void {
+    n :: pop(s)
+    push_object(s, verbatim(declare_array(s, "vader_array_reserve", op.type_id, as_count(n))))
+}
+
+// Declare a new array of the array type `type_id`, which the runtime fn `ctor`
+// builds from `size` and the element kind and tag of that type: its C name.
+declare_array :: fn(s: FnState, ctor: string, type_id: i32, size: CExpression) -> string {
+    types :: s.ctx.module.types
+    elem_tag :: array_element_tag(types, type_id)
+    kind_idx :: array_kind_index(array_kind_of(types[elem_tag], types))
+    arr_buf :: aux(s, "arr")
+    declare(
+        s,
+        "vader_array_t*",
+        arr_buf,
+        call(
+            ctor,
+            [
+                verbatim("${type_id}u"),
+                size,
+                verbatim("${kind_idx}u"),
+                verbatim("${elem_tag}u"),
+            ],
+        ),
+    )
+    return arr_buf
+}
+
+/// `src * n`: pop `n` then the source array ; push a fresh array repeating the
+/// source's elements n times. The result is boxed with the runtime array's OWN
+/// `header.type_index` (set by the runtime from the source), so no static
+/// element type_id is threaded through the op. Allocating + GC-coupled, hence a
+/// runtime call (not open-coded).
 emit_array_repeat :: fn(s: FnState) -> void {
     n :: pop(s)
     src :: pop(s)

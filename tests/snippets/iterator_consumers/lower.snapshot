@@ -155,7 +155,7 @@
       return n
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      a: i32[] = @array.repeat([] :i32[], i64(10))
+      a: i32[] = @array.reserve(i64(10))
       {
           i: i32 = 0
           for i < 10 {
@@ -167,7 +167,7 @@
       pts: Point[] = {
           __fuse_arr_0: i32[] = a
           f: fn(i32) -> Point = __lambda_snippet_0
-          out: Point[] = @array.repeat([] :Point[], @array.len(__fuse_arr_0))
+          out: Point[] = @array.reserve(@array.len(__fuse_arr_0))
           {
               __fuse_len_0: i64 = @array.len(__fuse_arr_0)
               __fuse_i_1: i64 = 0

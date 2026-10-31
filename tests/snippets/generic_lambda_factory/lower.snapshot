@@ -79,7 +79,7 @@
       [] :i32[]
   }
   snippet.build<i32[]> :: fn(n: i64, make: fn() -> i32[]) -> i32[][] {  // snippet$build__i32__
-      out: i32[][] = @array.repeat([] :i32[][], n)
+      out: i32[][] = @array.reserve(n)
       {
           __for_discard_0: i64 = 0
           for __for_discard_0 < n {

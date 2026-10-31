@@ -48,7 +48,7 @@ test("the verifier lists the fixture's sites the lowering gets wrong", async () 
 
 // Each kind of disagreement the compiler is known to hold, with the reason.
 const EXPLAINED: [RegExp, string][] = [
-  [/^fn mul( \(per instance\))? \/ no call array\.repeat$/, "`[x] * n` emitted as the `array.repeat` intrinsic"],
+  [/^fn mul( \(per instance\))? \/ no call array\.(repeat|reserve)$/, "`[x] * n` emitted as the `array.repeat` intrinsic, `[] * n` as `array.reserve`"],
   [/ \/ no call fused chain$/, "a generator, or a generator `into`, fused into the loop"],
   [/^fn compare \/ no call primitive$/, "`char` ordering compared as a primitive"],
   [/^fn contains \/ no call bounds$/, "`x in lo..hi` over a literal range compared in place"],

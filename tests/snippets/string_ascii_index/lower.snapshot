@@ -27,7 +27,7 @@
       {
           round: i32 = 0
           for round < 3 {
-              garbage: string[] = @array.repeat([] :string[], i64(300))
+              garbage: string[] = @array.reserve(i64(300))
               {
                   i: i32 = 0
                   for i < 300 {

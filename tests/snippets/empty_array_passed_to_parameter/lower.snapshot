@@ -18,7 +18,7 @@
       return fresh
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      words: u8[][] = @array.repeat([] :u8[][], i64(3))
+      words: u8[][] = @array.reserve(i64(3))
       {
           index: i32 = 0
           for index < 3 {

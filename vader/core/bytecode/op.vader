@@ -163,6 +163,7 @@ export Op :: Unreachable
     | BitsToF64
     | F32ToBits
     | BitsToF32
+    | ArrayReserve
     | ArrayRepeat
     | ArrayPushAll
     | ArrayCopy
@@ -342,17 +343,19 @@ export ArrayLen :: struct {}
 /// (no shared mutability) ; the C runtime version views.
 export ArraySlice :: struct { type_id: i32 }
 
-// Array construction / bulk-mutation ops, all parameterless : each backing
-// runtime fn reads the element kind/tag off the array buf, and the repeat
-// result is boxed with the runtime array's own `header.type_index`, so none
-// needs a static element type_id. Reached via the intrinsic channel
-// (`intrinsic_op_for_name`), not a dedicated Lowered/Instr node.
+// Array construction / bulk-mutation ops, reached via the intrinsic channel
+// (`intrinsic_op_for_name`), not a dedicated Lowered/Instr node. All but
+// `ArrayReserve` are parameterless: each backing runtime fn reads the element
+// kind/tag off the array buf, and the repeat result is boxed with the source
+// array's own `header.type_index`.
 
-/// `[lhs] * n`: pop `n` (i64) then the source array ; push a fresh array
-/// repeating the source's elements n times. `length = src.length * n`,
-/// `capacity = max(length, n)` (so `[] * n` reserves n slots with length 0, the
-/// preallocation case). Ref elements are repeated by reference (shallow). The
-/// C runtime calls `vader_array_repeat` ; the VM copies into a fresh `ArrayVal`.
+/// `[] * n`: pop `n` (i64) ; push an empty array of the array type `type_id`
+/// with room for `n` elements. It has no source array to take its type from.
+export ArrayReserve :: struct { type_id: i32 }
+/// `src * n`: pop `n` (i64) then the source array ; push a fresh array
+/// repeating the source's elements n times, `length = src.length * n`. Ref
+/// elements are repeated by reference (shallow). The C runtime calls
+/// `vader_array_repeat` ; the VM copies into a fresh `ArrayVal`.
 export ArrayRepeat :: struct {}
 /// `dst.push_all(src)`: pop `src` then `dst` ; append every element of `src`
 /// to `dst` (grows dst). Statement-form, no value pushed back.

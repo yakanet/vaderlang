@@ -4,7 +4,7 @@
   storage
     const TABLE: i32[]  data pool #0, built again by __const_snippet$TABLE for a use that reads it fresh
   snippet.squares :: fn() -> i32[] {  // snippet$squares
-      out: i32[] = @array.repeat([] :i32[], i64(300))
+      out: i32[] = @array.reserve(i64(300))
       {
           i: i32 = 0
           for i < 300 {

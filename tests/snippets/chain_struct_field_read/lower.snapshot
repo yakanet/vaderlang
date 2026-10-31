@@ -60,7 +60,7 @@
       doubled: Rec[] = {
           __fuse_arr_11: Rec[] = a
           f: fn(Rec) -> Rec = __lambda_snippet_0
-          out: Rec[] = @array.repeat([] :Rec[], @array.len(__fuse_arr_11))
+          out: Rec[] = @array.reserve(@array.len(__fuse_arr_11))
           {
               __fuse_len_0: i64 = @array.len(__fuse_arr_11)
               __fuse_i_1: i64 = 0

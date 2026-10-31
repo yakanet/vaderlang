@@ -324,6 +324,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
     if head == "array.set"        { return parse_array_set(cleaned) }
     if head == "array.len"        { return ArrayLen {} }
     if head == "array.slice"      { return parse_array_slice(cleaned) }
+    if head == "array.reserve"     { return parse_array_reserve(cleaned) }
     if head == "array.repeat"      { return ArrayRepeat {} }
     if head == "array.push_all"    { return ArrayPushAll {} }
     if head == "array.copy"        { return ArrayCopy {} }
@@ -886,6 +887,11 @@ parse_array_slice :: fn(line: string) -> Op | null {
     return ArraySlice { .type_id = parsed }
 }
 
+parse_array_reserve :: fn(line: string) -> Op | null {
+    parsed :: parse_int_after_prefix(line, "array.reserve ") ?? return null
+    return ArrayReserve { .type_id = parsed }
+}
+
 parse_data_const :: fn(line: string) -> Op | null {
     after :: line.trim_prefix("data.const ")
     sp :: after.index_of(' ', 0)
@@ -1094,6 +1100,7 @@ one_of_each_op :: fn() -> Op[] = [
     BitsToF64 {},
     F32ToBits {},
     BitsToF32 {},
+    ArrayReserve { .type_id = 29 },
     ArrayRepeat {},
     ArrayPushAll {},
     ArrayCopy {},

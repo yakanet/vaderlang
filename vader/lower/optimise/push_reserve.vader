@@ -48,7 +48,7 @@ export reserve_push_tail :: fn(stmts: LoweredStmt[]) -> void {
         }
         if is_empty_array_lit(st.value) && has_top_level_push(counted.body, st.symbol) {
             count :: trip_count(counted.turns, st.span)
-            reserve :: mk_array_repeat(st.value, count, st.value.type, st.span)
+            reserve :: mk_array_reserve(count, st.value.type, st.span)
             stmts[i] = LoweredLet { ...st, .value = reserve }
         }
         turns :: counted.turns
@@ -154,7 +154,7 @@ is_push_onto :: fn(e: LoweredExpr, out: Symbol) -> bool =
 
 // ---- the trip count ---------------------------------------------------------
 
-// How many turns the loop runs, an `i64` once `array.repeat` takes it: `bound -
+// How many turns the loop runs, an `i64` once `array.reserve` takes it: `bound -
 // start` (one more when the bound is reached), or 0 for a range whose bound sits
 // below its start. The difference is a wrapping `i64` one, exact under the
 // `start <= bound` guard: in the counter's own type it may not fit (`-100..<100`

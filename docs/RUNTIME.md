@@ -249,10 +249,10 @@ The buffer's `element_kind` says how its slots are stored:
   rather than assume it.
 
 **A repeated array**, `[...] * n`, is one block with a capacity of `n` times the
-literal's length, and at least `n` and 4, so `[] * n` is an empty array whose
-first `n` pushes do not reallocate. Its slots past the length stay uninitialised
-until a push writes them: the collector reads a buffer's slots only up to its own
-`length`.
+literal's length, and at least 4. **A reserved array**, `[] * n`, is one block
+too, empty, with a capacity of `n` and at least 4, so its first `n` pushes do not
+reallocate. Their slots past the length stay uninitialised until a push writes
+them: the collector reads a buffer's slots only up to its own `length`.
 
 **A slice** `arr[r]` is a second header over the same buffer, with its own
 `offset` and `length`. A write through it reaches the parent, while its first push

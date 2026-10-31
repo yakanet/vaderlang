@@ -709,50 +709,47 @@ fn 19 std_collections$next_slot (i64,u64,i64) -> i64
 end
 
 fn 20 std_collections$rehash__string__Any (ref,i64) -> void
-  local $arr_2 ref
   local if_res i64
+  local fresh ref
   local e i64
   local __for_hi_1 i64
   local perturb u64
   local s i64
-  local $cast_37 i32
-  array.new 23 0   ; i32[]
-  local.set 2   ; $arr_2
+  local $cast_36 i32
   i64.const 0
   local.get 1   ; arg 1
   i64.lt
   if $L0 void
     local.get 1   ; arg 1
-    local.set 3   ; if_res
+    local.set 2   ; if_res
   else
     i64.const 0
-    local.set 3   ; if_res
+    local.set 2   ; if_res
   end $L0
-  local.get 2   ; $arr_2
-  local.get 3   ; if_res
-  array.repeat
-  local.set 2   ; $arr_2
+  local.get 2   ; if_res
+  array.reserve 23   ; i32[]
+  local.set 3   ; fresh
   i64.const 0
-  local.set 3   ; if_res
+  local.set 2   ; if_res
   loop $L1 void
-    local.get 3   ; if_res
+    local.get 2   ; if_res
     local.get 1   ; arg 1
     i64.lt
     if $L2 void
-      local.get 2   ; $arr_2
+      local.get 3   ; fresh
       i32.const 0
-      array.push 8 2   ; i32 $arr_2
-      local.get 3   ; if_res
+      array.push 8 3   ; i32 fresh
+      local.get 2   ; if_res
       i64.const 1
       i64.add
-      local.set 3   ; if_res
+      local.set 2   ; if_res
       br $L1
     end $L2
   end $L1
   local.get 1   ; arg 1
   i64.const 1
   i64.checked_sub
-  local.set 3   ; if_res
+  local.set 2   ; if_res
   i64.const 0
   local.set 4   ; e
   local.field 0 17 5   ; arg 0 std_collections$MutableMap__string__Any.size
@@ -769,11 +766,11 @@ fn 20 std_collections$rehash__string__Any (ref,i64) -> void
       ref.cast 3   ; string
       call 30   ; std_core$string$Hash$hash_vt
       local.tee 6   ; perturb
-      local.get 3   ; if_res
+      local.get 2   ; if_res
       call 18   ; std_collections$first_slot
       local.set 7   ; s
       loop $L5 void
-        local.get 2   ; $arr_2
+        local.get 3   ; fresh
         local.get 7   ; s
         load_slot_i32
         i32.const 0
@@ -785,7 +782,7 @@ fn 20 std_collections$rehash__string__Any (ref,i64) -> void
           local.set 6   ; perturb
           local.get 7   ; s
           local.get 6   ; perturb
-          local.get 3   ; if_res
+          local.get 2   ; if_res
           call 19   ; std_collections$next_slot
           local.set 7   ; s
           br $L5
@@ -795,10 +792,10 @@ fn 20 std_collections$rehash__string__Any (ref,i64) -> void
       i64.const 1
       i64.checked_add
       i64.to_i32
-      local.set 8   ; $cast_37
-      local.get 2   ; $arr_2
+      local.set 8   ; $cast_36
+      local.get 3   ; fresh
       local.get 7   ; s
-      local.get 8   ; $cast_37
+      local.get 8   ; $cast_36
       store_slot_i32
       local.get 4   ; e
       i64.const 1
@@ -808,19 +805,19 @@ fn 20 std_collections$rehash__string__Any (ref,i64) -> void
     end $L4
   end $L3
   local.get 0   ; arg 0
-  local.get 2   ; $arr_2
+  local.get 3   ; fresh
   struct.set 17 2   ; std_collections$MutableMap__string__Any.index
   local.get 0   ; arg 0
-  local.get 3   ; if_res
+  local.get 2   ; if_res
   struct.set 17 3   ; std_collections$MutableMap__string__Any.mask
   local.get 1   ; arg 1
   i64.const 4
   i64.div
   i64.const 3
   i64.checked_mul
-  local.set 3   ; if_res
+  local.set 2   ; if_res
   local.get 0   ; arg 0
-  local.get 3   ; if_res
+  local.get 2   ; if_res
   struct.set 17 4   ; std_collections$MutableMap__string__Any.grow_at
   local.get 0   ; arg 0
   i64.const 0

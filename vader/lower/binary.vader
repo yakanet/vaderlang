@@ -221,12 +221,15 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
             return value_rewrite
         }
     }
-    // `[lhs] * n`: array repeat / preallocation. Lower to the `array.repeat`
-    // intrinsic : args = [source array, count], the count the `i64` the arrays'
-    // `Mul` takes. The runtime reuses the source's type / element kind / tag, so
-    // no static element type is threaded through. `[] * n` (empty source)
-    // reserves n slots, length 0.
+    // `src * n` on an array: the arrays' `Mul`, the count the `i64` it takes. The
+    // source `[]` only reserves room, which needs no source array, and has no
+    // effect to order before the count's; any other source is repeated, and the
+    // runtime reuses its type / element kind / tag.
     if binary.op == .Mul && runs_array_repeat(ctx, binary) {
+        if is_empty_sequence(binary.left) {
+            observe_no_call(ctx, binary, .Operator, "array.reserve")
+            return mk_array_reserve(lower_expr(ctx, binary.right), type, binary.span)
+        }
         observe_no_call(ctx, binary, .Operator, "array.repeat")
         parts :: lower_in_order(ctx, [binary.left, binary.right])
         return mk_array_repeat(parts[0], parts[1], type, binary.span)
@@ -463,6 +466,9 @@ collect_concat_operands :: fn(ctx: FnLowerCtx, e: Expr, out: LoweredExpr[]) -> v
     bind_before_hoisted(ctx, out, mark)
     out.push(value)
 }
+
+// Whether `e` is the literal `[]`.
+is_empty_sequence :: fn(e: Expr) -> bool = e is SeqLitExpr && e.elements.len() == 0
 
 // True when `binary` runs the member of `T[] implements<T> Mul<i64>`, rather than
 // a `Mul` of the program that yields an array from another receiver.

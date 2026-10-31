@@ -109,18 +109,29 @@ exec_array_push_all :: fn(frame: Frame) -> Trap | null {
     return null
 }
 
-/// `array.repeat`: an array of `n` copies of one element.
+/// `array.reserve`: an empty array with room for `n` elements.
+///
+/// @param instr  the op itself: the array carries its `type_id`.
+exec_array_reserve :: fn(frame: Frame, instr: bc.ArrayReserve) -> Trap | null {
+    count_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.reserve count")
+    if count_unwrap is Trap {
+        return count_unwrap
+    }
+    reserved: Value[]: [] * clamp_nonneg(i32(count_unwrap))
+    push_val(frame, frame.sp - 1, ArrayVal { .type_id = instr.type_id, .elements = reserved })
+    frame.pc = frame.pc + 1
+    return null
+}
+
+/// `array.repeat`: the elements of an array, `n` times over.
 exec_array_repeat :: fn(frame: Frame) -> Trap | null {
     count_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.repeat count")
     if count_unwrap is Trap { return count_unwrap }
     array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.repeat receiver")
     if array_unwrap is Trap { return array_unwrap }
     count :: clamp_nonneg(i32(count_unwrap))
-    // `[] * n` yields a length-0 array with `n` slots reserved, `[v] * n` n
-    // copies.
     length :: element_count(array_unwrap)
-    slots :: if length == 0 { count } else { count * length }
-    repeated: Value[]: [] * slots
+    repeated: Value[]: [] * (count * length)
     for _ in 0..<count {
         for j in 0..<length {
             repeated.push(element_at(array_unwrap, j))

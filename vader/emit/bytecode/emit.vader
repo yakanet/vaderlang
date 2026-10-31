@@ -1399,7 +1399,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // a bare `Return` would truncate the function in silence. Fail loud,
         // like the field-get / FnRef / MakeClosure gaps above.
 
-        push_emit(ctx, op_opt, ins.span)
+        push_emit(ctx, typed_intrinsic_op(ctx, op_opt, ins), ins.span)
         emit_result_if_any(ctx, pos, ins.dst, ins.span)
         return
     }
@@ -1419,6 +1419,17 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     // but this ~400-line chain isn't worth the churn ; the panic gives the same
     // no-silent-drop guarantee.)
     panic("emit/bytecode/emit: unhandled Instruction reached emit_instr, a variant has no emitter")
+}
+
+// `op` as `ins` runs it: an `ArrayReserve` takes the type of the array it builds,
+// the one of the local it lands in. The other ops carry no type, and the type of
+// what they yield is never interned for them.
+typed_intrinsic_op :: fn(ctx: FnEmitCfg, op: Op, ins: InstrIntrinsic) -> Op {
+    dst :: ins.dst
+    if op is ArrayReserve && dst != null {
+        return ArrayReserve { .type_id = intern_type(ctx.fn_.locals[i64(dst)].type, ctx.project) }
+    }
+    return op
 }
 
 // A value of a class narrower than the 32 bits it rides in is cut to its width

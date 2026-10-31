@@ -113,7 +113,7 @@
       return 0
   }
   snippet.array_survives :: fn() -> i32 {  // snippet$array_survives
-      list: i32[] = @array.repeat([] :i32[], i64(200))
+      list: i32[] = @array.reserve(i64(200))
       {
           i: i32 = 0
           for i < 200 {

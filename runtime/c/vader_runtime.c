@@ -3036,9 +3036,8 @@ VADER_NOINLINE void vader_array_push_ref_slow(vader_array_t* a, void* obj) {
 }
 
 /* Allocate an owning array with an explicit `length` AND `capacity`. The single
- * source of truth for array construction: `vader_array_new` is the
- * `cap = max(length, 4)` case, `vader_array_repeat` passes `length 0, capacity n`
- * for `[] * n` reserve.
+ * source of truth for array construction: `vader_array_new`,
+ * `vader_array_reserve` and `vader_array_repeat` each pick the two.
  *
  * Single-block alloc: the struct is followed by an inline buf in the same GC
  * alloc. A two-step alloc has a window where one half is unreachable from the
@@ -3103,12 +3102,14 @@ static const uint8_t* vader_array_src_region(vader_array_t* src, size_t extra, u
     return data;
 }
 
-/* `[lhs] * n`: fresh array repeating `src`'s elements `n` times. `length =
- * src.length * n`, `capacity = max(length, n)` so `[] * n` (src.length 0) yields
- * an empty array with n slots reserved (the preallocation case, no named
- * `with_capacity`), never fewer than the empty literal's own capacity, which a
- * reservation must not undercut. The result reuses `src`'s array type / element
- * kind / tag.
+vader_array_t* vader_array_reserve(uint32_t type_index, int64_t n, uint8_t element_kind, uint32_t element_tag) {
+    size_t cap = vader_count_or_zero(n);
+    if (cap < 4) cap = 4;
+    return vader_array_alloc_cap(type_index, 0, cap, element_kind, element_tag);
+}
+
+/* `src * n`: fresh array repeating `src`'s elements `n` times, `length =
+ * src.length * n`. The result reuses `src`'s array type / element kind / tag.
  * For a ref element the SAME reference is repeated n times (shallow, evaluate-
  * once: the documented semantics). */
 vader_array_t* vader_array_repeat(vader_array_t* src, int64_t times) {
@@ -3120,7 +3121,7 @@ vader_array_t* vader_array_repeat(vader_array_t* src, int64_t times) {
         vader_trap("vader_array: repeat length overflows size_t");
     }
     size_t out_len = src_len * n;
-    size_t cap = out_len > n ? out_len : n;
+    size_t cap = out_len;
     if (cap < 4) cap = 4;
     /* Read the element metadata before the alloc (it may relocate `src`). */
     uint8_t kind; uint32_t tag; size_t esz;
@@ -3131,7 +3132,7 @@ vader_array_t* vader_array_repeat(vader_array_t* src, int64_t times) {
     vader_array_t* out = vader_array_alloc_cap(type_index, out_len, cap, kind, tag);
     VADER_GC_POP();
     src = (vader_array_t*) src_box.payload.obj;
-    if (out_len == 0) return out;          /* `[] * n` reserve-only, or n == 0 */
+    if (out_len == 0) return out;
     /* Recompute the source region after the possible relocation, then stamp the
      * src block into the result n times: once, then the filled prefix copied onto
      * the rest, doubling each time, so `[0] * 65536` is 17 copies. Each copy reads

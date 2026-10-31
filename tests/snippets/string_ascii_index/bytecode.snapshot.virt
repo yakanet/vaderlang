@@ -120,28 +120,28 @@ fn 1 snippet$main () -> i32
   local i i32
   local __buf_0 ref
   local __off_1 i64
-  local $cast_57 i64
-  local $cast_61 i64
+  local $cast_56 i64
+  local $cast_60 i64
   local __buf_2 ref
   local __off_3 i64
-  local $cast_71 i64
-  local $cast_75 i64
+  local $cast_70 i64
+  local $cast_74 i64
   local __buf_4 ref
   local __off_5 i64
-  local $cast_87 i64
-  local $call_89 string
+  local $cast_86 i64
+  local $call_88 string
   local __buf_6 ref
   local __off_7 i64
-  local $cast_97 i64
-  local $call_99 string
+  local $cast_96 i64
+  local $call_98 string
   local __buf_8 ref
   local __off_9 i64
-  local $cast_107 i64
-  local $call_109 string
+  local $cast_106 i64
+  local $call_108 string
   local __buf_10 ref
   local __off_11 i64
-  local $cast_117 i64
-  local $call_119 string
+  local $cast_116 i64
+  local $call_118 string
   string.const 2   ; "literal"
   string.const 3   ; "hello"
   call 0   ; snippet$show
@@ -209,9 +209,8 @@ fn 1 snippet$main () -> i32
     i32.const 3
     i32.lt
     if $L1 void
-      array.new 12 0   ; string[]
       i64.const 300
-      array.repeat
+      array.reserve 12   ; string[]
       local.set 3   ; garbage
       i32.const 0
       local.set 4   ; i
@@ -232,10 +231,10 @@ fn 1 snippet$main () -> i32
           local.set 6   ; __off_1
           local.get 4   ; i
           i32.to_i64
-          local.set 7   ; $cast_57
+          local.set 7   ; $cast_56
           local.get 5   ; __buf_0
           local.get 6   ; __off_1
-          local.get 7   ; $cast_57
+          local.get 7   ; $cast_56
           call 8   ; std_core$write_int
           local.set 6   ; __off_1
           local.get 5   ; __buf_0
@@ -245,10 +244,10 @@ fn 1 snippet$main () -> i32
           local.set 6   ; __off_1
           local.get 2   ; round
           i32.to_i64
-          local.set 8   ; $cast_61
+          local.set 8   ; $cast_60
           local.get 5   ; __buf_0
           local.get 6   ; __off_1
-          local.get 8   ; $cast_61
+          local.get 8   ; $cast_60
           call 8   ; std_core$write_int
           local.set 6   ; __off_1
           local.get 5   ; __buf_0
@@ -270,10 +269,10 @@ fn 1 snippet$main () -> i32
           local.set 10   ; __off_3
           local.get 4   ; i
           i32.to_i64
-          local.set 11   ; $cast_71
+          local.set 11   ; $cast_70
           local.get 9   ; __buf_2
           local.get 10   ; __off_3
-          local.get 11   ; $cast_71
+          local.get 11   ; $cast_70
           call 8   ; std_core$write_int
           local.set 10   ; __off_3
           local.get 9   ; __buf_2
@@ -283,10 +282,10 @@ fn 1 snippet$main () -> i32
           local.set 10   ; __off_3
           local.get 2   ; round
           i32.to_i64
-          local.set 12   ; $cast_75
+          local.set 12   ; $cast_74
           local.get 9   ; __buf_2
           local.get 10   ; __off_3
-          local.get 12   ; $cast_75
+          local.get 12   ; $cast_74
           call 8   ; std_core$write_int
           local.set 10   ; __off_3
           local.get 9   ; __buf_2
@@ -316,16 +315,16 @@ fn 1 snippet$main () -> i32
       local.set 14   ; __off_5
       local.get 2   ; round
       i32.to_i64
-      local.set 15   ; $cast_87
+      local.set 15   ; $cast_86
       local.get 13   ; __buf_4
       local.get 14   ; __off_5
-      local.get 15   ; $cast_87
+      local.get 15   ; $cast_86
       call 8   ; std_core$write_int
       local.set 14   ; __off_5
       local.get 13   ; __buf_4
       local.get 14   ; __off_5
       call 6   ; std_core$finish_buffer
-      local.set 16   ; $call_89
+      local.set 16   ; $call_88
       i64.const 25
       buffer.new
       local.set 17   ; __buf_6
@@ -338,18 +337,18 @@ fn 1 snippet$main () -> i32
       local.set 18   ; __off_7
       local.get 2   ; round
       i32.to_i64
-      local.set 19   ; $cast_97
+      local.set 19   ; $cast_96
       local.get 17   ; __buf_6
       local.get 18   ; __off_7
-      local.get 19   ; $cast_97
+      local.get 19   ; $cast_96
       call 8   ; std_core$write_int
       local.set 18   ; __off_7
       local.get 17   ; __buf_6
       local.get 18   ; __off_7
       call 6   ; std_core$finish_buffer
-      local.set 20   ; $call_99
-      local.get 16   ; $call_89
-      local.get 20   ; $call_99
+      local.set 20   ; $call_98
+      local.get 16   ; $call_88
+      local.get 20   ; $call_98
       call 0   ; snippet$show
       i64.const 52
       buffer.new
@@ -363,16 +362,16 @@ fn 1 snippet$main () -> i32
       local.set 22   ; __off_9
       local.get 2   ; round
       i32.to_i64
-      local.set 23   ; $cast_107
+      local.set 23   ; $cast_106
       local.get 21   ; __buf_8
       local.get 22   ; __off_9
-      local.get 23   ; $cast_107
+      local.get 23   ; $cast_106
       call 8   ; std_core$write_int
       local.set 22   ; __off_9
       local.get 21   ; __buf_8
       local.get 22   ; __off_9
       call 6   ; std_core$finish_buffer
-      local.set 24   ; $call_109
+      local.set 24   ; $call_108
       i64.const 28
       buffer.new
       local.set 25   ; __buf_10
@@ -385,18 +384,18 @@ fn 1 snippet$main () -> i32
       local.set 26   ; __off_11
       local.get 2   ; round
       i32.to_i64
-      local.set 27   ; $cast_117
+      local.set 27   ; $cast_116
       local.get 25   ; __buf_10
       local.get 26   ; __off_11
-      local.get 27   ; $cast_117
+      local.get 27   ; $cast_116
       call 8   ; std_core$write_int
       local.set 26   ; __off_11
       local.get 25   ; __buf_10
       local.get 26   ; __off_11
       call 6   ; std_core$finish_buffer
-      local.set 28   ; $call_119
-      local.get 24   ; $call_109
-      local.get 28   ; $call_119
+      local.set 28   ; $call_118
+      local.get 24   ; $call_108
+      local.get 28   ; $call_118
       call 0   ; snippet$show
       local.get 2   ; round
       i32.const 1
@@ -421,7 +420,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; $call_9
   local.get 3   ; garbage
   call 15   ; std_core$string$Index$at$1
-  local.set 16   ; $call_89
+  local.set 16   ; $call_88
   i64.const 16
   i64.const 99
   bool.const false
@@ -432,7 +431,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; $call_9
   local.get 3   ; garbage
   call 15   ; std_core$string$Index$at$1
-  local.set 20   ; $call_99
+  local.set 20   ; $call_98
   i64.const 10
   i64.const 14
   bool.const true
@@ -443,7 +442,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; $call_9
   local.get 3   ; garbage
   call 15   ; std_core$string$Index$at$1
-  local.set 24   ; $call_109
+  local.set 24   ; $call_108
   i64.const 9
   i64.const 4
   bool.const false
@@ -457,11 +456,11 @@ fn 1 snippet$main () -> i32
   local.set 0   ; $call_9
   local.get 1   ; $call_15
   string.const 23   ; " "
-  local.get 16   ; $call_89
+  local.get 16   ; $call_88
   string.const 23   ; " "
-  local.get 20   ; $call_99
+  local.get 20   ; $call_98
   string.const 23   ; " "
-  local.get 24   ; $call_109
+  local.get 24   ; $call_108
   string.const 23   ; " "
   local.get 0   ; $call_9
   string.const 24   ; "|"
@@ -483,7 +482,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; $call_9
   local.get 3   ; garbage
   call 15   ; std_core$string$Index$at$1
-  local.set 16   ; $call_89
+  local.set 16   ; $call_88
   i64.const 7
   i64.const 99
   bool.const false
@@ -497,7 +496,7 @@ fn 1 snippet$main () -> i32
   local.set 0   ; $call_9
   local.get 1   ; $call_15
   string.const 23   ; " "
-  local.get 16   ; $call_89
+  local.get 16   ; $call_88
   string.const 23   ; " "
   local.get 0   ; $call_9
   call 3   ; concat_5

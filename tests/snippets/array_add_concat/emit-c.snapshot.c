@@ -377,39 +377,37 @@ static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2) {
 }
 
 static void* std_core$$array$Add$add__i32(void* l0, void* l1) {
-    void* l2 = NULL;
-    int64_t l3, l4;
-    void** gc_raw_roots[3] = { &l0, &l1, &l2 };
+    int64_t l2, l3;
+    void* l4 = NULL;
+    int64_t t0;
+    void** gc_raw_roots[3] = { &l0, &l1, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(8u, 0u, 7u, 3u);
-    l2 = (void*) _a0_arr;
-    l3 = ((vader_array_t*) l0)->length;
-    l4 = ((vader_array_t*) l1)->length;
-    l3 = vader_chk_add(i64, l3, l4);
-    vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l2, (int64_t) l3);
-    l2 = (void*) _a1_arr;
-    vader_array_push_all((vader_array_t*) l2, (vader_array_t*) l0);
-    vader_array_push_all((vader_array_t*) l2, (vader_array_t*) l1);
-    { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
+    l2 = ((vader_array_t*) l0)->length;
+    l3 = ((vader_array_t*) l1)->length;
+    t0 = vader_chk_add(i64, l2, l3);
+    vader_array_t* _a0_arr = vader_array_reserve(8u, (int64_t) t0, 7u, 3u);
+    l4 = (void*) _a0_arr;
+    vader_array_push_all((vader_array_t*) l4, (vader_array_t*) l0);
+    vader_array_push_all((vader_array_t*) l4, (vader_array_t*) l1);
+    { void* __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void* std_core$$array$Add$add__snippet_Item(void* l0, void* l1) {
-    void* l2 = NULL;
-    int64_t l3, l4;
-    void** gc_raw_roots[3] = { &l0, &l1, &l2 };
+    int64_t l2, l3;
+    void* l4 = NULL;
+    int64_t t0;
+    void** gc_raw_roots[3] = { &l0, &l1, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(1u, 0u, 13u, 2u);
-    l2 = (void*) _a0_arr;
-    l3 = ((vader_array_t*) l0)->length;
-    l4 = ((vader_array_t*) l1)->length;
-    l3 = vader_chk_add(i64, l3, l4);
-    vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l2, (int64_t) l3);
-    l2 = (void*) _a1_arr;
-    vader_array_push_all((vader_array_t*) l2, (vader_array_t*) l0);
-    vader_array_push_all((vader_array_t*) l2, (vader_array_t*) l1);
-    { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
+    l2 = ((vader_array_t*) l0)->length;
+    l3 = ((vader_array_t*) l1)->length;
+    t0 = vader_chk_add(i64, l2, l3);
+    vader_array_t* _a0_arr = vader_array_reserve(1u, (int64_t) t0, 13u, 2u);
+    l4 = (void*) _a0_arr;
+    vader_array_push_all((vader_array_t*) l4, (vader_array_t*) l0);
+    vader_array_push_all((vader_array_t*) l4, (vader_array_t*) l1);
+    { void* __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void std_io$write(uint8_t l0, vader_string_t l1) {

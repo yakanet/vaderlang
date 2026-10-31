@@ -37,7 +37,7 @@
           __fuse_arr_3: i32[] = [1, 2] :i32[]
           f: __method_env_snippet_9 = __method_env_snippet_9 { .receiver = p }
           f: fn(Point) -> string = snippet.label
-          out: string[] = @array.repeat([] :string[], @array.len(__fuse_arr_3))
+          out: string[] = @array.reserve(@array.len(__fuse_arr_3))
           {
               __fuse_len_0: i64 = @array.len(__fuse_arr_3)
               __fuse_i_1: i64 = 0

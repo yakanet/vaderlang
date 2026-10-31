@@ -95,7 +95,7 @@ fn 2 snippet$main () -> i32
   local __iter_0 ref
   local __step_1 any
   local x i32
-  local $len_37 i64
+  local __fuse_len_0 i64
   local __fuse_i_1 i64
   local x string
   i32.const 1
@@ -155,24 +155,18 @@ fn 2 snippet$main () -> i32
   string.const 0   ; "a"
   string.const 1   ; "b"
   array.new 7 2   ; string[]
-  local.set 0   ; xs
-  array.new 7 0   ; string[]
+  local.tee 0   ; xs
+  array.len
+  array.reserve 7   ; string[]
   local.set 1   ; walked
   local.get 0   ; xs
   array.len
-  local.set 5   ; $len_37
-  local.get 1   ; walked
-  local.get 5   ; $len_37
-  array.repeat
-  local.set 1   ; walked
-  local.get 0   ; xs
-  array.len
-  local.set 5   ; $len_37
+  local.set 5   ; __fuse_len_0
   i64.const 0
   local.set 6   ; __fuse_i_1
   loop $L4 void
     local.get 6   ; __fuse_i_1
-    local.get 5   ; $len_37
+    local.get 5   ; __fuse_len_0
     i64.lt
     if $L5 void
       local.get 0   ; xs
@@ -241,24 +235,19 @@ fn 5 concat_2 (string,string) -> string
 end
 
 fn 6 std_core$$array$Display$to_string__i32 (ref) -> string
-  local $arr_1 ref
-  local $len_2 i64
+  local parts ref
+  local size i64
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
   local part string
-  local $call_17 i64
-  array.new 7 0   ; string[]
-  local.set 1   ; $arr_1
+  local $call_16 i64
   local.get 0   ; arg 0
   array.len
-  local.set 2   ; $len_2
-  local.get 1   ; $arr_1
-  local.get 2   ; $len_2
-  array.repeat
-  local.set 1   ; $arr_1
+  array.reserve 7   ; string[]
+  local.set 1   ; parts
   i64.const 2
-  local.set 2   ; $len_2
+  local.set 2   ; size
   local.get 0   ; arg 0
   local.tee 3   ; __for_arr_0
   array.len
@@ -276,12 +265,12 @@ fn 6 std_core$$array$Display$to_string__i32 (ref) -> string
       call 8   ; std_core$i32$Display$to_string
       local.tee 6   ; part
       call.import 0   ; std_core$byte_len
-      local.set 7   ; $call_17
-      local.get 2   ; $len_2
-      local.get 7   ; $call_17
+      local.set 7   ; $call_16
+      local.get 2   ; size
+      local.get 7   ; $call_16
       i64.checked_add
-      local.set 2   ; $len_2
-      local.get 1   ; $arr_1
+      local.set 2   ; size
+      local.get 1   ; parts
       local.get 6   ; part
       array.push 6   ; string
       local.get 5   ; __for_i_2
@@ -291,12 +280,12 @@ fn 6 std_core$$array$Display$to_string__i32 (ref) -> string
       br $L0
     end $L1
   end $L0
-  local.get 1   ; $arr_1
+  local.get 1   ; parts
   array.len
   i64.const 1
   i64.gt
   if $L2 void
-    local.get 1   ; $arr_1
+    local.get 1   ; parts
     array.len
     i64.const 1
     i64.checked_sub
@@ -305,21 +294,21 @@ fn 6 std_core$$array$Display$to_string__i32 (ref) -> string
     local.get 4   ; __for_len_1
     i64.checked_mul
     local.set 4   ; __for_len_1
-    local.get 2   ; $len_2
+    local.get 2   ; size
     local.get 4   ; __for_len_1
     i64.checked_add
-    local.set 2   ; $len_2
+    local.set 2   ; size
   end $L2
-  local.get 2   ; $len_2
+  local.get 2   ; size
   buffer.new
   local.tee 3   ; __for_arr_0
   i64.const 0
   string.const 3   ; "["
   call 10   ; std_core$write_string_at
-  local.set 2   ; $len_2
+  local.set 2   ; size
   i64.const 0
   local.set 4   ; __for_len_1
-  local.get 1   ; $arr_1
+  local.get 1   ; parts
   array.len
   local.set 5   ; __for_i_2
   loop $L3 void
@@ -332,21 +321,21 @@ fn 6 std_core$$array$Display$to_string__i32 (ref) -> string
       i64.gt
       if $L5 void
         local.get 3   ; __for_arr_0
-        local.get 2   ; $len_2
+        local.get 2   ; size
         string.const 4   ; ", "
         call 10   ; std_core$write_string_at
-        local.set 2   ; $len_2
+        local.set 2   ; size
       end $L5
-      local.get 1   ; $arr_1
+      local.get 1   ; parts
       local.get 4   ; __for_len_1
       array.get 7   ; string[]
       ref.cast 6   ; string
       local.set 6   ; part
       local.get 3   ; __for_arr_0
-      local.get 2   ; $len_2
+      local.get 2   ; size
       local.get 6   ; part
       call 10   ; std_core$write_string_at
-      local.set 2   ; $len_2
+      local.set 2   ; size
       local.get 4   ; __for_len_1
       i64.const 1
       i64.add
@@ -355,35 +344,30 @@ fn 6 std_core$$array$Display$to_string__i32 (ref) -> string
     end $L4
   end $L3
   local.get 3   ; __for_arr_0
-  local.get 2   ; $len_2
+  local.get 2   ; size
   string.const 5   ; "]"
   call 10   ; std_core$write_string_at
-  local.set 2   ; $len_2
+  local.set 2   ; size
   local.get 3   ; __for_arr_0
-  local.get 2   ; $len_2
+  local.get 2   ; size
   call 11   ; std_core$finish_buffer
   return
 end
 
 fn 7 std_core$$array$Display$to_string__string (ref) -> string
-  local $arr_1 ref
-  local $len_2 i64
+  local parts ref
+  local size i64
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
   local part string
-  local $call_17 i64
-  array.new 7 0   ; string[]
-  local.set 1   ; $arr_1
+  local $call_16 i64
   local.get 0   ; arg 0
   array.len
-  local.set 2   ; $len_2
-  local.get 1   ; $arr_1
-  local.get 2   ; $len_2
-  array.repeat
-  local.set 1   ; $arr_1
+  array.reserve 7   ; string[]
+  local.set 1   ; parts
   i64.const 2
-  local.set 2   ; $len_2
+  local.set 2   ; size
   local.get 0   ; arg 0
   local.tee 3   ; __for_arr_0
   array.len
@@ -402,12 +386,12 @@ fn 7 std_core$$array$Display$to_string__string (ref) -> string
       call 9   ; std_core$string$Display$to_string
       local.tee 6   ; part
       call.import 0   ; std_core$byte_len
-      local.set 7   ; $call_17
-      local.get 2   ; $len_2
-      local.get 7   ; $call_17
+      local.set 7   ; $call_16
+      local.get 2   ; size
+      local.get 7   ; $call_16
       i64.checked_add
-      local.set 2   ; $len_2
-      local.get 1   ; $arr_1
+      local.set 2   ; size
+      local.get 1   ; parts
       local.get 6   ; part
       array.push 6   ; string
       local.get 5   ; __for_i_2
@@ -417,12 +401,12 @@ fn 7 std_core$$array$Display$to_string__string (ref) -> string
       br $L0
     end $L1
   end $L0
-  local.get 1   ; $arr_1
+  local.get 1   ; parts
   array.len
   i64.const 1
   i64.gt
   if $L2 void
-    local.get 1   ; $arr_1
+    local.get 1   ; parts
     array.len
     i64.const 1
     i64.checked_sub
@@ -431,21 +415,21 @@ fn 7 std_core$$array$Display$to_string__string (ref) -> string
     local.get 4   ; __for_len_1
     i64.checked_mul
     local.set 4   ; __for_len_1
-    local.get 2   ; $len_2
+    local.get 2   ; size
     local.get 4   ; __for_len_1
     i64.checked_add
-    local.set 2   ; $len_2
+    local.set 2   ; size
   end $L2
-  local.get 2   ; $len_2
+  local.get 2   ; size
   buffer.new
   local.tee 3   ; __for_arr_0
   i64.const 0
   string.const 3   ; "["
   call 10   ; std_core$write_string_at
-  local.set 2   ; $len_2
+  local.set 2   ; size
   i64.const 0
   local.set 4   ; __for_len_1
-  local.get 1   ; $arr_1
+  local.get 1   ; parts
   array.len
   local.set 5   ; __for_i_2
   loop $L3 void
@@ -458,21 +442,21 @@ fn 7 std_core$$array$Display$to_string__string (ref) -> string
       i64.gt
       if $L5 void
         local.get 3   ; __for_arr_0
-        local.get 2   ; $len_2
+        local.get 2   ; size
         string.const 4   ; ", "
         call 10   ; std_core$write_string_at
-        local.set 2   ; $len_2
+        local.set 2   ; size
       end $L5
-      local.get 1   ; $arr_1
+      local.get 1   ; parts
       local.get 4   ; __for_len_1
       array.get 7   ; string[]
       ref.cast 6   ; string
       local.set 6   ; part
       local.get 3   ; __for_arr_0
-      local.get 2   ; $len_2
+      local.get 2   ; size
       local.get 6   ; part
       call 10   ; std_core$write_string_at
-      local.set 2   ; $len_2
+      local.set 2   ; size
       local.get 4   ; __for_len_1
       i64.const 1
       i64.add
@@ -481,12 +465,12 @@ fn 7 std_core$$array$Display$to_string__string (ref) -> string
     end $L4
   end $L3
   local.get 3   ; __for_arr_0
-  local.get 2   ; $len_2
+  local.get 2   ; size
   string.const 5   ; "]"
   call 10   ; std_core$write_string_at
-  local.set 2   ; $len_2
+  local.set 2   ; size
   local.get 3   ; __for_arr_0
-  local.get 2   ; $len_2
+  local.get 2   ; size
   call 11   ; std_core$finish_buffer
   return
 end

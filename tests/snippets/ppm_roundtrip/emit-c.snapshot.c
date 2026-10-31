@@ -1135,13 +1135,11 @@ static vader_box_t images_ppm$encode(void* l0) {
         l9 = std_core$write_unsigned(l8, l9, l4);
         l9 = std_core$write_string_at(l8, l9, 33u);
         l7 = std_core$finish_buffer(l8, l9);
-        vader_array_t* _a1_arr = vader_array_new(8u, 0u, 1u, 6u);
-        l8 = (void*) _a1_arr;
         l9 = vader_host_std_core$byte_len(l7);
         l10 = ((vader_array_t*) ((vader_struct_images_ppm$Ppm_t*) l0)->f_pixels)->length;
-        l9 = vader_chk_add(i64, l9, l10);
-        vader_array_t* _a2_arr = vader_array_repeat((vader_array_t*) l8, (int64_t) l9);
-        l8 = (void*) _a2_arr;
+        t1 = vader_chk_add(i64, l9, l10);
+        vader_array_t* _a1_arr = vader_array_reserve(8u, (int64_t) t1, 1u, 6u);
+        l8 = (void*) _a1_arr;
         l11 = vader_host_std_core$bytes(l7);
         vader_array_push_all((vader_array_t*) l8, (vader_array_t*) l11);
         l11 = ((vader_struct_images_ppm$Ppm_t*) l0)->f_pixels;
@@ -1156,10 +1154,10 @@ static vader_box_t images_ppm$encode(void* l0) {
     l5 = std_core$write_string_at(l2, l5, 36u);
     l5 = std_core$write_int(l2, l5, l3);
     t2 = std_core$finish_buffer(l2, l5);
-    vader_struct_images_ppm$PpmError_t* _a3_obj = (vader_struct_images_ppm$PpmError_t*) vader_gc_alloc(sizeof(vader_struct_images_ppm$PpmError_t));
-    vader_obj_header_init(_a3_obj, 19u);
-    _a3_obj->f_msg = t2;
-    t3 = (void*) _a3_obj;
+    vader_struct_images_ppm$PpmError_t* _a2_obj = (vader_struct_images_ppm$PpmError_t*) vader_gc_alloc(sizeof(vader_struct_images_ppm$PpmError_t));
+    vader_obj_header_init(_a2_obj, 19u);
+    _a2_obj->f_msg = t2;
+    t3 = (void*) _a2_obj;
     { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1304,24 +1302,22 @@ static vader_box_t images_ppm$decode(void* l0) {
     t0 = ((vader_array_t*) l0)->length;
     l9 = vader_chk_sub(i64, t0, l2);
     if (!(l9 != l8)) {
-        vader_array_t* _a9_arr = vader_array_new(8u, 0u, 1u, 6u);
-        t3 = (void*) _a9_arr;
-        vader_array_t* _a10_arr = vader_array_repeat((vader_array_t*) t3, (int64_t) l9);
-        l6 = (void*) _a10_arr;
+        vader_array_t* _a9_arr = vader_array_reserve(8u, (int64_t) l9, 1u, 6u);
+        l6 = (void*) _a9_arr;
         l10 = ((vader_array_t*) l0)->length;
-        vader_array_t* _a11_arr = vader_array_slice((vader_array_t*) l0, (int64_t) l2, (int64_t) l10);
-        l11 = (void*) _a11_arr;
+        vader_array_t* _a10_arr = vader_array_slice((vader_array_t*) l0, (int64_t) l2, (int64_t) l10);
+        l11 = (void*) _a10_arr;
         vader_array_push_all((vader_array_t*) l6, (vader_array_t*) l11);
         l12 = ((vader_struct_images_ppm$ScanInt_t*) l3)->f_value;
         l13 = ((vader_struct_images_ppm$ScanInt_t*) l4)->f_value;
         l14 = ((vader_struct_images_ppm$ScanInt_t*) l5)->f_value;
-        vader_struct_images_ppm$Ppm_t* _a12_obj = (vader_struct_images_ppm$Ppm_t*) vader_gc_alloc(sizeof(vader_struct_images_ppm$Ppm_t));
-        vader_obj_header_init(_a12_obj, 17u);
-        _a12_obj->f_width = l12;
-        _a12_obj->f_height = l13;
-        _a12_obj->f_maxval = l14;
-        _a12_obj->f_pixels = l6;
-        t3 = (void*) _a12_obj;
+        vader_struct_images_ppm$Ppm_t* _a11_obj = (vader_struct_images_ppm$Ppm_t*) vader_gc_alloc(sizeof(vader_struct_images_ppm$Ppm_t));
+        vader_obj_header_init(_a11_obj, 17u);
+        _a11_obj->f_width = l12;
+        _a11_obj->f_height = l13;
+        _a11_obj->f_maxval = l14;
+        _a11_obj->f_pixels = l6;
+        t3 = (void*) _a11_obj;
         { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l3 = (void*) vader_buffer_new((size_t) INT64_C(72));
@@ -1331,10 +1327,10 @@ static vader_box_t images_ppm$decode(void* l0) {
     l2 = std_core$write_string_at(l3, l2, 36u);
     l2 = std_core$write_int(l3, l2, l8);
     t6 = std_core$finish_buffer(l3, l2);
-    vader_struct_images_ppm$PpmError_t* _a13_obj = (vader_struct_images_ppm$PpmError_t*) vader_gc_alloc(sizeof(vader_struct_images_ppm$PpmError_t));
-    vader_obj_header_init(_a13_obj, 19u);
-    _a13_obj->f_msg = t6;
-    t3 = (void*) _a13_obj;
+    vader_struct_images_ppm$PpmError_t* _a12_obj = (vader_struct_images_ppm$PpmError_t*) vader_gc_alloc(sizeof(vader_struct_images_ppm$PpmError_t));
+    vader_obj_header_init(_a12_obj, 19u);
+    _a12_obj->f_msg = t6;
+    t3 = (void*) _a12_obj;
     { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
 }
 

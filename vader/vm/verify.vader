@@ -194,6 +194,7 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
         is bc.StructNew  -> struct_new_effect(module, op.type_id)
         is bc.ArrayNew   -> if op.length >= 0 { effect(i64(op.length), 1) } else { null }
         is bc.TypeConst  -> indexed_effect(op.type_id, module.types.len(), 0, 1)
+        is bc.ArrayReserve -> indexed_effect(op.type_id, module.types.len(), 1, 1)
         is bc.TypeCheck  -> indexed_effect(op.type_id, module.types.len(), 1, 1)
         is bc.CheckedArith -> if bc.is_integer_val(op.kind) { effect(2, 1) } else { null }
         is bc.CheckedNeg   -> if bc.is_integer_val(op.kind) { effect(1, 1) } else { null }

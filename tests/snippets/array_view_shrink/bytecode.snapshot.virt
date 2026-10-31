@@ -34,27 +34,24 @@ impl 8 std_core$Display
 export main 3
 
 fn 0 snippet$make_nodes (i32) -> ref
-  local $arr_1 ref
   local if_res i64
+  local nodes ref
   local i i32
-  local $struct_14 ref
-  array.new 2 0   ; snippet$Node[]
-  local.set 1   ; $arr_1
+  local $struct_13 ref
   i32.const 0
   local.get 0   ; arg 0
   i32.lt
   if $L0 void
     local.get 0   ; arg 0
     i32.to_i64
-    local.set 2   ; if_res
+    local.set 1   ; if_res
   else
     i64.const 0
-    local.set 2   ; if_res
+    local.set 1   ; if_res
   end $L0
-  local.get 1   ; $arr_1
-  local.get 2   ; if_res
-  array.repeat
-  local.set 1   ; $arr_1
+  local.get 1   ; if_res
+  array.reserve 2   ; snippet$Node[]
+  local.set 2   ; nodes
   i32.const 0
   local.set 3   ; i
   loop $L1 void
@@ -66,9 +63,9 @@ fn 0 snippet$make_nodes (i32) -> ref
       i32.const 7
       i32.checked_mul
       struct.new 3   ; snippet$Node
-      local.set 4   ; $struct_14
-      local.get 1   ; $arr_1
-      local.get 4   ; $struct_14
+      local.set 4   ; $struct_13
+      local.get 2   ; nodes
+      local.get 4   ; $struct_13
       array.push 3   ; snippet$Node
       local.get 3   ; i
       i32.const 1
@@ -77,18 +74,17 @@ fn 0 snippet$make_nodes (i32) -> ref
       br $L1
     end $L2
   end $L1
-  local.get 1   ; $arr_1
+  local.get 2   ; nodes
   return
 end
 
 fn 1 snippet$collect_and_churn () -> void
   local junk ref
   local _ i32
-  local $struct_9 ref
+  local $struct_8 ref
   call.import 2   ; std_runtime$collect
-  array.new 2 0   ; snippet$Node[]
   i64.const 100000
-  array.repeat
+  array.reserve 2   ; snippet$Node[]
   local.set 0   ; junk
   i32.const 0
   local.set 1   ; _
@@ -99,9 +95,9 @@ fn 1 snippet$collect_and_churn () -> void
     if $L1 void
       i32.const -1
       struct.new 3   ; snippet$Node
-      local.set 2   ; $struct_9
+      local.set 2   ; $struct_8
       local.get 0   ; junk
-      local.get 2   ; $struct_9
+      local.get 2   ; $struct_8
       array.push 3   ; snippet$Node
       local.get 1   ; _
       i32.const 1
@@ -495,24 +491,19 @@ fn 8 std_core$write_int (ref,i64,i64) -> i64
 end
 
 fn 9 std_core$$array$Display$to_string__i32 (ref) -> string
-  local $arr_1 ref
-  local $len_2 i64
+  local parts ref
+  local size i64
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
   local part string
-  local $call_17 i64
-  array.new 12 0   ; string[]
-  local.set 1   ; $arr_1
+  local $call_16 i64
   local.get 0   ; arg 0
   array.len
-  local.set 2   ; $len_2
-  local.get 1   ; $arr_1
-  local.get 2   ; $len_2
-  array.repeat
-  local.set 1   ; $arr_1
+  array.reserve 12   ; string[]
+  local.set 1   ; parts
   i64.const 2
-  local.set 2   ; $len_2
+  local.set 2   ; size
   local.get 0   ; arg 0
   local.tee 3   ; __for_arr_0
   array.len
@@ -530,12 +521,12 @@ fn 9 std_core$$array$Display$to_string__i32 (ref) -> string
       call 10   ; std_core$i32$Display$to_string
       local.tee 6   ; part
       call.import 0   ; std_core$byte_len
-      local.set 7   ; $call_17
-      local.get 2   ; $len_2
-      local.get 7   ; $call_17
+      local.set 7   ; $call_16
+      local.get 2   ; size
+      local.get 7   ; $call_16
       i64.checked_add
-      local.set 2   ; $len_2
-      local.get 1   ; $arr_1
+      local.set 2   ; size
+      local.get 1   ; parts
       local.get 6   ; part
       array.push 5   ; string
       local.get 5   ; __for_i_2
@@ -545,12 +536,12 @@ fn 9 std_core$$array$Display$to_string__i32 (ref) -> string
       br $L0
     end $L1
   end $L0
-  local.get 1   ; $arr_1
+  local.get 1   ; parts
   array.len
   i64.const 1
   i64.gt
   if $L2 void
-    local.get 1   ; $arr_1
+    local.get 1   ; parts
     array.len
     i64.const 1
     i64.checked_sub
@@ -559,21 +550,21 @@ fn 9 std_core$$array$Display$to_string__i32 (ref) -> string
     local.get 4   ; __for_len_1
     i64.checked_mul
     local.set 4   ; __for_len_1
-    local.get 2   ; $len_2
+    local.get 2   ; size
     local.get 4   ; __for_len_1
     i64.checked_add
-    local.set 2   ; $len_2
+    local.set 2   ; size
   end $L2
-  local.get 2   ; $len_2
+  local.get 2   ; size
   buffer.new
   local.tee 3   ; __for_arr_0
   i64.const 0
   string.const 8   ; "["
   call 7   ; std_core$write_string_at
-  local.set 2   ; $len_2
+  local.set 2   ; size
   i64.const 0
   local.set 4   ; __for_len_1
-  local.get 1   ; $arr_1
+  local.get 1   ; parts
   array.len
   local.set 5   ; __for_i_2
   loop $L3 void
@@ -586,21 +577,21 @@ fn 9 std_core$$array$Display$to_string__i32 (ref) -> string
       i64.gt
       if $L5 void
         local.get 3   ; __for_arr_0
-        local.get 2   ; $len_2
+        local.get 2   ; size
         string.const 9   ; ", "
         call 7   ; std_core$write_string_at
-        local.set 2   ; $len_2
+        local.set 2   ; size
       end $L5
-      local.get 1   ; $arr_1
+      local.get 1   ; parts
       local.get 4   ; __for_len_1
       array.get 12   ; string[]
       ref.cast 5   ; string
       local.set 6   ; part
       local.get 3   ; __for_arr_0
-      local.get 2   ; $len_2
+      local.get 2   ; size
       local.get 6   ; part
       call 7   ; std_core$write_string_at
-      local.set 2   ; $len_2
+      local.set 2   ; size
       local.get 4   ; __for_len_1
       i64.const 1
       i64.add
@@ -609,12 +600,12 @@ fn 9 std_core$$array$Display$to_string__i32 (ref) -> string
     end $L4
   end $L3
   local.get 3   ; __for_arr_0
-  local.get 2   ; $len_2
+  local.get 2   ; size
   string.const 10   ; "]"
   call 7   ; std_core$write_string_at
-  local.set 2   ; $len_2
+  local.set 2   ; size
   local.get 3   ; __for_arr_0
-  local.get 2   ; $len_2
+  local.get 2   ; size
   call 6   ; std_core$finish_buffer
   return
 end

@@ -9,7 +9,7 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       labels: string[] = ["a", "b", "c"] :string[]
-      thunks: (fn() -> void)[] = @array.repeat([] :(fn() -> void)[], @array.len(labels))
+      thunks: (fn() -> void)[] = @array.reserve(@array.len(labels))
       {
           __for_arr_0: string[] = labels
           __for_len_1: i64 = @array.len(__for_arr_0)
@@ -48,7 +48,7 @@
               i = i +% 1
           }
       }
-      mapped: (fn() -> void)[] = @array.repeat([] :(fn() -> void)[], i64(3))
+      mapped: (fn() -> void)[] = @array.reserve(i64(3))
       {
           f: fn(i32) -> i32 = snippet.tenfold
           x: i32 = 0

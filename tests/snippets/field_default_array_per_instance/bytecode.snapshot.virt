@@ -83,9 +83,8 @@ fn 1 snippet$main () -> i32
   local.get 3   ; __off_1
   call 3   ; std_core$finish_buffer
   call 9   ; std_io$println__string
-  array.new 12 0   ; snippet$Log[]
   i64.const 2
-  array.repeat
+  array.reserve 12   ; snippet$Log[]
   local.set 0   ; a
   i32.const 0
   local.set 5   ; _
