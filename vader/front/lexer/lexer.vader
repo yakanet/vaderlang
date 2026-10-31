@@ -177,6 +177,17 @@ skip_bom :: fn(l: Lexer) -> void {
     }
 }
 
+// Skip what may open the file before its first token: a UTF-8 BOM, then a
+// shebang on line 1, silently dropped.
+skip_opening :: fn(l: Lexer) -> void {
+    l.skip_bom()
+    if l.peek() == '#' && l.peek_at(1) == '!' {
+        for !l.at_end() && l.peek() != '\n' {
+            l.advance(1)
+        }
+    }
+}
+
 // The detail of the file's L0012: how many runs it stands for.
 malformed_utf8_detail :: fn(runs: i32) -> string {
     if runs == 1 {
@@ -1150,15 +1161,25 @@ export tokenize_with_docs :: fn(source: string, file: string) -> LexedSource =
         .include_doc_comments = true,
     })
 
+/// Lex the opening of `source`, up to its first `count` tokens, as `tokenize`
+/// lexes them, and nothing after. A string literal comes whole, so the tokens can
+/// outnumber `count`; the lexer's diagnostics are dropped.
+///
+/// @param source  the text of the file.
+/// @param file    the path its spans name.
+/// @param count   how many tokens to lex at least, unless the file ends first.
+export tokenize_opening :: fn(source: string, file: string, count: i64) -> Token[] {
+    l :: Lexer { .src = source, .file = file }
+    l.skip_opening()
+    for !l.at_end() && l.tokens.len() < count {
+        l.lex_one()
+    }
+    return l.tokens
+}
+
 // Lex the whole of `l.src`.
 run_lexer :: fn(l: Lexer) -> LexedSource {
-    l.skip_bom()
-    // Shebang: only allowed on line 1 and silently dropped.
-    if l.line == 1 && l.peek() == '#' && l.peek_at(1) == '!' {
-        for !l.at_end() && l.peek() != '\n' {
-            l.advance(1)
-        }
-    }
+    l.skip_opening()
     for !l.at_end() {
         l.lex_one()
     }

@@ -57,134 +57,45 @@ parse_lexed :: fn(l: LexedSource) -> ParsedSource {
     }
 }
 
-/// Header-only parse : byte-scan the file's prologue for the
-/// `module "<name>"` decl. The full lexer + parser are too expensive
-/// to run on every file under the scoped roots (the Vader self-host's
-/// GC arenas can't hold ~170 tokenized Token[] arrays at once) ; this
-/// hand-rolled scanner only reads the prologue, skipping shebang +
-/// line comments + block comments + whitespace, then matches the
-/// soft-keyword `module` followed by a double-quoted string.
-///
-/// Returns null when no decl is found (the caller treats that as
-/// R2020 territory). The returned span carries only the file path:
-/// a precise span would require char-by-char position tracking
-/// across the scanner, which isn't worth the cost for diagnostics
-/// the resolver re-resolves at its own pass anyway.
+/// The `module "<name>"` declaration that opens a file, read without parsing
+/// the rest: the loader reads the header of every file under the scoped roots.
 export ModuleHeader :: struct {
     name:      string
+    /// The name's string literal, quotes included.
     name_span: Span
 }
 
+/// Read the `module "<name>"` declaration that opens `source`, lexing only its
+/// first tokens: whatever comments come before it are skipped as the parser
+/// skips them.
+///
+/// @param source  the text of the file.
+/// @param file    the path its spans name.
+/// @return        null when the file does not open on `module` and a plain
+///                string name.
 export parse_module_header :: fn(source: string, file: string) -> ModuleHeader | null {
-    n :: source.byte_len()
-    i: i64 = 0
-    // UTF-8 BOM (EF BB BF): skip it exactly like the main lexer's `tokenize`
-    // does. Without this the byte-scan reads `0xEF` as the first non-trivial
-    // byte, fails to match `module`, and the caller reports a misleading
-    // R2020 (missing module decl) on a file that has one.
-    if source.matches_at(0, "\u{FEFF}") {
-        i = 3
-    }
-    // Optional shebang on first line.
-    if source.matches_at(i, "#!") {
-        i = skip_to_eol(source, i)
-    }
-    // Skip whitespace + line/block comments until we hit the first
-    // non-trivial token. Bail out early past a reasonable header-size
-    // budget to avoid scanning the entire file when no decl exists.
-    budget :: header_budget(n)
-    for i < budget {
-        c :: source.byte_at(i)
-        if c == ' ' || c == '\t' || c == '\n' || c == '\r' {
-            i = i + 1
-            continue
-        }
-        // Line comment `// ...`
-        if source.matches_at(i, "//") {
-            i = skip_to_eol(source, i)
-            continue
-        }
-        // Block comment `/* ... */`
-        if source.matches_at(i, "/*") {
-            i = skip_block_comment(source, i + 2)
-            continue
-        }
-        break
-    }
-    // Match `module "<name>"` at the current position. Anything else
-    // means no header decl (callers may still treat it as a tolerant
-    // pre-Phase-7 file).
-    if !source.matches_at(i, "module") {
+    // `module`, then the name: `StringBegin`, its `StringPart` unless it is empty,
+    // `StringEnd`. An empty name is the parser's to refuse (P1028).
+    tokens :: tokenize_opening(source, file, 4)
+    if tokens.len() < 3 || tokens[0].kind != .Ident || tokens[0].text != "module" {
         return null
     }
-    i = i + "module".byte_len()
-    // Whitespace between `module` and the string literal.
-    for i < n {
-        c :: source.byte_at(i)
-        if c == ' ' || c == '\t' {
-            i = i + 1
-            continue
-        }
-        break
-    }
-    // The opening `"`.
-    if !source.matches_at(i, "\"") {
+    if tokens[1].kind != .StringBegin {
         return null
     }
-    i = i + 1
-    name_start :: i
-    for i < n && source.byte_at(i) != '"' {
-        i = i + 1
+    if tokens[2].kind == .StringEnd {
+        return header_of("", tokens[1], tokens[2])
     }
-    // Unterminated.
-    if i >= n {
+    if tokens.len() < 4 || tokens[2].kind != .StringPart || tokens[3].kind != .StringEnd {
         return null
     }
-    name :: source.byte_slice(name_start, i)
-    return ModuleHeader { .name = name, .name_span = empty_file_span(file) }
+    return header_of(tokens[2].text, tokens[1], tokens[3])
 }
 
-// Scan budget: most module decls land in the first 1 KB ; bail past
-// 4 KB to stay O(1) memory regardless of file size when the prologue
-// looks malformed.
-header_budget :: fn(n: i64) -> i64 {
-    cap: i64: 4096
-    if n < cap { return n }
-    return cap
-}
-
-skip_to_eol :: fn(source: string, from: i64) -> i64 {
-    n :: source.byte_len()
-    i := from
-    for i < n && source.byte_at(i) != '\n' {
-        i = i + 1
-    }
-    if i < n {
-        i = i + 1
-    }
-    return i
-}
-
-skip_block_comment :: fn(source: string, from: i64) -> i64 {
-    n :: source.byte_len()
-    i := from
-    depth: i32 = 1
-    for i + 1 < n && depth > 0 {
-        c0 :: source.byte_at(i)
-        c1 :: source.byte_at(i + 1)
-        if c0 == '/' && c1 == '*' {
-            depth = depth + 1
-            i = i + 2
-            continue
-        }
-        if c0 == '*' && c1 == '/' {
-            depth = depth - 1
-            i = i + 2
-            continue
-        }
-        i = i + 1
-    }
-    return i
+// The header naming `name`, its literal running from `begin` to `end`.
+header_of :: fn(name: string, begin: Token, end: Token) = ModuleHeader {
+    .name = name,
+    .name_span = Span { .start = begin.span.start, .end = end.span.end },
 }
 
 // ---- Parser state ---------------------------------------------------------
@@ -4301,4 +4212,35 @@ decl_doc_texts :: fn(src: string) -> string {
 @test test_parse_source_keeps_no_docs :: fn() -> void {
     d :: parse_source("module \"t\"\n/// Doc.\nA :: 1\n", "t.vader").program.decls[0]
     assert(decl_doc(d) == null, "a build parse keeps no docs")
+}
+
+// The name `parse_module_header` reads in `source`, `<none>` when it reads none.
+header_name :: fn(source: string) -> string {
+    header :: parse_module_header(source, "header.vader") ?? return "<none>"
+    return header.name
+}
+
+@test
+test_module_header_after_a_long_licence :: fn() -> void {
+    licence :: StringBuilder {}
+    for 0..<70 {
+        licence.append("// Licensed under the terms of the licence at the root of this tree.\n")
+    }
+    licence.append("/* a block /* nested */ comment */\n\nmodule \"repro\"\n")
+    assert_eq(header_name(licence.to_string()), "repro")
+}
+
+@test
+test_module_header_absent :: fn() -> void {
+    assert_eq(header_name("// no header\nmain :: fn() -> i32 = 0\n"), "<none>")
+}
+
+@test
+test_module_header_needs_a_string_name :: fn() -> void {
+    assert_eq(header_name("module repro\n"), "<none>")
+}
+
+@test
+test_module_header_with_an_empty_name :: fn() -> void {
+    assert_eq(header_name("module \"\"\n"), "")
 }
