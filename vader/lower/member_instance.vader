@@ -71,7 +71,7 @@ member_instance :: fn(
     mangled :: impl_member_name(entry.module, target, entry.trait_symbol, member.name, suffix)
     note_member_origin(ctx, mangled, member, entry.trait_key)
     if claim_impl_member(ctx.project, mangled) {
-        ctx.project.member_instances.push(
+        ctx.project.member_instance_queue.push(
             MemberInstance {
                 .entry = entry,
                 .member = member,

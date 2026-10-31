@@ -19,40 +19,29 @@ import "vader/core/types"
 import "vader/core/symbol"
 import "toolchain/span"
 
-/// Build phase of generic-fn-instance materialisation. Drains the
-/// `fn_instances_order` + `pending_generic_impl_recv` queues into
+/// Build phase of generic-fn-instance materialisation. Drains
+/// `fn_instance_queue` and `generic_impl_recv_queue` into
 /// `project_ctx.generic_collected`, and lowers each queued impl member instance
-/// (`member_instances`) straight into its module, lowering each instance body against a
-/// fresh `Substitution` binding the fn's typeParams to the call site's
-/// concrete types. Resumes from the persistent `generic_fn_cursor` /
-/// `generic_recv_cursor` so `lower_project`'s generic↔stdlib joint fixpoint
-/// can re-run it as later harvest rounds register new instances (e.g. `len`
-/// pulled in by the harvested `std/json::write_object` body). The sort +
-/// erasure-dedup + push happens once in `flush_generic_fn_instances`.
+/// (`member_instance_queue`) straight into its module, lowering each instance
+/// body against a fresh `Substitution` binding the fn's typeParams to the call
+/// site's concrete types. The queues resume where they stopped, so
+/// `lower_project`'s generic↔stdlib joint fixpoint can re-run it as later
+/// harvest rounds register new instances (e.g. `len` pulled in by the harvested
+/// `std/json::write_object` body). The sort + erasure-dedup + push happens once
+/// in `flush_generic_fn_instances`.
 drain_generic_fn_instances :: fn(
     typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     // Transitive monomorphisation : lowering an instance body can register
-    // *new* instances (`outer<T>` calling `inner<T>`), appending to
-    // `fn_instances_order` mid-loop ; the persistent `generic_fn_cursor` (seeded
-    // into the local `i`, written back at the end) re-reads `len()` each step so
-    // it visits every transitive instance (INCLUDING those a later harvest
-    // round registers, since the joint fixpoint re-enters this fn) without
-    // re-processing earlier ones. `generic_processed` dedups duplicate
-    // `(symbol, args)` discoveries. Re-indexing by position is safe across
-    // reallocs.
+    // *new* instances (`outer<T>` calling `inner<T>`) on the queue it drains.
+    // `generic_processed` dedups duplicate `(symbol, args)` discoveries.
     // Joint fixpoint over fn instances, erased generic-struct impl receivers
-    // (`pending_generic_impl_recv`) and impl member instances
-    // (`member_instances`). Every cursor only grows ; lowering any of them can
-    // queue more of the others (`MutableMap.contains` → `contains_key`), so the
-    // three drain to a shared fixpoint via a single growing-cursor loop.
-    i := project_ctx.generic_fn_cursor
-    ri := project_ctx.generic_recv_cursor
-    mi := project_ctx.member_instance_cursor
-    for pending_instances(project_ctx, i, ri, mi) {
-        for i < project_ctx.fn_instances_order.len() {
-            inst :: project_ctx.fn_instances_order[i]
-            i += 1
+    // and impl member instances: lowering any of them can queue more of the
+    // others (`MutableMap.contains` → `contains_key`), so the three drain
+    // until none holds work.
+    for pending_instances(project_ctx) {
+        for {
+            inst :: project_ctx.fn_instance_queue.take() ?? break
             key :: fn_instance_key(inst)
             if !project_ctx.generic_processed.add(key) { continue }
             built :: build_fn_instance_decl(inst, key, typed, project_ctx, diags)
@@ -64,27 +53,22 @@ drain_generic_fn_instances :: fn(
         // Materialise each queued generic-struct instance's struct decl and impl
         // members (`MutableMap<Any, bool>.Contains.contains__Any__bool`), deduped
         // via `materialized_impl_keys`.
-        for ri < project_ctx.pending_generic_impl_recv.len() {
-            recv :: project_ctx.pending_generic_impl_recv[ri]
-            ri += 1
+        for {
+            recv :: project_ctx.generic_impl_recv_queue.take() ?? break
             materialize_impl_members_for(recv, typed, project_ctx, project)
         }
-        for mi < project_ctx.member_instances.len() {
-            inst :: project_ctx.member_instances[mi]
-            mi += 1
+        for {
+            inst :: project_ctx.member_instance_queue.take() ?? break
             materialize_member_instance(inst, project_ctx, project)
         }
     }
-    project_ctx.generic_fn_cursor = i
-    project_ctx.generic_recv_cursor = ri
-    project_ctx.member_instance_cursor = mi
 }
 
-// Whether a queue still holds what the cursors `i`, `ri` and `mi` have not reached.
-pending_instances :: fn(project_ctx: LowerProjectCtx, i: i64, ri: i64, mi: i64) -> bool =
-    i < project_ctx.fn_instances_order.len()
-        || ri < project_ctx.pending_generic_impl_recv.len()
-        || mi < project_ctx.member_instances.len()
+// Whether one of the three queues of instances still holds work.
+pending_instances :: fn(project_ctx: LowerProjectCtx) -> bool =
+    project_ctx.fn_instance_queue.has_pending()
+        || project_ctx.generic_impl_recv_queue.has_pending()
+        || project_ctx.member_instance_queue.has_pending()
 
 /// Flush phase of generic-fn-instance materialisation. Sorts every instance
 /// `drain_generic_fn_instances` collected by `<fn_symbol.id>::<args_key>`
@@ -99,7 +83,7 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredP
     // group to a single decl keyed by `fn_symbol.id`, keeping the first
     // by sort order (`outer<i32>` + `outer<string>` -> one `outer__i32`).
     // Impl-member instances never reach `fn_instances` (they route through
-    // the mono / vtable path, or `member_instances`), so this only collapses
+    // the mono / vtable path, or `member_instance_queue`), so this only collapses
     // free generic fns.
     //
     // A trait-dispatching free generic fn (`dispatches`, built
@@ -194,7 +178,7 @@ lower_async_body :: fn(
 
 // Build (but don't push) the monomorphized `LoweredFnDecl` for `inst`.
 // Lowering the body here can register transitive fn instances into
-// `project_ctx.fn_instances_order`: the caller's fixpoint loop picks
+// `project_ctx.fn_instance_queue`: the caller's fixpoint loop picks
 // those up. Returns null when the owner module / source decl is
 // missing.
 build_fn_instance_decl :: fn(
@@ -387,14 +371,12 @@ call_site_instance_suffix :: fn(ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: 
 materialize_nongeneric_imported_fns :: fn(
     typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
 ) -> void {
-    // Cursor over a growing array : lowering one stdlib body can harvest
-    // further non-generic stdlib fns it calls, appending mid-loop.
-    // Resume from a persisted cursor : the materialise↔surface fixpoint loop
-    // re-enters this fn after surfacing harvests further free fns, and we must
-    // not re-lower the entries already emitted on an earlier pass.
-    for project_ctx.nongeneric_imported_cursor < project_ctx.nongeneric_imported_order.len() {
-        fn_sym :: project_ctx.nongeneric_imported_order[project_ctx.nongeneric_imported_cursor]
-        project_ctx.nongeneric_imported_cursor += 1
+    // The queue grows while it drains: lowering one stdlib body can harvest
+    // further non-generic stdlib fns it calls. The materialise↔surface
+    // fixpoint loop re-enters this fn after surfacing harvests further free
+    // fns, and the queue resumes past the entries an earlier pass emitted.
+    for {
+        fn_sym :: project_ctx.nongeneric_imported_queue.take() ?? break
         module_typed :: typed.modules[fn_sym.module] ?? continue
         fn_decl :: module_typed.fn_decls[fn_sym.id] ?? continue
         // Bodyless externs are surfaced up front in `lower_project`'s stdlib
@@ -425,13 +407,12 @@ materialize_nongeneric_imported_fns :: fn(
 materialize_nongeneric_imported_consts :: fn(
     typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
 ) -> void {
-    // Cursor over a growing array : lowering one const value can harvest
-    // further stdlib fns / consts it references, appending mid-loop. Resume
-    // from a persisted cursor so the materialise↔surface fixpoint re-enters
-    // without re-lowering earlier entries.
-    for project_ctx.nongeneric_imported_const_cursor < project_ctx.nongeneric_imported_const_order.len() {
-        const_sym :: project_ctx.nongeneric_imported_const_order[project_ctx.nongeneric_imported_const_cursor]
-        project_ctx.nongeneric_imported_const_cursor += 1
+    // The queue grows while it drains: lowering one const value can harvest
+    // further stdlib fns / consts it references. It resumes where it stopped,
+    // so the materialise↔surface fixpoint re-enters without re-lowering
+    // earlier entries.
+    for {
+        const_sym :: project_ctx.nongeneric_imported_const_queue.take() ?? break
         module_typed :: typed.modules[const_sym.module] ?? continue
         const_decl :: module_typed.const_decls[const_sym.id] ?? continue
         synth_start :: project_ctx.synth_decls.len()

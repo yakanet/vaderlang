@@ -70,7 +70,9 @@ queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
     if !ctx.project.seen_generic_impl_recv.add(recv_key) {
         return
     }
-    ctx.project.pending_generic_impl_recv.push(StructType { .symbol = recv.symbol, .args = mono_args })
+    ctx.project.generic_impl_recv_queue.push(
+        StructType { .symbol = recv.symbol, .args = mono_args },
+    )
 }
 
 // `is Trait` membership rows are now seeded from the frontend's

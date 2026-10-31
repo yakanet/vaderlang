@@ -144,7 +144,7 @@ register_fn_instance_mangle :: fn(
                 .owner_module = owner_module,
             }
             ctx.project.fn_instances[inst_key] = new_inst
-            ctx.project.fn_instances_order.push(new_inst)
+            ctx.project.fn_instance_queue.push(new_inst)
             return fresh
         }
     }

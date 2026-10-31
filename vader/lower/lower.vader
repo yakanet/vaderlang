@@ -165,21 +165,20 @@ lower_project_impl :: fn(
     }
     // Generic-fn instances + non-generic stdlib free fns are MUTUALLY
     // recursive : a generic instance body calls stdlib fns (harvested into
-    // `nongeneric_imported_order`), and a harvested stdlib body calls generic
-    // fns (registered into `fn_instances_order`, e.g. `std/json::write_object`
+    // `nongeneric_imported_queue`), and a harvested stdlib body calls generic
+    // fns (registered into `fn_instance_queue`, e.g. `std/json::write_object`
     // → `MutableMap.len`). Drain all the queues in ONE joint fixpoint until
-    // none grows : each pass resumes from its own persistent cursor, so
-    // re-entry only processes newly-registered work (`drain_generic_fn_instances`
-    // builds into `generic_collected` ; `materialize_nongeneric_imported_fns`
-    // resumes from `nongeneric_imported_cursor` ; `surface_*` dedupes via
-    // `materialized_impl_keys`). A pre-fixpoint single generic pass would
-    // strand any instance a later stdlib-harvest round registers (a `len__...`
-    // callee left unresolved at emit). The generic instances are
-    // FLUSHED (sorted + erasure-deduped + pushed) once after convergence so
-    // emission order is a single deterministic sort.
-    // All four queues are append-only (the three arrays) / add-only (the mangle
-    // set), so their combined length strictly increases until the joint fixpoint
-    // settles: loop until the total stops growing.
+    // none grows : each queue resumes where it stopped, so re-entry only
+    // processes newly-registered work (`drain_generic_fn_instances` builds into
+    // `generic_collected` ; `surface_*` dedupes via `materialized_impl_keys`).
+    // A pre-fixpoint single generic pass would strand any instance a later
+    // stdlib-harvest round registers (a `len__...` callee left unresolved at
+    // emit). The generic instances are FLUSHED (sorted + erasure-deduped +
+    // pushed) once after convergence so emission order is a single
+    // deterministic sort.
+    // The queues count every item ever queued and the sets only grow, so their
+    // combined length strictly increases until the joint fixpoint settles: loop
+    // until the total stops growing.
     prev_total: i64 = 0
     draining := true
     for draining {
@@ -188,12 +187,12 @@ lower_project_impl :: fn(
         materialize_nongeneric_imported_consts(typed, project_ctx, project, diags)
         materialize_enum_tables(typed, project_ctx, project)
         surface_referenced_intrinsic_externs(loaded, typed, project_ctx, project)
-        cur_total :: project_ctx.fn_instances_order.len() +
-            project_ctx.pending_generic_impl_recv.len() +
-            project_ctx.member_instances.len() +
-            project_ctx.nongeneric_imported_order.len() +
-            project_ctx.nongeneric_imported_const_order.len() +
-            project_ctx.enum_table_order.len() +
+        cur_total :: project_ctx.fn_instance_queue.total_queued() +
+            project_ctx.generic_impl_recv_queue.total_queued() +
+            project_ctx.member_instance_queue.total_queued() +
+            project_ctx.nongeneric_imported_queue.total_queued() +
+            project_ctx.nongeneric_imported_const_queue.total_queued() +
+            project_ctx.enum_table_queue.total_queued() +
             project_ctx.referenced_impl_mangles.len() +
             project_ctx.virtually_dispatched_traits.len() +
             project_ctx.constructed_struct_symbols.len()

@@ -201,10 +201,9 @@ LowerProjectCtx :: struct {
     /// per rank: for an enum with variant data whose values are not
     /// consecutive. Minted like `enum_data_consts`.
     enum_value_consts:   MutableMap<i32, Symbol>
-    /// Tables due, in first-read order. `materialize_enum_tables` lowers each
-    /// from `enum_table_cursor` on, inside the lowering fixpoint.
-    enum_table_order:    EnumTable[]
-    enum_table_cursor:   i64
+    /// Tables due, in first-read order. `materialize_enum_tables` takes each
+    /// inside the lowering fixpoint.
+    enum_table_queue:    WorkQueue<EnumTable> = WorkQueue<EnumTable> {}
 
     /// Monotonically-decreasing counter for synthetic symbol IDs.
     /// Starts at `-1` so it cannot collide with resolver-minted IDs
@@ -230,10 +229,10 @@ LowerProjectCtx :: struct {
     /// `"<fn_symbol.id>::<args_key>"` ; values carry the (fn_decl,
     /// args, mangled_name) tuple. Materialised at the end of
     /// `lower_project` as one `LoweredFnDecl` per instance.
-    /// `fn_instances_order` preserves insertion order so the dump
-    /// stays deterministic.
     fn_instances:        MutableMap<string, GenericFnInstance>
-    fn_instances_order:  GenericFnInstance[]
+    /// The instances of `fn_instances`, in registration order, for
+    /// `drain_generic_fn_instances` to build.
+    fn_instance_queue:   WorkQueue<GenericFnInstance> = WorkQueue<GenericFnInstance> {}
     /// Claimed instance mangles, for `uniq` overload disambiguation. Two
     /// same-name/same-arity overloads (`collect(arr: T[])` vs
     /// `collect(it: Iterator<T>)`) share a base mangle ; the second to
@@ -248,15 +247,9 @@ LowerProjectCtx :: struct {
     /// `materialize_nongeneric_imported_fns`
     /// emits one `LoweredFnDecl` per harvested symbol (body lowered, or
     /// `null` for `@extern` → import table). Keyed by `fn_symbol.id` for
-    /// dedup ; `_order` preserves discovery order for a deterministic dump.
+    /// dedup ; queued in discovery order for a deterministic dump.
     nongeneric_imported_fns:   MutableSet<i32>
-    nongeneric_imported_order: Symbol[]
-    /// Resume cursor into `nongeneric_imported_order` for
-    /// `materialize_nongeneric_imported_fns`. Persisted so the
-    /// materialise↔surface fixpoint loop drains newly-harvested fns
-    /// (e.g. `decode_tail` pulled in by a surfaced `StringChars.next`)
-    /// without re-lowering earlier entries.
-    nongeneric_imported_cursor: i64
+    nongeneric_imported_queue: WorkQueue<Symbol> = WorkQueue<Symbol> {}
 
     /// Module-level `const` decls observed at reference sites in any non-entry
     /// module (`register_nongeneric_imported_const`). Like fns, such a const's
@@ -266,15 +259,10 @@ LowerProjectCtx :: struct {
     /// the caller. `materialize_nongeneric_imported_consts` lowers one
     /// `LoweredConstDecl` per harvested symbol so `inline_consts` handles it
     /// like any user const (scalar → inline, bulky array → fn-wrap accessor).
-    /// Keyed by `const_symbol.id` for dedup ; `_order` preserves discovery
-    /// order for a deterministic dump.
-    nongeneric_imported_consts:       MutableSet<i32>
-    nongeneric_imported_const_order:  Symbol[]
-    /// Resume cursor into `nongeneric_imported_const_order`, persisted across
-    /// the materialise↔surface fixpoint so a const harvested late (e.g. one
-    /// referenced only by a surfaced stdlib fn body) is lowered without
-    /// re-lowering earlier entries.
-    nongeneric_imported_const_cursor: i64
+    /// Keyed by `const_symbol.id` for dedup ; queued in discovery order for a
+    /// deterministic dump.
+    nongeneric_imported_consts:      MutableSet<i32>
+    nongeneric_imported_const_queue: WorkQueue<Symbol> = WorkQueue<Symbol> {}
 
     /// Erasure-dedupe of impl-member emissions: keyed by
     /// `"<impl-decl-span>::<member-name>"`. The first instance of a
@@ -347,9 +335,9 @@ LowerProjectCtx :: struct {
     /// Generic struct instances a literal builds or a call reaches an impl member
     /// of (`queue_generic_impl_receiver`), args stripped of distincts. Drained
     /// inside the `drain_generic_fn_instances` fixpoint so the impl
-    /// bodies' transitive free-fn harvests stay on the same cursor. Struct
+    /// bodies' transitive free-fn harvests join the same fixpoint. Struct
     /// analogue of `array_member_uses`.
-    pending_generic_impl_recv: StructType[]
+    generic_impl_recv_queue: WorkQueue<StructType> = WorkQueue<StructType> {}
     /// Receiver keys already queued, so each instance is queued once per
     /// erased shape (bounds the queue + avoids redundant per-receiver module
     /// scans).
@@ -357,9 +345,9 @@ LowerProjectCtx :: struct {
 
     /// Resumable state for the generic-fn-instance materialiser, split into a
     /// build phase (`drain_generic_fn_instances`) and a one-shot flush
-    /// (`flush_generic_fn_instances`). The fn-instance + erased-impl-receiver
-    /// cursors and the `processed` dedup persist so the build phase can run
-    /// repeatedly inside `lower_project`'s generic↔stdlib joint fixpoint:
+    /// (`flush_generic_fn_instances`). The `processed` dedup persists so the
+    /// build phase can run repeatedly inside `lower_project`'s generic↔stdlib
+    /// joint fixpoint:
     /// draining instances that later harvest rounds register (e.g. `len` pulled
     /// in by the harvested `std/json::write_object` body) without re-processing
     /// earlier ones. `generic_collected` accumulates every built instance across
@@ -368,14 +356,11 @@ LowerProjectCtx :: struct {
     @internal
     generic_collected:   PendingFnInstance[]
     generic_processed:   MutableSet<string>
-    generic_fn_cursor:   i64
-    generic_recv_cursor: i64
 
     /// The impl members with type parameters of their own, at the types a call
     /// gives them, queued by the call and materialised in the same fixpoint as
     /// the generic fn instances.
-    member_instances: MemberInstance[] = []
-    member_instance_cursor: i64 = 0
+    member_instance_queue: WorkQueue<MemberInstance> = WorkQueue<MemberInstance> {}
 
     diags:               Diagnostic[]
 }
@@ -426,33 +411,23 @@ new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, 
         .lambda_seq          = MutableMap<string, i32> {},
         .next_mono_entry_id  = 1_000_000,
         .fn_instances        = MutableMap<string, GenericFnInstance> {},
-        .fn_instances_order  = [],
         .seen_mangled        = MutableSet<string> {},
         .nongeneric_imported_fns   = MutableSet<i32> {},
-        .nongeneric_imported_order = [],
-        .nongeneric_imported_cursor = 0,
         .nongeneric_imported_consts       = MutableSet<i32> {},
-        .nongeneric_imported_const_order  = [],
-        .nongeneric_imported_const_cursor = 0,
         .materialized_impl_keys = MutableSet<string> {},
         .materialized_struct_mangles = MutableSet<string> {},
         .referenced_impl_mangles = MutableSet<string> {},
         .virtually_dispatched_traits = MutableSet<string> {},
         .constructed_struct_symbols = MutableSet<i32> {},
         .array_member_uses = MutableMap<string, ArrayMemberUse> {},
-        .pending_generic_impl_recv = [],
         .seen_generic_impl_recv = MutableSet<string> {},
         .generic_collected   = [],
         .generic_processed   = MutableSet<string> {},
-        .generic_fn_cursor   = 0,
-        .generic_recv_cursor = 0,
         .synth_decls         = [],
         .concat_fn_syms      = MutableMap<i32, Symbol> {},
         .entry_decls         = [],
         .enum_data_consts    = MutableMap<i32, Symbol> {},
         .enum_value_consts   = MutableMap<i32, Symbol> {},
-        .enum_table_order    = [],
-        .enum_table_cursor   = 0,
         .next_synthetic_id   = -1,
         .diags               = [],
     }

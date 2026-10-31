@@ -2,7 +2,7 @@
 //
 // A generic struct instance is materialised when the lowering meets it: a literal
 // builds it (`note_construction`), or a call reaches one of its impl members
-// (`build_ufcs_member`). Both queue it on `pending_generic_impl_recv`, which the
+// (`build_ufcs_member`). Both queue it on `generic_impl_recv_queue`, which the
 // joint fixpoint of `lower_project` drains into its struct decl and the members of
 // every impl that serves it.
 

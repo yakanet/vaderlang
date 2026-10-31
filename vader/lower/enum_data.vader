@@ -17,6 +17,7 @@
 
 module "vader/lower"
 
+import "std/collections"
 import "toolchain/ast"
 import "toolchain/span"
 import "vader/core/mono"
@@ -167,7 +168,13 @@ enum_table_const :: fn(ctx: FnLowerCtx, enum_type: EnumType, kind: EnumTableKind
         .defined_at  = null,
     }
     consts[owner.id] = symbol
-    ctx.project.enum_table_order.push(EnumTable { .enum_type = enum_type, .symbol = symbol, .kind = kind })
+    ctx.project.enum_table_queue.push(
+        EnumTable {
+            .enum_type = enum_type,
+            .symbol = symbol,
+            .kind = kind,
+        },
+    )
     return symbol
 }
 
@@ -183,9 +190,8 @@ enum_table_const :: fn(ctx: FnLowerCtx, enum_type: EnumType, kind: EnumTableKind
 materialize_enum_tables :: fn(
     typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
-    for project_ctx.enum_table_cursor < project_ctx.enum_table_order.len() {
-        due :: project_ctx.enum_table_order[project_ctx.enum_table_cursor]
-        project_ctx.enum_table_cursor += 1
+    for {
+        due :: project_ctx.enum_table_queue.take() ?? break
         owner :: due.enum_type.symbol
         module_typed :: typed.modules[owner.module] ?? continue
         decl :: module_typed.enum_decls[owner.id] ?? continue

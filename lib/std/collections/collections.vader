@@ -1,4 +1,4 @@
-// std/collections: hash-based mutable collections.
+// std/collections: hash-based mutable collections, and a queue of work.
 //
 // ```
 // m :: MutableMap<string, i32> {}
@@ -527,9 +527,82 @@ MutableSet<T> implements<T> Into<Iterator<T>> {
     }
 }
 
+// ---- WorkQueue<T> --------------------------------------------------------
+
+/// Work queued in order and taken in that order by a cursor that only moves
+/// forward. A fixpoint takes what is pending, queues more while it works, and
+/// later resumes where it stopped: nothing is taken twice. Nothing is removed
+/// either: `total_queued` only grows, which tells a fixpoint it has settled.
+///
+/// A null item would read as none pending: queue no type that holds null.
+///
+/// @example
+///   q :: WorkQueue<string> {}
+///   q.push("parse")
+///   q.push("check")
+///   q.take()          // "parse"
+///   q.has_pending()   // true
+///   q.total_queued()  // 2
+export WorkQueue :: struct<T> {
+    @internal
+    items: T[] = []
+    /// How many items were taken, the oldest first.
+    @internal
+    taken: i64 = 0
+}
+
+/// Queue `item` behind every item queued so far.
+///
+/// @param self  the queue.
+/// @param item  the work to queue.
+export push :: fn<T>(self: WorkQueue<T>, item: T) -> void {
+    self.items.push(item)
+}
+
+/// Take the oldest item not taken yet.
+///
+/// @param self  the queue.
+/// @return      that item, or null when none is pending.
+export take :: fn<T>(self: WorkQueue<T>) -> T | null {
+    if self.taken >= self.items.len() {
+        return null
+    }
+    item :: self.items[self.taken]
+    self.taken += 1
+    return item
+}
+
+/// Whether an item was queued and not taken yet.
+export has_pending :: fn<T>(self: WorkQueue<T>) -> bool = self.taken < self.items.len()
+
+/// How many items were queued since the start, taken or not.
+export total_queued :: fn<T>(self: WorkQueue<T>) -> i64 = self.items.len()
+
 // ---------------------------------------------------------------------- tests
 
 import "std/testing"
+
+@test
+test_work_queue_takes_in_queued_order :: fn() -> void {
+    q :: WorkQueue<string> {}
+    q.push("a")
+    q.push("b")
+    assert_eq(q.take() ?? "none", "a")
+    assert_eq(q.take() ?? "none", "b")
+    assert_eq(q.take() ?? "none", "none")
+}
+
+@test
+test_work_queue_resumes_after_a_late_push :: fn() -> void {
+    q :: WorkQueue<i32> {}
+    q.push(1)
+    q.take()
+    assert(!q.has_pending(), "all taken")
+    q.push(2)
+    assert(q.has_pending(), "a late push is pending")
+    assert_eq(q.take() ?? 0, 2)
+    assert_eq(q.total_queued(), 2)
+}
 
 @test test_map_put_get :: fn() -> void {
     m :: MutableMap<string, i32> {}
