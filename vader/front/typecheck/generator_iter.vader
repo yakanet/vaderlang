@@ -19,33 +19,21 @@ import "vader/core/symbol"
 import "vader/core/types"
 import "std/collections"
 
-// Reserved synthetic-id range for generator state structs: a large negative
-// offset distinct from the lowerer's small-magnitude `next_synthetic_id` pool
-// (which starts at -1 and decrements). Self-compile is nowhere near 1M synthetic
-// ids, so the two pools cannot meet ; the offset is a stopgap for resolver-minting
-// (see the plan's CLEANUP entry).
-GEN_STATE_ID_BASE :: -1000000
-
-// The state-struct symbol of the `generator` `decl`, whose symbol is `fn_id` in
-// `owner`. Its name carries the overload suffix the fn's own mangled name does,
-// so two overloads of one name get two state structs.
-gen_state_symbol :: fn(fn_id: i32, decl: AST.FnDecl, owner: TypedProgram) -> Symbol {
+// The state-struct symbol of the `generator` `decl`, declared in `owner`, minted
+// from the project's `factory` so that no other symbol shares its id. Its name
+// carries the overload suffix the fn's own mangled name does, so two overloads of
+// one name get two state structs. No source declares it: it is defined where the
+// generator is named.
+gen_state_symbol :: fn(decl: AST.FnDecl, owner: TypedProgram, factory: SymbolFactory) -> Symbol {
     suffix :: overload_suffix(owner.resolved, decl.name, decl.name_span)
+    // No identifier holds a `$`, so no declared struct takes this name.
+    name :: "\$genstate_${decl.name}${suffix}"
     // `display_path` (the DECLARED name), not `path`: this feeds `module_name`,
     // which `symbol_key` folds into a type-intern key and from there into
     // emitted C names. `path` is the filesystem identity and is absolute
     // whenever the entry was named absolutely.
     module :: owner.resolved.display_path
-    return Symbol {
-        .id = GEN_STATE_ID_BASE - fn_id,
-        .kind = .GeneratorState,
-        // No identifier holds a `$`, so no declared struct takes this name.
-        .name = "\$genstate_${decl.name}${suffix}",
-        .module = module,
-        .module_name = module,
-        .visibility = .Private,
-        .defined_at = null,
-    }
+    return factory.make(.GeneratorState, name, module, module, .Private, decl.name_span)
 }
 
 /// True when `t` is the state struct of a `generator`, the iterator its call
@@ -57,9 +45,11 @@ export is_gen_state_struct :: fn(t: Type) -> bool =
 
 /// One `generator` declaration's state struct and what it yields.
 export GeneratorState :: struct {
+    /// The generator declaring this state.
+    decl: AST.FnDecl
     /// The state struct: a call to the generator types as it, and its
     /// lowering builds it.
-    symbol:  Symbol
+    symbol: Symbol
     /// The yielded element, in the declaration's own type parameters.
     element: Type
 }
@@ -72,10 +62,13 @@ export GeneratorState :: struct {
 export generator_state_of :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GeneratorState | null =
     typed.generator_states[decl.name_span.hash()]
 
-// The `generator` whose state struct `state` is : the state's symbol id encodes the
-// fn's (`gen_state_symbol`), and every module's `fn_decls` holds every fn.
-generator_of_state :: fn(state: StructType, typed: TypedProgram) -> AST.FnDecl | null =
-    typed.fn_decls[GEN_STATE_ID_BASE - state.symbol.id]
+// The `generator` whose state struct `state` is, found where the state is defined:
+// at the generator's name, which keys `generator_states`.
+generator_of_state :: fn(state: StructType, typed: TypedProgram) -> AST.FnDecl | null {
+    site :: state.symbol.defined_at ?? return null
+    generator :: typed.generator_states[site.hash()] ?? return null
+    return generator.decl
+}
 
 /// Register every `generator` fn's synthetic state struct as `implements
 /// Iterator<U>`, in the impl tables every module shares, so a call to it types as
@@ -90,6 +83,7 @@ generator_of_state :: fn(state: StructType, typed: TypedProgram) -> AST.FnDecl |
 register_generator_iter_impls :: fn(
     per_module: MutableMap<string, TypedProgram>,
     impl_tables: ImplTables,
+    factory: SymbolFactory,
 ) -> void {
     states :: MutableMap<u64, GeneratorState> {}
     for [_, owner] in per_module {
@@ -103,7 +97,8 @@ register_generator_iter_impls :: fn(
                 returned :: lookup_return_type(fn_decl, owner)
                 elem :: generator_element_type(fn_decl, returned, sink) ?? continue
                 states[fn_decl.name_span.hash()] = GeneratorState {
-                    .symbol = gen_state_symbol(sym.id, fn_decl, owner),
+                    .decl = fn_decl,
+                    .symbol = gen_state_symbol(fn_decl, owner, factory),
                     .element = elem,
                 }
             }

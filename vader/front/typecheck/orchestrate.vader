@@ -270,7 +270,7 @@ check_project_modules :: fn(
     // result, and typing its `self: Iterator<T>` param needs the struct→trait
     // widening this registers. Cross-module (imported std/iter combinators)
     // resolves each generator's element via its owner module.
-    register_generator_iter_impls(per_module, impl_tables)
+    register_generator_iter_impls(per_module, impl_tables, project.factory)
     // Two-pass body walk : first pass infers expression-bodied fn
     // return types (forward-reference safe) ; second pass re-types
     // bodies with all returns settled. Diags are captured only on

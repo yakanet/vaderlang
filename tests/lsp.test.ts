@@ -38,6 +38,7 @@ interface Query {
     | "textDocument/inlayHint"
     | "textDocument/documentLink"
     | "textDocument/implementation"
+    | "textDocument/typeDefinition"
     | "textDocument/references"
     | "textDocument/rename"
     | "textDocument/prepareRename"
@@ -1561,6 +1562,18 @@ test("lsp: hover on a generator's call shows the iterator it declares", async ()
   const shown = (results[0]!.result as Hover).contents.value;
   expect(shown).toContain("it: Iterator<i64>");
   expect(shown).not.toContain("genstate");
+}, { timeout: MEDIUM_BUILD });
+
+// The iterator a generator's call returns has no declaration of its own: its type
+// is defined by the generator.
+test("lsp: type definition of a generator's call is the generator", async () => {
+  const results = await driveLsp(GENERATOR_LOCAL_SOURCE, [
+    // 0: on `it` in `for x in it`
+    { method: "textDocument/typeDefinition", position: { line: 10, character: 13 } },
+  ]);
+  const loc = results[0]!.result as Location;
+  expect(loc.range.start).toEqual({ line: 2, character: 0 });
+  expect(loc.range.end).toEqual({ line: 2, character: 8 });
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: goto-def jumps to for-in binding", async () => {
