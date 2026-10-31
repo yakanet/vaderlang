@@ -1,0 +1,11 @@
+// A lambda parameter written without a type takes it from the function type of
+// its slot. With no slot, or a union holding two function types, there is none
+// to take.
+
+module "main"
+
+main :: fn() -> i32 {
+    alone :: (v) -> v
+    pick: (fn(i32) -> i32) | (fn(string) -> i32) | null : (v) -> 0
+    return 0
+}

@@ -168,13 +168,13 @@ settle_member_in_slot :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    slot :: settled_slot(expected, typed)
+    slot :: slot_fn_type(settled_slot(expected, typed))
     sigs: Type[]: []
     fitting: ImplMethod[]: []
     for m in candidates {
         sig :: impl_member_type(m, target_ty, typed)
         sigs.push(sig)
-        if slot is FnType && is_assignable(sig, slot) {
+        if slot != null && is_assignable(sig, slot) {
             fitting.push(m)
         }
     }

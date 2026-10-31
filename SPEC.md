@@ -2478,6 +2478,8 @@ items.map(x -> {
 })
 ```
 
+A parameter written without a type takes it from the function type of the slot the lambda fills (§6 *Function values*). Leaving it out with no such slot is an error.
+
 The `->` form has no place for a return type: the type comes from the slot the lambda fills (a parameter, a field, a typed declaration) or from its body. To write the return type, use an anonymous function literal `fn(params) -> R { body }` or `fn(params) -> R = expr`, which is allowed wherever a value is expected and means the same thing, or a named function:
 
 ```vader
@@ -2518,6 +2520,8 @@ Handler :: struct { cb: fn(i32) -> i32 }
 h :: Handler { .cb = (x) -> x * 2 }
 println(h.cb(21))                                     // 42
 ```
+
+A slot gives its function type to what fills it: the parameters of a lambda, the instance of a generic function, the member that several impls offer. A slot of a union type gives the one function type among its variants, as an optional callback `(fn(i32) -> void) | null` does; a union holding two function types gives none.
 
 ### UFCS (Uniform Function Call Syntax)
 

@@ -1,7 +1,7 @@
 // vader/front/typecheck/expr_lambda: LambdaExpr inference (`(x) -> x + 1`).
 //
-// Params take their annotated type ; if unannotated, the bidirectional
-// `expected` fn-type provides the slot type. The body is checked
+// Params take their annotated type ; if unannotated, the function type of the
+// bidirectional `expected` slot provides it. The body is checked
 // against the annotated / inferred return type. Returns `mk_fn(params,
 // body)`.
 //
@@ -58,11 +58,7 @@ infer_lambda :: fn(
     e: AST.LambdaExpr, expected: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    expected_fn: FnType | null = null
-    match expected {
-        is FnType -> { expected_fn = expected }
-        _ -> {}
-    }
+    expected_fn :: slot_fn_type(expected)
     param_types: Type[]: []
     for i in 0..<e.params.len() {
         param_types.push(infer_param(e.params[i], i, expected_fn, typed, diags))

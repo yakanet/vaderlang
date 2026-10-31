@@ -146,8 +146,8 @@ bound_by_slot :: fn(
     diags: Diagnostic[],
 ) -> Type | null {
     if open {
-        slot :: settled_slot(expected, typed)
-        if slot !is FnType {
+        slot :: slot_fn_type(settled_slot(expected, typed))
+        if slot == null {
             report_unbound(role, site.span, decl, diags)
             return null
         }
@@ -170,6 +170,27 @@ settled_slot :: fn(expected: Type | null, typed: TypedProgram) -> Type | null {
         return null
     }
     return zonk(expected, typed.infer_solutions)
+}
+
+// The function type a slot of type `expected` gives what fills it: the type
+// itself, or a union's one function type. Null when there is none, or several.
+slot_fn_type :: fn(expected: Type | null) -> FnType | null {
+    if expected is FnType {
+        return expected
+    }
+    if expected !is UnionType {
+        return null
+    }
+    found: FnType | null = null
+    for v in expected.variants {
+        if v is FnType {
+            if found != null {
+                return null
+            }
+            found = v
+        }
+    }
+    return found
 }
 
 // T3069 for `decl`, instantiated as a value at the site `role` plays at `span`

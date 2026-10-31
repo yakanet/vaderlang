@@ -1,0 +1,2 @@
+[8:15] error[T3024] function signature must be fully annotated: lambda parameter `v` cannot be inferred
+[9:60] error[T3024] function signature must be fully annotated: lambda parameter `v` cannot be inferred

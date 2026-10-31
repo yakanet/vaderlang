@@ -1,0 +1,84 @@
+// A slot whose type is a union holding one function type, as an optional callback
+// `(fn(T) -> R) | null` is, gives that type to what fills it: a lambda's
+// parameters (a parameter with a default, a typed declaration, a return slot, a
+// struct field, a generic parameter, a union with a value of another type), the
+// instance of a generic function, and the member two impls offer.
+
+module "snippet"
+
+import "std/io"
+
+apply :: fn(x: i32, after: (fn(i32) -> void) | null = null) -> void {
+    if after != null {
+        after(x)
+    }
+}
+
+run :: fn(f: (fn(i32) -> i32) | null, x: i32) -> i32 {
+    if f == null {
+        return x
+    }
+    return f(x)
+}
+
+step :: fn(by: i32) -> (fn(i32) -> i32) | null = (v) -> v + by
+
+same :: fn<T>(x: T) -> T = x
+
+Button :: struct {
+    label:    string
+    on_click: (fn(string) -> string) | null = null
+}
+
+press :: fn(b: Button) -> string {
+    handler :: b.on_click ?? return "nothing"
+    return handler(b.label)
+}
+
+each :: fn<T>(items: T[], visit: (fn(T) -> void) | null) -> void {
+    if visit == null {
+        return
+    }
+    for item in items {
+        visit(item)
+    }
+}
+
+describe :: fn(how: (fn(i64) -> string) | string, n: i64) -> string {
+    if how is string {
+        return how
+    }
+    return how(n)
+}
+
+Gauge :: struct {
+    level: i32
+}
+
+Gauge implements Add<i32, i32> {
+    add :: fn(self, k: i32) -> i32 = self.level + k
+}
+
+Gauge implements Add<f64, f64> {
+    add :: fn(self, k: f64) -> f64 = f64(self.level) + k
+}
+
+main :: fn() -> i32 {
+    apply(2, (v) -> println("applied ${v + 1}"))
+    apply(3)
+    doubled: (fn(i32) -> i32) | null : (v) -> v * 2
+    println("doubled ${run(doubled, 21)}")
+    println("stepped ${run(step(3), 4)}")
+    println("kept ${run(same, 9)}")
+    println("pressed ${press(Button { .label = "ok", .on_click = (s) -> "${s}!" })}")
+    println("pressed ${press(Button { .label = "idle" })}")
+    each(["a", "b"], (s) -> println("item ${s}"))
+    println(describe((n) -> "n = ${n}", 7))
+    println(describe("fixed", 7))
+    g :: Gauge { .level = 1 }
+    raise: (fn(f64) -> f64) | null : g.add
+    if raise != null {
+        println("raised ${raise(0.5)}")
+    }
+    return 0
+}
