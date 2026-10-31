@@ -152,6 +152,7 @@
     fn std.core.shiftright128  // std_core$shiftright128
     fn std.core.shl  // std_core$shl
     fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.string.mul  // std_core$string$Mul$mul
     fn std.core.u64.from_bits  // std_core$u64$BitsFloat$from_bits
     fn std.core.umul128  // std_core$umul128
     fn std.core.utf8_encode  // std_core$utf8_encode

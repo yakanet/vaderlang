@@ -68,22 +68,19 @@ export append_char :: fn(self: StringBuilder, c: char) -> void {
     self.parts.push(utf8_encode(c).bytes_to_string())
 }
 
-/// Append `count` copies of `c`. The codepoint is UTF-8-encoded and interned
-/// once, then pushed `count` times (each push shares the one interned atom).
-/// Negative or zero counts are a no-op.
+/// Append `count` copies of `c` as one part, a single buffer holding them all.
 ///
 /// @param self   builder receiver.
 /// @param c      codepoint to repeat.
-/// @param count  number of copies to append (≤ 0 → no-op).
+/// @param count  number of copies to append; 0 or below appends nothing.
 /// @example
 ///   # sb :: StringBuilder {}
 ///   # level :: 2
 ///   sb.append_repeated(' ', level * 2)   // indentation
 ///   sb.append_repeated('-', 40)          // divider line
 export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
-    s :: utf8_encode(c).bytes_to_string()
-    for 0..<count {
-        self.parts.push(s)
+    if count > 0 {
+        self.parts.push(utf8_encode(c).bytes_to_string() * i64(count))
     }
 }
 
@@ -147,6 +144,21 @@ import "std/testing"
     sb :: StringBuilder {}
     sb.append_repeated('-', 3)
     assert_eq(sb.to_string(), "---")
+}
+
+@test test_append_repeated_multibyte :: fn() -> void {
+    sb :: StringBuilder {}
+    sb.append("<")
+    sb.append_repeated('é', 3)
+    assert_eq(sb.to_string(), "<ééé")
+}
+
+@test test_append_repeated_zero_or_below_appends_nothing :: fn() -> void {
+    sb :: StringBuilder {}
+    sb.append("a")
+    sb.append_repeated('-', 0)
+    sb.append_repeated('-', -2)
+    assert_eq(sb.to_string(), "a")
 }
 
 @test test_byte_len_counts_bytes :: fn() -> void {
