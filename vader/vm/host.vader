@@ -397,9 +397,10 @@ unopened_reason :: fn(info: bc.BcImport) -> string {
 }
 
 // The address import `index` of `state` is called at: its adapter, or the
-// symbol its library exports, looked up on its first call and kept in
-// `VmState.symbols`. The declared library, or the default scope: `GetStdHandle`
-// lives in `kernel32.dll`, which the running process exports nothing of.
+// symbol its library exports. Its first call checks that a trampoline covers
+// it, then looks the symbol up, and `VmState.symbols` keeps it for the next
+// ones. The declared library, or the default scope: `GetStdHandle` lives in
+// `kernel32.dll`, which the running process exports nothing of.
 callee_of :: fn(state: VmState, index: i32, adapter: i64, at_pc: i32) -> I64Val | Trap {
     if adapter != 0 {
         return I64Val(adapter)
@@ -409,6 +410,10 @@ callee_of :: fn(state: VmState, index: i32, adapter: i64, at_pc: i32) -> I64Val 
         return I64Val(known)
     }
     info :: state.bc.imports[index]
+    reason :: adapter_reason(info, state.bc.types)
+    if reason != null {
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: ${reason}; ${BUILD_NATIVELY}" }
+    }
     lib :: ffi_open(bc.library_name(info))
     if lib == 0 {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: ${unopened_reason(info)}" }
@@ -487,12 +492,6 @@ dispatch_extern :: fn(
     types :: state.bc.types
     adapter :: adapter_of(state, index)
     params :: info.signature.params
-    if adapter == 0 {
-        reason :: adapter_reason(info, types)
-        if reason != null {
-            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: ${reason}; ${BUILD_NATIVELY}" }
-        }
-    }
     // Under the DAP debugger, program output must NOT reach fd 1/2 directly:
     // in stdio transport that would corrupt the protocol stream. This is the
     // routing the `IoWrite` arm carried before `write` became ordinary Vader;

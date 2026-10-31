@@ -48,8 +48,9 @@ export VmState :: struct {
     /// called without (`attach_adapters`). Empty until adapters are attached.
     adapters: i64[] = []
     /// The symbol each `@extern` import is called at, index-aligned with
-    /// `bc.imports`, `0` until its first call looks it up (`callee_of`): a
-    /// foreign call opens its library and searches it once, not on every call.
+    /// `bc.imports`, `0` until its first call checks and looks it up
+    /// (`callee_of`): a foreign call is classified, and its library opened and
+    /// searched, once, not on every call.
     symbols: i64[]
     /// The code the VM runs (`reg_translate.vader`), index-aligned with
     /// `bc.functions`.
