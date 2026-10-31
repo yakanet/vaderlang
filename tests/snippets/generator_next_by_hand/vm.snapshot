@@ -1,0 +1,11 @@
+# stdout
+0 1
+rest 2
+rest 3
+after stop
+direct 0
+chained 10
+value 0
+steps 2 2
+# exit
+0

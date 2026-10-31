@@ -488,6 +488,9 @@ export TypedProgram :: struct {
     /// `std/core`'s `Equals` trait symbol: the trait every enum implements with
     /// no impl (`has_builtin_impl`). Populated once from core by the orchestrator.
     equals_symbol: Symbol | null
+    /// `std/core`'s `Iterator` trait symbol: the trait a `generator`'s state
+    /// struct is a value of. Populated once from core by the orchestrator.
+    iterator_symbol: Symbol | null
     /// The `std/async` functions the compiler calls : one record for the whole
     /// project, set before any declaration is checked.
     async_runtime: AsyncRuntime = AsyncRuntime {}
@@ -839,6 +842,7 @@ new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .field_symbol    = null,
     .async_symbol    = null,
     .equals_symbol   = null,
+    .iterator_symbol = null,
     .imported_fn_overloads = MutableMap<string, MutableMap<string, FnCandidate[]>> {},
     .ufcs_receiver_types = MutableMap<i64, Type> {},
     .chosen_fns = MutableMap<i64, FnCandidate> {},

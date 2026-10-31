@@ -85,7 +85,7 @@ infer_field :: fn(
         repin_free_ufcs_receiver(e, typed, diags)
         return candidate
     }
-    candidate = try_dispatched_method(target_ty, e, typed, diags)
+    candidate = try_dispatched_method(generator_iterator(target_ty, typed), e, typed, diags)
     if candidate !is null {
         return candidate
     }
@@ -755,6 +755,17 @@ union_member_for_free :: fn(
         return settle_ambiguous_literal(receiver, free_ty, first_param, diags)
     }
     return member
+}
+
+// A generator's state struct has no member of its own: its `next` is the
+// `Iterator<E>` it implements, dispatched through the trait. Any other type
+// stands as it is.
+generator_iterator :: fn(t: Type, typed: TypedProgram) -> Type {
+    if t is StructType && is_gen_state_struct(t) && t.args.len() == 1 {
+        iterator :: typed.iterator_symbol ?? return t
+        return mk_trait(iterator, t.args)
+    }
+    return t
 }
 
 // `c.m()` on a value of a trait, and `u.area()` on a union every variant of which

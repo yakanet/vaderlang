@@ -1989,6 +1989,7 @@ populate_core_symbols_into :: fn(
     typed.field_symbol = core_loaded.collected.symbols[STRUCT_FIELD]
     typed.async_symbol = core_loaded.collected.symbols[TRAIT_ASYNC]
     typed.equals_symbol = core_loaded.collected.symbols[TRAIT_EQUALS]
+    typed.iterator_symbol = core_loaded.collected.symbols[TRAIT_ITERATOR]
 }
 
 build_namespace_exports :: fn(

@@ -1,0 +1,47 @@
+// A generator's call is a value of the `Iterator<T>` it declares: `next` steps it
+// by hand, on a local, on the call itself, at the end of a chain or taken as a
+// value, and a `for` resumes where the hand stopped.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+count_to :: fn(n: i64) -> Iterator<i64> {
+    for i in 0..<n {
+        yield i
+    }
+}
+
+twice :: fn<T>(x: T) -> Iterator<T> {
+    yield x
+    yield x
+}
+
+steps :: fn<T>(x: T) -> i32 {
+    it :: twice(x)
+    count := 0
+    for !(it.next() is Stop) {
+        count += 1
+    }
+    return count
+}
+
+show :: fn(step: i64 | Stop) -> string = if step is Stop { "stop" } else { "${step}" }
+
+main :: fn() -> i32 {
+    it :: count_to(4)
+    first :: it.next()
+    second :: it.next()
+    println("${show(first)} ${show(second)}")
+    for rest in it {
+        println("rest ${rest}")
+    }
+    println("after ${show(it.next())}")
+    println("direct ${show(count_to(1).next())}")
+    println("chained ${show(count_to(3).map(x -> x + 10).next())}")
+    step :: count_to(2).next
+    println("value ${show(step())}")
+    println("steps ${steps(7)} ${steps("s")}")
+    return 0
+}
