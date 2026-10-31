@@ -580,6 +580,21 @@ static void vader_old_foreach_live(void (*fn)(char* obj, uint32_t type_index, vo
     }
 }
 
+static size_t vader_gc_obj_size(void* obj, uint32_t type_index);
+
+/* Invoke `fn` on every object of young from-space, one contiguous run. Stops
+ * at an object of size 0, which only a `VADER_TYPE_KIND_NONE` entry yields. */
+static void vader_young_foreach(void (*fn)(char* obj, uint32_t type_index, void* ctx), void* ctx) {
+    char* scan = g_young.from.base;
+    while (scan < g_young.from.cur) {
+        vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
+        size_t bytes = vader_gc_obj_size(scan, hdr->type_index);
+        if (bytes == 0) break;
+        fn(scan, hdr->type_index, ctx);
+        scan += vader_gc_align(bytes);
+    }
+}
+
 /* Sweep: rebuild every free list from the unmarked slots. A slot survives iff
  * `mark == g_mark_value` (set during the mark phase). Dead small slots are
  * stamped FREE (mark 0) and pushed to their class free list; dead large regions
@@ -1189,9 +1204,6 @@ void vader_atom_profile_dump(void) {
             g_atoms.owner_bytes, g_atoms.free_count);
 }
 
-/* Forward decl for the heap-mark walker: defined further down. */
-static size_t vader_gc_obj_size(void* obj, uint32_t type_index);
-
 /* ---- atom GC mark + sweep ----
  *
  * Integrates with the major collection cycle. `vader_atom_mark_roots` walks FIVE
@@ -1339,16 +1351,7 @@ static void vader_atom_mark_object(char* scan, uint32_t type_index, void* ctx) {
 }
 
 static void vader_atom_mark_heap(void) {
-    /* Young: one contiguous from-space walk. */
-    char* scan = g_young.from.base;
-    while (scan < g_young.from.cur) {
-        vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
-        size_t bytes = vader_gc_obj_size(scan, hdr->type_index);
-        if (bytes == 0) break;
-        vader_atom_mark_object(scan, hdr->type_index, NULL);
-        scan += vader_gc_align(bytes);
-    }
-    /* Old: the non-moving slab is not one arena, walk live slots by region. */
+    vader_young_foreach(vader_atom_mark_object, NULL);
     vader_old_foreach_live(vader_atom_mark_object, NULL);
 }
 
@@ -2397,14 +2400,7 @@ void vader_major_collect(void) {
     g_cycle = VADER_CYCLE_MAJOR;
     g_gray_len = 0;
     vader_gc_scan_roots();
-    {
-        char* scan = g_young.from.base;
-        while (scan < g_young.from.cur) {
-            size_t step = vader_gc_scan_object(scan);   /* marks this survivor's old refs */
-            if (step == 0) break;
-            scan += step;
-        }
-    }
+    (void) vader_gc_drain(g_young.from.base, &g_young.from);
     /* Conservatively mark old objects reachable only from C locals / registers
      * (the shadow stack doesn't precisely root old refs, see the function).
      * `VADER_GC_NO_CSTACK_SCAN=1` skips it so the gaps in the PRECISE rooting
@@ -2850,37 +2846,24 @@ vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo_bound, int64_t hi_
     if (hi < lo)        hi = lo;
     if (hi > a->length) hi = a->length;
     size_t len = hi - lo;
-    if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
-        /* Slicing a borrowed byte view yields another borrowed view over the
-         * same owner atom : carry `capacity` (element_tag + owner) verbatim,
-         * advance `offset` by `lo`. `buf` stays NULL. The alloc may forward
-         * `a`, so root it as a box (its `capacity`/`offset`/flag copy verbatim
-         * on relocation, see `VADER_ARRAY_FLAG_BORROWED`) and reload after. */
-        uint32_t tag = a->header.type_index;
-        vader_box_t a_box; a_box.tag = tag; a_box._pad = 0; a_box.payload.obj = a;
-        VADER_GC_PUSH1(a_box);
-        vader_array_t* view = (vader_array_t*) vader_gc_alloc(vader_gc_align(sizeof(vader_array_t)));
-        VADER_GC_POP();
-        a = (vader_array_t*) a_box.payload.obj;
-        vader_obj_header_init(view, tag);
-        view->length   = len;
-        view->capacity = a->capacity;     /* (element_tag << 32) | owner: verbatim */
-        view->header._reserved = VADER_ARRAY_FLAG_BORROWED;
-        view->offset   = a->offset + lo;
-        view->buf      = NULL;
-        return view;
-    }
     vader_array_resolve_buf(a);
     /* Root the parent array across the alloc: a collection inside
      * `vader_gc_alloc` would forward it otherwise. */
-    uint32_t tag = a->header.type_index;
-    vader_box_t a_box; a_box.tag = tag; a_box._pad = 0; a_box.payload.obj = a;
-    vader_box_t* roots[1] = { &a_box };
-    vader_gc_frame_t frame = { vader_gc_top, 1u, 0u, roots };
-    vader_gc_top = &frame;
+    void** roots[1] = { (void**) &a };
+    VADER_GC_PUSH_RAW(frame, roots, 1);
     vader_array_t* view = (vader_array_t*) vader_gc_alloc(vader_gc_align(sizeof(vader_array_t)));
-    vader_gc_top = frame.prev;
-    a = (vader_array_t*) a_box.payload.obj;
+    VADER_GC_POP_FRAME(frame);
+    vader_obj_header_init(view, a->header.type_index);
+    view->length = len;
+    view->offset = a->offset + lo;
+    if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
+        /* Another borrowed view over the same owner atom: `capacity` carries
+         * (element_tag << 32) | owner verbatim, `buf` stays NULL. */
+        view->capacity = a->capacity;
+        view->header._reserved = VADER_ARRAY_FLAG_BORROWED;
+        view->buf = NULL;
+        return view;
+    }
     /* A second header now shares this buffer: mark it, and once a callback has
      * escaped, make it still. Only a young buffer can move: an immortal one may
      * sit in read-only memory. Invariant: vader.h, `VADER_ARRAY_RESOLVE_BUF`. */
@@ -2890,19 +2873,16 @@ vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo_bound, int64_t hi_
         }
         vader_array_buf_mark_shared(a->buf);
     }
-    vader_obj_header_init(view, tag);
-    view->length   = len;
     /* Views aren't growable in-place: push detaches into a fresh buf. */
     view->capacity = len;
-    view->offset   = a->offset + lo;
     view->buf      = a->buf;
     return view;
 }
 
 /* Follow any forwarding pointer on an array header a helper was handed, on
  * entry, before the helper can collect. It cannot recover a pointer held across
- * a collection (docs/adr/0107): a helper that collects roots its arrays in a box
- * and reloads them from it after the allocation. */
+ * a collection (docs/adr/0107): a helper that collects roots its arrays on the
+ * shadow stack, which the collection rewrites, and reads them back from there. */
 static vader_array_t* vader_array_resolve(vader_array_t* a) {
     while (a->header.forward != NULL) a = (vader_array_t*) a->header.forward;
     return a;
@@ -3171,10 +3151,10 @@ vader_array_t* vader_array_repeat(vader_array_t* src, int64_t times) {
 
 /* Load slot `i` of `buf` as a box: the symmetric read of
  * `vader_array_store_slot`. Access sites normally open-code their reads (see that
- * function's note), so this exists for the case that cannot: copying between two
- * arrays whose element representations differ. Reached through
- * `vader_array_src_slot`, from both `vader_array_push_all` and
- * `vader_array_copy`. */
+ * function's note), so this exists for the cases that cannot: copying between
+ * two arrays whose element representations differ (`vader_array_src_slot`, from
+ * `vader_array_push_all` and `vader_array_copy`), and the element
+ * `vader_array_remove_last` hands back. */
 static vader_box_t vader_array_load_slot(vader_array_buf_t* buf, size_t i) {
     uint32_t tag = buf->element_tag;
     uint8_t* base = buf->slots;
@@ -3366,29 +3346,8 @@ vader_box_t vader_array_remove_last(vader_array_t* a) {
     a = vader_array_resolve(a);
     if (a->length == 0) return vader_box_null();
     vader_array_resolve_buf(a);
-    size_t idx = a->offset + a->length - 1;
     vader_array_buf_t* buf = a->buf;
-    uint32_t tag = buf->element_tag;
-    uint8_t* base = buf->slots;
-    vader_box_t out;
-    out._pad = 0;
-    switch (buf->element_kind) {
-        case VADER_ARRAY_KIND_BOXED: out = vader_array_box_slots(buf)[idx]; break;
-        case VADER_ARRAY_KIND_U8:   out.tag = tag; out.payload.i = ((uint8_t*)  base)[idx]; break;
-        case VADER_ARRAY_KIND_U16:  out.tag = tag; out.payload.i = ((uint16_t*) base)[idx]; break;
-        case VADER_ARRAY_KIND_U32:  out.tag = tag; out.payload.i = ((uint32_t*) base)[idx]; break;
-        case VADER_ARRAY_KIND_U64:  out.tag = tag; out.payload.i = (vader_i64_t) ((uint64_t*) base)[idx]; break;
-        case VADER_ARRAY_KIND_I8:   out.tag = tag; out.payload.i = ((int8_t*)   base)[idx]; break;
-        case VADER_ARRAY_KIND_I16:  out.tag = tag; out.payload.i = ((int16_t*)  base)[idx]; break;
-        case VADER_ARRAY_KIND_I32:  out.tag = tag; out.payload.i = ((int32_t*)  base)[idx]; break;
-        case VADER_ARRAY_KIND_I64:  out.tag = tag; out.payload.i = ((int64_t*)  base)[idx]; break;
-        case VADER_ARRAY_KIND_F32:  out.tag = tag; out.payload.f = (vader_f64_t) ((float*)  base)[idx]; break;
-        case VADER_ARRAY_KIND_F64:  out.tag = tag; out.payload.f = ((double*)   base)[idx]; break;
-        case VADER_ARRAY_KIND_CHAR: out.tag = tag; out.payload.i = ((uint32_t*) base)[idx]; break;
-        case VADER_ARRAY_KIND_BOOL: out.tag = tag; out.payload.b = ((uint8_t*)  base)[idx] != 0; break;
-        case VADER_ARRAY_KIND_REF:  out = vader_ref_box(((void**) base)[idx]); break;  /* tag from the header */
-        default: vader_trap("vader_array_remove_last: unknown element kind");
-    }
+    vader_box_t out = vader_array_load_slot(buf, a->offset + a->length - 1);
     /* If this array OWNS its buffer (offset 0, tail flush with the buffer end),
      * shrink the buffer length alongside the array length. Otherwise the owner
      * keeps `offset + length < buf->length` and the next `vader_array_push`
@@ -3865,14 +3824,7 @@ void vader_gc_profile_dump(void) {
      * GC-correctness issue ; the size walk handles its bytes correctly). */
     size_t totals[2] = { 0, 0 };
     vader_gc_prof_ctx_t cy = { tally, array_buf_bucket, arr_kind_bytes, arr_kind_count, &arr_boxed_slots, &arr_ref_slots, &struct_ptr_slots, &totals[0] };
-    char* scan = g_young.from.base;
-    while (scan < g_young.from.cur) {
-        vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
-        size_t bytes = vader_gc_obj_size(scan, hdr->type_index);
-        if (bytes == 0) break;
-        vader_gc_prof_tally(scan, hdr->type_index, &cy);
-        scan += vader_gc_align(bytes);
-    }
+    vader_young_foreach(vader_gc_prof_tally, &cy);
     vader_gc_prof_ctx_t co = { tally, array_buf_bucket, arr_kind_bytes, arr_kind_count, &arr_boxed_slots, &arr_ref_slots, &struct_ptr_slots, &totals[1] };
     vader_old_foreach_live(vader_gc_prof_tally, &co);
     qsort(tally, nbuckets, sizeof(vader_gc_prof_entry_t), vader_gc_prof_cmp);

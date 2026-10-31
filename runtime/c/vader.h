@@ -534,9 +534,6 @@ typedef struct {
  * honouring `offset` and the element width. Used by the `@extern` shims
  * (`vader/emit/c/host.vader`) and by `vader_ffi_call_n`.
  *
- * `vader_string_as_string` still open-codes the same branch; converting it is a
- * separate cleanup, and until it lands this is one of two copies.
- *
  * A BOXED- or REF-kind array traps: the typechecker rejects one at the ABI
  * boundary, so reaching here means a compiler bug. */
 vader_slice_t vader_array_bytes(vader_array_t* a);
