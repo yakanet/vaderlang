@@ -47,11 +47,12 @@ export VmState :: struct {
     /// The adapter of each import, index-aligned with `bc.imports`, `0` for one
     /// called without (`attach_adapters`). Empty until adapters are attached.
     adapters: i64[] = []
-    /// The symbol each `@extern` import is called at, index-aligned with
-    /// `bc.imports`, `0` until its first call checks and looks it up
-    /// (`callee_of`): a foreign call is classified, and its library opened and
-    /// searched, once, not on every call.
-    symbols: i64[]
+    /// How each `@extern` import is called, index-aligned with `bc.imports`,
+    /// null until its first call settles it (`foreign_call_of`): a foreign call
+    /// is classified, its library opened and searched, and its result read
+    /// back the same way, decided once rather than on every call.
+    @internal
+    foreign_calls: (ForeignCall | null)[]
     /// The code the VM runs (`reg_translate.vader`), index-aligned with
     /// `bc.functions`.
     @internal
@@ -132,7 +133,7 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
         .u8_array_type_id     = find_u8_array_type_id(bc_mod.types),
         .fn_index_by_name     = by_name,
         .import_ids           = import_ids,
-        .symbols              = [0] * bc_mod.imports.len(),
+        .foreign_calls        = [null] * bc_mod.imports.len(),
         .reg                  = reg,
         .debuggable           = debug,
     }

@@ -396,20 +396,84 @@ unopened_reason :: fn(info: bc.BcImport) -> string {
     return "cannot open `${library.name}`"
 }
 
-// The address import `index` of `state` is called at: its adapter, or the
-// symbol its library exports. Its first call checks that a trampoline covers
-// it, then looks the symbol up, and `VmState.symbols` keeps it for the next
-// ones. The declared library, or the default scope: `GetStdHandle` lives in
-// `kernel32.dll`, which the running process exports nothing of.
-callee_of :: fn(state: VmState, index: i32, adapter: i64, at_pc: i32) -> I64Val | Trap {
+/// How one `@extern` import is called: none of it depends on the arguments, so
+/// its first call settles it and `VmState.foreign_calls` keeps it.
+ForeignCall :: struct {
+    /// The adapter, or the symbol the import's library exports.
+    callee: i64
+    /// Whether `callee` is an adapter, which takes the frame alone.
+    through_adapter: bool
+    /// The declared result.
+    result: bc.ValType
+    /// The block the result comes back in, null for one read from the first slot.
+    result_mirror: ResultMirror | null
+    /// The class the call's first slot carries (`ffi_result_class`).
+    result_class: u8
+    /// Whether a zero result word is `null`: the slot is `string | null` or
+    /// `<pointer> | null`.
+    null_on_zero: bool
+}
+
+/// A result that comes back in a `@c_struct` mirror's block of the frame, which
+/// the slot after the arguments addresses. Only an adapter returns one.
+ResultMirror :: struct {
+    /// The result slot's `BcType` index.
+    type_index: i32
+    mirror: bc.BcStruct
+    /// Bytes the block takes.
+    size: i64
+}
+
+// How import `index` of `state` is called, settled on its first call. That call
+// traps when the result mirrors a C struct nothing can lay out.
+foreign_call_of :: fn(state: VmState, index: i32, at_pc: i32) -> ForeignCall | Trap {
+    known :: state.foreign_calls[index]
+    if known != null {
+        return known
+    }
+    info :: state.bc.imports[index]
+    types :: state.bc.types
+    adapter :: adapter_of(state, index)
+    callee :: callee_of(state, info, adapter, at_pc)
+    if callee is Trap {
+        return callee
+    }
+    result_type :: bc.bc_single_result_type(info.signature)
+    mirror :: bc.mirror_at(types, result_type)
+    result_mirror: ResultMirror | null = null
+    if mirror != null {
+        layout :: bc.c_struct_layout(mirror.fields, types)
+        if layout.unknown_field != null {
+            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: its result mirrors a C struct whose field `${layout.unknown_field}` is not a C scalar and cannot be laid out" }
+        }
+        result_mirror = ResultMirror {
+            .type_index = result_type,
+            .mirror = mirror,
+            .size = layout.size,
+        }
+    }
+    result :: bc.bc_single_result(info.signature)
+    string_opt :: ffi_result_is_opt(types, result_type, .String)
+    call :: ForeignCall {
+        .callee = i64(callee),
+        .through_adapter = adapter != 0,
+        .result = result,
+        .result_mirror = result_mirror,
+        .result_class = u8(ffi_result_class(result, string_opt)),
+        .null_on_zero = string_opt || ffi_result_is_opt(types, result_type, .Pointer),
+    }
+    state.foreign_calls[index] = call
+    return call
+}
+
+// The address `info` is called at: its adapter, or the symbol its library
+// exports once a trampoline is known to cover it. The declared library, or the
+// default scope: `GetStdHandle` lives in `kernel32.dll`, which the running
+// process exports nothing of.
+callee_of :: fn(state: VmState, info: bc.BcImport, adapter: i64, at_pc: i32) -> I64Val | Trap {
     if adapter != 0 {
         return I64Val(adapter)
     }
-    known :: state.symbols[index]
-    if known != 0 {
-        return I64Val(known)
-    }
-    info :: state.bc.imports[index]
     reason :: adapter_reason(info, state.bc.types)
     if reason != null {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: ${reason}; ${BUILD_NATIVELY}" }
@@ -422,7 +486,6 @@ callee_of :: fn(state: VmState, index: i32, adapter: i64, at_pc: i32) -> I64Val 
     if sym == 0 {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: symbol not found" }
     }
-    state.symbols[index] = sym
     return I64Val(sym)
 }
 
@@ -450,9 +513,9 @@ call_foreign :: fn(callee: i64, through_adapter: bool, desc: u8[], frame: u8[], 
 /// The library is `BcImport.library` when the declaration names one, else the
 /// running process, which covers libc and anything linked into the binary.
 ///
-/// @param state     the program, for the import, its adapter, its resolved
-///                  symbol and the type table a lent array's element width
-///                  comes from.
+/// @param state     the program, for the import, how it is called
+///                  (`foreign_call_of`) and the type table a lent array's
+///                  element width comes from.
 /// @param index     the import's index in `state.bc.imports`.
 /// @param stack     the operand stack.
 /// @param arg_base  index of the first argument.
@@ -490,7 +553,6 @@ dispatch_extern :: fn(
     // owes ITSELF is checked by `bootstrap/verify.sh` (stage1 == stage2), not
     // here.
     types :: state.bc.types
-    adapter :: adapter_of(state, index)
     params :: info.signature.params
     // Under the DAP debugger, program output must NOT reach fd 1/2 directly:
     // in stdio transport that would corrupt the protocol stream. This is the
@@ -505,15 +567,15 @@ dispatch_extern :: fn(
     if debug != null && is_write_symbol(info.extern_name) {
         return debug_write(info, stack, arg_base, at_pc, debug)
     }
-    callee :: callee_of(state, index, adapter, at_pc)
-    if callee is Trap {
-        return callee
+    call :: foreign_call_of(state, index, at_pc)
+    if call is Trap {
+        return call
     }
 
     // The call is described by DATA, not by its shape: one class per slot, then
     // a flat frame of eight-byte slots followed by whatever an ADDR slot points
     // into. `vader_ffi.h` owns the classes and the dispatch.
-    desc: u8[]: [u8(FFI_VOID)]
+    desc: u8[]: [call.result_class]
     slot_words: i64[]: []
     addr_slots: i64[]: []
     data: u8[]: []
@@ -641,32 +703,16 @@ dispatch_extern :: fn(
         }
     }
 
-    // A struct result comes back in a block of the frame, which the slot after
-    // the arguments addresses (`runtime/c/vader_adapter.h`). Only an adapter
-    // returns one.
-    result_type :: bc.bc_single_result_type(info.signature)
-    result_mirror :: bc.mirror_at(types, result_type)
+    // The result's block follows the arguments' (`runtime/c/vader_adapter.h`).
+    result_mirror :: call.result_mirror
     result_at :: data.len()
     if result_mirror != null {
-        layout :: bc.c_struct_layout(result_mirror.fields, types)
-        if layout.unknown_field != null {
-            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: its result mirrors a C struct whose field `${layout.unknown_field}` is not a C scalar and cannot be laid out" }
-        }
-        for _pad in 0..<layout.size {
+        for _pad in 0..<result_mirror.size {
             data.push(0)
         }
         desc.push(u8(FFI_ADDR))
         addr_slots.push(slot_words.len())
         slot_words.push(result_at)
-    }
-
-    // Bound once: an `@extern` returns one value or none, and re-asking costs a
-    // call with two length tests where reading a field used to be free.
-    result :: bc.bc_single_result(info.signature)
-    desc[0] = if ffi_result_is_opt(types, result_type, .String) {
-        u8(FFI_STR_OPT)
-    } else {
-        u8(ffi_result_class(result))
     }
 
     // An ADDR slot carries an offset into the WHOLE frame, so it only becomes
@@ -685,11 +731,17 @@ dispatch_extern :: fn(
     // frame is empty, `vader_array_bytes` reports a NULL pointer, and the
     // runtime's `fview.len < nargs * 8` guard reads `0 < 0`, so `getpid()`
     // wrote its result to address 0 and the interpreter took SIGSEGV.
-    if frame.len() == 0 && result != .Void {
+    if frame.len() == 0 && call.result != .Void {
         push_little_endian(frame, 0, 8)
     }
 
-    returned :: call_foreign(i64(callee), adapter != 0, desc, frame, i64(info.c_variadic_fixed))
+    returned :: call_foreign(
+        call.callee,
+        call.through_adapter,
+        desc,
+        frame,
+        i64(info.c_variadic_fixed),
+    )
 
     // What C wrote into a lent array has to travel back: the frame is a FLAT
     // COPY of the boxed elements, so without this a mutable lend
@@ -712,33 +764,34 @@ dispatch_extern :: fn(
         read_back_mirror(frame, base + ls.at, ls.target, ls.fields, types, 0)
     }
     if result_mirror != null {
-        return HostOk { .value = mirror_value(frame, base + result_at, result_type, result_mirror, types) }
+        return HostOk {
+            .value = mirror_value(
+                frame,
+                base + result_at,
+                result_mirror.type_index,
+                result_mirror.mirror,
+                types,
+            ),
+        }
     }
-    if result == .Void {
+    if call.result == .Void {
         return HostOk { .value = zero_value() }
     }
     // An `f32` result too: its adapter writes it back as a `double`.
-    if result == .F64 || result == .F32 {
+    if call.result == .F64 || call.result == .F32 {
         return HostOk { .value = F64Val(u64(read_little_endian(frame, 0, 8, false)).from_bits()) }
+    }
+    // NULL is C's "absent", and nothing downstream can tell a null pointer from
+    // a pointer whose value is 0.
+    if call.null_on_zero && read_little_endian(frame, 0, 8, false) == 0 {
+        return HostOk { .value = NullVal {} }
     }
     // A `string` result comes back as the call's RETURN value, not through the
     // frame: it is an atom, and only C can turn the callee's pointer into one.
-    if desc[0] == u8(FFI_STR_OPT) {
-        if read_little_endian(frame, 0, 8, false) == 0 {
-            return HostOk { .value = NullVal {} }
-        }
+    if call.result_class == u8(FFI_STR) || call.result_class == u8(FFI_STR_OPT) {
         return HostOk { .value = StringVal(returned) }
     }
-    if result == .String {
-        return HostOk { .value = StringVal(returned) }
-    }
-    // `<pointer> | null`: NULL is C's "absent", and nothing downstream can tell
-    // a null pointer from a pointer whose value is 0.
-    if ffi_result_is_opt(types, result_type, .Pointer)
-        && read_little_endian(frame, 0, 8, false) == 0 {
-        return HostOk { .value = NullVal {} }
-    }
-    return extern_result(result, read_little_endian(frame, 0, 8, true))
+    return extern_result(call.result, read_little_endian(frame, 0, 8, true))
 }
 
 /// Argument / result classes for `ffi_call`: mirrors `VADER_FFI_*` in
@@ -750,11 +803,16 @@ FFI_ADDR :: 3
 FFI_STR  :: 4
 FFI_STR_OPT :: 5
 
-/// The class a result `ValType` is read back as.
+/// The class a result is read back as.
 ///
-/// @param result  the import's declared result.
-/// @return        `FFI_VOID`, `FFI_F64`, or `FFI_WORD`.
-ffi_result_class :: fn(result: bc.ValType) -> i32 {
+/// @param result      the import's declared result.
+/// @param string_opt  whether the result slot is `string | null`.
+/// @return            `FFI_VOID`, `FFI_F64`, `FFI_STR`, `FFI_STR_OPT` or
+///                    `FFI_WORD`.
+ffi_result_class :: fn(result: bc.ValType, string_opt: bool) -> i32 {
+    if string_opt {
+        return FFI_STR_OPT
+    }
     if result == .Void {
         return FFI_VOID
     }
