@@ -22,9 +22,9 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint32_t slots[6]; } vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 6u, 6u, 10u, 3u, { 0u, 0u, 0u },
-    {
+static const VADER_ARRAY_STATIC_BUF(uint32_t, 6) vader_data_0_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 6u, 6u, 10u, 3u,
+    .slots = {
         (uint32_t) UINT64_C(0), (uint32_t) UINT64_C(1), (uint32_t) UINT64_C(4),
         (uint32_t) UINT64_C(9), (uint32_t) UINT64_C(16), (uint32_t) UINT64_C(25),
     },

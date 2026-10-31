@@ -568,8 +568,8 @@ PoolArray :: struct {
 
 /// The buffer of `array`, then the `vader_array_t` header pointing at it.
 ///
-/// A buffer is an anonymous struct : `vader_array_buf_t` ends on a flexible
-/// member, which a static initializer cannot fill.
+/// The buffer is a `VADER_ARRAY_STATIC_BUF`, which the runtime header lays out
+/// as `vader_array_buf_t` with sized slots.
 ///
 /// @param items      receives both globals.
 /// @param array      the array's name, storage and type indices.
@@ -588,7 +588,7 @@ push_pool_array :: fn(
     items.push(CGlobal {
         .storage = array.storage,
         .constant = true,
-        .type = "struct { ${ARRAY_BUFFER_HEADER} ${slot_type} slots[${n}]; }",
+        .type = "VADER_ARRAY_STATIC_BUF(${slot_type}, ${n})",
         .declarator = CDeclarator {
             .name = buffer,
             .value = initializer_list([
@@ -597,8 +597,7 @@ push_pool_array :: fn(
                 unsigned(n),
                 unsigned(i64(array.element_tag)),
                 unsigned(i64(array_kind_index(kind))),
-                initializer_list([ZERO, ZERO, ZERO]),
-                initializer_list(slots),
+                designated(".slots", initializer_list(slots)),
             ]),
         },
     })
@@ -618,10 +617,6 @@ push_pool_array :: fn(
         },
     })
 }
-
-/// The members of `vader_array_buf_t` ahead of its slots.
-ARRAY_BUFFER_HEADER :: "vader_obj_header_t header; size_t capacity; size_t length; " +
-    "uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3];"
 
 /// `{ tag, 0u, 0u, 0u, NULL }`: the header of a static object.
 ///

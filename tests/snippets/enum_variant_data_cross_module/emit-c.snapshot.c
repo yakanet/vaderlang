@@ -49,9 +49,9 @@ static const struct vader_struct_snippet_codes$Info_t vader_data_0_e0 = {
 static const struct vader_struct_snippet_codes$Info_t vader_data_0_e1 = {
     { 9u, 0u, 0u, 0u, NULL }, 7u, 8u,
 };
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 9u, 0u, { 0u, 0u, 0u },
-    {
+static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_0_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 9u, 0u,
+    .slots = {
         { 9u, 0u, { .obj = (void*) (struct vader_struct_snippet_codes$Info_t*) &vader_data_0_e0 } },
         { 9u, 0u, { .obj = (void*) (struct vader_struct_snippet_codes$Info_t*) &vader_data_0_e1 } },
     },

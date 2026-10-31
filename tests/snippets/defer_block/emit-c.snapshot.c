@@ -60,9 +60,9 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 static const struct vader_struct___defer_env_snippet_1_t vader_data_0_e0 = {
     { 3u, 0u, 0u, 0u, NULL },
 };
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 3u, 0u, { 0u, 0u, 0u },
-    {
+static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 3u, 0u,
+    .slots = {
         {
             3u, 0u,
             { .obj = (void*) (struct vader_struct___defer_env_snippet_1_t*) &vader_data_0_e0 },
@@ -75,9 +75,9 @@ static const vader_array_t vader_data_0 = {
 static const struct vader_struct___defer_env_snippet_3_t vader_data_1_e0 = {
     { 4u, 0u, 0u, 0u, NULL },
 };
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 4u, 0u, { 0u, 0u, 0u },
-    {
+static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_1_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 4u, 0u,
+    .slots = {
         {
             4u, 0u,
             { .obj = (void*) (struct vader_struct___defer_env_snippet_3_t*) &vader_data_1_e0 },
@@ -90,9 +90,9 @@ static const vader_array_t vader_data_1 = {
 static const struct vader_struct___defer_env_snippet_5_t vader_data_2_e0 = {
     { 5u, 0u, 0u, 0u, NULL },
 };
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_2_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 5u, 0u, { 0u, 0u, 0u },
-    {
+static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_2_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 5u, 0u,
+    .slots = {
         {
             5u, 0u,
             { .obj = (void*) (struct vader_struct___defer_env_snippet_5_t*) &vader_data_2_e0 },
@@ -105,9 +105,9 @@ static const vader_array_t vader_data_2 = {
 static const struct vader_struct___defer_env_snippet_7_t vader_data_3_e0 = {
     { 6u, 0u, 0u, 0u, NULL },
 };
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_3_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 6u, 0u, { 0u, 0u, 0u },
-    {
+static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_3_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 6u, 0u,
+    .slots = {
         {
             6u, 0u,
             { .obj = (void*) (struct vader_struct___defer_env_snippet_7_t*) &vader_data_3_e0 },

@@ -45,16 +45,16 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 1u, 0u, { 0u, 0u, 0u },
-    { { 1u, 0u, { .s = 5u } }, { 1u, 0u, { .s = 11u } } },
+static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_0_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 1u, 0u,
+    .slots = { { 1u, 0u, { .s = 5u } }, { 1u, 0u, { .s = 11u } } },
 };
 static const vader_array_t vader_data_0 = {
     { 5u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 1u, 0u, { 0u, 0u, 0u },
-    { { 1u, 0u, { .s = 7u } }, { 1u, 0u, { .s = 12u } } },
+static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_1_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 1u, 0u,
+    .slots = { { 1u, 0u, { .s = 7u } }, { 1u, 0u, { .s = 12u } } },
 };
 static const vader_array_t vader_data_1 = {
     { 5u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_1_buf,

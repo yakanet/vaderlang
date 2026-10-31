@@ -580,15 +580,25 @@ static inline void vader_array_make_borrowed(vader_array_t* a, uint32_t elem_tag
  * `vader_array_read_u8`) stamps it onto the returned box so virtual-dispatch
  * call sites that observe the array through an erased `Any[]` view get a
  * properly-tagged receiver. */
-typedef struct vader_array_buf {
-    vader_obj_header_t       header;
-    size_t                   capacity;
-    size_t                   length;
-    uint32_t                 element_tag;
-    uint8_t                  element_kind;
+#define VADER_ARRAY_BUF_HEADER                                                   \
+    vader_obj_header_t       header;                                             \
+    size_t                   capacity;                                           \
+    size_t                   length;                                             \
+    uint32_t                 element_tag;                                        \
+    uint8_t                  element_kind;                                       \
     uint8_t                  _pad[3];
+
+typedef struct vader_array_buf {
+    VADER_ARRAY_BUF_HEADER
     uint8_t                  slots[];
 } vader_array_buf_t;
+
+/* The buffer of a static array of `count` slots of `slot_type`, which the C
+ * emitter declares: a static initializer cannot fill a flexible member, so the
+ * slots are sized. Initialise them by the `.slots` designator, never by
+ * position: the padding ahead of them may change. */
+#define VADER_ARRAY_STATIC_BUF(slot_type, count)                                 \
+    struct { VADER_ARRAY_BUF_HEADER slot_type slots[count]; }
 
 static inline bool vader_array_buf_is_shared(const vader_array_buf_t* buf) {
     return (buf->header._reserved & VADER_ARRAY_BUF_FLAG_SHARED) != 0;

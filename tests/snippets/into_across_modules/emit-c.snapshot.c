@@ -51,9 +51,9 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint64_t slots[684]; } vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 684u, 684u, 5u, 4u, { 0u, 0u, 0u },
-    {
+static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_0_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 684u, 684u, 5u, 4u,
+    .slots = {
         (uint64_t) UINT64_C(1), (uint64_t) UINT64_C(2305843009213693952),
         (uint64_t) UINT64_C(11068046444225730970), (uint64_t) UINT64_C(1844674407370955161),
         (uint64_t) UINT64_C(5165088340638674453), (uint64_t) UINT64_C(1475739525896764129),
@@ -401,9 +401,9 @@ static const struct { vader_obj_header_t header; size_t capacity; size_t length;
 static const vader_array_t vader_data_0 = {
     { 14u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint64_t slots[652]; } vader_data_1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 5u, 4u, { 0u, 0u, 0u },
-    {
+static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 5u, 4u,
+    .slots = {
         (uint64_t) UINT64_C(0), (uint64_t) UINT64_C(1152921504606846976), (uint64_t) UINT64_C(0),
         (uint64_t) UINT64_C(1441151880758558720), (uint64_t) UINT64_C(0),
         (uint64_t) UINT64_C(1801439850948198400), (uint64_t) UINT64_C(0),
