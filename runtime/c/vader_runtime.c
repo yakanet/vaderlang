@@ -2865,15 +2865,17 @@ vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo_bound, int64_t hi_
         return view;
     }
     /* A second header now shares this buffer: mark it, and once a callback has
-     * escaped, make it still. Only a young buffer can move: an immortal one may
-     * sit in read-only memory. Invariant: vader.h, `VADER_ARRAY_RESOLVE_BUF`. */
-    if (a->buf != NULL && vader_in_young_from(a->buf)) {
-        if (vader_ffi_callback_escaped) {
-            a->buf = (vader_array_buf_t*) vader_gc_force_tenure(a->buf);
-        }
+     * escaped, make it still. Only a young buffer can move. An immortal one
+     * stays unmarked, since it may sit in read-only memory: the compiler copies
+     * a constant before any code that could shrink it. Invariants: vader.h,
+     * `vader_array_t` and `VADER_ARRAY_RESOLVE_BUF`. */
+    int young = vader_in_young_from(a->buf);
+    if (young && vader_ffi_callback_escaped) {
+        a->buf = (vader_array_buf_t*) vader_gc_force_tenure(a->buf);
+    }
+    if (young || vader_in_old(a->buf)) {
         vader_array_buf_mark_shared(a->buf);
     }
-    /* Views aren't growable in-place: push detaches into a fresh buf. */
     view->capacity = len;
     view->buf      = a->buf;
     return view;
@@ -2978,12 +2980,10 @@ void vader_array_push_slow(vader_array_t* a, vader_box_t v) {
         /* Defensive : T3072 refuses to modify a view of a string's bytes. */
         vader_trap("cannot push to a borrowed `const u8[]` byte view");
     }
-    /* Three reasons to detach into a fresh buf : (a) cap reached, (b) view
-     * with non-zero offset, (c) view whose tail doesn't extend to the buf
-     * end (another view aliases the tail slots: growing in place would
-     * overwrite them). The owning array meets none of these. */
-    bool is_view = a->offset != 0 || a->offset + a->length < a->buf->length;
-    if (a->length >= a->capacity || is_view) {
+    /* No room left, which is also where every view and every header that shrank
+     * over a shared buffer stands (`vader_array_t`): copy into a buffer of its
+     * own. */
+    if (a->length >= a->capacity) {
         /* `vader_array_buf_alloc` may collect, once or more (minor, then a
          * major when the minor doesn't free enough), and a forward does not
          * outlive its collection (docs/adr/0107). Box `a` here and root the box
@@ -3017,11 +3017,9 @@ void vader_array_push_slow(vader_array_t* a, vader_box_t v) {
         VADER_WRITE_BARRIER(a);
         vader_gc_top = frame.prev;
     }
-    vader_array_store_slot(a->buf, a->offset + a->length, v);
+    vader_array_store_slot(a->buf, a->length, v);
     a->length += 1;
-    if (a->offset + a->length > a->buf->length) {
-        a->buf->length = a->offset + a->length;
-    }
+    a->buf->length = a->length;
     VADER_WRITE_BARRIER(a->buf);
 }
 
@@ -3217,8 +3215,7 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
     if (add == 0) return;
     size_t need = dst->length + add;
     if (need < dst->length) vader_trap("vader_array: push_all length overflows size_t");
-    bool is_view = dst->offset != 0 || dst->offset + dst->length < dst->buf->length;
-    if (need > dst->capacity || is_view) {
+    if (need > dst->capacity) {
         uint32_t dtag    = dst->header.type_index;
         uint8_t  kind    = dst->buf->element_kind;
         size_t   esz     = vader_array_element_size(kind);
@@ -3251,7 +3248,7 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
     uint8_t kind; uint32_t tag; size_t esz;
     const uint8_t* src_data = vader_array_src_region(src, 0, &kind, &tag, &esz);
     if (kind == dst->buf->element_kind) {
-        uint8_t* dst_data = dst->buf->slots + (dst->offset + dst->length) * esz;
+        uint8_t* dst_data = dst->buf->slots + dst->length * esz;
         memcpy(dst_data, src_data, add * esz);
     } else {
         /* The two arrays store their elements differently, so a memcpy would
@@ -3267,13 +3264,11 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
          * still holds. */
         for (size_t i = 0; i < add; i++) {
             vader_box_t v = vader_array_src_slot(src, src_data, tag, src->offset, i);
-            vader_array_store_slot(dst->buf, dst->offset + dst->length + i, v);
+            vader_array_store_slot(dst->buf, dst->length + i, v);
         }
     }
     dst->length += add;
-    if (dst->offset + dst->length > dst->buf->length) {
-        dst->buf->length = dst->offset + dst->length;
-    }
+    dst->buf->length = dst->length;
     if (dst->buf->element_kind == VADER_ARRAY_KIND_BOXED ||
         dst->buf->element_kind == VADER_ARRAY_KIND_REF) {
         VADER_WRITE_BARRIER(dst->buf);
@@ -3334,6 +3329,18 @@ void vader_array_copy(vader_array_t* src, int64_t src_from, vader_array_t* dst, 
     }
 }
 
+/* After `a->length` dropped. A buffer only `a` sees follows it, so a collection
+ * frees what the dropped slots held. A shared one keeps its scan bound, since a
+ * view may still read those slots, and `a` gives up its room instead: its next
+ * push copies rather than overwrite them. See `vader_array_t`. */
+static void vader_array_after_shrink(vader_array_t* a) {
+    if (vader_array_buf_is_shared(a->buf)) {
+        a->capacity = a->length;
+    } else {
+        a->buf->length = a->offset + a->length;
+    }
+}
+
 /* `arr.remove_last()`: pop the last element, shrink the length by one, and
  * return the element as a pre-tagged box (the boxed kind's slot box verbatim ;
  * a primitive read boxed with the static `element_tag`). Returns `vader_box_null`
@@ -3348,16 +3355,8 @@ vader_box_t vader_array_remove_last(vader_array_t* a) {
     vader_array_resolve_buf(a);
     vader_array_buf_t* buf = a->buf;
     vader_box_t out = vader_array_load_slot(buf, a->offset + a->length - 1);
-    /* If this array OWNS its buffer (offset 0, tail flush with the buffer end),
-     * shrink the buffer length alongside the array length. Otherwise the owner
-     * keeps `offset + length < buf->length` and the next `vader_array_push`
-     * mistakes it for a slice view, detaching into a fresh capacity-DOUBLED
-     * buffer, so a `remove_last` + `push` worklist loop grows the backing store
-     * exponentially (correct on the VM, OOM on native). Genuine views (offset
-     * != 0, or a shorter prefix) don't match, so slice isolation is unchanged. */
-    bool owns_tail = (a->offset == 0 && a->offset + a->length == buf->length);
     a->length -= 1;
-    if (owns_tail) { buf->length -= 1; }
+    vader_array_after_shrink(a);
     return out;
 }
 
@@ -3369,17 +3368,8 @@ void vader_array_clear(vader_array_t* a) {
     }
     a = vader_array_resolve(a);
     vader_array_resolve_buf(a);
-    /* Shrink the BUFFER alongside the array when this array owns the tail:
-     * same rule, and the same reason, as `vader_array_remove_last` above. Left
-     * out, `offset + length < buf->length` makes the next `vader_array_push`
-     * read the array as a slice view and detach into a fresh capacity-DOUBLED
-     * buffer, so a clear + refill loop doubles the backing store on every pass.
-     * A genuine view (offset != 0, or a shorter prefix) does not match and
-     * keeps its isolation. */
-    if (a->offset == 0 && a->offset + a->length == a->buf->length) {
-        a->buf->length = 0;
-    }
     a->length = 0;
+    vader_array_after_shrink(a);
 }
 
 /* ----------------------------------------------------------------- std/string */

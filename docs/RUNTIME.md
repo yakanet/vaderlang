@@ -259,7 +259,14 @@ until a push writes them: the collector reads a buffer's slots only up to its ow
 detaches it into a buffer of its own, since a slice is created with a capacity
 equal to its length
 ([ADR 0108](adr/0108-a-slice-shares-its-parents-buffer-and-a-push-detaches-it.md)).
-Slicing marks a young buffer as shared, for the foreign-call path (*Memory*).
+
+A header writes in place only the slots between its length and its capacity, which
+no other header sees. Slicing marks a heap buffer as shared, and a header that pops
+or clears over a shared buffer gives up its room: its next push copies too, rather
+than overwrite a slot a slice still reads. Over a buffer no slice shares, a pop or
+a clear lowers the buffer's `length`, so a collection frees what the dropped slots
+held; the buffer's `length` is only that bound
+([ADR 0122](adr/0122-an-array-writes-in-place-only-into-room-no-other-header-sees.md)).
 
 **The bytes of a string**, `s.bytes()`, are a header with no buffer, flagged
 *borrowed*, that reads the string's interned bytes in place; its `capacity` field
@@ -270,13 +277,11 @@ An index is checked against `length` before every access; a release build drops
 the checks the range analysis proves useless
 ([ADR 0058](adr/0058-a-release-build-drops-the-index-checks-the-range-analysis-proves.md)).
 
-On the VM, an `ArrayVal` holds its elements as an array of `Value`, always boxed,
-with `offset` and `length` for a view; a push detaches a view first, a write
-reaches the parent. `s.bytes()` gives an `ArrayVal` whose `raw` field holds the
-string, read in place
+On the VM, an `ArrayVal` holds its elements as an array of `Value` of the host,
+always boxed, and a slice slices that array, so a view follows the native rules
+above. `s.bytes()` gives an `ArrayVal` whose `raw` field holds a window on the
+string, read in place; a write or a push copies the bytes first
 ([ADR 0029](adr/0029-the-vm-reads-a-strings-bytes-in-place.md)).
-
-A slice of the whole array breaks these rules, on the VM and natively (`TODO.md`).
 
 ## Functions and closures
 

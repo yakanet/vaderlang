@@ -46,23 +46,22 @@ hosted_frame_call :: fn(
     // A VM array holds boxed `Value`s, not contiguous bytes, so both are
     // materialised into real `u8[]`. The host takes their address right
     // before the call, and nothing runs in between.
-    desc :: array_bytes(desc_arr, desc_arr.length, at_pc, "${label} desc byte")
+    desc :: array_bytes(desc_arr, element_count(desc_arr), at_pc, "${label} desc byte")
     if desc is Trap {
         return desc
     }
     own_bytes(frame_arr)
     frame: u8[]: []
-    for i in 0..<frame_arr.length {
-        b :: read_i64(frame_arr.elements[frame_arr.offset + i], at_pc, "${label} frame byte")
+    for i in 0..<frame_arr.elements.len() {
+        b :: read_i64(frame_arr.elements[i], at_pc, "${label} frame byte")
         if b is Trap { return b }
         frame.push(u8(b))
     }
     returned :: call_foreign(i64(ptr), through_adapter, desc, frame, -1)
     // `frame` is a COPY, and it carries BOTH what the callee wrote into a
     // lent area and the result itself, so it has to travel back whole.
-    for i in 0..<frame_arr.length {
-        at :: frame_arr.offset + i
-        frame_arr.elements[at] = retyped_int(frame_arr.elements[at], i64(frame[i]))
+    for i in 0..<frame_arr.elements.len() {
+        frame_arr.elements[i] = retyped_int(frame_arr.elements[i], i64(frame[i]))
     }
     return returned
 }
@@ -159,7 +158,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, g
         // gathered out of the boxed u8 slots.
         arr :: read_array(stack[arg_base], at_pc, "bytes_to_string receiver")
         if arr is Trap { return arr }
-        bs :: array_bytes(arr, arr.length, at_pc, "bytes_to_string byte")
+        bs :: array_bytes(arr, element_count(arr), at_pc, "bytes_to_string byte")
         if bs is Trap {
             return bs
         }
@@ -352,11 +351,11 @@ debug_std_descriptor :: fn(which: i64) -> i64 = if which == 0xFFFF_FFF4 { 2 } el
 array_bytes :: fn(a: ArrayVal, count: i64, at_pc: i32, label: string) -> u8[] | Trap {
     raw :: a.raw
     if raw != null {
-        return raw.bytes()[a.offset..<a.offset + count]
+        return raw.first_bytes(count)
     }
     bs: u8[]: []
     for i in 0..<count {
-        b :: read_i64(a.elements[a.offset + i], at_pc, label)
+        b :: read_i64(a.elements[i], at_pc, label)
         if b is Trap {
             return b
         }
@@ -384,7 +383,7 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i32, 
     if arr is Trap { return arr }
     count :: read_i64(stack[arg_base + 2], at_pc, "sys_write count")
     if count is Trap { return count }
-    if count < 0 || i64(count) > arr.length {
+    if count < 0 || i64(count) > element_count(arr) {
         return Trap { .message = "sys_write at pc=${at_pc}: count ${i64(count)} exceeds the buffer" }
     }
     bs :: array_bytes(arr, i64(count), at_pc, "sys_write byte")
@@ -575,11 +574,10 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
             if raw != null {
                 // A string's own bytes, read-only as the native view is: lent as
                 // they are, and nothing travels back.
-                data.push_all(raw.bytes()[v.offset..<v.offset + v.length])
+                data.push_all(raw.first_bytes(raw.length))
             } else {
                 borrowed.push(LentArray { .target = v, .at = data.len(), .element = elem })
-                for j in 0..<v.length {
-                    cell :: v.elements[v.offset + j]
+                for cell in v.elements {
                     b :: if cell is I64Val { i64(cell) } else if cell is I32Val { i64(cell) } else {
                         failed :: read_i64(cell, at_pc, "extern `${info.extern_name}` element")
                         if failed is Trap { return failed }
@@ -680,10 +678,9 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
         // Only an integer class reaches `LentArray`, so unsigned is the whole
         // question: `lent_element_val_type` filtered the rest out.
         signed :: !bc.is_unsigned_val(b.element)
-        for j in 0..<b.target.length {
-            slot :: b.target.offset + j
+        for j in 0..<b.target.elements.len() {
             written :: read_little_endian(frame, base + b.at + j * width, width, signed)
-            b.target.elements[slot] = retyped_int(b.target.elements[slot], written)
+            b.target.elements[j] = retyped_int(b.target.elements[j], written)
         }
     }
     // Same reason as the arrays above: the block is a copy, so a callee that

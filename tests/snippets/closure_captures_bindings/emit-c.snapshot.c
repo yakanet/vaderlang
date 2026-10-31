@@ -517,7 +517,7 @@ static int32_t snippet$with_rest(void) {
     l3 = INT64_C(1);
     vader_array_t* _pc12_hdr = (vader_array_t*) l2;
     size_t _pc12_len = _pc12_hdr->length;
-    size_t _pc12_cap = (_pc12_hdr->offset == 0 && !vader_array_is_borrowed(_pc12_hdr) && _pc12_hdr->length >= _pc12_hdr->buf->length) ? _pc12_hdr->capacity : (size_t) 0;
+    size_t _pc12_cap = vader_array_is_borrowed(_pc12_hdr) ? (size_t) 0 : _pc12_hdr->capacity;
     void* _pc12_slots = _pc12_hdr->buf->slots;
     for (;;) {
         l4 = ((vader_array_t*) l0)->length;
@@ -537,7 +537,7 @@ static int32_t snippet$with_rest(void) {
                 vader_array_push_i32((vader_array_t*) l2, l5);
                 _pc12_hdr = (vader_array_t*) l2;
                 _pc12_len = _pc12_hdr->length;
-                _pc12_cap = (_pc12_hdr->offset == 0 && !vader_array_is_borrowed(_pc12_hdr) && _pc12_hdr->length >= _pc12_hdr->buf->length) ? _pc12_hdr->capacity : (size_t) 0;
+                _pc12_cap = vader_array_is_borrowed(_pc12_hdr) ? (size_t) 0 : _pc12_hdr->capacity;
                 _pc12_slots = _pc12_hdr->buf->slots;
             }
             l3 = (l3 + INT64_C(1));

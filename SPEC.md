@@ -879,9 +879,15 @@ part[0] = 21              // xs is [11, 21, 30, 40]
 part.push(50)             // part is [21, 30, 50], an array of its own
 part[0] = 0               // xs is still [11, 21, 30, 40]
 xs[2..<99]                // [30, 40]: the bounds are clamped
+
+view :: xs[0..<4]
+xs.remove_last()          // xs is [11, 21, 30]
+xs.push(0)                // xs is [11, 21, 30, 0], an array of its own
+view[3]                   // still 40
 ```
 
 - `T[]` is an array whose length is known at run time; `i32[][]` is an array of `i32` arrays.
+- A push never changes an element another array reads. The first push to a slice, or to an array that was sliced and has since shrunk (`remove_last`, `clear`), gives it elements of its own: its writes stop reaching the other.
 - `arr[r]`, for a range `r` of any integer type, is a slice of `arr`; its bounds, read as `i64`, are clamped at 0 too, and `arr[r].clone()` gives an independent copy.
 
 ```vader

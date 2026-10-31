@@ -291,26 +291,6 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
       not say whether `%` applies to floats: settle that first, then add a float remainder
       op or reject `%` on floats in the typecheck.
 
-- [ ] **The VM takes a slice of the whole array for the array itself** (found
-      2026-10-25). `is_array_view` (`vader/vm/value.vader`) and the `ArrayRemoveLast` /
-      `ArrayClear` arms (`vader/vm/exec.vader`) infer a view from its window, so a view of
-      the whole array looks like its parent. A push does not detach it:
-      `a :: [1, 2, 3]; s :: a[0..<3]; s.push(9); s[0] = 5` leaves `a[0]` at 5 under
-      `vader run` and at 1 natively (SPEC §4 *Arrays*: after a push, the slice and the
-      parent are separate arrays). And `s.clear()` clears the parent's shared elements,
-      so printing `a` afterwards stops on
-      "array index out of bounds". Recording at `array.slice` that the value is a view
-      fixes all three ops.
-
-- [ ] **Natively, `clear` or `remove_last` on a slice that ends at the end of its buffer
-      lets a push write into the parent** (found 2026-10-25).
-      `a :: [1, 2, 3]; s :: a[0..<3]; s.clear(); s.push(9)` leaves `a` at `[9, 2, 3]`,
-      against SPEC §4 *Arrays* (a push to a slice never writes the parent);
-      `remove_last` then `push` does the same on the last slot. `vader_array_clear` and
-      `vader_array_remove_last` (`runtime/c/vader_runtime.c`) shrink the shared buffer's
-      `length` as if the slice owned it, so the next push passes the in-place test. They
-      should shrink only the header's `length` for a view.
-
 - [ ] **An unread array read or checked operation loses its run-time check** (found
       2026-10-25). `unused :: xs[10]` on a 3-element array runs to the end, on the VM and
       natively: `compact_locals` (`vader/midir/optimise/cfg_dce.vader`) drops a pure

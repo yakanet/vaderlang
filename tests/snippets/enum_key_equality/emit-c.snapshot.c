@@ -757,7 +757,7 @@ static void std_collections$rehash__snippet_Color__i32(void* l0, int64_t l1) {
     l3 = INT64_C(0);
     vader_array_t* _pc18_hdr = (vader_array_t*) l2;
     size_t _pc18_len = _pc18_hdr->length;
-    size_t _pc18_cap = (_pc18_hdr->offset == 0 && !vader_array_is_borrowed(_pc18_hdr) && _pc18_hdr->length >= _pc18_hdr->buf->length) ? _pc18_hdr->capacity : (size_t) 0;
+    size_t _pc18_cap = vader_array_is_borrowed(_pc18_hdr) ? (size_t) 0 : _pc18_hdr->capacity;
     void* _pc18_slots = _pc18_hdr->buf->slots;
     for (;;) {
         if ((l3 < l1)) {
@@ -772,7 +772,7 @@ static void std_collections$rehash__snippet_Color__i32(void* l0, int64_t l1) {
                 vader_array_push_i32((vader_array_t*) l2, INT32_C(0));
                 _pc18_hdr = (vader_array_t*) l2;
                 _pc18_len = _pc18_hdr->length;
-                _pc18_cap = (_pc18_hdr->offset == 0 && !vader_array_is_borrowed(_pc18_hdr) && _pc18_hdr->length >= _pc18_hdr->buf->length) ? _pc18_hdr->capacity : (size_t) 0;
+                _pc18_cap = vader_array_is_borrowed(_pc18_hdr) ? (size_t) 0 : _pc18_hdr->capacity;
                 _pc18_slots = _pc18_hdr->buf->slots;
             }
             l3 = (l3 + INT64_C(1));
@@ -848,7 +848,7 @@ static void std_collections$rehash__snippet_HttpStatus__string(void* l0, int64_t
     l3 = INT64_C(0);
     vader_array_t* _pc18_hdr = (vader_array_t*) l2;
     size_t _pc18_len = _pc18_hdr->length;
-    size_t _pc18_cap = (_pc18_hdr->offset == 0 && !vader_array_is_borrowed(_pc18_hdr) && _pc18_hdr->length >= _pc18_hdr->buf->length) ? _pc18_hdr->capacity : (size_t) 0;
+    size_t _pc18_cap = vader_array_is_borrowed(_pc18_hdr) ? (size_t) 0 : _pc18_hdr->capacity;
     void* _pc18_slots = _pc18_hdr->buf->slots;
     for (;;) {
         if ((l3 < l1)) {
@@ -863,7 +863,7 @@ static void std_collections$rehash__snippet_HttpStatus__string(void* l0, int64_t
                 vader_array_push_i32((vader_array_t*) l2, INT32_C(0));
                 _pc18_hdr = (vader_array_t*) l2;
                 _pc18_len = _pc18_hdr->length;
-                _pc18_cap = (_pc18_hdr->offset == 0 && !vader_array_is_borrowed(_pc18_hdr) && _pc18_hdr->length >= _pc18_hdr->buf->length) ? _pc18_hdr->capacity : (size_t) 0;
+                _pc18_cap = vader_array_is_borrowed(_pc18_hdr) ? (size_t) 0 : _pc18_hdr->capacity;
                 _pc18_slots = _pc18_hdr->buf->slots;
             }
             l3 = (l3 + INT64_C(1));

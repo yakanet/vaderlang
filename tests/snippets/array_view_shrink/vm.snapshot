@@ -1,0 +1,9 @@
+# stdout
+after clear: 0 7 14 21 28 35 42 49 56 63
+after remove_last: 0 7 14 21
+owner after push: 0 7 99
+view after push: 0 7 14 21
+view clear then push: [1, 2, 3] [9]
+view remove_last then push: [1, 2, 3] [1, 2, 9]
+# exit
+0

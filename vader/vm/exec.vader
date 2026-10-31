@@ -21,6 +21,7 @@ module "vader/vm"
 bc :: import "vader/core/bytecode"
 
 import "std/io"
+import "std/math"
 import "std/string"
 import "vader/core/types"
 
@@ -299,9 +300,9 @@ project_var :: fn(name: string, v: Value, bc_mod: bc.BytecodeModule, depth: i32)
     children: PauseVar[] = []
     if depth < DEBUG_MAX_DEPTH {
         if v is ArrayVal {
-            shown :: if v.length > DEBUG_MAX_ELEMS { DEBUG_MAX_ELEMS } else { v.length }
+            shown :: min(element_count(v), DEBUG_MAX_ELEMS)
             for i in 0..<shown {
-                children.push(project_var("[${i}]", element_at(v, v.offset + i), bc_mod, depth + 1))
+                children.push(project_var("[${i}]", element_at(v, i), bc_mod, depth + 1))
             }
         } else if v is StructVal {
             children = project_struct_fields(v, bc_mod, depth)
@@ -666,7 +667,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
     for element_index in 0..<needed {
         elements.push(peek_owned(frame, arg_base + element_index))
     }
-    new_array :: ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
+    new_array :: ArrayVal { .type_id = type_id, .elements = elements }
     push_val(frame, arg_base, new_array)
     frame.sp = arg_base + 1
     frame.pc = frame.pc + 1
@@ -994,21 +995,13 @@ apply_boxed :: fn(
         is bc.ArrayRemoveLast -> {
             array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.remove_last receiver")
             if array_unwrap is Trap { return array_unwrap }
-            if array_unwrap.length == 0 {
+            if array_unwrap.raw != null {
+                own_bytes(array_unwrap)
+            }
+            last :: array_unwrap.elements.remove_last()
+            if last == null {
                 frame.tag[frame.sp - 1] = .Null
             } else {
-                own_bytes(array_unwrap)
-                last :: array_unwrap.elements[array_unwrap.offset + array_unwrap.length - 1]
-                // Shrink the SHARED backing when this array owns the tail:
-                // same rule as `array.clear` below, and as the native
-                // `vader_array_remove_last`. `data.const` hands out a fresh
-                // header over the pool entry's `elements`, so a length
-                // written only on the header is lost for a module-level
-                // array: the next read rebuilds it from `elements.len()`.
-                if array_unwrap.offset == 0 && array_unwrap.length == array_unwrap.elements.len() {
-                    array_unwrap.elements.remove_last()
-                }
-                array_unwrap.length = array_unwrap.length - 1
                 push_val(frame, frame.sp - 1, last)
             }
             frame.pc = frame.pc + 1
@@ -1017,23 +1010,7 @@ apply_boxed :: fn(
             array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.clear receiver")
             if array_unwrap is Trap { return array_unwrap }
             array_unwrap.raw = null
-            // Clear the SHARED backing when this array owns it, the way the
-            // native runtime shrinks `buf->length` in `vader_array_clear`.
-            // `data.const` hands out a FRESH header over the pool entry's
-            // `elements`, which is how a module-level array is reached, so
-            // rebinding the field here would leave that array untouched:
-            // `push` mutates the shared backing and would still see three
-            // elements after a `clear`. Emptying it in place keeps
-            // `elements.len()` as the logical length, so nothing resurfaces
-            // on the next push. A genuine slice view (offset != 0, or a
-            // shorter prefix) detaches instead and keeps its isolation.
-            if array_unwrap.offset == 0 && array_unwrap.length == array_unwrap.elements.len() {
-                array_unwrap.elements.clear()
-            } else {
-                array_unwrap.elements = []
-            }
-            array_unwrap.offset = 0
-            array_unwrap.length = 0
+            array_unwrap.elements.clear()
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
@@ -1062,12 +1039,7 @@ apply_boxed :: fn(
             } else {
                 // A site at another type_id: a fresh header over the same
                 // `elements`, as `.rodata` is shared natively.
-                push_val(frame, frame.sp, ArrayVal {
-                    .type_id  = instr.type_id,
-                    .elements = shared.elements,
-                    .offset   = 0,
-                    .length   = shared.elements.len(),
-                })
+                push_val(frame, frame.sp, ArrayVal { .type_id = instr.type_id, .elements = shared.elements })
             }
             frame.sp = frame.sp + 1
             frame.pc = frame.pc + 1

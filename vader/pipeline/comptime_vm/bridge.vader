@@ -95,8 +95,8 @@ array_to_comptime :: fn(
 ) -> Ct.ComptimeValue | Diagnostic {
     array_type :: array_instance_type(ty) ?? return unsupported(span, "an array")
     elements: Ct.ComptimeValue[]: []
-    for i in 0..<array.length {
-        element :: Vm.element_at(array, array.offset + i)
+    for i in 0..<Vm.element_count(array) {
+        element :: Vm.element_at(array, i)
         bridged :: value_to_comptime(ctx, element, array_type.element, span)
         if bridged is Diagnostic {
             return bridged
@@ -263,12 +263,7 @@ test_bridge_struct_the_type_does_not_name :: fn() -> void {
 @test
 test_bridge_array_takes_its_union_variant :: fn() -> void {
     elements: Vm.Value[]: [Vm.I32Val(1), Vm.I32Val(200)]
-    value :: Vm.ArrayVal {
-        .type_id = 0,
-        .elements = elements,
-        .offset = 0,
-        .length = 2,
-    }
+    value :: Vm.ArrayVal { .type_id = 0, .elements = elements }
     ty :: mk_union([mk_array(mk_primitive("u8")), TY_NULL])
     assert_eq(display_bridged(value, ty, empty_span()), "[1_u8, 200_u8]")
 }
@@ -276,12 +271,7 @@ test_bridge_array_takes_its_union_variant :: fn() -> void {
 @test
 test_bridge_array_the_type_does_not_name :: fn() -> void {
     elements: Vm.Value[]: [Vm.I32Val(1)]
-    value :: Vm.ArrayVal {
-        .type_id = 0,
-        .elements = elements,
-        .offset = 0,
-        .length = 1,
-    }
+    value :: Vm.ArrayVal { .type_id = 0, .elements = elements }
     assert_eq(display_bridged(value, TY_I32, empty_span()), "<diag>")
 }
 
@@ -309,7 +299,7 @@ test_bridge_array_the_type_does_not_name :: fn() -> void {
         Vm.I32Val(2),
         Vm.I32Val(3),
     ]
-    array :: Vm.ArrayVal { .type_id = 0, .elements = elems, .offset = 0, .length = 3 }
+    array :: Vm.ArrayVal { .type_id = 0, .elements = elems }
     ty :: mk_array(mk_primitive("u32"))
     assert_eq(display_bridged(array, ty, s), "[1_u32, 2_u32, 3_u32]")
 }

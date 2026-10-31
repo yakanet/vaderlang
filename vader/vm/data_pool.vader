@@ -22,12 +22,7 @@ reduce_data_pool :: fn(entries: BcDataEntry[], types: BcType[], type_ids: i32[])
         } else if e is BcAggregateData {
             for v in e.elements { elements.push(bc_value_to_vm(v, types)) }
         }
-        out.push(ArrayVal {
-            .type_id  = type_ids[i],
-            .elements = elements,
-            .offset   = 0,
-            .length   = elements.len(),
-        })
+        out.push(ArrayVal { .type_id = type_ids[i], .elements = elements })
     }
     return out
 }
@@ -46,7 +41,7 @@ bc_value_to_vm :: fn(v: BcDataValue, types: BcType[]) -> Value {
     if v is BcValArray {
         elems: Value[]: []
         for e in v.elements { elems.push(bc_value_to_vm(e, types)) }
-        return ArrayVal { .type_id = v.type_id, .elements = elems, .offset = 0, .length = elems.len() }
+        return ArrayVal { .type_id = v.type_id, .elements = elems }
     }
     return I32Val(0)
 }

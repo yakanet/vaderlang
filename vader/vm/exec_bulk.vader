@@ -30,20 +30,20 @@ exec_array_copy :: fn(frame: Frame) -> Trap | null {
     n  :: clamp_nonneg(i32(len_unwrap))
     ss :: clamp_nonneg(i32(src_start_unwrap))
     ds :: clamp_nonneg(i32(dst_start_unwrap))
-    if ss + n > src_unwrap.length {
+    if ss + n > element_count(src_unwrap) {
         return Trap { .message = "array.copy source range out of bounds at pc=${frame.pc}" }
     }
-    if ds + n > dst_unwrap.length {
+    if ds + n > element_count(dst_unwrap) {
         return Trap { .message = "array.copy destination range out of bounds (dst must already be long enough) at pc=${frame.pc}" }
     }
     // Overlap-safe : snapshot the source window before writing.
     window: Value[]: [] * n
     for j in 0..<n {
-        window.push(element_at(src_unwrap, src_unwrap.offset + ss + j))
+        window.push(element_at(src_unwrap, ss + j))
     }
     own_bytes(dst_unwrap)
     for j in 0..<n {
-        dst_unwrap.elements[dst_unwrap.offset + ds + j] = window[j]
+        dst_unwrap.elements[ds + j] = window[j]
     }
     frame.sp = frame.sp - 5
     frame.pc = frame.pc + 1
@@ -60,24 +60,34 @@ exec_array_slice :: fn(frame: Frame, instr: bc.ArraySlice) -> Trap | null {
     if lo_unwrap is Trap { return lo_unwrap }
     array_unwrap :: peek_array_mut(frame, frame.sp - 3, frame.pc, "array.slice receiver")
     if array_unwrap is Trap { return array_unwrap }
-    len :: array_unwrap.length
+    len :: element_count(array_unwrap)
     lo_clamped := clamp_nonneg(i32(lo_unwrap))
     if lo_clamped > len { lo_clamped = len }
     hi_clamped := clamp_nonneg(i32(hi_unwrap))
     if hi_clamped < lo_clamped { hi_clamped = lo_clamped }
     if hi_clamped > len { hi_clamped = len }
-    // A view : share `elements`, adjust bounds. Writes
-    // through the view will alias the parent (see ArraySet).
-    push_val(frame, frame.sp - 3, ArrayVal {
-            .type_id  = instr.type_id,
-            .elements = array_unwrap.elements,
-            .offset   = array_unwrap.offset + lo_clamped,
-            .length   = hi_clamped - lo_clamped,
-            .raw      = array_unwrap.raw,
-        })
+    push_val(frame, frame.sp - 3, view_of(array_unwrap, instr.type_id, lo_clamped, hi_clamped))
     frame.sp = frame.sp - 2
     frame.pc = frame.pc + 1
     return null
+}
+
+// The view `[lo, hi)` of `array`, of the array type `type_id`: a slice of its
+// elements, or a narrower window of the string bytes it reads.
+view_of :: fn(array: ArrayVal, type_id: i32, lo: i64, hi: i64) -> ArrayVal {
+    raw :: array.raw
+    if raw == null {
+        return ArrayVal { .type_id = type_id, .elements = array.elements[lo..<hi] }
+    }
+    return ArrayVal {
+        .type_id = type_id,
+        .elements = array.elements,
+        .raw = StringWindow {
+            ...raw,
+            .offset = raw.offset + lo,
+            .length = hi - lo,
+        },
+    }
 }
 
 /// `array.push_all`: append every element of one array to another.
@@ -86,14 +96,14 @@ exec_array_push_all :: fn(frame: Frame) -> Trap | null {
     if src_unwrap is Trap { return src_unwrap }
     dst_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.push_all receiver")
     if dst_unwrap is Trap { return dst_unwrap }
-    detach_array_view(dst_unwrap)
-    // `src_unwrap.length` is the range bound, evaluated once, so
-    // `push_all(x, x)` (src aliases dst) doubles correctly.
-    add :: src_unwrap.length
-    for j in 0..<add {
-        dst_unwrap.elements.push(element_at(src_unwrap, src_unwrap.offset + j))
+    own_bytes(dst_unwrap)
+    if src_unwrap.raw == null {
+        dst_unwrap.elements.push_all(src_unwrap.elements)
+    } else {
+        for j in 0..<element_count(src_unwrap) {
+            dst_unwrap.elements.push(element_at(src_unwrap, j))
+        }
     }
-    dst_unwrap.length = dst_unwrap.length + add
     frame.sp = frame.sp - 2
     frame.pc = frame.pc + 1
     return null
@@ -108,19 +118,15 @@ exec_array_repeat :: fn(frame: Frame) -> Trap | null {
     count :: clamp_nonneg(i32(count_unwrap))
     // `[] * n` yields a length-0 array with `n` slots reserved, `[v] * n` n
     // copies.
-    slots :: if array_unwrap.length == 0 { count } else { count * array_unwrap.length }
+    length :: element_count(array_unwrap)
+    slots :: if length == 0 { count } else { count * length }
     repeated: Value[]: [] * slots
     for _ in 0..<count {
-        for j in 0..<array_unwrap.length {
-            repeated.push(element_at(array_unwrap, array_unwrap.offset + j))
+        for j in 0..<length {
+            repeated.push(element_at(array_unwrap, j))
         }
     }
-    push_val(frame, frame.sp - 2, ArrayVal {
-            .type_id  = array_unwrap.type_id,
-            .elements = repeated,
-            .offset   = 0,
-            .length   = repeated.len(),
-        })
+    push_val(frame, frame.sp - 2, ArrayVal { .type_id = array_unwrap.type_id, .elements = repeated })
     frame.sp = frame.sp - 1
     frame.pc = frame.pc + 1
     return null

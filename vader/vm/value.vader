@@ -51,7 +51,7 @@ export zero_value :: fn() -> Value { return I32Val(0) }
 export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
     elements: Value[]: []
     for s in items { elements.push(StringVal(s)) }
-    return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
+    return ArrayVal { .type_id = type_id, .elements = elements }
 }
 
 /// A string's UTF-8 bytes as a `u8[]` `ArrayVal`: `bytes` on the VM. Like the native view, it reads the interned bytes in place (`raw`)
@@ -66,9 +66,7 @@ export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
 export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal = ArrayVal {
     .type_id = type_id,
     .elements = [],
-    .offset = 0,
-    .length = s.byte_len(),
-    .raw = s,
+    .raw = StringWindow { .text = s, .length = s.byte_len() },
 }
 
 /// Locate the module's `string[]` `ArrayType` index: the type id a
@@ -297,34 +295,6 @@ export read_obj :: fn(v: Value, at_pc: i32, label: string) -> ObjVal | Trap {
 /// Short diagnostic rendering of an `ObjVal`, never dumps the payload,
 /// just the shape. Used by the `Display` impl and trap messages.
 describe_obj :: fn(o: ObjVal) -> string = "<obj#${o.handle} type=${o.type_id} bytes=${o.bytes.len()} slots=${o.slots.len()}>"
-
-/// True iff `a` is a view onto a buffer it doesn't own: `elements` is
-/// shared with another `ArrayVal`. Used by `array.push` to decide
-/// whether to detach into a fresh buffer before extending.
-export is_array_view :: fn(a: ArrayVal) -> bool {
-    return a.offset != 0 || a.offset + a.length < a.elements.len()
-}
-
-/// Give `a` a backing buffer of its own, copying its window out of the shared
-/// one. A no-op when `a` already owns its backing.
-///
-/// Every op that GROWS an array must call this first: a view shares `elements`
-/// with its parent, so pushing onto it would be visible through the parent and
-/// would read past the view's own window.
-///
-/// @param a  the array to detach; mutated in place.
-export detach_array_view :: fn(a: ArrayVal) -> void {
-    if a.raw == null && !is_array_view(a) {
-        return
-    }
-    fresh: Value[]: [] * a.length
-    for j in 0..<a.length {
-        fresh.push(element_at(a, a.offset + j))
-    }
-    a.elements = fresh
-    a.offset = 0
-    a.raw = null
-}
 
 /// Unwrap a `BoolVal` from a `Value`. Used by the boolean op arms.
 export read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
@@ -584,28 +554,36 @@ export StructVal :: struct {
     fields: Value[]
 }
 
-/// Heap-allocated array payload: grow-only via `array.push`, fixed-size
-/// indexed access via `array.get` / `array.set`. `type_id` indexes into
-/// `Module.types` (an `ArrayType`) ; `elements` is the shared backing
-/// buffer (multiple views may point at the same array). `offset` and
-/// `length` carve out the logical slice: owning arrays have
-/// `offset == 0` and `length == elements.len()`. View model :
-/// `array.slice` returns a view (shared `elements`, adjusted bounds) ;
-/// `array.set` writes through to the parent (Go-style aliasing) ;
-/// `array.push` detaches into a fresh `elements` when the array is a
-/// view so tail slots held by sibling views aren't clobbered.
+/// Heap-allocated array payload. `type_id` indexes into `Module.types` (an
+/// `ArrayType`). `elements` is an array of the host, and `array.slice` slices
+/// it: a view shares its parent's elements, a write through it reaches the
+/// parent, and a push, a `remove_last` or a `clear` follows the host's rules,
+/// which are the native build's (docs/adr/0122).
 export ArrayVal :: struct {
     type_id:  i32
     elements: Value[]
-    offset:   i64
-    length:   i64
-    /// The string whose bytes a `u8[]` reads in place of `elements`, never
-    /// copied, or null. A write or a push owns them first (`own_bytes`);
-    /// `offset` and `length` index into its bytes as into `elements`.
-    raw: string | null = null
+    /// The bytes of a string that a `u8[]` reads in place of `elements`, which
+    /// is then empty, never copied, or null. A write or a push owns them first
+    /// (`own_bytes`). A window, not a `u8[]` of the host: a string's bytes
+    /// cannot be kept in a field.
+    raw: StringWindow | null = null
 }
 
-/// Slot `at` of `a`'s backing, `offset` included.
+/// The bytes `[offset, offset + length)` of `text`.
+export StringWindow :: struct {
+    text:   string
+    offset: i64 = 0
+    length: i64
+}
+
+/// Byte `at` of the window, counted from its first.
+export byte_at :: fn(w: StringWindow, at: i64) -> u8 = w.text.byte_at(w.offset + at)
+
+/// The window's first `count` bytes, read in place.
+export first_bytes :: fn(w: StringWindow, count: i64) -> u8[] =
+    w.text.bytes()[w.offset..<w.offset + count]
+
+/// Element `at` of `a`, counted from its first.
 export element_at :: fn(a: ArrayVal, at: i64) -> Value {
     raw :: a.raw
     if raw != null {
@@ -614,14 +592,27 @@ export element_at :: fn(a: ArrayVal, at: i64) -> Value {
     return a.elements[at]
 }
 
+/// The number of elements of `a`.
+export element_count :: fn(a: ArrayVal) -> i64 {
+    raw :: a.raw
+    if raw != null {
+        return raw.length
+    }
+    return a.elements.len()
+}
+
 /// Give `a` boxed elements of its own in place of the bytes it reads: before
 /// anything writes or grows it. A no-op when it reads none.
 ///
 /// @param a  the array; mutated in place.
 export own_bytes :: fn(a: ArrayVal) -> void {
-    if a.raw != null {
-        detach_array_view(a)
+    raw :: a.raw ?? return
+    fresh: Value[]: [] * raw.length
+    for j in 0..<raw.length {
+        fresh.push(element_at(a, j))
     }
+    a.elements = fresh
+    a.raw = null
 }
 
 /// Function-reference payload: the runtime value pushed by `fn.ref`
@@ -732,9 +723,9 @@ ArrayVal implements Display {
     to_string :: fn(self) -> string {
         sb :: StringBuilder {}
         sb.append("[")
-        for i in 0..<self.length {
+        for i in 0..<element_count(self) {
             if i > 0 { sb.append(", ") }
-            sb.append(display_value(element_at(self, self.offset + i)))
+            sb.append(display_value(element_at(self, i)))
         }
         sb.append("]")
         return "${sb}"
@@ -769,7 +760,7 @@ import "std/testing"
 @test
 test_bytes_view_reads_the_string_without_a_copy :: fn() -> void {
     a :: bytes_to_value("héllo", 0)
-    assert_eq(a.length, 6)
+    assert_eq(element_count(a), 6)
     assert_eq(a.elements.len(), 0)
     assert_eq(display_value(element_at(a, 1)), "195")
 }
@@ -779,13 +770,14 @@ test_bytes_view_owns_its_window_before_a_write :: fn() -> void {
     a :: ArrayVal {
         .type_id = 0,
         .elements = [],
-        .offset = 1,
-        .length = 2,
-        .raw = "abc",
+        .raw = StringWindow {
+            .text = "abc",
+            .offset = 1,
+            .length = 2,
+        },
     }
     own_bytes(a)
     assert(a.raw == null, "the view is gone")
-    assert_eq(a.offset, 0)
     assert_eq(a.elements.len(), 2)
     assert_eq(display_value(element_at(a, 0)), "98")
 }

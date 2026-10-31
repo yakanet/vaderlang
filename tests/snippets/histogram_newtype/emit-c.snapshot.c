@@ -110,7 +110,7 @@ static void* snippet$Histogram$std_core$Mul$mul(void* l0, uint32_t l1) {
     l4 = ((vader_array_t*) l0)->length;
     vader_array_t* _pc14_hdr = (vader_array_t*) l2;
     size_t _pc14_len = _pc14_hdr->length;
-    size_t _pc14_cap = (_pc14_hdr->offset == 0 && !vader_array_is_borrowed(_pc14_hdr) && _pc14_hdr->length >= _pc14_hdr->buf->length) ? _pc14_hdr->capacity : (size_t) 0;
+    size_t _pc14_cap = vader_array_is_borrowed(_pc14_hdr) ? (size_t) 0 : _pc14_hdr->capacity;
     void* _pc14_slots = _pc14_hdr->buf->slots;
     for (;;) {
         if ((l3 < l4)) {
@@ -132,7 +132,7 @@ static void* snippet$Histogram$std_core$Mul$mul(void* l0, uint32_t l1) {
                 vader_array_push_i32((vader_array_t*) l2, (int32_t) (uint32_t) l5);
                 _pc14_hdr = (vader_array_t*) l2;
                 _pc14_len = _pc14_hdr->length;
-                _pc14_cap = (_pc14_hdr->offset == 0 && !vader_array_is_borrowed(_pc14_hdr) && _pc14_hdr->length >= _pc14_hdr->buf->length) ? _pc14_hdr->capacity : (size_t) 0;
+                _pc14_cap = vader_array_is_borrowed(_pc14_hdr) ? (size_t) 0 : _pc14_hdr->capacity;
                 _pc14_slots = _pc14_hdr->buf->slots;
             }
             l3 = (l3 + INT64_C(1));
@@ -167,7 +167,7 @@ static void* snippet$Histogram$std_core$Div$div(void* l0, uint32_t l1) {
     l4 = ((vader_array_t*) l0)->length;
     vader_array_t* _pc14_hdr = (vader_array_t*) l2;
     size_t _pc14_len = _pc14_hdr->length;
-    size_t _pc14_cap = (_pc14_hdr->offset == 0 && !vader_array_is_borrowed(_pc14_hdr) && _pc14_hdr->length >= _pc14_hdr->buf->length) ? _pc14_hdr->capacity : (size_t) 0;
+    size_t _pc14_cap = vader_array_is_borrowed(_pc14_hdr) ? (size_t) 0 : _pc14_hdr->capacity;
     void* _pc14_slots = _pc14_hdr->buf->slots;
     for (;;) {
         if ((l3 < l4)) {
@@ -188,7 +188,7 @@ static void* snippet$Histogram$std_core$Div$div(void* l0, uint32_t l1) {
                 vader_array_push_i32((vader_array_t*) l2, (int32_t) (uint32_t) l5);
                 _pc14_hdr = (vader_array_t*) l2;
                 _pc14_len = _pc14_hdr->length;
-                _pc14_cap = (_pc14_hdr->offset == 0 && !vader_array_is_borrowed(_pc14_hdr) && _pc14_hdr->length >= _pc14_hdr->buf->length) ? _pc14_hdr->capacity : (size_t) 0;
+                _pc14_cap = vader_array_is_borrowed(_pc14_hdr) ? (size_t) 0 : _pc14_hdr->capacity;
                 _pc14_slots = _pc14_hdr->buf->slots;
             }
             l3 = (l3 + INT64_C(1));

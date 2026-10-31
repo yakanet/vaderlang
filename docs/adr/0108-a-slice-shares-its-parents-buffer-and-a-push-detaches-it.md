@@ -6,6 +6,12 @@ Accepted (2026-05-24). Records a design the runtime already implements; written
 2026-10-25 from the design plan the decision was taken in, which this record
 replaces.
 
+**Extended by
+[0122](0122-an-array-writes-in-place-only-into-room-no-other-header-sees.md)
+(2026-10-31)**: a header that pops or clears over a shared buffer gives up its
+room too, and the VM's views are slices of the host's arrays, so
+`detach_array_view` is gone.
+
 ## Context
 
 The two backends disagreed on `arr[r]`. The native runtime returned a second

@@ -1,0 +1,73 @@
+// A push never changes an element another array reads, whichever of a view and
+// its owner shrank. A view keeps every element it was sliced over when its owner
+// clears or pops: the slots stay reachable across collections, even once the
+// garbage a collection freed has been reused, and the owner's next push writes
+// elements of its own. A view that clears or pops, then pushes, leaves its owner
+// as it was.
+
+module "snippet"
+
+import "std/io"
+import "std/runtime"
+
+Node :: struct {
+    v: i32
+}
+
+make_nodes :: fn(n: i32) -> Node[] {
+    nodes: Node[]: []
+    for i in 0..<n {
+        nodes.push(Node { .v = i * 7 })
+    }
+    return nodes
+}
+
+// Collect, allocate enough to reuse what was freed, and collect again.
+collect_and_churn :: fn() -> void {
+    collect()
+    junk: Node[]: []
+    for _ in 0..<100000 {
+        junk.push(Node { .v = -1 })
+    }
+    collect()
+}
+
+print_nodes :: fn(label: string, nodes: Node[]) -> void {
+    print(label)
+    for n in nodes {
+        print(" ${n.v}")
+    }
+    println("")
+}
+
+main :: fn() -> i32 {
+    cleared :: make_nodes(10)
+    whole :: cleared[0..<10]
+    cleared.clear()
+    collect_and_churn()
+    print_nodes("after clear:", whole)
+
+    popped :: make_nodes(4)
+    tail :: popped[0..<4]
+    popped.remove_last()
+    popped.remove_last()
+    collect_and_churn()
+    print_nodes("after remove_last:", tail)
+
+    popped.push(Node { .v = 99 })
+    print_nodes("owner after push:", popped)
+    print_nodes("view after push:", tail)
+
+    owner :: [1, 2, 3]
+    whole_view :: owner[0..<3]
+    whole_view.clear()
+    whole_view.push(9)
+    println("view clear then push: ${owner} ${whole_view}")
+
+    other :: [1, 2, 3]
+    other_view :: other[0..<3]
+    other_view.remove_last()
+    other_view.push(9)
+    println("view remove_last then push: ${other} ${other_view}")
+    return 0
+}

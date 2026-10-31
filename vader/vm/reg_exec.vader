@@ -611,18 +611,17 @@ reg_call :: fn(
             .Length -> {
                 at :: base + i64(operand_b(w))
                 array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, "array.len", "array")
-                set_i32(bits, tags, base, operand_a(w), i32(array.length))
+                set_i32(bits, tags, base, operand_a(w), i32(element_count(array)))
             }
             .Append -> {
                 at :: base + i64(operand_a(w))
                 array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, "array.push", "array")
-                // Tested here as well: `detach_array_view` sets up its GC frame before
-                // its own test, and almost no array pushed to is a view.
-                if array.raw != null || is_array_view(array) {
-                    detach_array_view(array)
+                // Tested here: `own_bytes` sets up its GC frame before its own test,
+                // and almost no array pushed to reads a string's bytes.
+                if array.raw != null {
+                    own_bytes(array)
                 }
                 array.elements.push(register_value(m, base + i64(operand_b(w))))
-                array.length = array.length + 1
             }
             .Narrow -> { narrow_register(m, base + i64(operand_a(w)), operand_b(w)) }
             .Call | .CallIndirect | .VirtualCall -> {
@@ -837,15 +836,18 @@ try_get_element :: fn(
 ) -> bool {
     array :: array_at(m, base + i64(array_reg)) ?? return false
     index :: i32(m.bits[base + i64(index_reg)])
-    if index < 0 || i64(index) >= array.length {
-        return false
-    }
     raw :: array.raw
     if raw != null {
-        set_i32(m.bits, m.tags, base, dst, i32(raw.byte_at(array.offset + i64(index))))
+        if index < 0 || i64(index) >= raw.length {
+            return false
+        }
+        set_i32(m.bits, m.tags, base, dst, i32(raw.byte_at(i64(index))))
         return true
     }
-    set_register(m, base + i64(dst), array.elements[array.offset + i64(index)])
+    if index < 0 || i64(index) >= array.elements.len() {
+        return false
+    }
+    set_register(m, base + i64(dst), array.elements[index])
     return true
 }
 
@@ -857,10 +859,10 @@ try_set_element :: fn(
 ) -> bool {
     array :: array_at(m, base + i64(array_reg)) ?? return false
     index :: i32(m.bits[base + i64(index_reg)])
-    if index < 0 || i64(index) >= array.length || array.raw != null {
+    if array.raw != null || index < 0 || i64(index) >= array.elements.len() {
         return false
     }
-    array.elements[array.offset + i64(index)] = register_value(m, base + i64(value))
+    array.elements[index] = register_value(m, base + i64(value))
     return true
 }
 
@@ -880,7 +882,7 @@ element_trap :: fn(
     array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, label, "array")
     index :: i32(m.bits[base + i64(index_reg)])
     origin :: f.origin[pc]
-    return Trap { .message = "${label} index ${index} out of bounds (len=${array.length}) at pc=${origin}" }
+    return Trap { .message = "${label} index ${index} out of bounds (len=${element_count(array)}) at pc=${origin}" }
 }
 
 // An element write `try_set_element` refused: the trap, or a write into an array that
@@ -898,11 +900,11 @@ set_element :: fn(
     at :: base + i64(array_reg)
     array :: array_at(m, at) ?? return element_trap(m, base, array_reg, index_reg, f, pc, op)
     index :: i32(m.bits[base + i64(index_reg)])
-    if index < 0 || i64(index) >= array.length {
+    if index < 0 || i64(index) >= element_count(array) {
         return element_trap(m, base, array_reg, index_reg, f, pc, op)
     }
     own_bytes(array)
-    array.elements[array.offset + i64(index)] = register_value(m, base + i64(value))
+    array.elements[index] = register_value(m, base + i64(value))
     return null
 }
 

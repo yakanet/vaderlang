@@ -642,7 +642,7 @@ static vader_box_t std_async$JoinAll$std_core$Async$resume__i32(void* l0) {
     l2 = INT64_C(0);
     vader_array_t* _pc104_hdr = (vader_array_t*) l6;
     size_t _pc104_len = _pc104_hdr->length;
-    size_t _pc104_cap = (_pc104_hdr->offset == 0 && !vader_array_is_borrowed(_pc104_hdr) && _pc104_hdr->length >= _pc104_hdr->buf->length) ? _pc104_hdr->capacity : (size_t) 0;
+    size_t _pc104_cap = vader_array_is_borrowed(_pc104_hdr) ? (size_t) 0 : _pc104_hdr->capacity;
     void* _pc104_slots = _pc104_hdr->buf->slots;
     for (;;) {
         if ((l2 < l1)) {
@@ -666,7 +666,7 @@ static vader_box_t std_async$JoinAll$std_core$Async$resume__i32(void* l0) {
                 vader_array_push_i32((vader_array_t*) l6, l11);
                 _pc104_hdr = (vader_array_t*) l6;
                 _pc104_len = _pc104_hdr->length;
-                _pc104_cap = (_pc104_hdr->offset == 0 && !vader_array_is_borrowed(_pc104_hdr) && _pc104_hdr->length >= _pc104_hdr->buf->length) ? _pc104_hdr->capacity : (size_t) 0;
+                _pc104_cap = vader_array_is_borrowed(_pc104_hdr) ? (size_t) 0 : _pc104_hdr->capacity;
                 _pc104_slots = _pc104_hdr->buf->slots;
             }
             l2 = (l2 + INT64_C(1));

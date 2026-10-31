@@ -463,8 +463,10 @@ static inline size_t vader_array_element_size(uint8_t kind) {
 #define VADER_ARRAY_FLAG_BORROWED  ((uint16_t) 0x0001u)
 
 /* Shared-buffer mark: stored in `_reserved` of a `vader_array_buf_t`, set by
- * `vader_array_slice` when a second header comes to reference the buffer. Such
- * a buffer may only move inside a collection; see `VADER_ARRAY_RESOLVE_BUF`. */
+ * `vader_array_slice` when a second header comes to reference a heap buffer.
+ * It never clears: a header that shrinks over a shared buffer gives up its
+ * room instead (see `vader_array_t`). Such a buffer may only move inside a
+ * collection; see `VADER_ARRAY_RESOLVE_BUF`. */
 #define VADER_ARRAY_BUF_FLAG_SHARED ((uint16_t) 0x0001u)
 
 /* Array data buffer: a separate GC object so `push` can reallocate without
@@ -473,13 +475,21 @@ static inline size_t vader_array_element_size(uint8_t kind) {
  * (BOXED) or skip them entirely (primitive). */
 struct vader_array_buf;
 
+/* An array header. Several headers can share one buffer (a slice and its
+ * parent). The RULE every operation keeps: a header writes in place only the
+ * slots `[length, capacity)`, and no other header sees them. So a header with
+ * room left (`length < capacity`) has `offset` 0 and `buf->length == length`,
+ * and its push needs no other test. A view is born with `capacity == length`,
+ * and a header that shrinks over a shared buffer sets `capacity = length`: the
+ * next push of either copies into a buffer of its own. `buf->length` is then
+ * only the bound of the slots the GC scans, at least `offset + length` of
+ * every header over the buffer. Records: docs/adr/0108 and 0122. */
 typedef struct {
     vader_obj_header_t       header;
     size_t                   length;
     size_t                   capacity;
     /* First buf slot this array exposes. Zero for fresh arrays ; non-zero
-     * for slice views that share the parent's buf. `offset + length`
-     * never exceeds `buf->length`. */
+     * for slice views that share the parent's buf. */
     size_t                   offset;
     struct vader_array_buf*  buf;
 } vader_array_t;
@@ -917,12 +927,11 @@ VADER_NOINLINE void vader_array_push_ref_slow(vader_array_t* a, void* obj);
  * runtime kind dispatch, and no write barrier (a primitive buf holds no
  * references, so nothing to mark for the generational GC).
  *
- * Bounds/grow safety : the store index and the fast-path precondition are
- * byte-identical to `vader_array_push`. The fast path fires exactly when that
- * function would NOT grow: `length < capacity` (⟹ `length < buf->capacity`,
- * since `capacity == buf->capacity` is an allocation invariant) AND not a view
- * AND not borrowed, and writes the same slot `offset + length`. Every other
- * case (grow, view) delegates to `vader_array_push_slow`, inheriting its
+ * Bounds/grow safety: the fast path fires exactly when `vader_array_push_slow`
+ * would not copy: `length < capacity` (so `length < buf->capacity`, since
+ * `capacity == buf->capacity` is an allocation invariant), which only a header
+ * with room of its own meets (`vader_array_t`), and it writes slot `length`.
+ * Every other case delegates to `vader_array_push_slow`, inheriting its
  * GC-rooted grow path unchanged. The fallback box is stamped with the buf's
  * own `element_tag` (a primitive tag, so the grow path's `scan_box` treats the
  * value as the primitive it is, never a ref): past the borrow trap at the top of
@@ -961,14 +970,11 @@ VADER_NOINLINE void vader_array_push_ref_slow(vader_array_t* a, void* obj);
     if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {                              \
         vader_trap("cannot push to a borrowed `const u8[]` byte view");             \
     }                                                                              \
-    bool is_view = a->offset != 0 || a->offset + a->length < a->buf->length;        \
-    if (a->length < a->capacity && !is_view) {                                      \
+    if (a->length < a->capacity) {                                                 \
         VADER_ARRAY_PUSH_KIND_CHECK(ctype)                                         \
-        ((ctype*) a->buf->slots)[a->offset + a->length] = (ctype) v;                \
+        ((ctype*) a->buf->slots)[a->length] = (ctype) v;                            \
         a->length += 1;                                                             \
-        if (a->offset + a->length > a->buf->length) {                              \
-            a->buf->length = a->offset + a->length;                                \
-        }                                                                          \
+        a->buf->length = a->length;                                                 \
     } else {                                                                       \
         vader_array_push_slow(a, box_fn(a->buf->element_tag, v));                   \
     }
@@ -990,10 +996,9 @@ static inline size_t vader_count_or_zero(int64_t v) {
     return (size_t) v;
 }
 
-/* Zero-copy view into `a[lo..hi)`. The returned array shares `a->buf` ;
- * pushing into the view detaches into a fresh buf so concurrent views
- * don't see the growth. Bounds are clamped (lo to `[0,len]`, hi to
- * `[lo,len]`). */
+/* Zero-copy view into `a[lo..hi)`. The returned array shares `a->buf`, marked
+ * shared, and has no room left: its first push copies into a buffer of its
+ * own. Bounds are clamped (lo to `[0,len]`, hi to `[lo,len]`). */
 vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo, int64_t hi);
 
 /* `[lhs] * n`: fresh array repeating `src`'s elements n times. `length =
@@ -1151,13 +1156,12 @@ extern uintptr_t  vader_old_end;
 } while (0)
 
 /* Whether the next element of `a` goes in place in `buf`, its buffer, through a
- * ref or box store: room left, not a view (offset 0 and a length flush with the
- * buffer's, as in `VADER_ARRAY_PUSH_BODY`), and a BOXED or REF buffer. An erased
- * generic body can hand a ref call site a BOXED buffer, so the buffer's own kind
- * decides the store. */
+ * ref or box store: room left (see `vader_array_t`) and a BOXED or REF buffer.
+ * An erased generic body can hand a ref call site a BOXED buffer, so the
+ * buffer's own kind decides the store. */
 static inline bool vader_array_ref_push_in_place(const vader_array_t* a, const vader_array_buf_t* buf) {
     uint8_t kind = buf->element_kind;
-    return a->offset == 0 && a->length == buf->length && a->length < a->capacity
+    return a->length < a->capacity
         && (kind == VADER_ARRAY_KIND_BOXED || kind == VADER_ARRAY_KIND_REF);
 }
 

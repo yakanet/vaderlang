@@ -209,7 +209,7 @@ static void* snippet$tight(int32_t l0) {
     l3 = INT32_C(0);
     vader_array_t* _pc19_hdr = (vader_array_t*) l1;
     size_t _pc19_len = _pc19_hdr->length;
-    size_t _pc19_cap = (_pc19_hdr->offset == 0 && !vader_array_is_borrowed(_pc19_hdr) && _pc19_hdr->length >= _pc19_hdr->buf->length) ? _pc19_hdr->capacity : (size_t) 0;
+    size_t _pc19_cap = vader_array_is_borrowed(_pc19_hdr) ? (size_t) 0 : _pc19_hdr->capacity;
     void* _pc19_slots = _pc19_hdr->buf->slots;
     for (;;) {
         if ((l3 < l0)) {
@@ -225,7 +225,7 @@ static void* snippet$tight(int32_t l0) {
                 vader_array_push_i32((vader_array_t*) l1, l4);
                 _pc19_hdr = (vader_array_t*) l1;
                 _pc19_len = _pc19_hdr->length;
-                _pc19_cap = (_pc19_hdr->offset == 0 && !vader_array_is_borrowed(_pc19_hdr) && _pc19_hdr->length >= _pc19_hdr->buf->length) ? _pc19_hdr->capacity : (size_t) 0;
+                _pc19_cap = vader_array_is_borrowed(_pc19_hdr) ? (size_t) 0 : _pc19_hdr->capacity;
                 _pc19_slots = _pc19_hdr->buf->slots;
             }
             l3 = (l3 + INT32_C(1));
@@ -255,7 +255,7 @@ static void* snippet$reserved(int32_t l0) {
     l3 = INT32_C(0);
     vader_array_t* _pc11_hdr = (vader_array_t*) l1;
     size_t _pc11_len = _pc11_hdr->length;
-    size_t _pc11_cap = (_pc11_hdr->offset == 0 && !vader_array_is_borrowed(_pc11_hdr) && _pc11_hdr->length >= _pc11_hdr->buf->length) ? _pc11_hdr->capacity : (size_t) 0;
+    size_t _pc11_cap = vader_array_is_borrowed(_pc11_hdr) ? (size_t) 0 : _pc11_hdr->capacity;
     void* _pc11_slots = _pc11_hdr->buf->slots;
     for (;;) {
         if ((l3 < l0)) {
@@ -271,7 +271,7 @@ static void* snippet$reserved(int32_t l0) {
                 vader_array_push_i32((vader_array_t*) l1, l4);
                 _pc11_hdr = (vader_array_t*) l1;
                 _pc11_len = _pc11_hdr->length;
-                _pc11_cap = (_pc11_hdr->offset == 0 && !vader_array_is_borrowed(_pc11_hdr) && _pc11_hdr->length >= _pc11_hdr->buf->length) ? _pc11_hdr->capacity : (size_t) 0;
+                _pc11_cap = vader_array_is_borrowed(_pc11_hdr) ? (size_t) 0 : _pc11_hdr->capacity;
                 _pc11_slots = _pc11_hdr->buf->slots;
             }
             l3 = (l3 + INT32_C(1));
@@ -548,7 +548,7 @@ static int32_t snippet$nested(int32_t l0) {
         l7 = INT32_C(0);
         vader_array_t* _pc45_hdr = (vader_array_t*) l6;
         size_t _pc45_len = _pc45_hdr->length;
-        size_t _pc45_cap = (_pc45_hdr->offset == 0 && !vader_array_is_borrowed(_pc45_hdr) && _pc45_hdr->length >= _pc45_hdr->buf->length) ? _pc45_hdr->capacity : (size_t) 0;
+        size_t _pc45_cap = vader_array_is_borrowed(_pc45_hdr) ? (size_t) 0 : _pc45_hdr->capacity;
         void* _pc45_slots = _pc45_hdr->buf->slots;
         for (;;) {
             if ((l7 < l0)) {
@@ -564,7 +564,7 @@ static int32_t snippet$nested(int32_t l0) {
                     vader_array_push_i32((vader_array_t*) l6, l8);
                     _pc45_hdr = (vader_array_t*) l6;
                     _pc45_len = _pc45_hdr->length;
-                    _pc45_cap = (_pc45_hdr->offset == 0 && !vader_array_is_borrowed(_pc45_hdr) && _pc45_hdr->length >= _pc45_hdr->buf->length) ? _pc45_hdr->capacity : (size_t) 0;
+                    _pc45_cap = vader_array_is_borrowed(_pc45_hdr) ? (size_t) 0 : _pc45_hdr->capacity;
                     _pc45_slots = _pc45_hdr->buf->slots;
                 }
                 l7 = (l7 + INT32_C(1));
@@ -625,7 +625,7 @@ static vader_string_t snippet$widths(int32_t l0) {
     l3 = INT32_C(0);
     vader_array_t* _pc19_hdr = (vader_array_t*) l1;
     size_t _pc19_len = _pc19_hdr->length;
-    size_t _pc19_cap = (_pc19_hdr->offset == 0 && !vader_array_is_borrowed(_pc19_hdr) && _pc19_hdr->length >= _pc19_hdr->buf->length) ? _pc19_hdr->capacity : (size_t) 0;
+    size_t _pc19_cap = vader_array_is_borrowed(_pc19_hdr) ? (size_t) 0 : _pc19_hdr->capacity;
     void* _pc19_slots = _pc19_hdr->buf->slots;
     for (;;) {
         if ((l3 < l0)) {
@@ -643,7 +643,7 @@ static vader_string_t snippet$widths(int32_t l0) {
                 vader_array_push_u8((vader_array_t*) l1, (int32_t) (uint8_t) l4);
                 _pc19_hdr = (vader_array_t*) l1;
                 _pc19_len = _pc19_hdr->length;
-                _pc19_cap = (_pc19_hdr->offset == 0 && !vader_array_is_borrowed(_pc19_hdr) && _pc19_hdr->length >= _pc19_hdr->buf->length) ? _pc19_hdr->capacity : (size_t) 0;
+                _pc19_cap = vader_array_is_borrowed(_pc19_hdr) ? (size_t) 0 : _pc19_hdr->capacity;
                 _pc19_slots = _pc19_hdr->buf->slots;
             }
             l3 = (l3 + INT32_C(1));
@@ -667,7 +667,7 @@ static vader_string_t snippet$widths(int32_t l0) {
     l3 = INT32_C(0);
     vader_array_t* _pc60_hdr = (vader_array_t*) l5;
     size_t _pc60_len = _pc60_hdr->length;
-    size_t _pc60_cap = (_pc60_hdr->offset == 0 && !vader_array_is_borrowed(_pc60_hdr) && _pc60_hdr->length >= _pc60_hdr->buf->length) ? _pc60_hdr->capacity : (size_t) 0;
+    size_t _pc60_cap = vader_array_is_borrowed(_pc60_hdr) ? (size_t) 0 : _pc60_hdr->capacity;
     void* _pc60_slots = _pc60_hdr->buf->slots;
     for (;;) {
         if ((l3 < l0)) {
@@ -685,7 +685,7 @@ static vader_string_t snippet$widths(int32_t l0) {
                 vader_array_push_i16((vader_array_t*) l5, (int32_t) (int16_t) l6);
                 _pc60_hdr = (vader_array_t*) l5;
                 _pc60_len = _pc60_hdr->length;
-                _pc60_cap = (_pc60_hdr->offset == 0 && !vader_array_is_borrowed(_pc60_hdr) && _pc60_hdr->length >= _pc60_hdr->buf->length) ? _pc60_hdr->capacity : (size_t) 0;
+                _pc60_cap = vader_array_is_borrowed(_pc60_hdr) ? (size_t) 0 : _pc60_hdr->capacity;
                 _pc60_slots = _pc60_hdr->buf->slots;
             }
             l3 = (l3 + INT32_C(1));
@@ -709,7 +709,7 @@ static vader_string_t snippet$widths(int32_t l0) {
     l3 = INT32_C(0);
     vader_array_t* _pc105_hdr = (vader_array_t*) l7;
     size_t _pc105_len = _pc105_hdr->length;
-    size_t _pc105_cap = (_pc105_hdr->offset == 0 && !vader_array_is_borrowed(_pc105_hdr) && _pc105_hdr->length >= _pc105_hdr->buf->length) ? _pc105_hdr->capacity : (size_t) 0;
+    size_t _pc105_cap = vader_array_is_borrowed(_pc105_hdr) ? (size_t) 0 : _pc105_hdr->capacity;
     void* _pc105_slots = _pc105_hdr->buf->slots;
     for (;;) {
         if ((l3 < l0)) {
@@ -729,7 +729,7 @@ static vader_string_t snippet$widths(int32_t l0) {
                 vader_array_push_f32((vader_array_t*) l7, l10);
                 _pc105_hdr = (vader_array_t*) l7;
                 _pc105_len = _pc105_hdr->length;
-                _pc105_cap = (_pc105_hdr->offset == 0 && !vader_array_is_borrowed(_pc105_hdr) && _pc105_hdr->length >= _pc105_hdr->buf->length) ? _pc105_hdr->capacity : (size_t) 0;
+                _pc105_cap = vader_array_is_borrowed(_pc105_hdr) ? (size_t) 0 : _pc105_hdr->capacity;
                 _pc105_slots = _pc105_hdr->buf->slots;
             }
             l3 = (l3 + INT32_C(1));
@@ -949,7 +949,7 @@ static int32_t snippet$len_after(int32_t l0) {
     l3 = INT32_C(0);
     vader_array_t* _pc19_hdr = (vader_array_t*) l1;
     size_t _pc19_len = _pc19_hdr->length;
-    size_t _pc19_cap = (_pc19_hdr->offset == 0 && !vader_array_is_borrowed(_pc19_hdr) && _pc19_hdr->length >= _pc19_hdr->buf->length) ? _pc19_hdr->capacity : (size_t) 0;
+    size_t _pc19_cap = vader_array_is_borrowed(_pc19_hdr) ? (size_t) 0 : _pc19_hdr->capacity;
     void* _pc19_slots = _pc19_hdr->buf->slots;
     for (;;) {
         if ((l3 < l0)) {
@@ -965,7 +965,7 @@ static int32_t snippet$len_after(int32_t l0) {
                 vader_array_push_i32((vader_array_t*) l1, l4);
                 _pc19_hdr = (vader_array_t*) l1;
                 _pc19_len = _pc19_hdr->length;
-                _pc19_cap = (_pc19_hdr->offset == 0 && !vader_array_is_borrowed(_pc19_hdr) && _pc19_hdr->length >= _pc19_hdr->buf->length) ? _pc19_hdr->capacity : (size_t) 0;
+                _pc19_cap = vader_array_is_borrowed(_pc19_hdr) ? (size_t) 0 : _pc19_hdr->capacity;
                 _pc19_slots = _pc19_hdr->buf->slots;
             }
             l3 = (l3 + INT32_C(1));
@@ -1039,7 +1039,7 @@ static void* snippet$collected(int32_t l0) {
     l3 = INT32_C(0);
     vader_array_t* _pc19_hdr = (vader_array_t*) l1;
     size_t _pc19_len = _pc19_hdr->length;
-    size_t _pc19_cap = (_pc19_hdr->offset == 0 && !vader_array_is_borrowed(_pc19_hdr) && _pc19_hdr->length >= _pc19_hdr->buf->length) ? _pc19_hdr->capacity : (size_t) 0;
+    size_t _pc19_cap = vader_array_is_borrowed(_pc19_hdr) ? (size_t) 0 : _pc19_hdr->capacity;
     void* _pc19_slots = _pc19_hdr->buf->slots;
     for (;;) {
         if ((l3 < l0)) {
@@ -1055,7 +1055,7 @@ static void* snippet$collected(int32_t l0) {
                 vader_array_push_i32((vader_array_t*) l1, l4);
                 _pc19_hdr = (vader_array_t*) l1;
                 _pc19_len = _pc19_hdr->length;
-                _pc19_cap = (_pc19_hdr->offset == 0 && !vader_array_is_borrowed(_pc19_hdr) && _pc19_hdr->length >= _pc19_hdr->buf->length) ? _pc19_hdr->capacity : (size_t) 0;
+                _pc19_cap = vader_array_is_borrowed(_pc19_hdr) ? (size_t) 0 : _pc19_hdr->capacity;
                 _pc19_slots = _pc19_hdr->buf->slots;
             }
             l3 = (l3 + INT32_C(1));
@@ -1086,7 +1086,7 @@ static void* snippet$filtered(void* l0) {
     l4 = INT64_C(0);
     vader_array_t* _pc9_hdr = (vader_array_t*) l2;
     size_t _pc9_len = _pc9_hdr->length;
-    size_t _pc9_cap = (_pc9_hdr->offset == 0 && !vader_array_is_borrowed(_pc9_hdr) && _pc9_hdr->length >= _pc9_hdr->buf->length) ? _pc9_hdr->capacity : (size_t) 0;
+    size_t _pc9_cap = vader_array_is_borrowed(_pc9_hdr) ? (size_t) 0 : _pc9_hdr->capacity;
     void* _pc9_slots = _pc9_hdr->buf->slots;
     for (;;) {
         if ((l4 < l3)) {
@@ -1108,7 +1108,7 @@ static void* snippet$filtered(void* l0) {
                     vader_array_push_i32((vader_array_t*) l2, l6);
                     _pc9_hdr = (vader_array_t*) l2;
                     _pc9_len = _pc9_hdr->length;
-                    _pc9_cap = (_pc9_hdr->offset == 0 && !vader_array_is_borrowed(_pc9_hdr) && _pc9_hdr->length >= _pc9_hdr->buf->length) ? _pc9_hdr->capacity : (size_t) 0;
+                    _pc9_cap = vader_array_is_borrowed(_pc9_hdr) ? (size_t) 0 : _pc9_hdr->capacity;
                     _pc9_slots = _pc9_hdr->buf->slots;
                 }
             }
