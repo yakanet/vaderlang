@@ -465,7 +465,7 @@
       }
       __self_5.state = -1
   }
-  __asyncstate_snippet_2 :: struct { s0: $genstate_evens<i32>, s1: Iterator<i32>, s2: i32 | Stop, s3: i32, s4: $genstate_evens_with_tail<i32>, s5: Iterator<i32>, s6: i32 | Stop, s7: i32, s8: $genstate_until_three<i32>, s9: Iterator<i32>, s10: i32 | Stop, s11: i32, s12: $genstate_stop_at_three<i32>, s13: Iterator<i32>, s14: i32 | Stop, s15: i32, s16: $genstate_first_odd_above<i32>, s17: Iterator<i32>, s18: i32 | Stop, s19: i32, s20: i32, s21: i32, s22: i32, s23: i32, awaited: Async<Any>, state: i32 }
+  __asyncstate_snippet_2 :: struct { s0: Iterator<i32>, s1: Iterator<i32>, s2: i32 | Stop, s3: i32, s4: Iterator<i32>, s5: Iterator<i32>, s6: i32 | Stop, s7: i32, s8: Iterator<i32>, s9: Iterator<i32>, s10: i32 | Stop, s11: i32, s12: Iterator<i32>, s13: Iterator<i32>, s14: i32 | Stop, s15: i32, s16: Iterator<i32>, s17: Iterator<i32>, s18: i32 | Stop, s19: i32, s20: i32, s21: i32, s22: i32, s23: i32, awaited: Async<Any>, state: i32 }
   snippet$__asyncstate_snippet_2$Async$resume :: fn(self: __asyncstate_snippet_2) -> i32 | Suspended {
       dispatch$: for {
           if __self_26.state == 0 {

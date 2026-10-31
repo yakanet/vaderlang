@@ -25,7 +25,7 @@
   expr 25:76    IdentExpr      :: T
   expr 28:37    SeqLitExpr     :: (i32 | null | string)[]
   expr 28:44    StringLitExpr  :: string
-  expr 29:14    CallExpr       :: $genstate_filter_not_null<i32 | string>
+  expr 29:14    CallExpr       :: Iterator<i32 | string>
   expr 29:14    FieldExpr      :: fn() -> Iterator<i32 | string>
   expr 29:14    IdentExpr      :: (i32 | null | string)[]
   expr 30:17    CallExpr       :: string

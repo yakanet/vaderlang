@@ -105,7 +105,8 @@ refine_via_resolver :: fn(idx: DocIndex, out: RawToken[]) -> void {
 /// without a meaningful LSP analogue reads as a `Variable`.
 token_type_of_symbol :: fn(k: SymbolKind) -> TokenType = match k {
     .Fn | .BuiltinFn                                                  -> .Function
-    .Struct | .Enum | .Trait | .TypeAlias | .BuiltinType | .TypeParam -> .Type
+    .Struct | .GeneratorState | .Enum | .Trait
+    | .TypeAlias | .BuiltinType | .TypeParam                          -> .Type
     .Param                                                            -> .Parameter
     .Local | .Binding | .Const | .ImportBinding | .Impl | .Synthetic  -> .Variable
 }

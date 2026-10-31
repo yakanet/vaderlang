@@ -25,7 +25,7 @@
   expr 23:19    IdentExpr      :: fn(i32) -> string
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(T) -> void
-  expr 24:17    CallExpr       :: $genstate_map<string>
+  expr 24:17    CallExpr       :: Iterator<string>
   expr 24:17    FieldExpr      :: fn(fn(f64) -> string) -> Iterator<string>
   expr 24:17    SeqLitExpr     :: f64[]
   expr 24:32    IdentExpr      :: fn(f64) -> string

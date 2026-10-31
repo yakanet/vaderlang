@@ -36,7 +36,7 @@
           __off_4 = std.core.write_int(__buf_3, __off_4, sum)
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
-      it: $genstate_maybe<i32 | null> = snippet.maybe()
+      it: Iterator<i32 | null> = snippet.maybe()
       gseen: i32 = 0
       gnulls: i32 = 0
       gsum: i32 = 0

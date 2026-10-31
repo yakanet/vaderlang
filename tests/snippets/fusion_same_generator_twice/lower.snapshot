@@ -58,7 +58,7 @@
           }
       }
       lazy: string = ""
-      it: $genstate_map<i32> = std.iter.map<i32, i32>(std.iter.map<i32, i32>(std.core.i32[].into([1, 2, 3] :i32[]), snippet.inc), snippet.twice)
+      it: Iterator<i32> = std.iter.map<i32, i32>(std.iter.map<i32, i32>(std.core.i32[].into([1, 2, 3] :i32[]), snippet.inc), snippet.twice)
       {
           __iter_5: Iterator<i32> = it
           for {
@@ -104,7 +104,7 @@
           total
       }
       lazy: i32 = 0
-      it: $genstate_filter<i32> = std.iter.filter<i32>(std.iter.filter<i32>(std.core.i32[].into([1, 2, 3, 4, 5, 6, 7] :i32[]), snippet.odd), snippet.small)
+      it: Iterator<i32> = std.iter.filter<i32>(std.iter.filter<i32>(std.core.i32[].into([1, 2, 3, 4, 5, 6, 7] :i32[]), snippet.odd), snippet.small)
       {
           __iter_2: Iterator<i32> = it
           for {
@@ -168,7 +168,7 @@
           total
       }
       lazy: i32 = 0
-      it: $genstate_take<i32> = std.iter.take<i32>(std.iter.take<i32>(std.core.i32[].into([1, 2, 3, 4, 5, 6, 7] :i32[]), i64(5)), i64(2))
+      it: Iterator<i32> = std.iter.take<i32>(std.iter.take<i32>(std.core.i32[].into([1, 2, 3, 4, 5, 6, 7] :i32[]), i64(5)), i64(2))
       {
           __iter_2: Iterator<i32> = it
           for {
@@ -220,7 +220,7 @@
           total
       }
       lazy: i32 = 0
-      it: $genstate_skip<i32> = std.iter.skip<i32>(std.iter.skip<i32>(std.core.i32[].into([1, 2, 3, 4, 5, 6, 7] :i32[]), i64(1)), i64(2))
+      it: Iterator<i32> = std.iter.skip<i32>(std.iter.skip<i32>(std.core.i32[].into([1, 2, 3, 4, 5, 6, 7] :i32[]), i64(1)), i64(2))
       {
           __iter_2: Iterator<i32> = it
           for {
@@ -274,7 +274,7 @@
           }
       }
       lazy: i32 = 0
-      it: $genstate_chain<i32> = std.iter.chain<i32>(std.iter.map<i32, i32>(std.core.i32[].into(a), snippet.inc), std.iter.map<i32, i32>(std.core.i32[].into(b), snippet.twice))
+      it: Iterator<i32> = std.iter.chain<i32>(std.iter.map<i32, i32>(std.core.i32[].into(a), snippet.inc), std.iter.map<i32, i32>(std.core.i32[].into(b), snippet.twice))
       {
           __iter_6: Iterator<i32> = it
           for {
@@ -321,7 +321,7 @@
           }
       }
       lazy: string = ""
-      it: $genstate_scale<i32> = snippet.scale(snippet.scale(std.core.i32[].into([1, 2] :i32[]), 10), 3)
+      it: Iterator<i32> = snippet.scale(snippet.scale(std.core.i32[].into([1, 2] :i32[]), 10), 3)
       {
           __iter_5: Iterator<i32> = it
           for {
@@ -379,7 +379,7 @@
           }
       }
       lazy: i32 = 0
-      outer: $genstate_upto<i32> = snippet.upto(3)
+      outer: Iterator<i32> = snippet.upto(3)
       {
           __iter_2: Iterator<i32> = outer
           for {
@@ -388,7 +388,7 @@
                   break
               } else {
                   a: i32 = i32(__step_3)
-                  inner: $genstate_upto<i32> = snippet.upto(2)
+                  inner: Iterator<i32> = snippet.upto(2)
                   {
                       __iter_4: Iterator<i32> = inner
                       for {
@@ -473,7 +473,7 @@
           }
       }
       lazy: i32 = 0
-      outer: $genstate_take<i32> = std.iter.take<i32>(std.core.i32[].into([1, 2, 3] :i32[]), i64(2))
+      outer: Iterator<i32> = std.iter.take<i32>(std.core.i32[].into([1, 2, 3] :i32[]), i64(2))
       {
           __iter_8: Iterator<i32> = outer
           for {
@@ -482,7 +482,7 @@
                   break
               } else {
                   a: i32 = i32(__step_9)
-                  inner: $genstate_take<i32> = std.iter.take<i32>(std.core.i32[].into([4, 5, 6] :i32[]), i64(1))
+                  inner: Iterator<i32> = std.iter.take<i32>(std.core.i32[].into([4, 5, 6] :i32[]), i64(1))
                   {
                       __iter_10: Iterator<i32> = inner
                       for {
@@ -535,7 +535,7 @@
           total
       }
       lazy: i32 = 0
-      it: $genstate_filter<char> = std.iter.filter<char>(std.iter.filter<char>(std.string.chars(s), __lambda_snippet_2), __lambda_snippet_3)
+      it: Iterator<char> = std.iter.filter<char>(std.iter.filter<char>(std.string.chars(s), __lambda_snippet_2), __lambda_snippet_3)
       {
           __iter_2: Iterator<char> = it
           for {
@@ -579,7 +579,7 @@
   }
   snippet.sum_map_map_lazy :: fn() -> i32 {  // snippet$sum_map_map_lazy
       total: i32 = 0
-      it: $genstate_map<i32> = std.iter.map<i32, i32>(std.iter.map<i32, i32>(std.core.i32[].into([1, 2, 3] :i32[]), snippet.inc), snippet.twice)
+      it: Iterator<i32> = std.iter.map<i32, i32>(std.iter.map<i32, i32>(std.core.i32[].into([1, 2, 3] :i32[]), snippet.inc), snippet.twice)
       {
           __iter_0: Iterator<i32> = it
           for {
@@ -674,7 +674,7 @@
       {
           i: i32 = 0
           i: for i < 2 {
-              it: $genstate_grid<i32> = snippet.grid()
+              it: Iterator<i32> = snippet.grid()
               {
                   __iter_4: Iterator<i32> = it
                   for {

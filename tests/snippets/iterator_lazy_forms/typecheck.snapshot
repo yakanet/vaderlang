@@ -21,9 +21,9 @@
   expr 105:5    CallExpr       :: void
   expr 105:5    IdentExpr      :: fn() -> void
   expr 106:10   StringLitExpr  :: string
-  expr 107:11   CallExpr       :: $genstate_after_yield<i32>
+  expr 107:11   CallExpr       :: Iterator<i32>
   expr 107:11   IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 108:14   IdentExpr      :: $genstate_after_yield<i32>
+  expr 108:14   IdentExpr      :: Iterator<i32>
   expr 109:13   BinaryExpr     :: string
   expr 109:13   IdentExpr      :: string
   expr 109:17   StringLitExpr  :: string
@@ -34,10 +34,10 @@
   expr 111:5    CallExpr       :: void
   expr 111:5    IdentExpr      :: fn(T) -> void
   expr 112:10   StringLitExpr  :: string
-  expr 113:11   CallExpr       :: $genstate_relay<i32>
+  expr 113:11   CallExpr       :: Iterator<i32>
   expr 113:11   IdentExpr      :: fn(i32[]) -> Iterator<i32>
   expr 113:17   SeqLitExpr     :: i32[]
-  expr 114:14   IdentExpr      :: $genstate_relay<i32>
+  expr 114:14   IdentExpr      :: Iterator<i32>
   expr 115:13   BinaryExpr     :: string
   expr 115:13   IdentExpr      :: string
   expr 115:17   StringLitExpr  :: string
@@ -94,16 +94,16 @@
   expr 55:24    IdentExpr      :: i32
   expr 56:19    BinaryExpr     :: i32
   expr 56:19    IdentExpr      :: i32
-  expr 62:14    CallExpr       :: $genstate_map<i32>
-  expr 62:14    CallExpr       :: $genstate_map<i32>
+  expr 62:14    CallExpr       :: Iterator<i32>
+  expr 62:14    CallExpr       :: Iterator<i32>
   expr 62:14    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 62:14    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 62:14    IdentExpr      :: i32[]
   expr 62:21    IdentExpr      :: fn(i32) -> i32
   expr 62:30    IdentExpr      :: fn(i32) -> i32
   expr 63:15    IdentExpr      :: i32
-  expr 64:18    CallExpr       :: $genstate_map<i32>
-  expr 64:18    CallExpr       :: $genstate_map<i32>
+  expr 64:18    CallExpr       :: Iterator<i32>
+  expr 64:18    CallExpr       :: Iterator<i32>
   expr 64:18    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 64:18    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 64:18    IdentExpr      :: i32[]
@@ -115,50 +115,50 @@
   expr 65:20    IdentExpr      :: i32
   expr 66:23    BinaryExpr     :: i32
   expr 66:23    IdentExpr      :: i32
-  expr 74:16    CallExpr       :: $genstate_filter<i32>
+  expr 74:16    CallExpr       :: Iterator<i32>
   expr 74:16    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 74:16    SeqLitExpr     :: i32[]
   expr 74:39    IdentExpr      :: fn(i32) -> bool
   expr 75:13    StringLitExpr  :: string
   expr 75:37    CallExpr       :: i64
   expr 75:37    FieldExpr      :: fn() -> i64
-  expr 75:37    IdentExpr      :: $genstate_filter<i32>
+  expr 75:37    IdentExpr      :: Iterator<i32>
   expr 75:5     CallExpr       :: void
   expr 75:5     IdentExpr      :: fn(T) -> void
-  expr 76:16    CallExpr       :: $genstate_filter<i32>
+  expr 76:16    CallExpr       :: Iterator<i32>
   expr 76:16    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 76:16    SeqLitExpr     :: i32[]
   expr 76:30    IdentExpr      :: fn(i32) -> bool
   expr 77:13    StringLitExpr  :: string
   expr 77:40    CallExpr       :: bool
   expr 77:40    FieldExpr      :: fn() -> bool
-  expr 77:40    IdentExpr      :: $genstate_filter<i32>
+  expr 77:40    IdentExpr      :: Iterator<i32>
   expr 77:5     CallExpr       :: void
   expr 77:5     IdentExpr      :: fn(T) -> void
-  expr 78:15    CallExpr       :: $genstate_filter<i32>
+  expr 78:15    CallExpr       :: Iterator<i32>
   expr 78:15    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 78:15    SeqLitExpr     :: i32[]
   expr 78:38    IdentExpr      :: fn(i32) -> bool
   expr 79:13    StringLitExpr  :: string
   expr 79:36    CallExpr       :: i32 | null
   expr 79:36    FieldExpr      :: fn() -> i32 | null
-  expr 79:36    IdentExpr      :: $genstate_filter<i32>
+  expr 79:36    IdentExpr      :: Iterator<i32>
   expr 79:36    NullCoalesceExpr :: i32
   expr 79:5     CallExpr       :: void
   expr 79:5     IdentExpr      :: fn(T) -> void
   expr 80:13    StringLitExpr  :: string
-  expr 80:34    CallExpr       :: $genstate_upto<i32>
+  expr 80:34    CallExpr       :: Iterator<i32>
   expr 80:34    CallExpr       :: i64
   expr 80:34    FieldExpr      :: fn() -> i64
   expr 80:34    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 80:5     CallExpr       :: void
   expr 80:5     IdentExpr      :: fn(T) -> void
-  expr 80:64    CallExpr       :: $genstate_upto<i32>
+  expr 80:64    CallExpr       :: Iterator<i32>
   expr 80:64    CallExpr       :: bool
   expr 80:64    FieldExpr      :: fn() -> bool
   expr 80:64    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 81:13    StringLitExpr  :: string
-  expr 81:27    CallExpr       :: $genstate_map<i32>
+  expr 81:27    CallExpr       :: Iterator<i32>
   expr 81:27    CallExpr       :: i32 | null
   expr 81:27    FieldExpr      :: fn() -> i32 | null
   expr 81:27    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
@@ -168,7 +168,7 @@
   expr 81:5     CallExpr       :: void
   expr 81:5     IdentExpr      :: fn(T) -> void
   expr 82:13    StringLitExpr  :: string
-  expr 82:28    CallExpr       :: $genstate_zip<[i32, i32]>
+  expr 82:28    CallExpr       :: Iterator<[i32, i32]>
   expr 82:28    CallExpr       :: i64
   expr 82:28    FieldExpr      :: fn() -> i64
   expr 82:28    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
@@ -176,7 +176,7 @@
   expr 82:40    SeqLitExpr     :: i32[]
   expr 82:5     CallExpr       :: void
   expr 82:5     IdentExpr      :: fn(T) -> void
-  expr 83:13    CallExpr       :: $genstate_filter<i32>
+  expr 83:13    CallExpr       :: Iterator<i32>
   expr 83:13    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 83:13    SeqLitExpr     :: i32[]
   expr 83:36    IdentExpr      :: fn(i32) -> bool
@@ -185,50 +185,50 @@
   expr 84:44    IdentExpr      :: fn(Iterator<i32>) -> i64
   expr 84:5     CallExpr       :: void
   expr 84:5     IdentExpr      :: fn(T) -> void
-  expr 84:57    IdentExpr      :: $genstate_filter<i32>
+  expr 84:57    IdentExpr      :: Iterator<i32>
   expr 85:13    StringLitExpr  :: string
   expr 85:40    CallExpr       :: i32
   expr 85:40    IdentExpr      :: fn(Iterator<i32>) -> i32
   expr 85:5     CallExpr       :: void
   expr 85:5     IdentExpr      :: fn(T) -> void
-  expr 85:52    CallExpr       :: $genstate_upto<i32>
+  expr 85:52    CallExpr       :: Iterator<i32>
   expr 85:52    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 85:75    CallExpr       :: bool
   expr 85:75    IdentExpr      :: fn(Iterator<i32>) -> bool
-  expr 85:88    CallExpr       :: $genstate_upto<i32>
+  expr 85:88    CallExpr       :: Iterator<i32>
   expr 85:88    IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 89:14    CallExpr       :: $genstate_filter<[i32, i64]>
-  expr 89:14    CallExpr       :: $genstate_indexed<[i32, i64]>
+  expr 89:14    CallExpr       :: Iterator<[i32, i64]>
+  expr 89:14    CallExpr       :: Iterator<[i32, i64]>
   expr 89:14    FieldExpr      :: fn() -> Iterator<[i32, i64]>
   expr 89:14    FieldExpr      :: fn(fn([i32, i64]) -> bool) -> Iterator<[i32, i64]>
   expr 89:14    SeqLitExpr     :: i32[]
   expr 89:44    IdentExpr      :: fn([i32, i64]) -> bool
-  expr 90:19    IdentExpr      :: $genstate_filter<[i32, i64]>
+  expr 90:19    IdentExpr      :: Iterator<[i32, i64]>
   expr 91:17    StringLitExpr  :: string
   expr 91:36    IdentExpr      :: i64
   expr 91:41    IdentExpr      :: i32
   expr 91:9     CallExpr       :: void
   expr 91:9     IdentExpr      :: fn(T) -> void
-  expr 93:15    CallExpr       :: $genstate_filter<[i32, i32]>
-  expr 93:15    CallExpr       :: $genstate_zip<[i32, i32]>
+  expr 93:15    CallExpr       :: Iterator<[i32, i32]>
+  expr 93:15    CallExpr       :: Iterator<[i32, i32]>
   expr 93:15    FieldExpr      :: fn(fn([i32, i32]) -> bool) -> Iterator<[i32, i32]>
   expr 93:15    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
   expr 93:19    SeqLitExpr     :: i32[]
   expr 93:30    SeqLitExpr     :: i32[]
   expr 93:48    IdentExpr      :: fn([i32, i32]) -> bool
-  expr 94:19    IdentExpr      :: $genstate_filter<[i32, i32]>
+  expr 94:19    IdentExpr      :: Iterator<[i32, i32]>
   expr 95:17    StringLitExpr  :: string
   expr 95:32    IdentExpr      :: i32
   expr 95:37    IdentExpr      :: i32
   expr 95:9     CallExpr       :: void
   expr 95:9     IdentExpr      :: fn(T) -> void
-  expr 97:16    CallExpr       :: $genstate_map<i32>
-  expr 97:16    CallExpr       :: $genstate_window<i32[]>
+  expr 97:16    CallExpr       :: Iterator<i32>
+  expr 97:16    CallExpr       :: Iterator<i32[]>
   expr 97:16    FieldExpr      :: fn(fn(i32[]) -> i32) -> Iterator<i32>
   expr 97:16    FieldExpr      :: fn(i64) -> Iterator<i32[]>
   expr 97:16    SeqLitExpr     :: i32[]
   expr 97:43    IdentExpr      :: fn(i32[]) -> i32
-  expr 98:14    IdentExpr      :: $genstate_map<i32>
+  expr 98:14    IdentExpr      :: Iterator<i32>
   expr 99:17    StringLitExpr  :: string
   expr 99:32    IdentExpr      :: i32
   expr 99:9     CallExpr       :: void

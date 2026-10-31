@@ -42,7 +42,7 @@
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(T) -> void
   expr 33:13    StringLitExpr  :: string
-  expr 33:16    CallExpr       :: $genstate_map<i32>
+  expr 33:16    CallExpr       :: Iterator<i32>
   expr 33:16    CallExpr       :: Reversed
   expr 33:16    CallExpr       :: i32[]
   expr 33:16    FieldExpr      :: fn() -> i32[]
@@ -58,7 +58,7 @@
   expr 34:15    StringLitExpr  :: string
   expr 34:20    StringLitExpr  :: string
   expr 35:13    StringLitExpr  :: string
-  expr 35:16    CallExpr       :: $genstate_map<string>
+  expr 35:16    CallExpr       :: Iterator<string>
   expr 35:16    CallExpr       :: Iterator<string>
   expr 35:16    CallExpr       :: string[]
   expr 35:16    FieldExpr      :: fn() -> Iterator<string>

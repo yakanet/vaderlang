@@ -181,7 +181,7 @@
           }
           out
       }
-      squares: $genstate_map<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
+      squares: Iterator<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(46))
           __off_5: i64 = 0
@@ -209,7 +209,7 @@
           __off_5 = std.core.write_int(__buf_4, __off_5, std.iter.fold<i64, i64>(squares, i64(0), snippet.add))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      odds: $genstate_filter<i32> = std.iter.filter<i32>(std.core.i32[].into(a), snippet.odd)
+      odds: Iterator<i32> = std.iter.filter<i32>(std.core.i32[].into(a), snippet.odd)
       std.io.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(45))
           __off_9: i64 = 0
@@ -237,7 +237,7 @@
           __off_9 = std.core.write_int(__buf_8, __off_9, std.iter.sum<i32>(odds))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
-      squares_total: $genstate_map<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
+      squares_total: Iterator<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
       std.io.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(46))
           __off_13: i64 = 0
@@ -263,7 +263,7 @@
           __off_13 = std.core.write_int(__buf_12, __off_13, snippet.total(squares_total))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
-      squares_over: $genstate_map<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
+      squares_over: Iterator<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
       std.io.println<string>({
           __buf_16: Buffer = std.core.new_byte_buffer(i64(47))
           __off_17: i64 = 0
@@ -296,7 +296,7 @@
           __off_17 = std.core.write_int(__buf_16, __off_17, snippet.first_over(i64(20), squares_over))
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
-      squares_none: $genstate_map<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
+      squares_none: Iterator<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
       std.io.println<string>({
           __buf_20: Buffer = std.core.new_byte_buffer(i64(46))
           __off_21: i64 = 0
@@ -329,7 +329,7 @@
           __off_21 = std.core.write_int(__buf_20, __off_21, snippet.first_over(i64(1000), squares_none))
           std.core.finish_buffer(__buf_20, __off_21)
       } :string)
-      far: $genstate_filter<Point> = std.iter.filter<[i32, i32]>(std.core.Point[].into(pts), __lambda_snippet_1)
+      far: Iterator<Point> = std.iter.filter<[i32, i32]>(std.core.Point[].into(pts), __lambda_snippet_1)
       near: i32 = ({
           __coalesce_22: null | Point = {
               __fuse_arr_23: Point[] = pts
@@ -371,7 +371,7 @@
           } :Point).x)
           std.core.finish_buffer(__buf_26, __off_27)
       } :string)
-      thirds: $genstate_filter<Point> = std.iter.filter<[i32, i32]>(std.core.Point[].into(pts), __lambda_snippet_5)
+      thirds: Iterator<Point> = std.iter.filter<[i32, i32]>(std.core.Point[].into(pts), __lambda_snippet_5)
       std.io.println<string>({
           __buf_30: Buffer = std.core.new_byte_buffer(i64(56))
           __off_31: i64 = 0
@@ -399,7 +399,7 @@
           __off_31 = std.core.write_int(__buf_30, __off_31, @array.len(std.iter.collect<Point>(thirds)))
           std.core.finish_buffer(__buf_30, __off_31)
       } :string)
-      words: $genstate_map<string> = std.iter.map<string, string>(std.core.string[].into(["a", "b", "stop", "c"] :string[]), __lambda_snippet_7)
+      words: Iterator<string> = std.iter.map<string, string>(std.core.string[].into(["a", "b", "stop", "c"] :string[]), __lambda_snippet_7)
       {
           __fuse_arr_32: string[] = ["a", "b", "stop", "c"] :string[]
           f: fn(string) -> string = __lambda_snippet_8
@@ -443,7 +443,7 @@
               std.io.println<string>("")
           }
       }
-      pairs: $genstate_map<[i32, i32]> = std.iter.map<i32, [i32, i32]>(std.core.i32[].into(a), snippet.tens)
+      pairs: Iterator<[i32, i32]> = std.iter.map<i32, [i32, i32]>(std.core.i32[].into(a), snippet.tens)
       p: [i32, i32] = {
           __fuse_arr_36: i32[] = a
           f: fn(i32) -> [i32, i32] = snippet.tens
@@ -487,7 +487,7 @@
           __off_39 = std.core.write_int(__buf_38, __off_39, lazy_p._1)
           std.core.finish_buffer(__buf_38, __off_39)
       } :string)
-      late: $genstate_map<[i32, i32]> = std.iter.map<i32, [i32, i32]>(std.core.i32[].into(a), snippet.fifties)
+      late: Iterator<[i32, i32]> = std.iter.map<i32, [i32, i32]>(std.core.i32[].into(a), snippet.fifties)
       q: [i32, i32] = {
           __fuse_arr_40: i32[] = a
           f: fn(i32) -> [i32, i32] = snippet.fifties
@@ -531,7 +531,7 @@
           __off_43 = std.core.write_int(__buf_42, __off_43, lazy_q._1)
           std.core.finish_buffer(__buf_42, __off_43)
       } :string)
-      tuples: $genstate_filter<[i32, i32]> = std.iter.filter<[i32, i32]>(std.iter.map<i32, [i32, i32]>(std.core.i32[].into(a), snippet.tens), snippet.big_pair)
+      tuples: Iterator<[i32, i32]> = std.iter.filter<[i32, i32]>(std.iter.map<i32, [i32, i32]>(std.core.i32[].into(a), snippet.tens), snippet.big_pair)
       r: [i32, i32] = {
           __fuse_arr_44: i32[] = a
           f: fn(i32) -> [i32, i32] = snippet.tens
@@ -579,7 +579,7 @@
           __off_47 = std.core.write_int(__buf_46, __off_47, lazy_r._1)
           std.core.finish_buffer(__buf_46, __off_47)
       } :string)
-      scaled: $genstate_map<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
+      scaled: Iterator<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
       std.io.println<string>({
           __buf_52: Buffer = std.core.new_byte_buffer(i64(71))
           __off_53: i64 = 0

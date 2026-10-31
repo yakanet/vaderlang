@@ -16,7 +16,7 @@
       }
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      broken: $genstate_break_outer<i32> = snippet.break_outer()
+      broken: Iterator<i32> = snippet.break_outer()
       {
           __iter_0: Iterator<i32> = broken
           for {
@@ -35,7 +35,7 @@
               }
           }
       }
-      continued: $genstate_continue_outer<i32> = snippet.continue_outer()
+      continued: Iterator<i32> = snippet.continue_outer()
       {
           __iter_4: Iterator<i32> = continued
           for {

@@ -18,12 +18,6 @@ import "vader/support/diagnostics"
 import "vader/core/symbol"
 import "vader/core/types"
 import "std/collections"
-import "std/string"
-
-// The name prefix of a generator's state struct, shared by the symbol mint
-// (`gen_state_symbol`) and the recognition (`is_gen_state_struct`). No identifier
-// holds a `$`, so no declared struct takes such a name.
-GEN_STATE_PREFIX :: "\$genstate_"
 
 // Reserved synthetic-id range for generator state structs: a large negative
 // offset distinct from the lowerer's small-magnitude `next_synthetic_id` pool
@@ -44,8 +38,9 @@ gen_state_symbol :: fn(fn_id: i32, decl: AST.FnDecl, owner: TypedProgram) -> Sym
     module :: owner.resolved.display_path
     return Symbol {
         .id = GEN_STATE_ID_BASE - fn_id,
-        .kind = .Struct,
-        .name = "${GEN_STATE_PREFIX}${decl.name}${suffix}",
+        .kind = .GeneratorState,
+        // No identifier holds a `$`, so no declared struct takes this name.
+        .name = "\$genstate_${decl.name}${suffix}",
         .module = module,
         .module_name = module,
         .visibility = .Private,
@@ -58,7 +53,7 @@ gen_state_symbol :: fn(fn_id: i32, decl: AST.FnDecl, owner: TypedProgram) -> Sym
 ///
 /// @param t  the type to test.
 export is_gen_state_struct :: fn(t: Type) -> bool =
-    t is StructType && starts_with(t.symbol.name, GEN_STATE_PREFIX)
+    t is StructType && t.symbol.kind == .GeneratorState
 
 /// One `generator` declaration's state struct and what it yields.
 export GeneratorState :: struct {

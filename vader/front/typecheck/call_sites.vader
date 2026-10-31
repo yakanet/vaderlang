@@ -424,7 +424,7 @@ calls_a_value :: fn(typed: TypedProgram, callee: AST.Expr) -> bool {
     sym :: typed.resolved.idents[callee.span.hash()] ?? return false
     return match sym.kind {
         .Param | .Local | .Binding | .Const -> true
-        .Fn | .Struct | .Enum | .Trait | .Impl | .TypeAlias -> false
+        .Fn | .Struct | .GeneratorState | .Enum | .Trait | .Impl | .TypeAlias -> false
         .ImportBinding | .TypeParam | .BuiltinType | .BuiltinFn -> false
         .Synthetic -> false
     }

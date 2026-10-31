@@ -59,7 +59,7 @@
               }
           }
       }
-      chunks: $genstate_chunked<i32[]> = std.iter.chunked<i32>(std.core.i32[].into([1, 2, 3, 4, 5, 6] :i32[]), i64(4))
+      chunks: Iterator<i32[]> = std.iter.chunked<i32>(std.core.i32[].into([1, 2, 3, 4, 5, 6] :i32[]), i64(4))
       {
           __iter_8: Iterator<i32[]> = chunks
           for {
@@ -103,7 +103,7 @@
               __fuse_i_14 = __fuse_i_14 +% i64(1)
           }
       }
-      words: $genstate_distinct<string> = std.iter.distinct<string>(std.core.string[].into(["to", "be", "or", "not", "to", "be"] :string[]))
+      words: Iterator<string> = std.iter.distinct<string>(std.core.string[].into(["to", "be", "or", "not", "to", "be"] :string[]))
       {
           __iter_15: Iterator<string> = words
           for {
@@ -137,7 +137,7 @@
               __fuse_i_21 = __fuse_i_21 +% i64(1)
           }
       }
-      present: $genstate_filter_not_null<i32> = std.iter.filter_not_null<i32>(std.core.(i32 | null)[].into(maybe))
+      present: Iterator<i32> = std.iter.filter_not_null<i32>(std.core.(i32 | null)[].into(maybe))
       {
           __iter_22: Iterator<i32> = present
           for {

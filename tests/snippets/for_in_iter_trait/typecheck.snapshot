@@ -13,7 +13,7 @@
   expr 26:12    IdentExpr      :: i32
   expr 33:38    BinaryExpr     :: bool
   expr 33:38    IdentExpr      :: char
-  expr 35:12    CallExpr       :: $genstate_filter<char>
+  expr 35:12    CallExpr       :: Iterator<char>
   expr 35:12    CallExpr       :: StringChars
   expr 35:12    CallExpr       :: i64
   expr 35:12    FieldExpr      :: fn() -> StringChars

@@ -8,7 +8,7 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       lazy: string = ""
-      it: $genstate_filter<[i32, i64]> = std.iter.filter<[i32, i64]>(std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30] :i32[])), snippet.not_twenty)
+      it: Iterator<[i32, i64]> = std.iter.filter<[i32, i64]>(std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30] :i32[])), snippet.not_twenty)
       {
           __iter_1: Iterator<[i32, i64]> = it
           for {

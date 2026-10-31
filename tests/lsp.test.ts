@@ -1534,6 +1534,35 @@ test("lsp: hover on local shows its binding form", async () => {
   expect(hov.contents.value).toContain("```\ny :: x * 2\n```");
 }, { timeout: MEDIUM_BUILD });
 
+// A generator's call is shown as the `Iterator<T>` its source declares, never by the
+// name of the state the compiler builds for it.
+const GENERATOR_LOCAL_SOURCE = `module "main"
+
+count_to :: fn(n: i64) -> Iterator<i64> {
+    for i in 0..<n {
+        yield i
+    }
+}
+
+main :: fn() -> i32 {
+    it :: count_to(3)
+    for x in it {
+        return i32(x)
+    }
+    return 0
+}
+`;
+
+test("lsp: hover on a generator's call shows the iterator it declares", async () => {
+  const results = await driveLsp(GENERATOR_LOCAL_SOURCE, [
+    // 0: hover on the `it` binding
+    { method: "textDocument/hover", position: { line: 9, character: 4 } },
+  ]);
+  const shown = (results[0]!.result as Hover).contents.value;
+  expect(shown).toContain("it: Iterator<i64>");
+  expect(shown).not.toContain("genstate");
+}, { timeout: MEDIUM_BUILD });
+
 test("lsp: goto-def jumps to for-in binding", async () => {
   // Inside the for body : `println("${double(n)}")` on line 10.
   // `n` sits at character 26 (inside `double(n)`).

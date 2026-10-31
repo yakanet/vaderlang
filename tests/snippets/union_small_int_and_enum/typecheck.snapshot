@@ -141,7 +141,7 @@
   expr 75:32    IdentExpr      :: string[]
   expr 75:5     CallExpr       :: void
   expr 75:5     IdentExpr      :: fn(T) -> void
-  expr 76:14    CallExpr       :: $genstate_bytes<string | u8>
+  expr 76:14    CallExpr       :: Iterator<string | u8>
   expr 76:14    IdentExpr      :: fn() -> Iterator<string | u8>
   expr 77:17    CallExpr       :: string
   expr 77:17    IdentExpr      :: fn(string | u8) -> string

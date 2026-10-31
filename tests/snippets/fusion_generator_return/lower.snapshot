@@ -34,7 +34,7 @@
           }
       }
       lazy: string = ""
-      it: $genstate_upto_stop<i32> = snippet.upto_stop(2)
+      it: Iterator<i32> = snippet.upto_stop(2)
       {
           __iter_2: Iterator<i32> = it
           for {
@@ -78,7 +78,7 @@
   }
   snippet.lazy_value :: fn() -> i32 {  // snippet$lazy_value
       total: i32 = 0
-      it: $genstate_upto_stop<i32> = snippet.upto_stop(3)
+      it: Iterator<i32> = snippet.upto_stop(3)
       {
           __iter_0: Iterator<i32> = it
           for {
@@ -128,7 +128,7 @@
           }
       }
       lazy: string = ""
-      it: $genstate_until_negative<i32> = snippet.until_negative(std.core.i32[].into([1, 2, -1, 3] :i32[]))
+      it: Iterator<i32> = snippet.until_negative(std.core.i32[].into([1, 2, -1, 3] :i32[]))
       {
           __iter_5: Iterator<i32> = it
           for {
@@ -208,7 +208,7 @@
           }
       }
       lazy: string = ""
-      it: $genstate_grid_until<i32> = snippet.grid_until(11)
+      it: Iterator<i32> = snippet.grid_until(11)
       {
           __iter_2: Iterator<i32> = it
           for {
@@ -274,7 +274,7 @@
           } :string)
       }
       lazy: string = ""
-      it: $genstate_relay<i32> = snippet.relay()
+      it: Iterator<i32> = snippet.relay()
       {
           __iter_2: Iterator<i32> = it
           for {
@@ -346,7 +346,7 @@
                   }
               }
               lazy: string = ""
-              it: $genstate_counter<i32> = snippet.counter(stop, cap)
+              it: Iterator<i32> = snippet.counter(stop, cap)
               {
                   __iter_6: Iterator<i32> = it
                   for {
@@ -421,7 +421,7 @@
           }
       }
       lazy: string = ""
-      it: $genstate_labelled_exit<i32> = snippet.labelled_exit()
+      it: Iterator<i32> = snippet.labelled_exit()
       {
           __iter_2: Iterator<i32> = it
           for {

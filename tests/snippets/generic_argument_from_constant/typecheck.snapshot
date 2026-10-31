@@ -27,7 +27,7 @@
   expr 27:18    SeqLitExpr     :: Point[]
   expr 27:19    IdentExpr      :: Point
   expr 27:27    StructLitExpr  :: Point
-  expr 28:21    CallExpr       :: $genstate_map<i32>
+  expr 28:21    CallExpr       :: Iterator<i32>
   expr 28:21    CallExpr       :: i32[]
   expr 28:21    FieldExpr      :: fn() -> i32[]
   expr 28:21    FieldExpr      :: fn(fn(Point) -> i32) -> Iterator<i32>

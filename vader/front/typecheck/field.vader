@@ -1188,18 +1188,14 @@ resolve_struct_field :: fn(
     return narrow_field_if_active(e, substituted, typed)
 }
 
-// A member no overload took on a generator's result, named for the
-// `Iterator<E>` the source declared rather than the synthetic state struct.
+// A member no overload took on a generator's result.
 report_gen_state_member :: fn(
     e: AST.FieldExpr,
     st: StructType,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    receiver := display_type(st)
-    if st.args.len() == 1 {
-        receiver = "Iterator<${display_type(st.args[0])}>"
-    }
+    receiver :: display_type(st)
     if ufcs_name_has_candidates(e.field, e.span.start.file, typed) {
         diags.push(
             typecheck_error(

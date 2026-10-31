@@ -67,9 +67,9 @@
               x = x + 0.5
           }
       }
-      words: $genstate_upto_1<string> = snippet$upto_1("xyz")
-      numbers: $genstate_upto<i32> = snippet$upto(3)
-      halves: $genstate_upto<f64> = snippet.halves.upto(1.5)
+      words: Iterator<string> = snippet$upto_1("xyz")
+      numbers: Iterator<i32> = snippet$upto(3)
+      halves: Iterator<f64> = snippet.halves.upto(1.5)
       {
           __iter_2: Iterator<string> = words
           for {

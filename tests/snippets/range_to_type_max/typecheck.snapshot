@@ -42,7 +42,7 @@
   expr 49:9     BinaryExpr     :: i32
   expr 49:9     IdentExpr      :: i32
   expr 51:12    IdentExpr      :: i32
-  expr 56:15    CallExpr       :: $genstate_filter<u8>
+  expr 56:15    CallExpr       :: Iterator<u8>
   expr 56:15    CallExpr       :: u8
   expr 56:15    FieldExpr      :: fn(fn(u8) -> bool) -> Iterator<u8>
   expr 56:15    IdentExpr      :: type

@@ -47,7 +47,7 @@
           }
       }
       lazy: string = ""
-      it: $genstate_countdown<i32> = snippet.countdown(3)
+      it: Iterator<i32> = snippet.countdown(3)
       {
           __iter_2: Iterator<i32> = it
           for {

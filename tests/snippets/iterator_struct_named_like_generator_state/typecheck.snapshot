@@ -25,7 +25,7 @@
   expr 33:5     IdentExpr      :: fn(T) -> void
   expr 34:14    StructLitExpr  :: __genstate_count
   expr 35:13    StringLitExpr  :: string
-  expr 35:16    CallExpr       :: $genstate_map<i32>
+  expr 35:16    CallExpr       :: Iterator<i32>
   expr 35:16    CallExpr       :: i32[]
   expr 35:16    FieldExpr      :: fn() -> i32[]
   expr 35:16    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
@@ -35,9 +35,9 @@
   expr 35:31    IdentExpr      :: i32
   expr 35:5     CallExpr       :: void
   expr 35:5     IdentExpr      :: fn(T) -> void
-  expr 36:17    CallExpr       :: $genstate_count<i32>
+  expr 36:17    CallExpr       :: Iterator<i32>
   expr 36:17    IdentExpr      :: fn() -> Iterator<i32>
-  expr 37:14    IdentExpr      :: $genstate_count<i32>
+  expr 37:14    IdentExpr      :: Iterator<i32>
   expr 38:15    StringLitExpr  :: string
   expr 38:18    IdentExpr      :: i32
   expr 38:9     CallExpr       :: void

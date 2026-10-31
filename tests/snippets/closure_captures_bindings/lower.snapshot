@@ -147,7 +147,7 @@
   }
   snippet.over_lazy_indexed :: fn() -> i32 {  // snippet$over_lazy_indexed
       total: i32 = 0
-      it: $genstate_indexed<[i32, i64]> = std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30] :i32[]))
+      it: Iterator<[i32, i64]> = std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30] :i32[]))
       {
           __iter_1: Iterator<[i32, i64]> = it
           for {

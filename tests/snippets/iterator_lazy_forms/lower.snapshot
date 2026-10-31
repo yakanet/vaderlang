@@ -86,7 +86,7 @@
       }
   }
   snippet.defaults :: fn() -> void {  // snippet$defaults
-      counted: $genstate_filter<i32> = std.iter.filter<i32>(std.core.i32[].into([1, 2, 3, 4, 5] :i32[]), snippet.odd)
+      counted: Iterator<i32> = std.iter.filter<i32>(std.core.i32[].into([1, 2, 3, 4, 5] :i32[]), snippet.odd)
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(41))
           __off_1: i64 = 0
@@ -94,7 +94,7 @@
           __off_1 = std.core.write_int(__buf_0, __off_1, std.iter.count<i32>(counted))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      emptied: $genstate_filter<i32> = std.iter.filter<i32>(std.core.i32[].into([2, 4] :i32[]), snippet.odd)
+      emptied: Iterator<i32> = std.iter.filter<i32>(std.core.i32[].into([2, 4] :i32[]), snippet.odd)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(29))
           __off_3: i64 = 0
@@ -102,7 +102,7 @@
           __off_3 = std.core.write_bool(__buf_2, __off_3, std.iter.is_empty<i32>(emptied))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      lasted: $genstate_filter<i32> = std.iter.filter<i32>(std.core.i32[].into([1, 2, 3, 4, 5] :i32[]), snippet.odd)
+      lasted: Iterator<i32> = std.iter.filter<i32>(std.core.i32[].into([1, 2, 3, 4, 5] :i32[]), snippet.odd)
       std.io.println<string>({
           __buf_5: Buffer = std.core.new_byte_buffer(i64(40))
           __off_6: i64 = 0
@@ -206,7 +206,7 @@
           } :i64)
           std.core.finish_buffer(__buf_17, __off_18)
       } :string)
-      odds: $genstate_filter<i32> = std.iter.filter<i32>(std.core.i32[].into([1, 2, 3, 4, 5] :i32[]), snippet.odd)
+      odds: Iterator<i32> = std.iter.filter<i32>(std.core.i32[].into([1, 2, 3, 4, 5] :i32[]), snippet.odd)
       std.io.println<string>({
           __buf_19: Buffer = std.core.new_byte_buffer(i64(48))
           __off_20: i64 = 0
@@ -225,7 +225,7 @@
       } :string)
   }
   snippet.composite_sources :: fn() -> void {  // snippet$composite_sources
-      pairs: $genstate_filter<[i32, i64]> = std.iter.filter<[i32, i32]>(std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30] :i32[])), snippet.big)
+      pairs: Iterator<[i32, i64]> = std.iter.filter<[i32, i32]>(std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30] :i32[])), snippet.big)
       {
           __iter_1: Iterator<[i32, i64]> = pairs
           for {
@@ -248,7 +248,7 @@
               }
           }
       }
-      zipped: $genstate_filter<[i32, i32]> = std.iter.filter<[i32, i32]>(std.iter.zip<i32, i32>([1, 2, 3] :i32[], [5, 6, 7] :i32[]), snippet.both_odd)
+      zipped: Iterator<[i32, i32]> = std.iter.filter<[i32, i32]>(std.iter.zip<i32, i32>([1, 2, 3] :i32[], [5, 6, 7] :i32[]), snippet.both_odd)
       {
           __iter_7: Iterator<[i32, i32]> = zipped
           for {
@@ -271,7 +271,7 @@
               }
           }
       }
-      windows: $genstate_map<i32> = std.iter.map<i32[], i32>(std.iter.window<i32>([1, 2, 3, 4] :i32[], i64(2)), snippet.total)
+      windows: Iterator<i32> = std.iter.map<i32[], i32>(std.iter.window<i32>([1, 2, 3, 4] :i32[], i64(2)), snippet.total)
       {
           __iter_12: Iterator<i32> = windows
           for {
@@ -295,7 +295,7 @@
       snippet.defaults()
       snippet.composite_sources()
       s: string = ""
-      ay: $genstate_after_yield<i32> = snippet.after_yield(3)
+      ay: Iterator<i32> = snippet.after_yield(3)
       {
           __iter_0: Iterator<i32> = ay
           for {
@@ -316,7 +316,7 @@
       }
       std.io.println<string>(concat_2("local after a yield:", s))
       r: string = ""
-      rl: $genstate_relay<i32> = snippet.relay([1, 2, 3] :i32[])
+      rl: Iterator<i32> = snippet.relay([1, 2, 3] :i32[])
       {
           __iter_4: Iterator<i32> = rl
           for {

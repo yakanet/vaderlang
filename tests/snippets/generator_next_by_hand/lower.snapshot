@@ -21,7 +21,7 @@
       } :string
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      it: $genstate_count_to<i64> = snippet.count_to(i64(4))
+      it: Iterator<i64> = snippet.count_to(i64(4))
       first: i64 | Stop = @vcall(std.core.Iterator.next, it)
       second: i64 | Stop = @vcall(std.core.Iterator.next, it)
       std.io.println<string>(concat_3(snippet.show(first), " ", snippet.show(second)))
@@ -89,7 +89,7 @@
   __lambda_snippet_0 :: fn(x: i64) -> i64 {
       x + i64(10)
   }
-  __method_env_snippet_2 :: struct { receiver: $genstate_count_to<i64> }
+  __method_env_snippet_2 :: struct { receiver: Iterator<i64> }
   __method_snippet_1 :: fn(__env_4: __method_env_snippet_2) -> i64 | Stop {
       @vcall(std.core.Iterator.next, __env_4.receiver)
   }
@@ -132,7 +132,7 @@
       }
   }
   snippet.steps<i32> :: fn(x: i32) -> i32 {  // snippet$steps__i32
-      it: $genstate_twice<i32> = snippet.twice<i32>(x)
+      it: Iterator<i32> = snippet.twice<i32>(x)
       count: i32 = 0
       for !(@vcall(std.core.Iterator.next, it) is Stop) {
           count = count + 1
@@ -140,7 +140,7 @@
       return count
   }
   snippet.steps<string> :: fn(x: string) -> i32 {  // snippet$steps__string
-      it: $genstate_twice<string> = snippet.twice<string>(x)
+      it: Iterator<string> = snippet.twice<string>(x)
       count: i32 = 0
       for !(@vcall(std.core.Iterator.next, it) is Stop) {
           count = count + 1

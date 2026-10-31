@@ -36,7 +36,7 @@
   expr 31:9     CallExpr       :: void
   expr 31:9     IdentExpr      :: fn(T) -> void
   expr 35:31    SeqLitExpr     :: (fn() -> void)[]
-  expr 36:15    CallExpr       :: $genstate_map<i32>
+  expr 36:15    CallExpr       :: Iterator<i32>
   expr 36:15    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 36:15    RangeExpr      :: Range<i32>
   expr 36:26    IdentExpr      :: fn(i32) -> i32
@@ -51,7 +51,7 @@
   expr 39:14    IdentExpr      :: (fn() -> void)[]
   expr 39:23    CallExpr       :: void
   expr 39:23    IdentExpr      :: fn() -> void
-  expr 42:15    CallExpr       :: $genstate_filter<i32>
+  expr 42:15    CallExpr       :: Iterator<i32>
   expr 42:15    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 42:15    RangeExpr      :: Range<i32>
   expr 42:29    IdentExpr      :: fn(i32) -> bool

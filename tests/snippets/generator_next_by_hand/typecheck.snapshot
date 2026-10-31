@@ -11,13 +11,13 @@
   expr 12:15    IdentExpr      :: i64
   expr 17:11    IdentExpr      :: T
   expr 18:11    IdentExpr      :: T
-  expr 22:11    CallExpr       :: $genstate_twice<T>
+  expr 22:11    CallExpr       :: Iterator<T>
   expr 22:11    IdentExpr      :: fn(T) -> Iterator<T>
   expr 22:17    IdentExpr      :: T
   expr 24:11    BinaryExpr     :: bool
   expr 24:11    CallExpr       :: Stop | T
   expr 24:11    FieldExpr      :: fn() -> Stop | T
-  expr 24:11    IdentExpr      :: $genstate_twice<T>
+  expr 24:11    IdentExpr      :: Iterator<T>
   expr 24:24    IdentExpr      :: Stop
   expr 24:9     UnaryExpr      :: bool
   expr 25:9     BinaryExpr     :: i32
@@ -30,14 +30,14 @@
   expr 30:60    StringLitExpr  :: string
   expr 30:76    StringLitExpr  :: string
   expr 30:79    IdentExpr      :: i64
-  expr 33:11    CallExpr       :: $genstate_count_to<i64>
+  expr 33:11    CallExpr       :: Iterator<i64>
   expr 33:11    IdentExpr      :: fn(i64) -> Iterator<i64>
   expr 34:14    CallExpr       :: i64 | Stop
   expr 34:14    FieldExpr      :: fn() -> i64 | Stop
-  expr 34:14    IdentExpr      :: $genstate_count_to<i64>
+  expr 34:14    IdentExpr      :: Iterator<i64>
   expr 35:15    CallExpr       :: i64 | Stop
   expr 35:15    FieldExpr      :: fn() -> i64 | Stop
-  expr 35:15    IdentExpr      :: $genstate_count_to<i64>
+  expr 35:15    IdentExpr      :: Iterator<i64>
   expr 36:13    StringLitExpr  :: string
   expr 36:16    CallExpr       :: string
   expr 36:16    IdentExpr      :: fn(i64 | Stop) -> string
@@ -47,7 +47,7 @@
   expr 36:36    IdentExpr      :: i64 | Stop
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(T) -> void
-  expr 37:17    IdentExpr      :: $genstate_count_to<i64>
+  expr 37:17    IdentExpr      :: Iterator<i64>
   expr 38:17    StringLitExpr  :: string
   expr 38:25    IdentExpr      :: i64
   expr 38:9     CallExpr       :: void
@@ -57,13 +57,13 @@
   expr 40:22    IdentExpr      :: fn(i64 | Stop) -> string
   expr 40:27    CallExpr       :: i64 | Stop
   expr 40:27    FieldExpr      :: fn() -> i64 | Stop
-  expr 40:27    IdentExpr      :: $genstate_count_to<i64>
+  expr 40:27    IdentExpr      :: Iterator<i64>
   expr 40:5     CallExpr       :: void
   expr 40:5     IdentExpr      :: fn(T) -> void
   expr 41:13    StringLitExpr  :: string
   expr 41:23    CallExpr       :: string
   expr 41:23    IdentExpr      :: fn(i64 | Stop) -> string
-  expr 41:28    CallExpr       :: $genstate_count_to<i64>
+  expr 41:28    CallExpr       :: Iterator<i64>
   expr 41:28    CallExpr       :: i64 | Stop
   expr 41:28    FieldExpr      :: fn() -> i64 | Stop
   expr 41:28    IdentExpr      :: fn(i64) -> Iterator<i64>
@@ -72,8 +72,8 @@
   expr 42:13    StringLitExpr  :: string
   expr 42:24    CallExpr       :: string
   expr 42:24    IdentExpr      :: fn(i64 | Stop) -> string
-  expr 42:29    CallExpr       :: $genstate_count_to<i64>
-  expr 42:29    CallExpr       :: $genstate_map<i64>
+  expr 42:29    CallExpr       :: Iterator<i64>
+  expr 42:29    CallExpr       :: Iterator<i64>
   expr 42:29    CallExpr       :: i64 | Stop
   expr 42:29    FieldExpr      :: fn() -> i64 | Stop
   expr 42:29    FieldExpr      :: fn(fn(i64) -> i64) -> Iterator<i64>
@@ -83,7 +83,7 @@
   expr 42:5     IdentExpr      :: fn(T) -> void
   expr 42:50    BinaryExpr     :: i64
   expr 42:50    IdentExpr      :: i64
-  expr 43:13    CallExpr       :: $genstate_count_to<i64>
+  expr 43:13    CallExpr       :: Iterator<i64>
   expr 43:13    FieldExpr      :: fn() -> i64 | Stop
   expr 43:13    IdentExpr      :: fn(i64) -> Iterator<i64>
   expr 44:13    StringLitExpr  :: string

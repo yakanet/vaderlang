@@ -21,10 +21,10 @@
   expr 26:28    StringLitExpr  :: string
   expr 26:32    FieldExpr      :: i32
   expr 26:32    IdentExpr      :: Mon
-  expr 31:41    CallExpr       :: $genstate_scaled<Mon>
+  expr 31:41    CallExpr       :: Iterator<Mon>
   expr 31:41    IdentExpr      :: fn(Mon[]) -> Iterator<Mon>
   expr 31:48    IdentExpr      :: Mon[]
-  expr 35:43    CallExpr       :: $genstate_labels<Label>
+  expr 35:43    CallExpr       :: Iterator<Label>
   expr 35:43    IdentExpr      :: fn(Mon[]) -> Iterator<Label>
   expr 35:50    IdentExpr      :: Mon[]
   expr 43:14    IdentExpr      :: Pt[]
@@ -32,7 +32,7 @@
   expr 44:25    BinaryExpr     :: i32
   expr 44:25    FieldExpr      :: i32
   expr 44:25    IdentExpr      :: Pt
-  expr 49:40    CallExpr       :: $genstate_shifted<Pt>
+  expr 49:40    CallExpr       :: Iterator<Pt>
   expr 49:40    IdentExpr      :: fn(Pt[]) -> Iterator<Pt>
   expr 49:48    IdentExpr      :: Pt[]
   expr 54:14    IdentExpr      :: Iterator<Mon>
@@ -66,8 +66,8 @@
   expr 73:11    SeqLitExpr     :: Pt[]
   expr 73:12    StructLitExpr  :: Pt
   expr 73:27    StructLitExpr  :: Pt
-  expr 75:14    CallExpr       :: $genstate_map<i32>
   expr 75:14    CallExpr       :: Iterator<Pt>
+  expr 75:14    CallExpr       :: Iterator<i32>
   expr 75:14    FieldExpr      :: fn() -> Iterator<Pt>
   expr 75:14    FieldExpr      :: fn(fn(Pt) -> i32) -> Iterator<i32>
   expr 75:14    IdentExpr      :: Pt[]

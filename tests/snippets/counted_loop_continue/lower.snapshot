@@ -273,7 +273,7 @@
       }
   }
   snippet.generator_continue :: fn() -> void {  // snippet$generator_continue
-      it: $genstate_evens<i32> = snippet.evens(6)
+      it: Iterator<i32> = snippet.evens(6)
       {
           __iter_0: Iterator<i32> = it
           for {

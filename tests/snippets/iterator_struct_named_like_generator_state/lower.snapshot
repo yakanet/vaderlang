@@ -52,7 +52,7 @@
           }
           out
       } :i32[]))
-      escaping: $genstate_count<i32> = snippet.count()
+      escaping: Iterator<i32> = snippet.count()
       {
           __iter_6: Iterator<i32> = escaping
           for {

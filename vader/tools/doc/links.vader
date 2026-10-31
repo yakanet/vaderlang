@@ -130,7 +130,7 @@ is_documented :: fn(sym: Symbol) -> bool =
 is_listed_kind :: fn(kind: SymbolKind) -> bool = match kind {
     .Fn | .Struct | .Enum | .Trait | .TypeAlias | .Const -> true
     .Impl | .ImportBinding | .Param | .TypeParam | .Local | .Binding -> false
-    .BuiltinType | .BuiltinFn | .Synthetic -> false
+    .BuiltinType | .BuiltinFn | .Synthetic | .GeneratorState -> false
 }
 
 // ---- tests ----------------------------------------------------------------

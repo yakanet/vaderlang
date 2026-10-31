@@ -16,7 +16,8 @@
 //     pattern binders in `match_expr.vader` / `expr_if.vader`).
 //   - ImportBinding → redirected to its concrete export before lookup, so
 //     it resolves cross-module via `wire.vader`'s `import_targets`.
-//   - BuiltinFn / Impl / Synthetic → carry no value type → Unresolved.
+//   - BuiltinFn / Impl / Synthetic / GeneratorState → carry no value type →
+//     Unresolved.
 
 module "vader/front/typecheck"
 
@@ -69,11 +70,11 @@ export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sy
     // primitive shape comes back via `type_from_expr` in type-demanding
     // slots. Lets `Foo :: f32 | f64` parse cleanly.
     .BuiltinType -> TY_TYPE
-    // ImportBinding / BuiltinFn / Impl / Synthetic carry no value type, see header.
-    .Impl          -> TY_UNRESOLVED
-    .ImportBinding -> TY_UNRESOLVED
-    .BuiltinFn     -> TY_UNRESOLVED
-    .Synthetic     -> TY_UNRESOLVED
+    .Impl           -> TY_UNRESOLVED
+    .ImportBinding  -> TY_UNRESOLVED
+    .BuiltinFn      -> TY_UNRESOLVED
+    .Synthetic      -> TY_UNRESOLVED
+    .GeneratorState -> TY_UNRESOLVED
 }
 
 /// Look `sym`'s span up in a span-keyed table (`param_types` /

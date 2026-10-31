@@ -11,23 +11,23 @@
   FnDecl         stop_at_three        :: fn(i32) -> Iterator<i32>
   FnDecl         total_of_evens       :: fn(i32) -> Async<i32>
   FnDecl         until_three          :: fn(i32) -> Iterator<i32>
-  expr 101:10   CallExpr       :: $genstate_until_three<i32>
+  expr 101:10   CallExpr       :: Iterator<i32>
   expr 101:10   IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 102:14   IdentExpr      :: $genstate_until_three<i32>
+  expr 102:14   IdentExpr      :: Iterator<i32>
   expr 103:17   StringLitExpr  :: string
   expr 103:26   IdentExpr      :: i32
   expr 103:9    CallExpr       :: void
   expr 103:9    IdentExpr      :: fn(T) -> void
-  expr 105:10   CallExpr       :: $genstate_stop_at_three<i32>
+  expr 105:10   CallExpr       :: Iterator<i32>
   expr 105:10   IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 106:14   IdentExpr      :: $genstate_stop_at_three<i32>
+  expr 106:14   IdentExpr      :: Iterator<i32>
   expr 107:17   StringLitExpr  :: string
   expr 107:25   IdentExpr      :: i32
   expr 107:9    CallExpr       :: void
   expr 107:9    IdentExpr      :: fn(T) -> void
-  expr 109:10   CallExpr       :: $genstate_first_odd_above<i32>
+  expr 109:10   CallExpr       :: Iterator<i32>
   expr 109:10   IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 110:14   IdentExpr      :: $genstate_first_odd_above<i32>
+  expr 110:14   IdentExpr      :: Iterator<i32>
   expr 111:17   StringLitExpr  :: string
   expr 111:30   IdentExpr      :: i32
   expr 111:9    CallExpr       :: void
@@ -133,16 +133,16 @@
   expr 84:22    IdentExpr      :: i32
   expr 84:30    IdentExpr      :: i32
   expr 85:16    IdentExpr      :: i32
-  expr 93:10    CallExpr       :: $genstate_evens<i32>
+  expr 93:10    CallExpr       :: Iterator<i32>
   expr 93:10    IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 94:14    IdentExpr      :: $genstate_evens<i32>
+  expr 94:14    IdentExpr      :: Iterator<i32>
   expr 95:17    StringLitExpr  :: string
   expr 95:26    IdentExpr      :: i32
   expr 95:9     CallExpr       :: void
   expr 95:9     IdentExpr      :: fn(T) -> void
-  expr 97:10    CallExpr       :: $genstate_evens_with_tail<i32>
+  expr 97:10    CallExpr       :: Iterator<i32>
   expr 97:10    IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 98:14    IdentExpr      :: $genstate_evens_with_tail<i32>
+  expr 98:14    IdentExpr      :: Iterator<i32>
   expr 99:17    StringLitExpr  :: string
   expr 99:30    IdentExpr      :: i32
   expr 99:9     CallExpr       :: void

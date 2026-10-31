@@ -902,8 +902,8 @@ const_reassign_detail :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> string
         .Local            -> local_rebind_detail(ident, sym, typed)
         .Const            -> module_constant_detail(ident, sym, typed)
         .ImportBinding    -> "`${ident.name}` names an imported module"
-        .Fn | .Struct | .Enum | .Trait | .Impl | .TypeAlias | .TypeParam | .BuiltinType
-            | .BuiltinFn | .Synthetic -> "`${ident.name}` names a ${sym.kind.label}"
+        .Fn | .Struct | .GeneratorState | .Enum | .Trait | .Impl | .TypeAlias | .TypeParam
+            | .BuiltinType | .BuiltinFn | .Synthetic -> "`${ident.name}` names a ${sym.kind.label}"
     }
 }
 

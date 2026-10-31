@@ -24,7 +24,7 @@
       }
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      it: $genstate_count_up<i32> = snippet.count_up(4)
+      it: Iterator<i32> = snippet.count_up(4)
       {
           __iter_0: Iterator<i32> = it
           for {
@@ -43,7 +43,7 @@
               }
           }
       }
-      p: $genstate_pairs<i32> = snippet.pairs([1, 2] :i32[], [10, 20] :i32[])
+      p: Iterator<i32> = snippet.pairs([1, 2] :i32[], [10, 20] :i32[])
       {
           __iter_4: Iterator<i32> = p
           for {

@@ -10,14 +10,14 @@
   expr 14:36    FieldExpr      :: fn() -> i64
   expr 14:36    IdentExpr      :: string
   expr 17:13    StringLitExpr  :: string
-  expr 18:11    CallExpr       :: $genstate_map<i64>
-  expr 18:11    CallExpr       :: $genstate_map<string>
+  expr 18:11    CallExpr       :: Iterator<i64>
+  expr 18:11    CallExpr       :: Iterator<string>
   expr 18:11    FieldExpr      :: fn(fn(i32) -> string) -> Iterator<string>
   expr 18:11    FieldExpr      :: fn(fn(string) -> i64) -> Iterator<i64>
   expr 18:11    SeqLitExpr     :: i32[]
   expr 18:28    IdentExpr      :: fn(i32) -> string
   expr 18:41    IdentExpr      :: fn(string) -> i64
-  expr 19:14    IdentExpr      :: $genstate_map<i64>
+  expr 19:14    IdentExpr      :: Iterator<i64>
   expr 20:16    BinaryExpr     :: string
   expr 20:16    IdentExpr      :: string
   expr 20:23    StringLitExpr  :: string
@@ -28,8 +28,8 @@
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(T) -> void
   expr 23:14    StringLitExpr  :: string
-  expr 24:14    CallExpr       :: $genstate_map<i64>
-  expr 24:14    CallExpr       :: $genstate_map<string>
+  expr 24:14    CallExpr       :: Iterator<i64>
+  expr 24:14    CallExpr       :: Iterator<string>
   expr 24:14    FieldExpr      :: fn(fn(i32) -> string) -> Iterator<string>
   expr 24:14    FieldExpr      :: fn(fn(string) -> i64) -> Iterator<i64>
   expr 24:14    SeqLitExpr     :: i32[]

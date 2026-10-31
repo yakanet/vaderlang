@@ -12,18 +12,18 @@
   expr 15:29    BinaryExpr     :: i32
   expr 15:29    IdentExpr      :: i32
   expr 15:33    IdentExpr      :: i32
-  expr 20:11    CallExpr       :: $genstate_count_up<i32>
+  expr 20:11    CallExpr       :: Iterator<i32>
   expr 20:11    IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 21:14    IdentExpr      :: $genstate_count_up<i32>
+  expr 21:14    IdentExpr      :: Iterator<i32>
   expr 21:19    CallExpr       :: void
   expr 21:19    IdentExpr      :: fn(T) -> void
   expr 21:27    StringLitExpr  :: string
   expr 21:32    IdentExpr      :: i32
-  expr 22:10    CallExpr       :: $genstate_pairs<i32>
+  expr 22:10    CallExpr       :: Iterator<i32>
   expr 22:10    IdentExpr      :: fn(i32[], i32[]) -> Iterator<i32>
   expr 22:16    SeqLitExpr     :: i32[]
   expr 22:24    SeqLitExpr     :: i32[]
-  expr 23:14    IdentExpr      :: $genstate_pairs<i32>
+  expr 23:14    IdentExpr      :: Iterator<i32>
   expr 23:18    CallExpr       :: void
   expr 23:18    IdentExpr      :: fn(T) -> void
   expr 23:26    StringLitExpr  :: string

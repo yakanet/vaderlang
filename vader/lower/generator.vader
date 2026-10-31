@@ -133,8 +133,8 @@ lower_generator_fn :: fn(
     // accesses concrete fields (`self.state`, `self.s0`), so a parameterised type
     // would break field resolution at emit. Typecheck's parameterised
     // `$genstate_<fn><element>` only exists to concretise chain terminals; the boxed
-    // consumer erases it to `Iterator<element>` (name-based) before dispatch, so the
-    // runtime tag (this no-arg struct) still matches the vtable row.
+    // consumer erases it to `Iterator<element>` before dispatch, so the runtime tag
+    // (this no-arg struct) still matches the vtable row.
     state_ty :: mk_struct(state_sym, [])
     self_sym :: fresh_synthetic_symbol(fn_ctx, "self")
 

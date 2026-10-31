@@ -523,8 +523,15 @@ write_type :: fn(w: TypeWriter, t: Type) -> void {
     }
 }
 
+// A generator's call types as its state carrying the element: it reads as the
+// `Iterator<E>` its source declares. The struct the lowering builds carries no
+// argument and keeps its name, as does an instance name (`qualified`).
 write_named :: fn(w: TypeWriter, sym: Symbol, args: Type[]) -> void {
-    w.write_nominal(sym)
+    if sym.kind == .GeneratorState && args.len() > 0 && !w.qualified {
+        w.sb.append(TRAIT_ITERATOR)
+    } else {
+        w.write_nominal(sym)
+    }
     if args.len() == 0 {
         return
     }
@@ -1006,6 +1013,23 @@ test_display_struct_without_args :: fn() -> void {
     sym :: factory.make(.Struct, "Point", "test", "test", .Public, null)
     s :: mk_struct(sym, [])
     assert_eq(display_type(s), "Point")
+}
+
+@test
+test_display_generator_call_as_its_iterator :: fn() -> void {
+    factory :: SymbolFactory {}
+    sym :: factory.make(.GeneratorState, "\$genstate_count", "test", "test", .Private, null)
+    element: Type: TY_I64
+    call :: mk_struct(sym, [element])
+    assert_eq(display_type(call), "Iterator<i64>")
+    assert_eq(qualified_display_type(call), "test\$\$genstate_count<i64>")
+}
+
+@test
+test_display_lowered_generator_state_by_its_name :: fn() -> void {
+    factory :: SymbolFactory {}
+    sym :: factory.make(.GeneratorState, "\$genstate_count", "test", "test", .Private, null)
+    assert_eq(display_type(mk_struct(sym, [])), "\$genstate_count")
 }
 
 @test

@@ -73,9 +73,9 @@
   expr 156:15   IdentExpr      :: i32
   expr 15:28    BinaryExpr     :: i32
   expr 15:28    IdentExpr      :: i32
-  expr 161:11   CallExpr       :: $genstate_evens<i32>
+  expr 161:11   CallExpr       :: Iterator<i32>
   expr 161:11   IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 162:14   IdentExpr      :: $genstate_evens<i32>
+  expr 162:14   IdentExpr      :: Iterator<i32>
   expr 163:17   StringLitExpr  :: string
   expr 163:30   IdentExpr      :: i32
   expr 163:9    CallExpr       :: void
@@ -124,7 +124,7 @@
   expr 36:26    IdentExpr      :: i32
   expr 36:9     CallExpr       :: void
   expr 36:9     IdentExpr      :: fn(T) -> void
-  expr 42:14    CallExpr       :: $genstate_map<i32>
+  expr 42:14    CallExpr       :: Iterator<i32>
   expr 42:14    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 42:14    SeqLitExpr     :: i32[]
   expr 42:34    IdentExpr      :: fn(i32) -> i32
@@ -186,7 +186,7 @@
   expr 85:26    IdentExpr      :: i32
   expr 85:9     CallExpr       :: void
   expr 85:9     IdentExpr      :: fn(T) -> void
-  expr 91:15    CallExpr       :: $genstate_map<i32>
+  expr 91:15    CallExpr       :: Iterator<i32>
   expr 91:15    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 91:15    RangeExpr      :: Range<i32>
   expr 91:26    IdentExpr      :: fn(i32) -> i32

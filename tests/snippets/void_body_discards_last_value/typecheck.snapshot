@@ -66,7 +66,7 @@
   expr 62:5     CallExpr       :: bool
   expr 62:5     FieldExpr      :: fn(i32) -> bool
   expr 62:5     IdentExpr      :: Tally
-  expr 66:16    CallExpr       :: $genstate_map<i32>
+  expr 66:16    CallExpr       :: Iterator<i32>
   expr 66:16    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 66:16    SeqLitExpr     :: i32[]
   expr 66:30    IdentExpr      :: fn(i32) -> i32

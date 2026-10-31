@@ -30,7 +30,7 @@
       }
       fused: i32 = @cell(pulls)
       @cell(pulls) = 0
-      it: $genstate_take<i32> = std.iter.take<i32>(std.iter.map<i32, i32>(std.core.i32[].into([1, 2, 3, 4] :i32[]), counted), n)
+      it: Iterator<i32> = std.iter.take<i32>(std.iter.map<i32, i32>(std.core.i32[].into([1, 2, 3, 4] :i32[]), counted), n)
       {
           __iter_4: Iterator<i32> = it
           for {
@@ -103,7 +103,7 @@
           }
       }
       lazy: string = ""
-      it: $genstate_take<i32> = std.iter.take<i32>(std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2] :i32[]), snippet.spread), i64(4))
+      it: Iterator<i32> = std.iter.take<i32>(std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2] :i32[]), snippet.spread), i64(4))
       {
           __iter_5: Iterator<i32> = it
           for {
@@ -173,7 +173,7 @@
           }
       }
       std.io.println<string>("generator.take(2), lazy:")
-      it: $genstate_take<i32> = std.iter.take<i32>(snippet.produced(5), i64(2))
+      it: Iterator<i32> = std.iter.take<i32>(snippet.produced(5), i64(2))
       {
           __iter_2: Iterator<i32> = it
           for {

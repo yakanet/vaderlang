@@ -33,6 +33,9 @@ export SymbolKind :: enum(SymbolKindInfo) {
     BuiltinType   { .label = "builtin-type" },
     BuiltinFn     { .label = "builtin-fn" },
     Synthetic     { .label = "synthetic" },
+    /// The struct a `generator`'s call returns, holding its suspended state: the
+    /// compiler declares it, so no source names it.
+    GeneratorState { .label = "generator-state" },
 }
 
 export Symbol :: struct {
@@ -70,7 +73,7 @@ export is_local_binding :: fn(kind: SymbolKind) -> bool =
 /// @param k  the symbol's kind.
 // @partial: only type-introducing kinds are type kinds; every other SymbolKind → false.
 export is_type_kind :: fn(k: SymbolKind) -> bool = @partial match k {
-    .Struct | .Trait | .Enum | .TypeAlias | .TypeParam | .BuiltinType -> true
+    .Struct | .GeneratorState | .Trait | .Enum | .TypeAlias | .TypeParam | .BuiltinType -> true
     _ -> false
 }
 

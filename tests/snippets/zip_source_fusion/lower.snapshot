@@ -54,7 +54,7 @@
           }
           out
       } :i32[])
-      lazy_map: $genstate_zip<[i32, i32]> = std.iter.zip<i32, i32>(a, b)
+      lazy_map: Iterator<[i32, i32]> = std.iter.zip<i32, i32>(a, b)
       snippet.show("map lazy", {
           self: Iterator<[i32, i32]> = lazy_map
           f: fn([i32, i32]) -> i32 = snippet.product
@@ -104,7 +104,7 @@
           } :i64)
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
-      lazy_filter: $genstate_zip<[i32, i32]> = std.iter.zip<i32, i32>(a, b)
+      lazy_filter: Iterator<[i32, i32]> = std.iter.zip<i32, i32>(a, b)
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(39))
           __off_7: i64 = 0

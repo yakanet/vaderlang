@@ -36,8 +36,8 @@
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(T) -> void
   expr 33:13    StringLitExpr  :: string
-  expr 33:28    CallExpr       :: $genstate_filter<Hour>
   expr 33:28    CallExpr       :: Hour
+  expr 33:28    CallExpr       :: Iterator<Hour>
   expr 33:28    FieldExpr      :: fn() -> Hour
   expr 33:28    FieldExpr      :: fn(fn(Hour) -> bool) -> Iterator<Hour>
   expr 33:28    IdentExpr      :: Hour[]

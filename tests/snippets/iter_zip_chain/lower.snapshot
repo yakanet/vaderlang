@@ -105,7 +105,7 @@
               __fuse_i_24 = __fuse_i_24 +% i64(1)
           }
       }
-      bursts: $genstate_flat_map<i32> = std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2, 3] :i32[]), __lambda_snippet_0)
+      bursts: Iterator<i32> = std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2, 3] :i32[]), __lambda_snippet_0)
       {
           __iter_25: Iterator<i32> = bursts
           for {

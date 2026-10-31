@@ -48,7 +48,7 @@
           }
           if __coalesce_0 is null { -1 } else { i32(__coalesce_0) } :i32
       }
-      it: $genstate_flat_map<i32> = std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2] :i32[]), snippet.spread)
+      it: Iterator<i32> = std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2] :i32[]), snippet.spread)
       lazy: i32 = {
           __coalesce_3: i32 | null = std.iter.find<i32>(it, snippet.over_ten)
           if __coalesce_3 is null { -1 } else { i32(__coalesce_3) } :i32
@@ -103,7 +103,7 @@
           }
           if __coalesce_0 is null { -1 } else { i32(__coalesce_0) } :i32
       }
-      it: $genstate_chain<i32> = std.iter.chain<i32>(std.core.i32[].into([1, 2] :i32[]), std.core.i32[].into([3, 4] :i32[]))
+      it: Iterator<i32> = std.iter.chain<i32>(std.core.i32[].into([1, 2] :i32[]), std.core.i32[].into([3, 4] :i32[]))
       lazy: i32 = {
           __coalesce_4: i32 | null = std.iter.find<i32>(it, snippet.above_one)
           if __coalesce_4 is null { -1 } else { i32(__coalesce_4) } :i32
@@ -149,7 +149,7 @@
           }
       }
       lazy: i32 = 0
-      it: $genstate_flat_map<i32> = std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2] :i32[]), snippet.spread)
+      it: Iterator<i32> = std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2] :i32[]), snippet.spread)
       {
           __iter_3: Iterator<i32> = it
           for {
@@ -216,7 +216,7 @@
       }
       fused: i32 = @cell(calls)
       @cell(calls) = 0
-      it: $genstate_take<i32> = std.iter.take<i32>(std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2, 3] :i32[]), counted), i64(1))
+      it: Iterator<i32> = std.iter.take<i32>(std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2, 3] :i32[]), counted), i64(1))
       {
           __iter_4: Iterator<i32> = it
           for {
@@ -267,7 +267,7 @@
           }
       }
       lazy: i32 = 0
-      it: $genstate_pairs<i32> = snippet.pairs([1, 2] :i32[], [3, 4] :i32[])
+      it: Iterator<i32> = snippet.pairs([1, 2] :i32[], [3, 4] :i32[])
       {
           __iter_0: Iterator<i32> = it
           for {
@@ -326,7 +326,7 @@
           }
       }
       lazy: string = ""
-      it: $genstate_loop_then_tail<i32> = snippet.loop_then_tail()
+      it: Iterator<i32> = snippet.loop_then_tail()
       {
           __iter_2: Iterator<i32> = it
           for {
@@ -414,7 +414,7 @@
           }
       }
       std.io.println<string>("generator of generator, lazy:")
-      it: $genstate_outer_counts<i32> = snippet.outer_counts()
+      it: Iterator<i32> = snippet.outer_counts()
       {
           __iter_2: Iterator<i32> = it
           for {
@@ -473,7 +473,7 @@
           }
       }
       lazy: i32 = 0
-      it: $genstate_chain<i32> = std.iter.chain<i32>(std.core.i32[].into([1, 2] :i32[]), std.core.i32[].into([3, 4] :i32[]))
+      it: Iterator<i32> = std.iter.chain<i32>(std.core.i32[].into([1, 2] :i32[]), std.core.i32[].into([3, 4] :i32[]))
       {
           __iter_6: Iterator<i32> = it
           for {
@@ -552,7 +552,7 @@
           }
       }
       lazy: i32 = 0
-      it: $genstate_chain<i32> = std.iter.chain<i32>(std.core.i32[].into([1, 2] :i32[]), std.core.i32[].into([3, 4] :i32[]))
+      it: Iterator<i32> = std.iter.chain<i32>(std.core.i32[].into([1, 2] :i32[]), std.core.i32[].into([3, 4] :i32[]))
       {
           __iter_9: Iterator<i32> = it
           x: for {
@@ -649,7 +649,7 @@
           }
       }
       lazy: string = ""
-      outer: $genstate_flat_map<i32> = std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2, 3] :i32[]), snippet.spread)
+      outer: Iterator<i32> = std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 2, 3] :i32[]), snippet.spread)
       {
           __iter_8: Iterator<i32> = outer
           a: for {
@@ -658,7 +658,7 @@
                   break
               } else {
                   a: i32 = i32(__step_9)
-                  inner: $genstate_take<i32> = std.iter.take<i32>(std.core.i32[].into([7, 8, 9] :i32[]), i64(2))
+                  inner: Iterator<i32> = std.iter.take<i32>(std.core.i32[].into([7, 8, 9] :i32[]), i64(2))
                   {
                       __iter_10: Iterator<i32> = inner
                       for {
@@ -734,7 +734,7 @@
           }
       }
       lazy: i32 = 0
-      it: $genstate_pairs<i32> = snippet.pairs([1, 2] :i32[], [3, 4] :i32[])
+      it: Iterator<i32> = snippet.pairs([1, 2] :i32[], [3, 4] :i32[])
       {
           __iter_3: Iterator<i32> = it
           v: for {

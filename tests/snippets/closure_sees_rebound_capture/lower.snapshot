@@ -42,7 +42,7 @@
           __off_6 = std.core.write_int(__buf_5, __off_6, __lambda_snippet_6(21))
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
-      it: $genstate_stepped<i32> = snippet.stepped(1)
+      it: Iterator<i32> = snippet.stepped(1)
       {
           __iter_7: Iterator<i32> = it
           for {

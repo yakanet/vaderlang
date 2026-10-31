@@ -11,7 +11,7 @@
       }
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      it: $genstate_gen<i32> = snippet.gen(1)
+      it: Iterator<i32> = snippet.gen(1)
       total: i32 = 0
       {
           __iter_0: Iterator<i32> = it

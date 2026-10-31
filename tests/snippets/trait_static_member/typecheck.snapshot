@@ -77,7 +77,7 @@
   expr 79:13    IdentExpr      :: type
   expr 79:5     CallExpr       :: void
   expr 79:5     IdentExpr      :: fn(T) -> void
-  expr 81:14    CallExpr       :: $genstate_map<i64>
+  expr 81:14    CallExpr       :: Iterator<i64>
   expr 81:14    CallExpr       :: i64
   expr 81:14    FieldExpr      :: fn() -> i64
   expr 81:14    FieldExpr      :: fn(fn(i32) -> i64) -> Iterator<i64>

@@ -105,7 +105,7 @@
   expr 71:26    IdentExpr      :: fn(Label | null) -> Label
   expr 71:5     CallExpr       :: void
   expr 71:5     IdentExpr      :: fn(T) -> void
-  expr 72:14    CallExpr       :: $genstate_labels<Label>
+  expr 72:14    CallExpr       :: Iterator<Label>
   expr 72:14    IdentExpr      :: fn() -> Iterator<Label>
   expr 73:17    StringLitExpr  :: string
   expr 73:27    FieldExpr      :: string

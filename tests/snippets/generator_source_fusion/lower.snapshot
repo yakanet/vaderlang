@@ -306,7 +306,7 @@
   __lambda_snippet_1 :: fn(x: i32) -> bool {
       x > 30
   }
-  __asyncstate_snippet_2 :: struct { s0: $genstate_pairs_until<i32>, s1: $genstate_squares<i32>, s2: i32 | null, s3: i32, s4: fn(i32) -> bool, s5: i32 | null, s6: i32, s7: bool, s8: i32, s9: i32, s10: i32, s11: i32, s12: fn(i32) -> i32, s13: i32, s14: i32, s15: i32, s16: i32, s17: i32[], s18: $genstate_window<i32[]>, s19: i32, s20: i32, awaited: Async<Any>, state: i32 }
+  __asyncstate_snippet_2 :: struct { s0: Iterator<i32>, s1: Iterator<i32>, s2: i32 | null, s3: i32, s4: fn(i32) -> bool, s5: i32 | null, s6: i32, s7: bool, s8: i32, s9: i32, s10: i32, s11: i32, s12: fn(i32) -> i32, s13: i32, s14: i32, s15: i32, s16: i32, s17: i32[], s18: Iterator<i32[]>, s19: i32, s20: i32, awaited: Async<Any>, state: i32 }
   snippet$__asyncstate_snippet_2$Async$resume :: fn(self: __asyncstate_snippet_2) -> i32 | Suspended {
       dispatch$: for {
           if __self_21.state == 0 {

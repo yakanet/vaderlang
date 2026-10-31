@@ -3,7 +3,7 @@
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
       lazy: string = ""
-      outer: $genstate_each_then<i32> = snippet.each_then<i32>([1, 2] :i32[], 9)
+      outer: Iterator<i32> = snippet.each_then<i32>([1, 2] :i32[], 9)
       {
           __iter_0: Iterator<i32> = outer
           for {
@@ -12,7 +12,7 @@
                   break
               } else {
                   a: i32 = i32(__step_1)
-                  inner: $genstate_each_then<string> = snippet.each_then<string>(["p"] :string[], "zz")
+                  inner: Iterator<string> = snippet.each_then<string>(["p"] :string[], "zz")
                   {
                       __iter_2: Iterator<string> = inner
                       for {
