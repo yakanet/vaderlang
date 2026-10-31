@@ -51,25 +51,23 @@ export build_core_seed :: fn(project: LoadedProject) -> MutableMap<string, Symbo
     return out
 }
 
-/// Locate `std/core` in the loaded project. Conservative ends-with match
-/// so both single-file (`std/core.vader`) and folder-module
-/// (`std/core/`) layouts resolve.
-export find_core_module_id :: fn(project: LoadedProject) -> string | null {
-    for [id, _] in project.modules {
-        if id.ends_with("std/core.vader") || id.ends_with("std/core") {
-            return id
-        }
-    }
-    return null
-}
+/// The loaded `std/core` module's id, found by its declared name, as the loader
+/// resolves it, never by its folder: a program stored under `mystd/core/` is not
+/// the prelude.
+export find_core_module_id :: fn(project: LoadedProject) -> string | null =
+    find_module_id(project, "std/core")
 
 /// The loaded `std/async` module's id, or null when the program never imports
 /// it. Used to resolve `run_async_main` for the implicit async-`main` driver:
 /// present exactly when the program pulls in `std/async` (which it must to
 /// `sleep`), so a `main` that suspends always finds it.
-export find_async_module_id :: fn(project: LoadedProject) -> string | null {
-    for [id, _] in project.modules {
-        if id.ends_with("std/async.vader") || id.ends_with("std/async") {
+export find_async_module_id :: fn(project: LoadedProject) -> string | null =
+    find_module_id(project, "std/async")
+
+// The id of the loaded module declared as `name`.
+find_module_id :: fn(project: LoadedProject, name: string) -> string | null {
+    for [id, loaded] in project.modules {
+        if loaded.module.module_name == name {
             return id
         }
     }
@@ -107,8 +105,11 @@ export seed_wildcard_exports :: fn(
 /// and `BAR` const land in scope unqualified, not just its functions. The other
 /// kinds (import bindings, params, locals, impls, builtins) are never a module's
 /// re-exportable surface.
-export wildcard_exposable :: fn(k: SymbolKind) -> bool = k == .Fn || k == .Struct
-    || k == .Enum || k == .Trait || k == .TypeAlias
+export wildcard_exposable :: fn(k: SymbolKind) -> bool = k == .Fn
+    || k == .Struct
+    || k == .Enum
+    || k == .Trait
+    || k == .TypeAlias
     || k == .Const
 
 /// True when a wildcard import of `sym`'s module brings `sym` into scope : a
@@ -207,4 +208,25 @@ export module_index_by_name :: fn(project: LoadedProject) -> MutableMap<string, 
     out :: MutableMap<string, LoadedModule> {}
     for [_, m] in project.modules { out[m.module.module_name] = m }
     return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/env"
+import "std/io"
+import "std/testing"
+
+@test
+test_a_project_under_a_std_core_folder_is_not_the_prelude :: fn() -> void {
+    dir :: join_path(temp_dir(), "vader_core_by_name_probe/mystd/core")
+    create_dir(dir)
+    entry :: join_path(dir, "_main.vader")
+    write_file_string(entry, "module \"repro\"\n\nmain :: fn() -> i32 = 0\n")
+    project :: load_project(entry, [], null)
+    core :: project.modules[find_core_module_id(project) ?? ""]
+    if core == null {
+        fail("the prelude is loaded")
+        return
+    }
+    assert_eq(core.module.module_name, "std/core")
 }
