@@ -225,10 +225,9 @@ LowerProjectCtx :: struct {
     /// bump `__lambda_N` / `__lambda_env_N` naming.
     next_mono_entry_id:  i32
 
-    /// Generic-fn instances observed during call lowering. Keys are
-    /// `"<fn_symbol.id>::<args_key>"` ; values carry the (fn_decl,
-    /// args, mangled_name) tuple. Materialised at the end of
-    /// `lower_project` as one `LoweredFnDecl` per instance.
+    /// Generic-fn instances observed during call lowering, by their `key` ;
+    /// values carry the (fn_decl, args, mangled_name) tuple. Materialised at
+    /// the end of `lower_project` as one `LoweredFnDecl` per instance.
     fn_instances:        MutableMap<string, GenericFnInstance>
     /// The instances of `fn_instances`, in registration order, for
     /// `drain_generic_fn_instances` to build.
@@ -345,17 +344,12 @@ LowerProjectCtx :: struct {
 
     /// Resumable state for the generic-fn-instance materialiser, split into a
     /// build phase (`drain_generic_fn_instances`) and a one-shot flush
-    /// (`flush_generic_fn_instances`). The `processed` dedup persists so the
-    /// build phase can run repeatedly inside `lower_project`'s generic↔stdlib
-    /// joint fixpoint:
-    /// draining instances that later harvest rounds register (e.g. `len` pulled
-    /// in by the harvested `std/json::write_object` body) without re-processing
-    /// earlier ones. `generic_collected` accumulates every built instance across
-    /// rounds ; the flush sorts + erasure-dedups + pushes it ONCE after the
-    /// fixpoint converges, so emission order is a single deterministic sort.
+    /// (`flush_generic_fn_instances`). `generic_collected` accumulates every
+    /// built instance across the rounds of `lower_project`'s generic↔stdlib
+    /// joint fixpoint ; the flush sorts + erasure-dedups + pushes it ONCE after
+    /// the fixpoint converges, so emission order is a single deterministic sort.
     @internal
     generic_collected:   PendingFnInstance[]
-    generic_processed:   MutableSet<string>
 
     /// The impl members with type parameters of their own, at the types a call
     /// gives them, queued by the call and materialised in the same fixpoint as
@@ -389,6 +383,9 @@ GenericFnInstance :: struct {
     type_args:    Type[]
     mangled:      string
     owner_module: string
+    /// `<fn_symbol.id>::<mangle suffix>`: what tells two instances apart, in
+    /// `fn_instances` and in the order the flush emits them.
+    key:          string
 }
 
 /// Build a `LowerProjectCtx` bound to the given `evaluated` view, with
@@ -422,7 +419,6 @@ new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, 
         .array_member_uses = MutableMap<string, ArrayMemberUse> {},
         .seen_generic_impl_recv = MutableSet<string> {},
         .generic_collected   = [],
-        .generic_processed   = MutableSet<string> {},
         .synth_decls         = [],
         .concat_fn_syms      = MutableMap<i32, Symbol> {},
         .entry_decls         = [],

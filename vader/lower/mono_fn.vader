@@ -7,7 +7,6 @@ import "std/collections"
 import "std/iter"
 import "std/sort"
 import "std/string"
-import "std/string_builder"
 import "vader/core/mono"
 import "vader/lower/ir"
 
@@ -33,8 +32,8 @@ drain_generic_fn_instances :: fn(
     typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     // Transitive monomorphisation : lowering an instance body can register
-    // *new* instances (`outer<T>` calling `inner<T>`) on the queue it drains.
-    // `generic_processed` dedups duplicate `(symbol, args)` discoveries.
+    // *new* instances (`outer<T>` calling `inner<T>`) on the queue it drains,
+    // each queued once (`fn_instances`).
     // Joint fixpoint over fn instances, erased generic-struct impl receivers
     // and impl member instances: lowering any of them can queue more of the
     // others (`MutableMap.contains` → `contains_key`), so the three drain
@@ -42,9 +41,7 @@ drain_generic_fn_instances :: fn(
     for pending_instances(project_ctx) {
         for {
             inst :: project_ctx.fn_instance_queue.take() ?? break
-            key :: fn_instance_key(inst)
-            if !project_ctx.generic_processed.add(key) { continue }
-            built :: build_fn_instance_decl(inst, key, typed, project_ctx, diags)
+            built :: build_fn_instance_decl(inst, typed, project_ctx, diags)
             match built {
                 is null -> {}
                 is PendingFnInstance -> { project_ctx.generic_collected.push(built) }
@@ -71,12 +68,12 @@ pending_instances :: fn(project_ctx: LowerProjectCtx) -> bool =
         || project_ctx.member_instance_queue.has_pending()
 
 /// Flush phase of generic-fn-instance materialisation. Sorts every instance
-/// `drain_generic_fn_instances` collected by `<fn_symbol.id>::<args_key>`
-/// (the `symbol.id` prefix groups a fn's overloads, args sort alphabetically
-/// within a group), erasure-dedups, and pushes to modules. Runs ONCE after the
-/// joint fixpoint converges so emission order is a single deterministic sort
-/// over the whole set: `inner` (lower symbol id) emits before `outer`
-/// regardless of discovery order.
+/// `drain_generic_fn_instances` collected by its key, `<fn_symbol.id>::<suffix>`
+/// (the `symbol.id` prefix groups a fn's overloads, mangle suffixes sort
+/// alphabetically within a group), erasure-dedups, and pushes to modules. Runs
+/// ONCE after the joint fixpoint converges so emission order is a single
+/// deterministic sort over the whole set: `inner` (lower symbol id) emits before
+/// `outer` regardless of discovery order.
 flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredProject) -> void {
     // Erasure-dedupe : every instance of a NON-trait-dispatching free
     // generic fn erases to the same Any-typed body, so collapse a fn's
@@ -92,10 +89,10 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredP
     // concrete key, and their call sites target the per-key mangle.
     // Collapsing them to the first-sorted `__i32__` instance routes every
     // non-i32-keyed map's `at`/`set_at` into `i32$Hash$hash` → a string key
-    // hits `i32.to_i64` and traps. They are already deduped by full `key`
-    // in the build loop above (`generic_processed[key]`) and carry a NULL
-    // `origin.symbol` (set in `build_fn_instance_decl`), so the body-emit
-    // pass indexes them by mangle: exactly like materialised impl members.
+    // hits `i32.to_i64` and traps. They are registered once per `key`
+    // (`fn_instances`) and carry a NULL `origin.symbol` (set in
+    // `build_fn_instance_decl`), so the body-emit pass indexes them by mangle:
+    // exactly like materialised impl members.
     sorted_pending :: sort(project_ctx.generic_collected, pending_fn_instance_less)
     emitted_fns :: MutableSet<i32> {}
     for p in sorted_pending {
@@ -111,8 +108,8 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredP
     }
 }
 
-// One materialised fn instance awaiting emission, carrying its routing
-// key so the final push order matches the `<symbol.id>::<args>` sort,
+// One materialised fn instance awaiting emission, carrying its instance
+// key so the final push order matches the `<symbol.id>::<suffix>` sort,
 // plus the source fn's symbol id for erasure-dedupe grouping.
 PendingFnInstance :: struct {
     module_id:    string
@@ -134,16 +131,6 @@ PendingFnInstance :: struct {
 }
 
 pending_fn_instance_less :: fn(a: PendingFnInstance, b: PendingFnInstance) = compare_ascending(a.key, b.key)
-
-fn_instance_key :: fn(inst: GenericFnInstance) -> string {
-    sb :: StringBuilder {}
-    sb.append("${inst.fn_symbol.id}::")
-    for a in inst.type_args {
-        sb.append(":")
-        sb.append(qualified_display_type(a))
-    }
-    return sb.to_string()
-}
 
 // Lower a `generator` fn / impl member to its state-machine body, reached through
 // `lowered_fn_of`. Lowers the body in generator mode (yields → `LoweredYield`
@@ -182,8 +169,7 @@ lower_async_body :: fn(
 // those up. Returns null when the owner module / source decl is
 // missing.
 build_fn_instance_decl :: fn(
-    inst: GenericFnInstance, key: string, typed: TypedProject, project_ctx: LowerProjectCtx,
-    diags: Diagnostic[],
+    inst: GenericFnInstance, typed: TypedProject, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> PendingFnInstance | null {
     // Bracket the synth_decls this instance's body lowering spawns (lambdas /
     // defers) so the push loop can drain exactly this window, see
@@ -248,7 +234,7 @@ build_fn_instance_decl :: fn(
     decl :: lowered_fn_of(fn_decl, owner_typed, project_ctx, entry, subst, params, return_type)
     return PendingFnInstance {
         .module_id    = owner_module_id,
-        .key          = key,
+        .key          = inst.key,
         .fn_symbol_id = inst.fn_symbol.id,
         // `dispatches` gates "kept concrete per instance": the `Mono` flavor (a
         // trait dispatch, a bare type-param array return, …) OR the `Mixed` one.

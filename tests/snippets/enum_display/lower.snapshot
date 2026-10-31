@@ -66,14 +66,14 @@
           } :string
       } :string
   }
+  snippet.show<Weight> :: fn(value: Weight) -> string {  // snippet$show__snippet$Weight
+      concat_3("<", snippet.Weight.to_string(value), ">")
+  }
   snippet.show<Direction> :: fn(value: Direction) -> string {  // snippet$show__snippet_Direction
       concat_3("<", snippet.Direction.to_string(value), ">")
   }
   snippet.show<Status> :: fn(value: Status) -> string {  // snippet$show__snippet_Status
       concat_3("<", snippet.Status.to_string(value), ">")
-  }
-  snippet.show<Weight> :: fn(value: Weight) -> string {  // snippet$show__snippet$Weight
-      concat_3("<", snippet.Weight.to_string(value), ">")
   }
   snippet.show<u8> :: fn(value: u8) -> string {  // snippet$show__u8
       {

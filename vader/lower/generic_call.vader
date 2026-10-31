@@ -142,6 +142,7 @@ register_fn_instance_mangle :: fn(
                 .type_args    = concrete_args,
                 .mangled      = fresh,
                 .owner_module = owner_module,
+                .key          = inst_key,
             }
             ctx.project.fn_instances[inst_key] = new_inst
             ctx.project.fn_instance_queue.push(new_inst)

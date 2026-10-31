@@ -851,9 +851,9 @@ static vader_box_t snippet$maybe_byte(bool l0);
 static int32_t snippet$main(void);
 static vader_string_t snippet$Direction$std_core$Display$to_string(uint8_t l0);
 static vader_string_t snippet$Status$std_core$Display$to_string(uint8_t l0);
+static vader_string_t snippet$show__snippet$Weight(uint8_t l0);
 static vader_string_t snippet$show__snippet_Direction(uint8_t l0);
 static vader_string_t snippet$show__snippet_Status(uint8_t l0);
-static vader_string_t snippet$show__snippet$Weight(uint8_t l0);
 static vader_string_t snippet$show__u8(uint8_t l0);
 static vader_string_t snippet$pair__snippet_Direction(uint8_t l0, uint8_t l1);
 static vader_string_t snippet$listed__snippet_Direction(void* l0);
@@ -1124,6 +1124,17 @@ static vader_string_t snippet$Status$std_core$Display$to_string(uint8_t l0) {
     return 10u;
 }
 
+static vader_string_t snippet$show__snippet$Weight(uint8_t l0) {
+    vader_string_t l1 = 0;
+    vader_string_t t0 = 0;
+    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
+    vader_gc_top = &gc_frame;
+    l1 = snippet$Weight$std_core$Display$to_string(l0);
+    t0 = concat_3(11u, l1, 12u);
+    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
 static vader_string_t snippet$show__snippet_Direction(uint8_t l0) {
     vader_string_t l1 = 0;
     vader_string_t t0 = 0;
@@ -1142,17 +1153,6 @@ static vader_string_t snippet$show__snippet_Status(uint8_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l1 = snippet$Status$std_core$Display$to_string(l0);
-    t0 = concat_3(11u, l1, 12u);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static vader_string_t snippet$show__snippet$Weight(uint8_t l0) {
-    vader_string_t l1 = 0;
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
-    l1 = snippet$Weight$std_core$Display$to_string(l0);
     t0 = concat_3(11u, l1, 12u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

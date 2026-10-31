@@ -206,10 +206,10 @@ fn 3 snippet$main () -> i32
   call 15   ; std_core$finish_buffer
   call 68   ; std_io$println__string
   local.get 0   ; d
-  call 6   ; snippet$show__snippet_Direction
+  call 7   ; snippet$show__snippet_Direction
   local.set 1   ; $call_2
   i32.const 0
-  call 7   ; snippet$show__snippet_Status
+  call 8   ; snippet$show__snippet_Status
   local.set 2   ; $call_5
   i32.const 0
   i32.const 1
@@ -228,7 +228,7 @@ fn 3 snippet$main () -> i32
   call 11   ; snippet$listed__snippet_Direction
   call 68   ; std_io$println__string
   i32.const 3
-  call 8   ; snippet$show__snippet$Weight
+  call 6   ; snippet$show__snippet$Weight
   local.set 1   ; $call_2
   i32.const 3
   call 9   ; snippet$show__u8
@@ -305,7 +305,19 @@ fn 5 snippet$Status$std_core$Display$to_string (u8) -> string
   return.lit string.const 9   ; "Missing"
 end
 
-fn 6 snippet$show__snippet_Direction (u8) -> string
+fn 6 snippet$show__snippet$Weight (u8) -> string
+  local $call_2 string
+  local.get 0   ; arg 0
+  call 0   ; snippet$Weight$std_core$Display$to_string
+  local.set 1   ; $call_2
+  string.const 10   ; "<"
+  local.get 1   ; $call_2
+  string.const 11   ; ">"
+  call 14   ; concat_3
+  return
+end
+
+fn 7 snippet$show__snippet_Direction (u8) -> string
   local $call_2 string
   local.get 0   ; arg 0
   call 4   ; snippet$Direction$std_core$Display$to_string
@@ -317,22 +329,10 @@ fn 6 snippet$show__snippet_Direction (u8) -> string
   return
 end
 
-fn 7 snippet$show__snippet_Status (u8) -> string
+fn 8 snippet$show__snippet_Status (u8) -> string
   local $call_2 string
   local.get 0   ; arg 0
   call 5   ; snippet$Status$std_core$Display$to_string
-  local.set 1   ; $call_2
-  string.const 10   ; "<"
-  local.get 1   ; $call_2
-  string.const 11   ; ">"
-  call 14   ; concat_3
-  return
-end
-
-fn 8 snippet$show__snippet$Weight (u8) -> string
-  local $call_2 string
-  local.get 0   ; arg 0
-  call 0   ; snippet$Weight$std_core$Display$to_string
   local.set 1   ; $call_2
   string.const 10   ; "<"
   local.get 1   ; $call_2
