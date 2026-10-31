@@ -258,7 +258,9 @@ static size_t        g_total_copied = 0;
 /* Allocation volume: every vader_gc_alloc request, surviving or not. Distinct
  * from g_total_copied (which counts only bytes that SURVIVED a collection):
  * short-lived garbage is invisible to total_copied but shows up here. The
- * per-pass profiler uses this to attribute raw allocation pressure. */
+ * per-pass profiler uses this to attribute raw allocation pressure. Only the
+ * slow path counts, so the totals are complete only while the profiler routes
+ * every allocation there. */
 static size_t        g_total_alloc_bytes = 0;
 static size_t        g_total_alloc_count = 0;
 
@@ -298,6 +300,25 @@ static int g_gc_stress = 0;
  * paths run at every safepoint: turning intermittent old-gen rooting / sweep
  * bugs into deterministic failures. Even slower than STRESS; debug-only. */
 static int g_gc_stress_major = 0;
+
+/* Per-pass profiler: set via `VADER_PROFILE=1`, read lazily by
+ * `vader_prof_enabled`. -1 unknown, 0 off, 1 on. */
+static int g_prof_enabled = -1;
+
+/* The bound the inline bump of `vader_gc_alloc` tests against: the young
+ * from-space end, or NULL to send every allocation to the slow path: before
+ * init, and under the stress modes and the profiler, which act on or count
+ * every allocation. Refreshed whenever `g_young.from` moves and when the
+ * profiler turns on; the stress flags are set before the first carve. */
+static char* g_alloc_limit = NULL;
+
+static void vader_alloc_limit_refresh(void) {
+    if (g_gc_stress || g_gc_stress_major || g_prof_enabled > 0) {
+        g_alloc_limit = NULL;
+    } else {
+        g_alloc_limit = g_young.from.end;
+    }
+}
 
 /* Box-tag corruption check: set via `VADER_GC_CHECK_BOX=1`. When enabled,
  * `vader_gc_scan_box` traps the first time it meets a box whose `tag` is
@@ -1445,6 +1466,7 @@ static void vader_young_carve(char* block, size_t half, char* from_cur) {
     g_young.to.base    = block + half;
     g_young.to.cur     = g_young.to.base;
     g_young.to.end     = g_young.to.base + half;
+    vader_alloc_limit_refresh();
 }
 
 void vader_gc_init(void) {
@@ -1595,6 +1617,7 @@ void vader_gc_shutdown(void) {
     g_young.block = NULL;
     g_young.from.base = g_young.from.cur = g_young.from.end = NULL;
     g_young.to.base   = g_young.to.cur   = g_young.to.end   = NULL;
+    vader_alloc_limit_refresh();
     g_old_block = g_old_bump = g_old_block_end = NULL;
     g_old_capacity = g_old_live_bytes = g_old_live_after_major = 0;
     g_old_regions = NULL;
@@ -1799,13 +1822,15 @@ static void vader_asite_tick(int depth, void* ra) {
 #define VADER_ASITE_CAPTURE() ((void) 0)
 #endif
 
-void* vader_gc_alloc(size_t bytes) {
+/* Everything the fast path of `vader_gc_alloc` leaves out: init, counters,
+ * stress, collection and growth. Out of line so the fast path needs no stack
+ * frame. */
+static VADER_NOINLINE void* vader_gc_alloc_slow(size_t bytes) {
     if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
     /* Count raw requested bytes (same basis as g_total_copied) so the profiler
      * can report an alloc'd-vs-survived ratio. One increment per call. */
     g_total_alloc_bytes += bytes;
     g_total_alloc_count += 1;
-    VADER_ASITE_CAPTURE();
     size_t aligned = vader_gc_align(bytes);
     /* A single object bigger than a young semi-space can never fit, however
      * much we collect: grow young to hold it (relocating the live set into a
@@ -1859,6 +1884,18 @@ void* vader_gc_alloc(size_t bytes) {
         vader_old_maybe_major();
     }
     return vader_gc_alloc_young_unchecked(aligned);
+}
+
+/* The test is strict, so the uninitialised state (cursor and limit both NULL)
+ * fails it even for zero bytes. Kept out of line: link-time optimisation would
+ * otherwise copy it into every allocation site. */
+VADER_NOINLINE void* vader_gc_alloc(size_t bytes) {
+    VADER_ASITE_CAPTURE();
+    size_t aligned = vader_gc_align(bytes);
+    if (VADER_LIKELY((uintptr_t) g_young.from.cur + aligned < (uintptr_t) g_alloc_limit)) {
+        return vader_gc_alloc_young_unchecked(aligned);
+    }
+    return vader_gc_alloc_slow(bytes);
 }
 
 /* ---------- generational GC: copying young, mark-sweep old ---------- */
@@ -2322,6 +2359,7 @@ void vader_minor_collect(void) {
     } else {
         g_young.from.cur = g_young.from.base;
     }
+    vader_alloc_limit_refresh();
     if (VADER_UNLIKELY(g_gc_poison)) {
         memset(abandoned.base, VADER_GC_POISON_BYTE, (size_t)(abandoned.cur - abandoned.base));
     }
@@ -2584,7 +2622,6 @@ static const char* g_prof_names[VADER_PROF_MAX_PHASES] = {
     NULL, NULL, NULL, NULL,
 };
 
-static int       g_prof_enabled = -1;   /* -1 unknown, 0 off, 1 on */
 static int       g_prof_atexit_armed = 0;
 /* Accumulated per phase. */
 static int64_t   g_prof_wall_ns[VADER_PROF_MAX_PHASES];
@@ -2648,7 +2685,10 @@ static int64_t vader_prof_rss_now_bytes(void) {
 static int64_t vader_prof_bytes_used(void) { return (int64_t) vader_gc_get_stats().bytes_used; }
 
 static int32_t vader_prof_enabled(void) {
-    if (g_prof_enabled < 0) g_prof_enabled = vader_gc_env_bool("VADER_PROFILE");
+    if (g_prof_enabled < 0) {
+        g_prof_enabled = vader_gc_env_bool("VADER_PROFILE");
+        vader_alloc_limit_refresh();
+    }
     return (int32_t) g_prof_enabled;
 }
 

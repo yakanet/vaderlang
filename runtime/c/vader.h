@@ -1227,8 +1227,11 @@ typedef struct {
     size_t bytes_used;
     size_t total_collections; /* full + minor cycles run since process start */
     size_t total_copied;      /* cumulative bytes copied across all cycles */
-    size_t total_alloc_bytes; /* cumulative bytes requested via vader_gc_alloc */
-    size_t total_alloc_count; /* cumulative number of vader_gc_alloc calls */
+    /* Cumulative bytes requested via vader_gc_alloc, and the number of calls.
+     * Counted on the slow path only: complete while VADER_PROFILE is on, which
+     * routes every allocation there, partial otherwise. */
+    size_t total_alloc_bytes;
+    size_t total_alloc_count;
 } vader_gc_stats_t;
 vader_gc_stats_t vader_gc_get_stats(void);
 
