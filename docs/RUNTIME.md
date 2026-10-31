@@ -398,7 +398,7 @@ in every build ([ADR 0002](adr/0002-gc-diagnostics-are-runtime-flags.md)):
 | Variable | Effect |
 |---|---|
 | `VADER_GC_RAM_PERCENT` | the share of physical memory the old reservation is computed from |
-| `VADER_GC_OLD_MAX` | the old reservation's size in bytes, in place of the share |
+| `VADER_GC_OLD_MAX` | the old reservation's size, in place of the share |
 | `VADER_GC_YOUNG_BYTES`, `VADER_GC_YOUNG_CAP`, `VADER_GC_YOUNG_MAX`, `VADER_GC_YOUNG_RATIO` | a semi-space's initial size, adaptive-growth ceiling and hard limit, and the ratio that growth targets |
 | `VADER_GC_STRESS` | a minor at every allocation |
 | `VADER_GC_STRESS_MAJOR` | a major at every allocation |
@@ -408,6 +408,10 @@ in every build ([ADR 0002](adr/0002-gc-diagnostics-are-runtime-flags.md)):
 | `VADER_GC_NO_CSTACK_SCAN` | skips the conservative scan for objects (not atoms), to find what only it keeps alive |
 | `VADER_GC_HISTOGRAM` | the old live set after a major, at each new high |
 | `VADER_GC_PROFILE`, `VADER_ALLOC_BY_TYPE`, `VADER_ATOM_PROFILE` | reports at exit: the live set by type, allocations by type, the atom table |
+
+A size is a byte count, or a count followed by `k`, `m` or `g` (KiB, MiB, GiB).
+A setting the collector cannot read whole stops the program at start, with a
+message naming the variable and the form it expects.
 
 On the VM, `std/runtime` reports zero bytes: the program's values belong to the
 host and its collector.

@@ -5,8 +5,8 @@
 // the toolchain is sound, the other that the project is) and because a scaffold
 // is only worth anything if what it writes RUNS. That is the first test below,
 // and it is the reason this file spawns rather than unit-tests: the per-file
-// pieces (the templates, the target rules, the environment parsing) are covered
-// by colocated `@test`s in `vader/tools/cli/cmd_new.vader` and `cmd_doctor.vader`.
+// pieces (the templates, the target rules) are covered by colocated `@test`s in
+// `vader/tools/cli/cmd_new.vader` and `cmd_doctor.vader`.
 // What only a spawn can show is the three files reaching the compiler.
 //
 // NOT in `cli_unknown_flag.test.ts`: that file pins the ARGUMENT BOUNDARY, one
@@ -130,18 +130,25 @@ test("a failed check exits 1 and says which one", async () => {
   expect(cc.detail).toContain("definitely-not-a-compiler");
 }, MEDIUM_BUILD);
 
-test("a GC size written with a suffix is reported as the bytes it really means", async () => {
-  // `vader_gc_env_bytes` is a plain `strtoull`: it keeps the digits and drops the
-  // rest, so `512M` is a 512-BYTE arena and nothing anywhere says so. This is the
-  // check the command earns its keep on, so it is pinned end to end.
-  const { exit, stdout } = await spawnCapture(["doctor", "--json"], {
-    env: { VADER_GC_OLD_MAX: "512M" },
+test("a GC size written with a suffix sizes the heap in MiB, and doctor reports it", async () => {
+  // The GC profile at exit prints the old reservation, which `VADER_GC_OLD_MAX`
+  // sets directly: `512M` must give 512 MB, not 512 bytes.
+  const { stdout, stderr } = await spawnCapture(["doctor", "--json"], {
+    env: { VADER_GC_OLD_MAX: "512M", VADER_GC_PROFILE: "1" },
   });
-  expect(exit).toBe(1);
+  expect(stderr).toContain("reservation 512 MB");
   const report = JSON.parse(stdout);
   const knob = report.checks.find((c: { name: string }) => c.name === "vader_gc_old_max");
-  expect(knob.status).toBe("fail");
-  expect(knob.summary).toContain("512");
+  expect(knob.status).toBe("ok");
+  expect(knob.detail).toBe("VADER_GC_OLD_MAX=512M");
+}, MEDIUM_BUILD);
+
+test("a GC setting the runtime cannot read whole stops the program at start", async () => {
+  const { exit, stderr } = await spawnCapture(["--version"], {
+    env: { VADER_GC_OLD_MAX: "512X" },
+  });
+  expect(exit).not.toBe(0);
+  expect(stderr).toContain("VADER_GC_OLD_MAX=512X: expected a positive byte size");
 }, MEDIUM_BUILD);
 
 test("$VADER_HOME points a binary at a toolchain that is not beside it", async () => {

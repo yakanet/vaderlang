@@ -281,8 +281,9 @@ static size_t        g_young_ratio = 2;
 
 /* Ceiling on the adaptive young target. `young ∝ old` overshoots a roughly
  * workload-independent working-set cliff (~128-160 MB for the self-compile):
- * growing past it buys little and costs RSS. Cap the target here. 0 = uncapped.
- * Env-tunable via VADER_GC_YOUNG_CAP (a byte size); set once in `vader_gc_init`. */
+ * growing past it buys little and costs RSS. Cap the target here. 0 = uncapped,
+ * which only the compile-time default can say: VADER_GC_YOUNG_CAP takes a
+ * positive byte size. Set once in `vader_gc_init`. */
 static size_t        g_young_cap = 0;
 
 /* Stress mode: set via `VADER_GC_STRESS=1`. When enabled, every
@@ -438,17 +439,79 @@ static int vader_in_old(const void* p) {
     return (const char*)p >= g_old_block && (const char*)p < g_old_bump;
 }
 
-/* Read a positive byte-count from `env_name`. Returns `fallback` when the
- * variable is unset, empty, non-numeric, or parses to zero. Lets users tune
- * the heap (e.g. `VADER_GC_OLD_MAX=536870912` for a 512 MB old cap) without
- * rebuilding the runtime. */
+/* Stop the program over a GC setting it cannot read whole: a heap sized from
+ * half a value would differ from what the user asked, with nothing to say so. */
+static VADER_NORETURN void vader_gc_env_refuse(const char* env_name, const char* raw,
+                                               const char* expected) {
+    char msg[512];
+    snprintf(msg, sizeof msg, "%s=%s: expected %s", env_name, raw, expected);
+    vader_trap(msg);
+}
+
+/* Read the decimal digits at the front of `raw` into `*out`. Returns the byte
+ * after them, or NULL when `raw` does not start with a digit or the count
+ * overflows: unlike a bare `strtoull`, no sign and no leading space. */
+static const char* vader_gc_read_digits(const char* raw, unsigned long long* out) {
+    if (!isdigit((unsigned char) raw[0])) return NULL;
+    errno = 0;
+    char* end = NULL;
+    *out = strtoull(raw, &end, 10);
+    if (errno == ERANGE) return NULL;
+    return end;
+}
+
+/* The power of two a size suffix stands for: 0 for none, 10 for `k`, 20 for
+ * `m`, 30 for `g`, either case; -1 for anything else. */
+static int vader_gc_size_shift(const char* suffix) {
+    if (suffix[0] == '\0') return 0;
+    if (suffix[1] != '\0') return -1;
+    switch (suffix[0]) {
+        case 'k': case 'K': return 10;
+        case 'm': case 'M': return 20;
+        case 'g': case 'G': return 30;
+        default:            return -1;
+    }
+}
+
+/* Read the byte size in `env_name`: digits, optionally followed by `k`, `m` or
+ * `g` for KiB, MiB, GiB. `fallback` when unset or empty; a trap for anything
+ * else that is not a positive size. */
 static size_t vader_gc_env_bytes(const char* env_name, size_t fallback) {
     const char* raw = getenv(env_name);
     if (raw == NULL || raw[0] == '\0') return fallback;
+    unsigned long long count = 0;
+    const char* suffix = vader_gc_read_digits(raw, &count);
+    int shift = -1;
+    if (suffix != NULL) shift = vader_gc_size_shift(suffix);
+    if (shift < 0 || count == 0 || count > (SIZE_MAX >> shift)) {
+        vader_gc_env_refuse(env_name, raw,
+            "a positive byte size: digits, optionally followed by k, m or g");
+    }
+    return (size_t) count << shift;
+}
+
+/* Read the whole number in `env_name`. `fallback` when unset or empty; a trap
+ * for anything else that is not digits alone. */
+static size_t vader_gc_env_count(const char* env_name, size_t fallback, const char* expected) {
+    const char* raw = getenv(env_name);
+    if (raw == NULL || raw[0] == '\0') return fallback;
+    unsigned long long count = 0;
+    const char* end = vader_gc_read_digits(raw, &count);
+    if (end == NULL || *end != '\0') vader_gc_env_refuse(env_name, raw, expected);
+    return (size_t) count;
+}
+
+/* Read the percentage in `env_name`, above 0 and at most 100. `fallback` when
+ * unset or empty; a trap for anything else. */
+static double vader_gc_env_percent(const char* env_name, double fallback) {
+    const char* raw = getenv(env_name);
+    if (raw == NULL || raw[0] == '\0') return fallback;
     char* end = NULL;
-    unsigned long long v = strtoull(raw, &end, 10);
-    if (end == raw || v == 0ull) return fallback;
-    return (size_t)v;
+    double v = strtod(raw, &end);
+    if (end == raw || *end != '\0' || !(v > 0.0 && v <= 100.0)) {
+        vader_gc_env_refuse(env_name, raw, "a percentage above 0 and at most 100");
+    }
+    return v;
 }
 
 /* Read a boolean toggle from `env_name`: true when set to a non-empty value
@@ -1522,13 +1585,8 @@ void vader_gc_init(void) {
      * per-minor cost cliff, not a memory limit). */
     size_t ram = vader_physical_ram_bytes();
     size_t old_max_default  = (size_t) VADER_GC_OLD_MAX;
+    double pct = vader_gc_env_percent("VADER_GC_RAM_PERCENT", (double) VADER_GC_RAM_PERCENT);
     if (ram > 0) {
-        double pct = (double) VADER_GC_RAM_PERCENT;
-        const char* pct_env = getenv("VADER_GC_RAM_PERCENT");
-        if (pct_env != NULL && pct_env[0] != '\0') {
-            double v = strtod(pct_env, NULL);
-            if (v > 0.0 && v <= 100.0) pct = v;
-        }
         /* budget = the committed ceiling the GC may reach. The old gen is a
          * single non-moving reservation (lazily committed: untouched pages cost
          * no RSS) and needs no to-space: reserve young's worst-
@@ -1544,15 +1602,13 @@ void vader_gc_init(void) {
     g_young_max_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_MAX", (size_t) VADER_GC_YOUNG_MAX);
 
     /* Adaptive young-sizing divisor (young_target = old_live / ratio). Default
-     * 2 (young ≈ half the old live set); 0 turns the heuristic off. A plain
-     * integer, not a byte size: read it directly rather than via env_bytes. */
-    {
-        const char* ratio_env = getenv("VADER_GC_YOUNG_RATIO");
-        if (ratio_env != NULL) g_young_ratio = (size_t) strtoul(ratio_env, NULL, 10);
-    }
-    /* Ceiling on the adaptive young target (byte size; 0 = uncapped). Default
-     * 192 MB, above the self-compile's young working set: growing young past it
-     * trades RSS for no speed. */
+     * 2 (young ≈ half the old live set); 0 turns the heuristic off. */
+    g_young_ratio = vader_gc_env_count("VADER_GC_YOUNG_RATIO", g_young_ratio,
+        "a whole number, 0 to turn adaptive young sizing off");
+
+    /* Ceiling on the adaptive young target (byte size). Default 192 MB, above
+     * the self-compile's young working set: growing young past it trades RSS
+     * for no speed. */
     g_young_cap = vader_gc_env_bytes("VADER_GC_YOUNG_CAP", VADER_GC_YOUNG_CAP_DEFAULT);
 
     /* Young: one malloc spanning both semi-spaces. */

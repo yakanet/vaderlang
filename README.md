@@ -190,7 +190,7 @@ Accepted by every action, after the action name. All three are **reserved**: par
 
 - `VADER_HOME`: directory holding the toolchain (`lib/`, `runtime/`, and `src/` in a bundle). Optional, and it outranks the two implicit probes: beside the binary, then under the working directory. Set it to run a binary that lives apart from the files it loads. A value that does not hold `lib/std/io/io.vader` is ignored rather than fatal, so a stale setting degrades to the ordinary search instead of breaking every build: `vader doctor` reports it.
 - `CC`: the C compiler `vader build` invokes when `--cc` is absent (default: `cc`, or `gcc` on Windows). It names one program, not a command line: `CC=clang` works, `CC="gcc -m32"` does not. The bootstrap scripts honour it too. `vader doctor` reports it when it is set.
-- `VADER_GC_*` tune the collector. They are read as plain byte counts: `VADER_GC_OLD_MAX=512M` means 512 **bytes**, not 512 MB. `vader doctor` reports the value each one actually resolves to.
+- `VADER_GC_*` tune the collector. A size is a byte count, or a count followed by `k`, `m` or `g` (KiB, MiB, GiB): `VADER_GC_OLD_MAX=512m`. A value the runtime cannot read whole stops every program at start with a message naming it. `vader doctor` lists the settings in force.
 
 ### `dump` stages
 

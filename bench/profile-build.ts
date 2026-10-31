@@ -150,7 +150,7 @@ function main(): void {
   console.log(`\n=== Vader self-compile profile ===`);
   console.log(`  binary : ${args.vader}`);
   console.log(`  input  : ${args.input}`);
-  console.log(`  GC     : ${process.env.VADER_GC_OLD_MAX ? `old cap=${(+process.env.VADER_GC_OLD_MAX / 1048576) | 0}MB (override)` : "RAM-proportional (auto)"}\n`);
+  console.log(`  GC     : ${process.env.VADER_GC_OLD_MAX ? `old cap=${process.env.VADER_GC_OLD_MAX} (override)` : "RAM-proportional (auto)"}\n`);
 
   // --- Stage 1: front-end → C, with the in-compiler per-pass profiler on. ----
   // `build --emit=c --out=-` routes through the fully-instrumented
