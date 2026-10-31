@@ -16,6 +16,7 @@ import "vader/front/typecheck"
 import "vader/support/diagnostics"
 import "vader/tools/lsp/protocol"
 import "std/io"
+import "std/iter"
 
 Fx :: import "vader/front/effects"
 Virt :: import "vader/front/virt"
@@ -434,34 +435,31 @@ forget_analyses :: fn(self: ServerState) -> void {
 
 /// `textDocument/didChange` handler. With full-document sync the params
 /// look like `{ textDocument: { uri, version }, contentChanges: [ { text } ] }`.
-/// We take the first contentChange's `text` as the new source.
+/// Each change carries the whole text and they apply in order: when a client
+/// batches several in one notification, the last one is the document.
 export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
     uri :: get_string(td, "uri")
     if uri.byte_len() == 0 { return }
     changes :: get_field(params, "contentChanges")
-    match changes {
-        is JsonArray -> {
-            if changes.items.len() > 0 {
-                first :: changes.items[0]
-                text :: get_string(first, "text")
-                self.docs[uri] = text
-                if is_virt_uri(uri) {
-                    track_virt_document(self, uri, text)
-                    return
-                }
-                self.indices[uri] = build_index(uri, text, self.position_encoding)
-                // The sites of a find-usages moved with the text.
-                self.usages = null
-                // Debounced (see vader/tools/lsp/main.vader). Keep the now-stale typed
-                // cache so requests during the edit burst don't each re-typecheck ;
-                // just mark diagnostics dirty. The single rebuild + publish fires
-                // at the burst settle point via `flush_dirty_diagnostics`.
-                self.dirty[uri] = true
-            }
-        }
-        _ -> {}
+    if changes !is JsonArray {
+        return
     }
+    latest :: changes.items.last() ?? return
+    text :: get_string(latest, "text")
+    self.docs[uri] = text
+    if is_virt_uri(uri) {
+        track_virt_document(self, uri, text)
+        return
+    }
+    self.indices[uri] = build_index(uri, text, self.position_encoding)
+    // The sites of a find-usages moved with the text.
+    self.usages = null
+    // Debounced (see vader/tools/lsp/main.vader). Keep the now-stale typed
+    // cache so requests during the edit burst don't each re-typecheck ;
+    // just mark diagnostics dirty. The single rebuild + publish fires
+    // at the burst settle point via `flush_dirty_diagnostics`.
+    self.dirty[uri] = true
 }
 
 /// `textDocument/didClose` handler. Drops the document and pushes an empty

@@ -1,8 +1,9 @@
 // tests/lsp_open_documents: the language server sees the documents an editor
 // holds open as it sees the disk. A document never saved belongs to the module
 // of its folder, a file with no `module` line is told so on itself, no request
-// answers with another file's data, and a file changed outside the editor
-// reaches the open documents once the client reports it.
+// answers with another file's data, a file changed outside the editor
+// reaches the open documents once the client reports it, and changes batched
+// in one notification leave the document at the last one.
 //
 // The session is driven one message at a time, since what the test sends next
 // depends on what the server has already answered.
@@ -180,5 +181,27 @@ test("a sibling written outside the editor reaches the open document once report
     params: { changes: [{ uri: pathToUri(join(dir, "a.vader")), type: 2 }] },
   });
   expect(errors(await session.diagnosticsOf(uri, reported))).toEqual([]);
+  await session.close();
+}, MEDIUM_BUILD);
+
+test("changes batched in one notification leave the document at the last one", async () => {
+  const dir = project({ "a.vader": SIBLING });
+  const session = new Session(dir, {});
+  const uri = pathToUri(join(dir, "b.vader"));
+  session.open(uri, 'module "demo"\n\nTWICE :: ANSWER * 2\n');
+  expect(errors(await session.diagnosticsOf(uri))).toEqual([]);
+  const changed = session.messages.length;
+  session.send({
+    method: "textDocument/didChange",
+    params: {
+      textDocument: { uri, version: 2 },
+      contentChanges: [
+        { text: 'module "demo"\n\nTWICE :: MISSING * 2\n' },
+        { text: 'module "demo"\n\nTWICE :: ANSWER * 2\n\nTHRICE :: GONE * 3\n' },
+      ],
+    },
+  });
+  const unresolved = errors(await session.diagnosticsOf(uri, changed));
+  expect(unresolved.map(d => [d.code, d.range.start.line])).toEqual([["R2006", 4]]);
   await session.close();
 }, MEDIUM_BUILD);
