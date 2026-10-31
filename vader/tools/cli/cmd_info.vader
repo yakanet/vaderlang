@@ -32,7 +32,11 @@ cmd_info :: fn(args: string[]) -> i32 {
     if reject_extra_positionals("info", parsed) {
         return 1
     }
-    info :: project_info(action_input(parsed).as_string(), !parsed.bool_flag("no-driver-build"))
+    info :: project_info(
+        action_input(parsed).as_string(),
+        !parsed.bool_flag("no-driver-build"),
+        parsed.bool_flag("no-hooks"),
+    )
     if info is i32 {
         return info
     }
@@ -57,13 +61,17 @@ ProjectInfo :: struct {
 // What the project folder `dir` describes, or the exit code after saying it
 // describes none. A project with no entry is described all the same: saying so
 // is the report's job. A driver not compiled as it stands is compiled first
-// when `may_compile`.
-project_info :: fn(dir: string, may_compile: bool) -> ProjectInfo | i32 {
+// when `may_compile`; none runs under `no_hooks`.
+project_info :: fn(dir: string, may_compile: bool, no_hooks: bool) -> ProjectInfo | i32 {
     if !is_dir(dir) {
         eprintln(not_a_folder("info", dir))
         return 1
     }
     described_by :: project_description("info", dir, ", so it describes no project") ?? return 1
+    if no_hooks && described_by == DRIVER_FILENAME {
+        eprintln(ignored_driver("info", dir, ""))
+        return 1
+    }
     manifest :: declared_project(dir, described_by, may_compile)
     if manifest is i32 {
         return manifest

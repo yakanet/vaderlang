@@ -52,8 +52,14 @@ ProjectEntry :: struct {
 
 // What the argument `path` of `command` names, or the exit code after saying
 // why it names nothing to compile: 2 for an `--entry` (`selected`) that has
-// nothing to choose from, 1 otherwise.
-resolve_input :: fn(command: string, path: Path, selected: string) -> ProjectInput | i32 {
+// nothing to choose from, 1 otherwise, a folder described by its `build.vader`
+// under `--no-hooks` (`no_hooks`) included.
+resolve_input :: fn(
+    command: string,
+    path: Path,
+    selected: string,
+    no_hooks: bool,
+) -> ProjectInput | i32 {
     dir :: path.as_string()
     if !is_dir(dir) {
         if selected != "" {
@@ -65,6 +71,10 @@ resolve_input :: fn(command: string, path: Path, selected: string) -> ProjectInp
     }
     described_by :: project_description(command, dir, "; name the entry file instead") ?? return 1
     if described_by == DRIVER_FILENAME {
+        if no_hooks {
+            eprintln(ignored_driver(command, dir, "; name the entry file instead"))
+            return 1
+        }
         return DrivenProject { .dir = dir }
     }
     manifest :: checked_manifest(command, dir) ?? return 1
@@ -75,6 +85,12 @@ resolve_input :: fn(command: string, path: Path, selected: string) -> ProjectInp
         .manifest = manifest,
     }
 }
+
+// Why `command` under `--no-hooks` finds no project in the folder `dir`, which its
+// `build.vader` describes; `otherwise` ends the message.
+ignored_driver :: fn(command: string, dir: string, otherwise: string) -> string =
+    "vader ${command}: `--no-hooks` ignores the `${DRIVER_FILENAME}` of `${dir}`, "
+        + "and nothing else describes the project${otherwise}"
 
 // Why `command`, which takes a project folder, refuses `path`, which names none.
 not_a_folder :: fn(command: string, path: string) -> string {
@@ -121,10 +137,11 @@ EntryInProject :: struct {
 single_entry :: fn(command: string, path: Path, parsed: ParsedArgs) -> EntryInProject | i32 {
     selected :: parsed.string_flag("entry", "")
     project_dir :: parsed.string_flag("project", "")
+    no_hooks :: parsed.bool_flag("no-hooks")
     if project_dir != "" {
-        return file_in_project(command, path, project_dir, selected)
+        return file_in_project(command, path, project_dir, selected, no_hooks)
     }
-    input :: resolve_input(command, path, selected)
+    input :: resolve_input(command, path, selected, no_hooks)
     if input is i32 {
         return input
     }
@@ -147,9 +164,16 @@ single_entry :: fn(command: string, path: Path, parsed: ParsedArgs) -> EntryInPr
 
 // The file `path`, compiled within the project folder `project`: how an editor
 // runs one file of a project. The project is named, as a folder argument names
-// one, never found by walking up from the file. The exit code after saying why
-// not: 2 for a flag that does not apply.
-file_in_project :: fn(command: string, path: Path, project: string, selected: string) -> EntryInProject | i32 {
+// one, never found by walking up from the file. A `build.vader` prepares it
+// first, unless `no_hooks`. The exit code after saying why not: 2 for a flag
+// that does not apply.
+file_in_project :: fn(
+    command: string,
+    path: Path,
+    project: string,
+    selected: string,
+    no_hooks: bool,
+) -> EntryInProject | i32 {
     if is_dir(path.as_string()) {
         eprintln("vader ${command}: `--project` names the project of a file, and `${path}` is a folder")
         return 2
@@ -165,7 +189,9 @@ file_in_project :: fn(command: string, path: Path, project: string, selected: st
     described_by :: project_description(command, project, "") ?? return 1
     if described_by == DRIVER_FILENAME {
         // Prepared, not only described: the file reads the modules it generates.
-        _ :: prepared_project(command, project, "") ?? return 1
+        if !no_hooks {
+            _ :: prepared_project(command, project, "") ?? return 1
+        }
     } else if checked_manifest(command, project) == null {
         return 1
     }

@@ -62,9 +62,10 @@ export LSP_FLAGS: FlagSpec[]: [
 ///
 /// @param library_root  a library root searched before the project's own ;
 ///                      empty when the client named none.
+/// @param no_hooks      leave every `build.vader` unrun (`--no-hooks`).
 /// @return              0 on a clean `exit` notification, 1 on an abnormal one.
-export run_server :: fn(library_root: string) -> i32 {
-    state :: A.new_state(library_root)
+export run_server :: fn(library_root: string, no_hooks: bool) -> i32 {
+    state :: A.new_state(library_root, no_hooks)
     // Unbuffered stdin so `poll_pending` reflects the bytes actually queued on
     // the pipe (the debounce relies on it). Must run before any `read_frame`.
     shutdown_received := false

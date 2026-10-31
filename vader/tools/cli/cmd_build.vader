@@ -125,7 +125,8 @@ cmd_build :: fn(args: string[]) -> i32 {
     // No argument is the current folder: a project, described by its
     // `build.vader` or its `vader.json`.
     selected :: parsed.string_flag("entry", "")
-    input :: resolve_input("build", action_input(parsed), selected)
+    no_hooks :: parsed.bool_flag("no-hooks")
+    input :: resolve_input("build", action_input(parsed), selected, no_hooks)
     if input is i32 {
         return input
     }
@@ -138,12 +139,6 @@ cmd_build :: fn(args: string[]) -> i32 {
         eprintln("vader build: a project folder does not take `--seed-targets`; "
             + "name the entry file instead")
         return 2
-    }
-    no_hooks :: parsed.bool_flag("no-hooks")
-    if no_hooks && input is DrivenProject {
-        eprintln("vader build: `--no-hooks` ignores the `${DRIVER_FILENAME}` of `${input.dir}`, "
-            + "which leaves nothing to build; name the entry file instead")
-        return 1
     }
     if !run {
         return build_input(input, selected, request, no_hooks)

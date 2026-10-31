@@ -280,7 +280,7 @@ doc_project :: fn(parsed: ParsedArgs) -> EntryInProject | i32 {
         return EntryInProject { .file = Path(Doc.SYNTHETIC_ENTRY), .project_root = null }
     }
     dir :: parsed.string_flag("project", ".")
-    match input :: resolve_input("doc", Path(dir), selected) {
+    match input :: resolve_input("doc", Path(dir), selected, parsed.bool_flag("no-hooks")) {
         is i32             -> {
             return input
         }

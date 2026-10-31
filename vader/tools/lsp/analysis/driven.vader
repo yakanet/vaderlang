@@ -42,13 +42,13 @@ export DrivenProject :: struct {
 /// Make sure the registered roots of the project `root` describe its
 /// `build.vader` as it is on disk, starting a `vader info` run when they do not.
 /// Nothing to do for a project its `vader.json` describes: the loader reads the
-/// file itself.
+/// file itself. Nothing either under `--no-hooks`, which runs no driver.
 ///
 /// @param self  the server state, which tracks the driven projects.
 /// @param root  a project folder, as `project_of_document` names it.
 /// @return      false while the project has no roots yet: its diagnostics wait.
 export ensure_described :: fn(self: ServerState, root: string) -> bool {
-    if !is_driven_project(root) {
+    if self.no_hooks || !is_driven_project(root) {
         return true
     }
     known :: self.driven.get_or_put_with(root, () -> DrivenProject {})

@@ -28,7 +28,8 @@ cmd_dap :: fn(args: string[]) -> i32 {
     if parsed is i32 {
         return parsed
     }
-    return run_dap_server(compile_for_dap)
+    no_hooks :: parsed.bool_flag("no-hooks")
+    return run_dap_server((program: string) -> compile_for_dap(program, no_hooks))
 }
 
 // Compile a launch-target `.vader` to a `DapProgram`.
@@ -39,16 +40,16 @@ cmd_dap :: fn(args: string[]) -> i32 {
 //                        1:1 to source locals (accurate Variables view) and
 //                        lines stay monotone (clean stepping). A one-off
 //                        debuggee doesn't need the optimiser.
-compile_for_dap :: fn(program: string) -> DapProgram {
+compile_for_dap :: fn(program: string, no_hooks: bool) -> DapProgram {
     // The DAP layer hands over a raw string (it is compiler internals, outside
     // this refactor); wrap once here so the body speaks `Path` like the rest.
     path :: program.to_path()
     // The debugger is handed a file by the editor, which knows no project: like
     // the language server, it takes the nearest project above the file. A
     // driven one is prepared first, as `vader run --project` does, for its
-    // search roots and the modules it generates.
+    // search roots and the modules it generates, unless `no_hooks`.
     project_root :: find_project_root(program)
-    if project_root != null && is_driven_project(project_root) {
+    if !no_hooks && project_root != null && is_driven_project(project_root) {
         _ :: prepared_project("dap", project_root, "") ?? return DapProgram {
             .state = null,
             .entry_index = -1,

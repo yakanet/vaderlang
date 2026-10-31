@@ -167,9 +167,12 @@ export ServerState :: struct {
     /// project folder → what the server knows of a project its `build.vader`
     /// describes: the roots registered, the `vader info` run in flight.
     driven:                     MutableMap<string, DrivenProject>
+    /// Whether every `build.vader` stays unrun (`--no-hooks`): a project it
+    /// describes is analysed with no root of its declaring.
+    no_hooks:                   bool
 }
 
-export new_state :: fn(library_root: string) -> ServerState {
+export new_state :: fn(library_root: string, no_hooks: bool = false) -> ServerState {
     return ServerState {
         .docs                    = MutableMap<string, string> {},
         .cache                   = null,
@@ -189,6 +192,7 @@ export new_state :: fn(library_root: string) -> ServerState {
         .virt_listings           = MutableMap<string, Virt.VirtListing | Virt.VirtParseError> {},
         .virt_line_indices       = MutableMap<string, LineIndex> {},
         .driven                  = MutableMap<string, DrivenProject> {},
+        .no_hooks                = no_hooks,
     }
 }
 

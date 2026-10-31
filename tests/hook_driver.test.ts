@@ -808,8 +808,45 @@ test.concurrent("--no-hooks silences that, and skips the driver entirely", async
   // With no file either, --no-hooks ignores the driver, and the folder then
   // describes no build.
   const bare = await run(["build", "--no-hooks"], { cwd: dir, env: TOOLCHAIN_ENV });
-  expect(bare.stderr).toContain("leaves nothing to build");
+  expect(bare.stderr).toContain("`--no-hooks` ignores");
   expect(bare.exit).toBe(1);
+}, HEAVY_BUILD);
+
+test.concurrent("--no-hooks runs no driver, whatever the action", async () => {
+  // REASON: every action accepts the flag, so every one must honour it. The
+  // driver panics in any mode: its message on stderr says one ran.
+  const dir = mkdtempSync(`${tmpdir()}/vader-no-hooks-`);
+  staged.push(dir);
+  mkdirSync(join(dir, "src"));
+  writeFileSync(join(dir, "build.vader"), [
+    'module "build"', "", 'import "std/abort"', "",
+    "build :: fn(args: string[]) -> i32 {",
+    '    panic("the driver ran")',
+    "}", "",
+  ].join("\n"));
+  writeFileSync(join(dir, "src/main.vader"), [
+    'module "src"', "", 'import "std/io"', "",
+    "main :: fn() -> i32 {",
+    '    println("ran on its own")',
+    "    return 0",
+    "}", "",
+  ].join("\n"));
+  // A folder only its driver describes is no project once the driver is ignored.
+  const actions = [["build"], ["check"], ["run"], ["dump", "--stage=ast"], ["graph"], ["lint"], ["info"], ["doc"]];
+  for (const action of actions) {
+    const r = await run([...action, "--no-hooks", "."], { cwd: dir, env: TOOLCHAIN_ENV });
+    expect(`${action[0]}: ${r.stderr}`).not.toContain("the driver ran");
+    expect(`${action[0]}: ${r.stderr}`).toContain("`--no-hooks` ignores");
+    expect(r.exit).toBe(1);
+  }
+  // A file run within the project compiles without the driver preparing it.
+  const file = await run(
+    ["run", "--no-hooks", "--project", ".", "src/main.vader"],
+    { cwd: dir, env: TOOLCHAIN_ENV },
+  );
+  expect(file.stderr).not.toContain("the driver ran");
+  expect(file.stdout).toContain("ran on its own");
+  expect(file.exit).toBe(0);
 }, HEAVY_BUILD);
 
 // A driver `vader new --build=driver` wrote, built the same way a fixture is.

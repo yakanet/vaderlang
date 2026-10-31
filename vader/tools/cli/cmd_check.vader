@@ -69,7 +69,7 @@ export cmd_check :: fn(args: string[]) -> i32 {
     }
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
     selected :: parsed.string_flag("entry", "")
-    input :: resolve_input("check", file, selected)
+    input :: resolve_input("check", file, selected, parsed.bool_flag("no-hooks"))
     if input is i32 {
         return input
     }
