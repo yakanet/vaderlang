@@ -899,9 +899,8 @@ void vader_atom_shutdown(void) {
 /* ---- intern internals ---- */
 
 /* The pieces the atom hash is built from: unaligned reads in the host's byte
- * order, and the 64 x 64 -> 128-bit multiply. `__uint128_t` needs a 64-bit GCC
- * or clang; a target without it takes a 32-bit decomposition in `vader_wy_mum`,
- * which must give the same product bit for bit. */
+ * order, and the 64 x 64 -> 128-bit multiply, taken from `__uint128_t`: only a
+ * 64-bit GCC or clang builds this file. */
 static inline uint64_t vader_wy_read8(const uint8_t* p) { uint64_t v; memcpy(&v, p, 8); return v; }
 static inline uint64_t vader_wy_read4(const uint8_t* p) { uint32_t v; memcpy(&v, p, 4); return v; }
 static inline uint64_t vader_wy_read3(const uint8_t* p, size_t k) {
