@@ -60,9 +60,9 @@ void* vader_ffi_open(const char* name);
  * gives. */
 void* vader_ffi_open_path(const char* path);
 
-/* Resolve `symbol` in `lib`. NULL when absent. */
+/* Resolve `symbol` in `lib`. NULL when absent. Nothing is cached: each call
+ * searches the symbol table, so a caller keeps the address it got. */
 void* vader_ffi_symbol(void* lib, const char* symbol);
-static void* vader_ffi_resolve(void* lib, const char* symbol);
 
 /* Call `fn` with `nargs` integer-or-pointer arguments, reading the result as an
  * integer. TRAPS when `nargs > VADER_FFI_MAX_ARGS` rather than calling with a
@@ -84,15 +84,7 @@ void* vader_ffi_open_path(const char* path) {
 #endif
 }
 
-/* Handle onto the process's own C runtime. Memoised because `dispatch_extern`
- * asks for it on EVERY foreign call: a `println` on the VM would otherwise pay
- * a `dlopen` each time, and each one bumps a refcount that is never dropped. */
-static void* vader_ffi_self = NULL;
-
 void* vader_ffi_open(const char* name) {
-    if (name == NULL || name[0] == '\0') {
-        if (vader_ffi_self != NULL) { return vader_ffi_self; }
-    }
 #ifdef _WIN32
     if (name == NULL || name[0] == '\0') {
         /* The C runtime, which is where a libc-shaped symbol lives. NOT the
@@ -102,8 +94,7 @@ void* vader_ffi_open(const char* name) {
         HMODULE h = GetModuleHandleA("ucrtbase.dll");
         if (h == NULL) { h = GetModuleHandleA("msvcrt.dll"); }
         if (h == NULL) { h = GetModuleHandleW(NULL); }
-        vader_ffi_self = (void*) h;
-        return vader_ffi_self;
+        return (void*) h;
     }
     {
         char buf[256];
@@ -114,8 +105,7 @@ void* vader_ffi_open(const char* name) {
 #else
     if (name == NULL || name[0] == '\0') {
         /* The running process: where a libc symbol lives. */
-        vader_ffi_self = dlopen(NULL, RTLD_LAZY);
-        return vader_ffi_self;
+        return dlopen(NULL, RTLD_LAZY);
     }
     {
         char buf[256];
@@ -131,46 +121,8 @@ void* vader_ffi_open(const char* name) {
 #endif
 }
 
-/* Resolved-symbol memo. `dispatch_extern` resolves on EVERY foreign call, so
- * without this a VM-executed `println` pays a full `dlsym` symbol-table search
- * each time.
- *
- * Linear and small on purpose: a program reaches a handful of distinct foreign
- * symbols, and a scan of a few entries costs less than any hashing would. Names
- * are strdup'd because the caller's `const char*` is a marshalling temporary.
- * A full table simply stops memoising rather than evicting: correctness never
- * depends on the cache. */
-#define VADER_FFI_MEMO_SIZE 64
-static struct { void* lib; char* name; void* addr; } vader_ffi_memo[VADER_FFI_MEMO_SIZE];
-static size_t vader_ffi_memo_len = 0;
-
 void* vader_ffi_symbol(void* lib, const char* symbol) {
-    size_t i;
     if (lib == NULL || symbol == NULL) { return NULL; }
-    for (i = 0; i < vader_ffi_memo_len; i++) {
-        if (vader_ffi_memo[i].lib == lib && strcmp(vader_ffi_memo[i].name, symbol) == 0) {
-            return vader_ffi_memo[i].addr;
-        }
-    }
-    {
-        void* found = vader_ffi_resolve(lib, symbol);
-        if (vader_ffi_memo_len < VADER_FFI_MEMO_SIZE) {
-            size_t n = strlen(symbol) + 1;
-            char*  copy = (char*) malloc(n);
-            if (copy != NULL) {
-                memcpy(copy, symbol, n);
-                vader_ffi_memo[vader_ffi_memo_len].lib  = lib;
-                vader_ffi_memo[vader_ffi_memo_len].name = copy;
-                vader_ffi_memo[vader_ffi_memo_len].addr = found;
-                vader_ffi_memo_len++;
-            }
-        }
-        return found;
-    }
-}
-
-/* The uncached lookup: the memo above is the only caller. */
-static void* vader_ffi_resolve(void* lib, const char* symbol) {
 #ifdef _WIN32
     {
         void* p = (void*) GetProcAddress((HMODULE) lib, symbol);

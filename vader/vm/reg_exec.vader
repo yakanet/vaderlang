@@ -1000,9 +1000,16 @@ resolve_virtual :: fn(
         args.push(register_value(m, at + k))
     }
     outcome :: dispatch_import(
-        info, args, 0, m.run.gc_state, m.run.sched_state, origin, state.string_array_type_id,
-        state.u8_array_type_id, state.bc.types, is_comptime, debug_controller(m),
-        bc.intrinsic_id_for(mangle), 0,
+        info,
+        args,
+        0,
+        m.run.gc_state,
+        m.run.sched_state,
+        origin,
+        state.string_array_type_id,
+        state.u8_array_type_id,
+        is_comptime,
+        bc.intrinsic_id_for(mangle),
     )
     if outcome is Trap {
         return outcome
@@ -1063,11 +1070,7 @@ call_import :: fn(state: VmState, m: RegMachine, index: i32, at: i64, origin: i3
     for i in 0..<info.signature.params.len() {
         args.push(register_value(m, at + i))
     }
-    outcome :: dispatch_import(
-        info, args, 0, m.run.gc_state, m.run.sched_state, origin, state.string_array_type_id,
-        state.u8_array_type_id, state.bc.types, is_comptime, debug_controller(m),
-        state.import_ids[index], adapter_of(state, index),
-    )
+    outcome :: serve_import(state, m, index, info, args, origin, is_comptime)
     if outcome is Trap {
         return outcome
     }
@@ -1075,6 +1078,34 @@ call_import :: fn(state: VmState, m: RegMachine, index: i32, at: i64, origin: i3
         set_register(m, at, outcome.value)
     }
     return null
+}
+
+// Serve `info`, import `index` of `state`, on `args`: an `@extern` by a foreign
+// call, any other by its host.
+serve_import :: fn(
+    state: VmState,
+    m: RegMachine,
+    index: i32,
+    info: bc.BcImport,
+    args: Value[],
+    origin: i32,
+    is_comptime: bool,
+) -> HostCallResult {
+    if info.is_extern {
+        return dispatch_extern(state, index, args, 0, origin, debug_controller(m))
+    }
+    return dispatch_import(
+        info,
+        args,
+        0,
+        m.run.gc_state,
+        m.run.sched_state,
+        origin,
+        state.string_array_type_id,
+        state.u8_array_type_id,
+        is_comptime,
+        state.import_ids[index],
+    )
 }
 
 // The debugger driving the run, for the host's output hook.
