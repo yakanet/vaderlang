@@ -523,7 +523,7 @@ pointer_at :: fn(under: bool, g: Glyphs) -> string {
     if under {
         return TTY.cyan(g.pointer)
     }
-    return " ".repeat(g.pointer.len())
+    return " " * g.pointer.len()
 }
 
 /// Render one frame of a checkbox list. Pure.

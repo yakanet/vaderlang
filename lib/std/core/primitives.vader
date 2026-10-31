@@ -414,6 +414,27 @@ f64 implements One -> 1.0
 
 string implements Add -> "${self}${other}"
 
+/// `s * n`: `s` repeated `n` times, `""` when `n` is 0 or below: `"ab" * 3` is
+/// `"ababab"`. One buffer sized to hold every copy takes `s` once, then its
+/// filled prefix after itself, doubling each time.
+string implements Mul<i64> {
+    mul :: fn(self, other: i64) -> string {
+        if other <= 0 || self.byte_len() == 0 {
+            return ""
+        }
+        size :: self.byte_len() * other
+        buffer :: new_byte_buffer(size)
+        buffer.write_string(0, self)
+        filled := self.byte_len()
+        for filled * 2 <= size {
+            buffer.memory_copy(filled, buffer, 0, filled)
+            filled *= 2
+        }
+        buffer.memory_copy(filled, buffer, 0, size - filled)
+        return buffer.finish_buffer(size)
+    }
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -430,4 +451,17 @@ test_is_ascii :: fn() -> void {
 @test
 test_bytes_to_string_of_a_bytes_slice :: fn() -> void {
     assert_eq("hello world".bytes()[6..<11].bytes_to_string(), "world")
+}
+
+@test
+test_string_mul_repeats :: fn() -> void {
+    assert_eq("ab" * 3, "ababab")
+    assert_eq("é" * 2, "éé")
+}
+
+@test
+test_string_mul_empty :: fn() -> void {
+    assert_eq("ab" * 0, "")
+    assert_eq("ab" * -2, "")
+    assert_eq("" * 4, "")
 }

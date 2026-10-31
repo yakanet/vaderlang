@@ -163,7 +163,7 @@ line_indent :: fn(source: string, offset: i64) -> i32 {
 // spaces : the indentation of the line it lands on.
 reindent :: fn(text: string, indent: i32) -> string {
     if indent <= 0 { return text }
-    pad :: " ".repeat(i64(indent))
+    pad :: " " * indent
     out := ""
     i := 0
     for line in text.split("\n") {

@@ -845,6 +845,7 @@ greeting.byte_len()               // 14: bytes, since é and ö take two each
 greeting[1]                       // 'é'
 greeting[0..<5]                   // "héllo"
 greeting == "héllo, " + "wörld"   // true: == compares the contents
+"ab" * 3                          // "ababab"
 
 for c in greeting {               // c: char, one code point at a time
     ...
@@ -856,6 +857,7 @@ greeting.byte_at(1)               // 195, the first byte of é
 ```
 
 - A string is immutable UTF-8 text, and a value: an assignment copies it, `==` compares the contents, `+` gives a new string. Nothing writes into a string (there is no `IndexSet` impl).
+- `s * n` is `s` repeated `n` times, the string always on the left; a count of 0 or below gives `""`.
 - `s.len()` counts code points, in O(n); `s.byte_len()` counts bytes, in constant time.
 - `s[i]` is the code point at index `i`, an `i64` or a free literal; an index past the last code point stops the program. `s[lo..<hi]` and `s[lo..=hi]` give the code points of the range: bounds past the end are clamped, and a range that ends before it starts gives `""`. Both reach index `i` in O(i). On an ASCII string (`s.is_ascii()`), `s.len()` and `s[i]` take constant time.
 - `for c in s` walks the code points in place (`string implements Into<Iterator<char>>`), and `s.chars()` gives them as an iterator value. The byte loop is `for i in 0..<s.byte_len() { b :: s.byte_at(i) }`.
@@ -3875,7 +3877,7 @@ remainder(7, 2)                  // error: i32 does not implement Rem
 | `BitsFloat`, `Bits32Float` | `u64` and `u32`. |
 | `Index` | `string`, at an `i64` and at a `Range<i64>` (§4 *Strings*). |
 | `Contains<T>` | `Range<T>`, and `T[]` when `T: Equals`. |
-| `Mul<i64>` | `T[]`, for `[x] * n`. |
+| `Mul<i64>` | `T[]`, for `[x] * n`, and `string`, for `s * n`. |
 | `Into<Iterator<T>>` | `T[]`. |
 | `Into<string>` | Every type that implements `Display`. |
 

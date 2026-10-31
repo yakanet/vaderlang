@@ -109,7 +109,7 @@ export escape_codepoint :: fn(code: u32) -> string {
 ///
 /// @param text  the code, on one line.
 export code_span :: fn(text: string) -> string {
-    fence :: "`".repeat(longest_backtick_run(text) + 1)
+    fence :: "`" * (longest_backtick_run(text) + 1)
     if text.starts_with("`") || text.ends_with("`") {
         return "${fence} ${text} ${fence}"
     }

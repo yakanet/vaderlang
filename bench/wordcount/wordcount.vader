@@ -14,14 +14,13 @@
 module "main"
 
 import "std/io"
-import "std/string"
 
 LINE   :: "the quick brown fox jumps over the lazy dog\n"
 REPS   :: 40_000
 PASSES :: 15
 
 main :: fn() -> i32 {
-    text :: repeat(LINE, i64(REPS))
+    text :: LINE * REPS
     nb :: text.byte_len()
     words: i64 = 0
     lines: i64 = 0

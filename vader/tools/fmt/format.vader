@@ -53,7 +53,6 @@ export format_source :: fn(source: string, path: string) -> FormatResult {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/string"
 import "std/testing"
 
 @test
@@ -104,8 +103,8 @@ test_fmt_indents_a_tighter_operand_deeper :: fn() -> void {
 @test
 test_fmt_adds_no_line_break :: fn() -> void {
     // A chain past `MAX_LINE` written on one line stays on one line.
-    long :: "s :: fn() -> string = \"${"a".repeat(50)}\" + \"${"b".repeat(50)}\""
-    fmt_keeps(long, "\"${"a".repeat(50)}\" + \"${"b".repeat(50)}\"")
+    long :: "s :: fn() -> string = \"${"a" * 50}\" + \"${"b" * 50}\""
+    fmt_keeps(long, "\"${"a" * 50}\" + \"${"b" * 50}\"")
 }
 
 @test

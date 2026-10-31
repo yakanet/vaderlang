@@ -198,10 +198,10 @@ doc_lines :: fn(ctx: TextCtx, doc: DocSections | null) -> string[] {
     if doc.params.len() > 0 {
         tags.push(INDENT + painted(ctx, .Label, "Parameters:"))
         width :: widest(doc.params.map((p: DocParam) -> p.name).collect())
-        hang :: INDENT + "  " + " ".repeat(width) + "  "
+        hang :: INDENT + "  " + " " * width + "  "
         for p in doc.params {
             text :: painted_paragraphs(ctx, p.text.wrap_words(WRAP_WIDTH - hang.len()))
-            name :: painted(ctx, .Name, p.name) + " ".repeat(width - p.name.len())
+            name :: painted(ctx, .Name, p.name) + " " * (width - p.name.len())
             tags.push("${INDENT}  ${name}  ${text[0]}")
             tags.push_all(behind(hang, text[1..<text.len()]))
         }
@@ -250,7 +250,7 @@ list_text :: fn(ctx: TextCtx, query: string, needle: string, listed: Listed[]) -
     opening :: "nothing is named `${query}`; names that contain `${needle}`:"
     lines: string[]: [painted_paragraphs(ctx, [opening])[0]]
     for l in listed {
-        name :: painted_qualified(ctx, l.name) + " ".repeat(width - l.name.len())
+        name :: painted_qualified(ctx, l.name) + " " * (width - l.name.len())
         lines.push("  ${name}  ${painted_paragraphs(ctx, [l.summary])[0]}")
     }
     return text_of(lines)
@@ -271,7 +271,7 @@ plain_ctx :: fn() -> TextCtx = TextCtx {
 
 @test
 test_search_text_wraps_at_its_spaces :: fn() -> void {
-    lines :: "word ".repeat(30).trim().wrap_words(76)
+    lines :: ("word " * 30).trim().wrap_words(76)
     assert_eq(lines.len(), 2)
     assert(lines[0].len() <= 76, "the first line fits")
 }
@@ -284,7 +284,7 @@ test_search_text_of_tags_without_prose_has_no_blank_line_first :: fn() -> void {
 
 @test
 test_search_text_hangs_a_long_parameter_under_its_text :: fn() -> void {
-    words :: "word ".repeat(20).trim()
+    words :: ("word " * 20).trim()
     lines :: doc_lines(plain_ctx(), doc_sections("@param n  ${words}"))
     assert_eq(lines.len(), 3)
     assert(lines[2].starts_with("         word"), "the second line hangs under the text")

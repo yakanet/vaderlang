@@ -274,7 +274,7 @@ attach_trailing_comments :: fn(text: string) -> string {
             } else {
                 // Several source lines folded into one output line : one comment
                 // ends it, the others go below rather than inside that comment.
-                codes.push(" ".repeat(indent_width(codes[last])) + note)
+                codes.push(" " * indent_width(codes[last]) + note)
                 notes.push("")
                 standalone = true
             }
@@ -300,7 +300,7 @@ attach_trailing_comments :: fn(text: string) -> string {
         }
         for k in i..<end {
             code :: codes[k].right_trim()
-            codes[k] = code + " ".repeat(width - code.text_width() + 1) + notes[k]
+            codes[k] = code + " " * (width - code.text_width() + 1) + notes[k]
         }
         i = end
     }

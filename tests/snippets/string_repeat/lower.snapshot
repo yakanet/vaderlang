@@ -1,0 +1,61 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      width: i32 = 3
+      std.io.println<string>(std.core.string.mul("ab", 3))
+      std.io.println<string>(std.core.string.mul("é", 2))
+      std.io.println<string>(concat_7("[", std.core.string.mul("x", 0), "][", std.core.string.mul("x", -1), "][", std.core.string.mul("", 4), "]"))
+      std.io.println<string>(concat_2(std.core.string.mul("-", width), "|"))
+      return 0
+  }
+  concat_7 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string, p6: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      c3: i64 = c2 +% std.core.byte_len(p3)
+      c4: i64 = c3 +% std.core.byte_len(p4)
+      c5: i64 = c4 +% std.core.byte_len(p5)
+      c6: i64 = c5 +% std.core.byte_len(p6)
+      buf: Buffer = std.core.new_byte_buffer(c6)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.write_string(buf, c3, p4)
+      std.core.Buffer.write_string(buf, c4, p5)
+      std.core.Buffer.write_string(buf, c5, p6)
+      std.core.Buffer.intern_string(buf, c6)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.string.mul  // std_core$string$Mul$mul
+    struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

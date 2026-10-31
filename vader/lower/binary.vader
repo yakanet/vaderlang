@@ -531,19 +531,25 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
 
 // What `a op b` calls on a left operand of type `t`, as the typecheck recorded it :
 // a distinct with none of its own reaches its backing's. Null where the built-in op
-// applies: a primitive has one for every operator but ordering a `string`, which
-// only its `Comparable` impl answers.
+// applies: a primitive has one for every operator but those of a `string` that
+// only its impls answer. The record alone cannot tell: in a generic body, `+` and
+// `==` record the bound's member, which a `string` instance runs built in.
 operator_target :: fn(
     ctx: FnLowerCtx,
     binary: BinaryExpr,
     info: OpTraitInfo,
     t: Type,
 ) -> RecordedTarget | null {
-    if t is PrimitiveType | RangeType && !(info.shape == .CompareCmp && is_string_type(t)) {
+    if t is PrimitiveType | RangeType && !runs_string_impl(binary, info, t) {
         return null
     }
     return recorded_target(ctx, binary, .Operator, t)
 }
+
+// Whether `binary` on a left operand of type `t` runs an impl of `string`: an
+// ordering (`Comparable`) or a repetition (`Mul<i64>`), which have no built-in op.
+runs_string_impl :: fn(binary: BinaryExpr, info: OpTraitInfo, t: Type) -> bool =
+    is_string_type(t) && (info.shape == .CompareCmp || binary.op == .Mul)
 
 // `contains(coll, element)` through `target`.
 contains_call :: fn(

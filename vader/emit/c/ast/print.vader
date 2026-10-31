@@ -1207,6 +1207,6 @@ test_indent_is_depth_times_indent_width :: fn() -> void {
     for depth in 0..<20 {
         out :: StringBuilder {}
         indent(out, depth)
-        assert_eq(out.to_string(), " ".repeat(i64(depth) * INDENT_WIDTH))
+        assert_eq(out.to_string(), " " * (i64(depth) * INDENT_WIDTH))
     }
 }

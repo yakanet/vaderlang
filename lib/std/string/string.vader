@@ -291,16 +291,6 @@ export replace :: fn(s: string, old: string, new: string) -> string {
 /// @return     `s` with every `old` replaced by `new`.
 export replace_all :: fn(s: string, old: string, new: string) -> string = s.split(old).join(new)
 
-/// Concatenate `n` copies of `s` ; `n == 0` yields the empty string.
-/// @param s  the fragment to repeat.
-/// @param n  how many copies.
-/// @return   `s` repeated `n` times.
-export repeat :: fn(s: string, n: i64) -> string {
-    sb :: StringBuilder {}
-    for _ in 0..<n { sb.append(s) }
-    return sb.to_string()
-}
-
 /// True when codepoint `c` occurs in `s`: a `char`-presence predicate built on
 /// `index_of`. For substring containment use `sub in s` (the `Contains` trait).
 /// @param s  string to search.
@@ -921,14 +911,6 @@ import "std/testing"
 
 @test test_replace_all :: fn() -> void {
     assert_eq("a.b.c".replace_all(".", "-"), "a-b-c")
-}
-
-@test test_repeat :: fn() -> void {
-    assert_eq("ab".repeat(3), "ababab")
-}
-
-@test test_repeat_zero_times :: fn() -> void {
-    assert_eq("x".repeat(0), "")
 }
 
 @test test_contains_char :: fn() -> void {

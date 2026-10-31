@@ -137,10 +137,10 @@ render_flag_block :: fn(flags: FlagSpec[], depth: i64) -> string {
     width :: column_of(labels)
 
     out :: StringBuilder {}
-    pad :: INDENT.repeat(depth)
+    pad :: INDENT * depth
     // Indented past the `--` of the flag above, not merely past its gutter: at
     // equal depth a value reads as another flag.
-    inner :: INDENT.repeat(depth + 3)
+    inner :: INDENT * (depth + 3)
     for i in 0..<flags.len() {
         out.append("${pad}${pad_to(labels[i], width)}${flag_description(flags[i])}\n")
         values :: flags[i].values

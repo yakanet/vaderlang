@@ -1,0 +1,19 @@
+// tests/snippets/string_repeat: `s * n` on a string.
+//
+// `*` on a string calls the `Mul<i64>` impl of std/core, written in Vader over
+// one byte buffer, where `*` on two numbers is a machine op. Covers a count of 0
+// and below, the empty string, a multi-byte string, a count held in a narrower
+// integer, and `*` binding tighter than `+`. Observed through stdout.
+
+module "snippet"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    width: i32: 3
+    println("ab" * 3)
+    println("é" * 2)
+    println("[${"x" * 0}][${"x" * -1}][${"" * 4}]")
+    println("-" * width + "|")
+    return 0
+}
