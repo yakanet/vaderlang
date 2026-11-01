@@ -200,7 +200,7 @@ compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap
                 }
             }
         }
-        for l in live.live_in[i32(header)] {
+        for l in live_in_locals(live, header) {
             if defs_in_body.contains(l) { carried.add(l) }
         }
     }

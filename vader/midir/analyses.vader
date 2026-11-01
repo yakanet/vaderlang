@@ -353,98 +353,6 @@ export dominates :: fn(idom: i32[], a: BlockId, b: BlockId) -> bool {
     return false
 }
 
-// ---- liveness -------------------------------------------------------------
-
-/// Per-block live-in / live-out sets. Standard backward dataflow on
-/// the use/def of each block. Used by DCE (kill-dead-stores).
-export Liveness :: struct {
-    live_in:  MutableSet<LocalId>[]
-    live_out: MutableSet<LocalId>[]
-}
-
-export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
-    n :: fn_.blocks.len()
-    use_: MutableSet<LocalId>[]: [] * n
-    def_: MutableSet<LocalId>[]: [] * n
-    for i in 0..<n {
-        b :: fn_.blocks[i]
-        u :: MutableSet<LocalId> {}
-        d :: MutableSet<LocalId> {}
-        for ins in b.instructions {
-            for_each_read_local(ins, (l: LocalId) -> {
-                if !d.contains(l) { u.add(l) }
-            })
-            multi :: multi_dsts(ins)
-            if multi != null {
-                for l in multi { d.add(l) }
-            } else {
-                ds :: dst_of(ins)
-                if ds != null { d.add(ds) }
-            }
-        }
-        for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
-            if !d.contains(l) { u.add(l) }
-        })
-        use_.push(u)
-        def_.push(d)
-    }
-
-    succs: BlockId[][]: [] * n
-    for b in fn_.blocks { succs.push(successors_of(b)) }
-
-    live_in:  MutableSet<LocalId>[]: filled(n, () -> MutableSet<LocalId> {})
-    live_out: MutableSet<LocalId>[]: filled(n, () -> MutableSet<LocalId> {})
-
-    // Double-buffered fixpoint : recompute each block's live_out / live_in into
-    // two reusable SCRATCH sets (cleared each round), then SWAP a scratch with
-    // the stored set only when it actually changed. The old set becomes the next
-    // scratch, so the fixpoint allocates zero sets per iteration×block (it minted
-    // a fresh `out` + `in_set` every round before, millions of dead allocations
-    // once a block stabilised). The clear()ed scratch keeps its backing arrays.
-    scratch_out := MutableSet<LocalId> {}
-    scratch_in  := MutableSet<LocalId> {}
-    changed := true
-    for changed {
-        changed = false
-        i := n
-        for i > 0 {
-            i = i - 1
-            scratch_out.clear()
-            for s in succs[i] {
-                for l in live_in[i32(s)] { scratch_out.add(l) }
-            }
-            scratch_in.clear()
-            for l in use_[i] { scratch_in.add(l) }
-            for l in scratch_out { if !def_[i].contains(l) { scratch_in.add(l) } }
-            if !sets_equal(scratch_out, live_out[i]) {
-                old_out :: live_out[i]
-                live_out[i] = scratch_out
-                scratch_out = old_out
-                changed = true
-            }
-            if !sets_equal(scratch_in, live_in[i]) {
-                old_in :: live_in[i]
-                live_in[i] = scratch_in
-                scratch_in = old_in
-                changed = true
-            }
-        }
-    }
-    return Liveness { .live_in = live_in, .live_out = live_out }
-}
-
-sets_equal :: fn(a: MutableSet<LocalId>, b: MutableSet<LocalId>) -> bool {
-    if a.len() != b.len() {
-        return false
-    }
-    for x in a {
-        if x !in b {
-            return false
-        }
-    }
-    return true
-}
-
 // ---- dst extraction -------------------------------------------------------
 
 /// The locals an instruction writes when there are SEVERAL (a call handing back
@@ -452,8 +360,8 @@ sets_equal :: fn(a: MutableSet<LocalId>, b: MutableSet<LocalId>) -> bool {
 ///
 /// Deliberately not a `visit` callback: the definition walks that need this run
 /// over every instruction of every function, and a closure there costs two heap
-/// objects per instruction. `compute_liveness` alone visits 312k of them.
-/// The pair `multi_dsts` + `dst_of` is the whole rule, and it allocates nothing.
+/// objects per instruction. The pair `multi_dsts` + `dst_of` is the whole rule,
+/// and it allocates nothing.
 export multi_dsts :: fn(ins: Instruction) -> LocalId[] | null {
     if ins is InstrCall {
         return ins.dsts

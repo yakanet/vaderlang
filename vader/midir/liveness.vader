@@ -1,0 +1,204 @@
+// vader/midir/liveness: which locals are live on entry to each block.
+//
+// A backward dataflow over the blocks of a function, one bit per local.
+
+module "vader/midir"
+
+/// Per-block live-in sets, one bit per local: block `b` owns the `words` words
+/// of `live_in` from `i64(b) * words`.
+export Liveness :: struct {
+    /// Words per block: one bit per local of the function.
+    words: i64
+    live_in: u64[]
+}
+
+/// The locals live on entry to `block`, in increasing order.
+///
+/// @param live   the liveness of the function `block` belongs to.
+/// @param block  the block whose entry is asked about.
+export live_in_locals :: fn(live: Liveness, block: BlockId) -> LocalId[] {
+    out: LocalId[]: []
+    base :: i64(block) * live.words
+    for w in 0..<live.words {
+        word :: live.live_in[base + w]
+        if word == 0 {
+            continue
+        }
+        for bit in 0..<64 {
+            if (word >> u64(bit)) & 1 != 0 {
+                out.push(LocalId(i32(w * 64 + bit)))
+            }
+        }
+    }
+    return out
+}
+
+/// Compute which locals are live on entry to each block of `fn_`.
+///
+/// @param fn_  the function; its locals number the bits.
+export compute_liveness :: fn(fn_: CFGFunction) -> Liveness =
+    block_liveness(fn_.blocks, fn_.locals.len())
+
+// The dataflow over what it reads of a function: its blocks, and how many
+// locals it has.
+block_liveness :: fn(blocks: BasicBlock[], local_count: i64) -> Liveness {
+    n :: blocks.len()
+    words :: (local_count + 63) / 64
+    use_: u64[]: [0] * (n * words)
+    def_: u64[]: [0] * (n * words)
+    for i in 0..<n {
+        b :: blocks[i]
+        base :: i * words
+        mark_use :: (l: LocalId) -> if !has_bit(def_, base, l) {
+            set_bit(use_, base, l)
+        }
+        for ins in b.instructions {
+            for_each_read_local(ins, mark_use)
+            multi :: multi_dsts(ins)
+            if multi != null {
+                for l in multi {
+                    set_bit(def_, base, l)
+                }
+            } else {
+                ds :: dst_of(ins)
+                if ds != null {
+                    set_bit(def_, base, ds)
+                }
+            }
+        }
+        for_each_read_in_terminator(b.terminator, mark_use)
+    }
+    succs: BlockId[][]: [] * n
+    for b in blocks {
+        succs.push(successors_of(b))
+    }
+    // Live-in only grows from empty, so it is updated in place. Live-out is not
+    // stored: it is the union of the successors' live-in, computed per word.
+    live_in: u64[]: [0] * (n * words)
+    changed := true
+    for changed {
+        changed = false
+        i := n
+        for i > 0 {
+            i = i - 1
+            base :: i * words
+            for w in 0..<words {
+                out: u64 = 0
+                for s in succs[i] {
+                    out = out | live_in[i64(s) * words + w]
+                }
+                word :: use_[base + w] | (out & ~def_[base + w])
+                if word != live_in[base + w] {
+                    live_in[base + w] = word
+                    changed = true
+                }
+            }
+        }
+    }
+    return Liveness { .words = words, .live_in = live_in }
+}
+
+// `base` is the first word of the block in `bits`.
+has_bit :: fn(bits: u64[], base: i64, l: LocalId) = bits[base + i64(l) / 64] & bit_mask(l) != 0
+
+set_bit :: fn(bits: u64[], base: i64, l: LocalId) -> void {
+    k :: base + i64(l) / 64
+    bits[k] = bits[k] | bit_mask(l)
+}
+
+// The bit of `l` within its word.
+bit_mask :: fn(l: LocalId) -> u64 = u64(1) << u64(i64(l) % 64)
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/string"
+import "std/testing"
+import "toolchain/span"
+import "vader/core/types"
+
+lv_add :: fn(dst: LocalId, lhs: LocalId, rhs: LocalId) -> Instruction = InstrBinOp {
+    .span = empty_span(),
+    .dst = dst,
+    .op = .Add,
+    .lhs = lhs,
+    .rhs = rhs,
+    .type = TY_I32,
+}
+
+lv_zero :: fn(dst: LocalId) -> Instruction = InstrConst {
+    .span = empty_span(),
+    .dst = dst,
+    .value = ConstInt { .value = 0 },
+    .type = TY_I32,
+}
+
+lv_block :: fn(id: i32, instrs: Instruction[], terminator: Terminator) -> BasicBlock = BasicBlock {
+    .id = BlockId(id),
+    .instructions = instrs,
+    .terminator = terminator,
+    .span = empty_span(),
+}
+
+lv_branch :: fn(target: i32) -> Terminator = TermBranch {
+    .span = empty_span(),
+    .target = BlockId(target),
+}
+
+lv_return :: fn(value: LocalId) -> Terminator = TermReturn {
+    .span = empty_span(),
+    .values = [value],
+}
+
+// The locals live on entry to `block`, as `"0,1,2"`.
+lv_live_in :: fn(live: Liveness, block: i32) -> string {
+    ids: string[]: []
+    for l in live_in_locals(live, BlockId(block)) {
+        ids.push("${i32(l)}")
+    }
+    return ids.join(",")
+}
+
+@test
+test_liveness_loop_carries_its_reads_around_the_back_edge :: fn() -> void {
+    // b0: t0, t1, t2 = 0 ; b1: if t1 -> b2 else b3 ; b2: t2 = t2 + t0, back to b1 ;
+    // b3: return t2.
+    cond :: TermCondBranch {
+        .span = empty_span(),
+        .cond = LocalId(1),
+        .then_block = BlockId(2),
+        .else_block = BlockId(3),
+    }
+    live :: block_liveness(
+        [
+            lv_block(
+                0,
+                [lv_zero(LocalId(0)), lv_zero(LocalId(1)), lv_zero(LocalId(2))],
+                lv_branch(1),
+            ),
+            lv_block(1, [], cond),
+            lv_block(2, [lv_add(LocalId(2), LocalId(2), LocalId(0))], lv_branch(1)),
+            lv_block(3, [], lv_return(LocalId(2))),
+        ],
+        3,
+    )
+    assert_eq(lv_live_in(live, 0), "")
+    assert_eq(lv_live_in(live, 1), "0,1,2")
+    assert_eq(lv_live_in(live, 2), "0,1,2")
+    assert_eq(lv_live_in(live, 3), "2")
+}
+
+@test
+test_liveness_locals_past_the_first_word :: fn() -> void {
+    // Locals 64 and 129 sit in the second and third word of each block. 129 is
+    // written before it is read, so it is not live on entry.
+    live :: block_liveness(
+        [
+            lv_block(0, [], lv_branch(1)),
+            lv_block(1, [lv_add(LocalId(129), LocalId(64), LocalId(3))], lv_return(LocalId(129))),
+        ],
+        130,
+    )
+    assert_eq(live.words, 3)
+    assert_eq(lv_live_in(live, 0), "3,64")
+    assert_eq(lv_live_in(live, 1), "3,64")
+}
