@@ -1397,3 +1397,35 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 ### 3.7 Tooling
 
 - [x] **FFI: a C struct by value**, **closed 2026-10-24**: the native shim copies it member by member, and `vader run` calls through a C adapter compiled against the real prototype (`vader/vm/adapters.vader`), which is what raylib's `Vector2` and `Color` needed.
+
+## Archived from TODO.md, 2026-11-01
+
+### Priority: next up
+
+- [x] **A call through a namespace alias saw only the first overload**, **closed 2026-10-29** (part of the call-site record entry, opened 2026-10-13): with `describe(x: i32)` declared before `describe(x: string)`, `L.describe("a")` was T3001. It now picks among the member's overloads by its argument, as a bare call does, and takes the picked one's defaults and parameter names (`29599b3c5`, snippet `overloads_through_namespace_alias`).
+
+### Phase 2 (Self-hosting) leftovers › Mid-IR and VM
+
+- [x] **An unread array read or checked operation lost its run-time check**, **closed 2026-10-29** (opened 2026-10-25): `unused :: xs[10]` on a 3-element array ran to the end, DCE dropping a pure instruction nothing read. An instruction that may stop the program (`instruction_may_trap`, `vader/midir/analyses.vader`) now stays, as SPEC §2 *Run-time checks* says (`58ae67e64`, ADR 0117).
+- [x] **Escape analysis marked arrays the backends never place on the stack**, **closed 2026-10-30** (opened 2026-10-25): the bytecode `array.new` has no stack form, so the pass seeds and rewrites struct allocations only, arrays keeping their part in the aliasing, and `$VADER_OPT_REPORT` no longer counts them (`33bd09418`).
+
+### 3.4 Stdlib expansion
+
+- [x] **No blocking sleep**, **closed 2026-11-01**: `std/time.sleep(d: Duration)`, over `nanosleep` / `Sleep`, and the async scheduler waits through it.
+
+### 3.7 Tooling
+
+- [x] **`lib/`: one multi-library root, and `toolchain/`, the public API outside the compiler**, **landed 2026-08-27, archived 2026-11-01**: phases 0 to 5 shipped, with the "multi-library namespaces" entry that was its phase 3. `stdlib/` became `lib/`. `toolchain/span`, `toolchain/ast` and `toolchain/build` (ex-`vader/hooks`) are the public API: `span` and `ast` import nothing from `vader/**`, and all 113 exports of `toolchain/ast` carry vaderdoc. Eight libraries left `std/` (`json`, `regex`, `semver`, `cli`, `crypto`, `base64`, `random`, `images/ppm`). The bundled root is searched ahead of the project, so a project module named `cli` no longer shadows the toolchain's, and the policy sites read `Module.origin` instead of testing a `std/` prefix. A bundle no longer ships the six front-ends (-622 KB). The open question, publish the AST or the resolved declaration, was settled by publishing the AST. The `libraries` manifest key waits for the package manager.
+- [x] **`vader doc`: an API reference generated from vaderdoc**, **closed 2026-10-29** (opened 2026-10-26): `vader doc` indexes the vaderdoc of a tree, `--search` queries it in the terminal, `-o` writes a SvelteKit site and `--open` serves it. The `docs` CI job publishes the references of `lib/` and `vader/` beside the language site (`site/`), which renders SPEC one page per chapter. `--check` stays open.
+- [x] **Static site: the syntax in chapters, carried by code**, **closed 2026-10-29** (opened 2026-08-27): `/learn/` walks the language in 12 chapters of short programs (`site/content/learn/`), each run by `tests/site_content.test.ts` against the output the page shows. Showing a module of the reader's own in chapter 10 stays open.
+- [x] **GitHub Release on tag push**, **closed 2026-10-29, differently** (ADR 0116): the release is made from the Actions tab, which bumps the version, tags, and drafts the release with notes grouped by commit type.
+- [x] **GitHub Actions matrix per OS**, **closed 2026-10-29** (ADR 0115): one leg per target builds once, then tests that build; macOS bundles without the suite, which runs locally before each push.
+- [x] **ADR 0013 did not list `vader_environ` / `vader_ptr_at`**, **closed 2026-11-01**: ADR 0124 lists the eight accessors, and `vader.h` now declares them.
+
+### 3.8 Language ergonomics
+
+- [x] **Which integers may index**, **settled 2026-10-19** (idea, 2026-10-14): an index is any integer and a length an `i64` (ADR 0093, 0094). `xs[-1]` counting from the end stays open as its own entry.
+
+### 3.10 WASM target
+
+- [x] **Decide `usize` width**: moot, `usize` and `isize` left the language (ADR 0093, 0094); a length is an `i64` on every target.
