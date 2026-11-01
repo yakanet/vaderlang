@@ -41,30 +41,43 @@ optimise_function :: fn(f: CFGFunction) -> CFGFunction = compact_locals(fold_mov
 
 fold_moves :: fn(f: CFGFunction) -> CFGFunction {
     use_count :: count_uses(f)
-    param_locals: MutableSet<LocalId>: MutableSet<LocalId> {}
-    for p in f.params { param_locals.add(p.local) }
+    is_param: bool[]: [false] * f.locals.len()
+    for p in f.params {
+        is_param[i64(p.local)] = true
+    }
 
     new_blocks: BasicBlock[]: []
     for b in f.blocks {
         new_blocks.push(BasicBlock {
             ...b,
-            .instructions = fold_moves_in_block(b, f.locals, use_count, param_locals),
+            .instructions = fold_moves_in_block(b, f.locals, use_count, is_param),
         })
     }
     return CFGFunction { ...f, .blocks = new_blocks }
 }
 
 fold_moves_in_block :: fn(
-    b: BasicBlock, locals: CFGLocal[], use_count: i32[],
-    param_locals: MutableSet<LocalId>,
+    b: BasicBlock,
+    locals: CFGLocal[],
+    use_count: i32[],
+    is_param: bool[],
 ) -> Instruction[] {
     folded: Instruction[]: []
     for i in 0..<b.instructions.len() {
         ins :: b.instructions[i]
-        if !(ins is InstrMove) { folded.push(ins)  continue }
+        if !(ins is InstrMove) {
+            folded.push(ins)
+            continue
+        }
         if ins is InstrMove {
-            if param_locals.contains(ins.src) { folded.push(ins)  continue }
-            if use_count[i64(ins.src)] != 1 || move_retags(locals, ins) { folded.push(ins)  continue }
+            if is_param[i64(ins.src)] {
+                folded.push(ins)
+                continue
+            }
+            if use_count[i64(ins.src)] != 1 || move_retags(locals, ins) {
+                folded.push(ins)
+                continue
+            }
             // Walk back through folded to find the producer of `m.src`.
             // Folding rewrites the producer to write `m.dst` at the
             // producer's (earlier) position, so any instruction BETWEEN the
@@ -541,7 +554,7 @@ fm_uses :: fn(pairs: [LocalId, i32][]) -> i32[] {
     return counts
 }
 
-fm_no_params :: fn() -> MutableSet<LocalId> = MutableSet<LocalId> {}
+fm_no_params :: fn() -> bool[] = [false] * fm_locals().len()
 
 /// Four `i32` locals, `t0` to `t3`: every fixture below stays within them.
 fm_locals :: fn() -> CFGLocal[] = fm_locals_typed(TY_I32, TY_I32)
@@ -580,8 +593,8 @@ test_fold_moves_keeps_move_when_source_used_twice :: fn() -> void {
 
 @test
 test_fold_moves_keeps_move_when_source_is_a_param :: fn() -> void {
-    params :: MutableSet<LocalId> {}
-    params.add(LocalId(2))
+    params :: fm_no_params()
+    params[2] = true
     out :: fold_moves_in_block(
         fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
         fm_locals(), fm_uses([[LocalId(2), 1]]), params,
