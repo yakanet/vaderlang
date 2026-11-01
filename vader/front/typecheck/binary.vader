@@ -1599,6 +1599,7 @@ synthetic_binary :: fn() -> AST.BinaryExpr {
         .span = sp,
         .id = AST.UNASSIGNED_NODE_ID,
         .op = .Add,
+        .op_span = sp,
         .left = int_lit,
         .right = int_lit,
     }

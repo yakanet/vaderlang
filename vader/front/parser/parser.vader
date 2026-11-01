@@ -1750,15 +1750,17 @@ parse_type :: fn(p: Parser) -> TypeExpr {
     // `T | U | V`: left-associative `bitor` chain.
     if p.check(.Pipe) {
         head_span :: head.span
-        for p.match_kind(.Pipe) != null {
+        for p.check(.Pipe) {
+            pipe :: p.advance()
             p.reject_removed_const()
             next :: p.parse_type_intersection()
             next_span :: next.span
             head = BinaryExpr {
-                .span  = Span { .start = head_span.start, .end = next_span.end },
-                .op    = .BitOr,
-                .left  = head,
-                .right = next,
+                .span    = Span { .start = head_span.start, .end = next_span.end },
+                .op      = .BitOr,
+                .op_span = pipe.span,
+                .left    = head,
+                .right   = next,
             }
         }
     }
@@ -1822,14 +1824,16 @@ parse_type_intersection :: fn(p: Parser) -> TypeExpr {
     head := p.parse_type_postfix()
     if p.check(.Amp) {
         head_span :: head.span
-        for p.match_kind(.Amp) != null {
+        for p.check(.Amp) {
+            amp :: p.advance()
             next :: p.parse_type_postfix()
             next_span :: next.span
             head = BinaryExpr {
-                .span  = Span { .start = head_span.start, .end = next_span.end },
-                .op    = .BitAnd,
-                .left  = head,
-                .right = next,
+                .span    = Span { .start = head_span.start, .end = next_span.end },
+                .op      = .BitAnd,
+                .op_span = amp.span,
+                .left    = head,
+                .right   = next,
             }
         }
     }
@@ -2133,13 +2137,19 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
     // Compound assignment: `lhs += rhs` desugars to `lhs = lhs <op> rhs`.
     compound :: p.peek().kind.compound_op()
     if compound.matched {
-        p.advance()
+        operator :: p.advance()
         rhs :: p.parse_expr(0)
         sp  :: p.span_of(start, p.peek_at(-1))
         return AssignStmt {
             .span   = sp,
             .target = expr,
-            .value  = BinaryExpr { .span = sp, .op = compound.op, .left = expr, .right = rhs },
+            .value  = BinaryExpr {
+                .span    = sp,
+                .op      = compound.op,
+                .op_span = operator.span,
+                .left    = expr,
+                .right   = rhs,
+            },
         }
     }
     return ExprStmt { .span = expr.span, .expr = expr }
@@ -2840,17 +2850,18 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             if chained {
                 p.error(.NonAssocChained, t.span, "chained `!in`")
             }
-            p.advance()
-            p.advance()
+            bang :: p.advance()
+            in_token :: p.advance()
             right :: p.parse_expr(21)
             if chained {
                 continue
             }
             left = BinaryExpr {
-                .span  = Span { .start = left.span.start, .end = right.span.end },
-                .op    = .NotIn,
-                .left  = left,
-                .right = right,
+                .span    = Span { .start = left.span.start, .end = right.span.end },
+                .op      = .NotIn,
+                .op_span = p.span_of(bang, in_token),
+                .left    = left,
+                .right   = right,
             }
             last_non_assoc_level = 20
             continue
@@ -2866,7 +2877,7 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
                 p.error(.NonAssocChained, t.span, "chained `!is`")
             }
             bang_tok :: p.advance()
-            p.advance()  // KwIs
+            is_token :: p.advance()
             // `!is` takes a TYPE on the right: route through `parse_type` (see
             // the `is` arm below) so `!(x is Foo<T>)` and friends parse.
             right :: p.parse_type()
@@ -2875,10 +2886,11 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             }
             p.reject_as_binder(.IsTestBindsName, (name) -> is_binding_hint(left, name, true))
             is_expr :: BinaryExpr {
-                .span  = Span { .start = left.span.start, .end = right.span.end },
-                .op    = .Is,
-                .left  = left,
-                .right = right,
+                .span    = Span { .start = left.span.start, .end = right.span.end },
+                .op      = .Is,
+                .op_span = p.span_of(bang_tok, is_token),
+                .left    = left,
+                .right   = right,
             }
             left = UnaryExpr {
                 .span    = Span { .start = bang_tok.span.start, .end = right.span.end },
@@ -2898,6 +2910,7 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             fallback :: p.parse_coalesce_fallback()
             left = NullCoalesceExpr {
                 .span     = Span { .start = left.span.start, .end = p.peek_at(-1).span.end },
+                .op_span  = t.span,
                 .left     = left,
                 .fallback = fallback,
             }
@@ -2936,10 +2949,11 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
                     p.reject_as_binder(.IsTestBindsName, (name) -> is_binding_hint(left, name, false))
                 }
                 left = BinaryExpr {
-                    .span  = Span { .start = left.span.start, .end = right.span.end },
-                    .op    = infix.op,
-                    .left  = left,
-                    .right = right,
+                    .span    = Span { .start = left.span.start, .end = right.span.end },
+                    .op      = infix.op,
+                    .op_span = t.span,
+                    .left    = left,
+                    .right   = right,
                 }
             }
             last_non_assoc_level = if infix.non_assoc { infix.left_bp } else { -1 }
@@ -4248,4 +4262,62 @@ test_module_header_needs_a_string_name :: fn() -> void {
 @test
 test_module_header_with_an_empty_name :: fn() -> void {
     assert_eq(header_name("module \"\"\n"), "")
+}
+
+// The source text of the operator the parser records for `expr`, the value of a
+// constant ; "" when `expr` is no binary or `??` expression.
+operator_text :: fn(expr: string) -> string {
+    src :: "x :: ${expr}\n"
+    decl :: parse_source(src, "test.vader").program.decls[0]
+    if decl !is ConstDecl {
+        return ""
+    }
+    value :: decl.value
+    if value is BinaryExpr {
+        return value.op_span.text_in(src)
+    }
+    if value is NullCoalesceExpr {
+        return value.op_span.text_in(src)
+    }
+    return ""
+}
+
+@test
+test_binary_op_span_covers_the_operator :: fn() -> void {
+    assert_eq(operator_text("a <=\n    b"), "<=")
+}
+
+@test
+test_not_in_op_span_runs_from_its_bang :: fn() -> void {
+    assert_eq(operator_text("a !in b"), "!in")
+}
+
+@test
+test_null_coalesce_op_span_covers_the_operator :: fn() -> void {
+    assert_eq(operator_text("a ?? b"), "??")
+}
+
+// The source text of the operator the parser records for `statement`, the
+// body of a function ; "" when `statement` is no compound assignment.
+compound_operator_text :: fn(statement: string) -> string {
+    src :: "f :: fn() -> void {\n    ${statement}\n}\n"
+    decl :: parse_source(src, "test.vader").program.decls[0]
+    if decl !is FnDecl {
+        return ""
+    }
+    body :: decl.body ?? return ""
+    stmt :: body.stmts[0]
+    if stmt !is AssignStmt {
+        return ""
+    }
+    value :: stmt.value
+    if value !is BinaryExpr {
+        return ""
+    }
+    return value.op_span.text_in(src)
+}
+
+@test
+test_compound_assignment_op_span_covers_the_operator :: fn() -> void {
+    assert_eq(compound_operator_text("x -= 1"), "-=")
 }

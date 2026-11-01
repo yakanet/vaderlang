@@ -62,6 +62,7 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
                 .span = expr.span,
                 .id = AST.UNASSIGNED_NODE_ID,
                 .op = expr.op,
+                .op_span = expr.op_span,
                 .left = substitute_type_expr(expr.left, subst),
                 .right = substitute_type_expr(expr.right, subst),
             }

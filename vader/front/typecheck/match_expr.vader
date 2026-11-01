@@ -15,6 +15,7 @@ import "vader/support/diagnostics"
 import "vader/support/integer"
 import "vader/core/types"
 AST :: import "toolchain/ast"
+import "toolchain/span"
 
 // Type-check the literal / range bound expressions embedded directly in a
 // pattern, an or-pattern's alternatives included ; every other pattern kind carries
@@ -721,6 +722,7 @@ check_pattern_literal :: fn(
     comparison :: AST.BinaryExpr {
         .span = literal.span,
         .op = .Eq,
+        .op_span = empty_span(),
         .left = compared,
         .right = literal,
     }
@@ -859,7 +861,6 @@ import "std/testing"
 import "vader/front/parser"
 import "vader/front/resolver"
 import "vader/core/symbol"
-import "toolchain/span"
 
 ExpectedMatch :: struct {
     typed: TypedProgram

@@ -1066,11 +1066,14 @@ export unary_op_symbol :: fn(op: UnaryOp) -> string = match op {
 
 /// An infix operator applied to two operands.
 export BinaryExpr :: struct {
-    span:  Span
-    id:    i64 = UNASSIGNED_NODE_ID
-    op:    BinaryOp
-    left:  Expr
-    right: Expr
+    span:    Span
+    id:      i64 = UNASSIGNED_NODE_ID
+    op:      BinaryOp
+    /// The operator as written: `!in` and `!is` from their `!`, `+=` for a
+    /// compound assignment. `empty_span()` on a node no source spells.
+    op_span: Span
+    left:    Expr
+    right:   Expr
 }
 
 /// Null-coalescing `left ?? fallback`. `left` must be typed `T | null` ;
@@ -1082,6 +1085,8 @@ export BinaryExpr :: struct {
 export NullCoalesceExpr :: struct {
     span:     Span
     id:       i64 = UNASSIGNED_NODE_ID
+    /// The `??` token.
+    op_span:  Span
     left:     Expr
     fallback: CoalesceFallback
 }

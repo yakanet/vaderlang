@@ -474,6 +474,7 @@ trait_self_bound :: fn(d: AST.TraitDecl) -> AST.Expr {
     return AST.BinaryExpr {
         .span = d.name_span,
         .op = .BitAnd,
+        .op_span = empty_span(),
         .left = own,
         .right = required,
     }

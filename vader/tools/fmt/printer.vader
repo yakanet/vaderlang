@@ -12,7 +12,6 @@ import "std/string"
 import "std/string_builder"
 import "std/io"
 import "std/iter"
-import "vader/front/lexer"
 import "vader/support/diagnostics"
 p :: import "toolchain/ast"
 import "toolchain/span"
@@ -1453,7 +1452,7 @@ emit_defer_stmt :: fn(self: Printer, s: p.DeferStmt) -> void {
 // statement (`return` / `break` / `continue`).
 emit_null_coalesce :: fn(self: Printer, e: p.NullCoalesceExpr) -> void {
     right_start :: fallback_start(e.fallback)
-    place :: self.operator_place("??", e.left.span.end, right_start)
+    place :: self.operator_place(e.op_span, e.left.span.end, right_start)
     // A left operand that closes on a delimiter decides its layout knowing the
     // ` ?? …` that shares its last line, and explodes rather than run past
     // `MAX_LINE`.
@@ -1517,13 +1516,14 @@ OperatorPlace :: struct {
     offset: i64
 }
 
-// Where the source breaks the line around `symbol`, the operator written between
-// `left_end` and `right_start`. Operands on one line keep it inline with no scan ;
-// otherwise the operator is the first token past the `)` closing a parenthesised
-// left operand: anything else there keeps it inline, as does a measurement.
+// Where the source breaks the line around the operator at `op_span`, written
+// between `left_end` and `right_start`. Operands on one line keep it inline, as
+// do a measurement and an operator the source does not spell there (a node a
+// tool builds). The parser drops parentheses, so a `)` opening the operator's
+// line counts as a break before it.
 operator_place :: fn(
     self: Printer,
-    symbol: string,
+    op_span: Span,
     left_end: Position,
     right_start: Position,
 ) -> OperatorPlace {
@@ -1531,35 +1531,16 @@ operator_place :: fn(
     if !self.keeps_line_breaks() || left_end.line == right_start.line {
         return inline
     }
-    between :: self.source.byte_slice(left_end.offset, right_start.offset)
-    place :: operator_in(between) ?? return inline
-    if !between.matches_at(place.offset, symbol) {
+    if op_span.start.offset < left_end.offset || op_span.end.offset > right_start.offset {
         return inline
     }
-    return OperatorPlace { ...place, .offset = left_end.offset + place.offset }
+    return OperatorPlace { .at = line_break_at(op_span, left_end), .offset = op_span.start.offset }
 }
 
-// The first token of `between` past its `)`, placed by the line breaks around it
-// with its offset in `between` ; null when there is none.
-operator_in :: fn(between: string) -> OperatorPlace | null {
-    line_after_parens: i32 = 1
-    for t in tokenize(between, "").tokens {
-        if t.kind == .RParen {
-            line_after_parens = t.span.end.line
-        } else if t.kind != .Newline && t.kind != .Eof {
-            return OperatorPlace {
-                .at = line_break_at(t, line_after_parens),
-                .offset = t.span.start.offset,
-            }
-        }
-    }
-    return null
-}
-
-// `BeforeOp` when `operator` starts a later line than `line_after_parens`, the
-// line the left operand and its `)` end on.
-line_break_at :: fn(operator: Token, line_after_parens: i32) -> LineBreakAt {
-    if operator.span.start.line > line_after_parens {
+// `BeforeOp` when the operator at `op_span` starts a later line than the left
+// operand ends on.
+line_break_at :: fn(op_span: Span, left_end: Position) -> LineBreakAt {
+    if op_span.start.line > left_end.line {
         return .BeforeOp
     }
     return .AfterOp
@@ -1929,7 +1910,7 @@ starts_with_number :: fn(e: p.Expr) -> bool {
 
 emit_binary :: fn(self: Printer, x: p.BinaryExpr) -> void {
     symbol :: p.binary_op_symbol(x.op)
-    place :: self.operator_place(symbol, x.left.span.end, x.right.span.start)
+    place :: self.operator_place(x.op_span, x.left.span.end, x.right.span.start)
     self.emit_binary_operand(x.left, x.op, true)
     self.write_operator(place, symbol, x.right.span.start)
     self.emit_binary_operand(x.right, x.op, false)

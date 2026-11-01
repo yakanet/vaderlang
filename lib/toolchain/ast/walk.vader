@@ -471,6 +471,7 @@ record_ident :: fn(n: Node, out: string[], skip_lambdas: bool, stop_at: string) 
 sum_of :: fn(left: Expr, right: Expr) -> BinaryExpr = BinaryExpr {
     .span = empty_span(),
     .op = .Add,
+    .op_span = empty_span(),
     .left = left,
     .right = right,
 }

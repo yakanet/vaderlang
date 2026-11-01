@@ -29,6 +29,7 @@ module "vader/tools/lsp/actions"
 import "vader/tools/fmt"
 AST :: import "toolchain/ast"
 Parse :: import "vader/front/parser"
+import "toolchain/span"
 
 /// The match→if code action. Registered in `registry.vader::all_actions`.
 /// A factory fn (not a const) so cross-file references resolve regardless of
@@ -131,13 +132,20 @@ negate_cond :: fn(cond: AST.Expr) -> AST.Expr {
     if cond is AST.BinaryExpr {
         if cond.op == .Eq {
             return AST.BinaryExpr {
-                .span = cond.span, .op = .Neq,
-                .left = cond.left, .right = cond.right,
+                .span = cond.span,
+                .op = .Neq,
+                .op_span = cond.op_span,
+                .left = cond.left,
+                .right = cond.right,
             }
         }
         if cond.op == .Is {
             is_bare :: AST.BinaryExpr {
-                .span = cond.span, .op = .Is, .left = cond.left, .right = cond.right,
+                .span = cond.span,
+                .op = .Is,
+                .op_span = cond.op_span,
+                .left = cond.left,
+                .right = cond.right,
             }
             return AST.UnaryExpr { .span = cond.span, .op = .Not, .operand = is_bare }
         }
@@ -149,12 +157,20 @@ negate_cond :: fn(cond: AST.Expr) -> AST.Expr {
 build_cond :: fn(scrut: AST.Expr, p: AST.Pattern) -> AST.Expr {
     if p is AST.IsPattern {
         return AST.BinaryExpr {
-            .span = scrut.span, .op = .Is, .left = scrut, .right = p.ty,
+            .span = scrut.span,
+            .op = .Is,
+            .op_span = empty_span(),
+            .left = scrut,
+            .right = p.ty,
         }
     }
     if p is AST.LiteralPattern {
         return AST.BinaryExpr {
-            .span = scrut.span, .op = .Eq, .left = scrut, .right = p.value,
+            .span = scrut.span,
+            .op = .Eq,
+            .op_span = empty_span(),
+            .left = scrut,
+            .right = p.value,
         }
     }
     // Unreachable for a convertible match: `is_convertible` gates the kinds.
