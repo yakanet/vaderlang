@@ -67,10 +67,10 @@ import 4 extern getenv std_env$get_env header=<stdlib.h> result_type=16 param_ty
 import 5 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 6 extern opendir system_posix$sys_opendir header=<dirent.h> result_type=19 param_types=2 param_c_out= param_by_address= (string) -> any
 import 7 extern closedir system_posix$sys_closedir header=<dirent.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
-import 8 extern vader_last_errno system_posix$sys_last_errno result_type=1 () -> i32
-import 9 extern vader_stream_size system_posix$sys_stream_size result_type=4 param_types=18 param_c_out= param_by_address= (pointer) -> i64
+import 8 extern :vader_last_errno system_posix$sys_last_errno header=vader.h result_type=1 () -> i32
+import 9 extern :vader_stream_size system_posix$sys_stream_size header=vader.h result_type=4 param_types=18 param_c_out= param_by_address= (pointer) -> i64
 import 10 extern readdir system_posix$sys_readdir header=<dirent.h> result_type=19 param_types=18 param_c_out= param_by_address= (pointer) -> any
-import 11 extern vader_dirent_name system_posix$dirent_name result_type=2 param_types=18 param_c_out= param_by_address= (pointer) -> string
+import 11 extern :vader_dirent_name system_posix$dirent_name header=vader.h result_type=2 param_types=18 param_c_out= param_by_address= (pointer) -> string
 import 12 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
 import 13 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=19 param_types=2,2 param_c_out= param_by_address= (string,string) -> any
 import 14 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32

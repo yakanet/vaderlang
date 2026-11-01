@@ -1434,6 +1434,26 @@ int32_t        vader_current_os(void);
  * same reason, as `vader_current_os` above. */
 int32_t        vader_current_arch(void);
 
+/* ----------------------------------------------------------------- host accessors
+ *
+ * The C steps a Vader `@extern` cannot take (docs/adr/0013), defined in
+ * rt/host.c. `system/posix` and `system/windows` bind them through a library
+ * whose header is this file, so their calls compile against these prototypes
+ * (docs/adr/0124). The declarations carry `VADER_HOST_EXPORT` as the
+ * definitions do: clang rejects a definition that adds `dllexport`.
+ */
+VADER_HOST_EXPORT int32_t     vader_last_errno(void);
+VADER_HOST_EXPORT void*       vader_ptr_at(const void* base, int64_t i);
+#if defined(_WIN32)
+VADER_HOST_EXPORT const char* vader_find_data_name(const void* fd);
+#else
+VADER_HOST_EXPORT char**      vader_environ(void);
+VADER_HOST_EXPORT int32_t     vader_path_kind(const char* path);
+VADER_HOST_EXPORT int64_t     vader_path_mtime(const char* path);
+VADER_HOST_EXPORT int64_t     vader_stream_size(void* stream);
+VADER_HOST_EXPORT const char* vader_dirent_name(void* ent);
+#endif
+
 
 
 /* ----------------------------------------------------------------- string */

@@ -2,7 +2,12 @@
 
 module "system/posix"
 
+import "std/ffi"
 import "std/target"
+
+/// The runtime's own accessors (`runtime/c/rt/host.c`): no library to open, the
+/// interpreter finds them in the running process, and `vader.h` declares them.
+VADER_RUNTIME :: CLibrary { .name = "", .header = "vader.h" }
 
 /// Standard output's file descriptor.
 export STDOUT :: 1
@@ -12,9 +17,8 @@ export STDERR :: 2
 
 /// `write(2)`. Byte count written, or -1 with `errno` set.
 ///
-/// `i64`, not `i32`: POSIX returns `ssize_t`, 64-bit on every target here.
-/// `@c_header` hands `cc` the real prototype, so a width mismatch stops the
-/// build rather than truncating silently.
+/// `i64`, not `i32`: POSIX returns `ssize_t`, 64-bit on every target here, and
+/// `cc` would narrow it to a smaller Vader result without a word, header or not.
 @c_header("<unistd.h>")
 @extern("write")
 export sys_write :: fn(fd: i32, buf: u8[], count: i64) -> i64
@@ -72,11 +76,11 @@ export ENOTEMPTY: i32: if VADER_OS == .Darwin { 66 } else { 39 }
 /// `*__errno_location()` on glibc, so no `@extern` can name it directly and the
 /// runtime reads it for us.
 ///
-/// ⚠️ Read it IMMEDIATELY after the call that failed. Any foreign call in
+/// Read it IMMEDIATELY after the call that failed. Any foreign call in
 /// between may overwrite it, this one included once it has returned.
 ///
 /// @return the raw platform value ; 0 when nothing has failed.
-@extern("vader_last_errno")
+@extern(VADER_RUNTIME, "vader_last_errno")
 export sys_last_errno :: fn() -> i32
 
 /// What KIND of thing `path` is, via `stat(2)`.
@@ -101,7 +105,7 @@ export sys_last_errno :: fn() -> i32
 ///
 /// @param path  the path to classify.
 /// @return      `PATH_MISSING` when `stat` fails, for any reason.
-@extern("vader_path_kind")
+@extern(VADER_RUNTIME, "vader_path_kind")
 export sys_path_kind :: fn(path: string) -> i32
 
 /// When `path` was last modified, in nanoseconds since the Unix epoch, via
@@ -110,7 +114,7 @@ export sys_path_kind :: fn(path: string) -> i32
 ///
 /// @param path  the path to probe.
 /// @return      -1 when `stat` fails, `errno` saying why.
-@extern("vader_path_mtime")
+@extern(VADER_RUNTIME, "vader_path_mtime")
 export sys_path_mtime :: fn(path: string) -> i64
 
 /// The size of the regular file `stream` reads, via `fstat(2)`, for the reason
@@ -119,7 +123,7 @@ export sys_path_mtime :: fn(path: string) -> i64
 /// @param stream  an open `FILE*`.
 /// @return        -1 for anything but a regular file (a pipe, a device, whose
 ///                size says nothing of what a read finds), or when `fstat` fails.
-@extern("vader_stream_size")
+@extern(VADER_RUNTIME, "vader_stream_size")
 export sys_stream_size :: fn(stream: CPointer) -> i64
 
 /// The four answers `sys_path_kind` gives. Values must match `vader_path_kind`.
@@ -156,7 +160,7 @@ export sys_readdir :: fn(dir: CPointer) -> CPointer | null
 ///
 /// @param ent  a `struct dirent*` from `sys_readdir`.
 /// @return     the entry name.
-@extern("vader_dirent_name")
+@extern(VADER_RUNTIME, "vader_dirent_name")
 export dirent_name :: fn(ent: CPointer) -> string
 
 /// `ferror(3)`. Non-zero once the stream's error indicator is set.
@@ -317,7 +321,7 @@ export sys_free :: fn(p: CPointer) -> void
 /// every spawned tool needs.
 ///
 /// @return  the parent's `char**` environment.
-@extern("vader_environ")
+@extern(VADER_RUNTIME, "vader_environ")
 export sys_environ :: fn() -> CPointer
 
 /// `POLLIN`: data is available to read. 1 on both systems.

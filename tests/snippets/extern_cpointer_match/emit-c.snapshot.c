@@ -137,9 +137,7 @@ const size_t vader_type_info_count = 14;
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-/* User @extern foreign symbols, resolved by the linker. */
-extern int32_t vader_last_errno(void);
+#include "vader.h"
 
 static vader_box_t vader_host_snippet$c_fopen(vader_string_t a0, vader_string_t a1) {
     const char* c0 = vader_string_to_cstr(a0);

@@ -3402,7 +3402,7 @@ A `CLibrary` (`std/ffi`) names a C library once; each `@extern` from it names th
 
 Anything else is an error, reported where the evaluation stopped. The fields:
 
-- `name`: the library `vader run` opens (`lib<name>.dylib` on macOS, `lib<name>.so` on Linux, `<name>.dll` on Windows), unless `archives` is set, whose functions go through adapters (*VM behaviour*). A native build links only `archives` and `system`.
+- `name`: the library `vader run` opens (`lib<name>.dylib` on macOS, `lib<name>.so` on Linux, `<name>.dll` on Windows, the running process when empty), unless `archives` is set, whose functions go through adapters (*VM behaviour*). A native build links only `archives` and `system`.
 - `header`: the header declaring the library's functions, written as the argument of `@c_header`. It serves each `@extern` of the library without a `@c_header` of its own.
 - `include`: a header folder searched by every compilation, relative to the declaring module. A quoted header (`"raylib.h"`) is found there.
 - `archives`: static archives shipped with the binding, relative to the declaring module. A missing one stops the build before the C compiler runs, naming the path.

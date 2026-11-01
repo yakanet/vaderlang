@@ -12,6 +12,10 @@ import "std/ffi"
 /// `kernel32.dll` to find them, and `<windows.h>` declares them.
 KERNEL32 :: CLibrary { .name = "kernel32", .header = "<windows.h>" }
 
+/// The runtime's own accessors (`runtime/c/rt/host.c`): no library to open, the
+/// interpreter finds them in the running process, and `vader.h` declares them.
+VADER_RUNTIME :: CLibrary { .name = "", .header = "vader.h" }
+
 /// A Win32 `HANDLE`: an opaque kernel object, never dereferenced.
 export Handle :: CPointer
 
@@ -123,7 +127,7 @@ export delete_file :: fn(path: u16[]) -> i32
 
 /// `GetLastError`. The calling thread's last Win32 error code.
 ///
-/// ⚠️ Read it IMMEDIATELY after the call that failed: any Win32 call in
+/// Read it IMMEDIATELY after the call that failed: any Win32 call in
 /// between may overwrite it.
 ///
 /// @return the raw Win32 code ; 0 when nothing has failed.
@@ -289,7 +293,7 @@ export find_close :: fn(handle: Handle) -> bool
 ///
 /// @param data  the buffer `find_first_file` filled.
 /// @return      the entry name.
-@extern("vader_find_data_name")
+@extern(VADER_RUNTIME, "vader_find_data_name")
 export find_data_name :: fn(data: u8[]) -> string
 
 /// `COORD`: a console cell position or size.
@@ -438,7 +442,7 @@ export create_pipe :: fn(@c_out read_end: u64[], @c_out write_end: u64[],
 ///
 /// @param base  the buffer the callee filled.
 /// @param i     the word index.
-@extern("vader_ptr_at")
+@extern(VADER_RUNTIME, "vader_ptr_at")
 export ptr_at :: fn(base: u64[], i: i64) -> Handle
 
 /// `HANDLE_FLAG_INHERIT`.

@@ -201,12 +201,8 @@ const size_t vader_type_info_count = 22;
 #include <stdlib.h>
 #include <unistd.h>
 #include <dirent.h>
+#include "vader.h"
 #include <stdio.h>
-
-/* User @extern foreign symbols, resolved by the linker. */
-extern int32_t vader_last_errno(void);
-extern int64_t vader_stream_size(void*);
-extern const char* vader_dirent_name(void*);
 
 static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);

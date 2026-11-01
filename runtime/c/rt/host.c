@@ -182,7 +182,7 @@ const char* vader_find_data_name(const void* fd) {
 /* The bytes belong to the C library and die at the next `readdir`; the shim
  * interns them before then. */
 VADER_HOST_EXPORT
-const char* vader_dirent_name(const void* ent) {
+const char* vader_dirent_name(void* ent) {
     return ((const struct dirent*) ent)->d_name;
 }
 

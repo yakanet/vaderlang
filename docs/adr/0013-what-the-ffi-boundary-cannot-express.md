@@ -4,6 +4,10 @@
 
 Accepted (2026-09-05).
 
+**Amended by [0124](0124-the-runtimes-accessors-are-bound-through-vader-h.md)
+(2026-11-01)**: the accessors take their prototype from `vader.h`, so the cost
+named under Consequences is paid only for integer widths.
+
 ## Context
 
 `std/io::is_dir` has been implemented three times, each attempt with its
