@@ -645,15 +645,19 @@ static void* vader_old_alloc(size_t bytes) {
     return r->base;
 }
 
-/* Push an object onto the gray worklist (geometric growth). */
-static void vader_gray_push(char* obj) {
-    if (g_gray_len == g_gray_cap) {
-        size_t new_cap = g_gray_cap == 0u ? 4096u : g_gray_cap * 2u;
-        char** ns = (char**) realloc(g_gray_stack, new_cap * sizeof(char*));
-        if (ns == NULL) vader_trap("vader_gray_push: realloc failed");
-        g_gray_stack = ns;
-        g_gray_cap   = new_cap;
-    }
+/* Grow the gray worklist geometrically. Out of line, so that the push it serves
+ * costs no stack frame in the collector's loops. */
+static VADER_NOINLINE void vader_gray_grow(void) {
+    size_t new_cap = g_gray_cap == 0u ? 4096u : g_gray_cap * 2u;
+    char** ns = (char**) realloc(g_gray_stack, new_cap * sizeof(char*));
+    if (ns == NULL) vader_trap("vader_gray_push: realloc failed");
+    g_gray_stack = ns;
+    g_gray_cap   = new_cap;
+}
+
+/* Push an object onto the gray worklist. */
+static inline void vader_gray_push(char* obj) {
+    if (VADER_UNLIKELY(g_gray_len == g_gray_cap)) vader_gray_grow();
     g_gray_stack[g_gray_len++] = obj;
 }
 
@@ -2019,23 +2023,6 @@ static void* vader_gc_copy_into(void* obj, size_t bytes, vader_arena_t* target) 
     return dst;
 }
 
-/* Forward-process `obj` (typed by `type_index`) following `g_cycle`:
- *
- *   minor or major-drain : young objects promote into the slab old gen via
- *     `vader_old_alloc` once their age reaches tenure, and move to young.to
- *     otherwise; old objects are stable (non-moving) and returned unchanged.
- *   major : the mark phase. An old object is MARKED (mark = g_mark_value) and
- *     enqueued on the gray worklist (so its children get scanned); it does not
- *     move, so the slot value is returned unchanged.
- *
- * Pointers outside any GC arena are immortal: static compile-time data
- * (lookup tables, interned constants) lives in the C data segment and is never
- * copied or marked (it carries no refs into the arena, so it's a trace
- * dead-end). The C-emit may emit such tables for fns matching the
- * `match enum -> StructLit constant` pattern.
- * Constraint: a static object MUST NOT contain any pointer to a dynamic
- * (arena-allocated) object: the trace never visits it, so any inner dynamic
- * ref would be missed and freed under your feet. */
 /* Copy a young object into the non-moving old gen and forward the original to
  * it. Returns NULL when the old reservation is at its cap: the caller decides
  * what that means. The caller also PUBLISHES the copy: a collection gray-pushes
@@ -2052,10 +2039,9 @@ static void* vader_gc_promote(void* obj, vader_obj_header_t* hdr, size_t bytes, 
     return dst;
 }
 
-/* Definition of the guard declared above. Kept out of the hot path's body so
- * the fast case is a single load-and-test the branch predictor never misses. */
-static void vader_gc_check_object_alignment(const void* obj, uint32_t type_index) {
-    if (!g_gc_check_box) return;
+/* Definition of the guard declared above. Out of line: `vader_gc_forward` tests
+ * the flag itself, a single load-and-test the branch predictor never misses. */
+static VADER_NOINLINE void vader_gc_check_object_alignment(const void* obj, uint32_t type_index) {
     if (((uintptr_t) obj & (uintptr_t)(VADER_GC_ALIGN - 1u)) == 0u) return;
     fprintf(stderr,
         "\n[VADER_GC_CHECK_BOX] root candidate is not %u-aligned (cycle=%d)\n"
@@ -2075,28 +2061,10 @@ static void vader_gc_check_object_alignment(const void* obj, uint32_t type_index
     vader_trap("VADER_GC_CHECK_BOX: root candidate is not object-aligned");
 }
 
-static void* vader_gc_forward(void* obj, uint32_t type_index) {
-    if (obj == NULL) return NULL;
-    vader_gc_check_object_alignment(obj, type_index);
-
-    if (g_cycle == VADER_CYCLE_MAJOR) {
-        /* Mark phase: only old objects are sweepable. Young survivors and
-         * immortals are dead-ends here (young is kept whole during the old
-         * pass; immortals are read-only, never write a mark to them). */
-        if (!vader_in_old(obj)) return obj;
-        vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
-        if (hdr->mark == g_mark_value) return obj;      /* already marked */
-        hdr->mark = g_mark_value;
-        vader_gray_push((char*) obj);
-        return obj;
-    }
-
-    /* An old object does not move during a minor, and an immortal never does. */
-    if (!vader_in_young_from(obj)) return obj;
-
-    vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
-    if (hdr->forward != NULL) return hdr->forward;
-
+/* Move a young object a minor has not moved yet: promote it or copy it into
+ * young.to. Out of line, so the checks of `vader_gc_forward` that send most
+ * referents back unchanged need no stack frame. */
+static VADER_NOINLINE void* vader_gc_evacuate(void* obj, vader_obj_header_t* hdr, uint32_t type_index) {
     size_t bytes = vader_gc_obj_size(obj, type_index);
     if (bytes == 0) return obj;
 
@@ -2121,6 +2089,47 @@ static void* vader_gc_forward(void* obj, uint32_t type_index) {
     if (dst == NULL) vader_trap("vader_gc: young to-space overflow during minor");
     ((vader_obj_header_t*) dst)->age = (uint8_t)(hdr->age + 1u);
     return dst;
+}
+
+/* Forward-process `obj` (typed by `type_index`) following `g_cycle`:
+ *
+ *   minor or major-drain : young objects promote into the slab old gen via
+ *     `vader_old_alloc` once their age reaches tenure, and move to young.to
+ *     otherwise; old objects are stable (non-moving) and returned unchanged.
+ *   major : the mark phase. An old object is MARKED (mark = g_mark_value) and
+ *     enqueued on the gray worklist (so its children get scanned); it does not
+ *     move, so the slot value is returned unchanged.
+ *
+ * Pointers outside any GC arena are immortal: static compile-time data
+ * (lookup tables, interned constants) lives in the C data segment and is never
+ * copied or marked (it carries no refs into the arena, so it's a trace
+ * dead-end). The C-emit may emit such tables for fns matching the
+ * `match enum -> StructLit constant` pattern.
+ * Constraint: a static object MUST NOT contain any pointer to a dynamic
+ * (arena-allocated) object: the trace never visits it, so any inner dynamic
+ * ref would be missed and freed under your feet. */
+static inline void* vader_gc_forward(void* obj, uint32_t type_index) {
+    if (obj == NULL) return NULL;
+    if (VADER_UNLIKELY(g_gc_check_box)) vader_gc_check_object_alignment(obj, type_index);
+
+    if (g_cycle == VADER_CYCLE_MAJOR) {
+        /* Mark phase: only old objects are sweepable. Young survivors and
+         * immortals are dead-ends here (young is kept whole during the old
+         * pass; immortals are read-only, never write a mark to them). */
+        if (!vader_in_old(obj)) return obj;
+        vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
+        if (hdr->mark == g_mark_value) return obj;      /* already marked */
+        hdr->mark = g_mark_value;
+        vader_gray_push((char*) obj);
+        return obj;
+    }
+
+    /* An old object does not move during a minor, and an immortal never does. */
+    if (!vader_in_young_from(obj)) return obj;
+
+    vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
+    if (hdr->forward != NULL) return hdr->forward;
+    return vader_gc_evacuate(obj, hdr, type_index);
 }
 
 /* VADER_GC_CHECK_BOX diagnostic. `boxp->tag` is out of the valid type-index
@@ -2205,10 +2214,7 @@ static void vader_gc_scan_raw(void** slot) {
     if (slot == NULL || *slot == NULL) return;
     void* obj = *slot;
     if (vader_in_young_from(obj)) {
-        vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
-        /* A referent already moved this cycle skips the call. */
-        void* moved = hdr->forward;
-        if (moved == NULL) moved = vader_gc_forward(obj, hdr->type_index);
+        void* moved = vader_gc_forward(obj, ((vader_obj_header_t*) obj)->type_index);
         *slot = moved;
         if (vader_in_young(moved)) {
             VADER_WRITE_BARRIER(slot);
@@ -2301,6 +2307,19 @@ static void vader_gc_scan_roots(void) {
     }
 }
 
+/* The first card in [c, hi] marked in `dirty`, or hi + 1. Steps over clean
+ * cards eight at a time: most of the old generation is clean at every minor. */
+static inline size_t vader_next_dirty_card(const uint8_t* dirty, size_t c, size_t hi) {
+    while (c + 8u <= hi + 1u) {
+        uint64_t word;
+        memcpy(&word, dirty + c, sizeof word);
+        if (word != 0u) break;
+        c += 8u;
+    }
+    while (c <= hi && dirty[c] == 0u) c++;
+    return c;
+}
+
 /* Forward every old→young pointer, then leave the card table holding EXACTLY
  * the cards whose old objects still point young: the second half of the
  * standard generational card protocol (HotSpot Serial/Parallel, .NET CoreCLR,
@@ -2349,7 +2368,10 @@ static void vader_gc_scan_old_dirty_cards(void) {
         size_t    card_hi   = ((uintptr_t) r->cur - 1u - vader_old_base) / VADER_CARD_BYTES;
         char*     cursor    = r->base;                  /* slots below are already scanned */
         for (size_t c = card_lo; c <= card_hi; c++) {
-            if (dirty != NULL && !dirty[c]) continue;   /* clean card: skip its slots wholesale */
+            if (dirty != NULL) {                        /* clean cards: skip their slots wholesale */
+                c = vader_next_dirty_card(dirty, c, card_hi);
+                if (c > card_hi) break;
+            }
 
             /* First slot of `r` overlapping card c, clamped past already-scanned
              * slots. Slots start at r->base + k*slot_size, so the slot covering
