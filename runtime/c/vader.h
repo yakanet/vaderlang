@@ -579,26 +579,43 @@ static inline void vader_array_make_borrowed(vader_array_t* a, uint32_t elem_tag
  * the open-coded c-emit read (`box_expr` with the static elem_tag, or
  * `vader_array_read_u8`) stamps it onto the returned box so virtual-dispatch
  * call sites that observe the array through an erased `Any[]` view get a
- * properly-tagged receiver. */
+ * properly-tagged receiver.
+ *
+ * `_pad` puts `slots` at a `VADER_ARRAY_SLOT_ALIGN` offset, and a buffer starts on
+ * that boundary wherever it is created or promoted: only a copy the collector
+ * keeps in young space may land off it (docs/adr/0123). */
 #define VADER_ARRAY_BUF_HEADER                                                   \
     vader_obj_header_t       header;                                             \
     size_t                   capacity;                                           \
     size_t                   length;                                             \
     uint32_t                 element_tag;                                        \
     uint8_t                  element_kind;                                       \
-    uint8_t                  _pad[3];
+    uint8_t                  _pad[11];
+
+/* The alignment of an array's slots: what a vectorised loop over them reads
+ * without a misaligned access. */
+#define VADER_ARRAY_SLOT_ALIGN 16u
 
 typedef struct vader_array_buf {
     VADER_ARRAY_BUF_HEADER
     uint8_t                  slots[];
 } vader_array_buf_t;
 
+_Static_assert(offsetof(vader_array_buf_t, slots) % VADER_ARRAY_SLOT_ALIGN == 0,
+               "a buffer on the slot alignment has its slots on it");
+/* A new array is one block, its header then its buffer. */
+_Static_assert(sizeof(vader_array_t) % VADER_ARRAY_SLOT_ALIGN == 0,
+               "a block on the slot alignment has its buffer on it");
+
 /* The buffer of a static array of `count` slots of `slot_type`, which the C
  * emitter declares: a static initializer cannot fill a flexible member, so the
  * slots are sized. Initialise them by the `.slots` designator, never by
  * position: the padding ahead of them may change. */
 #define VADER_ARRAY_STATIC_BUF(slot_type, count)                                 \
-    struct { VADER_ARRAY_BUF_HEADER slot_type slots[count]; }
+    struct {                                                                     \
+        VADER_ARRAY_BUF_HEADER                                                   \
+        _Alignas(VADER_ARRAY_SLOT_ALIGN) slot_type slots[count];                 \
+    }
 
 static inline bool vader_array_buf_is_shared(const vader_array_buf_t* buf) {
     return (buf->header._reserved & VADER_ARRAY_BUF_FLAG_SHARED) != 0;
@@ -694,6 +711,13 @@ static inline void vader_array_ref_store_box(vader_array_buf_t* buf, size_t slot
  * belt-and-suspenders marker: `vader_gc_obj_size` returns 0 for it, so any heap
  * walk that keys off object size skips it; the region walks key off `mark`. */
 #define VADER_TYPE_INDEX_FREE UINT32_C(0xFFFFFFFC)
+
+/* Sentinel index of a FILLER: one `VADER_GC_ALIGN` unit of young from-space that
+ * no object occupies, left ahead of a new array buffer to put its slots on
+ * `VADER_ARRAY_SLOT_ALIGN`. Only its first 4 bytes are written. The walk over
+ * young from-space steps over it, a collection never copies one, and nothing else
+ * ever holds its address. */
+#define VADER_TYPE_INDEX_FILLER UINT32_C(0xFFFFFFFB)
 
 typedef struct {
     vader_obj_header_t header;

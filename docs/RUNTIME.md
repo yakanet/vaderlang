@@ -230,10 +230,17 @@ typedef struct vader_array_buf {
     size_t             length;
     uint32_t           element_tag;
     uint8_t            element_kind;
-    uint8_t            _pad[3];
+    uint8_t            _pad[11];
     uint8_t            slots[];
 } vader_array_buf_t;
 ```
+
+The slots start 48 bytes into the buffer, and a buffer starts on a 16-byte
+boundary wherever it is created or promoted, so a vectorised loop over the slots
+reads no misaligned element. A young allocation off that boundary leaves an
+8-byte filler ahead of the buffer. A buffer the collector keeps in young space
+may land 8 bytes off it until its promotion
+([ADR 0123](adr/0123-an-array-buffers-slots-start-on-a-16-byte-boundary.md)).
 
 The buffer's `element_kind` says how its slots are stored:
 

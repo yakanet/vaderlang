@@ -169,6 +169,8 @@ static vader_gen_t g_young = { {NULL,NULL,NULL}, {NULL,NULL,NULL}, NULL, 0 };
 #define VADER_OLD_LARGE_SUBBINS  (1u << VADER_OLD_LARGE_SUB_LOG2)
 #define VADER_OLD_LARGE_BINS     ((64u - VADER_OLD_SMALL_MAX_LOG2) * VADER_OLD_LARGE_SUBBINS)
 #define VADER_OLD_LARGE_SCAN     32u   /* regions a large allocation inspects in its own bin */
+_Static_assert(VADER_OLD_CLASS_GRAN % VADER_ARRAY_SLOT_ALIGN == 0,
+               "a promoted array buffer keeps its slots on the slot alignment");
 
 /* One carved extent of the reservation. Small regions hold many fixed-size
  * slots of one class; large regions hold exactly one object. */
@@ -623,7 +625,10 @@ static void* vader_old_alloc(size_t bytes) {
         g_old_live_bytes += slot_size;
         return slot;
     }
-    /* Large: a freed region that fits, else a fresh one. */
+    /* Large: a freed region that fits, else a fresh one. Its size stays a multiple
+     * of the class granularity, so every region, and every slot in it, starts on
+     * the slot alignment an array buffer needs. */
+    aligned = (aligned + VADER_OLD_CLASS_GRAN - 1u) & ~(size_t) (VADER_OLD_CLASS_GRAN - 1u);
     vader_old_region_t** fit = vader_old_large_fit(aligned);
     if (fit != NULL) {
         vader_old_region_t* r = *fit;
@@ -666,12 +671,17 @@ static void vader_old_foreach_live(void (*fn)(char* obj, uint32_t type_index, vo
 
 static size_t vader_gc_obj_size(void* obj, uint32_t type_index);
 
-/* Invoke `fn` on every object of young from-space, one contiguous run. Stops
- * at an object of size 0, which only a `VADER_TYPE_KIND_NONE` entry yields. */
+/* Invoke `fn` on every object of young from-space, one contiguous run, stepping
+ * over the fillers. Stops at an object of size 0, which only a
+ * `VADER_TYPE_KIND_NONE` entry yields. */
 static void vader_young_foreach(void (*fn)(char* obj, uint32_t type_index, void* ctx), void* ctx) {
     char* scan = g_young.from.base;
     while (scan < g_young.from.cur) {
         vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
+        if (hdr->type_index == VADER_TYPE_INDEX_FILLER) {
+            scan += VADER_GC_ALIGN;
+            continue;
+        }
         size_t bytes = vader_gc_obj_size(scan, hdr->type_index);
         if (bytes == 0) break;
         fn(scan, hdr->type_index, ctx);
@@ -1954,6 +1964,44 @@ VADER_NOINLINE void* vader_gc_alloc(size_t bytes) {
     return vader_gc_alloc_slow(bytes);
 }
 
+_Static_assert(VADER_ARRAY_SLOT_ALIGN == 2u * VADER_GC_ALIGN,
+               "one filler moves a block onto the slot alignment");
+
+/* The bytes to leave at `at` ahead of an array buffer for its slots to land on
+ * `VADER_ARRAY_SLOT_ALIGN`: none, or one filler. */
+static inline size_t vader_gc_slot_pad(const char* at) {
+    return (uintptr_t) at & (VADER_ARRAY_SLOT_ALIGN - 1u);
+}
+
+static inline void vader_gc_put_filler(char* at) {
+    ((vader_obj_header_t*) at)->type_index = VADER_TYPE_INDEX_FILLER;
+}
+
+/* `vader_gc_alloc` for an array buffer, or for a new array's header and buffer
+ * in one block: the block starts on `VADER_ARRAY_SLOT_ALIGN`, behind a filler
+ * when the cursor is off it. */
+static VADER_NOINLINE void* vader_gc_alloc_slot_aligned(size_t bytes) {
+    VADER_ASITE_CAPTURE();
+    size_t aligned = vader_gc_align(bytes);
+    char*  cur     = g_young.from.cur;
+    size_t pad     = vader_gc_slot_pad(cur);
+    if (VADER_LIKELY((uintptr_t) cur + pad + aligned < (uintptr_t) g_alloc_limit)) {
+        if (pad != 0u) vader_gc_put_filler(cur);
+        g_young.from.cur = cur + pad + aligned;
+        return cur + pad;
+    }
+    /* The slow path bumps the young cursor last, so a block that lands on the
+     * boundary hands its spare filler back. */
+    char* block = (char*) vader_gc_alloc_slow(bytes + VADER_GC_ALIGN);
+    if (vader_gc_slot_pad(block) == 0u) {
+        g_young.from.cur    -= VADER_GC_ALIGN;
+        g_total_alloc_bytes -= VADER_GC_ALIGN;
+        return block;
+    }
+    vader_gc_put_filler(block);
+    return block + VADER_GC_ALIGN;
+}
+
 /* ---------- generational GC: copying young, mark-sweep old ---------- */
 
 /* Size of an object in a from-space, in bytes. For variable-length buffers
@@ -1997,7 +2045,11 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
  * copied object looks live (not yet forwarded) within this cycle. The
  * destination's age is overwritten by the caller to reflect promotion
  * semantics. Returns NULL if `target` doesn't have room: the caller is
- * expected to react (promotion overflow → escalate to major). */
+ * expected to react (promotion overflow → escalate to major).
+ *
+ * Never leaves a filler ahead of an array buffer, unlike its allocation: the
+ * copies then take no more room than the from-space held, which the size of the
+ * to-space counts on. */
 static void* vader_gc_copy_into(void* obj, size_t bytes, vader_arena_t* target) {
     size_t aligned = vader_gc_align(bytes);
     if (target->cur + aligned > target->end) return NULL;
@@ -2872,7 +2924,7 @@ static size_t vader_array_buf_bytes(size_t capacity, uint8_t element_kind) {
  * area land in a single GC arena allocation. */
 static vader_array_buf_t* vader_array_buf_alloc(size_t capacity, uint8_t element_kind, uint32_t element_tag) {
     size_t bytes = vader_array_buf_bytes(capacity, element_kind);
-    vader_array_buf_t* buf = (vader_array_buf_t*) vader_gc_alloc(bytes);
+    vader_array_buf_t* buf = (vader_array_buf_t*) vader_gc_alloc_slot_aligned(bytes);
     vader_obj_header_init(buf, VADER_TYPE_INDEX_ARRAY_BUF);
     buf->capacity     = capacity;
     buf->length       = 0;
@@ -3152,7 +3204,7 @@ static vader_array_t* vader_array_alloc_cap(uint32_t type_index, size_t length, 
     if (struct_bytes > SIZE_MAX - buf_bytes) {
         vader_trap("vader_array: total alloc size overflows size_t");
     }
-    char* block = (char*) vader_gc_alloc(struct_bytes + buf_bytes);
+    char* block = (char*) vader_gc_alloc_slot_aligned(struct_bytes + buf_bytes);
     vader_array_t* a = (vader_array_t*) block;
     vader_array_buf_t* buf = (vader_array_buf_t*) (block + struct_bytes);
     vader_obj_header_init(a, type_index);
