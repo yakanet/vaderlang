@@ -1173,10 +1173,10 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     }
     shared: CTopLevel[]: []
     if has_fn {
-        shared.push(single_offset_list("vader_fn_ptr_offsets", "offsetof(vader_fn_t, env)"))
+        shared.push(single_offset_list("vader_fn_ref_offsets", "offsetof(vader_fn_t, env)"))
     }
     if has_array {
-        shared.push(single_offset_list("vader_array_ptr_offsets", "offsetof(vader_array_t, buf)"))
+        shared.push(single_offset_list("vader_array_ref_offsets", "offsetof(vader_array_t, buf)"))
     }
     printer.print_section(CSection { .items = shared })
 
@@ -1196,7 +1196,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
                     "FN",
                     "vader_fn_t",
                     size_of_bc_type(entry),
-                    "vader_fn_ptr_offsets",
+                    "vader_fn_ref_offsets",
                 ),
             )
             is BcArray  -> rows.push(
@@ -1205,7 +1205,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
                     "ARRAY",
                     "vader_array_t",
                     size_of_bc_type(entry),
-                    "vader_array_ptr_offsets",
+                    "vader_array_ref_offsets",
                 ),
             )
             // Primitives / unions / refs: every other `BcType`. MUST stay a
@@ -1250,8 +1250,8 @@ single_offset_list :: fn(name: string, offset: string) -> CTopLevel = CGlobal {
     },
 }
 
-// The row of a type whose objects hold exactly one reference, at the offset
-// the shared list `offsets` names.
+// The row of a type whose objects hold exactly one raw reference, at the
+// offset the shared list `offsets` names.
 single_reference_row :: fn(
     index: i64,
     kind: string,
@@ -1264,8 +1264,8 @@ single_reference_row :: fn(
         designated(".kind", verbatim("VADER_TYPE_KIND_${kind}")),
         designated(".size", verbatim("sizeof(${type})")),
         designated(".slot_size", number(i64(slot_size))),
-        designated(".ptr_offsets", verbatim(offsets)),
-        designated(".ptr_count", number(1)),
+        designated(".ref_offsets", verbatim(offsets)),
+        designated(".ref_count", number(1)),
     ],
 )
 

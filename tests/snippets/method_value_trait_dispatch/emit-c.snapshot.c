@@ -932,8 +932,8 @@ static vader_box_t vader_fn_lift___method_snippet_0(void* env) {
     return vader_box_string(2u, __method_snippet_0(env));
 }
 
-static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };
-static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
+static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[30] = {
     [1] = {
@@ -950,7 +950,7 @@ const vader_type_info_t vader_type_info_table[30] = {
     [4] = { .slot_size = 16 },
     [5] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [6] = { .slot_size = 4 },
     [7] = {
@@ -993,7 +993,7 @@ const vader_type_info_t vader_type_info_table[30] = {
     [23] = { .slot_size = 8 },
     [24] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [25] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$FloatDec32_t),
@@ -1009,7 +1009,7 @@ const vader_type_info_t vader_type_info_table[30] = {
     },
     [29] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
 };
 const size_t vader_type_info_count = 30;

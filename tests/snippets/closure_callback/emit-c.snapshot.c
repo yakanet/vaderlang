@@ -26,12 +26,12 @@ static vader_box_t vader_fn_lift___lambda_snippet_0(void* env, vader_box_t a0) {
     return vader_box_i32(2u, __lambda_snippet_0(env, ((int32_t) a0.payload.i)));
 }
 
-static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };
+static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 
 const vader_type_info_t vader_type_info_table[4] = {
     [1] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [2] = { .slot_size = 4 },
     [3] = {
