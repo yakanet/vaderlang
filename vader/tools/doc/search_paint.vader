@@ -11,9 +11,9 @@ import "std/collections"
 import "std/iter"
 import "std/string"
 TTY :: import "std/tty"
+import "toolchain/span"
 Ty :: import "vader/core/types"
 Lex :: import "vader/front/lexer"
-import "vader/support/text"
 
 // What a piece of text is, for its colour. Each is a role: two roles may share
 // a colour today and part later.
@@ -28,6 +28,7 @@ Paint :: enum {
     Name,
     Label,
     Code,
+    Plain,
 }
 
 // `s` in the colour of `paint`, as it is when the text is not coloured.
@@ -46,6 +47,7 @@ painted :: fn(ctx: TextCtx, paint: Paint, s: string) -> string {
         .Name     -> TTY.bold(s)
         .Label    -> TTY.bold(s)
         .Code     -> TTY.cyan(s)
+        .Plain    -> s
     }
 }
 
@@ -110,83 +112,111 @@ painted_qualified :: fn(ctx: TextCtx, name: string) -> string {
     return painted(ctx, .Module, name.byte_slice(0, dot)) + painted(ctx, .Name, rest)
 }
 
-// A line of Vader with its words, strings and characters painted, and a
-// trailing comment; `name`, the name it declares, in bold.
+// A line of Vader with its words, strings and characters painted as the lexer
+// reads them, and its comments; `name`, the name it declares, in bold.
 painted_code :: fn(ctx: TextCtx, line: string, name: string) -> string {
     if !ctx.colored {
         return line
     }
     out: string[]: []
-    n :: line.byte_len()
-    i: i64 = 0
-    for i < n {
-        if opens_comment(line, i) {
-            out.push(painted(ctx, .Comment, line.byte_slice(i, n)))
-            return out.join("")
-        }
-        b :: line.byte_at(i)
-        end := i + 1
-        if b == '"' || b == '\'' {
-            end = quoted_end(line, i)
-            out.push(painted(ctx, .String, line.byte_slice(i, end)))
-        } else if is_ident_byte(b) {
-            for end < n && is_ident_byte(line.byte_at(end)) {
-                end += 1
-            }
-            out.push(painted_word(ctx, line.byte_slice(i, end), name))
-        } else {
-            for end < n && !opens_token(line, end) {
-                end += 1
-            }
-            out.push(line.byte_slice(i, end))
-        }
-        i = end
+    for piece in code_pieces(line, name) {
+        out.push(painted(ctx, piece.paint, piece.text))
     }
     return out.join("")
 }
 
-// Where the string or the character opened by the quote at `start` of `line`
-// ends, past its closing quote; at the end of the line when it does not close.
-quoted_end :: fn(line: string, start: i64) -> i64 {
-    quote :: line.byte_at(start)
-    end := start + 1
-    for end < line.byte_len() && line.byte_at(end) != quote {
-        if line.byte_at(end) == '\\' {
-            end += 1
-        }
-        end += 1
-    }
-    if end < line.byte_len() {
-        return end + 1
-    }
-    return line.byte_len()
+// A piece of a line of code and the colour it takes.
+CodePiece :: struct {
+    text: string
+    paint: Paint
 }
 
-// `word` in the colour of what it is: `name`, a keyword, a constant, a type.
-painted_word :: fn(ctx: TextCtx, word: string, name: string) -> string {
-    if word == name {
-        return painted(ctx, .Name, word)
+// The pieces of `line`, in order: the lexer's tokens and comments, and the
+// text between them, plain. A line cut out of a longer literal lexes with
+// errors, which leave their text plain.
+code_pieces :: fn(line: string, name: string) -> CodePiece[] {
+    lexed :: Lex.tokenize_with_docs(line, "")
+    line_cut :: LineCut { .line = line, .comments = lexed.comments }
+    for t in lexed.tokens {
+        line_cut.cut_comments_before(t.span.start.offset)
+        line_cut.cut(t.span, token_paint(t, name))
     }
-    if word in Lex.KEYWORDS {
-        return painted(ctx, .Keyword, word)
+    line_cut.plain_until(line.byte_len())
+    return line_cut.pieces
+}
+
+// A line being cut into pieces, up to its byte `at`.
+LineCut :: struct {
+    line: string
+    comments: Span[]
+    pieces: CodePiece[] = []
+    at: i64 = 0
+    // The first of `comments` not cut yet.
+    next_comment: i64 = 0
+}
+
+// Cut the comments that start before `offset`.
+cut_comments_before :: fn(self: LineCut, offset: i64) -> void {
+    for self.next_comment < self.comments.len() {
+        comment :: self.comments[self.next_comment]
+        if comment.start.offset >= offset {
+            return
+        }
+        self.cut(comment, .Comment)
+        self.next_comment += 1
+    }
+}
+
+// Cut `span` of the line as a piece in `paint`, after the plain text before it.
+// An empty span cuts nothing.
+cut :: fn(self: LineCut, span: Span, paint: Paint) -> void {
+    if span.end.offset <= span.start.offset || span.start.offset < self.at {
+        return
+    }
+    self.plain_until(span.start.offset)
+    self.pieces.push(CodePiece { .text = span.text_in(self.line), .paint = paint })
+    self.at = span.end.offset
+}
+
+// Cut the text from `at` to `end` as a plain piece.
+plain_until :: fn(self: LineCut, end: i64) -> void {
+    if end <= self.at {
+        return
+    }
+    self.pieces.push(CodePiece { .text = self.line.byte_slice(self.at, end), .paint = .Plain })
+    self.at = end
+}
+
+// The colour of the token `t`.
+token_paint :: fn(t: Lex.Token, name: string) -> Paint {
+    if is_quoted(t.kind) {
+        return .String
+    }
+    if t.kind == .Ident {
+        return word_paint(t.text, name)
+    }
+    if t.text in Lex.KEYWORDS {
+        return .Keyword
+    }
+    return .Plain
+}
+
+// Whether a token of `kind` is a piece of a string or of a character.
+is_quoted :: fn(kind: Lex.TokenKind) =
+    kind == .StringBegin || kind == .StringPart || kind == .StringEnd || kind == .CharLit
+
+// The colour of the identifier `word`: `name`, a constant, a type, or none.
+word_paint :: fn(word: string, name: string) -> Paint {
+    if word == name {
+        return .Name
     }
     if is_constant_name(word) {
-        return painted(ctx, .Constant, word)
+        return .Constant
     }
     if word.byte_at(0) in 'A'..='Z' || Ty.is_scalar_type_name(word) || word == "never" {
-        return painted(ctx, .Type, word)
+        return .Type
     }
-    return word
-}
-
-// Whether a comment opens at `i` of `line`.
-opens_comment :: fn(line: string, i: i64) -> bool =
-    i + 1 < line.byte_len() && line.byte_at(i) == '/' && line.byte_at(i + 1) == '/'
-
-// Whether a word, a string, a character or a comment opens at `i` of `line`.
-opens_token :: fn(line: string, i: i64) -> bool {
-    b :: line.byte_at(i)
-    return is_ident_byte(b) || b == '"' || b == '\'' || opens_comment(line, i)
+    return .Plain
 }
 
 // Whether `word` is written as a constant: upper-case letters, digits and `_`,
@@ -237,7 +267,26 @@ test_search_paint_keeps_the_text_of_a_line_of_code :: fn() -> void {
     assert_eq(TTY.without_escapes(painted_code(colored_ctx(), line, "f")), line)
 }
 
+// The texts of the pieces of `line` painted in `paint`.
+pieces_painted :: fn(line: string, paint: Paint) -> string[] {
+    texts: string[]: []
+    for piece in code_pieces(line, "") {
+        if piece.paint == paint {
+            texts.push(piece.text)
+        }
+    }
+    return texts
+}
+
 @test
-test_search_paint_ends_a_character_at_its_quote :: fn() -> void {
-    assert_eq(quoted_end("b == '\"' && x", 5), 8)
+test_search_paint_paints_a_character_as_a_string :: fn() -> void {
+    assert_eq(pieces_painted("b == '\"' && x", .String).join("|"), "'\"'")
+}
+
+@test
+test_search_paint_follows_an_interpolation :: fn() -> void {
+    // The quote and the apostrophe inside `${...}` belong to the string: what
+    // follows it is code again.
+    line :: "g :: \"x \${f(\"a'b\")} y\"  // done"
+    assert_eq(pieces_painted(line, .Comment).join("|"), "// done")
 }

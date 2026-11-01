@@ -12,6 +12,7 @@ import "std/string"
 import "std/string_builder"
 import "std/io"
 import "std/iter"
+import "vader/front/lexer"
 import "vader/support/diagnostics"
 p :: import "toolchain/ast"
 import "toolchain/span"
@@ -1518,9 +1519,8 @@ OperatorPlace :: struct {
 
 // Where the source breaks the line around `symbol`, the operator written between
 // `left_end` and `right_start`. Operands on one line keep it inline with no scan ;
-// otherwise the operator is found past blanks, `//` comments and the `)` closing a
-// parenthesised left operand: anything else there keeps it inline, as does a
-// measurement.
+// otherwise the operator is the first token past the `)` closing a parenthesised
+// left operand: anything else there keeps it inline, as does a measurement.
 operator_place :: fn(
     self: Printer,
     symbol: string,
@@ -1531,25 +1531,38 @@ operator_place :: fn(
     if !self.keeps_line_breaks() || left_end.line == right_start.line {
         return inline
     }
-    source :: self.source
-    i := left_end.offset
-    for i < right_start.offset {
-        c :: source.byte_at(i)
-        if c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == ')' {
-            i += 1
-        } else if c == '/' && i + 1 < right_start.offset && source.byte_at(i + 1) == '/' {
-            for i < right_start.offset && source.byte_at(i) != '\n' {
-                i += 1
-            }
-        } else {
-            break
-        }
-    }
-    if i + symbol.byte_len() > right_start.offset || !source.matches_at(i, symbol) {
+    between :: self.source.byte_slice(left_end.offset, right_start.offset)
+    place :: operator_in(between) ?? return inline
+    if !between.matches_at(place.offset, symbol) {
         return inline
     }
-    at: LineBreakAt: if line_breaks_before(source, i) { .BeforeOp } else { .AfterOp }
-    return OperatorPlace { .at = at, .offset = i }
+    return OperatorPlace { ...place, .offset = left_end.offset + place.offset }
+}
+
+// The first token of `between` past its `)`, placed by the line breaks around it
+// with its offset in `between` ; null when there is none.
+operator_in :: fn(between: string) -> OperatorPlace | null {
+    line_after_parens: i32 = 1
+    for t in tokenize(between, "").tokens {
+        if t.kind == .RParen {
+            line_after_parens = t.span.end.line
+        } else if t.kind != .Newline && t.kind != .Eof {
+            return OperatorPlace {
+                .at = line_break_at(t, line_after_parens),
+                .offset = t.span.start.offset,
+            }
+        }
+    }
+    return null
+}
+
+// `BeforeOp` when `operator` starts a later line than `line_after_parens`, the
+// line the left operand and its `)` end on.
+line_break_at :: fn(operator: Token, line_after_parens: i32) -> LineBreakAt {
+    if operator.span.start.line > line_after_parens {
+        return .BeforeOp
+    }
+    return .AfterOp
 }
 
 // Write `symbol` between two operands where `place` says, with the comments the

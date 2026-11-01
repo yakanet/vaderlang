@@ -85,6 +85,16 @@ test_fmt_keeps_line_break_before_operator :: fn() -> void {
 }
 
 @test
+test_fmt_keeps_line_break_before_operator_past_block_comment :: fn() -> void {
+    fmt_keeps("s :: fn() -> i32 = 1\n    /* note */\n    + 2", "= 1\n    /* note */\n    + 2")
+}
+
+@test
+test_fmt_keeps_operator_leading_past_block_comment_on_its_line :: fn() -> void {
+    fmt_keeps("s :: fn() -> i32 = 1\n    /* note */ + 2", "= 1\n    /* note */\n    + 2")
+}
+
+@test
 test_fmt_keeps_line_break_after_operator :: fn() -> void {
     fmt_keeps("s :: fn() -> i32 = 1 +\n    2", "1 +\n    2")
 }
