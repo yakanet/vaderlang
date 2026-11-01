@@ -425,10 +425,10 @@ const char vader_atom_blob[] =
     ".name`" "\0"
     ".neg overflow" "\0"
     ".obj" "\0"
-    ".ptr_count" "\0"
-    ".ptr_offsets" "\0"
     ".push" "\0"
     ".push_all" "\0"
+    ".ref_count" "\0"
+    ".ref_offsets" "\0"
     ".remove_last" "\0"
     ".s" "\0"
     ".size" "\0"
@@ -2861,7 +2861,6 @@ const char vader_atom_blob[] =
     "vader_array_copy" "\0"
     "vader_array_is_borrowed" "\0"
     "vader_array_new" "\0"
-    "vader_array_ptr_offsets" "\0"
     "vader_array_push" "\0"
     "vader_array_push_all" "\0"
     "vader_array_push_bool" "\0"
@@ -2878,6 +2877,7 @@ const char vader_atom_blob[] =
     "vader_array_read_u8" "\0"
     "vader_array_ref_load_box" "\0"
     "vader_array_ref_load_obj" "\0"
+    "vader_array_ref_offsets" "\0"
     "vader_array_ref_store" "\0"
     "vader_array_ref_store_box" "\0"
     "vader_array_remove_last" "\0"
@@ -2928,7 +2928,7 @@ const char vader_atom_blob[] =
     "vader_ffi_symbol" "\0"
     "vader_fn_erased_sig_" "\0"
     "vader_fn_lift_" "\0"
-    "vader_fn_ptr_offsets" "\0"
+    "vader_fn_ref_offsets" "\0"
     "vader_fn_static_" "\0"
     "vader_fn_t" "\0"
     "vader_fn_t*" "\0"
@@ -3495,10 +3495,10 @@ const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7227] },
     { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7234] },
     { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7248] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7253] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7264] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7277] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7283] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7253] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7259] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7269] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7280] },
     { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7293] },
     { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7306] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7309] },
@@ -5931,23 +5931,23 @@ const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63418] },
     { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63435] },
     { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63459] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63475] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63499] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63516] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63537] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63559] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63580] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63601] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63622] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63643] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63664] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63684] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63705] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63729] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63750] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63770] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63790] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63815] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63475] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63492] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63513] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63535] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63556] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63577] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63598] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63619] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63640] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63660] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63681] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63705] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63726] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63746] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63766] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63791] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63816] },
     { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63840] },
     { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63862] },
     { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63888] },
@@ -12682,1766 +12682,1766 @@ void* vader_global_9 = 0u;
 static void** vader_global_raw_roots[] = { &vader_global_3, &vader_global_9 };
 vader_gc_frame_t vader_global_frame = { NULL, 0u, 2u, NULL, vader_global_raw_roots, 0u, NULL };
 
-static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };
-static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
+static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[2318] = {
     [1] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [2] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [3] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [4] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [5] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [6] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [8] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [9] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [12] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [13] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [14] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [15] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [16] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [17] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [18] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [19] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [20] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [21] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [22] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [23] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [24] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [25] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [26] = { .slot_size = 16 },
     [27] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [28] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [29] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [30] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [31] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [32] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [33] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [34] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [35] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [36] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [37] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [38] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [39] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [40] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [41] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [42] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [43] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [44] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [45] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [46] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [47] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [48] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [49] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [50] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [51] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [52] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [53] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [54] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [55] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [56] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [57] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [58] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [59] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [60] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [61] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [62] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [63] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [64] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [65] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [66] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [67] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [68] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [69] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [70] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [71] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [72] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [73] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [74] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [75] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [76] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [77] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [78] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [79] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [80] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [81] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [82] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [83] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [84] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [85] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [86] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [87] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [88] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [89] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [90] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [91] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [92] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [93] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [94] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [95] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [96] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [97] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [98] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [99] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [100] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [101] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [102] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [103] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [104] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [105] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [106] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [107] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [108] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [109] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [110] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [111] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [112] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [113] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [114] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [115] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [116] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [117] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [118] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [119] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [120] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [121] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [122] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [123] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [124] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [125] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [126] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [127] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [128] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [129] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [130] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [131] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [132] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [133] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [134] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [135] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [136] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [137] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [138] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [139] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [140] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [141] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [142] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [143] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [144] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [145] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [146] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [147] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [148] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [149] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [150] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [151] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [152] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [153] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [154] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [155] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [156] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [157] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [158] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [159] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [160] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [161] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [162] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [163] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [164] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [165] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [166] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [167] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [168] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [169] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [170] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [171] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [172] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [173] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [174] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [175] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [176] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [177] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [178] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [179] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [180] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [181] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [182] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [183] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [184] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [185] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [186] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [187] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [188] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [189] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [190] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [191] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [192] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [193] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [194] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [195] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [196] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [197] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [198] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [199] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [200] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [201] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [202] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [203] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [204] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [205] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [206] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [207] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [208] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [209] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [210] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [211] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [212] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [213] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [214] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [215] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [216] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [217] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [218] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [219] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [220] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [221] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [222] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [223] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [224] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [225] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [226] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [227] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [228] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [229] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [230] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [231] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [232] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [233] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [234] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [235] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [236] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [237] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [238] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [239] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [240] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [241] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [242] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [243] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [244] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [245] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [246] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [247] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [248] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [249] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [250] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [251] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [252] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [253] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [254] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [255] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [256] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [257] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [258] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [259] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [260] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [261] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [262] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [263] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [264] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [265] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [266] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [267] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [268] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [269] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [270] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [271] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [272] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [273] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [274] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [275] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [276] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [277] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [278] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [279] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [280] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [281] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [282] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [283] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [284] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [285] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [286] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [287] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [288] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [289] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [290] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [291] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [292] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [293] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [294] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [295] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [296] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [297] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [298] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [299] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [300] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [301] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [302] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [303] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [304] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [305] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [306] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [307] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [308] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [309] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [310] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [311] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [312] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [313] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [314] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [315] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [316] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [317] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [318] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [319] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [320] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [321] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [322] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [323] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [324] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [325] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [326] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [327] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [328] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [329] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [330] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [331] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [332] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [333] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [334] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [335] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [336] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [337] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [338] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [339] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [340] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [341] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [342] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [343] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [344] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [345] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [346] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [347] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [348] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [349] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [350] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [351] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [352] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [353] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [354] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [355] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [356] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [357] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [358] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [359] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [360] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [361] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [362] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [363] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [364] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [365] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [366] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [367] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [368] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [369] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [370] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [371] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [372] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [373] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [374] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [375] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [376] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [377] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [378] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [379] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
     [380] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [381] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [382] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [383] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [384] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [385] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [386] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [387] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [388] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [389] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [390] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [391] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [392] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [393] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [394] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [395] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [396] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [397] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [398] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [399] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [400] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [401] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [402] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [403] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [404] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [405] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [406] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [407] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [408] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [409] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [410] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [411] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [412] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [413] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [414] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [415] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [416] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [417] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [418] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [419] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [420] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [421] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [422] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [423] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [424] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [425] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [426] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [427] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [428] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [429] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [430] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [431] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [432] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [433] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [434] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [435] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [436] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [437] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [438] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [439] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [440] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
     [441] = { .slot_size = 1 },
     [442] = { .slot_size = 2 },
