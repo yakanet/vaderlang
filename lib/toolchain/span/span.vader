@@ -130,6 +130,17 @@ export has_source_position :: fn(s: Span) -> bool {
 export source_position :: fn(span: Span) -> string =
     "${span.start.file}:${span.start.line}:${span.start.column}"
 
+/// The text `span` covers in `source`, the file it was read from.
+///
+/// @param span    the piece of source.
+/// @param source  the text of the file `span` points into.
+/// @example
+///   # p :: Position { .file = "a.vader", .offset = 0, .line = 1, .column = 1 }
+///   # q :: Position { .file = "a.vader", .offset = 5, .line = 1, .column = 6 }
+///   Span { .start = p, .end = q }.text_in("x :: 1")   // "x :: "
+export text_in :: fn(span: Span, source: string) -> string =
+    source.byte_slice(span.start.offset, span.end.offset)
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -155,4 +166,10 @@ import "std/testing"
     long  :: Position { .file = "a.vader", .offset = 9, .line = 1, .column = 10 }
     assert(Span { .start = start, .end = short } != Span { .start = start, .end = long },
         "same start, different end: distinct spans")
+}
+
+@test test_text_in_reads_the_covered_bytes :: fn() -> void {
+    start :: Position { .file = "a.vader", .offset = 5, .line = 1, .column = 6 }
+    end   :: Position { .file = "a.vader", .offset = 6, .line = 1, .column = 7 }
+    assert_eq(Span { .start = start, .end = end }.text_in("x :: 1"), "1")
 }

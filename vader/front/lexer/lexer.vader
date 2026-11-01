@@ -62,12 +62,14 @@ Lexer :: struct {
     errors: Diagnostic[] = []
     interp_stack: InterpFrame[] = []
     // Set by `tokenize_with_docs` : every run of `///` lines is then kept in
-    // `doc_runs`. The token stream is the same either way.
+    // `doc_runs`, and the span of every comment in `comments`. The token stream is
+    // the same either way.
     include_doc_comments: bool = false
     doc_runs: DocRun[] = []
     // The `///` lines read since the last token ; null when there are none, or when
     // a plain comment came after them.
     open_doc: AST.DocComment | null = null
+    comments: Span[] = []
 }
 
 /// A run of `///` lines with nothing but blank lines between them and the token
@@ -178,12 +180,17 @@ skip_bom :: fn(l: Lexer) -> void {
 }
 
 // Skip what may open the file before its first token: a UTF-8 BOM, then a
-// shebang on line 1, silently dropped.
+// shebang on line 1, skipped as a line comment is.
 skip_opening :: fn(l: Lexer) -> void {
     l.skip_bom()
     if l.peek() == '#' && l.peek_at(1) == '!' {
-        for !l.at_end() && l.peek() != '\n' {
+        start :: l.pos
+        column :: l.col
+        for !l.at_end() && l.peek() != '\n' && l.peek() != '\r' {
             l.advance(1)
+        }
+        if l.include_doc_comments {
+            l.note_comment(start, l.line, column)
         }
     }
 }
@@ -282,15 +289,9 @@ note_line_comment :: fn(l: Lexer, start: i64, column: i32) -> void {
         l.open_doc = null
         return
     }
-    begin :: Position {
-        .file   = l.file,
-        .offset = start,
-        .line   = l.line,
-        .column = column,
-    }
     line :: AST.DocCommentLine {
         .text = l.src.byte_slice(start + 3, l.pos),
-        .span = Span { .start = begin, .end = l.position_here() },
+        .span = l.span_since(start, l.line, column),
     }
     doc :: l.open_doc
     if doc == null {
@@ -298,6 +299,27 @@ note_line_comment :: fn(l: Lexer, start: i64, column: i32) -> void {
         return
     }
     doc.lines.push(line)
+}
+
+// Keep the comment just skipped, which opened at `start` in `column` of `line`.
+// One inside a `${...}` is part of its string literal and is not kept. Out of
+// `lex_one` for the reason `note_line_comment` gives.
+note_comment :: fn(l: Lexer, start: i64, line: i32, column: i32) -> void {
+    if l.interp_stack.len() > 0 {
+        return
+    }
+    l.comments.push(l.span_since(start, line, column))
+}
+
+// The span from the byte `start`, in `column` of `line`, to where the lexer is.
+span_since :: fn(l: Lexer, start: i64, line: i32, column: i32) = Span {
+    .start = Position {
+        .file   = l.file,
+        .offset = start,
+        .line   = line,
+        .column = column,
+    },
+    .end   = l.position_here(),
 }
 
 push_simple :: fn(l: Lexer, kind: TokenKind, text: string, start: Position) -> void {
@@ -357,6 +379,9 @@ lex_block_comment :: fn(l: Lexer) -> void {
             continue
         }
         l.advance(1)
+    }
+    if l.include_doc_comments {
+        l.note_comment(start.offset, start.line, start.column)
     }
     if depth > 0 {
         l.push_error(.UnterminatedBlockComment, l.error_span(start), "")
@@ -1053,6 +1078,7 @@ lex_one :: fn(l: Lexer) -> void {
         }
         if l.include_doc_comments {
             l.note_line_comment(start, column)
+            l.note_comment(start, l.line, column)
         }
         return
     }
@@ -1138,6 +1164,9 @@ export LexedSource :: struct {
     errors: Diagnostic[]
     /// The `///` runs, empty unless the lexing kept them (`tokenize_with_docs`).
     doc_runs: DocRun[]
+    /// The span of every comment, the `#!` line included, empty unless the lexing
+    /// kept them (`tokenize_with_docs`).
+    comments: Span[]
 }
 
 /// Lex `source` into its tokens and the diagnostics met on the way.
@@ -1147,10 +1176,12 @@ export LexedSource :: struct {
 export tokenize :: fn(source: string, file: string) -> LexedSource =
     run_lexer(Lexer { .src = source, .file = file })
 
-/// Tokenize `source` as `tokenize` does, keeping every `///` line in `doc_runs`.
+/// Tokenize `source` as `tokenize` does, keeping every `///` line in `doc_runs`
+/// and the span of every comment in `comments`.
 ///
-/// The tokens are the same as `tokenize` gives: the docs travel beside them, never
-/// in the stream, since the parser reads the token array directly in places.
+/// The tokens are the same as `tokenize` gives: the docs and the comments travel
+/// beside them, never in the stream, since the parser reads the token array
+/// directly in places.
 ///
 /// @param source  the text of the file.
 /// @param file    the path its spans name.
@@ -1195,6 +1226,7 @@ run_lexer :: fn(l: Lexer) -> LexedSource {
         .tokens = l.tokens,
         .errors = l.errors,
         .doc_runs = l.doc_runs,
+        .comments = l.comments,
     }
 }
 
@@ -1325,6 +1357,12 @@ import "std/testing"
     l :: tokenize("// comment\r42", "test.vader")
     assert_eq(l.tokens[0].text, "42")
     assert_eq(l.line_of("42"), 2)
+}
+
+@test test_shebang_ends_on_bare_cr :: fn() -> void {
+    // As a line comment does, so a classic-Mac file keeps its second line.
+    l :: tokenize("#!/usr/bin/env vader\r42", "test.vader")
+    assert_eq(l.tokens[0].text, "42")
 }
 
 @test test_tokenize_no_errors_on_valid_source :: fn() -> void {
@@ -1521,6 +1559,25 @@ count_newlines :: fn(l: LexedSource) -> i64 {
     assert_eq(run.doc.lines[1].text, "Two.")
     // `f` opens at byte 18, past the two lines and the blank one.
     assert_eq(run.followed_by, 18)
+}
+
+@test test_tokenize_with_docs_keeps_the_comment_spans :: fn() -> void {
+    src :: "#!/usr/bin/env vader\nx :: 1 // one\n/* two\n */\n"
+    l :: tokenize_with_docs(src, "test.vader")
+    assert_eq(l.comments.len(), 3)
+    assert_eq(l.comments[0].text_in(src), "#!/usr/bin/env vader")
+    assert_eq(l.comments[1].text_in(src), "// one")
+    assert_eq(l.comments[2].start.line, 3)
+    assert_eq(l.comments[2].end.line, 4)
+}
+
+@test test_tokenize_with_docs_leaves_a_string_literal_whole :: fn() -> void {
+    // The quote and the apostrophe inside `${...}` belong to the literal, and so
+    // does the comment there.
+    src :: "s :: \"\${f(\"'\" /* in */)}\" // out\n"
+    l :: tokenize_with_docs(src, "test.vader")
+    assert_eq(l.comments.len(), 1)
+    assert_eq(l.comments[0].text_in(src), "// out")
 }
 
 @test test_tokenize_with_docs_a_plain_comment_detaches_the_run :: fn() -> void {

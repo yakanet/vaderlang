@@ -39,14 +39,13 @@ export Formatted :: struct {
 ///       is ParseFailure -> for d in r.diagnostics { eprintln(d.render()) }
 ///   }
 export format_source :: fn(source: string, path: string) -> FormatResult {
-    pr :: parse_source(source, path)
+    pr :: parse_source_with_docs(source, path)
     if pr.errors.len() > 0 {
         // Don't format files with parse errors: round-trip parity cannot
         // hold when the AST is partial.
         return ParseFailure { .diagnostics = pr.errors }
     }
-    cm :: scan_comments(source)
-    pp :: new_printer(source, cm)
+    pp :: new_printer(source, comments_of(source, pr.comments))
     output :: pp.emit_program(pr.program)
     return Formatted { .output = output }
 }
@@ -71,6 +70,12 @@ test_fmt_keeps_a_negation_of_a_number :: fn() -> void {
     fmt_keeps("b :: -(5).abs()", "-(5.abs())")
     fmt_keeps("c :: -(5.0).to_string()", "-(5.0.to_string())")
     fmt_keeps("d :: -5.abs()", "-5.abs()")
+}
+
+@test
+test_fmt_keeps_the_comments_after_a_quote_in_an_interpolation :: fn() -> void {
+    // The `"` and the `'` inside the `${...}` belong to the literal.
+    fmt_keeps("g :: \"x \${f(\"ALLOC'D\")} y\"\n\n// after\nh :: 1", "// after")
 }
 
 @test

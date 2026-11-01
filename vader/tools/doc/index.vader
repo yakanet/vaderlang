@@ -17,6 +17,7 @@ import "std/path"
 import "std/sort"
 import "std/string"
 import "toolchain/ast"
+import "toolchain/span"
 import "vader/front/resolver"
 import "vader/support/diagnostics"
 import "vader/tools/fmt"
@@ -194,7 +195,7 @@ doc_decl :: fn(ctx: FileContext, d: Decl) -> DocDecl | null {
     name_span :: decl_name_span(d) ?? return null
     function :: decl_function(ctx, d)
     return DocDecl {
-        .name = ctx.file.content.byte_slice(name_span.start.offset, name_span.end.offset),
+        .name = name_span.text_in(ctx.file.content),
         .kind = kind_of(d),
         .signature = signature_of(ctx, "export ", d, function),
         .inferred_type = unwritten_type(ctx, d),

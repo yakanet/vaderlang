@@ -51,7 +51,7 @@ export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) 
 document_tokens :: fn(idx: DocIndex) -> RawToken[] {
     tokens: RawToken[]: []
     collect_token_kinds(idx.tokens, tokens)
-    collect_comment_kinds(idx.source, tokens)
+    collect_comment_kinds(idx, tokens)
     collect_ast_idents(idx, tokens)
     reencode_columns(tokens, idx.line_index)
     return in_document_order(tokens)
@@ -136,8 +136,8 @@ classify_token :: fn(t: Token) -> TokenType | null = match t.kind {
 
 // ---- comments → semantic tokens ------------------------------------------
 
-collect_comment_kinds :: fn(source: string, out: RawToken[]) -> void {
-    for c in scan_comments(source).comments {
+collect_comment_kinds :: fn(idx: DocIndex, out: RawToken[]) -> void {
+    for c in comments_of(idx.source, idx.comments).comments {
         out.push_all(comment_to_raw(c))
     }
 }

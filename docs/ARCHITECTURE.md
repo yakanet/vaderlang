@@ -78,8 +78,10 @@ raw string is `STRING_BEGIN`, one `STRING_PART` as written, and `STRING_END`.
 The lexer drops comments. Asked for docs (`tokenize_with_docs`), it also keeps each
 run of `///` lines beside the tokens, never in the stream, and the parser gives a run
 to the declaration, field, variant or member whose first token follows it
-(`parse_source_with_docs`, the `doc` field of `toolchain/ast`). A build parses without
-docs. The formatter and semantic tokens re-scan the source for every comment.
+(`parse_source_with_docs`, the `doc` field of `toolchain/ast`). The same lexing keeps
+the span of every comment but those inside the `${...}` of a string literal, which
+the formatter, the semantic tokens and `vader doc` read. A build parses without
+either.
 
 ## Comptime engine
 

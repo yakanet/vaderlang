@@ -769,7 +769,7 @@ idents_named :: fn(src: string, name: string) -> i32 {
     count := 0
     for sp in out.spans {
         if sp.start.offset < sp.end.offset && sp.end.offset <= src.byte_len() {
-            if src.byte_slice(sp.start.offset, sp.end.offset) == name { count = count + 1 }
+            if sp.text_in(src) == name { count = count + 1 }
         }
     }
     return count

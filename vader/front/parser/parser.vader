@@ -18,9 +18,12 @@ import "toolchain/span"
 /// What parsing a file gives: its program, the tokens it was read from, and the
 /// lexer's and the parser's diagnostics.
 export ParsedSource :: struct {
-    program: Program
-    tokens:  Token[]
-    errors:  Diagnostic[]
+    program:  Program
+    tokens:   Token[]
+    errors:   Diagnostic[]
+    /// The span of every comment, empty unless the parse kept them
+    /// (`parse_source_with_docs`).
+    comments: Span[]
 }
 
 export parse_source :: fn(source: string, file: string) -> ParsedSource =
@@ -28,7 +31,8 @@ export parse_source :: fn(source: string, file: string) -> ParsedSource =
 
 /// Parse `source` as `parse_source` does, and give every declaration, struct field,
 /// enum variant and trait or impl member the `///` block written above it, in its
-/// `doc` field. The tree is otherwise the same.
+/// `doc` field. The tree is otherwise the same, and `comments` holds the span of
+/// every comment.
 ///
 /// What the language server reads; a build calls `parse_source` and pays nothing for
 /// comments.
@@ -54,6 +58,7 @@ parse_lexed :: fn(l: LexedSource) -> ParsedSource {
         .program = program,
         .tokens = l.tokens,
         .errors = p.errors,
+        .comments = l.comments,
     }
 }
 

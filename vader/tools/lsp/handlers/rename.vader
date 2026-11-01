@@ -168,7 +168,7 @@ span_text :: fn(state: ServerState, sources: MutableMap<string, string>, sp: Spa
     if sp.end.offset > content.byte_len() {
         return ""
     }
-    return content.byte_slice(sp.start.offset, sp.end.offset)
+    return sp.text_in(content)
 }
 
 // ---- params helpers ------------------------------------------------------

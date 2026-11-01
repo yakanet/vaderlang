@@ -103,6 +103,8 @@ export DocIndex :: struct {
     module: string
     source: string
     tokens: Token[]
+    /// The span of every comment, as the lexer kept it.
+    comments: Span[]
     /// The document's tree, `///` blocks attached: what a handler walks instead
     /// of parsing `source` again.
     program: Program
@@ -168,6 +170,7 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
         .module = module_name_of(parsed.program),
         .source = source,
         .tokens = parsed.tokens,
+        .comments = parsed.comments,
         .program = parsed.program,
         .decls = entries,
         .imports = imports,
@@ -925,7 +928,7 @@ local_type_hint :: fn(l: LetStmt, source: string) = if l.ty != null {
 // node with `span`, so a verbatim re-slice keeps annotations like
 // `MyType(i32)` or `T?` intact.
 type_expr_slice :: fn(t: Expr, source: string) =
-    source.byte_slice(t.span.start.offset, t.span.end.offset).trim()
+    t.span.text_in(source).trim()
 
 // ---- signature helpers ---------------------------------------------------
 
@@ -951,7 +954,7 @@ slice_to_eol :: fn(source: string, start: i64, upper: i64) -> string {
 // degenerate spans.
 param_signature_slice :: fn(span: Span, fallback: string, source: string) -> string {
     if span.end.offset > span.start.offset {
-        return source.byte_slice(span.start.offset, span.end.offset).trim()
+        return span.text_in(source).trim()
     }
     return fallback
 }

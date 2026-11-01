@@ -146,8 +146,7 @@ nl_indent :: fn(self: Printer) -> void {
 // ----- source-slice helper (for shapes we can't faithfully reconstruct
 //        from the AST: strings, generic-inst syntax forms) -----
 
-source_slice :: fn(self: Printer, span: Span) -> string =
-    self.source.byte_slice(span.start.offset, span.end.offset)
+source_slice :: fn(self: Printer, span: Span) -> string = span.text_in(self.source)
 
 // Write `name` followed by enough trailing spaces to reach
 // `self.align_name_width`. No-op padding when `align_name_width == 0`

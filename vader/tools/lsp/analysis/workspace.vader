@@ -121,7 +121,7 @@ import_spelling :: fn(index: ReferenceIndex, key: i64) -> string {
 
 // The source text `span` covers.
 span_text :: fn(state: ServerState, span: Span) -> string =
-    state.source_for_path(span.start.file).byte_slice(span.start.offset, span.end.offset)
+    span.text_in(state.source_for_path(span.start.file))
 
 /// The modules under `roots`, other than those of `loaded`, with a file that
 /// mentions `name` as a whole word, and holds `spelling` too when it is not
