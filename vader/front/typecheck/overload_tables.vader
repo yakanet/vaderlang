@@ -24,7 +24,7 @@ import "vader/support/target"
 populate_imported_fn_overloads :: fn(
     entry_typed: TypedProgram,
     wildcards: FileImports[],
-    typed_by_name: MutableMap<string, TypedProgram>,
+    typed_by_name: Map<string, TypedProgram>,
 ) -> void {
     // Loop-invariant : the prelude is the same module for every file.
     core :: typed_by_name["std/core"]
@@ -36,7 +36,7 @@ populate_imported_fn_overloads :: fn(
         // Dedup: a path can appear more than once in one file (re-imported in a
         // `// ---- tests ----` block), and `push_module_exported_fns` would
         // rescan it: idempotent but wasted.
-        seen :: MutableMap<string, bool> {}
+        seen :: Map<string, bool> {}
         for path in fw.paths {
             if seen[path] != null {
                 continue
@@ -69,9 +69,9 @@ populate_imported_fn_overloads :: fn(
 file_overload_table :: fn(
     typed: TypedProgram,
     file: string,
-) -> MutableMap<string, FnCandidate[]> = typed.imported_fn_overloads.get_or_put_with(
+) -> Map<string, FnCandidate[]> = typed.imported_fn_overloads.get_or_put_with(
     file,
-    () -> MutableMap<string, FnCandidate[]> {},
+    () -> Map<string, FnCandidate[]> {},
 )
 
 // `import "p" { foo as bar }`: dispatch `bar` via UFCS on its declared first
@@ -111,7 +111,7 @@ push_renamed_imports :: fn(entry_typed: TypedProgram) -> void {
 push_module_exported_fns :: fn(
     from: TypedProgram,
     into: TypedProgram,
-    table: MutableMap<string, FnCandidate[]>,
+    table: Map<string, FnCandidate[]>,
     excluded: string[],
 ) -> void {
     if from.resolved.path == into.resolved.path {
@@ -173,7 +173,7 @@ push_module_exported_fns :: fn(
 // wins, and a renamed import (bound under a name other than its own) shadows the
 // wildcards. One of another module stays beside it, so a call both answer is
 // ambiguous (T3032).
-push_overload :: fn(table: MutableMap<string, FnCandidate[]>, name: string, ft: FnCandidate) -> void {
+push_overload :: fn(table: Map<string, FnCandidate[]>, name: string, ft: FnCandidate) -> void {
     shadows :: ft.symbol.module_name == "std/core" || ft.symbol.name != name
     bucket :: table.get_or_put_with(name, () -> [])
     for i in 0..<bucket.len() {
@@ -192,8 +192,8 @@ push_overload :: fn(table: MutableMap<string, FnCandidate[]>, name: string, ft: 
 // ImportBinding symbol (`ParseError` from `std/string`) to its real export
 // without the full `TypedProgram`. Symbol ids are project-global, so one table
 // serves every module: each looks up only the import symbols it resolves.
-resolver_imports :: fn(targets: ImportTargetTable) -> MutableMap<i32, Symbol> {
-    out :: MutableMap<i32, Symbol> {}
+resolver_imports :: fn(targets: ImportTargetTable) -> Map<i32, Symbol> {
+    out :: Map<i32, Symbol> {}
     for [sym_id, st] in targets.symbol_targets {
         out[sym_id] = st.symbol
     }
@@ -210,7 +210,7 @@ async_export :: fn(project: LoadedProject, name: string) -> Symbol | null {
 populate_core_symbols :: fn(
     entry_typed: TypedProgram,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
 ) -> void {
     // The baked target constants, BEFORE core's early-returns: a stdlib-less
     // snippet has no `std/core` but still gets `VADER_OS` seeded, and bridging
@@ -241,7 +241,7 @@ populate_core_symbols :: fn(
 populate_baked_symbols :: fn(
     entry_typed: TypedProgram,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
 ) -> void {
     baked_loaded :: project.modules[BAKED_FOLDER] ?? return
     baked_typed :: per_module[BAKED_FOLDER] ?? return

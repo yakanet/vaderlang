@@ -118,7 +118,7 @@ outline_json :: fn(idx: DocIndex) -> JsonValue {
 // `range` spans the whole declaration ; `selectionRange` is just the name (what
 // the editor reveals + selects on pick).
 symbol_json :: fn(e: DeclEntry, li: LineIndex, children: JsonValue[]) -> JsonValue {
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["name"]           = JsonString { .value = e.name }
     obj["kind"]           = JsonNumber { .value = f64(symbol_kind(e.kind, e.owner)) }
     obj["range"]          = range_json(e.full_span.span_to_range_json(li))
@@ -224,7 +224,7 @@ test_sam_synthetic_impl_member_not_a_symbol :: fn() -> void {
     // the AST: the method name is resolved from the trait later. They must not
     // surface as outline symbols : an empty `DocumentSymbol.name` is falsy and
     // crashes the whole `documentSymbol` response client-side (the bug this
-    // guards: `MutableSet<T> implements Contains<T> -> value in self.inner`).
+    // guards: `Set<T> implements Contains<T> -> value in self.inner`).
     src :: """
 Box :: struct { v: i32 }
 

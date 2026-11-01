@@ -32,7 +32,7 @@ export show_warning :: fn(message: string) -> void = notify("window/showMessage"
 
 // A `window/*Message` notification: `method`, carrying `message` at `level`.
 notify :: fn(method: string, level: LogLevel, message: string) -> void {
-    params_map :: MutableMap<string, JsonValue> {}
+    params_map :: Map<string, JsonValue> {}
     params_map["type"]    = JsonNumber { .value = f64(i32(level)) }
     params_map["message"] = JsonString { .value = message }
     write_frame(encode_notification(method, JsonObject { .entries = params_map }))

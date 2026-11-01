@@ -143,7 +143,7 @@ export through_a_bound :: fn<T: Bump>(t: T) -> void {
     t.bump()
 }
 
-export into_a_map :: fn(m: MutableMap<string, Point>, p: Point) -> void {
+export into_a_map :: fn(m: Map<string, Point>, p: Point) -> void {
     m["a"] = p
 }
 
@@ -151,7 +151,7 @@ export into_a_map :: fn(m: MutableMap<string, Point>, p: Point) -> void {
 
 export concatenates :: fn(a: Point[], b: Point[]) -> Point[] = a + b
 
-export bumps_an_entry :: fn(m: MutableMap<string, Point>) -> void {
+export bumps_an_entry :: fn(m: Map<string, Point>) -> void {
     p :: m["a"] ?? return
     p.x = 1
 }

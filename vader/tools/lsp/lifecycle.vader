@@ -43,11 +43,11 @@ export handle_initialize :: fn(state: ServerState, params: JsonValue) -> JsonVal
 
     capabilities :: server_capabilities(state.position_encoding)
 
-    server_info :: MutableMap<string, JsonValue> {}
+    server_info :: Map<string, JsonValue> {}
     server_info["name"]    = JsonString { .value = "vader-lsp" }
     server_info["version"] = JsonString { .value = VADER_VERSION }
 
-    result :: MutableMap<string, JsonValue> {}
+    result :: Map<string, JsonValue> {}
     result["capabilities"] = capabilities
     result["serverInfo"]   = JsonObject { .entries = server_info }
     return JsonObject { .entries = result }
@@ -142,23 +142,23 @@ json_array_has_string :: fn(v: JsonValue, needle: string) -> bool {
 export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     // Full sync (`change: 1`), and `save` so that a saved `build.vader` has its
     // project describe itself again (`handle_did_save`).
-    sync :: MutableMap<string, JsonValue> {}
+    sync :: Map<string, JsonValue> {}
     sync["openClose"] = JsonBool { .value = true }
     sync["change"]    = JsonNumber { .value = 1.0 }
-    sync["save"]      = JsonObject { .entries = MutableMap<string, JsonValue> {} }
+    sync["save"]      = JsonObject { .entries = Map<string, JsonValue> {} }
     text_document_sync :: JsonObject { .entries = sync }
 
     // semanticTokensProvider : we declare full-document tokenisation and
     // omit `range` / `delta`.
-    legend :: MutableMap<string, JsonValue> {}
+    legend :: Map<string, JsonValue> {}
     legend["tokenTypes"]     = string_array(TOKEN_TYPES)
     legend["tokenModifiers"] = string_array(TOKEN_MODIFIERS)
 
-    semantic_provider :: MutableMap<string, JsonValue> {}
+    semantic_provider :: Map<string, JsonValue> {}
     semantic_provider["legend"] = JsonObject { .entries = legend }
     semantic_provider["full"]   = JsonBool   { .value = true }
 
-    caps :: MutableMap<string, JsonValue> {}
+    caps :: Map<string, JsonValue> {}
     caps["positionEncoding"]        = JsonString { .value = position_encoding_kind(encoding) }
     caps["textDocumentSync"]        = text_document_sync
     caps["semanticTokensProvider"]  = JsonObject { .entries = semantic_provider }
@@ -176,7 +176,7 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
 
     // documentLinkProvider : import-path links. We resolve every link
     // eagerly in the response, so no `documentLink/resolve` round-trip.
-    link_provider :: MutableMap<string, JsonValue> {}
+    link_provider :: Map<string, JsonValue> {}
     link_provider["resolveProvider"] = JsonBool { .value = false }
     caps["documentLinkProvider"] = JsonObject { .entries = link_provider }
     caps["typeDefinitionProvider"] = JsonBool { .value = true }
@@ -188,7 +188,7 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
 
     // renameProvider with prepareProvider : the client first asks
     // prepareRename to validate + select the identifier, then rename.
-    rename_provider :: MutableMap<string, JsonValue> {}
+    rename_provider :: Map<string, JsonValue> {}
     rename_provider["prepareProvider"] = JsonBool { .value = true }
     caps["renameProvider"] = JsonObject { .entries = rename_provider }
 
@@ -198,7 +198,7 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     tp: JsonValue: JsonString { .value = "(" }
     tc: JsonValue: JsonString { .value = "," }
     triggers: JsonValue[]: [tp, tc]
-    sig_help :: MutableMap<string, JsonValue> {}
+    sig_help :: Map<string, JsonValue> {}
     sig_help["triggerCharacters"]   = JsonArray { .items = triggers }
     caps["signatureHelpProvider"]   = JsonObject { .entries = sig_help }
 
@@ -208,7 +208,7 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     // `completionItem/resolve` round-trip.
     dot_trigger: JsonValue: JsonString { .value = "." }
     completion_triggers: JsonValue[]: [dot_trigger]
-    completion_provider :: MutableMap<string, JsonValue> {}
+    completion_provider :: Map<string, JsonValue> {}
     completion_provider["resolveProvider"]   = JsonBool { .value = false }
     completion_provider["triggerCharacters"] = JsonArray { .items = completion_triggers }
     caps["completionProvider"] = JsonObject { .entries = completion_provider }
@@ -220,7 +220,7 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
         JsonString { .value = "refactor.rewrite" },
         JsonString { .value = "source.organizeImports" },
     ]
-    code_action_provider :: MutableMap<string, JsonValue> {}
+    code_action_provider :: Map<string, JsonValue> {}
     code_action_provider["codeActionKinds"] = JsonArray { .items = ca_kinds }
     caps["codeActionProvider"] = JsonObject { .entries = code_action_provider }
     return JsonObject { .entries = caps }

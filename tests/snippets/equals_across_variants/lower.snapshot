@@ -16,7 +16,7 @@
       u64(self.n)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      seen: MutableMap<Label | Point, string> = MutableMap<Any, string> {
+      seen: Map<Label | Point, string> = Map<Any, string> {
           .ekeys = [] :Any[],
           .evals = [] :string[],
           .index = [] :i32[],
@@ -25,12 +25,12 @@
           .size = i64(0),
           .tombs = i64(0),
       }
-      std.collections.MutableMap<Any, string>.set_at(seen, Point { .x = 1 }, "point")
+      std.collections.Map<Any, string>.set_at(seen, Point { .x = 1 }, "point")
       std.io.println<string>(concat_3({
-          __coalesce_0: null | string = std.collections.MutableMap<Any, string>.at(seen, Label { .n = 1 })
+          __coalesce_0: null | string = std.collections.Map<Any, string>.at(seen, Label { .n = 1 })
           if __coalesce_0 is null { "absent" } else { string(__coalesce_0) } :string
       } :string, " ", {
-          __coalesce_1: null | string = std.collections.MutableMap<Any, string>.at(seen, Point { .x = 1 })
+          __coalesce_1: null | string = std.collections.Map<Any, string>.at(seen, Point { .x = 1 })
           if __coalesce_1 is null { "absent" } else { string(__coalesce_1) } :string
       } :string))
       shapes: (Label | Point)[] = [Point { .x = 1 }] :(Label | Point)[]
@@ -92,10 +92,10 @@
 
 ## lowered in dependencies
   std/collections
-    fn std.collections.MutableMap<Any, string>.at  // std_collections$MutableMap$std_core$Index$at__Any__string
-    fn std.collections.MutableMap<Any, string>.contains  // std_collections$MutableMap$std_core$Contains$contains__Any__string
-    fn std.collections.MutableMap<Any, string>.into  // std_collections$MutableMap$std_core$Into$into__Any__string
-    fn std.collections.MutableMap<Any, string>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__Any__string
+    fn std.collections.Map<Any, string>.at  // std_collections$Map$std_core$Index$at__Any__string
+    fn std.collections.Map<Any, string>.contains  // std_collections$Map$std_core$Contains$contains__Any__string
+    fn std.collections.Map<Any, string>.into  // std_collections$Map$std_core$Into$into__Any__string
+    fn std.collections.Map<Any, string>.set_at  // std_collections$Map$std_core$IndexSet$set_at__Any__string
     fn std.collections.contains_key<Any, string>  // std_collections$contains_key__Any__string
     fn std.collections.first_slot  // std_collections$first_slot
     fn std.collections.get<Any, string>  // std_collections$get__Any__string
@@ -104,8 +104,8 @@
     fn std.collections.put<Any, string>  // std_collections$put__Any__string
     fn std.collections.rehash<Any, string>  // std_collections$rehash__Any__string
     fn std_collections$__gen_state_std_collections_0$Iterator$next
-    struct std.collections.MutableMap<Any, string>  // std_collections$MutableMap__Any__string
-    struct std.collections.MutableMap<Label | Point, string>  // std_collections$MutableMap__snippet_Label___snippet_Point__string
+    struct std.collections.Map<Any, string>  // std_collections$Map__Any__string
+    struct std.collections.Map<Label | Point, string>  // std_collections$Map__snippet_Label___snippet_Point__string
     struct std_collections$__gen_state_std_collections_0
   std/core
     fn std.core.(Label | Point)[].contains  // std_core$$array$Contains$contains__snippet_Label___snippet_Point

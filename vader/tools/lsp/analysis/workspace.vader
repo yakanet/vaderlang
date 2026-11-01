@@ -137,9 +137,9 @@ span_text :: fn(state: ServerState, span: Span) -> string =
 /// @return          the module names, each once, in walk order.
 export modules_mentioning :: fn(
     state: ServerState, roots: IncludePath[], name: string, spelling: string,
-    loaded: MutableMap<string, LoadedModule>,
+    loaded: Map<string, LoadedModule>,
 ) -> string[] {
-    found :: MutableSet<string> {}
+    found :: Set<string> {}
     walk_module_folders(roots, (module: string, files: string[]) -> {
         // Nothing to learn from a module the document's project already holds.
         if module in loaded || module in found {

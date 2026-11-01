@@ -31,7 +31,7 @@ AST :: import "toolchain/ast"
 
 // The graph of instantiations, over the parameters of each function.
 InstantiationGraph :: struct {
-    nodes:      MutableMap<u64, i32> = MutableMap<u64, i32> {}
+    nodes:      Map<u64, i32> = Map<u64, i32> {}
     successors: i32[][] = []
 }
 
@@ -50,7 +50,7 @@ GrowingCall :: struct {
 /// @param per_module  every module's typed program, its bodies walked.
 /// @param diags       where the diagnostics go.
 reject_growing_recursion :: fn(
-    per_module: MutableMap<string, TypedProgram>, diags: Diagnostic[],
+    per_module: Map<string, TypedProgram>, diags: Diagnostic[],
 ) -> void {
     graph :: InstantiationGraph {}
     growing: GrowingCall[]: []
@@ -75,7 +75,7 @@ reject_growing_recursion :: fn(
         }
     }
     component :: component_of_each_node(Graph { .successors = graph.successors })
-    reported :: MutableSet<u64> {}
+    reported :: Set<u64> {}
     for call in growing {
         [from, to] :: call.edge
         if component[from] != component[to] || !reported.add(call.span.hash()) {
@@ -101,7 +101,7 @@ add_instantiation :: fn(
     growing: GrowingCall[],
     caller: i64,
     callee: AST.FnDecl,
-    bindings: MutableMap<i32, Type>,
+    bindings: Map<i32, Type>,
     span: Span,
 ) -> void {
     for [param, bound] in bindings {

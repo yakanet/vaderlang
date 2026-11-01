@@ -16,8 +16,8 @@ import "vader/core/symbol"
 /// module_id string). An unresolved, private or unknown-name import has no
 /// entry in either.
 export ImportTargetTable :: struct {
-    symbol_targets:    MutableMap<i32, SymbolTarget> = MutableMap<i32, SymbolTarget> {}
-    namespace_targets: MutableMap<i32, string> = MutableMap<i32, string> {}
+    symbol_targets:    Map<i32, SymbolTarget> = Map<i32, SymbolTarget> {}
+    namespace_targets: Map<i32, string> = Map<i32, string> {}
 }
 
 export SymbolTarget :: struct {
@@ -32,7 +32,7 @@ export wire_imports :: fn(project: LoadedProject) -> ImportTargetTable {
     // One name → id map for the whole project ; reused across every
     // module's import-path resolution. Hoisted out of the inner loop
     // so it's built once (O(N)) rather than per-module (O(N²)).
-    name_to_id :: MutableMap<string, string> {}
+    name_to_id :: Map<string, string> {}
     for [_, lm] in project.modules {
         name_to_id[lm.module.module_name] = lm.module.id
     }
@@ -46,7 +46,7 @@ import "vader/support/diagnostics"
 import "toolchain/ast"
 
 wire_module :: fn(
-    loaded: LoadedModule, path_index: MutableMap<string, string>,
+    loaded: LoadedModule, path_index: Map<string, string>,
     project: LoadedProject, out: ImportTargetTable,
 ) -> void {
     for [sym_id, info] in loaded.collected.imports {

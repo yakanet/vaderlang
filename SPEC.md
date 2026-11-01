@@ -1783,7 +1783,7 @@ List :: struct<T> {
 A bound follows the parameter after `:` and names traits, or `Int` (§4 *Range types*), joined by `&` and all required. A union is an error as a bound, as in a trait's composition: `null` goes where the parameter is used, `fn<T: Bump>(x: T | null)`, never `fn<T: Bump | null>(x: T)`.
 
 ```vader
-put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) {
+put :: fn<K: Hash & Equals, V>(self: Map<K, V>, key: K, value: V) {
     // ...
 }
 ```
@@ -1825,7 +1825,7 @@ A generic recursion may not grow its type argument. On a cycle of calls, passing
 
 An argument is matched against a signature's free type parameters when choosing an overload or the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>`). A free literal binds no type parameter: write `Box<i32> { .value = 0 }`, not `Box { .value = 0 }`.
 
-A static function belongs to a trait (*Static members*), never to a type alone: there are no inherent associated functions. A factory outside a trait is a free function (`new_rng(42)` in `random`); a struct is built by its literal (`MutableMap<K, V> {}`).
+A static function belongs to a trait (*Static members*), never to a type alone: there are no inherent associated functions. A factory outside a trait is a free function (`new_rng(42)` in `random`); a struct is built by its literal (`Map<K, V> {}`).
 
 The primitive impls are listed in §15 *`std/core`*.
 
@@ -1998,7 +1998,7 @@ A bounded impl holds only for the arguments its bounds admit. With `Box<T> imple
 
 A struct's bounds hold at its literal. With `Wrapper :: struct<T: Bump>`, `Wrapper<X> { ... }` is an error when `X` does not meet the bound; a type written elsewhere (`w: Wrapper<Plain>`) is not checked. An impl borrowing the struct's parameters (`Wrapper<T> implements Poke`) holds only for what the struct admits.
 
-A generic function states the bounds it relies on: `fn<K>(m: MutableMap<K, V>)` indexing `m` is an error without `K: Hash & Equals`. A generic struct literal without type arguments (`Box { .value = p }`) is typed `Box`, and its bounds are not checked.
+A generic function states the bounds it relies on: `fn<K>(m: Map<K, V>)` indexing `m` is an error without `K: Hash & Equals`. A generic struct literal without type arguments (`Box { .value = p }`) is typed `Box`, and its bounds are not checked.
 
 #### Trait composition
 
@@ -2161,14 +2161,14 @@ r[0..<2]                // [9, 2]: a Range slices the backing
 
 - A type's own impl wins over the array it is backed by, trait by trait.
 - A write with neither an `IndexSet` impl nor an array to store into is an error.
-- Outside an array, the key has the trait's index type, for a read as for a write (`m["nope"]` on a `MutableMap<i64, i32>` is an error); a free literal key takes that type.
+- Outside an array, the key has the trait's index type, for a read as for a write (`m["nope"]` on a `Map<i64, i32>` is an error); a free literal key takes that type.
 
 **Details.**
 
 - `a[i()] += v()` runs `a` and `i()`, reads the element, runs `v()`, and writes the result back to that element.
 - A distinct type over a struct indexes only through its own impls, never its struct's.
-- A bounded type parameter, a value of the trait (`store: IndexSet<string, i32>`) and a union of implementors (`MutableMap<string, i32> | Log`) read and write through `at` and `set_at`.
-- A destructuring place (`[m["a"], m["b"]] = ...`) is a write: it takes the value type of `IndexSet`, never what `Index` returns (`V | null` on a `MutableMap`).
+- A bounded type parameter, a value of the trait (`store: IndexSet<string, i32>`) and a union of implementors (`Map<string, i32> | Log`) read and write through `at` and `set_at`.
+- A destructuring place (`[m["a"], m["b"]] = ...`) is a write: it takes the value type of `IndexSet`, never what `Index` returns (`V | null` on a `Map`).
 
 ### Nullability
 
@@ -2410,7 +2410,7 @@ In a function with a return type, every path must produce a value of that type. 
 
 A body **diverges** when its last statement is a `return`, a `break`, a `continue`, a call to a `@no_return` function (`panic`, `todo`), or a loop that no `break` leaves, so `fn() -> i32 { for { ... } }` is valid. The same rule applies to a lambda whose result type is set by an annotation or by its slot.
 
-A function that returns nothing omits the arrow or writes `-> void` (`void` is reserved, §3 *Reserved keywords*). A function type follows the same rule: `fn()` is `fn() -> void`. The last expression of such a function, or of a lambda in a slot that returns nothing, is evaluated and its value discarded: `remember :: fn(seen: MutableSet<string>, s: string) { seen.add(s) }` compiles although `add` returns a `bool`. A `return` with a value is an error there.
+A function that returns nothing omits the arrow or writes `-> void` (`void` is reserved, §3 *Reserved keywords*). A function type follows the same rule: `fn()` is `fn() -> void`. The last expression of such a function, or of a lambda in a slot that returns nothing, is evaluated and its value discarded: `remember :: fn(seen: Set<string>, s: string) { seen.add(s) }` compiles although `add` returns a `bool`. A `return` with a value is an error there.
 
 ### `main` entry point
 
@@ -2567,7 +2567,7 @@ Every kind of callee can be taken as a value: a free function, an impl member, t
 
 A free function is a candidate for `a.f(...)` when the receiver fits its first parameter in one of these ways:
 
-- the receiver's type is assignable to the parameter's type, where a type parameter stands for any type: `m.size()` on a `MutableMap<string, i32>` reaches `size :: fn<K, V>(self: MutableMap<K, V>)`;
+- the receiver's type is assignable to the parameter's type, where a type parameter stands for any type: `m.size()` on a `Map<string, i32>` reaches `size :: fn<K, V>(self: Map<K, V>)`;
 - the parameter is a trait the receiver implements: `s.chars().filter(p)` reaches `filter :: fn<T>(self: Iterator<T>, ...)`. An array fits an `Iterator<T>` parameter here too, through its own conversion (§15 *Iteration*);
 - when no function fits by those two rules, an `Into` impl converts the receiver to the parameter's type (§4 *Type coercion via `Into`*): with `Celsius implements Into<Label>`, `c.shout()` calls `shout :: fn(l: Label)`.
 
@@ -2617,10 +2617,10 @@ Two free functions of one module may share a name when they differ in the type o
 
 ```vader
 size :: fn(self: Path) -> i32 { ... }
-size :: fn<K, V>(self: MutableMap<K, V>) -> i64 { ... }
+size :: fn<K, V>(self: Map<K, V>) -> i64 { ... }
 
 p.size()            // resolves to the Path version
-m.size()            // resolves to the MutableMap version
+m.size()            // resolves to the Map version
 ```
 
 These are errors:
@@ -3840,7 +3840,7 @@ p :: Point { .x = 1, .y = 2 }
 
 It also declares:
 
-- `Hash`, a hash code: `hash :: fn(self) -> u64`, the same for two values equal by `Equals`. Every enum implements it (§4 *Enums*); `MutableMap` and `MutableSet` key on it.
+- `Hash`, a hash code: `hash :: fn(self) -> u64`, the same for two values equal by `Equals`. Every enum implements it (§4 *Enums*); `Map` and `Set` key on it.
 - `Step`, the next value of a discrete type: `step :: fn(self) -> Self`.
 - `Clone`, an explicit copy: `clone :: fn(self) -> Self`.
 - `Zero` and `One`, the additive and multiplicative identities, two static members (§4 *Static members*).

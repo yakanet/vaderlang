@@ -80,7 +80,7 @@ selection_json :: fn(chain: Span[], li: LineIndex) -> JsonValue {
 
 // The node of `chain[i]`, the larger spans after it as its parents.
 selection_node :: fn(chain: Span[], i: i64, li: LineIndex) -> JsonValue {
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["range"] = range_json(chain[i].span_to_range_json(li))
     if i + 1 < chain.len() {
         obj["parent"] = selection_node(chain, i + 1, li)

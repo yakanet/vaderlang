@@ -29,7 +29,7 @@ import "std/math"
 export unify_type_param :: fn(
     param_type: Type,
     arg_type: Type,
-    out: MutableMap<i32, Type>,
+    out: Map<i32, Type>,
 ) -> void {
     match param_type {
         is TypeParamType -> {
@@ -126,7 +126,7 @@ export unify_type_param :: fn(
     }
 }
 
-unify_args :: fn(p_args: Type[], a_args: Type[], out: MutableMap<i32, Type>) -> void {
+unify_args :: fn(p_args: Type[], a_args: Type[], out: Map<i32, Type>) -> void {
     n :: min(p_args.len(), a_args.len())
     for i in 0..<n { unify_type_param(p_args[i], a_args[i], out) }
 }
@@ -215,8 +215,8 @@ find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
 export unify_infer :: fn(
     pattern: Type,
     actual: Type,
-    solutions: MutableMap<i32, Type>,
-    held: MutableSet<i32> | null = null,
+    solutions: Map<i32, Type>,
+    held: Set<i32> | null = null,
 ) -> void {
     // @partial: only a variable binds, and only the composite variants nest one.
     @partial match pattern {
@@ -274,8 +274,8 @@ export unify_infer :: fn(
 export unify_infer_each :: fn(
     patterns: Type[],
     actuals: Type[],
-    solutions: MutableMap<i32, Type>,
-    held: MutableSet<i32> | null,
+    solutions: Map<i32, Type>,
+    held: Set<i32> | null,
 ) -> void {
     for i in 0..<min(patterns.len(), actuals.len()) {
         unify_infer(patterns[i], actuals[i], solutions, held)
@@ -293,8 +293,8 @@ export unify_infer_each :: fn(
 bind_infer_var :: fn(
     v: InferVar,
     actual: Type,
-    solutions: MutableMap<i32, Type>,
-    held: MutableSet<i32> | null,
+    solutions: Map<i32, Type>,
+    held: Set<i32> | null,
 ) -> void {
     if type_contains_unresolved(actual) || mentions_infer_var(actual, v.id) {
         return
@@ -395,7 +395,7 @@ any_holds_infer_var :: fn(ts: Type[], id: i32) -> bool {
 ///
 /// @param t          the type to resolve.
 /// @param solutions  the bindings, by variable id.
-export zonk :: fn(t: Type, solutions: MutableMap<i32, Type>) -> Type {
+export zonk :: fn(t: Type, solutions: Map<i32, Type>) -> Type {
     if !type_contains_infer_var(t) {
         return t
     }
@@ -403,7 +403,7 @@ export zonk :: fn(t: Type, solutions: MutableMap<i32, Type>) -> Type {
 }
 
 // @partial: only a variable resolves, and only the composite variants nest one.
-zonk_in :: fn(t: Type, solutions: MutableMap<i32, Type>) -> Type = @partial match t {
+zonk_in :: fn(t: Type, solutions: Map<i32, Type>) -> Type = @partial match t {
     is InferVar   -> zonk_var(t, solutions)
     is ArrayType  -> mk_array(zonk_in(t.element, solutions))
     is TupleType  -> mk_tuple(zonk_each(t.elements, solutions))
@@ -418,12 +418,12 @@ zonk_in :: fn(t: Type, solutions: MutableMap<i32, Type>) -> Type = @partial matc
     _             -> t
 }
 
-zonk_var :: fn(v: InferVar, solutions: MutableMap<i32, Type>) -> Type {
+zonk_var :: fn(v: InferVar, solutions: Map<i32, Type>) -> Type {
     solved :: solutions[v.id] ?? return v
     return zonk_in(solved, solutions)
 }
 
-zonk_each :: fn(types: Type[], solutions: MutableMap<i32, Type>) -> Type[] {
+zonk_each :: fn(types: Type[], solutions: Map<i32, Type>) -> Type[] {
     out: Type[]: []
     for t in types {
         out.push(zonk_in(t, solutions))
@@ -468,8 +468,8 @@ test_union_leftovers_pairs_several_params_by_position :: fn() -> void {
 @test
 test_unify_infer_keeps_a_held_binding :: fn() -> void {
     v :: InferVar { .id = 0, .origin = fresh_type_param(1, "T") }
-    solutions :: MutableMap<i32, Type> {}
-    held :: MutableSet<i32> {}
+    solutions :: Map<i32, Type> {}
+    held :: Set<i32> {}
     held.add(0)
     solutions[0] = mk_array(TY_I64)
     unify_infer(v, mk_array(TY_I32), solutions, held)
@@ -479,7 +479,7 @@ test_unify_infer_keeps_a_held_binding :: fn() -> void {
 @test
 test_unify_infer_leaves_a_rigid_parameter_unbound :: fn() -> void {
     rigid :: mk_type_param(fresh_type_param(1, "T"))
-    solutions :: MutableMap<i32, Type> {}
+    solutions :: Map<i32, Type> {}
     unify_infer(rigid, TY_I32, solutions)
     assert(solutions.is_empty(), "a type parameter binds nothing")
 }
@@ -488,7 +488,7 @@ test_unify_infer_leaves_a_rigid_parameter_unbound :: fn() -> void {
 test_zonk_follows_a_chain_of_solutions :: fn() -> void {
     a :: InferVar { .id = 0, .origin = fresh_type_param(1, "A") }
     b :: InferVar { .id = 1, .origin = fresh_type_param(2, "B") }
-    solutions :: MutableMap<i32, Type> {}
+    solutions :: Map<i32, Type> {}
     solutions[0] = mk_array(b)
     solutions[1] = TY_I32
     assert_eq(display_type(zonk(mk_array(a), solutions)), "i32[][]")

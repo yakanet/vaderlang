@@ -28,7 +28,7 @@ TextCtx :: struct {
     /// Whether the text goes to a terminal that shows colours.
     colored: bool
     /// The files named so far, as the text names them: each is resolved once.
-    places: MutableMap<string, string>
+    places: Map<string, string>
 }
 
 // The text of the module `m`: its header, then the head of each export.
@@ -266,7 +266,7 @@ plain_ctx :: fn() -> TextCtx = TextCtx {
     .base = "/",
     .here = "/",
     .colored = false,
-    .places = MutableMap<string, string> {},
+    .places = Map<string, string> {},
 }
 
 @test

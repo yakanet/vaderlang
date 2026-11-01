@@ -10,9 +10,9 @@ import "vader/front/resolver"
 build_namespace_exports :: fn(
     mod_id: string,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
-) -> MutableMap<string, Type> {
-    out :: MutableMap<string, Type> {}
+    per_module: Map<string, TypedProgram>,
+) -> Map<string, Type> {
+    out :: Map<string, Type> {}
     loaded :: project.modules[mod_id] ?? return out
     typed :: per_module[mod_id] ?? return out
     for [name, sym] in loaded.collected.symbols {
@@ -53,10 +53,10 @@ build_namespace_exports :: fn(
 share_namespace_member_types :: fn(
     targets: ImportTargetTable,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
 ) -> void {
-    member_cache :: MutableMap<string, MutableMap<string, Type>> {}
-    members :: MutableMap<i32, MutableMap<string, Type>> {}
+    member_cache :: Map<string, Map<string, Type>> {}
+    members :: Map<i32, Map<string, Type>> {}
     for [sym_id, mod_id] in targets.namespace_targets {
         members[sym_id] = member_cache.get_or_put_with(
             mod_id,
@@ -74,10 +74,10 @@ share_namespace_member_types :: fn(
 share_namespace_private_members :: fn(
     targets: ImportTargetTable,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
 ) -> void {
-    private_cache :: MutableMap<string, MutableMap<string, bool>> {}
-    privates :: MutableMap<i32, MutableMap<string, bool>> {}
+    private_cache :: Map<string, Map<string, bool>> {}
+    privates :: Map<i32, Map<string, bool>> {}
     for [sym_id, mod_id] in targets.namespace_targets {
         privates[sym_id] = private_cache.get_or_put_with(
             mod_id,
@@ -96,8 +96,8 @@ share_namespace_private_members :: fn(
 build_namespace_private_names :: fn(
     mod_id: string,
     project: LoadedProject,
-) -> MutableMap<string, bool> {
-    out :: MutableMap<string, bool> {}
+) -> Map<string, bool> {
+    out :: Map<string, bool> {}
     loaded :: project.modules[mod_id] ?? return out
     for [name, sym] in loaded.collected.symbols {
         if sym.visibility == .Private {
@@ -119,9 +119,9 @@ build_namespace_private_names :: fn(
 build_namespace_type_members :: fn(
     mod_id: string,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
-) -> MutableMap<string, Type> {
-    out :: MutableMap<string, Type> {}
+    per_module: Map<string, TypedProgram>,
+) -> Map<string, Type> {
+    out :: Map<string, Type> {}
     loaded :: project.modules[mod_id] ?? return out
     target_typed :: per_module[mod_id]
     for [name, sym] in loaded.collected.symbols {
@@ -150,7 +150,7 @@ build_namespace_type_members :: fn(
 
 lookup_external_type :: fn(
     st: SymbolTarget,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
 ) -> Type | null {
     typed :: per_module[st.module_id] ?? return null
     declared :: typed.decl_types[st.symbol.id]

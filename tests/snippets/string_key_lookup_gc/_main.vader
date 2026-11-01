@@ -11,11 +11,11 @@ import "std/io"
 import "std/runtime"
 
 main :: fn() -> i32 {
-    known :: MutableSet<string> {}
+    known :: Set<string> {}
     for i in 0..<50 {
         known.add("k${i}")
     }
-    counts :: MutableMap<string, i32> {}
+    counts :: Map<string, i32> {}
     total := 0
     for round in 0..<40 {
         words: string[]: []

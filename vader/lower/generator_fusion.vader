@@ -130,7 +130,7 @@ declared_type_params :: fn(decl: AST.FnDecl, owner: TypedProgram) -> Symbol[] | 
 // unified with its actual in order: the first binding of a parameter wins ;
 // null when one stays unbound.
 unify_type_args :: fn(ctx: FnLowerCtx, patterns: Type[], actuals: Type[], type_params: Symbol[]) -> Type[] | null {
-    bindings :: MutableMap<i32, Type> {}
+    bindings :: Map<i32, Type> {}
     for k in 0..<patterns.len() {
         unify_params(patterns[k], actuals[k], bindings, ctx)
     }
@@ -143,7 +143,7 @@ unify_type_args :: fn(ctx: FnLowerCtx, patterns: Type[], actuals: Type[], type_p
 
 // Bind each type parameter `pattern` names to the matching part of `concrete`, the
 // first binding of a parameter winning.
-unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type>, ctx: FnLowerCtx) -> void {
+unify_params :: fn(pattern: Type, concrete: Type, bindings: Map<i32, Type>, ctx: FnLowerCtx) -> void {
     if pattern is TypeParamType {
         bindings.get_or_put(pattern.symbol.id, concrete)
         return
@@ -628,7 +628,7 @@ try_descend_gen_source :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain |
 }
 
 // `expr` as a chain source when it is a `for` iterable whose recorded `into` is a
-// generator (`MutableMap`'s, `string`'s): that body inlined like a generator
+// generator (`Map`'s, `string`'s): that body inlined like a generator
 // call's, its `self` bound to `expr`. Null for any other conversion. Only the
 // `for` role: an `into` recorded for a slot is applied again when the operand is
 // bound (`bind_gen_source_operands`).

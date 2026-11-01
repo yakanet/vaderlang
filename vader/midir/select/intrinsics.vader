@@ -7,7 +7,7 @@
 // `write_string`) map to the Target-ABI memory opcodes.
 //
 // Expanded here as an if-cascade since Vader has no map-literal
-// syntax and a per-startup `MutableMap` fill costs the same lookup
+// syntax and a per-startup `Map` fill costs the same lookup
 // with extra heap traffic.
 
 module "vader/midir/select"

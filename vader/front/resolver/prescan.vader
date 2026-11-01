@@ -37,7 +37,7 @@ AST :: import "toolchain/ast"
 /// @param diags          diagnostics sink ; R2018s appended here.
 export run_orphan_rule_check_for_module :: fn(
     loaded: LoadedModule, module_id: string,
-    idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
+    idents: Map<u64, Symbol>, wire_targets: ImportTargetTable,
     diags: Diagnostic[],
 ) -> void {
     for file in loaded.module.files {
@@ -53,8 +53,8 @@ export run_orphan_rule_check_for_module :: fn(
 
 check_orphan_rule :: fn(
     decl: AST.ImplDecl, module_id: string,
-    module_symbols: MutableMap<string, Symbol>, bindings: MutableMap<string, Symbol>,
-    idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
+    module_symbols: Map<string, Symbol>, bindings: Map<string, Symbol>,
+    idents: Map<u64, Symbol>, wire_targets: ImportTargetTable,
     diags: Diagnostic[],
 ) -> void {
     trait_sym :: lookup_trait_sym(decl, module_symbols, bindings, wire_targets) ?? return
@@ -77,8 +77,8 @@ check_orphan_rule :: fn(
 // of the impl's file.
 lookup_trait_sym :: fn(
     decl: AST.ImplDecl,
-    module_symbols: MutableMap<string, Symbol>,
-    bindings: MutableMap<string, Symbol>,
+    module_symbols: Map<string, Symbol>,
+    bindings: Map<string, Symbol>,
     wire_targets: ImportTargetTable,
 ) -> Symbol | null {
     declared :: module_symbols[decl.trait_name]
@@ -94,7 +94,7 @@ lookup_trait_sym :: fn(
 // nobody.
 for_type_owner_sym :: fn(
     t: AST.TypeExpr,
-    idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
+    idents: Map<u64, Symbol>, wire_targets: ImportTargetTable,
 ) -> Symbol | null {
     if t is AST.ArrayTypeExpr {
         owner :: for_type_owner_sym(t.element, idents, wire_targets) ?? return null

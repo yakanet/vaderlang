@@ -42,8 +42,8 @@ export JsonNull :: struct {}
 export JsonArray :: struct { items: JsonValue[] }
 
 /// JSON object: string-keyed map of `JsonValue`s. Insertion order is
-/// preserved by the parser ; lookup is O(1) average via `MutableMap`.
-export JsonObject :: struct { entries: MutableMap<string, JsonValue> }
+/// preserved by the parser ; lookup is O(1) average via `Map`.
+export JsonObject :: struct { entries: Map<string, JsonValue> }
 
 // ---- error ----------------------------------------------------------------
 
@@ -418,7 +418,7 @@ parse_array :: fn(p: Parser, depth: i32) -> JsonArray | JsonError {
 parse_object :: fn(p: Parser, depth: i32) -> JsonObject | JsonError {
     opening :: expect_byte(p, '{')
     if opening is JsonError { return opening }
-    entries :: MutableMap<string, JsonValue> {}
+    entries :: Map<string, JsonValue> {}
     skip_ws(p)
     if !at_end(p) && peek_byte(p) == '}' {
         advance(p)

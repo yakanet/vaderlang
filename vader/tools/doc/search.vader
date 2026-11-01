@@ -49,7 +49,7 @@ export search_doc :: fn(
         .base = base,
         .here = resolved(here),
         .colored = colored,
-        .places = MutableMap<string, string> {},
+        .places = Map<string, string> {},
     }
     parts :: query.split(".")
     named :: named_by(catalog, parts)
@@ -78,11 +78,11 @@ Catalog :: struct {
     modules: IndexModule[]
     entries: IndexEntry[]
     /// The entries kept, by id.
-    by_id: MutableMap<string, IndexEntry>
+    by_id: Map<string, IndexEntry>
     /// The folder each module is read from, by path.
-    holder: MutableMap<string, string>
+    holder: Map<string, string>
     /// The modules read whole so far, by path: each is read once.
-    whole: MutableMap<string, DocModule>
+    whole: Map<string, DocModule>
 }
 
 // The catalog of the data under `dirs`. A folder whose index does not read
@@ -91,9 +91,9 @@ read_catalog :: fn(dirs: string[]) -> Catalog {
     catalog :: Catalog {
         .modules = [],
         .entries = [],
-        .by_id = MutableMap<string, IndexEntry> {},
-        .holder = MutableMap<string, string> {},
-        .whole = MutableMap<string, DocModule> {},
+        .by_id = Map<string, IndexEntry> {},
+        .holder = Map<string, string> {},
+        .whole = Map<string, DocModule> {},
     }
     for dir in dirs {
         index :: read_doc_index(dir) ?? continue
@@ -182,7 +182,7 @@ named_in :: fn(catalog: Catalog, m: IndexModule | null, parts: string[]) -> Inde
 // null.
 members_named :: fn(
     catalog: Catalog,
-    owners: MutableSet<string> | null,
+    owners: Set<string> | null,
     name: string,
 ) -> IndexEntry[] {
     found: IndexEntry[]: []
@@ -200,8 +200,8 @@ members_named :: fn(
 // The ids of the types of `m` (of every module when null) that `query` names,
 // any of them when it is "", and of the impls for them: what their members
 // belong to.
-owners_named :: fn(catalog: Catalog, m: IndexModule | null, query: string) -> MutableSet<string> {
-    owners :: MutableSet<string> {}
+owners_named :: fn(catalog: Catalog, m: IndexModule | null, query: string) -> Set<string> {
+    owners :: Set<string> {}
     for e in catalog.entries {
         if is_export(e) && within(e, m) && (query == "" || names(query, e.name)) {
             owners.add(e.id)
@@ -430,9 +430,9 @@ sample_catalog :: fn() -> Catalog {
             IndexModule { .path = "point", .summary = "" },
         ],
         .entries = entries,
-        .by_id = MutableMap<string, IndexEntry> {},
-        .holder = MutableMap<string, string> {},
-        .whole = MutableMap<string, DocModule> {},
+        .by_id = Map<string, IndexEntry> {},
+        .holder = Map<string, string> {},
+        .whole = Map<string, DocModule> {},
     }
     for e in entries {
         catalog.by_id[e.id] = e

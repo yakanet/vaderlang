@@ -136,7 +136,7 @@ text_mark :: fn(p: ResolvedPath) -> string {
 // `kind` (`manifest` or `driver`), `root`, and where its paths lead under
 // `resolved`.
 render_info_json :: fn(info: ProjectInfo) -> string {
-    report :: MutableMap<string, Json.JsonValue> {}
+    report :: Map<string, Json.JsonValue> {}
     report["kind"] = Json.JsonString { .value = kind_of(info) }
     report["root"] = Json.JsonString { .value = info.root.to_native() }
     write_manifest_json(report, info.manifest)
@@ -149,10 +149,10 @@ render_info_json :: fn(info: ProjectInfo) -> string {
 // or `missing`, a found root with its `origin`; and the `output` folder of each
 // profile.
 resolution_json :: fn(resolution: Resolution) -> Json.JsonValue {
-    output :: MutableMap<string, Json.JsonValue> {}
+    output :: Map<string, Json.JsonValue> {}
     output["debug"] = Json.JsonString { .value = resolution.debug_output.to_native() }
     output["release"] = Json.JsonString { .value = resolution.release_output.to_native() }
-    out :: MutableMap<string, Json.JsonValue> {}
+    out :: Map<string, Json.JsonValue> {}
     out["entries"] = paths_json(resolution.entries, "name")
     out["roots"] = paths_json(resolution.roots, "declared")
     out["assets"] = paths_json(resolution.assets, "declared")
@@ -164,7 +164,7 @@ resolution_json :: fn(resolution: Resolution) -> Json.JsonValue {
 paths_json :: fn(paths: ResolvedPath[], label: string) -> Json.JsonValue {
     items: Json.JsonValue[]: []
     for p in paths {
-        item :: MutableMap<string, Json.JsonValue> {}
+        item :: Map<string, Json.JsonValue> {}
         item[label] = Json.JsonString { .value = p.declared }
         item["path"] = Json.JsonString { .value = p.path.to_native() }
         item["status"] = Json.JsonString { .value = status_of(p) }

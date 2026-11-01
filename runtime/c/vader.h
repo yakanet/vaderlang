@@ -169,7 +169,7 @@ void           vader_cstr_free_for(vader_string_t s, const char* p);
  * `hash` caches the 64-bit hash of the bytes (`vader_atom_hash64`), computed
  * once at insert (it is a pure function of the immutable content: a slot
  * reused after collection is overwritten by the next insert). `string
- * implements Hash` reads it O(1) via `vader_string_hash`, so `MutableMap`
+ * implements Hash` reads it O(1) via `vader_string_hash`, so `Map`
  * bucketing pays no per-lookup hash. It is LAST in the layout so codegen's
  * positional comptime-table literals (which omit it) zero-fill it ;
  * `vader_atom_init_with_comptime` recomputes it. Content-based (not id-based)
@@ -1444,7 +1444,7 @@ VADER_HOST_EXPORT const char* vader_dirent_name(void* ent);
 /* String `Hash`: returns the 64-bit hash of the bytes, cached on the atom entry
  * at intern (computed once per unique string, not per call). O(1) field read, no
  * loop, no allocation. Content-based so map iteration order stays GC-stable.
- * Backs `string implements Hash` -> `MutableMap` bucketing. */
+ * Backs `string implements Hash` -> `Map` bucketing. */
 static inline uint64_t vader_string_hash(vader_string_t s) {
     return vader_atom_entries[s].hash;
 }

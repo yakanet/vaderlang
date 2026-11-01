@@ -189,8 +189,8 @@ export for_each_read_in_terminator :: fn(t: Terminator, visit: fn(LocalId) -> vo
 /// + idom they already computed.
 export natural_loop_bodies :: fn(
     fn_: CFGFunction, preds: BlockId[][], idom: i32[],
-) -> MutableMap<BlockId, MutableSet<BlockId>> {
-    out :: MutableMap<BlockId, MutableSet<BlockId>> {}
+) -> Map<BlockId, Set<BlockId>> {
+    out :: Map<BlockId, Set<BlockId>> {}
     for h in 0..<fn_.blocks.len() {
         h_id :: BlockId(h)
         // The walk starts from the sources of the back edges into `h`.
@@ -203,7 +203,7 @@ export natural_loop_bodies :: fn(
         if stack.len() == 0 {
             continue
         }
-        body :: MutableSet<BlockId> {}
+        body :: Set<BlockId> {}
         body.add(h_id)
         for {
             cur :: stack.remove_last() ?? break
@@ -315,7 +315,7 @@ export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
 /// don't follow RPO order after CFG construction (block IDs reflect
 /// creation order in the converter, not RPO).
 export intersect_dom_tree :: fn(a: BlockId, b: BlockId, idom: i32[]) -> BlockId {
-    seen :: MutableSet<i32> {}
+    seen :: Set<i32> {}
     x := a
     for x != -1 && seen.add(i32(x)) {
         next :: BlockId(idom[i32(x)])

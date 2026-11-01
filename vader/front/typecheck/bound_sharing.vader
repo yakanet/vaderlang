@@ -14,14 +14,14 @@ import "vader/front/resolver"
 // project-wide, so modules cannot collide. Built once imports are wired : a bound
 // naming a renamed import or a namespace member (`T: Ns.Trait`) resolves only then.
 broadcast_type_param_bounds :: fn(
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
     project: LoadedProject,
 ) -> void {
-    shared :: MutableMap<i32, TypeParamBound> {}
+    shared :: Map<i32, TypeParamBound> {}
     for [_, typed] in per_module {
         record_type_param_bounds(typed.resolved, shared)
     }
-    struct_bounds :: MutableMap<i32, ArgBound[]> {}
+    struct_bounds :: Map<i32, ArgBound[]> {}
     for [_, typed] in per_module {
         record_struct_bounds(typed, shared, struct_bounds)
     }
@@ -41,8 +41,8 @@ broadcast_type_param_bounds :: fn(
 // struct's symbol id. Only the declaring module resolves a type parameter's span.
 record_struct_bounds :: fn(
     typed: TypedProgram,
-    shared: MutableMap<i32, TypeParamBound>,
-    out: MutableMap<i32, ArgBound[]>,
+    shared: Map<i32, TypeParamBound>,
+    out: Map<i32, ArgBound[]>,
 ) -> void {
     for sym in typed.resolved.symbols {
         if sym.kind != .Struct {
@@ -73,8 +73,8 @@ record_struct_bounds :: fn(
 inherit_struct_bounds :: fn(
     decls: AST.Decl[],
     resolved: ResolvedModule,
-    struct_bounds: MutableMap<i32, ArgBound[]>,
-    shared: MutableMap<i32, TypeParamBound>,
+    struct_bounds: Map<i32, ArgBound[]>,
+    shared: Map<i32, TypeParamBound>,
 ) -> void {
     for d in decls {
         if d !is AST.ImplDecl {
@@ -136,7 +136,7 @@ names_trait :: fn(traits: TraitType[], t: TraitType) -> bool {
 // `trait_self_params` a trait's `Self`, which a default body need not write.
 record_type_param_bounds :: fn(
     resolved: ResolvedModule,
-    out: MutableMap<i32, TypeParamBound>,
+    out: Map<i32, TypeParamBound>,
 ) -> void {
     for [_, sym] in resolved.idents {
         record_type_param_bound(sym, resolved, out)
@@ -149,7 +149,7 @@ record_type_param_bounds :: fn(
 record_type_param_bound :: fn(
     sym: Symbol,
     resolved: ResolvedModule,
-    out: MutableMap<i32, TypeParamBound>,
+    out: Map<i32, TypeParamBound>,
 ) -> void {
     if sym.kind != .TypeParam || out[sym.id] != null {
         return
@@ -207,7 +207,7 @@ record_struct_trait_args :: fn(
 ) -> void {
     per_struct :: tables.struct_trait_args.get_or_put_with(
         impl_side_key(for_ty),
-        () -> MutableMap<string, Type[][]> {},
+        () -> Map<string, Type[][]> {},
     )
     lists :: per_struct.get_or_put_with(trait_key, () -> [])
     // Two impls with equal arguments are R2030 : the list keeps one.

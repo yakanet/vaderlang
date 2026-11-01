@@ -69,7 +69,7 @@ render_opt_report :: fn(ctx: LowerProjectCtx) -> string {
     if ctx.opt_misses.len() == 0 {
         return ""
     }
-    counts :: MutableMap<string, i32> {}
+    counts :: Map<string, i32> {}
     for m in ctx.opt_misses {
         counts[m.pass] = (counts[m.pass] ?? 0) + 1
     }

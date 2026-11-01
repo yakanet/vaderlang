@@ -7,8 +7,8 @@
 typedef struct vader_struct_snippet$Point_t vader_struct_snippet$Point_t;
 typedef struct vader_struct_snippet$Label_t vader_struct_snippet$Label_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
-typedef struct vader_struct_std_collections$MutableMap__Any__string_t vader_struct_std_collections$MutableMap__Any__string_t;
-typedef struct vader_struct_std_collections$MutableMap__snippet_Label___snippet_Point__string_t vader_struct_std_collections$MutableMap__snippet_Label___snippet_Point__string_t;
+typedef struct vader_struct_std_collections$Map__Any__string_t vader_struct_std_collections$Map__Any__string_t;
+typedef struct vader_struct_std_collections$Map__snippet_Label___snippet_Point__string_t vader_struct_std_collections$Map__snippet_Label___snippet_Point__string_t;
 
 struct vader_struct_snippet$Point_t {
     vader_obj_header_t header;
@@ -21,7 +21,7 @@ struct vader_struct_snippet$Label_t {
 struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
 };
-struct vader_struct_std_collections$MutableMap__Any__string_t {
+struct vader_struct_std_collections$Map__Any__string_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -31,7 +31,7 @@ struct vader_struct_std_collections$MutableMap__Any__string_t {
     int64_t f_size;
     int64_t f_tombs;
 };
-struct vader_struct_std_collections$MutableMap__snippet_Label___snippet_Point__string_t {
+struct vader_struct_std_collections$Map__snippet_Label___snippet_Point__string_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -100,8 +100,8 @@ static bool std_core$f64$Equals$equals$guard(double l0, vader_box_t l1);
 static bool std_core$bool$Equals$equals$guard(bool l0, vader_box_t l1);
 static bool std_core$char$Equals$equals$guard(uint32_t l0, vader_box_t l1);
 static bool std_core$string$Equals$equals$guard(vader_string_t l0, vader_box_t l1);
-static vader_box_t std_collections$MutableMap$std_core$Index$at__Any__string(void* l0, vader_box_t l1);
-static void std_collections$MutableMap$std_core$IndexSet$set_at__Any__string(void* l0, vader_box_t l1, vader_string_t l2);
+static vader_box_t std_collections$Map$std_core$Index$at__Any__string(void* l0, vader_box_t l1);
+static void std_collections$Map$std_core$IndexSet$set_at__Any__string(void* l0, vader_box_t l1, vader_string_t l2);
 static int64_t std_collections$first_slot(uint64_t l0, int64_t l1);
 static int64_t std_collections$next_slot(int64_t l0, uint64_t l1, int64_t l2);
 static void std_collections$rehash__Any__string(void* l0, int64_t l1);
@@ -161,16 +161,16 @@ const vader_type_info_t vader_type_info_table[30] = {
     },
     [24] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections$MutableMap__Any__string_t), .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$MutableMap__Any__string_t, f_ekeys), offsetof(vader_struct_std_collections$MutableMap__Any__string_t, f_evals), offsetof(vader_struct_std_collections$MutableMap__Any__string_t, f_index) },
+        .size = sizeof(vader_struct_std_collections$Map__Any__string_t), .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$Map__Any__string_t, f_ekeys), offsetof(vader_struct_std_collections$Map__Any__string_t, f_evals), offsetof(vader_struct_std_collections$Map__Any__string_t, f_index) },
         .ref_count = 3,
     },
     [25] = { .slot_size = 16 },
     [26] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections$MutableMap__snippet_Label___snippet_Point__string_t),
+        .size = sizeof(vader_struct_std_collections$Map__snippet_Label___snippet_Point__string_t),
         .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$MutableMap__snippet_Label___snippet_Point__string_t, f_ekeys), offsetof(vader_struct_std_collections$MutableMap__snippet_Label___snippet_Point__string_t, f_evals), offsetof(vader_struct_std_collections$MutableMap__snippet_Label___snippet_Point__string_t, f_index) },
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$Map__snippet_Label___snippet_Point__string_t, f_ekeys), offsetof(vader_struct_std_collections$Map__snippet_Label___snippet_Point__string_t, f_evals), offsetof(vader_struct_std_collections$Map__snippet_Label___snippet_Point__string_t, f_index) },
         .ref_count = 3,
     },
     [27] = {
@@ -263,7 +263,7 @@ static int32_t snippet$main(void) {
     l1 = (void*) _a1_arr;
     vader_array_t* _a2_arr = vader_array_new(29u, 0u, 7u, 5u);
     l2 = (void*) _a2_arr;
-    vader_struct_std_collections$MutableMap__Any__string_t* _a3_obj = (vader_struct_std_collections$MutableMap__Any__string_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$MutableMap__Any__string_t));
+    vader_struct_std_collections$Map__Any__string_t* _a3_obj = (vader_struct_std_collections$Map__Any__string_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$Map__Any__string_t));
     vader_obj_header_init(_a3_obj, 24u);
     _a3_obj->f_ekeys = l0;
     _a3_obj->f_evals = l1;
@@ -277,12 +277,12 @@ static int32_t snippet$main(void) {
     vader_obj_header_init(_a4_obj, 1u);
     _a4_obj->f_x = INT32_C(1);
     l1 = (void*) _a4_obj;
-    std_collections$MutableMap$std_core$IndexSet$set_at__Any__string(l0, vader_ref_box(l1), 1u);
+    std_collections$Map$std_core$IndexSet$set_at__Any__string(l0, vader_ref_box(l1), 1u);
     vader_struct_snippet$Label_t* _a5_obj = (vader_struct_snippet$Label_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Label_t));
     vader_obj_header_init(_a5_obj, 4u);
     _a5_obj->f_n = INT32_C(1);
     l1 = (void*) _a5_obj;
-    l3 = std_collections$MutableMap$std_core$Index$at__Any__string(l0, vader_ref_box(l1));
+    l3 = std_collections$Map$std_core$Index$at__Any__string(l0, vader_ref_box(l1));
     if (l3.tag == 0u) {
         l4 = 2u;
     } else {
@@ -292,7 +292,7 @@ static int32_t snippet$main(void) {
     vader_obj_header_init(_a6_obj, 1u);
     _a6_obj->f_x = INT32_C(1);
     l1 = (void*) _a6_obj;
-    l3 = std_collections$MutableMap$std_core$Index$at__Any__string(l0, vader_ref_box(l1));
+    l3 = std_collections$Map$std_core$Index$at__Any__string(l0, vader_ref_box(l1));
     if (l3.tag == 0u) {
         l5 = 2u;
     } else {
@@ -680,13 +680,13 @@ static bool std_core$string$Equals$equals$guard(vader_string_t l0, vader_box_t l
     return false;
 }
 
-static vader_box_t std_collections$MutableMap$std_core$Index$at__Any__string(void* l0, vader_box_t l1) {
+static vader_box_t std_collections$Map$std_core$Index$at__Any__string(void* l0, vader_box_t l1) {
     vader_box_t t0;
     t0 = std_collections$get__Any__string(l0, l1);
     return t0;
 }
 
-static void std_collections$MutableMap$std_core$IndexSet$set_at__Any__string(void* l0, vader_box_t l1, vader_string_t l2) {
+static void std_collections$Map$std_core$IndexSet$set_at__Any__string(void* l0, vader_box_t l1, vader_string_t l2) {
     std_collections$put__Any__string(l0, l1, l2);
     return;
 }
@@ -753,9 +753,9 @@ static void std_collections$rehash__Any__string(void* l0, int64_t l1) {
     }
     l2 = vader_chk_sub(i64, l1, INT64_C(1));
     l4 = INT64_C(0);
-    l5 = ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_size;
+    l5 = ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_size;
     while ((l4 < l5)) {
-        vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_ekeys);
+        vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_ekeys);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l4);
@@ -781,13 +781,13 @@ static void std_collections$rehash__Any__string(void* l0, int64_t l1) {
         ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l7] = (int32_t) l8;
         l4 = (l4 + INT64_C(1));
     }
-    ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_index = l3;
-    VADER_WRITE_BARRIER((vader_struct_std_collections$MutableMap__Any__string_t*) l0);
-    ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_mask = l2;
+    ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_index = l3;
+    VADER_WRITE_BARRIER((vader_struct_std_collections$Map__Any__string_t*) l0);
+    ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_mask = l2;
     t2 = vader_div_i64(l1, INT64_C(4));
     l2 = vader_chk_mul(i64, t2, INT64_C(3));
-    ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_grow_at = l2;
-    ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_tombs = INT64_C(0);
+    ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_grow_at = l2;
+    ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_tombs = INT64_C(0);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -799,7 +799,7 @@ static void std_collections$grow_index__Any__string(void* l0) {
     vader_gc_top = &gc_frame;
     l1 = INT64_C(16);
     for (;;) {
-        t0 = ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_size;
+        t0 = ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_size;
         l2 = vader_chk_mul(i64, t0, INT64_C(4));
         l3 = vader_chk_mul(i64, l1, INT64_C(3));
         if ((l2 > l3)) {
@@ -829,13 +829,13 @@ static bool std_collections$put__Any__string(void* l0, vader_box_t l1, vader_str
     vader_gc_top = &gc_frame;
     l3 = INT64_C(-1);
     l4 = INT64_C(-1);
-    t0 = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_index)->length;
+    t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
         l5 = vader_vt_std_core$Hash$hash(l1);
-        l6 = ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_mask;
+        l6 = ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
-            vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_index);
+            vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_index);
             VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l6)
             l7 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l6];
@@ -846,13 +846,13 @@ static bool std_collections$put__Any__string(void* l0, vader_box_t l1, vader_str
                     }
                 } else {
                     l8 = vader_chk_sub(i64, ((int64_t) (int32_t) l7), INT64_C(1));
-                    vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_ekeys);
+                    vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_ekeys);
                     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
                     l9 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l8);
                     t1 = vader_vt_std_core$Equals$equals(l9, l1);
                     if (t1) {
-                        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_evals);
+                        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_evals);
                         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l8)
                         vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l8] = vader_box_string(6u, l2);
@@ -860,7 +860,7 @@ static bool std_collections$put__Any__string(void* l0, vader_box_t l1, vader_str
                     }
                 }
                 l5 = (l5 >> INT64_C(5));
-                l10 = ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_mask;
+                l10 = ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_mask;
                 l6 = std_collections$next_slot(l6, l5, l10);
                 continue;
             }
@@ -868,36 +868,36 @@ static bool std_collections$put__Any__string(void* l0, vader_box_t l1, vader_str
         }
         l4 = l6;
     }
-    l6 = ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_size;
-    l8 = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_ekeys)->length;
+    l6 = ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_size;
+    l8 = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_ekeys)->length;
     if ((l6 < l8)) {
-        vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_ekeys);
+        vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_ekeys);
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l6)
         vader_array_ref_store_box(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) l6, l1);
         VADER_WRITE_BARRIER(_a3_slotarr->buf);
-        vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_evals);
+        vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_evals);
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l6)
         vader_array_box_slots(_a4_slotarr->buf)[_a4_slotarr->offset + (size_t) l6] = vader_box_string(6u, l2);
     } else {
-        vader_array_push((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_ekeys, l1);
-        vader_array_push_scalar((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_evals, vader_box_string(6u, l2));
+        vader_array_push((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_ekeys, l1);
+        vader_array_push_scalar((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_evals, vader_box_string(6u, l2));
     }
     l8 = vader_chk_add(i64, l6, INT64_C(1));
-    ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_size = l8;
-    l8 = ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_tombs;
+    ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_size = l8;
+    l8 = ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_tombs;
     l8 = vader_chk_add(i64, l6, l8);
-    l10 = ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_grow_at;
+    l10 = ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_grow_at;
     if ((l8 >= l10)) {
         std_collections$grow_index__Any__string(l0);
         { vader_gc_top = gc_frame.prev; return true; }
     }
     if ((l3 >= INT64_C(0))) {
-        t0 = ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_tombs;
+        t0 = ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_tombs;
         l8 = vader_chk_sub(i64, t0, INT64_C(1));
-        ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_tombs = l8;
-        l11 = ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_index;
+        ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_tombs = l8;
+        l11 = ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_index;
         t0 = vader_chk_add(i64, l6, INT64_C(1));
         l7 = ((int32_t) (int64_t) t0);
         vader_array_t* _a5_slotarr = ((vader_array_t*) l11);
@@ -905,7 +905,7 @@ static bool std_collections$put__Any__string(void* l0, vader_box_t l1, vader_str
         VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l3)
         ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l3] = (int32_t) l7;
     } else {
-        l11 = ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_index;
+        l11 = ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_index;
         t0 = vader_chk_add(i64, l6, INT64_C(1));
         l7 = ((int32_t) (int64_t) t0);
         vader_array_t* _a6_slotarr = ((vader_array_t*) l11);
@@ -932,28 +932,28 @@ static vader_box_t std_collections$get__Any__string(void* l0, vader_box_t l1) {
         vader_gc_top, 3u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_index)->length;
+    t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_index)->length;
     if (t0 == INT64_C(0)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
     l2 = vader_vt_std_core$Hash$hash(l1);
-    l3 = ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_mask;
+    l3 = ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
-        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_index);
+        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_index);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
         l4 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l3];
         if (!(l4 == INT32_C(0))) {
             if (l4 != INT32_C(-1)) {
                 l5 = vader_chk_sub(i64, ((int64_t) (int32_t) l4), INT64_C(1));
-                vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_ekeys);
+                vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_ekeys);
                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
                 l6 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
                 t1 = vader_vt_std_core$Equals$equals(l6, l1);
                 if (t1) {
-                    vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_evals);
+                    vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_evals);
                     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l5)
                     t2 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l5];
@@ -962,7 +962,7 @@ static vader_box_t std_collections$get__Any__string(void* l0, vader_box_t l1) {
                 }
             }
             l2 = (l2 >> INT64_C(5));
-            l7 = ((vader_struct_std_collections$MutableMap__Any__string_t*) l0)->f_mask;
+            l7 = ((vader_struct_std_collections$Map__Any__string_t*) l0)->f_mask;
             l3 = std_collections$next_slot(l3, l2, l7);
             continue;
         }

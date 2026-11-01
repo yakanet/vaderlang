@@ -59,13 +59,13 @@ Log implements IndexSet<string, i32> {
     }
 }
 
-put :: fn(target: MutableMap<string, i32> | Log) -> void {
+put :: fn(target: Map<string, i32> | Log) -> void {
     target.set_at("k", 1)
     target["j"] = 2
 }
 
 Tally :: struct {
-    counts: MutableMap<string, i32>
+    counts: Map<string, i32>
 }
 
 Tally implements Index<string, i32> {
@@ -133,12 +133,12 @@ plus_one :: fn(a: Add<i32>) -> string {
 main :: fn() -> i32 {
     println("${area_of(Sq { .s = 2.0 })} ${area_of(Circle { .r = 1.0 })} ${area_of([1.0])}")
     println("${shout(3)} ${shout("a")}")
-    m :: MutableMap<string, i32> {}
+    m :: Map<string, i32> {}
     put(m)
     l :: Log { .lines = [] }
     put(l)
     println("${m.len()} ${l.lines[1]}")
-    t :: Tally { .counts = MutableMap<string, i32> {} }
+    t :: Tally { .counts = Map<string, i32> {} }
     c :: Cell { .cells = [5] }
     println("${bump(t)} ${bump(c)}")
     xs: i64[]: [4, 8]

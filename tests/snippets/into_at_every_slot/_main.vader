@@ -57,7 +57,7 @@ main :: fn() -> i32 {
     h :: Holder { .l = Label { .text = "none" } }
     h.l = Celsius { .v = 6 }
     println("field [${h.l.text}]")
-    m :: MutableMap<string, Label> {}
+    m :: Map<string, Label> {}
     m["k"] = Celsius { .v = 8 }
     got :: m["k"] ?? Label { .text = "absent" }
     println("map [${got.text}]")

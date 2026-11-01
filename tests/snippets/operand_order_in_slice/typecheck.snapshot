@@ -43,16 +43,16 @@
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(T) -> void
   expr 29:70    StringLitExpr  :: string
-  expr 30:13    StructLitExpr  :: MutableSet<i32>
+  expr 30:13    StructLitExpr  :: Set<i32>
   expr 31:5     CallExpr       :: bool
   expr 31:5     FieldExpr      :: fn(i32) -> bool
-  expr 31:5     IdentExpr      :: MutableSet<i32>
+  expr 31:5     IdentExpr      :: Set<i32>
   expr 32:13    IfExpr         :: string
   expr 32:16    BinaryExpr     :: bool
   expr 32:16    CallExpr       :: i32
   expr 32:16    IdentExpr      :: fn(string, i32) -> i32
   expr 32:20    StringLitExpr  :: string
-  expr 32:31    IdentExpr      :: MutableSet<i32>
+  expr 32:31    IdentExpr      :: Set<i32>
   expr 32:38    StringLitExpr  :: string
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(T) -> void

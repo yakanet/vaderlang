@@ -174,7 +174,7 @@ shape_of :: fn(fn_: CFGFunction, preds: BlockId[][], idom: i32[]) -> StructureSh
 
 // True when `header` heads a loop that holds `p`.
 closes_loop :: fn(
-    loops: MutableMap<BlockId, MutableSet<BlockId>>,
+    loops: Map<BlockId, Set<BlockId>>,
     p: BlockId,
     header: BlockId,
 ) -> bool {
@@ -184,7 +184,7 @@ closes_loop :: fn(
 
 // True when `from` is a loop header and `b` lies outside its loop.
 leaves_header :: fn(
-    loops: MutableMap<BlockId, MutableSet<BlockId>>,
+    loops: Map<BlockId, Set<BlockId>>,
     from: BlockId,
     b: BlockId,
 ) -> bool {
@@ -222,7 +222,7 @@ ends_function :: fn(t: Terminator) -> bool = t is TermReturn | TermUnreachable
 
 // True when a loop's own test, at its header, leaves the loop for `b`.
 entered_by_test :: fn(
-    loops: MutableMap<BlockId, MutableSet<BlockId>>,
+    loops: Map<BlockId, Set<BlockId>>,
     preds: BlockId[],
     b: BlockId,
 ) -> bool {
@@ -245,7 +245,7 @@ SMALL_DEAD_END: i64: 2
 // True when loop header `h` ends in a test with a target outside its loop.
 tests_its_exit :: fn(
     fn_: CFGFunction,
-    loops: MutableMap<BlockId, MutableSet<BlockId>>,
+    loops: Map<BlockId, Set<BlockId>>,
     h: BlockId,
 ) -> bool {
     body :: loops[h] ?? return false
@@ -255,7 +255,7 @@ tests_its_exit :: fn(
 
 // The header of the outermost loop that holds `inside` but not `b`, or -1.
 outermost_loop_left :: fn(
-    loops: MutableMap<BlockId, MutableSet<BlockId>>,
+    loops: Map<BlockId, Set<BlockId>>,
     rpo_index: i32[],
     inside: BlockId,
     b: BlockId,

@@ -49,7 +49,7 @@ export type_keys_of :: fn(m: BytecodeModule) -> string[] {
 ///                    sorted.
 export union_of_type_tables :: fn(per_module: string[][]) -> string[] {
     reserved :: per_module[0][0]
-    seen: MutableSet<string>: MutableSet<string> {}
+    seen: Set<string>: Set<string> {}
     seen.add(reserved)
     keys: string[]: []
     for module_keys in per_module {
@@ -83,7 +83,7 @@ export union_of_type_tables :: fn(per_module: string[][]) -> string[] {
 /// @return          the rebased module.
 export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[]) -> BytecodeModule {
     // key -> slot in the universe.
-    slot_of :: MutableMap<string, i32> {}
+    slot_of :: Map<string, i32> {}
     for i in 0..<universe.len() {
         slot_of[universe[i]] = i32(i)
     }
@@ -98,7 +98,7 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
     // filled from its own key: a primitive or a ref reconstructs exactly, and
     // anything else falls back to an opaque ref, which is only ever reached by
     // code this module does not contain.
-    by_slot :: MutableMap<i32, BcType> {}
+    by_slot :: Map<i32, BcType> {}
     for i in 0..<m.types.len() {
         s :: remap[i]
         if s >= 0 {

@@ -27,8 +27,8 @@ CallInference :: struct {
     call:      AST.CallExpr
     inst:      FnType
     own:       InferVar[]
-    solutions: MutableMap<i32, Type>
-    held:      MutableSet<i32> | null
+    solutions: Map<i32, Type>
+    held:      Set<i32> | null
     typed:     TypedProgram
 }
 
@@ -53,7 +53,7 @@ type_generic_call :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    vars :: MutableMap<i32, Type> {}
+    vars :: Map<i32, Type> {}
     own: InferVar[]: []
     for tp in callee_ty.type_params {
         v :: fresh_infer_var(typed, tp)
@@ -96,7 +96,7 @@ type_generic_call :: fn(
     // Keyed back by the declared parameters. A variable nothing solved stands for
     // its parameter from here on, so what was typed against it reads as the
     // unsolved parameter it is.
-    bindings :: MutableMap<i32, Type> {}
+    bindings :: Map<i32, Type> {}
     unsolved: Symbol[]: []
     for v in own {
         solved :: solutions[v.id]
@@ -255,13 +255,13 @@ seed_explicit_infer :: fn(
     type_args: AST.TypeExpr[],
     own: InferVar[],
     typed: TypedProgram,
-    solutions: MutableMap<i32, Type>,
+    solutions: Map<i32, Type>,
     diags: Diagnostic[],
-) -> MutableSet<i32> | null {
+) -> Set<i32> | null {
     if type_args.len() == 0 {
         return null
     }
-    held :: MutableSet<i32> {}
+    held :: Set<i32> {}
     for i in 0..<min(own.len(), type_args.len()) {
         solutions[own[i].id] = type_from_expr(type_args[i], typed.resolved, diags)
         held.add(own[i].id)
@@ -270,7 +270,7 @@ seed_explicit_infer :: fn(
 }
 
 // A UFCS receiver binds the variables of the parameter it was curried from.
-seed_ufcs_infer :: fn(ctx: CallInference, vars: MutableMap<i32, Type>) -> void {
+seed_ufcs_infer :: fn(ctx: CallInference, vars: Map<i32, Type>) -> void {
     callee :: ctx.call.callee
     if callee !is AST.FieldExpr {
         return
@@ -288,8 +288,8 @@ unify_struct_to_trait_infer :: fn(
     pattern: Type,
     actual: Type,
     typed: TypedProgram,
-    solutions: MutableMap<i32, Type>,
-    held: MutableSet<i32> | null,
+    solutions: Map<i32, Type>,
+    held: Set<i32> | null,
 ) -> void {
     if pattern !is TraitType {
         return
@@ -400,7 +400,7 @@ zonk_module_tables :: fn(typed: TypedProgram) -> void {
 }
 
 zonk_table :: fn<K: Hash & Equals>(
-    table: MutableMap<K, Type>, solutions: MutableMap<i32, Type>,
+    table: Map<K, Type>, solutions: Map<i32, Type>,
 ) -> void {
     stale: K[]: []
     for [k, t] in table {

@@ -41,7 +41,7 @@ evaluate_aggregate :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult
 // and the defaults of the others, evaluated in the module declaring the struct.
 // A spread falls back to C4001.
 evaluate_struct_lit :: fn(expr: AST.StructLitExpr, context: ComptimeContext) -> EvalResult {
-    fields :: MutableMap<string, ComptimeValue> {}
+    fields :: Map<string, ComptimeValue> {}
     for item in expr.items {
         if item is AST.StructLitSpread {
             return vm_required(item.span, "struct literal spread")
@@ -183,7 +183,7 @@ display_enum :: fn(value: EnumValue, part: AST.Expr, context: ComptimeContext) -
     }
     impl_context :: declaring_context(value.enum_type.symbol.module, context)
         ?? return vm_required(part.span, "enum of no known module")
-    bindings :: MutableMap<i32, ComptimeValue> {}
+    bindings :: Map<i32, ComptimeValue> {}
     result :: evaluate_with_arguments(callee.decl, [value], bindings, impl_context, part.span)
     text :: result.value ?? return result
     if text !is StringValue {

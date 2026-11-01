@@ -28,17 +28,17 @@ import "std/abort"
 /// pool shared by every fn's CFG.
 ProjectCtx :: struct {
     strings:      string[]
-    string_index: MutableMap<string, i32>
+    string_index: Map<string, i32>
     /// Const symbol id → accessor fn (fn-wrap bucket), forwarded from the
     /// `LoweredProject` so `build_ident` can lower a const reference to a
     /// `call` on its synthetic `__const_<name>` fn.
-    const_fn_wrap: MutableMap<i32, ConstFnWrap>
+    const_fn_wrap: Map<i32, ConstFnWrap>
     /// Const symbol id → lowered value (inline bucket): `build_ident`
     /// re-builds it at each read site.
-    const_inline:  MutableMap<i32, LoweredExpr>
+    const_inline:  Map<i32, LoweredExpr>
     /// Const symbol id → the accessor that builds a const of the data pool again
     /// (`LoweredProject.const_fresh_wrap`).
-    const_fresh_wrap: MutableMap<i32, ConstFnWrap>
+    const_fresh_wrap: Map<i32, ConstFnWrap>
     /// `@extern` fn symbol id → the indices of its CALLBACK parameters.
     ///
     /// Read off the DECLARATION, not off the callee expression's recorded type:
@@ -47,7 +47,7 @@ ProjectCtx :: struct {
     /// would silently answer "no callbacks here" and emit a fn value into C.
     /// A symbol names one declaration, which is also what makes an overload pick
     /// unambiguous.
-    extern_callbacks: MutableMap<i32, MutableSet<i64>>
+    extern_callbacks: Map<i32, Set<i64>>
     /// Where `build_ident` reports an ident with no local. LOUD on purpose: the
     /// symbol resolved, so a miss here is the COMPILER losing a binding, and the
     /// recovery value is a `TermUnreachable` that replaces the whole entry block:
@@ -64,13 +64,13 @@ ProjectCtx :: struct {
     data_pool: DataPoolEntry[]
     /// `LoweredProject.identity_compared`: the structs whose literals are not
     /// shared.
-    identity_compared: MutableSet<i32>
+    identity_compared: Set<i32>
     /// The pool entry of each shared struct met so far, by symbol id.
-    shared_structs: MutableMap<i32, i64> = MutableMap<i32, i64> {}
+    shared_structs: Map<i32, i64> = Map<i32, i64> {}
 }
 
 new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx {
-    externs :: MutableMap<i32, MutableSet<i64>> {}
+    externs :: Map<i32, Set<i64>> {}
     slot_types :: SlotTypes {}
     for [_, m] in lp.modules {
         for d in m.decls {
@@ -79,7 +79,7 @@ new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx {
                 if fn_metadata(d).is_extern {
                     sym :: d.origin.symbol
                     if sym is Symbol {
-                        slots :: MutableSet<i64> {}
+                        slots :: Set<i64> {}
                         for i in 0..<d.params.len() {
                             if d.params[i].type is FnType {
                                 slots.add(i)
@@ -95,7 +95,7 @@ new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx {
     }
     return ProjectCtx {
         .strings = [],
-        .string_index = MutableMap<string, i32> {},
+        .string_index = Map<string, i32> {},
         .const_fn_wrap = lp.const_fn_wrap,
         .const_inline  = lp.const_inline,
         .const_fresh_wrap = lp.const_fresh_wrap,
@@ -166,7 +166,7 @@ FnCtx :: struct {
     return_type:     Type
     params:          CFGParam[]
     locals:          CFGLocal[]
-    local_by_sym_id: MutableMap<i32, LocalId>
+    local_by_sym_id: Map<i32, LocalId>
     blocks:          MutableBlock[]
     loop_stack:      LoopFrame[]
     current:         BlockId | null
@@ -184,7 +184,7 @@ FnCtx :: struct {
 /// @return       a fresh `CFGProject` with one entry per lowered module.
 export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]) -> CFGProject {
     ctx :: new_project_ctx(lp, diags)
-    modules :: MutableMap<string, CFGModule> {}
+    modules :: Map<string, CFGModule> {}
     for [module_id, m] in lp.modules {
         functions: CFGFunction[]: []
         externs: CFGExternDecl[]: []
@@ -285,7 +285,7 @@ make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
 
 make_extern_decl :: fn(
     d: LoweredFnDecl,
-    libraries: MutableMap<i64, CLibrary>,
+    libraries: Map<i64, CLibrary>,
 ) -> CFGExternDecl {
     meta :: fn_metadata(d)
     library :: library_of(d, libraries)
@@ -312,7 +312,7 @@ make_extern_decl :: fn(
 // The `CLibrary` the declaration `d` names, or null.
 library_of :: fn(
     d: LoweredFnDecl,
-    libraries: MutableMap<i64, CLibrary>,
+    libraries: Map<i64, CLibrary>,
 ) -> CLibrary | null {
     decl :: d.origin.decl
     if decl is FnDecl {
@@ -339,7 +339,7 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
 
     params: CFGParam[]: []
     locals: CFGLocal[]: []
-    local_by_sym_id :: MutableMap<i32, LocalId> {}
+    local_by_sym_id :: Map<i32, LocalId> {}
 
     // Params occupy local slots 0..N-1.
     for p in d.params {
@@ -844,7 +844,7 @@ build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
         if callee_id.symbol.kind == .Fn {
             slots :: fn_ctx.project.extern_callbacks[callee_id.symbol.id]
             params :: params_of(fn_ctx.project.slots, callee_id.symbol)
-            args :: if slots is MutableSet<i64> {
+            args :: if slots is Set<i64> {
                 build_extern_args(fn_ctx, e.args, params, slots, callee_id.symbol.name) ?? return null
             } else {
                 build_args(fn_ctx, e.args, params) ?? return null
@@ -901,7 +901,7 @@ build_extern_args :: fn(
     fn_ctx: FnCtx,
     args: LoweredExpr[],
     params: Type[],
-    slots: MutableSet<i64>,
+    slots: Set<i64>,
     callee: string,
 ) -> LocalId[] | null {
     out: LocalId[]: []

@@ -24,7 +24,7 @@ import "vader/midir"
 /// @return   `p` with those accesses marked.
 export mark_proven_accesses :: fn(p: CFGProject) -> CFGProject {
     shrinks :: shrink_predicate(summarise_array_shrinking(p))
-    out :: MutableMap<string, CFGModule> {}
+    out :: Map<string, CFGModule> {}
     for [id, m] in p.modules {
         functions :: m.functions.map((f) -> mark_in_function(f, shrinks)).collect()
         out[id] = CFGModule { ...m, .functions = functions }
@@ -42,8 +42,8 @@ mark_in_function :: fn(fn_: CFGFunction, shrinks: fn(Instruction) -> bool) -> CF
 }
 
 // The accesses of `fn_` the analysis proves in bounds, each as its `pos_key`.
-proven_accesses :: fn(fn_: CFGFunction, shrinks: fn(Instruction) -> bool) -> MutableSet<i64> {
-    proven :: MutableSet<i64> {}
+proven_accesses :: fn(fn_: CFGFunction, shrinks: fn(Instruction) -> bool) -> Set<i64> {
+    proven :: Set<i64> {}
     if !may_prove_an_access(fn_) {
         return proven
     }
@@ -60,9 +60,9 @@ proven_accesses :: fn(fn_: CFGFunction, shrinks: fn(Instruction) -> bool) -> Mut
 // to it left: a function whose checked accesses each index an array it neither
 // measures nor indexes at two sites proves nothing, and skips the fixed point.
 may_prove_an_access :: fn(fn_: CFGFunction) -> bool {
-    measured :: MutableSet<LocalId> {}
-    sites :: MutableMap<LocalId, i64> {}
-    checked :: MutableSet<LocalId> {}
+    measured :: Set<LocalId> {}
+    sites :: Map<LocalId, i64> {}
+    checked :: Set<LocalId> {}
     for b in fn_.blocks {
         for ins in b.instructions {
             if ins is InstrArrayLen {
@@ -98,7 +98,7 @@ indexed_array :: fn(ins: Instruction) -> LocalId | null {
 is_checked_access :: fn(ins: Instruction) = ins is InstrArrayGet | InstrArraySet && !already_safe(ins)
 
 // `b` with each access `proven` names marked `bounds_safe`.
-mark_block :: fn(b: BasicBlock, proven: MutableSet<i64>) -> BasicBlock {
+mark_block :: fn(b: BasicBlock, proven: Set<i64>) -> BasicBlock {
     marked: Instruction[]: []
     for position in 0..<b.instructions.len() {
         ins :: b.instructions[position]

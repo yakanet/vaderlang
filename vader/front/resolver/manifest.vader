@@ -162,7 +162,7 @@ string_list :: fn(object: JsonObject, key: string, problems: string[]) -> string
 /// @param manifest  the project, written as `write_manifest_json` does.
 /// @param indent    spaces per nesting level; 0 writes one line.
 export stringify_manifest :: fn(manifest: Manifest, indent: i32 = 0) -> string {
-    out :: MutableMap<string, JsonValue> {}
+    out :: Map<string, JsonValue> {}
     write_manifest_json(out, manifest)
     return stringify(JsonObject { .entries = out }, indent)
 }
@@ -174,14 +174,14 @@ export stringify_manifest :: fn(manifest: Manifest, indent: i32 = 0) -> string {
 /// @param manifest  the project. An empty `name` or `version` is left out, as an
 ///                  absent key reads back the same; the lists are written even
 ///                  when empty. `problems` is not written.
-export write_manifest_json :: fn(out: MutableMap<string, JsonValue>, manifest: Manifest) -> void {
+export write_manifest_json :: fn(out: Map<string, JsonValue>, manifest: Manifest) -> void {
     if manifest.name != "" {
         out["name"] = JsonString { .value = manifest.name }
     }
     if manifest.version != "" {
         out["version"] = JsonString { .value = manifest.version }
     }
-    named :: MutableMap<string, JsonValue> {}
+    named :: Map<string, JsonValue> {}
     for entry in manifest.entries {
         named[entry.name] = JsonString { .value = entry.path }
     }
@@ -412,14 +412,14 @@ test_a_written_manifest_reads_back_as_the_same_project :: fn() -> void {
 
 @test
 test_a_full_manifest_writes_every_key_in_order :: fn() -> void {
-    out :: MutableMap<string, JsonValue> {}
+    out :: Map<string, JsonValue> {}
     write_manifest_json(out, Manifest { .name = "game", .version = "1.2.0" })
     assert_eq(out.keys().join(", "), MANIFEST_KEYS.join(", "))
 }
 
 @test
 test_a_manifest_without_name_or_version_writes_neither :: fn() -> void {
-    out :: MutableMap<string, JsonValue> {}
+    out :: Map<string, JsonValue> {}
     write_manifest_json(out, Manifest {})
     assert_eq(out.keys().join(","), "includePaths,entries,assets")
 }

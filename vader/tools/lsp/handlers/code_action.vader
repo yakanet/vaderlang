@@ -61,18 +61,18 @@ export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonVa
 // Encode one `CodeAction` carrying a single-file `WorkspaceEdit` that replaces
 // the action's target span with its rewritten text.
 code_action_json :: fn(r: ActionResult, uri: string, li: LineIndex) -> JsonValue {
-    text_edit :: MutableMap<string, JsonValue> {}
+    text_edit :: Map<string, JsonValue> {}
     text_edit["range"]   = range_json(span_to_range_json(r.target_span, li))
     text_edit["newText"] = JsonString { .value = r.new_text }
 
     edits: JsonValue[]: [JsonObject { .entries = text_edit }]
-    changes :: MutableMap<string, JsonValue> {}
+    changes :: Map<string, JsonValue> {}
     changes[uri] = JsonArray { .items = edits }
 
-    workspace_edit :: MutableMap<string, JsonValue> {}
+    workspace_edit :: Map<string, JsonValue> {}
     workspace_edit["changes"] = JsonObject { .entries = changes }
 
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["title"] = JsonString { .value = r.title }
     obj["kind"]  = JsonString { .value = r.kind }
     obj["edit"]  = JsonObject { .entries = workspace_edit }

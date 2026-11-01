@@ -28,9 +28,9 @@ import "toolchain/span"
 /// downstream phases don't cascade with "unknown variant" noise.
 resolve_enum_indices :: fn(
     decl: EnumDecl, width: MachineInteger | null, diags: Diagnostic[],
-) -> MutableMap<string, i64> {
-    out :: MutableMap<string, i64> {}
-    seen_values :: MutableSet<i64> {}
+) -> Map<string, i64> {
+    out :: Map<string, i64> {}
+    seen_values :: Set<i64> {}
     cursor: i64 = 0
     for variant in decl.variants {
         value :: variant.value
@@ -59,7 +59,7 @@ resolve_enum_indices :: fn(
     return out
 }
 
-find_owner :: fn(out: MutableMap<string, i64>, target: i64) -> string {
+find_owner :: fn(out: Map<string, i64>, target: i64) -> string {
     for [k, v] in out {
         if v == target { return k }
     }
@@ -138,7 +138,7 @@ span_of_value :: fn(v: EnumVariant) -> Span {
 
 import "std/testing"
 
-expect_index :: fn(indices: MutableMap<string, i64>, name: string, want: i64) -> void {
+expect_index :: fn(indices: Map<string, i64>, name: string, want: i64) -> void {
     hit :: indices[name]
     match hit {
         is null -> { assert(false, "missing index for ${name}") }

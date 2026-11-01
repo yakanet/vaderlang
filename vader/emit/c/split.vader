@@ -377,7 +377,7 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
     // file and lost every function but the last: a link failure listing
     // undefined `vader_fn_lift_*`, and only in projects with enough bare names
     // to straddle a module.
-    of_module :: MutableMap<string, i32[]> {}
+    of_module :: Map<string, i32[]> {}
     for idx in sorted_fn_indices(fns) {
         of_module.get_or_put_with(module_stem_of(fns[idx].name), () -> []).push(idx)
     }
@@ -389,7 +389,7 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
 }
 
 // The module stems, sorted: the deterministic unit order.
-sorted_module_stems :: fn(of_module: MutableMap<string, i32[]>) -> string[] {
+sorted_module_stems :: fn(of_module: Map<string, i32[]>) -> string[] {
     stems: string[]: []
     for [m, _] in of_module {
         stems.push(m)
@@ -428,7 +428,7 @@ unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
         }
         out.push(if stem == "" { "_root" } else { stem })
     }
-    seen :: MutableSet<string> {}
+    seen :: Set<string> {}
     for n in out {
         if !seen.add(n) {
             todo("split: two units named `${n}` would write the same file")

@@ -23,10 +23,10 @@ import "vader/support/diagnostics"
 // only what the program reaches.
 check_extern_symbols :: fn(
     loaded: LoadedProject,
-    libraries: MutableMap<i64, CLibrary>,
+    libraries: Map<i64, CLibrary>,
     diags: Diagnostic[],
 ) -> void {
-    claimed :: MutableMap<string, FnDecl> {}
+    claimed :: Map<string, FnDecl> {}
     for [_, module] in loaded.modules {
         for decl in module_decls(module) {
             if decl !is FnDecl || decl.body != null || !decorators_have(decl.decorators, "extern") {

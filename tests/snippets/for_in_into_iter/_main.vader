@@ -20,8 +20,8 @@ main :: fn() -> i32 {
     }
     println("arr=${arr_total}")
 
-    // MutableMap: entries iter in hash order.
-    m :: MutableMap<string, i32> {}
+    // Map: entries iter in hash order.
+    m :: Map<string, i32> {}
     m["a"] = 1
     m["b"] = 2
     map_total := 0
@@ -30,8 +30,8 @@ main :: fn() -> i32 {
     }
     println("map=${map_total}")
 
-    // MutableSet: member iter.
-    s :: MutableSet<i32> {}
+    // Set: member iter.
+    s :: Set<i32> {}
     s.add(7)
     s.add(11)
     set_total := 0

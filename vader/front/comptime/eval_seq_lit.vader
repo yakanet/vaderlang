@@ -27,7 +27,7 @@ evaluate_seq_lit :: fn(expr: AST.SeqLitExpr, context: ComptimeContext) -> EvalRe
     }
     inferred :: context.typed.expr_types[expr.id] ?? TY_UNRESOLVED
     if tuple_backing(inferred) != null {
-        fields :: MutableMap<string, ComptimeValue> {}
+        fields :: Map<string, ComptimeValue> {}
         for i in 0..<elements.len() {
             fields["_${i}"] = elements[i]
         }

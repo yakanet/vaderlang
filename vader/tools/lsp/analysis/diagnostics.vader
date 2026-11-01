@@ -95,7 +95,7 @@ publish :: fn(self: ServerState, uri: string, diags: Diagnostic[]) -> void {
     for d in dedup_diagnostics(shown) {
         items.push(encode_diagnostic(d, li))
     }
-    params :: MutableMap<string, JsonValue> {}
+    params :: Map<string, JsonValue> {}
     params["uri"]         = JsonString { .value = uri }
     params["diagnostics"] = JsonArray { .items = items }
     write_frame(encode_notification("textDocument/publishDiagnostics", JsonObject { .entries = params }))
@@ -104,7 +104,7 @@ publish :: fn(self: ServerState, uri: string, diags: Diagnostic[]) -> void {
 // ---- encoding ------------------------------------------------------------
 
 encode_diagnostic :: fn(d: Diagnostic, li: LineIndex) -> JsonValue {
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["range"]    = range_json(span_to_range_json(d.primary, li))
     obj["severity"] = JsonNumber { .value = f64(lsp_severity(d.severity)) }
     obj["code"]     = JsonString { .value = d.code.id }

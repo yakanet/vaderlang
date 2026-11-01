@@ -76,8 +76,8 @@ refine_via_resolver :: fn(idx: DocIndex, out: RawToken[]) -> void {
     li :: idx.line_index
     factory :: SymbolFactory {}
     collected :: collect_module_no_index(program, uri, factory)
-    none :: MutableMap<string, Symbol> {}
-    seed :: file_root_scope(none, collected, collected.files[0], MutableMap<string, LoadedModule> {}, none)
+    none :: Map<string, Symbol> {}
+    seed :: file_root_scope(none, collected, collected.files[0], Map<string, LoadedModule> {}, none)
     resolved :: resolve_program(program, seed, uri, factory)
     for i in 0..<out.len() {
         rt :: out[i]

@@ -14,7 +14,7 @@ string keys: z !in
 read back: 'alpha'=0
 read back: 'beta'=1
 read back: 'gamma'=2
-read back: 'MutableMap'=3
+read back: 'collection'=3
 read back: 'x'=4
 read back: 'hello world'=5
 read back: 'a'=6

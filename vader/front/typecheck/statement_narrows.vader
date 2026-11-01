@@ -185,7 +185,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
             // Don't record a narrowing off an unresolved base: mirrors
             // `detect_is_narrow` (expr_if.vader). The premature imported-body
             // walk in `settle_external_expr_bodied_returns` runs before the
-            // module's `MutableMap.at` &c are wired, so an `m[k]`-bound local
+            // module's `Map.at` &c are wired, so an `m[k]`-bound local
             // is `?` there ; a `?`-based divergent narrow persists (divergent
             // narrows aren't popped) and poisons the authoritative re-walk.
             if base is UnresolvedType {

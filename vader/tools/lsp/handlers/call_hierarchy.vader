@@ -68,7 +68,7 @@ export handle_outgoing_calls :: fn(state: ServerState, params: JsonValue) -> Jso
     // The calls in the body first, then the declaration of each callee : one
     // pass over the project's sites for each, not one per call.
     calls: RefSite[]: []
-    callees :: MutableSet<i64> {}
+    callees :: Set<i64> {}
     for s in target.index.sites {
         in_body :: inside(s.span, target.decl_path, target.decl.full_span)
         if !s.is_decl && is_fn_key(s.key) && in_body {
@@ -76,7 +76,7 @@ export handle_outgoing_calls :: fn(state: ServerState, params: JsonValue) -> Jso
             callees.add(s.key)
         }
     }
-    declared :: MutableMap<i64, Span> {}
+    declared :: Map<i64, Span> {}
     for s in target.index.sites {
         if s.is_decl && s.key in callees {
             declared[s.key] = s.span
@@ -130,7 +130,7 @@ width :: fn(span: Span) -> i64 = span.end.offset - span.start.offset
 // Calls grouped by the fn on the other end, in the order first met.
 CallGroups :: struct {
     /// By `path:offset` of each fn's name.
-    groups: MutableMap<string, CallGroup> = MutableMap<string, CallGroup> {}
+    groups: Map<string, CallGroup> = Map<string, CallGroup> {}
 }
 
 // One fn on the other end of some calls, and where those calls are.
@@ -156,7 +156,7 @@ calls_json :: fn(self: CallGroups, target: DeclTarget, side: string) -> JsonValu
         for call in group.calls {
             ranges.push(range_json(call.span_to_range_json(target.line_index_for(call.start.file))))
         }
-        obj :: MutableMap<string, JsonValue> {}
+        obj :: Map<string, JsonValue> {}
         obj[side] = call_item_json(target, group.peer, group.path)
         obj["fromRanges"] = JsonArray { .items = ranges }
         out.push(JsonObject { .entries = obj })

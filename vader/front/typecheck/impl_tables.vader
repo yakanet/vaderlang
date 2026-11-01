@@ -70,7 +70,7 @@ own_impl_key :: fn(typed: TypedProgram, t: Type) -> string | null {
 /// @param suffix  appended to both keys : `"::member"` for `impl_methods`, `""` for
 ///                a table keyed by the type alone.
 impl_side :: fn<V>(
-    typed: TypedProgram, table: MutableMap<string, V>, t: Type, suffix: string,
+    typed: TypedProgram, table: Map<string, V>, t: Type, suffix: string,
 ) -> V | null {
     own_key :: own_impl_key(typed, t)
     if own_key != null {
@@ -90,7 +90,7 @@ impl_side :: fn<V>(
 /// @param t       the receiver asked about.
 /// @param suffix  appended to both keys : `"::member"`, or `""` for a key alone.
 impl_side_list :: fn(
-    typed: TypedProgram, table: MutableMap<string, string[]>, t: Type, suffix: string,
+    typed: TypedProgram, table: Map<string, string[]>, t: Type, suffix: string,
 ) -> string[] {
     base :: table["${dispatch_key(t)}${suffix}"] ?? []
     own_key :: own_impl_key(typed, t) ?? return base
@@ -177,8 +177,8 @@ settled_member :: fn(m: ImplMethod, typed: TypedProgram) -> ImplMethod {
 /// @param typed  a module of the project, whose impl tables it reads ; they hold
 ///               the impls of every module it sees.
 /// @param t      the receiver.
-export impl_members_of :: fn(typed: TypedProgram, t: Type) -> MutableMap<string, ImplMethod> {
-    out :: MutableMap<string, ImplMethod> {}
+export impl_members_of :: fn(typed: TypedProgram, t: Type) -> Map<string, ImplMethod> {
+    out :: Map<string, ImplMethod> {}
     own_key :: own_impl_key(typed, t)
     if own_key != null {
         add_members_under(typed, "${own_key}::", out)
@@ -191,7 +191,7 @@ export impl_members_of :: fn(typed: TypedProgram, t: Type) -> MutableMap<string,
 // further by the type it converts into (`into_toward_suffix`) : it lists once,
 // as `into`.
 add_members_under :: fn(
-    typed: TypedProgram, prefix: string, out: MutableMap<string, ImplMethod>,
+    typed: TypedProgram, prefix: string, out: Map<string, ImplMethod>,
 ) -> void {
     for [key, methods] in typed.impl_tables.impl_methods {
         if methods.len() == 0 || !key.starts_with(prefix) {
@@ -678,7 +678,7 @@ resolve_trait_args_for :: fn(t: Type, raw: Type[], typed: TypedProgram) -> Type[
         // tables record a generic impl on arrays only on `T[]` (T3090) and with no
         // other parameter (T3117), so every parameter its arguments name is the
         // element.
-        bindings :: MutableMap<i32, Type> {}
+        bindings :: Map<i32, Type> {}
         for a in raw {
             for param in type_params_in(a) {
                 bindings[param.id] = t.element

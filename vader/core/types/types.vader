@@ -39,7 +39,7 @@ export EnumType :: struct {
     repr:          MachineInteger
     /// What a variant stores, keyed by name : its written value, or for an enum
     /// with variant data its rank (0, 1, 2… in declaration order).
-    indices:       MutableMap<string, i64>
+    indices:       Map<string, i64>
     /// The struct each variant carries a constant value of, from the header ;
     /// null for an enum without variant data.
     data:          StructType | null = null
@@ -379,7 +379,7 @@ export display_type_names :: fn(t: Type) -> TypeDisplay {
 
 /// `t` rendered as `display_type` renders it, with every nominal type (struct,
 /// trait, enum, distinct) named by its declaring module as well:
-/// `std_collections_MutableMap<string, vader_front_lexer_Token>`. Two same-named types
+/// `std_collections_Map<string, vader_front_lexer_Token>`. Two same-named types
 /// of different modules render apart, which an instance name needs.
 ///
 /// @param t  the type to render.
@@ -402,7 +402,7 @@ export qualified_display_type :: fn(t: Type) -> string {
 }
 
 /// `sym`'s name prefixed by its declaring module, as an instance name carries it:
-/// `pa$Point`, `std_collections$MutableMap`. Neither half holds a `$`, so the
+/// `pa$Point`, `std_collections$Map`. Neither half holds a `$`, so the
 /// type `C` of `a/b` (`a_b$C`) and the type `b_C` of `a` (`a$b_C`) name apart.
 ///
 /// @param sym  a nominal type's declaration symbol.
@@ -780,8 +780,8 @@ export contains_distinct :: fn(t: Type) -> bool {
 /// boxes and lays out exactly as its backing primitive, so the backend must
 /// never see one inside a monomorphisation instance key. Applied to type-args
 /// at every instance-registration source (`lower/generic_call.vader`, `lower/ufcs.vader`,
-/// `queue_generic_impl_receiver`, `materialize_shape`) so `MutableMap<BlockId>`
-/// IS `MutableMap<i32>` for the whole lowerer / comptime / emit pipeline: one
+/// `queue_generic_impl_receiver`, `materialize_shape`) so `Map<BlockId>`
+/// IS `Map<i32>` for the whole lowerer / comptime / emit pipeline: one
 /// raw instance, no separate erased instance to collide with the genuine one.
 /// Nominal distinctness is a typechecker-only concept; it ends here, at the
 /// lowering boundary.
@@ -1000,11 +1000,11 @@ test_display_union :: fn() -> void {
 @test
 test_display_struct_with_args :: fn() -> void {
     factory :: SymbolFactory {}
-    sym :: factory.make(.Struct, "MutableMap", "test", "test", .Public, null)
+    sym :: factory.make(.Struct, "Map", "test", "test", .Public, null)
     a0: Type: TY_STRING
     a1: Type: TY_I32
     s :: mk_struct(sym, [a0, a1])
-    assert_eq(display_type(s), "MutableMap<string, i32>")
+    assert_eq(display_type(s), "Map<string, i32>")
 }
 
 @test
@@ -1035,14 +1035,14 @@ test_display_lowered_generator_state_by_its_name :: fn() -> void {
 @test
 test_display_type_names_locates_each_nominal_name :: fn() -> void {
     factory :: SymbolFactory {}
-    map :: factory.make(.Struct, "MutableMap", "test", "test", .Public, null)
+    map :: factory.make(.Struct, "Map", "test", "test", .Public, null)
     point :: factory.make(.Struct, "Point", "test", "test", .Public, null)
     a0: Type: TY_STRING
     a1: Type: mk_struct(point, [])
     shown :: display_type_names(mk_array(mk_struct(map, [a0, a1])))
-    assert_eq(shown.text, "MutableMap<string, Point>[]")
+    assert_eq(shown.text, "Map<string, Point>[]")
     assert_eq(shown.names.len(), 2)
-    assert_eq(shown.text.byte_slice(shown.names[0].start, shown.names[0].end), "MutableMap")
+    assert_eq(shown.text.byte_slice(shown.names[0].start, shown.names[0].end), "Map")
     assert_eq(shown.text.byte_slice(shown.names[1].start, shown.names[1].end), "Point")
     assert_eq(shown.names[1].symbol.id, point.id)
 }

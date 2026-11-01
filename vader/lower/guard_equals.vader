@@ -1,7 +1,7 @@
 // vader/lower/guard_equals: the `Equals` methods a vtable dispatches to.
 //
 // A virtual call picks its impl from the RECEIVER's tag alone, and hands the other
-// operand over unchecked. An erased `T: Equals` body (a `MutableMap<K, _>`,
+// operand over unchecked. An erased `T: Equals` body (a `Map<K, _>`,
 // `x in xs`, `assert_eq`) instantiated on a union reaches a `Point` receiver with a
 // `Label` operand, and `Point.equals` would read the `Label` as a `Point`. So every
 // `Equals` vtable slot routes through a guard that answers for an operand of another
@@ -36,7 +36,7 @@ import "vader/lower/ir"
 guard_equals_slots :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) -> void {
     equals_key :: core_trait_key(TRAIT_EQUALS)
     // A primitive's impl may be lowered twice under one mangle ; it gets one guard.
-    guarded :: MutableSet<string> {}
+    guarded :: Set<string> {}
     for [_, m] in project.modules {
         // Pushed after the walk : a guard keeps its impl's slot, and must not be
         // guarded in turn.

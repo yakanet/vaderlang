@@ -203,7 +203,7 @@ resolve_named_type :: fn(sym: Symbol, resolved: ResolvedModule) -> Type {
 // `Maybe<T> :: T | null` instantiated as `Maybe(i32)` walks the
 // alias body and replaces every `TypeParam<T>` with `i32`.
 substitute_alias_args :: fn(t: Type, params: TypeParamType[], args: Type[]) -> Type {
-    bindings :: MutableMap<i32, Type> {}
+    bindings :: Map<i32, Type> {}
     for i in 0..<min(params.len(), args.len()) {
         bindings[params[i].symbol.id] = args[i]
     }

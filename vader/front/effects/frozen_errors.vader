@@ -24,7 +24,7 @@ import "vader/support/diagnostics"
 /// @param summary  the effect summary of the project.
 export frozen_diagnostics :: fn(summary: EffectSummary) -> Diagnostic[] {
     out: Diagnostic[]: []
-    warned :: MutableSet<Span> {}
+    warned :: Set<Span> {}
     for site in summary.frozen {
         match site.kind {
             .WriteFault -> {

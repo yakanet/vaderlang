@@ -65,7 +65,7 @@ main :: fn(argv: string[]) -> i32 {
     local: Byte = "s"
     local = 11
     println(show_byte(local))
-    seen :: MutableSet<Byte> {}
+    seen :: Set<Byte> {}
     seen.add(local)
     seen.add(local)
     println("seen ${seen.len()}")

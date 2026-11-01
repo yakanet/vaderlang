@@ -140,7 +140,7 @@ export FileCheck :: struct {
 ///                     loader + typecheck diagnostics.
 export check_file :: fn(
     entry_path: string,
-    overlay: MutableMap<string, string>,
+    overlay: Map<string, string>,
     include_path_flags: string[],
     project_root: string | null,
     dump_types: bool,

@@ -47,7 +47,7 @@ export SYNTHETIC_ENTRY :: ".vader-doc/entry.vader"
 export DocCheck :: struct {
     project: LoadedProject
     /// The typed modules, by module id.
-    typed: MutableMap<string, Tc.TypedProgram>
+    typed: Map<string, Tc.TypedProgram>
     /// The load's diagnostics, then the typecheck's, every module's included.
     diags: Diagnostic[]
 }
@@ -77,8 +77,8 @@ export check_scope :: fn(inputs: DocInputs) -> DocCheck {
 
 // What the load reads before the disk: the synthetic entry, whose module imports
 // nothing.
-doc_overlay :: fn() -> MutableMap<string, string> {
-    overlay :: MutableMap<string, string> {}
+doc_overlay :: fn() -> Map<string, string> {
+    overlay :: Map<string, string> {}
     overlay[SYNTHETIC_ENTRY] = "module \"vader_doc_entry\"\n"
     return overlay
 }
@@ -87,6 +87,6 @@ doc_overlay :: fn() -> MutableMap<string, string> {
 // their headers is left to the load, which reports it.
 record_module :: fn(folder: string, found: DiscoveredModule[]) -> void {
     ignored: Diagnostic[]: []
-    module :: seed_entry(folder, MutableMap<string, string> {}, ignored) ?? return
+    module :: seed_entry(folder, Map<string, string> {}, ignored) ?? return
     found.push(module)
 }

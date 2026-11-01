@@ -187,7 +187,7 @@ FolderLines :: struct {
 // up (the entry without a project, the baked target constants) has no folder on
 // disk, and is left out.
 loaded_lines :: fn(checked: DocCheck) -> FolderLines {
-    by_folder :: MutableMap<string, SourceFile[]> {}
+    by_folder :: Map<string, SourceFile[]> {}
     for [_, loaded] in checked.project.modules {
         for file in loaded.module.files {
             folder :: normalized_path(dir_of(file.path))

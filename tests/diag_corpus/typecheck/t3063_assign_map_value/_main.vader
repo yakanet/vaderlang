@@ -4,7 +4,7 @@ module "snippet"
 import "std/collections"
 
 main :: fn() -> i32 {
-    m :: MutableMap<string, i32> {}
+    m :: Map<string, i32> {}
     m["k"] = "nope"
     return 0
 }

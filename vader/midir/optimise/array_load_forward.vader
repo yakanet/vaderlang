@@ -41,7 +41,7 @@ SlotVal :: struct {
 /// @param p  the CFG project (post escape-annotation).
 /// @return   a fresh project with redundant `ArrayGet`s rewritten to `Move`.
 export array_load_forward_project :: fn(p: CFGProject) -> CFGProject {
-    out :: MutableMap<string, CFGModule> {}
+    out :: Map<string, CFGModule> {}
     for [id, m] in p.modules {
         new_fns: CFGFunction[]: []
         for f in m.functions { new_fns.push(forward_function(f)) }

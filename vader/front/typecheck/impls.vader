@@ -66,23 +66,23 @@ export ImplEntry :: struct {
 export ImplRegistry :: struct {
     /// Entries keyed `"${target}::${trait_key}"`: several when concrete
     /// instantiations (`Box<i32>`, `Box<string>`) each implement the trait.
-    by_target: MutableMap<string, ImplEntry[]> = MutableMap<string, ImplEntry[]> {}
+    by_target: Map<string, ImplEntry[]> = Map<string, ImplEntry[]> {}
     /// Every entry, keyed by its impl's `span.hash()`: unique project-wide.
-    by_decl: MutableMap<u64, ImplEntry> = MutableMap<u64, ImplEntry> {}
+    by_decl: Map<u64, ImplEntry> = Map<u64, ImplEntry> {}
     /// Every entry, keyed by the node id of each member it declares, a materialised
     /// one included (`member_entry`).
-    by_member: MutableMap<i64, ImplEntry> = MutableMap<i64, ImplEntry> {}
+    by_member: Map<i64, ImplEntry> = Map<i64, ImplEntry> {}
     /// Every entry the registry has seen: used by the lowerer to drive
     /// virtual dispatch over trait-typed receivers.
     all: ImplEntry[] = []
     /// Entries keyed by their `target`, every trait together.
-    by_base: MutableMap<string, ImplEntry[]> = MutableMap<string, ImplEntry[]> {}
+    by_base: Map<string, ImplEntry[]> = Map<string, ImplEntry[]> {}
     /// `impl_type_key` of every type an impl on one instance is built from
     /// (`MonType` for `Wrapper<MonType>`), see `is_specialized_arg`.
-    specialized_args: MutableSet<string> = MutableSet<string> {}
+    specialized_args: Set<string> = Set<string> {}
     /// `target` of every base two impls of one trait cover whole (`Vec2 implements
     /// Mul<f64>` beside `Mul<Vec2>`), see `is_specialized_arg`.
-    overloaded_bases: MutableSet<string> = MutableSet<string> {}
+    overloaded_bases: Set<string> = Set<string> {}
 }
 
 /// Harvest the `ImplDecl`s of `program_decls` into a fresh registry.
@@ -176,8 +176,8 @@ export trait_param_bindings :: fn(
     args: Type[],
     self_type: Type,
     typed: TypedProgram,
-) -> MutableMap<i32, Type> {
-    decl :: typed.trait_decls[trait_sym.id] ?? return MutableMap<i32, Type> {}
+) -> Map<i32, Type> {
+    decl :: typed.trait_decls[trait_sym.id] ?? return Map<i32, Type> {}
     bindings :: type_param_bindings(decl.type_params, args, typed)
     owner :: typed.trait_decl_owners[trait_sym.id] ?? typed.resolved
     self_param :: owner.trait_self_params[trait_sym.id] ?? return bindings
@@ -246,7 +246,7 @@ collect_impl :: fn(
     }
 }
 
-push_entry :: fn(table: MutableMap<string, ImplEntry[]>, key: string, entry: ImplEntry) -> void =
+push_entry :: fn(table: Map<string, ImplEntry[]>, key: string, entry: ImplEntry) -> void =
     table.get_or_put_with(key, () -> []).push(entry)
 
 // Every type `receiver`'s arguments are built from.
@@ -436,8 +436,8 @@ any_of_trait :: fn(entries: ImplEntry[], trait_key: string) -> bool {
 ///
 /// @param entry     an impl of the registry.
 /// @param receiver  a type the impl covers.
-export impl_bindings_at :: fn(entry: ImplEntry, receiver: Type) -> MutableMap<i32, Type> {
-    bindings :: MutableMap<i32, Type> {}
+export impl_bindings_at :: fn(entry: ImplEntry, receiver: Type) -> Map<i32, Type> {
+    bindings :: Map<i32, Type> {}
     unify_type_param(entry.for_type, receiver, bindings)
     return bindings
 }

@@ -16,7 +16,7 @@ import "vader/support/diagnostics"
 // go to its module's resolver diagnostics, which the entry's build forwards.
 register_project_impls :: fn(
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
 ) -> void {
     owners: TypedProgram[]: []
     impls: RecordedImpl[][]: []
@@ -183,8 +183,8 @@ record_impl_members :: fn(
 // An impl's own type parameters, as the parameters of the struct it is written
 // for : `Box<U> implements<U> …` gives `U ↦ T` for `Box :: struct<T>`. Empty for any
 // other receiver ; an impl written for one instance binds none.
-impl_params_as_struct_params :: fn(for_ty: Type, typed: TypedProgram) -> MutableMap<i32, Type> {
-    bindings :: MutableMap<i32, Type> {}
+impl_params_as_struct_params :: fn(for_ty: Type, typed: TypedProgram) -> Map<i32, Type> {
+    bindings :: Map<i32, Type> {}
     if for_ty !is StructType {
         return bindings
     }
@@ -197,7 +197,7 @@ impl_params_as_struct_params :: fn(for_ty: Type, typed: TypedProgram) -> Mutable
 // A member's signature read in the struct's own parameters (`as_struct` renames the
 // impl's to them) : a parameter the signature quantifies over stays quantified,
 // under the struct's name, so a static call (`Bag.make(1)`) still instantiates it.
-in_struct_frame :: fn(member_ty: FnType, as_struct: MutableMap<i32, Type>) -> FnType {
+in_struct_frame :: fn(member_ty: FnType, as_struct: Map<i32, Type>) -> FnType {
     if as_struct.is_empty() {
         return member_ty
     }
@@ -209,7 +209,7 @@ in_struct_frame :: fn(member_ty: FnType, as_struct: MutableMap<i32, Type>) -> Fn
 }
 
 // `tp` under the struct's name for it, or as is when `as_struct` does not rename it.
-renamed_param :: fn(tp: TypeParamType, as_struct: MutableMap<i32, Type>) -> TypeParamType {
+renamed_param :: fn(tp: TypeParamType, as_struct: Map<i32, Type>) -> TypeParamType {
     to :: as_struct[tp.symbol.id]
     if to is TypeParamType {
         return to
@@ -283,7 +283,7 @@ has_iterator_impl :: fn(tables: ImplTables, key: string) -> bool {
 // maps of `record_struct_trait`), generic over the key type so the id-keyed and
 // base-keyed maps use one form.
 add_trait_unique :: fn<K: Hash & Equals>(
-    m: MutableMap<K, string[]>, key: K, trait_key: string,
+    m: Map<K, string[]>, key: K, trait_key: string,
 ) -> void {
     bucket :: m.get_or_put_with(key, () -> [])
     for n in bucket {

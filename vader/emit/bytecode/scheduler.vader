@@ -26,13 +26,13 @@ import "vader/midir"
 ScheduleHints :: struct {
     /// Instructions whose result should be left on the stack
     /// (no `local.set`). Keys = `pos_key(block, instr_idx)`.
-    skip_set: MutableSet<i64> = MutableSet<i64> {}
+    skip_set: Set<i64> = Set<i64> {}
     /// Instructions whose first stack-pushed operand should be read
     /// from the stack (no `local.get`). Same key scheme as skip_set.
-    skip_first_get: MutableSet<i64> = MutableSet<i64> {}
+    skip_first_get: Set<i64> = Set<i64> {}
     /// Block IDs whose terminator's first read should come from the
     /// stack.
-    skip_terminator_get: MutableSet<BlockId> = MutableSet<BlockId> {}
+    skip_terminator_get: Set<BlockId> = Set<BlockId> {}
 }
 
 schedule_stack :: fn(fn_: CFGFunction) -> ScheduleHints {

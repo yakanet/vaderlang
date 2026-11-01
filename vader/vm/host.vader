@@ -180,9 +180,9 @@ export dispatch_import :: fn(
         return HostOk { .value = BoolVal(string(a) == string(b)) }
     }
     // `@intrinsic <intwidth> implements Equals`: bodyless for every integer
-    // width, so an erased map-key lookup (`MutableMap<Any, K>` with integer K)
+    // width, so an erased map-key lookup (`Map<Any, K>` with integer K)
     // dispatches `key.equals(other)` virtually and surfaces it as a host import
-    // (mirror of the string arm above). Reached e.g. by `MutableSet<i32>`.
+    // (mirror of the string arm above). Reached e.g. by `Set<i32>`.
     // `read_i64` widens an `I32Val`, so every width compares on its i64 bits:
     // right for signed and unsigned alike.
     .PrimIntEquals -> {

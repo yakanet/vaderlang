@@ -238,7 +238,7 @@ fn_param_compatible :: fn(a: Type, b: Type) -> bool {
 ///
 /// Invariance (bidirectional `fn_param_compatible`) is the sound default until a
 /// declaration-site variance model exists : covariance is unsound for a *mutable*
-/// generic container: `MutableMap<i32, i32>` → `MutableMap<i32, i32 | string>`
+/// generic container: `Map<i32, i32>` → `Map<i32, i32 | string>`
 /// would let a write through the widened alias corrupt the shared `i32` backing,
 /// the exact reference-aliasing hole `is_assignable_array` closes for an array
 /// element. Unresolved args stay wildcards (true both ways in
@@ -432,7 +432,7 @@ test_array_element_invariant :: fn() -> void {
 @test
 test_struct_args_invariant :: fn() -> void {
     // Generic container type-args are invariant : the covariant widen of a
-    // mutable container (`MutableMap<i32, i32>` → `MutableMap<i32, i32 | string>`)
+    // mutable container (`Map<i32, i32>` → `Map<i32, i32 | string>`)
     // is the reference-aliasing hole rejected here, as for an array.
     i32_t: Type: TY_I32
     wide:  Type: mk_union([TY_I32, TY_STRING])

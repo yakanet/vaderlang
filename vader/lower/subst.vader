@@ -16,11 +16,11 @@ import "vader/front/comptime"
 import "vader/core/symbol"
 
 // A substitution of exactly `bindings`, their unions laid out (`laid_out_unions`).
-substitution_of :: fn(bindings: MutableMap<i32, Type>) -> Substitution {
+substitution_of :: fn(bindings: Map<i32, Type>) -> Substitution {
     if !binds_a_range(bindings) {
         return Substitution { .type_params = bindings, .self_type = null }
     }
-    laid_out :: MutableMap<i32, Type> {}
+    laid_out :: Map<i32, Type> {}
     for [id, bound] in bindings {
         laid_out[id] = laid_out_unions(bound)
     }
@@ -31,7 +31,7 @@ substitution_of :: fn(bindings: MutableMap<i32, Type>) -> Substitution {
     }
 }
 
-binds_a_range :: fn(bindings: MutableMap<i32, Type>) -> bool {
+binds_a_range :: fn(bindings: Map<i32, Type>) -> bool {
     for [_, bound] in bindings {
         if contains_range(bound, true) {
             return true
@@ -57,7 +57,7 @@ build_mixed_subst :: fn(
 /// Every one of `tps` bound to `Any` (`Erased`), whatever the instance's arguments :
 /// the instances of one declaration then share one body and one layout.
 build_erased_subst :: fn(tps: TypeParam[], typed: TypedProgram) -> Substitution {
-    bindings :: MutableMap<i32, Type> {}
+    bindings :: Map<i32, Type> {}
     for tp in tps {
         sym :: typed.type_param_symbols[tp.span.hash()] ?? continue
         bindings[sym.id] = TY_ANY
@@ -66,8 +66,8 @@ build_erased_subst :: fn(tps: TypeParam[], typed: TypedProgram) -> Substitution 
 }
 
 // Each binding as a mixed instance keeps it : what `kept_argument` keeps, else `Any`.
-kept_or_any :: fn(impls: ImplRegistry, bindings: MutableMap<i32, Type>) -> MutableMap<i32, Type> {
-    out :: MutableMap<i32, Type> {}
+kept_or_any :: fn(impls: ImplRegistry, bindings: Map<i32, Type>) -> Map<i32, Type> {
+    out :: Map<i32, Type> {}
     for [id, bound] in bindings {
         out[id] = impls.kept_argument(bound) ?? TY_ANY
     }
@@ -150,7 +150,7 @@ build_impl_subst :: fn(entry: ImplEntry, args: Type[]) -> Substitution =
 // The type each of `entry`'s type parameters takes on the instance whose arguments
 // are `args` : a parameter binds to its own argument at whatever position or depth
 // the impl writes it (`Pair<B, A> implements<A, B>`, `Wrapper<T[]> implements<T>`).
-impl_param_bindings :: fn(entry: ImplEntry, args: Type[]) -> MutableMap<i32, Type> {
+impl_param_bindings :: fn(entry: ImplEntry, args: Type[]) -> Map<i32, Type> {
     written :: entry.for_type
     if written is StructType {
         return impl_bindings_at(entry, mk_struct(written.symbol, args))
@@ -158,7 +158,7 @@ impl_param_bindings :: fn(entry: ImplEntry, args: Type[]) -> MutableMap<i32, Typ
     if written is ArrayType && args.len() == 1 {
         return impl_bindings_at(entry, mk_array(args[0]))
     }
-    return MutableMap<i32, Type> {}
+    return Map<i32, Type> {}
 }
 
 /// Variant of `build_impl_subst` keeping the type args `kept_argument` keeps and
@@ -169,7 +169,7 @@ build_impl_mixed_subst :: fn(
     impls: ImplRegistry, entry: ImplEntry, impl_typed: TypedProgram, args: Type[],
 ) -> Substitution {
     bindings :: impl_param_bindings(entry, args)
-    kept :: MutableMap<i32, Type> {}
+    kept :: Map<i32, Type> {}
     for tp in impl_type_params_of(entry.decl, impl_typed.resolved) {
         id :: tp.symbol.id
         kept[id] = impls.kept_argument(bindings[id] ?? TY_ANY) ?? TY_ANY
@@ -234,7 +234,7 @@ args_suffix :: fn(args: Type[]) -> string {
 /// `kept_argument` keeps (so a primitive-keyed instance devirtualises its trait
 /// dispatch: `i32.eq` instead of a `virtual.call` thunk) and flattens every
 /// other arg to a bare `__Any`. The flatten avoids the inner-shape leak a structure-preserving
-/// `args_suffix(any_leaves_of(...))` would cause, e.g. `MutableMap<Any, Any[]>`
+/// `args_suffix(any_leaves_of(...))` would cause, e.g. `Map<Any, Any[]>`
 /// → `at__Any__Any__` diverging from a sibling's `at__Any__Any`. All three
 /// suffix sites (`materialize_impl_for_instance`, `find_impl_member_for`,
 /// `lower_for_in`) MUST call this with the same `args` so each call name

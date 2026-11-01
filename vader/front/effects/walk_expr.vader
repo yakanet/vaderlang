@@ -328,7 +328,7 @@ lambda_value :: fn(ctx: WalkCtx, l: AST.LambdaExpr) -> i64 | null {
 // A struct literal keeps its field values ; a spread keeps every field of its
 // source the literal does not name. The literal is a fresh value.
 struct_literal_value :: fn(ctx: WalkCtx, e: AST.StructLitExpr) -> i64 | null {
-    named :: MutableSet<string> {}
+    named :: Set<string> {}
     for item in e.items {
         if item is AST.StructLitField {
             named.add(item.name)
@@ -345,7 +345,7 @@ struct_literal_value :: fn(ctx: WalkCtx, e: AST.StructLitExpr) -> i64 | null {
 
 // Keep each field of `source` that `named` leaves out, as a spread copies it ; all
 // of `source` when its fields are not known.
-spread :: fn(ctx: WalkCtx, source: AST.Expr, named: MutableSet<string>) -> void {
+spread :: fn(ctx: WalkCtx, source: AST.Expr, named: Set<string>) -> void {
     slot :: ctx.value(source) ?? return
     fields :: ctx.struct_fields_of(source)
     if fields == null {
@@ -360,7 +360,7 @@ spread :: fn(ctx: WalkCtx, source: AST.Expr, named: MutableSet<string>) -> void 
 }
 
 // The declared type of each field of the struct `e` evaluates to.
-struct_fields_of :: fn(ctx: WalkCtx, e: AST.Expr) -> MutableMap<string, Type> | null {
+struct_fields_of :: fn(ctx: WalkCtx, e: AST.Expr) -> Map<string, Type> | null {
     t :: ctx.typed.expr_types[e.id] ?? return null
     if t !is StructType {
         return null

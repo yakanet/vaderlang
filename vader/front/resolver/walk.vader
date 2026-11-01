@@ -23,7 +23,7 @@ WALK_DEPTH_MAX: i64: 12
 export walk_module_folders :: fn(roots: IncludePath[], visit: fn(string, string[]) -> void) -> void {
     // A folder two roots name (the library, from the manifest and from the
     // host) is walked once.
-    root_dirs :: MutableSet<string> {}
+    root_dirs :: Set<string> {}
     distinct: IncludePath[]: []
     for root in roots {
         if root_dirs.add(root.dir) {
@@ -56,7 +56,7 @@ export walk_source_folders :: fn(dir: string, visit: fn(string, string[]) -> voi
         dir,
         "",
         0,
-        MutableSet<string> {},
+        Set<string> {},
         (folder: string, _: string, files: string[]) -> visit(folder, files),
     )
 
@@ -66,7 +66,7 @@ walk_folder :: fn(
     dir: string,
     rel: string,
     depth: i64,
-    root_dirs: MutableSet<string>,
+    root_dirs: Set<string>,
     visit: fn(string, string, string[]) -> void,
 ) -> void {
     entries :: read_dir(dir)
@@ -95,7 +95,7 @@ walk_folder :: fn(
 // Whether a walk stays out of `entry`, at `path`, `depth` levels under its root :
 // a file name carries an extension and a module folder never does, and another
 // root is walked from itself.
-skips :: fn(entry: string, path: string, depth: i64, root_dirs: MutableSet<string>) -> bool =
+skips :: fn(entry: string, path: string, depth: i64, root_dirs: Set<string>) -> bool =
     "." in entry || depth >= WALK_DEPTH_MAX || is_skipped_folder(entry, depth)
         || path in root_dirs
 

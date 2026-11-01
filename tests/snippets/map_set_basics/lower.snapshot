@@ -17,7 +17,7 @@
       }
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      ints: MutableMap<i32, i32> = MutableMap<i32, i32> {
+      ints: Map<i32, i32> = Map<i32, i32> {
           .ekeys = [] :i32[],
           .evals = [] :i32[],
           .index = [] :i32[],
@@ -26,9 +26,9 @@
           .size = i64(0),
           .tombs = i64(0),
       }
-      std.collections.MutableMap<i32, i32>.set_at(ints, 1, 10)
-      std.collections.MutableMap<i32, i32>.set_at(ints, 2, 20)
-      std.collections.MutableMap<i32, i32>.set_at(ints, 17, 170)
+      std.collections.Map<i32, i32>.set_at(ints, 1, 10)
+      std.collections.Map<i32, i32>.set_at(ints, 2, 20)
+      std.collections.Map<i32, i32>.set_at(ints, 17, 170)
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(35))
           __off_1: i64 = 0
@@ -36,20 +36,20 @@
           __off_1 = std.core.write_int(__buf_0, __off_1, std.collections.len<i32, i32>(ints))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      snippet.show("i32 keys: 1", std.collections.MutableMap<i32, i32>.at(ints, 1))
-      snippet.show("i32 keys: 17", std.collections.MutableMap<i32, i32>.at(ints, 17))
+      snippet.show("i32 keys: 1", std.collections.Map<i32, i32>.at(ints, 1))
+      snippet.show("i32 keys: 17", std.collections.Map<i32, i32>.at(ints, 17))
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(32))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "i32 keys: 2 in=")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, std.collections.MutableMap<i32, i32>.contains(ints, 2))
+          __off_3 = std.core.write_bool(__buf_2, __off_3, std.collections.Map<i32, i32>.contains(ints, 2))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " 99 in=")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, std.collections.MutableMap<i32, i32>.contains(ints, 99))
+          __off_3 = std.core.write_bool(__buf_2, __off_3, std.collections.Map<i32, i32>.contains(ints, 99))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      std.collections.MutableMap<i32, i32>.set_at(ints, 1, 999)
-      snippet.show("i32 keys: 1 updated", std.collections.MutableMap<i32, i32>.at(ints, 1))
-      words: MutableMap<string, i32> = MutableMap<string, i32> {
+      std.collections.Map<i32, i32>.set_at(ints, 1, 999)
+      snippet.show("i32 keys: 1 updated", std.collections.Map<i32, i32>.at(ints, 1))
+      words: Map<string, i32> = Map<string, i32> {
           .ekeys = [] :string[],
           .evals = [] :i32[],
           .index = [] :i32[],
@@ -58,9 +58,9 @@
           .size = i64(0),
           .tombs = i64(0),
       }
-      std.collections.MutableMap<string, i32>.set_at(words, "hello", 1)
-      std.collections.MutableMap<string, i32>.set_at(words, "world", 2)
-      std.collections.MutableMap<string, i32>.set_at(words, "vader", 42)
+      std.collections.Map<string, i32>.set_at(words, "hello", 1)
+      std.collections.Map<string, i32>.set_at(words, "world", 2)
+      std.collections.Map<string, i32>.set_at(words, "vader", 42)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(38))
           __off_5: i64 = 0
@@ -68,27 +68,27 @@
           __off_5 = std.core.write_int(__buf_4, __off_5, std.collections.len<string, i32>(words))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      snippet.show("string keys: vader", std.collections.MutableMap<string, i32>.at(words, "vader"))
+      snippet.show("string keys: vader", std.collections.Map<string, i32>.at(words, "vader"))
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(44))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "string keys: hello in=")
-          __off_7 = std.core.write_bool(__buf_6, __off_7, std.collections.MutableMap<string, i32>.contains(words, "hello"))
+          __off_7 = std.core.write_bool(__buf_6, __off_7, std.collections.Map<string, i32>.contains(words, "hello"))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " missing in=")
-          __off_7 = std.core.write_bool(__buf_6, __off_7, std.collections.MutableMap<string, i32>.contains(words, "missing"))
+          __off_7 = std.core.write_bool(__buf_6, __off_7, std.collections.Map<string, i32>.contains(words, "missing"))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
-      std.collections.MutableMap<string, i32>.set_at(words, "hello", 99)
-      snippet.show("string keys: hello updated", std.collections.MutableMap<string, i32>.at(words, "hello"))
-      snippet.show("string keys: absent", std.collections.MutableMap<string, i32>.at(words, "absent"))
-      if std.collections.MutableMap<string, i32>.contains(words, "world") {
+      std.collections.Map<string, i32>.set_at(words, "hello", 99)
+      snippet.show("string keys: hello updated", std.collections.Map<string, i32>.at(words, "hello"))
+      snippet.show("string keys: absent", std.collections.Map<string, i32>.at(words, "absent"))
+      if std.collections.Map<string, i32>.contains(words, "world") {
           std.io.println<string>("string keys: world in")
       }
-      if !std.collections.MutableMap<string, i32>.contains(words, "z") {
+      if !std.collections.Map<string, i32>.contains(words, "z") {
           std.io.println<string>("string keys: z !in")
       }
-      keys: string[] = ["alpha", "beta", "gamma", "MutableMap", "x", "hello world", "a", ""] :string[]
-      table: MutableMap<string, i32> = MutableMap<string, i32> {
+      keys: string[] = ["alpha", "beta", "gamma", "collection", "x", "hello world", "a", ""] :string[]
+      table: Map<string, i32> = Map<string, i32> {
           .ekeys = [] :string[],
           .evals = [] :i32[],
           .index = [] :i32[],
@@ -104,7 +104,7 @@
           __for_i_10: i64 = 0
           for __for_i_10 < __for_len_9 {
               k: string = __for_arr_8[__for_i_10]
-              std.collections.MutableMap<string, i32>.set_at(table, k, i)
+              std.collections.Map<string, i32>.set_at(table, k, i)
               i = i + 1
           } @step {
               __for_i_10 = __for_i_10 +% i64(1)
@@ -116,7 +116,7 @@
           __for_i_13: i64 = 0
           for __for_i_13 < __for_len_12 {
               k: string = __for_arr_11[__for_i_13]
-              snippet.show(concat_3("read back: '", k, "'"), std.collections.MutableMap<string, i32>.at(table, k))
+              snippet.show(concat_3("read back: '", k, "'"), std.collections.Map<string, i32>.at(table, k))
           } @step {
               __for_i_13 = __for_i_13 +% i64(1)
           }
@@ -128,7 +128,7 @@
           __off_15 = std.core.write_int(__buf_14, __off_15, std.collections.len<string, i32>(table))
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
-      ordered: MutableMap<string, i32> = MutableMap<string, i32> {
+      ordered: Map<string, i32> = Map<string, i32> {
           .ekeys = [] :string[],
           .evals = [] :i32[],
           .index = [] :i32[],
@@ -137,12 +137,12 @@
           .size = i64(0),
           .tombs = i64(0),
       }
-      std.collections.MutableMap<string, i32>.set_at(ordered, "a", 1)
-      std.collections.MutableMap<string, i32>.set_at(ordered, "b", 2)
-      std.collections.MutableMap<string, i32>.set_at(ordered, "c", 3)
+      std.collections.Map<string, i32>.set_at(ordered, "a", 1)
+      std.collections.Map<string, i32>.set_at(ordered, "b", 2)
+      std.collections.Map<string, i32>.set_at(ordered, "c", 3)
       sum: i32 = 0
       {
-          self: MutableMap<string, i32> = ordered
+          self: Map<string, i32> = ordered
           keys: string[] = self.ekeys
           values: i32[] = self.evals
           {
@@ -175,8 +175,8 @@
           __off_22 = std.core.write_int(__buf_21, __off_22, sum)
           std.core.finish_buffer(__buf_21, __off_22)
       } :string)
-      s: MutableSet<i32> = MutableSet<i32> {
-          .inner = MutableMap<i32, bool> {
+      s: Set<i32> = Set<i32> {
+          .inner = Map<i32, bool> {
               .ekeys = [] :i32[],
               .evals = [] :bool[],
               .index = [] :i32[],
@@ -214,15 +214,15 @@
           __off_30 = std.core.write_string_at(__buf_29, __off_30, "set: len=")
           __off_30 = std.core.write_int(__buf_29, __off_30, std.collections.len<i32>(s))
           __off_30 = std.core.write_string_at(__buf_29, __off_30, " 10 in=")
-          __off_30 = std.core.write_bool(__buf_29, __off_30, std.collections.MutableSet<i32>.contains(s, 10))
+          __off_30 = std.core.write_bool(__buf_29, __off_30, std.collections.Set<i32>.contains(s, 10))
           __off_30 = std.core.write_string_at(__buf_29, __off_30, " 40 in=")
-          __off_30 = std.core.write_bool(__buf_29, __off_30, std.collections.MutableSet<i32>.contains(s, 40))
+          __off_30 = std.core.write_bool(__buf_29, __off_30, std.collections.Set<i32>.contains(s, 40))
           std.core.finish_buffer(__buf_29, __off_30)
       } :string)
-      if std.collections.MutableSet<i32>.contains(s, 30) {
+      if std.collections.Set<i32>.contains(s, 30) {
           std.io.println<string>("set: 30 in")
       }
-      if !std.collections.MutableSet<i32>.contains(s, 3) {
+      if !std.collections.Set<i32>.contains(s, 3) {
           std.io.println<string>("set: 3 !in")
       }
       return 0
@@ -248,20 +248,20 @@
 
 ## lowered in dependencies
   std/collections
-    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core$Index$at__i32__bool
-    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__bool
-    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core$Into$into__i32__bool
-    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__bool
-    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core$Index$at__i32__i32
-    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__i32
-    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core$Into$into__i32__i32
-    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__i32
-    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core$Index$at__string__i32
-    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i32
-    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core$Into$into__string__i32
-    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
-    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core$Contains$contains__i32
-    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core$Into$into__i32
+    fn std.collections.Map<i32, bool>.at  // std_collections$Map$std_core$Index$at__i32__bool
+    fn std.collections.Map<i32, bool>.contains  // std_collections$Map$std_core$Contains$contains__i32__bool
+    fn std.collections.Map<i32, bool>.into  // std_collections$Map$std_core$Into$into__i32__bool
+    fn std.collections.Map<i32, bool>.set_at  // std_collections$Map$std_core$IndexSet$set_at__i32__bool
+    fn std.collections.Map<i32, i32>.at  // std_collections$Map$std_core$Index$at__i32__i32
+    fn std.collections.Map<i32, i32>.contains  // std_collections$Map$std_core$Contains$contains__i32__i32
+    fn std.collections.Map<i32, i32>.into  // std_collections$Map$std_core$Into$into__i32__i32
+    fn std.collections.Map<i32, i32>.set_at  // std_collections$Map$std_core$IndexSet$set_at__i32__i32
+    fn std.collections.Map<string, i32>.at  // std_collections$Map$std_core$Index$at__string__i32
+    fn std.collections.Map<string, i32>.contains  // std_collections$Map$std_core$Contains$contains__string__i32
+    fn std.collections.Map<string, i32>.into  // std_collections$Map$std_core$Into$into__string__i32
+    fn std.collections.Map<string, i32>.set_at  // std_collections$Map$std_core$IndexSet$set_at__string__i32
+    fn std.collections.Set<i32>.contains  // std_collections$Set$std_core$Contains$contains__i32
+    fn std.collections.Set<i32>.into  // std_collections$Set$std_core$Into$into__i32
     fn std.collections.add<i32>  // std_collections$add__i32
     fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
     fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
@@ -287,10 +287,10 @@
     fn std_collections$__gen_state_std_collections_1$Iterator$next
     fn std_collections$__gen_state_std_collections_2$Iterator$next
     fn std_collections$__gen_state_std_collections_3$Iterator$next
-    struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
-    struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
-    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
-    struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32
+    struct std.collections.Map<i32, bool>  // std_collections$Map__i32__bool
+    struct std.collections.Map<i32, i32>  // std_collections$Map__i32__i32
+    struct std.collections.Map<string, i32>  // std_collections$Map__string__i32
+    struct std.collections.Set<i32>  // std_collections$Set__i32
     struct std_collections$__gen_state_std_collections_0
     struct std_collections$__gen_state_std_collections_1
     struct std_collections$__gen_state_std_collections_2

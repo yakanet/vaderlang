@@ -64,7 +64,7 @@ reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx) -> void {
 /// via `CallImport`. Registered under the member's mangle so
 /// `resolve_fn_index` (mangle-first) finds it.
 synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> void {
-    referenced :: MutableMap<string, bool> {}
+    referenced :: Map<string, bool> {}
     for e in cfg.vtable_entries { referenced[e.fn_symbol.name] = true }
     import_count :: i32(ctx.imports.len())
     i: i32 = 0
@@ -450,7 +450,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         // Collect (trait, method) keys actually dispatched on so the
         // vtable-target rooting AND the impl-table type pinning below
         // can both gate on real virtual.call sites.
-        used_vt_keys :: MutableMap<string, bool> {}
+        used_vt_keys :: Map<string, bool> {}
         for f in ctx.functions {
             for op in f.body {
                 if op is VirtualCall { used_vt_keys[op.vtable_key] = true }
@@ -527,13 +527,13 @@ resolve_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 | null {
 build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> VtableRow[] {
     // Collect every `(trait, method)` key referenced by a surviving
     // VirtualCall: only rows in this set survive.
-    used_keys :: MutableMap<string, bool> {}
+    used_keys :: Map<string, bool> {}
     for f in ctx.functions {
         for op in f.body {
             if op is VirtualCall { used_keys[op.vtable_key] = true }
         }
     }
-    rows_by_key :: MutableMap<string, i64> {}
+    rows_by_key :: Map<string, i64> {}
     out: VtableRow[]: []
     // An enum or a distinct boxes under its representation's tag, so its entry
     // shares that type's slot : listed last, it only fills a slot the
@@ -590,9 +590,9 @@ has_receiver :: fn(row: VtableRow, type_index: i32) -> bool {
 // trait_name) seen in the vtable entries, for a struct or an array receiver, the
 // shapes whose run-time tag names their own type. Sole builder: the CFG emit path
 // is the only bytecode emit path there is.
-build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]>, ctx: EmitterCtx) -> BcImplEntry[] {
+build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Map<i32, string[]>, ctx: EmitterCtx) -> BcImplEntry[] {
     out: BcImplEntry[]: []
-    seen :: MutableMap<string, bool> {}
+    seen :: Map<string, bool> {}
     for entry in entries {
         // Only honour vtable entries whose receiver is *already*
         // interned (i.e. some real call site referenced it). intern_type

@@ -74,8 +74,8 @@
       }
       {
           __fuse_arr_12: i32[] = [3, 1, 3, 2, 1] :i32[]
-          seen: MutableSet<i32> = MutableSet<i32> {
-              .inner = MutableMap<i32, bool> {
+          seen: Set<i32> = Set<i32> {
+              .inner = Map<i32, bool> {
                   .ekeys = [] :i32[],
                   .evals = [] :bool[],
                   .index = [] :i32[],
@@ -169,18 +169,18 @@
 
 ## lowered in dependencies
   std/collections
-    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core$Index$at__i32__bool
-    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__bool
-    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core$Into$into__i32__bool
-    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__bool
-    fn std.collections.MutableMap<string, bool>.at  // std_collections$MutableMap$std_core$Index$at__string__bool
-    fn std.collections.MutableMap<string, bool>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__bool
-    fn std.collections.MutableMap<string, bool>.into  // std_collections$MutableMap$std_core$Into$into__string__bool
-    fn std.collections.MutableMap<string, bool>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__bool
-    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core$Contains$contains__i32
-    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core$Into$into__i32
-    fn std.collections.MutableSet<string>.contains  // std_collections$MutableSet$std_core$Contains$contains__string
-    fn std.collections.MutableSet<string>.into  // std_collections$MutableSet$std_core$Into$into__string
+    fn std.collections.Map<i32, bool>.at  // std_collections$Map$std_core$Index$at__i32__bool
+    fn std.collections.Map<i32, bool>.contains  // std_collections$Map$std_core$Contains$contains__i32__bool
+    fn std.collections.Map<i32, bool>.into  // std_collections$Map$std_core$Into$into__i32__bool
+    fn std.collections.Map<i32, bool>.set_at  // std_collections$Map$std_core$IndexSet$set_at__i32__bool
+    fn std.collections.Map<string, bool>.at  // std_collections$Map$std_core$Index$at__string__bool
+    fn std.collections.Map<string, bool>.contains  // std_collections$Map$std_core$Contains$contains__string__bool
+    fn std.collections.Map<string, bool>.into  // std_collections$Map$std_core$Into$into__string__bool
+    fn std.collections.Map<string, bool>.set_at  // std_collections$Map$std_core$IndexSet$set_at__string__bool
+    fn std.collections.Set<i32>.contains  // std_collections$Set$std_core$Contains$contains__i32
+    fn std.collections.Set<i32>.into  // std_collections$Set$std_core$Into$into__i32
+    fn std.collections.Set<string>.contains  // std_collections$Set$std_core$Contains$contains__string
+    fn std.collections.Set<string>.into  // std_collections$Set$std_core$Into$into__string
     fn std.collections.add<i32>  // std_collections$add__i32
     fn std.collections.add<string>  // std_collections$add__string
     fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
@@ -199,10 +199,10 @@
     fn std_collections$__gen_state_std_collections_1$Iterator$next
     fn std_collections$__gen_state_std_collections_2$Iterator$next
     fn std_collections$__gen_state_std_collections_3$Iterator$next
-    struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
-    struct std.collections.MutableMap<string, bool>  // std_collections$MutableMap__string__bool
-    struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32
-    struct std.collections.MutableSet<string>  // std_collections$MutableSet__string
+    struct std.collections.Map<i32, bool>  // std_collections$Map__i32__bool
+    struct std.collections.Map<string, bool>  // std_collections$Map__string__bool
+    struct std.collections.Set<i32>  // std_collections$Set__i32
+    struct std.collections.Set<string>  // std_collections$Set__string
     struct std_collections$__gen_state_std_collections_0
     struct std_collections$__gen_state_std_collections_1
     struct std_collections$__gen_state_std_collections_2

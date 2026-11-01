@@ -72,7 +72,7 @@ skip_forwarding_blocks :: fn(fn_: CFGFunction) -> CFGFunction {
 // leaves for, as a `break` does.
 goes_on_or_out :: fn(
     fn_: CFGFunction,
-    loops: MutableMap<BlockId, MutableSet<BlockId>>,
+    loops: Map<BlockId, Set<BlockId>>,
     sources: BlockId[],
     target: BlockId,
 ) -> bool {
@@ -93,7 +93,7 @@ goes_on_or_out :: fn(
     return tests && !body.contains(target)
 }
 
-holds_all :: fn(body: MutableSet<BlockId>, blocks: BlockId[]) -> bool {
+holds_all :: fn(body: Set<BlockId>, blocks: BlockId[]) -> bool {
     for b in blocks {
         if !body.contains(b) {
             return false

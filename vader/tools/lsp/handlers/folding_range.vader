@@ -52,7 +52,7 @@ folding_range_json :: fn(entries: DeclEntry[]) -> JsonValue {
 // declaration bodies (`comment` / `imports` / `region` kinds are for the
 // follow-up that folds those).
 fold_json :: fn(e: DeclEntry) -> JsonValue {
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["startLine"] = JsonNumber { .value = f64(e.full_span.start.line - 1) }
     obj["endLine"]   = JsonNumber { .value = f64(e.full_span.end.line - 1) }
     return JsonObject { .entries = obj }

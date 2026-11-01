@@ -100,7 +100,7 @@ Skeleton :: struct {
     arguments: i64 = 0
     /// Extra root → the slot it starts in. A binding copies these roots rather than
     /// aliasing them ; a copy root starts in no slot. Null until a root is seeded.
-    seeds: MutableMap<i64, i64> | null = null
+    seeds: Map<i64, i64> | null = null
 }
 
 /// The skeleton of a function of `params` parameters, before its body is walked.
@@ -123,7 +123,7 @@ add_flow :: fn(s: Skeleton, into: i64, from: i64, path: i32 = ROOT) -> void {
 /// @return  the root's number.
 add_root :: fn(s: Skeleton, slot: i64) -> i64 {
     root :: s.next_root()
-    seeds :: s.seeds ?? MutableMap<i64, i64> {}
+    seeds :: s.seeds ?? Map<i64, i64> {}
     seeds[root] = slot
     s.seeds = seeds
     return root
@@ -214,7 +214,7 @@ SlotRoots :: struct {
     roots: (Root[] | null)[]
     /// The skeleton's root count, which spaces the keys of `seen`.
     root_count: i64
-    seen: MutableSet<i64> = MutableSet<i64> {}
+    seen: Set<i64> = Set<i64> {}
 }
 
 /// Add to `out` what the function does with each of its parameters, its callees
@@ -237,9 +237,9 @@ RootEffects :: struct {
     lent: ParamEffects[]
     /// Per copy root, the seeded roots it took the place of, each at the path the
     /// copy holds below it.
-    took: MutableMap<i64, Root[]>
+    took: Map<i64, Root[]>
     /// The copy roots whose binding let another root through besides.
-    mixed: MutableSet<i64>
+    mixed: Set<i64>
 }
 
 /// What the function does with every extra root of `s`, its callees doing what
@@ -253,8 +253,8 @@ evaluate_roots :: fn(s: Skeleton, ctx: EvalCtx) -> RootEffects {
     marked :: count.filled(() -> ParamEffects {})
     lent :: count.filled(() -> ParamEffects {})
     apply_constraints(s, slots, ctx, marked, lent)
-    took :: MutableMap<i64, Root[]> {}
-    mixed :: MutableSet<i64> {}
+    took :: Map<i64, Root[]> {}
+    mixed :: Set<i64> {}
     for f in s.flows {
         copy :: f.copy ?? continue
         roots :: slots.roots[f.from] ?? continue

@@ -33,7 +33,7 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
     items: JsonValue[]: []
     // Memoise one LineIndex per referenced file: a symbol can have many sites in
     // the same file, and `line_index_for_path` reads from disk for non-open ones.
-    li_cache :: MutableMap<string, LineIndex> {}
+    li_cache :: Map<string, LineIndex> {}
     for s in reference_sites(state, uri, cached, index, target) {
         if s.is_decl && !include_decl { continue }
         path :: s.span.start.file
@@ -44,7 +44,7 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
 }
 
 // Fetch (and memoise) the LineIndex for `path` within one request.
-line_index_cached :: fn(state: ServerState, cache: MutableMap<string, LineIndex>, path: string) -> LineIndex =
+line_index_cached :: fn(state: ServerState, cache: Map<string, LineIndex>, path: string) -> LineIndex =
     cache.get_or_put_with(path, () -> state.line_index_for_path(path))
 
 // `params.context.includeDeclaration`, defaulting to true (the LSP default

@@ -146,7 +146,7 @@ lower_generator_fn :: fn(
     gb :: GenBuild {
         .self_sym = self_sym, .state_ty = state_ty,
         .step = shape, .span = span,
-        .states = [], .field_map = MutableMap<i32, string> {}, .fields = [], .loop_stack = [],
+        .states = [], .field_map = Map<i32, string> {}, .fields = [], .loop_stack = [],
         .fn_ctx = fn_ctx,
     }
     // Spill: params first, then every local (v1: spill-all) → `g$State` fields.

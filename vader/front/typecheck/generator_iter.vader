@@ -81,11 +81,11 @@ generator_of_state :: fn(state: StructType, typed: TypedProgram) -> AST.FnDecl |
 /// (`cross_publish_fn_decls`), and a signature resolves only in its owner. Read
 /// from a consumer declaring a fn of the same name, it would take that fn's.
 register_generator_iter_impls :: fn(
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
     impl_tables: ImplTables,
     factory: SymbolFactory,
 ) -> void {
-    states :: MutableMap<u64, GeneratorState> {}
+    states :: Map<u64, GeneratorState> {}
     for [_, owner] in per_module {
         sink: Diagnostic[]: []
         for [_, bucket] in owner.resolved.fn_overloads {

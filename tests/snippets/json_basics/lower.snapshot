@@ -86,10 +86,10 @@
     fn std.char.is_digit  // std_char$is_digit
     fn std.char.is_white_char  // std_char$is_white_char
   std/collections
-    fn std.collections.MutableMap<string, Any>.at  // std_collections$MutableMap$std_core$Index$at__string__Any
-    fn std.collections.MutableMap<string, Any>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__Any
-    fn std.collections.MutableMap<string, Any>.into  // std_collections$MutableMap$std_core$Into$into__string__Any
-    fn std.collections.MutableMap<string, Any>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__Any
+    fn std.collections.Map<string, Any>.at  // std_collections$Map$std_core$Index$at__string__Any
+    fn std.collections.Map<string, Any>.contains  // std_collections$Map$std_core$Contains$contains__string__Any
+    fn std.collections.Map<string, Any>.into  // std_collections$Map$std_core$Into$into__string__Any
+    fn std.collections.Map<string, Any>.set_at  // std_collections$Map$std_core$IndexSet$set_at__string__Any
     fn std.collections.contains_key<string, Any>  // std_collections$contains_key__string__Any
     fn std.collections.first_slot  // std_collections$first_slot
     fn std.collections.get<string, Any>  // std_collections$get__string__Any
@@ -99,8 +99,8 @@
     fn std.collections.put<string, Any>  // std_collections$put__string__Any
     fn std.collections.rehash<string, Any>  // std_collections$rehash__string__Any
     fn std_collections$__gen_state_std_collections_0$Iterator$next
-    struct std.collections.MutableMap<string, Any>  // std_collections$MutableMap__string__Any
-    struct std.collections.MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>  // std_collections$MutableMap__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString
+    struct std.collections.Map<string, Any>  // std_collections$Map__string__Any
+    struct std.collections.Map<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>  // std_collections$Map__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString
     struct std_collections$__gen_state_std_collections_0
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #1

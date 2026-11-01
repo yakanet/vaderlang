@@ -72,7 +72,7 @@ export StructValue :: struct {
     /// The struct or tuple type the value is an instance of ; a constant
     /// declared at a union bakes the variant it holds.
     type:   Type
-    fields: MutableMap<string, ComptimeValue>
+    fields: Map<string, ComptimeValue>
 }
 
 /// `@comptime t :: i32`: the value of `t` is the Type IR itself. The
@@ -196,7 +196,7 @@ render_array :: fn(array: ArrayValue) -> string {
 }
 
 // Field names sorted before rendering so the snapshot output is
-// deterministic. `MutableMap` iteration order tracks insertion + bucket
+// deterministic. `Map` iteration order tracks insertion + bucket
 // state ; relying on it would silently drift snapshots whenever a map is
 // populated from a different code path.
 render_struct :: fn(struct_value: StructValue) -> string {
@@ -263,7 +263,7 @@ test_display_int_past_i64_unsigned :: fn() -> void {
 }
 
 @test test_display_struct :: fn() -> void {
-    fields :: MutableMap<string, ComptimeValue> {}
+    fields :: Map<string, ComptimeValue> {}
     fields["x"] = int_val(1)
     fields["y"] = int_val(2)
     struct_value :: StructValue { .type = mk_struct(point_symbol(), []), .fields = fields }

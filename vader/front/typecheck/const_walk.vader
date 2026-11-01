@@ -108,7 +108,7 @@ WalkPosition :: struct {
     callee_field_id: i64
     /// The impl, and its type parameters, whose members are walked.
     enclosing_impl: u64
-    enclosing_impl_params: MutableSet<i32>
+    enclosing_impl_params: Set<i32>
     /// How deep in an overloaded call's arguments the walk is.
     overloaded_arg_depth: i32
     /// The loops around the walk.
@@ -134,7 +134,7 @@ set_walk_aside :: fn(typed: TypedProgram) -> WalkPosition {
     typed.current_fn_ctx = null
     typed.callee_field_id = AST.UNASSIGNED_NODE_ID
     typed.enclosing_impl = 0
-    typed.enclosing_impl_params = MutableSet<i32> {}
+    typed.enclosing_impl_params = Set<i32> {}
     typed.overloaded_arg_depth = 0
     typed.loop_stack = []
     typed.narrow = NarrowState {}
@@ -191,7 +191,7 @@ consts_in_dependency_order :: fn(root: AST.ConstDecl, typed: TypedProgram) -> AS
     if root.span.hash() in walk.states {
         return out
     }
-    seen :: MutableSet<u64> {}
+    seen :: Set<u64> {}
     seen.add(root.span.hash())
     stack: DependencyFrame[]: [frame_of(root, typed)]
     for stack.len() > 0 {

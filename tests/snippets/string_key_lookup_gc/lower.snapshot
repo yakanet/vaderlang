@@ -2,8 +2,8 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      known: MutableSet<string> = MutableSet<string> {
-          .inner = MutableMap<string, bool> {
+      known: Set<string> = Set<string> {
+          .inner = Map<string, bool> {
               .ekeys = [] :string[],
               .evals = [] :bool[],
               .index = [] :i32[],
@@ -27,7 +27,7 @@
               i = i +% 1
           }
       }
-      counts: MutableMap<string, i32> = MutableMap<string, i32> {
+      counts: Map<string, i32> = Map<string, i32> {
           .ekeys = [] :string[],
           .evals = [] :i32[],
           .index = [] :i32[],
@@ -62,10 +62,10 @@
                   __for_i_6: i64 = 0
                   for __for_i_6 < __for_len_5 {
                       w: string = __for_arr_4[__for_i_6]
-                      if std.collections.MutableSet<string>.contains(known, w) {
+                      if std.collections.Set<string>.contains(known, w) {
                           total = total + i32(std.core.byte_at(w, i64(1)))
-                          std.collections.MutableMap<string, i32>.set_at(counts, w, ({
-                              __coalesce_7: i32 | null = std.collections.MutableMap<string, i32>.at(counts, w)
+                          std.collections.Map<string, i32>.set_at(counts, w, ({
+                              __coalesce_7: i32 | null = std.collections.Map<string, i32>.at(counts, w)
                               if __coalesce_7 is null { 0 } else { i32(__coalesce_7) } :i32
                           } :i32) + 1)
                       }
@@ -101,16 +101,16 @@
 
 ## lowered in dependencies
   std/collections
-    fn std.collections.MutableMap<string, bool>.at  // std_collections$MutableMap$std_core$Index$at__string__bool
-    fn std.collections.MutableMap<string, bool>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__bool
-    fn std.collections.MutableMap<string, bool>.into  // std_collections$MutableMap$std_core$Into$into__string__bool
-    fn std.collections.MutableMap<string, bool>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__bool
-    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core$Index$at__string__i32
-    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i32
-    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core$Into$into__string__i32
-    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
-    fn std.collections.MutableSet<string>.contains  // std_collections$MutableSet$std_core$Contains$contains__string
-    fn std.collections.MutableSet<string>.into  // std_collections$MutableSet$std_core$Into$into__string
+    fn std.collections.Map<string, bool>.at  // std_collections$Map$std_core$Index$at__string__bool
+    fn std.collections.Map<string, bool>.contains  // std_collections$Map$std_core$Contains$contains__string__bool
+    fn std.collections.Map<string, bool>.into  // std_collections$Map$std_core$Into$into__string__bool
+    fn std.collections.Map<string, bool>.set_at  // std_collections$Map$std_core$IndexSet$set_at__string__bool
+    fn std.collections.Map<string, i32>.at  // std_collections$Map$std_core$Index$at__string__i32
+    fn std.collections.Map<string, i32>.contains  // std_collections$Map$std_core$Contains$contains__string__i32
+    fn std.collections.Map<string, i32>.into  // std_collections$Map$std_core$Into$into__string__i32
+    fn std.collections.Map<string, i32>.set_at  // std_collections$Map$std_core$IndexSet$set_at__string__i32
+    fn std.collections.Set<string>.contains  // std_collections$Set$std_core$Contains$contains__string
+    fn std.collections.Set<string>.into  // std_collections$Set$std_core$Into$into__string
     fn std.collections.add<string>  // std_collections$add__string
     fn std.collections.contains_key<string, bool>  // std_collections$contains_key__string__bool
     fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
@@ -128,9 +128,9 @@
     fn std_collections$__gen_state_std_collections_0$Iterator$next
     fn std_collections$__gen_state_std_collections_1$Iterator$next
     fn std_collections$__gen_state_std_collections_2$Iterator$next
-    struct std.collections.MutableMap<string, bool>  // std_collections$MutableMap__string__bool
-    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
-    struct std.collections.MutableSet<string>  // std_collections$MutableSet__string
+    struct std.collections.Map<string, bool>  // std_collections$Map__string__bool
+    struct std.collections.Map<string, i32>  // std_collections$Map__string__i32
+    struct std.collections.Set<string>  // std_collections$Set__string
     struct std_collections$__gen_state_std_collections_0
     struct std_collections$__gen_state_std_collections_1
     struct std_collections$__gen_state_std_collections_2

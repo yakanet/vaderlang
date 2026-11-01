@@ -53,7 +53,7 @@ zero_span :: fn(path: string) = Span {
 /// consumers merge these into their `# Diagnostics` block.
 export LoadedProject :: struct {
     entry:        string
-    modules:      MutableMap<string, LoadedModule>
+    modules:      Map<string, LoadedModule>
     factory:      SymbolFactory
     project_root: string | null
     diags:        Diagnostic[]
@@ -64,7 +64,7 @@ export LoadedProject :: struct {
 export empty_loaded_project :: fn() -> LoadedProject {
     return LoadedProject {
         .entry        = "",
-        .modules      = MutableMap<string, LoadedModule> {},
+        .modules      = Map<string, LoadedModule> {},
         .factory      = SymbolFactory {},
         .project_root = null,
         .diags        = [],
@@ -101,7 +101,7 @@ export load_project :: fn(
     selection: Selection | null = null,
 ) -> LoadedProject {
     return load_project_with_overlay(
-        entry_path, MutableMap<string, string> {}, include_path_flags, project_root, selection)
+        entry_path, Map<string, string> {}, include_path_flags, project_root, selection)
 }
 
 /// Like `load_project`, but consults an in-memory `overlay` (filesystem path
@@ -128,7 +128,7 @@ export load_project :: fn(
 ///                     (`parse_source_with_docs`), for a reader of the docs ; a
 ///                     build leaves it off and pays nothing for them.
 export load_project_with_overlay :: fn(
-    entry_path: string, overlay: MutableMap<string, string>,
+    entry_path: string, overlay: Map<string, string>,
     include_path_flags: string[], project_root: string | null,
     selection: Selection | null = null, extra_seeds: string[] = [],
     keep_docs: bool = false,
@@ -149,7 +149,7 @@ export load_project_with_overlay :: fn(
     view :: selection ?? host_target()
     bake_target :: baked_target_of(view)
     effective_target :: selected_target_of(view)
-    modules :: MutableMap<string, LoadedModule> {}
+    modules :: Map<string, LoadedModule> {}
     loader_diags: Diagnostic[]: []
     // The entry's folder is scanned again when the entry resolves below, which
     // reports its R2020 / R2022 once; these are kept only for an entry that
@@ -163,7 +163,7 @@ export load_project_with_overlay :: fn(
     // assignment) is driven solely by the import BFS in `drain_load_queue`, not
     // by discovery, so the self-compile is byte-identical regardless of how the
     // include-paths are sourced.
-    index: MutableMap<string, DiscoveredModule>: MutableMap<string, DiscoveredModule> {}
+    index: Map<string, DiscoveredModule>: Map<string, DiscoveredModule> {}
 
     entry_module :: roots.entry
     match entry_module {
@@ -306,7 +306,7 @@ export SearchRoots :: struct {
 /// @return                    the entry module and the ordered roots.
 export search_roots :: fn(
     entry: string, include_path_flags: string[], project_root: string | null,
-    overlay: MutableMap<string, string>, diags: Diagnostic[],
+    overlay: Map<string, string>, diags: Diagnostic[],
 ) -> SearchRoots {
     plain :: project_include_paths(project_root, manifest_at(project_root), include_path_flags)
     // Generated modules are a property of the PROJECT, not of whoever asked for
@@ -339,7 +339,7 @@ manifest_at :: fn(project_root: string | null) -> Manifest {
 // The module search roots of the projects without a `vader.json`, by project
 // folder, as their driver configured them.
 @singleton
-declared_roots :: fn() -> MutableMap<string, string[]> = MutableMap<string, string[]> {}
+declared_roots :: fn() -> Map<string, string[]> = Map<string, string[]> {}
 
 /// Declare the module search roots of a project that has no `vader.json`, as
 /// its driver configured them. The loader reads them where it reads a
@@ -395,12 +395,12 @@ export entry_namespace :: fn(name: string, folder: string) -> IncludePath {
 LoadState :: struct {
     /// The roots an import is searched in (`SearchRoots.paths`).
     bases: IncludePath[]
-    modules: MutableMap<string, LoadedModule>
+    modules: Map<string, LoadedModule>
     factory: SymbolFactory
     /// The modules found so far, by name (`resolve_lazy`'s cache).
-    index: MutableMap<string, DiscoveredModule>
+    index: Map<string, DiscoveredModule>
     diags: Diagnostic[]
-    overlay: MutableMap<string, string>
+    overlay: Map<string, string>
     /// ONE node-id factory for the whole project (see `parse_module_files`),
     /// carried as each module's `node_id_factory`.
     node_factory: NodeIdFactory
@@ -426,7 +426,7 @@ load_baked_target :: fn(ctx: LoadState, baked_for: Target) -> void {
     }
     // A COPY of the overlay: the baked source is this call's business, not the
     // caller's.
-    with_baked :: MutableMap<string, string> {}
+    with_baked :: Map<string, string> {}
     for [path, text] in ctx.overlay { with_baked[path] = text }
     with_baked[BAKED_PATH] = baked_module_source(baked_for)
     baked :: DiscoveredModule {
@@ -465,21 +465,21 @@ drain_load_queue :: fn(ctx: LoadState, queue: DiscoveredModule[]) -> void {
 // cycle is invisible there ; a separate three-colour DFS over the resolved
 // import graph surfaces it. SPEC §11 forbids cyclic imports.
 detect_import_cycles :: fn(
-    modules: MutableMap<string, LoadedModule>,
-    index: MutableMap<string, DiscoveredModule>,
+    modules: Map<string, LoadedModule>,
+    index: Map<string, DiscoveredModule>,
     diags: Diagnostic[],
 ) -> void {
     // Per module : absent = unvisited, 1 = on the current DFS stack, 2 = done.
-    state :: MutableMap<string, i32> {}
+    state :: Map<string, i32> {}
     for [id, _] in modules {
         if state[id] == null { walk_import_cycle(id, modules, index, state, diags) }
     }
 }
 
 walk_import_cycle :: fn(
-    id: string, modules: MutableMap<string, LoadedModule>,
-    index: MutableMap<string, DiscoveredModule>,
-    state: MutableMap<string, i32>, diags: Diagnostic[],
+    id: string, modules: Map<string, LoadedModule>,
+    index: Map<string, DiscoveredModule>,
+    state: Map<string, i32>, diags: Diagnostic[],
 ) -> void {
     state[id] = 1
     lm :: modules[id]
@@ -545,7 +545,7 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
 // straight through to `read_file`. Returns "" when neither the overlay nor
 // the disk has the file (the caller skips empty content): same handling the
 // pre-overlay code gave `read_file`'s error case.
-read_with_overlay :: fn(overlay: MutableMap<string, string>, path: string) -> string {
+read_with_overlay :: fn(overlay: Map<string, string>, path: string) -> string {
     buffered :: overlay[path]
     if buffered != null { return buffered }
     disk :: read_file_string(path)
@@ -726,14 +726,14 @@ entry_folder_of :: fn(path: string) -> string {
     return folder
 }
 
-has_module :: fn(modules: MutableMap<string, LoadedModule>, id: string) -> bool {
+has_module :: fn(modules: Map<string, LoadedModule>, id: string) -> bool {
     return !(modules[id] is null)
 }
 
 collect_files :: fn(
     files: SourceFile[], module_id: string, module_name: string,
     factory: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
+    index: Map<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
 ) -> CollectedModule {
     // Multi-file collect : merge every file's collected view into one
     // module-wide table. Each file mints fresh Symbol ids through the
@@ -893,7 +893,7 @@ test_manifest_root_of_any_other_entry_is_relative_to_the_project :: fn() -> void
 @test
 test_load_keeps_docs_when_asked :: fn() -> void {
     entry :: "/no/such/vader_doc_project/main.vader"
-    overlay :: MutableMap<string, string> {}
+    overlay :: Map<string, string> {}
     overlay[entry] = "module \"main\"\n\n/// Say one.\nexport one :: fn() -> i32 = 1\n"
     project :: load_project_with_overlay(entry, overlay, [], null, keep_docs = true)
     assert_eq(entry_doc(project), "Say one.")

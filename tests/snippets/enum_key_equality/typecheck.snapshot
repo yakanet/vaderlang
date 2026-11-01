@@ -57,43 +57,43 @@
   expr 39:45    IntrinsicCallExpr :: bool
   expr 39:5     CallExpr       :: void
   expr 39:5     IdentExpr      :: fn(T) -> void
-  expr 41:17    StructLitExpr  :: MutableMap<Color, i32>
+  expr 41:17    StructLitExpr  :: Map<Color, i32>
   expr 42:14    DotVariantExpr :: Color
-  expr 42:5     IdentExpr      :: MutableMap<Color, i32>
+  expr 42:5     IdentExpr      :: Map<Color, i32>
   expr 43:14    DotVariantExpr :: Color
-  expr 43:5     IdentExpr      :: MutableMap<Color, i32>
+  expr 43:5     IdentExpr      :: Map<Color, i32>
   expr 44:13    StringLitExpr  :: string
-  expr 44:16    IdentExpr      :: MutableMap<Color, i32>
+  expr 44:16    IdentExpr      :: Map<Color, i32>
   expr 44:16    IndexExpr      :: i32 | null
   expr 44:16    NullCoalesceExpr :: i32
   expr 44:25    DotVariantExpr :: Color
-  expr 44:40    IdentExpr      :: MutableMap<Color, i32>
+  expr 44:40    IdentExpr      :: Map<Color, i32>
   expr 44:40    IndexExpr      :: i32 | null
   expr 44:40    NullCoalesceExpr :: i32
   expr 44:49    DotVariantExpr :: Color
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(T) -> void
-  expr 44:66    IdentExpr      :: MutableMap<Color, i32>
+  expr 44:66    IdentExpr      :: Map<Color, i32>
   expr 44:66    IndexExpr      :: i32 | null
   expr 44:66    NullCoalesceExpr :: i32
   expr 44:75    DotVariantExpr :: Color
-  expr 46:18    StructLitExpr  :: MutableMap<HttpStatus, string>
+  expr 46:18    StructLitExpr  :: Map<HttpStatus, string>
   expr 47:15    DotVariantExpr :: HttpStatus
   expr 47:28    StringLitExpr  :: string
-  expr 47:5     IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 47:5     IdentExpr      :: Map<HttpStatus, string>
   expr 48:15    DotVariantExpr :: HttpStatus
   expr 48:22    StringLitExpr  :: string
-  expr 48:5     IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 48:5     IdentExpr      :: Map<HttpStatus, string>
   expr 49:15    DotVariantExpr :: HttpStatus
   expr 49:28    StringLitExpr  :: string
-  expr 49:5     IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 49:5     IdentExpr      :: Map<HttpStatus, string>
   expr 50:13    StringLitExpr  :: string
-  expr 50:16    IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 50:16    IdentExpr      :: Map<HttpStatus, string>
   expr 50:16    IndexExpr      :: null | string
   expr 50:16    NullCoalesceExpr :: string
   expr 50:26    DotVariantExpr :: HttpStatus
   expr 50:40    StringLitExpr  :: string
-  expr 50:47    IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 50:47    IdentExpr      :: Map<HttpStatus, string>
   expr 50:47    IndexExpr      :: null | string
   expr 50:47    NullCoalesceExpr :: string
   expr 50:5     CallExpr       :: void
@@ -102,7 +102,7 @@
   expr 50:65    StringLitExpr  :: string
   expr 50:72    CallExpr       :: i64
   expr 50:72    FieldExpr      :: fn() -> i64
-  expr 50:72    IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 50:72    IdentExpr      :: Map<HttpStatus, string>
   expr 51:5     CallExpr       :: void
   expr 51:5     IdentExpr      :: fn(T) -> void
   expr 52:12    CallExpr       :: bool
@@ -118,10 +118,10 @@
   expr 52:86    FieldExpr      :: Color
   expr 52:86    IdentExpr      :: Color
   expr 52:9     StringLitExpr  :: string
-  expr 55:15    StructLitExpr  :: MutableMap<Color, i32>
+  expr 55:15    StructLitExpr  :: Map<Color, i32>
   expr 56:17    IdentExpr      :: Color
   expr 57:16    IdentExpr      :: Color
-  expr 57:9     IdentExpr      :: MutableMap<Color, i32>
+  expr 57:9     IdentExpr      :: Map<Color, i32>
   expr 58:12    BinaryExpr     :: bool
   expr 58:12    IdentExpr      :: Color
   expr 58:20    DotVariantExpr :: Color
@@ -136,11 +136,11 @@
   expr 60:24    IdentExpr      :: fn(Color) -> bool
   expr 60:32    DotVariantExpr :: Color
   expr 64:13    StringLitExpr  :: string
-  expr 64:16    IdentExpr      :: MutableMap<Color, i32>
+  expr 64:16    IdentExpr      :: Map<Color, i32>
   expr 64:16    IndexExpr      :: i32 | null
   expr 64:16    NullCoalesceExpr :: i32
   expr 64:23    DotVariantExpr :: Color
-  expr 64:39    IdentExpr      :: MutableMap<Color, i32>
+  expr 64:39    IdentExpr      :: Map<Color, i32>
   expr 64:39    IndexExpr      :: i32 | null
   expr 64:39    NullCoalesceExpr :: i32
   expr 64:48    CallExpr       :: Color
@@ -150,4 +150,4 @@
   expr 64:54    IdentExpr      :: i32
   expr 64:70    CallExpr       :: bool
   expr 64:70    IdentExpr      :: fn(Contains<Color>) -> bool
-  expr 64:79    IdentExpr      :: MutableMap<Color, i32>
+  expr 64:79    IdentExpr      :: Map<Color, i32>

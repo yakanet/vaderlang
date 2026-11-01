@@ -101,7 +101,7 @@ write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[], strings: stri
     // Only aggregate entries reference the pool via `strref` ; skip the index
     // build for pools without one (`string[]` / primitive tables) so a dump
     // over a large `module.strings` stays free.
-    str_index :: if data_pool_has_aggregate(data_pool) { build_string_index(strings) } else { MutableMap<string, i32> {} }
+    str_index :: if data_pool_has_aggregate(data_pool) { build_string_index(strings) } else { Map<string, i32> {} }
     for [e, i] in data_pool.indexed() {
         if e is BcStrData {
             out :: StringBuilder {}
@@ -173,15 +173,15 @@ data_pool_has_aggregate :: fn(data_pool: BcDataEntry[]) -> bool {
 
 // Map each pooled string value to its `string N` index, so string leaves dump as
 // `strref <i>` rather than re-emitting the value inline.
-build_string_index :: fn(strings: string[]) -> MutableMap<string, i32> {
-    m :: MutableMap<string, i32> {}
+build_string_index :: fn(strings: string[]) -> Map<string, i32> {
+    m :: Map<string, i32> {}
     for i in 0..<strings.len() { m[strings[i]] = i32(i) }
     return m
 }
 
 // Serialise one recursive baked value into the count-prefixed `.virt` form.
 write_data_value :: fn(
-    out: StringBuilder, v: BcDataValue, str_index: MutableMap<string, i32>, types: BcType[],
+    out: StringBuilder, v: BcDataValue, str_index: Map<string, i32>, types: BcType[],
 ) -> void {
     if v is BcValPrim {
         // No `prim` tag : a primitive leaf is `<kind> <hex>`. The kind name

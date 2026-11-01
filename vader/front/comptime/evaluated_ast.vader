@@ -48,10 +48,10 @@ export EvaluatedProgram :: struct {
 
     /// The const decls the comptime pass evaluated, `@comptime`-marked or
     /// folded, keyed by the decl's Symbol id.
-    comptime_decls: MutableMap<i32, ComptimeValue>
+    comptime_decls: Map<i32, ComptimeValue>
 
     /// How each value of `comptime_decls` was produced, under the same key.
-    routes: MutableMap<i32, ComptimeRoute> = MutableMap<i32, ComptimeRoute> {}
+    routes: Map<i32, ComptimeRoute> = Map<i32, ComptimeRoute> {}
 
     /// Each top-level `@assert` of the module and what its evaluation gave.
     asserts: AssertCheck[] = []
@@ -91,7 +91,7 @@ export EvaluatedProject :: struct {
 
     /// Per-module `EvaluatedProgram`, keyed by canonical module path
     /// (matches `TypedProject.modules` keying).
-    modules: MutableMap<string, EvaluatedProgram>
+    modules: Map<string, EvaluatedProgram>
 
     /// `@comptime` decls the tree-walk deferred to the VM. Populated by
     /// `evaluate_project` ; consumed by the `pipeline/comptime_vm` pass, which bakes
@@ -103,7 +103,7 @@ export EvaluatedProject :: struct {
     /// declaration's node id: the constant as evaluated for the build target,
     /// its `include` and `archives` resolved against the folder of the module
     /// declaring it.
-    libraries: MutableMap<i64, CLibrary> = MutableMap<i64, CLibrary> {}
+    libraries: Map<i64, CLibrary> = Map<i64, CLibrary> {}
 }
 
 /// Construct an empty `EvaluatedProgram` bound to `typed`.
@@ -112,7 +112,7 @@ export EvaluatedProject :: struct {
 new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
     return EvaluatedProgram {
         .typed          = typed,
-        .comptime_decls = MutableMap<i32, ComptimeValue> {},
+        .comptime_decls = Map<i32, ComptimeValue> {},
     }
 }
 
@@ -122,7 +122,7 @@ new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
 export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
     return EvaluatedProject {
         .typed       = typed,
-        .modules     = MutableMap<string, EvaluatedProgram> {},
+        .modules     = Map<string, EvaluatedProgram> {},
         .vm_required = [],
     }
 }

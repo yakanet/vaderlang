@@ -51,7 +51,7 @@ export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> strin
 }
 
 // The module's list items : its evaluated consts sorted by name, so the dump is
-// stable whatever the MutableMap iteration order, then its `@assert`s in source
+// stable whatever the Map iteration order, then its `@assert`s in source
 // order.
 module_items :: fn(module_program: EvaluatedProgram) -> string[] {
     out :: const_items(module_program)

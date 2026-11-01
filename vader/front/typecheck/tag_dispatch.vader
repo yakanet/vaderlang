@@ -149,7 +149,7 @@ nests_self :: fn(t: Type) -> bool {
 
 // The trait instances a member `method` of the union `u` can dispatch through : each
 // trait declaring it that every variant implements at arguments they agree on
-// (`MutableMap<string, i32> | Log` reaches `IndexSet<string, i32>`). More than one
+// (`Map<string, i32> | Log` reaches `IndexSet<string, i32>`). More than one
 // leaves a method call ambiguous ; a fixed `trait_key` gives at most one.
 union_dispatch_traits :: fn(
     u: UnionType,

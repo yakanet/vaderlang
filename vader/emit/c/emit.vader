@@ -217,7 +217,7 @@ compute_atom_ids :: fn(strings: string[], universe: string[]) -> i32[] {
     // A literal the universe does not carry is a build-order bug rather than a
     // recoverable case (it would silently alias another atom) so it takes 0
     // (the empty atom) and `atom_universe_covers` is what a caller checks.
-    index :: MutableMap<string, i32> {}
+    index :: Map<string, i32> {}
     for i in 0..<universe.len() {
         index.get_or_put(universe[i], i32(i) + 1)
     }
@@ -256,7 +256,7 @@ atom_table_of :: fn(strings: string[], universe: string[]) -> string[] {
 /// @param universe  the shared atom universe.
 /// @return          the uncovered literals, empty when the universe is complete.
 export atom_universe_gaps :: fn(strings: string[], universe: string[]) -> string[] {
-    have :: MutableSet<string> {}
+    have :: Set<string> {}
     for u in universe {
         have.add(u)
     }
@@ -527,7 +527,7 @@ emit_data_pool :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     type_ids :: data_pool_type_ids(ctx.module)
     // The value→atom map scans the whole module string table ; only string
     // arrays need it, so skip the build when the pool is all primitive.
-    atom_of :: if has_str_data(ctx.module.data_pool) { build_string_atom_map(ctx) } else { MutableMap<string, i32> {} }
+    atom_of :: if has_str_data(ctx.module.data_pool) { build_string_atom_map(ctx) } else { Map<string, i32> {} }
     for i in 0..<ctx.module.data_pool.len() {
         entry :: ctx.module.data_pool[i]
         array :: PoolArray {
@@ -725,7 +725,7 @@ emit_agg_data_entry :: fn(
     items: CTopLevel[],
     array: PoolArray,
     ad: BcAggregateData,
-    atom_of: MutableMap<string,
+    atom_of: Map<string,
     i32>,
 ) -> void {
     slots: CExpression[]: []
@@ -744,7 +744,7 @@ emit_data_value :: fn(
     items: CTopLevel[],
     v: BcDataValue,
     name: string,
-    atom_of: MutableMap<string,
+    atom_of: Map<string,
     i32>,
 ) -> CExpression {
     if v is BcValPrim { return data_slot(v.kind, v.bits) }
@@ -790,7 +790,7 @@ emit_nested_array :: fn(
     items: CTopLevel[],
     a: BcValArray,
     name: string,
-    atom_of: MutableMap<string,
+    atom_of: Map<string,
     i32>,
 ) -> CExpression {
     // The storage kind comes from the elements, prim leaves at the width they are
@@ -824,7 +824,7 @@ struct_field_init :: fn(
     v: BcDataValue,
     name: string,
     field_tid: i32,
-    atom_of: MutableMap<string,
+    atom_of: Map<string,
     i32>,
 ) -> CExpression {
     // An erased field (union / open ref) is a tagged `vader_box_t` slot,
@@ -851,7 +851,7 @@ box_slot :: fn(
     items: CTopLevel[],
     v: BcDataValue,
     name: string,
-    atom_of: MutableMap<string,
+    atom_of: Map<string,
     i32>,
 ) -> CExpression {
     types :: ctx.module.types
@@ -950,7 +950,7 @@ emit_str_data_entry :: fn(
     items: CTopLevel[],
     array: PoolArray,
     sd: BcStrData,
-    atom_of: MutableMap<string,
+    atom_of: Map<string,
     i32>,
 ) -> void {
     slots: CExpression[]: []
@@ -963,8 +963,8 @@ emit_str_data_entry :: fn(
 // Value → comptime atom id, parallel to `module.strings` / `atom_ids`. Every
 // data-pool string is interned into `module.strings` by `emit/bytecode`, so each
 // element resolves here ; `atom_for` defaults a stray miss to the empty atom.
-build_string_atom_map :: fn(ctx: EmitCtx) -> MutableMap<string, i32> {
-    m :: MutableMap<string, i32> {}
+build_string_atom_map :: fn(ctx: EmitCtx) -> Map<string, i32> {
+    m :: Map<string, i32> {}
     strings :: ctx.module.strings
     for i in 0..<strings.len() { m[strings[i]] = ctx.atom_ids[i] }
     return m
@@ -979,7 +979,7 @@ has_str_data :: fn(data_pool: BcDataEntry[]) -> bool {
     return false
 }
 
-atom_for :: fn(atom_of: MutableMap<string, i32>, value: string) -> i32 {
+atom_for :: fn(atom_of: Map<string, i32>, value: string) -> i32 {
     a :: atom_of[value]
     if a is i32 { return a }
     return 0
@@ -1315,7 +1315,7 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: i64) -> Stru
         // same predicate `c_type_for` uses) so the two can't drift: misfiling a
         // raw `void*` under `ptr_offsets` makes the collector read the pointer as
         // a 16 B box, forwarding garbage / never updating the field → a stale ref
-        // after a move (the `MutableMap` ekeys UAF). Only `string` primitives take
+        // after a move (the `Map` ekeys UAF). Only `string` primitives take
         // a `str_offsets` tracking slot ; other primitives carry no heap ref.
         if ftype is BcScalar {
             if is_string_val(ftype.val) { offsets.str_offsets.push(offset) }

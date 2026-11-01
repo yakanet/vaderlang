@@ -150,7 +150,7 @@ parameter_name :: fn(callee: Callee, param: i64) -> string | null {
 /// @param checked  its typecheck, which noted the widened arguments.
 export widening_diagnostics :: fn(summary: EffectSummary, checked: CheckResult) -> Diagnostic[] {
     out: Diagnostic[]: []
-    decided :: MutableSet<i64> {}
+    decided :: Set<i64> {}
     for site in summary.widenings {
         decided.add(site.arg)
         if site.verdict != .Covariant {

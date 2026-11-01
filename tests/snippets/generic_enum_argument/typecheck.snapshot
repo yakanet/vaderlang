@@ -70,20 +70,20 @@
   expr 52:34    DotVariantExpr :: HttpStatus
   expr 52:5     CallExpr       :: void
   expr 52:5     IdentExpr      :: fn(T) -> void
-  expr 53:16    StructLitExpr  :: MutableMap<HttpStatus, string>
+  expr 53:16    StructLitExpr  :: Map<HttpStatus, string>
   expr 54:13    DotVariantExpr :: HttpStatus
   expr 54:26    StringLitExpr  :: string
-  expr 54:5     IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 54:5     IdentExpr      :: Map<HttpStatus, string>
   expr 55:13    DotVariantExpr :: HttpStatus
   expr 55:20    StringLitExpr  :: string
-  expr 55:5     IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 55:5     IdentExpr      :: Map<HttpStatus, string>
   expr 56:13    StringLitExpr  :: string
-  expr 56:16    IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 56:16    IdentExpr      :: Map<HttpStatus, string>
   expr 56:16    IndexExpr      :: null | string
   expr 56:16    NullCoalesceExpr :: string
   expr 56:24    DotVariantExpr :: HttpStatus
   expr 56:38    StringLitExpr  :: string
-  expr 56:45    IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 56:45    IdentExpr      :: Map<HttpStatus, string>
   expr 56:45    IndexExpr      :: null | string
   expr 56:45    NullCoalesceExpr :: string
   expr 56:5     CallExpr       :: void
@@ -92,7 +92,7 @@
   expr 56:61    StringLitExpr  :: string
   expr 56:68    CallExpr       :: i64
   expr 56:68    FieldExpr      :: fn() -> i64
-  expr 56:68    IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 56:68    IdentExpr      :: Map<HttpStatus, string>
   expr 57:22    SeqLitExpr     :: Color[]
   expr 57:23    DotVariantExpr :: Color
   expr 57:29    DotVariantExpr :: Color

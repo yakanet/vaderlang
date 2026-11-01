@@ -246,7 +246,7 @@ colored_ctx :: fn() -> TextCtx = TextCtx {
     .base = "/",
     .here = "/",
     .colored = true,
-    .places = MutableMap<string, string> {},
+    .places = Map<string, string> {},
 }
 
 @test

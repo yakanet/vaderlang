@@ -60,7 +60,7 @@ highlight_json :: fn(spans: Span[], li: LineIndex) -> JsonValue {
 }
 
 highlight_item_json :: fn(sp: Span, li: LineIndex) -> JsonValue {
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["range"] = range_json(sp.span_to_range_json(li))
     return JsonObject { .entries = obj }
 }

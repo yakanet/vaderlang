@@ -33,8 +33,8 @@ evaluate_extern_libraries :: fn(
 ) -> void {
     constants :: ProjectConstants { .typed = typed }
     // One library per constant, shared by every declaration naming it.
-    evaluated :: MutableMap<i32, CLibrary> {}
-    failed :: MutableSet<i32> {}
+    evaluated :: Map<i32, CLibrary> {}
+    failed :: Set<i32> {}
     for [_, module_typed] in typed.modules {
         for [decl_id, symbol] in module_typed.extern_libraries {
             known :: evaluated[symbol.id]
@@ -67,7 +67,7 @@ evaluate_library :: fn(
     declaration :: owner.const_decls[symbol.id] ?? return null
     context :: ComptimeContext {
         .typed = owner,
-        .bindings = MutableMap<i32, ComptimeValue> {},
+        .bindings = Map<i32, ComptimeValue> {},
         .project = constants,
     }
     result :: evaluate_project_const(symbol, context, declaration.span) ?? return null

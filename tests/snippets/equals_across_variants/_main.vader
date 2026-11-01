@@ -28,7 +28,7 @@ Label implements Hash -> u64(self.n)
 Shape :: Point | Label
 
 main :: fn() -> i32 {
-    seen :: MutableMap<Shape, string> {}
+    seen :: Map<Shape, string> {}
     seen[Point { .x = 1 }] = "point"
     println("${seen[Label { .n = 1 }] ?? "absent"} ${seen[Point { .x = 1 }] ?? "absent"}")
     shapes: Shape[]: [Point { .x = 1 }]

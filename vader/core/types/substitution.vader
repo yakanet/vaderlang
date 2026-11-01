@@ -17,7 +17,7 @@ import "std/collections"
 /// `self_type` rebinds `Self` to its concrete carrier inside an impl ;
 /// callers leave it `null` for non-impl entries.
 export Substitution :: struct {
-    type_params: MutableMap<i32, Type>
+    type_params: Map<i32, Type>
     self_type:   Type | null
     /// Whether a type parameter is bound to a type holding a range of no machine
     /// integer's bounds : the lowering checks what such a parameter hands back
@@ -43,7 +43,7 @@ export bound_range :: fn(subst: Substitution, t: Type) -> RangeType | null {
 /// @return  a fresh substitution with no type-param bindings.
 export new_substitution :: fn() -> Substitution {
     return Substitution {
-        .type_params = MutableMap<i32, Type> {},
+        .type_params = Map<i32, Type> {},
         .self_type   = null,
     }
 }
@@ -87,14 +87,14 @@ export substitute_self :: fn(t: Type, self_type: Type) -> Type = substitute_in(t
 ///
 /// @param t      the type to substitute_in.
 /// @param subst  the bindings, by type parameter symbol id.
-export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type =
+export substitute_map :: fn(t: Type, subst: Map<i32, Type>) -> Type =
     substitute_in(t, subst, null)
 
 /// Each of `types` through `substitute_map`.
 ///
 /// @param types  the types to substitute_in.
 /// @param subst  the bindings, by type parameter symbol id.
-export substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) -> Type[] =
+export substitute_each_map :: fn(types: Type[], subst: Map<i32, Type>) -> Type[] =
     substitute_each_in(types, subst, null)
 
 /// `f` with every bound type parameter replaced: `substitute_map` on a fn type,
@@ -103,7 +103,7 @@ export substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) ->
 ///
 /// @param f      a generic signature.
 /// @param subst  the bindings, by type parameter symbol id.
-export substitute_fn_map :: fn(f: FnType, subst: MutableMap<i32, Type>) -> FnType =
+export substitute_fn_map :: fn(f: FnType, subst: Map<i32, Type>) -> FnType =
     substitute_fn_in(f, subst, null)
 
 // ---- the walk -------------------------------------------------------------
@@ -116,7 +116,7 @@ export substitute_fn_map :: fn(f: FnType, subst: MutableMap<i32, Type>) -> FnTyp
 // included, whose backing holds no parameter.
 substitute_in :: fn(
     t: Type,
-    bindings: MutableMap<i32, Type> | null,
+    bindings: Map<i32, Type> | null,
     self_type: Type | null,
 ) -> Type = @partial match t {
     is TypeParamType -> binding_of(t, bindings)
@@ -132,7 +132,7 @@ substitute_in :: fn(
 
 substitute_each_in :: fn(
     types: Type[],
-    bindings: MutableMap<i32, Type> | null,
+    bindings: Map<i32, Type> | null,
     self_type: Type | null,
 ) -> Type[] {
     out: Type[]: []
@@ -145,7 +145,7 @@ substitute_each_in :: fn(
 // The parameters `bindings` binds leave the signature's quantifier.
 substitute_fn_in :: fn(
     f: FnType,
-    bindings: MutableMap<i32, Type> | null,
+    bindings: Map<i32, Type> | null,
     self_type: Type | null,
 ) -> FnType = FnType {
     ...f,
@@ -155,7 +155,7 @@ substitute_fn_in :: fn(
 }
 
 // What `bindings` binds `tp` to, or `tp` itself.
-binding_of :: fn(tp: TypeParamType, bindings: MutableMap<i32, Type> | null) -> Type {
+binding_of :: fn(tp: TypeParamType, bindings: Map<i32, Type> | null) -> Type {
     if bindings == null {
         return tp
     }
@@ -166,7 +166,7 @@ binding_of :: fn(tp: TypeParamType, bindings: MutableMap<i32, Type> | null) -> T
 // itself, not a copy, when it binds none of them.
 unbound_quantifier :: fn(
     quantifier: TypeParamType[],
-    bindings: MutableMap<i32, Type> | null,
+    bindings: Map<i32, Type> | null,
 ) -> TypeParamType[] {
     if bindings == null || !binds_any(quantifier, bindings) {
         return quantifier
@@ -180,7 +180,7 @@ unbound_quantifier :: fn(
     return out
 }
 
-binds_any :: fn(quantifier: TypeParamType[], bindings: MutableMap<i32, Type>) -> bool {
+binds_any :: fn(quantifier: TypeParamType[], bindings: Map<i32, Type>) -> bool {
     for tp in quantifier {
         if tp.symbol.id in bindings {
             return true

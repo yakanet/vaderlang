@@ -28,7 +28,7 @@ import "json"
 ///                     when the command carries none).
 /// @return             the serialized JSON, ready for `write_frame`.
 export encode_response :: fn(seq: i32, request_seq: i32, command: string, success: bool, body: JsonValue) -> string {
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["seq"]         = JsonNumber { .value = f64(seq) }
     obj["type"]        = JsonString { .value = "response" }
     obj["request_seq"] = JsonNumber { .value = f64(request_seq) }
@@ -45,7 +45,7 @@ export encode_response :: fn(seq: i32, request_seq: i32, command: string, succes
 /// @param body   event-specific payload (`empty_body()` when none).
 /// @return       the serialized JSON, ready for `write_frame`.
 export encode_event :: fn(seq: i32, event: string, body: JsonValue) -> string {
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["seq"]   = JsonNumber { .value = f64(seq) }
     obj["type"]  = JsonString { .value = "event" }
     obj["event"] = JsonString { .value = event }
@@ -54,4 +54,4 @@ export encode_event :: fn(seq: i32, event: string, body: JsonValue) -> string {
 }
 
 /// An empty JSON object: the `body` for commands / events that carry none.
-export empty_body :: fn() -> JsonValue = JsonObject { .entries = MutableMap<string, JsonValue> {} }
+export empty_body :: fn() -> JsonValue = JsonObject { .entries = Map<string, JsonValue> {} }

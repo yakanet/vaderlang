@@ -27,7 +27,7 @@ window :: fn(label: string) -> Range<i64> {
 main :: fn() -> i32 {
     println(if say("x", 2) in pool("coll") { "in: yes" } else { "in: no" })
     println(if say("x", 7) !in pool("coll") { "not in: yes" } else { "not in: no" })
-    seen :: MutableSet<i32> {}
+    seen :: Set<i32> {}
     seen.add(2)
     println(if say("x", 2) in seen { "set: yes" } else { "set: no" })
     part :: pool("target")[window("range")]

@@ -116,11 +116,11 @@ scalarised_copy_mangle :: fn(mangled: string) -> string = "${mangled}\$v"
 // body calls a candidate" and nothing else, so a copy (which carries the
 // original's body) inherits the flag only when it is actually true.
 plan_forwarding :: fn(
-    p: CFGProject, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
-    callers: MutableSet<string>,
+    p: CFGProject, chosen: Map<string, ReturnShape>, by_symbol: Map<i32, string>,
+    callers: Set<string>,
 ) -> void {
-    as_value :: MutableSet<string> {}
-    called :: MutableSet<string> {}
+    as_value :: Set<string> {}
+    called :: Set<string> {}
     for e in p.vtable_entries {
         note_symbol(e.fn_symbol, by_symbol, as_value)
     }
@@ -154,8 +154,8 @@ plan_forwarding :: fn(
 }
 
 note_call :: fn(
-    callee: Symbol, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
-    callers: MutableSet<string>, called: MutableSet<string>, caller: string,
+    callee: Symbol, chosen: Map<string, ReturnShape>, by_symbol: Map<i32, string>,
+    callers: Set<string>, called: Set<string>, caller: string,
 ) -> void {
     if callee_shape(callee, chosen, by_symbol) == null {
         return
@@ -166,7 +166,7 @@ note_call :: fn(
 
 // The key `chosen` holds this callee under. Mirrors `callee_shape`'s order.
 callee_mangle :: fn(
-    callee: Symbol, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
+    callee: Symbol, chosen: Map<string, ReturnShape>, by_symbol: Map<i32, string>,
 ) -> string {
     if chosen[callee.name] != null {
         return callee.name
@@ -178,7 +178,7 @@ callee_mangle :: fn(
 // mangle OR by symbol id, and a function answering to two names must be noted
 // under both.
 note_symbol :: fn(
-    sym: Symbol, by_symbol: MutableMap<i32, string>, as_value: MutableSet<string>,
+    sym: Symbol, by_symbol: Map<i32, string>, as_value: Set<string>,
 ) -> void {
     as_value.add(sym.name)
     mangled :: by_symbol[sym.id]
@@ -188,7 +188,7 @@ note_symbol :: fn(
 }
 
 mark_forwarding :: fn(
-    mangled: string, chosen: MutableMap<string, ReturnShape>, callers: MutableSet<string>,
+    mangled: string, chosen: Map<string, ReturnShape>, callers: Set<string>,
 ) -> void {
     shape :: chosen[mangled] ?? return
     if shape.forward_to != null {
@@ -229,7 +229,7 @@ forwarded_symbol :: fn(sym: Symbol, copy_mangle: string) -> Symbol =
 // mangle with a synthetic id 0, a free fn its bare name. Resolving only one way
 // is how a call site keeps the old shape while its callee changed.
 fill_mangles_by_symbol_id :: fn(
-    p: CFGProject, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
+    p: CFGProject, chosen: Map<string, ReturnShape>, by_symbol: Map<i32, string>,
 ) -> void {
     for [_, m] in p.modules {
         for f in m.functions {
@@ -244,7 +244,7 @@ fill_mangles_by_symbol_id :: fn(
 /// The shape a call to `callee` now hands back, or null when it is not a
 /// scalarised function. Mirrors `emit/bytecode/emit`'s resolution order.
 callee_shape :: fn(
-    callee: Symbol, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
+    callee: Symbol, chosen: Map<string, ReturnShape>, by_symbol: Map<i32, string>,
 ) -> ReturnShape | null {
     direct :: chosen[callee.name]
     if direct != null {

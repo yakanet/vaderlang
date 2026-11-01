@@ -2,7 +2,7 @@
 //
 // Two passes compose into one `ResolvedModule` :
 //   1. Top-level minting (`vader/front/resolver/collect.vader`): one Symbol
-//      per top-level decl, indexed by name in a `MutableMap` so the body
+//      per top-level decl, indexed by name in a `Map` so the body
 //      walker can use it as the root scope seed.
 //   2. Body walking (`vader/front/resolver/body.vader`): descends every fn
 //      body, lambda, match arm and pattern, stamping a span-keyed
@@ -44,73 +44,73 @@ export ResolvedModule :: struct {
     /// order. Two files may each bind the same name ; a binding's span names its
     /// file.
     import_bindings: Symbol[] = []
-    idents:  MutableMap<u64, Symbol>
+    idents:  Map<u64, Symbol>
     /// Local Symbol ids nothing may rebind, and why : a `name :: ...` binding (no
     /// `:=`), or the variable of a `for … in`. Consumed by
     /// let_assign.vader::check_assign to surface T3041.
-    immutable_locals: MutableMap<i32, ConstLocal>
+    immutable_locals: Map<i32, ConstLocal>
     /// Locals and parameters no assignment rebinds (see `ResolvedFile`). Empty
     /// for a module that was not body-walked, which claims nothing.
-    rebind_free: MutableSet<i32> = MutableSet<i32> {}
+    rebind_free: Set<i32> = Set<i32> {}
     /// Per `for` statement, the locals its body rebinds (see `ResolvedFile`).
-    loop_rebinds: MutableMap<u64, MutableSet<i32>> = MutableMap<u64, MutableSet<i32>> {}
+    loop_rebinds: Map<u64, Set<i32>> = Map<u64, Set<i32>> {}
     /// Locals a lambda rebinds while declared outside it (see `ResolvedFile`).
-    closure_rebound: MutableSet<i32> = MutableSet<i32> {}
+    closure_rebound: Set<i32> = Set<i32> {}
     /// `fn_overloads[name]` carries every Symbol minted for a given
     /// fn name: only one of which lands in `symbols`. The typecheck
     /// dump iterates this to surface every overload.
-    fn_overloads: MutableMap<string, Symbol[]>
+    fn_overloads: Map<string, Symbol[]>
     /// Every declaration's symbol under the hash of its name span, each fn
     /// overload included: the one way back from a declaration to its symbol
     /// (`symbol_declared_at`). A declaration the resolver gave no symbol of its own
     /// (an impl member, a duplicate non-fn) has no entry.
-    declarations: MutableMap<u64, Symbol>
+    declarations: Map<u64, Symbol>
     /// `imports_to[sym.id]` follows an ImportBinding symbol to its
     /// concrete exported counterpart. Lets `type_from_expr` resolve
     /// `ParseError` to the real struct symbol on the std/string side
     /// instead of the local import binding. Populated by the
     /// typecheck orchestrator after `wire_imports`: one project-wide
     /// table every module of a check shares.
-    imports_to: MutableMap<i32, Symbol>
+    imports_to: Map<i32, Symbol>
     /// `alias_types[sym.id]` carries the resolved Type for any
     /// `TypeAlias` symbol (local or imported). Lets `type_from_expr`
     /// expand `Maybe<T>` to `T | null` instead of leaving it as a
     /// placeholder StructType. Populated by the typecheck orchestrator.
-    alias_types: MutableMap<i32, Type>
+    alias_types: Map<i32, Type>
     /// `alias_params[sym.id]` holds a generic alias's type parameters, in order,
     /// so `type_from_expr` can substitute them when the alias is instantiated
     /// (`Maybe(i32)` → `i32 | null`).
-    alias_params: MutableMap<i32, TypeParamType[]>
+    alias_params: Map<i32, TypeParamType[]>
     /// `type_param_bounds[type_param_sym.id]` → bound TypeExpr (e.g.
     /// `fn[T: Add]` records the `Add` ident here). Consumed by
     /// `field.vader` so `x.method()` on a bounded TypeParam can
     /// dispatch to the trait's declared method.
-    type_param_bounds: MutableMap<i32, Expr>
+    type_param_bounds: Map<i32, Expr>
     /// `trait_self_params[trait_sym.id]` is the type parameter `Self` stands for in
     /// that trait's default bodies, bounded by the trait itself. A default body is
     /// checked once against it, as the body of a `fn<Self: Trait>` would be.
-    trait_self_params: MutableMap<i32, Symbol> = MutableMap<i32, Symbol> {}
+    trait_self_params: Map<i32, Symbol> = Map<i32, Symbol> {}
     /// R-code diagnostics emitted during body resolution.
     /// Forwarded to the typecheck CLI's `# Diagnostics` block.
     diags: Diagnostic[]
     /// `Symbol.id → message` for every decl annotated with
     /// `@deprecated("...")`. `expr.vader` reads this when an
     /// IdentExpr references a deprecated decl and emits W0001.
-    deprecated_messages: MutableMap<i32, string>
+    deprecated_messages: Map<i32, string>
     /// `namespace_sym.id → field_name → Type` for every `P :: import
     /// "..."` namespace binding. Lets `type_from_expr`'s FieldExpr
     /// arm resolve `P.Decl` in type position without needing
     /// TypedProgram. Populated by the typecheck orchestrator before any
     /// declaration, one project-wide table every module of a check shares.
     /// Holds EXPORTED members only.
-    namespace_member_types: MutableMap<i32, MutableMap<string, Type>>
+    namespace_member_types: Map<i32, Map<string, Type>>
     /// `namespace_sym.id → private-member-name → true` for every
     /// `P :: import "..."` binding : the PRIVATE (non-`export`) members
     /// of the target module. Lets a `P.private` access fire R2008
     /// (matching the destructured-import check in `wire.vader`) instead
     /// of silently degrading to unresolved. Populated alongside
     /// `namespace_member_types`.
-    namespace_private_members: MutableMap<i32, MutableMap<string, bool>>
+    namespace_private_members: Map<i32, Map<string, bool>>
 }
 
 export ResolvedProject :: struct {
@@ -136,8 +136,8 @@ export resolve_module :: fn(program: Program, module_path: string, factory: Symb
         module_path,
         factory,
         collected,
-        MutableMap<string, LoadedModule> {},
-        MutableMap<string, Symbol> {},
+        Map<string, LoadedModule> {},
+        Map<string, Symbol> {},
     )
 }
 
@@ -156,11 +156,11 @@ export resolve_module :: fn(program: Program, module_path: string, factory: Symb
 /// @return              the module's resolution, every file's merged.
 export resolve_module_files :: fn(
     files: SourceFile[], module_path: string, display_path: string, factory: SymbolFactory,
-    collected: CollectedModule, name_index: MutableMap<string, LoadedModule>,
-    core_seed: MutableMap<string, Symbol>,
+    collected: CollectedModule, name_index: Map<string, LoadedModule>,
+    core_seed: Map<string, Symbol>,
 ) -> ResolvedModule {
     builtins :: make_builtin_scope(factory)
-    scopes :: MutableMap<string, FileScope> {}
+    scopes :: Map<string, FileScope> {}
     programs: Program[]: []
     bindings: Symbol[]: []
     clashes: Diagnostic[]: []
@@ -192,22 +192,22 @@ export resolve_module_files :: fn(
         .closure_rebound  = resolved.closure_rebound,
         .fn_overloads     = collected.fn_overloads,
         .declarations     = declaration_index(collected),
-        .imports_to       = MutableMap<i32, Symbol> {},
-        .alias_types      = MutableMap<i32, Type> {},
-        .alias_params     = MutableMap<i32, TypeParamType[]> {},
+        .imports_to       = Map<i32, Symbol> {},
+        .alias_types      = Map<i32, Type> {},
+        .alias_params     = Map<i32, TypeParamType[]> {},
         .type_param_bounds = resolved.type_param_bounds,
         .trait_self_params = resolved.trait_self_params,
         .diags            = resolved.diags,
-        .deprecated_messages = MutableMap<i32, string> {},
-        .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> {},
-        .namespace_private_members = MutableMap<i32, MutableMap<string, bool>> {},
+        .deprecated_messages = Map<i32, string> {},
+        .namespace_member_types = Map<i32, Map<string, Type>> {},
+        .namespace_private_members = Map<i32, Map<string, bool>> {},
     }
 }
 
 // Every symbol `collected` kept for a declaration, under its name span: each
 // non-fn name's, then every fn overload, the first of a name included.
-declaration_index :: fn(collected: CollectedModule) -> MutableMap<u64, Symbol> {
-    index :: MutableMap<u64, Symbol> {}
+declaration_index :: fn(collected: CollectedModule) -> Map<u64, Symbol> {
+    index :: Map<u64, Symbol> {}
     for [_, symbol] in collected.symbols {
         if symbol.kind != .Fn {
             index_declaration(index, symbol)
@@ -221,7 +221,7 @@ declaration_index :: fn(collected: CollectedModule) -> MutableMap<u64, Symbol> {
     return index
 }
 
-index_declaration :: fn(index: MutableMap<u64, Symbol>, symbol: Symbol) -> void {
+index_declaration :: fn(index: Map<u64, Symbol>, symbol: Symbol) -> void {
     defined :: symbol.defined_at ?? return
     index[defined.hash()] = symbol
 }
@@ -274,10 +274,10 @@ export file_imports :: fn(collected: CollectedModule, file: string) -> FileImpor
 /// @param name_index  module name → loaded module, to read wildcard targets.
 /// @param core_seed   the shared core-prelude seed.
 export file_root_scope :: fn(
-    builtins: MutableMap<string, Symbol>, collected: CollectedModule, imports: FileImports,
-    name_index: MutableMap<string, LoadedModule>, core_seed: MutableMap<string, Symbol>,
-) -> MutableMap<string, Symbol> {
-    root :: MutableMap<string, Symbol> {}
+    builtins: Map<string, Symbol>, collected: CollectedModule, imports: FileImports,
+    name_index: Map<string, LoadedModule>, core_seed: Map<string, Symbol>,
+) -> Map<string, Symbol> {
+    root :: Map<string, Symbol> {}
     for [name, sym] in builtins { root[name] = sym }
     for [name, sym] in imports.bindings { root[name] = sym }
     for [name, sym] in collected.symbols { root[name] = sym }

@@ -134,7 +134,7 @@ struct_to_comptime :: fn(
     layout :: struct_at(ctx.layouts, value.type_id) ?? return unsupported(span, "a struct")
     arity :: value.fields.len()
     instance :: instance_type(ty, layout, arity) ?? return unsupported(span, "a struct")
-    fields :: MutableMap<string, Ct.ComptimeValue> {}
+    fields :: Map<string, Ct.ComptimeValue> {}
     for i in 0..<arity {
         [name, field_ty] :: field_at(instance, layout, i, ctx.program)
         bridged :: value_to_comptime(ctx, value.fields[i], field_ty, span)

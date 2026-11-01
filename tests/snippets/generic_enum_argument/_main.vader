@@ -50,7 +50,7 @@ main :: fn() -> i32 {
     println(pair(HttpStatus.NotFound, Color.Red))
     s :: HttpStatus.Ok
     println("${as_int(s)} ${s == .Ok}")
-    reasons :: MutableMap<HttpStatus, string> {}
+    reasons :: Map<HttpStatus, string> {}
     reasons[.NotFound] = "gone"
     reasons[.Ok] = "here"
     println("${reasons[.NotFound] ?? "?"} ${reasons[.Ok] ?? "?"} ${reasons.len()}")

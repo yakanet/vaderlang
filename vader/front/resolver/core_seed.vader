@@ -22,8 +22,8 @@ import "vader/support/target"
 /// when std/core isn't part of the load (single-file snippets without
 /// stdlib). The seed is merged into the root scope on a "don't shadow
 /// user symbols" basis, see `file_root_scope`.
-export build_core_seed :: fn(project: LoadedProject) -> MutableMap<string, Symbol> {
-    out :: MutableMap<string, Symbol> {}
+export build_core_seed :: fn(project: LoadedProject) -> Map<string, Symbol> {
+    out :: Map<string, Symbol> {}
     // The baked target constants ride in the same seed as `std/core`, and for the
     // same reason: `VADER_OS` has to be reachable from a file that imports
     // nothing, or the "lightweight" half of the target model is a lie. Since the
@@ -86,8 +86,8 @@ find_module_id :: fn(project: LoadedProject, name: string) -> string | null {
 /// @param excludes        per-path names dropped by a `{ x as _, y as z }` modifier
 ///                        list (`FileImports.excludes`): skipped here.
 export seed_wildcard_exports :: fn(
-    root: MutableMap<string, Symbol>, name_index: MutableMap<string, LoadedModule>,
-    wildcard_paths: string[], excludes: MutableMap<string, string[]>,
+    root: Map<string, Symbol>, name_index: Map<string, LoadedModule>,
+    wildcard_paths: string[], excludes: Map<string, string[]>,
 ) -> void {
     for path in wildcard_paths {
         target :: name_index[path] ?? continue
@@ -134,12 +134,12 @@ export wildcard_exposes :: fn(sym: Symbol, dropped: string[] | null) -> bool {
 /// never ambiguous. Consumed by the body-walker, which fires R2031 only when an
 /// unqualified reference actually resolves to one of these ambiguous names.
 export wildcard_ambiguities :: fn(
-    name_index: MutableMap<string, LoadedModule>,
+    name_index: Map<string, LoadedModule>,
     wildcard_paths: string[],
-    excludes: MutableMap<string, string[]>,
-    base: MutableMap<string, Symbol>,
-) -> MutableMap<string, string[]> {
-    providers :: MutableMap<string, string[]> {}
+    excludes: Map<string, string[]>,
+    base: Map<string, Symbol>,
+) -> Map<string, string[]> {
+    providers :: Map<string, string[]> {}
     if wildcard_paths.len() < 2 {
         return providers
     }
@@ -161,7 +161,7 @@ export wildcard_ambiguities :: fn(
             }
         }
     }
-    out :: MutableMap<string, string[]> {}
+    out :: Map<string, string[]> {}
     for [name, mods] in providers {
         if mods.len() >= 2 { out[name] = mods }
     }
@@ -175,9 +175,9 @@ export wildcard_ambiguities :: fn(
 /// @param name_index  every loaded module by its declared name.
 /// @param ambiguous   the clashes `wildcard_ambiguities` reports.
 function_clashes :: fn(
-    name_index: MutableMap<string, LoadedModule>, ambiguous: MutableMap<string, string[]>,
-) -> MutableSet<string> {
-    out :: MutableSet<string> {}
+    name_index: Map<string, LoadedModule>, ambiguous: Map<string, string[]>,
+) -> Set<string> {
+    out :: Set<string> {}
     for [name, mods] in ambiguous {
         if exports_only_functions(name_index, mods, name) {
             out.add(name)
@@ -188,7 +188,7 @@ function_clashes :: fn(
 
 // True when every module of `mods` exports `name` as a function.
 exports_only_functions :: fn(
-    name_index: MutableMap<string, LoadedModule>, mods: string[], name: string,
+    name_index: Map<string, LoadedModule>, mods: string[], name: string,
 ) -> bool {
     for path in mods {
         target :: name_index[path] ?? continue
@@ -204,8 +204,8 @@ exports_only_functions :: fn(
 /// import-path → module lookup. Built once per project: mirrors the
 /// `module_name -> id` map `wire_imports` hoists, so a per-module
 /// `seed_wildcard_exports` doesn't re-scan `project.modules` each call.
-export module_index_by_name :: fn(project: LoadedProject) -> MutableMap<string, LoadedModule> {
-    out :: MutableMap<string, LoadedModule> {}
+export module_index_by_name :: fn(project: LoadedProject) -> Map<string, LoadedModule> {
+    out :: Map<string, LoadedModule> {}
     for [_, m] in project.modules { out[m.module.module_name] = m }
     return out
 }

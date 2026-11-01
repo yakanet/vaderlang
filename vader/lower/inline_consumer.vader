@@ -263,7 +263,7 @@ consumer_subst :: fn(
     if !all_concrete(concrete) {
         return null
     }
-    bindings :: MutableMap<i32, Type> {}
+    bindings :: Map<i32, Type> {}
     for i in 0..<shape.type_params.len() {
         bindings[shape.type_params[i].id] = concrete[i]
     }

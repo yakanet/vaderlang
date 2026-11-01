@@ -40,7 +40,7 @@ export AdapterUnits :: struct {
 ///                 parameter (`vader/vm/adapters.vader::adapted_imports`).
 /// @return         one unit per library the imports reach, sorted by name.
 export emit_adapter_units :: fn(m: BytecodeModule, adapted: i64[]) -> AdapterUnits {
-    by_library :: MutableMap<string, BcImport[]> {}
+    by_library :: Map<string, BcImport[]> {}
     for i in adapted {
         by_library.get_or_put_with(library_name(m.imports[i]), () -> []).push(m.imports[i])
     }

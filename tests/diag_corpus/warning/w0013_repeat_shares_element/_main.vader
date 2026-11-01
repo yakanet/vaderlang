@@ -13,7 +13,7 @@ main :: fn() -> i32 {
     // W0013: the freshly built element is shared by every slot.
     rows: i32[][]: [[]] * 3
     cells :: [Cell { .value = 0 }] * 2
-    maps :: [MutableMap<string, i32> {}] * 2
+    maps :: [Map<string, i32> {}] * 2
 
     // Silent : value elements, a field-less struct, the preallocation form,
     // and an existing binding the author knowingly shares.

@@ -82,7 +82,7 @@ export overload_suffix :: fn(module: ResolvedModule, name: string, name_span: Sp
 /// @return       that file's name → overloads table, or null.
 imported_overloads_table_in :: fn(
     typed: TypedProgram, file: string,
-) -> MutableMap<string, FnCandidate[]> | null = typed.imported_fn_overloads[file]
+) -> Map<string, FnCandidate[]> | null = typed.imported_fn_overloads[file]
 
 /// A bound on one argument of a generic type : one a generic impl puts on the type
 /// it implements a trait for (`Box<T> implements<T: Display> Display` holds for
@@ -249,19 +249,19 @@ export ImplTables :: struct {
     /// impls of one trait on one receiver (`Add<f64>`, `Add<Vec2>`) each have an
     /// entry : a use site chooses among them (`impl_candidates`). Written by
     /// `record_impl_members`.
-    impl_methods: MutableMap<string, ImplMethod[]> = MutableMap<string, ImplMethod[]> {}
+    impl_methods: Map<string, ImplMethod[]> = Map<string, ImplMethod[]> {}
 
     /// `"${impl_base_key}::${methodName}" → the `trait_key`s of every trait
     /// providing the same method on the same receiver. When the list
     /// has 2+ entries, an unqualified `x.method()` is ambiguous:
     /// `field.vader` emits T3032.
-    impl_method_traits: MutableMap<string, string[]> = MutableMap<string, string[]> {}
+    impl_method_traits: Map<string, string[]> = Map<string, string[]> {}
 
     /// `impl_base_key → trait_key`s for every `X implements Trait` impl: what
     /// the run-time `is Trait` test sees. A generic impl
     /// counts here for every argument ; `impl_bounds` narrows it to the arguments
     /// its bounds admit (`struct_implements_trait`).
-    struct_implemented_traits: MutableMap<string, string[]> = MutableMap<string, string[]> {}
+    struct_implemented_traits: Map<string, string[]> = Map<string, string[]> {}
 
     /// `Symbol.id → trait_key`s: the twin of `struct_implemented_traits` for
     /// the types that have a declaration, populated in lockstep by
@@ -269,7 +269,7 @@ export ImplTables :: struct {
     /// shared `SymbolFactory`). Threaded to the bytecode
     /// emitter (via `LoweredProject.trait_membership`) to seed `impl_table`
     /// rows per interned struct tag.
-    struct_traits_by_sym: MutableMap<i32, string[]> = MutableMap<i32, string[]> {}
+    struct_traits_by_sym: Map<i32, string[]> = Map<i32, string[]> {}
 
     /// Per-impl trait args, keyed by `impl_side_key` then `trait_key`, one list
     /// per impl of the trait : `Hello implements Greeter<i32>` records
@@ -277,18 +277,18 @@ export ImplTables :: struct {
     /// `Vec2 implements Add<f64>` beside `Add<Vec2>` two lists. Read by
     /// `unify_struct_to_trait_infer` so a generic fn parametrised by
     /// `fn<T>(g: Greeter<T>)` called as `f(Hello {})` can bind T → i32.
-    struct_trait_args: MutableMap<string, MutableMap<string, Type[][]>> =
-        MutableMap<string, MutableMap<string, Type[][]>> {}
+    struct_trait_args: Map<string, Map<string, Type[][]>> =
+        Map<string, Map<string, Type[][]>> {}
 
     /// `impl_base_key` → each generic impl of that base, with the bounds it puts
     /// on the type's arguments ; an impl for a type without arguments puts no
     /// bound and is not recorded.
-    impl_bounds: MutableMap<string, BoundedImpl[]> = MutableMap<string, BoundedImpl[]> {}
+    impl_bounds: Map<string, BoundedImpl[]> = Map<string, BoundedImpl[]> {}
 
     /// `impl_base_key` of every base an impl on one instance is written for
     /// (`Wrapper` for `Wrapper<MonType> implements …`): the receivers whose
     /// lookups ask their own type's key before their base's (`own_impl_key`).
-    instance_impl_bases: MutableSet<string> = MutableSet<string> {}
+    instance_impl_bases: Set<string> = Set<string> {}
 
     /// Whether an impl is written for a tuple, a fn or a union. Until one is, a
     /// member looked up on such a receiver has no impl to find, and its key is not
@@ -300,34 +300,34 @@ export ImplTables :: struct {
     /// itself: the impl's own `T`, which a reader substitutes against the
     /// instance's arguments. Consumed by `for_loop.vader::for_in_element` so `for c in
     /// some_iter` binds `c` to T.
-    iter_element_types: MutableMap<string, Type> = MutableMap<string, Type> {}
+    iter_element_types: Map<string, Type> = Map<string, Type> {}
 
     /// `impl_base_key(for_ty) → T` for every `X implements Index<I, T>`
     /// impl. Consumed by `expr_index.vader` so `m[k]` returns T when
     /// `m` is a user struct with an Index impl.
-    index_target_types: MutableMap<string, Type> = MutableMap<string, Type> {}
+    index_target_types: Map<string, Type> = Map<string, Type> {}
 
     /// `impl_base_key(for_ty) → K` for every `X implements Index<K, _>`
     /// impl. Consumed by `expr_index.vader` / `stmt.vader` to pin a
     /// free-literal index key (`m[9000000000]`) to the resolved key type
     /// instead of letting it default to i32 and silently truncate.
-    index_key_types: MutableMap<string, Type> = MutableMap<string, Type> {}
+    index_key_types: Map<string, Type> = Map<string, Type> {}
 
     /// The same for every `X implements IndexSet<K, _>` impl : a write's key,
     /// which need not be a read's (`Index<string, _>` beside `IndexSet<i32, _>`).
-    index_set_key_types: MutableMap<string, Type> = MutableMap<string, Type> {}
+    index_set_key_types: Map<string, Type> = Map<string, Type> {}
 
     /// `impl_base_key(for_ty) → V` for every `X implements IndexSet<K, V>`
     /// impl. Consumed by `let_assign.vader::check_assign` to pin a free-literal
     /// index-set value (`m[k] = 9000000000`) to the declared value type.
     /// Distinct from `index_target_types` (which records the nullable
     /// `Index` *read* result `V | null`, not the write value `V`).
-    index_set_value_types: MutableMap<string, Type> = MutableMap<string, Type> {}
+    index_set_value_types: Map<string, Type> = Map<string, Type> {}
 
     /// What a default method that leaves out its return type returns, as its body
     /// gives it once checked in its trait, `Self` read as `Self` ; keyed by the trait
     /// member's node id. Read through `trait_member_type`, by every module.
-    default_returns: MutableMap<i64, Type> = MutableMap<i64, Type> {}
+    default_returns: Map<i64, Type> = Map<i64, Type> {}
 }
 
 /// Per-module typechecker output. Every span-keyed side-table uses the
@@ -340,7 +340,7 @@ export TypedProgram :: struct {
 
     /// Type of every value-position expression. Keyed by `Expr.id`, minted
     /// by `assign_node_ids` at parse time.
-    expr_types: MutableMap<i64, Type>
+    expr_types: Map<i64, Type>
 
     /// Target type of every implicit `.into()` coercion, keyed by the
     /// coerced value expression's `Expr.id`. Written by `coerce.vader::
@@ -351,18 +351,18 @@ export TypedProgram :: struct {
     /// ghost `.into()` at the value's end, and by the lowering where a value's
     /// slot type is not at hand (`lower_converted`, a destructured leaf) ; the
     /// `into` that runs is the one the call-site record names.
-    into_coercions: MutableMap<i64, Type>
+    into_coercions: Map<i64, Type>
 
     /// Type of every `:=` / `::` local binding, keyed by binding span
     /// (the span on `SimpleBinding` / `RestBinding`, not the LetStmt)
     /// via `Span.hash()`: the file's string hash folded with the start
     /// line/column (`lib/toolchain/span/span.vader`).
-    local_types: MutableMap<u64, Type>
+    local_types: Map<u64, Type>
 
     /// The `:=` / `::` locals whose type is not written, keyed as `local_types` :
     /// such a local holds the type of its first value, and a T3063 on a write to it
     /// says to write the type instead.
-    unwritten_locals: MutableSet<u64> = MutableSet<u64> {}
+    unwritten_locals: Set<u64> = Set<u64> {}
 
     /// `x := []`: the empty-array initialiser's expression id, keyed by the
     /// same binding span as `local_types`. Read by
@@ -371,7 +371,7 @@ export TypedProgram :: struct {
     /// lowerer reads to pick the buffer's element kind, so leaving it at `?[]`
     /// allocates a BOXED buffer that the (now concrete) reads and writes access
     /// as packed elements. Only empty-array bindings are recorded.
-    empty_array_inits: MutableMap<u64, i64>
+    empty_array_inits: Map<u64, i64>
 
     /// Type of every top-level decl (FnDecl, StructDecl, ConstDecl…).
     /// Keyed by `Symbol.id`. Previously span-keyed via
@@ -379,23 +379,23 @@ export TypedProgram :: struct {
     /// multi-file modules (two decls at same `(line, col)` would
     /// clobber each other). Symbol.id is globally unique within a
     /// `LoadedProject`.
-    decl_types: MutableMap<i32, Type>
+    decl_types: Map<i32, Type>
 
     /// The type of every impl member, and of every trait member with a default
     /// body, keyed by the member's node id: a member has no resolver `Symbol`, and
     /// one declared for an impl from its trait is written nowhere, so its span
     /// keys nothing.
-    impl_method_decl_types: MutableMap<i64, Type>
+    impl_method_decl_types: Map<i64, Type>
 
     /// Type of every fn / lambda parameter, keyed by `FnParam.span`
     /// via `Span.hash()`.
-    param_types: MutableMap<u64, Type>
+    param_types: Map<u64, Type>
 
     /// Type of every type-position expression: `let x: T = …` annotations,
     /// fn signatures, struct field types, etc. Keyed by the expression's
     /// own span via `Span.hash()` so downstream passes can reuse what
     /// `type_from_expr` already computed.
-    type_expr_types: MutableMap<u64, Type>
+    type_expr_types: Map<u64, Type>
 
     /// `StructDecl` keyed by the symbol's id. Populated by `decl.vader`
     /// while it mints struct types ; consumed by `field.vader` so it
@@ -403,30 +403,30 @@ export TypedProgram :: struct {
     /// re-walking the program AST. Project-wide once `broadcast_struct_decls`
     /// runs: one instance every module shares, so iterating it yields every
     /// module's structs, and only `declare_module` may write it.
-    struct_decls: MutableMap<i32, AST.StructDecl>
+    struct_decls: Map<i32, AST.StructDecl>
 
     /// The structs with no field that some `===` or `!==` of this module compares,
     /// by symbol id. Every other literal of a struct with no field is one shared
     /// object (`vader/midir/build.vader`), which only identity could tell apart.
-    identity_compared: MutableSet<i32> = MutableSet<i32> {}
+    identity_compared: Set<i32> = Set<i32> {}
 
     /// `TraitDecl` keyed by the symbol's id. Same shape as
     /// `struct_decls` ; consumed by orchestrate's T3036 check. Project-wide and
     /// shared once `cross_publish_trait_decls` runs.
-    trait_decls: MutableMap<i32, AST.TraitDecl>
+    trait_decls: Map<i32, AST.TraitDecl>
 
     /// `Symbol.id → FnDecl` for every top-level fn (and impl method).
     /// Lets call-site code reach the fn's `type_params` (with bounds)
     /// without re-walking the AST. Populated at `declare_module` time, then
     /// project-wide and shared once `cross_publish_fn_decls` runs, so nothing
     /// else may write it: a module's own fns are its `resolved.fn_overloads`.
-    fn_decls: MutableMap<i32, AST.FnDecl>
+    fn_decls: Map<i32, AST.FnDecl>
 
     /// Owner module of each trait: used when resolving trait method
     /// signatures so cross-module `Iterator<T>.next` types `T` against
     /// std/core's resolved.idents, not the entry's. Keyed by the
     /// trait's Symbol id, populated and shared alongside `trait_decls`.
-    trait_decl_owners: MutableMap<i32, ResolvedModule>
+    trait_decl_owners: Map<i32, ResolvedModule>
 
     /// The impls of the whole project, the same set in every module of it.
     impl_tables: ImplTables = ImplTables {}
@@ -441,7 +441,7 @@ export TypedProgram :: struct {
     /// same `Expr.id`. Populated alongside `expr_types` from
     /// `check_expr` ; consumed by `dump.vader` so the typed-ast dump
     /// can label each expression line without re-walking the AST.
-    expr_kinds: MutableMap<i64, string>
+    expr_kinds: Map<i64, string>
 
     /// Per-ImportBinding redirect table : `Symbol.id → ImportTarget`.
     /// Populated by `vader/front/resolver/wire.vader::wire_imports` ; null
@@ -456,13 +456,13 @@ export TypedProgram :: struct {
     /// module's decls. `type_of_symbol` falls back to this when the
     /// per-module `decl_types[sym.defined_at.hash()]` misses (the
     /// symbol's `defined_at` is in another module).
-    external_types: MutableMap<i32, Type>
+    external_types: Map<i32, Type>
 
     /// Per-namespace export tables : `module_id → field_name → Type`.
     /// Populated alongside `external_types` for every namespace
     /// `name :: import "p"` binding. Consumed by `field.vader` so
     /// `mod.foo` accesses can resolve to the export's concrete type.
-    namespace_exports: MutableMap<string, MutableMap<string, Type>>
+    namespace_exports: Map<string, Map<string, Type>>
 
     /// Exported FN members per namespace, every overload in declaration order :
     /// `module_id → fn_name → candidates`. Populated alongside
@@ -470,7 +470,7 @@ export TypedProgram :: struct {
     /// namespace-qualified call (`mod.foo(...)`) picks among them as a bare call
     /// does (`call.vader::pick_overload`), then reorders named args and fills
     /// omitted defaults from the declaration it picked.
-    namespace_fn_overloads: MutableMap<string, MutableMap<string, FnCandidate[]>>
+    namespace_fn_overloads: Map<string, Map<string, FnCandidate[]>>
 
     /// `std/core` exported symbols indexed by name. Populated by
     /// the orchestrator after loading core, consumed by passes that
@@ -513,7 +513,7 @@ export TypedProgram :: struct {
     /// `TypedProgram` covers a whole module: two files of one module may import
     /// different modules, or the same one under different modifier lists, and
     /// neither may lend its names to the other.
-    imported_fn_overloads: MutableMap<string, MutableMap<string, FnCandidate[]>>
+    imported_fn_overloads: Map<string, Map<string, FnCandidate[]>>
 
     /// `FieldExpr.id → original first-param type` for every
     /// UFCS-dispatched field access (i.e. the param that got
@@ -521,7 +521,7 @@ export TypedProgram :: struct {
     /// type to harvest type-param bindings before substituting the
     /// return type: the curried fn keeps the un-substituted
     /// signature for display.
-    ufcs_receiver_types: MutableMap<i64, Type>
+    ufcs_receiver_types: Map<i64, Type>
 
     /// Callee id → the fn typecheck chose for the call : the fn a UFCS `x.f(…)`
     /// dispatched to (keyed by the `FieldExpr`), the overload a direct call to
@@ -532,35 +532,35 @@ export TypedProgram :: struct {
     /// the winner later gives a second answer to a question already answered,
     /// from a different candidate set : a search over every loaded module reaches
     /// fns this file imports only behind a namespace alias, or not at all.
-    chosen_fns: MutableMap<i64, FnCandidate>
+    chosen_fns: Map<i64, FnCandidate>
 
     /// `FieldExpr` id → the impl method a call `x.m(…)` dispatched to. Read by
     /// tooling: the lowerer finds the impl member from the receiver itself.
-    chosen_impl_methods: MutableMap<i64, ImplMethod>
+    chosen_impl_methods: Map<i64, ImplMethod>
 
     /// `FieldExpr` id → the members a callee is offered by several impls of one
     /// trait (`Add<f64>`, `Add<Vec2>`) ; the call picks among them by its arguments.
-    overloaded_members: MutableMap<i64, ImplMethod[]>
+    overloaded_members: Map<i64, ImplMethod[]>
 
     /// Integer literal id → a literal `check_expr` left free that does not fit the
     /// `i32` it defaults to: T3066 unless a later context repins it
     /// (`report_literals_past_default`).
-    literals_past_default: MutableMap<i64, AST.IntLitExpr>
+    literals_past_default: Map<i64, AST.IntLitExpr>
 
     /// `FieldExpr` id → the static member a `Type.member` access names. Read by
     /// the lowerer, which calls the owner's impl member directly, with no
     /// receiver.
-    static_members: MutableMap<i64, StaticMember>
+    static_members: Map<i64, StaticMember>
 
     /// Type-parameter symbol id → the traits of its bound. A project check
     /// shares ONE table across every module (`broadcast_type_param_bounds`), so a
     /// call reaches the bounds of an imported callee (T3006).
-    type_param_bound_traits: MutableMap<i32, TypeParamBound>
+    type_param_bound_traits: Map<i32, TypeParamBound>
 
     /// Struct symbol id → the bounds its declaration puts on its type arguments,
     /// shared across modules like `type_param_bound_traits`. A struct literal meets
     /// them (T3006).
-    struct_bounds: MutableMap<i32, ArgBound[]>
+    struct_bounds: Map<i32, ArgBound[]>
 
     /// Id of the `FieldExpr` callee being typed: `T.zero` in `T.zero()`. Set by
     /// the call right before it types its callee, so a member access can tell a
@@ -571,9 +571,9 @@ export TypedProgram :: struct {
     callee_field_id: i64 = AST.UNASSIGNED_NODE_ID
     /// The `::` bindings that alias a generic function (`g :: id`), by the binding's
     /// symbol id : each use names the function, instantiated where it is used.
-    fn_aliases: MutableMap<i32, AST.FnDecl> = MutableMap<i32, AST.FnDecl> {}
+    fn_aliases: Map<i32, AST.FnDecl> = Map<i32, AST.FnDecl> {}
     /// What each inference variable minted in this module was solved to, by id.
-    infer_solutions: MutableMap<i32, Type> = MutableMap<i32, Type> {}
+    infer_solutions: Map<i32, Type> = Map<i32, Type> {}
     /// The id the next inference variable takes.
     next_infer_id: i32 = 0
     /// Whether an argument was typed against an unsolved variable since the
@@ -586,29 +586,29 @@ export TypedProgram :: struct {
     enclosing_impl: u64 = 0
     /// The symbol ids of the type parameters of the impl whose member bodies are
     /// being walked : what such a body shares between the impl's instances.
-    enclosing_impl_params: MutableSet<i32> = MutableSet<i32> {}
+    enclosing_impl_params: Set<i32> = Set<i32> {}
     /// The symbol ids of `Self` and of the trait's type parameters while a default
     /// body is checked in its trait : each impl's copy of the body names the types
     /// it binds them to, so none of them erases there.
-    default_body_params: MutableSet<i32> = MutableSet<i32> {}
+    default_body_params: Set<i32> = Set<i32> {}
     /// The calls in a generic impl's members that hand the impl's type parameters
     /// on, by node id : an impl's instances share such a body, so the callee must
     /// not observe them (T3087).
-    impl_param_forwards: MutableMap<i64, Span> = MutableMap<i64, Span> {}
+    impl_param_forwards: Map<i64, Span> = Map<i64, Span> {}
 
     /// `Struct.symbol.id → field_name → resolved Type`. Pre-resolved
     /// at declare-time using the OWNING module's resolved.idents so
     /// cross-module field lookups (`entry.value` where `entry`'s
     /// struct lives in another module) get the right TypeParams /
     /// nominal references. Project-wide and shared alongside `struct_decls`.
-    struct_field_types: MutableMap<i32, MutableMap<string, Type>>
+    struct_field_types: Map<i32, Map<string, Type>>
 
     /// A type parameter's declaration site (`tp.span.hash()`) → the symbol the
     /// resolver gave it, for every parameter a declaration lists in its `<…>` ; a
     /// parameter an impl binds through its receiver alone (`Box<W> implements …`)
     /// is not listed. Shared across modules (`share_type_param_symbols`), so a
     /// substitution reaches the parameters of an imported declaration by id.
-    type_param_symbols: MutableMap<u64, Symbol> = MutableMap<u64, Symbol> {}
+    type_param_symbols: Map<u64, Symbol> = Map<u64, Symbol> {}
 
     /// Enclosing fn-body context, pushed by `check_fn_body` and
     /// popped when it returns. Lets `check_return` (called via the
@@ -620,7 +620,7 @@ export TypedProgram :: struct {
     /// rendering (or `undefined:undefined` for a node it did not record). Populated
     /// alongside `expr_kinds`, and, like it, only when `dump_types` is set
     /// (see below) ; `expr_types` always populates, these two do not.
-    node_spans: MutableMap<i64, Span>
+    node_spans: Map<i64, Span>
 
     /// When true, `record_expr` (+ the stmt / binary dump sites) populate the
     /// dump-only side-tables `expr_kinds` / `node_spans`. Set only for a
@@ -634,10 +634,10 @@ export TypedProgram :: struct {
     /// declaration's name span: one entry per declaration, so two overloads of a
     /// name are two generators. Written into every module by
     /// `register_generator_iter_impls`; read through `generator_state_of`.
-    generator_states: MutableMap<u64, GeneratorState>
+    generator_states: Map<u64, GeneratorState>
     /// Whether each fn body `await`s or `yield`s, by `FnDecl` node id: filled on
     /// the first `fn_is_async` / `fn_is_generator` asked of this module.
-    body_shapes: MutableMap<i64, BodyShape> = MutableMap<i64, BodyShape> {}
+    body_shapes: Map<i64, BodyShape> = Map<i64, BodyShape> {}
 
     /// In-fn type aliases : `t :: i32` inside a fn body. Keyed by the
     /// binding's `Symbol.id` (resolver-minted Local), value is the
@@ -645,18 +645,18 @@ export TypedProgram :: struct {
     /// RHS is a structural type expression and the binding is
     /// immutable. Consumed at use sites: `@size_of(t)` and friends
     /// fold to a literal when the ident resolves to a key here.
-    let_type_aliases: MutableMap<i32, Type>
+    let_type_aliases: Map<i32, Type>
 
     /// Const Symbol.id → its declaration, from which the const walk finds its entry.
-    const_decls: MutableMap<i32, AST.ConstDecl>
+    const_decls: Map<i32, AST.ConstDecl>
 
     /// `@extern` node id → the `CLibrary` constant it names, as the typecheck
     /// accepted it (`check_extern_library`) ; the comptime pass evaluates each.
-    extern_libraries: MutableMap<i64, Symbol> = MutableMap<i64, Symbol> {}
+    extern_libraries: Map<i64, Symbol> = Map<i64, Symbol> {}
 
     /// Enum Symbol.id → its declaration, from which the lowerer builds the enum's
     /// variant data and value tables.
-    enum_decls: MutableMap<i32, AST.EnumDecl>
+    enum_decls: Map<i32, AST.EnumDecl>
 
     /// Generic fn AST-node id → true when its body needs each instance's real
     /// types (`keep_instances_concrete`) : a trait dispatch on a type-param (no
@@ -665,7 +665,7 @@ export TypedProgram :: struct {
     /// fn, and infers no callee type argument). The lowerer's `fn_instance_flavor`
     /// then keeps those instances CONCRETE instead of erasing every type-param to
     /// `Any`. Keyed by node id (not name) so overloaded generics don't collide.
-    fn_needs_concrete_instances: MutableMap<i64, bool>
+    fn_needs_concrete_instances: Map<i64, bool>
 
     /// Generic fn AST-node id → true when its body tests a type parameter at run
     /// time (`x is U`), or hands its own to a fn that does
@@ -673,32 +673,32 @@ export TypedProgram :: struct {
     /// (`fn_instance_flavor`). Apart from `fn_needs_concrete_instances`, whose
     /// trait dispatch an erased caller reaches through the value's tag : only an
     /// observation climbs to the callers.
-    fn_observes_type_params: MutableMap<i64, bool>
+    fn_observes_type_params: Map<i64, bool>
 
     /// Generic fn AST-node id → true when its body interpolates a value whose
     /// type mentions a type-param, so renders it through a `Display` dispatched
     /// on it. Read by the lowerer's instance flavor : a distinct or a range
     /// argument then gets a concrete instance, since a shared one reads it as its
     /// representation and the dispatch would reach that type's `Display`.
-    fn_display_dispatches: MutableMap<i64, bool>
+    fn_display_dispatches: Map<i64, bool>
 
     /// `FieldExpr.id` → true when `v.x` reads a field of an enum value's
     /// variant data rather than naming a variant (`Enum.Variant`). The lowerer
     /// reads the variant-data table for these and folds every other enum-typed
     /// field access to the variant's integer.
-    enum_data_reads: MutableMap<i64, bool>
+    enum_data_reads: Map<i64, bool>
 
     /// Argument id → the argument, when it fits its parameter only by widening an
     /// array element: `Circle[]` into `(Circle | null)[]`. A receiver counts as an
     /// argument. The widening is sound only if the callee neither replaces an
     /// element nor grows, keeps or returns an array on the way down, which the
     /// effect summary checks once every module is typed.
-    widened_arguments: MutableMap<i64, WidenedArgument> = MutableMap<i64, WidenedArgument> {}
+    widened_arguments: Map<i64, WidenedArgument> = Map<i64, WidenedArgument> {}
 
     /// For-in iterable id → true when the loop walks the values of the type the
     /// iterable names (`for h in Hour`, `for d in Weekday` ; `walked_type`), rather
     /// than iterating a value.
-    walked_types: MutableMap<i64, bool> = MutableMap<i64, bool> {}
+    walked_types: Map<i64, bool> = Map<i64, bool> {}
 
     /// Walk-global stack of enclosing loops, pushed around each loop body by
     /// `check_for`. Unlike `FnContext.loop_depth` (not threaded through the
@@ -719,16 +719,16 @@ export TypedProgram :: struct {
     /// The lowerer reads it to stamp `LoweredLoop.label` (only for targeted loops:
     /// untargeted loops keep their pristine `ForStmt.label`). Written
     /// idempotently, so it survives the two-pass / multi-module walks.
-    loop_target_labels: MutableMap<i64, string>
+    loop_target_labels: Map<i64, string>
 
     /// A jump that names a labelled loop by its iteration variable: jump id → the
     /// loop's label, which it is lowered under.
-    jump_labels: MutableMap<i64, string>
+    jump_labels: Map<i64, string>
 
     /// Every `break` / `continue` → the `ForStmt.id` of the loop it targets,
     /// written bare or by name. The fusion reads it: a jump out of a body spliced
     /// into a producer's code may have to land elsewhere than its loop.
-    jump_targets: MutableMap<i64, i64>
+    jump_targets: Map<i64, i64>
 
     /// The consts of the module `walk_bodies` is walking, so a read of one before
     /// its turn types it then (`settle_const_read`).
@@ -736,7 +736,7 @@ export TypedProgram :: struct {
 
     /// Callee node id → what its call invokes, noted where the typecheck decides it
     /// (`note_callee`).
-    callees: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    callees: Map<i64, Callee> = Map<i64, Callee> {}
 
     /// What each site invokes, by role and node id (`record_site`).
     call_sites: CallSites = CallSites {}
@@ -763,9 +763,9 @@ export ConstTyping :: struct {
 export ConstWalk :: struct {
     /// Each const's declaration, by its span hash: the key of `states` too ;
     /// `const_decls` reaches it from a symbol.
-    decls: MutableMap<u64, AST.ConstDecl> = MutableMap<u64, AST.ConstDecl> {}
+    decls: Map<u64, AST.ConstDecl> = Map<u64, AST.ConstDecl> {}
     /// Where each const stands ; absent until the walk starts typing it.
-    states: MutableMap<u64, ConstState> = MutableMap<u64, ConstState> {}
+    states: Map<u64, ConstState> = Map<u64, ConstState> {}
     /// The consts being typed, innermost last : a read of one of them closes a cycle
     /// through every const after it.
     typing: ConstTyping[] = []
@@ -787,7 +787,7 @@ export EnclosingLoop :: struct {
 /// Across the whole project: multi-module aggregation. Populated by
 /// the orchestrator (`check.vader`).
 export TypedProject :: struct {
-    modules: MutableMap<string, TypedProgram>
+    modules: Map<string, TypedProgram>
     /// The uses of constants the lowering must not share. No default: a driver
     /// that lowers without running the effect summary has to say so.
     fresh: FreshReads
@@ -800,9 +800,9 @@ export TypedProject :: struct {
 /// lowering.
 export FreshReads :: struct {
     /// The use nodes, project-wide.
-    uses: MutableSet<i64> = MutableSet<i64> {}
+    uses: Set<i64> = Set<i64> {}
     /// The constants with such a use, by symbol id.
-    constants: MutableSet<i32> = MutableSet<i32> {}
+    constants: Set<i32> = Set<i32> {}
 }
 
 /// Create an empty `TypedProgram` bound to `resolved`. All side-tables
@@ -817,60 +817,60 @@ export WidenedArgument :: struct {
 
 new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .resolved        = resolved,
-    .expr_types      = MutableMap<i64, Type> {},
-    .loop_target_labels = MutableMap<i64, string> {},
-    .jump_targets    = MutableMap<i64, i64> {},
-    .jump_labels     = MutableMap<i64, string> {},
-    .into_coercions  = MutableMap<i64, Type> {},
-    .local_types     = MutableMap<u64, Type> {},
-    .empty_array_inits = MutableMap<u64, i64> {},
-    .decl_types      = MutableMap<i32, Type> {},
-    .impl_method_decl_types = MutableMap<i64, Type> {},
-    .param_types     = MutableMap<u64, Type> {},
-    .type_expr_types = MutableMap<u64, Type> {},
-    .struct_decls    = MutableMap<i32, AST.StructDecl> {},
-    .trait_decls     = MutableMap<i32, AST.TraitDecl> {},
-    .fn_decls        = MutableMap<i32, AST.FnDecl> {},
-    .trait_decl_owners = MutableMap<i32, ResolvedModule> {},
+    .expr_types      = Map<i64, Type> {},
+    .loop_target_labels = Map<i64, string> {},
+    .jump_targets    = Map<i64, i64> {},
+    .jump_labels     = Map<i64, string> {},
+    .into_coercions  = Map<i64, Type> {},
+    .local_types     = Map<u64, Type> {},
+    .empty_array_inits = Map<u64, i64> {},
+    .decl_types      = Map<i32, Type> {},
+    .impl_method_decl_types = Map<i64, Type> {},
+    .param_types     = Map<u64, Type> {},
+    .type_expr_types = Map<u64, Type> {},
+    .struct_decls    = Map<i32, AST.StructDecl> {},
+    .trait_decls     = Map<i32, AST.TraitDecl> {},
+    .fn_decls        = Map<i32, AST.FnDecl> {},
+    .trait_decl_owners = Map<i32, ResolvedModule> {},
     .narrow          = NarrowState {},
-    .expr_kinds      = MutableMap<i64, string> {},
+    .expr_kinds      = Map<i64, string> {},
     .import_targets  = null,
-    .external_types  = MutableMap<i32, Type> {},
-    .namespace_exports = MutableMap<string, MutableMap<string, Type>> {},
-    .namespace_fn_overloads = MutableMap<string, MutableMap<string, FnCandidate[]>> {},
+    .external_types  = Map<i32, Type> {},
+    .namespace_exports = Map<string, Map<string, Type>> {},
+    .namespace_fn_overloads = Map<string, Map<string, FnCandidate[]>> {},
     .range_symbol    = null,
     .field_symbol    = null,
     .async_symbol    = null,
     .equals_symbol   = null,
     .iterator_symbol = null,
-    .imported_fn_overloads = MutableMap<string, MutableMap<string, FnCandidate[]>> {},
-    .ufcs_receiver_types = MutableMap<i64, Type> {},
-    .chosen_fns = MutableMap<i64, FnCandidate> {},
-    .chosen_impl_methods = MutableMap<i64, ImplMethod> {},
-    .overloaded_members = MutableMap<i64, ImplMethod[]> {},
-    .literals_past_default = MutableMap<i64, AST.IntLitExpr> {},
-    .static_members = MutableMap<i64, StaticMember> {},
-    .type_param_bound_traits = MutableMap<i32, TypeParamBound> {},
-    .struct_bounds = MutableMap<i32, ArgBound[]> {},
-    .struct_field_types = MutableMap<i32, MutableMap<string, Type>> {},
+    .imported_fn_overloads = Map<string, Map<string, FnCandidate[]>> {},
+    .ufcs_receiver_types = Map<i64, Type> {},
+    .chosen_fns = Map<i64, FnCandidate> {},
+    .chosen_impl_methods = Map<i64, ImplMethod> {},
+    .overloaded_members = Map<i64, ImplMethod[]> {},
+    .literals_past_default = Map<i64, AST.IntLitExpr> {},
+    .static_members = Map<i64, StaticMember> {},
+    .type_param_bound_traits = Map<i32, TypeParamBound> {},
+    .struct_bounds = Map<i32, ArgBound[]> {},
+    .struct_field_types = Map<i32, Map<string, Type>> {},
     .current_fn_ctx  = null,
-    .node_spans      = MutableMap<i64, Span> {},
+    .node_spans      = Map<i64, Span> {},
     .dump_types      = false,
-    .generator_states = MutableMap<u64, GeneratorState> {},
-    .let_type_aliases = MutableMap<i32, Type> {},
-    .const_decls = MutableMap<i32, AST.ConstDecl> {},
-    .enum_decls = MutableMap<i32, AST.EnumDecl> {},
-    .fn_needs_concrete_instances = MutableMap<i64, bool> {},
-    .fn_observes_type_params = MutableMap<i64, bool> {},
-    .fn_display_dispatches = MutableMap<i64, bool> {},
-    .enum_data_reads = MutableMap<i64, bool> {},
+    .generator_states = Map<u64, GeneratorState> {},
+    .let_type_aliases = Map<i32, Type> {},
+    .const_decls = Map<i32, AST.ConstDecl> {},
+    .enum_decls = Map<i32, AST.EnumDecl> {},
+    .fn_needs_concrete_instances = Map<i64, bool> {},
+    .fn_observes_type_params = Map<i64, bool> {},
+    .fn_display_dispatches = Map<i64, bool> {},
+    .enum_data_reads = Map<i64, bool> {},
 }
 
 /// An empty project.
 ///
 /// @param fresh  the uses of constants the lowering must not share.
 export new_typed_project :: fn(fresh: FreshReads) -> TypedProject = TypedProject {
-    .modules = MutableMap<string, TypedProgram> {},
+    .modules = Map<string, TypedProgram> {},
     .fresh = fresh,
 }
 
@@ -882,18 +882,18 @@ export empty_typed_program :: fn() -> TypedProgram {
         .path = "test",
         .display_path = "test",
         .symbols = [],
-        .idents = MutableMap<u64, Symbol> {},
-        .immutable_locals = MutableMap<i32, ConstLocal> {},
-        .fn_overloads = MutableMap<string, Symbol[]> {},
-        .declarations = MutableMap<u64, Symbol> {},
-        .imports_to = MutableMap<i32, Symbol> {},
-        .alias_types = MutableMap<i32, Type> {},
-        .alias_params = MutableMap<i32, TypeParamType[]> {},
-        .type_param_bounds = MutableMap<i32, AST.Expr> {},
+        .idents = Map<u64, Symbol> {},
+        .immutable_locals = Map<i32, ConstLocal> {},
+        .fn_overloads = Map<string, Symbol[]> {},
+        .declarations = Map<u64, Symbol> {},
+        .imports_to = Map<i32, Symbol> {},
+        .alias_types = Map<i32, Type> {},
+        .alias_params = Map<i32, TypeParamType[]> {},
+        .type_param_bounds = Map<i32, AST.Expr> {},
         .diags = [],
-        .deprecated_messages = MutableMap<i32, string> {},
-        .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> {},
-        .namespace_private_members = MutableMap<i32, MutableMap<string, bool>> {},
+        .deprecated_messages = Map<i32, string> {},
+        .namespace_member_types = Map<i32, Map<string, Type>> {},
+        .namespace_private_members = Map<i32, Map<string, bool>> {},
     }
     return new_typed_program(rm)
 }
@@ -907,18 +907,18 @@ fresh_module :: fn() -> ResolvedModule {
         .path = "test",
         .display_path = "test",
         .symbols = [],
-        .idents = MutableMap<u64, Symbol> {},
-        .immutable_locals = MutableMap<i32, ConstLocal> {},
-        .fn_overloads = MutableMap<string, Symbol[]> {},
-        .declarations = MutableMap<u64, Symbol> {},
-        .imports_to = MutableMap<i32, Symbol> {},
-        .alias_types = MutableMap<i32, Type> {},
-        .alias_params = MutableMap<i32, TypeParamType[]> {},
-        .type_param_bounds = MutableMap<i32, AST.Expr> {},
+        .idents = Map<u64, Symbol> {},
+        .immutable_locals = Map<i32, ConstLocal> {},
+        .fn_overloads = Map<string, Symbol[]> {},
+        .declarations = Map<u64, Symbol> {},
+        .imports_to = Map<i32, Symbol> {},
+        .alias_types = Map<i32, Type> {},
+        .alias_params = Map<i32, TypeParamType[]> {},
+        .type_param_bounds = Map<i32, AST.Expr> {},
         .diags = [],
-        .deprecated_messages = MutableMap<i32, string> {},
-        .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> {},
-        .namespace_private_members = MutableMap<i32, MutableMap<string, bool>> {},
+        .deprecated_messages = Map<i32, string> {},
+        .namespace_member_types = Map<i32, Map<string, Type>> {},
+        .namespace_private_members = Map<i32, Map<string, bool>> {},
     }
 }
 

@@ -22,7 +22,7 @@ DefaultFill :: struct {
     /// The defaults being filled in, outermost first.
     filling: FillingDefault[] = []
     /// The defaults filled in already, by their field's span hash.
-    filled: MutableSet<u64> = MutableSet<u64> {}
+    filled: Set<u64> = Set<u64> {}
     /// The consts the filled-in defaults name.
     consts: AST.ConstDecl[] = []
 }

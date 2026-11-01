@@ -45,7 +45,7 @@ Translation :: struct {
     /// `VmState.import_ids`.
     import_ids: bc.IntrinsicId[]
     /// Where each scalar constant sits in `code.consts`.
-    constants: MutableMap<Scalar, i64>
+    constants: Map<Scalar, i64>
 }
 
 /// Translate every function of `module`.
@@ -86,7 +86,7 @@ translate_function :: fn(
     slots :: f.signature.params.len() + f.locals.len()
     consts: i64[]: []
     const_tags: StackTag[]: []
-    constants :: MutableMap<Scalar, i64> {}
+    constants :: Map<Scalar, i64> {}
     collect_constants(f, consts, const_tags, constants)
     stack_base :: slots + consts.len()
     t :: Translation {
@@ -744,7 +744,7 @@ scalar_of :: fn(c: bc.ConstOp) -> Scalar | null = match c {
 // Every distinct scalar constant `f` uses, into `consts` / `tags`, and where
 // each sits there into `indices`.
 collect_constants :: fn(
-    f: bc.BcFunction, consts: i64[], tags: StackTag[], indices: MutableMap<Scalar, i64>,
+    f: bc.BcFunction, consts: i64[], tags: StackTag[], indices: Map<Scalar, i64>,
 ) -> void {
     for op in f.body {
         if op is bc.ReturnLit {
@@ -756,7 +756,7 @@ collect_constants :: fn(
 }
 
 add_constant :: fn(
-    c: bc.ConstOp, consts: i64[], tags: StackTag[], indices: MutableMap<Scalar, i64>,
+    c: bc.ConstOp, consts: i64[], tags: StackTag[], indices: Map<Scalar, i64>,
 ) -> void {
     scalar :: scalar_of(c) ?? return
     fresh :: consts.len()

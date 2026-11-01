@@ -16,10 +16,10 @@ import "vader/core/symbol"
 /// The four indexes a direct call resolves through : positions in the caller's own
 /// lists of functions and of imports.
 CalleeLookup :: struct {
-    fn_by_mangle:     MutableMap<string, i32> = MutableMap<string, i32> {}
-    fn_by_symbol:     MutableMap<i32, i32> = MutableMap<i32, i32> {}
-    import_by_mangle: MutableMap<string, i32> = MutableMap<string, i32> {}
-    import_by_symbol: MutableMap<i32, i32> = MutableMap<i32, i32> {}
+    fn_by_mangle:     Map<string, i32> = Map<string, i32> {}
+    fn_by_symbol:     Map<i32, i32> = Map<i32, i32> {}
+    import_by_mangle: Map<string, i32> = Map<string, i32> {}
+    import_by_symbol: Map<i32, i32> = Map<i32, i32> {}
 }
 
 /// Index the function at `index`, by its mangle and by its origin's symbol.
@@ -47,8 +47,8 @@ index_import :: fn(
     index_by_name(lookup.import_by_mangle, lookup.import_by_symbol, mangled, symbol, index)
 
 index_by_name :: fn(
-    by_mangle: MutableMap<string, i32>,
-    by_symbol: MutableMap<i32, i32>,
+    by_mangle: Map<string, i32>,
+    by_symbol: Map<i32, i32>,
     mangled: string,
     symbol: Symbol | null,
     index: i32,

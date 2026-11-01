@@ -39,7 +39,7 @@ put_wider :: fn<C: IndexSet<i64, i32>>(c: C) -> void {
 }
 
 main :: fn() -> i32 {
-    m :: MutableMap<string, i32> {}
+    m :: Map<string, i32> {}
     fill(m)
     pair_into(m)
     println("${peek(m, "a")} ${peek(m, "b")} ${peek(m, "x")} ${peek(m, "y")} ${peek(m, "z")}")
@@ -47,7 +47,7 @@ main :: fn() -> i32 {
     fill(l)
     [l["p"], l["q"]] = [5, 6]
     println("${l.lines.len()} ${l.lines[0]} ${l.lines[3]}")
-    wide :: MutableMap<i64, i32> {}
+    wide :: Map<i64, i32> {}
     put_wide(wide)
     put_wider(wide)
     k: i64: 9000000000

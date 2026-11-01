@@ -598,7 +598,7 @@ export ConstNull   :: struct {}
 
 /// Collection of CFGFunctions, mirrors LoweredProject's shape.
 export CFGProject :: struct {
-    modules: MutableMap<string, CFGModule>
+    modules: Map<string, CFGModule>
     /// Same vtable entries the LoweredProject carries: bytecode emit
     /// reuses them as-is.
     vtable_entries: LoweredVtableEntry[]
@@ -617,7 +617,7 @@ export CFGProject :: struct {
     /// from `LoweredProject`, consumed by `build_impl_table_from_vtable` to
     /// emit `is Trait` rows for every interned struct tag (incl. generic
     /// instances + never-called impls the vtable-sourced path misses).
-    trait_membership: MutableMap<i32, string[]>
+    trait_membership: Map<i32, string[]>
 }
 
 export CFGModule :: struct {

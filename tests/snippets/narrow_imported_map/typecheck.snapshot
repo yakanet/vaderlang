@@ -2,13 +2,13 @@
 
 ## tests/snippets/narrow_imported_map
   FnDecl         main                 :: fn() -> i32
-  expr 17:10    StructLitExpr  :: MutableMap<i32, i32 | Wrap>
+  expr 17:10    StructLitExpr  :: Map<i32, i32 | Wrap>
   expr 18:12    StructLitExpr  :: Wrap
   expr 18:28    SeqLitExpr     :: i32[]
-  expr 18:5     IdentExpr      :: MutableMap<i32, i32 | Wrap>
+  expr 18:5     IdentExpr      :: Map<i32, i32 | Wrap>
   expr 19:10    CallExpr       :: null | Out
-  expr 19:10    IdentExpr      :: fn(MutableMap<i32, i32 | Wrap>, i32) -> null | Out
-  expr 19:15    IdentExpr      :: MutableMap<i32, i32 | Wrap>
+  expr 19:10    IdentExpr      :: fn(Map<i32, i32 | Wrap>, i32) -> null | Out
+  expr 19:15    IdentExpr      :: Map<i32, i32 | Wrap>
   expr 20:13    IdentExpr      :: null
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
@@ -24,10 +24,10 @@
 
 ## tests/snippets/narrow_imported_map/lib
   StructDecl     Out                  :: Out
-  FnDecl         pick                 :: fn(MutableMap<i32, i32 | Wrap>, i32) -> null | Out
+  FnDecl         pick                 :: fn(Map<i32, i32 | Wrap>, i32) -> null | Out
   ConstDecl      Thing                :: type
   StructDecl     Wrap                 :: Wrap
-  expr 14:10    IdentExpr      :: MutableMap<i32, i32 | Wrap>
+  expr 14:10    IdentExpr      :: Map<i32, i32 | Wrap>
   expr 14:10    IndexExpr      :: i32 | null | Wrap
   expr 14:12    IdentExpr      :: i32
   expr 15:13    IdentExpr      :: null

@@ -78,7 +78,7 @@ export INTRINSICS: IntrinsicSpec[]: [
         .args      = [.Type],
         .result    = "string",
         .signature = "@type_name(T: type) -> string",
-        .doc       = "Printable name of `T`, rendered as diagnostics render it: `\"MutableMap<i32, string>\"`.",
+        .doc       = "Printable name of `T`, rendered as diagnostics render it: `\"Map<i32, string>\"`.",
     },
     IntrinsicSpec {
         .name      = "type_kind",

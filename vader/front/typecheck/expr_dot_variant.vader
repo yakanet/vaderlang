@@ -34,7 +34,7 @@ enum_for_bare_variant :: fn(
         for v in lifted.variants {
             cand :: lift_enum_placeholder(v, typed)
             if cand is EnumType {
-                // MutableMap lookup returns i64 | null ; null = unknown variant.
+                // Map lookup returns i64 | null ; null = unknown variant.
                 if !(cand.indices[variant] is null) {
                     return cand
                 }

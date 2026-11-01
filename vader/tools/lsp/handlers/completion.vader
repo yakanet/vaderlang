@@ -62,7 +62,7 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
             col  :: lsp_span_column(li, line0, char0)
 
             items: JsonValue[]: []
-            seen :: MutableMap<string, bool> {}
+            seen :: Map<string, bool> {}
 
             // The typed cache lets us show a binding's *inferred* type
             // (`x :: foo()` → `Symbol`) instead of the index's RHS source
@@ -154,7 +154,7 @@ decl_detail :: fn(d: DeclEntry, decls: AST.Decl[], typed: TypedProgram | null) -
 // against the scope + renamed names already offered.
 append_wildcard_completions :: fn(
     state: ServerState, fp: string, idx: DocIndex,
-    seen: MutableMap<string, bool>, items: JsonValue[],
+    seen: Map<string, bool>, items: JsonValue[],
 ) -> void {
     if fp == "" || idx.wildcards.paths.len() == 0 { return }
     cached :: typed_project_for(state, fp)
@@ -260,7 +260,7 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     recv_type :: cached.result.typed.expr_types[recv.id] ?? return completion_list([])
 
     items: JsonValue[]: []
-    seen :: MutableMap<string, bool> {}
+    seen :: Map<string, bool> {}
 
     // Struct fields: look up the receiver type's decl in the project-wide
     // `struct_decls` registry (keyed by the struct symbol's id), so a receiver
@@ -714,7 +714,7 @@ import_ci_kind :: fn(name: string) -> CompletionItemKind {
 }
 
 completion_item :: fn(label: string, kind: CompletionItemKind, detail: string) -> JsonObject {
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["label"] = JsonString { .value = label }
     obj["kind"]  = JsonNumber { .value = f64(i32(kind)) }
     if detail.byte_len() > 0 {
@@ -752,7 +752,7 @@ documented_item :: fn(
 }
 
 completion_list :: fn(items: JsonValue[]) -> JsonValue {
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["isIncomplete"] = JsonBool { .value = false }
     obj["items"]        = JsonArray { .items = items }
     return JsonObject { .entries = obj }
@@ -818,7 +818,7 @@ test_ci_kind_mapping :: fn() -> void {
 
 @test
 test_import_ci_kind_casing :: fn() -> void {
-    assert(import_ci_kind("MutableMap") == .Class, "type -> Class")
+    assert(import_ci_kind("Map") == .Class, "type -> Class")
     assert(import_ci_kind("println") == .Function, "value -> Function")
 }
 

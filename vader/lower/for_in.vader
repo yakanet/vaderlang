@@ -16,7 +16,7 @@
 // it, `lower_for_in` tries a series of fast paths that bypass the
 // Iterator dispatch entirely : `try_lower_chain_fusion` (a combinator chain,
 // a generator call, or an iterable whose `into` is a generator, as for
-// `MutableMap` and `string`: the generator's body becomes the loop),
+// `Map` and `string`: the generator's body becomes the loop),
 // `try_lower_for_in_int_range` (counter loop over `lo..<hi`),
 // `try_lower_for_over_type` (the values of a type, `for h in Hour`),
 // `try_lower_for_in_raw_array` (index loop over a raw `T[]`).

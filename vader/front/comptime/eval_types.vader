@@ -17,7 +17,7 @@ ComptimeContext :: struct {
     /// `Symbol.id → ComptimeValue` for already-evaluated `@comptime` decls in the
     /// current module ; built up as `evaluate_module_decls` walks the topo-sorted
     /// order.
-    bindings: MutableMap<i32, ComptimeValue>
+    bindings: Map<i32, ComptimeValue>
     /// Current evaluator nesting depth. Bounds the tree-walk recursion so a
     /// cyclic / non-terminating comptime expression reports C4001 instead of
     /// overflowing the C stack (which silently corrupts memory). Mutated by
@@ -35,7 +35,7 @@ ComptimeContext :: struct {
 ProjectConstants :: struct {
     typed:   TypedProject
     /// The constants already evaluated, by symbol id.
-    values:  MutableMap<i32, ComptimeValue> = MutableMap<i32, ComptimeValue> {}
+    values:  Map<i32, ComptimeValue> = Map<i32, ComptimeValue> {}
     /// The constants being evaluated, the outermost first: one read again while
     /// it is evaluated depends on itself.
     evaluating: Symbol[] = []

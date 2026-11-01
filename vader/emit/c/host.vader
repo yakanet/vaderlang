@@ -182,9 +182,9 @@ include_of :: fn(operand: string) -> CInclude {
 MirrorCrossings :: struct {
     /// Lent by address (`@c_pointer`): C works on the shim's struct, and the
     /// interpreter builds a block of its own for it.
-    lent:   MutableSet<i32>
+    lent:   Set<i32>
     /// Copied by value: a parameter without `@c_pointer`, or a result.
-    copied: MutableSet<i32>
+    copied: Set<i32>
 }
 
 /// The type indices of the mirrors each `@extern` of `imports` lends or copies.
@@ -192,8 +192,8 @@ MirrorCrossings :: struct {
 /// @param imports  the imports scanned.
 /// @param types    the module type table.
 mirror_crossings :: fn(imports: BcImport[], types: BcType[]) -> MirrorCrossings {
-    lent :: MutableSet<i32> {}
-    copied :: MutableSet<i32> {}
+    lent :: Set<i32> {}
+    copied :: Set<i32> {}
     for imp in imports {
         if !imp.is_extern {
             continue

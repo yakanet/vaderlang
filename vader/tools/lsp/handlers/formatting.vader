@@ -41,16 +41,16 @@ export handle_formatting :: fn(state: ServerState, params: JsonValue) -> JsonVal
 // past the last (character 0), which the client clamps to the document's end:
 // the canonical "replace everything" range.
 full_doc_edit_json :: fn(src: string, formatted: string) -> JsonValue {
-    start :: MutableMap<string, JsonValue> {}
+    start :: Map<string, JsonValue> {}
     start["line"]      = JsonNumber { .value = 0.0 }
     start["character"] = JsonNumber { .value = 0.0 }
-    end :: MutableMap<string, JsonValue> {}
+    end :: Map<string, JsonValue> {}
     end["line"]        = JsonNumber { .value = f64(count_lines(src)) }
     end["character"]   = JsonNumber { .value = 0.0 }
-    range :: MutableMap<string, JsonValue> {}
+    range :: Map<string, JsonValue> {}
     range["start"] = JsonObject { .entries = start }
     range["end"]   = JsonObject { .entries = end }
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["range"]   = JsonObject { .entries = range }
     obj["newText"] = JsonString { .value = formatted }
     return JsonObject { .entries = obj }

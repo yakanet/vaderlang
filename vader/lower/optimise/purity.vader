@@ -23,9 +23,9 @@ import "vader/lower/ir"
 /// guard: a fn is stamped impure on entry (a re-entrant query reads that) and
 /// overwritten with its real verdict before returning.
 PurityCtx :: struct {
-    by_mangle: MutableMap<string, LoweredFnDecl>
-    by_sym_id: MutableMap<i32, LoweredFnDecl>
-    memo:      MutableMap<string, bool>
+    by_mangle: Map<string, LoweredFnDecl>
+    by_sym_id: Map<i32, LoweredFnDecl>
+    memo:      Map<string, bool>
 }
 
 /// Whether `fd` cannot run a collection or change an array's length: its body
@@ -56,8 +56,8 @@ is_pure_fn :: fn(ctx: PurityCtx, fd: LoweredFnDecl) -> bool {
 // callee to the WRONG instance. An instance is therefore only reachable via its
 // (unique) mangle; a callee found by neither key stays conservatively impure.
 new_purity_ctx :: fn(project: LoweredProject) -> PurityCtx {
-    by_mangle :: MutableMap<string, LoweredFnDecl> {}
-    by_sym_id :: MutableMap<i32, LoweredFnDecl> {}
+    by_mangle :: Map<string, LoweredFnDecl> {}
+    by_sym_id :: Map<i32, LoweredFnDecl> {}
     for [_, m] in project.modules {
         for d in m.decls {
             if d is LoweredFnDecl {
@@ -72,7 +72,7 @@ new_purity_ctx :: fn(project: LoweredProject) -> PurityCtx {
     return PurityCtx {
         .by_mangle = by_mangle,
         .by_sym_id = by_sym_id,
-        .memo = MutableMap<string, bool> {},
+        .memo = Map<string, bool> {},
     }
 }
 
@@ -224,9 +224,9 @@ import "toolchain/span"
 // LoweredFnDecl shape is inert filler here.
 
 purity_test_ctx :: fn() -> PurityCtx = PurityCtx {
-    .by_mangle = MutableMap<string, LoweredFnDecl> {},
-    .by_sym_id = MutableMap<i32, LoweredFnDecl> {},
-    .memo = MutableMap<string, bool> {},
+    .by_mangle = Map<string, LoweredFnDecl> {},
+    .by_sym_id = Map<i32, LoweredFnDecl> {},
+    .memo = Map<string, bool> {},
 }
 
 test_fn_symbol :: fn(id: i32, name: string) -> Symbol = Symbol {

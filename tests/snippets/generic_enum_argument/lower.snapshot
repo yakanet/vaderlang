@@ -25,7 +25,7 @@
           __off_3 = std.core.write_bool(__buf_2, __off_3, s == HttpStatus(0))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      reasons: MutableMap<HttpStatus, string> = MutableMap<HttpStatus, string> {
+      reasons: Map<HttpStatus, string> = Map<HttpStatus, string> {
           .ekeys = [] :HttpStatus[],
           .evals = [] :string[],
           .index = [] :i32[],
@@ -34,15 +34,15 @@
           .size = i64(0),
           .tombs = i64(0),
       }
-      std.collections.MutableMap<HttpStatus, string>.set_at(reasons, HttpStatus(1), "gone")
-      std.collections.MutableMap<HttpStatus, string>.set_at(reasons, HttpStatus(0), "here")
+      std.collections.Map<HttpStatus, string>.set_at(reasons, HttpStatus(1), "gone")
+      std.collections.Map<HttpStatus, string>.set_at(reasons, HttpStatus(0), "here")
       std.io.println<string>({
           __p_6: string = {
-              __coalesce_4: null | string = std.collections.MutableMap<HttpStatus, string>.at(reasons, HttpStatus(1))
+              __coalesce_4: null | string = std.collections.Map<HttpStatus, string>.at(reasons, HttpStatus(1))
               if __coalesce_4 is null { "?" } else { string(__coalesce_4) } :string
           }
           __p_7: string = {
-              __coalesce_5: null | string = std.collections.MutableMap<HttpStatus, string>.at(reasons, HttpStatus(0))
+              __coalesce_5: null | string = std.collections.Map<HttpStatus, string>.at(reasons, HttpStatus(0))
               if __coalesce_5 is null { "?" } else { string(__coalesce_5) } :string
           }
           __buf_8: Buffer = std.core.new_byte_buffer(i64(22) +% (std.core.byte_len(__p_6) +% std.core.byte_len(__p_7)))
@@ -144,10 +144,10 @@
 
 ## lowered in dependencies
   std/collections
-    fn std.collections.MutableMap<HttpStatus, string>.at  // std_collections$MutableMap$std_core$Index$at__snippet_HttpStatus__string
-    fn std.collections.MutableMap<HttpStatus, string>.contains  // std_collections$MutableMap$std_core$Contains$contains__snippet_HttpStatus__string
-    fn std.collections.MutableMap<HttpStatus, string>.into  // std_collections$MutableMap$std_core$Into$into__snippet_HttpStatus__string
-    fn std.collections.MutableMap<HttpStatus, string>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__snippet_HttpStatus__string
+    fn std.collections.Map<HttpStatus, string>.at  // std_collections$Map$std_core$Index$at__snippet_HttpStatus__string
+    fn std.collections.Map<HttpStatus, string>.contains  // std_collections$Map$std_core$Contains$contains__snippet_HttpStatus__string
+    fn std.collections.Map<HttpStatus, string>.into  // std_collections$Map$std_core$Into$into__snippet_HttpStatus__string
+    fn std.collections.Map<HttpStatus, string>.set_at  // std_collections$Map$std_core$IndexSet$set_at__snippet_HttpStatus__string
     fn std.collections.contains_key<HttpStatus, string>  // std_collections$contains_key__snippet_HttpStatus__string
     fn std.collections.first_slot  // std_collections$first_slot
     fn std.collections.get<HttpStatus, string>  // std_collections$get__snippet_HttpStatus__string
@@ -157,7 +157,7 @@
     fn std.collections.put<HttpStatus, string>  // std_collections$put__snippet_HttpStatus__string
     fn std.collections.rehash<HttpStatus, string>  // std_collections$rehash__snippet_HttpStatus__string
     fn std_collections$__gen_state_std_collections_0$Iterator$next
-    struct std.collections.MutableMap<HttpStatus, string>  // std_collections$MutableMap__snippet_HttpStatus__string
+    struct std.collections.Map<HttpStatus, string>  // std_collections$Map__snippet_HttpStatus__string
     struct std_collections$__gen_state_std_collections_0
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #1

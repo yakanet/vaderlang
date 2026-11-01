@@ -25,7 +25,7 @@ import "std/iter"
 /// @param root  the body to rewrite in place.
 export structure_loops :: fn(root: CBlock) -> void {
     rewrite_block(root, [])
-    used :: MutableSet<string> {}
+    used :: Set<string> {}
     collect_goto_labels(root, used)
     tidy_block(root, used)
 }
@@ -208,7 +208,7 @@ tail_statement :: fn(statements: CStatement[]) -> CStatement | null {
 // ---- labels and braces ----------------------------------------------------
 
 // Every label a `goto` in `block` still names.
-collect_goto_labels :: fn(block: CBlock, used: MutableSet<string>) -> void {
+collect_goto_labels :: fn(block: CBlock, used: Set<string>) -> void {
     for statement in block.body {
         // @partial: only these statements hold a jump or a nested block.
         @partial match statement {
@@ -236,7 +236,7 @@ collect_goto_labels :: fn(block: CBlock, used: MutableSet<string>) -> void {
 }
 
 // The labels the `goto`s of a switch clause name.
-collect_clause_labels :: fn(body: CCaseStatement[], used: MutableSet<string>) -> void {
+collect_clause_labels :: fn(body: CCaseStatement[], used: Set<string>) -> void {
     for statement in body {
         if statement is CGoto {
             used.add(statement.label)
@@ -246,7 +246,7 @@ collect_clause_labels :: fn(body: CCaseStatement[], used: MutableSet<string>) ->
 
 // Drop the labels no `goto` names, then splice into `block` every bare scope
 // (no label, no declaration of its own) that only groups statements.
-tidy_block :: fn(block: CBlock, used: MutableSet<string>) -> void {
+tidy_block :: fn(block: CBlock, used: Set<string>) -> void {
     kept: CStatement[]: []
     for statement in block.body {
         match statement {
@@ -338,7 +338,7 @@ negated :: fn(statement: CIf, end_label: string) -> CIf | null {
 }
 
 // `label` when a `goto` names it, `""` otherwise.
-used_label :: fn(label: string, used: MutableSet<string>) -> string {
+used_label :: fn(label: string, used: Set<string>) -> string {
     if label in used {
         return label
     }

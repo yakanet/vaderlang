@@ -1114,7 +1114,7 @@ one_of_each_op :: fn() -> Op[] = [
 @test test_every_op_round_trips :: fn() -> void {
     ops :: one_of_each_op()
     assert_eq(ops.len(), @variant_count(Op))
-    heads :: MutableSet<string> {}
+    heads :: Set<string> {}
     for op in ops {
         text :: written(op)
         head :: head_of(text)

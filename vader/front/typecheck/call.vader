@@ -1152,7 +1152,7 @@ note_cast_into :: fn(typed: TypedProgram, value: AST.Expr, source: Type, target:
 check_typeparam_bounds :: fn(
     site: Span,
     owner: string,
-    bindings: MutableMap<i32, Type>,
+    bindings: Map<i32, Type>,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
@@ -1180,7 +1180,7 @@ check_typeparam_bounds :: fn(
 }
 
 // The bound trait `trait_ty` at the types `bindings` give its parameters.
-bound_instance :: fn(trait_ty: TraitType, bindings: MutableMap<i32, Type>) -> TraitType {
+bound_instance :: fn(trait_ty: TraitType, bindings: Map<i32, Type>) -> TraitType {
     if trait_ty.args.len() == 0 {
         return trait_ty
     }
@@ -1231,7 +1231,7 @@ ufcs_generic_signature :: fn(callee: AST.Expr, callee_ty: Type, typed: TypedProg
 // has it, as any argument is (`rows.put(LIST)` is `put(rows, LIST)`).
 reject_ufcs_receiver_at_instance :: fn(
     c: AST.CallExpr,
-    bindings: MutableMap<i32, Type>,
+    bindings: Map<i32, Type>,
     unsolved: Symbol[],
     typed: TypedProgram,
     diags: Diagnostic[],
@@ -1281,7 +1281,7 @@ fits_by_widening :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type)
 // a free literal argument does : `1.pick(x)` with `x: i64` is an `i64` receiver.
 repin_free_ufcs_receiver_at_instance :: fn(
     c: AST.CallExpr,
-    bindings: MutableMap<i32, Type>,
+    bindings: Map<i32, Type>,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {

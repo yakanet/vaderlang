@@ -59,13 +59,13 @@ export PathTable :: struct {
     @internal
     step_names: string[] = []
     @internal
-    step_ids: MutableMap<string, i32> = MutableMap<string, i32> {}
+    step_ids: Map<string, i32> = Map<string, i32> {}
     /// (parent, step) → the path one step below the parent.
     @internal
-    children: MutableMap<i64, i32> = MutableMap<i64, i32> {}
+    children: Map<i64, i32> = Map<i64, i32> {}
     /// (p, q) → `p` then `q`.
     @internal
-    joins: MutableMap<i64, i32> = MutableMap<i64, i32> {}
+    joins: Map<i64, i32> = Map<i64, i32> {}
 }
 
 // `ROOT` and `EVERYWHERE`, the paths of every table: `EVERYWHERE` stands for `ROOT`
@@ -323,7 +323,7 @@ export ParamEffects :: struct {
     /// The keys of `accesses` once they outgrow a scan (`SCANNED_ACCESSES`) ; null
     /// before.
     @internal
-    keys: MutableSet<i64> | null = null
+    keys: Set<i64> | null = null
 }
 
 // The most accesses a set scans for a key ; past it, the set keeps their keys in a
@@ -352,8 +352,8 @@ insert :: fn(effects: ParamEffects, a: Access, how: i64 = FIXED, then: i64 = NO_
 }
 
 // The keys of `accesses`.
-key_set :: fn(accesses: Access[]) -> MutableSet<i64> {
-    keys :: MutableSet<i64> {}
+key_set :: fn(accesses: Access[]) -> Set<i64> {
+    keys :: Set<i64> {}
     for x in accesses {
         keys.add(access_key(x))
     }

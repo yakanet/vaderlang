@@ -193,7 +193,7 @@ export LoweredEntry :: struct {
 
 /// Run load → typecheck → comptime → lower, resolve the entry-fn name and
 /// harvest the diagnostics, then return: letting the `EvaluatedPipeline` and
-/// its per-module `MutableMap` side-tables leave scope before the caller's
+/// its per-module `Map` side-tables leave scope before the caller's
 /// CFG → bytecode tail. This is the live-set lever for `vader run` and
 /// `dump --stage=bytecode|c` : the typecheck-era maps no longer coexist with
 /// the emitter's own tables at the memory peak.

@@ -172,7 +172,7 @@ widening_thresholds :: fn(flow: RangeFlow, at: i32) -> i64[] {
 
 // The integer constants `fn_` loads, ascending and each once.
 constants_of :: fn(fn_: CFGFunction) -> i64[] {
-    seen :: MutableSet<i64> {}
+    seen :: Set<i64> {}
     out: i64[]: []
     for block in fn_.blocks {
         for ins in block.instructions {

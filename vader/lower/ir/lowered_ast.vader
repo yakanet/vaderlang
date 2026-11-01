@@ -146,7 +146,7 @@ export ConstFnWrap :: struct {
 /// Project-wide lowered output. Cross-module shape ; downstream phases
 /// (bytecode emit, C emit, DCE) read this directly.
 export LoweredProject :: struct {
-    modules:        MutableMap<string, LoweredModule>
+    modules:        Map<string, LoweredModule>
     /// Entry module id: the module being built / tested. Lowering and DCE
     /// treat every OTHER module as a lazily-lowered dependency ; this is the
     /// axis that replaced the old stdlib-vs-user split (a dependency is pruned
@@ -161,32 +161,32 @@ export LoweredProject :: struct {
     globals:        GlobalSlot[] = []
     /// The library each `@extern` naming a `CLibrary` comes from, keyed by the
     /// declaration's node id (`EvaluatedProject.libraries`).
-    libraries:      MutableMap<i64, CLibrary> = MutableMap<i64, CLibrary> {}
+    libraries:      Map<i64, CLibrary> = Map<i64, CLibrary> {}
     /// Const symbol id → accessor fn, populated by `inline_consts` for
     /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg
     /// `call` to the accessor. The accessor carries a fresh synthetic id, so the
     /// DCE seeds it as a root (`vader/lower/dce`).
-    const_fn_wrap:  MutableMap<i32, ConstFnWrap>
+    const_fn_wrap:  Map<i32, ConstFnWrap>
     /// Const symbol id → lowered value, populated by `inline_consts` for
     /// every other (non-fn-wrapped) const. `build_ident` re-builds the
     /// value at each read site (`inline` bucket). Scalars also land here as
     /// a safety net for any reference `lower_ident` didn't fold.
-    const_inline:   MutableMap<i32, LoweredExpr>
+    const_inline:   Map<i32, LoweredExpr>
     /// Const symbol id → the accessor that builds a const of the data pool again,
     /// for the uses that read a fresh value of it (`LoweredIdent.fresh`).
-    const_fresh_wrap: MutableMap<i32, ConstFnWrap> = MutableMap<i32, ConstFnWrap> {}
+    const_fresh_wrap: Map<i32, ConstFnWrap> = Map<i32, ConstFnWrap> {}
     /// The storage of every module constant, in the order `inline_consts` met
     /// them. Read by the lowered dump.
     const_routes: ConstRoute[] = []
     /// The structs with no field some `===` or `!==` compares, by symbol id: their
     /// literals keep an object each, where every other literal of a struct with no
     /// field is one shared object (`vader/midir/build.vader`).
-    identity_compared: MutableSet<i32> = MutableSet<i32> {}
+    identity_compared: Set<i32> = Set<i32> {}
     /// `Symbol.id → trait_key`s: the frontend's authoritative trait
     /// membership (from `ImplTables.struct_traits_by_sym`), threaded to the
     /// bytecode emitter to seed `is Trait` impl_table rows per interned struct
     /// tag.
-    trait_membership: MutableMap<i32, string[]>
+    trait_membership: Map<i32, string[]>
 }
 
 /// One module after lowering. `decls` is a flat list ; synthetic decls
@@ -1013,13 +1013,13 @@ export synthetic_symbol :: fn(id: i32, kind: SymbolKind, name: string) -> Symbol
 /// @return  a fresh project with empty modules + side-tables.
 export new_lowered_project :: fn() -> LoweredProject {
     return LoweredProject {
-        .modules        = MutableMap<string, LoweredModule> {},
+        .modules        = Map<string, LoweredModule> {},
         .entry          = "",
         .vtable_entries = [],
         .data_pool      = [],
-        .const_fn_wrap  = MutableMap<i32, ConstFnWrap> {},
-        .const_inline   = MutableMap<i32, LoweredExpr> {},
-        .trait_membership = MutableMap<i32, string[]> {},
+        .const_fn_wrap  = Map<i32, ConstFnWrap> {},
+        .const_inline   = Map<i32, LoweredExpr> {},
+        .trait_membership = Map<i32, string[]> {},
     }
 }
 

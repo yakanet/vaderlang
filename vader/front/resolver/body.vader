@@ -29,11 +29,11 @@ import "toolchain/span"
 /// What one file of a module sees at its top level : its root scope, and the
 /// names two of its wildcard imports both export (R2031).
 export FileScope :: struct {
-    root:       MutableMap<string, Symbol>
-    ambiguous:  MutableMap<string, string[]>
+    root:       Map<string, Symbol>
+    ambiguous:  Map<string, string[]>
     /// The names of `ambiguous` only functions provide, which a call resolves
     /// by overload.
-    overloaded: MutableSet<string> = MutableSet<string> {}
+    overloaded: Set<string> = Set<string> {}
 }
 
 /// Why a local may not be rebound (T3041).
@@ -55,31 +55,31 @@ export ConstLocal :: enum {
 export ResolvedFile :: struct {
     /// Every `AST.IdentExpr` reached during the body walk, span-keyed
     /// via `Span.hash()`.
-    idents:    MutableMap<u64, Symbol>
+    idents:    Map<u64, Symbol>
     /// Locals nothing may rebind, and why : a `name :: ...` binding, or the
     /// variable of a `for … in`. `name :=` ones don't appear here. Read by
     /// typecheck's check_assign for T3041.
-    immutable_locals: MutableMap<i32, ConstLocal>
+    immutable_locals: Map<i32, ConstLocal>
     /// Locals, parameters and pattern bindings no assignment of the file rebinds,
     /// `::` or not. Two reads of one yield the same value: within one iteration,
     /// for a `for` loop variable, which the loop itself advances. A symbol missing
     /// here may be rebound, so an empty set claims nothing.
-    rebind_free: MutableSet<i32>
+    rebind_free: Set<i32>
     /// Per `for` statement (keyed by its span's hash), the locals and parameters
     /// an assignment in its body rebinds. A narrowing made before the loop does
     /// not hold inside it for these: the next iteration reads them after the
     /// rebind.
-    loop_rebinds: MutableMap<u64, MutableSet<i32>>
+    loop_rebinds: Map<u64, Set<i32>>
     /// Locals and parameters a lambda rebinds while they are declared outside
     /// it. Any call may run that lambda, so a narrowing of one does not survive
     /// a call.
-    closure_rebound: MutableSet<i32>
+    closure_rebound: Set<i32>
     /// `Symbol.id → bound TypeExpr` for every TypeParam minted with
     /// an explicit `T: Trait` clause. Lets downstream consumers
     /// dispatch trait methods on bounded type parameters.
-    type_param_bounds: MutableMap<i32, AST.Expr>
+    type_param_bounds: Map<i32, AST.Expr>
     /// Each trait's `Self` as its default bodies read it, by the trait's symbol id.
-    trait_self_params: MutableMap<i32, Symbol>
+    trait_self_params: Map<i32, Symbol>
     /// R-code diagnostics emitted during body resolution
     /// (unresolved ident, reserved name, …).
     diags: Diagnostic[]
@@ -91,13 +91,13 @@ export ResolvedFile :: struct {
 /// Caller-owned so multi-module projects can extend the root scope
 /// before walking.
 export resolve_program :: fn(
-    program: AST.Program, top_level_seed: MutableMap<string, Symbol>,
+    program: AST.Program, top_level_seed: Map<string, Symbol>,
     module_path: string, factory: SymbolFactory,
 ) -> ResolvedFile {
-    scopes :: MutableMap<string, FileScope> {}
+    scopes :: Map<string, FileScope> {}
     scopes[program.file] = FileScope {
         .root      = top_level_seed,
-        .ambiguous = MutableMap<string, string[]> {},
+        .ambiguous = Map<string, string[]> {},
     }
     return resolve_module_programs([program], scopes, module_path, factory)
 }
@@ -112,21 +112,21 @@ export resolve_program :: fn(
 /// @param module_path  the module's id in the project.
 /// @param factory      mints the locals.
 export resolve_module_programs :: fn(
-    programs: AST.Program[], file_scopes: MutableMap<string, FileScope>,
+    programs: AST.Program[], file_scopes: Map<string, FileScope>,
     module_path: string, factory: SymbolFactory,
 ) -> ResolvedFile {
     state :: ResolveState {
         .file_scopes = file_scopes,
-        .idents = MutableMap<u64, Symbol> {},
-        .immutable_locals = MutableMap<i32, ConstLocal> {},
-        .type_param_bounds = MutableMap<i32, AST.Expr> {},
+        .idents = Map<u64, Symbol> {},
+        .immutable_locals = Map<i32, ConstLocal> {},
+        .type_param_bounds = Map<i32, AST.Expr> {},
         .mutable_decls = [],
-        .reassigned = MutableSet<i32> {},
+        .reassigned = Set<i32> {},
         .diags = [],
-        .scope = new_scope(MutableMap<string, Symbol> {}),
+        .scope = new_scope(Map<string, Symbol> {}),
         .module_path = module_path,
         .factory = factory,
-        .ambiguous = MutableMap<string, string[]> {},
+        .ambiguous = Map<string, string[]> {},
     }
     for program in programs {
         scope :: file_scopes[program.file] ?? panic("resolver: no scope for `${program.file}`")
@@ -151,13 +151,13 @@ export resolve_module_programs :: fn(
 // ---- internal state -------------------------------------------------------
 
 ResolveState :: struct {
-    idents:           MutableMap<u64, Symbol>
-    immutable_locals: MutableMap<i32, ConstLocal>
-    type_param_bounds: MutableMap<i32, AST.Expr>
+    idents:           Map<u64, Symbol>
+    immutable_locals: Map<i32, ConstLocal>
+    type_param_bounds: Map<i32, AST.Expr>
     /// W0015 candidates, in declaration order: one entry per `:=` statement.
     mutable_decls:    MutableDecl[]
     /// Symbol ids an assignment rebinds. Read once the file is walked.
-    reassigned:       MutableSet<i32>
+    reassigned:       Set<i32>
     /// Every local, parameter and pattern binding the walk declared, for
     /// `rebind_free_locals`.
     declared_locals:  i32[] = []
@@ -165,12 +165,12 @@ ResolveState :: struct {
     /// so each loop reads the ones its body made. Emptied when the outermost ends.
     rebind_log:       i32[] = []
     loop_depth:       i32 = 0
-    loop_rebinds:     MutableMap<u64, MutableSet<i32>> = MutableMap<u64, MutableSet<i32>> {}
+    loop_rebinds:     Map<u64, Set<i32>> = Map<u64, Set<i32>> {}
     /// The scope's frame count when the walk entered the innermost enclosing
     /// lambda : a name bound below it is declared outside. Null outside any lambda.
     lambda_frame:     i32 | null = null
-    closure_rebound:  MutableSet<i32> = MutableSet<i32> {}
-    trait_self_params: MutableMap<i32, Symbol> = MutableMap<i32, Symbol> {}
+    closure_rebound:  Set<i32> = Set<i32> {}
+    trait_self_params: Map<i32, Symbol> = Map<i32, Symbol> {}
     /// The `Self` of the trait whose members are being walked ; null elsewhere.
     trait_self:       Symbol | null = null
     diags:            Diagnostic[]
@@ -180,11 +180,11 @@ ResolveState :: struct {
     /// Names two+ wildcard imports of the file being walked both export
     /// (`name -> modules`). Consulted by `walk_expr` to fire R2031 on an
     /// unqualified reference that resolves to one of them.
-    ambiguous:        MutableMap<string, string[]>
+    ambiguous:        Map<string, string[]>
     /// The names of `ambiguous` only functions provide: no R2031 on a call.
-    overloaded:       MutableSet<string> = MutableSet<string> {}
+    overloaded:       Set<string> = Set<string> {}
     /// Every file of the module → its scope.
-    file_scopes:      MutableMap<string, FileScope>
+    file_scopes:      Map<string, FileScope>
 }
 
 // Walk on in `scope`'s file: its root, its ambiguities ; return the scope it
@@ -737,7 +737,7 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
     self.loop_depth -= 1
     self.scope.pop()
     if self.rebind_log.len() > first_rebind {
-        rebinds :: MutableSet<i32> {}
+        rebinds :: Set<i32> {}
         for i in first_rebind..<self.rebind_log.len() {
             rebinds.add(self.rebind_log[i])
         }
@@ -803,8 +803,8 @@ binding_span :: fn(b: AST.LetBinding) -> Span = match b {
 
 // Every local, parameter and pattern binding the file declares that no assignment
 // rebinds.
-rebind_free_locals :: fn(self: ResolveState) -> MutableSet<i32> {
-    out :: MutableSet<i32> {}
+rebind_free_locals :: fn(self: ResolveState) -> Set<i32> {
+    out :: Set<i32> {}
     for id in self.declared_locals {
         if !(id in self.reassigned) {
             out.add(id)
@@ -1057,7 +1057,7 @@ main :: fn() -> i32 {
 """
     parsed :: parse_source(src, "test.vader")
     factory :: SymbolFactory {}
-    seed :: MutableMap<string, Symbol> {}
+    seed :: Map<string, Symbol> {}
     resolved :: resolve_program(parsed.program, seed, "test", factory)
     hit :: resolved.idents[span_at("test.vader", 3, 12).hash()]
     match hit {
@@ -1081,7 +1081,7 @@ f :: fn(x: i32) -> i32 {
 """
     parsed :: parse_source(src, "test.vader")
     factory :: SymbolFactory {}
-    seed :: MutableMap<string, Symbol> {}
+    seed :: Map<string, Symbol> {}
     resolved :: resolve_program(parsed.program, seed, "test", factory)
     hit :: resolved.idents[span_at("test.vader", 2, 12).hash()]
     match hit {

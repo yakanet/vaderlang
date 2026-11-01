@@ -1,7 +1,7 @@
 // vader/front/resolver/collect: top-level symbol minting pass.
 //
 // Walks a Program's top-level decls
-// once and mints one Symbol per name into a `MutableMap`. The same pass
+// once and mints one Symbol per name into a `Map`. The same pass
 // records wildcard imports (`import "m"` and `import "m" { x as y, z as _ }`)
 // with their per-path excludes + rename bindings, and groups fn overloads.
 //
@@ -29,9 +29,9 @@ import "toolchain/span"
 /// keyed by Symbol.id: consumed by the wire pass to resolve each
 /// binding to its concrete target.
 export CollectedModule :: struct {
-    symbols:      MutableMap<string, Symbol>
-    fn_overloads: MutableMap<string, Symbol[]>
-    imports:      MutableMap<i32, ImportInfo>
+    symbols:      Map<string, Symbol>
+    fn_overloads: Map<string, Symbol[]>
+    imports:      Map<i32, ImportInfo>
     /// Raw `import "path"` entries in source order: the loader uses
     /// these to walk the module graph transitively.
     import_paths: string[]
@@ -55,11 +55,11 @@ export FileImports :: struct {
     /// Per-path exclusions from a `import "p" { x as _, y as z }` modifier list:
     /// every listed source name (both `as _` and rename sources) is removed
     /// from that path's wildcard. Renames rebind via `imports`.
-    excludes: MutableMap<string, string[]> = MutableMap<string, string[]> {}
+    excludes: Map<string, string[]> = Map<string, string[]> {}
     /// The import bindings this file mints (namespace aliases and renames) by
     /// local name. Their only home : `CollectedModule.symbols` holds the
     /// declarations alone.
-    bindings: MutableMap<string, Symbol> = MutableMap<string, Symbol> {}
+    bindings: Map<string, Symbol> = Map<string, Symbol> {}
 }
 
 /// True when this file's wildcard import of `path` drops `name` through its
@@ -74,25 +74,25 @@ export drops :: fn(self: FileImports, path: string, name: string) -> bool {
 
 /// Mint top-level symbols for `program`. Order of insertion mirrors source
 /// order so downstream consumers (the body walker, the dump) see a stable
-/// layout independent of MutableMap bucket hashing.
+/// layout independent of Map bucket hashing.
 ///
 /// `module_name` is the *declared* module identifier (e.g. `"std/io"`),
 /// not the absolute folder path: used by `diagnose_import_path` to
 /// detect self-imports (R2024). `index` is the project-wide module
-/// table built by `discover_modules` ; an empty `MutableMap` (no
+/// table built by `discover_modules` ; an empty `Map` (no
 /// loader) disables import-path resolution and is used by mono-file
 /// callers (a `resolve_module` test with no module graph).
 export collect_module :: fn(
     program: Program, module_path: string, module_name: string,
     factory: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
+    index: Map<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
 ) -> CollectedModule {
     // One `FileImports` per collect_module call: this pass sees exactly one
     // file, and `collect_files` appends each file's entry into the merged view.
     out :: CollectedModule {
-        .symbols      = MutableMap<string, Symbol> {},
-        .fn_overloads = MutableMap<string, Symbol[]> {},
-        .imports      = MutableMap<i32, ImportInfo> {},
+        .symbols      = Map<string, Symbol> {},
+        .fn_overloads = Map<string, Symbol[]> {},
+        .imports      = Map<i32, ImportInfo> {},
         .import_paths = [],
         .files        = [FileImports { .file = program.file }],
     }
@@ -110,8 +110,8 @@ export collect_module :: fn(
 // bindings (`X :: import "p"`) don't conflict: they qualify, they don't inject
 // names.
 check_import_form_conflict :: fn(decls: Decl[], diags: Diagnostic[]) -> void {
-    wildcard_of :: MutableMap<string, Span> {}
-    modifiers_of :: MutableMap<string, Span> {}
+    wildcard_of :: Map<string, Span> {}
+    modifiers_of :: Map<string, Span> {}
     for d in decls {
         if d is ImportDecl {
             match d.binding {
@@ -139,7 +139,7 @@ check_import_form_conflict :: fn(decls: Decl[], diags: Diagnostic[]) -> void {
 export collect_module_no_index :: fn(
     program: Program, module_path: string, factory: SymbolFactory,
 ) -> CollectedModule {
-    empty_index :: MutableMap<string, DiscoveredModule> {}
+    empty_index :: Map<string, DiscoveredModule> {}
     discard: Diagnostic[]: []
     no_paths: IncludePath[]: []
     return collect_module(program, module_path, module_path, factory, empty_index, no_paths, discard)
@@ -148,7 +148,7 @@ export collect_module_no_index :: fn(
 collect_decl :: fn(
     self: CollectedModule, d: Decl, module_path: string, module_name: string,
     factory: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
+    index: Map<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
 ) -> void {
     match d {
         is ImportDecl    -> { self.collect_import(d, module_path, module_name, factory, index, paths, diags) }
@@ -231,7 +231,7 @@ collect_import :: fn(
     module_path: string,
     module_name: string,
     factory: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>,
+    index: Map<string, DiscoveredModule>,
     paths: IncludePath[],
     diags: Diagnostic[],
 ) -> void {
@@ -333,7 +333,7 @@ names_equal :: fn(a: string | null, b: string | null) -> bool {
 // the path-matching it replaces. `.Build` when the index has no entry: the mono-file
 // callers pass an empty one, and a module nothing provided is no shipped library.
 importer_origin :: fn(
-    index: MutableMap<string, DiscoveredModule>, from_module_name: string,
+    index: Map<string, DiscoveredModule>, from_module_name: string,
 ) -> ModuleOrigin {
     from :: index[from_module_name] ?? return .Build
     return from.origin
@@ -346,7 +346,7 @@ importer_origin :: fn(
 /// failed.
 diagnose_import_path :: fn(
     raw_path: string, span: Span, from_module_name: string,
-    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
+    index: Map<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
 ) -> string | null {
     if raw_path.starts_with("./") || raw_path.starts_with("../") {
         diags.push(resolver_error(.RelativeImportRemoved, span, "`${raw_path}`"))

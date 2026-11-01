@@ -38,7 +38,7 @@ export VmState :: struct {
     /// `fn name -> index`, so `exec_fn` / `exec_fn_value` resolve an entry by
     /// one lookup instead of a linear string-compare scan. The comptime pass
     /// resolves one entry per staged decl, which made that scan O(decls x fns).
-    fn_index_by_name: MutableMap<string, i32>
+    fn_index_by_name: Map<string, i32>
     /// Manifest classification of each import, index-aligned with `bc.imports`,
     /// so `call.import` never re-runs `intrinsic_id_for` (which rebuilds and
     /// interns mangled names). A user `@extern` names a linker symbol, never a
@@ -119,7 +119,7 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
     if reg is VerifyError {
         return reg
     }
-    by_name :: MutableMap<string, i32> {}
+    by_name :: Map<string, i32> {}
     for i in 0..<bc_mod.functions.len() {
         by_name[bc_mod.functions[i].name] = i32(i)
     }

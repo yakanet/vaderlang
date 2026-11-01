@@ -38,12 +38,12 @@ main :: fn() -> i32 {
     println("${c.equals(.Green)} ${c.equals(.Blue)} ${!c.equals(.Red)}")
     println("${@satisfies(Color, Equals)} ${@satisfies(HttpStatus, Equals)}")
 
-    by_color :: MutableMap<Color, i32> {}
+    by_color :: Map<Color, i32> {}
     by_color[.Red] = 1
     by_color[.Blue] = 3
     println("${by_color[.Red] ?? -1} ${by_color[.Green] ?? -1} ${by_color[.Blue] ?? -1}")
 
-    by_status :: MutableMap<HttpStatus, string> {}
+    by_status :: Map<HttpStatus, string> {}
     by_status[.NotFound] = "gone"
     by_status[.Ok] = "here"
     by_status[.NotFound] = "missing"
@@ -52,7 +52,7 @@ main :: fn() -> i32 {
         "${same_through_trait(Color.Red, Color.Red)} ${same_through_trait(Color.Red, Color.Blue)}",
     )
 
-    walked :: MutableMap<Color, i32> {}
+    walked :: Map<Color, i32> {}
     for each in Color {
         walked[each] = 7
         if each == .Blue {

@@ -91,12 +91,12 @@ FrozenSites :: struct {
     /// The bodies that use a frozen value, decided once the summary is settled.
     bodies: FrozenBody[] = []
     /// The kinds of value some site of the program writes (`written_keys`).
-    written: MutableSet<string> = MutableSet<string> {}
+    written: Set<string> = Set<string> {}
     /// The uses that read a fresh value of their constant, decided with the sites.
     fresh: FreshReads = FreshReads {}
     /// Constant symbol id → the uses of other constants its value keeps, which a
     /// fresh value of it reads fresh too (`spread_fresh`).
-    kept_by_constants: MutableMap<i32, ConstantUse[]> = MutableMap<i32, ConstantUse[]> {}
+    kept_by_constants: Map<i32, ConstantUse[]> = Map<i32, ConstantUse[]> {}
 }
 
 /// A root of a skeleton that the frozen checks decide: a use of a frozen value, or
@@ -151,7 +151,7 @@ FrozenBody :: struct {
     initialises: i32 | null
     /// The locals and parameters a write into may be seen through
     /// (`WalkCtx.seen_names`).
-    seen_names: MutableSet<i32>
+    seen_names: Set<i32>
 }
 
 // ---- roots ----------------------------------------------------------------
@@ -319,7 +319,7 @@ written_keys :: fn(t: Type | null) -> string[] = match t {
 // Whether some write of the program may reach a value of type `t`, or a value it
 // holds ; `seen` keeps a recursive struct from looping.
 may_be_written :: fn(
-    written: MutableSet<string>, t: Type | null, typed: TypedProgram, seen: MutableSet<i32>,
+    written: Set<string>, t: Type | null, typed: TypedProgram, seen: Set<i32>,
 ) -> bool {
     if ANYTHING in written {
         return true
@@ -340,7 +340,7 @@ may_be_written :: fn(
 }
 
 fields_may_be_written :: fn(
-    written: MutableSet<string>, t: StructType, typed: TypedProgram, seen: MutableSet<i32>,
+    written: Set<string>, t: StructType, typed: TypedProgram, seen: Set<i32>,
 ) -> bool {
     if !seen.add(t.symbol.id) {
         return false
@@ -587,7 +587,7 @@ hands_on_written :: fn(frozen: FrozenSites, c: RootCase, p: fn(Access) -> bool) 
 written_at :: fn(frozen: FrozenSites, c: RootCase, h: Root, a: Access) -> bool {
     use :: c.body.root_record(h.param)
     t :: type_below(c.paths, c.body.typed, use.type, c.paths.joined(h.path, a.path))
-    seen :: MutableSet<i32> {}
+    seen :: Set<i32> {}
     return may_be_written(frozen.written, t, c.body.typed, seen)
 }
 

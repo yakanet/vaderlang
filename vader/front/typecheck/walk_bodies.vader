@@ -42,20 +42,20 @@ infers_its_return :: fn(m: AST.FnDecl) = m.body != null && needs_return_inferenc
 // (`decl_types`, struct/trait decls, the impl tables, …) stay intact:
 // only side-tables filled from inside fn bodies need a refresh.
 reset_expr_tables :: fn(typed: TypedProgram) -> void {
-    typed.expr_types = MutableMap<i64, Type> {}
-    typed.expr_kinds = MutableMap<i64, string> {}
-    typed.node_spans = MutableMap<i64, Span> {}
-    typed.ufcs_receiver_types = MutableMap<i64, Type> {}
-    typed.into_coercions = MutableMap<i64, Type> {}
-    typed.chosen_fns = MutableMap<i64, FnCandidate> {}
-    typed.chosen_impl_methods = MutableMap<i64, ImplMethod> {}
-    typed.overloaded_members = MutableMap<i64, ImplMethod[]> {}
-    typed.literals_past_default = MutableMap<i64, AST.IntLitExpr> {}
-    typed.static_members = MutableMap<i64, StaticMember> {}
+    typed.expr_types = Map<i64, Type> {}
+    typed.expr_kinds = Map<i64, string> {}
+    typed.node_spans = Map<i64, Span> {}
+    typed.ufcs_receiver_types = Map<i64, Type> {}
+    typed.into_coercions = Map<i64, Type> {}
+    typed.chosen_fns = Map<i64, FnCandidate> {}
+    typed.chosen_impl_methods = Map<i64, ImplMethod> {}
+    typed.overloaded_members = Map<i64, ImplMethod[]> {}
+    typed.literals_past_default = Map<i64, AST.IntLitExpr> {}
+    typed.static_members = Map<i64, StaticMember> {}
     typed.callee_field_id = AST.UNASSIGNED_NODE_ID
-    typed.callees = MutableMap<i64, Callee> {}
+    typed.callees = Map<i64, Callee> {}
     typed.call_sites = CallSites {}
-    typed.local_types = MutableMap<u64, Type> {}
+    typed.local_types = Map<u64, Type> {}
     // The whole narrowing machine, not table by table: a table added to
     // `NarrowState` is then reset here for free instead of being silently left
     // out of a hand-written list.
@@ -160,7 +160,7 @@ walk_bodies :: fn(
                     check_inherited_tests(decl, typed, diags)
                 }
                 typed.enclosing_impl = 0
-                typed.enclosing_impl_params = MutableSet<i32> {}
+                typed.enclosing_impl_params = Set<i32> {}
             }
             is AST.EnumDecl      -> { check_variant_data(decl, typed, diags) }
             is AST.TraitDecl     -> {
@@ -194,8 +194,8 @@ walk_bodies :: fn(
 }
 
 // The symbol ids of `decl`'s type parameters.
-impl_param_ids :: fn(decl: AST.ImplDecl, typed: TypedProgram) -> MutableSet<i32> {
-    out :: MutableSet<i32> {}
+impl_param_ids :: fn(decl: AST.ImplDecl, typed: TypedProgram) -> Set<i32> {
+    out :: Set<i32> {}
     for tp in impl_type_params_of(decl, typed.resolved) {
         out.add(tp.symbol.id)
     }
@@ -325,7 +325,7 @@ walk_default_bodies :: fn(
             }
         }
     }
-    typed.default_body_params = MutableSet<i32> {}
+    typed.default_body_params = Set<i32> {}
 }
 
 // The return a default body gives when its member leaves it out, for every reader
@@ -339,7 +339,7 @@ record_default_return :: fn(m: AST.FnDecl, self_sym: Symbol, typed: TypedProgram
     if checked !is FnType || checked.return_type is UnresolvedType {
         return
     }
-    as_written :: MutableMap<i32, Type> {}
+    as_written :: Map<i32, Type> {}
     as_written[self_sym.id] = TY_SELF
     typed.impl_tables.default_returns[m.id] = substitute_map(checked.return_type, as_written)
 }
@@ -350,8 +350,8 @@ default_body_param_ids :: fn(
     d: AST.TraitDecl,
     self_sym: Symbol,
     typed: TypedProgram,
-) -> MutableSet<i32> {
-    out :: MutableSet<i32> {}
+) -> Set<i32> {
+    out :: Set<i32> {}
     out.add(self_sym.id)
     for t in declared_type_args(d.type_params, typed) ?? [] {
         if t is TypeParamType {

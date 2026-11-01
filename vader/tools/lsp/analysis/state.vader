@@ -40,7 +40,7 @@ export ProjectCache :: struct {
     /// cache entry so per-request consumers (wildcard completion) don't rebuild
     /// it. Keyed by the logical `module "..."` name (the string an `import`
     /// uses) not the resolved filesystem path.
-    module_name_index: MutableMap<string, LoadedModule>
+    module_name_index: Map<string, LoadedModule>
     /// The project's references, built on the first request that reads them
     /// (`reference_index_of`).
     references:        ReferenceIndex | null = null
@@ -86,7 +86,7 @@ export UnionCache :: struct {
 /// passed to every handler ; no globals.
 export ServerState :: struct {
     /// uri → current document text. Empty string for closed documents.
-    docs:                       MutableMap<string, string>
+    docs:                       Map<string, string>
     /// Last load+typecheck, reused across typed requests. `null` after didOpen /
     /// didClose and after `flush_dirty_diagnostics` rebuilds it ; deliberately
     /// KEPT (stale) across a didChange, so the typed requests that arrive
@@ -112,18 +112,18 @@ export ServerState :: struct {
     workspace_root:             string
     /// path → the symbols of a workspace file read from the disk, and its
     /// modification time then (`workspace_symbols`).
-    symbols:                    MutableMap<string, FileSymbols>
+    symbols:                    Map<string, FileSymbols>
     /// uri → per-document goto-def + hover index. Rebuilt on every
     /// didOpen / didChange ; entry is removed (not just emptied) on
     /// didClose so a stale index never serves a closed-doc request.
-    indices:                    MutableMap<string, DocIndex>
+    indices:                    Map<string, DocIndex>
     /// uri → "diagnostics need a (re)publish". Set by `handle_did_change` and by
     /// a driven project settling on new roots, removed by `handle_did_close`
     /// (suppresses a closed doc), drained by
     /// `flush_dirty_diagnostics` once an edit burst settles (see
     /// vader/tools/lsp/main.vader). Decouples the per-keystroke typecheck from the
     /// quiescent-window typecheck: the whole point of the debounce.
-    dirty:                      MutableMap<string, bool>
+    dirty:                      Map<string, bool>
     /// The roots the host names, searched before a project's own: what the
     /// loader takes as `--include-paths`, for the index and the typed project
     /// alike : `--library-root` alone, when given. Empty otherwise, and the roots
@@ -159,14 +159,14 @@ export ServerState :: struct {
     /// the first request that needs it, dropped on every didOpen / didChange /
     /// didClose of that document : a large dump takes a noticeable fraction of a
     /// second to read, and the editor asks for hints on every scroll.
-    virt_listings:              MutableMap<string, Virt.VirtListing | Virt.VirtParseError>
+    virt_listings:              Map<string, Virt.VirtListing | Virt.VirtParseError>
     /// uri → the line index of an open `.virt` document, rebuilt on every didOpen
     /// / didChange : each request on it converts a position, and indexing a large
     /// dump costs milliseconds.
-    virt_line_indices:          MutableMap<string, LineIndex>
+    virt_line_indices:          Map<string, LineIndex>
     /// project folder → what the server knows of a project its `build.vader`
     /// describes: the roots registered, the `vader info` run in flight.
-    driven:                     MutableMap<string, DrivenProject>
+    driven:                     Map<string, DrivenProject>
     /// Whether every `build.vader` stays unrun (`--no-hooks`): a project it
     /// describes is analysed with no root of its declaring.
     no_hooks:                   bool
@@ -174,24 +174,24 @@ export ServerState :: struct {
 
 export new_state :: fn(library_root: string, no_hooks: bool = false) -> ServerState {
     return ServerState {
-        .docs                    = MutableMap<string, string> {},
+        .docs                    = Map<string, string> {},
         .cache                   = null,
         .cache_prev              = null,
         .union_cache             = null,
         .usages                  = null,
         .workspace_root          = current_working_directory(),
-        .symbols                 = MutableMap<string, FileSymbols> {},
-        .indices                 = MutableMap<string, DocIndex> {},
-        .dirty                   = MutableMap<string, bool> {},
+        .symbols                 = Map<string, FileSymbols> {},
+        .indices                 = Map<string, DocIndex> {},
+        .dirty                   = Map<string, bool> {},
         .include_flags           = if library_root.byte_len() > 0 { [library_root] } else { [] },
         .definition_link_support = false,
         .position_encoding       = .Utf16,
         .inlay_refresh_support   = false,
         .watched_files_support   = false,
         .next_request_id         = 1,
-        .virt_listings           = MutableMap<string, Virt.VirtListing | Virt.VirtParseError> {},
-        .virt_line_indices       = MutableMap<string, LineIndex> {},
-        .driven                  = MutableMap<string, DrivenProject> {},
+        .virt_listings           = Map<string, Virt.VirtListing | Virt.VirtParseError> {},
+        .virt_line_indices       = Map<string, LineIndex> {},
+        .driven                  = Map<string, DrivenProject> {},
         .no_hooks                = no_hooks,
     }
 }
@@ -382,8 +382,8 @@ export source_file_for_path :: fn(files: SourceFile[], file_path: string) -> Sou
 /// via `uri_to_path`. An empty document is left to the disk.
 ///
 /// @param self  the server state, holding the open documents.
-export doc_overlay :: fn(self: ServerState) -> MutableMap<string, string> {
-    overlay :: MutableMap<string, string> {}
+export doc_overlay :: fn(self: ServerState) -> Map<string, string> {
+    overlay :: Map<string, string> {}
     for [uri, text] in self.docs {
         if text != "" { overlay[uri_to_path(uri)] = text }
     }
@@ -538,17 +538,17 @@ export register_file_watchers :: fn(self: ServerState) -> void {
     }
     watchers: JsonValue[]: []
     for pattern in ["**/*.vader", "**/${MANIFEST_FILENAME}"] {
-        watcher :: MutableMap<string, JsonValue> {}
+        watcher :: Map<string, JsonValue> {}
         watcher["globPattern"] = JsonString { .value = pattern }
         watchers.push(JsonObject { .entries = watcher })
     }
-    options :: MutableMap<string, JsonValue> {}
+    options :: Map<string, JsonValue> {}
     options["watchers"] = JsonArray { .items = watchers }
-    registration :: MutableMap<string, JsonValue> {}
+    registration :: Map<string, JsonValue> {}
     registration["id"]              = JsonString { .value = "vader-watched-files" }
     registration["method"]          = JsonString { .value = "workspace/didChangeWatchedFiles" }
     registration["registerOptions"] = JsonObject { .entries = options }
-    params :: MutableMap<string, JsonValue> {}
+    params :: Map<string, JsonValue> {}
     params["registrations"] = JsonArray { .items = [JsonObject { .entries = registration }] }
     send_request(self, "client/registerCapability", JsonObject { .entries = params })
 }

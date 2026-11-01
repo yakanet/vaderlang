@@ -58,7 +58,7 @@ cmd_test :: fn(args: string[]) -> i32 {
     if project_root != null && checked_manifest("test", project_root) == null {
         return 1
     }
-    ran :: MutableSet<string> {}
+    ran :: Set<string> {}
     total_pass := 0
     total_fail := 0
     files_with_tests := 0
@@ -204,7 +204,7 @@ test_entries :: fn(target: Path, files: Path[]) -> Path[] {
 /// lowered with its bodies, so a module's tests run only when it is the entry:
 /// none runs through a module that imports it.
 pick_module_representatives :: fn(files: Path[]) -> Path[] {
-    by_dir :: MutableMap<string, Path[]> {}
+    by_dir :: Map<string, Path[]> {}
     for f in files {
         // `parent()` yields "" for a bare filename ; the old `dir_of` said "."
         // and the grouping below keys on it, so preserve that.

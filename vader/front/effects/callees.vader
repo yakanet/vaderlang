@@ -24,24 +24,24 @@ export CalleeIndex :: struct {
     /// Per node, the function and the module that typed it.
     functions: Function[] = []
     /// Declaration id → node, for each function with a body.
-    nodes: MutableMap<i64, i32> = MutableMap<i64, i32> {}
+    nodes: Map<i64, i32> = Map<i64, i32> {}
     /// A trait default's declaration id → the node every impl inheriting it runs.
     /// Apart from `nodes`: a declaration naming the trait's member itself may reach
     /// any impl's override, so `target_of_decl` must not find the default there.
-    default_nodes: MutableMap<i64, i32> = MutableMap<i64, i32> {}
+    default_nodes: Map<i64, i32> = Map<i64, i32> {}
     /// Declaration id → what a bodyless function does.
-    bodyless: MutableMap<i64, CallTarget> = MutableMap<i64, CallTarget> {}
+    bodyless: Map<i64, CallTarget> = Map<i64, CallTarget> {}
     /// The declarations of the intrinsics that hand back a frozen view
     /// (`makes_frozen_view`).
-    frozen_views: MutableSet<i64> = MutableSet<i64> {}
+    frozen_views: Set<i64> = Set<i64> {}
     /// The array type of a view, as such an intrinsic declares its result
     /// (`u8[]`) ; null when the project has none.
     view: ArrayType | null = null
     /// The nodes that return a view, found once the facts are settled
     /// (`spread_views`).
-    view_nodes: MutableSet<i32> = MutableSet<i32> {}
+    view_nodes: Set<i32> = Set<i32> {}
     /// The structs some enum keeps its variant data in, by symbol id.
-    variant_data: MutableSet<i32> = MutableSet<i32> {}
+    variant_data: Set<i32> = Set<i32> {}
     /// Every module constant's initialiser, which may hand a frozen value on.
     constants: Initialiser[] = []
     /// Every struct field default, which every struct built without the field keeps.
@@ -57,7 +57,7 @@ export CalleeIndex :: struct {
     /// The loaded project, whose modules hold the symbols a namespace alias names.
     project: LoadedProject
     /// `trait_key.member` → the members of that name of every impl of the trait.
-    members: MutableMap<string, CallTarget[]> = MutableMap<string, CallTarget[]> {}
+    members: Map<string, CallTarget[]> = Map<string, CallTarget[]> {}
     /// Bodyless functions the compiler knows nothing of while they are lent a value
     /// that holds references: each is assumed to do anything with it.
     unknown: string[] = []
@@ -84,7 +84,7 @@ export Initialiser :: struct {
 /// @param project  the loaded project, whose declarations hold the bodies.
 /// @param modules  the typed modules, by the same key as `project.modules`.
 index_functions :: fn(
-    project: LoadedProject, modules: MutableMap<string, TypedProgram>,
+    project: LoadedProject, modules: Map<string, TypedProgram>,
 ) -> CalleeIndex {
     index :: CalleeIndex { .project = project }
     for [id, loaded] in project.modules {
@@ -139,7 +139,7 @@ register_member :: fn(
     member: AST.FnDecl,
     impl_: AST.ImplDecl,
     typed: TypedProgram,
-    modules: MutableMap<string, TypedProgram>,
+    modules: Map<string, TypedProgram>,
 ) -> void {
     inherited :: index.inherited_function(member, impl_, modules)
     if inherited == null {
@@ -168,7 +168,7 @@ inherited_function :: fn(
     index: CalleeIndex,
     member: AST.FnDecl,
     impl_: AST.ImplDecl,
-    modules: MutableMap<string, TypedProgram>,
+    modules: Map<string, TypedProgram>,
 ) -> Function | null {
     inherited :: member.inherits ?? return null
     entry :: index.impls.entry_of(impl_) ?? return null
@@ -297,7 +297,7 @@ member_targets :: fn(index: CalleeIndex, trait_key: string, member: string) -> C
         return cached
     }
     out: CallTarget[]: []
-    reached :: MutableSet<i32> {}
+    reached :: Set<i32> {}
     for entry in index.impls.all {
         if entry.trait_key != trait_key {
             continue

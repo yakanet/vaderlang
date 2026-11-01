@@ -167,7 +167,7 @@ lower_project_impl :: fn(
     // recursive : a generic instance body calls stdlib fns (harvested into
     // `nongeneric_imported_queue`), and a harvested stdlib body calls generic
     // fns (registered into `fn_instance_queue`, e.g. `std/json::write_object`
-    // → `MutableMap.len`). Drain all the queues in ONE joint fixpoint until
+    // → `Map.len`). Drain all the queues in ONE joint fixpoint until
     // none grows : each queue resumes where it stopped, so re-entry only
     // processes newly-registered work (`drain_generic_fn_instances` builds into
     // `generic_collected` ; `surface_*` dedupes via `materialized_impl_keys`).
@@ -205,8 +205,8 @@ lower_project_impl :: fn(
     // lowering), so it registers nothing: keep it that way.
     flush_generic_fn_instances(project_ctx, project)
     // Transitively materialise generic-struct shapes referenced by the
-    // types of the decls emitted above, e.g. `MutableSet<i32>`'s erased
-    // `inner: MutableMap<Any, bool>`:
+    // types of the decls emitted above, e.g. `Set<i32>`'s erased
+    // `inner: Map<Any, bool>`:
     // otherwise the bytecode interner mints an orphan `ref` for them.
     close_over_field_shapes(typed, project_ctx, project)
     // Place the project-global synthesised decls (`concat_N`, field-default
@@ -383,7 +383,7 @@ import "std/testing"
 @test test_lower_empty_project :: fn() -> void {
     loaded :: LoadedProject {
         .entry        = "",
-        .modules      = MutableMap<string, LoadedModule> {},
+        .modules      = Map<string, LoadedModule> {},
         .factory      = factory_for_test(),
         .project_root = null,
         .diags        = [],

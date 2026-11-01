@@ -52,7 +52,7 @@ main :: fn() -> i32 {
     // by a closure is a write THROUGH a cell. Both are invisible in the target's
     // syntax, so both are pinned here: an element that bypassed the shared write
     // path would drop the map write and corrupt the captured slot.
-    m :: MutableMap<string, i32> {}
+    m :: Map<string, i32> {}
     m["k"] = 1
     z := 0
     [m["k"], z] = [30, 40]

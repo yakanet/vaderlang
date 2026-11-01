@@ -99,19 +99,19 @@
   expr 67:23    IdentExpr      :: string | u8
   expr 67:5     CallExpr       :: void
   expr 67:5     IdentExpr      :: fn(T) -> void
-  expr 68:13    StructLitExpr  :: MutableSet<string | u8>
+  expr 68:13    StructLitExpr  :: Set<string | u8>
   expr 69:14    IdentExpr      :: string | u8
   expr 69:5     CallExpr       :: bool
   expr 69:5     FieldExpr      :: fn(string | u8) -> bool
-  expr 69:5     IdentExpr      :: MutableSet<string | u8>
+  expr 69:5     IdentExpr      :: Set<string | u8>
   expr 70:14    IdentExpr      :: string | u8
   expr 70:5     CallExpr       :: bool
   expr 70:5     FieldExpr      :: fn(string | u8) -> bool
-  expr 70:5     IdentExpr      :: MutableSet<string | u8>
+  expr 70:5     IdentExpr      :: Set<string | u8>
   expr 71:13    StringLitExpr  :: string
   expr 71:21    CallExpr       :: i64
   expr 71:21    FieldExpr      :: fn() -> i64
-  expr 71:21    IdentExpr      :: MutableSet<string | u8>
+  expr 71:21    IdentExpr      :: Set<string | u8>
   expr 71:5     CallExpr       :: void
   expr 71:5     IdentExpr      :: fn(T) -> void
   expr 72:13    CallExpr       :: string

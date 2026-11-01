@@ -30,8 +30,8 @@ import "vader/support/diagnostics"
 ///                    than one required method ; all pushed onto `project.diags`.
 export materialize_impl_members :: fn(
     project: LoadedProject,
-    name_index: MutableMap<string, LoadedModule>,
-    core_seed: MutableMap<string, Symbol>,
+    name_index: Map<string, LoadedModule>,
+    core_seed: Map<string, Symbol>,
 ) -> void {
     for [_, loaded] in project.modules {
         for file in loaded.module.files {
@@ -46,15 +46,15 @@ materialize_file_impl_members :: fn(
     project: LoadedProject,
     loaded: LoadedModule,
     file: SourceFile,
-    name_index: MutableMap<string, LoadedModule>,
-    core_seed: MutableMap<string, Symbol>,
+    name_index: Map<string, LoadedModule>,
+    core_seed: Map<string, Symbol>,
 ) -> void {
     decls :: file.program.decls
     if !has_impl_decl(decls) {
         return
     }
     imports :: file_imports(loaded.collected, file.program.file)
-    no_builtins :: MutableMap<string, Symbol> {}
+    no_builtins :: Map<string, Symbol> {}
     scope :: file_root_scope(no_builtins, loaded.collected, imports, name_index, core_seed)
     for decl in decls {
         if decl !is AST.ImplDecl {
@@ -149,8 +149,8 @@ has_impl_decl :: fn(decls: AST.Decl[]) -> bool {
 find_impl_trait_decl :: fn(
     name: string,
     loaded: LoadedModule,
-    scope: MutableMap<string, Symbol>,
-    name_index: MutableMap<string, LoadedModule>,
+    scope: Map<string, Symbol>,
+    name_index: Map<string, LoadedModule>,
     project: LoadedProject,
 ) -> TraitLookup {
     unresolved :: TraitLookup { .trait_decl = null, .other_kind = "" }
@@ -182,8 +182,8 @@ find_impl_trait_decl :: fn(
 name_in_file_scope :: fn(
     name: string,
     loaded: LoadedModule,
-    scope: MutableMap<string, Symbol>,
-    name_index: MutableMap<string, LoadedModule>,
+    scope: Map<string, Symbol>,
+    name_index: Map<string, LoadedModule>,
 ) -> Symbol | null {
     own :: scope[name] ?? return null
     if own.kind != .ImportBinding {

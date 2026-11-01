@@ -184,14 +184,14 @@ code_fence :: fn(code: string) -> string = "```\n" + code + "\n```"
 
 // A `Hover` payload whose contents are the Markdown `body`.
 markdown_hover :: fn(body: string) -> JsonValue {
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["contents"] = markup_json(body)
     return JsonObject { .entries = obj }
 }
 
 // A Markdown `MarkupContent` holding `body`.
 markup_json :: fn(body: string) -> JsonValue {
-    markup :: MutableMap<string, JsonValue> {}
+    markup :: Map<string, JsonValue> {}
     markup["kind"]  = JsonString { .value = "markdown" }
     markup["value"] = JsonString { .value = body }
     return JsonObject { .entries = markup }

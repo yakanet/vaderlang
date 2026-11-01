@@ -176,7 +176,7 @@ view_returners :: fn(
 
 // The nodes some call of which may run one of `nodes`.
 callers_of :: fn(successors: i32[][], nodes: i32[]) -> i32[] {
-    wanted :: MutableSet<i32> {}
+    wanted :: Set<i32> {}
     for node in nodes {
         wanted.add(node)
     }

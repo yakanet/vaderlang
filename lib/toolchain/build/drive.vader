@@ -256,7 +256,7 @@ pipeline_messages :: fn(ctx: BuildContext) -> Iterator<Message> {
         //
         // So a driver accumulates in its own variables across rounds rather than
         // guarding against seeing the same declaration twice.
-        delivered :: MutableSet<string> {}
+        delivered :: Set<string> {}
         round := 0
         for {
             // Front end. The pipeline stays live to the end of the round, which
@@ -399,7 +399,7 @@ chosen_entries :: fn(ctx: BuildContext, request: DriverRequest) -> ManifestEntry
 // concatenating here: that keeps its single-file fast path, which returns the
 // file's own `decls` with no copy. Single-file modules are the common case, and
 // this runs for every module of the project on every round.
-undelivered_decls :: fn(files: SourceFile[], delivered: MutableSet<string>) -> AST.Decl[] {
+undelivered_decls :: fn(files: SourceFile[], delivered: Set<string>) -> AST.Decl[] {
     fresh: SourceFile[]: []
     for f in files {
         if delivered.add(f.path) {

@@ -92,7 +92,7 @@ PRELUDE_MODULE :: "std/core"
 // the prelude.
 //
 // The prelude is searched even though nothing imports it: it is where the
-// methods of the BUILT-IN receivers live (`i32[]`, `string`, `MutableMap`). A
+// methods of the BUILT-IN receivers live (`i32[]`, `string`, `Map`). A
 // user struct's methods come through the wildcard pass or the in-document index;
 // the built-ins have no import to follow, which is why they were the ones that
 // failed.
@@ -240,7 +240,7 @@ export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | nu
 /// @param name   the module name, as an `import` spells it.
 /// @param paths  the roots, from `document_roots`.
 export module_named :: fn(state: ServerState, name: string, paths: IncludePath[]) -> DiscoveredModule | null {
-    index :: MutableMap<string, DiscoveredModule> {}
+    index :: Map<string, DiscoveredModule> {}
     discard: Diagnostic[]: []
     return resolve_lazy(name, paths, index, doc_overlay(state), discard)
 }

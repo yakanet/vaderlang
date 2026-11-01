@@ -1,10 +1,10 @@
 // std/collections: hash-based mutable collections, and a queue of work.
 //
 // ```
-// m :: MutableMap<string, i32> {}
+// m :: Map<string, i32> {}
 // m["answer"] = 42
 //
-// s :: MutableSet<i32> {}
+// s :: Set<i32> {}
 // s.add(10)
 // ```
 //
@@ -14,20 +14,20 @@
 // receiver type (cf. SPEC §6 *Function overloading*).
 //
 // Sequence collections live in the language : `[T]` arrays support `push`,
-// `len`, indexed access, mutation, and `for x in arr`: no `MutableList`
+// `len`, indexed access, mutation, and `for x in arr`: no `List`
 // wrapper is needed.
 //
-// `MutableMap` is a COMPACT (open-addressed) hash map : dense parallel
+// `Map` is a COMPACT (open-addressed) hash map : dense parallel
 // `ekeys` / `evals` arrays in insertion order, plus a sparse `i32` index
 // (hash slot → entry position). No per-entry node, no `next` pointer, no
 // nullable bucket array: ~3-4× less memory than a chained map, faster
 // insert / iterate, and far faster string-key lookups. The index doubles and
-// rehashes past a 0.75 load factor. `MutableSet` wraps it (each member a
+// rehashes past a 0.75 load factor. `Set` wraps it (each member a
 // `T → true`).
 
 module "std/collections"
 
-// ---- MutableMap<K, V> -----------------------------------------------------
+// ---- Map<K, V> ------------------------------------------------------------
 
 // Live entries live in two dense parallel arrays (`ekeys[i]` ↔ `evals[i]`) in
 // insertion order; a sparse `index` of `i32` maps a hash slot to an entry
@@ -48,7 +48,7 @@ TOMB_SLOT  :: i32(-1)   // index slot held an entry that was removed
 ///
 /// `m[k]` is `V | null`, null for an absent key: when `V` admits null itself,
 /// tell the two apart with `k in m`.
-export MutableMap :: struct<K: Hash & Equals, V> {
+export Map :: struct<K: Hash & Equals, V> {
     /// Dense entry keys in insertion order. `ekeys[i]` pairs with `evals[i]`.
     /// `[size, ekeys.len())` are spare slots freed by `remove`, reused by `put`.
     @internal
@@ -83,7 +83,7 @@ export MutableMap :: struct<K: Hash & Equals, V> {
 
 // Method signatures below declare just `[K, V]` (no bound repetition): the
 // `Hash & Equals` constraint is auto-inherited from the struct decl above by
-// the typecheck `inherit-bounds` pass when the first param is `MutableMap<K, V>`.
+// the typecheck `inherit-bounds` pass when the first param is `Map<K, V>`.
 
 first_slot :: fn(h: u64, mask: i64) -> i64 = i64(h) & mask
 
@@ -96,7 +96,7 @@ next_slot :: fn(s: i64, perturb: u64, mask: i64) -> i64 = (s *% 5 +% i64(perturb
 // Rebuild the index at `new_count` slots from the dense entries: re-probing
 // each live key. Clears all tombstones. The dense `ekeys` / `evals` are never
 // touched (entries don't move), so growth allocates no entries.
-rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, new_count: i64) -> void {
+rehash :: fn<K: Hash & Equals, V>(self: Map<K, V>, new_count: i64) -> void {
     fresh: i32[]: []
     for 0..<new_count { fresh.push(EMPTY_SLOT) }
     new_mask :: new_count - 1
@@ -121,7 +121,7 @@ rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, new_count: i64) -> voi
 // Rehash at the smallest power-of-two slot count, at least
 // `MINIMAL_INDEX_COUNT`, that keeps the live entries under 0.75. Sizing to the
 // LIVE count lets a tombstone-heavy map compact instead of only ever doubling.
-grow_index :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>) -> void {
+grow_index :: fn<K: Hash & Equals, V>(self: Map<K, V>) -> void {
     new_count := MINIMAL_INDEX_COUNT
     for self.size * 4 > new_count * 3 {
         new_count = new_count * 2
@@ -138,7 +138,7 @@ grow_index :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>) -> void {
 /// @param value  the new value.
 /// @return       `true` when `key` was absent and an entry was added, `false`
 ///               when its value was replaced.
-put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> bool {
+put :: fn<K: Hash & Equals, V>(self: Map<K, V>, key: K, value: V) -> bool {
     first_tomb: i64 = -1
     empty: i64 = -1
     if self.index.len() > 0 {
@@ -199,9 +199,9 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> bool
 /// @param value  stored when `key` is absent.
 /// @return       the value now stored for `key`.
 /// @example
-///   index_of :: MutableMap<string, i64> {}
+///   index_of :: Map<string, i64> {}
 ///   at :: index_of.get_or_put("x", index_of.len())
-export get_or_put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> V {
+export get_or_put :: fn<K: Hash & Equals, V>(self: Map<K, V>, key: K, value: V) -> V {
     first_tomb: i64 = -1
     empty: i64 = -1
     if self.index.len() > 0 {
@@ -258,10 +258,10 @@ export get_or_put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, val
 /// @return       the value already stored for `key`, or `null` when `value`
 ///               was stored.
 /// @example
-///   owner :: MutableMap<string, string> {}
+///   owner :: Map<string, string> {}
 ///   owner.put_absent("std/io", "lib")    // null
 ///   owner.put_absent("std/io", "vendor") // "lib"
-export put_absent :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> V | null {
+export put_absent :: fn<K: Hash & Equals, V>(self: Map<K, V>, key: K, value: V) -> V | null {
     first_tomb: i64 = -1
     empty: i64 = -1
     if self.index.len() > 0 {
@@ -317,10 +317,10 @@ export put_absent :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, val
 /// @param make  builds the value to store when `key` is absent.
 /// @return      the value now stored for `key`.
 /// @example
-///   by_module :: MutableMap<string, string[]> {}
+///   by_module :: Map<string, string[]> {}
 ///   by_module.get_or_put_with("std/io", () -> []).push("println")
 export get_or_put_with :: fn<K: Hash & Equals, V>(
-    self: MutableMap<K, V>,
+    self: Map<K, V>,
     key: K,
     make: fn() -> V,
 ) -> V {
@@ -334,7 +334,7 @@ export get_or_put_with :: fn<K: Hash & Equals, V>(
 }
 
 // The dense position of `key`'s entry, or -1 when the map holds no such key.
-entry_of :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> i64 {
+entry_of :: fn<K: Hash & Equals, V>(self: Map<K, V>, key: K) -> i64 {
     if self.index.len() == 0 {
         return -1
     }
@@ -363,7 +363,7 @@ entry_of :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> i64 {
 /// `size` are stale but unreachable (`size = 0`), and `put` overwrites them
 /// from slot 0 on the next insert. O(index slots).
 /// @param self  the map receiver.
-export clear :: fn<K, V>(self: MutableMap<K, V>) -> void {
+export clear :: fn<K, V>(self: Map<K, V>) -> void {
     self.size = 0
     self.tombs = 0
     for i in 0..<self.index.len() { self.index[i] = EMPTY_SLOT }
@@ -373,7 +373,7 @@ export clear :: fn<K, V>(self: MutableMap<K, V>) -> void {
 /// @param self  the map receiver.
 /// @param key   key to look up.
 /// @return      `V` when present, `null` otherwise.
-get :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> V | null {
+get :: fn<K: Hash & Equals, V>(self: Map<K, V>, key: K) -> V | null {
     if self.index.len() == 0 { return null }
     perturb := key.hash()
     s := first_slot(perturb, self.mask)
@@ -397,7 +397,7 @@ get :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> V | null {
 /// "key maps to a null-typed value": `get` collapses both to `null`.
 /// @param self  the map receiver.
 /// @param key   key to test.
-contains_key :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool {
+contains_key :: fn<K: Hash & Equals, V>(self: Map<K, V>, key: K) -> bool {
     if self.index.len() == 0 { return false }
     perturb := key.hash()
     s := first_slot(perturb, self.mask)
@@ -419,7 +419,7 @@ contains_key :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool 
 
 // Find the index slot whose stored value equals `want` (a 1-based entry pos),
 // probing from `key`'s hash. Used by `remove` to re-point a swapped entry.
-slot_holding :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, want: i32) -> i64 {
+slot_holding :: fn<K: Hash & Equals, V>(self: Map<K, V>, key: K, want: i32) -> i64 {
     perturb := key.hash()
     s := first_slot(perturb, self.mask)
     for self.index[s] != EMPTY_SLOT {
@@ -436,7 +436,7 @@ slot_holding :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, want: i3
 /// @param self  the map receiver.
 /// @param key   key whose entry to drop.
 /// @return      `true` when an entry was removed, `false` when `key` was absent.
-export remove :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool {
+export remove :: fn<K: Hash & Equals, V>(self: Map<K, V>, key: K) -> bool {
     if self.index.len() == 0 { return false }
     perturb := key.hash()
     s := first_slot(perturb, self.mask)
@@ -467,31 +467,31 @@ export remove :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool
 }
 
 /// Number of `(key, value)` entries currently stored in `self`. O(1).
-export len :: fn<K, V>(self: MutableMap<K, V>) -> i64 { return self.size }
+export len :: fn<K, V>(self: Map<K, V>) -> i64 { return self.size }
 
 /// True iff no entries have been inserted (or all were removed). O(1).
-export is_empty :: fn<K, V>(self: MutableMap<K, V>) -> bool { return self.size == 0 }
+export is_empty :: fn<K, V>(self: Map<K, V>) -> bool { return self.size == 0 }
 
 // Operator sugar: `m[key]` reads via Index, `m[key] = v` writes via
 // IndexSet, `key in m` dispatches via Contains. The impl bodies reuse `get` /
 // `put` / `contains_key`, so each impl restates the struct's `K: Hash & Equals`
 // bound those calls require.
-MutableMap<K, V> implements<K: Hash & Equals, V> Index<K, V | null> {
+Map<K, V> implements<K: Hash & Equals, V> Index<K, V | null> {
     at :: fn(self, key: K) -> V | null { return self.get(key) }
 }
 
-MutableMap<K, V> implements<K: Hash & Equals, V> IndexSet<K, V> {
+Map<K, V> implements<K: Hash & Equals, V> IndexSet<K, V> {
     set_at :: fn(self, key: K, v: V) { self.put(key, v) }
 }
 
-MutableMap<K, V> implements<K: Hash & Equals, V> Contains<K> {
+Map<K, V> implements<K: Hash & Equals, V> Contains<K> {
     contains :: fn(self, key: K) -> bool { return self.contains_key(key) }
 }
 
 /// Snapshot of every key in insertion order. Allocates a fresh `[K]`.
 /// @param self  the map receiver.
 /// @return      a new array of every stored key.
-export keys :: fn<K, V>(self: MutableMap<K, V>) -> K[] {
+export keys :: fn<K, V>(self: Map<K, V>) -> K[] {
     out: K[]: [] * self.size
     for e in 0..<self.size { out.push(self.ekeys[e]) }
     return out
@@ -501,7 +501,7 @@ export keys :: fn<K, V>(self: MutableMap<K, V>) -> K[] {
 /// fresh `[V]`. Pairing keys and values index-by-index gives a stable view.
 /// @param self  the map receiver.
 /// @return      a new array of every stored value.
-export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
+export values :: fn<K, V>(self: Map<K, V>) -> V[] {
     out: V[]: [] * self.size
     for e in 0..<self.size { out.push(self.evals[e]) }
     return out
@@ -516,7 +516,7 @@ export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
 // dense entry arrays by index, with no snapshot. Mutating `self` while an iterator
 // is live is UB.
 
-MutableMap<K, V> implements<K, V> Into<Iterator<[K, V]>> {
+Map<K, V> implements<K, V> Into<Iterator<[K, V]>> {
     into :: fn(self) -> Iterator<[K, V]> {
         // Held in locals: a loop body that calls out would otherwise reload them
         // from `self` at every entry.
@@ -528,15 +528,15 @@ MutableMap<K, V> implements<K, V> Into<Iterator<[K, V]>> {
     }
 }
 
-// ---- MutableSet<T> --------------------------------------------------------
+// ---- Set<T> ---------------------------------------------------------------
 
 /// Hash set keyed by any `T` that implements `Hash & Equals`. Backed by a
-/// `MutableMap<T, bool>`: every member is stored as a `(T → true)` entry,
+/// `Map<T, bool>`: every member is stored as a `(T → true)` entry,
 /// so lookups inherit the compact-map O(1)-average behaviour.
-export MutableSet :: struct<T: Hash & Equals> {
-    /// Backing map. Defaults empty so `MutableSet<T> {}` is a valid literal.
+export Set :: struct<T: Hash & Equals> {
+    /// Backing map. Defaults empty so `Set<T> {}` is a valid literal.
     @internal
-    inner: MutableMap<T, bool> = MutableMap<T, bool> {}
+    inner: Map<T, bool> = Map<T, bool> {}
 }
 
 /// Insert `value`. Returns `true` if `value` was newly added, `false` if it
@@ -544,7 +544,7 @@ export MutableSet :: struct<T: Hash & Equals> {
 /// @param self   the set receiver.
 /// @param value  the element to add.
 /// @return       `true` on insertion, `false` on duplicate.
-export add :: fn<T: Hash & Equals>(self: MutableSet<T>, value: T) -> bool =
+export add :: fn<T: Hash & Equals>(self: Set<T>, value: T) -> bool =
     self.inner.put(value, true)
 
 /// Remove `value` from the set, if present. Delegates to the backing map's
@@ -552,33 +552,33 @@ export add :: fn<T: Hash & Equals>(self: MutableSet<T>, value: T) -> bool =
 /// @param self   the set receiver.
 /// @param value  the element to drop.
 /// @return       `true` when `value` was removed, `false` when it was absent.
-export remove :: fn<T: Hash & Equals>(self: MutableSet<T>, value: T) -> bool =
+export remove :: fn<T: Hash & Equals>(self: Set<T>, value: T) -> bool =
     self.inner.remove(value)
 
 /// Number of members in the set. O(1).
-export len :: fn<T>(self: MutableSet<T>) -> i64 = self.inner.size
+export len :: fn<T>(self: Set<T>) -> i64 = self.inner.size
 
 /// True iff no members have been added (or all were removed). O(1).
-export is_empty :: fn<T>(self: MutableSet<T>) -> bool = self.inner.size == 0
+export is_empty :: fn<T>(self: Set<T>) -> bool = self.inner.size == 0
 
 /// Logically empty the set, keeping the backing arrays for reuse: for hot
 /// reuse loops (e.g. a dataflow fixpoint's scratch set). Delegates to the
 /// backing map's `clear`. O(index slots).
-export clear :: fn<T>(self: MutableSet<T>) -> void = self.inner.clear()
+export clear :: fn<T>(self: Set<T>) -> void = self.inner.clear()
 
 // `value in set` / `value !in set` dispatch through Contains. No
 // Index/IndexSet impl: sets have no value-at-key semantics, and `s.add(v)`
 // reads more clearly than a hypothetical `s[v] = true`.
-MutableSet<T> implements<T: Hash & Equals> Contains<T> -> value in self.inner
+Set<T> implements<T: Hash & Equals> Contains<T> -> value in self.inner
 
 // `for v in s` works directly via the `Into<Iterator<...>>` impl below: same
-// `generator` pattern as `MutableMap` (inlined by `for v in s`, state machine
+// `generator` pattern as `Map` (inlined by `for v in s`, state machine
 // only when the iterator escapes). Walks the backing map's dense key array by
 // index. Same undefined-behaviour caveat on concurrent mutation.
 
-MutableSet<T> implements<T> Into<Iterator<T>> {
+Set<T> implements<T> Into<Iterator<T>> {
     into :: fn(self) -> Iterator<T> {
-        // Held in a local, as `MutableMap`'s `into` holds its arrays.
+        // Held in a local, as `Map`'s `into` holds its arrays.
         keys :: self.inner.ekeys
         for i in 0..<self.inner.size {
             yield keys[i]
@@ -755,7 +755,7 @@ test_work_queue_resumes_after_a_late_push :: fn() -> void {
 }
 
 @test test_map_put_get :: fn() -> void {
-    m :: MutableMap<string, i32> {}
+    m :: Map<string, i32> {}
     m["one"] = 1
     m["two"] = 2
     m["three"] = 3
@@ -771,7 +771,7 @@ test_work_queue_resumes_after_a_late_push :: fn() -> void {
 }
 
 @test test_map_overwrite :: fn() -> void {
-    m :: MutableMap<string, i32> {}
+    m :: Map<string, i32> {}
     m["k"] = 1
     m["k"] = 99
     assert_eq(m.len(), 1)
@@ -782,21 +782,21 @@ test_work_queue_resumes_after_a_late_push :: fn() -> void {
 }
 
 @test test_map_contains_key :: fn() -> void {
-    m :: MutableMap<string, i32> {}
+    m :: Map<string, i32> {}
     m["k"] = 1
     assert(m.contains_key("k"), "should contain k")
     assert(!m.contains_key("nope"), "should not contain nope")
 }
 
 @test test_map_is_empty :: fn() -> void {
-    m :: MutableMap<string, i32> {}
+    m :: Map<string, i32> {}
     assert(m.is_empty(), "fresh map is empty")
     m["x"] = 1
     assert(!m.is_empty(), "after put no longer empty")
 }
 
 @test test_set_add_contains :: fn() -> void {
-    s :: MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
+    s :: Set<i32> { .inner = Map<i32, bool> {} }
     s.add(10)
     s.add(20)
     s.add(10)
@@ -806,7 +806,7 @@ test_work_queue_resumes_after_a_late_push :: fn() -> void {
 }
 
 @test test_map_remove :: fn() -> void {
-    m :: MutableMap<string, i32> {}
+    m :: Map<string, i32> {}
     m["a"] = 1
     m["b"] = 2
     assert(m.remove("a"), "removing present key returns true")
@@ -818,7 +818,7 @@ test_work_queue_resumes_after_a_late_push :: fn() -> void {
 }
 
 @test test_set_remove :: fn() -> void {
-    s :: MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
+    s :: Set<i32> { .inner = Map<i32, bool> {} }
     s.add(10)
     s.add(20)
     assert(s.remove(10), "removing present member returns true")
@@ -829,7 +829,7 @@ test_work_queue_resumes_after_a_late_push :: fn() -> void {
 }
 
 @test test_map_iteration_order :: fn() -> void {
-    m :: MutableMap<i32, i32> {}
+    m :: Map<i32, i32> {}
     for i in 0..<50 { m[i] = i * 2 }
     seen := 0
     sum := 0
@@ -843,7 +843,7 @@ test_work_queue_resumes_after_a_late_push :: fn() -> void {
 }
 
 @test test_map_remove_then_reinsert :: fn() -> void {
-    m :: MutableMap<i32, i32> {}
+    m :: Map<i32, i32> {}
     for i in 0..<100 { m[i] = i }
     for i in 0..<100 { if i % 3 == 0 { m.remove(i) } }
     for i in 0..<100 { if i % 3 == 0 { m[i] = i * 7 } }
@@ -859,7 +859,7 @@ test_work_queue_resumes_after_a_late_push :: fn() -> void {
 
 @test
 test_map_get_or_put_keeps_the_stored_value :: fn() -> void {
-    m :: MutableMap<string, i64> {}
+    m :: Map<string, i64> {}
     assert_eq(m.get_or_put("a", 1), 1)
     assert_eq(m.get_or_put("a", 2), 1)
     assert_eq(m.len(), 1)
@@ -867,7 +867,7 @@ test_map_get_or_put_keeps_the_stored_value :: fn() -> void {
 
 @test
 test_map_get_or_put_reuses_a_tombstone :: fn() -> void {
-    m :: MutableMap<i32, i32> {}
+    m :: Map<i32, i32> {}
     for i in 0..<8 {
         m[i] = i
     }
@@ -879,7 +879,7 @@ test_map_get_or_put_reuses_a_tombstone :: fn() -> void {
 
 @test
 test_map_put_absent_stores_only_a_new_key :: fn() -> void {
-    m :: MutableMap<string, i64> {}
+    m :: Map<string, i64> {}
     assert(m.put_absent("a", 1) == null, "a new key is stored")
     assert_eq(m.put_absent("a", 2) ?? -1, 1)
     assert_eq(m["a"] ?? -1, 1)
@@ -888,7 +888,7 @@ test_map_put_absent_stores_only_a_new_key :: fn() -> void {
 
 @test
 test_map_put_absent_reuses_a_tombstone :: fn() -> void {
-    m :: MutableMap<i32, i32> {}
+    m :: Map<i32, i32> {}
     for i in 0..<8 {
         m[i] = i
     }
@@ -900,7 +900,7 @@ test_map_put_absent_reuses_a_tombstone :: fn() -> void {
 
 @test
 test_map_put_absent_grows_on_the_insertion_past_three_quarters :: fn() -> void {
-    m :: MutableMap<i32, i32> {}
+    m :: Map<i32, i32> {}
     for i in 0..<12 {
         m.put_absent(i, i)
     }
@@ -912,7 +912,7 @@ test_map_put_absent_grows_on_the_insertion_past_three_quarters :: fn() -> void {
 
 @test
 test_map_get_or_put_with_builds_only_on_a_miss :: fn() -> void {
-    m :: MutableMap<string, string[]> {}
+    m :: Map<string, string[]> {}
     built: i32 = 0
     m.get_or_put_with("a", fn() {
         built += 1
@@ -928,7 +928,7 @@ test_map_get_or_put_with_builds_only_on_a_miss :: fn() -> void {
 
 @test
 test_map_get_or_put_with_survives_a_make_that_inserts :: fn() -> void {
-    m :: MutableMap<i32, i32> {}
+    m :: Map<i32, i32> {}
     got :: m.get_or_put_with(0, fn() {
         for i in 1..<40 {
             m[i] = i
@@ -942,7 +942,7 @@ test_map_get_or_put_with_survives_a_make_that_inserts :: fn() -> void {
 
 @test
 test_map_put_of_a_present_key_does_not_grow :: fn() -> void {
-    m :: MutableMap<i32, i32> {}
+    m :: Map<i32, i32> {}
     for i in 0..<12 {
         m[i] = i
     }
@@ -953,7 +953,7 @@ test_map_put_of_a_present_key_does_not_grow :: fn() -> void {
 
 @test
 test_map_grows_on_the_insertion_past_three_quarters :: fn() -> void {
-    m :: MutableMap<i32, i32> {}
+    m :: Map<i32, i32> {}
     for i in 0..<12 {
         m[i] = i
     }
@@ -964,7 +964,7 @@ test_map_grows_on_the_insertion_past_three_quarters :: fn() -> void {
 
 @test
 test_map_tombstones_count_toward_growth :: fn() -> void {
-    m :: MutableMap<i32, i32> {}
+    m :: Map<i32, i32> {}
     for i in 0..<12 {
         m[i] = i
     }
@@ -977,7 +977,7 @@ test_map_tombstones_count_toward_growth :: fn() -> void {
 
 @test
 test_map_get_or_put_grows_on_the_insertion_past_three_quarters :: fn() -> void {
-    m :: MutableMap<i32, i32> {}
+    m :: Map<i32, i32> {}
     for i in 0..<12 {
         m.get_or_put(i, i)
     }

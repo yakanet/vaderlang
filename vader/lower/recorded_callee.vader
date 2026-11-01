@@ -277,8 +277,8 @@ recorded_type_args :: fn(
     }
     owner :: resolve_owner_typed(ctx, fn_sym.module) ?? return null
     declared :: declared_type_params(callee.decl, owner) ?? return null
-    recorded :: callee.bindings ?? MutableMap<i32, Type> {}
-    bindings :: MutableMap<i32, Type> {}
+    recorded :: callee.bindings ?? Map<i32, Type> {}
+    bindings :: Map<i32, Type> {}
     for [id, bound] in recorded {
         bindings[id] = ctx.types.apply(bound)
     }
@@ -315,7 +315,7 @@ is_fn_alias :: fn(ctx: FnLowerCtx, name_span: Span) -> bool {
 }
 
 // Whether `bindings` leaves one of `declared` unbound.
-leaves_unbound :: fn(declared: Symbol[], bindings: MutableMap<i32, Type>) -> bool {
+leaves_unbound :: fn(declared: Symbol[], bindings: Map<i32, Type>) -> bool {
     for tp in declared {
         if bindings[tp.id] == null {
             return true
@@ -331,7 +331,7 @@ bind_at_instance :: fn(
     ctx: FnLowerCtx,
     call: CallExpr,
     callee_type: Type | null,
-    bindings: MutableMap<i32, Type>,
+    bindings: Map<i32, Type>,
 ) -> void {
     if callee_type !is FnType {
         return

@@ -36,12 +36,12 @@ CalleeVerifier :: struct {
     /// Where the lowering chose another callee than the record.
     mismatches: CalleeMismatch[] = []
     /// The (node, role, choice) already reported.
-    seen: MutableSet<string> = MutableSet<string> {}
+    seen: Set<string> = Set<string> {}
     /// How many choices were compared with the record ; a site lowered twice counts
     /// twice.
     observed: i32 = 0
     /// Mangle → the impl member a call by that name runs (`note_member_origin`).
-    members: MutableMap<string, ObservedFn> = MutableMap<string, ObservedFn> {}
+    members: Map<string, ObservedFn> = Map<string, ObservedFn> {}
 }
 
 /// A verifier when `$VADER_VERIFY_CALLEES` is set, else null.
@@ -518,11 +518,11 @@ render_callee_report :: fn(project: LowerProjectCtx) -> string {
     if verifier.mismatches.len() == 0 {
         return "${header}: none (${observations})\n"
     }
-    groups :: MutableMap<string, MutableMap<string, MismatchPair>> {}
+    groups :: Map<string, Map<string, MismatchPair>> {}
     for m in verifier.mismatches {
         recorded :: recorded_kind(m.recorded)
         key :: "${role_label(m.role)}: recorded ${recorded}, lowered ${observed_kind(m.observed)}"
-        pairs :: groups.get_or_put_with(key, () -> MutableMap<string, MismatchPair> {})
+        pairs :: groups.get_or_put_with(key, () -> Map<string, MismatchPair> {})
         pair :: "${recorded_label(m.recorded)} / ${observed_label(m.observed)}"
         seen :: pairs[pair]
         if seen == null {

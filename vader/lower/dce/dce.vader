@@ -39,13 +39,13 @@ import "vader/lower/ir"
 ///                    test-runner build) ; regular run / build drops them.
 /// @return            a new `LoweredProject` with unreachable fns removed.
 export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> LoweredProject {
-    by_sym_id :: MutableMap<i32, LoweredDecl> {}
-    by_mangle :: MutableMap<string, LoweredDecl> {}
-    reachable_sym :: MutableSet<i32> {}
-    reachable_mangle :: MutableSet<string> {}
+    by_sym_id :: Map<i32, LoweredDecl> {}
+    by_mangle :: Map<string, LoweredDecl> {}
+    reachable_sym :: Set<i32> {}
+    reachable_mangle :: Set<string> {}
     worklist: LoweredDecl[]: []
     // Struct symbols reachable code holds a value of (`visit_value`).
-    built :: MutableSet<i32> {}
+    built :: Set<i32> {}
     // Every struct a type names counts, not only the outer one: a value can come
     // back nested in an array or a field, built where no literal is seen (by the
     // host, say).
@@ -84,7 +84,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
                 if sym is Symbol {
                     by_sym_id[sym.id] = d
                 } else {
-                    // Materialised impl members (`MutableMap.Index.at`) and
+                    // Materialised impl members (`Map.Index.at`) and
                     // dispatching generic instances (`put__i32__bool`) carry a
                     // synthetic NULL-symbol origin: their only identity is the
                     // mangle, so index them by mangle.
@@ -125,14 +125,14 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
 
     // Index vtable entries by `"trait|method"` once so the virtual-call drain
     // is an O(1) bucket lookup, not an O(vtable) rescan per outer pass.
-    impls_by_vtable_key :: MutableMap<string, LoweredVtableEntry[]> {}
+    impls_by_vtable_key :: Map<string, LoweredVtableEntry[]> {}
     for e in lp.vtable_entries {
         key :: "${e.trait_name}|${e.method_name}"
         impls_by_vtable_key.get_or_put_with(key, () -> []).push(e)
     }
 
     pending_virtual: string[]: []
-    pending_seen :: MutableSet<string> {}
+    pending_seen :: Set<string> {}
 
     // Const accessors are seeded as roots above, so a `LoweredIdent` referencing
     // a fn-wrapped const need not mark anything here (its by-id lookup misses:
@@ -203,7 +203,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     }
 
     // Filter each module's fn decls ; keep structs + consts verbatim.
-    out_modules :: MutableMap<string, LoweredModule> {}
+    out_modules :: Map<string, LoweredModule> {}
     for [module_id, m] in lp.modules {
         kept: LoweredDecl[]: []
         for d in m.decls {
@@ -232,7 +232,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
 // holds a value of its struct. A receiver that is not a struct (a primitive, an
 // enum, an array) is always taken. The test is per struct symbol: one instance
 // of a generic struct built keeps the impls of all its instances.
-receiver_is_built :: fn(t: Type, built: MutableSet<i32>) -> bool {
+receiver_is_built :: fn(t: Type, built: Set<i32>) -> bool {
     st :: struct_backing(t) ?? return true
     return st.symbol.id in built
 }
@@ -242,9 +242,9 @@ receiver_is_built :: fn(t: Type, built: MutableSet<i32>) -> bool {
 // otherwise.
 entry_survives :: fn(
     e: LoweredVtableEntry,
-    by_mangle: MutableMap<string, LoweredDecl>,
-    reachable_sym: MutableSet<i32>,
-    reachable_mangle: MutableSet<string>,
+    by_mangle: Map<string, LoweredDecl>,
+    reachable_sym: Set<i32>,
+    reachable_mangle: Set<string>,
 ) -> bool {
     if by_mangle[e.fn_symbol.name] != null {
         return e.fn_symbol.name in reachable_mangle
@@ -261,7 +261,7 @@ entry_survives :: fn(
 /// the mark and the survival check disagree, a fn can survive DCE that emit
 /// cannot resolve, or the reverse, with no error.
 mark_reachable :: fn(
-    fn_decl: LoweredFnDecl, reachable_sym: MutableSet<i32>, reachable_mangle: MutableSet<string>,
+    fn_decl: LoweredFnDecl, reachable_sym: Set<i32>, reachable_mangle: Set<string>,
 ) -> void {
     sym :: fn_decl.origin.symbol
     if sym is Symbol {
@@ -274,7 +274,7 @@ mark_reachable :: fn(
 /// True when the decl survives the prune: a fn when it was reached, under the
 /// key it is indexed by. Structs and consts always survive.
 fn_survives :: fn(
-    d: LoweredDecl, reachable_sym: MutableSet<i32>, reachable_mangle: MutableSet<string>,
+    d: LoweredDecl, reachable_sym: Set<i32>, reachable_mangle: Set<string>,
 ) -> bool {
     if d is LoweredFnDecl {
         sym :: d.origin.symbol

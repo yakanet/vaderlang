@@ -30,7 +30,7 @@ import "vader/core/bytecode"
 /// table, drop unused import entries, and rewrite the surviving
 /// `call.import` ops to use the compacted indices.
 export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
-    used :: MutableMap<i32, bool> {}
+    used :: Map<i32, bool> {}
     for fn_ in ctx.functions {
         for op in fn_.body {
             if op is CallImport { used[op.index] = true }
@@ -69,7 +69,7 @@ export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
 /// @param data_pool  the module's data pool.
 /// @return           the entries some op reads, in their original order.
 export prune_unused_data :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> BcDataEntry[] {
-    used :: MutableSet<i32> {}
+    used :: Set<i32> {}
     for fn_ in ctx.functions {
         for op in fn_.body {
             if op is DataConst {
@@ -110,7 +110,7 @@ export prune_unused_data :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> BcD
 /// @param ctx  the emit context ; its globals and its fn bodies' global ops are
 ///             rewritten.
 export prune_unused_globals :: fn(ctx: EmitterCtx) -> void {
-    used :: MutableSet<i32> {}
+    used :: Set<i32> {}
     for fn_ in ctx.functions {
         for op in fn_.body {
             if op is GlobalGet {
@@ -156,7 +156,7 @@ export prune_unused_globals :: fn(ctx: EmitterCtx) -> void {
 /// fn_index_by_symbol_id) is rewritten.
 export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_mangles: string[]) -> void {
     n :: ctx.functions.len()
-    reachable :: MutableMap<i32, bool> {}
+    reachable :: Map<i32, bool> {}
 
     // Roots : main, @export entries, vtable-target fns, and any explicit
     // keep-mangle (e.g. the `@test` fns under `vader test`, which nothing calls
@@ -256,7 +256,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
 
     // Rewrite function_index_by_symbol_id: drop entries whose fn
     // was pruned ; remap survivors.
-    new_sym_map :: MutableMap<i32, i32> {}
+    new_sym_map :: Map<i32, i32> {}
     for [sym_id, old_idx] in ctx.function_index_by_symbol_id {
         r :: remap[old_idx]
         if r >= 0 { new_sym_map[sym_id] = r }
@@ -267,7 +267,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // runs AFTER this prune and resolves vtable targets by mangle for entries
     // carrying a synthetic `fn_symbol.id = 0` (materialised impl members). A
     // stale pre-prune index here would point those vtable rows at the wrong fn.
-    new_mangle_map :: MutableMap<string, i32> {}
+    new_mangle_map :: Map<string, i32> {}
     for [mangle, old_idx] in ctx.function_index_by_mangle {
         r :: remap[old_idx]
         if r >= 0 { new_mangle_map[mangle] = r }
@@ -277,7 +277,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // Re-key per-function type pins by the post-prune index : a pruned fn's
     // pins drop with it (so `prune_unused_types` no longer roots arg types
     // only a dead fn referenced).
-    new_pins_by_fn :: MutableMap<i32, i32[]> {}
+    new_pins_by_fn :: Map<i32, i32[]> {}
     for [old_fn, pins] in ctx.pinned_types_by_fn {
         new_fn :: remap[old_fn]
         if new_fn >= 0 {
@@ -305,7 +305,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
 /// @param data_pool  the entries some `data.const` still reads.
 /// @return           `data_pool`, its type indices renumbered with the table.
 export prune_unused_types :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> BcDataEntry[] {
-    reachable :: MutableSet<i32> {}
+    reachable :: Set<i32> {}
     reachable.add(0)   // null slot is load-bearing for the runtime
 
     // Visit transitively.
@@ -355,7 +355,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> Bc
     ctx.types = kept.map((t) -> remap_type(t, remap)).collect()
 
     // Remap type_key entries: drop pruned slots, rewrite survivors.
-    new_type_key :: MutableMap<string, i32> {}
+    new_type_key :: Map<string, i32> {}
     for [key, old_idx] in ctx.type_key {
         r :: remap_idx(remap, old_idx)
         if r >= 0 { new_type_key[key] = r }
@@ -457,7 +457,7 @@ TypelessOp :: Unreachable | I32Const | LocalGet | LocalSet | LocalTee | StringCo
 /// Recursive reachability walk on the type table. Composite types
 /// (struct / union / array / fn) extend the visit through their
 /// inner type indices.
-visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: MutableSet<i32>) -> void {
+visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: Set<i32>) -> void {
     if idx < 0                     { return }
     if i64(idx) >= ctx.types.len() { return }
     if !reachable.add(idx)         { return }

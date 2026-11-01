@@ -41,7 +41,7 @@ export DirectFn :: struct {
     /// The type each type parameter of a generic fn takes where it is instantiated
     /// (a call, a reference, an array receiver), by the parameter's symbol id ; null
     /// for a fn that takes none, and on any other site.
-    bindings: MutableMap<i32, Type> | null = null
+    bindings: Map<i32, Type> | null = null
 }
 
 /// A member reached through the bound of a type parameter, settled at each
@@ -123,29 +123,29 @@ export CallRole :: enum {
 export CallSites :: struct {
     /// The calls written in each function, by its declaration's id. A lambda's are
     /// its enclosing function's, whose instances it shares.
-    calls_in_fn: MutableMap<i64, i64[]> = MutableMap<i64, i64[]> {}
-    calls: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    calls_in_fn: Map<i64, i64[]> = Map<i64, i64[]> {}
+    calls: Map<i64, Callee> = Map<i64, Callee> {}
     /// Where each instantiation of a generic fn sits, by its node id : the calls
     /// `calls` records with bindings, every site `references` records, each generic
     /// fn `method_values` records, and every member access `receiver_instances`
     /// records.
-    instantiation_spans: MutableMap<i64, Span> = MutableMap<i64, Span> {}
+    instantiation_spans: Map<i64, Span> = Map<i64, Span> {}
     /// The function each of those sites sits in, by its declaration's id ; none at
     /// module level.
-    instantiation_callers: MutableMap<i64, i64> = MutableMap<i64, i64> {}
-    operators: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
-    index_reads: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
-    index_writes: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
-    conversions: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
-    iterator_conversions: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
-    iterator_steps: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
-    displays: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
-    references: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
-    method_values: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    instantiation_callers: Map<i64, i64> = Map<i64, i64> {}
+    operators: Map<i64, Callee> = Map<i64, Callee> {}
+    index_reads: Map<i64, Callee> = Map<i64, Callee> {}
+    index_writes: Map<i64, Callee> = Map<i64, Callee> {}
+    conversions: Map<i64, Callee> = Map<i64, Callee> {}
+    iterator_conversions: Map<i64, Callee> = Map<i64, Callee> {}
+    iterator_steps: Map<i64, Callee> = Map<i64, Callee> {}
+    displays: Map<i64, Callee> = Map<i64, Callee> {}
+    references: Map<i64, Callee> = Map<i64, Callee> {}
+    method_values: Map<i64, Callee> = Map<i64, Callee> {}
     /// The member accesses on an array receiver whose element names a type
     /// parameter, by node id : the member, with what the receiver gives the impl's
     /// parameters (`[self]` binds `T[] implements<T>`'s `T` to `T[]`).
-    receiver_instances: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    receiver_instances: Map<i64, Callee> = Map<i64, Callee> {}
 }
 
 /// Note that the site `id`, at `span`, instantiates a generic : the growing-recursion
@@ -173,7 +173,7 @@ current_fn_id :: fn(typed: TypedProgram) -> i64 | null {
 ///
 /// @param sites  a module's sites (`TypedProgram.call_sites`).
 /// @param role   the part the sites play.
-export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<i64, Callee> = match role {
+export sites_of :: fn(sites: CallSites, role: CallRole) -> Map<i64, Callee> = match role {
     .Call        -> sites.calls
     .Operator    -> sites.operators
     .IndexRead   -> sites.index_reads
@@ -333,7 +333,7 @@ note_call_bindings :: fn(
     typed: TypedProgram,
     c: AST.CallExpr,
     quantifier: TypeParamType[],
-    bindings: MutableMap<i32, Type>,
+    bindings: Map<i32, Type>,
 ) -> void {
     default_free_bindings(bindings)
     callee :: typed.call_sites.calls[c.id] ?? return
@@ -356,7 +356,7 @@ note_call_bindings :: fn(
 }
 
 // Whether a binding names one of `impl_params`.
-names_impl_param :: fn(bindings: MutableMap<i32, Type>, impl_params: MutableSet<i32>) -> bool {
+names_impl_param :: fn(bindings: Map<i32, Type>, impl_params: Set<i32>) -> bool {
     if impl_params.is_empty() {
         return false
     }
@@ -372,7 +372,7 @@ names_impl_param :: fn(bindings: MutableMap<i32, Type>, impl_params: MutableSet<
 
 // The type `bindings` gives each of `quantifier`, in order ; unresolved for one it
 // leaves unbound.
-in_order :: fn(quantifier: TypeParamType[], bindings: MutableMap<i32, Type>) -> Type[] {
+in_order :: fn(quantifier: TypeParamType[], bindings: Map<i32, Type>) -> Type[] {
     out: Type[]: []
     for tp in quantifier {
         out.push(bindings[tp.symbol.id] ?? TY_UNRESOLVED)
@@ -381,7 +381,7 @@ in_order :: fn(quantifier: TypeParamType[], bindings: MutableMap<i32, Type>) -> 
 }
 
 // Pin every free literal type `bindings` holds to its default (`{integer}` → `i32`).
-default_free_bindings :: fn(bindings: MutableMap<i32, Type>) -> void {
+default_free_bindings :: fn(bindings: Map<i32, Type>) -> void {
     for k in bindings.keys() {
         v :: bindings[k] ?? continue
         bindings[k] = default_if_free(v)

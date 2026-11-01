@@ -71,7 +71,7 @@ write_struct :: fn(
 ) -> void {
     out.append("\n/// Generated from `${s.name}` by `json/derive`.\n")
     out.append("to_json_value :: fn(v: ${s.name}) -> ${JSON_ALIAS}.JsonValue {\n")
-    out.append("    entries :: MutableMap<string, ${JSON_ALIAS}.JsonValue> {}\n")
+    out.append("    entries :: Map<string, ${JSON_ALIAS}.JsonValue> {}\n")
     for f in s.fields {
         write_field(ctx, out, f, siblings)
     }

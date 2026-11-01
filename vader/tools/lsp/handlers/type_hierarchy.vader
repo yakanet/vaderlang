@@ -159,8 +159,8 @@ starts_at :: fn(head: Span | null, site: Span) -> bool {
 TypeWalk :: struct {
     target:   DeclTarget
     /// By `path:offset` of each type's name, in the order first met.
-    found:    MutableMap<string, TypeHit> = MutableMap<string, TypeHit> {}
-    programs: MutableMap<string, AST.Program> = MutableMap<string, AST.Program> {}
+    found:    Map<string, TypeHit> = Map<string, TypeHit> {}
+    programs: Map<string, AST.Program> = Map<string, AST.Program> {}
 }
 
 // A type the walk found and the file declaring it.

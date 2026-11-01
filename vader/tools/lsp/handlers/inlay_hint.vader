@@ -427,10 +427,10 @@ HintPadding :: enum {
 }
 
 build_hint :: fn(line: i32, character: i32, label: string, padding: HintPadding) -> JsonValue {
-    position :: MutableMap<string, JsonValue> {}
+    position :: Map<string, JsonValue> {}
     position["line"] = JsonNumber { .value = f64(line) }
     position["character"] = JsonNumber { .value = f64(character) }
-    hint :: MutableMap<string, JsonValue> {}
+    hint :: Map<string, JsonValue> {}
     hint["position"] = JsonObject { .entries = position }
     hint["label"] = JsonString { .value = label }
     // InlayHintKind.Type = 1 (LSP §3.17.21).

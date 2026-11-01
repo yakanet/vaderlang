@@ -23,9 +23,9 @@ import "vader/lower/ir"
 /// The printed name of every lowered declaration, by mangled name and by the
 /// id of the symbol it was lowered from, and of every trait by its key.
 DumpNames :: struct {
-    by_mangle: MutableMap<string, string> = MutableMap<string, string> {}
-    by_symbol: MutableMap<i32, string> = MutableMap<i32, string> {}
-    traits: MutableMap<string, string> = MutableMap<string, string> {}
+    by_mangle: Map<string, string> = Map<string, string> {}
+    by_symbol: Map<i32, string> = Map<i32, string> {}
+    traits: Map<string, string> = Map<string, string> {}
 }
 
 // One declaration's mangled name, origin and qualified name, before the names
@@ -43,8 +43,8 @@ new_dump_names :: fn(project: LoweredProject, typed: TypedProject) -> DumpNames 
             named.push(named_decl(decl, typed))
         }
     }
-    claimed :: MutableMap<string, string> {}
-    shared :: MutableSet<string> {}
+    claimed :: Map<string, string> {}
+    shared :: Set<string> {}
     for n in named {
         if claimed.get_or_put(n.qualified, n.mangled) != n.mangled {
             shared.add(n.qualified)
@@ -60,7 +60,7 @@ new_dump_names :: fn(project: LoweredProject, typed: TypedProject) -> DumpNames 
     return names
 }
 
-printed_name :: fn(n: NamedDecl, shared: MutableSet<string>) -> string {
+printed_name :: fn(n: NamedDecl, shared: Set<string>) -> string {
     if n.qualified in shared {
         return n.mangled
     }
@@ -83,9 +83,9 @@ named :: fn(
 
 // A trait's key (`trait_key_of`) to its qualified name, for every trait of a
 // module some declaration was lowered from.
-trait_names :: fn(named: NamedDecl[], typed: TypedProject) -> MutableMap<string, string> {
-    seen :: MutableSet<string> {}
-    traits :: MutableMap<string, string> {}
+trait_names :: fn(named: NamedDecl[], typed: TypedProject) -> Map<string, string> {
+    seen :: Set<string> {}
+    traits :: Map<string, string> {}
     for n in named {
         if !seen.add(n.origin.module) {
             continue

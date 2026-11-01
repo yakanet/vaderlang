@@ -147,7 +147,7 @@ verify_cfg_function :: fn(
 verify_storage :: fn(
     function: CFGFunction,
     resolution: CfgResolution,
-    reachable: MutableSet<BlockId>,
+    reachable: Set<BlockId>,
     where: string,
     diags: Diagnostic[],
 ) -> void {
@@ -331,7 +331,7 @@ stored_name :: fn(t: Type) -> string {
 // body from the terminator, and the mismatch surfaces as a stack-depth ICE in a
 // different function, or not at all.
 verify_return_arity :: fn(
-    function: CFGFunction, reachable: MutableSet<BlockId>, where: string, diags: Diagnostic[],
+    function: CFGFunction, reachable: Set<BlockId>, where: string, diags: Diagnostic[],
 ) -> void {
     // A scalarised fn hands back its elements ; every other fn hands back one
     // value, or none when it returns void.
@@ -401,10 +401,10 @@ verify_block_ids :: fn(function: CFGFunction, where: string, diags: Diagnostic[]
 // itself one of the things a broken pass can violate. A cheap check that never
 // false-positives beats a precise one that fires on its own broken input.
 verify_locals :: fn(
-    function: CFGFunction, reachable: MutableSet<BlockId>, where: string, diags: Diagnostic[],
+    function: CFGFunction, reachable: Set<BlockId>, where: string, diags: Diagnostic[],
 ) -> void {
     local_count :: i32(function.locals.len())
-    written :: MutableSet<LocalId> {}
+    written :: Set<LocalId> {}
     // Params are written by the implicit entry store the translator emits
     // (`cfg.vader::CFGParam.local`), which may carry no instruction of its own.
     for p in function.params {
@@ -424,8 +424,8 @@ verify_locals :: fn(
 
     // One report per offending slot : a bad local is usually read in a loop,
     // and N copies of the same line bury the other violations.
-    ranged :: MutableSet<LocalId> {}
-    unwritten :: MutableSet<LocalId> {}
+    ranged :: Set<LocalId> {}
+    unwritten :: Set<LocalId> {}
     report :: (id: LocalId, sp: Span, site: string) -> {
         if i32(id) < 0 || i32(id) >= local_count {
             if !ranged.add(id) {
@@ -461,7 +461,7 @@ verify_locals :: fn(
 // reference in a dead block never resolves and never breaks the emit. The
 // file header explains why the call chain and the fn-as-value chain differ.
 verify_fn_references :: fn(
-    function: CFGFunction, resolution: CfgResolution, reachable: MutableSet<BlockId>,
+    function: CFGFunction, resolution: CfgResolution, reachable: Set<BlockId>,
     where: string, diags: Diagnostic[],
 ) -> void {
     for b in function.blocks {
@@ -497,8 +497,8 @@ verify_fn_references :: fn(
 // ---- helpers --------------------------------------------------------------
 
 // Blocks the entry can reach, via the shared RPO walk.
-reachable_blocks :: fn(function: CFGFunction) -> MutableSet<BlockId> {
-    out :: MutableSet<BlockId> {}
+reachable_blocks :: fn(function: CFGFunction) -> Set<BlockId> {
+    out :: Set<BlockId> {}
     // `walk_rpo` reads `visited[entry]` before testing anything, so an empty
     // block list would index past the end.
     if function.blocks.len() == 0 {
@@ -512,8 +512,8 @@ reachable_blocks :: fn(function: CFGFunction) -> MutableSet<BlockId> {
 
 // Every block, for the degraded path where a broken id makes the RPO walk
 // unsound. Checking a read in a block that may be dead beats skipping it.
-all_blocks :: fn(function: CFGFunction) -> MutableSet<BlockId> {
-    out :: MutableSet<BlockId> {}
+all_blocks :: fn(function: CFGFunction) -> Set<BlockId> {
+    out :: Set<BlockId> {}
     for b in function.blocks {
         out.add(b.id)
     }

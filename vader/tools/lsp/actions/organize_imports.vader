@@ -135,9 +135,9 @@ ImportEntry :: struct {
 
 render_import_block :: fn(run: AST.ImportDecl[]) -> string {
     // Merge modifier lists by path ; collect namespace imports (dedup exact).
-    modifiers :: MutableMap<string, AST.ImportName[]> {}
+    modifiers :: Map<string, AST.ImportName[]> {}
     entries: ImportEntry[]: []
-    ns_seen :: MutableSet<string> {}
+    ns_seen :: Set<string> {}
 
     for i in 0..<run.len() {
         im :: run[i]
@@ -205,7 +205,7 @@ render_namespace_import :: fn(path: string, nn: AST.NamedNamespaceImport) -> str
 // first lets a plain string sort order names then aliases (`A` < `A as X` < `B`).
 sorted_name_texts :: fn(names: AST.ImportName[]) -> string[] {
     texts: string[]: []
-    seen :: MutableSet<string> {}
+    seen :: Set<string> {}
     for i in 0..<names.len() {
         t :: import_name_text(names[i])
         if seen.add(t) {

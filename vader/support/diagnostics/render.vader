@@ -97,7 +97,7 @@ render_diagnostics :: fn(diags: Diagnostic[], show_file: bool, cap: bool) -> str
 /// @param diags  the diagnostics, in the order they are shown.
 /// @return       each distinct one once: same severity, code, span and detail.
 export dedup_diagnostics :: fn(diags: Diagnostic[]) -> Diagnostic[] {
-    seen :: MutableSet<string> {}
+    seen :: Set<string> {}
     out: Diagnostic[]: []
     for d in diags {
         if seen.add(diag_key(d)) { out.push(d) }

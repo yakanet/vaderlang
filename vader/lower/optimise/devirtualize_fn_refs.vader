@@ -55,8 +55,8 @@ ClosureAlias :: struct { fn_sym: Symbol, env_type: Type }
 
 devirt_body :: fn(body: LoweredBlock) -> void {
     ctx :: AnalyzeCtx {
-        .aliases = MutableMap<i32, Symbol> {}, .closures = MutableMap<i32, ClosureAlias> {},
-        .escaped = MutableSet<i32> {}, .bound = MutableSet<i32> {},
+        .aliases = Map<i32, Symbol> {}, .closures = Map<i32, ClosureAlias> {},
+        .escaped = Set<i32> {}, .bound = Set<i32> {},
     }
     analyze_block(body, ctx)
     // No candidate binding → nothing to rewrite. (An aliased-but-escaped candidate
@@ -71,14 +71,14 @@ devirt_body :: fn(body: LoweredBlock) -> void {
 
 AnalyzeCtx :: struct {
     /// named-fn-ref local `symbol.id` -> the concrete fn `Symbol` it aliases.
-    aliases: MutableMap<i32, Symbol>
+    aliases: Map<i32, Symbol>
     /// lambda/closure local `symbol.id` -> its lifted fn + env type.
-    closures: MutableMap<i32, ClosureAlias>
+    closures: Map<i32, ClosureAlias>
     /// local `symbol.id`s that appear in a NON-callee (value) position: a bare
     /// `LoweredIdent` anywhere but a `LoweredCall.callee`. Such a local escapes,
     /// so its alias is not safe to devirtualize away. Also gathers any symbol bound
     /// MORE THAN ONCE (see `bound`): the alias would be ambiguous.
-    escaped: MutableSet<i32>
+    escaped: Set<i32>
     /// local `symbol.id`s already seen as a `let` target. The iterator fusion
     /// REUSES a combinator's param symbol (`filter`'s `pred`, `map`'s `f`) across
     /// every fusion site in one body, so the same id is bound multiple times to
@@ -89,7 +89,7 @@ AnalyzeCtx :: struct {
     /// non-unique local `symbol.id`s (it should freshen the per-site binding symbol):
     /// that violates the "unique local id per body" invariant every whole-body
     /// pass relies on, and should be fixed at the source too.
-    bound: MutableSet<i32>
+    bound: Set<i32>
 }
 
 analyze_block :: fn(b: LoweredBlock, ctx: AnalyzeCtx) -> void {

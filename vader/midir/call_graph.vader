@@ -41,7 +41,7 @@ CallNode :: CFGFunction | CFGExternDecl | IndirectCalls | ForeignCallbacks | Unk
 CalleeIndex :: struct {
     resolution: CfgResolution
     /// `vtable_key` → the nodes a virtual call through that key may land on.
-    virtual_targets: MutableMap<string, i32[]>
+    virtual_targets: Map<string, i32[]>
     indirect: i32
     foreign_callbacks: i32
     unknown: i32
@@ -68,7 +68,7 @@ build_call_graph :: fn(p: CFGProject) -> CallGraph {
     nodes.push(UnknownCallee {})
     index :: CalleeIndex {
         .resolution = resolution,
-        .virtual_targets = MutableMap<string, i32[]> {},
+        .virtual_targets = Map<string, i32[]> {},
         .indirect = indirect,
         .foreign_callbacks = indirect + 1,
         .unknown = indirect + 2,
@@ -79,7 +79,7 @@ build_call_graph :: fn(p: CFGProject) -> CallGraph {
         targets.push(callee_node(index, e.fn_symbol))
     }
     successors: i32[][]: []
-    taken :: TakenFunctions { .as_values = MutableSet<i32> {}, .as_addresses = MutableSet<i32> {} }
+    taken :: TakenFunctions { .as_values = Set<i32> {}, .as_addresses = Set<i32> {} }
     for node in nodes {
         successors.push(node_callees(index, node, taken))
     }
@@ -99,16 +99,16 @@ build_call_graph :: fn(p: CFGProject) -> CallGraph {
 /// @param p      the CFG ; read only.
 /// @param roots  mangled names of functions of `p`.
 /// @return       one set per root, in order; empty for a root `p` does not define.
-export functions_run_from :: fn(p: CFGProject, roots: string[]) -> MutableSet<string>[] {
+export functions_run_from :: fn(p: CFGProject, roots: string[]) -> Set<string>[] {
     calls :: build_call_graph(p)
-    node_of :: MutableMap<string, i32> {}
+    node_of :: Map<string, i32> {}
     for i in 0..<calls.nodes.len() {
         node :: calls.nodes[i]
         if node is CFGFunction {
             node_of[node.mangled] = i32(i)
         }
     }
-    out: MutableSet<string>[]: []
+    out: Set<string>[]: []
     for root in roots {
         out.push(mangles_reached(calls, node_of[root]))
     }
@@ -117,12 +117,12 @@ export functions_run_from :: fn(p: CFGProject, roots: string[]) -> MutableSet<st
 
 // The mangles of the functions `start` reaches in `calls`, itself included; none
 // from a null start.
-mangles_reached :: fn(calls: CallGraph, start: i32 | null) -> MutableSet<string> {
-    mangles :: MutableSet<string> {}
+mangles_reached :: fn(calls: CallGraph, start: i32 | null) -> Set<string> {
+    mangles :: Set<string> {}
     if start == null {
         return mangles
     }
-    seen :: MutableSet<i32> {}
+    seen :: Set<i32> {}
     seen.add(start)
     work: i32[]: [start]
     cursor: i64 = 0
@@ -144,8 +144,8 @@ mangles_reached :: fn(calls: CallGraph, start: i32 | null) -> MutableSet<string>
 // The functions some body takes as a Vader value, and those it hands to foreign
 // code as an address.
 TakenFunctions :: struct {
-    as_values: MutableSet<i32>
-    as_addresses: MutableSet<i32>
+    as_values: Set<i32>
+    as_addresses: Set<i32>
 }
 
 /// The node a direct call to `callee` runs.
@@ -194,7 +194,7 @@ node_callees :: fn(index: CalleeIndex, node: CallNode, taken: TakenFunctions) ->
     if node !is CFGFunction {
         return []
     }
-    seen :: MutableSet<i32> {}
+    seen :: Set<i32> {}
     callees: i32[]: []
     for block in node.blocks {
         for ins in block.instructions {
@@ -243,7 +243,7 @@ taken_node :: fn(index: CalleeIndex, target: Symbol) -> i32 =
     function_called(index.resolution.slots.callees, target) ?? index.unknown
 
 // The members of `set`, in the order they were added.
-nodes_of :: fn(set: MutableSet<i32>) -> i32[] {
+nodes_of :: fn(set: Set<i32>) -> i32[] {
     nodes: i32[]: []
     for n in set {
         nodes.push(n)

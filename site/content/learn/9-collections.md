@@ -31,21 +31,21 @@ A binding made with `::` only fixes the name: the array it names may still chang
 
 ## Maps and sets
 
-`MutableMap<K, V>` maps keys to values, and `for [key, value] in` walks its entries. `MutableSet<T>` keeps each value once.
+`Map<K, V>` maps keys to values, and `for [key, value] in` walks its entries. `Set<T>` keeps each value once.
 
 ```vader
 # module "main"
 # import "std/collections"
 # import "std/io"
 # main :: fn() -> i32 {
-    counts :: MutableMap<string, i32> {}
+    counts :: Map<string, i32> {}
     for word in ["to", "be", "or", "not", "to", "be"] {
         counts[word] = (counts[word] ?? 0) + 1
     }
     for [word, n] in counts {
         println("${word}: ${n}")
     }
-    seen :: MutableSet<i32> {}
+    seen :: Set<i32> {}
     seen.add(4)
     seen.add(4)
     println("${seen.len()} ${4 in seen}")

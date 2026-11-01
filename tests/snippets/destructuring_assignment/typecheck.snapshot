@@ -61,16 +61,16 @@
   expr 49:41    IdentExpr      :: i32
   expr 49:5     CallExpr       :: void
   expr 49:5     IdentExpr      :: fn(T) -> void
-  expr 55:10    StructLitExpr  :: MutableMap<string, i32>
-  expr 56:5     IdentExpr      :: MutableMap<string, i32>
+  expr 55:10    StructLitExpr  :: Map<string, i32>
+  expr 56:5     IdentExpr      :: Map<string, i32>
   expr 56:7     StringLitExpr  :: string
   expr 58:14    IdentExpr      :: i32
   expr 58:19    SeqLitExpr     :: [i32, i32]
-  expr 58:6     IdentExpr      :: MutableMap<string, i32>
+  expr 58:6     IdentExpr      :: Map<string, i32>
   expr 58:6     IndexExpr      :: i32
   expr 58:8     StringLitExpr  :: string
   expr 59:13    StringLitExpr  :: string
-  expr 59:27    IdentExpr      :: MutableMap<string, i32>
+  expr 59:27    IdentExpr      :: Map<string, i32>
   expr 59:27    IndexExpr      :: i32 | null
   expr 59:27    NullCoalesceExpr :: i32
   expr 59:29    StringLitExpr  :: string

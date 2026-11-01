@@ -288,7 +288,7 @@ warn_shared_repeat_element :: fn(
 }
 
 /// True when the expression allocates its value on the spot: an array / struct
-/// literal, or a call (`MutableMap()`, `new_rng()`). Those are the shapes an
+/// literal, or a call (`Map()`, `new_rng()`). Those are the shapes an
 /// author reads as "n of these", so repeating one reference surprises.
 is_fresh_allocation :: fn(e: AST.Expr) = e is AST.SeqLitExpr | AST.StructLitExpr | AST.CallExpr
 
@@ -636,7 +636,7 @@ push_trait_missing :: fn(
 
 /// `x in coll` dispatches through `coll`'s `Contains` impl (the RIGHT operand).
 /// Built-in collections, arrays (`[T]`), `string`, `Range`, register a
-/// `Contains` impl in `impl_methods`, as do `MutableMap` / `MutableSet` and any
+/// `Contains` impl in `impl_methods`, as do `Map` / `Set` and any
 /// user `implements Contains`. A type with only a free `contains` fn (no
 /// `Contains` impl), or none at all, has no `in` ; reject it with T3043 here
 /// rather than letting the lowerer stub the call into an `unreachable` trap

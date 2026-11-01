@@ -117,7 +117,7 @@ export DocIndex :: struct {
     /// `Name.member` is the ONLY spelling allowed once an alias is taken (T3078),
     /// and the alias names a module, not a value, so no receiver type can be read
     /// off it : this binding is goto-def's one way back to the module.
-    namespace_aliases: MutableMap<string, string>
+    namespace_aliases: Map<string, string>
     /// The file's wildcard imports: bare `import "p"`, and `import "p" { … }`,
     /// a wildcard with modifiers: with the names each modifier list drops. A
     /// wildcard binds no rename: every export of `p` enters scope
@@ -156,7 +156,7 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
     }
     collected :: Rs.collect_module_no_index(parsed.program, uri, SymbolFactory {})
     imports: Rs.ImportInfo[]: []
-    namespace_aliases :: MutableMap<string, string> {}
+    namespace_aliases :: Map<string, string> {}
     for [_, info] in collected.imports {
         // A namespace alias names the module itself : no imported name.
         if info.imported_name == null {

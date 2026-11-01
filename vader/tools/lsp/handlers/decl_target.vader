@@ -28,9 +28,9 @@ DeclTarget :: struct {
     /// The file declaring it.
     decl_path: string
     /// The files indexed so far for this request, by path.
-    indices:   MutableMap<string, DocIndex>
+    indices:   Map<string, DocIndex>
     /// Their line indices, by path.
-    lines:     MutableMap<string, LineIndex>
+    lines:     Map<string, LineIndex>
 }
 
 // The declaration under the cursor of `params`, or null.
@@ -76,7 +76,7 @@ target_at :: fn(
     site :: site_at(index, path, l, column) ?? return null
     decl_site :: declaration_site(index, site.key) ?? return null
     at :: decl_site.span.start
-    indices :: MutableMap<string, DocIndex> {}
+    indices :: Map<string, DocIndex> {}
     decl :: doc_index_for(state, indices, at.file).entry_at_offset(at.offset) ?? return null
     return DeclTarget {
         .state     = state,
@@ -87,7 +87,7 @@ target_at :: fn(
         .decl      = decl,
         .decl_path = at.file,
         .indices   = indices,
-        .lines     = MutableMap<string, LineIndex> {},
+        .lines     = Map<string, LineIndex> {},
     }
 }
 
@@ -104,7 +104,7 @@ declaration_site :: fn(index: ReferenceIndex, key: i64) -> RefSite | null {
 // The index of the file at `path`, the open document's when it is one, built
 // once per request otherwise.
 doc_index_for :: fn(
-    state: ServerState, indices: MutableMap<string, DocIndex>, path: string,
+    state: ServerState, indices: Map<string, DocIndex>, path: string,
 ) -> DocIndex = indices.get_or_put_with(path, () -> open_or_built_index(state, path))
 
 // The open document's index of the file at `path`, else one built from its text.
@@ -124,9 +124,9 @@ hierarchy_item_json :: fn(
     target: DeclTarget, decl: DeclEntry, path: string, kind: i32, detail: string,
 ) -> JsonValue {
     li :: target.line_index_for(path)
-    data :: MutableMap<string, JsonValue> {}
+    data :: Map<string, JsonValue> {}
     data["entry"] = JsonString { .value = target.project.entry_path }
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["name"]           = JsonString { .value = decl.name }
     obj["kind"]           = JsonNumber { .value = f64(kind) }
     obj["detail"]         = JsonString { .value = detail }

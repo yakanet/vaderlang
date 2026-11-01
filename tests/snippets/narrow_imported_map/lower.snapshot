@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      m: MutableMap<i32, i32 | Wrap> = MutableMap<i32, Any> {
+      m: Map<i32, i32 | Wrap> = Map<i32, Any> {
           .ekeys = [] :i32[],
           .evals = [] :Any[],
           .index = [] :i32[],
@@ -11,7 +11,7 @@
           .size = i64(0),
           .tombs = i64(0),
       }
-      std.collections.MutableMap<i32, Any>.set_at(m, 1, Wrap { .items = [42, 7] :i32[] })
+      std.collections.Map<i32, Any>.set_at(m, 1, Wrap { .items = [42, 7] :i32[] })
       r: null | Out = snippet.lib.pick(m, 1)
       if r is null {
           std.io.println<string>("null")
@@ -35,8 +35,8 @@
   }
 
 ## snippet/lib
-  snippet.lib.pick :: fn(m: MutableMap<i32, i32 | Wrap>, k: i32) -> null | Out {  // snippet_lib$pick
-      v: i32 | null | Wrap = std.collections.MutableMap<i32, Any>.at(m, k)
+  snippet.lib.pick :: fn(m: Map<i32, i32 | Wrap>, k: i32) -> null | Out {  // snippet_lib$pick
+      v: i32 | null | Wrap = std.collections.Map<i32, Any>.at(m, k)
       if v is null {
           return null
       }
@@ -50,10 +50,10 @@
 
 ## lowered in dependencies
   std/collections
-    fn std.collections.MutableMap<i32, Any>.at  // std_collections$MutableMap$std_core$Index$at__i32__Any
-    fn std.collections.MutableMap<i32, Any>.contains  // std_collections$MutableMap$std_core$Contains$contains__i32__Any
-    fn std.collections.MutableMap<i32, Any>.into  // std_collections$MutableMap$std_core$Into$into__i32__Any
-    fn std.collections.MutableMap<i32, Any>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i32__Any
+    fn std.collections.Map<i32, Any>.at  // std_collections$Map$std_core$Index$at__i32__Any
+    fn std.collections.Map<i32, Any>.contains  // std_collections$Map$std_core$Contains$contains__i32__Any
+    fn std.collections.Map<i32, Any>.into  // std_collections$Map$std_core$Into$into__i32__Any
+    fn std.collections.Map<i32, Any>.set_at  // std_collections$Map$std_core$IndexSet$set_at__i32__Any
     fn std.collections.contains_key<i32, Any>  // std_collections$contains_key__i32__Any
     fn std.collections.first_slot  // std_collections$first_slot
     fn std.collections.get<i32, Any>  // std_collections$get__i32__Any
@@ -62,8 +62,8 @@
     fn std.collections.put<i32, Any>  // std_collections$put__i32__Any
     fn std.collections.rehash<i32, Any>  // std_collections$rehash__i32__Any
     fn std_collections$__gen_state_std_collections_0$Iterator$next
-    struct std.collections.MutableMap<i32, Any>  // std_collections$MutableMap__i32__Any
-    struct std.collections.MutableMap<i32, i32 | Wrap>  // std_collections$MutableMap__i32__i32___snippet_lib_Wrap
+    struct std.collections.Map<i32, Any>  // std_collections$Map__i32__Any
+    struct std.collections.Map<i32, i32 | Wrap>  // std_collections$Map__i32__i32___snippet_lib_Wrap
     struct std_collections$__gen_state_std_collections_0
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string

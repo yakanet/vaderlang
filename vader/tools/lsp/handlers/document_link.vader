@@ -53,7 +53,7 @@ import_link :: fn(
         return null
     }
     range :: path_string_range(imp, source, li) ?? return null
-    obj :: MutableMap<string, JsonValue> {}
+    obj :: Map<string, JsonValue> {}
     obj["range"]  = range_json(range)
     obj["target"] = JsonString { .value = path_to_uri(module.files[0]) }
     return JsonObject { .entries = obj }

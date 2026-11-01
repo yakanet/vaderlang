@@ -116,7 +116,7 @@ inline_into :: fn(functions: bc.BcFunction[], leaf: bool[], index: i64) -> bc.Bc
     params :: i32(caller.signature.params.len())
     // An inlined body calls nothing, so two sites of one leaf never overlap: they
     // share its block of locals.
-    bases :: MutableMap<i32, i32> {}
+    bases :: Map<i32, i32> {}
     for pc in 0..<body.len() {
         op :: body[pc]
         old_to_new.push(i32(out.len()))

@@ -85,7 +85,7 @@ PassTotals :: struct {
 
 // Passes run one at a time, so a single set of starting readings serves.
 Profiler :: struct {
-    totals: MutableMap<ProfPhase, PassTotals> = MutableMap<ProfPhase, PassTotals> {}
+    totals: Map<ProfPhase, PassTotals> = Map<ProfPhase, PassTotals> {}
     /// The pass `prof_begin` opened and no `prof_end` has closed yet.
     open: ProfPhase | null = null
     start: Counters = Counters {}

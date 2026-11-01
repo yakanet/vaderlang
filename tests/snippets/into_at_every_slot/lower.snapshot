@@ -54,7 +54,7 @@
       h: Holder = Holder { .l = Label { .text = "none" } }
       h.l = snippet$Celsius$std_core$Into$into(Celsius { .v = 6 })
       std.io.println<string>(concat_3("field [", h.l.text, "]"))
-      m: MutableMap<string, Label> = MutableMap<string, Any> {
+      m: Map<string, Label> = Map<string, Any> {
           .ekeys = [] :string[],
           .evals = [] :Any[],
           .index = [] :i32[],
@@ -63,9 +63,9 @@
           .size = i64(0),
           .tombs = i64(0),
       }
-      std.collections.MutableMap<string, Any>.set_at(m, "k", snippet$Celsius$std_core$Into$into(Celsius { .v = 8 }))
+      std.collections.Map<string, Any>.set_at(m, "k", snippet$Celsius$std_core$Into$into(Celsius { .v = 8 }))
       got: Label = {
-          __coalesce_0: Label | null = std.collections.MutableMap<string, Any>.at(m, "k")
+          __coalesce_0: Label | null = std.collections.Map<string, Any>.at(m, "k")
           if __coalesce_0 is null { Label { .text = "absent" } } else { Label(__coalesce_0) } :Label
       }
       std.io.println<string>(concat_3("map [", got.text, "]"))
@@ -151,10 +151,10 @@
 
 ## lowered in dependencies
   std/collections
-    fn std.collections.MutableMap<string, Any>.at  // std_collections$MutableMap$std_core$Index$at__string__Any
-    fn std.collections.MutableMap<string, Any>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__Any
-    fn std.collections.MutableMap<string, Any>.into  // std_collections$MutableMap$std_core$Into$into__string__Any
-    fn std.collections.MutableMap<string, Any>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__Any
+    fn std.collections.Map<string, Any>.at  // std_collections$Map$std_core$Index$at__string__Any
+    fn std.collections.Map<string, Any>.contains  // std_collections$Map$std_core$Contains$contains__string__Any
+    fn std.collections.Map<string, Any>.into  // std_collections$Map$std_core$Into$into__string__Any
+    fn std.collections.Map<string, Any>.set_at  // std_collections$Map$std_core$IndexSet$set_at__string__Any
     fn std.collections.contains_key<string, Any>  // std_collections$contains_key__string__Any
     fn std.collections.first_slot  // std_collections$first_slot
     fn std.collections.get<string, Any>  // std_collections$get__string__Any
@@ -163,8 +163,8 @@
     fn std.collections.put<string, Any>  // std_collections$put__string__Any
     fn std.collections.rehash<string, Any>  // std_collections$rehash__string__Any
     fn std_collections$__gen_state_std_collections_0$Iterator$next
-    struct std.collections.MutableMap<string, Any>  // std_collections$MutableMap__string__Any
-    struct std.collections.MutableMap<string, Label>  // std_collections$MutableMap__string__snippet_Label
+    struct std.collections.Map<string, Any>  // std_collections$Map__string__Any
+    struct std.collections.Map<string, Label>  // std_collections$Map__string__snippet_Label
     struct std_collections$__gen_state_std_collections_0
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string

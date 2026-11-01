@@ -74,8 +74,8 @@ verify_no_coroutine_markers :: fn(
 /// @param project  the lowered IR. Read only.
 /// @param diags    accumulator ; one `I7012` per second body.
 export verify_functions_defined_once :: fn(project: LoweredProject, diags: Diagnostic[]) -> void {
-    mangles :: MutableSet<string> {}
-    symbols :: MutableMap<i32, string> {}
+    mangles :: Set<string> {}
+    symbols :: Map<i32, string> {}
     for [_module_id, m] in project.modules {
         for d in m.decls {
             if d !is LoweredFnDecl {
@@ -113,7 +113,7 @@ export verify_functions_defined_once :: fn(project: LoweredProject, diags: Diagn
 ///                  assignment rebinds.
 /// @param diags     accumulator ; one `I7011` per bare binding.
 export verify_captured_cells :: fn(
-    project: LoweredProject, captured: MutableSet<i32>, diags: Diagnostic[],
+    project: LoweredProject, captured: Set<i32>, diags: Diagnostic[],
 ) -> void {
     if captured.len() == 0 {
         return
@@ -134,7 +134,7 @@ export verify_captured_cells :: fn(
 ///
 /// @param captured  symbol ids of the bindings that live in a cell.
 /// @param s         the binding.
-export binds_bare_capture :: fn(captured: MutableSet<i32>, s: LoweredLet) -> bool =
+export binds_bare_capture :: fn(captured: Set<i32>, s: LoweredLet) -> bool =
     s.symbol.id in captured && !(s.value is LoweredCellNew)
 
 /// The `I7011` for a binding that holds its bare value where a closure reads it
@@ -204,8 +204,8 @@ one_module_project :: fn(decls: LoweredDecl[]) -> LoweredProject {
     return project
 }
 
-captured_one :: fn() -> MutableSet<i32> {
-    captured :: MutableSet<i32> {}
+captured_one :: fn() -> Set<i32> {
+    captured :: Set<i32> {}
     captured.add(1)
     return captured
 }
@@ -258,6 +258,6 @@ test_verify_captured_cells_cell :: fn() -> void {
 @test
 test_verify_captured_cells_uncaptured :: fn() -> void {
     diags: Diagnostic[]: []
-    verify_captured_cells(captured_let_project(bare()), MutableSet<i32> {}, diags)
+    verify_captured_cells(captured_let_project(bare()), Set<i32> {}, diags)
     assert_eq(diags.len(), 0)
 }

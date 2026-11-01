@@ -63,7 +63,7 @@ register_alias_decl :: fn(decl: AST.Decl, typed: TypedProgram) -> bool {
 // module's pending aliases, the alias table being the project's, until a round
 // registers nothing. True when anything settled.
 settle_project_aliases :: fn(
-    per_module: MutableMap<string, TypedProgram>, unsettled: MutableMap<string, AST.Decl[]>,
+    per_module: Map<string, TypedProgram>, unsettled: Map<string, AST.Decl[]>,
 ) -> bool {
     settled_any := false
     for {
@@ -96,8 +96,8 @@ settle_project_aliases :: fn(
 settle_namespace_member_aliases :: fn(
     project: LoadedProject,
     targets: ImportTargetTable,
-    per_module: MutableMap<string, TypedProgram>,
-    unsettled: MutableMap<string, AST.Decl[]>,
+    per_module: Map<string, TypedProgram>,
+    unsettled: Map<string, AST.Decl[]>,
 ) -> void {
     // A target's private-name set depends on its collected symbols alone, so it is
     // built once ; its member map also on its `alias_types`, so it is rebuilt each
@@ -118,7 +118,7 @@ settle_namespace_member_aliases :: fn(
 // that reads as a type, or a type alias still unresolved. A const that does not
 // read as a type yet can only settle after one of those does.
 can_settle_now :: fn(
-    per_module: MutableMap<string, TypedProgram>, unsettled: MutableMap<string, AST.Decl[]>,
+    per_module: Map<string, TypedProgram>, unsettled: Map<string, AST.Decl[]>,
 ) -> bool {
     for [id, pending] in unsettled {
         typed :: per_module[id] ?? continue
@@ -144,11 +144,11 @@ can_settle_now :: fn(
 // collapses the enum to its `repr` ordinal. Every enum is built before any is
 // recorded. Must run before `declare_module` lowers any signature.
 register_enum_types :: fn(
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
     project: LoadedProject,
-    alias_types: MutableMap<i32, Type>,
+    alias_types: Map<i32, Type>,
 ) -> void {
-    collected :: MutableMap<i32, Type> {}
+    collected :: Map<i32, Type> {}
     for [id, typed] in per_module {
         loaded :: project.modules[id] ?? continue
         for file in loaded.module.files {

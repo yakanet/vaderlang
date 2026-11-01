@@ -38,7 +38,7 @@
           __off_5 = std.core.write_bool(__buf_4, __off_5, true)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      by_color: MutableMap<Color, i32> = MutableMap<Color, i32> {
+      by_color: Map<Color, i32> = Map<Color, i32> {
           .ekeys = [] :Color[],
           .evals = [] :i32[],
           .index = [] :i32[],
@@ -47,28 +47,28 @@
           .size = i64(0),
           .tombs = i64(0),
       }
-      std.collections.MutableMap<Color, i32>.set_at(by_color, Color(0), 1)
-      std.collections.MutableMap<Color, i32>.set_at(by_color, Color(2), 3)
+      std.collections.Map<Color, i32>.set_at(by_color, Color(0), 1)
+      std.collections.Map<Color, i32>.set_at(by_color, Color(2), 3)
       std.io.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(62))
           __off_10: i64 = 0
           __off_10 = std.core.write_int(__buf_9, __off_10, {
-              __coalesce_6: i32 | null = std.collections.MutableMap<Color, i32>.at(by_color, Color(0))
+              __coalesce_6: i32 | null = std.collections.Map<Color, i32>.at(by_color, Color(0))
               if __coalesce_6 is null { -1 } else { i32(__coalesce_6) } :i32
           } :i32)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
           __off_10 = std.core.write_int(__buf_9, __off_10, {
-              __coalesce_7: i32 | null = std.collections.MutableMap<Color, i32>.at(by_color, Color(1))
+              __coalesce_7: i32 | null = std.collections.Map<Color, i32>.at(by_color, Color(1))
               if __coalesce_7 is null { -1 } else { i32(__coalesce_7) } :i32
           } :i32)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
           __off_10 = std.core.write_int(__buf_9, __off_10, {
-              __coalesce_8: i32 | null = std.collections.MutableMap<Color, i32>.at(by_color, Color(2))
+              __coalesce_8: i32 | null = std.collections.Map<Color, i32>.at(by_color, Color(2))
               if __coalesce_8 is null { -1 } else { i32(__coalesce_8) } :i32
           } :i32)
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
-      by_status: MutableMap<HttpStatus, string> = MutableMap<HttpStatus, string> {
+      by_status: Map<HttpStatus, string> = Map<HttpStatus, string> {
           .ekeys = [] :HttpStatus[],
           .evals = [] :string[],
           .index = [] :i32[],
@@ -77,16 +77,16 @@
           .size = i64(0),
           .tombs = i64(0),
       }
-      std.collections.MutableMap<HttpStatus, string>.set_at(by_status, HttpStatus(1), "gone")
-      std.collections.MutableMap<HttpStatus, string>.set_at(by_status, HttpStatus(0), "here")
-      std.collections.MutableMap<HttpStatus, string>.set_at(by_status, HttpStatus(1), "missing")
+      std.collections.Map<HttpStatus, string>.set_at(by_status, HttpStatus(1), "gone")
+      std.collections.Map<HttpStatus, string>.set_at(by_status, HttpStatus(0), "here")
+      std.collections.Map<HttpStatus, string>.set_at(by_status, HttpStatus(1), "missing")
       std.io.println<string>({
           __p_13: string = {
-              __coalesce_11: null | string = std.collections.MutableMap<HttpStatus, string>.at(by_status, HttpStatus(1))
+              __coalesce_11: null | string = std.collections.Map<HttpStatus, string>.at(by_status, HttpStatus(1))
               if __coalesce_11 is null { "?" } else { string(__coalesce_11) } :string
           }
           __p_14: string = {
-              __coalesce_12: null | string = std.collections.MutableMap<HttpStatus, string>.at(by_status, HttpStatus(0))
+              __coalesce_12: null | string = std.collections.Map<HttpStatus, string>.at(by_status, HttpStatus(0))
               if __coalesce_12 is null { "?" } else { string(__coalesce_12) } :string
           }
           __buf_15: Buffer = std.core.new_byte_buffer(i64(22) +% (std.core.byte_len(__p_13) +% std.core.byte_len(__p_14)))
@@ -106,7 +106,7 @@
           __off_18 = std.core.write_bool(__buf_17, __off_18, snippet.same_through_trait(Color(0), Color(2)))
           std.core.finish_buffer(__buf_17, __off_18)
       } :string)
-      walked: MutableMap<Color, i32> = MutableMap<Color, i32> {
+      walked: Map<Color, i32> = Map<Color, i32> {
           .ekeys = [] :Color[],
           .evals = [] :i32[],
           .index = [] :i32[],
@@ -119,7 +119,7 @@
           __for_v_21: u8 = 0
           for __for_v_21 <= u8(2) {
               each: Color = __for_v_21
-              std.collections.MutableMap<Color, i32>.set_at(walked, each, 7)
+              std.collections.Map<Color, i32>.set_at(walked, each, 7)
               if each == Color(2) {
                   is_blue: fn(Color) -> bool = snippet.matcher<Color>(each)
                   std.io.println<string>({
@@ -138,12 +138,12 @@
           __buf_24: Buffer = std.core.new_byte_buffer(i64(47))
           __off_25: i64 = 0
           __off_25 = std.core.write_int(__buf_24, __off_25, {
-              __coalesce_22: i32 | null = std.collections.MutableMap<Color, i32>.at(walked, Color(2))
+              __coalesce_22: i32 | null = std.collections.Map<Color, i32>.at(walked, Color(2))
               if __coalesce_22 is null { -1 } else { i32(__coalesce_22) } :i32
           } :i32)
           __off_25 = std.core.write_string_at(__buf_24, __off_25, " ")
           __off_25 = std.core.write_int(__buf_24, __off_25, {
-              __coalesce_23: i32 | null = std.collections.MutableMap<Color, i32>.at(by_color, {
+              __coalesce_23: i32 | null = std.collections.Map<Color, i32>.at(by_color, {
                   if (rank < 0) || (rank > 2) {
                       @unreachable("value out of range: no value of `Color`")
                   }
@@ -175,14 +175,14 @@
 
 ## lowered in dependencies
   std/collections
-    fn std.collections.MutableMap<Color, i32>.at  // std_collections$MutableMap$std_core$Index$at__snippet_Color__i32
-    fn std.collections.MutableMap<Color, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__snippet_Color__i32
-    fn std.collections.MutableMap<Color, i32>.into  // std_collections$MutableMap$std_core$Into$into__snippet_Color__i32
-    fn std.collections.MutableMap<Color, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__snippet_Color__i32
-    fn std.collections.MutableMap<HttpStatus, string>.at  // std_collections$MutableMap$std_core$Index$at__snippet_HttpStatus__string
-    fn std.collections.MutableMap<HttpStatus, string>.contains  // std_collections$MutableMap$std_core$Contains$contains__snippet_HttpStatus__string
-    fn std.collections.MutableMap<HttpStatus, string>.into  // std_collections$MutableMap$std_core$Into$into__snippet_HttpStatus__string
-    fn std.collections.MutableMap<HttpStatus, string>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__snippet_HttpStatus__string
+    fn std.collections.Map<Color, i32>.at  // std_collections$Map$std_core$Index$at__snippet_Color__i32
+    fn std.collections.Map<Color, i32>.contains  // std_collections$Map$std_core$Contains$contains__snippet_Color__i32
+    fn std.collections.Map<Color, i32>.into  // std_collections$Map$std_core$Into$into__snippet_Color__i32
+    fn std.collections.Map<Color, i32>.set_at  // std_collections$Map$std_core$IndexSet$set_at__snippet_Color__i32
+    fn std.collections.Map<HttpStatus, string>.at  // std_collections$Map$std_core$Index$at__snippet_HttpStatus__string
+    fn std.collections.Map<HttpStatus, string>.contains  // std_collections$Map$std_core$Contains$contains__snippet_HttpStatus__string
+    fn std.collections.Map<HttpStatus, string>.into  // std_collections$Map$std_core$Into$into__snippet_HttpStatus__string
+    fn std.collections.Map<HttpStatus, string>.set_at  // std_collections$Map$std_core$IndexSet$set_at__snippet_HttpStatus__string
     fn std.collections.contains_key<Color, i32>  // std_collections$contains_key__snippet_Color__i32
     fn std.collections.contains_key<HttpStatus, string>  // std_collections$contains_key__snippet_HttpStatus__string
     fn std.collections.first_slot  // std_collections$first_slot
@@ -198,8 +198,8 @@
     fn std.collections.rehash<HttpStatus, string>  // std_collections$rehash__snippet_HttpStatus__string
     fn std_collections$__gen_state_std_collections_0$Iterator$next
     fn std_collections$__gen_state_std_collections_1$Iterator$next
-    struct std.collections.MutableMap<Color, i32>  // std_collections$MutableMap__snippet_Color__i32
-    struct std.collections.MutableMap<HttpStatus, string>  // std_collections$MutableMap__snippet_HttpStatus__string
+    struct std.collections.Map<Color, i32>  // std_collections$Map__snippet_Color__i32
+    struct std.collections.Map<HttpStatus, string>  // std_collections$Map__snippet_HttpStatus__string
     struct std_collections$__gen_state_std_collections_0
     struct std_collections$__gen_state_std_collections_1
   std/core

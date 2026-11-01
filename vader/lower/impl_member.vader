@@ -226,7 +226,7 @@ build_ufcs_member :: fn(
             .member_id = member.id,
         }
     }
-    // Generic-struct receiver (`MutableMap<Any, bool>`, reached from a deduped
+    // Generic-struct receiver (`Map<Any, bool>`, reached from a deduped
     // erased free-fn body as `add`'s `value in self.inner`) : queue it for
     // `drain_generic_fn_instances` to materialise its impl members (struct
     // analogue of `array_member_uses`).

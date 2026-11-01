@@ -17,7 +17,7 @@ infer_index :: fn(e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) ->
     index_trait :: core_trait_key(TRAIT_INDEX)
     dispatched :: dispatched_index_args(e, target, index_trait, typed, diags)
     // Pin a free-literal index key to the key type K so `m[9000000000]` on a
-    // `MutableMap<i64, _>` doesn't default to i32 and silently truncate. `null` for
+    // `Map<i64, _>` doesn't default to i32 and silently truncate. `null` for
     // an array, whose index is just an integer.
     key_ty :: if dispatched != null {
         dispatched[0]
@@ -359,7 +359,7 @@ stored_array :: fn(t: Type, typed: TypedProgram) -> ArrayType | null {
 // template. A distinct takes no arguments, so its entry is the type. Null when
 // `target` is neither, or records no impl ; the template unchanged when the
 // struct decl is unavailable.
-index_param :: fn(target: Type, table: MutableMap<string, Type>, typed: TypedProgram) -> Type | null {
+index_param :: fn(target: Type, table: Map<string, Type>, typed: TypedProgram) -> Type | null {
     if target is DistinctType {
         return impl_side(typed, table, target, "")
     }

@@ -30,11 +30,11 @@ coherence_key :: fn(for_ty: Type, trait_key: string, args: Type[]) -> string | n
 // could recurse / mis-resolve. Mirror of Rust's E0119 (concrete-receiver subset).
 check_impl_coherence :: fn(
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
     diags: Diagnostic[],
 ) -> void {
-    seen :: MutableSet<string> {}
-    by_base :: MutableMap<string, ImplShape[]> {}
+    seen :: Set<string> {}
+    by_base :: Map<string, ImplShape[]> {}
     // Register every NON-entry module's impls (the `std/core` prelude + stdlib +
     // deps) first, then the entry module LAST. A user impl that duplicates a
     // prelude/stdlib one is then the *second* seen, so R2030 lands on the user's
@@ -52,9 +52,9 @@ check_impl_coherence :: fn(
 check_module_impl_coherence :: fn(
     id: string,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
-    seen: MutableSet<string>,
-    by_base: MutableMap<string, ImplShape[]>,
+    per_module: Map<string, TypedProgram>,
+    seen: Set<string>,
+    by_base: Map<string, ImplShape[]>,
     diags: Diagnostic[],
 ) -> void {
     tp :: per_module[id] ?? return
@@ -106,7 +106,7 @@ reject_overlapping_impl :: fn(
     for_ty: Type,
     trait_key: string,
     args: Type[],
-    by_base: MutableMap<string, ImplShape[]>,
+    by_base: Map<string, ImplShape[]>,
     diags: Diagnostic[],
 ) -> bool {
     if for_ty is TypeParamType {
@@ -183,7 +183,7 @@ conflict_detail :: fn(decl: AST.ImplDecl, for_ty: Type) -> string {
 // directory loads as one module and the first-declared `main` silently wins).
 check_fn_redefinitions :: fn(
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
     diags: Diagnostic[],
 ) -> void {
     for [id, _] in project.modules {
@@ -194,7 +194,7 @@ check_fn_redefinitions :: fn(
 check_module_fn_redefinitions :: fn(
     id: string,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
     diags: Diagnostic[],
 ) -> void {
     tp :: per_module[id] ?? return
@@ -202,7 +202,7 @@ check_module_fn_redefinitions :: fn(
     // Group fn decls by name (cheap: no type resolution) ; resolve signatures
     // only for names with ≥2 decls. Signatures come from the AST, the
     // authoritative source of declared params, not from `decl_types`.
-    by_name :: MutableMap<string, AST.FnDecl[]> {}
+    by_name :: Map<string, AST.FnDecl[]> {}
     for decl in concat_file_decls(loaded.module.files) {
         if decl !is AST.FnDecl {
             continue
@@ -213,18 +213,18 @@ check_module_fn_redefinitions :: fn(
     // AND signature as one of them would otherwise silently shadow it
     // (resolver-modules-3, CASE C).
     imported :: imported_fn_sigs(loaded, tp, per_module)
-    imported_names :: MutableSet<string> {}
+    imported_names :: Set<string> {}
     for sig in imported {
         imported_names.add(sig.local)
     }
     // Signature keys of the module's fns, by name, where there is something to
     // check : ≥2 decls (a possible in-module redefinition) or a same-named import.
-    module_keys :: MutableMap<string, MutableMap<string, bool>> {}
+    module_keys :: Map<string, Map<string, bool>> {}
     for [name, group] in by_name {
         if group.len() < 2 && !(name in imported_names) {
             continue
         }
-        seen :: MutableMap<string, bool> {}
+        seen :: Map<string, bool> {}
         for fd in group {
             key :: fn_signature_key(fd, tp.resolved) ?? continue
             // A matching canonical signature key is a redefinition, not an overload.
@@ -277,7 +277,7 @@ ImportedFnSig :: struct {
 imported_fn_sigs :: fn(
     loaded: LoadedModule,
     tp: TypedProgram,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: Map<string, TypedProgram>,
 ) -> ImportedFnSig[] {
     out: ImportedFnSig[]: []
     targets :: tp.import_targets

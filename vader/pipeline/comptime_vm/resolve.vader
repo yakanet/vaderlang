@@ -70,7 +70,7 @@ StagedDecl :: struct {
     /// The mangle of its callee in the staged module.
     callee:  string
     /// The mangles of the functions that callee may run, itself included.
-    reached: MutableSet<string>
+    reached: Set<string>
 }
 
 // Stage the project with the `pending` decls still un-baked, run those whose
@@ -136,7 +136,7 @@ evaluate_layer :: fn(
         ready = waiting
         waiting = []
     }
-    by_callee :: MutableMap<string, Ct.VmRequiredDecl> {}
+    by_callee :: Map<string, Ct.VmRequiredDecl> {}
     for s in staged {
         by_callee[s.callee] = s.decl
     }
@@ -169,7 +169,7 @@ bake_decl :: fn(
     vr: Ct.VmRequiredDecl,
     home: string,
     evaluated: Ct.EvaluatedProject,
-    by_callee: MutableMap<string, Ct.VmRequiredDecl>,
+    by_callee: Map<string, Ct.VmRequiredDecl>,
     diags: Diagnostic[],
 ) -> string[] {
     // A `@comptime` value is evaluated in the folder of the file declaring it,
@@ -224,9 +224,9 @@ bake_decl :: fn(
 // between ; null when no such callee runs twice.
 reentered_callees :: fn(
     frames: string[],
-    by_callee: MutableMap<string, Ct.VmRequiredDecl>,
+    by_callee: Map<string, Ct.VmRequiredDecl>,
 ) -> string[] | null {
-    first_frame :: MutableMap<string, i64> {}
+    first_frame :: Map<string, i64> {}
     for k in 0..<frames.len() {
         if frames[k] !in by_callee {
             continue
@@ -243,7 +243,7 @@ reentered_callees :: fn(
 // Report the dependency cycle the callees `cycle` form, at the decl of the first.
 report_cycle :: fn(
     cycle: string[],
-    by_callee: MutableMap<string, Ct.VmRequiredDecl>,
+    by_callee: Map<string, Ct.VmRequiredDecl>,
     diags: Diagnostic[],
 ) -> void {
     head :: by_callee[cycle[0]] ?? return
@@ -324,7 +324,7 @@ staged_callee :: fn(cfg: CFGProject, module: BytecodeModule, decl_id: i64) -> st
 export copy_baked_values :: fn(
     from: Ct.EvaluatedProject, into: Ct.EvaluatedProject, diags: Diagnostic[],
 ) -> void {
-    deferred :: MutableMap<u64, Ct.ComptimeValue | null> {}
+    deferred :: Map<u64, Ct.ComptimeValue | null> {}
     for vr in from.vm_required {
         deferred[vr.span.hash()] = baked_value(from, vr)
     }

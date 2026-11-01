@@ -35,10 +35,10 @@ AST :: import "toolchain/ast"
 export GuardState :: struct {
     /// The module's top-level fns that may be inferred guards
     /// (`is_guard_candidate`), by node id.
-    candidates: MutableSet<i64> = MutableSet<i64> {}
+    candidates: Set<i64> = Set<i64> {}
     /// What each checked candidate proves, by node id ; nothing while its body is
     /// being checked.
-    facts: MutableMap<i64, GuardFact[]> = MutableMap<i64, GuardFact[]> {}
+    facts: Map<i64, GuardFact[]> = Map<i64, GuardFact[]> {}
     /// A contract of the fn whose body is being checked, `@returns` or `@ensures` :
     /// a write to one of its parameters, from a lambda in it too, is refused.
     verifying: GuardContract | null = null
@@ -48,7 +48,7 @@ export GuardState :: struct {
 /// module shares.
 export SharedGuards :: struct {
     /// The module declaring each fn with a contract, by node id.
-    owners: MutableMap<i64, TypedProgram> = MutableMap<i64, TypedProgram> {}
+    owners: Map<i64, TypedProgram> = Map<i64, TypedProgram> {}
     /// What each `@returns` states.
     returns: ContractTable = ContractTable {}
     /// What each `@ensures` states.
@@ -58,10 +58,10 @@ export SharedGuards :: struct {
 /// The contracts of one decorator, read on demand.
 export ContractTable :: struct {
     /// Each contract read so far, by node id.
-    contracts: MutableMap<i64, GuardContract> = MutableMap<i64, GuardContract> {}
+    contracts: Map<i64, GuardContract> = Map<i64, GuardContract> {}
     /// The contracts being read : a condition that reaches its own fn reads nothing
     /// of it.
-    reading: MutableSet<i64> = MutableSet<i64> {}
+    reading: Set<i64> = Set<i64> {}
 }
 
 /// What a fn declaring `@returns` or `@ensures` promises : the facts its condition

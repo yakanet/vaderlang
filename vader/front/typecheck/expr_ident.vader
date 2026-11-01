@@ -79,14 +79,14 @@ export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sy
 
 /// Look `sym`'s span up in a span-keyed table (`param_types` /
 /// `local_types`). Returns `TY_UNRESOLVED` for builtin symbols and misses.
-lookup_in :: fn(sym: Symbol, table: MutableMap<u64, Type>) -> Type {
+lookup_in :: fn(sym: Symbol, table: Map<u64, Type>) -> Type {
     sp :: sym.defined_at ?? return TY_UNRESOLVED
     ty :: table[sp.hash()] ?? return TY_UNRESOLVED
     return ty
 }
 
 /// `decl_types` is keyed by `Symbol.id`. Used by `lookup_decl`.
-lookup_decl_in :: fn(sym: Symbol, table: MutableMap<i32, Type>) -> Type {
+lookup_decl_in :: fn(sym: Symbol, table: Map<i32, Type>) -> Type {
     ty :: table[sym.id] ?? return TY_UNRESOLVED
     return ty
 }

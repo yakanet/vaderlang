@@ -16,18 +16,18 @@ import "vader/support/integer"
 RangeState :: struct {
     /// Local → its interval, for a local known narrower than its type ; a local
     /// with no entry holds any value of its type.
-    intervals: MutableMap<LocalId, Interval>
+    intervals: Map<LocalId, Interval>
     /// `fact_key(x, y)` → the least `c` known with `x - y <= c`.
-    differences: MutableMap<u64, i64>
+    differences: Map<u64, i64>
     /// Local → the array local whose length it is at most.
-    lengths: MutableMap<LocalId, LocalId>
+    lengths: Map<LocalId, LocalId>
 }
 
 /// A state knowing nothing: every local holds any value of its type.
 new_range_state :: fn() -> RangeState = RangeState {
-    .intervals = MutableMap<LocalId, Interval> {},
-    .differences = MutableMap<u64, i64> {},
-    .lengths = MutableMap<LocalId, LocalId> {},
+    .intervals = Map<LocalId, Interval> {},
+    .differences = Map<u64, i64> {},
+    .lengths = Map<LocalId, LocalId> {},
 }
 
 /// A copy of `s` the caller may change without touching `s`.

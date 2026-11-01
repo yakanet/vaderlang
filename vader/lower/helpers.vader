@@ -419,8 +419,8 @@ env_lit_fields :: fn(ctx: FnLowerCtx, span: Span, captures: Capture[], slots: En
 }
 
 // The slots keyed by captured symbol id, for the lifted body.
-slots_by_symbol :: fn(captures: Capture[], slots: EnvSlot[]) -> MutableMap<i32, EnvSlot> {
-    map :: MutableMap<i32, EnvSlot> {}
+slots_by_symbol :: fn(captures: Capture[], slots: EnvSlot[]) -> Map<i32, EnvSlot> {
+    map :: Map<i32, EnvSlot> {}
     for i in 0..<captures.len() {
         map[captures[i].symbol.id] = slots[i]
     }

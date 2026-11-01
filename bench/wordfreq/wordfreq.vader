@@ -40,7 +40,7 @@ VOCABULARY_SPACE: i64: 308_915_776
 main :: fn() -> i32 {
     vocabulary :: build_vocabulary()
     corpus :: build_corpus(vocabulary)
-    counts :: MutableMap<string, i32> {}
+    counts :: Map<string, i32> {}
     for token_index in 0..<TOKEN_COUNT {
         start :: i64(token_index) * i64(WORD_LENGTH + 1)
         token :: corpus[start..<start + i64(WORD_LENGTH)].bytes_to_string()

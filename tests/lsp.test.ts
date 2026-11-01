@@ -1619,7 +1619,7 @@ import "std/collections"
 main :: fn() -> i32 {
     println("hi")
     eprintln("hello")
-    m :: MutableMap(string, i32) { .buckets = [], .size = 0 }
+    m :: Map(string, i32) { .buckets = [], .size = 0 }
     return 0
 }
 `;
@@ -1638,9 +1638,9 @@ test("lsp: goto-def follows imports across files (std/io)", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: goto-def follows imports across files (collections)", async () => {
-  // Click on `MutableMap` type ref at line 6 char 12.
+  // Click on the `Map` type ref.
   const results = await driveLsp(CROSSFILE_SOURCE, [
-    { method: "textDocument/definition", position: { line: 6, character: 12 } },
+    { method: "textDocument/definition", position: positionOf(CROSSFILE_SOURCE, "Map(", 1) },
   ]);
   const loc = results[0]!.result as Location;
   expect(loc.uri).toMatch(/std\/collections\/collections\.vader$/);
@@ -1660,15 +1660,15 @@ test("lsp: hover on imported symbol surfaces its origin signature", async () => 
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: cross-file resolution doesn't bleed for non-imported names", async () => {
-  // `MutableSet` exists in `std/collections` but isn't imported here,
-  // so a click on a bare `MutableSet` identifier should still miss.
+  // `Set` exists in `std/collections` but isn't imported here,
+  // so a click on a bare `Set` identifier should still miss.
   const src = `main :: fn() -> i32 {
-    MutableSet
+    Set
     return 0
 }
 `;
   const results = await driveLsp(src, [
-    { method: "textDocument/definition", position: { line: 1, character: 6 } },
+    { method: "textDocument/definition", position: positionOf(src, "Set", 1) },
   ]);
   expect(results[0]!.result).toBeNull();
 }, { timeout: MEDIUM_BUILD });

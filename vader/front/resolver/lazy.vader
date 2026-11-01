@@ -109,7 +109,7 @@ rooted_candidate :: fn(ip: IncludePath, name: string) -> string | null {
 ///                 caller, `diagnose_import_path`, turns that into R2001).
 export resolve_lazy :: fn(
     name: string, paths: IncludePath[],
-    index: MutableMap<string, DiscoveredModule>, overlay: MutableMap<string, string>,
+    index: Map<string, DiscoveredModule>, overlay: Map<string, string>,
     diags: Diagnostic[],
 ) -> DiscoveredModule | null {
     cached :: index[name]
@@ -175,7 +175,7 @@ export resolve_lazy :: fn(
 /// @return       the wrong `module` name declared at `name`'s location, or null.
 export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string | null {
     discard: Diagnostic[]: []
-    disk_only :: MutableMap<string, string> {}
+    disk_only :: Map<string, string> {}
     for pi in 0..<paths.len() {
         cand_opt :: rooted_candidate(paths[pi], name) ?? continue
         cand :: cand_opt
@@ -201,7 +201,7 @@ export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string |
 ///                      module decl (→ the caller emits R2001, matching the eager
 ///                      `find_by_folder` miss).
 export seed_entry :: fn(
-    entry_folder: string, overlay: MutableMap<string, string>, diags: Diagnostic[],
+    entry_folder: string, overlay: Map<string, string>, diags: Diagnostic[],
 ) -> DiscoveredModule | null {
     bucket :: scan_folder(entry_folder, overlay, diags) ?? return null
     if bucket.name == "" { return null }
@@ -232,7 +232,7 @@ export seed_entry :: fn(
 /// @param diags    collects R2001 and friends when a path doesn't resolve.
 export preresolve_imports :: fn(
     sources: SourceFile[], paths: IncludePath[],
-    index: MutableMap<string, DiscoveredModule>, overlay: MutableMap<string, string>,
+    index: Map<string, DiscoveredModule>, overlay: Map<string, string>,
     diags: Diagnostic[],
 ) -> void {
     for sf in sources {
@@ -269,7 +269,7 @@ export source_files_in :: fn(dir: string, names: string[]) -> string[] {
     return files
 }
 
-scan_folder :: fn(dir: string, overlay: MutableMap<string, string>, diags: Diagnostic[]) -> FolderBucket | null {
+scan_folder :: fn(dir: string, overlay: Map<string, string>, diags: Diagnostic[]) -> FolderBucket | null {
     entries_opt :: read_dir(dir)
     raw: string[]: match entries_opt {
         is string[] -> entries_opt

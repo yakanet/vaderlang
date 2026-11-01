@@ -44,7 +44,7 @@ export Comparable :: trait {
     compare :: fn(self, other: Self) -> i32
 }
 
-/// Hash codes for `MutableMap` / `MutableSet` keys: equal values (`Equals`), equal hashes.
+/// Hash codes for `Map` / `Set` keys: equal values (`Equals`), equal hashes.
 /// A map's first probe reads the LOW bits; a key varying only in high ones should mix them down.
 export Hash :: trait {
     hash :: fn(self) -> u64
@@ -164,7 +164,7 @@ export IndexSet :: trait<I, T> {
 
 /// Membership test. `x in coll` desugars to `coll.contains(x)` ;
 /// `x !in coll` desugars to `!coll.contains(x)`. Implemented by `Range`
-/// (for the integer / char ranges), `MutableMap`, `MutableSet`, and any
+/// (for the integer / char ranges), `Map`, `Set`, and any
 /// user type that wants infix `in` support.
 export Contains :: trait<T> {
     contains :: fn(self, value: T) -> bool

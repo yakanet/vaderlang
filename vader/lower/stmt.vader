@@ -345,10 +345,10 @@ lookup_local_symbol :: fn(
 // the two passes of the previous naive walk.
 ensure_local_symbol_index :: fn(
     project_ctx: LowerProjectCtx, resolved: ResolvedModule,
-) -> MutableMap<u64, Symbol> {
+) -> Map<u64, Symbol> {
     cached :: project_ctx.local_symbol_indices[resolved.path]
     if !(cached is null) { return cached }
-    index :: MutableMap<u64, Symbol> {}
+    index :: Map<u64, Symbol> {}
     // `idents` first: every referenced binding's defined_at lands here.
     for [_, symbol] in resolved.idents {
         match defined :: symbol.defined_at {

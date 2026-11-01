@@ -119,7 +119,7 @@ export index_modules :: fn(checked: DocCheck, scope: DiscoveredModule[], base: s
     loaded :: module_index_by_name(checked.project)
     modules: DocModule[]: []
     left_out: string[]: []
-    documented :: MutableSet<string> {}
+    documented :: Set<string> {}
     for wanted in scope {
         folder :: display_path(wanted.folder, base).to_native()
         found :: loaded[wanted.name]
@@ -245,11 +245,11 @@ impl_decl :: fn(ctx: FileContext, d: ImplDecl) -> DocDecl {
 // Give each entry of `module` its id, and each member its own: an overloaded
 // name numbers its declarations in source order.
 assign_ids :: fn(module: string, decls: DocDecl[]) -> void {
-    counts :: MutableMap<string, i64> {}
+    counts :: Map<string, i64> {}
     for d in decls {
         counts[d.name] = (counts[d.name] ?? 0) + 1
     }
-    seen :: MutableMap<string, i64> {}
+    seen :: Map<string, i64> {}
     for d in decls {
         n :: seen[d.name] ?? 0
         seen[d.name] = n + 1

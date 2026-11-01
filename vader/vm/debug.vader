@@ -82,7 +82,7 @@ export DebugController :: struct {
     output_sink: fn(i32, string) -> void
     /// Absolute file → set of 1-based breakpoint lines. Shared (by shallow
     /// copy) with the DAP layer, so `setBreakpoints` updates reach the VM.
-    breakpoints: MutableMap<string, MutableSet<i32>>
+    breakpoints: Map<string, Set<i32>>
     /// Invoked at a stop with the paused call stack ; blocks driving the DAP
     /// conversation, then returns how to resume (`StepMode`).
     on_pause: fn(PauseCtx) -> StepMode
@@ -139,12 +139,12 @@ import "std/testing"
 no_sink :: fn(_s: i32, _t: string) -> void {}
 no_pause :: fn(_c: PauseCtx) -> StepMode = .Continue
 
-mk_controller :: fn(bps: MutableMap<string, MutableSet<i32>>) -> DebugController =
+mk_controller :: fn(bps: Map<string, Set<i32>>) -> DebugController =
     DebugController { .output_sink = no_sink, .breakpoints = bps, .on_pause = no_pause }
 
 @test test_line_has_breakpoint_hit_and_miss :: fn() -> void {
-    bps :: MutableMap<string, MutableSet<i32>> {}
-    lines :: MutableSet<i32> {}
+    bps :: Map<string, Set<i32>> {}
+    lines :: Set<i32> {}
     lines.add(13)
     lines.add(20)
     bps["/tmp/a.vader"] = lines

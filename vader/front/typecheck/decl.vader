@@ -108,7 +108,7 @@ declare_decl :: fn(
             // struct lives in `std/collections` but `entry.value`
             // is read from main) consult these directly via the
             // owner module's bindings.
-            fields_map :: MutableMap<string, Type> {}
+            fields_map :: Map<string, Type> {}
             // A private field (`@internal`) is invisible across the module
             // boundary, so it never leaks: only public fields of an
             // exported struct expose their type through the interface.
@@ -590,7 +590,7 @@ validate_mirror_fields :: fn(
     t: Type,
     span: Span,
     typed: TypedProgram,
-    seen: MutableSet<i32>,
+    seen: Set<i32>,
     diags: Diagnostic[],
 ) -> void {
     if t !is StructType {
@@ -740,7 +740,7 @@ validate_extern :: fn(
                 )
                 continue
             }
-            validate_mirror_fields(pt, decl.params[i].span, typed, MutableSet<i32> {}, diags)
+            validate_mirror_fields(pt, decl.params[i].span, typed, Set<i32> {}, diags)
             continue
         }
         if AST.decorators_have(decl.params[i].decorators, "c_type") && !is_c_integer(pt) {
@@ -814,7 +814,7 @@ validate_extern :: fn(
     // A mirror comes back BY VALUE: the shim receives the C struct and copies it,
     // field by field, into a fresh Vader one.
     if mirrors_a_c_struct(return_type, typed) {
-        validate_mirror_fields(return_type, result_span, typed, MutableSet<i32> {}, diags)
+        validate_mirror_fields(return_type, result_span, typed, Set<i32> {}, diags)
     } else if !is_extern_abi_type(return_type, true) {
         diags.push(
             typecheck_error(
@@ -1275,9 +1275,9 @@ build_enum_type :: fn(
 // move to `values`, read by a conversion to an integer. A written width bounds
 // those values.
 build_data_enum_type :: fn(
-    sym: Symbol, decl: AST.EnumDecl, header: EnumHeader, written: MutableMap<string, i64>,
+    sym: Symbol, decl: AST.EnumDecl, header: EnumHeader, written: Map<string, i64>,
 ) -> EnumType {
-    ranks :: MutableMap<string, i64> {}
+    ranks :: Map<string, i64> {}
     values: i64[]: []
     for variant in decl.variants {
         rank :: values.len()

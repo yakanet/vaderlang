@@ -41,7 +41,7 @@ lower_place_assign :: fn(ctx: FnLowerCtx, s: AssignStmt, compound: bool) -> Lowe
     // A compound assignment in a block of `rhs` gets a table of its own ; this one
     // is back before this statement's write lowers.
     outer :: ctx.bound_operands
-    ctx.bound_operands = MutableMap<i64, LoweredExpr> {}
+    ctx.bound_operands = Map<i64, LoweredExpr> {}
     stmts: LoweredStmt[]: []
     bind_place_operands(ctx, s.target, stmts)
     mark :: ctx.pending_awaits.len()

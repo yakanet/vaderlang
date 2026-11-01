@@ -36,7 +36,7 @@ drain_generic_fn_instances :: fn(
     // each queued once (`fn_instances`).
     // Joint fixpoint over fn instances, erased generic-struct impl receivers
     // and impl member instances: lowering any of them can queue more of the
-    // others (`MutableMap.contains` → `contains_key`), so the three drain
+    // others (`Map.contains` → `contains_key`), so the three drain
     // until none holds work.
     for pending_instances(project_ctx) {
         for {
@@ -48,7 +48,7 @@ drain_generic_fn_instances :: fn(
             }
         }
         // Materialise each queued generic-struct instance's struct decl and impl
-        // members (`MutableMap<Any, bool>.Contains.contains__Any__bool`), deduped
+        // members (`Map<Any, bool>.Contains.contains__Any__bool`), deduped
         // via `materialized_impl_keys`.
         for {
             recv :: project_ctx.generic_impl_recv_queue.take() ?? break
@@ -94,7 +94,7 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredP
     // `build_fn_instance_decl`), so the body-emit pass indexes them by mangle:
     // exactly like materialised impl members.
     sorted_pending :: sort(project_ctx.generic_collected, pending_fn_instance_less)
-    emitted_fns :: MutableSet<i32> {}
+    emitted_fns :: Set<i32> {}
     for p in sorted_pending {
         // Erasure-dedup gate : dispatching instances always emit ;
         // non-dispatching ones collapse to the first per symbol id.

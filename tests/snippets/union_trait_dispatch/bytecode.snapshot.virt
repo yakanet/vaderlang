@@ -11,7 +11,7 @@ type 8 union 6,7
 type 9 struct snippet$Log { lines:25 }
 type 10 scalar void
 type 11 union 9,12
-type 12 struct std_collections$MutableMap__string__i32 { ekeys:25,evals:26,index:26,mask:17,grow_at:17,size:17,tombs:17 }
+type 12 struct std_collections$Map__string__i32 { ekeys:25,evals:26,index:26,mask:17,grow_at:17,size:17,tombs:17 }
 type 13 struct snippet$Tally { counts:12 }
 type 14 struct snippet$Cell { cells:26 }
 type 15 union 14,13
@@ -285,7 +285,7 @@ fn 8 snippet$Tally$std_core$Index$at (ref,string) -> i32
   local __coalesce_0 any
   local.field 0 13 0   ; arg 0 snippet$Tally.counts
   local.get 1   ; arg 1
-  call 85   ; std_collections$MutableMap$std_core$Index$at__string__i32
+  call 85   ; std_collections$Map$std_core$Index$at__string__i32
   local.tee 2   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -308,7 +308,7 @@ fn 9 snippet$Tally$std_core$IndexSet$set_at (ref,string,i32) -> void
   local.get 3   ; $field_3
   local.get 1   ; arg 1
   local.get 4   ; $mul_checked_5
-  call 86   ; std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
+  call 86   ; std_collections$Map$std_core$IndexSet$set_at__string__i32
   return
 end
 
@@ -504,7 +504,7 @@ fn 21 snippet$main () -> i32
   i64.const 0
   i64.const 0
   i64.const 0
-  struct.new 12   ; std_collections$MutableMap__string__i32
+  struct.new 12   ; std_collections$Map__string__i32
   local.tee 3   ; $arr_21
   call 7   ; snippet$put
   array.new 25 0   ; string[]
@@ -560,7 +560,7 @@ fn 21 snippet$main () -> i32
   i64.const 0
   i64.const 0
   i64.const 0
-  struct.new 12   ; std_collections$MutableMap__string__i32
+  struct.new 12   ; std_collections$Map__string__i32
   struct.new 13   ; snippet$Tally
   local.set 3   ; $arr_21
   i32.const 5
@@ -4380,14 +4380,14 @@ fn 84 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 85 std_collections$MutableMap$std_core$Index$at__string__i32 (ref,string) -> any
+fn 85 std_collections$Map$std_core$Index$at__string__i32 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 93   ; std_collections$get__string__i32
   return
 end
 
-fn 86 std_collections$MutableMap$std_core$IndexSet$set_at__string__i32 (ref,string,i32) -> void
+fn 86 std_collections$Map$std_core$IndexSet$set_at__string__i32 (ref,string,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -4396,7 +4396,7 @@ fn 86 std_collections$MutableMap$std_core$IndexSet$set_at__string__i32 (ref,stri
   return
 end
 
-fn 87 std_collections$MutableMap$std_core$Contains$contains__string__i32 (ref,string) -> bool
+fn 87 std_collections$Map$std_core$Contains$contains__string__i32 (ref,string) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 94   ; std_collections$contains_key__string__i32
@@ -4475,7 +4475,7 @@ fn 90 std_collections$rehash__string__i32 (ref,i64) -> void
   local.set 2   ; if_res
   i64.const 0
   local.set 4   ; e
-  local.field 0 12 5   ; arg 0 std_collections$MutableMap__string__i32.size
+  local.field 0 12 5   ; arg 0 std_collections$Map__string__i32.size
   ref.cast 17   ; i64
   local.set 5   ; __for_hi_1
   loop $L3 void
@@ -4483,7 +4483,7 @@ fn 90 std_collections$rehash__string__i32 (ref,i64) -> void
     local.get 5   ; __for_hi_1
     i64.lt
     if $L4 void
-      local.field 0 12 0   ; arg 0 std_collections$MutableMap__string__i32.ekeys
+      local.field 0 12 0   ; arg 0 std_collections$Map__string__i32.ekeys
       local.get 4   ; e
       array.get 25   ; string[]
       ref.cast 7   ; string
@@ -4529,10 +4529,10 @@ fn 90 std_collections$rehash__string__i32 (ref,i64) -> void
   end $L3
   local.get 0   ; arg 0
   local.get 3   ; fresh
-  struct.set 12 2   ; std_collections$MutableMap__string__i32.index
+  struct.set 12 2   ; std_collections$Map__string__i32.index
   local.get 0   ; arg 0
   local.get 2   ; if_res
-  struct.set 12 3   ; std_collections$MutableMap__string__i32.mask
+  struct.set 12 3   ; std_collections$Map__string__i32.mask
   local.get 1   ; arg 1
   i64.const 4
   i64.div
@@ -4541,10 +4541,10 @@ fn 90 std_collections$rehash__string__i32 (ref,i64) -> void
   local.set 2   ; if_res
   local.get 0   ; arg 0
   local.get 2   ; if_res
-  struct.set 12 4   ; std_collections$MutableMap__string__i32.grow_at
+  struct.set 12 4   ; std_collections$Map__string__i32.grow_at
   local.get 0   ; arg 0
   i64.const 0
-  struct.set 12 6   ; std_collections$MutableMap__string__i32.tombs
+  struct.set 12 6   ; std_collections$Map__string__i32.tombs
   return
 end
 
@@ -4555,7 +4555,7 @@ fn 91 std_collections$grow_index__string__i32 (ref) -> void
   i64.const 16
   local.set 1   ; new_count
   loop $L0 void
-    local.field 0 12 5   ; arg 0 std_collections$MutableMap__string__i32.size
+    local.field 0 12 5   ; arg 0 std_collections$Map__string__i32.size
     ref.cast 17   ; i64
     i64.const 4
     i64.checked_mul
@@ -4594,7 +4594,7 @@ fn 92 std_collections$put__string__i32 (ref,string,i32) -> bool
   local.set 3   ; first_tomb
   i64.const -1
   local.set 4   ; empty
-  local.field 0 12 2   ; arg 0 std_collections$MutableMap__string__i32.index
+  local.field 0 12 2   ; arg 0 std_collections$Map__string__i32.index
   array.len
   i64.const 0
   i64.gt
@@ -4602,7 +4602,7 @@ fn 92 std_collections$put__string__i32 (ref,string,i32) -> bool
     local.get 1   ; arg 1
     call 100   ; std_core$string$Hash$hash_vt
     local.set 5   ; perturb
-    local.field 0 12 3   ; arg 0 std_collections$MutableMap__string__i32.mask
+    local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
     ref.cast 17   ; i64
     local.set 6   ; $field_13
     local.get 5   ; perturb
@@ -4610,7 +4610,7 @@ fn 92 std_collections$put__string__i32 (ref,string,i32) -> bool
     call 88   ; std_collections$first_slot
     local.set 6   ; $field_13
     loop $L1 void
-      local.field 0 12 2   ; arg 0 std_collections$MutableMap__string__i32.index
+      local.field 0 12 2   ; arg 0 std_collections$Map__string__i32.index
       local.get 6   ; $field_13
       load_slot_i32
       local.tee 7   ; slot
@@ -4635,14 +4635,14 @@ fn 92 std_collections$put__string__i32 (ref,string,i32) -> bool
           i64.const 1
           i64.checked_sub
           local.set 8   ; ei
-          local.field 0 12 0   ; arg 0 std_collections$MutableMap__string__i32.ekeys
+          local.field 0 12 0   ; arg 0 std_collections$Map__string__i32.ekeys
           local.get 8   ; ei
           array.get 25   ; string[]
           ref.cast 7   ; string
           local.get 1   ; arg 1
           string.eq
           if $L5 void
-            local.field 0 12 1   ; arg 0 std_collections$MutableMap__string__i32.evals
+            local.field 0 12 1   ; arg 0 std_collections$Map__string__i32.evals
             local.get 8   ; ei
             local.get 2   ; arg 2
             store_slot_i32
@@ -4653,7 +4653,7 @@ fn 92 std_collections$put__string__i32 (ref,string,i32) -> bool
         i64.const 5
         u64.shr
         local.set 5   ; perturb
-        local.field 0 12 3   ; arg 0 std_collections$MutableMap__string__i32.mask
+        local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
         ref.cast 17   ; i64
         local.set 9   ; $field_36
         local.get 6   ; $field_13
@@ -4667,29 +4667,29 @@ fn 92 std_collections$put__string__i32 (ref,string,i32) -> bool
     local.get 6   ; $field_13
     local.set 4   ; empty
   end $L0
-  local.field 0 12 5   ; arg 0 std_collections$MutableMap__string__i32.size
+  local.field 0 12 5   ; arg 0 std_collections$Map__string__i32.size
   ref.cast 17   ; i64
   local.set 6   ; $field_13
-  local.field 0 12 0   ; arg 0 std_collections$MutableMap__string__i32.ekeys
+  local.field 0 12 0   ; arg 0 std_collections$Map__string__i32.ekeys
   array.len
   local.set 8   ; ei
   local.get 6   ; $field_13
   local.get 8   ; ei
   i64.lt
   if $L6 void
-    local.field 0 12 0   ; arg 0 std_collections$MutableMap__string__i32.ekeys
+    local.field 0 12 0   ; arg 0 std_collections$Map__string__i32.ekeys
     local.get 6   ; $field_13
     local.get 1   ; arg 1
     array.set 25   ; string[]
-    local.field 0 12 1   ; arg 0 std_collections$MutableMap__string__i32.evals
+    local.field 0 12 1   ; arg 0 std_collections$Map__string__i32.evals
     local.get 6   ; $field_13
     local.get 2   ; arg 2
     store_slot_i32
   else
-    local.field 0 12 0   ; arg 0 std_collections$MutableMap__string__i32.ekeys
+    local.field 0 12 0   ; arg 0 std_collections$Map__string__i32.ekeys
     local.get 1   ; arg 1
     array.push 7   ; string
-    local.field 0 12 1   ; arg 0 std_collections$MutableMap__string__i32.evals
+    local.field 0 12 1   ; arg 0 std_collections$Map__string__i32.evals
     local.get 2   ; arg 2
     array.push 6   ; i32
   end $L6
@@ -4699,15 +4699,15 @@ fn 92 std_collections$put__string__i32 (ref,string,i32) -> bool
   local.set 8   ; ei
   local.get 0   ; arg 0
   local.get 8   ; ei
-  struct.set 12 5   ; std_collections$MutableMap__string__i32.size
-  local.field 0 12 6   ; arg 0 std_collections$MutableMap__string__i32.tombs
+  struct.set 12 5   ; std_collections$Map__string__i32.size
+  local.field 0 12 6   ; arg 0 std_collections$Map__string__i32.tombs
   ref.cast 17   ; i64
   local.set 8   ; ei
   local.get 6   ; $field_13
   local.get 8   ; ei
   i64.checked_add
   local.set 8   ; ei
-  local.field 0 12 4   ; arg 0 std_collections$MutableMap__string__i32.grow_at
+  local.field 0 12 4   ; arg 0 std_collections$Map__string__i32.grow_at
   ref.cast 17   ; i64
   local.set 9   ; $field_36
   local.get 8   ; ei
@@ -4722,15 +4722,15 @@ fn 92 std_collections$put__string__i32 (ref,string,i32) -> bool
   i64.const 0
   i64.ge
   if $L8 void
-    local.field 0 12 6   ; arg 0 std_collections$MutableMap__string__i32.tombs
+    local.field 0 12 6   ; arg 0 std_collections$Map__string__i32.tombs
     ref.cast 17   ; i64
     i64.const 1
     i64.checked_sub
     local.set 8   ; ei
     local.get 0   ; arg 0
     local.get 8   ; ei
-    struct.set 12 6   ; std_collections$MutableMap__string__i32.tombs
-    local.field 0 12 2   ; arg 0 std_collections$MutableMap__string__i32.index
+    struct.set 12 6   ; std_collections$Map__string__i32.tombs
+    local.field 0 12 2   ; arg 0 std_collections$Map__string__i32.index
     local.set 10   ; $field_58
     local.get 6   ; $field_13
     i64.const 1
@@ -4742,7 +4742,7 @@ fn 92 std_collections$put__string__i32 (ref,string,i32) -> bool
     local.get 7   ; slot
     store_slot_i32
   else
-    local.field 0 12 2   ; arg 0 std_collections$MutableMap__string__i32.index
+    local.field 0 12 2   ; arg 0 std_collections$Map__string__i32.index
     local.set 10   ; $field_58
     local.get 6   ; $field_13
     i64.const 1
@@ -4763,7 +4763,7 @@ fn 93 std_collections$get__string__i32 (ref,string) -> any
   local slot i32
   local ei i64
   local $field_31 i64
-  local.field 0 12 2   ; arg 0 std_collections$MutableMap__string__i32.index
+  local.field 0 12 2   ; arg 0 std_collections$Map__string__i32.index
   array.len
   i64.const 0
   i64.eq
@@ -4773,7 +4773,7 @@ fn 93 std_collections$get__string__i32 (ref,string) -> any
   local.get 1   ; arg 1
   call 100   ; std_core$string$Hash$hash_vt
   local.set 2   ; perturb
-  local.field 0 12 3   ; arg 0 std_collections$MutableMap__string__i32.mask
+  local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
   ref.cast 17   ; i64
   local.set 3   ; $field_9
   local.get 2   ; perturb
@@ -4781,7 +4781,7 @@ fn 93 std_collections$get__string__i32 (ref,string) -> any
   call 88   ; std_collections$first_slot
   local.set 3   ; $field_9
   loop $L1 void
-    local.field 0 12 2   ; arg 0 std_collections$MutableMap__string__i32.index
+    local.field 0 12 2   ; arg 0 std_collections$Map__string__i32.index
     local.get 3   ; $field_9
     load_slot_i32
     local.tee 4   ; slot
@@ -4798,14 +4798,14 @@ fn 93 std_collections$get__string__i32 (ref,string) -> any
         i64.const 1
         i64.checked_sub
         local.set 5   ; ei
-        local.field 0 12 0   ; arg 0 std_collections$MutableMap__string__i32.ekeys
+        local.field 0 12 0   ; arg 0 std_collections$Map__string__i32.ekeys
         local.get 5   ; ei
         array.get 25   ; string[]
         ref.cast 7   ; string
         local.get 1   ; arg 1
         string.eq
         if $L4 void
-          local.field 0 12 1   ; arg 0 std_collections$MutableMap__string__i32.evals
+          local.field 0 12 1   ; arg 0 std_collections$Map__string__i32.evals
           local.get 5   ; ei
           load_slot_i32
           retag 6   ; i32
@@ -4816,7 +4816,7 @@ fn 93 std_collections$get__string__i32 (ref,string) -> any
       i64.const 5
       u64.shr
       local.set 2   ; perturb
-      local.field 0 12 3   ; arg 0 std_collections$MutableMap__string__i32.mask
+      local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
       ref.cast 17   ; i64
       local.set 6   ; $field_31
       local.get 3   ; $field_9
@@ -4836,7 +4836,7 @@ fn 94 std_collections$contains_key__string__i32 (ref,string) -> bool
   local slot i32
   local ei i64
   local $field_30 i64
-  local.field 0 12 2   ; arg 0 std_collections$MutableMap__string__i32.index
+  local.field 0 12 2   ; arg 0 std_collections$Map__string__i32.index
   array.len
   i64.const 0
   i64.eq
@@ -4846,7 +4846,7 @@ fn 94 std_collections$contains_key__string__i32 (ref,string) -> bool
   local.get 1   ; arg 1
   call 100   ; std_core$string$Hash$hash_vt
   local.set 2   ; perturb
-  local.field 0 12 3   ; arg 0 std_collections$MutableMap__string__i32.mask
+  local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
   ref.cast 17   ; i64
   local.set 3   ; $field_9
   local.get 2   ; perturb
@@ -4854,7 +4854,7 @@ fn 94 std_collections$contains_key__string__i32 (ref,string) -> bool
   call 88   ; std_collections$first_slot
   local.set 3   ; $field_9
   loop $L1 void
-    local.field 0 12 2   ; arg 0 std_collections$MutableMap__string__i32.index
+    local.field 0 12 2   ; arg 0 std_collections$Map__string__i32.index
     local.get 3   ; $field_9
     load_slot_i32
     local.tee 4   ; slot
@@ -4871,7 +4871,7 @@ fn 94 std_collections$contains_key__string__i32 (ref,string) -> bool
         i64.const 1
         i64.checked_sub
         local.set 5   ; ei
-        local.field 0 12 0   ; arg 0 std_collections$MutableMap__string__i32.ekeys
+        local.field 0 12 0   ; arg 0 std_collections$Map__string__i32.ekeys
         local.get 5   ; ei
         array.get 25   ; string[]
         ref.cast 7   ; string
@@ -4885,7 +4885,7 @@ fn 94 std_collections$contains_key__string__i32 (ref,string) -> bool
       i64.const 5
       u64.shr
       local.set 2   ; perturb
-      local.field 0 12 3   ; arg 0 std_collections$MutableMap__string__i32.mask
+      local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
       ref.cast 17   ; i64
       local.set 6   ; $field_30
       local.get 3   ; $field_9
@@ -4900,7 +4900,7 @@ fn 94 std_collections$contains_key__string__i32 (ref,string) -> bool
 end
 
 fn 95 std_collections$len__string__i32 (ref) -> i64
-  local.field 0 12 5   ; arg 0 std_collections$MutableMap__string__i32.size
+  local.field 0 12 5   ; arg 0 std_collections$Map__string__i32.size
   ref.cast 17   ; i64
   return
 end

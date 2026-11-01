@@ -23,7 +23,7 @@ WORKSPACE_SYMBOL_LIMIT: i64: 200
 export handle_workspace_symbol :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     out: JsonValue[]: []
     for s in find_workspace_symbols(state, get_string(params, "query"), WORKSPACE_SYMBOL_LIMIT) {
-        obj :: MutableMap<string, JsonValue> {}
+        obj :: Map<string, JsonValue> {}
         obj["name"]          = JsonString { .value = s.name }
         obj["kind"]          = JsonNumber { .value = f64(symbol_kind(s.kind, s.owner)) }
         obj["location"]      = location_json(path_to_uri(s.path), s.range)

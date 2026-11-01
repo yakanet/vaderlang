@@ -141,7 +141,7 @@ add_accessor :: fn(
     sym: Symbol,
     body: LoweredBlock,
     decls: LoweredDecl[],
-    wraps: MutableMap<i32, ConstFnWrap>,
+    wraps: Map<i32, ConstFnWrap>,
 ) -> string {
     fn_symbol :: const_accessor_symbol(sym, next_project_synthetic_id(project_ctx))
     wraps[sym.id] = ConstFnWrap { .fn_symbol = fn_symbol, .call_type = d.type }

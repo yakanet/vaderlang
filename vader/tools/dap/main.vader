@@ -58,7 +58,7 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
     // `setBreakpoints` BEFORE `configurationDone`, then handed to the VM inside
     // the `DebugController` (shared by reference, so mid-pause `setBreakpoints`
     // reaches the VM too).
-    bps :: MutableMap<string, MutableSet<i32>> {}
+    bps :: Map<string, Set<i32>> {}
     // Set by `launch`, consumed by `configurationDone`.
     prog: DapProgram | null = null
     running := true
@@ -112,9 +112,9 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
 // client that sends a backslash path (`C:\dir\f.vader`) still matches the VM's
 // lookup key (`C:/dir/f.vader`). Without this the breakpoint never binds on
 // Windows and the program runs straight past it.
-store_breakpoints :: fn(bps: MutableMap<string, MutableSet<i32>>, args: JsonValue) -> void {
+store_breakpoints :: fn(bps: Map<string, Set<i32>>, args: JsonValue) -> void {
     path :: to_posix(get_string(get_field(args, "source"), "path"))
-    lines :: MutableSet<i32> {}
+    lines :: Set<i32> {}
     requested :: get_field(args, "breakpoints")
     if requested is JsonArray {
         for item in requested.items { lines.add(get_number(item, "line")) }
@@ -128,7 +128,7 @@ store_breakpoints :: fn(bps: MutableMap<string, MutableSet<i32>>, args: JsonValu
 // its breakpoint stops to a nested DAP conversation, then emit `exited` +
 // `terminated` when it finishes. A `null` / failed program reports the compile
 // error and terminates without running.
-run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: MutableMap<string, MutableSet<i32>>) -> void {
+run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: Map<string, Set<i32>>) -> void {
     if prog == null {
         emit_event(seq_cell, "terminated", empty_body())
         return
@@ -182,12 +182,12 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: MutableMap<stri
 // the `StepMode` the resume command maps to (`continue` → Continue, `next` →
 // StepOver, `stepIn` → StepInto, `stepOut` → StepOut ; `disconnect` / EOF →
 // Continue so the program runs to its end).
-run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: MutableMap<string, MutableSet<i32>>, stopped_text: string) -> StepMode {
+run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: Map<string, Set<i32>>, stopped_text: string) -> StepMode {
     emit_stopped(seq_cell, ctx.reason, stopped_text)
     // Variables-view expansion registry : `variablesReference` → the vars to
     // return. Scope refs are `frame_id + 1` (see `scopes_body`) ; child refs are
     // minted above the frame range as aggregates are expanded.
-    var_refs :: MutableMap<i32, PauseVar[]> {}
+    var_refs :: Map<i32, PauseVar[]> {}
     for fi in 0..<ctx.frames.len() { var_refs[i32(fi) + 1] = ctx.frames[fi].locals }
     next_ref :: [i32(ctx.frames.len()) + 1]
     for {
@@ -248,7 +248,7 @@ run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: MutableMap<string, Mut
 // non-empty `text` (the trap message on an exception stop) surfaces in VSCode's
 // "Paused on exception" banner.
 emit_stopped :: fn(seq_cell: i32[], reason: string, text: string) -> void {
-    body :: MutableMap<string, JsonValue> {}
+    body :: Map<string, JsonValue> {}
     body["reason"]             = JsonString { .value = reason }
     body["threadId"]           = JsonNumber { .value = f64(1) }
     body["allThreadsStopped"]  = JsonBool { .value = true }
@@ -275,7 +275,7 @@ emit_event :: fn(seq_cell: i32[], event: string, body: JsonValue) -> void {
 
 // Emit an `output` event (`category` = "stdout" / "stderr", `text` = payload).
 emit_output :: fn(seq_cell: i32[], category: string, text: string) -> void {
-    body :: MutableMap<string, JsonValue> {}
+    body :: Map<string, JsonValue> {}
     body["category"] = JsonString { .value = category }
     body["output"]   = JsonString { .value = text }
     emit_event(seq_cell, "output", JsonObject { .entries = body })
@@ -283,7 +283,7 @@ emit_output :: fn(seq_cell: i32[], category: string, text: string) -> void {
 
 // Emit an `exited` event carrying the program's exit code.
 emit_exited :: fn(seq_cell: i32[], code: i32) -> void {
-    body :: MutableMap<string, JsonValue> {}
+    body :: Map<string, JsonValue> {}
     body["exitCode"] = JsonNumber { .value = f64(code) }
     emit_event(seq_cell, "exited", JsonObject { .entries = body })
 }
@@ -293,7 +293,7 @@ emit_exited :: fn(seq_cell: i32[], code: i32) -> void {
 // The `initialize` capabilities body : the client gates `configurationDone` on
 // `supportsConfigurationDoneRequest`, our run trigger.
 capabilities :: fn() -> JsonValue {
-    m :: MutableMap<string, JsonValue> {}
+    m :: Map<string, JsonValue> {}
     m["supportsConfigurationDoneRequest"] = JsonBool { .value = true }
     // Enables hover-over-a-variable (the editor sends `evaluate` with
     // context "hover" ; we resolve bare identifiers against the frame's locals).
@@ -311,24 +311,24 @@ breakpoints_body :: fn(args: JsonValue) -> JsonValue {
     requested :: get_field(args, "breakpoints")
     if requested is JsonArray {
         for item in requested.items {
-            bp :: MutableMap<string, JsonValue> {}
+            bp :: Map<string, JsonValue> {}
             bp["verified"] = JsonBool { .value = true }
             bp["line"]     = JsonNumber { .value = f64(get_number(item, "line")) }
             result.push(JsonObject { .entries = bp })
         }
     }
-    body :: MutableMap<string, JsonValue> {}
+    body :: Map<string, JsonValue> {}
     body["breakpoints"] = JsonArray { .items = result }
     return JsonObject { .entries = body }
 }
 
 // The single-thread body for `threads` : the VM is one cooperative thread.
 single_thread :: fn() -> JsonValue {
-    t :: MutableMap<string, JsonValue> {}
+    t :: Map<string, JsonValue> {}
     t["id"]   = JsonNumber { .value = f64(1) }
     t["name"] = JsonString { .value = "main" }
     threads: JsonValue[]: [JsonObject { .entries = t }]
-    body :: MutableMap<string, JsonValue> {}
+    body :: Map<string, JsonValue> {}
     body["threads"] = JsonArray { .items = threads }
     return JsonObject { .entries = body }
 }
@@ -339,10 +339,10 @@ stacktrace_body :: fn(ctx: PauseCtx) -> JsonValue {
     frames_json: JsonValue[]: []
     for i in 0..<ctx.frames.len() {
         f :: ctx.frames[i]
-        src :: MutableMap<string, JsonValue> {}
+        src :: Map<string, JsonValue> {}
         src["name"] = JsonString { .value = basename(f.file) }
         src["path"] = JsonString { .value = f.file }
-        fr :: MutableMap<string, JsonValue> {}
+        fr :: Map<string, JsonValue> {}
         fr["id"]     = JsonNumber { .value = f64(i) }
         fr["name"]   = JsonString { .value = display_fn_name(f.function_name) }
         fr["line"]   = JsonNumber { .value = f64(f.line) }
@@ -350,7 +350,7 @@ stacktrace_body :: fn(ctx: PauseCtx) -> JsonValue {
         fr["source"] = JsonObject { .entries = src }
         frames_json.push(JsonObject { .entries = fr })
     }
-    body :: MutableMap<string, JsonValue> {}
+    body :: Map<string, JsonValue> {}
     body["stackFrames"] = JsonArray { .items = frames_json }
     body["totalFrames"] = JsonNumber { .value = f64(ctx.frames.len()) }
     return JsonObject { .entries = body }
@@ -360,12 +360,12 @@ stacktrace_body :: fn(ctx: PauseCtx) -> JsonValue {
 // `variablesReference` encodes the frame index as `frame_id + 1` (0 means "no
 // children", so refs are 1-based). `variables` decodes it back.
 scopes_body :: fn(frame_id: i32) -> JsonValue {
-    scope :: MutableMap<string, JsonValue> {}
+    scope :: Map<string, JsonValue> {}
     scope["name"]               = JsonString { .value = "Locals" }
     scope["variablesReference"] = JsonNumber { .value = f64(frame_id + 1) }
     scope["expensive"]          = JsonBool { .value = false }
     scopes: JsonValue[]: [JsonObject { .entries = scope }]
-    body :: MutableMap<string, JsonValue> {}
+    body :: Map<string, JsonValue> {}
     body["scopes"] = JsonArray { .items = scopes }
     return JsonObject { .entries = body }
 }
@@ -375,7 +375,7 @@ scopes_body :: fn(frame_id: i32) -> JsonValue {
 // children is itself expandable: mint a fresh reference, register its
 // children, and hand VSCode that reference so a later `variables` call descends.
 // Leaves get `variablesReference: 0`.
-variables_body :: fn(var_refs: MutableMap<i32, PauseVar[]>, next_ref: i32[], reference: i32) -> JsonValue {
+variables_body :: fn(var_refs: Map<i32, PauseVar[]>, next_ref: i32[], reference: i32) -> JsonValue {
     vars: JsonValue[]: []
     entries :: var_refs[reference]
     if entries != null {
@@ -386,14 +386,14 @@ variables_body :: fn(var_refs: MutableMap<i32, PauseVar[]>, next_ref: i32[], ref
                 next_ref[0] = next_ref[0] + 1
                 var_refs[child_ref] = pv.children
             }
-            v :: MutableMap<string, JsonValue> {}
+            v :: Map<string, JsonValue> {}
             v["name"]               = JsonString { .value = pv.name }
             v["value"]              = JsonString { .value = pv.value }
             v["variablesReference"] = JsonNumber { .value = f64(child_ref) }
             vars.push(JsonObject { .entries = v })
         }
     }
-    body :: MutableMap<string, JsonValue> {}
+    body :: Map<string, JsonValue> {}
     body["variables"] = JsonArray { .items = vars }
     return JsonObject { .entries = body }
 }
@@ -411,7 +411,7 @@ evaluate_find :: fn(ctx: PauseCtx, frame_id: i32, expression: string) -> string 
 
 // The `evaluate` response body : the rendered value as a leaf (no children).
 evaluate_result :: fn(value: string) -> JsonValue {
-    body :: MutableMap<string, JsonValue> {}
+    body :: Map<string, JsonValue> {}
     body["result"]             = JsonString { .value = value }
     body["variablesReference"] = JsonNumber { .value = f64(0) }
     return JsonObject { .entries = body }

@@ -39,7 +39,7 @@ import "vader/midir"
 ///           rebuilds this pass exists to undo.
 /// @return   a fresh project with forwardable `FieldGet`s rewritten to `Move`.
 export struct_field_forward_project :: fn(p: CFGProject) -> CFGProject {
-    out :: MutableMap<string, CFGModule> {}
+    out :: Map<string, CFGModule> {}
     for [id, m] in p.modules {
         new_fns: CFGFunction[]: []
         for f in m.functions {
@@ -56,8 +56,8 @@ export struct_field_forward_project :: fn(p: CFGProject) -> CFGProject {
 forward_struct_fields_in_fn :: fn(fn_: CFGFunction) -> CFGFunction {
     preds :: predecessors_of(fn_)
     order :: reverse_postorder(fn_)
-    exits :: MutableMap<i32, MutableMap<i32, LocalId[]>> {}
-    rewritten :: MutableMap<i32, Instruction[]> {}
+    exits :: Map<i32, Map<i32, LocalId[]>> {}
+    rewritten :: Map<i32, Instruction[]> {}
     // ONE pass, in reverse postorder: deliberately not iterated to a fixed
     // point. Iterating converges (the per-block transfer's gen/kill does not
     // depend on the incoming state, and the join is an intersection, so the
@@ -96,9 +96,9 @@ forward_struct_fields_in_fn :: fn(fn_: CFGFunction) -> CFGFunction {
 // A predecessor not yet walked (a back edge, on the first round) contributes
 // nothing, which costs coverage on that round and is recovered by the next.
 join_of_predecessors :: fn(
-    preds: BlockId[][], exits: MutableMap<i32, MutableMap<i32, LocalId[]>>, id: BlockId,
-) -> MutableMap<i32, LocalId[]> {
-    fresh :: MutableMap<i32, LocalId[]> {}
+    preds: BlockId[][], exits: Map<i32, Map<i32, LocalId[]>>, id: BlockId,
+) -> Map<i32, LocalId[]> {
+    fresh :: Map<i32, LocalId[]> {}
     if i64(id) !in 0..<preds.len() {
         return fresh
     }
@@ -111,7 +111,7 @@ join_of_predecessors :: fn(
         fresh[obj] = fields
     }
     for i in 1..<mine.len() {
-        other :: exits[i32(mine[i])] ?? return MutableMap<i32, LocalId[]> {}
+        other :: exits[i32(mine[i])] ?? return Map<i32, LocalId[]> {}
         doomed: i32[]: []
         for [obj, fields] in fresh {
             theirs :: other[obj]
@@ -131,7 +131,7 @@ join_of_predecessors :: fn(
 // The intra-block walk, starting from `built` rather than from nothing. Mutates
 // `built` so the caller can hand it to a single successor.
 forward_block_with :: fn(
-    instrs: Instruction[], built: MutableMap<i32, LocalId[]>,
+    instrs: Instruction[], built: Map<i32, LocalId[]>,
 ) -> Instruction[] {
     out: Instruction[]: []
     for ins in instrs {

@@ -18,7 +18,7 @@ import "vader/support/text"
 // A distinct (newtype) has no backend identity: it mangles as its backing so
 // every instance name (call site, struct literal, allocation, dispatch) is
 // consistent with the source-stripped instance entries. `strip_distinct`
-// handles nesting (`MutableMap<BlockId>` → `MutableMap<i32>`).
+// handles nesting (`Map<BlockId>` → `Map<i32>`).
 export mangle_type_arg :: fn(t: Type) -> string =
     sanitise_ident(qualified_display_type(strip_distinct(t)))
 
@@ -29,7 +29,7 @@ export mangle_type_arg :: fn(t: Type) -> string =
 /// @param seen        registry of names already taken.
 /// @param candidate   the preferred name ; returned as-is when free.
 /// @return            a fresh name (either `candidate` or `candidate_N`).
-export uniq :: fn(seen: MutableSet<string>, candidate: string) -> string {
+export uniq :: fn(seen: Set<string>, candidate: string) -> string {
     if seen.add(candidate) {
         return candidate
     }
@@ -51,14 +51,14 @@ export uniq :: fn(seen: MutableSet<string>, candidate: string) -> string {
 import "std/testing"
 
 @test test_uniq_returns_candidate_when_free :: fn() -> void {
-    seen :: MutableSet<string> {}
+    seen :: Set<string> {}
     assert_eq(uniq(seen, "foo"), "foo")
     // Subsequent registration should reflect the addition.
     assert_eq(uniq(seen, "foo"), "foo_1")
 }
 
 @test test_uniq_skips_already_taken_suffixes :: fn() -> void {
-    seen :: MutableSet<string> {}
+    seen :: Set<string> {}
     seen.add("foo")
     seen.add("foo_1")
     assert_eq(uniq(seen, "foo"), "foo_2")

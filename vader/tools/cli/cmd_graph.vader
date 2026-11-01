@@ -103,7 +103,7 @@ collect_graph :: fn(loaded: LoadedProject, include_all: bool) -> GraphNode[] {
     // an `import` names the MODULE. They diverge outside a self-rooted project.
     entry :: loaded.modules[loaded.entry]
     entry_is_compiler :: entry != null && entry.module.module_name.starts_with("vader/")
-    kept :: MutableSet<string> {}
+    kept :: Set<string> {}
     for [_, module] in loaded.modules {
         name :: module.module.module_name
         if include_all || is_project_module(module.module.origin, name, entry_is_compiler) {
@@ -119,7 +119,7 @@ collect_graph :: fn(loaded: LoadedProject, include_all: bool) -> GraphNode[] {
         // The list the loader's own BFS walks, so this is the build's graph and
         // not a second opinion. One entry per `import` line across the module's
         // files, so a path can repeat, hence `seen`.
-        seen :: MutableSet<string> {}
+        seen :: Set<string> {}
         imports: string[]: []
         for target in module.collected.import_paths {
             if target == name || !kept.contains(target) || !seen.add(target) {

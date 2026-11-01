@@ -206,7 +206,7 @@ resolve_loaded_project :: fn(project: LoadedProject, scope: string[]) -> Resolve
     mod_index :: module_index_by_name(project)
     materialize_impl_members(project, mod_index, core_seed)
     modules: ResolvedModule[]: []
-    resolved_by_id :: MutableMap<string, ResolvedModule> {}
+    resolved_by_id :: Map<string, ResolvedModule> {}
     for [id, lm] in project.modules {
         if !module_in_scope(lm.module.display_path, scope) {
             continue
@@ -261,7 +261,7 @@ run_typecheck_stage :: fn(
     // `dump_types = true` : this stage renders the `expr_kinds` / `node_spans`
     // side-tables, so ask the typecheck to populate them (the only path that does).
     fc :: check_file(
-        file.as_string(), MutableMap<string, string> {}, include_path_flags, project_root, true, target,
+        file.as_string(), Map<string, string> {}, include_path_flags, project_root, true, target,
     )
     // No `LoadedProject` here ; the entry typed module (`fc.result.typed`)
     // carries its own display path for the default scope.
@@ -275,7 +275,7 @@ run_typecheck_stage :: fn(
 
 run_callees_stage :: fn(file: Path, module_filter: string[], target: Target | null, project_root: string | null) -> i32 {
     // `dump_types` files each site's span, the position the dump prints.
-    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], project_root, true, target)
+    fc :: check_file(file.as_string(), Map<string, string> {}, [], project_root, true, target)
     scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
     print(dump_call_sites_project(fc.result.typed, fc.result.others, scope))
     if fc.diags.len() > 0 {
@@ -285,7 +285,7 @@ run_callees_stage :: fn(file: Path, module_filter: string[], target: Target | nu
 }
 
 run_effects_stage :: fn(file: Path, module_filter: string[], target: Target | null, project_root: string | null) -> i32 {
-    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], project_root, false, target)
+    fc :: check_file(file.as_string(), Map<string, string> {}, [], project_root, false, target)
     scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
     print(dump_effects(fc.effects, scope))
     if fc.diags.len() > 0 {

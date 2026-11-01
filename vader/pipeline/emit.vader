@@ -166,7 +166,7 @@ export NativeFlags :: struct {
     missing:  MissingArchive[] = []
     /// The flags already added, each joined by a space.
     @internal
-    added:    MutableSet<string> = MutableSet<string> {}
+    added:    Set<string> = Set<string> {}
 }
 
 /// An archive a library lists and the build target lacks.

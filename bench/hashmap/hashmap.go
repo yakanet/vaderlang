@@ -1,6 +1,6 @@
 // Go peer of bench/hashmap.vader. `map[int32]int32` driven through the same
 // insert / lookup / delete / probe rounds: Go's built-in map is the direct
-// analogue of Vader's compact-dict MutableMap.
+// analogue of Vader's compact-dict Map.
 
 package main
 

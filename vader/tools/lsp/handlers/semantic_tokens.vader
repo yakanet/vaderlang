@@ -39,7 +39,7 @@ export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) 
     if idx.source.byte_len() == 0 {
         return JsonNull {}
     }
-    result :: MutableMap<string, JsonValue> {}
+    result :: Map<string, JsonValue> {}
     result["data"] = encode_delta(document_tokens(idx))
     return JsonObject { .entries = result }
 }

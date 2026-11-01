@@ -107,7 +107,7 @@ struct_symbol_id :: fn(t: Type) -> i32 {
 /// @param data_pool  the entries some `data.const` still reads.
 data_pool_type_roots :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> i32[] {
     roots: i32[]: []
-    symbol_ids :: MutableSet<i32> {}
+    symbol_ids :: Set<i32> {}
     for entry in data_pool {
         if entry is BcAggregateData {
             for v in entry.elements {
@@ -126,7 +126,7 @@ data_pool_type_roots :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> i32[] {
 
 // The nested array indices go straight into `arrays` ; the struct symbol ids are
 // gathered first, each one costing a scan of the type table to resolve.
-collect_baked_types :: fn(v: BcDataValue, arrays: i32[], symbol_ids: MutableSet<i32>) -> void {
+collect_baked_types :: fn(v: BcDataValue, arrays: i32[], symbol_ids: Set<i32>) -> void {
     if v is BcValStruct {
         symbol_ids.add(v.symbol_id)
         for f in v.fields {

@@ -59,7 +59,7 @@ export find_workspace_symbols :: fn(
     }
     wanted :: query.to_lower()
     scored: ScoredSymbol[]: []
-    kept :: MutableMap<string, FileSymbols> {}
+    kept :: Map<string, FileSymbols> {}
     walk_module_folders(workspace_roots(state), (module: string, files: string[]) -> {
         for path in files {
             for s in file_symbols(state, kept, path, module) {
@@ -204,7 +204,7 @@ common_prefix :: fn(word: string, query: string, at: i64) -> i64 {
 // only when the file's modification time changed, and kept in `kept`. None when
 // the file declares another module, such as a test fixture's `module "main"`.
 file_symbols :: fn(
-    state: ServerState, kept: MutableMap<string, FileSymbols>, path: string, module: string,
+    state: ServerState, kept: Map<string, FileSymbols>, path: string, module: string,
 ) -> WorkspaceSymbol[] {
     open :: state.index_for(path_to_uri(path))
     if open != null {

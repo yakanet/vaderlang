@@ -571,7 +571,7 @@ parse_target_list :: fn(spec: string) -> Target[] | null {
 // Every non-empty literal any target uses, sorted. Sorted and not first-seen so
 // the ids are a property of the SET, not of the order the targets were given.
 union_of_string_pools :: fn(mods: CfgBytecode[]) -> string[] {
-    seen: MutableSet<string>: MutableSet<string> {}
+    seen: Set<string>: Set<string> {}
     out: string[]: []
     for m in mods {
         for s in m.module.strings {

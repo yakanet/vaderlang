@@ -52,20 +52,20 @@ NodeRecord :: struct {
 
 Nodes :: struct {
     // `ConstDecl.id -> NodeRecord`. Insertion order tracked separately
-    // because `MutableMap` iteration order is bucket-dependent and
+    // because `Map` iteration order is bucket-dependent and
     // we want stable topo output for snapshot determinism.
-    by_id:   MutableMap<i64, NodeRecord>
+    by_id:   Map<i64, NodeRecord>
     order:   i64[]
     // `Symbol.id -> ConstDecl.id` reverse lookup so the walker can map
     // a resolved IdentExpr back to a participating decl in O(1).
-    by_symbol:  MutableMap<i32, i64>
+    by_symbol:  Map<i32, i64>
 }
 
 collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
     nodes :: Nodes {
-        .by_id  = MutableMap<i64, NodeRecord> {},
+        .by_id  = Map<i64, NodeRecord> {},
         .order  = [],
-        .by_symbol = MutableMap<i32, i64> {},
+        .by_symbol = Map<i32, i64> {},
     }
     for decl in program_decls {
         if decl is AST.ConstDecl {
@@ -92,7 +92,7 @@ populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
     }
     for id in nodes.order {
         record :: nodes.by_id[id] ?? continue
-        deps_seen :: MutableSet<i64> {}
+        deps_seen :: Set<i64> {}
         // A const the parser gave a `__comptime_` helper calls it ; what it reads
         // is the value it was written with, which the helper holds.
         written :: record.decl.comptime_body ?? record.decl.value
@@ -106,8 +106,8 @@ populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
 topo_sort :: fn(nodes: Nodes) -> ComptimeOrder {
     order: AST.ConstDecl[]: []
     diags: Diagnostic[]: []
-    color :: MutableMap<i64, i32> {}
-    cyclic :: MutableSet<i64> {}
+    color :: Map<i64, i32> {}
+    cyclic :: Set<i64> {}
     for id in nodes.order { color[id] = 0 }
     path: i64[]: []
     for id in nodes.order { visit(id, nodes, color, cyclic, path, order, diags) }
@@ -117,8 +117,8 @@ topo_sort :: fn(nodes: Nodes) -> ComptimeOrder {
 // Colour : 0 white, 1 grey, 2 black.
 visit :: fn(
     id: i64, nodes: Nodes,
-    color: MutableMap<i64, i32>,
-    cyclic: MutableSet<i64>,
+    color: Map<i64, i32>,
+    cyclic: Set<i64>,
     path: i64[],
     order: AST.ConstDecl[],
     diags: Diagnostic[],
@@ -146,7 +146,7 @@ visit :: fn(
 
 emit_cycle :: fn(
     id: i64, path: i64[], nodes: Nodes,
-    cyclic: MutableSet<i64>, diags: Diagnostic[],
+    cyclic: Set<i64>, diags: Diagnostic[],
 ) -> void {
     // `path` is the current DFS path. Find `id`'s first occurrence in it:
     // every node from there onward is part of the cycle, plus `id` itself
@@ -190,7 +190,7 @@ export display_cycle :: fn(names: string[]) -> string = names.join(" -> ")
 // Walk a value: every identifier in it may name another `@comptime const`.
 dependency_step :: fn(
     n: AST.Node, typed: TypedProgram, nodes: Nodes,
-    seen: MutableSet<i64>, record: NodeRecord,
+    seen: Set<i64>, record: NodeRecord,
 ) -> AST.Walk {
     if n is AST.IdentExpr {
         add_dependency(n, typed, nodes, seen, record)
@@ -203,7 +203,7 @@ dependency_step :: fn(
 // duplicates: a const named in two subtrees counts once.
 add_dependency :: fn(
     ident: AST.IdentExpr, typed: TypedProgram, nodes: Nodes,
-    seen: MutableSet<i64>, record: NodeRecord,
+    seen: Set<i64>, record: NodeRecord,
 ) -> void {
     symbol :: typed.resolved.idents[ident.span.hash()] ?? return
     if symbol.kind != .Const {

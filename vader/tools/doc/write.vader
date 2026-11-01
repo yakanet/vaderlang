@@ -95,7 +95,7 @@ index_json :: fn(modules: DocModule[]) -> JsonValue {
     module_items: JsonValue[]: []
     entries: JsonValue[]: []
     for m in modules {
-        item :: MutableMap<string, JsonValue> {}
+        item :: Map<string, JsonValue> {}
         item["path"] = json_text(m.path)
         item["summary"] = json_text(m.summary)
         item["files"] = json_texts(m.files)
@@ -119,7 +119,7 @@ index_json :: fn(modules: DocModule[]) -> JsonValue {
             }
         }
     }
-    root :: MutableMap<string, JsonValue> {}
+    root :: Map<string, JsonValue> {}
     root["version"] = JsonNumber { .value = DOC_FORMAT_VERSION }
     root["modules"] = JsonArray { .items = module_items }
     root["entries"] = JsonArray { .items = entries }
@@ -136,7 +136,7 @@ index_entry :: fn(
     doc: DocSections | null,
     owner: string,
 ) -> JsonValue {
-    entry :: MutableMap<string, JsonValue> {}
+    entry :: Map<string, JsonValue> {}
     entry["id"] = json_text(id)
     entry["module"] = json_text(module)
     entry["name"] = json_text(name)
@@ -163,7 +163,7 @@ owner_of_decl :: fn(d: DocDecl) -> string {
 
 // `modules/<path>.json`: one module whole.
 module_json :: fn(m: DocModule) -> JsonValue {
-    root :: MutableMap<string, JsonValue> {}
+    root :: Map<string, JsonValue> {}
     root["version"] = JsonNumber { .value = DOC_FORMAT_VERSION }
     root["path"] = json_text(m.path)
     root["summary"] = json_text(m.summary)
@@ -175,7 +175,7 @@ module_json :: fn(m: DocModule) -> JsonValue {
 
 // An export or an impl, its members included; `trait` and `for` for an impl.
 decl_json :: fn(d: DocDecl) -> JsonValue {
-    decl :: MutableMap<string, JsonValue> {}
+    decl :: Map<string, JsonValue> {}
     decl["id"] = json_text(d.id)
     decl["name"] = json_text(d.name)
     decl["kind"] = json_text(d.kind)
@@ -197,7 +197,7 @@ decl_json :: fn(d: DocDecl) -> JsonValue {
 
 // A field, a variant or a method.
 member_json :: fn(m: DocMember) -> JsonValue {
-    member :: MutableMap<string, JsonValue> {}
+    member :: Map<string, JsonValue> {}
     member["id"] = json_text(m.id)
     member["name"] = json_text(m.name)
     member["kind"] = json_text(m.kind)
@@ -215,7 +215,7 @@ function_json :: fn(function: DocFunction | null) -> JsonValue {
     if function == null {
         return JsonNull {}
     }
-    out :: MutableMap<string, JsonValue> {}
+    out :: Map<string, JsonValue> {}
     out["parameters"] = JsonArray { .items = function.parameters.map(parameter_json).collect() }
     out["return_type"] = segments_json(function.return_type)
     out["return_inferred"] = JsonBool { .value = function.return_inferred }
@@ -224,7 +224,7 @@ function_json :: fn(function: DocFunction | null) -> JsonValue {
 
 // A parameter, its `default` and `variadic` written only when it has them.
 parameter_json :: fn(p: DocParameter) -> JsonValue {
-    out :: MutableMap<string, JsonValue> {}
+    out :: Map<string, JsonValue> {}
     out["name"] = json_text(p.name)
     out["type"] = segments_json(p.param_type)
     if p.default.len() > 0 {
@@ -243,7 +243,7 @@ segments_json :: fn(segments: DocSegment[]) -> JsonValue = JsonArray {
 }
 
 segment_json :: fn(segment: DocSegment) -> JsonValue {
-    out :: MutableMap<string, JsonValue> {}
+    out :: Map<string, JsonValue> {}
     out["text"] = json_text(segment.text)
     if segment.module != "" {
         out["module"] = json_text(segment.module)
@@ -260,12 +260,12 @@ doc_json :: fn(doc: DocSections | null) -> JsonValue {
     }
     params: JsonValue[]: []
     for p in doc.params {
-        param :: MutableMap<string, JsonValue> {}
+        param :: Map<string, JsonValue> {}
         param["name"] = json_text(p.name)
         param["text"] = json_text(p.text)
         params.push(JsonObject { .entries = param })
     }
-    out :: MutableMap<string, JsonValue> {}
+    out :: Map<string, JsonValue> {}
     out["summary"] = json_text(first_sentence(doc.prose))
     out["prose"] = json_text(doc.prose)
     out["params"] = JsonArray { .items = params }
@@ -277,7 +277,7 @@ doc_json :: fn(doc: DocSections | null) -> JsonValue {
 
 // A line of an example, `hidden` written only for a setup line.
 example_line_json :: fn(line: ExampleLine) -> JsonValue {
-    out :: MutableMap<string, JsonValue> {}
+    out :: Map<string, JsonValue> {}
     out["text"] = json_text(line.text)
     if line.hidden {
         out["hidden"] = JsonBool { .value = true }

@@ -1,4 +1,4 @@
-/// Hash-map build + probe stress, exercises the compact-dict `MutableMap`
+/// Hash-map build + probe stress, exercises the compact-dict `Map`
 /// insert / lookup / delete / grow paths (NOT iteration, `map_iter` already
 /// covers that). Each round inserts N distinct keys, looks every one up,
 /// deletes half, then probes for survivors, so it hits `put` (with the
@@ -25,7 +25,7 @@ STRIDE: i64: 131101
 KEYSPACE: i64: 200003
 
 main :: fn() -> i32 {
-    m :: MutableMap<i32, i32> {}
+    m :: Map<i32, i32> {}
     chk: i64 = 0
     for r in 0..<ROUNDS {
         // insert / update: value carries the round so overwrites do work

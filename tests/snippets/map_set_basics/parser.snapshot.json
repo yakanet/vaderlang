@@ -179,7 +179,7 @@
                   "kind": "GenericInstExpr",
                   "callee": {
                     "kind": "IdentExpr",
-                    "name": "MutableMap"
+                    "name": "Map"
                   },
                   "typeArgs": [
                     {
@@ -500,7 +500,7 @@
                   "kind": "GenericInstExpr",
                   "callee": {
                     "kind": "IdentExpr",
-                    "name": "MutableMap"
+                    "name": "Map"
                   },
                   "typeArgs": [
                     {
@@ -995,7 +995,7 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "MutableMap"
+                        "value": "collection"
                       }
                     ]
                   },
@@ -1047,7 +1047,7 @@
                   "kind": "GenericInstExpr",
                   "callee": {
                     "kind": "IdentExpr",
-                    "name": "MutableMap"
+                    "name": "Map"
                   },
                   "typeArgs": [
                     {
@@ -1254,7 +1254,7 @@
                   "kind": "GenericInstExpr",
                   "callee": {
                     "kind": "IdentExpr",
-                    "name": "MutableMap"
+                    "name": "Map"
                   },
                   "typeArgs": [
                     {
@@ -1494,7 +1494,7 @@
                   "kind": "GenericInstExpr",
                   "callee": {
                     "kind": "IdentExpr",
-                    "name": "MutableSet"
+                    "name": "Set"
                   },
                   "typeArgs": [
                     {

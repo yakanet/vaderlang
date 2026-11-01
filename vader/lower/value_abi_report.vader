@@ -61,7 +61,7 @@ ValueAbiSite :: struct {
 /// @param typed    the typed project: `shape_mangle` needs it to spell the key
 ///                 a `StructType` maps to.
 value_abi_size :: fn(
-    t: Type, structs: MutableMap<string, LoweredStructDecl>, typed: TypedProject,
+    t: Type, structs: Map<string, LoweredStructDecl>, typed: TypedProject,
 ) -> i64 = value_abi_sized(value_abi_payload(t), structs, typed, VALUE_ABI_MAX_BYTES)
 
 /// What a `T | null` promises, or `t` itself.
@@ -76,7 +76,7 @@ value_abi_payload :: fn(t: Type) -> Type = subtract_type(t, TY_NULL)
 // separate depth cap would be a second constant free to disagree with this one:
 // `Node { next: Node }` terminates on the budget.
 value_abi_sized :: fn(
-    t: Type, structs: MutableMap<string, LoweredStructDecl>, typed: TypedProject, budget: i64,
+    t: Type, structs: Map<string, LoweredStructDecl>, typed: TypedProject, budget: i64,
 ) -> i64 {
     if budget <= 0 {
         return -1
@@ -239,8 +239,8 @@ render_value_abi_report :: fn(
 // Lowered struct decls under the mangle every other consumer dedups on, so a
 // `StructType` at a crossing finds its decl through `shape_mangle` rather than
 // through a key this file would own alone.
-index_struct_decls :: fn(project: LoweredProject) -> MutableMap<string, LoweredStructDecl> {
-    out :: MutableMap<string, LoweredStructDecl> {}
+index_struct_decls :: fn(project: LoweredProject) -> Map<string, LoweredStructDecl> {
+    out :: Map<string, LoweredStructDecl> {}
     for [_, m] in project.modules {
         for d in m.decls {
             if d is LoweredStructDecl {
@@ -253,7 +253,7 @@ index_struct_decls :: fn(project: LoweredProject) -> MutableMap<string, LoweredS
 
 // Every crossing `fd` carries: its return type, then each parameter.
 collect_value_abi_sites :: fn(
-    fd: LoweredFnDecl, structs: MutableMap<string, LoweredStructDecl>, typed: TypedProject,
+    fd: LoweredFnDecl, structs: Map<string, LoweredStructDecl>, typed: TypedProject,
     out: ValueAbiSite[],
 ) -> void {
     body :: fd.body

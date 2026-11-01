@@ -490,7 +490,7 @@
                   "kind": "GenericInstExpr",
                   "callee": {
                     "kind": "IdentExpr",
-                    "name": "MutableSet"
+                    "name": "Set"
                   },
                   "typeArgs": [
                     {

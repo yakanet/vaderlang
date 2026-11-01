@@ -54,13 +54,13 @@ export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     index :: reference_index_of(cached)
     site :: renameable_at(state, index, file_path, params) ?? return JsonNull {}
 
-    sources :: MutableMap<string, string> {}
+    sources :: Map<string, string> {}
     old_name :: span_text(state, sources, site.span)
     if old_name == "" { return JsonNull {} }
 
     edits :: sites_to_rename(state, reference_sites(state, uri, cached, index, site), old_name, sources)
     edits.push_all(param_doc_tags(state, edits, old_name))
-    li_cache :: MutableMap<string, LineIndex> {}
+    li_cache :: Map<string, LineIndex> {}
     return workspace_edit_json(edits, new_name, state, li_cache)
 }
 
@@ -84,7 +84,7 @@ sites_to_rename :: fn(
     state: ServerState,
     sites: RefSite[],
     old_name: string,
-    sources: MutableMap<string, string>,
+    sources: Map<string, string>,
 ) -> RefSite[] {
     out: RefSite[]: []
     for s in sites {
@@ -133,24 +133,24 @@ in_signature :: fn(f: DeclEntry, offset: i64) -> bool {
 // ---- WorkspaceEdit encoding ----------------------------------------------
 
 // `{ changes: { <uri>: TextEdit[] } }` grouping the edits by file.
-workspace_edit_json :: fn(edits: RefSite[], new_name: string, state: ServerState, li_cache: MutableMap<string, LineIndex>) -> JsonValue {
-    by_uri :: MutableMap<string, JsonValue[]> {}
+workspace_edit_json :: fn(edits: RefSite[], new_name: string, state: ServerState, li_cache: Map<string, LineIndex>) -> JsonValue {
+    by_uri :: Map<string, JsonValue[]> {}
     for e in edits {
         key :: path_to_uri(e.span.start.file)
         te :: text_edit_json(e.span, new_name, state, li_cache)
         by_uri.get_or_put_with(key, () -> []).push(te)
     }
-    changes :: MutableMap<string, JsonValue> {}
+    changes :: Map<string, JsonValue> {}
     for [key, arr] in by_uri {
         changes[key] = JsonArray { .items = arr }
     }
-    edit :: MutableMap<string, JsonValue> {}
+    edit :: Map<string, JsonValue> {}
     edit["changes"] = JsonObject { .entries = changes }
     return JsonObject { .entries = edit }
 }
 
-text_edit_json :: fn(sp: Span, new_name: string, state: ServerState, li_cache: MutableMap<string, LineIndex>) -> JsonValue {
-    obj :: MutableMap<string, JsonValue> {}
+text_edit_json :: fn(sp: Span, new_name: string, state: ServerState, li_cache: Map<string, LineIndex>) -> JsonValue {
+    obj :: Map<string, JsonValue> {}
     li :: line_index_cached(state, li_cache, sp.start.file)
     obj["range"]   = range_json(sp.span_to_range_json(li))
     obj["newText"] = JsonString { .value = new_name }
@@ -163,7 +163,7 @@ text_edit_json :: fn(sp: Span, new_name: string, state: ServerState, li_cache: M
 // degenerate. Each file is read once per request, through the overlay : the
 // modules importing the document's are no part of its project. Module paths +
 // identifiers are ASCII, so a byte slice is exact.
-span_text :: fn(state: ServerState, sources: MutableMap<string, string>, sp: Span) -> string {
+span_text :: fn(state: ServerState, sources: Map<string, string>, sp: Span) -> string {
     content :: sources.get_or_put_with(sp.start.file, () -> state.source_for_path(sp.start.file))
     if sp.end.offset > content.byte_len() {
         return ""
@@ -186,8 +186,8 @@ rename_new_name :: fn(params: JsonValue) -> string {
 import "std/testing"
 
 // Build a one-file source map for tests.
-test_sources :: fn(path: string, content: string) -> MutableMap<string, string> {
-    m :: MutableMap<string, string> {}
+test_sources :: fn(path: string, content: string) -> Map<string, string> {
+    m :: Map<string, string> {}
     m[path] = content
     return m
 }
@@ -228,7 +228,7 @@ test_sites_to_rename_filters_by_text :: fn() -> void {
 
 @test
 test_rename_new_name_reads_param :: fn() -> void {
-    inner :: MutableMap<string, JsonValue> {}
+    inner :: Map<string, JsonValue> {}
     inner["newName"] = JsonString { .value = "renamed" }
     params: JsonValue: JsonObject { .entries = inner }
     assert_eq(rename_new_name(params), "renamed")

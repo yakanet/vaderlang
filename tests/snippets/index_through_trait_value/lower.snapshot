@@ -27,7 +27,7 @@
       @vcall(std.core.IndexSet.set_at, store, i64(9000000000), 7)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      m: MutableMap<string, i32> = MutableMap<string, i32> {
+      m: Map<string, i32> = Map<string, i32> {
           .ekeys = [] :string[],
           .evals = [] :i32[],
           .index = [] :i32[],
@@ -37,7 +37,7 @@
           .tombs = i64(0),
       }
       snippet.fill(m)
-      snippet.pair_into<MutableMap<string, i32>>(m)
+      snippet.pair_into<Map<string, i32>>(m)
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(104))
           __off_1: i64 = 0
@@ -74,7 +74,7 @@
           __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_7)
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
-      wide: MutableMap<i64, i32> = MutableMap<i64, i32> {
+      wide: Map<i64, i32> = Map<i64, i32> {
           .ekeys = [] :i64[],
           .evals = [] :i32[],
           .index = [] :i32[],
@@ -84,18 +84,18 @@
           .tombs = i64(0),
       }
       snippet.put_wide(wide)
-      snippet.put_wider<MutableMap<i64, i32>>(wide)
+      snippet.put_wider<Map<i64, i32>>(wide)
       k: i64 = 9000000000
       std.io.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(62))
           __off_13: i64 = 0
           __off_13 = std.core.write_int(__buf_12, __off_13, {
-              __coalesce_10: i32 | null = std.collections.MutableMap<i64, i32>.at(wide, k)
+              __coalesce_10: i32 | null = std.collections.Map<i64, i32>.at(wide, k)
               if __coalesce_10 is null { -1 } else { i32(__coalesce_10) } :i32
           } :i32)
           __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
           __off_13 = std.core.write_int(__buf_12, __off_13, {
-              __coalesce_11: i32 | null = std.collections.MutableMap<i64, i32>.at(wide, k + i64(1))
+              __coalesce_11: i32 | null = std.collections.Map<i64, i32>.at(wide, k + i64(1))
               if __coalesce_11 is null { -1 } else { i32(__coalesce_11) } :i32
           } :i32)
           __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
@@ -104,17 +104,17 @@
       } :string)
       return 0
   }
-  snippet.pair_into<MutableMap<string, i32>> :: fn(c: MutableMap<string, i32>) -> void {  // snippet$pair_into__std_collections_MutableMap_string__i32_
+  snippet.pair_into<Map<string, i32>> :: fn(c: Map<string, i32>) -> void {  // snippet$pair_into__std_collections_Map_string__i32_
       {
           __destr_src_0: [i32, i32] = [3, 4] :[i32, i32]
           __destr_el_1: i32 = __destr_src_0._0
           __destr_el_2: i32 = __destr_src_0._1
-          std.collections.MutableMap<string, i32>.set_at(c, "x", __destr_el_1)
-          std.collections.MutableMap<string, i32>.set_at(c, "y", __destr_el_2)
+          std.collections.Map<string, i32>.set_at(c, "x", __destr_el_1)
+          std.collections.Map<string, i32>.set_at(c, "y", __destr_el_2)
       }
   }
-  snippet.put_wider<MutableMap<i64, i32>> :: fn(c: MutableMap<i64, i32>) -> void {  // snippet$put_wider__std_collections_MutableMap_i64__i32_
-      std.collections.MutableMap<i64, i32>.set_at(c, i64(9000000001), 8)
+  snippet.put_wider<Map<i64, i32>> :: fn(c: Map<i64, i32>) -> void {  // snippet$put_wider__std_collections_Map_i64__i32_
+      std.collections.Map<i64, i32>.set_at(c, i64(9000000001), 8)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
@@ -128,14 +128,14 @@
 
 ## lowered in dependencies
   std/collections
-    fn std.collections.MutableMap<i64, i32>.at  // std_collections$MutableMap$std_core$Index$at__i64__i32
-    fn std.collections.MutableMap<i64, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__i64__i32
-    fn std.collections.MutableMap<i64, i32>.into  // std_collections$MutableMap$std_core$Into$into__i64__i32
-    fn std.collections.MutableMap<i64, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__i64__i32
-    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core$Index$at__string__i32
-    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core$Contains$contains__string__i32
-    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core$Into$into__string__i32
-    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core$IndexSet$set_at__string__i32
+    fn std.collections.Map<i64, i32>.at  // std_collections$Map$std_core$Index$at__i64__i32
+    fn std.collections.Map<i64, i32>.contains  // std_collections$Map$std_core$Contains$contains__i64__i32
+    fn std.collections.Map<i64, i32>.into  // std_collections$Map$std_core$Into$into__i64__i32
+    fn std.collections.Map<i64, i32>.set_at  // std_collections$Map$std_core$IndexSet$set_at__i64__i32
+    fn std.collections.Map<string, i32>.at  // std_collections$Map$std_core$Index$at__string__i32
+    fn std.collections.Map<string, i32>.contains  // std_collections$Map$std_core$Contains$contains__string__i32
+    fn std.collections.Map<string, i32>.into  // std_collections$Map$std_core$Into$into__string__i32
+    fn std.collections.Map<string, i32>.set_at  // std_collections$Map$std_core$IndexSet$set_at__string__i32
     fn std.collections.contains_key<i64, i32>  // std_collections$contains_key__i64__i32
     fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
     fn std.collections.first_slot  // std_collections$first_slot
@@ -151,8 +151,8 @@
     fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
     fn std_collections$__gen_state_std_collections_0$Iterator$next
     fn std_collections$__gen_state_std_collections_1$Iterator$next
-    struct std.collections.MutableMap<i64, i32>  // std_collections$MutableMap__i64__i32
-    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
+    struct std.collections.Map<i64, i32>  // std_collections$Map__i64__i32
+    struct std.collections.Map<string, i32>  // std_collections$Map__string__i32
     struct std_collections$__gen_state_std_collections_0
     struct std_collections$__gen_state_std_collections_1
   std/core

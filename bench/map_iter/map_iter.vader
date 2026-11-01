@@ -1,5 +1,5 @@
 /// Map iteration micro-bench: exercises `for [k, v] in m` on a small map
-/// iterated repeatedly: the `Into<Iterator<[K, V]>!>` impl on `MutableMap`,
+/// iterated repeatedly: the `Into<Iterator<[K, V]>!>` impl on `Map`,
 /// a generator whose walk of the compact dict the `for` inlines, over 1 M
 /// entries.
 
@@ -12,7 +12,7 @@ INNER_KEYS  :: 1_000
 OUTER_LOOPS :: 1_000
 
 main :: fn() -> i32 {
-    m :: MutableMap<i32, i32> {}
+    m :: Map<i32, i32> {}
     for i in 0..<INNER_KEYS {
         m[i] = i
     }

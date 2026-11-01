@@ -437,14 +437,14 @@ count :: fn(n: i32, noun: string) -> string {
 render_json :: fn(checks: Check[]) -> string {
     items: Json.JsonValue[]: []
     for c in checks {
-        entry :: MutableMap<string, Json.JsonValue> {}
+        entry :: Map<string, Json.JsonValue> {}
         entry["name"]    = Json.JsonString { .value = c.name }
         entry["status"]  = Json.JsonString { .value = status_key(c.status) }
         entry["summary"] = Json.JsonString { .value = c.summary }
         entry["detail"]  = Json.JsonString { .value = c.detail }
         items.push(Json.JsonObject { .entries = entry })
     }
-    root :: MutableMap<string, Json.JsonValue> {}
+    root :: Map<string, Json.JsonValue> {}
     root["ok"]     = Json.JsonBool { .value = !has_failure(checks) }
     root["checks"] = Json.JsonArray { .items = items }
     return Json.stringify(Json.JsonObject { .entries = root }, 2)

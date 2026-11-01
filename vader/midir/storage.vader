@@ -224,10 +224,10 @@ computed_type :: fn(result: Type, width: RangeType | null) -> Type {
 /// its instance lays them out, each function's parameters.
 SlotTypes :: struct {
     /// Each struct's fields, in layout order, by its layout key (`layout_key`).
-    fields:          MutableMap<string, CFGStructField[]> = MutableMap<string, CFGStructField[]> {}
+    fields:          Map<string, CFGStructField[]> = Map<string, CFGStructField[]> {}
     /// The fields of each struct that takes no type argument, by its symbol : the
     /// same layout, found without building its key.
-    plain_fields:    MutableMap<i32, CFGStructField[]> = MutableMap<i32, CFGStructField[]> {}
+    plain_fields:    Map<i32, CFGStructField[]> = Map<i32, CFGStructField[]> {}
     callees:         CalleeLookup = CalleeLookup {}
     /// Parameter types of each function, at its position in `callees`.
     function_params: Type[][] = []

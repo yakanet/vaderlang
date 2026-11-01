@@ -93,7 +93,7 @@ const WORKLOADS: readonly Workload[] = [
   { name: "vm_arr",    description: "1024-elt i32[] read-modify-write, 5k passes",  outputMatch: "vm_arr" },
   { name: "vm_field",  description: "5 M struct field read-modify-writes",          outputMatch: "vm_field" },
   { name: "vm_str",    description: "300 k StringBuilder appends with ${}",         outputMatch: "vm_str" },
-  { name: "vm_map",    description: "4 × 50 k MutableMap inserts + lookups",        outputMatch: "vm_map" },
+  { name: "vm_map",    description: "4 × 50 k Map inserts + lookups",               outputMatch: "vm_map" },
   { name: "vm_shapes", description: "1 M trait calls over 3 cycled concrete types", outputMatch: "vm_shapes" },
   // Vader-only : compiler THROUGHPUT, not generated-code runtime. Times a full C
   // emission of the self-hosted compiler (~30 kLoC): the largest realistic input,

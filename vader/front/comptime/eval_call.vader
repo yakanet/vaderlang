@@ -62,7 +62,7 @@ evaluate_call_expr :: fn(
     if fn_decl.params.len() != expr.args.len() {
         return vm_required(expr.span, "CallExpr (arity mismatch)")
     }
-    bindings :: MutableMap<i32, ComptimeValue> {}
+    bindings :: Map<i32, ComptimeValue> {}
     for [k, bound] in context.bindings {
         bindings[k] = bound
     }
@@ -101,7 +101,7 @@ declaring_context :: fn(module: string, context: ComptimeContext) -> ComptimeCon
     return ComptimeContext {
         ...context,
         .typed = owner,
-        .bindings = MutableMap<i32, ComptimeValue> {},
+        .bindings = Map<i32, ComptimeValue> {},
     }
 }
 
@@ -118,7 +118,7 @@ declaring_context :: fn(module: string, context: ComptimeContext) -> ComptimeCon
 evaluate_with_arguments :: fn(
     fn_decl: AST.FnDecl,
     arguments: ComptimeValue[],
-    bindings: MutableMap<i32, ComptimeValue>,
+    bindings: Map<i32, ComptimeValue>,
     context: ComptimeContext,
     span: Span,
 ) -> EvalResult {

@@ -297,8 +297,8 @@ impl_member_type :: fn(chosen: ImplMethod, target_ty: Type, typed: TypedProgram)
 // bind.
 array_impl_bindings :: fn(
     chosen: ImplMethod, element: Type, typed: TypedProgram,
-) -> MutableMap<i32, Type> {
-    bindings :: MutableMap<i32, Type> {}
+) -> Map<i32, Type> {
+    bindings :: Map<i32, Type> {}
     ty :: chosen.ty
     if ty !is FnType {
         return bindings
@@ -314,12 +314,12 @@ array_impl_bindings :: fn(
 
 // The symbol ids of the type parameters `chosen`'s member declares itself ; null
 // for a member that declares none.
-own_params :: fn(chosen: ImplMethod, typed: TypedProgram) -> MutableSet<i32> | null {
+own_params :: fn(chosen: ImplMethod, typed: TypedProgram) -> Set<i32> | null {
     decl :: chosen.decl ?? return null
     if decl.type_params.len() == 0 {
         return null
     }
-    out :: MutableSet<i32> {}
+    out :: Set<i32> {}
     for tp in decl.type_params {
         sym :: typed.type_param_symbols[tp.span.hash()] ?? continue
         out.add(sym.id)
@@ -1380,8 +1380,8 @@ substitute_type_params :: fn(
 /// @param typed  the program whose shared parameter table is read.
 export type_param_bindings :: fn(
     tps: AST.TypeParam[], args: Type[], typed: TypedProgram,
-) -> MutableMap<i32, Type> {
-    bindings :: MutableMap<i32, Type> {}
+) -> Map<i32, Type> {
+    bindings :: Map<i32, Type> {}
     for i in 0..<min(tps.len(), args.len()) {
         sym :: typed.type_param_symbols[tps[i].span.hash()] ?? continue
         bindings[sym.id] = args[i]
@@ -1776,7 +1776,7 @@ export UfcsMethod :: struct {
 /// @param typed      the module's typechecked program.
 export ufcs_methods_for :: fn(target_ty: Type, file: string, typed: TypedProgram) -> UfcsMethod[] {
     out: UfcsMethod[]: []
-    seen :: MutableMap<string, bool> {}
+    seen :: Map<string, bool> {}
     for [name, bucket] in typed.resolved.fn_overloads {
         for sym in bucket {
             ft :: typed.decl_types[sym.id] ?? continue
@@ -1823,7 +1823,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
         }
         return mk_fn_drop_self(ft)
     }
-    bindings :: MutableMap<i32, Type> {}
+    bindings :: Map<i32, Type> {}
     unify_type_param(ft.params[0], target_ty, bindings)
     // Default Free* bindings so the curried return type comes back as
     // `i32`/`f64` instead of `{integer}`/`{float}`.

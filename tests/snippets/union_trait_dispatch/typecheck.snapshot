@@ -15,7 +15,7 @@
   StructDecl     Odd                  :: Odd
   FnDecl         plus_five            :: fn(i32 | Money) -> i32 | Money
   FnDecl         plus_one             :: fn(Add<i32>) -> string
-  FnDecl         put                  :: fn(Log | MutableMap<string, i32>) -> void
+  FnDecl         put                  :: fn(Log | Map<string, i32>) -> void
   TraitDecl      Shape                :: Shape
   FnDecl         shout                :: fn(i32 | string) -> string
   StructDecl     Sq                   :: Sq
@@ -71,26 +71,26 @@
   expr 135:34   StringLitExpr  :: string
   expr 135:5    CallExpr       :: void
   expr 135:5    IdentExpr      :: fn(T) -> void
-  expr 136:10   StructLitExpr  :: MutableMap<string, i32>
+  expr 136:10   StructLitExpr  :: Map<string, i32>
   expr 137:5    CallExpr       :: void
-  expr 137:5    IdentExpr      :: fn(Log | MutableMap<string, i32>) -> void
-  expr 137:9    IdentExpr      :: MutableMap<string, i32>
+  expr 137:5    IdentExpr      :: fn(Log | Map<string, i32>) -> void
+  expr 137:9    IdentExpr      :: Map<string, i32>
   expr 138:10   StructLitExpr  :: Log
   expr 138:25   SeqLitExpr     :: string[]
   expr 139:5    CallExpr       :: void
-  expr 139:5    IdentExpr      :: fn(Log | MutableMap<string, i32>) -> void
+  expr 139:5    IdentExpr      :: fn(Log | Map<string, i32>) -> void
   expr 139:9    IdentExpr      :: Log
   expr 140:13   StringLitExpr  :: string
   expr 140:16   CallExpr       :: i64
   expr 140:16   FieldExpr      :: fn() -> i64
-  expr 140:16   IdentExpr      :: MutableMap<string, i32>
+  expr 140:16   IdentExpr      :: Map<string, i32>
   expr 140:27   FieldExpr      :: string[]
   expr 140:27   IdentExpr      :: Log
   expr 140:27   IndexExpr      :: string
   expr 140:5    CallExpr       :: void
   expr 140:5    IdentExpr      :: fn(T) -> void
   expr 141:10   StructLitExpr  :: Tally
-  expr 141:28   StructLitExpr  :: MutableMap<string, i32>
+  expr 141:28   StructLitExpr  :: Map<string, i32>
   expr 142:10   StructLitExpr  :: Cell
   expr 142:26   SeqLitExpr     :: i32[]
   expr 143:13   StringLitExpr  :: string
@@ -161,10 +161,10 @@
   expr 63:19    StringLitExpr  :: string
   expr 63:5     CallExpr       :: void
   expr 63:5     FieldExpr      :: fn(string, i32) -> void
-  expr 63:5     IdentExpr      :: Log | MutableMap<string, i32>
+  expr 63:5     IdentExpr      :: Log | Map<string, i32>
   expr 64:12    StringLitExpr  :: string
-  expr 64:5     IdentExpr      :: Log | MutableMap<string, i32>
-  expr 72:40    FieldExpr      :: MutableMap<string, i32>
+  expr 64:5     IdentExpr      :: Log | Map<string, i32>
+  expr 72:40    FieldExpr      :: Map<string, i32>
   expr 72:40    IdentExpr      :: Tally
   expr 72:40    IndexExpr      :: i32 | null
   expr 72:40    NullCoalesceExpr :: i32
@@ -172,7 +172,7 @@
   expr 77:21    IdentExpr      :: string
   expr 77:26    BinaryExpr     :: i32
   expr 77:26    IdentExpr      :: i32
-  expr 77:9     FieldExpr      :: MutableMap<string, i32>
+  expr 77:9     FieldExpr      :: Map<string, i32>
   expr 77:9     IdentExpr      :: Tally
   expr 86:40    FieldExpr      :: i32[]
   expr 86:40    IdentExpr      :: Cell
