@@ -10,7 +10,7 @@
 # nothing here may use a 7-only form (`ForEach-Object -Parallel`, `??`, `?:`,
 # `&&`), since 5.1 is what a stock Windows offers and the CI only runs 7.
 # Needs a mingw-w64 C compiler (gcc or clang) on PATH -- MSVC is NOT supported
-# (the runtime uses __attribute__((weak))). The seed is plain C, compiled where
+# (the runtime uses GCC/Clang builtins). The seed is plain C, compiled where
 # it is tracked -- nothing to decompress. The compiler defaults to gcc; override
 # with `-CC clang` or $env:CC. It is resolved to an absolute path and passed to
 # stage1 via --cc. stage0 is a throwaway built -O1 ($env:STAGE0_CFLAGS); stage1 is

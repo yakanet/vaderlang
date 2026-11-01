@@ -241,11 +241,6 @@ const char* vader_atom_to_cstr(vader_atom_t a);
 void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table, vader_u32_t count);
 void vader_atom_shutdown(void);
 
-/* Profiling: one line on stderr with the atom count, the capacity, the bucket
- * load, the owner bytes and the free slots. `vader_atom_shutdown` calls it when
- * `VADER_ATOM_PROFILE=1` was set at program start; tests can call it directly. */
-void vader_atom_profile_dump(void);
-
 /* GC hook: invoked by the major collection cycle. Marks atoms reachable from
  * the five channels `vader_atom_mark_roots` walks (frame boxes, frame stack
  * objects, the frame's PRECISE `atoms[]` list, the defer stack and a
@@ -725,8 +720,15 @@ typedef struct {
     uint8_t            bytes[];
 } vader_buffer_t;
 
-/* Forward decl: the canonical declaration sits further down ; the inline
- * `vader_buffer_new` below predates it in file order. */
+/* Allocate `bytes` from the young from-space. May trigger a minor collection
+ * if young is full, and a major if promotion during that minor would overflow
+ * old. Returned memory is uninitialised: caller is responsible for writing
+ * the header (when the allocation represents a typed object).
+ *
+ * Used by the C emit for typed allocations (structs, fn objects). For arrays,
+ * see `vader_array_new` which lays out the struct + initial buf in a single
+ * call and writes the headers. Strings stay off the GC arena entirely: their
+ * bytes live in the atom table. */
 void* vader_gc_alloc(size_t bytes);
 
 /* Guarded integer division / remainder. The C-emit backend routes every
@@ -1157,17 +1159,6 @@ void vader_minor_collect(void);
  * leaves no room for an allocation, when the old bytes pass the headroom trigger
  * (`vader_old_maybe_major`), and when the program calls `runtime.collect()`. */
 void vader_major_collect(void);
-
-/* Allocate `bytes` from the young from-space. May trigger a minor collection
- * if young is full, and a major if promotion during that minor would overflow
- * old. Returned memory is uninitialised: caller is responsible for writing
- * the header (when the allocation represents a typed object).
- *
- * Used by the C emit for typed allocations (structs, fn objects). For arrays,
- * see `vader_array_new` which lays out the struct + initial buf in a single
- * call and writes the headers. Strings stay off the GC arena entirely: their
- * bytes live in the atom table. */
-void* vader_gc_alloc(size_t bytes);
 
 /* Card-table write barrier: called by the C-emit after every store of a
  * pointer-bearing field into a heap object. No-op for objects outside the

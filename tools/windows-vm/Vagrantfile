@@ -3,7 +3,7 @@
 #
 # Why it exists: the `windows-latest` CI job costs a ~12 min round trip. This is
 # a genuine NT kernel on Apple Silicon, accelerated by Hypervisor.framework, so
-# the 28 `_WIN32` branches of runtime/c/vader_runtime.c can be exercised here.
+# the `_WIN32` branches of runtime/c/ can be exercised here.
 #
 # What it does NOT cover: CI targets x86_64-w64-mingw32 with gcc, this guest
 # builds aarch64 with clang. It is an oracle for OS semantics -- drive roots,

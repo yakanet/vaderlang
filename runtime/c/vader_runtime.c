@@ -26,11 +26,9 @@
 #include "vader.h"
 
 #include <ctype.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
 #include <setjmp.h>   /* setjmp: flush callee-saved registers for the conservative old-gen stack scan */
 
 #include <errno.h>
@@ -42,18 +40,13 @@
 #  include <fcntl.h>   /* _O_BINARY */
 #else
 #  include <pthread.h> /* pthread_get_stackaddr_np / pthread_attr_getstack */
-#  include <spawn.h>
-#  include <sys/wait.h>
 #  include <unistd.h>
-#  include <fcntl.h>    /* fcntl F_SETFL O_NONBLOCK: non-blocking spawn poll */
-#  include <poll.h>     /* poll: stdin readiness for the LSP debounce */
 #  include <sys/resource.h> /* getrusage: peak RSS for the profiler */
 #  include <sys/mman.h> /* mmap / munmap / madvise: non-moving old-gen reservation */
 #  ifndef MAP_ANONYMOUS
 #    define MAP_ANONYMOUS MAP_ANON
 #  endif
 #  if defined(__APPLE__)
-#    include <mach-o/dyld.h> /* _NSGetExecutablePath */
 #    include <mach/mach.h>   /* task_info: current RSS for the profiler */
 #  endif
 #  if defined(__linux__)
@@ -524,7 +517,7 @@ static int vader_gc_env_bool(const char* env_name) {
 }
 
 static int g_gc_profile = 0;
-void vader_gc_profile_dump(void);
+static void vader_gc_profile_dump(void);
 
 /* ---------- slab old-gen: reservation, allocation, sweep ----------
  *
@@ -868,6 +861,7 @@ static uint64_t    vader_atom_hash64(const char* data, size_t len);
 static vader_u16_t vader_atom_ascii_flag(const char* data, size_t len);
 static void        vader_atom_bucket_install(vader_atom_t a);
 static void        vader_ensure_stdio_binary(void);
+static void        vader_atom_profile_dump(void);
 
 void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
                                    vader_u32_t count) {
@@ -1293,7 +1287,10 @@ void vader_cstr_free_for(vader_string_t s, const char* p) {
     free((void*) p);
 }
 
-void vader_atom_profile_dump(void) {
+/* One line on stderr with the atom count, the capacity, the bucket load, the
+ * owner bytes and the free slots. `vader_atom_shutdown` calls it when
+ * `VADER_ATOM_PROFILE=1` was set at program start. */
+static void vader_atom_profile_dump(void) {
     fprintf(stderr, "[atom-profile] count=%u capacity=%u bucket_load=%.2f%% "
                     "owner_bytes=%zu free_count=%u\n",
             g_atoms.count, g_atoms.capacity,
@@ -3558,9 +3555,8 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
  * the VM's runtime-error / panic messages are diffed byte-for-byte by the
  * snapshot suite, and text-mode `\n`→`\r\n` on stderr makes every such line
  * mismatch by an invisible trailing `\r` on Windows. Called at program startup
- * (`vader_atom_init_with_comptime`) and at the first stdin read ;
- * idempotent via the static flag. POSIX has no such concept: the helper is a
- * no-op there. */
+ * (`vader_atom_init_with_comptime`); idempotent via the static flag. POSIX has
+ * no such concept: the helper is a no-op there. */
 static int g_stdio_binary_ready = 0;
 
 static void vader_ensure_stdio_binary(void) {
@@ -3617,7 +3613,6 @@ void* vader_ptr_at(const void* base, int64_t i) {
  * PINNED target's bodies on whatever host it is on: a `--target=linux-x86_64`
  * bytecode executed on Windows calls this, and a guard would make the symbol
  * missing there. */
-#include <errno.h>
 VADER_HOST_EXPORT
 int32_t vader_last_errno(void) {
     return (int32_t) errno;
@@ -3898,7 +3893,7 @@ static const char* vader_array_kind_name(int kind) {
  * Sort by total bytes, print top-20. Called via atexit when
  * VADER_GC_PROFILE is set, and inline from the OOM trap (abort() skips
  * atexit). */
-void vader_gc_profile_dump(void) {
+static void vader_gc_profile_dump(void) {
     if (!g_gc_initialized) return;
     /* +1 for the ARRAY_BUF sentinel bucket. ARRAY_BUF objects (header tag
      * VADER_TYPE_INDEX_ARRAY_BUF) are tallied into this one extra bucket, just
