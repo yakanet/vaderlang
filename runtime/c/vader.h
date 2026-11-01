@@ -1318,10 +1318,11 @@ typedef struct {
      * answers at run time. Sits in padding, so it costs no space. */
     uint8_t             slot_size;
     const uint16_t*     string_offsets;/* byte offsets of raw vader_string_t fields */
-    /* Byte offsets of fields holding a raw `void*` to a concrete object (struct,
-     * array, tuple, fn): the `.Ref` class of `vader/emit/c/body.vader::
-     * val_type_of_bc_type`, scanned via `vader_gc_scan_raw`. A union, `T | null`
-     * included, is a `vader_box_t` field in `ptr_offsets`. */
+    /* Byte offsets of fields holding a raw `void*` to a concrete object, scanned
+     * via `vader_gc_scan_raw`: a struct's `.Ref` fields (struct, array, tuple, fn;
+     * `vader/emit/c/body.vader::val_type_of_bc_type`), an array's `buf`, a fn's
+     * `env`. A union, `T | null` included, is a `vader_box_t` field in
+     * `ptr_offsets`. */
     uint16_t            ref_count;
     const uint16_t*     ref_offsets;
 } vader_type_info_t;

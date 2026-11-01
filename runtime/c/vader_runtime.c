@@ -1435,11 +1435,8 @@ static void vader_atom_mark_object(char* scan, uint32_t type_index, void* ctx) {
         /* Conservative : box fields. The payload's lower 4 bytes may be an atom
          * (for string-tagged variants) or any other primitive ; conservativeness
          * keeps the latter from accidentally collecting a live atom. */
-        if (info->kind != VADER_TYPE_KIND_FN
-            && info->kind != VADER_TYPE_KIND_ARRAY) {
-            for (uint16_t i = 0; i < info->ptr_count; i++) {
-                vader_atom_mark_box((vader_box_t*) (scan + info->ptr_offsets[i]));
-            }
+        for (uint16_t i = 0; i < info->ptr_count; i++) {
+            vader_atom_mark_box((vader_box_t*) (scan + info->ptr_offsets[i]));
         }
     }
 }
@@ -1558,6 +1555,17 @@ void vader_gc_init(void) {
             || vader_type_info_table[0].ref_count != 0)) {
         vader_trap("vader_gc_init: type_info_table[0] must be a scan no-op "
                    "(reserved null slot): stack-object rooting relies on it");
+    }
+    /* A fn or array row lists its one pointer in `ref_offsets`: the scans read
+     * every `ptr_offsets` entry as a box, so a raw pointer listed there would
+     * never be forwarded. */
+    for (size_t i = 0; i < vader_type_info_count; i++) {
+        const vader_type_info_t* info = &vader_type_info_table[i];
+        if ((info->kind == VADER_TYPE_KIND_FN || info->kind == VADER_TYPE_KIND_ARRAY)
+            && info->ptr_count != 0) {
+            vader_trap("vader_gc_init: a fn or array type lists its pointer as a box "
+                       "field; its C comes from an older compiler");
+        }
     }
 
     g_gc_stress       = vader_gc_env_bool("VADER_GC_STRESS");
@@ -2134,8 +2142,8 @@ static void* vader_gc_forward(void* obj, uint32_t type_index) {
         return obj;
     }
 
-    if (vader_in_old(obj)) return obj;                 /* non-moving: stable during minor */
-    if (!vader_in_young_from(obj)) return obj;          /* immortal */
+    /* An old object does not move during a minor, and an immortal never does. */
+    if (!vader_in_young_from(obj)) return obj;
 
     vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
     if (hdr->forward != NULL) return hdr->forward;
@@ -2238,20 +2246,26 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
 }
 
 /* Scan a raw `void*` slot whose pointee is a heap object. Reads the pointee's
- * header to get its type, forwards, updates. Used for fn closure envs.
- * Same write-barrier rule as `vader_gc_scan_box`. */
+ * header to get its type, forwards, updates. Same write-barrier rule as
+ * `vader_gc_scan_box`.
+ *
+ * Membership BEFORE the header read: a slot may hold a non-heap address (a
+ * `.text` one in `fn.addr`), whose bytes are no header and must not be written
+ * back as a forwarding pointer. An old object only matters to the major. */
 static void vader_gc_scan_raw(void** slot) {
     if (slot == NULL || *slot == NULL) return;
-    /* Membership BEFORE the header read, as `vader_gc_forward` tests it: a slot
-     * may hold a non-heap address (a `.text` one in `fn.addr`), whose bytes are
-     * no header and must not be written back as a forwarding pointer. An
-     * immortal or an off-heap pointer is not ours to move. */
-    if (!vader_in_young_from(*slot) && !vader_in_old(*slot)) return;
-    vader_obj_header_t* hdr = (vader_obj_header_t*) *slot;
-    if (hdr->forward != NULL) { *slot = hdr->forward; }
-    else { *slot = vader_gc_forward(*slot, hdr->type_index); }
-    if (vader_in_young(*slot)) {
-        VADER_WRITE_BARRIER(slot);
+    void* obj = *slot;
+    if (vader_in_young_from(obj)) {
+        vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
+        /* A referent already moved this cycle skips the call. */
+        void* moved = hdr->forward;
+        if (moved == NULL) moved = vader_gc_forward(obj, hdr->type_index);
+        *slot = moved;
+        if (vader_in_young(moved)) {
+            VADER_WRITE_BARRIER(slot);
+        }
+    } else if (g_cycle == VADER_CYCLE_MAJOR && vader_in_old(obj)) {
+        (void) vader_gc_forward(obj, ((vader_obj_header_t*) obj)->type_index);
     }
 }
 
@@ -2293,13 +2307,7 @@ static size_t vader_gc_scan_object(char* scan) {
     }
     const vader_type_info_t* info = &vader_type_info_table[type_index];
     for (uint16_t i = 0; i < info->ptr_count; i++) {
-        char* field = scan + info->ptr_offsets[i];
-        if (info->kind == VADER_TYPE_KIND_FN
-            || info->kind == VADER_TYPE_KIND_ARRAY) {
-            vader_gc_scan_raw((void**) field);
-        } else {
-            vader_gc_scan_box((vader_box_t*) field);
-        }
+        vader_gc_scan_box((vader_box_t*) (scan + info->ptr_offsets[i]));
     }
     for (uint16_t i = 0; i < info->ref_count; i++) {
         vader_gc_scan_raw((void**) (scan + info->ref_offsets[i]));
