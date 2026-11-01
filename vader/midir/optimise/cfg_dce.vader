@@ -55,7 +55,7 @@ fold_moves :: fn(f: CFGFunction) -> CFGFunction {
 }
 
 fold_moves_in_block :: fn(
-    b: BasicBlock, locals: CFGLocal[], use_count: MutableMap<LocalId, i32>,
+    b: BasicBlock, locals: CFGLocal[], use_count: i32[],
     param_locals: MutableSet<LocalId>,
 ) -> Instruction[] {
     folded: Instruction[]: []
@@ -64,8 +64,7 @@ fold_moves_in_block :: fn(
         if !(ins is InstrMove) { folded.push(ins)  continue }
         if ins is InstrMove {
             if param_locals.contains(ins.src) { folded.push(ins)  continue }
-            count :: use_count[ins.src] ?? 0
-            if count != 1 || move_retags(locals, ins) { folded.push(ins)  continue }
+            if use_count[i64(ins.src)] != 1 || move_retags(locals, ins) { folded.push(ins)  continue }
             // Walk back through folded to find the producer of `m.src`.
             // Folding rewrites the producer to write `m.dst` at the
             // producer's (earlier) position, so any instruction BETWEEN the
@@ -532,14 +531,14 @@ fm_block :: fn(instrs: Instruction[]) -> BasicBlock = BasicBlock {
     .span = empty_span(),
 }
 
-/// Use counts as `count_uses` would report them, spelled out per test so each
-/// case states the single-use precondition it depends on.
-fm_uses :: fn(pairs: [LocalId, i32][]) -> MutableMap<LocalId, i32> {
-    m :: MutableMap<LocalId, i32> {}
+/// Use counts of the `fm_locals` as `count_uses` would report them, spelled
+/// out per test so each case states the single-use precondition it depends on.
+fm_uses :: fn(pairs: [LocalId, i32][]) -> i32[] {
+    counts: i32[]: [0] * fm_locals().len()
     for [l, n] in pairs {
-        m[l] = n
+        counts[i64(l)] = n
     }
-    return m
+    return counts
 }
 
 fm_no_params :: fn() -> MutableSet<LocalId> = MutableSet<LocalId> {}

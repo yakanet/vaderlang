@@ -748,11 +748,7 @@ collect_files :: fn(
 
 merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnostic[]) -> void {
     for [name, sym] in src.symbols {
-        before :: dst.symbols.len()
-        existing :: dst.symbols.get_or_put(name, sym)
-        if dst.symbols.len() > before {
-            continue
-        }
+        existing :: dst.symbols.put_absent(name, sym) ?? continue
         // Fn-vs-fn is legitimate : it goes to `fn_overloads` below;
         // the primary slot keeps its first-wins binding
         // (`add_fn_symbol`'s policy), the overloads land in the bucket.
@@ -778,12 +774,9 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnos
     }
     for [name, bucket] in src.fn_overloads {
         // A name new to `dst` takes the source bucket itself.
-        before :: dst.fn_overloads.len()
-        existing :: dst.fn_overloads.get_or_put(name, bucket)
-        if dst.fn_overloads.len() == before {
-            for s in bucket {
-                existing.push(s)
-            }
+        existing :: dst.fn_overloads.put_absent(name, bucket) ?? continue
+        for s in bucket {
+            existing.push(s)
         }
     }
     for [id, info] in src.imports {

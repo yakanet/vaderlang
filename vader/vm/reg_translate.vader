@@ -760,7 +760,7 @@ add_constant :: fn(
 ) -> void {
     scalar :: scalar_of(c) ?? return
     fresh :: consts.len()
-    if indices.get_or_put(scalar, fresh) == fresh {
+    if indices.put_absent(scalar, fresh) == null {
         consts.push(scalar.bits)
         tags.push(scalar.tag)
     }

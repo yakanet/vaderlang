@@ -98,8 +98,7 @@ read_catalog :: fn(dirs: string[]) -> Catalog {
     for dir in dirs {
         index :: read_doc_index(dir) ?? continue
         for m in index.modules {
-            if catalog.holder[m.path] == null {
-                catalog.holder[m.path] = dir
+            if catalog.holder.put_absent(m.path, dir) == null {
                 catalog.modules.push(m)
             }
         }

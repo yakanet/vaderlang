@@ -136,9 +136,8 @@ ImportEntry :: struct {
 render_import_block :: fn(run: AST.ImportDecl[]) -> string {
     // Merge modifier lists by path ; collect namespace imports (dedup exact).
     modifiers :: MutableMap<string, AST.ImportName[]> {}
-    modifier_paths: string[]: []
-    ns_entries: ImportEntry[]: []
-    ns_seen :: MutableMap<string, bool> {}
+    entries: ImportEntry[]: []
+    ns_seen :: MutableSet<string> {}
 
     for i in 0..<run.len() {
         im :: run[i]
@@ -146,41 +145,29 @@ render_import_block :: fn(run: AST.ImportDecl[]) -> string {
             is AST.DestructureImport    -> {
                 // A fresh bucket : later same-path imports push into it, which
                 // must not alias (and mutate) the AST node's own names.
-                before :: modifiers.len()
                 bucket :: modifiers.get_or_put_with(im.path, () -> [])
-                if modifiers.len() > before {
-                    modifier_paths.push(im.path)
-                }
                 for ni in 0..<dst.names.len() {
                     bucket.push(dst.names[ni])
                 }
             }
             is AST.NamedNamespaceImport -> {
                 text :: render_namespace_import(im.path, dst)
-                if ns_seen[text] == null {
-                    ns_seen[text] = true
-                    ns_entries.push(ImportEntry { .path = im.path, .text = text })
+                if ns_seen.add(text) {
+                    entries.push(ImportEntry { .path = im.path, .text = text })
                 }
             }
             is AST.WildcardImport       -> {
                 text :: "import \"" + im.path + "\""
-                if ns_seen[text] == null {
-                    ns_seen[text] = true
-                    ns_entries.push(ImportEntry { .path = im.path, .text = text })
+                if ns_seen.add(text) {
+                    entries.push(ImportEntry { .path = im.path, .text = text })
                 }
             }
         }
     }
 
-    entries: ImportEntry[]: []
-    for pi in 0..<modifier_paths.len() {
-        p :: modifier_paths[pi]
-        names :: modifiers[p]
-        if names != null {
-            entries.push(ImportEntry { .path = p, .text = render_modifier_import(p, names) })
-        }
+    for [p, names] in modifiers {
+        entries.push(ImportEntry { .path = p, .text = render_modifier_import(p, names) })
     }
-    for i in 0..<ns_entries.len() { entries.push(ns_entries[i]) }
 
     sorted :: sort(entries, import_entry_less)
 
@@ -218,11 +205,10 @@ render_namespace_import :: fn(path: string, nn: AST.NamedNamespaceImport) -> str
 // first lets a plain string sort order names then aliases (`A` < `A as X` < `B`).
 sorted_name_texts :: fn(names: AST.ImportName[]) -> string[] {
     texts: string[]: []
-    seen :: MutableMap<string, bool> {}
+    seen :: MutableSet<string> {}
     for i in 0..<names.len() {
         t :: import_name_text(names[i])
-        if seen[t] == null {
-            seen[t] = true
+        if seen.add(t) {
             texts.push(t)
         }
     }

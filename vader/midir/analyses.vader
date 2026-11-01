@@ -221,17 +221,15 @@ export natural_loop_bodies :: fn(
 
 // ---- use counts -----------------------------------------------------------
 
-/// Per-LocalId read count across the whole fn body. Every read in an
-/// instruction or terminator counts once. Used by copy folding, the
-/// stack scheduler, and any pass that needs use-counts.
-export count_uses :: fn(fn_: CFGFunction) -> MutableMap<LocalId, i32> {
-    counts :: MutableMap<LocalId, i32> {}
+/// Per-LocalId read count across the whole fn body, indexed by `LocalId`:
+/// one slot per local of `fn_`, 0 for a local nothing reads, so it holds
+/// only until a pass renumbers the locals. Every read in an instruction or
+/// terminator counts once. Used by copy folding, the stack scheduler, and
+/// any pass that needs use-counts.
+export count_uses :: fn(fn_: CFGFunction) -> i32[] {
+    counts: i32[]: [0] * fn_.locals.len()
     bump :: (l: LocalId) -> {
-        existing :: counts[l]
-        match existing {
-            is null -> { counts[l] = 1 }
-            _ -> { counts[l] = existing + 1 }
-        }
+        counts[i64(l)] += 1
     }
     for b in fn_.blocks {
         for ins in b.instructions { for_each_read_local(ins, bump) }

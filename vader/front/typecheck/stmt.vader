@@ -80,9 +80,8 @@ check_block :: fn(
     if typed.dump_types {
         typed.expr_kinds.get_or_put(block.id, "BlockExpr")
     }
-    before :: typed.expr_types.len()
-    typed.expr_types.get_or_put(block.id, result)
-    if typed.dump_types && typed.expr_types.len() > before {
+    stored :: typed.expr_types.put_absent(block.id, result) == null
+    if typed.dump_types && stored {
         typed.node_spans[block.id] = block.span
     }
     return result

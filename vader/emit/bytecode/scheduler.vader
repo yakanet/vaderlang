@@ -61,22 +61,20 @@ schedule_stack :: fn(fn_: CFGFunction) -> ScheduleHints {
 
 can_pass_through_stack :: fn(
     cur: Instruction, next: Instruction,
-    use_count: MutableMap<LocalId, i32>,
+    use_count: i32[],
 ) -> bool {
     dst :: dst_of(cur) ?? return false
-    count :: use_count[dst] ?? return false
-    if count != 1 { return false }
+    if use_count[i64(dst)] != 1 { return false }
     first_op :: first_stack_operand(next) ?? return false
     return first_op == dst
 }
 
 can_pass_through_terminator :: fn(
     cur: Instruction, t: Terminator,
-    use_count: MutableMap<LocalId, i32>,
+    use_count: i32[],
 ) -> bool {
     dst :: dst_of(cur) ?? return false
-    count :: use_count[dst] ?? return false
-    if count != 1 { return false }
+    if use_count[i64(dst)] != 1 { return false }
     first_op :: first_terminator_operand(t) ?? return false
     return first_op == dst
 }

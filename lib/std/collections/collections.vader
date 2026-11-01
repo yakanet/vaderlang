@@ -249,6 +249,65 @@ export get_or_put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, val
     return value
 }
 
+/// Store `value` for `key` unless `key` is already present, in one probe. A
+/// present key keeps its value. Like `m[key]`, a stored `null` reads as an
+/// absent key when `V` is nullable.
+/// @param self   the map receiver.
+/// @param key    key to look up.
+/// @param value  stored when `key` is absent.
+/// @return       the value already stored for `key`, or `null` when `value`
+///               was stored.
+/// @example
+///   owner :: MutableMap<string, string> {}
+///   owner.put_absent("std/io", "lib")    // null
+///   owner.put_absent("std/io", "vendor") // "lib"
+export put_absent :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> V | null {
+    first_tomb: i64 = -1
+    empty: i64 = -1
+    if self.index.len() > 0 {
+        perturb := key.hash()
+        s := first_slot(perturb, self.mask)
+        for {
+            slot :: self.index[s]
+            if slot == EMPTY_SLOT {
+                empty = s
+                break
+            }
+            if slot == TOMB_SLOT {
+                if first_tomb < 0 {
+                    first_tomb = s
+                }
+            } else {
+                ei :: i64(slot) - 1
+                if self.ekeys[ei].equals(key) {
+                    return self.evals[ei]
+                }
+            }
+            perturb = perturb >> 5
+            s = next_slot(s, perturb, self.mask)
+        }
+    }
+    // The insertion of `put`, inlined as in `get_or_put`.
+    size :: self.size
+    if size < self.ekeys.len() {
+        self.ekeys[size] = key
+        self.evals[size] = value
+    } else {
+        self.ekeys.push(key)
+        self.evals.push(value)
+    }
+    self.size = size + 1
+    if size + self.tombs >= self.grow_at {
+        self.grow_index()
+    } else if first_tomb >= 0 {
+        self.tombs = self.tombs - 1
+        self.index[first_tomb] = i32(size + 1)
+    } else {
+        self.index[empty] = i32(size + 1)
+    }
+    return null
+}
+
 /// The value stored for `key`, after storing what `make` returns there when
 /// `key` was absent. `make` runs only on a miss, so a default that allocates
 /// costs nothing when `key` is present. A hit takes one probe; a miss takes a
@@ -816,6 +875,39 @@ test_map_get_or_put_reuses_a_tombstone :: fn() -> void {
     assert_eq(m.get_or_put(3, 30), 30)
     assert_eq(m.len(), 8)
     assert_eq(m.tombs, 0)
+}
+
+@test
+test_map_put_absent_stores_only_a_new_key :: fn() -> void {
+    m :: MutableMap<string, i64> {}
+    assert(m.put_absent("a", 1) == null, "a new key is stored")
+    assert_eq(m.put_absent("a", 2) ?? -1, 1)
+    assert_eq(m["a"] ?? -1, 1)
+    assert_eq(m.len(), 1)
+}
+
+@test
+test_map_put_absent_reuses_a_tombstone :: fn() -> void {
+    m :: MutableMap<i32, i32> {}
+    for i in 0..<8 {
+        m[i] = i
+    }
+    m.remove(3)
+    assert(m.put_absent(3, 30) == null, "a removed key is absent")
+    assert_eq(m[3] ?? -1, 30)
+    assert_eq(m.tombs, 0)
+}
+
+@test
+test_map_put_absent_grows_on_the_insertion_past_three_quarters :: fn() -> void {
+    m :: MutableMap<i32, i32> {}
+    for i in 0..<12 {
+        m.put_absent(i, i)
+    }
+    assert_eq(m.index.len(), 16)
+    m.put_absent(12, 12)
+    assert_eq(m.index.len(), 32)
+    assert_eq(m[12] ?? -1, 12)
 }
 
 @test
