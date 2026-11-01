@@ -51,5 +51,4 @@ stops the bootstrap before a new seed can be emitted. That is why
 
 The profiler's `vader_prof_*` hooks kept a synthesised prototype while the
 profiler was due to leave C. It has left: `vader/support/profile` profiles in
-Vader, and `vader.h` declares the hooks only for the committed seeds that still
-call them.
+Vader, and the hooks are gone.

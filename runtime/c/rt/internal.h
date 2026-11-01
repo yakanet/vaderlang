@@ -33,13 +33,9 @@
 #else
 #  include <pthread.h> /* pthread_get_stackaddr_np / pthread_attr_getstack */
 #  include <unistd.h>
-#  include <sys/resource.h> /* getrusage: peak RSS for the profiler */
 #  include <sys/mman.h> /* mmap / munmap / madvise: non-moving old-gen reservation */
 #  ifndef MAP_ANONYMOUS
 #    define MAP_ANONYMOUS MAP_ANON
-#  endif
-#  if defined(__APPLE__)
-#    include <mach/mach.h>   /* task_info: current RSS for the profiler */
 #  endif
 #  if defined(__linux__)
 int pthread_getattr_np(pthread_t thread, pthread_attr_t* attr);

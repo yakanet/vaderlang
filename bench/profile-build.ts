@@ -4,7 +4,7 @@
 // Two complementary layers:
 //   1. In-compiler per-pass profiler (VADER_PROFILE=1): load / typecheck /
 //      comptime / lower / cfg / escape / bytecode / c-emit wall + RSS-growth +
-//      GC churn, printed by the runtime (see vader/support/profile + runtime/c).
+//      GC churn, printed by the compiler (see vader/support/profile).
 //   2. This harness: wraps each build STAGE under `/usr/bin/time -l` to add
 //      whole-process wall / user+sys CPU / peak RSS, plus an optional
 //      per-type GC live-set dump (VADER_GC_PROFILE=1).
@@ -79,7 +79,7 @@ function parseTime(stderr: string): TimeStats {
   return out;
 }
 
-// Extract the runtime's [VADER_PROFILE] per-pass block, if present.
+// Extract the compiler's [VADER_PROFILE] per-pass block, if present.
 function extractProfBlock(stderr: string): string | null {
   const idx = stderr.indexOf("[VADER_PROFILE]");
   if (idx < 0) return null;

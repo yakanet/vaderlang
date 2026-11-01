@@ -1243,8 +1243,8 @@ typedef struct {
     /* Old-gen LIVE bytes (recomputed at each sweep) plus the young ALLOCATION
      * high-water: the young half counts garbage too, since a bump allocator
      * cannot separate survivors from litter without collecting. Only right after
-     * a major does the sum approximate a live set ; the profiler and
-     * `std/runtime::bytes_used` read it at arbitrary points. */
+     * a major does the sum approximate a live set ; `std/runtime::bytes_used`
+     * reads it at arbitrary points. */
     size_t bytes_used;
     size_t total_collections; /* full + minor cycles run since process start */
     size_t total_copied;      /* cumulative bytes copied across all cycles */
@@ -1255,31 +1255,6 @@ typedef struct {
     size_t total_alloc_count;
 } vader_gc_stats_t;
 vader_gc_stats_t vader_gc_get_stats(void);
-
-/* ---- cooperative async scheduler ------------------------------------------
- * `std/runtime` runs the scheduler in Vader; only the committed seeds still
- * call these, so they stay until the seeds stop doing so.
- * A single-threaded timer scheduler backing `std/async`. `now` is a virtual
- * millisecond timeline starting at 0 ; `arm` registers a wake deadline on a
- * min-heap ; `park` waits for the nearest deadline (real time, unless
- * VADER_ASYNC_VIRTUAL_CLOCK is set, then it jumps), advances `now` to it,
- * drops every timer then due, and returns 0, or returns 1 when no timer is
- * pending (a deadlock: every task is suspended with nothing left to wake it). Program output depends only on the
- * heap ordering, not on wall-clock, so virtual and real modes agree. */
-vader_i64_t vader_sched_now(void);
-void        vader_sched_arm(vader_i64_t deadline);
-vader_i32_t vader_sched_park(void);
-
-/* ---- self-compile profiler (VADER_PROFILE) --------------------------------
- * `vader/support/profile` runs the profiler in Vader; only the committed seeds
- * still call these, so they stay until the seeds stop doing so.
- * Per-phase wall / peak-RSS / GC accounting for the compiler's own passes,
- * bracketed by an integer phase id. Everything is a no-op unless
- * $VADER_PROFILE is set, and the per-phase table is dumped to stderr at exit
- * (atexit). */
-void vader_prof_begin(int32_t phase_id);
-void vader_prof_end(int32_t phase_id);
-void vader_prof_dump(void);
 
 /* Type information for the GC scanner. Indexed by `vader_obj_header_t.type_index`
  * (which is the same index space as `vader_box_t.tag` and the BcType table).
