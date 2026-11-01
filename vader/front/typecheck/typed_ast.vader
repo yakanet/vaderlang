@@ -298,7 +298,7 @@ export ImplTables :: struct {
     /// `impl_base_key(for_ty) → element` for every `X implements Iterator<T>` impl,
     /// and every `X implements Into<Iterator<T>>` of an `X` that is no iterator
     /// itself: the impl's own `T`, which a reader substitutes against the
-    /// instance's arguments. Consumed by `stmt.vader::for_in_element` so `for c in
+    /// instance's arguments. Consumed by `for_loop.vader::for_in_element` so `for c in
     /// some_iter` binds `c` to T.
     iter_element_types: MutableMap<string, Type> = MutableMap<string, Type> {}
 
@@ -318,7 +318,7 @@ export ImplTables :: struct {
     index_set_key_types: MutableMap<string, Type> = MutableMap<string, Type> {}
 
     /// `impl_base_key(for_ty) → V` for every `X implements IndexSet<K, V>`
-    /// impl. Consumed by `stmt.vader::check_assign` to pin a free-literal
+    /// impl. Consumed by `let_assign.vader::check_assign` to pin a free-literal
     /// index-set value (`m[k] = 9000000000`) to the declared value type.
     /// Distinct from `index_target_types` (which records the nullable
     /// `Index` *read* result `V | null`, not the write value `V`).

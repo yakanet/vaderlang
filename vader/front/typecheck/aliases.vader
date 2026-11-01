@@ -1,0 +1,178 @@
+// vader/front/typecheck/aliases: type aliases and enums, settled before the declarations.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "vader/core/types"
+import "vader/front/resolver"
+
+// Register every type alias of one module (explicit `T :: type ...` or implicit
+// `T :: <type-expr>`) into `resolved.alias_types` (across the project, BEFORE
+// `declare_module`, so a signature naming an alias resolves it) and return the
+// decls that could not settle: an alias const whose RHS is not yet a type, a type
+// alias naming a type not yet registered. The module's own order is settled here
+// (`Value :: I32Val | StringVal` above the distincts it names) ; what another
+// module declares is `settle_project_aliases`'.
+register_aliases :: fn(typed: TypedProgram, decls: AST.Decl[]) -> AST.Decl[] {
+    pending: AST.Decl[]: []
+    for decl in decls {
+        if !register_alias_decl(decl, typed) {
+            pending.push(decl)
+        }
+    }
+    return settle_pending_aliases(typed, pending)
+}
+
+// Retry `pending` until a round registers nothing ; what is left is returned.
+settle_pending_aliases :: fn(typed: TypedProgram, pending: AST.Decl[]) -> AST.Decl[] {
+    rest := pending
+    for rest.len() > 0 {
+        still: AST.Decl[]: []
+        for decl in rest {
+            if !register_alias_decl(decl, typed) {
+                still.push(decl)
+            }
+        }
+        if still.len() == rest.len() {
+            break
+        }
+        rest = still
+    }
+    return rest
+}
+
+// Register `decl` when it is a type alias ; false when it is one that does not
+// settle yet. Any other decl has nothing to register.
+register_alias_decl :: fn(decl: AST.Decl, typed: TypedProgram) -> bool {
+    if decl is AST.TypeAliasDecl {
+        sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? return true
+        aliased :: type_from_expr(decl.aliased, typed.resolved, diag_sink())
+        typed.resolved.alias_types[sym.id] = aliased
+        typed.resolved.alias_params[sym.id] = quantifier_of(decl.type_params, typed.resolved)
+        return !type_contains_unresolved(aliased)
+    }
+    if decl is AST.ConstDecl {
+        return decl.ty != null || register_alias_const(decl, typed)
+    }
+    return true
+}
+
+// An alias naming another module's types (`Reading :: Celsius | Label`, the
+// members imported) settles only once that module has registered them: retry each
+// module's pending aliases, the alias table being the project's, until a round
+// registers nothing. True when anything settled.
+settle_project_aliases :: fn(
+    per_module: MutableMap<string, TypedProgram>, unsettled: MutableMap<string, AST.Decl[]>,
+) -> bool {
+    settled_any := false
+    for {
+        progressed := false
+        for id in unsettled.keys() {
+            pending :: unsettled[id] ?? continue
+            typed :: per_module[id] ?? continue
+            if pending.len() == 0 {
+                continue
+            }
+            rest :: settle_pending_aliases(typed, pending)
+            if rest.len() < pending.len() {
+                unsettled[id] = rest
+                progressed = true
+                settled_any = true
+            }
+        }
+        if !progressed {
+            return settled_any
+        }
+    }
+}
+
+// Fill every module's `namespace_member_types`, then retry the consts Phase A left
+// pending: one whose type names a namespace member (`Shape :: sh.Circle | Square`)
+// could not register before those tables existed. A newly settled alias is itself
+// a member another module may name, so the tables are rebuilt until a round
+// settles nothing. Runs before any `declare_module`, so neither the order of the
+// declarations nor that of the modules matters.
+settle_namespace_member_aliases :: fn(
+    project: LoadedProject,
+    targets: ImportTargetTable,
+    per_module: MutableMap<string, TypedProgram>,
+    unsettled: MutableMap<string, AST.Decl[]>,
+) -> void {
+    // A target's private-name set depends on its collected symbols alone, so it is
+    // built once ; its member map also on its `alias_types`, so it is rebuilt each
+    // round.
+    share_namespace_private_members(targets, project, per_module)
+    for {
+        share_namespace_member_types(targets, project, per_module)
+        // The retry merges every module's aliases into each pending one: skip it
+        // when no pending decl can settle, which is every project without such an
+        // alias.
+        if !can_settle_now(per_module, unsettled) || !settle_project_aliases(per_module, unsettled) {
+            return
+        }
+    }
+}
+
+// Whether a pending decl may settle now that the member tables are filled: a const
+// that reads as a type, or a type alias still unresolved. A const that does not
+// read as a type yet can only settle after one of those does.
+can_settle_now :: fn(
+    per_module: MutableMap<string, TypedProgram>, unsettled: MutableMap<string, AST.Decl[]>,
+) -> bool {
+    for [id, pending] in unsettled {
+        typed :: per_module[id] ?? continue
+        for decl in pending {
+            if decl is AST.TypeAliasDecl {
+                return true
+            }
+            if decl is AST.ConstDecl && is_type_expr(decl.value, typed.resolved) {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+// ---- enums ----------------------------------------------------------------
+
+// Compute every enum's `EnumType` across all files of all modules (Phase A) and
+// record it in the project's alias table, keyed by the enum symbol's global id. A
+// fn signature or struct field then resolves an enum reference (same module, another
+// one, or a sibling file of a multi-file module) to its `EnumType` rather than the
+// `type_from_symbol` `.Enum -> mk_struct` placeholder, so the bytecode emit
+// collapses the enum to its `repr` ordinal. Every enum is built before any is
+// recorded. Must run before `declare_module` lowers any signature.
+register_enum_types :: fn(
+    per_module: MutableMap<string, TypedProgram>,
+    project: LoadedProject,
+    alias_types: MutableMap<i32, Type>,
+) -> void {
+    collected :: MutableMap<i32, Type> {}
+    for [id, typed] in per_module {
+        loaded :: project.modules[id] ?? continue
+        for file in loaded.module.files {
+            for decl in file.program.decls {
+                if decl is AST.EnumDecl {
+                    sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? continue
+                    collected[sym.id] = build_enum_type(sym, decl, typed.resolved, diag_sink())
+                }
+            }
+        }
+    }
+    for [sid, t] in collected {
+        alias_types[sid] = t
+    }
+}
+
+register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
+    if !is_type_expr(cd.value, typed.resolved) {
+        return false
+    }
+    sym :: symbol_declared_at(typed.resolved, cd.name_span) ?? return true
+    aliased :: type_from_expr(cd.value, typed.resolved, diag_sink())
+    // `alias_for` (decl.vader, same module) is the shared distinct promotion rule ;
+    // this cross-project pass is the authoritative writer of `alias_types`.
+    typed.resolved.alias_types[sym.id] = alias_for(sym, aliased, cd)
+    return true
+}

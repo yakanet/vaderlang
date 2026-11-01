@@ -7,7 +7,7 @@
 //
 // Producers are wired : `expr_if.vader` narrows in the then/else branches of
 // `if x is T` / `if x == null` (idents and `expr.field` chains alike),
-// `match_expr.vader` narrows per arm, and `stmt.vader` narrows on
+// `match_expr.vader` narrows per arm, and `statement_narrows.vader` narrows on
 // early-return guards. Each pushes before the narrowed region and restores
 // via the paired `pop_*` on exit.
 //
@@ -59,7 +59,7 @@ export NarrowState :: struct {
     /// the then-branch of `if x is T`, or a match arm); readers go through
     /// `narrow_for_binding`, which falls back to the static type when no
     /// narrowing is in effect or the entry's generation is stale. Producers live
-    /// in `expr_if.vader`, `match_expr.vader` and `stmt.vader`.
+    /// in `expr_if.vader`, `match_expr.vader` and `statement_narrows.vader`.
     bindings: MutableMap<i32, NarrowSlot> = MutableMap<i32, NarrowSlot> {}
 
     /// Per-field narrowed type stack, keyed by `"${receiver_sym_id}#${field_name}"`.
@@ -152,7 +152,7 @@ chain_key :: fn(root_sym_id: i32, fields: string[]) -> string {
 
 /// Static type of a resolved field chain : the chain's narrow-table
 /// key + the type recorded by `check_expr` on its outermost FieldExpr.
-/// Shared by `expr_if.vader` / `stmt.vader` / `match_expr.vader` so
+/// Shared by `expr_if.vader` / `statement_narrows.vader` / `match_expr.vader` so
 /// they don't each re-derive the chain's declared type from scratch.
 FieldChainStatic :: struct {
     field_key: string

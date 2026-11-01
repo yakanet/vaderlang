@@ -1,0 +1,397 @@
+// vader/emit/c/structs: struct and union fields, reference casts and retags.
+//
+// A struct value flows as a raw `void*` to its storage (`.Ref`), and field
+// access derefs `((T*) obj)->f_<name>` ; an erased struct value (`.Any`) is a
+// `vader_box_t` whose `payload.obj` carries that pointer.
+// Both the stack variant (`struct.new_stack`, storage is a C local) and
+// the GC-heap variant (`struct.new`, allocated under the frame prologue)
+// are emitted by `emit_struct_new`.
+
+module "vader/emit/c"
+
+import "std/abort"
+import "vader/core/bytecode"
+import "vader/emit/c/ast"
+// The opcode union pulls in ~120 names ; the namespace form keeps the
+// import to one line and tags every op site as `Bc.<Op>` at the match.
+Bc :: import "vader/core/bytecode"
+
+/// `struct.new` / `struct.new_stack`: allocate, header-init, store each
+/// field, push the raw object pointer. The escape-proven stack variant
+/// (`op.stack`) uses a C local for storage (no GC) ; the heap variant
+/// allocates via `vader_gc_alloc`. Fields pop right-to-left then store in
+/// declaration order ; an incoming value whose ValType differs from the
+/// field's is reconciled by `coerce_expr`.
+emit_struct_new :: fn(s: FnState, op: Bc.StructNew) -> void {
+    t :: s.ctx.module.types[op.type_id]
+    if t is BcStruct {
+        cname :: s.ctx.struct_c_names[op.type_id]
+        n :: i32(t.fields.len())
+        // Pop top-to-bottom : pop #k is the value for field `n-1-k`.
+        field_vals: CExpression[]: [verbatim("")] * i64(n)
+        for k in 0..<n {
+            v :: pop(s)
+            fi :: n - 1 - k
+            f :: t.fields[fi]
+            field_vals[fi] = coerced_as(s, v, val_type_of_field(s.ctx.module.types, f.type_index))
+        }
+        // Storage : a C local for the escape-proven stack variant, a GC heap
+        // block otherwise. The popped field values live in ref temps that
+        // the frame roots, so a GC during `vader_gc_alloc` can't strand them.
+        obj :: if op.stack {
+            storage :: aux(s, "storage")
+            o :: aux(s, "obj")
+            // A stack-allocated GC struct is off-arena, so the collector's
+            // raw-root scan skips the object and never traces its pointer FIELDS,
+            // leaving captured heap refs stale across a safepoint (the
+            // walk_elements closure-env use-after-forward bug). In a framed fn,
+            // HOIST the storage decl to the function top (`stack_storage_decls`)
+            // so it is function-scoped: its address goes into `gc_stack_objs[]`
+            // and must not dangle past a nested block, and zero-init it so a
+            // scan before the header/fields are written sees type 0 (a no-op).
+            // ALWAYS hoisted and rooted, even in a fn that reaches no safepoint
+            // (ADR 0003) : the frame decision raises a frame for any fn that has
+            // stack storage, so this list is never orphaned.
+            s.stack_storages.push(StackStorage { .cname = cname, .storage = storage })
+            declare(s, "${cname}*", o, address_of(verbatim(storage)))
+            o
+        } else {
+            o :: aux(s, "obj")
+            declare(s, "${cname}*", o, gc_allocation(cname))
+            o
+        }
+        init_object_header(s, obj, op.type_id)
+        for i in 0..<n {
+            f :: t.fields[i]
+            assign(s, verbatim("${obj}->${field_c_name(f.name)}"), field_vals[i])
+        }
+        push_object(s, verbatim(obj))
+    } else {
+        // Say what the slot ACTUALLY holds, not just that it is wrong. A
+        // `struct.new` whose type index is not a struct means the module's type
+        // table disagrees with its own ops, and the two ways that happens
+        // (an index past the end, or an entry of the wrong shape) need different
+        // investigations. This message once cost a day for want of naming which.
+        types :: s.ctx.module.types
+        found :: if i64(op.type_id) !in 0..<types.len() {
+            "index past the end of a ${types.len()}-entry table"
+        } else {
+            "the entry is `${bc_type_key(types, op.type_id)}` in a ${types.len()}-entry table"
+        }
+        todo("struct.new on non-struct type ${op.type_id}: ${found}")
+    }
+}
+
+/// `struct.get`: pop the receiver (a raw `void*`, or a box when erased), push
+/// field `field_index` as an inlined dereference expression.
+emit_struct_get :: fn(s: FnState, op: Bc.StructGet) -> void {
+    obj :: pop(s)
+    push_struct_field(s, op.type_id, op.field_index, expression_of(obj), val_of(obj))
+}
+
+/// `local.field`: the fused `local.get N ; struct.get`. Push field
+/// `field_index` of the struct in slot `slot`.
+emit_local_field :: fn(s: FnState, op: Bc.LocalField) -> void {
+    push_struct_field(
+        s,
+        op.type_id,
+        op.field_index,
+        CLocal { .slot = op.slot },
+        slot_val_type(s.function, op.slot),
+    )
+}
+
+/// Push field `field_index` of struct type `type_index` read off `recv`
+/// (a raw `void*` when `recv_val` is `.Ref`, a `vader_box_t` when `.Any`)
+/// as a `StackExpr`: the dereference `((T*) recv)->f_<name>`, through
+/// `recv.payload.obj` for a box.
+push_struct_field :: fn(
+    s: FnState,
+    type_index: i32,
+    field_index: i32,
+    recv: CExpression,
+    recv_val: ValType,
+) -> void {
+    types :: s.ctx.module.types
+    t :: types[type_index]
+    if t is BcStruct {
+        cname :: s.ctx.struct_c_names[type_index]
+        f :: t.fields[field_index]
+        fval :: val_type_of_field(types, f.type_index)
+        // A `.Ref` receiver is a raw `void*` ; an `.Any` receiver is a box
+        // (erased element / downcast) whose object is in `.payload.obj`.
+        recv_ptr :: object_pointer(recv, recv_val)
+        concrete :: field_of(cname, recv_ptr, f.name)
+        // Erasure boundary. An erased-generic producer (e.g. a generic
+        // `zip` / `indexed`) returns an erased sibling layout (some or all
+        // fields boxed), and a concrete producer hands an erased consumer its
+        // concrete layout: a `filter` erased over tuples reads the steps of a
+        // concrete `indexed`. Vader erases the carrying array / result to a
+        // bare `ref`, so the layout the value has only resurfaces HERE, at the
+        // field read (the `local.field` / `struct.get` op carries the type_id it
+        // expects). Dispatch on the runtime tag : a value of the expected type
+        // reads its layout directly ; a sibling reads the sibling's field and
+        // box/unboxes it to the expected field's storage. Self-gating: a value
+        // of the expected type never matches a sibling tag. Vader's array is
+        // erased to `ref`, so the reshape happens per-read here rather than
+        // eagerly over the whole array.
+        sibs :: s.ctx.layout_siblings[type_index]
+        if sibs.len() == 0 {
+            push_expr(s, fval, concrete)
+        } else {
+            // One tag test per erased sibling, falling back to the concrete
+            // read (a value tagged as the concrete type, or anything
+            // unexpected, matches no sibling tag, so it lands on `concrete`).
+            // `recv_tag` is only needed on this rare erased-sibling path.
+            recv_tag :: tag_expression(recv, recv_val)
+            acc := concrete
+            for k in 0..<sibs.len() {
+                sib :: sibs[sibs.len() - 1 - k]
+                read :: erased_sibling_field_read(s, sib, field_index, fval, recv_ptr)
+                acc = CParenthesized {
+                    .inner = CConditional { .condition = tag_equals(recv_tag, sib), .then_value = read, .else_value = acc },
+                }
+            }
+            push_expr(s, fval, acc)
+        }
+    } else {
+        todo("struct field access on non-struct type ${type_index}")
+    }
+}
+
+/// Find every sibling layout of struct `struct_idx` : same generic group (a
+/// shared `symbol_id` for named generics, or both anonymous `__Tuple_*`), same
+/// arity, and each field identical or erased on one side: an open `ref` in the
+/// sibling, or an open `ref` here where the sibling holds a reference. Covers
+/// the all-`Any` form (`zip` erases every field → `[Any, Any]`), partial erasure
+/// (`indexed` keeps the concrete `i64` index, erases only the element →
+/// `[Any, i64]`), and the concrete layout an erased consumer receives from a
+/// concrete producer.
+find_layout_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
+    out: i32[]: []
+    et :: types[struct_idx]
+    if et is BcStruct {
+        // Anonymous tuples carry no source symbol: they group by the reserved
+        // `__Tuple` name marker ; named generics group by a shared `symbol_id`.
+        is_tuple :: "__Tuple" in et.name
+        for i in 0..<types.len() {
+            if i32(i) == struct_idx {
+                continue
+            }
+            cand :: types[i]
+            if cand is BcStruct {
+                same_group :: et.symbol_id >= 0 && cand.symbol_id == et.symbol_id || is_tuple && "__Tuple" in cand.name
+                if same_group && fields_are_layout_siblings(types, et, cand) {
+                    out.push(i32(i))
+                }
+            }
+        }
+    }
+    return out
+}
+
+// True when `cand` lays out the same fields as `expected` with some of them
+// erased on one side: each field is the same type, or boxed in `cand` (an erased
+// producer), or boxed in `expected` while `cand` holds a reference there (a
+// concrete producer read by an erased consumer: erasure boxes only references).
+fields_are_layout_siblings :: fn(types: BcType[], expected: BcStruct, cand: BcStruct) -> bool {
+    if cand.fields.len() != expected.fields.len() {
+        return false
+    }
+    differs := false
+    for fi in 0..<expected.fields.len() {
+        ef :: expected.fields[fi].type_index
+        cf :: cand.fields[fi].type_index
+        if cf == ef {
+            continue
+        }
+        differs = true
+        if types[cf] is BcRef {
+            continue
+        }
+        if types[ef] is BcRef && val_type_of_field(types, cf) == .Ref {
+            continue
+        }
+        return false
+    }
+    return differs
+}
+
+/// Read field `field_index` of the erased sibling struct `sib_idx` off `recv`,
+/// converting it to the concrete field's storage `target_val` : unbox a boxed
+/// sibling field into a primitive / string, box a concrete sibling field into a
+/// ref slot, or copy when both are boxed.
+erased_sibling_field_read :: fn(
+    s: FnState,
+    sib_idx: i32,
+    field_index: i32,
+    target_val: ValType,
+    recv: CExpression,
+) -> CExpression {
+    types :: s.ctx.module.types
+    st :: types[sib_idx]
+    if st is BcStruct {
+        sib_cname :: s.ctx.struct_c_names[sib_idx]
+        sf :: st.fields[field_index]
+        sf_val :: val_type_of_field(types, sf.type_index)
+        raw :: field_of(sib_cname, recv, sf.name)
+        // Reconcile the sibling field's storage class to the concrete field's via
+        // the canonical `coerce_expr`: it handles every direction incl. the
+        // `.Any → .Ref` unbox (`.payload.obj`) where the `push_struct_field`
+        // splice requires a raw `void*` rather than the sibling's box.
+        return coerce_expr(types, raw, sf_val, target_val)
+    }
+    return verbatim("0")
+}
+
+// `((<c_name>*) pointer)->f_<field>`.
+field_of :: fn(c_name: string, pointer: CExpression, field: string) -> CExpression =
+    pointer_member("${c_name}*", pointer, field_c_name(field))
+
+/// `struct.set` / `struct.set_stack`: pop the field value then the
+/// receiver, write the body slot in place, then fire the generational write
+/// barrier when the store writes a reference, so a later minor rescans this
+/// object's slots. A value-type mismatch is reconciled by `coerce_expr`.
+///
+/// The barrier is mandatory on a `struct.set` that writes a reference:
+/// mutating an old object's field to reference a young object creates an
+/// old→young edge whose card must be marked dirty, else `scan_old_dirty_cards`
+/// skips the object and the young referent goes stale when the next minor
+/// moves it. `struct.set_stack` opts out: the lowerer's escape analysis proved
+/// the receiver is stack-allocated, so the macro's `in old?` test would always
+/// be false anyway.
+emit_struct_set :: fn(s: FnState, op: Bc.StructSet) -> void {
+    t :: s.ctx.module.types[op.type_id]
+    if t is BcStruct {
+        cname :: s.ctx.struct_c_names[op.type_id]
+        value :: pop(s)
+        obj :: pop(s)
+        f :: t.fields[op.field_index]
+        // A `.Ref` receiver is a raw `void*` ; an `.Any` one is a box → `.payload.obj`.
+        obj_ptr :: object_pointer_of(obj)
+        place :: field_of(cname, obj_ptr, f.name)
+        store_field(s, place, value, f.type_index, struct_set_barrier(op, cname, obj_ptr))
+    } else {
+        todo("struct.set on non-struct type ${op.type_id}")
+    }
+}
+
+// What `struct.set` fires the write barrier on : nothing for a stack struct.
+struct_set_barrier :: fn(
+    op: Bc.StructSet,
+    c_name: string,
+    pointer: CExpression,
+) -> CExpression | null {
+    if op.stack {
+        return null
+    }
+    return cast("${c_name}*", pointer)
+}
+
+// Store `value` into the field `place` of type `field_type`, then fire the write
+// barrier on `barrier_object` when there is one and the store writes a
+// reference. The field must be able to hold one (`.Ref` / `.Any`): a `Pointer`
+// field is never scanned, and a `string` field holds an atom
+// (`write_barrier_for`). An `.Any` value unboxed into an `i64` field writes none.
+store_field :: fn(
+    s: FnState,
+    place: CExpression,
+    value: StackVal,
+    field_type: i32,
+    barrier_object: CExpression | null,
+) -> void {
+    field_val :: val_type_of_field(s.ctx.module.types, field_type)
+    assign(s, place, coerced_as(s, value, field_val))
+    if barrier_object != null && is_ref_val(field_val) {
+        write_barrier_for(s, barrier_object, value)
+    }
+}
+
+/// `union.get`: pop a value of a union of structs, push field `field_index`.
+emit_union_field_get :: fn(s: FnState, op: Bc.UnionFieldGet) -> void {
+    obj :: pop(s)
+    field :: union_field_place(s, op.type_id, op.field_index, object_pointer_of(obj))
+    push_expr(s, val_type_of_field(s.ctx.module.types, field.type_index), field.place)
+}
+
+/// `union.set`: pop the field value, then a value of a union of structs ; write
+/// field `field_index`.
+emit_union_field_set :: fn(s: FnState, op: Bc.UnionFieldSet) -> void {
+    value :: pop(s)
+    obj :: pop(s)
+    obj_ptr :: object_pointer_of(obj)
+    field :: union_field_place(s, op.type_id, op.field_index, obj_ptr)
+    store_field(s, field.place, value, field.type_index, obj_ptr)
+}
+
+// A field of a union of structs : a C lvalue, and the field's `BcType` slot.
+UnionFieldPlace :: struct {
+    place:      CExpression
+    type_index: i32
+}
+
+// Field `field_index` of the union `type_id` off `pointer`, as an lvalue through
+// `VADER_UNION_FIELD`.
+union_field_place :: fn(
+    s: FnState,
+    type_id: i32,
+    field_index: i32,
+    pointer: CExpression,
+) -> UnionFieldPlace {
+    types :: s.ctx.module.types
+    layout :: union_layout_struct(types, type_id)
+        ?? panic("c_emit: a union field access on type ${type_id}, no union of structs")
+    t :: types[layout]
+    if t !is BcStruct {
+        panic("c_emit: the layout of union ${type_id} is no struct")
+    }
+    f :: t.fields[field_index]
+    place :: call("VADER_UNION_FIELD", [
+        verbatim(c_type_for(types[f.type_index])),
+        verbatim(s.ctx.struct_c_names[layout]),
+        verbatim(field_c_name(f.name)),
+        pointer,
+    ])
+    return UnionFieldPlace { .place = place, .type_index = f.type_index }
+}
+
+/// `ref.cast`: re-tag the top value to `type_id`'s storage class :
+/// box or unbox across the erasure boundary, else a plain C cast.
+/// Materialised into a fresh temp (the lowerer emits it after `local.field`
+/// to pin a field's type).
+emit_ref_cast :: fn(s: FnState, op: Bc.RefCast) -> void {
+    v :: pop(s)
+    target_val :: val_type_of_bc_type(s.ctx.module.types[op.type_id])
+    // A ref.cast is a representation-preserving reinterpret, so it must honour the
+    // erasure boundary: widening a concrete `.Ref` (raw `void*`) into an erased `.Any`
+    // slot boxes it (`vader_ref_box`), narrowing `.Any → .Ref` unboxes, same-class
+    // is identity. `coerce_expr` covers all of these: the old `unbox_expr` arm
+    // wrongly treated a `.Ref` source as already-boxed (copying a `void*` into a
+    // box slot, or `.payload.obj`-ing a raw pointer).
+    push_into_temporary(s, coerced_as(s, v, target_val), target_val)
+}
+
+/// Turn a concrete primitive on the stack into a `vader_box_t`, the 16-byte
+/// tag + payload value of a union or an erased slot, with no allocation, tagged
+/// with the op's SEMANTIC `type_id` rather than the `class_tag_of` its coarse
+/// `ValType` would give. A value that is already a ref keeps its header's tag.
+emit_retag_op :: fn(s: FnState, op: Bc.Retag) -> void {
+    v :: pop(s)
+    if val_of(v) == .Any {
+        push_into_temporary(s, expression_of(v), .Any)
+        return
+    }
+    if val_of(v) == .Ref {
+        // Widen a raw concrete ref into a box (tag recovered from the header).
+        push_into_temporary(s, ref_box(expression_of(v)), .Any)
+        return
+    }
+    boxed :: box_expr(expression_of(v), val_of(v), op.type_id)
+    // A boxed scalar holds no pointer : it needs no GC-rooted temporary, and is
+    // built at its consumer like the scalar it wraps.
+    if v is StackLit {
+        push_lit(s, .Any, boxed)
+        return
+    }
+    push_expr(s, .Any, boxed)
+}

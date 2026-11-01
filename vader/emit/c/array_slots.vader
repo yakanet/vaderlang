@@ -1,0 +1,297 @@
+// vader/emit/c/array_slots: array slot access, and the cache of the array headers it binds.
+//
+// The slot ops address an array's elements by index through its header ; a
+// header bound in a straight-line region is kept in `FnState.bound_arrays`
+// until an op that can move it or end the region clears it.
+
+module "vader/emit/c"
+
+import "vader/core/bytecode"
+import "vader/emit/c/ast"
+// The opcode union pulls in ~120 names ; the namespace form keeps the
+// import to one line and tags every op site as `Bc.<Op>` at the match.
+Bc :: import "vader/core/bytecode"
+
+// ---- header cache ---------------------------------------------------------
+
+// Drop the header-cache entries this op invalidates, see
+// `FnState.bound_arrays`. Called before every op is emitted.
+invalidate_header_cache :: fn(s: FnState, op: Bc.Op) -> void {
+    if op is Bc.LocalSet {
+        drop_bound_for_local(s, op.slot)
+        return
+    }
+    if op is Bc.LocalTee {
+        drop_bound_for_local(s, op.slot)
+        return
+    }
+    // An op on the list that can collect still ends the region: `op_may_collect`
+    // has the last word, so the list cannot keep a header across a collection.
+    if is_cache_safe(op) && !op_may_collect(op, s.ctx.import_may_collect) {
+        return
+    }
+    // The op ends the straight-line region and clears the cache, except in one case.
+    //
+    // ENTERING a nested scope keeps the WHOLE cache : the region being opened is
+    // dominated by the code that bound those headers, and their `_slotarrK` C
+    // locals are declared in the enclosing block, so they stay both live and in
+    // C scope inside it. A probe loop then binds once per iteration instead of
+    // once per array test.
+    //
+    // Sound only in a `safepoint_free` fn : its body provably reaches NO GC
+    // safepoint, so no header can move inside the scope. Whether the fn has a
+    // frame says nothing about that (`FnState.needs_frame`).
+    //
+    // Deliberately the cheap slice of a dominance design, not its ceiling : a
+    // fn that reaches a safepoint could keep entries too if each carried its
+    // declaring scope depth and a safepoint epoch. That bookkeeping isn't here,
+    // so such fns clear.
+    //
+    // LEAVING a scope must NOT keep the cache : the code that follows is no
+    // longer dominated (the binding may sit in a branch that didn't run) and its
+    // C local has gone out of scope. Hence the scope-OPENING subset only.
+    if s.safepoint_free && is_scope_opening(op) {
+        return
+    }
+    s.bound_arrays.clear()
+}
+
+// Structured control-flow ops that OPEN a nested scope (push a C block) rather
+// than closing one : only these keep a cached header dominating (and in C
+// scope) for the code they admit.
+is_scope_opening :: fn(op: Bc.Op) -> bool = op is Bc.Block | Bc.Loop | Bc.If
+
+// True when the op provably cannot trigger a GC (which moves headers) or end the
+// straight-line region the cached `_slotarr` C temps are scoped to, so the
+// header cache survives it. DEFAULT-DENY : anything NOT listed clears the cache.
+// A missing pure op only costs CSE coverage (under-optimised) ; trusting an
+// allow-list of *dangerous* ops would turn a missing alloc/call op (e.g. the
+// GC-moving `array.slice`) into a stale-pointer use-after-free. New pure value ops
+// just get added here. `LocalSet` / `LocalTee` never reach this: they invalidate
+// precisely upstream. Slot stores stay safe : every access re-reads `->buf`.
+is_cache_safe :: fn(op: Bc.Op) -> bool {
+    if op is Bc.LocalGet | Bc.LocalField | Bc.StructGet | Bc.UnionFieldGet                                                     { return true }
+    if op is Bc.LoadSlotI32 | Bc.LoadSlotI64 | Bc.LoadSlotF64                                    { return true }
+    if op is Bc.StoreSlotI32 | Bc.StoreSlotI64 | Bc.StoreSlotF64                               { return true }
+    if op is Bc.ArrayGet | Bc.ArraySet | Bc.ArrayLen                                                                           { return true }
+    if op is Bc.LoadI32 | Bc.LoadI64 | Bc.LoadF64 | Bc.LoadU8                                                                  { return true }
+    if op is Bc.StoreI32 | Bc.StoreI64 | Bc.StoreF64 | Bc.StoreU8                                                              { return true }
+    if op is Bc.I32Const | Bc.I64Const | Bc.F64Const | Bc.BoolConst | Bc.CharConst                                             { return true }
+    if op is Bc.NullConst | Bc.StringConst | Bc.DataConst | Bc.TypeConst | Bc.SizeOfType | Bc.FnRef                             { return true }
+    if op is Bc.I32Add | Bc.I32Sub | Bc.I32Mul | Bc.I32Div | Bc.I32Mod | Bc.I32Neg                                             { return true }
+    if op is Bc.I64Add | Bc.I64Sub | Bc.I64Mul | Bc.I64Div | Bc.I64Mod | Bc.I64Neg                                             { return true }
+    if op is Bc.CheckedArith | Bc.CheckedNeg                                                                                   { return true }
+    if op is Bc.F64Add | Bc.F64Sub | Bc.F64Mul | Bc.F64Div | Bc.F64Neg                                                         { return true }
+    if op is Bc.U32Div | Bc.U32Mod | Bc.U64Div | Bc.U64Mod                                                                     { return true }
+    if op is Bc.I32BitAnd | Bc.I32BitOr | Bc.I32BitXor | Bc.I32BitNot | Bc.I32Shl | Bc.I32Shr | Bc.I32ShrU                     { return true }
+    if op is Bc.I64BitAnd | Bc.I64BitOr | Bc.I64BitXor | Bc.I64BitNot | Bc.I64Shl | Bc.I64Shr | Bc.I64ShrU                     { return true }
+    if op is Bc.I32Eq | Bc.I32Ne | Bc.I32Lt | Bc.I32Le | Bc.I32Gt | Bc.I32Ge                                                   { return true }
+    if op is Bc.I64Eq | Bc.I64Ne | Bc.I64Lt | Bc.I64Le | Bc.I64Gt | Bc.I64Ge                                                   { return true }
+    if op is Bc.F64Eq | Bc.F64Ne | Bc.F64Lt | Bc.F64Le | Bc.F64Gt | Bc.F64Ge                                                   { return true }
+    if op is Bc.U32Lt | Bc.U32Le | Bc.U32Gt | Bc.U32Ge | Bc.U64Lt | Bc.U64Le | Bc.U64Gt | Bc.U64Ge                             { return true }
+    if op is Bc.BoolEq | Bc.BoolNe                     { return true }
+    if op is Bc.StringEq | Bc.StringNe | Bc.StringCompare | Bc.RefEq | Bc.RefNe                                                { return true }
+    if op is Bc.BoolAnd | Bc.BoolOr | Bc.BoolNot                                                                               { return true }
+    if op is Bc.Convert | Bc.BitsToF32 | Bc.BitsToF64 | Bc.F32ToBits | Bc.F64ToBits | Bc.RefCast | Bc.Retag { return true }
+    if op is Bc.Drop                                                                                                           { return true }
+    return false
+}
+
+// Drop cache entries whose array expression reads local `l<slot>`: it was
+// just reassigned, so any `_slotarr` bound from its old value is stale.
+drop_bound_for_local :: fn(s: FnState, slot: i32) -> void {
+    kept: BoundArray[]: []
+    for bound in s.bound_arrays {
+        if !mentions_local(bound.pointer, slot) {
+            kept.push(bound)
+        }
+    }
+    s.bound_arrays = kept
+}
+
+// ---- array slot access ----------------------------------------------------
+
+// `((vader_array_t*) <pointer>)`: the array header behind a popped
+// `T[]` reference. The slot ops receive the ARRAY (the `@intrinsic`s are impl'd
+// on `T[]`, which knows the element type) and deref `->buf` + apply `->offset`
+// internally, so slice views (offset > 0) address the parent's slots correctly.
+// Slot ops are INDEX-addressed (the `[i]` cast applies the element stride),
+// distinct from the byte-offset bytes-Buffer ops. Outer parens bind `->buf`.
+/// Object pointer behind a heap-ref stack value : a `.Ref` is already a
+/// raw `void*` ; an `.Any` (erased) carries it in `.payload.obj`. Every site that
+/// casts a popped ref to a concrete C pointer (array / buffer / fn / …) routes
+/// through this so it handles both classes.
+object_pointer_of :: fn(v: StackVal) = object_pointer(expression_of(v), val_of(v))
+
+/// Runtime tag of a heap-ref stack value : `.Ref` recovers it from the object
+/// header ; `.Any` reads the box's `.tag`.
+tag_of :: fn(v: StackVal) = tag_expression(expression_of(v), val_of(v))
+
+/// Object-pointer / header-tag expressions from an `(expression, class)` pair:
+/// the primitives behind `object_pointer_of` / `tag_of`. A concrete `.Ref` is
+/// already the raw pointer ; an erased `.Any` unwraps it from the box. Used
+/// directly by sites that hold an expression rather than a `StackVal`
+/// (`push_struct_field`).
+object_pointer :: fn(value: CExpression, val: ValType) -> CExpression = if val == .Ref { value } else { payload(value, "obj") }
+tag_expression :: fn(value: CExpression, val: ValType) -> CExpression =
+    if val == .Ref { pointer_member("vader_obj_header_t*", value, "type_index") } else { CMember { .base = value, .member = "tag" } }
+
+array_header_pointer :: fn(v: StackVal) -> CExpression = CParenthesized { .inner = array_pointer(object_pointer_of(v)) }
+
+// `(vader_array_t*) pointer`.
+array_pointer :: fn(pointer: CExpression) -> CExpression = cast("vader_array_t*", pointer)
+
+// The absolute slot index into the array's buf : `array->offset + (size_t) i`.
+slot_index :: fn(array: string, index: StackVal) -> CExpression =
+    binary(.Add, verbatim("${array}->offset"), cast("size_t", expression_of(index)))
+
+// `((c_type*) array->buf->slots)[index]`.
+typed_slot :: fn(c_type: string, array: string, index: CExpression) -> CExpression = CIndex {
+    .base = CParenthesized { .inner = cast("${c_type}*", verbatim("${array}->buf->slots")) },
+    .index = index,
+}
+
+// `array->offset + <slot>u`: a constant slot of an array being built.
+fresh_slot :: fn(array: string, slot: i32) -> CExpression =
+    binary(.Add, verbatim("${array}->offset"), verbatim("${slot}u"))
+
+// `vader_array_box_slots(array->buf)[index]`.
+box_slot :: fn(array: string, index: CExpression) -> CExpression = CIndex {
+    .base = call("vader_array_box_slots", [verbatim("${array}->buf")]),
+    .index = index,
+}
+
+/// Bind `pointer`'s array header to a cached `_slotarrK` C local, behind the
+/// buffer guard (`VADER_ARRAY_RESOLVE_BUF`), and return its name. Reuses an
+/// earlier binding of the same array in this straight-line region.
+bind_array_local :: fn(s: FnState, pointer: CExpression) -> string {
+    for bound in s.bound_arrays {
+        if same_expression(bound.pointer, pointer) {
+            return bound.name
+        }
+    }
+    arr :: aux(s, "slotarr")
+    declare(s, "vader_array_t*", arr, pointer)
+    // `VADER_ARRAY_RESOLVE_BUF` is empty in a release build and a stale-buffer
+    // trap in a debug one ; its definition in `runtime/c/vader.h` owns the
+    // invariant that lets it be.
+    statement_macro(s, "VADER_ARRAY_RESOLVE_BUF", [verbatim(arr)])
+    s.bound_arrays.push(BoundArray { .name = arr, .pointer = pointer })
+    return arr
+}
+
+emit_slot_array_local :: fn(s: FnState, obj: StackVal, idx: StackVal, bounds_safe: bool) -> string {
+    arr :: bind_array_local(s, array_header_pointer(obj))
+    // Bounds is per-access (the reused local only shares the header binding and
+    // its buffer guard), EXCEPT when a producer proved the index in range
+    // (`bounds_safe`). Under `$VADER_VERIFY_BOUNDS` such an access keeps a check
+    // whose trap says the proof was wrong.
+    if !bounds_safe {
+        statement_macro(s, "VADER_ARRAY_CHECK_INDEX", [verbatim(arr), expression_of(idx)])
+    } else if s.ctx.verify_bounds {
+        statement_macro(s, "VADER_ARRAY_CHECK_PROVEN", [verbatim(arr), expression_of(idx)])
+    }
+    return arr
+}
+
+/// Primitive slot load: pop array + slot index, read the `cty`-typed element
+/// at `arr->buf->slots[arr->offset + i]`, push it with stack class `result`.
+/// Bounds-checked + buffer-guarded (see `emit_slot_array_local`).
+emit_slot_load_prim :: fn(s: FnState, cty: string, result: ValType, bounds_safe: bool) -> void {
+    idx :: pop(s)
+    obj :: pop(s)
+    a :: emit_slot_array_local(s, obj, idx, bounds_safe)
+    push_into_temporary(s, typed_slot(cty, a, slot_index(a, idx)), result)
+}
+
+/// Emit one typed (non-boxed) slot store : `((cty*) a->buf->slots)[a->offset + i]
+/// = (cty) <coerced value>`. Shared by the `StoreSlot*` opcode handler
+/// (`emit_slot_store_prim`) and the open-coded array set (`emit_array_set`): both
+/// reach the same `(a, idx, value, cty, val)` state after their own pop +
+/// `emit_slot_array_local`. No write barrier (a primitive slot holds no reference).
+/// The value is coerced to `val` first (unboxing an erased `Any` box).
+emit_typed_slot_write :: fn(
+    s: FnState,
+    a: string,
+    idx: StackVal,
+    value: StackVal,
+    cty: string,
+    val: ValType,
+) -> void {
+    assign(s, typed_slot(cty, a, slot_index(a, idx)), cast(cty, coerced_as(s, value, val)))
+}
+
+/// Primitive slot store: pop array + slot index + value ; write the `cty`-typed
+/// element. No write barrier (the primitive region holds no references).
+/// Bounds-checked + buffer-guarded (see `emit_slot_array_local`).
+emit_slot_store_prim :: fn(s: FnState, cty: string, val: ValType, bounds_safe: bool) -> void {
+    value :: pop(s)
+    idx :: pop(s)
+    obj :: pop(s)
+    a :: emit_slot_array_local(s, obj, idx, bounds_safe)
+    emit_typed_slot_write(s, a, idx, value, cty, val)
+}
+
+/// C type + coerce-target stack class for a typed (non-boxed) array slot store.
+/// The `cty` is the element's native storage type ; `val` is the stack class the
+/// stored value is coerced to before the `(cty)` cast. Returns `null` for the
+/// `Ref` and `Boxed` kinds ONLY: every primitive width (flippable AND sub-word)
+/// stores raw here, so `typed_array_fill_for(k) == null` is the canonical "is
+/// this array raw-ref or boxed?" test shared by construction (`emit_array_new`) and access
+/// (`emit_array_get`/`emit_array_set`). The flippable widths keep the slot-op
+/// shape (`u32`/`char` store as `int32_t`, same bytes, so the typed read reads
+/// back identical bits) ; the sub-word widths use the signedness-correct C type
+/// (`uint16_t`/`int16_t`/`float`/…) so a later typed read zero/sign-extends right.
+SlotFill :: struct { cty: string, val: ValType }
+
+/// The typed `vader_array_push_*` helper for a primitive element kind, or `null`
+/// for `Ref` / `Boxed` (which box through the generic append). Kept beside
+/// `typed_array_fill_for` because the two answer the same question about the
+/// same kind (the C storage width) and a mismatch between them writes the
+/// wrong number of bytes: `push_i32` into a `u8[]` overruns its slot by three.
+push_helper_for :: fn(k: ArrayKind) -> string | null = match k {
+    .I32 | .U32 | .Char -> "vader_array_push_i32"
+    .I64 | .U64         -> "vader_array_push_i64"
+    .F64                -> "vader_array_push_f64"
+    .F32                -> "vader_array_push_f32"
+    .U8                 -> "vader_array_push_u8"
+    .I8                 -> "vader_array_push_i8"
+    .U16                -> "vader_array_push_u16"
+    .I16                -> "vader_array_push_i16"
+    .Bool               -> "vader_array_push_bool"
+    .Ref | .Boxed       -> null
+}
+
+typed_array_fill_for :: fn(k: ArrayKind) -> SlotFill | null = match k {
+    .I32   -> SlotFill { .cty = "int32_t", .val = .I32 }
+    .U32   -> SlotFill { .cty = "int32_t", .val = .I32 }
+    .Char  -> SlotFill { .cty = "int32_t", .val = .I32 }
+    .I64   -> SlotFill { .cty = "int64_t", .val = .I64 }
+    .U64   -> SlotFill { .cty = "int64_t", .val = .I64 }
+    .F64   -> SlotFill { .cty = "double", .val = .F64 }
+    .U8    -> SlotFill { .cty = "uint8_t", .val = .I32 }
+    .I8    -> SlotFill { .cty = "int8_t", .val = .I32 }
+    .Bool  -> SlotFill { .cty = "uint8_t", .val = .Bool }
+    .U16   -> SlotFill { .cty = "uint16_t", .val = .I32 }
+    .I16   -> SlotFill { .cty = "int16_t", .val = .I32 }
+    .F32   -> SlotFill { .cty = "float", .val = .F32 }
+    .Ref   -> null
+    .Boxed -> null
+}
+// Ref slots aren't a typed-primitive fill (they hold raw `void*`, not a
+// widened scalar) and aren't a plain box either: the ref/boxed-carrying
+// paths handle them, so `fill == null` covers both `.Ref` and `.Boxed`.
+
+// Array access must runtime-dispatch on `buf->element_kind` (raw-ref vs
+// boxed slot) for any element whose backing buf could be EITHER kind across the
+// erasure boundary: a concrete-ref element (`Ref` buf when built concretely,
+// `Boxed` when built in erased generic code) OR an erased `BcRef` (`Any[]`/trait
+// object, which a concrete-ref buf flows into). A genuine `string[]` / union[]
+// buf is always boxed, so those keep the plain box path (no dispatch, no churn).
+ref_carrying_element :: fn(element: BcType, types: BcType[]) -> bool {
+    if element is BcStruct | BcArray | BcFn | BcRef { return true }
+    // A union-of-only-refs (`Expr[]`, `T | null`) is a raw-`void*` buf too, so its
+    // access must dispatch ; a mixed / primitive-bearing union stays pure-boxed.
+    if element is BcUnion                           { return is_ref_only_element(element, types) }
+    return false
+}

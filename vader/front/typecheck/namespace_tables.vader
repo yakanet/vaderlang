@@ -1,0 +1,161 @@
+// vader/front/typecheck/namespace_tables: what a namespace import exposes.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/front/resolver"
+
+build_namespace_exports :: fn(
+    mod_id: string,
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>,
+) -> MutableMap<string, Type> {
+    out :: MutableMap<string, Type> {}
+    loaded :: project.modules[mod_id] ?? return out
+    typed :: per_module[mod_id] ?? return out
+    for [name, sym] in loaded.collected.symbols {
+        // Exported members only: reached through a `P :: import "m"` alias.
+        // Mirrors the destructured-import check that fires R2008 (`wire.vader`);
+        // a private member's absence here routes `P.private` to the private-set
+        // check in `field.vader::try_namespace_field`.
+        if sym.visibility == .Private {
+            continue
+        }
+        t :: typed.decl_types[sym.id]
+        if t !is null {
+            out[name] = t
+            continue
+        }
+        aliased :: typed.resolved.alias_types[sym.id]
+        if aliased !is null {
+            out[name] = aliased
+        }
+    }
+    return out
+}
+
+/// Build the `namespace_member_types` every module shares from each target
+/// module's `collected.symbols` + `alias_types`. Runs BEFORE any `declare_module`
+/// (`settle_namespace_member_aliases`) so fn signatures referencing `P.Decl` in
+/// type position resolve correctly. The full `namespace_exports` table (built
+/// later from `decl_types`) is only used for value-position field access via
+/// `field.vader::try_namespace_field`. Every module needs it: the
+/// whole-program lowerer lowers imported bodies too, so their fn signatures can
+/// reference `P.Decl` namespace-qualified types that must resolve here instead
+/// of degrading to `?`. Plain (non-namespace) imports still resolve via
+/// `imports_to` + `alias_types` and don't need this.
+///
+/// The member maps are cached by target `mod_id`, so a module namespace-imported
+/// by N others has its map built once, not N times. The table is keyed by the
+/// project-global id of each namespace binding, so one serves every module.
+share_namespace_member_types :: fn(
+    targets: ImportTargetTable,
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>,
+) -> void {
+    member_cache :: MutableMap<string, MutableMap<string, Type>> {}
+    members :: MutableMap<i32, MutableMap<string, Type>> {}
+    for [sym_id, mod_id] in targets.namespace_targets {
+        members[sym_id] = member_cache.get_or_put_with(
+            mod_id,
+            () -> build_namespace_type_members(mod_id, project, per_module),
+        )
+    }
+    for [_, typed] in per_module {
+        typed.resolved.namespace_member_types = members
+    }
+}
+
+// The companion of `share_namespace_member_types` : each namespace binding's set
+// of the target's PRIVATE member names, so a `P.private` access can be told apart
+// from a genuinely-absent member and fire R2008.
+share_namespace_private_members :: fn(
+    targets: ImportTargetTable,
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>,
+) -> void {
+    private_cache :: MutableMap<string, MutableMap<string, bool>> {}
+    privates :: MutableMap<i32, MutableMap<string, bool>> {}
+    for [sym_id, mod_id] in targets.namespace_targets {
+        privates[sym_id] = private_cache.get_or_put_with(
+            mod_id,
+            () -> build_namespace_private_names(mod_id, project),
+        )
+    }
+    for [_, typed] in per_module {
+        typed.resolved.namespace_private_members = privates
+    }
+}
+
+// PRIVATE (non-`export`) member names of `mod_id`, as a name→true set. Read at
+// namespace-member access sites (`field.vader`, `type_expr.vader`) to fire R2008
+// on `P.private` instead of degrading to unresolved. Visibility lives on the
+// collected Symbol (`add_fn`/`add_named` carry the decl's `visibility`).
+build_namespace_private_names :: fn(
+    mod_id: string,
+    project: LoadedProject,
+) -> MutableMap<string, bool> {
+    out :: MutableMap<string, bool> {}
+    loaded :: project.modules[mod_id] ?? return out
+    for [name, sym] in loaded.collected.symbols {
+        if sym.visibility == .Private {
+            out[name] = true
+        }
+    }
+    // An import binding of the module is its own, never a member : `P.name`
+    // naming one is as unreachable as an unexported declaration.
+    for imports in loaded.collected.files {
+        for [name, _] in imports.bindings {
+            if loaded.collected.symbols[name] == null {
+                out[name] = true
+            }
+        }
+    }
+    return out
+}
+
+build_namespace_type_members :: fn(
+    mod_id: string,
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>,
+) -> MutableMap<string, Type> {
+    out :: MutableMap<string, Type> {}
+    loaded :: project.modules[mod_id] ?? return out
+    target_typed :: per_module[mod_id]
+    for [name, sym] in loaded.collected.symbols {
+        // Exported types only, see `build_namespace_exports`. A private type
+        // is not reachable as `P.PrivateType`.
+        if sym.visibility == .Private {
+            continue
+        }
+        // TypeAlias resolves to the alias's expanded union (already
+        // registered in the project's alias table by `register_aliases`).
+        // Other type-kind symbols resolve via
+        // `type_from_symbol`, which dispatches on `sym.kind`.
+        if target_typed !is null {
+            aliased :: target_typed.resolved.alias_types[sym.id]
+            if aliased !is null {
+                out[name] = aliased
+                continue
+            }
+        }
+        if is_type_kind(sym.kind) {
+            out[name] = type_from_symbol(sym, [])
+        }
+    }
+    return out
+}
+
+lookup_external_type :: fn(
+    st: SymbolTarget,
+    per_module: MutableMap<string, TypedProgram>,
+) -> Type | null {
+    typed :: per_module[st.module_id] ?? return null
+    declared :: typed.decl_types[st.symbol.id]
+    if declared !is null {
+        return declared
+    }
+    return typed.resolved.alias_types[st.symbol.id]
+}

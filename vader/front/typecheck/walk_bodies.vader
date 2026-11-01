@@ -1,0 +1,469 @@
+// vader/front/typecheck/walk_bodies: the walk over every body of a module, impls included.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+import "std/iter"
+AST :: import "toolchain/ast"
+import "toolchain/span"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/front/resolver"
+import "vader/support/diagnostics"
+
+// ---- return inference -----------------------------------------------------
+
+// An expression-bodied fn with no explicit return annotation: the only fn
+// shape whose return type is settled by body inference (`patch_fn_return_type`,
+// stmt.vader). Names the condition shared by `has_expr_bodied_fn` (which fns
+// force a forward-reference re-walk) and the return-only `walk_fn_body` guard
+// (which fns a re-walk must still walk).
+needs_return_inference :: fn(fd: AST.FnDecl) = fd.is_expression_bodied && fd.return_type is null
+
+has_expr_bodied_fn :: fn(decls: AST.Decl[]) -> bool = decls.any_match(holds_inferred_return)
+
+// Whether `d` is, or declares, a function whose expression body gives its return:
+// a fn, an impl member, or a trait's default.
+// @partial: no other declaration holds a function.
+holds_inferred_return :: fn(d: AST.Decl) -> bool = @partial match d {
+    is AST.FnDecl    -> needs_return_inference(d)
+    is AST.ImplDecl  -> d.members.any_match(infers_its_return)
+    is AST.TraitDecl -> d.members.any_match(infers_its_return)
+    _                -> false
+}
+
+// A member whose own body gives its return : not one declared for an impl from its
+// trait, which keeps the trait member's expression form and has no body.
+infers_its_return :: fn(m: AST.FnDecl) = m.body != null && needs_return_inference(m)
+
+// Clear per-expression tables so the second pass can re-populate
+// them with the now-settled fn return types: an entry the settle walk
+// wrote and the full walk does not would outlive it. Decl-level tables
+// (`decl_types`, struct/trait decls, the impl tables, …) stay intact:
+// only side-tables filled from inside fn bodies need a refresh.
+reset_expr_tables :: fn(typed: TypedProgram) -> void {
+    typed.expr_types = MutableMap<i64, Type> {}
+    typed.expr_kinds = MutableMap<i64, string> {}
+    typed.node_spans = MutableMap<i64, Span> {}
+    typed.ufcs_receiver_types = MutableMap<i64, Type> {}
+    typed.into_coercions = MutableMap<i64, Type> {}
+    typed.chosen_fns = MutableMap<i64, FnCandidate> {}
+    typed.chosen_impl_methods = MutableMap<i64, ImplMethod> {}
+    typed.overloaded_members = MutableMap<i64, ImplMethod[]> {}
+    typed.literals_past_default = MutableMap<i64, AST.IntLitExpr> {}
+    typed.static_members = MutableMap<i64, StaticMember> {}
+    typed.callee_field_id = AST.UNASSIGNED_NODE_ID
+    typed.callees = MutableMap<i64, Callee> {}
+    typed.call_sites = CallSites {}
+    typed.local_types = MutableMap<u64, Type> {}
+    // The whole narrowing machine, not table by table: a table added to
+    // `NarrowState` is then reset here for free instead of being silently left
+    // out of a hand-written list.
+    typed.narrow = NarrowState {}
+    // What the guards prove is read off their checked bodies : the walk after
+    // the reset checks them again.
+    typed.guards = GuardState { .candidates = typed.guards.candidates }
+}
+
+// ---- inferred export returns ----------------------------------------------
+
+// W0017: an exported function whose expression body decides its return type,
+// which then follows every edit of the body. Allocates nothing, unlike the warning
+// it gates, which runs on a hit only.
+//
+// `visibility` is the function's own, or for a trait's default, the trait's.
+leaves_export_return_to_inference :: fn(fd: AST.FnDecl, visibility: AST.Visibility) -> bool =
+    visibility == .Public && needs_return_inference(fd) && !fd.comptime_synthetic
+
+// Warn about `fd`, naming the type to write. A `never` return has no spelling to
+// write (a `@no_return` function), and an unresolved one already draws T3034.
+warn_inferred_export_return :: fn(
+    fd: AST.FnDecl,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    fn_type :: declared_fn_type(typed, fd)
+    if fn_type !is FnType {
+        return
+    }
+    ret :: fn_type.return_type
+    if ret !is UnresolvedType && ret !is NeverType {
+        detail :: "write `-> ${display_type(ret)}`"
+        diags.push(warning(.InferredExportReturnType, fd.name_span, detail))
+    }
+}
+
+// ---- body walk ------------------------------------------------------------
+
+/// How `walk_bodies` treats fn bodies that don't need return inference.
+WalkMode :: enum(u8) {
+    /// Type-check every body: populate `expr_types`, materialise stdlib fns.
+    Full,
+    /// Settle returns only : walk ONLY `needs_return_inference` fns to patch
+    /// their return into `decl_types` ; skip every other body (its return is
+    /// already final). Used by `settle_external_expr_bodied_returns` + the
+    /// forward-reference throwaway re-walks. Valid ONLY where a following
+    /// `Full` walk resets/overwrites `expr_types`, see the `walk_fn_body`
+    /// contract.
+    ReturnsOnly,
+}
+
+/// Walk every fn / const body in `decls` and type-check it. Skips
+/// extern / abstract decls (no body). For ConstDecls without an
+/// annotation, types the value expression and back-fills the const's
+/// declared type (post `default_if_free`) so `IdentExpr` lookups
+/// against it return a concrete type. A `Full` walk ends with the free
+/// literals past their default (`report_literals_past_default`).
+walk_bodies :: fn(
+    decls: AST.Decl[],
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    mode: WalkMode,
+) -> void {
+    // Pre-pass : the member declarations and the checks of every impl of the
+    // module, before any fn body is walked, so a body that references an impl
+    // member declared later in file order resolves. The impl tables are filled
+    // before any walk (`register_project_impls`).
+    for decl in decls {
+        if decl is AST.ImplDecl {
+            declare_and_check_impl(decl, typed, diags)
+        }
+    }
+    // A const is typed at its turn below, or at a read before it (`const_walk`).
+    open_const_walk(decls, typed, diags)
+    for decl in decls {
+        match decl {
+            is AST.FnDecl        -> {
+                walk_fn_body(decl, typed, diags, mode)
+                if mode == .Full && leaves_export_return_to_inference(decl, decl.visibility) {
+                    warn_inferred_export_return(decl, typed, diags)
+                }
+            }
+            is AST.ConstDecl     -> {
+                settle_with_reads(decl, typed)
+            }
+            is AST.AssertDecl    -> {
+                check_expr(decl.condition, null, typed, diags)
+            }
+            // Its field defaults are typed below, once every const has its type.
+            is AST.StructDecl    -> {}
+            is AST.ImplDecl      -> {
+                // The member declarations and the checks ran in the pre-pass
+                // (`declare_and_check_impl`) so forward references resolve ;
+                // only the member bodies remain to walk here.
+                typed.enclosing_impl = decl.span.hash()
+                typed.enclosing_impl_params = impl_param_ids(decl, typed)
+                for m in decl.members {
+                    walk_fn_body(m, typed, diags, mode)
+                }
+                if mode == .Full {
+                    check_inherited_tests(decl, typed, diags)
+                }
+                typed.enclosing_impl = 0
+                typed.enclosing_impl_params = MutableSet<i32> {}
+            }
+            is AST.EnumDecl      -> { check_variant_data(decl, typed, diags) }
+            is AST.TraitDecl     -> {
+                walk_default_bodies(decl, typed, diags, mode)
+            }
+            // Body-less decl kinds: nothing to walk. Listed explicitly (not
+            // `_`) so a new Decl variant trips T3013 and forces a decision.
+            is AST.TypeAliasDecl -> {}
+            is AST.ImportDecl    -> {}
+        }
+    }
+    fill :: DefaultFill {}
+    for decl in decls {
+        if decl is AST.StructDecl {
+            check_field_defaults(decl, typed, diags)
+            if mode == .Full {
+                reject_default_cycle(decl, fill, typed, diags)
+            }
+        }
+    }
+    if mode == .Full {
+        report_literals_past_default(typed, diags)
+        for decl in decls {
+            if decl is AST.FnDecl {
+                check_extern_library(decl, typed, diags)
+            }
+        }
+    }
+    settle_fn_references(typed, diags)
+    zonk_module_tables(typed)
+}
+
+// The symbol ids of `decl`'s type parameters.
+impl_param_ids :: fn(decl: AST.ImplDecl, typed: TypedProgram) -> MutableSet<i32> {
+    out :: MutableSet<i32> {}
+    for tp in impl_type_params_of(decl, typed.resolved) {
+        out.add(tp.symbol.id)
+    }
+    return out
+}
+
+// Every array type shares the impls `T[] implements<T> …` writes, and a concrete
+// array (`i32[]`, `MonType[]`) adds its own, which win for it. An element built
+// from a type parameter without being one (`T[][]`, `[T, i32][]`) would be a second
+// generic impl on arrays, overlapping `T[]`.
+is_refused_array_impl :: fn(t: Type) =
+    t is ArrayType && t.element !is TypeParamType && type_contains_type_param(t)
+
+// The parameters of `implements<...>` that `for_ty` does not mention (T3117). A
+// use of the impl binds its parameters from the type it is used at, so nothing
+// would bind those. None when `for_ty` did not resolve: that is reported already.
+unbound_impl_params :: fn(
+    decl: AST.ImplDecl,
+    for_ty: Type,
+    resolved: ResolvedModule,
+) -> AST.TypeParam[] {
+    unbound: AST.TypeParam[]: []
+    if type_contains_unresolved(for_ty) {
+        return unbound
+    }
+    mentioned :: type_params_in(for_ty)
+    for tp in decl.type_params {
+        sym :: resolved.idents[tp.span.hash()] ?? continue
+        if !mentioned.any_match((m) -> m.id == sym.id) {
+            unbound.push(tp)
+        }
+    }
+    return unbound
+}
+
+// Declare the members of an impl block of this module and check it: the member
+// parameter types, the impl diagnostics. Runs in `walk_bodies`' pre-pass so a
+// forward reference from an earlier fn body resolves. The impl tables are not
+// written here (`register_project_impls`), nor the member bodies walked (the main
+// pass does).
+declare_and_check_impl :: fn(
+    id: AST.ImplDecl,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    for_ty :: type_from_expr(id.for_type, typed.resolved, diags)
+    if is_refused_array_impl(for_ty) {
+        diags.push(
+            typecheck_error(
+                .ArrayImplPartlyGeneric,
+                id.for_type.span,
+                "`${display_type(for_ty)}` (write the impl on `T[]` or on a concrete array)",
+            ),
+        )
+        return
+    }
+    for tp in unbound_impl_params(id, for_ty, typed.resolved) {
+        diags.push(
+            typecheck_error(
+                .UnboundImplParameter,
+                tp.span,
+                "`${tp.name}` is not in `${display_type(for_ty)}`",
+            ),
+        )
+    }
+    trait_sym :: impl_trait_symbol(id, typed.resolved) ?? return
+    trait_key :: trait_key_of(trait_sym)
+    if trait_key == core_trait_key(TRAIT_INTO) {
+        if id.trait_args.len() == 1 {
+            target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
+            if equals_type(for_ty, target_ty) {
+                diags.push(
+                    typecheck_error(
+                        .IntoIdentityForbidden,
+                        id.span,
+                        "`${display_type(for_ty)} implements Into<${display_type(target_ty)}>`"
+                            + ", but source and target must differ",
+                    ),
+                )
+            }
+        }
+    }
+    trait_decl :: typed.trait_decls[trait_sym.id]
+    // Resolved again by `record_impl_members`, which reports what fails.
+    args :: written_type_args(id.trait_args, typed.resolved, [])
+    trait_type :: TraitType { .symbol = trait_sym, .args = args }
+    for m in id.members {
+        if m.inherits != null {
+            declare_inherited_member(m, trait_type, for_ty, typed)
+            continue
+        }
+        declare_impl_method_for_trait(
+            m,
+            for_ty,
+            lookup_trait_method(trait_decl, m.name),
+            trait_type,
+            typed,
+            m.member_diags(diags),
+        )
+    }
+    check_impl_members(id, trait_type, for_ty, typed, diags)
+}
+
+// The default bodies of `d`, each checked once in the trait, `Self` read as the
+// trait's own type parameter (`trait_self_params`) : the body of a
+// `fn<Self: Trait>`, valid for every impl the trait will have.
+walk_default_bodies :: fn(
+    d: AST.TraitDecl,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    mode: WalkMode,
+) -> void {
+    if !d.members.any_match((m) -> m.body != null) {
+        return
+    }
+    trait_sym :: symbol_declared_at(typed.resolved, d.name_span) ?? return
+    self_sym :: typed.resolved.trait_self_params[trait_sym.id] ?? return
+    self_param :: TypeParamType { .symbol = self_sym }
+    typed.default_body_params = default_body_param_ids(d, self_sym, typed)
+    for m in d.members {
+        if m.body != null {
+            declare_impl_method_for_trait(m, self_param, m, null, typed, diags)
+            walk_fn_body(m, typed, diags, mode)
+            record_default_return(m, self_sym, typed)
+            if mode == .Full && leaves_export_return_to_inference(m, d.visibility) {
+                warn_inferred_export_return(m, typed, diags)
+            }
+        }
+    }
+    typed.default_body_params = MutableSet<i32> {}
+}
+
+// The return a default body gives when its member leaves it out, for every reader
+// of the trait (`trait_member_type`), in every module : with `Self` written back
+// for the trait's own parameter `self_sym`, as a signature writes it.
+record_default_return :: fn(m: AST.FnDecl, self_sym: Symbol, typed: TypedProgram) -> void {
+    if !needs_return_inference(m) {
+        return
+    }
+    checked :: declared_fn_type(typed, m)
+    if checked !is FnType || checked.return_type is UnresolvedType {
+        return
+    }
+    as_written :: MutableMap<i32, Type> {}
+    as_written[self_sym.id] = TY_SELF
+    typed.impl_tables.default_returns[m.id] = substitute_map(checked.return_type, as_written)
+}
+
+// `Self` and the type parameters of `d`, which each impl that inherits a default
+// body binds.
+default_body_param_ids :: fn(
+    d: AST.TraitDecl,
+    self_sym: Symbol,
+    typed: TypedProgram,
+) -> MutableSet<i32> {
+    out :: MutableSet<i32> {}
+    out.add(self_sym.id)
+    for t in declared_type_args(d.type_params, typed) ?? [] {
+        if t is TypeParamType {
+            out.add(t.symbol.id)
+        }
+    }
+    return out
+}
+
+// An inherited member has its trait member's type, read in the trait's module at the
+// impl's trait arguments, `Self` read as `for_ty` : its signature names what the
+// trait's file imports, which the impl's file need not.
+declare_inherited_member :: fn(
+    m: AST.FnDecl,
+    trait_type: TraitType,
+    for_ty: Type,
+    typed: TypedProgram,
+) -> void {
+    rest :: inherited_signature(m, trait_type, for_ty, typed) ?? return
+    params: Type[]: []
+    if receiver_count(m) > 0 {
+        params.push(for_ty)
+    }
+    params.push_all(rest.params)
+    // Its parameters are written nowhere : the signature alone holds their types.
+    typed.impl_method_decl_types[m.id] = mk_fn(params, rest.return_type)
+}
+
+// The type of the member `m` inherits, its receiver dropped : the trait member's,
+// at the impl's trait arguments, `Self` read as `for_ty`.
+inherited_signature :: fn(
+    m: AST.FnDecl,
+    trait_type: TraitType,
+    for_ty: Type,
+    typed: TypedProgram,
+) -> FnType | null {
+    found :: try_trait_method(trait_type, m.name, typed, for_ty)
+    if found is FnType {
+        return found
+    }
+    return null
+}
+
+// Where a member of an impl reports its declaration. A member declared for the impl
+// from its trait (`materialized`) reports nothing : its signature is the trait's,
+// checked there.
+member_diags :: fn(m: AST.FnDecl, diags: Diagnostic[]) -> Diagnostic[] {
+    if m.materialized {
+        return []
+    }
+    return diags
+}
+
+// T3087 at `impl_` for a type test of a default body it inherits that its instances
+// cannot tell apart: the body was checked once in its trait, where the trait's
+// parameters erase nothing (`default_body_params`), so its tests are read again
+// with the types the impl binds them to, as the impl's own member would be.
+check_inherited_tests :: fn(impl_: AST.ImplDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    if !impl_.members.any_match((m) -> m.inherits != null) {
+        return
+    }
+    trait_sym :: impl_trait_symbol(impl_, typed.resolved) ?? return
+    owner :: typed.trait_decl_owners[trait_sym.id] ?? typed.resolved
+    for_ty :: type_from_expr(impl_.for_type, typed.resolved, [])
+    args :: registered_trait_args(impl_, trait_sym, for_ty, typed.resolved, typed)
+    bindings :: trait_param_bindings(trait_sym, args, for_ty, typed)
+    for m in impl_.members {
+        inherited :: m.inherits ?? continue
+        body :: inherited.body ?? continue
+        tested: AST.TypeExpr[]: []
+        AST.inspect(body, (n) -> collect_tested_type(n, tested))
+        for t in tested {
+            read :: substitute_map(type_from_expr(t, owner, []), bindings)
+            check_is_test_target(read, impl_.trait_name_span, typed, diags)
+        }
+    }
+}
+
+// Note the type `n` tests a value against, an `is` test's or a pattern's.
+collect_tested_type :: fn(n: AST.Node, tested: AST.TypeExpr[]) -> AST.Walk {
+    if n is AST.BinaryExpr && n.op == .Is {
+        tested.push(n.right)
+    } else if n is AST.IsPattern {
+        tested.push(n.ty)
+    }
+    return .Descend
+}
+
+walk_fn_body :: fn(
+    fd: AST.FnDecl,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    mode: WalkMode,
+) -> void {
+    // SAM short-impl synthetics carry no real body to type ; skip them.
+    if fd.materialized && fd.sam_synthetic                 { return }
+    // Return-only mode (the `settle_external_expr_bodied_returns` passes + the
+    // import-loop / entry throwaway re-walks). Their sole job is to settle
+    // expression-bodied fn returns into `decl_types`, and only
+    // `needs_return_inference` fns ever call `patch_fn_return_type`
+    // (stmt.vader). Every other fn's return is already final from
+    // `declare_module`, so walking its body re-does full inference for
+    // nothing. Skip it.
+    //
+    // CONTRACT: use `.ReturnsOnly` ONLY from a walk whose `expr_types` is
+    // reset or fully overwritten by a following `.Full` walk. The always-full
+    // walk that follows (settle pass 0 / the real import walk) re-types every
+    // body, populates `expr_types`, and materialises stdlib fns, so skipping
+    // bodies here is byte-identical. A non-reset return-only walk would
+    // silently leave every skipped body at `:?` (lowerer → degraded bytecode,
+    // no error).
+    if mode == .ReturnsOnly && !needs_return_inference(fd) { return }
+    body :: fd.body ?? return
+    check_fn_body(fd, body, typed, diags)
+}

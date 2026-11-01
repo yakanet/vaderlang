@@ -140,7 +140,7 @@ bake_with_own_bodies :: fn(loaded: LoadedProject, evaluated: EvaluatedProject, d
 /// Drain non-entry modules' `resolved.diags` (body-walker output)
 /// into one flat list. The entry module's R-codes are already
 /// forwarded by `check_project_with_bodies` into `typecheck_diags`
-/// (orchestrate.vader:163), so we'd double-fire if we pushed them
+/// (orchestrate.vader), so we'd double-fire if we pushed them
 /// here too.
 export collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
     out: Diagnostic[]: []

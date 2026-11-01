@@ -1,0 +1,132 @@
+// vader/emit/c/type_ops: type constants, type tests and `defer`.
+
+module "vader/emit/c"
+
+import "vader/core/bytecode"
+import "vader/emit/c/ast"
+// The opcode union pulls in ~120 names ; the namespace form keeps the
+// import to one line and tags every op site as `Bc.<Op>` at the match.
+Bc :: import "vader/core/bytecode"
+
+/// `type.const`: box `type_id` into the payload pointer via `(uintptr_t)` so
+/// `@size_of` can recover the BcType slot at runtime (decoded by
+/// `emit_size_of_type`). Tagged `null` keeps GC + display off the synthetic
+/// pointer. A pure literal: push as a lit so a direct `size_of.type` reader
+/// inlines it.
+emit_type_const :: fn(s: FnState, op: Bc.TypeConst) -> void = push_lit(
+    s,
+    .Any,
+    verbatim("vader_box_obj(${s.ctx.null_tag}u, (void*)(uintptr_t)${op.type_id}u)"),
+)
+
+/// `size_of.type`: decode the `type.const` payload back to a BcType slot and
+/// read its `slot_size` in `vader_type_info_table` (`emit_type_info_table`).
+emit_size_of_type :: fn(s: FnState) -> void {
+    tv :: pop(s)
+    push_into_temporary(
+        s,
+        around("(int64_t)vader_type_info_table[(int32_t)(uintptr_t)", payload(expression_of(tv), "obj"), "].slot_size"),
+        .I64,
+    )
+}
+
+/// `type_check`: runtime `x is T`. A boxed value compares its tag (a trait
+/// ref expands to a disjunction over every implementing struct's tag, plus the
+/// ref type itself) ; a primitively-typed value resolves at compile time
+/// (`class_matches_type`). Pushed as an expression so a downstream `if` /
+/// `br_if` / boolean combinator inlines it.
+emit_type_check :: fn(s: FnState, op: Bc.TypeCheck) -> void {
+    v :: pop(s)
+    val :: val_of(v)
+    if is_ref_val(val) {
+        target :: s.ctx.module.types[op.type_id]
+        if target is BcUnion {
+            // `x is (A | B)`: a boxed value never carries a union's own tag, so
+            // OR the per-variant checks (mirrors the VM's `union_matches`). This
+            // makes `is <union>` correct on native, matching the VM.
+            parts: CExpression[]: []
+            for vid in target.variants {
+                parts.push(one_variant_check(s, tag_of(v), vid))
+            }
+            push_expr(s, .Bool, CParenthesized { .inner = any_of(parts) })
+            return
+        }
+        push_expr(s, .Bool, one_variant_check(s, tag_of(v), op.type_id))
+    } else {
+        matches :: class_matches_type(s.ctx.module.types, val, op.type_id)
+        push_lit(s, .Bool, verbatim(if matches { "true" } else { "false" }))
+    }
+}
+
+// The C bool expr for `<value> is <single type_id>`, over the value's tag : a trait ref expands to a
+// disjunction over its implementers, anything else is a plain tag compare.
+one_variant_check :: fn(s: FnState, tag_expr: CExpression, type_id: i32) -> CExpression {
+    target :: s.ctx.module.types[type_id]
+    if target is BcRef {
+        if target.trait_name != "" {
+            return trait_check_expr(s.ctx, tag_expr, target.trait_name, type_id)
+        }
+    }
+    // f32/f64 share the F64 box representation, so the boxer tags a float value
+    // by class and can't tell f32 from f64. Match ANY float-primitive tag here
+    // (mirrors the VM's `class_matches` float aliasing) so `is f32` in an
+    // `i32 | f32` union matches a value tagged with whichever float row the boxer
+    // reached: even one f64 index when the table also carries f64.
+    if target is BcScalar {
+        if is_float_val(target.val) {
+            return float_tag_check_expr(s.ctx.module.types, tag_expr)
+        }
+    }
+    return tag_equals(tag_expr, type_id)
+}
+
+// `tag == <type_id>u`.
+tag_equals :: fn(tag: CExpression, type_id: i32) -> CExpression =
+    binary(.Equal, tag, verbatim("${type_id}u"))
+
+// C boolean expr matching `tag_expr` against EVERY float-primitive tag in the
+// table (f32/f64 are representationally identical, see `one_variant_check`).
+// `0` (never matches) when the table has no float primitive.
+float_tag_check_expr :: fn(types: BcType[], tag_expr: CExpression) -> CExpression {
+    parts: CExpression[]: []
+    for i in 0..<types.len() {
+        p :: types[i]
+        if p is BcScalar {
+            if is_float_val(p.val) {
+                parts.push(tag_equals(tag_expr, i32(i)))
+            }
+        }
+    }
+    if parts.len() == 0 {
+        return verbatim("0")
+    }
+    return CParenthesized { .inner = any_of(parts) }
+}
+
+/// The C boolean expression testing whether `tag_expr` matches the trait
+/// `trait_name`: an OR over the ref type index itself (built-in trait refs
+/// like `Error` carry their own tag) plus every struct or array type implementing
+/// the trait (the module's `impl_table`).
+trait_check_expr :: fn(ctx: EmitCtx, tag_expr: CExpression, trait_name: string, ref_type_index: i32) -> CExpression {
+    parts: CExpression[]: [CParenthesized { .inner = tag_equals(tag_expr, ref_type_index) }]
+    for entry in ctx.module.impl_table {
+        if entry.trait_name == trait_name {
+            parts.push(CParenthesized { .inner = tag_equals(tag_expr, entry.type_index) })
+        }
+    }
+    return any_of(parts)
+}
+
+/// `defer.push`: register the deferred closure (on top of the stack, built by
+/// a preceding `make_closure`) on the runtime defer stack.
+emit_defer_push :: fn(s: FnState) -> void {
+    closure :: pop(s)
+    // `vader_defer_push` takes a `vader_box_t` ; a concrete-ref closure rides as a
+    // raw `void*`, so box it at this runtime boundary.
+    evaluate(s, call("vader_defer_push", [coerced_as(s, closure, .Any)]))
+}
+
+/// `defer.pop_exec`: run + pop the top `count` deferred closures at a scope
+/// exit.
+emit_defer_pop_exec :: fn(s: FnState, op: Bc.DeferPopExec) -> void =
+    evaluate(s, call("vader_defer_pop_exec", [verbatim("${op.count}u")]))

@@ -1,0 +1,277 @@
+// vader/front/typecheck/control_stmt: `return`, `yield`, `break`, `continue` and `defer`.
+//
+// Each is checked against the surrounding fn's `FnContext`: the type a value
+// returns or yields to, the loop a jump leaves, what a `defer` body may do.
+
+module "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+import "toolchain/span"
+import "vader/core/types"
+import "vader/support/diagnostics"
+
+// ---- return and yield -----------------------------------------------------
+
+check_return :: fn(
+    s: AST.ReturnStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
+) -> void {
+    effective :: resolve_ctx(ctx, typed)
+    if effective != null && effective.in_defer {
+        if s.value != null {
+            check_expr(s.value, null, typed, diags)
+        }
+        diags.push(typecheck_error(.ReturnInDefer, s.span, ""))
+        return
+    }
+    // Generator: `return <value>` is a mistake (produce via `yield`, T3058);
+    // a bare `return` stops the stream and needs no return-type check.
+    if effective != null && effective.is_generator {
+        if s.value !is null {
+            check_expr(s.value, null, typed, diags)
+            diags.push(typecheck_error(.ReturnValueInGenerator, s.span, ""))
+        }
+        return
+    }
+    v :: s.value
+    if v is null {
+        match effective {
+            is null -> {}
+            _       -> {
+                emit_return_mismatch_if(
+                    TY_VOID,
+                    effective.return_type,
+                    s.span,
+                    null,
+                    typed,
+                    diags,
+                )
+                check_ensured_exit(effective.ensures, null, s.span, "returns", typed, diags)
+            }
+        }
+        // Empty `return` : no value expr, so no coercion / hint site.
+
+        return
+    }
+    expected: Type | null = null
+    if effective !is null {
+        expected = effective.return_type
+    }
+    got :: check_expr(v, expected, typed, diags)
+    if effective !is null {
+        // Accumulate the returned value's type so a divergent block-body
+        // lambda can recover its real return type (see `pick_final_return`).
+        prev :: effective.inferred_return
+        if prev == null {
+            effective.inferred_return = got
+        } else {
+            effective.inferred_return = union_of_paths([prev, got])
+        }
+        emit_return_mismatch_if(got, effective.return_type, s.span, v, typed, diags)
+        contract :: effective.guard
+        if contract != null {
+            check_guard_return(contract, v, typed, diags)
+        }
+        check_ensured_exit(effective.ensures, v, s.span, "returns", typed, diags)
+    }
+}
+
+check_yield :: fn(
+    s: AST.YieldStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
+) -> void {
+    effective :: resolve_ctx(ctx, typed)
+    if effective != null && effective.is_generator {
+        // `yield e` must coerce to the generator's element type `T` (T3061).
+        yt :: effective.yield_type
+        got :: check_expr(s.value, yt, typed, diags)
+        if yt != null {
+            emit_mismatch_if(
+                got,
+                yt,
+                s.value.span,
+                s.value,
+                .GeneratorYieldIncompatible,
+                typed,
+                diags,
+            )
+        }
+        return
+    }
+    // A `yield` in the body makes a fn a generator by inference, so the only
+    // illegal positions left are a nested lambda and a `defer` body: their ctx is
+    // never a generator, and `fn_is_generator` does not descend them. T3059.
+    // Still type the value so downstream passes see its type.
+    check_expr(s.value, null, typed, diags)
+    diags.push(typecheck_error(.YieldOutsideGenerator, s.span, ""))
+}
+
+// Resolve the effective fn-context: the arg-side `ctx` when present, else the
+// walk-global `current_fn_ctx` (the recursive `infer_if` / `infer_match` paths
+// pass `ctx = null`, so the body's return / yield targets need this fallback).
+resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext | null {
+    if ctx != null {
+        return ctx
+    }
+    return typed.current_fn_ctx
+}
+
+// ---- loop jumps -----------------------------------------------------------
+
+check_loop_jump :: fn(
+    span: Span,
+    jump_id: i64,
+    label: string | null,
+    typed: TypedProgram,
+    ctx: FnContext | null,
+    diags: Diagnostic[],
+) -> void {
+    // A bare `break`/`continue` targets the innermost loop (no diagnostic: reader
+    // clarity is served by the LSP go-to-loop). A `break <name>` must resolve to an
+    // enclosing loop by its iteration variable (preferred) or its label ; the walk-
+    // global `loop_stack` survives `if`/`match` nesting, mirroring `loop_depth`.
+    if label == null {
+        if typed.loop_stack.len() > 0 {
+            typed.jump_targets[jump_id] = typed.loop_stack[typed.loop_stack.len() - 1].for_id
+        }
+    } else {
+        name :: label
+        target :: resolve_loop_target(typed.loop_stack, name)
+        if target == null {
+            // A local, an unknown name, or a jump outside any loop, never a valid
+            // target. `break`ing a non-loop makes no sense → hard error (T3067).
+            diags.push(
+                typecheck_error(
+                    .LoopTargetNotLoopVariable,
+                    span,
+                    "`${name}` is not an enclosing loop's iteration variable or label",
+                ),
+            )
+        } else {
+            typed.jump_targets[jump_id] = target.for_id
+            // A VARIABLE match records the resolution for the lowerer: an unlabelled
+            // loop is lowered under the variable's name (`LoweredLoop.label`), a
+            // labelled one keeps its label and the jump takes it instead. A label
+            // match already carries the name its loop is lowered under.
+            tb :: target.binding
+            if tb != null && tb == name {
+                target_label :: target.label
+                if target_label == null {
+                    typed.loop_target_labels[target.for_id] = name
+                } else {
+                    typed.jump_labels[jump_id] = target_label
+                }
+            }
+        }
+    }
+    // T3015: `break`/`continue` outside any loop. Kept on `ctx.loop_depth`. A null
+    // ctx is an expression-nested block (`x ?? break`), where the walk-global loop
+    // stack answers instead ; lambdas do not reset that stack, so it can miss a
+    // jump written in a lambda inside a loop.
+    if ctx is null {
+        if label == null && typed.loop_stack.len() == 0 {
+            diags.push(
+                typecheck_error(
+                    .BreakContinueOutsideLoop,
+                    span,
+                    "`break` / `continue` only allowed inside a loop",
+                ),
+            )
+        }
+        return
+    }
+    if ctx.loop_depth == 0 {
+        diags.push(
+            typecheck_error(
+                .BreakContinueOutsideLoop,
+                span,
+                "`break` / `continue` only allowed inside a loop",
+            ),
+        )
+    }
+}
+
+// The nearest enclosing loop whose iteration variable OR label is `name`
+// (innermost-first), or null. Mirrors the backward loop-stack scan of
+// `resolve_loop_frame` (midir) / `gb_resolve_loop_frame` (lower/coroutine.vader).
+resolve_loop_target :: fn(stack: EnclosingLoop[], name: string) -> EnclosingLoop | null {
+    i := stack.len()
+    for i > 0 {
+        i = i - 1
+        frame :: stack[i]
+        fb :: frame.binding
+        if fb != null && fb == name {
+            return frame
+        }
+        fl :: frame.label
+        if fl != null && fl == name {
+            return frame
+        }
+    }
+    return null
+}
+
+// ---- defer ----------------------------------------------------------------
+
+check_defer :: fn(
+    s: AST.DeferStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
+) -> void {
+    // `defer` inside a generator is still forbidden in v1: a generator can be
+    // abandoned mid-iteration, and the runtime has no drop hook to fire pending
+    // defers on teardown (T3060 ; lifted with async cancellation, 4c). `defer`
+    // inside an async coroutine IS supported : the coroutine always runs to
+    // completion in v1, and its pending defers live in the per-frame `__defers`
+    // stack, drained LIFO at each structured exit (`lower/coroutine.vader`).
+    effective :: resolve_ctx(ctx, typed)
+    if effective != null && effective.is_generator {
+        diags.push(typecheck_error(.DeferInGenerator, s.span, ""))
+    }
+    // The body runs at scope exit, lowered as a fn of its own: no enclosing loop
+    // is one its jumps can reach, and it neither suspends a coroutine (T3064) nor
+    // yields for a generator (T3059).
+    body_ctx :: defer_body_context(effective)
+    later :: enter_later_body(typed, body_ctx, true)
+    match b :: s.body {
+        is AST.DeferStmtBody  -> { check_stmt(b.stmt, typed, diags, body_ctx) }
+        is AST.DeferBlockBody -> { check_block(b.block, null, typed, diags, body_ctx) }
+    }
+    leave_later_body(typed, later)
+    return
+}
+
+defer_body_context :: fn(ctx: FnContext | null) -> FnContext | null {
+    if ctx is null {
+        return null
+    }
+    return FnContext {
+        ...ctx,
+        .loop_depth = 0,
+        .is_async = false,
+        .is_generator = false,
+        .yield_type = null,
+        .in_defer = true,
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_return_value_mismatch_emits_T3020 :: fn() -> void {
+    out :: check_source_bodies("f :: fn() -> i32 { return \"hello\" }")
+    assert(has_code(out.diags, "T3020"), "expected T3020 on return-type mismatch")
+}
+
+@test
+test_return_bare_in_non_void_emits_T3020 :: fn() -> void {
+    out :: check_source_bodies("f :: fn() -> i32 { return }")
+    assert(has_code(out.diags, "T3020"), "expected T3020 on bare return in non-void fn")
+}

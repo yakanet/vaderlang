@@ -1,0 +1,134 @@
+// vader/front/typecheck/binding_types: the type each name of a binding pattern receives.
+//
+// A `let`, a `for` and a `match` arm bind a pattern: each name gets its type in
+// `typed.local_types`, a tuple, an array or a struct converting `Into` a tuple
+// destructured element by element.
+
+module "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+import "vader/core/types"
+import "vader/support/diagnostics"
+
+/// Walk a let-binding tree and write the inferred / declared type into
+/// `typed.local_types` keyed by the binding span (the same span the
+/// resolver passed to `mint_local`). Wildcards are skipped: they
+/// don't introduce a Symbol.
+assign_binding_types :: fn(
+    b: AST.LetBinding,
+    declared: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    match b {
+        is AST.SimpleBinding   -> { typed.local_types[b.name_span.hash()] = declared }
+        is AST.RestBinding     -> { typed.local_types[b.span.hash()] = declared }
+        is AST.WildcardBinding -> {}
+        is AST.TupleBinding    -> { assign_tuple(b, declared, typed, diags) }
+    }
+}
+
+assign_tuple :: fn(
+    tb: AST.TupleBinding,
+    declared: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    // A tuple- or array-backed distinct newtype (`Coord :: [i32, i32]`,
+    // `BigInt :: u32[]`) destructures through its backing composite: the
+    // shape checks are identical, only the nominal wrapper is stripped.
+    tup :: tuple_backing(declared)
+    if tup != null {
+        for leaf in tb.elements {
+            if leaf is AST.RestBinding {
+                diags.push(typecheck_error(
+                    .TypeMismatch, leaf.span,
+                    "a `...rest` binding collects from an array, got `${display_type(declared)}`"))
+                for each in tb.elements {
+                    assign_binding_types(each, TY_UNRESOLVED, typed, diags)
+                }
+                return
+            }
+        }
+        if tup.elements.len() != tb.elements.len() {
+            // Best-effort : Unresolved on each leaf, the resolver-
+            // emitted shape error already surfaces upstream.
+            for leaf in tb.elements {
+                assign_binding_types(leaf, TY_UNRESOLVED, typed, diags)
+            }
+            return
+        }
+        for i in 0..<tb.elements.len() {
+            assign_binding_types(tb.elements[i], tup.elements[i], typed, diags)
+        }
+        return
+    }
+    // Array destructuring : `[first, …rest] := arr` binds every simple/wildcard
+    // slot to the element type and the `RestBinding` to a fresh backing array
+    // (the raw slice, not the nominal newtype).
+    arr :: array_backing(declared)
+    if arr != null {
+        for leaf in tb.elements {
+            if leaf is AST.RestBinding {
+                assign_binding_types(leaf, arr, typed, diags)
+            } else {
+                assign_binding_types(leaf, arr.element, typed, diags)
+            }
+        }
+        return
+    }
+    // A `[...]` pattern against a value that is neither a tuple nor an
+    // array: a struct that implements `Into<[...]>` of the same arity.
+    // The value destructures by binding each leaf to the coerced tuple's
+    // element type. (Maps no longer take this path : they yield `[K, V]`
+    // tuples, an ordinary tuple destructure.)
+    coerced :: into_tuple_target(declared, tb.elements.len(), typed)
+    if coerced is TupleType {
+        for i in 0..<tb.elements.len() {
+            assign_binding_types(tb.elements[i], coerced.elements[i], typed, diags)
+        }
+        return
+    }
+    // Skip the diagnostic when the value type is unresolved (upstream
+    // error already fired).
+    if declared !is UnresolvedType {
+        diags.push(
+            typecheck_error(
+                .TypeMismatch,
+                tb.span,
+                "cannot destructure a value of type ${display_type(declared)} ; a `[...]` pattern requires a tuple or array",
+            ),
+        )
+    }
+    for leaf in tb.elements {
+        assign_binding_types(leaf, TY_UNRESOLVED, typed, diags)
+    }
+}
+
+// Resolve the `[...]` destructure coercion for a non-tuple / non-array
+// value : when `declared` is a struct implementing `Into<[...]>` of
+// `arity` elements, return that target tuple with the impl's type params
+// substituted by the concrete instance args (so a `Pair<string, i32>`
+// implementing `Into<[string, i32]>` yields `[string, i32]`). Returns null
+// when no such coercion applies.
+// The lowerer resolves the matching `into` member's field names from the
+// impl body (`into_tuple_fields`) to bind each leaf zero-alloc.
+into_tuple_target :: fn(declared: Type, arity: i64, typed: TypedProgram) -> Type | null {
+    if declared !is StructType {
+        return null
+    }
+    // Among its `Into` impls (`Into<[string, i32]>` beside `Into<Label>`), the one
+    // toward a tuple of that arity.
+    for into_args in struct_trait_arg_lists(declared, core_trait_key(TRAIT_INTO), typed) {
+        if into_args.len() != 1 {
+            continue
+        }
+        target :: substitute_struct_args(into_args[0], declared, typed)
+        if target is TupleType {
+            if target.elements.len() == arity {
+                return target
+            }
+        }
+    }
+    return null
+}

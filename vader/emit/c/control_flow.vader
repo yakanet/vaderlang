@@ -1,0 +1,413 @@
+// vader/emit/c/control_flow: structured control flow, direct calls and returns.
+
+module "vader/emit/c"
+
+import "std/abort"
+import "vader/core/bytecode"
+import "vader/emit/c/ast"
+// The opcode union pulls in ~120 names ; the namespace form keeps the
+// import to one line and tags every op site as `Bc.<Op>` at the match.
+Bc :: import "vader/core/bytecode"
+
+// ---- control flow ---------------------------------------------------------
+
+/// Kind of a structured-control scope. Only `Loop` changes what is emitted (a
+/// `loop_<opener>:` continue target).
+ScopeKind :: enum(u8) {
+    Block,
+    Loop,
+    If,
+}
+
+/// One structured-control scope, paired by `precompute_scopes`. `opener_pc`
+/// is the `block` / `loop` / `if` op index ; `end_pc` its matching `end`.
+/// The C-side labels derive from `opener_pc` : `loop_<opener>` (continue
+/// target) and `end_<opener>` (break target).
+ScopeInfo :: struct {
+    opener_pc: i32
+    kind: ScopeKind
+    end_pc: i32
+}
+
+/// Pair every `block` / `loop` / `if` with its matching `end` in one
+/// forward pass (the Vader bytecode carries no nesting depth on the op:
+/// scopes are reconstructed structurally, like `dump.vader`). `else` is
+/// not a scope of its own ; it is handled at emit time. Branch targets
+/// live in `function.jump_table`, resolved against this table by
+/// `branch_target`.
+precompute_scopes :: fn(function: BcFunction) -> ScopeInfo[] {
+    scopes: ScopeInfo[]: []
+    open_pc: i32[] = []
+    open_kind: ScopeKind[] = []
+    body :: function.body
+    for pc in 0..<body.len() {
+        op :: body[pc]
+        if op is Bc.Block {
+            open_pc.push(i32(pc))
+            open_kind.push(.Block)
+        } else if op is Bc.Loop {
+            open_pc.push(i32(pc))
+            open_kind.push(.Loop)
+        } else if op is Bc.If {
+            open_pc.push(i32(pc))
+            open_kind.push(.If)
+        } else if op is Bc.End {
+            n :: open_pc.len()
+            if n > 0 {
+                scopes.push(
+                    ScopeInfo {
+                        .opener_pc = open_pc[n - 1],
+                        .kind = open_kind[n - 1],
+                        .end_pc = i32(pc),
+                    },
+                )
+                open_pc = open_pc[0..<n - 1]
+                open_kind = open_kind[0..<n - 1]
+            }
+        }
+    }
+    return scopes
+}
+
+/// The two label families a fn needs : `continue_targets` (loop back-edge,
+/// `loop_<o>:`) and `break_targets` (forward exit past a scope's `end`,
+/// `end_<o>:`). Kept separate so a loop targeted only by a continue doesn't
+/// emit an unused `end_` label (and vice versa).
+BranchTargets :: struct {
+    continue_targets: i32[]
+    break_targets: i32[]
+}
+
+/// One pass over the body collecting both label families from the resolved
+/// `br` / `br_if` targets (`function.jump_table` via `branch_target`), so a
+/// C label is emitted only where referenced (an unused label warns).
+precompute_branch_targets :: fn(function: BcFunction, scopes: ScopeInfo[]) -> BranchTargets {
+    continue_t: i32[]: []
+    break_t: i32[]: []
+    body :: function.body
+    jump_table :: function.jump_table
+    for pc in 0..<body.len() {
+        op :: body[pc]
+        if op is Bc.Branch || op is Bc.BranchIf {
+            target :: jump_table[pc]
+            found :: branch_target(scopes, target)
+            if found is ScopeInfo {
+                if is_continue_branch(found, target) {
+                    if !(found.opener_pc in continue_t) {
+                        continue_t.push(found.opener_pc)
+                    }
+                } else {
+                    if !(found.opener_pc in break_t) {
+                        break_t.push(found.opener_pc)
+                    }
+                }
+            }
+        }
+    }
+    return BranchTargets { .continue_targets = continue_t, .break_targets = break_t }
+}
+
+/// True when `target` is the continue back-edge of loop `sc` (its body top,
+/// `opener_pc + 1`). The other resolvable target is a forward exit past a
+/// scope's `end` (`end_pc + 1`, a break).
+is_continue_branch :: fn(sc: ScopeInfo, target: i32) -> bool = sc.kind == .Loop && sc.opener_pc + 1 == target
+
+/// Resolve a `jump_table` target pc to the scope it lands in : the continue
+/// back-edge of a `loop` (`opener + 1`), or the forward exit past ANY scope's
+/// `end` (`end + 1`: break out of a block / loop, or jump past an `if`).
+/// Continue wins when a pc is ambiguously both. Returns `null` for an
+/// unresolved target (malformed bytecode).
+branch_target :: fn(scopes: ScopeInfo[], target: i32) -> ScopeInfo | null {
+    for i in 0..<scopes.len() {
+        if is_continue_branch(scopes[i], target) {
+            return scopes[i]
+        }
+    }
+    for i in 0..<scopes.len() {
+        if scopes[i].end_pc + 1 == target {
+            return scopes[i]
+        }
+    }
+    return null
+}
+
+/// The scope OPENED at `pc`: the mirror of `scope_ending_at`, for a caller
+/// that holds an opener and wants the region it covers.
+scope_ending_for_opener :: fn(scopes: ScopeInfo[], opener_pc: i32) -> ScopeInfo | null {
+    for i in 0..<scopes.len() {
+        if scopes[i].opener_pc == opener_pc {
+            return scopes[i]
+        }
+    }
+    return null
+}
+
+/// The scope closed by the `end` op at `pc`, or `null` if none (malformed
+/// bytecode: every `end` pairs with an opener in `precompute_scopes`).
+scope_ending_at :: fn(scopes: ScopeInfo[], pc: i32) -> ScopeInfo | null {
+    for i in 0..<scopes.len() {
+        if scopes[i].end_pc == pc {
+            return scopes[i]
+        }
+    }
+    return null
+}
+
+// How many values the callee of a `call` / `call.import` leaves on the stack.
+//
+// One for anything this does not recognise: the caller only uses it to decide
+// whether a lookahead optimisation is safe, and "one" is the shape every call
+// had before multi-value.
+callee_result_arity :: fn(ctx: EmitCtx, op: Bc.Op) -> i64 {
+    if op is Bc.Call {
+        if i64(op.function_index) !in 0..<ctx.module.functions.len() {
+            return 1
+        }
+        return bc_result_arity(ctx.module.functions[op.function_index].signature)
+    }
+    if op is Bc.CallImport {
+        if i64(op.index) !in 0..<ctx.module.imports.len() {
+            return 1
+        }
+        return bc_result_arity(ctx.module.imports[op.index].signature)
+    }
+    return 1
+}
+
+// The operand stack MUST be empty at every scope boundary : the lowerer
+// materialises all control-flow results into locals (`vader/midir/build.vader`:
+// `if_res` / `and_res` / `or_res`, loops are void), so no operand ever
+// survives a block / loop / if / br. `emit/c/ast/coalesce.vader`'s GC-safety
+// rests on exactly this: a temp live across a scope would break its
+// straight-line live-range assumption and could free a still-live GC slot.
+// Guard it here so a future change that leaks an operand trips a loud ICE
+// instead of a silent mis-compile.
+assert_stack_empty :: fn(s: FnState, where: string) -> void {
+    if s.stack.len() != 0 {
+        panic(
+            "c_emit: operand stack not empty at ${where} in `${s.function.name}` (depth ${s.stack.len()}). A value escaped a scope boundary ; coalesce.vader's live-range invariant is violated",
+        )
+    }
+}
+
+/// `block` / `loop`: open a C compound statement. A `loop` that some
+/// `br` continues to gets a `loop_<pc>:` label before the brace (the
+/// backward-jump target) ; everything else is a bare `{`. `block` close
+/// labels are emitted by `emit_end`.
+emit_open_scope :: fn(s: FnState, pc: i32, kind: ScopeKind) -> void {
+    assert_stack_empty(s, "scope open (pc ${pc})")
+    // The lifted locals are declared in the ENCLOSING block, before the loop's
+    // brace, so they are still in scope for the write-back after it.
+    if kind == .Loop {
+        plan :: pc_plan_for_loop(s, pc)
+        if plan != null {
+            pc_emit_preheader(s, plan)
+            s.push_caches.push(plan)
+        }
+    }
+    open_scope(s, if kind == .Loop && pc in s.continue_targets { "loop_${pc}" } else { "" })
+}
+
+/// `if`: pop the condition and open `if (<cond>) {`.
+emit_if_open :: fn(s: FnState) -> void {
+    cond :: pop(s)
+    assert_stack_empty(s, "if open")
+    open_if(s, expression_of(cond))
+}
+
+/// `else`: close the then-arm and open the else-arm ; an arm holding a single
+/// `if` prints as `else if` (`write_if`). Block results are already
+/// materialised into locals by the lowerer (every scope is `void`), so there is
+/// nothing to hoist across the boundary.
+emit_else :: fn(s: FnState) -> void {
+    assert_stack_empty(s, "else")
+    open_else(s)
+}
+
+/// `end`: close the scope opened earlier. Any scope (block / loop / if)
+/// that a `br` exits past gets its `end_<opener>: ;` label after the brace ;
+/// untargeted scopes close with a bare `}`.
+emit_end :: fn(s: FnState, pc: i32) -> void {
+    assert_stack_empty(s, "scope end (pc ${pc})")
+    sc :: scope_ending_at(s.scopes, pc) ?? todo("emit_end: no scope ends at pc ${pc}")
+    // Before the close : the write-back belongs INSIDE the loop's block, at the
+    // one place control falls out of it.
+    pc_close_cache(s, sc.opener_pc)
+    close_node(s, if sc.opener_pc in s.break_targets { "end_${sc.opener_pc}" } else { "" })
+}
+
+/// `br` / `br_if`: a `goto` to the resolved scope label (`loop_<opener>`
+/// for a continue back-edge, `end_<opener>` for a break forward-exit).
+/// `br_if` pops its i32 condition and guards the jump. Block results are
+/// local-materialised by the lowerer, so no value is hoisted before the
+/// jump. `structure_loops` later turns most of these into `continue` /
+/// `break`.
+emit_branch :: fn(s: FnState, pc: i32, conditional: bool) -> void {
+    target :: s.function.jump_table[pc]
+    found :: branch_target(s.scopes, target)
+    if found is ScopeInfo {
+        dest :: if is_continue_branch(found, target) { "loop_${found.opener_pc}" } else { "end_${found.opener_pc}" }
+        if conditional {
+            cond :: pop(s)
+            assert_stack_empty(s, "br_if (pc ${pc})")
+            append_statement(s, CGoto { .label = dest, .condition = expression_of(cond) })
+        } else {
+            assert_stack_empty(s, "br (pc ${pc})")
+            append_statement(s, CGoto { .label = dest })
+        }
+    } else {
+        todo("emit_branch: unresolved target at pc ${pc} (jump_table=${target})")
+    }
+}
+
+// ---- calls ----------------------------------------------------------------
+
+/// `call`: direct call of a Vader function by index. Resolves the callee
+/// in `module.functions`, derives its C name the same way the forward decl
+/// / definition do (`sanitise(name)`, see `signature_for`), and delegates
+/// to the shared `emit_call_to`.
+emit_call :: fn(s: FnState, op: Bc.Call) -> void {
+    callee :: s.ctx.module.functions[op.function_index]
+    emit_call_to(s, sanitise(callee.name), callee.signature)
+}
+
+/// `call.import`: call a host fn through its generated `vader_host_*`
+/// shim (see `host.vader`). Reuses the shared `emit_call_to` with
+/// the import's signature.
+emit_call_import :: fn(s: FnState, op: Bc.CallImport) -> void {
+    imp :: s.ctx.module.imports[op.index]
+    emit_call_to(s, host_shim_name(imp), imp.signature)
+}
+
+/// Shared direct-call path: own fns (`emit_call`) and host imports
+/// (`emit_call_import`) both route through it. Pops `sig`'s params off the
+/// operand stack in reverse, reassembles them in source order, and routes
+/// the result through `emit_call_result`. Each arg is reconciled to its
+/// param's ValType by `coerce_expr` (box / unbox / cast as needed).
+emit_call_to :: fn(s: FnState, callee_name: string, sig: BcSignature) -> void {
+    n :: i32(sig.params.len())
+    // Top-of-stack is the last argument, so pop into `args` back-to-front :
+    // pop #k lands in slot `n-1-k`, restoring source order.
+    args: CExpression[]: [verbatim("")] * i64(n)
+    for k in 0..<n {
+        v :: pop(s)
+        slot :: n - 1 - k
+        args[slot] = coerced_as(s, v, sig.params[slot])
+    }
+    if bc_result_arity(sig) > 1 {
+        emit_multi_call(s, callee_name, args, sig)
+        return
+    }
+    emit_call_result(s, call(callee_name, args), bc_single_result(sig))
+}
+
+// A call to a scalarised callee: one fresh temp per result, their addresses
+// appended to the argument list, and the temps pushed in the order the callee
+// declared them.
+//
+// The temps are ordinary operand-stack slots, so the ops that follow read them
+// exactly as they would read a single returned value. Nothing here can hold a
+// heap reference: the value ABI admits only composites whose every leaf is a
+// non-reference primitive, which is what keeps the caller from having to root
+// the address it takes.
+emit_multi_call :: fn(
+    s: FnState, callee_name: string, args: CExpression[], sig: BcSignature,
+) -> void {
+    results :: sig.results
+    temporaries: CTemporary[]: []
+    for i in 0..<results.len() {
+        temporary :: new_temporary(s, results[i])
+        temporaries.push(temporary)
+        args.push(address_of(temporary))
+    }
+    evaluate(s, call(callee_name, args))
+    for i in 0..<results.len() {
+        push_temporary(s, temporaries[i], results[i])
+    }
+}
+
+/// Capture a call's result : a `void` call is a bare statement ; otherwise
+/// materialise into a fresh `tN` (calls are eager: they may have side
+/// effects, so the result is forced even when unused) and push it.
+emit_call_result :: fn(s: FnState, call: CExpression, result: ValType) -> void {
+    // A `void` call, or a call whose result the next op drops (`drop_call_result`,
+    // set by the walk driver), is a bare statement : the side effect runs, no
+    // unread `tN` is minted. The driver skips the paired `drop`.
+    if result == .Void || s.drop_call_result {
+        evaluate(s, call)
+        return
+    }
+    push_into_temporary(s, call, result)
+}
+
+// ---- returns --------------------------------------------------------------
+
+/// `return`: `return;` for a void result, else pop the value, coerce it
+/// to the result class via `coerce_expr`, and emit `return <value>;`. A
+/// framed fn pops its GC frame first : the value is snapshotted into a
+/// `__vret` temp before the pop, since it may read a frame-pinned local.
+/// An empty stack at a non-void return marks a dead trailing return (an
+/// already-terminated path) and emits a `vader_unreachable` trap instead.
+emit_return :: fn(s: FnState) -> void {
+    if bc_result_arity(s.function.signature) > 1 {
+        emit_multi_return(s)
+        return
+    }
+    result :: bc_single_result(s.function.signature)
+    if result == .Void {
+        return_statement(s, CReturn {})
+        return
+    }
+    // Dead trailing return : when an exhaustive-returning match (or any
+    // earlier terminator) has already returned on every path, the lowerer's
+    // implicit fn-terminator return is unreachable and carries no value on
+    // the stack. The walker tracks no reachability (the CFG lowering is
+    // fall-through-oriented), so detect it by the empty stack and emit a
+    // noreturn trap (a reachable non-void return always has its value here).
+    if s.stack.len() == 0 {
+        unreachable(s, "unreachable return in ${s.function.name}")
+        return
+    }
+    v :: pop(s)
+    return_statement(s, CReturn { .value = coerced_as(s, v, result), .snapshot_type = c_type_for_val_bare(result) })
+}
+
+// A multi-value return writes each value through its out-param and returns void.
+//
+// The stack holds them in the order the caller receives them, deepest first, so
+// they pop in reverse: the assignments are emitted back to front and the
+// snapshot rule of the single-value path applies to all of them at once: every
+// value is read into a temp BEFORE the GC frame is popped, since any of them may
+// read a frame-pinned local.
+emit_multi_return :: fn(s: FnState) -> void {
+    results :: s.function.signature.results
+    arity :: results.len()
+    if s.stack.len() < arity {
+        unreachable(s, "unreachable return in ${s.function.name}")
+        return
+    }
+    stores: CAssign[]: []
+    for i in 0..<arity {
+        // Popped from the top, so this is result `arity - 1 - i`, which is also
+        // the order the assignments go out in.
+        idx :: arity - 1 - i
+        v :: pop(s)
+        stores.push(CAssign { .target = verbatim("*${out_param_name(idx)}"), .value = coerced_as(s, v, results[idx]) })
+    }
+    return_statement(s, CReturn { .stores = stores })
+}
+
+/// `return.lit`: the fused `<T>.const X ; return`. A const can't read a
+/// frame-pinned local, so the framed form pops the frame inline (no
+/// `__vret` snapshot needed).
+emit_return_lit :: fn(s: FnState, value: Bc.ConstOp) -> void {
+    // Coerce the literal to the fn's result class : a boxed-result fn (e.g. an
+    // enum / union returned as `any`) needs the const boxed, not returned raw.
+    rv :: coerce_expr(
+        s.ctx.module.types,
+        const_lit_c(s.ctx, value),
+        const_val(value),
+        bc_single_result(s.function.signature),
+    )
+    return_statement(s, CReturn { .value = rv })
+}

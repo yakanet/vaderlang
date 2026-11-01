@@ -565,7 +565,7 @@ run_dced_stage :: fn(
 // diags as a single `# Diagnostics` block.
 // Order : loader first (parse / discover /
 // import-path / collect), then typecheck (with resolver-side
-// forwards via orchestrate.vader:168), then comptime, then `extra`
+// forwards via orchestrate.vader), then comptime, then `extra`
 // (the per-stage tail: currently lower).
 // Collection is total (build surfaces every module's diagnostics, see
 // `orchestrate.vader`), but a `dump` stage shows only the modules under

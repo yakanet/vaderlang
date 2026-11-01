@@ -1,6 +1,6 @@
 // vader/front/typecheck/coerce: `Into` trait dispatch.
 //
-// Consults `impl_methods` (the impl tables, populated by `orchestrate.vader`
+// Consults `impl_methods` (the impl tables, populated by `impl_registration.vader`
 // per impl) for an `into` method registered on `got` whose return
 // type unifies with `expected`. Lets the typechecker suppress
 // T3001/T3020 when a valid coercion exists, an array into an `Iterator`

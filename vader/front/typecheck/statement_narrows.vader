@@ -1,0 +1,268 @@
+// vader/front/typecheck/statement_narrows: what a statement leaves narrowed after it.
+//
+// Past an `if` with no `else` whose branch diverges, the complement of its
+// condition ; past a call to an `@ensures` fn, what it ensures.
+
+module "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+import "vader/core/types"
+import "vader/support/diagnostics"
+
+// ---- past a statement -----------------------------------------------------
+
+// Push what `stmt` leaves narrowed for the rest of its block : past a call to an
+// `@ensures` fn, what it ensures (`push_ensured_call`) ; past an `if` whose branch
+// diverges, what its condition leaves (`push_past_divergent_if`).
+push_statement_narrows :: fn(
+    stmt: AST.Stmt,
+    typed: TypedProgram,
+    stack: PushedNarrow[],
+) -> void {
+    called :: statement_call(stmt)
+    if called != null {
+        push_ensured_call(called, typed, stack)
+        return
+    }
+    if stmt is AST.ExprStmt && stmt.expr is AST.IfExpr {
+        push_past_divergent_if(stmt.expr, typed, stack)
+    }
+}
+
+// Push the complement of the condition of `e`, an `if` with no `else` whose branch
+// diverges (`return`, `break`, `continue`, a call that never returns), for what
+// follows it ; whether `e` is one.
+push_past_divergent_if :: fn(e: AST.IfExpr, typed: TypedProgram, stack: PushedNarrow[]) -> bool {
+    if e.else_branch !is null || !then_is_divergent(e.then_block, typed) {
+        return false
+    }
+    push_guard_narrows(e.cond, typed, stack)
+    return true
+}
+
+// The call `stmt` makes as a whole, an expression statement or the value a `let`
+// binds : what its callee `@ensures` holds past it.
+statement_call :: fn(stmt: AST.Stmt) -> AST.CallExpr | null {
+    if stmt is AST.ExprStmt && stmt.expr is AST.CallExpr {
+        return stmt.expr
+    }
+    if stmt is AST.LetStmt && stmt.value is AST.CallExpr {
+        return stmt.value
+    }
+    return null
+}
+
+// Push the complement narrowing(s) a guard condition leaves for the rest of the
+// block. A `||` contributes one per operand : reaching the fall-through means
+// EVERY operand was false. Subtraction composes, pushing them in sequence, each
+// detected against the narrowing the previous one left, lands on the same type as
+// subtracting their union at once, so no grouping is needed.
+push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram, stack: PushedNarrow[]) -> void {
+    if cond is AST.BinaryExpr {
+        if cond.op == .Or {
+            push_guard_narrows(cond.left, typed, stack)
+            push_guard_narrows(cond.right, typed, stack)
+            return
+        }
+    }
+    // A call to a guard narrows every argument it proves something of.
+    if cond is AST.CallExpr {
+        push_guard_call(cond, false, typed, stack)
+        return
+    }
+    // `!(a && b)` false is `a && b` true : both operands hold ; `!f(x)` false is
+    // `f(x)` true.
+    if cond is AST.UnaryExpr && cond.op == .Not {
+        inner :: cond.operand
+        if inner is AST.BinaryExpr && inner.op == .And || inner is AST.CallExpr {
+            push_cond_narrows_into(inner, true, typed, diag_sink(), stack)
+            return
+        }
+    }
+    narrowing :: detect_is_narrow_for_block(cond, typed) ?? return
+    stack.push(push_one_narrow(typed, narrowing.sym_id, narrowing.field_key, narrowing.else_ty))
+}
+
+// ---- divergent statements -------------------------------------------------
+
+then_is_divergent :: fn(b: AST.BlockExpr, typed: TypedProgram) -> bool {
+    // A guard block whose sole (or final) content is a `@no_return` call
+    // (`{ panic(...) }`) parses that call as the block's trailing expression,
+    // not a statement, so `b.stmts` is empty. Honor a `never`-typed trailing
+    // expr as divergent, mirroring the `is_divergent_stmt` ExprStmt arm ;
+    // otherwise the complement narrowing is dropped and the guarded binding
+    // keeps its union type (T3009 on the post-guard use).
+    if b.trailing !is null {
+        if typed.expr_types[b.trailing.id] is NeverType {
+            return true
+        }
+    }
+    if b.stmts.len() == 0 {
+        return false
+    }
+    return is_divergent_stmt(b.stmts[b.stmts.len() - 1], typed)
+}
+
+is_divergent_stmt :: fn(s: AST.Stmt, typed: TypedProgram) -> bool {
+    if s is AST.ReturnStmt   { return true }
+    if s is AST.BreakStmt    { return true }
+    if s is AST.ContinueStmt { return true }
+    // An expression statement that evaluates to `never` (a call to a
+    // `@no_return` fn: `panic` / `todo` / `unreachable`) terminates the
+    // flow : code after it is unreachable, and it discharges a non-`void`
+    // fn's return obligation.
+    if s is AST.ExprStmt {
+        if typed.expr_types[s.expr.id] is NeverType {
+            return true
+        }
+    }
+    // A `for { … }` no `break` can leave has no exit edge, so whatever follows
+    // it cannot run. A `return` in the body doesn't reopen one: it leaves the
+    // fn, not the loop.
+    if s is AST.ForStmt {
+        return loop_never_exits(s)
+    }
+    return false
+}
+
+// ---- guard conditions -----------------------------------------------------
+
+BlockNarrow :: struct {
+    sym_id: i32
+    static_ty: Type
+    else_ty: Type
+    field_key: string = ""
+}
+
+detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNarrow | null {
+    // Mirrors `expr_if.vader::detect_is_narrow` at a narrower result shape:
+    // the divergent-guard case only needs the else-type.
+    by_value :: detect_value_narrow(cond, typed)
+    if by_value != null {
+        return BlockNarrow {
+            .sym_id = by_value.sym_id,
+            .static_ty = by_value.static_ty,
+            .else_ty = by_value.else_ty,
+            .field_key = by_value.field_key,
+        }
+    }
+    if cond is AST.UnaryExpr {
+        if cond.op == .Not {
+            inner :: detect_is_narrow_for_block(cond.operand, typed) ?? return null
+            // Compose `!(x is T)`'s fall-through from the CURRENT narrowing
+            // (after prior guards), not `inner.static_ty` (declared), which
+            // would RE-WIDEN and undo earlier guards, leaving a chain
+            // `if x is A{return} if !(x is B){return}` as `A | B` not `B`, so a
+            // later `x.<B-field>` drops (infer_call's `callee_ty.params` after
+            // its TypeMetaType / UnresolvedType / !FnType guards). Carry field_key.
+            current :: if inner.field_key == "" {
+                narrow_for_binding(typed, inner.sym_id, inner.static_ty)
+            } else {
+                narrow_for_field(typed, inner.field_key, inner.static_ty)
+            }
+            positive :: subtract_type(current, inner.else_ty)
+            // Subtracting from an opaque `T` removes nothing, so the complement is
+            // `T` and nothing would be left: what the test matched holds instead, as
+            // the `else` of `if x !is S` sees it.
+            if positive is NeverType {
+                matched :: detect_is_narrow(cond.operand, typed, diag_sink_stmt()) ?? return null
+                return BlockNarrow { ...inner, .else_ty = matched.then_ty }
+            }
+            return BlockNarrow { ...inner, .else_ty = positive }
+        }
+    }
+    if cond !is AST.BinaryExpr {
+        return null
+    }
+    // `x == null` / `x != null` / `null == x` / `null != x`: both
+    // orderings flip the same way ; divergent guard pushes the
+    // complement narrowing for the rest of the block.
+    if cond.op == .Eq || cond.op == .Neq {
+        ident_side :: pick_ident_vs_null(cond.left, cond.right)
+        if ident_side !is null {
+            sym :: typed.resolved.idents[ident_side.span.hash()] ?? return null
+            base :: type_of_symbol(sym, typed)
+            // Don't record a narrowing off an unresolved base: mirrors
+            // `detect_is_narrow` (expr_if.vader). The premature imported-body
+            // walk in `settle_external_expr_bodied_returns` runs before the
+            // module's `MutableMap.at` &c are wired, so an `m[k]`-bound local
+            // is `?` there ; a `?`-based divergent narrow persists (divergent
+            // narrows aren't popped) and poisons the authoritative re-walk.
+            if base is UnresolvedType {
+                return null
+            }
+            current :: narrow_for_binding(typed, sym.id, base)
+            null_ty :: TY_NULL
+            if cond.op == .Eq {
+                return BlockNarrow {
+                    .sym_id = sym.id,
+                    .static_ty = base,
+                    .else_ty = subtract_type(current, null_ty),
+                }
+            }
+            return BlockNarrow { .sym_id = sym.id, .static_ty = base, .else_ty = null_ty }
+        }
+        field_side :: pick_field_vs_null(cond.left, cond.right)
+        if field_side !is null {
+            target :: resolve_field_chain_static(field_side, typed)
+            if target !is null {
+                null_ty :: TY_NULL
+                current :: narrow_for_field(typed, target.field_key, target.static_ty)
+                if cond.op == .Eq {
+                    return BlockNarrow {
+                        .sym_id = 0,
+                        .static_ty = target.static_ty,
+                        .else_ty = subtract_type(current, null_ty),
+                        .field_key = target.field_key,
+                    }
+                }
+                return BlockNarrow {
+                    .sym_id = 0,
+                    .static_ty = target.static_ty,
+                    .else_ty = null_ty,
+                    .field_key = target.field_key,
+                }
+            }
+        }
+        return null
+    }
+    if cond.op != .Is {
+        return null
+    }
+    // Bare-ident scrutinee : narrow the symbol slot for the complement.
+    if cond.left is AST.IdentExpr {
+        sym :: typed.resolved.idents[cond.left.span.hash()] ?? return null
+        base :: type_of_symbol(sym, typed)
+        // Same `?`-base guard as the `== null` path above : the settle
+        // pre-walk sees an `m[k]`-bound scrutinee as `?` and would persist a
+        // poisoned divergent narrow into the authoritative walk.
+        if base is UnresolvedType {
+            return null
+        }
+        current :: narrow_for_binding(typed, sym.id, base)
+        narrowed :: pattern_type_of(cond.right, typed, diag_sink_stmt())
+        return BlockNarrow {
+            .sym_id = sym.id,
+            .static_ty = base,
+            .else_ty = subtract_type_with_impls(current, narrowed, typed),
+        }
+    }
+    // Field-chain scrutinee : `x.y is T` complement-narrows the `x.y` slot,
+    // mirroring the `x.y == null` field path above. The divergent guard
+    // `if d.body is null { return }` then flows `Block` (not `Block | null`)
+    // to `body :: d.body`: the `convert_function` drop this closes.
+    if cond.left is AST.FieldExpr {
+        field_info :: resolve_field_chain_static(cond.left, typed) ?? return null
+        current :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
+        narrowed :: pattern_type_of(cond.right, typed, diag_sink_stmt())
+        return BlockNarrow {
+            .sym_id = 0,
+            .static_ty = field_info.static_ty,
+            .else_ty = subtract_type_with_impls(current, narrowed, typed),
+            .field_key = field_info.field_key,
+        }
+    }
+    return null
+}
+
+diag_sink_stmt :: fn() -> Diagnostic[] { return [] }

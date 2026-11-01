@@ -141,7 +141,7 @@ substitute_params_disambiguated :: fn(
 /// name and an empty param list ; the trait's lone required method
 /// supplies the canonical name + signature. Mutates each synthetic
 /// member in place. SAM shape-mismatch diagnostics (R2016) aren't
-/// emitted here: `check_short_impl_arity` (orchestrate.vader) fires
+/// emitted here: `check_short_impl_arity` (impl_members.vader) fires
 /// them before this runs.
 export materialize_sam_members :: fn(
     impl_decl: AST.ImplDecl,

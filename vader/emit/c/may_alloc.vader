@@ -1,0 +1,83 @@
+// vader/emit/c/may_alloc: which functions may trigger a collection.
+//
+// A function that may not reaches no GC safepoint and skips the shadow-stack
+// prologue. `op_may_collect` classifies every op, `compute_may_alloc` closes the
+// answer over the direct calls.
+
+module "vader/emit/c"
+
+import "std/iter"
+import "vader/core/bytecode"
+import "vader/support/fixpoint"
+// The opcode union pulls in ~120 names ; the namespace form keeps the
+// import to one line and tags every op site as `Bc.<Op>` at the match.
+Bc :: import "vader/core/bytecode"
+
+/// Callgraph analysis : which fns may trigger a GC allocation
+/// (transitively). A fn that may not reaches no GC safepoint
+/// (`FnState.safepoint_free`) and skips the shadow-stack prologue
+/// (`inc(x) = x + 1`, accessors, predicates) ; one that may still skips it
+/// when it is a tail forwarder (`needs_frame`). Direct allocators are the
+/// heap `struct.new`, array ops, string concat, the builder family,
+/// `make_closure`, the conservative indirect callers (`call.indirect` /
+/// `virtual.call`), and a `call.import` unless its host never collects ;
+/// transitive via any direct `call` to a fn that may: the smallest fixed
+/// point over the direct calls (`solve_reachability`).
+///
+/// @param fns                 the module's functions.
+/// @param import_may_collect  per import, whether calling it can collect
+///                            (`imports_may_collect`).
+/// @return                    per function of `fns`, whether it may.
+compute_may_alloc :: fn(fns: BcFunction[], import_may_collect: bool[]) -> bool[] {
+    may_alloc :: fns.map((f) -> fn_has_direct_alloc(f, import_may_collect)).collect()
+    solve_reachability(Graph { .successors = fns.map(direct_callees).collect() }, may_alloc)
+    return may_alloc
+}
+
+// The functions `fn_decl` calls directly (`call`), once per call.
+direct_callees :: fn(fn_decl: BcFunction) -> i32[] {
+    callees: i32[]: []
+    for op in fn_decl.body {
+        if op is Bc.Call {
+            callees.push(op.function_index)
+        }
+    }
+    return callees
+}
+
+/// True when the fn builds a GC struct on the C stack (`struct.new` with the
+/// escape-proven `stack` flag). Such a storage is hoisted into the prologue and
+/// its address goes into `gc_stack_objs[]` so the collector traces its FIELDS;
+/// left unrooted, the heap refs it captured go stale across a safepoint. Kept
+/// separate from `op_may_collect`: a stack `struct.new` does NOT allocate, and
+/// folding it in would wrongly mark its callers as collectors too.
+fn_builds_stack_object :: fn(fn_decl: BcFunction) -> bool =
+    fn_decl.body.any_match((op) -> op is Bc.StructNew && op.stack)
+
+/// True when `fn_decl` contains an op that can trigger a collection.
+fn_has_direct_alloc :: fn(fn_decl: BcFunction, import_may_collect: bool[]) -> bool =
+    fn_decl.body.any_match((op) -> op_may_collect(op, import_may_collect))
+
+/// Per import, whether calling it can trigger a collection. An `@extern` or an
+/// unknown host is `NotIntrinsic`, which stays a safepoint.
+///
+/// @param imports  the module's imports, in `call.import` index order.
+imports_may_collect :: fn(imports: BcImport[]) -> bool[] =
+    imports.map((imp) -> intrinsic_may_collect(intrinsic_id_for(imp.mangled_name))).collect()
+
+// Whether an op can trigger a collection. Drives `may_alloc` → whether the fn
+// gets a shadow-stack frame and its ref params / locals are rooted. A missing
+// allocating op means a GC inside it moves live refs the fn never re-roots →
+// stale pointer (the `array.slice` CR-b bug). This is an EXHAUSTIVE `match` over
+// the closed `Bc.Op` union precisely so a new op can't be silently omitted :
+// T3013 forces every future variant to be classified here. Keep the arms in sync
+// with the runtime: an op belongs in the `true` arm iff its emitted C reaches
+// `vader_gc_alloc` (directly or transitively). A host call answers for its host:
+// `import_may_collect` holds `intrinsic_may_collect` per import.
+op_may_collect :: fn(op: Bc.Op, import_may_collect: bool[]) -> bool = match op {
+    is Bc.StructNew -> !op.stack
+    is Bc.CallImport -> import_may_collect[op.index]
+    is Bc.BufferNew | Bc.ArrayNew | Bc.ArrayPush | Bc.ArrayReserve | Bc.ArrayRepeat | Bc.ArrayPushAll | Bc.ArraySlice | Bc.BufferToString | Bc.MakeClosure | Bc.CallIndirect | Bc.VirtualCall | Bc.FnAddr -> true
+    is Bc.GlobalGet | Bc.GlobalSet -> false
+    is Bc.Unreachable | Bc.I32Const | Bc.LocalGet | Bc.LocalSet | Bc.LocalTee | Bc.StringConst | Bc.NullConst | Bc.BoolConst | Bc.CharConst | Bc.F64Const | Bc.I64Const | Bc.Call | Bc.FnRef | Bc.StructGet | Bc.StructSet | Bc.LocalField | Bc.UnionFieldGet | Bc.UnionFieldSet | Bc.ArrayGet | Bc.ArraySet | Bc.ArrayLen | Bc.DataConst | Bc.RefCast | Bc.Retag | Bc.Convert | Bc.TypeCheck | Bc.TypeConst | Bc.DeferPush | Bc.DeferPopExec | Bc.SizeOfType | Bc.I32Add | Bc.I32Sub | Bc.I32Mul | Bc.I32Div | Bc.I32Mod | Bc.I32Eq | Bc.I32Ne | Bc.I32Lt | Bc.I32Le | Bc.I32Gt | Bc.I32Ge | Bc.I32Neg | Bc.I32BitNot | Bc.I32BitAnd | Bc.I32BitOr | Bc.I32BitXor | Bc.I32Shl | Bc.I32Shr | Bc.I32ShrU | Bc.U32Div | Bc.U32Mod | Bc.U32Lt | Bc.U32Le | Bc.U32Gt | Bc.U32Ge | Bc.I64Add | Bc.I64Sub | Bc.I64Mul | Bc.I64Div | Bc.I64Mod | Bc.I64Neg | Bc.I64Eq | Bc.I64Ne | Bc.I64Lt | Bc.I64Le | Bc.I64Gt | Bc.I64Ge | Bc.U64Div | Bc.U64Mod | Bc.U64Lt | Bc.U64Le | Bc.U64Gt | Bc.U64Ge | Bc.I64Shl | Bc.I64Shr | Bc.I64ShrU | Bc.I64BitAnd | Bc.I64BitOr | Bc.I64BitXor | Bc.I64BitNot | Bc.F64Add | Bc.F64Sub | Bc.F64Mul | Bc.F64Div | Bc.F64Neg | Bc.F64Eq | Bc.F64Ne | Bc.F64Lt | Bc.F64Le | Bc.F64Gt | Bc.F64Ge | Bc.BoolEq | Bc.BoolNe | Bc.BoolAnd | Bc.BoolOr | Bc.BoolNot | Bc.StringEq | Bc.StringNe | Bc.StringCompare | Bc.RefEq | Bc.RefNe | Bc.Drop | Bc.Block | Bc.Loop | Bc.If | Bc.Else | Bc.End | Bc.Branch | Bc.BranchIf | Bc.Return | Bc.ReturnLit | Bc.LoadU8 | Bc.LoadI32 | Bc.LoadI64 | Bc.LoadF64 | Bc.StoreU8 | Bc.StoreI32 | Bc.StoreI64 | Bc.StoreF64 | Bc.LoadSlotI32 | Bc.LoadSlotI64 | Bc.LoadSlotF64 | Bc.StoreSlotI32 | Bc.StoreSlotI64 | Bc.StoreSlotF64 | Bc.MemoryCopy | Bc.BufferWriteString | Bc.F64ToBits | Bc.BitsToF64 | Bc.F32ToBits | Bc.BitsToF32 | Bc.ArrayCopy | Bc.ArrayRemoveLast | Bc.ArrayClear | Bc.CheckedArith | Bc.CheckedNeg -> false
+}

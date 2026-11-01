@@ -1,0 +1,103 @@
+// vader/emit/c/buffers: the bytes-only `Buffer` opcodes.
+
+module "vader/emit/c"
+
+import "vader/core/bytecode"
+import "vader/emit/c/ast"
+
+/// `buffer.new`: allocate a fresh zeroed `vader_buffer_t` of the popped byte
+/// size and push the reference. The size operand is a primitive, so there is no
+/// in-flight reference to root across the allocation.
+emit_buffer_new :: fn(s: FnState) -> void {
+    size :: pop(s)
+    // The header carries the BUFFER sentinel type index (`vader_buffer_new`
+    // stamps it), NOT `op.type_id`: the GC sizes the copy of a moved object off
+    // its header, and a wrong index would corrupt the bytes when a collection
+    // moves the buffer.
+    push_into_temporary(s, cast("void*", call("vader_buffer_new", [as_size(size)])), .Ref)
+}
+
+/// Shared body of the typed byte loads (`load_u8` / `load_i32` / `load_i64` /
+/// `load_f64`). Pops `obj` + `off`, re-derives the buffer pointer from its
+/// rooted slot (a collection can move the buffer, so the pointer is never
+/// cached across an allocating op), reads via `helper`, pushes the result with
+/// stack class `result`.
+/// `(vader_buffer_t*) <pointer>`: the buffer pointer behind a popped
+/// reference (raw or boxed), shared by the load / store / copy emitters.
+buffer_pointer :: fn(v: StackVal) -> CExpression = cast("vader_buffer_t*", object_pointer_of(v))
+
+// `(size_t) v`.
+as_size :: fn(value: StackVal) -> CExpression = cast("size_t", expression_of(value))
+
+emit_buffer_load :: fn(s: FnState, helper: string, result: ValType) -> void {
+    off :: pop(s)
+    obj :: pop(s)
+    push_into_temporary(s, call(helper, [buffer_pointer(obj), as_size(off)]), result)
+}
+
+/// Shared body of the typed byte stores. Pops `obj` + `off` + `value` and
+/// writes `value` (cast to the C type `width`) via `helper`. No write
+/// barrier: the byte region holds no references.
+emit_buffer_store :: fn(s: FnState, helper: string, width: string) -> void {
+    value :: pop(s)
+    off :: pop(s)
+    obj :: pop(s)
+    evaluate(
+        s,
+        call(helper, [buffer_pointer(obj), as_size(off), cast(width, expression_of(value))]),
+    )
+}
+
+/// `memory_copy`: pop `dst, dst_off, src, src_off, n` and copy `n` bytes
+/// (memmove semantics, overlap-safe).
+emit_memory_copy :: fn(s: FnState) -> void {
+    n :: pop(s)
+    src_off :: pop(s)
+    src :: pop(s)
+    dst_off :: pop(s)
+    dst :: pop(s)
+    evaluate(
+        s,
+        call(
+            "vader_buffer_memory_copy",
+            [
+                buffer_pointer(dst),
+                as_size(dst_off),
+                buffer_pointer(src),
+                as_size(src_off),
+                as_size(n),
+            ],
+        ),
+    )
+}
+
+/// `buffer_to_string`: pop buffer + `len`, intern the buffer's leading `len`
+/// bytes as a string in a single copy (no read-back). Verbatim-bytes intern,
+/// identical semantics to `bytes_to_string` over a `u8[]` (neither validates
+/// UTF-8). The buffer pointer is re-derived from its rooted slot ;
+/// `vader_string_new` interns via host `malloc`, so no GC move occurs in the call.
+emit_buffer_to_string :: fn(s: FnState) -> void {
+    len :: pop(s)
+    obj :: pop(s)
+    push_into_temporary(
+        s,
+        call("vader_buffer_intern_string", [buffer_pointer(obj), as_size(len)]),
+        .String,
+    )
+}
+
+/// `buffer_write_string`: pop buffer + `off` + string, memcpy the string's
+/// bytes into the buffer at `off` (no push). The string operand is coerced to a
+/// `vader_string_t` (unboxed when it arrives as an erased `any`).
+emit_buffer_write_string :: fn(s: FnState) -> void {
+    str :: pop(s)
+    off :: pop(s)
+    obj :: pop(s)
+    evaluate(
+        s,
+        call(
+            "vader_buffer_write_string",
+            [buffer_pointer(obj), as_size(off), operand_as(s, str, .String)],
+        ),
+    )
+}

@@ -47,7 +47,7 @@ export ResolvedModule :: struct {
     idents:  MutableMap<u64, Symbol>
     /// Local Symbol ids nothing may rebind, and why : a `name :: ...` binding (no
     /// `:=`), or the variable of a `for … in`. Consumed by
-    /// stmt.vader::check_assign to surface T3041.
+    /// let_assign.vader::check_assign to surface T3041.
     immutable_locals: MutableMap<i32, ConstLocal>
     /// Locals and parameters no assignment rebinds (see `ResolvedFile`). Empty
     /// for a module that was not body-walked, which claims nothing.

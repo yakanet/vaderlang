@@ -768,7 +768,7 @@ MutableDecl :: struct {
 // goes through here too, so a destructuring assignment rebinds its bare names.
 //
 // The mirror check reads the same `idents` table the same way, one pass later:
-// `front/typecheck/stmt.vader::const_reassign_detail`, which rejects rebinding a `::`
+// `front/typecheck/let_assign.vader::const_reassign_detail`, which rejects rebinding a `::`
 // local or a module constant.
 note_rebind :: fn(self: ResolveState, target: AST.Expr) -> void {
     if target is AST.IdentExpr {

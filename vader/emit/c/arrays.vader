@@ -1,0 +1,386 @@
+// vader/emit/c/arrays: the array opcodes: build, read, write, push, slice, copy.
+//
+// Arrays are heap `vader_array_t` (so an array-bearing fn is may-alloc).
+// `vader_array_new` records the element's storage kind + tag, and the
+// kind picks the slot : a numeric / bool / char width stores raw, a concrete-ref
+// element or a union of refs only a raw `void*` (a `Ref` buf), anything else
+// (`string` included) a `vader_box_t` (a `Boxed` buf). A box stored by
+// `array.new` / `set` / `push` takes the VALUE's own tag (not the array's) so
+// virtual dispatch on a value read back sees the right tag.
+
+module "vader/emit/c"
+
+import "vader/core/bytecode"
+import "vader/emit/c/ast"
+// The opcode union pulls in ~120 names ; the namespace form keeps the
+// import to one line and tags every op site as `Bc.<Op>` at the match.
+Bc :: import "vader/core/bytecode"
+
+/// `array.new`: allocate a `vader_array_t` of `op.length` elements, store each
+/// in its slot kind (raw primitive, raw `void*`, or a box carrying the value's
+/// tag), push the raw array pointer. Pops elements right-to-left into source
+/// order.
+emit_array_new :: fn(s: FnState, op: Bc.ArrayNew) -> void {
+    types :: s.ctx.module.types
+    kind :: array_kind_of(types[array_element_tag(types, op.type_id)], types)
+    n :: op.length
+    arr_buf :: declare_array(s, "vader_array_new", op.type_id, verbatim("${n}u"))
+    // Pop top-to-bottom : pop #k fills slot `n-1-k` (distinct indices, so reverse
+    // emission is fine). Three strategies keyed on `typed_array_fill_for(kind)` and
+    // the kind : a typed raw store for any primitive width (flippable and sub-word
+    // alike), a raw object pointer into a `Ref` buf, else (Boxed) an inline box-slot
+    // write: `array.set`'s store minus the barrier (a fresh-young construction buf
+    // can't alias a promoted-old one). No store can GC, so the raw `arr_buf`
+    // survives the loop and no barrier is ever needed.
+    fill :: typed_array_fill_for(kind)
+    for k in 0..<n {
+        v :: pop(s)
+        slot :: n - 1 - k
+        if fill != null {
+            assign(s, typed_slot(fill.cty, arr_buf, fresh_slot(arr_buf, slot)), cast(fill.cty, coerced_as(s, v, fill.val)))
+        } else if kind == .Ref {
+            // Fresh buf is statically `.Ref` here (we chose the kind), so store the
+            // raw object pointer: no runtime dispatch, no box.
+            assign(s, typed_slot("void*", arr_buf, fresh_slot(arr_buf, slot)), coerced_as(s, v, .Ref))
+        } else {
+            // The box takes the VALUE's tag, not `elem_tag` : an `i32` stored into
+            // an `(i32 | string)[]` must read back as `is i32`, not as the union.
+            assign(s, box_slot(arr_buf, fresh_slot(arr_buf, slot)), coerced_as(s, v, .Any))
+        }
+    }
+    push_object(s, verbatim(arr_buf))
+}
+
+/// `array.get`, pop index + array, push the element : a ref-carrying element in
+/// its own stack class (the `buf->element_kind` dispatch below), any other as a
+/// boxed `.Any` (the lowerer's following `ref.cast` re-tags / unboxes it) unless
+/// it can travel unboxed. Fully open-coded over the kept `vader_array_t` layout,
+/// no `vader_array_get` call. Three read paths for the others, keyed off
+/// `typed_array_fill_for(kind)` + the kind :
+///   - Boxed → an inline box-slot read.
+///   - `u8` → the borrowed-aware `vader_array_read_u8` inline (a `bytes()` view,
+///     `buf == NULL`, reads the atom table with the runtime borrowed tag ; a real
+///     `u8[]` reads its slots). It is `static inline`, so no `vader_*` symbol is
+///     added and the read inlines at -O3.
+///   - any other sub-word width → an inline typed read, pushed in its storage
+///     class when a later re-box would give back the element's own tag
+///     (`reboxes_to_own_tag` : `bool`, `f32`), re-boxed via `box_expr` otherwise
+///     (the uint/int/float promotion mirrors `vader_array_load_slot`).
+/// `emit_slot_array_local` (buffer guard + bounds check) is hoisted before the
+/// branch: borrowed-safe (its guard tests `buf != NULL` and the bounds check
+/// reads the header). Flippable widths never reach here (midir
+/// routes them to `LoadSlot*`).
+emit_array_get :: fn(s: FnState, op: Bc.ArrayGet) -> void {
+    idx :: pop(s)
+    arr :: pop(s)
+    types :: s.ctx.module.types
+    elem_tag :: array_element_tag(types, op.type_id)
+    elem :: types[elem_tag]
+    kind :: array_kind_of(elem, types)
+    fill :: typed_array_fill_for(kind)
+    a :: emit_slot_array_local(s, arr, idx, op.bounds_safe)
+    if fill == null && ref_carrying_element(elem, types) {
+        // Erasure boundary: the buf may be `Ref` (built concretely) or
+        // `Boxed` (built in erased generic code), so the reader dispatches on
+        // `buf->element_kind`: via a `static inline` runtime helper (inlined at
+        // -O3, but keeps the emitted C a clean call). The pushed class is the
+        // element's STACK class : a concrete ref → `.Ref` (raw obj ptr,
+        // `_load_obj`), an erased `BcRef` / a union → `.Any` (tagged box,
+        // `_load_box`, which recovers the concrete tag from the referent header).
+        result_val :: val_type_of_bc_type(elem)
+        getter :: if result_val == .Ref { "vader_array_ref_load_obj" } else { "vader_array_ref_load_box" }
+        push_into_temporary(
+            s,
+            call(getter, [verbatim("${a}->buf"), slot_index(a, idx)]),
+            result_val,
+        )
+        return
+    }
+    if fill == null {
+        push_into_temporary(s, box_slot(a, slot_index(a, idx)), .Any)
+        return
+    }
+    if kind == .U8 {
+        read :: call(
+            "vader_array_read_u8",
+            [verbatim(a), slot_index(a, idx), verbatim("${elem_tag}u")],
+        )
+        push_into_temporary(s, read, .Any)
+        return
+    }
+    typed :: typed_slot(fill.cty, a, slot_index(a, idx))
+    if reboxes_to_own_tag(types, elem_tag, fill.val) {
+        push_into_temporary(s, typed, fill.val)
+    } else {
+        push_into_temporary(s, box_expr(typed, fill.val, elem_tag), .Any)
+    }
+}
+
+// Whether an element read in its storage class `val` boxes back to its own tag.
+// A later widening to a box takes `class_tag_of(val)`, the first scalar of that
+// class, so only that scalar may travel unboxed: a `u32` read as `.I32`, or a
+// distinct type over `bool`, must keep the tag the read gives it.
+reboxes_to_own_tag :: fn(types: BcType[], elem_tag: i32, val: ValType) -> bool =
+    class_tag_of(types, val) == elem_tag
+
+/// `array.set`: pop value + index + array, store the value in place. A Boxed
+/// element stores the slot inline (`box_expr` tags `string`, no-op for already-
+/// boxed refs) and fires the generational write barrier when the value may be a
+/// reference (`write_barrier_for`) ; a typed (sub-word) element stores the native
+/// width raw (no barrier: primitives hold no refs). Flippable widths never
+/// reach here (midir routes them to `StoreSlot*`). A view of a string's bytes is
+/// never written (T3070, T3072), so `a->buf` is never NULL on this path.
+emit_array_set :: fn(s: FnState, op: Bc.ArraySet) -> void {
+    value :: pop(s)
+    idx :: pop(s)
+    arr :: pop(s)
+    types :: s.ctx.module.types
+    elem_tag :: array_element_tag(types, op.type_id)
+    elem :: types[elem_tag]
+    kind :: array_kind_of(elem, types)
+    fill :: typed_array_fill_for(kind)
+    a :: emit_slot_array_local(s, arr, idx, op.bounds_safe)
+    if fill == null && ref_carrying_element(elem, types) {
+        // Erasure boundary: dispatch on the buf's actual kind inside the
+        // `static inline` helper. The barrier fires on the buf (container).
+        if elem is BcRef {
+            // Erased trait-object element : the value may be a boxed / raw PRIMITIVE
+            // (a distinct-primitive trait impl), not a header-bearing ref, so route
+            // it through `coerce_expr(.. .Any)`: the SAME box path a `.Any`-slot
+            // `local.set` / plain assignment uses, so the box carries the value's
+            // concrete tag (a ref → header tag; a primitive → its own type index),
+            // NOT the array's erased `elem_tag` (which would stamp the trait tag and
+            // mis-dispatch). Then store box-or-raw by buf kind. (`object_pointer_of` /
+            // `box_expr(elem_tag)` were both wrong here: the former splices
+            // `.payload.obj` onto a primitive, the latter loses the concrete tag.)
+            evaluate(
+                s,
+                call(
+                    "vader_array_ref_store_box",
+                    [verbatim("${a}->buf"), slot_index(a, idx), coerced_as(s, value, .Any)],
+                ),
+            )
+        } else {
+            // Concrete-ref / union-of-refs element : the value is a genuine ref (or
+            // null), so its raw object pointer is valid: take the fast raw path.
+            evaluate(
+                s,
+                call(
+                    "vader_array_ref_store",
+                    [verbatim("${a}->buf"), slot_index(a, idx), object_pointer_of(value)],
+                ),
+            )
+        }
+        write_barrier_for(s, verbatim("${a}->buf"), value)
+        return
+    }
+    if fill == null {
+        assign(s, box_slot(a, slot_index(a, idx)), coerced_as(s, value, .Any))
+        write_barrier_for(s, verbatim("${a}->buf"), value)
+    } else {
+        emit_typed_slot_write(s, a, idx, value, fill.cty, fill.val)
+    }
+}
+
+/// `array.push`: pop value + array, append the value. Here `op.type_id` is the
+/// ELEMENT type directly (not the array type). A primitive element appends
+/// through its typed `vader_array_push_*` helper, a ref, boxed or string element
+/// through the raw-ref or boxed one `emit_boxed_push` picks: all are `static
+/// inline` fast paths whose grow / view case goes to `vader_array_push_slow`, so
+/// GC-rooting is unchanged. A boxed push tags the value with its own type, never
+/// `op.type_id` : that is the union for an `(i32 | string)[]`.
+emit_array_push :: fn(s: FnState, op: Bc.ArrayPush) -> void {
+    value :: pop(s)
+    arr :: pop(s)
+    types :: s.ctx.module.types
+    obj :: object_pointer_of(arr)
+    kind :: array_kind_of(types[op.type_id], types)
+    // `push_cache_tag` proved this push's loop can keep the array's state in
+    // locals, and the enclosing `Loop` opener declared them. See
+    // `push_cache_emit.vader`.
+    // The hint names a SLOT, and two bytecode passes renumber slots. Check it
+    // against the array actually popped rather than trusting it: a stale number
+    // then costs the optimisation, not correctness.
+    plan :: pc_active_for(s, op.cache_slot)
+    if plan != null && pc_operand_is_slot(arr, plan.slot) {
+        want :: pc_fill_of(plan.kind).val
+        pc_emit_push(s, plan, obj, coerced_as(s, value, want))
+        return
+    }
+    // Every primitive kind gets a typed `vader_array_push_*` helper (no box, no
+    // dispatch, no barrier): full parity with the store path, which is likewise
+    // typed for all primitives (i32/i64/f64 via `StoreSlot*`, the rest via
+    // `emit_array_set`). The helper name and the coerce target come from the two
+    // kind tables (`push_helper_for` / `typed_array_fill_for`) so the width they
+    // agree on has one source. `.Ref` / `.Boxed` go through `emit_boxed_push`.
+    helper :: push_helper_for(kind)
+    fill :: typed_array_fill_for(kind)
+    if helper == null || fill == null {
+        emit_boxed_push(s, types[op.type_id], array_pointer(obj), value)
+        return
+    }
+    evaluate(s, call(helper, [array_pointer(obj), coerced_as(s, value, fill.val)]))
+}
+
+// The append to a `.Ref` / `.Boxed` element. A concrete-ref or ref-only-union
+// element holds genuine refs (or null), so the value goes in as its raw object
+// pointer, as `emit_array_set` stores it: no box to build, no header to read for
+// a tag the REF buffer drops. An erased `BcRef` element may hold a boxed
+// primitive, and the other elements are boxed, so their value goes in as a box.
+emit_boxed_push :: fn(s: FnState, element: BcType, array: CExpression, value: StackVal) -> void {
+    if ref_carrying_element(element, s.ctx.module.types) && element !is BcRef {
+        evaluate(s, call("vader_array_push_ref", [array, object_pointer_of(value)]))
+        return
+    }
+    evaluate(s, call(boxed_push_helper(value), [array, coerced_as(s, value, .Any)]))
+}
+
+// The boxed append for `value`: without the write barrier when the value cannot
+// be a reference.
+boxed_push_helper :: fn(value: StackVal) -> string =
+    if may_hold_reference(value) { "vader_array_push" } else { "vader_array_push_scalar" }
+
+/// `array.len`: pop array, push its `i64` length, read off the array header (no
+/// buf deref: the length lives on the header, which is the live gc_root).
+emit_array_len :: fn(s: FnState) -> void {
+    arr :: pop(s)
+    push_into_temporary(s, CMember { .base = array_header_pointer(arr), .member = "length", .arrow = true }, .I64)
+}
+
+// `(int64_t) v` : a count, an offset or a slice bound the array runtime clamps at 0.
+as_count :: fn(value: StackVal) -> CExpression = cast("int64_t", expression_of(value))
+
+/// `array.slice`: pop array + lo + hi, push a fresh array header over the
+/// `[lo, hi)` range (the C runtime views ; the VM copies).
+emit_array_slice :: fn(s: FnState, op: Bc.ArraySlice) -> void {
+    hi :: pop(s)
+    lo :: pop(s)
+    arr :: pop(s)
+    arr_buf :: aux(s, "arr")
+    declare(
+        s,
+        "vader_array_t*",
+        arr_buf,
+        call(
+            "vader_array_slice",
+            [array_pointer(object_pointer_of(arr)), as_count(lo), as_count(hi)],
+        ),
+    )
+    push_object(s, verbatim(arr_buf))
+}
+
+/// `[] * n`: pop `n` ; push an empty array of `op.type_id` with room for `n`
+/// elements. The element kind and tag are static, as `array.new` has them.
+emit_array_reserve :: fn(s: FnState, op: Bc.ArrayReserve) -> void {
+    n :: pop(s)
+    push_object(s, verbatim(declare_array(s, "vader_array_reserve", op.type_id, as_count(n))))
+}
+
+// Declare a new array of the array type `type_id`, which the runtime fn `ctor`
+// builds from `size` and the element kind and tag of that type: its C name.
+declare_array :: fn(s: FnState, ctor: string, type_id: i32, size: CExpression) -> string {
+    types :: s.ctx.module.types
+    elem_tag :: array_element_tag(types, type_id)
+    kind_idx :: array_kind_index(array_kind_of(types[elem_tag], types))
+    arr_buf :: aux(s, "arr")
+    declare(
+        s,
+        "vader_array_t*",
+        arr_buf,
+        call(
+            ctor,
+            [
+                verbatim("${type_id}u"),
+                size,
+                verbatim("${kind_idx}u"),
+                verbatim("${elem_tag}u"),
+            ],
+        ),
+    )
+    return arr_buf
+}
+
+/// `src * n`: pop `n` then the source array ; push a fresh array repeating the
+/// source's elements n times. The result is boxed with the runtime array's OWN
+/// `header.type_index` (set by the runtime from the source), so no static
+/// element type_id is threaded through the op. Allocating + GC-coupled, hence a
+/// runtime call (not open-coded).
+emit_array_repeat :: fn(s: FnState) -> void {
+    n :: pop(s)
+    src :: pop(s)
+    arr_buf :: aux(s, "arr")
+    declare(
+        s,
+        "vader_array_t*",
+        arr_buf,
+        call("vader_array_repeat", [array_pointer(object_pointer_of(src)), as_count(n)]),
+    )
+    push_object(s, verbatim(arr_buf))
+}
+
+/// `dst.push_all(src)`: pop `src` then `dst` ; append every element of `src` to
+/// `dst`. Statement-form, no value pushed back. Runtime call (grows + GC).
+emit_array_push_all :: fn(s: FnState) -> void {
+    src :: pop(s)
+    dst :: pop(s)
+    evaluate(
+        s,
+        call(
+            "vader_array_push_all",
+            [array_pointer(object_pointer_of(dst)), array_pointer(object_pointer_of(src))],
+        ),
+    )
+}
+
+/// `src.copy_to(src_start, dst, dst_start, len)`: pop `len` / `dst_start` /
+/// `dst` / `src_start` / `src` (top-to-bottom) ; overlap-safe positional copy.
+/// Statement-form. No allocation in the runtime fn, but a plain runtime call.
+emit_array_copy :: fn(s: FnState) -> void {
+    len :: pop(s)
+    dst_start :: pop(s)
+    dst :: pop(s)
+    src_start :: pop(s)
+    src :: pop(s)
+    evaluate(
+        s,
+        call(
+            "vader_array_copy",
+            [
+                array_pointer(object_pointer_of(src)),
+                as_count(src_start),
+                array_pointer(object_pointer_of(dst)),
+                as_count(dst_start),
+                as_count(len),
+            ],
+        ),
+    )
+}
+
+/// `arr.remove_last()`: pop an array ; push the removed last element as a boxed
+/// `T | null` (the runtime returns `vader_box_null()` when empty, else a box
+/// pre-tagged with the element's static tag, so `.Any`, no follow-up cast).
+emit_array_remove_last :: fn(s: FnState) -> void {
+    arr :: pop(s)
+    push_into_temporary(
+        s,
+        call("vader_array_remove_last", [array_pointer(object_pointer_of(arr))]),
+        .Any,
+    )
+}
+
+/// `arr.clear()`: pop an array ; set its length to 0. Statement-form.
+emit_array_clear :: fn(s: FnState) -> void {
+    arr :: pop(s)
+    evaluate(s, call("vader_array_clear", [array_pointer(object_pointer_of(arr))]))
+}
+
+/// Element BcType index of array type `type_index` (the `BcArray.element`),
+/// or `type_index` itself when it isn't an array (defensive: the lowerer
+/// only emits these ops on array types).
+array_element_tag :: fn(types: BcType[], type_index: i32) -> i32 {
+    t :: types[type_index]
+    if t is BcArray {
+        return t.element
+    }
+    return type_index
+}

@@ -1145,8 +1145,7 @@ value_parameters :: fn(slots: ValType[], prefix: string) -> CParameter[] {
 }
 
 // `emit_fn_trampolines` (the per-fn `fn.ref` / `make_closure` wrappers)
-// lives in `walker.vader` (same module), next to `compute_may_alloc`: both
-// are whole-module body scans over the fn table.
+// lives in `closures.vader` (same module).
 
 /// Per-type GC info table + (at the end) the vtable section. Always
 /// emitted, even for an empty module: the runtime fallback expects strong

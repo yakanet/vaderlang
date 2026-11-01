@@ -1,0 +1,334 @@
+// vader/front/typecheck/for_loop: `for` loops and the element they bind.
+//
+// The element comes from an array, a string, an `Iterator` impl or the `Into`
+// toward one, or from the values of a type the loop walks (`for h in Hour`).
+// The lowering reads `for_in_element` too, so both sides agree on the element.
+
+module "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+import "toolchain/span"
+import "vader/core/types"
+import "vader/support/diagnostics"
+
+// ---- for loops ------------------------------------------------------------
+
+check_for :: fn(
+    s: AST.ForStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
+) -> void {
+    binding: string | null = null
+    // The body runs only once the condition holds, as an `if`'s then-block does.
+    body_narrows: PushedNarrow[]: []
+    // What the loop repeats (a condition, the body) runs after the body's own
+    // writes, so the narrowings they may falsify retire first ; an `in`
+    // iterable runs once, before them.
+    match w :: s.form {
+        is AST.InfiniteFor -> { retire_narrowings_entering_loop(s, typed) }
+        is AST.WhileFor    -> {
+            retire_narrowings_entering_loop(s, typed)
+            got :: check_expr(w.cond, null, typed, diags)
+            // `for X { ... }` desugars to `for _ in X { ... }` when X
+            // is iterable (array today ; custom Iterator impls land
+            // with coerce.vader). Skip T3019 in that case.
+            if got is ArrayType {
+                record_site(typed, w.cond, .IterNext, BUILTIN_CALLEE)
+            } else if is_assignable(got, TY_BOOL) {
+                push_cond_narrows_into(w.cond, true, typed, diags, body_narrows)
+            } else {
+                diags.push(
+                    typecheck_error(
+                        .ConditionMustBeBool,
+                        w.cond.span,
+                        "while condition must be `bool`, got ${display_type(got)}",
+                    ),
+                )
+            }
+        }
+        is AST.InFor       -> {
+            elem :: in_for_element(s, w, typed, diags)
+            match nv :: w.loop_var {
+                is AST.NamedVar       -> {
+                    typed.local_types[nv.span.hash()] = elem
+                    // A real user name is var-targetable ; the `_` wildcard is not.
+                    if nv.name != "_" { binding = nv.name }
+                }
+                // `for [k, v] in …` : type each pattern leaf against the element
+                // (a tuple / array, or a struct that implements `Into<[...]>`),
+                // reusing the destructuring-let machinery. Not var-targetable.
+                is AST.DestructureVar -> {
+                    assign_binding_types(
+                        nv.pattern,
+                        elem,
+                        typed,
+                        diags,
+                    )
+                }
+                // `for <range>` : no binding, no target variable (label only).
+                is AST.DiscardVar     -> {}
+            }
+        }
+    }
+    // W0010 : a loop with an iteration variable is targeted by it (`break <var>`),
+    // so a label on it is redundant.
+    if s.label != null && binding != null {
+        diags.push(
+            warning(
+                .PreferLoopVariableOverLabel,
+                s.span,
+                "target it by its variable `${binding}`",
+            ),
+        )
+    }
+    // Push this loop onto the walk-global stack (survives `if`/`match` nesting)
+    // so a `break <name>` / `continue <name>` in the body resolves against its
+    // iteration variable (or label). Balanced push / remove_last.
+    typed.loop_stack.push(EnclosingLoop { .for_id = s.id, .binding = binding, .label = s.label })
+    inner_ctx :: bump_loop_depth(ctx)
+    check_block(s.body, null, typed, diags, inner_ctx)
+    pop_narrows(body_narrows, typed)
+    typed.loop_stack.remove_last()
+    return
+}
+
+// The element `for x in <iter>` binds `x` to, its iterable checked : a type's values
+// (`walked_type`), or what an array, a string or an `Iterator` yields.
+in_for_element :: fn(
+    s: AST.ForStmt,
+    w: AST.InFor,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    if is_type_expr(w.iter, typed.resolved) {
+        retire_narrowings_entering_loop(s, typed)
+        return walked_type(w.iter, typed, diags)
+    }
+    iter_ty :: check_expr(w.iter, null, typed, diags)
+    retire_narrowings_entering_loop(s, typed)
+    elem :: for_in_element(iter_ty, typed)
+    // A generic impl (`Wrapper<T> implements<T> Iterator<T>`) gives a struct's
+    // element here ; an iterable of any other kind wrote its own.
+    if iter_ty is StructType {
+        reject_stop_element(elem, w.iter.span, diags)
+    }
+    // A `for` reaches `Iterator`, or the `Into` toward one, without its
+    // argument (T3097).
+    several :: several_iterators_trait(iter_ty, typed)
+    if several != null {
+        diags.push(several_impls_error(iter_ty, several, "`for`", w.iter.span))
+        record_site(typed, w.iter, .IterNext, ERRONEOUS_CALLEE)
+    } else {
+        record_for_sites(typed, w.iter, iter_ty)
+    }
+    reject_unmet_impl_bounds(
+        iter_ty, core_trait_key(TRAIT_ITERATOR), .TraitNotSatisfied, w.iter.span,
+        typed, diags,
+    )
+    if elem is UnresolvedType && is_known_non_iterable(iter_ty) {
+        got :: display_type(iter_ty)
+        diags.push(typecheck_error(
+            .NotIterable, w.iter.span,
+            "a `for` walks an array, a string or an `Iterator`, got `${got}`"))
+        record_site(typed, w.iter, .IterNext, ERRONEOUS_CALLEE)
+    }
+    return elem
+}
+
+/// The type `for x in T` walks the values of, `T` a type : `T` itself when it is a
+/// range, an integer type within `i64`, a type parameter bounded by `Int` or an enum
+/// without variant data. The walk is noted on `iter` (`TypedProgram.walked_types`).
+///
+/// @param iter  the type expression the loop walks.
+/// @error       T3088 for any other type, `u64` and `i64` included, whose values
+///              reach past `i64`.
+walked_type :: fn(iter: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    t :: type_operand(iter, typed, diags)
+    if t is UnresolvedType {
+        return t
+    }
+    if walks_values(t, typed) {
+        record_site(typed, iter, .IterNext, BUILTIN_CALLEE)
+        typed.walked_types[iter.id] = true
+        return t
+    }
+    detail :: "a `for` over a type walks an integer type within `i64` or an enum"
+    diags.push(typecheck_error(.NotIterable, iter.span, "${detail}, got `${display_type(t)}`"))
+    record_site(typed, iter, .IterNext, ERRONEOUS_CALLEE)
+    return TY_UNRESOLVED
+}
+
+// Whether `for x in t` walks the values of the type `t` (`walked_type`).
+walks_values :: fn(t: Type, typed: TypedProgram) -> bool {
+    if is_valued_enum(t) || is_integer_param(t, typed) {
+        return true
+    }
+    values :: integer_values(t) ?? return false
+    return !values.hi_open
+}
+
+bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
+    if ctx is null {
+        return null
+    }
+    return FnContext { ...ctx, .loop_depth = ctx.loop_depth + 1 }
+}
+
+// ---- iterable elements ----------------------------------------------------
+
+/// The element a `for` loop over `iter_ty` binds : an array's element, else the
+/// element of the iterable's `Iterator` impl (or of its `Into` toward one), else
+/// a generic struct's first type argument.
+///
+/// The lowerer applies the same rule to the instance's concrete iterable, so
+/// the loop it builds and the variable the typer bound agree.
+///
+/// @param iter_ty  the iterable, as the loop's `in` expression types.
+/// @param typed    the module whose impl tables are read.
+/// @return         `TY_UNRESOLVED` when the iterable yields nothing the tables know.
+export for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
+    // Arrays (and array-backed distinct newtypes) yield their element type.
+    ab :: array_backing(iter_ty)
+    if ab != null {
+        return ab.element
+    }
+    // @partial: `array_backing` already returned for every array; a type no arm
+    // names has no element.
+    @partial match iter_ty {
+        is StructType -> {
+            // A `generator`'s `<fn>$State<E>` carries the concrete element as its
+            // sole type arg (`<fn>$State<E> implements Iterator<E>`): the synthetic
+            // struct has no `struct_decl` for the generic-substitution path below, so
+            // read the arg directly (else a captured loop var over a generator chain
+            // erases to the impl's generic `E`).
+            if is_gen_state_struct(iter_ty) {
+                if iter_ty.args.len() >= 1 {
+                    return iter_ty.args[0]
+                }
+                return TY_UNRESOLVED
+            }
+            elem :: impl_side(typed, typed.impl_tables.iter_element_types, iter_ty, "")
+            if elem == null {
+                if iter_ty.args.len() >= 1 {
+                    return iter_ty.args[0]
+                }
+                return TY_UNRESOLVED
+            }
+            // The element is recorded in the struct's own parameters
+            // (`Range<T> implements Iterator<T>` records Range's `T`) : the
+            // receiver's arguments take their place.
+            return substitute_struct_args(elem, iter_ty, typed)
+        }
+        // A distinct keeps its own `Iterator` impl, recorded under its declaration ;
+        // a distinct without one iterates through its backing.
+        is DistinctType -> {
+            own :: impl_side(typed, typed.impl_tables.iter_element_types, iter_ty, "")
+            if own != null {
+                return own
+            }
+            return for_in_element(iter_ty.backing, typed)
+        }
+        // An enum or a primitive finds its element under its own `Iterator` impl,
+        // or its `Into` toward one (`string`) ; a range, under its integer's.
+        is EnumType | PrimitiveType | RangeType -> {
+            elements :: typed.impl_tables.iter_element_types
+            return impl_side(typed, elements, iter_ty, "") ?? TY_UNRESOLVED
+        }
+        is TraitType  -> {
+            // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
+            // result stored as the trait) carries its element as the sole type arg.
+            // Without this a `for x in it` over such a value leaves the loop var
+            // unresolved → it defaults to `i32`, which happens to match an i32
+            // element but mis-types every other (e.g. `Iterator<string>` → `i32.add`).
+            //
+            // A type-param-bearing element: a bare `T` inside a generic combinator
+            // (`my_map<T, U>(self: Iterator<T>, …)`), or a composite like `[K, V]` /
+            // `T[]`: is returned AS WRITTEN. It is the honest type of the loop var
+            // in that body, and it is what LSP hover and the typecheck snapshots
+            // read. Concretising it is the LOWERER's job, per instance: the entry's
+            // `Substitution` binds `T`, and `resolve_element_type` applies it.
+            return core_trait_arg(iter_ty, TRAIT_ITERATOR) ?? TY_UNRESOLVED
+        }
+        _                   -> { return TY_UNRESOLVED }
+    }
+}
+
+// A receiver `for_in_element` found no element for, that is not merely a type
+// still to be decided (an unresolved one carries its own diagnostic, a type
+// parameter or `Self` is iterated per instance, an erased `Any` is not ours to
+// judge, `never` is dead code), nor a string, whose element comes from the
+// `into` of `std/string`: without that module, the lowering reports it (M5001).
+is_known_non_iterable :: fn(t: Type) -> bool {
+    if t is UnresolvedType | TypeParamType | InferVar | SelfType | AnyType | NeverType {
+        return false
+    }
+    if t is PrimitiveType {
+        return t.name != "string"
+    }
+    return true
+}
+
+// The trait a `for` over `iter_ty` would reach through several impls : `Iterator`,
+// or, for a struct that is no `Iterator` itself, the `Into` toward one
+// (`Into<Iterator<i32>>` beside `Into<Iterator<string>>`). Null when one serves.
+several_iterators_trait :: fn(iter_ty: Type, typed: TypedProgram) -> string | null {
+    iterator :: core_trait_key(TRAIT_ITERATOR)
+    if implements_more_than_once(iter_ty, iterator, typed) {
+        return iterator
+    }
+    if iter_ty !is StructType || struct_implements_trait(iter_ty, iterator, typed) {
+        return null
+    }
+    into :: core_trait_key(TRAIT_INTO)
+    n := 0
+    for args in struct_trait_arg_lists(iter_ty, into, typed) {
+        if args.len() == 1 && core_trait_arg(args[0], TRAIT_ITERATOR) != null {
+            n += 1
+        }
+    }
+    return if n > 1 { into } else { null }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/front/parser"
+
+@test
+test_for_in_array_narrows_binding :: fn() -> void {
+    src :: "f :: fn(xs: i32[]) -> void { for x in xs { } }"
+    out :: check_source_bodies(src)
+    sp :: first_for_in_binding_span(src)
+    if sp is null {
+        assert(false, "expected a for-in")
+        return
+    }
+    ty :: out.typed.local_types[sp.hash()]
+    if ty is null {
+        assert(false, "for-in binding should have a type")
+        return
+    }
+    assert_eq(display_type(ty), "i32")
+}
+
+first_for_in_binding_span :: fn(src: string) -> Span | null {
+    parsed :: parse_source(with_integers(src), "t.vader")
+    f :: first_fn_decl(parsed.program.decls) ?? return null
+    b :: f.body
+    if b is AST.BlockExpr {
+        for s in b.stmts {
+            if s !is AST.ForStmt {
+                continue
+            }
+            inf :: s.form
+            if inf is AST.InFor {
+                nv :: inf.loop_var
+                if nv is AST.NamedVar {
+                    return nv.span
+                }
+            }
+        }
+    }
+    return null
+}

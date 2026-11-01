@@ -118,7 +118,7 @@ infer_field :: fn(
 // to one oversized C function.
 
 // `x.method()` where `<x-type> implements <Trait> { method :: ... }`.
-// Indexed by orchestrate.vader at impl-load time (`impl_candidates`). A member
+// Indexed by impl_registration.vader at impl-load time (`impl_candidates`). A member
 // several impls of one trait offer (`Add<f64>`, `Add<Vec2>`) is left to the call,
 // which picks it by its arguments (`pick_member_overload`) ; taken as a value, the
 // slot it fills picks it.

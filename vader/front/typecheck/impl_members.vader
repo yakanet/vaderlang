@@ -1,0 +1,257 @@
+// vader/front/typecheck/impl_members: an impl's members, checked against its trait and declared.
+
+module "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+import "vader/core/types"
+import "vader/front/resolver"
+import "vader/support/diagnostics"
+
+// ---- member checks --------------------------------------------------------
+
+// T3036 : report every trait member the impl doesn't provide, unless the trait
+// declares a default body for it. T3094 : report every impl member the trait does
+// not declare: an impl block adds no method of its own to the type. The SAM short
+// form names none of its own ; R2016 reports a trait it cannot fill.
+check_impl_members :: fn(
+    id: AST.ImplDecl,
+    trait_type: TraitType,
+    for_ty: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    trait_decl :: typed.trait_decls[trait_type.symbol.id] ?? return
+    for member in id.members {
+        trait_method :: lookup_trait_method(trait_decl, member.name)
+        if trait_method != null {
+            check_member_signature(member, trait_method, trait_type, for_ty, typed, diags)
+        } else if !member.sam_synthetic {
+            diags.push(
+                typecheck_error(
+                    .ImplMemberNotInTrait,
+                    member.name_span,
+                    "`${member.name}` is not a member of `${id.trait_name}`",
+                ),
+            )
+        }
+    }
+    for required in trait_decl.members {
+        if required.body is null {
+            if !impl_has_method(id, required.name) {
+                diags.push(
+                    typecheck_error(
+                        .ImplMissingRequiredMethod,
+                        id.trait_name_span,
+                        "`${id.trait_name}` requires method `${required.name}`"
+                            + ", which this impl block does not provide",
+                    ),
+                )
+            }
+        }
+    }
+}
+
+// T3095: `member` must have its trait method's signature, as `trait_type` gives it
+// (its arguments, then the defaults) with `Self` read as `for_ty` : the same number of
+// parameters, each of the same type, and the same return type. The vtable slot and
+// the direct call both assume this shape. A generic trait method is held to its arity
+// alone, its own type parameters being the impl's to name. A member declared from the
+// trait (a SAM member, an intrinsic stub, an inherited member) has its signature.
+check_member_signature :: fn(
+    member: AST.FnDecl,
+    trait_method: AST.FnDecl,
+    trait_type: TraitType,
+    for_ty: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if member.sam_synthetic || member.materialized {
+        return
+    }
+    want_count :: trait_method.params.len()
+    if member.params.len() != want_count {
+        detail :: "`${member.name}`: expected ${want_count} parameter(s), got ${member.params.len()}"
+        diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.name_span, detail))
+        return
+    }
+    if trait_method.type_params.len() > 0 {
+        return
+    }
+    want :: try_trait_method(trait_type, member.name, typed, for_ty) ?? return
+    got :: typed.impl_method_decl_types[member.id]
+    if want !is FnType || got !is FnType {
+        return
+    }
+    // `want` has no receiver ; `got` keeps the impl's `self`.
+    skip :: receiver_count(trait_method)
+    for i in 0..<want.params.len() {
+        param :: member.params[i + skip]
+        have :: got.params[i + skip]
+        if !equals_type(want.params[i], have) {
+            detail :: "`${member.name}` parameter `${param.name}`: ${expected_got(want.params[i], have)}"
+            diags.push(typecheck_error(.ImplMemberSignatureDiffers, param.span, detail))
+        }
+    }
+    if !equals_type(want.return_type, got.return_type) {
+        detail :: "`${member.name}` return: ${expected_got(want.return_type, got.return_type)}"
+        diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.name_span, detail))
+    }
+}
+
+// `expected X, got Y` over two types.
+expected_got :: fn(want: Type, got: Type) -> string =
+    "expected `${display_type(want)}`, got `${display_type(got)}`"
+
+lookup_trait_method :: fn(td: AST.TraitDecl | null, name: string) -> AST.FnDecl | null {
+    if td is null {
+        return null
+    }
+    for m in td.members {
+        if m.name == name {
+            return m
+        }
+    }
+    return null
+}
+
+impl_has_method :: fn(id: AST.ImplDecl, name: string) -> bool {
+    for m in id.members {
+        if m.name == name {
+            return true
+        }
+    }
+    return false
+}
+
+// ---- member signatures ----------------------------------------------------
+
+/// UFCS-bound method type : `fn(self, ...rest) -> R` becomes `fn(...rest) -> R`,
+/// since the receiver binds `self` at the call site. Always returns a type: a
+/// member with no params, or whose first param isn't `self`, just keeps them all.
+///
+/// @param impl_         the impl block, whose type parameters the signature
+///                      quantifies over with the member's own.
+/// @param fd            the impl member.
+/// @param for_ty        the impl block's for-type, substituted into each param.
+/// @param trait_method  the matching trait signature, when the impl is for a
+///                      trait ; supplies the return type the member elides.
+/// @param trait_type    the trait as the impl implements it : an inherited member
+///                      reads its type there (`inherited_signature`).
+/// @return              the receiver-dropped fn type stored in `impl_methods`.
+ufcs_method_type :: fn(
+    impl_: AST.ImplDecl,
+    fd: AST.FnDecl,
+    for_ty: Type,
+    trait_method: AST.FnDecl | null,
+    trait_type: TraitType | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> FnType {
+    if fd.inherits != null && trait_type != null {
+        // Quantified over the impl's parameters, then the trait member's own.
+        of_impl :: impl_type_params_of(impl_, typed.resolved)
+        inherited :: inherited_signature(fd, trait_type, for_ty, typed)
+        if inherited == null {
+            return mk_fn([], TY_UNRESOLVED, of_impl)
+        }
+        return FnType { ...inherited, .type_params = of_impl + inherited.type_params }
+    }
+    rest: Type[]: []
+    for i in receiver_count(fd)..<fd.params.len() {
+        rest.push(param_type(fd.params[i], for_ty, typed, diags))
+    }
+    ret :: declare_impl_return(fd, for_ty, trait_method, trait_type, typed, diags)
+    return mk_fn(rest, ret, impl_member_quantifier(impl_, fd, typed.resolved))
+}
+
+// The parameters an impl member quantifies over : the enclosing impl's, then its
+// own `<…>`. A receiver binds the impl's (`impl_member_type`) ; a static
+// call binds them at the call, as its own.
+impl_member_quantifier :: fn(
+    impl_: AST.ImplDecl, fd: AST.FnDecl, resolved: ResolvedModule,
+) -> TypeParamType[] {
+    of_impl :: impl_type_params_of(impl_, resolved)
+    if fd.type_params.len() == 0 {
+        return of_impl
+    }
+    return of_impl + quantifier_of(fd.type_params, resolved)
+}
+
+/// Pre-walk an impl method's signature so `self` resolves to the impl block's
+/// for-type and the rest of the params take their annotated types. Results land
+/// in `param_types` (per-param, span-keyed) and `impl_method_decl_types` (the
+/// whole `FnType`, keyed by the member's node id: impl members are not in
+/// `resolved.symbols`), so `infer_ident` / `check_fn_body` see concrete types.
+///
+/// @param fd            the impl member.
+/// @param for_ty        the impl block's for-type: what `self` resolves to.
+/// @param trait_method  the matching trait signature, when the impl is for a
+///                      trait ; supplies the return type the member elides.
+/// @param trait_type    the trait as the impl implements it ; null for a default
+///                      body checked in its own trait.
+declare_impl_method_for_trait :: fn(
+    fd: AST.FnDecl,
+    for_ty: Type,
+    trait_method: AST.FnDecl | null,
+    trait_type: TraitType | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    params: Type[]: []
+    for p in fd.params {
+        pt :: param_type(p, for_ty, typed, diags)
+        typed.param_types[p.span.hash()] = pt
+        params.push(pt)
+    }
+    ret :: declare_impl_return(fd, for_ty, trait_method, trait_type, typed, diags)
+    // An impl member has no symbol : its signature is keyed by its node id.
+    typed.impl_method_decl_types[fd.id] = mk_fn(params, ret)
+}
+
+declare_impl_return :: fn(
+    fd: AST.FnDecl,
+    for_ty: Type,
+    trait_method: AST.FnDecl | null,
+    trait_type: TraitType | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    // An unannotated member takes the trait method's return type, with `Self`
+    // substituted to `for_ty`: `Direction implements Turnable { turn_left :: fn(self) = … }`
+    // picks up `-> Self` from `Turnable.turn_left`. A default that leaves its own to
+    // its body gives it once settled ; until then the member's body gives its own.
+    if fd.return_type == null && trait_method !is null {
+        written :: trait_method.return_type
+        if written !is null {
+            return type_with_self(written, for_ty, typed.resolved, diags)
+        }
+        if trait_type != null {
+            from_trait :: try_trait_method(trait_type, fd.name, typed, for_ty)
+            if from_trait is FnType && from_trait.return_type !is UnresolvedType {
+                return from_trait.return_type
+            }
+        }
+    }
+    // A written `-> Self` names `for_ty` too.
+    declared :: fd.return_type ?? return declare_fn_return(fd, typed.resolved, diags)
+    return type_with_self(declared, for_ty, typed.resolved, diags)
+}
+
+param_type :: fn(
+    p: AST.FnParam,
+    for_ty: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    if p.ty == null {
+        if p.name == "self" {
+            return for_ty
+        }
+        return TY_UNRESOLVED
+    }
+    // Substitute `Self` → `for_ty` so an explicit `Self`-typed param (e.g.
+    // `Comparable.compare(self, other: Self)`) records the concrete carrier:
+    // otherwise the impl method's type keeps `other: Self`, and a caller
+    // passing a `for_ty` value mismatches `expected Self, got <for_ty>`.
+    return type_with_self(p.ty, for_ty, typed.resolved, diags)
+}

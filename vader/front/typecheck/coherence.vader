@@ -1,0 +1,316 @@
+// vader/front/typecheck/coherence: impls that overlap, and functions declared twice.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "toolchain/span"
+import "vader/core/types"
+import "vader/front/resolver"
+import "vader/support/diagnostics"
+
+// Coherence key for an `impl` : `(receiver type, trait, trait-args)`. Keyed on
+// `canonical_key`, so distinct types never collide (it carries struct/enum
+// symbol ids and generic args: `Foo<i32>` and `Foo<string>` stay separate) and
+// equivalent types always match. Returns null for a blanket / generic receiver
+// (`T implements …`, `T[] implements …`): their overlap rules are subtler than
+// concrete-vs-concrete, so they're left unchecked for now.
+coherence_key :: fn(for_ty: Type, trait_key: string, args: Type[]) -> string | null {
+    if type_contains_type_param(for_ty) {
+        return null
+    }
+    return "${canonical_key(for_ty)}#${trait_key}<${canonical_args_key(args)}>"
+}
+
+// Project-wide trait coherence : at most one impl per (concrete type, trait,
+// trait-args). Walks every loaded module's `ImplDecl`s (including the `std/core`
+// prelude, whose impls are in scope everywhere) into one key→span map and fires
+// R2030 on the second impl of a key. Catches a user redefining a prelude impl
+// (`i32 implements Display`): previously a silent, order-dependent shadow that
+// could recurse / mis-resolve. Mirror of Rust's E0119 (concrete-receiver subset).
+check_impl_coherence :: fn(
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>,
+    diags: Diagnostic[],
+) -> void {
+    seen :: MutableSet<string> {}
+    by_base :: MutableMap<string, ImplShape[]> {}
+    // Register every NON-entry module's impls (the `std/core` prelude + stdlib +
+    // deps) first, then the entry module LAST. A user impl that duplicates a
+    // prelude/stdlib one is then the *second* seen, so R2030 lands on the user's
+    // (entry-module) span: entry diags are surfaced, imported-module diags are
+    // filtered by the CLI, so an error on a stdlib span would be invisible.
+    for [id, _] in project.modules {
+        if id == project.entry {
+            continue
+        }
+        check_module_impl_coherence(id, project, per_module, seen, by_base, diags)
+    }
+    check_module_impl_coherence(project.entry, project, per_module, seen, by_base, diags)
+}
+
+check_module_impl_coherence :: fn(
+    id: string,
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>,
+    seen: MutableSet<string>,
+    by_base: MutableMap<string, ImplShape[]>,
+    diags: Diagnostic[],
+) -> void {
+    tp :: per_module[id] ?? return
+    loaded :: project.modules[id] ?? return
+    for decl in concat_file_decls(loaded.module.files) {
+        if decl is AST.ImplDecl {
+            // A trait is told apart by its declaration, not by the name an
+            // import gave it ; one that does not resolve is reported elsewhere.
+            trait_sym :: impl_trait_symbol(decl, tp.resolved) ?? continue
+            trait_key :: trait_key_of(trait_sym)
+            for_ty :: type_from_expr(decl.for_type, tp.resolved, diag_sink())
+            if has_builtin_impl(for_ty, trait_key) {
+                detail :: ("every enum implements `Equals`, comparing by variant : "
+                    + "`${display_type(for_ty)}` takes no impl of its own")
+                diags.push(resolver_error(.ConflictingImpl, decl.span, detail))
+                continue
+            }
+            args :: written_type_args(decl.trait_args, tp.resolved, diag_sink())
+            if reject_overlapping_impl(decl, for_ty, trait_key, args, by_base, diags) {
+                continue
+            }
+            key :: coherence_key(for_ty, trait_key, args) ?? continue
+            if !seen.add(key) {
+                // `ConflictingImpl` is a `ResolverCode` (declaration-level, like
+                // the R2018 orphan rule), so it's built with `resolver_error`.
+                detail :: conflict_detail(decl, for_ty)
+                diags.push(resolver_error(.ConflictingImpl, decl.span, detail))
+            }
+        }
+    }
+}
+
+// An impl met so far, as the overlap check compares it.
+ImplShape :: struct {
+    for_ty: Type
+    args:   Type[]
+    span:   Span
+}
+
+// R2030 for two generic impls of one trait on one base type that some instance could
+// both match : dispatch could not tell which one it takes. The bounds are not
+// compared : nothing proves that no type implements both. An impl on a concrete
+// instance (`Wrapper<MonType>`) is not one of them: it wins over the generic impl
+// for that instance. A blanket over a bare `T` stays out too (a type's own impl
+// wins over it) and so does an array receiver over anything but a bare `T`, which
+// T3090 refuses. True when reported ; the impl is recorded otherwise.
+reject_overlapping_impl :: fn(
+    decl: AST.ImplDecl,
+    for_ty: Type,
+    trait_key: string,
+    args: Type[],
+    by_base: MutableMap<string, ImplShape[]>,
+    diags: Diagnostic[],
+) -> bool {
+    if for_ty is TypeParamType {
+        return false
+    }
+    if for_ty is ArrayType && for_ty.element !is TypeParamType {
+        return false
+    }
+    if !type_contains_type_param(for_ty) && !any_contains_type_param(args) {
+        return false
+    }
+    bucket :: "${impl_base_key(for_ty)}#${trait_key}"
+    shape :: ImplShape { .for_ty = for_ty, .args = args, .span = decl.span }
+    seen :: by_base.get_or_put_with(bucket, () -> [])
+    for other in seen {
+        if may_coincide(for_ty, other.for_ty) && may_coincide_each(args, other.args) {
+            diags.push(resolver_error(.ConflictingImpl, decl.span,
+                "this impl and the one at ${source_position(other.span)} may both cover an " +
+                    "instance of `${display_type(for_ty)}`, and two generic " +
+                    "impls of one trait cannot overlap"))
+            return true
+        }
+    }
+    seen.push(shape)
+    return false
+}
+
+// Whether some instantiation makes `a` and `b` one type : a type parameter stands
+// for any type.
+may_coincide :: fn(a: Type, b: Type) -> bool {
+    if a is TypeParamType || b is TypeParamType {
+        return true
+    }
+    // @partial: the shapes holding other types compare part by part ; any other type
+    // coincides only with itself.
+    return @partial match a {
+        is StructType -> b is StructType && b.symbol.id == a.symbol.id &&
+            may_coincide_each(a.args, b.args)
+        is TraitType  -> b is TraitType && b.symbol.id == a.symbol.id &&
+            may_coincide_each(a.args, b.args)
+        is ArrayType  -> b is ArrayType && may_coincide(a.element, b.element)
+        is TupleType  -> b is TupleType && may_coincide_each(a.elements, b.elements)
+        is FnType     -> b is FnType && may_coincide_each(a.params, b.params) &&
+            may_coincide(a.return_type, b.return_type)
+        _             -> equals_type(a, b)
+    }
+}
+
+may_coincide_each :: fn(a: Type[], b: Type[]) -> bool {
+    if a.len() != b.len() {
+        return false
+    }
+    for i in 0..<a.len() {
+        if !may_coincide(a[i], b[i]) {
+            return false
+        }
+    }
+    return true
+}
+
+conflict_detail :: fn(decl: AST.ImplDecl, for_ty: Type) -> string {
+    if AST.decorators_have(decl.decorators, "displayable") {
+        return ("`@displayable` generates the `Display` of `${display_type(for_ty)}`, "
+            + "which already implements it")
+    }
+    return ("`${display_type(for_ty)}` already implements `${decl.trait_name}`, and "
+        + "only one impl per (type, trait) is allowed")
+}
+
+// No two functions in a module may share a name AND signature (resolved param
+// types): that's a redefinition, not an overload. `main` is the special case
+// (one possible signature). Sibling files merge into one module, so this also
+// catches a `main` per file (the `vader run dir/file.vader` footgun, where the
+// directory loads as one module and the first-declared `main` silently wins).
+check_fn_redefinitions :: fn(
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>,
+    diags: Diagnostic[],
+) -> void {
+    for [id, _] in project.modules {
+        check_module_fn_redefinitions(id, project, per_module, diags)
+    }
+}
+
+check_module_fn_redefinitions :: fn(
+    id: string,
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>,
+    diags: Diagnostic[],
+) -> void {
+    tp :: per_module[id] ?? return
+    loaded :: project.modules[id] ?? return
+    // Group fn decls by name (cheap: no type resolution) ; resolve signatures
+    // only for names with ≥2 decls. Signatures come from the AST, the
+    // authoritative source of declared params, not from `decl_types`.
+    by_name :: MutableMap<string, AST.FnDecl[]> {}
+    for decl in concat_file_decls(loaded.module.files) {
+        if decl !is AST.FnDecl {
+            continue
+        }
+        by_name.get_or_put_with(decl.name, () -> []).push(decl)
+    }
+    // The module's EXPLICITLY-imported free fns: a module fn with the SAME name
+    // AND signature as one of them would otherwise silently shadow it
+    // (resolver-modules-3, CASE C).
+    imported :: imported_fn_sigs(loaded, tp, per_module)
+    imported_names :: MutableSet<string> {}
+    for sig in imported {
+        imported_names.add(sig.local)
+    }
+    // Signature keys of the module's fns, by name, where there is something to
+    // check : ≥2 decls (a possible in-module redefinition) or a same-named import.
+    module_keys :: MutableMap<string, MutableMap<string, bool>> {}
+    for [name, group] in by_name {
+        if group.len() < 2 && !(name in imported_names) {
+            continue
+        }
+        seen :: MutableMap<string, bool> {}
+        for fd in group {
+            key :: fn_signature_key(fd, tp.resolved) ?? continue
+            // A matching canonical signature key is a redefinition, not an overload.
+            if seen[key] != null {
+                diags.push(
+                    typecheck_error(
+                        .DuplicateFnDefinition,
+                        fd.span,
+                        "`${name}` is already defined with the same signature in this module",
+                    ),
+                )
+            } else {
+                seen[key] = true
+            }
+        }
+        module_keys[name] = seen
+    }
+    // Reported on the import : it belongs to one file, the fn to the module.
+    for sig in imported {
+        keys :: module_keys[sig.local] ?? continue
+        if keys[sig.key] != null {
+            diags.push(
+                typecheck_error(
+                    .DuplicateFnDefinition,
+                    sig.span,
+                    "`${sig.local}` has the same signature as a function of this module",
+                ),
+            )
+        }
+    }
+}
+
+// An explicitly-imported free fn of a module : the local name its import binds,
+// the signature key of its target, and where the import is written.
+ImportedFnSig :: struct {
+    local: string
+    key:   string
+    span:  Span
+}
+
+// The explicitly-imported free fns of `loaded`, one per import. Reads each
+// binding's target FnType from the owning module's `decl_types`: import-scoped,
+// NOT the broad `imported_fn_overloads` branch-b scan (which surfaces every
+// co-loaded module's fns and would false-positive on ones this module never
+// imported). Iterates `collected.imports` (keyed by Symbol id), which holds the
+// bindings of every file of the module, and keeps `info.local` (the alias for a
+// renamed `foo as bar`), NOT the source name : a wrapper like
+// `is_int :: fn(..) = ty_is_int(..)` over `import { is_int as ty_is_int }` must
+// NOT be flagged: its local binding is `ty_is_int`, which no module fn shares.
+imported_fn_sigs :: fn(
+    loaded: LoadedModule,
+    tp: TypedProgram,
+    per_module: MutableMap<string, TypedProgram>,
+) -> ImportedFnSig[] {
+    out: ImportedFnSig[]: []
+    targets :: tp.import_targets
+    if targets !is ImportTargetTable {
+        return out
+    }
+    for [sym_id, info] in loaded.collected.imports {
+        if info.imported_name is null {
+            continue
+        }
+        // namespace import, not a free-fn binding
+        st :: targets.symbol_targets[sym_id] ?? continue
+        owner :: per_module[st.module_id] ?? continue
+        ty :: owner.decl_types[st.symbol.id]
+        if ty is FnType {
+            out.push(ImportedFnSig {
+                .local = info.local,
+                .key   = canonical_args_key(ty.params),
+                .span  = info.binding_span,
+            })
+        }
+    }
+    return out
+}
+
+// Canonical key for a fn decl's resolved parameter signature, or null when a
+// param is un-annotated (only lambdas omit param types ; a named fn always has
+// them, so the null branch is a defensive skip).
+fn_signature_key :: fn(fd: AST.FnDecl, resolved: ResolvedModule) -> string | null {
+    params: Type[]: []
+    for p in fd.params {
+        pty :: p.ty ?? return null
+        params.push(type_from_expr(pty, resolved, diag_sink()))
+    }
+    return canonical_args_key(params)
+}

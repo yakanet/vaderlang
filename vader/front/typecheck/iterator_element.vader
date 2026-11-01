@@ -4,9 +4,9 @@
 // `Iterator.next` returns `T | Stop`, so a `T` that can hold `Stop` would end the
 // iteration at the first such element, in silence. T3121 rejects it where the
 // element turns concrete: a written `Iterator<X>` (type_expr.vader), an impl's
-// header (orchestrate.vader), the instance a generic function takes at a call
+// header (impl_registration.vader), the instance a generic function takes at a call
 // (call_infer.vader) or as a value (fn_value.vader), and a `for` over a struct
-// (stmt.vader). A type parameter passes: its instance is checked where it gets one.
+// (for_loop.vader). A type parameter passes: its instance is checked where it gets one.
 
 module "vader/front/typecheck"
 

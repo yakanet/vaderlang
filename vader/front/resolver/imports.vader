@@ -17,7 +17,7 @@ export ImportInfo :: struct {
     /// Local binding name this import introduces: the alias for a renamed
     /// `import "p" { foo as bar }` (`bar`), else the imported name. Lets a
     /// signature-collision check key by the LOCAL name (see
-    /// `orchestrate.vader::imported_fn_sigs`).
+    /// `coherence.vader::imported_fn_sigs`).
     local:         string
     /// Span of the imported name token (or the whole import decl when
     /// it's a namespace form). Used as the primary span for R2003 /

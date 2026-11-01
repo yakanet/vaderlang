@@ -1,0 +1,220 @@
+// vader/front/typecheck/bound_sharing: type-parameter and struct bounds, shared by every module.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+import "std/iter"
+AST :: import "toolchain/ast"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/front/resolver"
+
+// Every module's type-parameter bounds in ONE table every module reads, so a call
+// checks an imported callee's bounds as it checks a local one's. Symbol ids are
+// project-wide, so modules cannot collide. Built once imports are wired : a bound
+// naming a renamed import or a namespace member (`T: Ns.Trait`) resolves only then.
+broadcast_type_param_bounds :: fn(
+    per_module: MutableMap<string, TypedProgram>,
+    project: LoadedProject,
+) -> void {
+    shared :: MutableMap<i32, TypeParamBound> {}
+    for [_, typed] in per_module {
+        record_type_param_bounds(typed.resolved, shared)
+    }
+    struct_bounds :: MutableMap<i32, ArgBound[]> {}
+    for [_, typed] in per_module {
+        record_struct_bounds(typed, shared, struct_bounds)
+    }
+    for [id, lm] in project.modules {
+        typed :: per_module[id] ?? continue
+        for file in lm.module.files {
+            inherit_struct_bounds(file.program.decls, typed.resolved, struct_bounds, shared)
+        }
+    }
+    for [_, typed] in per_module {
+        typed.type_param_bound_traits = shared
+        typed.struct_bounds = struct_bounds
+    }
+}
+
+// The bounds each generic struct `typed` declares puts on its type arguments, by the
+// struct's symbol id. Only the declaring module resolves a type parameter's span.
+record_struct_bounds :: fn(
+    typed: TypedProgram,
+    shared: MutableMap<i32, TypeParamBound>,
+    out: MutableMap<i32, ArgBound[]>,
+) -> void {
+    for sym in typed.resolved.symbols {
+        if sym.kind != .Struct {
+            continue
+        }
+        decl :: typed.struct_decls[sym.id] ?? continue
+        bounds: ArgBound[]: []
+        for i in 0..<decl.type_params.len() {
+            tp :: decl.type_params[i]
+            tp_sym :: typed.resolved.idents[tp.span.hash()] ?? continue
+            bound :: shared[tp_sym.id] ?? continue
+            bounds.push(ArgBound {
+                .position = i,
+                .name = tp.name,
+                .traits = bound.traits,
+            })
+        }
+        if !bounds.is_empty() {
+            out[sym.id] = bounds
+        }
+    }
+}
+
+// An impl that borrows its struct's type parameters (`Wrapper<T> implements Poke`)
+// holds only for the instances the struct admits, so its `T` takes the struct's bound
+// at that position on top of its own : a literal or a member it reaches through `T`
+// is then judged as the struct's own would be.
+inherit_struct_bounds :: fn(
+    decls: AST.Decl[],
+    resolved: ResolvedModule,
+    struct_bounds: MutableMap<i32, ArgBound[]>,
+    shared: MutableMap<i32, TypeParamBound>,
+) -> void {
+    for d in decls {
+        if d !is AST.ImplDecl {
+            continue
+        }
+        head :: d.for_type
+        if head !is AST.GenericInstExpr || head.callee !is AST.IdentExpr {
+            continue
+        }
+        owner :: resolved.idents[head.callee.span.hash()] ?? continue
+        bounds :: struct_bounds[owner.id] ?? continue
+        for bound in bounds {
+            if bound.position >= head.type_args.len() {
+                continue
+            }
+            arg :: head.type_args[bound.position]
+            if arg !is AST.IdentExpr {
+                continue
+            }
+            sym :: resolved.idents[arg.span.hash()] ?? continue
+            if sym.kind == .TypeParam {
+                shared[sym.id] = with_struct_traits(shared[sym.id], sym.name, bound.traits)
+            }
+        }
+    }
+}
+
+// `own` with the struct's traits it does not already name.
+with_struct_traits :: fn(
+    own: TypeParamBound | null, name: string, inherited: TraitType[],
+) -> TypeParamBound {
+    traits: TraitType[]: []
+    if own != null {
+        traits.push_all(own.traits)
+    }
+    for t in inherited {
+        if !names_trait(traits, t) {
+            traits.push(t)
+        }
+    }
+    return TypeParamBound {
+        .name = name,
+        .traits = traits,
+        .integer = own != null && own.integer,
+    }
+}
+
+names_trait :: fn(traits: TraitType[], t: TraitType) -> bool {
+    for have in traits {
+        if have.symbol.id == t.symbol.id {
+            return true
+        }
+    }
+    return false
+}
+
+// The bound of every type parameter `resolved` declares, by its symbol id. The
+// bound table has no names : `idents` is what carries a type parameter's, and
+// `trait_self_params` a trait's `Self`, which a default body need not write.
+record_type_param_bounds :: fn(
+    resolved: ResolvedModule,
+    out: MutableMap<i32, TypeParamBound>,
+) -> void {
+    for [_, sym] in resolved.idents {
+        record_type_param_bound(sym, resolved, out)
+    }
+    for [_, sym] in resolved.trait_self_params {
+        record_type_param_bound(sym, resolved, out)
+    }
+}
+
+record_type_param_bound :: fn(
+    sym: Symbol,
+    resolved: ResolvedModule,
+    out: MutableMap<i32, TypeParamBound>,
+) -> void {
+    if sym.kind != .TypeParam || out[sym.id] != null {
+        return
+    }
+    bound :: resolved.type_param_bounds[sym.id] ?? return
+    traits: TraitType[]: []
+    collect_bound_trait_types(bound, resolved, traits)
+    out[sym.id] = TypeParamBound {
+        .name = sym.name,
+        .traits = traits,
+        .integer = bound_names_int(bound, resolved),
+    }
+}
+
+/// The `trait_key`s of the traits `bound` names: one, or an `A & B` chain.
+///
+/// @param bound     a type parameter's bound.
+/// @param resolved  the module that declares the type parameter.
+/// @param out       receives one key per trait, left to right.
+export collect_bound_traits :: fn(bound: AST.Expr, resolved: ResolvedModule, out: string[]) -> void {
+    traits: TraitType[]: []
+    collect_bound_trait_types(bound, resolved, traits)
+    for t in traits {
+        out.push(trait_key_of(t.symbol))
+    }
+}
+
+// Whether `bound` names `Int`, alone or in an `A & B` chain.
+bound_names_int :: fn(bound: AST.Expr, resolved: ResolvedModule) -> bool {
+    if bound is AST.BinaryExpr && bound.op == .BitAnd {
+        return bound_names_int(bound.left, resolved) || bound_names_int(bound.right, resolved)
+    }
+    return names_int_base(bound, resolved)
+}
+
+// The traits `bound` names, with their arguments (`Contains<i32>`), left to right.
+collect_bound_trait_types :: fn(bound: AST.Expr, resolved: ResolvedModule, out: TraitType[]) -> void {
+    if bound is AST.BinaryExpr && bound.op == .BitAnd {
+        collect_bound_trait_types(bound.left, resolved, out)
+        collect_bound_trait_types(bound.right, resolved, out)
+        return
+    }
+    bound_type :: type_from_expr(bound, resolved, diag_sink())
+    if bound_type is TraitType {
+        out.push(bound_type)
+    }
+}
+
+record_struct_trait_args :: fn(
+    tables: ImplTables,
+    for_ty: Type,
+    trait_key: string,
+    // Mutable because that is what `struct_trait_args` stores.
+    args: Type[],
+) -> void {
+    per_struct :: tables.struct_trait_args.get_or_put_with(
+        impl_side_key(for_ty),
+        () -> MutableMap<string, Type[][]> {},
+    )
+    lists :: per_struct.get_or_put_with(trait_key, () -> [])
+    // Two impls with equal arguments are R2030 : the list keeps one.
+    for recorded in lists {
+        if type_list_equals(recorded, args) {
+            return
+        }
+    }
+    lists.push(args)
+}

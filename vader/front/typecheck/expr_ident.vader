@@ -12,7 +12,7 @@
 //     primitive name in expression context is a type-valued expr ;
 //     `type_expr.vader` handles type-position refs separately.
 //   - Local / Binding → `typed.local_types` keyed by the binding's span,
-//     populated by `stmt.vader` as it checks each `let` (and by the
+//     populated by `let_assign.vader` as it checks each `let` (and by the
 //     pattern binders in `match_expr.vader` / `expr_if.vader`).
 //   - ImportBinding → redirected to its concrete export before lookup, so
 //     it resolves cross-module via `wire.vader`'s `import_targets`.

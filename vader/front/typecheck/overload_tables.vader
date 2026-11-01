@@ -1,0 +1,282 @@
+// vader/front/typecheck/overload_tables: the imported functions a file can call, core symbols.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/front/resolver"
+import "vader/support/target"
+
+// Build one overload table per FILE of the module, from that file's own
+// wildcard imports. Imports are file-scoped (SPEC §"Modules"), so two files of
+// one module see different names, including the same path imported bare in one
+// and under a modifier list in the other, which is real in-tree usage
+// (`vader/tools/lsp/main_entry.vader` vs `vader/tools/lsp/main.vader` on `std/cli`).
+//
+// Only the forms that put names in UNQUALIFIED scope feed a table: bare
+// `import "p"`, `import "p" { … }` minus what its modifiers drop, the names a
+// modifier list REBINDS, and the always-in-scope `std/core` prelude. A namespace
+// alias (`P :: import "p"`) contributes nothing: it binds one name and
+// qualifies the rest, so `x.f()` must fail exactly where `f(x)` is R2006, the
+// divergence SPEC §UFCS rules out ("resolves … exactly as `foo(x)` would").
+populate_imported_fn_overloads :: fn(
+    entry_typed: TypedProgram,
+    wildcards: FileImports[],
+    typed_by_name: MutableMap<string, TypedProgram>,
+) -> void {
+    // Loop-invariant : the prelude is the same module for every file.
+    core :: typed_by_name["std/core"]
+    for fw in wildcards {
+        // Filled afresh at each call : the populate runs again once more types are
+        // settled, and a candidate a renamed import shadowed must not come back.
+        table :: file_overload_table(entry_typed, fw.file)
+        table.clear()
+        // Dedup: a path can appear more than once in one file (re-imported in a
+        // `// ---- tests ----` block), and `push_module_exported_fns` would
+        // rescan it: idempotent but wasted.
+        seen :: MutableMap<string, bool> {}
+        for path in fw.paths {
+            if seen[path] != null {
+                continue
+            }
+            seen[path] = true
+            other :: typed_by_name[path]
+            if other != null {
+                // A modifier drops its source name from that path's wildcard, so
+                // the UFCS table must drop it too: else `{ x as _ }` leaves
+                // `recv.x()` callable while `x(recv)` is R2006.
+                push_module_exported_fns(other, entry_typed, table, fw.excludes[path] ?? [])
+            }
+        }
+        if core != null {
+            // Re-pushed per file rather than shared: `push_overload` mutates a
+            // bucket in place, so one array reachable from two files' tables
+            // would let a file's own overload of that name leak into a sibling.
+            // The prelude is in scope with no import, so it honours no modifier
+            // list, and a per-file copy of its few fns costs little.
+            push_module_exported_fns(core, entry_typed, table, [])
+        }
+    }
+    // Renamed imports (`import "p" { foo as bar }`) bind ONE name, in the file
+    // that wrote them: under the local name only, since the same modifier
+    // excluded the source name from that path's wildcard just above.
+    push_renamed_imports(entry_typed)
+}
+
+// The table `file` reads its imported overloads from, created on first use.
+file_overload_table :: fn(
+    typed: TypedProgram,
+    file: string,
+) -> MutableMap<string, FnCandidate[]> = typed.imported_fn_overloads.get_or_put_with(
+    file,
+    () -> MutableMap<string, FnCandidate[]> {},
+)
+
+// `import "p" { foo as bar }`: dispatch `bar` via UFCS on its declared first
+// param, in the file that bound it. `symbol_targets` is module-wide, so the
+// owning file comes from the local symbol's own span.
+push_renamed_imports :: fn(entry_typed: TypedProgram) -> void {
+    targets :: entry_typed.import_targets ?? return
+    for [sym_id, st] in targets.symbol_targets {
+        ty :: entry_typed.external_types[st.symbol.id] ?? continue
+        if ty !is FnType {
+            continue
+        }
+        local :: import_binding_by_id(sym_id, entry_typed) ?? continue
+        where :: local.defined_at ?? continue
+        // A renamed import binds the same declaration under a new local name,
+        // so the decl travels with it exactly as a wildcard's does.
+        push_overload(
+            file_overload_table(entry_typed, where.start.file), local.name,
+            FnCandidate {
+                .ty = ty,
+                .symbol = st.symbol,
+                .decl = entry_typed.fn_decls[st.symbol.id],
+            },
+        )
+    }
+}
+
+// Push every fn overload of `from` into `table`, keyed by name. We iterate `fn_overloads` (not `symbols`) so every overload of the same name
+// lands in the bucket. Skips the self case (a module never contributes to its
+// own import table).
+//
+// `excluded` holds the source names the importing file's modifier list drops
+// from this path's wildcard. They stay out of `table` but are still typed into
+// `into.external_types`: that table is keyed by symbol id and answers "what
+// type is this?", not "is this name in scope here?", and a rename reads its
+// target's type from it.
+push_module_exported_fns :: fn(
+    from: TypedProgram,
+    into: TypedProgram,
+    table: MutableMap<string, FnCandidate[]>,
+    excluded: string[],
+) -> void {
+    if from.resolved.path == into.resolved.path {
+        return
+    }
+    for [name, bucket] in from.resolved.fn_overloads {
+        for sym in bucket {
+            // Only EXPORTED fns are reachable cross-module: a private fn is not
+            // importable, so it must not enter another module's UFCS/prefix pool
+            // (mirrors `seed_wildcard_exports`'s Public filter + the destructure
+            // R2008 check). Without this, a module's private helpers leaked as
+            // cross-module UFCS candidates.
+            if sym.visibility != .Public {
+                continue
+            }
+            ty :: from.decl_types[sym.id] ?? continue
+            if ty is FnType {
+                if name !in excluded {
+                    // The DECL travels with the type: it is what carries
+                    // parameter names and defaults, which a UFCS call site in
+                    // the importing module has no other way to reach.
+                    fd :: from.fn_decls[sym.id]
+                    push_overload(table, name, FnCandidate {
+                        .ty = ty,
+                        .symbol = sym,
+                        .decl = fd,
+                    })
+                    // And the defaults' own name resolutions travel with it:
+                    // they are lowered in the CALLER's context. See
+                    // `import_defaults.vader`.
+                    if fd is AST.FnDecl {
+                        publish_default_resolutions(from, into, fd)
+                    }
+                }
+                into.external_types[sym.id] = ty
+            }
+        }
+    }
+    // Same for wildcard-exposed CONSTS : without their type in `external_types`,
+    // a wildcard `println(SOME_CONST)` const or `EnumName.Variant` types the const as `?`, so the generic
+    // `println<T>` instance can't be pinned and its materialisation drops
+    // (unresolved at emit), and a wildcard enum-variant access mis-resolves. A struct's
+    // name in value position needs it too (`Info(v)` converts). Traits flow
+    // through `cross_publish`.
+    for sym in from.resolved.symbols {
+        if sym.visibility != .Public {
+            continue
+        }
+        if sym.kind != .Const && sym.kind != .Enum && sym.kind != .TypeAlias && sym.kind != .Struct {
+            continue
+        }
+        cty :: from.decl_types[sym.id] ?? continue
+        into.external_types[sym.id] = cty
+    }
+}
+
+// Add `ft` to the overloads of `name`. It takes the place of one of the same
+// signature that its own module pushed, or that it shadows : the prelude's always
+// wins, and a renamed import (bound under a name other than its own) shadows the
+// wildcards. One of another module stays beside it, so a call both answer is
+// ambiguous (T3032).
+push_overload :: fn(table: MutableMap<string, FnCandidate[]>, name: string, ft: FnCandidate) -> void {
+    shadows :: ft.symbol.module_name == "std/core" || ft.symbol.name != name
+    bucket :: table.get_or_put_with(name, () -> [])
+    for i in 0..<bucket.len() {
+        same_owner :: shadows || bucket[i].symbol.module == ft.symbol.module
+        if same_owner && type_list_equals(bucket[i].ty.params, ft.ty.params) {
+            bucket[i] = ft
+            return
+        }
+    }
+    bucket.push(ft)
+}
+
+// ---- core symbols ---------------------------------------------------------
+
+// The resolver-side `imports_to` table, so `type_from_expr` can dereference an
+// ImportBinding symbol (`ParseError` from `std/string`) to its real export
+// without the full `TypedProgram`. Symbol ids are project-global, so one table
+// serves every module: each looks up only the import symbols it resolves.
+resolver_imports :: fn(targets: ImportTargetTable) -> MutableMap<i32, Symbol> {
+    out :: MutableMap<i32, Symbol> {}
+    for [sym_id, st] in targets.symbol_targets {
+        out[sym_id] = st.symbol
+    }
+    return out
+}
+
+// The export `name` of `std/async`, or null when the program does not import it.
+async_export :: fn(project: LoadedProject, name: string) -> Symbol | null {
+    id :: find_async_module_id(project) ?? return null
+    loaded :: project.modules[id] ?? return null
+    return loaded.collected.symbols[name]
+}
+
+populate_core_symbols :: fn(
+    entry_typed: TypedProgram,
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>,
+) -> void {
+    // The baked target constants, BEFORE core's early-returns: a stdlib-less
+    // snippet has no `std/core` but still gets `VADER_OS` seeded, and bridging
+    // its type must not depend on core being present.
+    //
+    // `build_core_seed` puts the symbol in scope so the NAME resolves; without
+    // this the TYPE never arrives, and an untyped const reads as `?`, which
+    // panics the emitter on a method receiver and lowers a `match` silently to
+    // `unreachable`. Seeding a symbol and bridging its type are two halves of
+    // the same act; shipping one without the other is what made `VADER_OS`
+    // assignable to a `string`.
+    populate_baked_symbols(entry_typed, project, per_module)
+    core_id :: find_core_module_id(project) ?? return
+    core_loaded :: project.modules[core_id] ?? return
+    core_typed :: per_module[core_id]
+    // EXPERIMENT (complete fix): seed core symbols into EVERY module's typed
+    // program, not just the entry.
+    populate_core_symbols_into(entry_typed, core_loaded, core_typed)
+    for [_, other] in per_module {
+        if other.resolved.path != entry_typed.resolved.path {
+            populate_core_symbols_into(other, core_loaded, core_typed)
+        }
+    }
+}
+
+// The type half of the baked-module seed, see `populate_core_symbols_into`,
+// which does the same job for `std/core`.
+populate_baked_symbols :: fn(
+    entry_typed: TypedProgram,
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>,
+) -> void {
+    baked_loaded :: project.modules[BAKED_FOLDER] ?? return
+    baked_typed :: per_module[BAKED_FOLDER] ?? return
+    for [_, sym] in baked_loaded.collected.symbols {
+        t :: baked_typed.decl_types[sym.id] ?? continue
+        entry_typed.external_types[sym.id] = t
+        for [_, other] in per_module {
+            other.external_types[sym.id] = t
+        }
+    }
+}
+
+populate_core_symbols_into :: fn(
+    typed: TypedProgram,
+    core_loaded: LoadedModule,
+    core_typed: TypedProgram | null,
+) -> void {
+    // Surface each core symbol's declared type into `external_types` so a
+    // reference to a core symbol (e.g. via `mk_struct(Range, ...)`) returns the
+    // concrete declared type.
+    if core_typed == null {
+        // Still set the well-known slots below even without typed core types.
+        typed.range_symbol = core_loaded.collected.symbols[STRUCT_RANGE]
+        typed.field_symbol = core_loaded.collected.symbols[STRUCT_FIELD]
+        return
+    }
+    for [_, sym] in core_loaded.collected.symbols {
+        t :: core_typed.decl_types[sym.id] ?? continue
+        typed.external_types[sym.id] = t
+    }
+    // Well-known struct slots : Range (`a..b`) + Field (`@fields`), synthesised
+    // without a source span so they can't come through span-keyed `idents`.
+    typed.range_symbol = core_loaded.collected.symbols[STRUCT_RANGE]
+    typed.field_symbol = core_loaded.collected.symbols[STRUCT_FIELD]
+    typed.async_symbol = core_loaded.collected.symbols[TRAIT_ASYNC]
+    typed.equals_symbol = core_loaded.collected.symbols[TRAIT_EQUALS]
+    typed.iterator_symbol = core_loaded.collected.symbols[TRAIT_ITERATOR]
+}

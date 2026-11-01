@@ -133,7 +133,7 @@ raw_expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
 /// Per-local-binding type. Same fallback convention as `expr_type`.
 ///
 /// Keyed on `name_span`, NOT `span`: `assign_binding_types`
-/// (`vader/front/typecheck/stmt.vader`) writes a `SimpleBinding`'s type under
+/// (`vader/front/typecheck/binding_types.vader`) writes a `SimpleBinding`'s type under
 /// `sb.name_span.hash()`, and the resolver mints the local Symbol on the same
 /// `name_span`.
 /// @param self     the entry-types view.

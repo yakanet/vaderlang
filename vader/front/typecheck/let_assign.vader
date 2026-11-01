@@ -1,0 +1,381 @@
+// vader/front/typecheck/let_assign: `let` bindings and assignments to one place.
+//
+// Types the value a `let` binds and the local it declares, then holds a later
+// `x = value` to the slot `x` was declared with (T3063). Rebinding a name
+// nothing may rebind is T3041. A destructuring assignment is
+// `write_targets.vader`, the type a pattern's names receive `binding_types.vader`.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "toolchain/span"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/support/diagnostics"
+
+check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    ann: Type | null = null
+    written_ty :: s.ty
+    if written_ty !is null {
+        ann = type_from_expr(written_ty, typed.resolved, diags)
+    }
+    got :: check_let_value(s, ann, typed, diags)
+    declared: Type = TY_UNRESOLVED
+    if ann == null {
+        declared = default_free_members(got)
+        if s.binding is AST.SimpleBinding {
+            typed.unwritten_locals.add(s.binding.name_span.hash())
+        }
+    } else {
+        declared = ann
+        emit_mismatch_if(got, ann, s.span, s.value, .TypeMismatch, typed, diags)
+    }
+    // Layer 5b: `t :: <type-expr>` inside a fn body is an in-fn type
+    // alias : pre-resolve the underlying Type and stash it in
+    // `typed.let_type_aliases` keyed by the binding's Symbol.id.
+    // Downstream type-position references (e.g. `@size_of(t)`) read
+    // through this map at lower time. Detection mirrors the
+    // top-level `register_alias_const` path.
+    is_let_type_alias := false
+    if !s.mutable && declared is TypeMetaType {
+        sb :: s.binding
+        if sb is AST.SimpleBinding {
+            if is_type_expr(s.value, typed.resolved) {
+                sym_or_null :: typed.resolved.idents[sb.name_span.hash()]
+                if sym_or_null is Symbol {
+                    resolved_type :: type_from_expr(s.value, typed.resolved, diag_sink_stmt())
+                    typed.let_type_aliases[sym_or_null.id] = resolved_type
+                    is_let_type_alias = true
+                }
+            }
+        }
+    }
+    // T3035 : reject `type`-valued slots that aren't in-fn type aliases.
+    // The mutable form (`name := <type-expr>`) always fails since
+    // it implies a runtime Type value, which a local cannot hold. The immutable
+    // form fails only when the RHS isn't a structural type expression (e.g. a
+    // fn call returning type), since we can't pre-resolve it without VM
+    // execution.
+    if declared is TypeMetaType && !is_let_type_alias {
+        diags.push(
+            typecheck_error(
+                .TypeValuedSlotNotYetSupported,
+                s.span,
+                "a local can hold only a type written out, as an alias: `name :: <type-expr>`",
+            ),
+        )
+    }
+    assign_binding_types(s.binding, declared, typed, diags)
+    record_empty_array_init(s, declared, typed)
+}
+
+// The type of `s`'s value. A `::` binding with no annotation keeps the quantifier of
+// a generic function its value names : it aliases the function.
+check_let_value :: fn(
+    s: AST.LetStmt, ann: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    if s.mutable || ann != null {
+        return check_expr(s.value, ann, typed, diags)
+    }
+    got :: check_keeping_quantifier(s.value, typed, diags)
+    note_fn_alias(s, got, typed)
+    return got
+}
+
+// `x := []` : remember which expression the `?[]` came from, so the first
+// `x.push(elem)`, or the first parameter `x` is passed to, can widen the LITERAL
+// as well as the local (see `TypedProgram.empty_array_inits`).
+record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgram) -> void {
+    if declared !is ArrayType {
+        return
+    }
+    if declared.element !is UnresolvedType {
+        return
+    }
+    if s.binding !is AST.SimpleBinding {
+        return
+    }
+    typed.empty_array_inits[s.binding.name_span.hash()] = s.value.id
+}
+
+check_assign :: fn(s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    // T3041 : bare-ident assignment to a `::`-bound local, a `for … in` variable or
+    // a module constant.
+    // Surface the diag and skip the value-side typing so the dump doesn't carry
+    // extra expr_types for a rejected write.
+    target :: s.target
+    if target is AST.IdentExpr {
+        if reject_const_reassign(target, typed, diags)
+            || reject_guard_param_write(target, typed, diags) {
+            return
+        }
+    }
+    // T3082 : a name, a field or an element is a place ; a call, a literal or what
+    // an operator computes is not (`get() = 3`, `xs.len() = 5`, `1 = 2`).
+    if target !is AST.IdentExpr && target !is AST.FieldExpr && target !is AST.IndexExpr {
+        diags.push(typecheck_error(.InvalidAssignTarget, target.span,
+            "an assignment writes to a name, a field or an element, not to this"))
+        return
+    }
+    fe :: s.target
+    if fe is AST.FieldExpr {
+        if reject_field_write(fe, typed, diags) {
+            return
+        }
+    }
+    if target is AST.IndexExpr {
+        // Pin a free-literal write value to the slot (`m[k] = 9000000000`) and check
+        // the write fits it.
+        slot :: index_write_slot(target, typed, diags) ?? return
+        value_ty :: check_expr(s.value, slot, typed, diags)
+        emit_assign_mismatch_if(value_ty, slot, s.span, s.value, "", typed, diags)
+        // Past an array, the write runs a user `IndexSet`'s `set_at` : a call.
+        if typed.expr_types[target.target.id] !is ArrayType {
+            retire_narrowings_across_call(typed)
+        }
+        return
+    }
+    target_ty :: check_expr(s.target, null, typed, diags)
+    // The value is checked against the slot's *declared* type, not `target_ty`,
+    // which may be a flow-narrowing. `x: A|B = a ; if x is A { x = b_value }` is
+    // legal, and so is `x = 0` where `x == 23` holds (the write retires the
+    // narrowing, per `invalidate_narrow_on_assign`).
+    declared :: declared_lvalue_type(s.target, target_ty, typed)
+    value_hint: Type | null = null
+    if declared !is UnresolvedType {
+        value_hint = declared
+    }
+    value_ty :: check_expr(s.value, value_hint, typed, diags)
+    emit_assign_mismatch_if(
+        value_ty, declared, s.span, s.value, unwritten_local_hint(s.target, declared, typed),
+        typed, diags,
+    )
+    // A write to a narrowed binding / field chain retires its stale
+    // narrowings, see `narrow.vader::invalidate_narrow_on_assign`.
+    invalidate_narrow_on_assign(s.target, value_ty, typed)
+    return
+}
+
+// Declared (pre-narrow) type of an assignment LHS: the slot type a write
+// must be assignable to. `type_of_symbol` skips the narrowing that
+// `infer_ident` layers on ; `declared_struct_field_type` skips
+// `narrow_field_if_active`. Any other lvalue shape (or an unresolved
+// lookup) falls back to `fallback` (the checked target type) which
+// already equals the declared type whenever no narrowing is active.
+//
+// Narrowing attaches to *only* `IdentExpr` and `FieldExpr` (the exact two
+// shapes handled explicitly) so `fallback` diverges from the declaration
+// only for those, and only while a narrowing is live. When the relevant
+// table is empty the fast path returns `fallback` and dodges the re-resolve
+// (and, for fields, the `declared_struct_field_type` sink allocation)
+// entirely. This must stay in lockstep with `invalidate_narrow_on_assign`
+// (`narrow.vader`): a new narrowable lvalue shape has to be added to both.
+declared_lvalue_type :: fn(target: AST.Expr, fallback: Type, typed: TypedProgram) -> Type {
+    if target is AST.IdentExpr {
+        if typed.narrow.bindings.is_empty() {
+            return fallback
+        }
+        sym :: typed.resolved.idents[target.span.hash()] ?? return fallback
+        return type_of_symbol(sym, typed)
+    }
+    if target is AST.FieldExpr {
+        if typed.narrow.fields.is_empty() {
+            return fallback
+        }
+        recv :: typed.expr_types[target.target.id] ?? return fallback
+        d :: declared_struct_field_type(recv, target.field, typed) ?? return fallback
+        return d
+    }
+    return fallback
+}
+
+// Push T3063 when `got` doesn't flow into the declared slot type `expected`.
+// Same gate as `emit_mismatch_if` (via `flows_into`), only the wording and the
+// dedicated code differ, `hint` closing the detail. A `null` `expected` (e.g. a
+// receiver with no recorded `IndexSet` impl) has no declared slot to enforce (the
+// read side already surfaced any error), so it no-ops.
+emit_assign_mismatch_if :: fn(
+    got: Type,
+    expected: Type | null,
+    span: Span,
+    value: AST.Expr,
+    hint: string,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if expected == null || flows_into(got, expected, value, typed) {
+        return
+    }
+    detail :: "cannot assign a value of type ${display_type(got)} to a slot of type "
+        + "${display_type(expected)}${hint}"
+    diags.push(typecheck_error(.AssignTypeMismatch, span, detail))
+}
+
+// What a T3063 on a write to `target`, a slot of type `declared`, adds when the
+// target is a local of an integer type nobody wrote : it took its first value's
+// type, a range included. "" for any other target.
+unwritten_local_hint :: fn(target: AST.Expr, declared: Type, typed: TypedProgram) -> string {
+    if target !is AST.IdentExpr || declared !is RangeType {
+        return ""
+    }
+    sym :: typed.resolved.idents[target.span.hash()] ?? return ""
+    at :: sym.defined_at ?? return ""
+    if at.hash() !in typed.unwritten_locals {
+        return ""
+    }
+    return "; a local takes the type of its first value: "
+        + "write the type it may hold, as `${target.name}: i64 = …`"
+}
+
+// ---- constant reassignment ------------------------------------------------
+
+// T3041 when `ident` names a binding nothing may rebind ; whether it was reported.
+reject_const_reassign :: fn(
+    ident: AST.IdentExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> bool {
+    detail :: const_reassign_detail(ident, typed) ?? return false
+    diags.push(typecheck_error(.CannotReassignConst, ident.span, detail))
+    return true
+}
+
+// T3041's detail for `ident`, null when it may be rebound: a parameter, a binding a
+// pattern makes, a local declared with `:=`. A `::` local gets the `:=` hint, a loop
+// variable or a `match` header's name the hint to copy it. Any other name is a
+// declaration.
+const_reassign_detail :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> string | null {
+    sym :: bare_name_symbol(ident, typed) ?? return null
+    return match sym.kind {
+        .Param | .Binding -> null
+        .Local            -> local_rebind_detail(ident, sym, typed)
+        .Const            -> module_constant_detail(ident, sym, typed)
+        .ImportBinding    -> "`${ident.name}` names an imported module"
+        .Fn | .Struct | .GeneratorState | .Enum | .Trait | .Impl | .TypeAlias | .TypeParam
+            | .BuiltinType | .BuiltinFn | .Synthetic -> "`${ident.name}` names a ${sym.kind.label}"
+    }
+}
+
+// T3041's detail for the module constant `sym`, which may name a type (`i32`).
+module_constant_detail :: fn(ident: AST.IdentExpr, sym: Symbol, typed: TypedProgram) -> string {
+    if names_a_type(sym, typed.resolved) {
+        return "`${ident.name}` names a type"
+    }
+    return "`${ident.name}` is a module constant"
+}
+
+// T3041's detail for the local `sym`, null when `:=` declared it.
+local_rebind_detail :: fn(ident: AST.IdentExpr, sym: Symbol, typed: TypedProgram) -> string | null {
+    why :: typed.resolved.immutable_locals[sym.id] ?? return null
+    return match why {
+        .Declared     -> "`${ident.name}` is declared with `::` ; `:=` allows rebinding"
+        .LoopVariable -> "`${ident.name}` is the variable of a `for … in`, bound anew each turn ; "
+            + "copy it into a `:=` local to change it"
+        .MatchHeader  -> "`${ident.name}` names the scrutinee of its `match` ; "
+            + "copy it into a `:=` local to change it"
+    }
+}
+
+// An access path rendered back to source, for a diagnostic that wants to name
+// the value the user wrote. Only ident + field chains are reproducible from the
+// AST ; anything else takes `fallback`, which each caller phrases for its own
+// sentence ("the collection", a placeholder in a suggested rewrite, …).
+path_name :: fn(e: AST.Expr, fallback: string) -> string {
+    if e is AST.FieldExpr { return "${path_name(e.target, fallback)}.${e.field}" }
+    if e is AST.IdentExpr { return e.name }
+    return fallback
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/front/parser"
+
+@test
+test_let_simple_binding_records_local_type :: fn() -> void {
+    src :: "f :: fn() -> i32 { x :: 42 }"
+    out :: check_source_bodies(src)
+    sb :: first_simple_binding(src)
+    if sb is null {
+        assert(false, "expected SimpleBinding")
+        return
+    }
+    ty :: out.typed.local_types[sb.name_span.hash()]
+    if ty is null {
+        assert(false, "binding should have a type")
+        return
+    }
+    // Bare `42` defaults to i32 via `default_if_free`.
+    assert_eq(display_type(ty), "i32")
+}
+
+@test
+test_let_with_annotation_narrows_free_int :: fn() -> void {
+    src :: "f :: fn() -> i64 { x: i64 = 5 }"
+    out :: check_source_bodies(src)
+    sb :: first_simple_binding(src)
+    if sb is null {
+        assert(false, "expected SimpleBinding")
+        return
+    }
+    ty :: out.typed.local_types[sb.name_span.hash()]
+    if ty is null {
+        assert(false, "binding should have a type")
+        return
+    }
+    assert_eq(display_type(ty), "i64")
+}
+
+@test
+test_let_annotation_mismatch_emits_T3001 :: fn() -> void {
+    out :: check_source_bodies("f :: fn() -> void { x: i32 = \"hello\" }")
+    assert(has_code(out.diags, "T3001"), "expected T3001 on annotation mismatch")
+}
+
+@test
+test_assign_incompatible_emits_T3063 :: fn() -> void {
+    out :: check_source_bodies("f :: fn() -> void { y := 5\n    y = \"nope\" }")
+    assert(has_code(out.diags, "T3063"), "expected T3063 on incompatible reassignment")
+}
+
+@test
+test_assign_outside_a_locals_first_range_emits_T3063 :: fn() -> void {
+    src :: """
+Hour :: Int in 0..=23
+f :: fn(h: Hour) -> void {
+    next := h + 1
+    next = next % 24
+}
+"""
+    out :: check_source_bodies(src)
+    hinted := false
+    for d in out.diags {
+        if d.code.id == "T3063" && "write the type it may hold" in d.detail {
+            hinted = true
+        }
+    }
+    assert(hinted, "T3063 says to write the local's type")
+}
+
+@test
+test_assign_compatible_no_T3063 :: fn() -> void {
+    out :: check_source_bodies("f :: fn() -> void { y := 5\n    y = 6 }")
+    assert(!has_code(out.diags, "T3063"), "compatible reassignment must not emit T3063")
+}
+
+first_simple_binding :: fn(src: string) -> AST.SimpleBinding | null {
+    parsed :: parse_source(with_integers(src), "t.vader")
+    f :: first_fn_decl(parsed.program.decls) ?? return null
+    b :: f.body
+    if b is AST.BlockExpr {
+        for s in b.stmts {
+            if s is AST.LetStmt {
+                if s.binding is AST.SimpleBinding {
+                    return s.binding
+                }
+            }
+        }
+    }
+    return null
+}

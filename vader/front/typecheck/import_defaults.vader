@@ -13,7 +13,7 @@
 //
 // The fix is to publish the declaring module's resolutions for those spans into
 // the importing module's table, next to where its types and declarations are
-// already published: `orchestrate::push_module_exported_fns` for a wildcard
+// already published: `overload_tables::push_module_exported_fns` for a wildcard
 // import, `orchestrate::populate_from` for a namespace one. `Span`'s hash
 // folds in the file path, so an entry copied from another file cannot collide
 // with one of the importing module's own.

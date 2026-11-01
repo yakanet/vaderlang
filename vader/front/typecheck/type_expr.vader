@@ -472,7 +472,7 @@ export names_a_type :: fn(sym: Symbol, resolved: ResolvedModule) -> bool =
 /// const to a type alias / distinct newtype instead of a value binding. The one
 /// predicate behind every alias-registration site: `register_alias_const` +
 /// `declare_const` + `check_const_value` (const RHS) and the in-fn `let`-alias
-/// detection (`stmt.vader`).
+/// detection (`let_assign.vader`).
 ///
 /// An IdentExpr names a type when it is a primitive (incl. `type` / `Self`), a
 /// real type declaration (`is_type_kind`: struct / trait / enum / type-alias /
