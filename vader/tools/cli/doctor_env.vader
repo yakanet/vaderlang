@@ -84,11 +84,6 @@ ENV_TOGGLES: EnvToggle[]: [
         .effect = "async runs on a virtual clock: timers do not wait",
     },
     EnvToggle {
-        .name = "VADER_ALLOC_SITES", .status = .Warn,
-        .effect = "per-site alloc profiling, INERT unless the runtime was built "
-            + "with -DVADER_PROFILE_ALLOC_SITES",
-    },
-    EnvToggle {
         .name = "VADER_ALLOC_BY_TYPE", .status = .Ok,
         .effect = "allocations by type at exit",
     },
