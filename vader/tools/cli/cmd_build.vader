@@ -218,7 +218,7 @@ entry_binary :: fn(dir: string, name: string, request: BuildRequest) -> Path =
 run_built :: fn(binary: Path, program_args: string[]) -> i32 {
     exe :: linked_binary(binary.as_string())
     if exe == null {
-        eprintln("vader ${RUN_COMMAND}: the build left no program at `${binary}`")
+        eprintln("vader ${RUN_COMMAND}: the build left no program at `${binary.to_native()}`")
         return 1
     }
     argv :: [launchable(exe)]
@@ -340,12 +340,12 @@ ready_to_emit :: fn(b: CfgBytecode, command: string, file: Path) -> bool {
 virt_module :: fn(file: Path) -> BytecodeModule | null {
     src :: read_file_string(file.as_string())
     if src is IOError {
-        eprintln("vader build: cannot read ${file}")
+        eprintln("vader build: cannot read ${file.to_native()}")
         return null
     }
     module :: parse_virt_bc(src)
     if module is VirtParseError {
-        eprintln(module.display_virt_parse_error("vader build", file.as_string()))
+        eprintln(module.display_virt_parse_error("vader build", file.to_native()))
         return null
     }
     return module
@@ -593,7 +593,7 @@ ensure_target_dir :: fn(out: Path, target: string) -> i32 {
     dir :: "${out.parent()}/${target}"
     mk :: create_dir(dir)
     if mk is IOError {
-        eprintln("vader build --seed-targets: cannot create `${dir}`: ${mk.message()}")
+        eprintln("vader build --seed-targets: cannot create `${dir.to_native()}`: ${mk.message()}")
         return 1
     }
     return 0

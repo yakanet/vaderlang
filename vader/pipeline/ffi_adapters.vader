@@ -62,14 +62,16 @@ export build_ffi_adapters :: fn(
     }
     made :: create_dir(dir)
     if made is IOError {
-        return AdapterBuildError { .message = "cannot be written to `${dir}`: ${made.message()}" }
+        return AdapterBuildError {
+            .message = "cannot be written to `${dir.to_native()}`: ${made.message()}",
+        }
     }
     argv :: flags.clone()
     for k in 0..<units.units.len() {
         source :: dir.join_path("${units.names[k]}.c")
         written :: write_file_string(source, units.units[k])
         if written is IOError {
-            return AdapterBuildError { .message = "cannot be written to `${source}`: ${written.message()}" }
+            return AdapterBuildError { .message = "cannot be written to `${source.to_native()}`: ${written.message()}" }
         }
         argv.push(source)
     }
@@ -83,12 +85,12 @@ export build_ffi_adapters :: fn(
     }
     if compiled.exit != 0 {
         _ :: remove_file(library)
-        return AdapterBuildError { .message = "do not compile (`${cc}` exit ${compiled.exit}, sources in `${dir}`):\n${compiled.stderr}" }
+        return AdapterBuildError { .message = "do not compile (`${cc}` exit ${compiled.exit}, sources in `${dir.to_native()}`):\n${compiled.stderr}" }
     }
     // Written last: a run cut short leaves a library that is not to be trusted.
     marked :: write_file_string(built, "")
     if marked is IOError {
-        return AdapterBuildError { .message = "cannot be written to `${built}`: ${marked.message()}" }
+        return AdapterBuildError { .message = "cannot be written to `${built.to_native()}`: ${marked.message()}" }
     }
     return library
 }

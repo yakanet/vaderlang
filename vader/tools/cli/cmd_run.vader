@@ -62,12 +62,12 @@ run_file :: fn(path: Path, forward: string[], project_root: string | null) -> i3
 run_virt :: fn(path: Path, forward: string[]) -> i32 {
     source :: read_file_string(path.as_string())
     if source is IOError {
-        eprintln("vader run: cannot read ${path}")
+        eprintln("vader run: cannot read ${path.to_native()}")
         return 1
     }
     module :: parse_virt_bc(source)
     if module is VirtParseError {
-        eprintln(module.display_virt_parse_error("vader run", path.as_string()))
+        eprintln(module.display_virt_parse_error("vader run", path.to_native()))
         return 1
     }
     state :: prepare(module)

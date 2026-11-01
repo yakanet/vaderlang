@@ -238,7 +238,8 @@ export report_missing_archives :: fn(native: NativeFlags) -> bool {
 
 // What is wrong with an archive a library lists and this target lacks.
 missing_archive_message :: fn(missing: MissingArchive) -> string =
-    "library `${missing.library}` has no archive for this target: `${missing.path}` does not exist"
+    "library `${missing.library}` has no archive for this target: "
+        + "`${missing.path.to_native()}` does not exist"
 
 /// Split a user `--ldflags` string on spaces and append each token.
 ///
@@ -369,7 +370,7 @@ export cc_argv :: fn(
 export write_out :: fn(path: Path, content: string) -> i32 {
     wr :: write_file_string(path.as_string(), content)
     if wr is IOError {
-        eprintln("vader build: cannot write `${path}`: ${wr.message()}")
+        eprintln("vader build: cannot write `${path.to_native()}`: ${wr.message()}")
         return 1
     }
     return 0
@@ -461,20 +462,20 @@ export link_native :: fn(
     if res is ProcessError {
         eprintln("vader build: ${res.message()}")
         eprint(res.stderr)
-        eprintln("(generated C kept at ${c_file})")
+        eprintln("(generated C kept at ${c_file.to_native()})")
         return 1
     }
     if res.exit != 0 {
         eprintln("vader build: ${cc} failed (exit ${res.exit})")
         eprintln(res.stderr)
-        eprintln("(generated C kept at ${c_file})")
+        eprintln("(generated C kept at ${c_file.to_native()})")
         return 1
     }
     // Report the file that EXISTS, not the `-o` we asked for: on Windows they
     // differ, and naming one the user cannot find is worse than naming the
     // platform's own convention.
     linked :: linked_binary(out.as_string()) ?? out.as_string()
-    eprintln("vader build: wrote ${linked} (and ${c_file})")
+    eprintln("vader build: wrote ${linked.to_native()} (and ${c_file.to_native()})")
     return 0
 }
 

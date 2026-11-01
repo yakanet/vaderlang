@@ -12,6 +12,7 @@ module "vader/tools/doc"
 import "std/collections"
 import "std/io"
 import "std/iter"
+import "std/path"
 import "std/sort"
 import "vader/front/resolver"
 import "vader/pipeline"
@@ -24,7 +25,7 @@ Tc :: import "vader/front/typecheck"
 /// @return      the modules sorted by name, or why `path` holds none.
 export doc_scope :: fn(path: string) -> DiscoveredModule[] | string {
     if !exists(path) {
-        return "`${path}` does not exist"
+        return "`${path.to_native()}` does not exist"
     }
     found: DiscoveredModule[]: []
     if is_dir(path) {
@@ -33,7 +34,7 @@ export doc_scope :: fn(path: string) -> DiscoveredModule[] | string {
         record_module(dir_of(path), found)
     }
     if found.len() == 0 {
-        return "no module under `${path}`"
+        return "no module under `${path.to_native()}`"
     }
     return sort(found, (a: DiscoveredModule, b: DiscoveredModule) -> a.name < b.name)
 }

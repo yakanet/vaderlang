@@ -206,13 +206,13 @@ export flush_generated :: fn(ctx: BuildContext) -> string[] {
         made :: create_dir(dir)
         if made is IOError {
             ctx.diagnostics.push(hook_error(.GeneratedModuleNotWritten, driver_span(ctx),
-                "`${dir}` for module `${g.name}`: ${made.msg}"))
+                "`${dir.to_native()}` for module `${g.name}`: ${made.msg}"))
             continue
         }
         written :: write_file_string(path, content)
         if written is IOError {
             ctx.diagnostics.push(hook_error(.GeneratedModuleNotWritten, driver_span(ctx),
-                "`${path}`: ${written.msg}"))
+                "`${path.to_native()}`: ${written.msg}"))
             continue
         }
         ctx.generated.push(path)

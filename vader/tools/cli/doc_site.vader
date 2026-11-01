@@ -83,7 +83,7 @@ build_doc_site :: fn(data_dir: string, out_dir: string | null, open: bool) -> i3
     env_file :: join_path(copy, SITE_ENV_FILE)
     written :: write_file_string(env_file, env)
     if written is IOError {
-        return missing("cannot write `${env_file}`: ${written.message()}")
+        return missing("cannot write `${env_file.to_native()}`: ${written.message()}")
     }
     stamp_file :: join_path(copy, SITE_STAMP_FILE)
     data :: Doc.doc_data_key(data_dir) ?? tree_digest(data_dir)
@@ -98,7 +98,7 @@ build_doc_site :: fn(data_dir: string, out_dir: string | null, open: bool) -> i3
         return 2
     }
     if up_to_date {
-        println("vader doc: `${out}` is up to date")
+        println("vader doc: `${out.to_native()}` is up to date")
     } else {
         remove_file(stamp_file)
         code :: vite(install, copy, ["build", "--logLevel", "warn"])
@@ -107,7 +107,7 @@ build_doc_site :: fn(data_dir: string, out_dir: string | null, open: bool) -> i3
             return 1
         }
         write_file_string(stamp_file, stamp)
-        println("vader doc: `${out}` holds the site")
+        println("vader doc: `${out.to_native()}` holds the site")
     }
     if !open {
         return 0
@@ -297,14 +297,14 @@ site_install :: fn(template: string) -> string | null {
             return null
         }
     }
-    eprintln("vader doc: installing the site's packages in `${dir}`")
+    eprintln("vader doc: installing the site's packages in `${dir.to_native()}`")
     installed :: run_in(dir, npm_argv(["ci", "--no-audit", "--no-fund", "--loglevel=error"]))
     if installed is ProcessError {
         eprintln("vader doc: ${installed.message()}")
         return null
     }
     if installed != 0 {
-        eprintln("vader doc: `npm ci` failed in `${dir}`")
+        eprintln("vader doc: `npm ci` failed in `${dir.to_native()}`")
         return null
     }
     write_file_string(join_path(dir, INSTALLED_MARKER), "")
@@ -388,17 +388,17 @@ template_files :: fn(root: string, sub: string) -> string[] {
 copy_file :: fn(from: string, to: string) -> bool {
     bytes :: read_file_bytes(from)
     if bytes is IOError {
-        eprintln("vader doc: cannot read `${from}`: ${bytes.message()}")
+        eprintln("vader doc: cannot read `${from.to_native()}`: ${bytes.message()}")
         return false
     }
     made :: create_dir(dir_of(to))
     if made is IOError {
-        eprintln("vader doc: cannot create `${dir_of(to)}`: ${made.message()}")
+        eprintln("vader doc: cannot create `${dir_of(to).to_native()}`: ${made.message()}")
         return false
     }
     written :: write_file_bytes(to, bytes)
     if written is IOError {
-        eprintln("vader doc: cannot write `${to}`: ${written.message()}")
+        eprintln("vader doc: cannot write `${to.to_native()}`: ${written.message()}")
         return false
     }
     return true
@@ -424,7 +424,7 @@ run_in :: fn(dir: string, argv: string[]) -> i32 | ProcessError {
     home :: current_working_directory()
     moved :: set_current_working_directory(dir)
     if moved is IOError {
-        return ProcessError { .msg = "cannot enter `${dir}`: ${moved.message()}" }
+        return ProcessError { .msg = "cannot enter `${dir.to_native()}`: ${moved.message()}" }
     }
     ran :: run_attached(argv)
     set_current_working_directory(home)

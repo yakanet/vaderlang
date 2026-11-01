@@ -55,6 +55,9 @@ SOURCE_DIR :: "src"
 /// Entry file written inside `SOURCE_DIR`.
 ENTRY_FILENAME :: "main.vader"
 
+/// The entry file, relative to the project folder.
+ENTRY_PATH :: "${SOURCE_DIR}/${ENTRY_FILENAME}"
+
 // ---- the command ----------------------------------------------------------
 
 /// `vader new [name]`: write a minimal project and say what each file is for.
@@ -278,15 +281,17 @@ resolve_target :: fn(raw: string) -> NewProject | ScaffoldError {
     }
     if exists(raw) {
         if !is_dir(raw) {
-            return ScaffoldError { .msg = "`${raw}` exists and is not a directory" }
+            return ScaffoldError { .msg = "`${raw.to_native()}` exists and is not a directory" }
         }
         entries :: read_dir(raw)
         if entries is IOError {
-            return ScaffoldError { .msg = "`${raw}` cannot be read: ${entries.message()}" }
+            return ScaffoldError {
+                .msg = "`${raw.to_native()}` cannot be read: ${entries.message()}",
+            }
         }
         if entries.len() > 0 {
             hint :: "name a new directory, or run `vader new` inside it to fill it in place"
-            return ScaffoldError { .msg = "`${raw}` exists and is not empty: ${hint}" }
+            return ScaffoldError { .msg = "`${raw.to_native()}` exists and is not empty: ${hint}" }
         }
     }
     return NewProject {
@@ -322,10 +327,11 @@ directory_name :: fn(path: string) -> string {
 // Write the three files. Creating `<dir>/src` creates `<dir>` on the way: the
 // intrinsic is `mkdir -p`, and an existing directory is success.
 scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
-    made :: create_dir(join_path(project.dir, SOURCE_DIR))
+    source_dir :: join_path(project.dir, SOURCE_DIR)
+    made :: create_dir(source_dir)
     if made is IOError {
         return ScaffoldError {
-            .msg = "cannot create `${project.dir}/${SOURCE_DIR}`: ${made.message()}",
+            .msg = "cannot create `${source_dir.to_native()}`: ${made.message()}",
         }
     }
     if setup == .Manifest {
@@ -347,7 +353,7 @@ scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
         }
     }
     entry :: write_one(
-        join_path(join_path(project.dir, SOURCE_DIR), ENTRY_FILENAME),
+        join_path(source_dir, ENTRY_FILENAME),
         render_entry(project.name),
     )
     if entry is ScaffoldError {
@@ -359,7 +365,7 @@ scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
 write_one :: fn(path: string, content: string) -> null | ScaffoldError {
     res :: write_file_string(path, content)
     if res is IOError {
-        return ScaffoldError { .msg = "cannot write `${path}`: ${res.message()}" }
+        return ScaffoldError { .msg = "cannot write `${path.to_native()}`: ${res.message()}" }
     }
     return null
 }
@@ -395,7 +401,7 @@ render_entry :: fn(name: string) -> string {
 scaffolded_manifest :: fn(name: string) -> Manifest = Manifest {
     .name = name,
     .version = "0.1.0",
-    .entries = [ManifestEntry { .name = name, .path = "${SOURCE_DIR}/${ENTRY_FILENAME}" }],
+    .entries = [ManifestEntry { .name = name, .path = ENTRY_PATH }],
 }
 
 /// One line: `build/` holds every artefact, the binary, the generated C, a
@@ -438,7 +444,8 @@ report_heading :: fn(project: NewProject) -> string {
     if project.in_place {
         return "initialised ${project.name} here"
     }
-    return "wrote ${project.dir}/"
+    folder :: "${project.dir}/"
+    return "wrote ${folder.to_native()}"
 }
 
 // One line per file written, with what it is for.
@@ -451,8 +458,7 @@ report_files :: fn(setup: BuildSetup, git_initialised: bool) -> string[] {
     if setup == .Driver {
         lines.push(file_line(DRIVER_FILENAME, "drives the build; run it with a bare `vader build`"))
     }
-    entry :: "${SOURCE_DIR}/${ENTRY_FILENAME}"
-    lines.push(file_line(entry, "module \"${SOURCE_DIR}\", holding `main`"))
+    lines.push(file_line(ENTRY_PATH.to_native(), "module \"${SOURCE_DIR}\", holding `main`"))
     lines.push(file_line(".gitignore", "build/ (every artefact lands there)"))
     if git_initialised {
         lines.push(file_line(".git", "a git repository was initialised here"))
@@ -467,7 +473,7 @@ file_line :: fn(file: string, purpose: string) -> string = "${file.pad_end(16, '
 next_commands :: fn(project: NewProject, setup: BuildSetup) -> string[] {
     commands: string[]: []
     if !project.in_place {
-        commands.push("cd ${project.dir}")
+        commands.push("cd ${project.dir.to_native()}")
     }
     commands.push(first_command(setup))
     return commands
@@ -478,7 +484,7 @@ next_commands :: fn(project: NewProject, setup: BuildSetup) -> string[] {
 first_command :: fn(setup: BuildSetup) -> string = match setup {
     .Driver   -> "vader build"
     .Manifest -> "vader run ."
-    .None     -> "vader run ${SOURCE_DIR}/${ENTRY_FILENAME}"
+    .None     -> "vader run ${ENTRY_PATH.to_native()}"
 }
 
 // ---- tests ----------------------------------------------------------------

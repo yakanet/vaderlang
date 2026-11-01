@@ -104,7 +104,7 @@ export entry_problem :: fn(b: CfgBytecode, file: Path) -> string | null {
     if b.entry != "" {
         return null
     }
-    return "`${file}` declares no `main`, the function a program starts at"
+    return "`${file.to_native()}` declares no `main`, the function a program starts at"
 }
 
 /// Write the artefact `request` asks for.
@@ -155,7 +155,7 @@ export emit_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: Build
     if write_out(out, dump_bytecode(b.module, b.entry)) != 0 {
         return 1
     }
-    eprintln("vader build: wrote ${out}")
+    eprintln("vader build: wrote ${out.to_native()}")
     return 0
 }
 

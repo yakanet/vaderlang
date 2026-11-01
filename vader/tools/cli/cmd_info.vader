@@ -4,7 +4,8 @@
 // The entries, the module search roots and the assets of a project, whichever
 // of its `vader.json` and its `build.vader` describes it: for the second, the
 // driver runs to describe itself and compiles nothing. A readable report by
-// default, JSON with `--json` for tools.
+// default, JSON with `--json` for tools. A path it resolves takes the
+// separators of the OS; what the project declares is shown as written.
 //
 // Same module as `main.vader`: imports are file-scoped, declarations are not.
 
@@ -92,8 +93,8 @@ declared_project :: fn(dir: string, described_by: string, may_compile: bool) -> 
         return manifest
     }
     if !may_compile && !driver_is_compiled(dir) {
-        eprintln("vader info: the `${DRIVER_FILENAME}` of `${dir}` is not compiled as it stands; "
-            + "`vader build` compiles it")
+        eprintln("vader info: the `${DRIVER_FILENAME}` of `${dir.to_native()}` is not compiled "
+            + "as it stands; `vader build` compiles it")
         return DRIVER_NOT_COMPILED_EXIT
     }
     described :: described_project("info", dir, .Describe, "") ?? return 1
@@ -105,21 +106,21 @@ declared_project :: fn(dir: string, described_by: string, may_compile: bool) -> 
 render_info_text :: fn(info: ProjectInfo) -> string {
     resolution :: resolve_paths(info)
     out :: StringBuilder {}
-    out.append("project  ${info.root} (${info.described_by})\n")
+    out.append("project  ${info.root.to_native()} (${info.described_by})\n")
     for entry in resolution.entries {
-        out.append("entry    ${entry.declared} -> ${entry.path}${text_mark(entry)}\n")
+        out.append("entry    ${entry.declared} -> ${entry.path.to_native()}${text_mark(entry)}\n")
     }
     if resolution.entries.len() == 0 {
         out.append("entry    none\n")
     }
     for root in resolution.roots {
-        out.append("root     ${root.declared} -> ${root.path}${text_mark(root)}\n")
+        out.append("root     ${root.declared} -> ${root.path.to_native()}${text_mark(root)}\n")
     }
     for asset in resolution.assets {
-        out.append("asset    ${asset.declared} -> ${asset.path}${text_mark(asset)}\n")
+        out.append("asset    ${asset.declared} -> ${asset.path.to_native()}${text_mark(asset)}\n")
     }
-    out.append("output   ${resolution.debug_output} (debug)\n")
-    out.append("output   ${resolution.release_output} (release)")
+    out.append("output   ${resolution.debug_output.to_native()} (debug)\n")
+    out.append("output   ${resolution.release_output.to_native()} (release)")
     return out.to_string()
 }
 
@@ -137,7 +138,7 @@ text_mark :: fn(p: ResolvedPath) -> string {
 render_info_json :: fn(info: ProjectInfo) -> string {
     report :: MutableMap<string, Json.JsonValue> {}
     report["kind"] = Json.JsonString { .value = kind_of(info) }
-    report["root"] = Json.JsonString { .value = info.root }
+    report["root"] = Json.JsonString { .value = info.root.to_native() }
     write_manifest_json(report, info.manifest)
     report["resolved"] = resolution_json(resolve_paths(info))
     return Json.stringify(Json.JsonObject { .entries = report }, 2)
@@ -149,8 +150,8 @@ render_info_json :: fn(info: ProjectInfo) -> string {
 // profile.
 resolution_json :: fn(resolution: Resolution) -> Json.JsonValue {
     output :: MutableMap<string, Json.JsonValue> {}
-    output["debug"] = Json.JsonString { .value = resolution.debug_output }
-    output["release"] = Json.JsonString { .value = resolution.release_output }
+    output["debug"] = Json.JsonString { .value = resolution.debug_output.to_native() }
+    output["release"] = Json.JsonString { .value = resolution.release_output.to_native() }
     out :: MutableMap<string, Json.JsonValue> {}
     out["entries"] = paths_json(resolution.entries, "name")
     out["roots"] = paths_json(resolution.roots, "declared")
@@ -165,7 +166,7 @@ paths_json :: fn(paths: ResolvedPath[], label: string) -> Json.JsonValue {
     for p in paths {
         item :: MutableMap<string, Json.JsonValue> {}
         item[label] = Json.JsonString { .value = p.declared }
-        item["path"] = Json.JsonString { .value = p.path }
+        item["path"] = Json.JsonString { .value = p.path.to_native() }
         item["status"] = Json.JsonString { .value = status_of(p) }
         if p.origin != null {
             item["origin"] = Json.JsonString { .value = p.origin }
@@ -322,7 +323,8 @@ test_info_text_marks_a_missing_root :: fn() -> void {
         .root = "game",
         .manifest = Manifest { .include_paths = ["no/such/folder"] },
     }
-    assert("no/such/folder (missing)" in render_info_text(info), "a missing root is marked")
+    marked :: "${to_native("no/such/folder")} (missing)"
+    assert(marked in render_info_text(info), "a missing root is marked")
 }
 
 @test

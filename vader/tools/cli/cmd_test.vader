@@ -47,7 +47,7 @@ cmd_test :: fn(args: string[]) -> i32 {
     target :: if from_args.as_string() == "" { ".".to_path() } else { from_args }
     files :: discover_vader_files(target)
     if files.len() == 0 {
-        eprintln("vader test: no .vader files found under ${target}")
+        eprintln("vader test: no .vader files found under ${target.to_native()}")
         return 2
     }
     reps :: test_entries(target, files)
@@ -81,7 +81,7 @@ cmd_test :: fn(args: string[]) -> i32 {
             continue
         }
         files_with_tests += 1
-        println(rep)
+        println(rep.to_native())
         mangles :: fresh.map((t) -> t.mangled).collect()
         cfg_diags: Diagnostic[]: []
         module :: cfg_to_bytecode(
@@ -123,7 +123,7 @@ cmd_test :: fn(args: string[]) -> i32 {
     }
     total :: total_pass + total_fail
     if total == 0 && files_with_tests == 0 {
-        eprintln("vader test: no @test functions found under ${target}")
+        eprintln("vader test: no @test functions found under ${target.to_native()}")
         return 2
     }
     println("")

@@ -15,6 +15,7 @@
 module "vader/tools/fmt"
 
 import "std/io"
+import "std/path"
 import "std/string"
 import "vader/front/resolver"
 import "vader/support/diagnostics"
@@ -41,7 +42,7 @@ Mode :: enum(u8) {
 // / generated trees.
 collect_files :: fn(root: string, out: string[]) -> void {
     if !exists(root) {
-        eprintln("vader fmt: path not found: ${root}")
+        eprintln("vader fmt: path not found: ${root.to_native()}")
         return
     }
     if !is_dir(root) {
@@ -127,7 +128,7 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
     r :: read_file_string(path)
     match r {
         is IOError -> {
-            eprintln("vader fmt: cannot read ${path}")
+            eprintln("vader fmt: cannot read ${path.to_native()}")
             return .IoError
         }
         is string -> { src = r }
@@ -136,7 +137,7 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
     out :: format_source(src, path)
     match out {
         is ParseFailure -> {
-            eprintln("vader fmt: skipped (parse errors): ${path}")
+            eprintln("vader fmt: skipped (parse errors): ${path.to_native()}")
             // Route through the shared renderer every other command uses
             // (dedup, sort, cap, colour, `[file:line:col]` prefix) so a fmt
             // parse error reads identically to a build one.
@@ -148,14 +149,14 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
                 return .Ok
             }
             if mode == .Check {
-                eprintln("would format ${path}")
+                eprintln("would format ${path.to_native()}")
                 return .Drift
             }
             // In-place. (Stdout case routes to run_one_stdout above.)
             w :: write_file_string(path, out.output)
             match w {
                 is IOError -> {
-                    eprintln("vader fmt: cannot write ${path}")
+                    eprintln("vader fmt: cannot write ${path.to_native()}")
                     return .IoError
                 }
                 is null -> { return .Ok }
@@ -169,7 +170,7 @@ run_one_stdout :: fn(path: string) -> FileResult {
     r :: read_file_string(path)
     match r {
         is IOError -> {
-            eprintln("vader fmt: cannot read ${path}")
+            eprintln("vader fmt: cannot read ${path.to_native()}")
             return .IoError
         }
         is string -> { src = r }
@@ -177,7 +178,7 @@ run_one_stdout :: fn(path: string) -> FileResult {
     out :: format_source(src, path)
     match out {
         is ParseFailure -> {
-            eprintln("vader fmt: skipped (parse errors): ${path}")
+            eprintln("vader fmt: skipped (parse errors): ${path.to_native()}")
             // Route through the shared renderer every other command uses
             // (dedup, sort, cap, colour, `[file:line:col]` prefix) so a fmt
             // parse error reads identically to a build one.

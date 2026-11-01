@@ -64,7 +64,7 @@ resolve_input :: fn(
     if !is_dir(dir) {
         if selected != "" {
             eprintln("vader ${command}: `--entry` chooses among a project's entries, "
-                + "and `${path}` is not a folder")
+                + "and `${dir.to_native()}` is not a folder")
             return 2
         }
         return FileInput { .file = path }
@@ -89,16 +89,16 @@ resolve_input :: fn(
 // Why `command` under `--no-hooks` finds no project in the folder `dir`, which its
 // `build.vader` describes; `otherwise` ends the message.
 ignored_driver :: fn(command: string, dir: string, otherwise: string) -> string =
-    "vader ${command}: `--no-hooks` ignores the `${DRIVER_FILENAME}` of `${dir}`, "
+    "vader ${command}: `--no-hooks` ignores the `${DRIVER_FILENAME}` of `${dir.to_native()}`, "
         + "and nothing else describes the project${otherwise}"
 
 // Why `command`, which takes a project folder, refuses `path`, which names none.
 not_a_folder :: fn(command: string, path: string) -> string {
     if exists(path) {
-        return "vader ${command}: `${path}` is a file; name a project folder, one holding a "
-            + "`${DRIVER_FILENAME}` or a `${MANIFEST_FILENAME}`"
+        return "vader ${command}: `${path.to_native()}` is a file; name a project folder, "
+            + "one holding a `${DRIVER_FILENAME}` or a `${MANIFEST_FILENAME}`"
     }
-    return "vader ${command}: `${path}` does not exist"
+    return "vader ${command}: `${path.to_native()}` does not exist"
 }
 
 // The file that describes the project folder `dir`, its `build.vader` or its
@@ -108,7 +108,7 @@ project_description :: fn(command: string, dir: string, otherwise: string) -> st
     has_driver :: find_build_driver(dir) != null
     has_manifest :: exists(join_path(dir, MANIFEST_FILENAME))
     if has_driver && has_manifest {
-        eprintln("vader ${command}: `${dir}` holds both a `${DRIVER_FILENAME}` and a "
+        eprintln("vader ${command}: `${dir.to_native()}` holds both a `${DRIVER_FILENAME}` and a "
             + "`${MANIFEST_FILENAME}`; keep the one that describes its build")
         return null
     }
@@ -118,7 +118,7 @@ project_description :: fn(command: string, dir: string, otherwise: string) -> st
     if has_manifest {
         return MANIFEST_FILENAME
     }
-    eprintln("vader ${command}: `${dir}` holds neither a `${DRIVER_FILENAME}` nor a "
+    eprintln("vader ${command}: `${dir.to_native()}` holds neither a `${DRIVER_FILENAME}` nor a "
         + "`${MANIFEST_FILENAME}`${otherwise}")
     return null
 }
@@ -175,7 +175,7 @@ file_in_project :: fn(
     no_hooks: bool,
 ) -> EntryInProject | i32 {
     if is_dir(path.as_string()) {
-        eprintln("vader ${command}: `--project` names the project of a file, and `${path}` is a folder")
+        eprintln("vader ${command}: `--project` names the project of a file, and `${path.to_native()}` is a folder")
         return 2
     }
     if selected != "" {
@@ -236,13 +236,13 @@ described_project :: fn(
     }
     project :: read_driver_description(path)
     if project is IOError {
-        eprintln("vader ${command}: the `${DRIVER_FILENAME}` of `${dir}` described no project; "
-            + "does it drain `ctx.messages()`?")
+        eprintln("vader ${command}: the `${DRIVER_FILENAME}` of `${dir.to_native()}` described "
+            + "no project; does it drain `ctx.messages()`?")
         return null
     }
     // The driver checks what it is given, so a problem here is in the file it
     // wrote, not in the `build.vader` the user can fix.
-    source :: "the description `${join_path(dir, DRIVER_FILENAME)}` wrote"
+    source :: "the description `${join_path(dir, DRIVER_FILENAME).to_native()}` wrote"
     return without_problems(command, source, project)
 }
 
@@ -258,7 +258,11 @@ project_at :: fn(dir: string) -> string | null {
 // The `vader.json` of the project `dir`, or null after saying what it gets
 // wrong: `command` refuses a manifest with problems.
 checked_manifest :: fn(command: string, dir: string) -> Manifest | null =
-    without_problems(command, "`${join_path(dir, MANIFEST_FILENAME)}`", read_manifest(dir))
+    without_problems(
+        command,
+        "`${join_path(dir, MANIFEST_FILENAME).to_native()}`",
+        read_manifest(dir),
+    )
 
 // `project`, or null after saying, under `source`, what it gets wrong.
 without_problems :: fn(command: string, source: string, project: Manifest) -> Manifest | null {
@@ -280,8 +284,8 @@ select_entries :: fn(
     selected: string,
 ) -> ProjectEntry[] | null {
     if manifest.entries.len() == 0 {
-        eprintln("vader ${command}: the `${MANIFEST_FILENAME}` of `${dir}` declares no entry; "
-            + "add one, as in `\"entries\": { \"app\": \"src/main.vader\" }`")
+        eprintln("vader ${command}: the `${MANIFEST_FILENAME}` of `${dir.to_native()}` declares "
+            + "no entry; add one, as in `\"entries\": { \"app\": \"src/main.vader\" }`")
         return null
     }
     return chosen_entries(command, dir, project_entries(dir, manifest.entries), selected)
@@ -310,7 +314,7 @@ chosen_entries :: fn(
             return [entry]
         }
     }
-    eprintln("vader ${command}: `${dir}` declares no entry `${selected}`; "
+    eprintln("vader ${command}: `${dir.to_native()}` declares no entry `${selected}`; "
         + "it declares ${entry_names(entries)}")
     return null
 }
@@ -321,8 +325,8 @@ sole_entry :: fn(command: string, dir: string, entries: ProjectEntry[]) -> Proje
     if entries.len() == 1 {
         return entries[0]
     }
-    eprintln("vader ${command}: `vader ${command}` works on one program, and `${dir}` declares "
-        + "${entry_names(entries)}; choose one with `--entry=<name>`")
+    eprintln("vader ${command}: `vader ${command}` works on one program, and "
+        + "`${dir.to_native()}` declares ${entry_names(entries)}; choose one with `--entry=<name>`")
     return null
 }
 

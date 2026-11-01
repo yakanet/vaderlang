@@ -38,22 +38,22 @@ cmd_eject :: fn(args: string[]) -> i32 {
     driver :: join_path(dir, DRIVER_FILENAME)
     written :: write_file_string(driver, render_driver(manifest))
     if written is IOError {
-        eprintln("vader eject: cannot write `${driver}`: ${written.message()}")
+        eprintln("vader eject: cannot write `${driver.to_native()}`: ${written.message()}")
         return 1
     }
-    println("vader eject: wrote ${driver}")
+    println("vader eject: wrote ${driver.to_native()}")
     manifest_path :: join_path(dir, MANIFEST_FILENAME)
     if parsed.bool_flag("preserve-manifest") {
-        println("vader eject: `${manifest_path}` kept; remove it before building, "
+        println("vader eject: `${manifest_path.to_native()}` kept; remove it before building, "
             + "a folder holding both is refused")
         return 0
     }
     removed :: remove_file(manifest_path)
     if removed is IOError {
-        eprintln("vader eject: cannot remove `${manifest_path}`: ${removed.message()}")
+        eprintln("vader eject: cannot remove `${manifest_path.to_native()}`: ${removed.message()}")
         return 1
     }
-    println("vader eject: removed ${manifest_path}")
+    println("vader eject: removed ${manifest_path.to_native()}")
     if manifest.name != "" || manifest.version != "" {
         println("vader eject: its `name` and `version` are not carried, no build uses them")
     }
@@ -70,7 +70,7 @@ ejectable_manifest :: fn(dir: string) -> Manifest | null {
     }
     described_by :: project_description("eject", dir, ", so there is nothing to eject") ?? return null
     if described_by == DRIVER_FILENAME {
-        eprintln("vader eject: `${dir}` is already built by its `${DRIVER_FILENAME}`")
+        eprintln("vader eject: `${dir.to_native()}` is already built by its `${DRIVER_FILENAME}`")
         return null
     }
     manifest :: checked_manifest("eject", dir) ?? return null
@@ -78,7 +78,7 @@ ejectable_manifest :: fn(dir: string) -> Manifest | null {
     // beside the project's own sources.
     at_root :: sources_at_root(dir)
     if at_root.len() > 0 {
-        eprintln("vader eject: move the sources at the root of `${dir}` (`${at_root.join("`, `")}`) "
+        eprintln("vader eject: move the sources at the root of `${dir.to_native()}` (`${at_root.join("`, `")}`) "
             + "into a folder such as `src/` first, then update the `entries` of its "
             + "`${MANIFEST_FILENAME}`: the `${DRIVER_FILENAME}` would join their module")
         return null

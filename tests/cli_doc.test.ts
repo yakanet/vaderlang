@@ -100,7 +100,7 @@ test("doc names a module another folder shadows, and leaves it out", async () =>
   for (const status of ["modules written", "is up to date"]) {
     const r = await spawnCapture(["doc", "apps"], { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: MEDIUM_BUILD });
     expect(r.exit).toBe(0);
-    expect(r.stderr).toContain("`json` (`apps/json`) is shadowed by the module of ");
+    expect(r.stderr).toContain(`\`json\` (\`${join("apps", "json")}\`) is shadowed by the module of `);
     expect(r.stdout).toContain(status);
   }
   const index = JSON.parse(readFileSync(join(dir, "build", "doc", "index.json"), "utf8"));

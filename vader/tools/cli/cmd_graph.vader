@@ -76,7 +76,7 @@ cmd_graph :: fn(args: string[]) -> i32 {
 
     nodes :: collect_graph(loaded, include_all)
     if nodes.len() == 0 {
-        eprintln("vader graph: `${file}` loaded no modules")
+        eprintln("vader graph: `${file.to_native()}` loaded no modules")
         return 1
     }
     println(render_graph(nodes, format))

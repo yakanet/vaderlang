@@ -457,7 +457,7 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
     }
     exe :: linked_binary(binary)
     if exe == null {
-        eprintln("vader ${command}: the driver build left no binary at ${binary}")
+        eprintln("vader ${command}: the driver build left no binary at ${binary.to_native()}")
         return 1
     }
 
@@ -538,12 +538,13 @@ rebuild_driver :: fn(
     entry :: driver_entry_path(root)
     written :: write_file_string(entry, render_driver_entry())
     if written is IOError {
-        eprintln("vader ${command}: cannot write the build entry at ${entry}: ${written.msg}")
+        eprintln("vader ${command}: cannot write the build entry at ${entry.to_native()}: "
+            + written.msg)
         return 1
     }
     made :: create_dir(artefacts)
     if made is IOError {
-        eprintln("vader ${command}: cannot create ${artefacts}: ${made.msg}")
+        eprintln("vader ${command}: cannot create ${artefacts.to_native()}: ${made.msg}")
         remove_entry(entry)
         return 1
     }

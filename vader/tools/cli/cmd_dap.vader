@@ -53,7 +53,8 @@ compile_for_dap :: fn(program: string, no_hooks: bool) -> DapProgram {
         _ :: prepared_project("dap", project_root, "") ?? return DapProgram {
             .state = null,
             .entry_index = -1,
-            .error = "the build driver of `${project_root}` describes no project; the adapter's log says why",
+            .error = "the build driver of `${project_root.to_native()}` describes no project; "
+                + "the adapter's log says why",
         }
     }
     le :: lower_to_entry(path, project_root)

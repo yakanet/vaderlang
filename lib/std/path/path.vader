@@ -1,8 +1,8 @@
 // std/path: filesystem path manipulation.
 //
 // Paths are immutable string-backed values. Every operation returns a fresh
-// Path rather than mutating. POSIX-style `/` separator only: Windows
-// support deferred (will replace the constant with a runtime-determined value).
+// Path rather than mutating. The separator is `/` on every OS: `to_posix`
+// brings a path in from the OS, `to_native` takes one out to show it.
 
 module "std/path"
 
@@ -10,6 +10,7 @@ import "std/string" {
     starts_with as str_starts_with, ends_with as str_ends_with,
 }
 import "std/string_builder"
+import "std/target"
 
 /// Path separator codepoint. POSIX-only (`/`).
 export SEP :: '/'
@@ -32,6 +33,18 @@ export SEP_STR :: "/"
 /// @return   the same path with every `\` rewritten to `/`.
 export to_posix :: fn(s: string) -> string = s.replace_chars_where((c: char) -> c == '\\', SEP_STR)
 
+/// Rewrite the canonical `/` to the separator of the OS the program runs on:
+/// `\` on Windows, unchanged elsewhere. For a path shown to a user or handed to a
+/// tool, which expects the form its OS writes.
+///
+/// @param s  a path in the canonical `/` form; a `\` already there stays.
+export to_native :: fn(s: string) -> string {
+    if current_os() != .Windows {
+        return s
+    }
+    return s.replace_chars_where((c: char) -> c == SEP, "\\")
+}
+
 /// An immutable filesystem path: a nominal newtype over `string`. Zero-cost:
 /// at runtime a `Path` *is* its UTF-8 string, with no wrapper box. Nominal at
 /// typecheck so a `Path` never silently mixes with a raw `string` ; every
@@ -52,6 +65,12 @@ export empty_path :: fn() -> Path = Path("")
 
 /// Return the underlying string representation. Inverse of `to_path`.
 export as_string :: fn(self: Path) -> string = string(self)
+
+/// The path with the separator of the OS the program runs on, as `to_native`
+/// gives it for a string.
+///
+/// @param self  a path in the canonical `/` form.
+export to_native :: fn(self: Path) -> string = self.as_string().to_native()
 
 /// True iff the path starts with the separator (`/foo`). Empty paths are
 /// considered NOT absolute.
@@ -391,4 +410,17 @@ import "std/testing"
     assert("a/b/c".to_path().starts_with("a/b".to_path()), "a/b/c starts with a/b")
     assert("a/b/c".to_path().ends_with("b/c".to_path()), "a/b/c ends with b/c")
     assert(!"a/b/c".to_path().starts_with("x".to_path()), "a/b/c does not start with x")
+}
+
+@test test_to_native :: fn() -> void {
+    native :: to_native("C:/a\\b/c")
+    if current_os() == .Windows {
+        assert_eq(native, "C:\\a\\b\\c")
+    } else {
+        assert_eq(native, "C:/a\\b/c")
+    }
+}
+
+@test test_to_native_round_trip :: fn() -> void {
+    assert_eq(to_posix(to_native("a/b/c.vader")), "a/b/c.vader")
 }

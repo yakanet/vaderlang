@@ -23,6 +23,7 @@ import "cli"
 Json :: import "json"
 import "std/env"
 import "std/io"
+import "std/path"
 import "std/process"
 import "std/string"
 TTY :: import "std/tty"
@@ -146,7 +147,7 @@ check_compiler :: fn() -> Check {
                 + "probes beside the binary is really probing the working directory",
         )
     }
-    return check_ok("compiler", "vader ${VADER_VERSION}", location)
+    return check_ok("compiler", "vader ${VADER_VERSION}", location.to_native())
 }
 
 // The one dependency the user must supply. Resolving the path is half the check
@@ -175,12 +176,12 @@ check_cc :: fn(cc: string) -> Check {
     }
     res :: spawn([resolved, "--version"])
     if res is ProcessError {
-        return check_fail("cc", "found, but would not run", "${resolved}: ${res.msg}")
+        return check_fail("cc", "found, but would not run", "${resolved.to_native()}: ${res.msg}")
     }
     if res.exit != 0 {
-        return check_warn("cc", "ran, but `--version` exited ${res.exit}", resolved)
+        return check_warn("cc", "ran, but `--version` exited ${res.exit}", resolved.to_native())
     }
-    return check_ok("cc", first_line(res.stdout), resolved)
+    return check_ok("cc", first_line(res.stdout), resolved.to_native())
 }
 
 /// C compilers to name when the requested one is missing, most conventional
@@ -220,7 +221,8 @@ check_toolchain_home :: fn(home: string, resolved: string | null) -> Check {
         return check_warn(
             "toolchain-home",
             "set, but does not hold a toolchain: IGNORED, the ordinary probe applies",
-            "${TOOLCHAIN_HOME_VAR}=${home} holds no ${LIBRARY_ROOT_DIR}/${LIBRARY_ROOT_MARKER}",
+            "${TOOLCHAIN_HOME_VAR}=${home} holds no "
+                + join_path(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER).to_native(),
         )
     }
     return check_ok(
@@ -238,17 +240,22 @@ check_library_root :: fn(exe_dir: string, from_home: string | null) -> Check {
     // the branch rather than reporting a home-provided root as "beside the
     // binary", which is the one thing this check exists to distinguish.
     if from_home != null {
-        return check_ok("library-root", "found through ${TOOLCHAIN_HOME_VAR}", from_home)
+        return check_ok(
+            "library-root",
+            "found through ${TOOLCHAIN_HOME_VAR}",
+            from_home.to_native(),
+        )
     }
     bundled :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
     if bundled != null {
-        return check_ok("library-root", "found beside the binary: a bundle", bundled)
+        return check_ok("library-root", "found beside the binary: a bundle", bundled.to_native())
     }
+    under_cwd :: "./${LIBRARY_ROOT_DIR}".to_native()
     if exists(join_path(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)) {
         return check_ok(
             "library-root",
             "found under the working directory: a bare binary",
-            "./${LIBRARY_ROOT_DIR}: every `std/…` import resolves only while the "
+            "${under_cwd}: every `std/…` import resolves only while the "
                 + "working directory holds it",
         )
     }
@@ -256,7 +263,7 @@ check_library_root :: fn(exe_dir: string, from_home: string | null) -> Check {
         "library-root",
         "not found: no `std/…` import will resolve",
         "looked for the marker `${LIBRARY_ROOT_MARKER}` under "
-            + "${join_path(exe_dir, LIBRARY_ROOT_DIR)} and ./${LIBRARY_ROOT_DIR}",
+            + "${join_path(exe_dir, LIBRARY_ROOT_DIR).to_native()} and ${under_cwd}",
     )
 }
 
@@ -274,14 +281,14 @@ check_compiler_sources :: fn(cwd: string, exe_dir: string) -> Check {
         return check_ok(
             "compiler-sources",
             "found${via}: a `${DRIVER_FILENAME}` project can be driven",
-            root,
+            root.to_native(),
         )
     }
     return check_warn(
         "compiler-sources",
         "missing: a plain build works, a driven one does not",
-        "looked for `${COMPILER_SOURCE_MARKER}` under ${exe_dir} and "
-            + "${join_path(exe_dir, BUNDLED_SOURCE_DIR)}",
+        "looked for `${COMPILER_SOURCE_MARKER}` under ${exe_dir.to_native()} and "
+            + "${join_path(exe_dir, BUNDLED_SOURCE_DIR).to_native()}",
     )
 }
 
@@ -290,12 +297,12 @@ check_runtime_headers :: fn() -> Check {
     root :: runtime_c_root()
     header :: join_path(root, RUNTIME_HEADER)
     if exists(header) {
-        return check_ok("runtime-c", "found", header)
+        return check_ok("runtime-c", "found", header.to_native())
     }
     return check_fail(
         "runtime-c",
         "not found: a native build cannot compile the runtime",
-        "looked for `${RUNTIME_HEADER}` under ${root}",
+        "looked for `${RUNTIME_HEADER}` under ${root.to_native()}",
     )
 }
 

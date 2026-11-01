@@ -120,13 +120,13 @@ export index_modules :: fn(checked: DocCheck, scope: DiscoveredModule[], base: s
     left_out: string[]: []
     documented :: MutableSet<string> {}
     for wanted in scope {
-        folder :: display_path(wanted.folder, base)
+        folder :: display_path(wanted.folder, base).to_native()
         found :: loaded[wanted.name]
         if found == null {
             left_out.push("`${wanted.name}` (`${folder}`) is under no search root")
         } else if !same_folder(found.module.id, wanted.folder) {
             left_out.push(
-                "`${wanted.name}` (`${folder}`) is shadowed by the module of `${display_path(found.module.id, base)}`",
+                "`${wanted.name}` (`${folder}`) is shadowed by the module of `${display_path(found.module.id, base).to_native()}`",
             )
         } else if documented.add(found.module.id) {
             modules.push(index_module(checked, found, base))

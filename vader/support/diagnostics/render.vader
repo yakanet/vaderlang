@@ -19,6 +19,7 @@ import "std/string" { compare_ascending as string_less }
 import "std/string_builder"
 import "std/sort"
 import "std/math"
+import "std/path"
 import "std/collections"
 import "vader/support/text"
 TTY :: import "std/tty"
@@ -174,7 +175,7 @@ format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic, show_file: bool, base:
         detail = ": ${d.detail}"
     }
     loc :: if show_file {
-        "${relative_to(p.file, base)}:${p.line}:${p.column}"
+        "${to_native(relative_to(p.file, base))}:${p.line}:${p.column}"
     } else {
         "${p.line}:${p.column}"
     }

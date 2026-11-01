@@ -65,7 +65,8 @@ cmd_doc :: fn(args: string[]) -> i32 {
         return 2
     }
     if site_dir != null && !is_site_folder(site_dir) {
-        eprintln("vader doc: `${site_dir}` holds files no site wrote: name a new folder")
+        eprintln("vader doc: `${site_dir.to_native()}` holds files no site wrote: "
+            + "name a new folder")
         return 2
     }
     project :: doc_project(parsed)
@@ -227,7 +228,7 @@ refresh_data :: fn(inputs: Doc.DocInputs, home: string, out_dir: string) -> Refr
     if fresh != null {
         return Refreshed {
             .problems = left_out_lines(fresh),
-            .status = "`${out_dir}` is up to date",
+            .status = "`${out_dir.to_native()}` is up to date",
         }
     }
     checked :: Doc.check_scope(inputs)
@@ -247,7 +248,7 @@ refresh_data :: fn(inputs: Doc.DocInputs, home: string, out_dir: string) -> Refr
     }
     written :: Doc.write_doc_data(out_dir, documented.modules)
     if written is IOError {
-        problems.push("vader doc: cannot write `${out_dir}`: ${written.message()}")
+        problems.push("vader doc: cannot write `${out_dir.to_native()}`: ${written.message()}")
         return Refreshed { .problems = problems, .status = null }
     }
     if errors.len() == 0 {
@@ -255,7 +256,7 @@ refresh_data :: fn(inputs: Doc.DocInputs, home: string, out_dir: string) -> Refr
     }
     return Refreshed {
         .problems = problems,
-        .status = "${documented.modules.len()} modules written to `${out_dir}`",
+        .status = "${documented.modules.len()} modules written to `${out_dir.to_native()}`",
     }
 }
 
@@ -290,7 +291,7 @@ doc_project :: fn(parsed: ParsedArgs) -> EntryInProject | i32 {
         }
         is DrivenProject   -> {
             eprintln(
-                "vader doc: `${dir}` is described by its `${DRIVER_FILENAME}`, "
+                "vader doc: `${dir.to_native()}` is described by its `${DRIVER_FILENAME}`, "
                     + "which `vader doc` does not run yet",
             )
             return 1

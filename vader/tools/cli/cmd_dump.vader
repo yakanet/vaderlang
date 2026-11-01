@@ -145,7 +145,7 @@ read_source :: fn(file: Path) -> string | null {
     match src_or_err {
         is string  -> { return src_or_err }
         is IOError -> {
-            eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
+            eprintln("vader: cannot read `${file.to_native()}`: ${src_or_err.message()}")
             return null
         }
     }

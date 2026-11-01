@@ -84,7 +84,7 @@ profile_name :: fn(release: bool) -> string {
 export ensure_dir :: fn(path: string) -> bool {
     made :: create_dir(path)
     if made is IOError {
-        eprintln("vader build: cannot create `${path}`: ${made.message()}")
+        eprintln("vader build: cannot create `${path.to_native()}`: ${made.message()}")
         return false
     }
     return true
@@ -111,7 +111,7 @@ export copy_assets :: fn(dir: string, assets: string[], into: string) -> bool {
     for asset in assets {
         source :: join_path(dir, asset)
         if !exists(source) {
-            eprintln("vader build: asset `${asset}` does not exist in `${dir}`")
+            eprintln("vader build: asset `${asset}` does not exist in `${dir.to_native()}`")
             return false
         }
         target :: join_path(into, asset)
@@ -132,7 +132,7 @@ copy_tree :: fn(source: string, target: string) -> bool {
         }
         names :: read_dir(source)
         if names is IOError {
-            eprintln("vader build: cannot list `${source}`: ${names.message()}")
+            eprintln("vader build: cannot list `${source.to_native()}`: ${names.message()}")
             return false
         }
         for name in names {
@@ -147,12 +147,12 @@ copy_tree :: fn(source: string, target: string) -> bool {
     }
     bytes :: read_file_bytes(source, ASSET_READ_LIMIT)
     if bytes is IOError {
-        eprintln("vader build: cannot read `${source}`: ${bytes.message()}")
+        eprintln("vader build: cannot read `${source.to_native()}`: ${bytes.message()}")
         return false
     }
     written :: write_file_bytes(target, bytes)
     if written is IOError {
-        eprintln("vader build: cannot write `${target}`: ${written.message()}")
+        eprintln("vader build: cannot write `${target.to_native()}`: ${written.message()}")
         return false
     }
     return true

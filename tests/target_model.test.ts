@@ -191,10 +191,11 @@ function renderSections(stdout: string, stderr: string, fixtureDir: string): str
   // Snapshots have to be portable, so the fixture directory is stripped here
   // rather than having the stage lie about what it read. The compiler names a
   // file relative to the working directory when it lies under it, absolute
-  // otherwise, always with `/` (`vader/support/diagnostics/render.vader`), while `join()`
-  // yields `C:\vader\tests\…` on Windows: strip whichever form it printed. The
-  // absolute form goes first, since stripping the relative one inside it would
-  // leave a prefix the absolute one no longer matches.
+  // otherwise: with `/` in the stage output and in a diagnostic's detail, with
+  // the separators of the OS in a diagnostic's `[file:line:col]`
+  // (`vader/support/diagnostics/render.vader`), which is put back in `/` first.
+  // The absolute form goes first, since stripping the relative one inside it
+  // would leave a prefix the absolute one no longer matches.
   const posixDir = fixtureDir.split("\\").join("/");
   const relDir = relative(process.cwd(), fixtureDir).split("\\").join("/");
   const strip = (s: string) => {
@@ -202,9 +203,11 @@ function renderSections(stdout: string, stderr: string, fixtureDir: string): str
     for (const dir of [posixDir, relDir]) out = out.split(`${dir}/`).join("");
     return out;
   };
+  const posixLocations = (s: string) =>
+    s.replace(/^\[[^\]\n]*\]/gm, (location) => location.split("\\").join("/"));
   // `build` prints its own `# Diagnostics` banner; the section header belongs to
   // the snapshot format, so the banner is dropped rather than nested.
-  const raw = strip(stderr.trim()).replace(/^# Diagnostics\n?/, "").trim();
+  const raw = strip(posixLocations(stderr.trim())).replace(/^# Diagnostics\n?/, "").trim();
   const diagnostics = raw === "" ? "(none)" : raw;
   return `# Diagnostics\n${diagnostics}\n\n${strip(stdout.trim())}\n`;
 }

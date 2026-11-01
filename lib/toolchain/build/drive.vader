@@ -367,7 +367,7 @@ write_description :: fn(ctx: BuildContext, entries: ManifestEntry[]) -> i32 {
     }
     written :: write_driver_description(path, project)
     if written is IOError {
-        eprintln("vader: cannot write `${path}`: ${written.message()}")
+        eprintln("vader: cannot write `${path.to_native()}`: ${written.message()}")
         return 1
     }
     return 0

@@ -173,7 +173,7 @@ export load_project_with_overlay :: fn(
             // The class is "module not found", but the fix is a line the
             // developer has to write, so the detail says which line and where.
             loader_diags.push(resolver_error(.ModuleNotFound, zero_span(entry),
-                "no `.vader` file in `${entry_folder}` has a `module` declaration ; "
+                "no `.vader` file in `${entry_folder.to_native()}` has a `module` declaration ; "
                     + "add one above the imports, e.g. `module \"main\"`"))
             return LoadedProject {
                 .entry = entry_folder, .modules = modules, .factory = factory,

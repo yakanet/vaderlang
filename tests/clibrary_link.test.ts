@@ -130,7 +130,7 @@ test("a missing archive stops the build and names the path", async () => {
   );
   expect(build.exit).toBe(1);
   expect(build.stderr).toContain("library `greeter` has no archive for this target");
-  expect(build.stderr).toContain(`lib/${HOST_TARGET}/libgreeter.a`);
+  expect(build.stderr).toContain(join("lib", HOST_TARGET, "libgreeter.a"));
 }, LONG_BUILD);
 
 test("the interpreter calls a library shipped as archives through adapters", async () => {

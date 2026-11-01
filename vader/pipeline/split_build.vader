@@ -79,13 +79,13 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
         if r is ProcessError {
             eprintln("vader build: ${r.message()}")
             eprint(r.stderr)
-            eprintln("(generated C kept in ${folder_of(work)})")
+            eprintln("(generated C kept in ${folder_of(work).to_native()})")
             return 1
         } else if r is ProcessResult {
             if r.exit != 0 {
                 eprintln("vader build: ${cc} -c failed (exit ${r.exit})")
                 eprintln(r.stderr)
-                eprintln("(generated C kept in ${folder_of(work)})")
+                eprintln("(generated C kept in ${folder_of(work).to_native()})")
                 return 1
             }
         }
@@ -107,7 +107,10 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
         eprintln(lres.stderr)
         return 1
     }
-    eprintln("vader build: wrote ${out} (split: ${obj_files.len()} objects compiled in parallel)")
+    // The file that exists, as the unsplit build reports it: `app.exe` on Windows.
+    linked :: linked_binary(out.as_string()) ?? out.as_string()
+    eprintln("vader build: wrote ${linked.to_native()} "
+        + "(split: ${obj_files.len()} objects compiled in parallel)")
     return 0
 }
 
