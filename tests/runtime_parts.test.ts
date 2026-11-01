@@ -4,6 +4,8 @@
 // declaration, and breaks only the day the order of the includes changes.
 // Parsed alone, a part sees nothing but `rt/internal.h`: what crosses between
 // parts has to be declared there, which keeps that header the complete list.
+// A part named after an OS (`os_posix.c`, `os_windows.c`) is parsed only on a
+// host of that OS, the one where the unity includes it.
 
 import { expect, test } from "bun:test";
 import { readdirSync } from "node:fs";
@@ -14,7 +16,17 @@ const RT = join(import.meta.dir, "../runtime/c/rt");
 
 const CC_AVAILABLE = await haveCc();
 
-const PARTS = readdirSync(RT).filter((f) => f.endsWith(".c")).sort();
+const ON_WINDOWS = process.platform === "win32";
+
+function builtOnThisHost(part: string): boolean {
+  if (part.endsWith("_windows.c")) return ON_WINDOWS;
+  if (part.endsWith("_posix.c")) return !ON_WINDOWS;
+  return true;
+}
+
+const PARTS = readdirSync(RT)
+  .filter((f) => f.endsWith(".c") && builtOnThisHost(f))
+  .sort();
 
 test("the runtime has parts to check", () => {
   expect(PARTS.length).toBeGreaterThan(0);

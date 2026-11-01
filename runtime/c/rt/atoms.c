@@ -30,13 +30,9 @@ static void        vader_atom_profile_dump(void);
 
 void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
                                    vader_u32_t count) {
-    /* Program-startup stdio setup : the emitted `main` calls atom-init first,
-     * so this is the one place every C-emitted binary passes through at start.
-     * On Windows the CRT defaults stdout to TEXT mode, which translates every
-     * `\n` to `\r\n`: that corrupts `dump` / `build` / `fmt` output (LF on
-     * disk, CRLF on the wire) and every snapshot comparison. Force binary here,
-     * not just lazily on the first stdin read. */
-    vader_ensure_stdio_binary();
+    /* The emitted `main` calls atom-init first, so this is the one place every
+     * C-emitted binary passes through at start. */
+    vader_os_ensure_stdio_binary();
     if (g_atoms_initialized) return;
     g_atoms_initialized = 1;
 

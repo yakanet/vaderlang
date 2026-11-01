@@ -1069,7 +1069,7 @@ void           vader_array_clear(vader_array_t* a);
 /* Heap sizing.
  *
  * The PRIMARY interface is RAM-proportional and needs no manual tuning: at GC
- * init the runtime detects physical RAM (`vader_physical_ram_bytes`) and derives
+ * init the runtime detects physical RAM (`vader_os_physical_ram`) and derives
  * the old reservation cap as a fraction of it: the same binary self-compiles on
  * an 8 GB laptop and a 64 GB workstation. See `vader_gc_init`.
  *

@@ -30,3 +30,8 @@
 #include "rt/arrays.c"
 #include "rt/host.c"
 #include "rt/ffi.c"
+#if defined(_WIN32)
+#  include "rt/os_windows.c"
+#else
+#  include "rt/os_posix.c"
+#endif

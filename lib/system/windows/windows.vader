@@ -12,7 +12,7 @@ import "std/ffi"
 /// `kernel32.dll` to find them, and `<windows.h>` declares them.
 KERNEL32 :: CLibrary { .name = "kernel32", .header = "<windows.h>" }
 
-/// The runtime's own accessors (`runtime/c/rt/host.c`): no library to open, the
+/// The runtime's own accessors (`runtime/c/rt/`): no library to open, the
 /// interpreter finds them in the running process, and `vader.h` declares them.
 VADER_RUNTIME :: CLibrary { .name = "", .header = "vader.h" }
 

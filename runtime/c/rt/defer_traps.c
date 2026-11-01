@@ -56,56 +56,10 @@ void vader_defer_pop_exec(uint32_t count) {
     }
 }
 
-
-
 /* ---- traps --------------------------------------------------------------- */
 
-#if defined(_WIN32)
-/* Write UTF-8 `text` to the console `h` as UTF-16, which it renders whatever its
- * code page; 0, with nothing written, when the conversion cannot be made. A
- * UTF-8 text never takes more UTF-16 units than it has bytes. */
-static int vader_write_console(HANDLE h, const char* text, size_t len) {
-    wchar_t* wide = (wchar_t*) malloc(len * sizeof(wchar_t));
-    if (wide == NULL) return 0;
-    int units = MultiByteToWideChar(CP_UTF8, 0, text, (int) len, wide, (int) len);
-    if (units > 0) WriteConsoleW(h, wide, (DWORD) units, NULL, NULL);
-    free(wide);
-    return units > 0;
-}
-
-/* `vader_report_fatal` for a `detail` beyond ASCII on a console, whose code page,
- * the OEM one by default, would garble it: the line goes out as UTF-16, as
- * `std/io` writes `eprint`. 0, with nothing written, when that does not apply or
- * cannot be done, the caller then printing the bytes. */
-static int vader_report_fatal_console(const char* what, const char* detail, size_t detail_len) {
-    DWORD mode;
-    if (vader_atom_ascii_flag(detail, detail_len) != 0) return 0;
-    HANDLE h = GetStdHandle(STD_ERROR_HANDLE);
-    if (!GetConsoleMode(h, &mode)) return 0;
-    size_t what_len = strlen(what);
-    size_t len = 7 + what_len + detail_len + 1;
-    char* line = (char*) malloc(len);
-    if (line == NULL) return 0;
-    memcpy(line, "vader: ", 7);
-    memcpy(line + 7, what, what_len);
-    memcpy(line + 7 + what_len, detail, detail_len);
-    line[len - 1] = '\n';
-    int written = vader_write_console(h, line, len);
-    free(line);
-    return written;
-}
-#endif
-
-/* `vader: <what><detail>` on its own line, on stderr. */
-static void vader_report_fatal(const char* what, const char* detail, size_t detail_len) {
-#if defined(_WIN32)
-    if (vader_report_fatal_console(what, detail, detail_len)) return;
-#endif
-    fprintf(stderr, "vader: %s%.*s\n", what, (int) detail_len, detail);
-}
-
 void vader_unreachable(const char* where) {
-    vader_report_fatal("reached unreachable at ", where, strlen(where));
+    vader_os_report_fatal("reached unreachable at ", where, strlen(where));
     abort();
 }
 
@@ -117,13 +71,13 @@ static void vader_run_pending_defers(void) {
 }
 
 void vader_trap(const char* msg) {
-    vader_report_fatal("trap: ", msg, strlen(msg));
+    vader_os_report_fatal("trap: ", msg, strlen(msg));
     if (!g_unwinding) { g_unwinding = 1; vader_run_pending_defers(); }
     abort();
 }
 
 void vader_panic(vader_string_t msg) {
-    vader_report_fatal("panic: ", vader_atom_data(msg), (size_t) vader_atom_len(msg));
+    vader_os_report_fatal("panic: ", vader_atom_data(msg), (size_t) vader_atom_len(msg));
     if (!g_unwinding) { g_unwinding = 1; vader_run_pending_defers(); }
     abort();
 }

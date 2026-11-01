@@ -5,7 +5,8 @@
  * because it discovers a signature by reading bytecode, and C requires a call's
  * signature at compile time.
  *
- * Two halves. `vader_ffi_open` / `vader_ffi_symbol` find the function;
+ * Two halves. `vader_ffi_open` / `vader_ffi_symbol` find the function, and the
+ * part of each OS defines them (rt/os_posix.c, rt/os_windows.c);
  * `vader_ffi_call_int` / `vader_ffi_call_n` invoke it through a TRAMPOLINE: a
  * call site written here, ahead of time, one per SHAPE of signature rather than
  * one per function.
@@ -23,10 +24,6 @@
  * through an ADAPTER (`vader_ffi_call_frame`), or traps when it has none. */
 
 #include "internal.h"
-
-#ifndef _WIN32
-#  include <dlfcn.h>
-#endif
 
 /* Largest arity a trampoline covers: the dispatch below writes one cast per
  * arity from 0 to this, and traps past it. Nothing about the ABIs breaks here:
@@ -61,88 +58,6 @@ void* vader_ffi_symbol(void* lib, const char* symbol);
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
 
 /* ---- implementation ------------------------------------------------------ */
-
-void* vader_ffi_open_path(const char* path) {
-#ifdef _WIN32
-    /* Wide, so a path outside the ANSI code page still opens. */
-    wchar_t wide[1024];
-    int     n = MultiByteToWideChar(CP_UTF8, 0, path, -1, wide, (int) (sizeof wide / sizeof wide[0]));
-    if (n == 0) { return NULL; }
-    return (void*) LoadLibraryW(wide);
-#else
-    return dlopen(path, RTLD_NOW | RTLD_LOCAL);
-#endif
-}
-
-void* vader_ffi_open(const char* name) {
-#ifdef _WIN32
-    if (name == NULL || name[0] == '\0') {
-        /* The C runtime, which is where a libc-shaped symbol lives. NOT the
-         * process handle: an EXE exports only its `VADER_HOST_EXPORT`ed
-         * symbols, so `GetProcAddress` on it finds no libc one. POSIX only gets
-         * away with `dlopen(NULL)` because that exposes the whole global symbol
-         * scope. */
-        HMODULE h = GetModuleHandleA("ucrtbase.dll");
-        if (h == NULL) { h = GetModuleHandleA("msvcrt.dll"); }
-        if (h == NULL) { h = GetModuleHandleW(NULL); }
-        return (void*) h;
-    }
-    {
-        char buf[256];
-        int  n = snprintf(buf, sizeof buf, "%s.dll", name);
-        if (n < 0 || (size_t) n >= sizeof buf) { return NULL; }
-        return (void*) LoadLibraryA(buf);
-    }
-#else
-    if (name == NULL || name[0] == '\0') {
-        /* The running process: where a libc symbol lives. */
-        return dlopen(NULL, RTLD_LAZY);
-    }
-    {
-        char buf[256];
-        int  n;
-#  ifdef __APPLE__
-        n = snprintf(buf, sizeof buf, "lib%s.dylib", name);
-#  else
-        n = snprintf(buf, sizeof buf, "lib%s.so", name);
-#  endif
-        if (n < 0 || (size_t) n >= sizeof buf) { return NULL; }
-        return dlopen(buf, RTLD_LAZY);
-    }
-#endif
-}
-
-void* vader_ffi_symbol(void* lib, const char* symbol) {
-    if (lib == NULL || symbol == NULL) { return NULL; }
-#ifdef _WIN32
-    {
-        void* p = (void*) GetProcAddress((HMODULE) lib, symbol);
-        if (p == NULL && symbol[0] != '_') {
-            /* The CRT exports its POSIX-shaped entry points with a leading
-             * underscore: `write` is `_write`, `getpid` is `_getpid`. The
-             * unprefixed spelling that the LINKER accepts is a compile-time
-             * alias, absent from the export table. */
-            char buf[128];
-            int  n = snprintf(buf, sizeof buf, "_%s", symbol);
-            if (n > 0 && (size_t) n < sizeof buf) {
-                p = (void*) GetProcAddress((HMODULE) lib, buf);
-            }
-        }
-        if (p == NULL) {
-            /* Then the EXE's own export table. POSIX gets this for free
-             * (`dlopen(NULL)` exposes the whole global scope, so a runtime symbol
-             * like `vader_dirent_name` resolves there) while on Windows the CRT
-             * handle above knows nothing of the running program. Anything the
-             * interpreter must reach in ITSELF is `VADER_HOST_EXPORT`ed, which
-             * is what puts it in this table. */
-            p = (void*) GetProcAddress(GetModuleHandleW(NULL), symbol);
-        }
-        return p;
-    }
-#else
-    return dlsym(lib, symbol);
-#endif
-}
 
 /* The trampolines.
  *

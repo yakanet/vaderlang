@@ -8,7 +8,7 @@
 #include "internal.h"
 
 /* The old generation is a non-moving mark-sweep slab, NOT a copying semi-space
- * pair. It is a single big address-space reservation (mmap / VirtualAlloc,
+ * pair. It is a single big address-space reservation (`vader_os_reserve`,
  * lazily committed: untouched pages cost ~0 RSS) carved into class-homogeneous
  * regions by a global bump.
  * Objects never move, so:
@@ -18,7 +18,7 @@
  *
  * Small objects (<= VADER_OLD_SMALL_MAX) use 16 B size classes; each class owns
  * regions (bump-carved) + a free list threaded through freed slots' `forward`
- * field. Large objects get a one-object region each, `madvise`-released on free
+ * field. Large objects get a one-object region each, whose pages go back on free
  * and kept for reuse in bins by size (`vader_old_large_bin`). Reclamation is
  * mark (toggle `g_mark_value`, trace from roots + young survivors via a gray
  * worklist) + sweep (rebuild the free lists from unmarked slots). See
@@ -29,7 +29,7 @@
 #define VADER_OLD_SMALL_MAX    (1u << VADER_OLD_SMALL_MAX_LOG2)               /* 1024 */
 #define VADER_OLD_NUM_CLASSES  (VADER_OLD_SMALL_MAX / VADER_OLD_CLASS_GRAN)  /* 64 */
 #define VADER_OLD_REGION_BYTES (256u * 1024u)   /* small-class region granularity */
-#define VADER_OLD_MADVISE_MIN  (64u * 1024u)    /* only madvise freed large regions >= this */
+#define VADER_OLD_DISCARD_MIN  (64u * 1024u)    /* only discard freed large regions >= this */
 /* Freed large regions are binned by size, VADER_OLD_LARGE_SUBBINS bins per power
  * of two above VADER_OLD_SMALL_MAX, up to the widest `size_t`. */
 #define VADER_OLD_LARGE_SUB_LOG2 3u
@@ -256,53 +256,6 @@ static int vader_gc_env_bool(const char* env_name) {
 
 /* ---- slab old-gen: reservation, allocation, sweep ------------------------ */
 
-/* Reserve `bytes` of address space, lazily committed (untouched pages cost no
- * RSS). POSIX: MAP_ANONYMOUS mmap. Windows: VirtualAlloc MEM_RESERVE (pages are
- * committed per-region in vader_old_commit). Returns NULL on failure. */
-static char* vader_old_reserve(size_t bytes) {
-#if defined(_WIN32)
-    return (char*) VirtualAlloc(NULL, bytes, MEM_RESERVE, PAGE_READWRITE);
-#else
-    void* p = mmap(NULL, bytes, PROT_READ | PROT_WRITE,
-                   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    return (p == MAP_FAILED) ? NULL : (char*) p;
-#endif
-}
-
-/* Make [ptr, ptr+bytes) usable. POSIX mmap is demand-paged, so this is a no-op;
- * Windows must explicitly commit the reserved pages before first write. */
-static void vader_old_commit(char* ptr, size_t bytes) {
-#if defined(_WIN32)
-    if (VirtualAlloc(ptr, bytes, MEM_COMMIT, PAGE_READWRITE) == NULL) {
-        vader_trap("vader_old_commit: VirtualAlloc(MEM_COMMIT) failed (out of commit charge)");
-    }
-#else
-    (void) ptr; (void) bytes;   /* demand-paged */
-#endif
-}
-
-/* Release the physical pages backing a freed large region while keeping its
- * address range reserved for reuse. POSIX: madvise (RSS drops; next write
- * re-faults). Windows: no-op for now. Only the page-aligned interior is touched
- * so a non-page-aligned region base/end is handled cleanly. */
-static void vader_old_madvise_region(vader_old_region_t* r) {
-#if !defined(_WIN32)
-    size_t page = (size_t) sysconf(_SC_PAGESIZE);
-    if (page == 0u) return;
-    uintptr_t a = ((uintptr_t) r->base + page - 1u) & ~(uintptr_t)(page - 1u);
-    uintptr_t b = (uintptr_t) r->end & ~(uintptr_t)(page - 1u);
-    if (b > a) {
-#  if defined(MADV_FREE)
-        madvise((void*) a, (size_t)(b - a), MADV_FREE);
-#  elif defined(MADV_DONTNEED)
-        madvise((void*) a, (size_t)(b - a), MADV_DONTNEED);
-#  endif
-    }
-#else
-    (void) r;
-#endif
-}
-
 /* Carve a fresh region of `region_bytes` from the global bump and dedicate it to
  * `slot_size` (class_idx >= 0 for small, -1 for a one-object large region).
  * Returns NULL when the reservation is exhausted (the real OOM ceiling). */
@@ -310,7 +263,9 @@ static vader_old_region_t* vader_old_carve_region(size_t region_bytes, size_t sl
     if (g_old_bump + region_bytes > g_old_block_end) return NULL;
     vader_old_region_t* r = (vader_old_region_t*) malloc(sizeof(vader_old_region_t));
     if (r == NULL) vader_trap("vader_old_carve_region: region metadata malloc failed");
-    vader_old_commit(g_old_bump, region_bytes);
+    if (!vader_os_commit(g_old_bump, region_bytes)) {
+        vader_trap("vader_old_carve_region: could not commit the region (out of commit charge)");
+    }
     r->base      = g_old_bump;
     r->cur       = g_old_bump;
     r->end       = g_old_bump + region_bytes;
@@ -401,7 +356,7 @@ static void vader_young_foreach(void (*fn)(char* obj, uint32_t type_index, void*
 /* Sweep: rebuild every free list from the unmarked slots. A slot survives iff
  * `mark == g_mark_value` (set during the mark phase). Dead small slots are
  * stamped FREE (mark 0) and pushed to their class free list; dead large regions
- * are madvise-released and queued in their size bin for reuse. Recomputes
+ * give their pages back and are queued in their size bin for reuse. Recomputes
  * g_old_live_bytes. */
 static void vader_old_sweep(void) {
     for (size_t i = 0; i < VADER_OLD_NUM_CLASSES; i++) g_old_classes[i].free_head = NULL;
@@ -419,7 +374,7 @@ static void vader_old_sweep(void) {
             } else {
                 h->mark = 0u;
                 h->type_index = VADER_TYPE_INDEX_FREE;
-                if (!r->freed && r->slot_size >= VADER_OLD_MADVISE_MIN) vader_old_madvise_region(r);
+                if (!r->freed && r->slot_size >= VADER_OLD_DISCARD_MIN) vader_os_discard(r->base, r->end);
                 r->freed = 1u;
                 size_t bin = vader_old_large_bin(r->slot_size);
                 r->free_next = g_old_large_bins[bin];
@@ -445,24 +400,6 @@ static void vader_old_sweep(void) {
 }
 
 /* ---- init and shutdown --------------------------------------------------- */
-
-/* Total physical RAM in bytes, or 0 if it can't be determined (caller then
- * falls back to the fixed compile-time arena defaults). Portable: Win32
- * `GlobalMemoryStatusEx`, POSIX (Linux + macOS) `sysconf(_SC_PHYS_PAGES)`. */
-static size_t vader_physical_ram_bytes(void) {
-#if defined(_WIN32)
-    MEMORYSTATUSEX s;
-    s.dwLength = sizeof(s);
-    if (GlobalMemoryStatusEx(&s)) return (size_t) s.ullTotalPhys;
-    return 0;
-#else
-    long pages = sysconf(_SC_PHYS_PAGES);
-    long psize = sysconf(_SC_PAGESIZE);
-    if (pages > 0 && psize > 0) return (size_t) pages * (size_t) psize;
-    return 0;
-#endif
-}
-
 
 static size_t vader_clamp_size(size_t x, size_t lo, size_t hi) {
     return x < lo ? lo : (x > hi ? hi : x);
@@ -543,7 +480,7 @@ void vader_gc_init(void) {
      * cap from physical RAM; fall back to the fixed #defines when RAM can't be
      * read. Young is NOT scaled (its cap is a per-minor cost cliff, not a
      * memory limit). */
-    size_t ram = vader_physical_ram_bytes();
+    size_t ram = vader_os_physical_ram();
     size_t old_max_default  = (size_t) VADER_GC_OLD_MAX;
     double pct = vader_gc_env_percent("VADER_GC_RAM_PERCENT", (double) VADER_GC_RAM_PERCENT);
     if (ram > 0) {
@@ -581,7 +518,7 @@ void vader_gc_init(void) {
      * pages stay uncommitted, so RSS tracks the live working set, not the
      * reservation. */
     g_old_capacity  = g_old_max_bytes;
-    g_old_block     = vader_old_reserve(g_old_capacity);
+    g_old_block     = vader_os_reserve(g_old_capacity);
     if (g_old_block == NULL) vader_trap("vader_gc_init: old-gen reservation failed (out of address space)");
     g_old_bump      = g_old_block;
     g_old_block_end = g_old_block + g_old_capacity;
@@ -614,11 +551,7 @@ void vader_gc_shutdown(void) {
     free(g_young.block);
     /* Release the old-gen reservation and its region metadata. */
     if (g_old_block != NULL) {
-#if defined(_WIN32)
-        VirtualFree(g_old_block, 0, MEM_RELEASE);
-#else
-        munmap(g_old_block, g_old_capacity);
-#endif
+        vader_os_release(g_old_block, g_old_capacity);
     }
     for (vader_old_region_t* r = g_old_regions; r != NULL; ) {
         vader_old_region_t* next = r->next;

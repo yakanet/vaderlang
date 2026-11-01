@@ -12,7 +12,7 @@
  * emitted code): it also turns on glibc's C23 bindings, under which glibc 2.38
  * and later resolve `strtoul`, `strtoull` and `fscanf` to `__isoc23_*` symbols,
  * and a binary calling those needs glibc 2.38 to start. The one GNU function
- * the runtime calls is declared by hand in the platform block below. */
+ * the runtime calls is declared by hand in rt/os_posix.c. */
 #if defined(__linux__) && !defined(_DEFAULT_SOURCE)
 #  define _DEFAULT_SOURCE
 #endif
@@ -25,23 +25,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>   /* setjmp: flush callee-saved registers for the conservative old-gen stack scan */
-
-#if defined(_WIN32)
-#  include <windows.h>
-#  include <io.h>      /* _setmode, _fileno */
-#  include <fcntl.h>   /* _O_BINARY */
-#else
-#  include <pthread.h> /* pthread_get_stackaddr_np / pthread_attr_getstack */
-#  include <unistd.h>
-#  include <sys/mman.h> /* mmap / munmap / madvise: non-moving old-gen reservation */
-#  ifndef MAP_ANONYMOUS
-#    define MAP_ANONYMOUS MAP_ANON
-#  endif
-#  if defined(__linux__)
-int pthread_getattr_np(pthread_t thread, pthread_attr_t* attr);
-#  endif
-extern char** environ;
-#endif
 
 /* ---- defer_traps.c ------------------------------------------------------- */
 
@@ -121,7 +104,6 @@ static vader_cycle_t g_cycle;
 static size_t g_card_count;
 static uint8_t* g_card_shadow;
 
-static char* vader_cstack_base(void);
 static size_t vader_gc_obj_size(void* obj, uint32_t type_index);
 static void* vader_gc_force_tenure(void* obj);
 
@@ -183,8 +165,32 @@ static void vader_atom_bucket_install(vader_atom_t a);
 
 static vader_array_t* vader_array_resolve(vader_array_t* a);
 
-/* ---- host.c -------------------------------------------------------------- */
+/* ---- os_posix.c, os_windows.c -------------------------------------------- */
 
-static void vader_ensure_stdio_binary(void);
+/* What the runtime asks of the OS it runs on. Each of the two parts defines all
+ * of it, and the unity includes the part of the OS it builds for. A new target
+ * defines these, the accessors vader.h declares for its OS, and the FFI's
+ * library loader (`vader_ffi_open`, `vader_ffi_open_path`, `vader_ffi_symbol`). */
+
+/* Reserve `bytes` of address space, whose pages cost no memory until committed
+ * and written. NULL when the address space runs out. */
+static char* vader_os_reserve(size_t bytes);
+/* Make [base, base + bytes) of a reservation writable. 0 when the OS refuses. */
+static int vader_os_commit(char* base, size_t bytes);
+/* Hand the memory under [base, end) back to the OS where it can be, the range
+ * staying reserved and writable. What it held is undefined afterwards. */
+static void vader_os_discard(char* base, char* end);
+/* Give back a whole reservation. */
+static void vader_os_release(char* base, size_t bytes);
+/* Physical RAM in bytes, 0 when the OS does not say. */
+static size_t vader_os_physical_ram(void);
+/* Highest address of the main thread's C stack, NULL when unknown. The stack
+ * grows down, so [current sp, base) covers every live frame. */
+static char* vader_os_stack_base(void);
+/* Put stdin, stdout and stderr in binary mode, on an OS that has another one.
+ * Idempotent. */
+static void vader_os_ensure_stdio_binary(void);
+/* Write `vader: <what><detail>` on its own line, on stderr. */
+static void vader_os_report_fatal(const char* what, const char* detail, size_t detail_len);
 
 #endif

@@ -76,26 +76,6 @@ static inline void vader_gray_push(char* obj) {
     g_gray_stack[g_gray_len++] = obj;
 }
 
-/* Highest address of the current (main) thread's C stack: the scan upper bound.
- * The stack grows DOWN, so [current sp, base) covers every live frame. */
-static char* vader_cstack_base(void) {
-#if defined(_WIN32)
-    ULONG_PTR lo = 0, hi = 0;
-    GetCurrentThreadStackLimits(&lo, &hi);
-    return (char*) hi;
-#elif defined(__APPLE__)
-    return (char*) pthread_get_stackaddr_np(pthread_self());
-#else
-    pthread_attr_t attr;
-    if (pthread_getattr_np(pthread_self(), &attr) != 0) return NULL;
-    void* addr = NULL; size_t size = 0;
-    pthread_attr_getstack(&attr, &addr, &size);
-    pthread_attr_destroy(&attr);
-    if (addr == NULL) return NULL;
-    return (char*) addr + size;
-#endif
-}
-
 /* Map an interior old-gen pointer to the start of its containing slot, or NULL
  * if it falls in a region's never-used tail. Regions partition [g_old_block,
  * g_old_bump); within one, slots are fixed `slot_size`-strided. Linear over
@@ -128,7 +108,7 @@ static char* vader_old_slot_of(void* p) {
 static void vader_gc_mark_cstack_conservative(void) {
     jmp_buf regs;
     (void) setjmp(regs);                 /* spill callee-saved registers onto the stack */
-    char* base = vader_cstack_base();
+    char* base = vader_os_stack_base();
     if (base == NULL) return;
     char* lo = (char*) &regs;            /* approx current stack top (this frame) */
     if (lo >= base) return;

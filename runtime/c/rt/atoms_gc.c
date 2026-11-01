@@ -52,7 +52,7 @@ static void vader_atom_mark_box(const vader_box_t* bp) {
 static void vader_atom_mark_cstack_conservative(void) {
     jmp_buf regs;
     (void) setjmp(regs);
-    char* base = vader_cstack_base();
+    char* base = vader_os_stack_base();
     if (base == NULL) return;
     char* lo = (char*) ((uintptr_t) &regs & ~(uintptr_t)3u);
     if (lo >= base) return;
