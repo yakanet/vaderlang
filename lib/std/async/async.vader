@@ -23,8 +23,8 @@
 // `race`, `join_any`, `timeout` and `share`.
 //
 // Single-threaded, timer-driven: the scheduler state (a virtual clock + a
-// min-heap of wake deadlines) lives in the runtime (native C / VM host), reached
-// through the `std/runtime` `sched_*` intrinsics.
+// min-heap of wake deadlines) lives in `std/runtime`, behind its `sched_*`
+// functions.
 
 module "std/async"
 
@@ -98,7 +98,7 @@ export block_on :: fn<T>(root: Async<T>) -> T {
     for {
         r :: root.resume()
         if r is Suspended {
-            if sched_park() == 1 {
+            if !sched_park() {
                 panic("async deadlock: a task is suspended with nothing left to wake it")
             }
         } else {

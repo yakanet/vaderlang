@@ -847,11 +847,6 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .RuntimeBytesUsed    -> { return [gc_statistic("bytes_used")] }
     .RuntimeBytesCopied  -> { return [gc_statistic("total_copied")] }
 
-    // std/runtime: cooperative async scheduler.
-    .SchedNow  -> { return [returning("vader_sched_now", [])] }
-    .SchedArm  -> { return [perform("vader_sched_arm", [a0])] }
-    .SchedPark -> { return [returning("vader_sched_park", [])] }
-
     // Dynamic foreign calls (vader/vm/ffi.vader). The call shims take the
     // argument slots through `vader_array_bytes`, which already owns the
     // three-case array lend. Addresses ride an `i64` (see the note in

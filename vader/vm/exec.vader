@@ -884,16 +884,14 @@ do_memory_copy :: fn(frame: Frame) -> Trap | null {
 // ---- boxed ops ------------------------------------------------------------
 
 /// Host state one run shares with every nested run it starts: the GC counter
-/// `std/runtime` reads, the async scheduler's virtual clock and wake deadlines
-/// (index 0 is `now`), and the handle source of `buffer.new`. Boxed cells, since
+/// `std/runtime` reads and the handle source of `buffer.new`. Boxed cells, since
 /// `dispatch_import` and `build_buffer` update them in place.
 RunHost :: struct {
     gc_state:    i64[]
-    sched_state: i64[]
     obj_handles: i32[]
 }
 
-new_run_host :: fn() -> RunHost = RunHost { .gc_state = [0], .sched_state = [0], .obj_handles = [0] }
+new_run_host :: fn() -> RunHost = RunHost { .gc_state = [0], .obj_handles = [0] }
 
 // The trap of a comptime run past its step budget.
 budget_trap :: fn(budget: i64) = Trap {

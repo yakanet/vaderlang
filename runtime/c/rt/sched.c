@@ -1,4 +1,5 @@
-/* rt/sched.c: the cooperative async scheduler. */
+/* rt/sched.c: the cooperative async scheduler, as the committed seeds call it.
+ * Programs built from the tree run the one in `std/runtime`. */
 
 #include "internal.h"
 

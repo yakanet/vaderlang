@@ -164,6 +164,13 @@
     fn std.async.sleep  // std_async$sleep
     struct std.async.JoinAll<i32>  // std_async$JoinAll__i32
     struct std.async.Sleep  // std_async$Sleep
+  std/collections
+    fn std.collections.is_empty<i64>  // std_collections$is_empty__i64
+    fn std.collections.peek<i64>  // std_collections$peek__i64
+    fn std.collections.pop<i64>  // std_collections$pop__i64
+    fn std.collections.push<i64>  // std_collections$push__i64
+    fn std.collections.swap_items<i64>  // std_collections$swap_items__i64
+    struct std.collections.MinHeap<i64>  // std_collections$MinHeap__i64
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -180,6 +187,24 @@
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
     fn std.io.write_text  // std_io$write_text
+  std/runtime
+    global #0 i32  scheduler.state
+    global #1 Scheduler  scheduler.instance
+    global #2 i32  clock_is_virtual.state
+    global #3 bool  clock_is_virtual.instance
+    fn std.runtime.clock_is_virtual  // std_runtime$clock_is_virtual
+    fn std.runtime.drop_due_timers  // std_runtime$drop_due_timers
+    fn std.runtime.sched_arm  // std_runtime$sched_arm
+    fn std.runtime.sched_now  // std_runtime$sched_now
+    fn std.runtime.sched_park  // std_runtime$sched_park
+    fn std.runtime.scheduler  // std_runtime$scheduler
+    fn std_runtime$clock_is_virtual$singleton
+    fn std_runtime$scheduler$singleton
+    struct std.runtime.Scheduler  // std_runtime$Scheduler
+  std/time
+    fn std.time.millis  // std_time$millis
+    fn std.time.sleep  // std_time$sleep
+    fn std.time.sleep_ns  // std_time$sleep_ns
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

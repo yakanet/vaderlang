@@ -108,7 +108,6 @@ export dispatch_import :: fn(
     stack: Value[],
     arg_base: i64,
     gc_state: i64[],
-    sched_state: i64[],
     at_pc: i32,
     string_array_type_id: i32,
     u8_array_type_id: i32,
@@ -231,27 +230,6 @@ export dispatch_import :: fn(
     .RuntimeCollections -> { return HostOk { .value = I32Val(i32(gc_state[0])) } }
     .RuntimeBytesUsed   -> { return HostOk { .value = I32Val(0) } }
     .RuntimeBytesCopied -> { return HostOk { .value = I32Val(0) } }
-    // ---- std/runtime: cooperative async scheduler ----------------------
-    // VM-side mirror of the C scheduler : `sched_state[0]` = now, `[1..]` =
-    // pending deadlines. The VM always jumps the virtual clock (an interpreter
-    // never real-sleeps) ; output depends only on deadline ordering, so it
-    // matches native.
-    .SchedNow -> { return HostOk { .value = I64Val(sched_state[0]) } }
-    .SchedArm -> {
-        d :: read_i64(stack[arg_base], at_pc, "sched_arm deadline")
-        if d is Trap { return d }
-        sched_state.push(i64(d))
-        return HostOk { .value = NullVal {} }
-    }
-    .SchedPark -> {
-        drop_due_timers(sched_state)
-        if sched_state.len() <= 1 { return HostOk { .value = I32Val(1) } }  // deadlock
-        nearest := sched_state[1]
-        for i in 2..<sched_state.len() { if sched_state[i] < nearest { nearest = sched_state[i] } }
-        sched_state[0] = nearest
-        drop_due_timers(sched_state)
-        return HostOk { .value = I32Val(0) }
-    }
     // Dynamic foreign calls. A `@test` runs ON the VM, so these have to be
     // served here too: the arms forward to the same intrinsics the natively
     // compiled VM calls directly.
@@ -1212,20 +1190,6 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
     return HostOk { .value = I64Val(raw) }
 }
 
-// A timer already due carries nothing: the program re-drives every task after a
-// park, so each of them sees the clock it waited for. `state[0]` is the clock.
-drop_due_timers :: fn(state: i64[]) -> void {
-    i: i64 = 1
-    for i < state.len() {
-        if state[i] <= state[0] {
-            state[i] = state[state.len() - 1]
-            state.remove_last()
-        } else {
-            i += 1
-        }
-    }
-}
-
 // The C symbols of the profiler's brackets (`vader/support/profile`). The VM has
 // no profiler, so they do nothing.
 is_profiler_bracket :: fn(symbol: string) = symbol == "vader_prof_begin"
@@ -1264,11 +1228,10 @@ BUILD_MACHINE_REASON :: "it answers for the machine the compiler runs on, and ba
 // `std/tty` and `std/process` are Vader over `@extern`, and `dispatch_extern`
 // returns before this gate, so none of them is refused.
 //
-// Two kinds of host stay refused. One answers for THE MACHINE THE COMPILER IS
-// RUNNING ON: baking it does not make a program non-reproducible, it makes the
+// One kind of host stays refused: what answers for THE MACHINE THE COMPILER IS
+// RUNNING ON. Baking it does not make a program non-reproducible, it makes the
 // same SOURCE emit differently depending on who built it, which is not the
-// author's call to make. The other is the async scheduler, whose clock and
-// timers exist only while the program runs.
+// author's call to make.
 //
 // This compiler's own byte-identical bootstrap is checked by
 // `bootstrap/verify.sh`, comparing stage1 to stage2. That is the guarantee; this
@@ -1289,8 +1252,6 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     // compares byte-for-byte, so letting this through would make the committed
     // seed unreproducible across platforms.
     .TargetCurrentOs | .TargetCurrentArch -> BUILD_MACHINE_REASON
-    // An evaluation cannot `sleep` while baking a constant.
-    .SchedNow | .SchedArm | .SchedPark -> "the async scheduler only runs with the program"
     // Pure : the baked value depends only on the args, never external state.
     .ByteLen | .ByteAt | .ByteSlice | .IsAscii -> null
     .Bytes | .BytesToString | .StringHash | .StringEquals -> null

@@ -14,8 +14,8 @@ type 11 struct snippet$Rule { name:4,modes:12,result:4 }
 type 12 array 13
 type 13 scalar u8
 type 14 struct std_core$Buffer {  }
-type 15 array 16
-type 16 scalar f64
+type 15 scalar f64
+type 16 array 15
 type 17 array 18
 type 18 scalar f32
 type 19 array 11
@@ -391,7 +391,7 @@ fn 5 snippet$main () -> i32
   string.const 3   ; "floats: "
   call 12   ; std_core$write_string_at
   local.set 1   ; $call_3
-  data.const 2 15   ; pool[2] f64[]
+  data.const 2 16   ; pool[2] f64[]
   i32.const 1
   load_slot_f64
   f64.const 2.5 4612811918334230528

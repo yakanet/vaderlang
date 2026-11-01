@@ -129,11 +129,11 @@ static const vader_array_t vader_data_1 = {
     { 1u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 static const VADER_ARRAY_STATIC_BUF(double, 3) vader_data_2_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 16u, 10u,
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 15u, 10u,
     .slots = { (double) 1.5, (double) 2.5, (double) 3.5 },
 };
 static const vader_array_t vader_data_2 = {
-    { 15u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
+    { 16u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
 };
 static const VADER_ARRAY_STATIC_BUF(float, 2) vader_data_3_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 18u, 9u,
@@ -288,11 +288,11 @@ const vader_type_info_t vader_type_info_table[20] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [15] = {
+    [15] = { .slot_size = 8 },
+    [16] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
-    [16] = { .slot_size = 8 },
     [17] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,

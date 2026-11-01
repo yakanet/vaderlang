@@ -550,3 +550,10 @@ export sys_unlink :: fn(path: string) -> i32
 @c_header("<time.h>")
 @extern("clock_gettime")
 export sys_clock_gettime :: fn(clock_id: i32, @c_out ts: i64[]) -> i32
+
+/// `nanosleep(2)`. `req` and `rem` stand in for a `struct timespec` each, as for
+/// `sys_clock_gettime`. 0 once `req` has elapsed; -1 with `errno` set, and `rem`
+/// holding what is left, when a signal cut the wait short (`EINTR`).
+@c_header("<time.h>")
+@extern("nanosleep")
+export sys_nanosleep :: fn(req: i64[], @c_out rem: i64[]) -> i32

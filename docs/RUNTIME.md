@@ -444,10 +444,11 @@ The `i32` that `main` returns is the exit status (SPEC §6 *`main` entry point*)
 program, a global in the C runtime and a field of the machine on the VM; an async
 function keeps its own in its frame.
 
-**The scheduler** behind `std/async` (SPEC §16) parks on the nearest deadline: in
-real time natively, by jumping its clock to it on the VM or when
-`VADER_ASYNC_VIRTUAL_CLOCK` is set. The order of its heap of deadlines decides
-what runs next, so the output does not depend on the clock.
+**The scheduler** behind `std/async` (SPEC §16) is Vader code in `std/runtime`,
+the same natively and on the VM. It parks on the nearest deadline in real time, or
+jumps its clock to it when `VADER_ASYNC_VIRTUAL_CLOCK` is set. The order of its
+heap of deadlines decides what runs next, so the output does not depend on the
+clock.
 
 ## What a backend provides
 

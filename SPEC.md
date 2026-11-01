@@ -3712,8 +3712,8 @@ In a cross build, a `@comptime` value runs the `@target` bodies of the build mac
 
 A `@comptime` value cannot:
 
-- ask which machine the compiler runs on (`current_os`, `current_arch`, the dynamic FFI: `ffi_open`, `ffi_symbol`, `ffi_call`), or drive the async scheduler, which only runs with the program: both are rejected;
-- call a `@singleton` function, or anything that reaches one, such as spawning a process.
+- ask which machine the compiler runs on (`current_os`, `current_arch`, the dynamic FFI: `ffi_open`, `ffi_symbol`, `ffi_call`): it is rejected;
+- call a `@singleton` function, or anything that reaches one, such as spawning a process or driving the async scheduler.
 
 ### Reflection / comptime intrinsics
 
@@ -3992,7 +3992,7 @@ Operands evaluate left to right even when a later one awaits: in `f(a(), await b
 
 - `main` may `await` and keep its `i32` return type; the program runs it to completion.
 - When every task is suspended, the program waits for the nearest deadline, and stops on a deadlock when none is pending. Without `std/async`, a `main` whose `await` suspends stops the program.
-- `sleep(ms)` suspends the async function until its deadline: in real time in a native program, while under `vader run` the scheduler's clock jumps to it.
+- `sleep(ms)` suspends the async function until its deadline, in real time. With `VADER_ASYNC_VIRTUAL_CLOCK` set, the scheduler's clock jumps to it instead.
 - `block_on(x)` (`std/async`) runs an awaitable to completion from a function that is not async.
 
 #### Combinators

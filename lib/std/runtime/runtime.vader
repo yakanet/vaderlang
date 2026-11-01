@@ -7,6 +7,10 @@
 
 module "std/runtime"
 
+import "std/collections"
+import "std/env"
+import "std/time"
+
 /// Force a full collection now: a minor, then a major over the old
 /// generation. Returns once it completes.
 @intrinsic
@@ -35,23 +39,82 @@ export bytes_copied :: fn() -> i32
 
 // ---- cooperative async scheduler (std/async backend) ----------------------
 
+// The clock and the wakes armed on it. The clock counts the waits alone:
+// milliseconds from 0, set by `sched_park` to each deadline it reaches, so what a
+// program prints depends on the order of its deadlines, never on how long its
+// work took.
+Scheduler :: struct {
+    now: i64 = 0
+    deadlines: MinHeap<i64> = MinHeap<i64> {}
+}
+
+@singleton
+scheduler :: fn() -> Scheduler = Scheduler {}
+
+// `VADER_ASYNC_VIRTUAL_CLOCK`, whatever its value: `sched_park` jumps to the
+// next deadline instead of sleeping until it.
+@singleton
+clock_is_virtual :: fn() -> bool = get_env("VADER_ASYNC_VIRTUAL_CLOCK") != null
+
 /// The scheduler clock, in milliseconds from 0. Advanced by `sched_park` as
 /// timers fire. Backs `std/async`'s `sleep`.
 /// @return  the current scheduler time in ms.
-@intrinsic
-export sched_now :: fn() -> i64
+export sched_now :: fn() -> i64 = scheduler().now
 
 /// Register a wake at `deadline` (absolute scheduler ms) on the timer heap: the
 /// scheduler will resume the parked program no earlier than then.
 /// @param deadline  absolute scheduler time (ms) at which to wake.
-@intrinsic
-export sched_arm :: fn(deadline: i64) -> void
+export sched_arm :: fn(deadline: i64) -> void {
+    scheduler().deadlines.push(deadline)
+}
 
 /// Park until the nearest armed deadline : wait for it (real time, unless
 /// `VADER_ASYNC_VIRTUAL_CLOCK` is set), advance the clock to it, and drop every
 /// timer then due: the caller re-drives all of its tasks after a park, so one
 /// wake serves them all.
-/// @return  0 = advanced to the next deadline ; 1 = deadlock: nothing armed,
-///          every task suspended with nothing left to wake it.
-@intrinsic
-export sched_park :: fn() -> i32
+/// @return  true once the clock reached the next deadline ; false on a deadlock:
+///          nothing armed, every task suspended with nothing left to wake it.
+export sched_park :: fn() -> bool {
+    s :: scheduler()
+    drop_due_timers(s)
+    next :: s.deadlines.peek() ?? return false
+    if !clock_is_virtual() {
+        sleep((next - s.now).millis())
+    }
+    s.now = next
+    drop_due_timers(s)
+    return true
+}
+
+// A timer already due carries nothing: the caller re-drives every task after a
+// park, so each of them sees the clock it waited for.
+drop_due_timers :: fn(s: Scheduler) -> void {
+    for {
+        next :: s.deadlines.peek() ?? return
+        if next > s.now {
+            return
+        }
+        s.deadlines.pop()
+    }
+}
+
+// ---------------------------------------------------------------------- tests
+
+import "std/testing"
+
+@test
+test_sched_park_reports_a_deadlock_with_nothing_armed :: fn() -> void {
+    assert(!sched_park(), "nothing armed is a deadlock")
+}
+
+@test
+test_sched_park_advances_to_the_nearest_deadline :: fn() -> void {
+    start :: sched_now()
+    sched_arm(start + 3)
+    sched_arm(start + 1)
+    assert(sched_park(), "park to the first deadline")
+    assert_eq(sched_now(), start + 1)
+    assert(sched_park(), "park to the second deadline")
+    assert_eq(sched_now(), start + 3)
+    assert(!sched_park(), "nothing left armed")
+}

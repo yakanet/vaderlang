@@ -1251,6 +1251,8 @@ typedef struct {
 vader_gc_stats_t vader_gc_get_stats(void);
 
 /* ---- cooperative async scheduler ------------------------------------------
+ * `std/runtime` runs the scheduler in Vader; only the committed seeds still
+ * call these, so they stay until the seeds stop doing so.
  * A single-threaded timer scheduler backing `std/async`. `now` is a virtual
  * millisecond timeline starting at 0 ; `arm` registers a wake deadline on a
  * min-heap ; `park` waits for the nearest deadline (real time, unless
