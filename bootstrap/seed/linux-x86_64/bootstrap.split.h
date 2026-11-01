@@ -271,6 +271,8 @@ typedef struct vader_struct_std_collections$MutableMap__u64__vader_front_typeche
 typedef struct vader_struct_std_collections$MutableMap__u64__vader_front_typecheck_GeneratorState_t vader_struct_std_collections$MutableMap__u64__vader_front_typecheck_GeneratorState_t;
 typedef struct vader_struct_std_collections$MutableMap__u64__vader_front_typecheck_ImplEntry_t vader_struct_std_collections$MutableMap__u64__vader_front_typecheck_ImplEntry_t;
 typedef struct vader_struct_std_collections$MutableMap__u64__vader_lower_ConsumerShape_t vader_struct_std_collections$MutableMap__u64__vader_lower_ConsumerShape_t;
+typedef struct vader_struct_std_collections$MutableMap__vader_support_profile_ProfPhase__Any_t vader_struct_std_collections$MutableMap__vader_support_profile_ProfPhase__Any_t;
+typedef struct vader_struct_std_collections$MutableMap__vader_support_profile_ProfPhase__vader_support_profile_PassTotals_t vader_struct_std_collections$MutableMap__vader_support_profile_ProfPhase__vader_support_profile_PassTotals_t;
 typedef struct vader_struct_std_collections$MutableMap__vader_vm_Scalar__i64_t vader_struct_std_collections$MutableMap__vader_vm_Scalar__i64_t;
 typedef struct vader_struct_std_collections$MutableSet__Any_t vader_struct_std_collections$MutableSet__Any_t;
 typedef struct vader_struct_std_collections$MutableSet__i32_t vader_struct_std_collections$MutableSet__i32_t;
@@ -1081,6 +1083,9 @@ typedef struct vader_struct_vader_support_fixpoint$Graph_t vader_struct_vader_su
 typedef struct vader_struct_vader_support_fixpoint$TarjanWalk_t vader_struct_vader_support_fixpoint$TarjanWalk_t;
 typedef struct vader_struct_vader_support_integer$Interval_t vader_struct_vader_support_integer$Interval_t;
 typedef struct vader_struct_vader_support_integer$MachineInteger_t vader_struct_vader_support_integer$MachineInteger_t;
+typedef struct vader_struct_vader_support_profile$Counters_t vader_struct_vader_support_profile$Counters_t;
+typedef struct vader_struct_vader_support_profile$PassTotals_t vader_struct_vader_support_profile$PassTotals_t;
+typedef struct vader_struct_vader_support_profile$Profiler_t vader_struct_vader_support_profile$Profiler_t;
 typedef struct vader_struct_vader_support_target$AllTargets_t vader_struct_vader_support_target$AllTargets_t;
 typedef struct vader_struct_vader_support_target$HostBodies_t vader_struct_vader_support_target$HostBodies_t;
 typedef struct vader_struct_vader_support_target$Target_t vader_struct_vader_support_target$Target_t;
@@ -3134,6 +3139,26 @@ struct vader_struct_std_collections$MutableMap__u64__vader_front_typecheck_ImplE
     int64_t f_tombs;
 };
 struct vader_struct_std_collections$MutableMap__u64__vader_lower_ConsumerShape_t {
+    vader_obj_header_t header;
+    void* f_ekeys;
+    void* f_evals;
+    void* f_index;
+    int64_t f_mask;
+    int64_t f_grow_at;
+    int64_t f_size;
+    int64_t f_tombs;
+};
+struct vader_struct_std_collections$MutableMap__vader_support_profile_ProfPhase__Any_t {
+    vader_obj_header_t header;
+    void* f_ekeys;
+    void* f_evals;
+    void* f_index;
+    int64_t f_mask;
+    int64_t f_grow_at;
+    int64_t f_size;
+    int64_t f_tombs;
+};
+struct vader_struct_std_collections$MutableMap__vader_support_profile_ProfPhase__vader_support_profile_PassTotals_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -8083,6 +8108,27 @@ struct vader_struct_vader_support_integer$MachineInteger_t {
     bool f_is_signed;
     void* f_values;
 };
+struct vader_struct_vader_support_profile$Counters_t {
+    vader_obj_header_t header;
+    int64_t f_peak_rss;
+    int64_t f_copied;
+    int64_t f_allocated;
+    int64_t f_allocations;
+    int64_t f_collections;
+};
+struct vader_struct_vader_support_profile$PassTotals_t {
+    vader_obj_header_t header;
+    int64_t f_wall_ns;
+    int64_t f_calls;
+    void* f_change;
+};
+struct vader_struct_vader_support_profile$Profiler_t {
+    vader_obj_header_t header;
+    void* f_totals;
+    vader_box_t f_open;
+    void* f_start;
+    int64_t f_started;
+};
 struct vader_struct_vader_support_target$AllTargets_t {
     vader_obj_header_t header;
 };
@@ -8257,7 +8303,6 @@ struct vader_struct_vader_vm$ResultMirror_t {
 struct vader_struct_vader_vm$RunHost_t {
     vader_obj_header_t header;
     void* f_gc_state;
-    void* f_sched_state;
     void* f_obj_handles;
 };
 struct vader_struct_vader_vm$Scalar_t {
@@ -8434,6 +8479,7 @@ bool __lambda_std_path_0(uint32_t l0);
 void* vader_pipeline$prepare_program(vader_string_t l0, void* l1);
 bool vader_pipeline$flush_build_diags(void* l0, void* l1);
 int32_t vader_pipeline$write_split_c(void* l0, vader_string_t l1);
+bool std_env$is_env_flag_on(vader_string_t l0);
 vader_string_t std_target$Os$std_core$Display$to_string(uint8_t l0);
 vader_string_t std_target$Arch$std_core$Display$to_string(uint8_t l0);
 bool std_string$compare_ascending(vader_string_t l0, vader_string_t l1);
@@ -8893,7 +8939,9 @@ bool vader_core_bytecode$is_unsigned_display(vader_string_t l0);
 void vader_core_bytecode$write_le(void* l0, int64_t l1, int64_t l2, uint64_t l3);
 uint64_t vader_core_bytecode$read_le(void* l0, int64_t l1, int64_t l2);
 vader_box_t vader_core_bytecode$c_field_width(void* l0, void* l1);
-bool vader_support_opt__report$env_flag_set(vader_string_t l0);
+void vader_support_profile$prof_begin(uint8_t l0);
+void vader_support_profile$prof_end(uint8_t l0);
+void* __lambda_vader_support_profile_0(void);
 bool vader_support_opt__report$opt_report_enabled(void);
 bool vader_support_text$is_ident_byte(uint8_t l0);
 bool vader_support_text$module_in_scope(vader_string_t l0, void* l1);
@@ -9002,6 +9050,7 @@ void* std_collections$get_or_put_with__string__vader_front_typecheck_ImplMethod_
 void* std_collections$get_or_put_with__string__vader_front_typecheck_ImplShape__(void* l0, vader_string_t l1, void* l2);
 void* std_collections$get_or_put_with__string__vader_lower_ObservedFn(void* l0, vader_string_t l1, void* l2);
 void* std_collections$get_or_put_with__string__vader_lower_ir_LoweredVtableEntry__(void* l0, vader_string_t l1, void* l2);
+void* std_collections$get_or_put_with__vader_support_profile_ProfPhase__vader_support_profile_PassTotals(void* l0, uint8_t l1, void* l2);
 void std_collections$clear__i32__i32(void* l0);
 void std_collections$clear__string__Any(void* l0);
 bool std_collections$remove__i32__i32__(void* l0, int32_t l1);
@@ -9322,6 +9371,9 @@ bool __lambda_std_numbers_0(uint32_t l0);
 vader_box_t std_numbers$parse_uint_in_base(vader_string_t l0, int32_t l1);
 bool std_numbers$is_digit_in_base(uint32_t l0, int32_t l1);
 int32_t std_numbers$hex_digit_value(uint32_t l0);
+int64_t std_runtime$peak_resident_bytes(void);
+int64_t std_time$monotonic(void);
+int64_t std_time$since(int64_t l0);
 void vader_emit_c_ast$print_section(void* l0, void* l1);
 void vader_emit_c_ast$print_item(void* l0, vader_box_t l1);
 vader_string_t vader_emit_c_ast$printed_text(void* l0);
@@ -9495,6 +9547,8 @@ vader_box_t vader_fn_tramp___lambda_vader_lower_dce_2(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_lower_dce_2;
 vader_box_t vader_fn_tramp___lambda_vader_emit_bytecode_0(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_emit_bytecode_0;
+vader_box_t vader_fn_tramp___lambda_vader_support_profile_0(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_support_profile_0;
 vader_box_t vader_fn_tramp___lambda_vader_emit_c_0(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_emit_c_0;
 vader_box_t vader_fn_tramp___lambda_vader_emit_c_5(void* env, vader_box_t a0, vader_box_t a1);
@@ -9643,7 +9697,7 @@ bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3068u
+#define VADER_COMPTIME_ATOM_COUNT 3082u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
@@ -9823,8 +9877,12 @@ extern void* vader_global_3;
 extern int32_t vader_global_4;
 extern bool vader_global_5;
 extern int32_t vader_global_6;
-extern bool vader_global_7;
+extern void* vader_global_7;
 extern int32_t vader_global_8;
-extern void* vader_global_9;
+extern bool vader_global_9;
+extern int32_t vader_global_10;
+extern bool vader_global_11;
+extern int32_t vader_global_12;
+extern void* vader_global_13;
 extern vader_gc_frame_t vader_global_frame;
 extern const vader_atom_entry_t vader_atom_comptime_table[];

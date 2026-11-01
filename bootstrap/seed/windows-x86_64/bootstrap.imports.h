@@ -3,11 +3,7 @@
 
 /* Headers named by `@c_header`: they own the prototypes below. */
 #include <stdlib.h>
-
-/* User @extern foreign symbols, resolved by the linker. */
-extern const char* vader_find_data_name(const void*);
-extern void vader_prof_begin(int32_t);
-extern void vader_prof_end(int32_t);
+#include "vader.h"
 
 static inline int64_t vader_host_std_core$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
@@ -30,7 +26,7 @@ static inline vader_string_t vader_host_std_core$bytes_to_string(void* a0) {
 }
 
 static inline void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 25u, 450u);
+    return (void*) vader_string_bytes_view(a0, 25u, 452u);
 }
 
 static inline uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
@@ -40,7 +36,7 @@ static inline uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
 static inline vader_box_t vader_host_std_env$get_env(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
     const char* r = getenv(c0);
-    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(445u, (int64_t) vader_atom_intern(r, strlen(r)));
+    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(447u, (int64_t) vader_atom_intern(r, strlen(r)));
     vader_cstr_free_for(a0, c0);
     return out;
 }
@@ -60,18 +56,28 @@ static inline vader_string_t vader_host_system_windows$find_data_name(void* a0) 
     return out;
 }
 
-static inline void vader_host_vader_support_profile$prof_begin(int32_t a0) {
-    vader_prof_begin(a0);
-    return;
-}
-
-static inline void vader_host_vader_support_profile$prof_end(int32_t a0) {
-    vader_prof_end(a0);
-    return;
-}
-
 static inline void vader_host_std_abort$panic(vader_string_t a0) {
     vader_panic(a0);
+}
+
+static inline int64_t vader_host_std_runtime$collections(void) {
+    return (int64_t) vader_gc_get_stats().total_collections;
+}
+
+static inline int64_t vader_host_std_runtime$bytes_copied(void) {
+    return (int64_t) vader_gc_get_stats().total_copied;
+}
+
+static inline int64_t vader_host_std_runtime$allocated_bytes(void) {
+    return (int64_t) vader_gc_get_stats().total_alloc_bytes;
+}
+
+static inline int64_t vader_host_std_runtime$allocations(void) {
+    return (int64_t) vader_gc_get_stats().total_alloc_count;
+}
+
+static inline void vader_host_std_runtime$count_allocations(void) {
+    vader_gc_count_allocations();
 }
 
 static inline int64_t vader_host_vader_vm$ffi_open(vader_string_t a0) {
@@ -124,3 +130,5 @@ extern bool vader_host_system_windows$read_file(void* a0, void* a1, uint32_t a2,
 extern uint32_t vader_host_system_windows$get_file_type(void* a0);
 extern bool vader_host_system_windows$get_file_size_ex(void* a0, void* a1);
 extern bool vader_host_system_windows$close_handle(void* a0);
+extern bool vader_host_system_windows$query_performance_counter(void* a0);
+extern bool vader_host_system_windows$query_performance_frequency(void* a0);

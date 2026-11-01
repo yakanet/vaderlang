@@ -116,3 +116,13 @@ bool vader_host_system_windows$get_file_size_ex(void* a0, void* a1) {
 bool vader_host_system_windows$close_handle(void* a0) {
     return CloseHandle(a0);
 }
+
+bool vader_host_system_windows$query_performance_counter(void* a0) {
+    vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
+    return QueryPerformanceCounter((void*) s0.ptr);
+}
+
+bool vader_host_system_windows$query_performance_frequency(void* a0) {
+    vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
+    return QueryPerformanceFrequency((void*) s0.ptr);
+}

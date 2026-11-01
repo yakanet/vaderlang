@@ -18,7 +18,7 @@ static vader_string_t std_tty$escape(bool l0, vader_string_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l0) {
-        t0 = concat_3(13u, l1, 2301u);
+        t0 = concat_3(13u, l1, 2315u);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return 0u; }
@@ -44,18 +44,18 @@ static bool std_tty$no_color_set(void) {
     bool t1;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global_4;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_1;
+        t1 = vader_global_5;
         { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_0;
+    t0 = vader_global_4;
     if (!(t0 == INT32_C(1))) {
-        vader_global_0 = INT32_C(1);
+        vader_global_4 = INT32_C(1);
         t1 = std_tty$no_color_set$singleton();
-        vader_global_1 = t1;
-        vader_global_0 = INT32_C(2);
-        t1 = vader_global_1;
+        vader_global_5 = t1;
+        vader_global_4 = INT32_C(2);
+        t1 = vader_global_5;
         { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("singleton `no_color_set` called while it initialises");
@@ -72,7 +72,7 @@ static bool std_tty$no_color_set$singleton(void) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l0 = vader_host_std_env$get_env(713u);
+    l0 = vader_host_std_env$get_env(717u);
     if (l0.tag == 0u) {
         l1 = 0u;
         l2 = 0u;
@@ -93,7 +93,7 @@ static vader_string_t std_tty$paint(vader_string_t l0, vader_string_t l1) {
     vader_gc_top = &gc_frame;
     l2 = std_tty$should_colorize();
     l3 = std_tty$escape(l2, l0);
-    l4 = std_tty$escape(l2, 450u);
+    l4 = std_tty$escape(l2, 454u);
     t0 = concat_3(l3, l1, l4);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -115,7 +115,7 @@ static bool std_tty$probe_tty(uint8_t l0) {
 
 vader_string_t std_tty$red(vader_string_t l0) {
     vader_string_t t0;
-    t0 = std_tty$paint(457u, l0);
+    t0 = std_tty$paint(461u, l0);
     return t0;
 }
 
@@ -142,18 +142,18 @@ static bool std_tty$stderr_is_tty(void) {
     bool t1;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_4;
+    t0 = vader_global_8;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_5;
+        t1 = vader_global_9;
         { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_4;
+    t0 = vader_global_8;
     if (!(t0 == INT32_C(1))) {
-        vader_global_4 = INT32_C(1);
+        vader_global_8 = INT32_C(1);
         t1 = std_tty$stderr_is_tty$singleton();
-        vader_global_5 = t1;
-        vader_global_4 = INT32_C(2);
-        t1 = vader_global_5;
+        vader_global_9 = t1;
+        vader_global_8 = INT32_C(2);
+        t1 = vader_global_9;
         { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("singleton `stderr_is_tty` called while it initialises");
@@ -171,18 +171,18 @@ static bool std_tty$stdout_is_tty(void) {
     bool t1;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_6;
+    t0 = vader_global_10;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_7;
+        t1 = vader_global_11;
         { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_6;
+    t0 = vader_global_10;
     if (!(t0 == INT32_C(1))) {
-        vader_global_6 = INT32_C(1);
+        vader_global_10 = INT32_C(1);
         t1 = std_tty$stdout_is_tty$singleton();
-        vader_global_7 = t1;
-        vader_global_6 = INT32_C(2);
-        t1 = vader_global_7;
+        vader_global_11 = t1;
+        vader_global_10 = INT32_C(2);
+        t1 = vader_global_11;
         { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("singleton `stdout_is_tty` called while it initialises");
@@ -197,6 +197,6 @@ static bool std_tty$stdout_is_tty$singleton(void) {
 
 vader_string_t std_tty$yellow(vader_string_t l0) {
     vader_string_t t0;
-    t0 = std_tty$paint(458u, l0);
+    t0 = std_tty$paint(462u, l0);
     return t0;
 }
