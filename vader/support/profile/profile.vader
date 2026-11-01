@@ -1,6 +1,6 @@
 // vader/support/profile/profile.vader: per-pass profiler for the self-compile.
 //
-// Bindings to the runtime profiler (runtime/c/vader_runtime.c). The compiler
+// Bindings to the runtime profiler (runtime/c/rt/profiler.c). The compiler
 // brackets each pipeline pass with `prof_begin(phase)` / `prof_end(phase)`; the
 // runtime accumulates wall time, peak-RSS growth and GC churn per phase and
 // dumps a table to stderr when `$VADER_PROFILE` is set. Every call is a cheap
@@ -9,7 +9,7 @@
 module "vader/support/profile"
 
 /// A pipeline pass the profiler times. Its value indexes `g_prof_names[]` in
-/// `runtime/c/vader_runtime.c`, so the two lists move together, and the width
+/// `runtime/c/rt/profiler.c`, so the two lists move together, and the width
 /// is written because the value crosses to C.
 export ProfPhase :: enum(i32) {
     /// Front-end load: resolve, parse and import wiring (`load_project`).

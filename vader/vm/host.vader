@@ -574,7 +574,7 @@ dispatch_extern :: fn(
 
     // The call is described by DATA, not by its shape: one class per slot, then
     // a flat frame of eight-byte slots followed by whatever an ADDR slot points
-    // into. `vader_ffi.h` owns the classes and the dispatch.
+    // into. `runtime/c/rt/ffi.c` owns the classes and the dispatch.
     desc: u8[]: [call.result_class]
     slot_words: i64[]: []
     addr_slots: i64[]: []
@@ -795,7 +795,7 @@ dispatch_extern :: fn(
 }
 
 /// Argument / result classes for `ffi_call`: mirrors `VADER_FFI_*` in
-/// `runtime/c/vader_ffi.h`. The two must agree.
+/// `runtime/c/rt/ffi.c`. The two must agree.
 FFI_VOID :: 0
 FFI_WORD :: 1
 FFI_F64  :: 2

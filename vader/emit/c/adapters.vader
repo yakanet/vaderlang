@@ -2,7 +2,7 @@
 // what none of its trampolines can.
 //
 // The VM calls a foreign function through a trampoline written ahead of time,
-// one per shape of signature (`runtime/c/vader_ffi.h`). A struct by value, an
+// one per shape of signature (`runtime/c/rt/ffi.c`). A struct by value, an
 // `f32`, mixed classes or a symbol held by a static archive take an ADAPTER
 // instead: a C function of the call's frame alone, compiled by `cc` against the
 // real prototype, so that `cc` applies the ABI (`vader/vm/adapters.vader` says

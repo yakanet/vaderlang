@@ -4,7 +4,7 @@
 // "is the toolchain present" but "is what the RUNTIME will read what the user
 // meant". The two share the `Check` shape and nothing else.
 //
-// The GC settings are read by `runtime/c/vader_runtime.c`, which stops every
+// The GC settings are read by `runtime/c/rt/gc_heap.c`, which stops every
 // program at start on a value it cannot read whole, this one included: a
 // setting seen here is one the runtime took as written.
 //

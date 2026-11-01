@@ -289,7 +289,7 @@ A named function passed as a callback reaches C as its own symbol (`fn.addr`).
 Each `CLibrary`'s shims go in their own C unit, with that library's headers only,
 so two libraries whose headers declare the same names bind in one program.
 
-**`vader run`.** The VM calls an `@extern` dynamically (`runtime/c/vader_ffi.h`),
+**`vader run`.** The VM calls an `@extern` dynamically (`runtime/c/rt/ffi.c`),
 opening the library, looking the symbol up and calling it through a trampoline per
 signature shape. It reads no header: a mirror lent by address is laid out from its
 Vader fields at natural alignment (`vader/core/bytecode/c_layout.vader`), which the

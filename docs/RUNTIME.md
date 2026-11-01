@@ -8,7 +8,7 @@ implementation, which may change without the language changing.
 A program runs in one of two ways:
 
 - **natively**: the C emitter writes C, and `cc` links it with the C runtime of
-  `runtime/c/` (`vader.h`, `vader_runtime.c`);
+  `runtime/c/` (`vader.h`, `vader_runtime.c` and its parts under `rt/`);
 - **on the VM** (`vader/vm/`), for `vader run`, `vader test` and the `@comptime`
   declarations the comptime interpreter cannot evaluate.
 

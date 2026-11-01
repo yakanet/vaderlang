@@ -2,7 +2,7 @@
  * after `vader.h` (for the mirrors' typedefs) and links nothing of the runtime.
  *
  * The interpreter calls a foreign function through a trampoline written ahead
- * of time, one per shape of signature (`vader_ffi.h`). A call no trampoline
+ * of time, one per shape of signature (`rt/ffi.c`). A call no trampoline
  * covers (a struct by value, a `float`, floating and integer arguments mixed,
  * a symbol in a static archive) goes through an ADAPTER instead:
  * `vader/emit/c/adapters.vader` writes one per such `@extern`, `vader run`

@@ -1,4 +1,4 @@
-// vader/vm/ffi: the VM's window onto `runtime/c/vader_ffi.h`.
+// vader/vm/ffi: the VM's window onto `runtime/c/rt/ffi.c`.
 //
 // The native backend resolves an `@extern` through the linker and `c_emit`
 // writes the call itself. The VM cannot: it learns a signature by reading
@@ -46,7 +46,7 @@ module "vader/vm"
 /// into; the result is written back over its first eight bytes.
 ///
 /// This is what lets ONE primitive serve every signature: covering a new ABI
-/// shape widens a switch in `runtime/c/vader_ffi.h` and touches no Vader.
+/// shape widens a switch in `runtime/c/rt/ffi.c` and touches no Vader.
 ///
 /// @param fn_ptr  the address from `ffi_symbol`.
 /// @param desc    the class of the result, then of each argument.

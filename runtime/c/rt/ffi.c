@@ -1,4 +1,4 @@
-/* vader_ffi: dynamic foreign calls for the VM.
+/* rt/ffi.c: dynamic foreign calls for the VM.
  *
  * The native backend never needs this: `@extern` there becomes a real C call
  * that the linker resolves, and `c_emit` writes the cast itself. The VM cannot,
@@ -20,19 +20,11 @@
  *
  * An uncovered signature must be rejected by the caller before it gets here.
  *
- * Included once, by vader_runtime.c: the runtime builds as a single
- * translation unit.
  */
 
-#ifndef VADER_FFI_H
-#define VADER_FFI_H
+#include "internal.h"
 
-#include <stdint.h>
-#include <stddef.h>
-
-#ifdef _WIN32
-#  include <windows.h>
-#else
+#ifndef _WIN32
 #  include <dlfcn.h>
 #endif
 
@@ -432,5 +424,3 @@ vader_string_t vader_ffi_call_frame(void* fn, vader_array_t* desc, vader_array_t
 #if defined(__GNUC__) || defined(__clang__)
 #  pragma GCC diagnostic pop
 #endif
-
-#endif /* VADER_FFI_H */

@@ -218,7 +218,7 @@ import "std/testing"
 
 @test test_the_c_runtime_agrees_with_the_enum :: fn() -> void {
     // `current_os()` reads the C runtime, which returns ORDINALS it hardcodes
-    // (`vader_runtime.c::vader_current_os`); `VADER_OS` is baked from the enum
+    // (`runtime/c/rt/host.c::vader_current_os`); `VADER_OS` is baked from the enum
     // the compiler parsed. Nothing else makes the two agree: reorder `Os` and
     // the C keeps returning the old numbers, silently, with `current_os()`
     // naming the wrong platform on every machine.

@@ -27,13 +27,13 @@
  * Under `-std=c11` ISO mode none is exposed by default. Define `_GNU_SOURCE`
  * before any system include so emitted code reaches all of them on Linux ;
  * Darwin / BSD expose these APIs unconditionally so the macro is a no-op there.
- * The runtime sets `_DEFAULT_SOURCE` first instead (vader_runtime.c). */
+ * The runtime sets `_DEFAULT_SOURCE` first instead (rt/internal.h). */
 #if defined(__linux__) && !defined(_GNU_SOURCE) && !defined(_DEFAULT_SOURCE)
 #  define _GNU_SOURCE
 #endif
 
 /* Windows: `GetCurrentThreadStackLimits` (the conservative old-gen stack scan,
- * vader_runtime.c) and `GetSystemTimePreciseAsFileTime` (the wall clock, called
+ * rt/gc_collect.c) and `GetSystemTimePreciseAsFileTime` (the wall clock, called
  * by EMITTED code; `system/windows` declares it from `KERNEL32`, whose header
  * is <windows.h>)
  * are Windows 8 APIs, declared only when `_WIN32_WINNT >= 0x0602`.
@@ -187,14 +187,14 @@ typedef struct {
 
 /* The global atom table's entries array. Public ONLY so the lookup helpers
  * below can be `static inline`: everything else about the table stays private
- * to vader_runtime.c. The buffer MOVES on grow, so always read through this
+ * to the runtime (rt/atoms.c). The buffer MOVES on grow, so always read through this
  * pointer; never cache the address of an entry across an intern. */
 extern vader_atom_entry_t* vader_atom_entries;
 
 /* Lookup helpers: inline, hot path. Bounds-checking on the atom id is
  * the caller's responsibility ; an invalid id reads garbage.
  *
- * These are `static inline` HERE rather than out-of-line in vader_runtime.c
+ * These are `static inline` HERE rather than out-of-line in the runtime
  * because emitted code reaches them from its own translation unit, where a
  * cross-TU call cannot be inlined: `s[i]` in a scan loop became one real call
  * per byte. */
@@ -340,7 +340,7 @@ static inline void* vader_box_to_ref(vader_box_t b) {
  *     the young generation. The minor whose survival brings it to
  *     VADER_TENURE_AGE promotes the object to the old generation.
  *   - `mark` is the old-gen mark bit. The old generation is a non-moving
- *     mark-sweep heap (see vader_runtime.c "slab old gen"): a live old object
+ *     mark-sweep heap (see rt/internal.h): a live old object
  *     carries `mark == g_mark_value` (a per-major toggle ∈ {1,2}); a free slot
  *     carries `mark == 0`. Young objects don't use it. (The atom string-GC
  *     keeps its own mark bit on the atom table, unrelated to this one.)
@@ -504,17 +504,17 @@ static inline vader_atom_t vader_array_borrowed_owner(const vader_array_t* a) {
 static inline uint32_t vader_array_borrowed_tag(const vader_array_t* a) {
     return (uint32_t) (a->capacity >> 32);
 }
-/* Dynamic foreign calls, for the VM only, see runtime/c/vader_ffi.h for the
+/* Dynamic foreign calls, for the VM only, see runtime/c/rt/ffi.c for the
  * contract and the ABI restrictions. Declared here because the emitted C calls
  * them through the `vader/vm/ffi.vader` intrinsics. */
 void*   vader_ffi_open(const char* name);
 void*   vader_ffi_open_path(const char* path);
 void*   vader_ffi_symbol(void* lib, const char* symbol);
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
-/* One call, described by data, see vader_ffi.h. */
+/* One call, described by data, see rt/ffi.c. */
 vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* frame,
                                 int64_t nfixed);
-/* One call to a generated adapter, described the same way: see vader_ffi.h. */
+/* One call to a generated adapter, described the same way: see rt/ffi.c. */
 vader_string_t vader_ffi_call_frame(void* fn, vader_array_t* desc, vader_array_t* frame);
 
 /* Contiguous read view over an array's raw element bytes: what an `@extern`
@@ -701,7 +701,7 @@ static inline void vader_array_ref_store_box(vader_array_buf_t* buf, size_t slot
 #define VADER_TYPE_INDEX_BUFFER UINT32_C(0xFFFFFFFD)
 
 /* Sentinel index stamped on a FREE old-gen slot by the mark-sweep collector
- * (vader_runtime.c "slab old gen"). A freed slot also carries `mark == 0` and
+ * (rt/gc_heap.c). A freed slot also carries `mark == 0` and
  * threads the class free list through its `forward` field. The sentinel is a
  * belt-and-suspenders marker: `vader_gc_obj_size` returns 0 for it, so any heap
  * walk that keys off object size skips it; the region walks key off `mark`. */
@@ -1276,7 +1276,7 @@ vader_i32_t vader_sched_park(void);
  * Per-phase wall / peak-RSS / GC accounting for the compiler's own passes.
  * The compiler (vader/support/profile) brackets each pass via vader_prof_begin/end
  * with an integer phase id; the phase names + all query helpers (RSS, GC
- * stats) live in vader_runtime.c. Everything is a no-op unless $VADER_PROFILE
+ * stats) live in rt/profiler.c. Everything is a no-op unless $VADER_PROFILE
  * is set, and the per-phase table is dumped to stderr at exit (atexit). Only
  * begin/end/dump cross the FFI boundary (called from vader/support/profile via @extern). */
 void vader_prof_begin(int32_t phase_id);

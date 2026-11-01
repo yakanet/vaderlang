@@ -172,7 +172,7 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
 ///
 /// @param id  the host's classification, from `intrinsic_id_for`.
 export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
-    // Reads of the atom (`vader.h`, `vader_runtime.c`): its length, one byte,
+    // Reads of the atom (`vader.h`, `runtime/c/rt/atoms.c`): its length, one byte,
     // the hash and the ASCII flag set at intern.
     .ByteLen | .ByteAt | .StringHash | .IsAscii -> false
     // A slice of the atom takes an atom-table slot, grown by `realloc`.
