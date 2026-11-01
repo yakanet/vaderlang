@@ -60,9 +60,7 @@ typedef struct {
     char* end;
 } vader_arena_t;
 
-/* A generation is just a pair of semi-spaces. Both pairs are backed by a
- * single contiguous malloc per generation so the card table can index by
- * `(ptr - base) / VADER_CARD_BYTES` without worrying about the swap. */
+/* The young generation: a pair of semi-spaces that swap roles at each minor. */
 typedef struct {
     vader_arena_t from;
     vader_arena_t to;

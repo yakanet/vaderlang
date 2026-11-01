@@ -5,8 +5,8 @@
 #include "internal.h"
 
 /* The atom GC runs inside the major collection. `vader_atom_mark_roots` walks FIVE
- * channels, and none is redundant : an atom only one of them reaches is freed
- * while still live if that channel goes :
+ * channels, and an atom only one of them reaches is freed while still live if
+ * that channel goes :
  *   - frame `ptrs[]` boxes (conservative : the lower 4 bytes of every box
  *     payload are treated as a candidate atom id)
  *   - frame `stack_objs[]`, off-arena so the heap walk cannot reach them
@@ -22,7 +22,7 @@ static void vader_atom_mark(vader_atom_t a) {
     vader_atom_entry_t* e = &vader_atom_entries[a];
     if (e->flags & (VADER_ATOM_FLAG_PERM | VADER_ATOM_FLAG_MARK)) return;
     e->flags |= VADER_ATOM_FLAG_MARK;
-    /* Slice → owner : keep the parent alive too. Chain depth is at
+    /* Slice -> owner : keep the parent alive too. Chain depth is at
      * most 1 (the slice ctor flattens), so no recursion needed. */
     if (e->parent != 0 && e->parent < g_atoms.count) {
         vader_atom_entry_t* p = &vader_atom_entries[e->parent];
@@ -42,15 +42,13 @@ static void vader_atom_mark_box(const vader_box_t* bp) {
 }
 
 /* Conservatively mark atoms reachable only from a C local / register. A
- * `vader_string_t` is a bare `u32` atom id, so unlike object refs it never
- * appears in the shadow stack or as a heap pointer: held in a C local it is
- * invisible to the precise roots and the heap walk. Flush registers (setjmp),
- * then read every 4-byte-aligned stack word as a candidate atom id and mark it
- * (`vader_atom_mark` bounds-checks; false positives only retain a small atom).
- * The non-moving old gen reuses freed slots eagerly, so (as for objects) a
- * live atom held only in a C local must be found here or its bytes get reclaimed
- * under a still-live `bytes()` view. Scanned 4-byte-aligned because a u32
- * local need not be 8-aligned. */
+ * `vader_string_t` is a bare `u32` atom id, not a pointer: held in a C local no
+ * frame's `atoms[]` lists, it is invisible to the precise roots and the heap
+ * walk. Flush registers (setjmp), then read every 4-byte-aligned stack word as
+ * a candidate atom id and mark it (`vader_atom_mark` bounds-checks; false
+ * positives only retain a small atom). A live atom held only in a C local must
+ * be found here, or its bytes get freed under a still-live `bytes()` view.
+ * Scanned 4-byte-aligned because a u32 local need not be 8-aligned. */
 static void vader_atom_mark_cstack_conservative(void) {
     jmp_buf regs;
     (void) setjmp(regs);
@@ -187,9 +185,8 @@ static void vader_atom_sweep(void) {
     if (freed_bytes > g_atoms.owner_bytes) g_atoms.owner_bytes = 0;
     else g_atoms.owner_bytes -= freed_bytes;
 
-    /* Rebuild the hash index. Bucket clears + linear reinsert keeps the
-     * implementation simple ; incremental updates would need to track
-     * each tombstone's original hash to clear specifically. */
+    /* Rebuild the hash index over the surviving atoms: clearing single slots
+     * would break the probe chains that run through them. */
     memset(g_atoms.buckets, 0, g_atoms.bucket_capacity * sizeof(uint64_t));
     g_atoms.bucket_count = 0;
     for (vader_u32_t i = 1; i < g_atoms.count; i++) {

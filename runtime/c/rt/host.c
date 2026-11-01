@@ -4,8 +4,8 @@
 
 #include "internal.h"
 
-/* Box the host argv into a `[string]` Vader array. Called from emitted main
- * when the user's `main` takes an `[string]` parameter. The caller passes the
+/* Box the host argv into a `string[]` Vader array. Called from emitted main
+ * when the user's `main` takes a `string[]` parameter. The caller passes the
  * BcType indices for the array type and the string element type (the emitter
  * knows them at codegen time).
  *
@@ -25,15 +25,15 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
     return result;
 }
 
-/* ----------------------------------------------------------------- I/O */
+/* ---- I/O ----------------------------------------------------------------- */
 
 
 /* Switch stdin/stdout/stderr to binary mode on Windows. The CRT default is
- * text mode, which silently translates `\r\n` ↔ `\n` and breaks any
+ * text mode, which silently translates `\r\n` <-> `\n` and breaks any
  * length-prefixed binary transport (LSP, MCP, custom RPC) AND every `dump` /
  * `build` / `fmt` stdout (LF on disk, CRLF on the wire). stderr matters too:
  * the VM's runtime-error / panic messages are diffed byte-for-byte by the
- * snapshot suite, and text-mode `\n`→`\r\n` on stderr makes every such line
+ * snapshot suite, and text-mode `\n` -> `\r\n` on stderr makes every such line
  * mismatch by an invisible trailing `\r` on Windows. Called at program startup
  * (`vader_atom_init_with_comptime`); idempotent via the static flag. POSIX has
  * no such concept: the helper is a no-op there. */
@@ -141,10 +141,10 @@ int64_t vader_stream_size(void* stream) {
 }
 #endif
 
-/* ------------------------------------------------- directory-entry accessors
- *
- * Reading a NAMED member of a C struct is the one step a Vader FFI call cannot
- * take for itself, and it is all that is left here: `std/io::read_dir` drives
+/* ---- directory-entry accessors ------------------------------------------- */
+
+/* Reading a NAMED member of a C struct is the one step a Vader FFI call cannot
+ * take for itself, and it is all these accessors do: `std/io::read_dir` drives
  * `opendir` / `readdir` / `FindFirstFileW` from Vader and calls one of these for
  * the name. Only `cc` resolves the offset, and only from the real header:
  * `d_name` sits at 21 on Darwin against 19 on glibc.
@@ -189,7 +189,7 @@ const char* vader_dirent_name(const void* ent) {
 #endif  /* _WIN32 / POSIX */
 
 
-/* ----------------------------------------------------------------- target */
+/* ---- target -------------------------------------------------------------- */
 
 /* Ordinals must match `std/target::Os`, declaration order. An unsupported
  * platform is a build error rather than a guess: the OS set is closed, and a

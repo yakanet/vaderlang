@@ -26,7 +26,7 @@ static vader_i64_t prof_monotonic_ns(void) {
     QueryPerformanceCounter(&now);
     /* Avoid `now * 1_000_000_000` overflow by splitting via the
      * frequency divisor: preserves resolution to the granularity
-     * of the underlying counter (~100 ns on modern Intel/AMD). */
+     * of the underlying counter. */
     vader_i64_t whole_sec_ns = (vader_i64_t) (now.QuadPart / freq.QuadPart) * 1000000000;
     vader_i64_t remainder = (vader_i64_t) (now.QuadPart % freq.QuadPart);
     vader_i64_t sub_sec_ns = (remainder * 1000000000) / freq.QuadPart;
@@ -116,7 +116,8 @@ static int64_t vader_prof_rss_now_bytes(void) {
 #endif
 }
 
-/* Live bytes across young+old (post-collection). */
+/* Old-gen live bytes plus the young allocation: a live set only right after
+ * a major, see `bytes_used` in vader.h. */
 static int64_t vader_prof_bytes_used(void) { return (int64_t) vader_gc_get_stats().bytes_used; }
 
 static int32_t vader_prof_enabled(void) {
@@ -136,7 +137,7 @@ void vader_prof_begin(int32_t phase_id) {
                         "timings will misattribute\n", phase_id, g_prof_current);
     }
     g_prof_current = phase_id;
-    /* One stats read serves both GC deltas (copied + collections). */
+    /* One stats read serves every GC baseline. */
     vader_gc_stats_t s = vader_gc_get_stats();
     g_prof_rss0         = vader_prof_max_rss_bytes();
     g_prof_copied0      = (int64_t) s.total_copied;
@@ -150,7 +151,7 @@ void vader_prof_end(int32_t phase_id) {
     if (!vader_prof_enabled()) return;
     if (phase_id < 0 || phase_id >= VADER_PROF_MAX_PHASES) return;
     /* The baselines are a SINGLE global set, so only the phase `begin` opened can
-     * be closed against them. An unpaired `end` (or the inner half of a nested
+     * be closed against them. An unpaired `end` (or the outer `end` of a nested
      * pair, which `begin` warns about and could otherwise do nothing about)
      * would charge its phase the whole span since some unrelated `begin`, and
      * that number reads like a measurement. */

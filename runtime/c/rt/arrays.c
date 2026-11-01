@@ -31,9 +31,8 @@ static vader_array_buf_t* vader_array_buf_alloc(size_t capacity, uint8_t element
     return buf;
 }
 
-/* Forward decl: the explicit length≠capacity allocator (defined with the array
- * construction ops further down). `vader_array_new` is its `cap = max(length, 4)`
- * special case. */
+/* Forward decl: the allocator taking an explicit length and capacity, defined
+ * with the array construction ops further down. */
 static vader_array_t* vader_array_alloc_cap(uint32_t type_index, size_t length, size_t capacity, uint8_t element_kind, uint32_t element_tag);
 
 vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind, uint32_t element_tag) {
@@ -43,10 +42,10 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t eleme
 }
 
 /* Store a primitive-kind slot: writes the matching primitive width directly
- * to `buf->slots` ; the boxed kind routes through `vader_array_box_slots`. The
- * symmetric LOAD has no out-of-line helper : reads are open-coded at
- * each c-emit access site (typed slots inline, boxed via `vader_array_box_slots`,
- * u8 via `vader_array_read_u8`). Only `push` still needs the out-of-line store. */
+ * to `buf->slots` ; the boxed kind routes through `vader_array_box_slots`.
+ * Emitted code open-codes its element accesses (typed slots inline, boxed via
+ * `vader_array_box_slots`, u8 via `vader_array_read_u8`): this store serves the
+ * runtime's own `push`, `push_all` and `copy`. */
 static void vader_array_store_slot(vader_array_buf_t* buf, size_t i, vader_box_t v) {
     uint8_t* base = buf->slots;
     switch (buf->element_kind) {
@@ -149,7 +148,7 @@ vader_slice_t vader_array_bytes(vader_array_t* a) {
      * buffer has to stop moving. Rewriting `a->buf` is the whole move while `a`
      * is its only header; a shared buffer is never moved here (invariant:
      * vader.h, `VADER_ARRAY_RESOLVE_BUF`). Until a callback has escaped, no
-     * callee can call back and the lend costs what it always did. */
+     * callee can call back and the lend moves nothing. */
     if (vader_ffi_callback_escaped
         && !vader_array_buf_is_shared(a->buf)) {
         a->buf = (vader_array_buf_t*) vader_gc_force_tenure(a->buf);
@@ -179,7 +178,7 @@ VADER_PURE VADER_NOINLINE vader_array_buf_t* vader_array_buf_forward(vader_array
  *
  * `vader_array_buf_alloc` may collect, once or more (minor, then a major when
  * the minor doesn't free enough), and a forward does not outlive its collection
- * (docs/adr/0107). So `a` is boxed and rooted, the GC's scan_box re-updating
+ * (docs/adr/0107). So `a` is boxed and rooted, `vader_gc_scan_box` re-updating
  * `a_box.payload.obj` through every cycle, and comes back reloaded; `keep` is
  * a box the caller still reads afterwards, rooted the same way. */
 static vader_array_t* vader_array_detach(vader_array_t* a, size_t need, vader_box_t* keep) {
@@ -456,9 +455,8 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
 /* `src.copy_to(src_start, dst, dst_start, len)`: positional, overlap-safe
  * (`memmove`) copy of `len` elements from `src[src_start..]` into an EXISTING
  * `dst[dst_start..]` region. `dst` must already be long enough (traps otherwise):
- * this overwrites, it does not grow. The basis for future `insert`/`remove`.
- * No allocation anywhere, hence no GC / no rooting : the argument pointers are
- * stable for the whole call. */
+ * this overwrites, it does not grow. No allocation anywhere, hence no GC / no
+ * rooting : the argument pointers are stable for the whole call. */
 void vader_array_copy(vader_array_t* src, int64_t src_from, vader_array_t* dst, int64_t dst_from, int64_t count) {
     size_t src_start = vader_count_or_zero(src_from);
     size_t dst_start = vader_count_or_zero(dst_from);
@@ -483,7 +481,7 @@ void vader_array_copy(vader_array_t* src, int64_t src_from, vader_array_t* dst, 
     if (skind == kind) {
         /* One layout on both sides, so the raw move is exact, and it is a
          * `memmove` because this is the one array op whose ranges may overlap
-         * (`a.copy_to(0, a, 1, n)` is the shift `insert` will be built on). */
+         * (`a.copy_to(0, a, 1, n)` shifts `n` elements of `a` up by one). */
         uint8_t* dst_data = dst->buf->slots + (dst->offset + dst_start) * esz;
         memmove(dst_data, src_data, len * esz);
     } else {
@@ -492,7 +490,7 @@ void vader_array_copy(vader_array_t* src, int64_t src_from, vader_array_t* dst, 
          * width : `esz` bytes read out of `sesz`-byte slots, so a BOXED source
          * into a REF destination writes box headers where pointers are expected
          * and the first reader dereferences a tag word, while a REF source into
-         * a BOXED one over-reads its buffer threefold.
+         * a BOXED one reads twice the bytes its slots hold.
          *
          * Two different kinds mean two different buffers, so no overlap is
          * possible in this branch and a forward walk is enough. Neither helper

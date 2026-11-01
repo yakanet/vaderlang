@@ -11,15 +11,14 @@ static vader_atom_table_t g_atoms = {0};
  * emitted code reads them, so they must inline at the call site rather than
  * cost an out-of-line cross-TU call.
  *
- * Storage, not a mirror of `g_atoms.entries`: a second copy of the pointer
- * would desync the day someone reallocs without updating both. */
+ * The only pointer to the entries: a copy kept in the table struct would go
+ * stale on the next realloc. */
 vader_atom_entry_t* vader_atom_entries = NULL;
 static int  g_atoms_initialized = 0;
 static int  g_atom_profile = 0;
 
-/* Initial table capacity: 256 covers the keyword + primitive pre-intern
- * with room for early dynamic atoms. Grows by doubling. A module that carries a
- * comptime atom count sizes both tables from it instead:
+/* Initial table capacities, grown by doubling. A module that carries a
+ * comptime atom count raises both to fit it:
  * `vader_atom_init_with_comptime`. */
 #define VADER_ATOM_INITIAL_CAPACITY    256u
 #define VADER_ATOM_INITIAL_BUCKETS     1024u   /* must be power of two */
@@ -53,10 +52,9 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
      * the first wave of dynamic interns without an immediate grow. */
     vader_u32_t initial_cap = VADER_ATOM_INITIAL_CAPACITY;
     if (count > 0u) {
-        /* count + 1 for the empty sentinel at index 0, then ×2 for
-         * runtime headroom. Round up to the existing initial capacity
-         * so very small modules still get a usable starting bucket
-         * table. */
+        /* count + 1 for the empty sentinel at index 0, then doubled for
+         * runtime headroom. Never below the default capacity, so a very
+         * small module still gets a usable starting table. */
         vader_u32_t want = (count + 1u) * 2u;
         if (want > initial_cap) initial_cap = want;
     }
@@ -68,7 +66,7 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
 
     /* Bucket capacity scales with comptime count for the same reason:
      * a freshly initialised table should not immediately rehash on the
-     * first user interns. Round up to a power of two ≥ 4 × (count+1). */
+     * first user interns. Round up to a power of two >= 4 * (count + 1). */
     vader_u32_t want_buckets = VADER_ATOM_INITIAL_BUCKETS;
     if (count > 0u) {
         vader_u32_t target = (count + 1u) * 4u;
@@ -99,9 +97,8 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
         for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
             vader_atom_entries[i].flags |= VADER_ATOM_FLAG_PERM;
         }
-        /* Build the bucket index over the comptime atoms in a single
-         * pass: cheaper than running through `vader_atom_intern` and
-         * its hash-lookup-then-install dance for each one. */
+        /* Index the comptime atoms where the memcpy put them: emitted
+         * code names each one by its position in the table. */
         for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
             vader_atom_entry_t* e = &vader_atom_entries[i];
             /* Codegen's positional comptime-table literals omit `hash` (it
@@ -160,7 +157,7 @@ void vader_atom_shutdown(void) {
     g_atoms_initialized     = 0;
 }
 
-/* ---- intern internals ---- */
+/* ---- intern internals ---------------------------------------------------- */
 
 /* The pieces the atom hash is built from: unaligned reads in the host's byte
  * order, and the 64 x 64 -> 128-bit multiply, taken from `__uint128_t`: only a
@@ -338,11 +335,10 @@ static vader_atom_t vader_atom_alloc_slot(void) {
     return g_atoms.count++;
 }
 
-/* Miss-path install : claim a slot, point it at `buf` (caller-owned heap
- * buffer with inline NUL at `buf[len]` already written), bucket-install,
- * grow buckets if load factor crossed. The caller is responsible for
- * ensuring `buf` is the canonical bytes for `hash` (i.e. they already
- * lost a lookup race). */
+/* Miss-path install : claim a slot, point it at `buf` (a heap buffer the
+ * table takes over, its NUL at `buf[len]` already written), bucket-install,
+ * grow buckets if load factor crossed. `hash` is the hash of `buf`, and the
+ * caller's lookup for these bytes missed. */
 static vader_atom_t vader_atom_install_owner(char* buf, size_t len, uint64_t hash) {
     vader_atom_t a = vader_atom_alloc_slot();
     vader_atom_entry_t* e = &vader_atom_entries[a];
@@ -359,7 +355,7 @@ static vader_atom_t vader_atom_install_owner(char* buf, size_t len, uint64_t has
     return a;
 }
 
-/* ---- public intern API ---- */
+/* ---- public intern API --------------------------------------------------- */
 
 vader_atom_t vader_atom_intern(const char* data, size_t len) {
     if (len == 0) return VADER_ATOM_EMPTY;
@@ -393,7 +389,7 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
 
     /* Flatten one hop : every slice atom enforces `parent.parent == 0`
      * at insert time (we never link a slice to another slice), so the
-     * deepest chain we ever see is parent → owner. Keeps the GC mark
+     * deepest chain we ever see is parent -> owner. Keeps the GC mark
      * trivial (one hop, never recursive). */
     vader_atom_t root        = parent;
     size_t       root_offset = offset;

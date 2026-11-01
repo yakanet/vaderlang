@@ -82,8 +82,8 @@ Arch implements Display -> match self {
 /// cross-compiled build, which is the hardest kind to notice.
 ///
 /// The runtime returns the variant's ordinal, so this enum's declaration order
-/// is part of the contract with `runtime/c/vader.h::vader_current_os`: the same
-/// coupling `std/io::Stream` already has with the write primitive.
+/// is part of the contract with `runtime/c/vader.h::vader_current_os`, which
+/// numbers the platforms in the same order.
 ///
 /// @return  the host OS, never null: an unsupported platform fails at C compile
 ///          time rather than guessing.

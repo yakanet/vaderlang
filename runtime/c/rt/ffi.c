@@ -6,8 +6,9 @@
  * signature at compile time.
  *
  * Two halves. `vader_ffi_open` / `vader_ffi_symbol` find the function;
- * `vader_ffi_call_*` invoke it through a TRAMPOLINE: a call site written here,
- * ahead of time, one per SHAPE of signature rather than one per function.
+ * `vader_ffi_call_int` / `vader_ffi_call_n` invoke it through a TRAMPOLINE: a
+ * call site written here, ahead of time, one per SHAPE of signature rather than
+ * one per function.
  *
  * The shapes are coarse on purpose. Every ABI we target (System V AMD64,
  * AAPCS64, Win64) passes integers and pointers of any width in the same general
@@ -18,9 +19,8 @@
  * is per-field. The all-double shape covers one or two arguments; see the
  * dispatch in `vader_ffi_call_n`.
  *
- * An uncovered signature must be rejected by the caller before it gets here.
- *
- */
+ * An uncovered signature never reaches a trampoline: the caller sends it
+ * through an ADAPTER (`vader_ffi_call_frame`), or traps when it has none. */
 
 #include "internal.h"
 
@@ -60,7 +60,7 @@ void* vader_ffi_symbol(void* lib, const char* symbol);
  * goes through `vader_ffi_call_n` instead, see its float dispatch. */
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
 
-/* ---- implementation ---------------------------------------------------- */
+/* ---- implementation ------------------------------------------------------ */
 
 void* vader_ffi_open_path(const char* path) {
 #ifdef _WIN32
@@ -78,9 +78,10 @@ void* vader_ffi_open(const char* name) {
 #ifdef _WIN32
     if (name == NULL || name[0] == '\0') {
         /* The C runtime, which is where a libc-shaped symbol lives. NOT the
-         * process handle: an EXE's export table is empty, so `GetProcAddress`
-         * on it finds nothing: POSIX only gets away with `dlopen(NULL)`
-         * because that exposes the whole global symbol scope. */
+         * process handle: an EXE exports only its `VADER_HOST_EXPORT`ed
+         * symbols, so `GetProcAddress` on it finds no libc one. POSIX only gets
+         * away with `dlopen(NULL)` because that exposes the whole global symbol
+         * scope. */
         HMODULE h = GetModuleHandleA("ucrtbase.dll");
         if (h == NULL) { h = GetModuleHandleA("msvcrt.dll"); }
         if (h == NULL) { h = GetModuleHandleW(NULL); }
@@ -189,18 +190,16 @@ void* vader_ffi_symbol(void* lib, const char* symbol) {
  *
  * A variadic callee cannot be called through a non-variadic prototype. On
  * x86-64 the two happen to agree: variadic arguments travel in the same
- * registers, which is why this went unnoticed on Linux. On darwin-arm64 they
- * do NOT: variadic arguments go on the STACK, so a cast to
- * `(int64_t (*)(int64_t, int64_t, int64_t))` puts the third argument in `x2`
- * while the callee's `va_arg` reads an uninitialised stack word. `ioctl(fd,
- * TIOCGWINSZ, &ws)` had the kernel write eight bytes to that stale address and
- * report success; `open(path, flags, mode)` created files with mode 0.
+ * registers. On darwin-arm64 they do NOT: variadic arguments go on the STACK,
+ * so a cast to `(int64_t (*)(int64_t, int64_t, int64_t))` puts the third
+ * argument in `x2` while the callee's `va_arg` reads an uninitialised stack
+ * word.
  *
  * The fixed count cannot be derived from the argument count (only the callee's
  * real prototype knows it) so it is declared, by `@c_variadic(N)`.
  *
- * One function per fixed count rather than one macro: the cast has to name the
- * fixed parameters, and C has no way to build a prototype from a count. */
+ * One prototype per fixed count, written out: the cast has to name the fixed
+ * parameters, and C has no way to build a prototype from a count. */
 static int64_t vader_ffi_call_va(void* fn, const int64_t* args, size_t nargs,
                                  size_t nfixed) {
     size_t nvar = nargs - nfixed;
@@ -298,9 +297,10 @@ static vader_string_t vader_ffi_string_result(unsigned char cls, const char* p, 
  * followed by whatever bytes a `VADER_FFI_ADDR` slot points into; the result is
  * written back over its first eight bytes.
  *
- * This is what lets ONE intrinsic serve every signature: adding a shape widens
- * the switch below and touches no Vader. What is not covered traps by name
- * rather than mis-marshalling a frame.
+ * This is what lets ONE intrinsic serve every covered signature. What it covers
+ * is mirrored by `adapter_reason` (`vader/vm/adapters.vader`), which sends
+ * every other shape to an adapter: a shape added here goes there too. What is
+ * not covered traps by name rather than mis-marshalling a frame.
  *
  * The RESULT of a `VADER_FFI_STR` call is returned rather than written into the
  * frame: it is an atom id, and the VM has no way to build a `string` from one,
@@ -335,13 +335,13 @@ vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* fr
         }
     }
 
-    /* Shapes covered so far: all-word, and all-double with one or two arguments.
-     * A MIX needs one form per combination of classes: the point at which
-     * fabricating the call (libffi, or a thunk) starts to pay. */
+    /* Shapes covered: all-word, and all-double with one or two arguments. A MIX
+     * would need one form per combination of classes: it goes through an
+     * adapter instead (`vader_ffi_call_frame`). */
     if (nreal == 0) {
         /* Reject BEFORE the call. Trapping after it has already run means the
          * callee's side effects happened and only the result is refused, and a
-         * zero-argument `double f(void)` lands here too (nargs 0 ⇒ nreal 0), so
+         * zero-argument `double f(void)` lands here too (nargs 0 => nreal 0), so
          * that shape is unreachable rather than merely unsupported. */
         if (cls[0] == VADER_FFI_F64) {
             vader_trap("vader_ffi: floating result from an integer call shape");

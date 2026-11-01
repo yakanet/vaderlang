@@ -2,9 +2,9 @@
  *
  * Memory: a generational GC, a copying (Cheney) young generation plus a
  * non-moving mark-sweep old generation: backs structs, arrays, fn closures.
- * See `vader_gc_*` below and the implementation header in `vader_runtime.c`
- * for the generation layout, shadow-stack root enumeration, card table, and
- * the per-module `vader_type_info_table` the scanner consults.
+ * See `vader_gc_*` below, the header of `vader_runtime.c` for the generation
+ * layout and the card table, and rt/gc_collect.c for the shadow-stack root walk
+ * and the scan that consults the per-module `vader_type_info_table`.
  *
  * Strings are interned `vader_string_t` atom ids (see the atom table below);
  * their bytes live in the global atom table, not the GC heap, and are reclaimed
@@ -196,8 +196,8 @@ extern vader_atom_entry_t* vader_atom_entries;
  *
  * These are `static inline` HERE rather than out-of-line in the runtime
  * because emitted code reaches them from its own translation unit, where a
- * cross-TU call cannot be inlined: `s[i]` in a scan loop became one real call
- * per byte. */
+ * cross-TU call cannot be inlined: out of line, `s[i]` in a scan loop would be
+ * one real call per byte. */
 static inline const char* vader_atom_data(vader_atom_t a) {
     return vader_atom_entries[a].data;
 }
@@ -244,9 +244,9 @@ void vader_atom_shutdown(void);
 /* GC hook: invoked by the major collection cycle. Marks atoms reachable from
  * the five channels `vader_atom_mark_roots` walks (frame boxes, frame stack
  * objects, the frame's PRECISE `atoms[]` list, the defer stack and a
- * conservative C-stack pass), then sweeps unmarked non-PERM
- * atoms : frees their owner buffer and tombstones the slot for reuse
- * by the next `vader_atom_intern`. */
+ * conservative C-stack pass) and from the live heap objects, then sweeps
+ * unmarked non-PERM atoms : frees their owner buffer and tombstones the slot
+ * for reuse by the next `vader_atom_intern`. */
 void vader_atom_gc_collect(void);
 
 /* ----------------------------------------------------------------- box */
@@ -321,7 +321,7 @@ static inline bool vader_box_eq(vader_box_t a, vader_box_t b) {
     return a.tag == b.tag && a.payload.obj == b.payload.obj;
 }
 
-/* Box → raw `void*`: NULL for the null variant, the object pointer otherwise.
+/* Box -> raw `void*`: NULL for the null variant, the object pointer otherwise.
  * The write side of a `VADER_ARRAY_KIND_REF` slot. */
 static inline void* vader_box_to_ref(vader_box_t b) {
     return (b.tag == VADER_BOX_TAG_NULL) ? NULL : b.payload.obj;
@@ -341,7 +341,7 @@ static inline void* vader_box_to_ref(vader_box_t b) {
  *     VADER_TENURE_AGE promotes the object to the old generation.
  *   - `mark` is the old-gen mark bit. The old generation is a non-moving
  *     mark-sweep heap (see rt/internal.h): a live old object
- *     carries `mark == g_mark_value` (a per-major toggle ∈ {1,2}); a free slot
+ *     carries `mark == g_mark_value` (a per-major toggle in {1, 2}); a free slot
  *     carries `mark == 0`. Young objects don't use it. (The atom string-GC
  *     keeps its own mark bit on the atom table, unrelated to this one.)
  *   - `forward` is NULL for live objects in young from-space and non-NULL when
@@ -360,8 +360,7 @@ typedef struct {
 } vader_obj_header_t;
 
 /* Every allocation is rounded up to this, so it is the strongest alignment a
- * Vader object's fields can rely on. Emitted code asserts foreign struct
- * alignment against it, hence its home here rather than in the runtime .c. */
+ * Vader object's fields can rely on. */
 #define VADER_GC_ALIGN 8u
 
 /* ---- per-type allocation counter (VADER_ALLOC_BY_TYPE=1) -------------------
@@ -371,9 +370,8 @@ typedef struct {
  * worth anything. Keyed by `type_index`, so it reads straight off
  * `vader_type_info_table` with no symbolisation step.
  *
- * Always compiled in: the counter is one increment behind a branch that is
- * false unless the env is set, which does not measurably move a build, and an
- * `#ifdef` would mean rebuilding the compiler to answer a question about it. */
+ * Always compiled in, so a question about it needs no compiler rebuild: the
+ * counter is one increment behind a branch that is false unless the env is set. */
 #define VADER_ALLOC_TYPES_MAX 4096u
 extern uint64_t vader_alloc_by_type[VADER_ALLOC_TYPES_MAX];
 extern int      vader_alloc_by_type_on;
@@ -390,9 +388,9 @@ static inline void vader_obj_header_init(void* obj, uint32_t type_index) {
     h->forward    = NULL;
 }
 
-/* Raw `void*` → box, for a `VADER_ARRAY_KIND_REF` slot read onto the
+/* Raw `void*` -> box, for a `VADER_ARRAY_KIND_REF` slot read onto the
  * still-boxed expression stack: the tag comes from the referent's object
- * header (NULL → null variant). `vader_box_to_ref` is the write side. */
+ * header (NULL -> null variant). `vader_box_to_ref` is the write side. */
 static inline vader_box_t vader_ref_box(void* p) {
     return p == NULL ? vader_box_null()
                      : vader_box_obj(((vader_obj_header_t*) p)->type_index, p);
@@ -467,7 +465,7 @@ static inline size_t vader_array_element_size(uint8_t kind) {
 /* Array data buffer: a separate GC object so `push` can reallocate without
  * breaking aliases to the array header. The buf carries its own
  * `element_kind` so the GC scanner can decide whether to walk slots for refs
- * (BOXED) or skip them entirely (primitive). */
+ * (BOXED, REF) or skip them entirely (primitive). */
 struct vader_array_buf;
 
 /* An array header. Several headers can share one buffer (a slice and its
@@ -563,8 +561,9 @@ static inline void vader_array_make_borrowed(vader_array_t* a, uint32_t elem_tag
     a->capacity = ((uint64_t) elem_tag << 32) | (uint64_t) (uint32_t) owner;
 }
 
-/* `capacity` / `length` are mirrored from the parent vader_array_t: the
- * GC needs them at scan time and there's no back-pointer to the array.
+/* `capacity` / `length` are the buffer's own: the GC scans it with no
+ * back-pointer to a header, and `length` bounds the slots it scans (see
+ * `vader_array_t`: several headers may share one buffer).
  * `slots` is byte-typed ; the actual width is `element_size(element_kind)`.
  *
  * `element_tag` is the BcType index of the array's static element type. For
@@ -630,9 +629,7 @@ static inline vader_box_t* vader_array_box_slots(vader_array_buf_t* buf) {
  * its RUNTIME borrowed tag ; a real `u8[]` reads its slots and boxes with the
  * static `elem_tag`. `slot` is the caller-resolved absolute index (`a->offset +
  * i`) ; the c-emit site resolves the buffer anew (a collection may have moved
- * it) and checks the bounds (`emit_slot_array_local`) before this call. The
- * named inline (no linkage symbol, inlines at -O3) replaces the open-coded
- * borrowed branch at every u8 read site. */
+ * it) and checks the bounds (`emit_slot_array_local`) before this call. */
 static inline vader_box_t vader_array_read_u8(vader_array_t* a, size_t slot, uint32_t elem_tag) {
     vader_box_t out;
     out._pad = 0;
@@ -651,10 +648,9 @@ static inline vader_box_t vader_array_read_u8(vader_array_t* a, size_t slot, uin
  * `Any[]` access can meet a REF buf), so the reader must dispatch on the buf's
  * actual `element_kind`, not the static element type. `slot` is the caller-
  * resolved absolute index (`a->offset + i`) ; the c-emit site resolves the
- * buffer anew and checks the bounds before the call. Named inlines (no linkage symbol,
- * inline at -O3) so the emitted C is a clean call, not an open-coded ternary. The
- * store's generational write barrier fires at the call site (the macro is defined
- * below). `_load_obj` yields the raw object pointer (a concrete `.Ref`) ;
+ * buffer anew and checks the bounds before the call. The store's generational
+ * write barrier fires at the call site (the macro is defined below). `_load_obj`
+ * yields the raw object pointer (a concrete `.Ref`) ;
  * `_load_box` yields a tagged box (an erased `.Any`): the REF slot's tag is
  * recovered from the referent's header via `vader_ref_box`. */
 static inline void* vader_array_ref_load_obj(vader_array_buf_t* buf, size_t slot) {
@@ -693,18 +689,16 @@ static inline void vader_array_ref_store_box(vader_array_buf_t* buf, size_t slot
 /* Sentinel index for the Target ABI byte buffer (`object_new`). A
  * variable-length, ALL-BYTES GC object : it carries no `vader_box_t` slots, so
  * the GC scanner walks past it without forwarding anything: only its size
- * (read off `byte_count`) matters to the heap walk. The TYPED slot opcodes
- * (`load_slot_i32` / `_i64` / `_f64` and their stores) ship and are emitted; it
- * is the BOXED width that has none: `op_select.vader` declines `.Boxed`, so no
- * boxed slot opcode exists to emit, and with it the old->young write barrier
- * that width would need. */
+ * (read off `byte_count`) matters to the heap walk. Only TYPED slot opcodes
+ * exist (`load_slot_i32` / `_i64` / `_f64` and their stores): `op_select.vader`
+ * declines `.Boxed`, so no reference is ever written into a buffer and it needs
+ * no old->young write barrier. */
 #define VADER_TYPE_INDEX_BUFFER UINT32_C(0xFFFFFFFD)
 
 /* Sentinel index stamped on a FREE old-gen slot by the mark-sweep collector
- * (rt/gc_heap.c). A freed slot also carries `mark == 0` and
- * threads the class free list through its `forward` field. The sentinel is a
- * belt-and-suspenders marker: `vader_gc_obj_size` returns 0 for it, so any heap
- * walk that keys off object size skips it; the region walks key off `mark`. */
+ * (rt/gc_heap.c). A freed slot also carries `mark == 0` and threads the class
+ * free list through its `forward` field. The region walks key off `mark`, so
+ * none sizes a free slot: `vader_gc_obj_size` would trap on the sentinel. */
 #define VADER_TYPE_INDEX_FREE UINT32_C(0xFFFFFFFC)
 
 /* Sentinel index of a FILLER: one `VADER_GC_ALIGN` unit of young from-space that
@@ -740,8 +734,7 @@ void* vader_gc_alloc(size_t bytes);
  *
  * The signed helpers also special-case `INT_MIN / -1` (and its remainder),
  * the other divide UB : the divide would fault or wrap unpredictably, so we
- * fold it to the two's-complement result via modular unsigned negation:
- * matching what the VM's own compiled `apply` lambda yields on arm64. Float
+ * fold it to the two's-complement result via modular unsigned negation. Float
  * divide keeps IEEE `inf` / `nan` semantics and is NOT routed here. */
 static inline int32_t vader_div_i32(int32_t a, int32_t b) {
     if (b == 0) vader_trap("i32.div by zero");
@@ -893,10 +886,10 @@ vader_array_t* vader_array_reserve(uint32_t type_index, int64_t n, uint8_t eleme
 
 /* Walk a buf's forwarding chain to its final address: the single home of that
  * loop. Every buf resolver guards with `buf != NULL && buf->header.forward !=
- * NULL` and delegates here (`vader_array_resolve_buf` and the two grow paths in
- * `vader_array_push` / `vader_array_push_all`); callers must have made that
- * check, so the first hop always advances. The sibling `vader_array_resolve`
- * walks the array HEADER's chain, a different object, and keeps its own loop.
+ * NULL` and delegates here (`vader_array_resolve_buf` and the grow path
+ * `vader_array_detach`); callers must have made that check, so the first hop
+ * always advances. The sibling `vader_array_resolve` walks the array HEADER's
+ * chain, a different object, and keeps its own loop.
  *
  * Outside a collection the only forward alive is the one `vader_gc_force_tenure`
  * leaves (see the `forward` field).
@@ -992,10 +985,9 @@ VADER_NOINLINE void vader_array_push_ref_slow(vader_array_t* a, void* obj);
  * buffer was really allocated boxed (an erased generic body, or a literal whose
  * element type was never resolved), writing 4 packed bytes into 16-byte slots
  * corrupts the array silently: no diagnostic, no trap, and only past the first
- * growth, which is what made two separate instances of this bug cost a
- * self-compile SIGSEGV each to find. Trapping here turns the whole family into
- * an immediate, located failure. Debug builds and the test suite get it;
- * `--release` passes -DNDEBUG and pays nothing (see `vader/tools/cli/main.vader`). */
+ * growth. This check traps at the push instead. Debug builds and the test suite
+ * get it; `--release` passes -DNDEBUG and pays nothing (`cc_opt_flags`,
+ * `vader/pipeline/emit.vader`). */
 #ifndef NDEBUG
 #define VADER_ARRAY_PUSH_KIND_CHECK(ctype)                                         \
     if (a->buf != NULL && vader_array_element_size(a->buf->element_kind) != sizeof(ctype)) { \
@@ -1079,15 +1071,13 @@ void           vader_array_clear(vader_array_t* a);
  * The PRIMARY interface is RAM-proportional and needs no manual tuning: at GC
  * init the runtime detects physical RAM (`vader_physical_ram_bytes`) and derives
  * the old reservation cap as a fraction of it: the same binary self-compiles on
- * an 8 GB laptop and a 64 GB workstation. This is the model the JVM
- * (`MaxRAMPercentage`) and Go (`GOMEMLIMIT`) converged on once absolute
- * `Xms`/`Xmx`-style sizes proved too fiddly per machine. See `vader_gc_init`.
+ * an 8 GB laptop and a 64 GB workstation. See `vader_gc_init`.
  *
  *   VADER_GC_RAM_PERCENT   commit ceiling the GC may reach, as % of RAM (default 50)
- *   old cap   = clamp(RAM × PERCENT% − young_committed, 256 MB, VADER_GC_OLD_MAX)
+ *   old cap   = clamp(RAM * PERCENT% - young_committed, 256 MB, VADER_GC_OLD_MAX)
  *
  * The old gen is ONE non-moving reservation sized at the cap, lazily committed
- * (no initial size, no 2× to-space, no relocation): untouched pages don't reside
+ * (no initial size, no 2x to-space, no relocation): untouched pages don't reside
  * on POSIX, and are reserved-not-committed on Windows. Young is a doubled
  * (from+to) malloc'd pair that auto-grows. The `VADER_GC_OLD_MAX` env var
  * overrides the cap (advanced escape hatch); `VADER_GC_YOUNG_BYTES` is the young
@@ -1117,8 +1107,8 @@ void           vader_array_clear(vader_array_t* a);
 
 /* Old-gen reclamation headroom. The non-moving slab never compacts, so a major
  * (which sweeps dead old in place) fires once the old footprint exceeds
- * `live_after_last_major × headroom` (see `vader_old_maybe_major`). Headroom
- * defaults to 3/2 (1.5×): enough slack that the next major isn't immediately
+ * `live_after_last_major * headroom` (see `vader_old_maybe_major`). Headroom
+ * defaults to 3/2 (1.5x): enough slack that the next major isn't immediately
  * back at the trigger. */
 #ifndef VADER_GC_OLD_HEADROOM_NUM
 #define VADER_GC_OLD_HEADROOM_NUM 3u
@@ -1128,7 +1118,7 @@ void           vader_array_clear(vader_array_t* a);
 #endif
 /* Reclamation-trigger floor for the non-moving mark-sweep old gen: a major (which
  * sweeps dead old) fires once the old footprint exceeds
- * `live_after_last_major × HEADROOM`, but never before it passes this floor, so
+ * `live_after_last_major * HEADROOM`, but never before it passes this floor, so
  * small programs never pay a major. Below the floor, the slab simply bumps. */
 #ifndef VADER_GC_OLD_MAJOR_FLOOR
 #define VADER_GC_OLD_MAJOR_FLOOR (64u * 1024u * 1024u)
@@ -1163,8 +1153,8 @@ void vader_major_collect(void);
 /* Card-table write barrier: called by the C-emit after every store of a
  * pointer-bearing field into a heap object. No-op for objects outside the
  * old generation (young objects can freely point anywhere; minor scans
- * young fully). Inlined as a macro so the hot path is two loads + a compare
- * + an optional byte store. */
+ * young fully). Inlined as a macro so the hot path is a range check and an
+ * optional byte store. */
 extern uint8_t*   vader_card_table;
 extern uintptr_t  vader_old_base;
 extern uintptr_t  vader_old_end;
@@ -1241,7 +1231,7 @@ static inline void vader_array_push_ref(vader_array_t* a, void* obj) {
     VADER_WRITE_BARRIER(buf);
 }
 
-/* Stats: exposed for tests / `runtime_gc_stats()` in stdlib. */
+/* Stats: read by `std/runtime` (`collections`, `bytes_used`) and the profiler. */
 typedef struct {
     size_t arena_size;        /* size of the old-gen reservation (the cap), in bytes */
     /* Old-gen LIVE bytes (recomputed at each sweep) plus the young ALLOCATION
@@ -1326,15 +1316,13 @@ extern const size_t             vader_type_info_count;
  * survive a safepoint (`needs_frame`, `vader/emit/c/frame.vader`). A fn the
  * emitter proves cannot allocate pushes none, and neither does a tail forwarder
  * (ADR 0106). That is one reason
- * the major collection still scans the C stack conservatively. The frames that
+ * the major collection scans the C stack conservatively. The frames that
  * exist chain through `prev` to form the precise root list the GC walks at
  * collection time.
  *
  * Indirect layout: each frame holds a `ptrs` array pointing to the calling
- * C function's ref-typed locals/tmps. This avoids restructuring the body's
- * local naming (locals stay as `lN`/`tN`) at the cost of one extra
- * dereference per root during scanning. The address-taken locals are pinned
- * to the C stack, which is what we need for precise GC anyway. */
+ * C function's ref-typed locals/tmps. Taking their address pins them to the
+ * C stack, which a precise GC needs. */
 typedef struct vader_gc_frame {
     struct vader_gc_frame* prev;
     uint32_t               nrefs;
@@ -1355,25 +1343,21 @@ typedef struct vader_gc_frame {
      * on the C stack. Scanned via `vader_gc_scan_object` so its pointer FIELDS
      * are forwarded across a collection: the object itself never moves. A stack
      * address is off-arena, so `vader_gc_forward` skips the object entirely;
-     * without this its captured heap refs go stale (the walk_elements closure-env
-     * use-after-forward bug). NULL until codegen registers the object once fully
-     * initialised. Appended last so existing positional frame initializers
-     * `{ prev, nrefs, nraw, ptrs, raw }` read nstack=0 / stack_objs=NULL. */
+     * without this its captured heap refs go stale. NULL until codegen registers
+     * the object once fully initialised. After `raw`, so a positional initializer
+     * `{ prev, nrefs, nraw, ptrs, raw }` reads nstack=0 / stack_objs=NULL. */
     void**                 stack_objs;
     /* Count of atom roots: `string` locals and parameters. */
     uint32_t               natoms;
     /* Atom roots : `atoms[i]` addresses a `vader_string_t` local. A string is an
      * atom ID (`uint32_t`), not a pointer, so it CANNOT live in `ptrs` or `raw`:
-     * both are pointer arrays. Without this list the only thing keeping a
-     * live atom alive was the conservative C-stack scan, which finds an ID only
-     * if the C compiler happened to spill it rather than keep it in a register.
-     * That made atom lifetime depend on register allocation: `concat_N` reads
-     * its parameters' LENGTHS, allocates the output buffer (a collection point),
-     * then reads their BYTES, and a swept parameter yielded a zeroed prefix of
-     * exactly the right length.
+     * both are pointer arrays. The conservative C-stack scan is no substitute:
+     * it finds an ID only if the C compiler spilled it rather than kept it in a
+     * register, and a string must survive a collection point between two reads
+     * (`concat_N` reads its parameters' lengths, allocates the output buffer,
+     * then reads their bytes).
      *
-     * Appended last so existing positional initializers read natoms=0 /
-     * atoms=NULL. */
+     * Last, so a shorter positional initializer reads natoms=0 / atoms=NULL. */
     vader_string_t**       atoms;
 } vader_gc_frame_t;
 
@@ -1381,8 +1365,9 @@ extern vader_gc_frame_t* vader_gc_top;
 
 /* Push a one-slot shadow-stack frame around a `vader_box_t` on the C stack.
  * Used by runtime helpers that allocate (and thus may collect) after binding
- * a fresh ref. Pair with `VADER_GC_POP()` on every return path. The block
- * scopes `__roots`/`__frame` so multiple pushes nest cleanly. */
+ * a fresh ref. Pair with `VADER_GC_POP()` on every return path. It declares
+ * `__roots`/`__frame` in the enclosing block, so a nested push needs a block of
+ * its own. */
 #define VADER_GC_PUSH1(box_lvalue)                                               \
     vader_box_t* __roots[1] = { &(box_lvalue) };                                 \
     vader_gc_frame_t __frame = { vader_gc_top, 1u, 0u, __roots };                \
@@ -1424,7 +1409,7 @@ typedef struct {
  * entries in LIFO order. The GC scan treats the stack as a root so
  * captures stay live between push and pop_exec.
  *
- * Panic-unwind IS wired: `vader_trap` and `vader_panic` drain the whole defer
+ * Panic unwinding: `vader_trap` and `vader_panic` drain the whole defer
  * stack LIFO before `abort()`, guarded by `g_unwinding` so a defer that itself
  * traps does not recurse. No setjmp/longjmp is involved, see
  * `vader_run_pending_defers`. */
@@ -1435,8 +1420,8 @@ void vader_defer_pop_exec(uint32_t count);
  *
  * `vader_current_os` reports the OS the process is RUNNING on, as the ordinal of
  * `std/target::Os`: Windows 0, Linux 1, Darwin 2, Wasi 3, Browser 4. The
- * coupling is the same shape as `Stream`'s (Stdout 0, Stderr 1) and is stated on
- * both sides; reorder the Vader enum and this must move with it.
+ * coupling is stated on both sides; reorder the Vader enum and this must move
+ * with it.
  *
  * This is NOT the compilation target. `VADER_OS` answers that, is baked at build
  * time, and is what `@target` selects on. This one is resolved at runtime, which
@@ -1456,7 +1441,7 @@ int32_t        vader_current_arch(void);
 /* String `Hash`: returns the 64-bit hash of the bytes, cached on the atom entry
  * at intern (computed once per unique string, not per call). O(1) field read, no
  * loop, no allocation. Content-based so map iteration order stays GC-stable.
- * Backs `string implements Hash` → `MutableMap` bucketing. */
+ * Backs `string implements Hash` -> `MutableMap` bucketing. */
 static inline uint64_t vader_string_hash(vader_string_t s) {
     return vader_atom_entries[s].hash;
 }
@@ -1518,7 +1503,7 @@ vader_array_t* vader_string_bytes_view(vader_string_t s, uint32_t arr_type, uint
 vader_string_t vader_string_as_string(vader_array_t* a);
 
 /* Process-level argv plumbing: emitted `main` calls this to materialise its
- * `[string]` argument from the host argv. */
+ * `string[]` argument from the host argv. */
 vader_array_t* vader_runtime_argv(int argc, char** argv,
                                   uint32_t arr_type, uint32_t str_type);
 

@@ -11,8 +11,8 @@
  * `vader_gc_alloc` triggers a minor collect. Forces every safepoint to
  * exercise the full shadow-stack walk, which turns intermittent rooting bugs
  * into deterministic failures. Atoms are collected only by a major:
- * `VADER_GC_STRESS_MAJOR` exercises them. Off by
- * default: the 100×–10000× slowdown is reserved for debugging sessions.
+ * `VADER_GC_STRESS_MAJOR` exercises them. Off by default: it slows a run by
+ * orders of magnitude.
  * Captured once on init; the env var has no effect mid-run. */
 static int g_gc_stress = 0;
 
@@ -27,7 +27,7 @@ static int g_gc_stress_major = 0;
  * `vader_gc_scan_box` traps the first time it meets a box whose `tag` is
  * neither NULL (0) nor a valid type index (< vader_type_info_count). Such a
  * tag can only be stray bytes (a heap-pointer's low 32 bits), so it pinpoints
- * which GC cycle first observes a corrupted bucket box, and whether the box's
+ * which GC cycle first observes a corrupted box, and whether the box's
  * payload still points at a valid heap object (tag-only clobber) or not. Off
  * by default: the scan's existing `tag >= count` fast-path stays silent.
  *
@@ -44,10 +44,10 @@ static int g_gc_no_cstack_scan = 0;
 
 /* Old-gen scan override: set via `VADER_GC_SCAN_ALL_OLD=1`. Forces
  * `vader_gc_scan_old_dirty_cards` to treat every card as dirty, i.e. to scan
- * and forward EVERY old object's slots on each minor. A/B probe: if a
- * self-host crash that reproduces under tight young arenas disappears with
- * this on, the bug is a missing card-mark (a write barrier that didn't fire
- * on an old→young edge), not the GC scan itself. Off by default. */
+ * and forward EVERY old object's slots on each minor. A/B probe: if a crash
+ * disappears with this on, the bug is a missing card-mark (a write barrier
+ * that didn't fire on an old->young edge), not the GC scan itself. Off by
+ * default. */
 static int g_gc_scan_all_old = 0;
 
 /* Young poison mode, set via `VADER_GC_POISON=1`: at the end of every minor, the
@@ -57,8 +57,9 @@ static int g_gc_poison = 0;
 
 static int g_gc_profile = 0;
 
-/* ---- per-type allocation counter (VADER_ALLOC_BY_TYPE) --------------------
- * Storage + dump for the counter declared in vader.h. Sorted by count, since
+/* ---- per-type allocation counter (VADER_ALLOC_BY_TYPE) ------------------- */
+
+/* Storage + dump for the counter declared in vader.h. Sorted by count, since
  * the question it answers is "what does this run allocate MOST of". */
 uint64_t vader_alloc_by_type[VADER_ALLOC_TYPES_MAX];
 int      vader_alloc_by_type_on = 0;
@@ -103,13 +104,12 @@ static void vader_alloc_by_type_dump(void) {
  *
  * Letting it through is not a missed root, it is a WRITE: `vader_gc_forward`
  * reaches `vader_gc_copy_into`, which stores the forwarding pointer INTO the
- * source: 8 bytes at an arbitrary arena address, silently. UBSan reports it as
- * a `member access within misaligned address`; this check catches it in the
- * shipped binary, on demand.
+ * source: 8 bytes at an arbitrary arena address, silently. This check catches
+ * it in the shipped binary, on demand.
  *
- * Deliberately NOT `#ifndef NDEBUG`. The divergence it explains appears only in
- * `-O3 -DNDEBUG -flto` builds: stack layout is what decides which stray bytes
- * are visible, so a debug-only guard would never fire where the bug lives.
+ * Deliberately NOT `#ifndef NDEBUG`: stack layout decides which stray bytes are
+ * visible, so the bug may show only in an optimised release build, where a
+ * debug-only guard would not exist.
  *
  * Out of line: `vader_gc_forward` tests the flag itself, a single load-and-test
  * the branch predictor never misses. */
@@ -209,7 +209,7 @@ static void vader_gc_old_histogram(void) {
     }
 }
 
-/* ---------- VADER_GC_PROFILE: live-set breakdown by type ---------- */
+/* ---- VADER_GC_PROFILE: live-set breakdown by type ------------------------ */
 
 typedef struct {
     uint32_t type_index;
@@ -300,8 +300,8 @@ static const char* vader_array_kind_name(int kind) {
     return names[kind];
 }
 
-/* Walk both arenas' from-spaces and tally objects bucketed by type_index.
- * Sort by total bytes, print top-20. Called via atexit when
+/* Walk young's from-space and old's live slots and tally objects bucketed by
+ * type_index. Sort by total bytes, print top-20. Called via atexit when
  * VADER_GC_PROFILE is set, and inline from the OOM trap (abort() skips
  * atexit). */
 static void vader_gc_profile_dump(void) {
@@ -389,9 +389,9 @@ static void vader_gc_profile_dump(void) {
     double arr_real_mb    = (double) (arr_ref_slots    * saving) / (1024.0 * 1024.0);
     double struct_real_mb = (double) (struct_ptr_slots * saving) / (1024.0 * 1024.0);
     fprintf(stderr, "reclaimable as raw refs (%zu B/slot) :\n", saving);
-    fprintf(stderr, "  array all-ref slots = %llu  →  %.2f MB (Any[] excluded)\n",
+    fprintf(stderr, "  array all-ref slots = %llu  ->  %.2f MB (Any[] excluded)\n",
             (unsigned long long) arr_ref_slots, arr_real_mb);
-    fprintf(stderr, "  struct box fields   = %llu  →  %.2f MB (upper bound, a union of primitives stays boxed)\n",
+    fprintf(stderr, "  struct box fields   = %llu  ->  %.2f MB (upper bound, a union of primitives stays boxed)\n",
             (unsigned long long) struct_ptr_slots, struct_real_mb);
-    fprintf(stderr, "  combined            →  %.2f MB\n", arr_real_mb + struct_real_mb);
+    fprintf(stderr, "  combined            ->  %.2f MB\n", arr_real_mb + struct_real_mb);
 }

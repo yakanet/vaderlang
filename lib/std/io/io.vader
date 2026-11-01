@@ -146,8 +146,8 @@ win32_error_kind :: fn(e: u32) -> IOErrorKind {
 
 /// A standard output stream. Used by the `print` / `println` / `eprint` /
 /// `eprintln` wrappers below to pick a target, and exported so terminal-aware
-/// code (e.g. `std/tty::is_tty`) can name a stream. The two variants carry tags
-/// 0 (`Stdout`) and 1 (`Stderr`), matching the runtime write primitive.
+/// code (e.g. `std/tty::is_tty`) can name a stream. `write_bytes` maps each
+/// variant to its file descriptor, or to its standard handle on Windows.
 export Stream :: enum {
     Stdout,
     Stderr,

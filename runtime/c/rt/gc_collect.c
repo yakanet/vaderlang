@@ -7,9 +7,10 @@
 
 #include "internal.h"
 
-/* Old-gen mark bit value for the CURRENT epoch. Toggles 1↔2 each major so a
+/* Old-gen mark bit value for the CURRENT epoch. Toggles 1<->2 each major so a
  * previous epoch's marks read as "unmarked" without a clear pass; a FREE slot
- * carries 0 (never equal to g_mark_value). `vader_old_alloc` stamps live=this. */
+ * carries 0 (never equal to g_mark_value). `vader_gc_promote` stamps it on a
+ * promoted object. */
 static uint8_t g_mark_value = 1u;
 
 /* Set the first time a Vader function's ADDRESS is handed to C (`fn.addr`).
@@ -70,7 +71,6 @@ static VADER_NOINLINE void vader_gray_grow(void) {
     g_gray_cap   = new_cap;
 }
 
-/* Push an object onto the gray worklist. */
 static inline void vader_gray_push(char* obj) {
     if (VADER_UNLIKELY(g_gray_len == g_gray_cap)) vader_gray_grow();
     g_gray_stack[g_gray_len++] = obj;
@@ -147,15 +147,13 @@ static void vader_gc_mark_cstack_conservative(void) {
     }
 }
 
-/* ---------- generational GC: copying young, mark-sweep old ---------- */
+/* ---- generational GC: copying young, mark-sweep old ---------------------- */
 
-/* Size of an object in a from-space, in bytes. For variable-length buffers
- * (ARRAY_BUF sentinel) the size is read off the object itself; for
- * everything else the type info table provides a static size. TRAPS on a
- * non-heap kind or an out-of-range index: a zero size would be silently
- * skipped, leaving a mis-stamped object invisible to three heap walks at once.
- * The `bytes == 0` guards left at the call sites are unreachable and kept only
- * as defence. */
+/* Size of a heap object, in bytes. For variable-length buffers (ARRAY_BUF
+ * sentinel) the size is read off the object itself; for everything else the
+ * type info table provides a static size. TRAPS on a non-heap kind or an
+ * out-of-range index, so it never returns 0: the `bytes == 0` guards at the
+ * call sites are unreachable and kept only as defence. */
 static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
     if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
         vader_array_buf_t* buf = (vader_array_buf_t*) obj;
@@ -169,11 +167,10 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
      * header with a type index carrying no `vader_type_info` entry (the table
      * covers Struct / Fn / Array only, so an erased `ref` gets none).
      *
-     * Every caller reads a 0 as "stop": the Cheney drain would stop forwarding,
-     * the major's survivor walk would stop marking (so live OLD objects would go
-     * unmarked and be swept), and the atom mark would stop, freeing the bytes of
-     * strings still in use. One un-sizeable object would become corruption
-     * somewhere else entirely, so trap at the object. */
+     * A 0 would carry the damage away from the object: the minor would leave
+     * it unmoved in the from-space it abandons, and the young walk would stop
+     * there, so the atom mark would free the bytes of strings still in use.
+     * Trap at the object instead. */
     if (type_index >= vader_type_info_count) {
         vader_trap("vader_gc: heap object with a type index past the info table");
     }
@@ -187,10 +184,8 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
 
 /* Place a copy of `obj` in `target` and return the new address. Updates the
  * source header's `forward` slot, clears the destination's so the freshly
- * copied object looks live (not yet forwarded) within this cycle. The
- * destination's age is overwritten by the caller to reflect promotion
- * semantics. Returns NULL if `target` doesn't have room: the caller is
- * expected to react (promotion overflow → escalate to major).
+ * copied object looks live (not yet forwarded) within this cycle. The caller
+ * sets the destination's age. Returns NULL if `target` doesn't have room.
  *
  * Never leaves a filler ahead of an array buffer, unlike its allocation: the
  * copies then take no more room than the from-space held, which the size of the
@@ -265,8 +260,7 @@ static VADER_NOINLINE void* vader_gc_evacuate(void* obj, vader_obj_header_t* hdr
  * Pointers outside any GC arena are immortal: static compile-time data
  * (lookup tables, interned constants) lives in the C data segment and is never
  * copied or marked (it carries no refs into the arena, so it's a trace
- * dead-end). The C-emit may emit such tables for fns matching the
- * `match enum -> StructLit constant` pattern.
+ * dead-end). The C emitter places the comptime data pool there.
  * Constraint: a static object MUST NOT contain any pointer to a dynamic
  * (arena-allocated) object: the trace never visits it, so any inner dynamic
  * ref would be missed and freed under your feet. */
@@ -299,9 +293,8 @@ static inline void* vader_gc_forward(void* obj, uint32_t type_index) {
  *
  * If `boxp` lives in an old-gen object (`VADER_WRITE_BARRIER` tests it) and the
  * forwarded ref ends up in young, mark the card dirty: future minors must
- * rescan this slot, and neither the original `array_push` write barrier (fired
- * on user mutation, not on this Cheney write) nor scan_old_dirty_cards covers
- * it. */
+ * rescan this slot, and neither the mutator's write barrier (fired on a store,
+ * not on this Cheney write) nor scan_old_dirty_cards covers it. */
 static void vader_gc_scan_box(vader_box_t* boxp) {
     if (boxp == NULL) return;
     if (boxp->tag == VADER_TYPE_INDEX_BUFFER) {
@@ -371,7 +364,7 @@ static size_t vader_gc_scan_object(char* scan) {
             }
         } else if (buf->element_kind == VADER_ARRAY_KIND_REF) {
             /* 8-byte raw-ref slots: forward each via scan_raw (handles
-             * NULL slots + the old→young write barrier). */
+             * NULL slots + the old->young write barrier). */
             void** slots = (void**) buf->slots;
             for (size_t i = 0; i < buf->length; i++) {
                 vader_gc_scan_raw(&slots[i]);
@@ -447,10 +440,9 @@ static inline size_t vader_next_dirty_card(const uint8_t* dirty, size_t c, size_
     return c;
 }
 
-/* Forward every old→young pointer, then leave the card table holding EXACTLY
- * the cards whose old objects still point young: the second half of the
- * standard generational card protocol (HotSpot Serial/Parallel, .NET CoreCLR,
- * GC Handbook): the write barrier MARKS, the minor CLEANS + REDIRTIES.
+/* Forward every old->young pointer, then leave the card table holding EXACTLY
+ * the cards whose old objects still point young: the write barrier MARKS, the
+ * minor CLEANS + REDIRTIES.
  *
  * Snapshot the live dirty set into `g_card_shadow`, clear the live table, and
  * card-drive the scan: per region, skip clean (snapshot) cards without touching
@@ -458,9 +450,7 @@ static inline size_t vader_next_dirty_card(const uint8_t* dirty, size_t c, size_
  * slot that still references young re-dirties its LIVE card via the barrier in
  * `vader_gc_scan_box`/`_raw`; a slot whose referent tenured to old leaves its
  * card clean. So after the scan a card is dirty iff a live old object in it
- * still holds a young pointer: the dirty set collapses to the true old→young
- * edges instead of accreting until the next major (the old "rescan most of the
- * old heap every minor" cost: O(old slots) → O(dirty cards + live edges)).
+ * still holds a young pointer.
  *
  * Snapshot-then-scan (rather than clear-as-you-go) is load-bearing: an object
  * can span two cards, and a redirty written while scanning the first card must
@@ -469,18 +459,19 @@ static inline size_t vader_next_dirty_card(const uint8_t* dirty, size_t c, size_
  * scans each spanning object at most once.
  *
  * Invariant: the mutator write barrier dirties a field's card on every
- * old→young store, so before the minor every live old→young field sits under a
- * dirty snapshot card: none is missed. (VADER_GC_SCAN_ALL_OLD keeps every card
- * dirty and skips the clear: the missing-barrier A/B probe scans all of old.) */
+ * old->young store, so before the minor every live old->young field sits under
+ * a dirty snapshot card: none is missed. `VADER_GC_SCAN_ALL_OLD` skips the
+ * snapshot and the clear, and scans every card. */
 static void vader_gc_scan_old_dirty_cards(void) {
     if (g_old_regions == NULL || g_old_bump == g_old_block) return;
     size_t used_cards = vader_old_used_cards();
 
     /* Snapshot, then clear. Clearing here is safe because the only forwarding
      * done earlier in the minor (vader_gc_scan_roots) touches off-heap root /
-     * defer cells (below the barrier's [old_base, old_end) guard), so it cannot
-     * dirty a card the clear would wipe; every card-redirtying forward (this
-     * scan + the gray drain that follows it) runs at or after this clear. */
+     * defer cells (outside the barrier's [old_base, old_end) guard), so it
+     * cannot dirty a card the clear would wipe; every card-redirtying forward
+     * (this scan + the gray drain that follows it) runs at or after this
+     * clear. */
     const uint8_t* dirty = NULL;
     if (!g_gc_scan_all_old) {
         memcpy(g_card_shadow, vader_card_table, used_cards);
@@ -607,7 +598,7 @@ void vader_major_collect(void) {
      * pushes to the gray worklist instead of copying. Seed from roots + every
      * young survivor (kept whole during the old pass; scanning them marks the
      * old objects they reference), then drain the gray worklist for the
-     * transitive old→old closure. */
+     * transitive old->old closure. */
     g_cycle = VADER_CYCLE_MAJOR;
     g_gray_len = 0;
     vader_gc_scan_roots();
@@ -690,8 +681,7 @@ void vader_ffi_callback_first_escape(void) {
  * `vader_ffi_callback_escaped` rather than doing this on every lend.
  *
  * Returns the tenured address, or the original when the old generation is at its
- * cap: a lend that could not be secured, which is the pre-existing hazard and
- * not a new one. */
+ * cap: the object then stays movable. */
 static void* vader_gc_force_tenure(void* obj) {
     if (!vader_in_young_from(obj)) return obj;   /* old or immortal: already still */
     vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
@@ -701,10 +691,7 @@ static void* vader_gc_force_tenure(void* obj) {
     void* dst = vader_gc_promote(obj, hdr, bytes, VADER_TENURE_AGE);
     if (dst == NULL) return obj;
     /* No cycle is running to trace the copy, so mark its card: the next minor
-     * scans it for old->young edges. The buffers this tenures today are
-     * scalar-element (`vader_array_bytes` traps on BOXED and REF above), so it
-     * finds none: the mark is what keeps the helper correct for a caller that
-     * tenures something with reference slots. */
+     * scans it for old->young edges. */
     VADER_WRITE_BARRIER(dst);
     return dst;
 }

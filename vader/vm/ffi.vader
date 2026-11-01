@@ -45,8 +45,8 @@ module "vader/vm"
 /// argument slots, eight bytes each, followed by whatever an offset slot points
 /// into; the result is written back over its first eight bytes.
 ///
-/// This is what lets ONE primitive serve every signature: covering a new ABI
-/// shape widens a switch in `runtime/c/rt/ffi.c` and touches no Vader.
+/// This is what lets ONE primitive serve every covered signature: a shape
+/// covered in `runtime/c/rt/ffi.c` is also taught to `adapter_reason`.
 ///
 /// @param fn_ptr  the address from `ffi_symbol`.
 /// @param desc    the class of the result, then of each argument.

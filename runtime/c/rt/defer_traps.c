@@ -17,7 +17,7 @@
  *
  * Panic-unwind : a trap runs the pending defers before aborting. No
  * setjmp/longjmp is needed: `g_defer_stack` already holds exactly the
- * pending defers of the live call chain (pushed on scope entry, popped on
+ * pending defers of the live call chain (pushed at each `defer`, popped on
  * structured exit), so `vader_trap` / `vader_panic` drain the whole stack
  * LIFO, which is precisely unwind order. `g_unwinding` guards against a
  * defer that itself traps (double-panic) : the second trap aborts at once
@@ -58,7 +58,7 @@ void vader_defer_pop_exec(uint32_t count) {
 
 
 
-/* ----------------------------------------------------------------- traps */
+/* ---- traps --------------------------------------------------------------- */
 
 #if defined(_WIN32)
 /* Write UTF-8 `text` to the console `h` as UTF-16, which it renders whatever its
