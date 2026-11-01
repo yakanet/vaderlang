@@ -34,11 +34,11 @@
   }
   snippet.chain_survives :: fn() -> i32 {  // snippet$chain_survives
       head: Node = snippet.build_chain(200)
-      before: i32 = std.runtime.collections()
+      before: i64 = std.runtime.collections()
       std.runtime.collect()
-      after: i32 = std.runtime.collections()
-      diff: i32 = after - before
-      if diff != 1 {
+      after: i64 = std.runtime.collections()
+      diff: i64 = after - before
+      if diff != i64(1) {
           std.io.println<string>({
               __buf_0: Buffer = std.core.new_byte_buffer(i64(54))
               __off_1: i64 = 0
@@ -73,13 +73,13 @@
   }
   snippet.chain_survives_three_collections :: fn() -> i32 {  // snippet$chain_survives_three_collections
       head: Node = snippet.build_chain(50)
-      c1: i32 = std.runtime.collections()
+      c1: i64 = std.runtime.collections()
       std.runtime.collect()
       std.runtime.collect()
       std.runtime.collect()
-      c2: i32 = std.runtime.collections()
-      diff: i32 = c2 - c1
-      if diff != 3 {
+      c2: i64 = std.runtime.collections()
+      diff: i64 = c2 - c1
+      if diff != i64(3) {
           std.io.println<string>({
               __buf_0: Buffer = std.core.new_byte_buffer(i64(55))
               __off_1: i64 = 0
@@ -122,11 +122,11 @@
               i = i +% 1
           }
       }
-      before: i32 = std.runtime.collections()
+      before: i64 = std.runtime.collections()
       std.runtime.collect()
-      after: i32 = std.runtime.collections()
-      diff: i32 = after - before
-      if diff != 1 {
+      after: i64 = std.runtime.collections()
+      diff: i64 = after - before
+      if diff != i64(1) {
           std.io.println<string>({
               __buf_0: Buffer = std.core.new_byte_buffer(i64(54))
               __off_1: i64 = 0

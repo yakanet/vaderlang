@@ -1,0 +1,5 @@
+{
+  "vm": {
+    "skip": "the VM has no collector: its allocation counters stay at 0"
+  }
+}

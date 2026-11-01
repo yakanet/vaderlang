@@ -163,8 +163,8 @@ static void vader_host_std_runtime$collect(void) {
     vader_gc_collect();
 }
 
-static int32_t vader_host_std_runtime$collections(void) {
-    return (int32_t) vader_gc_get_stats().total_collections;
+static int64_t vader_host_std_runtime$collections(void) {
+    return (int64_t) vader_gc_get_stats().total_collections;
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -189,10 +189,11 @@ static int32_t snippet$main(void) {
     vader_box_t t3 = vader_box_null();
     bool t4;
     uint8_t t5;
-    vader_string_t t6 = 0;
+    int64_t t6;
+    vader_string_t t7 = 0;
     vader_box_t* gc_roots[2] = { &l15, &t3 };
     void** gc_raw_roots[6] = { &l0, &l1, &l2, &l7, &l10, &t0 };
-    vader_string_t* gc_atom_roots[3] = { &l6, &l13, &t6 };
+    vader_string_t* gc_atom_roots[3] = { &l6, &l13, &t7 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 2u, 6u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
@@ -300,11 +301,11 @@ static int32_t snippet$main(void) {
     l5 = std_collections$len__string__i32(l1);
     l4 = std_core$write_int(l0, l4, l5);
     l4 = std_core$write_string_at(l0, l4, 4u);
-    t1 = vader_host_std_runtime$collections();
-    l18 = (t1 > INT32_C(0));
+    t6 = vader_host_std_runtime$collections();
+    l18 = (t6 > INT64_C(0));
     l4 = std_core$write_bool(l0, l4, l18);
-    t6 = std_core$finish_buffer(l0, l4);
-    std_io$println__string(t6);
+    t7 = std_core$finish_buffer(l0, l4);
+    std_io$println__string(t7);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 

@@ -1,15 +1,23 @@
-// std/runtime: runtime introspection and controls (GC and scheduler).
+// std/runtime: runtime introspection and controls (GC, memory and scheduler).
 //
 // Lives in std/ rather than a hypothetical internal/ namespace because Vader
 // has no compiler-private visibility tier today and Go-style "runtime"
 // naming already signals the intent. Mostly intended for test harnesses
 // and stress tests ; user programs should rarely need to call these.
+//
+// The VM (`vader run`, `vader test`) has no collector of its own: there
+// `collect()` only counts a cycle, and the byte and allocation counters read 0.
 
 module "std/runtime"
 
 import "std/collections"
 import "std/env"
+import "std/io"
+import "std/numbers"
+import "std/string"
 import "std/time"
+import "system/darwin"
+import "system/posix"
 
 /// Force a full collection now: a minor, then a major over the old
 /// generation. Returns once it completes.
@@ -21,21 +29,91 @@ export collect :: fn() -> void
 /// `collect()` actually ran.
 /// @return  total cycle count since process start.
 @intrinsic
-export collections :: fn() -> i32
+export collections :: fn() -> i64
 
 /// Old-generation live bytes plus the young generation's allocation. Right
 /// after `collect()` this is the live-object footprint ; mid-mutation it also
 /// counts uncollected garbage.
 /// @return  the bytes in use, old and young.
 @intrinsic
-export bytes_used :: fn() -> i32
+export bytes_used :: fn() -> i64
 
 /// Cumulative bytes copied across all collections. A coarse measure of
 /// total GC work: divide by `collections()` for the average per-cycle
 /// payload.
 /// @return  total bytes copied since process start.
 @intrinsic
-export bytes_copied :: fn() -> i32
+export bytes_copied :: fn() -> i64
+
+/// Cumulative bytes requested from the collector since process start. Counts
+/// every allocation only once `count_allocations()` has run, and a part of them
+/// before. 0 under the VM, which has no collector.
+/// @return  the bytes allocated, as requested.
+@intrinsic
+export allocated_bytes :: fn() -> i64
+
+/// Number of allocations made through the collector since process start,
+/// counted as `allocated_bytes()` counts their bytes.
+/// @return  the allocation count.
+@intrinsic
+export allocations :: fn() -> i64
+
+/// Count every allocation from now on, so that `allocated_bytes()` and
+/// `allocations()` miss none. Each allocation then leaves the inline path,
+/// which slows it down. Counting stays on for the rest of the run.
+@intrinsic
+export count_allocations :: fn() -> void
+
+// ---- memory footprint -----------------------------------------------------
+
+/// The most memory the process has held resident at once, in bytes: it never
+/// decreases. 0 where the platform gives no reading, as on Windows.
+/// @return  the peak resident set size, in bytes.
+@target
+export peak_resident_bytes :: fn() -> i64 = 0
+
+@target(.Linux, .Darwin)
+peak_resident_bytes :: fn() -> i64 {
+    usage: i64[]: [0] * RUSAGE_CELLS
+    if sys_getrusage(RUSAGE_SELF, usage) != 0 {
+        return 0
+    }
+    return usage[RU_MAXRSS_CELL] * RU_MAXRSS_UNIT
+}
+
+/// The memory the process holds resident now, in bytes. Where the platform
+/// gives no current reading, the peak stands in for it.
+/// @return  the resident set size, in bytes.
+@target
+export resident_bytes :: fn() -> i64 = peak_resident_bytes()
+
+@target(.Darwin)
+resident_bytes :: fn() -> i64 {
+    info: u64[]: [0] * 6
+    count: u32[]: [MACH_TASK_BASIC_INFO_COUNT]
+    if task_info(mach_task_self(), MACH_TASK_BASIC_INFO, info, count) != KERN_SUCCESS {
+        return peak_resident_bytes()
+    }
+    return i64(info[1])
+}
+
+// `/proc/self/statm` holds sizes in pages, the resident set second.
+@target(.Linux)
+resident_bytes :: fn() -> i64 {
+    statm :: read_file_string("/proc/self/statm")
+    if statm is IOError {
+        return peak_resident_bytes()
+    }
+    fields :: statm.split(" ")
+    if fields.len() < 2 {
+        return peak_resident_bytes()
+    }
+    pages :: parse_int_in_base(fields[1], 10)
+    if pages is ParseError {
+        return peak_resident_bytes()
+    }
+    return pages * sys_sysconf(SC_PAGESIZE)
+}
 
 // ---- cooperative async scheduler (std/async backend) ----------------------
 
@@ -117,4 +195,11 @@ test_sched_park_advances_to_the_nearest_deadline :: fn() -> void {
     assert(sched_park(), "park to the second deadline")
     assert_eq(sched_now(), start + 3)
     assert(!sched_park(), "nothing left armed")
+}
+
+@test
+test_resident_bytes_read_the_process_where_the_platform_tells :: fn() -> void {
+    readable :: VADER_OS != .Windows
+    assert((resident_bytes() > 0) == readable, "the resident set, where the platform gives it")
+    assert((peak_resident_bytes() > 0) == readable, "the peak, where the platform gives it")
 }

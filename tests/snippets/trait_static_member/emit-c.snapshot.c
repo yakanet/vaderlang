@@ -419,7 +419,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_0_buf = {
     },
 };
 static const vader_array_t vader_data_0 = {
-    { 22u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
+    { 21u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 14u, 4u,
@@ -753,7 +753,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
     },
 };
 static const vader_array_t vader_data_1 = {
-    { 22u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
+    { 21u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 
 static void* snippet$Sq$Shape$unit(int32_t l0);
@@ -1055,7 +1055,7 @@ static int32_t snippet$main(void) {
     t0 = std_core$BigInt$Zero$zero();
     t2 = ((vader_array_t*) t0)->length;
     std_io$println__i64(t2);
-    vader_array_t* _a4_arr = vader_array_new(21u, 3u, 7u, 1u);
+    vader_array_t* _a4_arr = vader_array_new(22u, 3u, 7u, 1u);
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 2u] = (int32_t) INT32_C(4);
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 1u] = (int32_t) INT32_C(3);
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = (int32_t) INT32_C(2);

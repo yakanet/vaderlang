@@ -320,8 +320,8 @@ static void vader_host_std_runtime$collect(void) {
     vader_gc_collect();
 }
 
-static int32_t vader_host_std_runtime$collections(void) {
-    return (int32_t) vader_gc_get_stats().total_collections;
+static int64_t vader_host_std_runtime$collections(void) {
+    return (int64_t) vader_gc_get_stats().total_collections;
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -460,7 +460,8 @@ static int32_t snippet$main(void) {
     double t3;
     float t4;
     int32_t t5;
-    bool t6;
+    int64_t t6;
+    bool t7;
     vader_box_t* gc_roots[1] = { &t2 };
     void** gc_raw_roots[4] = { &l2, &l10, &l15, &t1 };
     vader_string_t* gc_atom_roots[4] = { &l0, &l5, &l6, &t0 };
@@ -711,8 +712,8 @@ static int32_t snippet$main(void) {
     l7 = ((int64_t) (int32_t) l4);
     l1 = std_core$write_int(l2, l1, l7);
     l1 = std_core$write_string_at(l2, l1, 14u);
-    t5 = vader_host_std_runtime$collections();
-    l3 = (t5 > INT32_C(0));
+    t6 = vader_host_std_runtime$collections();
+    l3 = (t6 > INT64_C(0));
     l1 = std_core$write_bool(l2, l1, l3);
     t0 = std_core$finish_buffer(l2, l1);
     std_io$println__string(t0);
@@ -728,16 +729,16 @@ static int32_t snippet$main(void) {
     vader_array_t* _a21_slotarr = ((vader_array_t*) t1);
     VADER_ARRAY_RESOLVE_BUF(_a21_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a21_slotarr, INT32_C(0))
-    t6 = ((uint8_t*) _a21_slotarr->buf->slots)[_a21_slotarr->offset + (size_t) INT32_C(0)];
-    l3 = t6;
+    t7 = ((uint8_t*) _a21_slotarr->buf->slots)[_a21_slotarr->offset + (size_t) INT32_C(0)];
+    l3 = t7;
     l1 = std_core$write_bool(l2, l1, l3);
     l1 = std_core$write_string_at(l2, l1, 9u);
     t1 = snippet$flags();
     vader_array_t* _a22_slotarr = ((vader_array_t*) t1);
     VADER_ARRAY_RESOLVE_BUF(_a22_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a22_slotarr, INT32_C(2))
-    t6 = ((uint8_t*) _a22_slotarr->buf->slots)[_a22_slotarr->offset + (size_t) INT32_C(2)];
-    l3 = t6;
+    t7 = ((uint8_t*) _a22_slotarr->buf->slots)[_a22_slotarr->offset + (size_t) INT32_C(2)];
+    l3 = t7;
     l1 = std_core$write_bool(l2, l1, l3);
     l1 = std_core$write_string_at(l2, l1, 16u);
     t1 = snippet$flags();

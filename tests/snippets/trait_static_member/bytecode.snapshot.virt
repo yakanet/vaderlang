@@ -20,8 +20,8 @@ type 17 struct __Tuple_u64_u64_u64_2d035edd { _0:14,_1:14,_2:14 }
 type 18 scalar u8
 type 19 array 18
 type 20 scalar void
-type 21 array 1
-type 22 array 14
+type 21 array 14
+type 22 array 1
 type 23 array 15
 string 0 "true"
 string 1 "false"
@@ -260,7 +260,7 @@ fn 7 snippet$main () -> i32
   i32.const 2
   i32.const 3
   i32.const 4
-  array.new 21 3   ; i32[]
+  array.new 22 3   ; i32[]
   local.set 0   ; s
   call 24   ; std_core$i32$One$one
   local.set 4   ; x
@@ -901,11 +901,11 @@ fn 27 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 22   ; pool[0] u64[]
+    data.const 0 21   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 22   ; pool[0] u64[]
+    data.const 0 21   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -1015,11 +1015,11 @@ fn 27 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 22   ; pool[1] u64[]
+    data.const 1 21   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 22   ; pool[1] u64[]
+    data.const 1 21   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1

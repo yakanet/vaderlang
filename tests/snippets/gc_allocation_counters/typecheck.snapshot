@@ -1,0 +1,33 @@
+# Typecheck
+
+## tests/snippets/gc_allocation_counters
+  FnDecl         main                 :: fn() -> i32
+  expr 10:5     CallExpr       :: void
+  expr 10:5     IdentExpr      :: fn() -> void
+  expr 11:27    CallExpr       :: i64
+  expr 11:27    IdentExpr      :: fn() -> i64
+  expr 12:21    CallExpr       :: i64
+  expr 12:21    IdentExpr      :: fn() -> i64
+  expr 13:19    BinaryExpr     :: u8[]
+  expr 13:19    SeqLitExpr     :: u8[]
+  expr 14:13    StringLitExpr  :: string
+  expr 14:40    BinaryExpr     :: bool
+  expr 14:40    CallExpr       :: i64
+  expr 14:40    IdentExpr      :: fn() -> i64
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 14:56    IdentExpr      :: i64
+  expr 15:13    StringLitExpr  :: string
+  expr 15:35    BinaryExpr     :: bool
+  expr 15:35    BinaryExpr     :: i64
+  expr 15:35    CallExpr       :: i64
+  expr 15:35    IdentExpr      :: fn() -> i64
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 15:55    IdentExpr      :: i64
+  expr 16:13    StringLitExpr  :: string
+  expr 16:24    CallExpr       :: i64
+  expr 16:24    FieldExpr      :: fn() -> i64
+  expr 16:24    IdentExpr      :: u8[]
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void

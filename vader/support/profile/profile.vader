@@ -1,57 +1,252 @@
 // vader/support/profile/profile.vader: per-pass profiler for the self-compile.
 //
-// Bindings to the runtime profiler (runtime/c/rt/profiler.c). The compiler
-// brackets each pipeline pass with `prof_begin(phase)` / `prof_end(phase)`; the
-// runtime accumulates wall time, peak-RSS growth and GC churn per phase and
-// dumps a table to stderr when `$VADER_PROFILE` is set. Every call is a cheap
-// no-op otherwise, so the brackets stay in the hot path unconditionally.
+// The compiler brackets each pipeline pass with `prof_begin(phase)` /
+// `prof_end(phase)`. With `$VADER_PROFILE` set, the profiler adds up wall time,
+// peak-RSS growth and GC churn per pass, and `prof_dump` prints the table to
+// stderr. Every call is a cheap no-op otherwise, so the brackets stay in the hot
+// path unconditionally. `bench/profile-build.ts` reads the table from its
+// `[VADER_PROFILE]` line to its `live-set` line.
 
 module "vader/support/profile"
 
-/// A pipeline pass the profiler times. Its value indexes `g_prof_names[]` in
-/// `runtime/c/rt/profiler.c`, so the two lists move together, and the width
-/// is written because the value crosses to C.
-export ProfPhase :: enum(i32) {
+import "std/collections"
+import "std/env"
+import "std/io"
+import "std/numbers"
+import "std/runtime"
+import "std/string"
+import "std/string_builder"
+import "std/time"
+
+/// A pipeline pass the profiler times. The table lists the passes in this order.
+export ProfPhase :: enum {
     /// Front-end load: resolve, parse and import wiring (`load_project`).
-    Load = 0,
+    Load,
     /// Type-checking with bodies (`check_project_with_bodies`).
-    Typecheck = 1,
+    Typecheck,
     /// Comptime evaluation and monomorphisation (`evaluate_project`).
-    Comptime = 2,
+    Comptime,
     /// Lowering to the LoweredAST (`lower_project`).
-    Lower = 3,
+    Lower,
     /// Reachability prune over the lowered project (`prune_unreachable_fns`).
-    Prune = 4,
+    Prune,
     /// CFG construction (`build_cfg_project`).
-    CfgBuild = 5,
+    CfgBuild,
     /// CFG-level dead-code elimination (`eliminate_dead_cfg`).
-    CfgDce = 6,
+    CfgDce,
     /// Escape annotation (`annotate_escape`).
-    Escape = 7,
+    Escape,
     /// Bytecode emission from the CFG (`emit_bytecode_from_cfg`).
-    Bytecode = 8,
+    Bytecode,
     /// C emission (`emit_c`).
-    CEmit = 9,
+    CEmit,
     /// Value-ABI return scalarisation (`scalarise_value_returns`).
-    ValueReturn = 10,
+    ValueReturn,
     /// Range analysis: the accesses a native build marks proven
     /// (`mark_proven_accesses`), and `report_ranges` under `$VADER_OPT_REPORT`.
-    Ranges = 11,
+    Ranges,
 }
+
+// The pass's name in the table.
+phase_name :: fn(phase: ProfPhase) -> string = match phase {
+    .Load        -> "load"
+    .Typecheck   -> "typecheck"
+    .Comptime    -> "comptime"
+    .Lower       -> "lower"
+    .Prune       -> "prune"
+    .CfgBuild    -> "cfg-build"
+    .CfgDce      -> "cfg-dce"
+    .Escape      -> "escape"
+    .Bytecode    -> "bytecode"
+    .CEmit       -> "c-emit"
+    .ValueReturn -> "value-ret"
+    .Ranges      -> "ranges"
+}
+
+// ---- state ----------------------------------------------------------------
+
+// The process-wide figures a bracket measures the change of, or a sum of such
+// changes.
+Counters :: struct {
+    peak_rss: i64 = 0
+    copied: i64 = 0
+    allocated: i64 = 0
+    allocations: i64 = 0
+    collections: i64 = 0
+}
+
+// What the brackets of one pass add up to: `change.peak_rss` is how far they
+// raised the peak resident set.
+PassTotals :: struct {
+    wall_ns: i64 = 0
+    calls: i64 = 0
+    change: Counters = Counters {}
+}
+
+// Passes run one at a time, so a single set of starting readings serves.
+Profiler :: struct {
+    totals: MutableMap<ProfPhase, PassTotals> = MutableMap<ProfPhase, PassTotals> {}
+    /// The pass `prof_begin` opened and no `prof_end` has closed yet.
+    open: ProfPhase | null = null
+    start: Counters = Counters {}
+    started: Monotonic = Monotonic(0)
+}
+
+@singleton
+profiler :: fn() -> Profiler = Profiler {}
+
+// `$VADER_PROFILE` on. When it is, the collector counts every allocation from
+// the first read on.
+@singleton
+profiling :: fn() -> bool {
+    if !is_env_flag_on("VADER_PROFILE") {
+        return false
+    }
+    count_allocations()
+    return true
+}
+
+read_counters :: fn() -> Counters = Counters {
+    .peak_rss = peak_resident_bytes(),
+    .copied = bytes_copied(),
+    .allocated = allocated_bytes(),
+    .allocations = allocations(),
+    .collections = collections(),
+}
+
+// ---- brackets -------------------------------------------------------------
 
 /// Mark the start of `phase`. A no-op unless `$VADER_PROFILE` is set.
 ///
 /// @param phase  the pass starting.
-@extern("vader_prof_begin")
-export prof_begin :: fn(phase: ProfPhase) -> void
+export prof_begin :: fn(phase: ProfPhase) -> void {
+    if !profiling() {
+        return
+    }
+    p :: profiler()
+    open :: p.open
+    if open != null {
+        eprintln(
+            "[VADER_PROFILE] nested prof bracket (phase ${phase_name(phase)} inside "
+                + "${phase_name(open)}), timings will misattribute",
+        )
+    }
+    p.open = phase
+    p.start = read_counters()
+    // Last, so that taking the readings stays out of the pass's time.
+    p.started = monotonic()
+}
 
-/// Mark the end of `phase`, accumulating its wall / peak-RSS / GC deltas.
+/// Mark the end of `phase`, adding its wall / peak-RSS / GC deltas to its totals.
 ///
 /// @param phase  the pass ending, as given to the matching `prof_begin`.
-@extern("vader_prof_end")
-export prof_end :: fn(phase: ProfPhase) -> void
+export prof_end :: fn(phase: ProfPhase) -> void {
+    if !profiling() {
+        return
+    }
+    p :: profiler()
+    // First, so that taking the readings stays out of the pass's time.
+    elapsed :: p.started.since()
+    // Only the pass `prof_begin` opened has starting readings: closing another
+    // would charge it everything since an unrelated `prof_begin`.
+    if p.open != phase {
+        eprintln(
+            "[VADER_PROFILE] unmatched prof end (phase ${phase_name(phase)}, open is "
+                + "${open_name(p.open)}), sample dropped",
+        )
+        return
+    }
+    totals :: p.totals.get_or_put_with(phase, () -> PassTotals {})
+    totals.wall_ns += i64(elapsed)
+    totals.calls += 1
+    add_change(totals.change, p.start, read_counters())
+    p.open = null
+}
 
-/// Emit the accumulated per-pass profile to stderr. Idempotent: a later atexit
-/// fallback does not print it twice. A no-op unless `$VADER_PROFILE` is set.
-@extern("vader_prof_dump")
-export prof_dump :: fn() -> void
+// Add to `sum` how far each counter moved from `before` to `after`.
+add_change :: fn(sum: Counters, before: Counters, after: Counters) -> void {
+    sum.peak_rss += after.peak_rss - before.peak_rss
+    sum.copied += after.copied - before.copied
+    sum.allocated += after.allocated - before.allocated
+    sum.allocations += after.allocations - before.allocations
+    sum.collections += after.collections - before.collections
+}
+
+open_name :: fn(open: ProfPhase | null) -> string {
+    if open == null {
+        return "none"
+    }
+    return phase_name(open)
+}
+
+// ---- report ---------------------------------------------------------------
+
+MIB :: 1024.0 * 1024.0
+
+// The table's column titles, each as wide as `write_row` makes its column.
+HEADER :: "  PASS             WALL  %WALL RSS-GROWTH  GC-COPIED    ALLOC'D   OBJS/M  CYCLE CALLS"
+
+/// Print the per-pass profile to stderr. A no-op unless `$VADER_PROFILE` is set,
+/// and when no bracket has closed. A process calls it as it ends.
+export prof_dump :: fn() -> void {
+    if !profiling() {
+        return
+    }
+    p :: profiler()
+    sum :: PassTotals {}
+    for phase in ProfPhase {
+        totals :: p.totals[phase] ?? continue
+        sum.wall_ns += totals.wall_ns
+        add_change(sum.change, Counters {}, totals.change)
+    }
+    if sum.wall_ns == 0 {
+        return
+    }
+    sb :: StringBuilder {}
+    sb.append("\n[VADER_PROFILE] per-pass self-compile profile\n${HEADER}\n")
+    for phase in ProfPhase {
+        totals :: p.totals[phase] ?? continue
+        growth :: signed(mebibytes(totals.change.peak_rss))
+        write_row(sb, phase_name(phase), totals, sum.wall_ns, growth)
+        sb.append(" ${right("${totals.calls}", 5)}\n")
+    }
+    peak :: peak_resident_bytes()
+    write_row(sb, "TOTAL", sum, sum.wall_ns, signed(mebibytes(peak)))
+    sb.append("\n")
+    sb.append("  peak-RSS ${mebibytes(peak)} MB | RSS-now ${mebibytes(resident_bytes())} MB | ")
+    sb.append("live-set ${mebibytes(bytes_used())} MB\n")
+    eprint(sb.to_string())
+}
+
+// One line of the table up to its `CYCLE` column: `rss` is the text of the
+// `RSS-GROWTH` column, which the total line fills with the peak instead.
+write_row :: fn(
+    sb: StringBuilder,
+    name: string,
+    totals: PassTotals,
+    total_wall_ns: i64,
+    rss: string,
+) -> void {
+    share :: 100.0 * f64(totals.wall_ns) / f64(total_wall_ns)
+    sb.append("  ${name.pad_end(11, ' ')} ")
+    sb.append("${right((f64(totals.wall_ns) / 1.0e6).to_fixed(1), 7)}ms ")
+    sb.append("${right(share.to_fixed(1), 5)}% ")
+    sb.append("${right(rss, 9)}M ")
+    sb.append("${right(mebibytes(totals.change.copied), 9)}M ")
+    sb.append("${right(mebibytes(totals.change.allocated), 9)}M ")
+    sb.append("${right((f64(totals.change.allocations) / 1.0e6).to_fixed(2), 7)}M ")
+    sb.append(right("${totals.change.collections}", 6))
+}
+
+// `bytes` in mebibytes, to one decimal.
+mebibytes :: fn(bytes: i64) -> string = (f64(bytes) / MIB).to_fixed(1)
+
+// A number's text with its sign, `+` included.
+signed :: fn(text: string) -> string {
+    if text.starts_with("-") {
+        return text
+    }
+    return "+${text}"
+}
+
+right :: fn(text: string, width: i64) -> string = text.pad_start(width, ' ')

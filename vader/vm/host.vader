@@ -221,15 +221,18 @@ export dispatch_import :: fn(
     // ---- std/runtime collection counters ---------------------------------
     // The Vader VM has no GC arena ; the snippet tests just need the
     // counter to be present + monotonic. `collect` bumps it, `collections`
-    // returns the current value, `bytes_used` / `bytes_copied` stay at
+    // returns the current value, the byte and allocation counters stay at
     // zero (no real arena to measure).
     .RuntimeCollect -> {
         gc_state[0] = gc_state[0] + 1
         return HostOk { .value = NullVal {} }
     }
-    .RuntimeCollections -> { return HostOk { .value = I32Val(i32(gc_state[0])) } }
-    .RuntimeBytesUsed   -> { return HostOk { .value = I32Val(0) } }
-    .RuntimeBytesCopied -> { return HostOk { .value = I32Val(0) } }
+    .RuntimeCollections      -> { return HostOk { .value = I64Val(gc_state[0]) } }
+    .RuntimeBytesUsed        -> { return HostOk { .value = I64Val(0) } }
+    .RuntimeBytesCopied      -> { return HostOk { .value = I64Val(0) } }
+    .RuntimeAllocatedBytes   -> { return HostOk { .value = I64Val(0) } }
+    .RuntimeAllocations      -> { return HostOk { .value = I64Val(0) } }
+    .RuntimeCountAllocations -> { return HostOk { .value = NullVal {} } }
     // Dynamic foreign calls. A `@test` runs ON the VM, so these have to be
     // served here too: the arms forward to the same intrinsics the natively
     // compiled VM calls directly.
@@ -508,25 +511,7 @@ dispatch_extern :: fn(
     at_pc: i32,
     debug: DebugController | null,
 ) -> HostCallResult {
-    // ---- compiler-internal `@extern` hosts ---------------------------------
-    //
-    // `@extern` is EXEMPT from the emit-time wiring check (`emit/bytecode/emit.vader` :
-    // "@extern imports are link-resolved and exempt"): correct for user FFI,
-    // which the C linker resolves, but it means nothing checks that the VM can
-    // serve an `@extern` the COMPILER ITSELF uses: the moment the compiler runs
-    // on its own bytecode it traps as an unbound import. Serve the ones `vader/`
-    // declares.
-    //
-    // Kept keyed on the C symbol rather than given `IntrinsicId`s : the
-    // manifest is shared with `emit_c`, which already resolves these by linking,
-    // so a new id there would force a redundant C-side arm.
-    //
-    // Guarded by `tests/extern_vm_handlers.test.ts` : any new `@extern` under
-    // `vader/` must gain a handler here or that test fails.
     info :: state.bc.imports[index]
-    if is_profiler_bracket(info.extern_name) {
-        return HostOk { .value = zero_value() }
-    }
     // A foreign call at comptime is allowed: SPEC §14 *Sandbox*. What the compiler
     // owes ITSELF is checked by `bootstrap/verify.sh` (stage1 == stage2), not
     // here.
@@ -1190,12 +1175,6 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
     return HostOk { .value = I64Val(raw) }
 }
 
-// The C symbols of the profiler's brackets (`vader/support/profile`). The VM has
-// no profiler, so they do nothing.
-is_profiler_bracket :: fn(symbol: string) = symbol == "vader_prof_begin"
-    || symbol == "vader_prof_end"
-    || symbol == "vader_prof_dump"
-
 // ---- comptime host gate ----------------------------------------------------
 
 // Stable marker embedded in the Trap message the comptime host gate produces.
@@ -1257,6 +1236,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .Bytes | .BytesToString | .StringHash | .StringEquals -> null
     .PrimIntEquals | .PrimDisplayToString -> null
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> null
+    .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> null
     .AbortPanic -> null
     .NotIntrinsic -> null
 }

@@ -15,6 +15,7 @@ import "vader/core/bytecode"
 TTY :: import "std/tty"
 import "toolchain/ast"
 import "vader/pipeline"
+Prof :: import "vader/support/profile"
 import "vader/support/version"
 
 // Every invocation is `vader <action> <options>`: the action comes first and
@@ -23,6 +24,8 @@ import "vader/support/version"
 // from anywhere, which is how `vader run prog --allow-env` used to consume the
 // flag instead of forwarding it to the program.
 main :: fn(argv: string[]) -> i32 {
+    // Prints nothing unless `$VADER_PROFILE` is set and a pass was bracketed.
+    defer Prof.prof_dump()
     // argv[0] is the binary path ; meaningful args start at index 1.
     args :: argv[1..<argv.len()]
     if args.len() == 0 {

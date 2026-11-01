@@ -842,10 +842,13 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .StringHash -> { return [returning("vader_string_hash", [a0])] }
 
     // std/runtime: GC introspection.
-    .RuntimeCollect      -> { return [perform("vader_gc_collect", [])] }
-    .RuntimeCollections  -> { return [gc_statistic("total_collections")] }
-    .RuntimeBytesUsed    -> { return [gc_statistic("bytes_used")] }
-    .RuntimeBytesCopied  -> { return [gc_statistic("total_copied")] }
+    .RuntimeCollect          -> { return [perform("vader_gc_collect", [])] }
+    .RuntimeCollections      -> { return [gc_statistic("total_collections")] }
+    .RuntimeBytesUsed        -> { return [gc_statistic("bytes_used")] }
+    .RuntimeBytesCopied      -> { return [gc_statistic("total_copied")] }
+    .RuntimeAllocatedBytes   -> { return [gc_statistic("total_alloc_bytes")] }
+    .RuntimeAllocations      -> { return [gc_statistic("total_alloc_count")] }
+    .RuntimeCountAllocations -> { return [perform("vader_gc_count_allocations", [])] }
 
     // Dynamic foreign calls (vader/vm/ffi.vader). The call shims take the
     // argument slots through `vader_array_bytes`, which already owns the
@@ -902,9 +905,9 @@ argument :: fn(j: i64) -> CExpression = verbatim("a${j}")
 // `vader_trap("message");`: a runtime abort naming what went wrong.
 trap :: fn(message: string) -> CStatement = perform("vader_trap", [verbatim(c_string_lit(message))])
 
-// `return (int32_t) vader_gc_get_stats().<field>;`.
+// `return (int64_t) vader_gc_get_stats().<field>;`.
 gc_statistic :: fn(field: string) -> CStatement = CReturn {
-    .value = cast("int32_t", CMember { .base = call("vader_gc_get_stats", []), .member = field }),
+    .value = cast("int64_t", CMember { .base = call("vader_gc_get_stats", []), .member = field }),
 }
 
 // `(int64_t) (intptr_t) pointer`: an address riding an `i64` slot.

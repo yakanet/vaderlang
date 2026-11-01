@@ -1,13 +1,13 @@
-/* rt/profiler.c: the compiler's per-pass profiler (`VADER_PROFILE`). */
+/* rt/profiler.c: the compiler's per-pass profiler (`VADER_PROFILE`), as the
+ * committed seeds call it. The compiler built from the tree runs the one in
+ * `vader/support/profile`. */
 
 #include "internal.h"
 
 /* Per-pass self-compile profiler, gated by $VADER_PROFILE. The compiler
- * (vader/support/profile) brackets each pass with vader_prof_begin/end(phase_id);
- * we accumulate wall time, peak-RSS growth, and GC churn per phase, then
- * dump a table to stderr at exit. Phase ids index g_prof_names[]: that
- * table is the single source of truth and is mirrored by the `ProfPhase`
- * enum in vader/support/profile/profile.vader. Keep the two in lockstep. */
+ * brackets each pass with vader_prof_begin/end(phase_id); we accumulate wall
+ * time, peak-RSS growth, and GC churn per phase, then dump a table to stderr at
+ * exit. Phase ids index g_prof_names[], in the order of the seeds' `ProfPhase`. */
 
 /* Set via `VADER_PROFILE=1`, read lazily by `vader_prof_enabled`. -1 unknown,
  * 0 off, 1 on. */
@@ -40,7 +40,7 @@ static vader_i64_t prof_monotonic_ns(void) {
 
 #define VADER_PROF_MAX_PHASES 16
 
-/* Phase names: index = phase id. Mirror in vader/support/profile/profile.vader. */
+/* Phase names: index = phase id. */
 static const char* g_prof_names[VADER_PROF_MAX_PHASES] = {
     "load",       /* 0  */
     "typecheck",  /* 1  */
@@ -73,8 +73,7 @@ static int64_t   g_prof_t0, g_prof_rss0, g_prof_copied0, g_prof_coll0;
 static int64_t   g_prof_alloc0, g_prof_alloc_count0;
 static int       g_prof_current = -1;
 
-/* All query helpers are internal: the profiler is the only consumer. The
- * Vader-visible GC stats live on the std/runtime intrinsic shims (i32). */
+/* All query helpers are internal: the profiler is the only consumer. */
 
 /* Peak resident set, bytes (getrusage). Process-wide, monotonic. */
 static int64_t vader_prof_max_rss_bytes(void) {
@@ -123,7 +122,7 @@ static int64_t vader_prof_bytes_used(void) { return (int64_t) vader_gc_get_stats
 static int32_t vader_prof_enabled(void) {
     if (g_prof_enabled < 0) {
         g_prof_enabled = vader_gc_env_bool("VADER_PROFILE");
-        vader_alloc_limit_refresh();
+        if (g_prof_enabled) vader_gc_count_allocations();
     }
     return (int32_t) g_prof_enabled;
 }

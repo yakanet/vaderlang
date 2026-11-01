@@ -13,6 +13,7 @@
 
 module "vader/pipeline"
 
+import "std/env"
 import "std/io"
 import "std/path"
 import "vader/support/diagnostics"
@@ -171,7 +172,7 @@ VERIFY_BOUNDS_VAR :: "VADER_VERIFY_BOUNDS"
 /// the accesses the range analysis proves, and keeps their index check under a
 /// message of its own, so a wrong proof stops the run instead of reading out of
 /// bounds.
-export bounds_verification_enabled :: fn() -> bool = env_flag_set(VERIFY_BOUNDS_VAR)
+export bounds_verification_enabled :: fn() -> bool = is_env_flag_on(VERIFY_BOUNDS_VAR)
 
 /// A lowered project plus what the caller still needs after the pipeline is
 /// released: the entry mangle, the diagnostics, and the file set for filtering.

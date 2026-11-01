@@ -124,17 +124,25 @@ static size_t        g_young_cap = 0;
 
 /* The bound the inline bump of `vader_gc_alloc` tests against: the young
  * from-space end, or NULL to send every allocation to the slow path: before
- * init, and under the stress modes and the profiler, which act on or count
- * every allocation. Refreshed whenever `g_young.from` moves and when the
- * profiler turns on; the stress flags are set before the first carve. */
+ * init, under the stress modes, and once allocations are counted, which act on
+ * or count every allocation. Refreshed whenever `g_young.from` moves and when
+ * counting turns on; the stress flags are set before the first carve. */
 static char* g_alloc_limit = NULL;
 
+/* Set by `vader_gc_count_allocations`, never cleared. */
+static int g_count_allocations = 0;
+
 static void vader_alloc_limit_refresh(void) {
-    if (g_gc_stress || g_gc_stress_major || g_prof_enabled > 0) {
+    if (g_gc_stress || g_gc_stress_major || g_count_allocations) {
         g_alloc_limit = NULL;
     } else {
         g_alloc_limit = g_young.from.end;
     }
+}
+
+void vader_gc_count_allocations(void) {
+    g_count_allocations = 1;
+    vader_alloc_limit_refresh();
 }
 
 static size_t vader_gc_align(size_t n) {

@@ -17,6 +17,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "std/env"
 import "std/string"
 import "std/string_builder"
 import "toolchain/ast"
@@ -45,7 +46,7 @@ CalleeVerifier :: struct {
 
 /// A verifier when `$VADER_VERIFY_CALLEES` is set, else null.
 new_callee_verifier :: fn() -> CalleeVerifier | null {
-    if !env_flag_set(VERIFY_CALLEES_VAR) {
+    if !is_env_flag_on(VERIFY_CALLEES_VAR) {
         return null
     }
     return CalleeVerifier {}

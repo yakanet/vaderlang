@@ -932,7 +932,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 1302) vader_data_0_buf = {
     },
 };
 static const vader_array_t vader_data_0 = {
-    { 43u, 0u, 0u, 0u, NULL }, 1302u, 1302u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
+    { 42u, 0u, 0u, 0u, NULL }, 1302u, 1302u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 684u, 684u, 8u, 4u,
@@ -1282,7 +1282,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_1_buf = {
     },
 };
 static const vader_array_t vader_data_1 = {
-    { 43u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
+    { 42u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_2_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 8u, 4u,
@@ -1616,7 +1616,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_2_buf = {
     },
 };
 static const vader_array_t vader_data_2 = {
-    { 43u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
+    { 42u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
 };
 static const struct vader_struct_json$JsonNull_t vader_data_3_e0 = { { 25u, 0u, 0u, 0u, NULL } };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_3_buf = {
@@ -4752,7 +4752,7 @@ static vader_box_t json$parse_object(void* l0, int32_t l1) {
     l3 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_new(49u, 0u, 0u, 48u);
     l4 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(42u, 0u, 7u, 3u);
+    vader_array_t* _a2_arr = vader_array_new(43u, 0u, 7u, 3u);
     l5 = (void*) _a2_arr;
     vader_struct_std_collections$MutableMap__string__Any_t* _a3_obj = (vader_struct_std_collections$MutableMap__string__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$MutableMap__string__Any_t));
     vader_obj_header_init(_a3_obj, 47u);
@@ -5934,7 +5934,7 @@ static void std_collections$rehash__string__Any(void* l0, int64_t l1) {
     } else {
         l2 = INT64_C(0);
     }
-    vader_array_t* _a0_arr = vader_array_reserve(42u, (int64_t) l2, 7u, 3u);
+    vader_array_t* _a0_arr = vader_array_reserve(43u, (int64_t) l2, 7u, 3u);
     l3 = (void*) _a0_arr;
     l2 = INT64_C(0);
     vader_array_t* _pc15_hdr = (vader_array_t*) l3;

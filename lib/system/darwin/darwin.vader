@@ -20,3 +20,31 @@ module "system/darwin"
 @c_header("<mach-o/dyld.h>")
 @extern("_NSGetExecutablePath")
 export ns_get_executable_path :: fn(@c_out buf: u8[], @c_pointer size: u32) -> i32
+
+/// `mach_task_self()` (`<mach/mach.h>`): the port naming the calling task. C
+/// defines it as a macro over a global; the system library also exports it as a
+/// function, which is what `vader run` resolves.
+@c_header("<mach/mach.h>")
+@extern("mach_task_self")
+export mach_task_self :: fn() -> u32
+
+/// `MACH_TASK_BASIC_INFO`: the `task_info` flavor that fills a
+/// `struct mach_task_basic_info`.
+export MACH_TASK_BASIC_INFO: u32: 20
+
+/// `MACH_TASK_BASIC_INFO_COUNT`: the size of `struct mach_task_basic_info`, in
+/// 32-bit words.
+export MACH_TASK_BASIC_INFO_COUNT: u32: 12
+
+/// `KERN_SUCCESS`: what a Mach call returns when it succeeds.
+export KERN_SUCCESS: i32: 0
+
+/// `task_info` (`<mach/mach.h>`). Fills `info` with what `flavor` asks about
+/// `task`. `count` holds `info`'s capacity in 32-bit words going in, and the
+/// words written coming out. `KERN_SUCCESS` on success.
+///
+/// `info` stands in for the flavor's struct: for `MACH_TASK_BASIC_INFO`, six
+/// 64-bit words, `resident_size` the second.
+@c_header("<mach/mach.h>")
+@extern("task_info")
+export task_info :: fn(task: u32, flavor: u32, @c_out info: u64[], @c_out count: u32[]) -> i32

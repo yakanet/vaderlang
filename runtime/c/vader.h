@@ -1140,6 +1140,12 @@ void vader_gc_shutdown(void);
  * to force reclamation between allocations. */
 void vader_gc_collect(void);
 
+/* Send every allocation through the slow path, which counts it, so that
+ * `total_alloc_bytes` / `total_alloc_count` miss none from then on. Exposed as
+ * `std/runtime.count_allocations()`. Counting stays on for the rest of the
+ * run. */
+void vader_gc_count_allocations(void);
+
 /* Minor: collect the young generation only, using the shadow stack and any
  * marked cards in old as roots. Promotes into old the survivors whose age
  * reaches `VADER_TENURE_AGE`. */
@@ -1231,7 +1237,7 @@ static inline void vader_array_push_ref(vader_array_t* a, void* obj) {
     VADER_WRITE_BARRIER(buf);
 }
 
-/* Stats: read by `std/runtime` (`collections`, `bytes_used`) and the profiler. */
+/* Stats: read by `std/runtime`. */
 typedef struct {
     size_t arena_size;        /* size of the old-gen reservation (the cap), in bytes */
     /* Old-gen LIVE bytes (recomputed at each sweep) plus the young ALLOCATION
@@ -1243,8 +1249,8 @@ typedef struct {
     size_t total_collections; /* full + minor cycles run since process start */
     size_t total_copied;      /* cumulative bytes copied across all cycles */
     /* Cumulative bytes requested via vader_gc_alloc, and the number of calls.
-     * Counted on the slow path only: complete while VADER_PROFILE is on, which
-     * routes every allocation there, partial otherwise. */
+     * Counted on the slow path only: complete once `vader_gc_count_allocations`
+     * routes every allocation there, partial before. */
     size_t total_alloc_bytes;
     size_t total_alloc_count;
 } vader_gc_stats_t;
@@ -1265,12 +1271,12 @@ void        vader_sched_arm(vader_i64_t deadline);
 vader_i32_t vader_sched_park(void);
 
 /* ---- self-compile profiler (VADER_PROFILE) --------------------------------
- * Per-phase wall / peak-RSS / GC accounting for the compiler's own passes.
- * The compiler (vader/support/profile) brackets each pass via vader_prof_begin/end
- * with an integer phase id; the phase names + all query helpers (RSS, GC
- * stats) live in rt/profiler.c. Everything is a no-op unless $VADER_PROFILE
- * is set, and the per-phase table is dumped to stderr at exit (atexit). Only
- * begin/end/dump cross the FFI boundary (called from vader/support/profile via @extern). */
+ * `vader/support/profile` runs the profiler in Vader; only the committed seeds
+ * still call these, so they stay until the seeds stop doing so.
+ * Per-phase wall / peak-RSS / GC accounting for the compiler's own passes,
+ * bracketed by an integer phase id. Everything is a no-op unless
+ * $VADER_PROFILE is set, and the per-phase table is dumped to stderr at exit
+ * (atexit). */
 void vader_prof_begin(int32_t phase_id);
 void vader_prof_end(int32_t phase_id);
 void vader_prof_dump(void);

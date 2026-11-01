@@ -104,6 +104,7 @@ export IntrinsicId :: enum(u8) {
     PrimIntEquals, PrimDisplayToString,
     // std/runtime
     RuntimeCollect, RuntimeCollections, RuntimeBytesUsed, RuntimeBytesCopied,
+    RuntimeAllocatedBytes, RuntimeAllocations, RuntimeCountAllocations,
     // std/abort
     AbortPanic,
     // std/target: the OS the process is RUNNING on, not the one it was built
@@ -145,6 +146,9 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_runtime$collections"             { return .RuntimeCollections }
     if mangled == r"std_runtime$bytes_used"              { return .RuntimeBytesUsed }
     if mangled == r"std_runtime$bytes_copied"            { return .RuntimeBytesCopied }
+    if mangled == r"std_runtime$allocated_bytes"         { return .RuntimeAllocatedBytes }
+    if mangled == r"std_runtime$allocations"             { return .RuntimeAllocations }
+    if mangled == r"std_runtime$count_allocations"       { return .RuntimeCountAllocations }
 
 
     if mangled == r"std_target$current_os"               { return .TargetCurrentOs }
@@ -179,6 +183,7 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .StringEquals | .PrimIntEquals -> true
     // Unclassified: conservatively a safepoint.
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> true
+    .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> true
     .AbortPanic -> true
     .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame | .NotIntrinsic -> true
 }
@@ -196,6 +201,7 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     .Bytes | .BytesToString | .PrimDisplayToString | .PrimIntEquals -> false
     // The collector moves objects and never changes a length; the rest only read.
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
+    .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> false
     // Constants of the build ; `panic` never returns.
     .TargetCurrentOs | .TargetCurrentArch | .AbortPanic -> false
     // Foreign code is lent a buffer, never the header that holds its length.

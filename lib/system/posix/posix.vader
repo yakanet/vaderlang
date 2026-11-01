@@ -557,3 +557,32 @@ export sys_clock_gettime :: fn(clock_id: i32, @c_out ts: i64[]) -> i32
 @c_header("<time.h>")
 @extern("nanosleep")
 export sys_nanosleep :: fn(req: i64[], @c_out rem: i64[]) -> i32
+
+// ---- resource usage -------------------------------------------------------
+
+/// `RUSAGE_SELF`: the calling process, as `sys_getrusage`'s `who`.
+export RUSAGE_SELF: i32: 0
+
+/// The 64-bit cells of a `struct rusage`, which `sys_getrusage` fills.
+export RUSAGE_CELLS: i64: 18
+
+/// The cell of `ru_maxrss`, the peak resident set size, after the two
+/// `struct timeval`. Its unit is `RU_MAXRSS_UNIT` bytes.
+export RU_MAXRSS_CELL: i64: 4
+
+/// The unit of `ru_maxrss`, in bytes: Darwin counts bytes, Linux kilobytes.
+export RU_MAXRSS_UNIT: i64: if VADER_OS == .Darwin { 1 } else { 1024 }
+
+/// `getrusage(2)`. Fills `usage` with what `who` has consumed; 0 on success, -1
+/// with `errno` set.
+///
+/// `usage` stands in for a `struct rusage`, `RUSAGE_CELLS` long: a mirror would
+/// have to start with the two `struct timeval`, whose `tv_usec` is 4 bytes on
+/// Darwin and 8 on Linux, while the cells line up on both.
+@c_header("<sys/resource.h>")
+@extern("getrusage")
+export sys_getrusage :: fn(who: i32, @c_out usage: i64[]) -> i32
+
+/// `_SC_PAGESIZE`: the size of a memory page, in bytes. The value is not
+/// portable: 29 on Darwin, 30 on Linux.
+export SC_PAGESIZE: i32: if VADER_OS == .Darwin { 29 } else { 30 }

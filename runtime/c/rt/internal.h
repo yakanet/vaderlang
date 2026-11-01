@@ -187,10 +187,6 @@ static void vader_atom_bucket_install(vader_atom_t a);
 
 static vader_array_t* vader_array_resolve(vader_array_t* a);
 
-/* ---- profiler.c ---------------------------------------------------------- */
-
-static int g_prof_enabled;
-
 /* ---- host.c -------------------------------------------------------------- */
 
 static void vader_ensure_stdio_binary(void);

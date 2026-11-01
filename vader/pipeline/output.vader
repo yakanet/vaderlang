@@ -177,7 +177,7 @@ export output_path :: fn(out_flag: string, derived: Path) -> Path {
 emit_c_of :: fn(b: CfgBytecode) -> CUnits {
     Prof.prof_begin(.CEmit)
     c :: c_units_of(b)
-    end_c_emit()
+    Prof.prof_end(.CEmit)
     return c
 }
 
@@ -186,13 +186,6 @@ emit_c_of :: fn(b: CfgBytecode) -> CUnits {
 emit_c_stream_of :: fn(b: CfgBytecode) -> string {
     Prof.prof_begin(.CEmit)
     c :: c_source_of(b)
-    end_c_emit()
-    return c
-}
-
-// End of the compile pipeline: the per-pass profile, a no-op unless
-// $VADER_PROFILE is set, idempotent if the atexit fallback also fires.
-end_c_emit :: fn() -> void {
     Prof.prof_end(.CEmit)
-    Prof.prof_dump()
+    return c
 }

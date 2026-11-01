@@ -79,7 +79,7 @@ global 7 7 queue.instance
 import 0 byte_len std_core$byte_len result_type=9 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=12 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 collect std_runtime$collect result_type=10 () -> void
-import 3 collections std_runtime$collections result_type=2 () -> i32
+import 3 collections std_runtime$collections result_type=9 () -> i64
 import 4 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=2,12,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 14 std_core$ByteAccess
 export main 5
@@ -777,8 +777,8 @@ fn 5 snippet$main () -> i32
   call 12   ; std_core$write_string_at
   local.set 1   ; $call_3
   call.import 3   ; std_runtime$collections
-  i32.const 0
-  i32.gt
+  i64.const 0
+  i64.gt
   local.set 3   ; $eq_18
   local.get 2   ; __buf_1
   local.get 1   ; $call_3

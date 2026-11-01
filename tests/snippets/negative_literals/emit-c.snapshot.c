@@ -404,7 +404,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_0_buf = {
     },
 };
 static const vader_array_t vader_data_0 = {
-    { 14u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
+    { 13u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 5u, 4u,
@@ -738,7 +738,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
     },
 };
 static const vader_array_t vader_data_1 = {
-    { 14u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
+    { 13u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 
 static vader_string_t snippet$sign(int32_t l0);
@@ -932,7 +932,7 @@ static int32_t snippet$main(void) {
         l0 = vader_chk_add(i32, l0, l8);
         l8 = (l8 + INT32_C(1));
     }
-    vader_array_t* _a0_arr = vader_array_new(13u, 2u, 7u, 1u);
+    vader_array_t* _a0_arr = vader_array_new(14u, 2u, 7u, 1u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(-2);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(-1);
     t3 = (void*) _a0_arr;

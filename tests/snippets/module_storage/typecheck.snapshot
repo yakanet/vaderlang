@@ -138,8 +138,8 @@
   expr 127:5    IdentExpr      :: fn(T) -> void
   expr 127:56   IdentExpr      :: i32
   expr 127:77   BinaryExpr     :: bool
-  expr 127:77   CallExpr       :: i32
-  expr 127:77   IdentExpr      :: fn() -> i32
+  expr 127:77   CallExpr       :: i64
+  expr 127:77   IdentExpr      :: fn() -> i64
   expr 129:5    CallExpr       :: bool[]
   expr 129:5    IdentExpr      :: fn() -> bool[]
   expr 129:5    IndexExpr      :: bool

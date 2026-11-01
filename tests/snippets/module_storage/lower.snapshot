@@ -214,7 +214,7 @@
           __off_31 = std.core.write_string_at(__buf_30, __off_31, " lost=")
           __off_31 = std.core.write_int(__buf_30, __off_31, lost)
           __off_31 = std.core.write_string_at(__buf_30, __off_31, "/24 collected=")
-          __off_31 = std.core.write_bool(__buf_30, __off_31, std.runtime.collections() > 0)
+          __off_31 = std.core.write_bool(__buf_30, __off_31, std.runtime.collections() > i64(0))
           std.core.finish_buffer(__buf_30, __off_31)
       } :string)
       snippet.flags()[2] = true

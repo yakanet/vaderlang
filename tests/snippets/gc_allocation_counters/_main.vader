@@ -1,0 +1,18 @@
+// Once `count_allocations()` has run, the collector counts every allocation: a
+// fresh array shows in `allocations()`, and its bytes in `allocated_bytes()`.
+// The VM has no collector and keeps every counter at 0, so its run is skipped.
+module "snippet"
+
+import "std/io"
+import "std/runtime"
+
+main :: fn() -> i32 {
+    count_allocations()
+    allocations_before :: allocations()
+    bytes_before :: allocated_bytes()
+    buffer: u8[]: [0] * 100_000
+    println("counted the allocation: ${allocations() > allocations_before}")
+    println("counted its bytes: ${allocated_bytes() - bytes_before >= 100_000}")
+    println("length: ${buffer.len()}")
+    return 0
+}

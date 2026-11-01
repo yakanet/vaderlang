@@ -51,5 +51,5 @@
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(T) -> void
   expr 33:70    BinaryExpr     :: bool
-  expr 33:70    CallExpr       :: i32
-  expr 33:70    IdentExpr      :: fn() -> i32
+  expr 33:70    CallExpr       :: i64
+  expr 33:70    IdentExpr      :: fn() -> i64

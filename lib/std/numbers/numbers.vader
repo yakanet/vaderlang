@@ -7,6 +7,7 @@ module "std/numbers"
 
 import "std/string"
 import "std/char"
+import "std/math"
 import "std/string_builder"
 
 /// True for an ASCII hex digit: `0`..`9`, `a`..`f`, `A`..`F`.
@@ -183,6 +184,42 @@ export to_compact_str :: fn(self: f64) -> string {
     return "${self}".trim_suffix(".0")
 }
 
+/// Render `self` with exactly `decimals` digits after the point, ties rounded
+/// away from zero. A value that rounds to zero carries no sign. NaN, the
+/// infinities, and a value that reaches 2^53 once scaled print as `"${self}"`
+/// does.
+///
+/// @param self      the float to render.
+/// @param decimals  the digits after the point; 0, or a negative count, for
+///                  none.
+/// @return          the fixed-point text.
+/// @example
+///   (3.14159).to_fixed(2)   // "3.14"
+///   (2.5).to_fixed(0)       // "3"
+///   (42.0).to_fixed(1)      // "42.0"
+///   (-0.04).to_fixed(1)     // "0.0"
+export to_fixed :: fn(self: f64, decimals: i64) -> string {
+    places :: max(decimals, 0)
+    scaled :: round(abs(self) * pow(10.0, f64(places)))
+    // NaN fails the comparison too.
+    if !(scaled < EXACT_INTEGER_LIMIT) {
+        return "${self}"
+    }
+    units :: i64(scaled)
+    digits :: "${units}".pad_start(places + 1, '0')
+    point :: digits.byte_len() - places
+    sb :: StringBuilder {}
+    if self < 0.0 && units != 0 {
+        sb.append("-")
+    }
+    sb.append(digits.byte_slice(0, point))
+    if places > 0 {
+        sb.append(".")
+        sb.append(digits.byte_slice(point, digits.byte_len()))
+    }
+    return sb.to_string()
+}
+
 /// Strip the base prefix (`0x` / `0b` / `0o`) and every `_` digit separator
 /// from a literal's source text. The result is a pure digit string ready for
 /// `parse_int_in_base` / `parse_uint_in_base` / `parse_float`.
@@ -230,4 +267,21 @@ import "std/testing"
     assert_eq((0.5).to_compact_str(), "0.5")
     assert_eq((-2.5e-7).to_compact_str(), "-2.5e-7")
     assert_eq((1.0 / 0.0).to_compact_str(), "${1.0 / 0.0}")
+}
+
+@test test_to_fixed_rounds_to_the_digits :: fn() -> void {
+    assert_eq((3.14159).to_fixed(2), "3.14")
+    assert_eq((2.5).to_fixed(0), "3")
+    assert_eq((42.0).to_fixed(1), "42.0")
+    assert_eq((0.004).to_fixed(2), "0.00")
+    assert_eq((7.0).to_fixed(-1), "7")
+}
+
+@test test_to_fixed_signs :: fn() -> void {
+    assert_eq((-1.25).to_fixed(1), "-1.3")
+    assert_eq((-0.04).to_fixed(1), "0.0")
+}
+
+@test test_to_fixed_falls_back_past_exact_integers :: fn() -> void {
+    assert_eq((1.0e300).to_fixed(1), "${1.0e300}")
 }

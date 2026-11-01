@@ -49,5 +49,7 @@ since the seed is compiled against the current `vader.h`: an incompatible one
 stops the bootstrap before a new seed can be emitted. That is why
 `vader_dirent_name` takes a `void*`.
 
-The profiler's `vader_prof_*` hooks keep a synthesised prototype: only the
-compiler calls them (`vader/support/profile`), and the profiler is due to leave C.
+The profiler's `vader_prof_*` hooks kept a synthesised prototype while the
+profiler was due to leave C. It has left: `vader/support/profile` profiles in
+Vader, and `vader.h` declares the hooks only for the committed seeds that still
+call them.
