@@ -191,7 +191,7 @@ materialize_enum_tables :: fn(
     typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
     for {
-        due :: project_ctx.enum_table_queue.take() ?? break
+        due :: project_ctx.enum_table_queue.pop() ?? break
         owner :: due.enum_type.symbol
         module_typed :: typed.modules[owner.module] ?? continue
         decl :: module_typed.enum_decls[owner.id] ?? continue

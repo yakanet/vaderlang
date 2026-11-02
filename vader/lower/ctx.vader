@@ -201,9 +201,9 @@ LowerProjectCtx :: struct {
     /// per rank: for an enum with variant data whose values are not
     /// consecutive. Minted like `enum_data_consts`.
     enum_value_consts:   Map<i32, Symbol>
-    /// Tables due, in first-read order. `materialize_enum_tables` takes each
+    /// Tables due, in first-read order. `materialize_enum_tables` pops each
     /// inside the lowering fixpoint.
-    enum_table_queue:    WorkQueue<EnumTable> = WorkQueue<EnumTable> {}
+    enum_table_queue:    Queue<EnumTable> = Queue<EnumTable> {}
 
     /// Monotonically-decreasing counter for synthetic symbol IDs.
     /// Starts at `-1` so it cannot collide with resolver-minted IDs
@@ -231,7 +231,7 @@ LowerProjectCtx :: struct {
     fn_instances:        Map<string, GenericFnInstance>
     /// The instances of `fn_instances`, in registration order, for
     /// `drain_generic_fn_instances` to build.
-    fn_instance_queue:   WorkQueue<GenericFnInstance> = WorkQueue<GenericFnInstance> {}
+    fn_instance_queue:   Queue<GenericFnInstance> = Queue<GenericFnInstance> {}
     /// Claimed instance mangles, for `uniq` overload disambiguation. Two
     /// same-name/same-arity overloads (`collect(arr: T[])` vs
     /// `collect(it: Iterator<T>)`) share a base mangle ; the second to
@@ -248,7 +248,7 @@ LowerProjectCtx :: struct {
     /// `null` for `@extern` → import table). Keyed by `fn_symbol.id` for
     /// dedup ; queued in discovery order for a deterministic dump.
     nongeneric_imported_fns:   Set<i32>
-    nongeneric_imported_queue: WorkQueue<Symbol> = WorkQueue<Symbol> {}
+    nongeneric_imported_queue: Queue<Symbol> = Queue<Symbol> {}
 
     /// Module-level `const` decls observed at reference sites in any non-entry
     /// module (`register_nongeneric_imported_const`). Like fns, such a const's
@@ -261,7 +261,7 @@ LowerProjectCtx :: struct {
     /// Keyed by `const_symbol.id` for dedup ; queued in discovery order for a
     /// deterministic dump.
     nongeneric_imported_consts:      Set<i32>
-    nongeneric_imported_const_queue: WorkQueue<Symbol> = WorkQueue<Symbol> {}
+    nongeneric_imported_const_queue: Queue<Symbol> = Queue<Symbol> {}
 
     /// Erasure-dedupe of impl-member emissions: keyed by
     /// `"<impl-decl-span>::<member-name>"`. The first instance of a
@@ -336,7 +336,7 @@ LowerProjectCtx :: struct {
     /// inside the `drain_generic_fn_instances` fixpoint so the impl
     /// bodies' transitive free-fn harvests join the same fixpoint. Struct
     /// analogue of `array_member_uses`.
-    generic_impl_recv_queue: WorkQueue<StructType> = WorkQueue<StructType> {}
+    generic_impl_recv_queue: Queue<StructType> = Queue<StructType> {}
     /// Receiver keys already queued, so each instance is queued once per
     /// erased shape (bounds the queue + avoids redundant per-receiver module
     /// scans).
@@ -354,7 +354,7 @@ LowerProjectCtx :: struct {
     /// The impl members with type parameters of their own, at the types a call
     /// gives them, queued by the call and materialised in the same fixpoint as
     /// the generic fn instances.
-    member_instance_queue: WorkQueue<MemberInstance> = WorkQueue<MemberInstance> {}
+    member_instance_queue: Queue<MemberInstance> = Queue<MemberInstance> {}
 
     diags:               Diagnostic[]
 }

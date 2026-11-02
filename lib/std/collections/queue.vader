@@ -1,0 +1,168 @@
+// std/collections/queue: `Queue`, items taken in the order they were pushed.
+
+module "std/collections"
+
+/// Items taken first in, first out. A ring over one array: `push` and `pop`
+/// cost `O(1)`, amortised over the growth of the array, and a popped item's
+/// place is reused by a later push.
+///
+/// A null item would read as an empty queue: push no type that holds null.
+///
+/// @example
+///   q :: Queue<string> {}
+///   q.push("parse")
+///   q.push("check")
+///   q.pop()    // "parse"
+///   q.peek()   // "check"
+///   q.len()    // 1
+export Queue :: struct<T> {
+    /// The ring: the front item sits at `head`, the others follow it and wrap
+    /// past the end. A slot outside that run still holds the item last popped
+    /// from it, until a push overwrites it.
+    @internal
+    items: T[] = []
+    /// Index of the front item in `items`.
+    @internal
+    head: i64 = 0
+    /// How many items the queue holds.
+    @internal
+    size: i64 = 0
+}
+
+/// Add `item` behind every item pushed so far.
+///
+/// @param self  the queue.
+/// @param item  the item to add.
+export push :: fn<T>(self: Queue<T>, item: T) -> void {
+    capacity :: self.items.len()
+    if self.size < capacity {
+        self.items[ring_index(self.head + self.size, capacity)] = item
+    } else if self.head == 0 {
+        self.items.push(item)
+    } else {
+        // A full ring that wraps: lay it out again from index 0, oldest first,
+        // so the array can grow at its end.
+        grown: T[]: [] * (capacity * 2)
+        grown.push_all(self.items[self.head..<capacity])
+        grown.push_all(self.items[0..<self.head])
+        grown.push(item)
+        self.items = grown
+        self.head = 0
+    }
+    self.size += 1
+}
+
+/// Remove the oldest item.
+///
+/// @param self  the queue.
+/// @return      that item, or null when the queue is empty.
+export pop :: fn<T>(self: Queue<T>) -> T | null {
+    if self.size == 0 {
+        return null
+    }
+    item :: self.items[self.head]
+    self.size -= 1
+    self.head = ring_index(self.head + 1, self.items.len())
+    // An emptied queue starts again at index 0: a queue drained between bursts
+    // of pushes then never wraps.
+    if self.size == 0 {
+        self.head = 0
+    }
+    return item
+}
+
+/// The oldest item, left in the queue.
+///
+/// @param self  the queue.
+/// @return      that item, or null when the queue is empty.
+export peek :: fn<T>(self: Queue<T>) -> T | null {
+    if self.size == 0 {
+        return null
+    }
+    return self.items[self.head]
+}
+
+/// How many items the queue holds.
+export len :: fn<T>(self: Queue<T>) -> i64 = self.size
+
+/// Whether the queue holds no item.
+export is_empty :: fn<T>(self: Queue<T>) -> bool = self.size == 0
+
+// `index` wrapped into the ring, for an `index` below twice the capacity.
+ring_index :: fn(index: i64, capacity: i64) -> i64 = if index >= capacity {
+    index - capacity
+} else {
+    index
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_queue_pops_in_pushed_order :: fn() -> void {
+    q :: Queue<string> {}
+    q.push("a")
+    q.push("b")
+    assert_eq(q.pop() ?? "none", "a")
+    assert_eq(q.pop() ?? "none", "b")
+    assert_eq(q.pop() ?? "none", "none")
+}
+
+@test
+test_queue_peek_leaves_the_item :: fn() -> void {
+    q :: Queue<i32> {}
+    q.push(7)
+    q.push(3)
+    assert_eq(q.peek() ?? -1, 7)
+    assert_eq(q.len(), 2)
+}
+
+@test
+test_queue_empty_gives_null :: fn() -> void {
+    q :: Queue<i32> {}
+    assert(q.is_empty(), "a new queue is empty")
+    assert(q.peek() == null, "peek on an empty queue")
+    assert(q.pop() == null, "pop on an empty queue")
+}
+
+@test
+test_queue_reuses_the_place_of_a_popped_item :: fn() -> void {
+    q :: Queue<i32> {}
+    for i in 0..<4 {
+        q.push(i)
+    }
+    q.pop()
+    q.pop()
+    q.push(4)
+    q.push(5)
+    assert_eq(q.items.len(), 4)
+    assert_eq(q.pop() ?? -1, 2)
+}
+
+@test
+test_queue_keeps_its_order_when_a_wrapped_ring_grows :: fn() -> void {
+    q :: Queue<i32> {}
+    for i in 0..<4 {
+        q.push(i)
+    }
+    q.pop()
+    q.push(4)
+    q.push(5)
+    out: i32[]: []
+    for {
+        x :: q.pop() ?? break
+        out.push(x)
+    }
+    assert_eq("${out}", "[1, 2, 3, 4, 5]")
+}
+
+@test
+test_queue_starts_again_at_the_front_once_emptied :: fn() -> void {
+    q :: Queue<i32> {}
+    q.push(1)
+    q.push(2)
+    q.pop()
+    q.pop()
+    assert_eq(q.head, 0)
+}

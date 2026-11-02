@@ -1,4 +1,4 @@
-// std/collections: maps, sets, a work queue and a priority queue.
+// std/collections: maps, sets, a queue and a priority queue.
 //
 // ```
 // counts :: Map<string, i32> {}
@@ -7,8 +7,8 @@
 // seen :: Set<i32> {}
 // seen.add(10)
 //
-// queue :: WorkQueue<string> {}
-// queue.push("parse")
+// jobs :: Queue<string> {}
+// jobs.push("parse")
 //
 // deadlines :: PriorityQueue<i64> {}
 // deadlines.push(30)

@@ -23,8 +23,8 @@ import "toolchain/span"
 /// `project_ctx.generic_collected`, and lowers each queued impl member instance
 /// (`member_instance_queue`) straight into its module, lowering each instance
 /// body against a fresh `Substitution` binding the fn's typeParams to the call
-/// site's concrete types. The queues resume where they stopped, so
-/// `lower_project`'s generic↔stdlib joint fixpoint can re-run it as later
+/// site's concrete types. The queues hold only the work still to do, so
+/// `lower_project`'s joint generic and stdlib fixpoint can re-run it as later
 /// harvest rounds register new instances (e.g. `len` pulled in by the harvested
 /// `std/json::write_object` body). The sort + erasure-dedup + push happens once
 /// in `flush_generic_fn_instances`.
@@ -40,7 +40,7 @@ drain_generic_fn_instances :: fn(
     // until none holds work.
     for pending_instances(project_ctx) {
         for {
-            inst :: project_ctx.fn_instance_queue.take() ?? break
+            inst :: project_ctx.fn_instance_queue.pop() ?? break
             built :: build_fn_instance_decl(inst, typed, project_ctx, diags)
             match built {
                 is null -> {}
@@ -51,11 +51,11 @@ drain_generic_fn_instances :: fn(
         // members (`Map<Any, bool>.Contains.contains__Any__bool`), deduped
         // via `materialized_impl_keys`.
         for {
-            recv :: project_ctx.generic_impl_recv_queue.take() ?? break
+            recv :: project_ctx.generic_impl_recv_queue.pop() ?? break
             materialize_impl_members_for(recv, typed, project_ctx, project)
         }
         for {
-            inst :: project_ctx.member_instance_queue.take() ?? break
+            inst :: project_ctx.member_instance_queue.pop() ?? break
             materialize_member_instance(inst, project_ctx, project)
         }
     }
@@ -63,9 +63,9 @@ drain_generic_fn_instances :: fn(
 
 // Whether one of the three queues of instances still holds work.
 pending_instances :: fn(project_ctx: LowerProjectCtx) -> bool =
-    project_ctx.fn_instance_queue.has_pending()
-        || project_ctx.generic_impl_recv_queue.has_pending()
-        || project_ctx.member_instance_queue.has_pending()
+    !project_ctx.fn_instance_queue.is_empty()
+        || !project_ctx.generic_impl_recv_queue.is_empty()
+        || !project_ctx.member_instance_queue.is_empty()
 
 /// Flush phase of generic-fn-instance materialisation. Sorts every instance
 /// `drain_generic_fn_instances` collected by its key, `<fn_symbol.id>::<suffix>`
@@ -360,9 +360,9 @@ materialize_nongeneric_imported_fns :: fn(
     // The queue grows while it drains: lowering one stdlib body can harvest
     // further non-generic stdlib fns it calls. The materialise↔surface
     // fixpoint loop re-enters this fn after surfacing harvests further free
-    // fns, and the queue resumes past the entries an earlier pass emitted.
+    // fns, and the queue holds only the entries no earlier pass emitted.
     for {
-        fn_sym :: project_ctx.nongeneric_imported_queue.take() ?? break
+        fn_sym :: project_ctx.nongeneric_imported_queue.pop() ?? break
         module_typed :: typed.modules[fn_sym.module] ?? continue
         fn_decl :: module_typed.fn_decls[fn_sym.id] ?? continue
         // Bodyless externs are surfaced up front in `lower_project`'s stdlib
@@ -394,11 +394,11 @@ materialize_nongeneric_imported_consts :: fn(
     typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     // The queue grows while it drains: lowering one const value can harvest
-    // further stdlib fns / consts it references. It resumes where it stopped,
-    // so the materialise↔surface fixpoint re-enters without re-lowering
-    // earlier entries.
+    // further stdlib fns / consts it references. A popped entry leaves the
+    // queue, so the materialise and surface fixpoint re-enters without
+    // re-lowering earlier entries.
     for {
-        const_sym :: project_ctx.nongeneric_imported_const_queue.take() ?? break
+        const_sym :: project_ctx.nongeneric_imported_const_queue.pop() ?? break
         module_typed :: typed.modules[const_sym.module] ?? continue
         const_decl :: module_typed.const_decls[const_sym.id] ?? continue
         synth_start :: project_ctx.synth_decls.len()

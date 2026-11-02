@@ -168,7 +168,7 @@ lower_project_impl :: fn(
     // `nongeneric_imported_queue`), and a harvested stdlib body calls generic
     // fns (registered into `fn_instance_queue`, e.g. `std/json::write_object`
     // → `Map.len`). Drain all the queues in ONE joint fixpoint until
-    // none grows : each queue resumes where it stopped, so re-entry only
+    // none holds work: a popped item leaves its queue, so re-entry only
     // processes newly-registered work (`drain_generic_fn_instances` builds into
     // `generic_collected` ; `surface_*` dedupes via `materialized_impl_keys`).
     // A pre-fixpoint single generic pass would strand any instance a later
@@ -176,27 +176,25 @@ lower_project_impl :: fn(
     // emit). The generic instances are FLUSHED (sorted + erasure-deduped +
     // pushed) once after convergence so emission order is a single
     // deterministic sort.
-    // The queues count every item ever queued and the sets only grow, so their
-    // combined length strictly increases until the joint fixpoint settles: loop
-    // until the total stops growing.
-    prev_total: i64 = 0
-    draining := true
-    for draining {
+    // A step can queue work for one that ran before it in the round, and a set
+    // or `array_member_uses` that grows lets more members through to surfacing.
+    // They only grow, so their combined length says whether one did: loop until
+    // a round ends with every queue empty and that length unchanged.
+    gates_len: i64 = 0
+    for {
         drain_generic_fn_instances(typed, project_ctx, project, diags)
         materialize_nongeneric_imported_fns(typed, project_ctx, project, diags)
         materialize_nongeneric_imported_consts(typed, project_ctx, project, diags)
         materialize_enum_tables(typed, project_ctx, project)
         surface_referenced_intrinsic_externs(loaded, typed, project_ctx, project)
-        cur_total :: project_ctx.fn_instance_queue.total_queued() +
-            project_ctx.generic_impl_recv_queue.total_queued() +
-            project_ctx.member_instance_queue.total_queued() +
-            project_ctx.nongeneric_imported_queue.total_queued() +
-            project_ctx.nongeneric_imported_const_queue.total_queued() +
-            project_ctx.enum_table_queue.total_queued() +
-            project_ctx.referenced_impl_mangles.len() +
+        round_gates_len :: project_ctx.referenced_impl_mangles.len() +
             project_ctx.virtually_dispatched_traits.len() +
-            project_ctx.constructed_struct_symbols.len()
-        if cur_total == prev_total { draining = false } else { prev_total = cur_total }
+            project_ctx.constructed_struct_symbols.len() +
+            project_ctx.array_member_uses.len()
+        if round_gates_len == gates_len && !pending_work(project_ctx) {
+            break
+        }
+        gates_len = round_gates_len
     }
     // INVARIANT : anything that can register a generic fn instance or harvest a
     // non-generic stdlib fn MUST run inside the loop above: the flush is
@@ -268,6 +266,13 @@ lower_project_impl :: fn(
     }
     return project
 }
+
+// Whether a queue of the lowering fixpoint still holds work.
+pending_work :: fn(project_ctx: LowerProjectCtx) -> bool =
+    pending_instances(project_ctx)
+        || !project_ctx.nongeneric_imported_queue.is_empty()
+        || !project_ctx.nongeneric_imported_const_queue.is_empty()
+        || !project_ctx.enum_table_queue.is_empty()
 
 // Print a report to stderr, unless it is the empty string every renderer returns
 // when the report is off.
