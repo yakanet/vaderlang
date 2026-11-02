@@ -1,0 +1,43 @@
+// A type that implements a trait enters a slot of that trait as itself, even when
+// it also converts `into` the trait: the conversion runs only when called by name.
+
+module "snippet"
+
+import "std/io"
+
+Named :: trait {
+    label :: fn(self) -> string
+}
+
+Cat :: struct { name: string }
+Stray :: struct {}
+
+Cat implements Named {
+    label :: fn(self) -> string = "cat ${self.name}"
+}
+
+Stray implements Named {
+    label :: fn(self) -> string = "stray"
+}
+
+Cat implements Into<Named> {
+    into :: fn(self) -> Named = Stray {}
+}
+
+Holder :: struct { pet: Named }
+
+show :: fn(n: Named) -> string = n.label()
+
+adopt :: fn(c: Cat) -> Named = c
+
+main :: fn() -> i32 {
+    tom :: Cat { .name = "Tom" }
+    declared: Named: tom
+    println(declared.label())
+    println(show(tom))
+    println(adopt(tom).label())
+    println(Holder { .pet = tom }.pet.label())
+    converted: Named: tom.into()
+    println(converted.label())
+    return 0
+}

@@ -1,0 +1,54 @@
+# Typecheck
+
+## tests/snippets/into_trait_already_implemented
+  FnDecl         adopt                :: fn(Cat) -> Named
+  StructDecl     Cat                  :: Cat
+  StructDecl     Holder               :: Holder
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Named                :: Named
+  FnDecl         show                 :: fn(Named) -> string
+  StructDecl     Stray                :: Stray
+  expr 16:35    StringLitExpr  :: string
+  expr 16:42    FieldExpr      :: string
+  expr 16:42    IdentExpr      :: Cat
+  expr 20:35    StringLitExpr  :: string
+  expr 24:33    StructLitExpr  :: Stray
+  expr 29:34    CallExpr       :: string
+  expr 29:34    FieldExpr      :: fn() -> string
+  expr 29:34    IdentExpr      :: Named
+  expr 31:32    IdentExpr      :: Cat
+  expr 34:12    StructLitExpr  :: Cat
+  expr 34:26    StringLitExpr  :: string
+  expr 35:22    IdentExpr      :: Cat
+  expr 36:13    CallExpr       :: string
+  expr 36:13    FieldExpr      :: fn() -> string
+  expr 36:13    IdentExpr      :: Named
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 37:13    CallExpr       :: string
+  expr 37:13    IdentExpr      :: fn(Named) -> string
+  expr 37:18    IdentExpr      :: Cat
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 38:13    CallExpr       :: Named
+  expr 38:13    CallExpr       :: string
+  expr 38:13    FieldExpr      :: fn() -> string
+  expr 38:13    IdentExpr      :: fn(Cat) -> Named
+  expr 38:19    IdentExpr      :: Cat
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    CallExpr       :: string
+  expr 39:13    FieldExpr      :: Named
+  expr 39:13    FieldExpr      :: fn() -> string
+  expr 39:13    StructLitExpr  :: Holder
+  expr 39:29    IdentExpr      :: Cat
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 40:23    CallExpr       :: Named
+  expr 40:23    FieldExpr      :: fn() -> Named
+  expr 40:23    IdentExpr      :: Cat
+  expr 41:13    CallExpr       :: string
+  expr 41:13    FieldExpr      :: fn() -> string
+  expr 41:13    IdentExpr      :: Named
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(T) -> void
