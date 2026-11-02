@@ -796,6 +796,9 @@ import "std/testing"
 // terminal that colours them.
 lines_of :: fn(frame: string) -> string[] = TTY.without_escapes(frame).split("\n")
 
+// The caret as `lines_of` shows it: `_`, or a blank cell on a coloured terminal.
+shown_caret :: fn() -> string = TTY.without_escapes(caret())
+
 CHOICES :: [Choice { .label = "alpha", .hint = "the first" }, Choice { .label = "be" }]
 
 @test test_select_frame_marks_the_option_under_the_cursor :: fn() -> void {
@@ -827,7 +830,7 @@ CHOICES :: [Choice { .label = "alpha", .hint = "the first" }, Choice { .label = 
     }
     path :: "a/path/much/wider/than/the/terminal"
     typed :: lines_of(render_text("Q", path, "", "", 20, ASCII_GLYPHS))
-    assert_eq(typed[2], "|  .../the/terminal_")
+    assert_eq(typed[2], "|  .../the/terminal${shown_caret()}")
 }
 
 @test test_settled_step_keeps_the_question_and_the_answer :: fn() -> void {
@@ -883,8 +886,8 @@ CHOICES :: [Choice { .label = "alpha", .hint = "the first" }, Choice { .label = 
 @test test_text_frame_shows_the_default_until_typing :: fn() -> void {
     empty :: lines_of(render_text("Name", "", "demo", "", 80, ASCII_GLYPHS))
     typed :: lines_of(render_text("Name", "x", "demo", "", 80, ASCII_GLYPHS))
-    assert_eq(empty[2], "|  _demo")
-    assert_eq(typed[2], "|  x_")
+    assert_eq(empty[2], "|  ${shown_caret()}demo")
+    assert_eq(typed[2], "|  x${shown_caret()}")
 }
 
 @test test_text_frame_wraps_the_reason_an_answer_was_refused :: fn() -> void {
