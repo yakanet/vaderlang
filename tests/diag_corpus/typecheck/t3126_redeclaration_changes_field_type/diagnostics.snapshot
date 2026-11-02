@@ -1,0 +1,2 @@
+[16:12] error[T3126] a field redeclared over a spread keeps its type: `width` is `i32` in `Base`, `i64` here
+[21:12] error[T3126] a field redeclared over a spread keeps its type: `value` is `i64` in `Box<i64>`, `i32` here

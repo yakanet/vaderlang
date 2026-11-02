@@ -1,0 +1,1 @@
+[9:8] error[T3127] a struct with an `@internal` field is spread only in its own module: `Set.inner` is `@internal` to module `lib/std/collections`

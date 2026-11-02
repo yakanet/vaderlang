@@ -41,15 +41,16 @@ share_type_param_symbols :: fn(per_module: Map<string, TypedProgram>) -> void {
 }
 
 // Cross-module struct visibility : each module's `declare_module` only
-// populates its OWN `struct_decls` / `struct_fields`, yet a field access on
+// populates its OWN `struct_decls` / `struct_fields` / `struct_spreads`, yet a field access on
 // a local typed as another module's struct (`block: LoweredBlock` in main.vader)
 // looks `typed.struct_fields[sym.id]` up in the CURRENT module, and a miss turns
 // into `?` and cascades. Symbol ids being project-global, the union of every
-// module's tables is one table, written by nothing after the declarations:
-// every module shares that instance.
+// module's tables is one table, which only `expand_struct_spreads` writes after
+// the declarations: every module shares that instance.
 broadcast_struct_decls :: fn(per_module: Map<string, TypedProgram>) -> void {
     all_decls :: Map<i32, AST.StructDecl> {}
     all_fields :: Map<i32, Map<string, StructFieldInfo>> {}
+    all_spreads :: Map<i32, StructSpreads> {}
     for [_, typed] in per_module {
         for [sid, d] in typed.struct_decls {
             all_decls[sid] = d
@@ -57,10 +58,14 @@ broadcast_struct_decls :: fn(per_module: Map<string, TypedProgram>) -> void {
         for [sid, f] in typed.struct_fields {
             all_fields[sid] = f
         }
+        for [sid, s] in typed.struct_spreads {
+            all_spreads[sid] = s
+        }
     }
     for [_, typed] in per_module {
         typed.struct_decls = all_decls
         typed.struct_fields = all_fields
+        typed.struct_spreads = all_spreads
     }
 }
 

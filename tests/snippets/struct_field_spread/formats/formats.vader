@@ -1,0 +1,33 @@
+// The bases the snippet spreads : their defaults read a constant this module keeps
+// to itself, and `Secret` holds an `@internal` field, so only this module spreads it.
+module "snippet/formats"
+
+DEFAULT_WIDTH :: 8
+
+export SignMode :: enum { Negative, Always }
+
+export BaseFormat :: struct {
+    sign:      SignMode = .Negative
+    separator: string = ""
+    width:     i32 = DEFAULT_WIDTH
+}
+
+export Holder :: struct<T> {
+    items: T[] = []
+    label: string = "holder of ${DEFAULT_WIDTH}"
+}
+
+export Secret :: struct {
+    shown: i32 = 1
+    @internal
+    hidden: i32 = 2
+}
+
+export Revealed :: struct {
+    ...Secret
+    extra: i32 = 3
+}
+
+export make_revealed :: fn() -> Revealed = Revealed {}
+
+export hidden_of :: fn(r: Revealed) -> i32 = r.hidden

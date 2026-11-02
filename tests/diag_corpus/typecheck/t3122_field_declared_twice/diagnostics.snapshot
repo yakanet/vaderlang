@@ -1,0 +1,1 @@
+[8:5] error[T3122] a struct cannot declare a field twice: `x`

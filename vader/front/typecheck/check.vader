@@ -41,6 +41,7 @@ export check_module :: fn(
 ) -> CheckResult {
     typed :: new_typed_program(resolved)
     declare_module(program.decls, resolved, typed, diags)
+    expand_struct_spreads(typed, diags)
     impls :: build_impl_registry(program.decls, resolved, typed)
     register_module_impls(program.decls, typed, diags)
     return CheckResult {

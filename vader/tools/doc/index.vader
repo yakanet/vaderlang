@@ -90,7 +90,7 @@ export DocMember :: struct {
     /// `<id of its declaration>.<name>`.
     id: string = ""
     name: string
-    /// `field`, `variant` or `method`.
+    /// `field`, `spread`, `variant` or `method`.
     kind: string
     /// Its head as the hover shows it, ending with the return typing gave a
     /// method whose source writes none.
@@ -329,20 +329,43 @@ has_body :: fn(fd: FnDecl) -> bool {
     return false
 }
 
-// The members of `d`: the fields of a struct, the variants of an enum, the
-// methods of a trait. A field restricted to its module (`@internal`) is left
-// out.
-members_of :: fn(ctx: FileContext, d: Decl) -> DocMember[] = match d {
-    is StructDecl -> d.fields.filter((f: StructField) -> f.visibility != .Private).map(
-        (f: StructField) -> DocMember {
-            .name = f.name,
+// The fields `d` writes and the `...Base` it spreads, in its order ; an `@internal`
+// field is left out.
+struct_doc_members :: fn(ctx: FileContext, d: StructDecl) -> DocMember[] {
+    out: DocMember[]: []
+    for m in struct_members(d) {
+        if m is StructSpread {
+            head :: format_spread_head(ctx.file.content, m)
+            out.push(DocMember {
+                .name = head.text,
+                .kind = "spread",
+                .signature = head_segments(ctx, head),
+                .line = m.span.start.line,
+                .column = m.span.start.column,
+                .doc = null,
+            })
+            continue
+        }
+        if m.visibility == .Private {
+            continue
+        }
+        out.push(DocMember {
+            .name = m.name,
             .kind = "field",
-            .signature = head_segments(ctx, format_field_head(ctx.file.content, f)),
-            .line = f.span.start.line,
-            .column = f.span.start.column,
-            .doc = sections_of(f.doc),
-        },
-    ).collect()
+            .signature = head_segments(ctx, format_field_head(ctx.file.content, m)),
+            .line = m.span.start.line,
+            .column = m.span.start.column,
+            .doc = sections_of(m.doc),
+        })
+    }
+    return out
+}
+
+// The members of `d`: the fields and the spreads of a struct, the variants of an
+// enum, the methods of a trait. A field restricted to its module (`@internal`) is
+// left out.
+members_of :: fn(ctx: FileContext, d: Decl) -> DocMember[] = match d {
+    is StructDecl -> struct_doc_members(ctx, d)
     is EnumDecl -> d.variants.map(
         (v: EnumVariant) -> DocMember {
             .name = v.name,

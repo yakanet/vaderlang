@@ -1,0 +1,2 @@
+[17:8] error[T3124] a struct cannot spread itself, even through its bases: `Left` spreads `Right`
+[7:8] error[T3124] a struct cannot spread itself, even through its bases: `Node` spreads `Node`

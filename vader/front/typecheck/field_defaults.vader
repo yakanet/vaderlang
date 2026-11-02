@@ -94,6 +94,11 @@ fill_omitted_defaults :: fn(
         if name in provided {
             continue
         }
+        // A default written in another module is checked there, and cannot reach back
+        // into this one, imports having no cycle ; its names resolve in that module.
+        if field.owner.symbol.module != typed.resolved.path {
+            continue
+        }
         default :: field.decl.default ?? continue
         key :: field.decl.span.hash()
         if key in fill.filled {
@@ -101,7 +106,7 @@ fill_omitted_defaults :: fn(
         }
         current :: FillingDefault {
             .key = key,
-            .owner = field.owner,
+            .owner = field.owner.symbol,
             .field = name,
             .span = default.span,
         }

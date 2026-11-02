@@ -339,6 +339,11 @@ inspect_struct :: fn(s: StructDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> 
             return true
         }
     }
+    for spread in s.spreads {
+        if inspect(spread.base, visit, leave) {
+            return true
+        }
+    }
     return false
 }
 

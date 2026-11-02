@@ -303,9 +303,33 @@ write_struct_decl :: fn(sb: StringBuilder, d: StructDecl, level: i32) -> void {
     sb.write_type_params(d.type_params, level + 1)
     sb.entry(false, level + 1, "fields")
     sb.write_struct_fields(d.fields, level + 1)
+    if d.spreads.len() > 0 {
+        sb.entry(false, level + 1, "spreads")
+        sb.write_struct_spreads(d.spreads, level + 1)
+    }
     sb.entry(false, level + 1, "decorators")
     sb.write_decorators(d.decorators, level + 1)
     sb.close_obj(level)
+}
+
+write_struct_spreads :: fn(sb: StringBuilder, spreads: StructSpread[], level: i32) -> void {
+    sb.open_arr()
+    first := true
+    for s in spreads {
+        if !first {
+            sb.append_char(',')
+        }
+        first = false
+        sb.append_char('\n')
+        sb.indent(level + 1)
+        sb.open_obj()
+        sb.entry(true, level + 2, "base")
+        sb.write_type(s.base, level + 2)
+        sb.entry(false, level + 2, "at")
+        sb.append("${s.at}")
+        sb.close_obj(level + 1)
+    }
+    sb.close_arr(level)
 }
 
 write_struct_fields :: fn(sb: StringBuilder, fields: StructField[], level: i32) -> void {

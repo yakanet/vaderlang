@@ -1,0 +1,13 @@
+// T3127 : a struct with an `@internal` field gives its fields only in its own
+// module. `Set` keeps `inner` to `std/collections`, so a struct of another module
+// cannot spread it: it would hold a field it cannot touch.
+module "snippet"
+
+import "std/collections"
+
+Tagged :: struct {
+    ...Set<i32>
+    tag: string = ""
+}
+
+main :: fn() -> i32 = i32(Tagged {}.tag.byte_len())

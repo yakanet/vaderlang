@@ -147,6 +147,12 @@ export TypecheckCode :: enum(CodeInfo) {
     ConstantCallsSingleton          { .id = "T3119", .message = "a module constant cannot call a singleton" },
     UnionFieldReadsApart            { .id = "T3120", .message = "a field does not read the same in every variant of the union" },
     IteratorElementHoldsStop        { .id = "T3121", .message = "an iterator's element cannot hold `Stop`" },
+    FieldDeclaredTwice              { .id = "T3122", .message = "a struct cannot declare a field twice" },
+    SpreadNotAStruct                { .id = "T3123", .message = "only a struct can be spread into a struct" },
+    StructSpreadsItself             { .id = "T3124", .message = "a struct cannot spread itself, even through its bases" },
+    FieldSpreadTwice                { .id = "T3125", .message = "two spreads cannot give the same field unless the struct redeclares it" },
+    RedeclarationChangesFieldType   { .id = "T3126", .message = "a field redeclared over a spread keeps its type" },
+    InternalFieldSpreadElsewhere    { .id = "T3127", .message = "a struct with an `@internal` field is spread only in its own module" },
 }
 
 // Parser-pass codes.

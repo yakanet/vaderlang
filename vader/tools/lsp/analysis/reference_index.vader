@@ -427,6 +427,9 @@ collect_decl_idents :: fn(d: AST.Decl, out: Collected) -> void {
                 collect_type(fld.ty, out)
                 collect_opt_expr(fld.default, out)
             }
+            for spread in d.spreads {
+                collect_type(spread.base, out)
+            }
         }
         is AST.EnumDecl -> {
             collect_decorators(d.decorators, out)

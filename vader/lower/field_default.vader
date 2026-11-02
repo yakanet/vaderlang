@@ -16,32 +16,65 @@
 
 module "vader/lower"
 
+import "std/abort"
 import "std/collections"
 import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/core/types"
+import "vader/front/typecheck"
 import "vader/lower/ir"
 
-/// Lower the default of `field` for a literal of the struct instance `st`.
+/// Where the default of a field lowers, for a literal that omits it.
+DefaultSite :: struct {
+    /// The literal's fn-body context seen from the module of `owner`
+    /// (`ctx_in_owning_module`), which the default resolves in.
+    ctx: FnLowerCtx
+    /// The struct that writes the field, with the arguments the literal's instance
+    /// gives it.
+    owner: StructType
+}
+
+// The site of the default of `field` for a literal of `st` : the module of the struct
+// that writes the field, its type parameters bound to the arguments `st` gives them. A
+// field `st` receives from `...Box<T>` lowers its default as `Box` writes it, with `T`
+// bound to the argument of `st`. `previous`, the site of the literal's last default,
+// serves again for a field of the same owner : the fields of a literal mostly share one.
+default_site :: fn(
+    ctx: FnLowerCtx,
+    st: StructType,
+    field: StructFieldInfo,
+    previous: DefaultSite | null,
+) -> DefaultSite {
+    if previous != null && previous.owner.symbol.id == field.owner.symbol.id {
+        return previous
+    }
+    owner :: owner_in_instance(field, st, ctx.typed)
+    owner_decl :: ctx.typed.struct_decls[owner.symbol.id]
+        ?? panic("lower: no declaration recorded for `${owner.symbol.name}`")
+    return DefaultSite {
+        .ctx = ctx_in_owning_module(ctx, owner.symbol.module, owner_decl, owner.args),
+        .owner = owner,
+    }
+}
+
+/// Lower the default of `field` for a literal that omits it.
 ///
-/// @param default_ctx  the literal's fn-body context seen from the struct's owning
-///                     module (`ctx_in_owning_module`), which the default resolves in.
-/// @param st           the struct instance the literal builds.
-/// @param field        the omitted field.
-/// @param default      `field`'s default.
-/// @param field_type   the field's type in `st`.
-/// @return             the default lowered in place, or a call to its thunk when the
-///                     literal sits inside the expansion of that same default.
+/// @param site        where the default lowers (`default_site`).
+/// @param field       the omitted field.
+/// @param default     `field`'s default.
+/// @param field_type  the field's type in the literal's instance.
+/// @return            the default lowered in place, or a call to its thunk when the
+///                    literal sits inside the expansion of that same default.
 lower_field_default :: fn(
-    default_ctx: FnLowerCtx, st: StructType, field: StructField, default: Expr, field_type: Type,
+    site: DefaultSite, field: StructField, default: Expr, field_type: Type,
 ) -> LoweredExpr {
-    expanding :: default_ctx.project.expanding_defaults
+    expanding :: site.ctx.project.expanding_defaults
     key :: field.span.hash()
     if !expanding.add(key) {
-        thunk :: default_thunk(default_ctx, st, field, default, field_type)
+        thunk :: default_thunk(site.ctx, site.owner, field, default, field_type)
         return mk_lowered_call(thunk.symbol, [], thunk.type, field.span)
     }
-    value :: lower_for_slot(default_ctx, default, field_type, field.span)
+    value :: lower_for_slot(site.ctx, default, field_type, field.span)
     expanding.remove(key)
     return value
 }

@@ -263,6 +263,9 @@ walk_struct_decl :: fn(d: AST.StructDecl, out: RawToken[]) -> void {
     push_span(out, d.name_span, .Type)
     walk_type_params(d.type_params, out)
     for f in d.fields { walk_struct_field(f, out) }
+    for spread in d.spreads {
+        walk_type_expr(spread.base, out)
+    }
 }
 
 walk_struct_field :: fn(f: AST.StructField, out: RawToken[]) -> void {

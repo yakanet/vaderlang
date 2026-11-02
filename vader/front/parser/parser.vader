@@ -1269,12 +1269,18 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
     p.expect(.LBrace, "`{` to open struct body")
     p.skip_newlines()
     fields: StructField[]: []
+    spreads: StructSpread[]: []
     for !p.check(.RBrace) && !p.check(.Eof) {
+        doc :: p.take_doc()
+        field_decos :: p.parse_decorators()
+        if p.check(.DotDotDot) {
+            spreads.push(p.parse_struct_spread(field_decos, fields.len()))
+            p.skip_member_separator()
+            continue
+        }
         // Fields are PUBLIC by default ; an `@internal` decorator restricts a
         // field to its declaring module (typecheck enforces, T3054). Any other
         // decorator is rejected here: `@internal` is the only field decorator.
-        doc :: p.take_doc()
-        field_decos :: p.parse_decorators()
         field_visibility: Visibility = .Public
         for d in field_decos {
             if decorator_on(d.name, .Field) {
@@ -1301,10 +1307,7 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
             .default    = fdefault,
             .doc        = doc,
         })
-        if !p.check(.RBrace) {
-            p.match_kind(.Comma)
-            p.skip_newlines()
-        }
+        p.skip_member_separator()
     }
     end_tok :: p.expect(.RBrace, "`}` to close struct body")
     return StructDecl {
@@ -1314,8 +1317,33 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
         .visibility    = visibility,
         .type_params   = type_params,
         .fields        = fields,
+        .spreads       = spreads,
         .decorators    = decorators,
     }
+}
+
+// `...Base` in a struct body, after `written` fields. A spread brings the base's
+// fields as they are declared, so it takes no decorator.
+parse_struct_spread :: fn(p: Parser, decorators: Decorator[], written: i64) -> StructSpread {
+    for d in decorators {
+        p.error(.UnknownDecoratorPlacement, d.span, "`@${d.name}` does not apply to a spread")
+    }
+    start :: p.advance()  // `...`
+    base :: p.parse_type()
+    return StructSpread {
+        .span = p.span_of(start, p.peek_at(-1)),
+        .base = base,
+        .at   = written,
+    }
+}
+
+// The `,` or the newlines between two members of a struct body, unless the body ends.
+skip_member_separator :: fn(p: Parser) -> void {
+    if p.check(.RBrace) {
+        return
+    }
+    p.match_kind(.Comma)
+    p.skip_newlines()
 }
 
 // Angle type-param list `<T, U: Bound, ...>`. Each entry is `name` or

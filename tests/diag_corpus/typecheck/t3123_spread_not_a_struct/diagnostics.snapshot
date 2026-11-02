@@ -1,0 +1,3 @@
+[10:8] error[T3123] only a struct can be spread into a struct: `Base | null`
+[8:8] error[T3123] only a struct can be spread into a struct: `Color`
+[9:8] error[T3123] only a struct can be spread into a struct: `i32`

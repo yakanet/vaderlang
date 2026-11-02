@@ -672,7 +672,7 @@ bind_struct_pattern :: fn(
         }
         // T3054 : reject binding an `@internal` field in a struct
         // pattern from outside its declaring module.
-        check_internal_field(st, found, field.name_span, typed, diags)
+        check_internal_field(found, field.name_span, typed, diags)
         // `Box<i32> { value }` reads `value` as `i32`, not as the declared `T`.
         ft :: substitute_struct_args(found.ty, st, typed)
         match value :: field.value {

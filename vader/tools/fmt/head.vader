@@ -103,6 +103,17 @@ export format_field_head :: fn(source: string, f: p.StructField) -> NamedText {
     return cut_head(h.finish_named(), HEAD_VALUE_MAX)
 }
 
+/// Render a spread of a struct body on one line : `...Base`, `...Box<T>`.
+///
+/// @param source  the document the spread's spans index into.
+/// @param s       the spread.
+export format_spread_head :: fn(source: string, s: p.StructSpread) -> NamedText {
+    h :: head_printer(source)
+    h.write("...")
+    h.emit_type_expr(s.base)
+    return h.finish_named()
+}
+
 /// Render an enum variant's head on one line : `Name`, `Name = 3`,
 /// `Name { .id = "T3009", .message = "…" }`.
 ///
@@ -233,6 +244,14 @@ export format_field_display :: fn(source: string, f: p.StructField) -> string {
     return head
 }
 
+// A struct member as `format_field_display` renders a field ; a spread as `...Base`.
+format_member_display :: fn(source: string, m: p.StructMember) -> string {
+    if m is p.StructField {
+        return format_field_display(source, m)
+    }
+    return format_spread_head(source, m).text
+}
+
 // `export ` for a public declaration, "" otherwise.
 export_prefix :: fn(d: p.Decl) -> string {
     if p.decl_is_public(d) {
@@ -276,8 +295,8 @@ member_heads :: fn(source: string, d: p.Decl) -> string[] {
     out: string[]: []
     match d {
         is p.StructDecl -> {
-            for f in d.fields {
-                out.push(format_field_display(source, f))
+            for m in p.struct_members(d) {
+                out.push(format_member_display(source, m))
             }
         }
         is p.EnumDecl -> {

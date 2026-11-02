@@ -105,18 +105,35 @@ declare_decl :: fn(
             // module reading `entry.value` on a struct of `std/collections` finds
             // the type there, resolved where the field is written.
             fields :: Map<string, StructFieldInfo> {}
+            own :: StructType {
+                .symbol = sym,
+                .args = declared_type_args(decl.type_params, typed) ?? [],
+            }
             // A private field (`@internal`) is invisible across the module
             // boundary, so it never leaks: only public fields of an
             // exported struct expose their type through the interface.
             struct_public :: decl.visibility == .Public
             for f in decl.fields {
+                if f.name in fields {
+                    diags.push(typecheck_error(.FieldDeclaredTwice, f.span, "`${f.name}`"))
+                    continue
+                }
                 fty :: type_from_expr(f.ty, resolved, diags)
-                fields[f.name] = StructFieldInfo { .decl = f, .ty = fty, .owner = sym }
+                fields[f.name] = StructFieldInfo { .decl = f, .ty = fty, .owner = own }
                 if struct_public && f.visibility == .Public {
                     report_private_leak(fty, f.ty.span, decl.name, "exposes a field of type", diags)
                 }
             }
             typed.struct_fields[sym.id] = fields
+            // `struct_spread.vader` gives the struct its bases' fields once every
+            // module is declared.
+            if decl.spreads.len() > 0 {
+                bases: Type[]: []
+                for spread in decl.spreads {
+                    bases.push(type_from_expr(spread.base, resolved, diags))
+                }
+                typed.struct_spreads[sym.id] = StructSpreads { .symbol = sym, .bases = bases }
+            }
         }
         is AST.EnumDecl  -> { declare_enum(decl, resolved, typed, diags) }
         is AST.TraitDecl -> {

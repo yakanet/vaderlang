@@ -437,6 +437,9 @@ export FnParam :: struct {
 /// The node a generator walks most: `fields` in declaration order, each carrying its
 /// written type. `name_span` covers the name alone, which is what a diagnostic about
 /// the struct itself should point at.
+///
+/// `fields` holds what the declaration writes, not what its `spreads` bring: the
+/// fields of a `...Base` exist only once the typechecker has laid the struct out.
 export StructDecl :: struct {
     span:          Span
     id:            i64 = UNASSIGNED_NODE_ID
@@ -445,8 +448,40 @@ export StructDecl :: struct {
     visibility:    Visibility
     type_params:   TypeParam[]
     fields:        StructField[]
+    spreads:       StructSpread[] = []
     decorators:    Decorator[]
     doc:           DocComment | null = null
+}
+
+/// A spread of another struct's fields into a struct declaration, `...Base`.
+export StructSpread :: struct {
+    span: Span
+    id:   i64 = UNASSIGNED_NODE_ID
+    /// The struct whose fields are spread, as written (`Base`, `Box<T>`).
+    base: TypeExpr
+    /// How many of the declaration's `fields` are written before the spread.
+    at:   i64
+}
+
+/// A member of a struct body: a field it writes, or a spread of another struct.
+export StructMember :: StructField | StructSpread
+
+/// The fields and the spreads of `d`, in the order the declaration writes them.
+///
+/// @param d  the struct declaration.
+export struct_members :: fn(d: StructDecl) -> StructMember[] {
+    out: StructMember[]: []
+    next_spread: i64 = 0
+    for i in 0..=d.fields.len() {
+        for next_spread < d.spreads.len() && d.spreads[next_spread].at == i {
+            out.push(d.spreads[next_spread])
+            next_spread += 1
+        }
+        if i < d.fields.len() {
+            out.push(d.fields[i])
+        }
+    }
+    return out
 }
 
 /// One field of a struct.

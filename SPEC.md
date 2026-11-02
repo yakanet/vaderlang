@@ -1120,7 +1120,7 @@ A struct is a reference type: `p2 :: p` names the same object as `p`.
 - `==` calls the structs' `Equals` impl (*Equality*, below), and `===` tests whether two names reach the same object (*Identity*, below).
 - The layout of a struct cannot be observed: there is no `@offset_of` and no unsafe cast.
 
-A literal may list its fields in any order; their values are evaluated in the order the struct declares them. Listing a field twice is an error.
+A struct declares each of its fields once. A literal may list its fields in any order; their values are evaluated in the order the struct declares them. Listing a field twice is an error.
 
 #### Field defaults
 
@@ -1149,6 +1149,34 @@ B :: struct { a: A = A {} }
 D :: Q {}.n                      // error: D reads itself through Q's default
 Q :: struct { n: i32 = D }
 ```
+
+#### Received fields
+
+`...Base` in a struct declaration gives the struct the fields of `Base`, at the place of the spread:
+
+```vader
+BaseFormat :: struct {
+    sign:      SignMode = .Negative
+    separator: string   = ""
+}
+
+IntFormat :: struct {
+    ...BaseFormat
+    separator: string = ","
+    base:      i32    = 10
+}
+
+f :: IntFormat { .base = 16 }      // sign=.Negative, separator=",", base=16
+```
+
+- A received field keeps its type, its default and its doc. Its default is evaluated as the base declares it, with the names of the base's module.
+- `IntFormat` is a struct of its own: it is not a `BaseFormat`, and one is not accepted where the other is expected.
+- A field the struct declares under the name of a received one replaces it, with a new default or doc. It keeps the type and the place of the received field: declaring it with another type is an error.
+- Two spreads that give the same field are an error, unless the struct declares that field itself.
+- A generic base takes the arguments the struct gives it: in `Pair :: struct<T> { ...Box<T> }`, a `Pair<i32>` has the fields of a `Box<i32>`.
+- A base may spread another struct in turn. A struct that spreads itself, directly or through its bases, is an error.
+- A struct with an `@internal` field can be spread only in its own module (§12 *`@internal`*).
+- Only a struct can be spread, and a spread takes no decorator.
 
 #### Spread (functional update)
 

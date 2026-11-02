@@ -598,9 +598,15 @@ export TypedProgram :: struct {
 
     /// The fields of every struct, by the struct's symbol id then by name, in the
     /// order the struct lays them out. Every reader after the declarations takes a
-    /// struct's fields from here, not from its `StructDecl`. Project-wide and shared
-    /// alongside `struct_decls`.
+    /// struct's fields from here, not from its `StructDecl`: the declarations fill it
+    /// with the fields each struct writes, `expand_struct_spreads` with those it
+    /// receives. Project-wide and shared alongside `struct_decls`.
     struct_fields: Map<i32, Map<string, StructFieldInfo>>
+
+    /// The bases a struct spreads, by the struct's symbol id, resolved in its module ;
+    /// a struct that spreads nothing has no entry. Shared alongside `struct_decls`,
+    /// and read by `expand_struct_spreads`.
+    struct_spreads: Map<i32, StructSpreads> = Map<i32, StructSpreads> {}
 
     /// A type parameter's declaration site (`tp.span.hash()`) → the symbol the
     /// resolver gave it, for every parameter a declaration lists in its `<…>` ; a

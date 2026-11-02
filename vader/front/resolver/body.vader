@@ -431,6 +431,9 @@ walk_struct_decl :: fn(self: ResolveState, d: AST.StructDecl) -> void {
         self.walk_expr(f.ty)
         self.walk_opt_expr(f.default)
     }
+    for spread in d.spreads {
+        self.walk_expr(spread.base)
+    }
     self.scope.pop()
 }
 

@@ -1,0 +1,25 @@
+// T3125 : two spreads give the same field and the struct does not redeclare it,
+// so neither one wins. `Settled` redeclares `name` and passes.
+module "snippet"
+
+Named :: struct {
+    name: string = "named"
+}
+
+Labelled :: struct {
+    name: string = "labelled"
+    color: i32 = 0
+}
+
+Clash :: struct {
+    ...Named
+    ...Labelled
+}
+
+Settled :: struct {
+    ...Named
+    ...Labelled
+    name: string = "settled"
+}
+
+main :: fn() -> i32 = Clash {}.color + i32(Settled {}.name.byte_len())

@@ -1,26 +1,29 @@
 // vader/front/typecheck/struct_fields: the fields of a struct, as the passes read them.
 //
 // `decl.vader` records each struct's fields in `TypedProgram.struct_fields` while it
-// declares the struct, with their types resolved in the module that writes them.
-// Every reader after the declarations walks that table, not the `StructDecl`: the
-// table is what a struct lays out, the declaration only what its own text writes.
+// declares the struct, with their types resolved in the module that writes them ;
+// `struct_spread.vader` then adds the fields a struct receives from the structs it
+// spreads. Every reader after the declarations walks that table, not the
+// `StructDecl`: the table is what a struct lays out, the declaration only what its
+// own text writes.
 
 module "vader/front/typecheck"
 
 import "std/collections"
 AST :: import "toolchain/ast"
-import "vader/core/symbol"
 import "vader/core/types"
 
 /// One field of a struct, at its place in the struct's layout.
 export StructFieldInfo :: struct {
     /// The declaration of the field: its name, visibility, default, doc and span.
     decl: AST.StructField
-    /// The type `decl` writes, resolved in the module of `owner` ; the struct's type
-    /// parameters stay as written.
+    /// The type `decl` writes, resolved in the module of `owner`, in the type
+    /// parameters of the struct the table indexes : a field received from
+    /// `...Box<T>` reads `T` as that struct's own `T`.
     ty: Type
-    /// The struct whose declaration writes the field.
-    owner: Symbol
+    /// The struct whose declaration writes the field, with the arguments the indexed
+    /// struct gives it : its own parameters for a field it writes.
+    owner: StructType
 }
 
 /// The field `name` of the struct `struct_id`.
@@ -36,6 +39,28 @@ export struct_field_info :: fn(
 ) -> StructFieldInfo | null {
     fields :: typed.struct_fields[struct_id] ?? return null
     return fields[name]
+}
+
+/// The struct that writes `field`, as the instance `st` of the struct holding it gives
+/// it its arguments : the parameters of `st`'s struct replaced by those of `st`.
+///
+/// @param field  a field of the struct `st` instantiates.
+/// @param st     an instance of that struct.
+/// @param typed  any module's typed program : the tables it reads are shared.
+export owner_in_instance :: fn(
+    field: StructFieldInfo,
+    st: StructType,
+    typed: TypedProgram,
+) -> StructType {
+    if field.owner.args.len() == 0 {
+        return field.owner
+    }
+    decl :: typed.struct_decls[st.symbol.id] ?? return field.owner
+    bindings :: type_param_bindings(decl.type_params, st.args, typed)
+    return StructType {
+        .symbol = field.owner.symbol,
+        .args = substitute_each_map(field.owner.args, bindings),
+    }
 }
 
 /// Where `name` sits among the fields of the struct `struct_id`, from 0.

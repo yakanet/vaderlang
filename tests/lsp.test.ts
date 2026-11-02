@@ -2582,6 +2582,42 @@ test("lsp: goto-def reaches a struct field", async () => {
   expect(loc!.range.start.line).toBe(4);
 });
 
+// `Derived` receives `width` from `...Base`, so the field is declared in `Base`.
+// `Decoy` comes first and declares a `width` too: a lookup by name alone lands
+// there, a lookup in `Derived` finds nothing.
+const RECEIVED_FIELD_SOURCE = `module "lsptest"
+
+Decoy :: struct {
+    width: i32 = 1
+}
+
+Base :: struct {
+    width: i32 = 0
+}
+
+Derived :: struct {
+    ...Base
+    depth: i32 = 0
+}
+
+read :: fn(d: Derived) -> i32 = d.width
+`;
+
+test("lsp: a field received through a spread is declared by its base", async () => {
+  const results = await driveLsp(RECEIVED_FIELD_SOURCE, [
+    { method: "textDocument/definition", position: { line: 15, character: 35 } },
+    { method: "textDocument/hover", position: { line: 15, character: 35 } },
+    { method: "textDocument/hover", position: { line: 10, character: 2 } },
+  ]);
+  const loc = results[0]!.result as { range: { start: { line: number } } } | null;
+  expect(loc).not.toBeNull();
+  // `Base.width` is on line 8 (0-based 7), the decoy's on line 4.
+  expect(loc!.range.start.line).toBe(7);
+  const value = (i: number) => (results[i]!.result as Hover).contents.value;
+  expect(value(1)).toStartWith("lsptest \u203a Base\n\n```\nwidth: i32 = 0\n```");
+  expect(value(2)).toStartWith("lsptest\n\n```\nDerived :: struct {\n    ...Base\n    depth: i32 = 0\n}\n```");
+}, { timeout: MEDIUM_BUILD });
+
 // Two regressions the review found, pinned together because they share a cause:
 // fields and variants were indexed at the same RANK as top-level declarations,
 // and every lookup that answers "what does this name denote" saw them.

@@ -1,0 +1,49 @@
+// `...Base` gives a struct the fields of `Base`, at the place of the spread. A
+// received default is evaluated as its base writes it, in the base's module ; a
+// redeclared field (`separator`) keeps its place and its type and brings its own
+// default. A generic base takes the arguments the struct gives it, through a chain
+// of spreads too (`Chain<U>` spreads `Pair<U[]>`, which spreads `Holder<T>`).
+module "snippet"
+
+import "snippet/formats"
+import "std/io"
+
+IntFormat :: struct {
+    ...BaseFormat
+    separator: string = ","
+    base:      i32 = 10
+}
+
+Pair :: struct<T> {
+    first: T
+    ...Holder<T>
+}
+
+Chain :: struct<U> {
+    ...Pair<U[]>
+    depth: i32 = 0
+}
+
+describe :: fn(f: IntFormat) -> string {
+    sign :: describe_sign(f.sign)
+    return "${sign} [${f.separator}] ${f.width} ${f.base}"
+}
+
+describe_sign :: fn(s: SignMode) -> string = match s {
+    .Negative -> "negative"
+    .Always   -> "always"
+}
+
+main :: fn() -> i32 {
+    println(describe(IntFormat {}))
+    println(describe(IntFormat { .sign = .Always, .width = 4, .base = 16 }))
+    p :: Pair<i32> { .first = 7 }
+    p.items.push(3)
+    println("${p.first} ${p.items.len()} ${p.label}")
+    c :: Chain<string> { .first = ["a", "b"] }
+    c.items.push(["z"])
+    println("${c.first.len()} ${c.items.len()} ${c.items[0][0]} ${c.depth}")
+    r :: make_revealed()
+    println("${r.shown} ${r.extra} ${hidden_of(r)}")
+    return 0
+}

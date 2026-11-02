@@ -19,6 +19,7 @@ module "vader/tools/lsp/handlers"
 import "json"
 import "std/collections"
 import "vader/support/diagnostics"
+import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/typecheck"
 import "vader/tools/lsp/protocol"
@@ -152,8 +153,16 @@ member_by_type :: fn(
         }
         return null
     }
-    da :: sym.defined_at ?? return null
-    return member_in_declaring_module(state, da.start.file, sym.name, name)
+    owner :: declaring_struct(cached.result.typed, sym, name)
+    da :: owner.defined_at ?? return null
+    return member_in_declaring_module(state, da.start.file, owner.name, name)
+}
+
+// The type that declares the member `name` of `sym` : for a field a struct receives
+// through `...Base`, the struct that writes it ; `sym` itself otherwise.
+declaring_struct :: fn(typed: TypedProgram, sym: Symbol, name: string) -> Symbol {
+    field :: struct_field_info(typed, sym.id, name) ?? return sym
+    return field.owner.symbol
 }
 
 // The fn typecheck chose for the member access `e`, a free fn, or the member of

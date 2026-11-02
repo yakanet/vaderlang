@@ -126,7 +126,7 @@ check_field :: fn(
         // T3054 : reject setting an `@internal` field at construction from
         // outside its declaring module (the field's default still applies, so
         // `T {}` keeps working cross-module).
-        check_internal_field(st, field, f.name_span, typed, diags)
+        check_internal_field(field, f.name_span, typed, diags)
         expected = substitute_struct_args(field.ty, st, typed)
     }
     got :: check_expr(f.value, expected, typed, diags)

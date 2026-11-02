@@ -1,0 +1,29 @@
+// T3126 : a field redeclared over a spread keeps the type the base gives it ; only
+// its default and its doc change. Through a generic base, the type is the one the
+// base takes here: `Box<i64>` gives `value: i64`.
+module "snippet"
+
+Base :: struct {
+    width: i32 = 0
+}
+
+Box :: struct<T> {
+    value: T
+}
+
+Wider :: struct {
+    ...Base
+    width: i64 = 8
+}
+
+Boxed :: struct {
+    ...Box<i64>
+    value: i32 = 0
+}
+
+Kept :: struct {
+    ...Box<i64>
+    value: i64 = 1
+}
+
+main :: fn() -> i32 = i32(Wider {}.width + Kept {}.value) + Boxed {}.value

@@ -709,7 +709,8 @@ emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
     self.write(d.name)
     self.write(" :: struct")
     self.emit_type_params(d.type_params)
-    if d.fields.len() == 0 {
+    members :: p.struct_members(d)
+    if members.len() == 0 {
         self.write(" {}")
         return
     }
@@ -719,32 +720,43 @@ emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
     // line, so a struct carrying one falls through to the multi-line form.
     if d.span.start.line == d.span.end.line && !has_internal_field(d.fields) {
         self.write(" { ")
-        for i in 0..<d.fields.len() {
+        for i in 0..<members.len() {
             if i > 0 { self.write(", ") }
-            self.emit_struct_field(d.fields[i])
+            self.emit_struct_member(members[i])
         }
         self.write(" }")
         return
     }
     self.write(" {")
     self.depth = self.depth + 1
-    for f in d.fields {
-        // Flush the field's leading `///` vaderdoc / `//` comments: without
-        // this they detach from the field and get dumped at end-of-file. An
-        // `@internal` field renders the decorator one line above the field
-        // name ; use THAT line for the blank-line check so a doc directly above
-        // it isn't split off by a spurious blank line.
+    for m in members {
+        // Flush the member's leading `///` vaderdoc / `//` comments: without
+        // this they detach from it and get dumped at end-of-file.
         self.newline()
-        node_line :: if f.visibility == .Private {
-            f.span.start.line - 1
-        } else {
-            f.span.start.line
-        }
-        self.flush_leading_comments(f.span.start.offset, node_line)
+        self.flush_leading_comments(m.span.start.offset, member_line(m))
         self.indent()
-        self.emit_struct_field(f)
+        self.emit_struct_member(m)
     }
     self.close_brace_after_comments(d.span)
+}
+
+// The line a member's leading comments end above. An `@internal` field renders the
+// decorator one line above the field name: a doc directly above the decorator must
+// not be split off by a spurious blank line.
+member_line :: fn(m: p.StructMember) -> i32 {
+    if m is p.StructField && m.visibility == .Private {
+        return m.span.start.line - 1
+    }
+    return m.span.start.line
+}
+
+emit_struct_member :: fn(self: Printer, m: p.StructMember) -> void {
+    if m is p.StructField {
+        self.emit_struct_field(m)
+        return
+    }
+    self.write("...")
+    self.emit_type_expr(m.base)
 }
 
 // True when any field opts out of the public default via `@internal`

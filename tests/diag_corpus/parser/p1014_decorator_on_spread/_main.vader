@@ -1,0 +1,15 @@
+// P1014 : a spread takes no decorator. It gives the fields of its base as the base
+// declares them, `@internal` included, so there is nothing for one to change.
+module "snippet"
+
+Base :: struct {
+    x: i32 = 0
+}
+
+Derived :: struct {
+    @internal
+    ...Base
+    y: i32 = 0
+}
+
+main :: fn() -> i32 = Derived {}.x + Derived {}.y

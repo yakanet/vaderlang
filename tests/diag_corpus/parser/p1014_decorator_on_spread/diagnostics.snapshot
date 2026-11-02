@@ -1,0 +1,1 @@
+[10:5] error[P1014] unknown decorator placement: `@internal` does not apply to a spread

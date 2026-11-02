@@ -1,0 +1,1 @@
+[16:8] error[T3125] two spreads cannot give the same field unless the struct redeclares it: `name` comes from both `Named` and `Labelled`

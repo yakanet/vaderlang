@@ -1,0 +1,24 @@
+// T3123 : only a struct's fields can be spread into a struct. An enum, a primitive
+// and a union have none to give.
+module "snippet"
+
+Color :: enum { Red, Green }
+
+Wrong :: struct {
+    ...Color
+    ...i32
+    ...Base | null
+    ok: bool = true
+}
+
+Base :: struct {
+    x: i32 = 0
+}
+
+main :: fn() -> i32 {
+    w :: Wrong {}
+    if w.ok {
+        return 0
+    }
+    return 1
+}

@@ -226,16 +226,8 @@ build_struct_lit_fields :: fn(
     // struct with no recorded fields) degrades to source order (defensive
     // fallback).
     st :: struct_backing(type) ?? return fallback_provided_order(ctx, lit)
-    decl :: ctx.typed.struct_decls[st.symbol.id] ?? return fallback_provided_order(ctx, lit)
     fields :: ctx.typed.struct_fields[st.symbol.id] ?? return fallback_provided_order(ctx, lit)
-    // A field DEFAULT (`id: i64 = UNASSIGNED_NODE_ID`) is an AST expr
-    // from the struct's OWNING module. Lowering it with the construction
-    // site's `ctx` resolves its idents against the wrong `resolved.idents`
-    // (the spans belong to another module's parse), so a const default
-    // like `UNASSIGNED_NODE_ID` (vader/front/parser) is unresolved when the
-    // struct is built in vader/lower → the whole struct lit degrades to a
-    // drop. Lower defaults with the owning module's typed view.
-    default_ctx :: ctx_in_owning_module(ctx, st.symbol.module, decl, st.args)
+    site: DefaultSite | null = null
     for [_, field] in fields {
         field_decl :: field.decl
         field_type :: literal_field_type(ctx, st, field_decl)
@@ -257,12 +249,16 @@ build_struct_lit_fields :: fn(
                 })
                 continue
             }
-            if field_decl.default != null {
+            // A field DEFAULT (`id: i64 = UNASSIGNED_NODE_ID`) is an AST expr from
+            // the module of the struct that writes the field: its idents resolve
+            // against that module's `resolved.idents`, not the construction site's.
+            default :: field_decl.default
+            if default != null {
+                current :: default_site(ctx, st, field, site)
+                site = current
                 out.push(LoweredStructLitField {
                     .name = field_decl.name,
-                    .value = lower_field_default(
-                        default_ctx, st, field_decl, field_decl.default, field_type,
-                    ),
+                    .value = lower_field_default(current, field_decl, default, field_type),
                 })
             }
         } else {
@@ -316,11 +312,10 @@ build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLi
     if st == null {
         panic("build_core_struct_lit: not a struct type")
     }
-    decl :: ctx.typed.struct_decls[st.symbol.id]
-        ?? panic("build_core_struct_lit: struct decl not indexed for ${st.symbol.name}")
     declared :: ctx.typed.struct_fields[st.symbol.id]
         ?? panic("build_core_struct_lit: struct fields not indexed for ${st.symbol.name}")
     ordered: LoweredStructLitField[]: []
+    site: DefaultSite | null = null
     for [_, field] in declared {
         field_decl :: field.decl
         provided :: find_lowered_field(fields, field_decl.name)
@@ -332,12 +327,13 @@ build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLi
         if default == null {
             panic("build_core_struct_lit: missing field `${field_decl.name}` for ${st.symbol.name}")
         }
-        default_ctx :: ctx_in_owning_module(ctx, st.symbol.module, decl, st.args)
+        current :: default_site(ctx, st, field, site)
+        site = current
         field_type :: literal_field_type(ctx, st, field_decl)
         ordered.push(
             LoweredStructLitField {
                 .name = field_decl.name,
-                .value = lower_field_default(default_ctx, st, field_decl, default, field_type),
+                .value = lower_field_default(current, field_decl, default, field_type),
             },
         )
     }

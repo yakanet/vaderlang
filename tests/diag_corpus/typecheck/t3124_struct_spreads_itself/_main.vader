@@ -1,0 +1,21 @@
+// T3124 : a struct cannot spread itself, directly (`Node`) or through the structs
+// it spreads (`Left` spreads `Right`, which spreads `Left`). The cycle is reported
+// once, at the spread that closes it.
+module "snippet"
+
+Node :: struct {
+    ...Node
+    value: i32 = 0
+}
+
+Left :: struct {
+    ...Right
+    l: i32 = 0
+}
+
+Right :: struct {
+    ...Left
+    r: i32 = 0
+}
+
+main :: fn() -> i32 = Node {}.value + Left {}.l + Right {}.r

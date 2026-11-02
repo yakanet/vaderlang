@@ -1,0 +1,236 @@
+// vader/front/typecheck/struct_spread: the fields a struct receives from the structs it spreads.
+//
+// `Derived :: struct { ...Base }` gives `Derived` the fields of `Base`, at the place of
+// the spread. Each module declares the fields its structs write and resolves the base
+// of each spread (`decl.vader`) ; once every module is declared and the type
+// parameters are shared, `expand_struct_spreads` rebuilds the table of each struct
+// that spreads, its bases first. A received field keeps its declaration and the struct
+// that writes it (`StructFieldInfo.owner`), whose module lowers its default ; its type
+// is rewritten in the parameters of the struct that receives it.
+//
+// A written field named like a received one redeclares it: it keeps the type and the
+// place of the received field, and brings its own default and doc.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/support/diagnostics"
+
+/// The spreads of one struct, as its module resolves them.
+export StructSpreads :: struct {
+    /// The struct that spreads.
+    symbol: Symbol
+    /// The base each spread names, in the order of `StructDecl.spreads`.
+    bases: Type[]
+}
+
+// The walk that expands the spreads, each base before the structs that spread it.
+SpreadExpansion :: struct {
+    typed: TypedProgram
+    diags: Diagnostic[]
+    /// The structs whose table holds their received fields already.
+    done: Set<i32> = Set<i32> {}
+    /// The structs being expanded : reaching one again is a cycle.
+    expanding: Set<i32> = Set<i32> {}
+}
+
+// Give every struct that spreads the fields of its bases, in the table every module
+// shares. `typed` is any module's program once `broadcast_struct_decls` and
+// `share_type_param_symbols` have run, or the module checked alone. Runs once : a
+// second run would take the received fields for written ones.
+expand_struct_spreads :: fn(typed: TypedProgram, diags: Diagnostic[]) -> void {
+    x :: SpreadExpansion { .typed = typed, .diags = diags }
+    for [struct_id, _] in typed.struct_spreads {
+        x.expand(struct_id)
+    }
+}
+
+// Rebuild the table of the struct `struct_id` with the fields its spreads give.
+expand :: fn(x: SpreadExpansion, struct_id: i32) -> void {
+    if struct_id in x.done {
+        return
+    }
+    spreads :: x.typed.struct_spreads[struct_id] ?? return
+    decl :: x.typed.struct_decls[struct_id] ?? return
+    written :: x.typed.struct_fields[struct_id] ?? return
+    x.expanding.add(struct_id)
+    received: Map<string, StructFieldInfo>[]: []
+    for i in 0..<decl.spreads.len() {
+        received.push(x.spread_fields(spreads.symbol, decl.spreads[i], spreads.bases[i]))
+    }
+    x.expanding.remove(struct_id)
+    x.done.add(struct_id)
+    x.typed.struct_fields[struct_id] = x.laid_out(decl, spreads, written, received)
+}
+
+// The fields `spread` gives to `derived`, in its base's order and typed in the
+// parameters of `derived` ; none when the spread is in error.
+spread_fields :: fn(
+    x: SpreadExpansion,
+    derived: Symbol,
+    spread: AST.StructSpread,
+    base: Type,
+) -> Map<string, StructFieldInfo> {
+    received :: Map<string, StructFieldInfo> {}
+    if base is UnresolvedType {
+        return received
+    }
+    if base !is StructType {
+        x.diags.push(
+            typecheck_error(.SpreadNotAStruct, spread.base.span, "`${display_type(base)}`"),
+        )
+        return received
+    }
+    if base.symbol.id in x.expanding {
+        x.diags.push(
+            typecheck_error(
+                .StructSpreadsItself,
+                spread.base.span,
+                "`${base.symbol.name}` spreads `${derived.name}`",
+            ),
+        )
+        return received
+    }
+    x.expand(base.symbol.id)
+    fields :: x.typed.struct_fields[base.symbol.id] ?? return received
+    if base.symbol.module != derived.module {
+        hidden :: first_internal_field(fields)
+        if hidden != null {
+            x.diags.push(
+                typecheck_error(
+                    .InternalFieldSpreadElsewhere,
+                    spread.base.span,
+                    "`${base.symbol.name}.${hidden}` is `@internal` to module `${base.symbol.module}`",
+                ),
+            )
+            return received
+        }
+    }
+    for [name, field] in fields {
+        received[name] = StructFieldInfo {
+            .decl = field.decl,
+            .ty = substitute_struct_args(field.ty, base, x.typed),
+            .owner = owner_in_instance(field, base, x.typed),
+        }
+    }
+    return received
+}
+
+// The first `@internal` field of `fields`, null when there is none.
+first_internal_field :: fn(fields: Map<string, StructFieldInfo>) -> string | null {
+    for [name, field] in fields {
+        if field.decl.visibility == .Private {
+            return name
+        }
+    }
+    return null
+}
+
+// The fields of the struct `decl` declares, in its order : those of each spread at
+// the spread's place, a written field that redeclares one of them in its stead, the
+// other written fields where they are written.
+laid_out :: fn(
+    x: SpreadExpansion,
+    decl: AST.StructDecl,
+    spreads: StructSpreads,
+    written: Map<string, StructFieldInfo>,
+    received: Map<string, StructFieldInfo>[],
+) -> Map<string, StructFieldInfo> {
+    given :: x.given_names(spreads, decl.spreads, written, received)
+    out :: Map<string, StructFieldInfo> {}
+    spread_at: i64 = 0
+    for member in AST.struct_members(decl) {
+        if member is AST.StructSpread {
+            base :: spreads.bases[spread_at]
+            for [name, field] in received[spread_at] {
+                if name in out {
+                    continue
+                }
+                own :: written[name]
+                if own == null {
+                    x.report_received_leak(decl, member, field)
+                    out[name] = field
+                    continue
+                }
+                x.check_redeclaration(own, field, base)
+                out[name] = own
+            }
+            spread_at += 1
+            continue
+        }
+        // The spread places the field this one redeclares.
+        if member.name in given {
+            continue
+        }
+        out[member.name] = written[member.name] ?? continue
+    }
+    return out
+}
+
+// The names the spreads give, each to the index of the first spread giving it. A
+// name two spreads give is an error, unless the struct writes that field itself.
+given_names :: fn(
+    x: SpreadExpansion,
+    spreads: StructSpreads,
+    syntax: AST.StructSpread[],
+    written: Map<string, StructFieldInfo>,
+    received: Map<string, StructFieldInfo>[],
+) -> Map<string, i64> {
+    first_giver :: Map<string, i64> {}
+    for i in 0..<received.len() {
+        for [name, _] in received[i] {
+            earlier :: first_giver[name]
+            if earlier == null {
+                first_giver[name] = i
+                continue
+            }
+            if name in written {
+                continue
+            }
+            x.diags.push(
+                typecheck_error(
+                    .FieldSpreadTwice,
+                    syntax[i].base.span,
+                    "`${name}` comes from both `${display_type(spreads.bases[earlier])}` and `${display_type(spreads.bases[i])}`",
+                ),
+            )
+        }
+    }
+    return first_giver
+}
+
+// A written field `own` redeclaring the received `field` keeps its type.
+check_redeclaration :: fn(
+    x: SpreadExpansion,
+    own: StructFieldInfo,
+    field: StructFieldInfo,
+    base: Type,
+) -> void {
+    if own.ty is UnresolvedType || equals_type(own.ty, field.ty) {
+        return
+    }
+    x.diags.push(
+        typecheck_error(
+            .RedeclarationChangesFieldType,
+            own.decl.ty.span,
+            "`${own.decl.name}` is `${display_type(field.ty)}` in `${display_type(base)}`, `${display_type(own.ty)}` here",
+        ),
+    )
+}
+
+// An exported struct exposes the type of each public field it receives, as it does
+// for the fields it writes.
+report_received_leak :: fn(
+    x: SpreadExpansion,
+    decl: AST.StructDecl,
+    spread: AST.StructSpread,
+    field: StructFieldInfo,
+) -> void {
+    if decl.visibility != .Public || field.decl.visibility != .Public {
+        return
+    }
+    report_private_leak(field.ty, spread.base.span, decl.name, "exposes a field of type", x.diags)
+}

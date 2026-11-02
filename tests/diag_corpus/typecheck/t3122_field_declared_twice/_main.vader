@@ -1,0 +1,14 @@
+// T3122 : a struct declares the same field twice. The second `x` is reported and
+// the first one stands, so `p.x` still reads an `i32`.
+module "snippet"
+
+Point :: struct {
+    x: i32
+    y: i32
+    x: string
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1, .y = 2 }
+    return p.x
+}
