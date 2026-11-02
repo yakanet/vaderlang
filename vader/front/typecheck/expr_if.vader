@@ -176,14 +176,17 @@ PushedNarrow :: struct {
     prev:      NarrowSlot | null
 }
 
-// What a leaf leaves on the TRUE side, as a type the union can carry. Normally
-// its `then_ty`, but a trait test narrows to the TRAIT, and a trait is only ever
-// understood in isolation : `is_overlap_checkable` waves a bare `TraitType` through,
-// while a union holding one is compared variant-by-variant against shapes and
-// every later `is` on it reports T3040. Its complement is already impl-aware, so
-// the implementors within the slot are `static − else_ty`.
-positive_of :: fn(n: IsNarrow) -> Type {
-    if n.then_ty is TraitType { return subtract_type(n.static_ty, n.else_ty) }
+// What a leaf leaves on the TRUE side, as a type the union can carry, or null when
+// nothing can. Normally its `then_ty`, but a trait test narrows to the TRAIT, and a
+// trait is only ever understood in isolation : `is_overlap_checkable` waves a bare
+// `TraitType` through, while a union holding one is compared variant-by-variant
+// against shapes and every later `is` on it reports T3040. The implementors within
+// the slot stand for it, what its impl-aware complement leaves, and an opaque slot
+// (`T`, `any`) lists none.
+positive_of :: fn(n: IsNarrow) -> Type | null {
+    if n.then_ty is TraitType {
+        return left_by_complement(n.static_ty, n.else_ty)
+    }
     return n.then_ty
 }
 
@@ -277,7 +280,8 @@ push_or_true :: fn(cond: AST.Expr, typed: TypedProgram, pushed: PushedNarrow[]) 
         if !same_slot(n, leaves[0]) {
             return
         }
-        tys.push(positive_of(n))
+        positive :: positive_of(n) ?? return
+        tys.push(positive)
     }
     pushed.push(push_one_narrow(typed, leaves[0].sym_id, leaves[0].field_key, union_of_paths(tys)))
 }
@@ -437,20 +441,25 @@ type_test_narrowing :: fn(
     }
 }
 
-// What a slot of type `current` holds where a test of `narrowed` is true: what is
-// left once its complement `else_ty` is taken away, so a test of a wider type does
-// not bring back a variant an earlier test ruled out (`x is A | B` after a guard
-// that left `x` without `A` holds `B`). A trait stays the trait, since a union
-// holding one is checked variant by variant (`positive_of`). From an opaque
-// `current` the complement takes nothing away, which leaves nothing: what the test
-// matched holds instead.
+// What a slot of type `current` holds where a test of `narrowed` is true: what its
+// complement `else_ty` leaves, so a test of a wider type does not bring back a
+// variant an earlier test ruled out (`x is A | B` after a guard that left `x`
+// without `A` holds `B`). A trait test holds the trait (`positive_of`), and on an
+// opaque `current` any test holds what it matched.
 matched_within :: fn(current: Type, narrowed: Type, else_ty: Type) -> Type {
     if narrowed is TraitType {
         return narrowed
     }
+    return left_by_complement(current, else_ty) ?? narrowed
+}
+
+// What a slot of type `current` holds once the complement `else_ty` of a test is
+// taken away, or null when nothing is left: from an opaque `current` (`T`, `any`)
+// the complement takes nothing away, and taking it leaves nothing.
+left_by_complement :: fn(current: Type, else_ty: Type) -> Type | null {
     kept :: subtract_type(current, else_ty)
     if kept is NeverType {
-        return narrowed
+        return null
     }
     return kept
 }

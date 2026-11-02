@@ -1,0 +1,33 @@
+// A true `v is Named || v is Fish` narrows `v` to the implementors of `Named` it
+// may hold, or `Fish`. A type parameter lists no implementors, so the branch keeps
+// `T`, and `.tank` there is T3009: a `Cat` has no `tank`.
+
+module "snippet"
+
+Named :: trait {
+    label :: fn(self) -> string
+}
+
+Cat :: struct {
+    name: string
+}
+
+Fish :: struct {
+    tank: string
+}
+
+Cat implements Named {
+    label :: fn(self) -> string = self.name
+}
+
+tank_or_label :: fn<T>(v: T) -> string {
+    if v is Named || v is Fish {
+        return v.tank
+    }
+    return "other"
+}
+
+main :: fn() -> i32 {
+    tank_or_label(Cat { .name = "Tom" })
+    return 0
+}

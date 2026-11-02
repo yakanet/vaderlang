@@ -333,7 +333,7 @@ if r is T {
 #### Conditions with `&&`, `||` and `!`
 
 - **`&&`**: in `if x is T && rest`, `x` is narrowed in `rest` and in the then-branch, so `if x is Circle && x.radius > 0` type-checks. The else-branch is not narrowed: a false `a && b` does not say which operand was false.
-- **`||`**: the else-branch narrows every binding an operand tested. After `if x is A || x is B`, the else-branch sees `x` without `A` and `B`. The then-branch narrows only when every operand tests the same binding, to the union of the tested types: there `x` is `A | B`. `if x is A || flag` narrows nothing in the then-branch, and `x` in the else-branch.
+- **`||`**: the else-branch narrows every binding an operand tested. After `if x is A || x is B`, the else-branch sees `x` without `A` and `B`. The then-branch narrows only when every operand tests the same binding, to the union of the tested types: there `x` is `A | B`. A trait operand stands for the variants of `x` that implement it, so on a type parameter or `any` the then-branch is not narrowed. `if x is A || flag` narrows nothing in the then-branch, and `x` in the else-branch.
 - **Right operand**: it sees the outcome of the left one. The right of `&&` sees the left as true, the right of `||` sees it as false, so `y == null || y.a > 0` type-checks.
 - **`!`** swaps the two branches. The rules compose at any depth: `if !(y is A || y is B)` sees `y` as neither `A` nor `B`.
 
