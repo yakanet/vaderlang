@@ -26,6 +26,7 @@
         <textmate.bundleProvider implementation="dev.vaderlang.intellij.VaderBundleProvider"/>
         <fileIconProvider implementation="dev.vaderlang.intellij.VaderFileIconProvider"/>
         <configurationType implementation="dev.vaderlang.intellij.VaderRunConfigurationType"/>
+        <configurationType implementation="dev.vaderlang.intellij.VaderTestConfigurationType"/>
         <runConfigurationProducer implementation="dev.vaderlang.intellij.VaderRunConfigurationProducer"/>
         <!-- Green ▶ gutter icon on a top-level `main ::` in a .vader file.
              Was a `runLineMarkerContributor` and never fired: registering it for

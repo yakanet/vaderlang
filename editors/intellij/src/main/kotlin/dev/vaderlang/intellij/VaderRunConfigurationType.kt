@@ -94,11 +94,7 @@ internal class VaderRunConfiguration(
                 // `vader run <file>` compiles the file on its own: the Vader project
                 // it belongs to is named, found as the language server finds it.
                 val project = vaderProjectOf(file)?.let { "--project=$it" }
-                val commandLine = GeneralCommandLine(listOfNotNull(vaderBinary(), "run", project, file))
-                environment.project.basePath?.let { commandLine.withWorkDirectory(it) }
-                val handler = ProcessHandlerFactory.getInstance().createColoredProcessHandler(commandLine)
-                ProcessTerminatedListener.attach(handler)
-                return handler
+                return startVaderProcess(listOfNotNull("run", project, file), environment.project.basePath)
             }
         }
     }
@@ -107,6 +103,17 @@ internal class VaderRunConfiguration(
     // above), so only Debug flows through LSP4IJ's always-debugging DAPDebugRunner.
     override fun canRun(executorId: String): Boolean =
         executorId != DefaultRunExecutor.EXECUTOR_ID && super.canRun(executorId)
+}
+
+// Start `vader` with `arguments` in `workDirectory`, its output in a colored
+// console. The CLI writes UTF-8 whatever the system's charset.
+internal fun startVaderProcess(arguments: List<String>, workDirectory: String?): ProcessHandler {
+    val commandLine = GeneralCommandLine(listOf(vaderBinary()) + arguments)
+        .withCharset(Charsets.UTF_8)
+        .withWorkDirectory(workDirectory)
+    val handler = ProcessHandlerFactory.getInstance().createColoredProcessHandler(commandLine)
+    ProcessTerminatedListener.attach(handler)
+    return handler
 }
 
 // The nearest folder at or above `file` holding a `vader.json` or a build
