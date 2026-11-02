@@ -24,7 +24,7 @@ typedef struct vader_struct_std_iter$__gen_state_std_iter_3_t vader_struct_std_i
 typedef struct vader_struct_std_iter$__gen_state_std_iter_1_t vader_struct_std_iter$__gen_state_std_iter_1_t;
 typedef struct vader_struct_std_string$StringChars_t vader_struct_std_string$StringChars_t;
 typedef struct vader_struct_std_runtime$Scheduler_t vader_struct_std_runtime$Scheduler_t;
-typedef struct vader_struct_std_collections$MinHeap__i64_t vader_struct_std_collections$MinHeap__i64_t;
+typedef struct vader_struct_std_collections$PriorityQueue__i64_t vader_struct_std_collections$PriorityQueue__i64_t;
 
 struct vader_struct_snippet$$genstate_twice_per_round_t {
     vader_obj_header_t header;
@@ -178,7 +178,7 @@ struct vader_struct_std_runtime$Scheduler_t {
     int64_t f_now;
     void* f_deadlines;
 };
-struct vader_struct_std_collections$MinHeap__i64_t {
+struct vader_struct_std_collections$PriorityQueue__i64_t {
     vader_obj_header_t header;
     void* f_items;
 };
@@ -485,9 +485,9 @@ const vader_type_info_t vader_type_info_table[60] = {
         .ref_count = 1,
     },
     [47] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections$MinHeap__i64_t),
-        .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$MinHeap__i64_t, f_items) },
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct_std_collections$PriorityQueue__i64_t), .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$PriorityQueue__i64_t, f_items) },
         .ref_count = 1,
     },
     [48] = { .slot_size = 16 },
@@ -3741,7 +3741,7 @@ static void* std_runtime$scheduler$singleton(void) {
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(49u, 0u, 8u, 18u);
     t0 = (void*) _a0_arr;
-    vader_struct_std_collections$MinHeap__i64_t* _a1_obj = (vader_struct_std_collections$MinHeap__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$MinHeap__i64_t));
+    vader_struct_std_collections$PriorityQueue__i64_t* _a1_obj = (vader_struct_std_collections$PriorityQueue__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$PriorityQueue__i64_t));
     vader_obj_header_init(_a1_obj, 47u);
     _a1_obj->f_items = t0;
     l0 = (void*) _a1_obj;
@@ -3810,13 +3810,13 @@ static void std_collections$push__i64(void* l0, int64_t l1) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_push_i64((vader_array_t*) ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items, l1);
-    t0 = ((vader_array_t*) ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items)->length;
+    vader_array_push_i64((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items, l1);
+    t0 = ((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items)->length;
     l2 = vader_chk_sub(i64, t0, INT64_C(1));
     while ((l2 > INT64_C(0))) {
         t0 = vader_chk_sub(i64, l2, INT64_C(1));
         l3 = vader_div_i64(t0, INT64_C(2));
-        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items);
+        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
         l4 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l3];
@@ -3825,7 +3825,7 @@ static void std_collections$push__i64(void* l0, int64_t l1) {
         if ((l4 <= l5)) {
             { vader_gc_top = gc_frame.prev; return; }
         }
-        std_collections$swap_items__i64(((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items, l3, l2);
+        std_collections$swap_items__i64(((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items, l3, l2);
         l2 = l3;
     }
     { vader_gc_top = gc_frame.prev; return; }
@@ -3836,7 +3836,7 @@ static vader_box_t std_collections$peek__i64(void* l0) {
     int64_t t1;
     t0 = std_collections$is_empty__i64(l0);
     if (!(t0)) {
-        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items);
+        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
         t1 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) INT32_C(0)];
@@ -3857,11 +3857,11 @@ static vader_box_t std_collections$pop__i64(void* l0) {
     if (t0) {
         return vader_box_obj(0u, NULL);
     }
-    l1 = ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items;
-    t1 = ((vader_array_t*) ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items)->length;
+    l1 = ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items;
+    t1 = ((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items)->length;
     l2 = vader_chk_sub(i64, t1, INT64_C(1));
     std_collections$swap_items__i64(l1, INT64_C(0), l2);
-    l3 = vader_array_remove_last((vader_array_t*) ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items);
+    l3 = vader_array_remove_last((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items);
     l4 = INT32_C(0);
     for (;;) {
         l5 = l4;
@@ -3869,9 +3869,9 @@ static vader_box_t std_collections$pop__i64(void* l0) {
         l6 = vader_chk_add(i32, t2, INT32_C(1));
         l7 = vader_chk_add(i32, l6, INT32_C(1));
         l2 = ((int64_t) (int32_t) l6);
-        l8 = ((vader_array_t*) ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items)->length;
+        l8 = ((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items)->length;
         if ((l2 < l8)) {
-            vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items);
+            vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items);
             VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l6)
             l9 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l6];
@@ -3882,9 +3882,9 @@ static vader_box_t std_collections$pop__i64(void* l0) {
             }
         }
         l11 = ((int64_t) (int32_t) l7);
-        l12 = ((vader_array_t*) ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items)->length;
+        l12 = ((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items)->length;
         if ((l11 < l12)) {
-            vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items);
+            vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items);
             VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l7)
             l13 = ((int64_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l7];
@@ -3897,7 +3897,7 @@ static vader_box_t std_collections$pop__i64(void* l0) {
         if (l5 == l4) {
             return l3;
         }
-        l1 = ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items;
+        l1 = ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items;
         l15 = ((int64_t) (int32_t) l4);
         l16 = ((int64_t) (int32_t) l5);
         std_collections$swap_items__i64(l1, l15, l16);
@@ -3923,7 +3923,7 @@ static void std_collections$swap_items__i64(void* l0, int64_t l1, int64_t l2) {
 
 static bool std_collections$is_empty__i64(void* l0) {
     int64_t t0;
-    t0 = ((vader_array_t*) ((vader_struct_std_collections$MinHeap__i64_t*) l0)->f_items)->length;
+    t0 = ((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items)->length;
     return t0 == INT64_C(0);
 }
 

@@ -150,7 +150,7 @@
     fn std.collections.pop<i64>  // std_collections$pop__i64
     fn std.collections.push<i64>  // std_collections$push__i64
     fn std.collections.swap_items<i64>  // std_collections$swap_items__i64
-    struct std.collections.MinHeap<i64>  // std_collections$MinHeap__i64
+    struct std.collections.PriorityQueue<i64>  // std_collections$PriorityQueue__i64
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8

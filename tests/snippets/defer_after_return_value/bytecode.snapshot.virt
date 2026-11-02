@@ -28,7 +28,7 @@ type 25 ref std_core$Async
 type 26 struct std_async$Sleep { ms:22,deadline:22,armed:4 }
 type 27 union 0,13
 type 28 struct std_runtime$Scheduler { now:22,deadlines:29 }
-type 29 struct std_collections$MinHeap__i64 { items:31 }
+type 29 struct std_collections$PriorityQueue__i64 { items:31 }
 type 30 union 0,1
 type 31 array 22
 type 32 union 22,0
@@ -1080,7 +1080,7 @@ end
 fn 33 std_runtime$scheduler$singleton () -> ref
   local $struct_2 ref
   array.new 31 0   ; i64[]
-  struct.new 29   ; std_collections$MinHeap__i64
+  struct.new 29   ; std_collections$PriorityQueue__i64
   local.set 0   ; $struct_2
   i64.const 0
   local.get 0   ; $struct_2
@@ -1158,10 +1158,10 @@ fn 37 std_collections$push__i64 (ref,i64) -> void
   local parent i64
   local $idx_16 i64
   local $idx_18 i64
-  local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+  local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
   local.get 1   ; arg 1
   array.push 22   ; i64
-  local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+  local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
   array.len
   i64.const 1
   i64.checked_sub
@@ -1177,11 +1177,11 @@ fn 37 std_collections$push__i64 (ref,i64) -> void
       i64.const 2
       i64.div
       local.set 3   ; parent
-      local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+      local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
       local.get 3   ; parent
       load_slot_i64
       local.set 4   ; $idx_16
-      local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+      local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
       local.get 2   ; i
       load_slot_i64
       local.set 5   ; $idx_18
@@ -1191,7 +1191,7 @@ fn 37 std_collections$push__i64 (ref,i64) -> void
       if $L2 void
         return
       end $L2
-      local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+      local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
       local.get 3   ; parent
       local.get 2   ; i
       call 40   ; std_collections$swap_items__i64
@@ -1208,7 +1208,7 @@ fn 38 std_collections$peek__i64 (ref) -> any
   call 41   ; std_collections$is_empty__i64
   if $L0 void
   else
-    local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+    local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
     i32.const 0
     load_slot_i64
     retag 22   ; i64
@@ -1239,9 +1239,9 @@ fn 39 std_collections$pop__i64 (ref) -> any
   if $L0 void
     return.lit null.const
   end $L0
-  local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+  local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
   local.set 1   ; $field_3
-  local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+  local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
   array.len
   i64.const 1
   i64.checked_sub
@@ -1250,7 +1250,7 @@ fn 39 std_collections$pop__i64 (ref) -> any
   i64.const 0
   local.get 2   ; $sub_checked_8
   call 40   ; std_collections$swap_items__i64
-  local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+  local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
   array.remove_last
   local.set 3   ; root
   i32.const 0
@@ -1270,18 +1270,18 @@ fn 39 std_collections$pop__i64 (ref) -> any
     local.get 6   ; left
     i32.to_i64
     local.set 2   ; $sub_checked_8
-    local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+    local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
     array.len
     local.set 8   ; $len_25
     local.get 2   ; $sub_checked_8
     local.get 8   ; $len_25
     i64.lt
     if $L2 void
-      local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+      local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
       local.get 6   ; left
       load_slot_i64
       local.set 9   ; $idx_28
-      local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+      local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
       local.get 5   ; smallest
       load_slot_i64
       local.set 10   ; $idx_30
@@ -1296,18 +1296,18 @@ fn 39 std_collections$pop__i64 (ref) -> any
     local.get 7   ; right
     i32.to_i64
     local.set 11   ; $cast_32
-    local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+    local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
     array.len
     local.set 12   ; $len_34
     local.get 11   ; $cast_32
     local.get 12   ; $len_34
     i64.lt
     if $L4 void
-      local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+      local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
       local.get 7   ; right
       load_slot_i64
       local.set 13   ; $idx_37
-      local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+      local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
       local.get 5   ; smallest
       load_slot_i64
       local.set 14   ; $idx_39
@@ -1326,7 +1326,7 @@ fn 39 std_collections$pop__i64 (ref) -> any
       local.get 3   ; root
       return
     end $L6
-    local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+    local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
     local.set 1   ; $field_3
     local.get 4   ; i
     i32.to_i64
@@ -1367,7 +1367,7 @@ fn 40 std_collections$swap_items__i64 (ref,i64,i64) -> void
 end
 
 fn 41 std_collections$is_empty__i64 (ref) -> bool
-  local.field 0 29 0   ; arg 0 std_collections$MinHeap__i64.items
+  local.field 0 29 0   ; arg 0 std_collections$PriorityQueue__i64.items
   array.len
   i64.const 0
   i64.eq

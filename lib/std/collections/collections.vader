@@ -1,4 +1,4 @@
-// std/collections: maps, sets, a work queue and a min-heap.
+// std/collections: maps, sets, a work queue and a priority queue.
 //
 // ```
 // counts :: Map<string, i32> {}
@@ -10,8 +10,8 @@
 // queue :: WorkQueue<string> {}
 // queue.push("parse")
 //
-// heap :: MinHeap<i64> {}
-// heap.push(30)
+// deadlines :: PriorityQueue<i64> {}
+// deadlines.push(30)
 // ```
 //
 // Sequences are the built-in `T[]` arrays.

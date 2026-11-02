@@ -1,4 +1,4 @@
-// std/collections/min_heap: `MinHeap`, items taken smallest first.
+// std/collections/priority_queue: `PriorityQueue`, items taken smallest first.
 
 module "std/collections"
 
@@ -6,17 +6,17 @@ module "std/collections"
 /// heap: `push` and `pop` cost `O(log n)`, `peek` is constant. Items that
 /// compare equal come out in no particular order.
 ///
-/// A null item would read as an empty heap: push no type that holds null.
+/// A null item would read as an empty queue: push no type that holds null.
 ///
 /// @example
-///   h :: MinHeap<i64> {}
-///   h.push(30)
-///   h.push(10)
-///   h.push(20)
-///   h.peek()   // 10
-///   h.pop()    // 10
-///   h.len()    // 2
-export MinHeap :: struct<T: Comparable> {
+///   q :: PriorityQueue<i64> {}
+///   q.push(30)
+///   q.push(10)
+///   q.push(20)
+///   q.peek()   // 10
+///   q.pop()    // 10
+///   q.len()    // 2
+export PriorityQueue :: struct<T: Comparable> {
     /// The heap order: no item is smaller than its parent at `(i - 1) / 2`.
     @internal
     items: T[] = []
@@ -24,9 +24,9 @@ export MinHeap :: struct<T: Comparable> {
 
 /// Add `item`.
 ///
-/// @param self  the heap.
+/// @param self  the queue.
 /// @param item  the item to add.
-export push :: fn<T: Comparable>(self: MinHeap<T>, item: T) -> void {
+export push :: fn<T: Comparable>(self: PriorityQueue<T>, item: T) -> void {
     self.items.push(item)
     i := self.items.len() - 1
     for i > 0 {
@@ -39,11 +39,11 @@ export push :: fn<T: Comparable>(self: MinHeap<T>, item: T) -> void {
     }
 }
 
-/// The smallest item, left in the heap.
+/// The smallest item, left in the queue.
 ///
-/// @param self  the heap.
-/// @return      that item, or null when the heap is empty.
-export peek :: fn<T: Comparable>(self: MinHeap<T>) -> T | null {
+/// @param self  the queue.
+/// @return      that item, or null when the queue is empty.
+export peek :: fn<T: Comparable>(self: PriorityQueue<T>) -> T | null {
     if self.is_empty() {
         return null
     }
@@ -52,9 +52,9 @@ export peek :: fn<T: Comparable>(self: MinHeap<T>) -> T | null {
 
 /// Remove the smallest item.
 ///
-/// @param self  the heap.
-/// @return      that item, or null when the heap is empty.
-export pop :: fn<T: Comparable>(self: MinHeap<T>) -> T | null {
+/// @param self  the queue.
+/// @return      that item, or null when the queue is empty.
+export pop :: fn<T: Comparable>(self: PriorityQueue<T>) -> T | null {
     if self.is_empty() {
         return null
     }
@@ -85,43 +85,43 @@ swap_items :: fn<T>(items: T[], a: i64, b: i64) -> void {
     items[b] = held
 }
 
-/// How many items the heap holds.
-export len :: fn<T: Comparable>(self: MinHeap<T>) -> i64 = self.items.len()
+/// How many items the queue holds.
+export len :: fn<T: Comparable>(self: PriorityQueue<T>) -> i64 = self.items.len()
 
-/// Whether the heap holds no item.
-export is_empty :: fn<T: Comparable>(self: MinHeap<T>) -> bool = self.items.len() == 0
+/// Whether the queue holds no item.
+export is_empty :: fn<T: Comparable>(self: PriorityQueue<T>) -> bool = self.items.len() == 0
 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
 
 @test
-test_min_heap_pops_smallest_first :: fn() -> void {
-    h :: MinHeap<i64> {}
+test_priority_queue_pops_smallest_first :: fn() -> void {
+    q :: PriorityQueue<i64> {}
     for x in [5, 1, 4, 2, 3, 2] {
-        h.push(x)
+        q.push(x)
     }
     out: i64[]: []
     for {
-        x :: h.pop() ?? break
+        x :: q.pop() ?? break
         out.push(x)
     }
     assert_eq("${out}", "[1, 2, 2, 3, 4, 5]")
 }
 
 @test
-test_min_heap_peek_leaves_the_item :: fn() -> void {
-    h :: MinHeap<i64> {}
-    h.push(7)
-    h.push(3)
-    assert_eq(h.peek() ?? -1, 3)
-    assert_eq(h.len(), 2)
+test_priority_queue_peek_leaves_the_item :: fn() -> void {
+    q :: PriorityQueue<i64> {}
+    q.push(7)
+    q.push(3)
+    assert_eq(q.peek() ?? -1, 3)
+    assert_eq(q.len(), 2)
 }
 
 @test
-test_min_heap_empty_gives_null :: fn() -> void {
-    h :: MinHeap<i64> {}
-    assert(h.is_empty(), "a new heap is empty")
-    assert(h.peek() == null, "peek on an empty heap")
-    assert(h.pop() == null, "pop on an empty heap")
+test_priority_queue_empty_gives_null :: fn() -> void {
+    q :: PriorityQueue<i64> {}
+    assert(q.is_empty(), "a new queue is empty")
+    assert(q.peek() == null, "peek on an empty queue")
+    assert(q.pop() == null, "pop on an empty queue")
 }

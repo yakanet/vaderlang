@@ -23,7 +23,7 @@
 // `race`, `join_any`, `timeout` and `share`.
 //
 // Single-threaded, timer-driven: the scheduler state (a virtual clock + a
-// min-heap of wake deadlines) lives in `std/runtime`, behind its `sched_*`
+// priority queue of wake deadlines) lives in `std/runtime`, behind its `sched_*`
 // functions.
 
 module "std/async"
@@ -163,7 +163,7 @@ earlier :: fn(a: i64, b: i64) = if a < b { a } else { b }
 
 /// Concurrent join of a group of awaitables (Model A : one awaitable that drives
 /// its children on each `resume`). Children make progress together (their timers
-/// all sit on the one scheduler heap and fire in deadline order) and their
+/// all sit on the one scheduler queue and fire in deadline order) and their
 /// results are returned in INPUT order once every one completes. A `resume` drives
 /// only the children whose `wake_at` has passed. No cancellation in v1, so
 /// `join_all` waits for every child (failure latency = the slowest child).
