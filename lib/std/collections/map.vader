@@ -11,8 +11,8 @@ module "std/collections"
 
 MINIMAL_INDEX_COUNT: i64: 16
 
-EMPTY_SLOT :: i32(0)    // index slot holds no entry
-TOMB_SLOT  :: i32(-1)   // index slot held an entry that was removed
+EMPTY_SLOT :: 0    // index slot holds no entry
+TOMB_SLOT  :: -1   // index slot held an entry that was removed
 
 /// Compact hash map keyed by any `K` that implements `Hash & Equals`. Entries
 /// are stored in insertion order in dense `ekeys` / `evals`; a sparse `i32`
