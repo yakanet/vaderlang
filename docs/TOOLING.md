@@ -343,7 +343,7 @@ A native binary is debugged in C (lldb, gdb), where locals are compiler slots (`
 
 `--library-root=<path>` adds a library root, searched before the project's.
 
-The VS Code and IntelliJ extensions (`editors/vscode/`, `editors/intellij/`) start `vader lsp` from the configured `vader` binary or the one on `PATH`, and validate and complete a `vader.json` against `editors/common/vader.schema.json`. A test lens carries the command `vader.runTest`, which the editor runs, not the server: each extension runs `vader test [--filter <name>] <file>` from the file's project (its folder, outside any). VS Code runs it in a terminal; IntelliJ runs it with `--reporter=json` as a temporary *Vader Test* run configuration, whose test console shows the tree of tests, their durations and output, and goes to a test's line.
+The VS Code and IntelliJ extensions (`editors/vscode/`, `editors/intellij/`) start `vader lsp` from the configured `vader` binary or the one on `PATH`, and validate and complete a `vader.json` against `editors/common/vader.schema.json`. A test lens carries the command `vader.runTest`, which the editor runs, not the server: each extension runs `vader test --reporter=json <file>`, filtered to the lens's test, from the file's project (its folder, outside any). IntelliJ runs it as a temporary *Vader Test* run configuration, whose test console shows the tree of tests, their durations and output, and goes to a test's line. VS Code runs it in its Test view, which lists the tests of a module when a file that holds one is opened or saved (`vader test --list --reporter=json <file>`), shows a failure on the test's line and keeps each test's output.
 
 ### The project of a file
 

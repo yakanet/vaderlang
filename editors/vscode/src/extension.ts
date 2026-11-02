@@ -3,7 +3,6 @@
 // in Vader (`vader/tools/lsp/main_entry.vader`) and shipped with the Vader CLI
 // binary ; this extension is a thin client.
 
-import * as path from "node:path";
 import * as vscode from "vscode";
 import {
   LanguageClient,
@@ -11,6 +10,7 @@ import {
   type ServerOptions,
   TransportKind,
 } from "vscode-languageclient/node";
+import { registerTests } from "./testing";
 
 let client: LanguageClient | undefined;
 
@@ -154,35 +154,9 @@ function registerDebugAdapter(context: vscode.ExtensionContext): void {
   );
 }
 
-let lastTestRun: vscode.TaskExecution | undefined;
-
-// The command of the server's "run test" code lenses (`vader.runTest`). The
-// language client hands a lens command the server does not execute to the VS
-// Code command of that name.
-//
-// It runs as a task: a terminal whose own process is `vader` closes when it
-// exits, and reports a quick failing exit as a launch error.
-async function runTest(uri: string, folder: string, name?: string): Promise<void> {
-  const file = vscode.Uri.parse(uri).fsPath;
-  const args = ["test"];
-  if (name !== undefined) args.push("--filter", name);
-  args.push(file);
-  // VS Code tells running tasks apart by their definition: one per lens.
-  const task = new vscode.Task(
-    { type: "vader", file, test: name },
-    vscode.TaskScope.Workspace,
-    `test ${name ?? path.basename(file)}`,
-    "vader",
-    new vscode.ProcessExecution(interpolate(rawBinaryPath()), args, { cwd: folder }),
-  );
-  task.presentationOptions = { clear: true, showReuseMessage: false };
-  lastTestRun?.terminate();
-  lastTestRun = await vscode.tasks.executeTask(task);
-}
-
 export function activate(context: vscode.ExtensionContext): void {
   registerDebugAdapter(context);
-  context.subscriptions.push(vscode.commands.registerCommand("vader.runTest", runTest));
+  registerTests(context, () => interpolate(rawBinaryPath()));
   startClient().catch((err) => {
     vscode.window.showErrorMessage(
       `Vader Language Server activation failed: ${
