@@ -1,0 +1,227 @@
+// std/glob/ignore: the rules of an ignore file, read as git reads a `.gitignore`.
+//
+// Each line compiles to a `Glob` (glob.vader). A rule without a `/` matches at
+// any depth, which `**/` in front of its pattern expresses; a rule with one is
+// anchored at the directory of the file.
+
+module "std/glob"
+
+import "std/string"
+
+/// The rules of an ignore file. Build them with `parse_ignore_rules`, ask about
+/// a path with `is_ignored`.
+///
+/// @example
+///   rules :: parse_ignore_rules("build/\n*.log\n!keep.log\n")
+///   rules.is_ignored("src/build", true)    // true: `build/` matches at any depth
+///   rules.is_ignored("src/build/x.o")      // true: below an ignored directory
+///   rules.is_ignored("logs/run.log")       // true
+///   rules.is_ignored("keep.log")           // false: re-included
+export IgnoreRules :: struct {
+    @internal
+    rules: IgnoreRule[] = []
+}
+
+// One line of an ignore file.
+IgnoreRule :: struct {
+    glob: Glob
+    // `!`: a path the rule matches is kept.
+    negated: bool
+    // A trailing `/`: the rule matches directories only.
+    directory_only: bool
+}
+
+/// Read the rules of an ignore file, one per line, as `gitignore(5)` reads them:
+///
+/// - a blank line, or one that starts with `#`, holds no rule; `\#` and `\!`
+///   start a pattern with those characters;
+/// - trailing spaces are dropped, except one quoted with `\`;
+/// - a leading `!` re-includes what an earlier rule ignored;
+/// - a trailing `/` makes the rule match directories only;
+/// - a `/` at the start or in the middle anchors the pattern at the directory
+///   of the file; without one, the pattern matches at any depth below it;
+/// - a line whose pattern does not compile holds no rule, as in git.
+///
+/// Patterns read `**` as `GlobOptions.globstar` does, and `*` takes a leading
+/// `.`, as in git.
+///
+/// @param text  the content of the file; lines may end in `\r\n`.
+export parse_ignore_rules :: fn(text: string) -> IgnoreRules {
+    rules: IgnoreRule[]: []
+    for line in text.split("\n") {
+        rule :: ignore_rule(line) ?? continue
+        rules.push(rule)
+    }
+    return IgnoreRules { .rules = rules }
+}
+
+/// Whether the rules ignore `path`. The last rule that matches it decides, and
+/// a path no rule matches is kept. A path below an ignored directory stays
+/// ignored whatever a later rule says, since git never looks inside such a
+/// directory.
+///
+/// @param path    the path, relative to the directory of the ignore file,
+///                `/`-separated, with no leading `./` and no trailing `/`.
+/// @param is_dir  whether `path` names a directory: a rule that ends in `/`
+///                matches only those.
+export is_ignored :: fn(self: IgnoreRules, path: string, is_dir: bool = false) -> bool {
+    for k in 0..<path.byte_len() {
+        if path.byte_at(k) == '/' && self.last_match_ignores(path.byte_slice(0, k), true) {
+            return true
+        }
+    }
+    return self.last_match_ignores(path, is_dir)
+}
+
+// Whether the last rule that matches `path` ignores it.
+last_match_ignores :: fn(self: IgnoreRules, path: string, is_dir: bool) -> bool {
+    i := self.rules.len() - 1
+    for i >= 0 {
+        rule :: self.rules[i]
+        if (is_dir || !rule.directory_only) && rule.glob.matches(path) {
+            return !rule.negated
+        }
+        i -= 1
+    }
+    return false
+}
+
+// The rule a line holds, or null for a blank line, a comment, or a pattern that
+// does not compile.
+ignore_rule :: fn(raw: string) -> IgnoreRule | null {
+    line :: without_trailing_spaces(raw.trim_suffix("\r"))
+    if line == "" || line.starts_with("#") {
+        return null
+    }
+    body :: line.trim_prefix("!")
+    pattern :: body.trim_suffix("/")
+    if pattern == "" {
+        return null
+    }
+    glob :: parse_glob(rooted_pattern(pattern))
+    if glob is GlobError {
+        return null
+    }
+    return IgnoreRule {
+        .glob = glob,
+        .negated = line.starts_with("!"),
+        .directory_only = body.ends_with("/"),
+    }
+}
+
+// The pattern a rule matches paths against, relative to the directory of the
+// file: as written when it holds a `/`, at any depth below it otherwise.
+rooted_pattern :: fn(pattern: string) -> string {
+    if "/" in pattern {
+        return pattern.trim_prefix("/")
+    }
+    return "**/${pattern}"
+}
+
+// `line` without its trailing spaces, except one that a `\` quotes.
+without_trailing_spaces :: fn(line: string) -> string {
+    end := line.byte_len()
+    for end > 0 && line.byte_at(end - 1) == ' ' {
+        if end >= 2 && line.byte_at(end - 2) == '\\' {
+            break
+        }
+        end -= 1
+    }
+    return line.byte_slice(0, end)
+}
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_ignore_skips_blank_lines_and_comments :: fn() -> void {
+    rules :: parse_ignore_rules("# a comment\n\n   \n")
+    assert(!rules.is_ignored("a comment"), "a comment holds no rule")
+    assert(!rules.is_ignored("#"), "nor does a blank line")
+}
+
+@test
+test_ignore_pattern_without_slash_matches_at_any_depth :: fn() -> void {
+    rules :: parse_ignore_rules("hello.*\n")
+    assert(rules.is_ignored("hello.c"), "at the top")
+    assert(rules.is_ignored("a/b/hello.c"), "deep down")
+    assert(!rules.is_ignored("a/hello"), "the whole name must match")
+}
+
+@test
+test_ignore_slash_anchors_the_pattern :: fn() -> void {
+    rules :: parse_ignore_rules("doc/frotz\n/build\n")
+    assert(rules.is_ignored("doc/frotz"), "a middle `/`")
+    assert(!rules.is_ignored("a/doc/frotz"), "a middle `/` anchors")
+    assert(rules.is_ignored("build"), "a leading `/`")
+    assert(!rules.is_ignored("src/build"), "a leading `/` anchors")
+}
+
+@test
+test_ignore_trailing_slash_matches_directories_only :: fn() -> void {
+    rules :: parse_ignore_rules("frotz/\n")
+    assert(rules.is_ignored("frotz", true), "a directory")
+    assert(rules.is_ignored("a/frotz", true), "a directory, deep down")
+    assert(!rules.is_ignored("frotz"), "not a file")
+    assert(rules.is_ignored("frotz/x.c"), "what lies below the directory")
+}
+
+@test
+test_ignore_last_matching_rule_wins :: fn() -> void {
+    rules :: parse_ignore_rules("*.log\n!keep.log\n")
+    assert(rules.is_ignored("run.log"), "ignored")
+    assert(!rules.is_ignored("keep.log"), "re-included")
+    assert(!rules.is_ignored("logs/keep.log"), "re-included at any depth")
+}
+
+@test
+test_ignore_cannot_re_include_below_an_ignored_directory :: fn() -> void {
+    excluded :: parse_ignore_rules("build/\n!build/keep.txt\n")
+    assert(excluded.is_ignored("build/keep.txt"), "its directory is ignored")
+    emptied :: parse_ignore_rules("build/*\n!build/keep.txt\n")
+    assert(!emptied.is_ignored("build/keep.txt"), "only the content is ignored")
+    assert(emptied.is_ignored("build/other.txt"), "the rest of the content is")
+}
+
+@test
+test_ignore_everything_but_one_directory :: fn() -> void {
+    // The example of `gitignore(5)`.
+    rules :: parse_ignore_rules("/*\n!/foo\n/foo/*\n!/foo/bar\n")
+    assert(rules.is_ignored("top.txt"), "the top level")
+    assert(rules.is_ignored("foo/baz", true), "the rest of `foo`")
+    assert(!rules.is_ignored("foo/bar/x.c"), "`foo/bar` and what it holds")
+}
+
+@test
+test_ignore_double_stars :: fn() -> void {
+    rules :: parse_ignore_rules("**/logs\nabc/**\na/**/b\n")
+    assert(rules.is_ignored("x/y/logs", true), "a leading `**/`")
+    assert(rules.is_ignored("abc/d/e"), "a trailing `/**`")
+    assert(!rules.is_ignored("abc", true), "a trailing `/**` needs something below")
+    assert(rules.is_ignored("a/b"), "a middle `/**/`, zero directories")
+    assert(rules.is_ignored("a/x/y/b"), "a middle `/**/`, several")
+}
+
+@test
+test_ignore_star_takes_a_leading_period :: fn() -> void {
+    rules :: parse_ignore_rules("*\n")
+    assert(rules.is_ignored(".env"), "as in git")
+}
+
+@test
+test_ignore_escapes_and_trailing_spaces :: fn() -> void {
+    rules :: parse_ignore_rules("\\#hash\n\\!bang\nspaced   \nkept\\ \n")
+    assert(rules.is_ignored("#hash"), "a quoted `#`")
+    assert(rules.is_ignored("!bang"), "a quoted `!`")
+    assert(rules.is_ignored("spaced"), "trailing spaces dropped")
+    assert(rules.is_ignored("kept "), "a quoted space kept")
+    assert(!rules.is_ignored("kept"), "the quoted space is part of the name")
+}
+
+@test
+test_ignore_reads_crlf_and_skips_malformed_lines :: fn() -> void {
+    rules :: parse_ignore_rules("a.o\r\n[z-a]\r\nb.o\r\n")
+    assert(rules.is_ignored("a.o"), "a CRLF line")
+    assert(rules.is_ignored("b.o"), "the line after a malformed one")
+}

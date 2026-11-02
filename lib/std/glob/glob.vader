@@ -1,0 +1,604 @@
+// std/glob: glob patterns, in the notation of IEEE Std 1003.2 (XCU 2.13).
+//
+// `parse_glob` compiles a pattern into tokens once; `matches` runs them over a
+// text with a table, pattern by text, so no pattern backtracks exponentially.
+// Patterns are read as paths: `/` is only ever matched by a `/` of the pattern.
+// `ignore.vader` builds the rules of a `.gitignore` file on top of `Glob`.
+
+module "std/glob"
+
+import "std/char"
+import "std/iter"
+import "std/string"
+import "std/string_builder"
+
+// ---- the pattern ------------------------------------------------------------
+
+/// How a pattern reads the points where POSIX, the shell and git part ways.
+export GlobOptions :: struct {
+    /// The text is a path: `/` is matched by a `/` of the pattern only, never
+    /// by `*`, `?` or a bracket expression, as `FNM_PATHNAME` reads it. False
+    /// reads it as a plain string, where they match `/` too and `**` is `*`.
+    pathname: bool = true
+    /// A `**` that forms a whole segment spans directories, as bash's `globstar`
+    /// and git read it: `**/` at the start or in the middle stands for zero
+    /// directories or more, `/**` at the end for everything below. Elsewhere,
+    /// and always when false (strict POSIX), `**` is `*`.
+    globstar: bool = true
+    /// A name that starts with `.` is matched only by an explicit `.` of the
+    /// pattern, never by `*`, `?`, `**` or a bracket expression: the rule of
+    /// the shell's filename expansion. A name starts the text, and with
+    /// `pathname` it also starts after each `/`. False, as for `fnmatch`
+    /// without `FNM_PERIOD` and for git.
+    explicit_period: bool = false
+}
+
+/// A compiled glob pattern. Build it with `parse_glob`, test a text with
+/// `matches`.
+///
+/// The notation is POSIX's:
+///
+/// - `?` matches one character, `*` any run of them, the empty one included,
+///   and `\` quotes the character after it;
+/// - `[...]` matches one character of a list: single characters, ranges
+///   (`a-z`), the classes `[:alpha:]`, `[:digit:]` and the ten others, `[=c=]`
+///   and `[.c.]`; a leading `!` (or `^`) negates it, and a `]` first or a `-`
+///   first or last stands for itself;
+/// - a `[` that opens no complete bracket expression stands for itself;
+/// - `/` is matched by a `/` of the pattern only, and a `[` whose `]` comes
+///   after a `/` stands for itself, unless `GlobOptions.pathname` is false.
+///
+/// Classes follow the POSIX locale: they hold ASCII characters only.
+///
+/// @example
+///   g :: parse_glob("src/**/*.vader")
+///   if g is Glob {
+///       g.matches("src/front/lexer/lexer.vader")   // true
+///       g.matches("src/main.vader")                // true
+///       g.matches("lib/main.vader")                // false
+///   }
+export Glob :: struct {
+    options: GlobOptions = GlobOptions {}
+    @internal
+    tokens: GlobToken[] = []
+}
+
+/// Why `parse_glob` refused a pattern: one of the forms POSIX leaves
+/// unspecified, refused so that a typo shows instead of matching nothing.
+export GlobError :: struct {
+    msg: string
+    /// Index of the character, in the pattern, where the problem starts.
+    offset: i64
+}
+
+GlobError implements Error {
+    message :: fn(self) -> string = self.msg
+}
+
+/// Compile a glob pattern.
+///
+/// @param pattern  the pattern, in the notation `Glob` describes.
+/// @param options  how to read `/`, `**` and a leading `.`.
+/// @return         the compiled pattern.
+/// @error          `GlobError` for a trailing `\`, a range whose ends are reversed
+///                 (`[z-a]`), a class POSIX does not name (`[:foo:]`), or a `[=...=]`
+///                 or `[.....]` that holds more than one character.
+/// @example
+///   parse_glob("*.vader")   // Glob
+///   parse_glob("[z-a]")     // GlobError
+export parse_glob :: fn(pattern: string, options: GlobOptions = GlobOptions {}) -> Glob | GlobError {
+    chars :: pattern.chars().collect()
+    tokens: GlobToken[]: []
+    i: i64 = 0
+    for i < chars.len() {
+        next :: token_at(chars, i, options)
+        if next is GlobError {
+            return next
+        }
+        [token, after] :: next
+        tokens.push(token)
+        i = after
+    }
+    return Glob { .options = options, .tokens = tokens }
+}
+
+/// Whether the whole of `text` matches the pattern.
+///
+/// @param text  the text, a path when the pattern holds `/`.
+/// @example
+///   g :: parse_glob("*.vader")
+///   if g is Glob {
+///       g.matches("main.vader")       // true
+///       g.matches("src/main.vader")   // false: `*` does not match `/`
+///   }
+export matches :: fn(self: Glob, text: string) -> bool {
+    chars :: text.chars().collect()
+    // `later[c]`: whether the tokens after the current one match `chars[c..]`.
+    // `row` receives the same for the current token, then the two swap.
+    later: bool[] = [false] * (chars.len() + 1)
+    row: bool[] = [false] * (chars.len() + 1)
+    later[chars.len()] = true
+    t := self.tokens.len() - 1
+    for t >= 0 {
+        fill_row(self.tokens[t], chars, later, row, self.options)
+        filled :: row
+        row = later
+        later = filled
+        t -= 1
+    }
+    return later[0]
+}
+
+// ---- tokens -----------------------------------------------------------------
+
+// One character, as written or quoted.
+GlobLiteral :: struct {
+    ch: char
+}
+
+// `?`: one character other than `/`.
+GlobAnyChar :: struct {}
+
+// `*`: a run of characters other than `/`.
+GlobStar :: struct {}
+
+// `**` as the last segment: a run of characters, `/` included.
+GlobDeepStar :: struct {}
+
+// `**/` opening a segment: zero or more whole directories, each with its `/`.
+GlobDirectories :: struct {}
+
+// `[...]`: one character other than `/`, listed or, negated, not listed.
+GlobBracket :: struct {
+    ranges: GlobRange[]
+    classes: PosixClass[]
+    negated: bool
+}
+
+// The characters from `low` to `high`, both included. A single character is
+// the range from itself to itself.
+GlobRange :: struct {
+    low: char
+    high: char
+}
+
+GlobToken :: GlobLiteral | GlobAnyChar | GlobStar | GlobDeepStar | GlobDirectories | GlobBracket
+
+// The token that opens at `i`, and the index after what it consumed.
+token_at :: fn(chars: char[], i: i64, options: GlobOptions) -> [GlobToken, i64] | GlobError {
+    c :: chars[i]
+    if c == '\\' && i + 1 == chars.len() {
+        return GlobError { .msg = "a trailing `\\` quotes nothing", .offset = i }
+    }
+    return match c {
+        '\\' -> [GlobLiteral { .ch = chars[i + 1] }, i + 2]
+        '?'  -> [GlobAnyChar {}, i + 1]
+        '*'  -> star_token(chars, i, options.globstar && options.pathname)
+        '['  -> bracket_token(chars, i, options.pathname)
+        _    -> [GlobLiteral { .ch = c }, i + 1]
+    }
+}
+
+// The token for the run of `*` at `i`, and the index after what it consumed.
+// With `globstar`, a `**` that is a whole segment spans directories; any other
+// run is one `*`.
+star_token :: fn(chars: char[], i: i64, globstar: bool) -> [GlobToken, i64] {
+    end := i
+    for end < chars.len() && chars[end] == '*' {
+        end += 1
+    }
+    if !globstar || end - i != 2 || i > 0 && chars[i - 1] != '/' {
+        return [GlobStar {}, end]
+    }
+    if end == chars.len() {
+        return [GlobDeepStar {}, end]
+    }
+    if chars[end] == '/' {
+        return [GlobDirectories {}, end + 1]
+    }
+    return [GlobStar {}, end]
+}
+
+// The bracket expression opening at `i`, and the index after its `]`. When the
+// `[` opens none, it stands for itself: no `]` closes it, or, in a path, a `/`
+// comes first.
+bracket_token :: fn(chars: char[], i: i64, pathname: bool) -> [GlobToken, i64] | GlobError {
+    itself: [GlobToken, i64]: [GlobLiteral { .ch = '[' }, i + 1]
+    j := i + 1
+    negated :: j < chars.len() && (chars[j] == '!' || chars[j] == '^')
+    if negated {
+        j += 1
+    }
+    ranges: GlobRange[]: []
+    classes: PosixClass[]: []
+    first :: j
+    for j < chars.len() {
+        c :: chars[j]
+        if c == '/' && pathname {
+            return itself
+        }
+        if c == ']' && j > first {
+            bracket :: GlobBracket {
+                .ranges = ranges,
+                .classes = classes,
+                .negated = negated,
+            }
+            return [bracket, j + 1]
+        }
+        class :: class_at(chars, j)
+        if class is GlobError {
+            return class
+        }
+        if class != null {
+            [named, after_class] :: class
+            if range_end_at(chars, after_class) != null {
+                return GlobError { .msg = "a class cannot start a range", .offset = after_class }
+            }
+            classes.push(named)
+            j = after_class
+            continue
+        }
+        low :: endpoint_at(chars, j)
+        if low is GlobError {
+            return low
+        }
+        if low == null {
+            return itself
+        }
+        [low_char, after_low] :: low
+        high :: range_end_at(chars, after_low)
+        if high is GlobError {
+            return high
+        }
+        if high == null {
+            ranges.push(GlobRange { .low = low_char, .high = low_char })
+            j = after_low
+            continue
+        }
+        [high_char, after_high] :: high
+        if high_char < low_char {
+            return GlobError {
+                .msg = "the range `${low_char}-${high_char}` is reversed",
+                .offset = j,
+            }
+        }
+        ranges.push(GlobRange { .low = low_char, .high = high_char })
+        j = after_high
+    }
+    return itself
+}
+
+// The class `[:name:]` opening at `j`, and the index after it. Null when `j`
+// opens no class.
+class_at :: fn(chars: char[], j: i64) -> [PosixClass, i64] | GlobError | null {
+    bounds :: delimited_at(chars, j, ':') ?? return null
+    [start, close] :: bounds
+    name :: chars_between(chars, start, close)
+    class :: posix_class_named(name)
+    if class == null {
+        return GlobError { .msg = "POSIX names no class `[:${name}:]`", .offset = j }
+    }
+    return [class, close + 2]
+}
+
+// The character a bracket lists at `j`, and the index after it: itself, quoted
+// by `\`, or written `[=c=]` or `[.c.]`. Null when the pattern ends first.
+endpoint_at :: fn(chars: char[], j: i64) -> [char, i64] | GlobError | null {
+    if chars[j] == '\\' {
+        if j + 1 == chars.len() {
+            return null
+        }
+        return [chars[j + 1], j + 2]
+    }
+    for delimiter in ['=', '.'] {
+        bounds :: delimited_at(chars, j, delimiter) ?? continue
+        [start, close] :: bounds
+        if close != start + 1 {
+            name :: chars_between(chars, start, close)
+            return GlobError {
+                .msg = "the POSIX locale has no element `[${delimiter}${name}${delimiter}]`",
+                .offset = j,
+            }
+        }
+        return [chars[start], close + 2]
+    }
+    return [chars[j], j + 1]
+}
+
+// The high end of a range whose `-` sits at `j`, and the index after it. Null
+// when `j` holds no `-`, or a `-` that closes the list and stands for itself.
+range_end_at :: fn(chars: char[], j: i64) -> [char, i64] | GlobError | null {
+    if j + 1 >= chars.len() || chars[j] != '-' || chars[j + 1] == ']' {
+        return null
+    }
+    if delimited_at(chars, j + 1, ':') != null {
+        return GlobError { .msg = "a class cannot end a range", .offset = j + 1 }
+    }
+    return endpoint_at(chars, j + 1)
+}
+
+// The name a `[:name:]`, `[=name=]` or `[.name.]` opening at `j` holds, as the
+// index of its first character and the index of the `delimiter` that closes it.
+// Null when `j` opens no such name, or nothing closes it.
+delimited_at :: fn(chars: char[], j: i64, delimiter: char) -> [i64, i64] | null {
+    if j + 1 >= chars.len() || chars[j] != '[' || chars[j + 1] != delimiter {
+        return null
+    }
+    k := j + 2
+    for k + 1 < chars.len() {
+        if chars[k] == delimiter && chars[k + 1] == ']' {
+            return [j + 2, k]
+        }
+        k += 1
+    }
+    return null
+}
+
+chars_between :: fn(chars: char[], from: i64, to: i64) -> string {
+    sb :: StringBuilder {}
+    for k in from..<to {
+        sb.append_char(chars[k])
+    }
+    return sb.to_string()
+}
+
+// ---- POSIX classes ----------------------------------------------------------
+
+// A class of `[:name:]` in a bracket, in the POSIX locale.
+PosixClass :: enum {
+    Alnum,
+    Alpha,
+    Blank,
+    Cntrl,
+    Digit,
+    Graph,
+    Lower,
+    Print,
+    Punct,
+    Space,
+    Upper,
+    Xdigit,
+}
+
+posix_class_named :: fn(name: string) -> PosixClass | null = match name {
+    "alnum"  -> .Alnum
+    "alpha"  -> .Alpha
+    "blank"  -> .Blank
+    "cntrl"  -> .Cntrl
+    "digit"  -> .Digit
+    "graph"  -> .Graph
+    "lower"  -> .Lower
+    "print"  -> .Print
+    "punct"  -> .Punct
+    "space"  -> .Space
+    "upper"  -> .Upper
+    "xdigit" -> .Xdigit
+    _        -> null
+}
+
+// Whether `class` holds `ch`. The POSIX locale is ASCII: no other character
+// belongs to any class.
+holds :: fn(class: PosixClass, ch: char) -> bool = match class {
+    .Alnum  -> ch.is_alnum()
+    .Alpha  -> ch.is_alpha()
+    .Blank  -> ch == ' ' || ch == '\t'
+    .Cntrl  -> u32(ch) < 0x20 || u32(ch) == 0x7F
+    .Digit  -> ch.is_digit()
+    .Graph  -> ch in '!'..='~'
+    .Lower  -> ch in 'a'..='z'
+    .Print  -> ch in ' '..='~'
+    .Punct  -> ch in '!'..='~' && !ch.is_alnum()
+    .Space  -> ch == ' ' || u32(ch) in 0x09..=0x0D
+    .Upper  -> ch in 'A'..='Z'
+    .Xdigit -> ch.is_digit() || ch in 'a'..='f' || ch in 'A'..='F'
+}
+
+// ---- matching ---------------------------------------------------------------
+
+// Fill one row of the table: `row[c]` says whether `token`, then the tokens
+// behind `later`, match `chars[c..]`. Filled from the end, since a star reads
+// the cell on its right; every cell is written.
+fill_row :: fn(
+    token: GlobToken,
+    chars: char[],
+    later: bool[],
+    row: bool[],
+    options: GlobOptions,
+) -> void {
+    n :: chars.len()
+    // Whether a run of directories starting at `c` ends on a `/` that `later`
+    // continues from.
+    closes_directories := false
+    c := n
+    for c >= 0 {
+        // No wildcard consumes a hidden `.`: with `explicit_period`, one that
+        // opens the text or, in a path, follows a `/`.
+        hidden :: options.explicit_period && c < n && chars[c] == '.'
+            && (c == 0 || options.pathname && chars[c - 1] == '/')
+        // Whether `**` may consume `chars[c]`, and whether the other wildcards may.
+        takes :: c < n && !hidden
+        single :: takes && (!options.pathname || chars[c] != '/')
+        closes_directories = takes && (chars[c] == '/' && later[c + 1] || closes_directories)
+        row[c] = match token {
+            is GlobLiteral     -> c < n && chars[c] == token.ch && later[c + 1]
+            is GlobAnyChar     -> single && later[c + 1]
+            is GlobBracket     -> single && token.admits(chars[c]) && later[c + 1]
+            is GlobStar        -> later[c] || single && row[c + 1]
+            is GlobDeepStar    -> later[c] || takes && row[c + 1]
+            is GlobDirectories -> later[c] || closes_directories
+        }
+        c -= 1
+    }
+}
+
+// Whether the bracket matches `ch`: listed, or not listed when negated.
+admits :: fn(self: GlobBracket, ch: char) -> bool = self.lists(ch) != self.negated
+
+lists :: fn(self: GlobBracket, ch: char) -> bool {
+    for range in self.ranges {
+        if ch >= range.low && ch <= range.high {
+            return true
+        }
+    }
+    for class in self.classes {
+        if class.holds(ch) {
+            return true
+        }
+    }
+    return false
+}
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+// Whether `pattern`, which must compile, matches `text`.
+glob_matches :: fn(pattern: string, text: string, options: GlobOptions = GlobOptions {}) -> bool {
+    g :: parse_glob(pattern, options)
+    if g is GlobError {
+        assert(false, "`${pattern}` should compile: ${g.msg}")
+        return false
+    }
+    return g.matches(text)
+}
+
+@test
+test_glob_literal_matches_the_whole_text :: fn() -> void {
+    assert(glob_matches("abc", "abc"), "the same text")
+    assert(!glob_matches("abc", "abcd"), "a longer text")
+    assert(!glob_matches("abc", "ab"), "a shorter text")
+    assert(glob_matches("", ""), "the empty pattern matches the empty text")
+}
+
+@test
+test_glob_question_mark_matches_one_character :: fn() -> void {
+    assert(glob_matches("a?c", "abc"), "one ASCII character")
+    assert(glob_matches("h?llo", "héllo"), "one character, not one byte")
+    assert(!glob_matches("a?c", "ac"), "never zero characters")
+    assert(!glob_matches("a?c", "a/c"), "never a `/`")
+}
+
+@test
+test_glob_star_stays_in_its_segment :: fn() -> void {
+    assert(glob_matches("*.vader", "main.vader"), "a run of characters")
+    assert(glob_matches("*.vader", ".vader"), "the empty run")
+    assert(!glob_matches("*.vader", "src/main.vader"), "never a `/`")
+    assert(glob_matches("src/*/main.vader", "src/front/main.vader"), "one whole segment")
+    assert(glob_matches("a*b*c", "aXXbYYc"), "several stars")
+}
+
+@test
+test_glob_globstar_spans_directories :: fn() -> void {
+    assert(glob_matches("src/**/*.vader", "src/main.vader"), "zero directories")
+    assert(glob_matches("src/**/*.vader", "src/a/b/main.vader"), "several directories")
+    assert(glob_matches("**/main.vader", "main.vader"), "a leading `**/`")
+    assert(glob_matches("**/main.vader", "a/b/main.vader"), "a leading `**/`, deep")
+    assert(glob_matches("build/**", "build/a/b"), "a trailing `/**`")
+    assert(!glob_matches("build/**", "build"), "a trailing `/**` needs something below")
+    assert(glob_matches("**", "a/b/c"), "a lone `**`")
+    assert(!glob_matches("**/main.vader", "xmain.vader"), "`**/` takes whole directories")
+}
+
+@test
+test_glob_double_star_inside_a_segment_is_one_star :: fn() -> void {
+    assert(glob_matches("a**b", "aXYb"), "a run in one segment")
+    assert(!glob_matches("a**b", "aX/Yb"), "never a `/`")
+}
+
+@test
+test_glob_without_globstar_is_strict_posix :: fn() -> void {
+    strict :: GlobOptions { .globstar = false }
+    assert(glob_matches("src/**/x", "src/a/x", strict), "`**` is `*`")
+    assert(!glob_matches("src/**/x", "src/a/b/x", strict), "`**` stays in its segment")
+    assert(!glob_matches("src/**/x", "src/x", strict), "`**/` needs a segment")
+}
+
+@test
+test_glob_without_pathname_wildcards_match_slashes :: fn() -> void {
+    plain :: GlobOptions { .pathname = false }
+    assert(glob_matches("*", "std/collections", plain), "`*` takes a `/`")
+    assert(glob_matches("std/*", "std/collections/queue", plain), "several of them")
+    assert(glob_matches("a?b", "a/b", plain), "so does `?`")
+    assert(glob_matches("a[/]b", "a/b", plain), "and a bracket holding one")
+    assert(!glob_matches("**/x", "x", plain), "`**` is `*`, which leaves the `/` to match")
+}
+
+@test
+test_glob_brackets_list_characters_and_ranges :: fn() -> void {
+    assert(glob_matches("[abc]", "b"), "a listed character")
+    assert(!glob_matches("[abc]", "d"), "an unlisted one")
+    assert(glob_matches("[a-c]x", "bx"), "a range")
+    assert(!glob_matches("[a-c]x", "dx"), "outside the range")
+    assert(glob_matches("[!a-c]x", "dx"), "negated with `!`")
+    assert(glob_matches("[^a-c]x", "dx"), "negated with `^`")
+    assert(!glob_matches("[!a-c]x", "bx"), "negated, listed")
+    assert(!glob_matches("[!a]", "/"), "never a `/`, even negated")
+}
+
+@test
+test_glob_bracket_edge_characters_stand_for_themselves :: fn() -> void {
+    assert(glob_matches("[]]", "]"), "a `]` first")
+    assert(glob_matches("[!]]", "a"), "a `]` first after the negation")
+    assert(glob_matches("[a-]", "-"), "a `-` last")
+    assert(glob_matches("[-a]", "-"), "a `-` first")
+    assert(glob_matches("[\\]]", "]"), "a quoted `]`")
+}
+
+@test
+test_glob_posix_classes :: fn() -> void {
+    assert(glob_matches("[[:alpha:]]", "q"), "alpha")
+    assert(!glob_matches("[[:alpha:]]", "é"), "alpha is ASCII in the POSIX locale")
+    assert(glob_matches("[[:digit:][:upper:]]", "Q"), "two classes")
+    assert(glob_matches("[[:punct:]]", "!"), "punct")
+    assert(!glob_matches("[[:punct:]]", "a"), "punct holds no letter")
+    assert(glob_matches("[[:space:]]", "\t"), "space")
+    assert(glob_matches("[[:xdigit:]]", "F"), "xdigit")
+    assert(glob_matches("[![:digit:]]", "x"), "a negated class")
+    assert(glob_matches("[[=a=]]", "a"), "an equivalence class is its character")
+    assert(glob_matches("[[.-.]a]", "-"), "a collating symbol is its character")
+    assert(glob_matches("[[.a.]-c]", "b"), "a collating symbol ends a range")
+}
+
+@test
+test_glob_unclosed_bracket_stands_for_itself :: fn() -> void {
+    assert(glob_matches("[abc", "[abc"), "no `]`")
+    assert(glob_matches("a[b/c]", "a[b/c]"), "a `/` before the `]`")
+    assert(!glob_matches("a[b/c]", "ab"), "not a bracket expression")
+}
+
+@test
+test_glob_backslash_quotes :: fn() -> void {
+    assert(glob_matches("\\*", "*"), "a quoted star")
+    assert(!glob_matches("\\*", "a"), "a quoted star is no wildcard")
+    assert(glob_matches("\\[a]", "[a]"), "a quoted bracket")
+}
+
+@test
+test_glob_explicit_period :: fn() -> void {
+    shell :: GlobOptions { .explicit_period = true }
+    assert(!glob_matches("*", ".hidden", shell), "a star does not take a leading `.`")
+    assert(glob_matches(".*", ".hidden", shell), "an explicit `.` does")
+    assert(!glob_matches("?hidden", ".hidden", shell), "nor does `?`")
+    assert(!glob_matches("[.]hidden", ".hidden", shell), "nor a bracket")
+    assert(!glob_matches("src/*", "src/.git", shell), "after a `/` too")
+    assert(!glob_matches("**/x", ".git/x", shell), "nor `**`")
+    assert(glob_matches("*.vader", "a.vader", shell), "a `.` inside a name is not leading")
+    assert(glob_matches("*", ".hidden"), "without the option, a star takes it")
+}
+
+@test
+test_glob_refuses_what_posix_leaves_unspecified :: fn() -> void {
+    for pattern in ["a\\", "[z-a]", "[[:foo:]]", "[[=ab=]]", "[[:alpha:]-z]"] {
+        assert(parse_glob(pattern) is GlobError, "`${pattern}` is refused")
+    }
+}
+
+@test
+test_glob_error_points_at_the_problem :: fn() -> void {
+    e :: parse_glob("ab[z-a]")
+    if e is Glob {
+        assert(false, "a reversed range is refused")
+        return
+    }
+    assert_eq(e.offset, 3)
+}
