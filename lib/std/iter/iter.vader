@@ -432,6 +432,40 @@ export skip :: fn<T>(self: Iterator<T>, n: i64) -> Iterator<T> {
 // generator's own state machine only materialises for an escaping iterator
 // value.
 
+// ---- extrema --------------------------------------------------------------
+
+/// The least element of an iterator (an array auto-coerces at the call site).
+///
+/// @param self  the elements to compare.
+/// @return      the least, the first of equal ones ; `null` when there are none.
+/// @example
+///   [3, 1, 2].min()   // 1
+export min :: fn<T: Comparable>(self: Iterator<T>) -> T | null {
+    least: T | null = null
+    for x in self {
+        if least == null || x < least {
+            least = x
+        }
+    }
+    return least
+}
+
+/// The greatest element of an iterator (an array auto-coerces at the call site).
+///
+/// @param self  the elements to compare.
+/// @return      the greatest, the first of equal ones ; `null` when there are none.
+/// @example
+///   ["pear", "fig"].max()   // "pear"
+export max :: fn<T: Comparable>(self: Iterator<T>) -> T | null {
+    greatest: T | null = null
+    for x in self {
+        if greatest == null || x > greatest {
+            greatest = x
+        }
+    }
+    return greatest
+}
+
 // ---------------------------------------------------------------------- tests
 
 import "std/testing"
@@ -693,4 +727,19 @@ take_pulls_lazy :: fn(n: i64) -> i32 {
 
 @test test_take_zero_pulls_nothing_lazy :: fn() -> void {
     assert_eq(take_pulls_lazy(0), 0)
+}
+
+@test
+test_min_of_nothing_is_null :: fn() -> void {
+    assert((0..<0).min() == null, "an empty range has no least element")
+}
+
+@test
+test_min_takes_the_least :: fn() -> void {
+    assert_eq([3, 1, 2].min() ?? -1, 1)
+}
+
+@test
+test_max_takes_the_greatest :: fn() -> void {
+    assert_eq(["pear", "fig", "apple"].max() ?? "", "pear")
 }

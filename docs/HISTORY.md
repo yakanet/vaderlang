@@ -1441,3 +1441,7 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 - [x] **Comments narrating a measurement**, **closed 2026-11-02**: nine comments in `vader/` (`pipeline/emit.vader`, `tools/cli/cmd_build.vader`, `emit/bytecode/retype.vader`, `emit/c/split.vader`, `emit/c/emit.vader`, `midir/value_return/struct_field_forward.vader`, `support/target/baked.vader`) gave a figure or a comparison as their reason; each now states the constraint alone. The two under `vader/tools/lsp/` stay open in TODO.md.
 - [x] **The help text of `--cc` leaves out `$CC`**, **closed 2026-11-02** (found 2026-10-26): `build` and `doctor` give the default as "$CC, else cc (gcc on Windows)", the order `default_cc` follows.
 - [x] **`vader doctor` reads `VADER_ASYNC_VIRTUAL_CLOCK=0` as off**, **closed 2026-11-02** (found 2026-10-26): a toggle of the table may read on whatever its value (`EnvToggle.any_value`), as the scheduler reads its clock and SPEC states ("set"); the collector's rule is `std/env::is_flag_value_on`.
+
+### 3.8 Language ergonomics
+
+- [x] **`std/iter` has no `min` / `max` terminal**, **closed 2026-11-02** (noted 2026-10-21): `min` / `max :: fn<T: Comparable>(self: Iterator<T>) -> T | null`, the first of equal elements. A float has no `Comparable` (NaN orders against nothing), so it waits for `min_by` / `max_by`.
