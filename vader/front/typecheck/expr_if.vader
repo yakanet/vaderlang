@@ -369,8 +369,8 @@ detect_is_narrow :: fn(
             if !(field_info is null) {
                 null_ty :: TY_NULL
                 // Compose against the field's current flow-narrowed type (like
-                // the ident path below and statement_narrows.vader) so sequential field
-                // guards refine instead of resetting to the declared union.
+                // the ident path above) so sequential field guards refine instead
+                // of resetting to the declared union.
                 base :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
                 non_null :: subtract_type(base, null_ty)
                 if cond.op == .Eq {
@@ -400,12 +400,7 @@ detect_is_narrow :: fn(
         // Same guard as the ident-vs-null path above: don't narrow an
         // unresolved binding.
         if base is UnresolvedType { return null }
-        return IsNarrow {
-            .sym_id    = sym.id,
-            .static_ty = base,
-            .then_ty   = narrowed,
-            .else_ty   = subtract_type_with_impls(base, narrowed, typed),
-        }
+        return type_test_narrowing(sym.id, "", base, narrowed, typed)
     }
     // Scrutinee FIELD-CHAIN narrowing : `x.y is T` narrows the `x.y` slot,
     // mirroring the `x.y == null` field path above. Without this, `is null` /
@@ -416,17 +411,48 @@ detect_is_narrow :: fn(
         field_info :: resolve_field_chain_static(cond.left, typed) ?? return null
         // Compose against the field's current flow-narrowed type so chained
         // `if x.f is A {…} else if x.f is B {…}` guards refine instead of
-        // resetting to the declared type (mirrors the ident path / statement_narrows.vader).
+        // resetting to the declared type (mirrors the ident path).
         base :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
-        return IsNarrow {
-            .sym_id    = 0,
-            .static_ty = base,
-            .then_ty   = narrowed,
-            .else_ty   = subtract_type_with_impls(base, narrowed, typed),
-            .field_key = field_info.field_key,
-        }
+        return type_test_narrowing(0, field_info.field_key, base, narrowed, typed)
     }
     return null
+}
+
+// The narrowing `x is narrowed` gives the slot `sym_id` / `field_key` (`""` for the
+// binding itself), whose current type is `base`.
+type_test_narrowing :: fn(
+    sym_id: i32,
+    field_key: string,
+    base: Type,
+    narrowed: Type,
+    typed: TypedProgram,
+) -> IsNarrow {
+    else_ty :: subtract_type_with_impls(base, narrowed, typed)
+    return IsNarrow {
+        .sym_id    = sym_id,
+        .static_ty = base,
+        .then_ty   = matched_within(base, narrowed, else_ty),
+        .else_ty   = else_ty,
+        .field_key = field_key,
+    }
+}
+
+// What a slot of type `current` holds where a test of `narrowed` is true: what is
+// left once its complement `else_ty` is taken away, so a test of a wider type does
+// not bring back a variant an earlier test ruled out (`x is A | B` after a guard
+// that left `x` without `A` holds `B`). A trait stays the trait, since a union
+// holding one is checked variant by variant (`positive_of`). From an opaque
+// `current` the complement takes nothing away, which leaves nothing: what the test
+// matched holds instead.
+matched_within :: fn(current: Type, narrowed: Type, else_ty: Type) -> Type {
+    if narrowed is TraitType {
+        return narrowed
+    }
+    kept :: subtract_type(current, else_ty)
+    if kept is NeverType {
+        return narrowed
+    }
+    return kept
 }
 
 // ---- tests ----------------------------------------------------------------

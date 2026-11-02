@@ -2,7 +2,9 @@
 // may write any object it reaches, so it retires every field narrowing, and the
 // local narrowings a lambda rebinds. A loop's next iteration runs after its body,
 // so a narrowing made before the loop retires for what the body may write. A
-// field write may go through an alias. T3009 at each read of the stale field.
+// field write may go through an alias. Past a guard, a call in the right operand
+// of its `||` retires what the left one narrowed. T3009 at each read of the stale
+// field.
 module "snippet"
 
 Circle :: struct {
@@ -85,8 +87,15 @@ rebound_by_lambda :: fn() -> f64 {
     return 0.0
 }
 
+past_guard_with_call :: fn(a: Holder) -> f64 {
+    if a.s !is Circle || !touch(a) {
+        return 0.0
+    }
+    return a.s.r
+}
+
 main :: fn() -> i32 {
     a :: Holder { .s = Circle { .r = 1.5 } }
     total :: across_call(a) + call_in_condition(a) + through_alias(a) + next_iteration(a)
-    return i32(total + rebound_in_loop() + rebound_by_lambda())
+    return i32(total + rebound_in_loop() + rebound_by_lambda() + past_guard_with_call(a))
 }

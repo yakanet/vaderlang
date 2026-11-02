@@ -1429,3 +1429,9 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 ### 3.10 WASM target
 
 - [x] **Decide `usize` width**: moot, `usize` and `isize` left the language (ADR 0093, 0094); a length is an `i64` on every target.
+
+## Archived from TODO.md, 2026-11-02
+
+### Priority: next up
+
+- [x] **Two copies of the flow-narrowing analysis**, **closed 2026-11-02** (opened 2026-09-24): a divergent guard (`if c { return }`) read the false side of its condition on its own (`push_guard_narrows`, `detect_is_narrow_for_block` and `BlockNarrow` in `vader/front/typecheck/statement_narrows.vader`). It now pushes `push_cond_narrows(c, false)`, as an `else` does. The true side of an `is` test took the guard's composition: what its complement leaves of the current narrowing (`matched_within`, `expr_if.vader`), a trait staying the trait. Four behaviours moved: past `if !(x is A || x is B) { return }`, `x` is `A | B`; a test of `A | B` after a guard that ruled `A` out holds `B`; past `if x !is Named { return }`, `x` is the trait `Named`, as in a then-branch (SPEC §3 *Type tests and narrowing*), where it used to be the union of the implementors; and a call in the right operand of a guard's `||` retires what the left operand narrowed, where the program used to read the stale field and stop at run time. The compiler's own typed AST is unchanged (snippet `guard_narrows_like_else`, fixture `t3009_narrowing_retired_by_a_possible_write`).

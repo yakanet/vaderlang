@@ -1,6 +1,7 @@
-[27:16] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square
-[34:16] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square
-[48:16] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square
-[57:22] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square
-[69:22] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square
-[83:16] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square
+[29:16] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square
+[36:16] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square
+[50:16] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square
+[59:22] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square
+[71:22] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square
+[85:16] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square
+[94:12] error[T3009] member does not exist on this type: `.r` on non-struct type Circle | Square

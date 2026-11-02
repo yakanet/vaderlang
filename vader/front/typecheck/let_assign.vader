@@ -44,7 +44,7 @@ check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> voi
             if is_type_expr(s.value, typed.resolved) {
                 sym_or_null :: typed.resolved.idents[sb.name_span.hash()]
                 if sym_or_null is Symbol {
-                    resolved_type :: type_from_expr(s.value, typed.resolved, diag_sink_stmt())
+                    resolved_type :: type_from_expr(s.value, typed.resolved, diag_sink())
                     typed.let_type_aliases[sym_or_null.id] = resolved_type
                     is_let_type_alias = true
                 }

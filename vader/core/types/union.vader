@@ -417,10 +417,9 @@ export subtract_type :: fn(from: Type, removed: Type) -> Type {
 
 // True when `removed` covers `t`: either `removed` IS `t`, or `removed`
 // is a union that lists `t` among its variants. Without the union case,
-// subtracting a union (e.g. the `!(x is T)` divergent-guard's inner
-// complement) removes nothing: the double-complement `subtract(NU,
-// (N-1)U)` then yields the full union instead of the single `T`, so the
-// negated guard fails to narrow and downstream field-gets degrade.
+// subtracting a union removes nothing: the true side of a type test,
+// what its complement leaves (`matched_within`), `subtract(NU, (N-1)U)`,
+// would be the full union instead of the single `T`.
 removed_covers :: fn(removed: Type, t: Type) -> bool {
     if removed is UnionType {
         for v in removed.variants { if equals_type(v, t) { return true } }

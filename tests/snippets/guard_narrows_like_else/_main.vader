@@ -1,0 +1,40 @@
+// A guard (`if cond { return }`) narrows what follows it as an `else` would: the
+// same reading of `!`, `&&` and `||` at any depth. Past
+// `if !(pet is Cat || pet is Dog) { return }` the pet is a `Cat | Dog`, and once a
+// guard has ruled `Cat` out, a test of `Cat | Dog` holds a `Dog`.
+
+module "snippet"
+
+import "std/io"
+
+Cat  :: struct { name: string }
+Dog  :: struct { name: string, tricks: i32 }
+Fish :: struct { tank: string }
+
+// Past the guard, `pet` is a `Cat | Dog`: both have a name.
+furry_name :: fn(pet: Cat | Dog | Fish) -> string {
+    if !(pet is Cat || pet is Dog) {
+        return "-"
+    }
+    return pet.name
+}
+
+// The first guard rules `Cat` out, so the test of `Cat | Dog` holds a `Dog`.
+tricks_of :: fn(pet: Cat | Dog | Fish) -> i32 {
+    if pet is Cat {
+        return 0
+    }
+    if pet is Cat | Dog {
+        return pet.tricks
+    }
+    return -1
+}
+
+main :: fn() -> i32 {
+    cat :: Cat { .name = "Tom" }
+    dog :: Dog { .name = "Rex", .tricks = 3 }
+    fish :: Fish { .tank = "blue" }
+    println("${furry_name(cat)} ${furry_name(dog)} ${furry_name(fish)}")
+    println("${tricks_of(cat)} ${tricks_of(dog)} ${tricks_of(fish)}")
+    return 0
+}

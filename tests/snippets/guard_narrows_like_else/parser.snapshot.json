@@ -1,0 +1,626 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ImportDecl",
+        "path": "std/io",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "StructDecl",
+        "name": "Cat",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [
+          {
+            "name": "name",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "StructDecl",
+        "name": "Dog",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [
+          {
+            "name": "name",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "visibility": "public",
+            "default": null
+          },
+          {
+            "name": "tricks",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "StructDecl",
+        "name": "Fish",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [
+          {
+            "name": "tank",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "furry_name",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "pet",
+            "type": {
+              "kind": "BinaryExpr",
+              "op": "bitor",
+              "left": {
+                "kind": "BinaryExpr",
+                "op": "bitor",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "Cat"
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "Dog"
+                }
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "Fish"
+              }
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "string"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "IfExpr",
+                "cond": {
+                  "kind": "UnaryExpr",
+                  "op": "not",
+                  "operand": {
+                    "kind": "BinaryExpr",
+                    "op": "or",
+                    "left": {
+                      "kind": "BinaryExpr",
+                      "op": "is",
+                      "left": {
+                        "kind": "IdentExpr",
+                        "name": "pet"
+                      },
+                      "right": {
+                        "kind": "IdentExpr",
+                        "name": "Cat"
+                      }
+                    },
+                    "right": {
+                      "kind": "BinaryExpr",
+                      "op": "is",
+                      "left": {
+                        "kind": "IdentExpr",
+                        "name": "pet"
+                      },
+                      "right": {
+                        "kind": "IdentExpr",
+                        "name": "Dog"
+                      }
+                    }
+                  }
+                },
+                "then": {
+                  "kind": "BlockExpr",
+                  "stmts": [
+                    {
+                      "kind": "ReturnStmt",
+                      "value": {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "text",
+                            "value": "-"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "trailing": null
+                },
+                "else": null
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "pet"
+                },
+                "field": "name"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "tricks_of",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "pet",
+            "type": {
+              "kind": "BinaryExpr",
+              "op": "bitor",
+              "left": {
+                "kind": "BinaryExpr",
+                "op": "bitor",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "Cat"
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "Dog"
+                }
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "Fish"
+              }
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "IfExpr",
+                "cond": {
+                  "kind": "BinaryExpr",
+                  "op": "is",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "pet"
+                  },
+                  "right": {
+                    "kind": "IdentExpr",
+                    "name": "Cat"
+                  }
+                },
+                "then": {
+                  "kind": "BlockExpr",
+                  "stmts": [
+                    {
+                      "kind": "ReturnStmt",
+                      "value": {
+                        "kind": "IntLitExpr",
+                        "value": "0n"
+                      }
+                    }
+                  ],
+                  "trailing": null
+                },
+                "else": null
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "IfExpr",
+                "cond": {
+                  "kind": "BinaryExpr",
+                  "op": "is",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "pet"
+                  },
+                  "right": {
+                    "kind": "BinaryExpr",
+                    "op": "bitor",
+                    "left": {
+                      "kind": "IdentExpr",
+                      "name": "Cat"
+                    },
+                    "right": {
+                      "kind": "IdentExpr",
+                      "name": "Dog"
+                    }
+                  }
+                },
+                "then": {
+                  "kind": "BlockExpr",
+                  "stmts": [
+                    {
+                      "kind": "ReturnStmt",
+                      "value": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "pet"
+                        },
+                        "field": "tricks"
+                      }
+                    }
+                  ],
+                  "trailing": null
+                },
+                "else": null
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "-1n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "cat"
+              },
+              "type": null,
+              "value": {
+                "kind": "StructLitExpr",
+                "typeName": {
+                  "kind": "IdentExpr",
+                  "name": "Cat"
+                },
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "name",
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "Tom"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "dog"
+              },
+              "type": null,
+              "value": {
+                "kind": "StructLitExpr",
+                "typeName": {
+                  "kind": "IdentExpr",
+                  "name": "Dog"
+                },
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "name",
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "Rex"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "field",
+                    "name": "tricks",
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "3n"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "fish"
+              },
+              "type": null,
+              "value": {
+                "kind": "StructLitExpr",
+                "typeName": {
+                  "kind": "IdentExpr",
+                  "name": "Fish"
+                },
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "tank",
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "blue"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "furry_name"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "IdentExpr",
+                                  "name": "cat"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "furry_name"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "IdentExpr",
+                                  "name": "dog"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "furry_name"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "IdentExpr",
+                                  "name": "fish"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "tricks_of"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "IdentExpr",
+                                  "name": "cat"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "tricks_of"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "IdentExpr",
+                                  "name": "dog"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "tricks_of"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "IdentExpr",
+                                  "name": "fish"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}
