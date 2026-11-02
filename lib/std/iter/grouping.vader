@@ -74,7 +74,7 @@ test_partition_keeps_the_order :: fn() -> void {
 @test
 test_group_by_follows_the_first_occurrence :: fn() -> void {
     groups :: ["fig", "pear", "kiwi", "yam"].group_by((s: string) -> s.byte_len())
-    assert(groups.keys().content_equals([3, 4]), "lengths in order of first occurrence")
+    assert(groups.keys().collect().content_equals([3, 4]), "lengths in order of first occurrence")
     assert((groups[3] ?? []).content_equals(["fig", "yam"]), "the 3-letter words")
     assert((groups[4] ?? []).content_equals(["pear", "kiwi"]), "the 4-letter words")
 }

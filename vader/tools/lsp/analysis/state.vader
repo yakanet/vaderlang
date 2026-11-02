@@ -500,7 +500,7 @@ drop_document :: fn(self: ServerState, uri: string) -> void {
 export flush_dirty_diagnostics :: fn(self: ServerState) -> void {
     // Taken out first: publishing can mark documents again (a driven project
     // settling on its roots), and those marks are the next flush's.
-    uris :: self.dirty.keys()
+    uris :: self.dirty.keys().collect()
     self.dirty.clear()
     for uri in uris {
         self.cache = null

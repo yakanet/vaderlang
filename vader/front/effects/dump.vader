@@ -32,7 +32,7 @@ export dump_effects :: fn(summary: EffectSummary, scope: string[]) -> string {
     }
     sb :: StringBuilder {}
     sb.append("# effects\n")
-    for path in sort(by_module.keys(), (a, b) -> a < b) {
+    for path in by_module.keys().collect().sort((a, b) -> a < b) {
         sb.append("\n## ${path}\n")
         nodes :: by_module[path] ?? []
         for node in sort(nodes, (a, b) -> comes_before(summary, a, b)) {

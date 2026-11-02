@@ -8,6 +8,7 @@
 module "vader/core/types"
 
 import "std/collections"
+import "std/iter"
 import "std/sort"
 import "std/string_builder"
 import "vader/support/integer"
@@ -199,7 +200,7 @@ export integer_bound :: fn(values: Interval, greatest: bool) -> i64 {
 /// @param e  an enum without variant data.
 export enum_value_runs :: fn(e: EnumType) -> Interval[] {
     runs: Interval[]: []
-    values :: sort(e.indices.values(), (a, b) -> a < b)
+    values :: e.indices.values().collect().sort((a, b) -> a < b)
     if values.len() == 0 {
         return runs
     }

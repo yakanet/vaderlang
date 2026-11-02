@@ -14,6 +14,7 @@
 module "vader/front/resolver"
 
 import "std/collections"
+import "std/iter"
 import "std/string"
 import "std/sort"
 import "toolchain/ast"
@@ -183,7 +184,7 @@ export resolve_module_files :: fn(
     return ResolvedModule {
         .path             = module_path,
         .display_path     = display_path,
-        .symbols          = sort_by_name(collected.symbols.values()),
+        .symbols          = collected.symbols.values().collect().sort_by_name(),
         .import_bindings  = bindings,
         .idents           = resolved.idents,
         .immutable_locals = resolved.immutable_locals,

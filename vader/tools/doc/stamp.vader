@@ -196,7 +196,7 @@ loaded_lines :: fn(checked: DocCheck) -> FolderLines {
             }
         }
     }
-    folders :: sort(by_folder.keys(), compare_ascending)
+    folders :: sort(by_folder.keys().collect(), compare_ascending)
     lines: string[]: []
     for folder in folders {
         lines.push("folder ${folder}")

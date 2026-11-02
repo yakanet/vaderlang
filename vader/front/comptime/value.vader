@@ -9,6 +9,7 @@
 module "vader/front/comptime"
 
 import "std/collections"
+import "std/iter"
 import "std/string_builder"
 import "std/numbers"
 import "std/string"
@@ -203,7 +204,7 @@ render_struct :: fn(struct_value: StructValue) -> string {
     sb :: StringBuilder {}
     sb.append(display_type(struct_value.type))
     sb.append(" { ")
-    names :: sort(struct_value.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
+    names :: struct_value.fields.keys().collect().sort(compare_ascending)
     for i in 0..<names.len() {
         name :: names[i]
         field_value :: struct_value.fields[name] ?? continue

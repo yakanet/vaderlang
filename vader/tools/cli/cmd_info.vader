@@ -265,6 +265,7 @@ origin_label :: fn(origin: ModuleOrigin) -> string {
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/iter"
 import "std/testing"
 
 @test
@@ -283,7 +284,7 @@ test_info_json_carries_the_project_in_the_shape_of_a_manifest :: fn() -> void {
         assert(false, "the report is a JSON object")
         return
     }
-    assert_eq(parsed.entries.keys().join(","), "kind,root,includePaths,entries,assets,resolved")
+    assert_eq(parsed.entries.keys().collect().join(","), "kind,root,includePaths,entries,assets,resolved")
     kind :: parsed.entries["kind"]
     assert(kind is Json.JsonString && kind.value == "driver", "a driven project says so")
 }
@@ -301,7 +302,7 @@ test_info_json_of_a_manifest_carries_its_name_and_version :: fn() -> void {
         return
     }
     assert_eq(
-        parsed.entries.keys().join(","),
+        parsed.entries.keys().collect().join(","),
         "kind,root,name,version,includePaths,entries,assets,resolved",
     )
 }

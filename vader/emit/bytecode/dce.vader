@@ -184,7 +184,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // Worklist over reachable fns ; pick up callees via call/fn.ref/
     // make_closure. Iterate to fixpoint: a vtable-rooted fn may
     // call other fns.
-    work :: reachable.keys()
+    work :: reachable.keys().collect()
     // `work` grows while it is walked, so the bound is read on every turn.
     cursor: i64 = 0
     for cursor < work.len() {

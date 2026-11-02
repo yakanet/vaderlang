@@ -15,6 +15,7 @@
 module "vader/front/comptime"
 
 import "std/collections"
+import "std/iter"
 import "std/sort"
 import "std/string"
 import "std/string_builder"
@@ -32,7 +33,7 @@ import "vader/support/text"
 export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> string {
     sb :: StringBuilder {}
     sb.append("# Comptime")
-    module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))
+    module_ids :: project.modules.keys().collect().sort(compare_ascending)
     for module_id in module_ids {
         module_program :: project.modules[module_id] ?? continue
         // The heading names the module's folder ; a scope lists declared module

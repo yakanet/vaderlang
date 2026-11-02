@@ -24,6 +24,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "std/iter"
 import "vader/support/diagnostics"
 import "vader/support/integer"
 AST :: import "toolchain/ast"
@@ -484,7 +485,7 @@ try_lower_for_over_type :: fn(
     walked :: ctx.types.raw_expr_type(in_form.iter)
     var_type :: ctx.types.apply(walked)
     if walked is EnumType {
-        values :: walked.indices.values()
+        values :: walked.indices.values().collect()
         if values.len() > 0 && is_consecutive(values) {
             bounds :: interval(values[0], values[values.len() - 1])
             counter_type :: machine_integer_type(walked.repr)

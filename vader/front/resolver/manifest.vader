@@ -282,6 +282,7 @@ leaves_project :: fn(path: string) -> bool {
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/iter"
 import "std/testing"
 
 @test
@@ -380,7 +381,7 @@ test_the_editor_schema_describes_exactly_the_manifest_keys :: fn() -> void {
         assert(false, "the schema lists its properties")
         return
     }
-    assert_eq(properties.entries.keys().join(", "), MANIFEST_KEYS.join(", "))
+    assert_eq(properties.entries.keys().collect().join(", "), MANIFEST_KEYS.join(", "))
 }
 
 @test
@@ -414,12 +415,12 @@ test_a_written_manifest_reads_back_as_the_same_project :: fn() -> void {
 test_a_full_manifest_writes_every_key_in_order :: fn() -> void {
     out :: Map<string, JsonValue> {}
     write_manifest_json(out, Manifest { .name = "game", .version = "1.2.0" })
-    assert_eq(out.keys().join(", "), MANIFEST_KEYS.join(", "))
+    assert_eq(out.keys().collect().join(", "), MANIFEST_KEYS.join(", "))
 }
 
 @test
 test_a_manifest_without_name_or_version_writes_neither :: fn() -> void {
     out :: Map<string, JsonValue> {}
     write_manifest_json(out, Manifest {})
-    assert_eq(out.keys().join(","), "includePaths,entries,assets")
+    assert_eq(out.keys().collect().join(","), "includePaths,entries,assets")
 }

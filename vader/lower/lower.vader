@@ -18,6 +18,7 @@ module "vader/lower"
 
 import "std/collections"
 import "std/io"
+import "std/iter"
 import "std/sort"
 import "std/string_builder"
 import "vader/lower/ir"
@@ -96,7 +97,7 @@ lower_project_impl :: fn(
         project.trait_membership = entry_typed.impl_tables.struct_traits_by_sym
     }
 
-    module_ids :: typed.modules.keys()
+    module_ids :: typed.modules.keys().collect()
     // Every module lowered with its bodies is marked before any is lowered : a
     // call from one into another must not queue for the call-site harvest a
     // function the eager walk lowers as well.

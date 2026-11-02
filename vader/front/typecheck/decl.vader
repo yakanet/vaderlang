@@ -1260,7 +1260,7 @@ build_enum_type :: fn(
     // Without a written width, the enum takes the narrowest one its values fit.
     return EnumType {
         .symbol        = sym,
-        .repr          = header.width ?? narrowest_width(indices.values()),
+        .repr          = header.width ?? indices.values().collect().narrowest_width(),
         .indices       = indices,
         .written_width = header.width,
     }

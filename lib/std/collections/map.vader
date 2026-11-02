@@ -461,23 +461,33 @@ Map<K, V> implements<K: Hash & Equals, V> Contains<K> {
     contains :: fn(self, key: K) -> bool { return self.contains_key(key) }
 }
 
-/// Snapshot of every key in insertion order. Allocates a fresh `[K]`.
+/// Walk every key in insertion order, over the map itself: nothing is copied.
+///
+/// Writing the value of a key already present is safe during the walk. Adding or
+/// removing a key is not: the walk then skips or repeats entries, so `collect()`
+/// the keys first.
+///
 /// @param self  the map receiver.
-/// @return      a new array of every stored key.
-export keys :: fn<K, V>(self: Map<K, V>) -> K[] {
-    out: K[]: [] * self.size
-    for e in 0..<self.size { out.push(self.ekeys[e]) }
-    return out
+/// @return      a lazy `Iterator<K>` over the stored keys.
+export keys :: fn<K, V>(self: Map<K, V>) -> Iterator<K> {
+    // A local: a loop body that calls out would reload the field at every entry.
+    stored :: self.ekeys
+    for i in 0..<self.size {
+        yield stored[i]
+    }
 }
 
-/// Snapshot of every value in insertion order, matching `keys()`. Allocates a
-/// fresh `[V]`. Pairing keys and values index-by-index gives a stable view.
+/// Walk every value in the order of `keys()`, over the map itself, under the same
+/// rules for writing to the map during the walk.
+///
 /// @param self  the map receiver.
-/// @return      a new array of every stored value.
-export values :: fn<K, V>(self: Map<K, V>) -> V[] {
-    out: V[]: [] * self.size
-    for e in 0..<self.size { out.push(self.evals[e]) }
-    return out
+/// @return      a lazy `Iterator<V>` over the stored values.
+export values :: fn<K, V>(self: Map<K, V>) -> Iterator<V> {
+    // A local: a loop body that calls out would reload the field at every entry.
+    stored :: self.evals
+    for i in 0..<self.size {
+        yield stored[i]
+    }
 }
 
 // `for [k, v] in m` works directly thanks to the `Into<Iterator<...>>` impl
@@ -486,8 +496,9 @@ export values :: fn<K, V>(self: Map<K, V>) -> V[] {
 // its two leaves positionally. `into` is a `generator` : a `for` loop or a
 // terminal inlines its body, so `for [k, v] in m` never materialises it ; an
 // escaping `m.into()` value materialises the generator's state machine. Walks the
-// dense entry arrays by index, with no snapshot. Mutating `self` while an iterator
-// is live is UB.
+// dense entry arrays by index, with no snapshot, under the rules of `keys()`: the
+// value of a key already present may be written during the walk, while adding or
+// removing a key skips or repeats entries.
 
 Map<K, V> implements<K, V> Into<Iterator<[K, V]>> {
     into :: fn(self) -> Iterator<[K, V]> {
@@ -714,4 +725,42 @@ test_map_get_or_put_grows_on_the_insertion_past_three_quarters :: fn() -> void {
     assert_eq(m.index.len(), 16)
     m.get_or_put(12, 12)
     assert_eq(m.index.len(), 32)
+}
+
+@test
+test_map_keys_walk_in_insertion_order :: fn() -> void {
+    m :: Map<string, i32> {}
+    m["b"] = 1
+    m["a"] = 2
+    m["c"] = 3
+    seen: string[]: []
+    for k in m.keys() {
+        seen.push(k)
+    }
+    assert(seen.content_equals(["b", "a", "c"]), "keys in insertion order")
+}
+
+@test
+test_map_values_walk_in_the_order_of_the_keys :: fn() -> void {
+    m :: Map<string, i32> {}
+    m["b"] = 1
+    m["a"] = 2
+    m["c"] = 3
+    seen: i32[]: []
+    for v in m.values() {
+        seen.push(v)
+    }
+    assert(seen.content_equals([1, 2, 3]), "values in the order of the keys")
+}
+
+@test
+test_map_keys_walk_allows_writing_present_keys :: fn() -> void {
+    m :: Map<string, i32> {}
+    m["a"] = 1
+    m["b"] = 2
+    for k in m.keys() {
+        m[k] = (m[k] ?? 0) * 10
+    }
+    assert_eq(m["a"] ?? 0, 10)
+    assert_eq(m["b"] ?? 0, 20)
 }

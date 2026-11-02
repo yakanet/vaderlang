@@ -28,6 +28,7 @@
 module "vader/lower/dump"
 
 import "std/collections"
+import "std/iter"
 import "std/sort"
 import "std/string"
 import "vader/core/types"
@@ -49,7 +50,7 @@ export dump_lowered :: fn(project: LoweredProject, typed: TypedProject, scope: s
     lines.push("# Lower")
     dependencies: string[]: []
     names :: new_dump_names(project, typed)
-    for module_id in sort(project.modules.keys(), compare_ascending) {
+    for module_id in sort(project.modules.keys().collect(), compare_ascending) {
         module :: project.modules[module_id] ?? continue
         if !module_in_scope(module.display_path, scope) {
             lowered :: dependency_lines(names, project, module)

@@ -90,9 +90,8 @@ join_range_states :: fn(a: RangeState, b: RangeState) -> RangeState {
 ///                    knows nothing `old` does not; widened in place.
 /// @param thresholds  the values worth stopping at, ascending.
 widen_range_states :: fn(old: RangeState, new: RangeState, thresholds: i64[]) -> void {
-    // Over a copy of the keys: `new.intervals` is written as it is walked.
-    for local in new.intervals.keys() {
-        iv :: new.intervals[local] ?? continue
+    // Written as it is walked: only keys already there, which the walk allows.
+    for [local, iv] in new.intervals {
         before :: old.intervals[local] ?? continue
         new.intervals[local] = interval_widen(before, iv, thresholds)
     }
