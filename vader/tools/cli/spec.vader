@@ -179,7 +179,7 @@ BUILD_FLAGS: FlagSpec[]: [
         .name = "cc",
         .help = "Native only: C compiler to invoke",
         .value_name = "path",
-        .default_text = "cc, or gcc on Windows",
+        .default_text = r"$CC, else cc (gcc on Windows)",
     },
     FlagSpec {
         .name = "ldflags",
@@ -397,7 +397,7 @@ DOCTOR_FLAGS: FlagSpec[]: [
         .name = "cc",
         .help = "C compiler to probe",
         .value_name = "path",
-        .default_text = "cc, or gcc on Windows",
+        .default_text = r"$CC, else cc (gcc on Windows)",
     },
 ]
 
