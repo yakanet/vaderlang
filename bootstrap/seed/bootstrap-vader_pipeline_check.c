@@ -29,7 +29,7 @@ static void* vader_pipeline_check$assemble_typed_project(void* l0) {
     l3 = ((vader_struct_vader_front_typecheck$TypedProject_t*) l1)->f_modules;
     l4 = ((vader_struct_vader_front_resolver$ResolvedModule_t*) ((vader_struct_vader_front_typecheck$TypedProgram_t*) ((vader_struct_vader_front_typecheck$CheckResult_t*) l2)->f_typed)->f_resolved)->f_path;
     l5 = ((vader_struct_vader_front_typecheck$CheckResult_t*) l2)->f_typed;
-    std_collections$MutableMap$std_core$IndexSet$set_at__string__Any(l3, l4, vader_ref_box(l5));
+    std_collections$Map$std_core$IndexSet$set_at__string__Any(l3, l4, vader_ref_box(l5));
     t0 = std_collections$is_empty__string__Any(((vader_struct_vader_front_typecheck$CheckResult_t*) l2)->f_all_modules);
     if (t0) {
         l9 = ((vader_struct_vader_front_typecheck$CheckResult_t*) l2)->f_others;
@@ -41,16 +41,16 @@ static void* vader_pipeline_check$assemble_typed_project(void* l0) {
             l10 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l7);
             l11 = ((vader_struct_vader_front_typecheck$TypedProject_t*) l1)->f_modules;
             l8 = ((vader_struct_vader_front_resolver$ResolvedModule_t*) ((vader_struct_vader_front_typecheck$TypedProgram_t*) l10)->f_resolved)->f_path;
-            std_collections$MutableMap$std_core$IndexSet$set_at__string__Any(l11, l8, vader_ref_box(l10));
+            std_collections$Map$std_core$IndexSet$set_at__string__Any(l11, l8, vader_ref_box(l10));
             l7 = (l7 + INT64_C(1));
         }
         { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l2 = ((vader_struct_vader_front_typecheck$CheckResult_t*) l2)->f_all_modules;
-    l3 = ((vader_struct_std_collections$MutableMap__string__vader_front_typecheck_TypedProgram_t*) l2)->f_ekeys;
-    l5 = ((vader_struct_std_collections$MutableMap__string__vader_front_typecheck_TypedProgram_t*) l2)->f_evals;
+    l3 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_TypedProgram_t*) l2)->f_ekeys;
+    l5 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_TypedProgram_t*) l2)->f_evals;
     l6 = INT64_C(0);
-    l7 = ((vader_struct_std_collections$MutableMap__string__vader_front_typecheck_TypedProgram_t*) l2)->f_size;
+    l7 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_TypedProgram_t*) l2)->f_size;
     while ((l6 < l7)) {
         vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
@@ -63,7 +63,7 @@ static void* vader_pipeline_check$assemble_typed_project(void* l0) {
         l2 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l6);
         l8 = l4;
         l9 = l2;
-        std_collections$MutableMap$std_core$IndexSet$set_at__string__Any(((vader_struct_vader_front_typecheck$TypedProject_t*) l1)->f_modules, l8, vader_ref_box(l9));
+        std_collections$Map$std_core$IndexSet$set_at__string__Any(((vader_struct_vader_front_typecheck$TypedProject_t*) l1)->f_modules, l8, vader_ref_box(l9));
         l6 = (l6 + INT64_C(1));
     }
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -85,7 +85,7 @@ void* vader_pipeline_check$check_project(void* l0, void* l1, bool l2) {
     l5 = vader_front_effects$frozen_diagnostics(l4);
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l5);
     vader_struct_vader_pipeline_check$CheckedProject_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckedProject_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckedProject_t));
-    vader_obj_header_init(_a0_obj, 1529u);
+    vader_obj_header_init(_a0_obj, 1541u);
     _a0_obj->f_result = l3;
     _a0_obj->f_effects = l4;
     t0 = (void*) _a0_obj;
@@ -124,17 +124,17 @@ static void vader_pipeline_check$lint_dead_code(void* l0, void* l1) {
     vader_gc_top = &gc_frame;
     l2 = ((vader_struct_vader_front_resolver$LoadedProject_t*) l0)->f_modules;
     l3 = ((vader_struct_vader_front_resolver$LoadedProject_t*) l0)->f_entry;
-    l4 = std_collections$MutableMap$std_core$Index$at__string__Any(l2, l3);
+    l4 = std_collections$Map$std_core$Index$at__string__Any(l2, l3);
     if (l4.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return; }
     }
     t0 = l4.payload.obj;
     vader_pipeline_check$lint_module(t0, l1);
     l2 = ((vader_struct_vader_front_resolver$LoadedProject_t*) l0)->f_modules;
-    l5 = ((vader_struct_std_collections$MutableMap__string__vader_front_resolver_LoadedModule_t*) l2)->f_ekeys;
-    l6 = ((vader_struct_std_collections$MutableMap__string__vader_front_resolver_LoadedModule_t*) l2)->f_evals;
+    l5 = ((vader_struct_std_collections$Map__string__vader_front_resolver_LoadedModule_t*) l2)->f_ekeys;
+    l6 = ((vader_struct_std_collections$Map__string__vader_front_resolver_LoadedModule_t*) l2)->f_evals;
     l7 = INT64_C(0);
-    l8 = ((vader_struct_std_collections$MutableMap__string__vader_front_resolver_LoadedModule_t*) l2)->f_size;
+    l8 = ((vader_struct_std_collections$Map__string__vader_front_resolver_LoadedModule_t*) l2)->f_size;
     while ((l7 < l8)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l5);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)

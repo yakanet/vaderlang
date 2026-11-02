@@ -9,6 +9,10 @@ int64_t std_math$abs_2(int64_t l0) {
     return l0;
 }
 
+bool std_math$is_finite(double l0) {
+    return ((uint64_t) (int64_t) ((int64_t)(((union { double __vd; uint64_t __vu; }){ .__vd = l0 }).__vu) & INT64_C(9223372036854775807)) < INT64_C(9218868437227405312));
+}
+
 int32_t std_math$min_2(int32_t l0, int32_t l1) {
     if ((l0 < l1)) {
         return l0;
