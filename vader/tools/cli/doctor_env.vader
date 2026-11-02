@@ -41,17 +41,15 @@ GC_SETTINGS: EnvSetting[]: [
 
 // One environment toggle the runtime reads, and what being on does.
 //
-// A table rather than a check apiece: the rule for reading them is identical
-// (`vader_gc_env_bool`: on for any non-empty value not starting with `0`), and
-// only the consequence differs. The first pass had two of these in a loop and a
-// third written out longhand beside it, which is how the list came to be missing
-// five of them.
+// A table rather than a check apiece: only the consequence differs.
 EnvToggle :: struct {
-    name:   string
+    name:      string
     /// `.Warn` when being on changes what the program does or costs orders of
     /// magnitude; `.Ok` when it only adds output.
-    status: CheckStatus
-    effect: string
+    status:    CheckStatus
+    effect:    string
+    /// On whatever its value, `0` included, as the scheduler reads its clock.
+    any_value: bool = false
 }
 
 ENV_TOGGLES: EnvToggle[]: [
@@ -80,8 +78,10 @@ ENV_TOGGLES: EnvToggle[]: [
         .effect = "the collector skips its conservative stack scan and can free live objects",
     },
     EnvToggle {
-        .name = "VADER_ASYNC_VIRTUAL_CLOCK", .status = .Warn,
+        .name = "VADER_ASYNC_VIRTUAL_CLOCK",
+        .status = .Warn,
         .effect = "async runs on a virtual clock: timers do not wait",
+        .any_value = true,
     },
     EnvToggle {
         .name = "VADER_ALLOC_BY_TYPE", .status = .Ok,
@@ -106,7 +106,7 @@ check_environment :: fn() -> Check[] {
     }
     for toggle in ENV_TOGGLES {
         raw :: get_env(toggle.name) ?? continue
-        if !is_toggle_on(raw) {
+        if !toggle.is_on(raw) {
             continue
         }
         out.push(Check {
@@ -132,10 +132,10 @@ check_environment :: fn() -> Check[] {
     return out
 }
 
-// `vader_gc_env_bool`: on for any non-empty value whose first byte is not `0`.
-// So `=0` is off, and `=false` is ON, which is worth reporting rather than
-// guessing at, and is why the detail echoes the value verbatim.
-is_toggle_on :: fn(raw: string) = raw != "" && !raw.starts_with("0")
+// Whether `toggle` set to `raw` is on, as the runtime reads it. `=false` is ON,
+// which is worth reporting rather than guessing at, and is why the detail echoes
+// the value verbatim.
+is_on :: fn(toggle: EnvToggle, raw: string) = toggle.any_value || raw.is_flag_value_on()
 
 // Check key for an environment variable: the lowercased name, so `--json`
 // consumers key on `vader_gc_old_max` rather than on a report position.
