@@ -303,7 +303,7 @@ vader test --filter '*:window.vader' lib             # any module, this file
 vader test --filter 'std/*:*:test_*_empty' lib       # two: <module>:<file>:<name>
 ```
 
-The module is the name its `module "..."` line declares, the file is its name without its folder. A glob with no wildcard is exact. With a `:`, a module that cannot hold a kept test is not compiled.
+The module is the name its `module "..."` line declares, the file is its name without its folder. A glob with no wildcard is exact. A module that cannot hold a kept test is not compiled: discovery reads the name of each test from its declaration, without compiling, and compiles a module whose tests it cannot all name.
 
 ## Debugging
 

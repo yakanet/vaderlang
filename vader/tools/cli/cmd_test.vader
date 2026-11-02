@@ -26,6 +26,7 @@ import "vader/lower/ir"
 import "vader/emit/bytecode"
 import "vader/pipeline"
 import "vader/support/diagnostics"
+import "vader/support/text"
 import "vader/vm"
 TTY :: import "std/tty"
 
@@ -244,18 +245,30 @@ keeps :: fn(filter: TestFilter | null, t: DiscoveredTest) -> bool = match filter
         && filter.name.matches(t.display)
 }
 
-// Whether a module may hold a test `filter` keeps, judged before compiling it
-// from its declared name and the names of its files. Without `:`, a test's name
-// can match whatever its module and files are; a module that declares no name
-// (`""`) is compiled, so that its compile reports why.
-may_hold :: fn(filter: TestFilter | null, module: string, files: Path[]) -> bool {
-    if filter is CoordinatesFilter && module != "" {
-        file_glob :: filter.file
-        return filter.module.matches(module)
-            && files.any_match((f) -> file_glob.matches(f.filename()))
+// Whether the file `file` of `module` may hold a test `filter` keeps, judged
+// before compiling it from `facts`: `keeps`, with the test names the file may
+// hold. A module that declares no name (`""`) is compiled, so that its compile
+// reports why.
+may_hold :: fn(filter: TestFilter | null, module: string, file: Path, facts: FileFacts) -> bool {
+    if !facts.has_tests {
+        return false
     }
-    return true
+    if module == "" {
+        return true
+    }
+    name :: file.filename()
+    return match filter {
+        is null                -> true
+        is AnyCoordinateFilter -> filter.glob.matches(module) || filter.glob.matches(name)
+            || may_name(facts, filter.glob)
+        is CoordinatesFilter   -> filter.module.matches(module) && filter.file.matches(name)
+            && may_name(facts, filter.name)
+    }
 }
+
+// Whether a test of the file `facts` describes may bear a name `glob` matches.
+may_name :: fn(facts: FileFacts, glob: Glob) -> bool =
+    !facts.names_complete || facts.test_names.any_match((name) -> glob.matches(name))
 
 /// Collect every `@test` fn of the entry module of a lowered project: a
 /// `LoweredFnDecl` with a body whose origin AST `FnDecl` carries a `@test`
@@ -364,29 +377,37 @@ group_representatives :: fn(
 ) -> TestEntry[] {
     if group.len() > 1 && is_folder_module(facts) {
         module :: facts[0].declared
-        if facts.any_match((f) -> f.has_tests) && may_hold(filter, module, group) {
-            return [TestEntry { .path = dir.to_path(), .module = module }]
+        for i in 0..<group.len() {
+            if may_hold(filter, module, group[i], facts[i]) {
+                return [TestEntry { .path = dir.to_path(), .module = module }]
+            }
         }
         return []
     }
     out: TestEntry[]: []
     for i in 0..<group.len() {
-        if facts[i].has_tests && may_hold(filter, facts[i].declared, [group[i]]) {
+        if may_hold(filter, facts[i].declared, group[i], facts[i]) {
             out.push(TestEntry { .path = group[i], .module = facts[i].declared })
         }
     }
     return out
 }
 
-/// What test discovery needs from one file: the module it declares, and whether it
-/// holds a test.
+/// What test discovery needs from one file: the module it declares, whether it
+/// holds a test, and the names of its tests.
 ///
 /// Read ONCE per file. The previous shape re-read every file for each question it
 /// asked, and this function's whole history is about discovery being slow.
 FileFacts :: struct {
-    declared:  string
+    declared:       string
     /// Whether a line of the file opens with `@test`.
-    has_tests: bool = false
+    has_tests:      bool = false
+    /// The names of its tests, read from the source without parsing it.
+    test_names:     string[] = []
+    /// Whether `test_names` holds every test: false when a `@test` is followed
+    /// by no line that reads as `<name> :: ...`. `--filter` leaves a module out
+    /// on the names of its tests only when they are all known.
+    names_complete: bool = true
 }
 
 // `declared` is "" for a file that declares no module (R2020 territory) or cannot
@@ -396,21 +417,63 @@ FileFacts :: struct {
 file_facts :: fn(f: Path) -> FileFacts {
     src :: read_file_string(f.as_string())
     if src is IOError {
-        return FileFacts { .declared = "", .has_tests = true }
+        return FileFacts {
+            .declared = "",
+            .has_tests = true,
+            .names_complete = false,
+        }
     }
     header :: parse_module_header(src, f.as_string())
     declared :: if header is ModuleHeader { header.name } else { "" }
-    return FileFacts { .declared = declared, .has_tests = holds_a_test(src) }
+    return read_tests(declared, src)
 }
 
-// Whether a line of `src` opens with `@test`.
-holds_a_test :: fn(src: string) -> bool {
-    for line in src.split("\n") {
-        if line.trim().starts_with("@test") {
-            return true
-        }
+// The facts of a file that declares `declared`, its tests read line by line: a
+// line that opens with `@test` marks one, which the rest of that line names, or
+// else the next line that is neither blank, a comment nor another decorator.
+read_tests :: fn(declared: string, src: string) -> FileFacts {
+    facts :: FileFacts { .declared = declared }
+    if !("@test" in src) {
+        return facts
     }
-    return false
+    // Whether a `@test` waits for the line that names its test.
+    pending := false
+    for line in src.split("\n") {
+        text :: line.trim()
+        if text.starts_with("@test") {
+            if pending {
+                facts.names_complete = false
+            }
+            facts.has_tests = true
+            rest :: text.trim_prefix("@test").trim()
+            pending = rest == "" || rest.starts_with("(") && rest.ends_with(")")
+            if !pending {
+                facts.note_test(rest)
+            }
+            continue
+        }
+        if !pending || text == "" || text.starts_with("//") || text.starts_with("@") {
+            continue
+        }
+        pending = false
+        facts.note_test(text)
+    }
+    if pending {
+        facts.names_complete = false
+    }
+    return facts
+}
+
+// Record the name the declaration `text` gives its test, or, when it reads as
+// none, that the file's names are incomplete.
+note_test :: fn(facts: FileFacts, text: string) -> void {
+    parts :: text.split("::")
+    name :: parts[0].trim().trim_prefix("export ").trim()
+    if parts.len() < 2 || name == "" || !name.bytes().all_match(is_ident_byte) {
+        facts.names_complete = false
+        return
+    }
+    facts.test_names.push(name)
 }
 
 /// True when every file declares the SAME module: the language's own definition
@@ -508,10 +571,26 @@ test_discovery_skips_the_folders_the_loader_skips :: fn() -> void {
     assert_eq(group_representatives("probe", group, facts).len(), 2)
 }
 
-@test test_holds_a_test_reads_line_starts :: fn() -> void {
-    assert(holds_a_test("x :: 1\n@test\nt :: fn() -> void {}"), "a decorator line")
-    assert(holds_a_test("    @test t :: fn() -> void {}"), "an indented one")
-    assert(!holds_a_test("// runs no `@test`\nx :: 1"), "a mention in a comment")
+@test
+test_read_tests_reads_line_starts :: fn() -> void {
+    assert(read_tests("m", "x :: 1\n@test\nt :: fn() -> void {}").has_tests, "a decorator line")
+    assert(read_tests("m", "    @test t :: fn() -> void {}").has_tests, "an indented one")
+    assert(!read_tests("m", "// runs no `@test`\nx :: 1").has_tests, "a mention in a comment")
+}
+
+@test
+test_read_tests_names_each_test :: fn() -> void {
+    src :: "@test\n// why\n@target(linux)\n\nt_one :: fn() -> void {}\n@test t_two :: fn() {}\n"
+    facts :: read_tests("m", src)
+    assert_eq(facts.test_names.join(" "), "t_one t_two")
+    assert(facts.names_complete, "every test is named")
+}
+
+@test
+test_read_tests_flags_a_test_it_cannot_name :: fn() -> void {
+    assert(!read_tests("m", "@test\n[a, b] :: pair()").names_complete, "no name")
+    assert(!read_tests("m", "x :: 1\n@test").names_complete, "nothing after it")
+    assert(!read_tests("m", "@testing\nt :: fn() {}").names_complete, "another decorator")
 }
 
 // A test `module:file:name`, for the filter tests.
@@ -573,12 +652,45 @@ test_filter_refuses_an_invalid_glob :: fn() -> void {
 test_filter_leaves_out_a_module_it_cannot_keep :: fn() -> void {
     group :: ["probe/a.vader".to_path(), "probe/b.vader".to_path()]
     facts :: [
-        FileFacts { .declared = "probe", .has_tests = true },
+        FileFacts {
+            .declared = "probe",
+            .has_tests = true,
+            .test_names = ["test_a"],
+        },
         FileFacts { .declared = "probe" },
     ]
     assert_eq(group_representatives("probe", group, facts, probe_filter("other:*")).len(), 0)
-    assert_eq(group_representatives("probe", group, facts, probe_filter("probe:b.vader")).len(), 1)
+    assert_eq(group_representatives("probe", group, facts, probe_filter("probe:a.vader")).len(), 1)
     assert_eq(group_representatives("probe", group, facts, probe_filter("*:c.vader")).len(), 0)
-    // Without `:`, the glob may name a test: the module is compiled to find out.
+    // `b.vader` holds no test.
+    assert_eq(group_representatives("probe", group, facts, probe_filter("probe:b.vader")).len(), 0)
+}
+
+@test
+test_filter_leaves_out_a_module_on_its_test_names :: fn() -> void {
+    group :: ["probe/a.vader".to_path()]
+    facts :: [
+        FileFacts {
+            .declared = "probe",
+            .has_tests = true,
+            .test_names = ["test_a"],
+        },
+    ]
+    assert_eq(group_representatives("probe", group, facts, probe_filter("test_a")).len(), 1)
+    assert_eq(group_representatives("probe", group, facts, probe_filter("*:*:test_a")).len(), 1)
+    assert_eq(group_representatives("probe", group, facts, probe_filter("other")).len(), 0)
+    assert_eq(group_representatives("probe", group, facts, probe_filter("*:*:other")).len(), 0)
+}
+
+@test
+test_filter_compiles_a_module_whose_test_names_are_incomplete :: fn() -> void {
+    group :: ["probe/a.vader".to_path()]
+    facts :: [
+        FileFacts {
+            .declared = "probe",
+            .has_tests = true,
+            .names_complete = false,
+        },
+    ]
     assert_eq(group_representatives("probe", group, facts, probe_filter("other")).len(), 1)
 }
