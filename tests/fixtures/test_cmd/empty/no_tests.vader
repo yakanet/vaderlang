@@ -1,3 +1,0 @@
-module "test_cmd_empty"
-
-main :: fn() -> i32 { return 0 }
