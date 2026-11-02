@@ -106,6 +106,14 @@ CHECK_FLAGS: FlagSpec[]: [
     },
 ]
 
+TEST_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "filter",
+        .help = "Keep the tests a glob matches: module, file or name, or `<module>:<file>[:<name>]`",
+        .value_name = "pattern",
+    },
+]
+
 // `doc` reads a project as its build does: from its folder and its entry.
 DOC_FLAGS: FlagSpec[]: [
     FlagSpec {
@@ -439,7 +447,7 @@ export COMMANDS: CommandSpec[]: [
         .name = "test",
         .summary = "Run @test functions",
         .usage = "[path]",
-        .flags = [],
+        .flags = TEST_FLAGS,
         .tail = .None,
     },
     CommandSpec {

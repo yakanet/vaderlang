@@ -291,7 +291,19 @@ test_addition :: fn() {
 - A test passes when it returns, and fails when it stops the program: a failed assertion, a `panic`, a run-time check (SPEC §2 *Run-time checks*).
 - `std/testing`, not in the prelude, provides `assert`, `assert_eq`, `assert_ne`, `assert_close` and other assertions.
 - Each module is compiled with its own imports, in the working directory's project: a test can fail where the program builds, when an impl it needs comes from a module only another module imports.
-- It exits with 0 when every test passes, 1 when one fails, 2 when the path holds no `.vader` file or no test.
+- Each test reports how long it ran, and the summary how long the command took.
+- It exits with 0 when every test passes, 1 when one fails or the filter is not a glob, 2 when the path holds no `.vader` file, no test, or none the filter keeps.
+
+`--filter` keeps the tests a glob matches (`std/glob`, POSIX notation, where `*` also matches `/`). The number of `:` decides what it is matched against:
+
+```sh
+vader test --filter 'test_min*' lib                  # no `:`: the module, the file or the name
+vader test --filter 'std/iter:*' lib                 # one: <module>:<file>
+vader test --filter '*:window.vader' lib             # any module, this file
+vader test --filter 'std/*:*:test_*_empty' lib       # two: <module>:<file>:<name>
+```
+
+The module is the name its `module "..."` line declares, the file is its name without its folder. A glob with no wildcard is exact. With a `:`, a module that cannot hold a kept test is not compiled.
 
 ## Debugging
 
