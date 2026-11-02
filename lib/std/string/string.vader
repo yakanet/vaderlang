@@ -16,19 +16,42 @@ export is_empty :: fn(s: string) -> bool = s.byte_len() == 0
 /// callers go through `sub in s` (Contains impl below) or UFCS
 /// `s.contains(sub)`. Named distinctly from the trait method (`contains`) to
 /// avoid shadowing it inside the impl body.
-byte_contains :: fn(s: string, sub: string) -> bool {
+byte_contains :: fn(s: string, sub: string) -> bool = first_byte_offset(s, sub) >= 0
+
+// Byte offset of the first occurrence of `sub` in `s`, -1 when there is none.
+// An empty `sub` occurs at 0.
+first_byte_offset :: fn(s: string, sub: string) -> i64 {
     n :: s.byte_len()
     m :: sub.byte_len()
-    if m == 0 { return true }
-    if m > n  { return false }
+    if m == 0 { return 0 }
+    if m > n  { return -1 }
     first :: sub.byte_at(0)
     for i in 0..<n - m + 1 {
         // The first byte is compared here: `matches_at` is called only where it matches.
         if s.byte_at(i) == first && s.matches_at(i, sub) {
-            return true
+            return i
         }
     }
-    return false
+    return -1
+}
+
+// Byte offset of the last occurrence of `sub` in `s`, -1 when there is none.
+// An empty `sub` occurs at the end of `s`.
+last_byte_offset :: fn(s: string, sub: string) -> i64 {
+    n :: s.byte_len()
+    m :: sub.byte_len()
+    if m == 0 { return n }
+    if m > n  { return -1 }
+    first :: sub.byte_at(0)
+    at := n - m
+    for at >= 0 {
+        // The first byte is compared here: `matches_at` is called only where it matches.
+        if s.byte_at(at) == first && s.matches_at(at, sub) {
+            return at
+        }
+        at -= 1
+    }
+    return -1
 }
 
 /// True when `sub` occurs in `s` at byte `offset`. False when `sub` would run past
@@ -251,6 +274,71 @@ export split :: fn(s: string, sep: string) -> string[] {
     }
     out.push(s.byte_slice(start, n))
     return out
+}
+
+/// Split `s` around the first occurrence of `sep`. Mirrors Rust's `split_once`.
+///
+/// @param s    source string.
+/// @param sep  separator (matched byte-wise) ; an empty one occurs at the start.
+/// @return     `[before, after]`, with `sep` itself in neither half ; `null` when
+///             `s` holds no `sep`.
+/// @example
+///   "a.tar.gz".split_first(".")   // ["a", "tar.gz"]
+///   "nosep".split_first(":")      // null
+export split_first :: fn(s: string, sep: string) -> [string, string] | null =
+    s.cut_at(first_byte_offset(s, sep), sep)
+
+/// Split `s` around the last occurrence of `sep`. Mirrors Rust's `rsplit_once`.
+///
+/// @param s    source string.
+/// @param sep  separator (matched byte-wise) ; an empty one occurs at the end.
+/// @return     `[before, after]`, with `sep` itself in neither half ; `null` when
+///             `s` holds no `sep`.
+/// @example
+///   "a.tar.gz".split_last(".")   // ["a.tar", "gz"]
+///   "nosep".split_last(":")      // null
+export split_last :: fn(s: string, sep: string) -> [string, string] | null =
+    s.cut_at(last_byte_offset(s, sep), sep)
+
+// The two sides of the `sep` found at byte `at`, `null` when `at` is the -1 of a
+// search that found none.
+cut_at :: fn(s: string, at: i64, sep: string) -> [string, string] | null {
+    if at < 0 {
+        return null
+    }
+    return [s.byte_slice(0, at), s.byte_slice(at + sep.byte_len(), s.byte_len())]
+}
+
+/// Lazily yield the lines of `s`: the text between two line breaks, `\n` or
+/// `\r\n`, the break left out. A final break ends the last line without
+/// starting another, so `"a\nb\n"` yields the same two lines as `"a\nb"`, and
+/// `""` yields none.
+///
+/// @param s  source string.
+/// @return   a lazy `Iterator<string>`, each line a slice of `s`.
+/// @example
+///   "a\r\nb\n".lines().collect()   // ["a", "b"]
+export lines :: fn(s: string) -> Iterator<string> {
+    n :: s.byte_len()
+    start: i64 = 0
+    for i in 0..<n {
+        if s.byte_at(i) == '\n' {
+            yield s.byte_slice(start, line_end(s, start, i))
+            start = i + 1
+        }
+    }
+    if start < n {
+        yield s.byte_slice(start, n)
+    }
+}
+
+// Where the line from `start` to the `\n` at `newline` ends: a `\r` right before
+// the break belongs to the break.
+line_end :: fn(s: string, start: i64, newline: i64) -> i64 {
+    if newline > start && s.byte_at(newline - 1) == '\r' {
+        return newline - 1
+    }
+    return newline
 }
 
 /// Concatenate `parts`, inserting `sep` between consecutive elements.
@@ -991,4 +1079,59 @@ import "std/testing"
     // string and crashed `sort`. Byte-wise comparison is order-preserving.
     assert(!compare_ascending("été", "été"), "equal multibyte -> false")
     assert(compare_ascending("abc", "été"), "ascii byte < high-byte utf8")
+}
+
+@test test_split_first_cuts_at_the_first_separator :: fn() -> void {
+    parts :: "a.tar.gz".split_first(".") ?? ["?", "?"]
+    assert_eq(parts.0, "a")
+    assert_eq(parts.1, "tar.gz")
+}
+
+@test test_split_last_cuts_at_the_last_separator :: fn() -> void {
+    parts :: "a.tar.gz".split_last(".") ?? ["?", "?"]
+    assert_eq(parts.0, "a.tar")
+    assert_eq(parts.1, "gz")
+}
+
+@test test_split_first_without_separator :: fn() -> void {
+    assert("nosep".split_first(":") == null, "no separator, no split")
+}
+
+@test test_split_last_without_separator :: fn() -> void {
+    assert("nosep".split_last(":") == null, "no separator, no split from the end")
+}
+
+@test test_split_first_with_a_long_separator :: fn() -> void {
+    parts :: "key => value => more".split_first(" => ") ?? ["?", "?"]
+    assert_eq(parts.0, "key")
+    assert_eq(parts.1, "value => more")
+}
+
+// The lines of `s` in an array: `std/iter`, which has `collect`, is not imported here.
+lines_of :: fn(s: string) -> string[] {
+    out: string[]: []
+    for line in s.lines() {
+        out.push(line)
+    }
+    return out
+}
+
+@test test_lines_drops_the_breaks :: fn() -> void {
+    assert(lines_of("a\r\nb\nc").content_equals(["a", "b", "c"]), "LF and CRLF")
+}
+
+@test test_lines_keeps_an_empty_line :: fn() -> void {
+    assert(lines_of("a\n\nb").content_equals(["a", "", "b"]), "an empty line kept")
+}
+
+@test test_lines_after_a_final_break :: fn() -> void {
+    assert(lines_of("a\nb\r\n").content_equals(["a", "b"]), "no line after the last break")
+}
+
+@test test_lines_of_nothing :: fn() -> void {
+    assert_eq(lines_of("").len(), 0)
+}
+
+@test test_lines_of_a_lone_break :: fn() -> void {
+    assert(lines_of("\n").content_equals([""]), "one empty line")
 }
