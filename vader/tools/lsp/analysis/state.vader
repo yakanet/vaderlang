@@ -612,7 +612,7 @@ is_deletion :: fn(change: JsonValue, path: string) -> bool =
 // `path`: it sits in the document's project, or in its folder when it has none.
 // Each document marked costs a typecheck of its own.
 touches_document :: fn(changed: string[], path: string) -> bool {
-    scope :: project_of_document(path) ?? dir_of(path)
+    scope :: project_or_folder_of_document(path)
     for file in changed {
         if file.starts_with("${scope}/") {
             return true

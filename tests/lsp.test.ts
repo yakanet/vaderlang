@@ -37,6 +37,7 @@ interface Query {
     | "textDocument/codeAction"
     | "textDocument/inlayHint"
     | "textDocument/documentLink"
+    | "textDocument/codeLens"
     | "textDocument/implementation"
     | "textDocument/typeDefinition"
     | "textDocument/references"
@@ -1757,6 +1758,7 @@ test("lsp: initialize advertises definition + hover providers and the token lege
   expect(caps).toBeDefined();
   expect(caps!.definitionProvider).toBe(true);
   expect(caps!.hoverProvider).toBe(true);
+  expect(caps!.codeLensProvider).toEqual({ resolveProvider: false });
   const legend = (caps!.semanticTokensProvider as { legend: { tokenTypes: string[] } }).legend;
   for (const [name, index] of Object.entries(TOKEN_TYPE)) {
     expect(legend.tokenTypes[index]).toBe(name);
@@ -1791,6 +1793,32 @@ test("lsp: documentLink resolves an import to every shipped namespace", async ()
   // The existence check, which came in with the probe: an unconditional join
   // would hand the editor `<lib>/nosuchns/thing`, a link to nowhere.
   expect(byLine.has(5)).toBe(false);
+}, MEDIUM_BUILD);
+
+test("lsp: codeLens runs each test and the module through the client command", async () => {
+  // REASON: the lens runs nothing on the server; the client runs
+  // `vader.runTest` with the document URI, the folder of its project, then the
+  // test name, or no name for the whole module.
+  const source = 'module "t"\n'
+    + '\n'
+    + 'main :: fn() -> i32 = 0\n'
+    + '\n'
+    + '@test\n'
+    + 'test_one :: fn() -> void {}\n';   // 5: the test's name
+  const [res] = await driveLsp(source, [{ method: "textDocument/codeLens" }], {
+    "vader.json": '{ "name": "lens" }\n',
+  }, "t/lsp-test.vader");
+  type Lens = { range: { start: { line: number } }, command: { title: string, command: string, arguments: string[] } };
+  const lenses = res!.result as Lens[];
+  expect(lenses.map((l) => [l.range.start.line, l.command.title, l.command.command])).toEqual([
+    [5, "Run test", "vader.runTest"],
+    [0, "Run module tests", "vader.runTest"],
+  ]);
+  const [uri, folder, name] = lenses[0]!.command.arguments;
+  expect(uri).toEndWith("/t/lsp-test.vader");
+  expect(pathToUri(folder!)).toBe(uri!.slice(0, -"/t/lsp-test.vader".length));
+  expect(name).toBe("test_one");
+  expect(lenses[1]!.command.arguments).toEqual([uri!, folder!]);
 }, MEDIUM_BUILD);
 
 test("lsp: a project module outranks a shipped namespace of the same name", async () => {

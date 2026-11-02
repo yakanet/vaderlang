@@ -97,4 +97,12 @@
                             name="Vader Debug Adapter"
                             factoryClass="dev.vaderlang.intellij.VaderDebugAdapterServerFactory"/>
     </extensions>
+
+    <actions>
+        <!-- The command of the server's "run test" code lenses: LSP4IJ runs
+             the action whose id is the lens command's name. -->
+        <action id="vader.runTest"
+                class="dev.vaderlang.intellij.VaderRunTestAction"
+                text="Run Vader Test"/>
+    </actions>
 </idea-plugin>

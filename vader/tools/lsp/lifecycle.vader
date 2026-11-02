@@ -179,6 +179,12 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     link_provider :: Map<string, JsonValue> {}
     link_provider["resolveProvider"] = JsonBool { .value = false }
     caps["documentLinkProvider"] = JsonObject { .entries = link_provider }
+
+    // codeLensProvider : the "run test" lenses, sent whole, so no
+    // `codeLens/resolve` round-trip.
+    lens_provider :: Map<string, JsonValue> {}
+    lens_provider["resolveProvider"] = JsonBool { .value = false }
+    caps["codeLensProvider"] = JsonObject { .entries = lens_provider }
     caps["typeDefinitionProvider"] = JsonBool { .value = true }
     caps["referencesProvider"] = JsonBool { .value = true }
     caps["callHierarchyProvider"] = JsonBool { .value = true }
@@ -224,14 +230,6 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     code_action_provider["codeActionKinds"] = JsonArray { .items = ca_kinds }
     caps["codeActionProvider"] = JsonObject { .entries = code_action_provider }
     return JsonObject { .entries = caps }
-}
-
-string_array :: fn(items: string[]) -> JsonValue {
-    out: JsonValue[]: []
-    for s in items {
-        out.push(JsonString { .value = s })
-    }
-    return JsonArray { .items = out }
 }
 
 // ---- tests ----------------------------------------------------------------

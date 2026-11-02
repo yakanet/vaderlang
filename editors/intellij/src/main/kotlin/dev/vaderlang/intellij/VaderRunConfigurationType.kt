@@ -90,15 +90,11 @@ internal class VaderRunConfiguration(
         if (executor.id != DefaultRunExecutor.EXECUTOR_ID) return super.getState(executor, environment)
         return object : CommandLineState(environment) {
             override fun startProcess(): ProcessHandler {
-                // Binary path from the shared plugin settings (Settings → Tools →
-                // Vader), falling back to `vader` on $PATH: same source the DAP/LSP
-                // factories use. Run from the project root so `std/*` imports resolve.
-                val configured = VaderSettings.getInstance().lspPath.trim()
-                val binary = if (configured.isNotEmpty()) configured else "vader"
+                // Run from the project root so `std/*` imports resolve.
                 // `vader run <file>` compiles the file on its own: the Vader project
                 // it belongs to is named, found as the language server finds it.
                 val project = vaderProjectOf(file)?.let { "--project=$it" }
-                val commandLine = GeneralCommandLine(listOfNotNull(binary, "run", project, file))
+                val commandLine = GeneralCommandLine(listOfNotNull(vaderBinary(), "run", project, file))
                 environment.project.basePath?.let { commandLine.withWorkDirectory(it) }
                 val handler = ProcessHandlerFactory.getInstance().createColoredProcessHandler(commandLine)
                 ProcessTerminatedListener.attach(handler)

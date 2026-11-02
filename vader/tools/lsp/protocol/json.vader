@@ -1,4 +1,5 @@
-// vader/tools/lsp/protocol/json: JSON object-field accessors over `JsonValue`.
+// vader/tools/lsp/protocol/json: JSON object-field accessors over `JsonValue`,
+// and the string array the responses build.
 //
 // Every request handler reaches into the params object the same way :
 // pull a field by key, coerce it to the expected shape, fall back to a
@@ -70,4 +71,13 @@ export get_bool :: fn(v: JsonValue, key: string) -> bool {
         is JsonBool -> { return f.value }
         _           -> { return false }
     }
+}
+
+/// A JSON array of the strings `items`.
+export string_array :: fn(items: string[]) -> JsonValue {
+    out: JsonValue[]: []
+    for s in items {
+        out.push(JsonString { .value = s })
+    }
+    return JsonArray { .items = out }
 }

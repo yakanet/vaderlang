@@ -3,6 +3,7 @@
 // in Vader (`vader/tools/lsp/main_entry.vader`) and shipped with the Vader CLI
 // binary ; this extension is a thin client.
 
+import * as path from "node:path";
 import * as vscode from "vscode";
 import {
   LanguageClient,
@@ -153,8 +154,29 @@ function registerDebugAdapter(context: vscode.ExtensionContext): void {
   );
 }
 
+let testTerminal: vscode.Terminal | undefined;
+
+// The command of the server's "run test" code lenses (`vader.runTest`), in a
+// terminal the next run replaces. The language client hands a lens command the
+// server does not execute to the VS Code command of that name.
+function runTest(uri: string, folder: string, name?: string): void {
+  const file = vscode.Uri.parse(uri).fsPath;
+  const args = ["test"];
+  if (name !== undefined) args.push("--filter", name);
+  args.push(file);
+  testTerminal?.dispose();
+  testTerminal = vscode.window.createTerminal({
+    name: `vader test ${name ?? path.basename(file)}`,
+    shellPath: interpolate(rawBinaryPath()),
+    shellArgs: args,
+    cwd: folder,
+  });
+  testTerminal.show(true);
+}
+
 export function activate(context: vscode.ExtensionContext): void {
   registerDebugAdapter(context);
+  context.subscriptions.push(vscode.commands.registerCommand("vader.runTest", runTest));
   startClient().catch((err) => {
     vscode.window.showErrorMessage(
       `Vader Language Server activation failed: ${

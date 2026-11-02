@@ -1,0 +1,102 @@
+// vader/tools/lsp/handlers/code_lens: `textDocument/codeLens` handler.
+//
+// A lens above each `@test` function runs that test, and one on the `module`
+// line runs every test of the module, when the file holds a test. Each lens
+// carries the client command `vader.runTest`, which the editor extensions
+// register (`editors/vscode`, `editors/intellij`) and run as
+// `vader test [--filter <name>] <file>`. The server must not run a test itself:
+// it answers one request at a time, and would hold every other until the test
+// ends.
+
+module "vader/tools/lsp/handlers"
+
+import "json"
+import "std/collections"
+import "toolchain/ast"
+import "toolchain/span"
+import "vader/tools/lsp/analysis"
+import "vader/tools/lsp/protocol"
+
+// The client command of every lens. Its arguments are the document URI, the
+// folder to run from (`vader test` takes the project of its working directory),
+// then the name of the test; without a name, every test of the module runs.
+RUN_TEST_COMMAND :: "vader.runTest"
+
+/// Build the `CodeLens[]` response for the document named in `params`
+/// (`{ textDocument: { uri } }`).
+///
+/// @param params  the request params carrying `textDocument.uri`.
+/// @return        a `CodeLens[]` JSON array ; empty when the document was
+///                never indexed or holds no test.
+export handle_code_lens :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    idx :: state.index_for(uri) ?? return JsonArray { .items = [] }
+    folder :: project_or_folder_of_document(uri_to_path(uri))
+    return JsonArray { .items = test_lenses(idx.program, uri, folder, idx.line_index) }
+}
+
+test_lenses :: fn(program: Program, uri: string, folder: string, li: LineIndex) -> JsonValue[] {
+    lenses: JsonValue[]: []
+    for d in program.decls {
+        if d is FnDecl && decorators_have(d.decorators, "test") {
+            lenses.push(run_lens(d.name_span, "Run test", [uri, folder, d.name], li))
+        }
+    }
+    header :: program.module
+    if lenses.len() > 0 && header != null {
+        lenses.push(run_lens(header.span, "Run module tests", [uri, folder], li))
+    }
+    return lenses
+}
+
+run_lens :: fn(span: Span, title: string, arguments: string[], li: LineIndex) -> JsonValue {
+    command :: Map<string, JsonValue> {}
+    command["title"]     = JsonString { .value = title }
+    command["command"]   = JsonString { .value = RUN_TEST_COMMAND }
+    command["arguments"] = string_array(arguments)
+    lens :: Map<string, JsonValue> {}
+    lens["range"]   = range_json(span.span_to_range_json(li))
+    lens["command"] = JsonObject { .entries = command }
+    return JsonObject { .entries = lens }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/string"
+import "std/testing"
+import "vader/front/parser"
+
+// The lenses of `src`, as `<line>:<title>:<arguments joined by space>`.
+lenses_of :: fn(src: string) -> string[] {
+    parsed :: parse_source(src, "t.vader")
+    out: string[]: []
+    for lens in test_lenses(parsed.program, "file:///t.vader", "/p", new_line_index(src, .Utf8)) {
+        line :: get_number(get_field(get_field(lens, "range"), "start"), "line")
+        command :: get_field(lens, "command")
+        arguments: string[]: []
+        values :: get_field(command, "arguments")
+        if values is JsonArray {
+            for a in values.items {
+                if a is JsonString {
+                    arguments.push(a.value)
+                }
+            }
+        }
+        out.push("${line}:${get_string(command, "title")}:${arguments.join(" ")}")
+    }
+    return out
+}
+
+@test
+test_code_lens_runs_each_test_and_the_module :: fn() -> void {
+    src :: "module \"t\"\n\nhelper :: fn() -> i32 = 1\n\n@test\ntest_one :: fn() -> void {}\n"
+    assert_eq(
+        lenses_of(src).join(" | "),
+        "5:Run test:file:///t.vader /p test_one | 0:Run module tests:file:///t.vader /p",
+    )
+}
+
+@test
+test_code_lens_skips_a_file_without_tests :: fn() -> void {
+    assert_eq(lenses_of("module \"t\"\n\nmain :: fn() -> i32 = 0\n").len(), 0)
+}

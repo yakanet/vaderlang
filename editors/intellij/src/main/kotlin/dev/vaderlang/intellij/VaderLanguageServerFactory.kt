@@ -51,9 +51,7 @@ private class VaderFormattingFeature : LSPFormattingFeature() {
 
 private class VaderConnectionProvider(project: Project) : OSProcessStreamConnectionProvider() {
     init {
-        val configured = VaderSettings.getInstance().lspPath.trim()
-        val binary = if (configured.isNotEmpty()) configured else "vader"
-        val cmd = GeneralCommandLine(binary, "lsp")
+        val cmd = GeneralCommandLine(vaderBinary(), "lsp")
         // Spawn from the project root so the server's library probe (its
         // `<cwd>/lib` fallback) resolves the workspace library, mirroring how the
         // VSCode client launches it.

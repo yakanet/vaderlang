@@ -40,3 +40,6 @@ internal class VaderSettings : PersistentStateComponent<VaderSettings.State> {
             ApplicationManager.getApplication().getService(VaderSettings::class.java)
     }
 }
+
+// The `vader` binary the plugin runs: the configured path, else the one on $PATH.
+internal fun vaderBinary(): String = VaderSettings.getInstance().lspPath.trim().ifEmpty { "vader" }

@@ -293,6 +293,12 @@ dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) ->
         P.log_info("documentLink ${doc_uri(params)}")
         return .Continue
     }
+    if method == "textDocument/codeLens" {
+        result :: H.handle_code_lens(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("codeLens ${doc_uri(params)}")
+        return .Continue
+    }
     if method == "textDocument/implementation" {
         result :: H.handle_implementation(state, params)
         P.write_frame(P.encode_response(id, result))

@@ -206,6 +206,13 @@ export first_in_files :: fn(
 /// @param path  the document's filesystem path.
 project_of_document :: fn(path: string) -> string | null = find_project_root(path)
 
+/// The folder a document is run from: its project, or its own folder when it
+/// belongs to none.
+///
+/// @param path  the document's filesystem path.
+export project_or_folder_of_document :: fn(path: string) -> string =
+    project_of_document(path) ?? dir_of(path)
+
 /// Where the document `uri` looks for modules : the loader's roots for a load
 /// from that file (`search_roots`), each made absolute, and the module the
 /// document belongs to. Null for a URI that names no file.

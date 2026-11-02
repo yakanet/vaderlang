@@ -61,9 +61,7 @@ private class VaderDebugAdapterDescriptor(
     // native binary resolves stdlib relative to itself, but cwd is the safe
     // default that mirrors `vader run`).
     override fun startServer(): ProcessHandler {
-        val configured = VaderSettings.getInstance().lspPath.trim()
-        val binary = if (configured.isNotEmpty()) configured else "vader"
-        val commandLine = createStartServerCommandLine("$binary dap")
+        val commandLine = createStartServerCommandLine("${vaderBinary()} dap")
         return startServer(commandLine)
     }
 
