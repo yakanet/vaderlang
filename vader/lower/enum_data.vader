@@ -68,18 +68,18 @@ lower_enum_data_read :: fn(
         return slot
     }
     data :: enum_type.data ?? return slot
-    decl :: ctx.typed.struct_decls[data.symbol.id] ?? return slot
+    declared :: ctx.typed.struct_fields[data.symbol.id] ?? return slot
     prelude: LoweredStmt[]: []
     source :: bind_to_local(ctx, slot, data, "data", span, prelude)
     fields: LoweredStructLitField[]: []
-    for field in decl.fields {
+    for [name, _] in declared {
         fields.push(LoweredStructLitField {
-            .name = field.name,
+            .name = name,
             .value = LoweredFieldAccess {
                 .span = span,
-                .type = struct_field_type(ctx, data, field.name),
+                .type = struct_field_type(ctx, data, name),
                 .target = source,
-                .field = field.name,
+                .field = name,
             },
         })
     }

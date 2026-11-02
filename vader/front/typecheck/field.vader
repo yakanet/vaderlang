@@ -871,8 +871,8 @@ check_internal_union_field :: fn(
         if v !is StructType {
             continue
         }
-        decl :: typed.struct_decls[v.symbol.id] ?? continue
-        if check_internal_field(v, decl, e.field, e.field_span, typed, diags) {
+        field :: struct_field_info(typed, v.symbol.id, e.field) ?? continue
+        if check_internal_field(v, field, e.field_span, typed, diags) {
             return
         }
     }
@@ -940,10 +940,9 @@ try_enum_variant_dispatch :: fn(
 // struct has no such field.
 enum_data_field :: fn(target_ty: EnumType, e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type | null {
     data :: target_ty.data ?? return null
-    found :: declared_struct_field_type(data, e.field, typed) ?? return null
-    decl :: typed.struct_decls[data.symbol.id] ?? return null
-    check_internal_field(data, decl, e.field, e.field_span, typed, diags)
-    return found
+    field :: struct_field_info(typed, data.symbol.id, e.field) ?? return null
+    check_internal_field(data, field, e.field_span, typed, diags)
+    return substitute_struct_args(field.ty, data, typed)
 }
 
 /// Whether `target` names an enum-typed TYPE rather than a value of it: the
@@ -1049,19 +1048,14 @@ takes_receiver :: fn(overloads: FnCandidate[], receiver: Type, typed: TypedProgr
 // nothing.
 takes_struct_field :: fn(target_ty: Type, e: AST.FieldExpr, typed: TypedProgram) -> bool {
     st :: struct_backing(target_ty) ?? return false
-    decl :: typed.struct_decls[st.symbol.id] ?? return false
-    at :: field_position(decl, e.field)
-    if at < 0 {
-        return false
-    }
-    if field_hidden_here(st, decl, at, typed) {
+    field :: struct_field_info(typed, st.symbol.id, e.field) ?? return false
+    if field_hidden_here(st, field, typed) {
         return false
     }
     if typed.callee_field_id != e.id {
         return true
     }
-    declared :: resolved_field_type(st.symbol.id, decl, e.field, typed, diag_sink()) ?? return false
-    return narrow_field_if_active(e, substitute_struct_args(declared, st, typed), typed) is FnType
+    return narrow_field_if_active(e, substitute_struct_args(field.ty, st, typed), typed) is FnType
 }
 
 // What `e` reads from the common field of its name of the union `target_ty`, when it
@@ -1090,22 +1084,20 @@ every_variant_shows :: fn(u: UnionType, name: string, typed: TypedProgram) -> bo
         if v !is StructType {
             return false
         }
-        decl :: typed.struct_decls[v.symbol.id] ?? return false
-        if field_hidden_here(v, decl, field_position(decl, name), typed) {
+        field :: struct_field_info(typed, v.symbol.id, name) ?? return false
+        if field_hidden_here(v, field, typed) {
             return false
         }
     }
     return true
 }
 
-// Whether the field at `at` of `st`, which `decl` declares, is `@internal` to another
-// module than the one checked.
+// Whether `field` of `st` is `@internal` to another module than the one checked.
 field_hidden_here :: fn(
     st: StructType,
-    decl: AST.StructDecl,
-    at: i32,
+    field: StructFieldInfo,
     typed: TypedProgram,
-) -> bool = decl.fields[at].visibility == .Private && st.symbol.module != typed.resolved.path
+) -> bool = field.decl.visibility == .Private && st.symbol.module != typed.resolved.path
 
 // Terminal struct-field lookup + the catch-all diagnostics for any
 // other unsupported shape. Returns a real Type (not Type | null)
@@ -1156,8 +1148,8 @@ resolve_struct_field :: fn(
         )
         return TY_UNRESOLVED
     }
-    decl :: typed.struct_decls[st.symbol.id]
-    if decl is null {
+    fields :: typed.struct_fields[st.symbol.id]
+    if fields == null {
         // A generator's state struct has no declaration and no field the source
         // can name : a member that reached here is a method no overload took.
         if is_gen_state_struct(st) {
@@ -1167,10 +1159,7 @@ resolve_struct_field :: fn(
         // (`type_from_symbol`), whose misses are reported on their own path.
         return TY_UNRESOLVED
     }
-    // T3054 : reject reads (and assignment LHS, which types through here too)
-    // of an `@internal` field from outside its declaring module.
-    check_internal_field(st, decl, e.field, e.field_span, typed, diags)
-    found :: resolved_field_type(st.symbol.id, decl, e.field, typed, diags)
+    found :: fields[e.field]
     if found == null {
         if report_namespace_alias_method(e, target_ty, typed, diags) {
             return TY_UNRESOLVED
@@ -1184,7 +1173,10 @@ resolve_struct_field :: fn(
         )
         return TY_UNRESOLVED
     }
-    substituted :: substitute_struct_args(found, st, typed)
+    // T3054 : reject reads (and assignment LHS, which types through here too)
+    // of an `@internal` field from outside its declaring module.
+    check_internal_field(st, found, e.field_span, typed, diags)
+    substituted :: substitute_struct_args(found.ty, st, typed)
     return narrow_field_if_active(e, substituted, typed)
 }
 
@@ -1233,11 +1225,8 @@ export declared_struct_field_type :: fn(
         return union_common_field_type(recv_ty, field, typed)
     }
     st :: struct_backing(recv_ty) ?? return null
-    decl :: typed.struct_decls[st.symbol.id] ?? return null
-    // Discard sink : the read-side check already emitted any field error.
-    discard: Diagnostic[]: []
-    found :: resolved_field_type(st.symbol.id, decl, field, typed, discard) ?? return null
-    return substitute_struct_args(found, st, typed)
+    found :: struct_field_info(typed, st.symbol.id, field) ?? return null
+    return substitute_struct_args(found.ty, st, typed)
 }
 
 /// Enforce `@internal` field visibility (T3054). A field parsed as
@@ -1251,42 +1240,30 @@ export declared_struct_field_type :: fn(
 /// field, a union's common one, an enum's variant data), the construction site
 /// (`struct_lit.vader`), and the pattern site (`match_expr.vader`).
 ///
-/// @param st          the struct type whose field is being accessed.
-/// @param decl        the struct's AST decl, carrying per-field visibility
-///                    (present even for imported structs via
-///                    `broadcast_struct_decls`).
-/// @param field_name  the field being touched.
-/// @param span        where to point the diagnostic.
-/// @return            true when it reported.
-/// @error             T3054 when `field_name` is `@internal` and the access is
-///                    from a different module than `st.symbol.module`.
+/// @param st     the struct type whose field is being accessed.
+/// @param field  the field being touched, one of `st`'s.
+/// @param span   where to point the diagnostic.
+/// @return       true when it reported.
+/// @error        T3054 when `field` is `@internal` and the access is from a
+///               different module than `st.symbol.module`.
 check_internal_field :: fn(
     st: StructType,
-    decl: AST.StructDecl,
-    field_name: string,
+    field: StructFieldInfo,
     span: Span,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> bool {
-    if st.symbol.module == typed.resolved.path {
+    if !field_hidden_here(st, field, typed) {
         return false
     }
-    for field in decl.fields {
-        if field.name == field_name {
-            if field.visibility != .Private {
-                return false
-            }
-            diags.push(
-                typecheck_error(
-                    .InternalFieldAccess,
-                    span,
-                    "`${field_name}` is `@internal` to module `${st.symbol.module}`",
-                ),
-            )
-            return true
-        }
-    }
-    return false
+    diags.push(
+        typecheck_error(
+            .InternalFieldAccess,
+            span,
+            "`${field.decl.name}` is `@internal` to module `${st.symbol.module}`",
+        ),
+    )
+    return true
 }
 
 /// Look up `${root_sym.id}#path` for this FieldExpr's chain in
@@ -1307,39 +1284,6 @@ narrow_field_if_active :: fn(
         return declared
     }
     return narrow_for_field(typed, key, declared)
-}
-
-/// The type of field `name` of the struct `struct_id`, as resolved in the
-/// struct's own module when it was declared ; type parameters stay as written.
-///
-/// @param struct_id  the struct's symbol id.
-/// @param name       the field.
-/// @param typed      any module's typed program : the table is shared by the project.
-/// @return           null when the struct or the field has no entry.
-export lookup_pre_resolved_field :: fn(
-    struct_id: i32, name: string, typed: TypedProgram,
-) -> Type | null {
-    fmap :: typed.struct_field_types[struct_id] ?? return null
-    return fmap[name]
-}
-
-/// Resolve field `name`'s type on the struct with symbol id `struct_id`: the
-/// owner-resolved `struct_field_types` cache first (authoritative cross-module),
-/// else a local AST re-walk of `decl` (same-module cold path). The
-/// cache-before-walk ordering lives HERE so no field-type consumer can reorder
-/// or skip it ; callers keep their own post-lookup substitution / narrowing.
-resolved_field_type :: fn(
-    struct_id: i32,
-    decl: AST.StructDecl,
-    name: string,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-) -> Type | null {
-    cached :: lookup_pre_resolved_field(struct_id, name, typed)
-    if cached !is null {
-        return cached
-    }
-    return find_struct_field_type(decl, name, typed.resolved, diags)
 }
 
 /// Substitute `st`'s declared type parameters by its arguments in `t` : a field
@@ -1485,16 +1429,14 @@ union_field_read :: fn(
     if first !is StructType {
         return null
     }
-    // The declaration's own check reports a field type that does not resolve.
-    discard: Diagnostic[]: []
-    shared :: field_layout(first, name, typed, discard) ?? return null
+    shared :: field_layout(first, name, typed) ?? return null
     clash: LayoutClash | null = null
     for i in 1..<u.variants.len() {
         v :: u.variants[i]
         if v !is StructType {
             return null
         }
-        layout :: field_layout(v, name, typed, discard) ?? return null
+        layout :: field_layout(v, name, typed) ?? return null
         if clash == null {
             clash = layout_clash(first, shared, v, layout)
         }
@@ -1507,24 +1449,16 @@ union_field_read :: fn(
 
 // The types of `st`'s fields up to and including `name`, as `st`'s arguments
 // make them ; null when `st` has no field `name`.
-field_layout :: fn(
-    st: StructType,
-    name: string,
-    typed: TypedProgram,
-    discard: Diagnostic[],
-) -> Type[] | null {
-    decl :: typed.struct_decls[st.symbol.id] ?? return null
-    at :: field_position(decl, name)
-    if at < 0 {
-        return null
-    }
+field_layout :: fn(st: StructType, name: string, typed: TypedProgram) -> Type[] | null {
+    fields :: typed.struct_fields[st.symbol.id] ?? return null
     out: Type[]: []
-    for i in 0..=at {
-        field :: decl.fields[i]
-        ty :: resolved_field_type(st.symbol.id, decl, field.name, typed, discard) ?? return null
-        out.push(substitute_struct_args(ty, st, typed))
+    for [field_name, field] in fields {
+        out.push(substitute_struct_args(field.ty, st, typed))
+        if field_name == name {
+            return out
+        }
     }
-    return out
+    return null
 }
 
 // The first disagreement between two variants' layouts up to the field they both
@@ -1556,14 +1490,6 @@ layout_clash :: fn(
         }
     }
     return null
-}
-
-// Where `name` sits among `decl`'s fields, or `-1` when it has none.
-field_position :: fn(decl: AST.StructDecl, name: string) -> i32 {
-    for i in 0..<decl.fields.len() {
-        if decl.fields[i].name == name { return i32(i) }
-    }
-    return -1
 }
 
 /// For a struct receiver, find a trait it implements whose method by
@@ -1953,24 +1879,6 @@ collect_bound_method_names :: fn(bound: AST.Expr, typed: TypedProgram, out: stri
             out.push(m.name)
         }
     }
-}
-
-/// Walk a struct's fields for `name` and return the resolved field type,
-/// or `null` if the field doesn't exist. Shared with `struct_lit.vader`
-/// so the lookup convention stays in one place: generic substitution,
-/// when it lands, plugs in here.
-find_struct_field_type :: fn(
-    decl: AST.StructDecl,
-    name: string,
-    resolved: ResolvedModule,
-    diags: Diagnostic[],
-) -> Type | null {
-    for field in decl.fields {
-        if field.name == name {
-            return type_from_expr(field.ty, resolved, diags)
-        }
-    }
-    return null
 }
 
 // ---- tests ----------------------------------------------------------------

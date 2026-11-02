@@ -398,9 +398,9 @@ export TypedProgram :: struct {
     type_expr_types: Map<u64, Type>
 
     /// `StructDecl` keyed by the symbol's id. Populated by `decl.vader`
-    /// while it mints struct types ; consumed by `field.vader` so it
-    /// can walk a struct's field list to type `obj.f` accesses without
-    /// re-walking the program AST. Project-wide once `broadcast_struct_decls`
+    /// while it mints struct types, for what a declaration says beyond its
+    /// fields (type parameters, decorators) ; the fields are `struct_fields`.
+    /// Project-wide once `broadcast_struct_decls`
     /// runs: one instance every module shares, so iterating it yields every
     /// module's structs, and only `declare_module` may write it.
     struct_decls: Map<i32, AST.StructDecl>
@@ -596,12 +596,11 @@ export TypedProgram :: struct {
     /// not observe them (T3087).
     impl_param_forwards: Map<i64, Span> = Map<i64, Span> {}
 
-    /// `Struct.symbol.id → field_name → resolved Type`. Pre-resolved
-    /// at declare-time using the OWNING module's resolved.idents so
-    /// cross-module field lookups (`entry.value` where `entry`'s
-    /// struct lives in another module) get the right TypeParams /
-    /// nominal references. Project-wide and shared alongside `struct_decls`.
-    struct_field_types: Map<i32, Map<string, Type>>
+    /// The fields of every struct, by the struct's symbol id then by name, in the
+    /// order the struct lays them out. Every reader after the declarations takes a
+    /// struct's fields from here, not from its `StructDecl`. Project-wide and shared
+    /// alongside `struct_decls`.
+    struct_fields: Map<i32, Map<string, StructFieldInfo>>
 
     /// A type parameter's declaration site (`tp.span.hash()`) → the symbol the
     /// resolver gave it, for every parameter a declaration lists in its `<…>` ; a
@@ -852,7 +851,7 @@ new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .static_members = Map<i64, StaticMember> {},
     .type_param_bound_traits = Map<i32, TypeParamBound> {},
     .struct_bounds = Map<i32, ArgBound[]> {},
-    .struct_field_types = Map<i32, Map<string, Type>> {},
+    .struct_fields = Map<i32, Map<string, StructFieldInfo>> {},
     .current_fn_ctx  = null,
     .node_spans      = Map<i64, Span> {},
     .dump_types      = false,

@@ -13,6 +13,7 @@ import "std/collections"
 import "std/string"
 import "toolchain/span"
 import "vader/support/diagnostics"
+import "vader/core/symbol"
 import "vader/core/types"
 AST :: import "toolchain/ast"
 import "vader/front/resolver"
@@ -29,23 +30,24 @@ DefaultFill :: struct {
 
 FillingDefault :: struct {
     key: u64
-    decl: AST.StructDecl
+    /// The struct whose declaration writes the default.
+    owner: Symbol
     field: string
     span: Span
 }
 
-// Settle the consts the defaults a literal (`span`) of `decl` fills in read : a
-// const being typed through the literal reads them: `D :: Q {}.n` with
+// Settle the consts the defaults a literal (`span`) of the struct `struct_id` fills
+// in read : a const being typed through the literal reads them: `D :: Q {}.n` with
 // `Q :: struct { n: i32 = D }` is a cycle (T3099). Outside a const's value, nothing
 // needs them before their turn.
 settle_literal_defaults :: fn(
-    decl: AST.StructDecl, provided: string[], span: Span, typed: TypedProgram,
+    struct_id: i32, provided: string[], span: Span, typed: TypedProgram,
 ) -> void {
     if typed.const_walk.typing.len() == 0 {
         return
     }
     fill :: DefaultFill {}
-    fill_omitted_defaults(decl, provided, fill, typed)
+    fill_omitted_defaults(struct_id, provided, fill, typed)
     for cd in fill.consts {
         settle_decl_read(cd, span, typed)
     }
@@ -57,7 +59,8 @@ settle_literal_defaults :: fn(
 reject_default_cycle :: fn(
     decl: AST.StructDecl, fill: DefaultFill, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    closing :: fill_omitted_defaults(decl, [], fill, typed) ?? return
+    sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? return
+    closing :: fill_omitted_defaults(sym.id, [], fill, typed) ?? return
     detail :: cycle_detail(fill, closing)
     diags.push(typecheck_error(.FieldDefaultsFillEachOther, closing.span, detail))
     for d in fill.filling {
@@ -71,34 +74,35 @@ cycle_detail :: fn(fill: DefaultFill, closing: FillingDefault) -> string {
     labels: string[]: []
     for d in fill.filling {
         if labels.len() > 0 || d.key == closing.key {
-            labels.push("`${d.decl.name}.${d.field}`")
+            labels.push("`${d.owner.name}.${d.field}`")
         }
     }
-    labels.push("`${closing.decl.name}.${closing.field}`")
+    labels.push("`${closing.owner.name}.${closing.field}`")
     return "${labels[0]} fills in ${labels[1..<labels.len()].join(", which fills in ")}"
 }
 
-// Fill in the defaults a literal of `decl` leaves out (every field not in
-// `provided`) then those of the struct literals these defaults hold, depth first and
+// Fill in the defaults a literal of the struct `struct_id` leaves out (every field
+// not in `provided`) then those of the struct literals these defaults hold, depth first and
 // each default once, collecting the consts they name into `fill`. Returns the default
 // reached again while it is being filled in, `fill.filling` then ending with the
 // chain from it ; null when the filling ends.
 fill_omitted_defaults :: fn(
-    decl: AST.StructDecl, provided: string[], fill: DefaultFill, typed: TypedProgram,
+    struct_id: i32, provided: string[], fill: DefaultFill, typed: TypedProgram,
 ) -> FillingDefault | null {
-    for f in decl.fields {
-        if f.name in provided {
+    fields :: typed.struct_fields[struct_id] ?? return null
+    for [name, field] in fields {
+        if name in provided {
             continue
         }
-        default :: f.default ?? continue
-        key :: f.span.hash()
+        default :: field.decl.default ?? continue
+        key :: field.decl.span.hash()
         if key in fill.filled {
             continue
         }
         current :: FillingDefault {
             .key = key,
-            .decl = decl,
-            .field = f.name,
+            .owner = field.owner,
+            .field = name,
             .span = default.span,
         }
         for d in fill.filling {
@@ -110,9 +114,9 @@ fill_omitted_defaults :: fn(
         reads :: value_reads(default, typed)
         fill.consts.push_all(reads.consts)
         for lit in reads.literals {
-            lit_decl :: literal_struct_decl(lit, typed) ?? continue
+            lit_struct :: literal_struct(lit, typed) ?? continue
             written :: written_fields(lit) ?? continue
-            closing :: fill_omitted_defaults(lit_decl, written, fill, typed)
+            closing :: fill_omitted_defaults(lit_struct.symbol.id, written, fill, typed)
             if closing != null {
                 return closing
             }
@@ -123,11 +127,9 @@ fill_omitted_defaults :: fn(
     return null
 }
 
-// The declaration of the struct `lit` builds, when this module resolves its name.
-literal_struct_decl :: fn(lit: AST.StructLitExpr, typed: TypedProgram) -> AST.StructDecl | null {
-    st :: struct_backing(type_from_expr(lit.type_name, typed.resolved, diag_sink())) ?? return null
-    return typed.struct_decls[st.symbol.id]
-}
+// The struct `lit` builds, when this module resolves its name.
+literal_struct :: fn(lit: AST.StructLitExpr, typed: TypedProgram) -> StructType | null =
+    struct_backing(type_from_expr(lit.type_name, typed.resolved, diag_sink()))
 
 // The fields `lit` writes, or null when a `...spread` writes them all.
 written_fields :: fn(lit: AST.StructLitExpr) -> string[] | null {
@@ -148,10 +150,11 @@ check_field_defaults :: fn(
     decl: AST.StructDecl, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? return
+    // The defaults the declaration writes: each is checked once, where it is written.
     for f in decl.fields {
         dv :: f.default ?? continue
-        field_ty :: resolved_field_type(sym.id, decl, f.name, typed, diags) ?? continue
-        got :: check_expr(dv, field_ty, typed, diags)
-        emit_mismatch_if(got, field_ty, f.span, dv, .TypeMismatch, typed, diags)
+        field :: struct_field_info(typed, sym.id, f.name) ?? continue
+        got :: check_expr(dv, field.ty, typed, diags)
+        emit_mismatch_if(got, field.ty, f.span, dv, .TypeMismatch, typed, diags)
     }
 }

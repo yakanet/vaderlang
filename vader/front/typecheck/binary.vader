@@ -301,12 +301,9 @@ carries_mutable_state :: fn(t: Type, typed: TypedProgram) -> bool {
         return true
     }
     if t is StructType {
-        decl :: typed.struct_decls[t.symbol.id]
         // An undeclared struct (never walked) is assumed stateful: the common case.
-        if decl == null {
-            return true
-        }
-        return decl.fields.len() > 0
+        fields :: typed.struct_fields[t.symbol.id] ?? return true
+        return fields.len() > 0
     }
     return false
 }

@@ -57,16 +57,16 @@ evaluate_struct_lit :: fn(expr: AST.StructLitExpr, context: ComptimeContext) -> 
     }
     owner_context :: declaring_context(t.symbol.module, context)
         ?? return vm_required(expr.span, "struct of no known module")
-    declaration :: owner_context.typed.struct_decls[t.symbol.id]
+    declared :: owner_context.typed.struct_fields[t.symbol.id]
         ?? return vm_required(expr.span, "struct of no known declaration")
-    for field in declaration.fields {
-        default :: field.default
-        if field.name in fields || default == null {
+    for [name, field] in declared {
+        default :: field.decl.default
+        if name in fields || default == null {
             continue
         }
         result :: evaluate_expr(default, owner_context)
         value :: result.value ?? return result
-        fields[field.name] = value
+        fields[name] = value
     }
     return ok(StructValue { .type = t, .fields = fields })
 }

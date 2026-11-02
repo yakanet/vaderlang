@@ -76,9 +76,8 @@ intrinsic_field_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
 
 type_field_count :: fn(t: Type, context: ComptimeContext) -> i64 {
     if t is StructType {
-        decl :: context.typed.struct_decls[t.symbol.id]
-        if decl is AST.StructDecl { return decl.fields.len() }
-        return 0
+        fields :: context.typed.struct_fields[t.symbol.id] ?? return 0
+        return fields.len()
     }
     if t is TupleType { return t.elements.len() }
     return 0
@@ -107,14 +106,14 @@ intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
     name :: AST.string_literal_text(expr.args[1])
     if name == null { return arg_error(expr, "field_index: field name must be a static string literal") }
     if arg_type is StructType {
-        decl :: context.typed.struct_decls[arg_type.symbol.id]
-        if decl is AST.StructDecl {
-            for i in 0..<decl.fields.len() {
-                if decl.fields[i].name == name { return ok(int_val_typed(i, "i64")) }
-            }
+        if context.typed.struct_fields[arg_type.symbol.id] == null {
+            return arg_error(expr, "field_index: struct declaration for `${display_type(arg_type)}` not found")
+        }
+        at :: struct_field_index(context.typed, arg_type.symbol.id, name)
+        if at < 0 {
             return REPORTED_BY_TYPECHECK
         }
-        return arg_error(expr, "field_index: struct declaration for `${display_type(arg_type)}` not found")
+        return ok(int_val_typed(at, "i64"))
     }
     return REPORTED_BY_TYPECHECK
 }

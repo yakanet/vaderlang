@@ -309,12 +309,11 @@ lower_struct_decl :: fn(
     if struct_decl.type_params.len() > 0 { return null }
     sym :: decl_symbol(typed.resolved, struct_decl)
         ?? panic("lower: struct `${struct_decl.name}` has no declaration symbol")
+    declared :: typed.struct_fields[sym.id]
+        ?? panic("lower: struct `${struct_decl.name}` has no recorded fields")
     fields: LoweredStructField[]: []
-    for field in struct_decl.fields {
-        fields.push(LoweredStructField {
-            .name = field.name,
-            .type = declared_field_type(typed, sym, field.name),
-        })
+    for [name, field] in declared {
+        fields.push(LoweredStructField { .name = name, .type = laid_out_unions(field.ty) })
     }
     entry :: stub_entry(struct_decl, typed)
     return LoweredStructDecl {

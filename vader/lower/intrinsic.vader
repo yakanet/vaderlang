@@ -199,8 +199,8 @@ fold_integer_bound :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Ty
 // same value lands whether the call is folded at comptime or here.
 lower_field_count :: fn(ctx: FnLowerCtx, t: Type) -> i64 {
     if t is StructType {
-        decl :: ctx.typed.struct_decls[t.symbol.id] ?? return 0
-        return decl.fields.len()
+        fields :: ctx.typed.struct_fields[t.symbol.id] ?? return 0
+        return fields.len()
     }
     if t is TupleType { return t.elements.len() }
     return 0
@@ -217,15 +217,14 @@ try_fold_field_index :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: 
     arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
     ty :: arg_ty_or_unresolved(arg_or_null)
     name :: string_literal_text(intrinsic.args[1]) ?? return null
-    if ty is StructType {
-        decl :: ctx.typed.struct_decls[ty.symbol.id] ?? return null
-        for i in 0..<decl.fields.len() {
-            if decl.fields[i].name == name {
-                return LoweredIntLit { .span = intrinsic.span, .type = type, .value = i }
-            }
-        }
+    if ty !is StructType {
+        return null
     }
-    return null
+    at :: struct_field_index(ctx.typed, ty.symbol.id, name)
+    if at < 0 {
+        return null
+    }
+    return LoweredIntLit { .span = intrinsic.span, .type = type, .value = at }
 }
 
 /// Fold `@type_of(x)` to a `LoweredTypeConst` carrying `x`'s static
@@ -306,7 +305,8 @@ try_fold_fields :: fn(
     field_type :: field_type_opt
     // The struct tables are shared by the project : any module's view reads them.
     decl :: ctx.typed.struct_decls[target_struct.symbol.id]
-    if decl is null {
+    declared :: ctx.typed.struct_fields[target_struct.symbol.id]
+    if decl is null || declared is null {
         return LoweredUnreachable {
             .span = intrinsic.span, .type = type,
             .reason = "@fields target struct decl not found",
@@ -317,14 +317,13 @@ try_fold_fields :: fn(
     subst :: build_concrete_subst(decl.type_params, target_struct.args, ctx.typed)
     string_type :: TY_STRING
     elements: LoweredExpr[]: []
-    for f in decl.fields {
-        raw_ty :: declared_field_type(ctx.typed, target_struct.symbol, f.name)
-        substituted :: substitute(raw_ty, subst)
+    for [name, field] in declared {
+        substituted :: substitute(laid_out_unions(field.ty), subst)
         field_lit_fields :: [
             LoweredStructLitField {
                 .name = "name",
                 .value = LoweredStringLit {
-                    .span = intrinsic.span, .type = string_type, .value = f.name,
+                    .span = intrinsic.span, .type = string_type, .value = name,
                 },
             },
             LoweredStructLitField {

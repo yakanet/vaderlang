@@ -82,6 +82,7 @@ materialize_struct_instance :: fn(
     project: LoweredProject,
 ) -> LoweredStructField[] {
     decl :: owner_typed.struct_decls[inst.symbol.id] ?? return []
+    declared :: owner_typed.struct_fields[inst.symbol.id] ?? return []
     // Non-generic structs fall through safely : empty `type_params`
     // ⇒ identity substs and `args_suffix([]) == ""`, so fields are
     // unchanged and the mangle is the bare `<module>$<Name>`. Lets the
@@ -106,13 +107,9 @@ materialize_struct_instance :: fn(
     subst :: build_concrete_subst(decl.type_params, inst.args, owner_typed)
     erase :: build_mixed_subst(project_ctx.impls, decl.type_params, inst.args, owner_typed)
     fields: LoweredStructField[]: []
-    for f in decl.fields {
-        raw_ty :: declared_field_type(owner_typed, inst.symbol, f.name)
-        field_ty :: substitute(raw_ty, erase)
-        fields.push(LoweredStructField {
-            .name = f.name,
-            .type = field_ty,
-        })
+    for [name, field] in declared {
+        field_ty :: substitute(laid_out_unions(field.ty), erase)
+        fields.push(LoweredStructField { .name = name, .type = field_ty })
     }
     entry_decl: Decl: decl
     entry :: MonoEntry {

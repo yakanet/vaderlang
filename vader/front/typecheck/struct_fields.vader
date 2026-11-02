@@ -1,0 +1,57 @@
+// vader/front/typecheck/struct_fields: the fields of a struct, as the passes read them.
+//
+// `decl.vader` records each struct's fields in `TypedProgram.struct_fields` while it
+// declares the struct, with their types resolved in the module that writes them.
+// Every reader after the declarations walks that table, not the `StructDecl`: the
+// table is what a struct lays out, the declaration only what its own text writes.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "vader/core/symbol"
+import "vader/core/types"
+
+/// One field of a struct, at its place in the struct's layout.
+export StructFieldInfo :: struct {
+    /// The declaration of the field: its name, visibility, default, doc and span.
+    decl: AST.StructField
+    /// The type `decl` writes, resolved in the module of `owner` ; the struct's type
+    /// parameters stay as written.
+    ty: Type
+    /// The struct whose declaration writes the field.
+    owner: Symbol
+}
+
+/// The field `name` of the struct `struct_id`.
+///
+/// @param typed      any module's typed program : the table is shared by the project.
+/// @param struct_id  the struct's symbol id.
+/// @param name       the field.
+/// @return           null when the struct or the field has no entry.
+export struct_field_info :: fn(
+    typed: TypedProgram,
+    struct_id: i32,
+    name: string,
+) -> StructFieldInfo | null {
+    fields :: typed.struct_fields[struct_id] ?? return null
+    return fields[name]
+}
+
+/// Where `name` sits among the fields of the struct `struct_id`, from 0.
+///
+/// @param typed      any module's typed program : the table is shared by the project.
+/// @param struct_id  the struct's symbol id.
+/// @param name       the field.
+/// @return           -1 when the struct or the field has no entry.
+export struct_field_index :: fn(typed: TypedProgram, struct_id: i32, name: string) -> i64 {
+    fields :: typed.struct_fields[struct_id] ?? return -1
+    at: i64 = 0
+    for [field_name, _] in fields {
+        if field_name == name {
+            return at
+        }
+        at += 1
+    }
+    return -1
+}

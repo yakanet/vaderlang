@@ -1,7 +1,7 @@
 // vader/front/typecheck/struct_lit: StructLitExpr inference (`Point { x: 1 }`).
 //
 // Lowers `type_name` into a `StructType` (T3001 if it isn't one), looks
-// up the struct's fields via `typed.struct_decls`, and checks each item.
+// up the struct's fields via `typed.struct_fields`, and checks each item.
 // Returns the struct type.
 
 module "vader/front/typecheck"
@@ -110,8 +110,8 @@ check_struct_items :: fn(
     // T3037: required fields without defaults must be provided when no
     // `...spread` covers them ; the defaults of the others land in the literal.
     if decl is AST.StructDecl && !has_spread {
-        check_missing_fields(span, st, decl, provided, diags)
-        settle_literal_defaults(decl, provided, span, typed)
+        check_missing_fields(span, st, provided, typed, diags)
+        settle_literal_defaults(st.symbol.id, provided, span, typed)
     }
     return st
 }
@@ -121,18 +121,13 @@ check_field :: fn(
     typed: TypedProgram, diags: Diagnostic[], provided: string[],
 ) -> void {
     expected: Type | null = null
-    if decl is AST.StructDecl {
+    field :: struct_field_info(typed, st.symbol.id, f.name)
+    if field != null {
         // T3054 : reject setting an `@internal` field at construction from
         // outside its declaring module (the field's default still applies, so
         // `T {}` keeps working cross-module).
-        check_internal_field(st, decl, f.name, f.name_span, typed, diags)
-        // Prefer the pre-resolved field type (handles cross-module
-        // structs where the field type references another module's
-        // type-params). Fall back to walking the AST locally.
-        raw :: resolved_field_type(st.symbol.id, decl, f.name, typed, diags)
-        if raw !is null {
-            expected = substitute_struct_args(raw, st, typed)
-        }
+        check_internal_field(st, field, f.name_span, typed, diags)
+        expected = substitute_struct_args(field.ty, st, typed)
     }
     got :: check_expr(f.value, expected, typed, diags)
     if expected is null {
@@ -165,13 +160,13 @@ check_field :: fn(
 }
 
 check_missing_fields :: fn(
-    span: Span, st: StructType, decl: AST.StructDecl,
-    provided: string[], diags: Diagnostic[],
+    span: Span, st: StructType, provided: string[], typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
+    fields :: typed.struct_fields[st.symbol.id] ?? return
     missing: string[]: []
-    for sf in decl.fields {
-        if sf.default == null && sf.name !in provided {
-            missing.push("`${sf.name}`")
+    for [name, field] in fields {
+        if field.decl.default == null && name !in provided {
+            missing.push("`${name}`")
         }
     }
     if missing.len() == 0 { return }

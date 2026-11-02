@@ -222,9 +222,9 @@ recorded_type_expr :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
 /// @param struct_symbol  the struct's declaration symbol.
 /// @param name           the field.
 declared_field_type :: fn(typed: TypedProgram, struct_symbol: Symbol, name: string) -> Type {
-    declared :: lookup_pre_resolved_field(struct_symbol.id, name, typed)
+    field :: struct_field_info(typed, struct_symbol.id, name)
         ?? panic("lower: no type recorded for `${struct_symbol.name}.${name}`")
-    return laid_out_unions(declared)
+    return laid_out_unions(field.ty)
 }
 
 /// The type declared at `name_span` (`declared_type_at`), through the entry's

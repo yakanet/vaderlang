@@ -100,27 +100,23 @@ declare_decl :: fn(
         is AST.StructDecl -> {
             sym :: symbol_declared_at(resolved, decl.name_span) ?? return
             declare_named_with_args(sym, decl.type_params, typed, mk_struct)
-            // Index the struct decl by symbol id so `field.vader` can
-            // walk fields without re-traversing the program AST.
             typed.struct_decls[sym.id] = decl
-            // Pre-resolve every field's type using THIS module's
-            // resolved.idents. Cross-module field lookups (entry
-            // struct lives in `std/collections` but `entry.value`
-            // is read from main) consult these directly via the
-            // owner module's bindings.
-            fields_map :: Map<string, Type> {}
+            // Resolve every field's type with THIS module's resolved.idents: a
+            // module reading `entry.value` on a struct of `std/collections` finds
+            // the type there, resolved where the field is written.
+            fields :: Map<string, StructFieldInfo> {}
             // A private field (`@internal`) is invisible across the module
             // boundary, so it never leaks: only public fields of an
             // exported struct expose their type through the interface.
             struct_public :: decl.visibility == .Public
             for f in decl.fields {
                 fty :: type_from_expr(f.ty, resolved, diags)
-                fields_map[f.name] = fty
+                fields[f.name] = StructFieldInfo { .decl = f, .ty = fty, .owner = sym }
                 if struct_public && f.visibility == .Public {
                     report_private_leak(fty, f.ty.span, decl.name, "exposes a field of type", diags)
                 }
             }
-            typed.struct_field_types[sym.id] = fields_map
+            typed.struct_fields[sym.id] = fields
         }
         is AST.EnumDecl  -> { declare_enum(decl, resolved, typed, diags) }
         is AST.TraitDecl -> {
@@ -583,7 +579,7 @@ is_c_integer :: fn(t: Type) -> bool = t is UnresolvedType || is_machine_integer(
 /// @param t      the mirror type reached from the parameter; a non-struct is a
 ///               no-op, so callers need not narrow first.
 /// @param span   the parameter, where the struct crosses.
-/// @param typed  the module, for `struct_decls` and `struct_field_types`.
+/// @param typed  the module, for `struct_decls` and `struct_fields`.
 /// @param seen   struct symbol ids already walked, so a cycle terminates.
 /// @param diags  accumulator for T3050.
 validate_mirror_fields :: fn(
@@ -600,16 +596,16 @@ validate_mirror_fields :: fn(
         return
     }
     sd :: typed.struct_decls[t.symbol.id] ?? return
-    fmap :: typed.struct_field_types[t.symbol.id] ?? return
-    for f in sd.fields {
-        fty :: fmap[f.name] ?? continue
+    fields :: typed.struct_fields[t.symbol.id] ?? return
+    for [name, field] in fields {
+        fty :: field.ty
         if fty is StructType {
             if mirrors_a_c_struct(fty, typed) {
                 validate_mirror_fields(fty, span, typed, seen, diags)
             } else {
                 diags.push(typecheck_error(
                     .InvalidExternDecl, span,
-                    "field `${f.name}` of `@c_struct` `${sd.name}` is a plain struct, and a struct member needs its own `@c_struct` naming the C type it mirrors",
+                    "field `${name}` of `@c_struct` `${sd.name}` is a plain struct, and a struct member needs its own `@c_struct` naming the C type it mirrors",
                 ))
             }
             continue
@@ -620,7 +616,7 @@ validate_mirror_fields :: fn(
             if refusal != null {
                 diags.push(typecheck_error(
                     .InvalidExternDecl, span,
-                    "field `${f.name}` of `@c_struct` `${sd.name}`: ${refusal}",
+                    "field `${name}` of `@c_struct` `${sd.name}`: ${refusal}",
                 ))
             }
             continue
@@ -628,7 +624,7 @@ validate_mirror_fields :: fn(
         if !is_unmarshalled_scalar(fty, false) {
             diags.push(typecheck_error(
                 .InvalidExternDecl, span,
-                "field `${f.name}` of `@c_struct` `${sd.name}` has no C representation (`${display_type(fty)}`), and a mirrored field must be a numeric scalar, `bool`, `char`, `CPointer`, an enum, or another `@c_struct`",
+                "field `${name}` of `@c_struct` `${sd.name}` has no C representation (`${display_type(fty)}`), and a mirrored field must be a numeric scalar, `bool`, `char`, `CPointer`, an enum, or another `@c_struct`",
             ))
         }
     }

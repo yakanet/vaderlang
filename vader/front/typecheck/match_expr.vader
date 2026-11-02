@@ -661,20 +661,20 @@ bind_struct_pattern :: fn(
         }
         return
     }
-    decl :: typed.struct_decls[st.symbol.id] ?? return
+    declared :: typed.struct_fields[st.symbol.id] ?? return
     for field in sp.fields {
-        // T3054 : reject binding an `@internal` field in a struct
-        // pattern from outside its declaring module.
-        check_internal_field(st, decl, field.name, field.name_span, typed, diags)
-        raw :: resolved_field_type(st.symbol.id, decl, field.name, typed, scratch_diags())
-        if raw == null {
+        found :: declared[field.name]
+        if found == null {
             diags.push(typecheck_error(
                 .MemberDoesNotExist, field.name_span,
                 "`${field.name}` on ${display_type(scrut)}"))
             continue
         }
+        // T3054 : reject binding an `@internal` field in a struct
+        // pattern from outside its declaring module.
+        check_internal_field(st, found, field.name_span, typed, diags)
         // `Box<i32> { value }` reads `value` as `i32`, not as the declared `T`.
-        ft :: substitute_struct_args(raw, st, typed)
+        ft :: substitute_struct_args(found.ty, st, typed)
         match value :: field.value {
             is AST.PatternBinding -> { typed.local_types[value.span.hash()] = ft }
             is AST.PatternLiteral -> {

@@ -145,8 +145,8 @@ check_field_index :: fn(
     if owner !is StructType {
         return
     }
-    decl :: typed.struct_decls[owner.symbol.id] ?? return
-    if field_position(decl, name) >= 0 {
+    fields :: typed.struct_fields[owner.symbol.id] ?? return
+    if fields[name] != null {
         return
     }
     diags.push(typecheck_error(.MemberDoesNotExist, e.args[1].span,

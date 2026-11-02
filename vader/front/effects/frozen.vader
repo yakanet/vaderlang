@@ -345,9 +345,9 @@ fields_may_be_written :: fn(
     if !seen.add(t.symbol.id) {
         return false
     }
-    fields :: typed.struct_field_types[t.symbol.id] ?? return true
+    fields :: typed.struct_fields[t.symbol.id] ?? return true
     for [_, field] in fields {
-        if may_be_written(written, field, typed, seen) {
+        if may_be_written(written, field.ty, typed, seen) {
             return true
         }
     }

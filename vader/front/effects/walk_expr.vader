@@ -98,8 +98,8 @@ intrinsic_value :: fn(ctx: WalkCtx, e: AST.IntrinsicCallExpr) -> i64 | null {
 any_field :: fn(ctx: WalkCtx, source: AST.Expr, target: i64 | null) -> i64 | null {
     fields :: ctx.struct_fields_of(source) ?? return ctx.path_slot(target, EVERYWHERE)
     held: (i64 | null)[]: []
-    for [name, t] in fields {
-        if holds_references(t) {
+    for [name, field] in fields {
+        if holds_references(field.ty) {
             held.push(ctx.step_slot(target, name))
         }
     }
@@ -352,20 +352,20 @@ spread :: fn(ctx: WalkCtx, source: AST.Expr, named: Set<string>) -> void {
         ctx.s.add_mark(slot, EVERYWHERE, .Stored, source.span)
         return
     }
-    for [name, t] in fields {
-        if name !in named && holds_references(t) {
+    for [name, field] in fields {
+        if name !in named && holds_references(field.ty) {
             ctx.s.add_mark(slot, ctx.index.paths.path_to(name), .Stored, source.span)
         }
     }
 }
 
-// The declared type of each field of the struct `e` evaluates to.
-struct_fields_of :: fn(ctx: WalkCtx, e: AST.Expr) -> Map<string, Type> | null {
+// The fields of the struct `e` evaluates to.
+struct_fields_of :: fn(ctx: WalkCtx, e: AST.Expr) -> Map<string, StructFieldInfo> | null {
     t :: ctx.typed.expr_types[e.id] ?? return null
     if t !is StructType {
         return null
     }
-    return ctx.typed.struct_field_types[t.symbol.id]
+    return ctx.typed.struct_fields[t.symbol.id]
 }
 
 // An array or a tuple literal keeps its elements ; it is a fresh value.

@@ -100,8 +100,9 @@ check_variant_data :: fn(decl: EnumDecl, typed: TypedProgram, diags: Diagnostic[
 reject_variant_data_reference :: fn(
     decl: EnumDecl, data: StructType, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    fields :: typed.struct_field_types[data.symbol.id] ?? return
-    for [name, t] in fields {
+    fields :: typed.struct_fields[data.symbol.id] ?? return
+    for [name, field] in fields {
+        t :: field.ty
         if !is_value_only_type(t) {
             detail :: "the data of `${decl.name}` holds `${name}: " +
                 "${display_type(t)}`, which every read of it would share"

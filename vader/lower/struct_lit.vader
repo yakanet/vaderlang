@@ -222,11 +222,12 @@ build_struct_lit_fields :: fn(
 ) -> LoweredStructLitField[] {
     out: LoweredStructLitField[]: []
     // `struct_backing` unwraps a struct-backed distinct newtype so declared-order
-    // field building walks the backing struct decl. A non-struct type (or a
-    // struct whose decl isn't indexed) degrades to source order (defensive
+    // field building walks the backing struct's fields. A non-struct type (or a
+    // struct with no recorded fields) degrades to source order (defensive
     // fallback).
     st :: struct_backing(type) ?? return fallback_provided_order(ctx, lit)
     decl :: ctx.typed.struct_decls[st.symbol.id] ?? return fallback_provided_order(ctx, lit)
+    fields :: ctx.typed.struct_fields[st.symbol.id] ?? return fallback_provided_order(ctx, lit)
     // A field DEFAULT (`id: i64 = UNASSIGNED_NODE_ID`) is an AST expr
     // from the struct's OWNING module. Lowering it with the construction
     // site's `ctx` resolves its idents against the wrong `resolved.idents`
@@ -235,7 +236,8 @@ build_struct_lit_fields :: fn(
     // struct is built in vader/lower → the whole struct lit degrades to a
     // drop. Lower defaults with the owning module's typed view.
     default_ctx :: ctx_in_owning_module(ctx, st.symbol.module, decl, st.args)
-    for field_decl in decl.fields {
+    for [_, field] in fields {
+        field_decl :: field.decl
         field_type :: literal_field_type(ctx, st, field_decl)
         user_value :: provided[field_decl.name]
         if user_value is null {
@@ -301,12 +303,12 @@ literal_field_type :: fn(ctx: FnLowerCtx, st: StructType, field: StructField) ->
 // trusting the call site to hand-match it. midir consumes struct-lit fields
 // positionally (`build_struct_lit` / `InstrStructNew` ignore the `.name`
 // label), so a stdlib field reorder would otherwise silently write the wrong
-// slot while the `.name` labels look safe. This binds the order to the decl,
-// exactly like user literals go through `build_struct_lit_fields`.
+// slot while the `.name` labels look safe. This binds the order to the declared
+// fields, exactly like user literals go through `build_struct_lit_fields`.
 //
 // A field the site does not provide takes its declared default, as in a user
 // literal, so a defaulted field can join a core struct without its synthesising
-// site naming it. Panics on a missing struct decl or a declared field with
+// site naming it. Panics on an unrecorded struct or a declared field with
 // neither a value nor a default: both are compiler invariants for a
 // synthesised build (fail loud, never a silent wrong-slot write).
 build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLitField[], span: Span) -> LoweredExpr {
@@ -315,11 +317,12 @@ build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLi
         panic("build_core_struct_lit: not a struct type")
     }
     decl :: ctx.typed.struct_decls[st.symbol.id]
-    if decl == null {
-        panic("build_core_struct_lit: struct decl not indexed for ${st.symbol.name}")
-    }
+        ?? panic("build_core_struct_lit: struct decl not indexed for ${st.symbol.name}")
+    declared :: ctx.typed.struct_fields[st.symbol.id]
+        ?? panic("build_core_struct_lit: struct fields not indexed for ${st.symbol.name}")
     ordered: LoweredStructLitField[]: []
-    for field_decl in decl.fields {
+    for [_, field] in declared {
+        field_decl :: field.decl
         provided :: find_lowered_field(fields, field_decl.name)
         if provided != null {
             ordered.push(provided)
