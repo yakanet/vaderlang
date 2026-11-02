@@ -154,24 +154,30 @@ function registerDebugAdapter(context: vscode.ExtensionContext): void {
   );
 }
 
-let testTerminal: vscode.Terminal | undefined;
+let lastTestRun: vscode.TaskExecution | undefined;
 
-// The command of the server's "run test" code lenses (`vader.runTest`), in a
-// terminal the next run replaces. The language client hands a lens command the
-// server does not execute to the VS Code command of that name.
-function runTest(uri: string, folder: string, name?: string): void {
+// The command of the server's "run test" code lenses (`vader.runTest`). The
+// language client hands a lens command the server does not execute to the VS
+// Code command of that name.
+//
+// It runs as a task: a terminal whose own process is `vader` closes when it
+// exits, and reports a quick failing exit as a launch error.
+async function runTest(uri: string, folder: string, name?: string): Promise<void> {
   const file = vscode.Uri.parse(uri).fsPath;
   const args = ["test"];
   if (name !== undefined) args.push("--filter", name);
   args.push(file);
-  testTerminal?.dispose();
-  testTerminal = vscode.window.createTerminal({
-    name: `vader test ${name ?? path.basename(file)}`,
-    shellPath: interpolate(rawBinaryPath()),
-    shellArgs: args,
-    cwd: folder,
-  });
-  testTerminal.show(true);
+  // VS Code tells running tasks apart by their definition: one per lens.
+  const task = new vscode.Task(
+    { type: "vader", file, test: name },
+    vscode.TaskScope.Workspace,
+    `test ${name ?? path.basename(file)}`,
+    "vader",
+    new vscode.ProcessExecution(interpolate(rawBinaryPath()), args, { cwd: folder }),
+  );
+  task.presentationOptions = { clear: true, showReuseMessage: false };
+  lastTestRun?.terminate();
+  lastTestRun = await vscode.tasks.executeTask(task);
 }
 
 export function activate(context: vscode.ExtensionContext): void {
