@@ -1,0 +1,127 @@
+// std/collections/min_heap: `MinHeap`, items taken smallest first.
+
+module "std/collections"
+
+/// Items taken smallest first, whatever order they were pushed in. A binary
+/// heap: `push` and `pop` cost `O(log n)`, `peek` is constant. Items that
+/// compare equal come out in no particular order.
+///
+/// A null item would read as an empty heap: push no type that holds null.
+///
+/// @example
+///   h :: MinHeap<i64> {}
+///   h.push(30)
+///   h.push(10)
+///   h.push(20)
+///   h.peek()   // 10
+///   h.pop()    // 10
+///   h.len()    // 2
+export MinHeap :: struct<T: Comparable> {
+    /// The heap order: no item is smaller than its parent at `(i - 1) / 2`.
+    @internal
+    items: T[] = []
+}
+
+/// Add `item`.
+///
+/// @param self  the heap.
+/// @param item  the item to add.
+export push :: fn<T: Comparable>(self: MinHeap<T>, item: T) -> void {
+    self.items.push(item)
+    i := self.items.len() - 1
+    for i > 0 {
+        parent :: (i - 1) / 2
+        if self.items[parent] <= self.items[i] {
+            return
+        }
+        swap_items(self.items, parent, i)
+        i = parent
+    }
+}
+
+/// The smallest item, left in the heap.
+///
+/// @param self  the heap.
+/// @return      that item, or null when the heap is empty.
+export peek :: fn<T: Comparable>(self: MinHeap<T>) -> T | null {
+    if self.is_empty() {
+        return null
+    }
+    return self.items[0]
+}
+
+/// Remove the smallest item.
+///
+/// @param self  the heap.
+/// @return      that item, or null when the heap is empty.
+export pop :: fn<T: Comparable>(self: MinHeap<T>) -> T | null {
+    if self.is_empty() {
+        return null
+    }
+    swap_items(self.items, 0, self.items.len() - 1)
+    root :: self.items.remove_last()
+    i := 0
+    for {
+        smallest := i
+        left :: 2 * i + 1
+        right :: left + 1
+        if left < self.items.len() && self.items[left] < self.items[smallest] {
+            smallest = left
+        }
+        if right < self.items.len() && self.items[right] < self.items[smallest] {
+            smallest = right
+        }
+        if smallest == i {
+            return root
+        }
+        swap_items(self.items, i, smallest)
+        i = smallest
+    }
+}
+
+swap_items :: fn<T>(items: T[], a: i64, b: i64) -> void {
+    held :: items[a]
+    items[a] = items[b]
+    items[b] = held
+}
+
+/// How many items the heap holds.
+export len :: fn<T: Comparable>(self: MinHeap<T>) -> i64 = self.items.len()
+
+/// Whether the heap holds no item.
+export is_empty :: fn<T: Comparable>(self: MinHeap<T>) -> bool = self.items.len() == 0
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_min_heap_pops_smallest_first :: fn() -> void {
+    h :: MinHeap<i64> {}
+    for x in [5, 1, 4, 2, 3, 2] {
+        h.push(x)
+    }
+    out: i64[]: []
+    for {
+        x :: h.pop() ?? break
+        out.push(x)
+    }
+    assert_eq("${out}", "[1, 2, 2, 3, 4, 5]")
+}
+
+@test
+test_min_heap_peek_leaves_the_item :: fn() -> void {
+    h :: MinHeap<i64> {}
+    h.push(7)
+    h.push(3)
+    assert_eq(h.peek() ?? -1, 3)
+    assert_eq(h.len(), 2)
+}
+
+@test
+test_min_heap_empty_gives_null :: fn() -> void {
+    h :: MinHeap<i64> {}
+    assert(h.is_empty(), "a new heap is empty")
+    assert(h.peek() == null, "peek on an empty heap")
+    assert(h.pop() == null, "pop on an empty heap")
+}

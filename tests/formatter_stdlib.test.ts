@@ -38,25 +38,6 @@ const NO_OP_FILES = new Set([
   "runtime.vader",
 ]);
 
-// Files with a KNOWN, pre-existing idempotency wobble. The visible symptom is a
-// name-column alignment group narrowing on the second pass (`TOMB_SLOT  ::` →
-// `TOMB_SLOT ::`), but the CAUSE is upstream of the alignment pass: `fmt` relocates
-// a TRAILING line-comment onto its own line above the next declaration:
-//
-//     EMPTY_SLOT :: i32(0)    // index slot holds no entry
-//   becomes
-//     EMPTY_SLOT :: i32(0)
-//     // index slot holds no entry
-//
-// which splits the `::` group, so pass 2 computes a different column. Measured over
-// `vader/` + `lib/`: 447 trailing comments across 59 files move this way. Tracked in
-// TODO.md; both files still reparse cleanly (contract 1 holds), so only the stronger
-// `fmt(fmt) === fmt` is skipped.
-const UNSTABLE_IDEMPOTENCY = new Set([
-  "collections.vader",
-  "parse_float.vader",
-]);
-
 // The `error[...]` lines `dump --stage=ast` prints for a file that fails to
 // parse. `dump` reports diagnostics on stdout and always exits 0, so scan the
 // text rather than the exit code. Empty string ⇒ clean reparse. Goes through
@@ -71,8 +52,8 @@ for (const path of listLibraryFiles()) {
   // platform separator, so on Windows the hand-rolled form found no `/`, returned
   // the WHOLE absolute path, and every temp file became
   // `.tmp-fmt-stdlib-reparse-D:\a\...\base64.vader`: an ENOENT on mkdir. It also
-  // defeated the `UNSTABLE_IDEMPOTENCY` / `NO_OP_FILES` lookups below, which key on
-  // a bare filename. Pre-existing, and invisible while the suite sat behind a gate.
+  // defeated the `NO_OP_FILES` lookup below, which keys on a bare filename.
+  // Pre-existing, and invisible while the suite sat behind a gate.
   const base = basename(path);
 
   test(`library reparse after format : ${base}`, async () => {
@@ -89,7 +70,6 @@ for (const path of listLibraryFiles()) {
   }, { timeout: MEDIUM_BUILD });
 
   test(`library idempotent : ${base}`, async () => {
-    if (UNSTABLE_IDEMPOTENCY.has(base)) return;
     const f1 = await fmtStdout(path);
     const f2 = await fmtString(f1, ".tmp-fmt-stdlib-roundtrip");
     expect(f2).toBe(f1);

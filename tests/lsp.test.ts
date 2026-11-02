@@ -1643,7 +1643,7 @@ test("lsp: goto-def follows imports across files (collections)", async () => {
     { method: "textDocument/definition", position: positionOf(CROSSFILE_SOURCE, "Map(", 1) },
   ]);
   const loc = results[0]!.result as Location;
-  expect(loc.uri).toMatch(/std\/collections\/collections\.vader$/);
+  expect(loc.uri).toMatch(/std\/collections\/map\.vader$/);
   expect(loc.range.start.line).toBeGreaterThan(0);
 }, { timeout: MEDIUM_BUILD });
 

@@ -1,0 +1,87 @@
+// std/collections/set: `Set`, a hash set backed by a `Map`.
+//
+// The set reads the map's `@internal` fields (`ekeys`, `size`) and calls its
+// private `put`: a change to the layout in `map.vader` reaches this file too.
+
+module "std/collections"
+
+/// Hash set keyed by any `T` that implements `Hash & Equals`. Backed by a
+/// `Map<T, bool>`: every member is stored as a `(T → true)` entry,
+/// so lookups inherit the compact-map O(1)-average behaviour.
+export Set :: struct<T: Hash & Equals> {
+    /// Backing map. Defaults empty so `Set<T> {}` is a valid literal.
+    @internal
+    inner: Map<T, bool> = Map<T, bool> {}
+}
+
+/// Insert `value`. Returns `true` if `value` was newly added, `false` if it
+/// was already present (the set is unchanged in the latter case).
+/// @param self   the set receiver.
+/// @param value  the element to add.
+/// @return       `true` on insertion, `false` on duplicate.
+export add :: fn<T: Hash & Equals>(self: Set<T>, value: T) -> bool =
+    self.inner.put(value, true)
+
+/// Remove `value` from the set, if present. Delegates to the backing map's
+/// `remove`. A no-op when `value` is not a member.
+/// @param self   the set receiver.
+/// @param value  the element to drop.
+/// @return       `true` when `value` was removed, `false` when it was absent.
+export remove :: fn<T: Hash & Equals>(self: Set<T>, value: T) -> bool =
+    self.inner.remove(value)
+
+/// Number of members in the set. O(1).
+export len :: fn<T>(self: Set<T>) -> i64 = self.inner.size
+
+/// True iff no members have been added (or all were removed). O(1).
+export is_empty :: fn<T>(self: Set<T>) -> bool = self.inner.size == 0
+
+/// Logically empty the set, keeping the backing arrays for reuse: for hot
+/// reuse loops (e.g. a dataflow fixpoint's scratch set). Delegates to the
+/// backing map's `clear`. O(index slots).
+export clear :: fn<T>(self: Set<T>) -> void = self.inner.clear()
+
+// `value in set` / `value !in set` dispatch through Contains. No
+// Index/IndexSet impl: sets have no value-at-key semantics, and `s.add(v)`
+// reads more clearly than a hypothetical `s[v] = true`.
+Set<T> implements<T: Hash & Equals> Contains<T> -> value in self.inner
+
+// `for v in s` works directly via the `Into<Iterator<...>>` impl below: same
+// `generator` pattern as `Map` (inlined by `for v in s`, state machine
+// only when the iterator escapes). Walks the backing map's dense key array by
+// index. Same undefined-behaviour caveat on concurrent mutation.
+
+Set<T> implements<T> Into<Iterator<T>> {
+    into :: fn(self) -> Iterator<T> {
+        // Held in a local, as `Map`'s `into` holds its arrays.
+        keys :: self.inner.ekeys
+        for i in 0..<self.inner.size {
+            yield keys[i]
+        }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_set_add_contains :: fn() -> void {
+    s :: Set<i32> { .inner = Map<i32, bool> {} }
+    s.add(10)
+    s.add(20)
+    s.add(10)
+    assert_eq(s.len(), 2)
+    assert(s.contains(10), "should contain 10")
+    assert(!s.contains(99), "should not contain 99")
+}
+
+@test test_set_remove :: fn() -> void {
+    s :: Set<i32> { .inner = Map<i32, bool> {} }
+    s.add(10)
+    s.add(20)
+    assert(s.remove(10), "removing present member returns true")
+    assert_eq(s.len(), 1)
+    assert(!s.contains(10), "removed member gone")
+    assert(s.contains(20), "untouched member stays")
+    assert(!s.remove(10), "removing absent member returns false")
+}
