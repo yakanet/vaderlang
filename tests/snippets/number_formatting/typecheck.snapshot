@@ -1,0 +1,63 @@
+# Typecheck
+
+## tests/snippets/number_formatting
+  FnDecl         main                 :: fn() -> i32
+  expr 10:15    StructLitExpr  :: NumberFormat
+  expr 10:43    StringLitExpr  :: string
+  expr 10:56    DotVariantExpr :: SignMode
+  expr 11:13    CallExpr       :: string
+  expr 11:13    FieldExpr      :: fn(IntFormat) -> string
+  expr 11:28    StructLitExpr  :: IntFormat
+  expr 11:43    IdentExpr      :: NumberFormat
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(T) -> void
+  expr 12:13    CallExpr       :: string
+  expr 12:13    FieldExpr      :: fn(IntFormat) -> string
+  expr 12:24    StructLitExpr  :: IntFormat
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(T) -> void
+  expr 13:13    CallExpr       :: string
+  expr 13:13    FieldExpr      :: fn(IntFormat) -> string
+  expr 13:31    StructLitExpr  :: IntFormat
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(T) -> void
+  expr 14:13    CallExpr       :: string
+  expr 14:13    FieldExpr      :: fn(IntFormat) -> string
+  expr 14:13    IntrinsicCallExpr :: i64
+  expr 14:30    StructLitExpr  :: IntFormat
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 14:55    StringLitExpr  :: string
+  expr 15:13    CallExpr       :: string
+  expr 15:13    FieldExpr      :: fn(IntFormat) -> string
+  expr 15:13    IntrinsicCallExpr :: u64
+  expr 15:39    StructLitExpr  :: IntFormat
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 15:75    StringLitExpr  :: string
+  expr 16:13    CallExpr       :: string
+  expr 16:13    FieldExpr      :: fn(DecimalFormat) -> string
+  expr 16:27    StructLitExpr  :: DecimalFormat
+  expr 16:46    IdentExpr      :: NumberFormat
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 17:13    CallExpr       :: string
+  expr 17:13    FieldExpr      :: fn(DecimalFormat) -> string
+  expr 17:26    StructLitExpr  :: DecimalFormat
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 18:13    CallExpr       :: string
+  expr 18:13    FieldExpr      :: fn(DecimalFormat) -> string
+  expr 18:29    StructLitExpr  :: DecimalFormat
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 18:57    DotVariantExpr :: Notation
+  expr 19:13    CallExpr       :: string
+  expr 19:13    FieldExpr      :: fn(DecimalFormat) -> string
+  expr 19:26    StructLitExpr  :: DecimalFormat
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 20:13    CallExpr       :: string
+  expr 20:13    FieldExpr      :: fn(i64) -> string
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void

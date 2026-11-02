@@ -1,0 +1,214 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      common: NumberFormat = NumberFormat {
+          .sign = SignMode(1),
+          .separator = "_",
+          .group = i64(3),
+      }
+      std.io.println<string>(std_numbers$format(i64(1234567), {
+          __spread_0: NumberFormat = common
+          IntFormat {
+              .sign = __spread_0.sign,
+              .separator = __spread_0.separator,
+              .group = __spread_0.group,
+              .base = 10,
+              .prefix = false,
+              .uppercase = false,
+              .digits = i64(1),
+          }
+      } :IntFormat))
+      std.io.println<string>(std_numbers$format(i64(-42), IntFormat {
+          .sign = SignMode(0),
+          .separator = "",
+          .group = i64(3),
+          .base = 10,
+          .prefix = false,
+          .uppercase = false,
+          .digits = i64(4),
+      }))
+      std.io.println<string>(std_numbers$format(i64(3735928559), IntFormat {
+          .sign = SignMode(0),
+          .separator = "",
+          .group = i64(3),
+          .base = 16,
+          .prefix = true,
+          .uppercase = true,
+          .digits = i64(1),
+      }))
+      std.io.println<string>(std_numbers$format(i64(-9223372036854775808), IntFormat {
+          .sign = SignMode(0),
+          .separator = ",",
+          .group = i64(3),
+          .base = 10,
+          .prefix = false,
+          .uppercase = false,
+          .digits = i64(1),
+      }))
+      std.io.println<string>(std.numbers.format_unsigned(u64(18446744073709551615), IntFormat {
+          .sign = SignMode(0),
+          .separator = " ",
+          .group = i64(8),
+          .base = 2,
+          .prefix = false,
+          .uppercase = false,
+          .digits = i64(1),
+      }))
+      std.io.println<string>(std_numbers$format_1(1234.5, {
+          __spread_1: NumberFormat = common
+          DecimalFormat {
+              .sign = __spread_1.sign,
+              .separator = __spread_1.separator,
+              .group = __spread_1.group,
+              .notation = Notation(0),
+              .decimals = i64(2),
+          }
+      } :DecimalFormat))
+      std.io.println<string>(std_numbers$format_1(2.675, DecimalFormat {
+          .sign = SignMode(0),
+          .separator = "",
+          .group = i64(3),
+          .notation = Notation(0),
+          .decimals = i64(2),
+      }))
+      std.io.println<string>(std_numbers$format_1(123456.0, DecimalFormat {
+          .sign = SignMode(0),
+          .separator = "",
+          .group = i64(3),
+          .notation = Notation(1),
+          .decimals = null,
+      }))
+      std.io.println<string>(std_numbers$format_1(-0.04, DecimalFormat {
+          .sign = SignMode(0),
+          .separator = "",
+          .group = i64(3),
+          .notation = Notation(0),
+          .decimals = i64(1),
+      }))
+      std.io.println<string>(std.numbers.to_fixed(10000000000000000.0, i64(2)))
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.new_byte_buffer(c2)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+
+## lowered in dependencies
+  std/core
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.ascii_prefix  // std_core$ascii_prefix
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.decode_tail  // std_core$decode_tail
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
+    fn std.core.len  // std_core$len
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.utf8_encode  // std_core$utf8_encode
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Dec64  // std_core$Dec64
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
+  std/math
+    fn std.math.abs  // std_math$abs_2
+    fn std.math.is_finite  // std_math$is_finite
+    fn std.math.max  // std_math$max_3
+  std/numbers
+    const ZERO_DIGITS: DecimalDigits  data pool #2, element 0
+    fn std.numbers.digit_char  // std_numbers$digit_char
+    fn std.numbers.digits_in_base  // std_numbers$digits_in_base
+    fn std.numbers.digits_of  // std_numbers$digits_of
+    fn std.numbers.exponent_value  // std_numbers$exponent_value
+    fn std.numbers.format_unsigned  // std_numbers$format_unsigned
+    fn std.numbers.fraction_digits  // std_numbers$fraction_digits
+    fn std.numbers.grouped  // std_numbers$grouped
+    fn std.numbers.hex_digit  // std_numbers$hex_digit
+    fn std.numbers.integer_base  // std_numbers$integer_base
+    fn std.numbers.integer_digits  // std_numbers$integer_digits
+    fn std.numbers.notation_text  // std_numbers$notation_text
+    fn std.numbers.prefix_text  // std_numbers$prefix_text
+    fn std.numbers.round_at  // std_numbers$round_at
+    fn std.numbers.rounded_for  // std_numbers$rounded_for
+    fn std.numbers.scientific_text  // std_numbers$scientific_text
+    fn std.numbers.shortest_digits  // std_numbers$shortest_digits
+    fn std.numbers.sign_text  // std_numbers$sign_text
+    fn std.numbers.to_fixed  // std_numbers$to_fixed
+    fn std.numbers.trimmed  // std_numbers$trimmed
+    fn std.numbers.with_point  // std_numbers$with_point
+    fn std.numbers.write_integer  // std_numbers$write_integer
+    fn std_numbers$format
+    fn std_numbers$format_1
+    struct std.numbers.DecimalDigits  // std_numbers$DecimalDigits
+    struct std.numbers.DecimalFormat  // std_numbers$DecimalFormat
+    struct std.numbers.IntFormat  // std_numbers$IntFormat
+    struct std.numbers.NumberFormat  // std_numbers$NumberFormat
+  std/string
+    fn std.string.cut_at  // std_string$cut_at
+    fn std.string.first_byte_offset  // std_string$first_byte_offset
+    fn std.string.matches_at  // std_string$matches_at
+    fn std.string.pad_end  // std_string$pad_end
+    fn std.string.pad_start  // std_string$pad_start
+    fn std.string.split_first  // std_string$split_first
+    fn std.string.starts_with  // std_string$starts_with
+    fn std.string.trim_prefix  // std_string$trim_prefix
+  std/string_builder
+    fn std.string_builder.StringBuilder.to_string  // std_string__builder$StringBuilder$std_core$Display$to_string
+    fn std.string_builder.append  // std_string__builder$append
+    fn std.string_builder.append_char  // std_string__builder$append_char
+    fn std.string_builder.byte_len  // std_string__builder$byte_len
+    struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

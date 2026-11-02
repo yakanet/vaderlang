@@ -89,8 +89,9 @@ export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError {
     return acc
 }
 
-/// One lowercase hex digit for a nibble `0..15`. Shared with `std/crypto`, which
-/// needs the lowercase form (`shasum` / `openssl` convention).
+/// One lowercase digit for a value below 36, `0` to `9` then `a` to `z`: the hex
+/// digit of a nibble. Shared with `std/crypto`, which needs the lowercase form
+/// (`shasum` / `openssl` convention).
 export hex_digit :: fn(n: u64) -> char {
     if n <= 9 {
         return char('0' + u32(n))
@@ -99,58 +100,53 @@ export hex_digit :: fn(n: u64) -> char {
 }
 
 /// Hexadecimal stringification of a `u64`: lowercase, no `0x` prefix, no
-/// leading zeros (special-cases `0` to `"0"`). Pair with
-/// `std/string.pad_start` for a fixed-width hex column.
+/// leading zeros. `format` writes a prefix, capitals or a least number of digits.
 ///
-/// UFCS-callable as `n.to_hex()`.
 /// @param self  the integer to render.
-/// @return      e.g. `255_u64.to_hex()` → `"ff"`.
-export to_hex :: fn(self: u64) -> string {
-    if self == 0 {
+/// @example
+///   (255).to_hex()   // "ff"
+export to_hex :: fn(self: u64) -> string = digits_in_base(self, 16, false)
+
+/// Octal stringification of a `u64`: no `0o` prefix, no leading zeros.
+///
+/// @param self  the integer to render.
+/// @example
+///   (8).to_oct()   // "10"
+export to_oct :: fn(self: u64) -> string = digits_in_base(self, 8, false)
+
+/// Binary stringification of a `u64`: no `0b` prefix, no leading zeros.
+///
+/// @param self  the integer to render.
+/// @example
+///   (5).to_bin()   // "101"
+export to_bin :: fn(self: u64) -> string = digits_in_base(self, 2, false)
+
+// The digits of `n` in `base`, 2 to 36, most significant first, with no leading zero.
+digits_in_base :: fn(n: u64, base: u64, uppercase: bool) -> string {
+    if n == 0 {
         return "0"
     }
-    // Build digits LSB-first into the buffer, then walk it backwards into the
-    // builder so the output reads MSB-first.
-    rev: char[]: []
-    base: u64: 16
-    x := self
+    // Digits come least significant first, so they are read back from the end.
+    reversed: char[]: []
+    x := n
     for x > 0 {
-        rev.push(hex_digit(x % base))
+        reversed.push(digit_char(x % base, uppercase))
         x = x / base
     }
     sb :: StringBuilder {}
-    n :: rev.len()
-    for k in 0..<n {
-        sb.append_char(rev[n - 1 - k])
+    count :: reversed.len()
+    for k in 0..<count {
+        sb.append_char(reversed[count - 1 - k])
     }
     return sb.to_string()
 }
 
-/// Binary stringification of a `u64`: no `0b` prefix, no leading zeros.
-/// Pair with `std/string.pad_start` for a fixed-width bit column.
-/// @param self  the integer to render.
-/// @return      e.g. `5_u64.to_bin()` → `"101"`.
-export to_bin :: fn(self: u64) -> string {
-    if self == 0 {
-        return "0"
+// The digit of value `d`, below 36: `0` to `9`, then `a` to `z`, or `A` to `Z`.
+digit_char :: fn(d: u64, uppercase: bool) -> char {
+    if uppercase && d >= 10 {
+        return char('A' + u32(d) - 10)
     }
-    rev: char[]: []
-    two: u64: 2
-    x := self
-    for x > 0 {
-        if x % two == 0 {
-            rev.push('0')
-        } else {
-            rev.push('1')
-        }
-        x = x / two
-    }
-    sb :: StringBuilder {}
-    n :: rev.len()
-    for k in 0..<n {
-        sb.append_char(rev[n - 1 - k])
-    }
-    return sb.to_string()
+    return hex_digit(d)
 }
 
 // 2^53 : every whole `f64` of smaller magnitude is an exact `i64`.
@@ -180,10 +176,10 @@ export to_compact_str :: fn(self: f64) -> string {
     return "${self}".trim_suffix(".0")
 }
 
-/// Render `self` with exactly `decimals` digits after the point, ties rounded
-/// away from zero. A value that rounds to zero carries no sign. NaN, the
-/// infinities, and a value that reaches 2^53 once scaled print as `"${self}"`
-/// does.
+/// Render `self` with exactly `decimals` digits after the point, rounded half
+/// away from zero on the digits `Display` shows. A value that rounds to zero
+/// carries no sign; NaN and the infinities print as `"${self}"` does. Short
+/// for `format` with `DecimalFormat { .decimals = decimals }`.
 ///
 /// @param self      the float to render.
 /// @param decimals  the digits after the point; 0, or a negative count, for
@@ -192,29 +188,10 @@ export to_compact_str :: fn(self: f64) -> string {
 /// @example
 ///   (3.14159).to_fixed(2)   // "3.14"
 ///   (2.5).to_fixed(0)       // "3"
-///   (42.0).to_fixed(1)      // "42.0"
+///   (1.005).to_fixed(2)     // "1.01"
 ///   (-0.04).to_fixed(1)     // "0.0"
-export to_fixed :: fn(self: f64, decimals: i64) -> string {
-    places :: max(decimals, 0)
-    scaled :: round(abs(self) * pow(10.0, f64(places)))
-    // NaN fails the comparison too.
-    if !(scaled < EXACT_INTEGER_LIMIT) {
-        return "${self}"
-    }
-    units :: i64(scaled)
-    digits :: "${units}".pad_start(places + 1, '0')
-    point :: digits.byte_len() - places
-    sb :: StringBuilder {}
-    if self < 0.0 && units != 0 {
-        sb.append("-")
-    }
-    sb.append(digits.byte_slice(0, point))
-    if places > 0 {
-        sb.append(".")
-        sb.append(digits.byte_slice(point, digits.byte_len()))
-    }
-    return sb.to_string()
-}
+export to_fixed :: fn(self: f64, decimals: i64) -> string =
+    self.format(DecimalFormat { .decimals = decimals })
 
 /// Strip the base prefix (`0x` / `0b` / `0o`) and every `_` digit separator
 /// from a literal's source text. The result is a pure digit string ready for
@@ -290,6 +267,10 @@ import "std/testing"
     assert_eq((-0.04).to_fixed(1), "0.0")
 }
 
-@test test_to_fixed_falls_back_past_exact_integers :: fn() -> void {
-    assert_eq((1.0e300).to_fixed(1), "${1.0e300}")
+@test test_to_fixed_writes_large_values_in_full :: fn() -> void {
+    assert_eq(1.0e16.to_fixed(2), "10000000000000000.00")
+}
+
+@test test_to_oct :: fn() -> void {
+    assert_eq("${(8).to_oct()} ${(0).to_oct()} ${(511).to_oct()}", "10 0 777")
 }

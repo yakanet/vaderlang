@@ -174,6 +174,8 @@
     fn std.io.write_bytes  // std_io$write_bytes
     fn std.io.write_text  // std_io$write_text
   std/numbers
+    fn std.numbers.digit_char  // std_numbers$digit_char
+    fn std.numbers.digits_in_base  // std_numbers$digits_in_base
     fn std.numbers.hex_digit  // std_numbers$hex_digit
     fn std.numbers.hex_digit_value  // std_numbers$hex_digit_value
     fn std.numbers.to_compact_str  // std_numbers$to_compact_str

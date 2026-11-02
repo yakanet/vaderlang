@@ -1,0 +1,415 @@
+// std/numbers/format: numbers written in a chosen base, sign, grouping and notation.
+//
+// `IntFormat` and `DecimalFormat` spread `NumberFormat`, the options they share. A float
+// is written from the shortest digits that read back as the same value, the ones its
+// `Display` shows, and it is rounded on those digits.
+
+module "std/numbers"
+
+import "std/math"
+import "std/string"
+import "std/string_builder"
+
+// ---- formats --------------------------------------------------------------
+
+/// When a number writes its sign: `Negative` writes a minus sign on a negative
+/// number only, `Always` also writes a plus sign on any other.
+export SignMode :: enum { Negative, Always }
+
+/// How a float lays out its digits: around a point (`1500.25`), or one digit before
+/// the point and a power of ten (`1.50025e+3`).
+export Notation :: enum { Fixed, Scientific }
+
+/// The options every number format shares.
+///
+/// @example
+///   common :: NumberFormat { .separator = "_" }
+///   (1234567).format(IntFormat { ...common })                // "1_234_567"
+///   (1234.5).format(DecimalFormat { ...common, .decimals = 2 }) // "1_234.50"
+export NumberFormat :: struct {
+    /// When the sign is written.
+    sign: SignMode = .Negative
+    /// Written between the groups of digits of the integer part; empty for none.
+    separator: string = ""
+    /// Digits per group, counted from the point; 0 or less for no group.
+    group: i64 = 3
+}
+
+/// How `format` writes an integer.
+export IntFormat :: struct {
+    ...NumberFormat
+    /// The base, 2 to 36; any other writes in base 10.
+    base: i32 = 10
+    /// Whether `0b`, `0o` or `0x` comes before the digits, in base 2, 8 or 16.
+    prefix: bool = false
+    /// Whether the digits past 9 are capitals.
+    uppercase: bool = false
+    /// The least number of digits, zeros added after the sign and the prefix.
+    digits: i64 = 1
+}
+
+/// How `format` writes a float.
+export DecimalFormat :: struct {
+    ...NumberFormat
+    notation: Notation = .Fixed
+    /// The digits after the point, rounded half away from zero; null for the
+    /// shortest digits that read back as the same value.
+    decimals: i64 | null = null
+}
+
+// ---- integers -------------------------------------------------------------
+
+/// Write the integer `self` as `f` says.
+///
+/// @param self  the integer; a `u64` past the greatest `i64` takes `format_unsigned`.
+/// @param f     the base, the sign, the groups and the least number of digits.
+/// @return      the text, sign first, then the prefix, then the digits.
+/// @example
+///   (-42).format(IntFormat { .digits = 4 })                        // "-0042"
+///   (1234567).format(IntFormat { .separator = "," })               // "1,234,567"
+///   (255).format(IntFormat { .base = 16, .prefix = true })         // "0xff"
+///   (5).format(IntFormat { .sign = .Always, .base = 2, .digits = 4 }) // "+0101"
+export format :: fn(self: i64, f: IntFormat) -> string {
+    if self >= 0 {
+        return write_integer(u64(self), false, f)
+    }
+    // `-self` overflows on the least `i64`, whose magnitude still fits a `u64`.
+    return write_integer(u64(-(self + 1)) + 1, true, f)
+}
+
+/// Write the unsigned integer `self` as `f` says, past the greatest `i64` too.
+///
+/// @param self  the integer.
+/// @param f     the base, the sign, the groups and the least number of digits.
+/// @return      the text, sign first, then the prefix, then the digits.
+/// @example
+///   (@max(u64)).format_unsigned(IntFormat { .base = 16 })   // "ffffffffffffffff"
+export format_unsigned :: fn(self: u64, f: IntFormat) -> string = write_integer(self, false, f)
+
+// The text of an integer of magnitude `magnitude`.
+write_integer :: fn(magnitude: u64, negative: bool, f: IntFormat) -> string {
+    base :: integer_base(f.base)
+    digits :: digits_in_base(magnitude, base, f.uppercase).pad_start(f.digits, '0')
+    sign :: sign_text(negative, f.sign)
+    return "${sign}${prefix_text(base, f)}${grouped(digits, f.separator, f.group)}"
+}
+
+// The base `base` names when it is 2 to 36, base 10 otherwise.
+integer_base :: fn(base: i32) -> u64 {
+    if base < 2 || base > 36 {
+        return 10
+    }
+    return u64(base)
+}
+
+// The `0b`, `0o` or `0x` that `f` asks for before the digits of `base`.
+prefix_text :: fn(base: u64, f: IntFormat) -> string {
+    if !f.prefix {
+        return ""
+    }
+    return match base {
+        2  -> "0b"
+        8  -> "0o"
+        16 -> "0x"
+        _  -> ""
+    }
+}
+
+// ---- floats ---------------------------------------------------------------
+
+/// Write the float `self` as `f` says. NaN and the infinities are written as
+/// `Display` writes them, and a value that rounds to zero has no minus sign.
+///
+/// @param self  the float.
+/// @param f     the notation, the digits after the point, the sign and the groups.
+/// @return      the text, sign first.
+/// @example
+///   (2.675).format(DecimalFormat { .decimals = 2 })                   // "2.68"
+///   (-1234.5).format(DecimalFormat { .separator = "," })              // "-1,234.5"
+///   (123456.0).format(DecimalFormat { .notation = .Scientific })      // "1.23456e+5"
+///   (0.000123).format(DecimalFormat { .notation = .Scientific, .decimals = 1 }) // "1.2e-4"
+export format :: fn(self: f64, f: DecimalFormat) -> string {
+    if !is_finite(self) {
+        return "${self}"
+    }
+    places :: max(f.decimals ?? 0, 0)
+    d :: rounded_for(shortest_digits(self), f, places)
+    sign :: sign_text(self < 0.0 && d.digits != ZERO_DIGITS.digits, f.sign)
+    return "${sign}${notation_text(d, f, places)}"
+}
+
+// A non-negative decimal: `digits` with no leading or trailing zero, the point `point`
+// digits past their start (`12345` and 3 read 123.45, `5` and -2 read 0.005).
+DecimalDigits :: struct {
+    digits: string
+    point: i64
+}
+
+// Zero, the one value whose digits are a zero.
+ZERO_DIGITS :: DecimalDigits { .digits = "0", .point = 1 }
+
+// The shortest digits that read back as `x`, finite, taken from its `Display` text
+// (`-123.45`, `0.000123`, `1e+21`, `1.5e-7`) with the sign left out.
+shortest_digits :: fn(x: f64) -> DecimalDigits {
+    text :: "${x}".trim_prefix("-")
+    cut :: text.split_first("e") ?? return digits_of(text, 0)
+    return digits_of(cut.0, exponent_value(cut.1))
+}
+
+// The digits of `mantissa`, a decimal text like `123.45`, times ten to `exponent`.
+digits_of :: fn(mantissa: string, exponent: i64) -> DecimalDigits {
+    sides :: mantissa.split_first(".") ?? [mantissa, ""]
+    return trimmed("${sides.0}${sides.1}", sides.0.byte_len() + exponent)
+}
+
+// The exponent `Display` writes after the `e` of a float: a sign, then digits.
+exponent_value :: fn(text: string) -> i64 {
+    b :: text.bytes()
+    value: i64 = 0
+    for i in 1..<b.len() {
+        value = value * 10 + i64(b[i] - '0')
+    }
+    if b[0] == '-' {
+        return -value
+    }
+    return value
+}
+
+// `digits`, the point `point` digits past their start, without their leading and
+// trailing zeros.
+trimmed :: fn(digits: string, point: i64) -> DecimalDigits {
+    b :: digits.bytes()
+    start: i64 = 0
+    for start < b.len() && b[start] == '0' {
+        start += 1
+    }
+    end := b.len()
+    for end > start && b[end - 1] == '0' {
+        end -= 1
+    }
+    if start == end {
+        return ZERO_DIGITS
+    }
+    return DecimalDigits { .digits = digits.byte_slice(start, end), .point = point - start }
+}
+
+// `d` rounded to `places` digits after the point of the notation of `f`; as it is when
+// `f` asks for the shortest digits.
+rounded_for :: fn(d: DecimalDigits, f: DecimalFormat, places: i64) -> DecimalDigits {
+    if f.decimals == null {
+        return d
+    }
+    if f.notation == .Scientific {
+        return round_at(d, 1 + places)
+    }
+    return round_at(d, d.point + places)
+}
+
+// `d` cut to its first `keep` digits, rounded half away from zero: the last digit kept
+// goes up when the first one cut is 5 or more.
+round_at :: fn(d: DecimalDigits, keep: i64) -> DecimalDigits {
+    b :: d.digits.bytes()
+    if keep >= b.len() {
+        return d
+    }
+    if keep < 0 || keep == 0 && b[0] < '5' {
+        return ZERO_DIGITS
+    }
+    if b[keep] < '5' {
+        return trimmed(d.digits.byte_slice(0, keep), d.point)
+    }
+    // Going up drops the 9s it carries through: they would be trailing zeros.
+    last := keep - 1
+    for last >= 0 && b[last] == '9' {
+        last -= 1
+    }
+    if last < 0 {
+        return DecimalDigits { .digits = "1", .point = d.point + 1 }
+    }
+    sb :: StringBuilder {}
+    sb.append(d.digits.byte_slice(0, last))
+    sb.append_char(char(b[last] + 1))
+    return DecimalDigits { .digits = sb.to_string(), .point = d.point }
+}
+
+// `d` in the notation of `f`, `places` digits after the point.
+notation_text :: fn(d: DecimalDigits, f: DecimalFormat, places: i64) -> string {
+    if f.notation == .Scientific {
+        return scientific_text(d, places)
+    }
+    return with_point(grouped(integer_digits(d), f.separator, f.group), fraction_digits(d), places)
+}
+
+// The digits of `d` before its point, `0` when there is none.
+integer_digits :: fn(d: DecimalDigits) -> string {
+    if d.point <= 0 {
+        return "0"
+    }
+    if d.point >= d.digits.byte_len() {
+        return d.digits.pad_end(d.point, '0')
+    }
+    return d.digits.byte_slice(0, d.point)
+}
+
+// The digits of `d` past its point, with the zeros between the point and them.
+fraction_digits :: fn(d: DecimalDigits) -> string {
+    count :: d.digits.byte_len()
+    if d.point >= count {
+        return ""
+    }
+    if d.point < 0 {
+        return d.digits.pad_start(count - d.point, '0')
+    }
+    return d.digits.byte_slice(d.point, count)
+}
+
+// `d` as one digit, a point, the others padded to `places`, and the power of ten
+// (`1.5e+3`), as `Display` writes it.
+scientific_text :: fn(d: DecimalDigits, places: i64) -> string {
+    count :: d.digits.byte_len()
+    mantissa :: with_point(d.digits.byte_slice(0, 1), d.digits.byte_slice(1, count), places)
+    exponent :: d.point - 1
+    return "${mantissa}e${sign_text(exponent < 0, .Always)}${abs(exponent)}"
+}
+
+// `whole`, then a point and `fraction` padded to `places` digits, unless that leaves no
+// digit after the point.
+with_point :: fn(whole: string, fraction: string, places: i64) -> string {
+    padded :: fraction.pad_end(places, '0')
+    if padded == "" {
+        return whole
+    }
+    return "${whole}.${padded}"
+}
+
+// ---- shared ---------------------------------------------------------------
+
+sign_text :: fn(negative: bool, mode: SignMode) -> string {
+    if negative {
+        return "-"
+    }
+    if mode == .Always {
+        return "+"
+    }
+    return ""
+}
+
+// `digits` with `separator` between groups of `size`, counted from the end.
+grouped :: fn(digits: string, separator: string, size: i64) -> string {
+    count :: digits.byte_len()
+    if separator == "" || size <= 0 || count <= size {
+        return digits
+    }
+    at := count % size
+    if at == 0 {
+        at = size
+    }
+    sb :: StringBuilder {}
+    sb.append(digits.byte_slice(0, at))
+    for at < count {
+        sb.append(separator)
+        sb.append(digits.byte_slice(at, at + size))
+        at += size
+    }
+    return sb.to_string()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_format_int_groups_digits :: fn() -> void {
+    assert_eq(1234567.format(IntFormat { .separator = "," }), "1,234,567")
+    assert_eq(123.format(IntFormat { .separator = "," }), "123")
+    assert_eq(
+        0xdeadbeef.format(IntFormat { .base = 16, .separator = "_", .group = 4 }),
+        "dead_beef",
+    )
+    assert_eq(1234567.format(IntFormat { .separator = ",", .group = 0 }), "1234567")
+}
+
+@test
+test_format_int_pads_after_sign_and_prefix :: fn() -> void {
+    assert_eq(-42.format(IntFormat { .digits = 4 }), "-0042")
+    assert_eq(255.format(IntFormat { .base = 16, .prefix = true, .digits = 4 }), "0x00ff")
+}
+
+@test
+test_format_int_least_i64 :: fn() -> void {
+    assert_eq(@min(i64).format(IntFormat {}), "-9223372036854775808")
+}
+
+@test
+test_format_int_bases :: fn() -> void {
+    assert_eq(8.format(IntFormat { .base = 8, .prefix = true }), "0o10")
+    assert_eq(5.format(IntFormat { .base = 2, .prefix = true }), "0b101")
+    assert_eq(35.format(IntFormat { .base = 36 }), "z")
+    assert_eq(35.format(IntFormat { .base = 99, .prefix = true }), "35")
+}
+
+@test
+test_format_int_uppercase :: fn() -> void {
+    assert_eq(0xbeef.format(IntFormat { .base = 16, .uppercase = true }), "BEEF")
+}
+
+@test
+test_format_int_sign_always :: fn() -> void {
+    always :: IntFormat { .sign = .Always }
+    assert_eq("${(5).format(always)} ${(0).format(always)} ${(-5).format(always)}", "+5 +0 -5")
+}
+
+@test
+test_format_unsigned_past_i64 :: fn() -> void {
+    assert_eq(@max(u64).format_unsigned(IntFormat {}), "18446744073709551615")
+}
+
+@test
+test_format_shares_a_number_format :: fn() -> void {
+    common :: NumberFormat { .separator = "_", .sign = .Always }
+    assert_eq(1234567.format(IntFormat { ...common }), "+1_234_567")
+    assert_eq(1234.5.format(DecimalFormat { ...common, .decimals = 2 }), "+1_234.50")
+}
+
+@test
+test_format_float_shortest :: fn() -> void {
+    shortest :: DecimalFormat {}
+    assert_eq(3.0.format(shortest), "3")
+    assert_eq(1.0e21.format(shortest), "1000000000000000000000")
+    assert_eq(1.0e-7.format(shortest), "0.0000001")
+    assert_eq(-1234.5.format(DecimalFormat { .separator = "," }), "-1,234.5")
+}
+
+@test
+test_format_float_rounds_on_shown_digits :: fn() -> void {
+    two :: DecimalFormat { .decimals = 2 }
+    assert_eq(2.675.format(two), "2.68")
+    assert_eq(1.005.format(two), "1.01")
+    assert_eq(9.995.format(two), "10.00")
+    assert_eq(0.0006.format(two), "0.00")
+    assert_eq(0.6.format(DecimalFormat { .decimals = 0 }), "1")
+    assert_eq(2.5.format(DecimalFormat { .decimals = -1 }), "3")
+}
+
+@test
+test_format_float_zero_has_no_minus :: fn() -> void {
+    assert_eq(-0.0.format(DecimalFormat {}), "0")
+    assert_eq(-0.04.format(DecimalFormat { .decimals = 1 }), "0.0")
+}
+
+@test
+test_format_float_scientific :: fn() -> void {
+    scientific :: DecimalFormat { .notation = .Scientific }
+    assert_eq(123456.0.format(scientific), "1.23456e+5")
+    assert_eq(5.0e-324.format(scientific), "5e-324")
+    assert_eq(0.000123.format(DecimalFormat { ...scientific, .decimals = 1 }), "1.2e-4")
+    assert_eq(9.99.format(DecimalFormat { ...scientific, .decimals = 1 }), "1.0e+1")
+    assert_eq(0.0.format(DecimalFormat { ...scientific, .decimals = 2 }), "0.00e+0")
+}
+
+@test
+test_format_float_not_finite :: fn() -> void {
+    two :: DecimalFormat { .decimals = 2 }
+    assert_eq("${(1.0 / 0.0).format(two)} ${(-1.0 / 0.0).format(two)}", "inf -inf")
+    assert_eq((0.0 / 0.0).format(two), "nan")
+}
