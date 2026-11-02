@@ -2,14 +2,15 @@
 // holds open as it sees the disk. A document never saved belongs to the module
 // of its folder, a file with no `module` line is told so on itself, no request
 // answers with another file's data, a file changed outside the editor
-// reaches the open documents once the client reports it, and changes batched
-// in one notification leave the document at the last one.
+// reaches the open documents once the client reports it, an open document
+// whose file is deleted leaves its module, and changes batched in one
+// notification leave the document at the last one.
 //
 // The session is driven one message at a time, since what the test sends next
 // depends on what the server has already answered.
 
 import { afterAll, expect, test } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -181,6 +182,40 @@ test("a sibling written outside the editor reaches the open document once report
     params: { changes: [{ uri: pathToUri(join(dir, "a.vader")), type: 2 }] },
   });
   expect(errors(await session.diagnosticsOf(uri, reported))).toEqual([]);
+  await session.close();
+}, MEDIUM_BUILD);
+
+test("a document renamed outside the editor leaves its module under the old name", async () => {
+  const dir = project({ "old.vader": SIBLING });
+  const session = new Session(dir, {});
+  const oldUri = pathToUri(join(dir, "old.vader"));
+  const newUri = pathToUri(join(dir, "new.vader"));
+  session.open(oldUri, SIBLING);
+  expect(errors(await session.diagnosticsOf(oldUri))).toEqual([]);
+  // As `git mv` reaches an editor that keeps the old document open: a deletion
+  // and a creation, and no didClose.
+  renameSync(join(dir, "old.vader"), join(dir, "new.vader"));
+  const renamed = session.messages.length;
+  session.send({
+    method: "workspace/didChangeWatchedFiles",
+    params: { changes: [{ uri: oldUri, type: 3 }, { uri: newUri, type: 1 }] },
+  });
+  session.open(newUri, SIBLING);
+  expect(await session.diagnosticsOf(oldUri, renamed)).toEqual([]);
+  expect(errors(await session.diagnosticsOf(newUri, renamed))).toEqual([]);
+  await session.close();
+}, MEDIUM_BUILD);
+
+test("a deletion reported for a file still on the disk keeps the open document", async () => {
+  // A save that renames a copy over the file can be reported as a deletion.
+  const dir = project({ "a.vader": 'module "demo"\n\nANSWER: i64: 42\n', "b.vader": "" });
+  const session = new Session(dir, {});
+  const uri = pathToUri(join(dir, "b.vader"));
+  session.open(uri, 'module "demo"\n\nexport TWICE :: ANSWER * 2\n');
+  expect(errors(await session.diagnosticsOf(uri))).toEqual([]);
+  session.send({ method: "workspace/didChangeWatchedFiles", params: { changes: [{ uri, type: 3 }] } });
+  const hints = await session.request("textDocument/inlayHint", { textDocument: { uri }, range: WHOLE_FILE });
+  expect(hints.map((h: any) => [h.label, h.position.line])).toEqual([["i64", 2]]);
   await session.close();
 }, MEDIUM_BUILD);
 

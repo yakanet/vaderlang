@@ -472,6 +472,11 @@ export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
     uri :: get_string(td, "uri")
     if uri.byte_len() == 0 { return }
+    drop_document(self, uri)
+}
+
+// Forget the document at `uri` and clear its diagnostics on the client.
+drop_document :: fn(self: ServerState, uri: string) -> void {
     // Removed rather than blanked: a blanked entry still answers as a real one.
     self.docs.remove(uri)
     if is_virt_uri(uri) {
@@ -558,7 +563,9 @@ export register_file_watchers :: fn(self: ServerState) -> void {
 /// file can affect is marked for a new publish, since a sibling's change moves a
 /// module's diagnostics; a changed `build.vader` has its project describe itself
 /// again. A change to an open document's file is a save of text the server
-/// already holds, and is skipped. Params shape : { changes: [ { uri, type } ] }
+/// already holds, and is skipped, unless the file is gone: the document then
+/// leaves its module, as on a didClose, since the editor may never close it.
+/// Params shape : { changes: [ { uri, type } ] }
 ///
 /// @param self    the server state.
 /// @param params  the notification's params.
@@ -570,10 +577,13 @@ export handle_did_change_watched_files :: fn(self: ServerState, params: JsonValu
     changed: string[]: []
     for change in changes.items {
         uri :: get_string(change, "uri")
-        if self.docs[uri] != null {
-            continue
-        }
         path :: uri_to_path(uri)
+        if self.docs[uri] != null {
+            if !is_deletion(change, path) {
+                continue
+            }
+            drop_document(self, uri)
+        }
         changed.push(path)
         describe_again_if_driver(self, path)
     }
@@ -588,6 +598,15 @@ export handle_did_change_watched_files :: fn(self: ServerState, params: JsonValu
         }
     }
 }
+
+// LSP `FileChangeType.Deleted`.
+FILE_DELETED :: 3
+
+// Whether `change` reports the file at `path` deleted. The disk has the last
+// word: a save that writes a copy and renames it over the file can reach the
+// client as a deletion, of a file that never went missing.
+is_deletion :: fn(change: JsonValue, path: string) -> bool =
+    get_number(change, "type") == FILE_DELETED && !exists(path)
 
 // Whether one of the files `changed` can move the analysis of the document at
 // `path`: it sits in the document's project, or in its folder when it has none.
