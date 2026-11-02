@@ -39,9 +39,8 @@ export runtime_or_probe :: fn(runtime_root: string) -> string {
 export runtime_c_root :: fn() -> string = resolve_sidecar("runtime/c", "vader.h")
 /// The flags every C compile of emitted code takes, by build mode.
 ///
-/// Release adds `-falign-functions=64`, measured as worth it on this codebase;
-/// debug keeps `-O0 -g` so a `#line`-carrying build is steppable. Release alone
-/// defines `NDEBUG`, which turns the checked arithmetic of `runtime/c/vader.h` from
+/// Release adds `-falign-functions=64`, for speed; debug keeps `-O0 -g` so a
+/// `#line`-carrying build is steppable. Release alone defines `NDEBUG`, which turns the checked arithmetic of `runtime/c/vader.h` from
 /// stopping the run into wrapping (SPEC §Integer overflow). Both carry `-fwrapv`:
 /// the wrapping operators and the arithmetic the compiler synthesises lower to the
 /// C operator on a signed type, where C leaves an overflow undefined and a compiler

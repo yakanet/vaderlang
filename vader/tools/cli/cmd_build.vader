@@ -355,9 +355,8 @@ virt_module :: fn(file: Path) -> BytecodeModule | null {
 ///
 /// The seed's shape. Atom ids are positions, so each target's own literal pool
 /// numbers them differently and every file ends up differing by renumbering
-/// alone: measured at 7026 renumbered lines against 2 of real content. Unioning
-/// the pools first makes the ids agree, so the emitted C differs only where the
-/// code does.
+/// alone. Unioning the pools first makes the ids agree, so the emitted C differs
+/// only where the code does.
 ///
 /// The union is SORTED rather than first-seen: the ids must not depend on the
 /// order the targets were listed in.
@@ -382,9 +381,7 @@ emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
     universe :: union_of_string_pools(mods)
     // The type table needs the same treatment as the atom table, and for the
     // same reason: it is index-addressed, so one extra type on one target shifts
-    // every slot after it. Measured without this, from a single lambda in a
-    // `@target` body: 11 282 renumbered lines against 238 of real content, and
-    // shared units fell from 37 to 7.
+    // every slot after it, and the units would differ by renumbering alone.
     // Keyed ONCE per module, then reused by the union and by every rebase:
     // `bc_type_key` recurses through composite types, so re-deriving it per pass
     // re-walks that graph for every target.

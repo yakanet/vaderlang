@@ -58,13 +58,9 @@ forward_struct_fields_in_fn :: fn(fn_: CFGFunction) -> CFGFunction {
     order :: reverse_postorder(fn_)
     exits :: Map<i32, Map<i32, LocalId[]>> {}
     rewritten :: Map<i32, Instruction[]> {}
-    // ONE pass, in reverse postorder: deliberately not iterated to a fixed
-    // point. Iterating converges (the per-block transfer's gen/kill does not
-    // depend on the incoming state, and the join is an intersection, so the
-    // system is monotone over a finite lattice), but it buys nothing here: a
-    // fixed-point variant was measured against this one and produced the same
-    // bytecode for the compiler and for every snippet. What it would add is
-    // precision across a back edge, and nothing reads a rebuilt tuple there.
+    // ONE pass, in reverse postorder, not iterated to a fixed point: iterating
+    // would add precision across a back edge only, and nothing reads a rebuilt
+    // tuple there.
     //
     // A single pass is conservative by construction: a predecessor not yet
     // walked is a back edge, and it contributes nothing rather than something

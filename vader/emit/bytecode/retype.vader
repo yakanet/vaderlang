@@ -3,9 +3,7 @@
 // `BytecodeModule.types` is index-addressed, so two targets that compile the
 // same program can hold the same type at different slots, and one extra type
 // on one target shifts every slot after it. Emitting several targets against
-// one C output then differs everywhere by renumbering alone: measured at 11 282
-// renumbered lines against 238 of real content, from a single lambda in a
-// `@target` body.
+// one C output then differs everywhere by renumbering alone.
 //
 // This is the type-table half of what `EmitOptions.atom_universe` does for
 // string literals. Same shape: a canonical key (`bc_type_key`), a shared order,

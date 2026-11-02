@@ -608,7 +608,7 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 - [ ] **LSP: a broken `.virt` shows no diagnostic** (noted 2026-10-10). `handle_did_open` / `handle_did_change` return after `track_virt_document` without publishing, so a hand-edited dump that `vader run` would refuse looks clean. `ServerState.virt_listings` already caches the `VirtParseError` (with its `line_number`), but it is only filled lazily on the first request, and the reader stops at the first error.
 - [ ] **`dump --stage=bytecode` is not filtered to the entry module.**
 - [ ] **~520 `match` with at most two arms** (heuristic count): the style rule says `if` for one or two cases; no sweep since the rule.
-- [ ] **Five comments still narrate a measurement** (`Measured ...` in `vader/emit/c/emit.vader`, `vader/tools/cli/cmd_build.vader`, ...): reasoning belongs in an ADR, a comment states the constraint.
+- [ ] **Two LSP comments still narrate a measurement** (`Measured dead for ...` in `vader/tools/lsp/analysis/resolver.vader`, `measured ...` in `vader/tools/lsp/handlers/definition.vader`): reasoning belongs in an ADR, a comment states the constraint.
 - [ ] **FFI: `@c_name` per field**: today the Vader field name IS the C name; only `@c_struct("…")` names the struct.
 - [ ] **FFI: `CPointer` → `pointer`, DECISION PENDING** (78 occurrences across `vader/`, `lib/`, SPEC). One record says rename, another says the spelled-out name stays.
 - [ ] **FFI: a first third-party binding (SQLite)**, and with it whether an `@extern`'s library name becomes a contract on both backends (native passes `-l`, the link fails without it) or stays information for the VM.

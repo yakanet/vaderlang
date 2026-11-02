@@ -57,10 +57,9 @@ export CEmitOptions :: struct {
     /// behaviour every caller had.
     ///
     /// It exists for the seed. Atom ids are POSITIONS, so a literal present only
-    /// on one target shifts every id after it: measured across a darwin/windows
-    /// pair: 7028 of 7030 differing lines were renumberings, and 2 were real.
-    /// Emitting every target against one universe makes the ids agree, so the C
-    /// then differs only where the code does.
+    /// on one target shifts every id after it, and the C of two targets differs
+    /// by renumbering alone. Emitting every target against one universe makes the
+    /// ids agree, so the C then differs only where the code does.
     atom_universe: string[] = []
     /// `$VADER_VERIFY_BOUNDS`: an access proven in bounds (`bounds_safe`) keeps
     /// its index check, with a message of its own (`VADER_ARRAY_CHECK_PROVEN`).
@@ -1046,10 +1045,7 @@ signature_for :: fn(ctx: EmitCtx, index: i32) -> CSignature {
     function :: ctx.module.functions[index]
     parameters :: value_parameters(function.signature.params, "l")
     // A multi-value return has no C spelling, so it becomes out-params appended
-    // after the declared ones and the function itself returns void. Measured as
-    // the fastest of the three shapes a composite can cross in (out-params,
-    // a flat struct by value, or the heap object this replaces) and the only
-    // one that needs no ABI threshold to be known.
+    // after the declared ones and the function itself returns void.
     multiple :: bc_result_arity(function.signature) > 1
     if multiple {
         results :: function.signature.results

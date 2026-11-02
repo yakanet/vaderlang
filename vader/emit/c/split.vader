@@ -251,11 +251,8 @@ emit_internal_forward_decls :: fn(ctx: EmitCtx, bucket: i32[], printer: CPrinter
 /// Per-function: true when NO unit but its own refers to it, so it can be
 /// `static` in that unit.
 ///
-/// Splitting used to give every function external linkage, which forbids `cc`
-/// from inlining it: a definition another TU may call has to be emitted as
-/// written. That is what the split cost: measured at +10 % to +29 % on the
-/// stdlib-heavy bench workloads, against a monolithic build where everything
-/// is already `static`.
+/// External linkage forbids `cc` from inlining a function: a definition another
+/// TU may call has to be emitted as written.
 ///
 /// A function stays EXTERNAL when any of these holds. The list is the complete
 /// set of ways a name can be reached from outside its unit, and erring towards
