@@ -43,21 +43,17 @@ export hex_digit_value :: fn(c: char) -> i32 = match c {
 /// @param s     the digits-only input.
 /// @param base  one of 2 / 8 / 10 / 16.
 /// @return      the parsed `i64`.
-/// @error       `ParseError` on empty input or any out-of-base digit.
+/// @error       `ParseError` on empty input, any out-of-base digit, or a value
+///              past the greatest `i64` (carries `.msg = "overflow"`).
 export parse_int_in_base :: fn(s: string, base: i32) -> i64 | ParseError {
-    if s.is_empty() {
-        return ParseError { .msg = "empty input" }
+    magnitude :: parse_uint_in_base(s, base)
+    if magnitude is ParseError {
+        return magnitude
     }
-    acc: i64 = 0
-    b: i64: i64(base)
-    for c in s {
-        d :: hex_digit_value(c)
-        if d < 0 || d >= base {
-            return ParseError { .msg = "invalid digit" }
-        }
-        acc = acc * b + i64(d)
+    if magnitude > u64(@max(i64)) {
+        return ParseError { .msg = "overflow" }
     }
-    return acc
+    return i64(magnitude)
 }
 
 /// Parse an unsigned integer in the given base. Same input shape as
@@ -76,16 +72,16 @@ export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError {
     }
     acc: u64 = 0
     b: u64: u64(base)
-    u64_max: u64: 0xFFFF_FFFF_FFFF_FFFF
+    // Past `cutoff`, or at it with a digit past `last`, the multiply-add would
+    // wrap past `u64.MAX`, which itself still reads.
+    cutoff :: @max(u64) / b
+    last :: @max(u64) % b
     for c in s {
         d :: hex_digit_value(c)
         if d < 0 || d >= base {
             return ParseError { .msg = "invalid digit" }
         }
-        // Overflow guard : reject any literal whose value would wrap past
-        // `u64.MAX`. Checked before the multiply-add so `acc` never wraps ;
-        // `u64.MAX` itself still round-trips (equality is not an overflow).
-        if acc > (u64_max - u64(d)) / b {
+        if acc > cutoff || acc == cutoff && u64(d) > last {
             return ParseError { .msg = "overflow" }
         }
         acc = acc * b + u64(d)
@@ -252,6 +248,18 @@ import "std/testing"
     assert_eq(strip_numeric_text("1_000",   10),  "1000")
     assert_eq(strip_numeric_text("3.14",    10),  "3.14")
     assert_eq(strip_numeric_text("42",      10),  "42")     // fast path
+}
+
+@test test_parse_int_in_base_reads_the_greatest_i64 :: fn() -> void {
+    greatest :: parse_int_in_base("9223372036854775807", 10)
+    assert(greatest is i64 && greatest == 0x7FFF_FFFF_FFFF_FFFF, "the greatest i64 reads")
+}
+
+@test test_parse_int_in_base_refuses_an_overflow :: fn() -> void {
+    past :: parse_int_in_base("9223372036854775808", 10)
+    assert(past is ParseError && past.msg == "overflow", "one past the greatest i64 is refused")
+    long :: parse_int_in_base("FFFFFFFFFFFFFFFFF", 16)
+    assert(long is ParseError && long.msg == "overflow", "17 hex digits are refused")
 }
 
 @test test_to_compact_str_whole_numbers :: fn() -> void {

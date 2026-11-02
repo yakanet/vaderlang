@@ -27,6 +27,7 @@ import "std/numbers"
 import "std/string"
 import "std/collections"
 import "std/iter"
+import "std/math"
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The resulting
 /// string carries a trailing newline ; pipe to stdout directly. This is the
@@ -687,10 +688,10 @@ convert_target_name :: fn(t: ConvertTarget) -> string = match t {
 // the value from that word. The `.virt` output is then byte-identical on every
 // build arch.
 f64_const_operands :: fn(v: f64) -> string {
-    bits :: v.to_bits()
-    // Non-finite iff the exponent field is all-ones.
-    if ((bits >> 52) & 0x7FF) == 0x7FF { return "${v}" }
-    return "${v} ${bits}"
+    if !is_finite(v) {
+        return "${v}"
+    }
+    return "${v} ${v.to_bits()}"
 }
 
 /// Append `op`'s `.virt` mnemonic to `out`, no scope labels : control-flow ops

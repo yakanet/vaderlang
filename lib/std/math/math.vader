@@ -24,6 +24,14 @@ export e :: 2.718281828459045
 @extern("sqrt")
 export sqrt :: fn(x: f64) -> f64
 
+/// Length of the hypotenuse, `sqrt(x * x + y * y)`, without the overflow or
+/// the underflow of the squares.
+/// @param x  one side.
+/// @param y  the other side.
+@c_header("<math.h>")
+@extern("hypot")
+export hypot :: fn(x: f64, y: f64) -> f64
+
 /// Power: `x^n`. Both base and exponent are floats ; for integer exponents
 /// the caller is expected to cast.
 /// @param x  base.
@@ -45,6 +53,29 @@ export ceil :: fn(x: f64) -> f64
 @c_header("<math.h>")
 @extern("round")
 export round :: fn(x: f64) -> f64
+/// The integer part of `x`, rounded toward zero: `trunc(-1.7)` is `-1.0`.
+@c_header("<math.h>")
+@extern("trunc")
+export trunc :: fn(x: f64) -> f64
+
+// ---- Exponentials and logarithms ------------------------------------------
+
+/// `e` raised to the power `x`.
+@c_header("<math.h>")
+@extern("exp")
+export exp :: fn(x: f64) -> f64
+/// Natural logarithm of `x`: `NaN` when `x < 0`, `-inf` when `x` is zero.
+@c_header("<math.h>")
+@extern("log")
+export log :: fn(x: f64) -> f64
+/// Base-2 logarithm of `x`: `NaN` when `x < 0`, `-inf` when `x` is zero.
+@c_header("<math.h>")
+@extern("log2")
+export log2 :: fn(x: f64) -> f64
+/// Base-10 logarithm of `x`: `NaN` when `x < 0`, `-inf` when `x` is zero.
+@c_header("<math.h>")
+@extern("log10")
+export log10 :: fn(x: f64) -> f64
 
 // ---- Trigonometry ---------------------------------------------------------
 
@@ -60,6 +91,50 @@ export cos :: fn(x: f64) -> f64
 @c_header("<math.h>")
 @extern("tan")
 export tan :: fn(x: f64) -> f64
+/// Arc sine of `x`, in radians in `[-pi/2, pi/2]`: `NaN` outside `[-1, 1]`.
+@c_header("<math.h>")
+@extern("asin")
+export asin :: fn(x: f64) -> f64
+/// Arc cosine of `x`, in radians in `[0, pi]`: `NaN` outside `[-1, 1]`.
+@c_header("<math.h>")
+@extern("acos")
+export acos :: fn(x: f64) -> f64
+/// Arc tangent of `x`, in radians in `[-pi/2, pi/2]`.
+@c_header("<math.h>")
+@extern("atan")
+export atan :: fn(x: f64) -> f64
+/// Angle of the point `(x, y)` from the positive x axis, in radians in
+/// `[-pi, pi]`: the arc tangent of `y / x`, in the quadrant of the point.
+/// @param y  the ordinate, the first argument as in C.
+/// @param x  the abscissa.
+@c_header("<math.h>")
+@extern("atan2")
+export atan2 :: fn(y: f64, x: f64) -> f64
+
+// ---- Float classification -------------------------------------------------
+//
+// Infinity is read from the bits: a float without its sign has the bits of
+// infinity when it is infinite, fewer when it is finite.
+
+F64_MAGNITUDE: u64: 0x7FFF_FFFF_FFFF_FFFF
+F64_INFINITY: u64: 0x7FF0_0000_0000_0000
+F32_MAGNITUDE: u32: 0x7FFF_FFFF
+F32_INFINITY: u32: 0x7F80_0000
+
+/// Whether `x` is a NaN, the one value not equal to itself.
+export is_nan :: fn(x: f64) -> bool = x != x
+/// Whether `x` is a NaN, the one value not equal to itself.
+export is_nan :: fn(x: f32) -> bool = x != x
+
+/// Whether `x` is `inf` or `-inf`.
+export is_infinite :: fn(x: f64) -> bool = x.to_bits() & F64_MAGNITUDE == F64_INFINITY
+/// Whether `x` is `inf` or `-inf`.
+export is_infinite :: fn(x: f32) -> bool = x.to_bits() & F32_MAGNITUDE == F32_INFINITY
+
+/// Whether `x` is neither infinite nor a NaN.
+export is_finite :: fn(x: f64) -> bool = x.to_bits() & F64_MAGNITUDE < F64_INFINITY
+/// Whether `x` is neither infinite nor a NaN.
+export is_finite :: fn(x: f32) -> bool = x.to_bits() & F32_MAGNITUDE < F32_INFINITY
 
 // ---- Comparison + helpers -------------------------------------------------
 //
@@ -94,6 +169,30 @@ export abs :: fn(x: i32) -> i32 = if x < 0 { -x } else { x }
 /// Absolute value of an `i64`. Same overflow caveat at `i64::MIN`.
 export abs :: fn(x: i64) -> i64 = if x < 0 { -x } else { x }
 
+/// Sign of `x`: `1.0` when positive, `-1.0` when negative, `x` itself
+/// otherwise, so a zero keeps its sign and a NaN stays a NaN.
+export sign :: fn(x: f64) -> f64 {
+    if x > 0.0 {
+        return 1.0
+    }
+    if x < 0.0 {
+        return -1.0
+    }
+    return x
+}
+/// Sign of `x`: `1`, `-1` or `0`.
+export sign :: fn(x: i32) -> i32 = i32(sign(i64(x)))
+/// Sign of `x`: `1`, `-1` or `0`.
+export sign :: fn(x: i64) -> i64 {
+    if x > 0 {
+        return 1
+    }
+    if x < 0 {
+        return -1
+    }
+    return 0
+}
+
 /// Clamp `x` to `[lo, hi]`. Equivalent to `min(max(x, lo), hi)`. Behaviour
 /// when `lo > hi` matches the underlying calls: `lo` wins.
 export clamp :: fn(x: f64, lo: f64, hi: f64) -> f64 = min(max(x, lo), hi)
@@ -111,6 +210,107 @@ export clamp :: fn(x: i64, lo: i64, hi: i64) -> i64 = min(max(x, lo), hi)
 /// @param t  blend factor, clamped to `[0, 1]`.
 /// @return   `a + (b - a) * clamp(t, 0, 1)`.
 export lerp :: fn(a: f64, b: f64, t: f64) -> f64 = a + (b - a) * clamp(t, 0.0, 1.0)
+
+// ---- Integer arithmetic ---------------------------------------------------
+//
+// In `i32` and `i64`: a narrower integer widens into one of them with no loss.
+// A result the type does not hold stops the program as `*` or `-` would.
+
+/// Greatest common divisor of `a` and `b`, never negative: `gcd(a, 0)` is
+/// `abs(a)`, `gcd(0, 0)` is `0`.
+/// @param a  one integer, of either sign.
+/// @param b  the other.
+/// @example
+///   gcd(12, -18)     // 6
+export gcd :: fn(a: i32, b: i32) -> i32 {
+    x := a
+    y := b
+    for y != 0 {
+        rest :: x % y
+        x = y
+        y = rest
+    }
+    return abs(x)
+}
+/// Greatest common divisor of `a` and `b`, never negative: `gcd(a, 0)` is
+/// `abs(a)`, `gcd(0, 0)` is `0`.
+/// @param a  one integer, of either sign.
+/// @param b  the other.
+export gcd :: fn(a: i64, b: i64) -> i64 {
+    x := a
+    y := b
+    for y != 0 {
+        rest :: x % y
+        x = y
+        y = rest
+    }
+    return abs(x)
+}
+
+/// Least common multiple of `a` and `b`, never negative: `0` when either is.
+/// @param a  one integer, of either sign.
+/// @param b  the other.
+/// @example
+///   lcm(4, 6)        // 12
+export lcm :: fn(a: i32, b: i32) -> i32 {
+    if a == 0 || b == 0 {
+        return 0
+    }
+    return abs(a / gcd(a, b) * b)
+}
+/// Least common multiple of `a` and `b`, never negative: `0` when either is.
+/// @param a  one integer, of either sign.
+/// @param b  the other.
+export lcm :: fn(a: i64, b: i64) -> i64 {
+    if a == 0 || b == 0 {
+        return 0
+    }
+    return abs(a / gcd(a, b) * b)
+}
+
+/// `base` raised to the power `exponent`, by repeated squaring: `pow(x, 0)` is
+/// `1`.
+/// @param base      the integer to raise.
+/// @param exponent  how many times `base` is multiplied in.
+/// @example
+///   pow(2, 10)       // 1024
+///   pow(-3, 3)       // -27
+export pow :: fn(base: i32, exponent: u32) -> i32 {
+    result: i32 = 1
+    factor := base
+    rest := exponent
+    for rest > 0 {
+        if rest & 1 == 1 {
+            result *= factor
+        }
+        rest = rest >> 1
+        // Not past the last bit: a square no bit uses could overflow alone.
+        if rest > 0 {
+            factor *= factor
+        }
+    }
+    return result
+}
+/// `base` raised to the power `exponent`, by repeated squaring: `pow(x, 0)` is
+/// `1`.
+/// @param base      the integer to raise.
+/// @param exponent  how many times `base` is multiplied in.
+export pow :: fn(base: i64, exponent: u32) -> i64 {
+    result: i64 = 1
+    factor := base
+    rest := exponent
+    for rest > 0 {
+        if rest & 1 == 1 {
+            result *= factor
+        }
+        rest = rest >> 1
+        // Not past the last bit: a square no bit uses could overflow alone.
+        if rest > 0 {
+            factor *= factor
+        }
+    }
+    return result
+}
 
 // ---------------------------------------------------------------------- tests
 
@@ -191,6 +391,71 @@ import "std/testing"
     assert_close(lerp(0.0, 10.0, 0.0), 0.0, 0.000001)
     assert_close(lerp(0.0, 10.0, 1.0), 10.0, 0.000001)
     assert_close(lerp(0.0, 10.0, 0.5), 5.0, 0.000001)
+}
+
+@test test_hypot_and_trunc :: fn() -> void {
+    assert_close(hypot(3.0, 4.0), 5.0, 0.000001)
+    assert_close(trunc(-1.7), -1.0, 0.000001)
+    assert_close(trunc(1.7), 1.0, 0.000001)
+}
+
+// Points where libm is exact, as for the trigonometry.
+@test test_exponentials_and_logarithms :: fn() -> void {
+    assert_close(exp(0.0), 1.0, 0.000001)
+    assert_close(log(1.0), 0.0, 0.000001)
+    assert_close(log(e), 1.0, 0.000001)
+    assert_close(log2(8.0), 3.0, 0.000001)
+    assert_close(log10(1000.0), 3.0, 0.000001)
+}
+
+@test test_inverse_trigonometry :: fn() -> void {
+    assert_close(asin(1.0), pi / 2.0, 0.000001)
+    assert_close(acos(-1.0), pi, 0.000001)
+    assert_close(atan(1.0), pi / 4.0, 0.000001)
+    assert_close(atan2(1.0, -1.0), 3.0 * pi / 4.0, 0.000001)
+}
+
+@test test_float_classification :: fn() -> void {
+    nan :: 0.0 / 0.0
+    infinity :: 1.0 / 0.0
+    assert(is_nan(nan), "0 / 0 is a NaN")
+    assert(!is_nan(infinity), "inf is not a NaN")
+    assert(is_infinite(-infinity), "-inf is infinite")
+    assert(!is_infinite(nan), "a NaN is not infinite")
+    assert(is_finite(-1.5), "-1.5 is finite")
+    assert(!is_finite(nan), "a NaN is not finite")
+    narrow: f32: 2.5
+    assert(is_finite(narrow), "an f32 2.5 is finite")
+    assert(!is_nan(narrow), "an f32 2.5 is not a NaN")
+    assert(!is_infinite(narrow), "an f32 2.5 is not infinite")
+}
+
+@test test_sign :: fn() -> void {
+    assert_eq(sign(-7), -1)
+    assert_eq(sign(0), 0)
+    wide: i64: 9_000_000_000
+    assert_eq(sign(wide), 1)
+    assert_close(sign(-2.5), -1.0, 0.000001)
+    assert(is_nan(sign(0.0 / 0.0)), "the sign of a NaN is a NaN")
+}
+
+@test test_gcd_and_lcm :: fn() -> void {
+    assert_eq(gcd(12, -18), 6)
+    assert_eq(gcd(-12, 0), 12)
+    assert_eq(gcd(0, 0), 0)
+    assert_eq(lcm(4, -6), 12)
+    assert_eq(lcm(0, 5), 0)
+    wide: i64: 6_000_000_000
+    assert_eq(gcd(wide, 4_000_000_000), 2_000_000_000)
+    assert_eq(lcm(wide, 4_000_000_000), 12_000_000_000)
+}
+
+@test test_integer_pow :: fn() -> void {
+    assert_eq(pow(2, 10), 1024)
+    assert_eq(pow(-3, 3), -27)
+    assert_eq(pow(7, 0), 1)
+    wide: i64: -2
+    assert_eq(pow(wide, 63), -0x8000_0000_0000_0000)
 }
 
 @test test_round_half_away_from_zero :: fn() -> void {
