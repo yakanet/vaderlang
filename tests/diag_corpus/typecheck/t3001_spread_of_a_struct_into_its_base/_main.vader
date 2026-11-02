@@ -1,0 +1,17 @@
+// T3001 : a value of a struct does not fill a literal of a struct it spreads. The
+// spread goes from the base to the struct that spreads it, never back.
+module "snippet"
+
+Base :: struct {
+    width: i32 = 0
+}
+
+Wide :: struct {
+    ...Base
+    depth: i32 = 0
+}
+
+main :: fn() -> i32 {
+    wide :: Wide { .width = 3 }
+    return Base { ...wide }.width
+}

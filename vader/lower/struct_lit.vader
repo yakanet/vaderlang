@@ -11,6 +11,7 @@ import "toolchain/ast"
 import "vader/support/diagnostics"
 import "vader/core/symbol"
 import "vader/core/types"
+import "vader/front/typecheck"
 import "toolchain/span"
 import "std/abort"
 
@@ -22,28 +23,79 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     provided :: Map<string, Expr> {}
     // Bind each `...spread` source to a synthetic temp so it's
     // evaluated exactly once even when several fields inherit from it.
-    // Later spreads win, so `spread_sym` tracks the LAST source:
-    // omitted fields read from it.
+    // An omitted field reads from the last source that holds it.
     spread_stmts: LoweredStmt[]: []
-    spread_sym: Symbol | null = null
+    spreads: LiteralSpread[] | null = null
     for item in lit.items {
         match item {
             is StructLitField -> { provided[item.name] = item.value }
             is StructLitSpread -> {
                 value :: lower_after_prelude(ctx, item.expr, spread_stmts)
-                sym :: fresh_synthetic_symbol(ctx, "spread")
-                spread_sym = sym
-                spread_stmts.push(LoweredLet {
-                    .span = item.span, .name = sym.name, .symbol = sym,
-                    .type = type, .value = value,
-                })
+                spread :: literal_spread(ctx, type, fresh_synthetic_symbol(ctx, "spread"), value)
+                spreads = with_spread(spreads, spread)
+                spread_stmts.push(
+                    LoweredLet {
+                        .span = item.span,
+                        .name = spread.symbol.name,
+                        .symbol = spread.symbol,
+                        .type = spread.type,
+                        .value = value,
+                    },
+                )
             }
         }
     }
     fields_mark :: ctx.pending_awaits.len()
-    fields :: build_struct_lit_fields(ctx, type, provided, lit, spread_sym)
+    fields :: build_struct_lit_fields(ctx, type, provided, lit, spreads)
     hoist_prelude_before(ctx, spread_stmts, fields_mark)
     return with_prelude(spread_stmts, new_struct_lit(ctx, type, fields, lit.span), lit.span)
+}
+
+// A `...spread` of a struct literal, its source bound to a temp.
+LiteralSpread :: struct {
+    symbol: Symbol
+    /// The type of the temp : the literal's, or that of the base the source is.
+    type: Type
+    /// The fields of the base the source is ; null when the source is of the
+    /// literal's struct and holds every field.
+    fields: Map<string, StructFieldInfo> | null
+}
+
+// The spread of a literal of `type` whose source `value` is bound to `symbol`.
+literal_spread :: fn(ctx: FnLowerCtx, type: Type, symbol: Symbol, value: LoweredExpr) -> LiteralSpread {
+    source :: struct_backing(value.type)
+    literal :: struct_backing(type)
+    if source == null || literal == null || source.symbol.id == literal.symbol.id {
+        return LiteralSpread { .symbol = symbol, .type = type, .fields = null }
+    }
+    return LiteralSpread {
+        .symbol = symbol,
+        .type = value.type,
+        .fields = ctx.typed.struct_fields[source.symbol.id]
+            ?? panic("lower: no fields recorded for `${source.symbol.name}`"),
+    }
+}
+
+// `spreads` with `spread` last : the list is made at the first spread of a literal.
+with_spread :: fn(spreads: LiteralSpread[] | null, spread: LiteralSpread) -> LiteralSpread[] {
+    if spreads == null {
+        return [spread]
+    }
+    spreads.push(spread)
+    return spreads
+}
+
+// The last of `spreads` whose source holds the field `name`, null when none does.
+last_spread_holding :: fn(spreads: LiteralSpread[] | null, name: string) -> LiteralSpread | null {
+    listed :: spreads ?? return null
+    found: LiteralSpread | null = null
+    for spread in listed {
+        fields :: spread.fields
+        if fields == null || name in fields {
+            found = spread
+        }
+    }
+    return found
 }
 
 // The literal of a value of struct `type`. Every literal of a declared struct is
@@ -218,7 +270,7 @@ ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl,
 build_struct_lit_fields :: fn(
     ctx: FnLowerCtx, type: Type,
     provided: Map<string, Expr>, lit: StructLitExpr,
-    spread_sym: Symbol | null,
+    spreads: LiteralSpread[] | null,
 ) -> LoweredStructLitField[] {
     out: LoweredStructLitField[]: []
     // `struct_backing` unwraps a struct-backed distinct newtype so declared-order
@@ -234,19 +286,25 @@ build_struct_lit_fields :: fn(
         user_value :: provided[field_decl.name]
         if user_value is null {
             // Omitted field : inherit from the last `...spread`
-            // source via a field access, else fall back to the
+            // source that holds it via a field access, else fall back to the
             // declared default.
-            if spread_sym is Symbol {
-                out.push(LoweredStructLitField {
-                    .name = field_decl.name,
-                    .value = LoweredFieldAccess {
-                        .span = lit.span, .type = field_type,
-                        .target = LoweredIdent {
-                            .span = lit.span, .type = type, .symbol = spread_sym,
+            spread :: last_spread_holding(spreads, field_decl.name)
+            if spread != null {
+                out.push(
+                    LoweredStructLitField {
+                        .name = field_decl.name,
+                        .value = LoweredFieldAccess {
+                            .span = lit.span,
+                            .type = field_type,
+                            .target = LoweredIdent {
+                                .span = lit.span,
+                                .type = spread.type,
+                                .symbol = spread.symbol,
+                            },
+                            .field = field_decl.name,
                         },
-                        .field = field_decl.name,
                     },
-                })
+                )
                 continue
             }
             // A field DEFAULT (`id: i64 = UNASSIGNED_NODE_ID`) is an AST expr from

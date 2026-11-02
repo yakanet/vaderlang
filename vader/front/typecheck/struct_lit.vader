@@ -6,6 +6,8 @@
 
 module "vader/front/typecheck"
 
+import "std/collections"
+import "std/iter"
 import "std/string"
 import "vader/support/diagnostics"
 import "vader/core/types"
@@ -74,8 +76,8 @@ reject_unmet_struct_bounds :: fn(
 }
 
 /// Type-check the items of a struct literal against `st` : each field
-/// against its declared type, each spread against `st`, then T3037 for a
-/// required field nothing provides.
+/// against its declared type, each spread against `st` or a struct `st`
+/// spreads, then T3037 for a required field nothing provides.
 ///
 /// @param items  the literal's entries, as written.
 /// @param span   where T3037 points: the literal, or the enum variant that
@@ -91,15 +93,20 @@ check_struct_items :: fn(
 ) -> Type {
     decl :: typed.struct_decls[st.symbol.id]
     provided: string[]: []
-    has_spread := false
+    // The fields the spreads of a base give, made at the first one.
+    covered: string[] | null = null
+    whole_spread := false
     for item in items {
         match item {
             is AST.StructLitSpread -> {
-                has_spread = true
                 got :: check_expr(item.expr, st, typed, diags)
-                if !is_assignable(got, st) {
-                    diags.push(typecheck_error(.TypeMismatch, item.span,
-                        "spread source must be assignable to ${display_type(st)}, got ${display_type(got)}"))
+                fields :: spread_source_fields(item, got, st, decl, typed, diags)
+                if fields == null {
+                    whole_spread = true
+                } else if covered == null {
+                    covered = fields
+                } else {
+                    covered.push_all(fields)
                 }
             }
             is AST.StructLitField -> {
@@ -109,12 +116,82 @@ check_struct_items :: fn(
     }
     // T3037: required fields without defaults must be provided when no
     // `...spread` covers them ; the defaults of the others land in the literal.
-    if decl is AST.StructDecl && !has_spread {
-        check_missing_fields(span, st, provided, typed, diags)
-        settle_literal_defaults(st.symbol.id, provided, span, typed)
+    if decl is AST.StructDecl && !whole_spread {
+        filled :: filled_fields(provided, covered)
+        check_missing_fields(span, st, filled, typed, diags)
+        settle_literal_defaults(st.symbol.id, filled, span, typed)
     }
     return st
 }
+
+// The fields a literal fills : those it names, and those its spreads of a base give.
+filled_fields :: fn(provided: string[], covered: string[] | null) -> string[] {
+    if covered == null {
+        return provided
+    }
+    covered.push_all(provided)
+    return covered
+}
+
+// The fields a spread source of type `got` gives a literal of `st` : those of its struct
+// when `st` spreads it, null when it gives them all : a source of `st` itself, or one in
+// error (T3001), over which the literal reports no missing field.
+spread_source_fields :: fn(
+    item: AST.StructLitSpread,
+    got: Type,
+    st: StructType,
+    decl: AST.StructDecl | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> string[] | null {
+    if is_assignable(got, st) {
+        return null
+    }
+    fields :: base_spread_fields(got, st, decl, typed)
+    if fields == null {
+        diags.push(
+            typecheck_error(
+                .TypeMismatch,
+                item.span,
+                "spread source must be ${display_type(st)} or a struct it spreads, got ${display_type(got)}",
+            ),
+        )
+    }
+    return fields
+}
+
+// The fields of `got` when it is a struct `st` spreads, directly or through its bases,
+// with the arguments `st` gives it ; null otherwise.
+base_spread_fields :: fn(
+    got: Type,
+    st: StructType,
+    decl: AST.StructDecl | null,
+    typed: TypedProgram,
+) -> string[] | null {
+    if got !is StructType {
+        return null
+    }
+    base :: spread_base_of(st, got.symbol, typed, Set<i32> {}) ?? return null
+    if !is_assignable(got, spread_slot(base, st, decl)) {
+        return null
+    }
+    fields :: typed.struct_fields[got.symbol.id] ?? return null
+    return fields.keys().collect()
+}
+
+// The type a spread source must have to fill `base` in a literal of `st` : `base`, or its
+// shape when the literal binds none of the parameters of `st` (`Chain { ...pair }`), as a
+// field value matches its type.
+spread_slot :: fn(base: StructType, st: StructType, decl: AST.StructDecl | null) -> Type {
+    if leaves_type_args_unbound(st, decl) {
+        return erase_type_params(base)
+    }
+    return base
+}
+
+// A literal of `st` written without the type arguments of its struct (`Box { ... }`).
+leaves_type_args_unbound :: fn(st: StructType, decl: AST.StructDecl | null) -> bool =
+    decl is AST.StructDecl && st.args.len() < decl.type_params.len()
 
 check_field :: fn(
     f: AST.StructLitField, st: StructType, decl: AST.StructDecl | null,
@@ -147,8 +224,7 @@ check_field :: fn(
     // none of its struct's parameters, so its fields match them as a pattern,
     // except a free literal, which needs a type to land on and gets none
     // (`Box { .value = 0 }` ; `Box<i32> { … }` gives it one).
-    unbound_args :: decl is AST.StructDecl && st.args.len() < decl.type_params.len()
-    as_pattern :: unbound_args && !is_free_numeric(got)
+    as_pattern :: leaves_type_args_unbound(st, decl) && !is_free_numeric(got)
     want :: if as_pattern { erase_type_params(expected) } else { expected }
     if is_assignable(got, want) {
         return

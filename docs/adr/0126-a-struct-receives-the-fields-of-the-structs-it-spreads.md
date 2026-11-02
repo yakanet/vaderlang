@@ -55,6 +55,10 @@ A pass that reads the fields of a struct reads the table, never
 `StructDecl.fields`, which only the declaration, the formatter and the editor
 tools read as text.
 
-A value of a base does not yet fill a literal of the struct that spreads it
-(`IntFormat { ...common, .base = 16 }` with `common: BaseFormat`): that is the
-next step, restricted to a base the struct spreads.
+A value of a struct the struct spreads, directly or through its bases, fills a
+literal of the struct (`IntFormat { ...common, .base = 16 }` with
+`common: BaseFormat`): it gives the fields of its own struct, the literal or the
+defaults the others. With several spreads, a field the literal does not name
+comes from the last source that holds it, as the last spread already won when
+every source had the literal's type. The other way, a value of the struct in a
+literal of its base, stays an error: it would let the struct stand for its base.

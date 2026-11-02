@@ -1,0 +1,88 @@
+# Typecheck
+
+## tests/snippets/struct_base_value_spread
+  StructDecl     Chain                :: Chain<U>
+  FnDecl         describe             :: fn(Report) -> string
+  FnDecl         lift                 :: fn(Pair<U[]>) -> Chain<U>
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Options              :: Options
+  StructDecl     Pair                 :: Pair<T>
+  StructDecl     Report               :: Report
+  expr 32:43    StructLitExpr  :: Chain<U>
+  expr 32:57    IdentExpr      :: Pair<U[]>
+  expr 34:39    StringLitExpr  :: string
+  expr 34:42    FieldExpr      :: string
+  expr 34:42    IdentExpr      :: Report
+  expr 34:54    FieldExpr      :: i32
+  expr 34:54    IdentExpr      :: Report
+  expr 34:65    FieldExpr      :: i32
+  expr 34:65    IdentExpr      :: Report
+  expr 34:77    FieldExpr      :: bool
+  expr 34:77    IdentExpr      :: Report
+  expr 37:15    StructLitExpr  :: Layout
+  expr 38:16    StructLitExpr  :: Options
+  expr 39:13    CallExpr       :: string
+  expr 39:13    IdentExpr      :: fn(Report) -> string
+  expr 39:22    StructLitExpr  :: Report
+  expr 39:34    IdentExpr      :: Layout
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 39:51    StringLitExpr  :: string
+  expr 40:13    CallExpr       :: string
+  expr 40:13    IdentExpr      :: fn(Report) -> string
+  expr 40:22    StructLitExpr  :: Report
+  expr 40:34    IdentExpr      :: Options
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 40:52    StringLitExpr  :: string
+  expr 41:14    StructLitExpr  :: Report
+  expr 41:26    IdentExpr      :: Options
+  expr 41:44    StringLitExpr  :: string
+  expr 42:13    CallExpr       :: string
+  expr 42:13    IdentExpr      :: fn(Report) -> string
+  expr 42:22    StructLitExpr  :: Report
+  expr 42:34    IdentExpr      :: Report
+  expr 42:44    IdentExpr      :: Layout
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void
+  expr 43:13    CallExpr       :: string
+  expr 43:13    IdentExpr      :: fn(Report) -> string
+  expr 43:22    StructLitExpr  :: Report
+  expr 43:34    IdentExpr      :: Layout
+  expr 43:45    IdentExpr      :: Report
+  expr 43:5     CallExpr       :: void
+  expr 43:5     IdentExpr      :: fn(T) -> void
+  expr 44:14    StructLitExpr  :: Chain<string>
+  expr 44:33    StructLitExpr  :: Pair<string[]>
+  expr 44:59    SeqLitExpr     :: string[]
+  expr 44:60    StringLitExpr  :: string
+  expr 44:65    StringLitExpr  :: string
+  expr 45:13    StringLitExpr  :: string
+  expr 45:16    CallExpr       :: i64
+  expr 45:16    FieldExpr      :: fn() -> i64
+  expr 45:16    FieldExpr      :: string[]
+  expr 45:16    IdentExpr      :: Chain<string>
+  expr 45:37    FieldExpr      :: i32
+  expr 45:37    IdentExpr      :: Chain<string>
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(T) -> void
+  expr 45:52    FieldExpr      :: i32
+  expr 45:52    IdentExpr      :: Chain<string>
+  expr 46:15    CallExpr       :: Chain<i32>
+  expr 46:15    IdentExpr      :: fn(Pair<U[]>) -> Chain<U>
+  expr 46:20    StructLitExpr  :: Pair<i32[]>
+  expr 46:43    SeqLitExpr     :: i32[]
+  expr 47:13    StringLitExpr  :: string
+  expr 47:16    CallExpr       :: i64
+  expr 47:16    FieldExpr      :: fn() -> i64
+  expr 47:16    FieldExpr      :: i32[]
+  expr 47:16    IdentExpr      :: Chain<i32>
+  expr 47:38    FieldExpr      :: i32
+  expr 47:38    IdentExpr      :: Chain<i32>
+  expr 47:5     CallExpr       :: void
+  expr 47:5     IdentExpr      :: fn(T) -> void
+  expr 47:54    FieldExpr      :: i32
+  expr 47:54    IdentExpr      :: Chain<i32>
+
+## tests/snippets/struct_base_value_spread/layout
+  StructDecl     Layout               :: Layout

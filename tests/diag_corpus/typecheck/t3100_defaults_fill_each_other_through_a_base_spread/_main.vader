@@ -1,0 +1,21 @@
+// T3100 : a value of a base gives the fields of the base only, so the literal
+// `Branch { ...Origin {} }` fills in `leaf` from its default, which builds a `Leaf`,
+// whose default builds that `Branch` again.
+module "snippet"
+
+Origin :: struct {
+    depth: i32 = 1
+}
+
+Leaf :: struct {
+    branch: Branch = Branch { ...Origin {} }
+}
+
+Branch :: struct {
+    ...Origin
+    leaf: Leaf = Leaf {}
+}
+
+main :: fn() -> i32 {
+    return Leaf {}.branch.depth
+}

@@ -1,0 +1,19 @@
+// T3037 : a value of a base gives the fields of the base only, so a field the struct
+// writes without a default needs a value. `named` passes.
+module "snippet"
+
+Base :: struct {
+    width: i32 = 0
+}
+
+Labelled :: struct {
+    ...Base
+    label: string
+}
+
+main :: fn() -> i32 {
+    base :: Base { .width = 3 }
+    bare :: Labelled { ...base }
+    named :: Labelled { ...base, .label = "x" }
+    return bare.width + named.width
+}

@@ -202,6 +202,33 @@ given_names :: fn(
     return first_giver
 }
 
+// The base a value of the struct `source` fills in a literal of `st` : a struct `st`
+// spreads, directly or through its bases, with the arguments `st` gives it ; null when
+// `st` spreads no `source`. `seen` stops the walk at a cycle, which `expand` reports.
+spread_base_of :: fn(
+    st: StructType,
+    source: Symbol,
+    typed: TypedProgram,
+    seen: Set<i32>,
+) -> StructType | null {
+    if !seen.add(st.symbol.id) {
+        return null
+    }
+    spreads :: typed.struct_spreads[st.symbol.id] ?? return null
+    for written in spreads.bases {
+        base :: substitute_struct_args(written, st, typed)
+        if base !is StructType {
+            continue
+        }
+        if base.symbol.id == source.id {
+            return base
+        }
+        found :: spread_base_of(base, source, typed, seen) ?? continue
+        return found
+    }
+    return null
+}
+
 // A written field `own` redeclaring the received `field` keeps its type.
 check_redeclaration :: fn(
     x: SpreadExpansion,

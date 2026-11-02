@@ -1,0 +1,7 @@
+// The base the snippet's `Options` spreads, from another module.
+module "snippet/layout"
+
+export Layout :: struct {
+    width: i32 = 80
+    indent: i32 = 4
+}

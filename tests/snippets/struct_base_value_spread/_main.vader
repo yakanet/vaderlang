@@ -1,0 +1,49 @@
+// A value of a struct that a literal's struct spreads fills that literal: it gives the
+// fields of its struct, the literal names or defaults the others. With several spreads,
+// a field the literal does not name comes from the last source that holds it. A base
+// reached through another base (`Report` spreads `Options`, which spreads `Layout`), a
+// base of another module and a generic base spread the same way.
+module "snippet"
+
+import "snippet/layout"
+import "std/io"
+
+Options :: struct {
+    ...Layout
+    wrap: bool = true
+}
+
+Report :: struct {
+    ...Options
+    indent: i32 = 2
+    title: string
+}
+
+Pair :: struct<T> {
+    first: T
+    count: i32 = 0
+}
+
+Chain :: struct<U> {
+    ...Pair<U[]>
+    depth: i32 = 0
+}
+
+lift :: fn<U>(p: Pair<U[]>) -> Chain<U> = Chain<U> { ...p, .depth = 1 }
+
+describe :: fn(r: Report) -> string = "${r.title}: ${r.width} ${r.indent} ${r.wrap}"
+
+main :: fn() -> i32 {
+    layout :: Layout { .width = 100 }
+    options :: Options { .indent = 8, .wrap = false }
+    println(describe(Report { ...layout, .title = "layout" }))
+    println(describe(Report { ...options, .title = "options" }))
+    first :: Report { ...options, .title = "first" }
+    println(describe(Report { ...first, ...layout }))
+    println(describe(Report { ...layout, ...first, .indent = 0 }))
+    chain :: Chain<string> { ...Pair<string[]> { .first = ["a", "b"], .count = 2 } }
+    println("${chain.first.len()} ${chain.count} ${chain.depth}")
+    lifted :: lift(Pair<i32[]> { .first = [1, 2, 3] })
+    println("${lifted.first.len()} ${lifted.count} ${lifted.depth}")
+    return 0
+}

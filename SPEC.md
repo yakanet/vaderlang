@@ -1188,9 +1188,17 @@ upd  :: P { ...base, .b = 99 }                          // a=1, b=99, c=3
 mix  :: P { ...base, ...other, .b = 7 }                 // 'other' wins for non-named
 ```
 
-- The spread source must be assignable to the literal's struct type.
+A value of a struct the literal's struct spreads gives the fields of that struct only (§4 *Received fields*):
+
+```vader
+common :: BaseFormat { .sign = .Always }
+hex    :: IntFormat { ...common, .base = 16 }           // sign=.Always, separator="", base=16
+```
+
+- The spread source is a value of the literal's struct, or of a struct it spreads, directly or through its bases. A struct does not fill a literal of its base.
+- The fields the sources do not give come from the literal or from their defaults: one with neither is an error.
 - It is evaluated once, before the values of the fields.
-- With several spreads, the last one fills every field the literal does not name.
+- With several spreads, a field the literal does not name comes from the last source that holds it.
 
 #### Struct literals in `if` / `for` / `match` conditions
 

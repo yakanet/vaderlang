@@ -1,0 +1,9 @@
+# stdout
+layout: 100 4 true
+options: 80 8 false
+first: 100 4 false
+first: 80 0 false
+2 2 0
+3 0 1
+# exit
+0

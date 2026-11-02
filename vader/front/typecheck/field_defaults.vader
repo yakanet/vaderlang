@@ -120,7 +120,7 @@ fill_omitted_defaults :: fn(
         fill.consts.push_all(reads.consts)
         for lit in reads.literals {
             lit_struct :: literal_struct(lit, typed) ?? continue
-            written :: written_fields(lit) ?? continue
+            written :: written_fields(lit, lit_struct, typed) ?? continue
             closing :: fill_omitted_defaults(lit_struct.symbol.id, written, fill, typed)
             if closing != null {
                 return closing
@@ -136,12 +136,17 @@ fill_omitted_defaults :: fn(
 literal_struct :: fn(lit: AST.StructLitExpr, typed: TypedProgram) -> StructType | null =
     struct_backing(type_from_expr(lit.type_name, typed.resolved, diag_sink()))
 
-// The fields `lit` writes, or null when a `...spread` writes them all.
-written_fields :: fn(lit: AST.StructLitExpr) -> string[] | null {
+// The fields `lit`, a literal of `st`, writes or takes from a spread of a base ; null when
+// a spread writes them all, or its source has no type yet.
+written_fields :: fn(lit: AST.StructLitExpr, st: StructType, typed: TypedProgram) -> string[] | null {
     out: string[]: []
     for item in lit.items {
         if item is AST.StructLitSpread {
-            return null
+            got :: typed.expr_types[item.expr.id] ?? return null
+            decl :: typed.struct_decls[st.symbol.id]
+            given :: spread_source_fields(item, got, st, decl, typed, diag_sink()) ?? return null
+            out.push_all(given)
+            continue
         }
         out.push(item.name)
     }

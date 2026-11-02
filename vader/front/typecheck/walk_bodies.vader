@@ -172,13 +172,16 @@ walk_bodies :: fn(
             is AST.ImportDecl    -> {}
         }
     }
-    fill :: DefaultFill {}
     for decl in decls {
         if decl is AST.StructDecl {
             check_field_defaults(decl, typed, diags)
-            if mode == .Full {
-                reject_default_cycle(decl, fill, typed, diags)
-            }
+        }
+    }
+    // Every default is typed first : the walk reads the type of a spread in any of them.
+    fill :: DefaultFill {}
+    for decl in decls {
+        if decl is AST.StructDecl && mode == .Full {
+            reject_default_cycle(decl, fill, typed, diags)
         }
     }
     if mode == .Full {
