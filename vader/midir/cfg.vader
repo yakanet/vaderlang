@@ -64,12 +64,12 @@ export CFGFunction :: struct {
 /// The closest span a function has: a `CFGFunction` carries none of its own, so
 /// this is its entry block's.
 ///
-/// @param fn_  the function.
-export fn_span :: fn(fn_: CFGFunction) -> Span {
-    if fn_.blocks.len() == 0 {
+/// @param function  the function.
+export fn_span :: fn(function: CFGFunction) -> Span {
+    if function.blocks.len() == 0 {
         return empty_span()
     }
-    return fn_.blocks[0].span
+    return function.blocks[0].span
 }
 
 /// Declaration of a bodyless fn (typically @extern). Bytecode emit
