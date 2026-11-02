@@ -140,8 +140,8 @@
     struct std.async.Timeout<string>  // std_async$Timeout__string
     struct std.async.TimeoutError  // std_async$TimeoutError
   std/collections
+    fn std.collections.PriorityQueue<i64>.peek  // std_collections$PriorityQueue$std_core$Peek$peek__i64
     fn std.collections.is_empty<i64>  // std_collections$is_empty__i64
-    fn std.collections.peek<i64>  // std_collections$peek__i64
     fn std.collections.pop<i64>  // std_collections$pop__i64
     fn std.collections.push<i64>  // std_collections$push__i64
     fn std.collections.swap_items<i64>  // std_collections$swap_items__i64

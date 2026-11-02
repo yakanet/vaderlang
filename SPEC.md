@@ -3847,6 +3847,7 @@ It also declares:
 - `FloatBits`, `BitsFloat`, `Float32Bits` and `Bits32Float`, the bits of a float (§4 *Float bit patterns*).
 - `ArrayOps<T>`, the built-in methods of arrays: `len`, `push`, `push_all`, `copy_to`, `remove_last` and `clear` (§4 *Mutation methods*).
 - `Stop`, what an iterator returns at its end (*Iteration*, below).
+- `Peek<T>`, the element a source would hand out next, left in place: `peek :: fn(self) -> T | null`.
 - Functions on arrays: `filled` and `filled_indexed` (§4 *Repeat / preallocate: `[lhs] * n`*), `content_equals`, `is_permutation_of`, `contains_all` and `is_disjoint` (§4 *Equality*).
 - Functions on strings: `len`, `byte_len`, `byte_at`, `byte_slice`, `is_ascii`, `codepoint_at_byte`, `bytes` and `bytes_to_string` (§4 *Strings*).
 

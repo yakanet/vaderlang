@@ -315,8 +315,8 @@ static void* std_runtime$scheduler$singleton(void);
 static void std_runtime$drop_due_timers(void* l0);
 static bool std_runtime$clock_is_virtual(void);
 static bool std_runtime$clock_is_virtual$singleton(void);
+static vader_box_t std_collections$PriorityQueue$std_core$Peek$peek__i64(void* l0);
 static void std_collections$push__i64(void* l0, int64_t l1);
-static vader_box_t std_collections$peek__i64(void* l0);
 static vader_box_t std_collections$pop__i64(void* l0);
 static void std_collections$swap_items__i64(void* l0, int64_t l1, int64_t l2);
 static bool std_collections$is_empty__i64(void* l0);
@@ -3692,7 +3692,7 @@ static bool std_runtime$sched_park(void) {
     vader_gc_top = &gc_frame;
     l0 = std_runtime$scheduler();
     std_runtime$drop_due_timers(l0);
-    l2 = std_collections$peek__i64(((vader_struct_std_runtime$Scheduler_t*) l0)->f_deadlines);
+    l2 = std_collections$PriorityQueue$std_core$Peek$peek__i64(((vader_struct_std_runtime$Scheduler_t*) l0)->f_deadlines);
     if (l2.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
@@ -3757,7 +3757,7 @@ static void std_runtime$drop_due_timers(void* l0) {
     int64_t l1, l3;
     vader_box_t l2;
     for (;;) {
-        l2 = std_collections$peek__i64(((vader_struct_std_runtime$Scheduler_t*) l0)->f_deadlines);
+        l2 = std_collections$PriorityQueue$std_core$Peek$peek__i64(((vader_struct_std_runtime$Scheduler_t*) l0)->f_deadlines);
         if (!(l2.tag == 0u)) {
             l1 = ((int64_t) l2.payload.i);
             l3 = ((vader_struct_std_runtime$Scheduler_t*) l0)->f_now;
@@ -3804,6 +3804,20 @@ static bool std_runtime$clock_is_virtual$singleton(void) {
     { bool __vret = !(t0.tag == 0u); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static vader_box_t std_collections$PriorityQueue$std_core$Peek$peek__i64(void* l0) {
+    bool t0;
+    int64_t t1;
+    t0 = std_collections$is_empty__i64(l0);
+    if (!(t0)) {
+        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
+        t1 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) INT32_C(0)];
+        return vader_box_i64(18u, t1);
+    }
+    return vader_box_obj(0u, NULL);
+}
+
 static void std_collections$push__i64(void* l0, int64_t l1) {
     int64_t l2, l3, l4, l5;
     int64_t t0;
@@ -3829,20 +3843,6 @@ static void std_collections$push__i64(void* l0, int64_t l1) {
         l2 = l3;
     }
     { vader_gc_top = gc_frame.prev; return; }
-}
-
-static vader_box_t std_collections$peek__i64(void* l0) {
-    bool t0;
-    int64_t t1;
-    t0 = std_collections$is_empty__i64(l0);
-    if (!(t0)) {
-        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections$PriorityQueue__i64_t*) l0)->f_items);
-        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
-        t1 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) INT32_C(0)];
-        return vader_box_i64(18u, t1);
-    }
-    return vader_box_obj(0u, NULL);
 }
 
 static vader_box_t std_collections$pop__i64(void* l0) {

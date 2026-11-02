@@ -39,15 +39,14 @@ export push :: fn<T: Comparable>(self: PriorityQueue<T>, item: T) -> void {
     }
 }
 
-/// The smallest item, left in the queue.
-///
-/// @param self  the queue.
-/// @return      that item, or null when the queue is empty.
-export peek :: fn<T: Comparable>(self: PriorityQueue<T>) -> T | null {
-    if self.is_empty() {
-        return null
+// `peek` shows the smallest item.
+PriorityQueue<T> implements<T: Comparable> Peek<T> {
+    peek :: fn(self) -> T | null {
+        if self.is_empty() {
+            return null
+        }
+        return self.items[0]
     }
-    return self.items[0]
 }
 
 /// Remove the smallest item.

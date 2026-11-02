@@ -40,23 +40,18 @@ Peekable<T> implements<T> Iterator<T> {
 ///   tokens.collect()     // ["let", "x"]
 export peekable :: fn<T>(self: Iterator<T>) -> Peekable<T> = Peekable<T> { .source = self }
 
-/// The next element of `self`, left in place for the next `peek` or `next`.
-///
-/// @param self  the iterator to look into.
-/// @return      the next element, `null` once there is none. When `T` admits
-///              `null` itself, a `null` element and the end read alike.
-/// @example
-///   # tokens :: ["let", "x"].peekable()
-///   tokens.peek() == "let"   // true
-export peek :: fn<T>(self: Peekable<T>) -> T | null {
-    if !self.holds {
-        self.ahead = self.source.next()
-        self.holds = true
+// `peek` pulls one element ahead and keeps it for `next`.
+Peekable<T> implements<T> Peek<T> {
+    peek :: fn(self) -> T | null {
+        if !self.holds {
+            self.ahead = self.source.next()
+            self.holds = true
+        }
+        if self.ahead is Stop {
+            return null
+        }
+        return self.ahead
     }
-    if self.ahead is Stop {
-        return null
-    }
-    return self.ahead
 }
 
 // ---- tests ----------------------------------------------------------------

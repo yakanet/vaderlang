@@ -74,6 +74,7 @@ impl 17 std_core$ByteAccess
 impl 21 std_core$Async
 impl 26 std_core$Async
 impl 31 std_core$Async
+impl 41 std_core$Peek
 impl 37 std_core$Async
 vtable std_core$Error.message 1 0
 vtable std_core$Async.resume 7 3
@@ -1352,7 +1353,7 @@ fn 25 std_runtime$sched_arm (i64) -> void
   call 23   ; std_runtime$scheduler
   struct.get 40 1   ; std_runtime$Scheduler.deadlines
   local.get 0   ; arg 0
-  call 30   ; std_collections$push__i64
+  call 31   ; std_collections$push__i64
   return
 end
 
@@ -1365,7 +1366,7 @@ fn 26 std_runtime$sched_park () -> bool
   local.tee 0   ; s
   call 27   ; std_runtime$drop_due_timers
   local.field 0 40 1   ; s std_runtime$Scheduler.deadlines
-  call 31   ; std_collections$peek__i64
+  call 30   ; std_collections$PriorityQueue$std_core$Peek$peek__i64
   local.tee 2   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -1400,7 +1401,7 @@ fn 27 std_runtime$drop_due_timers (ref) -> void
   local $field_7 i64
   loop $L0 void
     local.field 0 40 1   ; arg 0 std_runtime$Scheduler.deadlines
-    call 31   ; std_collections$peek__i64
+    call 30   ; std_collections$PriorityQueue$std_core$Peek$peek__i64
     local.tee 2   ; __coalesce_0
     type_check 0   ; null
     if $L1 void
@@ -1459,7 +1460,21 @@ fn 29 std_runtime$clock_is_virtual$singleton () -> bool
   return
 end
 
-fn 30 std_collections$push__i64 (ref,i64) -> void
+fn 30 std_collections$PriorityQueue$std_core$Peek$peek__i64 (ref) -> any
+  local.get 0   ; arg 0
+  call 34   ; std_collections$is_empty__i64
+  if $L0 void
+  else
+    local.field 0 41 0   ; arg 0 std_collections$PriorityQueue__i64.items
+    i32.const 0
+    load_slot_i64
+    retag 3   ; i64
+    return
+  end $L0
+  return.lit null.const
+end
+
+fn 31 std_collections$push__i64 (ref,i64) -> void
   local i i64
   local parent i64
   local $idx_16 i64
@@ -1507,20 +1522,6 @@ fn 30 std_collections$push__i64 (ref,i64) -> void
     end $L1
   end $L0
   return
-end
-
-fn 31 std_collections$peek__i64 (ref) -> any
-  local.get 0   ; arg 0
-  call 34   ; std_collections$is_empty__i64
-  if $L0 void
-  else
-    local.field 0 41 0   ; arg 0 std_collections$PriorityQueue__i64.items
-    i32.const 0
-    load_slot_i64
-    retag 3   ; i64
-    return
-  end $L0
-  return.lit null.const
 end
 
 fn 32 std_collections$pop__i64 (ref) -> any

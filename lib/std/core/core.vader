@@ -184,6 +184,15 @@ export Iterator :: trait<T> {
     next :: fn(self) -> T | Stop
 }
 
+/// A source that shows the element it would hand out next, without taking it.
+/// Implemented by `Queue` (the oldest item), `PriorityQueue` (the smallest) and
+/// `Peekable` (the next element of an iterator).
+export Peek :: trait<T> {
+    /// The next element, left in place ; `null` when there is none. When `T`
+    /// admits `null` itself, a `null` element and the end read alike.
+    peek :: fn(self) -> T | null
+}
+
 /// Base trait for every error type usable in `T | Error` returns. Any struct
 /// implementing `Error` participates in such error unions ; a caller narrows
 /// on it (`if r is Error`) and returns it to propagate.

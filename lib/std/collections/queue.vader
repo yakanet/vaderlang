@@ -71,15 +71,14 @@ export pop :: fn<T>(self: Queue<T>) -> T | null {
     return item
 }
 
-/// The oldest item, left in the queue.
-///
-/// @param self  the queue.
-/// @return      that item, or null when the queue is empty.
-export peek :: fn<T>(self: Queue<T>) -> T | null {
-    if self.size == 0 {
-        return null
+// `peek` shows the oldest item.
+Queue<T> implements<T> Peek<T> {
+    peek :: fn(self) -> T | null {
+        if self.size == 0 {
+            return null
+        }
+        return self.items[self.head]
     }
-    return self.items[self.head]
 }
 
 /// How many items the queue holds.
