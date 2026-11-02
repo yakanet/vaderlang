@@ -6,7 +6,7 @@
 // output to the next event.
 
 import { test, expect } from "bun:test";
-import { ensureCliBuilt, runCli, MEDIUM_BUILD } from "./cli-bin.ts";
+import { ensureCliBuilt, runCli, spawnCapture, MEDIUM_BUILD } from "./cli-bin.ts";
 import { join } from "node:path";
 
 ensureCliBuilt();
@@ -45,6 +45,7 @@ test("the JSON report gives each step of a run as an event", async () => {
     test: "test_prints",
     file: REPORT_PATH,
     line: 10,
+    filter: "test_cmd_report:report.vader:test_prints",
   });
   expect(events[4]).toMatchObject({ event: "fail", test: "test_fails" });
   expect(String(events[4]?.message)).toContain("boom");
@@ -52,7 +53,7 @@ test("the JSON report gives each step of a run as an event", async () => {
   expect(events[5]).toMatchObject({ event: "summary", total: 2, pass: 1, fail: 1 });
 }, MEDIUM_BUILD);
 
-test("--list names the tests in the form --filter reads, and runs none", async () => {
+test("--list names each test as the --filter that keeps it alone, and runs none", async () => {
   const r = await runCli(["test", "--list", REPORT], undefined, MEDIUM_BUILD);
   expect(r.exit).toBe(0);
   expect(r.stdout.trim().split("\n")).toEqual([
@@ -71,4 +72,26 @@ test("--list with the JSON report gives the module and its tests", async () => {
     ["test", "test_prints", 10],
     ["test", "test_fails", 15],
   ]);
+}, MEDIUM_BUILD);
+
+test("--filter repeated keeps the tests one of them keeps", async () => {
+  const r = await runCli(
+    ["test", "--list", "--filter", "*:*:test_prints", "--filter", "test_fails", REPORT],
+    undefined,
+    MEDIUM_BUILD,
+  );
+  expect(r.exit).toBe(0);
+  expect(r.stdout.trim().split("\n")).toEqual([
+    "test_cmd_report:report.vader:test_prints",
+    "test_cmd_report:report.vader:test_fails",
+  ]);
+}, MEDIUM_BUILD);
+
+test("--filter - reads the filters from stdin, one per line", async () => {
+  const r = await spawnCapture(["test", "--list", "--filter", "-", REPORT], {
+    stdin: new TextEncoder().encode("test_cmd_report:report.vader:test_fails\n\n"),
+    timeoutMs: MEDIUM_BUILD,
+  });
+  expect(r.exit).toBe(0);
+  expect(r.stdout.trim().split("\n")).toEqual(["test_cmd_report:report.vader:test_fails"]);
 }, MEDIUM_BUILD);

@@ -129,6 +129,23 @@ export matches :: fn(self: Glob, text: string) -> bool {
     return later[0]
 }
 
+/// Quote `text` so that, read as a pattern, it matches `text` alone: a `\` goes
+/// before each character a pattern reads specially, `*`, `?`, `[` and `\`.
+///
+/// @param text  the literal text.
+/// @example
+///   escape_glob("a*b[1].vader")   // "a\\*b\\[1].vader"
+export escape_glob :: fn(text: string) -> string {
+    out :: StringBuilder {}
+    for c in text.chars() {
+        if c == '*' || c == '?' || c == '[' || c == '\\' {
+            out.append_char('\\')
+        }
+        out.append_char(c)
+    }
+    return out.to_string()
+}
+
 // ---- tokens -----------------------------------------------------------------
 
 // One character, as written or quoted.
@@ -571,6 +588,15 @@ test_glob_backslash_quotes :: fn() -> void {
     assert(glob_matches("\\*", "*"), "a quoted star")
     assert(!glob_matches("\\*", "a"), "a quoted star is no wildcard")
     assert(glob_matches("\\[a]", "[a]"), "a quoted bracket")
+}
+
+@test
+test_glob_escape_matches_the_text_alone :: fn() -> void {
+    for text in ["a*b", "x?y", "[ab]", "back\\slash", "plain.vader", ""] {
+        assert(glob_matches(escape_glob(text), text), "`${text}` escaped matches it")
+    }
+    assert(!glob_matches(escape_glob("a*"), "ab"), "an escaped star is no wildcard")
+    assert(!glob_matches(escape_glob("[ab]"), "a"), "an escaped bracket is no list")
 }
 
 @test

@@ -9,7 +9,7 @@ VS Code extension for the [Vader](../../README.md) programming language. Provide
 - Semantic tokens via the Vader Language Server (richer highlighting for keywords, types, functions, parameters, decorators, and VaderDoc `@param` / `@return` / `@error` / `@example` tags)
 - Comment toggling (`//`, `/* */`, `///`) and `///` auto-continuation on Enter
 - Bracket matching and auto-closing pairs
-- Tests in the Test view: a module's tests are listed when a file that holds one is opened or saved, and run there with their durations and output, a failure shown on the test's line. A *Run test* code lens above each `@test`, and a *Run module tests* lens on the `module` line, run them the same way
+- Tests in the Test view: a module's tests are listed when a file that holds one is opened or saved, and run there with their durations and output, a failure shown on the test's line. The tests chosen in a module, the failed ones included, run in one `vader test`. A *Run test* code lens above each `@test`, and a *Run module tests* lens on the `module` line, run them the same way
 - Validation and completion of `vader.json`, against the schema shared with the JetBrains plugin ([`editors/common/vader.schema.json`](../common/vader.schema.json))
 
 ## Requirements

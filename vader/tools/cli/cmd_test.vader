@@ -32,9 +32,9 @@ import "vader/vm"
 /// `vader test [path]`: discover `@test` fns under `path` (default `.`),
 /// compile each module keeping the tests as roots, and run every test in
 /// isolation on the VM. A trap (e.g. a failed `assert`) is a FAIL ; clean
-/// return is a pass. `--filter` keeps the tests a glob matches, `--list` names
-/// them without running them, `--reporter=json` reports for a tool
-/// (`test_report.vader`).
+/// return is a pass. `--filter` keeps the tests a glob matches (repeated, those
+/// one of them matches; `-` reads them from stdin), `--list` names them without
+/// running them, `--reporter=json` reports for a tool (`test_report.vader`).
 ///
 /// @param args  positional args ; `args[0]` is the target path (file or dir).
 /// @return      0 when every test passed, 1 on any failure, a module that does
@@ -49,12 +49,8 @@ cmd_test :: fn(args: string[]) -> i32 {
     if reject_extra_positionals("test", parsed) {
         return 1
     }
-    filter_text :: parsed.string_flag("filter", "")
-    filter :: parse_test_filter(filter_text)
-    if filter is GlobError {
-        eprintln("vader test: invalid --filter `${filter_text}`: ${filter.msg}")
-        return 1
-    }
+    filter_values :: parsed.string_flags("filter")
+    filters :: read_test_filters(filter_values) ?? return 1
     reporter :: TestReporter {
         .format = report_format(parsed.string_flag("reporter", "text")),
         .listing = parsed.bool_flag("list"),
@@ -66,7 +62,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         eprintln("vader test: no .vader files found under ${target.to_native()}")
         return 2
     }
-    entries :: test_entries(target, files, filter)
+    entries :: test_entries(target, files, filters)
     // A folder to walk is not an entry: the project is the one `vader test` runs
     // in, as for `vader build` with no argument. Spelled `""`, the working
     // directory, so that module ids stay relative to it.
@@ -93,7 +89,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         // Run each unique @test once across the whole invocation.
         fresh: DiscoveredTest[]: []
         for t in all_tests {
-            if !(t.mangled in ran) && keeps(filter, t) {
+            if !(t.mangled in ran) && keeps(filters, t) {
                 fresh.push(t)
                 ran.add(t.mangled)
             }
@@ -156,8 +152,9 @@ cmd_test :: fn(args: string[]) -> i32 {
     }
     total :: total_pass + total_fail
     if total == 0 && files_with_tests == 0 {
-        if filter != null {
-            eprintln("vader test: no test under ${target.to_native()} matches `${filter_text}`")
+        if filters.len() > 0 {
+            options :: filter_options(filter_values)
+            eprintln("vader test: no test under ${target.to_native()} matches ${options}")
         } else {
             eprintln("vader test: no @test functions found under ${target.to_native()}")
         }
@@ -211,10 +208,59 @@ TestFilter :: AnyCoordinateFilter | CoordinatesFilter
 // module, `std/*` for every module below `std`.
 FILTER_GLOB :: GlobOptions { .pathname = false }
 
-/// Read `--filter`. The number of `:` decides what its globs match: none, the
-/// module, the file or the name of a test, any of the three; one,
-/// `<module>:<file>`; two, `<module>:<file>:<name>`. A third `:` stays in the
-/// name glob, which then matches no test.
+// The filters of `--filter`, or null after saying which value is none. Each
+// value is one filter, but `-` stands for the lines of stdin, a blank line
+// none.
+read_test_filters :: fn(values: string[]) -> TestFilter[] | null {
+    texts :: filter_texts(values)
+    if texts is IOError {
+        eprintln("vader test: --filter -: ${texts.msg}")
+        return null
+    }
+    filters: TestFilter[]: []
+    for text in texts {
+        filter :: parse_test_filter(text)
+        if filter is GlobError {
+            eprintln("vader test: invalid --filter `${text}`: ${filter.msg}")
+            return null
+        }
+        if filter != null {
+            filters.push(filter)
+        }
+    }
+    return filters
+}
+
+// The `--filter` options `values` come from, for a message.
+filter_options :: fn(values: string[]) -> string =
+    values.map((value) -> "`--filter ${value}`").collect().join(" or ")
+
+// The values of `--filter`, `-` replaced by the lines of stdin.
+filter_texts :: fn(values: string[]) -> string[] | IOError {
+    texts: string[]: []
+    for value in values {
+        if value != "-" {
+            texts.push(value)
+            continue
+        }
+        input :: read_stdin_to_end()
+        if input is IOError {
+            return input
+        }
+        for line in input.split("\n") {
+            text :: line.trim()
+            if text != "" {
+                texts.push(text)
+            }
+        }
+    }
+    return texts
+}
+
+/// Read one value of `--filter`. The number of `:` no `\` quotes decides what
+/// its globs match: none, the module, the file or the name of a test, any of
+/// the three; one, `<module>:<file>`; two, `<module>:<file>:<name>`. A third
+/// `:` stays in the name glob, which then matches no test.
 ///
 /// @param text  the value of `--filter`, `""` when absent.
 /// @return      null when there is no filter.
@@ -241,11 +287,11 @@ parse_test_filter :: fn(text: string) -> TestFilter | GlobError | null {
     }
 }
 
-// The globs a filter holds, cut on `:`: the whole text without `:`, else the
-// module, the file and the name, every name when only two parts are written.
-// Past three parts, the extra `:` stay in the name.
+// The globs a filter holds, cut on each `:` no `\` quotes: the whole text
+// without one, else the module, the file and the name, every name when only two
+// parts are written. Past three parts, the extra `:` stay in the name.
 coordinate_parts :: fn(text: string) -> string[] {
-    parts :: text.split(":")
+    parts :: split_on_colons(text)
     if parts.len() == 1 {
         return parts
     }
@@ -255,35 +301,70 @@ coordinate_parts :: fn(text: string) -> string[] {
     return [parts[0], parts[1], parts[2..<parts.len()].join(":")]
 }
 
-// Whether `filter` keeps the test `t`.
-keeps :: fn(filter: TestFilter | null, t: DiscoveredTest) -> bool = match filter {
-    is null                -> true
+// `text` cut on each `:` no `\` quotes. The `\` stay, for the glob to read.
+split_on_colons :: fn(text: string) -> string[] {
+    parts: string[]: []
+    bytes :: text.bytes()
+    start: i64 = 0
+    quoted := false
+    for i in 0..<text.byte_len() {
+        if quoted {
+            quoted = false
+        } else if bytes[i] == '\\' {
+            quoted = true
+        } else if bytes[i] == ':' {
+            parts.push(text.byte_slice(start, i))
+            start = i + 1
+        }
+    }
+    parts.push(text.byte_slice(start, text.byte_len()))
+    return parts
+}
+
+/// The `--filter` that keeps the test `t` alone: its module, file and name,
+/// each quoted so that its glob matches it as it is. `--list` names a test so,
+/// and so does the `filter` of a report's events.
+///
+/// @param t  the test.
+exact_filter :: fn(t: DiscoveredTest) -> string =
+    "${coordinate(t.module)}:${coordinate(t.file_name())}:${coordinate(t.display)}"
+
+// The glob that matches `text` alone in a filter, where a `:` cuts too.
+coordinate :: fn(text: string) -> string = escape_glob(text).replace_all(":", "\\:")
+
+// Whether `filters` keep the test `t`: one of them does, or there is none.
+keeps :: fn(filters: TestFilter[], t: DiscoveredTest) -> bool =
+    filters.len() == 0 || filters.any_match((filter) -> filter_keeps(filter, t))
+
+filter_keeps :: fn(filter: TestFilter, t: DiscoveredTest) -> bool = match filter {
     is AnyCoordinateFilter -> filter.glob.matches(t.module) || filter.glob.matches(t.file_name())
         || filter.glob.matches(t.display)
     is CoordinatesFilter   -> filter.module.matches(t.module) && filter.file.matches(t.file_name())
         && filter.name.matches(t.display)
 }
 
-// Whether the file `file` of `module` may hold a test `filter` keeps, judged
+// Whether the file `file` of `module` may hold a test `filters` keep, judged
 // before compiling it from `facts`: `keeps`, with the test names the file may
 // hold. A module that declares no name (`""`) is compiled, so that its compile
 // reports why.
-may_hold :: fn(filter: TestFilter | null, module: string, file: Path, facts: FileFacts) -> bool {
+may_hold :: fn(filters: TestFilter[], module: string, file: Path, facts: FileFacts) -> bool {
     if !facts.has_tests {
         return false
     }
-    if module == "" {
+    if module == "" || filters.len() == 0 {
         return true
     }
     name :: file.filename()
-    return match filter {
-        is null                -> true
+    return filters.any_match((filter) -> filter_may_hold(filter, module, name, facts))
+}
+
+filter_may_hold :: fn(filter: TestFilter, module: string, name: string, facts: FileFacts) -> bool =
+    match filter {
         is AnyCoordinateFilter -> filter.glob.matches(module) || filter.glob.matches(name)
             || may_name(facts, filter.glob)
         is CoordinatesFilter   -> filter.module.matches(module) && filter.file.matches(name)
             && may_name(facts, filter.name)
     }
-}
 
 // Whether a test of the file `facts` describes may bear a name `glob` matches.
 may_name :: fn(facts: FileFacts, glob: Glob) -> bool =
@@ -344,12 +425,12 @@ discover_vader_files :: fn(target: Path) -> Path[] {
 ///
 /// @param target  the path the command was given.
 /// @param files   the `.vader` files under it (`discover_vader_files`).
-/// @param filter  `--filter`: a module it cannot keep a test of is left out.
-test_entries :: fn(target: Path, files: Path[], filter: TestFilter | null) -> TestEntry[] {
+/// @param filters  `--filter`: a module they cannot keep a test of is left out.
+test_entries :: fn(target: Path, files: Path[], filters: TestFilter[]) -> TestEntry[] {
     if target.extension() == "vader" {
         return files.map((f) -> TestEntry { .path = f, .module = file_facts(f).declared }).collect()
     }
-    return pick_module_representatives(files, filter)
+    return pick_module_representatives(files, filters)
 }
 
 /// One compile of `vader test`: the entry it lowers, and the module that entry
@@ -364,7 +445,7 @@ TestEntry :: struct {
 /// One entry per module that holds a test. Only the entry module of a compile is
 /// lowered with its bodies, so a module's tests run only when it is the entry:
 /// none runs through a module that imports it.
-pick_module_representatives :: fn(files: Path[], filter: TestFilter | null) -> TestEntry[] {
+pick_module_representatives :: fn(files: Path[], filters: TestFilter[]) -> TestEntry[] {
     by_dir :: Map<string, Path[]> {}
     for f in files {
         // `parent()` yields "" for a bare filename ; the old `dir_of` said "."
@@ -375,7 +456,7 @@ pick_module_representatives :: fn(files: Path[], filter: TestFilter | null) -> T
     }
     out: TestEntry[]: []
     for [d, group] in by_dir {
-        for entry in group_representatives(d, group, group.map(file_facts).collect(), filter) {
+        for entry in group_representatives(d, group, group.map(file_facts).collect(), filters) {
             out.push(entry)
         }
     }
@@ -388,17 +469,17 @@ pick_module_representatives :: fn(files: Path[], filter: TestFilter | null) -> T
 /// @param dir     the directory.
 /// @param group   its `.vader` files.
 /// @param facts   what each of them declares and holds, in the same order.
-/// @param filter  `--filter`: a module it cannot keep a test of is left out.
+/// @param filters  `--filter`: a module they cannot keep a test of is left out.
 group_representatives :: fn(
     dir: string,
     group: Path[],
     facts: FileFacts[],
-    filter: TestFilter | null = null,
+    filters: TestFilter[] = [],
 ) -> TestEntry[] {
     if group.len() > 1 && is_folder_module(facts) {
         module :: facts[0].declared
         for i in 0..<group.len() {
-            if may_hold(filter, module, group[i], facts[i]) {
+            if may_hold(filters, module, group[i], facts[i]) {
                 return [TestEntry { .path = dir.to_path(), .module = module }]
             }
         }
@@ -406,7 +487,7 @@ group_representatives :: fn(
     }
     out: TestEntry[]: []
     for i in 0..<group.len() {
-        if may_hold(filter, facts[i].declared, group[i], facts[i]) {
+        if may_hold(filters, facts[i].declared, group[i], facts[i]) {
             out.push(TestEntry { .path = group[i], .module = facts[i].declared })
         }
     }
@@ -622,15 +703,18 @@ probe_test :: fn(module: string, file: string, name: string) -> DiscoveredTest =
     .line = 1,
 }
 
-// The filter `text` reads, which must be valid.
-probe_filter :: fn(text: string) -> TestFilter | null {
-    filter :: parse_test_filter(text)
-    if filter is GlobError {
-        assert(false, "`${text}` should read: ${filter.msg}")
-        return null
+// The filters of the `--filter` values `texts`, which must be valid.
+probe_filters :: fn(texts: string[]) -> TestFilter[] {
+    filters :: read_test_filters(texts)
+    if filters == null {
+        assert(false, "`${texts.join(" ")}` should read")
+        return []
     }
-    return filter
+    return filters
 }
+
+// The filter `text` reads, which must be valid.
+probe_filter :: fn(text: string) -> TestFilter[] = probe_filters([text])
 
 @test
 test_filter_without_colon_matches_any_coordinate :: fn() -> void {
@@ -660,8 +744,28 @@ test_filter_with_two_colons_reads_the_name :: fn() -> void {
 
 @test
 test_no_filter_keeps_every_test :: fn() -> void {
-    assert(probe_filter("") == null, "no `--filter`, no filter")
-    assert(keeps(null, probe_test("m", "f.vader", "t")), "every test")
+    assert_eq(probe_filter("").len(), 0)
+    assert(keeps([], probe_test("m", "f.vader", "t")), "every test")
+}
+
+@test
+test_filters_keep_a_test_one_of_them_keeps :: fn() -> void {
+    t :: probe_test("std/iter", "window.vader", "test_window_sizes")
+    assert(keeps(probe_filters(["std/io", "window.vader"]), t), "the second")
+    assert(!keeps(probe_filters(["std/io", "chunk.vader"]), t), "neither")
+}
+
+@test
+test_exact_filter_keeps_its_test_alone :: fn() -> void {
+    odd :: probe_test("m", "we:ird*[1].vader", "test_a")
+    assert_eq(exact_filter(odd), r"m:we\:ird\*\[1].vader:test_a")
+    exact :: probe_filter(exact_filter(odd))
+    assert(keeps(exact, odd), "its own test")
+    assert(!keeps(exact, probe_test("m", "weXird1.vader", "test_a")), "another file")
+    unnamed :: probe_test("", "f.vader", "test_b")
+    anonymous :: probe_filter(exact_filter(unnamed))
+    assert(keeps(anonymous, unnamed), "a module that declares no name")
+    assert(!keeps(anonymous, probe_test("m", "f.vader", "test_b")), "a named one")
 }
 
 @test

@@ -80,6 +80,10 @@ export FlagSpec :: struct {
     /// Closed value set. Empty means any string is accepted. Meaningless on
     /// `Bool`, and on `Int` the range check is the caller's business.
     values:       ValueSpec[] = []
+    /// The flag may be given more than once: every value is kept, in order, and
+    /// read with `string_flags`; `string_flag` reads the last, the only one any
+    /// other flag keeps. Meaningless on `Bool`.
+    repeatable:   bool = false
 }
 
 /// What an action does with positionals past the first: drives its usage line
@@ -113,6 +117,9 @@ export CommandSpec :: struct {
 /// decides whether to bail out.
 export ParsedArgs :: struct {
     flags:       Map<string, string>
+    /// The values of each `repeatable` flag, in command-line order. Its last
+    /// one is in `flags` too.
+    repeated:    Map<string, string[]>
     positionals: string[]
     errors:      string[]
 }
@@ -134,6 +141,7 @@ export ParsedArgs :: struct {
 ///               `true` / `false`, and per value outside a flag's `values` set.
 export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
     flags :: Map<string, string> {}
+    repeated :: Map<string, string[]> {}
     positionals: string[]: []
     errors: string[]: []
 
@@ -185,7 +193,7 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
         // `Str` / `Int`: the value is inline after `=`, or the next token. The `=`
         // form is always available for a value the spaced form would refuse.
         if eq >= 0 {
-            record_str_flag(spec, a, inline_value, flags, errors)
+            record_str_flag(spec, a, inline_value, flags, repeated, errors)
             i += 1
             continue
         }
@@ -206,7 +214,7 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
             i += 1
             continue
         }
-        record_str_flag(spec, a, next, flags, errors)
+        record_str_flag(spec, a, next, flags, repeated, errors)
         i += 2
     }
 
@@ -216,13 +224,25 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
         i += 1
     }
 
-    return ParsedArgs { .flags = flags, .positionals = positionals, .errors = errors }
+    return ParsedArgs {
+        .flags = flags,
+        .repeated = repeated,
+        .positionals = positionals,
+        .errors = errors,
+    }
 }
 
 // Store a `Str` flag's value, rejecting it when the spec pins a closed set.
 // `spelling` is the token as the user wrote it (`--stage` or `-s`) so the
 // message echoes their spelling rather than the canonical name.
-record_str_flag :: fn(spec: FlagSpec, spelling: string, value: string, flags: Map<string, string>, errors: string[]) -> void {
+record_str_flag :: fn(
+    spec: FlagSpec,
+    spelling: string,
+    value: string,
+    flags: Map<string, string>,
+    repeated: Map<string, string[]>,
+    errors: string[],
+) -> void {
     if spec.values.len() > 0 && !accepts_value(spec, value) {
         errors.push("${spelling}: unknown value \"${value}\" (expected: ${value_list(spec)})")
         return
@@ -233,6 +253,9 @@ record_str_flag :: fn(spec: FlagSpec, spelling: string, value: string, flags: Ma
     if spec.kind == .Int && parse_int(value) is ParseError {
         errors.push("${spelling}: expected an integer, got \"${value}\"")
         return
+    }
+    if spec.repeatable {
+        repeated.get_or_put_with(spec.name, () -> []).push(value)
     }
     flags[spec.name] = value
 }
@@ -302,6 +325,12 @@ export string_flag :: fn(self: ParsedArgs, name: string, default: string) -> str
         is string -> { return v }
     }
 }
+
+/// Read every value of a `repeatable` flag, in command-line order.
+/// @param self  parser output.
+/// @param name  canonical flag name (not an alias).
+/// @return      the values, none when `name` wasn't on the command line.
+export string_flags :: fn(self: ParsedArgs, name: string) -> string[] = self.repeated[name] ?? []
 
 /// Read an `Int` flag, falling back to `default` when absent.
 ///
@@ -373,6 +402,20 @@ test_specs :: fn() -> FlagSpec[] = [
 @test test_str_flag_unknown_name_uses_default :: fn() -> void {
     parsed :: parse(["--out=/tmp/x"], test_specs())
     assert_eq(parsed.string_flag("absent", "fallback"), "fallback")
+}
+
+@test test_repeatable_flag_keeps_every_value :: fn() -> void {
+    specs :: [FlagSpec { .name = "only", .help = "Keep this", .alias = "k", .repeatable = true }]
+    parsed :: parse(["--only=a", "-k", "b", "--only", "c"], specs)
+    assert_eq(parsed.errors.len(), 0)
+    assert_eq(parsed.string_flags("only").join(" "), "a b c")
+    assert_eq(parsed.string_flag("only", ""), "c")
+    assert_eq(parsed.string_flags("absent").len(), 0)
+}
+
+@test test_str_flag_keeps_its_last_value :: fn() -> void {
+    parsed :: parse(["--out=first", "--out=second"], test_specs())
+    assert_eq(parsed.string_flag("out", ""), "second")
 }
 
 @test test_str_flag_missing_value_errors :: fn() -> void {

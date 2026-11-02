@@ -109,8 +109,10 @@ CHECK_FLAGS: FlagSpec[]: [
 TEST_FLAGS: FlagSpec[]: [
     FlagSpec {
         .name = "filter",
-        .help = "Keep the tests a glob matches: module, file or name, or `<module>:<file>[:<name>]`",
+        .help = "Keep the tests a glob matches: module, file or name, or "
+            + "`<module>:<file>[:<name>]`; repeated, those one matches; `-` reads them from stdin",
         .value_name = "pattern",
+        .repeatable = true,
     },
     FlagSpec {
         .name = "reporter",

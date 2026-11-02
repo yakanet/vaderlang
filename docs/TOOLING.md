@@ -297,27 +297,31 @@ test_addition :: fn() {
 `--filter` keeps the tests a glob matches (`std/glob`, POSIX notation, where `*` also matches `/`). The number of `:` decides what it is matched against:
 
 ```sh
-vader test --filter 'test_min*' lib                  # no `:`: the module, the file or the name
-vader test --filter 'std/iter:*' lib                 # one: <module>:<file>
-vader test --filter '*:window.vader' lib             # any module, this file
-vader test --filter 'std/*:*:test_*_empty' lib       # two: <module>:<file>:<name>
+vader test --filter 'test_min*' lib                       # no `:`: the module, the file or the name
+vader test --filter 'std/iter:*' lib                      # one: <module>:<file>
+vader test --filter '*:window.vader' lib                  # any module, this file
+vader test --filter 'std/*:*:test_*_empty' lib            # two: <module>:<file>:<name>
+vader test --filter 'test_min*' --filter 'test_max*' lib  # repeated: the tests one keeps
+vader test --filter - lib < failed.txt                    # `-`: one filter per line of stdin
 ```
 
-The module is the name its `module "..."` line declares, the file is its name without its folder. A glob with no wildcard is exact. A module that cannot hold a kept test is not compiled: discovery reads the name of each test from its declaration, without compiling, and compiles a module whose tests it cannot all name.
+The module is the name its `module "..."` line declares, the file is its name without its folder. A glob with no wildcard is exact, and `\` quotes the character after it, a `:` included. A module that cannot hold a kept test is not compiled: discovery reads the name of each test from its declaration, without compiling, and compiles a module whose tests it cannot all name.
 
-`--list` names the tests without running them, one `<module>:<file>:<name>` per line, the form `--filter` reads.
+`--filter -` is how a tool passes many filters: a command line is limited in length (to 32,767 characters on Windows), stdin is not. A blank line holds no filter.
+
+`--list` names the tests without running them, one per line, as the `--filter` that keeps it alone: `<module>:<file>:<name>`, each part quoted.
 
 `--reporter=json` reports for a tool, an editor's test view or a CI. The report is a JSON text sequence (RFC 7464, `jq --seq`): each event is an object on one line, after a record separator (RS, `0x1E`, written `<RS>` here).
 
 ```
 <RS>{"event":"module","module":"main","path":"/home/me/app/main.vader"}
-<RS>{"event":"start","module":"main","test":"test_addition","file":"/home/me/app/main.vader","line":6}
+<RS>{"event":"start","module":"main","test":"test_addition","file":"/home/me/app/main.vader","line":6,"filter":"main:main.vader:test_addition"}
 <RS>{"event":"pass","module":"main","test":"test_addition","duration_ms":0.021}
 <RS>{"event":"summary","total":1,"pass":1,"fail":0,"duration_ms":31.2}
 ```
 
 - `module` opens the tests of a module, compiled from `path`.
-- `start` and, with `--list`, `test` say where a test is declared: `file` is absolute, `line` is that of its name.
+- `start` and, with `--list`, `test` say where a test is declared, and how to run it again: `file` is absolute, `line` is that of its name, `filter` is the `--filter` that keeps it alone.
 - `pass` and `fail` give how long the test ran; `fail` adds the trap's `message`.
 - `error` reports a module that did not run: it does not compile, or the VM refuses it. Its diagnostics stay on stderr.
 - `summary` closes a run, not a list.
@@ -343,7 +347,7 @@ A native binary is debugged in C (lldb, gdb), where locals are compiler slots (`
 
 `--library-root=<path>` adds a library root, searched before the project's.
 
-The VS Code and IntelliJ extensions (`editors/vscode/`, `editors/intellij/`) start `vader lsp` from the configured `vader` binary or the one on `PATH`, and validate and complete a `vader.json` against `editors/common/vader.schema.json`. A test lens carries the command `vader.runTest`, which the editor runs, not the server: each extension runs `vader test --reporter=json <file>`, filtered to the lens's test, from the file's project (its folder, outside any). IntelliJ runs it as a temporary *Vader Test* run configuration, whose test console shows the tree of tests, their durations and output, and goes to a test's line. VS Code runs it in its Test view, which lists the tests of a module when a file that holds one is opened or saved (`vader test --list --reporter=json <file>`), shows a failure on the test's line and keeps each test's output.
+The VS Code and IntelliJ extensions (`editors/vscode/`, `editors/intellij/`) start `vader lsp` from the configured `vader` binary or the one on `PATH`, and validate and complete a `vader.json` against `editors/common/vader.schema.json`. A test lens carries the command `vader.runTest`, which the editor runs, not the server: each extension runs `vader test --reporter=json <file>`, filtered to the lens's test, from the file's project (its folder, outside any). IntelliJ runs it as a temporary *Vader Test* run configuration, whose test console shows the tree of tests, their durations and output, goes to a test's line, and reruns the failed tests. VS Code runs it in its Test view, which lists the tests of a module when a file that holds one is opened or saved (`vader test --list --reporter=json <file>`), shows a failure on the test's line and keeps each test's output. Both rerun chosen tests with the `filter` of their events, written to `vader test --filter -`: one process per module, whatever the number of tests.
 
 ### The project of a file
 

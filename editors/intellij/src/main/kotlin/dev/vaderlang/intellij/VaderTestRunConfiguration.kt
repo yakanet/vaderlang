@@ -12,13 +12,16 @@ import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.testframework.AbstractTestProxy
 import com.intellij.execution.testframework.TestConsoleProperties
+import com.intellij.execution.testframework.actions.AbstractRerunFailedTestsAction
 import com.intellij.execution.testframework.sm.FileUrlProvider
 import com.intellij.execution.testframework.sm.SMCustomMessagesParsing
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil
 import com.intellij.execution.testframework.sm.runner.OutputToGeneralTestEventsConverter
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties
 import com.intellij.execution.testframework.sm.runner.SMTestLocator
+import com.intellij.execution.testframework.sm.runner.SMTestProxy
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -29,13 +32,14 @@ import com.intellij.openapi.util.NotNullLazyValue
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.FormBuilder
 import java.io.File
+import java.io.IOException
 import javax.swing.JComponent
 import javax.swing.JPanel
 
 // A "Vader Test" run configuration: `vader test --reporter=json` on a file, its
 // report read into the IDE's test console (tree, durations, each test's output,
-// navigation to the test, rerun). The "run test" code lenses create one
-// (`VaderRunTestAction`).
+// navigation to the test, rerun, rerun of the failed tests). The "run test"
+// code lenses create one (`VaderRunTestAction`).
 internal class VaderTestConfigurationType : ConfigurationTypeBase(
     "VaderTestRunConfiguration",
     "Vader Test",
@@ -83,6 +87,10 @@ internal class VaderTestRunConfiguration(
         get() = options.test.orEmpty()
         set(value) { options.test = value }
 
+    // The filters a run of the configuration passes: its test, if it has one.
+    val filters: List<String>
+        get() = listOfNotNull(test.ifBlank { null })
+
     override fun checkConfiguration() {
         if (file.isBlank()) throw RuntimeConfigurationError("No Vader file to test")
     }
@@ -90,25 +98,35 @@ internal class VaderTestRunConfiguration(
     override fun getConfigurationEditor(): SettingsEditor<VaderTestRunConfiguration> = VaderTestSettingsEditor()
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState =
-        VaderTestState(environment, this)
+        VaderTestState(environment, this, filters)
 }
 
+// `vader test` on the file of `configuration`, kept to the tests one of
+// `filters` keeps when there are any.
 private class VaderTestState(
     environment: ExecutionEnvironment,
     private val configuration: VaderTestRunConfiguration,
+    private val filters: List<String>,
 ) : CommandLineState(environment) {
 
     override fun startProcess(): ProcessHandler {
         val arguments = buildList {
             add("test")
             add("--reporter=json")
-            if (configuration.test.isNotBlank()) {
+            if (filters.isNotEmpty()) {
                 add("--filter")
-                add(configuration.test)
+                add("-")
             }
             add(configuration.file)
         }
-        return startVaderProcess(arguments, workDirectory())
+        val handler = startVaderProcess(arguments, workDirectory())
+        // The filters go through stdin, where a command line has a length limit.
+        try {
+            handler.processInput?.writer(Charsets.UTF_8)?.use { it.write(filters.joinToString("\n")) }
+        } catch (_: IOException) {
+            // The process is gone: its exit says why.
+        }
+        return handler
     }
 
     // The configured folder, else the file's project, else the file's folder.
@@ -130,6 +148,38 @@ private class VaderTestConsoleProperties(configuration: RunConfiguration, execut
 
     // The converter's location hints are `file://<path>:<line>` URLs.
     override fun getTestLocator(): SMTestLocator = FileUrlProvider.INSTANCE
+
+    override fun createRerunFailedTestsAction(consoleView: ConsoleView): AbstractRerunFailedTestsAction =
+        VaderRerunFailedTestsAction(consoleView, this)
+}
+
+// "Rerun Failed Tests": the configuration again, kept to the failed tests by the
+// filter each one's `metainfo` holds. A failed test without one is a module that
+// did not compile, which only a run of the whole configuration shows again.
+private class VaderRerunFailedTestsAction(console: ConsoleView, properties: TestConsoleProperties) :
+    AbstractRerunFailedTestsAction(console) {
+
+    init { init(properties) }
+
+    override fun getRunProfile(environment: ExecutionEnvironment): MyRunProfile? {
+        val configuration = myConsoleProperties.configuration as? VaderTestRunConfiguration ?: return null
+        val filters = failedFilters(getFailedTests(configuration.project)) ?: configuration.filters
+        return object : MyRunProfile(configuration) {
+            override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState =
+                VaderTestState(environment, configuration, filters)
+        }
+    }
+}
+
+// The filters of the failed `tests`, null when one has none. The failures hold
+// the suites of the failed tests too, which have none either.
+private fun failedFilters(tests: List<AbstractTestProxy>): List<String>? {
+    val filters = mutableListOf<String>()
+    for (test in tests) {
+        if (!test.isLeaf) continue
+        filters.add((test as? SMTestProxy)?.metainfo ?: return null)
+    }
+    return filters
 }
 
 private class VaderTestSettingsEditor : SettingsEditor<VaderTestRunConfiguration>() {

@@ -76,7 +76,7 @@ internal class VaderTestEventsConverter(testFrameworkName: String, properties: T
         val test = event.text("test")
         return when (event.text("event")) {
             "module" -> closeSuite() + startSuite(moduleName(event), event.text("path"))
-            "start" -> listOf(started(test, location(event.text("file"), event.text("line"))))
+            "start" -> listOf(started(test, location(event.text("file"), event.text("line"))).withFilter(event.text("filter")))
             "pass" -> listOf(finished(test, event))
             "fail" -> failed(test, event)
             // A module that did not run shows as a failed test of its name: what
@@ -135,6 +135,13 @@ private fun location(path: String, line: String = ""): String? {
 private fun ServiceMessageBuilder.withLocation(location: String?): ServiceMessageBuilder {
     if (location == null) return this
     return addAttribute("locationHint", location)
+}
+
+// The `--filter` that keeps the test alone, as its `metainfo`: "Rerun Failed
+// Tests" reads it back (`VaderRerunFailedTestsAction`).
+private fun ServiceMessageBuilder.withFilter(filter: String): ServiceMessageBuilder {
+    if (filter.isEmpty()) return this
+    return addAttribute("metainfo", filter)
 }
 
 private fun JsonObject.text(name: String): String =

@@ -67,13 +67,13 @@ module_failed :: fn(r: TestReporter, module: string, path: Path, message: string
     }
 }
 
-/// Report the test `t` for `--list`, as `<module>:<file>:<name>` in text, the
-/// coordinates `--filter` reads.
+/// Report the test `t` for `--list`, in text as the `--filter` that keeps it
+/// alone, `<module>:<file>:<name>`.
 listed :: fn(r: TestReporter, t: DiscoveredTest) -> void {
     if r.format == .Json {
         emit(located_event("test", t))
     } else {
-        println("${t.module}:${t.file_name()}:${t.display}")
+        println(exact_filter(t))
     }
 }
 
@@ -152,12 +152,14 @@ module_event :: fn(name: string, module: string, path: Path) -> Map<string, Json
     return event
 }
 
-// An event about the test `t` that says where it is declared: `file` is
-// absolute and `line` that of its name, which an editor needs to go to it.
+// An event about the test `t` that says where it is declared, and how to run
+// it again: `file` is absolute and `line` that of its name, which an editor
+// needs to go to it; `filter` is the `--filter` that keeps it alone.
 located_event :: fn(name: string, t: DiscoveredTest) -> Map<string, JsonValue> {
     event :: test_event(name, t)
     event["file"] = json_string(normalized_path(t.path.as_string()))
     event["line"] = json_number(f64(t.line))
+    event["filter"] = json_string(exact_filter(t))
     return event
 }
 
@@ -220,7 +222,8 @@ test_an_event_is_one_line_led_by_rs :: fn() -> void {
 @test
 test_a_located_event_says_where_the_test_is :: fn() -> void {
     expected :: "\u{1E}{\"event\":\"start\",\"module\":\"std/iter\",\"test\":\"test_sizes\","
-        + "\"file\":\"/repo/window.vader\",\"line\":12}\n"
+        + "\"file\":\"/repo/window.vader\",\"line\":12,"
+        + "\"filter\":\"std/iter:window.vader:test_sizes\"}\n"
     assert_eq(event_text(located_event("start", probe_located_test())), expected)
 }
 

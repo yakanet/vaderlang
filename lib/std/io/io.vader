@@ -396,6 +396,25 @@ export read_available_or_null :: fn(max: i64) -> string | null {
     return read
 }
 
+/// Read stdin up to its end: what a program takes when its input is a file or
+/// the output of another program.
+///
+/// @return  every byte stdin held, as UTF-8; empty when it held none.
+/// @error   `IOError` on a failed read, or on a target with no stdin.
+export read_stdin_to_end :: fn() -> string | IOError {
+    out: u8[]: []
+    for {
+        chunk :: read_ready(READ_CHUNK)
+        if chunk is IOError {
+            if chunk.msg == END_OF_INPUT.msg {
+                return out.bytes_to_string()
+            }
+            return chunk
+        }
+        out.push_all(chunk)
+    }
+}
+
 /// Up to `max` bytes of stdin, at least one: what a single read returns.
 ///
 /// On a Windows console they are the UTF-8 of what was typed, read as text
@@ -442,7 +461,13 @@ read_ready :: fn(max: i64) -> u8[] | IOError {
     buf: u8[]: [0] * max
     got: u32[]: [0]
     if !read_file(h, buf, u32(max), got, null) {
-        return last_io_error("stdin read failed")
+        failed :: last_io_error("stdin read failed")
+        // A pipe whose writer is gone has reached its end: reading it fails with
+        // a broken pipe, where reading a file returns zero bytes.
+        if failed.kind == .BrokenPipe {
+            return END_OF_INPUT
+        }
+        return failed
     }
     // A synchronous read returning true with zero bytes has reached end of file.
     if got[0] == 0 {

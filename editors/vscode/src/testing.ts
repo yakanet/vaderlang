@@ -23,6 +23,7 @@ interface ReportEvent {
   line?: number;
   duration_ms?: number;
   message?: string;
+  filter?: string;
 }
 
 // What running a module item takes.
@@ -31,15 +32,15 @@ interface ModuleData {
   project: string;
   // The file or folder `vader test` was given to reach the module.
   entry: string;
-  // The name the module declares, `""` when it declares none.
-  name: string;
 }
 
-// One `vader test` of a run, and the item it reports on.
+// One `vader test` of a run: the module `entry` reaches, filtered to `filters`
+// when there are any, and the items it reports on.
 interface Job {
-  item: vscode.TestItem;
+  items: vscode.TestItem[];
   project: string;
-  arguments: string[];
+  entry: string;
+  filters: string[];
 }
 
 const RS = "\u001e";
@@ -72,6 +73,8 @@ class VaderTests {
   readonly controller = vscode.tests.createTestController("vader", "Vader");
   private readonly profile: vscode.TestRunProfile;
   private readonly modules = new WeakMap<vscode.TestItem, ModuleData>();
+  // The `--filter` that keeps a test item's test alone, as its events give it.
+  private readonly filters = new WeakMap<vscode.TestItem, string>();
   // The listing under way for each file: a newer one supersedes it.
   private readonly listings = new Map<string, ChildProcess>();
 
@@ -197,7 +200,7 @@ class VaderTests {
   private async run(request: vscode.TestRunRequest): Promise<void> {
     const run = this.controller.createTestRun(request);
     const jobs = this.jobsOf(request);
-    for (const job of jobs) run.enqueued(job.item);
+    for (const item of jobs.flatMap((job) => job.items)) run.enqueued(item);
     for (const job of jobs) {
       if (run.token.isCancellationRequested) break;
       await this.runJob(run, job);
@@ -205,43 +208,67 @@ class VaderTests {
     run.end();
   }
 
+  // One `vader test` per module: a module asked for whole runs whole, one
+  // whose tests are picked, or some left out, runs filtered to them.
   private jobsOf(request: vscode.TestRunRequest): Job[] {
     const excluded = new Set(request.exclude ?? []);
-    const included = request.include ?? itemsOf(this.controller.items);
-    return included.filter((item) => !excluded.has(item)).flatMap((item) => this.jobsOfItem(item, excluded));
-  }
-
-  // A module asked for whole runs in one `vader test`; a test asked for alone,
-  // or one of a module some of whose tests are left out, runs in one of its own.
-  private jobsOfItem(item: vscode.TestItem, excluded: Set<vscode.TestItem>): Job[] {
-    if (item.parent !== undefined) return this.testJobs(item.parent, [item]);
-    const tests = itemsOf(item.children);
-    if (tests.some((test) => excluded.has(test))) {
-      return this.testJobs(item, tests.filter((test) => !excluded.has(test)));
+    const whole = new Set<vscode.TestItem>();
+    const picked = new Map<vscode.TestItem, vscode.TestItem[]>();
+    const pick = (module: vscode.TestItem, tests: vscode.TestItem[]) => {
+      const kept = picked.get(module) ?? [];
+      kept.push(...tests);
+      picked.set(module, kept);
+    };
+    for (const item of request.include ?? itemsOf(this.controller.items)) {
+      if (excluded.has(item)) continue;
+      if (item.parent !== undefined) {
+        pick(item.parent, [item]);
+        continue;
+      }
+      const tests = itemsOf(item.children);
+      if (tests.some((test) => excluded.has(test))) {
+        pick(item, tests.filter((test) => !excluded.has(test)));
+        continue;
+      }
+      whole.add(item);
     }
-    const data = this.modules.get(item);
-    if (data === undefined) return [];
-    return [{ item, project: data.project, arguments: [data.entry] }];
+    const jobs: Job[] = [];
+    for (const module of whole) addJob(jobs, this.job(module, [module], []));
+    for (const [module, tests] of picked) {
+      if (!whole.has(module)) addJob(jobs, this.pickedJob(module, tests));
+    }
+    return jobs;
   }
 
-  // A `vader test` per test of `tests`, filtered to its coordinates.
-  private testJobs(module: vscode.TestItem, tests: vscode.TestItem[]): Job[] {
+  // The job of the `tests` of `module` whose filter a report gave, and only of
+  // them: with no filter left, it would run the whole module.
+  private pickedJob(module: vscode.TestItem, tests: vscode.TestItem[]): Job | undefined {
+    const items: vscode.TestItem[] = [];
+    const filters: string[] = [];
+    for (const test of tests) {
+      const filter = this.filters.get(test);
+      if (filter === undefined) continue;
+      items.push(test);
+      filters.push(filter);
+    }
+    if (filters.length === 0) return undefined;
+    return this.job(module, items, filters);
+  }
+
+  private job(module: vscode.TestItem, items: vscode.TestItem[], filters: string[]): Job | undefined {
     const data = this.modules.get(module);
-    if (data === undefined) return [];
-    // A module that declares no name is matched by any.
-    const moduleGlob = data.name || "*";
-    return tests.flatMap((test) => {
-      const file = test.uri?.fsPath;
-      if (file === undefined) return [];
-      const filter = `${moduleGlob}:${path.basename(file)}:${test.label}`;
-      return [{ item: test, project: data.project, arguments: ["--filter", filter, file] }];
-    });
+    if (data === undefined) return undefined;
+    return { items, project: data.project, entry: data.entry, filters };
   }
 
   // Runs one `vader test`, reporting its report on `run`.
   private runJob(run: vscode.TestRun, job: Job): Promise<void> {
     return new Promise((resolve) => {
-      const child = spawn(this.binary(), ["test", "--reporter=json", ...job.arguments], { cwd: job.project });
+      const filtered = filterArguments(job.filters);
+      const child = spawn(this.binary(), ["test", "--reporter=json", ...filtered, job.entry], { cwd: job.project });
+      // A write to a process that is gone fails: its `error` or its exit says why.
+      child.stdin?.on("error", () => {});
+      child.stdin?.end(job.filters.join("\n"));
       const report = new JobReport(this, run, job.project);
       const reader = new ReportReader(
         (text) => report.output(text),
@@ -270,7 +297,7 @@ class VaderTests {
     if (existing !== undefined) return existing;
     const item = this.controller.createTestItem(id, label, vscode.Uri.file(entry));
     this.controller.items.add(item);
-    this.modules.set(item, { project, entry, name });
+    this.modules.set(item, { project, entry });
     return item;
   }
 
@@ -300,6 +327,7 @@ class VaderTests {
     );
     const line = Math.max(0, (event.line ?? 1) - 1);
     item.range = new vscode.Range(line, 0, line, 0);
+    if (event.filter !== undefined) this.filters.set(item, event.filter);
     return item;
   }
 
@@ -428,8 +456,19 @@ function parseEvent(text: string): ReportEvent | undefined {
   return undefined;
 }
 
+function addJob(jobs: Job[], job: Job | undefined): void {
+  if (job !== undefined) jobs.push(job);
+}
+
 function testId(file: string, name: string): string {
   return `${file}:${name}`;
+}
+
+// `--filter -` when there are `filters`: they go through stdin, where a command
+// line has a length limit.
+function filterArguments(filters: string[]): string[] {
+  if (filters.length === 0) return [];
+  return ["--filter", "-"];
 }
 
 // The failure of `test`, shown on its declaration.
