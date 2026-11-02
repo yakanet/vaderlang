@@ -1,0 +1,91 @@
+// std/iter/peekable.vader: an iterator that shows its next element first.
+//
+// A generator cannot hand back an element it has yielded, so `peekable` wraps
+// the source in a struct that holds the element `peek` pulled ahead until
+// `next` takes it.
+
+module "std/iter"
+
+/// An iterator over `source` whose `peek` shows the next element without
+/// consuming it. Built by `peekable`.
+export Peekable :: struct<T> {
+    @internal
+    source: Iterator<T>
+    /// The element `peek` pulled ahead, `Stop` when `source` had none left.
+    @internal
+    ahead: T | Stop = Stop {}
+    /// True while `ahead` holds a pull that `next` has not handed out yet.
+    @internal
+    holds: bool = false
+}
+
+Peekable<T> implements<T> Iterator<T> {
+    next :: fn(self) -> T | Stop {
+        if self.holds {
+            self.holds = false
+            return self.ahead
+        }
+        return self.source.next()
+    }
+}
+
+/// Wrap `self` so its next element can be looked at before it is taken. The
+/// source is then pulled through `next`, one call per element, instead of
+/// fusing into the loop that consumes it.
+///
+/// @param self  source iterator (a raw array auto-coerces at the call site).
+/// @example
+///   tokens :: ["let", "x"].peekable()
+///   tokens.peek()        // "let"
+///   tokens.collect()     // ["let", "x"]
+export peekable :: fn<T>(self: Iterator<T>) -> Peekable<T> = Peekable<T> { .source = self }
+
+/// The next element of `self`, left in place for the next `peek` or `next`.
+///
+/// @param self  the iterator to look into.
+/// @return      the next element, `null` once there is none. When `T` admits
+///              `null` itself, a `null` element and the end read alike.
+/// @example
+///   # tokens :: ["let", "x"].peekable()
+///   tokens.peek() == "let"   // true
+export peek :: fn<T>(self: Peekable<T>) -> T | null {
+    if !self.holds {
+        self.ahead = self.source.next()
+        self.holds = true
+    }
+    if self.ahead is Stop {
+        return null
+    }
+    return self.ahead
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_peek_leaves_the_element :: fn() -> void {
+    it :: [1, 2, 3].peekable()
+    assert_eq(it.peek() ?? -1, 1)
+    assert_eq(it.peek() ?? -1, 1)
+    assert(it.collect().content_equals([1, 2, 3]), "the peeked element is still taken")
+}
+
+@test
+test_peek_follows_next :: fn() -> void {
+    it :: (0..<3).peekable()
+    for x in it {
+        if x == 1 {
+            break
+        }
+    }
+    assert_eq(it.peek() ?? -1, 2)
+}
+
+@test
+test_peek_at_the_end_is_null :: fn() -> void {
+    it :: [1].map((x: i32) -> x * 10).peekable()
+    assert_eq(it.peek() ?? -1, 10)
+    assert_eq(it.count(), 1)
+    assert(it.peek() == null, "nothing left to peek")
+}

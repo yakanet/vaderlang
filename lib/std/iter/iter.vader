@@ -1,8 +1,9 @@
 // std/iter: lazy `generator` iterator combinators + terminals.
 //
-//   - **Combinators** `map` / `filter` / `take` / `skip` / `indexed` /
-//     `flat_map` / `chain` / `zip` / `window` / `chunked` / `distinct` /
-//     `filter_not_null` are `generator`s. `arr.map(f)` / `it.indexed()` read like
+//   - **Combinators** `map` / `filter` / `take` / `skip` / `take_while` /
+//     `skip_while` / `step_by` / `scan` / `indexed` / `flat_map` / `chain` /
+//     `zip` / `window` / `chunked` / `distinct` / `filter_not_null` are
+//     `generator`s. `arr.map(f)` / `it.indexed()` read like
 //     a pipeline and dispatch via UFCS ; consumed by a `for` loop or a terminal
 //     (`collect` / `count` / `any_match` / ...), the chain fuses to a single flat
 //     loop: no intermediate arrays, no iterator struct, no `next()` dispatch
@@ -17,6 +18,9 @@
 //   - **Array helpers** `clone` / `is_empty` / `count` / `last` take a `T[]`, in
 //     O(1). For a plain array prefer the built-ins : `arr.len()`,
 //     `arr[start..<end]`, `arr.clone()` (not the removed `slice` / eager `collect`).
+//   - `partition` / `group_by` / `unzip` sort the elements into several
+//     collections (grouping.vader) ; `peekable` wraps an iterator so its next
+//     element can be looked at first (peekable.vader).
 
 module "std/iter"
 
@@ -427,6 +431,84 @@ export skip :: fn<T>(self: Iterator<T>, n: i64) -> Iterator<T> {
     }
 }
 
+/// Fluent lazy `take_while`. Yields the leading elements of `self` that satisfy
+/// `pred`, and ends at the first one that does not: that one is pulled from
+/// `self`, but not yielded.
+///
+/// @param self  source iterator (a raw array auto-coerces at the call site).
+/// @param pred  keeps an element while it holds.
+/// @example
+///   [1, 2, 5, 1].take_while((x: i32) -> x < 3).collect()   // [1, 2]
+export take_while :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T> {
+    for x in self {
+        if !pred(x) {
+            break
+        }
+        yield x
+    }
+}
+
+/// Fluent lazy `skip_while`. Drops the leading elements of `self` that satisfy
+/// `pred`, then forwards every element from the first one that does not,
+/// whatever `pred` says of the later ones.
+///
+/// @param self  source iterator (a raw array auto-coerces at the call site).
+/// @param pred  drops an element while it holds.
+/// @example
+///   [1, 2, 5, 1].skip_while((x: i32) -> x < 3).collect()   // [5, 1]
+export skip_while :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T> {
+    skipping := true
+    for x in self {
+        if skipping && pred(x) {
+            continue
+        }
+        skipping = false
+        yield x
+    }
+}
+
+/// Fluent lazy `step_by`. Yields the first element of `self`, then every
+/// `step`-th one after it: the elements at 0, `step`, `2 * step`... A `step` of
+/// 0 or less yields nothing, as `chunked(0)` does.
+///
+/// @param self  source iterator (a raw array auto-coerces at the call site).
+/// @param step  the distance between two yielded elements.
+/// @example
+///   (0..<10).step_by(3).collect()   // [0, 3, 6, 9]
+export step_by :: fn<T>(self: Iterator<T>, step: i64) -> Iterator<T> {
+    if step <= 0 {
+        return
+    }
+    // Elements still to drop before the next one is yielded.
+    gap: i64 = 0
+    for x in self {
+        if gap == 0 {
+            yield x
+            gap = step - 1
+        } else {
+            gap -= 1
+        }
+    }
+}
+
+/// Fluent lazy `scan`. Folds `self` as `fold` does and yields the state after
+/// each element. `init` itself is not yielded, so an empty source yields
+/// nothing.
+///
+/// @param self  source iterator (a raw array auto-coerces at the call site).
+/// @param init  the state before the first element.
+/// @param f     the next state, from the state so far and an element.
+/// @return      a lazy `Iterator<U>` with one state per element.
+/// @example
+///   [1, 2, 3].scan(0, (total: i32, x: i32) -> total + x).collect()   // [1, 3, 6]
+export scan :: fn<T, U>(self: Iterator<T>, init: U, f: fn(U, T) -> U) -> Iterator<U> {
+    state := init
+    for x in self {
+        state = f(state, x)
+        yield state
+    }
+}
+
 // The lazy combinators map/filter/take/skip are `generator`s (above).
 // Consumed directly (`for` / a terminal), a chain fuses to a flat loop; the
 // generator's own state machine only materialises for an escaping iterator
@@ -461,6 +543,50 @@ export max :: fn<T: Comparable>(self: Iterator<T>) -> T | null {
     for x in self {
         if greatest == null || x > greatest {
             greatest = x
+        }
+    }
+    return greatest
+}
+
+/// The element whose `key` is least (an array auto-coerces at the call site).
+/// Mirrors Kotlin's `minBy`: `key` runs once per element.
+///
+/// @param self  the elements to compare.
+/// @param key   the value each element is compared by.
+/// @return      the element of least key, the first of equal ones ; `null` when
+///              there are none.
+/// @example
+///   ["pear", "fig", "apple"].min_by((s: string) -> s.byte_len())   // "fig"
+export min_by :: fn<T, K: Comparable>(self: Iterator<T>, key: fn(T) -> K) -> T | null {
+    least: T | null = null
+    least_key: K | null = null
+    for x in self {
+        k :: key(x)
+        if least_key == null || k < least_key {
+            least = x
+            least_key = k
+        }
+    }
+    return least
+}
+
+/// The element whose `key` is greatest (an array auto-coerces at the call site).
+/// Mirrors Kotlin's `maxBy`: `key` runs once per element.
+///
+/// @param self  the elements to compare.
+/// @param key   the value each element is compared by.
+/// @return      the element of greatest key, the first of equal ones ; `null`
+///              when there are none.
+/// @example
+///   ["pear", "fig", "apple"].max_by((s: string) -> s.byte_len())   // "apple"
+export max_by :: fn<T, K: Comparable>(self: Iterator<T>, key: fn(T) -> K) -> T | null {
+    greatest: T | null = null
+    greatest_key: K | null = null
+    for x in self {
+        k :: key(x)
+        if greatest_key == null || k > greatest_key {
+            greatest = x
+            greatest_key = k
         }
     }
     return greatest
@@ -742,4 +868,75 @@ test_min_takes_the_least :: fn() -> void {
 @test
 test_max_takes_the_greatest :: fn() -> void {
     assert_eq(["pear", "fig", "apple"].max() ?? "", "pear")
+}
+
+@test
+test_min_by_takes_the_least_key :: fn() -> void {
+    assert_eq(["pear", "fig", "apple", "kiwi"].min_by((s: string) -> s.byte_len()) ?? "", "fig")
+}
+
+@test
+test_max_by_keeps_the_first_of_equal_keys :: fn() -> void {
+    assert_eq(["pear", "fig", "kiwi"].max_by((s: string) -> s.byte_len()) ?? "", "pear")
+}
+
+@test
+test_min_by_of_nothing_is_null :: fn() -> void {
+    empty: string[]: []
+    assert(empty.min_by((s: string) -> s.byte_len()) == null, "no element, no least key")
+}
+
+@test
+test_take_while_stops_at_the_first_refusal :: fn() -> void {
+    assert([1, 2, 5, 1].take_while((x: i32) -> x < 3).collect().content_equals([1, 2]), "1 and 2")
+}
+
+@test
+test_take_while_lazy :: fn() -> void {
+    it :: [1, 2, 5, 1].take_while((x: i32) -> x < 3)
+    assert(it.collect().content_equals([1, 2]), "1 and 2, lazily")
+}
+
+@test
+test_skip_while_forwards_from_the_first_refusal :: fn() -> void {
+    assert([1, 2, 5, 1].skip_while((x: i32) -> x < 3).collect().content_equals([5, 1]), "5, then 1")
+}
+
+@test
+test_skip_while_lazy :: fn() -> void {
+    it :: [1, 2, 5, 1].skip_while((x: i32) -> x < 3)
+    assert(it.collect().content_equals([5, 1]), "5, then 1, lazily")
+}
+
+@test
+test_step_by_takes_every_step :: fn() -> void {
+    assert((0..<10).step_by(3).collect().content_equals([0, 3, 6, 9]), "every third")
+}
+
+@test
+test_step_by_one_keeps_every_element :: fn() -> void {
+    assert([7, 8].step_by(1).collect().content_equals([7, 8]), "a step of 1 keeps all")
+}
+
+@test
+test_step_by_zero_yields_nothing :: fn() -> void {
+    assert_eq([1, 2, 3].step_by(0).count(), 0)
+}
+
+@test
+test_scan_yields_each_state :: fn() -> void {
+    totals :: [1, 2, 3].scan(0, (total: i32, x: i32) -> total + x).collect()
+    assert(totals.content_equals([1, 3, 6]), "running totals")
+}
+
+@test
+test_scan_of_nothing_yields_nothing :: fn() -> void {
+    empty: i32[]: []
+    assert_eq(empty.scan(0, (total: i32, x: i32) -> total + x).count(), 0)
+}
+
+@test
+test_scan_lazy_changes_type :: fn() -> void {
+    it :: [1, 2, 3].scan("", (text: string, x: i32) -> "${text}${x}")
+    assert(it.collect().content_equals(["1", "12", "123"]), "running concatenation")
 }
