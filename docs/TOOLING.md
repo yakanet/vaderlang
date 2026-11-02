@@ -305,6 +305,25 @@ vader test --filter 'std/*:*:test_*_empty' lib       # two: <module>:<file>:<nam
 
 The module is the name its `module "..."` line declares, the file is its name without its folder. A glob with no wildcard is exact. A module that cannot hold a kept test is not compiled: discovery reads the name of each test from its declaration, without compiling, and compiles a module whose tests it cannot all name.
 
+`--list` names the tests without running them, one `<module>:<file>:<name>` per line, the form `--filter` reads.
+
+`--reporter=json` reports for a tool, an editor's test view or a CI. The report is a JSON text sequence (RFC 7464, `jq --seq`): each event is an object on one line, after a record separator (RS, `0x1E`, written `<RS>` here).
+
+```
+<RS>{"event":"module","module":"main","path":"/home/me/app/main.vader"}
+<RS>{"event":"start","module":"main","test":"test_addition","file":"/home/me/app/main.vader","line":6}
+<RS>{"event":"pass","module":"main","test":"test_addition","duration_ms":0.021}
+<RS>{"event":"summary","total":1,"pass":1,"fail":0,"duration_ms":31.2}
+```
+
+- `module` opens the tests of a module, compiled from `path`.
+- `start` and, with `--list`, `test` say where a test is declared: `file` is absolute, `line` is that of its name.
+- `pass` and `fail` give how long the test ran; `fail` adds the trap's `message`.
+- `error` reports a module that did not run: it does not compile, or the VM refuses it. Its diagnostics stay on stderr.
+- `summary` closes a run, not a list.
+- Each event about a test names its `module` and its `test`: two modules may hold a test of one name.
+- What a test writes arrives between its `start` and its result. A reader cuts on RS, so output without a final newline stays apart from the next event.
+
 ## Debugging
 
 `vader dap` runs a Debug Adapter Protocol server on the VM, over standard input and output. It launches a `.vader` file, stops at breakpoints, steps in, over and out, shows the stack, scopes and variables with Vader names and values, evaluates hover expressions, and forwards the program's output as `output` events. VS Code starts it directly, IntelliJ through LSP4IJ.

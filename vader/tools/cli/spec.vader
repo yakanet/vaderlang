@@ -112,6 +112,21 @@ TEST_FLAGS: FlagSpec[]: [
         .help = "Keep the tests a glob matches: module, file or name, or `<module>:<file>[:<name>]`",
         .value_name = "pattern",
     },
+    FlagSpec {
+        .name = "reporter",
+        .help = "How to report the run",
+        .value_name = "format",
+        .default_text = "text",
+        .values = [
+            ValueSpec { .name = "text", .help = "For a person: a line per test, a summary" },
+            ValueSpec { .name = "json", .help = "For a tool: JSON events led by RS (RFC 7464)" },
+        ],
+    },
+    FlagSpec {
+        .name = "list",
+        .kind = .Bool,
+        .help = "Name the tests as `<module>:<file>:<name>`, the form `--filter` reads, and run none",
+    },
 ]
 
 // `doc` reads a project as its build does: from its folder and its entry.

@@ -1,0 +1,233 @@
+// vader/tools/cli/test_report: what `vader test` writes as it runs.
+//
+// The text report is for a person: a header per module, an `ok` or `FAIL` line
+// per test, a summary. The JSON report is for an editor or a CI: a JSON text
+// sequence (RFC 7464), each event an object with a record separator (RS, 0x1E)
+// before it and a newline after it.
+//
+// A test writes to the same stream as the report, and on the VM both write
+// unbuffered, so what arrives between the `start` of a test and its `pass` or
+// `fail` is that test's output. A reader cuts on RS: what comes before it on a
+// line is output, what follows it up to the newline is an event, so a test that
+// prints without a newline breaks nothing.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/tools/cli"
+
+import "json"
+import "std/collections"
+import "std/io"
+import "std/path"
+import "std/time"
+import "vader/front/resolver"
+TTY :: import "std/tty"
+
+/// The form of the report, `--reporter`.
+ReportFormat :: enum {
+    /// For a person: a header per module, a line per test, a summary.
+    Text
+    /// For a tool: one JSON event per step, each led by RS.
+    Json
+}
+
+/// The format `--reporter` names, a value `std/cli` has already checked.
+report_format :: fn(name: string) -> ReportFormat = match name {
+    "json" -> .Json
+    _      -> .Text
+}
+
+/// How `vader test` reports.
+TestReporter :: struct {
+    format:  ReportFormat
+    /// `--list`: the tests are named, none runs.
+    listing: bool
+}
+
+/// Report the module `module`, compiled from `path`, before its tests.
+module_header :: fn(r: TestReporter, module: string, path: Path) -> void {
+    if r.format == .Json {
+        emit(module_event("module", module, path))
+    } else if !r.listing {
+        println(path.to_native())
+    }
+}
+
+/// Report a module that `vader test` could not run: it does not compile, or the
+/// VM refuses it. What went wrong is already on stderr.
+///
+/// @param module   the module the entry declares, `""` when it declares none.
+/// @param path     the entry it was compiled from.
+/// @param message  why it did not run.
+module_failed :: fn(r: TestReporter, module: string, path: Path, message: string) -> void {
+    if r.format == .Json {
+        event :: module_event("error", module, path)
+        event["message"] = json_string(message)
+        emit(event)
+    }
+}
+
+/// Report the test `t` for `--list`, as `<module>:<file>:<name>` in text, the
+/// coordinates `--filter` reads.
+listed :: fn(r: TestReporter, t: DiscoveredTest) -> void {
+    if r.format == .Json {
+        emit(located_event("test", t))
+    } else {
+        println("${t.module}:${t.file_name()}:${t.display}")
+    }
+}
+
+/// Report that the test `t` starts: what it writes until its result is its
+/// output.
+started :: fn(r: TestReporter, t: DiscoveredTest) -> void {
+    if r.format == .Json {
+        emit(located_event("start", t))
+    }
+}
+
+/// Report that the test `t` returned after `took`.
+passed :: fn(r: TestReporter, t: DiscoveredTest, took: Duration) -> void {
+    if r.format == .Json {
+        emit(result_event("pass", t, took))
+    } else {
+        println("  ${TTY.green("ok")} ${t.display} ${duration_text(took)}")
+    }
+}
+
+/// Report that the test `t` trapped after `took`.
+///
+/// @param message  the trap's message: a failed assertion, a panic.
+failed :: fn(r: TestReporter, t: DiscoveredTest, took: Duration, message: string) -> void {
+    if r.format == .Json {
+        event :: result_event("fail", t, took)
+        event["message"] = json_string(message)
+        emit(event)
+    } else {
+        println("  ${TTY.red("FAIL")} ${t.display} ${duration_text(took)}")
+        println("    ${message}")
+    }
+}
+
+/// Report the count of a run that took `took`: every test that ran, and the
+/// modules that did not run, among the failures.
+summary :: fn(r: TestReporter, pass_count: i32, fail_count: i32, took: Duration) -> void {
+    if r.format == .Json {
+        emit(summary_event(pass_count, fail_count, took))
+    } else {
+        println("")
+        println(summary_line(pass_count, fail_count, took))
+    }
+}
+
+// How long a test took, dimmed for its report line.
+duration_text :: fn(took: Duration) -> string = TTY.dim("(${took.format()})")
+
+summary_line :: fn(pass_count: i32, fail_count: i32, took: Duration) -> string {
+    total :: pass_count + fail_count
+    pass_part :: TTY.green("${pass_count} pass")
+    return "${total} tests | ${pass_part} | ${failures_text(fail_count)} | ${took.format()}"
+}
+
+// The count of failures for the summary, red when there is one.
+failures_text :: fn(count: i32) -> string {
+    text :: "${count} fail"
+    if count > 0 {
+        return TTY.red(text)
+    }
+    return text
+}
+
+// An event named `name`, its fields to come: `event` is its first key.
+new_event :: fn(name: string) -> Map<string, JsonValue> {
+    event :: Map<string, JsonValue> {}
+    event["event"] = json_string(name)
+    return event
+}
+
+// An event about the module `module`, compiled from `path`.
+module_event :: fn(name: string, module: string, path: Path) -> Map<string, JsonValue> {
+    event :: new_event(name)
+    event["module"] = json_string(module)
+    event["path"] = json_string(normalized_path(path.as_string()))
+    return event
+}
+
+// An event about the test `t` that says where it is declared: `file` is
+// absolute and `line` that of its name, which an editor needs to go to it.
+located_event :: fn(name: string, t: DiscoveredTest) -> Map<string, JsonValue> {
+    event :: test_event(name, t)
+    event["file"] = json_string(normalized_path(t.path.as_string()))
+    event["line"] = json_number(f64(t.line))
+    return event
+}
+
+// The result `name` of the test `t`, which took `took`.
+result_event :: fn(name: string, t: DiscoveredTest, took: Duration) -> Map<string, JsonValue> {
+    event :: test_event(name, t)
+    event["duration_ms"] = milliseconds(took)
+    return event
+}
+
+// An event about the test `t`. Two modules may hold a test of one name, so each
+// event names both.
+test_event :: fn(name: string, t: DiscoveredTest) -> Map<string, JsonValue> {
+    event :: new_event(name)
+    event["module"] = json_string(t.module)
+    event["test"] = json_string(t.display)
+    return event
+}
+
+summary_event :: fn(pass_count: i32, fail_count: i32, took: Duration) -> Map<string, JsonValue> {
+    event :: new_event("summary")
+    event["total"] = json_number(f64(pass_count + fail_count))
+    event["pass"] = json_number(f64(pass_count))
+    event["fail"] = json_number(f64(fail_count))
+    event["duration_ms"] = milliseconds(took)
+    return event
+}
+
+json_string :: fn(value: string) -> JsonValue = JsonString { .value = value }
+
+json_number :: fn(value: f64) -> JsonValue = JsonNumber { .value = value }
+
+// `took` in milliseconds, to the microsecond.
+milliseconds :: fn(took: Duration) -> JsonValue = json_number(f64(took.to_micros()) / 1000.0)
+
+// The text of `event`: RS, the object on one line, a newline.
+event_text :: fn(event: Map<string, JsonValue>) -> string =
+    "\u{1E}${stringify(JsonObject { .entries = event })}\n"
+
+emit :: fn(event: Map<string, JsonValue>) -> void = print(event_text(event))
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A test of `std/iter` declared at `/repo/window.vader:12`.
+probe_located_test :: fn() -> DiscoveredTest = DiscoveredTest {
+    .mangled = "test_sizes",
+    .display = "test_sizes",
+    .module = "std/iter",
+    .path = "/repo/window.vader".to_path(),
+    .line = 12,
+}
+
+@test
+test_an_event_is_one_line_led_by_rs :: fn() -> void {
+    assert_eq(event_text(new_event("summary")), "\u{1E}{\"event\":\"summary\"}\n")
+}
+
+@test
+test_a_located_event_says_where_the_test_is :: fn() -> void {
+    expected :: "\u{1E}{\"event\":\"start\",\"module\":\"std/iter\",\"test\":\"test_sizes\","
+        + "\"file\":\"/repo/window.vader\",\"line\":12}\n"
+    assert_eq(event_text(located_event("start", probe_located_test())), expected)
+}
+
+@test
+test_a_result_event_takes_milliseconds :: fn() -> void {
+    event :: result_event("pass", probe_located_test(), 1500.micros())
+    expected :: "\u{1E}{\"event\":\"pass\",\"module\":\"std/iter\",\"test\":\"test_sizes\","
+        + "\"duration_ms\":1.5}\n"
+    assert_eq(event_text(event), expected)
+}

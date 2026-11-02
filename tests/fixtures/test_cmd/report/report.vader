@@ -1,0 +1,17 @@
+// A test that prints without a newline and a test that fails, for the reports of
+// `vader test`.
+
+module "test_cmd_report"
+
+import "std/io"
+import "std/testing"
+
+@test
+test_prints :: fn() -> void {
+    print("no newline")
+}
+
+@test
+test_fails :: fn() -> void {
+    fail("boom")
+}
