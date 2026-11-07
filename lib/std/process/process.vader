@@ -1,15 +1,12 @@
-// std/process: external-process invocation, async-first.
+// std/process: external-process invocation.
 //
-// `spawn_async` is the primitive: a non-blocking awaitable over a child
-// process. `spawn_start` launches the child, the awaitable polls
-// it to completion on the cooperative scheduler (`spawn_poll`, re-arming a
-// short timer between polls: the same timer-driven suspension `std/async`'s
-// `sleep` uses), then interns the captured pipes (`spawn_take_stdout/_stderr`).
-// Launching N children and joining them with `std/async::join_all` runs them
-// concurrently: the OS schedules the child processes across cores.
-//
-// Blocking `spawn` is `block_on(spawn_async(...))`: one mechanism, cross-
-// platform (the child primitives have a POSIX and a Win32 body).
+// A child is a value, `ChildProcess`: `spawn_start` launches it with its stdout
+// and stderr captured, `poll` follows it without waiting, `kill` stops it. No
+// state outlives the value, so each task of `std/task` owns the children it
+// starts. `spawn` is the waiting form: it polls its child and sleeps between
+// two polls, which parks the calling task, so tasks that spawn run their
+// children at once and the OS schedules them across cores. `spawn_async` is the
+// same wait as an awaitable of `std/async`.
 //
 // `run_attached` is the other shape: the child shares this process's standard
 // streams instead of having them captured, and the call blocks until it exits.
@@ -22,6 +19,7 @@ module "std/process"
 import "std/async"
 import "std/numbers"
 import "std/runtime"
+import "std/time"
 import "system/posix"
 import "system/windows"
 
@@ -29,9 +27,8 @@ import "system/windows"
 // latency is negligible ; the scheduler `nanosleep`s between polls (no spin).
 POLL_MS: i64: 2
 
-// `spawn_poll` returns RUNNING while the child is alive, SIGNALED on abnormal termination,
-// else the exit code (>= 0). `spawn_start` returns a handle (>= 0) or a
-// negative value on launch failure.
+// `poll_exit` returns RUNNING while the child is alive, SIGNALED on abnormal
+// termination, else the exit code (>= 0).
 RUNNING  :: -1
 SIGNALED :: -2
 
@@ -60,10 +57,7 @@ export ProcessResult :: struct {
     stderr: string
 }
 
-// ---- the child table -------------------------------------------------------
-//
-// One tracked child per slot; a handle is an opaque `i64` index into
-// `children()`.
+// ---- the child -------------------------------------------------------------
 //
 // Draining is POLL-BEFORE-READ on both systems: ask whether bytes are waiting,
 // read only then. The alternative on POSIX is a non-blocking descriptor and on
@@ -72,63 +66,57 @@ export ProcessResult :: struct {
 // question asked before each read removes it without a descriptor flag or a
 // thread.
 
-/// One tracked child. `proc`, `out_h` and `err_h` are the pid and the two pipe
-/// descriptors on POSIX; Windows keeps its handles in `win_handles()` instead.
-Child :: struct {
-    in_use:    bool  = false
+/// A child process `spawn_start` launched, with its stdout and stderr captured:
+/// `poll` follows it to its end, `kill` stops it.
+///
+/// A child dropped before its end keeps running, and its pipes stay open: poll
+/// it until it answers, or kill it.
+export ChildProcess :: struct {
+    /// `argv[0]`, which names the child in a `ProcessError`.
+    @internal
+    program:   string
+    /// Whether the child was reaped: `exit_code` holds its end.
+    @internal
     done:      bool  = false
+    /// The exit code, or `SIGNALED`.
+    @internal
     exit_code: i32   = 0
-    out:       u8[] = []
-    err:       u8[] = []
-    proc:      i64   = 0
-    out_h:     i64   = -1
-    err_h:     i64   = -1
+    /// What the child wrote on stdout so far.
+    @internal
+    out:       u8[]  = []
+    /// What the child wrote on stderr so far.
+    @internal
+    err:       u8[]  = []
+    /// The pid, on POSIX.
+    @internal
+    pid:       i64   = 0
+    /// The read end of the stdout pipe, on POSIX.
+    @internal
+    out_fd:    i64   = -1
+    /// The read end of the stderr pipe, on POSIX.
+    @internal
+    err_fd:    i64   = -1
+    /// The process handle and the read ends of the stdout and stderr pipes, on
+    /// Windows. Stored as machine words and read back as handles through
+    /// `ptr_at`: a `CPointer` cannot be rebuilt from an integer (T3010).
+    @internal
+    handles:   u64[] = []
+    @internal
     out_eof:   bool  = false
+    @internal
     err_eof:   bool  = false
 }
 
-// The children `spawn` started, by handle. A slot is reset to `Child {}` when its
-// handle is released.
-@singleton
-children :: fn() -> Child[] = []
-
-// Windows handles, three words per child (process, stdout read end, stderr read
-// end), indexed by handle. Stored as machine words and read back as handles
-// through `ptr_at`: a `CPointer` cannot be rebuilt from an integer (T3010).
-@singleton
-win_handles :: fn() -> u64[] = []
-
-/// The `k`-th handle of child `handle`: 0 process, 1 stdout, 2 stderr.
+/// The `k`-th handle of `child`: 0 process, 1 stdout, 2 stderr.
 ///
-/// @param handle  the child handle.
-/// @param k       which of the three.
-win_handle :: fn(handle: i64, k: i64) -> Handle = ptr_at(win_handles(), handle * 3 + k)
+/// @param child  a child launched on Windows.
+/// @param k      which of the three.
+win_handle :: fn(child: ChildProcess, k: i64) -> Handle = ptr_at(child.handles, k)
 
 /// How much to ask for per drain. One page: large enough that a chatty child
 /// does not need many rounds, small enough that an idle one costs a syscall
 /// and an empty answer.
 DRAIN_CHUNK: i64: 4096
-
-/// Take a free slot, growing the table when every one is busy.
-///
-/// @return  the handle.
-child_alloc :: fn() -> i64 {
-    table :: children()
-    for i in 0..<table.len() {
-        if !table[i].in_use {
-            table[i] = Child { .in_use = true }
-            return i
-        }
-    }
-    table.push(Child { .in_use = true })
-    return table.len() - 1
-}
-
-/// Whether `handle` names a live slot.
-///
-/// @param handle  the handle to check.
-child_valid :: fn(handle: i64) -> bool =
-    handle >= 0 && handle < children().len() && children()[handle].in_use
 
 /// Number of logical processors online: what a caller sizes a parallel fan-out
 /// on. At least 1: a platform that cannot tell answers 1.
@@ -148,50 +136,68 @@ platform_processor_count :: fn() -> i64 = sys_sysconf(SC_NPROCESSORS_ONLN)
 @target(.Windows)
 platform_processor_count :: fn() -> i64 = i64(get_active_processor_count(ALL_PROCESSOR_GROUPS))
 
-/// Launch `argv` without waiting ; returns a handle into the child table, or a
-/// negative value on launch failure. Pipes for stdout/stderr are captured and
-/// drained by `spawn_poll`.
-@target
-export spawn_start :: fn(argv: string[]) -> i64
+/// Launch `argv` without waiting, its stdout and stderr captured.
+///
+/// @param argv  the command line; `argv[0]` is the program, looked up on `PATH`
+///              when it names no folder.
+/// @return      the child, which `poll` follows and `kill` stops.
+/// @error       `ProcessError` when `argv` is empty or the program cannot be
+///              launched.
+export spawn_start :: fn(argv: string[]) -> ChildProcess | ProcessError {
+    if argv.len() == 0 {
+        return ProcessError { .msg = "spawn: empty argv" }
+    }
+    child :: start_child(argv) ?? return ProcessError {
+        .msg = "spawn: failed to launch \"${argv[0]}\"",
+    }
+    return child
+}
 
-/// Advance a launched child WITHOUT blocking: drain its pipes and reap if it
-/// exited. Returns `RUNNING` while alive, `SIGNALED` on abnormal termination,
-/// else the exit code (>= 0).
+/// Launch `argv`, not empty, with pipes on its stdout and stderr.
+///
+/// @param argv  the command line.
+/// @return      the child, or null when it could not be launched.
 @target
-export spawn_poll :: fn(handle: i64) -> i32
+start_child :: fn(argv: string[]) -> ChildProcess | null
 
-/// Terminate a spawned child and reap it, freeing its slot.
+/// Advance a launched child WITHOUT blocking: drain its pipes and reap it if it
+/// exited.
+///
+/// @param child  what `spawn_start` returned.
+/// @return       `RUNNING` while alive, `SIGNALED` on abnormal termination,
+///               else the exit code (>= 0).
+@target
+poll_exit :: fn(child: ChildProcess) -> i32
+
+/// Terminate `child` and reap it.
 ///
 /// For a caller that has given up: a timeout fired, and without this the child
-/// keeps running after its parent stopped caring, holding a core and its table
-/// slot. SIGKILL rather than a polite signal: this is the path for code that is
-/// not responding. Idempotent: killing a finished or unknown handle does
-/// nothing, since a caller cannot know which it holds.
+/// keeps running after its parent stopped caring, holding a core. SIGKILL
+/// rather than a polite signal: this is the path for code that is not
+/// responding. Killing a child that has ended does nothing, so a caller need
+/// not know which it holds; a killed child polls as ended by a signal.
 ///
-/// @param handle  the handle `spawn_start` returned.
+/// @param child  what `spawn_start` returned.
 @target
-export spawn_kill :: fn(handle: i64) -> void
+export kill :: fn(child: ChildProcess) -> void
 
 @target(.Linux, .Darwin)
-spawn_start :: fn(argv: string[]) -> i64 {
-    if argv.len() == 0 {
-        return -1
-    }
+start_child :: fn(argv: string[]) -> ChildProcess | null {
     out_fds: i32[]: [0, 0]
     err_fds: i32[]: [0, 0]
     if sys_pipe(out_fds) != 0 {
-        return -1
+        return null
     }
     if sys_pipe(err_fds) != 0 {
         sys_close(out_fds[0])
         sys_close(out_fds[1])
-        return -1
+        return null
     }
     actions: u8[]: [0] * SPAWN_ACTIONS_BYTES
     if sys_spawn_actions_init(actions) != 0 {
         close_pair(out_fds)
         close_pair(err_fds)
-        return -1
+        return null
     }
     // The child keeps only the write ends, dup'd onto its own 1 and 2.
     sys_spawn_actions_addclose(actions, out_fds[0])
@@ -213,16 +219,14 @@ spawn_start :: fn(argv: string[]) -> i64 {
     if rc != 0 {
         sys_close(out_fds[0])
         sys_close(err_fds[0])
-        return -1
+        return null
     }
-    h :: child_alloc()
-    children()[h] = Child {
-        .in_use = true,
-        .proc   = i64(pid[0]),
-        .out_h  = i64(out_fds[0]),
-        .err_h  = i64(err_fds[0]),
+    return ChildProcess {
+        .program = argv[0],
+        .pid     = i64(pid[0]),
+        .out_fd  = i64(out_fds[0]),
+        .err_fd  = i64(err_fds[0]),
     }
-    return h
 }
 
 /// `argv` as the NULL-terminated `char*` vector a spawn takes, in two views of
@@ -271,17 +275,16 @@ close_pair :: fn(fds: i32[]) -> void {
 /// what lets one thread serve both pipes: a blocking read on an idle one would
 /// stall while the other filled and the child wedged.
 ///
-/// @param child  the child handle.
+/// @param child  the child.
 /// @param which  1 for stdout, 2 for stderr: the same indices `win_handle` uses.
 /// @param into   the accumulating buffer.
 /// @return       true once the writer is gone and the pipe is drained.
 @target
-drain_pipe :: fn(child: i64, which: i64, into: u8[]) -> bool
+drain_pipe :: fn(child: ChildProcess, which: i64, into: u8[]) -> bool
 
 @target(.Linux, .Darwin)
-drain_pipe :: fn(child: i64, which: i64, into: u8[]) -> bool {
-    c :: children()[child]
-    fd :: if which == 1 { i32(c.out_h) } else { i32(c.err_h) }
+drain_pipe :: fn(child: ChildProcess, which: i64, into: u8[]) -> bool {
+    fd :: if which == 1 { i32(child.out_fd) } else { i32(child.err_fd) }
     chunk: u8[]: [0] * DRAIN_CHUNK
     pfd :: Pollfd { .fd = fd, .events = POLLIN, .revents = 0 }
     for {
@@ -307,46 +310,42 @@ drain_pipe :: fn(child: i64, which: i64, into: u8[]) -> bool {
 }
 
 @target(.Linux, .Darwin)
-spawn_poll :: fn(handle: i64) -> i32 {
-    if !child_valid(handle) {
-        return SIGNALED
+poll_exit :: fn(child: ChildProcess) -> i32 {
+    if child.done {
+        return child.exit_code
     }
-    c :: children()[handle]
-    if c.done {
-        return c.exit_code
-    }
-    out_eof :: if c.out_eof { true } else { drain_pipe(handle, 1, c.out) }
-    err_eof :: if c.err_eof { true } else { drain_pipe(handle, 2, c.err) }
+    out_eof :: if child.out_eof { true } else { drain_pipe(child, 1, child.out) }
+    err_eof :: if child.err_eof { true } else { drain_pipe(child, 2, child.err) }
     st: i32[]: [0]
-    rc :: sys_waitpid(i32(c.proc), st, WNOHANG)
+    rc :: sys_waitpid(i32(child.pid), st, WNOHANG)
     if rc == 0 {
-        c.out_eof = out_eof
-        c.err_eof = err_eof
+        child.out_eof = out_eof
+        child.err_eof = err_eof
         return RUNNING
     }
     if rc < 0 {
         // The child is unreachable: `waitpid` answers -1/ECHILD when `SIGCHLD`
         // is `SIG_IGN`, and that disposition is INHERITED across `execve`, so a
         // build launched from a harness that ignores it sees every child
-        // auto-reaped. Close here or the descriptors leak for good: the slot is
-        // released by `spawn_take_stderr` and nothing holds them after that.
-        sys_close(i32(c.out_h))
-        sys_close(i32(c.err_h))
-        finish(c, SIGNALED)
+        // auto-reaped. Close here or the descriptors leak for good: a child
+        // that answered is never drained again.
+        sys_close(i32(child.out_fd))
+        sys_close(i32(child.err_fd))
+        finish(child, SIGNALED)
         return SIGNALED
     }
     // Reaped. Drain once more: the child can write and exit between the drain
     // above and the wait, and those bytes are still sitting in the pipe.
     if !out_eof {
-        drain_pipe(handle, 1, c.out)
+        drain_pipe(child, 1, child.out)
     }
     if !err_eof {
-        drain_pipe(handle, 2, c.err)
+        drain_pipe(child, 2, child.err)
     }
-    sys_close(i32(c.out_h))
-    sys_close(i32(c.err_h))
+    sys_close(i32(child.out_fd))
+    sys_close(i32(child.err_fd))
     code :: reaped_code(st[0])
-    finish(c, code)
+    finish(child, code)
     return code
 }
 
@@ -362,7 +361,7 @@ terminating_signal :: fn(status: i32) -> i32 = status & 0x7F
 /// @param status  what `waitpid` stored.
 exit_code_of :: fn(status: i32) -> i32 = (status >> 8) & 0xFF
 
-/// What `spawn_poll` answers for a reaped child: its exit code, or `SIGNALED`.
+/// What `poll_exit` answers for a reaped child: its exit code, or `SIGNALED`.
 ///
 /// @param status  what `waitpid` stored.
 reaped_code :: fn(status: i32) -> i32 {
@@ -380,9 +379,9 @@ is_crash_code :: fn(code: u32) -> bool = (code & 0xC000_0000) == 0xC000_0000
 
 /// Mark `c` reaped: `code` recorded and both pipes drained.
 ///
-/// @param c     the slot.
+/// @param c     the child.
 /// @param code  the exit code, or `SIGNALED`.
-finish :: fn(c: Child, code: i32) -> void {
+finish :: fn(c: ChildProcess, code: i32) -> void {
     c.done = true
     c.exit_code = code
     c.out_eof = true
@@ -390,27 +389,20 @@ finish :: fn(c: Child, code: i32) -> void {
 }
 
 @target(.Linux, .Darwin)
-spawn_kill :: fn(handle: i64) -> void {
-    if !child_valid(handle) {
+kill :: fn(child: ChildProcess) -> void {
+    if child.done {
         return
     }
-    c :: children()[handle]
-    if !c.done {
-        sys_kill(i32(c.proc), SIGKILL)
-        st: i32[]: [0]
-        sys_waitpid(i32(c.proc), st, 0)
-        sys_close(i32(c.out_h))
-        sys_close(i32(c.err_h))
-    }
-    children()[handle] = Child {}
-    return
+    sys_kill(i32(child.pid), SIGKILL)
+    st: i32[]: [0]
+    sys_waitpid(i32(child.pid), st, 0)
+    sys_close(i32(child.out_fd))
+    sys_close(i32(child.err_fd))
+    finish(child, SIGNALED)
 }
 
 @target(.Windows)
-spawn_start :: fn(argv: string[]) -> i64 {
-    if argv.len() == 0 {
-        return -1
-    }
+start_child :: fn(argv: string[]) -> ChildProcess | null {
     // Inheritable ends, so the child receives the write halves.
     sa :: SecurityAttributes { .nLength = 24, .lpSecurityDescriptor = 0, .bInheritHandle = 1 }
     out_r: u64[]: [0]
@@ -418,12 +410,12 @@ spawn_start :: fn(argv: string[]) -> i64 {
     err_r: u64[]: [0]
     err_w: u64[]: [0]
     if !create_pipe(out_r, out_w, sa, 0) {
-        return -1
+        return null
     }
     if !create_pipe(err_r, err_w, sa, 0) {
         close_handle(ptr_at(out_r, 0))
         close_handle(ptr_at(out_w, 0))
-        return -1
+        return null
     }
     out_read  :: ptr_at(out_r, 0)
     out_write :: ptr_at(out_w, 0)
@@ -450,19 +442,13 @@ spawn_start :: fn(argv: string[]) -> i64 {
     if !ok {
         close_handle(out_read)
         close_handle(err_read)
-        return -1
+        return null
     }
     close_handle(pi.hThread)
-    h :: child_alloc()
-    base :: h * 3
-    handles :: win_handles()
-    for handles.len() < base + 3 {
-        handles.push(0)
+    return ChildProcess {
+        .program = argv[0],
+        .handles = [u64(pi.hProcess), u64(out_read), u64(err_read)],
     }
-    handles[base]     = u64(pi.hProcess)
-    handles[base + 1] = u64(out_read)
-    handles[base + 2] = u64(err_read)
-    return h
 }
 
 /// The `STARTUPINFOA` that hands a child these three standard handles.
@@ -580,7 +566,7 @@ needs_quoting :: fn(word: u8[]) -> bool {
 }
 
 @target(.Windows)
-drain_pipe :: fn(child: i64, which: i64, into: u8[]) -> bool {
+drain_pipe :: fn(child: ChildProcess, which: i64, into: u8[]) -> bool {
     h :: win_handle(child, which)
     chunk: u8[]: [0] * DRAIN_CHUNK
     avail: u32[]: [0]
@@ -607,37 +593,33 @@ drain_pipe :: fn(child: i64, which: i64, into: u8[]) -> bool {
 }
 
 @target(.Windows)
-spawn_poll :: fn(handle: i64) -> i32 {
-    if !child_valid(handle) {
-        return SIGNALED
+poll_exit :: fn(child: ChildProcess) -> i32 {
+    if child.done {
+        return child.exit_code
     }
-    c :: children()[handle]
-    if c.done {
-        return c.exit_code
-    }
-    out_eof :: if c.out_eof { true } else { drain_pipe(handle, 1, c.out) }
-    err_eof :: if c.err_eof { true } else { drain_pipe(handle, 2, c.err) }
-    proc :: win_handle(handle, 0)
+    out_eof :: if child.out_eof { true } else { drain_pipe(child, 1, child.out) }
+    err_eof :: if child.err_eof { true } else { drain_pipe(child, 2, child.err) }
+    proc :: win_handle(child, 0)
     if wait_for_single_object(proc, 0) != WAIT_OBJECT_0 {
-        c.out_eof = out_eof
-        c.err_eof = err_eof
+        child.out_eof = out_eof
+        child.err_eof = err_eof
         return RUNNING
     }
     // Exited. Drain once more: the child can write and exit between the drain
     // above and the wait, and those bytes are still sitting in the pipe.
     if !out_eof {
-        drain_pipe(handle, 1, c.out)
+        drain_pipe(child, 1, child.out)
     }
     if !err_eof {
-        drain_pipe(handle, 2, c.err)
+        drain_pipe(child, 2, child.err)
     }
     code: u32[]: [0]
     got :: get_exit_code_process(proc, code)
-    close_handle(win_handle(handle, 1))
-    close_handle(win_handle(handle, 2))
+    close_handle(win_handle(child, 1))
+    close_handle(win_handle(child, 2))
     close_handle(proc)
-    // A crash is `SIGNALED`, never its code: `SpawnAsync.resume` branches on
-    // `SIGNALED` alone, and would read a large positive code as a clean run.
+    // A crash is `SIGNALED`, never its code: `poll` branches on `SIGNALED`
+    // alone, and would read a large positive code as a clean run.
     exit_code :: if !got {
         SIGNALED
     } else if is_crash_code(code[0]) {
@@ -645,132 +627,96 @@ spawn_poll :: fn(handle: i64) -> i32 {
     } else {
         i32(code[0])
     }
-    finish(c, exit_code)
+    finish(child, exit_code)
     return exit_code
 }
 
 @target(.Windows)
-spawn_kill :: fn(handle: i64) -> void {
-    if !child_valid(handle) {
+kill :: fn(child: ChildProcess) -> void {
+    if child.done {
         return
     }
-    c :: children()[handle]
-    if !c.done {
-        proc :: win_handle(handle, 0)
-        terminate_process(proc, 1)
-        wait_for_single_object(proc, 2000)
-        close_handle(win_handle(handle, 1))
-        close_handle(win_handle(handle, 2))
-        close_handle(proc)
-    }
-    children()[handle] = Child {}
-    return
+    proc :: win_handle(child, 0)
+    terminate_process(proc, 1)
+    wait_for_single_object(proc, 2000)
+    close_handle(win_handle(child, 1))
+    close_handle(win_handle(child, 2))
+    close_handle(proc)
+    finish(child, SIGNALED)
 }
 
-/// Intern the child's captured stdout (call after `spawn_poll` reports done).
-export spawn_take_stdout :: fn(handle: i64) -> string {
-    if !child_valid(handle) {
-        return ""
-    }
-    return children()[handle].out.bytes_to_string()
-}
-
-/// Intern the child's captured stderr AND release the child slot: the last
-/// call for a handle. Take order is stdout then stderr.
-export spawn_take_stderr :: fn(handle: i64) -> string {
-    if !child_valid(handle) {
-        return ""
-    }
-    c :: children()[handle]
-    out :: c.err.bytes_to_string()
-    // The LAST call for a handle: releasing here is what frees the slot and
-    // the captured buffers, and take order is stdout then stderr.
-    children()[handle] = Child {}
-    return out
-}
-
-// ---- async primitive -------------------------------------------------------
-
-/// The awaitable backing `spawn_async`. On first `resume` it launches the child
-/// and arms a poll timer ; each later `resume` polls and, while the child is
-/// alive, re-arms the timer and parks (`Suspended`). Completes with a
-/// `ProcessResult` (or `ProcessError` on launch failure / signal).
-SpawnAsync :: struct {
-    argv:     string[]
-    started:  bool = false
-    handle:   i64  = -1
-    deadline: i64  = 0
-}
-
-SpawnAsync implements Async<ProcessResult | ProcessError> {
-    /// Kill the child and free its slot. Overriding this matters: `Async`'s
-    /// default `cancel` is a v1 no-op, so a `timeout` over a spawn would
-    /// otherwise unblock the CALLER while the child kept running: spinning a
-    /// core and holding its table slot for the life of the process. A cancelled
-    /// spawn has to actually stop.
-    cancel :: fn(self) -> void {
-        if self.handle >= 0 {
-            spawn_kill(self.handle)
-        }
-    }
-
-    resume :: fn(self) -> ProcessResult | ProcessError | Suspended {
-        if !self.started {
-            self.started = true
-            if self.argv.len() == 0 {
-                return ProcessError { .msg = "spawn: empty argv" }
-            }
-            self.handle = spawn_start(self.argv)
-            if self.handle < 0 {
-                return ProcessError { .msg = "spawn: failed to launch \"${self.argv[0]}\"" }
-            }
-            self.deadline = sched_now() + POLL_MS
-            sched_arm(self.deadline)
-            return Suspended { .wake_at = self.deadline }
-        }
-        // Poll at most once per POLL_MS. A driver may resume us before our
-        // timer fires (`timeout` drives its child on every wake), and would
-        // otherwise poll the child process and arm a fresh timer each time.
-        // Mirrors `Sleep`: stay parked until our timer fires.
-        if sched_now() < self.deadline {
-            return Suspended { .wake_at = self.deadline }
-        }
-        finished :: spawn_finished(self.handle, self.argv[0])
-        if finished == null {
-            self.deadline = sched_now() + POLL_MS
-            sched_arm(self.deadline)
-            return Suspended { .wake_at = self.deadline }
-        }
-        return finished
-    }
-}
-
-/// What a child `spawn_start` launched came to, WITHOUT waiting: null while it
-/// runs, then its `ProcessResult`, or a `ProcessError` when a signal stopped
-/// it. For a caller with an event loop of its own, polling between two events;
-/// once it answers, the handle is spent.
+/// What `child` came to, WITHOUT waiting: null while it runs, then its
+/// `ProcessResult`. For a caller with an event loop of its own, polling between
+/// two events; once the child has ended, every call answers the same.
 ///
-/// @param handle   the handle `spawn_start` returned.
-/// @param program  the program it runs, which names it in a `ProcessError`.
-/// @return         null while the child runs, its result once it exited.
-/// @error          `ProcessError` when a signal terminated it.
-export spawn_finished :: fn(handle: i64, program: string) -> ProcessResult | ProcessError | null {
-    code :: spawn_poll(handle)
+/// @param child  what `spawn_start` returned.
+/// @return       null while the child runs, its result once it exited.
+/// @error        `ProcessError` when a signal terminated it, `kill` included.
+export poll :: fn(child: ChildProcess) -> ProcessResult | ProcessError | null {
+    code :: poll_exit(child)
     if code == RUNNING {
         return null
     }
-    // Both pipes, stdout first, then stderr, which frees the slot, before
-    // deciding success vs signal.
-    out :: spawn_take_stdout(handle)
-    err :: spawn_take_stderr(handle)
+    out :: child.out.bytes_to_string()
+    err :: child.err.bytes_to_string()
     if code == SIGNALED {
         return ProcessError {
-            .msg = "spawn: \"${program}\" terminated by signal",
+            .msg = "spawn: \"${child.program}\" terminated by signal",
             .stdout = out,
             .stderr = err,
         }
     }
     return ProcessResult { .exit = code, .stdout = out, .stderr = err }
+}
+
+// ---- async primitive -------------------------------------------------------
+
+/// The awaitable backing `spawn_async`. Its first `resume` launches the child
+/// and arms a poll timer; each later `resume` polls and, while the child is
+/// alive, re-arms the timer and parks (`Suspended`).
+SpawnAsync :: struct {
+    argv:     string[]
+    child:    ChildProcess | null = null
+    deadline: i64                 = 0
+}
+
+SpawnAsync implements Async<ProcessResult | ProcessError> {
+    /// Kill the child. Overriding this matters: `Async`'s default `cancel` is a
+    /// no-op, so a `timeout` over a spawn would otherwise unblock the CALLER
+    /// while the child kept running, spinning a core for the life of the
+    /// process.
+    cancel :: fn(self) -> void {
+        child :: self.child
+        if child != null {
+            child.kill()
+        }
+    }
+
+    resume :: fn(self) -> ProcessResult | ProcessError | Suspended {
+        child :: self.child
+        if child == null {
+            started :: spawn_start(self.argv)
+            if started is ProcessError {
+                return started
+            }
+            self.child = started
+        } else {
+            // Poll at most once per POLL_MS. A driver may resume us before our
+            // timer fires (`timeout` drives its child on every wake), and would
+            // otherwise poll the child process and arm a fresh timer each time.
+            // Mirrors `Sleep`: stay parked until our timer fires.
+            if sched_now() < self.deadline {
+                return Suspended { .wake_at = self.deadline }
+            }
+            finished :: child.poll()
+            if finished != null {
+                return finished
+            }
+        }
+        self.deadline = sched_now() + POLL_MS
+        sched_arm(self.deadline)
+        return Suspended { .wake_at = self.deadline }
+    }
 }
 
 /// Run `argv[0]` with `argv[1..]` as an awaitable: launches immediately, then
@@ -785,15 +731,37 @@ export spawn_finished :: fn(handle: i64, program: string) -> ProcessResult | Pro
 export spawn_async :: fn(argv: string[]) -> Async<ProcessResult | ProcessError> =
     SpawnAsync { .argv = argv }
 
-/// Run `argv[0]` with `argv[1..]`, BLOCK until exit, and return the exit code
-/// plus captured stdout/stderr. A `block_on` over `spawn_async`: prefer
-/// `spawn_async` when you need concurrency.
+/// Run `argv[0]` with `argv[1..]`, wait until it exits, and return its exit
+/// code with what it wrote on stdout and stderr.
 ///
-/// @param argv   the command line ; `argv[0]` is the program. Empty is an error.
-/// @return       a `ProcessResult` with the exit code + drained pipes.
-/// @error        `ProcessError` on launch failure, a killing signal, or empty
-///               `argv`.
-export spawn :: fn(argv: string[]) -> ProcessResult | ProcessError = block_on(spawn_async(argv))
+/// The calling task parks while the child runs, so tasks of `std/task` that
+/// spawn run their children at once; a task cancelled meanwhile kills its
+/// child.
+///
+/// @param argv  the command line; `argv[0]` is the program. Empty is an error.
+/// @return      a `ProcessResult` with the exit code and the drained pipes.
+/// @error       `ProcessError` on launch failure, a killing signal, or empty
+///              `argv`.
+/// @example
+///   # import "std/task"
+///   a :: launch(() -> spawn(["cc", "-c", "a.c"]))
+///   b :: launch(() -> spawn(["cc", "-c", "b.c"]))
+///   join_all([a, b])   // both compiles run at once
+export spawn :: fn(argv: string[]) -> ProcessResult | ProcessError {
+    child :: spawn_start(argv)
+    if child is ProcessError {
+        return child
+    }
+    // A cancelled task runs its defers: the child does not outlive the wait.
+    defer child.kill()
+    for {
+        finished :: child.poll()
+        if finished != null {
+            return finished
+        }
+        sleep(POLL_MS.millis())
+    }
+}
 
 // ---- attached run ----------------------------------------------------------
 
@@ -884,9 +852,38 @@ cannot_launch :: fn(program: string) -> ProcessError =
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/io"
+import "std/task"
 import "std/testing"
 
 @test
 test_processor_count_platform_call_succeeds :: fn() -> void {
     assert(platform_processor_count() >= 1, "the platform reports its processors (a wrong selector reads -1)")
+}
+
+// The executable running the tests answers `--version` on every system, which
+// a shell builtin like `echo` does not.
+@test
+test_spawn_runs_a_child_in_each_task :: fn() -> void {
+    vader :: current_executable_location()
+    first :: launch(() -> spawn([vader, "--version"]))
+    second :: launch(() -> spawn([vader, "--version"]))
+    for r in join_all([first, second]) {
+        assert(r is ProcessResult && r.exit == 0, "each task runs its own child to its end")
+    }
+}
+
+@test
+test_spawn_start_of_an_empty_argv_is_an_error :: fn() -> void {
+    assert(spawn_start([]) is ProcessError, "an empty argv names no program")
+}
+
+@test
+test_a_killed_child_polls_as_ended_by_a_signal :: fn() -> void {
+    child :: spawn_start([current_executable_location(), "--version"])
+    assert(child is ChildProcess, "the executable running the tests launches")
+    if child is ChildProcess {
+        child.kill()
+        assert(child.poll() is ProcessError, "a killed child polls as ended by a signal")
+    }
 }

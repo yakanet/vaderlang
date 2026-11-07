@@ -35,8 +35,8 @@ export DrivenProject :: struct {
     warned:        bool = false
     /// The roots the last answer registered; null until the first one.
     roots:         string[] | null = null
-    /// The `vader info` run in flight, its `spawn_start` handle.
-    job:           i64 | null = null
+    /// The `vader info` run in flight.
+    job:           ChildProcess | null = null
 }
 
 /// Make sure the registered roots of the project `root` describe its
@@ -55,18 +55,18 @@ export ensure_described :: fn(self: ServerState, root: string) -> bool {
     key :: description_key(root)
     if known.job == null && known.described_key != key {
         known.described_key = key
-        handle :: spawn_start([
+        started :: spawn_start([
             current_executable_location(),
             "info",
             "--json",
             "--no-driver-build",
             root,
         ])
-        if handle < 0 {
+        if started is ProcessError {
             warn_undescribed(root, "`vader info` could not be started")
             settle(self, root, known, known.roots ?? [])
         } else {
-            known.job = handle
+            known.job = started
         }
     }
     return known.roots != null
@@ -88,7 +88,7 @@ export is_describing_any :: fn(self: ServerState) -> bool {
 export poll_descriptions :: fn(self: ServerState) -> void {
     for [root, known] in self.driven {
         job :: known.job ?? continue
-        finished :: spawn_finished(job, "vader info") ?? continue
+        finished :: job.poll() ?? continue
         known.job = null
         answer :: description_of(finished)
         if finished is ProcessResult && finished.exit == DRIVER_NOT_COMPILED_EXIT {
