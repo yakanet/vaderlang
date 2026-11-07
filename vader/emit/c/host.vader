@@ -850,11 +850,13 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .RuntimeAllocations      -> { return [gc_statistic("total_alloc_count")] }
     .RuntimeCountAllocations -> { return [perform("vader_gc_count_allocations", [])] }
 
-    // std/runtime/threads: the stacks and the switch (`runtime/c/rt/vthreads.c`).
-    .ThreadStartScheduler -> { return [returning("vader_vt_start_scheduler", [a0])] }
-    .ThreadCreate         -> { return [returning("vader_vt_create", [a0])] }
-    .ThreadSwitch         -> { return [perform("vader_vt_switch", [a0])] }
-    .ThreadCurrent        -> { return [returning("vader_vt_current", [])] }
+    // std/runtime/scheduler: virtual threads (`runtime/c/rt/sched.c`).
+    .SchedSpawn    -> { return [returning("vader_sched_spawn", [a0])] }
+    .SchedPark     -> { return [perform("vader_sched_park", [])] }
+    .SchedWake     -> { return [perform("vader_sched_wake", [a0])] }
+    .SchedSleepFor -> { return [perform("vader_sched_sleep_for", [a0])] }
+    .SchedCancel   -> { return [perform("vader_sched_cancel", [a0])] }
+    .SchedCurrent  -> { return [returning("vader_sched_current", [])] }
 
     // Dynamic foreign calls (vader/vm/ffi.vader). The call shims take the
     // argument slots through `vader_array_bytes`, which already owns the
@@ -1074,8 +1076,7 @@ renamed_argument :: fn(imp: BcImport, j: i64, a: CExpression) -> CExpression {
     return cast(spelling, a)
 }
 
-// Counts the calls into C in progress: `vader_vt_switch` stops the program
-// above zero.
+// Counts the calls into C in progress: a park stops the program above zero.
 foreign_depth :: fn(operator: CBinaryOperator) -> CStatement = CAssign {
     .target = verbatim("vader_foreign_depth"),
     .value = number(1),

@@ -315,5 +315,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) default__type__param$main();
+    return vader_sched_exit((int) default__type__param$main());
 }

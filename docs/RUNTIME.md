@@ -392,18 +392,30 @@ the defer stack are roots too. A major also scans the
 C stack conservatively, as a backstop for what no frame lists
 ([ADR 0008](adr/0008-precise-shadow-stack-with-conservative-backstops.md)).
 
-**Virtual threads.** A thread that `std/runtime/threads` creates runs on a stack
-of its own: 8 MiB reserved and committed as it is written, ended by a guard zone
-of 64 KiB that stops a thread running past it. A switch stores the registers
-the C calling convention preserves on the stack it leaves. Each thread has its
-own shadow stack and defer stack, and a collection walks those of every thread;
-a major scans each parked stack conservatively, its saved registers included. A
-thread whose function returns switches to the scheduler, which frees its stack,
-and 64 freed stacks are kept for the next threads. Windows switches through
-fibers, whose stacks the system guards. Under the VM, a thread of the program
-runs on a thread of the host, with a register file of its own. A switch made
-from a callback that C called stops the program: another thread would run over
-the C frames below it.
+**Virtual threads.** A thread that `std/runtime/scheduler` starts runs on a
+stack of its own: 8 MiB reserved and committed as it is written, ended by a
+guard zone of 64 KiB that stops a thread running past it. A switch stores the
+registers the C calling convention preserves on the stack it leaves. Each thread
+has its own shadow stack and defer stack, and a collection walks those of every
+thread; a major scans each parked stack conservatively, its saved registers
+included. Windows switches through fibers, whose stacks the system guards.
+
+The scheduler is C and runs on a thread of its own, which runs no Vader code. It
+runs the ready threads in the order they became ready. With none ready, it waits
+for the nearest sleep to end; with no sleep either, every thread waits on
+another, and it stops the program on a deadlock that names them. Under
+`VADER_ASYNC_VIRTUAL_CLOCK`, the clock counts the sleeps alone and jumps to the
+end of the nearest one. A thread whose function returns leaves its stack to the
+next thread: 64 stacks are kept as they are, the others keep their reservation,
+and the scheduler gives it back to the OS the next time it waits. Outside
+Windows, those others release meanwhile the 256 KiB a thread writes first.
+
+A cancelled thread runs its pending defers on its own stack at its next run,
+then ends; one cancelled before it ran runs nothing. When `main` returns, the
+threads still running are cancelled, stderr names them, and the exit code is not
+zero. A switch made from a callback that C called stops the program: another
+thread would run over the C frames below it. The VM serves no virtual thread
+yet.
 
 **Moving objects.** A minor moves young objects, so a pointer must sit in a frame
 across anything that may allocate. A foreign call is the exception: C may keep a

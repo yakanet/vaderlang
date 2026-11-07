@@ -1401,13 +1401,18 @@ void vader_defer_pop_exec(uint32_t count);
 
 /* ----------------------------------------------------------------- virtual threads
  *
- * The primitives of `std/runtime/threads` (rt/vthreads.c). A thread is named by
- * a handle the runtime checks: a handle to a thread that has ended traps. A
- * thread whose entry returns switches to the scheduler. */
-int64_t vader_vt_start_scheduler(vader_fn_t* run);
-int64_t vader_vt_create(vader_fn_t* entry);
-void    vader_vt_switch(int64_t to);
-int64_t vader_vt_current(void);
+ * The scheduler of `std/runtime/scheduler` (rt/sched.c), over the stacks and
+ * the switch of rt/vthreads.c. A thread is named by a handle; once its thread
+ * has ended, a handle names nothing, and waking or cancelling it does nothing. */
+int64_t vader_sched_spawn(vader_fn_t* entry);
+void    vader_sched_park(void);
+void    vader_sched_wake(int64_t thread);
+void    vader_sched_sleep_for(int64_t nanos);
+void    vader_sched_cancel(int64_t thread);
+int64_t vader_sched_current(void);
+/* `main` returned `code`: cancel the threads still running and wait for their
+ * defers. The process's exit code, not zero when it cancelled any. */
+int     vader_sched_exit(int code);
 
 /* How many calls into C the running code is inside of: the shim of each
  * `@extern` counts its call. A switch traps above zero, since another thread

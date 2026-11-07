@@ -33,6 +33,9 @@ static size_t g_defer_len;
 static size_t g_defer_cap;
 static int g_unwinding;
 
+/* Run the running thread's pending defers, LIFO, until none is left. */
+static void vader_run_pending_defers(void);
+
 /* ---- gc_heap.c ----------------------------------------------------------- */
 
 typedef struct {
@@ -187,6 +190,42 @@ static char* vader_vt_stack_top(void);
 /* Call `fn` with the roots of each thread alive but the running one. */
 static void vader_vt_each_waiting(void (*fn)(const vader_vt_roots_t* roots));
 
+/* What rt/sched.c drives. A handle names a thread until it ends; the main
+ * thread has one from the start. One thread is the scheduler's, which runs
+ * `vader_sched_loop` and which a thread switches to when it ends. */
+
+/* Make the scheduler's thread, once. */
+static void vader_vt_start_scheduler(void);
+/* A thread that runs `entry` from the first switch to it; its handle. */
+static int64_t vader_vt_create(vader_fn_t* entry);
+/* Leave the running thread for the live thread `to`. */
+static void vader_vt_switch(int64_t to);
+/* Leave the running thread for the scheduler's. */
+static void vader_vt_switch_to_scheduler(void);
+/* End the running thread, from as deep in its stack as it is: never returns. */
+static void vader_vt_end(void);
+/* The running thread's handle, and the main thread's. */
+static int64_t vader_vt_current(void);
+static int64_t vader_vt_main(void);
+/* Whether `handle` names a thread that has not ended. */
+static int vader_vt_is_live(int64_t handle);
+/* The index of a handle's thread: from 0, dense, reused once it ends. */
+static uint32_t vader_vt_index(int64_t handle);
+/* How many threads have not ended, the main thread and the scheduler's aside. */
+static size_t vader_vt_threads(void);
+/* Call `fn` with each thread that has not ended, the scheduler's aside. */
+static void vader_vt_each_live(void (*fn)(int64_t handle));
+/* Give back to the OS the stacks kept past the warm ones. */
+static void vader_vt_give_back_cold(void);
+
+/* ---- sched.c ------------------------------------------------------------- */
+
+/* The scheduler's thread: runs the ready threads, never returns. */
+static void vader_sched_loop(void);
+/* On a new thread's stack, before its entry: false when it was cancelled
+ * before it ever ran, and runs nothing. */
+static int vader_sched_starting(void);
+
 /* ---- os_posix.c, os_windows.c -------------------------------------------- */
 
 /* What the runtime asks of the OS it runs on. Each of the two parts defines all
@@ -206,6 +245,10 @@ static void vader_os_discard(char* base, char* end);
 static void vader_os_release(char* base, size_t bytes);
 /* Physical RAM in bytes, 0 when the OS does not say. */
 static size_t vader_os_physical_ram(void);
+/* Nanoseconds on a clock that never goes back, from an origin of its own. */
+static int64_t vader_os_monotonic_ns(void);
+/* Block the process's thread for at least `ns` nanoseconds. */
+static void vader_os_sleep_ns(int64_t ns);
 /* Highest address of the main thread's C stack, NULL when unknown. The stack
  * grows down, so [current sp, base) covers every live frame. */
 static char* vader_os_stack_base(void);

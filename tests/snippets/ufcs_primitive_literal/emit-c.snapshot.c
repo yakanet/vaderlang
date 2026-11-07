@@ -274,5 +274,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return (int) ufcs__primitive__literal$main();
+    return vader_sched_exit((int) ufcs__primitive__literal$main());
 }

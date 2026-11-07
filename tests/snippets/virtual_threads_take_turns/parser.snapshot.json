@@ -16,7 +16,7 @@
       },
       {
         "kind": "ImportDecl",
-        "path": "std/runtime/threads",
+        "path": "std/runtime/scheduler",
         "binding": {
           "kind": "wildcard"
         },
@@ -24,49 +24,10 @@
       },
       {
         "kind": "StructDecl",
-        "name": "Scheduler",
+        "name": "Joiner",
         "visibility": "private",
         "typeParams": [],
         "fields": [
-          {
-            "name": "handle",
-            "type": {
-              "kind": "IdentExpr",
-              "name": "i64"
-            },
-            "visibility": "public",
-            "default": {
-              "kind": "IntLitExpr",
-              "value": "0n"
-            }
-          },
-          {
-            "name": "ready",
-            "type": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i64"
-              }
-            },
-            "visibility": "public",
-            "default": {
-              "kind": "SeqLitExpr",
-              "elements": []
-            }
-          },
-          {
-            "name": "next_ready",
-            "type": {
-              "kind": "IdentExpr",
-              "name": "i64"
-            },
-            "visibility": "public",
-            "default": {
-              "kind": "IntLitExpr",
-              "value": "0n"
-            }
-          },
           {
             "name": "running",
             "type": {
@@ -78,19 +39,31 @@
               "kind": "IntLitExpr",
               "value": "0n"
             }
+          },
+          {
+            "name": "main_thread",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i64"
+            },
+            "visibility": "public",
+            "default": {
+              "kind": "IntLitExpr",
+              "value": "0n"
+            }
           }
         ],
         "decorators": []
       },
       {
         "kind": "FnDecl",
-        "name": "scheduler",
+        "name": "joiner",
         "visibility": "private",
         "typeParams": [],
         "params": [],
         "returnType": {
           "kind": "IdentExpr",
-          "name": "Scheduler"
+          "name": "Joiner"
         },
         "body": {
           "kind": "BlockExpr",
@@ -99,7 +72,7 @@
             "kind": "StructLitExpr",
             "typeName": {
               "kind": "IdentExpr",
-              "name": "Scheduler"
+              "name": "Joiner"
             },
             "items": []
           }
@@ -111,126 +84,6 @@
           }
         ],
         "isExpressionBodied": true
-      },
-      {
-        "kind": "FnDecl",
-        "name": "run_scheduler",
-        "visibility": "private",
-        "typeParams": [],
-        "params": [],
-        "returnType": {
-          "kind": "IdentExpr",
-          "name": "void"
-        },
-        "body": {
-          "kind": "BlockExpr",
-          "stmts": [
-            {
-              "kind": "LetStmt",
-              "mutable": false,
-              "binding": {
-                "kind": "SimpleBinding",
-                "name": "s"
-              },
-              "type": null,
-              "value": {
-                "kind": "CallExpr",
-                "callee": {
-                  "kind": "IdentExpr",
-                  "name": "scheduler"
-                },
-                "args": []
-              }
-            },
-            {
-              "kind": "ForStmt",
-              "label": null,
-              "form": {
-                "kind": "infinite"
-              },
-              "body": {
-                "kind": "BlockExpr",
-                "stmts": [
-                  {
-                    "kind": "LetStmt",
-                    "mutable": false,
-                    "binding": {
-                      "kind": "SimpleBinding",
-                      "name": "next"
-                    },
-                    "type": null,
-                    "value": {
-                      "kind": "IndexExpr",
-                      "target": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "s"
-                        },
-                        "field": "ready"
-                      },
-                      "index": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "s"
-                        },
-                        "field": "next_ready"
-                      }
-                    }
-                  },
-                  {
-                    "kind": "AssignStmt",
-                    "target": {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "IdentExpr",
-                        "name": "s"
-                      },
-                      "field": "next_ready"
-                    },
-                    "value": {
-                      "kind": "BinaryExpr",
-                      "op": "add",
-                      "left": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "s"
-                        },
-                        "field": "next_ready"
-                      },
-                      "right": {
-                        "kind": "IntLitExpr",
-                        "value": "1n"
-                      }
-                    }
-                  }
-                ],
-                "trailing": {
-                  "kind": "CallExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "switch_to_thread"
-                  },
-                  "args": [
-                    {
-                      "name": null,
-                      "value": {
-                        "kind": "IdentExpr",
-                        "name": "next"
-                      },
-                      "spread": false
-                    }
-                  ]
-                }
-              },
-              "isComptime": false
-            }
-          ],
-          "trailing": null
-        },
-        "decorators": []
       },
       {
         "kind": "FnDecl",
@@ -264,14 +117,14 @@
               "mutable": false,
               "binding": {
                 "kind": "SimpleBinding",
-                "name": "s"
+                "name": "j"
               },
               "type": null,
               "value": {
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "scheduler"
+                  "name": "joiner"
                 },
                 "args": []
               }
@@ -282,7 +135,7 @@
                 "kind": "FieldExpr",
                 "target": {
                   "kind": "IdentExpr",
-                  "name": "s"
+                  "name": "j"
                 },
                 "field": "running"
               },
@@ -293,7 +146,7 @@
                   "kind": "FieldExpr",
                   "target": {
                     "kind": "IdentExpr",
-                    "name": "s"
+                    "name": "j"
                   },
                   "field": "running"
                 },
@@ -307,81 +160,104 @@
           "trailing": {
             "kind": "CallExpr",
             "callee": {
-              "kind": "FieldExpr",
-              "target": {
-                "kind": "FieldExpr",
-                "target": {
-                  "kind": "IdentExpr",
-                  "name": "s"
-                },
-                "field": "ready"
-              },
-              "field": "push"
+              "kind": "IdentExpr",
+              "name": "spawn_thread"
             },
             "args": [
               {
                 "name": null,
                 "value": {
-                  "kind": "CallExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "create_thread"
-                  },
-                  "args": [
-                    {
-                      "name": null,
-                      "value": {
-                        "kind": "LambdaExpr",
-                        "params": [],
-                        "returnType": null,
-                        "body": {
-                          "kind": "BlockExpr",
-                          "stmts": [
-                            {
-                              "kind": "ExprStmt",
-                              "expr": {
-                                "kind": "CallExpr",
-                                "callee": {
-                                  "kind": "IdentExpr",
-                                  "name": "entry"
-                                },
-                                "args": []
-                              }
+                  "kind": "LambdaExpr",
+                  "params": [],
+                  "returnType": null,
+                  "body": {
+                    "kind": "BlockExpr",
+                    "stmts": [
+                      {
+                        "kind": "ExprStmt",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "entry"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "kind": "AssignStmt",
+                        "target": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "j"
+                          },
+                          "field": "running"
+                        },
+                        "value": {
+                          "kind": "BinaryExpr",
+                          "op": "sub",
+                          "left": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "j"
                             },
+                            "field": "running"
+                          },
+                          "right": {
+                            "kind": "IntLitExpr",
+                            "value": "1n"
+                          }
+                        }
+                      }
+                    ],
+                    "trailing": {
+                      "kind": "IfExpr",
+                      "cond": {
+                        "kind": "BinaryExpr",
+                        "op": "eq",
+                        "left": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "j"
+                          },
+                          "field": "running"
+                        },
+                        "right": {
+                          "kind": "IntLitExpr",
+                          "value": "0n"
+                        }
+                      },
+                      "then": {
+                        "kind": "BlockExpr",
+                        "stmts": [],
+                        "trailing": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "wake"
+                          },
+                          "args": [
                             {
-                              "kind": "AssignStmt",
-                              "target": {
+                              "name": null,
+                              "value": {
                                 "kind": "FieldExpr",
                                 "target": {
                                   "kind": "IdentExpr",
-                                  "name": "s"
+                                  "name": "j"
                                 },
-                                "field": "running"
+                                "field": "main_thread"
                               },
-                              "value": {
-                                "kind": "BinaryExpr",
-                                "op": "sub",
-                                "left": {
-                                  "kind": "FieldExpr",
-                                  "target": {
-                                    "kind": "IdentExpr",
-                                    "name": "s"
-                                  },
-                                  "field": "running"
-                                },
-                                "right": {
-                                  "kind": "IntLitExpr",
-                                  "value": "1n"
-                                }
-                              }
+                              "spread": false
                             }
-                          ],
-                          "trailing": null
+                          ]
                         }
                       },
-                      "spread": false
+                      "else": null
                     }
-                  ]
+                  }
                 },
                 "spread": false
               }
@@ -404,37 +280,12 @@
           "kind": "BlockExpr",
           "stmts": [
             {
-              "kind": "LetStmt",
-              "mutable": false,
-              "binding": {
-                "kind": "SimpleBinding",
-                "name": "s"
-              },
-              "type": null,
-              "value": {
-                "kind": "CallExpr",
-                "callee": {
-                  "kind": "IdentExpr",
-                  "name": "scheduler"
-                },
-                "args": []
-              }
-            },
-            {
               "kind": "ExprStmt",
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "FieldExpr",
-                  "target": {
-                    "kind": "FieldExpr",
-                    "target": {
-                      "kind": "IdentExpr",
-                      "name": "s"
-                    },
-                    "field": "ready"
-                  },
-                  "field": "push"
+                  "kind": "IdentExpr",
+                  "name": "wake"
                 },
                 "args": [
                   {
@@ -457,22 +308,9 @@
             "kind": "CallExpr",
             "callee": {
               "kind": "IdentExpr",
-              "name": "switch_to_thread"
+              "name": "park"
             },
-            "args": [
-              {
-                "name": null,
-                "value": {
-                  "kind": "FieldExpr",
-                  "target": {
-                    "kind": "IdentExpr",
-                    "name": "s"
-                  },
-                  "field": "handle"
-                },
-                "spread": false
-              }
-            ]
+            "args": []
           }
         },
         "decorators": []
@@ -629,38 +467,6 @@
           "kind": "BlockExpr",
           "stmts": [
             {
-              "kind": "AssignStmt",
-              "target": {
-                "kind": "FieldExpr",
-                "target": {
-                  "kind": "CallExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "scheduler"
-                  },
-                  "args": []
-                },
-                "field": "handle"
-              },
-              "value": {
-                "kind": "CallExpr",
-                "callee": {
-                  "kind": "IdentExpr",
-                  "name": "start_scheduler"
-                },
-                "args": [
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "IdentExpr",
-                      "name": "run_scheduler"
-                    },
-                    "spread": false
-                  }
-                ]
-              }
-            },
-            {
               "kind": "LetStmt",
               "mutable": false,
               "binding": {
@@ -678,23 +484,22 @@
               }
             },
             {
-              "kind": "ExprStmt",
-              "expr": {
-                "kind": "CallExpr",
-                "callee": {
-                  "kind": "IdentExpr",
-                  "name": "switch_to_thread"
+              "kind": "AssignStmt",
+              "target": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "joiner"
+                  },
+                  "args": []
                 },
-                "args": [
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "IdentExpr",
-                      "name": "main_thread"
-                    },
-                    "spread": false
-                  }
-                ]
+                "field": "main_thread"
+              },
+              "value": {
+                "kind": "IdentExpr",
+                "name": "main_thread"
               }
             },
             {
@@ -887,7 +692,7 @@
                       "kind": "CallExpr",
                       "callee": {
                         "kind": "IdentExpr",
-                        "name": "scheduler"
+                        "name": "joiner"
                       },
                       "args": []
                     },
@@ -906,7 +711,7 @@
                   "kind": "CallExpr",
                   "callee": {
                     "kind": "IdentExpr",
-                    "name": "yield_now"
+                    "name": "park"
                   },
                   "args": []
                 }

@@ -1,10 +1,7 @@
 // tests/fixtures/virtual_threads: virtual threads under the collector, past the
-// end of their stack, through a panic, and inside a call to C.
-// `tests/virtual_threads.test.ts` builds it once and runs each case, which
-// `THREADS_CASE` names.
-//
-// The scheduler is the test's own: threads run in turn, and a parked one waits
-// for `wake_all`.
+// end of their stack, through a panic, inside a call to C, asleep, cancelled,
+// deadlocked, and alive when `main` returns. `tests/virtual_threads.test.ts`
+// builds it once and runs each case, which `THREADS_CASE` names.
 
 module "main"
 
@@ -12,61 +9,73 @@ import "std/abort"
 import "std/env"
 import "std/io"
 import "std/runtime"
-import "std/runtime/threads"
+import "std/runtime/scheduler"
+import "std/time"
 
-Scheduler :: struct {
-    handle: i64 = 0
-    ready: i64[] = []
-    next_ready: i64 = 0
-    parked: i64[] = []
+// The threads `spawn` started, which `join_all` waits for.
+Threads :: struct {
     running: i64 = 0
+    /// The thread waiting in `join_all`, or -1.
+    joiner: i64 = -1
+    /// The threads waiting in `wait_for_release`.
+    waiting: i64[] = []
+    released: bool = false
 }
 
 @singleton
-scheduler :: fn() -> Scheduler = Scheduler {}
+threads :: fn() -> Threads = Threads {}
 
-run_scheduler :: fn() -> void {
-    s :: scheduler()
-    for {
-        if s.next_ready == s.ready.len() {
-            panic("every thread is parked")
-        }
-        next :: s.ready[s.next_ready]
-        s.next_ready += 1
-        switch_to_thread(next)
+spawn :: fn(entry: fn() -> void) -> i64 {
+    t :: threads()
+    t.running += 1
+    return spawn_thread(fn() {
+        defer finished()
+        entry()
+    })
+}
+
+finished :: fn() -> void {
+    t :: threads()
+    t.running -= 1
+    if t.running == 0 && t.joiner >= 0 {
+        wake(t.joiner)
     }
 }
 
-spawn :: fn(entry: fn() -> void) -> void {
-    s :: scheduler()
-    s.running += 1
-    s.ready.push(create_thread(fn() {
-        entry()
-        s.running -= 1
-    }))
+join_all :: fn() -> void {
+    t :: threads()
+    t.joiner = current_thread()
+    for t.running > 0 {
+        park()
+    }
+    t.joiner = -1
 }
 
 yield_now :: fn() -> void {
-    s :: scheduler()
-    s.ready.push(current_thread())
-    switch_to_thread(s.handle)
+    wake(current_thread())
+    park()
 }
 
-park :: fn() -> void {
-    s :: scheduler()
-    s.parked.push(current_thread())
-    switch_to_thread(s.handle)
+wait_for_release :: fn() -> void {
+    t :: threads()
+    t.waiting.push(current_thread())
+    for !t.released {
+        park()
+    }
 }
 
-wake_all :: fn() -> void {
-    s :: scheduler()
-    s.ready.push_all(s.parked)
-    s.parked.clear()
+release_all :: fn() -> void {
+    t :: threads()
+    t.released = true
+    for thread in t.waiting {
+        wake(thread)
+    }
+    t.waiting.clear()
 }
 
-join_all :: fn() -> void {
-    for scheduler().running > 0 {
-        yield_now()
+park_forever :: fn() -> void {
+    for {
+        park()
     }
 }
 
@@ -107,7 +116,7 @@ worker :: fn(id: i64) -> void {
     holder :: Holder { .nodes = chain(50, id * 1000) }
     label :: "thread-${id}"
     defer println("defer of ${label}")
-    park()
+    wait_for_release()
     expected: i64: 50 * id * 1000 + 49 * 50 / 2
     if sum(nodes) != expected || sum(holder.nodes) != expected {
         println("${label}: expected ${expected}, got ${sum(nodes)} and ${sum(holder.nodes)}")
@@ -127,7 +136,7 @@ parked_roots :: fn() -> void {
         garbage += sum(chain(10, k))
     }
     collect()
-    wake_all()
+    release_all()
     join_all()
     println("garbage ${garbage}")
 }
@@ -202,15 +211,165 @@ switch_in_callback :: fn() -> void {
     println("not reached")
 }
 
+// ---- the order of the ready threads ---------------------------------------
+
+// Each thread yields between its steps: the ready ones run in turn.
+take_turns :: fn() -> void {
+    for name in ["a", "b", "c"] {
+        spawn(fn() {
+            for step in 0..<2 {
+                println("${name}${step}")
+                yield_now()
+            }
+        })
+    }
+    join_all()
+    println("joined")
+}
+
+// ---- sleeps ---------------------------------------------------------------
+
+// Under the virtual clock: the shortest sleep ends first, whatever the order
+// the threads fell asleep in.
+sleep_order :: fn() -> void {
+    durations: i64[]: [30, 10, 20]
+    for ms in durations {
+        spawn(fn() {
+            sleep_for(ms * 1_000_000)
+            println("slept ${ms} ms")
+        })
+    }
+    join_all()
+}
+
+// A thread sleeps while main wakes it: a wake does not end a sleep.
+real_sleep :: fn() -> void {
+    started :: monotonic()
+    sleeper :: spawn(() -> sleep_for(20_000_000))
+    yield_now()
+    wake(sleeper)
+    join_all()
+    elapsed :: started.since().to_millis()
+    if elapsed < 20 {
+        println("woke after ${elapsed} ms")
+        return
+    }
+    println("slept at least 20 ms")
+}
+
+// ---- cancellation ---------------------------------------------------------
+
+// A parked thread runs its defers once cancelled.
+cancel_parked :: fn() -> void {
+    parked :: spawn(fn() {
+        defer println("defer of the parked thread")
+        park_forever()
+    })
+    yield_now()
+    cancel_thread(parked)
+    join_all()
+    println("joined")
+}
+
+// A thread cancelled before it ran runs nothing, and main returns with no
+// thread left.
+cancel_unstarted :: fn() -> void {
+    unstarted :: spawn_thread(() -> println("not reached"))
+    cancel_thread(unstarted)
+    yield_now()
+    println("cancelled before it ran")
+}
+
+// A thread that cancels itself does not come back from it.
+cancel_self :: fn() -> void {
+    spawn(fn() {
+        defer println("defer of the thread")
+        cancel_thread(current_thread())
+        println("not reached")
+    })
+    join_all()
+    println("joined")
+}
+
+unwind_cancelled :: fn() -> void {
+    println("defer starts")
+    yield_now()
+    println("defer ends")
+}
+
+// The defer of a cancelled thread yields: main runs meanwhile, then the defer
+// goes on.
+cancel_defer_parks :: fn() -> void {
+    parked :: spawn(fn() {
+        defer unwind_cancelled()
+        park_forever()
+    })
+    yield_now()
+    cancel_thread(parked)
+    yield_now()
+    println("main between")
+    join_all()
+    println("joined")
+}
+
+cancel_main :: fn() -> void {
+    cancel_thread(current_thread())
+    println("not reached")
+}
+
+// ---- nothing left to run --------------------------------------------------
+
+// Main waits for a thread that waits for nothing that will come.
+deadlock :: fn() -> void {
+    spawn(park_forever)
+    join_all()
+    println("not reached")
+}
+
+// Main returns while a thread waits: the thread is cancelled and runs its
+// defers, and the exit code says so.
+exit_with_live_thread :: fn() -> void {
+    spawn(fn() {
+        defer println("defer of the forgotten thread")
+        park_forever()
+    })
+    yield_now()
+    println("main returns")
+}
+
+// Three bursts of threads, more than the stacks kept warm, with a sleep
+// between them: the stacks freed during a sleep go back to the OS, and the
+// next burst reserves them again.
+bursts :: fn() -> void {
+    for _ in 0..<3 {
+        for _ in 0..<200 {
+            spawn(yield_now)
+        }
+        join_all()
+        sleep_for(1_000_000)
+    }
+    println("three bursts of 200 threads")
+}
+
 main :: fn() -> i32 {
-    scheduler().handle = start_scheduler(run_scheduler)
     case :: get_env("THREADS_CASE") ?? ""
     match case {
-        "parked_roots"       -> parked_roots()
-        "overflow"           -> overflow()
-        "two_panics"         -> two_panics()
-        "switch_in_callback" -> switch_in_callback()
-        _                    -> {
+        "parked_roots"          -> parked_roots()
+        "overflow"              -> overflow()
+        "two_panics"            -> two_panics()
+        "switch_in_callback"    -> switch_in_callback()
+        "take_turns"            -> take_turns()
+        "sleep_order"           -> sleep_order()
+        "real_sleep"            -> real_sleep()
+        "cancel_parked"         -> cancel_parked()
+        "cancel_unstarted"      -> cancel_unstarted()
+        "cancel_self"           -> cancel_self()
+        "cancel_defer_parks"    -> cancel_defer_parks()
+        "cancel_main"           -> cancel_main()
+        "deadlock"              -> deadlock()
+        "exit_with_live_thread" -> exit_with_live_thread()
+        "bursts"                -> bursts()
+        _                       -> {
             eprintln("THREADS_CASE: `${case}` names no case")
             return 2
         }

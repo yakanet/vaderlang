@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
 
 #ifndef MAP_ANONYMOUS
@@ -57,6 +58,21 @@ static void vader_os_discard(char* base, char* end) {
 
 static void vader_os_release(char* base, size_t bytes) {
     munmap(base, bytes);
+}
+
+static int64_t vader_os_monotonic_ns(void) {
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) return 0;
+    return (int64_t) ts.tv_sec * 1000000000 + (int64_t) ts.tv_nsec;
+}
+
+static void vader_os_sleep_ns(int64_t ns) {
+    struct timespec req;
+    struct timespec rem;
+    req.tv_sec = (time_t) (ns / 1000000000);
+    req.tv_nsec = (long) (ns % 1000000000);
+    /* A signal cuts the wait short and leaves what is left in `rem`. */
+    while (nanosleep(&req, &rem) != 0 && errno == EINTR) req = rem;
 }
 
 static size_t vader_os_physical_ram(void) {

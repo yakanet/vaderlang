@@ -8,10 +8,10 @@
  * walks its shadow-stack frames and its defers precisely, and scans
  * [saved sp, top) conservatively, the saved registers included.
  *
- * Which thread runs is Vader's to decide, through the primitives of
- * `std/runtime/threads`. The runtime sets one thread apart, the scheduler: a
- * thread whose entry returns switches to it, and the stack it leaves is freed
- * there, since a stack cannot be freed while it runs.
+ * Which thread runs is rt/sched.c's to decide. One thread is set apart, the
+ * scheduler's, which runs `vader_sched_loop`: a thread that ends switches to
+ * it, and the stack it leaves is freed there, since a stack cannot be freed
+ * while it runs.
  *
  * Darwin and Linux switch on arm64 and x86_64, Windows through fibers;
  * elsewhere the primitives trap. */
@@ -55,8 +55,12 @@ int vader_foreign_depth = 0;
 
 /* Stacks kept warm for the next threads, their pages left resident: handing
  * pages back walks the whole reservation on Darwin, whatever was written. A
- * stack freed past this many is given back to the OS. */
+ * stack freed past this many keeps its reservation and hands back the pages of
+ * its top, where a thread writes; the scheduler gives the reservation back
+ * once no thread is ready (`vader_vt_give_back_cold`), since giving it back
+ * costs more than a thread's whole run. */
 #define VADER_VT_WARM_STACKS 64u
+#define VADER_VT_DISCARD_BYTES (256u * 1024u)
 
 /* The bytes `vader_vt_swap` stores below the stack pointer it notes. x86_64:
  * mxcsr and the x87 control word, r15-r12, rbx, rbp, then the return address.
@@ -87,6 +91,9 @@ typedef struct vader_vt {
     uint32_t generation;
     size_t   live_slot;     /* in `g_vt_live`, while not free */
     uint8_t  state;
+    /* Windows: whether its fiber can run the next thread, which it does from
+     * where the last one ended. One that ended deep in its stack cannot. */
+    uint8_t  reusable;
 } vader_vt_t;
 
 static vader_vt_t  g_vt_main;
@@ -100,15 +107,21 @@ static size_t g_vt_record_cap = 0;
 static vader_vt_t** g_vt_live = NULL;
 static size_t g_vt_live_count = 0;
 static size_t g_vt_live_cap = 0;
-/* Free records, with their stack, or without one once it was given back. */
+/* Free records: with a warm stack, with a stack whose pages went back, and
+ * with no stack. */
 static vader_vt_t** g_vt_warm = NULL;
 static size_t g_vt_warm_len = 0;
 static size_t g_vt_warm_cap = 0;
 static vader_vt_t** g_vt_cold = NULL;
 static size_t g_vt_cold_len = 0;
 static size_t g_vt_cold_cap = 0;
+static vader_vt_t** g_vt_bare = NULL;
+static size_t g_vt_bare_len = 0;
+static size_t g_vt_bare_cap = 0;
 /* A thread whose entry returned, whose stack the scheduler frees on arrival. */
 static vader_vt_t* g_vt_ended = NULL;
+/* The threads `vader_vt_create` started that have not ended. */
+static size_t g_vt_thread_count = 0;
 
 static void vader_vt_push(vader_vt_t*** items, size_t* len, size_t* cap, vader_vt_t* t) {
     if (*len == *cap) {
@@ -126,13 +139,16 @@ static int64_t vader_vt_handle(const vader_vt_t* t) {
     return (int64_t) (((uint64_t) t->generation << 32) | (uint64_t) t->index);
 }
 
+static uint32_t vader_vt_index(int64_t handle) {
+    return (uint32_t) ((uint64_t) handle & 0xFFFFFFFFu);
+}
+
 /* The thread `handle` names, or NULL once it has ended. */
 static vader_vt_t* vader_vt_of(int64_t handle) {
-    uint64_t bits = (uint64_t) handle;
-    uint64_t index = bits & 0xFFFFFFFFu;
+    uint32_t index = vader_vt_index(handle);
     if (index >= g_vt_record_count) return NULL;
     vader_vt_t* t = g_vt_records[index];
-    if (t->generation != (uint32_t) (bits >> 32) || t->state != VADER_VT_LIVE) return NULL;
+    if (t->generation != (uint32_t) ((uint64_t) handle >> 32) || t->state != VADER_VT_LIVE) return NULL;
     return t;
 }
 
@@ -318,6 +334,11 @@ static void vader_vt_give_back(vader_vt_t* t) {
     t->fiber = NULL;
 }
 
+/* A fiber's pages stay: Windows commits a fiber's stack for good. */
+static void vader_vt_discard(vader_vt_t* t) {
+    (void) t;
+}
+
 /* A warm fiber resumes where its last thread ended, and runs the new entry
  * from there. */
 static void vader_vt_prepare(vader_vt_t* t) {
@@ -355,6 +376,10 @@ static void vader_vt_give_back(vader_vt_t* t) {
     t->hi = NULL;
 }
 
+static void vader_vt_discard(vader_vt_t* t) {
+    vader_os_discard(t->hi - VADER_VT_DISCARD_BYTES, t->hi);
+}
+
 static void vader_vt_prepare(vader_vt_t* t) {
     vader_vt_first_frame(t);
 }
@@ -376,14 +401,16 @@ static void vader_vt_init(void) {
     g_vt_cur = &g_vt_main;
 }
 
-/* A record with a stack, ready to run `entry`: a warm one, a cold one given a
- * stack again, or a new one. */
+/* A record with a stack, ready to run `entry`: a warm one, a cold one, a bare
+ * one given a stack again, or a new one. */
 static vader_vt_t* vader_vt_take(vader_fn_t* entry) {
     vader_vt_t* t = NULL;
     if (g_vt_warm_len > 0u) {
         t = g_vt_warm[--g_vt_warm_len];
     } else if (g_vt_cold_len > 0u) {
         t = g_vt_cold[--g_vt_cold_len];
+    } else if (g_vt_bare_len > 0u) {
+        t = g_vt_bare[--g_vt_bare_len];
         vader_vt_reserve(t);
     } else {
         t = (vader_vt_t*) calloc(1, sizeof(vader_vt_t));
@@ -397,6 +424,7 @@ static vader_vt_t* vader_vt_take(vader_fn_t* entry) {
     t->entry = entry;
     t->gc_top = &t->entry_frame;
     t->state = VADER_VT_LIVE;
+    t->reusable = 1;
     t->live_slot = g_vt_live_count;
     vader_vt_push(&g_vt_live, &g_vt_live_count, &g_vt_live_cap, t);
     vader_vt_prepare(t);
@@ -419,11 +447,16 @@ static void vader_vt_release_ended(void) {
     t->entry = NULL;
     t->state = VADER_VT_FREE;
     t->generation++;
+    if (!t->reusable) {
+        vader_vt_give_back(t);
+        vader_vt_push(&g_vt_bare, &g_vt_bare_len, &g_vt_bare_cap, t);
+        return;
+    }
     if (g_vt_warm_len < VADER_VT_WARM_STACKS) {
         vader_vt_push(&g_vt_warm, &g_vt_warm_len, &g_vt_warm_cap, t);
         return;
     }
-    vader_vt_give_back(t);
+    vader_vt_discard(t);
     vader_vt_push(&g_vt_cold, &g_vt_cold_len, &g_vt_cold_cap, t);
 }
 
@@ -432,6 +465,8 @@ static void vader_vt_release_ended(void) {
 static void vader_vt_switch_to(vader_vt_t* next) {
     vader_vt_t* cur = g_vt_cur;
     if (next == cur) return;
+    /* Another thread would run over the C frames below. */
+    if (vader_foreign_depth > 0) vader_trap("virtual threads: a switch inside a call to C");
     if (g_gc_stress_switch) vader_major_collect();
     cur->gc_top = vader_gc_top;
     cur->defer_stack = g_defer_stack;
@@ -452,46 +487,89 @@ static void vader_vt_switch_to(vader_vt_t* next) {
     vader_vt_release_ended();
 }
 
-/* A thread's body, on its own stack: run the entry, then leave for the
- * scheduler for good. */
-VADER_VT_RUN_LINKAGE void vader_vt_run(vader_vt_t* t) {
-    vader_vt_release_ended();
-    ((vader_box_t (*)(void*)) t->entry->code)(t->entry->env);
-    if (t == g_vt_scheduler) vader_trap("virtual threads: the scheduler returned");
+/* End the running thread `t`: the scheduler frees its stack. */
+static void vader_vt_finish(vader_vt_t* t) {
     t->state = VADER_VT_ENDED;
+    g_vt_thread_count--;
     g_vt_ended = t;
     vader_vt_switch_to(g_vt_scheduler);
+}
+
+/* A thread's body, on its own stack: run the entry, then leave for the
+ * scheduler for good. The scheduler's thread runs the scheduler instead. */
+VADER_VT_RUN_LINKAGE void vader_vt_run(vader_vt_t* t) {
+    vader_vt_release_ended();
+    if (t == g_vt_scheduler) vader_sched_loop();
+    if (vader_sched_starting()) ((vader_box_t (*)(void*)) t->entry->code)(t->entry->env);
+    vader_vt_finish(t);
 #  if !VADER_VT_FIBERS
     vader_trap("virtual threads: an ended thread was resumed");
 #  endif
 }
 
-/* ---- what Vader calls ------------------------------------------------------ */
+/* ---- what the scheduler drives --------------------------------------------- */
 
-int64_t vader_vt_start_scheduler(vader_fn_t* run) {
+static void vader_vt_start_scheduler(void) {
     vader_vt_init();
-    if (g_vt_scheduler != NULL) vader_trap("virtual threads: the scheduler is already started");
-    g_vt_scheduler = vader_vt_take(run);
-    return vader_vt_handle(g_vt_scheduler);
+    if (g_vt_scheduler == NULL) g_vt_scheduler = vader_vt_take(NULL);
 }
 
-int64_t vader_vt_create(vader_fn_t* entry) {
+static int64_t vader_vt_create(vader_fn_t* entry) {
     vader_vt_init();
-    if (g_vt_scheduler == NULL) vader_trap("virtual threads: a thread is created before the scheduler");
+    g_vt_thread_count++;
     return vader_vt_handle(vader_vt_take(entry));
 }
 
-void vader_vt_switch(int64_t to) {
-    vader_vt_init();
-    if (vader_foreign_depth > 0) vader_trap("virtual threads: a switch inside a call to C");
+static void vader_vt_switch(int64_t to) {
     vader_vt_t* next = vader_vt_of(to);
     if (next == NULL) vader_trap("virtual threads: a switch to a thread that has ended");
     vader_vt_switch_to(next);
 }
 
-int64_t vader_vt_current(void) {
+static void vader_vt_switch_to_scheduler(void) {
+    vader_vt_switch_to(g_vt_scheduler);
+}
+
+static void vader_vt_end(void) {
+#  if VADER_VT_FIBERS
+    g_vt_cur->reusable = 0;
+#  endif
+    vader_vt_finish(g_vt_cur);
+    vader_trap("virtual threads: an ended thread was resumed");
+}
+
+static int64_t vader_vt_current(void) {
     vader_vt_init();
     return vader_vt_handle(g_vt_cur);
+}
+
+static int64_t vader_vt_main(void) {
+    vader_vt_init();
+    return vader_vt_handle(&g_vt_main);
+}
+
+static int vader_vt_is_live(int64_t handle) {
+    return vader_vt_of(handle) != NULL;
+}
+
+static size_t vader_vt_threads(void) {
+    return g_vt_thread_count;
+}
+
+static void vader_vt_each_live(void (*fn)(int64_t handle)) {
+    for (size_t i = 0; i < g_vt_live_count; i++) {
+        vader_vt_t* t = g_vt_live[i];
+        if (t == g_vt_scheduler || t->state != VADER_VT_LIVE) continue;
+        fn(vader_vt_handle(t));
+    }
+}
+
+static void vader_vt_give_back_cold(void) {
+    while (g_vt_cold_len > 0u) {
+        vader_vt_t* t = g_vt_cold[--g_vt_cold_len];
+        vader_vt_give_back(t);
+        vader_vt_push(&g_vt_bare, &g_vt_bare_len, &g_vt_bare_cap, t);
+    }
 }
 
 /* ---- what the collector reads ---------------------------------------------- */
@@ -521,23 +599,49 @@ static void vader_vt_each_waiting(void (*fn)(const vader_vt_roots_t* roots)) {
 
 #else
 
-int64_t vader_vt_start_scheduler(vader_fn_t* run) {
-    (void) run;
+static void vader_vt_start_scheduler(void) {
     vader_trap("virtual threads: no stack switch on this target");
 }
 
-int64_t vader_vt_create(vader_fn_t* entry) {
+static int64_t vader_vt_create(vader_fn_t* entry) {
     (void) entry;
     vader_trap("virtual threads: no stack switch on this target");
 }
 
-void vader_vt_switch(int64_t to) {
+static void vader_vt_switch(int64_t to) {
     (void) to;
     vader_trap("virtual threads: no stack switch on this target");
 }
 
-int64_t vader_vt_current(void) {
+static void vader_vt_switch_to_scheduler(void) {
     vader_trap("virtual threads: no stack switch on this target");
+}
+
+static void vader_vt_end(void) {
+    vader_trap("virtual threads: no stack switch on this target");
+}
+
+static int64_t vader_vt_current(void) {
+    return 0;
+}
+
+static int64_t vader_vt_main(void) {
+    return 0;
+}
+
+static int vader_vt_is_live(int64_t handle) {
+    return handle == 0;
+}
+
+static size_t vader_vt_threads(void) {
+    return 0;
+}
+
+static void vader_vt_each_live(void (*fn)(int64_t handle)) {
+    (void) fn;
+}
+
+static void vader_vt_give_back_cold(void) {
 }
 
 static char* vader_vt_stack_top(void) {

@@ -1,0 +1,73 @@
+// std/runtime/scheduler: virtual threads, and the scheduler that runs them.
+//
+// A virtual thread runs a function on a stack of its own. A thread runs until
+// it parks, sleeps or ends; the scheduler then runs the ready threads in the
+// order they became ready. With none ready, it waits for the nearest sleep to
+// end; with no sleep either, every thread waits on another, and the program
+// stops on a deadlock.
+//
+// A thread is named by an `i64` handle. Once its thread has ended, a handle
+// names nothing, and waking or cancelling it does nothing. When `main` returns,
+// the threads still running are cancelled, stderr names them, and the exit code
+// is not zero.
+//
+// The runtime serves these, and under the VM the host serves them with its
+// own: a program and the VM that runs it share one scheduler. This module
+// imports nothing, so it can sit under `std/io` and `std/time`.
+
+module "std/runtime/scheduler"
+
+/// Start a thread that runs `entry`. It is ready at once, and runs once the
+/// running thread parks; when `entry` returns, the thread ends.
+///
+/// @param entry  what the thread runs.
+/// @return       the thread's handle.
+@intrinsic
+export spawn_thread :: fn(entry: fn() -> void) -> i64
+
+/// Park the running thread until a `wake` names it.
+///
+/// A wake meant for an earlier wait can end a park too, so a thread parks in a
+/// loop that checks what it waits for.
+///
+/// @error  stops the program when no thread is ready and none sleeps: nothing
+///         would ever wake one. Also when C is running under the park: a
+///         callback that C called cannot park, since another thread would run
+///         over the C frames.
+@intrinsic
+export park :: fn() -> void
+
+/// Make `thread` ready, unless it has ended: a parked thread runs again in its
+/// turn. A thread that wakes itself and then parks lets the ready threads run
+/// first.
+///
+/// @param thread  the handle of the thread to wake.
+@intrinsic
+export wake :: fn(thread: i64) -> void
+
+/// Park the running thread for at least `nanos` nanoseconds, while the other
+/// threads run. A zero or negative `nanos` returns at once; a `wake` does not
+/// end the sleep.
+///
+/// Under `VADER_ASYNC_VIRTUAL_CLOCK`, the clock counts the sleeps alone: with
+/// no thread ready, it jumps to the end of the nearest sleep.
+///
+/// @param nanos  how long to sleep.
+/// @error        as `park`.
+@intrinsic
+export sleep_for :: fn(nanos: i64) -> void
+
+/// Cancel `thread`: at its next run, it runs its pending defers and ends. The
+/// running thread cancels itself at once, and `cancel_thread` does not return.
+/// A defer that parks parks the cancelled thread; a thread that has ended is
+/// left as it is.
+///
+/// @param thread  the handle of the thread to cancel.
+/// @error         stops the program on the main thread, which cannot be
+///                cancelled.
+@intrinsic
+export cancel_thread :: fn(thread: i64) -> void
+
+/// The handle of the running thread. The main thread has one from the start.
+@intrinsic
+export current_thread :: fn() -> i64

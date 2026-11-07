@@ -31,6 +31,29 @@ static void vader_os_release(char* base, size_t bytes) {
     VirtualFree(base, 0, MEM_RELEASE);
 }
 
+static int64_t vader_os_monotonic_ns(void) {
+    LARGE_INTEGER freq;
+    LARGE_INTEGER counter;
+    if (!QueryPerformanceFrequency(&freq) || freq.QuadPart == 0) return 0;
+    if (!QueryPerformanceCounter(&counter)) return 0;
+    /* Whole seconds apart from the rest: the plain product overflows. */
+    int64_t seconds = counter.QuadPart / freq.QuadPart;
+    int64_t rest = counter.QuadPart % freq.QuadPart;
+    return seconds * 1000000000 + rest * 1000000000 / freq.QuadPart;
+}
+
+static void vader_os_sleep_ns(int64_t ns) {
+    /* `Sleep` counts milliseconds: round up, so the wait is never shorter. */
+    int64_t ms = ns / 1000000;
+    if (ns % 1000000 != 0) ms += 1;
+    while (ms > 0) {
+        DWORD slice = 0x7FFFFFFFu;
+        if (ms < (int64_t) slice) slice = (DWORD) ms;
+        Sleep(slice);
+        ms -= (int64_t) slice;
+    }
+}
+
 static size_t vader_os_physical_ram(void) {
     MEMORYSTATUSEX s;
     s.dwLength = sizeof(s);

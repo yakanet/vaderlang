@@ -2,38 +2,29 @@
 
 ## snippet
   storage
-    global #0 i32  scheduler.state
-    global #1 Scheduler  scheduler.instance
-  snippet.Scheduler :: struct { handle: i64, ready: i64[], next_ready: i64, running: i64 }  // snippet$Scheduler
-  snippet.scheduler :: fn() -> Scheduler {  // snippet$scheduler
+    global #0 i32  joiner.state
+    global #1 Joiner  joiner.instance
+  snippet.Joiner :: struct { running: i64, main_thread: i64 }  // snippet$Joiner
+  snippet.joiner :: fn() -> Joiner {  // snippet$joiner
       if @global(0) == 2 {
           return @global(1)
       }
       if @global(0) == 1 {
-          @unreachable("singleton `scheduler` called while it initialises")
+          @unreachable("singleton `joiner` called while it initialises")
       }
       @global(0) = 1
-      @global(1) = snippet$scheduler$singleton()
+      @global(1) = snippet$joiner$singleton()
       @global(0) = 2
       return @global(1)
   }
-  snippet.run_scheduler :: fn() -> void {  // snippet$run_scheduler
-      s: Scheduler = snippet.scheduler()
-      for {
-          next: i64 = s.ready[s.next_ready]
-          s.next_ready = s.next_ready + i64(1)
-          std.runtime.threads.switch_to_thread(next)
-      }
-  }
   snippet.spawn :: fn(entry: fn() -> void) -> void {  // snippet$spawn
-      s: Scheduler = snippet.scheduler()
-      s.running = s.running + i64(1)
-      @array.push(s.ready, std.runtime.threads.create_thread(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = entry, .cap_1 = s })))
+      j: Joiner = snippet.joiner()
+      j.running = j.running + i64(1)
+      std.runtime.scheduler.spawn_thread(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = entry, .cap_1 = j }))
   }
   snippet.yield_now :: fn() -> void {  // snippet$yield_now
-      s: Scheduler = snippet.scheduler()
-      @array.push(s.ready, std.runtime.threads.current_thread())
-      std.runtime.threads.switch_to_thread(s.handle)
+      std.runtime.scheduler.wake(std.runtime.scheduler.current_thread())
+      std.runtime.scheduler.park()
   }
   snippet.worker :: fn(name: string, steps: i64) -> void {  // snippet$worker
       {
@@ -56,36 +47,33 @@
       std.io.println<string>(concat_2(name, " done"))
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      snippet.scheduler().handle = std.runtime.threads.start_scheduler(snippet.run_scheduler)
-      main_thread: i64 = std.runtime.threads.current_thread()
-      std.runtime.threads.switch_to_thread(main_thread)
+      main_thread: i64 = std.runtime.scheduler.current_thread()
+      snippet.joiner().main_thread = main_thread
       snippet.spawn(__lambda_snippet_2)
       snippet.spawn(__lambda_snippet_3)
       snippet.spawn(@closure(__lambda_snippet_4, __lambda_env_snippet_5 { .cap_0 = main_thread }))
-      for snippet.scheduler().running > i64(0) {
-          snippet.yield_now()
+      for snippet.joiner().running > i64(0) {
+          std.runtime.scheduler.park()
       }
       std.io.println<string>({
           __buf_1: Buffer = std.core.new_byte_buffer(i64(19))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "main is back: ")
-          __off_2 = std.core.write_bool(__buf_1, __off_2, std.runtime.threads.current_thread() == main_thread)
+          __off_2 = std.core.write_bool(__buf_1, __off_2, std.runtime.scheduler.current_thread() == main_thread)
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
       return 0
   }
-  snippet$scheduler$singleton :: fn() -> Scheduler {
-      Scheduler {
-          .handle = i64(0),
-          .ready = [] :i64[],
-          .next_ready = i64(0),
-          .running = i64(0),
-      }
+  snippet$joiner$singleton :: fn() -> Joiner {
+      Joiner { .running = i64(0), .main_thread = i64(0) }
   }
-  __lambda_env_snippet_1 :: struct { cap_0: fn() -> void, cap_1: Scheduler }
+  __lambda_env_snippet_1 :: struct { cap_0: fn() -> void, cap_1: Joiner }
   __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1) -> void {
       __env_0.cap_0()
       __env_0.cap_1.running = __env_0.cap_1.running - i64(1)
+      if __env_0.cap_1.running == i64(0) {
+          std.runtime.scheduler.wake(__env_0.cap_1.main_thread)
+      }
   }
   __lambda_snippet_2 :: fn() -> void {
       snippet.worker("a", i64(2))
@@ -99,7 +87,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(36))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "c runs on a thread of its own: ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, std.runtime.threads.current_thread() != __env_0.cap_0)
+          __off_1 = std.core.write_bool(__buf_0, __off_1, std.runtime.scheduler.current_thread() != __env_0.cap_0)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
   }
