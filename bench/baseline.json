@@ -413,14 +413,22 @@
       "checksum": "fmt_float count=60000 length=888192 hash=425079331"
     }
   },
-  "async_await": {
+  "task_switch": {
     "vader-native": {
-      "minMs": 25.70958300001803,
-      "checksum": "async_await count=3000000 total=3000000"
+      "minMs": 73.71354199999996,
+      "checksum": "task_switch launched=50005000 traded=45000150000 echoed=300000"
     },
     "bun-ts": {
-      "minMs": 69.43579199997475,
-      "checksum": "async_await count=3000000 total=3000000"
+      "minMs": 47.60858399999961,
+      "checksum": "task_switch launched=50005000 traded=45000150000 echoed=300000"
+    },
+    "go": {
+      "minMs": 58.36029099999996,
+      "checksum": "task_switch launched=50005000 traded=45000150000 echoed=300000"
+    },
+    "java": {
+      "minMs": 300.3321250000008,
+      "checksum": "task_switch launched=50005000 traded=45000150000 echoed=300000"
     }
   },
   "parse_float": {

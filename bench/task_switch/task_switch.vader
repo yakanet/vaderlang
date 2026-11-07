@@ -1,0 +1,67 @@
+/// Tasks of std/task: what it costs to launch a task and join it, and what a
+/// wake costs when two tasks hand a value back and forth. A task runs on a
+/// virtual thread of its own and parks wherever it waits, so each round trip
+/// of the second half is two switches between threads, each woken by the
+/// other. The Go and Java peers hold their threads to one OS thread, as
+/// Vader's tasks are.
+///
+/// Sized so the natively compiled binary runs in ~70 ms.
+
+module "main"
+
+import "std/io"
+import "std/option"
+import "std/task"
+
+BATCH: i64: 1_000
+BATCHES: i64: 10
+TRIPS: i64: 300_000
+
+/// Launch `BATCHES` batches of `BATCH` tasks, joining each batch before the next.
+launch_and_join :: fn() -> i64 {
+    total: i64 = 0
+    for batch in 0..<BATCHES {
+        tasks: Task<i64>[]: []
+        for i in 0..<BATCH {
+            n :: batch * BATCH + i
+            tasks.push(launch(() -> n + 1))
+        }
+        // One join per task, as the peers do: `join_all` would also build an array.
+        for task in tasks {
+            total += task.join().unwrap()
+        }
+    }
+    return total
+}
+
+/// Send back on `pong` each value `ping` brings, plus one, until `ping` closes.
+echo :: fn(ping: Channel<i64>, pong: Channel<i64>) -> i64 {
+    echoed: i64 = 0
+    for value in ping {
+        pong.send(value + 1)
+        echoed += 1
+    }
+    return echoed
+}
+
+/// `TRIPS` round trips between this task and an echo.
+ping_pong :: fn() -> string {
+    ping :: Channel<i64> { .capacity = 1 }
+    pong :: Channel<i64> { .capacity = 1 }
+    echoer :: launch(() -> echo(ping, pong))
+    total: i64 = 0
+    for i in 0..<TRIPS {
+        ping.send(i)
+        reply :: pong.receive()
+        if reply is i64 {
+            total += reply
+        }
+    }
+    ping.close()
+    return "traded=${total} echoed=${echoer.join().unwrap()}"
+}
+
+main :: fn() -> i32 {
+    println("task_switch launched=${launch_and_join()} ${ping_pong()}")
+    return 0
+}

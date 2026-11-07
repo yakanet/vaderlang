@@ -75,7 +75,7 @@ const WORKLOADS: readonly Workload[] = [
   { name: "matmul",         description: "260×260 i64 matrix multiply over nested arrays",        outputMatch: "matmul" },
   { name: "closures",       description: "6 M calls through a captured cell + 500 environments",  outputMatch: "closures" },
   { name: "fmt_float",      description: "60 k shortest round-trip float renderings (Ryū)",       outputMatch: "fmt_float" },
-  { name: "async_await",    description: "3 M awaits on a settled value (Vader + Bun only)",      outputMatch: "async_await" },
+  { name: "task_switch",    description: "10 k task launches and joins + 300 k round trips",     outputMatch: "task_switch" },
   { name: "parse_float",    description: "655 k correctly-rounded decimal → f64 parses",         outputMatch: "parse_float" },
   { name: "sort_by",        description: "24 stable comparator sorts of 20 k i64",               outputMatch: "sort_by" },
   { name: "split_join",     description: "24 × split a 20 k-field line, filter, rejoin",         outputMatch: "split_join" },
