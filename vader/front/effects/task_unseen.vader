@@ -1,0 +1,165 @@
+// vader/front/effects/task_unseen: the function values a task runs whose body the check cannot see.
+//
+// A task runs a function value as the callee of a call, or as an argument a callee
+// runs (`task_handed.vader`), in its own code or through a call below it. The check
+// sees its body when it is a lambda written there, a lambda of the body
+// (`task_lambdas.vader`), a named fn, whose reach its runner takes, a parameter,
+// whose callers say what they hand there, or a value another task handed on,
+// checked where it was handed. Anything else is an error: the chain of calls down
+// to it climbs the reach like a main-thread function (`Reach.unknown`).
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "toolchain/span"
+import "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+
+// Report each call the task `door` opens makes that runs a function value whose
+// body the check cannot see: as its callee, as an argument a callee runs, or
+// through a call below it.
+check_unknown_calls :: fn(
+    ctx: TaskCtx,
+    body: TaskBody,
+    door: Door,
+    out: TaskFault[],
+    seen: Set<string>,
+) -> void {
+    line :: door.site.at.start.line
+    entry :: door.entry
+    if entry == null {
+        q :: door.param ?? return
+        node :: ctx.named_fn_node(body, door.site, q) ?? return
+        chain :: ctx.reach[node].unknown
+        if chain.len() > 0 {
+            out.push(unknown_fault(door.site.at, line, chain))
+        }
+        return
+    }
+    spans :: body.task_spans(entry)
+    for site in body.s.sites {
+        if !runs_in(spans, site.at) {
+            continue
+        }
+        chain :: ctx.reached_chain(body.typed, site, (r) -> r.unknown)
+        if chain.len() > 0 && seen.add("unknown ${site.at.start.offset}") {
+            out.push(unknown_fault(site.at, line, chain))
+        }
+        for u in ctx.unseen_values(body.s, body.shape, body.typed, site) {
+            if seen.add("unknown ${u.at.start.offset}") {
+                out.push(unknown_fault(u.at, line, [u.label]))
+            }
+        }
+    }
+}
+
+unknown_fault :: fn(at: Span, line: i32, chain: string[]) -> TaskFault = TaskFault {
+    .kind = .UnknownFunctionValue,
+    .span = at,
+    .detail = "the task launched at line ${line} ${display_unknown(chain)}, a function value "
+        + "whose body the check cannot see ; run a lambda of the body, a named fn, or a "
+        + "parameter of the function instead",
+}
+
+// How a detail says what a task runs of a function value whose body the check
+// cannot see: the calls of `chain` down to it, then the value.
+display_unknown :: fn(chain: string[]) -> string {
+    value :: "runs `${chain[chain.len() - 1]}`"
+    if chain.len() == 1 {
+        return value
+    }
+    calls: string[]: []
+    for i in 0..<chain.len() - 1 {
+        calls.push(chain[i])
+    }
+    return "calls ${display_chain(calls)}, which ${value}"
+}
+
+// A function value a call runs whose body the check cannot see.
+Unseen :: struct {
+    /// What names it: the callee, or an argument.
+    at: Span
+    label: string
+}
+
+// Whether `site` calls a function value that is no parameter of the body, whose
+// callers would say what they hand there.
+runs_unknown_value :: fn(site: Site) -> bool =
+    site.callee is FnValue && !site.targets.any_match((t) -> t is CalledParam)
+
+// The function values `site`, a call of the body of skeleton `s` and shape
+// `shape`, runs whose body the check cannot see, as its callee or as an argument
+// a callee runs: not a parameter of the body, nor a named fn.
+unseen_values :: fn(
+    ctx: TaskCtx,
+    s: Skeleton,
+    shape: BodyShape,
+    typed: TypedProgram,
+    site: Site,
+) -> Unseen[] {
+    names :: Bindings { .typed = typed, .lets = shape.lets }
+    out: Unseen[]: []
+    if runs_unknown_value(site) {
+        call :: shape.calls.find((c) -> same_span(c.span, site.at))
+        if call == null {
+            out.push(Unseen { .at = site.at, .label = "..." })
+        } else if !ctx.sees_value(s, names, call.callee) {
+            out.push(Unseen { .at = site.at, .label = callee_label(call.callee) })
+        }
+    }
+    for k in ctx.run_args(site) {
+        if k >= site.sources.len() || k < site.fn_args.len() && site.fn_args[k] != null {
+            continue
+        }
+        source :: site.sources[k] ?? continue
+        if ctx.fn_node_of(typed, source) == null && !ctx.sees_value(s, names, source) {
+            out.push(Unseen { .at = source.span, .label = callee_label(source) })
+        }
+    }
+    return out
+}
+
+// Whether the check sees the body of the function value `e` gives: a lambda written
+// there, a lambda of the body, or a value another task handed on.
+sees_value :: fn(ctx: TaskCtx, s: Skeleton, names: Bindings, e: AST.Expr) -> bool =
+    e is AST.LambdaExpr || names.called_lambda(e) != null || ctx.taken(s, names, e)
+
+// Whether `e` names a constant local bound to what a call returns that another
+// task handed on: a function value was checked where it was handed.
+taken :: fn(ctx: TaskCtx, s: Skeleton, names: Bindings, e: AST.Expr) -> bool {
+    if e !is AST.IdentExpr {
+        return false
+    }
+    value :: names.bound_value(e)
+    if value !is AST.CallExpr {
+        return false
+    }
+    site :: s.sites.find((site) -> same_span(site.at, value.span)) ?? return false
+    door :: ctx.index.door_of(site.callee) ?? return false
+    return door.takes
+}
+
+// The function value whose body the check cannot see that node `node` runs, as the
+// chain from the function down to the value ; empty when none.
+own_unknown_call :: fn(ctx: TaskCtx, node: i64) -> string[] {
+    s :: ctx.skeletons[node]
+    if !s.sites.any_match((site) -> runs_unknown_value(site) || ctx.hands_a_value(site)) {
+        return []
+    }
+    f :: ctx.index.functions[node]
+    shape :: shape_of(f.decl)
+    for site in s.sites {
+        unseen :: ctx.unseen_values(s, shape, f.typed, site)
+        if unseen.len() > 0 {
+            return [f.decl.name, unseen[0].label]
+        }
+    }
+    return []
+}
+
+// Whether `site` hands a callee that runs it a function value that is neither a
+// lambda written there nor a parameter of the body.
+hands_a_value :: fn(ctx: TaskCtx, site: Site) -> bool =
+    ctx.run_args(site).any_match((k) -> k >= site.fn_args.len() || site.fn_args[k] == null)

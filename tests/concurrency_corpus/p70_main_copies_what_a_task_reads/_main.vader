@@ -1,0 +1,30 @@
+// P70: main copies the level while the task reads it, then writes the copy:
+// `deep_copy` only reads its argument, and its result shares nothing with it.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+Bot :: struct {
+    x: i64 = 0
+}
+
+Level :: struct {
+    bots: Bot[] = []
+}
+
+// Reads the level only.
+count :: fn(level: Level) -> i64 = level.bots.len()
+
+main :: fn() -> i32 {
+    level :: Level { .bots = [Bot {}] }
+    ai :: launch(() -> count(level))
+    copy :: level.deep_copy()
+    copy.bots[0].x = 5
+    n :: ai.join().unwrap()
+    return i32(n + copy.bots[0].x) - 6
+}

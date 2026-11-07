@@ -1,0 +1,1 @@
+[34:30] error[T3129] value written by several tasks: each task launched here writes `ids.next` (through `parse_module`, which writes it at line 29), which they all share ; let each task return its part, or give each one its own value

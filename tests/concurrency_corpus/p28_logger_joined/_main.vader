@@ -1,0 +1,25 @@
+// P28: `start_logger` hands back the task writing the `log` singleton, and main
+// joins it before writing `log` itself.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Log :: struct {
+    lines: string[] = []
+}
+
+@singleton
+log :: fn() -> Log = Log {}
+
+start_logger :: fn() -> Task<void> = launch(() -> log().lines.push("start"))
+
+main :: fn() -> i32 {
+    t :: start_logger()
+    t.join()
+    log().lines.push("main")
+    return 0
+}

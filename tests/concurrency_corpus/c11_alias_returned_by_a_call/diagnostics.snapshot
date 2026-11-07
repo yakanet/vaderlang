@@ -1,0 +1,5 @@
+[18:1] warning[W0007] declaration is never used in its module: `Player` is never used
+[30:1] warning[W0007] declaration is never used in its module: `update` is never used
+[37:1] warning[W0007] declaration is never used in its module: `apply` is never used
+[43:1] warning[W0007] declaration is never used in its module: `spawn_bot` is never used
+[51:5] error[T3128] value written while a task uses it: this writes `level.bots[].x` while the task launched at line 50 reads it ; copy it before launching: `view :: level.deep_copy()`, then capture `view`

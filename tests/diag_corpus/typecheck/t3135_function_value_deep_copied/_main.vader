@@ -1,0 +1,19 @@
+// T3135 : `deep_copy` cannot copy a function value, since what it captured has no
+// type to copy it by. `Arena` holds one in each of its bots, so its copy is
+// refused at the call.
+module "snippet"
+
+Bot :: struct {
+    name: string
+    on_hit: fn(i32) -> i32
+}
+
+Arena :: struct {
+    bots: Bot[]
+}
+
+main :: fn() -> i32 {
+    arena :: Arena { .bots = [Bot { .name = "x", .on_hit = (n) -> n + 1 }] }
+    copy :: arena.deep_copy()
+    return i32(copy.bots.len())
+}

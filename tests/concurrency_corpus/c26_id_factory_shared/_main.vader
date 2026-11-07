@@ -1,0 +1,36 @@
+// C26: every parsing task mints ids from the same factory.
+//
+// corpus: refused E2
+// expect: T3129
+
+module "snippet"
+
+import "std/iter"
+import "std/task"
+
+NodeIdFactory :: struct {
+    next: i64 = 1
+}
+
+mint :: fn(ids: NodeIdFactory) -> i64 {
+    id :: ids.next
+    ids.next += 1
+    return id
+}
+
+Module :: struct {
+    name: string
+}
+
+Ast :: struct {
+    root: i64
+}
+
+parse_module :: fn(m: Module, ids: NodeIdFactory) -> Ast = Ast { .root = ids.mint() }
+
+main :: fn() -> i32 {
+    modules: Module[]: [Module { .name = "a" }, Module { .name = "b" }]
+    ids :: NodeIdFactory {}
+    asts :: modules.map(m -> launch(() -> parse_module(m, ids))).collect()
+    return i32(asts.len()) - 2
+}

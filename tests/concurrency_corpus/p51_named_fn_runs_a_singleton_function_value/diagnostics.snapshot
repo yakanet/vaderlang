@@ -1,0 +1,1 @@
+[21:10] error[T3134] task runs a function value whose captures are unknown: the task launched at line 21 calls `work`, which runs `current().work`, a function value whose body the check cannot see ; run a lambda of the body, a named fn, or a parameter of the function instead

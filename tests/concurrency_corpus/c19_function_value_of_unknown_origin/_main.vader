@@ -1,0 +1,19 @@
+// C19: a function value read from a table: what it captures is not known here.
+//
+// corpus: refused E7
+// expect: T3134
+
+module "snippet"
+
+import "std/task"
+
+Registry :: struct {
+    jobs: (fn() -> i64)[] = []
+}
+
+main :: fn() -> i32 {
+    registry :: Registry { .jobs = [() -> 1] }
+    job :: registry.jobs[0]
+    t :: launch(job)
+    return i32(t.join()) - 1
+}

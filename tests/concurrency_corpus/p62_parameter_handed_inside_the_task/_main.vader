@@ -1,0 +1,25 @@
+// P62: `start` launches a task that hands its parameter to `apply`, which runs
+// it: the lambda main hands `start` writes `counter` while main writes it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+apply :: fn(work: fn() -> void) -> void = work()
+
+start :: fn(work: fn() -> void) -> Task<void> = launch(() -> apply(work))
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    t :: start(() -> { counter.n += 1 })
+    counter.n += 1
+    t.join()
+    return counter.n - 2
+}

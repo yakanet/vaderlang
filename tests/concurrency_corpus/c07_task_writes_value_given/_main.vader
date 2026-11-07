@@ -1,0 +1,32 @@
+// C07: the task writes the grid, which the code after the launch no longer touches:
+// given, it comes back through the result.
+//
+// corpus: accepted
+// expect: accepted
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+Grid :: struct {
+    cells: i64[] = []
+}
+
+load_grid :: fn(path: string) -> Grid = Grid { .cells = [1, 2, 3] }
+
+// Writes the grid in place and returns it.
+blur :: fn(grid: Grid) -> Grid {
+    for i in 0..<grid.cells.len() {
+        grid.cells[i] = grid.cells[i] / 2
+    }
+    return grid
+}
+
+render :: fn(grid: Grid) -> i64 = grid.cells.len()
+
+main :: fn() -> i32 {
+    grid :: load_grid("map.png")
+    t :: launch(() -> blur(grid))
+    return i32(render(t.join().unwrap())) - 3
+}

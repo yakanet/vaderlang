@@ -1,0 +1,36 @@
+// P40: a task counts the live bots through `filter` while main reads the level:
+// pulling the iterator reads the bots, and keeps none of them.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/iter"
+import "std/option"
+import "std/task"
+
+Bot :: struct {
+    x: i64 = 0
+}
+
+Level :: struct {
+    bots: Bot[] = []
+}
+
+alive :: fn(level: Level) -> i64 = level.bots.filter(b -> b.x > 0).count()
+
+total_x :: fn(level: Level) -> i64 {
+    n: i64 = 0
+    for b in level.bots {
+        n += b.x
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    level :: Level { .bots = [Bot {}, Bot { .x = 2 }] }
+    t :: launch(() -> alive(level))
+    total :: total_x(level)
+    return i32(t.join().unwrap() + total) - 3
+}

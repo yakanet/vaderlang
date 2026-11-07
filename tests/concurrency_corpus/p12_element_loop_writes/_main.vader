@@ -1,0 +1,31 @@
+// P12: a task per element writes its own cell.
+//
+// corpus: probe
+// expect: T3129
+// gap: should accept: two elements of an array may be one value, so the tasks may
+//   write the same cell ; the read of `cells` by the loop header is a read of all of
+//   it.
+
+module "snippet"
+
+import "std/task"
+
+Cell :: struct {
+    v: i64 = 0
+}
+
+bump :: fn(c: Cell) -> void {
+    c.v += 1
+}
+
+main :: fn() -> i32 {
+    cells: Cell[]: [Cell {}, Cell {}]
+    tasks: Task<void>[]: []
+    for c in cells {
+        tasks.push(launch(() -> bump(c)))
+    }
+    for t in tasks {
+        t.join()
+    }
+    return 0
+}

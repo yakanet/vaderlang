@@ -1,0 +1,481 @@
+// vader/front/effects/task_shape: where the code that crossed a door runs beside
+// the task it opened.
+//
+// The skeleton holds no order between statements ; the task check needs some, and
+// reads it off the spans of the body. What runs beside a task is what comes after
+// its door, until a `join` of the task that runs on every path of the block it
+// sits in. A door inside a loop or a lambda is crossed again, which opens a new
+// task each time: the part of that loop before the door runs again while the task
+// does, and every task it opens shares what each crossing does not bind anew.
+
+module "vader/front/effects"
+
+import "std/iter"
+import "toolchain/span"
+import "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+
+/// The parts of a body the task check places accesses in.
+BodyShape :: struct {
+    /// The loops and lambdas: code that may run again.
+    repeats: Span[] = []
+    blocks: AST.BlockExpr[] = []
+    lets: AST.LetStmt[] = []
+    loops: AST.ForStmt[] = []
+    lambdas: AST.LambdaExpr[] = []
+    calls: AST.CallExpr[] = []
+}
+
+// The shape of `decl`'s body.
+shape_of :: fn(decl: AST.FnDecl) -> BodyShape {
+    shape :: BodyShape {}
+    body :: decl.body ?? return shape
+    AST.inspect(body, (n) -> {
+        match n {
+            is AST.ForStmt    -> {
+                shape.repeats.push(n.span)
+                shape.loops.push(n)
+            }
+            is AST.LambdaExpr -> {
+                shape.repeats.push(n.span)
+                shape.lambdas.push(n)
+            }
+            is AST.BlockExpr  -> { shape.blocks.push(n) }
+            is AST.LetStmt    -> { shape.lets.push(n) }
+            is AST.CallExpr   -> { shape.calls.push(n) }
+            _                 -> {}
+        }
+        return .Descend
+    })
+    return shape
+}
+
+/// Where the code that crossed a door runs beside the task it opened.
+Region :: struct {
+    /// The innermost loop or lambda around the door, when no join ends the task
+    /// inside it: each crossing opens another task while this one runs.
+    repeats: Span | null = null
+    /// The outermost one, on the same condition: the part of it before the door
+    /// runs again while the task does.
+    wraps: Span | null = null
+    /// Where joins of the task end it, each for the rest of its block.
+    joins: JoinPoint[] = []
+}
+
+/// A join that ends a task for the rest of the block it sits in, on every path.
+JoinPoint :: struct {
+    block: Span
+    /// The call that waits for the task, or the loop that joins each task: the
+    /// block runs past it once the task ended.
+    at: Span
+    by_loop: bool = false
+}
+
+// Where the code that crossed `door` runs beside its task.
+region_of :: fn(body: TaskBody, door: Door) -> Region {
+    joins :: body.join_points(door)
+    at :: door.site.at
+    inner: Span | null = null
+    outer: Span | null = null
+    for r in body.shape.repeats {
+        if !contains(r, at) {
+            continue
+        }
+        if inner == null || contains(inner, r) {
+            inner = r
+        }
+        if outer == null || contains(r, outer) {
+            outer = r
+        }
+    }
+    region :: Region { .joins = joins }
+    if inner != null && !ended_inside(joins, at, inner) {
+        region.repeats = inner
+    }
+    if outer != null && !ended_inside(joins, at, outer) {
+        region.wraps = outer
+    }
+    return region
+}
+
+// Whether a join of `joins` ends the task opened at `door` within `span`: in a
+// block around the door that `span` holds.
+ended_inside :: fn(joins: JoinPoint[], door: Span, span: Span) -> bool =
+    joins.any_match((j) -> contains(j.block, door) && contains(span, j.block))
+
+// Whether the task `door` opens may still run when the body returns.
+ends_inside :: fn(body: TaskBody, door: Door, span: Span) -> bool =
+    ended_inside(body.join_points(door), door.site.at, span)
+
+// Whether a touch of root `root` at offset `p` runs beside the task `door` opens.
+in_region :: fn(body: TaskBody, door: Door, region: Region, p: i64, root: i64) -> bool {
+    entry :: door.entry
+    if entry != null && holds_offset(entry.span, p) {
+        return false
+    }
+    // The reach of a callee that leaves a task running holds what the task does: at
+    // the door's own call, that is the task's touch.
+    if door.left.len() > 0 && holds_offset(door.site.at, p) {
+        return false
+    }
+    if p >= door.site.at.end.offset {
+        return !region.joins.any_match((j) -> holds_offset(j.block, p) && p >= j.at.end.offset)
+    }
+    wraps :: region.wraps ?? return false
+    if !holds_offset(wraps, p) {
+        return false
+    }
+    fresh :: region.repeats ?? wraps
+    return !body.bound_inside(root, fresh)
+}
+
+// The nearest join past which code at offset `p`, after the door, would no longer
+// run beside the task `door` opens ; null when none follows it.
+join_after :: fn(door: Door, region: Region, p: i64) -> JoinPoint | null {
+    if p < door.site.at.end.offset {
+        return null
+    }
+    found: JoinPoint | null = null
+    for j in region.joins {
+        if !holds_offset(j.block, p) || p >= j.at.end.offset {
+            continue
+        }
+        if found == null || j.at.end.offset < found.at.end.offset {
+            found = j
+        }
+    }
+    return found
+}
+
+// The lambdas of `body` that may run past the point they are written: neither the
+// entry of a task nor handed to a call whose callee keeps it nowhere.
+escaping_lambdas :: fn(ctx: TaskCtx, body: TaskBody) -> Span[] {
+    out: Span[]: []
+    for l in body.shape.lambdas {
+        if !body.is_entry(l) && !ctx.runs_at_its_call(body, l) {
+            out.push(l.span)
+        }
+    }
+    return out
+}
+
+// Whether `l` is the lambda a door hands its task.
+is_entry :: fn(body: TaskBody, l: AST.LambdaExpr) -> bool {
+    for door in body.doors {
+        entry :: door.entry ?? continue
+        if same_span(entry.span, l.span) {
+            return true
+        }
+    }
+    return false
+}
+
+// Whether `l` is written as the callee of a call, or as the argument of a call
+// whose callees keep it nowhere: it runs during the call, if at all. A generator
+// keeps it until the iterator it returns is drained, which may be past the call.
+runs_at_its_call :: fn(ctx: TaskCtx, body: TaskBody, l: AST.LambdaExpr) -> bool {
+    if body.shape.calls.any_match((c) -> same_span(c.callee.span, l.span)) {
+        return true
+    }
+    for site in body.s.sites {
+        for q in 0..<site.sources.len() {
+            source :: site.sources[q] ?? continue
+            if !same_span(source.span, l.span) {
+                continue
+            }
+            if site.targets.len() == 0 || site.targets.any_match((t) -> ctx.keeps_param(t, q)) {
+                return false
+            }
+            return !ctx.returns_iterator(site) || ctx.drained_at_once(body, site)
+        }
+    }
+    return false
+}
+
+// Whether a callee of `site` is a generator: its body runs as the iterator it
+// returns is pulled.
+returns_iterator :: fn(ctx: TaskCtx, site: Site) -> bool = site.targets.any_match((t) -> {
+    if t !is CalleeNode {
+        return false
+    }
+    f :: ctx.index.functions[t.node]
+    return fn_is_generator(f.typed, f.decl)
+})
+
+// Whether the iterator `site` returns is drained by the code that makes it: a `for`
+// loop over it, a call that is no generator, a generator whose own iterator is.
+drained_at_once :: fn(ctx: TaskCtx, body: TaskBody, site: Site) -> bool {
+    for other in body.s.sites {
+        if other.args.any_match((a) -> a == site.result) {
+            return !ctx.returns_iterator(other) || ctx.drained_at_once(body, other)
+        }
+    }
+    for l in body.shape.loops {
+        form :: l.form
+        if form is AST.InFor && same_span(form.iter.span, site.at) {
+            return true
+        }
+    }
+    return false
+}
+
+// Whether `target` may keep what its parameter `q` is handed.
+keeps_param :: fn(ctx: TaskCtx, target: CallTarget, q: i64) -> bool {
+    accesses :: accesses_of_param(known_params(target, ctx.facts), q, ctx.index.any)
+    return accesses.any_match((a) -> a.effect == .Stored || is_unknown(a))
+}
+
+// Where an access at `at`, which takes effect at `p`, happens as the task `door`
+// opens sees it: from the door of another task whose lambda makes it, and inside a
+// lambda that may run later, at the earliest past the door.
+effective_offset :: fn(body: TaskBody, door: Door, escaping: Span[], at: Span, p: i64) -> i64 {
+    for other in body.doors {
+        entry :: other.entry ?? continue
+        if body.is_other_task(door, other) && inside(entry.span, at) {
+            return other.site.at.start.offset
+        }
+    }
+    for l in escaping {
+        if inside(l, at) && !contains(l, door.site.at) && p < door.site.at.end.offset {
+            return door.site.at.end.offset
+        }
+    }
+    return p
+}
+
+// Whether `other` opens a task other than `door`'s that runs beside it: not the
+// door itself, nor a door whose lambda holds `door`, the task that crossed it.
+is_other_task :: fn(body: TaskBody, door: Door, other: Door) -> bool {
+    if same_span(other.site.at, door.site.at) {
+        return false
+    }
+    entry :: other.entry ?? return true
+    return !contains(entry.span, door.site.at)
+}
+
+// Where touch `t` takes effect: a read where it reads, a write once its operands
+// are evaluated.
+position :: fn(t: Touch) -> i64 {
+    if t.kind == .Read {
+        return t.at.start.offset
+    }
+    return t.at.end.offset - 1
+}
+
+// The joins of the task `door` opens: a call that waits for the task it is handed,
+// the door's own call or the name the door's task is bound to, a loop that joins
+// each element of what holds the door's task, or a call that waits for each task
+// of an array that holds it.
+join_points :: fn(body: TaskBody, door: Door) -> JoinPoint[] {
+    out: JoinPoint[]: []
+    handle :: body.handle_of(door)
+    for site in body.s.sites {
+        waits :: body.index.door_of(site.callee) ?? continue
+        q :: waits.joins ?? continue
+        if q >= site.sources.len() {
+            continue
+        }
+        source :: site.sources[q] ?? continue
+        block :: body.block_around(site.at) ?? continue
+        if !body.joins_on_every_path(block, site.at) {
+            continue
+        }
+        if waits.joins_array {
+            if body.holds_door_task(door, site, q, source) {
+                out.push(JoinPoint { .block = block.span, .at = site.at })
+            }
+            continue
+        }
+        if body.is_door_task(door, handle, source) {
+            out.push(JoinPoint { .block = block.span, .at = site.at })
+            continue
+        }
+        loop :: body.joining_loop(door, site, q, block) ?? continue
+        around :: body.block_around(loop.span) ?? continue
+        if around.stmts.any_match((s) -> same_span(s.span, loop.span)) {
+            joined :: JoinPoint {
+                .block = around.span,
+                .at = loop.span,
+                .by_loop = true,
+            }
+            out.push(joined)
+        }
+    }
+    return out
+}
+
+// The loop whose body is `block`, when it joins each element of what holds the
+// task `door` opens: its variable is the argument `q` of `site`, the join, and
+// that argument may hold the door's task.
+joining_loop :: fn(
+    body: TaskBody,
+    door: Door,
+    site: Site,
+    q: i64,
+    block: AST.BlockExpr,
+) -> AST.ForStmt | null {
+    source :: site.sources[q] ?? return null
+    for loop in body.shape.loops {
+        if !same_span(loop.body.span, block.span) {
+            continue
+        }
+        form :: loop.form
+        if form !is AST.InFor {
+            return null
+        }
+        v :: form.loop_var
+        if v !is AST.NamedVar || source !is AST.IdentExpr || source.name != v.name {
+            return null
+        }
+        if body.holds_door_task(door, site, q, form.iter) {
+            return loop
+        }
+        return null
+    }
+    return null
+}
+
+// Whether `source`, an array the argument `q` of `site` is or is drawn from, holds
+// the task `door` opens: the argument may hold the door's task, or `source` is a
+// literal that names it.
+holds_door_task :: fn(body: TaskBody, door: Door, site: Site, q: i64, source: AST.Expr) -> bool =
+    body.shares_root_with_door(door, site, q) || body.walks_handle(door, source)
+
+// Whether the argument `q` of `site` may hold what the call of `door` returns.
+shares_root_with_door :: fn(body: TaskBody, door: Door, site: Site, q: i64) -> bool {
+    arg :: site.args[q] ?? return false
+    held :: body.roots_at(door.site.result)
+    return body.roots_at(arg).any_match((r) -> held.any_match((h) -> same_root(h, r)))
+}
+
+// Whether `iter`, what a loop walks or a call waits on, is a literal that holds the
+// task `door` opens, `[a, b]` or `[launch(f), b]`, or a constant local bound to
+// one: each element of a literal is reached on every path, which an array the task
+// may be pushed onto does not promise.
+walks_handle :: fn(body: TaskBody, door: Door, iter: AST.Expr) -> bool {
+    literal :: walked_literal(body, iter) ?? return false
+    handle :: body.handle_of(door)
+    return literal.elements.any_match((e) -> body.is_door_task(door, handle, e))
+}
+
+// Whether `e` is the task `door` opens: the door's call, or `handle`, the name its
+// task is bound to.
+is_door_task :: fn(body: TaskBody, door: Door, handle: i32 | null, e: AST.Expr) -> bool =
+    same_span(e.span, door.site.at) || body.names_symbol(e, handle)
+
+// The literal `iter` is, or the one the constant local `iter` names is bound to.
+walked_literal :: fn(body: TaskBody, iter: AST.Expr) -> AST.SeqLitExpr | null {
+    if iter is AST.SeqLitExpr {
+        return iter
+    }
+    if iter !is AST.IdentExpr {
+        return null
+    }
+    value :: body.bindings().bound_value(iter)
+    if value is AST.SeqLitExpr {
+        return value
+    }
+    return null
+}
+
+// The symbol id of the name `door`'s call is bound to, `t :: launch(...)`.
+handle_of :: fn(body: TaskBody, door: Door) -> i32 | null {
+    for l in body.shape.lets {
+        if !same_span(l.value.span, door.site.at) {
+            continue
+        }
+        b :: l.binding
+        if b is AST.SimpleBinding {
+            sym :: body.typed.resolved.idents[b.name_span.hash()] ?? return null
+            return sym.id
+        }
+    }
+    return null
+}
+
+// Whether `e` is a name bound to the symbol `id`.
+names_symbol :: fn(body: TaskBody, e: AST.Expr, id: i32 | null) -> bool {
+    wanted :: id ?? return false
+    if e !is AST.IdentExpr {
+        return false
+    }
+    sym :: body.typed.resolved.idents[e.span.hash()] ?? return false
+    return sym.id == wanted
+}
+
+// The innermost block around `span`.
+block_around :: fn(body: TaskBody, span: Span) -> AST.BlockExpr | null {
+    found: AST.BlockExpr | null = null
+    for b in body.shape.blocks {
+        if contains(b.span, span) && (found == null || contains(found.span, b.span)) {
+            found = b
+        }
+    }
+    return found
+}
+
+// Whether the call at `call` runs whenever the statement of `block` holding it
+// runs: reached from the statement through no branch.
+joins_on_every_path :: fn(body: TaskBody, block: AST.BlockExpr, call: Span) -> bool {
+    for s in block.stmts {
+        if contains(s.span, call) {
+            return stmt_reaches(s, call)
+        }
+    }
+    trailing :: block.trailing ?? return false
+    return expr_reaches(trailing, call)
+}
+
+stmt_reaches :: fn(s: AST.Stmt, call: Span) -> bool = match s {
+    is AST.LetStmt    -> expr_reaches(s.value, call)
+    is AST.ExprStmt   -> expr_reaches(s.expr, call)
+    is AST.AssignStmt -> expr_reaches(s.value, call) || expr_reaches(s.target, call)
+    is AST.ReturnStmt -> s.value != null && expr_reaches(s.value, call)
+    is AST.DestructureAssignStmt | AST.YieldStmt | AST.ForStmt | AST.BreakStmt
+     | AST.ContinueStmt | AST.DeferStmt -> false
+}
+
+// Whether evaluating `e` always evaluates the call at `call`.
+expr_reaches :: fn(e: AST.Expr, call: Span) -> bool {
+    if e is AST.CallExpr && same_span(e.span, call) {
+        return true
+    }
+    // @partial: a branch, a lambda or a literal of no call runs the call on some
+    // paths at most.
+    return @partial match e {
+        is AST.CallExpr   -> call_reaches(e, call)
+        is AST.FieldExpr  -> expr_reaches(e.target, call)
+        is AST.IndexExpr  -> expr_reaches(e.target, call) || expr_reaches(e.index, call)
+        is AST.BinaryExpr -> binary_reaches(e, call)
+        is AST.UnaryExpr  -> expr_reaches(e.operand, call)
+        is AST.CastExpr   -> expr_reaches(e.value, call)
+        _                 -> false
+    }
+}
+
+// A call evaluates its callee, then each of its arguments.
+call_reaches :: fn(e: AST.CallExpr, call: Span) -> bool =
+    expr_reaches(e.callee, call) || e.args.any_match((a) -> expr_reaches(a.value, call))
+
+// `a && b` and `a || b` evaluate `b` on some paths only.
+binary_reaches :: fn(e: AST.BinaryExpr, call: Span) -> bool {
+    if e.op == .And || e.op == .Or {
+        return expr_reaches(e.left, call)
+    }
+    return expr_reaches(e.left, call) || expr_reaches(e.right, call)
+}
+
+// ---- spans ----------------------------------------------------------------
+
+// Whether `outer` holds the whole of `inner`.
+contains :: fn(outer: Span, inner: Span) -> bool =
+    outer.start.offset <= inner.start.offset && inner.end.offset <= outer.end.offset
+
+// Whether `outer` holds the start of `inner`.
+inside :: fn(outer: Span, inner: Span) -> bool = holds_offset(outer, inner.start.offset)
+
+holds_offset :: fn(span: Span, p: i64) -> bool = span.start.offset <= p && p < span.end.offset
+
+same_span :: fn(a: Span, b: Span) -> bool =
+    a.start.offset == b.start.offset && a.end.offset == b.end.offset

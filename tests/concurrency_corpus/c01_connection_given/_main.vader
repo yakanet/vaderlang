@@ -1,0 +1,48 @@
+// C01: a connection given to its task: nothing names `conn` after the launch, and each
+// turn binds a new `conn`.
+//
+// corpus: accepted
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Connection :: struct {
+    id: i64
+    sent: string[] = []
+}
+
+NetError :: struct {}
+
+Listener :: struct {
+    next: i64 = 0
+}
+
+accept :: fn(listener: Listener) -> Connection | NetError {
+    listener.next += 1
+    if listener.next > 3 {
+        return NetError {}
+    }
+    return Connection { .id = listener.next }
+}
+
+// Writes the connection.
+serve :: fn(conn: Connection) -> void {
+    conn.sent.push("hello")
+}
+
+serve_all :: fn(listener: Listener) -> void {
+    for listener.next < 3 {
+        conn :: listener.accept()
+        if conn is NetError {
+            continue
+        }
+        launch(() -> serve(conn))
+    }
+}
+
+main :: fn() -> i32 {
+    serve_all(Listener {})
+    return 0
+}

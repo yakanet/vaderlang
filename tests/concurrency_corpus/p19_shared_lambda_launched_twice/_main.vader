@@ -1,0 +1,26 @@
+// P19: one lambda launched twice writes `level` from both tasks.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Level :: struct {
+    n: i64 = 0
+}
+
+bump :: fn(level: Level) -> void {
+    level.n += 1
+}
+
+main :: fn() -> i32 {
+    level :: Level {}
+    job :: () -> bump(level)
+    a :: launch(job)
+    b :: launch(job)
+    a.join()
+    b.join()
+    return 0
+}

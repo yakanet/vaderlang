@@ -1,0 +1,26 @@
+// C08: the task pushes into `scores` while the code after the launch reads it.
+//
+// corpus: refused E1
+// expect: T3128
+
+module "snippet"
+
+import "std/io"
+import "std/task"
+
+Score :: struct {
+    points: i64
+}
+
+// Pushes into the scores.
+fill_scores :: fn(scores: Score[]) -> void {
+    scores.push(Score { .points = 1 })
+}
+
+main :: fn() -> i32 {
+    scores: Score[]: []
+    t :: launch(() -> fill_scores(scores))
+    println("${scores.len()} scores")
+    t.join()
+    return 0
+}

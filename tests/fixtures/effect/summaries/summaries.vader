@@ -186,6 +186,20 @@ export yields_points :: fn(xs: Point[]) -> Iterator<Point> {
     }
 }
 
+export writes_what_it_pulls :: fn(xs: Point[]) -> void {
+    for p in yields_points(xs) {
+        p.x = 0
+    }
+}
+
+export reads_what_it_pulls :: fn(xs: Point[]) -> i32 {
+    total := 0
+    for p in yields_points(xs) {
+        total += p.x
+    }
+    return total
+}
+
 /// Mirror of C's `div_t`.
 @c_struct("div_t")
 export Div :: struct {

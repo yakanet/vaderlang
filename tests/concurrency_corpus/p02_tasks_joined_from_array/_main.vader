@@ -1,0 +1,27 @@
+// P02: every task pushed into `tasks` is joined by the loop over it before the write.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Stats :: struct {
+    lines: i64 = 0
+}
+
+count :: fn(stats: Stats) -> i64 = stats.lines
+
+main :: fn() -> i32 {
+    stats :: Stats {}
+    tasks: Task<i64>[]: []
+    for i in 0..<3 {
+        tasks.push(launch(() -> count(stats)))
+    }
+    for t in tasks {
+        t.join()
+    }
+    stats.lines = 4
+    return 0
+}

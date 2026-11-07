@@ -1,0 +1,26 @@
+// C09: two tasks write the same stats.
+//
+// corpus: refused E2
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Stats :: struct {
+    lines: i64 = 0
+}
+
+// Writes the stats.
+count_into :: fn(stats: Stats, path: string) -> void {
+    stats.lines += 1
+}
+
+main :: fn() -> i32 {
+    stats :: Stats {}
+    a :: launch(() -> count_into(stats, "a.log"))
+    b :: launch(() -> count_into(stats, "b.log"))
+    a.join()
+    b.join()
+    return i32(stats.lines) - 2
+}

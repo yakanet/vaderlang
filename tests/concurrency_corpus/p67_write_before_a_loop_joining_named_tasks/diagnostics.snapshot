@@ -1,0 +1,1 @@
+[21:5] error[T3129] value written by several tasks: this writes `hits.n` while the task launched at line 18 writes it too ; move this after the loop at line 22, which joins the tasks

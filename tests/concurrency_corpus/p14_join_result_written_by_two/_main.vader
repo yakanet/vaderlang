@@ -1,0 +1,24 @@
+// P14: a joined result written by a task and by main.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+Box :: struct {
+    n: i64 = 0
+}
+
+make :: fn() -> Box = Box {}
+
+main :: fn() -> i32 {
+    t :: launch(() -> make())
+    b :: t.join().unwrap()
+    u :: launch(() -> { b.n += 1 })
+    b.n += 2
+    u.join()
+    return 0
+}

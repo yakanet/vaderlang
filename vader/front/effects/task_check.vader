@@ -1,0 +1,479 @@
+// vader/front/effects/task_check: each door against what runs beside its task.
+//
+// The task a door opens touches what it captures, or the value it is handed
+// (`task_touches`). Beside it runs the code after the door (`task_shape.vader`),
+// other tasks included. Each touch of that code to a root the task touches is
+// crossed with the task's: two reads are fine, any write or keep on one side
+// against any access on the other is an error. A door crossed again opens tasks
+// that run beside one another: each one writing what the crossings share is an
+// error too. A variable the task captures may not be rebound on one side while the
+// other uses it: captures share the variable, not a copy of it.
+//
+// One race is one fault: the faults of one detail fold into the first, which names
+// the lines of the others, and a clash with a write the crossings share folds into
+// that write's fault. The way out each fault offers is `task_help.vader`'s.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "toolchain/span"
+
+AST :: import "toolchain/ast"
+
+// Check each door of `body`, pushing the faults onto `out`.
+check_body :: fn(ctx: TaskCtx, body: TaskBody, out: TaskFault[]) -> void {
+    seen :: Set<string> {}
+    escaping :: ctx.escaping_lambdas(body)
+    for door in body.doors {
+        ctx.check_door(body, door, escaping, out, seen)
+        ctx.check_main_thread(body, door, out)
+        ctx.check_unknown_calls(body, door, out, seen)
+    }
+    ctx.check_exclusive(body, out)
+}
+
+// Check the task `door` opens against what runs beside it.
+check_door :: fn(
+    ctx: TaskCtx,
+    body: TaskBody,
+    door: Door,
+    escaping: Span[],
+    out: TaskFault[],
+    seen: Set<string>,
+) -> void {
+    q :: door.param
+    if door.sending.runs && door.entry == null && q != null {
+        if door.forwards == null && !names_a_fn(body, door.site, q) {
+            fault :: TaskFault {
+                .kind = .UnknownFunctionValue,
+                .span = door.site.at,
+                .detail = "${entry_label(door)} is a function value made elsewhere, whose "
+                    + "captures the check cannot see ; launch a lambda written here, or a named fn",
+            }
+            out.push(fault)
+        }
+        return
+    }
+    task :: ctx.task_touches(body, door)
+    region :: body.region_of(door)
+    paths :: ctx.index.paths
+    // A store under a lock crossed again stores under the same lock: what each
+    // crossing hands on is reached under it, not by tasks of their own.
+    repeats :: region.repeats
+    shared: SharedWrites[]: []
+    if repeats != null && !door.stored {
+        outside :: (t: Touch) -> !body.bound_inside(t.root, repeats)
+        writes: Touch[]: outermost_writes(paths, task).filter(outside).collect()
+        for group in by_root_and_callee(writes) {
+            key :: "repeat ${group[0].root} ${group[0].by} ${door.site.at.start.offset}"
+            if seen.add(key) {
+                shared.push(SharedWrites { .writes = group })
+            }
+        }
+    }
+    candidates: Candidate[]: []
+    for s in body.touches {
+        p :: body.effective_offset(door, escaping, s.at, position(s))
+        if !body.in_region(door, region, p, s.root) {
+            continue
+        }
+        t :: strongest_clash(paths, task, s) ?? continue
+        // A clash with a write the crossings share is that fault's too: each task
+        // returning its part ends both.
+        held :: shared.find((w) -> w.holds(paths, t))
+        if held != null {
+            held.lines.add_line(s.at.start.line, door.site.at.start.line)
+            continue
+        }
+        join :: join_after(door, region, p)
+        candidate :: Candidate {
+            .fault = ctx.clash(body, door, t, s, join, []),
+            .at = s.at,
+            .root = s.root,
+            .group = body.group_of(door, s),
+            .t = t,
+            .s = s,
+            .join = join,
+        }
+        candidates.push(candidate)
+    }
+    for w in shared {
+        out.push(ctx.repeated_write(body, door, w))
+    }
+    ctx.keep_outermost(body, door, candidates, out, seen)
+    ctx.check_rebinds(body, door, region, escaping, out, seen)
+}
+
+// A fault a touch beside the task makes, before those of the touches it holds and
+// those of its group are dropped, and those of the same detail folded into one.
+Candidate :: struct {
+    fault: TaskFault
+    at: Span
+    root: i64
+    /// The touch's own span, or the other task that makes it: one fault per group.
+    group: string
+    /// What the fault is made of, to make it again over the lines folded into it.
+    t: Touch
+    s: Touch
+    join: JoinPoint | null
+}
+
+// The candidates of one detail: the first, and the lines of the others.
+Folded :: struct {
+    first: Candidate
+    lines: i32[] = []
+}
+
+// The writes of a door crossed again to one root through one callee, which the
+// crossings share, and the lines of the code beside the tasks that uses them.
+SharedWrites :: struct {
+    writes: Touch[]
+    lines: i32[] = []
+}
+
+// Whether the task's write `t` is one of `w`.
+holds :: fn(w: SharedWrites, paths: PathTable, t: Touch) -> bool {
+    if t.kind != .Write {
+        return false
+    }
+    return w.writes.any_match((u) -> u.root == t.root && overlaps(paths, u.path, t.path))
+}
+
+// Add `line` to `lines`, the lines a fault at line `anchor` names besides its own.
+add_line :: fn(lines: i32[], line: i32, anchor: i32) -> void {
+    if line != anchor && line !in lines {
+        lines.push(line)
+    }
+}
+
+// The task's touch that `s` clashes with, the strongest first: a write, a keep,
+// then a read ; null when they do not clash.
+strongest_clash :: fn(paths: PathTable, task: Touch[], s: Touch) -> Touch | null {
+    found: Touch | null = null
+    for t in task {
+        if t.root != s.root || (t.kind == .Read && s.kind == .Read) {
+            continue
+        }
+        if !overlaps(paths, t.path, s.path) {
+            continue
+        }
+        if found == null || strength(t.kind) > strength(found.kind) {
+            found = t
+        }
+    }
+    return found
+}
+
+strength :: fn(k: TouchKind) -> i32 = match k {
+    .Read  -> 0
+    .Kept  -> 1
+    .Write -> 2
+}
+
+// The group of `s`: the other task that makes it, or the touch alone.
+group_of :: fn(body: TaskBody, door: Door, s: Touch) -> string {
+    for other in body.doors {
+        entry :: other.entry ?? continue
+        if body.is_other_task(door, other) && inside(entry.span, s.at) {
+            return "task ${entry.span.start.offset} ${s.root}"
+        }
+    }
+    return "touch ${s.at.start.offset} ${s.at.end.offset}"
+}
+
+// Push the faults of `candidates`, but for a touch inside another one of the same
+// root, `x` in `f(x)`, and past the first fault of each group, a write by two tasks
+// before a write while used. Faults of one detail are one fault, at the first, which
+// names the lines of the others.
+keep_outermost :: fn(
+    ctx: TaskCtx,
+    body: TaskBody,
+    door: Door,
+    candidates: Candidate[],
+    out: TaskFault[],
+    seen: Set<string>,
+) -> void {
+    kept :: Map<string, Candidate> {}
+    order: string[]: []
+    for c in candidates {
+        if candidates.any_match((o) -> o.root == c.root && holds_strictly(o.at, c.at)) {
+            continue
+        }
+        held :: kept[c.group]
+        if held == null {
+            order.push(c.group)
+            kept[c.group] = c
+        } else if held.fault.kind != .WrittenBySeveral && c.fault.kind == .WrittenBySeveral {
+            kept[c.group] = c
+        }
+    }
+    folded: Folded[]: []
+    for group in order {
+        c :: kept[group] ?? continue
+        same :: folded.find((f) -> f.first.fault.detail == c.fault.detail)
+        if same == null {
+            folded.push(Folded { .first = c })
+        } else {
+            same.lines.add_line(c.at.start.line, same.first.at.start.line)
+        }
+    }
+    for f in folded {
+        c :: f.first
+        if seen.add("${c.at.start.offset} ${c.at.end.offset} ${door.site.at.start.offset}") {
+            out.push(ctx.clash(body, door, c.t, c.s, c.join, f.lines))
+        }
+    }
+}
+
+// Whether `outer` holds `inner` and is larger.
+holds_strictly :: fn(outer: Span, inner: Span) -> bool =
+    contains(outer, inner) && !same_span(outer, inner)
+
+// How the detail names what a door hands a task to run.
+entry_label :: fn(door: Door) -> string {
+    q :: door.param ?? return "what the task runs"
+    if q < door.site.sources.len() {
+        source :: door.site.sources[q]
+        if source is AST.IdentExpr {
+            return "`${source.name}`"
+        }
+    }
+    return "what the task runs"
+}
+
+// Whether a path is below the other: what one access reaches, the other does.
+overlaps :: fn(paths: PathTable, p: i32, q: i32) -> bool =
+    paths.extends(p, q) || paths.extends(q, p)
+
+// Whether `s` is done by another task: inside the lambda of another door, or by a
+// call that hands the value to one.
+by_another_task :: fn(body: TaskBody, door: Door, s: Touch) -> bool {
+    if s.sent {
+        return true
+    }
+    for other in body.doors {
+        entry :: other.entry ?? continue
+        if body.is_other_task(door, other) && inside(entry.span, s.at) {
+            return true
+        }
+    }
+    return false
+}
+
+// The fault of `s`, which runs beside the task `door` opens, against the task's `t`:
+// two writes are a value written by several tasks, the code beside the task being
+// one, any other clash a value written while the other side uses it. `join` is the
+// join that `s` could move past, `also` the lines that do as `s` does.
+clash :: fn(
+    ctx: TaskCtx,
+    body: TaskBody,
+    door: Door,
+    t: Touch,
+    s: Touch,
+    join: JoinPoint | null,
+    also: i32[],
+) -> TaskFault {
+    place :: ctx.place_of(body, s.root, s.path)
+    task :: task_label(door)
+    help :: ctx.clash_help(body, door, t, s, join, moved_label(also))
+    via :: ctx.through(body, [t], "it")
+    more :: also_label(also)
+    if t.kind == .Write && s.kind == .Write {
+        return TaskFault {
+            .kind = .WrittenBySeveral,
+            .span = s.at,
+            .detail = "${doer(s)} writes `${place}`${more} while ${task} writes it too${via} ; "
+                + help,
+        }
+    }
+    if s.kind == .Read {
+        return TaskFault {
+            .kind = .WrittenWhileUsed,
+            .span = s.at,
+            .detail = "${task} ${verb_of(t)} `${ctx.place_of(body, t.root, t.path)}`${via} "
+                + "while this reads it${more} ; ${help}",
+        }
+    }
+    return TaskFault {
+        .kind = .WrittenWhileUsed,
+        .span = s.at,
+        .detail = "${doer(s)} ${verb_of(s)} `${place}`${more} while ${task} ${verb_of(t)} "
+            + "it${via} ; ${help}",
+    }
+}
+
+// How a detail names the task `door` opens: launched there, or any task that
+// reaches what the door hands on.
+task_label :: fn(door: Door) -> string {
+    line :: door.site.at.start.line
+    if door.stored {
+        return "a task taking the lock it was stored under at line ${line}"
+    }
+    if door.left.len() > 0 {
+        return "a task `${door.sending.launcher}` leaves running at line ${line}"
+    }
+    if door.entry != null || door.sending.runs {
+        return "the task launched at line ${line}"
+    }
+    return "a task it was handed to at line ${line}"
+}
+
+// The writes of `task`, one per place: a write below another of the same root is
+// the outer one's.
+outermost_writes :: fn(paths: PathTable, task: Touch[]) -> Touch[] {
+    out: Touch[]: []
+    for t in task {
+        if t.kind != .Write {
+            continue
+        }
+        held :: task.any_match((u) -> {
+            if u.kind != .Write || u.root != t.root || u.path == t.path {
+                return false
+            }
+            return paths.extends(t.path, u.path)
+        })
+        if !held && !out.any_match((u) -> u.root == t.root && u.path == t.path) {
+            out.push(t)
+        }
+    }
+    return out
+}
+
+// `writes` in groups of one root each, written through one callee, in the order
+// they come.
+by_root_and_callee :: fn(writes: Touch[]) -> Touch[][] {
+    groups: Touch[][]: []
+    for t in writes {
+        group :: groups.find((g) -> g[0].root == t.root && g[0].by == t.by)
+        if group == null {
+            groups.push([t])
+        } else {
+            group.push(t)
+        }
+    }
+    return groups
+}
+
+// The fault of a door crossed again whose task makes the writes of `shared`, which
+// the crossings share, with the code beside the tasks at its lines.
+repeated_write :: fn(ctx: TaskCtx, body: TaskBody, door: Door, shared: SharedWrites) -> TaskFault {
+    writes :: shared.writes
+    places :: ctx.places_of(body, writes)
+    what := "it"
+    if places.len() > 1 {
+        what = "them"
+    }
+    return TaskFault {
+        .kind = .WrittenBySeveral,
+        .span = door.site.at,
+        .detail = "${repeated_label(door)} writes ${listed(places)}"
+            + "${ctx.through(body, writes, what)}, which they all share${shared_with(shared)} ; "
+            + "let each task return its part, or give each one its own value",
+    }
+}
+
+// How the detail of a write the crossings share names the code beside the tasks that
+// uses it too: ` with line 29`.
+shared_with :: fn(shared: SharedWrites) -> string {
+    if shared.lines.is_empty() {
+        return ""
+    }
+    return " with ${lines_label(shared.lines)}"
+}
+
+// How the detail names the tasks a door crossed again opens.
+repeated_label :: fn(door: Door) -> string {
+    if door.left.len() > 0 {
+        return "each task `${door.sending.launcher}` leaves running here"
+    }
+    return "each task launched here"
+}
+
+// ---- captured variables ---------------------------------------------------
+
+// A captured variable rebound on one side while the other uses it: the task and
+// the body share the variable itself.
+check_rebinds :: fn(
+    ctx: TaskCtx,
+    body: TaskBody,
+    door: Door,
+    region: Region,
+    escaping: Span[],
+    out: TaskFault[],
+    seen: Set<string>,
+) -> void {
+    entry :: door.entry ?? return
+    line :: door.site.at.start.line
+    for c in body.captured_slots(entry) {
+        root :: body.root_of_slot(c.slot)
+        rebound_in_task := false
+        for r in body.s.rebinds {
+            if r.slot != c.slot {
+                continue
+            }
+            if inside(entry.span, r.at) {
+                rebound_in_task = true
+                continue
+            }
+            p :: body.effective_offset(door, escaping, r.at, r.at.end.offset - 1)
+            if body.in_region(door, region, p, root) && seen.add("rebind ${r.at.start.offset}") {
+                fault :: TaskFault {
+                    .kind = .CapturedRebound,
+                    .span = r.at,
+                    .detail = "`${c.name}` is rebound here while the task launched at "
+                        + "line ${line} holds it ; bind a copy before launching, "
+                        + "`snapshot :: ${c.name}`, and capture `snapshot`",
+                }
+                out.push(fault)
+            }
+        }
+        if !rebound_in_task {
+            continue
+        }
+        for u in body.s.uses {
+            if u.slot != c.slot || inside(entry.span, u.at) {
+                continue
+            }
+            p :: body.effective_offset(door, escaping, u.at, u.at.start.offset)
+            if body.in_region(door, region, p, root) && seen.add("rebind ${u.at.start.offset}") {
+                fault :: TaskFault {
+                    .kind = .CapturedRebound,
+                    .span = u.at,
+                    .detail = "the task launched at line ${line} rebinds `${c.name}` while "
+                        + "this reads it ; share an atomic, or wait for the task",
+                }
+                out.push(fault)
+            }
+        }
+    }
+}
+
+// The variables the lambda `entry` captures: the locals and parameters it reads
+// or rebinds, bound outside it.
+captured_slots :: fn(body: TaskBody, entry: AST.LambdaExpr) -> Use[] {
+    out: Use[]: []
+    seen :: Set<i64> {}
+    for u in chain(body.s.uses, body.s.rebinds) {
+        if !inside(entry.span, u.at) || body.bound_inside(body.root_of_slot(u.slot), entry.span) {
+            continue
+        }
+        if seen.add(u.slot) {
+            out.push(u)
+        }
+    }
+    return out
+}
+
+// The root seeded at slot `slot`: a parameter's, or a local's.
+root_of_slot :: fn(body: TaskBody, slot: i64) -> i64 {
+    if slot < body.s.params {
+        return slot
+    }
+    for k in 0..<body.s.locals.len() {
+        if body.s.locals[k].slot == slot {
+            return body.first_local + k
+        }
+    }
+    return slot
+}

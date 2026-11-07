@@ -1,0 +1,1 @@
+[31:30] error[T3128] value written while a task uses it: the task launched at line 30 writes `index` (through `add_synonyms`, which writes it at line 20) while this reads it ; every join hands back the same value: where it is written, join a copy, `index.join().deep_copy()`

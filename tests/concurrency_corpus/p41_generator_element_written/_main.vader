@@ -1,0 +1,40 @@
+// P41: a task writes the bots it pulls from `filter` while main reads them: what
+// the iterator hands out are the bots themselves.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/iter"
+import "std/task"
+
+Bot :: struct {
+    x: i64 = 0
+}
+
+Level :: struct {
+    bots: Bot[] = []
+}
+
+nudge_alive :: fn(level: Level) -> void {
+    for b in level.bots.filter(b -> b.x > 0) {
+        b.x += 1
+    }
+}
+
+total_x :: fn(level: Level) -> i64 {
+    n: i64 = 0
+    for b in level.bots {
+        n += b.x
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    level :: Level { .bots = [Bot {}, Bot { .x = 2 }] }
+    t :: launch(() -> nudge_alive(level))
+    total :: total_x(level)
+    t.join()
+    return i32(total) - 2
+}

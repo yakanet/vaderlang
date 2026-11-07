@@ -153,6 +153,14 @@ export TypecheckCode :: enum(CodeInfo) {
     FieldSpreadTwice                { .id = "T3125", .message = "two spreads cannot give the same field unless the struct redeclares it" },
     RedeclarationChangesFieldType   { .id = "T3126", .message = "a field redeclared over a spread keeps its type" },
     InternalFieldSpreadElsewhere    { .id = "T3127", .message = "a struct with an `@internal` field is spread only in its own module" },
+    ValueWrittenWhileTaskUsesIt     { .id = "T3128", .message = "value written while a task uses it" },
+    ValueWrittenBySeveralTasks      { .id = "T3129", .message = "value written by several tasks" },
+    CaptureReboundWhileTaskHoldsIt  { .id = "T3130", .message = "captured variable rebound while a task holds it" },
+    ValueKeptPastExclusiveBlock     { .id = "T3131", .message = "value kept past a shared block" },
+    ExclusiveBlockParks             { .id = "T3132", .message = "shared block parks" },
+    MainThreadFunctionInTask        { .id = "T3133", .message = "main-thread function reached from a task" },
+    TaskRunsUnknownFunctionValue    { .id = "T3134", .message = "task runs a function value whose captures are unknown" },
+    FunctionValueDeepCopied         { .id = "T3135", .message = "a function value cannot be deep-copied" },
 }
 
 // Parser-pass codes.

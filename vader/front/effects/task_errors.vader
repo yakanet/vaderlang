@@ -1,0 +1,31 @@
+// vader/front/effects/task_errors: the errors of the task check.
+//
+// Each fault of `tasks.vader` is a typecheck error whose detail names both sides:
+// what runs beside the task and what the task does, then the way out.
+
+module "vader/front/effects"
+
+import "vader/support/diagnostics"
+
+/// The T3128 to T3134 errors of a checked project: each value two tasks race on,
+/// or a task and the code that launched it.
+///
+/// @param summary  the effect summary of the project.
+export task_diagnostics :: fn(summary: EffectSummary) -> Diagnostic[] {
+    out: Diagnostic[]: []
+    for f in summary.tasks {
+        out.push(typecheck_error(task_code(f.kind), f.span, f.detail))
+    }
+    return out
+}
+
+// The code of a fault of kind `k`.
+task_code :: fn(k: TaskFaultKind) -> TypecheckCode = match k {
+    .WrittenWhileUsed     -> .ValueWrittenWhileTaskUsesIt
+    .WrittenBySeveral     -> .ValueWrittenBySeveralTasks
+    .CapturedRebound      -> .CaptureReboundWhileTaskHoldsIt
+    .KeptPastLock         -> .ValueKeptPastExclusiveBlock
+    .LockParks            -> .ExclusiveBlockParks
+    .MainThreadInTask     -> .MainThreadFunctionInTask
+    .UnknownFunctionValue -> .TaskRunsUnknownFunctionValue
+}

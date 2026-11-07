@@ -16,8 +16,9 @@ module "std/core"
 /// it shows. Strings stay shared, being immutable, and so do the values of
 /// `std/task` that tasks share, a task among them.
 ///
-/// A function value stops the program, since what the function captured cannot
-/// be copied.
+/// A type that can hold a function value is refused, since what the function
+/// captured cannot be copied. A function reached through a trait value or a type
+/// parameter stops the program.
 ///
 /// `.clone()` on an array copies the array only: its elements stay shared.
 ///

@@ -1,0 +1,49 @@
+// P43: a generator of the program yields a part of each bot ; a task writes what
+// it pulls while main reads the level.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/task"
+
+Pos :: struct {
+    x: i64 = 0
+}
+
+Bot :: struct {
+    pos: Pos = Pos {}
+}
+
+Level :: struct {
+    bots: Bot[] = []
+}
+
+positions :: fn(level: Level) -> Iterator<Pos> {
+    for b in level.bots {
+        yield b.pos
+    }
+}
+
+recenter :: fn(level: Level) -> void {
+    for p in positions(level) {
+        p.x = 0
+    }
+}
+
+total_x :: fn(level: Level) -> i64 {
+    n: i64 = 0
+    for b in level.bots {
+        n += b.pos.x
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    level :: Level { .bots = [Bot {}, Bot {}] }
+    t :: launch(() -> recenter(level))
+    total :: total_x(level)
+    t.join()
+    return i32(total)
+}

@@ -1,0 +1,128 @@
+// vader/front/effects/task_handed: the function values a call hands a callee that runs them.
+//
+// A function runs the function value a parameter holds when it calls it, or hands
+// it to a callee that runs it: a fixed point over the call graph (`settle_runs`).
+// What a call hands such a parameter runs during the call, as if the caller called
+// it: a lambda written there is walked in place, a parameter of the caller is its
+// own callers' business, a named fn reaches what its calls reach
+// (`task_reach.vader`), a lambda of the body does what its body does at the call
+// (`task_lambdas.vader`), and anything else is code the check cannot see.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "toolchain/span"
+import "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+
+/// Per node, the parameters whose function value it runs.
+///
+/// @param callers  per node, the nodes whose body calls it.
+settle_runs :: fn(ctx: TaskCtx, callers: i32[][]) -> i64[][] {
+    runs: i64[][]: ctx.skeletons.len().filled(() -> [])
+    work: i32[]: []
+    for node in 0..<ctx.skeletons.len() {
+        for site in ctx.skeletons[node].sites {
+            for target in site.targets {
+                if target is CalledParam && target.param !in runs[node] {
+                    runs[node].push(target.param)
+                }
+            }
+        }
+        if runs[node].len() > 0 {
+            work.push(i32(node))
+        }
+    }
+    for work.len() > 0 {
+        callee :: work.remove_last() ?? break
+        for caller in callers[callee] {
+            if ctx.runs_through(runs, caller, callee) {
+                work.push(caller)
+            }
+        }
+    }
+    return runs
+}
+
+// Add to what `caller` runs the parameters it hands `callee` where `callee` runs
+// them ; true when it grew.
+runs_through :: fn(ctx: TaskCtx, runs: i64[][], caller: i32, callee: i32) -> bool {
+    grew := false
+    for site in ctx.skeletons[caller].sites {
+        if !site.targets.any_match((t) -> t is CalleeNode && t.node == callee) {
+            continue
+        }
+        for k in runs[callee] {
+            if k >= site.fn_args.len() {
+                continue
+            }
+            handed :: site.fn_args[k]
+            if handed is ParamArg && handed.param !in runs[caller] {
+                runs[caller].push(handed.param)
+                grew = true
+            }
+        }
+    }
+    return grew
+}
+
+/// The arguments of `site` a callee runs, by position.
+///
+/// @param site  a call of a body.
+run_args :: fn(ctx: TaskCtx, site: Site) -> i64[] {
+    out: i64[]: []
+    for target in site.targets {
+        if target !is CalleeNode || target.node >= ctx.runs.len() {
+            continue
+        }
+        for k in ctx.runs[target.node] {
+            if k !in out {
+                out.push(k)
+            }
+        }
+    }
+    return out
+}
+
+/// The nodes of the named fns `site` hands a callee that runs them.
+///
+/// @param typed  the module that typed the body making the call.
+/// @param site   a call of that body.
+handed_fns :: fn(ctx: TaskCtx, typed: TypedProgram, site: Site) -> i32[] {
+    out: i32[]: []
+    for k in ctx.run_args(site) {
+        if k >= site.sources.len() {
+            continue
+        }
+        source :: site.sources[k] ?? continue
+        node :: ctx.fn_node_of(typed, source) ?? continue
+        out.push(node)
+    }
+    return out
+}
+
+/// The node of the fn `e` names, if it names one with a body.
+///
+/// @param typed  the module that typed `e`.
+fn_node_of :: fn(ctx: TaskCtx, typed: TypedProgram, e: AST.Expr) -> i32 | null {
+    if e !is AST.IdentExpr {
+        return null
+    }
+    sym :: typed.resolved.idents[e.span.hash()] ?? return null
+    if sym.kind != .Fn {
+        return null
+    }
+    at :: sym.defined_at ?? return null
+    return ctx.fn_nodes[at]
+}
+
+/// The node of each function, by the span of its name.
+fn_nodes_of :: fn(index: CalleeIndex) -> Map<Span, i32> {
+    out :: Map<Span, i32> {}
+    for node in 0..<index.functions.len() {
+        out[index.functions[node].decl.name_span] = i32(node)
+    }
+    return out
+}

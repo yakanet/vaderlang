@@ -1,0 +1,23 @@
+// P32: `run_later` launches a lambda that calls its parameter: the lambda main hands
+// it runs in the task, and writes `counter` while main writes it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+run_later :: fn(f: fn() -> void) -> Task<void> = launch(() -> f())
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    t :: run_later(() -> { counter.n += 1 })
+    counter.n += 1
+    t.join()
+    return counter.n
+}

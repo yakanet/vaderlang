@@ -1,0 +1,181 @@
+// vader/front/effects/task_doors: the functions a task goes through.
+//
+// The primitives of `std/task` launch a task, wait for one, hand a message on, hold
+// a lock. What each is to the task check is a table, keyed as `intrinsic_effects`
+// keys them, and the table stands for the body a primitive may have: that body
+// shares a task's state with the threads of the runtime, which no task may race on.
+// A function that calls a primitive is read from its body. A struct a primitive is
+// lent under synchronization (a task, a channel, a lock's cell, an atomic) is a
+// value tasks may share: the type is the one the primitive declares, so a program
+// cannot declare a type safe to share.
+//
+// A task is a task of `std/task`: a thread started straight through
+// `std/runtime/scheduler`, as the VM runs the threads of the program it runs, is
+// the runtime's, which the check does not see. Only parking reaches it, so that a
+// block holding a lock parks wherever its callees park.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "vader/core/types"
+import "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+
+/// What a primitive is to the task check. Each field names a parameter by its
+/// position.
+export IntrinsicDoor :: struct {
+    /// The fn a task runs.
+    runs: i64 | null = null
+    /// A value handed on to other tasks, which may do anything with it.
+    gives: i64 | null = null
+    /// The task whose end the call waits for, or the array of tasks when
+    /// `joins_array`.
+    joins: i64 | null = null
+    /// The call waits for each task of the array `joins` names: a combinator returns
+    /// once all of them ended.
+    joins_array: bool = false
+    /// The fn run holding a lock, handed the value the lock guards.
+    exclusive: i64 | null = null
+    /// A value the primitive reaches under synchronization only.
+    synchronized: i64 | null = null
+    /// The call may park the task that makes it.
+    parks: bool = false
+    /// The call returns a value another task handed on: a function value it returns
+    /// was checked where it was handed.
+    takes: bool = false
+}
+
+// The door of a primitive that only reaches its first parameter, synchronized.
+SYNCHRONIZED_ONLY :: IntrinsicDoor { .synchronized = 0 }
+
+// The door of a primitive that waits for the task it is handed.
+JOINS_ITS_TASK :: IntrinsicDoor {
+    .synchronized = 0,
+    .joins = 0,
+    .parks = true,
+}
+
+// The door of a combinator, which waits for each task of the array it is handed.
+JOINS_EACH_TASK :: IntrinsicDoor {
+    .joins = 0,
+    .joins_array = true,
+    .parks = true,
+}
+
+/// What the primitive of key `key` is to the task check ; null for a function that
+/// is no door.
+///
+/// @param key  the function's key, as `intrinsic_effects` takes it.
+intrinsic_door :: fn(key: string) -> IntrinsicDoor | null = match key {
+    "std/task.launch"                       -> IntrinsicDoor { .runs = 0 }
+    "std/task.join" | "std/task.timeout"    -> JOINS_ITS_TASK
+    "std/task.join_all" | "std/task.race"   -> JOINS_EACH_TASK
+    "std/task.try_join_all"                 -> JOINS_EACH_TASK
+    "std/task.join_any"                     -> JOINS_EACH_TASK
+    "std/task.is_ready" | "std/task.cancel" -> SYNCHRONIZED_ONLY
+    "std/runtime/scheduler.park"            -> IntrinsicDoor { .parks = true }
+    "std/runtime/scheduler.sleep_for"       -> IntrinsicDoor { .parks = true }
+    "std/task.shared"                       -> IntrinsicDoor { .gives = 0 }
+    "std/task.send"                         -> IntrinsicDoor { .synchronized = 0, .gives = 1 }
+    "std/task.receive"                      -> IntrinsicDoor {
+        .synchronized = 0,
+        .parks = true,
+        .takes = true,
+    }
+    "std/task.locked"                       -> IntrinsicDoor { .synchronized = 0, .exclusive = 1 }
+    "std/task.close"                        -> SYNCHRONIZED_ONLY
+    "std/task.fetch_add" | "std/task.load"  -> SYNCHRONIZED_ONLY
+    "std/task.store"                        -> SYNCHRONIZED_ONLY
+    "std/task.compare_and_set"              -> SYNCHRONIZED_ONLY
+    _                                       -> null
+}
+
+// Note what the primitive `decl` of key `key` is to the task check, and the struct
+// it reaches under synchronization.
+note_door :: fn(index: CalleeIndex, decl_id: i64, key: string, signature: Type | null) -> void {
+    door :: intrinsic_door(key) ?? return
+    index.doors[decl_id] = door
+    q :: door.synchronized ?? return
+    if signature !is FnType || q >= signature.params.len() {
+        return
+    }
+    shared :: signature.params[q]
+    if shared is StructType {
+        index.synchronized.add(shared.symbol.id)
+    }
+}
+
+/// What `callee` is to the task check, when it is a door ; null for any other
+/// callee.
+///
+/// @param index   the project's functions.
+/// @param callee  what a call settles on.
+door_of :: fn(index: CalleeIndex, callee: Callee) -> IntrinsicDoor | null {
+    if callee !is DirectFn {
+        return null
+    }
+    return index.doors[callee.decl.id]
+}
+
+/// Whether `callee` runs its parameter `q` holding a lock, on the value the lock
+/// guards.
+///
+/// @param index   the project's functions.
+/// @param callee  what a call settles on.
+/// @param q       the parameter's position.
+holds_lock_for :: fn(index: CalleeIndex, callee: Callee, q: i64) -> bool {
+    door :: index.door_of(callee) ?? return false
+    return door.exclusive == q
+}
+
+// What parameter `q` of the primitive `callee` is to a task ; null when nothing:
+// the fn a task runs, or a value handed on to tasks that may do anything with it.
+intrinsic_sending :: fn(index: CalleeIndex, callee: Callee, q: i64) -> Sending | null {
+    if callee !is DirectFn {
+        return null
+    }
+    door :: index.doors[callee.decl.id] ?? return null
+    if door.runs == q {
+        return Sending { .runs = true, .launcher = callee.decl.name }
+    }
+    if door.gives == q {
+        return Sending {
+            .given = [EVERYWHERE],
+            .written = [EVERYWHERE],
+            .launcher = callee.decl.name,
+        }
+    }
+    return null
+}
+
+// Whether `callee` hands something to a task, or holds a lock for a lambda.
+opens_door :: fn(index: CalleeIndex, callee: Callee) -> bool {
+    door :: index.door_of(callee) ?? return false
+    return door.runs != null || door.gives != null || door.exclusive != null
+}
+
+// What the call to `callee`, summarised without its body, reaches: a C function
+// bound to the main thread, a primitive that parks. Empty for any other callee.
+summarised_reach :: fn(index: CalleeIndex, callee: Callee) -> Reach {
+    out :: Reach {}
+    if callee !is DirectFn || callee.decl.id !in index.summarised {
+        return out
+    }
+    if AST.decorators_have(callee.decl.decorators, "main_thread") {
+        out.main_thread = [callee.decl.name]
+    }
+    door :: index.doors[callee.decl.id]
+    if door != null && door.parks {
+        out.parks = [callee.decl.name]
+    }
+    return out
+}
+
+// The name of the primitive `callee`, as a detail names the door it opens.
+intrinsic_name :: fn(callee: Callee) -> string {
+    if callee is DirectFn {
+        return callee.decl.name
+    }
+    return ""
+}

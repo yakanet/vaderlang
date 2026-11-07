@@ -1,0 +1,21 @@
+// P54: the task calls a lambda written as the callee, which writes `level` while
+// main writes it: the lambda runs inside the task, not beside it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Level :: struct {
+    n: i64 = 0
+}
+
+main :: fn() -> i32 {
+    level :: Level {}
+    t :: launch(() -> (() -> { level.n += 1 })())
+    level.n = 3
+    t.join()
+    return 0
+}

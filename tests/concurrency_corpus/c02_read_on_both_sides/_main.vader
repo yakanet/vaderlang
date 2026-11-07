@@ -1,0 +1,28 @@
+// C02: three readers of one value, no writer.
+//
+// corpus: accepted
+// expect: accepted
+
+module "snippet"
+
+import "std/io"
+import "std/option"
+import "std/task"
+
+Config :: struct {
+    port: i64 = 8080
+    name: string = "server"
+}
+
+load_config :: fn(path: string) -> Config = Config { .name = path }
+
+// Reads its config only.
+run_worker :: fn(config: Config) -> i64 = config.port
+
+main :: fn() -> i32 {
+    config :: load_config("server.toml")
+    a :: launch(() -> run_worker(config))
+    b :: launch(() -> run_worker(config))
+    println("port ${config.port}")
+    return i32(a.join().unwrap() + b.join().unwrap() - 2 * config.port)
+}

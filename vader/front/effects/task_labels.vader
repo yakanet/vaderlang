@@ -1,0 +1,172 @@
+// vader/front/effects/task_labels: how a task fault names a value, and the callee
+// that touches it.
+//
+// A place is named as source writes it, `total.lines`, down to the first field the
+// faulting module cannot see: a path into a library value would name the fields it
+// keeps private (`by_path.tombs`), which the reader can neither write nor fix. A
+// touch a callee makes names that callee, and where in its body it makes the
+// access: its own write, or the call that carries it on down.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "std/sort"
+import "std/string"
+import "toolchain/span"
+import "vader/core/types"
+import "vader/front/typecheck"
+
+// ---- places ---------------------------------------------------------------
+
+// How a detail names the value at `path` below root `root`.
+place_of :: fn(ctx: TaskCtx, body: TaskBody, root: i64, path: i32) -> string =
+    ctx.index.paths.place_label(ctx.root_name(body, root), ctx.visible_path(body, root, path))
+
+// `path`, up to the first field the module of `body` cannot see ; all of it when
+// the types cannot be followed that far.
+visible_path :: fn(ctx: TaskCtx, body: TaskBody, root: i64, path: i32) -> i32 {
+    paths :: ctx.index.paths
+    steps :: paths.steps_of(path)
+    at := body.root_type(root)
+    for k in 0..<steps.len() {
+        t :: at ?? return path
+        name :: paths.step_names[steps[k]]
+        if body.hides(t, name) {
+            return paths.prefix(path, i32(k))
+        }
+        at = step_type(body.typed, t, name)
+    }
+    return path
+}
+
+// Whether the field `name` of a value of type `t` is `@internal` to another module
+// than the one of `body`.
+hides :: fn(body: TaskBody, t: Type, name: string) -> bool {
+    st :: struct_backing(t) ?? return false
+    field :: struct_field_info(body.typed, st.symbol.id, name) ?? return false
+    return field_hidden_here(field, body.typed)
+}
+
+// The type of root `root`: a parameter's or a local's ; null for a singleton, or
+// for a value the type checker recorded no type of.
+root_type :: fn(body: TaskBody, root: i64) -> Type | null {
+    if root < body.decl.params.len() {
+        return body.typed.param_types[body.decl.params[root].span.hash()]
+    }
+    if root < body.first_local || root >= body.singleton_base {
+        return null
+    }
+    // A lambda's parameter is a local of the body, typed as a parameter.
+    at :: body.s.locals[root - body.first_local].at
+    local :: body.typed.local_types[at.hash()]
+    if local != null {
+        return local
+    }
+    return body.typed.param_types[at.hash()]
+}
+
+// The places `ts` touch below their root, each once, as a detail lists them:
+// `total.lines`, `total.errors` and `total.by_path`.
+places_of :: fn(ctx: TaskCtx, body: TaskBody, ts: Touch[]) -> string[] {
+    out: string[]: []
+    for t in ts {
+        place :: "`${ctx.place_of(body, t.root, t.path)}`"
+        if place !in out {
+            out.push(place)
+        }
+    }
+    return out
+}
+
+// `items` as prose: `a`, `a and b`, `a, b and c`.
+listed :: fn(items: string[]) -> string {
+    if items.len() < 2 {
+        return items.join("")
+    }
+    head :: items[0..<items.len() - 1].join(", ")
+    return "${head} and ${items[items.len() - 1]}"
+}
+
+// ---- callees --------------------------------------------------------------
+
+// Who does `s`: a callee, as `display_callee` names it, or this fn.
+doer :: fn(s: Touch) -> string {
+    if s.by != "" {
+        return s.by
+    }
+    return "this"
+}
+
+// What touch `t` does to the value, in the detail.
+verb_of :: fn(t: Touch) -> string = match t.kind {
+    .Read  -> "reads"
+    .Write -> "writes"
+    .Kept  -> "keeps"
+}
+
+// The callee the touches `ts` go through, and where in its body it makes them, as
+// the detail names it: ` (through `merge`, which writes them at lines 31 and 32)`.
+// `what` is how the detail refers to the places touched, `it` or `them`.
+through :: fn(ctx: TaskCtx, body: TaskBody, ts: Touch[], what: string) -> string {
+    by :: ts[0].by
+    if by == "" {
+        return ""
+    }
+    lines: i32[]: []
+    file := ""
+    for t in ts {
+        at :: ctx.where_made(t) ?? continue
+        if at.start.line !in lines {
+            lines.push(at.start.line)
+        }
+        file = at.start.file
+    }
+    if lines.is_empty() {
+        return " (through ${by})"
+    }
+    where := "at ${lines_label(lines)}"
+    if file != ts[0].at.start.file {
+        where = "${where} of `${file_name(file)}`"
+    }
+    return " (through ${by}, which ${verb_of(ts[0])} ${what} ${where})"
+}
+
+// `lines`, in order, as a detail names them: `line 3`, `lines 3 and 7`.
+lines_label :: fn(lines: i32[]) -> string {
+    sorted :: lines.sort((a, b) -> a < b)
+    if sorted.len() == 1 {
+        return "line ${sorted[0]}"
+    }
+    return "lines ${listed(sorted.map((n) -> "${n}").collect())}"
+}
+
+// The last part of the path `file`: `enemies.vader`.
+file_name :: fn(file: string) -> string {
+    parts :: file.split("/")
+    last :: parts[parts.len() - 1].split("\\")
+    return last[last.len() - 1]
+}
+
+// Where the doer of `t` makes it: in the body of a lambda the body calls, or in a
+// callee's ; null when nothing says.
+where_made :: fn(ctx: TaskCtx, t: Touch) -> Span | null {
+    if t.made != null {
+        return t.made
+    }
+    c :: t.access ?? return null
+    return ctx.made_at(c)
+}
+
+// Where the callee's access `c` is made in its body: its own write, or the call
+// that carries it on down ; null for an access no constraint of the body made.
+made_at :: fn(ctx: TaskCtx, c: CalleeAccess) -> Span | null {
+    s :: ctx.skeletons[c.node]
+    how :: ctx.facts[c.node][c.param].constraint_at(c.access)
+    mark :: origin_mark(how)
+    if mark != null {
+        return s.marks[mark].at
+    }
+    call :: origin_call(how) ?? return null
+    return s.sites[call.0].at
+}

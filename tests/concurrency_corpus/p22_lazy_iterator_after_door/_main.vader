@@ -1,0 +1,30 @@
+// P22: a `map` lambda written before the launch runs at `sum`, after it, and writes
+// `stats`: `map` is a generator, which keeps the lambda until its iterator is
+// drained.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/iter"
+import "std/option"
+import "std/task"
+
+Stats :: struct {
+    seen: i64 = 0
+}
+
+look :: fn(stats: Stats) -> i64 = stats.seen
+
+main :: fn() -> i32 {
+    stats :: Stats {}
+    ns: i64[]: [1, 2]
+    doubled :: ns.map(n -> {
+        stats.seen += 1
+        return n * 2
+    })
+    t :: launch(() -> look(stats))
+    total :: doubled.sum()
+    return i32(t.join().unwrap() + total) - 8
+}

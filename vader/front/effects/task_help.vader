@@ -1,0 +1,121 @@
+// vader/front/effects/task_help: the way out a task fault offers, by the shape of
+// the clash.
+//
+// Every join of a task hands back its one result, so a clash on it takes a copy
+// where it is joined. Two tasks writing one value each return their own. What a
+// task launched there writes is meant for the code beside it, which a copy would
+// cut off: that code moves past a join of the task (`task_shape.vader`), or the
+// task returns the value. A task that only reads gets a copy, made where its
+// capture is: before the launch, or before the lambda of the body that captures
+// the value. A singleton is one value for every task, and a value handed on or
+// stored under a lock is left alone once it is.
+
+module "vader/front/effects"
+
+import "std/iter"
+import "vader/core/types"
+
+// The way out of the clash of `s` with the task's `t`. `moved` is how the help names
+// the code it moves: `this`, or `them` when the fault names other lines too.
+clash_help :: fn(
+    ctx: TaskCtx,
+    body: TaskBody,
+    door: Door,
+    t: Touch,
+    s: Touch,
+    join: JoinPoint | null,
+    moved: string,
+) -> string {
+    if ctx.is_task_result(body, t) {
+        name :: ctx.root_name(body, t.root)
+        return "every join hands back the same value: where it is written, join a copy, "
+            + "`${name}.join().deep_copy()`"
+    }
+    another :: body.by_another_task(door, s)
+    if another && t.kind == .Write && s.kind == .Write {
+        return "let each task build and return its own value, and merge them after the joins"
+    }
+    copy :: ctx.copy_help(body, door, t)
+    if door.entry == null && !door.sending.runs {
+        return copy
+    }
+    if another && s.kind == .Read {
+        return join_help(null, moved)
+    }
+    if !another && (s.kind == .Read || (t.kind == .Write && t.root < body.singleton_base)) {
+        return join_help(join, moved)
+    }
+    return copy
+}
+
+// Whether `t` touches the result of a task the body holds.
+is_task_result :: fn(ctx: TaskCtx, body: TaskBody, t: Touch) -> bool {
+    if !ctx.index.paths.first_step_is(t.path, TASK_RESULT) {
+        return false
+    }
+    held :: body.root_type(t.root) ?? return false
+    return held is StructType && held.symbol.id in ctx.index.synchronized
+}
+
+// The way out of a clash with what a task launched there writes: the code beside
+// it moves past `join`, or the task builds the value and returns it.
+join_help :: fn(join: JoinPoint | null, moved: string) -> string {
+    if join == null {
+        return "let the task build and return the value"
+    }
+    line :: join.at.start.line
+    if join.by_loop {
+        return "move ${moved} after the loop at line ${line}, which joins the tasks"
+    }
+    return "move ${moved} after the join at line ${line}"
+}
+
+// The way out of a clash on the value the task reaches through `t`: a copy of it,
+// unless it is a singleton, one value for every task.
+copy_help :: fn(ctx: TaskCtx, body: TaskBody, door: Door, t: Touch) -> string {
+    if t.root >= body.singleton_base {
+        return "a singleton is one value for every task: hold what tasks write of it in a "
+            + "`Shared` (an `AtomicInt` or an `AtomicBool` for a counter or a flag), or leave it "
+            + "to one task"
+    }
+    name :: ctx.captured_name(body, t)
+    if door.stored {
+        return "store a copy, `${name}.deep_copy()`, or leave `${name}` alone once stored"
+    }
+    if door.entry == null && !door.sending.runs {
+        return "hand on a copy, `${name}.deep_copy()`, or leave `${name}` alone once handed on"
+    }
+    // A lambda of the body the task calls captures the value, not the task.
+    if t.made != null {
+        return "copy it first, `view :: ${name}.deep_copy()`, and let ${t.by} capture `view`"
+    }
+    return "copy it before launching: `view :: ${name}.deep_copy()`, then capture `view`"
+}
+
+// The name the task reaches a value through: the variable it captures, or the root.
+captured_name :: fn(ctx: TaskCtx, body: TaskBody, t: Touch) -> string {
+    if t.name != "" {
+        return t.name
+    }
+    return ctx.root_name(body, t.root)
+}
+
+// How the help names the code it moves, `also` being the other lines it covers.
+moved_label :: fn(also: i32[]) -> string {
+    if also.is_empty() {
+        return "this"
+    }
+    return "them"
+}
+
+// How a detail adds the other lines that do as the code it points at does:
+// `, and so does line 31`.
+also_label :: fn(also: i32[]) -> string {
+    if also.is_empty() {
+        return ""
+    }
+    if also.len() == 1 {
+        return ", and so does line ${also[0]}"
+    }
+    return ", and so do ${lines_label(also)}"
+}

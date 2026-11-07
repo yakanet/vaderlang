@@ -1,0 +1,1 @@
+[20:5] error[T3128] value written while a task uses it: this writes `counter.n` while the task launched at line 19 reads it (through `show`, which reads it at line 18) ; copy it first, `view :: counter.deep_copy()`, and let `show` capture `view`

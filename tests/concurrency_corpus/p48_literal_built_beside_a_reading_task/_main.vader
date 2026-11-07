@@ -1,0 +1,25 @@
+// P48: main builds a struct holding `counter` while a task reads it: both sides
+// only read `counter`.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+Wrap :: struct {
+    counter: Counter
+}
+
+main :: fn() -> i32 {
+    counter :: Counter { .n = 2 }
+    t :: launch(() -> counter.n)
+    w :: Wrap { .counter = counter }
+    return t.join().unwrap() - w.counter.n
+}

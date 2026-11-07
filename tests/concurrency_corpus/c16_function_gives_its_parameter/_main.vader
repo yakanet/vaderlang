@@ -1,0 +1,34 @@
+// C16: `start` gives `conn` to a task that outlives the call, which writes it as the
+// caller does: both sides write, a value written by several tasks.
+//
+// corpus: refused E1
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Connection :: struct {
+    out: string[] = []
+}
+
+// Writes the connection.
+serve :: fn(conn: Connection) -> void {
+    conn.out.push("served")
+}
+
+write :: fn(conn: Connection, text: string) -> void {
+    conn.out.push(text)
+}
+
+start :: fn(conn: Connection) -> Task<void> = launch(() -> serve(conn))
+
+accept :: fn() -> Connection = Connection {}
+
+main :: fn() -> i32 {
+    conn :: accept()
+    t :: start(conn)
+    conn.write("hello")
+    t.join()
+    return 0
+}

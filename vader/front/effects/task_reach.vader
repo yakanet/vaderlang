@@ -1,0 +1,392 @@
+// vader/front/effects/task_reach: what a function reaches beyond its parameters.
+//
+// A task may call no `@main_thread` C function, a block that holds a lock may call
+// no primitive that parks (`task_doors.vader`), and a `@singleton` is one value
+// that every function calling it shares. None of it goes through a parameter, so
+// the summary does not carry it: the reach of each function does, settled over the
+// call graph from the calls that declare it, with the calls it goes down for the
+// detail.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "toolchain/span"
+import "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+
+/// What a function reaches through the calls below it.
+Reach :: struct {
+    /// The calls down to a `@main_thread` C function, the function itself first ;
+    /// empty when it reaches none.
+    main_thread: string[] = []
+    /// The calls down to a primitive that parks ; empty when it reaches none.
+    parks: string[] = []
+    /// What it does to the singletons.
+    singletons: SingletonTouch[] = []
+    /// The calls down to a call of a function value whose body the check cannot
+    /// see, the function itself first ; empty when it reaches none.
+    unknown: string[] = []
+}
+
+/// What a function does to a singleton.
+SingletonTouch :: struct {
+    /// The singleton's position in `TaskCtx.singleton_nodes`.
+    singleton: i64
+    path: i32
+    kind: TouchKind
+}
+
+// The reach of every node: what the functions it calls declare, carried
+// up to its callers, and to the functions that hand it to a callee that runs it.
+settle_reach :: fn(ctx: TaskCtx, callers: i32[][]) -> Reach[] {
+    reach: Reach[]: ctx.skeletons.len().filled(() -> Reach {})
+    handed_by: i32[][]: ctx.skeletons.len().filled(() -> [])
+    work: i32[]: []
+    for node in 0..<ctx.skeletons.len() {
+        f :: ctx.index.functions[node]
+        r :: reach[node]
+        for site in ctx.skeletons[node].sites {
+            r.took(ctx.index.summarised_reach(site.callee), f.decl.name)
+            for handed in ctx.handed_fns(f.typed, site) {
+                handed_by[handed].push(i32(node))
+            }
+        }
+        if ctx.skeletons[node].sites.any_match((site) -> ctx.singleton_of(site) != null) {
+            r.singletons = ctx.own_singleton_touches(i32(node))
+        }
+        r.unknown = ctx.own_unknown_call(node)
+        if r.main_thread.len() > 0 || r.parks.len() > 0 || r.singletons.len() > 0
+            || r.unknown.len() > 0 {
+            work.push(i32(node))
+        }
+    }
+    for work.len() > 0 {
+        callee :: work.remove_last() ?? break
+        up: i32[]: []
+        up.push_all(callers[callee])
+        up.push_all(handed_by[callee])
+        for caller in up {
+            name :: ctx.index.functions[caller].decl.name
+            if reach[caller].took(reach[callee], name) {
+                work.push(caller)
+            }
+        }
+    }
+    return reach
+}
+
+// What the body of `node` itself does to the singletons it calls.
+own_singleton_touches :: fn(ctx: TaskCtx, node: i32) -> SingletonTouch[] {
+    body :: ctx.body_of(node)
+    out: SingletonTouch[]: []
+    for t in body.touches {
+        if t.root < body.singleton_base {
+            continue
+        }
+        touch :: SingletonTouch {
+            .singleton = t.root - body.singleton_base,
+            .path = t.path,
+            .kind = t.kind,
+        }
+        out.include_touch(touch)
+    }
+    return out
+}
+
+// Add to `r`, the reach of the function `name`, what its callee reaches ; true when
+// it grew.
+took :: fn(r: Reach, callee: Reach, name: string) -> bool {
+    grew := false
+    if r.main_thread.len() == 0 && callee.main_thread.len() > 0 {
+        r.main_thread = calls_down(name, callee.main_thread)
+        grew = true
+    }
+    if r.parks.len() == 0 && callee.parks.len() > 0 {
+        r.parks = calls_down(name, callee.parks)
+        grew = true
+    }
+    if r.unknown.len() == 0 && callee.unknown.len() > 0 {
+        r.unknown = calls_down(name, callee.unknown)
+        grew = true
+    }
+    for t in callee.singletons {
+        if r.singletons.include_touch(t) {
+            grew = true
+        }
+    }
+    return grew
+}
+
+// The calls from `name` down through `chain`.
+calls_down :: fn(name: string, chain: string[]) -> string[] {
+    out: string[]: [name]
+    out.push_all(chain)
+    return out
+}
+
+// Add `t` to `touches` ; false when it held it.
+include_touch :: fn(touches: SingletonTouch[], t: SingletonTouch) -> bool {
+    held :: touches.any_match(
+        (u) -> u.singleton == t.singleton && u.path == t.path && u.kind == t.kind,
+    )
+    if held {
+        return false
+    }
+    touches.push(t)
+    return true
+}
+
+// The singleton `site` calls, as its position in `ctx.singleton_nodes`.
+singleton_of :: fn(ctx: TaskCtx, site: Site) -> i64 | null {
+    for target in site.targets {
+        if target !is CalleeNode {
+            continue
+        }
+        for j in 0..<ctx.singleton_nodes.len() {
+            if ctx.singleton_nodes[j] == target.node {
+                return j
+            }
+        }
+    }
+    return null
+}
+
+// The reach of what `site`, a call of a body `typed` typed, runs, through each node
+// it may call and each named fn it hands a callee that runs it ; the first
+// non-empty chain `pick` selects.
+reached_chain :: fn(
+    ctx: TaskCtx,
+    typed: TypedProgram,
+    site: Site,
+    pick: fn(Reach) -> string[],
+) -> string[] {
+    own :: pick(ctx.index.summarised_reach(site.callee))
+    if own.len() > 0 {
+        return own
+    }
+    nodes: i32[]: []
+    for target in site.targets {
+        if target is CalleeNode {
+            nodes.push(target.node)
+        }
+    }
+    nodes.push_all(ctx.handed_fns(typed, site))
+    for node in nodes {
+        if node >= ctx.reach.len() {
+            continue
+        }
+        chain :: pick(ctx.reach[node])
+        if chain.len() > 0 {
+            return chain
+        }
+    }
+    return []
+}
+
+// How a detail names a chain of calls: `a`, then what each step calls.
+display_chain :: fn(chain: string[]) -> string {
+    out := "`${chain[0]}`"
+    for i in 1..<chain.len() {
+        out = "${out}, which calls `${chain[i]}`"
+    }
+    return out
+}
+
+// ---- checks ---------------------------------------------------------------
+
+// A task that reaches a `@main_thread` fn: each call of its lambda that does, or
+// the fn it runs.
+check_main_thread :: fn(ctx: TaskCtx, body: TaskBody, door: Door, out: TaskFault[]) -> void {
+    line :: door.site.at.start.line
+    entry :: door.entry
+    if entry == null {
+        q :: door.param ?? return
+        node :: ctx.named_fn_node(body, door.site, q) ?? return
+        chain :: ctx.reach[node].main_thread
+        if chain.len() > 0 {
+            out.push(main_thread_fault(door.site.at, line, chain))
+        }
+        return
+    }
+    spans :: body.task_spans(entry)
+    for site in body.s.sites {
+        if !runs_in(spans, site.at) {
+            continue
+        }
+        chain :: ctx.reached_chain(body.typed, site, (r) -> r.main_thread)
+        if chain.len() == 0 {
+            continue
+        }
+        out.push(main_thread_fault(site.at, line, chain))
+    }
+}
+
+main_thread_fault :: fn(at: Span, line: i32, chain: string[]) -> TaskFault = TaskFault {
+    .kind = .MainThreadInTask,
+    .span = at,
+    .detail = "the task launched at line ${line} calls ${display_chain(chain)}, which runs "
+        + "on the main thread only ; return what it needs, and call "
+        + "`${chain[chain.len() - 1]}` after the join",
+}
+
+// Each block a call runs holding a lock: it may not park, and nothing of the value
+// it is handed may outlive it.
+check_exclusive :: fn(ctx: TaskCtx, body: TaskBody, out: TaskFault[]) -> void {
+    for site in body.s.sites {
+        for q in 0..<site.sources.len() {
+            if !ctx.index.holds_lock_for(site.callee, q) {
+                continue
+            }
+            block :: body.lambda_source(site, q) ?? continue
+            ctx.check_parks(body, block, out)
+            ctx.check_kept(body, block, out)
+        }
+    }
+}
+
+// Each call of `block` that may park.
+check_parks :: fn(ctx: TaskCtx, body: TaskBody, block: AST.LambdaExpr, out: TaskFault[]) -> void {
+    for site in body.s.sites {
+        if !inside(block.span, site.at) {
+            continue
+        }
+        chain :: ctx.reached_chain(body.typed, site, (r) -> r.parks)
+        if chain.len() == 0 {
+            continue
+        }
+        fault :: TaskFault {
+            .kind = .LockParks,
+            .span = site.at,
+            .detail = "this block holds the lock while it calls ${display_chain(chain)}, which "
+                + "may park ; call `${chain[0]}` before the block, and store its result under "
+                + "the lock",
+        }
+        out.push(fault)
+    }
+}
+
+// What `block` keeps of the value it is handed: what it returns of it, keeps
+// through a callee, or stores in a value bound outside it.
+check_kept :: fn(ctx: TaskCtx, body: TaskBody, block: AST.LambdaExpr, out: TaskFault[]) -> void {
+    guarded :: body.lambda_param_roots(block)
+    if guarded.len() == 0 {
+        return
+    }
+    for t in body.touches {
+        if t.kind != .Kept || t.root !in guarded || !inside(block.span, t.at) {
+            continue
+        }
+        out.push(kept_past_lock(t.at, ctx.root_name(body, t.root)))
+    }
+    for k in 0..<body.s.stores.len() {
+        ctx.check_kept_store(body, block, guarded, body.s.stores[k], body.s.stored_at[k], out)
+    }
+    for c in body.callee_stores {
+        ctx.check_kept_store(body, block, guarded, c.flow, c.at, out)
+    }
+}
+
+// A store at `at` of a part of a `guarded` root into a value bound outside `block`.
+check_kept_store :: fn(
+    ctx: TaskCtx,
+    body: TaskBody,
+    block: AST.LambdaExpr,
+    guarded: Set<i64>,
+    flow: Flow,
+    at: Span,
+    out: TaskFault[],
+) -> void {
+    if !inside(block.span, at) {
+        return
+    }
+    value :: body.roots_at(flow.into)
+    holder :: body.roots_at(flow.from)
+    from_guarded :: value.find((r) -> r.param in guarded) ?? return
+    if holder.any_match((r) -> !body.bound_inside(r.param, block.span)) {
+        out.push(kept_past_lock(at, ctx.root_name(body, from_guarded.param)))
+    }
+}
+
+// The doors of the blocks `body` runs under a lock: a value bound outside the block
+// that it stores in the value it guards is, from then on, reached by every task
+// that takes the lock, beside the code that bound it.
+note_stored_doors :: fn(ctx: TaskCtx, body: TaskBody) -> void {
+    for site in body.s.sites {
+        for q in 0..<site.sources.len() {
+            if !ctx.index.holds_lock_for(site.callee, q) {
+                continue
+            }
+            block :: body.lambda_source(site, q) ?? continue
+            guarded :: body.lambda_param_roots(block)
+            if guarded.len() == 0 {
+                continue
+            }
+            for k in 0..<body.s.stores.len() {
+                stored :: body.s.stores[k]
+                body.note_stored_door(site, q, block, guarded, stored, body.s.stored_at[k])
+            }
+            for c in body.callee_stores {
+                body.note_stored_door(site, q, block, guarded, c.flow, c.at)
+            }
+        }
+    }
+}
+
+// A door at `site` when `flow`, a store at `at`, keeps in a `guarded` value one
+// bound outside `block`. It hands the value on for good: nothing ends the tasks
+// that take the lock.
+note_stored_door :: fn(
+    body: TaskBody,
+    site: Site,
+    q: i64,
+    block: AST.LambdaExpr,
+    guarded: Set<i64>,
+    flow: Flow,
+    at: Span,
+) -> void {
+    if !inside(block.span, at) || !body.roots_at(flow.from).any_match((r) -> r.param in guarded) {
+        return
+    }
+    outside :: body.roots_at(flow.into).any_match(
+        (r) -> r.param !in guarded && !body.bound_inside(r.param, block.span),
+    )
+    if !outside {
+        return
+    }
+    sending :: Sending {
+        .given = [EVERYWHERE],
+        .written = [EVERYWHERE],
+        .launcher = intrinsic_name(site.callee),
+    }
+    door :: Door {
+        .site = site,
+        .param = q,
+        .sending = sending,
+        .arg = flow.into,
+        .stored = true,
+    }
+    body.doors.push(door)
+}
+
+// The fault of a part of `name`, the guarded value, kept at `at`. The detail names
+// the value, not the path: a path into a library value names its private fields.
+kept_past_lock :: fn(at: Span, name: string) -> TaskFault = TaskFault {
+    .kind = .KeptPastLock,
+    .span = at,
+    .detail = "a part of `${name}` outlives the block that holds its lock ; keep a copy "
+        + "of it, `.deep_copy()`, or only what you need of it",
+}
+
+// The roots of the parameters of `block`.
+lambda_param_roots :: fn(body: TaskBody, block: AST.LambdaExpr) -> Set<i64> {
+    out :: Set<i64> {}
+    for k in 0..<body.s.locals.len() {
+        at :: body.s.locals[k].at
+        if block.params.any_match((p) -> same_span(p.span, at)) {
+            out.add(body.first_local + k)
+        }
+    }
+    return out
+}

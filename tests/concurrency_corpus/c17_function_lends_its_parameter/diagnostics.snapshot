@@ -1,0 +1,1 @@
+[18:5] error[T3128] value written while a task uses it: `push` writes `words` while a task it was handed to at line 17 reads it (through `count_later`) ; hand on a copy, `words.deep_copy()`, or leave `words` alone once handed on

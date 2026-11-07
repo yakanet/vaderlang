@@ -1,0 +1,28 @@
+// P21: a `map` lambda that runs before the launch writes `stats`, which the task
+// reads.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/iter"
+import "std/option"
+import "std/task"
+
+Stats :: struct {
+    seen: i64 = 0
+}
+
+look :: fn(stats: Stats) -> i64 = stats.seen
+
+main :: fn() -> i32 {
+    stats :: Stats {}
+    ns: i64[]: [1, 2]
+    total :: ns.map(n -> {
+        stats.seen += 1
+        return n * 2
+    }).sum()
+    t :: launch(() -> look(stats))
+    return i32(t.join().unwrap() + total) - 8
+}

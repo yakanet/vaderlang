@@ -1,0 +1,26 @@
+// P07: each turn joins its task before it writes.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+State :: struct {
+    n: i64 = 0
+}
+
+work :: fn(s: State) -> void {
+    s.n += 1
+}
+
+main :: fn() -> i32 {
+    state :: State {}
+    for i in 0..<3 {
+        t :: launch(() -> work(state))
+        t.join()
+        state.n += 1
+    }
+    return 0
+}

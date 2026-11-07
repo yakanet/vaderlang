@@ -1,0 +1,54 @@
+// C11: `first_bot` returns a part of its parameter: `b` is a part of `level`.
+//
+// corpus: refused E1
+// expect: T3128
+
+module "snippet"
+
+import "std/task"
+
+Bot :: struct {
+    x: i64 = 0
+}
+
+Level :: struct {
+    bots: Bot[] = []
+}
+
+Player :: struct {
+    x: i64 = 0
+}
+
+Plan :: struct {
+    moves: i64 = 0
+}
+
+// Reads the level only.
+think :: fn(level: Level) -> Plan = Plan { .moves = level.bots.len() }
+
+// Writes `level.bots[i].x`.
+update :: fn(level: Level, player: Player) -> void {
+    for i in 0..<level.bots.len() {
+        level.bots[i].x = player.x
+    }
+}
+
+// Writes the first bot.
+apply :: fn(level: Level, plan: Plan) -> void {
+    if plan.moves > 0 {
+        level.bots[0].x += 1
+    }
+}
+
+spawn_bot :: fn() -> Bot = Bot {}
+
+first_bot :: fn(l: Level) -> Bot = l.bots[0]
+
+main :: fn() -> i32 {
+    level :: Level { .bots = [Bot {}] }
+    b :: first_bot(level)
+    ai :: launch(() -> think(level))
+    b.x = 3
+    ai.join()
+    return 0
+}

@@ -1,0 +1,27 @@
+// P31: main launches a task writing the `log` singleton, then calls `start_logger`,
+// which leaves another one writing it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Log :: struct {
+    lines: string[] = []
+}
+
+@singleton
+log :: fn() -> Log = Log {}
+
+start_logger :: fn() -> void {
+    launch(() -> log().lines.push("start"))
+}
+
+main :: fn() -> i32 {
+    t :: launch(() -> log().lines.push("main"))
+    start_logger()
+    t.join()
+    return 0
+}

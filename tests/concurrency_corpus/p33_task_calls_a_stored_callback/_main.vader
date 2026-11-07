@@ -1,0 +1,26 @@
+// P33: the task calls a callback kept in a struct, which writes `counter` while main
+// writes it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+Button :: struct {
+    on_click: fn() -> void
+}
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    b :: Button { .on_click = () -> { counter.n += 1 } }
+    t :: launch(() -> b.on_click())
+    counter.n += 1
+    t.join()
+    return counter.n
+}

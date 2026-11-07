@@ -1,0 +1,1 @@
+[28:20] error[T3129] value written by several tasks: each task launched here writes `total.lines` and `total.by_path` (through `merge`, which writes them at lines 20 and 21), which they all share ; let each task return its part, or give each one its own value

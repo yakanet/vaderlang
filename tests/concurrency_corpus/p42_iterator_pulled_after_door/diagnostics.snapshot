@@ -1,0 +1,1 @@
+[28:37] error[T3128] value written while a task uses it: the task launched at line 29 writes `level.bots[].x` (through `nudge`, which writes it at line 22) while this reads it, and so do lines 31 and 32 ; move them after the join at line 34

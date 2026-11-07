@@ -1,0 +1,281 @@
+// vader/front/effects/task_lambdas: where the body of a lambda the body runs runs.
+//
+// A function value holds nothing the summary follows, so running one runs code the
+// check cannot see (`task_unseen.vader`), but for a lambda of the body a call
+// names: the one a constant local is bound to, `bump()`, or the one a literal bound
+// to a constant local holds in a field, `button.on_click()`, as the callee or as
+// an argument a callee runs (`task_handed.vader`), `xs.each(bump)`. What that
+// lambda's body touches happens at each such call ; and only there, not where it
+// is written, when the body reads the local nowhere else and writes it nowhere.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "std/sort"
+import "toolchain/span"
+import "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+
+// The constant locals of a body, by the values they are bound to.
+Bindings :: struct {
+    typed: TypedProgram
+    lets: AST.LetStmt[]
+}
+
+bindings :: fn(body: TaskBody) -> Bindings =
+    Bindings { .typed = body.typed, .lets = body.shape.lets }
+
+// A call of the body that runs a lambda of it.
+LambdaRun :: struct {
+    at: Span
+    /// What names the lambda there: the callee, `bump`, or an argument.
+    read: AST.Expr
+}
+
+// The calls of the body that run one lambda of it.
+LambdaCalls :: struct {
+    lambda: AST.LambdaExpr
+    /// What the first call names, for a detail: `bump`, `button.on_click`.
+    label: string
+    runs: LambdaRun[] = []
+}
+
+// Make what the lambdas the body runs touch happen at their calls. A lambda ends
+// before the one written around it, and before one written after it, which may
+// run it: what it touches moves on with theirs.
+note_lambda_calls :: fn(ctx: TaskCtx, body: TaskBody) -> void {
+    groups :: ctx.lambda_calls(body)
+    body.called = groups
+    if groups.is_empty() {
+        return
+    }
+    reads :: Set<Span> {}
+    for g in groups {
+        for r in g.runs {
+            reads.add(callee_base(r.read).span)
+        }
+    }
+    for g in sort(groups, (a, b) -> a.lambda.span.end.offset < b.lambda.span.end.offset) {
+        span :: g.lambda.span
+        inner: Touch[]: body.touches.filter((t) -> inside(span, t.at)).collect()
+        if body.only_called(g, reads) {
+            body.touches = body.touches.filter((t) -> !inside(span, t.at)).collect()
+        }
+        for r in g.runs {
+            for t in inner {
+                if !body.bound_inside(t.root, span) {
+                    body.touches.push(called_touch(t, r.at, g.label))
+                }
+            }
+        }
+    }
+}
+
+// What `t`, made in the body of a lambda, is at the call `at` of it, which names
+// it `label`.
+called_touch :: fn(t: Touch, at: Span, label: string) -> Touch = Touch {
+    ...t,
+    .at = at,
+    .by = "`${label}`",
+    .access = null,
+    .made = t.made ?? t.at,
+}
+
+// The calls of the body that run a lambda of it, by lambda.
+lambda_calls :: fn(ctx: TaskCtx, body: TaskBody) -> LambdaCalls[] {
+    names :: body.bindings()
+    out: LambdaCalls[]: []
+    for site in body.s.sites {
+        for read in ctx.run_values(body.shape, site) {
+            lambda :: names.called_lambda(read) ?? continue
+            out.add_run(lambda, LambdaRun { .at = site.at, .read = read })
+        }
+    }
+    return out
+}
+
+// Add `run` to the calls of `groups` that run `lambda`.
+add_run :: fn(groups: LambdaCalls[], lambda: AST.LambdaExpr, run: LambdaRun) -> void {
+    group :: groups.find((g) -> same_span(g.lambda.span, lambda.span))
+    if group != null {
+        group.runs.push(run)
+        return
+    }
+    found :: LambdaCalls {
+        .lambda = lambda,
+        .label = callee_label(run.read),
+        .runs = [run],
+    }
+    groups.push(found)
+}
+
+// What `site`, a call of a body of shape `shape`, runs as function values: its
+// callee when it calls one, and each argument it hands a callee that runs it.
+run_values :: fn(ctx: TaskCtx, shape: BodyShape, site: Site) -> AST.Expr[] {
+    out: AST.Expr[]: []
+    if site.callee is FnValue {
+        call :: shape.calls.find((c) -> same_span(c.span, site.at))
+        if call != null {
+            out.push(call.callee)
+        }
+    }
+    for k in ctx.run_args(site) {
+        if k < site.sources.len() {
+            source :: site.sources[k] ?? continue
+            out.push(source)
+        }
+    }
+    return out
+}
+
+// The lambda of the body the callee `callee` names: a constant local bound to it,
+// or a field of a constant local bound to a literal that holds it there.
+called_lambda :: fn(names: Bindings, callee: AST.Expr) -> AST.LambdaExpr | null {
+    if callee is AST.IdentExpr {
+        return names.bound_lambda(callee)
+    }
+    if callee !is AST.FieldExpr {
+        return null
+    }
+    holder :: callee.target
+    if holder !is AST.IdentExpr {
+        return null
+    }
+    value :: names.literal_field(holder, callee.field)
+    if value is AST.LambdaExpr {
+        return value
+    }
+    if value is AST.IdentExpr {
+        return names.bound_lambda(value)
+    }
+    return null
+}
+
+// The lambda the constant local `name` is bound to, if it is one.
+bound_lambda :: fn(names: Bindings, name: AST.IdentExpr) -> AST.LambdaExpr | null {
+    value :: names.bound_value(name)
+    if value is AST.LambdaExpr {
+        return value
+    }
+    return null
+}
+
+// The value the constant local `name` is bound to ; null for any other name.
+bound_value :: fn(names: Bindings, name: AST.IdentExpr) -> AST.Expr | null {
+    sym :: names.typed.resolved.idents[name.span.hash()] ?? return null
+    for l in names.lets {
+        b :: l.binding
+        if l.mutable || b !is AST.SimpleBinding {
+            continue
+        }
+        bound :: names.typed.resolved.idents[b.name_span.hash()] ?? continue
+        if bound.id == sym.id {
+            return l.value
+        }
+    }
+    return null
+}
+
+// What the literal the constant local `holder` is bound to gives its field `name`.
+literal_field :: fn(names: Bindings, holder: AST.IdentExpr, name: string) -> AST.Expr | null {
+    literal :: names.bound_value(holder)
+    if literal !is AST.StructLitExpr {
+        return null
+    }
+    for item in literal.items {
+        if item is AST.StructLitField && item.name == name {
+            return item.value
+        }
+    }
+    return null
+}
+
+// The local a callee the check resolves reads: `button` in `button.on_click`.
+callee_base :: fn(callee: AST.Expr) -> AST.Expr {
+    if callee is AST.FieldExpr {
+        return callee.target
+    }
+    return callee
+}
+
+// How a detail names the function value `callee` calls: `bump`, `button.on_click`,
+// `current().work`, `jobs[]` ; `...` stands for any other expression.
+callee_label :: fn(callee: AST.Expr) -> string {
+    if callee is AST.IdentExpr {
+        return callee.name
+    }
+    if callee is AST.FieldExpr {
+        return "${callee_label(callee.target)}.${callee.field}"
+    }
+    if callee is AST.IndexExpr {
+        return "${callee_label(callee.target)}[]"
+    }
+    if callee is AST.CallExpr {
+        return "${callee_label(callee.callee)}(${call_args_label(callee)})"
+    }
+    return "..."
+}
+
+// How a detail writes the arguments of the call `c`: nothing, or `...`.
+call_args_label :: fn(c: AST.CallExpr) -> string {
+    if c.args.is_empty() {
+        return ""
+    }
+    return "..."
+}
+
+// Whether the lambda of `g` runs at its calls only: they all read it through one
+// local, which the body reads nowhere but where such a call names a lambda,
+// `reads`, and writes nowhere.
+only_called :: fn(body: TaskBody, g: LambdaCalls, reads: Set<Span>) -> bool {
+    slot :: body.slot_used_at(callee_base(g.runs[0].read).span) ?? return false
+    for r in g.runs {
+        used :: body.slot_used_at(callee_base(r.read).span) ?? return false
+        if used != slot {
+            return false
+        }
+    }
+    for u in body.s.uses {
+        if u.slot == slot && u.at !in reads {
+            return false
+        }
+    }
+    return !body.s.marks.any_match((m) -> m.slot == slot)
+}
+
+// The slot of the local the body reads at `at`.
+slot_used_at :: fn(body: TaskBody, at: Span) -> i64 | null {
+    for u in body.s.uses {
+        if same_span(u.at, at) {
+            return u.slot
+        }
+    }
+    return null
+}
+
+// ---- what a task runs -----------------------------------------------------
+
+// The code of the body the task whose lambda is `entry` runs: that lambda, and the
+// lambdas of the body it runs, as far as their own calls go.
+task_spans :: fn(body: TaskBody, entry: AST.LambdaExpr) -> Span[] {
+    spans: Span[]: [entry.span]
+    grew := true
+    for grew {
+        grew = false
+        for g in body.called {
+            if spans.any_match((s) -> same_span(s, g.lambda.span)) {
+                continue
+            }
+            if g.runs.any_match((r) -> runs_in(spans, r.at)) {
+                spans.push(g.lambda.span)
+                grew = true
+            }
+        }
+    }
+    return spans
+}
+
+// Whether code at `at` lies in one of `spans`.
+runs_in :: fn(spans: Span[], at: Span) -> bool = spans.any_match((s) -> inside(s, at))

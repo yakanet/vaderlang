@@ -1,0 +1,1 @@
+[22:5] error[T3128] value written while a task uses it: `bump` writes `state.n` while the task launched at line 21 reads it ; copy it before launching: `view :: state.deep_copy()`, then capture `view`

@@ -1,0 +1,1 @@
+[17:10] error[T3134] task runs a function value whose captures are unknown: `job` is a function value made elsewhere, whose captures the check cannot see ; launch a lambda written here, or a named fn

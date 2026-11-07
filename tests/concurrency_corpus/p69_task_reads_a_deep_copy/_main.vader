@@ -1,0 +1,35 @@
+// P69: the level is copied by `deep_copy` before the launch: the task reads the
+// copy while `update` writes the level, and the copy shares nothing with it.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Bot :: struct {
+    x: i64 = 0
+}
+
+Level :: struct {
+    bots: Bot[] = []
+}
+
+// Reads the level only.
+count :: fn(level: Level) -> i64 = level.bots.len()
+
+// Writes `level.bots[i].x`.
+update :: fn(level: Level) -> void {
+    for i in 0..<level.bots.len() {
+        level.bots[i].x += 1
+    }
+}
+
+main :: fn() -> i32 {
+    level :: Level { .bots = [Bot {}] }
+    view :: level.deep_copy()
+    ai :: launch(() -> count(view))
+    update(level)
+    return i32(ai.join()) - 1
+}

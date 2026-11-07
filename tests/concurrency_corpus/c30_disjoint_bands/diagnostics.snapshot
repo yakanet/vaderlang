@@ -1,0 +1,1 @@
+[25:9] error[T3129] value written by several tasks: each task launched here writes `pixels.rows[]` (through `sharpen_rows`, which writes it at line 17), which they all share ; let each task return its part, or give each one its own value

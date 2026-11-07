@@ -1,0 +1,24 @@
+// P66: two tasks bound to names are joined by a loop over a literal that holds
+// them: what main reads after the loop no longer runs beside them.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    hits :: Counter {}
+    misses :: Counter {}
+    a :: launch(() -> { hits.n += 1 })
+    b :: launch(() -> { misses.n += 1 })
+    for t in [a, b] {
+        t.join()
+    }
+    return hits.n + misses.n
+}

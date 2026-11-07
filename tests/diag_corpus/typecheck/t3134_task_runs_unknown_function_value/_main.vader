@@ -1,0 +1,16 @@
+// T3134 : the task runs a function value read from a table, whose captures the
+// check cannot see from the launch.
+module "snippet"
+
+import "std/task"
+
+Registry :: struct {
+    jobs: (fn() -> i64)[] = []
+}
+
+main :: fn() -> i32 {
+    registry :: Registry { .jobs = [() -> 1] }
+    t :: launch(registry.jobs[0])
+    t.join()
+    return 0
+}

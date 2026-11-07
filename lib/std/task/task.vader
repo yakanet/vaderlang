@@ -407,8 +407,8 @@ fail_after_yields :: fn(code: i32, yields: i32) -> i32 | Failure {
     return Failure { .code = code }
 }
 
-// A task that parks until cancelled, then notes that its `defer`s ran.
-unwinds_into :: fn(unwound: Flag) -> fn() -> i32 | Failure = fn() -> i32 | Failure {
+// Park until cancelled, then note that the `defer`s ran.
+unwinds_into :: fn(unwound: Flag) -> i32 | Failure {
     defer unwound.set = true
     park_forever()
     return 0
@@ -434,7 +434,7 @@ test_launch_starts_the_task_once_the_launcher_parks :: fn() -> void {
     task :: launch(fn() {
         ran.set = true
     })
-    assert(!ran.set, "the task waits for the launcher to park")
+    assert(!task.is_ready(), "the task waits for the launcher to park")
     task.join()
     assert(ran.set, "the task ran once joined")
 }
@@ -453,10 +453,10 @@ test_cancel_before_the_start_runs_nothing :: fn() -> void {
 @test
 test_join_of_a_cancelled_task_waits_for_its_defers :: fn() -> void {
     unwound :: Flag {}
-    task :: launch(unwinds_into(unwound))
+    task :: launch(() -> unwinds_into(unwound))
     yield_now()
     task.cancel()
-    assert(!unwound.set, "the cancel does not wait for the defers")
+    assert(!task.is_ready(), "the cancel does not wait for the defers")
     assert(task.join() is Cancelled, "the join of a cancelled task gives back `Cancelled`")
     assert(unwound.set, "the join waits for the defers")
 }
@@ -540,28 +540,28 @@ test_timeout_gives_back_a_result_in_time :: fn() -> void {
 @test
 test_race_waits_for_the_defers_of_the_cancelled :: fn() -> void {
     unwound :: Flag {}
-    race([launch(unwinds_into(unwound)), launch(() -> succeed_after_yields(1, 1))])
+    race([launch(() -> unwinds_into(unwound)), launch(() -> succeed_after_yields(1, 1))])
     assert(unwound.set, "the loser's defers ran before `race` returned")
 }
 
 @test
 test_join_any_waits_for_the_defers_of_the_cancelled :: fn() -> void {
     unwound :: Flag {}
-    join_any([launch(unwinds_into(unwound)), launch(() -> succeed_after_yields(1, 1))])
+    join_any([launch(() -> unwinds_into(unwound)), launch(() -> succeed_after_yields(1, 1))])
     assert(unwound.set, "the others' defers ran before `join_any` returned")
 }
 
 @test
 test_try_join_all_waits_for_the_defers_of_the_cancelled :: fn() -> void {
     unwound :: Flag {}
-    try_join_all([launch(unwinds_into(unwound)), launch(() -> fail_after_yields(1, 1))])
+    try_join_all([launch(() -> unwinds_into(unwound)), launch(() -> fail_after_yields(1, 1))])
     assert(unwound.set, "the others' defers ran before `try_join_all` returned")
 }
 
 @test
 test_timeout_waits_for_the_defers_of_the_cancelled :: fn() -> void {
     unwound :: Flag {}
-    timeout(launch(unwinds_into(unwound)), 1.millis())
+    timeout(launch(() -> unwinds_into(unwound)), 1.millis())
     assert(unwound.set, "the task's defers ran before `timeout` returned")
 }
 

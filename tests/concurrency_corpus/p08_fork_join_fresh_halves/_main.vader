@@ -1,0 +1,29 @@
+// P08: a fork-join on halves each turn builds afresh.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+total :: fn(xs: i64[]) -> i64 {
+    if xs.len() < 2 {
+        return xs.len()
+    }
+    left: i64[]: []
+    right: i64[]: []
+    for i in 0..<xs.len() {
+        if i < xs.len() / 2 {
+            left.push(xs[i])
+        } else {
+            right.push(xs[i])
+        }
+    }
+    t :: launch(() -> total(left))
+    r :: total(right)
+    return t.join().unwrap() + r
+}
+
+main :: fn() -> i32 = i32(total([1, 2, 3, 4]) - 4)

@@ -1,0 +1,1 @@
+[17:23] error[T3129] value written by several tasks: `count_into` writes `stats.lines` while the task launched at line 16 writes it too (through `count_into`, which writes it at line 11) ; let each task build and return its own value, and merge them after the joins

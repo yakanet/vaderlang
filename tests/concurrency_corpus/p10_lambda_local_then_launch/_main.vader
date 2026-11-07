@@ -1,0 +1,16 @@
+// P10: the lambda a constant local is bound to is the task.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+work :: fn() -> i64 = 1
+
+main :: fn() -> i32 {
+    job :: () -> work()
+    t :: launch(job)
+    return i32(t.join()) - 1
+}

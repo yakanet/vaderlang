@@ -33,6 +33,8 @@ export EffectSummary :: struct {
     /// The arguments the typecheck widened, and whether their callees allow it
     /// (`variance.vader`).
     widenings: WideningSite[]
+    /// What tasks race on (`tasks.vader`).
+    tasks: TaskFault[] = []
 }
 
 /// Summarise every function of a checked project.
@@ -87,6 +89,7 @@ export summarise_effects :: fn(project: LoadedProject, checked: CheckResult) -> 
         .frozen = frozen.sites,
         .fresh = frozen.fresh,
         .widenings = settle_widenings(widenings, facts, index),
+        .tasks = settle_tasks(index, skeletons, facts, components),
     }
 }
 

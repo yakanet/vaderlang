@@ -69,7 +69,7 @@ const EXPECTED: [string, string[]][] = [
   ["hands_out_its_capture", ["stored p"]],
   ["copies_with_spread", ["stored h.items"]],
   ["calls_a_writer", ["assigned p.x"]],
-  ["calls_a_function_value", ["stored p…", "unknown p…"]],
+  ["calls_a_function_value", ["handed p"]],
   ["writes_then_recurses", ["shrunk xs"]],
   ["recurses_back", ["shrunk xs"]],
   ["bump", ["assigned self.x"]],
@@ -96,7 +96,9 @@ const EXPECTED: [string, string[]][] = [
   ["bumps_an_entry", ["assigned m.evals[].x"]],
   ["next", ["assigned self.n"]],
   ["drains", ["assigned it.n"]],
-  ["yields_points", ["stored xs[]"]],
+  ["yields_points", ["returned xs[] at <item>"]],
+  ["writes_what_it_pulls", ["assigned xs[].x"]],
+  ["reads_what_it_pulls", ["none"]],
   ["fills", ["assigned d…"]],
 ];
 
@@ -241,7 +243,7 @@ test("each widened array argument gets the verdict of its callee", async () => {
     "depth 1 breaks: stored argument",
     "depth 1 breaks: returned argument",
     "depth 1 covariant",
-    "depth 1 breaks: unknown argument…",
+    "depth 1 breaks: handed argument",
     "depth 1 covariant",
     "depth 2 covariant",
     "depth 2 breaks: stored argument[]",

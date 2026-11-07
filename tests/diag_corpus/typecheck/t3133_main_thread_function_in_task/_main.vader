@@ -1,0 +1,16 @@
+// T3133 : the task calls, through `draw`, a C function bound to the main thread.
+module "snippet"
+
+import "std/task"
+
+@extern
+@main_thread
+gpu_draw :: fn() -> i64
+
+draw :: fn() -> i64 = gpu_draw()
+
+main :: fn() -> i32 {
+    t :: launch(draw)
+    t.join()
+    return 0
+}

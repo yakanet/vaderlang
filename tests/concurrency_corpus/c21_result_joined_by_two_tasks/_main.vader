@@ -1,0 +1,33 @@
+// C21: both tasks join the index, and every join hands back the same value: one
+// task writes it while the other reads it.
+//
+// corpus: refused E1
+// expect: T3128
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+Index :: struct {
+    words: string[] = []
+}
+
+build_index :: fn(files: string[]) -> Index = Index { .words = ["vader"] }
+
+// Writes the index.
+add_synonyms :: fn(index: Index) -> i64 {
+    index.words.push("lang")
+    return 1
+}
+
+// Reads the index only.
+search :: fn(index: Index, word: string) -> i64 = index.words.len()
+
+main :: fn() -> i32 {
+    files: string[]: ["a"]
+    index :: launch(() -> build_index(files))
+    a :: launch(() -> add_synonyms(index.join().unwrap()))
+    b :: launch(() -> search(index.join().unwrap(), "vader"))
+    return i32(a.join().unwrap() + b.join().unwrap()) - 2
+}

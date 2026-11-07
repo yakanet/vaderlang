@@ -1,0 +1,26 @@
+// P49: the task calls a lambda that calls another, which writes `counter` while
+// main writes it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    bump :: () -> { counter.n += 1 }
+    twice :: () -> {
+        bump()
+        bump()
+    }
+    t :: launch(() -> twice())
+    counter.n += 1
+    t.join()
+    return counter.n - 3
+}

@@ -1,0 +1,27 @@
+// P68: a named task is pushed onto the array a loop joins on one path only: on the
+// other it still runs when main reads `hits`.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    hits :: Counter {}
+    a :: launch(() -> { hits.n += 1 })
+    tasks: Task<void>[]: []
+    limit :: 3
+    if limit > 2 {
+        tasks.push(a)
+    }
+    for t in tasks {
+        t.join()
+    }
+    return hits.n
+}

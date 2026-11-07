@@ -123,5 +123,6 @@ write_phrase :: fn(write: FaultWrite | null) -> string {
         .Stored   -> "${place} is kept"
         .Returned -> "${place} is returned"
         .Unknown  -> "${place} is handed to code the compiler cannot see"
+        .Handed   -> "${place} is handed to a function value"
     }
 }

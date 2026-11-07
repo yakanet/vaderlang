@@ -75,9 +75,15 @@ write_function :: fn(sb: StringBuilder, summary: EffectSummary, node: i32) -> vo
     }
 }
 
-// `<effect> <name><path>`: access `a` of the parameter called `name`.
-access_label :: fn(paths: PathTable, a: Access, name: string) -> string =
-    "${effect_label(a.effect)} ${paths.place_label(name, a.path)}"
+// `<effect> <name><path>`: access `a` of the parameter called `name`, then where a
+// returned value lies below the result, `at <item>`.
+access_label :: fn(paths: PathTable, a: Access, name: string) -> string {
+    label :: "${effect_label(a.effect)} ${paths.place_label(name, a.path)}"
+    if a.under == ROOT {
+        return label
+    }
+    return "${label} at ${paths.display_path(a.under)}"
+}
 
 // The frozen sites of the modules in `scope`, by module then in source order, and
 // how many of each kind.

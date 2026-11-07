@@ -1,0 +1,27 @@
+// P55: the task calls a named fn through a local bound to it: the check follows
+// no function value but a lambda of the body, and asks for the fn by its name.
+//
+// corpus: probe
+// expect: T3134
+
+module "snippet"
+
+import "std/task"
+
+Level :: struct {
+    n: i64 = 0
+}
+
+@singleton
+level :: fn() -> Level = Level {}
+
+bump :: fn() -> void {
+    level().n += 1
+}
+
+main :: fn() -> i32 {
+    other :: bump
+    t :: launch(() -> other())
+    t.join()
+    return 0
+}

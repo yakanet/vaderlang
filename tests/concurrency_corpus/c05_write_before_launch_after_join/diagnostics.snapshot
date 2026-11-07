@@ -1,0 +1,2 @@
+[19:1] warning[W0007] declaration is never used in its module: `Player` is never used
+[31:1] warning[W0007] declaration is never used in its module: `update` is never used

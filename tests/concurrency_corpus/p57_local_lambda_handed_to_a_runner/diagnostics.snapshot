@@ -1,0 +1,1 @@
+[21:5] error[T3129] value written by several tasks: this writes `counter.n` while the task launched at line 20 writes it too (through `bump`, which writes it at line 19) ; move this after the join at line 22

@@ -1,0 +1,1 @@
+[23:16] error[T3128] value written while a task uses it: the task launched at line 22 writes `scores` (through `fill_scores`, which writes it at line 17) while this reads it ; move this after the join at line 24

@@ -1,0 +1,28 @@
+// P56: the task hands `apply`, which runs it, the lambda a literal holds in a
+// field: it writes `counter` while main writes it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+Job :: struct {
+    work: fn() -> void
+}
+
+apply :: fn(work: fn() -> void) -> void = work()
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    job :: Job { .work = () -> { counter.n += 1 } }
+    t :: launch(() -> apply(job.work))
+    counter.n += 1
+    t.join()
+    return counter.n - 2
+}

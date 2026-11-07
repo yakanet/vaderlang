@@ -1,0 +1,34 @@
+// P35: each task merges its count into one report: one fault for the report, which
+// names the fields `merge` writes and the lines it writes them at, and stops at the
+// map, whose own fields are private to `std/collections`.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/collections"
+import "std/task"
+
+Report :: struct {
+    lines: i64 = 0
+    by_path: Map<string, i64> = Map<string, i64> {}
+}
+
+// Writes `into.lines` and `into.by_path`.
+merge :: fn(into: Report, path: string, n: i64) -> void {
+    into.lines += n
+    into.by_path[path] = n
+}
+
+main :: fn() -> i32 {
+    total :: Report {}
+    tasks: Task<void>[]: []
+    for path in ["/", "/api"] {
+        tasks.push(launch(() -> total.merge(path, 1)))
+    }
+    for t in tasks {
+        t.join()
+    }
+    return i32(total.lines) - 2
+}

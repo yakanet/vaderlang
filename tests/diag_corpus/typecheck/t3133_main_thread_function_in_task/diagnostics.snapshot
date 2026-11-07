@@ -1,0 +1,1 @@
+[13:10] error[T3133] main-thread function reached from a task: the task launched at line 13 calls `draw`, which calls `gpu_draw`, which runs on the main thread only ; return what it needs, and call `gpu_draw` after the join

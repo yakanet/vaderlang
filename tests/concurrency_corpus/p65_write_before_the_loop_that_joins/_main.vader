@@ -1,0 +1,26 @@
+// P65: main writes `counter` before the loop that joins the tasks writing it: one
+// fault, the write the tasks share, which names the line of main's write too.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    tasks: Task<void>[]: []
+    for i in 0..<2 {
+        tasks.push(launch(() -> { counter.n += 1 }))
+    }
+    counter.n += 1
+    for t in tasks {
+        t.join()
+    }
+    return counter.n
+}

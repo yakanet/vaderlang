@@ -1,0 +1,1 @@
+[31:5] error[T3129] value written by several tasks: `write` writes `conn.out` while a task it was handed to at line 30 writes it too (through `start`) ; hand on a copy, `conn.deep_copy()`, or leave `conn` alone once handed on

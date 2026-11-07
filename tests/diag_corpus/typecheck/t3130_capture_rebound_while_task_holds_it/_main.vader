@@ -1,0 +1,15 @@
+// T3130 : the task captures the variable `n`, which the code after the launch
+// rebinds before the join.
+module "snippet"
+
+import "std/task"
+
+report :: fn(n: i64) -> i64 = n
+
+main :: fn() -> i32 {
+    n := 0
+    t :: launch(() -> report(n))
+    n = 5
+    t.join()
+    return i32(n) - 5
+}

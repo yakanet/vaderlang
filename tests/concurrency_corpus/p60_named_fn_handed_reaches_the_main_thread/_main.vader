@@ -1,0 +1,25 @@
+// P60: the task hands `apply` the named fn `upload`, which calls a C function
+// bound to the main thread.
+//
+// corpus: probe
+// expect: T3133
+
+module "snippet"
+
+import "std/task"
+
+@extern
+@main_thread
+gpu_upload :: fn(size: i64) -> i64
+
+upload :: fn() -> void {
+    gpu_upload(4)
+}
+
+apply :: fn(work: fn() -> void) -> void = work()
+
+main :: fn() -> i32 {
+    t :: launch(() -> apply(upload))
+    t.join()
+    return 0
+}

@@ -1,0 +1,1 @@
+[17:13] error[T3135] a function value cannot be deep-copied: `Arena` holds a function value at `.bots[].on_hit`

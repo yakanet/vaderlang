@@ -1,0 +1,36 @@
+// P42: main makes an iterator over the bots before the launch, and reads the bots
+// it pulls after it, while the task writes them.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/iter"
+import "std/task"
+
+Bot :: struct {
+    x: i64 = 0
+}
+
+Level :: struct {
+    bots: Bot[] = []
+}
+
+nudge :: fn(level: Level) -> void {
+    for b in level.bots {
+        b.x += 1
+    }
+}
+
+main :: fn() -> i32 {
+    level :: Level { .bots = [Bot {}, Bot { .x = 2 }] }
+    alive :: level.bots.filter(b -> b.x > 0)
+    t :: launch(() -> nudge(level))
+    total: i64 = 0
+    for b in alive {
+        total += b.x
+    }
+    t.join()
+    return i32(total) - 2
+}

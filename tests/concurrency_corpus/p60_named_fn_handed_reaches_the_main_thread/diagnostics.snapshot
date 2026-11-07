@@ -1,0 +1,1 @@
+[22:23] error[T3133] main-thread function reached from a task: the task launched at line 22 calls `upload`, which calls `gpu_upload`, which runs on the main thread only ; return what it needs, and call `gpu_upload` after the join

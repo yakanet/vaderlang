@@ -1,0 +1,18 @@
+// C13: captures share the variable: the code after the launch rebinds it.
+//
+// corpus: refused E3
+// expect: T3130
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+report :: fn(n: i64) -> i64 = n
+
+main :: fn() -> i32 {
+    n := 0
+    t :: launch(() -> report(n))
+    n = 5
+    return i32(t.join().unwrap() + n) - 5
+}

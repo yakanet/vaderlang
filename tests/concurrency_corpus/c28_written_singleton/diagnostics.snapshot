@@ -1,0 +1,1 @@
+[27:12] error[T3129] value written by several tasks: `read_key` writes `typed_text().keys` while the task launched at line 26 writes it too (through `read_key`) ; a singleton is one value for every task: hold what tasks write of it in a `Shared` (an `AtomicInt` or an `AtomicBool` for a counter or a flag), or leave it to one task

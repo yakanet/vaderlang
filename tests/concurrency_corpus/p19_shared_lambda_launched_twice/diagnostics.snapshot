@@ -1,0 +1,1 @@
+[20:18] error[T3129] value written by several tasks: `bump` writes `level.n` while the task launched at line 21 writes it too (through `bump`, which writes it at line 15) ; let each task build and return its own value, and merge them after the joins

@@ -241,6 +241,7 @@ declare_fn :: fn(
         // where it means nothing.
         validate_param_decorators(decl, false, diags)
         validate_result_c_type(decl, return_type, false, diags)
+        validate_main_thread(decl, diags)
     }
     // A bodyless top-level free fn becomes a host import (`lower/decl.vader`
     // returns a null body → `call.import`). Host-ness must be *declared* :
@@ -534,6 +535,16 @@ decorator_argument_fault :: fn(d: AST.Decorator) -> string | null {
         return "`@${d.name}` takes no argument"
     }
     return null
+}
+
+// `@main_thread` binds a C function to the main thread: the compiler sees what a
+// Vader body calls, so the decorator means something on an `@extern` only.
+validate_main_thread :: fn(decl: AST.FnDecl, diags: Diagnostic[]) -> void {
+    d :: AST.find_decorator(decl.decorators, "main_thread") ?? return
+    diags.push(typecheck_error(
+        .InvalidExternDecl, d.span,
+        "`@main_thread` binds a C function to the main thread ; `${decl.name}` has no "
+            + "`@extern`, and the compiler sees what its body calls"))
 }
 
 /// Check the `@c_type` written on `decl` itself, which names the C type of its

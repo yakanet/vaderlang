@@ -1,0 +1,1 @@
+[25:20] error[T3129] value written by several tasks: each task launched here writes `cells[].v` (through `bump`, which writes it at line 18), which they all share with line 24 ; let each task return its part, or give each one its own value

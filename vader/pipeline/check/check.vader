@@ -47,6 +47,8 @@ export check_project :: fn(
     effects :: Fx.summarise_effects(project, result)
     diags.push_all(Fx.widening_diagnostics(effects, result))
     diags.push_all(Fx.frozen_diagnostics(effects))
+    diags.push_all(Fx.task_diagnostics(effects))
+    diags.push_all(Fx.deep_copy_diagnostics(effects, result))
     return CheckedProject { .result = result, .effects = effects }
 }
 

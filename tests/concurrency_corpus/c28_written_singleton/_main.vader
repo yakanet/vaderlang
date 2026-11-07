@@ -1,0 +1,30 @@
+// C28: `read_key` writes the `typed_text` singleton, from the task and from main.
+//
+// corpus: refused E2
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Typed :: struct {
+    keys: string[] = []
+}
+
+@singleton
+typed_text :: fn() -> Typed = Typed {}
+
+// Writes the typed_text singleton.
+read_key :: fn() -> string {
+    typed_text().keys.push("k")
+    return "k"
+}
+
+handle :: fn(key: string) -> void {}
+
+main :: fn() -> i32 {
+    t :: launch(() -> read_key())
+    handle(read_key())
+    t.join()
+    return 0
+}

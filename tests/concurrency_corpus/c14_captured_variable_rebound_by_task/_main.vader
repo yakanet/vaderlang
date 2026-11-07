@@ -1,0 +1,25 @@
+// C14: the task rebinds `done` while the code after the launch reads it.
+//
+// corpus: refused E3
+// expect: T3130
+
+module "snippet"
+
+import "std/task"
+
+work :: fn() -> void {}
+
+show_spinner :: fn() -> void {}
+
+main :: fn() -> i32 {
+    done := false
+    t :: launch(() -> {
+        work()
+        done = true
+    })
+    for !done {
+        show_spinner()
+    }
+    t.join()
+    return 0
+}

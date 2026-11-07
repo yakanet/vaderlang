@@ -1,0 +1,1 @@
+[12:5] error[T3130] captured variable rebound while a task holds it: `n` is rebound here while the task launched at line 11 holds it ; bind a copy before launching, `snapshot :: n`, and capture `snapshot`

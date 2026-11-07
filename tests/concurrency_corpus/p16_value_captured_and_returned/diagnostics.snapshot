@@ -1,0 +1,1 @@
+[20:5] error[T3128] value written while a task uses it: `push` writes `grid.cells` while the task launched at line 19 keeps it ; copy it before launching: `view :: grid.deep_copy()`, then capture `view`

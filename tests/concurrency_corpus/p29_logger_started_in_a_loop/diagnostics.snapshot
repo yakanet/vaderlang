@@ -1,0 +1,1 @@
+[24:9] error[T3129] value written by several tasks: each task `start_logger` leaves running here writes `log().lines`, which they all share ; let each task return its part, or give each one its own value

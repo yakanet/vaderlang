@@ -1,0 +1,19 @@
+// C18: `run_later` launches its parameter: the lambda written here is the task.
+//
+// corpus: refused E1
+// expect: T3128
+
+module "snippet"
+
+import "std/task"
+
+count :: fn(words: string[]) -> i64 = words.len()
+
+run_later :: fn(job: fn() -> i64) -> Task<i64> = launch(job)
+
+main :: fn() -> i32 {
+    words: string[]: ["a"]
+    t :: run_later(() -> count(words))
+    words.push("late")
+    return i32(t.join()) - 1
+}

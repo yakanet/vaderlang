@@ -1,0 +1,20 @@
+// C17: `count_later` lends `words` to a task that reads it ; the caller pushes.
+//
+// corpus: refused E1
+// expect: T3128
+
+module "snippet"
+
+import "std/task"
+
+// Reads the words only.
+count :: fn(words: string[]) -> i64 = words.len()
+
+count_later :: fn(words: string[]) -> Task<i64> = launch(() -> count(words))
+
+main :: fn() -> i32 {
+    words: string[]: ["a"]
+    t :: count_later(words)
+    words.push("late")
+    return i32(t.join()) - 1
+}

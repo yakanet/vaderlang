@@ -1092,8 +1092,11 @@ every_variant_shows :: fn(u: UnionType, name: string, typed: TypedProgram) -> bo
     return true
 }
 
-// Whether `field` is `@internal` to another module than the one checked.
-field_hidden_here :: fn(field: StructFieldInfo, typed: TypedProgram) -> bool =
+/// Whether `field` is `@internal` to another module than the one `typed` checks.
+///
+/// @param field  the field reached.
+/// @param typed  the module that reaches it.
+export field_hidden_here :: fn(field: StructFieldInfo, typed: TypedProgram) -> bool =
     field.decl.visibility == .Private && field.owner.symbol.module != typed.resolved.path
 
 // Terminal struct-field lookup + the catch-all diagnostics for any

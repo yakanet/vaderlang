@@ -1,0 +1,2 @@
+[45:1] warning[W0007] declaration is never used in its module: `spawn_bot` is never used
+[55:5] error[T3128] value written while a task uses it: `update` writes `level.bots[].x` while the task launched at line 51 reads it ; copy it before launching: `view :: level.deep_copy()`, then capture `view`

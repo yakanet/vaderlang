@@ -1,0 +1,26 @@
+// P44: the task writes `counter` through the struct literal that holds it, while
+// main writes it directly.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+Wrap :: struct {
+    counter: Counter
+}
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    w :: Wrap { .counter = counter }
+    t :: launch(() -> { w.counter.n += 1 })
+    counter.n += 1
+    t.join()
+    return counter.n
+}

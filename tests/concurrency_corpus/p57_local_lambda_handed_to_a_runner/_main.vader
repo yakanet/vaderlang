@@ -1,0 +1,24 @@
+// P57: the task hands `apply`, which runs it, a lambda of main by its name: it
+// writes `counter` while main writes it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+apply :: fn(work: fn() -> void) -> void = work()
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    bump :: () -> { counter.n += 1 }
+    t :: launch(() -> apply(bump))
+    counter.n += 1
+    t.join()
+    return counter.n - 2
+}

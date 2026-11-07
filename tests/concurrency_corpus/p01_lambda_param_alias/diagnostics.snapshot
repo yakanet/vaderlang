@@ -1,0 +1,1 @@
+[28:34] error[T3129] value written by several tasks: each task launched here writes `level.bots[].x` (through `nudge`, which writes it at line 23), which they all share with line 29 ; let each task return its part, or give each one its own value

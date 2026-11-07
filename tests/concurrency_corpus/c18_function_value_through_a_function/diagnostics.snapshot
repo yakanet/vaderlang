@@ -1,0 +1,1 @@
+[17:5] error[T3128] value written while a task uses it: `push` writes `words` while the task launched at line 16 reads it ; copy it before launching: `view :: words.deep_copy()`, then capture `view`

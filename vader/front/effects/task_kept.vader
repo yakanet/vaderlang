@@ -1,0 +1,166 @@
+// vader/front/effects/task_kept: where a function keeps what it is lent, for the
+// task check.
+//
+// The summary says that a function keeps a parameter, not where. The task check
+// needs the where when the keeper is another parameter: `register(registry, level)`
+// makes `level` a part of `registry`, and a write through `registry` then reaches
+// what a task reads of `level`. A function's own stores give the first such facts,
+// and each call hands its callee's on to the caller, until none moves.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "toolchain/span"
+import "vader/core/types"
+import "vader/front/typecheck"
+
+/// What a call keeps of an argument in another: the argument kept becomes a part
+/// of its holder, as the body's own store would make it.
+CalleeStore :: struct {
+    flow: Flow
+    /// The call.
+    at: Span
+}
+
+/// A parameter a function keeps in another one.
+KeptInto :: struct {
+    /// The parameter kept.
+    value: i64
+    /// The parameter that keeps it.
+    holder: i64
+    /// Where below the holder.
+    path: i32
+}
+
+// Per node, the parameters it keeps in other parameters. A node that stores nothing
+// keeps only what its callees keep, so it waits for one of them to grow.
+settle_kept_into :: fn(ctx: TaskCtx, callers: i32[][]) -> KeptInto[][] {
+    kept: KeptInto[][]: ctx.skeletons.len().filled(() -> [])
+    work: i32[]: []
+    queued :: Set<i32> {}
+    for node in 0..<ctx.skeletons.len() {
+        s :: ctx.skeletons[node]
+        if s.params >= 2 && s.stores.len() > 0 {
+            work.push(i32(node))
+            queued.add(i32(node))
+        }
+    }
+    for work.len() > 0 {
+        node :: work.remove_last() ?? break
+        queued.remove(node)
+        if ctx.note_kept_into(kept, node) {
+            for caller in callers[node] {
+                if ctx.skeletons[caller].params >= 2 && queued.add(caller) {
+                    work.push(caller)
+                }
+            }
+        }
+    }
+    return kept
+}
+
+// Add to `kept[node]` what its body keeps of a parameter in another: its own stores
+// and its calls' ; true when it grew.
+note_kept_into :: fn(ctx: TaskCtx, kept: KeptInto[][], node: i32) -> bool {
+    s :: ctx.skeletons[node]
+    moves: Flow[]: []
+    moves.push_all(s.stores)
+    for c in ctx.callee_stores(node, kept) {
+        moves.push(c.flow)
+    }
+    flows: Flow[]: []
+    flows.push_all(s.flows)
+    flows.push_all(moves)
+    slots :: SlotRoots { .roots = [null] * s.slots, .root_count = s.params }
+    for i in 0..<s.params {
+        slots.include_root(i, Root { .param = i, .path = ROOT })
+    }
+    slots.spread(s, ctx.eval_ctx(node), flows)
+    grew := false
+    for m in moves {
+        for v in slots.roots[m.into] ?? [] {
+            // A value that is a part of a parameter, not the parameter itself, has no
+            // relation to say: a stored value is a part of its holder, and taking the
+            // holder for the value would chain holders into each other.
+            if v.path != ROOT || v.under != ROOT {
+                continue
+            }
+            for h in slots.roots[m.from] ?? [] {
+                if v.param == h.param || v.param >= s.params || h.param >= s.params {
+                    continue
+                }
+                // The store puts the value in the place it writes: in `h` only below
+                // where the holder holds it.
+                into :: ctx.index.paths.lands_at(h, m.path, .Assigned) ?? continue
+                k :: KeptInto {
+                    .value = v.param,
+                    .holder = h.param,
+                    .path = into,
+                }
+                if kept[node].include_kept(k) {
+                    grew = true
+                }
+            }
+        }
+    }
+    return grew
+}
+
+// Whether `target` keeps its parameter `q` in another one: the flow its call makes
+// says where the value goes, which the summary's `Stored` does not.
+keeps_in_another :: fn(ctx: TaskCtx, target: CallTarget, q: i64) -> bool {
+    if target !is CalleeNode || target.node >= ctx.kept_into.len() {
+        return false
+    }
+    return ctx.kept_into[target.node].any_match((k) -> k.value == q)
+}
+
+// Add `k` to `kept` ; false when it held it.
+include_kept :: fn(kept: KeptInto[], k: KeptInto) -> bool {
+    held :: kept.any_match(
+        (u) -> u.value == k.value && u.holder == k.holder && u.path == k.path,
+    )
+    if held {
+        return false
+    }
+    kept.push(k)
+    return true
+}
+
+// The type of what parameter `q` of `site` receives ; null when the walk has no
+// expression for it.
+source_type :: fn(typed: TypedProgram, site: Site, q: i64) -> Type | null {
+    if q >= site.sources.len() {
+        return null
+    }
+    source :: site.sources[q] ?? return null
+    return typed.expr_types[source.id]
+}
+
+// What the calls of `node` keep of an argument in another. A value that holds no
+// reference, a string or a number, is a copy wherever it is kept.
+callee_stores :: fn(ctx: TaskCtx, node: i32, kept: KeptInto[][]) -> CalleeStore[] {
+    typed :: ctx.index.functions[node].typed
+    out: CalleeStore[]: []
+    for site in ctx.skeletons[node].sites {
+        for target in site.targets {
+            if target !is CalleeNode {
+                continue
+            }
+            for k in kept[target.node] {
+                if k.value >= site.args.len() || k.holder >= site.args.len() {
+                    continue
+                }
+                if !holds_references(source_type(typed, site, k.value)) {
+                    continue
+                }
+                value :: site.args[k.value] ?? continue
+                holder :: site.args[k.holder] ?? continue
+                flow :: Flow { .into = value, .from = holder, .path = k.path }
+                out.push(CalleeStore { .flow = flow, .at = site.at })
+            }
+        }
+    }
+    return out
+}

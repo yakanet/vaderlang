@@ -1,0 +1,29 @@
+// P59: the task hands `apply` the named fn `note`, which writes a singleton
+// that main writes too.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Log :: struct {
+    lines: i64 = 0
+}
+
+@singleton
+log :: fn() -> Log = Log {}
+
+note :: fn() -> void {
+    log().lines += 1
+}
+
+apply :: fn(work: fn() -> void) -> void = work()
+
+main :: fn() -> i32 {
+    t :: launch(() -> apply(note))
+    log().lines += 1
+    t.join()
+    return 0
+}

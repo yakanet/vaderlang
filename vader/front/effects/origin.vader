@@ -120,13 +120,13 @@ trace :: fn(ctx: TraceCtx, start: Link, index: i64) -> FaultChain {
         site :: at.s.sites[call.0]
         param :: call.2
         callee :: match target :: site.targets[call.1] {
-            is CalleeNode   -> target
-            is KnownEffects -> {
+            is CalleeNode              -> target
+            is KnownEffects            -> {
                 by :: display_callee(site.callee)
                 chain.write = written_by(ctx.index.paths, at, a, site.at, by)
                 return chain
             }
-            is AnyCallee    -> { return chain }
+            is AnyCallee | CalledParam -> { return chain }
         }
         f :: ctx.index.functions[callee.node]
         name :: f.decl.params[param].name

@@ -1,0 +1,27 @@
+// P29: each turn of the loop leaves a task writing the `log` singleton, beside the
+// ones the turns before left.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Log :: struct {
+    lines: string[] = []
+}
+
+@singleton
+log :: fn() -> Log = Log {}
+
+start_logger :: fn() -> void {
+    launch(() -> log().lines.push("start"))
+}
+
+main :: fn() -> i32 {
+    for i in 0..<3 {
+        start_logger()
+    }
+    return 0
+}

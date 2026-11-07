@@ -1,0 +1,21 @@
+// P45: only the task calls the lambda bound to a local, which writes `counter`:
+// main reads it once the task is joined.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    bump :: () -> { counter.n += 1 }
+    t :: launch(() -> bump())
+    t.join()
+    return counter.n - 1
+}

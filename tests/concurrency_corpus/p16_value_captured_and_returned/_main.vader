@@ -1,0 +1,23 @@
+// P16: the task returns `grid`, which main writes meanwhile.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+Grid :: struct {
+    cells: i64[] = []
+}
+
+keep :: fn(g: Grid) -> Grid = g
+
+main :: fn() -> i32 {
+    grid :: Grid { .cells = [1] }
+    t :: launch(() -> keep(grid))
+    grid.cells.push(2)
+    other :: t.join().unwrap()
+    return i32(other.cells.len()) - 2
+}

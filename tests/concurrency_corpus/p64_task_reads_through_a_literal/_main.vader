@@ -1,0 +1,26 @@
+// P64: the task reads `counter` through the literal that holds it while main writes
+// it: the copy is of the literal the task captures.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+Wrap :: struct {
+    counter: Counter
+}
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    w :: Wrap { .counter = counter }
+    t :: launch(() -> w.counter.n)
+    counter.n += 1
+    return t.join().unwrap()
+}

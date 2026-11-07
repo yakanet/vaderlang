@@ -24,13 +24,18 @@ import "std/iter"
 import "toolchain/span"
 import "vader/front/typecheck"
 
+AST :: import "toolchain/ast"
+
 // ---- constraints ----------------------------------------------------------
 
-/// Where a value may come from: root `param`, reached by `path`. A root below the
-/// parameter count is a parameter ; one above, an extra root of the skeleton.
+/// Where a value may come from: root `param`, reached by `path`, which the value
+/// holds `under` below itself: `ROOT` when the value is that part, `ITEM` for an
+/// iterator that hands it out. A root below the parameter count is a parameter ;
+/// one above, an extra root of the skeleton.
 Root :: struct {
     param: i64
     path: i32
+    under: i32 = ROOT
 }
 
 /// Slot `into` holds what slot `from` holds, `path` further down. A binding's flow
@@ -41,18 +46,22 @@ Flow :: struct {
     from: i64
     path: i32 = ROOT
     copy: i64 | null = null
+    /// Where what `into` holds lies below its value: `.p` for the value of `p` in
+    /// `Wrap { .p = p }`.
+    under: i32 = ROOT
 }
 
-/// The function does `effect` at `path` below what `slot` holds, at `at`.
+/// The function makes `access` below what `slot` holds, at `at` ; a value it
+/// returns lies `access.under` below its result. The access is built once: the
+/// fixed point applies the mark at every evaluation of the function.
 Mark :: struct {
     slot: i64
-    path: i32
-    effect: Effect
     at: Span
+    access: Access
 }
 
 /// What a call may run.
-export CallTarget :: CalleeNode | KnownEffects | AnyCallee
+export CallTarget :: CalleeNode | KnownEffects | AnyCallee | CalledParam
 
 /// A function of the project with a body: whatever the fixed point holds for it.
 export CalleeNode :: struct {
@@ -69,6 +78,23 @@ export KnownEffects :: struct {
 /// settle. It may do anything to what it is handed.
 export AnyCallee :: struct {}
 
+/// A call of the function value parameter `param` of the body holds: what it does
+/// with its arguments is what the caller hands there does (`Effect.Handed`).
+export CalledParam :: struct {
+    param: i64
+}
+
+/// An argument that is a lambda written at the call: the slots of its parameters,
+/// which receive what the callee hands its function value.
+LambdaArg :: struct {
+    params: i64[]
+}
+
+/// An argument that is a function value parameter of the body, by its position.
+ParamArg :: struct {
+    param: i64
+}
+
 /// A call: what it may run, the slot each parameter of the callee receives (by the
 /// parameter's position, null when the argument holds nothing lent), and the slot
 /// that receives its result.
@@ -83,6 +109,26 @@ Site :: struct {
     first_argument: i64
     /// What the call names, for a diagnostic, and where it is.
     callee: Callee
+    at: Span
+    /// The expression each parameter receives, where the walk has it: the task
+    /// check (`tasks.vader`) reads what a door is handed.
+    sources: (AST.Expr | null)[] = []
+    /// What each parameter receives as a function value, where the walk knows:
+    /// what a callee hands its function value parameter goes there.
+    fn_args: (LambdaArg | ParamArg | null)[] = []
+}
+
+/// A name the body reads or rebinds, for the task check.
+Use :: struct {
+    slot: i64
+    name: string
+    at: Span
+}
+
+/// A local of the body, for the task check: its slot, and where it is bound.
+Local :: struct {
+    slot: i64
+    name: string
     at: Span
 }
 
@@ -101,6 +147,20 @@ Skeleton :: struct {
     /// Extra root → the slot it starts in. A binding copies these roots rather than
     /// aliasing them ; a copy root starts in no slot. Null until a root is seeded.
     seeds: Map<i64, i64> | null = null
+    /// What the task check reads besides the constraints: the names the body
+    /// reads, those it rebinds, its locals, and the stores it makes into a value it
+    /// holds, `p.f = v` making `v` a part of `p`. The summary itself reads none.
+    uses: Use[] = []
+    rebinds: Use[] = []
+    locals: Local[] = []
+    stores: Flow[] = []
+    /// Where each store is: what the summary records there as kept is that store.
+    stored_at: Span[] = []
+    /// What the literals of the body hold, a field value below its struct, an
+    /// element below its array. The summary records each value as kept, by the
+    /// marks at `held_marks` ; the task check follows it into the literal.
+    held: Flow[] = []
+    held_marks: i64[] = []
 }
 
 /// The skeleton of a function of `params` parameters, before its body is walked.
@@ -153,13 +213,24 @@ next_root :: fn(s: Skeleton) -> i64 {
     return root
 }
 
-/// The function does `effect` at `path` below what `slot` holds, at `at`.
-add_mark :: fn(s: Skeleton, slot: i64, path: i32, effect: Effect, at: Span) -> void {
+/// The function does `effect` at `path` below what `slot` holds, at `at` ; a value
+/// it returns lies `under` below its result.
+add_mark :: fn(
+    s: Skeleton,
+    slot: i64,
+    path: i32,
+    effect: Effect,
+    at: Span,
+    under: i32 = ROOT,
+) -> void {
     mark :: Mark {
         .slot = slot,
-        .path = path,
-        .effect = effect,
         .at = at,
+        .access = Access {
+            .path = path,
+            .effect = effect,
+            .under = under,
+        },
     }
     s.marks.push(mark)
 }
@@ -171,6 +242,8 @@ add_mark :: fn(s: Skeleton, slot: i64, path: i32, effect: Effect, at: Span) -> v
 ///                 lent.
 /// @param callee   what the call names.
 /// @param at       where the call is.
+/// @param sources  the expression each parameter receives, where known.
+/// @param fn_args  what each parameter receives as a function value, where known.
 /// @return         the slot of the call's result.
 add_site :: fn(
     s: Skeleton,
@@ -178,6 +251,8 @@ add_site :: fn(
     args: (i64 | null)[],
     callee: Callee,
     at: Span,
+    sources: (AST.Expr | null)[] = [],
+    fn_args: (LambdaArg | ParamArg | null)[] = [],
 ) -> i64 {
     result :: s.fresh_slot()
     site :: Site {
@@ -187,6 +262,8 @@ add_site :: fn(
         .first_argument = s.arguments,
         .callee = callee,
         .at = at,
+        .sources = sources,
+        .fn_args = fn_args,
     }
     s.arguments += args.len()
     s.sites.push(site)
@@ -215,6 +292,8 @@ SlotRoots :: struct {
     /// The skeleton's root count, which spaces the keys of `seen`.
     root_count: i64
     seen: Set<i64> = Set<i64> {}
+    /// (path, under) -> a number of its own, for the roots a slot holds below it.
+    placed: Map<i64, i64> = Map<i64, i64> {}
 }
 
 /// Add to `out` what the function does with each of its parameters, its callees
@@ -259,11 +338,12 @@ evaluate_roots :: fn(s: Skeleton, ctx: EvalCtx) -> RootEffects {
         copy :: f.copy ?? continue
         roots :: slots.roots[f.from] ?? continue
         for r in roots {
-            if !s.is_seed(r.param) {
+            if !s.is_seed(r.param) || r.under != ROOT {
                 mixed.add(copy)
-            } else {
-                took.get_or_put_with(copy, () -> []).push(r.carried(f, ctx.paths))
+                continue
             }
+            held :: r.carried(f, ctx.paths) ?? continue
+            took.get_or_put_with(copy, () -> []).push(held)
         }
     }
     return RootEffects {
@@ -287,12 +367,12 @@ apply_constraints :: fn(
     for i in 0..<s.marks.len() {
         m :: s.marks[i]
         roots :: slots.roots[m.slot] ?? continue
-        if mark_roots(marked, roots, m.path, m.effect, ctx.paths, false, mark_origin(i)) {
+        if mark_roots(marked, roots, m.access, ctx.paths, false, mark_origin(i)) {
             grew = true
         }
     }
     for i in 0..<s.sites.len() {
-        if apply_site(lent, slots, s.sites[i], i, ctx) {
+        if apply_site(lent, slots, s.sites[i], i, ctx, s.params) {
             grew = true
         }
     }
@@ -316,15 +396,22 @@ settled_slots :: fn(s: Skeleton, ctx: EvalCtx, extra: bool) -> SlotRoots {
             slots.include_root(slot, Root { .param = root, .path = ROOT })
         }
     }
+    slots.spread(s, ctx, s.flows)
+    return slots
+}
+
+// Carry the roots `slots` holds along `flows` and through the calls of `s` until
+// none moves.
+spread :: fn(slots: SlotRoots, s: Skeleton, ctx: EvalCtx, flows: Flow[]) -> void {
     // How many roots of its source each flow has carried, and each argument of each
     // call has had collected: a round reads only the roots that arrived since, those
     // before it land where they already are. The callees' facts hold still meanwhile.
-    flowed: i64[]: [0] * s.flows.len()
+    flowed: i64[]: [0] * flows.len()
     collected: i64[]: [0] * s.arguments
     for {
         grew := false
-        for i in 0..<s.flows.len() {
-            f :: s.flows[i]
+        for i in 0..<flows.len() {
+            f :: flows[i]
             start :: flowed[i]
             // A flow may read the slot it writes: it stops at the roots held on entry.
             end :: slots.held_count(f.from)
@@ -345,7 +432,6 @@ settled_slots :: fn(s: Skeleton, ctx: EvalCtx, extra: bool) -> SlotRoots {
             break
         }
     }
-    return slots
 }
 
 // How many roots slot `slot` holds.
@@ -356,7 +442,7 @@ held_count :: fn(slots: SlotRoots, slot: i64) -> i64 {
 
 // Add `r` to slot `slot` ; false when it held it already.
 include_root :: fn(slots: SlotRoots, slot: i64, r: Root) -> bool {
-    key :: ((slot * slots.root_count + r.param) << 32) | i64(r.path)
+    key :: ((slot * slots.root_count + r.param) << 32) | slots.place_key(r)
     if !slots.seen.add(key) {
         return false
     }
@@ -368,6 +454,21 @@ include_root :: fn(slots: SlotRoots, slot: i64, r: Root) -> bool {
     }
     return true
 }
+
+// Where `r` lies, as `include_root` keys it: its path, for a root the slot is ; past
+// every path id, a number of its own per path and depth for one the slot holds
+// below it.
+place_key :: fn(slots: SlotRoots, r: Root) -> i64 {
+    if r.under == ROOT {
+        return i64(r.path)
+    }
+    id :: slots.placed.get_or_put(pair_key(r.path, r.under), slots.placed.len())
+    return HELD_BELOW_KEYS + id
+}
+
+// The first key `place_key` gives a root held below the slot's value: past the
+// path ids.
+HELD_BELOW_KEYS: i64: 0x8000_0000
 
 // Give slot `f.into` the roots of slot `f.from` from position `start` to `end`,
 // `f.path` further down, a seeded root of `s` becoming the copy root of a binding's
@@ -383,7 +484,7 @@ reroot :: fn(
     roots :: slots.roots[f.from] ?? return false
     grew := false
     for i in start..<end {
-        held :: flowed_root(roots[i], f, s, paths)
+        held :: flowed_root(roots[i], f, s, paths) ?? continue
         if slots.include_root(f.into, held) {
             grew = true
         }
@@ -391,20 +492,25 @@ reroot :: fn(
     return grew
 }
 
-// What slot `f.into` holds of root `r` of slot `f.from`.
-flowed_root :: fn(r: Root, f: Flow, s: Skeleton, paths: PathTable) -> Root {
+// What slot `f.into` holds of root `r` of slot `f.from` ; null for nothing.
+flowed_root :: fn(r: Root, f: Flow, s: Skeleton, paths: PathTable) -> Root | null {
     copy :: f.copy
-    if copy != null && s.is_seed(r.param) {
+    if copy != null && r.under == ROOT && s.is_seed(r.param) {
         return Root { .param = copy, .path = ROOT }
     }
     return r.carried(f, paths)
 }
 
-// Root `r` of slot `f.from` as slot `f.into` holds it, `f.path` further down: `r`
-// itself when the path does not move, a root being never written.
-carried :: fn(r: Root, f: Flow, paths: PathTable) -> Root = r.at_path(paths.joined(r.path, f.path))
+// Root `r` of slot `f.from` as slot `f.into` holds it, `f.path` further down and
+// `f.under` below its value ; null when that part of the value misses `r`.
+carried :: fn(r: Root, f: Flow, paths: PathTable) -> Root | null = paths.moved(r, f.path, f.under)
 
-// Root `r` at `path` instead: `r` itself when it is there already.
+// Whether `a` and `b` are the same part of the same root, held as deep.
+same_root :: fn(a: Root, b: Root) -> bool =
+    a.param == b.param && a.path == b.path && a.under == b.under
+
+// Root `r` at `path` instead: `r` itself when it is there already, a root being
+// never written.
 at_path :: fn(r: Root, path: i32) -> Root {
     if path == r.path {
         return r
@@ -412,14 +518,93 @@ at_path :: fn(r: Root, path: i32) -> Root {
     return Root { .param = r.param, .path = path }
 }
 
-// Give slot `into` the roots of slot `from` from position `start` to `end`, `path`
-// further down ; true when it gained one.
+// What a value holds of root `r` when it holds, `under` below itself, the part at
+// `path` of a value that holds `r`: `r` further down for a part of `r`, `r` itself
+// held deeper for a part that holds `r` ; null for a part beside it. A cut path
+// that may reach either way takes every part of `r`.
+moved :: fn(
+    paths: PathTable,
+    r: Root,
+    path: i32,
+    under: i32,
+    recursive: bool = false,
+) -> Root | null {
+    if r.under == ROOT && under == ROOT {
+        return r.at_path(paths.composed(r.path, path, recursive))
+    }
+    if paths.extends(path, r.under) {
+        rest :: paths.rest_after(path, paths.length_of(r.under))
+        return paths.placed(r.param, paths.composed(r.path, rest, recursive), under)
+    }
+    if !paths.extends(r.under, path) {
+        return null
+    }
+    if paths.is_cut(path) {
+        return paths.placed(r.param, paths.cut(r.path), under)
+    }
+    rest :: paths.rest_after(r.under, paths.length_of(path))
+    return paths.placed(r.param, r.path, paths.joined(under, rest))
+}
+
+// Root `param` at `path`, held `under` below the value. Held at a depth a path
+// cannot say, the value is taken for any part of `path`: what is done to it then
+// reaches all of `path`, which over-counts but misses nothing.
+placed :: fn(paths: PathTable, param: i64, path: i32, under: i32) -> Root {
+    if paths.is_cut(under) {
+        return Root { .param = param, .path = paths.cut(path) }
+    }
+    return Root {
+        .param = param,
+        .path = path,
+        .under = under,
+    }
+}
+
+// Where an access doing `effect` at `path` below a value that holds `r` lands below
+// `r`'s root ; null when it misses `r`. Through the part that holds `r`, it lands
+// as far down `r`. Above it, a write replaces or resizes what holds `r`, which
+// leaves `r` alone, while a keep takes `r` whole and unseen code may do anything to
+// it. A cut path that may reach either way takes every part of `r`.
+lands_at :: fn(
+    paths: PathTable,
+    r: Root,
+    path: i32,
+    effect: Effect,
+    recursive: bool = false,
+) -> i32 | null {
+    if r.under == ROOT {
+        return paths.composed(r.path, path, recursive)
+    }
+    if paths.extends(path, r.under) {
+        // The slot that holds `r` gets another value: `r` stays as it was.
+        if path == r.under && effect == .Assigned {
+            return null
+        }
+        rest :: paths.rest_after(path, paths.length_of(r.under))
+        return paths.composed(r.path, rest, recursive)
+    }
+    if !paths.extends(r.under, path) {
+        return null
+    }
+    if paths.is_cut(path) {
+        return paths.cut(r.path)
+    }
+    return match effect {
+        .Assigned | .Resized | .Shrunk -> null
+        .Stored | .Returned            -> r.path
+        .Unknown | .Handed             -> paths.cut(r.path)
+    }
+}
+
+// Give slot `into` what it holds, `under` below its value, of the part at `path` of
+// the roots of slot `from` from position `start` to `end` ; true when it gained one.
 reroot_below :: fn(
     slots: SlotRoots,
     from: i64,
     start: i64,
     end: i64,
     path: i32,
+    under: i32,
     into: i64,
     paths: PathTable,
     recursive: bool,
@@ -427,8 +612,7 @@ reroot_below :: fn(
     roots :: slots.roots[from] ?? return false
     grew := false
     for i in start..<end {
-        r :: roots[i]
-        below :: r.at_path(paths.composed(r.path, path, recursive))
+        below :: paths.moved(roots[i], path, under, recursive) ?? continue
         if slots.include_root(into, below) {
             grew = true
         }
@@ -437,12 +621,12 @@ reroot_below :: fn(
 }
 
 // Give the result of `site` what its callees return of the roots its arguments
-// gained since the last round, as many as `collected` counts for each ; true when
-// it gained a root.
+// gained since the last round, as many as `collected` counts for each, and the
+// parameters of a lambda it hands them what they hand the lambda ; true when a slot
+// gained a root.
 collect_returned :: fn(slots: SlotRoots, site: Site, ctx: EvalCtx, collected: i64[]) -> bool {
     grew := false
     for target in site.targets {
-        params :: known_params(target, ctx.facts)
         recursive :: ctx.recursive(target)
         for q in 0..<site.args.len() {
             arg :: site.args[q] ?? continue
@@ -451,11 +635,18 @@ collect_returned :: fn(slots: SlotRoots, site: Site, ctx: EvalCtx, collected: i6
             if start == end {
                 continue
             }
-            for a in accesses_of_param(params, q, ctx.any) {
-                if a.effect != .Returned {
-                    continue
-                }
-                if slots.reroot_below(arg, start, end, a.path, site.result, ctx.paths, recursive) {
+            for a in target_accesses(target, ctx.facts, q, ctx.any) {
+                into :: site.receiver(target, a) ?? continue
+                if slots.reroot_below(
+                    arg,
+                    start,
+                    end,
+                    a.path,
+                    a.under,
+                    into,
+                    ctx.paths,
+                    recursive,
+                ) {
                     grew = true
                 }
             }
@@ -468,30 +659,65 @@ collect_returned :: fn(slots: SlotRoots, site: Site, ctx: EvalCtx, collected: i6
     return grew
 }
 
+// The slot that receives what access `a` of `target`, a callee of `site`, makes of
+// an argument: the call's result for a value returned, a parameter of the lambda
+// the site writes for a value handed to it ; null for any other access.
+receiver :: fn(site: Site, target: CallTarget, a: Access) -> i64 | null {
+    if a.effect == .Returned {
+        return site.result
+    }
+    if a.effect != .Handed {
+        return null
+    }
+    lambda :: site.fn_value_of(target, a)
+    if lambda !is LambdaArg || a.fn_arg >= lambda.params.len() {
+        return null
+    }
+    return lambda.params[a.fn_arg]
+}
+
+// The function value the `Handed` access `a` of `target`, a callee of `site`, hands
+// a value to: the body's own parameter for the body's call of it, else what the
+// site passes as the callee's parameter ; null when the walk does not know it.
+fn_value_of :: fn(site: Site, target: CallTarget, a: Access) -> LambdaArg | ParamArg | null {
+    if target is CalledParam {
+        return ParamArg { .param = a.fn_param }
+    }
+    if a.fn_param >= site.fn_args.len() {
+        return null
+    }
+    return site.fn_args[a.fn_param]
+}
+
 // Record what the callees of `site`, the body's call number `index`, do to the
 // arguments it lends them ; true when a set of `out` grew. What a callee returns is
 // not an effect on the argument: the caller holds it through the result, whose
-// slot carries it on.
+// slot carries it on. The roots below `params` are the body's parameters.
 apply_site :: fn(
     out: ParamEffects[],
     slots: SlotRoots,
     site: Site,
     index: i64,
     ctx: EvalCtx,
+    params: i64,
 ) -> bool {
     grew := false
     for t in 0..<site.targets.len() {
         target :: site.targets[t]
-        params :: known_params(target, ctx.facts)
         recursive :: ctx.recursive(target)
         for q in 0..<site.args.len() {
             arg :: site.args[q] ?? continue
             roots :: slots.roots[arg] ?? continue
             how :: call_origin(index, t, q)
-            for a in accesses_of_param(params, q, ctx.any) {
-                if a.effect != .Returned {
-                    then :: access_key(a)
-                    if mark_roots(out, roots, a.path, a.effect, ctx.paths, recursive, how, then) {
+            for a in target_accesses(target, ctx.facts, q, ctx.any) {
+                then :: access_key(a)
+                if a.effect == .Handed {
+                    value :: site.fn_value_of(target, a)
+                    if mark_handed(out, roots, a, value, params, ctx.paths, recursive, how, then) {
+                        grew = true
+                    }
+                } else if a.effect != .Returned {
+                    if mark_roots(out, roots, a, ctx.paths, recursive, how, then) {
                         grew = true
                     }
                 }
@@ -501,14 +727,71 @@ apply_site :: fn(
     return grew
 }
 
+// Record at each of `roots` that the function hands it to the function value
+// `value`, as the callee's `Handed` access `a` says ; true when a set grew. A lambda
+// the site writes gets it through its parameters (`receiver`), whose slots carry
+// what its body does. A parameter of the body is handed it in turn, which the
+// body's own callers settle ; a root that is no parameter, or a function value the
+// walk does not know, is handed to unknown code.
+mark_handed :: fn(
+    out: ParamEffects[],
+    roots: Root[],
+    a: Access,
+    value: LambdaArg | ParamArg | null,
+    params: i64,
+    paths: PathTable,
+    recursive: bool,
+    how: i64,
+    then: i64,
+) -> bool {
+    if value is LambdaArg {
+        return false
+    }
+    grew := false
+    for r in roots {
+        below :: paths.lands_at(r, a.path, .Handed, recursive) ?? continue
+        if value is ParamArg && r.param < params {
+            handed :: handed_to(below, value.param, a.fn_arg)
+            if paths.include_access(out[r.param], handed, how, then) {
+                grew = true
+            }
+        } else {
+            anywhere :: paths.cut(below)
+            if paths.include(out[r.param], anywhere, .Unknown, how, then) {
+                grew = true
+            }
+            if paths.include(out[r.param], anywhere, .Stored, how, then) {
+                grew = true
+            }
+        }
+    }
+    return grew
+}
+
 // What the callee does with each of its parameters ; null for a callee nothing is
-// known of.
+// known of, which a function value the body holds is to code that does not resolve
+// it (`target_accesses`).
 known_params :: fn(target: CallTarget, facts: ParamEffects[][]) -> ParamEffects[] | null =
     match target {
-        is CalleeNode   -> facts[target.node]
-        is KnownEffects -> target.params
-        is AnyCallee    -> null
+        is CalleeNode              -> facts[target.node]
+        is KnownEffects            -> target.params
+        is AnyCallee | CalledParam -> null
     }
+
+// The accesses `target` makes through its parameter `q`: its callee's, those of
+// `any` when nothing is known of it, the value handed on for the function value a
+// parameter of the body holds.
+target_accesses :: fn(
+    target: CallTarget,
+    facts: ParamEffects[][],
+    q: i64,
+    any: ParamEffects,
+) -> Access[] {
+    if target is CalledParam {
+        return [handed_to(ROOT, target.param, q)]
+    }
+    return accesses_of_param(known_params(target, facts), q, any)
+}
 
 // The accesses a callee makes through its parameter `q` ; those of `any` when
 // nothing is known of the callee, or of that parameter.
@@ -521,13 +804,13 @@ accesses_of_param :: fn(
     return params[q].accesses
 }
 
-// Record at each of `roots` that the function does `effect` at `path` below it, by
-// the constraint `how` carrying the callee's access `then` ; true when a set grew.
+// Record at each of `roots` that the function does what `a` does below it, by the
+// constraint `how` carrying the callee's access `then` ; true when a set grew. A
+// value returned lies in the result where the value it is a part of does.
 mark_roots :: fn(
     out: ParamEffects[],
     roots: Root[],
-    path: i32,
-    effect: Effect,
+    a: Access,
     paths: PathTable,
     recursive: bool,
     how: i64,
@@ -535,13 +818,65 @@ mark_roots :: fn(
 ) -> bool {
     grew := false
     for r in roots {
-        below :: paths.composed(r.path, path, recursive)
-        if paths.include(out[r.param], below, effect, how, then) {
+        if paths.mark_root(out[r.param], r, a, recursive, how, then) {
             grew = true
         }
     }
     return grew
 }
+
+// Record in `effects` what `a` does below a value that holds `r`, as `mark_roots`
+// does. When neither `r` nor `a` lies below the value, the access lands plain at the
+// composed path, and its key is tested before any access is built.
+mark_root :: fn(
+    paths: PathTable,
+    effects: ParamEffects,
+    r: Root,
+    a: Access,
+    recursive: bool,
+    how: i64,
+    then: i64,
+) -> bool {
+    if r.under != ROOT || a.under != ROOT {
+        access :: paths.landed(r, a, recursive) ?? return false
+        return paths.include_access(effects, access, how, then)
+    }
+    below :: paths.composed(r.path, a.path, recursive)
+    if paths.covered(effects, below, a.effect, NO_DESTINATION) {
+        return false
+    }
+    paths.add_access(effects, a.plain_at(below), how, then)
+    return true
+}
+
+// The access of `r`'s root that `a`, below a value that holds `r`, makes ; null when
+// it misses `r`.
+landed :: fn(paths: PathTable, r: Root, a: Access, recursive: bool) -> Access | null {
+    if a.effect != .Returned {
+        below :: paths.lands_at(r, a.path, a.effect, recursive) ?? return null
+        return a.plain_at(below)
+    }
+    held :: paths.moved(r, a.path, a.under, recursive) ?? return null
+    if held.path == a.path && held.under == a.under && is_plain(a) {
+        return a
+    }
+    return Access {
+        .path = held.path,
+        .effect = .Returned,
+        .under = held.under,
+    }
+}
+
+// What `a` does at `path`, handing nothing on: `a` itself when it is that already.
+plain_at :: fn(a: Access, path: i32) -> Access {
+    if path == a.path && a.under == ROOT && is_plain(a) {
+        return a
+    }
+    return Access { .path = path, .effect = a.effect }
+}
+
+// Whether `a` hands nothing to a function value.
+is_plain :: fn(a: Access) -> bool = a.fn_param == -1 && a.fn_arg == -1
 
 // `path` below `root`. Through a call back into the caller's own component, a part
 // of a parameter handed down takes everything below it: a recursive walk of a tree
@@ -587,7 +922,7 @@ evaluated :: fn(s: Skeleton, ctx: EvalCtx) -> ParamEffects[] {
 rendered :: fn(t: PathTable, effects: ParamEffects[], param: i64) -> string {
     out: string[]: []
     for a in sorted_accesses(t, effects[param]) {
-        out.push("${effect_label(a.effect)} ${t.display_path(a.path)}")
+        out.push(access_label(t, a, ""))
     }
     return out.join(", ")
 }
@@ -649,4 +984,149 @@ test_evaluate_settles_a_slot_that_reads_itself :: fn() -> void {
         rendered(t, evaluated(s, test_ctx(t, [])), 0),
         "assigned , assigned .next, assigned .next.next, assigned .next.next.next…",
     )
+}
+
+@test
+test_evaluate_hands_a_value_to_a_called_parameter :: fn() -> void {
+    t :: PathTable {}
+    s :: new_skeleton(2)
+    element :: s.fresh_slot()
+    s.add_flow(element, 0, t.path_to(ELEMENT))
+    s.add_site([CalledParam { .param = 1 }], [element], UNSET, empty_span())
+    assert_eq(rendered(t, evaluated(s, test_ctx(t, [])), 0), "handed []")
+}
+
+// What a callee does that hands the elements of its first parameter to the function
+// value its second holds.
+hands_elements :: fn(t: PathTable) -> ParamEffects {
+    effects :: ParamEffects {}
+    effects.insert(handed_to(t.path_to(ELEMENT), 1, 0))
+    return effects
+}
+
+@test
+test_evaluate_runs_the_lambda_a_callee_hands_a_value_to :: fn() -> void {
+    t :: PathTable {}
+    s :: new_skeleton(1)
+    lambda_param :: s.fresh_slot()
+    s.add_mark(lambda_param, t.path_to("x"), .Assigned, empty_span())
+    first: i64: 0
+    lambda :: LambdaArg { .params = [lambda_param] }
+    s.add_site([CalleeNode { .node = 0 }], [first, null], UNSET, empty_span(), [], [null, lambda])
+    facts :: [[hands_elements(t), ParamEffects {}]]
+    assert_eq(rendered(t, evaluated(s, test_ctx(t, facts)), 0), "assigned [].x")
+}
+
+@test
+test_evaluate_hands_an_unknown_function_value_anything :: fn() -> void {
+    t :: PathTable {}
+    s :: new_skeleton(1)
+    first: i64: 0
+    s.add_site([CalleeNode { .node = 0 }], [first, null], UNSET, empty_span())
+    facts :: [[hands_elements(t), ParamEffects {}]]
+    assert_eq(rendered(t, evaluated(s, test_ctx(t, facts)), 0), "stored []…, unknown []…")
+}
+
+// Root 0 at `.bots[]`, held at `ITEM` below the value: an iterator over the bots.
+iterator_root :: fn(t: PathTable) -> Root = Root {
+    .param = 0,
+    .path = t.joined(t.path_to("bots"), t.path_to(ELEMENT)),
+    .under = t.path_to(ITEM),
+}
+
+// How a test names what a value holds of a root: its path, then where it is held.
+held_label :: fn(t: PathTable, r: Root | null) -> string {
+    if r == null {
+        return "none"
+    }
+    if r.under == ROOT {
+        return t.display_path(r.path)
+    }
+    return "${t.display_path(r.path)} at ${t.display_path(r.under)}"
+}
+
+@test
+test_moved_takes_what_an_iterator_hands_out :: fn() -> void {
+    t :: PathTable {}
+    item_x :: t.joined(t.path_to(ITEM), t.path_to("x"))
+    assert_eq(held_label(t, t.moved(iterator_root(t), item_x, ROOT)), ".bots[].x")
+}
+
+@test
+test_moved_holds_a_root_deeper_in_what_holds_its_holder :: fn() -> void {
+    t :: PathTable {}
+    held :: t.moved(iterator_root(t), ROOT, t.path_to(ITEM))
+    assert_eq(held_label(t, held), ".bots[] at <item><item>")
+}
+
+@test
+test_moved_misses_the_state_of_an_iterator :: fn() -> void {
+    t :: PathTable {}
+    assert_eq(held_label(t, t.moved(iterator_root(t), t.path_to("cursor"), ROOT)), "none")
+}
+
+@test
+test_lands_at_spares_a_root_whose_holder_is_assigned :: fn() -> void {
+    t :: PathTable {}
+    assert(t.lands_at(iterator_root(t), t.path_to(ITEM), .Assigned) == null, "a new item")
+}
+
+@test
+test_lands_at_keeps_a_root_whole_with_what_holds_it :: fn() -> void {
+    t :: PathTable {}
+    kept :: t.lands_at(iterator_root(t), ROOT, .Stored) ?? -1
+    assert_eq(kept, t.joined(t.path_to("bots"), t.path_to(ELEMENT)))
+}
+
+@test
+test_evaluate_returns_what_a_generator_yields_below_its_result :: fn() -> void {
+    t :: PathTable {}
+    s :: new_skeleton(1)
+    element :: s.fresh_slot()
+    s.add_flow(element, 0, t.path_to(ELEMENT))
+    s.add_mark(element, ROOT, .Returned, empty_span(), t.path_to(ITEM))
+    assert_eq(rendered(t, evaluated(s, test_ctx(t, [])), 0), "returned [] at <item>")
+}
+
+@test
+test_evaluate_writes_what_an_iterator_hands_out :: fn() -> void {
+    t :: PathTable {}
+    yields_elements :: ParamEffects {}
+    yielded :: Access {
+        .path = t.path_to(ELEMENT),
+        .effect = .Returned,
+        .under = t.path_to(ITEM),
+    }
+    yields_elements.insert(yielded)
+    s :: new_skeleton(1)
+    first: i64: 0
+    known :: KnownEffects { .params = [yields_elements] }
+    iterator :: s.add_site([known], [first], UNSET, empty_span())
+    item :: s.fresh_slot()
+    s.add_flow(item, iterator, t.path_to(ITEM))
+    s.add_mark(item, t.path_to("n"), .Assigned, empty_span())
+    s.add_mark(iterator, t.path_to("cursor"), .Assigned, empty_span())
+    assert_eq(rendered(t, evaluated(s, test_ctx(t, [])), 0), "assigned [].n")
+}
+
+@test
+test_evaluate_writes_a_value_through_the_literal_holding_it :: fn() -> void {
+    t :: PathTable {}
+    s :: new_skeleton(1)
+    literal :: s.fresh_slot()
+    s.flows.push(Flow { .into = literal, .from = 0, .under = t.path_to("p") })
+    s.add_mark(literal, t.joined(t.path_to("p"), t.path_to("n")), .Assigned, empty_span())
+    s.add_mark(literal, t.path_to("q"), .Assigned, empty_span())
+    assert_eq(rendered(t, evaluated(s, test_ctx(t, [])), 0), "assigned .n")
+}
+
+@test
+test_evaluate_writes_a_source_through_the_spread_holding_its_field :: fn() -> void {
+    t :: PathTable {}
+    s :: new_skeleton(1)
+    literal :: s.fresh_slot()
+    field :: t.path_to("f")
+    s.flows.push(Flow { .into = literal, .from = 0, .path = field, .under = field })
+    s.add_mark(literal, t.joined(field, t.path_to("g")), .Assigned, empty_span())
+    assert_eq(rendered(t, evaluated(s, test_ctx(t, [])), 0), "assigned .f.g")
 }

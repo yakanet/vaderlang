@@ -1,0 +1,17 @@
+// T3128 : the task pushes into `scores` while the code after the launch reads it,
+// before the join.
+module "snippet"
+
+import "std/task"
+
+fill :: fn(scores: i64[]) -> void {
+    scores.push(1)
+}
+
+main :: fn() -> i32 {
+    scores: i64[]: []
+    t :: launch(() -> fill(scores))
+    n :: scores.len()
+    t.join()
+    return i32(n)
+}

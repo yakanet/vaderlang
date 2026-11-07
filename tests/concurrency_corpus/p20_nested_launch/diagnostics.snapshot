@@ -1,0 +1,1 @@
+[20:9] error[T3128] value written while a task uses it: this writes `level.n` while the task launched at line 19 reads it ; copy it before launching: `view :: level.deep_copy()`, then capture `view`

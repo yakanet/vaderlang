@@ -1,0 +1,43 @@
+// P39: main hands `each` a function value read from a field, while a task reads the
+// level: nothing says what that value does with each bot, so it may write it.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/task"
+
+Bot :: struct {
+    x: i64 = 0
+}
+
+Level :: struct {
+    bots: Bot[] = []
+}
+
+Hooks :: struct {
+    on_bot: fn(Bot) -> void
+}
+
+each :: fn(bots: Bot[], f: fn(Bot) -> void) -> void {
+    for b in bots {
+        f(b)
+    }
+}
+
+count :: fn(level: Level) -> i64 {
+    n: i64 = 0
+    for b in level.bots {
+        n += b.x
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    level :: Level { .bots = [Bot {}, Bot {}] }
+    hooks :: Hooks { .on_bot = b -> { b.x += 1 } }
+    t :: launch(() -> count(level))
+    each(level.bots, hooks.on_bot)
+    return i32(t.join())
+}

@@ -3282,7 +3282,7 @@ main :: fn() -> i32 {
 
 ## 12. Decorators
 
-Decorators are compiler instructions prefixed with `@`. They act at compile time, never at run time. Placing `@target`, `@singleton`, `@returns`, `@ensures`, a `@c_*` decorator, `@displayable` or `@assert` where it does not apply is an error.
+Decorators are compiler instructions prefixed with `@`. They act at compile time, never at run time. Placing `@target`, `@singleton`, `@returns`, `@ensures`, a `@c_*` decorator, `@main_thread`, `@displayable` or `@assert` where it does not apply is an error.
 
 | Decorator | Target | Purpose |
 |-----------|--------|---------|
@@ -3294,6 +3294,7 @@ Decorators are compiler instructions prefixed with `@`. They act at compile time
 | `@c_header("<header.h>")` | `@extern` fn | Takes the prototype from a C header (§13) |
 | `@c_struct`, `@c_struct("struct name")` | struct | Mirrors a C struct (§13), named by an optional C type name |
 | `@c_variadic(N)` | `@extern` fn | The C function is variadic after `N` fixed parameters (§13) |
+| `@main_thread` | `@extern` fn | The C function runs on the main thread only, out of reach of every task (§13) |
 | `@intrinsic` | fn or impl without body | The host runtime provides the body (*`@intrinsic`*, below) |
 | `@export`, `@export("name")` | fn | Exposes the function under an unmangled name (§13) |
 | `@test` | fn | Marks a test, run by `vader test` (`docs/TOOLING.md` *Tests*) |
@@ -3508,6 +3509,20 @@ set_flags :: fn(fd: i32, command: i32, flags: i32) -> i32
 ```
 
 A native build reads the prototype from the header, `vader run` reads `N`: without it, `vader run` calls the function as a fixed one, and on some systems (darwin-arm64) the function then reads its variadic arguments from the wrong place.
+
+### `@main_thread`: a C function bound to the main thread
+
+Some C libraries must be called from the thread that started the program: a window system, a GPU context. `@main_thread` on an `@extern` function says so. A task of `std/task` that may call it, directly or through any function it calls, is an error: the code that launches the task calls it instead, before the launch or after the join.
+
+```vader
+@extern
+@main_thread
+gpu_draw :: fn() -> i64
+
+draw :: fn() -> i64 = gpu_draw()
+
+t :: launch(draw)   // error: the task reaches `gpu_draw`
+```
 
 ### `@c_type`: the C spelling of an integer
 

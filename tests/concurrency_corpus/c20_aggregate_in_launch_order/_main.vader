@@ -1,0 +1,35 @@
+// C20: each map is given back by its join, merged in launch order.
+//
+// corpus: accepted
+// expect: accepted
+
+module "snippet"
+
+import "std/collections"
+import "std/option"
+import "std/task"
+
+count_words :: fn(f: string) -> Map<string, i64> {
+    m :: Map<string, i64> {}
+    m[f] = 1
+    return m
+}
+
+merge :: fn(total: Map<string, i64>, part: Map<string, i64>) -> void {
+    for [k, v] in part {
+        total[k] = (total[k] ?? 0) + v
+    }
+}
+
+main :: fn() -> i32 {
+    files: string[]: ["a", "b"]
+    tasks: Task<Map<string, i64>>[]: []
+    for f in files {
+        tasks.push(launch(() -> count_words(f)))
+    }
+    total :: Map<string, i64> {}
+    for t in tasks {
+        merge(total, t.join().unwrap())
+    }
+    return i32(total.len()) - 2
+}

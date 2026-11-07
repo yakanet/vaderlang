@@ -1,0 +1,30 @@
+// P30: `start` calls `start_logger`, which leaves a task writing the `log`
+// singleton: the task outlives both calls, and main writes `log` after them.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Log :: struct {
+    lines: string[] = []
+}
+
+@singleton
+log :: fn() -> Log = Log {}
+
+start_logger :: fn() -> void {
+    launch(() -> log().lines.push("start"))
+}
+
+start :: fn() -> void {
+    start_logger()
+}
+
+main :: fn() -> i32 {
+    start()
+    log().lines.push("main")
+    return 0
+}

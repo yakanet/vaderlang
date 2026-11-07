@@ -1,0 +1,1 @@
+[26:5] error[T3129] value written by several tasks: this writes `log().lines` while the task launched at line 25 writes it too (through `note`) ; a singleton is one value for every task: hold what tasks write of it in a `Shared` (an `AtomicInt` or an `AtomicBool` for a counter or a flag), or leave it to one task

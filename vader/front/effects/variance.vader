@@ -107,7 +107,7 @@ widening_outcome :: fn(
     any: ParamEffects,
 ) -> WideningSite {
     for target in w.targets {
-        if target is AnyCallee {
+        if target is AnyCallee | CalledParam {
             return WideningSite { ...w.site, .verdict = .UnknownCallee }
         }
         for a in accesses_of_param(known_params(target, facts), w.site.param, any) {
@@ -184,6 +184,7 @@ what_it_may_do :: fn(effect: Effect, target: string) -> string = match effect {
     .Stored   -> "may keep ${target}"
     .Returned -> "may return ${target}"
     .Unknown  -> "may hand ${target} to code it cannot see"
+    .Handed   -> "may hand ${target} to a function value"
     // A shrink never breaks a widening (`breaks_widening`): the arm keeps the
     // match exhaustive.
     .Shrunk   -> "may shrink ${target}"

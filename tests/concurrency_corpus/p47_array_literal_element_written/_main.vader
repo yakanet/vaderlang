@@ -1,0 +1,23 @@
+// P47: the task writes an element of the array literal that holds `a`, while main
+// writes `a`.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    a :: Counter {}
+    b :: Counter {}
+    parts :: [a, b]
+    t :: launch(() -> { parts[0].n += 1 })
+    a.n += 1
+    t.join()
+    return a.n + b.n - 2
+}

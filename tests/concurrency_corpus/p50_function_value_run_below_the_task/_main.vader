@@ -1,0 +1,28 @@
+// P50: the task calls `run`, which calls the function value a field of `job`
+// holds: its body, written in main, writes `counter`, and the check cannot see it.
+//
+// corpus: probe
+// expect: T3134
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+Job :: struct {
+    work: fn() -> void
+}
+
+run :: fn(job: Job) -> void = job.work()
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    job :: Job { .work = () -> { counter.n += 1 } }
+    t :: launch(() -> run(job))
+    counter.n += 1
+    t.join()
+    return counter.n - 2
+}

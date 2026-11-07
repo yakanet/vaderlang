@@ -1,0 +1,43 @@
+// P36: main hands `each` a lambda that only reads each bot, while a task reads the
+// level: `each` calls its parameter on the bots, which the lambda main writes only
+// reads.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Bot :: struct {
+    x: i64 = 0
+}
+
+Level :: struct {
+    bots: Bot[] = []
+}
+
+each :: fn(bots: Bot[], f: fn(Bot) -> void) -> void {
+    for b in bots {
+        f(b)
+    }
+}
+
+count :: fn(level: Level) -> i64 {
+    n: i64 = 0
+    for b in level.bots {
+        n += b.x
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    level :: Level { .bots = [Bot {}, Bot {}] }
+    t :: launch(() -> count(level))
+    total: i64 = 0
+    each(level.bots, b -> {
+        total += b.x
+    })
+    t.join()
+    return i32(total)
+}

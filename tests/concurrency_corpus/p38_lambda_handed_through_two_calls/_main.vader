@@ -1,0 +1,42 @@
+// P38: `nudge_all` hands its parameter on to `each`, and main hands it a lambda that
+// writes each bot while a task reads the level.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/task"
+
+Bot :: struct {
+    x: i64 = 0
+}
+
+Level :: struct {
+    bots: Bot[] = []
+}
+
+each :: fn(bots: Bot[], f: fn(Bot) -> void) -> void {
+    for b in bots {
+        f(b)
+    }
+}
+
+nudge_all :: fn(level: Level, f: fn(Bot) -> void) -> void = each(level.bots, f)
+
+count :: fn(level: Level) -> i64 {
+    n: i64 = 0
+    for b in level.bots {
+        n += b.x
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    level :: Level { .bots = [Bot {}, Bot {}] }
+    t :: launch(() -> count(level))
+    nudge_all(level, b -> {
+        b.x += 1
+    })
+    return i32(t.join())
+}

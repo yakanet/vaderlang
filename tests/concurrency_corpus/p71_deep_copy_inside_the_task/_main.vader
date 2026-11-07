@@ -1,0 +1,33 @@
+// P71: the copy made inside the task reads the whole level while `update` writes
+// a bot of it: `deep_copy` reads all of its argument.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+Bot :: struct {
+    x: i64 = 0
+}
+
+Level :: struct {
+    bots: Bot[] = []
+}
+
+// Writes `level.bots[i].x`.
+update :: fn(level: Level) -> void {
+    for i in 0..<level.bots.len() {
+        level.bots[i].x += 1
+    }
+}
+
+main :: fn() -> i32 {
+    level :: Level { .bots = [Bot {}] }
+    ai :: launch(() -> level.deep_copy())
+    update(level)
+    copy :: ai.join().unwrap()
+    return i32(copy.bots.len()) - 1
+}

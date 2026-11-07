@@ -1,0 +1,1 @@
+[24:9] error[T3128] value written while a task uses it: this writes `stats.seen` while the task launched at line 27 reads it ; copy it before launching: `view :: stats.deep_copy()`, then capture `view`

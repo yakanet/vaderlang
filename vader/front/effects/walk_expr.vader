@@ -132,6 +132,7 @@ ident_value :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> i64 | null {
     if local != null {
         if e.id !in ctx.place_bases {
             ctx.seen_names.add(sym.id)
+            ctx.s.uses.push(Use { .slot = local, .name = sym.name, .at = e.span })
         }
         return ctx.narrowed(local, type_of_symbol(sym, ctx.typed), ctx.typed.expr_types[e.id])
     }
@@ -174,15 +175,42 @@ call_value :: fn(ctx: WalkCtx, c: AST.CallExpr) -> i64 | null {
     callee :: ctx.site_callee(.Call, c.id) ?? UnsettledCallee {}
     sources :: ctx.call_sources(c, callee)
     args: (i64 | null)[]: []
-    for source in sources {
-        args.push(ctx.value(source))
+    fn_args: (LambdaArg | ParamArg | null)[]: []
+    for q in 0..<sources.len() {
+        ctx.binds_lambda_params = sources[q] is AST.LambdaExpr
+        args.push(ctx.value(sources[q]))
+        ctx.binds_lambda_params = false
+        fn_args.push(ctx.fn_arg(sources[q]))
+        ctx.lambda_params = []
     }
     // A conversion that runs no `into` hands on the value it converts, but for the
     // data of an enum's variant, read from the enum's table.
     if callee is Builtin {
         return ctx.union_of([single(args), ctx.frozen_variant_data(c)])
     }
-    return ctx.union_of([ctx.call(callee, args, c.span, sources), ctx.frozen_view(c, callee)])
+    called :: ctx.called_param(c, callee)
+    result :: ctx.call(callee, args, c.span, sources, fn_args, called)
+    return ctx.union_of([result, ctx.frozen_view(c, callee)])
+}
+
+// What `source`, an argument, is as a function value: a lambda written there, with
+// the slots the walk just gave its parameters, or a parameter of the body ; null
+// for anything else.
+fn_arg :: fn(ctx: WalkCtx, source: AST.Expr) -> LambdaArg | ParamArg | null {
+    if source is AST.LambdaExpr {
+        return LambdaArg { .params = ctx.lambda_params }
+    }
+    param :: ctx.param_named(source) ?? return null
+    return ParamArg { .param = param }
+}
+
+// The parameter of the body whose function value `c` calls ; null for a call of
+// anything else.
+called_param :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> i64 | null {
+    if callee !is FnValue {
+        return null
+    }
+    return ctx.param_named(c.callee)
 }
 
 // The expression each parameter of the callee receives, by position: the receiver
@@ -317,44 +345,56 @@ block_value :: fn(ctx: WalkCtx, b: AST.BlockExpr) -> i64 | null {
 // A lambda's own parameters hold nothing lent: whoever calls it is a function value
 // call, which lends it anything. What it returns leaves for that caller.
 lambda_value :: fn(ctx: WalkCtx, l: AST.LambdaExpr) -> i64 | null {
+    bound: i64[]: []
+    if ctx.binds_lambda_params {
+        ctx.binds_lambda_params = false
+        for p in l.params {
+            sym :: ctx.typed.resolved.idents[p.span.hash()] ?? continue
+            bound.push(ctx.local_slot(sym, p.span))
+        }
+    }
     ctx.lambda_depth += 1
     ctx.escape(ctx.block_value(l.body), .Stored, l.span)
     ctx.lambda_depth -= 1
+    ctx.lambda_params = bound
     return null
 }
 
 // ---- literals -------------------------------------------------------------
 
-// A struct literal keeps its field values ; a spread keeps every field of its
-// source the literal does not name. The literal is a fresh value.
+// A struct literal is a fresh value that holds its field values, and for a spread
+// every field of its source the literal does not name.
 struct_literal_value :: fn(ctx: WalkCtx, e: AST.StructLitExpr) -> i64 | null {
+    literal :: ctx.s.fresh_slot()
     named :: Set<string> {}
     for item in e.items {
         if item is AST.StructLitField {
             named.add(item.name)
-            ctx.escape(ctx.value(item.value), .Stored, item.value.span)
+            under :: ctx.index.paths.path_to(item.name)
+            ctx.hold(literal, ctx.value(item.value), ROOT, under, item.value.span)
         }
     }
     for item in e.items {
         if item is AST.StructLitSpread {
-            ctx.spread(item.expr, named)
+            ctx.spread(literal, item.expr, named)
         }
     }
-    return null
+    return literal
 }
 
-// Keep each field of `source` that `named` leaves out, as a spread copies it ; all
-// of `source` when its fields are not known.
-spread :: fn(ctx: WalkCtx, source: AST.Expr, named: Set<string>) -> void {
+// `literal` holds each field of `source` that `named` leaves out, as a spread copies
+// it ; all of `source` when its fields are not known.
+spread :: fn(ctx: WalkCtx, literal: i64, source: AST.Expr, named: Set<string>) -> void {
     slot :: ctx.value(source) ?? return
     fields :: ctx.struct_fields_of(source)
     if fields == null {
-        ctx.s.add_mark(slot, EVERYWHERE, .Stored, source.span)
+        ctx.hold(literal, slot, EVERYWHERE, ROOT, source.span)
         return
     }
     for [name, field] in fields {
         if name !in named && holds_references(field.ty) {
-            ctx.s.add_mark(slot, ctx.index.paths.path_to(name), .Stored, source.span)
+            path :: ctx.index.paths.path_to(name)
+            ctx.hold(literal, slot, path, path, source.span)
         }
     }
 }
@@ -368,12 +408,14 @@ struct_fields_of :: fn(ctx: WalkCtx, e: AST.Expr) -> Map<string, StructFieldInfo
     return ctx.typed.struct_fields[t.symbol.id]
 }
 
-// An array or a tuple literal keeps its elements ; it is a fresh value.
+// An array or a tuple literal is a fresh value that holds its elements.
 sequence_value :: fn(ctx: WalkCtx, e: AST.SeqLitExpr) -> i64 | null {
+    literal :: ctx.s.fresh_slot()
+    element_path :: ctx.index.paths.path_to(ELEMENT)
     for element in e.elements {
-        ctx.escape(ctx.value(element), .Stored, element.span)
+        ctx.hold(literal, ctx.value(element), ROOT, element_path, element.span)
     }
-    return null
+    return literal
 }
 
 range_value :: fn(ctx: WalkCtx, e: AST.RangeExpr) -> i64 | null {

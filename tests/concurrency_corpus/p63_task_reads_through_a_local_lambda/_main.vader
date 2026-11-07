@@ -1,0 +1,22 @@
+// P63: the task calls a lambda bound to a local, which reads `counter` while main
+// writes it: the copy goes to the lambda, which captures the value, not the task.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    show :: () -> counter.n
+    t :: launch(() -> show())
+    counter.n += 1
+    return t.join().unwrap()
+}

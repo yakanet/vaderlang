@@ -1,0 +1,28 @@
+// C30: the bands do not overlap, but four tasks write `pixels`: a false positive.
+//
+// corpus: refused E2 (false positive)
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Image :: struct {
+    rows: i64[] = []
+}
+
+// Writes rows `from` to `to`.
+sharpen_rows :: fn(pixels: Image, from: i64, to: i64) -> void {
+    for i in from..<to {
+        pixels.rows[i] = pixels.rows[i] + 1
+    }
+}
+
+main :: fn() -> i32 {
+    pixels :: Image { .rows = [0, 0, 0, 0] }
+    h :: 4
+    for band in 0..<4 {
+        launch(() -> sharpen_rows(pixels, band * h / 4, (band + 1) * h / 4))
+    }
+    return 0
+}

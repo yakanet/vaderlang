@@ -31,6 +31,10 @@ ELEMENT :: "[]"
 /// it is no part of a view the value may otherwise be (`narrowed_read`).
 NARROWED :: "<narrowed>"
 
+/// The step to what an iterator hands out: below the iterator a generator's call
+/// returns lies each value it yields.
+ITEM :: "<item>"
+
 /// The most steps a path keeps.
 MAX_STEPS: i32: 3
 
@@ -171,6 +175,38 @@ steps_of :: fn(t: PathTable, p: i32) -> i32[] {
     return steps
 }
 
+// The steps of `p` past its first `length`, as a path from the parameter: cut when
+// `p` is.
+rest_after :: fn(t: PathTable, p: i32, length: i32) -> i32 {
+    if length == 0 {
+        return p
+    }
+    steps :: t.steps_of(p)
+    rest := ROOT
+    for k in i64(length)..<steps.len() {
+        rest = t.child(rest, steps[k])
+    }
+    if t.nodes[p].deeper {
+        return t.cut(rest)
+    }
+    return rest
+}
+
+// The number of steps of `p`.
+length_of :: fn(t: PathTable, p: i32) -> i32 = t.nodes[p].length
+
+// Whether `p` stands for deeper paths too.
+is_cut :: fn(t: PathTable, p: i32) -> bool = t.nodes[p].deeper
+
+// The path down the first `length` steps of `p`.
+prefix :: fn(t: PathTable, p: i32, length: i32) -> i32 {
+    at := p
+    for t.nodes[at].length > length {
+        at = t.nodes[at].parent
+    }
+    return at
+}
+
 // Whether the first step of `p` is the step `name`. A cut path keeps the parent
 // and the step it was cut at.
 first_step_is :: fn(t: PathTable, p: i32, name: string) -> bool {
@@ -226,9 +262,9 @@ chain_position :: fn(t: PathTable, p: i32, depth: i32) -> i32 | null {
 breaks_widening :: fn(t: PathTable, a: Access, depth: i32) -> bool {
     k :: t.chain_position(a.path, depth) ?? return false
     return match a.effect {
-        .Shrunk                                   -> false
-        .Assigned                                 -> k >= 1 || t.nodes[a.path].deeper
-        .Resized | .Stored | .Returned | .Unknown -> k < depth
+        .Shrunk -> false
+        .Assigned -> k >= 1 || t.nodes[a.path].deeper
+        .Resized | .Stored | .Returned | .Unknown | .Handed -> k < depth
     }
 }
 
@@ -249,8 +285,8 @@ display_steps :: fn(t: PathTable, p: i32) -> string {
     sb :: StringBuilder {}
     for step in t.steps_of(p) {
         name :: t.step_names[step]
-        if name == ELEMENT {
-            sb.append(ELEMENT)
+        if name == ELEMENT || name == ITEM {
+            sb.append(name)
         } else if name != NARROWED {
             sb.append(".${name}")
         }
@@ -279,22 +315,29 @@ export Effect :: enum {
     /// function value, a site the record could not settle. A client that needs a
     /// sound answer reads it as any change.
     Unknown,
+    /// The value at the end of the path is handed to the function value a
+    /// parameter holds (`Access.fn_param`), as its parameter `Access.fn_arg`: what
+    /// it undergoes is what the caller hands there does. A caller that hands a
+    /// lambda it writes runs the lambda's body on it ; one that hands its own
+    /// parameter hands the value on ; any other caller reads it as `Unknown`.
+    Handed,
 }
 
 // Whether `a` changes what the caller lent, by code the summary sees.
 modifies :: fn(a: Access) -> bool = match a.effect {
-    .Assigned | .Resized | .Shrunk -> true
-    .Stored | .Returned | .Unknown -> false
+    .Assigned | .Resized | .Shrunk           -> true
+    .Stored | .Returned | .Unknown | .Handed -> false
 }
 
 // Whether access `a` keeps a value past the call: stored, or returned.
 is_kept :: fn(a: Access) -> bool = match a.effect {
-    .Stored | .Returned                       -> true
-    .Assigned | .Resized | .Shrunk | .Unknown -> false
+    .Stored | .Returned -> true
+    .Assigned | .Resized | .Shrunk | .Unknown | .Handed -> false
 }
 
-// Whether access `a` hands a value to code the summary cannot see.
-is_unknown :: fn(a: Access) -> bool = a.effect == .Unknown
+// Whether access `a` hands a value to code the summary cannot see: a function value
+// the caller hands is one, until the caller says which.
+is_unknown :: fn(a: Access) -> bool = a.effect == .Unknown || a.effect == .Handed
 
 // How the dump names `e`.
 effect_label :: fn(e: Effect) -> string = match e {
@@ -304,12 +347,29 @@ effect_label :: fn(e: Effect) -> string = match e {
     .Stored   -> "stored"
     .Returned -> "returned"
     .Unknown  -> "unknown"
+    .Handed   -> "handed"
 }
 
 /// An effect at a path of the summary's `PathTable`.
 export Access :: struct {
     path: i32
     effect: Effect
+    /// For `Handed`: the parameter that holds the function value, and the position
+    /// of the function's parameter the value is handed to ; -1 otherwise.
+    fn_param: i32 = -1
+    fn_arg: i32 = -1
+    /// For `Returned`: where the value lies below the function's result, `ROOT` for
+    /// the result itself, `ITEM` for a value a generator yields.
+    under: i32 = ROOT
+}
+
+// The access `a` of a function, handed to a function value: `Handed`, to the
+// function's parameter `fn_arg` of the value parameter `fn_param` holds.
+handed_to :: fn(path: i32, fn_param: i64, fn_arg: i64) -> Access = Access {
+    .path = path,
+    .effect = .Handed,
+    .fn_param = i32(fn_param),
+    .fn_arg = i32(fn_arg),
 }
 
 /// What a function may do with everything a caller lends one parameter: the
@@ -330,10 +390,32 @@ export ParamEffects :: struct {
 // hash set.
 SCANNED_ACCESSES: i64: 8
 
-access_key :: fn(a: Access) -> i64 = key_of(a.path, a.effect)
+access_key :: fn(a: Access) -> i64 = key_of(a.path, a)
 
-// The key of an access at `path` doing `effect`, building no `Access`.
-key_of :: fn(path: i32, effect: Effect) -> i64 = i64(path) * 8 + i64(effect)
+// The key of an access doing what `a` does at `path` instead, building no `Access`.
+key_of :: fn(path: i32, a: Access) -> i64 = key_at(path, a.effect, a.destination_key())
+
+// The key of the access at `path` doing `effect` toward `destination`
+// (`destination_key`): the effect in the low bits, then the path, then where the
+// value goes.
+key_at :: fn(path: i32, effect: Effect, destination: i64) -> i64 =
+    (destination << 36) | (i64(path) << 3) | i64(effect)
+
+// Where `a` hands its value, as its key holds it: the function value of a `Handed`
+// access, the place below the result of a `Returned` one.
+destination_key :: fn(a: Access) -> i64 {
+    if a.effect == .Returned {
+        return i64(a.under)
+    }
+    return (i64(a.fn_param + 1) << 12) | i64(a.fn_arg + 1)
+}
+
+/// The destination of a plain access: it hands nothing to a function value, and a
+/// value it returns is the result itself (`destination_key`).
+NO_DESTINATION: i64: 0
+
+// The path of the access whose key is `key`.
+key_path :: fn(key: i64) -> i32 = i32((key >> 3) & 0x1_FFFF_FFFF)
 
 // Add `a` to `effects`, which does not hold it, put there by the constraint `how`
 // carrying the callee's access `then` ; with no constraint, for a fixed set built
@@ -374,25 +456,52 @@ include :: fn(
     how: i64 = FIXED,
     then: i64 = NO_ACCESS,
 ) -> bool {
-    if t.covered(effects, path, effect) {
+    if t.covered(effects, path, effect, NO_DESTINATION) {
         return false
     }
-    a :: Access { .path = path, .effect = effect }
-    if t.nodes[path].deeper {
-        dropped :: t.drop_covered(effects, a)
-        if dropped != null {
-            effects.insert(a, dropped.0, dropped.1)
-            return true
-        }
-    }
-    effects.insert(a, how, then)
+    t.add_access(effects, Access { .path = path, .effect = effect }, how, then)
     return true
 }
 
-// Whether `effects` holds `effect` at `path`, or the same effect at a path
-// standing for one that `path` extends.
-covered :: fn(t: PathTable, effects: ParamEffects, path: i32, effect: Effect) -> bool {
-    key :: key_of(path, effect)
+// Add `a` to `effects`, as `include` does.
+include_access :: fn(
+    t: PathTable,
+    effects: ParamEffects,
+    a: Access,
+    how: i64 = FIXED,
+    then: i64 = NO_ACCESS,
+) -> bool {
+    if t.covered(effects, a.path, a.effect, a.destination_key()) {
+        return false
+    }
+    t.add_access(effects, a, how, then)
+    return true
+}
+
+// Add `a`, which `effects` does not cover, as `include` does.
+add_access :: fn(t: PathTable, effects: ParamEffects, a: Access, how: i64, then: i64) -> void {
+    if t.nodes[a.path].deeper {
+        dropped :: t.drop_covered(effects, a)
+        if dropped != null {
+            effects.insert(a, dropped.0, dropped.1)
+            return
+        }
+    }
+    effects.insert(a, how, then)
+}
+
+// Whether `effects` holds the access at `path` doing `effect` toward `destination`,
+// or the same access at a path standing for one that `path` extends. The key is
+// tested before any `Access` is built: the fixed point finds most accesses there
+// already.
+covered :: fn(
+    t: PathTable,
+    effects: ParamEffects,
+    path: i32,
+    effect: Effect,
+    destination: i64,
+) -> bool {
+    key :: key_at(path, effect, destination)
     keys :: effects.keys ?? return t.find_access(effects, key) != null
     if key in keys {
         return true
@@ -401,7 +510,7 @@ covered :: fn(t: PathTable, effects: ParamEffects, path: i32, effect: Effect) ->
     for {
         node :: t.nodes[at]
         standing :: node.cut
-        if standing != null && key_of(standing, effect) in keys {
+        if standing != null && key_at(standing, effect, destination) in keys {
             return true
         }
         if node.length == 0 {
@@ -455,8 +564,8 @@ carried_at :: fn(effects: ParamEffects, i: i64) -> i64 = effects.origins[2 * i +
 
 // Whether `x`, at a cut path, covers the access whose key is `key` (`covers`).
 covers_key :: fn(t: PathTable, x: Access, key: i64) -> bool {
-    path :: i32(key / 8)
-    if i64(x.effect) != key % 8 || x.path == path || !t.nodes[x.path].deeper {
+    path :: key_path(key)
+    if key_of(path, x) != key || x.path == path || !t.nodes[x.path].deeper {
         return false
     }
     return t.extends(path, x.path)
@@ -464,7 +573,7 @@ covers_key :: fn(t: PathTable, x: Access, key: i64) -> bool {
 
 // Whether `a`, at a path standing for deeper ones, covers another access `x`.
 covers :: fn(t: PathTable, a: Access, x: Access) -> bool =
-    x.effect == a.effect && x.path != a.path && t.extends(x.path, a.path)
+    key_of(x.path, a) == access_key(x) && x.path != a.path && t.extends(x.path, a.path)
 
 // The accesses of a parameter nothing is known of: changed by unseen code, and
 // kept, anywhere below it.
@@ -540,6 +649,23 @@ test_joined_onto_everywhere_stays_everywhere :: fn() -> void {
 test_a_path_is_interned_once :: fn() -> void {
     t :: PathTable {}
     assert_eq(path_of(t, ["a", ELEMENT]), path_of(t, ["a", ELEMENT]))
+}
+
+@test
+test_a_plain_access_has_no_destination :: fn() -> void {
+    effects :: [
+        Effect.Assigned,
+        Effect.Resized,
+        Effect.Shrunk,
+        Effect.Stored,
+        Effect.Returned,
+        Effect.Unknown,
+        Effect.Handed,
+    ]
+    for effect in effects {
+        a :: Access { .path = ROOT, .effect = effect }
+        assert(a.destination_key() == NO_DESTINATION, "a plain ${effect_label(effect)} access")
+    }
 }
 
 @test

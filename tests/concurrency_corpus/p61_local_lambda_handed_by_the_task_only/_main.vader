@@ -1,0 +1,23 @@
+// P61: only the task hands `apply` the lambda that writes `counter`, which main
+// reads after the join.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+apply :: fn(work: fn() -> void) -> void = work()
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    bump :: () -> { counter.n += 1 }
+    t :: launch(() -> apply(bump))
+    t.join()
+    return counter.n - 1
+}

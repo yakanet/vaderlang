@@ -1,0 +1,27 @@
+// C29: `upload` calls a C function bound to the main thread.
+//
+// corpus: refused E6
+// expect: T3133
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+Texture :: struct {
+    id: i64
+}
+
+// The GPU takes uploads from the main thread only.
+@extern
+@main_thread
+gpu_upload :: fn(size: i64) -> i64
+
+upload :: fn(path: string) -> Texture = Texture { .id = gpu_upload(path.byte_len()) }
+
+load_texture :: fn(path: string) -> Texture = upload(path)
+
+main :: fn() -> i32 {
+    t :: launch(() -> load_texture("bot.png"))
+    return i32(t.join().unwrap().id) - 1
+}

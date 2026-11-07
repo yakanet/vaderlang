@@ -1,0 +1,24 @@
+// P51: the task runs `work`, a named fn, which calls the function value a
+// singleton holds: the check cannot see its body.
+//
+// corpus: probe
+// expect: T3134
+
+module "snippet"
+
+import "std/task"
+
+Job :: struct {
+    work: fn() -> void
+}
+
+@singleton
+current :: fn() -> Job = Job { .work = () -> {} }
+
+work :: fn() -> void = current().work()
+
+main :: fn() -> i32 {
+    t :: launch(work)
+    t.join()
+    return 0
+}

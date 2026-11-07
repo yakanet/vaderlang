@@ -1,0 +1,57 @@
+// C06: the task is joined on one path only: on the other, `update` writes while it
+// runs.
+//
+// corpus: refused E1
+// expect: T3128
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+Bot :: struct {
+    x: i64 = 0
+}
+
+Level :: struct {
+    bots: Bot[] = []
+}
+
+Player :: struct {
+    x: i64 = 0
+}
+
+Plan :: struct {
+    moves: i64 = 0
+}
+
+// Reads the level only.
+think :: fn(level: Level) -> Plan = Plan { .moves = level.bots.len() }
+
+// Writes `level.bots[i].x`.
+update :: fn(level: Level, player: Player) -> void {
+    for i in 0..<level.bots.len() {
+        level.bots[i].x = player.x
+    }
+}
+
+// Writes the first bot.
+apply :: fn(level: Level, plan: Plan) -> void {
+    if plan.moves > 0 {
+        level.bots[0].x += 1
+    }
+}
+
+spawn_bot :: fn() -> Bot = Bot {}
+
+main :: fn() -> i32 {
+    level :: Level { .bots = [Bot {}, Bot {}] }
+    player :: Player { .x = 3 }
+    fast_mode :: level.bots.len() > 1
+    ai :: launch(() -> think(level))
+    if fast_mode {
+        apply(level, ai.join().unwrap())
+    }
+    update(level, player)
+    return 0
+}

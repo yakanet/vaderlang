@@ -1,0 +1,20 @@
+// P13: `launch` runs a named fn that calls a C function bound to the main thread.
+//
+// corpus: probe
+// expect: T3133
+
+module "snippet"
+
+import "std/task"
+
+// The GPU draws from the main thread only.
+@extern
+@main_thread
+gpu_draw :: fn() -> i64
+
+draw :: fn() -> i64 = gpu_draw()
+
+main :: fn() -> i32 {
+    t :: launch(draw)
+    return i32(t.join()) - 1
+}

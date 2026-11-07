@@ -1,0 +1,26 @@
+// C27: a frozen constant, and a singleton built once and only read since.
+//
+// corpus: accepted
+// expect: accepted
+
+module "snippet"
+
+import "std/option"
+import "std/task"
+
+KEYWORDS: string[]: ["fn", "struct", "enum"]
+
+Console :: struct {
+    is_tty: bool = true
+}
+
+@singleton
+console :: fn() -> Console = Console {}
+
+main :: fn() -> i32 {
+    t :: launch(() -> console().is_tty && "fn" in KEYWORDS)
+    if t.join().unwrap() {
+        return 0
+    }
+    return 1
+}

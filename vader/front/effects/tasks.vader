@@ -1,0 +1,824 @@
+// vader/front/effects/tasks: what a task and the code that launched it touch.
+//
+// A door hands something to a task: the function a `launch` runs, with what it
+// captures, or a value sent to one (the primitives of `std/task`,
+// `task_doors.vader`). From the door to the end
+// of the task, the code that crossed it and the task run side by side. The check
+// crosses what each side does to each value, read from the settled summary: a
+// value both sides only read is fine, a value only the task touches is given, any
+// other mix is an error that names both sides (`task_errors.vader`).
+//
+// A value is a root, as in the skeleton: a parameter, or a local of the body, which
+// the check seeds with a root of its own, so that what aliases it holds that root
+// too ; a store (`p.f = v`, `xs.push(v)`) makes the value kept a part of its holder.
+// Where each side touches a value is a span: the task's side is its lambda, the
+// other side what runs after the door until a `join` ends the task, and the part
+// of a loop before the door, which runs again while the task does
+// (`task_shape.vader`).
+//
+// A function that hands one of its parameters to a task which may outlive the call
+// is a door to its callers: the `Sending` facts, a fixed point over the call graph.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "toolchain/span"
+import "vader/core/types"
+import "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+
+// ---- facts ----------------------------------------------------------------
+
+/// What a function does with one parameter as a door: hands it to a task that may
+/// still run once the call returns.
+Sending :: struct {
+    /// The parameter is the function a task runs.
+    runs: bool = false
+    /// The paths below the parameter a task reads, everything below them included.
+    given: i32[] = []
+    /// The paths below the parameter a task may write.
+    written: i32[] = []
+    /// The function that launches the task, for the detail.
+    launcher: string = ""
+}
+
+// Whether `s` hands anything to a task.
+is_door :: fn(s: Sending) -> bool = s.runs || s.given.len() > 0 || s.written.len() > 0
+
+/// What the task check reads of the summary, and the facts it settles.
+TaskCtx :: struct {
+    index: CalleeIndex
+    skeletons: Skeleton[]
+    facts: ParamEffects[][]
+    components: i32[]
+    /// Per node, what each parameter is to a task.
+    sending: Sending[][]
+    /// Per node, what the tasks it leaves running when it returns do to the
+    /// singletons.
+    left_running: SingletonTouch[][]
+    /// The `@singleton` nodes: singleton `j` is the root `singleton_base + j` of
+    /// every body.
+    singleton_nodes: i32[] = []
+    /// Per node, what it reaches beyond its parameters (`task_reach.vader`).
+    reach: Reach[] = []
+    /// Per node, the parameters it keeps in other parameters (`task_kept.vader`).
+    kept_into: KeptInto[][] = []
+    /// Per node, the parameters whose function value it runs (`task_handed.vader`).
+    runs: i64[][] = []
+    /// The node of each function, by the span of its name.
+    fn_nodes: Map<Span, i32> = Map<Span, i32> {}
+}
+
+/// What the task check reports: the error and its detail, at the access to blame.
+export TaskFault :: struct {
+    kind: TaskFaultKind
+    span: Span
+    detail: string
+}
+
+/// The errors of the task check.
+export TaskFaultKind :: enum {
+    WrittenWhileUsed,
+    WrittenBySeveral,
+    CapturedRebound,
+    KeptPastLock,
+    LockParks,
+    MainThreadInTask,
+    UnknownFunctionValue,
+}
+
+/// Check every door of the program against what runs beside the task it opens.
+///
+/// @param index       the project's functions.
+/// @param skeletons   each node's skeleton.
+/// @param facts       the settled summary.
+/// @param components  each node's component of the call graph.
+/// @return            the faults, empty for a program that launches no task.
+settle_tasks :: fn(
+    index: CalleeIndex,
+    skeletons: Skeleton[],
+    facts: ParamEffects[][],
+    components: i32[],
+) -> TaskFault[] {
+    ctx :: TaskCtx {
+        .index = index,
+        .skeletons = skeletons,
+        .facts = facts,
+        .components = components,
+        .sending = skeletons.map((s) -> s.params.filled(() -> Sending {})).collect(),
+        .left_running = skeletons.len().filled(() -> []),
+    }
+    work :: ctx.door_nodes()
+    if work.len() == 0 {
+        return []
+    }
+    ctx.note_singletons()
+    callers :: callers_of(skeletons)
+    ctx.fn_nodes = fn_nodes_of(index)
+    ctx.runs = ctx.settle_runs(callers)
+    ctx.kept_into = ctx.settle_kept_into(callers)
+    ctx.reach = ctx.settle_reach(callers)
+    queued :: Set<i32> {}
+    checked :: Set<i32> {}
+    order: i32[]: []
+    for node in work {
+        queued.add(node)
+    }
+    // The facts of a node grow from those of its callees: a node whose facts grew
+    // sends its callers back to the queue.
+    for work.len() > 0 {
+        node :: work.remove_last() ?? break
+        queued.remove(node)
+        if checked.add(node) {
+            order.push(node)
+        }
+        if ctx.note_sending(ctx.body_of(node)) {
+            for caller in callers[node] {
+                if queued.add(caller) {
+                    work.push(caller)
+                }
+            }
+        }
+    }
+    faults: TaskFault[]: []
+    for node in order {
+        ctx.check_body(ctx.body_of(node), faults)
+    }
+    return faults
+}
+
+// The nodes whose body calls a primitive that opens a door, or holds a lock for a
+// lambda: where the check starts.
+door_nodes :: fn(ctx: TaskCtx) -> i32[] {
+    out: i32[]: []
+    for node in 0..<ctx.skeletons.len() {
+        s :: ctx.skeletons[node]
+        if s.sites.any_match((site) -> ctx.index.opens_door(site.callee)) {
+            out.push(i32(node))
+        }
+    }
+    return out
+}
+
+// Note the `@singleton` nodes.
+note_singletons :: fn(ctx: TaskCtx) -> void {
+    for node in 0..<ctx.index.functions.len() {
+        if AST.decorators_have(ctx.index.functions[node].decl.decorators, "singleton") {
+            ctx.singleton_nodes.push(i32(node))
+        }
+    }
+}
+
+// Per node, the nodes whose body calls it.
+callers_of :: fn(skeletons: Skeleton[]) -> i32[][] {
+    out: i32[][]: skeletons.len().filled(() -> [])
+    for node in 0..<skeletons.len() {
+        for callee in callee_nodes(skeletons[node]) {
+            out[callee].push(i32(node))
+        }
+    }
+    return out
+}
+
+// ---- bodies ---------------------------------------------------------------
+
+/// One body as the task check reads it.
+TaskBody :: struct {
+    /// The project's functions, for what the primitives the body calls are.
+    index: CalleeIndex
+    node: i32
+    decl: AST.FnDecl
+    typed: TypedProgram
+    s: Skeleton
+    /// The roots each slot holds: the parameters, then one root per local.
+    slots: SlotRoots
+    /// The root of local `k` is `first_local + k`.
+    first_local: i64
+    /// The root of singleton `j` is `singleton_base + j`.
+    singleton_base: i64
+    /// What the calls of the body keep of an argument in another.
+    callee_stores: CalleeStore[] = []
+    /// The calls of function values that name a lambda of the body.
+    called: LambdaCalls[] = []
+    touches: Touch[] = []
+    doors: Door[] = []
+    shape: BodyShape
+}
+
+/// One access of the body to a root.
+Touch :: struct {
+    root: i64
+    path: i32
+    kind: TouchKind
+    /// The expression that makes it.
+    at: Span
+    /// The fn whose call makes it ; empty for the body's own read or write.
+    by: string = ""
+    /// The access of that fn's parameter it is, when the fn has a body: where the
+    /// fn makes it, for the detail.
+    access: CalleeAccess | null = null
+    /// The name it goes through, for a read.
+    name: string = ""
+    /// The call hands the value to a task (a door).
+    sent: bool = false
+    /// For a call of a lambda of the body, where its body makes the access.
+    made: Span | null = null
+}
+
+/// The access at index `access` of what node `node` does with its parameter `param`.
+CalleeAccess :: struct {
+    node: i32
+    param: i64
+    access: i64
+}
+
+/// What an access does.
+TouchKind :: enum {
+    Read,
+    Write,
+    /// The value is kept where the check cannot follow it: in a callee's state, a
+    /// fresh struct, the caller.
+    Kept,
+}
+
+/// A call that hands something to a task.
+Door :: struct {
+    site: Site
+    /// The parameter of the callee the task gets ; null for a call that leaves a
+    /// task running.
+    param: i64 | null = null
+    sending: Sending
+    /// The lambda the task runs ; null when the door hands a value, or a fn.
+    entry: AST.LambdaExpr | null = null
+    /// The parameter of the body handed on as the fn a task runs, if any.
+    forwards: i64 | null = null
+    /// The slot of what the door hands on: the argument, or the value a block run
+    /// under a lock stores in the value it guards.
+    arg: i64 | null = null
+    /// The door is such a store: the tasks that reach the value do so under the lock.
+    stored: bool = false
+    /// What the tasks the callee leaves running do to the singletons.
+    left: SingletonTouch[] = []
+}
+
+// The body of `node`, its roots settled with one root per local.
+body_of :: fn(ctx: TaskCtx, node: i32) -> TaskBody {
+    s :: ctx.skeletons[node]
+    f :: ctx.index.functions[node]
+    first_local :: s.params + s.extra
+    singleton_base :: first_local + s.locals.len()
+    slots :: SlotRoots {
+        .roots = [null] * s.slots,
+        .root_count = singleton_base + ctx.singleton_nodes.len(),
+    }
+    for i in 0..<s.params {
+        slots.include_root(i, Root { .param = i, .path = ROOT })
+    }
+    for k in 0..<s.locals.len() {
+        slots.include_root(s.locals[k].slot, Root { .param = first_local + k, .path = ROOT })
+    }
+    for site in s.sites {
+        j :: ctx.singleton_of(site) ?? continue
+        slots.include_root(site.result, Root { .param = singleton_base + j, .path = ROOT })
+    }
+    flows: Flow[]: []
+    flows.push_all(s.flows)
+    flows.push_all(s.stores)
+    flows.push_all(s.held)
+    flows.push_all(ctx.lambda_flows(s))
+    callee_stores :: ctx.callee_stores(node, ctx.kept_into)
+    for c in callee_stores {
+        flows.push(c.flow)
+    }
+    slots.spread(s, ctx.eval_ctx(node), flows)
+    body :: TaskBody {
+        .index = ctx.index,
+        .node = node,
+        .decl = f.decl,
+        .typed = f.typed,
+        .s = s,
+        .slots = slots,
+        .first_local = first_local,
+        .singleton_base = singleton_base,
+        .callee_stores = callee_stores,
+        .shape = shape_of(f.decl),
+    }
+    ctx.note_touches(body)
+    ctx.note_lambda_calls(body)
+    ctx.note_doors(body)
+    return body
+}
+
+// What the parameters of each lambda a call of `s` writes may be given, when not
+// every callee says: any part of the call's other arguments, `x` in
+// `xs.map(x -> ...)` being an element of `xs`. A callee that hands the lambda parts
+// of its parameters says which (`Effect.Handed`), and the slots of the lambda's
+// parameters receive them as the summary settles. The lambda a lock is held for is
+// handed the guarded value, which tasks share by construction.
+lambda_flows :: fn(ctx: TaskCtx, s: Skeleton) -> Flow[] {
+    out: Flow[]: []
+    for site in s.sites {
+        for k in 0..<site.fn_args.len() {
+            lambda :: site.fn_args[k]
+            if lambda !is LambdaArg || ctx.index.holds_lock_for(site.callee, k) {
+                continue
+            }
+            if ctx.hands_to(site, k) {
+                continue
+            }
+            for p in lambda.params {
+                for a in site.args {
+                    from :: a ?? continue
+                    out.push(Flow { .into = p, .from = from, .path = EVERYWHERE })
+                }
+            }
+        }
+    }
+    return out
+}
+
+// Whether every callee of `site` says what it hands the function value its
+// parameter `k` receives.
+hands_to :: fn(ctx: TaskCtx, site: Site, k: i64) -> bool =
+    site.targets.all_match((t) -> ctx.target_hands_to(t, k))
+
+// Whether `target` is a function with a body that hands a value to the function
+// value its parameter `k` holds.
+target_hands_to :: fn(ctx: TaskCtx, target: CallTarget, k: i64) -> bool {
+    if target !is CalleeNode {
+        return false
+    }
+    hands :: (a: Access) -> handed_to_param(a, k)
+    return ctx.facts[target.node].any_match((p) -> p.accesses.any_match(hands))
+}
+
+// Whether `a` hands a value to the function value parameter `k` holds.
+handed_to_param :: fn(a: Access, k: i64) -> bool = a.effect == .Handed && i64(a.fn_param) == k
+
+// What evaluating the body of `node` reads of the settled summary.
+eval_ctx :: fn(ctx: TaskCtx, node: i32) -> EvalCtx = EvalCtx {
+    .facts = ctx.facts,
+    .paths = ctx.index.paths,
+    .components = ctx.components,
+    .node = node,
+    .any = ctx.index.any,
+}
+
+// The roots `slot` holds.
+roots_at :: fn(body: TaskBody, slot: i64) -> Root[] = body.slots.roots[slot] ?? []
+
+// Note every access of `body` to a root: the names it reads, its own writes and
+// stores, and what its calls do to what they are lent. A value a literal holds is
+// followed into the literal, not kept.
+note_touches :: fn(ctx: TaskCtx, body: TaskBody) -> void {
+    paths :: ctx.index.paths
+    stored :: Set<Span> {}
+    for at in body.s.stored_at {
+        stored.add(at)
+    }
+    held :: Set<i64> {}
+    for k in body.s.held_marks {
+        held.add(k)
+    }
+    for u in body.s.uses {
+        for r in body.roots_at(u.slot) {
+            touch :: Touch {
+                .root = r.param,
+                .path = r.path,
+                .kind = .Read,
+                .at = u.at,
+                .name = u.name,
+            }
+            body.touches.push(touch)
+        }
+    }
+    for k in 0..<body.s.marks.len() {
+        m :: body.s.marks[k]
+        kind :: touch_kind(m.access.effect) ?? continue
+        if kind == .Kept && (m.at in stored || k in held) {
+            continue
+        }
+        for r in body.roots_at(m.slot) {
+            below :: paths.lands_at(r, m.access.path, m.access.effect) ?? continue
+            touch :: Touch {
+                .root = r.param,
+                .path = below,
+                .kind = kind,
+                .at = m.at,
+            }
+            body.touches.push(touch)
+        }
+    }
+    for site in body.s.sites {
+        ctx.note_site_touches(body, site, site.at in stored)
+        j :: ctx.singleton_of(site) ?? continue
+        touch :: Touch {
+            .root = body.singleton_base + j,
+            .path = ROOT,
+            .kind = .Read,
+            .at = site.at,
+            .name = display_callee(site.callee),
+        }
+        body.touches.push(touch)
+    }
+}
+
+// What a mark or a callee's access does to a root, for the check ; null for a value
+// returned, which the result's slot carries on.
+touch_kind :: fn(e: Effect) -> TouchKind | null = match e {
+    .Assigned | .Resized | .Shrunk | .Unknown | .Handed -> .Write
+    .Stored -> .Kept
+    .Returned -> null
+}
+
+// What the access `a` of `target`, a callee of `site`, is to the check: itself, but
+// for a value handed to a function value. A lambda the site writes gets it through
+// its parameters, whose slots carry what its body does: no access of its own. Any
+// other function value is code the check cannot see.
+as_touched :: fn(paths: PathTable, site: Site, target: CallTarget, a: Access) -> Access[] {
+    if a.effect != .Handed {
+        return [a]
+    }
+    if site.fn_value_of(target, a) is LambdaArg {
+        return []
+    }
+    anywhere :: paths.cut(a.path)
+    return [
+        Access { .path = anywhere, .effect = .Unknown },
+        Access { .path = anywhere, .effect = .Stored },
+    ]
+}
+
+// Note what the callees of `site` do to what it lends them. A synchronized value
+// is no value two tasks could race on: what its fns do to it is theirs.
+note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) -> void {
+    paths :: ctx.index.paths
+    by :: display_callee(site.callee)
+    for target in site.targets {
+        params :: known_params(target, ctx.facts)
+        for q in 0..<site.args.len() {
+            arg :: site.args[q] ?? continue
+            if ctx.is_synchronized_source(body, site, q) {
+                continue
+            }
+            sent :: ctx.sending_at(site, q) != null
+            accesses :: target_accesses(target, ctx.facts, q, ctx.index.any)
+            for i in 0..<accesses.len() {
+                for a in as_touched(paths, site, target, accesses[i]) {
+                    kind :: touch_kind(a.effect) ?? continue
+                    if kind == .Kept && (stores || ctx.keeps_in_another(target, q)) {
+                        continue
+                    }
+                    for r in body.roots_at(arg) {
+                        below :: paths.lands_at(r, a.path, a.effect) ?? continue
+                        touch :: Touch {
+                            .root = r.param,
+                            .path = below,
+                            .kind = kind,
+                            .at = site.at,
+                            .by = by,
+                            .access = callee_access(target, params, q, i),
+                            .sent = sent,
+                        }
+                        body.touches.push(touch)
+                    }
+                }
+            }
+        }
+        if target is CalleeNode {
+            ctx.note_singleton_touches(body, target.node, site.at, by)
+        }
+    }
+    for handed in ctx.handed_fns(body.typed, site) {
+        name :: ctx.index.functions[handed].decl.name
+        ctx.note_singleton_touches(body, handed, site.at, "`${name}`")
+    }
+}
+
+// Note what `node`, which the call at `at` runs, does to the singletons, once the
+// reach is settled: the body of a node settling it notes only its own.
+note_singleton_touches :: fn(ctx: TaskCtx, body: TaskBody, node: i32, at: Span, by: string) -> void {
+    if node >= ctx.reach.len() {
+        return
+    }
+    for st in ctx.reach[node].singletons {
+        touch :: Touch {
+            .root = body.singleton_base + st.singleton,
+            .path = st.path,
+            .kind = st.kind,
+            .at = at,
+            .by = by,
+        }
+        body.touches.push(touch)
+    }
+}
+
+// The access at index `i` of what `target` does with its parameter `q`, when
+// `params`, its facts, hold that parameter ; null for a callee with no body, or
+// for the accesses of code the summary cannot see.
+callee_access :: fn(
+    target: CallTarget,
+    params: ParamEffects[] | null,
+    q: i64,
+    i: i64,
+) -> CalleeAccess | null {
+    if target !is CalleeNode || params == null || q >= params.len() {
+        return null
+    }
+    return CalleeAccess { .node = target.node, .param = q, .access = i }
+}
+
+// Whether the expression parameter `q` of `site` receives is a synchronized value.
+is_synchronized_source :: fn(ctx: TaskCtx, body: TaskBody, site: Site, q: i64) -> bool {
+    if q >= site.sources.len() {
+        return false
+    }
+    source :: site.sources[q] ?? return false
+    t :: body.typed.expr_types[source.id] ?? return false
+    return t is StructType && t.symbol.id in ctx.index.synchronized
+}
+
+// ---- doors ----------------------------------------------------------------
+
+// What parameter `q` of the callee of `site` is to a task ; null when nothing: what
+// the table says of a primitive, what its body does of a node.
+sending_at :: fn(ctx: TaskCtx, site: Site, q: i64) -> Sending | null {
+    declared :: ctx.index.intrinsic_sending(site.callee, q)
+    if declared != null {
+        return declared
+    }
+    for target in site.targets {
+        if target is CalleeNode {
+            facts :: ctx.sending[target.node]
+            if q < facts.len() && is_door(facts[q]) {
+                return facts[q]
+            }
+        }
+    }
+    return null
+}
+
+// Note the doors of `body`: each argument a call hands to a task.
+note_doors :: fn(ctx: TaskCtx, body: TaskBody) -> void {
+    for site in body.s.sites {
+        for q in 0..<site.args.len() {
+            sending :: ctx.sending_at(site, q) ?? continue
+            door :: Door {
+                .site = site,
+                .param = q,
+                .sending = sending,
+                .entry = body.lambda_source(site, q),
+                .forwards = forwarded_param(body, site, q),
+                .arg = site.args[q],
+            }
+            body.doors.push(door)
+        }
+        left :: ctx.left_running_at(site)
+        if left.len() > 0 {
+            door :: Door {
+                .site = site,
+                .sending = Sending { .launcher = intrinsic_name(site.callee) },
+                .left = left,
+            }
+            body.doors.push(door)
+        }
+    }
+    ctx.note_stored_doors(body)
+}
+
+// What the tasks the callees of `site` leave running do to the singletons.
+left_running_at :: fn(ctx: TaskCtx, site: Site) -> SingletonTouch[] {
+    out: SingletonTouch[]: []
+    for target in site.targets {
+        if target is CalleeNode {
+            for t in ctx.left_running[target.node] {
+                out.include_touch(t)
+            }
+        }
+    }
+    return out
+}
+
+// The lambda the argument `q` of `site` is: written there, or bound to a constant
+// local of the body.
+lambda_source :: fn(body: TaskBody, site: Site, q: i64) -> AST.LambdaExpr | null {
+    if q >= site.sources.len() {
+        return null
+    }
+    source :: site.sources[q]
+    if source is AST.LambdaExpr {
+        return source
+    }
+    if source is AST.IdentExpr {
+        return body.bindings().bound_lambda(source)
+    }
+    return null
+}
+
+// The node of the fn the argument `q` of `site` names, if it names one.
+named_fn_node :: fn(ctx: TaskCtx, body: TaskBody, site: Site, q: i64) -> i32 | null {
+    if q >= site.sources.len() {
+        return null
+    }
+    source :: site.sources[q] ?? return null
+    return ctx.fn_node_of(body.typed, source)
+}
+
+// The parameter of `body` the argument `q` of `site` names, if it names one.
+forwarded_param :: fn(body: TaskBody, site: Site, q: i64) -> i64 | null {
+    if q >= site.sources.len() {
+        return null
+    }
+    source :: site.sources[q] ?? return null
+    return body.param_named(source)
+}
+
+// The parameters of `body` the task whose lambda is `entry` runs, as a callee or as
+// an argument a callee runs: a task that runs it runs them.
+called_params :: fn(ctx: TaskCtx, body: TaskBody, entry: AST.LambdaExpr) -> i64[] {
+    spans :: body.task_spans(entry)
+    out: i64[]: []
+    for site in body.s.sites {
+        if !runs_in(spans, site.at) {
+            continue
+        }
+        for read in ctx.run_values(body.shape, site) {
+            q :: body.param_named(read) ?? continue
+            if q !in out {
+                out.push(q)
+            }
+        }
+    }
+    return out
+}
+
+// The parameter of `body` the expression `e` names, if it names one.
+param_named :: fn(body: TaskBody, e: AST.Expr) -> i64 | null {
+    if e !is AST.IdentExpr {
+        return null
+    }
+    sym :: body.typed.resolved.idents[e.span.hash()] ?? return null
+    for i in 0..<body.decl.params.len() {
+        p :: body.decl.params[i]
+        named :: body.typed.resolved.idents[p.span.hash()] ?? continue
+        if named.id == sym.id {
+            return i
+        }
+    }
+    return null
+}
+
+// Whether the argument `q` of `site` names a fn declaration: a task that runs it
+// captures nothing.
+names_a_fn :: fn(body: TaskBody, site: Site, q: i64) -> bool {
+    if q >= site.sources.len() {
+        return false
+    }
+    source :: site.sources[q]
+    if source !is AST.IdentExpr {
+        return false
+    }
+    sym :: body.typed.resolved.idents[source.span.hash()] ?? return false
+    return sym.kind == .Fn
+}
+
+// Add to the facts of `body`'s node what its doors hand on of its parameters, and
+// what they do to the singletons, to a task that may outlive the call ; true when
+// they grew.
+note_sending :: fn(ctx: TaskCtx, body: TaskBody) -> bool {
+    facts :: ctx.sending[body.node]
+    grew := false
+    for door in body.doors {
+        if body.ends_inside(door, body.decl_span()) {
+            continue
+        }
+        forwards :: door.forwards
+        if door.sending.runs && forwards != null && !facts[forwards].runs {
+            facts[forwards].runs = true
+            facts[forwards].launcher = body.decl.name
+            grew = true
+        }
+        entry :: door.entry
+        if door.sending.runs && entry != null {
+            for q in ctx.called_params(body, entry) {
+                if !facts[q].runs {
+                    facts[q].runs = true
+                    facts[q].launcher = body.decl.name
+                    grew = true
+                }
+            }
+        }
+        for t in ctx.task_touches(body, door) {
+            if t.root >= body.singleton_base {
+                touch :: SingletonTouch {
+                    .singleton = t.root - body.singleton_base,
+                    .path = t.path,
+                    .kind = t.kind,
+                }
+                if ctx.left_running[body.node].include_touch(touch) {
+                    grew = true
+                }
+                continue
+            }
+            if t.root >= body.s.params {
+                continue
+            }
+            if t.kind == .Write {
+                if include_path(facts[t.root].written, t.path) {
+                    grew = true
+                }
+            } else if include_path(facts[t.root].given, t.path) {
+                grew = true
+            }
+            facts[t.root].launcher = body.decl.name
+        }
+    }
+    return grew
+}
+
+// Add `path` to `paths` ; false when it held it.
+include_path :: fn(paths: i32[], path: i32) -> bool {
+    if path in paths {
+        return false
+    }
+    paths.push(path)
+    return true
+}
+
+// What the task `door` opens touches of the roots the body holds outside it: what
+// its lambda touches of what it captures, or what the value it hands undergoes.
+task_touches :: fn(ctx: TaskCtx, body: TaskBody, door: Door) -> Touch[] {
+    out: Touch[]: []
+    entry :: door.entry
+    if entry != null {
+        for t in body.touches {
+            if inside(entry.span, t.at) && !body.bound_inside(t.root, entry.span) {
+                out.push(t)
+            }
+        }
+        return out
+    }
+    for st in door.left {
+        touch :: Touch {
+            .root = body.singleton_base + st.singleton,
+            .path = st.path,
+            .kind = st.kind,
+            .at = door.site.at,
+            .sent = true,
+        }
+        out.push(touch)
+    }
+    arg :: door.arg ?? return out
+    paths :: ctx.index.paths
+    for r in body.roots_at(arg) {
+        // A read takes whole a part that holds `r`, as a keep does ; a write there may
+        // be one unseen code makes.
+        for g in door.sending.given {
+            read :: paths.lands_at(r, g, .Stored) ?? continue
+            out.push(sent_touch(r, read, .Read, door))
+        }
+        for w in door.sending.written {
+            written :: paths.lands_at(r, w, .Unknown) ?? continue
+            out.push(sent_touch(r, written, .Write, door))
+        }
+    }
+    return out
+}
+
+// What the task `door` opens does to root `r`, at `path`.
+sent_touch :: fn(r: Root, path: i32, kind: TouchKind, door: Door) -> Touch = Touch {
+    .root = r.param,
+    .path = path,
+    .kind = kind,
+    .at = door.site.at,
+    .by = "`${door.sending.launcher}`",
+    .sent = true,
+}
+
+// Whether root `root` is a local bound inside `span`: a value of each run of it.
+bound_inside :: fn(body: TaskBody, root: i64, span: Span) -> bool {
+    if root < body.first_local || root >= body.singleton_base {
+        return false
+    }
+    return inside(span, body.s.locals[root - body.first_local].at)
+}
+
+// The name of root `root`: a parameter's or a local's.
+root_name :: fn(ctx: TaskCtx, body: TaskBody, root: i64) -> string {
+    if root < body.decl.params.len() {
+        return body.decl.params[root].name
+    }
+    if root >= body.singleton_base {
+        node :: ctx.singleton_nodes[root - body.singleton_base]
+        return "${ctx.index.functions[node].decl.name}()"
+    }
+    if root >= body.first_local {
+        return body.s.locals[root - body.first_local].name
+    }
+    return "a value"
+}
+
+// The span of the body's whole declaration.
+decl_span :: fn(body: TaskBody) -> Span = body.decl.span

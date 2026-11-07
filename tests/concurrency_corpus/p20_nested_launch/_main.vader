@@ -1,0 +1,24 @@
+// P20: inside a task, an inner task reads `level` while the outer one writes it.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/task"
+
+Level :: struct {
+    n: i64 = 0
+}
+
+look :: fn(level: Level) -> i64 = level.n
+
+main :: fn() -> i32 {
+    outer :: launch(() -> {
+        level :: Level {}
+        inner :: launch(() -> look(level))
+        level.n = 1
+        return inner.join()
+    })
+    return i32(outer.join())
+}

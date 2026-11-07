@@ -1,0 +1,19 @@
+// C15: a `for` binds its variable anew on each turn: each task gets its own `f`.
+//
+// corpus: accepted
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+// Reads its file name only.
+scan :: fn(f: string) -> i64 = 1
+
+main :: fn() -> i32 {
+    files: string[]: ["a.txt", "b.txt"]
+    for f in files {
+        launch(() -> scan(f))
+    }
+    return 0
+}

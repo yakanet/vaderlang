@@ -1,0 +1,24 @@
+// P17: a lambda written before the launch runs after it and writes `state`.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/task"
+
+State :: struct {
+    n: i64 = 0
+}
+
+look :: fn(s: State) -> i64 = s.n
+
+main :: fn() -> i32 {
+    state :: State {}
+    bump :: () -> {
+        state.n += 1
+    }
+    t :: launch(() -> look(state))
+    bump()
+    return i32(t.join())
+}

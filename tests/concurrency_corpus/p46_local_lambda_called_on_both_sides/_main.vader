@@ -1,0 +1,22 @@
+// P46: the task and main both call the lambda bound to a local, which writes
+// `counter`.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Counter :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    counter :: Counter {}
+    bump :: () -> { counter.n += 1 }
+    t :: launch(() -> bump())
+    bump()
+    t.join()
+    return counter.n - 2
+}

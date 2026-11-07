@@ -169,6 +169,12 @@ export DECORATORS: DecoratorSpec[]: [
         .doc    = "Opts the `match` out of exhaustiveness checking and asserts the uncovered variants never occur: one of them reaching the `match` traps at run time. Mutually exclusive with `@partial`.",
     },
     DecoratorSpec {
+        .name   = "main_thread",
+        .usage  = "@main_thread",
+        .places = [.Declaration],
+        .doc    = "On an `@extern`: the C function runs on the main thread only, so no task of `std/task` may reach it.",
+    },
+    DecoratorSpec {
         .name   = "internal",
         .usage  = "@internal",
         .places = [.Field],

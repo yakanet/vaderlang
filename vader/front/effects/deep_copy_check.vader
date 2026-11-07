@@ -1,0 +1,119 @@
+// vader/front/effects/deep_copy_check: `deep_copy` on a type that can hold a function value.
+//
+// A copy of a function value would have to copy what it captured, which no type
+// describes, so the runtime cannot make one. Each instance of `deep_copy` whose
+// type can hold a function value, through its fields, elements and variants, is a
+// T3135 error. A trait value or a type parameter says nothing of what it holds:
+// those are left to the runtime, which stops the program on the function it
+// reaches. A struct tasks share is kept by the copy, not walked (`synchronized`).
+
+module "vader/front/effects"
+
+import "std/collections"
+import "vader/core/types"
+import "vader/front/typecheck"
+import "vader/support/diagnostics"
+
+/// The key of `deep_copy` among the intrinsics (`intrinsic_key`).
+DEEP_COPY_KEY :: "std/core.deep_copy"
+
+/// The T3135 errors of a checked project: each instance of `deep_copy` on a type
+/// that can hold a function value.
+///
+/// @param summary  the effect summary, whose index knows `deep_copy`.
+/// @param checked  its typecheck, which recorded the calls.
+export deep_copy_diagnostics :: fn(summary: EffectSummary, checked: CheckResult) -> Diagnostic[] {
+    out: Diagnostic[]: []
+    copy :: summary.index.deep_copy ?? return out
+    for typed in checked.all_modules.values() {
+        for [id, callee] in typed.call_sites.calls {
+            if callee is DirectFn && callee.decl.id == copy {
+                bindings :: callee.bindings ?? continue
+                span :: typed.call_sites.instantiation_spans[id] ?? continue
+                for [_, copied] in bindings {
+                    walk :: FunctionSearch { .typed = typed, .kept = summary.index.synchronized }
+                    path :: walk.function_path(copied) ?? continue
+                    detail :: function_detail(copied, path)
+                    out.push(typecheck_error(.FunctionValueDeepCopied, span, detail))
+                }
+            }
+        }
+    }
+    return out
+}
+
+// The search for a function value below a type.
+FunctionSearch :: struct {
+    typed: TypedProgram
+    /// The structs the copy keeps, by symbol id.
+    kept: Set<i32>
+    /// The structs on the way down, by canonical key: a recursive struct is walked
+    /// once.
+    seen: Set<string> = Set<string> {}
+}
+
+// Where a value of type `t` can hold a function value, as a path below it
+// (`.on_hit`, `[]`, `.0`) ; null when it cannot, or when only the runtime can tell.
+function_path :: fn(walk: FunctionSearch, t: Type) -> string | null = match t {
+    is FnType       -> ""
+    is StructType   -> walk.struct_path(t)
+    is ArrayType    -> below("[]", walk.function_path(t.element))
+    is TupleType    -> walk.tuple_path(t)
+    is UnionType    -> walk.first_path(t.variants)
+    is DistinctType -> walk.function_path(t.backing)
+    is PrimitiveType | EnumType | RangeType | NeverType -> null
+    is FreeIntType | FreeFloatType | FreeCharType       -> null
+    // What these hold is known only at run time, or not at all.
+    is TraitType | TypeParamType | SelfType | AnyType | InferVar -> null
+    is TypeMetaType | UnresolvedType                             -> null
+}
+
+struct_path :: fn(walk: FunctionSearch, t: StructType) -> string | null {
+    if t.symbol.id in walk.kept {
+        return null
+    }
+    key :: canonical_key(t)
+    if key in walk.seen {
+        return null
+    }
+    walk.seen.add(key)
+    fields :: walk.typed.struct_fields[t.symbol.id] ?? return null
+    for [name, _] in fields {
+        field :: declared_struct_field_type(t, name, walk.typed) ?? continue
+        found :: walk.function_path(field) ?? continue
+        return ".${name}${found}"
+    }
+    return null
+}
+
+tuple_path :: fn(walk: FunctionSearch, t: TupleType) -> string | null {
+    for i in 0..<t.elements.len() {
+        found :: walk.function_path(t.elements[i]) ?? continue
+        return ".${i}${found}"
+    }
+    return null
+}
+
+// The first of `variants` that can hold a function value: a union holds one of
+// them, and the path is the same.
+first_path :: fn(walk: FunctionSearch, variants: Type[]) -> string | null {
+    for v in variants {
+        found :: walk.function_path(v) ?? continue
+        return found
+    }
+    return null
+}
+
+below :: fn(step: string, found: string | null) -> string | null {
+    rest :: found ?? return null
+    return "${step}${rest}"
+}
+
+// The detail of a T3135: the copied type, and where it holds a function value.
+function_detail :: fn(copied: Type, path: string) -> string {
+    name :: display_type(copied)
+    if path == "" {
+        return "`${name}` is a function value"
+    }
+    return "`${name}` holds a function value at `${path}`"
+}

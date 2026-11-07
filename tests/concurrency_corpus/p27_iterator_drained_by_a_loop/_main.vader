@@ -1,0 +1,31 @@
+// P27: a `for` loop drains a `map` whose lambda writes `stats`, before the launch
+// of a task that reads it: the lambda runs during the loop.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/iter"
+import "std/option"
+import "std/task"
+
+Stats :: struct {
+    seen: i64 = 0
+}
+
+look :: fn(stats: Stats) -> i64 = stats.seen
+
+main :: fn() -> i32 {
+    stats :: Stats {}
+    ns: i64[]: [1, 2]
+    total: i64 = 0
+    for n in ns.map(n -> {
+        stats.seen += 1
+        return n * 2
+    }) {
+        total += n
+    }
+    t :: launch(() -> look(stats))
+    return i32(t.join().unwrap() + total) - 8
+}
