@@ -2304,7 +2304,7 @@ static vader_string_t vader_front_effects$display_callee(vader_box_t l0) {
         if (!((l0.tag == 1257u || l0.tag == 1269u || l0.tag == 1272u || l0.tag == 1315u))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 2743u;
+        l1 = 2745u;
     }
     { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -2330,7 +2330,7 @@ static vader_string_t vader_front_effects$display_path(void* l0, int32_t l1) {
         { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     }
     t2 = vader_front_effects$display_steps(l0, l1);
-    t3 = concat_2(t2, 3110u);
+    t3 = concat_2(t2, 3116u);
     { vader_string_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -4829,11 +4829,11 @@ static vader_box_t vader_front_effects$intrinsic_effects(void* l0, vader_string_
         t0 = (void*) _a5_arr;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l1 == 2892u) {
+    if (l1 == 2894u) {
         t0 = vader_front_effects$ffi_call_effects(l2);
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (!(l1 == 2893u)) {
+    if (!(l1 == 2895u)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
     t0 = vader_front_effects$ffi_call_frame_effects(l2);
@@ -5507,7 +5507,7 @@ bool vader_front_effects$may_be_written(void* l0, vader_box_t l1, void* l2, void
             l5 = t2.payload.b;
         }
     } else if (l1.tag == 1053u) {
-        t0 = std_collections$Set$std_core$Contains$contains__string(l0, 2783u);
+        t0 = std_collections$Set$std_core$Contains$contains__string(l0, 2785u);
         if (t0) {
             l5 = true;
         } else {
@@ -9691,7 +9691,7 @@ static void* vader_front_effects$written_keys(vader_box_t l0) {
         l1 = (void*) _a1_arr;
     } else if (l0.tag == 1053u) {
         vader_array_t* _a2_arr = vader_array_new(22u, 1u, 0u, 452u);
-        vader_array_box_slots(_a2_arr->buf)[_a2_arr->offset + 0u] = vader_box_string(452u, 2783u);
+        vader_array_box_slots(_a2_arr->buf)[_a2_arr->offset + 0u] = vader_box_string(452u, 2785u);
         l1 = (void*) _a2_arr;
     } else if (l0.tag == 1058u) {
         t0 = l0.payload.obj;

@@ -4972,7 +4972,6 @@ struct vader_struct_vader_emit_c$FnValueUsage_t {
 struct vader_struct_vader_emit_c$ForwardedResult_t {
     vader_obj_header_t header;
     vader_box_t f_capture;
-    bool f_returns;
     void* f_settle;
     vader_box_t f_returned;
 };
@@ -9760,7 +9759,7 @@ bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3111u
+#define VADER_COMPTIME_ATOM_COUNT 3117u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

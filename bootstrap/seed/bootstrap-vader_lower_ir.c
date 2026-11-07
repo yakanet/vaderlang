@@ -57,7 +57,7 @@ vader_string_t vader_lower_ir$binary_op_name(uint8_t l0) {
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 2714u;
+        l1 = 2716u;
     } else if (l0 == INT32_C(2)) {
         l1 = 2393u;
     } else if (l0 == INT32_C(3)) {
@@ -93,7 +93,7 @@ vader_string_t vader_lower_ir$binary_op_name(uint8_t l0) {
     } else if (l0 == INT32_C(18)) {
         l1 = 1531u;
     } else if (l0 == INT32_C(19)) {
-        l1 = 2715u;
+        l1 = 2717u;
     } else {
         if (!(l0 == INT32_C(20))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
@@ -141,13 +141,13 @@ vader_string_t vader_lower_ir$binary_op_symbol(uint8_t l0) {
         } else if (l0 == INT32_C(7)) {
             l1 = 287u;
         } else if (l0 == INT32_C(8)) {
-            l1 = 3102u;
+            l1 = 3108u;
         } else if (l0 == INT32_C(9)) {
             l1 = 986u;
         } else if (l0 == INT32_C(10)) {
             l1 = 288u;
         } else if (l0 == INT32_C(11)) {
-            l1 = 3103u;
+            l1 = 3109u;
         } else if (l0 == INT32_C(12)) {
             l1 = 526u;
         } else if (l0 == INT32_C(13)) {

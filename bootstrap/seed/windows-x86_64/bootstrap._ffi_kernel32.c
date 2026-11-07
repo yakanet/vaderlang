@@ -8,45 +8,68 @@
 #include <windows.h>
 
 void* vader_host_system_windows$get_std_handle(uint32_t a0) {
-    return GetStdHandle(a0);
+    vader_foreign_depth += 1;
+    void* r = GetStdHandle(a0);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 uint32_t vader_host_system_windows$get_module_file_name(vader_box_t a0, void* a1, uint32_t a2) {
     void* p0 = a0.tag == VADER_BOX_TAG_NULL ? NULL : (void*) (intptr_t) a0.payload.i;
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    return GetModuleFileNameW(p0, (void*) s1.ptr, a2);
+    vader_foreign_depth += 1;
+    uint32_t r = GetModuleFileNameW(p0, (void*) s1.ptr, a2);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 uint32_t vader_host_system_windows$get_current_directory(uint32_t a0, void* a1) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    return GetCurrentDirectoryW(a0, (void*) s1.ptr);
+    vader_foreign_depth += 1;
+    uint32_t r = GetCurrentDirectoryW(a0, (void*) s1.ptr);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 int32_t vader_host_system_windows$set_current_directory(void* a0) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
-    return SetCurrentDirectoryW(s0.ptr);
+    vader_foreign_depth += 1;
+    int32_t r = SetCurrentDirectoryW(s0.ptr);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 uint32_t vader_host_system_windows$get_file_attributes(void* a0) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
-    return GetFileAttributesW(s0.ptr);
+    vader_foreign_depth += 1;
+    uint32_t r = GetFileAttributesW(s0.ptr);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 uint32_t vader_host_system_windows$get_last_error(void) {
-    return GetLastError();
+    vader_foreign_depth += 1;
+    uint32_t r = GetLastError();
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 bool vader_host_system_windows$write_file(void* a0, void* a1, uint32_t a2, void* a3, vader_box_t a4) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     vader_slice_t s3 = vader_array_bytes((vader_array_t*) a3);
     void* p4 = a4.tag == VADER_BOX_TAG_NULL ? NULL : (void*) (intptr_t) a4.payload.i;
-    return WriteFile(a0, s1.ptr, a2, (void*) s3.ptr, p4);
+    vader_foreign_depth += 1;
+    bool r = WriteFile(a0, s1.ptr, a2, (void*) s3.ptr, p4);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 int32_t vader_host_system_windows$multi_byte_to_wide_char(uint32_t a0, uint32_t a1, vader_string_t a2, int32_t a3, void* a4, int32_t a5) {
     const char* c2 = vader_string_to_cstr(a2);
     vader_slice_t s4 = vader_array_bytes((vader_array_t*) a4);
+    vader_foreign_depth += 1;
     int32_t r = MultiByteToWideChar(a0, a1, c2, a3, (void*) s4.ptr, a5);
+    vader_foreign_depth -= 1;
     vader_cstr_free_for(a2, c2);
     return r;
 }
@@ -56,73 +79,115 @@ int32_t vader_host_system_windows$wide_char_to_multi_byte(uint32_t a0, uint32_t 
     vader_slice_t s4 = vader_array_bytes((vader_array_t*) a4);
     void* p6 = a6.tag == VADER_BOX_TAG_NULL ? NULL : (void*) (intptr_t) a6.payload.i;
     void* p7 = a7.tag == VADER_BOX_TAG_NULL ? NULL : (void*) (intptr_t) a7.payload.i;
-    return WideCharToMultiByte(a0, a1, s2.ptr, a3, (void*) s4.ptr, a5, p6, p7);
+    vader_foreign_depth += 1;
+    int32_t r = WideCharToMultiByte(a0, a1, s2.ptr, a3, (void*) s4.ptr, a5, p6, p7);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 void* vader_host_system_windows$create_file_w(void* a0, uint32_t a1, uint32_t a2, vader_box_t a3, uint32_t a4, uint32_t a5, vader_box_t a6) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
     void* p3 = a3.tag == VADER_BOX_TAG_NULL ? NULL : (void*) (intptr_t) a3.payload.i;
     void* p6 = a6.tag == VADER_BOX_TAG_NULL ? NULL : (void*) (intptr_t) a6.payload.i;
-    return CreateFileW(s0.ptr, a1, a2, p3, a4, a5, p6);
+    vader_foreign_depth += 1;
+    void* r = CreateFileW(s0.ptr, a1, a2, p3, a4, a5, p6);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 void* vader_host_system_windows$find_first_file(void* a0, void* a1) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    return FindFirstFileW(s0.ptr, (void*) s1.ptr);
+    vader_foreign_depth += 1;
+    void* r = FindFirstFileW(s0.ptr, (void*) s1.ptr);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 bool vader_host_system_windows$find_next_file(void* a0, void* a1) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    return FindNextFileW(a0, (void*) s1.ptr);
+    vader_foreign_depth += 1;
+    bool r = FindNextFileW(a0, (void*) s1.ptr);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 bool vader_host_system_windows$find_close(void* a0) {
-    return FindClose(a0);
+    vader_foreign_depth += 1;
+    bool r = FindClose(a0);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 bool vader_host_system_windows$get_console_mode(void* a0, void* a1) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    return GetConsoleMode(a0, (void*) s1.ptr);
+    vader_foreign_depth += 1;
+    bool r = GetConsoleMode(a0, (void*) s1.ptr);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 bool vader_host_system_windows$set_console_mode(void* a0, uint32_t a1) {
-    return SetConsoleMode(a0, a1);
+    vader_foreign_depth += 1;
+    bool r = SetConsoleMode(a0, a1);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 bool vader_host_system_windows$write_console_w(void* a0, void* a1, uint32_t a2, void* a3, vader_box_t a4) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     vader_slice_t s3 = vader_array_bytes((vader_array_t*) a3);
     void* p4 = a4.tag == VADER_BOX_TAG_NULL ? NULL : (void*) (intptr_t) a4.payload.i;
-    return WriteConsoleW(a0, s1.ptr, a2, (void*) s3.ptr, p4);
+    vader_foreign_depth += 1;
+    bool r = WriteConsoleW(a0, s1.ptr, a2, (void*) s3.ptr, p4);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 bool vader_host_system_windows$read_file(void* a0, void* a1, uint32_t a2, void* a3, vader_box_t a4) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     vader_slice_t s3 = vader_array_bytes((vader_array_t*) a3);
     void* p4 = a4.tag == VADER_BOX_TAG_NULL ? NULL : (void*) (intptr_t) a4.payload.i;
-    return ReadFile(a0, (void*) s1.ptr, a2, (void*) s3.ptr, p4);
+    vader_foreign_depth += 1;
+    bool r = ReadFile(a0, (void*) s1.ptr, a2, (void*) s3.ptr, p4);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 uint32_t vader_host_system_windows$get_file_type(void* a0) {
-    return GetFileType(a0);
+    vader_foreign_depth += 1;
+    uint32_t r = GetFileType(a0);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 bool vader_host_system_windows$get_file_size_ex(void* a0, void* a1) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    return GetFileSizeEx(a0, (void*) s1.ptr);
+    vader_foreign_depth += 1;
+    bool r = GetFileSizeEx(a0, (void*) s1.ptr);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 bool vader_host_system_windows$close_handle(void* a0) {
-    return CloseHandle(a0);
+    vader_foreign_depth += 1;
+    bool r = CloseHandle(a0);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 bool vader_host_system_windows$query_performance_counter(void* a0) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
-    return QueryPerformanceCounter((void*) s0.ptr);
+    vader_foreign_depth += 1;
+    bool r = QueryPerformanceCounter((void*) s0.ptr);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 bool vader_host_system_windows$query_performance_frequency(void* a0) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
-    return QueryPerformanceFrequency((void*) s0.ptr);
+    vader_foreign_depth += 1;
+    bool r = QueryPerformanceFrequency((void*) s0.ptr);
+    vader_foreign_depth -= 1;
+    return r;
 }

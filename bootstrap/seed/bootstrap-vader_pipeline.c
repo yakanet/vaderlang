@@ -845,7 +845,7 @@ static int32_t vader_pipeline$write_out(vader_string_t l0, vader_string_t l1) {
     l3 = std_path$to_native_1(l0);
     t1 = l2.payload.obj;
     l4 = std_io$IOError$std_core$Error$message(t1);
-    t0 = concat_4(2887u, l3, 1326u, l4);
+    t0 = concat_4(2889u, l3, 1326u, l4);
     std_io$eprintln__string(t0);
     { vader_gc_top = gc_frame.prev; return INT32_C(1); }
 }

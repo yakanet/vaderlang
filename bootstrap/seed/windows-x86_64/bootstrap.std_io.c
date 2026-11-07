@@ -148,7 +148,7 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
     } else if (l0 == INT32_C(6)) {
         l2 = 2236u;
     } else if (l0 == INT32_C(7)) {
-        l2 = 3070u;
+        l2 = 3076u;
     } else if (l0 == INT32_C(8)) {
         l2 = 1671u;
     } else if (l0 == INT32_C(9)) {

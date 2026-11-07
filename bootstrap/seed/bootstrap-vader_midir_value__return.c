@@ -283,7 +283,7 @@ static int32_t vader_midir_value__return$const_i32(void* l0, void* l1, int64_t l
     vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     l4 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) INT64_C(0));
-    l5 = vader_midir_value__return$add_local(l1, 2727u, vader_ref_box(l4));
+    l5 = vader_midir_value__return$add_local(l1, 2729u, vader_ref_box(l4));
     vader_struct_vader_midir$ConstInt_t* _a1_obj = (vader_struct_vader_midir$ConstInt_t*) vader_gc_alloc(sizeof(vader_struct_vader_midir$ConstInt_t));
     vader_obj_header_init(_a1_obj, 1466u);
     _a1_obj->f_value = l2;
