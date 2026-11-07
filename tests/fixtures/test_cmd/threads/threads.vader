@@ -1,0 +1,36 @@
+// A test that leaves a thread parked, and the test after it: `vader test` fails
+// the first and cancels its thread, whose defers run before the second starts.
+
+module "test_cmd_threads"
+
+import "std/runtime/scheduler"
+import "std/testing"
+
+Left :: struct {
+    ended: bool = false
+}
+
+@singleton
+left :: fn() -> Left = Left {}
+
+mark_ended :: fn() -> void {
+    left().ended = true
+}
+
+@test
+test_leaves_a_thread :: fn() -> void {
+    spawn_thread(fn() {
+        defer mark_ended()
+        for {
+            park()
+        }
+    })
+    // Lets the thread start: one cancelled before it ran runs no defer.
+    wake(current_thread())
+    park()
+}
+
+@test
+test_after_the_left_thread :: fn() -> void {
+    assert(left().ended, "the thread the previous test left has ended")
+}

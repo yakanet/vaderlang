@@ -414,8 +414,14 @@ A cancelled thread runs its pending defers on its own stack at its next run,
 then ends; one cancelled before it ran runs nothing. When `main` returns, the
 threads still running are cancelled, stderr names them, and the exit code is not
 zero. A switch made from a callback that C called stops the program: another
-thread would run over the C frames below it. The VM serves no virtual thread
-yet.
+thread would run over the C frames below it.
+
+The VM runs each thread of the program on a thread of its own process, with a
+register file of its own, so the interpreter's frames park with it. A cancelled
+thread runs the program's pending defers on that register file. When `main`
+returns, the VM cancels and reports as a native program does; when a `@test`
+returns, it cancels the threads still running, waits until they end, and fails
+the test, naming them.
 
 **Moving objects.** A minor moves young objects, so a pointer must sit in a frame
 across anything that may allocate. A foreign call is the exception: C may keep a

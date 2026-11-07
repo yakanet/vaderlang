@@ -472,7 +472,9 @@ export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(
 
 /// Run the fn named `mangled` as the entry: used by `vader test` to run each
 /// `@test` fn in isolation. A `Trap` (e.g. a failed `assert`) is the test
-/// failure ; `Ok` is a pass. The fn must take no arguments.
+/// failure ; `Ok` is a pass. The fn must take no arguments. The threads it
+/// leaves running are cancelled and have ended when this returns, and the test
+/// fails, naming them.
 ///
 /// @param state    the prepared VM state.
 /// @param mangled  the target fn's mangled name.
@@ -483,7 +485,8 @@ export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
         return idx
     }
     no_args: string[]: []
-    return exec_entry(state, idx, no_args, null, false, null)
+    ran :: run_entry(state, idx, no_args, null, false, null)
+    return without_frames(after_entry(ran, "the test"))
 }
 
 /// Run the no-arg fn named `mangled` and return its full `Value`: what a host
@@ -534,7 +537,8 @@ run_for_value :: fn(state: VmState, mangled: string, is_comptime: bool) -> Value
     }
     no_args: string[]: []
     capture: Value[]: [zero_value()]
-    outcome :: run_entry(state, idx, no_args, capture, is_comptime, null)
+    ran :: run_entry(state, idx, no_args, capture, is_comptime, null)
+    outcome :: after_entry(ran, "the evaluation")
     if outcome is Trap | StackOverflow {
         return outcome
     }
@@ -608,8 +612,8 @@ field_valtype :: fn(types: bc.BcType[], type_index: i32) -> bc.ValType {
     return .Ref
 }
 
-/// Run the module from `entry_index`. `exec` / `exec_fn` pick the entry (main vs a
-/// named `@test`).
+/// Run the module from `entry_index`, as `main`: the threads still running when
+/// it returns are cancelled, stderr names them, and an exit code of 0 becomes 1.
 ///
 /// @param state        the prepared module.
 /// @param entry_index  the function to start.
@@ -625,7 +629,12 @@ export exec_entry :: fn(
     state: VmState, entry_index: i32, host_argv: string[], capture: Value[] | null, is_comptime: bool,
     debug: DebugController | null,
 ) -> VmResult {
-    outcome :: run_entry(state, entry_index, host_argv, capture, is_comptime, debug)
+    ran :: run_entry(state, entry_index, host_argv, capture, is_comptime, debug)
+    return without_frames(after_main(ran))
+}
+
+// `outcome`, a call past `MAX_FRAME_DEPTH` reduced to its trap.
+without_frames :: fn(outcome: VmResult | StackOverflow) -> VmResult {
     if outcome is StackOverflow {
         return outcome.trap
     }
@@ -643,6 +652,7 @@ run_entry :: fn(
     if debug != null && !state.debuggable {
         return Trap { .message = "a debugged run needs a state from `prepare_debug`" }
     }
+    note_entry_thread()
     return reg_run(state, state.reg, entry_index, host_argv, capture, is_comptime, debug)
 }
 

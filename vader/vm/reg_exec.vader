@@ -1096,7 +1096,9 @@ serve_import :: fn(
     if info.is_extern {
         return dispatch_extern(state, index, args, 0, origin, debug_controller(m))
     }
-    return dispatch_import(
+    id :: state.import_ids[index]
+    // A thread primitive by a thread of the host (`guest_threads.vader`).
+    return serve_thread_primitive(state, id, args, origin, is_comptime) ?? dispatch_import(
         info,
         args,
         0,
@@ -1105,7 +1107,7 @@ serve_import :: fn(
         state.string_array_type_id,
         state.u8_array_type_id,
         is_comptime,
-        state.import_ids[index],
+        id,
     )
 }
 

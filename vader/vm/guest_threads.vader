@@ -1,0 +1,245 @@
+// vader/vm/guest_threads: the virtual threads of the program the VM runs are
+// virtual threads of the host.
+//
+// The primitives of `std/runtime/scheduler` reach the host's own: a guest
+// thread runs on a thread of the host, with a register file of its own, and
+// parks with the interpreter's frames on its host stack, where the collector
+// reads them. The host's scheduler is the guest's, which numbers the guest
+// threads as the host does as long as the host starts none of its own.
+//
+// A guest thread cancelled while it parks unwinds its host stack, whose defers
+// run the guest's pending defers on its register file. When an entry returns,
+// the guest threads still running are cancelled and waited for, so that a
+// `@test` or a comptime evaluation leaves none behind for the next.
+
+module "vader/vm"
+
+bc :: import "vader/core/bytecode"
+import "std/abort"
+import "std/collections"
+import "std/io"
+import "std/iter"
+import "std/runtime/scheduler"
+import "std/sort"
+import "std/string"
+
+// A guest thread that has not ended.
+GuestThread :: struct {
+    /// How a report names it: `thread #N`.
+    number: i64
+    /// Whether it has begun: one cancelled before runs nothing.
+    started: bool = false
+}
+
+// The guest threads of the process, which runs one entry at a time.
+GuestThreads :: struct {
+    /// By the handle of their host thread.
+    live: Map<i64, GuestThread> = Map<i64, GuestThread> {}
+    numbered: i64 = 0
+    /// The thread that runs the entries, which cannot be cancelled.
+    entry_thread: i64 = -1
+    /// The thread waiting in `finish_guest_threads` for the last one to end, or -1.
+    waiter: i64 = -1
+}
+
+@singleton
+guest_threads :: fn() -> GuestThreads = GuestThreads {}
+
+// Serve `id` on `args` when it is a primitive of `std/runtime/scheduler`, which
+// the VM serves with its own state; null for any other, which `dispatch_import`
+// serves.
+// @partial: the intrinsics outside `std/runtime/scheduler` are not this one's.
+serve_thread_primitive :: fn(
+    state: VmState,
+    id: bc.IntrinsicId,
+    args: Value[],
+    origin: i32,
+    is_comptime: bool,
+) -> HostCallResult | null = @partial match id {
+    .SchedSpawn    -> start_guest_thread(state, args[0], is_comptime)
+    .SchedPark     -> parked()
+    .SchedWake     -> wake_guest_thread(args[0], origin)
+    .SchedSleepFor -> sleep_guest_thread(args[0], origin)
+    .SchedCancel   -> cancel_guest_thread(args[0], origin)
+    .SchedCurrent  -> HostOk { .value = I64Val(current_thread()) }
+    _              -> null
+}
+
+// Start the guest function `entry` on a thread of the host.
+start_guest_thread :: fn(state: VmState, entry: Value, is_comptime: bool) -> HostCallResult {
+    if entry !is FnVal {
+        return Trap { .message = "a thread's entry is not a function" }
+    }
+    if is_fn_index_out_of_range(entry.function_index, state.bc.functions) {
+        return Trap { .message = "a thread's entry is not a function of the program" }
+    }
+    if state.reg.functions[entry.function_index].params != environment_params(entry) {
+        return Trap { .message = "a thread's entry takes arguments" }
+    }
+    threads :: guest_threads()
+    threads.numbered += 1
+    number :: threads.numbered
+    thread :: spawn_thread(() -> run_guest_thread(state, entry, is_comptime))
+    threads.live[thread] = GuestThread { .number = number }
+    return HostOk { .value = I64Val(thread) }
+}
+
+// The parameters a function value fills by itself: its environment, when it
+// carries one.
+environment_params :: fn(f: FnVal) -> i64 {
+    if f.env != null {
+        return 1
+    }
+    return 0
+}
+
+void_result :: fn() -> HostCallResult = HostOk { .value = NullVal {} }
+
+parked :: fn() -> HostCallResult {
+    park()
+    return void_result()
+}
+
+wake_guest_thread :: fn(thread: Value, origin: i32) -> HostCallResult {
+    handle :: read_i64(thread, origin, "wake")
+    if handle is Trap {
+        return handle
+    }
+    wake(i64(handle))
+    return void_result()
+}
+
+sleep_guest_thread :: fn(nanos: Value, origin: i32) -> HostCallResult {
+    duration :: read_i64(nanos, origin, "sleep_for")
+    if duration is Trap {
+        return duration
+    }
+    sleep_for(i64(duration))
+    return void_result()
+}
+
+// Cancel a guest thread: the entry's thread cannot be, which fails the run
+// where the host's own check would stop the process, and a handle that names no
+// guest thread names one that has ended.
+cancel_guest_thread :: fn(thread: Value, origin: i32) -> HostCallResult {
+    handle :: read_i64(thread, origin, "cancel_thread")
+    if handle is Trap {
+        return handle
+    }
+    target :: i64(handle)
+    if target == guest_threads().entry_thread {
+        return Trap { .message = "virtual threads: the main thread cannot be cancelled" }
+    }
+    cancel(target)
+    return void_result()
+}
+
+// Cancel the guest thread `thread` if it has not ended. One that has not begun
+// never runs, so it is forgotten here.
+cancel :: fn(thread: i64) -> void {
+    threads :: guest_threads()
+    guest :: threads.live[thread] ?? return
+    if !guest.started {
+        forget(threads, thread)
+    }
+    cancel_thread(thread)
+}
+
+// Run the guest function `entry` on a register file of its own. A trap ends the
+// program, as it does on the native side: nothing waits for this thread to
+// report it to.
+run_guest_thread :: fn(state: VmState, entry: FnVal, is_comptime: bool) -> void {
+    threads :: guest_threads()
+    thread :: current_thread()
+    guest :: threads.live[thread]
+    if guest != null {
+        guest.started = true
+    }
+    m :: empty_machine(null)
+    defer forget(threads, thread)
+    // A cancellation runs it with the guest's frames still pending.
+    defer unwind(state, state.reg, m, is_comptime)
+    outcome :: run_thunk(state, state.reg, m, entry, 0, 0, 0, is_comptime)
+    if outcome is Trap {
+        panic("a guest thread trapped: ${outcome.message}")
+    }
+}
+
+// `thread` has ended: the last one wakes `finish_guest_threads`.
+forget :: fn(threads: GuestThreads, thread: i64) -> void {
+    threads.live.remove(thread)
+    if threads.live.len() == 0 && threads.waiter >= 0 {
+        wake(threads.waiter)
+    }
+}
+
+/// Note the host thread about to run an entry, which no guest can cancel.
+note_entry_thread :: fn() -> void {
+    guest_threads().entry_thread = current_thread()
+}
+
+/// Cancel the guest threads still running once an entry has returned, and wait
+/// until their defers have run.
+///
+/// @param announce  name each on stderr as a native program does when `main`
+///                  returns.
+/// @return          the numbers of the threads cancelled, the oldest first.
+finish_guest_threads :: fn(announce: bool) -> i64[] {
+    threads :: guest_threads()
+    if threads.live.len() == 0 {
+        return []
+    }
+    handles :: sort(
+        threads.live.keys().collect(),
+        (a, b) -> number_of(threads, a) < number_of(threads, b),
+    )
+    numbers: i64[]: []
+    for thread in handles {
+        number :: number_of(threads, thread)
+        numbers.push(number)
+        if announce {
+            eprintln("vader: thread #${number} still runs when main returns: cancelled")
+        }
+        cancel(thread)
+    }
+    threads.waiter = current_thread()
+    // Lets the threads cancelled before they began end before this returns.
+    wake(threads.waiter)
+    park()
+    for threads.live.len() > 0 {
+        park()
+    }
+    threads.waiter = -1
+    return numbers
+}
+
+number_of :: fn(threads: GuestThreads, thread: i64) -> i64 {
+    guest :: threads.live[thread] ?? return 0
+    return guest.number
+}
+
+/// The outcome of a run whose `main` returned: the guest threads still running
+/// are named on stderr and cancelled, and an exit code of 0 becomes 1.
+///
+/// @param outcome  what the run of `main` returned.
+after_main :: fn(outcome: VmResult | StackOverflow) -> VmResult | StackOverflow {
+    cancelled :: finish_guest_threads(true)
+    if cancelled.len() == 0 || outcome !is Ok || outcome.value != 0 {
+        return outcome
+    }
+    return Ok { .value = 1 }
+}
+
+/// The outcome of an entry other than `main`: the guest threads still running
+/// are cancelled, and the entry fails, naming them.
+///
+/// @param outcome  what the run of the entry returned.
+/// @param what     the entry, as the failure names it: `the test`.
+after_entry :: fn(outcome: VmResult | StackOverflow, what: string) -> VmResult | StackOverflow {
+    cancelled :: finish_guest_threads(false)
+    if cancelled.len() == 0 || outcome !is Ok {
+        return outcome
+    }
+    names :: cancelled.map((n) -> "thread #${n}").collect().join(", ")
+    return Trap { .message = "${names} still running when ${what} returns: cancelled" }
+}

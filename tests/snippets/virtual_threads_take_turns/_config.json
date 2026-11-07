@@ -1,5 +1,0 @@
-{
-  "vm": {
-    "skip": "the VM serves no virtual thread yet: a program that starts one stops"
-  }
-}
