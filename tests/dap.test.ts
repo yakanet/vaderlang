@@ -47,6 +47,27 @@ async function driveDap(program: string): Promise<Json[]> {
   ]);
 }
 
+// The frames of a session on `source`, written to a fresh directory, stopping at
+// `lines` and sending `during` once it runs.
+async function debugSource(source: string, lines: number[], during: object[]): Promise<Json[]> {
+  const dir = mkdtempSync(join(tmpdir(), "vdap-"));
+  const program = join(dir, "_main.vader");
+  writeFileSync(program, source);
+  try {
+    return await sendDap([
+      { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
+      { seq: 2, type: "request", command: "launch", arguments: { program } },
+      { seq: 3, type: "request", command: "setBreakpoints",
+        arguments: { source: { path: program }, breakpoints: lines.map((line) => ({ line })) } },
+      { seq: 4, type: "request", command: "configurationDone" },
+      ...during.map((request, i) => ({ seq: 5 + i, type: "request", ...request })),
+      { seq: 99, type: "request", command: "disconnect" },
+    ]);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 test("dap: proof of life, initialize, launch, run, capture output, terminate", async () => {
   // io_println prints "hello\n" then "42\n": imports std/io, resolved relative
   // to the repo cwd (same as `vader run`).
@@ -151,7 +172,7 @@ test("dap: step over advances the line, and Variables shows source locals with v
     { seq: 4, type: "request", command: "configurationDone" },
     // Stop #1 (breakpoint, line 13): inspect, then step over.
     { seq: 5, type: "request", command: "stackTrace", arguments: { threadId: 1 } },
-    { seq: 6, type: "request", command: "scopes", arguments: { frameId: 0 } },
+    { seq: 6, type: "request", command: "scopes", arguments: { frameId: 1 } },
     { seq: 7, type: "request", command: "variables", arguments: { variablesReference: 1 } },
     { seq: 8, type: "request", command: "next", arguments: { threadId: 1 } },
     // Stop #2 (step, past line 13): `arr` is now materialised.
@@ -162,8 +183,8 @@ test("dap: step over advances the line, and Variables shows source locals with v
     // this fixed program.
     { seq: 11, type: "request", command: "variables", arguments: { variablesReference: 2 } },
     // Hover / Watch : a known local resolves, an unknown one fails cleanly.
-    { seq: 12, type: "request", command: "evaluate", arguments: { expression: "arr", frameId: 0, context: "hover" } },
-    { seq: 13, type: "request", command: "evaluate", arguments: { expression: "no_such_var", frameId: 0, context: "hover" } },
+    { seq: 12, type: "request", command: "evaluate", arguments: { expression: "arr", frameId: 1, context: "hover" } },
+    { seq: 13, type: "request", command: "evaluate", arguments: { expression: "no_such_var", frameId: 1, context: "hover" } },
     { seq: 14, type: "request", command: "continue", arguments: { threadId: 1 } },
     { seq: 15, type: "request", command: "disconnect" },
   ];
@@ -236,10 +257,7 @@ test("dap: a runtime trap stops on the exception with its message", async () => 
 test("dap: the Variables view names function parameters from source", async () => {
   // A breakpoint inside `add(x, y)` must show the params by their source names
   // (x, y), not `arg0`/`arg1`, and hide `sum`, not yet assigned on its line.
-  // Written to a fresh dir so it's a standalone single-`main` module.
-  const dir = mkdtempSync(join(tmpdir(), "vdap-"));
-  const program = join(dir, "_main.vader");
-  writeFileSync(program, [
+  const source = [
     `module "snippet"`,
     ``,
     `import "std/io"`,
@@ -255,31 +273,21 @@ test("dap: the Variables view names function parameters from source", async () =
     `    return 0`,
     `}`,
     ``,
-  ].join("\n"));
-  try {
-    const frames = await sendDap([
-      { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
-      { seq: 2, type: "request", command: "launch", arguments: { program } },
-      // Line 6 = `    sum :: x + y`, the first statement inside `add`.
-      { seq: 3, type: "request", command: "setBreakpoints",
-        arguments: { source: { path: program }, breakpoints: [{ line: 6 }] } },
-      { seq: 4, type: "request", command: "configurationDone" },
-      { seq: 5, type: "request", command: "variables", arguments: { variablesReference: 1 } },
-      { seq: 6, type: "request", command: "continue", arguments: { threadId: 1 } },
-      { seq: 7, type: "request", command: "disconnect" },
-    ]);
-    const vars = frames.find((f) => f.type === "response" && f.command === "variables")?.body?.variables ?? [];
-    const names = vars.map((v: any) => v.name);
-    expect(names).toContain("x");
-    expect(names).toContain("y");
-    expect(names).not.toContain("arg0");
-    expect(vars.find((v: any) => v.name === "x")?.value).toBe("3");
-    expect(vars.find((v: any) => v.name === "y")?.value).toBe("4");
-    // `sum` isn't assigned yet at line 6 → not in scope.
-    expect(names).not.toContain("sum");
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
+  ].join("\n");
+  // Line 6 = `    sum :: x + y`, the first statement inside `add`.
+  const frames = await debugSource(source, [6], [
+    { command: "variables", arguments: { variablesReference: 1 } },
+    { command: "continue", arguments: { threadId: 1 } },
+  ]);
+  const vars = frames.find((f) => f.type === "response" && f.command === "variables")?.body?.variables ?? [];
+  const names = vars.map((v: any) => v.name);
+  expect(names).toContain("x");
+  expect(names).toContain("y");
+  expect(names).not.toContain("arg0");
+  expect(vars.find((v: any) => v.name === "x")?.value).toBe("3");
+  expect(vars.find((v: any) => v.name === "y")?.value).toBe("4");
+  // `sum` isn't assigned yet at line 6 → not in scope.
+  expect(names).not.toContain("sum");
 }, { timeout: MEDIUM_BUILD });
 
 test("dap: threads request returns the single VM thread", async () => {
@@ -291,4 +299,186 @@ test("dap: threads request returns the single VM thread", async () => {
   expect(Array.isArray(list)).toBe(true);
   expect(list.length).toBe(1);
   expect(list[0]!.id).toBe(1);
+}, { timeout: MEDIUM_BUILD });
+
+// ---- tasks ------------------------------------------------------------------
+
+// The lines the tests below stop at, in `TASK_PROGRAM`.
+const TASK_LOCAL = 7;
+const TASK_PRINT = 8;
+const MAIN_PRINT = 15;
+const MAIN_JOIN = 16;
+
+const TASK_PROGRAM = [
+  `module "snippet"`,
+  ``,
+  `import "std/io"`,
+  `import "std/task"`,
+  ``,
+  `work :: fn() -> i32 {`,
+  `    answer :: 7`,
+  `    println("from the task")`,
+  `    return answer`,
+  `}`,
+  ``,
+  `main :: fn() -> i32 {`,
+  `    label :: "done"`,
+  `    t :: launch(work)`,
+  `    println("from main")`,
+  `    println("\${t.join()}")`,
+  `    println(label)`,
+  `    return 0`,
+  `}`,
+  ``,
+].join("\n");
+
+const responsesTo = (frames: Json[], command: string) =>
+  frames.filter((f) => f.type === "response" && f.command === command);
+const written = (frames: Json[], category: string) =>
+  frames.filter((f) => f.event === "output" && f.body?.category === category).map((f) => f.body.output).join("");
+
+test("dap: what a task writes rides on output events", async () => {
+  const frames = await debugSource(TASK_PROGRAM, [], []);
+  expect(written(frames, "stdout")).toContain("from the task");
+  expect(frames.find((f) => f.event === "exited")?.body?.exitCode).toBe(0);
+}, { timeout: MEDIUM_BUILD });
+
+test("dap: a breakpoint in a task stops that thread, and each thread shows its stack", async () => {
+  const frames = await debugSource(TASK_PROGRAM, [TASK_PRINT], [
+    { command: "threads" },
+    { command: "stackTrace", arguments: { threadId: 2 } },
+    { command: "stackTrace", arguments: { threadId: 1 } },
+    { command: "stackTrace", arguments: { threadId: 2 } },
+    { command: "continue", arguments: { threadId: 2 } },
+  ]);
+  const stopped = frames.find((f) => f.event === "stopped");
+  expect(stopped?.body?.reason).toBe("breakpoint");
+  expect(stopped?.body?.threadId).toBe(2);
+  expect(stopped?.body?.allThreadsStopped).toBe(true);
+
+  const threads = responsesTo(frames, "threads")[0]?.body?.threads;
+  expect(threads).toEqual([{ id: 1, name: "main" }, { id: 2, name: "task #1" }]);
+
+  const [task, main, again] = responsesTo(frames, "stackTrace");
+  expect(task?.body?.stackFrames?.[0]?.name).toBe("work");
+  expect(task?.body?.stackFrames?.[0]?.line).toBe(TASK_PRINT);
+  // Main waits for the task inside `join`, which its own frames lead to.
+  const mainFrames = main?.body?.stackFrames as Array<{ id: number; name: string; line: number }>;
+  expect(mainFrames.at(-1)?.name).toBe("main");
+  expect(mainFrames.at(-1)?.line).toBe(MAIN_JOIN);
+  // Asking twice names the same frames, and no two frames of a pause share an id.
+  expect(again?.body?.stackFrames?.map((f: any) => f.id)).toEqual(task?.body?.stackFrames?.map((f: any) => f.id));
+  const ids = [...task!.body.stackFrames, ...mainFrames].map((f: any) => f.id);
+  expect(new Set(ids).size).toBe(ids.length);
+  expect(frames.some((f) => f.event === "terminated")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
+test("dap: the frames of a thread that did not stop have scopes, variables and hovers", async () => {
+  // Main parks at `t.join()` with `label` in scope. Requests are written ahead of the
+  // answers and main's frames get their ids once asked for, so a first run reads
+  // the id a second one asks about.
+  const stop = [
+    { command: "stackTrace", arguments: { threadId: 2 } },
+    { command: "stackTrace", arguments: { threadId: 1 } },
+  ];
+  const first = await debugSource(TASK_PROGRAM, [TASK_PRINT], [...stop, { command: "continue" }]);
+  const mainFrames = responsesTo(first, "stackTrace")[1]?.body?.stackFrames as Array<{ id: number; name: string }>;
+  const frameId = mainFrames.at(-1)!.id;
+
+  const frames = await debugSource(TASK_PROGRAM, [TASK_PRINT], [
+    ...stop,
+    { command: "scopes", arguments: { frameId } },
+    { command: "evaluate", arguments: { expression: "label", frameId, context: "hover" } },
+    { command: "evaluate", arguments: { expression: "answer", frameId, context: "hover" } },
+    { command: "variables", arguments: { variablesReference: frameId } },
+    { command: "continue" },
+  ]);
+  const reference = responsesTo(frames, "scopes")[0]?.body?.scopes?.[0]?.variablesReference;
+  expect(reference).toBe(frameId);
+  const variables = responsesTo(frames, "variables")[0]?.body?.variables as Array<{ name: string; value: string }>;
+  expect(variables.find((v) => v.name === "label")?.value).toContain("done");
+  const hovers = responsesTo(frames, "evaluate");
+  expect(hovers[0]?.body?.result).toContain("done");
+  // `answer` is a local of the task, not of main.
+  expect(hovers[1]?.success).toBe(false);
+}, { timeout: MEDIUM_BUILD });
+
+test("dap: a task that has not begun is listed, with an empty stack", async () => {
+  const frames = await debugSource(TASK_PROGRAM, [MAIN_PRINT], [
+    { command: "threads" },
+    { command: "stackTrace", arguments: { threadId: 2 } },
+    { command: "continue", arguments: { threadId: 1 } },
+  ]);
+  expect(frames.find((f) => f.event === "stopped")?.body?.threadId).toBe(1);
+  expect(responsesTo(frames, "threads")[0]?.body?.threads?.length).toBe(2);
+  const stack = responsesTo(frames, "stackTrace")[0];
+  expect(stack?.success).toBe(true);
+  expect(stack?.body?.stackFrames).toEqual([]);
+}, { timeout: MEDIUM_BUILD });
+
+test("dap: a step stays in the thread that took it", async () => {
+  const frames = await debugSource(TASK_PROGRAM, [TASK_LOCAL], [
+    { command: "next", arguments: { threadId: 2 } },
+    { command: "stackTrace", arguments: { threadId: 2 } },
+    { command: "continue", arguments: { threadId: 2 } },
+  ]);
+  const stops = frames.filter((f) => f.event === "stopped");
+  expect(stops.map((f) => [f.body.reason, f.body.threadId])).toEqual([["breakpoint", 2], ["step", 2]]);
+  expect(responsesTo(frames, "stackTrace")[0]?.body?.stackFrames?.[0]?.line).toBe(TASK_PRINT);
+}, { timeout: MEDIUM_BUILD });
+
+test("dap: a trap in a task stops that thread, then closes the session", async () => {
+  const source = [
+    `module "snippet"`,
+    ``,
+    `import "std/io"`,
+    `import "std/task"`,
+    ``,
+    `divide :: fn(a: i32, b: i32) -> i32 = a / b`,
+    ``,
+    `work :: fn() -> i32 = divide(1, 0)`,
+    ``,
+    `main :: fn() -> i32 {`,
+    `    t :: launch(work)`,
+    `    println("\${t.join()}")`,
+    `    return 0`,
+    `}`,
+    ``,
+  ].join("\n");
+  const frames = await debugSource(source, [], [
+    { command: "threads" },
+    { command: "stackTrace", arguments: { threadId: 1 } },
+    { command: "continue", arguments: { threadId: 2 } },
+  ]);
+  const stopped = frames.find((f) => f.event === "stopped");
+  expect(stopped?.body?.reason).toBe("exception");
+  expect(stopped?.body?.threadId).toBe(2);
+  expect(stopped?.body?.text).toContain("zero");
+  expect(written(frames, "stderr")).toContain("zero");
+  // The other threads can still be read at that stop.
+  expect(responsesTo(frames, "threads")[0]?.body?.threads?.length).toBe(2);
+  expect(responsesTo(frames, "stackTrace")[0]?.body?.stackFrames?.at(-1)?.name).toBe("main");
+  expect(frames.find((f) => f.event === "exited")?.body?.exitCode).toBe(1);
+  expect(frames.some((f) => f.event === "terminated")).toBe(true);
+  // The client's goodbye is still answered.
+  expect(responsesTo(frames, "disconnect")[0]?.success).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
+test("dap: a task cancelled when main returns is announced through the session", async () => {
+  const source = [
+    `module "snippet"`,
+    ``,
+    `import "std/task"`,
+    ``,
+    `work :: fn() -> i32 = 1`,
+    ``,
+    `main :: fn() -> i32 {`,
+    `    launch(work)`,
+    `    return 0`,
+    `}`,
+    ``,
+  ].join("\n");
+  const frames = await debugSource(source, [], []);
+  expect(written(frames, "stderr")).toContain("task #1 still runs when main returns");
+  expect(frames.find((f) => f.event === "exited")?.body?.exitCode).toBe(1);
 }, { timeout: MEDIUM_BUILD });

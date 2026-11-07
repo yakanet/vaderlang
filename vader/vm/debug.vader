@@ -58,15 +58,39 @@ export PauseFrame :: struct {
     locals:        PauseVar[]
 }
 
+/// The id a debugger knows the entry's thread by.
+export MAIN_THREAD_ID: i32: 1
+
+/// A thread of the debugged program, as a stop lists it.
+export PauseThread :: struct {
+    /// The id a debugger knows it by.
+    id:    i32
+    /// `main` or `task #N`.
+    name:  string
+    /// Read its call stack, innermost frame first: empty for a task that has not
+    /// begun. A stop only projects the stack of the thread that stopped.
+    stack: fn() -> PauseFrame[]
+}
+
 /// Everything the `on_pause` callback needs to answer a `stackTrace` /
 /// `variables` request without reaching into VM internals. Built by
-/// `pause_context` (`reg_exec.vader`) at the stop.
+/// `stop_at_line` (`reg_exec.vader`) at the stop. The VM runs nothing while a stop
+/// lasts, so the threads it lists stay as they are.
 export PauseCtx :: struct {
-    /// DAP `stopped` reason: `"breakpoint"` or `"step"`.
-    reason: string
-    /// Paused call stack, innermost frame first.
-    frames: PauseFrame[]
+    /// DAP `stopped` reason: `"breakpoint"`, `"step"` or `"exception"`.
+    reason:    string
+    /// The trap's message on an exception stop.
+    text:      string = ""
+    /// The id of the thread that stopped.
+    thread_id: i32
+    /// Its call stack, innermost frame first.
+    frames:    PauseFrame[]
+    /// Every thread of the program, the entry's first.
+    threads:   PauseThread[]
 }
+
+// The `stream` of `DebugController.output_sink` that stands for stderr.
+STDERR_STREAM: i32: 1
 
 /// Runtime debug/session context, passed to `exec_entry` when the program runs
 /// under the DAP debugger ; `null` otherwise.
@@ -75,10 +99,11 @@ export PauseCtx :: struct {
 /// lines. `output_sink` routes program writes to DAP `output` events (stdio
 /// transport can't let program output hit fd 1). `on_pause` is invoked when the
 /// VM stops (breakpoint or step): it runs the (blocking) DAP request loop until
-/// the client resumes, then returns the `StepMode` governing the next stop.
+/// the client resumes, then returns the `StepMode` governing the next stop. Every
+/// thread of the program stops through the same controller.
 export DebugController :: struct {
-    /// Program write hook. `stream` is `0` = stdout, `1` = stderr (the VM's
-    /// `.IoWrite` Stream tag) ; `text` is the raw payload.
+    /// Program write hook. `stream` is `0` = stdout, `STDERR_STREAM` = stderr (the
+    /// VM's `.IoWrite` Stream tag) ; `text` is the raw payload.
     output_sink: fn(i32, string) -> void
     /// Absolute file → set of 1-based breakpoint lines. Shared (by shallow
     /// copy) with the DAP layer, so `setBreakpoints` updates reach the VM.
@@ -86,6 +111,36 @@ export DebugController :: struct {
     /// Invoked at a stop with the paused call stack ; blocks driving the DAP
     /// conversation, then returns how to resume (`StepMode`).
     on_pause: fn(PauseCtx) -> StepMode
+    /// Invoked with the exception stop when a task traps, which ends the process:
+    /// nothing is left to resume once it returns, so it closes the session.
+    on_fatal_trap: fn(PauseCtx) -> void
+}
+
+/// The entry's thread, as a stop lists it.
+///
+/// @param stack  how to read its call stack.
+export main_thread :: fn(stack: fn() -> PauseFrame[]) -> PauseThread = PauseThread {
+    .id    = MAIN_THREAD_ID,
+    .name  = "main",
+    .stack = stack,
+}
+
+/// The stop a trap makes, which has no stack to show: the interpreter's frames have
+/// already returned it.
+///
+/// @param message    the trap's message.
+/// @param thread_id  the id of the thread that trapped.
+/// @param threads    every thread of the program, the entry's first.
+export exception_stop :: fn(
+    message: string,
+    thread_id: i32,
+    threads: PauseThread[],
+) -> PauseCtx = PauseCtx {
+    .reason    = "exception",
+    .text      = message,
+    .thread_id = thread_id,
+    .frames    = [],
+    .threads   = threads,
 }
 
 /// True when `line` in `file` carries a breakpoint. Pure: the "fire once per
@@ -138,9 +193,14 @@ import "std/testing"
 
 no_sink :: fn(_s: i32, _t: string) -> void {}
 no_pause :: fn(_c: PauseCtx) -> StepMode = .Continue
+no_fatal_trap :: fn(_c: PauseCtx) -> void {}
 
-mk_controller :: fn(bps: Map<string, Set<i32>>) -> DebugController =
-    DebugController { .output_sink = no_sink, .breakpoints = bps, .on_pause = no_pause }
+mk_controller :: fn(bps: Map<string, Set<i32>>) -> DebugController = DebugController {
+    .output_sink   = no_sink,
+    .breakpoints   = bps,
+    .on_pause      = no_pause,
+    .on_fatal_trap = no_fatal_trap,
+}
 
 @test test_line_has_breakpoint_hit_and_miss :: fn() -> void {
     bps :: Map<string, Set<i32>> {}

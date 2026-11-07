@@ -630,7 +630,7 @@ export exec_entry :: fn(
     debug: DebugController | null,
 ) -> VmResult {
     ran :: run_entry(state, entry_index, host_argv, capture, is_comptime, debug)
-    return without_frames(after_main(ran))
+    return without_frames(after_main(ran, debug))
 }
 
 // `outcome`, a call past `MAX_FRAME_DEPTH` reduced to its trap.
@@ -652,7 +652,6 @@ run_entry :: fn(
     if debug != null && !state.debuggable {
         return Trap { .message = "a debugged run needs a state from `prepare_debug`" }
     }
-    note_entry_thread()
     return reg_run(state, state.reg, entry_index, host_argv, capture, is_comptime, debug)
 }
 

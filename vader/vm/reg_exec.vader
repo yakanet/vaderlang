@@ -41,14 +41,28 @@ RegMachine :: struct {
     null_value: Value = NullVal {}
 }
 
-// A debugger's state across the stops of one run.
+// A debugger's state across the stops of one thread.
 DebugSession :: struct {
     controller: DebugController
+    /// The id the debugger knows the thread by.
+    thread_id: i32
     /// The line of the last `Line` op, so a line stops once, at its first op.
-    last_line: i32
+    last_line: i32 = -1
     /// How to resume after the last stop, and the frame depth it was taken at.
-    step_mode:  StepMode
-    step_depth: i32
+    step_mode:  StepMode = .Continue
+    step_depth: i32 = 0
+    /// Where the thread stood at its last call to the host, which is where it
+    /// stands while another one runs: a thread only gives way inside such a call.
+    host_pc:    i64 = 0
+    host_depth: i64 = 0
+}
+
+// The state of a debugger for the thread `thread_id`, or null when none drives the run.
+debug_session :: fn(debug: DebugController | null, thread_id: i32) -> DebugSession | null {
+    if debug == null {
+        return null
+    }
+    return DebugSession { .controller = debug, .thread_id = thread_id }
 }
 
 // Grow the register file to at least `count` registers.
@@ -117,12 +131,8 @@ reg_run :: fn(
     if args is Trap {
         return args
     }
-    session: DebugSession | null: if debug != null {
-        DebugSession { .controller = debug, .last_line = -1, .step_mode = .Continue, .step_depth = 0 }
-    } else {
-        null
-    }
-    m :: empty_machine(session)
+    m :: empty_machine(debug_session(debug, MAIN_THREAD_ID))
+    note_entry_thread(m)
     reserve_registers(m, code.functions[entry_index].registers)
     for i in 0..<args.len() {
         set_register(m, i, args[i])
@@ -513,6 +523,7 @@ reg_call :: fn(
                 }
             }
             .CallImport -> {
+                note_host_call(m, pc, depth)
                 failed :: call_import(state, m, operand_a(w), base + i64(operand_b(w)), f.origin[pc], is_comptime)
                 if failed != null {
                     return failed
@@ -1064,6 +1075,13 @@ run_boxed :: fn(
     return null
 }
 
+// Where a debugged thread stands as it calls the host.
+note_host_call :: fn(m: RegMachine, pc: i64, depth: i64) -> void {
+    session :: m.debug ?? return
+    session.host_pc = pc
+    session.host_depth = depth
+}
+
 // Call host import `index` with its arguments from register `at` ; its result
 // lands in `at`.
 call_import :: fn(state: VmState, m: RegMachine, index: i32, at: i64, origin: i32, is_comptime: bool) -> Trap | null {
@@ -1102,7 +1120,7 @@ serve_import :: fn(
         return deep_copy_value(state.bc.types, args[0], origin)
     }
     // A thread primitive by a thread of the host (`guest_threads.vader`).
-    return serve_thread_primitive(state, id, args, origin, is_comptime) ?? dispatch_import(
+    return serve_thread_primitive(state, m, id, args, origin, is_comptime) ?? dispatch_import(
         info,
         args,
         0,
@@ -1238,13 +1256,28 @@ stop_at_line :: fn(state: VmState, m: RegMachine, session: DebugSession, f: RegF
         return
     }
     reason :: if breakpoint { "breakpoint" } else { "step" }
-    session.step_mode = session.controller.on_pause(pause_context(state, m, reason, pc, depth))
+    session.step_mode = session.controller.on_pause(PauseCtx {
+        .reason    = reason,
+        .thread_id = session.thread_id,
+        .frames    = call_stack(state, m, pc, depth),
+        .threads   = debugged_threads(state),
+    })
     session.step_depth = here
 }
 
-// The paused call stack, innermost frame first. A caller's pc is the op after its
-// call, so its line is the call site's.
-pause_context :: fn(state: VmState, m: RegMachine, reason: string, pc: i64, depth: i64) -> PauseCtx {
+// The call stack of a debugged thread that does not run, innermost frame first;
+// empty for one that has not begun.
+parked_stack :: fn(state: VmState, m: RegMachine | null) -> PauseFrame[] {
+    if m == null {
+        return []
+    }
+    session :: m.debug ?? return []
+    return call_stack(state, m, session.host_pc, session.host_depth)
+}
+
+// The call stack of `m` at `pc` and `depth`, innermost frame first. A caller's pc
+// is the op after its call, so its line is the call site's.
+call_stack :: fn(state: VmState, m: RegMachine, pc: i64, depth: i64) -> PauseFrame[] {
     frames: PauseFrame[]: []
     k := depth
     for k > 0 {
@@ -1257,7 +1290,7 @@ pause_context :: fn(state: VmState, m: RegMachine, reason: string, pc: i64, dept
         }
         frames.push(pause_frame(state.bc, state.bc.functions[code.index], slots, code.origin[at]))
     }
-    return PauseCtx { .reason = reason, .frames = frames }
+    return frames
 }
 
 // Record a frame one deeper than any so far ; the record arrays are grow-only,

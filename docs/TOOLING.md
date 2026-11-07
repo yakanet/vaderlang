@@ -332,6 +332,8 @@ The module is the name its `module "..."` line declares, the file is its name wi
 
 `vader dap` runs a Debug Adapter Protocol server on the VM, over standard input and output. It launches a `.vader` file, stops at breakpoints, steps in, over and out, shows the stack, scopes and variables with Vader names and values, evaluates hover expressions, and forwards the program's output as `output` events. VS Code starts it directly, IntelliJ through LSP4IJ.
 
+Each task is a thread of the session, named `task #N` after `main`. Everything stops together, each thread shows its stack, and stepping moves only the thread that stopped: another one mid-step stops at its next line when it runs again. A trap in a task stops on the exception, then ends the session.
+
 The debugger finds and reads a file's project as the language server does (*The project of a file*), and prepares a driven one as `--project` does.
 
 A native binary is debugged in C (lldb, gdb), where locals are compiler slots (`l0`, `t0`). A debug build's `#line` directives map the C back to the `.vader` lines; a `--release` build has none. WebAssembly debugging (DWARF, Chrome DevTools, wasmtime) is planned with its backend.
