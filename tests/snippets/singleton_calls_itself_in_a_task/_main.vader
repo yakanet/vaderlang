@@ -1,0 +1,20 @@
+// A `@singleton` whose body calls it again, from the task that runs that body,
+// would wait for itself: the program stops instead, naming the singleton.
+// `tests/const_read_again.test.ts` checks the name on both backends.
+module "snippet"
+
+import "std/io"
+import "std/task"
+import "std/time"
+
+@singleton
+selfish :: fn() -> i32 {
+    println("selfish starts")
+    sleep(1.millis())
+    return selfish() + 1
+}
+
+main :: fn() -> i32 {
+    println("${launch(() -> selfish()).join()}")
+    return 0
+}

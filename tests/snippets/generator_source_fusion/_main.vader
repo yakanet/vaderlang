@@ -5,7 +5,6 @@
 
 module "snippet"
 
-import "std/async"
 import "std/io"
 import "std/iter"
 
@@ -38,16 +37,6 @@ sum_of :: fn(w: i32[]) -> i32 {
         total += x
     }
     return total
-}
-
-// A fused source in an async fn, across an `await` in the loop body.
-odd_square_total :: fn(n: i32) -> Async<i32> {
-    total := 0
-    for x in squares(n).filter(odd) {
-        await sleep(0)
-        total += x
-    }
-    return total + i32(squares(n).count())
 }
 
 // A fused source evaluated at compile time.
@@ -85,8 +74,6 @@ main :: fn() -> i32 {
     show("window fused", xs.window(3).map(sum_of).collect())
     lazy_window :: xs.window(3)
     show("window lazy", lazy_window.map(sum_of).collect())
-    in_async :: await odd_square_total(5)
-    println("async fused: ${in_async}")
     println("comptime fused: ${ODD_SQUARES}")
     return 0
 }

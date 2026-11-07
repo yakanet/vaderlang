@@ -7,7 +7,6 @@ find fused: 36
 loop fused: 196
 window fused: 6 9 12
 window lazy: 6 9 12
-async fused: 40
 comptime fused: 3
 # exit
 0

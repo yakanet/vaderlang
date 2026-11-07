@@ -32,126 +32,26 @@
       s = concat_4(s, "<", x, ">")
       return s
   }
-  snippet.tick :: fn(v: string) -> Async<string> {  // snippet$tick
-      Ready<string> { .v = v }
-  }
-  snippet.appends_in_async :: fn(seed: string) -> Async<string> {  // snippet$appends_in_async
-      return __asyncstate_snippet_0 {
-          .s0 = seed,
-          .s1 = "",
-          .s2 = "",
-          .s3 = "",
-          .awaited = null,
-          .state = 5,
-      }
-  }
   snippet.captured_local :: fn(seed: string) -> string {  // snippet$captured_local
       s: @cell<string> = @cell_new(seed)
-      peek: __lambda_env_snippet_2 = __lambda_env_snippet_2 { .cap_0 = s }
+      peek: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = s }
       @cell(s) = concat_2(@cell(s), "m")
-      mid: string = __lambda_snippet_1(peek)
+      mid: string = __lambda_snippet_0(peek)
       @cell(s) = concat_2(@cell(s), "n")
       return concat_3(@cell(s), "/", mid)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      __root_3: i32 | Suspended = @vcall(std.core.Async.resume, Async<i32>(__asyncstate_snippet_3 {
-          .s0 = "",
-          .awaited = null,
-          .state = 5,
-      }))
-      if __root_3 is Suspended {
-          @unreachable("async `main` suspended, and no `std/async` scheduler resumes it")
-      }
-      return i32(__root_3)
+      std.io.println<string>(snippet.fused("a"))
+      std.io.println<string>(snippet.reads_itself("q"))
+      std.io.println<string>(snippet.observed_between("w"))
+      std.io.println<string>(snippet.interleaved("A", "B"))
+      std.io.println<string>(snippet.mixed_operands("[", "M"))
+      std.io.println<string>(snippet.captured_local("k"))
+      return 0
   }
-  __asyncstate_snippet_0 :: struct { s0: string, s1: string, s2: string, s3: string, awaited: Async<Any>, state: i32 }
-  snippet$__asyncstate_snippet_0$Async$resume :: fn(self: __asyncstate_snippet_0) -> string | Suspended {
-      dispatch$: for {
-          if __self_1.state == 0 {
-              __self_1.state = -1
-          } else if __self_1.state == 1 {
-              __self_1.state = -1
-              return concat_2(__self_1.s1, __self_1.s3)
-          } else if __self_1.state == 2 {
-              __self_1.s3 = __self_1.s2
-              __self_1.state = 1
-          } else if __self_1.state == 3 {
-              __resumed_2: Any | Suspended = @vcall(std.core.Async.resume, __self_1.awaited)
-              if __resumed_2 is Suspended {
-                  return Suspended(__resumed_2)
-              } else {
-                  __self_1.s2 = string(__resumed_2)
-                  __self_1.state = 2
-              }
-          } else if __self_1.state == 4 {
-              __self_1.awaited = Async<Any>(snippet.tick("!"))
-              __self_1.state = 3
-          } else if __self_1.state == 5 {
-              __self_1.s1 = __self_1.s0
-              __self_1.s1 = concat_2(__self_1.s1, "p")
-              __self_1.s1 = concat_2(__self_1.s1, "q")
-              __self_1.state = 4
-          } else {
-              return Suspended { .wake_at = i64(0) }
-          }
-      }
-  }
-  snippet$__asyncstate_snippet_0$Async$cancel :: fn(self: __asyncstate_snippet_0) -> void {
-      if __self_1.awaited is null {} else {
-          @vcall(std.core.Async.cancel, __self_1.awaited)
-      }
-      __self_1.state = -1
-  }
-  __lambda_env_snippet_2 :: struct { cap_0: ? }
-  __lambda_snippet_1 :: fn(__env_0: __lambda_env_snippet_2) -> string {
+  __lambda_env_snippet_1 :: struct { cap_0: ? }
+  __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1) -> string {
       return @cell(__env_0.cap_0)
-  }
-  __asyncstate_snippet_3 :: struct { s0: string, awaited: Async<Any>, state: i32 }
-  snippet$__asyncstate_snippet_3$Async$resume :: fn(self: __asyncstate_snippet_3) -> i32 | Suspended {
-      dispatch$: for {
-          if __self_1.state == 0 {
-              __self_1.state = -1
-          } else if __self_1.state == 1 {
-              __self_1.state = -1
-              return 0
-          } else if __self_1.state == 2 {
-              std.io.println<string>(__self_1.s0)
-              std.io.println<string>(snippet.captured_local("k"))
-              __self_1.state = 1
-          } else if __self_1.state == 3 {
-              __resumed_2: Any | Suspended = @vcall(std.core.Async.resume, __self_1.awaited)
-              if __resumed_2 is Suspended {
-                  return Suspended(__resumed_2)
-              } else {
-                  __self_1.s0 = string(__resumed_2)
-                  __self_1.state = 2
-              }
-          } else if __self_1.state == 4 {
-              __self_1.awaited = Async<Any>(snippet.appends_in_async("z"))
-              __self_1.state = 3
-          } else if __self_1.state == 5 {
-              std.io.println<string>(snippet.fused("a"))
-              std.io.println<string>(snippet.reads_itself("q"))
-              std.io.println<string>(snippet.observed_between("w"))
-              std.io.println<string>(snippet.interleaved("A", "B"))
-              std.io.println<string>(snippet.mixed_operands("[", "M"))
-              __self_1.state = 4
-          } else {
-              return Suspended { .wake_at = i64(0) }
-          }
-      }
-  }
-  snippet$__asyncstate_snippet_3$Async$cancel :: fn(self: __asyncstate_snippet_3) -> void {
-      if __self_1.awaited is null {} else {
-          @vcall(std.core.Async.cancel, __self_1.awaited)
-      }
-      __self_1.state = -1
-  }
-  snippet.Ready<string> :: struct { v: string }  // snippet$Ready__string
-  snippet.Ready<string>.resume :: fn(self: Ready<string>) -> string | Suspended {  // snippet$Ready$std_core$Async$resume__string
-      return self.v
-  }
-  snippet.Ready<string>.cancel :: fn(self: Ready<string>) -> void {  // snippet$Ready$std_core$Async$cancel__string
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
@@ -183,19 +83,12 @@
       std.core.Buffer.write_string(buf, c2, p3)
       std.core.Buffer.intern_string(buf, c3)
   }
-  vtable std.core.Async.cancel for Ready<string>  snippet.Ready<string>.cancel  // snippet$Ready$std_core$Async$cancel__string
-  vtable std.core.Async.cancel for __asyncstate_snippet_0  snippet$__asyncstate_snippet_0$Async$cancel
-  vtable std.core.Async.cancel for __asyncstate_snippet_3  snippet$__asyncstate_snippet_3$Async$cancel
-  vtable std.core.Async.resume for Ready<string>  snippet.Ready<string>.resume  // snippet$Ready$std_core$Async$resume__string
-  vtable std.core.Async.resume for __asyncstate_snippet_0  snippet$__asyncstate_snippet_0$Async$resume
-  vtable std.core.Async.resume for __asyncstate_snippet_3  snippet$__asyncstate_snippet_3$Async$resume
 
 ## lowered in dependencies
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     struct std.core.Buffer  // std_core$Buffer
-    struct std.core.Suspended  // std_core$Suspended
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

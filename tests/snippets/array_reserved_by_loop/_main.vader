@@ -1,15 +1,14 @@
 // An empty array filled by a counted loop, one push per turn, is created at the
 // loop's trip count (`[] * n`, see the lower snapshot): a hand-written loop over
 // an array, a field or a range (inclusive too), and a `collect` over a chain
-// alike; several arrays filled by one loop, past a `let` in between, and in an
-// async fn. A narrow signed range whose span passes the type's positive half
-// reserves its true count. A range that runs no turn reserves nothing. A
-// conditional push, or a loop that may leave early, keeps the plain empty array.
-// Every case prints what it built.
+// alike; several arrays filled by one loop, and past a `let` in between. A
+// narrow signed range whose span passes the type's positive half reserves its
+// true count. A range that runs no turn reserves nothing. A conditional push, or
+// a loop that may leave early, keeps the plain empty array. Every case prints
+// what it built.
 
 module "snippet"
 
-import "std/async"
 import "std/io"
 import "std/iter"
 
@@ -82,15 +81,6 @@ split :: fn(a: i32[]) -> i64 {
     return squares[squares.len() - 1] + doubles[0]
 }
 
-squares_later :: fn(a: i32[]) -> Async<i64[]> {
-    out: i64[]: []
-    for x in a {
-        out.push(square(x))
-    }
-    await sleep(0)
-    return out
-}
-
 // Not reserved: the push is conditional.
 odd_squares :: fn(a: i32[]) -> i64[] {
     out: i64[]: []
@@ -130,7 +120,5 @@ main :: fn() -> i32 {
     println("narrow signed: ${span_count(-100, 100)}")
     show("field", over_field(Bag { .items = [3, 4] }))
     println("split: ${split(a)}")
-    later :: await squares_later(a)
-    show("async", later)
     return 0
 }

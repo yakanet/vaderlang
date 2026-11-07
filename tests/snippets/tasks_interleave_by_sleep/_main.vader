@@ -1,0 +1,28 @@
+// Three tasks each print on entry, sleep, and print on exit. Every one starts
+// before any ends, since a task that sleeps lets the next run; they end in the
+// order of their sleeps (B, C, A), and `join_all` gives their results back in
+// the order of the tasks it was given.
+module "snippet"
+
+import "std/io"
+import "std/task"
+import "std/time"
+
+nap :: fn(name: string, delay: i64) -> i64 {
+    println("${name}: start")
+    sleep(delay.millis())
+    println("${name}: end (slept ${delay})")
+    return delay
+}
+
+main :: fn() -> i32 {
+    naps :: [
+        launch(() -> nap("A", 3)),
+        launch(() -> nap("B", 1)),
+        launch(() -> nap("C", 2)),
+    ]
+    for r in join_all(naps) {
+        println("${r}")
+    }
+    return 0
+}

@@ -1,0 +1,6 @@
+# stdout
+selfish starts
+# stderr
+vader: panic: a guest thread trapped: reached unreachable: 
+# exit
+134

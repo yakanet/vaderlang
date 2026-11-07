@@ -15,6 +15,41 @@
         "decorators": []
       },
       {
+        "kind": "TraitDecl",
+        "name": "Source",
+        "visibility": "private",
+        "typeParams": [
+          {
+            "name": "T",
+            "bound": null
+          }
+        ],
+        "requires": null,
+        "members": [
+          {
+            "kind": "FnDecl",
+            "name": "pull",
+            "visibility": "private",
+            "typeParams": [],
+            "params": [
+              {
+                "name": "self",
+                "type": null,
+                "defaultValue": null,
+                "variadic": false
+              }
+            ],
+            "returnType": {
+              "kind": "IdentExpr",
+              "name": "T"
+            },
+            "body": null,
+            "decorators": []
+          }
+        ],
+        "decorators": []
+      },
+      {
         "kind": "StructDecl",
         "name": "Box",
         "visibility": "private",
@@ -53,7 +88,7 @@
             }
           ]
         },
-        "traitName": "Async",
+        "traitName": "Source",
         "traitArgs": [
           {
             "kind": "IdentExpr",
@@ -63,7 +98,7 @@
         "members": [
           {
             "kind": "FnDecl",
-            "name": "resume",
+            "name": "pull",
             "visibility": "private",
             "typeParams": [],
             "params": [
@@ -75,16 +110,8 @@
               }
             ],
             "returnType": {
-              "kind": "BinaryExpr",
-              "op": "bitor",
-              "left": {
-                "kind": "IdentExpr",
-                "name": "T"
-              },
-              "right": {
-                "kind": "IdentExpr",
-                "name": "Suspended"
-              }
+              "kind": "IdentExpr",
+              "name": "T"
             },
             "body": {
               "kind": "BlockExpr",
@@ -133,7 +160,7 @@
           "kind": "GenericInstExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "Async"
+            "name": "Source"
           },
           "typeArgs": [
             {
@@ -197,24 +224,29 @@
               },
               "type": null,
               "value": {
-                "kind": "AwaitExpr",
-                "inner": {
-                  "kind": "CallExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "viagen"
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "viagen"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "5n"
+                        },
+                        "spread": false
+                      }
+                    ]
                   },
-                  "args": [
-                    {
-                      "name": null,
-                      "value": {
-                        "kind": "IntLitExpr",
-                        "value": "5n"
-                      },
-                      "spread": false
-                    }
-                  ]
-                }
+                  "field": "pull"
+                },
+                "args": []
               }
             },
             {

@@ -1,0 +1,25 @@
+# Typecheck
+
+## tests/snippets/singleton_calls_itself_in_a_task
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         selfish              :: fn() -> i32
+  expr 12:13    StringLitExpr  :: string
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(T) -> void
+  expr 13:11    CallExpr       :: Duration
+  expr 13:11    FieldExpr      :: fn() -> Duration
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(Duration) -> void
+  expr 14:12    BinaryExpr     :: i32
+  expr 14:12    CallExpr       :: i32
+  expr 14:12    IdentExpr      :: fn() -> i32
+  expr 18:13    StringLitExpr  :: string
+  expr 18:16    CallExpr       :: Cancelled | i32
+  expr 18:16    CallExpr       :: Task<i32>
+  expr 18:16    FieldExpr      :: fn() -> Cancelled | i32
+  expr 18:16    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 18:23    LambdaExpr     :: fn() -> i32
+  expr 18:29    CallExpr       :: i32
+  expr 18:29    IdentExpr      :: fn() -> i32
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void

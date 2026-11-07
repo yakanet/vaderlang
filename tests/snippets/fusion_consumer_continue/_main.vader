@@ -1,10 +1,9 @@
 // fusion_consumer_continue: a `continue` in the consumer resumes the inlined
 // generator after its `yield`: `indexed`, `take`, a generator with two
 // `yield`s per round, a generator with no loop, `continue y` from an inner loop,
-// `chars().indexed()`, `indexed` in an async fn across an `await`, a
-// `?? continue`, a stage's own `continue` over `take`, and `flat_map` and
-// `chain`, where the `continue` already lands on the loop it means, by name
-// from an inner loop too.
+// `chars().indexed()`, a `?? continue`, a stage's own `continue` over `take`,
+// and `flat_map` and `chain`, where the `continue` already lands on the loop it
+// means, by name from an inner loop too.
 //
 // Each line prints the chain consumed where it is written (fused), then the same
 // chain bound to a local first (lazy: it runs as a state machine and is the
@@ -12,7 +11,6 @@
 
 module "snippet"
 
-import "std/async"
 import "std/io"
 import "std/iter"
 import "std/string"
@@ -250,31 +248,6 @@ chain_continue_by_name :: fn() -> void {
     println("chain + continue x from an inner loop, sum: ${fused} | ${lazy}")
 }
 
-async_indexed_continue :: fn(xs: i32[]) -> Async<i32> {
-    total := 0
-    for [x, i] in xs.indexed() {
-        await sleep(1)
-        if x == 20 {
-            continue
-        }
-        total += i32(i)
-    }
-    return total
-}
-
-async_indexed_continue_lazy :: fn(xs: i32[]) -> Async<i32> {
-    total := 0
-    pairs :: xs.indexed()
-    for [x, i] in pairs {
-        await sleep(1)
-        if x == 20 {
-            continue
-        }
-        total += i32(i)
-    }
-    return total
-}
-
 main :: fn() -> i32 {
     indexed_continue()
     take_continue()
@@ -287,8 +260,5 @@ main :: fn() -> i32 {
     flat_map_continue()
     chain_continue()
     chain_continue_by_name()
-    fused :: await async_indexed_continue([10, 20, 30, 40])
-    lazy :: await async_indexed_continue_lazy([10, 20, 30, 40])
-    println("async indexed + continue, index sum: ${fused} | ${lazy}")
     return 0
 }

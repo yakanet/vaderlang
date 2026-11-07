@@ -1,0 +1,27 @@
+// Two tasks run the same function at once, each with a closure that captures a
+// parameter and a local the closure reassigns. The cells of one task are not
+// the other's: each sum counts its own `base` only, whatever order the parks
+// interleave them in.
+module "snippet"
+
+import "std/io"
+import "std/task"
+import "std/time"
+
+worker :: fn(base: i32, naps: i32) -> i32 {
+    acc := 0
+    bump :: fn() -> void { acc += base }
+    for _ in 0..<naps {
+        bump()
+        sleep(1.millis())
+    }
+    return acc
+}
+
+main :: fn() -> i32 {
+    workers :: [launch(() -> worker(10, 3)), launch(() -> worker(100, 2))]
+    for r in join_all(workers) {
+        println("${r}")
+    }
+    return 0
+}

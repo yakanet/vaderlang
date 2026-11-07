@@ -2,21 +2,25 @@
 // when the struct is constructed ONLY inside a generic fn's body. Such an
 // instance (`Box<i32>` from `viagen<i32>`) isn't seen by the comptime harvest
 // (which only saw the source-level `Box<T>`), so `lower_struct_lit` must queue
-// it for impl-member materialisation: else `Async.resume` misses its vtable
-// row at runtime. (Not async-specific ; async's `all` was the first to hit it.)
+// it for impl-member materialisation: else `Source.pull` misses its vtable row
+// at runtime.
 module "snippet"
 
 import "std/io"
 
-Box :: struct<T> { v: T }
-Box<T> implements Async<T> {
-    resume :: fn(self) -> T | Suspended { return self.v }
+Source :: trait<T> {
+    pull :: fn(self) -> T
 }
 
-viagen :: fn<T>(x: T) -> Async<T> = Box<T> { .v = x }
+Box :: struct<T> { v: T }
+Box<T> implements Source<T> {
+    pull :: fn(self) -> T { return self.v }
+}
+
+viagen :: fn<T>(x: T) -> Source<T> = Box<T> { .v = x }
 
 main :: fn() -> i32 {
-    v :: await viagen(5)
+    v :: viagen(5).pull()
     println("${v}")
     return v
 }

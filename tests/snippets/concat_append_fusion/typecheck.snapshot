@@ -1,7 +1,6 @@
 # Typecheck
 
 ## tests/snippets/concat_append_fusion
-  FnDecl         appends_in_async     :: fn(string) -> Async<string>
   FnDecl         captured_local       :: fn(string) -> string
   FnDecl         fused                :: fn(string) -> string
   FnDecl         interleaved          :: fn(string, string) -> string
@@ -9,19 +8,6 @@
   FnDecl         mixed_operands       :: fn(string, string) -> string
   FnDecl         observed_between     :: fn(string) -> string
   FnDecl         reads_itself         :: fn(string) -> string
-  StructDecl     Ready                :: Ready<T>
-  FnDecl         tick                 :: fn(string) -> Async<string>
-  expr 100:13   AwaitExpr      :: string
-  expr 100:19   CallExpr       :: Async<string>
-  expr 100:19   IdentExpr      :: fn(string) -> Async<string>
-  expr 100:36   StringLitExpr  :: string
-  expr 100:5    CallExpr       :: void
-  expr 100:5    IdentExpr      :: fn(T) -> void
-  expr 101:13   CallExpr       :: string
-  expr 101:13   IdentExpr      :: fn(string) -> string
-  expr 101:28   StringLitExpr  :: string
-  expr 101:5    CallExpr       :: void
-  expr 101:5    IdentExpr      :: fn(T) -> void
   expr 16:10    IdentExpr      :: string
   expr 17:13    StringLitExpr  :: string
   expr 17:5     IdentExpr      :: string
@@ -88,66 +74,51 @@
   expr 57:9     BinaryExpr     :: string
   expr 57:9     IdentExpr      :: string
   expr 58:12    IdentExpr      :: string
-  expr 66:50    FieldExpr      :: T
-  expr 66:50    IdentExpr      :: Ready<T>
-  expr 69:42    StructLitExpr  :: Ready<string>
-  expr 69:63    IdentExpr      :: string
-  expr 72:10    IdentExpr      :: string
-  expr 73:13    StringLitExpr  :: string
-  expr 73:5     IdentExpr      :: string
-  expr 73:9     BinaryExpr     :: string
-  expr 73:9     IdentExpr      :: string
-  expr 74:13    StringLitExpr  :: string
-  expr 74:5     IdentExpr      :: string
-  expr 74:9     BinaryExpr     :: string
-  expr 74:9     IdentExpr      :: string
-  expr 75:10    AwaitExpr      :: string
-  expr 75:16    CallExpr       :: Async<string>
-  expr 75:16    IdentExpr      :: fn(string) -> Async<string>
-  expr 75:21    StringLitExpr  :: string
-  expr 76:12    BinaryExpr     :: string
-  expr 76:12    IdentExpr      :: string
-  expr 76:16    IdentExpr      :: string
-  expr 86:10    IdentExpr      :: string
-  expr 87:13    LambdaExpr     :: fn() -> string
-  expr 87:37    IdentExpr      :: string
-  expr 88:13    StringLitExpr  :: string
-  expr 88:5     IdentExpr      :: string
-  expr 88:9     BinaryExpr     :: string
-  expr 88:9     IdentExpr      :: string
-  expr 89:12    CallExpr       :: string
-  expr 89:12    IdentExpr      :: fn() -> string
-  expr 90:13    StringLitExpr  :: string
-  expr 90:5     IdentExpr      :: string
-  expr 90:9     BinaryExpr     :: string
-  expr 90:9     IdentExpr      :: string
-  expr 91:12    StringLitExpr  :: string
-  expr 91:15    IdentExpr      :: string
-  expr 91:20    IdentExpr      :: string
-  expr 95:13    CallExpr       :: string
-  expr 95:13    IdentExpr      :: fn(string) -> string
-  expr 95:19    StringLitExpr  :: string
-  expr 95:5     CallExpr       :: void
-  expr 95:5     IdentExpr      :: fn(T) -> void
-  expr 96:13    CallExpr       :: string
-  expr 96:13    IdentExpr      :: fn(string) -> string
-  expr 96:26    StringLitExpr  :: string
-  expr 96:5     CallExpr       :: void
-  expr 96:5     IdentExpr      :: fn(T) -> void
-  expr 97:13    CallExpr       :: string
-  expr 97:13    IdentExpr      :: fn(string) -> string
-  expr 97:30    StringLitExpr  :: string
-  expr 97:5     CallExpr       :: void
-  expr 97:5     IdentExpr      :: fn(T) -> void
-  expr 98:13    CallExpr       :: string
-  expr 98:13    IdentExpr      :: fn(string, string) -> string
-  expr 98:25    StringLitExpr  :: string
-  expr 98:30    StringLitExpr  :: string
-  expr 98:5     CallExpr       :: void
-  expr 98:5     IdentExpr      :: fn(T) -> void
-  expr 99:13    CallExpr       :: string
-  expr 99:13    IdentExpr      :: fn(string, string) -> string
-  expr 99:28    StringLitExpr  :: string
-  expr 99:33    StringLitExpr  :: string
-  expr 99:5     CallExpr       :: void
-  expr 99:5     IdentExpr      :: fn(T) -> void
+  expr 68:10    IdentExpr      :: string
+  expr 69:13    LambdaExpr     :: fn() -> string
+  expr 69:37    IdentExpr      :: string
+  expr 70:13    StringLitExpr  :: string
+  expr 70:5     IdentExpr      :: string
+  expr 70:9     BinaryExpr     :: string
+  expr 70:9     IdentExpr      :: string
+  expr 71:12    CallExpr       :: string
+  expr 71:12    IdentExpr      :: fn() -> string
+  expr 72:13    StringLitExpr  :: string
+  expr 72:5     IdentExpr      :: string
+  expr 72:9     BinaryExpr     :: string
+  expr 72:9     IdentExpr      :: string
+  expr 73:12    StringLitExpr  :: string
+  expr 73:15    IdentExpr      :: string
+  expr 73:20    IdentExpr      :: string
+  expr 77:13    CallExpr       :: string
+  expr 77:13    IdentExpr      :: fn(string) -> string
+  expr 77:19    StringLitExpr  :: string
+  expr 77:5     CallExpr       :: void
+  expr 77:5     IdentExpr      :: fn(T) -> void
+  expr 78:13    CallExpr       :: string
+  expr 78:13    IdentExpr      :: fn(string) -> string
+  expr 78:26    StringLitExpr  :: string
+  expr 78:5     CallExpr       :: void
+  expr 78:5     IdentExpr      :: fn(T) -> void
+  expr 79:13    CallExpr       :: string
+  expr 79:13    IdentExpr      :: fn(string) -> string
+  expr 79:30    StringLitExpr  :: string
+  expr 79:5     CallExpr       :: void
+  expr 79:5     IdentExpr      :: fn(T) -> void
+  expr 80:13    CallExpr       :: string
+  expr 80:13    IdentExpr      :: fn(string, string) -> string
+  expr 80:25    StringLitExpr  :: string
+  expr 80:30    StringLitExpr  :: string
+  expr 80:5     CallExpr       :: void
+  expr 80:5     IdentExpr      :: fn(T) -> void
+  expr 81:13    CallExpr       :: string
+  expr 81:13    IdentExpr      :: fn(string, string) -> string
+  expr 81:28    StringLitExpr  :: string
+  expr 81:33    StringLitExpr  :: string
+  expr 81:5     CallExpr       :: void
+  expr 81:5     IdentExpr      :: fn(T) -> void
+  expr 82:13    CallExpr       :: string
+  expr 82:13    IdentExpr      :: fn(string) -> string
+  expr 82:28    StringLitExpr  :: string
+  expr 82:5     CallExpr       :: void
+  expr 82:5     IdentExpr      :: fn(T) -> void

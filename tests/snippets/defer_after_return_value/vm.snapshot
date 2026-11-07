@@ -9,8 +9,5 @@ work nested
 defer inner
 defer outer
 1
-await async
-defer async
-3
 # exit
 0

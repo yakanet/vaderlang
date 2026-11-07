@@ -1,0 +1,40 @@
+// A task runs its `defer`s when its function returns, most recent first, the
+// one registered before a park as well as the one after it. A task cancelled
+// while it parks in a nested call runs the `defer`s pending in every frame,
+// innermost first, and none of the body after the park.
+module "snippet"
+
+import "std/io"
+import "std/task"
+import "std/time"
+
+step :: fn(tag: string) -> i32 {
+    defer println("defer 1 ${tag}")
+    sleep(1.millis())
+    defer println("defer 2 ${tag}")
+    println("body ${tag}")
+    return 0
+}
+
+inner :: fn() -> i32 {
+    defer println("inner cleanup")
+    sleep(1_000.millis())
+    println("inner body (unreached)")
+    return 1
+}
+
+outer :: fn() -> i32 {
+    defer println("outer cleanup")
+    x :: inner()
+    println("outer body (unreached)")
+    return x
+}
+
+main :: fn() -> i32 {
+    println("${launch(() -> step("x")).join()}")
+    parked :: launch(outer)
+    sleep(1.millis())
+    parked.cancel()
+    println("${parked.join()}")
+    return 0
+}

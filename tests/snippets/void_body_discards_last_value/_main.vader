@@ -1,21 +1,12 @@
 // A body that returns nothing evaluates its last expression for its effect and
 // discards the value, as an expression statement: a named fn with or without
 // `-> void`, an `if` whose branches end on a value, a lambda handed to a slot
-// that returns nothing, an `Async<void>` ending on an `await`, and an inlined
-// iterator consumer. The tally proves every call ran:
-// 10 + 20 + 1 + 2 + 100 + 12 + 1012 = 1157.
+// that returns nothing, and an inlined iterator consumer. The tally proves every
+// call ran: 10 + 20 + 1 + 2 + 100 + 1012 = 1145.
 module "snippet"
 
 import "std/io"
 import "std/iter"
-
-Ready :: struct<T> {
-    v: T
-}
-
-Ready<T> implements Async<T> {
-    resume :: fn(self) -> T | Suspended { return self.v }
-}
 
 Tally :: struct {
     n: i32 = 0
@@ -46,13 +37,6 @@ apply :: fn(f: fn(i32), x: i32) {
     f(x)
 }
 
-twice_later :: fn(x: i32) -> Async<i32> = Ready<i32> { .v = x + x }
-
-awaited :: fn(t: Tally, x: i32) -> Async<void> {
-    d :: await twice_later(1)
-    t.bump(await twice_later(x) + d)
-}
-
 twice :: fn(x: i32) -> i32 = x * 2
 
 drain_into :: fn(it: Iterator<i32>, t: Tally) {
@@ -73,7 +57,6 @@ main :: fn() -> i32 {
     t.branches(5)
     t.branches(-5)
     apply((x: i32) -> { t.bump(x) }, 100)
-    await awaited(t, 5)
     t.consumed()
     println("tally=${t.n}")
     return 0

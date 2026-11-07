@@ -1,0 +1,36 @@
+# Typecheck
+
+## tests/snippets/task_closures_keep_their_cells
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         worker               :: fn(i32, i32) -> i32
+  expr 13:13    LambdaExpr     :: fn() -> void
+  expr 13:28    BinaryExpr     :: i32
+  expr 13:28    IdentExpr      :: i32
+  expr 13:35    IdentExpr      :: i32
+  expr 14:14    RangeExpr      :: Range<i32>
+  expr 14:18    IdentExpr      :: i32
+  expr 15:9     CallExpr       :: void
+  expr 15:9     IdentExpr      :: fn() -> void
+  expr 16:15    CallExpr       :: Duration
+  expr 16:15    FieldExpr      :: fn() -> Duration
+  expr 16:9     CallExpr       :: void
+  expr 16:9     IdentExpr      :: fn(Duration) -> void
+  expr 18:12    IdentExpr      :: i32
+  expr 22:16    SeqLitExpr     :: Task<i32>[]
+  expr 22:17    CallExpr       :: Task<i32>
+  expr 22:17    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 22:24    LambdaExpr     :: fn() -> i32
+  expr 22:30    CallExpr       :: i32
+  expr 22:30    IdentExpr      :: fn(i32, i32) -> i32
+  expr 22:46    CallExpr       :: Task<i32>
+  expr 22:46    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 22:53    LambdaExpr     :: fn() -> i32
+  expr 22:59    CallExpr       :: i32
+  expr 22:59    IdentExpr      :: fn(i32, i32) -> i32
+  expr 23:14    CallExpr       :: (Cancelled | i32)[]
+  expr 23:14    IdentExpr      :: fn(Task<T>[]) -> (Cancelled | T)[]
+  expr 23:23    IdentExpr      :: Task<i32>[]
+  expr 24:17    StringLitExpr  :: string
+  expr 24:20    IdentExpr      :: Cancelled | i32
+  expr 24:9     CallExpr       :: void
+  expr 24:9     IdentExpr      :: fn(T) -> void

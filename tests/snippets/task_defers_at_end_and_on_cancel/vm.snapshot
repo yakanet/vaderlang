@@ -1,0 +1,10 @@
+# stdout
+body x
+defer 2 x
+defer 1 x
+0
+inner cleanup
+outer cleanup
+cancelled
+# exit
+0

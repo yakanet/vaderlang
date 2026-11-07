@@ -1,10 +1,9 @@
 // `return <value>` computes its value before the pending defers run: a call in
 // the value runs first, and a defer that writes a local the value reads cannot
-// change what is returned. Covers a void value, a return that leaves two scopes'
-// defers, and an async return, whose `await` already runs before the drain.
+// change what is returned. Covers a void value and a return that leaves two
+// scopes' defers.
 module "snippet"
 
-import "std/async"
 import "std/io"
 
 work :: fn(tag: string) -> i32 {
@@ -41,23 +40,10 @@ returns_from_a_nested_block :: fn(go: bool) -> i32 {
     return 0
 }
 
-later :: fn(tag: string) -> Async<i32> {
-    await sleep(1)
-    println("await ${tag}")
-    return 3
-}
-
-returns_an_await :: fn() -> Async<i32> {
-    defer println("defer async")
-    return await later("async")
-}
-
 main :: fn() -> i32 {
     println("${returns_a_call()}")
     println("${returns_a_local()}")
     returns_a_void_call()
     println("${returns_from_a_nested_block(true)}")
-    awaited :: await returns_an_await()
-    println("${awaited}")
     return 0
 }

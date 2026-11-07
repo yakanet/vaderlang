@@ -10,6 +10,5 @@ indexed + ?? continue: 1:2 3:4 | 1:2 3:4
 flat_map + continue, sum: 52 | 52
 chain + continue, sum: 8 | 8
 chain + continue x from an inner loop, sum: 80 | 80
-async indexed + continue, index sum: 5 | 5
 # exit
 0
