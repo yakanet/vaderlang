@@ -1281,6 +1281,7 @@ typedef struct {
      * argument) not of the object a reference points at : what `@size_of`
      * answers at run time. Sits in padding, so it costs no space. */
     uint8_t             slot_size;
+    uint8_t             flags;         /* VADER_TYPE_FLAG_*, in padding too */
     const uint16_t*     string_offsets;/* byte offsets of raw vader_string_t fields */
     /* Byte offsets of fields holding a raw `void*` to a concrete object, scanned
      * via `vader_gc_scan_raw`: a struct's `.Ref` fields (struct, array, tuple, fn;
@@ -1291,9 +1292,20 @@ typedef struct {
     const uint16_t*     ref_offsets;
 } vader_type_info_t;
 
+/* A struct a deep copy keeps instead of copying: one of the `std/task` values that
+ * tasks share (`vader/core/bytecode/types.vader::is_shared_struct`). */
+#define VADER_TYPE_FLAG_SHARED 0x01u
+
 /* Provided by the per-module C emit. The runtime reads it via these externs. */
 extern const vader_type_info_t  vader_type_info_table[];
 extern const size_t             vader_type_info_count;
+
+/* `deep_copy` (rt/copy.c): a copy of every object the value reaches, each copied
+ * once, in the old generation. The `_ref` form takes a concrete heap reference,
+ * the `_box` form a boxed value; a primitive or a string is its own copy. Traps
+ * on a function value. Never collects. */
+void*       vader_deep_copy_ref(void* obj);
+vader_box_t vader_deep_copy_box(vader_box_t value);
 
 /* Shadow stack frame: emitted at the entry of a C function whose own slots must
  * survive a safepoint (`needs_frame`, `vader/emit/c/frame.vader`). A fn the

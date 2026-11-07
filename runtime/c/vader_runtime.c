@@ -28,6 +28,7 @@
 #include "rt/atoms_gc.c"
 #include "rt/strings.c"
 #include "rt/arrays.c"
+#include "rt/copy.c"
 #include "rt/host.c"
 #include "rt/ffi.c"
 #include "rt/vthreads.c"

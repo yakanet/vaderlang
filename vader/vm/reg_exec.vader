@@ -1097,6 +1097,10 @@ serve_import :: fn(
         return dispatch_extern(state, index, args, 0, origin, debug_controller(m))
     }
     id :: state.import_ids[index]
+    // The walk of a copy reads the type table, which `dispatch_import` is not given.
+    if id == .DeepCopy {
+        return deep_copy_value(state.bc.types, args[0], origin)
+    }
     // A thread primitive by a thread of the host (`guest_threads.vader`).
     return serve_thread_primitive(state, id, args, origin, is_comptime) ?? dispatch_import(
         info,

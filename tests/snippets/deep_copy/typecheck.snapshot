@@ -1,0 +1,234 @@
+# Typecheck
+
+## tests/snippets/deep_copy
+  FnDecl         follow               :: fn(Node) -> Node
+  StructDecl     Holder               :: Holder
+  ConstDecl      LIMITS               :: i32[]
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Node                 :: Node
+  StructDecl     Point                :: Point
+  StructDecl     Shape                :: Shape
+  expr 33:11    SeqLitExpr     :: i32[]
+  expr 35:33    FieldExpr      :: Node | null
+  expr 35:33    IdentExpr      :: Node
+  expr 35:33    NullCoalesceExpr :: Node
+  expr 35:43    IdentExpr      :: Node
+  expr 38:10    StructLitExpr  :: Point
+  expr 39:10    StructLitExpr  :: Shape
+  expr 40:17    StringLitExpr  :: string
+  expr 41:20    SeqLitExpr     :: Point[]
+  expr 41:21    IdentExpr      :: Point
+  expr 41:24    StructLitExpr  :: Point
+  expr 42:19    IdentExpr      :: Point
+  expr 43:18    IdentExpr      :: Point
+  expr 45:10    CallExpr       :: Shape
+  expr 45:10    FieldExpr      :: fn() -> Shape
+  expr 45:10    IdentExpr      :: Shape
+  expr 46:5     FieldExpr      :: Point[]
+  expr 46:5     FieldExpr      :: i32
+  expr 46:5     IdentExpr      :: Shape
+  expr 46:5     IndexExpr      :: Point
+  expr 47:5     FieldExpr      :: Point
+  expr 47:5     FieldExpr      :: i32
+  expr 47:5     IdentExpr      :: Shape
+  expr 48:13    StringLitExpr  :: string
+  expr 48:23    FieldExpr      :: Point[]
+  expr 48:23    FieldExpr      :: i32
+  expr 48:23    IdentExpr      :: Shape
+  expr 48:23    IndexExpr      :: Point
+  expr 48:41    FieldExpr      :: Point
+  expr 48:41    FieldExpr      :: i32
+  expr 48:41    IdentExpr      :: Shape
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 48:55    FieldExpr      :: Point[]
+  expr 48:55    FieldExpr      :: i32
+  expr 48:55    IdentExpr      :: Shape
+  expr 48:55    IndexExpr      :: Point
+  expr 49:13    StringLitExpr  :: string
+  expr 49:21    FieldExpr      :: Point[]
+  expr 49:21    FieldExpr      :: i32
+  expr 49:21    IdentExpr      :: Shape
+  expr 49:21    IndexExpr      :: Point
+  expr 49:39    FieldExpr      :: Point
+  expr 49:39    FieldExpr      :: i32
+  expr 49:39    IdentExpr      :: Shape
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(T) -> void
+  expr 49:52    FieldExpr      :: Point[]
+  expr 49:52    FieldExpr      :: i32
+  expr 49:52    IdentExpr      :: Shape
+  expr 49:52    IndexExpr      :: Point
+  expr 49:70    FieldExpr      :: string
+  expr 49:70    IdentExpr      :: Shape
+  expr 50:13    StringLitExpr  :: string
+  expr 50:23    BinaryExpr     :: bool
+  expr 50:23    FieldExpr      :: Point
+  expr 50:23    IdentExpr      :: Shape
+  expr 50:35    FieldExpr      :: Point
+  expr 50:35    IdentExpr      :: Shape
+  expr 50:47    BinaryExpr     :: bool
+  expr 50:47    FieldExpr      :: Point[]
+  expr 50:47    IdentExpr      :: Shape
+  expr 50:47    IndexExpr      :: Point
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 50:64    FieldExpr      :: Point
+  expr 50:64    IdentExpr      :: Shape
+  expr 50:76    BinaryExpr     :: bool
+  expr 50:76    FieldExpr      :: Point
+  expr 50:76    IdentExpr      :: Shape
+  expr 50:89    FieldExpr      :: Point
+  expr 50:89    IdentExpr      :: Shape
+  expr 52:10    StructLitExpr  :: Node
+  expr 52:26    StringLitExpr  :: string
+  expr 53:10    StructLitExpr  :: Node
+  expr 53:26    StringLitExpr  :: string
+  expr 53:39    IdentExpr      :: Node
+  expr 54:14    IdentExpr      :: Node
+  expr 54:5     FieldExpr      :: Node | null
+  expr 54:5     IdentExpr      :: Node
+  expr 55:11    CallExpr       :: Node
+  expr 55:11    FieldExpr      :: fn() -> Node
+  expr 55:11    IdentExpr      :: Node
+  expr 56:11    CallExpr       :: Node
+  expr 56:11    IdentExpr      :: fn(Node) -> Node
+  expr 56:18    IdentExpr      :: Node
+  expr 57:13    StringLitExpr  :: string
+  expr 57:22    FieldExpr      :: string
+  expr 57:22    IdentExpr      :: Node
+  expr 57:34    BinaryExpr     :: bool
+  expr 57:34    CallExpr       :: Node
+  expr 57:34    IdentExpr      :: fn(Node) -> Node
+  expr 57:41    IdentExpr      :: Node
+  expr 57:49    IdentExpr      :: Node
+  expr 57:5     CallExpr       :: void
+  expr 57:5     IdentExpr      :: fn(T) -> void
+  expr 57:55    BinaryExpr     :: bool
+  expr 57:55    IdentExpr      :: Node
+  expr 57:62    IdentExpr      :: Node
+  expr 57:67    BinaryExpr     :: bool
+  expr 57:67    IdentExpr      :: Node
+  expr 57:74    IdentExpr      :: Node
+  expr 59:11    SeqLitExpr     :: i32[]
+  expr 60:13    IdentExpr      :: i32[]
+  expr 60:13    IndexExpr      :: i32[]
+  expr 60:16    RangeExpr      :: Range<i32>
+  expr 61:11    CallExpr       :: i32[]
+  expr 61:11    FieldExpr      :: fn() -> i32[]
+  expr 61:11    IdentExpr      :: i32[]
+  expr 62:5     IdentExpr      :: i32[]
+  expr 62:5     IndexExpr      :: i32
+  expr 63:13    StringLitExpr  :: string
+  expr 63:21    IdentExpr      :: i32[]
+  expr 63:21    IndexExpr      :: i32
+  expr 63:30    CallExpr       :: i64
+  expr 63:30    FieldExpr      :: fn() -> i64
+  expr 63:30    IdentExpr      :: i32[]
+  expr 63:42    IdentExpr      :: i32[]
+  expr 63:42    IndexExpr      :: i32
+  expr 63:5     CallExpr       :: void
+  expr 63:5     IdentExpr      :: fn(T) -> void
+  expr 63:51    IdentExpr      :: i32[]
+  expr 63:51    IndexExpr      :: i32
+  expr 65:15    CallExpr       :: i32[]
+  expr 65:15    FieldExpr      :: fn() -> i32[]
+  expr 65:15    IdentExpr      :: i32[]
+  expr 66:5     CallExpr       :: void
+  expr 66:5     FieldExpr      :: fn(i32) -> void
+  expr 66:5     IdentExpr      :: i32[]
+  expr 67:5     IdentExpr      :: i32[]
+  expr 67:5     IndexExpr      :: i32
+  expr 68:13    StringLitExpr  :: string
+  expr 68:25    CallExpr       :: i64
+  expr 68:25    FieldExpr      :: fn() -> i64
+  expr 68:25    IdentExpr      :: i32[]
+  expr 68:41    IdentExpr      :: i32[]
+  expr 68:41    IndexExpr      :: i32
+  expr 68:5     CallExpr       :: void
+  expr 68:5     IdentExpr      :: fn(T) -> void
+  expr 68:54    CallExpr       :: i64
+  expr 68:54    FieldExpr      :: fn() -> i64
+  expr 68:54    IdentExpr      :: i32[]
+  expr 68:70    IdentExpr      :: i32[]
+  expr 68:70    IndexExpr      :: i32
+  expr 70:14    CallExpr       :: u8[]
+  expr 70:14    CallExpr       :: u8[]
+  expr 70:14    FieldExpr      :: fn() -> u8[]
+  expr 70:14    FieldExpr      :: fn() -> u8[]
+  expr 70:14    StringLitExpr  :: string
+  expr 71:5     CallExpr       :: void
+  expr 71:5     FieldExpr      :: fn(u8) -> void
+  expr 71:5     IdentExpr      :: u8[]
+  expr 72:13    StringLitExpr  :: string
+  expr 72:22    CallExpr       :: i64
+  expr 72:22    FieldExpr      :: fn() -> i64
+  expr 72:22    IdentExpr      :: u8[]
+  expr 72:37    IdentExpr      :: u8[]
+  expr 72:37    IndexExpr      :: u8
+  expr 72:5     CallExpr       :: void
+  expr 72:5     IdentExpr      :: fn(T) -> void
+  expr 74:24    StructLitExpr  :: Point
+  expr 75:11    CallExpr       :: Point | string
+  expr 75:11    FieldExpr      :: fn() -> Point | string
+  expr 75:11    IdentExpr      :: Point | string
+  expr 76:14    IdentExpr      :: Point
+  expr 76:5     IfExpr         :: void
+  expr 76:8     BinaryExpr     :: bool
+  expr 76:8     IdentExpr      :: Point | string
+  expr 77:9     FieldExpr      :: i32
+  expr 77:9     IdentExpr      :: Point
+  expr 79:13    IdentExpr      :: Point
+  expr 79:5     IfExpr         :: void
+  expr 79:8     BinaryExpr     :: bool
+  expr 79:8     IdentExpr      :: Point | string
+  expr 80:17    StringLitExpr  :: string
+  expr 80:26    FieldExpr      :: i32
+  expr 80:26    IdentExpr      :: Point
+  expr 80:9     CallExpr       :: void
+  expr 80:9     IdentExpr      :: fn(T) -> void
+  expr 83:10    StructLitExpr  :: Holder
+  expr 83:27    CallExpr       :: Task<i32>
+  expr 83:27    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 83:34    LambdaExpr     :: fn() -> i32
+  expr 83:52    SeqLitExpr     :: i32[][]
+  expr 83:53    SeqLitExpr     :: i32[]
+  expr 83:61    SeqLitExpr     :: i32[]
+  expr 84:11    CallExpr       :: Holder
+  expr 84:11    FieldExpr      :: fn() -> Holder
+  expr 84:11    IdentExpr      :: Holder
+  expr 85:5     CallExpr       :: void
+  expr 85:5     FieldExpr      :: fn(i32) -> void
+  expr 85:5     FieldExpr      :: i32[][]
+  expr 85:5     IdentExpr      :: Holder
+  expr 85:5     IndexExpr      :: i32[]
+  expr 86:13    StringLitExpr  :: string
+  expr 86:21    CallExpr       :: i64
+  expr 86:21    FieldExpr      :: fn() -> i64
+  expr 86:21    FieldExpr      :: i32[][]
+  expr 86:21    IdentExpr      :: Holder
+  expr 86:21    IndexExpr      :: i32[]
+  expr 86:40    CallExpr       :: i64
+  expr 86:40    FieldExpr      :: fn() -> i64
+  expr 86:40    FieldExpr      :: i32[][]
+  expr 86:40    IdentExpr      :: Holder
+  expr 86:40    IndexExpr      :: i32[]
+  expr 86:5     CallExpr       :: void
+  expr 86:5     IdentExpr      :: fn(T) -> void
+  expr 87:13    StringLitExpr  :: string
+  expr 87:21    BinaryExpr     :: bool
+  expr 87:21    FieldExpr      :: Task<i32>
+  expr 87:21    IdentExpr      :: Holder
+  expr 87:33    FieldExpr      :: Task<i32>
+  expr 87:33    IdentExpr      :: Holder
+  expr 87:43    BinaryExpr     :: bool
+  expr 87:43    FieldExpr      :: i32[][]
+  expr 87:43    IdentExpr      :: Holder
+  expr 87:5     CallExpr       :: void
+  expr 87:5     IdentExpr      :: fn(T) -> void
+  expr 87:55    FieldExpr      :: i32[][]
+  expr 87:55    IdentExpr      :: Holder
+  expr 87:65    CallExpr       :: Cancelled | i32
+  expr 87:65    FieldExpr      :: Task<i32>
+  expr 87:65    FieldExpr      :: fn() -> Cancelled | i32
+  expr 87:65    IdentExpr      :: Holder

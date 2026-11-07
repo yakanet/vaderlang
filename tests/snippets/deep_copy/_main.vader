@@ -1,0 +1,89 @@
+// `deep_copy` copies every struct and array a value reaches, once: two
+// references to one object reach one copy, a cycle stays a cycle, a view is
+// copied as the elements it shows, a constant's copy may be written, and a value
+// tasks share is kept, not copied.
+
+module "snippet"
+
+import "std/io"
+import "std/task"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+Shape :: struct {
+    name: string
+    corners: Point[]
+    origin: Point
+    alias: Point
+}
+
+Node :: struct {
+    label: string
+    next: Node | null = null
+}
+
+Holder :: struct {
+    task: Task<i32>
+    rows: i32[][]
+}
+
+LIMITS :: [10, 20, 30]
+
+follow :: fn(n: Node) -> Node = n.next ?? n
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1, .y = 2 }
+    s :: Shape {
+        .name = "tri",
+        .corners = [p, Point { .x = 3, .y = 4 }],
+        .origin = p,
+        .alias = p,
+    }
+    c :: s.deep_copy()
+    c.corners[0].x = 9
+    c.origin.y = 8
+    println("source ${s.corners[0].x} ${s.origin.y} ${s.corners[1].x}")
+    println("copy ${c.corners[0].x} ${c.alias.y} ${c.corners[1].x} ${c.name}")
+    println("shared ${c.alias === c.origin} ${c.corners[0] === c.origin} ${c.origin === s.origin}")
+
+    a :: Node { .label = "a" }
+    b :: Node { .label = "b", .next = a }
+    a.next = b
+    ca :: a.deep_copy()
+    cb :: follow(ca)
+    println("cycle ${cb.label} ${follow(cb) === ca} ${ca === a} ${cb === b}")
+
+    xs :: [10, 20, 30, 40]
+    part :: xs[1..<3]
+    pc :: part.deep_copy()
+    pc[0] = 99
+    println("view ${xs[1]} ${pc.len()} ${pc[0]} ${pc[1]}")
+
+    limits :: LIMITS.deep_copy()
+    limits.push(40)
+    limits[0] = 1
+    println("constant ${LIMITS.len()} ${LIMITS[0]} ${limits.len()} ${limits[0]}")
+
+    bytes :: "hey".bytes().deep_copy()
+    bytes.push('!')
+    println("bytes ${bytes.len()} ${bytes[3]}")
+
+    v: Point | string: Point { .x = 5, .y = 6 }
+    cv :: v.deep_copy()
+    if cv is Point {
+        cv.x = 50
+    }
+    if v is Point {
+        println("union ${v.x}")
+    }
+
+    h :: Holder { .task = launch(() -> 7), .rows = [[1, 2], [3]] }
+    ch :: h.deep_copy()
+    ch.rows[0].push(9)
+    println("kept ${h.rows[0].len()} ${ch.rows[0].len()}")
+    println("same ${ch.task === h.task} ${ch.rows === h.rows} ${ch.task.join()}")
+    return 0
+}

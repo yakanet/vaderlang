@@ -1,0 +1,13 @@
+# stdout
+source 1 2 3
+copy 9 8 3 tri
+shared true true false
+cycle b true false false
+view 20 2 99 30
+constant 3 10 4 1
+bytes 4 33
+union 5
+kept 2 3
+same true false 7
+# exit
+0

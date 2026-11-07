@@ -16,6 +16,7 @@
 
 module "vader/core/bytecode"
 
+import "std/iter"
 import "std/string"
 import "vader/core/types"
 
@@ -447,6 +448,28 @@ export BcStruct :: struct {
     symbol_id: i32          // -1 = unknown
 }
 
+// The structs of `std/task` that tasks share by design, each a value every task
+// holding it must reach as the same one.
+TASK_SHARED_STRUCTS :: [r"std_task$Task"]
+
+/// Whether a deep copy keeps `s` instead of copying it: a struct of `std/task`
+/// that tasks share, which a copy must reach as the same value.
+///
+/// @param s  the struct, by its mangled name: `std_task$Task__i32` is an
+///           instance of `Task`.
+export is_task_shared_struct :: fn(s: BcStruct) -> bool =
+    TASK_SHARED_STRUCTS.any_match((name) -> names_instance(s.name, name))
+
+// Whether the mangled struct name `mangled` is `name` or one of its instances,
+// `name__<arguments>`.
+names_instance :: fn(mangled: string, name: string) -> bool {
+    if !mangled.starts_with(name) {
+        return false
+    }
+    rest :: mangled.byte_slice(name.byte_len(), mangled.byte_len())
+    return rest == "" || rest.starts_with("__")
+}
+
 /// Heap-allocated array of a single element type. `element` is a
 /// type-index into the parent module's type table.
 export BcArray :: struct {
@@ -695,4 +718,11 @@ test_slot_size_of_concrete_reference_is_a_pointer :: fn() -> void {
 test_slot_size_of_erased_slot_is_a_box :: fn() -> void {
     assert_eq(size_of_bc_type(BcUnion { .variants = [] }), 16)
     assert_eq(size_of_bc_type(BcRef { .trait_name = "" }), 16)
+}
+
+@test
+test_shared_struct_names_its_instances :: fn() -> void {
+    assert(names_instance(r"std_task$Shared__snippet_Config", r"std_task$Shared"), "an instance")
+    assert(names_instance(r"std_task$AtomicInt", r"std_task$AtomicInt"), "the struct itself")
+    assert(!names_instance(r"std_task$AtomicIntPair", r"std_task$AtomicInt"), "a longer name")
 }

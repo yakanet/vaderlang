@@ -342,6 +342,7 @@ intrinsic_effects :: fn(paths: PathTable, key: string) -> ParamEffects[] | null 
     if key == "${byte_access}.intern_string" { return [none(), none()] }
     if key == "${byte_access}.write_string"  { return writes_bytes(elements) }
     if key == "std/core.bytes_to_string"     { return [none()] }
+    if key == "std/core.deep_copy"           { return [none()] }
     if key == "vader/vm.ffi_call"            { return ffi_call_effects(elements) }
     if key == "vader/vm.ffi_call_frame"      { return ffi_call_frame_effects(elements) }
     return null

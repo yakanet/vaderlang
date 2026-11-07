@@ -139,6 +139,8 @@ export dispatch_import :: fn(
         // Run as register ops of their own (`string_byte_op`): translation leaves
         // them no `call.import`, so one reaching here is unbound.
     }
+    // Served by `serve_import` (`reg_exec.vader`), which holds the type table.
+    .DeepCopy -> {}
     .BytesToString -> {
         // bytes→string : the native interns the bytes verbatim (no UTF-8
         // validation): straight from the view a `s.bytes()` reads, else
@@ -1237,7 +1239,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .TargetCurrentOs | .TargetCurrentArch -> BUILD_MACHINE_REASON
     // Pure : the baked value depends only on the args, never external state.
     .ByteLen | .ByteAt | .ByteSlice | .IsAscii -> null
-    .Bytes | .BytesToString | .StringHash | .StringEquals -> null
+    .Bytes | .BytesToString | .StringHash | .StringEquals | .DeepCopy -> null
     .PrimIntEquals | .PrimDisplayToString -> null
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> null
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> null

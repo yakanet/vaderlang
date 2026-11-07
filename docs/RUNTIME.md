@@ -179,7 +179,14 @@ Allocations are rounded up to 8 bytes. The C emitter writes a table,
 `vader_type_info_table`, with one row per type index: the kind of object (struct,
 array, function), its size, the offsets of the fields the collector visits in
 three lists (boxes, raw pointers to objects, strings), and the width of a slot of
-that type, which `@size_of` answers for a type known only at run time.
+that type, which `@size_of` answers for a type known only at run time. A row's
+flags mark a struct of `std/task` that tasks share (`VADER_TYPE_FLAG_SHARED`).
+
+**A deep copy** (`deep_copy`) walks a value by the same table and copies each
+object it reaches once, into the old generation, so that two references to one
+object reach one copy and a cycle stays a cycle; it never collects. A string
+stays shared, as does a struct marked shared, and a function value stops the
+program. The VM walks its `Value`s the same way.
 
 **A struct** is the header followed by its fields, in declaration order, each in
 the representation *Values* gives its type.

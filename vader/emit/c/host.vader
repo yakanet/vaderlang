@@ -840,6 +840,8 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .BytesToString -> { return [returning("vader_string_as_string", [cast("vader_array_t*", a0)])] }
     // `string implements Hash` reads the hash cached on the atom (O(1)).
     .StringHash -> { return [returning("vader_string_hash", [a0])] }
+    // std/core: one host per type copied.
+    .DeepCopy -> { return [deep_copy_return(imp.signature.params[0])] }
 
     // std/runtime: GC introspection.
     .RuntimeCollect          -> { return [perform("vader_gc_collect", [])] }
@@ -909,6 +911,15 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
 
 // `a<j>`, the shim's `j`-th parameter.
 argument :: fn(j: i64) -> CExpression = verbatim("a${j}")
+
+// What a `deep_copy` host returns of `a0`, carried as `carried`: a reference or a
+// box goes through the runtime's walk, any other value is its own copy.
+deep_copy_return :: fn(carried: ValType) -> CStatement = match carried {
+    .Ref         -> returning("vader_deep_copy_ref", [argument(0)])
+    .Any | .Null -> returning("vader_deep_copy_box", [argument(0)])
+    .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64 -> CReturn { .value = argument(0) }
+    .F32 | .F64 | .Bool | .Char | .String | .Void | .Pointer -> CReturn { .value = argument(0) }
+}
 
 // `vader_trap("message");`: a runtime abort naming what went wrong.
 trap :: fn(message: string) -> CStatement = perform("vader_trap", [verbatim(c_string_lit(message))])

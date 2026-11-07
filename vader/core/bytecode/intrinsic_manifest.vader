@@ -35,6 +35,9 @@ CORE_MODULE :: "std_core"
 CORE_PREFIX    :: r"std_core$"
 EQUALS_SUFFIX  :: r"$Equals$equals"
 DISPLAY_SUFFIX :: r"$Display$to_string"
+// `deep_copy` takes one host per type it copies: `std_core$deep_copy__<type>`.
+DEEP_COPY      :: r"std_core$deep_copy"
+DEEP_COPY_TYPE :: r"std_core$deep_copy__"
 
 /// The mangle of a `std/core` primitive `@intrinsic` impl member:
 /// `("i32", "Equals", "equals")` → `"std_core$i32$Equals$equals"`. THE grammar
@@ -100,6 +103,8 @@ export IntrinsicId :: enum(u8) {
     ByteLen, ByteAt, ByteSlice, IsAscii,
     Bytes, BytesToString, StringHash,
     StringEquals,
+    // std/core values
+    DeepCopy,
     // primitive members (recognised via the grammar helpers, any width)
     PrimIntEquals, PrimDisplayToString,
     // std/runtime
@@ -116,6 +121,11 @@ export IntrinsicId :: enum(u8) {
     // `std/`: they amount to running arbitrary native code.
     FfiOpen, FfiOpenPath, FfiSymbol, FfiCall, FfiCallFrame,
 }
+
+// Whether `mangled` is the host of `deep_copy` at some type, or at a type
+// parameter of an erased body.
+is_deep_copy :: fn(mangled: string) -> bool =
+    mangled == DEEP_COPY || mangled.starts_with(DEEP_COPY_TYPE)
 
 /// Classify a host import's mangled name into its `IntrinsicId`, or
 /// `NotIntrinsic` when it isn't a recognised host (e.g. an `@extern` symbol or
@@ -143,6 +153,7 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_core$bytes_to_string"            { return .BytesToString }
     if mangled == primitive_member_mangle("string", "Hash", "hash") { return .StringHash }
     if mangled == r"std_core$string$Equals$equals"       { return .StringEquals }
+    if is_deep_copy(mangled)                             { return .DeepCopy }
 
     if mangled == r"std_runtime$collect"                 { return .RuntimeCollect }
     if mangled == r"std_runtime$collections"             { return .RuntimeCollections }
@@ -190,8 +201,8 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .SchedPark | .SchedSleepFor | .SchedCancel -> true
     // Constants of the runtime's own build.
     .TargetCurrentOs | .TargetCurrentArch -> false
-    // Allocate: a view header, an interned string, the rendered text.
-    .Bytes | .BytesToString | .PrimDisplayToString -> true
+    // Allocate: a view header, an interned string, the rendered text, a copy.
+    .Bytes | .BytesToString | .PrimDisplayToString | .DeepCopy -> true
     // Served by the VM only; natively these are Vader, never a host call.
     .StringEquals | .PrimIntEquals -> true
     // Unclassified: conservatively a safepoint.
@@ -212,6 +223,8 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     // Read a string or a primitive, or build a fresh value from one.
     .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash | .StringEquals -> false
     .Bytes | .BytesToString | .PrimDisplayToString | .PrimIntEquals -> false
+    // A copy is a fresh value: the copied one is only read.
+    .DeepCopy -> false
     // The collector moves objects and never changes a length; the rest only read.
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> false
@@ -286,4 +299,6 @@ import "std/testing"
     assert(intrinsic_id_for(r"std_core$u8$Display$to_string") == .PrimDisplayToString, "display")
     assert(intrinsic_id_for(r"std_core$string$Equals$equals") == .StringEquals, "string equals not int")
     assert(intrinsic_id_for(r"user_mod$foo") == .NotIntrinsic, "unknown → NotIntrinsic")
+    assert(intrinsic_id_for(r"std_core$deep_copy__snippet_Shape") == .DeepCopy, "deep copy instance")
+    assert(intrinsic_id_for(r"std_core$deep_copy_tree") == .NotIntrinsic, "a longer name is another fn")
 }

@@ -1,0 +1,30 @@
+// std/core/deep_copy: a copy of a value that shares nothing it can write.
+//
+// The runtime walks the value the way the collector does, by the layout of each
+// type, and copies every object it reaches once: two references to one object
+// reach one copy, and a cycle stays a cycle. A string is immutable and stays
+// shared, and so do the values of `std/task` that tasks share by design: a copy
+// of a struct holding a task joins the same task.
+
+module "std/core"
+
+/// A copy of `value` that shares nothing it can write: every struct and array it
+/// reaches is copied, once.
+///
+/// Two references to one object of `value` are two references to one copy, and a
+/// cycle stays a cycle. A view of an array is copied as an array of the elements
+/// it shows. Strings stay shared, being immutable, and so do the values of
+/// `std/task` that tasks share, a task among them.
+///
+/// A function value stops the program, since what the function captured cannot
+/// be copied.
+///
+/// `.clone()` on an array copies the array only: its elements stay shared.
+///
+/// @param value  the value to copy.
+/// @example
+///   rows :: [[1, 2], [3]]
+///   copy :: rows.deep_copy()
+///   copy[0].push(9)
+///   rows[0]   // [1, 2]
+@intrinsic export deep_copy :: fn<T>(value: T) -> T

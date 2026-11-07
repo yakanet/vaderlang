@@ -1,0 +1,165 @@
+// vader/vm/deep_copy: `deep_copy` on the VM.
+//
+// The walk of `runtime/c/rt/copy.c`, over `Value`s: a heap value is copied on
+// first sight and its copy queued, then each queued copy has the values it holds
+// replaced by their copies. A `Value` has no address to key a table on, so a
+// copied source is marked in place, as a collector forwards an object: its
+// `type_id` becomes the opposite of its copy's rank, minus one, until the walk
+// ends and `restore` puts it back, trap or not. A struct of `std/task` that tasks
+// share is kept, not copied (`is_task_shared_struct`).
+
+module "vader/vm"
+
+import "std/iter"
+bc :: import "vader/core/bytecode"
+
+/// A copy of `v` that shares nothing it can write: what `deep_copy` returns.
+///
+/// @param types  the running module's type table, which says which structs are
+///               kept.
+/// @param v      the value to copy.
+/// @param at_pc  where the call is, for the trap.
+/// @return       the copy, or a `Trap` when `v` reaches a function value.
+export deep_copy_value :: fn(types: bc.BcType[], v: Value, at_pc: i32) -> HostCallResult {
+    walk :: CopyWalk { .types = types, .at_pc = at_pc }
+    outcome :: walk.copy_all(v)
+    walk.restore()
+    if outcome is Trap {
+        return outcome
+    }
+    return HostOk { .value = outcome }
+}
+
+// The state of one copy.
+CopyWalk :: struct {
+    types: bc.BcType[]
+    at_pc: i32
+    /// The sources copied, by the rank of their copy, each marked until `restore`.
+    sources: HeapVal[] = []
+    /// The `type_id` each source had before it was marked.
+    kept_ids: i32[] = []
+    /// The copies, by rank: those from `next` on still hold the source's values.
+    copies: Value[] = []
+    next: i64 = 0
+}
+
+// Copy `v`, then what each queued copy holds.
+copy_all :: fn(walk: CopyWalk, v: Value) -> Value | Trap {
+    first :: walk.copy_of(v)
+    if first is Trap {
+        return first
+    }
+    for walk.next < walk.copies.len() {
+        done :: walk.copy_inside(walk.copies[walk.next])
+        if done is Trap {
+            return done
+        }
+        walk.next += 1
+    }
+    return first
+}
+
+// Point the values the copy `copy` holds at their copies.
+copy_inside :: fn(walk: CopyWalk, copy: Value) -> Trap | null = match copy {
+    is StructVal -> walk.copy_each(copy.fields)
+    is ArrayVal -> walk.copy_each(copy.elements)
+    is ObjVal -> walk.copy_each(copy.slots)
+    is FnVal | I32Val | I64Val | F64Val | StringVal | NullVal | BoolVal | CharVal | TypeVal -> null
+}
+
+// Replace each of `values`, held by a copy, by its copy.
+copy_each :: fn(walk: CopyWalk, values: Value[]) -> Trap | null {
+    for i in 0..<values.len() {
+        copied :: walk.copy_of(values[i])
+        if copied is Trap {
+            return copied
+        }
+        values[i] = copied
+    }
+    return null
+}
+
+// The copy of `v`: the one already made, a new one, or `v` itself when nothing of
+// it can be written.
+copy_of :: fn(walk: CopyWalk, v: Value) -> Value | Trap = match v {
+    is StructVal -> walk.copy_struct(v)
+    is ArrayVal -> walk.copy_array(v)
+    is ObjVal -> walk.copy_object(v)
+    is FnVal -> Trap {
+        .message = "deep_copy: a function value cannot be copied at pc=${walk.at_pc}",
+    }
+    is I32Val | I64Val | F64Val | StringVal | NullVal | BoolVal | CharVal | TypeVal -> v
+}
+
+copy_struct :: fn(walk: CopyWalk, s: StructVal) -> Value {
+    if s.type_id < 0 {
+        return walk.copies[-s.type_id - 1]
+    }
+    entry :: walk.types[s.type_id]
+    if entry is bc.BcStruct && bc.is_task_shared_struct(entry) {
+        return s
+    }
+    copy :: StructVal { .type_id = s.type_id, .fields = s.fields.clone() }
+    s.type_id = walk.note(s, s.type_id, copy)
+    return copy
+}
+
+// A view is copied as an array of the elements it shows, and the bytes of a string
+// as boxed elements.
+copy_array :: fn(walk: CopyWalk, a: ArrayVal) -> Value {
+    if a.type_id < 0 {
+        return walk.copies[-a.type_id - 1]
+    }
+    count :: element_count(a)
+    elements: Value[]: [] * count
+    for j in 0..<count {
+        elements.push(element_at(a, j))
+    }
+    copy :: ArrayVal { .type_id = a.type_id, .elements = elements }
+    a.type_id = walk.note(a, a.type_id, copy)
+    return copy
+}
+
+copy_object :: fn(walk: CopyWalk, o: ObjVal) -> Value {
+    if o.type_id < 0 {
+        return walk.copies[-o.type_id - 1]
+    }
+    copy :: ObjVal {
+        .handle = o.handle,
+        .type_id = o.type_id,
+        .bytes = o.bytes.clone(),
+        .slots = o.slots.clone(),
+    }
+    o.type_id = walk.note(o, o.type_id, copy)
+    return copy
+}
+
+// Note `source`, of type `type_id`, copied as `copy`, and queue the copy ; the
+// mark `source` takes in place of its `type_id`.
+note :: fn(walk: CopyWalk, source: HeapVal, type_id: i32, copy: Value) -> i32 {
+    rank :: i32(walk.copies.len())
+    walk.sources.push(source)
+    walk.kept_ids.push(type_id)
+    walk.copies.push(copy)
+    return -rank - 1
+}
+
+// Give each source copied its `type_id` back.
+restore :: fn(walk: CopyWalk) -> void {
+    for rank in 0..<walk.sources.len() {
+        source :: walk.sources[rank]
+        kept :: walk.kept_ids[rank]
+        match source {
+            is StructVal       -> {
+                source.type_id = kept
+            }
+            is ArrayVal        -> {
+                source.type_id = kept
+            }
+            is ObjVal          -> {
+                source.type_id = kept
+            }
+            is FnVal | TypeVal -> {}
+        }
+    }
+}

@@ -170,6 +170,8 @@ static void vader_atom_bucket_install(vader_atom_t a);
 /* ---- arrays.c ------------------------------------------------------------ */
 
 static vader_array_t* vader_array_resolve(vader_array_t* a);
+static size_t vader_array_buf_bytes(size_t capacity, uint8_t element_kind);
+static const uint8_t* vader_array_src_region(vader_array_t* src, size_t extra, uint8_t* out_kind, uint32_t* out_tag, size_t* out_elem_size);
 
 /* ---- vthreads.c ---------------------------------------------------------- */
 
