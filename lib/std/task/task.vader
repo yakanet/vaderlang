@@ -10,6 +10,9 @@
 // of `timeout`'s alike: the runtime numbers its threads in the order they
 // start, so a task's number is the one the runtime's reports give it, as long
 // as the program starts no thread of its own through `std/runtime/scheduler`.
+//
+// A combinator returns once every task it was given has ended: one it cancels
+// has run its `defer`s, so no task outlives the call.
 
 module "std/task"
 
@@ -190,8 +193,8 @@ export join_all :: fn<T>(tasks: Task<T>[]) -> (T | Cancelled)[] {
 }
 
 /// Wait for every task of `tasks`, unless one fails: the first to end with an
-/// error, `Cancelled` included, cancels the others and gives it back. The
-/// others' `defer`s run after this returns.
+/// error, `Cancelled` included, cancels the others, waits until their `defer`s
+/// have run, and is given back.
 ///
 /// @param tasks  the tasks to wait for, each returning a value or an error.
 /// @return       what each returned in the order of `tasks`, or the first
@@ -202,7 +205,7 @@ export try_join_all :: fn<T>(tasks: Task<T>[]) -> T[] | Error {
     for _ in 0..<tasks.len() {
         settled :: outcome(tasks[next_ended(group)])
         if settled is Error {
-            cancel_all(tasks)
+            cancel_and_wait(tasks)
             return settled
         }
     }
@@ -213,9 +216,9 @@ export try_join_all :: fn<T>(tasks: Task<T>[]) -> T[] | Error {
     return out
 }
 
-/// Wait for the first task of `tasks` to end, and cancel the others. Of two that
-/// had ended before the call, the first in `tasks` wins. The others' `defer`s run
-/// after this returns.
+/// Wait for the first task of `tasks` to end, then cancel the others and wait
+/// until their `defer`s have run. Of two that had ended before the call, the
+/// first in `tasks` wins.
 ///
 /// @param tasks  the tasks to race, at least one.
 /// @return       what the first to end returned, or `Cancelled`.
@@ -226,13 +229,13 @@ export race :: fn<T>(tasks: Task<T>[]) -> T | Cancelled {
     group :: watch(tasks)
     defer stop_waiting_all(tasks)
     winner :: tasks[next_ended(group)]
-    cancel_all(tasks)
+    cancel_and_wait(tasks)
     return outcome(winner)
 }
 
-/// Wait for the first task of `tasks` to succeed, and cancel the others; an
-/// error, `Cancelled` included, leaves the others running. The others' `defer`s
-/// run after this returns.
+/// Wait for the first task of `tasks` to succeed, then cancel the others and wait
+/// until their `defer`s have run; an error, `Cancelled` included, leaves the
+/// others running.
 ///
 /// @param tasks  the tasks to race for a success, at least one.
 /// @return       what the first to succeed returned, or the error of the last
@@ -246,7 +249,7 @@ export join_any :: fn<T>(tasks: Task<T>[]) -> T | Cancelled {
     for _ in 0..<tasks.len() - 1 {
         settled :: outcome(tasks[next_ended(group)])
         if settled !is Error {
-            cancel_all(tasks)
+            cancel_and_wait(tasks)
             return settled
         }
     }
@@ -289,9 +292,14 @@ stop_waiting_all :: fn<T>(tasks: Task<T>[]) -> void {
     }
 }
 
-cancel_all :: fn<T>(tasks: Task<T>[]) -> void {
+// Cancel the tasks of `tasks` that have not ended, then wait until each has run
+// its `defer`s: all are cancelled first, so that they unwind together.
+cancel_and_wait :: fn<T>(tasks: Task<T>[]) -> void {
     for task in tasks {
         cancel(task)
+    }
+    for task in tasks {
+        join(task)
     }
 }
 
@@ -314,8 +322,8 @@ Alarm :: struct {
     rang: bool = false
 }
 
-/// Wait for the end of `task` for at most `d`, then cancel it. Its `defer`s run
-/// after this returns.
+/// Wait for the end of `task` for at most `d`, then cancel it and wait until its
+/// `defer`s have run.
 ///
 /// @param task  a task `launch` returned.
 /// @param d     how long to wait.
@@ -346,6 +354,7 @@ export timeout :: fn<T>(task: Task<T>, d: Duration) -> T | Cancelled | TimeoutEr
         return outcome(task)
     }
     cancel(task)
+    join(task)
     return TimeoutError { .after = d }
 }
 
@@ -398,6 +407,13 @@ fail_after_yields :: fn(code: i32, yields: i32) -> i32 | Failure {
     return Failure { .code = code }
 }
 
+// A task that parks until cancelled, then notes that its `defer`s ran.
+unwinds_into :: fn(unwound: Flag) -> fn() -> i32 | Failure = fn() -> i32 | Failure {
+    defer unwound.set = true
+    park_forever()
+    return 0
+}
+
 @test
 test_join_gives_back_what_the_task_returned :: fn() -> void {
     task :: launch(() -> after_yields(42, 2))
@@ -437,10 +453,7 @@ test_cancel_before_the_start_runs_nothing :: fn() -> void {
 @test
 test_join_of_a_cancelled_task_waits_for_its_defers :: fn() -> void {
     unwound :: Flag {}
-    task :: launch(fn() {
-        defer unwound.set = true
-        park_forever()
-    })
+    task :: launch(unwinds_into(unwound))
     yield_now()
     task.cancel()
     assert(!unwound.set, "the cancel does not wait for the defers")
@@ -522,6 +535,34 @@ test_timeout_cancels_a_task_that_runs_late :: fn() -> void {
 @test
 test_timeout_gives_back_a_result_in_time :: fn() -> void {
     assert_eq("${timeout(launch(() -> after_yields(4, 1)), 10.seconds())}", "4")
+}
+
+@test
+test_race_waits_for_the_defers_of_the_cancelled :: fn() -> void {
+    unwound :: Flag {}
+    race([launch(unwinds_into(unwound)), launch(() -> succeed_after_yields(1, 1))])
+    assert(unwound.set, "the loser's defers ran before `race` returned")
+}
+
+@test
+test_join_any_waits_for_the_defers_of_the_cancelled :: fn() -> void {
+    unwound :: Flag {}
+    join_any([launch(unwinds_into(unwound)), launch(() -> succeed_after_yields(1, 1))])
+    assert(unwound.set, "the others' defers ran before `join_any` returned")
+}
+
+@test
+test_try_join_all_waits_for_the_defers_of_the_cancelled :: fn() -> void {
+    unwound :: Flag {}
+    try_join_all([launch(unwinds_into(unwound)), launch(() -> fail_after_yields(1, 1))])
+    assert(unwound.set, "the others' defers ran before `try_join_all` returned")
+}
+
+@test
+test_timeout_waits_for_the_defers_of_the_cancelled :: fn() -> void {
+    unwound :: Flag {}
+    timeout(launch(unwinds_into(unwound)), 1.millis())
+    assert(unwound.set, "the task's defers ran before `timeout` returned")
 }
 
 @test
