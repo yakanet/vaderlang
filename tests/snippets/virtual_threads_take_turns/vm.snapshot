@@ -1,0 +1,10 @@
+# stdout
+a step 0
+b step 0
+c runs on a thread of its own: true
+a step 1
+b done
+a done
+main is back: true
+# exit
+0

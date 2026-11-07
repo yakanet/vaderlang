@@ -1,0 +1,113 @@
+# Typecheck
+
+## tests/snippets/virtual_threads_take_turns
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         run_scheduler        :: fn() -> void
+  StructDecl     Scheduler            :: Scheduler
+  FnDecl         scheduler            :: fn() -> Scheduler
+  FnDecl         spawn                :: fn(fn() -> void) -> void
+  FnDecl         worker               :: fn(string, i64) -> void
+  FnDecl         yield_now            :: fn() -> void
+  expr 11:20    SeqLitExpr     :: i64[]
+  expr 17:34    StructLitExpr  :: Scheduler
+  expr 20:10    CallExpr       :: Scheduler
+  expr 20:10    IdentExpr      :: fn() -> Scheduler
+  expr 22:17    FieldExpr      :: i64[]
+  expr 22:17    IdentExpr      :: Scheduler
+  expr 22:17    IndexExpr      :: i64
+  expr 22:25    FieldExpr      :: i64
+  expr 22:25    IdentExpr      :: Scheduler
+  expr 23:9     BinaryExpr     :: i64
+  expr 23:9     FieldExpr      :: i64
+  expr 23:9     IdentExpr      :: Scheduler
+  expr 24:26    IdentExpr      :: i64
+  expr 24:9     CallExpr       :: void
+  expr 24:9     IdentExpr      :: fn(i64) -> void
+  expr 29:10    CallExpr       :: Scheduler
+  expr 29:10    IdentExpr      :: fn() -> Scheduler
+  expr 30:5     BinaryExpr     :: i64
+  expr 30:5     FieldExpr      :: i64
+  expr 30:5     IdentExpr      :: Scheduler
+  expr 31:18    CallExpr       :: i64
+  expr 31:18    IdentExpr      :: fn(fn() -> void) -> i64
+  expr 31:32    LambdaExpr     :: fn() -> void
+  expr 31:5     CallExpr       :: void
+  expr 31:5     FieldExpr      :: fn(i64) -> void
+  expr 31:5     FieldExpr      :: i64[]
+  expr 31:5     IdentExpr      :: Scheduler
+  expr 32:9     CallExpr       :: void
+  expr 32:9     IdentExpr      :: fn() -> void
+  expr 33:9     BinaryExpr     :: i64
+  expr 33:9     FieldExpr      :: i64
+  expr 33:9     IdentExpr      :: Scheduler
+  expr 38:10    CallExpr       :: Scheduler
+  expr 38:10    IdentExpr      :: fn() -> Scheduler
+  expr 39:18    CallExpr       :: i64
+  expr 39:18    IdentExpr      :: fn() -> i64
+  expr 39:5     CallExpr       :: void
+  expr 39:5     FieldExpr      :: fn(i64) -> void
+  expr 39:5     FieldExpr      :: i64[]
+  expr 39:5     IdentExpr      :: Scheduler
+  expr 40:22    FieldExpr      :: i64
+  expr 40:22    IdentExpr      :: Scheduler
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(i64) -> void
+  expr 44:17    RangeExpr      :: Range<i64>
+  expr 44:21    IdentExpr      :: i64
+  expr 45:17    StringLitExpr  :: string
+  expr 45:20    IdentExpr      :: string
+  expr 45:33    IdentExpr      :: i64
+  expr 45:9     CallExpr       :: void
+  expr 45:9     IdentExpr      :: fn(T) -> void
+  expr 46:9     CallExpr       :: void
+  expr 46:9     IdentExpr      :: fn() -> void
+  expr 48:13    StringLitExpr  :: string
+  expr 48:16    IdentExpr      :: string
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 52:26    CallExpr       :: i64
+  expr 52:26    IdentExpr      :: fn(fn() -> void) -> i64
+  expr 52:42    IdentExpr      :: fn() -> void
+  expr 52:5     CallExpr       :: Scheduler
+  expr 52:5     FieldExpr      :: i64
+  expr 52:5     IdentExpr      :: fn() -> Scheduler
+  expr 53:20    CallExpr       :: i64
+  expr 53:20    IdentExpr      :: fn() -> i64
+  expr 54:22    IdentExpr      :: i64
+  expr 54:5     CallExpr       :: void
+  expr 54:5     IdentExpr      :: fn(i64) -> void
+  expr 55:11    LambdaExpr     :: fn() -> void
+  expr 55:17    CallExpr       :: void
+  expr 55:17    IdentExpr      :: fn(string, i64) -> void
+  expr 55:24    StringLitExpr  :: string
+  expr 55:5     CallExpr       :: void
+  expr 55:5     IdentExpr      :: fn(fn() -> void) -> void
+  expr 56:11    LambdaExpr     :: fn() -> void
+  expr 56:17    CallExpr       :: void
+  expr 56:17    IdentExpr      :: fn(string, i64) -> void
+  expr 56:24    StringLitExpr  :: string
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(fn() -> void) -> void
+  expr 57:11    LambdaExpr     :: fn() -> void
+  expr 57:17    CallExpr       :: void
+  expr 57:17    IdentExpr      :: fn(T) -> void
+  expr 57:25    StringLitExpr  :: string
+  expr 57:5     CallExpr       :: void
+  expr 57:5     IdentExpr      :: fn(fn() -> void) -> void
+  expr 57:59    BinaryExpr     :: bool
+  expr 57:59    CallExpr       :: i64
+  expr 57:59    IdentExpr      :: fn() -> i64
+  expr 57:79    IdentExpr      :: i64
+  expr 58:9     BinaryExpr     :: bool
+  expr 58:9     CallExpr       :: Scheduler
+  expr 58:9     FieldExpr      :: i64
+  expr 58:9     IdentExpr      :: fn() -> Scheduler
+  expr 59:9     CallExpr       :: void
+  expr 59:9     IdentExpr      :: fn() -> void
+  expr 61:13    StringLitExpr  :: string
+  expr 61:30    BinaryExpr     :: bool
+  expr 61:30    CallExpr       :: i64
+  expr 61:30    IdentExpr      :: fn() -> i64
+  expr 61:5     CallExpr       :: void
+  expr 61:5     IdentExpr      :: fn(T) -> void
+  expr 61:50    IdentExpr      :: i64

@@ -1,0 +1,63 @@
+// Three virtual threads take turns under a scheduler written here: each prints
+// a step and yields, the scheduler runs the next ready thread, and a thread
+// whose function returns ends. A switch to the running thread does nothing.
+module "snippet"
+
+import "std/io"
+import "std/runtime/threads"
+
+Scheduler :: struct {
+    handle: i64 = 0
+    ready: i64[] = []
+    next_ready: i64 = 0
+    running: i64 = 0
+}
+
+@singleton
+scheduler :: fn() -> Scheduler = Scheduler {}
+
+run_scheduler :: fn() -> void {
+    s :: scheduler()
+    for {
+        next :: s.ready[s.next_ready]
+        s.next_ready += 1
+        switch_to_thread(next)
+    }
+}
+
+spawn :: fn(entry: fn() -> void) -> void {
+    s :: scheduler()
+    s.running += 1
+    s.ready.push(create_thread(fn() {
+        entry()
+        s.running -= 1
+    }))
+}
+
+yield_now :: fn() -> void {
+    s :: scheduler()
+    s.ready.push(current_thread())
+    switch_to_thread(s.handle)
+}
+
+worker :: fn(name: string, steps: i64) -> void {
+    for step in 0..<steps {
+        println("${name} step ${step}")
+        yield_now()
+    }
+    println("${name} done")
+}
+
+main :: fn() -> i32 {
+    scheduler().handle = start_scheduler(run_scheduler)
+    main_thread :: current_thread()
+    switch_to_thread(main_thread)
+    spawn(() -> worker("a", 2))
+    spawn(() -> worker("b", 1))
+    spawn(() -> println("c runs on a thread of its own: ${current_thread() != main_thread}"))
+    for scheduler().running > 0 {
+        yield_now()
+    }
+    println("main is back: ${current_thread() == main_thread}")
+    return 0
+}

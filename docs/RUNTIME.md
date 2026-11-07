@@ -400,7 +400,8 @@ own shadow stack and defer stack, and a collection walks those of every thread;
 a major scans each parked stack conservatively, its saved registers included. A
 thread whose function returns switches to the scheduler, which frees its stack,
 and 64 freed stacks are kept for the next threads. Windows switches through
-fibers, whose stacks the system guards.
+fibers, whose stacks the system guards. Under the VM, a thread of the program
+runs on a thread of the host, with a register file of its own.
 
 **Moving objects.** A minor moves young objects, so a pointer must sit in a frame
 across anything that may allocate. A foreign call is the exception: C may keep a

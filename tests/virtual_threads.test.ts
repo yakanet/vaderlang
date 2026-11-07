@@ -1,8 +1,8 @@
 // Virtual threads (`runtime/c/rt/vthreads.c`, `std/runtime/threads`) on the
-// native backend. A parked thread's shadow-stack frames, stack objects, atoms
-// and pending defers stay rooted under every diagnostic mode of the collector,
-// in a debug and a release build; a thread that runs past its stack stops on
-// the guard zone; each thread unwinds its own defers.
+// native backend and under the VM. A parked thread's shadow-stack frames, stack
+// objects, atoms and pending defers stay rooted under every diagnostic mode of
+// the collector, in a debug and a release build; a thread that runs past its
+// stack stops; each thread unwinds its own defers.
 //
 // The fixture (tests/fixtures/virtual_threads/main.vader) is built once per
 // profile, and each case is a run of it with `THREADS_CASE` set.
@@ -47,10 +47,14 @@ function profileFlags(profile: string): string[] {
   return [];
 }
 
-async function runCase(bin: string, threadsCase: string, gcMode = "") {
+function caseEnv(threadsCase: string, gcMode: string): Record<string, string> {
   const env: Record<string, string> = { THREADS_CASE: threadsCase, VADER_GC_POISON: "1" };
   if (gcMode !== "") env[gcMode] = "1";
-  return spawnCapture([], { bin, env });
+  return env;
+}
+
+async function runCase(bin: string, threadsCase: string, gcMode = "") {
+  return spawnCapture([], { bin, env: caseEnv(threadsCase, gcMode) });
 }
 
 for (const profile of ["debug", "release"]) {
@@ -91,3 +95,38 @@ for (const profile of ["debug", "release"]) {
     }, LONG_BUILD);
   });
 }
+
+// Under `vader run`, a thread of the program is a thread of the host
+// (`vader/vm/guest_threads.vader`), and the collector's modes act on the host.
+// `VADER_GC_STRESS` and `VADER_GC_STRESS_MAJOR` are left out: they act on the
+// compile that precedes the run as well.
+const VM_GC_MODES = ["", "VADER_GC_STRESS_SWITCH", "VADER_GC_CHECK_BOX", "VADER_GC_NO_CSTACK_SCAN"];
+
+async function runOnVm(threadsCase: string, gcMode = "") {
+  return runCli(["run", FIXTURE], caseEnv(threadsCase, gcMode), LONG_BUILD);
+}
+
+describe("virtual threads under the VM", () => {
+  for (const gcMode of VM_GC_MODES) {
+    test(`parked threads stay rooted${underMode(gcMode)}`, async () => {
+      const r = await runOnVm("parked_roots", gcMode);
+      expect(r.stderr).toBe("");
+      expect(r.stdout).toBe(PARKED_ROOTS);
+      expect(r.exit).toBe(0);
+    }, LONG_BUILD);
+  }
+
+  test("a thread past the VM's call depth stops", async () => {
+    const r = await runOnVm("overflow");
+    expect(r.stdout).toBe("depth 1000: 3893\n");
+    expect(r.stderr).toContain("call stack overflow");
+    expect(r.exit).not.toBe(0);
+  }, LONG_BUILD);
+
+  test("each thread runs its own defers when it panics", async () => {
+    const r = await runOnVm("two_panics");
+    expect(r.stdout).toBe("defer of first, before the yield\ndefer of second\n");
+    expect(r.stderr).toContain("panic: second");
+    expect(r.exit).not.toBe(0);
+  }, LONG_BUILD);
+});

@@ -234,7 +234,7 @@ export dispatch_import :: fn(
     .RuntimeAllocations      -> { return HostOk { .value = I64Val(0) } }
     .RuntimeCountAllocations -> { return HostOk { .value = NullVal {} } }
     .ThreadStartScheduler | .ThreadCreate | .ThreadSwitch | .ThreadCurrent -> {
-        return Trap { .message = "${info.mangled_name}: the VM runs no thread yet" }
+        return Trap { .message = "${info.mangled_name}: a thread primitive reached the host dispatch" }
     }
     // Dynamic foreign calls. A `@test` runs ON the VM, so these have to be
     // served here too: the arms forward to the same intrinsics the natively

@@ -122,19 +122,7 @@ reg_run :: fn(
     } else {
         null
     }
-    m :: RegMachine {
-        .bits         = [],
-        .tags         = [],
-        .refs         = [],
-        .run          = new_run_host(),
-        .scratch      = scratch_frame(),
-        .frame_code   = [],
-        .frame_base   = [],
-        .frame_return = [],
-        .defers       = [],
-        .defer_count  = 0,
-        .debug        = session,
-    }
+    m :: empty_machine(session)
     reserve_registers(m, code.functions[entry_index].registers)
     for i in 0..<args.len() {
         set_register(m, i, args[i])
@@ -151,6 +139,21 @@ reg_run :: fn(
         return outcome
     }
     return finish_run(m, bc.bc_result_arity(entry_function.signature) == 1, capture)
+}
+
+// A register file and a frame stack with nothing in them yet.
+empty_machine :: fn(session: DebugSession | null) = RegMachine {
+    .bits = [],
+    .tags = [],
+    .refs = [],
+    .run = new_run_host(),
+    .scratch = scratch_frame(),
+    .frame_code = [],
+    .frame_base = [],
+    .frame_return = [],
+    .defers = [],
+    .defer_count = 0,
+    .debug = session,
 }
 
 // The functions of the frames `m` records, outermost first: its call stack when
@@ -1080,7 +1083,8 @@ call_import :: fn(state: VmState, m: RegMachine, index: i32, at: i64, origin: i3
 }
 
 // Serve `info`, import `index` of `state`, on `args`: an `@extern` by a foreign
-// call, any other by its host.
+// call, a thread primitive by a host thread (`guest_threads.vader`), any other by
+// its host.
 serve_import :: fn(
     state: VmState,
     m: RegMachine,
@@ -1093,6 +1097,10 @@ serve_import :: fn(
     if info.is_extern {
         return dispatch_extern(state, index, args, 0, origin, debug_controller(m))
     }
+    id :: state.import_ids[index]
+    if is_thread_primitive(id) {
+        return serve_thread_primitive(state, id, args, origin, is_comptime)
+    }
     return dispatch_import(
         info,
         args,
@@ -1102,7 +1110,7 @@ serve_import :: fn(
         state.string_array_type_id,
         state.u8_array_type_id,
         is_comptime,
-        state.import_ids[index],
+        id,
     )
 }
 
@@ -1179,7 +1187,8 @@ defer_thunk :: fn(state: VmState, closure: Value, origin: i32, label: string) ->
     return closure
 }
 
-// Run a deferred closure, its environment in register `at`.
+// Run a closure that takes no argument but its environment, which goes in
+// register `at`: a deferred closure, or the entry of a guest thread.
 run_thunk :: fn(
     state: VmState,
     code: RegModule,
