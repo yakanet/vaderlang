@@ -33,11 +33,14 @@ typedef struct {
 } vader_sched_timer_t;
 
 static int      g_sched_started = 0;
+static int      g_sched_clock_read = 0;
 static int      g_sched_virtual_clock = 0;
 static int64_t  g_sched_virtual_now = 0;
 static uint64_t g_sched_numbered = 0;
 /* `main` returned and waits for the threads it cancelled. */
 static int      g_sched_exiting = 0;
+/* Some thread was still running, not cancelled, when `main` returned. */
+static int      g_sched_left_running = 0;
 
 static vader_sched_slot_t* g_sched_slots = NULL;
 static size_t g_sched_slot_cap = 0;
@@ -219,14 +222,15 @@ static void vader_sched_report_append(const char* text) {
     g_sched_report_len += (size_t) n;
 }
 
-/* How a report names `thread`: `main`, or `thread #N`. */
+/* How a report names `thread`: `main`, or `task #N`, since every thread a
+   program starts is a task. */
 static void vader_sched_name(int64_t thread, char* out, size_t room) {
     uint64_t number = vader_sched_slot_of(thread)->number;
     if (number == 0u) {
         snprintf(out, room, "main");
         return;
     }
-    snprintf(out, room, "thread #%llu", (unsigned long long) number);
+    snprintf(out, room, "task #%llu", (unsigned long long) number);
 }
 
 /* How many threads the report names so far. */
@@ -246,7 +250,7 @@ static void vader_sched_deadlock(void) {
     g_sched_report_len = 0;
     g_sched_report[0] = '\0';
     g_sched_report_names = 0;
-    vader_sched_report_append("virtual threads: a deadlock, every thread waits and nothing will wake one:");
+    vader_sched_report_append("virtual threads: a deadlock, every task waits and nothing will wake one:");
     vader_vt_each_live(vader_sched_report_thread);
     vader_trap(g_sched_report);
 }
@@ -272,10 +276,16 @@ static void vader_sched_loop(void) {
     }
 }
 
+static void vader_sched_read_clock(void) {
+    if (g_sched_clock_read) return;
+    g_sched_clock_read = 1;
+    g_sched_virtual_clock = getenv("VADER_ASYNC_VIRTUAL_CLOCK") != NULL;
+}
+
 static void vader_sched_start(void) {
     if (g_sched_started) return;
     g_sched_started = 1;
-    g_sched_virtual_clock = getenv("VADER_ASYNC_VIRTUAL_CLOCK") != NULL;
+    vader_sched_read_clock();
     vader_vt_start_scheduler();
     vader_sched_fresh_slot(vader_vt_main(), 0u);
 }
@@ -322,8 +332,27 @@ void vader_sched_wake(int64_t thread) {
     if (vader_vt_is_live(thread)) vader_sched_enqueue(thread);
 }
 
+/* A sleep with no other thread to run meanwhile, which needs no switch: a
+   target without one sleeps too. */
+static void vader_sched_sleep_alone(int64_t nanos) {
+    vader_sched_read_clock();
+    if (!g_sched_virtual_clock) {
+        vader_os_sleep_ns(nanos);
+        return;
+    }
+    if (nanos < INT64_MAX - g_sched_virtual_now) {
+        g_sched_virtual_now += nanos;
+        return;
+    }
+    g_sched_virtual_now = INT64_MAX;
+}
+
 void vader_sched_sleep_for(int64_t nanos) {
     if (nanos <= 0) return;
+    if (vader_vt_threads() == 0u) {
+        vader_sched_sleep_alone(nanos);
+        return;
+    }
     vader_sched_start();
     int64_t thread = vader_vt_current();
     int64_t now = vader_sched_now();
@@ -355,12 +384,16 @@ int64_t vader_sched_current(void) {
     return vader_vt_current();
 }
 
+/* A thread cancelled before `main` returned is on its way out: `main` waits
+   for it without naming it. */
 static void vader_sched_cancel_at_exit(int64_t thread) {
     if (thread == vader_vt_main()) return;
+    if (vader_sched_slot_of(thread)->cancelled) return;
     char name[32];
     vader_sched_name(thread, name, sizeof(name));
     const char* what = " still runs when main returns: cancelled";
     vader_os_report_fatal(name, what, strlen(what));
+    g_sched_left_running = 1;
     vader_sched_cancel(thread);
 }
 
@@ -371,6 +404,6 @@ int vader_sched_exit(int code) {
     vader_sched_slot_of(vader_vt_main())->sleep++;
     while (vader_vt_threads() > 0u) vader_sched_block();
     g_sched_exiting = 0;
-    if (code != 0) return code;
+    if (code != 0 || !g_sched_left_running) return code;
     return 1;
 }

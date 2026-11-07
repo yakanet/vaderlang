@@ -242,6 +242,16 @@ export Async :: trait<T> {
     cancel :: fn(self) -> void {}
 }
 
+/// What joining a cancelled task gives back: the task ran its pending `defer`s
+/// and ended without a result.
+export Cancelled :: struct {}
+
+Cancelled implements Error {
+    message :: fn(self) -> string = "cancelled"
+}
+
+Cancelled implements Display -> "cancelled"
+
 /// One field of a struct type as exposed by the `@fields(T)` reflection
 /// intrinsic. `name` is the source-level identifier ; `type` carries the
 /// field's declared type as a runtime `type` value.

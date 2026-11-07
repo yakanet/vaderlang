@@ -25,10 +25,12 @@ import "std/string"
 
 // A guest thread that has not ended.
 GuestThread :: struct {
-    /// How a report names it: `thread #N`.
+    /// How a report names it: `task #N`.
     number: i64
     /// Whether it has begun: one cancelled before runs nothing.
     started: bool = false
+    /// Whether it was cancelled, and so is on its way out.
+    cancelled: bool = false
 }
 
 // The guest threads of the process, which runs one entry at a time.
@@ -139,6 +141,7 @@ cancel_guest_thread :: fn(thread: Value, origin: i32) -> HostCallResult {
 cancel :: fn(thread: i64) -> void {
     threads :: guest_threads()
     guest :: threads.live[thread] ?? return
+    guest.cancelled = true
     if !guest.started {
         forget(threads, thread)
     }
@@ -179,11 +182,11 @@ note_entry_thread :: fn() -> void {
 }
 
 /// Cancel the guest threads still running once an entry has returned, and wait
-/// until their defers have run.
+/// until their defers have run, those of the threads cancelled before included.
 ///
 /// @param announce  name each on stderr as a native program does when `main`
 ///                  returns.
-/// @return          the numbers of the threads cancelled, the oldest first.
+/// @return          the numbers of the threads this cancelled, the oldest first.
 finish_guest_threads :: fn(announce: bool) -> i64[] {
     threads :: guest_threads()
     if threads.live.len() == 0 {
@@ -195,10 +198,14 @@ finish_guest_threads :: fn(announce: bool) -> i64[] {
     )
     numbers: i64[]: []
     for thread in handles {
-        number :: number_of(threads, thread)
-        numbers.push(number)
+        guest :: threads.live[thread] ?? continue
+        // One cancelled before is waited for, not named.
+        if guest.cancelled {
+            continue
+        }
+        numbers.push(guest.number)
         if announce {
-            eprintln("vader: thread #${number} still runs when main returns: cancelled")
+            eprintln("vader: task #${guest.number} still runs when main returns: cancelled")
         }
         cancel(thread)
     }
@@ -240,6 +247,6 @@ after_entry :: fn(outcome: VmResult | StackOverflow, what: string) -> VmResult |
     if cancelled.len() == 0 || outcome !is Ok {
         return outcome
     }
-    names :: cancelled.map((n) -> "thread #${n}").collect().join(", ")
+    names :: cancelled.map((n) -> "task #${n}").collect().join(", ")
     return Trap { .message = "${names} still running when ${what} returns: cancelled" }
 }

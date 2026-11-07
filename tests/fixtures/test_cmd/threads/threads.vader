@@ -1,5 +1,6 @@
 // A test that leaves a thread parked, and the test after it: `vader test` fails
 // the first and cancels its thread, whose defers run before the second starts.
+// A test that cancels its thread before it returns passes.
 
 module "test_cmd_threads"
 
@@ -33,4 +34,16 @@ test_leaves_a_thread :: fn() -> void {
 @test
 test_after_the_left_thread :: fn() -> void {
     assert(left().ended, "the thread the previous test left has ended")
+}
+
+@test
+test_cancels_its_thread :: fn() -> void {
+    parked :: spawn_thread(fn() {
+        for {
+            park()
+        }
+    })
+    wake(current_thread())
+    park()
+    cancel_thread(parked)
 }

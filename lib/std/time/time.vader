@@ -8,6 +8,7 @@
 module "std/time"
 
 import "std/math"
+import "std/runtime/scheduler"
 import "std/string"
 import "system/posix"
 import "system/windows"
@@ -96,38 +97,6 @@ monotonic_ns :: fn() -> i64 {
     return (counter[0] / freq[0]) * 1_000_000_000 + (counter[0] % freq[0]) * 1_000_000_000 / freq[0]
 }
 
-// Block for at least `ns` nanoseconds, `ns` > 0.
-@target
-sleep_ns :: fn(ns: i64) -> void
-
-@target(.Linux, .Darwin)
-sleep_ns :: fn(ns: i64) -> void {
-    req: i64[]: [ns / 1_000_000_000, ns % 1_000_000_000]
-    rem: i64[]: [0, 0]
-    // A signal cuts the wait short and leaves what is left in `rem`.
-    for sys_nanosleep(req, rem) != 0 && sys_last_errno() == EINTR {
-        req[0] = rem[0]
-        req[1] = rem[1]
-    }
-}
-
-// The longest wait handed to `Sleep` at once: past it sits `INFINITE`.
-MAX_SLEEP_MS: i64: 0x7FFF_FFFF
-
-@target(.Windows)
-sleep_ns :: fn(ns: i64) -> void {
-    // `Sleep` counts milliseconds: round up, so the wait is never shorter.
-    ms := ns / 1_000_000
-    if ns % 1_000_000 != 0 {
-        ms += 1
-    }
-    for ms > 0 {
-        slice :: min(ms, MAX_SLEEP_MS)
-        sleep_ms(u32(slice))
-        ms -= slice
-    }
-}
-
 // ---- Duration constructors -----------------------------------------------
 
 /// Construct a Duration from a count of nanoseconds.
@@ -154,18 +123,17 @@ export monotonic :: fn() -> Monotonic = Monotonic(monotonic_ns())
 
 // ---- waiting -------------------------------------------------------------
 
-/// Block the calling thread for at least `d`; a zero or negative `d` returns at
-/// once. Nothing else in the program runs meanwhile: an `async` task waits with
-/// `std/async`'s `sleep`, which lets the other tasks run.
+/// Park the calling task for at least `d`, while the other tasks run; a zero or
+/// negative `d` returns at once. A task alone waits on the system clock. An
+/// `async` function waits with `std/async`'s `sleep` instead.
+///
+/// Under `VADER_ASYNC_VIRTUAL_CLOCK`, the clock counts the sleeps alone and
+/// jumps to the end of the nearest one.
 ///
 /// @param d  how long to wait.
 /// @example
 ///   sleep(20.millis())
-export sleep :: fn(d: Duration) -> void {
-    if i64(d) > 0 {
-        sleep_ns(i64(d))
-    }
-}
+export sleep :: fn(d: Duration) -> void = sleep_for(i64(d))
 
 // ---- construction / readout (Unix epoch) ---------------------------------
 

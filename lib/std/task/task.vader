@@ -1,0 +1,541 @@
+// std/task: tasks, each running on a virtual thread of its own beside the code
+// that launched it.
+//
+// A task parks where it waits (`join`, `sleep`), wherever it is in its stack,
+// and another runs meanwhile: nothing marks a function as one that may park.
+// The threads are the runtime's (`std/runtime/scheduler`); this module keeps
+// what a task is to the program: its number, its result, who waits for it.
+//
+// Every thread this module starts counts in `started()`, a task's and a timer
+// of `timeout`'s alike: the runtime numbers its threads in the order they
+// start, so a task's number is the one the runtime's reports give it, as long
+// as the program starts no thread of its own through `std/runtime/scheduler`.
+
+module "std/task"
+
+import "std/abort"
+import "std/runtime/scheduler"
+import "std/time"
+
+// ---- tasks ----------------------------------------------------------------
+
+/// A task `launch` started, which `join` waits for.
+///
+/// Two tasks are equal when they are the same task. A task shows as `task #N`,
+/// its number in the order the program started them.
+export Task :: struct<T> {
+    @internal
+    number: i64
+    @internal
+    thread: i64 = -1
+    /// Whether its thread began: one cancelled before runs nothing.
+    @internal
+    started: bool = false
+    @internal
+    ended: bool = false
+    /// What the task returned: empty when it was cancelled.
+    @internal
+    result: T[] = []
+    /// The threads parked until it ends.
+    @internal
+    waiters: Waiter[] = []
+}
+
+Task<T> implements<T> Display -> "task #${self.number}"
+
+Task<T> implements<T> Equals -> self === other
+
+// The threads this module started.
+Started :: struct {
+    count: i64 = 0
+}
+
+@singleton
+started :: fn() -> Started = Started {}
+
+// Start `entry` on a thread, and count it.
+start_thread :: fn(entry: fn() -> void) -> i64 {
+    started().count += 1
+    return spawn_thread(entry)
+}
+
+/// Launch a task that runs `entry`.
+///
+/// The code after the `launch` goes on until it parks, then the task starts.
+///
+/// @param entry  what the task runs.
+/// @return       the task, which `join` waits for.
+/// @example
+///   # import "std/time"
+///   t :: launch(fn() -> i32 {
+///       sleep(10.millis())
+///       return 42
+///   })
+///   t.join()   // 42, after 10 ms
+export launch :: fn<T>(entry: fn() -> T) -> Task<T> {
+    task :: Task<T> { .number = started().count + 1 }
+    task.thread = start_thread(() -> run(task, entry))
+    return task
+}
+
+run :: fn<T>(task: Task<T>, entry: fn() -> T) -> void {
+    task.started = true
+    defer end(task)
+    task.result.push(entry())
+}
+
+// A thread parked until a task ends.
+Waiter :: struct {
+    thread: i64
+    /// The tasks it waits on together, when it waits on several.
+    group: Group | null = null
+    /// The index of the task in the group.
+    index: i64 = 0
+}
+
+// Tasks a thread waits on together, which note the order they end in.
+Group :: struct {
+    /// The indices of those that ended, in the order they ended.
+    ended: i64[] = []
+    /// How many of `ended` the thread has taken.
+    taken: i64 = 0
+}
+
+// `task` ended, returned or cancelled: wake who waits for it.
+end :: fn<T>(task: Task<T>) -> void {
+    task.ended = true
+    for waiter in task.waiters {
+        group :: waiter.group
+        if group != null {
+            group.ended.push(waiter.index)
+        }
+        wake(waiter.thread)
+    }
+}
+
+/// Wait for the end of `task`, and give back what it returned.
+///
+/// A task can be joined several times, by several tasks: each `join` gives
+/// back the same value. Joining a cancelled task waits until its pending
+/// `defer`s have run.
+///
+/// @param task  a task `launch` returned.
+/// @return      what the task returned, or `Cancelled` when it was cancelled.
+export join :: fn<T>(task: Task<T>) -> T | Cancelled {
+    if !task.ended {
+        me :: current_thread()
+        task.waiters.push(Waiter { .thread = me })
+        defer stop_waiting(task, me)
+        for !task.ended {
+            park()
+        }
+    }
+    return outcome(task)
+}
+
+outcome :: fn<T>(task: Task<T>) -> T | Cancelled {
+    if task.result.len() == 0 {
+        return Cancelled {}
+    }
+    return task.result[0]
+}
+
+/// Whether `task` has ended, so that `join` would not wait.
+///
+/// @param task  a task `launch` returned.
+export is_ready :: fn<T>(task: Task<T>) -> bool = task.ended
+
+/// Cancel `task`: it runs its pending `defer`s and ends, and its `join` gives
+/// back `Cancelled`. A task that has ended stays as it was; one that has not
+/// started runs nothing.
+///
+/// The cancel does not wait for the `defer`s: `join` does. A task that cancels
+/// itself does not come back from it.
+///
+/// @param task  a task `launch` returned.
+export cancel :: fn<T>(task: Task<T>) -> void {
+    if task.ended {
+        return
+    }
+    cancel_thread(task.thread)
+    if !task.started {
+        end(task)
+    }
+}
+
+// `thread` waits for `task` no longer.
+stop_waiting :: fn<T>(task: Task<T>, thread: i64) -> void {
+    waiters :: task.waiters
+    for i in 0..<waiters.len() {
+        if waiters[i].thread == thread {
+            waiters[i] = waiters[waiters.len() - 1]
+            waiters.remove_last()
+            return
+        }
+    }
+}
+
+// ---- several tasks --------------------------------------------------------
+
+/// Wait for every task of `tasks`.
+///
+/// @param tasks  the tasks to wait for.
+/// @return       what each returned, or `Cancelled`, in the order of `tasks`.
+export join_all :: fn<T>(tasks: Task<T>[]) -> (T | Cancelled)[] {
+    out: (T | Cancelled)[]: []
+    for task in tasks {
+        out.push(join(task))
+    }
+    return out
+}
+
+/// Wait for every task of `tasks`, unless one fails: the first to end with an
+/// error, `Cancelled` included, cancels the others and gives it back. The
+/// others' `defer`s run after this returns.
+///
+/// @param tasks  the tasks to wait for, each returning a value or an error.
+/// @return       what each returned in the order of `tasks`, or the first
+///               error in the order they ended.
+export try_join_all :: fn<T>(tasks: Task<T>[]) -> T[] | Error {
+    group :: watch(tasks)
+    defer stop_waiting_all(tasks)
+    for _ in 0..<tasks.len() {
+        settled :: outcome(tasks[next_ended(group)])
+        if settled is Error {
+            cancel_all(tasks)
+            return settled
+        }
+    }
+    out: T[]: []
+    for task in tasks {
+        out.push(task.result[0])
+    }
+    return out
+}
+
+/// Wait for the first task of `tasks` to end, and cancel the others. Of two that
+/// had ended before the call, the first in `tasks` wins. The others' `defer`s run
+/// after this returns.
+///
+/// @param tasks  the tasks to race, at least one.
+/// @return       what the first to end returned, or `Cancelled`.
+export race :: fn<T>(tasks: Task<T>[]) -> T | Cancelled {
+    if tasks.len() == 0 {
+        panic("race: no task to wait for")
+    }
+    group :: watch(tasks)
+    defer stop_waiting_all(tasks)
+    winner :: tasks[next_ended(group)]
+    cancel_all(tasks)
+    return outcome(winner)
+}
+
+/// Wait for the first task of `tasks` to succeed, and cancel the others; an
+/// error, `Cancelled` included, leaves the others running. The others' `defer`s
+/// run after this returns.
+///
+/// @param tasks  the tasks to race for a success, at least one.
+/// @return       what the first to succeed returned, or the error of the last
+///               to end when every one fails.
+export join_any :: fn<T>(tasks: Task<T>[]) -> T | Cancelled {
+    if tasks.len() == 0 {
+        panic("join_any: no task to wait for")
+    }
+    group :: watch(tasks)
+    defer stop_waiting_all(tasks)
+    for _ in 0..<tasks.len() - 1 {
+        settled :: outcome(tasks[next_ended(group)])
+        if settled !is Error {
+            cancel_all(tasks)
+            return settled
+        }
+    }
+    return outcome(tasks[next_ended(group)])
+}
+
+// Wait on every task of `tasks` together: `next_ended` gives their indices in
+// the order they end, those that had ended before in the order of `tasks`.
+watch :: fn<T>(tasks: Task<T>[]) -> Group {
+    group :: Group {}
+    me :: current_thread()
+    for i in 0..<tasks.len() {
+        task :: tasks[i]
+        if task.ended {
+            group.ended.push(i)
+        } else {
+            task.waiters.push(Waiter {
+                .thread = me,
+                .group = group,
+                .index = i,
+            })
+        }
+    }
+    return group
+}
+
+// The index of the next task of `group` to end, parking until one has.
+next_ended :: fn(group: Group) -> i64 {
+    for group.taken == group.ended.len() {
+        park()
+    }
+    group.taken += 1
+    return group.ended[group.taken - 1]
+}
+
+stop_waiting_all :: fn<T>(tasks: Task<T>[]) -> void {
+    me :: current_thread()
+    for task in tasks {
+        stop_waiting(task, me)
+    }
+}
+
+cancel_all :: fn<T>(tasks: Task<T>[]) -> void {
+    for task in tasks {
+        cancel(task)
+    }
+}
+
+// ---- deadlines ------------------------------------------------------------
+
+/// What `timeout` gives back when the task did not end in time.
+export TimeoutError :: struct {
+    /// How long the task was given.
+    after: Duration
+}
+
+TimeoutError implements Error {
+    message :: fn(self) -> string = "timed out after ${self.after.format()}"
+}
+
+TimeoutError implements Display -> self.message()
+
+// Whether the timer of a `timeout` went off.
+Alarm :: struct {
+    rang: bool = false
+}
+
+/// Wait for the end of `task` for at most `d`, then cancel it. Its `defer`s run
+/// after this returns.
+///
+/// @param task  a task `launch` returned.
+/// @param d     how long to wait.
+/// @return      what the task returned, `Cancelled` when it was cancelled
+///              before, or a `TimeoutError` when `d` ran out first.
+/// @example
+///   # import "std/time"
+///   slow :: launch(() -> sleep(50.millis()))
+///   timeout(slow, 10.millis())   // a TimeoutError, after 10 ms
+export timeout :: fn<T>(task: Task<T>, d: Duration) -> T | Cancelled | TimeoutError {
+    if task.ended {
+        return outcome(task)
+    }
+    me :: current_thread()
+    alarm :: Alarm {}
+    timer :: start_thread(fn() {
+        sleep_for(i64(d))
+        alarm.rang = true
+        wake(me)
+    })
+    defer cancel_thread(timer)
+    task.waiters.push(Waiter { .thread = me })
+    defer stop_waiting(task, me)
+    for !task.ended && !alarm.rang {
+        park()
+    }
+    if task.ended {
+        return outcome(task)
+    }
+    cancel(task)
+    return TimeoutError { .after = d }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/string"
+import "std/testing"
+
+// Let the other ready threads run once.
+yield_now :: fn() -> void {
+    wake(current_thread())
+    park()
+}
+
+park_forever :: fn() -> void {
+    for {
+        park()
+    }
+}
+
+Flag :: struct {
+    set: bool = false
+}
+
+// Return `n` after yielding `yields` times.
+after_yields :: fn(n: i32, yields: i32) -> i32 {
+    for _ in 0..<yields {
+        yield_now()
+    }
+    return n
+}
+
+Failure :: struct {
+    code: i32
+}
+
+Failure implements Error {
+    message :: fn(self) -> string = "failure ${self.code}"
+}
+
+Failure implements Display -> self.message()
+
+// `after_yields`, typed as a task that may fail.
+succeed_after_yields :: fn(n: i32, yields: i32) -> i32 | Failure = after_yields(n, yields)
+
+fail_after_yields :: fn(code: i32, yields: i32) -> i32 | Failure {
+    for _ in 0..<yields {
+        yield_now()
+    }
+    return Failure { .code = code }
+}
+
+@test
+test_join_gives_back_what_the_task_returned :: fn() -> void {
+    task :: launch(() -> after_yields(42, 2))
+    assert_eq("${task.join()}", "42")
+}
+
+@test
+test_join_twice_gives_back_the_same_value :: fn() -> void {
+    task :: launch(() -> after_yields(7, 1))
+    assert_eq("${task.join()}", "7")
+    assert_eq("${task.join()}", "7")
+    assert(task.is_ready(), "a joined task is ready")
+}
+
+@test
+test_launch_starts_the_task_once_the_launcher_parks :: fn() -> void {
+    ran :: Flag {}
+    task :: launch(fn() {
+        ran.set = true
+    })
+    assert(!ran.set, "the task waits for the launcher to park")
+    task.join()
+    assert(ran.set, "the task ran once joined")
+}
+
+@test
+test_cancel_before_the_start_runs_nothing :: fn() -> void {
+    ran :: Flag {}
+    task :: launch(fn() {
+        ran.set = true
+    })
+    task.cancel()
+    assert(task.join() is Cancelled, "the join of a cancelled task gives back `Cancelled`")
+    assert(!ran.set, "a task cancelled before it started never runs")
+}
+
+@test
+test_join_of_a_cancelled_task_waits_for_its_defers :: fn() -> void {
+    unwound :: Flag {}
+    task :: launch(fn() {
+        defer unwound.set = true
+        park_forever()
+    })
+    yield_now()
+    task.cancel()
+    assert(!unwound.set, "the cancel does not wait for the defers")
+    assert(task.join() is Cancelled, "the join of a cancelled task gives back `Cancelled`")
+    assert(unwound.set, "the join waits for the defers")
+}
+
+@test
+test_join_all_keeps_the_order_of_the_tasks :: fn() -> void {
+    results :: join_all([launch(() -> after_yields(1, 3)), launch(() -> after_yields(2, 1))])
+    assert_eq("${results[0]} ${results[1]}", "1 2")
+}
+
+@test
+test_race_gives_back_the_first_to_end_and_cancels_the_others :: fn() -> void {
+    slow :: launch(fn() -> i32 {
+        park_forever()
+        return 0
+    })
+    winner :: race([slow, launch(() -> after_yields(9, 1))])
+    assert_eq("${winner}", "9")
+    assert_eq("${slow.join()}", "cancelled")
+}
+
+@test
+test_try_join_all_fails_at_the_first_error :: fn() -> void {
+    stuck :: launch(fn() -> i32 | Failure {
+        park_forever()
+        return 0
+    })
+    outcome :: try_join_all([stuck, launch(() -> fail_after_yields(3, 1))])
+    assert(outcome is Error, "the failure ends the wait")
+    assert_eq("${stuck.join()}", "cancelled")
+}
+
+@test
+test_try_join_all_gives_back_the_first_error_to_end :: fn() -> void {
+    tasks :: [launch(() -> fail_after_yields(1, 2)), launch(() -> fail_after_yields(2, 1))]
+    outcome :: try_join_all(tasks)
+    if outcome !is Error {
+        fail("both tasks failed")
+        return
+    }
+    assert_eq(outcome.message(), "failure 2")
+}
+
+@test
+test_try_join_all_gives_back_every_result :: fn() -> void {
+    outcome :: try_join_all([launch(() -> after_yields(1, 2)), launch(() -> after_yields(2, 1))])
+    if outcome is Error {
+        fail("no task failed: ${outcome.message()}")
+        return
+    }
+    assert_eq(outcome.len(), 2)
+}
+
+@test
+test_join_any_waits_past_an_error_for_a_success :: fn() -> void {
+    tasks :: [launch(() -> fail_after_yields(1, 1)), launch(() -> succeed_after_yields(5, 3))]
+    assert_eq("${join_any(tasks)}", "5")
+}
+
+@test
+test_join_any_gives_back_the_last_error_when_every_task_fails :: fn() -> void {
+    tasks :: [launch(() -> fail_after_yields(1, 3)), launch(() -> fail_after_yields(2, 1))]
+    assert_eq("${join_any(tasks)}", "failure 1")
+}
+
+@test
+test_timeout_cancels_a_task_that_runs_late :: fn() -> void {
+    stuck :: launch(fn() -> i32 {
+        park_forever()
+        return 0
+    })
+    assert_eq("${timeout(stuck, 1.millis())}", "timed out after 1 ms")
+    assert_eq("${stuck.join()}", "cancelled")
+}
+
+@test
+test_timeout_gives_back_a_result_in_time :: fn() -> void {
+    assert_eq("${timeout(launch(() -> after_yields(4, 1)), 10.seconds())}", "4")
+}
+
+@test
+test_task_shows_as_its_number :: fn() -> void {
+    task :: launch(() -> after_yields(0, 0))
+    assert("${task}".starts_with("task #"), "a task shows as `task #N`")
+    task.join()
+}
+
+@test
+test_task_equals_itself_only :: fn() -> void {
+    a :: launch(() -> after_yields(0, 0))
+    b :: launch(() -> after_yields(0, 0))
+    assert(a == a, "a task equals itself")
+    assert(a != b, "two tasks differ")
+    join_all([a, b])
+}

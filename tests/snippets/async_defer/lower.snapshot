@@ -163,7 +163,6 @@
   std/time
     fn std.time.millis  // std_time$millis
     fn std.time.sleep  // std_time$sleep
-    fn std.time.sleep_ns  // std_time$sleep_ns
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

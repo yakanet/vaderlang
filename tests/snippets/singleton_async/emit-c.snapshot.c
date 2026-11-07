@@ -241,7 +241,6 @@ static void std_collections$swap_items__i64(void* l0, int64_t l1, int64_t l2);
 static bool std_collections$is_empty__i64(void* l0);
 static void std_time$sleep(int64_t l0);
 static int64_t std_time$millis(int64_t l0);
-static void std_time$sleep_ns(int64_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -378,8 +377,6 @@ const size_t vader_type_info_count = 38;
 /* Headers named by `@c_header`: they own the prototypes below. */
 #include <stdlib.h>
 #include <unistd.h>
-#include "vader.h"
-#include <time.h>
 
 static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
@@ -411,20 +408,8 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
     return r;
 }
 
-static int32_t vader_host_system_posix$sys_last_errno(void) {
-    vader_foreign_depth += 1;
-    int32_t r = vader_last_errno();
-    vader_foreign_depth -= 1;
-    return r;
-}
-
-static int32_t vader_host_system_posix$sys_nanosleep(void* a0, void* a1) {
-    vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
-    vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    vader_foreign_depth += 1;
-    int32_t r = nanosleep(s0.ptr, (void*) s1.ptr);
-    vader_foreign_depth -= 1;
-    return r;
+static void vader_host_std_runtime_scheduler$sleep_for(int64_t a0) {
+    vader_sched_sleep_for(a0);
 }
 
 /* vtable forwards */
@@ -2219,10 +2204,7 @@ static bool std_collections$is_empty__i64(void* l0) {
 static void std_time$sleep(int64_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    if ((l0 > INT64_C(0))) {
-        std_time$sleep_ns(l0);
-        { vader_gc_top = gc_frame.prev; return; }
-    }
+    vader_host_std_runtime_scheduler$sleep_for(l0);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -2230,50 +2212,6 @@ static int64_t std_time$millis(int64_t l0) {
     int64_t t0;
     t0 = vader_chk_mul(i64, l0, INT64_C(1000000));
     return t0;
-}
-
-static void std_time$sleep_ns(int64_t l0) {
-    int64_t l1, l2;
-    void* l3 = NULL;
-    void* l4 = NULL;
-    int32_t t0;
-    void** gc_raw_roots[2] = { &l3, &l4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    l1 = vader_div_i64(l0, INT64_C(1000000000));
-    l2 = vader_mod_i64(l0, INT64_C(1000000000));
-    vader_array_t* _a0_arr = vader_array_new(33u, 2u, 8u, 19u);
-    ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int64_t) l2;
-    ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int64_t) l1;
-    l3 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(33u, 2u, 8u, 19u);
-    ((int64_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int64_t) INT64_C(0);
-    ((int64_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int64_t) INT64_C(0);
-    l4 = (void*) _a1_arr;
-    for (;;) {
-        t0 = vader_host_system_posix$sys_nanosleep(l3, l4);
-        if (t0 != INT32_C(0)) {
-            t0 = vader_host_system_posix$sys_last_errno();
-            if (!(t0 == INT32_C(4))) {
-                break;
-            }
-            vader_array_t* _a2_slotarr = ((vader_array_t*) l4);
-            VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-            VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT32_C(0))
-            l1 = ((int64_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(0)];
-            vader_array_t* _a3_slotarr = ((vader_array_t*) l3);
-            VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
-            VADER_ARRAY_CHECK_INDEX(_a3_slotarr, INT32_C(0))
-            ((int64_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) INT32_C(0)] = (int64_t) l1;
-            VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT32_C(1))
-            l2 = ((int64_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(1)];
-            VADER_ARRAY_CHECK_INDEX(_a3_slotarr, INT32_C(1))
-            ((int64_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) INT32_C(1)] = (int64_t) l2;
-            continue;
-        }
-        break;
-    }
-    { vader_gc_top = gc_frame.prev; return; }
 }
 
 /* vtable dispatchers */

@@ -337,6 +337,18 @@ exit_with_live_thread :: fn() -> void {
     println("main returns")
 }
 
+// Main cancels a thread and returns before the thread's defers ran: main waits
+// for them, and names nothing.
+exit_after_cancel :: fn() -> void {
+    parked :: spawn(fn() {
+        defer println("defer of the cancelled thread")
+        park_forever()
+    })
+    yield_now()
+    cancel_thread(parked)
+    println("main returns")
+}
+
 // Three bursts of threads, more than the stacks kept warm, with a sleep
 // between them: the stacks freed during a sleep go back to the OS, and the
 // next burst reserves them again.
@@ -368,6 +380,7 @@ main :: fn() -> i32 {
         "cancel_main"           -> cancel_main()
         "deadlock"              -> deadlock()
         "exit_with_live_thread" -> exit_with_live_thread()
+        "exit_after_cancel"     -> exit_after_cancel()
         "bursts"                -> bursts()
         _                       -> {
             eprintln("THREADS_CASE: `${case}` names no case")

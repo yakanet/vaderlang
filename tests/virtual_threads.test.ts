@@ -81,6 +81,11 @@ const CLEAN_CASES: [string, string, string][] = [
     "defer starts\nmain between\ndefer ends\njoined\n",
   ],
   ["the stacks freed during a sleep are taken again", "bursts", "three bursts of 200 threads\n"],
+  [
+    "main returning waits for a thread it cancelled, and names nothing",
+    "exit_after_cancel",
+    "main returns\ndefer of the cancelled thread\n",
+  ],
 ];
 
 // The cases every backend runs, the collector under each of `gcModes`; a run of
@@ -149,7 +154,7 @@ function threadCases(run: Runner, gcModes: string[], callsIntoC: boolean) {
     const r = await runCase("deadlock");
     if (r === null) return;
     expect(r.stdout).toBe("");
-    expect(r.stderr).toContain("a deadlock, every thread waits and nothing will wake one: main, thread #1\n");
+    expect(r.stderr).toContain("a deadlock, every task waits and nothing will wake one: main, task #1\n");
     expect(r.exit).not.toBe(0);
   }, LONG_BUILD);
 
@@ -158,7 +163,7 @@ function threadCases(run: Runner, gcModes: string[], callsIntoC: boolean) {
     if (r === null) return;
     expect(r).toMatchObject({
       stdout: "main returns\ndefer of the forgotten thread\n",
-      stderr: "vader: thread #1 still runs when main returns: cancelled\n",
+      stderr: "vader: task #1 still runs when main returns: cancelled\n",
       exit: 1,
     });
   }, LONG_BUILD);
@@ -193,11 +198,12 @@ const VM_GC_MODES = ["", "VADER_GC_STRESS_SWITCH", "VADER_GC_CHECK_BOX", "VADER_
 describe("virtual threads, VM", () => {
   threadCases((env) => runCli(["run", FIXTURE], env, LONG_BUILD), VM_GC_MODES, false);
 
-  test("a test that leaves a thread fails, and the thread ends before the next test", async () => {
+  test("a test that leaves a thread fails, and the thread ends before the next test; one it cancelled passes", async () => {
     const r = await runCli(["test", TESTS_FIXTURE], undefined, LONG_BUILD);
     expect(r.stdout).toContain("FAIL test_leaves_a_thread");
-    expect(r.stdout).toContain("thread #1 still running when the test returns: cancelled");
+    expect(r.stdout).toContain("task #1 still running when the test returns: cancelled");
     expect(r.stdout).toContain("ok test_after_the_left_thread");
+    expect(r.stdout).toContain("ok test_cancels_its_thread");
     expect(r.exit).toBe(1);
   }, LONG_BUILD);
 });
