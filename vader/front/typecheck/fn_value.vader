@@ -121,8 +121,7 @@ method_value_instance :: fn(
     full :: substitute_fn_map(fn_ty, bindings)
     solutions :: typed.infer_solutions
     actual :: default_if_free(receiver)
-    unify_infer(full.params[0], actual, solutions)
-    unify_struct_to_trait_infer(full.params[0], actual, typed, solutions, null)
+    unify_argument_infer(full.params[0], actual, typed, solutions, null)
     instance :: FnType { ...mk_fn_drop_self(full), .type_params = [] }
     open :: type_contains_infer_var(zonk(instance, solutions))
     return bound_by_slot(

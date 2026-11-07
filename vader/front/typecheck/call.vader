@@ -1252,7 +1252,10 @@ reject_ufcs_receiver_at_instance :: fn(
     if want is TraitType {
         return
     }
-    if fits_argument(typed, callee.target, receiver_ty, want) {
+    // A union receiver fits a union parameter as an argument does, each of its
+    // variants through its impl if need be: `Boom | i32` into `Error | i32`.
+    if fits_argument(typed, callee.target, receiver_ty, want)
+        || try_trait_widen(receiver_ty, want, typed) {
         return
     }
     diags.push(mismatch_diagnostic(receiver_ty, want, callee.target.span, .TypeMismatch, typed))

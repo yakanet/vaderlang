@@ -167,3 +167,17 @@ test_and_then :: fn() -> void {
     assert_eq(short.or(-1), -1)
 }
 
+// A fallible value whose error is a concrete `Error`, not the trait itself.
+counted :: fn(v: i32) -> i32 | Boom = v
+
+@test
+test_unwrap_narrows_a_concrete_error :: fn() -> void {
+    assert_eq(counted(41).unwrap() + 1, 42)
+    assert_eq(counted(3).or(-1) * 2, 6)
+}
+
+@test
+test_unwrap_value_narrows_a_concrete_error :: fn() -> void {
+    later :: counted(41).unwrap
+    assert_eq(later() + 1, 42)
+}

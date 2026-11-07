@@ -207,9 +207,42 @@ check_infer_arg :: fn(ctx: CallInference, i: i64, diags: Diagnostic[]) -> Type {
     }
     arg_ty :: check_expr(ctx.call.args[i].value, slot, ctx.typed, diags)
     actual :: zonk(arg_ty, ctx.solutions)
-    unify_infer(pattern, actual, ctx.solutions, ctx.held)
-    unify_struct_to_trait_infer(pattern, actual, ctx.typed, ctx.solutions, ctx.held)
+    unify_argument_infer(pattern, actual, ctx.typed, ctx.solutions, ctx.held)
     return arg_ty
+}
+
+// Bind the variables of the parameter `pattern` from an argument of type `actual`:
+// its other arms from what a trait arm leaves (`without_trait_arms`), a trait's
+// arguments from the impl of a struct or primitive.
+unify_argument_infer :: fn(
+    pattern: Type,
+    actual: Type,
+    typed: TypedProgram,
+    solutions: Map<i32, Type>,
+    held: Set<i32> | null,
+) -> void {
+    unify_infer(pattern, without_trait_arms(pattern, actual, typed), solutions, held)
+    unify_struct_to_trait_infer(pattern, actual, typed, solutions, held)
+}
+
+// `actual` less the variants a trait arm of the union `pattern` admits, so that the
+// rest binds the pattern's other arms: `T | Error` against `i64 | Cancelled` binds
+// `T` to `i64`, a `Cancelled` being an `Error`. An argument the trait arms admit
+// whole is left as it is.
+without_trait_arms :: fn(pattern: Type, actual: Type, typed: TypedProgram) -> Type {
+    if pattern !is UnionType || actual !is UnionType {
+        return actual
+    }
+    rest: Type = actual
+    for arm in pattern.variants {
+        if arm is TraitType && !type_contains_infer_var(arm) {
+            rest = subtract_type_with_impls(rest, arm, typed)
+        }
+    }
+    if rest is NeverType {
+        return actual
+    }
+    return rest
 }
 
 // Rounds over the lambda arguments, their diagnostics dropped, while one binds a
@@ -278,8 +311,7 @@ seed_ufcs_infer :: fn(ctx: CallInference, vars: Map<i32, Type>) -> void {
     receiver_param :: ctx.typed.ufcs_receiver_types[callee.id] ?? return
     target_ty :: ctx.typed.expr_types[callee.target.id] ?? return
     pattern :: substitute_map(receiver_param, vars)
-    unify_infer(pattern, target_ty, ctx.solutions, ctx.held)
-    unify_struct_to_trait_infer(pattern, target_ty, ctx.typed, ctx.solutions, ctx.held)
+    unify_argument_infer(pattern, target_ty, ctx.typed, ctx.solutions, ctx.held)
 }
 
 // A struct or primitive argument reaching a `Trait<…>` parameter through its impl
