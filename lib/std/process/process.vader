@@ -5,8 +5,7 @@
 // state outlives the value, so each task of `std/task` owns the children it
 // starts. `spawn` is the waiting form: it polls its child and sleeps between
 // two polls, which parks the calling task, so tasks that spawn run their
-// children at once and the OS schedules them across cores. `spawn_async` is the
-// same wait as an awaitable of `std/async`.
+// children at once and the OS schedules them across cores.
 //
 // `run_attached` is the other shape: the child shares this process's standard
 // streams instead of having them captured, and the call blocks until it exits.
@@ -16,15 +15,14 @@
 
 module "std/process"
 
-import "std/async"
 import "std/numbers"
-import "std/runtime"
 import "std/time"
 import "system/posix"
 import "system/windows"
 
 // Poll interval, ms. A child `cc` runs for 100s of ms, so a 2 ms detection
-// latency is negligible ; the scheduler `nanosleep`s between polls (no spin).
+// latency is negligible; `spawn` sleeps between two polls, which parks its task
+// instead of spinning.
 POLL_MS: i64: 2
 
 // `poll_exit` returns RUNNING while the child is alive, SIGNALED on abnormal
@@ -32,7 +30,7 @@ POLL_MS: i64: 2
 RUNNING  :: -1
 SIGNALED :: -2
 
-/// Error from `spawn` / `spawn_async` when the child can't be launched or
+/// Error from `spawn`, `spawn_start` or `poll` when the child can't be launched or
 /// terminates abnormally (a non-zero exit is NOT an error: it rides in
 /// `ProcessResult.exit`).
 export ProcessError :: struct {
@@ -668,68 +666,6 @@ export poll :: fn(child: ChildProcess) -> ProcessResult | ProcessError | null {
     }
     return ProcessResult { .exit = code, .stdout = out, .stderr = err }
 }
-
-// ---- async primitive -------------------------------------------------------
-
-/// The awaitable backing `spawn_async`. Its first `resume` launches the child
-/// and arms a poll timer; each later `resume` polls and, while the child is
-/// alive, re-arms the timer and parks (`Suspended`).
-SpawnAsync :: struct {
-    argv:     string[]
-    child:    ChildProcess | null = null
-    deadline: i64                 = 0
-}
-
-SpawnAsync implements Async<ProcessResult | ProcessError> {
-    /// Kill the child. Overriding this matters: `Async`'s default `cancel` is a
-    /// no-op, so a `timeout` over a spawn would otherwise unblock the CALLER
-    /// while the child kept running, spinning a core for the life of the
-    /// process.
-    cancel :: fn(self) -> void {
-        child :: self.child
-        if child != null {
-            child.kill()
-        }
-    }
-
-    resume :: fn(self) -> ProcessResult | ProcessError | Suspended {
-        child :: self.child
-        if child == null {
-            started :: spawn_start(self.argv)
-            if started is ProcessError {
-                return started
-            }
-            self.child = started
-        } else {
-            // Poll at most once per POLL_MS. A driver may resume us before our
-            // timer fires (`timeout` drives its child on every wake), and would
-            // otherwise poll the child process and arm a fresh timer each time.
-            // Mirrors `Sleep`: stay parked until our timer fires.
-            if sched_now() < self.deadline {
-                return Suspended { .wake_at = self.deadline }
-            }
-            finished :: child.poll()
-            if finished != null {
-                return finished
-            }
-        }
-        self.deadline = sched_now() + POLL_MS
-        sched_arm(self.deadline)
-        return Suspended { .wake_at = self.deadline }
-    }
-}
-
-/// Run `argv[0]` with `argv[1..]` as an awaitable: launches immediately, then
-/// completes once the child exits, WITHOUT blocking the scheduler. Fan several
-/// out and `await join_all([...])` to run them concurrently (the OS parallelises the
-/// child processes). The WASM targets have no subprocess support (unbound).
-///
-/// @param argv   the command line ; `argv[0]` is the program. Empty is an error.
-/// @return       an awaitable completing with the `ProcessResult`.
-/// @error        `ProcessError` on launch failure, a killing signal, or empty
-///               `argv`.
-export spawn_async :: fn(argv: string[]) -> Async<ProcessResult | ProcessError> =
-    SpawnAsync { .argv = argv }
 
 /// Run `argv[0]` with `argv[1..]`, wait until it exits, and return its exit
 /// code with what it wrote on stdout and stderr.

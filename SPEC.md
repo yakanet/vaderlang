@@ -4007,7 +4007,7 @@ There is no `yield from` or `yield*`: a nested `for` flattens, as in the example
 
 ## 16. Concurrency
 
-A program runs on one thread, with cooperative concurrency through `await`. I/O in `std/io` blocks. A child process started with `spawn_async` (`std/process`) runs while the program awaits it. `spawn` parks the calling task of `std/task` while its child runs, and a task cancelled meanwhile kills its child.
+A program runs on one thread, with cooperative concurrency through `await`. I/O in `std/io` blocks. `spawn` (`std/process`) parks the calling task of `std/task` while its child runs, and a task cancelled meanwhile kills its child.
 
 ### async/await
 

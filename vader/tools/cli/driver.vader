@@ -35,8 +35,9 @@ import "std/io"
 import "std/path"
 import "std/string"
 import "std/string_builder"
-import "std/async"
 import "std/process"
+import "std/task"
+import "std/time"
 import "vader/support/diagnostics"
 import "crypto"
 AST :: import "toolchain/ast"
@@ -466,9 +467,9 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
     // a child process, so a timeout costs nothing more than naming one: no
     // instruction budget is possible (the driver is native, not VM-interpreted),
     // but a wall-clock bound is what actually catches an infinite loop.
-    // `timeout` cancels its child on expiry, and `SpawnAsync.cancel` kills the
-    // process: without that override the parent would unblock while the runaway
-    // driver kept spinning a core.
+    // `timeout` cancels its task on expiry, and the `spawn` in it kills the
+    // process as it unwinds: without that the parent would unblock while the
+    // runaway driver kept spinning a core.
     // The toolchain root is the folder holding THIS executable, and therefore
     // its `lib/` and `runtime/c/`. The driver cannot work it out
     // itself: it runs as `<project>/build/driver/driver`, so its own sidecar
@@ -482,24 +483,28 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
     }
     argv :: [exe]
     argv.push_all(driver_request_args(rooted))
-    outcome :: block_on(timeout(DRIVER_TIMEOUT_MS, spawn_async(argv)))
-    if outcome is TimeoutError {
-        seconds :: DRIVER_TIMEOUT_MS / 1000
-        eprintln("vader ${command}: the build driver did not finish within ${seconds}s, killed")
-        eprintln("(a loop in `${DRIVER_FILENAME}`?)")
-        return 1
+    match outcome :: timeout(launch(() -> spawn(argv)), DRIVER_TIMEOUT_MS.millis()) {
+        is TimeoutError -> {
+            seconds :: DRIVER_TIMEOUT_MS / 1000
+            eprintln("vader ${command}: the build driver did not finish within ${seconds}s, killed")
+            eprintln("(a loop in `${DRIVER_FILENAME}`?)")
+            return 1
+        }
+        is ProcessError -> {
+            // A driver ended by a signal may have written why first: a panic does.
+            relay_driver_output(request, outcome.stdout, outcome.stderr)
+            eprintln("vader ${command}: ${outcome.message()}")
+            return 1
+        }
+        is ProcessResult -> {
+            relay_driver_output(request, outcome.stdout, outcome.stderr)
+            return outcome.exit
+        }
+        is Cancelled -> {
+            eprintln("vader ${command}: the build driver was cancelled")
+            return 1
+        }
     }
-    if outcome is ProcessError {
-        // A driver ended by a signal may have written why first: a panic does.
-        relay_driver_output(request, outcome.stdout, outcome.stderr)
-        eprintln("vader ${command}: ${outcome.message()}")
-        return 1
-    }
-    if outcome is ProcessResult {
-        relay_driver_output(request, outcome.stdout, outcome.stderr)
-        return outcome.exit
-    }
-    return 1
 }
 
 // Pass on what the driver printed. A driver run to describe or prepare the

@@ -4,12 +4,12 @@
 
 module "vader/pipeline"
 
-import "std/async"
 import "std/io"
 import "std/path"
 import "std/process"
 import "std/string"
 import "std/target"
+import "std/task"
 import "vader/emit/c"
 
 // An executable, split: emit the program as a header + globals TU + one
@@ -40,9 +40,8 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     // `lto_flags` turns on gives it back.
     flavour :: lto_flavour(cc, release)
 
-    // One `cc -c` per TU (+ the runtime), spawned concurrently so the OS
-    // compiles them across cores. `join_all` joins a wave; `block_on` drives the
-    // cooperative scheduler from this synchronous entry. A bound (`cc_jobs`)
+    // One `cc -c` per TU (+ the runtime), each in a task of its own so the OS
+    // compiles them across cores; `join_all` joins a wave. A bound (`cc_jobs`)
     // turns one wave into ceil(n / cc_jobs) waves, each as long as its slowest
     // unit.
     argvs: string[][]: []
@@ -64,28 +63,36 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     )
 
     wave :: if cc_jobs > 0 { i64(cc_jobs) } else { argvs.len() }
-    results: (ProcessResult | ProcessError)[]: []
+    results: (ProcessResult | ProcessError | Cancelled)[]: []
     start: i64 = 0
     for start < argvs.len() {
         stop :: if start + wave < argvs.len() { start + wave } else { argvs.len() }
-        tasks: Async<ProcessResult | ProcessError>[]: []
+        tasks: Task<ProcessResult | ProcessError>[]: []
         for k in start..<stop {
-            tasks.push(spawn_async(argvs[k]))
+            argv :: argvs[k]
+            tasks.push(launch(() -> spawn(argv)))
         }
-        results.push_all(block_on(join_all(tasks)))
+        results.push_all(join_all(tasks))
         start = stop
     }
     for r in results {
-        if r is ProcessError {
-            eprintln("vader build: ${r.message()}")
-            eprint(r.stderr)
-            eprintln("(generated C kept in ${folder_of(work).to_native()})")
-            return 1
-        } else if r is ProcessResult {
-            if r.exit != 0 {
-                eprintln("vader build: ${cc} -c failed (exit ${r.exit})")
-                eprintln(r.stderr)
+        match r {
+            is ProcessError -> {
+                eprintln("vader build: ${r.message()}")
+                eprint(r.stderr)
                 eprintln("(generated C kept in ${folder_of(work).to_native()})")
+                return 1
+            }
+            is ProcessResult -> {
+                if r.exit != 0 {
+                    eprintln("vader build: ${cc} -c failed (exit ${r.exit})")
+                    eprintln(r.stderr)
+                    eprintln("(generated C kept in ${folder_of(work).to_native()})")
+                    return 1
+                }
+            }
+            is Cancelled -> {
+                eprintln("vader build: a `${cc} -c` was cancelled")
                 return 1
             }
         }
