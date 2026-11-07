@@ -1072,12 +1072,12 @@ call_import :: fn(state: VmState, m: RegMachine, index: i32, at: i64, origin: i3
     for i in 0..<info.signature.params.len() {
         args.push(register_value(m, at + i))
     }
-    outcome :: serve_import(state, m, index, info, args, origin, is_comptime)
+    outcome :: state.serve_import(m, index, info, args, origin, is_comptime)
     if outcome is Trap {
         return outcome
     }
     if bc.bc_single_result(info.signature) != .Void {
-        set_register(m, at, outcome.value)
+        m.set_register(at, outcome.value)
     }
     return null
 }
