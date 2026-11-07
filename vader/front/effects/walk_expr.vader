@@ -69,7 +69,6 @@ value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> i64 | null = match e {
     is AST.CastExpr          -> ctx.value(e.value)
     is AST.StringLitExpr     -> ctx.string_value(e)
     is AST.IntrinsicCallExpr -> ctx.intrinsic_value(e)
-    is AST.AwaitExpr         -> ctx.nothing(e.inner)
     is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr
      | AST.DotVariantExpr | AST.GenericInstExpr | AST.FnTypeExpr | AST.ArrayTypeExpr -> null
 }

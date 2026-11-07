@@ -122,18 +122,6 @@ export FnCandidate :: struct {
     decl: AST.FnDecl | null = null
 }
 
-/// The `std/async` functions the compiler calls, each null when the program never
-/// imports `std/async`.
-export AsyncRuntime :: struct {
-    /// The lowerer routes a `main` that awaits through `run_async_main`, the
-    /// park-based scheduler driver, instead of the inline single-resume driver. A
-    /// suspending `main` imports `std/async` for `sleep`, so it is there when needed.
-    run_async_main: Symbol | null = null
-    /// An `async` singleton hands every call the task `share` makes of its body,
-    /// so it needs one (T3103).
-    share: Symbol | null = null
-}
-
 /// The `std/runtime/scheduler` functions through which a value built on first use
 /// waits for the thread building it.
 export GateRuntime :: struct {
@@ -490,19 +478,12 @@ export TypedProgram :: struct {
     /// the orchestrator ; replaces the name-keyed core-symbol lookups for these.
     range_symbol: Symbol | null
     field_symbol: Symbol | null
-    /// `std/core`'s `Async` trait symbol: used to synthesise the `Async<T>`
-    /// result type of an `async fn` call. Populated once from core by the
-    /// orchestrator (mirror of `range_symbol`).
-    async_symbol: Symbol | null
     /// `std/core`'s `Equals` trait symbol: the trait every enum implements with
     /// no impl (`has_builtin_impl`). Populated once from core by the orchestrator.
     equals_symbol: Symbol | null
     /// `std/core`'s `Iterator` trait symbol: the trait a `generator`'s state
     /// struct is a value of. Populated once from core by the orchestrator.
     iterator_symbol: Symbol | null
-    /// The `std/async` functions the compiler calls : one record for the whole
-    /// project, set before any declaration is checked.
-    async_runtime: AsyncRuntime = AsyncRuntime {}
     /// The `std/runtime/scheduler` functions the compiler calls : one record for
     /// the whole project, null when it never loads the scheduler. It then runs on
     /// one thread, and a value built on first use needs no gate.
@@ -653,9 +634,9 @@ export TypedProgram :: struct {
     /// name are two generators. Written into every module by
     /// `register_generator_iter_impls`; read through `generator_state_of`.
     generator_states: Map<u64, GeneratorState>
-    /// Whether each fn body `await`s or `yield`s, by `FnDecl` node id: filled on
-    /// the first `fn_is_async` / `fn_is_generator` asked of this module.
-    body_shapes: Map<i64, BodyShape> = Map<i64, BodyShape> {}
+    /// Whether each fn body `yield`s, by `FnDecl` node id: filled on the first
+    /// `fn_is_generator` asked of this module.
+    generator_bodies: Map<i64, bool> = Map<i64, bool> {}
 
     /// In-fn type aliases : `t :: i32` inside a fn body. Keyed by the
     /// binding's `Symbol.id` (resolver-minted Local), value is the
@@ -858,7 +839,6 @@ new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .namespace_fn_overloads = Map<string, Map<string, FnCandidate[]>> {},
     .range_symbol    = null,
     .field_symbol    = null,
-    .async_symbol    = null,
     .equals_symbol   = null,
     .iterator_symbol = null,
     .imported_fn_overloads = Map<string, Map<string, FnCandidate[]>> {},

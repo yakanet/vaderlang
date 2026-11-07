@@ -1,10 +1,8 @@
-// vader/lower/coroutine: the reusable coroutine state-machine engine.
+// vader/lower/coroutine: the coroutine state-machine engine of a generator.
 //
-// Both `generator` and `async` lowering share this block-split: the
-// structured-lowered-CFG → numbered-states transform, spill collection,
-// self-field routing, and dispatch synthesis. Both drive it today:
-// `generator.vader` on the pull-only `next()` protocol,
-// `async.vader` on `resume(injected)`.
+// The block-split: the structured-lowered-CFG → numbered-states transform, spill
+// collection, self-field routing, and dispatch synthesis. `generator.vader`
+// drives it on the pull-only `next()` protocol.
 
 module "vader/lower"
 
@@ -19,9 +17,8 @@ import "vader/lower/ir"
 // ---- sentinel -------------------------------------------------------------
 
 /// Reserved resume value: once `self.state == DONE_STATE` the state machine is
-/// finished: a generator's `next()` hands back `Stop {}` forever, an
-/// `async fn`'s `resume` the `null` done-marker. The if-chain's trailing `else`
-/// catches both.
+/// finished: a generator's `next()` hands back `Stop {}` forever. The
+/// if-chain's trailing `else` catches it.
 DONE_STATE :: -1
 
 // ---- builder --------------------------------------------------------------
@@ -30,10 +27,8 @@ DONE_STATE :: -1
 GenBuild :: struct {
     self_sym: Symbol
     state_ty: Type            // the `g$State` StructType (self's type)
-    /// How this generator's `next` hands a step back. Null exactly when
-    /// `is_async`: the async driver shares this builder but completes with
-    /// `T | Suspended` rather than an iterator step.
-    step: StepShape | null = null
+    /// How this generator's `next` hands a step back.
+    step: StepShape
     span:     Span
     /// Finalized states: `states[k]` is the if-arm body for `self.state == k`.
     states:   LoweredStmt[][]
@@ -44,31 +39,8 @@ GenBuild :: struct {
     fields:    LoweredStructField[]
     /// Enclosing-loop targets for `break` / `continue` resolution.
     loop_stack: LoopFrame[]
-    /// The fn-lowering context: used to mint per-drive-state temporaries
-    /// (async) ; the generator path sets it too but never reads it.
+    /// The fn-lowering context the body was lowered in.
     fn_ctx:    FnLowerCtx
-    /// True when the body has any `defer`: set during spill collection. Gates
-    /// the per-frame `__defers` field : defer thunks are pushed onto it (not the
-    /// global stack, which corrupts across concurrent suspended coroutines) and
-    /// drained LIFO at each structured exit. Only async allows defer ; a generator
-    /// still rejects it (T3060), so this is never set for a generator.
-    has_defers: bool = false
-    /// True when driving an `async fn` (vs a `generator`). Selects the async
-    /// seams in the shared block-split : `await` suspension, value-carrying
-    /// completion, and the `Suspended` (vs the `Stop` step) done marker.
-    is_async:  bool = false
-    /// Async only, the fn's declared result type `T` : the value a `return`
-    /// completes with, and the `T` in the `T | Suspended` resume return.
-    result_ty: Type = TY_VOID
-    /// Async only: the `Suspended` sentinel struct type (the done marker
-    /// `resume` returns while a child isn't ready).
-    suspended_ty: Type = TY_VOID
-    /// Async only: the erased `Async<Any>` type of the single reused `awaited`
-    /// frame field that holds the child currently being driven.
-    async_any_ty: Type = TY_VOID
-    /// Async only: the erased `Any | Suspended` a driven child's `resume`
-    /// returns through the vtable (its concrete `T' | Suspended` reinterpreted).
-    resume_erased_ty: Type = TY_VOID
 }
 
 /// A dissolved loop's state targets: `continue` / back-edge → `header`,
@@ -152,94 +124,8 @@ gb_state_eq :: fn(gb: GenBuild, n: i64) -> LoweredExpr =
     }
 
 // `return <done step>`.
-gb_done_return :: fn(gb: GenBuild) -> LoweredStmt {
-    shape :: gb.step ?? return LoweredReturn {
-        .span = gb.span,
-        .value = LoweredNullLit { .span = gb.span, .type = TY_NULL },
-    }
-    return LoweredReturn { .span = gb.span, .value = step_of_done(shape, gb.span) }
-}
-
-// A bare `null` value expression: the done-marker a void `async fn` completes
-// with (its result normalizes to `null`, so `resume` returns `null | Suspended`).
-gb_null_lit :: fn(gb: GenBuild) -> LoweredExpr =
-    LoweredNullLit { .span = gb.span, .type = TY_NULL }
-
-// ---- async seams (Model A: recursive self-drive) -------------------------
-
-// The single reused frame field holding the child `Async` currently being
-// driven. Only one `await` is live at a time (the coroutine is sequential), so
-// one erased `Async<Any>` slot suffices: set once when an `await` is reached,
-// re-driven on every resume until it completes.
-ASYNC_AWAITED_FIELD :: "awaited"
-
-// `self.awaited` (erased `Async<Any>`).
-gb_awaited_field :: fn(gb: GenBuild) -> LoweredExpr =
-    gb_field(gb, ASYNC_AWAITED_FIELD, gb.async_any_ty)
-
-// `self.awaited = <child>`: store the awaited `Async<T'>` into the erased slot
-// (a name-based trait-arg erasure ; the cast is a fat-pointer no-op).
-gb_store_awaited :: fn(gb: GenBuild, awaited: LoweredExpr) -> LoweredStmt =
-    LoweredAssign {
-        .span = gb.span, .target = gb_awaited_field(gb),
-        .value = LoweredCast { .span = gb.span, .type = gb.async_any_ty, .value = awaited },
-    }
-
-// `return Suspended { .wake_at = 0 }`: a coroutine resumed after it completed.
-// Drivers retire a finished child and never resume it, so only a stray resume
-// lands here; `0` (unknown) keeps such a driver from waiting on it forever.
-gb_suspend_return :: fn(gb: GenBuild) -> LoweredStmt {
-    wake_at :: LoweredIntLit { .span = gb.span, .type = TY_I64, .value = 0 }
-    fields :: [LoweredStructLitField { .name = "wake_at", .value = wake_at }]
-    return LoweredReturn {
-        .span = gb.span,
-        .value = build_core_struct_lit(gb.fn_ctx, gb.suspended_ty, fields, gb.span),
-    }
-}
-
-// The re-entrant drive state for one `await`. On every resume it drives the
-// stored child once ; a `Suspended` result re-parks this coroutine, returned
-// as-is so the child's `wake_at` reaches the driver (the child advances on the
-// NEXT resume), a completed result binds into `target_field` and falls through
-// to `cont`. The child's value is read back through its own `resume`'s return
-// channel: no external injection (Model A).
-gb_drive_state :: fn(gb: GenBuild, target_field: string, target_type: Type, cont: i64) -> LoweredStmt[] {
-    r_sym :: fresh_synthetic_symbol(gb.fn_ctx, "resumed")
-    r_ref :: LoweredIdent { .span = gb.span, .type = gb.resume_erased_ty, .symbol = r_sym }
-    // r :: self.awaited.resume()   (virtual, Any | Suspended)
-    let_r :: LoweredLet {
-        .span = gb.span, .name = r_sym.name, .symbol = r_sym, .type = gb.resume_erased_ty,
-        .value = virtual_call(
-            gb.fn_ctx,
-            core_trait_key(TRAIT_ASYNC),
-            METHOD_RESUME,
-            gb_awaited_field(gb),
-            [],
-            gb.resume_erased_ty,
-            gb.span,
-        ),
-    }
-    // if r is Suspended { return r } else { self.<field> = cast(r); state = cont }
-    parked :: LoweredReturn {
-        .span = gb.span,
-        .value = LoweredCast { .span = gb.span, .type = gb.suspended_ty, .value = r_ref },
-    }
-    branch :: LoweredIf {
-        .span = gb.span, .type = TY_VOID,
-        .cond = LoweredTypeCheck {
-            .span = gb.span, .type = TY_BOOL, .value = r_ref, .check_type = gb.suspended_ty,
-        },
-        .then_block = gb_block(gb, [parked]),
-        .else_block = gb_block(gb, [
-            LoweredAssign {
-                .span = gb.span, .target = gb_field(gb, target_field, target_type),
-                .value = LoweredCast { .span = gb.span, .type = target_type, .value = r_ref },
-            },
-            gb_set_state(gb, cont),
-        ]),
-    }
-    return [let_r, LoweredExprStmt { .span = gb.span, .expr = branch }]
-}
+gb_done_return :: fn(gb: GenBuild) -> LoweredStmt =
+    LoweredReturn { .span = gb.span, .value = step_of_done(gb.step, gb.span) }
 
 // ---- block-split (structured-lowered-CFG → numbered states) ---------------
 
@@ -267,7 +153,6 @@ gb_fill :: fn(gb: GenBuild, idx: i64, stmts: LoweredStmt[]) -> void {
 // `LoweredIf` / `LoweredBlock`: treat those as control so nested yields split.
 gb_is_leaf :: fn(s: LoweredStmt) -> bool {
     if s is LoweredYield         { return false }
-    if s is LoweredAwait         { return false }
     if s is LoweredLoop          { return false }
     if s is LoweredLabelledBlock { return false }
     if s is LoweredBreak         { return false }
@@ -320,21 +205,8 @@ gb_compile_ctrl :: fn(gb: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
             LoweredReturn { .span = gb.span, .value = gb_retarget_expr(gb, s.value) },
         ])
     }
-    if s is LoweredAwait {
-        // Model A : store the child once, then hand off to a re-entrant drive
-        // state that resumes it on every `resume` until it completes.
-        field :: gb.field_map[s.target.id]
-        if field == null { panic("async block-split: await target not spilled") }
-        drive :: gb_reserve(gb)
-        entry :: gb_new_state(gb, [
-            gb_store_awaited(gb, gb_retarget_expr(gb, s.awaited)),
-            gb_set_state(gb, drive),
-        ])
-        gb_fill(gb, drive, gb_drive_state(gb, field, s.target_type, cont))
-        return entry
-    }
     if s is LoweredReturn {
-        return gb_new_state(gb, gb_complete(gb, gb_retarget_opt(gb, s.value)))
+        return gb_new_state(gb, gb_complete(gb))
     }
     if s is LoweredExprStmt {
         expr :: s.expr
@@ -401,23 +273,8 @@ gb_compile_ctrl :: fn(gb: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
 
 // Compile the routed body into the state list. Returns the ENTRY state index
 // (the `g$State` constructor seeds `self.state` with it).
-gb_build :: fn(gb: GenBuild, body: LoweredBlock) -> i64 {
-    if gb.is_async && gb_result_is_void(gb) {
-        // A `void async fn` with no explicit `return` completes on fall-off :
-        // route it to a completion state (`state = done ; return`). Non-void
-        // async fns always `return` explicitly, so their fall-off is dead: they
-        // use the generator-shared `DONE_STATE` sentinel (dispatch's trailing
-        // arm returns `Suspended`, valid for resume-after-done).
-        completion :: gb_reserve(gb)
-        entry :: gb_compile_block(gb, body, completion)
-        gb_fill(gb, completion, gb_complete(gb, null))
-        return entry
-    }
-    return gb_compile_block(gb, body, i64(DONE_STATE))
-}
-
-// True when the async result type is `void` (fall-off completion path).
-gb_result_is_void :: fn(gb: GenBuild) = is_void(gb.result_ty)
+gb_build :: fn(gb: GenBuild, body: LoweredBlock) -> i64 =
+    gb_compile_block(gb, body, i64(DONE_STATE))
 
 // ---- dispatch synthesis ---------------------------------------------------
 
@@ -433,10 +290,6 @@ gb_dispatch :: fn(gb: GenBuild, i: i64) -> LoweredExpr {
     then_block :: gb_block(gb, gb.states[i])
     else_block: LoweredBlock: if i + 1 < gb.states.len() {
         gb_wrap(gb, gb_dispatch(gb, i + 1))
-    } else if gb.is_async {
-        // Done / resume-after-done : the coroutine already returned its value ;
-        // report `Suspended` (a correct scheduler retires it and never re-drives).
-        gb_block(gb, [gb_suspend_return(gb)])
     } else {
         gb_block(gb, [gb_done_return(gb)])
     }
@@ -481,134 +334,6 @@ gb_param_construct_value :: fn(gb: GenBuild, param: LoweredParam) -> LoweredExpr
     return lower_cell_init(gb.fn_ctx, param.symbol, read, param.type, gb.span).value
 }
 
-// ---- defer (per-frame drain) ----------------------------------------------
-
-// The per-frame field holding the coroutine's live `defer` thunks (a stack).
-// Sync fns use a process-global defer stack (`g_defer_stack`), but that is keyed
-// to the synchronous call chain: a defer pushed before an `await` would sit at
-// a nondeterministic position when the frame later completes (and two suspended
-// coroutines would corrupt each other's LIFO). So each frame owns its stack.
-GB_DEFERS_FIELD :: "__defers"
-
-// A defer thunk's type : a nullary `fn() -> void` closure. The lifted `__defer_N`
-// is reached through the closure ABI (its env is threaded by the closure), so
-// from the call site it is a nullary thunk.
-gb_defer_thunk_ty :: fn() -> Type = mk_fn([], TY_VOID)
-
-// The `__defers` field type : `(fn() -> void)[]`.
-gb_defers_ty :: fn() -> Type = mk_array(gb_defer_thunk_ty())
-
-// `self.__defers`.
-gb_defers_field :: fn(gb: GenBuild) -> LoweredExpr = gb_field(gb, GB_DEFERS_FIELD, gb_defers_ty())
-
-// `self.__defers.len()` (i64). `span` attributes it: `dpe.span` at a
-// structured exit, `gb.span` for the teardown drain.
-gb_defers_len :: fn(gb: GenBuild, span: Span) -> LoweredExpr =
-    LoweredArrayLen { .span = span, .type = TY_I64, .target = gb_defers_field(gb) }
-
-// Drain the top `count` defer thunks LIFO, then truncate. `count` is static (the
-// defers of the exiting scope[s]): emit all calls before truncating so
-// `len - 1 - k` walks the live tail top-down, then slice off the drained run.
-gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[]) -> void {
-    count :: i64(dpe.count)
-    if count == 0 { return }
-    for k in 0..<count {
-        // idx = self.__defers.len() - 1 - k  (len is loop-invariant : we defer the
-        // single truncate until after all calls, so no call shrinks the array).
-        idx :: LoweredBinary {
-            .span = dpe.span, .type = TY_I64, .op = .Sub,
-            .left = gb_defers_len(gb, dpe.span),
-            .right = LoweredIntLit { .span = dpe.span, .type = TY_I64, .value = 1 + k },
-        }
-        thunk :: LoweredIndex { .span = dpe.span, .type = gb_defer_thunk_ty(), .target = gb_defers_field(gb), .index = idx }
-        call :: LoweredCall { .span = dpe.span, .type = TY_VOID, .callee = thunk, .args = [] }
-        out.push(LoweredExprStmt { .span = dpe.span, .expr = call })
-    }
-    // self.__defers = self.__defers[0 ..< len - count]
-    new_len :: LoweredBinary {
-        .span = dpe.span, .type = TY_I64, .op = .Sub,
-        .left = gb_defers_len(gb, dpe.span),
-        .right = LoweredIntLit { .span = dpe.span, .type = TY_I64, .value = count },
-    }
-    truncated :: LoweredArraySlice {
-        .span = dpe.span, .type = gb_defers_ty(), .target = gb_defers_field(gb),
-        .lo = LoweredIntLit { .span = dpe.span, .type = TY_I64, .value = 0 },
-        .hi = new_len,
-    }
-    out.push(LoweredAssign { .span = dpe.span, .target = gb_defers_field(gb), .value = truncated })
-}
-
-// Drain EVERY pending defer thunk LIFO: the teardown counterpart of
-// `gb_defer_drain` (which drains a statically-known scope count on a structured
-// exit). At cancel time the pending count is dynamic (how far the coroutine ran
-// before it was abandoned), so loop `while len != 0 { call last ; truncate }`.
-gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]) -> void {
-    // idx = self.__defers.len() - 1 (recomputed each iteration: the truncate
-    // below shrinks the array, so the last live thunk moves down every step).
-    idx :: LoweredBinary {
-        .span = gb.span, .type = TY_I64, .op = .Sub,
-        .left = gb_defers_len(gb, gb.span),
-        .right = LoweredIntLit { .span = gb.span, .type = TY_I64, .value = 1 },
-    }
-    thunk :: LoweredIndex { .span = gb.span, .type = gb_defer_thunk_ty(), .target = gb_defers_field(gb), .index = idx }
-    call :: LoweredCall { .span = gb.span, .type = TY_VOID, .callee = thunk, .args = [] }
-    // self.__defers = self.__defers[0 ..< len - 1]
-    truncated :: LoweredArraySlice {
-        .span = gb.span, .type = gb_defers_ty(), .target = gb_defers_field(gb),
-        .lo = LoweredIntLit { .span = gb.span, .type = TY_I64, .value = 0 },
-        .hi = LoweredBinary {
-            .span = gb.span, .type = TY_I64, .op = .Sub,
-            .left = gb_defers_len(gb, gb.span),
-            .right = LoweredIntLit { .span = gb.span, .type = TY_I64, .value = 1 },
-        },
-    }
-    body :: gb_block(gb, [LoweredExprStmt { .span = gb.span, .expr = call }, LoweredAssign { .span = gb.span, .target = gb_defers_field(gb), .value = truncated }])
-    // while self.__defers.len() != 0 { ... }
-    cond :: LoweredBinary {
-        .span = gb.span, .type = TY_BOOL, .op = .Neq,
-        .left = gb_defers_len(gb, gb.span),
-        .right = LoweredIntLit { .span = gb.span, .type = TY_I64, .value = 0 },
-    }
-    out.push(LoweredLoop { .span = gb.span, .label = null, .cond = cond, .body = body, .step = [] })
-}
-
-// ---- cancel (coroutine teardown) ------------------------------------------
-
-// The `cancel()` method body : tear this coroutine down without resuming it.
-// (1) Recursively cancel the child it is parked on: Model A stores exactly one
-// live child in `self.awaited`, so a nested-await subtree is released depth-first
-// (each level drains its own defers). Guarded on `awaited is null` : a coroutine
-// cancelled before it ever reached its first `await` has no child (and no
-// defers), so cancel is a no-op there. (2) Drain every pending `defer` LIFO. (3)
-// Retire the frame (`state = DONE_STATE`) so a stray later resume falls to
-// dispatch's trailing `Suspended` and a repeat cancel finds nothing to do.
-gb_cancel_body :: fn(gb: GenBuild) -> LoweredBlock {
-    stmts: LoweredStmt[]: []
-    // if self.awaited is null { } else { self.awaited.cancel() }
-    // The field is declared `Async<Any>` (non-null) but seeded null, so this
-    // runtime null-check leans on the erased trait's fat-pointer representation
-    // admitting null: sound because the drive path never observes it null.
-    child_cancel :: virtual_call(
-        gb.fn_ctx,
-        core_trait_key(TRAIT_ASYNC),
-        METHOD_CANCEL,
-        gb_awaited_field(gb),
-        [],
-        TY_VOID,
-        gb.span,
-    )
-    guard :: LoweredIf {
-        .span = gb.span, .type = TY_VOID,
-        .cond = LoweredTypeCheck { .span = gb.span, .type = TY_BOOL, .value = gb_awaited_field(gb), .check_type = TY_NULL },
-        .then_block = gb_block(gb, []),
-        .else_block = gb_block(gb, [LoweredExprStmt { .span = gb.span, .expr = child_cancel }]),
-    }
-    stmts.push(LoweredExprStmt { .span = gb.span, .expr = guard })
-    if gb.has_defers { gb_defer_drain_all(gb, stmts) }
-    stmts.push(gb_set_state(gb, i64(DONE_STATE)))
-    return gb_block(gb, stmts)
-}
-
 // ---- spill collection -----------------------------------------------------
 
 // Collect every `LoweredLet` symbol in a block (recursively through loops /
@@ -645,21 +370,11 @@ gb_collect_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> void {
         is LoweredExprStmt -> { gb_collect_expr(gb, s.expr) }
         is LoweredReturn -> { if s.value != null { gb_collect_expr(gb, s.value) } }
         is LoweredYield -> { gb_collect_expr(gb, s.value) }
-        is LoweredAwait -> {
-            // The awaited value's resolved result binds to `target`: spill it
-            // like a local, and descend the awaited expr for nested lets.
-            gb_add_field(gb, s.target, s.target_type)
-            gb_collect_expr(gb, s.awaited)
-        }
         is LoweredCellSet -> {
             gb_collect_expr(gb, s.target)
             gb_collect_expr(gb, s.value)
         }
         is LoweredGlobalSet -> { gb_collect_expr(gb, s.value) }
-        is LoweredDeferPush -> {
-            gb.has_defers = true
-            gb_collect_expr(gb, s.thunk)
-        }
         _ -> {}
     }
 }
@@ -733,7 +448,6 @@ gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]) -> void {
             out.push(LoweredReturn { .span = s.span, .value = new_val })
         }
         is LoweredYield -> { out.push(LoweredYield { .span = s.span, .value = gb_route_expr(gb, s.value) }) }
-        is LoweredAwait -> { out.push(LoweredAwait { .span = s.span, .target = s.target, .target_type = s.target_type, .awaited = gb_route_expr(gb, s.awaited) }) }
         is LoweredLoop  -> {
             new_cond :: if s.cond == null { null } else { gb_route_expr(gb, s.cond) }
             new_step: LoweredStmt[]: []
@@ -753,15 +467,11 @@ gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]) -> void {
         is LoweredCellSet  -> {
             out.push(LoweredCellSet { .span = s.span, .target = gb_route_expr(gb, s.target), .value = gb_route_expr(gb, s.value), .value_type = s.value_type })
         }
-        is LoweredDeferPush -> {
-            // Push the thunk onto the per-frame stack instead of the global one.
-            // Cast the (opaque-ref) closure to the `fn() -> void` element type so
-            // the stored value and the array element agree.
-            thunk :: LoweredCast { .span = s.span, .type = gb_defer_thunk_ty(), .value = gb_route_expr(gb, s.thunk) }
-            push :: LoweredArrayPush { .span = s.span, .type = TY_VOID, .target = gb_defers_field(gb), .value = thunk }
-            out.push(LoweredExprStmt { .span = s.span, .expr = push })
+        // The type check refuses a `defer` in a generator body (T3060), and a
+        // consumer holding one is not inlined into it.
+        is LoweredDeferPush | LoweredDeferPopExec -> {
+            panic("generator block-split: a `defer` in a generator body")
         }
-        is LoweredDeferPopExec -> { gb_defer_drain(gb, s, out) }
     }
 }
 

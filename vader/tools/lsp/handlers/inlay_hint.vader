@@ -89,8 +89,8 @@ hint_step :: fn(n: AST.Node, ctx: HintCtx, out: JsonValue[]) -> AST.Walk = match
         | AST.StringLitExpr | AST.IdentExpr | AST.DotVariantExpr | AST.CallExpr | AST.FieldExpr
         | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.NullCoalesceExpr | AST.IfExpr
         | AST.MatchExpr | AST.BlockExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr
-        | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.AwaitExpr
-        | AST.FnTypeExpr | AST.ArrayTypeExpr -> expr_hints(n, ctx, out)
+        | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.FnTypeExpr
+        | AST.ArrayTypeExpr -> expr_hints(n, ctx, out)
     is AST.ExprStmt | AST.ReturnStmt | AST.YieldStmt | AST.AssignStmt
         | AST.DestructureAssignStmt | AST.ForStmt | AST.BreakStmt | AST.ContinueStmt
         | AST.DeferStmt | AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl

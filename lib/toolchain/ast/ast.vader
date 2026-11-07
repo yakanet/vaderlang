@@ -49,7 +49,7 @@ export ImportBinding :: NamedNamespaceImport | DestructureImport | WildcardImpor
 export ForForm :: InfiniteFor | WhileFor | InFor
 
 /// Any expression. Also serves as `TypeExpr`, see the note there.
-export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
+export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
 
 /// One piece of a string literal: literal text, or an interpolated expression.
 export StringLitPart :: StringLitText | StringLitInterp
@@ -113,7 +113,7 @@ export assign_places :: fn(s: DestructureAssignStmt) -> Expr[] {
 /// A reader must not assume an `IdentExpr` in type position denotes a type it can
 /// name: `Id` may be an alias, an imported struct or a distinct newtype, and only
 /// the resolver knows which.
-export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
+export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
 
 // ---- Visibility / shared shapes -------------------------------------------
 
@@ -1264,15 +1264,6 @@ export RangeExpr :: struct {
 }
 
 // ---- Expressions: error / cast / generic / variant ------------------------
-
-/// `await e`: suspend the enclosing `async` fn until `e`'s async result is
-/// ready, then produce it. A single-operand prefix wrapper; carries no error
-/// semantics of its own.
-export AwaitExpr :: struct {
-    span:  Span
-    id:    i64 = UNASSIGNED_NODE_ID
-    inner: Expr
-}
 
 /// An explicit conversion, `T(value)`.
 ///

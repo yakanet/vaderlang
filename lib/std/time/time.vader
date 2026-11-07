@@ -124,8 +124,7 @@ export monotonic :: fn() -> Monotonic = Monotonic(monotonic_ns())
 // ---- waiting -------------------------------------------------------------
 
 /// Park the calling task for at least `d`, while the other tasks run; a zero or
-/// negative `d` returns at once. A task alone waits on the system clock. An
-/// `async` function waits with `std/async`'s `sleep` instead.
+/// negative `d` returns at once. A task alone waits on the system clock.
 ///
 /// Under `VADER_ASYNC_VIRTUAL_CLOCK`, the clock counts the sleeps alone and
 /// jumps to the end of the nearest one.

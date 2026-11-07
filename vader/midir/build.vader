@@ -525,13 +525,12 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
         is LoweredContinue -> {
             build_back_edge(fn_ctx, resolve_loop_frame(fn_ctx, s.label), s.span)
         }
-        is LoweredYield | LoweredAwait -> {
-            // Transient coroutine-suspension markers. The coroutine transform
-            // (`lower/coroutine.vader`) rewrites them into the resumable state
+        is LoweredYield -> {
+            // A transient suspension marker. The coroutine transform
+            // (`lower/coroutine.vader`) rewrites it into the resumable state
             // machine BEFORE midir ; reaching one here means that pass missed it.
-            // Panic loudly rather than silently drop it (which miscompiled the
-            // async / generator path: midir-1).
-            panic("midir: coroutine marker (LoweredYield/LoweredAwait) reached build_stmt, so the coroutine transform missed it")
+            // Panic loudly rather than silently drop it.
+            panic("midir: coroutine marker (LoweredYield) reached build_stmt, so the coroutine transform missed it")
         }
     }
 }

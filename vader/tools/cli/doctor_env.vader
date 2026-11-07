@@ -85,7 +85,7 @@ ENV_TOGGLES: EnvToggle[]: [
     EnvToggle {
         .name = "VADER_ASYNC_VIRTUAL_CLOCK",
         .status = .Warn,
-        .effect = "async runs on a virtual clock: timers do not wait",
+        .effect = "tasks run on a virtual clock: sleeps do not wait",
         .any_value = true,
     },
     EnvToggle {

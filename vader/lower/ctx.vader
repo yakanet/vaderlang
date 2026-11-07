@@ -526,21 +526,6 @@ FnLowerCtx :: struct {
     /// generator transform) instead of the not-implemented trap.
     in_generator:       bool = false
 
-    /// True while lowering an `async` body: `lower_expr` hoists each `await e`
-    /// to a transient `LoweredAwait` statement (via `pending_awaits`) instead of
-    /// the not-implemented trap. Consumed by the async state-machine transform
-    /// (`async.vader`). A nested lambda's fresh ctx sees `false`, so
-    /// `await`-in-lambda never reaches lowering (typecheck rejects it first).
-    in_async:           bool = false
-
-    /// ANF sink (async only): the statements a value needs run before it, the
-    /// `LoweredAwait` of each `await` and the temp a lifted value stores into
-    /// (`lift_awaiting_value`). Whoever owns the enclosing statement drains them
-    /// into statement position before it: `lower_block` per statement, a match
-    /// arm and an `else if` for the code they guard. Each drains from its own
-    /// watermark, leaving what an enclosing statement hoisted to that statement.
-    pending_awaits:     LoweredStmt[] = []
-
     /// Non-null while INLINING a generator body into the chain that consumes it
     /// (a chain source or layer, `generator_fusion.vader`): `stmt.vader`
     /// redirects each `yield e` to bind the consumer's loop var + run its body.

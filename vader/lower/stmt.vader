@@ -32,31 +32,15 @@ lower_block :: fn(
     ctx.blocks.push(new_block_ctx(is_fn_root, loop_id))
     stmts: LoweredStmt[]: []
     for stmt in block.stmts {
-        if ctx.in_async {
-            // ANF (async) : lower the stmt into a scratch buffer, then splice the
-            // `await`s it hoisted (index >= watermark) into statement position
-            // BEFORE it. The watermark protects an enclosing `if`-condition's
-            // await from being stolen by this block (an arm body): it belongs to
-            // the enclosing statement's drain, not ours.
-            base :: ctx.pending_awaits.len()
-            stmt_out: LoweredStmt[]: []
-            lower_stmt_into(ctx, stmt, stmt_out)
-            drain_pending_from(ctx, stmts, base)
-            for s in stmt_out { stmts.push(s) }
-            reserve_push_tail(stmts)
-        } else {
-            lower_stmt_into(ctx, stmt, stmts)
-            // `s = s + a ; s = s + b` builds the string twice: one buffer and
-            // one intern per step. Fuse the pair into a single `concat_N` now,
-            // while the two statements are still adjacent and nothing can have
-            // read `s` between them. See `concat_fusion.vader`. Skipped under
-            // async, where `drain_pending_from` splices awaits between the
-            // statements this would be merging across.
-            fuse_concat_tail(ctx, stmts)
-            // `out := []` then a counted loop pushing onto it once per turn:
-            // create `out` at the trip count. See `vader/lower/optimise/push_reserve.vader`.
-            reserve_push_tail(stmts)
-        }
+        lower_stmt_into(ctx, stmt, stmts)
+        // `s = s + a ; s = s + b` builds the string twice: one buffer and one
+        // intern per step. Fuse the pair into a single `concat_N` now, while the
+        // two statements are still adjacent and nothing can have read `s`
+        // between them. See `concat_fusion.vader`.
+        fuse_concat_tail(ctx, stmts)
+        // `out := []` then a counted loop pushing onto it once per turn: create
+        // `out` at the trip count. See `vader/lower/optimise/push_reserve.vader`.
+        reserve_push_tail(stmts)
         // What follows a statement that leaves the block never runs, and may read
         // a name narrowed by a test settled before the program runs : it is not
         // lowered.
@@ -65,9 +49,7 @@ lower_block :: fn(
         }
     }
     last_diverges :: last_stmt_diverges(stmts)
-    trailing_base :: ctx.pending_awaits.len()
     raw_trailing :: lower_trailing(ctx, block.trailing, is_fn_root, last_diverges)
-    drain_pending_from(ctx, stmts, trailing_base)
     defer_count :: ctx.blocks[entry_depth].defers.len()
     trailing := raw_trailing
     // Skip the block-fall-through pop_exec when control flow has
@@ -112,31 +94,6 @@ lower_trailing :: fn(
     return lower_expr(ctx, trailing)
 }
 
-// Move the `await`s hoisted at or after `base` from the ANF sink into `out`
-// (statement position), truncating the sink back to `base`. Awaits below `base`
-// belong to an enclosing statement's drain and are left untouched (the block
-// watermark, see `lower_block`).
-drain_pending_from :: fn(ctx: FnLowerCtx, out: LoweredStmt[], base: i64) -> void {
-    n :: ctx.pending_awaits.len()
-    // Fast path : the statement hoisted nothing (the common case), no drain, no
-    // realloc. Otherwise move the tail `[base, n)` into `out` and truncate the
-    // sink back to `base` in place, leaving the kept prefix untouched.
-    if n == base { return }
-    for i in base..<n { out.push(ctx.pending_awaits[i]) }
-    for _ in base..<n { ctx.pending_awaits.remove_last() }
-}
-
-// Reject an `await` in a conditionally-evaluated operand (a `&&` / `||` RHS, a
-// `??` fallback, a match guard, a loop condition): hoisted to statement
-// position, it would run unconditionally, or only once. Diagnoses M5009 and
-// leaves the awaits hoisted: the build stops on the diagnostic, and the reads of
-// their targets keep a definition. No-op when nothing was hoisted, as always
-// outside async.
-guard_no_pending_await :: fn(ctx: FnLowerCtx, base: i64, span: Span) -> void {
-    if ctx.pending_awaits.len() <= base { return }
-    ctx.project.diags.push(lower_error(.AwaitInShortCircuit, span, ""))
-}
-
 trailing_type :: fn(trailing: LoweredExpr | null) -> Type {
     if trailing == null { return TY_VOID }
     return trailing.type
@@ -151,7 +108,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
         is AssignStmt            -> { out.push(lower_assign(ctx, stmt)) }
         is DestructureAssignStmt -> { out.push(lower_destructuring_assign(ctx, stmt)) }
         is ExprStmt              -> {
-            out.push(LoweredExprStmt { .span = stmt.span, .expr = lower_unlifted(ctx, stmt.expr) })
+            out.push(LoweredExprStmt { .span = stmt.span, .expr = lower_expr(ctx, stmt.expr) })
         }
         is ReturnStmt            -> {
             // In an inlined generator, `return` ends the generator: it leaves the
@@ -529,11 +486,7 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
                 }
                 return lower_for_in(ctx, for_stmt, synth_in)
             }
-            cond_base :: ctx.pending_awaits.len()
             cond :: lower_expr(ctx, while_for.cond)
-            // A loop condition re-evaluates each iteration ; an `await` there
-            // can't be hoisted before the loop (would run once). v1: diagnose.
-            guard_no_pending_await(ctx, cond_base, while_for.cond.span)
             // A condition settled false runs once and the body never : the body
             // is not lowered, since it may read a name narrowed to a type the
             // value never has.

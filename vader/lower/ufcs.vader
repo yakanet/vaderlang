@@ -2,8 +2,7 @@
 // a value), and the harvest of the fns they reach.
 //
 // The receiver is lowered once, before anything is decided : lowering is not pure
-// (a lambda lifts a fn, an `await` is hoisted ahead of the statement), so a tree
-// built and thrown away would leave both behind.
+// (a lambda lifts a fn), so a tree built and thrown away would leave it behind.
 
 module "vader/lower"
 
@@ -292,10 +291,7 @@ build_ufcs_args :: fn(
     } else {
         args.push(receiver)
     }
-    mark :: ctx.pending_awaits.len()
-    rest :: lower_call_args(ctx, call.args, params, first_slot)
-    args[0] = bind_one_before_hoisted(ctx, args[0], mark)
-    args.push_all(rest)
+    args.push_all(lower_call_args(ctx, call.args, params, first_slot))
     return args
 }
 

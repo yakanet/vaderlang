@@ -875,7 +875,7 @@ type_args_taken :: fn(declared: i64) -> string {
 }
 
 // What a call to a function returning `returned` evaluates to : nothing when the
-// callee never returns, a generator's or an async function's handle when it is one.
+// callee never returns, a generator's handle when it is one.
 call_result :: fn(c: AST.CallExpr, returned: Type, diverges: bool, typed: TypedProgram) -> Type {
     if diverges {
         return TY_NEVER
@@ -883,10 +883,6 @@ call_result :: fn(c: AST.CallExpr, returned: Type, diverges: bool, typed: TypedP
     gen_res :: generator_call_result_type(c, typed, returned)
     if gen_res != null {
         return gen_res
-    }
-    async_res :: async_call_result_type(c, typed, returned)
-    if async_res != null {
-        return async_res
     }
     return returned
 }

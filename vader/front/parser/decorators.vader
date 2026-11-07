@@ -142,7 +142,7 @@ export DECORATORS: DecoratorSpec[]: [
         .name   = "singleton",
         .usage  = "@singleton",
         .places = [.Declaration],
-        .doc    = "Runs the body of a parameterless top-level fn once per program and hands every call the instance it built: how a module keeps state. Not generic, no `yield` (`T3103`); an `async` one, with `std/async` imported, hands every call one shared task. It cannot run at comptime (`C4018`).",
+        .doc    = "Runs the body of a parameterless top-level fn once per program and hands every call the instance it built: how a module keeps state. Not generic, no `yield` (`T3103`). It cannot run at comptime (`C4018`).",
     },
     DecoratorSpec {
         .name   = "returns",

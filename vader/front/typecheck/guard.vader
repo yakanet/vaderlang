@@ -130,7 +130,7 @@ predicate_problem :: fn(fd: AST.FnDecl, typed: TypedProgram) -> string {
 
 // What keeps `fd` from having a contract `@ensures` states : "" when it has a body
 // that has run once a call returns, and is not generic. A generator's body runs as
-// its stream is read, a coroutine's past its first `await`.
+// its stream is read.
 ensures_problem :: fn(fd: AST.FnDecl, typed: TypedProgram) -> string {
     held :: held_problem(fd)
     if held != "" {
@@ -138,9 +138,6 @@ ensures_problem :: fn(fd: AST.FnDecl, typed: TypedProgram) -> string {
     }
     if fn_is_generator(typed, fd) {
         return "`${fd.name}` is a generator : its body runs after the call has returned"
-    }
-    if fn_is_async(typed, fd) {
-        return "`${fd.name}` awaits : its body runs after the call has returned"
     }
     return ""
 }

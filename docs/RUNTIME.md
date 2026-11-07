@@ -470,9 +470,9 @@ host and its collector.
 
 A failed run-time check (SPEC §2 *Run-time checks*) or a `panic` stops the
 program. Natively, `vader_trap` (`vader_panic` for a panic) prints
-the message on stderr, runs the pending defers, and aborts the process
-(`SIGABRT`). On the VM a trap is a value the interpreter returns: the pending
-defers run, and `vader run` prints the message and exits with status 1. The
+the message on stderr, runs the pending defers of the thread that stops, and
+aborts the process (`SIGABRT`). On the VM a trap is a value the interpreter
+returns: the pending defers run, and `vader run` prints the message and exits with status 1. The
 arithmetic traps print the same message on both. The VM also stops a call chain
 deeper than 1024 frames and, at compile time, an evaluation that runs out of
 steps.
@@ -485,13 +485,7 @@ The `i32` that `main` returns is the exit status (SPEC §6 *`main` entry point*)
 **The defer stack.** The closures a `defer` registers
 ([`ARCHITECTURE.md`](ARCHITECTURE.md), *Lowered AST*) live on one stack per
 thread, globals of the C runtime that a switch saves and restores, and a field of
-the machine on the VM; an async function keeps its own in its frame.
-
-**The scheduler** behind `std/async` (SPEC §16) is Vader code in `std/runtime`,
-the same natively and on the VM. It parks on the nearest deadline in real time, or
-jumps its clock to it when `VADER_ASYNC_VIRTUAL_CLOCK` is set. The order of its
-heap of deadlines decides what runs next, so the output does not depend on the
-clock.
+the machine on the VM.
 
 ## What a backend provides
 
@@ -530,8 +524,8 @@ these. The bytecode also has 32-bit, 64-bit and float reads and writes at a byte
 offset, which nothing in the library calls yet.
 
 **The host intrinsics** listed in `vader/core/bytecode/intrinsic_manifest.vader`:
-the string functions above, the counters of `std/runtime`, the scheduler behind
-`std/async`, `panic`, and the OS and architecture the process runs on. A few
+the string functions above, the counters of `std/runtime`, the virtual threads of
+`std/runtime/scheduler`, `panic`, and the OS and architecture the process runs on. A few
 entries only the VM serves: primitive equality and `Display`, which a native
 build compiles as ops or Vader, and the VM's foreign calls. [`ARCHITECTURE.md`](ARCHITECTURE.md)
 *Intrinsics* says how both backends keep up with the list. The program's arguments

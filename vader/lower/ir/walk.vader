@@ -52,7 +52,6 @@ for_each_lowered_stmt :: fn(s: LoweredStmt, visit: fn(Type) -> void) -> void {
             if value != null { for_each_lowered_expr(value, visit) }
         }
         is LoweredYield -> { for_each_lowered_expr(s.value, visit) }
-        is LoweredAwait -> { for_each_lowered_expr(s.awaited, visit) }
         is LoweredLabelledBlock -> { for_each_lowered_block(s.body, visit) }
         is LoweredLoop -> {
             cond :: s.cond
@@ -230,7 +229,6 @@ ref_stmt :: fn(
             if value != null { ref_expr(value, visit_fn, visit_virtual, visit_value) }
         }
         is LoweredYield -> ref_expr(s.value, visit_fn, visit_virtual, visit_value)
-        is LoweredAwait -> ref_expr(s.awaited, visit_fn, visit_virtual, visit_value)
         is LoweredLabelledBlock -> { ref_block(s.body, visit_fn, visit_virtual, visit_value) }
         is LoweredLoop -> {
             cond :: s.cond
@@ -394,7 +392,6 @@ for_each_stmt_node_in_stmt :: fn(s: LoweredStmt, visit: fn(LoweredStmt) -> void)
             if value != null { for_each_stmt_node_in_expr(value, visit) }
         }
         is LoweredYield    -> for_each_stmt_node_in_expr(s.value, visit)
-        is LoweredAwait    -> for_each_stmt_node_in_expr(s.awaited, visit)
         is LoweredLabelledBlock -> for_each_stmt_node_in_block(s.body, visit)
         is LoweredLoop     -> {
             cond :: s.cond
@@ -416,7 +413,7 @@ for_each_stmt_node_in_stmt :: fn(s: LoweredStmt, visit: fn(LoweredStmt) -> void)
 ///
 /// @param e      the expression.
 /// @param visit  called once per statement.
-export for_each_stmt_node_in_expr :: fn(e: LoweredExpr, visit: fn(LoweredStmt) -> void) -> void {
+for_each_stmt_node_in_expr :: fn(e: LoweredExpr, visit: fn(LoweredStmt) -> void) -> void {
     match e {
         is LoweredCall        -> {
             for_each_stmt_node_in_expr(e.callee, visit)

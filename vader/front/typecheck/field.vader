@@ -797,8 +797,8 @@ try_dispatched_method :: fn(
     return ty
 }
 
-// Struct that implements a trait carrying a same-named method WITH a default body
-// (`Async.cancel`): synthesise the dispatch from the trait method's signature.
+// Struct that implements a trait carrying a same-named method WITH a default body:
+// synthesise the dispatch from the trait method's signature.
 try_default_trait_method_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,

@@ -205,41 +205,16 @@ export Error :: trait {
 
 // ---- 2. Core struct definitions -------------------------------------------
 
-/// Sentinel returned by `Async.resume` when the coroutine suspended (it awaited
-/// something not yet ready) rather than completing. `T | Suspended` stays
-/// unambiguous because `Suspended` is a distinct nominal type, as `Stop` is for
-/// `Iterator.next`.
-export Suspended :: struct {
-    /// The scheduler time (`sched_now`, in ms) before which resuming again cannot
-    /// make progress: a driver holding several awaitables re-drives this one only
-    /// once the clock reaches it. `0`, the default, means unknown: re-drive it on
-    /// every wake. A coroutine reports the value of the child it is parked on.
-    wake_at: i64 = 0
-}
-
-/// The awaitable produced by calling an `async fn`: `await e` unwraps
-/// `Async<T>` to `T`. Each `async fn`'s synthesised state struct implements
-/// it (wired in lowering). Carries no error semantics of its own ; a fallible
-/// async fn returns `Async<T | SomeError>`.
+/// A `T` later: a value its producer hands over before it is there. A function
+/// that gives one back says so in its return type, and nothing else marks it.
 export Async :: trait<T> {
-    /// Drive the coroutine one step : returns the final value `T` on
-    /// completion, or the `Suspended` sentinel when it awaited something not
-    /// yet ready. Synthesised per `async fn` by lowering. The resumed value
-    /// is delivered out-of-band (a synthesised erased frame slot the scheduler
-    /// sets before each call), so this signature stays source-clean.
-    resume :: fn(self) -> T | Suspended
+    /// Wait until the value is there, then give it back. Every call gives back
+    /// the same value.
+    join :: fn(self) -> T
 
-    /// Tear the awaitable down without completing it : run any pending `defer`s
-    /// (LIFO), recursively cancel the child it is parked on, and retire it.
-    /// Called only on a not-yet-completed awaitable (a loser of `race` / `join_any` /
-    /// `timeout`, or a subtree whose parent was cancelled): internal to the
-    /// runtime, never invoked by user code in v1.
-    ///
-    /// The default is a no-op : a hand-written awaitable holding no resources
-    /// needs no teardown. The compiler synthesises an override per `async fn`
-    /// (drain its `defer`s + recurse into its current child) ; the concurrency
-    /// combinators override it to cancel every child they own.
-    cancel :: fn(self) -> void {}
+    /// Whether the value is there, so that `join` would not wait. It never waits
+    /// itself, so a loop can poll it.
+    is_ready :: fn(self) -> bool
 }
 
 /// What joining a cancelled task gives back: the task ran its pending `defer`s

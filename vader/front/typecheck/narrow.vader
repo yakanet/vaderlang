@@ -23,7 +23,7 @@
 // generation and narrows normally.
 //
 // The same generations retire what other code may change behind the walk: a
-// call (and an `await`, a `yield`) may write any object it reaches, a loop's
+// call (and a `yield`) may write any object it reaches, a loop's
 // next iteration runs after the body's writes, and a field write may go through
 // an alias. See `retire_narrowings_across_call` and
 // `retire_narrowings_entering_loop`.
@@ -389,8 +389,8 @@ retire_field_chain :: fn(typed: TypedProgram, key: string) -> void {
 /// Retire the narrowings a call may falsify. A call can write any object its
 /// arguments, an alias or a module reach, and nothing here tracks which, so
 /// every field chain goes; a binding goes only when a lambda rebinds it, since
-/// the call may run that lambda. An `await` or a `yield` lets other code run
-/// before the body resumes, so it counts as a call. An implicit call (an
+/// the call may run that lambda. A `yield` lets other code run before the body
+/// resumes, so it counts as a call. An implicit call (an
 /// operator's impl, an interpolation's `Display`) is not counted.
 ///
 /// @param typed  the program's typing tables.

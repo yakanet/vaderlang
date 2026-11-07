@@ -96,7 +96,6 @@ export TypecheckCode :: enum(CodeInfo) {
     GeneratorYieldIncompatible      { .id = "T3061", .message = "yielded value type does not match the generator's element type" },
     BodylessFnMustBeIntrinsic       { .id = "T3062", .message = "a bodyless function must be `@intrinsic` (host-provided) or `@extern` (foreign symbol)" },
     AssignTypeMismatch              { .id = "T3063", .message = "assigned value's type is not assignable to the target's declared type" },
-    AwaitOutsideAsync               { .id = "T3064", .message = "`await` is only allowed in an async function's own body, not in a nested lambda or a `defer`" },
     LoopTargetNotLoopVariable       { .id = "T3067", .message = "`break` / `continue` target must be an enclosing loop's iteration variable or label" },
     NullCoalesceOnNonOptional       { .id = "T3068", .message = "`??` left operand is never null, so the fallback is unreachable" },
     TypeArgumentNotInferable        { .id = "T3069", .message = "cannot infer type argument, since nothing at this call site binds the type parameter" },
@@ -257,7 +256,6 @@ export LowerCode :: enum(CodeInfo) {
     /// Reserved: an intrinsic the lowerer cannot lower panics in `emit/bytecode/emit` instead.
     IntrinsicUnsupported     { .id = "M5005", .message = "intrinsic not implemented by the lowerer" },
     UnresolvedIdent          { .id = "M5007", .message = "identifier did not resolve at lowering" },
-    AwaitInShortCircuit      { .id = "M5009", .message = "`await` in a short-circuit operand, loop condition or match guard is not yet supported" },
     ComptimeForNotUnrollable { .id = "M5010", .message = "`@comptime for` cannot be unrolled" },
     ExternSymbolClaimedTwice { .id = "M5011", .message = "two `@extern` declarations claim one C symbol" },
 }

@@ -1,16 +1,15 @@
 // vader/front/typecheck/body_scan: what a function body lexically holds.
 //
-// Three questions share one walk: does a body `await` (an async coroutine),
-// does it `yield` (a generator), and can a `break` leave a given loop (W0002,
-// T3083). Each reads the source as written, never a type, so it answers the
-// same at a definition and at a call site.
+// Two questions share one walk: does a body `yield` (a generator), and can a
+// `break` leave a given loop (W0002, T3083). Each reads the source as written,
+// never a type, so it answers the same at a definition and at a call site.
 //
-// The walk is `inspect`'s (`toolchain/ast`), which reaches every node. An `await`,
-// a `yield` or a `break` can sit wherever a value does: `total += next() ??
-// break` puts the `break` in the right operand of the `+` that a compound
-// assignment desugars to. The walk does not enter a lambda body, nor a `defer`
-// body, which runs at scope exit as a fn of its own: their `await` or `yield`
-// does not colour the enclosing fn, and a `break` cannot cross them.
+// The walk is `inspect`'s (`toolchain/ast`), which reaches every node. A `yield`
+// or a `break` can sit wherever a value does: `total += next() ?? break` puts
+// the `break` in the right operand of the `+` that a compound assignment
+// desugars to. The walk does not enter a lambda body, nor a `defer` body, which
+// runs at scope exit as a fn of its own: their `yield` does not colour the
+// enclosing fn, and a `break` cannot cross them.
 
 module "vader/front/typecheck"
 
@@ -20,26 +19,35 @@ AST :: import "toolchain/ast"
 
 /// True when `fn_decl` is a generator, i.e. it lexically `yield`s.
 ///
-/// Generator-ness is inferred from `yield`, with no annotation (mirror of
-/// `fn_is_async`) ; a generator states it in its signature by returning
-/// `Iterator<T>` (T3056).
+/// Generator-ness is inferred from `yield`, with no annotation ; a generator
+/// states it in its signature by returning `Iterator<T>` (T3056).
 ///
-/// @param typed    the module whose `body_shapes` remembers the answer ; any
-///                 module will do, the declaration need not be its own.
+/// A declaration the lowering synthesises carries no node id, so it is scanned
+/// on every request rather than remembered under an id it shares with the
+/// others. An inherited member yields as the default body it runs, remembered
+/// once for every impl.
+///
+/// @param typed    the module whose `generator_bodies` remembers the answer ;
+///                 any module will do, the declaration need not be its own.
 /// @param fn_decl  the declaration to scan ; a bodyless one is no generator.
-export fn_is_generator :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> bool =
-    body_shape(typed, fn_decl).yields
+export fn_is_generator :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> bool {
+    source :: AST.body_source(fn_decl)
+    if source.id == AST.UNASSIGNED_NODE_ID {
+        return body_yields(source)
+    }
+    return typed.generator_bodies[source.id] ?? remember_generator(typed, source)
+}
 
-/// True when `fn_decl` is an async coroutine, i.e. it lexically `await`s.
-///
-/// Async-ness is inferred from `await`, with no annotation ; a coroutine states
-/// it in its signature by returning `Async<T>`.
-///
-/// @param typed    the module whose `body_shapes` remembers the answer ; any
-///                 module will do, the declaration need not be its own.
-/// @param fn_decl  the declaration to scan ; a bodyless one is not async.
-export fn_is_async :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> bool =
-    body_shape(typed, fn_decl).awaits
+remember_generator :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> bool {
+    yields :: body_yields(fn_decl)
+    typed.generator_bodies[fn_decl.id] = yields
+    return yields
+}
+
+body_yields :: fn(fn_decl: AST.FnDecl) -> bool {
+    body :: fn_decl.body ?? return false
+    return has_yield(body)
+}
 
 /// True when `n` is, or holds, a `yield` outside any nested body (a lambda, a
 /// `defer`).
@@ -69,43 +77,9 @@ loop_never_exits :: fn(s: AST.ForStmt) -> bool {
     return !node_contains(s.body, probe)
 }
 
-/// Whether a fn body `await`s and whether it `yields`, as `body_shape` found it.
-export BodyShape :: struct {
-    awaits: bool = false
-    yields: bool = false
-}
-
-// A declaration the lowering synthesises carries no node id, so it is scanned on
-// every request rather than remembered under an id it shares with the others. An
-// inherited member awaits and yields as the default body it runs, remembered once
-// for every impl.
-body_shape :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> BodyShape {
-    source :: AST.body_source(fn_decl)
-    if source.id == AST.UNASSIGNED_NODE_ID {
-        return scan_body(source)
-    }
-    return typed.body_shapes[source.id] ?? remember_body_shape(typed, source)
-}
-
-remember_body_shape :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> BodyShape {
-    shape :: scan_body(fn_decl)
-    typed.body_shapes[fn_decl.id] = shape
-    return shape
-}
-
-// One walk answers both questions: the answer is on the probe.
-scan_body :: fn(fn_decl: AST.FnDecl) -> BodyShape {
-    body :: fn_decl.body ?? return BodyShape {}
-    probe :: BodyProbe { .kind = .Shape }
-    AST.inspect(body, (n) -> probe_step(n, probe))
-    return BodyShape { .awaits = probe.awaits, .yields = probe.yields }
-}
-
 // ---- the walk -------------------------------------------------------------
 
 ProbeKind :: enum {
-    /// Whether the body awaits and whether it yields, noted on the probe.
-    Shape,
     Yield,
     LoopExit,
 }
@@ -113,9 +87,6 @@ ProbeKind :: enum {
 /// What a scan looks for.
 BodyProbe :: struct {
     kind: ProbeKind
-    /// `Shape` only: whether the walk met an `await`, and a `yield`, so far.
-    awaits: bool = false
-    yields: bool = false
     /// `LoopExit` only: the label of the loop being judged.
     label: string | null = null
     /// `LoopExit` only: whether a bare `break` still targets the loop being
@@ -127,7 +98,7 @@ BodyProbe :: struct {
 node_contains :: fn(n: AST.Node, probe: BodyProbe) -> bool =
     AST.inspect(n, (m) -> probe_step(m, probe))
 
-// Exhaustive, so a new node kind that suspends, yields or jumps gets an arm.
+// Exhaustive, so a new node kind that yields or jumps gets an arm.
 probe_step :: fn(n: AST.Node, probe: BodyProbe) -> AST.Walk = match n {
     // Holds what its children hold.
     is AST.IdentExpr | AST.FieldExpr | AST.CallExpr | AST.StringLitExpr | AST.IntLitExpr
@@ -141,28 +112,7 @@ probe_step :: fn(n: AST.Node, probe: BodyProbe) -> AST.Walk = match n {
     // A nested body runs as a fn of its own ; a pattern or a type evaluates nothing.
     is AST.LambdaExpr | AST.DeferStmt | AST.Pattern | AST.ArrayTypeExpr | AST.FnTypeExpr -> .Skip
     is AST.BreakStmt -> stop_if(break_leaves_loop(n, probe))
-    is AST.AwaitExpr -> note_await(probe)
-    is AST.YieldStmt -> note_yield(probe)
-}
-
-// A `Shape` scan notes what it meets, and stops once it has met both.
-note_await :: fn(probe: BodyProbe) -> AST.Walk {
-    if probe.kind != .Shape {
-        return .Descend
-    }
-    probe.awaits = true
-    return stop_if(probe.yields)
-}
-
-note_yield :: fn(probe: BodyProbe) -> AST.Walk {
-    if probe.kind == .Yield {
-        return .Stop
-    }
-    if probe.kind != .Shape {
-        return .Descend
-    }
-    probe.yields = true
-    return stop_if(probe.awaits)
+    is AST.YieldStmt -> stop_if(probe.kind == .Yield)
 }
 
 stop_if :: fn(found: bool) -> AST.Walk {

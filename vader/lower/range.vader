@@ -49,10 +49,8 @@ build_range_lit :: fn(ctx: FnLowerCtx, expr: RangeExpr, result_type: Type) -> Lo
     // `start` and `cursor` both take the lower bound, which is evaluated once.
     stmts: LoweredStmt[]: []
     lower_value :: lower_expr(ctx, expr.lower)
-    mark :: ctx.pending_awaits.len()
     upper_bound :: lower_expr(ctx, expr.upper)
-    kept_lower :: bind_one_before_hoisted(ctx, lower_value, mark)
-    lower_bound :: bind_unless_stable(ctx, kept_lower, "range_lo", span, stmts)
+    lower_bound :: bind_unless_stable(ctx, lower_value, "range_lo", span, stmts)
     inclusive :: LoweredBoolLit { .span = span, .type = TY_BOOL, .value = expr.inclusive }
     fields :: [
         LoweredStructLitField { .name = "start",     .value = lower_bound },

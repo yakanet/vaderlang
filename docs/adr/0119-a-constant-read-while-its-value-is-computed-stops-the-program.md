@@ -4,6 +4,11 @@
 
 Accepted (2026-10-29). Completes 0118, which covers `@comptime` constants.
 
+**Amended by [0127](0127-concurrency-is-tasks-on-virtual-threads-checked-on-the-data.md) (2026-11-07)**: in a program that loads `std/runtime/scheduler`, a
+thread that reads the constant while another computes its value waits for that
+computation, then computes the value itself. The thread computing it reading it
+again still stops the program.
+
 ## Context
 
 A module constant has no storage at run time: a value the compiler cannot bake is

@@ -1,10 +1,10 @@
 // vader/lower/ir/verify: structural self-check of a `LoweredProject`.
 //
-// `LoweredYield` / `LoweredAwait` are TRANSIENT: they exist between the ANF
-// pass that mints them and the state-machine transform that consumes them
-// (`vader/lower/generator.vader`, `vader/lower/coroutine.vader`), and never reach a
-// backend. No type says so (they are ordinary `LoweredStmt` variants) and
-// `vader/midir/build.vader` panics when one survives, naming `build_stmt`, the
+// `LoweredYield` is TRANSIENT: it exists between the lowering that mints it and
+// the state-machine transform that consumes it (`vader/lower/generator.vader`,
+// `vader/lower/coroutine.vader`), and never reaches a backend. No type says so
+// (it is an ordinary `LoweredStmt` variant) and `vader/midir/build.vader`
+// panics when one survives, naming `build_stmt`, the
 // consumer, rather than the pass that failed to consume it.
 //
 // Symbol resolution is NOT checked here: it is a property of the CFG boundary
@@ -42,7 +42,7 @@ export verify_lowered :: fn(project: LoweredProject, after: string, diags: Diagn
 // ---- checks ---------------------------------------------------------------
 
 // I7001: a surviving transient marker. Reported against the marker's own
-// span, which is the `yield` / `await` the user wrote, so the report points
+// span, which is the `yield` the user wrote, so the report points
 // at the construct the transform failed to rewrite rather than at the
 // function that contains it.
 verify_no_coroutine_markers :: fn(
@@ -55,10 +55,6 @@ verify_no_coroutine_markers :: fn(
                 if s is LoweredYield {
                     diags.push(internal_error(.StrayCoroutineMarker, s.span,
                         "after `${after}`: a `yield` marker survives in `${owner}`, unconsumed by the generator transform"))
-                }
-                if s is LoweredAwait {
-                    diags.push(internal_error(.StrayCoroutineMarker, s.span,
-                        "after `${after}`: an `await` marker survives in `${owner}`, unconsumed by the coroutine transform"))
                 }
             })
         }

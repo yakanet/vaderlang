@@ -141,7 +141,7 @@ Every exported function of the standard library has a doc block in this form.
 
 ```
 fn struct trait implements enum
-if else match is for in return yield await defer break continue
+if else match is for in return yield defer break continue
 import as
 export
 true false null
@@ -406,14 +406,14 @@ label(n)                   // `n` is an `Hour` here
 
 - Only an argument that is a binding no lambda assigns is narrowed.
 - Nothing is checked at run time. The compiler checks the body at each `return` and at its end: `cond` must hold there. Stopping the program where `cond` fails satisfies it, as `require_hour` does, and so does returning a call to a function that ensures the same condition.
-- The function may return any type, but its body must have finished when a call returns: a generator, a function that uses `await` or a function without a body is an error.
+- The function may return any type, but its body must have finished when a call returns: a generator or a function without a body is an error.
 - The other rules of `@returns` apply.
 
 #### How long a narrowing lasts
 
 A narrowing lasts as long as nothing can have changed what it tested. An assignment to the narrowed name or field ends it, unless the new value still fits (*Assignment*, above). It also ends:
 
-- after a call, for every field narrowing (`a.s`, `self.items`) and for each local that some lambda assigns, since a call can write any object it reaches. Writing through a user `IndexSet` (`m[k] = v`), `await` and `yield` count as calls. A conversion `T(x)` does not.
+- after a call, for every field narrowing (`a.s`, `self.items`) and for each local that some lambda assigns, since a call can write any object it reaches. Writing through a user `IndexSet` (`m[k] = v`) and `yield` count as calls. A conversion `T(x)` does not.
 - inside a loop, for what an earlier iteration can have changed: field narrowings, and locals the body assigns. The iterable of `for x in e` is evaluated once, before the loop, and keeps the narrowing.
 - after a field assignment through any path (`b.s = v`, `xs[i].s = v`), for every narrowing through a field of that name: `b` may be the same object as `a`.
 - after a call in the right operand of `&&` (or of `||`, on its false side), for what the left operand narrowed: in the rest of the condition and in the branch.
@@ -2119,8 +2119,6 @@ Shape :: trait {
 }
 ```
 
-In the standard library, `Async` has one default method: `cancel`, which does nothing.
-
 #### Operator overloading
 
 An operator on operands other than primitive numerics calls the method of a standard-library trait (equality: *Equality*, below):
@@ -2817,7 +2815,7 @@ process :: fn(path: string) -> string | Error {
 
 A `return`, like the trailing value of a block, computes its value before the defers run, so a defer that writes to a local the value reads does not change the value.
 
-A `defer` body cannot `return`, `yield` or `await`, nor `break` or `continue` a loop it is not inside; a `return` in a lambda written there returns from that lambda. A `defer` in a generator is an error.
+A `defer` body cannot `return` or `yield`, nor `break` or `continue` a loop it is not inside; a `return` in a lambda written there returns from that lambda. A `defer` in a generator is an error.
 
 When the program stops (a `panic`, a failed run-time check, `unreachable`), the pending defers of every frame run, innermost first, before the process ends. A stop inside a deferred body ends the program at once, without running the defers still pending. There is no `recover`.
 
@@ -3366,7 +3364,7 @@ log().push("x")            // every later `log()` sees "x"
 - The instance is ordinary heap state, not a frozen value: writes to it persist. One built from a module constant is a copy of it.
 - A module constant cannot call a singleton: the constant would change with the instance. A lambda the constant holds may call one, since it runs only when called.
 - A singleton takes no parameters, has no type parameters, and cannot use `yield`.
-- An `async` singleton hands every call one task, the `share` (§16) of its body: concurrent and later awaits all get the same result, and the body runs once. A cancelled await leaves the task to the others, and a body that awaits its own task stops the program. The program must import `std/async`.
+- A singleton that returns a `Task<T>` hands every call the same task, which each caller can join (§16 *Tasks*).
 - A call that reaches the singleton again from its own body, directly or through the functions the body calls, stops the program.
 - A task of `std/task` that calls the singleton while another task runs its body waits for the body to end. When that task is cancelled first, the next call runs the body again.
 - A singleton cannot run at compile time: only the running program builds it.
@@ -3765,7 +3763,7 @@ In a cross build, a `@comptime` value runs the `@target` bodies of the build mac
 A `@comptime` value cannot:
 
 - ask which machine the compiler runs on (`current_os`, `current_arch`, the dynamic FFI: `ffi_open`, `ffi_symbol`, `ffi_call`): it is rejected;
-- call a `@singleton` function, or anything that reaches one, such as spawning a process or driving the async scheduler.
+- call a `@singleton` function, or anything that reaches one, such as spawning a process or launching a task.
 
 ### Reflection / comptime intrinsics
 
@@ -3887,7 +3885,6 @@ p :: Point { .x = 1, .y = 2 }
 | `"${x}"` | `Display` | §9 *`Display` trait* |
 | a conversion, implicit or `T(x)` | `Into<Target>` | §4 *Type coercion via `Into`* |
 | `T \| Error` | `Error` | §10 *`Error` trait* |
-| `await e` | `Async<T>`, `Suspended` | §16 *async/await* |
 | `@fields(T)` | `Field` | §14 *Reflection / comptime intrinsics* |
 
 It also declares:
@@ -3900,6 +3897,9 @@ It also declares:
 - `ArrayOps<T>`, the built-in methods of arrays: `len`, `push`, `push_all`, `copy_to`, `remove_last` and `clear` (§4 *Mutation methods*).
 - `Stop`, what an iterator returns at its end (*Iteration*, below).
 - `Peek<T>`, the element a source would hand out next, left in place: `peek :: fn(self) -> T | null`.
+- `Async<T>`, a `T` later: `join :: fn(self) -> T` waits for it, `is_ready :: fn(self) -> bool` tells whether it is there (§16 *Tasks*).
+- `Cancelled`, the `Error` that joining a cancelled task gives back (§16 *Cancellation*).
+- `deep_copy`, a copy of a value that shares nothing it can write (§16 *Values shared between tasks*).
 - Functions on arrays: `filled` and `filled_indexed` (§4 *Repeat / preallocate: `[lhs] * n`*), `content_equals`, `is_permutation_of`, `contains_all` and `is_disjoint` (§4 *Equality*).
 - Functions on strings: `len`, `byte_len`, `byte_at`, `byte_slice`, `is_ascii`, `codepoint_at_byte`, `bytes` and `bytes_to_string` (§4 *Strings*).
 
@@ -4007,78 +4007,114 @@ There is no `yield from` or `yield*`: a nested `for` flattens, as in the example
 
 ## 16. Concurrency
 
-A program runs on one thread, with cooperative concurrency through `await`. I/O in `std/io` blocks. `spawn` (`std/process`) parks the calling task of `std/task` while its child runs, and a task cancelled meanwhile kills its child.
+A program runs in tasks. A task runs a function on a stack of its own, beside the code that launched it, and parks where it waits (a `join`, a `sleep`, a full channel, a child process), however deep in its calls: another task runs meanwhile. Nothing marks a function as one that may park. `main` is the first task.
 
-### async/await
+Tasks share one system thread: two of them never run at the same instant. The rules below are those of tasks spread over several cores, so a program keeps its meaning the day they are.
 
-A function that uses `await` is an **async function**.
+### Tasks
 
-- It declares `-> Async<T>` (`Async<void>` for no value), and its body returns a `T`.
-- A call to it gives an `Async<T>`, and `await e` waits for `e` to complete and gives its `T`.
-- A function that returns an `Async<T>` it builds, without awaiting, is an ordinary function, as `sleep(ms) -> Async<null>` (`std/async`) is.
+`launch(entry)` (`std/task`) starts a task that runs `entry` and gives back a `Task<T>`, `T` being what `entry` returns. `t.join()` waits for the end of the task and gives back its result, or `Cancelled` (*Cancellation*, below).
 
 ```vader
 import "std/io"
-import "std/async"
+import "std/task"
+import "std/time"
 
-mk :: fn(n: i32) -> Async<i32> {
-    await sleep(i64(n))
+fetch :: fn(n: i64) -> i64 {
+    sleep(n.millis())
     return n * 10
 }
 
 main :: fn() -> i32 {
-    rs :: await join_all([mk(3), mk(1), mk(2)])
-    for r in rs {
-        println("${r}")                  // 30, 10, 20: input order
-    }
+    a :: launch(() -> fetch(3))
+    b :: launch(() -> fetch(1))
+    println("${a.join()} ${b.join()}")    // 30 10
+    rs :: join_all([launch(() -> fetch(2)), launch(() -> fetch(1))])
+    println("${rs[0]} ${rs[1]}")          // 20 10: the order of the tasks
     return 0
 }
 ```
 
-`await` is an error in a nested lambda, a `defer` body and, for now, the right operand of `&&`, `||` or `??`, a loop condition or a `match` guard.
+- The code after `launch` goes on until it parks, then the task starts.
+- A task can be joined several times, by several tasks: each `join` gives back the same value.
+- `t.is_ready()` tells whether the task has ended, so that `join` would not wait. It never parks, so a loop can poll it.
+- A task shows as `task #N`, its number in the order the program launched them. Two tasks are equal when they are the same task.
+- `launch(...)` as a statement launches the task without waiting for it, as a bare call drops its value.
+- When `main` returns, the tasks still running are cancelled, stderr names them, and the exit code is not zero.
+- When every task waits and no sleep is pending, nothing will wake one: the program stops on a deadlock and names the tasks.
 
-Operands evaluate left to right even when a later one awaits: in `f(a(), await b())`, `a()` runs first. An assignment evaluates its target's operands (receiver, index), then its value; a compound assignment `place op= e` reads `place` only at the write.
+`Async<T>` (`std/core`) is the trait of a `T` later, a value handed over before it is there: `join` waits for it, and `is_ready` tells whether it is there without waiting.
 
-`defer` works in an async function: the function's pending defers, those registered before an `await` included, run in reverse order when the function completes or is cancelled.
+### Values shared between tasks
 
-#### Running async code
+A value passes from one task to another through a gate:
 
-- `main` may `await` and keep its `i32` return type; the program runs it to completion.
-- When every task is suspended, the program waits for the nearest deadline, and stops on a deadlock when none is pending. Without `std/async`, a `main` whose `await` suspends stops the program.
-- `sleep(ms)` suspends the async function until its deadline, in real time. With `VADER_ASYNC_VIRTUAL_CLOCK` set, the scheduler's clock jumps to it instead.
-- `block_on(x)` (`std/async`) runs an awaitable to completion from a function that is not async.
+- the captures of the lambda passed to `launch`;
+- the result of a `join`;
+- a message sent and received on a `Channel<T>`;
+- the value of a `Shared<T>`, inside `locked`;
+- a `@singleton` a task calls;
+- a function value a task runs.
 
-#### Combinators
+At each gate, the compiler compares what the task does with the value and what the code beside it does while the task runs. A task runs until the `join` that follows its launch: the call itself, or a loop over the array or the literal that holds the tasks.
 
-`std/async` combines awaitables:
+| The task | The code beside, while the task runs | Verdict |
+|---|---|---|
+| reads it | reads it, or no longer touches it | accepted |
+| reads it | writes it | an error |
+| writes it | no longer touches it | accepted: the task owns it |
+| writes it | reads or writes it | an error |
 
-- `join_all(xs)` gives every result, in input order.
-- `try_join_all(xs)` is the fallible join, giving the first error in input order.
-- `race(xs)` completes with the first awaitable to settle, value or error.
-- `join_any(xs)` completes with the first success, or the last error when all fail.
-- `timeout(ms, x)` gives a `TimeoutError` when the deadline passes before `x` completes.
-- `share(x)` lets several awaiters await `x`: the first `resume` drives it, and once it completes every later one returns its result (a finished async function answers `Suspended`). Cancelling a shared awaitable leaves `x` to the others; `x` awaiting its own shared awaitable stops the program.
+```vader
+level :: Level {}
+ai :: launch(() -> think(level))
+update(level)                      // error: `update` writes `level.bots` while the task reads it
+ai.join()
+view :: level.deep_copy()
+launch(() -> think(view)).join()   // ok: the task reads its own copy
+```
 
-#### Cancellation
+- A value two tasks write is an error, and so is a captured variable reassigned while a task holds it.
+- A loop variable is bound afresh at each turn (§7 *`for` (universal loop)*): `for f in files { launch(() -> scan(f)) }` gives each task its own `f`.
+- The comparison follows aliases through fields and calls: after `bots :: level.bots`, `bots.push(b)` writes `level`. A function that hands its parameter to a task hands it for its callers too.
+- A task that runs a function value whose body the compiler cannot see, one read from a field or given back by a call, is an error. A parameter, a lambda of the body and a named function are seen.
+- The error proposes a way out that fits the case: move the access after the `join`, let each task give back its own value, or copy the value with `deep_copy` (`std/core`), which keeps the sharing and the cycles inside the value and refuses a function value.
 
-`race`, `join_any` and `timeout` cancel the awaitables that lose, and nothing else cancels; only a suspended async function can be cancelled. It runs its pending defers in reverse order and cancels the awaitable it waits on, without finishing its body. Structured concurrency (`scope`, `spawn`) is planned.
+### Synchronised types
 
-#### Hand-written awaitables
+The types of `std/task` that several tasks reach at once, each through its own operations: `Task`, `Channel`, `Shared`, `AtomicInt` and `AtomicBool`. `deep_copy` shares them instead of copying them.
 
-An awaitable is a value whose type implements `Async<T>` (`std/core`). Its `resume` returns the `T` once complete, or a `Suspended` while it cannot progress; one that holds resources overrides `cancel` to release them.
+- `Channel<T> { .capacity = n }` is a queue of messages. `send` parks while it is full and `receive` while it is empty; a message sent belongs to its receiver. After `close`, the receivers take the messages it holds, then get `Closed`. A `for` over a channel receives until it is closed and drained, and a capacity of `UNBOUNDED` never makes a sender wait.
+- `shared(value)` gives a `Shared<T>`, and `cell.locked(body)` runs `body` on its value, holding its lock. `body` must not park (no `send`, `receive` or `join`), and nothing it reaches of the value may outlive it.
+- `AtomicInt` (`load`, `store`, `fetch_add`, `compare_and_set`) and `AtomicBool` (`load`, `store`) hold a value several tasks read and write at once.
 
-- `Suspended { .wake_at = t }`: no progress before the scheduler clock (`sched_now`, in milliseconds) reaches `t`. `Suspended {}` (`wake_at` 0): the time is unknown.
-- An async function reports the `wake_at` of the awaitable it waits on.
+A task that may reach an `@extern` function marked `@main_thread` is an error (§13 *`@main_thread`: a C function bound to the main thread*).
 
-`join_all`, `race` and `join_any` resume an awaitable only once its `wake_at` has passed.
+### Waiting
 
-### Later: coroutines
+- `sleep(d)` (`std/time`) parks the task for at least `d` while the others run. A task alone waits on the system clock.
+- With `VADER_ASYNC_VIRTUAL_CLOCK` set, the clock counts the sleeps alone: with no task ready, it jumps to the end of the nearest one, so what a program prints depends on the order of its deadlines, never on how long its work took. It suits tests that do no real I/O.
+- I/O in `std/io` blocks the program: no other task runs while a read or a write waits.
+- `spawn` (`std/process`) parks the calling task while its child runs, and a task cancelled meanwhile kills its child.
 
-Continuation-passing coroutines are planned.
+### Combinators
 
-### Native threads
+`std/task` waits for several tasks at once. A combinator returns once every task it was given has ended: one it cancels has run its defers.
 
-Native threads are planned in `std/thread`; importing it will be a compile-time error on the WebAssembly targets.
+- `join_all(ts)` gives every result, in the order of `ts`.
+- `try_join_all(ts)` gives every result, unless one fails: the first task to end with an error, `Cancelled` included, cancels the others, and its error is given back.
+- `race(ts)` gives the result of the first task to end and cancels the others. Of two that had ended before the call, the first in `ts` wins.
+- `join_any(ts)` gives the first success and cancels the others; when every task fails, the error of the last to end.
+- `timeout(t, d)` gives the result of `t` when it ends within `d`; otherwise it cancels `t` and gives a `TimeoutError`.
+
+### Cancellation
+
+`t.cancel()` cancels a task: it runs its pending defers in reverse order and ends without finishing its body. Its `join` then gives back `Cancelled`, an `Error` of `std/core`.
+
+- The cancel does not wait for the defers; `join` does.
+- A task that has ended stays as it was, one that has not started runs nothing, and a task that cancels itself does not come back from the call.
+- A defer that parks while its task is cancelled parks that task, not the one that cancelled it.
+- A stop (a `panic`, a failed run-time check) runs the pending defers of the task that stops, not those of the other tasks (§7 *`defer`*).
 
 ---
 
@@ -4169,8 +4205,7 @@ A WebAssembly backend is planned. The `wasi-wasm32` and `browser-wasm32` targets
 
 - An explicit allocator API (arenas, buffers) for performance-critical code.
 - Automatic string marshalling between WebAssembly and JavaScript.
-- Continuation-passing coroutines.
-- Native threads (`std/thread`).
+- Tasks spread over several cores.
 - Networking.
 - External packages.
 - WebAssembly without WASI.

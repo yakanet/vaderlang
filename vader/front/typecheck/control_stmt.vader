@@ -223,19 +223,15 @@ check_defer :: fn(
     diags: Diagnostic[],
     ctx: FnContext | null,
 ) -> void {
-    // `defer` inside a generator is still forbidden in v1: a generator can be
-    // abandoned mid-iteration, and the runtime has no drop hook to fire pending
-    // defers on teardown (T3060 ; lifted with async cancellation, 4c). `defer`
-    // inside an async coroutine IS supported : the coroutine always runs to
-    // completion in v1, and its pending defers live in the per-frame `__defers`
-    // stack, drained LIFO at each structured exit (`lower/coroutine.vader`).
+    // `defer` inside a generator is forbidden: a generator can be abandoned
+    // mid-iteration, and the runtime has no drop hook to fire pending defers on
+    // teardown (T3060).
     effective :: resolve_ctx(ctx, typed)
     if effective != null && effective.is_generator {
         diags.push(typecheck_error(.DeferInGenerator, s.span, ""))
     }
     // The body runs at scope exit, lowered as a fn of its own: no enclosing loop
-    // is one its jumps can reach, and it neither suspends a coroutine (T3064) nor
-    // yields for a generator (T3059).
+    // is one its jumps can reach, and it does not yield for a generator (T3059).
     body_ctx :: defer_body_context(effective)
     later :: enter_later_body(typed, body_ctx, true)
     match b :: s.body {
@@ -253,7 +249,6 @@ defer_body_context :: fn(ctx: FnContext | null) -> FnContext | null {
     return FnContext {
         ...ctx,
         .loop_depth = 0,
-        .is_async = false,
         .is_generator = false,
         .yield_type = null,
         .in_defer = true,

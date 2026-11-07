@@ -813,8 +813,7 @@ enter_local :: fn(n: Node, w: LocalIndex) -> Walk = match n {
         | ContinueStmt | DeferStmt | IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr
         | CharLitExpr | StringLitExpr | IdentExpr | DotVariantExpr | CallExpr | FieldExpr
         | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | StructLitExpr
-        | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr
-        | AwaitExpr -> .Descend
+        | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr -> .Descend
 }
 
 leave_local :: fn(n: Node, w: LocalIndex) -> void {

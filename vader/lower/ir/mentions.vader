@@ -138,7 +138,6 @@ export stmt_mentions_symbol :: fn(st: LoweredStmt, symbol_id: i32, kinds: Mentio
         is LoweredExprStmt             -> expr_mentions(st.expr, symbol_id, kinds)
         is LoweredReturn               -> opt_expr_mentions(st.value, symbol_id, kinds)
         is LoweredYield                -> expr_mentions(st.value, symbol_id, kinds)
-        is LoweredAwait                -> expr_mentions(st.awaited, symbol_id, kinds)
         is LoweredDeferPush            -> expr_mentions(st.thunk, symbol_id, kinds)
         is LoweredLabelledBlock        -> block_mentions(st.body, symbol_id, kinds)
         is LoweredLoop                 ->

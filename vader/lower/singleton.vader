@@ -26,14 +26,11 @@
 //     keep: if state == READY { return } ; instance = init() ; state = READY
 //
 // A `void` singleton runs its body once and keeps no instance, as does one that
-// never returns. An `async` one keeps the task `std/async`'s `share` makes of the
-// frame its init returns, so every call awaits one run of the body. The init has
-// an identity of its own, as an extern's import has: a synthetic symbol and
-// mangle, so it never shares a function slot with `f`.
+// never returns. The init has an identity of its own, as an extern's import has:
+// a synthetic symbol and mangle, so it never shares a function slot with `f`.
 
 module "vader/lower"
 
-import "std/abort"
 import "toolchain/span"
 import "vader/core/mono"
 import "vader/core/symbol"
@@ -80,7 +77,7 @@ lower_singleton :: fn(
     span :: fn_decl.span
     state :: new_global(ctx.project, ctx.typed.resolved.path, "${fn_decl.name}.state", TY_I32, span)
     instance :: instance_slot(ctx, fn_decl.name, instance_type, span)
-    built :: built_instance(ctx, fn_decl, init, instance_type, span)
+    built :: mk_lowered_call(init, [], instance_type, span)
     reentered :: LoweredExprStmt {
         .span = span,
         .expr = LoweredUnreachable {
@@ -130,20 +127,6 @@ keep_fn :: fn(
     ]
     ctx.project.synth_decls.push(gate_build_fn(entry, keep.name, keep, stmts, span))
     return keep
-}
-
-// What the accessor keeps: the init's result, or for an `async` singleton the task
-// `share` makes of the frame the init returns.
-built_instance :: fn(
-    ctx: FnLowerCtx, fn_decl: AST.FnDecl, init: Symbol, type: Type, span: Span,
-) -> LoweredExpr {
-    frame :: mk_lowered_call(init, [], type, span)
-    if !fn_is_async(ctx.typed, fn_decl) {
-        return frame
-    }
-    share :: ctx.typed.async_runtime.share ?? panic("async singleton without `share`")
-    mangled :: register_fn_instance_mangle(ctx, share, [async_inner_type(type)])
-    return mk_lowered_call(instance_symbol(share, mangled), [frame], type, span)
 }
 
 // The slot keeping the instance of singleton `name`, or null when it has none to

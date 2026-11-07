@@ -84,7 +84,7 @@ copy_node_resolutions :: fn(n: AST.Node, from: TypedProgram, into: TypedProgram)
             | AST.ReturnStmt | AST.IfExpr | AST.DotVariantExpr | AST.StructLitExpr | AST.UnaryExpr
             | AST.AssignStmt | AST.IndexExpr | AST.NullCoalesceExpr | AST.GenericInstExpr
             | AST.SeqLitExpr | AST.RangeExpr | AST.IntrinsicCallExpr | AST.ArrayTypeExpr
-            | AST.FnTypeExpr | AST.AwaitExpr | AST.CastExpr | AST.BreakStmt | AST.ContinueStmt
+            | AST.FnTypeExpr | AST.CastExpr | AST.BreakStmt | AST.ContinueStmt
             | AST.YieldStmt | AST.DeferStmt | AST.DestructureAssignStmt | AST.IsPattern
             | AST.EnumVariantPattern | AST.WildcardPattern | AST.RangePattern | AST.LiteralPattern
             | AST.OrPattern | AST.BinaryExpr -> {}

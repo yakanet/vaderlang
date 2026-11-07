@@ -60,17 +60,6 @@ find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | null {
     }
 }
 
-/// Build the `T | Suspended` union an `async fn`'s synthesised `resume`
-/// returns. Flattening (via `union_of`) keeps a fallible `T = U | Error` from
-/// nesting : `(U | Error) | Suspended` collapses to `U | Error | Suspended`,
-/// so the `is Suspended` tag check and the completion arm both see a flat
-/// union.
-/// @param result     the async fn's declared result type `T`.
-/// @param suspended  the `Suspended` sentinel struct type.
-/// @return           the flattened resume-return union.
-union_of_result_suspended :: fn(result: Type, suspended: Type) -> Type =
-    union_of([result, suspended])
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

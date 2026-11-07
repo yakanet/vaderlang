@@ -133,7 +133,6 @@ analyze_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
         is LoweredExprStmt -> { analyze_expr(s.expr, ctx) }
         is LoweredReturn -> { v :: s.value  if v != null { analyze_expr(v, ctx) } }
         is LoweredYield -> { analyze_expr(s.value, ctx) }
-        is LoweredAwait -> { analyze_expr(s.awaited, ctx) }
         is LoweredLabelledBlock -> { analyze_block(s.body, ctx) }
         is LoweredLoop -> {
             c :: s.cond
@@ -229,7 +228,6 @@ rewrite_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
         is LoweredExprStmt -> { rewrite_expr(s.expr, ctx) }
         is LoweredReturn -> { v :: s.value  if v != null { rewrite_expr(v, ctx) } }
         is LoweredYield -> { rewrite_expr(s.value, ctx) }
-        is LoweredAwait -> { rewrite_expr(s.awaited, ctx) }
         is LoweredLabelledBlock -> { rewrite_block(s.body, ctx) }
         is LoweredLoop -> {
             c :: s.cond

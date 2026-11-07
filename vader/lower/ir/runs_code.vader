@@ -51,7 +51,7 @@ block_runs_code :: fn(b: LoweredBlock) -> bool =
     b.stmts.any_match(stmt_runs_code) || opt_expr_runs_code(b.trailing)
 
 stmt_runs_code :: fn(st: LoweredStmt) -> bool = match st {
-    is LoweredAwait | LoweredDeferPopExec -> true
+    is LoweredDeferPopExec -> true
     is LoweredAssign | LoweredCellSet -> expr_runs_code(st.target) || expr_runs_code(st.value)
     is LoweredLet           -> expr_runs_code(st.value)
     is LoweredGlobalSet     -> expr_runs_code(st.value)

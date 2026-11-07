@@ -30,7 +30,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
         match item {
             is StructLitField -> { provided[item.name] = item.value }
             is StructLitSpread -> {
-                value :: lower_after_prelude(ctx, item.expr, spread_stmts)
+                value :: lower_expr(ctx, item.expr)
                 spread :: literal_spread(ctx, type, fresh_synthetic_symbol(ctx, "spread"), value)
                 spreads = with_spread(spreads, spread)
                 spread_stmts.push(
@@ -45,9 +45,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
             }
         }
     }
-    fields_mark :: ctx.pending_awaits.len()
     fields :: build_struct_lit_fields(ctx, type, provided, lit, spreads)
-    hoist_prelude_before(ctx, spread_stmts, fields_mark)
     return with_prelude(spread_stmts, new_struct_lit(ctx, type, fields, lit.span), lit.span)
 }
 
@@ -320,31 +318,11 @@ build_struct_lit_fields :: fn(
                 })
             }
         } else {
-            mark :: ctx.pending_awaits.len()
             value :: lower_for_slot(ctx, user_value, field_type, user_value.span)
-            bind_fields_before_hoisted(ctx, out, mark)
             out.push(LoweredStructLitField { .name = field_decl.name, .value = value })
         }
     }
     return out
-}
-
-// When the field value lowered since sink length `mark` hoisted an `await`, the
-// fields lowered before it are kept ahead of it (`bind_before_hoisted`).
-bind_fields_before_hoisted :: fn(
-    ctx: FnLowerCtx, fields: LoweredStructLitField[], mark: i64,
-) -> void {
-    if ctx.pending_awaits.len() == mark {
-        return
-    }
-    values: LoweredExpr[]: []
-    for field in fields {
-        values.push(field.value)
-    }
-    bind_before_hoisted(ctx, values, mark)
-    for i in 0..<fields.len() {
-        fields[i] = LoweredStructLitField { .name = fields[i].name, .value = values[i] }
-    }
 }
 
 // A literal's field type : its declaration's, through the entry's substitution.
@@ -416,9 +394,7 @@ fallback_provided_order :: fn(ctx: FnLowerCtx, lit: StructLitExpr) -> LoweredStr
     for item in lit.items {
         match item {
             is StructLitField -> {
-                mark :: ctx.pending_awaits.len()
                 value :: lower_expr(ctx, item.value)
-                bind_fields_before_hoisted(ctx, out, mark)
                 out.push(LoweredStructLitField { .name = item.name, .value = value })
             }
             is StructLitSpread -> {}

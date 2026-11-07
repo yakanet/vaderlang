@@ -30,16 +30,9 @@ gb_continue_to :: fn(gb: GenBuild, frame: LoopFrame) -> LoweredStmt[] {
 
 gb_break_to :: fn(gb: GenBuild, frame: LoopFrame) -> LoweredStmt[] = [gb_set_state(gb, frame.exit)]
 
-// A `return` completes the coroutine: a generator stops its stream, an async fn
-// hands back its value: the `null` done-marker for a bare `return`, so the
-// resume result stays `T | Suspended`.
-gb_complete :: fn(gb: GenBuild, value: LoweredExpr | null) -> LoweredStmt[] {
-    done :: gb_set_state(gb, i64(DONE_STATE))
-    if !gb.is_async {
-        return [done, gb_done_return(gb)]
-    }
-    return [done, LoweredReturn { .span = gb.span, .value = value ?? gb_null_lit(gb) }]
-}
+// A `return` completes the coroutine: a generator stops its stream.
+gb_complete :: fn(gb: GenBuild) -> LoweredStmt[] =
+    [gb_set_state(gb, i64(DONE_STATE)), gb_done_return(gb)]
 
 // ---- retarget -------------------------------------------------------------
 //
@@ -59,7 +52,7 @@ gb_retarget_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> LoweredStmt = match s {
         if frame.local { s } else { gb_reenter(gb, gb_continue_to(gb, frame)) }
     }
     // No loop holds a `return`: it leaves the coroutine from any depth.
-    is LoweredReturn -> wrap_stmts(s.span, gb_complete(gb, gb_retarget_opt(gb, s.value)))
+    is LoweredReturn -> wrap_stmts(s.span, gb_complete(gb))
     is LoweredLet -> LoweredLet { ...s, .value = gb_retarget_expr(gb, s.value) }
     is LoweredAssign -> LoweredAssign {
         ...s,
@@ -74,7 +67,6 @@ gb_retarget_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> LoweredStmt = match s {
     is LoweredGlobalSet -> LoweredGlobalSet { ...s, .value = gb_retarget_expr(gb, s.value) }
     is LoweredExprStmt -> LoweredExprStmt { ...s, .expr = gb_retarget_expr(gb, s.expr) }
     is LoweredYield -> LoweredYield { ...s, .value = gb_retarget_expr(gb, s.value) }
-    is LoweredAwait -> LoweredAwait { ...s, .awaited = gb_retarget_expr(gb, s.awaited) }
     is LoweredLabelledBlock -> {
         gb.loop_stack.push(LoopFrame {
             .label = s.label, .header = -1, .exit = -1, .step = [], .local = true, .block = true,

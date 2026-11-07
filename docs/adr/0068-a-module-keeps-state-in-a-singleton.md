@@ -5,7 +5,12 @@
 Accepted (2026-10-16). Replaces the module variable (`NAME: T[]!: value`) once the
 six sites of `lib/std` are migrated; follows 0067, where `!` stopped granting
 anything. The form left with the marker (0069). Amended by 0111 (an `async`
-singleton shares one task) and 0112 (a module constant cannot call a singleton).
+singleton shares one task, replaced by 0127) and 0112 (a module constant cannot call a singleton).
+
+**Amended by [0127](0127-concurrency-is-tasks-on-virtual-threads-checked-on-the-data.md) (2026-11-07)**: `await` is gone, so a singleton is refused when it
+takes a parameter, has a type parameter or yields. In a program that loads
+`std/runtime/scheduler`, a thread that calls a singleton while another builds it
+waits for the instance; the thread that builds it coming back still traps.
 
 ## Context
 

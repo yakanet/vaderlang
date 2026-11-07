@@ -154,7 +154,6 @@ check_fn_body :: fn(
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
     is_generator :: fn_is_generator(typed, fn_decl)
-    is_async :: fn_is_async(typed, fn_decl)
     // Generators are inferred from a body `yield` (`is_generator`), so the
     // signature must honour it with an `Iterator<T>` return : extract that
     // element type (T3056 if the return isn't `Iterator<T>`). The body yields
@@ -169,24 +168,18 @@ check_fn_body :: fn(
     // TY_UNRESOLVED ; we resolve it here and patch `decl_types` so
     // call sites see the inferred type.
     inferred_return :: fn_decl.is_expression_bodied && return_type is UnresolvedType
-    // An async coroutine's body produces the inner `T` of `Async<T>` (the frame
-    // wraps it), so check its returns / trailing against `T`, not the erased
-    // return. Transitional `async fn -> T` has inner == T (no-op) ; generators
-    // keep the raw return (they yield, never return the stream).
-    effective_return :: if is_async && !is_generator { async_inner_type(return_type) } else { return_type }
     // A body that returns nothing checks its last expression against no expected
     // type: the value is discarded.
-    expected: Type | null = effective_return
-    if inferred_return || is_void(effective_return) {
+    expected: Type | null = return_type
+    if inferred_return || is_void(return_type) {
         expected = null
     }
     ctx :: FnContext {
-        .return_type = effective_return,
+        .return_type = return_type,
         .loop_depth = 0,
         .fn_id = fn_decl.id,
         .is_generator = is_generator,
         .yield_type = yield_type,
-        .is_async = is_async,
     }
     prev :: typed.current_fn_ctx
     typed.current_fn_ctx = ctx
@@ -220,7 +213,7 @@ check_fn_body :: fn(
             defaulted :: default_free_members(got)
             patch_fn_return_type(fn_decl, defaulted, typed)
         }
-    } else if is_void(effective_return) {
+    } else if is_void(return_type) {
         // A body returning nothing discards its trailing value, and has nothing
         // to hand back at its closing brace.
     } else if body.trailing !is null {
@@ -228,7 +221,7 @@ check_fn_body :: fn(
         // explicit `return`. Surface T3020 against the trailing's span.
         emit_return_mismatch_if(
             got,
-            effective_return,
+            return_type,
             body.trailing.span,
             body.trailing,
             typed,
@@ -244,11 +237,11 @@ check_fn_body :: fn(
         // `got` is `never` exactly when `check_block` saw the last statement
         // diverge: a `return` / `break` / `continue`, a `@no_return` call, or
         // a loop nothing can leave.
-        if effective_return !is UnresolvedType {
+        if return_type !is UnresolvedType {
             diags.push(
                 typecheck_error(
                     .BodyFallsOffEnd, fn_decl.name_span,
-                    "`${fn_decl.name}` promises ${display_type(effective_return)}",
+                    "`${fn_decl.name}` promises ${display_type(return_type)}",
                 ),
             )
         }

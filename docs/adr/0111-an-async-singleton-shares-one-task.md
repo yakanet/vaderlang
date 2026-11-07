@@ -4,6 +4,10 @@
 
 Accepted (2026-10-25). Amends 0068: a singleton may await.
 
+**Replaced by [0127](0127-concurrency-is-tasks-on-virtual-threads-checked-on-the-data.md) (2026-11-07)**: `await`, `share` and `std/async` left the
+language. A singleton that returns a `Task<T>` hands every call the same task,
+which each caller joins.
+
 ## Context
 
 0068 refused a singleton that awaits (T3103): a body that suspends would let

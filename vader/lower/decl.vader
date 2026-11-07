@@ -184,12 +184,11 @@ lower_fn_decl :: fn(
     return lowered_fn_of(fn_decl, typed, project_ctx, entry, subst, params, return_type)
 }
 
-/// A fn or an impl member, lowered: its state machine when it is a generator or
-/// awaits, its plain body otherwise, with the type that body hands back ; no body
-/// for one that has none (`@extern`, `@intrinsic`). Every site that materialises
-/// one goes through here, so the body and its return type are decided together.
-/// A body that both yields and awaits is a generator, as the typecheck reads it ;
-/// lowered as a plain body, a generator would drop every `yield` and return no
+/// A fn or an impl member, lowered: its state machine when it is a generator,
+/// its plain body otherwise, with the type that body hands back ; no body for
+/// one that has none (`@extern`, `@intrinsic`). Every site that materialises one
+/// goes through here, so the body and its return type are decided together.
+/// Lowered as a plain body, a generator would drop every `yield` and return no
 /// value.
 ///
 /// @param fn_decl      the fn or member.
@@ -219,31 +218,10 @@ lowered_fn_of :: fn(
             ),
         }
     }
-    if fn_is_async(typed, fn_decl) {
-        inner :: async_inner_type(return_type)
-        return LoweredFnDecl {
-            ...bodyless,
-            .return_type = async_return_type(project_ctx, entry, return_type, inner),
-            .body        = lower_async_body(
-                project_ctx, entry, typed, subst, fn_decl, body, params, inner, entry.is_main,
-            ),
-        }
-    }
     return LoweredFnDecl {
         ...bodyless,
         .body = lower_fn_body(fn_decl, typed, project_ctx, entry, subst, return_type),
     }
-}
-
-// What an `async` body hands back: the erased `Async<T>` its frame is, or for
-// `async main` the raw `inner`, the exit code the driver inlined into its body
-// returns (the program entry cannot return a frame).
-async_return_type :: fn(project_ctx: LowerProjectCtx, entry: MonoEntry, declared: Type, inner: Type) -> Type {
-    if entry.is_main {
-        return inner
-    }
-    async_sym :: find_core_trait(project_ctx, TRAIT_ASYNC) ?? return inner
-    return erased_async_type(async_sym, declared)
 }
 
 // Build the fn-body context and invoke the block lowerer. Returns

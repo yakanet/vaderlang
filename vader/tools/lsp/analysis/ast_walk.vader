@@ -236,8 +236,8 @@ binding_step :: fn(n: AST.Node, typed: TypedProgram, st: FindBindingState) -> AS
         | AST.StringLitExpr | AST.IdentExpr | AST.DotVariantExpr | AST.CallExpr | AST.FieldExpr
         | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.NullCoalesceExpr | AST.IfExpr
         | AST.BlockExpr | AST.LambdaExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr
-        | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.AwaitExpr
-        | AST.FnTypeExpr | AST.ArrayTypeExpr | AST.Pattern -> .Descend
+        | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.FnTypeExpr
+        | AST.ArrayTypeExpr | AST.Pattern -> .Descend
 }
 
 // The header's binding names the scrutinee : `match v :: f()` binds `v` to

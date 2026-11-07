@@ -50,9 +50,9 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
         if ty.name == "bool" { return LoweredBoolLit { .span = span, .type = ty, .value = false } }
         if is_float_name(ty.name) { return LoweredFloatLit { .span = span, .type = ty, .value = 0.0 } }
         if ty.name == "string" { return LoweredStringLit { .span = span, .type = ty, .value = "" } }
-        // `null` is a boxed slot, not an integer width: its zero value is `null`
-        // (a void `async` await binds a `null`-typed target). Falling through to
-        // the integer arm would emit `(vader_box_t)(int32_t)0`, invalid C.
+        // `null` is a boxed slot, not an integer width: its zero value is `null`.
+        // Falling through to the integer arm would emit
+        // `(vader_box_t)(int32_t)0`, invalid C.
         if ty.name == "null" { return LoweredNullLit { .span = span, .type = ty } }
         // `char`, `CPointer` : a zero of their width
         return LoweredIntLit { .span = span, .type = ty, .value = 0 }
@@ -157,17 +157,10 @@ lower_generator_fn :: fn(
     routed :: gb_route_block(gb, lowered_body)
     entry_state :: gb_build(gb, routed)
 
-    // Synthesize the `g$State` struct (spilled fields + optional `__defers` +
-    // `state: i32` resume discriminant) and its `$Iterator$next` fn. `__defers`
-    // is materialized only if the body has a `defer`, which T3060 currently
-    // rejects, so it never fires today ; mirroring the async driver keeps the
-    // shared engine's defer rewrite (`gb_route_stmt`) self-consistent instead of
-    // emitting `self.__defers` against a field only async provides (4c lifts T3060).
+    // Synthesize the `g$State` struct (spilled fields + `state: i32` resume
+    // discriminant) and its `$Iterator$next` fn.
     state_fields: LoweredStructField[]: []
     for f in gb.fields { state_fields.push(f) }
-    if gb.has_defers {
-        state_fields.push(LoweredStructField { .name = GB_DEFERS_FIELD, .type = gb_defers_ty() })
-    }
     state_fields.push(LoweredStructField { .name = "state", .type = TY_I32 })
     push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, shape.type, gb_next_body(gb), state_fields)
 
@@ -186,12 +179,6 @@ lower_generator_fn :: fn(
             zero_value_lit(span, f.type)
         }
         construct_fields.push(LoweredStructLitField { .name = f.name, .value = value })
-    }
-    if gb.has_defers {
-        construct_fields.push(LoweredStructLitField {
-            .name = GB_DEFERS_FIELD,
-            .value = LoweredArrayLit { .span = span, .type = gb_defers_ty(), .elements = [] },
-        })
     }
     construct_fields.push(LoweredStructLitField {
         .name = "state", .value = LoweredIntLit { .span = span, .type = TY_I32, .value = entry_state },

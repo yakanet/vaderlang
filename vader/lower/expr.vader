@@ -150,11 +150,8 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             return kept_in_range(ctx, lowered, borrowed, expr.span)
         }
         is NullCoalesceExpr -> { return lower_null_coalesce(ctx, expr) }
-        is IfExpr -> { return lift_awaiting_value(ctx, lower_if(ctx, expr, type), type) }
-        is BlockExpr     -> {
-            lowered :: lower_block(ctx, expr, false, null)
-            return lift_awaiting_value(ctx, lowered, type)
-        }
+        is IfExpr        -> { return lower_if(ctx, expr, type) }
+        is BlockExpr     -> { return lower_block(ctx, expr, false, null) }
         is StructLitExpr -> { return lower_struct_lit(ctx, expr, type) }
         is SeqLitExpr    -> { return lower_seq_lit(ctx, expr, type) }
         is CastExpr      -> {
@@ -163,28 +160,7 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             }
         }
         is IntrinsicCallExpr -> { return lower_intrinsic(ctx, expr, type) }
-        is MatchExpr -> {
-            lowered :: lower_match(ctx, expr, type)
-            return lift_awaiting_value(ctx, lowered, type)
-        }
-        is AwaitExpr -> {
-            // ANF (async only) : hoist `await e` to a `LoweredAwait` statement
-            // on the pending sink, yield an ident to its bound target. Drained
-            // into statement position by the code that owns the statement (see
-            // `pending_awaits`). A non-async context is a
-            // T3064 typecheck error already reported ; trap if one still reaches.
-            if !ctx.in_async {
-                return LoweredUnreachable {
-                    .span = expr.span, .type = type, .reason = "await outside an async coroutine",
-                }
-            }
-            awaited :: lower_expr(ctx, expr.inner)
-            target :: fresh_synthetic_symbol(ctx, "await")
-            ctx.pending_awaits.push(LoweredAwait {
-                .span = expr.span, .target = target, .target_type = type, .awaited = awaited,
-            })
-            return LoweredIdent { .span = expr.span, .type = type, .symbol = target }
-        }
+        is MatchExpr -> { return lower_match(ctx, expr, type) }
         is LambdaExpr -> { return lower_lambda(ctx, expr) }
         is RangeExpr -> { return lower_range_expr(ctx, expr, type) }
         is DotVariantExpr -> { return lower_dot_variant(ctx, expr, type) }
@@ -745,11 +721,7 @@ lower_null_coalesce :: fn(ctx: FnLowerCtx, e: NullCoalesceExpr) -> LoweredExpr {
         LoweredCast { .span = e.span, .type = result, .value = tmp_ref },
         e.span,
     )
-    // The fallback runs only when `left` is null, so an `await` in it cannot
-    // hoist before the statement (M5009).
-    fallback_base :: ctx.pending_awaits.len()
     then_block :: lower_coalesce_fallback(ctx, e.fallback, result)
-    guard_no_pending_await(ctx, fallback_base, then_block.span)
     if_node :: LoweredIf {
         .span = e.span, .type = result, .cond = cond,
         .then_block = then_block,
@@ -820,91 +792,6 @@ taken_branch :: fn(ctx: FnLowerCtx, if_expr: IfExpr, holds: bool, type: Type) ->
     return LoweredBlock { ...else_block, .type = type }
 }
 
-// ---- async ANF : lift a value whose statements await -----------------------
-
-// A value `if`, `match` or block that awaits cannot stay an expression: the
-// block-split only descends statements, so the suspension would be lost.
-// Rewrite it to statements that store its value into a fresh spilled temp,
-// push `let tmp` and those statements onto the ANF sink, and return `tmp`.
-// Any other value comes back unchanged.
-lift_awaiting_value :: fn(ctx: FnLowerCtx, lowered: LoweredExpr, type: Type) -> LoweredExpr {
-    if !ctx.in_async || is_void(type) || !value_has_await(lowered) {
-        return lowered
-    }
-    span :: lowered.span
-    // Spilled by the block-split so it survives a suspension in the value ;
-    // every path that reaches the read stores it first.
-    zero :: zero_value_lit(span, type)
-    target :: bind_to_local(ctx, zero, type, "value", span, ctx.pending_awaits)
-    store_value(lowered, target, ctx.pending_awaits)
-    return target
-}
-
-// The statements that evaluate `value` and store it into `target`. A block
-// keeps its statements and stores its trailing value, unless it diverges ; an
-// `if` becomes a statement whose arms store theirs, so a branch nested in the
-// value (an `else if`, the arm chain of a `match`) leaves expression position
-// too.
-store_value :: fn(value: LoweredExpr, target: LoweredExpr, out: LoweredStmt[]) -> void {
-    // @partial: every other expression is a leaf value, stored as it is.
-    @partial match value {
-        is LoweredBlock -> {
-            out.push_all(value.stmts)
-            if value.trailing != null {
-                store_value(value.trailing, target, out)
-            }
-        }
-        is LoweredIf    -> {
-            stmt_if :: LoweredIf {
-                ...value,
-                .type = TY_VOID,
-                .then_block = stored_arm(value.then_block, target),
-                .else_block = stored_else(value.else_block, target),
-            }
-            out.push(LoweredExprStmt { .span = value.span, .expr = stmt_if })
-        }
-        _               -> {
-            out.push(LoweredAssign { .span = value.span, .target = target, .value = value })
-        }
-    }
-}
-
-stored_arm :: fn(block: LoweredBlock, target: LoweredExpr) -> LoweredBlock {
-    stmts: LoweredStmt[]: []
-    store_value(block, target, stmts)
-    return mk_void_block(stmts, block.span)
-}
-
-stored_else :: fn(block: LoweredBlock | null, target: LoweredExpr) -> LoweredBlock | null {
-    if block == null {
-        return null
-    }
-    return stored_arm(block, target)
-}
-
-// Whether `e` holds a `LoweredAwait` statement: the case `lift_awaiting_value`
-// rewrites.
-value_has_await :: fn(e: LoweredExpr) -> bool {
-    found := false
-    for_each_stmt_node_in_expr(e, (s: LoweredStmt) -> {
-        if s is LoweredAwait {
-            found = true
-        }
-    })
-    return found
-}
-
-// An `if`, a `match` or a block whose value the caller discards, or lifts as a
-// whole: lowered without lifting its own awaits, which the enclosing lift, or the
-// block-split for a statement, reaches anyway.
-// @partial: every other expression lowers as usual.
-lower_unlifted :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr = @partial match expr {
-    is IfExpr    -> lower_if(ctx, expr, ctx.types.expr_type(expr))
-    is MatchExpr -> lower_match(ctx, expr, ctx.types.expr_type(expr))
-    is BlockExpr -> lower_block(ctx, expr, false, null)
-    _            -> lower_expr(ctx, expr)
-}
-
 voidify_block :: fn(block: LoweredBlock) -> LoweredBlock =
     mk_void_block(block_stmts_with_trailing(block), block.span)
 
@@ -912,19 +799,8 @@ lower_if_else :: fn(ctx: FnLowerCtx, branch: IfElse | null) -> LoweredBlock | nu
     match branch {
         is null -> { return null }
         is IfElseIf -> {
-            // The condition of an `else if` runs only once the previous one
-            // failed: its awaits open the else block instead of preceding the
-            // whole `if`.
-            base :: ctx.pending_awaits.len()
             chained :: lower_if(ctx, branch.branch, ctx.types.expr_type(branch.branch))
-            stmts: LoweredStmt[]: []
-            drain_pending_from(ctx, stmts, base)
-            return LoweredBlock {
-                .span = branch.branch.span,
-                .type = chained.type,
-                .stmts = stmts,
-                .trailing = chained,
-            }
+            return wrap_as_block(chained, branch.branch.span)
         }
         is IfElseBlock -> { return lower_block(ctx, branch.block, false, null) }
     }

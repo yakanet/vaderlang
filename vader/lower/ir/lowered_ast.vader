@@ -246,7 +246,6 @@ export LoweredStmt ::
     | LoweredExprStmt
     | LoweredReturn
     | LoweredYield
-    | LoweredAwait
     | LoweredLoop
     | LoweredLabelledBlock
     | LoweredBreak
@@ -323,18 +322,6 @@ export LoweredYield :: struct {
     value: LoweredExpr
 }
 
-/// TRANSIENT async marker: one `await e` inside an `async` body, produced by
-/// the ANF pass when `FnLowerCtx.in_async` is set, and wholly consumed by the
-/// coroutine state-machine transform (`vader/lower/coroutine.vader`). Like
-/// `LoweredYield` it never reaches the backend (armed `unreachable`). Binds the
-/// resolved value of `awaited` (an `Async<target_type>`) to the local `target`.
-export LoweredAwait :: struct {
-    span:        Span
-    target:      Symbol
-    target_type: Type
-    awaited:     LoweredExpr
-}
-
 /// A block that a `break <label>` leaves early, where the lowering has to jump
 /// out of code that is not a loop: past everything an inlined generator emits,
 /// or past the rest of a loop body spliced into one. It is not a loop: no
@@ -354,7 +341,7 @@ export LoweredLoop :: struct {
     body:  LoweredBlock
     /// Runs after the body, and wherever a `continue` targets this loop, before
     /// `cond` is tested again: a counted loop's increment. Straight-line code:
-    /// no jump, no `yield` or `await`. Empty for a loop with no step.
+    /// no jump, no `yield`. Empty for a loop with no step.
     step:  LoweredStmt[]
     /// How many turns the loop runs, when the emitter that built it knows ; null
     /// for any other loop.

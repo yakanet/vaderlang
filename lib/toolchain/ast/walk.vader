@@ -93,7 +93,6 @@ export inspect :: fn(
             is FnTypeExpr -> inspect_exprs(n.params, visit, leave)
                 || inspect_maybe(n.return_type, visit, leave)
             is ArrayTypeExpr -> inspect(n.element, visit, leave)
-            is AwaitExpr -> inspect(n.inner, visit, leave)
             is LetStmt -> inspect_maybe(n.ty, visit, leave) || inspect(n.value, visit, leave)
             is AssignStmt -> inspect_assign(n, visit, leave)
             is DestructureAssignStmt -> inspect_targets(n.targets, visit, leave)

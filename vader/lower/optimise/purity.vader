@@ -30,7 +30,7 @@ PurityCtx :: struct {
 
 /// Whether `fd` cannot run a collection or change an array's length: its body
 /// allocates nothing (no literal / push / slice / closure), suspends nowhere (no
-/// yield / await / defer), and calls only other pure fns. Not a side-effect test:
+/// yield / defer), and calls only other pure fns. Not a side-effect test:
 /// a pure fn may still write an element, a field or a global. Memoised by mangle.
 /// A bodyless (`@extern`) fn and any recursion cycle are conservatively impure.
 is_pure_fn :: fn(ctx: PurityCtx, fd: LoweredFnDecl) -> bool {
@@ -87,8 +87,8 @@ new_purity_ctx :: fn(project: LoweredProject) -> PurityCtx {
 //     `ArraySlice`), save a tuple literal within the value ABI
 //     (`value_abi_type_size`), which crosses in registers (c_emit still re-checks
 //     the push cache on the op stream that ships);
-//   - a SUSPEND point (`yield` / `await`): on resume a GC may have run, or another
-//     task may have changed the array;
+//   - a SUSPEND point (`yield`): on resume a GC may have run, or other code may
+//     have changed the array;
 //   - a `defer` push/pop: may allocate the defer stack, and runs arbitrary code.
 // Index writes `a[i] = v` and variable rebinds neither allocate nor change a
 // length, so they do not disturb. The matches are EXHAUSTIVE, so a new Lowered
@@ -126,7 +126,7 @@ stmt_may_disturb :: fn(ctx: PurityCtx, s: LoweredStmt) -> bool = match s {
         opt_expr_may_disturb(ctx, s.cond) || block_may_disturb(ctx, s.body)
             || block_may_disturb(ctx, loop_step_block(s))
     is LoweredBreak | LoweredContinue -> false
-    is LoweredYield | LoweredAwait | LoweredDeferPush | LoweredDeferPopExec -> true
+    is LoweredYield | LoweredDeferPush | LoweredDeferPopExec -> true
 }
 
 // Whether `e` may disturb an array.

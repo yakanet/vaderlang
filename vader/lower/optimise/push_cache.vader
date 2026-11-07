@@ -138,7 +138,6 @@ pc_scan_stmt :: fn(ctx: PurityCtx, st: LoweredStmt, live: i32[]) -> void {
         is LoweredGlobalSet -> { pc_scan_expr(ctx, st.value, live) }
         is LoweredYield     -> { pc_scan_expr(ctx, st.value, live) }
         is LoweredExprStmt  -> { pc_scan_expr(ctx, st.expr, live) }
-        is LoweredAwait     -> { pc_scan_expr(ctx, st.awaited, live) }
         is LoweredDeferPush -> { pc_scan_expr(ctx, st.thunk, live) }
         is LoweredLabelledBlock -> { pc_scan_block(ctx, st.body, live) }
         is LoweredReturn    -> {
@@ -299,7 +298,7 @@ pc_has_extra_exit :: fn(b: LoweredBlock) -> bool {
 }
 
 pc_stmt_exits :: fn(st: LoweredStmt) -> bool = match st {
-    is LoweredReturn | LoweredYield | LoweredAwait | LoweredDeferPush | LoweredDeferPopExec -> true
+    is LoweredReturn | LoweredYield | LoweredDeferPush | LoweredDeferPopExec -> true
     is LoweredBreak | LoweredContinue -> st.label != null
     is LoweredLet | LoweredAssign | LoweredCellSet | LoweredGlobalSet | LoweredExprStmt
         | LoweredLoop | LoweredLabelledBlock -> false

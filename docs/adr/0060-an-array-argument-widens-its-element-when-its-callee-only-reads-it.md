@@ -5,6 +5,9 @@
 Accepted (2026-10-14). Replaces the covariance that the read-only bit granted an
 array, which the rights of ADR 0053 are about to take out of the types.
 
+**Amended by [0127](0127-concurrency-is-tasks-on-virtual-threads-checked-on-the-data.md) (2026-11-07)**: the `async` function is gone. The frame of a
+generator and the bindings a lambda captures still are no escape.
+
 ## Context
 
 An array is shared, not copied: a `Circle[]` seen as a `(Circle | null)[]` lets

@@ -48,7 +48,7 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     // The consumer, the namespace, the cast and the method forms observe their own
     // choice for the callee verifier (`verify_callees.vader`) ; the others are read
     // off the call they produce. A form that declines has lowered nothing : a lambda
-    // or an `await` lowered there would stay behind.
+    // lowered there would stay behind.
     consumer_form :: try_inline_consumer(ctx, call, type)
     if consumer_form != null { return consumer_form }
     static_form :: try_lower_static_member_call(ctx, call, type)
@@ -71,12 +71,11 @@ lower_plain_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredEx
     generic_form :: try_lower_generic_fn_call(ctx, call, type)
     if generic_form != null { return observed(ctx, call, .Call, generic_form) }
     callee :: lower_callee(ctx, call)
-    mark :: ctx.pending_awaits.len()
     args :: lower_call_args(ctx, call.args, param_types_of(callee.type), 0)
     plain :: LoweredCall {
         .span = call.span,
         .type = type,
-        .callee = bind_one_before_hoisted(ctx, callee, mark),
+        .callee = callee,
         .args = args,
     }
     return observed(ctx, call, .Call, plain)

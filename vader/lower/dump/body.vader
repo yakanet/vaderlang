@@ -38,7 +38,6 @@ stmt_text :: fn(names: DumpNames, stmt: LoweredStmt, indent: string) -> string =
     is LoweredExprStmt      -> statement_text(names, stmt.expr, indent)
     is LoweredReturn        -> return_text(names, stmt.value, indent)
     is LoweredYield         -> "yield ${expr_text(names, stmt.value, indent)}"
-    is LoweredAwait         -> await_text(names, stmt, indent)
     is LoweredLoop          -> loop_text(names, stmt, indent)
     is LoweredLabelledBlock -> "${stmt.label}: ${braced_text(names, stmt.body, indent)}"
     is LoweredBreak         -> "break${label_suffix(stmt.label)}"
@@ -70,11 +69,6 @@ assign_text :: fn(
 
 cell_set_text :: fn(names: DumpNames, stmt: LoweredCellSet, indent: string) -> string =
     "${cell_text(names, stmt.target, indent)} = ${expr_text(names, stmt.value, indent)}"
-
-await_text :: fn(names: DumpNames, stmt: LoweredAwait, indent: string) -> string {
-    declared :: "${stmt.target.name}: ${display_type(stmt.target_type)}"
-    return "${declared} = await ${expr_text(names, stmt.awaited, indent)}"
-}
 
 // An `if` or a block standing as a statement : its value, if any, is dropped,
 // so it is printed without a type.

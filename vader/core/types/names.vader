@@ -2,8 +2,8 @@
 //
 // The primitives and their slot sizes (`PRIMITIVE_META`), the core traits,
 // structs and methods the compiler reaches by name (`TRAIT_*`, `STRUCT_*`,
-// `METHOD_*`), the keys that name a declaration across modules (`declaration_key`,
-// `trait_key_of`), and the types an `async fn` hands back (`erased_async_type`).
+// `METHOD_*`), and the keys that name a declaration across modules
+// (`declaration_key`, `trait_key_of`).
 
 module "vader/core/types"
 
@@ -165,7 +165,6 @@ export TRAIT_CLONE      :: @type_name(Clone)
 export TRAIT_STEP       :: @type_name(Step)
 export TRAIT_INTO       :: @type_name(Into)
 export TRAIT_ITERATOR   :: @type_name(Iterator)
-export TRAIT_ASYNC      :: @type_name(Async)
 export TRAIT_CONTAINS   :: @type_name(Contains)
 export TRAIT_INDEX      :: @type_name(Index)
 export TRAIT_INDEX_SET  :: @type_name(IndexSet)
@@ -245,7 +244,7 @@ export is_c_library :: fn(t: Type) -> bool {
 }
 
 /// The argument of `t` when it is the one-argument `std/core` trait `name`:
-/// `E` for `Iterator<E>`, `T` for `Async<T>`.
+/// `E` for `Iterator<E>`.
 ///
 /// @param t     the type to read.
 /// @param name  a `TRAIT_*` constant.
@@ -280,32 +279,11 @@ export trait_key_name :: fn(key: string) -> string {
     return key.byte_slice(start, key.byte_len())
 }
 
-/// The erased `Async<T>` an `async fn` declaring `result` hands its callers : the
-/// `T` of a declared `Async<T>`, or the whole `result`, wrapped once. The call
-/// site and the lowered declaration both take their type from here.
-///
-/// @param async_sym  the core `Async` trait.
-/// @param result     the fn's declared return, substituted for the instance.
-export erased_async_type :: fn(async_sym: Symbol, result: Type) -> Type =
-    mk_trait(async_sym, [async_result_arg(async_inner_type(result))])
-
-/// The raw value type a coroutine body produces : the `T` of a declared
-/// `Async<T>` return (target form), or the declared return itself (transitional
-/// `-> T`). NOT normalized: `void` stays `void` (the body is void-bodied) ; the
-/// void→null step happens only where the erased `Async<...>` type is built.
-export async_inner_type :: fn(t: Type) -> Type = core_trait_arg(t, TRAIT_ASYNC) ?? t
-
-/// The `Async` type argument for an `async fn`'s declared result : `void`
-/// normalizes to `null`, everything else passes through. The call site, the
-/// lowered declaration and the resume type all read it here, so they agree.
-export async_result_arg :: fn(result: Type) -> Type = if is_void(result) { TY_NULL } else { result }
-
 // ---- core structs and methods ---------------------------------------------
 
 /// Names of stdlib core structs the compiler refers to by symbol.
-export STRUCT_RANGE          :: @type_name(Range)
-export STRUCT_SUSPENDED      :: @type_name(Suspended)
-export STRUCT_FIELD          :: @type_name(Field)
+export STRUCT_RANGE :: @type_name(Range)
+export STRUCT_FIELD :: @type_name(Field)
 
 /// `std/core::Stop`, what an `Iterator.next` returns once the iteration is over.
 export STRUCT_STOP :: @type_name(Stop)
@@ -323,8 +301,6 @@ export METHOD_COMPARE   :: "compare"
 export METHOD_CONTAINS  :: "contains"
 export METHOD_INTO      :: "into"
 export METHOD_NEXT      :: "next"
-export METHOD_RESUME    :: "resume"
-export METHOD_CANCEL    :: "cancel"
 export METHOD_TO_STRING :: "to_string"
 export METHOD_AT        :: "at"
 export METHOD_SET_AT    :: "set_at"

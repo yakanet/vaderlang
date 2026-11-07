@@ -1,5 +1,0 @@
-# stdout
-mix = hi:7
-after-done = Suspended
-# exit
-0

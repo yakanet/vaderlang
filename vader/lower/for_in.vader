@@ -639,9 +639,8 @@ try_lower_for_in_int_range :: fn(
     // bound_type, but the literal's own type carries the i32 default
     // unless the typer narrowed it ; rewrite the LoweredIntLit here.
     lo_value :: lower_expr(ctx, range.lower)
-    mark :: ctx.pending_awaits.len()
     hi_value :: lower_expr(ctx, range.upper)
-    lo :: widen_int_lit(bind_one_before_hoisted(ctx, lo_value, mark), bound_type)
+    lo :: widen_int_lit(lo_value, bound_type)
     hi_raw :: widen_int_lit(hi_value, bound_type)
 
     // The counter runs on the loop variable itself : nothing but the loop rebinds

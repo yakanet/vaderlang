@@ -55,15 +55,6 @@ export format_source :: fn(source: string, path: string) -> FormatResult {
 import "std/testing"
 
 @test
-test_roundtrip_preserves_await_parens :: fn() -> void {
-    // `await` binds looser than postfix `.`, so these parens must survive the
-    // round-trip or the operator re-binds onto a sub-expression
-    // (`(await x).f` → `await x.f`).
-    fmt_keeps("h :: fn() -> i32 = (await m()).value", "(await m()).value")
-    fmt_keeps("k :: fn(a: i32, b: i32) -> i32 = await (a + b)", "await (a + b)")
-}
-
-@test
 test_fmt_keeps_a_negation_of_a_number :: fn() -> void {
     // Without the parens, the `-` would reparse as part of the literal.
     fmt_keeps("a :: -(5)", "-(5)")

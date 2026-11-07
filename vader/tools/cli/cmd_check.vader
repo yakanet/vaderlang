@@ -96,10 +96,10 @@ export cmd_check :: fn(args: string[]) -> i32 {
 check_entry :: fn(file: Path, include_path_flags: string[], target: Target | null, project_root: string | null) -> bool {
     // Lowering too, not just the front end. It needs no toolchain (it produces
     // IR, not C) and without it the gate answered "the Windows code resolves
-    // and type-checks", which is not what `vader check` promises. An `await`
-    // in a short-circuit operand (M5009) inside a `@target(.Windows)` body
-    // passed `check` and failed the build. As for `build`, a program the front
-    // end rejected is not lowered.
+    // and type-checks", which is not what `vader check` promises: a diagnostic
+    // the lowering reports in a `@target(.Windows)` body fails the build, so it
+    // fails `check`. As for `build`, a program the front end rejected is not
+    // lowered.
     le :: lower_to_entry_with(file, include_path_flags, project_root, target)
     // Diagnostics on STDERR, and stdout stays empty on success: a gate is read by
     // a script before it is read by a person.

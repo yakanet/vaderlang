@@ -83,6 +83,22 @@ the span of every comment but those inside the `${...}` of a string literal, whi
 the formatter, the semantic tokens and `vader doc` read. A build parses without
 either.
 
+## The task check
+
+The rules of SPEC §16 *Values shared between tasks* are checked after typing, over
+the effect summary of every function (`vader/front/effects/`): what it assigns,
+grows, keeps or hands back of what it is lent, path by path under each parameter.
+
+- The gates are the primitives of `std/task`, listed in one closed table
+  (`vader/core/types/task_runtime.vader`), as are the synchronised types
+  (`TASK_SHARED_STRUCTS`).
+- A function that hands one of its parameters to a task is a gate for its
+  callers: a fixed point over the call graph (`vader/front/effects/tasks.vader`).
+- For each value at a gate, the check crosses what the task touches with what the
+  launcher touches until the `join` that ends the task
+  (`vader/front/effects/task_shape.vader`), and reports a conflict naming both
+  sides (`vader/front/effects/task_errors.vader`).
+
 ## Comptime engine
 
 A tree-walking interpreter (`vader/front/comptime/`) evaluates expressions and calls
@@ -195,11 +211,13 @@ the lowerer's own route.
   function that drains an `Iterator<T>` parameter with one `for`, a user function
   as much as `collect`, is inlined where its argument fuses. A chain stored,
   returned or passed to a function not inlined runs as real iterators.
-- **Generators and `async`**: each becomes a state machine
-  (`vader/lower/coroutine.vader`): the function returns a fresh struct holding its
-  parameters, its locals and the state to resume at, which `Iterator.next`
-  (`vader/lower/generator.vader`) or `Async.resume` (`vader/lower/async.vader`)
+- **Generators**: each becomes a state machine (`vader/lower/coroutine.vader`):
+  the function returns a fresh struct holding its parameters, its locals and the
+  state to resume at, which `Iterator.next` (`vader/lower/generator.vader`)
   resumes.
+- **Singletons**: a `@singleton` and a constant whose value runs code wait on a
+  gate (`vader/lower/init_gate.vader`) only in a program that loads
+  `std/runtime/scheduler`: one that does not has a single thread.
 - **Module constants**: `vader/lower/inline_consts.vader` gives each its storage
   ([`RUNTIME.md`](RUNTIME.md) *Globals and constants*); the lowering the comptime
   VM runs guards none, since that VM refuses global slots

@@ -1664,7 +1664,6 @@ emit_expr :: fn(self: Printer, e: p.Expr | null) -> void {
         is p.StructLitExpr     -> self.emit_struct_lit(e)
         is p.SeqLitExpr        -> self.emit_seq_lit(e)
         is p.RangeExpr         -> self.emit_range(e)
-        is p.AwaitExpr         -> self.emit_await(e)
         is p.CastExpr          -> self.emit_cast(e)
         is p.GenericInstExpr   -> self.emit_generic_inst(e)
         is p.IntrinsicCallExpr -> self.emit_intrinsic_call(e)
@@ -1855,11 +1854,6 @@ postfix_target_needs_parens :: fn(e: p.Expr) -> bool {
     if e is p.MatchExpr  { return true }
     if e is p.BlockExpr  { return true }
     if e is p.LambdaExpr { return true }
-    // `await` binds looser than postfix (bp 95 < 100), so `(await x).f` /
-    // `(await x)[i]` only reach a postfix target because the source
-    // parenthesised the await: keep the parens or the postfix rebinds inside
-    // the await (`await x.f` = `await (x.f)`).
-    if e is p.AwaitExpr  { return true }
     // A fn type's result extends to the right, so a postfix placed after one
     // lands inside the result : `(fn(i64) -> i64)[]` printed bare is
     // `fn(i64) -> i64[]`, a fn RETURNING an array.
@@ -2559,19 +2553,6 @@ range_operand_needs_parens :: fn(operand: p.Expr) -> bool {
 }
 
 // ---- error / cast / generic / variant ----
-
-emit_await :: fn(self: Printer, x: p.AwaitExpr) -> void {
-    self.write("await ")
-    // A binary / range / `??` inner binds looser than `await` (bp 95), so it
-    // must be parenthesised: `await (a + b)` otherwise reparses as `(await a) + b`.
-    if x.inner is p.BinaryExpr || x.inner is p.RangeExpr || x.inner is p.NullCoalesceExpr {
-        self.write("(")
-        self.emit_expr(x.inner)
-        self.write(")")
-    } else {
-        self.emit_expr(x.inner)
-    }
-}
 
 emit_cast :: fn(self: Printer, x: p.CastExpr) -> void {
     self.emit_type_expr(x.target)

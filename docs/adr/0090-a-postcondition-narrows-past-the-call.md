@@ -6,6 +6,9 @@ Accepted (2026-10-19). Step 7 of the type-system charter, its fifth part complet
 (`@asserts` in the charter, named `@ensures` by 0082). Builds on 0079 (the declared
 guard) and 0082.
 
+**Amended by [0127](0127-concurrency-is-tasks-on-virtual-threads-checked-on-the-data.md) (2026-11-07)**: `await` is gone. A generator and a function with no
+body are still T3112.
+
 ## Context
 
 A function that validates its argument and stops the program otherwise

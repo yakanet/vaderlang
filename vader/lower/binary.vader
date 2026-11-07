@@ -191,10 +191,8 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         // `contains` takes the collection first: `x` is bound ahead of it unless
         // neither can change what the other reads.
         prelude: LoweredStmt[]: []
-        element_first :: lower_expr(ctx, binary.left)
-        mark :: ctx.pending_awaits.len()
+        element_value :: lower_expr(ctx, binary.left)
         coll :: lower_expr(ctx, binary.right)
-        element_value :: bind_one_before_hoisted(ctx, element_first, mark)
         element :: if reads_independently(element_value, coll) {
             element_value
         } else {
@@ -258,13 +256,12 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         return lower_logical(ctx, binary, type)
     }
     left :: lower_expr(ctx, binary.left)
-    mark :: ctx.pending_awaits.len()
     right :: lower_expr(ctx, binary.right)
     return LoweredBinary {
         .span = binary.span,
         .type = type,
         .op = lower_binary_op(binary.op),
-        .left = bind_one_before_hoisted(ctx, left, mark),
+        .left = left,
         .right = right,
     }
 }
@@ -285,59 +282,33 @@ lower_logical :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredE
         }
         return with_prelude(effects_of(left), lower_expr(ctx, binary.right), binary.span)
     }
-    right_seen :: logical_right(ctx, binary, left, type)
-    right_known :: settled_bool(right_seen.right)
-    if right_known == null {
-        return right_seen.whole
-    }
-    // `a && true` is `a` ; a right side that runs something only once `a` let it
-    // keeps the operator.
-    pure_right :: effects_of(right_seen.right).len() == 0
-    if right_known != settling {
-        if pure_right {
-            return left
-        }
-        return right_seen.whole
-    }
-    // Settled whatever `left` was : the operator still runs, for its effects.
-    if pure_right && is_effect_free_read(left) {
-        return settled_as(right_seen.right, settling)
-    }
-    ran :: LoweredExprStmt { .span = binary.span, .expr = right_seen.whole }
-    return settled_as(mk_void_block([ran], binary.span), settling)
-}
-
-// The right side of a logical operator whose left one is not settled, and the
-// whole operator over both.
-LogicalRight :: struct {
-    right: LoweredExpr
-    whole: LoweredExpr
-}
-
-logical_right :: fn(ctx: FnLowerCtx, binary: BinaryExpr, left: LoweredExpr, type: Type) -> LogicalRight {
-    if ctx.in_async {
-        // Short-circuit : the RHS runs only when the LHS permits. An `await` in
-        // it can't hoist before the statement (would run unconditionally). v1
-        // diagnoses (M5009) via `guard_no_pending_await` after lowering the RHS.
-        rhs_base :: ctx.pending_awaits.len()
-        right :: lower_expr(ctx, binary.right)
-        guard_no_pending_await(ctx, rhs_base, binary.right.span)
-        whole :: LoweredBinary {
-            .span = binary.span, .type = type, .op = lower_binary_op(binary.op),
-            .left = left, .right = right,
-        }
-        return LogicalRight { .right = right, .whole = whole }
-    }
-    mark :: ctx.pending_awaits.len()
     right :: lower_expr(ctx, binary.right)
     whole :: LoweredBinary {
         .span = binary.span,
         .type = type,
         .op = lower_binary_op(binary.op),
-        .left = bind_one_before_hoisted(ctx, left, mark),
+        .left = left,
         .right = right,
     }
-    return LogicalRight { .right = right, .whole = whole }
+    right_known :: settled_bool(right)
+    if right_known == null {
+        return whole
+    }
+    // `a && true` is `a` ; a right side that runs something only once `a` let it
+    // keeps the operator.
+    pure_right :: effects_of(right).len() == 0
+    if right_known != settling {
+        if pure_right {
+            return left
+        }
+        return whole
+    }
+    // Settled whatever `left` was : the operator still runs, for its effects.
+    if pure_right && is_effect_free_read(left) {
+        return settled_as(right, settling)
+    }
+    ran :: LoweredExprStmt { .span = binary.span, .expr = whole }
+    return settled_as(mk_void_block([ran], binary.span), settling)
 }
 
 // `x in lo..=hi` / `x in lo..<hi` over a literal range, `x` a scalar (a primitive,
@@ -356,13 +327,10 @@ lower_in_literal_range :: fn(
     observe_no_call(ctx, binary, .Operator, "bounds")
     span :: binary.span
     subject_first :: lowered_unless_name(ctx, binary.left)
-    subject_mark :: ctx.pending_awaits.len()
-    lo_first :: lower_expr(ctx, range_lit.lower)
-    mark :: ctx.pending_awaits.len()
+    lo_value :: lower_expr(ctx, range_lit.lower)
     hi_value :: lower_expr(ctx, range_lit.upper)
-    lo_value :: bind_one_before_hoisted(ctx, lo_first, mark)
     bounds: LoweredStmt[]: []
-    held :: held_subject(ctx, subject_first, subject_mark, span, bounds)
+    held :: held_subject(ctx, subject_first, span, bounds)
     hoist :: !is_effect_free_read(hi_value)
     lo :: if hoist {
         bind_unless_stable(ctx, lo_value, "in_lo", span, bounds)
@@ -407,19 +375,18 @@ lowered_unless_name :: fn(ctx: FnLowerCtx, left: Expr) -> LoweredExpr | null {
     return lower_expr(ctx, left)
 }
 
-// `first`, the subject lowered ahead of the bounds, bound to a local in `out` ahead
-// of any `await` the bounds hoisted since `mark` ; null for a name.
+// `first`, the subject lowered ahead of the bounds, bound to a local in `out` ;
+// null for a name.
 held_subject :: fn(
     ctx: FnLowerCtx,
     first: LoweredExpr | null,
-    mark: i64,
     span: Span,
     out: LoweredStmt[],
 ) -> LoweredExpr | null {
     if first == null {
         return null
     }
-    return bind_unless_stable(ctx, bind_one_before_hoisted(ctx, first, mark), "in_x", span, out)
+    return bind_unless_stable(ctx, first, "in_x", span, out)
 }
 
 // One read of the subject `left` : its name lowered afresh, or the value it was
@@ -461,9 +428,7 @@ collect_concat_operands :: fn(ctx: FnLowerCtx, e: Expr, out: LoweredExpr[]) -> v
             return
         }
     }
-    mark :: ctx.pending_awaits.len()
     value :: lower_expr(ctx, e)
-    bind_before_hoisted(ctx, out, mark)
     out.push(value)
 }
 
@@ -496,9 +461,8 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
         }
         observe_symbol(ctx, binary, .Operator, target.symbol)
         lowered_left :: lower_expr(ctx, binary.left)
-        mark :: ctx.pending_awaits.len()
         lowered_right :: lower_expr(ctx, binary.right)
-        call_args: LoweredExpr[]: [bind_one_before_hoisted(ctx, lowered_left, mark), lowered_right]
+        call_args: LoweredExpr[]: [lowered_left, lowered_right]
         // For Eq, the call's value IS the bool result. For Neq we wrap in `not`.
         // For Lt/Lte/Gt/Gte, we keep the outer BinaryOp with the call as left +
         // `0` as right (compare returns i32).
@@ -572,10 +536,8 @@ contains_call :: fn(
 lower_op_overload_via_vcall :: fn(
     ctx: FnLowerCtx, binary: BinaryExpr, type: Type, oti: OpTraitInfo,
 ) -> LoweredExpr | null {
-    first :: lower_expr(ctx, binary.left)
-    mark :: ctx.pending_awaits.len()
+    lowered_left :: lower_expr(ctx, binary.left)
     lowered_right :: lower_expr(ctx, binary.right)
-    lowered_left :: bind_one_before_hoisted(ctx, first, mark)
     args: LoweredExpr[]: [lowered_right]
     // The call's own result : `compare`'s `i32`, `equals`' `bool`, else the
     // operator's (`Add`'s `Self`).
