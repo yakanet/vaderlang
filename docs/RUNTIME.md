@@ -401,7 +401,9 @@ a major scans each parked stack conservatively, its saved registers included. A
 thread whose function returns switches to the scheduler, which frees its stack,
 and 64 freed stacks are kept for the next threads. Windows switches through
 fibers, whose stacks the system guards. Under the VM, a thread of the program
-runs on a thread of the host, with a register file of its own.
+runs on a thread of the host, with a register file of its own. A switch made
+from a callback that C called stops the program: another thread would run over
+the C frames below it.
 
 **Moving objects.** A minor moves young objects, so a pointer must sit in a frame
 across anything that may allocate. A foreign call is the exception: C may keep a

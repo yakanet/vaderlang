@@ -73,13 +73,17 @@ extern void slice_set_cb(void*);
 extern void slice_fill(void*, int64_t);
 
 static void vader_host_snippet$slice_set_cb(void* a0) {
+    vader_foreign_depth += 1;
     slice_set_cb(a0);
+    vader_foreign_depth -= 1;
     return;
 }
 
 static void vader_host_snippet$slice_fill(void* a0, int64_t a1) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
+    vader_foreign_depth += 1;
     slice_fill((void*) s0.ptr, a1);
+    vader_foreign_depth -= 1;
     return;
 }
 
@@ -97,7 +101,10 @@ static void vader_host_std_runtime$collect(void) {
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    return write(a0, s1.ptr, a2);
+    vader_foreign_depth += 1;
+    int64_t r = write(a0, s1.ptr, a2);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static void snippet$churn(int32_t l0) {

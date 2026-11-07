@@ -83,7 +83,9 @@ static int32_t vader_host_snippet$sys_gettimeofday(void* a0, vader_box_t a1) {
     void* p1 = a1.tag == VADER_BOX_TAG_NULL ? NULL : (void*) (intptr_t) a1.payload.i;
     void** __wb_roots[1] = { &a0 };
     VADER_GC_PUSH_RAW(__wb_frame, __wb_roots, 1);
+    vader_foreign_depth += 1;
     int32_t r = gettimeofday(&p0, p1);
+    vader_foreign_depth -= 1;
     VADER_GC_POP_FRAME(__wb_frame);
     ((vader_struct_snippet$TimeVal_t*) a0)->f_tv_sec = (__typeof__(((vader_struct_snippet$TimeVal_t*) a0)->f_tv_sec)) p0.tv_sec;
     return r;
@@ -99,7 +101,10 @@ static void* vader_host_std_core$bytes(vader_string_t a0) {
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    return write(a0, s1.ptr, a2);
+    vader_foreign_depth += 1;
+    int64_t r = write(a0, s1.ptr, a2);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static int32_t snippet$main(void) {

@@ -1046,14 +1046,11 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     // `vader_cstr_free_for` frees the dup a SLICE atom was marshalled through.
     // Freeing first left `strlen` and the intern reading memory that had just
     // gone back to the allocator.
-    direct :: after.len() == 0 && frees.len() == 0
     forwarded :: read_back(imp, call(imp.extern_name, call_args))
-    handled :: forwarded_result(sig, types, forwarded, direct)
-    if handled.returns {
-        before.push(handled.capture)
-        return before
-    }
+    handled :: forwarded_result(sig, types, forwarded)
+    before.push(foreign_depth(.Add))
     before.push(handled.capture)
+    before.push(foreign_depth(.Subtract))
     before.push_all(after)
     before.push_all(handled.settle)
     before.push_all(frees)
@@ -1077,12 +1074,18 @@ renamed_argument :: fn(imp: BcImport, j: i64, a: CExpression) -> CExpression {
     return cast(spelling, a)
 }
 
+// Counts the calls into C in progress: `vader_vt_switch` stops the program
+// above zero.
+foreign_depth :: fn(operator: CBinaryOperator) -> CStatement = CAssign {
+    .target = verbatim("vader_foreign_depth"),
+    .value = number(1),
+    .operator = operator,
+}
+
 // How a forwarded call's result leaves the shim.
 ForwardedResult :: struct {
     /// The call itself, its result kept in `r` when there is one.
     capture: CStatement
-    /// The capture already returns the call's value : nothing follows it.
-    returns: bool = false
     /// Convert `r` into `out` while the arguments are still alive.
     settle: CStatement[] = []
     /// The shim's return value ; null for a `void` shim.
@@ -1090,14 +1093,8 @@ ForwardedResult :: struct {
 }
 
 // The capture, conversion and return of an `@extern` call's result, by the
-// shape of the declared result type. `direct` : nothing has to run after the
-// call, so a plain result can be returned as it comes.
-forwarded_result :: fn(
-    sig: BcSignature,
-    types: BcType[],
-    forwarded: CExpression,
-    direct: bool,
-) -> ForwardedResult {
+// shape of the declared result type.
+forwarded_result :: fn(sig: BcSignature, types: BcType[], forwarded: CExpression) -> ForwardedResult {
     result :: verbatim("r")
     out :: verbatim("out")
     result_type :: bc_single_result_type(sig)
@@ -1155,9 +1152,6 @@ forwarded_result :: fn(
     mirror :: mirrored_c_struct(types, result_type)
     if mirror != "" {
         return mirror_result(types, result_type, mirror, forwarded)
-    }
-    if direct {
-        return ForwardedResult { .capture = CReturn { .value = forwarded }, .returns = true }
     }
     return ForwardedResult {
         .capture = declaration(c_type_for_val_bare(bc_single_result(sig)), "r", forwarded),

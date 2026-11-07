@@ -2,7 +2,8 @@
 // native backend and under the VM. A parked thread's shadow-stack frames, stack
 // objects, atoms and pending defers stay rooted under every diagnostic mode of
 // the collector, in a debug and a release build; a thread that runs past its
-// stack stops; each thread unwinds its own defers.
+// stack stops; each thread unwinds its own defers; a switch inside a call to C
+// stops the program.
 //
 // The fixture (tests/fixtures/virtual_threads/main.vader) is built once per
 // profile, and each case is a run of it with `THREADS_CASE` set.
@@ -91,6 +92,14 @@ for (const profile of ["debug", "release"]) {
       const r = await runCase(bin, "two_panics");
       expect(r.stdout).toBe("defer of first, before the yield\ndefer of second\n");
       expect(r.stderr).toContain("panic: second");
+      expect(r.exit).not.toBe(0);
+    }, LONG_BUILD);
+
+    test("a switch inside a call to C stops the program", async () => {
+      if (bin === "") return;
+      const r = await runCase(bin, "switch_in_callback");
+      expect(r.stdout).toBe("back from qsort\n");
+      expect(r.stderr).toContain("a switch inside a call to C");
       expect(r.exit).not.toBe(0);
     }, LONG_BUILD);
   });

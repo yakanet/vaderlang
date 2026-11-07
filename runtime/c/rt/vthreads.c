@@ -18,6 +18,8 @@
 
 #include "internal.h"
 
+int vader_foreign_depth = 0;
+
 #if defined(_WIN32)
 #  define VADER_VT_SUPPORTED 1
 #  define VADER_VT_FIBERS 1
@@ -481,6 +483,7 @@ int64_t vader_vt_create(vader_fn_t* entry) {
 
 void vader_vt_switch(int64_t to) {
     vader_vt_init();
+    if (vader_foreign_depth > 0) vader_trap("virtual threads: a switch inside a call to C");
     vader_vt_t* next = vader_vt_of(to);
     if (next == NULL) vader_trap("virtual threads: a switch to a thread that has ended");
     vader_vt_switch_to(next);

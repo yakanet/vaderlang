@@ -1,6 +1,7 @@
 // tests/fixtures/virtual_threads: virtual threads under the collector, past the
-// end of their stack, and through a panic. `tests/virtual_threads.test.ts`
-// builds it once and runs each case, which `THREADS_CASE` names.
+// end of their stack, through a panic, and inside a call to C.
+// `tests/virtual_threads.test.ts` builds it once and runs each case, which
+// `THREADS_CASE` names.
 //
 // The scheduler is the test's own: threads run in turn, and a parked one waits
 // for `wake_all`.
@@ -172,14 +173,44 @@ two_panics :: fn() -> void {
     println("not reached")
 }
 
+// ---- a switch inside a call to C ------------------------------------------
+
+@c_header("<stdlib.h>")
+@extern("qsort")
+c_qsort :: fn(
+    @c_out base: i32[],
+    count: u64,
+    size: u64,
+    compare: fn(CPointer, CPointer) -> i32,
+) -> void
+
+compare_nothing :: fn(a: CPointer, b: CPointer) -> i32 = 0
+
+// Yields from inside `qsort`: another thread would run over its frames.
+compare_and_yield :: fn(a: CPointer, b: CPointer) -> i32 {
+    yield_now()
+    return 0
+}
+
+// A switch after the call is free; one inside it stops the program.
+switch_in_callback :: fn() -> void {
+    values: i32[]: [3, 1, 2]
+    c_qsort(values, 3, 4, compare_nothing)
+    yield_now()
+    println("back from qsort")
+    c_qsort(values, 3, 4, compare_and_yield)
+    println("not reached")
+}
+
 main :: fn() -> i32 {
     scheduler().handle = start_scheduler(run_scheduler)
     case :: get_env("THREADS_CASE") ?? ""
     match case {
-        "parked_roots" -> parked_roots()
-        "overflow"     -> overflow()
-        "two_panics"   -> two_panics()
-        _              -> {
+        "parked_roots"       -> parked_roots()
+        "overflow"           -> overflow()
+        "two_panics"         -> two_panics()
+        "switch_in_callback" -> switch_in_callback()
+        _                    -> {
             eprintln("THREADS_CASE: `${case}` names no case")
             return 2
         }

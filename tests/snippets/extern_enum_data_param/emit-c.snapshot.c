@@ -145,7 +145,10 @@ const size_t vader_type_info_count = 14;
 #include <unistd.h>
 
 static int64_t vader_host_snippet$labs_step$extern_import(int64_t a0) {
-    return labs(a0);
+    vader_foreign_depth += 1;
+    int64_t r = labs(a0);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
@@ -157,17 +160,25 @@ static void* vader_host_std_core$bytes(vader_string_t a0) {
 }
 
 static int32_t vader_host_snippet_status$abs_status$extern_import(int32_t a0) {
-    return abs(a0);
+    vader_foreign_depth += 1;
+    int32_t r = abs(a0);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static void vader_host_snippet_status$seed_with$extern_import(int32_t a0) {
+    vader_foreign_depth += 1;
     srand(a0);
+    vader_foreign_depth -= 1;
     return;
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    return write(a0, s1.ptr, a2);
+    vader_foreign_depth += 1;
+    int64_t r = write(a0, s1.ptr, a2);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static int64_t snippet$labs_step(uint8_t l0) {

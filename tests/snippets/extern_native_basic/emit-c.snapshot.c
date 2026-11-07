@@ -73,19 +73,26 @@ extern size_t strnlen(const char*, size_t);
 _Static_assert(sizeof(size_t) == sizeof(uint64_t) && (size_t) 0.5 == 0, "@c_type(size_t) is an integer as wide as uint64_t");
 
 static int32_t vader_host_snippet$add_i32(int32_t a0, int32_t a1) {
-    return add_i32(a0, a1);
+    vader_foreign_depth += 1;
+    int32_t r = add_i32(a0, a1);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static uint64_t vader_host_snippet$c_strlen(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
+    vader_foreign_depth += 1;
     uint64_t r = (uint64_t) strlen(c0);
+    vader_foreign_depth -= 1;
     vader_cstr_free_for(a0, c0);
     return r;
 }
 
 static uint64_t vader_host_snippet$c_strnlen(vader_string_t a0, uint64_t a1) {
     const char* c0 = vader_string_to_cstr(a0);
+    vader_foreign_depth += 1;
     uint64_t r = (uint64_t) strnlen(c0, (size_t) a1);
+    vader_foreign_depth -= 1;
     vader_cstr_free_for(a0, c0);
     return r;
 }
@@ -100,7 +107,10 @@ static void* vader_host_std_core$bytes(vader_string_t a0) {
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    return write(a0, s1.ptr, a2);
+    vader_foreign_depth += 1;
+    int64_t r = write(a0, s1.ptr, a2);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static int32_t snippet$main(void) {

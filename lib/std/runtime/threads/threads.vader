@@ -40,7 +40,9 @@ export create_thread :: fn(entry: fn() -> void) -> i64
 /// running thread does nothing.
 ///
 /// @param to  the handle of the thread to run.
-/// @error     stops the program when `to` has ended.
+/// @error     stops the program when `to` has ended, or when C is running
+///            under the switch: a callback that C called cannot switch, since
+///            another thread would run over the C frames.
 @intrinsic
 export switch_to_thread :: fn(to: i64) -> void
 

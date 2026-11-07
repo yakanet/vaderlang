@@ -160,37 +160,57 @@ static void* vader_host_std_core$bytes(vader_string_t a0) {
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    return write(a0, s1.ptr, a2);
+    vader_foreign_depth += 1;
+    int64_t r = write(a0, s1.ptr, a2);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static int32_t vader_host_system_posix$sys_last_errno(void) {
-    return vader_last_errno();
+    vader_foreign_depth += 1;
+    int32_t r = vader_last_errno();
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static int64_t vader_host_system_posix$sys_stream_size(void* a0) {
-    return vader_stream_size(a0);
+    vader_foreign_depth += 1;
+    int64_t r = vader_stream_size(a0);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static int32_t vader_host_system_posix$sys_ferror(void* a0) {
-    return ferror(a0);
+    vader_foreign_depth += 1;
+    int32_t r = ferror(a0);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static vader_box_t vader_host_system_posix$sys_fopen(vader_string_t a0, vader_string_t a1) {
     const char* c0 = vader_string_to_cstr(a0);
     const char* c1 = vader_string_to_cstr(a1);
+    vader_foreign_depth += 1;
     void* r = fopen(c0, c1);
+    vader_foreign_depth -= 1;
     vader_cstr_free_for(a0, c0);
     vader_cstr_free_for(a1, c1);
     return r == NULL ? vader_box_null() : vader_box_i64(14u, (int64_t) (intptr_t) r);
 }
 
 static int32_t vader_host_system_posix$sys_fclose(void* a0) {
-    return fclose(a0);
+    vader_foreign_depth += 1;
+    int32_t r = fclose(a0);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static int64_t vader_host_system_posix$sys_fread(void* a0, int64_t a1, int64_t a2, void* a3) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
-    return fread((void*) s0.ptr, a1, a2, a3);
+    vader_foreign_depth += 1;
+    int64_t r = fread((void*) s0.ptr, a1, a2, a3);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 /* vtable forwards */

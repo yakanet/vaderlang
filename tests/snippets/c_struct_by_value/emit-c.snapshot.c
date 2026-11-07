@@ -1034,7 +1034,9 @@ _Static_assert(__builtin_offsetof(Texture, format) == 16, "Texture.format offset
 _Static_assert(((__typeof__(((Texture*) 0)->format)) -1 < 0) == 1, "Texture.format signedness");
 
 static void* vader_host_snippet$c_div(int32_t a0, int32_t a1) {
+    vader_foreign_depth += 1;
     div_t r = div(a0, a1);
+    vader_foreign_depth -= 1;
     vader_struct_snippet$Div_t* obj0 = NULL;
     obj0 = (vader_struct_snippet$Div_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Div_t));
     vader_obj_header_init(obj0, 3u);
@@ -1049,7 +1051,9 @@ static void* vader_host_snippet$rgba_invert(void* a0) {
     p0.g = (__typeof__(p0.g)) ((vader_struct_snippet$Rgba_t*) a0)->f_g;
     p0.b = (__typeof__(p0.b)) ((vader_struct_snippet$Rgba_t*) a0)->f_b;
     p0.a = (__typeof__(p0.a)) ((vader_struct_snippet$Rgba_t*) a0)->f_a;
+    vader_foreign_depth += 1;
     Rgba r = rgba_invert(p0);
+    vader_foreign_depth -= 1;
     vader_struct_snippet$Rgba_t* obj0 = NULL;
     obj0 = (vader_struct_snippet$Rgba_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Rgba_t));
     vader_obj_header_init(obj0, 4u);
@@ -1066,14 +1070,19 @@ static int32_t vader_host_snippet$rgba_sum(void* a0) {
     p0.g = (__typeof__(p0.g)) ((vader_struct_snippet$Rgba_t*) a0)->f_g;
     p0.b = (__typeof__(p0.b)) ((vader_struct_snippet$Rgba_t*) a0)->f_b;
     p0.a = (__typeof__(p0.a)) ((vader_struct_snippet$Rgba_t*) a0)->f_a;
-    return rgba_sum(p0);
+    vader_foreign_depth += 1;
+    int32_t r = rgba_sum(p0);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static void* vader_host_snippet$vec2_scale(void* a0, float a1) {
     Vec2 p0 = { 0 };
     p0.x = (__typeof__(p0.x)) ((vader_struct_snippet$Vec2_t*) a0)->f_x;
     p0.y = (__typeof__(p0.y)) ((vader_struct_snippet$Vec2_t*) a0)->f_y;
+    vader_foreign_depth += 1;
     Vec2 r = vec2_scale(p0, a1);
+    vader_foreign_depth -= 1;
     vader_struct_snippet$Vec2_t* obj0 = NULL;
     obj0 = (vader_struct_snippet$Vec2_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Vec2_t));
     vader_obj_header_init(obj0, 5u);
@@ -1088,7 +1097,9 @@ static void* vader_host_snippet$box2_grow(void* a0, float a1) {
     p0.origin.y = (__typeof__(p0.origin.y)) ((vader_struct_snippet$Vec2_t*) ((vader_struct_snippet$Box2_t*) a0)->f_origin)->f_y;
     p0.extent.x = (__typeof__(p0.extent.x)) ((vader_struct_snippet$Vec2_t*) ((vader_struct_snippet$Box2_t*) a0)->f_extent)->f_x;
     p0.extent.y = (__typeof__(p0.extent.y)) ((vader_struct_snippet$Vec2_t*) ((vader_struct_snippet$Box2_t*) a0)->f_extent)->f_y;
+    vader_foreign_depth += 1;
     Box2 r = box2_grow(p0, a1);
+    vader_foreign_depth -= 1;
     vader_struct_snippet$Box2_t* obj0 = NULL;
     vader_struct_snippet$Vec2_t* obj1 = NULL;
     vader_struct_snippet$Vec2_t* obj2 = NULL;
@@ -1116,11 +1127,16 @@ static float vader_host_snippet$box2_area(void* a0) {
     p0.origin.y = (__typeof__(p0.origin.y)) ((vader_struct_snippet$Vec2_t*) ((vader_struct_snippet$Box2_t*) a0)->f_origin)->f_y;
     p0.extent.x = (__typeof__(p0.extent.x)) ((vader_struct_snippet$Vec2_t*) ((vader_struct_snippet$Box2_t*) a0)->f_extent)->f_x;
     p0.extent.y = (__typeof__(p0.extent.y)) ((vader_struct_snippet$Vec2_t*) ((vader_struct_snippet$Box2_t*) a0)->f_extent)->f_y;
-    return box2_area(p0);
+    vader_foreign_depth += 1;
+    float r = box2_area(p0);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static void* vader_host_snippet$texture_load(uint32_t a0) {
+    vader_foreign_depth += 1;
     Texture r = texture_load(a0);
+    vader_foreign_depth -= 1;
     vader_struct_snippet$Texture_t* obj0 = NULL;
     obj0 = (vader_struct_snippet$Texture_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Texture_t));
     vader_obj_header_init(obj0, 9u);
@@ -1139,7 +1155,10 @@ static int32_t vader_host_snippet$texture_checksum(void* a0) {
     p0.height = (__typeof__(p0.height)) ((vader_struct_snippet$Texture_t*) a0)->f_height;
     p0.mipmaps = (__typeof__(p0.mipmaps)) ((vader_struct_snippet$Texture_t*) a0)->f_mipmaps;
     p0.format = (__typeof__(p0.format)) ((vader_struct_snippet$Texture_t*) a0)->f_format;
-    return texture_checksum(p0);
+    vader_foreign_depth += 1;
+    int32_t r = texture_checksum(p0);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
@@ -1152,7 +1171,10 @@ static void* vader_host_std_core$bytes(vader_string_t a0) {
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    return write(a0, s1.ptr, a2);
+    vader_foreign_depth += 1;
+    int64_t r = write(a0, s1.ptr, a2);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static int32_t snippet$main(void) {

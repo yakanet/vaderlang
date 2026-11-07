@@ -1409,6 +1409,11 @@ int64_t vader_vt_create(vader_fn_t* entry);
 void    vader_vt_switch(int64_t to);
 int64_t vader_vt_current(void);
 
+/* How many calls into C the running code is inside of: the shim of each
+ * `@extern` counts its call. A switch traps above zero, since another thread
+ * would run over the C frames under it, and what they hold. */
+extern int vader_foreign_depth;
+
 /* ----------------------------------------------------------------- target
  *
  * `vader_current_os` reports the OS the process is RUNNING on, as the ordinal of
