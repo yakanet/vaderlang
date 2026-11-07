@@ -40,7 +40,7 @@ bool toolchain_span$Span$std_core$Equals$equals(void* l0, void* l1) {
 bool toolchain_span$Span$std_core$Equals$equals$guard(void* l0, vader_box_t l1) {
     void* l2;
     bool t0;
-    if (l1.tag == 851u) {
+    if (l1.tag == 950u) {
         l2 = l1.payload.obj;
         t0 = toolchain_span$Span$std_core$Equals$equals(l0, l2);
         return t0;
@@ -78,21 +78,21 @@ void* toolchain_span$empty_span(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_toolchain_span$Position_t* _a0_obj = (vader_struct_toolchain_span$Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span$Position_t));
-    vader_obj_header_init(_a0_obj, 850u);
-    _a0_obj->f_file = 520u;
+    vader_obj_header_init(_a0_obj, 949u);
+    _a0_obj->f_file = 554u;
     _a0_obj->f_offset = INT64_C(0);
     _a0_obj->f_line = INT32_C(1);
     _a0_obj->f_column = INT32_C(1);
     l0 = (void*) _a0_obj;
     vader_struct_toolchain_span$Position_t* _a1_obj = (vader_struct_toolchain_span$Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span$Position_t));
-    vader_obj_header_init(_a1_obj, 850u);
-    _a1_obj->f_file = 520u;
+    vader_obj_header_init(_a1_obj, 949u);
+    _a1_obj->f_file = 554u;
     _a1_obj->f_offset = INT64_C(1);
     _a1_obj->f_line = INT32_C(1);
     _a1_obj->f_column = INT32_C(2);
     l1 = (void*) _a1_obj;
     vader_struct_toolchain_span$Span_t* _a2_obj = (vader_struct_toolchain_span$Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span$Span_t));
-    vader_obj_header_init(_a2_obj, 851u);
+    vader_obj_header_init(_a2_obj, 950u);
     _a2_obj->f_start = l0;
     _a2_obj->f_end = l1;
     t0 = (void*) _a2_obj;
@@ -109,14 +109,14 @@ void* toolchain_span$file_head_span(vader_string_t l0) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_toolchain_span$Position_t* _a0_obj = (vader_struct_toolchain_span$Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span$Position_t));
-    vader_obj_header_init(_a0_obj, 850u);
+    vader_obj_header_init(_a0_obj, 949u);
     _a0_obj->f_file = l0;
     _a0_obj->f_offset = INT64_C(0);
     _a0_obj->f_line = INT32_C(1);
     _a0_obj->f_column = INT32_C(1);
     l1 = (void*) _a0_obj;
     vader_struct_toolchain_span$Span_t* _a1_obj = (vader_struct_toolchain_span$Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span$Span_t));
-    vader_obj_header_init(_a1_obj, 851u);
+    vader_obj_header_init(_a1_obj, 950u);
     _a1_obj->f_start = l1;
     _a1_obj->f_end = l1;
     t0 = (void*) _a1_obj;
@@ -131,7 +131,7 @@ bool toolchain_span$has_source_position(void* l0) {
         return false;
     }
     t0 = ((vader_struct_toolchain_span$Position_t*) ((vader_struct_toolchain_span$Span_t*) l0)->f_start)->f_file;
-    if (!(t0 == 520u)) {
+    if (!(t0 == 554u)) {
         t1 = ((vader_struct_toolchain_span$Position_t*) ((vader_struct_toolchain_span$Span_t*) l0)->f_start)->f_line;
         return (t1 > INT32_C(0));
     }
@@ -155,11 +155,11 @@ vader_string_t toolchain_span$source_position(void* l0) {
     l3 = (void*) vader_buffer_new((size_t) (INT64_C(42) + l2));
     l2 = INT64_C(0);
     l2 = std_core$write_string_at(l3, l2, l1);
-    l2 = std_core$write_string_at(l3, l2, 464u);
+    l2 = std_core$write_string_at(l3, l2, 497u);
     t0 = ((vader_struct_toolchain_span$Position_t*) ((vader_struct_toolchain_span$Span_t*) l0)->f_start)->f_line;
     l4 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l3, l2, l4);
-    l2 = std_core$write_string_at(l3, l2, 464u);
+    l2 = std_core$write_string_at(l3, l2, 497u);
     t0 = ((vader_struct_toolchain_span$Position_t*) ((vader_struct_toolchain_span$Span_t*) l0)->f_start)->f_column;
     l4 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l3, l2, l4);

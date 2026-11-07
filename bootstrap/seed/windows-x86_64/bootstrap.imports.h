@@ -26,7 +26,7 @@ static inline vader_string_t vader_host_std_core$bytes_to_string(void* a0) {
 }
 
 static inline void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 25u, 457u);
+    return (void*) vader_string_bytes_view(a0, 29u, 498u);
 }
 
 static inline uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
@@ -38,7 +38,7 @@ static inline vader_box_t vader_host_std_env$get_env(vader_string_t a0) {
     vader_foreign_depth += 1;
     const char* r = getenv(c0);
     vader_foreign_depth -= 1;
-    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(452u, (int64_t) vader_atom_intern(r, strlen(r)));
+    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(493u, (int64_t) vader_atom_intern(r, strlen(r)));
     vader_cstr_free_for(a0, c0);
     return out;
 }
@@ -111,6 +111,30 @@ static inline vader_string_t vader_host_vader_vm$ffi_call(int64_t a0, void* a1, 
 
 static inline vader_string_t vader_host_vader_vm$ffi_call_frame(int64_t a0, void* a1, void* a2) {
     return vader_ffi_call_frame((void*) (intptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2);
+}
+
+static inline int64_t vader_host_std_runtime_scheduler$spawn_thread(void* a0) {
+    return vader_sched_spawn(a0);
+}
+
+static inline void vader_host_std_runtime_scheduler$park(void) {
+    vader_sched_park();
+}
+
+static inline void vader_host_std_runtime_scheduler$wake(int64_t a0) {
+    vader_sched_wake(a0);
+}
+
+static inline void vader_host_std_runtime_scheduler$sleep_for(int64_t a0) {
+    vader_sched_sleep_for(a0);
+}
+
+static inline void vader_host_std_runtime_scheduler$cancel_thread(int64_t a0) {
+    vader_sched_cancel(a0);
+}
+
+static inline int64_t vader_host_std_runtime_scheduler$current_thread(void) {
+    return vader_sched_current();
 }
 
 /* Shims of the `CLibrary` bindings, each defined in its library's unit. */
