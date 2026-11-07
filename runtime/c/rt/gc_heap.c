@@ -450,6 +450,7 @@ void vader_gc_init(void) {
 
     g_gc_stress       = vader_gc_env_bool("VADER_GC_STRESS");
     g_gc_stress_major = vader_gc_env_bool("VADER_GC_STRESS_MAJOR");
+    g_gc_stress_switch = vader_gc_env_bool("VADER_GC_STRESS_SWITCH");
     g_gc_check_box    = vader_gc_env_bool("VADER_GC_CHECK_BOX");
     g_gc_scan_all_old = vader_gc_env_bool("VADER_GC_SCAN_ALL_OLD");
     g_gc_poison       = vader_gc_env_bool("VADER_GC_POISON");

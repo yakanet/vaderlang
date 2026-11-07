@@ -105,6 +105,8 @@ export IntrinsicId :: enum(u8) {
     // std/runtime
     RuntimeCollect, RuntimeCollections, RuntimeBytesUsed, RuntimeBytesCopied,
     RuntimeAllocatedBytes, RuntimeAllocations, RuntimeCountAllocations,
+    // std/runtime/threads
+    ThreadStartScheduler, ThreadCreate, ThreadSwitch, ThreadCurrent,
     // std/abort
     AbortPanic,
     // std/target: the OS the process is RUNNING on, not the one it was built
@@ -150,6 +152,10 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_runtime$allocations"             { return .RuntimeAllocations }
     if mangled == r"std_runtime$count_allocations"       { return .RuntimeCountAllocations }
 
+    if mangled == r"std_runtime_threads$start_scheduler"  { return .ThreadStartScheduler }
+    if mangled == r"std_runtime_threads$create_thread"    { return .ThreadCreate }
+    if mangled == r"std_runtime_threads$switch_to_thread" { return .ThreadSwitch }
+    if mangled == r"std_runtime_threads$current_thread"   { return .ThreadCurrent }
 
     if mangled == r"std_target$current_os"               { return .TargetCurrentOs }
     if mangled == r"std_target$current_arch"             { return .TargetCurrentArch }
@@ -175,6 +181,10 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .ByteLen | .ByteAt | .StringHash | .IsAscii -> false
     // A slice of the atom takes an atom-table slot, grown by `realloc`.
     .ByteSlice -> false
+    // Make a stack or read a handle: `malloc` and `mmap`, never the collector.
+    .ThreadStartScheduler | .ThreadCreate | .ThreadCurrent -> false
+    // Other threads run, and collect, before the switch returns.
+    .ThreadSwitch -> true
     // Constants of the runtime's own build.
     .TargetCurrentOs | .TargetCurrentArch -> false
     // Allocate: a view header, an interned string, the rendered text.
@@ -202,6 +212,11 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     // The collector moves objects and never changes a length; the rest only read.
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> false
+    // Nothing runs before they return.
+    .ThreadStartScheduler | .ThreadCreate | .ThreadCurrent -> false
+    // Other threads run before the switch returns, and may shorten any array
+    // they reach.
+    .ThreadSwitch -> true
     // Constants of the build ; `panic` never returns.
     .TargetCurrentOs | .TargetCurrentArch | .AbortPanic -> false
     // Foreign code is lent a buffer, never the header that holds its length.

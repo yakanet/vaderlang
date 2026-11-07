@@ -62,6 +62,11 @@ ENV_TOGGLES: EnvToggle[]: [
         .effect = "every allocation forces a full major collect",
     },
     EnvToggle {
+        .name = "VADER_GC_STRESS_SWITCH",
+        .status = .Warn,
+        .effect = "every switch between virtual threads forces a full major collect",
+    },
+    EnvToggle {
         .name = "VADER_GC_CHECK_BOX", .status = .Warn,
         .effect = "box tags are validated on every access",
     },

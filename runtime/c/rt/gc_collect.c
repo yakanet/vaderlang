@@ -105,13 +105,8 @@ static char* vader_old_slot_of(void* p) {
  * Young is deliberately NOT scanned conservatively: its rooting is already
  * precise (minors require it) and young objects MOVE, which a conservative
  * (maybe-not-a-pointer) root cannot tolerate. */
-static void vader_gc_mark_cstack_conservative(void) {
-    jmp_buf regs;
-    (void) setjmp(regs);                 /* spill callee-saved registers onto the stack */
-    char* base = vader_os_stack_base();
-    if (base == NULL) return;
-    char* lo = (char*) &regs;            /* approx current stack top (this frame) */
-    if (lo >= base) return;
+static void vader_gc_mark_stack_range(char* lo, char* base) {
+    if (lo == NULL || base == NULL || lo >= base) return;
     /* Align down to a pointer boundary, then scan word-aligned slots. */
     lo = (char*) ((uintptr_t) lo & ~(uintptr_t)(sizeof(void*) - 1u));
     for (char* p = lo; p + sizeof(void*) <= base; p += sizeof(void*)) {
@@ -125,6 +120,18 @@ static void vader_gc_mark_cstack_conservative(void) {
             vader_gray_push(slot);
         }
     }
+}
+
+/* A thread that is not running: its switch stored its registers at `sp`. */
+static void vader_gc_mark_waiting_stack(const vader_vt_roots_t* r) {
+    vader_gc_mark_stack_range(r->sp, r->hi);
+}
+
+static void vader_gc_mark_cstack_conservative(void) {
+    jmp_buf regs;
+    (void) setjmp(regs);                 /* spill callee-saved registers onto the stack */
+    vader_gc_mark_stack_range((char*) &regs, vader_vt_stack_top());
+    vader_vt_each_waiting(vader_gc_mark_waiting_stack);
 }
 
 /* ---- generational GC: copying young, mark-sweep old ---------------------- */
@@ -370,9 +377,10 @@ static size_t vader_gc_scan_object(char* scan) {
     return vader_gc_align(info->size);
 }
 
-/* Walk the shadow stack and forward every root cell. Used by both cycles. */
-static void vader_gc_scan_roots(void) {
-    for (vader_gc_frame_t* fr = vader_gc_top; fr != NULL; fr = fr->prev) {
+/* Forward every root cell of one thread: its shadow stack from `top`, then its
+ * pending defers. */
+static void vader_gc_scan_thread(vader_gc_frame_t* top, vader_box_t* defers, size_t ndefers) {
+    for (vader_gc_frame_t* fr = top; fr != NULL; fr = fr->prev) {
         if (fr->ptrs != NULL) {
             for (uint32_t i = 0; i < fr->nrefs; i++) {
                 vader_gc_scan_box(fr->ptrs[i]);
@@ -402,9 +410,20 @@ static void vader_gc_scan_roots(void) {
     /* Defer-stack: every entry's `payload.obj` is a vader_fn_t* whose env
      * captures heap-promoted cells. Without rooting here, a GC between
      * defer.push and defer.pop_exec would collect the captures. */
-    for (size_t i = 0; i < g_defer_len; i++) {
-        vader_gc_scan_box(&g_defer_stack[i]);
+    for (size_t i = 0; i < ndefers; i++) {
+        vader_gc_scan_box(&defers[i]);
     }
+}
+
+static void vader_gc_scan_waiting(const vader_vt_roots_t* r) {
+    vader_gc_scan_thread(r->top, r->defers, r->ndefers);
+}
+
+/* Walk the shadow stack of every thread and forward every root cell. Used by
+ * both cycles. */
+static void vader_gc_scan_roots(void) {
+    vader_gc_scan_thread(vader_gc_top, g_defer_stack, g_defer_len);
+    vader_vt_each_waiting(vader_gc_scan_waiting);
 }
 
 /* The first card in [c, hi] marked in `dirty`, or hi + 1. Steps over clean

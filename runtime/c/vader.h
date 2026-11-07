@@ -1386,7 +1386,7 @@ typedef struct {
 /* ----------------------------------------------------------------- defer
  *
  * Single-track defer model: every `defer X` lowers to a `defer.push`
- * that appends a closure to the global defer-stack, and every normal
+ * that appends a closure to the running thread's defer-stack, and every normal
  * exit (return / break / continue / block fall-through) emits a
  * matching `defer.pop_exec N` that drains and executes the last N
  * entries in LIFO order. The GC scan treats the stack as a root so
@@ -1398,6 +1398,16 @@ typedef struct {
  * `vader_run_pending_defers`. */
 void vader_defer_push(vader_box_t closure);
 void vader_defer_pop_exec(uint32_t count);
+
+/* ----------------------------------------------------------------- virtual threads
+ *
+ * The primitives of `std/runtime/threads` (rt/vthreads.c). A thread is named by
+ * a handle the runtime checks: a handle to a thread that has ended traps. A
+ * thread whose entry returns switches to the scheduler. */
+int64_t vader_vt_start_scheduler(vader_fn_t* run);
+int64_t vader_vt_create(vader_fn_t* entry);
+void    vader_vt_switch(int64_t to);
+int64_t vader_vt_current(void);
 
 /* ----------------------------------------------------------------- target
  *

@@ -1,9 +1,9 @@
 /* rt/gc_diag.c: the collector's debugging switches and reports.
  *
- * `VADER_GC_STRESS`, `VADER_GC_STRESS_MAJOR`, `VADER_GC_CHECK_BOX`,
- * `VADER_GC_POISON`, `VADER_GC_SCAN_ALL_OLD` and `VADER_GC_NO_CSTACK_SCAN`
- * change how the collector runs; `VADER_GC_PROFILE`, `VADER_GC_HISTOGRAM` and
- * `VADER_ALLOC_BY_TYPE` print what it saw. */
+ * `VADER_GC_STRESS`, `VADER_GC_STRESS_MAJOR`, `VADER_GC_STRESS_SWITCH`,
+ * `VADER_GC_CHECK_BOX`, `VADER_GC_POISON`, `VADER_GC_SCAN_ALL_OLD` and
+ * `VADER_GC_NO_CSTACK_SCAN` change how the collector runs; `VADER_GC_PROFILE`,
+ * `VADER_GC_HISTOGRAM` and `VADER_ALLOC_BY_TYPE` print what it saw. */
 
 #include "internal.h"
 
@@ -22,6 +22,12 @@ static int g_gc_stress = 0;
  * paths run at every safepoint: turning intermittent old-gen rooting / sweep
  * bugs into deterministic failures. Even slower than STRESS; debug-only. */
 static int g_gc_stress_major = 0;
+
+/* Switch-stress mode: set via `VADER_GC_STRESS_SWITCH=1`. Every switch between
+ * virtual threads (rt/vthreads.c) forces a full major first, so the frames,
+ * defers and stack of each thread that is not running are walked while that
+ * thread is parked. */
+static int g_gc_stress_switch = 0;
 
 /* Box-tag corruption check: set via `VADER_GC_CHECK_BOX=1`. When enabled,
  * `vader_gc_scan_box` traps the first time it meets a box whose `tag` is

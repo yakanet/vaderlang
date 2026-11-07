@@ -233,6 +233,9 @@ export dispatch_import :: fn(
     .RuntimeAllocatedBytes   -> { return HostOk { .value = I64Val(0) } }
     .RuntimeAllocations      -> { return HostOk { .value = I64Val(0) } }
     .RuntimeCountAllocations -> { return HostOk { .value = NullVal {} } }
+    .ThreadStartScheduler | .ThreadCreate | .ThreadSwitch | .ThreadCurrent -> {
+        return Trap { .message = "${info.mangled_name}: the VM runs no thread yet" }
+    }
     // Dynamic foreign calls. A `@test` runs ON the VM, so these have to be
     // served here too: the arms forward to the same intrinsics the natively
     // compiled VM calls directly.
@@ -1237,6 +1240,8 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .PrimIntEquals | .PrimDisplayToString -> null
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> null
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> null
+    // A comptime evaluation runs threads as `vader run` does.
+    .ThreadStartScheduler | .ThreadCreate | .ThreadSwitch | .ThreadCurrent -> null
     .AbortPanic -> null
     .NotIntrinsic -> null
 }

@@ -49,24 +49,33 @@ static void vader_atom_mark_box(const vader_box_t* bp) {
  * positives only retain a small atom). A live atom held only in a C local must
  * be found here, or its bytes get freed under a still-live `bytes()` view.
  * Scanned 4-byte-aligned because a u32 local need not be 8-aligned. */
-static void vader_atom_mark_cstack_conservative(void) {
-    jmp_buf regs;
-    (void) setjmp(regs);
-    char* base = vader_os_stack_base();
-    if (base == NULL) return;
-    char* lo = (char*) ((uintptr_t) &regs & ~(uintptr_t)3u);
-    if (lo >= base) return;
+static void vader_atom_mark_stack_range(char* lo, char* base) {
+    if (lo == NULL || base == NULL) return;
+    lo = (char*) ((uintptr_t) lo & ~(uintptr_t)3u);
     for (char* p = lo; p + sizeof(uint32_t) <= base; p += sizeof(uint32_t)) {
         vader_atom_mark((vader_atom_t) *(uint32_t volatile*) p);
     }
+}
+
+static void vader_atom_mark_waiting_stack(const vader_vt_roots_t* r) {
+    vader_atom_mark_stack_range(r->sp, r->hi);
+}
+
+static void vader_atom_mark_cstack_conservative(void) {
+    jmp_buf regs;
+    (void) setjmp(regs);
+    vader_atom_mark_stack_range((char*) &regs, vader_vt_stack_top());
+    vader_vt_each_waiting(vader_atom_mark_waiting_stack);
 }
 
 /* Forward decl: the stack-object root walk below needs it, and its definition
  * sits after this function so the heap walk reads top-down. */
 static void vader_atom_mark_object(char* scan, uint32_t type_index, void* ctx);
 
-static void vader_atom_mark_roots(void) {
-    for (vader_gc_frame_t* fr = vader_gc_top; fr != NULL; fr = fr->prev) {
+/* The precise atom roots of one thread: its shadow stack from `top`, then its
+ * pending defers. */
+static void vader_atom_mark_thread(vader_gc_frame_t* top, vader_box_t* defers, size_t ndefers) {
+    for (vader_gc_frame_t* fr = top; fr != NULL; fr = fr->prev) {
         if (fr->ptrs != NULL) {
             for (uint32_t i = 0; i < fr->nrefs; i++) {
                 vader_atom_mark_box(fr->ptrs[i]);
@@ -98,9 +107,18 @@ static void vader_atom_mark_roots(void) {
             }
         }
     }
-    for (size_t i = 0; i < g_defer_len; i++) {
-        vader_atom_mark_box(&g_defer_stack[i]);
+    for (size_t i = 0; i < ndefers; i++) {
+        vader_atom_mark_box(&defers[i]);
     }
+}
+
+static void vader_atom_mark_waiting(const vader_vt_roots_t* r) {
+    vader_atom_mark_thread(r->top, r->defers, r->ndefers);
+}
+
+static void vader_atom_mark_roots(void) {
+    vader_atom_mark_thread(vader_gc_top, g_defer_stack, g_defer_len);
+    vader_vt_each_waiting(vader_atom_mark_waiting);
     vader_atom_mark_cstack_conservative();
 }
 

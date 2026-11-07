@@ -1,0 +1,188 @@
+// tests/fixtures/virtual_threads: virtual threads under the collector, past the
+// end of their stack, and through a panic. `tests/virtual_threads.test.ts`
+// builds it once and runs each case, which `THREADS_CASE` names.
+//
+// The scheduler is the test's own: threads run in turn, and a parked one waits
+// for `wake_all`.
+
+module "main"
+
+import "std/abort"
+import "std/env"
+import "std/io"
+import "std/runtime"
+import "std/runtime/threads"
+
+Scheduler :: struct {
+    handle: i64 = 0
+    ready: i64[] = []
+    next_ready: i64 = 0
+    parked: i64[] = []
+    running: i64 = 0
+}
+
+@singleton
+scheduler :: fn() -> Scheduler = Scheduler {}
+
+run_scheduler :: fn() -> void {
+    s :: scheduler()
+    for {
+        if s.next_ready == s.ready.len() {
+            panic("every thread is parked")
+        }
+        next :: s.ready[s.next_ready]
+        s.next_ready += 1
+        switch_to_thread(next)
+    }
+}
+
+spawn :: fn(entry: fn() -> void) -> void {
+    s :: scheduler()
+    s.running += 1
+    s.ready.push(create_thread(fn() {
+        entry()
+        s.running -= 1
+    }))
+}
+
+yield_now :: fn() -> void {
+    s :: scheduler()
+    s.ready.push(current_thread())
+    switch_to_thread(s.handle)
+}
+
+park :: fn() -> void {
+    s :: scheduler()
+    s.parked.push(current_thread())
+    switch_to_thread(s.handle)
+}
+
+wake_all :: fn() -> void {
+    s :: scheduler()
+    s.ready.push_all(s.parked)
+    s.parked.clear()
+}
+
+join_all :: fn() -> void {
+    for scheduler().running > 0 {
+        yield_now()
+    }
+}
+
+// ---- parked threads stay rooted -------------------------------------------
+
+Node :: struct {
+    value: i64
+    next: Node | null = null
+}
+
+// Never leaves the frame that builds it, so it lives on that frame's stack.
+Holder :: struct {
+    nodes: Node
+}
+
+chain :: fn(n: i64, base: i64) -> Node {
+    head := Node { .value = base }
+    for i in 1..<n {
+        head = Node { .value = base + i, .next = head }
+    }
+    return head
+}
+
+sum :: fn(head: Node) -> i64 {
+    total: i64 = 0
+    cur: Node | null = head
+    for cur != null {
+        total += cur.value
+        cur = cur.next
+    }
+    return total
+}
+
+// Park holding a chain of nodes, the same chain through an object on the
+// stack, a string made at run time and a pending defer, then check them all.
+worker :: fn(id: i64) -> void {
+    nodes :: chain(50, id * 1000)
+    holder :: Holder { .nodes = chain(50, id * 1000) }
+    label :: "thread-${id}"
+    defer println("defer of ${label}")
+    park()
+    expected: i64: 50 * id * 1000 + 49 * 50 / 2
+    if sum(nodes) != expected || sum(holder.nodes) != expected {
+        println("${label}: expected ${expected}, got ${sum(nodes)} and ${sum(holder.nodes)}")
+        return
+    }
+    println("${label} ok")
+}
+
+// Three threads park, main makes garbage and collects, then wakes them.
+parked_roots :: fn() -> void {
+    for id in 0..<3 {
+        spawn(() -> worker(id))
+    }
+    yield_now()
+    garbage: i64 = 0
+    for k in 0..<20000 {
+        garbage += sum(chain(10, k))
+    }
+    collect()
+    wake_all()
+    join_all()
+    println("garbage ${garbage}")
+}
+
+// ---- a thread past the end of its stack -----------------------------------
+
+depth :: fn(n: i64, label: string) -> i64 {
+    if n == 0 {
+        return 0
+    }
+    s :: "${label}${n}"
+    return depth(n - 1, label) + s.byte_len()
+}
+
+// The first thread returns, the second stops on the guard zone of its stack.
+overflow :: fn() -> void {
+    spawn(() -> println("depth 1000: ${depth(1000, "x")}"))
+    spawn(() -> println("depth 1000000: ${depth(1000000, "x")}"))
+    join_all()
+    println("not reached")
+}
+
+// ---- a panic in each of two threads ---------------------------------------
+
+unwind_first :: fn() -> void {
+    println("defer of first, before the yield")
+    yield_now()
+    println("defer of first, after the yield")
+}
+
+// The first thread panics, and its defer yields while it runs, which runs the
+// second, which panics too: each thread runs its own defers.
+two_panics :: fn() -> void {
+    spawn(fn() {
+        defer unwind_first()
+        panic("first")
+    })
+    spawn(fn() {
+        defer println("defer of second")
+        panic("second")
+    })
+    join_all()
+    println("not reached")
+}
+
+main :: fn() -> i32 {
+    scheduler().handle = start_scheduler(run_scheduler)
+    case :: get_env("THREADS_CASE") ?? ""
+    match case {
+        "parked_roots" -> parked_roots()
+        "overflow"     -> overflow()
+        "two_panics"   -> two_panics()
+        _              -> {
+            eprintln("THREADS_CASE: `${case}` names no case")
+            return 2
+        }
+    }
+    return 0
+}

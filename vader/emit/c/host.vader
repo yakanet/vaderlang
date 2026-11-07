@@ -850,6 +850,12 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .RuntimeAllocations      -> { return [gc_statistic("total_alloc_count")] }
     .RuntimeCountAllocations -> { return [perform("vader_gc_count_allocations", [])] }
 
+    // std/runtime/threads: the stacks and the switch (`runtime/c/rt/vthreads.c`).
+    .ThreadStartScheduler -> { return [returning("vader_vt_start_scheduler", [a0])] }
+    .ThreadCreate         -> { return [returning("vader_vt_create", [a0])] }
+    .ThreadSwitch         -> { return [perform("vader_vt_switch", [a0])] }
+    .ThreadCurrent        -> { return [returning("vader_vt_current", [])] }
+
     // Dynamic foreign calls (vader/vm/ffi.vader). The call shims take the
     // argument slots through `vader_array_bytes`, which already owns the
     // three-case array lend. Addresses ride an `i64` (see the note in

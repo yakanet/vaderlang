@@ -30,6 +30,7 @@
 #include "rt/arrays.c"
 #include "rt/host.c"
 #include "rt/ffi.c"
+#include "rt/vthreads.c"
 #if defined(_WIN32)
 #  include "rt/os_windows.c"
 #else

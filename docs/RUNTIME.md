@@ -392,6 +392,16 @@ the defer stack are roots too. A major also scans the
 C stack conservatively, as a backstop for what no frame lists
 ([ADR 0008](adr/0008-precise-shadow-stack-with-conservative-backstops.md)).
 
+**Virtual threads.** A thread that `std/runtime/threads` creates runs on a stack
+of its own: 8 MiB reserved and committed as it is written, ended by a guard zone
+of 64 KiB that stops a thread running past it. A switch stores the registers
+the C calling convention preserves on the stack it leaves. Each thread has its
+own shadow stack and defer stack, and a collection walks those of every thread;
+a major scans each parked stack conservatively, its saved registers included. A
+thread whose function returns switches to the scheduler, which frees its stack,
+and 64 freed stacks are kept for the next threads. Windows switches through
+fibers, whose stacks the system guards.
+
 **Moving objects.** A minor moves young objects, so a pointer must sit in a frame
 across anything that may allocate. A foreign call is the exception: C may keep a
 pointer into an array it was lent, and calls back into Vader may collect. Once a
@@ -409,6 +419,7 @@ in every build ([ADR 0002](adr/0002-gc-diagnostics-are-runtime-flags.md)):
 | `VADER_GC_YOUNG_BYTES`, `VADER_GC_YOUNG_CAP`, `VADER_GC_YOUNG_MAX`, `VADER_GC_YOUNG_RATIO` | a semi-space's initial size, adaptive-growth ceiling and hard limit, and the ratio that growth targets |
 | `VADER_GC_STRESS` | a minor at every allocation |
 | `VADER_GC_STRESS_MAJOR` | a major at every allocation |
+| `VADER_GC_STRESS_SWITCH` | a major at every switch between virtual threads |
 | `VADER_GC_CHECK_BOX` | traps on a box whose tag is out of range |
 | `VADER_GC_POISON` | fills the abandoned semi-space after each minor |
 | `VADER_GC_SCAN_ALL_OLD` | every card counts as dirty |
@@ -441,8 +452,8 @@ The `i32` that `main` returns is the exit status (SPEC §6 *`main` entry point*)
 
 **The defer stack.** The closures a `defer` registers
 ([`ARCHITECTURE.md`](ARCHITECTURE.md), *Lowered AST*) live on one stack per
-program, a global in the C runtime and a field of the machine on the VM; an async
-function keeps its own in its frame.
+thread, globals of the C runtime that a switch saves and restores, and a field of
+the machine on the VM; an async function keeps its own in its frame.
 
 **The scheduler** behind `std/async` (SPEC §16) is Vader code in `std/runtime`,
 the same natively and on the VM. It parks on the nearest deadline in real time, or

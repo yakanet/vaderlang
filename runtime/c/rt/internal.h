@@ -30,6 +30,8 @@
 
 static vader_box_t* g_defer_stack;
 static size_t g_defer_len;
+static size_t g_defer_cap;
+static int g_unwinding;
 
 /* ---- gc_heap.c ----------------------------------------------------------- */
 
@@ -113,6 +115,7 @@ static void* vader_gc_force_tenure(void* obj);
 
 static int g_gc_stress;
 static int g_gc_stress_major;
+static int g_gc_stress_switch;
 static int g_gc_check_box;
 static int g_gc_no_cstack_scan;
 static int g_gc_scan_all_old;
@@ -164,6 +167,25 @@ static void vader_atom_bucket_install(vader_atom_t a);
 /* ---- arrays.c ------------------------------------------------------------ */
 
 static vader_array_t* vader_array_resolve(vader_array_t* a);
+
+/* ---- vthreads.c ---------------------------------------------------------- */
+
+/* What the collector reads of a thread that is not running: its shadow-stack
+ * frames, its pending defers, and the stack range [sp, hi) that holds its
+ * frames and the registers its last switch stored. `sp` and `hi` are NULL for
+ * a thread whose stack holds nothing yet. */
+typedef struct {
+    vader_gc_frame_t* top;
+    vader_box_t*      defers;
+    size_t            ndefers;
+    char*             sp;
+    char*             hi;
+} vader_vt_roots_t;
+
+/* The top of the running thread's stack, where its conservative scan stops. */
+static char* vader_vt_stack_top(void);
+/* Call `fn` with the roots of each thread alive but the running one. */
+static void vader_vt_each_waiting(void (*fn)(const vader_vt_roots_t* roots));
 
 /* ---- os_posix.c, os_windows.c -------------------------------------------- */
 
