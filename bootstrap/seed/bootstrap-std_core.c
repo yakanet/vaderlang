@@ -1438,12 +1438,12 @@ static vader_string_t std_core$format_f64(double l0) {
     l1 = (uint64_t) (int64_t) t0;
     if (l1 == INT64_C(2047)) {
         if (l3 != INT64_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 2400u; }
+            { vader_gc_top = gc_frame.prev; return 2401u; }
         }
         if (l2) {
             { vader_gc_top = gc_frame.prev; return 402u; }
         }
-        { vader_gc_top = gc_frame.prev; return 2189u; }
+        { vader_gc_top = gc_frame.prev; return 2190u; }
     }
     if (l1 == INT64_C(0)) {
         if (l3 == INT64_C(0)) {
@@ -2842,10 +2842,10 @@ void* std_core$utf8_encode(uint32_t l0) {
 int64_t std_core$write_bool(void* l0, int64_t l1, bool l2) {
     int64_t t0;
     if (!(l2)) {
-        t0 = std_core$write_string_at(l0, l1, 2000u);
+        t0 = std_core$write_string_at(l0, l1, 2001u);
         return t0;
     }
-    t0 = std_core$write_string_at(l0, l1, 2776u);
+    t0 = std_core$write_string_at(l0, l1, 2781u);
     return t0;
 }
 

@@ -69,7 +69,7 @@ vader_string_t std_path$to_native(vader_string_t l0) {
     t0 = vader_host_std_target$current_os();
     if (!(t0 != INT32_C(0))) {
         l1 = (void*) &vader_fn_static___lambda_std_path_0;
-        t1 = std_string$replace_chars_where(l0, l1, 977u);
+        t1 = std_string$replace_chars_where(l0, l1, 978u);
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }

@@ -103,39 +103,39 @@ vader_string_t toolchain_ast$binary_op_symbol(uint8_t l0) {
     } else if (l0 == INT32_C(4)) {
         l1 = 285u;
     } else if (l0 == INT32_C(5)) {
-        l1 = 508u;
+        l1 = 509u;
     } else if (l0 == INT32_C(6)) {
-        l1 = 530u;
+        l1 = 531u;
     } else if (l0 == INT32_C(7)) {
         l1 = 287u;
     } else if (l0 == INT32_C(8)) {
-        l1 = 3093u;
+        l1 = 3102u;
     } else if (l0 == INT32_C(9)) {
-        l1 = 985u;
+        l1 = 986u;
     } else if (l0 == INT32_C(10)) {
         l1 = 288u;
     } else if (l0 == INT32_C(11)) {
-        l1 = 3094u;
+        l1 = 3103u;
     } else if (l0 == INT32_C(12)) {
-        l1 = 525u;
+        l1 = 526u;
     } else if (l0 == INT32_C(13)) {
         l1 = 248u;
     } else if (l0 == INT32_C(14)) {
-        l1 = 507u;
+        l1 = 508u;
     } else if (l0 == INT32_C(15)) {
-        l1 = 509u;
+        l1 = 510u;
     } else if (l0 == INT32_C(16)) {
-        l1 = 528u;
-    } else if (l0 == INT32_C(17)) {
         l1 = 529u;
+    } else if (l0 == INT32_C(17)) {
+        l1 = 530u;
     } else if (l0 == INT32_C(18)) {
-        l1 = 2234u;
+        l1 = 2235u;
     } else if (l0 == INT32_C(19)) {
-        l1 = 2174u;
+        l1 = 2175u;
     } else if (l0 == INT32_C(20)) {
         l1 = 250u;
     } else if (l0 == INT32_C(21)) {
-        l1 = 526u;
+        l1 = 527u;
     } else if (l0 == INT32_C(22)) {
         l1 = 249u;
     } else if (l0 == INT32_C(23)) {
@@ -166,7 +166,7 @@ static vader_string_t toolchain_ast$c_header_of(void* l0) {
     vader_box_t l1;
     void* t0;
     vader_string_t t1;
-    l1 = toolchain_ast$find_decorator(((vader_struct_toolchain_ast$FnDecl_t*) l0)->f_decorators, 1726u);
+    l1 = toolchain_ast$find_decorator(((vader_struct_toolchain_ast$FnDecl_t*) l0)->f_decorators, 1727u);
     if (l1.tag == 0u) {
         return 0u;
     }
@@ -180,7 +180,7 @@ vader_string_t toolchain_ast$c_struct_spelling(void* l0, vader_string_t l1) {
     vader_box_t l3;
     int64_t t0;
     vader_string_t t1;
-    l3 = toolchain_ast$find_decorator(l0, 1729u);
+    l3 = toolchain_ast$find_decorator(l0, 1730u);
     if (l3.tag == 0u) {
         return 0u;
     }
@@ -197,7 +197,7 @@ vader_string_t toolchain_ast$c_type_of(void* l0) {
     vader_box_t l1;
     void* t0;
     vader_string_t t1;
-    l1 = toolchain_ast$find_decorator(l0, 1730u);
+    l1 = toolchain_ast$find_decorator(l0, 1731u);
     if (l1.tag == 0u) {
         return 0u;
     }
@@ -370,7 +370,7 @@ vader_string_t toolchain_ast$extern_symbol_of(void* l0) {
     vader_string_t t0;
     int64_t t1;
     vader_box_t t2;
-    l2 = toolchain_ast$find_decorator(((vader_struct_toolchain_ast$FnDecl_t*) l0)->f_decorators, 1977u);
+    l2 = toolchain_ast$find_decorator(((vader_struct_toolchain_ast$FnDecl_t*) l0)->f_decorators, 1978u);
     if (l2.tag == 0u) {
         t0 = ((vader_struct_toolchain_ast$FnDecl_t*) l0)->f_name;
         return t0;
