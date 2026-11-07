@@ -2,11 +2,14 @@
 
 module "std/collections"
 
+import "std/abort"
+
 /// Items taken first in, first out. A ring over one array: `push` and `pop`
 /// cost `O(1)`, amortised over the growth of the array, and a popped item's
 /// place is reused by a later push.
 ///
-/// A null item would read as an empty queue: push no type that holds null.
+/// `pop` and `peek` read a null item as an empty queue: a queue of a type that
+/// holds null takes its items with `remove_first`, once `is_empty` said it holds one.
 ///
 /// @example
 ///   q :: Queue<string> {}
@@ -40,12 +43,16 @@ export push :: fn<T>(self: Queue<T>, item: T) -> void {
     } else if self.head == 0 {
         self.items.push(item)
     } else {
-        // A full ring that wraps: lay it out again from index 0, oldest first,
-        // so the array can grow at its end.
+        // A full ring that wraps: lay it out again from index 0, oldest first, in
+        // a ring twice as large, so that it wraps again only once that is full.
+        // The places past the items hold `item`, as a place left by a pop holds
+        // the item popped.
         grown: T[]: [] * (capacity * 2)
         grown.push_all(self.items[self.head..<capacity])
         grown.push_all(self.items[0..<self.head])
-        grown.push(item)
+        for _ in 0..<capacity {
+            grown.push(item)
+        }
         self.items = grown
         self.head = 0
     }
@@ -59,6 +66,23 @@ export push :: fn<T>(self: Queue<T>, item: T) -> void {
 export pop :: fn<T>(self: Queue<T>) -> T | null {
     if self.size == 0 {
         return null
+    }
+    return self.remove_first()
+}
+
+/// Remove the oldest item of a queue that holds one. Unlike `pop`, it hands a
+/// null item back as itself.
+///
+/// @param self  the queue, which holds at least one item.
+/// @error       stops the program when the queue is empty.
+/// @example
+///   q :: Queue<string | null> {}
+///   q.push(null)
+///   q.is_empty()        // false
+///   q.remove_first()    // null
+export remove_first :: fn<T>(self: Queue<T>) -> T {
+    if self.size == 0 {
+        panic("remove_first: the queue is empty")
     }
     item :: self.items[self.head]
     self.size -= 1
@@ -97,6 +121,29 @@ ring_index :: fn(index: i64, capacity: i64) -> i64 = if index >= capacity {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test
+test_queue_wrapped_ring_doubles_when_it_grows :: fn() -> void {
+    q :: Queue<i32> {}
+    for i in 0..<4 {
+        q.push(i)
+    }
+    q.pop()
+    q.push(4)
+    q.push(5)
+    assert_eq(q.items.len(), 8)
+    q.push(6)
+    assert_eq(q.items.len(), 8)
+}
+
+@test
+test_queue_remove_first_hands_back_a_null_item :: fn() -> void {
+    q :: Queue<i32 | null> {}
+    q.push(null)
+    q.push(1)
+    assert(q.remove_first() == null, "the null item")
+    assert_eq(q.len(), 1)
+}
 
 @test
 test_queue_pops_in_pushed_order :: fn() -> void {

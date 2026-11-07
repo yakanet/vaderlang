@@ -1,0 +1,39 @@
+// C32: a socket one task reads and another writes: the buffers are disjoint, but each
+// task captures the whole connection.
+//
+// corpus: refused E2
+// expect: T3128
+
+module "snippet"
+
+import "std/task"
+
+Connection :: struct {
+    read_buffer: string[] = []
+    write_buffer: string[] = []
+}
+
+// Takes a line off the read buffer.
+read_lines :: fn(conn: Connection, events: Channel<string>) -> void {
+    line :: conn.read_buffer.remove_last() ?? return
+    events.send(line)
+}
+
+// Puts the outbox into the write buffer.
+drain_outbox :: fn(conn: Connection, outbox: Channel<string>) -> void {
+    message :: outbox.receive()
+    if message is string {
+        conn.write_buffer.push(message)
+    }
+}
+
+main :: fn() -> i32 {
+    conn :: Connection { .read_buffer = ["hi"] }
+    events :: Channel<string> { .capacity = 16 }
+    outbox :: Channel<string> { .capacity = 16 }
+    a :: launch(() -> read_lines(conn, events))
+    b :: launch(() -> drain_outbox(conn, outbox))
+    a.join()
+    b.join()
+    return 0
+}

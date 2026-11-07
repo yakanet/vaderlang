@@ -1,0 +1,33 @@
+// P23: the locked block hands a part of the guarded value to `stash`, which keeps it
+// in `holder`, bound outside the block.
+//
+// corpus: probe
+// expect: T3131
+
+module "snippet"
+
+import "std/task"
+
+Page :: struct {
+    title: string = ""
+}
+
+Book :: struct {
+    page: Page = Page {}
+}
+
+Holder :: struct {
+    pages: Page[] = []
+}
+
+stash :: fn(h: Holder, p: Page) -> void {
+    h.pages.push(p)
+}
+
+main :: fn() -> i32 {
+    cache :: shared(Book {})
+    holder :: Holder {}
+    cache.locked(b -> stash(holder, b.page))
+    holder.pages[0].title = "x"
+    return 0
+}

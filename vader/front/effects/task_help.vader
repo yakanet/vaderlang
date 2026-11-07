@@ -53,8 +53,7 @@ is_task_result :: fn(ctx: TaskCtx, body: TaskBody, t: Touch) -> bool {
     if !ctx.index.paths.first_step_is(t.path, TASK_RESULT) {
         return false
     }
-    held :: body.root_type(t.root) ?? return false
-    return held is StructType && is_task_shared(held.symbol)
+    return is_task_shared_type(body.root_type(t.root))
 }
 
 // The way out of a clash with what a task launched there writes: the code beside

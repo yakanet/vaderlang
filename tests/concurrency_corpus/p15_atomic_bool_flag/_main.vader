@@ -1,0 +1,23 @@
+// P15: a flag the task sets and main polls, through an atomic.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+work :: fn() -> void {}
+
+main :: fn() -> i32 {
+    done :: AtomicBool {}
+    t :: launch(() -> {
+        work()
+        done.store(true)
+    })
+    for !done.load() {
+        work()
+    }
+    t.join()
+    return 0
+}

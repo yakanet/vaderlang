@@ -1,0 +1,11 @@
+// T3131 : the block run under the lock hands back the array it guards, which
+// outlives the lock.
+module "snippet"
+
+import "std/task"
+
+main :: fn() -> i32 {
+    names :: shared(["ada"])
+    all :: names.locked((held) -> held)
+    return i32(all.len()) - 1
+}

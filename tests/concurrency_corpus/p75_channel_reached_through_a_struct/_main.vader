@@ -1,0 +1,33 @@
+// P75: the task drains a channel it reaches through a struct it is lent, while main
+// sends on it: what is done through a channel is the channel's.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Worker :: struct {
+    jobs: Channel<i64>
+    done: AtomicInt
+}
+
+drain :: fn(w: Worker) -> i64 {
+    total: i64 = 0
+    for job in w.jobs {
+        total += job
+        w.done.fetch_add(1)
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    w :: Worker { .jobs = Channel<i64> { .capacity = 2 }, .done = AtomicInt {} }
+    t :: launch(() -> drain(w))
+    w.jobs.send(1)
+    w.jobs.send(2)
+    w.jobs.close()
+    t.join()
+    return i32(w.done.load()) - 2
+}

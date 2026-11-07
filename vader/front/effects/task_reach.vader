@@ -12,6 +12,7 @@ module "vader/front/effects"
 import "std/collections"
 import "std/iter"
 import "toolchain/span"
+import "vader/core/types"
 import "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
@@ -260,11 +261,22 @@ check_parks :: fn(ctx: TaskCtx, body: TaskBody, block: AST.LambdaExpr, out: Task
             .kind = .LockParks,
             .span = site.at,
             .detail = "this block holds the lock while it calls ${display_chain(chain)}, which "
-                + "may park ; call `${chain[0]}` before the block, and store its result under "
-                + "the lock",
+                + "may park ; ${outside_lock_help(body, site, chain[0])}",
         }
         out.push(fault)
     }
+}
+
+// Where the call `site` to `callee` goes so that no lock is held: before the block,
+// for what it hands back ; after it, for a call that hands back nothing.
+outside_lock_help :: fn(body: TaskBody, site: Site, callee: string) -> string {
+    before :: "call `${callee}` before the block, and store its result under the lock"
+    call :: body.shape.calls.find((c) -> same_span(c.span, site.at)) ?? return before
+    handed_back :: body.typed.expr_types[call.id] ?? return before
+    if is_void(handed_back) {
+        return "call `${callee}` after the block, on what the block returns"
+    }
+    return before
 }
 
 // What `block` keeps of the value it is handed: what it returns of it, keeps

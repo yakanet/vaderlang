@@ -1,0 +1,20 @@
+// P05: a message written after `send` gave it away.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Msg :: struct {
+    text: string = ""
+}
+
+main :: fn() -> i32 {
+    ch :: Channel<Msg> { .capacity = 16 }
+    m :: Msg { .text = "a" }
+    ch.send(m)
+    m.text = "b"
+    return 0
+}

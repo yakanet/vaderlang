@@ -1,0 +1,27 @@
+// C26: the same factory over an atomic: accepted, though ids follow the order tasks
+// run in.
+//
+// corpus: accepted, not reproducible
+// expect: accepted
+
+module "snippet"
+
+import "std/iter"
+import "std/task"
+
+Module :: struct {
+    name: string
+}
+
+Ast :: struct {
+    root: i64
+}
+
+parse_module :: fn(m: Module, ids: AtomicInt) -> Ast = Ast { .root = ids.fetch_add(1) }
+
+main :: fn() -> i32 {
+    modules: Module[]: [Module { .name = "a" }, Module { .name = "b" }]
+    ids :: AtomicInt {}
+    asts :: modules.map(m -> launch(() -> parse_module(m, ids))).collect()
+    return i32(asts.len()) - 2
+}

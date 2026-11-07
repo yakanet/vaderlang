@@ -1,0 +1,23 @@
+// P24: two tasks count into the atomics of one struct, which nothing declares safe
+// to share: they only write it through the atomics.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Stats :: struct {
+    hits: AtomicInt = AtomicInt {}
+    misses: AtomicInt = AtomicInt {}
+}
+
+main :: fn() -> i32 {
+    stats :: Stats {}
+    a :: launch(() -> stats.hits.fetch_add(1))
+    b :: launch(() -> stats.misses.fetch_add(1))
+    a.join()
+    b.join()
+    return i32(stats.hits.load())
+}

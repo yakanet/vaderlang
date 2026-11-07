@@ -38,9 +38,9 @@ export TaskPrimitive :: struct {
     writes: string = ""
     /// The array field the call grows.
     grows: string = ""
-    /// The array field whose element the call returns: a value another task handed
-    /// on, so a function value it returns was checked where it was handed.
-    takes: string = ""
+    /// The call returns a value another task handed on, which belongs to the caller
+    /// from then on: a function value it returns was checked where it was handed.
+    takes: bool = false
     /// The field the lock guards, which the call hands to the fn `exclusive` names.
     guards: string = ""
 }
@@ -75,11 +75,15 @@ export task_primitive :: fn(key: string) -> TaskPrimitive | null = match key {
     "std/runtime/scheduler.park"            -> TaskPrimitive { .parks = true }
     "std/runtime/scheduler.sleep_for"       -> TaskPrimitive { .parks = true }
     "std/task.shared"                       -> TaskPrimitive { .gives = 0 }
-    "std/task.send"                         -> TaskPrimitive { .gives = 1, .grows = "messages" }
+    "std/task.send"                         -> TaskPrimitive {
+        .gives = 1,
+        .parks = true,
+        .grows = "messages",
+    }
     "std/task.receive"                      -> TaskPrimitive {
         .parks = true,
-        .writes = "next",
-        .takes = "messages",
+        .writes = "messages",
+        .takes = true,
     }
     "std/task.locked"                       -> TaskPrimitive { .exclusive = 1, .guards = "value" }
     "std/task.close"                        -> TaskPrimitive { .writes = "closed" }
@@ -93,7 +97,7 @@ export task_primitive :: fn(key: string) -> TaskPrimitive | null = match key {
 TASK_MODULE :: "std/task"
 
 // The structs of `TASK_MODULE` tasks share by design.
-TASK_SHARED_STRUCTS :: ["Task"]
+TASK_SHARED_STRUCTS :: ["Task", "Channel", "Shared", "AtomicInt", "AtomicBool"]
 
 /// Whether `sym` declares a struct tasks share by design: every task holding one
 /// reaches the same value, which a deep copy keeps instead of copying.
@@ -101,6 +105,12 @@ TASK_SHARED_STRUCTS :: ["Task"]
 /// @param sym  the struct's declaration symbol.
 export is_task_shared :: fn(sym: Symbol) -> bool =
     sym.module_name == TASK_MODULE && sym.name in TASK_SHARED_STRUCTS
+
+/// Whether `t` is a struct tasks share by design.
+///
+/// @param t  the type, null when unknown.
+export is_task_shared_type :: fn(t: Type | null) -> bool =
+    t is StructType && is_task_shared(t.symbol)
 
 // ---- tests ----------------------------------------------------------------
 

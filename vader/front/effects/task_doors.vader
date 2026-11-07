@@ -48,9 +48,6 @@ lent_effects :: fn(paths: PathTable, p: TaskPrimitive, q: i64) -> ParamEffects {
     if p.grows != "" {
         effects.insert(Access { .path = paths.path_to(p.grows), .effect = .Resized })
     }
-    if p.takes != "" {
-        effects.insert(Access { .path = element_of(paths, p.takes), .effect = .Returned })
-    }
     if p.guards != "" {
         // The fn holding the lock may do anything with the guarded value, keep it
         // included.

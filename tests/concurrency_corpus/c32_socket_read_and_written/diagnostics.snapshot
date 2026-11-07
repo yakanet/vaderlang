@@ -1,0 +1,1 @@
+[35:23] error[T3128] value written while a task uses it: `drain_outbox` writes `conn.write_buffer` while the task launched at line 34 reads it ; copy it before launching: `view :: conn.deep_copy()`, then capture `view`

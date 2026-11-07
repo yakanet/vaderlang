@@ -195,7 +195,16 @@ stepped :: fn(ctx: WalkCtx, iter: AST.Expr, iterator: i64 | null) -> i64 | null 
     if next is DirectFn && ctx.index.is_generator(next.decl) {
         return null
     }
-    return ctx.call(next, [iterator], iter.span)
+    return ctx.call(next, [iterator], iter.span, ctx.lent_to_next(iter))
+}
+
+// The expression the `next` of a `for` over `iter` is lent: the iterable itself,
+// unless an `into` made an iterator of it.
+lent_to_next :: fn(ctx: WalkCtx, iter: AST.Expr) -> (AST.Expr | null)[] {
+    if ctx.site_callee(.IterInto, iter.id) != null {
+        return []
+    }
+    return [iter]
 }
 
 // Whether a `for` over `iter` binds the elements of an array, with no iterator.

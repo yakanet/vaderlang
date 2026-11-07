@@ -1,0 +1,25 @@
+// P09: the locked block stores `page` into the shared map, and main writes `page`
+// after: a value stored in the guarded value is reached by every task that takes
+// the lock from then on.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/collections"
+import "std/task"
+
+Page :: struct {
+    title: string = ""
+}
+
+main :: fn() -> i32 {
+    cache :: shared(Map<string, Page> {})
+    page :: Page {}
+    cache.locked(m -> {
+        m["/"] = page
+    })
+    page.title = "x"
+    return 0
+}

@@ -1,0 +1,20 @@
+// C23: the page leaves the locked block, still held by the map.
+//
+// corpus: refused E4
+// expect: T3131
+
+module "snippet"
+
+import "std/collections"
+import "std/task"
+
+Page :: struct {
+    title: string = ""
+}
+
+main :: fn() -> i32 {
+    cache :: shared(Map<string, Page> {})
+    page :: cache.locked(m -> m["/"] ?? Page {})
+    page.title = "Home"
+    return 0
+}

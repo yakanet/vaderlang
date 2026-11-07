@@ -1,0 +1,27 @@
+// P26: each turn of the loop builds a job and stores it in the guarded queue: no
+// job outlives its turn beside the queue, and the stores share one lock.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Job :: struct {
+    id: i64 = 0
+}
+
+Queue :: struct {
+    jobs: Job[] = []
+}
+
+main :: fn() -> i32 {
+    q :: shared(Queue {})
+    worker :: launch(() -> q.locked((inner) -> inner.jobs.len()))
+    for i in 0..<3 {
+        job :: Job { .id = i }
+        q.locked((inner) -> inner.jobs.push(job))
+    }
+    return i32(worker.join())
+}

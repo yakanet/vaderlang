@@ -1,0 +1,53 @@
+// Three workers take jobs from a bounded channel until it closes, and send what
+// they make on an unbounded one. An atomic counts the jobs done, a shared log says
+// who took each. The workers reach the channels through a struct they are lent.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+import "std/string"
+import "std/task"
+
+Pipes :: struct {
+    jobs: Channel<i64>
+    results: Channel<i64>
+    done: AtomicInt
+    log: Shared<string[]>
+}
+
+work :: fn(pipes: Pipes, name: string) -> i64 {
+    taken: i64 = 0
+    for job in pipes.jobs {
+        pipes.results.send(job * job)
+        pipes.done.fetch_add(1)
+        pipes.log.locked((lines) -> lines.push("${name}:${job}"))
+        taken += 1
+    }
+    return taken
+}
+
+main :: fn() -> i32 {
+    lines: string[]: []
+    pipes :: Pipes {
+        .jobs = Channel<i64> { .capacity = 2 },
+        .results = Channel<i64> { .capacity = UNBOUNDED },
+        .done = AtomicInt {},
+        .log = shared(lines),
+    }
+    workers :: ["a", "b", "c"].map((name) -> launch(() -> work(pipes, name))).collect()
+    for job in 1..=7 {
+        pipes.jobs.send(job)
+    }
+    pipes.jobs.close()
+    taken :: join_all(workers).map((n) -> "${n}").collect()
+    pipes.results.close()
+    total: i64 = 0
+    for square in pipes.results {
+        total += square
+    }
+    println("taken ${taken.join(" ")}")
+    println("done ${pipes.done.load()}, total ${total}")
+    println(pipes.log.locked((all) -> all.join(" ")))
+    println("after close: ${pipes.jobs.receive()}")
+    return 0
+}

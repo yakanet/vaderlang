@@ -452,7 +452,7 @@ as_touched :: fn(paths: PathTable, site: Site, target: CallTarget, a: Access) ->
 }
 
 // Note what the callees of `site` do to what it lends them. A struct tasks share by
-// design is no value two tasks could race on: what its fns do to it is theirs.
+// design is no value two tasks could race on: what is done through it is its fns'.
 note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) -> void {
     paths :: ctx.index.paths
     by :: display_callee(site.callee)
@@ -460,7 +460,9 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
         params :: known_params(target, ctx.facts)
         for q in 0..<site.args.len() {
             arg :: site.args[q] ?? continue
-            if ctx.is_task_shared_source(body, site, q) {
+            roots :: body.roots_at(arg)
+            lent :: lent_type(body, site, q)
+            if roots.len() == 0 || is_task_shared_type(lent) {
                 continue
             }
             sent :: ctx.sending_at(site, q) != null
@@ -471,7 +473,10 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
                     if kind == .Kept && (stores || ctx.keeps_in_another(target, q)) {
                         continue
                     }
-                    for r in body.roots_at(arg) {
+                    if crosses_task_shared(paths, body.typed, lent, a.path) {
+                        continue
+                    }
+                    for r in roots {
                         below :: paths.lands_at(r, a.path, a.effect) ?? continue
                         touch :: Touch {
                             .root = r.param,
@@ -530,14 +535,31 @@ callee_access :: fn(
     return CalleeAccess { .node = target.node, .param = q, .access = i }
 }
 
-// Whether the expression parameter `q` of `site` receives is a struct tasks share.
-is_task_shared_source :: fn(ctx: TaskCtx, body: TaskBody, site: Site, q: i64) -> bool {
+// The type of the expression parameter `q` of `site` receives ; null when unknown.
+lent_type :: fn(body: TaskBody, site: Site, q: i64) -> Type | null {
     if q >= site.sources.len() {
-        return false
+        return null
     }
-    source :: site.sources[q] ?? return false
-    t :: body.typed.expr_types[source.id] ?? return false
-    return t is StructType && is_task_shared(t.symbol)
+    source :: site.sources[q] ?? return null
+    return body.typed.expr_types[source.id]
+}
+
+// Whether `path`, followed down from a value of type `t`, reaches a struct tasks
+// share by design.
+crosses_task_shared :: fn(
+    paths: PathTable,
+    typed: TypedProgram,
+    t: Type | null,
+    path: i32,
+) -> bool {
+    at := t
+    for step in paths.steps_of(path) {
+        at = step_type(typed, at, paths.step_names[step]) ?? return false
+        if is_task_shared_type(at) {
+            return true
+        }
+    }
+    return false
 }
 
 // ---- doors ----------------------------------------------------------------

@@ -1,0 +1,27 @@
+// P52: the task calls a function value it receives on a channel: the lambda was
+// checked where it was sent, and main touches `level` no more.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Level :: struct {
+    n: i64 = 0
+}
+
+main :: fn() -> i32 {
+    level :: Level {}
+    jobs :: Channel<fn() -> void> { .capacity = 16 }
+    jobs.send(() -> { level.n += 1 })
+    t :: launch(() -> {
+        job :: jobs.receive()
+        if job is fn() -> void {
+            job()
+        }
+    })
+    t.join()
+    return 0
+}

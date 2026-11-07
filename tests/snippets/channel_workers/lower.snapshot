@@ -1,0 +1,305 @@
+# Lower
+
+## snippet
+  snippet.Pipes :: struct { jobs: Channel<i64>, results: Channel<i64>, done: AtomicInt, log: Shared<string[]> }  // snippet$Pipes
+  snippet.work :: fn(pipes: Pipes, name: string) -> i64 {  // snippet$work
+      taken: i64 = 0
+      {
+          __iter_0: Channel<i64> = pipes.jobs
+          for {
+              __step_1: i64 | Stop = std.task.Channel<i64>.next(__iter_0)
+              if __step_1 is Stop {
+                  break
+              } else {
+                  job: i64 = i64(__step_1)
+                  std.task.send<i64>(pipes.results, job * job)
+                  std.task.fetch_add(pipes.done, i64(1))
+                  std.task.locked<string[], void>(pipes.log, @closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = name, .cap_1 = job }))
+                  taken = taken + i64(1)
+              }
+          }
+      }
+      return taken
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      lines: string[] = [] :string[]
+      pipes: Pipes = Pipes {
+          .jobs = Channel<i64> {
+              .capacity = i64(2),
+              .messages = Queue<i64> {
+                  .items = [] :i64[],
+                  .head = i64(0),
+                  .size = i64(0),
+              },
+              .closed = false,
+              .senders = [] :i64[],
+              .receivers = [] :i64[],
+          },
+          .results = Channel<i64> {
+              .capacity = i64(9223372036854775807),
+              .messages = Queue<i64> {
+                  .items = [] :i64[],
+                  .head = i64(0),
+                  .size = i64(0),
+              },
+              .closed = false,
+              .senders = [] :i64[],
+              .receivers = [] :i64[],
+          },
+          .done = AtomicInt { .value = i64(0) },
+          .log = std.task.shared<string[]>(lines),
+      }
+      workers: Task<i64>[] = {
+          __fuse_arr_0: string[] = ["a", "b", "c"] :string[]
+          f: __lambda_env_snippet_3 = __lambda_env_snippet_3 { .cap_0 = pipes }
+          out: Task<i64>[] = @array.reserve(@array.len(__fuse_arr_0))
+          {
+              __fuse_len_0: i64 = @array.len(__fuse_arr_0)
+              __fuse_i_1: i64 = 0
+              for __fuse_i_1 < __fuse_len_0 {
+                  x: string = __fuse_arr_0[__fuse_i_1]
+                  x: Task<i64> = __lambda_snippet_2(f, x)
+                  @array.push(out, x)
+              } @step {
+                  __fuse_i_1 = __fuse_i_1 +% i64(1)
+              }
+          }
+          out
+      }
+      {
+          job: i32 = 1
+          for job <= 7 {
+              std.task.send<i64>(pipes.jobs, job)
+          } @step {
+              job = job +% 1
+          }
+      }
+      std.task.close<i64>(pipes.jobs)
+      taken: string[] = {
+          __fuse_arr_3: (Cancelled | i64)[] = std.task.join_all<i64>(workers)
+          f: fn(Cancelled | i64) -> string = __lambda_snippet_6
+          out: string[] = @array.reserve(@array.len(__fuse_arr_3))
+          {
+              __fuse_len_0: i64 = @array.len(__fuse_arr_3)
+              __fuse_i_1: i64 = 0
+              for __fuse_i_1 < __fuse_len_0 {
+                  x: Cancelled | i64 = __fuse_arr_3[__fuse_i_1]
+                  x: string = __lambda_snippet_6(x)
+                  @array.push(out, x)
+              } @step {
+                  __fuse_i_1 = __fuse_i_1 +% i64(1)
+              }
+          }
+          out
+      }
+      std.task.close<i64>(pipes.results)
+      total: i64 = 0
+      {
+          __iter_5: Channel<i64> = pipes.results
+          for {
+              __step_6: i64 | Stop = std.task.Channel<i64>.next(__iter_5)
+              if __step_6 is Stop {
+                  break
+              } else {
+                  square: i64 = i64(__step_6)
+                  total = total + square
+              }
+          }
+      }
+      std.io.println<string>(concat_2("taken ", std.string.join(taken, " ")))
+      std.io.println<string>({
+          __buf_7: Buffer = std.core.new_byte_buffer(i64(53))
+          __off_8: i64 = 0
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, "done ")
+          __off_8 = std.core.write_int(__buf_7, __off_8, std.task.load(pipes.done))
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, ", total ")
+          __off_8 = std.core.write_int(__buf_7, __off_8, total)
+          std.core.finish_buffer(__buf_7, __off_8)
+      } :string)
+      std.io.println<string>(std.task.locked<string[], string>(pipes.log, __lambda_snippet_7))
+      std.io.println<string>(concat_2("after close: ", @vcall(std.core.Display.to_string, std.task.receive<i64>(pipes.jobs))))
+      return 0
+  }
+  __lambda_env_snippet_1 :: struct { cap_0: string, cap_1: i64 }
+  __lambda_snippet_0 :: fn(__env_2: __lambda_env_snippet_1, lines: string[]) -> void {
+      @array.push(lines, {
+          __p_0: string = __env_2.cap_0
+          __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_0))
+          __off_2: i64 = 0
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, ":")
+          __off_2 = std.core.write_int(__buf_1, __off_2, __env_2.cap_1)
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string)
+  }
+  __lambda_env_snippet_5 :: struct { cap_0: Pipes, cap_1: string }
+  __lambda_snippet_4 :: fn(__env_0: __lambda_env_snippet_5) -> i64 {
+      snippet.work(__env_0.cap_0, __env_0.cap_1)
+  }
+  __lambda_env_snippet_3 :: struct { cap_0: Pipes }
+  __lambda_snippet_2 :: fn(__env_1: __lambda_env_snippet_3, name: string) -> Task<i64> {
+      std.task.launch<i64>(@closure(__lambda_snippet_4, __lambda_env_snippet_5 { .cap_0 = __env_1.cap_0, .cap_1 = name }))
+  }
+  __lambda_snippet_6 :: fn(n: Cancelled | i64) -> string {
+      @vcall(std.core.Display.to_string, n)
+  }
+  __lambda_snippet_7 :: fn(all: string[]) -> string {
+      std.string.join(all, " ")
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/collections
+    fn std.collections.Queue<i64>.peek  // std_collections$Queue$std_core$Peek$peek__i64
+    fn std.collections.is_empty<i64>  // std_collections$is_empty__i64
+    fn std.collections.len<i64>  // std_collections$len__i64
+    fn std.collections.push<i64>  // std_collections$push__i64
+    fn std.collections.remove_first<i64>  // std_collections$remove_first__i64
+    fn std.collections.ring_index  // std_collections$ring_index
+    struct std.collections.Queue<i64>  // std_collections$Queue__i64
+  std/core
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
+    const FLOAT_POW5_INV_SPLIT: u64[]  data pool #2
+    const FLOAT_POW5_SPLIT: u64[]  data pool #3
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Cancelled.to_string  // std_core$Cancelled$Display$to_string
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.b2u32  // std_core$b2u32
+    fn std.core.bool.to_string  // std_core$bool$Display$to_string
+    fn std.core.char.to_string  // std_core$char$Display$to_string
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.f2d  // std_core$f2d
+    fn std.core.f32.to_bits  // std_core$f32$Float32Bits$to_bits
+    fn std.core.f32.to_string  // std_core$f32$Display$to_string
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f32  // std_core$format_f32
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.format_signed  // std_core$format_signed
+    fn std.core.format_unsigned  // std_core$format_unsigned
+    fn std.core.i16.to_string  // std_core$i16$Display$to_string
+    fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.i64.to_string  // std_core$i64$Display$to_string
+    fn std.core.i8.to_string  // std_core$i8$Display$to_string
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_pow5_div_pow2  // std_core$mul_pow5_div_pow2
+    fn std.core.mul_pow5_inv_div_pow2  // std_core$mul_pow5_inv_div_pow2
+    fn std.core.mul_shift_32  // std_core$mul_shift_32
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_2_32  // std_core$multiple_of_power_of_2_32
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.multiple_of_power_of_5_32  // std_core$multiple_of_power_of_5_32
+    fn std.core.null.to_string  // std_core$null$Display$to_string
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5_factor_32  // std_core$pow5_factor_32
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.string.to_string  // std_core$string$Display$to_string
+    fn std.core.u16.to_string  // std_core$u16$Display$to_string
+    fn std.core.u32.to_string  // std_core$u32$Display$to_string
+    fn std.core.u64.to_string  // std_core$u64$Display$to_string
+    fn std.core.u8.to_string  // std_core$u8$Display$to_string
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.utf8_encode  // std_core$utf8_encode
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Cancelled  // std_core$Cancelled
+    struct std.core.Dec64  // std_core$Dec64
+    struct std.core.FloatDec32  // std_core$FloatDec32
+    struct std.core.Stop  // std_core$Stop
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
+  std/string
+    fn std.string.join  // std_string$join
+  std/string_builder
+    fn std.string_builder.StringBuilder.to_string  // std_string__builder$StringBuilder$std_core$Display$to_string
+    fn std.string_builder.append  // std_string__builder$append
+    fn std.string_builder.byte_len  // std_string__builder$byte_len
+    struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
+  std/task
+    global #0 i32  started.state
+    global #1 Started  started.instance
+    fn __defer_std_task_2
+    fn __defer_std_task_4
+    fn __defer_std_task_6
+    fn __defer_std_task_8
+    fn __lambda_std_task_0
+    fn std.task.Channel<i64>.next  // std_task$Channel$std_core$Iterator$next__i64
+    fn std.task.Closed.to_string  // std_task$Closed$std_core$Display$to_string
+    fn std.task.Task<i64>.equals  // std_task$Task$std_core$Equals$equals__i64
+    fn std.task.Task<i64>.to_string  // std_task$Task$std_core$Display$to_string__i64
+    fn std.task.await_message<i64>  // std_task$await_message__i64
+    fn std.task.await_room<i64>  // std_task$await_room__i64
+    fn std.task.close<i64>  // std_task$close__i64
+    fn std.task.end<i64>  // std_task$end__i64
+    fn std.task.fetch_add  // std_task$fetch_add
+    fn std.task.gave_up_receiving<i64>  // std_task$gave_up_receiving__i64
+    fn std.task.gave_up_sending<i64>  // std_task$gave_up_sending__i64
+    fn std.task.join<i64>  // std_task$join__i64
+    fn std.task.join_all<i64>  // std_task$join_all__i64
+    fn std.task.launch<i64>  // std_task$launch__i64
+    fn std.task.load  // std_task$load
+    fn std.task.locked<string[], string>  // std_task$locked__string____string
+    fn std.task.locked<string[], void>  // std_task$locked__string____void
+    fn std.task.outcome<i64>  // std_task$outcome__i64
+    fn std.task.receive<i64>  // std_task$receive__i64
+    fn std.task.remove_thread  // std_task$remove_thread
+    fn std.task.run<i64>  // std_task$run__i64
+    fn std.task.send<i64>  // std_task$send__i64
+    fn std.task.shared<string[]>  // std_task$shared__string__
+    fn std.task.start_thread  // std_task$start_thread
+    fn std.task.started  // std_task$started
+    fn std.task.stop_waiting<i64>  // std_task$stop_waiting__i64
+    fn std.task.wake_first  // std_task$wake_first
+    fn std_task$Task$std_core$Equals$equals__i64$guard
+    fn std_task$started$singleton
+    struct __defer_env_std_task_3
+    struct __defer_env_std_task_5
+    struct __defer_env_std_task_7
+    struct __defer_env_std_task_9
+    struct __lambda_env_std_task_1
+    struct std.task.AtomicInt  // std_task$AtomicInt
+    struct std.task.Channel<i64>  // std_task$Channel__i64
+    struct std.task.Closed  // std_task$Closed
+    struct std.task.Group  // std_task$Group
+    struct std.task.Shared<string[]>  // std_task$Shared__string__
+    struct std.task.Started  // std_task$Started
+    struct std.task.Task<i64>  // std_task$Task__i64
+    struct std.task.Waiter  // std_task$Waiter
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

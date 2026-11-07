@@ -1,0 +1,1 @@
+[23:5] error[T3129] value written by several tasks: this writes `page.title` while a task taking the lock it was stored under at line 20 writes it too (through `locked`) ; store a copy, `page.deep_copy()`, or leave `page` alone once stored

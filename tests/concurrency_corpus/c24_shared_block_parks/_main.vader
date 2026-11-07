@@ -1,0 +1,29 @@
+// C24: `fetch` parks while the block holds the lock.
+//
+// corpus: refused E5
+// expect: T3132
+
+module "snippet"
+
+import "std/collections"
+import "std/option"
+import "std/task"
+
+Page :: struct {
+    title: string = ""
+}
+
+// Waits for the task that reads the socket.
+fetch :: fn(url: string) -> Page {
+    reader :: launch(() -> Page { .title = url })
+    return reader.join().unwrap()
+}
+
+main :: fn() -> i32 {
+    cache :: shared(Map<string, Page> {})
+    url :: "/"
+    cache.locked(m -> {
+        m[url] = fetch(url)
+    })
+    return 0
+}

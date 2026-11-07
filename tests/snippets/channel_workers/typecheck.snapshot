@@ -1,0 +1,120 @@
+# Typecheck
+
+## tests/snippets/channel_workers
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Pipes                :: Pipes
+  FnDecl         work                 :: fn(Pipes, string) -> i64
+  expr 20:16    FieldExpr      :: Channel<i64>
+  expr 20:16    IdentExpr      :: Pipes
+  expr 21:28    BinaryExpr     :: i64
+  expr 21:28    IdentExpr      :: i64
+  expr 21:34    IdentExpr      :: i64
+  expr 21:9     CallExpr       :: void
+  expr 21:9     FieldExpr      :: Channel<i64>
+  expr 21:9     FieldExpr      :: fn(i64) -> void
+  expr 21:9     IdentExpr      :: Pipes
+  expr 22:9     CallExpr       :: i64
+  expr 22:9     FieldExpr      :: AtomicInt
+  expr 22:9     FieldExpr      :: fn(i64) -> i64
+  expr 22:9     IdentExpr      :: Pipes
+  expr 23:26    LambdaExpr     :: fn(string[]) -> void
+  expr 23:37    CallExpr       :: void
+  expr 23:37    FieldExpr      :: fn(string) -> void
+  expr 23:37    IdentExpr      :: string[]
+  expr 23:48    StringLitExpr  :: string
+  expr 23:51    IdentExpr      :: string
+  expr 23:59    IdentExpr      :: i64
+  expr 23:9     CallExpr       :: void
+  expr 23:9     FieldExpr      :: Shared<string[]>
+  expr 23:9     FieldExpr      :: fn(fn(string[]) -> void) -> void
+  expr 23:9     IdentExpr      :: Pipes
+  expr 24:9     BinaryExpr     :: i64
+  expr 24:9     IdentExpr      :: i64
+  expr 26:12    IdentExpr      :: i64
+  expr 30:22    SeqLitExpr     :: string[]
+  expr 31:14    StructLitExpr  :: Pipes
+  expr 32:17    StructLitExpr  :: Channel<i64>
+  expr 33:20    StructLitExpr  :: Channel<i64>
+  expr 33:47    IdentExpr      :: i64
+  expr 34:17    StructLitExpr  :: AtomicInt
+  expr 35:16    CallExpr       :: Shared<string[]>
+  expr 35:16    IdentExpr      :: fn(T) -> Shared<T>
+  expr 35:23    IdentExpr      :: string[]
+  expr 37:16    CallExpr       :: Iterator<Task<i64>>
+  expr 37:16    CallExpr       :: Task<i64>[]
+  expr 37:16    FieldExpr      :: fn() -> Task<i64>[]
+  expr 37:16    FieldExpr      :: fn(fn(string) -> Task<i64>) -> Iterator<Task<i64>>
+  expr 37:16    SeqLitExpr     :: string[]
+  expr 37:17    StringLitExpr  :: string
+  expr 37:22    StringLitExpr  :: string
+  expr 37:27    StringLitExpr  :: string
+  expr 37:36    LambdaExpr     :: fn(string) -> Task<i64>
+  expr 37:46    CallExpr       :: Task<i64>
+  expr 37:46    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 37:53    LambdaExpr     :: fn() -> i64
+  expr 37:59    CallExpr       :: i64
+  expr 37:59    IdentExpr      :: fn(Pipes, string) -> i64
+  expr 37:64    IdentExpr      :: Pipes
+  expr 37:71    IdentExpr      :: string
+  expr 38:16    RangeExpr      :: Range<i32>
+  expr 39:25    IdentExpr      :: i32
+  expr 39:9     CallExpr       :: void
+  expr 39:9     FieldExpr      :: Channel<i64>
+  expr 39:9     FieldExpr      :: fn(i64) -> void
+  expr 39:9     IdentExpr      :: Pipes
+  expr 41:5     CallExpr       :: void
+  expr 41:5     FieldExpr      :: Channel<i64>
+  expr 41:5     FieldExpr      :: fn() -> void
+  expr 41:5     IdentExpr      :: Pipes
+  expr 42:14    CallExpr       :: (Cancelled | i64)[]
+  expr 42:14    CallExpr       :: Iterator<string>
+  expr 42:14    CallExpr       :: string[]
+  expr 42:14    FieldExpr      :: fn() -> string[]
+  expr 42:14    FieldExpr      :: fn(fn(Cancelled | i64) -> string) -> Iterator<string>
+  expr 42:14    IdentExpr      :: fn(Task<T>[]) -> (Cancelled | T)[]
+  expr 42:23    IdentExpr      :: Task<i64>[]
+  expr 42:36    LambdaExpr     :: fn(Cancelled | i64) -> string
+  expr 42:43    StringLitExpr  :: string
+  expr 42:46    IdentExpr      :: Cancelled | i64
+  expr 43:5     CallExpr       :: void
+  expr 43:5     FieldExpr      :: Channel<i64>
+  expr 43:5     FieldExpr      :: fn() -> void
+  expr 43:5     IdentExpr      :: Pipes
+  expr 45:19    FieldExpr      :: Channel<i64>
+  expr 45:19    IdentExpr      :: Pipes
+  expr 46:18    IdentExpr      :: i64
+  expr 46:9     BinaryExpr     :: i64
+  expr 46:9     IdentExpr      :: i64
+  expr 48:13    StringLitExpr  :: string
+  expr 48:22    CallExpr       :: string
+  expr 48:22    FieldExpr      :: fn(string) -> string
+  expr 48:22    IdentExpr      :: string[]
+  expr 48:33    StringLitExpr  :: string
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 49:13    StringLitExpr  :: string
+  expr 49:21    CallExpr       :: i64
+  expr 49:21    FieldExpr      :: AtomicInt
+  expr 49:21    FieldExpr      :: fn() -> i64
+  expr 49:21    IdentExpr      :: Pipes
+  expr 49:49    IdentExpr      :: i64
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(T) -> void
+  expr 50:13    CallExpr       :: string
+  expr 50:13    FieldExpr      :: Shared<string[]>
+  expr 50:13    FieldExpr      :: fn(fn(string[]) -> string) -> string
+  expr 50:13    IdentExpr      :: Pipes
+  expr 50:30    LambdaExpr     :: fn(string[]) -> string
+  expr 50:39    CallExpr       :: string
+  expr 50:39    FieldExpr      :: fn(string) -> string
+  expr 50:39    IdentExpr      :: string[]
+  expr 50:48    StringLitExpr  :: string
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 51:13    StringLitExpr  :: string
+  expr 51:29    CallExpr       :: Closed | i64
+  expr 51:29    FieldExpr      :: Channel<i64>
+  expr 51:29    FieldExpr      :: fn() -> Closed | i64
+  expr 51:29    IdentExpr      :: Pipes
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void

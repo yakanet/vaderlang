@@ -1,0 +1,23 @@
+// C25: an atomic counter several tasks bump.
+//
+// corpus: accepted
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+// Reads its file name only.
+scan :: fn(f: string) -> i64 = 1
+
+main :: fn() -> i32 {
+    hits :: AtomicInt {}
+    files: string[]: ["a", "b"]
+    for f in files {
+        launch(() -> {
+            scan(f)
+            hits.fetch_add(1)
+        })
+    }
+    return i32(hits.load()) - 2
+}

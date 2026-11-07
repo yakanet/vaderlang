@@ -1,0 +1,1 @@
+[17:5] error[T3129] value written by several tasks: this writes `cfg.port` while a task it was handed to at line 16 writes it too (through `shared`) ; hand on a copy, `cfg.deep_copy()`, or leave `cfg` alone once handed on

@@ -1,0 +1,7 @@
+# stdout
+taken 4 2 1
+done 7, total 140
+a:1 a:2 a:3 a:4 b:5 b:6 c:7
+after close: closed
+# exit
+0

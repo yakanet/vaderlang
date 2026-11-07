@@ -1,0 +1,29 @@
+// P25: `put` stores its parameter in the guarded queue, and the caller writes the
+// job after the call: the store hands the job on for good, through `put`.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Job :: struct {
+    id: i64 = 0
+}
+
+Queue :: struct {
+    jobs: Job[] = []
+}
+
+put :: fn(q: Shared<Queue>, job: Job) -> void {
+    q.locked((inner) -> inner.jobs.push(job))
+}
+
+main :: fn() -> i32 {
+    q :: shared(Queue {})
+    job :: Job { .id = 1 }
+    put(q, job)
+    job.id = 2
+    return 0
+}

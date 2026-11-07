@@ -1,0 +1,179 @@
+// std/task/shared: the values several tasks write, under a lock or atomically.
+//
+// A value tasks only read needs nothing: the task check lets every task read it.
+// A value several tasks write goes in a `Shared`, reached through `locked` only, or
+// is an `AtomicInt` / `AtomicBool`. The tasks run on one OS thread and give way to
+// one another only where they park: a `locked` body runs to its end, since nothing
+// may park there, and an atomic operation is a plain one.
+
+module "std/task"
+
+/// A value several tasks share, each reaching it through `locked`.
+export Shared :: struct<T> {
+    @internal
+    value: T
+}
+
+/// Share `value` between tasks.
+///
+/// @param value  the value shared: from now on, reached through `locked` only.
+/// @example
+///   hits :: shared([0, 0])
+///   hits.locked(fn(counts) {
+///       counts[0] += 1
+///   })
+export shared :: fn<T>(value: T) -> Shared<T> = Shared<T> { .value = value }
+
+/// Run `body` on the value of `cell`, holding its lock.
+///
+/// `body` must not park, and nothing it reaches of the value may outlive it: the
+/// task check refuses a `send`, a `join` or a `receive` in it, and a part of the
+/// value it stores elsewhere.
+///
+/// @param cell  the shared value.
+/// @param body  what to do with the value.
+/// @return      what `body` returns.
+/// @example
+///   names :: shared(["ada"])
+///   names.locked((all) -> all.len())   // 1
+export locked :: fn<T, R>(cell: Shared<T>, body: fn(T) -> R) -> R = body(cell.value)
+
+/// An integer several tasks read and write at once.
+export AtomicInt :: struct {
+    @internal
+    value: i64 = 0
+}
+
+/// Add `n` to `cell`, and hand back what it held before.
+///
+/// @param cell  the integer to add to.
+/// @param n     what to add, negative to subtract.
+/// @example
+///   done :: AtomicInt {}
+///   done.fetch_add(2)   // 0
+///   done.load()         // 2
+export fetch_add :: fn(cell: AtomicInt, n: i64) -> i64 {
+    before :: cell.value
+    cell.value += n
+    return before
+}
+
+/// What `cell` holds.
+///
+/// @param cell  the integer to read.
+export load :: fn(cell: AtomicInt) -> i64 = cell.value
+
+/// Make `cell` hold `n`.
+///
+/// @param cell  the integer to write.
+/// @param n     what it holds from now on.
+export store :: fn(cell: AtomicInt, n: i64) -> void {
+    cell.value = n
+}
+
+/// Make `cell` hold `next` when it holds `expected` ; whether it did.
+///
+/// @param cell      the integer to write.
+/// @param expected  what `cell` must hold for the write to happen.
+/// @param next      what it holds from now on, when it did.
+/// @example
+///   owner :: AtomicInt {}
+///   owner.compare_and_set(0, 7)   // true
+///   owner.compare_and_set(0, 9)   // false
+export compare_and_set :: fn(cell: AtomicInt, expected: i64, next: i64) -> bool {
+    if cell.value != expected {
+        return false
+    }
+    cell.value = next
+    return true
+}
+
+/// A flag several tasks read and write at once.
+export AtomicBool :: struct {
+    @internal
+    value: bool = false
+}
+
+/// What `cell` holds.
+///
+/// @param cell  the flag to read.
+export load :: fn(cell: AtomicBool) -> bool = cell.value
+
+/// Make `cell` hold `flag`.
+///
+/// @param cell  the flag to write.
+/// @param flag  what it holds from now on.
+export store :: fn(cell: AtomicBool, flag: bool) -> void {
+    cell.value = flag
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_locked_hands_back_what_its_body_returns :: fn() -> void {
+    names :: shared(["ada", "alan"])
+    assert_eq(names.locked((all) -> all.len()), 2)
+}
+
+// Add 1 to the count of `hits` `n` times, giving way to the other tasks between two.
+count_hits :: fn(hits: Shared<i32[]>, n: i32) -> i32 {
+    for _ in 0..<n {
+        hits.locked(fn(counts) {
+            counts[0] += 1
+        })
+        yield_now()
+    }
+    return n
+}
+
+@test
+test_shared_value_is_written_by_every_task :: fn() -> void {
+    hits :: shared([0])
+    first :: launch(() -> count_hits(hits, 3))
+    second :: launch(() -> count_hits(hits, 4))
+    assert_eq("${first.join()} ${second.join()}", "3 4")
+    assert_eq(hits.locked((counts) -> counts[0]), 7)
+}
+
+@test
+test_fetch_add_hands_back_the_value_before :: fn() -> void {
+    done :: AtomicInt {}
+    assert_eq(done.fetch_add(2), 0)
+    assert_eq(done.fetch_add(3), 2)
+    assert_eq(done.load(), 5)
+}
+
+@test
+test_compare_and_set_writes_only_on_the_expected_value :: fn() -> void {
+    owner :: AtomicInt {}
+    assert(owner.compare_and_set(0, 7), "set from 0")
+    assert(!owner.compare_and_set(0, 9), "refused from 7")
+    assert_eq(owner.load(), 7)
+}
+
+// Add 1 to `done` `n` times, giving way to the other tasks between two.
+count_done :: fn(done: AtomicInt, n: i64) -> i64 {
+    for _ in 0..<n {
+        done.fetch_add(1)
+        yield_now()
+    }
+    return n
+}
+
+@test
+test_atomic_int_is_written_by_every_task :: fn() -> void {
+    done :: AtomicInt {}
+    first :: launch(() -> count_done(done, 3))
+    second :: launch(() -> count_done(done, 4))
+    assert_eq("${first.join()} ${second.join()}", "3 4")
+    assert_eq(done.load(), 7)
+}
+
+@test
+test_atomic_bool_holds_what_was_stored :: fn() -> void {
+    flag :: AtomicBool {}
+    flag.store(true)
+    assert(flag.load(), "stored true")
+}

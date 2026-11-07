@@ -1,0 +1,1 @@
+[10:23] error[T3132] shared block parks: this block holds the lock while it calls `send`, which may park ; call `send` after the block, on what the block returns

@@ -1,0 +1,27 @@
+// P73: main reads with `for` the channel a task sends on: the `next` the loop calls
+// changes the channel, which tasks share.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+produce :: fn(numbers: Channel<i64>) -> void {
+    for n in 0..<4 {
+        numbers.send(n)
+    }
+    numbers.close()
+}
+
+main :: fn() -> i32 {
+    numbers :: Channel<i64> { .capacity = 1 }
+    t :: launch(() -> produce(numbers))
+    total: i64 = 0
+    for n in numbers {
+        total += n
+    }
+    t.join()
+    return i32(total) - 6
+}

@@ -1,0 +1,1 @@
+[17:26] error[T3131] value kept past a shared block: a part of `m` outlives the block that holds its lock ; keep a copy of it, `.deep_copy()`, or only what you need of it

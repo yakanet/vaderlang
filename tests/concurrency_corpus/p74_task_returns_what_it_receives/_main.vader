@@ -1,0 +1,22 @@
+// P74: the task returns the message it receives while main sends on the channel: a
+// message belongs to its receiver, no part of the channel.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Msg :: struct {
+    text: string = ""
+}
+
+main :: fn() -> i32 {
+    inbox :: Channel<Msg> { .capacity = 1 }
+    t :: launch(() -> inbox.receive())
+    inbox.send(Msg { .text = "hi" })
+    inbox.close()
+    t.join()
+    return 0
+}

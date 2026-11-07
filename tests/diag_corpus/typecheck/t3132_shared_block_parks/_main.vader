@@ -1,0 +1,12 @@
+// T3132 : the block run under the lock sends on a full channel, which parks while
+// the lock is held.
+module "snippet"
+
+import "std/task"
+
+main :: fn() -> i32 {
+    log :: shared(0)
+    out :: Channel<i64> { .capacity = 1 }
+    log.locked((n) -> out.send(n))
+    return 0
+}

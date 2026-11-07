@@ -1,0 +1,268 @@
+// std/task/channel: channels, which hand messages from task to task.
+//
+// A channel holds at most `capacity` messages: a `send` to a full channel parks
+// until a `receive` takes one, so a producer runs at the pace of its consumers.
+//
+// The threads parked on a channel wait in the order they came. A `send` wakes the
+// first receiver, a `receive` the first sender, and a thread woken for what it no
+// longer takes (it was cancelled before it ran) wakes the next one in its place.
+
+module "std/task"
+
+import "std/abort"
+import "std/collections"
+import "std/runtime/scheduler"
+
+/// A queue of messages between tasks. A message sent belongs to its receiver: the
+/// sender leaves it alone.
+///
+/// The capacity is given at creation, `Channel<Job> { .capacity = 64 }`; a channel
+/// that never makes a sender wait takes `UNBOUNDED`. A channel iterates over the
+/// messages it receives until it is closed and drained: `for job in jobs { ... }`.
+export Channel :: struct<T> {
+    /// How many messages the channel holds before a `send` parks: at least 1.
+    capacity: i64
+    @internal
+    messages: Queue<T> = Queue<T> {}
+    @internal
+    closed: bool = false
+    /// The threads parked on a full channel, in the order they came.
+    @internal
+    senders: i64[] = []
+    /// The threads parked on an empty channel, in the order they came.
+    @internal
+    receivers: i64[] = []
+}
+
+/// The capacity of a channel that never makes a sender wait.
+export UNBOUNDED: i64: 0x7FFF_FFFF_FFFF_FFFF
+
+/// What `receive` gives back once the channel is closed and every message taken.
+export Closed :: struct {}
+
+Closed implements Display -> "closed"
+
+Channel<T> implements<T> Iterator<T> {
+    next :: fn(self) -> T | Stop {
+        message :: receive(self)
+        if message is Closed {
+            return Stop {}
+        }
+        return message
+    }
+}
+
+/// Send `message` to the receivers of `channel`, parking while it is full.
+///
+/// @param channel  the channel to send on.
+/// @param message  the message: it belongs to its receiver from now on.
+/// @error          stops the program when `channel` is closed, or closes while the
+///                 sender waits, and when its capacity is below 1.
+/// @example
+///   jobs :: Channel<i32> { .capacity = 2 }
+///   jobs.send(1)
+///   jobs.receive()   // 1
+export send :: fn<T>(channel: Channel<T>, message: T) -> void {
+    if channel.capacity < 1 {
+        panic("send: a channel holds at least one message, its capacity is ${channel.capacity}")
+    }
+    if channel.messages.len() >= channel.capacity && !channel.closed {
+        await_room(channel)
+    }
+    if channel.closed {
+        panic("send: the channel is closed")
+    }
+    channel.messages.push(message)
+    wake_first(channel.receivers)
+    if channel.messages.len() < channel.capacity {
+        wake_first(channel.senders)
+    }
+}
+
+/// Take the oldest message of `channel`, parking while it is empty.
+///
+/// @param channel  the channel to receive from.
+/// @return         the message, or `Closed` once the channel is closed and every
+///                 message taken.
+/// @example
+///   jobs :: Channel<i32> { .capacity = 2 }
+///   jobs.send(1)
+///   jobs.close()
+///   jobs.receive()   // 1
+///   jobs.receive()   // closed
+export receive :: fn<T>(channel: Channel<T>) -> T | Closed {
+    if channel.messages.is_empty() && !channel.closed {
+        await_message(channel)
+    }
+    if channel.messages.is_empty() {
+        return Closed {}
+    }
+    message :: channel.messages.remove_first()
+    wake_first(channel.senders)
+    if !channel.messages.is_empty() {
+        wake_first(channel.receivers)
+    }
+    return message
+}
+
+/// Close `channel`: its receivers take the messages it holds, then get `Closed`.
+/// Closing a closed channel does nothing.
+///
+/// @param channel  the channel to close.
+export close :: fn<T>(channel: Channel<T>) -> void {
+    channel.closed = true
+    for thread in channel.receivers {
+        wake(thread)
+    }
+    for thread in channel.senders {
+        wake(thread)
+    }
+}
+
+// Park until `channel` has room or is closed.
+await_room :: fn<T>(channel: Channel<T>) -> void {
+    me :: current_thread()
+    channel.senders.push(me)
+    defer gave_up_sending(channel, me)
+    for channel.messages.len() >= channel.capacity && !channel.closed {
+        park()
+    }
+    remove_thread(channel.senders, me)
+}
+
+// Park until `channel` holds a message or is closed.
+await_message :: fn<T>(channel: Channel<T>) -> void {
+    me :: current_thread()
+    channel.receivers.push(me)
+    defer gave_up_receiving(channel, me)
+    for channel.messages.is_empty() && !channel.closed {
+        park()
+    }
+    remove_thread(channel.receivers, me)
+}
+
+// `me` stopped waiting for room without taking it, cancelled: room a `receive`
+// woke it for goes to the next sender.
+gave_up_sending :: fn<T>(channel: Channel<T>, me: i64) -> void {
+    if remove_thread(channel.senders, me) && channel.messages.len() < channel.capacity {
+        wake_first(channel.senders)
+    }
+}
+
+// `me` stopped waiting for a message without taking it, cancelled: a message a
+// `send` woke it for goes to the next receiver.
+gave_up_receiving :: fn<T>(channel: Channel<T>, me: i64) -> void {
+    if remove_thread(channel.receivers, me) && !channel.messages.is_empty() {
+        wake_first(channel.receivers)
+    }
+}
+
+// Wake the first of `threads`, when there is one: it takes itself out once it ran.
+wake_first :: fn(threads: i64[]) -> void {
+    if threads.len() > 0 {
+        wake(threads[0])
+    }
+}
+
+// Take `thread` out of `threads`, keeping the others in order ; whether it was
+// there.
+remove_thread :: fn(threads: i64[], thread: i64) -> bool {
+    for i in 0..<threads.len() {
+        if threads[i] == thread {
+            for j in i + 1..<threads.len() {
+                threads[j - 1] = threads[j]
+            }
+            threads.remove_last()
+            return true
+        }
+    }
+    return false
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/string"
+import "std/testing"
+
+@test
+test_channel_gives_back_messages_in_order :: fn() -> void {
+    channel :: Channel<i32> { .capacity = 4 }
+    channel.send(1)
+    channel.send(2)
+    channel.send(3)
+    assert_eq("${channel.receive()} ${channel.receive()} ${channel.receive()}", "1 2 3")
+}
+
+@test
+test_channel_ring_wraps_around :: fn() -> void {
+    channel :: Channel<i32> { .capacity = 2 }
+    channel.send(1)
+    channel.send(2)
+    first :: channel.receive()
+    channel.send(3)
+    assert_eq("${first} ${channel.receive()} ${channel.receive()}", "1 2 3")
+}
+
+@test
+test_unbounded_channel_grows_past_a_wrapped_ring :: fn() -> void {
+    channel :: Channel<i32> { .capacity = UNBOUNDED }
+    channel.send(1)
+    channel.send(2)
+    channel.receive()
+    for n in 3..=6 {
+        channel.send(n)
+    }
+    out: string[]: []
+    for _ in 0..<5 {
+        out.push("${channel.receive()}")
+    }
+    assert_eq(out.join(" "), "2 3 4 5 6")
+}
+
+@test
+test_channel_carries_a_null_message :: fn() -> void {
+    channel :: Channel<i32 | null> { .capacity = 2 }
+    channel.send(null)
+    channel.close()
+    assert_eq("${channel.receive()} ${channel.receive()}", "null closed")
+}
+
+@test
+test_closed_channel_is_drained_before_it_says_closed :: fn() -> void {
+    channel :: Channel<i32> { .capacity = 2 }
+    channel.send(7)
+    channel.close()
+    assert_eq("${channel.receive()} ${channel.receive()}", "7 closed")
+}
+
+// Send `0..<n` on `channel`, then close it.
+produce :: fn(channel: Channel<i32>, n: i32) -> i32 {
+    for i in 0..<n {
+        channel.send(i)
+    }
+    channel.close()
+    return n
+}
+
+@test
+test_full_channel_parks_the_sender_until_a_receive :: fn() -> void {
+    channel :: Channel<i32> { .capacity = 1 }
+    producer :: launch(() -> produce(channel, 5))
+    total: i32 = 0
+    for n in channel {
+        total += n
+    }
+    assert_eq(total, 10)
+    assert_eq("${producer.join()}", "5")
+}
+
+@test
+test_cancelled_receiver_hands_its_message_on :: fn() -> void {
+    channel :: Channel<i32> { .capacity = 1 }
+    first :: launch(() -> channel.receive())
+    second :: launch(() -> channel.receive())
+    yield_now()
+    channel.send(7)
+    first.cancel()
+    assert_eq("${second.join()} ${first.join()}", "7 cancelled")
+}

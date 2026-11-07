@@ -1,0 +1,52 @@
+// C22: `outboxes` belongs to the hub task alone ; channels are shared by construction.
+//
+// corpus: accepted
+// expect: accepted
+
+module "snippet"
+
+import "std/collections"
+import "std/task"
+
+Joined :: struct {
+    id: i64
+    outbox: Channel<string>
+}
+
+Left :: struct {
+    id: i64
+}
+
+Said :: struct {
+    text: string
+}
+
+Event :: Joined | Left | Said
+
+hub :: fn(events: Channel<Event>) -> void {
+    outboxes :: Map<i64, Channel<string>> {}
+    for {
+        e :: events.receive()
+        match e {
+            is Joined -> { outboxes[e.id] = e.outbox }
+            is Left   -> { outboxes.remove(e.id) }
+            is Said   -> {
+                for o in outboxes.values() {
+                    o.send(e.text)
+                }
+            }
+            is Closed -> { return }
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    events :: Channel<Event> { .capacity = 16 }
+    outbox :: Channel<string> { .capacity = 16 }
+    events.send(Joined { .id = 1, .outbox = outbox })
+    events.send(Said { .text = "hi" })
+    events.close()
+    t :: launch(() -> hub(events))
+    t.join()
+    return 0
+}

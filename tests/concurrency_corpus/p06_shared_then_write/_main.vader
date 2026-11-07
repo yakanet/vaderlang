@@ -1,0 +1,20 @@
+// P06: a value written after `shared` took it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Config :: struct {
+    port: i64 = 0
+}
+
+main :: fn() -> i32 {
+    cfg :: Config {}
+    cell :: shared(cfg)
+    cfg.port = 3
+    n :: cell.locked(c -> c.port)
+    return i32(n)
+}

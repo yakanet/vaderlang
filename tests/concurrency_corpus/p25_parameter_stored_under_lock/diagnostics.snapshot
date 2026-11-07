@@ -1,0 +1,1 @@
+[27:5] error[T3129] value written by several tasks: this writes `job.id` while a task it was handed to at line 26 writes it too (through `put`) ; hand on a copy, `job.deep_copy()`, or leave `job` alone once handed on

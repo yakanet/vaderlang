@@ -1,0 +1,1 @@
+[18:5] error[T3129] value written by several tasks: this writes `m.text` while a task it was handed to at line 17 writes it too (through `send`) ; hand on a copy, `m.deep_copy()`, or leave `m` alone once handed on
